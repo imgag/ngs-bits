@@ -19,10 +19,8 @@ struct SomaticReportSettings
 
 	QString report_type;
 
-	bool include_tum_content_clonality;
-	bool include_tum_content_snp_af;
-	bool include_tum_content_histological;
-	bool include_cov_statistics;
+
+	bool include_gap_statistics;
 
 	///returns variant list according filters and include/exclude report_config settings. Include from settings will overwrite FilterCascade entry
 	static VariantList filterVariants(const VariantList& snvs, const SomaticReportSettings& sett);

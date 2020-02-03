@@ -417,7 +417,7 @@ int CnvList::annotationIndexByName(const QByteArray& name, bool throw_on_error) 
 	return matches.at(0);
 }
 
-long long CnvList::totalCnvSize()
+long long CnvList::totalCnvSize() const
 {
 	long long total_size = 0;
 	for(const CopyNumberVariant& variant : variants_)

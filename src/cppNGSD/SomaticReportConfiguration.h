@@ -33,16 +33,11 @@ class CPPNGSDSHARED_EXPORT SomaticReportConfiguration
 public:
 	SomaticReportConfiguration();
 
-	QString createdBy() const;
-	QDateTime createdAt() const;
-
 	///Returns list containing all report variant configurations
 	const QList<SomaticReportVariantConfiguration>& variantConfig() const;
 
 	///Returns variant configuration for variant_index (index referes to index of main variant list!)
 	const SomaticReportVariantConfiguration& variantConfig(int variant_index) const;
-
-	QString targetFile() const;
 
 	QList<int> variantIndices(VariantType type, bool only_selected, QString report_type = QString()) const;
 
@@ -55,19 +50,54 @@ public:
 
 	bool remove(VariantType type, int index);
 
-	void setCreatedBy(QString user);
-	void setCreatedAt(QDateTime time);
-	void setTargetFile(QString target_bed);
-
 	int count();
 
 	void sortByPosition();
+
+	QString targetFile() const;
+	void setTargetFile(QString target_bed);
+
+	QString createdBy() const;
+	void setCreatedBy(QString user);
+
+	QDateTime createdAt() const;
+	void setCreatedAt(QDateTime time);
+
+	bool tumContentByClonality() const;
+	void setTumContentByClonality(bool include_tum_content_clonality);
+
+	bool tumContentByMaxSNV() const;
+	void setTumContentByMaxSNV(bool include_tum_content_snp_af);
+
+	bool tumContentByHistological() const;
+	void setTumContentByHistological(bool include_tum_content_histological);
+
+	bool msiStatus() const;
+	void setMsiStatus(bool include_msi_status);
+
+	bool cnvBurden() const;
+	void setCnvBurden(bool include_cnv_burden);
+
+	bool hrdHint() const;
+	void setHrdHint(bool include_hrd_hint);
+
+	bool cinHint() const;
+	void setCinHint(bool include_cin_hint);
 
 private:
 	QList<SomaticReportVariantConfiguration> variant_config_;
 	QString created_by_;
 	QDateTime created_at_;
 	QString target_file_;
+
+	bool include_tum_content_clonality_;
+	bool include_tum_content_snp_af_;
+	bool include_tum_content_histological_;
+
+	bool include_msi_status_;
+	bool include_cnv_burden_;
+	bool include_hrd_hint_;
+	bool include_cin_hint_;
 };
 
 #endif // SOMATICREPORTCONFIGURATION_H

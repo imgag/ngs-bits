@@ -3466,17 +3466,25 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		query.exec("DELETE FROM `somatic_report_configuration_cnv` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
 
 		//Update somatic report configuration: last_edit_by, last_edit_user and target_file
-		query.prepare("UPDATE `somatic_report_configuration` SET `last_edit_by`= :0, `last_edit_date` = CURRENT_TIMESTAMP, `target_file`= :1 WHERE id=:2");
+		query.prepare("UPDATE `somatic_report_configuration` SET `last_edit_by`= :0, `last_edit_date` = CURRENT_TIMESTAMP, `target_file`= :1, `tum_content_max_af` =:2, `tum_content_max_clonality` =:3, `tum_content_hist` =:4, `msi_status` =:5, `cnv_burden` =:6, `hrd_hint` =:7, `cin_hint` =:8 WHERE id=:9");
 		query.bindValue(0, userId(user_name));
 		if(target_file != "") query.bindValue(1, target_file);
 		else query.bindValue(1, QVariant(QVariant::String));
-		query.bindValue(2, id);
+		query.bindValue(2, config.tumContentByMaxSNV());
+		query.bindValue(3, config.tumContentByClonality());
+		query.bindValue(4, config.tumContentByHistological());
+		query.bindValue(5, config.msiStatus());
+		query.bindValue(6, config.cnvBurden());
+		query.bindValue(7, config.hrdHint());
+		query.bindValue(8, config.cinHint());
+
+		query.bindValue(9, id);
 		query.exec();
 	}
 	else
 	{
 		SqlQuery query = getQuery();
-		query.prepare("INSERT INTO `somatic_report_configuration` (`ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `target_file`) VALUES (:0, :1, :2, :3, :4, CURRENT_TIMESTAMP, :5)");
+		query.prepare("INSERT INTO `somatic_report_configuration` (`ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_hint`, `cin_hint`) VALUES (:0, :1, :2, :3, :4, CURRENT_TIMESTAMP, :5, :6, :7, :8, :9, :10, :11, :12)");
 
 		query.bindValue(0, t_ps_id);
 		query.bindValue(1, n_ps_id);
@@ -3485,6 +3493,15 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		query.bindValue(4, userId(user_name));
 		if(target_file != "") query.bindValue(5, target_file);
 		else query.bindValue(5, QVariant(QVariant::String));
+
+		query.bindValue(6, config.tumContentByMaxSNV());
+		query.bindValue(7, config.tumContentByClonality());
+		query.bindValue(8, config.tumContentByHistological());
+
+		query.bindValue(9, config.msiStatus());
+		query.bindValue(10, config.cnvBurden());
+		query.bindValue(11, config.hrdHint());
+		query.bindValue(12, config.cinHint());
 
 		query.exec();
 		id = query.lastInsertId().toInt();
@@ -3601,11 +3618,20 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 	}
 
 	SqlQuery query = getQuery();
-	query.exec("SELECT u.name, r.created_date, r.target_file FROM somatic_report_configuration r, user u WHERE r.id=" + QByteArray::number(config_id) + " AND u.id = r.created_by");
+	query.exec("SELECT u.name, r.* FROM somatic_report_configuration r, user u WHERE r.id=" + QByteArray::number(config_id) + " AND u.id = r.created_by");
 	query.next();
 	output.setCreatedBy(query.value("name").toString());
 	output.setCreatedAt(query.value("created_date").toDateTime());
 	output.setTargetFile(query.value("target_file").toString());
+
+	output.setTumContentByMaxSNV(query.value("tum_content_max_af").toBool());
+	output.setTumContentByClonality(query.value("tum_content_max_clonality").toBool());
+	output.setTumContentByHistological(query.value("tum_content_hist").toBool());
+
+	output.setMsiStatus(query.value("msi_status").toBool());
+	output.setCnvBurden(query.value("cnv_burden").toBool());
+	output.setHrdHint(query.value("hrd_hint").toBool());
+	output.setCinHint(query.value("cin_hint").toBool());
 
 	//Load SNVs
 	//Resolve variants stored in NGSD and compare to those in VariantList snvs

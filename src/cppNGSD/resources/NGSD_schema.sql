@@ -1070,6 +1070,13 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `last_edit_by` int(11) DEFAULT NULL,
   `last_edit_date` timestamp NULL DEFAULT NULL,
   `target_file` VARCHAR(255) NULL DEFAULT NULL COMMENT 'filename of sub-panel BED file without preceding path. Path must be resolved using target_file_folder in ngs-bits settings.ini',
+  `tum_content_max_af` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include tumor content calculated by median value maximum allele frequency',
+  `tum_content_max_clonality` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include tumor content calculated by maximum CNV clonality',
+  `tum_content_hist` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include histological tumor content estimate ',
+  `msi_status` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include microsatellite instability status',
+  `cnv_burden` BOOLEAN NOT NULL DEFAULT FALSE,
+  `hrd_hint` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'text hint in report whether there is homologous recombination deficiency',
+  `cin_hint` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'text hint in report whether there is chromosomal instability',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `combo_som_rep_conf_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
   CONSTRAINT `somatic_report_config_created_by_user` 

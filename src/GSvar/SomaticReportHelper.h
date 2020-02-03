@@ -312,6 +312,12 @@ public:
 	///Returns maximum tumor clonailty in cnv file
 	static double getCnvMaxTumorClonality(const CnvList& cnvs);
 
+	///Returns CNV burden, i.e. total cnv size divided by genome size in %
+	static double cnvBurden(const CnvList& cnvs)
+	{
+		return cnvs.totalCnvSize() / 3101788170. * 100;
+	}
+
 private:
 	///transforms GSVar coordinates of Variants to VCF INDEL-standard
 	VariantList gsvarToVcf(const VariantList& gsvar_list, const QString& orig_name);
@@ -349,6 +355,8 @@ private:
 		}
 	}
 
+	const SomaticReportSettings& settings_;
+
 	///SNV file
 	QString snv_filename_;
 
@@ -383,10 +391,7 @@ private:
 	VariantList snv_germline_;
 
 	///CNVList for input (filtered) variants
-	CnvList cnvs_filtered_;
-
-	///Report Settings
-	SomaticReportSettings settings_;
+	CnvList cnvs_;
 
 	///Somatic viruses (original file usually in tumor dir)
 	QList<somatic_virus> validated_viruses_;
@@ -432,9 +437,6 @@ private:
 
 	///List of CGI cancer abbreviations that occur ANYWHERE in the report
 	QByteArrayList cgi_acronyms_;
-
-	///Filter list
-	FilterCascade filters_;
 
 	RtfDocument doc_;
 

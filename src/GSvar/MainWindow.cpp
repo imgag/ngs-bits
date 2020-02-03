@@ -2208,6 +2208,7 @@ void MainWindow::generateReportSomaticRTF()
 
 	SomaticReportDialog dlg(somatic_report_settings_, variants_, cnvs_, this); //widget for settings
 	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_)) dlg.enableChoiceReportType(true);
+	if(somatic_report_settings_.report_config.targetFile() != "") dlg.enableGapStatistics(true);
 	if(!dlg.exec()) return;
 	dlg.writeBackSettings();
 

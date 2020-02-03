@@ -25,6 +25,13 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	: variant_config_()
 	, created_by_(Helper::userName())
 	, created_at_(QDateTime::currentDateTime())
+	, include_tum_content_clonality_(false)
+	, include_tum_content_snp_af_(false)
+	, include_tum_content_histological_(false)
+	, include_msi_status_(false)
+	, include_cnv_burden_(false)
+	, include_hrd_hint_(false)
+	, include_cin_hint_(false)
 {
 }
 
@@ -155,4 +162,74 @@ void SomaticReportConfiguration::setTargetFile(QString target_bed)
 void SomaticReportConfiguration::sortByPosition()
 {
 	std::sort(variant_config_.begin(), variant_config_.end(), [](const SomaticReportVariantConfiguration& a, const SomaticReportVariantConfiguration& b){return a.variant_index < b.variant_index;});
+}
+
+bool SomaticReportConfiguration::tumContentByClonality() const
+{
+	return include_tum_content_clonality_;
+}
+
+void SomaticReportConfiguration::setTumContentByClonality(bool include_tum_content_clonality)
+{
+	include_tum_content_clonality_ = include_tum_content_clonality;
+}
+
+bool SomaticReportConfiguration::tumContentByMaxSNV() const
+{
+	return include_tum_content_snp_af_;
+}
+
+void SomaticReportConfiguration::setTumContentByMaxSNV(bool include_tum_content_snp_af)
+{
+	include_tum_content_snp_af_ = include_tum_content_snp_af;
+}
+
+bool SomaticReportConfiguration::tumContentByHistological() const
+{
+	return include_tum_content_histological_;
+}
+
+void SomaticReportConfiguration::setTumContentByHistological(bool include_tum_content_histological)
+{
+	include_tum_content_histological_ = include_tum_content_histological;
+}
+
+bool SomaticReportConfiguration::msiStatus() const
+{
+	return include_msi_status_;
+}
+
+void SomaticReportConfiguration::setMsiStatus(bool include_msi_status)
+{
+	include_msi_status_ = include_msi_status;
+}
+
+bool SomaticReportConfiguration::cnvBurden() const
+{
+	return include_cnv_burden_;
+}
+
+void SomaticReportConfiguration::setCnvBurden(bool include_cnv_burden)
+{
+	include_cnv_burden_ = include_cnv_burden;
+}
+
+bool SomaticReportConfiguration::hrdHint() const
+{
+	return include_hrd_hint_;
+}
+
+void SomaticReportConfiguration::setHrdHint(bool include_hrd_hint)
+{
+	include_hrd_hint_ = include_hrd_hint;
+}
+
+bool SomaticReportConfiguration::cinHint() const
+{
+	return include_cin_hint_;
+}
+
+void SomaticReportConfiguration::setCinHint(bool include_cin_hint)
+{
+	include_cin_hint_ = include_cin_hint;
 }

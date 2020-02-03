@@ -29,6 +29,8 @@ private:
 		S_EQUAL(config_data.last_edit_date, "07.12.2019 17:06:10");
 		S_EQUAL(config_data.target_file, "nowhere.bed");
 
+
+
 		//set somatic report configuration in test NGSD, using 2 SNVs
 		SomaticReportVariantConfiguration var1;
 		var1.variant_index = 1;
@@ -51,6 +53,13 @@ private:
 		som_rep_conf.set(var2);
 		som_rep_conf.setCreatedBy("ahmustm1");
 		som_rep_conf.setTargetFile("/path/to/somewhere.bed");
+		som_rep_conf.setTumContentByMaxSNV(true);
+		som_rep_conf.setTumContentByClonality(true);
+		som_rep_conf.setTumContentByHistological(true);
+		som_rep_conf.setMsiStatus(true);
+		som_rep_conf.setCnvBurden(true);
+		som_rep_conf.setHrdHint(true);
+		som_rep_conf.setCinHint(true);
 
 
 		SomaticReportVariantConfiguration cnv1;
@@ -66,7 +75,19 @@ private:
 		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahmustm1"); //id will be 52 in test NGSD
 
 		QStringList messages = {};
-		QList<SomaticReportVariantConfiguration> res =  db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, messages).variantConfig();
+
+		//Test resolving report config
+		SomaticReportConfiguration res_config = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, messages);
+		IS_TRUE(res_config.tumContentByMaxSNV());
+		IS_TRUE(res_config.tumContentByClonality());
+		IS_TRUE(res_config.tumContentByHistological());
+		IS_TRUE(res_config.msiStatus());
+		IS_TRUE(res_config.cnvBurden());
+		IS_TRUE(res_config.hrdHint());
+		IS_TRUE(res_config.cinHint());
+
+		//Test variants included in resolved report
+		QList<SomaticReportVariantConfiguration> res =  res_config.variantConfig();
 		const SomaticReportVariantConfiguration& res0 = res.at(0);
 		I_EQUAL(res.count(), 3);
 
@@ -102,7 +123,25 @@ private:
 
 		//Update somatic report configuration (by other user), should update target_file and last_edits
 		som_rep_conf.setTargetFile("/path/to/somewhere/else.bed");
+		som_rep_conf.setTumContentByMaxSNV(false);
+		som_rep_conf.setTumContentByClonality(false);
+		som_rep_conf.setTumContentByHistological(false);
+		som_rep_conf.setMsiStatus(false);
+		som_rep_conf.setCnvBurden(false);
+		som_rep_conf.setHrdHint(false);
+		som_rep_conf.setCinHint(false);
+
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahkerra1");
+
+		SomaticReportConfiguration res_config_2 = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, messages);
+		IS_FALSE(res_config_2.tumContentByMaxSNV());
+		IS_FALSE(res_config_2.tumContentByClonality());
+		IS_FALSE(res_config_2.tumContentByHistological());
+		IS_FALSE(res_config_2.msiStatus());
+		IS_FALSE(res_config_2.cnvBurden());
+		IS_FALSE(res_config_2.hrdHint());
+		IS_FALSE(res_config_2.cinHint());
+
 		SomaticReportConfigurationData config_data_2 =  db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_2.created_by, "Max Mustermann");
 		S_EQUAL(config_data_2.last_edit_by, "Sarah Kerrigan");
