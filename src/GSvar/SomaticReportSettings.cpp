@@ -7,7 +7,6 @@ SomaticReportSettings::SomaticReportSettings()
 	, tumor_ps()
 	, normal_ps()
 	, filters()
-	, report_type()
 	, include_gap_statistics(false)
 {
 }

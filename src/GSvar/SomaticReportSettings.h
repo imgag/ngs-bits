@@ -17,9 +17,6 @@ struct SomaticReportSettings
 
 	FilterCascade filters;
 
-	QString report_type;
-
-
 	bool include_gap_statistics;
 
 	///returns variant list according filters and include/exclude report_config settings. Include from settings will overwrite FilterCascade entry

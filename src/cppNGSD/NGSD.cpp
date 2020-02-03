@@ -1219,15 +1219,17 @@ QStringList NGSD::tables() const
 	return db_->driver()->tables(QSql::Tables);
 }
 
-const TableInfo& NGSD::tableInfo(QString table) const
+const TableInfo& NGSD::tableInfo(const QString& table) const
 {
-	if (!tables().contains(table))
-	{
-		THROW(DatabaseException, "Table '" + table + "' not found in NDSD!");
-	}
-
+	//create if necessary
 	if (!infos_.contains(table))
 	{
+		//check table exists
+		if (!tables().contains(table))
+		{
+			THROW(DatabaseException, "Table '" + table + "' not found in NGSD!");
+		}
+
 		TableInfo output;
 		output.setTable(table);
 
@@ -1269,18 +1271,22 @@ const TableInfo& NGSD::tableInfo(QString table) const
 			else if(type.startsWith("enum("))
 			{
 				info.type = TableFieldInfo::ENUM;
-				info.type_restiction = getEnum(table, info.name);
+				info.type_constraints.valid_strings = getEnum(table, info.name);
 			}
 			else if(type.startsWith("varchar("))
 			{
 				info.type = TableFieldInfo::VARCHAR;
-				info.type_restiction = Helper::toInt(type.mid(8, type.length()-9), "VARCHAR length");
+				info.type_constraints.max_length = Helper::toInt(type.mid(8, type.length()-9), "VARCHAR length");
 
 				//password column
 				if (table=="user" && info.name=="password")
 				{
 					info.type = TableFieldInfo::VARCHAR_PASSWORD;
 				}
+
+				//special constraints
+				if (table=="mid" && info.name=="sequence") info.type_constraints.regexp = QRegularExpression("^[ACGT]*$");
+				if (table=="processing_system" && info.name=="name_short") info.type_constraints.regexp = QRegularExpression("^[A-Za-z0-9_-\\.]*$");
 			}
 			else
 			{
@@ -3805,5 +3811,255 @@ QString ReportConfigurationCreationData::toText() const
 
 QString TableFieldInfo::toString() const
 {
-	return "TableInfo(" + name + "): index=" + QString::number(index) + "  type=" + QString::number(type) +" is_nullable=" + (is_nullable ? "yes" : "no") + " is_unsigned=" + (is_unsigned ? "yes" : "no") + " type_restiction=" + type_restiction.toString() + " default_value: " + default_value + " is_primary_key=" + (is_primary_key ? "yes" : "no") + " fk_table=" + fk_table + " fk_field=" + fk_field;
+	return "TableFieldInfo(" + name + "): index=" + QString::number(index) + "  type=" + QString::number(type) +" is_nullable=" + (is_nullable ? "yes" : "no") + " is_unsigned=" + (is_unsigned ? "yes" : "no") + " default_value: " + default_value + " is_primary_key=" + (is_primary_key ? "yes" : "no") + " fk_table=" + fk_table + " fk_field=" + fk_field;
+}
+
+
+QStringList NGSD::checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const
+{
+	QStringList errors;
+
+	const TableFieldInfo& field_info = tableInfo(table).fieldInfo(field);
+
+	switch(field_info.type)
+	{
+		case TableFieldInfo::INT:
+			//check null
+			if (value.isEmpty() && !field_info.is_nullable)
+			{
+				errors << "Cannot be empty!";
+			}
+
+			//check if numeric
+			if (!value.isEmpty())
+			{
+				bool ok = true;
+				int value_numeric = value.toInt(&ok);
+				if (!ok)
+				{
+					errors << "Cannot be converted to a integer number!";
+				}
+				else if (field_info.is_unsigned && value_numeric<0)
+				{
+					errors << "Must not be negative!";
+				}
+			}
+			break;
+
+		case TableFieldInfo::FLOAT:
+			//check null
+			if (value.isEmpty() && !field_info.is_nullable)
+			{
+				errors << "Cannot be empty!";
+			}
+
+			//check if numeric
+			if (!value.isEmpty())
+			{
+				bool ok = true;
+				double value_numeric = value.toDouble(&ok);
+				if (!ok)
+				{
+					errors << "Cannot be converted to a floating-point number!";
+				}
+				else if (field_info.is_unsigned && value_numeric<0)
+				{
+					errors << "Must not be negative!";
+				}
+			}
+			break;
+
+		case TableFieldInfo::DATE:
+			//check null
+			if (value.isEmpty() && !field_info.is_nullable)
+			{
+				errors << "Cannot be empty!";
+			}
+
+			//check if valid date
+			if (!value.isEmpty())
+			{
+				QDate date = QDate::fromString(value, Qt::ISODate);
+				if (!date.isValid())
+				{
+					errors << "Invalid format! The correct format is YYYY-MM-DD";
+				}
+			}
+			break;
+
+		case TableFieldInfo::VARCHAR:
+			//check not empty
+			if (!field_info.is_nullable && value.isEmpty())
+			{
+				errors << "Field must not be empty!";
+			}
+
+			//check length
+			if (value.length()>field_info.type_constraints.max_length)
+			{
+				errors << "Maximum length is " + QString::number(field_info.type_constraints.max_length);
+			}
+
+			//check regexp
+			if (!field_info.type_constraints.regexp.pattern().isEmpty())
+			{
+				if (!value.contains(field_info.type_constraints.regexp))
+				{
+					errors << "Regular expression mismatch of value '" + value + "' (pattern=" + field_info.type_constraints.regexp.pattern() + ")";
+				}
+			}
+
+			//check unique
+			if (check_unique && field_info.is_unique)
+			{
+				SqlQuery q = getQuery();
+				q.prepare("SELECT id FROM " + table + " WHERE " + field + "=:0");
+				q.bindValue(0, value);
+				q.exec();
+				if (q.size()>0)
+				{
+					errors << "Value already present in database (this field is unique!)";
+				}
+			}
+			break;
+
+		case TableFieldInfo::VARCHAR_PASSWORD:
+			//check not empty
+			if (!field_info.is_nullable && value.isEmpty())
+			{
+				errors << "Field must not be empty!";
+			}
+
+			//check length
+			if (value.length()>field_info.type_constraints.max_length)
+			{
+				errors << "Maximum length is " + QString::number(field_info.type_constraints.max_length);
+			}
+			if (value.length()<8)
+			{
+				errors << "Minimum length is 8";
+			}
+
+			//check composition
+			{
+				bool has_upper = false;
+				bool has_lower = false;
+				bool has_digit = false;
+				bool has_symbol = false;
+				foreach (const QChar& character, value)
+				{
+					if (character.isUpper())
+					{
+						has_upper = true;
+					}
+					else if (character.isLower())
+					{
+						has_lower = true;
+					}
+					else if (character.isDigit())
+					{
+						has_digit = true;
+					}
+					else
+					{
+						has_symbol = true;
+					}
+				}
+				if (!has_lower || !has_upper || !has_digit || !has_symbol)
+				{
+					errors << "Must contains at least one letter of each class: upper-case, lower-case, digit, symbol";
+				}
+			}
+			break;
+
+		case TableFieldInfo::TEXT:
+			//nothing to check
+			break;
+
+		case TableFieldInfo::BOOL:
+			if (value!="0" && value!="1")
+			{
+				errors << "Can only be '0' or '1'!";
+			}
+			break;
+
+		case TableFieldInfo::ENUM:
+			//check null
+			if (value.isEmpty())
+			{
+				if (!field_info.is_nullable)
+				{
+					errors << "Cannot be empty!";
+				}
+			}
+
+			//values
+			if (!value.isEmpty())
+			{
+				if (!field_info.type_constraints.valid_strings.contains(value))
+				{
+					errors << "Invalid value '" + value + "'. Valid are: '" + field_info.type_constraints.valid_strings.join("', '") + "'";
+				}
+			}
+			break;
+
+		case TableFieldInfo::DATETIME:
+			//check null
+			if (value.isEmpty() && !field_info.is_nullable)
+			{
+				errors << "Cannot be empty!";
+			}
+
+			//check if valid date and time
+			if (!value.isEmpty())
+			{
+				QDateTime date = QDateTime::fromString(value, "YYYY-MM-DD HH:mm:SS");
+				if (!date.isValid())
+				{
+					errors << "Invalid format! The correct format is YYYY-MM-DD HH:mm:SS";
+				}
+			}
+			break;
+
+		case TableFieldInfo::TIMESTAMP:
+			//check null
+			if (value.isEmpty() && !field_info.is_nullable)
+			{
+				errors << "Cannot be empty!";
+			}
+
+			//check if valid date and time
+			if (!value.isEmpty())
+			{
+				QDateTime date = QDateTime::fromString(value, "YYYY-MM-DD HH:mm:SS");
+				if (!date.isValid())
+				{
+					errors << "Invalid format! The correct format is YYYY-MM-DD HH:mm:SS";
+				}
+			}
+			break;
+
+		case TableFieldInfo::FK:
+			//check null
+			if (value.isEmpty() && !field_info.is_nullable)
+			{
+				errors << "Cannot be empty!";
+			}
+
+			//check valid foreign key
+			if (!value.isEmpty())
+			{
+				QString name = getValue("SELECT " + field_info.fk_name_sql + " FROM " + field_info.fk_table + " WHERE " + field_info.fk_field + "=:0", true, value).toString();
+				if (name.isEmpty())
+				{
+					errors << "Invalid foreign-key reference! Table " + field_info.fk_table + " does not contains a row with " + field_info.fk_field + "=" + value;
+				}
+			}
+			break;
+
+		default:
+			THROW(ProgrammingException, "Unhandled table field type '" + QString::number(field_info.type) + "' in check of table/field " + table + "/" + field);
+	}
+
+	return errors;
 }

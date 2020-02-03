@@ -2490,6 +2490,91 @@ QString MainWindow::selectGene()
 	return selector->text();
 }
 
+void MainWindow::importBatch(QString title, QString text, QString table, QStringList fields)
+{
+	//show dialog
+	QTextEdit* edit = new QTextEdit();
+	edit->setAcceptRichText(false);
+	auto dlg = GUIHelper::createDialog(edit, title, text, true);
+	if (dlg->exec()!=QDialog::Accepted) return;
+
+	//prepare query
+	QString query_str = "INSERT INTO " + table + " (" + fields.join(", ") + ") VALUES (";
+	for(int i=0; i<fields.count(); ++i)
+	{
+		if (i!=0) query_str += ", ";
+		query_str += ":" + QString::number(i);
+	}
+	query_str += ")";
+
+	NGSD db;
+	SqlQuery q_insert = db.getQuery();
+	q_insert.prepare(query_str);
+
+	//check and insert
+	try
+	{
+		db.transaction();
+
+		int imported = 0;
+		QStringList lines = edit->toPlainText().split("\n");
+		foreach(QString line, lines)
+		{
+			line = line.trimmed();
+			if (line.isEmpty() || line[0]=='#') continue;
+
+			QStringList parts = line.split("\t");
+
+			//check tab-separated parts count
+			if (parts.count()!=fields.count()) THROW(ArgumentException, "Error: line with more/less than " + QString::number(fields.count()) + " tab-separated parts.\n\nLine:\n" + line);
+
+			//check and bind
+			for(int i=0; i<fields.count(); ++i)
+			{
+				const TableFieldInfo& field_info = db.tableInfo(table).fieldInfo(fields[i]);
+
+				//FK: name to id
+				if (field_info.type==TableFieldInfo::FK && !parts[i].isEmpty())
+				{
+					parts[i] = db.getValue("SELECT " + field_info.fk_field + " FROM " + field_info.fk_table + " WHERE " + field_info.fk_name_sql + "=:0", false, parts[i]).toString();
+				}
+
+				//accept German dates as well
+				if (field_info.type==TableFieldInfo::DATE && !parts[i].isEmpty())
+				{
+					QDate date_german = QDate::fromString(parts[i], "dd.MM.yyyy");
+					if (date_german.isValid())
+					{
+						parts[i] = date_german.toString(Qt::ISODate);
+					}
+				}
+
+				//check errors
+				QStringList errors = db.checkValue(table, fields[i], parts[i], true);
+				if (errors.count()>0)
+				{
+					THROW(ArgumentException, "Error: Invalid value '" + parts[i] + "' for field '" + fields[i] + "':\n" + errors.join("\n") + "\n\nLine:\n" + line);
+				}
+
+				q_insert.bindValue(i, parts[i].isEmpty() && field_info.is_nullable ? QVariant() : parts[i]);
+			}
+
+			//insert
+			q_insert.exec();
+			++imported;
+		}
+
+		db.commit();
+
+		QMessageBox::information(this, title, "Imported " + QString::number(imported) + " table rows.");
+	}
+	catch (Exception& e)
+	{
+		db.rollback();
+		QMessageBox::warning(this, title + " - failed", "Message:\n" + e.message());
+	}
+}
+
 void MainWindow::on_actionOpenGeneTabByName_triggered()
 {
 	QString symbol = selectGene();
@@ -2732,61 +2817,20 @@ void MainWindow::on_actionUsers_triggered()
 
 void MainWindow::on_actionImportMids_triggered()
 {
-	//show dialog
-	QTextEdit* edit = new QTextEdit();
-	auto dlg = GUIHelper::createDialog(edit, "Import MIDs", "Batch import of MIDs. Please enter MIDs as tab-delimited text into this textarea.\nExample:\n\nillumina 1 → CGTGAT\nillumina 2 → AGATAC\nillumina 3 → GTCATG", true);
-	if (dlg->exec()!=QDialog::Accepted) return;
+	importBatch("Import MIDs",
+				"Batch import of MIDs. Please enter MIDs as tab-delimited text.\nExample:\n\nillumina 1 → CGTGAT\nillumina 2 → AGATAC\nillumina 3 → GTCATG",
+				 "mid",
+				QStringList() << "name" << "sequence"
+				);
+}
 
-	//prepare queries
-	NGSD db;
-	SqlQuery q_check = db.getQuery();
-	q_check.prepare("SELECT name FROM mid WHERE LOWER(name)=:0");
-	SqlQuery q_insert = db.getQuery();
-	q_insert.prepare("INSERT INTO mid (name, sequence) VALUES (:0, :1)");
-
-	//check and insert
-	try
-	{
-		db.transaction();
-
-		int imported = 0;
-		QStringList lines = edit->toPlainText().split("\n");
-		foreach(QString line, lines)
-		{
-			line = line.trimmed();
-			if (line.isEmpty() || line[0]=='#') continue;
-
-			//invlaid line
-			QStringList parts = line.split("\t");
-			if (parts.count()<2) THROW(ArgumentException, "Error: line with more/less than 2 tab-separated parts.\n\nLine:\n" + line);
-
-			QString name = parts[0];
-			QString sequence = parts[1];
-
-			//check if already in NGSD
-			q_check.bindValue(0, name.toLower());
-			q_check.exec();
-			if (q_check.next()) THROW(ArgumentException, "Error: MID name '" + q_check.value("name").toString() + "' already exists in NGSD!\n\nLine:\n" + line);
-
-			//check MID sequence
-			if (!sequence.contains(QRegularExpression("^[ACGT]+$"))) THROW(ArgumentException, "Error: MID sequence '" + sequence + "' is invalid!\n\nLine:\n" + line);
-
-			//insert
-			q_insert.bindValue(0, name);
-			q_insert.bindValue(1, sequence);
-			q_check.exec();
-			++imported;
-		}
-
-		db.commit();
-
-		QMessageBox::information(this, "MIDs imported", "Imported " + QString::number(imported) + " MIDs.");
-	}
-	catch (Exception& e)
-	{
-		db.rollback();
-		QMessageBox::warning(this, "Import failed", "NGSD import failed.\nMessage:\n" + e.message());
-	}
+void MainWindow::on_actionImportSamples_triggered()
+{
+	importBatch("Import samples",
+				"Batch import of samples. Must contain the following tab-separated fields:\nname, name external, sender, received, received by, sample type, tumor, ffpe, species, concentration [ng/ul], volume, 260/280, 260/230, RIN/DIN, gender, quality, comment",
+				"sample",
+				QStringList() << "name" << "name_external" << "sender_id" << "received" << "receiver_id" << "sample_type" << "tumor" << "ffpe" << "species_id" << "concentration" << "volume" << "od_260_280" << "od_260_230" << "integrity_number" << "gender" << "quality" << "comment"
+				);
 }
 
 void MainWindow::on_actionGenderXY_triggered()

@@ -111,7 +111,7 @@ void DBEditor::createGUI()
 		{
 			QComboBox* selector = new QComboBox(this);
 
-			QStringList items = field_info.type_restiction.toStringList();
+			QStringList items = field_info.type_constraints.valid_strings;
 			if (field_info.is_nullable) items.prepend("");
 			selector->addItems(items);
 
@@ -351,27 +351,7 @@ void DBEditor::check(QString field)
 	{
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
-
-		//check null
-		if (value.isEmpty() && !field_info.is_nullable)
-		{
-			errors << "Cannot be empty!";
-		}
-
-		//check if numeric
-		if (!value.isEmpty())
-		{
-			bool ok = true;
-			int value_numeric = value.toInt(&ok);
-			if (!ok)
-			{
-				errors << "Cannot be converted to a integer number!";
-			}
-			else if (field_info.is_unsigned && value_numeric<0)
-			{
-				errors << "Must not be negative!";
-			}
-		}
+		errors = db_.checkValue(table_, field, value, id_==-1);
 
 		//update GUI
 		edit->setToolTip(errors.join("\n"));
@@ -381,27 +361,7 @@ void DBEditor::check(QString field)
 	{
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
-
-		//check null
-		if (value.isEmpty() && !field_info.is_nullable)
-		{
-			errors << "Cannot be empty!";
-		}
-
-		//check if numeric
-		if (!value.isEmpty())
-		{
-			bool ok = true;
-			double value_numeric = value.toDouble(&ok);
-			if (!ok)
-			{
-				errors << "Cannot be converted to a floating-point number!";
-			}
-			else if (field_info.is_unsigned && value_numeric<0)
-			{
-				errors << "Must not be negative!";
-			}
-		}
+		errors = db_.checkValue(table_, field, value, id_==-1);
 
 		//update GUI
 		edit->setToolTip(errors.join("\n"));
@@ -411,22 +371,7 @@ void DBEditor::check(QString field)
 	{
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
-
-		//check null
-		if (value.isEmpty() && !field_info.is_nullable)
-		{
-			errors << "Cannot be empty!";
-		}
-
-		//check if valid date
-		if (!value.isEmpty())
-		{
-			QDate date = QDate::fromString(value, Qt::ISODate);
-			if (!date.isValid())
-			{
-				errors << "Use the ISO format: yyyy-mm-dd";
-			}
-		}
+		errors = db_.checkValue(table_, field, value, id_==-1);
 
 		//update GUI
 		edit->setToolTip(errors.join("\n"));
@@ -436,28 +381,7 @@ void DBEditor::check(QString field)
 	{
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
-
-		//check not empty
-		if (!field_info.is_nullable && value.isEmpty())
-		{
-			errors << "Field must not be empty!";
-		}
-
-		//check length
-		if (value.length()>field_info.type_restiction.toInt())
-		{
-			errors << "Maximum length is: " + field_info.type_restiction.toString();
-		}
-
-		//check unique
-		if (field_info.is_unique)
-		{
-			QStringList values = db_.getValues("SELECT " + field_info.name + " FROM " + table_ + " WHERE id!=" + QString::number(id_));
-			if (values.contains(value))
-			{
-				errors << "Value already present (this field is unique!)";
-			}
-		}
+		errors = db_.checkValue(table_, field, value, id_==-1);
 
 		//update GUI
 		edit->setToolTip(errors.join("\n"));
@@ -467,53 +391,9 @@ void DBEditor::check(QString field)
 	{
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
-
 		if (value!=NGSD::passordReplacement() || id_==-1)
 		{
-			//check not empty
-			if (!field_info.is_nullable && value.isEmpty())
-			{
-				errors << "Field must not be empty!";
-			}
-
-			//check length
-			if (value.length()>field_info.type_restiction.toInt())
-			{
-				errors << "Maximum length is: " + field_info.type_restiction.toString();
-			}
-			if (value.length()<8)
-			{
-				errors << "Minimum length is: " + field_info.type_restiction.toString();
-			}
-
-			//check composition
-			bool has_upper = false;
-			bool has_lower = false;
-			bool has_digit = false;
-			bool has_symbol = false;
-			foreach (const QChar& character, value)
-			{
-				if (character.isUpper())
-				{
-					has_upper = true;
-				}
-				else if (character.isLower())
-				{
-					has_lower = true;
-				}
-				else if (character.isDigit())
-				{
-					has_digit = true;
-				}
-				else
-				{
-					has_symbol = true;
-				}
-			}
-			if (!has_lower || !has_upper || !has_digit || !has_symbol)
-			{
-				errors << "Must contains at least one letter of each class: upper-case, lower-case, digit, symbol";
-			}
+			errors = db_.checkValue(table_, field, value, id_==-1);
 		}
 
 		//update GUI
@@ -522,6 +402,7 @@ void DBEditor::check(QString field)
 	}
 	else
 	{
+		//the other fields don't need to be checked
 		//qDebug() << "Unhandled table field type '" + QString::number(field_info.type) + "' in check(QString)!";
 	}
 
