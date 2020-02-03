@@ -7,6 +7,7 @@
 #include <QSharedPointer>
 #include <QTextStream>
 #include <QDateTime>
+#include <QRegularExpression>
 #include "VariantList.h"
 #include "BedFile.h"
 #include "Transcript.h"
@@ -18,6 +19,14 @@
 #include "DBTable.h"
 #include "ReportConfiguration.h"
 #include "CnvList.h"
+
+///Type constraints class for database fields
+struct TableFieldConstraints
+{
+	QStringList valid_strings; //ENUM (from schema)
+	int max_length; //VARCHAR (from schema)
+	QRegularExpression regexp; //VARCHAR
+};
 
 ///General database field information.
 struct CPPNGSDSHARED_EXPORT TableFieldInfo
@@ -44,7 +53,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 	Type type;
 	bool is_nullable;
 	bool is_unsigned;
-	QVariant type_restiction; //length of VARCHAR and values of ENUM
+	TableFieldConstraints type_constraints;
 	QString default_value;
 
 	//index+key info
@@ -60,6 +69,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 	bool is_readonly = false; //shown, but not editable (after it is initially set)
 	QString tooltip; //tooltip taken from column comment of the SQL database
 
+	///String representation of the table field
 	QString toString() const;
 };
 
@@ -87,17 +97,17 @@ class CPPNGSDSHARED_EXPORT TableInfo
 		}
 
 		///Returns information about a specific field.
-		const TableFieldInfo& fieldInfo(QString field) const
+		const TableFieldInfo& fieldInfo(const QString& field_name) const
 		{
 			foreach(const TableFieldInfo& entry, field_infos_)
 			{
-				if (entry.name==field)
+				if (entry.name==field_name)
 				{
 					return entry;
 				}
 			}
 
-			THROW(DatabaseException, "Field '" + field + "' not found in NGSD table '" + table_ + "'!");
+			THROW(DatabaseException, "Field '" + field_name + "' not found in NGSD table '" + table_ + "'!");
 		}
 
 		///Returns the all field names.
@@ -364,7 +374,9 @@ public:
 	///Returns the table list.
 	QStringList tables() const;
 	///Returns information about all fields of a table.
-	const TableInfo& tableInfo(QString table) const;
+	const TableInfo& tableInfo(const QString& table) const;
+	///Checks if the value is valid for the table/field when used in an SQL query. Returns a non-empty error list in case it is not. 'check_unique' must not be used for existing entries.
+	QStringList checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const;
 
 	///Creates a DBTable with data from an SQL query.
 	DBTable createTable(QString table, QString query, int pk_col_index=0);

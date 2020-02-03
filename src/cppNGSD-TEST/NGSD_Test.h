@@ -723,17 +723,17 @@ private slots:
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 29);
+		I_EQUAL(ps_table.columnCount(), 30);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 68);
+		I_EQUAL(ps_table.columnCount(), 69);
 		//add report config
 		params.add_report_config = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 5);
-		I_EQUAL(ps_table.columnCount(), 69);
+		I_EQUAL(ps_table.columnCount(), 70);
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -749,7 +749,7 @@ private slots:
 		params.run_finished = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 69);
+		I_EQUAL(ps_table.columnCount(), 70);
 
 		//reportConfigId
 		QString ps_id = db.processedSampleId("NA12878_03");
@@ -912,6 +912,29 @@ private slots:
 
 		//userEmail
 		S_EQUAL(db.userEmail(101), "no.mail2@max.de");
+
+		//checkValue
+		I_EQUAL(db.checkValue("sample", "name", "NA12878", false).count(), 0); //VARCHAR
+		I_EQUAL(db.checkValue("sample", "name", "NA12878", true).count(), 1); //VARCHAR: unique
+		I_EQUAL(db.checkValue("mid", "sequence", "", true).count(), 1); //VARCHAR: not nullable > not empty
+		I_EQUAL(db.checkValue("mid", "sequence", "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT", true).count(), 1); //VARCHAR: too long
+		I_EQUAL(db.checkValue("mid", "sequence", "ACGTX", true).count(), 1); //VARCHAR: regexp mismatch
+		I_EQUAL(db.checkValue("mid", "sequence", "ACGT", true).count(), 0); //VARCHAR
+
+		I_EQUAL(db.checkValue("sample", "disease_status", "Affected", true).count(), 0); //ENUM
+		I_EQUAL(db.checkValue("sample", "disease_status", "Typo", true).count(), 1); //ENUM: not valid
+
+		I_EQUAL(db.checkValue("sample", "species_id", "1", true).count(), 0); //FK
+
+		I_EQUAL(db.checkValue("sample", "concentration", "1", true).count(), 0); //FLOAT
+		I_EQUAL(db.checkValue("sample", "concentration", "1a", true).count(), 1); //FLOAT: not convertable
+
+		I_EQUAL(db.checkValue("sample", "tumor", "0", true).count(), 0); //BOOL
+		I_EQUAL(db.checkValue("sample", "tumor", "1", true).count(), 0); //BOOL
+		I_EQUAL(db.checkValue("sample", "tumor", "2", true).count(), 1); //BOOL: not convertable
+
+		I_EQUAL(db.checkValue("sample", "received", "1977-12-01", true).count(), 0); //DATE
+		I_EQUAL(db.checkValue("sample", "received", "somewhen", true).count(), 1); //DATE: not convertable
 	}
 
 	//Test for debugging (without initialization because of speed)

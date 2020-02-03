@@ -74,6 +74,9 @@ public:
 	///Lets the user select a gene. If the user aborts, "" is returned.
 	static QString selectGene();
 
+	///Performs batch import of table rows
+	void importBatch(QString title, QString text, QString table, QStringList fields);
+
 public slots:
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="");
@@ -111,6 +114,7 @@ public slots:
 	void on_actionSpecies_triggered();
 	void on_actionUsers_triggered();
 	void on_actionImportMids_triggered();
+	void on_actionImportSamples_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();

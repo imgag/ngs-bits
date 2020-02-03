@@ -449,6 +449,7 @@
       <string>Batch import</string>
      </property>
      <addaction name="actionImportMids"/>
+     <addaction name="actionImportSamples"/>
     </widget>
     <addaction name="menuGenes_2"/>
     <addaction name="menuPhenotypes_2"/>
@@ -985,6 +986,11 @@
   <action name="actionImportMids">
    <property name="text">
     <string>MIDs</string>
+   </property>
+  </action>
+  <action name="actionImportSamples">
+   <property name="text">
+    <string>Samples</string>
    </property>
   </action>
  </widget>
