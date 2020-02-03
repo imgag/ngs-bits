@@ -927,19 +927,16 @@ private slots:
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 29);
 		I_EQUAL(ps_table.columnCount(), 30);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 68);
 		I_EQUAL(ps_table.columnCount(), 69);
 		//add report config
 		params.add_report_config = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 69);
 		I_EQUAL(ps_table.columnCount(), 70);
 		//apply all search parameters
 		params.s_name = "NA12878";
@@ -956,7 +953,6 @@ private slots:
 		params.run_finished = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 69);
 		I_EQUAL(ps_table.columnCount(), 70);
 
 		//reportConfigId
