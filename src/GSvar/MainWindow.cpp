@@ -521,12 +521,12 @@ void MainWindow::delayedInitialization()
 		try
 		{
 			NGSD db;
-			int user_id = db.userId(user_name);
+			int user_id = db.userId(user_name, true);
 			db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(user_id) + "'");
 		}
 		catch (DatabaseException& e)
 		{
-			QMessageBox::warning(this, "Unknown user", "There is not NGSD accout with user name '" + user_name + "'.\n\nPlease contact the NGSD adminstrator to create an account!");
+			QMessageBox::warning(this, "Unknown user", "There is no active NGSD account with user name '" + user_name + "'.\n\nPlease contact the NGSD adminstrator to create an account!");
 			close();
 			return;
 		}
@@ -2557,6 +2557,17 @@ void MainWindow::on_actionOpenProjectTab_triggered()
 
 void MainWindow::on_actionStatistics_triggered()
 {
+	try
+	{
+		NGSD db;
+		db.checkUserHasAccess(QStringList() << "admin");
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Permissions error", e.message());
+		return;
+	}
+
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	NGSD db;
@@ -2701,13 +2712,14 @@ void MainWindow::on_actionSpecies_triggered()
 
 void MainWindow::on_actionUsers_triggered()
 {
-	//check that user is admin
-	QString user_name = Helper::userName();
-	NGSD db;
-	QString user_id = db.getValue("SELECT id FROM user WHERE user_role='admin' AND user_id=:0", true, user_name).toString();
-	if (user_id.isEmpty())
+	try
 	{
-		QMessageBox::warning(this, "Access denied", "Your user '" + user_name + "' has no admin rights in the NGSD!");
+		NGSD db;
+		db.checkUserHasAccess(QStringList() << "admin");
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Permissions error", e.message());
 		return;
 	}
 
@@ -2715,6 +2727,65 @@ void MainWindow::on_actionUsers_triggered()
 	DBTableAdministration* widget = new DBTableAdministration("user");
 	auto dlg = GUIHelper::createDialog(widget, "User administration");
 	dlg->exec();
+}
+
+void MainWindow::on_actionImportMids_triggered()
+{
+	//show dialog
+	QTextEdit* edit = new QTextEdit();
+	auto dlg = GUIHelper::createDialog(edit, "Import MIDs", "Batch import of MIDs. Please enter MIDs as tab-delimited text into this textarea.\nExample:\n\nillumina 1 → CGTGAT\nillumina 2 → AGATAC\nillumina 3 → GTCATG", true);
+	if (dlg->exec()!=QDialog::Accepted) return;
+
+	//prepare queries
+	NGSD db;
+	SqlQuery q_check = db.getQuery();
+	q_check.prepare("SELECT name FROM mid WHERE LOWER(name)=:0");
+	SqlQuery q_insert = db.getQuery();
+	q_insert.prepare("INSERT INTO mid (name, sequence) VALUES (:0, :1)");
+
+	//check and insert
+	try
+	{
+		db.transaction();
+
+		int imported = 0;
+		QStringList lines = edit->toPlainText().split("\n");
+		foreach(QString line, lines)
+		{
+			line = line.trimmed();
+			if (line.isEmpty() || line[0]=='#') continue;
+
+			//invlaid line
+			QStringList parts = line.split("\t");
+			if (parts.count()<2) THROW(ArgumentException, "Error: line with more/less than 2 tab-separated parts.\n\nLine:\n" + line);
+
+			QString name = parts[0];
+			QString sequence = parts[1];
+
+			//check if already in NGSD
+			q_check.bindValue(0, name.toLower());
+			q_check.exec();
+			if (q_check.next()) THROW(ArgumentException, "Error: MID name '" + q_check.value("name").toString() + "' already exists in NGSD!\n\nLine:\n" + line);
+
+			//check MID sequence
+			if (!sequence.contains(QRegularExpression("^[ACGT]+$"))) THROW(ArgumentException, "Error: MID sequence '" + sequence + "' is invalid!\n\nLine:\n" + line);
+
+			//insert
+			q_insert.bindValue(0, name);
+			q_insert.bindValue(1, sequence);
+			q_check.exec();
+			++imported;
+		}
+
+		db.commit();
+
+		QMessageBox::information(this, "MIDs imported", "Imported " + QString::number(imported) + " MIDs.");
+	}
+	catch (Exception& e)
+	{
+		db.rollback();
+		QMessageBox::warning(this, "Import failed", "NGSD import failed.\nMessage:\n" + e.message());
+	}
 }
 
 void MainWindow::on_actionGenderXY_triggered()

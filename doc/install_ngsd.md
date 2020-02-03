@@ -43,6 +43,7 @@ In order to optimize the performance of MySQL for the NGSD, you can adapt/add th
 		innodb_lru_scan_depth = 512
 		max_allowed_packet = 64M
 		wait_timeout = 108000
+		max_connections = 300
 
 
 Restart the server:
@@ -97,23 +98,3 @@ The resulting VCF files have to be sorted (e.g. using `VcfStreamSort`) and then 
 		> tabix -p vcf [sorted_vcf_gzip]
 		
 For variant annotation `VcfAnnotateFromVcf` and `VcfAnnotateFromBed` can be used. 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

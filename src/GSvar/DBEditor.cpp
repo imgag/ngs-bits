@@ -189,6 +189,8 @@ void DBEditor::fillForm()
 	{
 		fillFormWithItemData();
 	}
+
+	checkAllFields();
 }
 
 void DBEditor::fillFormWithDefaultData()
@@ -334,9 +336,14 @@ void DBEditor::fillFormWithItemData()
 
 void DBEditor::check()
 {
+	QString field = sender()->objectName().remove("editor_");
+	check(field);
+}
+
+void DBEditor::check(QString field)
+{
 	QStringList errors;
 
-	QString field = sender()->objectName().remove("editor_");
 	const TableFieldInfo& field_info = db_.tableInfo(table_).fieldInfo(field);
 	//qDebug() << __FUNCTION__ << __LINE__ << field  << field_info.toString();
 
@@ -430,6 +437,12 @@ void DBEditor::check()
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
 
+		//check not empty
+		if (!field_info.is_nullable && value.isEmpty())
+		{
+			errors << "Field must not be empty!";
+		}
+
 		//check length
 		if (value.length()>field_info.type_restiction.toInt())
 		{
@@ -455,8 +468,14 @@ void DBEditor::check()
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
 
-		if (value!=NGSD::passordReplacement() && id_!=-1)
+		if (value!=NGSD::passordReplacement() || id_==-1)
 		{
+			//check not empty
+			if (!field_info.is_nullable && value.isEmpty())
+			{
+				errors << "Field must not be empty!";
+			}
+
 			//check length
 			if (value.length()>field_info.type_restiction.toInt())
 			{
@@ -503,7 +522,7 @@ void DBEditor::check()
 	}
 	else
 	{
-		THROW(ProgrammingException, "Unhandled table field type '" + QString::number(field_info.type) + "'!");
+		//qDebug() << "Unhandled table field type '" + QString::number(field_info.type) + "' in check(QString)!";
 	}
 
 	//set errors
@@ -511,6 +530,16 @@ void DBEditor::check()
 
 	//update dialog
 	updateParentDialogButtonBox();
+}
+
+void DBEditor::checkAllFields()
+{
+	QList<QWidget*> editors = findChildren<QWidget*>(QRegularExpression("^editor_.*"));
+	foreach(QWidget* editor, editors)
+	{
+		QString field = editor->objectName().replace("editor_", "");
+		check(field);
+	}
 }
 
 void DBEditor::editDate()
@@ -531,6 +560,14 @@ void DBEditor::editDate()
 	{
 		edit->setText(widget->selectedDate().toString(Qt::ISODate));
 	}
+}
+
+void DBEditor::showEvent(QShowEvent* event)
+{
+	QWidget::showEvent(event);
+
+	//the widget can be created before the parent dialog, thus we need to update the button box once the dialog is shown
+	updateParentDialogButtonBox();
 }
 
 bool DBEditor::dataIsValid() const

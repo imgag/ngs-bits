@@ -9,8 +9,7 @@ NGSD:
     - make page where TA can select gaps (by gene/DX number)
         - also allow copying multiple gaps into clipboard (as table and for primer gap)
         - add link for PrimerDesign tool
-*** Add batch import of samples/processed samples/mid
-    - offer Excel template
+*** Add batch import of samples/processed samples
     - integrate GSmix checks - single sample and batch check (remove GSmix and desktop link)
     - add sample groups (adding, editing, displaying)
 - Sample tab: allow import disease info, disease group/status, gender from same samples
@@ -22,6 +21,7 @@ NGSD:
 
 GSvar:
 #### gene selector: add support for CnvHunter (needs low-quality regions > update ClinCNV first)
+*** XML report: add OMIM gene / phenotype disease info
 ** add visualization of NGSD CNVs (table + IGV-like view):
     - number of overlapping CNVs (by type gain/loss)
     - overlapping class 4/5 CNVs
@@ -31,6 +31,7 @@ GSvar:
     - only flag variants and perform manual upload at the end of each quater
 - add coloring of quality columns in DB tables (e.g. in run tab)
 - replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
+** allow creating somatic report and XML-export for tumor-only (after tumor-normal is done)
 
 Tools:
 - UPDHunter: also support chrX?

@@ -444,11 +444,18 @@
      <addaction name="separator"/>
      <addaction name="actionUsers"/>
     </widget>
+    <widget class="QMenu" name="menuBatch_import">
+     <property name="title">
+      <string>Batch import</string>
+     </property>
+     <addaction name="actionImportMids"/>
+    </widget>
     <addaction name="menuGenes_2"/>
     <addaction name="menuPhenotypes_2"/>
     <addaction name="menuSub_panels"/>
     <addaction name="separator"/>
     <addaction name="menuAdmin"/>
+    <addaction name="menuBatch_import"/>
     <addaction name="actionStatistics"/>
    </widget>
    <addaction name="menuFile"/>
@@ -973,6 +980,11 @@
   <action name="actionUsers">
    <property name="text">
     <string>Users</string>
+   </property>
+  </action>
+  <action name="actionImportMids">
+   <property name="text">
+    <string>MIDs</string>
    </property>
   </action>
  </widget>

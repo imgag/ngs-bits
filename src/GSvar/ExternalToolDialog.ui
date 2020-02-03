@@ -57,7 +57,7 @@
      <item>
       <widget class="QPushButton" name="browse">
        <property name="text">
-        <string>Browse</string>
+        <string>select sampe file(s)</string>
        </property>
       </widget>
      </item>

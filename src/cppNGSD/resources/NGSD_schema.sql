@@ -158,8 +158,8 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `processing_system`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `name_short` VARCHAR(50) NULL DEFAULT NULL,
-  `name_manufacturer` VARCHAR(100) NULL DEFAULT NULL,
+  `name_short` VARCHAR(50) NOT NULL,
+  `name_manufacturer` VARCHAR(100) NOT NULL,
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
   `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq') NOT NULL,
@@ -315,12 +315,12 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `user`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `user_id` VARCHAR(45) NOT NULL,
+  `user_id` VARCHAR(45) NOT NULL COMMENT 'Use the Windows domain name!',
   `password` VARCHAR(64) NOT NULL,
   `user_role` ENUM('user','admin','special') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `email` VARCHAR(45) NOT NULL,
-  `created` DATETIME NOT NULL,
+  `created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_login` DATETIME NULL DEFAULT NULL,
   `active` TINYINT(1) NOT NULL,
   PRIMARY KEY (`id`),
@@ -448,7 +448,7 @@ CREATE  TABLE IF NOT EXISTS `project`
   `internal_coordinator_id` INT(11) NOT NULL COMMENT 'Person who is responsible for this project.<br>The person will be notified when new samples are available.',
   `comment` TEXT NULL DEFAULT NULL,
   `analysis` ENUM('fastq','mapping','variants') NOT NULL DEFAULT 'variants' COMMENT 'Bioinformatics analysis to be done for non-tumor germline samples in this project.<br>"fastq" skips the complete analysis.<br>"mapping" creates the BAM file but calls no variants.<br>"variants" performs the full analysis.',
-  `preserve_fastqs` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Prevents FASTQ files from being deleted after mapping in this project.<br>Has no effect if megSAP is not configured to delete FASTQs automatically.<br>Prevents FASTQ files from being deleted after mapping in this project.<br>Has no effect if megSAP is not configured to delete FASTQs automatically.<br>For diagnostics, do not check. For other project types ask the bioinformatician in charge.',
+  `preserve_fastqs` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Prevents FASTQ files from being deleted after mapping in this project.<br>Has no effect if megSAP is not configured to delete FASTQs automatically.<br>For diagnostics, do not check. For other project types ask the bioinformatician in charge.',
   `email_notification` varchar(200) DEFAULT NULL COMMENT 'List of email addresses (separated by semicolon) that are notified in addition to the project coordinator when new samples are available.',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
@@ -984,7 +984,7 @@ CREATE TABLE `analysis_job_history`
 (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `analysis_job_id` int(11) NOT NULL,
-  `time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `user_id` int(11) DEFAULT NULL,
   `status` enum('queued','started','finished','cancel','canceled','error') NOT NULL,
   `output` text DEFAULT NULL,
@@ -1335,7 +1335,7 @@ CREATE  TABLE IF NOT EXISTS `cnv_callset`
   `processed_sample_id` INT(11) NOT NULL,
   `caller` ENUM('CnvHunter', 'ClinCNV') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
-  `call_date` DATETIME NOT NULL,
+  `call_date` DATETIME DEFAULT NULL,
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
