@@ -4,6 +4,7 @@
 #include "DBEditor.h"
 #include "GUIHelper.h"
 #include "Settings.h"
+#include "MidCheck.h"
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QDesktopServices>
@@ -20,6 +21,7 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_->edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
 	connect(ui_->email_btn, SIGNAL(clicked(bool)), this, SLOT(sendStatusEmail()));
+	connect(ui_->mid_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMids()));
 
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->samples->addAction(action);
@@ -282,6 +284,50 @@ void SequencingRunWidget::sendStatusEmail()
 	std::for_each(to.begin(), to.end(), [](QString& value){ value = value.toLower(); });
 	to.removeDuplicates();
 	QDesktopServices::openUrl(QUrl("mailto:" + to.join(";") + "?subject=" + subject + "&body=" + body.join("\n")));
+}
+
+void SequencingRunWidget::checkMids()
+{
+	NGSD db;
+
+	//determine recipe
+	QString recipe = db.getValue("SELECT recipe FROM sequencing_run WHERE id=" + run_id_).toString();
+	QPair<int,int> index_lengths = MidCheck::parseRecipe(recipe);
+
+	//load MIDs
+	QList<SampleMids> run_mids;
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.lane, ps.mid1_i7, ps.mid2_i5 FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "'");
+	while(query.next())
+	{
+		SampleMids sample_mids;
+		sample_mids.name = query.value(0).toString();
+		QStringList lanes = query.value(0).toString().split(',');
+		foreach(QString lane, lanes)
+		{
+			lane = lane.trimmed();
+			if (lane.isEmpty()) continue;
+			sample_mids.lanes << Helper::toInt(lane, "Lane");
+		}
+		if (!query.value(2).isNull())
+		{
+			QString id = query.value(2).toString();
+			sample_mids.mid1_name = db.getValue("SELECT name FROM mid WHERE id=:0", false, id).toString();
+			sample_mids.mid1_seq = db.getValue("SELECT sequence FROM mid WHERE id=:0", false, id).toString();
+		}
+		if (!query.value(3).isNull())
+		{
+			QString id = query.value(3).toString();
+			sample_mids.mid1_name = db.getValue("SELECT name FROM mid WHERE id=:0", false, id).toString();
+			sample_mids.mid1_seq = db.getValue("SELECT sequence FROM mid WHERE id=:0", false, id).toString();
+		}
+
+		run_mids << sample_mids;
+	}
+
+	//check
+	QList<MidClash> clashes = MidCheck::check(run_mids, index_lengths.first, index_lengths.second);
+	qDebug() << clashes.count();
 }
 
 void SequencingRunWidget::updateReadQualityTable()

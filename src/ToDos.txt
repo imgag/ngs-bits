@@ -4,14 +4,13 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
+#### remove sample groups: ask lab>OK, Hannover, Neuulm>OK
 * Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)
         - also allow copying multiple gaps into clipboard (as table and for primer gap)
         - add link for PrimerDesign tool
-########## Admin pages: allow opening corresponding tabs, e.g. for processing system
 *** integrate GSmix checks - single sample and batch check (remove GSmix and desktop link)
-########## add sample groups (adding, editing, displaying)
 *** Add open jobs list
 - Sample tab: allow import disease info, disease group/status, gender from same samples
 - Sample: allow several disease_groups per sample (requested by CS)

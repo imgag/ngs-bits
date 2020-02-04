@@ -2483,7 +2483,6 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 				q_insert.bindValue(i, value.isEmpty() && field_info.is_nullable ? QVariant() : value);
 			}
 
-
 			//insert
 			q_insert.exec();
 			++imported;
