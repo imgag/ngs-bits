@@ -365,3 +365,25 @@ BedpeFileFormat BedpeFile::format() const
 
 	return BedpeFileFormat::BEDPE_UNKNOWN;
 }
+
+
+int BedpeFile::estimatedSvSize(int index) const
+{
+	const BedpeLine sv = lines_[index];
+	// return -1 for translocation
+	if (sv.type() == StructuralVariantType::BND) return -1;
+
+	int i_info_a = annotationIndexByName("INFO_A");
+	int sv_length = 0;
+	foreach(const QByteArray& entry, lines_[index].annotations()[i_info_a].split(';'))
+	{
+		// report exact length
+		if (entry.startsWith("SVLEN=")) return std::abs(Helper::toInt(entry.mid(6)));
+
+		// estimate min length by adding the known bases on the left and right side
+		if (entry.startsWith("LEFT_SVINSSEQ=")) sv_length += entry.size() - 14;
+		if (entry.startsWith("RIGHT_SVINSSEQ=")) sv_length += entry.size() - 15;
+	}
+
+	return sv_length;
+}

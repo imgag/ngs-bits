@@ -743,7 +743,8 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV SomaticScore"] = &createInstance<FilterSvSomaticscore>;
 		output["SV gene constraint"] = &createInstance<FilterSvGeneConstraint>;
 		output["SV gene overlap"] = &createInstance<FilterSvGeneOverlap>;
-		output["SV size"] = &createInstance<FilterSvSize>;
+		output["SV min size"] = &createInstance<FilterSvMinSize>;
+		output["SV max size"] = &createInstance<FilterSvMaxSize>;
 		output["SV OMIM genes"] = &createInstance<FilterSvOMIM>;
 		output["SV compound-heterozygous"] = &createInstance<FilterSvCompHet>;
 	}
@@ -3579,46 +3580,72 @@ QByteArrayList FilterSvGeneOverlap::selectedOptions() const
 	return output;
 }
 
-// Filter SV size
-FilterSvSize::FilterSvSize()
+// Filter SV min size
+FilterSvMinSize::FilterSvMinSize()
 {
-	name_ = "SV size";
+	name_ = "SV min size";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Filter for SV size.";
+	description_ = QStringList() << "Filter for minimum SV size.";
 	params_ << FilterParameter("size", INT, 0, "Minimum SV size (absolute size).");
 	params_.last().constraints["min"] = "0";
 
 	checkIsRegistered();
 }
 
-QString FilterSvSize::toText() const
+QString FilterSvMinSize::toText() const
 {
 	return name() + " &ge; " + QString::number(getInt("size", false)) + " bases";
 }
 
-void FilterSvSize::apply(const BedpeFile& svs, FilterResult& result) const
+void FilterSvMinSize::apply(const BedpeFile& svs, FilterResult& result) const
 {
 	if (!enabled_) return;
 
 	int min_size_bases = getInt("size");
-	int i_info_a = svs.annotationIndexByName("INFO_A");
 	for(int i=0; i<svs.count(); ++i)
 	{
 		if (!result.flags()[i]) continue;
 
 		// get SV length
-		QByteArrayList info_a_entries = svs[i].annotations()[i_info_a].split(';');
-		int sv_length = 0;
-		foreach(const QByteArray& entry, info_a_entries)
-		{
-			if (entry.startsWith("SVLEN="))
-			{
-				sv_length = std::abs(Helper::toInt(entry.mid(6)));
-				break;
-			}
-		}
+		int sv_length = svs.estimatedSvSize(i);
 
-		if (sv_length < min_size_bases)
+		if (sv_length <= min_size_bases)
+		{
+			result.flags()[i] = false;
+		}
+	}
+}
+
+// Filter SV min size
+FilterSvMaxSize::FilterSvMaxSize()
+{
+	name_ = "SV max size";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter for maximum SV size.";
+	params_ << FilterParameter("size", INT, 0, "Maximum SV size (absolute size).");
+	params_.last().constraints["min"] = "0";
+
+	checkIsRegistered();
+}
+
+QString FilterSvMaxSize::toText() const
+{
+	return name() + " &le; " + QString::number(getInt("size", false)) + " bases";
+}
+
+void FilterSvMaxSize::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int max_size_bases = getInt("size");
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		// get SV length
+		int sv_length = svs.estimatedSvSize(i);
+
+		if (sv_length >= max_size_bases)
 		{
 			result.flags()[i] = false;
 		}
