@@ -508,7 +508,7 @@ void MainWindow::delayedInitialization()
 
 	//TODO also check user password - force new password when salt is missing - AFTER NGSD IS NO LONGER USED!
 	//check user is in NGSD
-	if (ngsd_enabled_)
+	if (ngsd_enabled_&& !Settings::boolean("debug_mode_enabled"))
 	{
 		QString user_name = Helper::userName();
 		try

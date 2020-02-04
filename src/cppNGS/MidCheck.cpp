@@ -18,7 +18,7 @@ QPair<int, int> MidCheck::parseRecipe(QString recipe)
 
 QList<MidClash> MidCheck::check(QList<SampleMids> mids, int index1_length, int index2_length)
 {
-	//trim MIDs to maximum usable length
+	//trim MIDs to usable length
 	for(int i=0; i<mids.count(); ++i)
 	{
 		SampleMids& s = mids[i];
@@ -26,34 +26,45 @@ QList<MidClash> MidCheck::check(QList<SampleMids> mids, int index1_length, int i
 		s.mid2_seq = s.mid2_seq.left(index2_length);
 	}
 
-	QList<MidClash> output;
-	for(int i=0; i<mids.count(); ++i)
+	//determine lanes
+	QList<int> lanes;
+	foreach(const SampleMids& mid, mids)
 	{
-		for(int j=i+1; j<mids.count(); ++j)
+		foreach(int lane, mid.lanes)
 		{
-			//check lane
-			TODO
+			if (!lanes.contains(lane)) lanes << lane;
+		}
+	}
+	std::sort(lanes.begin(), lanes.end());
 
-			//compare
-			int dist1 = Helper::levenshtein(samples[i].mid1, samples[j].mid1);
-			int dist2 = -1;
-			if (samples[i].mid2!="" && samples[j].mid2!="")
+	//find clashes
+	QList<MidClash> output;
+	foreach(int lane, lanes)
+	{
+		for(int i=0; i<mids.count(); ++i)
+		{
+			if (!mids[i].lanes.contains(lane)) continue;
+
+			for(int j=i+1; j<mids.count(); ++j)
 			{
-				dist2 = Helper::levenshtein(samples[i].mid2, samples[j].mid2);
-			}
+				if (!mids[i].lanes.contains(lane)) continue;
 
-			if (dist1==0 && dist2<1)
-			{
-				//text output
-				QString mid = samples[i].mid1;
-				if (dist2>=0) mid += "+" + samples[i].mid2;
-				QString n1 = samples[i].name;
-				QString n2 = samples[j].name;
-				output << "clash " + n1 + " <=> " + n2 + " (" + mid + ")";
+				//compare
+				int dist1 = Helper::levenshtein(mids[i].mid1_seq, mids[j].mid1_seq);
+				int dist2 = -1;
+				if (mids[i].mid2_seq!="" && mids[j].mid2_seq!="")
+				{
+					dist2 = Helper::levenshtein(mids[i].mid2_seq, mids[j].mid2_seq);
+				}
 
-				//gui output
-				highlightItem(i, 0, n2 + " (" + mid + ")");
-				highlightItem(j, 0, n1 + " (" + mid + ")");
+				if (dist1==0 && dist2<=0)
+				{
+					MidClash clash;
+					clash.s1_index = i;
+					clash.s2_index = j;
+					clash.message = "MID clash: " + mids[i].mid1_seq + (dist2==-1 ? "" : mids[i].mid2_seq);
+					output << clash;
+				}
 			}
 		}
 	}

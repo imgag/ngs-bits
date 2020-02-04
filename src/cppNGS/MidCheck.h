@@ -12,13 +12,13 @@
 struct SampleMids
 {
 	QString name;
+
 	QSet<int> lanes;
+
 	QString mid1_name;
 	QString mid1_seq;
 	QString mid2_name;
 	QString mid2_seq;
-
-	QStringList errors;
 };
 
 //Datastructure for MID clash
@@ -26,6 +26,8 @@ struct MidClash
 {
 	int s1_index;
 	int s2_index;
+
+	QString message;
 };
 
 //MID clash check
