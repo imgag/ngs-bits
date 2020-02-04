@@ -1020,12 +1020,12 @@ QVariant NGSD::getValue(const QString& query, bool no_value_is_ok, QString bind_
 		}
 		else
 		{
-			THROW(DatabaseException, "NGSD single value query returned no value: " + query);
+			THROW(DatabaseException, "NGSD single value query returned no value: " + query + (bind_value.isNull() ? "" : " (bind value: " + bind_value + ")"));
 		}
 	}
 	if (q.size()>1)
 	{
-		THROW(DatabaseException, "NGSD single value query returned several values: " + query);
+		THROW(DatabaseException, "NGSD single value query returned several values: " + query + (bind_value.isNull() ? "" : " (bind value: " + bind_value + ")"));
 	}
 
 	q.next();
