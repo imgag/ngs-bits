@@ -238,6 +238,12 @@ public:
 	static StructuralVariantType stringToType(const QByteArray& str);
 	static QByteArray typeToString(StructuralVariantType type);
 
+	///Returns the estimated SV size (absolut) for a given SV (index)
+	///		If SVLEN in INFO_A is given, this length is returned.
+	///		For INS without SVLEN the sum of LEFT_SVINSSEQ and RIGHT_SVINSSEQ (known left/right inserted bases)
+	///		For BND return -1.
+	int estimatedSvSize(int index) const;
+
 private:
 	QList<QByteArray> annotation_headers_;
 	QList<QByteArray> comments_;
