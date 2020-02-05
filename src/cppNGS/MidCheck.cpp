@@ -30,14 +30,20 @@ QPair<int, int> MidCheck::lengthFromSamples(const QList<SampleMids>& mids)
 	return qMakePair(index1, index2);
 }
 
-QList<MidClash> MidCheck::check(QList<SampleMids> mids, int index1_length, int index2_length)
+QList<MidClash> MidCheck::check(QList<SampleMids> mids, int index1_length, int index2_length, QStringList& messages)
 {
+	//clear messages
+	messages.clear();
+
 	//trim MIDs to usable length
 	for(int i=0; i<mids.count(); ++i)
 	{
 		SampleMids& s = mids[i];
 		s.mid1_seq = s.mid1_seq.left(index1_length);
 		s.mid2_seq = s.mid2_seq.left(index2_length);
+
+		if (s.mid1_seq.size() < index1_length) messages << "Warning: MID 1 of sample " + s.name + " is short than used index length!";
+		if (s.mid2_seq.size() < index2_length) messages << "Warning: MID 2 of sample " + s.name + " is short than used index length!";
 	}
 
 	//determine lanes
@@ -55,7 +61,8 @@ QList<MidClash> MidCheck::check(QList<SampleMids> mids, int index1_length, int i
 	QList<MidClash> output;
 	foreach(int lane, lanes)
 	{
-		qDebug() << lane;
+		messages << "processing lane " + QString::number(lane) + "...";
+
 		for(int i=0; i<mids.count(); ++i)
 		{
 			if (!mids[i].lanes.contains(lane)) continue;
@@ -74,10 +81,13 @@ QList<MidClash> MidCheck::check(QList<SampleMids> mids, int index1_length, int i
 
 				if (dist1==0 && dist2<=0)
 				{
+					QString sequence = mids[i].mid1_seq + (dist2==-1 ? "" : "+" + mids[i].mid2_seq);
+					messages << "  Error: MID clash between " + mids[i].name + " and " + mids[j].name + ". Common MID sequence is " + sequence;
+
 					MidClash clash;
 					clash.s1_index = i;
 					clash.s2_index = j;
-					clash.message = "MID clash: " + mids[i].mid1_seq + (dist2==-1 ? "" : mids[i].mid2_seq);
+					clash.message = "MID clash: " + sequence;
 					output << clash;
 				}
 			}

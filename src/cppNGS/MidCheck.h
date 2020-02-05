@@ -38,7 +38,7 @@ class CPPNGSSHARED_EXPORT MidCheck
 public:
 	static QPair<int, int> lengthFromRecipe(QString recipe);
 	static QPair<int, int> lengthFromSamples(const QList<SampleMids>& mids);
-	static QList<MidClash> check(QList<SampleMids> mids, int index1_length, int index2_length);
+	static QList<MidClash> check(QList<SampleMids> mids, int index1_length, int index2_length, QStringList& messages);
 
 protected:
 	MidCheck() = delete;

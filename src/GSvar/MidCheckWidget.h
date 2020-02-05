@@ -17,6 +17,7 @@ public:
 
 protected slots:
 	void updateSampleTable();
+	void checkMids();
 
 private:
 	Ui::MidCheckWidget ui_;

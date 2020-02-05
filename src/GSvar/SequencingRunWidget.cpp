@@ -337,7 +337,7 @@ void SequencingRunWidget::checkMids()
 		MidCheckWidget* widget = new MidCheckWidget();
 		widget->setParameters(lengths);
 		widget->setMids(run_mids);
-		auto dlg = GUIHelper::createDialog(widget, "MID clash detection");
+		auto dlg = GUIHelper::createDialog(widget, "MID clash detection - sequencing run " + ui_->name->text());
 		dlg->exec();
 	}
 	catch (Exception& e)
