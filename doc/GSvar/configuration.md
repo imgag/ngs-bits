@@ -31,6 +31,10 @@ The most important settings are:
 - *analysis\_steps\_...*: Analysis steps of queuing of analysis on cluster
 - *proxy\_...*: Proxy settings (if needed)
 - *gsvar\_...*: Output folders for different documents `GSvar` creates, e.g. reports.
+- *igv\_menu*: A comma separated list of IGV custom tracks. Each track consists of these tab-separated parts:
+	- track name
+	- checked by default (0 or 1)
+	- path to track file
 
 ## Filters
 
