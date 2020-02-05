@@ -18,6 +18,8 @@ public:
 protected slots:
 	void updateSampleTable();
 	void checkMids();
+	void add();
+	void addBatch();
 
 private:
 	Ui::MidCheckWidget ui_;

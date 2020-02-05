@@ -69,7 +69,7 @@ QList<MidClash> MidCheck::check(QList<SampleMids> mids, int index1_length, int i
 
 			for(int j=i+1; j<mids.count(); ++j)
 			{
-				if (!mids[i].lanes.contains(lane)) continue;
+				if (!mids[j].lanes.contains(lane)) continue;
 
 				//compare
 				int dist1 = Helper::levenshtein(mids[i].mid1_seq, mids[j].mid1_seq);

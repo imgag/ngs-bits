@@ -83,6 +83,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "TsvTableWidget.h"
 #include "DBTableAdministration.h"
 #include "SequencingRunOverview.h"
+#include "MidCheckWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -174,12 +175,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	DBEditor* widget = new DBEditor(this, "sample", NGSD().getValue("SELECT id FROM sample WHERE name='NA12878'").toInt());
-	auto dlg = GUIHelper::createDialog(widget, "Sample NA12878", "", true);
-	if (dlg->exec()==QDialog::Accepted)
-	{
-		widget->store();
-	}
+	MidCheckWidget* widget = new MidCheckWidget();
+	auto dlg = GUIHelper::createDialog(widget, "MID clash detection");
+	dlg->exec();
 }
 
 void MainWindow::on_actionClose_triggered()

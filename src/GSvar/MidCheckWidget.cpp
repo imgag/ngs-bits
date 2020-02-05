@@ -1,6 +1,11 @@
 #include "MidCheckWidget.h"
 #include "GUIHelper.h"
-#include "QDebug"
+#include "Exceptions.h"
+#include "Helper.h"
+#include "Settings.h"
+#include <QDebug>
+#include <QDialog>
+#include <QMessageBox>
 
 MidCheckWidget::MidCheckWidget(QWidget *parent)
 	: QWidget(parent)
@@ -8,6 +13,9 @@ MidCheckWidget::MidCheckWidget(QWidget *parent)
 {
 	ui_.setupUi(this);
 	connect(ui_.check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMids()));
+	connect(ui_.add_btn, SIGNAL(clicked(bool)), this, SLOT(add()));
+	connect(ui_.add_batch_btn, SIGNAL(clicked(bool)), this, SLOT(addBatch()));
+	setMinimumSize(600, 800);
 
 	updateSampleTable();
 }
@@ -60,6 +68,97 @@ void MidCheckWidget::checkMids()
 			ui_.samples->item(clash.s2_index, c)->setBackgroundColor(Qt::yellow);
 		}
 	}
+}
+
+void MidCheckWidget::add()
+{
+	//TODO
+
+/*
+s1	1	ACGTACGT
+s2	1	ACGTACGG
+s3	2	ACGTACGT
+s4	2	ACGTACGT	CTGACTGA
+s4	3	ACGTACGG	CTGACTGA
+s5	3	ACGTACGG	CTGACTGG
+s6	3	ACGTACGA	CTGACTGA
+s7	4	ACGTACGA	CTGACTGA
+s8	4	ACGTACGA	CTGACTGA
+*/
+}
+
+void MidCheckWidget::addBatch()
+{
+	//get user input
+	QTextEdit* edit = new QTextEdit(this);
+	edit->setAcceptRichText(false);
+	edit->setMinimumSize(600, 400);
+	auto dlg = GUIHelper::createDialog(edit, "Batch MID import", "Enter sample MID data. Paste four tab-separated columnns:\nsample name, lane(s), mid1, mid2", true);
+	if (dlg->exec()!=QDialog::Accepted) return;
+
+	//parse input
+	QList<SampleMids> sample_mids;
+	int line_nr = 0;
+	try
+	{
+		QStringList lines = edit->toPlainText().split("\n");
+		foreach(QString line, lines)
+		{
+			++line_nr;
+
+			if (line.trimmed().isEmpty() || line[0]=='#') continue;
+
+			QStringList parts = line.split("\t");
+
+			//check tab-separated parts count
+			if (parts.count()!=4) THROW(ArgumentException, "Error: line " + QString::number(line_nr) + " does not contain 4 tab-separated parts.\n\nLine:\n" + line);
+
+			SampleMids mid;
+			mid.name = parts[0].trimmed();
+
+			QStringList lanes = parts[1].split(',');
+			foreach(QString lane, lanes)
+			{
+				lane = lane.trimmed();
+				if (lane.isEmpty()) continue;
+				mid.lanes << Helper::toInt(lane, "Lane in line" + QString::number(line_nr));
+			}
+
+			QString mid1 = parts[2].trimmed();
+			if (mid1.contains(QRegularExpression("^[ACGT]+$")))
+			{
+				mid.mid1_name = "no name";
+				mid.mid1_seq = mid1;
+			}
+			else //MID is a name > import from NGSD
+			{
+				if (!Settings::boolean("NGSD_enabled", true)) THROW(DatabaseException, "NGSD is not enabled. MIDs can only be given by sequence");
+				//TODO
+			}
+
+			QString mid2 = parts[3].trimmed();
+			if (mid2.contains(QRegularExpression("^[ACGT]+$")))
+			{
+				mid.mid2_name = "no name";
+				mid.mid2_seq = mid2;
+			}
+			else //MID is a name > import from NGSD
+			{
+				if (!Settings::boolean("NGSD_enabled", true)) THROW(DatabaseException, "NGSD is not enabled. MIDs can only be given by sequence");
+				//TODO
+			}
+
+			sample_mids << mid;
+		}
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Pasing MID data failed", "Message:\n" + e.message());
+	}
+
+	//add data
+	mids_ << sample_mids;
+	updateSampleTable();
 }
 
 QTableWidgetItem*MidCheckWidget::createItem(const QString& text, int alignment)
