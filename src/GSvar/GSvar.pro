@@ -71,7 +71,8 @@ SOURCES += main.cpp\
     DBEditor.cpp \
     FilterWidgetSV.cpp \
     DBTableAdministration.cpp \
-    SequencingRunOverview.cpp
+    SequencingRunOverview.cpp \
+    MidCheckWidget.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -137,7 +138,8 @@ HEADERS  += MainWindow.h \
     DBEditor.h \
     FilterWidgetSV.h \
     DBTableAdministration.h \
-    SequencingRunOverview.h
+    SequencingRunOverview.h \
+    MidCheckWidget.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
@@ -190,7 +192,8 @@ FORMS    += MainWindow.ui \
     ProjectWidget.ui \
     FilterWidgetSV.ui \
     DBTableAdministration.ui \
-    SequencingRunOverview.ui
+    SequencingRunOverview.ui \
+    MidCheckWidget.ui
 
 include("../app_gui.pri")
 

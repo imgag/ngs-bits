@@ -9,7 +9,7 @@
 #include <QSet>
 
 //Datastructure for sample MIDs
-struct SampleMids
+struct CPPNGSSHARED_EXPORT SampleMids
 {
 	QString name;
 
@@ -19,10 +19,12 @@ struct SampleMids
 	QString mid1_seq;
 	QString mid2_name;
 	QString mid2_seq;
+
+	QString lanesAsString() const;
 };
 
 //Datastructure for MID clash
-struct MidClash
+struct CPPNGSSHARED_EXPORT MidClash
 {
 	int s1_index;
 	int s2_index;
@@ -34,7 +36,8 @@ struct MidClash
 class CPPNGSSHARED_EXPORT MidCheck
 {
 public:
-	static QPair<int, int> parseRecipe(QString recipe);
+	static QPair<int, int> lengthFromRecipe(QString recipe);
+	static QPair<int, int> lengthFromSamples(const QList<SampleMids>& mids);
 	static QList<MidClash> check(QList<SampleMids> mids, int index1_length, int index2_length);
 
 protected:

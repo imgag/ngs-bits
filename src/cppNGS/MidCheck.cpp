@@ -2,7 +2,7 @@
 #include "Exceptions.h"
 #include "Helper.h"
 
-QPair<int, int> MidCheck::parseRecipe(QString recipe)
+QPair<int, int> MidCheck::lengthFromRecipe(QString recipe)
 {
 	QStringList parts = recipe.split("+");
 	if (parts.size()<3 || parts.size()>4) THROW(ArgumentException, "Invalid recipe '" + recipe + "' of run!");
@@ -12,6 +12,20 @@ QPair<int, int> MidCheck::parseRecipe(QString recipe)
 
 	int index1 = Helper::toInt(parts[0], "Index read 1");
 	int index2 = parts.size()==1 ? 0 : Helper::toInt(parts[1], "Index read 2");
+
+	return qMakePair(index1, index2);
+}
+
+QPair<int, int> MidCheck::lengthFromSamples(const QList<SampleMids>& mids)
+{
+	int index1 = 99;
+	int index2 = 99;
+
+	foreach(const SampleMids& mid, mids)
+	{
+		index1 = std::min(index1, mid.mid1_seq.length());
+		index2 = std::min(index2, mid.mid2_seq.length());
+	}
 
 	return qMakePair(index1, index2);
 }
@@ -41,6 +55,7 @@ QList<MidClash> MidCheck::check(QList<SampleMids> mids, int index1_length, int i
 	QList<MidClash> output;
 	foreach(int lane, lanes)
 	{
+		qDebug() << lane;
 		for(int i=0; i<mids.count(); ++i)
 		{
 			if (!mids[i].lanes.contains(lane)) continue;
@@ -70,4 +85,18 @@ QList<MidClash> MidCheck::check(QList<SampleMids> mids, int index1_length, int i
 	}
 
 	return output;
+}
+
+QString SampleMids::lanesAsString() const
+{
+	QStringList output;
+
+	foreach(int lane, lanes)
+	{
+		output << QString::number(lane);
+	}
+
+	std::sort(output.begin(), output.end());
+
+	return output.join(",");
 }

@@ -20,7 +20,7 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-*** gene selector: add support for CnvHunter (needs low-quality regions > update ClinCNV first > update docu)
+*** gene selector: add support for CnvHunter (needs low-quality regions (also CNV to track name) > update ClinCNV first > update docu)
 *** XML report: add OMIM gene / phenotype disease info
 ** add visualization of NGSD CNVs (table + IGV-like view):
     - number of overlapping CNVs (by type gain/loss)

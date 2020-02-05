@@ -1,6 +1,7 @@
 #include "SequencingRunWidget.h"
 #include "ui_SequencingRunWidget.h"
 #include "ProcessedSampleWidget.h"
+#include "MidCheckWidget.h"
 #include "DBEditor.h"
 #include "GUIHelper.h"
 #include "Settings.h"
@@ -290,17 +291,12 @@ void SequencingRunWidget::checkMids()
 {
 	try
 	{
-
 		NGSD db;
-
-		//determine recipe
-		QString recipe = db.getValue("SELECT recipe FROM sequencing_run WHERE id=" + run_id_).toString();
-		QPair<int,int> index_lengths = MidCheck::parseRecipe(recipe);
 
 		//load MIDs
 		QList<SampleMids> run_mids;
 		SqlQuery query = db.getQuery();
-		query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.lane, ps.mid1_i7, ps.mid2_i5 FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "'");
+		query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.lane, ps.mid1_i7, ps.mid2_i5 FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' ORDER BY ps.lane ASC, ps.id ASC");
 		while(query.next())
 		{
 			SampleMids sample_mids;
@@ -330,13 +326,23 @@ void SequencingRunWidget::checkMids()
 			run_mids << sample_mids;
 		}
 
-		//check
-		QList<MidClash> clashes = MidCheck::check(run_mids, index_lengths.first, index_lengths.second);
-		qDebug() << clashes.count();
+		//determine usable length
+		QString recipe = db.getValue("SELECT recipe FROM sequencing_run WHERE id=" + run_id_).toString();
+		QPair<int,int> lengths = MidCheck::lengthFromRecipe(recipe);
+		QPair<int,int> tmp = MidCheck::lengthFromSamples(run_mids);
+		lengths.first = std::min(lengths.first, tmp.first);
+		lengths.second = std::min(lengths.second, tmp.second);
+
+		//show dialog
+		MidCheckWidget* widget = new MidCheckWidget();
+		widget->setParameters(lengths);
+		widget->setMids(run_mids);
+		auto dlg = GUIHelper::createDialog(widget, "MID clash detection");
+		dlg->exec();
 	}
 	catch (Exception& e)
 	{
-		QMessageBox::warning(this, "MID clash detection", "Error: MID clash detection failed:\n" + e.message());
+		QMessageBox::warning(this, "MID clash detection", "Error: MID clash detection could not be performed:\n" + e.message());
 	}
 }
 
