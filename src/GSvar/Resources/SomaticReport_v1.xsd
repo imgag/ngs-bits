@@ -190,7 +190,7 @@
 						</xs:attribute>
 						<xs:attribute name="comment">
 							<xs:annotation>
-								<xs:documentation>Comments. Herer the prpeline can be described and tools for individual steps can be listed.</xs:documentation>
+								<xs:documentation>Comments. Here the prpeline can be described and tools for individual steps can be listed. At least the variant caller should be given.</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
 					</xs:complexType>
@@ -568,6 +568,17 @@
 										<xs:simpleType>
 											<xs:restriction base="xs:int">
 												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="alteration" use="required">
+										<xs:annotation>
+											<xs:documentation>Copy number state</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="Amplification"/>
+												<xs:enumeration value="Deletion"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
