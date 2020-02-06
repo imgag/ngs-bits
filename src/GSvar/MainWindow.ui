@@ -458,6 +458,8 @@
     <addaction name="separator"/>
     <addaction name="menuAdmin"/>
     <addaction name="menuBatch_import"/>
+    <addaction name="actionMidClashDetection"/>
+    <addaction name="separator"/>
     <addaction name="actionStatistics"/>
    </widget>
    <addaction name="menuFile"/>
@@ -997,6 +999,11 @@
   <action name="actionImportProcessedSamples">
    <property name="text">
     <string>Processed samples</string>
+   </property>
+  </action>
+  <action name="actionMidClashDetection">
+   <property name="text">
+    <string>MID clash detection</string>
    </property>
   </action>
  </widget>

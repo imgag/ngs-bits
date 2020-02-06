@@ -274,7 +274,7 @@ void MainWindow::on_actionCNV_triggered()
 		int passing_vars = filter_result_.countPassing();
 		if (passing_vars>2000)
 		{
-			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
+			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nPlease set a filter for the variant list, e.g. the recessive filter, and retry!\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
 			if(res==QMessageBox::No) return;
 		}
 		for (int i=0; i<variants_.count(); ++i)
@@ -2762,6 +2762,13 @@ void MainWindow::on_actionImportProcessedSamples_triggered()
 				"processed_sample",
 				QStringList() << "sample_id" << "project_id" << "sequencing_run_id" << "lane" << "mid1_i7" << "mid2_i5" << "operator_id" << "processing_system_id" << "processing_input" << "molarity" << "comment" << "normal_id"
 				);
+}
+
+void MainWindow::on_actionMidClashDetection_triggered()
+{
+	MidCheckWidget* widget = new MidCheckWidget();
+	auto dlg = GUIHelper::createDialog(widget, "MID clash detection");
+	dlg->exec();
 }
 
 void MainWindow::on_actionGenderXY_triggered()

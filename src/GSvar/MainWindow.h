@@ -116,6 +116,7 @@ public slots:
 	void on_actionImportMids_triggered();
 	void on_actionImportSamples_triggered();
 	void on_actionImportProcessedSamples_triggered();
+	void on_actionMidClashDetection_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();

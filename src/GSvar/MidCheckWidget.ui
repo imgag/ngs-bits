@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>974</width>
-    <height>877</height>
+    <width>999</width>
+    <height>588</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -99,34 +99,6 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <item>
-         <widget class="QPushButton" name="check_btn">
-          <property name="text">
-           <string>Check</string>
-          </property>
-          <property name="icon">
-           <iconset resource="GSvar.qrc">
-            <normaloff>:/Icons/mid_clash.png</normaloff>:/Icons/mid_clash.png</iconset>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </item>
-      <item>
        <widget class="QTextEdit" name="output">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -175,24 +147,44 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QToolButton" name="add_btn">
+         <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>...</string>
-          </property>
-          <property name="icon">
-           <iconset resource="GSvar.qrc">
-            <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
+           <string>Add sample:</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QToolButton" name="add_batch_btn">
-          <property name="text">
-           <string>...</string>
+         <widget class="QLineEdit" name="add_sample">
+          <property name="placeholderText">
+           <string>sample name</string>
           </property>
-          <property name="icon">
-           <iconset resource="GSvar.qrc">
-            <normaloff>:/Icons/AddTemporary.png</normaloff>:/Icons/AddTemporary.png</iconset>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="add_lanes">
+          <property name="placeholderText">
+           <string>lanes, comma-separated</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="DBSelector" name="add_mid1">
+          <property name="placeholderText">
+           <string>MID 1</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="DBSelector" name="add_mid2">
+          <property name="placeholderText">
+           <string>MID 2</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="add_btn">
+          <property name="text">
+           <string>add</string>
           </property>
          </widget>
         </item>
@@ -204,10 +196,30 @@
           <property name="sizeHint" stdset="0">
            <size>
             <width>40</width>
-            <height>20</height>
+            <height>10</height>
            </size>
           </property>
          </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="batch_btn">
+          <property name="toolTip">
+           <string>Add batch of samples, e.g. from Excel</string>
+          </property>
+          <property name="text">
+           <string>import batch</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="run_btn">
+          <property name="toolTip">
+           <string>Add batch of samples from sequencing run in NGSD</string>
+          </property>
+          <property name="text">
+           <string>import run</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
@@ -240,8 +252,13 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="GSvar.qrc"/>
- </resources>
+ <customwidgets>
+  <customwidget>
+   <class>DBSelector</class>
+   <extends>QLineEdit</extends>
+   <header>DBSelector.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
  <connections/>
 </ui>

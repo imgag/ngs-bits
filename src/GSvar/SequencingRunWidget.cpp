@@ -293,50 +293,19 @@ void SequencingRunWidget::checkMids()
 	{
 		NGSD db;
 
-		//load MIDs
-		QList<SampleMids> run_mids;
-		SqlQuery query = db.getQuery();
-		query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.lane, ps.mid1_i7, ps.mid2_i5 FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' ORDER BY ps.lane ASC, ps.id ASC");
-		while(query.next())
-		{
-			SampleMids sample_mids;
-
-			sample_mids.name = query.value(0).toString();
-
-			QStringList lanes = query.value(1).toString().split(',');
-			foreach(QString lane, lanes)
-			{
-				lane = lane.trimmed();
-				if (lane.isEmpty()) continue;
-				sample_mids.lanes << Helper::toInt(lane, "Lane");
-			}
-
-			if (query.value(2).isNull()) THROW(ArgumentException, "MID 1 unset for sample " + sample_mids.name);
-			QString id = query.value(2).toString();
-			sample_mids.mid1_name = db.getValue("SELECT name FROM mid WHERE id=:0", false, id).toString();
-			sample_mids.mid1_seq = db.getValue("SELECT sequence FROM mid WHERE id=:0", false, id).toString();
-
-			if (!query.value(3).isNull())
-			{
-				id = query.value(3).toString();
-				sample_mids.mid2_name = db.getValue("SELECT name FROM mid WHERE id=:0", false, id).toString();
-				sample_mids.mid2_seq = db.getValue("SELECT sequence FROM mid WHERE id=:0", false, id).toString();
-			}
-
-			run_mids << sample_mids;
-		}
+		//create dialog
+		MidCheckWidget* widget = new MidCheckWidget();
+		widget->addRun(db.getValue("SELECT name FROM sequencing_run WHERE id=" + run_id_).toString());
 
 		//determine usable length
 		QString recipe = db.getValue("SELECT recipe FROM sequencing_run WHERE id=" + run_id_).toString();
 		QPair<int,int> lengths = MidCheck::lengthFromRecipe(recipe);
-		QPair<int,int> tmp = MidCheck::lengthFromSamples(run_mids);
+		QPair<int,int> tmp = MidCheck::lengthFromSamples(widget->mids());
 		lengths.first = std::min(lengths.first, tmp.first);
 		lengths.second = std::min(lengths.second, tmp.second);
+		widget->setParameters(lengths);
 
 		//show dialog
-		MidCheckWidget* widget = new MidCheckWidget();
-		widget->setParameters(lengths);
-		widget->setMids(run_mids);
 		auto dlg = GUIHelper::createDialog(widget, "MID clash detection - sequencing run " + ui_->name->text());
 		dlg->exec();
 	}

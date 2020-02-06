@@ -61,7 +61,7 @@ QList<MidClash> MidCheck::check(QList<SampleMids> mids, int index1_length, int i
 	QList<MidClash> output;
 	foreach(int lane, lanes)
 	{
-		messages << "processing lane " + QString::number(lane) + "...";
+		//qDebug() << "processing lane:" << QString::number(lane);
 
 		for(int i=0; i<mids.count(); ++i)
 		{
@@ -82,17 +82,15 @@ QList<MidClash> MidCheck::check(QList<SampleMids> mids, int index1_length, int i
 				if (dist1==0 && dist2<=0)
 				{
 					QString sequence = mids[i].mid1_seq + (dist2==-1 ? "" : "+" + mids[i].mid2_seq);
-					messages << "  Error: MID clash between " + mids[i].name + " and " + mids[j].name + ". Common MID sequence is " + sequence;
+					messages << "Error: MID clash between samples " + mids[i].name + " and " + mids[j].name + " on lane " + QString::number(lane) + ". Common MID sequence is " + sequence + ".";
 
-					MidClash clash;
-					clash.s1_index = i;
-					clash.s2_index = j;
-					clash.message = "MID clash: " + sequence;
-					output << clash;
+					output << MidClash {i, j};
 				}
 			}
 		}
 	}
+
+	messages << (output.isEmpty() ? "No" : "Error: " + QString::number(output.count())) + " MID clashes found when using " + QString::number(index1_length) + "/" + QString::number(index2_length) + " index bases";
 
 	return output;
 }

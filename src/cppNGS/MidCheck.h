@@ -28,8 +28,6 @@ struct CPPNGSSHARED_EXPORT MidClash
 {
 	int s1_index;
 	int s2_index;
-
-	QString message;
 };
 
 //MID clash check
