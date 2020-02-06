@@ -450,6 +450,7 @@
      </property>
      <addaction name="actionImportMids"/>
      <addaction name="actionImportSamples"/>
+     <addaction name="actionImportProcessedSamples"/>
     </widget>
     <addaction name="menuGenes_2"/>
     <addaction name="menuPhenotypes_2"/>
@@ -991,6 +992,11 @@
   <action name="actionImportSamples">
    <property name="text">
     <string>Samples</string>
+   </property>
+  </action>
+  <action name="actionImportProcessedSamples">
+   <property name="text">
+    <string>Processed samples</string>
    </property>
   </action>
  </widget>

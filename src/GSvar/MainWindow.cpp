@@ -2498,6 +2498,12 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 	auto dlg = GUIHelper::createDialog(edit, title, text, true);
 	if (dlg->exec()!=QDialog::Accepted) return;
 
+	//special handling of processed sample: add 'process_id'
+	if (table=="processed_sample")
+	{
+		fields.append("process_id");
+	}
+
 	//prepare query
 	QString query_str = "INSERT INTO " + table + " (" + fields.join(", ") + ") VALUES (";
 	for(int i=0; i<fields.count(); ++i)
@@ -2520,10 +2526,17 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 		QStringList lines = edit->toPlainText().split("\n");
 		foreach(QString line, lines)
 		{
-			line = line.trimmed();
-			if (line.isEmpty() || line[0]=='#') continue;
+			if (line.trimmed().isEmpty() || line[0]=='#') continue;
 
 			QStringList parts = line.split("\t");
+
+			//special handling of processed sample: add 'process_id'
+			if (table=="processed_sample")
+			{
+				QString sample_name = parts[0];
+				QString next_ps_number = db.getValue("SELECT MAX(ps.process_id)+1 FROM sample as s, processed_sample as ps WHERE s.id=ps.sample_id AND s.name=:0", true, sample_name).toString();
+				parts.append(next_ps_number=="" ? "1" : next_ps_number);
+			}
 
 			//check tab-separated parts count
 			if (parts.count()!=fields.count()) THROW(ArgumentException, "Error: line with more/less than " + QString::number(fields.count()) + " tab-separated parts.\n\nLine:\n" + line);
@@ -2531,33 +2544,49 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 			//check and bind
 			for(int i=0; i<fields.count(); ++i)
 			{
+				QString value = parts[i].trimmed();
+
+				//qDebug() << table << fields[i] << value;
 				const TableFieldInfo& field_info = db.tableInfo(table).fieldInfo(fields[i]);
 
 				//FK: name to id
-				if (field_info.type==TableFieldInfo::FK && !parts[i].isEmpty())
+				if (field_info.type==TableFieldInfo::FK && !value.isEmpty())
 				{
-					parts[i] = db.getValue("SELECT " + field_info.fk_field + " FROM " + field_info.fk_table + " WHERE " + field_info.fk_name_sql + "=:0", false, parts[i]).toString();
+					QString name_field = field_info.fk_name_sql;
+					if (name_field.startsWith("CONCAT(name")) //some FK-fields show additional information after the name > use only the name
+					{
+						name_field = name_field.left(name_field.indexOf(','));
+						name_field = name_field.mid(7);
+					}
+					value = db.getValue("SELECT " + field_info.fk_field + " FROM " + field_info.fk_table + " WHERE " + name_field + "=:0", false, value).toString();
 				}
 
 				//accept German dates as well
-				if (field_info.type==TableFieldInfo::DATE && !parts[i].isEmpty())
+				if (field_info.type==TableFieldInfo::DATE && !value.isEmpty())
 				{
-					QDate date_german = QDate::fromString(parts[i], "dd.MM.yyyy");
+					QDate date_german = QDate::fromString(value, "dd.MM.yyyy");
 					if (date_german.isValid())
 					{
-						parts[i] = date_german.toString(Qt::ISODate);
+						value = date_german.toString(Qt::ISODate);
 					}
 				}
 
-				//check errors
-				QStringList errors = db.checkValue(table, fields[i], parts[i], true);
-				if (errors.count()>0)
+				//decimal point for numbers
+				if (field_info.type==TableFieldInfo::FLOAT && value.contains(','))
 				{
-					THROW(ArgumentException, "Error: Invalid value '" + parts[i] + "' for field '" + fields[i] + "':\n" + errors.join("\n") + "\n\nLine:\n" + line);
+					value = value.replace(',', '.');
 				}
 
-				q_insert.bindValue(i, parts[i].isEmpty() && field_info.is_nullable ? QVariant() : parts[i]);
+				//check errors
+				QStringList errors = db.checkValue(table, fields[i], value, true);
+				if (errors.count()>0)
+				{
+					THROW(ArgumentException, "Error: Invalid value '" + value + "' for field '" + fields[i] + "':\n" + errors.join("\n") + "\n\nLine:\n" + line);
+				}
+
+				q_insert.bindValue(i, value.isEmpty() && field_info.is_nullable ? QVariant() : value);
 			}
+
 
 			//insert
 			q_insert.exec();
@@ -2830,6 +2859,15 @@ void MainWindow::on_actionImportSamples_triggered()
 				"Batch import of samples. Must contain the following tab-separated fields:\nname, name external, sender, received, received by, sample type, tumor, ffpe, species, concentration [ng/ul], volume, 260/280, 260/230, RIN/DIN, gender, quality, comment",
 				"sample",
 				QStringList() << "name" << "name_external" << "sender_id" << "received" << "receiver_id" << "sample_type" << "tumor" << "ffpe" << "species_id" << "concentration" << "volume" << "od_260_280" << "od_260_230" << "integrity_number" << "gender" << "quality" << "comment"
+				);
+}
+
+void MainWindow::on_actionImportProcessedSamples_triggered()
+{
+	importBatch("Import processed samples",
+				"Batch import of processed samples. Must contain the following tab-separated fields:\nsample, project, run name, lane, mid1 name, mid2 name, operator, processing system, processing input [ng], molarity [nM], comment, normal processed sample\n",
+				"processed_sample",
+				QStringList() << "sample_id" << "project_id" << "sequencing_run_id" << "lane" << "mid1_i7" << "mid2_i5" << "operator_id" << "processing_system_id" << "processing_input" << "molarity" << "comment" << "normal_id"
 				);
 }
 
