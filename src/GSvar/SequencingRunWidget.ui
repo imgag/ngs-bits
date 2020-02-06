@@ -67,7 +67,7 @@
          <item>
           <widget class="QToolButton" name="email_btn">
            <property name="toolTip">
-            <string>Sent status email.</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Send status by email.&lt;br/&gt;Note: only available for 'run_finished' and 'run_analyzed'!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -75,6 +75,20 @@
            <property name="icon">
             <iconset resource="GSvar.qrc">
              <normaloff>:/Icons/email.png</normaloff>:/Icons/email.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="mid_check_btn">
+           <property name="toolTip">
+            <string>Check for MID clashes.</string>
+           </property>
+           <property name="text">
+            <string>...</string>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/mid_clash.png</normaloff>:/Icons/mid_clash.png</iconset>
            </property>
           </widget>
          </item>

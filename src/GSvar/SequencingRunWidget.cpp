@@ -1,9 +1,11 @@
 #include "SequencingRunWidget.h"
 #include "ui_SequencingRunWidget.h"
 #include "ProcessedSampleWidget.h"
+#include "MidCheckWidget.h"
 #include "DBEditor.h"
 #include "GUIHelper.h"
 #include "Settings.h"
+#include "MidCheck.h"
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QDesktopServices>
@@ -20,6 +22,7 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_->edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
 	connect(ui_->email_btn, SIGNAL(clicked(bool)), this, SLOT(sendStatusEmail()));
+	connect(ui_->mid_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMids()));
 
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->samples->addAction(action);
@@ -282,6 +285,34 @@ void SequencingRunWidget::sendStatusEmail()
 	std::for_each(to.begin(), to.end(), [](QString& value){ value = value.toLower(); });
 	to.removeDuplicates();
 	QDesktopServices::openUrl(QUrl("mailto:" + to.join(";") + "?subject=" + subject + "&body=" + body.join("\n")));
+}
+
+void SequencingRunWidget::checkMids()
+{
+	try
+	{
+		NGSD db;
+
+		//create dialog
+		MidCheckWidget* widget = new MidCheckWidget();
+		widget->addRun(db.getValue("SELECT name FROM sequencing_run WHERE id=" + run_id_).toString());
+
+		//determine usable length
+		QString recipe = db.getValue("SELECT recipe FROM sequencing_run WHERE id=" + run_id_).toString();
+		QPair<int,int> lengths = MidCheck::lengthFromRecipe(recipe);
+		QPair<int,int> tmp = MidCheck::lengthFromSamples(widget->mids());
+		lengths.first = std::min(lengths.first, tmp.first);
+		lengths.second = std::min(lengths.second, tmp.second);
+		widget->setParameters(lengths);
+
+		//show dialog
+		auto dlg = GUIHelper::createDialog(widget, "MID clash detection - sequencing run " + ui_->name->text());
+		dlg->exec();
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "MID clash detection", "Error: MID clash detection could not be performed:\n" + e.message());
+	}
 }
 
 void SequencingRunWidget::updateReadQualityTable()

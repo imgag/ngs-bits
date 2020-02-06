@@ -29,6 +29,7 @@ protected slots:
 	void setQuality();
 	void edit();
 	void sendStatusEmail();
+	void checkMids();
 
 private:
 	QTableWidgetItem* createItem(const QString& text, bool highlight = false, int alignment = Qt::AlignVCenter|Qt::AlignRight);

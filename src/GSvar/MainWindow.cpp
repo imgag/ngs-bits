@@ -83,6 +83,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "TsvTableWidget.h"
 #include "DBTableAdministration.h"
 #include "SequencingRunOverview.h"
+#include "MidCheckWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -174,12 +175,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	DBEditor* widget = new DBEditor(this, "sample", NGSD().getValue("SELECT id FROM sample WHERE name='NA12878'").toInt());
-	auto dlg = GUIHelper::createDialog(widget, "Sample NA12878", "", true);
-	if (dlg->exec()==QDialog::Accepted)
-	{
-		widget->store();
-	}
+	MidCheckWidget* widget = new MidCheckWidget();
+	auto dlg = GUIHelper::createDialog(widget, "MID clash detection");
+	dlg->exec();
 }
 
 void MainWindow::on_actionClose_triggered()
@@ -276,7 +274,7 @@ void MainWindow::on_actionCNV_triggered()
 		int passing_vars = filter_result_.countPassing();
 		if (passing_vars>2000)
 		{
-			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
+			int res = QMessageBox::question(this, "Continue?", "There are " + QString::number(passing_vars) + " variants that pass the filters.\nGenerating the list of candidate genes for compound-heterozygous hits may take very long for this amount of variants.\nPlease set a filter for the variant list, e.g. the recessive filter, and retry!\nDo you want to continue?", QMessageBox::Yes, QMessageBox::No);
 			if(res==QMessageBox::No) return;
 		}
 		for (int i=0; i<variants_.count(); ++i)
@@ -508,7 +506,7 @@ void MainWindow::delayedInitialization()
 
 	//TODO also check user password - force new password when salt is missing - AFTER NGSD IS NO LONGER USED!
 	//check user is in NGSD
-	if (ngsd_enabled_)
+	if (ngsd_enabled_&& !Settings::boolean("debug_mode_enabled"))
 	{
 		QString user_name = Helper::userName();
 		try
@@ -2483,7 +2481,6 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 				q_insert.bindValue(i, value.isEmpty() && field_info.is_nullable ? QVariant() : value);
 			}
 
-
 			//insert
 			q_insert.exec();
 			++imported;
@@ -2765,6 +2762,13 @@ void MainWindow::on_actionImportProcessedSamples_triggered()
 				"processed_sample",
 				QStringList() << "sample_id" << "project_id" << "sequencing_run_id" << "lane" << "mid1_i7" << "mid2_i5" << "operator_id" << "processing_system_id" << "processing_input" << "molarity" << "comment" << "normal_id"
 				);
+}
+
+void MainWindow::on_actionMidClashDetection_triggered()
+{
+	MidCheckWidget* widget = new MidCheckWidget();
+	auto dlg = GUIHelper::createDialog(widget, "MID clash detection");
+	dlg->exec();
 }
 
 void MainWindow::on_actionGenderXY_triggered()
