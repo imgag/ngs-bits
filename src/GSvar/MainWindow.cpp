@@ -84,6 +84,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "DBTableAdministration.h"
 #include "SequencingRunOverview.h"
 #include "MidCheckWidget.h"
+#include "CnvSearchWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -175,8 +176,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	MidCheckWidget* widget = new MidCheckWidget();
-	auto dlg = GUIHelper::createDialog(widget, "MID clash detection");
+	CnvSearchWidget* widget = new CnvSearchWidget();
+	auto dlg = GUIHelper::createDialog(widget, "CNV search");
 	dlg->exec();
 }
 
@@ -504,7 +505,7 @@ void MainWindow::delayedInitialization()
 		Settings::createBackup();
 	}
 
-	//TODO also check user password - force new password when salt is missing - AFTER NGSD IS NO LONGER USED!
+	//TODO also check user password - force new password when salt is missing - AFTER NGSD IS NO LONGER USED > MARC
 	//check user is in NGSD
 	if (ngsd_enabled_&& !Settings::boolean("debug_mode_enabled"))
 	{

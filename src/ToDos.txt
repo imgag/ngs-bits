@@ -21,10 +21,6 @@ NGSD:
 GSvar:
 *** gene selector: add support for CnvHunter (needs low-quality regions (also CNV to track name) > update ClinCNV first > update docu)
 *** XML report: add OMIM gene / phenotype disease info
-** add visualization of NGSD CNVs (table + IGV-like view):
-    - number of overlapping CNVs (by type gain/loss)
-    - overlapping class 4/5 CNVs
-    - disease group
 ** Sample search: add option option "export all infos"
 * Allow ClinCNV upload
     - small variants and CNVs

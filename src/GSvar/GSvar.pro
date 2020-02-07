@@ -72,7 +72,8 @@ SOURCES += main.cpp\
     FilterWidgetSV.cpp \
     DBTableAdministration.cpp \
     SequencingRunOverview.cpp \
-    MidCheckWidget.cpp
+    MidCheckWidget.cpp \
+    CnvSearchWidget.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -139,7 +140,8 @@ HEADERS  += MainWindow.h \
     FilterWidgetSV.h \
     DBTableAdministration.h \
     SequencingRunOverview.h \
-    MidCheckWidget.h
+    MidCheckWidget.h \
+    CnvSearchWidget.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
@@ -193,7 +195,8 @@ FORMS    += MainWindow.ui \
     FilterWidgetSV.ui \
     DBTableAdministration.ui \
     SequencingRunOverview.ui \
-    MidCheckWidget.ui
+    MidCheckWidget.ui \
+    CnvSearchWidget.ui
 
 include("../app_gui.pri")
 
