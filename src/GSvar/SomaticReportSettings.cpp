@@ -8,6 +8,7 @@ SomaticReportSettings::SomaticReportSettings()
 	, normal_ps()
 	, filters()
 	, include_gap_statistics(false)
+	, cancer_type()
 {
 }
 

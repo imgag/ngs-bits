@@ -1670,6 +1670,7 @@ void MainWindow::loadSomaticReportConfig()
 	QStringList messages;
 	somatic_report_settings_.report_config = db.somaticReportConfig(ps_tumor_id, ps_normal_id, variants_, cnvs_, messages);
 
+
 	if(!messages.isEmpty())
 	{
 		QMessageBox::warning(this, "Somatic report configuration", "The following problems were encountered while loading the som. report configuration:\n" + messages.join("\n"));
@@ -2206,15 +2207,27 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.normal_ps = normalSampleName();
 	somatic_report_settings_.filters = ui_.filters->filters();
 
+	NGSD db;
+	//Preselect report settings if not exists to most common values
+	if(db.somaticReportConfigId(db.processedSampleId(processedSampleName()), db.processedSampleId(normalSampleName())) == -1)
+	{
+		somatic_report_settings_.report_config.setTumContentByMaxSNV(true);
+		somatic_report_settings_.report_config.setTumContentByClonality(true);
+		somatic_report_settings_.report_config.setTumContentByHistological(true);
+		somatic_report_settings_.report_config.setMsiStatus(true);
+		somatic_report_settings_.report_config.setCnvBurden(true);
+		somatic_report_settings_.report_config.setHrdScore(0);
+		somatic_report_settings_.report_config.setCinHint(false);
+	}
+
 	SomaticReportDialog dlg(somatic_report_settings_, variants_, cnvs_, this); //widget for settings
 	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_)) dlg.enableChoiceReportType(true);
 	if(somatic_report_settings_.report_config.targetFile() != "") dlg.enableGapStatistics(true);
 	if(!dlg.exec()) return;
+
 	dlg.writeBackSettings();
 
-
 	//store somatic report config in NGSD
-	NGSD db;
 	db.setSomaticReportConfig(db.processedSampleId(processedSampleName()), db.processedSampleId(normalSampleName()), somatic_report_settings_.report_config, variants_,cnvs_,Helper::userName());
 
 

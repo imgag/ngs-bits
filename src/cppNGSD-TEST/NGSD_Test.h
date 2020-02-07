@@ -58,8 +58,9 @@ private:
 		som_rep_conf.setTumContentByHistological(true);
 		som_rep_conf.setMsiStatus(true);
 		som_rep_conf.setCnvBurden(true);
-		som_rep_conf.setHrdHint(true);
+		som_rep_conf.setHrdScore(4);
 		som_rep_conf.setCinHint(true);
+		som_rep_conf.setTmbReferenceText("Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
 
 
 		SomaticReportVariantConfiguration cnv1;
@@ -83,8 +84,9 @@ private:
 		IS_TRUE(res_config.tumContentByHistological());
 		IS_TRUE(res_config.msiStatus());
 		IS_TRUE(res_config.cnvBurden());
-		IS_TRUE(res_config.hrdHint());
+		I_EQUAL(res_config.hrdScore(), 4);
 		IS_TRUE(res_config.cinHint());
+		S_EQUAL(res_config.tmbReferenceText(), "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
 
 		//Test variants included in resolved report
 		QList<SomaticReportVariantConfiguration> res =  res_config.variantConfig();
@@ -128,8 +130,9 @@ private:
 		som_rep_conf.setTumContentByHistological(false);
 		som_rep_conf.setMsiStatus(false);
 		som_rep_conf.setCnvBurden(false);
-		som_rep_conf.setHrdHint(false);
+		som_rep_conf.setHrdScore(0);
 		som_rep_conf.setCinHint(false);
+		som_rep_conf.setTmbReferenceText("An alternative tmb reference value.");
 
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahkerra1");
 
@@ -139,8 +142,9 @@ private:
 		IS_FALSE(res_config_2.tumContentByHistological());
 		IS_FALSE(res_config_2.msiStatus());
 		IS_FALSE(res_config_2.cnvBurden());
-		IS_FALSE(res_config_2.hrdHint());
+		I_EQUAL(res_config_2.hrdScore(), 0);
 		IS_FALSE(res_config_2.cinHint());
+		S_EQUAL(res_config_2.tmbReferenceText(), "An alternative tmb reference value.");
 
 		SomaticReportConfigurationData config_data_2 =  db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_2.created_by, "Max Mustermann");

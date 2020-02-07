@@ -78,6 +78,11 @@ public:
 		return source_;
 	}
 
+	bool showInReport()
+	{
+		return show_in_report_;
+	}
+
 	const QList<QString> asStringList() const
 	{
 		QList<QString> result;
@@ -106,6 +111,11 @@ public:
 		entity_ = entity;
 	}
 
+	void setShowInReport(bool show)
+	{
+		show_in_report_ = show;
+	}
+
 	///returns amino acid change in 3-letters-code if nomenclature in alteration_type was recognized.
 	///returns "AMP" and "DEL" in case of CNVs
 	static const QString proteinChange(QString aa_change);
@@ -127,6 +137,9 @@ private:
 	QString evidence_;
 	///publications assigned to drug
 	QString source_;
+
+	///This DrugReportLine will appear in report
+	bool show_in_report_ = true;
 };
 
 class CGIDrugTable
@@ -150,10 +163,6 @@ public:
 	///Merges duplicates which occur in the same evidence level
 	void mergeDuplicates(int evid_level);
 
-	const QList<CGIDrugReportLine> values() const
-	{
-		return drug_list_.values();
-	}
 
 	int count()
 	{
@@ -355,6 +364,9 @@ private:
 		}
 	}
 
+
+	RtfTableRow tumorContent();
+
 	const SomaticReportSettings& settings_;
 
 	///SNV file
@@ -412,7 +424,7 @@ private:
 	///ICD10 text diagnosis tumor
 	QString icd10_diagnosis_code_;
 	///tumor fraction according genlab
-	QString histol_tumor_fraction_;
+	double histol_tumor_fraction_;
 
 	///HPO term listed in NGSD
 	QString hpo_term_;

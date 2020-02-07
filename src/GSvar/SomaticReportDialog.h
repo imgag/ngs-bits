@@ -41,8 +41,12 @@ private:
 	double tum_cont_max_clonality_;
 	double tum_cont_histological_;
 
+
 public slots:
 	void writeBackSettings();
+
+private slots:
+	void updateGUI();
 };
 
 #endif // SOMATICREPORTDIALOG_H

@@ -322,7 +322,7 @@ CREATE  TABLE IF NOT EXISTS `user`
   `email` VARCHAR(45) NOT NULL,
   `created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_login` DATETIME NULL DEFAULT NULL,
-  `active` TINYINT(1) NOT NULL,
+  `active` TINYINT(1) DEFAULT 0 NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`user_id` ASC),
   UNIQUE INDEX `email_UNIQUE` (`email` ASC)
@@ -1075,8 +1075,9 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `tum_content_hist` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include histological tumor content estimate ',
   `msi_status` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include microsatellite instability status',
   `cnv_burden` BOOLEAN NOT NULL DEFAULT FALSE,
-  `hrd_hint` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'text hint in report whether there is homologous recombination deficiency',
+  `hrd_score` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'homologous recombination deficiency score',
   `cin_hint` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'text hint in report whether there is chromosomal instability',
+  `tmb_ref_text` VARCHAR(200) NULL DEFAULT NULL COMMENT 'reference data as free text for tumor mutation burden',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `combo_som_rep_conf_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
   CONSTRAINT `somatic_report_config_created_by_user` 

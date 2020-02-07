@@ -54,6 +54,8 @@ public:
 
 	void sortByPosition();
 
+
+
 	QString targetFile() const;
 	void setTargetFile(QString target_bed);
 
@@ -78,11 +80,14 @@ public:
 	bool cnvBurden() const;
 	void setCnvBurden(bool include_cnv_burden);
 
-	bool hrdHint() const;
-	void setHrdHint(bool include_hrd_hint);
+	int hrdScore() const;
+	void setHrdScore(int score);
 
 	bool cinHint() const;
 	void setCinHint(bool include_cin_hint);
+
+	QString tmbReferenceText() const;
+	void setTmbReferenceText(QString ref_text);
 
 private:
 	QList<SomaticReportVariantConfiguration> variant_config_;
@@ -96,8 +101,11 @@ private:
 
 	bool include_msi_status_;
 	bool include_cnv_burden_;
-	bool include_hrd_hint_;
+	int hrd_score_; //0 no HRD; 1,2 low; 3 intermediate HRD; 4,5 high HRD
 	bool include_cin_hint_;
+
+	//Reference text for tumor mutation burden
+	QString tmb_reference_text_;
 };
 
 #endif // SOMATICREPORTCONFIGURATION_H

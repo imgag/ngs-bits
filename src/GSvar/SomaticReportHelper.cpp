@@ -440,7 +440,7 @@ RtfTable SomaticReportHelper::createCnvTable()
 		//coordinates
 		QList<RtfSourceCode> coords;
 		coords << RtfText(variant.chr().str()).setFontSize(18).RtfCode();
-		coords << QByteArray::number(variant.start() == 0 ? 1 : variant.start()) + "-" + QByteArray::number(variant.end());
+		coords << QByteArray::number(variant.start() == 0 ? 1 : variant.start()) + " - " + QByteArray::number(variant.end());
 		temp_row.addCell(coords,1700);
 		temp_row.last().format().setFontSize(14);
 
@@ -477,14 +477,8 @@ RtfTable SomaticReportHelper::createCnvTable()
 		temp_row.addCell(800,CnvSizeDescription(variant.annotations().at(cnv_index_cnv_type_)),RtfParagraph().setHorizontalAlignment("c"));
 
 		//copy numbers
-		if(variant.annotations().at(cnv_index_tumor_cn_change_).toDouble() <= 6)
-		{
-			temp_row.addCell(400,variant.annotations().at(cnv_index_tumor_cn_change_));
-		}
-		else
-		{
-			temp_row.addCell(400,">6");
-		}
+		temp_row.addCell(400,variant.annotations().at(cnv_index_tumor_cn_change_));
+
 		temp_row.last().format().setHorizontalAlignment("c");
 
 		//tumor clonality
@@ -496,29 +490,16 @@ RtfTable SomaticReportHelper::createCnvTable()
 		{
 			//cgi genes
 			QByteArrayList cgi_genes = variant.annotations().at(cnv_index_cgi_genes_).split(',');
-
-			QByteArrayList cgi_driver_statements = variant.annotations().at(cnv_index_cgi_driver_statement_).split(',');
+			std::sort(cgi_genes.begin(), cgi_genes.end());
 
 			QByteArray genes_included = "";
 
 			for(int j=0;j<cgi_genes.count();++j)
 			{
 				//skip if gene is not contained in target region
-				if(!target_genes.contains(cgi_genes[j]))
-				{
-					continue;
-				}
+				if(!target_genes.contains(cgi_genes[j])) continue;
 
-				//driver gene is printed bold
-				if(cgi_driver_statements[j].contains("driver") || cgi_driver_statements[j].contains("known"))
-				{
-					genes_included.append(RtfText(cgi_genes[j]).setItalic(true).setBold(true).RtfCode());
-				}
-				else
-				{
-					genes_included.append(RtfText(cgi_genes[j]).setItalic(true).RtfCode());
-				}
-
+				genes_included.append(RtfText(cgi_genes[j]).setItalic(true).RtfCode());
 				genes_included.append(", ");
 			}
 			genes_included.truncate(genes_included.count()-2); //remove final ','
@@ -540,7 +521,7 @@ RtfTable SomaticReportHelper::createCnvTable()
 			}
 			else
 			{
-				temp_row.addCell(5038,"");
+				temp_row.addCell(5038, "");
 			}
 		}
 		cnv_table.addRow(temp_row);
@@ -688,6 +669,9 @@ void CGIDrugTable::load(const QString &file_name)
 	{
 		//skip all entries which differ in mutation
 		if(line.at(i_alteration_match) != "complete") continue;
+
+		//Skip pre-clinicals
+		if(line.at(i_evidence).trimmed() == "Pre-clinical") continue;
 
 		CGIDrugReportLine row;
 
@@ -1014,7 +998,8 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	{
 		if(entry.type == "tumor fraction") tmp.append(entry.disease_info);
 	}
-	histol_tumor_fraction_ = tmp.join(", ");
+	if(tmp.count() == 1) histol_tumor_fraction_ = tmp[0].toDouble();
+	else histol_tumor_fraction_ = std::numeric_limits<double>::quiet_NaN();
 
 	tmp.clear();
 	foreach(const SampleDiseaseInfo& entry,disease_info)
@@ -1931,65 +1916,10 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 
 	general_info_table.addRow(RtfTableRow("Allgemeine genetische Charakteristika",doc_.maxWidth(),RtfParagraph().setBold(true)).setBackgroundColor(5).setBorders(1,"brdrhair",4));
 
-	general_info_table.addRow(RtfTableRow({"Mutationslast:", QByteArray::number(mutation_burden_) + " Var/Mbp"},{2500,7137}).setBorders(1,"brdrhair",4));
 
-	general_info_table.last()[0].setBorder(1,1,1,0,"brdrhair");
-	general_info_table.last().last().setBorder(1,1,1,0,"brdrhair");
+	QByteArray tumor_content_bioinf = "";
 
-	//Parse reference data from publication
-	QList<tmb_info> hpo_tmbs = tmb_info::load("://Resources/hpoterms_tmb.tsv");
-	int entries_count = 0;
-	foreach(tmb_info data,hpo_tmbs)
-	{
-		if(data.hpoterm == hpo_term_) ++entries_count;
-	}
-
-	RtfTableRow ref_values;
-	ref_values.addCell(2500,"Vergleichswerte:",RtfParagraph().setFontSize(14));
-
-	if(entries_count == 0)
-	{
-		if(!hpo_term_.isEmpty()) ref_values.addCell(7137,"Es sind keine Vergleichsdaten zu dieser Tumorentität erfasst. (PMID: 28420421)",RtfParagraph().setFontSize(14));
-		else ref_values.addCell(7137,"Es wurde kein (eindeutiger) HPO-Term in NGSD hinterlegt.",RtfParagraph().setFontSize(14));
-	}
-	else
-	{
-		QByteArrayList tmp;
-		foreach(tmb_info data,hpo_tmbs)
-		{
-			if(data.hpoterm == hpo_term_)
-			{
-				tmp << "Median: " + QByteArray::number(data.tmb_median) + " Var/Mbp, Maximum: " + QByteArray::number(data.tmb_max) + " Var/Mbp, Probenanzahl: " + QByteArray::number(data.cohort_count) + " (PMID: 28420421) "
-										+ RtfText(data.tumor_entity).highlight(3).setFontSize(14).RtfCode();
-			}
-		}
-		ref_values.addCell(7137,tmp.join("\n\\line\n"),RtfParagraph().setFontSize(14));
-
-		ref_values.setBorders(1,"brdrhair",4);
-		ref_values[0].setBorder(10,0,10,10,"brdrhair");
-		ref_values.last().setBorder(10,0,10,10,"brdrhair");
-	}
-	general_info_table.addRow(ref_values);
-
-
-	//MSI status, values larger than 0.16 are considered unstable
-	if(settings_.report_config.msiStatus())
-	{
-		general_info_table.addRow(RtfTableRow({"MSI-Status:", ( mantis_msi_swd_value_ <= 0.16 ? "stabil" : "instabil" ) },{2500,7137}).setBorders(1,"brdrhair",4));
-	}
-
-	if(settings_.report_config.tumContentByHistological())
-	{
-
-		general_info_table.addRow(RtfTableRow({"Tumoranteil (histologisch):", histol_tumor_fraction_.toUtf8() + "\%"},{2500,7137}).setBorders(1,"brdrhair",4));
-	}
-
-	if(settings_.report_config.tumContentByClonality())
-	{
-		double tumor_cnv_proportion = getCnvMaxTumorClonality(cnvs_) * 100.;
-		general_info_table.addRow(RtfTableRow({"Tumoranteil (Klonalität):", QByteArray::number(tumor_cnv_proportion,'f',1) + "\%"},{2500,7137}).setBorders(1,"brdrhair",4));
-	}
-
+	if(settings_.report_config.tumContentByClonality()) tumor_content_bioinf = QByteArray::number(getCnvMaxTumorClonality(cnvs_) * 100., 'f', 1) + "\%";
 	if(settings_.report_config.tumContentByMaxSNV())
 	{
 		double tumor_molecular_proportion;
@@ -2004,8 +1934,53 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 
 		if(tumor_molecular_proportion > 100.)	tumor_molecular_proportion = 100.;
 
-		general_info_table.addRow(RtfTableRow({"Tumoranteil (SNPs):", histol_tumor_fraction_.toUtf8() + "\%" +  " / " + QByteArray::number(tumor_molecular_proportion,'f',1) + "\%"},{2500,7137}).setBorders(1,"brdrhair",4));
+		if(tumor_content_bioinf != "") tumor_content_bioinf += ", ";
+
+		tumor_content_bioinf += QByteArray::number(tumor_molecular_proportion, 'f', 1) + "\%";
 	}
+
+	if(!settings_.report_config.tumContentByClonality() && !settings_.report_config.tumContentByMaxSNV())
+	{
+		tumor_content_bioinf = "nicht bestimmbar";
+	}
+
+	QByteArray tumor_content_hist = "nicht bestimmbar";
+	if(settings_.report_config.tumContentByHistological())
+	{
+		tumor_content_hist = QByteArray::number(histol_tumor_fraction_, 'f', 1) + "\%";
+	}
+	general_info_table.addRow(RtfTableRow({"Tumoranteil (hist./bioinf.)", tumor_content_hist + " / " + tumor_content_bioinf}, {2500, 7137}).setBorders(1,"brdrhair", 4));
+
+
+	RtfText mutation_burden_text(QByteArray::number(mutation_burden_) + " Var/Mbp");
+	if(settings_.report_config.tmbReferenceText() != "")
+	{
+		mutation_burden_text.append(";");
+		mutation_burden_text.append(RtfText("Vergleichswerte: " + settings_.report_config.tmbReferenceText().toUtf8()).setFontSize(14).RtfCode(), true);
+	}
+
+	general_info_table.addRow(RtfTableRow({"Mutationslast:", mutation_burden_text.RtfCode()}, {2500,7137}).setBorders(1,"brdrhair",4));
+	general_info_table.last()[0].setBorder(1,1,1,0,"brdrhair");
+	general_info_table.last().last().setBorder(1,1,1,0,"brdrhair");
+
+
+	//MSI status, values larger than 0.16 are considered unstable
+	if(settings_.report_config.msiStatus())
+	{
+		general_info_table.addRow(RtfTableRow({"Mikrosatelliten-Analyse:", ( mantis_msi_swd_value_ <= 0.16 ? "Keine Hinweise auf MSI" : "instabil" ) },{2500,7137}).setBorders(1,"brdrhair",4));
+	}
+
+	//Fusion status
+	general_info_table.addRow(RtfTableRow({"Fusionen/Strukturvarianten", (fusions_.count() > 0 ? "nachgewiesen" : "nicht nachgewiesen")}, {2500,7137}).setBorders(1, "brdrhair", 4));
+
+	//Virus DNA status
+	QByteArrayList virus_names;
+	for(const auto& virus : validated_viruses_)
+	{
+		virus_names << virus.virusName();
+	}
+	general_info_table.addRow(RtfTableRow({"Virus-DNA", (virus_names.count() > 0 ? virus_names.join(", ") + " nachgewiesen" : "nicht nachgewiesen")}, {2500,7137}).setBorders(1, "brdrhair", 4));
+
 
 	//Calc percentage of CNV altered genome
 
@@ -2030,10 +2005,10 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		general_info_table.addRow(RtfTableRow({"CNV-Last:", text_cnv_burden},{2500,7137},RtfParagraph()).setBorders(1,"brdrhair",4));
 	}
 
-	if(settings_.report_config.hrdHint())
-	{
-		general_info_table.addRow(RtfTableRow({"HRD-Status:", "Es gibt Hinweise auf defekte homologe Rekombination."}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
-	}
+	QByteArray hrd_text;
+	if(settings_.report_config.hrdScore() > 0) hrd_text = "Score: " + QByteArray::number(settings_.report_config.hrdScore());
+	else hrd_text = "nicht nachgewiesen";
+	general_info_table.addRow(RtfTableRow({"HRD-Status:", hrd_text}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
 
 	doc_.addPart(general_info_table.RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
@@ -2042,8 +2017,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	/********************************
 	 * RELEVANT SOMATIC ALTERATIONS *
 	 ********************************/
-	doc_.addPart(RtfParagraph("In der nachfolgenden Übersicht finden Sie alle Varianten, die durch Literaturrecherche und Analysen von Datenbanken als funktionell relevant eingestuft wurden (d.h. bekannte Treiber oder mittels probabilistischer Methoden als Treiber vorhergesagt). Alle aufgelisteten somatischen Veränderungen sind, wenn nicht anderweitig vermerkt, im Normalgewebe nicht nachweisbar.").setHorizontalAlignment("j").RtfCode());
-	doc_.addPart(RtfParagraph("In der untersuchten Tumorprobe konnte eine Vielzahl numerischer Chromosomenaberrationen in Form von Amplifikationen und Deletionen größerer chromosomaler Bereiche und ganzer Chromosomen nachgewiesen werden. In der nachfolgenden Liste befinden sich alle funktionell relevanten Kopienzahlveränderungen.").setHorizontalAlignment("j").RtfCode());
+	doc_.addPart(RtfParagraph("In der nachfolgenden Übersicht finden Sie alle Varianten und Kopienzahlveränderungen, die in unterschiedlichen Datenbanken als funktionell relevant eingestuft wurden (bekannte Treiber oder mittels probabilistischer Methoden als Treiber vorhergesagt). Alle aufgelisteten somatischen Veränderungen sind, wenn nicht anderweitig vermerkt, im Normalgewebe nicht nachweisbar.").setHorizontalAlignment("j").RtfCode());
 	doc_.newPage();
 	doc_.addPart(RtfParagraph("Potentiell relevante somatische Veränderungen:").setBold(true).setIndent(0,0,0).setSpaceBefore(250).RtfCode());
 
@@ -2093,41 +2067,6 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	snv_expl += "Erweiterte Legende und Abkürzungen siehe unten. ";
 	snv_expl += RtfText("§ Es wurden weitere Varianten unklarer Signifikanz in der Normalprobe nachgewiesen (siehe Anlage unten).").highlight(3).setFontSize(14).RtfCode();
 	doc_.addPart(RtfParagraph(snv_expl).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode());
-
-	doc_.addPart(RtfParagraph(" ").RtfCode());
-
-	/*************************
-	 * FUSIONS / ONCOVIRUSES *
-	 *************************/
-	if(validated_viruses_.count() != 0)
-	{
-		doc_.addPart(RtfParagraph("").RtfCode());
-
-		QByteArray virus_text = "";
-		QList<QByteArray> proteins;
-		QList <QByteArray> names;
-		for(const auto& virus : validated_viruses_)
-		{
-			if(!proteins.contains(virus.virusGene())) proteins << virus.virusGene();
-			if(!names.contains(virus.virusName())) names << virus.virusName();
-		}
-
-		virus_text = "Es ";
-		if(proteins.count() > 1) virus_text += "wurden die Gene " + proteins.join(", ") + " ";
-		else virus_text += "wurde das Gen " + proteins[0] + " ";
-		if(names.count() > 1) virus_text += "der Viren " + names.join(", ") + " ";
-		else virus_text +=  "des Virus " + names[0] + " ";
-		virus_text += "nachgewiesen.";
-
-		doc_.addPart(RtfParagraph(virus_text).RtfCode());
-	}
-	else
-	{
-		doc_.addPart(RtfParagraph("Es wurde keine Virus-DNA nachgewiesen.").RtfCode());
-	}
-
-	//Fusions, text depends on fusion count
-	doc_.addPart(fusionsText().RtfCode());
 
 	doc_.addPart(RtfParagraph("").RtfCode());
 

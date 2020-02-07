@@ -31,7 +31,7 @@ public:
 
 	void append(const QByteArray& content,bool new_line = false)
 	{
-		if(new_line) content_.append("\n\\newline\n" + content);
+		if(new_line) content_.append("\n\\line\n" + content);
 		else content_.append(content);
 	}
 

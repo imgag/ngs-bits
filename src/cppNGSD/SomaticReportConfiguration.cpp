@@ -30,7 +30,7 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	, include_tum_content_histological_(false)
 	, include_msi_status_(false)
 	, include_cnv_burden_(false)
-	, include_hrd_hint_(false)
+	, hrd_score_(0)
 	, include_cin_hint_(false)
 {
 }
@@ -214,14 +214,15 @@ void SomaticReportConfiguration::setCnvBurden(bool include_cnv_burden)
 	include_cnv_burden_ = include_cnv_burden;
 }
 
-bool SomaticReportConfiguration::hrdHint() const
+int SomaticReportConfiguration::hrdScore() const
 {
-	return include_hrd_hint_;
+	return hrd_score_;
 }
 
-void SomaticReportConfiguration::setHrdHint(bool include_hrd_hint)
+void SomaticReportConfiguration::setHrdScore(int hrd_score)
 {
-	include_hrd_hint_ = include_hrd_hint;
+	if(hrd_score <= 5)	hrd_score_ = hrd_score;
+	else hrd_score_ = 0;
 }
 
 bool SomaticReportConfiguration::cinHint() const
@@ -233,3 +234,16 @@ void SomaticReportConfiguration::setCinHint(bool include_cin_hint)
 {
 	include_cin_hint_ = include_cin_hint;
 }
+
+QString SomaticReportConfiguration::tmbReferenceText() const
+{
+	return tmb_reference_text_;
+}
+
+void SomaticReportConfiguration::setTmbReferenceText(QString ref_text)
+{
+	tmb_reference_text_ = ref_text.mid(0,200); //NGSD schema allows ref text up to 200 chars
+}
+
+
+
