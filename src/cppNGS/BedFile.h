@@ -60,7 +60,8 @@ public:
     ///Return the lentgh of the chromosomal range.
     int length() const
     {
-        return end_ - start_ + 1;
+		// +1 since the BED coordinates has been converted into a 1-based fully-closed format
+		return end_ - start_ + 1;
     }
 
     ///Read-only access to the annotations list.
