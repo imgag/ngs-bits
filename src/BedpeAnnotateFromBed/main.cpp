@@ -145,18 +145,6 @@ public:
 		cnv_output_file->close();
 	}
 
-private:
-	/*
-	 *  returns a formatted time string (QByteArray) from a given time in milliseconds
-	 */
-	QByteArray getTimeString(qint64 milliseconds)
-	{
-		QTime time(0,0,0);
-		time = time.addMSecs(milliseconds);
-		return time.toString("hh:mm:ss.zzz").toUtf8();
-	}
-
-
 };
 
 #include "main.moc"

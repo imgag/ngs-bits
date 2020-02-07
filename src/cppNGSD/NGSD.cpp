@@ -1286,7 +1286,10 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 
 				//special constraints
 				if (table=="mid" && info.name=="sequence") info.type_constraints.regexp = QRegularExpression("^[ACGT]*$");
-				if (table=="processing_system" && info.name=="name_short") info.type_constraints.regexp = QRegularExpression("^[A-Za-z0-9_-\\.]*$");
+				if (table=="processing_system" && info.name=="name_short") info.type_constraints.regexp = QRegularExpression("^[A-Za-z0-9_\\.-]*$");
+				if (table=="processing_system" && info.name=="adapter1_p5") info.type_constraints.regexp = QRegularExpression("^[ACGT]*$");
+				if (table=="processing_system" && info.name=="adapter2_p7") info.type_constraints.regexp = QRegularExpression("^[ACGT]*$");
+				if (table=="processed_sample" && info.name=="lane") info.type_constraints.regexp = QRegularExpression("^[1-8](,[1-8])*$");
 			}
 			else
 			{
@@ -3908,6 +3911,7 @@ QStringList NGSD::checkValue(const QString& table, const QString& field, const Q
 			//check regexp
 			if (!field_info.type_constraints.regexp.pattern().isEmpty())
 			{
+				//qDebug() << field_info.name << value << field_info.type_constraints.regexp.pattern();
 				if (!value.contains(field_info.type_constraints.regexp))
 				{
 					errors << "Regular expression mismatch of value '" + value + "' (pattern=" + field_info.type_constraints.regexp.pattern() + ")";

@@ -3609,7 +3609,7 @@ void FilterSvMinSize::apply(const BedpeFile& svs, FilterResult& result) const
 		// get SV length
 		int sv_length = svs.estimatedSvSize(i);
 
-		if (sv_length <= min_size_bases)
+		if (sv_length < min_size_bases)
 		{
 			result.flags()[i] = false;
 		}
@@ -3645,7 +3645,7 @@ void FilterSvMaxSize::apply(const BedpeFile& svs, FilterResult& result) const
 		// get SV length
 		int sv_length = svs.estimatedSvSize(i);
 
-		if (sv_length >= max_size_bases)
+		if (sv_length > max_size_bases)
 		{
 			result.flags()[i] = false;
 		}

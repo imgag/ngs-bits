@@ -5,7 +5,6 @@
 #include "BedFile.h"
 #include "NGSD.h"
 #include "TSVFileStream.h"
-#include <QElapsedTimer>
 #include <QFileInfo>
 
 class ConcreteTool
@@ -43,7 +42,7 @@ public:
 		QTextStream out(stdout);
 
 		// start timer
-		QElapsedTimer timer;
+		QTime timer;
 		timer.start();
 
 		// generate BED files for whole gene region and exons:
@@ -75,7 +74,7 @@ public:
 		out << "generating BED index..." << endl;
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);
 
-		out << "preprocessing finished (runtime: " << getTimeString(timer.elapsed()) << ")" << endl;
+		out << "preprocessing finished (runtime: " << Helper::elapsedTime(timer) << ")" << endl;
 
 
 		out << "annotate TSV file..." << endl;
@@ -168,22 +167,12 @@ public:
 		cnv_output_file->close();
 
 
-		out << "annotation complete (runtime: " << getTimeString(timer.elapsed()) << ")." << endl;
+		out << "annotation complete (runtime: " << Helper::elapsedTime(timer) << ")." << endl;
 
 	}
 private:
 	bool use_test_db_;
 	bool add_simple_gene_names_;
-
-	/*
-	 *  returns a formatted time string (QByteArray) from a given time in milliseconds
-	 */
-	QByteArray getTimeString(qint64 milliseconds)
-	{
-		QTime time(0,0,0);
-		time = time.addMSecs(milliseconds);
-		return time.toString("hh:mm:ss.zzz").toUtf8();
-	}
 
 	/*
 	 *	returns a BedLine containing the whole extended gene region for the given gene

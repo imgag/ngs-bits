@@ -17,7 +17,7 @@
    <string>MainWindow</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../GSmix/GSmix.qrc">
+   <iconset resource="GSvar.qrc">
     <normaloff>:/Icons/Icon.png</normaloff>:/Icons/Icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -458,6 +458,8 @@
     <addaction name="separator"/>
     <addaction name="menuAdmin"/>
     <addaction name="menuBatch_import"/>
+    <addaction name="actionMidClashDetection"/>
+    <addaction name="separator"/>
     <addaction name="actionStatistics"/>
    </widget>
    <addaction name="menuFile"/>
@@ -999,6 +1001,11 @@
     <string>Processed samples</string>
    </property>
   </action>
+  <action name="actionMidClashDetection">
+   <property name="text">
+    <string>MID clash detection</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -1021,7 +1028,6 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../GSmix/GSmix.qrc"/>
   <include location="GSvar.qrc"/>
  </resources>
  <connections/>

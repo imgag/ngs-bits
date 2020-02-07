@@ -207,7 +207,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `start_date` DATE NULL DEFAULT NULL,
   `end_date` DATE NULL DEFAULT NULL,
   `device_id` INT(11) NOT NULL,
-  `recipe` VARCHAR(45) NOT NULL,
+  `recipe` VARCHAR(45) NOT NULL COMMENT 'Read length for reads and index reads separated by \'+\'',
   `pool_molarity` float DEFAULT NULL,
   `pool_quantification_method` enum('n/a','Tapestation','Bioanalyzer','qPCR','Tapestation & Qubit','Bioanalyzer & Qubit') NOT NULL DEFAULT 'n/a',
   `comment` TEXT NULL DEFAULT NULL,

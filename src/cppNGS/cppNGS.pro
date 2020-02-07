@@ -59,7 +59,8 @@ SOURCES += BedFile.cpp \
     FilterCascade.cpp \
     VcfFile.cpp \
     TabixIndexedFile.cpp \
-    BedpeFile.cpp
+    BedpeFile.cpp \
+    MidCheck.cpp
 
 
 HEADERS += BedFile.h \
@@ -89,7 +90,8 @@ HEADERS += BedFile.h \
     TabixIndexedFile.h \
     BedpeFile.h \
     KeyValuePair.h \
-    VariantType.h
+    VariantType.h \
+    MidCheck.h
 
 
 RESOURCES += \

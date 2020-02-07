@@ -7,7 +7,6 @@
 #include <QFile>
 #include <QSharedPointer>
 #include <zlib.h>
-#include <QElapsedTimer>
 #include <QFileInfo>
 
 class ConcreteTool
@@ -46,7 +45,7 @@ public:
 	{
 		//init
 		QTextStream out(stdout);
-		QElapsedTimer timer;
+		QTime timer;
 		timer.start();
 
 		// parse parameter
@@ -374,22 +373,11 @@ public:
 		output_vcf -> close();
 
 		out << "\nExecution finished\n" << vcf_line_idx << " vcf lines parsed, " << extended_lines_
-			<< " lines annotated. (runtime: " << getTimeString(timer.elapsed()) << ")\n" << endl;
+			<< " lines annotated. (runtime: " << Helper::elapsedTime(timer) << ")\n" << endl;
     }
 
 private:
 	int extended_lines_ = 0;
-
-	/*
-	 *  returns a formatted time string (QByteArray) from a given time in milliseconds
-	 */
-	QByteArray getTimeString(qint64 milliseconds)
-	{
-		QTime time(0,0,0);
-		time = time.addMSecs(milliseconds);
-		return time.toString("hh:mm:ss.zzz").toUtf8();
-	}
-
 
 	/*
 	 *  parses the INFO id parameter and extracts the INFO ids for the annotation file and the
