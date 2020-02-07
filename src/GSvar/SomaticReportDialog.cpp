@@ -164,6 +164,24 @@ void SomaticReportDialog::updateGUI()
 
 	//index of hrd_score is equal to actual score value
 	ui_.hrd_score->setCurrentIndex(settings_.report_config.hrdScore());
+
+
+	//Load possible quality settings
+	QStringList quality_entries = db_.getEnum("somatic_report_configuration", "quality");
+	for(const auto& entry: quality_entries)
+	{
+		ui_.quality->addItem(entry);
+	}
+
+	//Set selected entry to old setting
+	for(int i=0; i<ui_.quality->count();++i)
+	{
+		if(ui_.quality->itemText(i) == settings_.report_config.quality())
+		{
+			ui_.quality->setCurrentIndex(i);
+			break;
+		}
+	}
 }
 
 void SomaticReportDialog::writeBackSettings()
@@ -179,12 +197,15 @@ void SomaticReportDialog::writeBackSettings()
 	//current index of hrd_score is identical to value!
 	settings_.report_config.setHrdScore(ui_.hrd_score->currentIndex());
 
+	settings_.report_config.setQuality(ui_.quality->currentText());
 
 	if(ui_.tmb_reference->selectionModel()->selectedRows().count() == 1)
 	{
 		QString ref_text = ui_.tmb_reference->item(ui_.tmb_reference->selectionModel()->selectedRows()[0].row(), 1)->text();
 		settings_.report_config.setTmbReferenceText(ref_text);
 	}
+
+
 }
 
 SomaticReportDialog::report_type SomaticReportDialog::getReportType()

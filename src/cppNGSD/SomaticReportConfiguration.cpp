@@ -1,6 +1,7 @@
 #include <QFileInfo>
 #include "SomaticReportConfiguration.h"
 #include "NGSD.h"
+#include "Settings.h"
 
 SomaticReportVariantConfiguration::SomaticReportVariantConfiguration()
 	: variant_type(VariantType::SNVS_INDELS)
@@ -245,5 +246,14 @@ void SomaticReportConfiguration::setTmbReferenceText(QString ref_text)
 	tmb_reference_text_ = ref_text.mid(0,200); //NGSD schema allows ref text up to 200 chars
 }
 
+QString SomaticReportConfiguration::quality() const
+{
+	return quality_;
+}
+
+void SomaticReportConfiguration::setQuality(QString qual)
+{
+	quality_ = qual;
+}
 
 

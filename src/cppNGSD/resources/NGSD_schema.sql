@@ -1078,6 +1078,7 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `hrd_score` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'homologous recombination deficiency score',
   `cin_hint` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'text hint in report whether there is chromosomal instability',
   `tmb_ref_text` VARCHAR(200) NULL DEFAULT NULL COMMENT 'reference data as free text for tumor mutation burden',
+  `quality` ENUM('tumor cell content too low', 'quality of tumor DNA too low', 'DNA quantity too low') NULL DEFAULT NULL COMMENT 'user comment on the quality of the DNA',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `combo_som_rep_conf_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
   CONSTRAINT `somatic_report_config_created_by_user` 

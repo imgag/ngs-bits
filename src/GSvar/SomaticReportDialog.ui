@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1015</width>
-    <height>492</height>
+    <height>514</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -88,10 +88,7 @@
       <string>Settings</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <property name="horizontalSpacing">
-       <number>11</number>
-      </property>
-      <item row="0" column="0" rowspan="2" colspan="2">
+      <item row="0" column="0" colspan="2">
        <widget class="QCheckBox" name="include_low_cov">
         <property name="enabled">
          <bool>false</bool>
@@ -120,7 +117,58 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="2" rowspan="6">
+      <item row="1" column="0" colspan="2">
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="minimumSize">
+         <size>
+          <width>250</width>
+          <height>120</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>375</width>
+          <height>120</height>
+         </size>
+        </property>
+        <property name="title">
+         <string>Tumor content calculation method</string>
+        </property>
+        <layout class="QGridLayout" name="gridLayout">
+         <property name="leftMargin">
+          <number>15</number>
+         </property>
+         <property name="topMargin">
+          <number>10</number>
+         </property>
+         <property name="verticalSpacing">
+          <number>3</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="include_max_tum_freq">
+           <property name="text">
+            <string>max. allele frequency</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="include_max_clonality">
+           <property name="text">
+            <string>max. CNV clonality</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="include_tum_content_histological">
+           <property name="text">
+            <string>histological tumor content</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="2" rowspan="5">
        <widget class="QTableWidget" name="tmb_reference">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -218,57 +266,6 @@
        </widget>
       </item>
       <item row="2" column="0" colspan="2">
-       <widget class="QGroupBox" name="groupBox_3">
-        <property name="minimumSize">
-         <size>
-          <width>250</width>
-          <height>120</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>375</width>
-          <height>120</height>
-         </size>
-        </property>
-        <property name="title">
-         <string>Tumor content calculation method</string>
-        </property>
-        <layout class="QGridLayout" name="gridLayout">
-         <property name="leftMargin">
-          <number>15</number>
-         </property>
-         <property name="topMargin">
-          <number>10</number>
-         </property>
-         <property name="verticalSpacing">
-          <number>3</number>
-         </property>
-         <item row="0" column="0">
-          <widget class="QCheckBox" name="include_max_tum_freq">
-           <property name="text">
-            <string>max. allele frequency</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QCheckBox" name="include_max_clonality">
-           <property name="text">
-            <string>max. CNV clonality</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QCheckBox" name="include_tum_content_histological">
-           <property name="text">
-            <string>histological tumor content</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="3" column="0" colspan="2">
        <widget class="QCheckBox" name="include_cnv_burden">
         <property name="minimumSize">
          <size>
@@ -281,7 +278,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0" colspan="2">
+      <item row="3" column="0" colspan="2">
        <widget class="QCheckBox" name="include_msi_status">
         <property name="minimumSize">
          <size>
@@ -294,7 +291,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0" colspan="2">
+      <item row="4" column="0" colspan="2">
        <widget class="QCheckBox" name="include_cin_hint">
         <property name="minimumSize">
          <size>
@@ -307,7 +304,7 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
+      <item row="5" column="0">
        <widget class="QLabel" name="label">
         <property name="maximumSize">
          <size>
@@ -320,7 +317,7 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
+      <item row="5" column="1">
        <widget class="QComboBox" name="hrd_score">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -330,7 +327,7 @@
         </property>
         <property name="maximumSize">
          <size>
-          <width>150</width>
+          <width>200</width>
           <height>16777215</height>
          </size>
         </property>
@@ -362,6 +359,40 @@
         <item>
          <property name="text">
           <string>5 - high</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="maximumSize">
+         <size>
+          <width>70</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>quality:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QComboBox" name="quality">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <item>
+         <property name="text">
+          <string/>
          </property>
         </item>
        </widget>

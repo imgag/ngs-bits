@@ -89,6 +89,9 @@ public:
 	QString tmbReferenceText() const;
 	void setTmbReferenceText(QString ref_text);
 
+	QString quality() const;
+	void setQuality(QString qual);
+
 private:
 	QList<SomaticReportVariantConfiguration> variant_config_;
 	QString created_by_;
@@ -106,6 +109,9 @@ private:
 
 	//Reference text for tumor mutation burden
 	QString tmb_reference_text_;
+
+	//Quality description
+	QString quality_;
 };
 
 #endif // SOMATICREPORTCONFIGURATION_H

@@ -1967,7 +1967,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	//MSI status, values larger than 0.16 are considered unstable
 	if(settings_.report_config.msiStatus())
 	{
-		general_info_table.addRow(RtfTableRow({"Mikrosatelliten-Analyse:", ( mantis_msi_swd_value_ <= 0.16 ? "Keine Hinweise auf MSI" : "instabil" ) },{2500,7137}).setBorders(1,"brdrhair",4));
+		general_info_table.addRow(RtfTableRow({"Mikrosatelliten-Analyse:", ( mantis_msi_swd_value_ <= 0.16 ? "Keine Hinweise auf eine MSI" : "instabil" ) },{2500,7137}).setBorders(1,"brdrhair",4));
 	}
 
 	//Fusion status
