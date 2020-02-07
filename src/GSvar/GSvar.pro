@@ -74,7 +74,8 @@ SOURCES += main.cpp\
     SomaticReportSettings.cpp \
     SomaticReportVariantDialog.cpp \
     SomaticReportDialog.cpp \
-    MidCheckWidget.cpp
+    MidCheckWidget.cpp \
+    CnvSearchWidget.cpp
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -142,7 +143,8 @@ HEADERS  += MainWindow.h \
     SomaticReportSettings.h \
     SomaticReportVariantDialog.h \
     SomaticReportDialog.h \
-    MidCheckWidget.h
+    MidCheckWidget.h \
+    CnvSearchWidget.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -196,7 +198,10 @@ FORMS    += MainWindow.ui \
     SequencingRunOverview.ui \
     SomaticReportVariantDialog.ui \
     SomaticReportDialog.ui \
-    MidCheckWidget.ui
+    MidCheckWidget.ui \
+    CnvSearchWidget.ui
+
+
 include("../app_gui.pri")
 
 #include NGSD library

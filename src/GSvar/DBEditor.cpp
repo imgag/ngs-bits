@@ -538,7 +538,7 @@ void DBEditor::store()
 			}
 			else
 			{
-				//TODO don't use user name as salt, use random salt stored in user table (and use slower hash function) - AFTER NGSD IS NO LONGER USED!
+				//TODO don't use user name as salt, use random salt stored in user table (and use slower hash function) - AFTER NGSD IS NO LONGER USED > MARC
 				QString user_id = getEditWidget<QLineEdit*>("user_id")->text().trimmed();
 				values << QCryptographicHash::hash((user_id+value).toUtf8(), QCryptographicHash::Sha1).toHex();
 			}
