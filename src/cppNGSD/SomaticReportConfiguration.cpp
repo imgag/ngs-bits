@@ -33,6 +33,7 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	, include_cnv_burden_(false)
 	, hrd_score_(0)
 	, include_cin_hint_(false)
+	, fusions_detected_(false)
 {
 }
 
@@ -51,7 +52,7 @@ const SomaticReportVariantConfiguration& SomaticReportConfiguration::variantConf
 	THROW(ArgumentException, "Could not find somatic variant configuration for index " + QString::number(variant_index));
 }
 
-QList<int> SomaticReportConfiguration::variantIndices(VariantType type, bool only_selected, QString report_type) const
+QList<int> SomaticReportConfiguration::variantIndices(VariantType type, bool only_selected) const
 {
 	QList<int> output;
 
@@ -234,6 +235,16 @@ bool SomaticReportConfiguration::cinHint() const
 void SomaticReportConfiguration::setCinHint(bool include_cin_hint)
 {
 	include_cin_hint_ = include_cin_hint;
+}
+
+bool SomaticReportConfiguration::fusionsDetected() const
+{
+	return fusions_detected_;
+}
+
+void SomaticReportConfiguration::setFusionsDetected(bool detected)
+{
+	fusions_detected_ = detected;
 }
 
 QString SomaticReportConfiguration::tmbReferenceText() const

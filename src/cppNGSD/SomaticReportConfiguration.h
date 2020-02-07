@@ -39,7 +39,7 @@ public:
 	///Returns variant configuration for variant_index (index referes to index of main variant list!)
 	const SomaticReportVariantConfiguration& variantConfig(int variant_index) const;
 
-	QList<int> variantIndices(VariantType type, bool only_selected, QString report_type = QString()) const;
+	QList<int> variantIndices(VariantType type, bool only_selected) const;
 
 	bool exists(VariantType type, int index) const;
 
@@ -86,6 +86,9 @@ public:
 	bool cinHint() const;
 	void setCinHint(bool include_cin_hint);
 
+	bool fusionsDetected() const;
+	void setFusionsDetected(bool detected);
+
 	QString tmbReferenceText() const;
 	void setTmbReferenceText(QString ref_text);
 
@@ -106,6 +109,8 @@ private:
 	bool include_cnv_burden_;
 	int hrd_score_; //0 no HRD; 1,2 low; 3 intermediate HRD; 4,5 high HRD
 	bool include_cin_hint_;
+
+	bool fusions_detected_;
 
 	//Reference text for tumor mutation burden
 	QString tmb_reference_text_;

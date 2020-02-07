@@ -62,6 +62,7 @@ private:
 		som_rep_conf.setCinHint(true);
 		som_rep_conf.setTmbReferenceText("Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
 		som_rep_conf.setQuality("DNA quantity too low");
+		som_rep_conf.setFusionsDetected(true);
 
 		SomaticReportVariantConfiguration cnv1;
 		cnv1.variant_index = 2;
@@ -88,6 +89,7 @@ private:
 		IS_TRUE(res_config.cinHint());
 		S_EQUAL(res_config.tmbReferenceText(), "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
 		S_EQUAL(res_config.quality(), "DNA quantity too low");
+		IS_TRUE(res_config.fusionsDetected());
 
 		//Test variants included in resolved report
 		QList<SomaticReportVariantConfiguration> res =  res_config.variantConfig();
@@ -135,6 +137,7 @@ private:
 		som_rep_conf.setCinHint(false);
 		som_rep_conf.setTmbReferenceText("An alternative tmb reference value.");
 		som_rep_conf.setQuality("NON EXISTING IN SOMTATIC_REPORT_CONFIGURATION TABLE");
+		som_rep_conf.setFusionsDetected(false);
 
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahkerra1");
 
@@ -148,6 +151,7 @@ private:
 		IS_FALSE(res_config_2.cinHint());
 		S_EQUAL(res_config_2.tmbReferenceText(), "An alternative tmb reference value.");
 		S_EQUAL(res_config_2.quality(), "");
+		IS_FALSE(res_config_2.fusionsDetected());
 
 		SomaticReportConfigurationData config_data_2 =  db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_2.created_by, "Max Mustermann");

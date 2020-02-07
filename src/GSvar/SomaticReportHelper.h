@@ -364,6 +364,8 @@ private:
 		}
 	}
 
+	QString trans(const QString& text) const;
+
 
 	RtfTableRow tumorContent();
 

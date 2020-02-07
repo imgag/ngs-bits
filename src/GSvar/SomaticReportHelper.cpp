@@ -1967,11 +1967,11 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	//MSI status, values larger than 0.16 are considered unstable
 	if(settings_.report_config.msiStatus())
 	{
-		general_info_table.addRow(RtfTableRow({"Mikrosatelliten-Analyse:", ( mantis_msi_swd_value_ <= 0.16 ? "Keine Hinweise auf eine MSI" : "instabil" ) },{2500,7137}).setBorders(1,"brdrhair",4));
+		general_info_table.addRow(RtfTableRow({"Mikrosatelliten-Analyse:", ( mantis_msi_swd_value_ <= 0.16 ? "Kein Hinweis auf eine MSI" : "instabil" ) },{2500,7137}).setBorders(1,"brdrhair",4));
 	}
 
 	//Fusion status
-	general_info_table.addRow(RtfTableRow({"Fusionen/Strukturvarianten", (fusions_.count() > 0 ? "nachgewiesen" : "nicht nachgewiesen")}, {2500,7137}).setBorders(1, "brdrhair", 4));
+	general_info_table.addRow(RtfTableRow({"Fusionen/Strukturvarianten", (settings_.report_config.fusionsDetected() ? "nachgewiesen" : "nicht nachgewiesen")}, {2500,7137}).setBorders(1, "brdrhair", 4));
 
 	//Virus DNA status
 	QByteArrayList virus_names;
@@ -2006,9 +2006,12 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	}
 
 	QByteArray hrd_text;
-	if(settings_.report_config.hrdScore() > 0) hrd_text = "Score: " + QByteArray::number(settings_.report_config.hrdScore());
+	if(settings_.report_config.hrdScore() > 0) hrd_text = QByteArray::number(settings_.report_config.hrdScore());
 	else hrd_text = "nicht nachgewiesen";
-	general_info_table.addRow(RtfTableRow({"HRD-Status:", hrd_text}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+	general_info_table.addRow(RtfTableRow({"HRD-Score:", hrd_text}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+
+	general_info_table.addRow(RtfTableRow({"Probenqualität", trans(settings_.report_config.quality()).toUtf8()}, {2500, 7137}, RtfParagraph()).setBorders(1, "brdrhair", 4));
+
 
 	doc_.addPart(general_info_table.RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
@@ -2111,22 +2114,24 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	/***********
 	 * FUSIONS *
 	 ***********/
-	RtfTable fusion_table;
-	fusion_table.addRow(RtfTableRow("Fusionen",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(5));
-	fusion_table.addRow(RtfTableRow());
-	fusion_table.last().addCell(doc_.maxWidth(), fusionsText());
-	fusion_table.setUniqueBorder(1,"brdrhair",4);
-	doc_.addPart(fusion_table.RtfCode());
+	if(settings_.report_config.fusionsDetected())
+	{
+		RtfTable fusion_table;
+		fusion_table.addRow(RtfTableRow("Fusionen",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(5));
+		fusion_table.addRow(RtfTableRow());
+		fusion_table.last().addCell(doc_.maxWidth(), fusionsText());
+		fusion_table.setUniqueBorder(1,"brdrhair",4);
+		doc_.addPart(fusion_table.RtfCode());
+	}
 
 	doc_.addPart(RtfParagraph("").RtfCode());
 	/***************
 	 * VIRUS TABLE *
 	 ***************/
-	RtfTable virus_table;
-	virus_table.addRow(RtfTableRow("Onkoviren",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(5));
-
 	if(validated_viruses_.count() > 0)
 	{
+		RtfTable virus_table;
+		virus_table.addRow(RtfTableRow("Onkoviren",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(5));
 		virus_table.addRow(RtfTableRow({"Virus","Gen","Genom","Region","Abdeckung","Bewertung"},{963,964,1927,1927,1927,1929},RtfParagraph().setBold(true)));
 		for(const auto& virus : validated_viruses_)
 		{
@@ -2148,14 +2153,10 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		virus_table.setUniqueBorder(1,"brdrhair",4);
 		virus_table.addRow(RtfTableRow("*Wir empfehlen eine Bestätigung des nachgewiesenen Onkovirus mit einer validierten Methode, beispielsweise am Institut für Medizinische Virologie und Epidemiologie der Viruskrankheiten Tübingen.",doc_.maxWidth(),RtfParagraph().setSpaceBefore(50).setFontSize(14)));
 		virus_table.last().setBorders(0);
+		doc_.addPart(virus_table.RtfCode());
+		doc_.addPart(RtfParagraph("").RtfCode());
 	}
-	else
-	{
-		virus_table.addRow(RtfTableRow("Es wurde keine untersuchte Virus-DNA nachgewiesen.",doc_.maxWidth()));
-		virus_table.setUniqueBorder(1,"brdrhair",4);
-	}
-	doc_.addPart(virus_table.RtfCode());
-	doc_.addPart(RtfParagraph("").RtfCode());
+
 
 
 	/**************************
@@ -2230,4 +2231,18 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		doc_.addPart(createGapStatisticsTable({2200,7437}).RtfCode());
 	}
 	doc_.save(out_file);
+}
+
+
+QString SomaticReportHelper::trans(const QString &text) const
+{
+	QHash<QString, QString> en2de;
+	en2de["no abnormalities"] = "keine Auffälligkeiten";
+	en2de["tumor cell content too low"] = "Tumorzellgehalt zu niedrig";
+	en2de["quality of tumor DNA too low"] = "Qualität der Tumor-DNA zu gering";
+	en2de["DNA quantity too low"] = "DNA-Menge im Tumor zu gering";
+
+	if(!en2de.contains(text)) return text; //return original entry if not found
+
+	return en2de[text];
 }

@@ -137,6 +137,7 @@ void SomaticReportDialog::updateGUI()
 	else
 	{
 		ui_.include_tum_content_histological->setCheckable(false);
+		ui_.include_tum_content_histological->setEnabled(false);
 	}
 
 	if(target_region_ != "")
@@ -161,6 +162,7 @@ void SomaticReportDialog::updateGUI()
 	//Preselect remaining options
 	ui_.include_msi_status->setChecked(settings_.report_config.msiStatus());
 	ui_.include_cin_hint->setChecked(settings_.report_config.cinHint());
+	ui_.fusions_detected->setChecked(settings_.report_config.fusionsDetected());
 
 	//index of hrd_score is equal to actual score value
 	ui_.hrd_score->setCurrentIndex(settings_.report_config.hrdScore());
@@ -193,6 +195,7 @@ void SomaticReportDialog::writeBackSettings()
 	settings_.report_config.setMsiStatus(ui_.include_msi_status->isChecked());
 	settings_.report_config.setCnvBurden(ui_.include_cnv_burden->isChecked());
 	settings_.report_config.setCinHint(ui_.include_cin_hint->isChecked());
+	settings_.report_config.setFusionsDetected(ui_.fusions_detected->isChecked());
 
 	//current index of hrd_score is identical to value!
 	settings_.report_config.setHrdScore(ui_.hrd_score->currentIndex());
