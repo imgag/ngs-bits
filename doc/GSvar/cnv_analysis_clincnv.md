@@ -15,7 +15,7 @@ The dialog is opened from the main tool bar (0).
 In the upper part of the dialog (1), sample-specific information about the CNV calling is shown. It gives an impression  of the sample quality:
 
 * *number of high-quality CNVs* - high-quality means above log-likelihood 20 (see below for expected numbers).
-* *gender of sample*
+* *gender of sample* - gender determined from the depth-of-coverage data during the CNV calling.
 * *number of iterations:* If more CNVs than expected are encountered for a sample, the algorithm sensitivity is decreased and the algorithm is re-applied until a reasonable number of CNVs is called. The number of iterations counts how often the algorithm was started. Normally, this should be 1. A higher number idicates a problem during the analysis of the sample.
 
 ### CNV filtering
@@ -28,7 +28,7 @@ For each CNV the following properties are shown (3):
 * number of regions (exons/bins)
 * affected genes
 * copy-number change
-* log-likelyhood: logarithm of the ratio between likelihoods of the *no CN change model* vs the *CN equal to the reported state model* (bigger is better)
+* log-likelihood: logarithm of the ratio between likelihoods of the *no CN change model* vs the *CN equal to the reported state model* (bigger is better)
 * potential AF: frequency of the copy-number change in the analyzed cohort, i.e. the 100-200 most similar samples *(Note: this can deviate from the population allele frequency, especially for rare CNVs)*
 * q-value: p-value corrected for the number of CNVs detected (smaller is better)
 
@@ -36,7 +36,7 @@ Additionally, generic annotation columns are added (4), e.g.:
 
 * overlap af_genomes_imgag: overlap with copy-number-polymorphism regions
 	* The first number is the overlap with the CNP regions (AF>2%) determined from 650 in-house genomes. The range is 0 (no overlap) to 1 (complete overlap).
-    * The numbers in brackets are the allele-frequency (i.e. the fraction of samples with CN not equal to 2) in the overlap.
+    * The numbers in brackets are the allele-frequency (i.e. the fraction of samples with CN not equal to 2) of sub-regions within the overlap.
 	* These numbers are calculated from the the `AF TruSeqPCRfree` track described below.
 * cn_pathogenic: in-house database of pathogenic CNVs
 * dosage_sensitive_disease_genes: dosage-sensitive disease genes (from [ClinGen Dosage Sensitivity Map](https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/))
@@ -62,8 +62,8 @@ If the database identifier is marked with a link symbol, it be double-clicked to
 ### Number of CNVs to expect
 
 To allow very sensitive CNV detection, we use a very low log-likelihood cutoff of 3 and call down to one exon/region when executing ClinCNV.  
-However, by default GSvar only shows CNVs with a more conservative log-likelyhood of 20 or higher.  
-To increase sensitivity, the user can lower the log-likelyhood cutoff.
+However, by default GSvar only shows CNVs with a more conservative log-likelihood of 20 or higher.  
+To increase sensitivity, the user can lower the log-likelihood cutoff.
 
 However, when lowering the cutoff, the number of CNVs increases dramatically.  
 Thus, low cutoffs should only be used when looking at specific regions of interest, e.g. a single gene that matches the phenotype of the patient.
