@@ -1109,7 +1109,7 @@ DEFAULT CHARSET = utf8;
 -- -----------------------------------------------------
 -- Table `somatic_report_configuration_variant`
 -- -----------------------------------------------------
-CREATE TABLE `somatic_report_configuration_variant` (
+CREATE TABLE IF NOT EXISTS `somatic_report_configuration_variant` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `somatic_report_configuration_id` int(11) NOT NULL,
   `variant_id` int(11) NOT NULL,
@@ -1134,6 +1134,29 @@ CREATE TABLE `somatic_report_configuration_variant` (
     ON UPDATE NO ACTION,
   UNIQUE INDEX `som_conf_var_combo_uniq_index` (`somatic_report_configuration_id` ASC, `variant_id` ASC)
 )
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
+
+-- -----------------------------------------------------
+-- Table `somatic_report_configuration_germl_snv`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_report_configuration_germl_var` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `somatic_report_configuration_id` int(11) NOT NULL,
+  `variant_id` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `som_rep_conf_germl_var_has_rep_conf_id`
+    FOREIGN KEY (`somatic_report_configuration_id`)
+	REFERENCES `somatic_report_configuration` (`id`)
+	ON DELETE NO ACTION
+	ON UPDATE NO ACTION,
+  CONSTRAINT `som_rep_germl_var_has_var_id`
+    FOREIGN KEY (`variant_id`)
+	REFERENCES `variant` (`id`)
+	ON DELETE NO ACTION
+	ON UPDATE NO ACTION,
+  UNIQUE INDEX `som_conf_germl_var_combo_uni_idx` (`somatic_report_configuration_id` ASC, `variant_id` ASC)
+) COMMENT='variants detected in control tissue that are marked as tumor related by the user'
 ENGINE=InnoDB
 DEFAULT CHARSET=utf8;
 

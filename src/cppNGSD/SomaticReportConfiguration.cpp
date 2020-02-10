@@ -17,6 +17,11 @@ SomaticReportVariantConfiguration::SomaticReportVariantConfiguration()
 {
 }
 
+SomaticReportGermlineVariantConfiguration::SomaticReportGermlineVariantConfiguration()
+	: variant_index(-1)
+{
+}
+
 bool SomaticReportVariantConfiguration::showInReport() const
 {
 	return !(exclude_artefact || exclude_low_tumor_content || exclude_low_copy_number || exclude_high_baf_deviation || exclude_other_reason);
@@ -52,6 +57,20 @@ const SomaticReportVariantConfiguration& SomaticReportConfiguration::variantConf
 	THROW(ArgumentException, "Could not find somatic variant configuration for index " + QString::number(variant_index));
 }
 
+const QList<SomaticReportGermlineVariantConfiguration>& SomaticReportConfiguration::variantConfigGermline() const
+{
+	return germ_variant_config_;
+}
+
+const SomaticReportGermlineVariantConfiguration SomaticReportConfiguration::variantConfigGermline(int variant_index) const
+{
+	for(const auto& conf : germ_variant_config_)
+	{
+		if(conf.variant_index == variant_index) return conf;
+	}
+	THROW(ArgumentException, "Could not find somatic variant configuration for germline index " + QString::number(variant_index));
+}
+
 QList<int> SomaticReportConfiguration::variantIndices(VariantType type, bool only_selected) const
 {
 	QList<int> output;
@@ -66,6 +85,16 @@ QList<int> SomaticReportConfiguration::variantIndices(VariantType type, bool onl
 	std::sort(output.begin(), output.end());
 
 	return output;
+}
+
+QList<int> SomaticReportConfiguration::variantIndicesGermline() const
+{
+	QList<int> out;
+	for(const auto& var_conf : germ_variant_config_)
+	{
+		out << var_conf.variant_index;
+	}
+	return out;
 }
 
 
@@ -108,6 +137,21 @@ bool SomaticReportConfiguration::set(const SomaticReportVariantConfiguration &co
 	return false;
 }
 
+bool SomaticReportConfiguration::setGermline(const SomaticReportGermlineVariantConfiguration& config)
+{
+	for(int i=0; i< germ_variant_config_.count(); ++i)
+	{
+		if(config.variant_index == germ_variant_config_[i].variant_index)
+		{
+			germ_variant_config_[i] = config;
+			return true;
+		}
+	}
+
+	germ_variant_config_ << config;
+	return false;
+}
+
 const SomaticReportVariantConfiguration& SomaticReportConfiguration::get(VariantType type, int index) const
 {
 	for(const auto& var_conf : variant_config_)
@@ -115,6 +159,15 @@ const SomaticReportVariantConfiguration& SomaticReportConfiguration::get(Variant
 		if (var_conf.variant_index==index && var_conf.variant_type==type) return var_conf;
 	}
 	THROW(ArgumentException, "Report configuration not found for variant with index '" + QString::number(index) + "'!");
+}
+
+const SomaticReportGermlineVariantConfiguration& SomaticReportConfiguration::getGermline(int index) const
+{
+	for(const auto& var_conf : germ_variant_config_)
+	{
+		if(var_conf.variant_index==index) return var_conf;
+	}
+	THROW(ArgumentException, "Somatic Report configuration not found for germline variant with index '" + QString::number(index) + "'!");
 }
 
 bool SomaticReportConfiguration::remove(VariantType type, int index)
@@ -131,9 +184,27 @@ bool SomaticReportConfiguration::remove(VariantType type, int index)
 	return false;
 }
 
-int SomaticReportConfiguration::count()
+bool SomaticReportConfiguration::removeGermline(int index)
+{
+	for(int i=0; i< germ_variant_config_.count(); ++i)
+	{
+		if(germ_variant_config_[i].variant_index == index)
+		{
+			germ_variant_config_.removeAt(i);
+			return true;
+		}
+	}
+	return false;
+}
+
+int SomaticReportConfiguration::count() const
 {
 	return variant_config_.count();
+}
+
+int SomaticReportConfiguration::countGermline() const
+{
+	return germ_variant_config_.count();
 }
 
 QDateTime SomaticReportConfiguration::createdAt() const

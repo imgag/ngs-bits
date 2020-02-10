@@ -348,6 +348,7 @@ private:
     QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
 	SomaticReportSettings somatic_report_settings_;
+	VariantList somatic_control_tissue_variants_;
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;

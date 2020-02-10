@@ -146,7 +146,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 				if(tum_af > tum_clonality/2.) statement = "LOH";
 			}
 
-			temp_cnv_row.addCell(2900,statement);
+			temp_cnv_row.addCell(2900,RtfText(statement).setFontSize(18).append(RtfText(cnv.chr().strNormalized(true)).setFontSize(14).RtfCode(),true).RtfCode());
 
 			QByteArray cnv_type = CnvSizeDescription(cnv.annotations().at(cnv_index_cnv_type_));
 			if(!cnv_type.contains("fokal") && !cnv_type.contains("Cluster")) cnv_type = "nicht fokal";
@@ -239,7 +239,9 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 		if(!i_genes_to_be_printed.isEmpty())
 		{
-			QByteArray cn_statement = CnvTypeDescription(cnv.annotations().at(cnv_index_tumor_cn_change_).toInt());
+			RtfText cn_statement( CnvTypeDescription(cnv.annotations().at(cnv_index_tumor_cn_change_).toInt()) );
+			cn_statement.append(RtfText(cnv.chr().strNormalized(true)).setFontSize(14).RtfCode(), true);
+
 			QByteArray tumor_clonality = QByteArray::number(cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2);
 
 			QByteArray cnv_type = CnvSizeDescription(cnv.annotations().at(cnv_index_cnv_type_));
@@ -256,7 +258,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 				{
 					row.last().format().setBold(true);
 				}
-				row.addCell(2900,cn_statement);
+				row.addCell(2900,cn_statement.RtfCode());
 				row.addCell(1700,cnv_type);
 				row.addCell(900,tumor_clonality,RtfParagraph().setHorizontalAlignment("c"));
 
@@ -1769,8 +1771,7 @@ QByteArray SomaticReportHelper::CnvTypeDescription(int tumor_cn)
 
 	if(tumor_cn > 2)
 	{
-		if(tumor_cn <= 6) type = "AMP (" + QByteArray::number((int)tumor_cn) + " Kopien)";
-		else type = "AMP (> 6 Kopien)";
+		type = "AMP (" + QByteArray::number((int)tumor_cn) + " Kopien)";
 	}
 	else if(tumor_cn < 2)
 	{
@@ -2131,7 +2132,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	if(validated_viruses_.count() > 0)
 	{
 		RtfTable virus_table;
-		virus_table.addRow(RtfTableRow("Onkoviren",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(5));
+		virus_table.addRow(RtfTableRow("Virale DNA",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setBackgroundColor(5));
 		virus_table.addRow(RtfTableRow({"Virus","Gen","Genom","Region","Abdeckung","Bewertung"},{963,964,1927,1927,1927,1929},RtfParagraph().setBold(true)));
 		for(const auto& virus : validated_viruses_)
 		{

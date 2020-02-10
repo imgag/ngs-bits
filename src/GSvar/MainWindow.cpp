@@ -1666,8 +1666,15 @@ void MainWindow::loadSomaticReportConfig()
 	somatic_report_settings_.tumor_ps = processedSampleName();
 	somatic_report_settings_.normal_ps = normalSampleName();
 
+	try
+	{
+		somatic_control_tissue_variants_.load( db.processedSamplePath(db.processedSampleId(normalSampleName()), NGSD::PathType::GSVAR) );
+	}
+	catch(...) {}; //Nothing to do here
+
+
 	QStringList messages;
-	somatic_report_settings_.report_config = db.somaticReportConfig(ps_tumor_id, ps_normal_id, variants_, cnvs_, messages);
+	somatic_report_settings_.report_config = db.somaticReportConfig(ps_tumor_id, ps_normal_id, variants_, cnvs_, somatic_control_tissue_variants_, messages);
 
 
 	if(!messages.isEmpty())
@@ -1717,7 +1724,7 @@ void MainWindow::storeSomaticReportConfig()
 	//store
 	try
 	{
-		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, Helper::userName());
+		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, somatic_control_tissue_variants_, Helper::userName());
 	}
 	catch (Exception& e)
 	{
@@ -2219,15 +2226,18 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setCinHint(false);
 	}
 
-	SomaticReportDialog dlg(somatic_report_settings_, variants_, cnvs_, this); //widget for settings
+	SomaticReportDialog dlg(somatic_report_settings_, variants_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
 	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_)) dlg.enableChoiceReportType(true);
 	if(somatic_report_settings_.report_config.targetFile() != "") dlg.enableGapStatistics(true);
-	if(!dlg.exec()) return;
+	if(!dlg.exec())
+	{
+		return;
+	}
 
 	dlg.writeBackSettings();
 
 	//store somatic report config in NGSD
-	db.setSomaticReportConfig(db.processedSampleId(processedSampleName()), db.processedSampleId(normalSampleName()), somatic_report_settings_.report_config, variants_,cnvs_,Helper::userName());
+	db.setSomaticReportConfig(db.processedSampleId(processedSampleName()), db.processedSampleId(normalSampleName()), somatic_report_settings_.report_config, variants_, cnvs_, somatic_control_tissue_variants_, Helper::userName());
 
 
 	QString destination_path; //path to rtf file

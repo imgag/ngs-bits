@@ -3,6 +3,7 @@
 #include "cppNGSD_global.h"
 #include "VariantType.h"
 #include "Helper.h"
+#include "ReportConfiguration.h"
 #include <QString>
 #include <QDateTime>
 
@@ -28,6 +29,13 @@ struct CPPNGSDSHARED_EXPORT SomaticReportVariantConfiguration
 	QString comment;
 };
 
+struct CPPNGSDSHARED_EXPORT SomaticReportGermlineVariantConfiguration
+{
+	SomaticReportGermlineVariantConfiguration();
+
+	int variant_index = -1;
+};
+
 class CPPNGSDSHARED_EXPORT SomaticReportConfiguration
 {
 public:
@@ -39,18 +47,35 @@ public:
 	///Returns variant configuration for variant_index (index referes to index of main variant list!)
 	const SomaticReportVariantConfiguration& variantConfig(int variant_index) const;
 
+
+	const QList<SomaticReportGermlineVariantConfiguration>& variantConfigGermline() const;
+	///Returns variant configuration for (germline!) variant_index (index referes to index of germline variant list!)
+	const SomaticReportGermlineVariantConfiguration variantConfigGermline(int variant_index) const;
+
 	QList<int> variantIndices(VariantType type, bool only_selected) const;
+
+	QList<int> variantIndicesGermline() const;
 
 	bool exists(VariantType type, int index) const;
 
 	///sets / adds somatic variant configuration to list.
 	bool set(const SomaticReportVariantConfiguration& config);
 
+	///sets /adds germline variant to somatic report configuration
+	bool setGermline(const SomaticReportGermlineVariantConfiguration& config);
+
 	const SomaticReportVariantConfiguration& get(VariantType type, int index) const;
+
+	const SomaticReportGermlineVariantConfiguration& getGermline(int index) const;
 
 	bool remove(VariantType type, int index);
 
-	int count();
+	bool removeGermline(int index);
+
+	///returns variant count of somatic variants
+	int count() const;
+	///returns variant count of related germline variants
+	int countGermline() const;
 
 	void sortByPosition();
 
@@ -97,6 +122,9 @@ public:
 
 private:
 	QList<SomaticReportVariantConfiguration> variant_config_;
+
+	QList<SomaticReportGermlineVariantConfiguration> germ_variant_config_;
+
 	QString created_by_;
 	QDateTime created_at_;
 	QString target_file_;

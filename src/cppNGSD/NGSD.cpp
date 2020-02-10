@@ -3457,7 +3457,7 @@ int NGSD::somaticReportConfigId(QString t_ps_id, QString n_ps_id)
 	return id.isValid() ? id.toInt() : -1;
 }
 
-int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, QString user_name)
+int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const VariantList& germl_snvs, QString user_name)
 {
 	int id = somaticReportConfigId(t_ps_id, n_ps_id);
 
@@ -3467,12 +3467,14 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		target_file = QFileInfo(config.targetFile()).fileName(); //store filename without path
 	}
 
-	if(id!=-1) //delete old report if id exists
+	if(id != -1) //delete old report if id exists
 	{
 		//Delete somatic report configuration variants that are assigned to report
 		SqlQuery query = getQuery();
 		query.exec("DELETE FROM `somatic_report_configuration_variant` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
 		query.exec("DELETE FROM `somatic_report_configuration_cnv` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
+		query.exec("DELETE FROM `somatic_report_configuration_germl_var` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
+
 
 		//Update somatic report configuration: last_edit_by, last_edit_user and target_file
 		query.prepare("UPDATE `somatic_report_configuration` SET `last_edit_by`= :0, `last_edit_date` = CURRENT_TIMESTAMP, `target_file`= :1, `tum_content_max_af` =:2, `tum_content_max_clonality` =:3, `tum_content_hist` =:4, `msi_status` =:5, `cnv_burden` =:6, `hrd_score` =:7, `cin_hint` =:8, `tmb_ref_text` =:9, `quality` =:10, `fusions_detected` = :11 WHERE id=:12");
@@ -3609,6 +3611,35 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		}
 	}
 
+	if(germl_snvs.count() > 0)
+	{
+		SqlQuery query_germl_var = getQuery();
+
+		query_germl_var.prepare("INSERT INTO `somatic_report_configuration_germl_var` (`somatic_report_configuration_id`, `variant_id`) VALUES (:0, :1)");
+
+		for(const auto& var_conf : config.variantConfigGermline())
+		{
+			//check whether indices exist in variant list
+			if(var_conf.variant_index<0 || var_conf.variant_index >= germl_snvs.count())
+			{
+				THROW(ProgrammingException, "Variant list does not contain variant with index '" + QByteArray::number(var_conf.variant_index) + "' in NGSD::setSomaticReportConfig!");
+			}
+
+			const Variant& variant = germl_snvs[var_conf.variant_index];
+
+			QString variant_id = variantId(variant, false);
+			if(variant_id=="")
+			{
+				variant_id = addVariant(variant, germl_snvs);
+			}
+
+			query_germl_var.bindValue(0, id);
+			query_germl_var.bindValue(1, variant_id);
+
+			query_germl_var.exec();
+		}
+	}
+
 	return id;
 }
 
@@ -3626,10 +3657,11 @@ void NGSD::deleteSomaticReportConfig(int id)
 	SqlQuery query = getQuery();
 	query.exec("DELETE FROM `somatic_report_configuration_cnv` WHERE `somatic_report_configuration_id`=" + report_conf_id);
 	query.exec("DELETE FROM `somatic_report_configuration_variant` WHERE `somatic_report_configuration_id`=" + report_conf_id);
+	query.exec("DELETE FROM `somatic_report_configuration_germl_var` WHERE `somatic_report_configuration_id`=" + report_conf_id);
 	query.exec("DELETE FROM `somatic_report_configuration` WHERE `id`=" + report_conf_id);
 }
 
-SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, QStringList& messages)
+SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs,  const VariantList& germline_snvs, QStringList& messages)
 {
 	SomaticReportConfiguration output;
 
@@ -3681,7 +3713,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		}
 		if(var_conf.variant_index == -1)
 		{
-			messages << "Could not find variant '" + var.toString() + "' in given variant list!";
+			messages << "Could not find somatic variant '" + var.toString() + "' in given variant list!";
 		}
 
 		var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
@@ -3728,6 +3760,23 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 
 
 		output.set(var_conf);
+	}
+
+	//Load germline SNVs related to tumor
+	query.exec("SELECT * FROM somatic_report_configuration_germl_var WHERE somatic_report_configuration_id=" + QString::number(config_id));
+	while(query.next())
+	{
+		SomaticReportGermlineVariantConfiguration var_conf;
+		Variant var = variant(query.value("variant_id").toString()); //variant resolved by its id
+		for(int i=0; i<germline_snvs.count(); ++i)
+		{
+			if(var == germline_snvs[i]) var_conf.variant_index = i;
+		}
+		if(var_conf.variant_index == -1)
+		{
+			messages << "Could not find germline variant '" + var.toString() + "' in given variant list!";
+		}
+		output.setGermline(var_conf);
 	}
 
 	return output;

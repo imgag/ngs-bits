@@ -12,7 +12,7 @@ class SomaticReportDialog
 	Q_OBJECT
 
 public:
-	SomaticReportDialog(SomaticReportSettings& settings, const VariantList& variants, const CnvList& cnvs, QWidget* parent = 0);
+	SomaticReportDialog(SomaticReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const VariantList& germl_variants, QWidget* parent = 0);
 
 	enum report_type
 	{
@@ -35,6 +35,7 @@ private:
 	SomaticReportSettings& settings_;
 	const VariantList& variants_;
 	const CnvList& cnvs_;
+	const VariantList& germl_variants_;
 	QString target_region_;
 
 	double tum_cont_snps_;

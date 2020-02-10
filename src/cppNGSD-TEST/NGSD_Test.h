@@ -16,6 +16,9 @@ private:
 		CnvList cnvs;
 		cnvs.load(TESTDATA("data_in/somatic_cnvs_clincnv.tsv"));
 
+		VariantList vl_germl;
+		vl_germl.load(TESTDATA("../cppNGSD-TEST/data_in/somatic_report_config_germline.GSvar"));
+
 		//Resolve somatic report configuration ID
 		I_EQUAL(db.somaticReportConfigId("5","6"), 3);
 		I_EQUAL(db.somaticReportConfigId("5","4000"), 51);
@@ -28,8 +31,6 @@ private:
 		S_EQUAL(config_data.last_edit_by, "Sarah Kerrigan");
 		S_EQUAL(config_data.last_edit_date, "07.12.2019 17:06:10");
 		S_EQUAL(config_data.target_file, "nowhere.bed");
-
-
 
 		//set somatic report configuration in test NGSD, using 2 SNVs
 		SomaticReportVariantConfiguration var1;
@@ -72,14 +73,20 @@ private:
 		cnv1.comment = "This test somatic cnv shall be excluded.";
 		som_rep_conf.set(cnv1);
 
+		SomaticReportGermlineVariantConfiguration var1_germl, var2_germl;
+		var1_germl.variant_index = 2;
+		var2_germl.variant_index = 4;
+		som_rep_conf.setGermline(var1_germl);
+		som_rep_conf.setGermline(var2_germl);
+
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");
-		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahmustm1"); //id will be 52 in test NGSD
+		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
 
 		QStringList messages = {};
 
 		//Test resolving report config
-		SomaticReportConfiguration res_config = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, messages);
+		SomaticReportConfiguration res_config = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, vl_germl, messages);
 		IS_TRUE(res_config.tumContentByMaxSNV());
 		IS_TRUE(res_config.tumContentByClonality());
 		IS_TRUE(res_config.tumContentByHistological());
@@ -94,6 +101,7 @@ private:
 		//Test variants included in resolved report
 		QList<SomaticReportVariantConfiguration> res =  res_config.variantConfig();
 		const SomaticReportVariantConfiguration& res0 = res.at(0);
+
 		I_EQUAL(res.count(), 3);
 
 		I_EQUAL(res0.variant_index, 1);
@@ -119,6 +127,12 @@ private:
 		S_EQUAL(res1.comment, "known test driver was not included in any db yet.");
 		IS_TRUE(res1.showInReport());
 
+		//Test germline variants included in resolved report
+		QList<SomaticReportGermlineVariantConfiguration> res_germl = res_config.variantConfigGermline();
+		I_EQUAL(res_germl.count(), 2);
+		I_EQUAL(res_germl[0].variant_index, 2);
+		I_EQUAL(res_germl[1].variant_index, 4);
+
 
 		SomaticReportConfigurationData config_data_1 = db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_1.created_by, "Max Mustermann");
@@ -139,9 +153,9 @@ private:
 		som_rep_conf.setQuality("NON EXISTING IN SOMTATIC_REPORT_CONFIGURATION TABLE");
 		som_rep_conf.setFusionsDetected(false);
 
-		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahkerra1");
+		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
 
-		SomaticReportConfiguration res_config_2 = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, messages);
+		SomaticReportConfiguration res_config_2 = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, vl_germl, messages);
 		IS_FALSE(res_config_2.tumContentByMaxSNV());
 		IS_FALSE(res_config_2.tumContentByClonality());
 		IS_FALSE(res_config_2.tumContentByHistological());
@@ -162,7 +176,7 @@ private:
 
 		//report config in case of no target file
 		som_rep_conf.setTargetFile("");
-		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, "ahkerra1");
+		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
 		SomaticReportConfigurationData config_data_3 = db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_3.target_file, "");
 
@@ -179,12 +193,14 @@ private:
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration").toInt(), 3);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 2); //one CNV is already inserted by NGSD init.
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_variant").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_germl_var").toInt(), 2);
 
 		db.deleteSomaticReportConfig(config_id);
 
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration").toInt(), 2);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 1);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_variant").toInt(), 0);
-		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_germl_var").toInt(), 0);
 
 
 		//Delete Variants

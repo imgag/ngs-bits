@@ -1,19 +1,22 @@
 #include "SomaticReportDialog.h"
 #include "SomaticReportHelper.h"
+#include <QMessageBox>
 
-SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const VariantList &variants, const CnvList &cnvs, QWidget *parent)
+SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const VariantList &variants, const CnvList &cnvs, const VariantList& germl_variants, QWidget *parent)
 	: QDialog(parent)
 	, ui_()
 	, db_()
 	, settings_(settings)
 	, variants_(variants)
 	, cnvs_(cnvs)
+	, germl_variants_(germl_variants)
 	, target_region_(settings.report_config.targetFile())
 	, tum_cont_snps_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_max_clonality_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_histological_(std::numeric_limits<double>::quiet_NaN())
 {
 	ui_.setupUi(this);
+
 
 	//Resolve tumor content estimate from NGSD
 	QCCollection res = db_.getQCData(db_.processedSampleId(settings.tumor_ps, true));
@@ -103,6 +106,60 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	ui_.tmb_reference->setRowCount(ui_.tmb_reference->rowCount());
 	ui_.tmb_reference->setEditTriggers(QAbstractItemView::DoubleClicked);
 
+
+	//load control tissue snps (NGSD class 4/5 only) into widget
+	int i_class = germl_variants.annotationIndexByName("classification", true, false);
+	int i_co_sp = germl_variants.annotationIndexByName("coding_and_splicing", true, false);
+	if(i_class != -1 && i_co_sp != -1)
+	{
+		for(int i=0; i<germl_variants_.count(); ++i)
+		{
+			bool ok = true;
+			if(germl_variants[i].annotations()[i_class].trimmed().isEmpty() || germl_variants[i].annotations()[i_class].toInt(&ok) < 4)
+			{
+				continue;
+			}
+
+			if(!ok)
+			{
+				QMessageBox::warning(this, "Error processing control tissue variants", "Could not parse control tissue variant classification " + germl_variants[i].toString() +". Aborting control tissue variants.");
+				break;
+			}
+
+			const Variant& snv = germl_variants_[i];
+			ui_.germline_variants->insertRow(ui_.germline_variants->rowCount());
+			QTableWidgetItem *check = new QTableWidgetItem();
+			check->setCheckState(Qt::Checked);
+
+			ui_.germline_variants->setVerticalHeaderItem( ui_.germline_variants->rowCount()-1, new QTableWidgetItem(QString::number(i)) ); //variant index
+			ui_.germline_variants->setItem( ui_.germline_variants->rowCount()-1, 0, check);
+			ui_.germline_variants->setItem( ui_.germline_variants->rowCount()-1, 1, new QTableWidgetItem( QString(snv.chr().strNormalized(true))) );
+			ui_.germline_variants->setItem( ui_.germline_variants->rowCount()-1, 2, new QTableWidgetItem( QString::number(snv.start())) );
+			ui_.germline_variants->setItem( ui_.germline_variants->rowCount()-1, 3, new QTableWidgetItem( QString::number(snv.end())) );
+			ui_.germline_variants->setItem( ui_.germline_variants->rowCount()-1, 4, new QTableWidgetItem( QString(snv.ref())) );
+			ui_.germline_variants->setItem( ui_.germline_variants->rowCount()-1, 5, new QTableWidgetItem( QString(snv.obs())) );
+
+			ui_.germline_variants->setItem( ui_.germline_variants->rowCount()-1, 6, new QTableWidgetItem( QString(snv.annotations()[i_class])) );
+			ui_.germline_variants->item(ui_.germline_variants->rowCount()-1, 6)->setBackground(Qt::red);
+
+			ui_.germline_variants->setItem( ui_.germline_variants->rowCount()-1, 7, new QTableWidgetItem( QString(snv.annotations()[i_co_sp])) );
+		}
+		ui_.germline_variants->setRowCount(ui_.germline_variants->rowCount());
+		ui_.germline_variants->resizeColumnsToContents();
+
+		for(int i=0; i<ui_.germline_variants->rowCount(); ++i)
+		{
+			for(int j = 0; j<ui_.germline_variants->columnCount(); ++j)
+			{
+				ui_.germline_variants->item(i,j)->setFlags(ui_.germline_variants->item(i,j)->flags() & ~Qt::ItemIsEditable);
+			}
+		}
+	}
+	else
+	{
+		ui_.germline_variants->setEnabled(false);
+	}
+
 	updateGUI();
 }
 
@@ -188,6 +245,8 @@ void SomaticReportDialog::updateGUI()
 
 void SomaticReportDialog::writeBackSettings()
 {
+	if(getReportType() == RNA) return; //No report configuration for RNA samples
+
 	settings_.include_gap_statistics = ui_.include_low_cov->isChecked();
 	settings_.report_config.setTumContentByMaxSNV(ui_.include_max_tum_freq->isChecked());
 	settings_.report_config.setTumContentByClonality(ui_.include_max_clonality->isChecked());
@@ -198,9 +257,9 @@ void SomaticReportDialog::writeBackSettings()
 	settings_.report_config.setFusionsDetected(ui_.fusions_detected->isChecked());
 
 	//current index of hrd_score is identical to value!
-	settings_.report_config.setHrdScore(ui_.hrd_score->currentIndex());
+	settings_.report_config.setHrdScore( ui_.hrd_score->currentIndex() );
 
-	settings_.report_config.setQuality(ui_.quality->currentText());
+	settings_.report_config.setQuality( ui_.quality->currentText() );
 
 	if(ui_.tmb_reference->selectionModel()->selectedRows().count() == 1)
 	{
@@ -208,7 +267,21 @@ void SomaticReportDialog::writeBackSettings()
 		settings_.report_config.setTmbReferenceText(ref_text);
 	}
 
+	//get selected variants in germline sample
+	for(int i=0; i<ui_.germline_variants->rowCount(); ++i)
+	{
+		if(ui_.germline_variants->item(i,0)->checkState() == Qt::Checked)
+		{
+			SomaticReportGermlineVariantConfiguration var_conf;
+			var_conf.variant_index = ui_.germline_variants->verticalHeaderItem(i)->text().toInt();
 
+			settings_.report_config.setGermline(var_conf);
+		}
+		else
+		{
+			settings_.report_config.removeGermline(ui_.germline_variants->verticalHeaderItem(i)->text().toInt());
+		}
+	}
 }
 
 SomaticReportDialog::report_type SomaticReportDialog::getReportType()

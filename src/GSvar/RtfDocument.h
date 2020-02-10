@@ -29,10 +29,11 @@ public:
 		setContent(content);
 	}
 
-	void append(const QByteArray& content,bool new_line = false)
+	virtual RtfText& append(const QByteArray& content,bool new_line = false)
 	{
 		if(new_line) content_.append("\n\\line\n" + content);
 		else content_.append(content);
+		return *this;
 	}
 
 	virtual RtfText& setFontSize(int font_size)
