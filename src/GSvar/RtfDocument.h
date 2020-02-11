@@ -481,9 +481,14 @@ public:
 		rows_.append(row);
 	}
 
-	void prependRow(const RtfTableRow row)
+	void prependRow(const RtfTableRow& row)
 	{
 		rows_.prepend(row);
+	}
+
+	void insertRow(int idx, const RtfTableRow& row)
+	{
+		rows_.insert(idx, row);
 	}
 
 	void removeRow(int row)

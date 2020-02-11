@@ -68,6 +68,7 @@ public:
 
 	const SomaticReportGermlineVariantConfiguration& getGermline(int index) const;
 
+
 	bool remove(VariantType type, int index);
 
 	bool removeGermline(int index);

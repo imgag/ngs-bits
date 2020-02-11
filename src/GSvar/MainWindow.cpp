@@ -179,7 +179,9 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::on_actionDebug_triggered()
 {
 	CnvSearchWidget* widget = new CnvSearchWidget();
+	widget->setCoordinates("chr17", 57297834, 57351873);
 	auto dlg = GUIHelper::createDialog(widget, "CNV search");
+
 	dlg->exec();
 }
 
@@ -1335,6 +1337,7 @@ void MainWindow::loadFile(QString filename)
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
 
+
 	somatic_report_settings_ = SomaticReportSettings();
 
 	ui_.tabs->setCurrentIndex(0);
@@ -1666,9 +1669,15 @@ void MainWindow::loadSomaticReportConfig()
 	somatic_report_settings_.tumor_ps = processedSampleName();
 	somatic_report_settings_.normal_ps = normalSampleName();
 
-	try
+	somatic_report_settings_.sample_dir = QFileInfo(filename_).dir().absolutePath();
+
+
+	try //load normal sample
 	{
-		somatic_control_tissue_variants_.load( db.processedSamplePath(db.processedSampleId(normalSampleName()), NGSD::PathType::GSVAR) );
+		QDir dir = QFileInfo(filename_).dir();
+		dir.cdUp();
+		dir.cd("Sample_" + normalSampleName());
+		somatic_control_tissue_variants_.load( Helper::canonicalPath(dir.absolutePath() + "/" +normalSampleName() + ".GSvar" ) );
 	}
 	catch(...) {}; //Nothing to do here
 
@@ -2280,7 +2289,7 @@ void MainWindow::generateReportSomaticRTF()
 
 			//SomaticReportHelper report(filename_, cnvs_, ui_.filters->filters(),ui_.filters->targetRegion());
 
-			SomaticReportHelper report(variants_, cnvs_, somatic_report_settings_);
+			SomaticReportHelper report(variants_, cnvs_, somatic_control_tissue_variants_, somatic_report_settings_);
 
 			//Generate RTF
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();

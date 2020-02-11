@@ -21,6 +21,8 @@ struct SomaticReportSettings
 
 	QByteArray cancer_type;
 
+	QString sample_dir;
+
 	///returns variant list according filters and include/exclude report_config settings. Include from settings will overwrite FilterCascade entry
 	static VariantList filterVariants(const VariantList& snvs, const SomaticReportSettings& sett);
 	///returns cnv list according excluded cnvs from somatic report_config settings

@@ -290,7 +290,7 @@ class SomaticReportHelper
 {
 public:
 	///Constructor loads data into class
-	SomaticReportHelper(const VariantList& variants, const CnvList &cnvs, const SomaticReportSettings& settings);
+	SomaticReportHelper(const VariantList& variants, const CnvList &cnvs, const VariantList& germline_variants, const SomaticReportSettings& settings);
 
 	///write Rtf File
 	void writeRtf(const QByteArray& out_file);
@@ -340,8 +340,6 @@ private:
 	///Writes Rtf table containing most relevant SNVs and CNVs
 	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet());
 
-	RtfTable germlineAlterationTable(const VariantList& somatic_snvs);
-
 	///generates table with CNVs
 	RtfTable createCnvTable();
 
@@ -350,6 +348,8 @@ private:
 
 	///Creates table containing alterations relevant in pharmacogenomics (from normal sample)
 	RtfTable pharamacogeneticsTable();
+
+	RtfTable germlineAlterationTable(const VariantList& somatic_snvs);
 
 	///Returns text for fusions, appears multiple times in report
 	RtfParagraph fusionsText()
@@ -402,7 +402,7 @@ private:
 	VariantList snv_variants_;
 
 	///VariantList for relevant germline SNVs
-	VariantList snv_germline_;
+	const VariantList& snv_germline_;
 
 	///CNVList for input (filtered) variants
 	CnvList cnvs_;
