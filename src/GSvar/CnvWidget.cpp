@@ -10,6 +10,7 @@
 #include "ProcessedSampleWidget.h"
 #include "Histogram.h"
 #include "ReportVariantDialog.h"
+#include "CnvSearchWidget.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -462,6 +463,9 @@ void CnvWidget::showContextMenu(QPoint p)
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 	a_rep_del->setEnabled(ngsd_enabled_ && report_config_.exists(VariantType::CNVS, row));
 	menu.addSeparator();
+	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching CNVs in NGSD");
+	a_ngsd_search->setEnabled(ngsd_enabled_);
+	menu.addSeparator();
 	QAction* a_deciphter = menu.addAction(QIcon("://Icons/Decipher.png"), "Open in Decipher browser");
 	QAction* a_dgv = menu.addAction(QIcon("://Icons/DGV.png"), "Open in DGV");
 	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
@@ -496,6 +500,14 @@ void CnvWidget::showContextMenu(QPoint p)
 	{
 		report_config_.remove(VariantType::CNVS, row);
 		updateReportConfigHeaderIcon(row);
+	}
+	if (action==a_ngsd_search)
+	{
+		CnvSearchWidget* widget = new CnvSearchWidget();
+		widget->setCoordinates(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end());
+		auto dlg = GUIHelper::createDialog(widget, "CNV search");
+
+		dlg->exec();
 	}
 }
 

@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "NGSD.h"
+#include "DelayedInitializationTimer.h"
 #include "ui_CnvSearchWidget.h"
 
 class CnvSearchWidget
@@ -12,12 +13,15 @@ class CnvSearchWidget
 
 public:
 	CnvSearchWidget(QWidget* parent = 0);
+	void setCoordinates(Chromosome chr, int start, int end);
 
 protected slots:
 	void search();
+	void delayedInitialization();
 
 private:
 	Ui::CnvSearchWidget ui_;
+	DelayedInitializationTimer init_timer_;
 	NGSD db_;
 };
 

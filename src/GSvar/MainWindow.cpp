@@ -177,7 +177,9 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::on_actionDebug_triggered()
 {
 	CnvSearchWidget* widget = new CnvSearchWidget();
+	widget->setCoordinates("chr17", 57297834, 57351873);
 	auto dlg = GUIHelper::createDialog(widget, "CNV search");
+
 	dlg->exec();
 }
 
