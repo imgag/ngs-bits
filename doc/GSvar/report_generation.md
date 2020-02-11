@@ -7,7 +7,7 @@ This report configuration is used to generate reports and *variant sheets*.
 
 The *report configuration* of a sample can be opened by:
 
-* double-klicking the header field of a variant or
+* double-clicking the header field of a variant or
 * though the context menu of the variant line (or the header field)
 
 ![report_config_variant.png](report_config_variant.png)
@@ -27,16 +27,14 @@ Additionally, this information is stored:
 
 ### Persistent storage of report configurations
 
-The report configuration of a sample can be stored in the NGSD database and loaded again the next time the sample is opened:
-
-![report_config_storage.png](report_config_storage.png)
-
-**Note:** If the report configuration is not stored, it is lost when GSvar is closed!
-
+The report configuration of a sample is automatically stored in the NGSD whenever it is modified.
+It is loaded automatically loaded the next time the sample is opened.
 
 ### Generating a report or variant sheet
 
-Through the report menu, a report for the sample can be generated.
+Through the report menu, a report for the sample can be generated:
+
+![report_config_results.png](report_config_results.png)
 
 Additionally, a *sample sheet* can be stored as documentation of the variant analysis of the sample.  
 It contains all variant that have a *report configuration* including comments.  

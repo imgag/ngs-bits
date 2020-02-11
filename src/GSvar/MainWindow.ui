@@ -188,7 +188,7 @@
                 <item>
                  <widget class="QToolButton" name="vars_af_hist">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show allele frequency histogram of variants for single-same and trio analysis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show allele frequency histogram of variants for single-sample and trio analysis.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>...</string>
@@ -1002,6 +1002,10 @@
    </property>
   </action>
   <action name="actionMidClashDetection">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/mid_clash.png</normaloff>:/Icons/mid_clash.png</iconset>
+   </property>
    <property name="text">
     <string>MID clash detection</string>
    </property>

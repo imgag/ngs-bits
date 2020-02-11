@@ -197,12 +197,12 @@
        </spacer>
       </item>
       <item>
-       <widget class="QCheckBox" name="pathogenic">
+       <widget class="QCheckBox" name="class_3_to_5">
         <property name="toolTip">
          <string>Show only CNVs with class 4/5.</string>
         </property>
         <property name="text">
-         <string>pathogenic</string>
+         <string>class 3/4/5</string>
         </property>
        </widget>
       </item>

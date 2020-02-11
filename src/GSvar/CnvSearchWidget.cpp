@@ -34,14 +34,14 @@ void CnvSearchWidget::search()
 	try
 	{
 		//(0) parse input
-		QString coords = ui_.coordinates->text();
-		QStringList parts = coords.replace("-", ":").split(":");
+		QString coords = ui_.coordinates->text().replace("-", " ").replace(":", " ").replace(",", "");
+		QStringList parts = coords.split(QRegularExpression("\\W+"), QString::SkipEmptyParts);
 		if (parts.count()!=3) THROW(ArgumentException, "Could not split coordinates in three parts! " + QString::number(parts.count()) + " parts found.");
 
 		Chromosome chr(parts[0]);
 		if (!chr.isValid()) THROW(ArgumentException, "Invalid chromosome given: " + parts[0]);
-		int start = Helper::toInt(parts[1].replace(",", ""), "Start cooridinate");
-		int end = Helper::toInt(parts[2].replace(",", ""), "End cooridinate");
+		int start = Helper::toInt(parts[1], "Start cooridinate");
+		int end = Helper::toInt(parts[2], "End cooridinate");
 
 		//(1) search matching CNVs
 		QString query_str = "SELECT c.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, s.disease_group, s.disease_status, cs.caller, cs.quality as quality_callset, cs.quality_metrics as callset_metrics, c.chr, c.start, c.end, c.cn, c.quality_metrics as cnv_metrics, rc.class "
@@ -80,11 +80,12 @@ void CnvSearchWidget::search()
 		{
 			query_str += " AND cs.caller='" + ui_.caller->currentText() + "'";
 		}
-		if (ui_.pathogenic->isChecked())
+		if (ui_.class_3_to_5->isChecked())
 		{
-			query_str += " AND (rc.class='4' OR rc.class='5')";
+			query_str += " AND (rc.class='3' OR rc.class='4' OR rc.class='5')";
 		}
 		query_str += " ORDER BY ps.id";
+
 		DBTable table = db_.createTable("cnv", query_str);
 
 		//(2) process cnv callset metrics
