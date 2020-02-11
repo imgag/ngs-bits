@@ -85,6 +85,7 @@ class CPPNGSDSHARED_EXPORT DBTable
 		}
 		const DBRow& row(int r) const;
 		void setRow(int r, const DBRow& row);
+		void setValue(int r, int c, const QString& value);
 		void addRow(const DBRow& row);
 		void removeRow(int r);
 

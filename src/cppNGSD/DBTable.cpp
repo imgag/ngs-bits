@@ -20,6 +20,13 @@ void DBTable::setRow(int r, const DBRow& row)
 	rows_[r] = row;
 }
 
+void DBTable::setValue(int r, int c, const QString& value)
+{
+	checkRowIndex(r);
+
+	return rows_[r].setValue(c, value);
+}
+
 void DBTable::addRow(const DBRow& row)
 {
 	if (row.valueCount()!=columnCount())
