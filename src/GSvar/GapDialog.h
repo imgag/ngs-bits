@@ -29,7 +29,7 @@ private slots:
 	void updateGeneFilter(QString text);
 
 private:
-	QTableWidgetItem* createItem(QString text, bool highlight = false, bool align_right = false);
+	static void highlightItem(QTableWidgetItem* item);
 	GapValidationLabel::State state(int row) const;
 	void reportSection(QTextStream& stream, bool ccds_only) const;
 

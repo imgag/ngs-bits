@@ -438,6 +438,7 @@
      <addaction name="actionGenome"/>
      <addaction name="actionMID"/>
      <addaction name="actionProcessingSystem"/>
+     <addaction name="actionSample"/>
      <addaction name="actionSampleGroup"/>
      <addaction name="actionSender"/>
      <addaction name="actionSpecies"/>
@@ -459,6 +460,7 @@
     <addaction name="menuAdmin"/>
     <addaction name="menuBatch_import"/>
     <addaction name="actionMidClashDetection"/>
+    <addaction name="actionVariantValidation"/>
     <addaction name="separator"/>
     <addaction name="actionStatistics"/>
    </widget>
@@ -1008,6 +1010,16 @@
    </property>
    <property name="text">
     <string>MID clash detection</string>
+   </property>
+  </action>
+  <action name="actionVariantValidation">
+   <property name="text">
+    <string>Variant validation</string>
+   </property>
+  </action>
+  <action name="actionSample">
+   <property name="text">
+    <string>Sample</string>
    </property>
   </action>
  </widget>

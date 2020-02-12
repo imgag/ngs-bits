@@ -500,31 +500,6 @@ private slots:
 		db.setComment(variant, "var_comm1");
 		S_EQUAL(db.comment(variant), "var_comm1");
 
-		//getValidationStatus
-		ValidationInfo val_info = db.getValidationStatus("NA12878_03", variant);
-		S_EQUAL(val_info.status, "");
-		S_EQUAL(val_info.type, "");
-		S_EQUAL(val_info.comments, "");
-
-		//setValidationStatus
-		val_info.status = "to validate";
-		val_info.type = "diagnostics";
-		val_info.comments = "val_comm1";
-		db.setValidationStatus("NA12878_03", variant, val_info, "ahmustm1");
-		val_info = db.getValidationStatus("NA12878_03", variant);
-		S_EQUAL(val_info.status, "to validate");
-		S_EQUAL(val_info.type, "diagnostics");
-		S_EQUAL(val_info.comments, "val_comm1");
-		//update existing entry
-		val_info.status = "to segregate";
-		val_info.type = "research";
-		val_info.comments = "val_comm2";
-		db.setValidationStatus("NA12878_03", variant, val_info, "ahmustm1");
-		val_info = db.getValidationStatus("NA12878_03", variant);
-		S_EQUAL(val_info.status, "to segregate");
-		S_EQUAL(val_info.type, "research");
-		S_EQUAL(val_info.comments, "val_comm2");
-
 		//getClassification
 		ClassificationInfo class_info = db.getClassification(variant);
 		S_EQUAL(class_info.classification, "");

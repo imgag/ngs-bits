@@ -85,6 +85,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SequencingRunOverview.h"
 #include "MidCheckWidget.h"
 #include "CnvSearchWidget.h"
+#include "VariantValidationWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -740,15 +741,41 @@ void MainWindow::editVariantValidation()
 
 	try
 	{
-		int i_quality = variants_.annotationIndexByName("quality", true, true);
-		ValidationDialog dlg(this, filename_, variant, i_quality);
+		NGSD db;
 
-		if (dlg.exec()) //update DB
+		//get variant ID - add if missing
+		QString variant_id = db.variantId(variant, false);
+		if (variant_id=="")
 		{
-			NGSD().setValidationStatus(filename_, variant, dlg.info());
+			variant_id = db.addVariant(variants_[var_curr], variants_);
+		}
+
+		//get sample ID
+		QString sample_id = db.sampleId(filename_);
+
+		//get variant validation ID - add if missing
+		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE variant_id='" + variant_id + "' AND sample_id='" + sample_id + "'", true);
+		if (!val_id.isValid())
+		{
+			//get genotype
+			int i_genotype = variants_.getSampleHeader().infoByStatus(true).column_index;
+			QByteArray genotype = variant.annotations()[i_genotype];
+
+			//insert
+			SqlQuery query = db.getQuery();
+			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_id, genotype, status) VALUES ('" + QString::number(db.userId()) + "','" + sample_id + "','" + variant_id + "','" + genotype + "','n/a')");
+			val_id = query.lastInsertId();
+		}
+
+		ValidationDialog dlg(this, val_id.toInt());
+
+		if (dlg.exec())
+		{
+			//update DB
+			dlg.store();
 
 			//update variant table
-			QByteArray status = dlg.info().status.toLatin1();
+			QByteArray status = dlg.status().toLatin1();
 			if (status=="true positive") status = "TP";
 			if (status=="false positive") status = "FP";
 			int i_validation = variants_.annotationIndexByName("validation", true, true);
@@ -1355,7 +1382,15 @@ void MainWindow::loadFile(QString filename)
 		QString cnv_file = cnvFile(filename);
 		if (cnv_file!="")
 		{
-			cnvs_.load(cnv_file);
+			try
+			{
+				cnvs_.load(cnv_file);
+			}
+			catch(Exception& e)
+			{
+				QMessageBox::warning(this, "Error loading CNVs", e.message());
+				cnvs_.clear();
+			}
 		}
 		Log::perf("Loading CNV list took ", timer);
 
@@ -2700,6 +2735,13 @@ void MainWindow::on_actionProcessingSystem_triggered()
 	dlg->exec();
 }
 
+void MainWindow::on_actionSample_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("sample");
+	auto dlg = GUIHelper::createDialog(widget, "Sample administration");
+	dlg->exec();
+}
+
 void MainWindow::on_actionSampleGroup_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("sample_group");
@@ -2771,6 +2813,13 @@ void MainWindow::on_actionMidClashDetection_triggered()
 {
 	MidCheckWidget* widget = new MidCheckWidget();
 	auto dlg = GUIHelper::createDialog(widget, "MID clash detection");
+	dlg->exec();
+}
+
+void MainWindow::on_actionVariantValidation_triggered()
+{
+	VariantValidationWidget* widget = new VariantValidationWidget();
+	auto dlg = GUIHelper::createDialog(widget, "Variant validation");
 	dlg->exec();
 }
 

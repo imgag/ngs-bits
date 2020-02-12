@@ -219,7 +219,7 @@ void CnvWidget::updateGUI()
 	{
 
 		//vertical headers
-		QTableWidgetItem* header_item = createItem(QByteArray::number(r+1));
+		QTableWidgetItem* header_item = GUIHelper::createTableItem(QByteArray::number(r+1));
 		if (report_variant_indices.contains(r))
 		{
 			header_item->setIcon(VariantTable::reportIcon(report_config_.get(VariantType::CNVS, r).showInReport()));
@@ -227,20 +227,20 @@ void CnvWidget::updateGUI()
 		ui->cnvs->setVerticalHeaderItem(r, header_item);
 
 		//table cells
-		ui->cnvs->setItem(r, 0, createItem(cnvs_[r].toString()));
-		ui->cnvs->setItem(r, 1, createItem(QString::number(cnvs_[r].size()/1000.0, 'f', 3), Qt::AlignRight|Qt::AlignTop));
+		ui->cnvs->setItem(r, 0, GUIHelper::createTableItem(cnvs_[r].toString()));
+		ui->cnvs->setItem(r, 1, GUIHelper::createTableItem(QString::number(cnvs_[r].size()/1000.0, 'f', 3), Qt::AlignRight|Qt::AlignTop));
 		QString regions = QString::number(cnvs_[r].regions());
 		if (regions=="0") regions="n/a";
-		ui->cnvs->setItem(r, 2, createItem(regions, Qt::AlignRight|Qt::AlignTop));
+		ui->cnvs->setItem(r, 2, GUIHelper::createTableItem(regions, Qt::AlignRight|Qt::AlignTop));
 
-		QTableWidgetItem* item = createItem(QString(cnvs_[r].genes().join(',')));
+		QTableWidgetItem* item = GUIHelper::createTableItem(QString(cnvs_[r].genes().join(',')));
 		GSvarHelper::colorGeneItem(item, cnvs_[r].genes());
 		ui->cnvs->setItem(r, 3, item);
 
 		int c = 4;
 		foreach(int index, annotation_indices)
 		{
-			QTableWidgetItem* item = createItem(cnvs_[r].annotations()[index]);
+			QTableWidgetItem* item = GUIHelper::createTableItem(cnvs_[r].annotations()[index]);
 			//special handling for OMIM
 			if (cnvs_.annotationHeaders()[index]=="omim")
 			{
@@ -759,14 +759,6 @@ void CnvWidget::updateStatus(int shown)
 {
 	QString text = QString::number(shown) + "/" + QString::number(cnvs_.count()) + " passing filter(s)";
 	ui->status->setText(text);
-}
-
-QTableWidgetItem* CnvWidget::createItem(QString text, int alignment)
-{
-	QTableWidgetItem* item = new QTableWidgetItem(text);
-	item->setTextAlignment(alignment);
-
-	return item;
 }
 
 void CnvWidget::editReportConfiguration(int row)

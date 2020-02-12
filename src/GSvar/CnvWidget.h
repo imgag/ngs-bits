@@ -54,7 +54,6 @@ private:
 	void addInfoLine(QString text);
 	void updateStatus(int shown);
 	void showSpecialTable(QString col, QString text, QByteArray url_prefix);
-	QTableWidgetItem* createItem(QString text, int alignment = Qt::AlignLeft|Qt::AlignTop);
 
 	Ui::CnvWidget* ui;
 	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.

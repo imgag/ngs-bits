@@ -30,7 +30,6 @@ private:
 	QList<SampleMids> mids_;
 	NGSD db_;
 
-	QTableWidgetItem* createItem(const QString& text, int alignment = Qt::AlignVCenter|Qt::AlignLeft);
 	SampleMids parseImportLine(QString line, int line_nr = 1);
 };
 

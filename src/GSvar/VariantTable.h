@@ -34,7 +34,7 @@ public:
 	///Convert variant index to table row (attention this can be slow because it is done by linear search).
 	int variantIndexToRow(int index) const;
 
-	///Creates table widget items, or nullptr if the text is empty. Uses Qt implicit sharing to avoid duplicate strings.
+	///Creates table widget items, or nullptr if the text is empty.
 	QTableWidgetItem* createTableItem(const QString& text) const
 	{
 		//no text > no item (optimization for WGS - empty items are big and take a lot of RAM)

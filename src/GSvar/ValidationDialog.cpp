@@ -4,74 +4,53 @@
 #include "BasicStatistics.h"
 #include <QStringList>
 
-ValidationDialog::ValidationDialog(QWidget* parent, QString filename, const Variant& variant, int quality_annotation_index)
+//TODO remove variant_validation/type from NGSD schema, once the deployed version of GSvar can work without it > MARC
+
+ValidationDialog::ValidationDialog(QWidget* parent, int id)
 	: QDialog(parent)
 	, ui_()
+	, db_()
+	, val_id_(QString::number(id))
 {
 	ui_.setupUi(this);
-	connect(ui_.status, SIGNAL(currentTextChanged(QString)), this, SLOT(statusChanged()));
 
-	QStringList status = NGSD().getEnum("variant_validation", "status");
+	//set up UI
+	connect(ui_.status, SIGNAL(currentTextChanged(QString)), this, SLOT(statusChanged()));
+	QStringList status = db_.getEnum("variant_validation", "status");
 	foreach(QString s, status)
 	{
 		ui_.status->addItem(s);
 	}
 
-	QStringList type = NGSD().getEnum("variant_validation", "type");
-	foreach(QString t, type)
-	{
-		ui_.type->addItem(t);
-	}
+	//fill with data
+	SqlQuery query = db_.getQuery();
+	query.exec("SELECT * FROM variant_validation WHERE id=" + val_id_);
+	query.next();
 
-	//set variant
-	QString var = variant.toString();
-	if (!variant.isSNV())
-	{
-		var.append(" <font color='red'>(INDEL)</font>");
-	}
-	ui_.variant->setText(var);
+	Variant variant = db_.variant(query.value("variant_id").toString());
+	ui_.variant->setText(variant.toString() + " (" + query.value("genotype").toString() + ")");
 
-	//set variant quality
-	if (quality_annotation_index==-1)
-	{
-		ui_.quality->setText("n/a (no quality annotation)");
-	}
-	else
-	{
-		QList<QByteArray> qual_parts = variant.annotations()[quality_annotation_index].split(';');
-		for (int i=0; i<qual_parts.count(); ++i)
-		{
-			QList<QByteArray> key_value = qual_parts[i].split('=');
-			if (key_value.count()!=2 || !BasicStatistics::isValidFloat(key_value[1]))
-			{
-				qual_parts[i] = "<font color='gray'>" + qual_parts[i] + "</font>";
-			}
-			else if (
-					(key_value[0]=="QUAL" && key_value[1].toDouble()<100)
-					||
-					(key_value[0]=="MQM" && key_value[1].toDouble()<50)
-					||
-					(key_value[0]=="AF" && key_value[1].toDouble()<0.25)
-					||
-					(key_value[0]=="DP" && key_value[1].toDouble()<20)
-					 )
-			{
-				qual_parts[i] = "<font color='red'>" + qual_parts[i] + "</font>";
-			}
-		}
-		ui_.quality->setText(qual_parts.join(" "));
-	}
+	ui_.sample->setText(db_.getValue("SELECT name FROM sample WHERE id=" + query.value("sample_id").toString()).toString());
 
-	//get validation data from NGSD
-	ValidationInfo info = NGSD().getValidationStatus(filename, variant);
-	ui_.status->setCurrentText(info.status);
-	ui_.type->setCurrentText(info.type);
-	ui_.comment->setPlainText(info.comments);
+	ui_.requested_by->setText(db_.getValue("SELECT name FROM user WHERE id=" + query.value("user_id").toString()).toString());
+
+	ui_.status->setCurrentText(query.value("status").toString());
+
+	ui_.comment->setPlainText(query.value("comment").toString());
 }
 
-ValidationInfo ValidationDialog::info() const
+void ValidationDialog::store()
 {
-	return ValidationInfo{ ui_.status->currentText(), ui_.type->currentText(), ui_.comment->toPlainText()};
+	SqlQuery query = db_.getQuery(); //use binding (user input)
+	query.prepare("UPDATE variant_validation SET status=:0, comment=:1 WHERE id='" + val_id_ + "'");
+	query.bindValue(0, ui_.status->currentText());
+	query.bindValue(1, ui_.comment->toPlainText().trimmed());
+	query.exec();
+}
+
+QString ValidationDialog::status()
+{
+	return ui_.status->currentText();
 }
 
 void ValidationDialog::statusChanged()

@@ -32,10 +32,10 @@ protected slots:
 	void checkMids();
 
 private:
-	QTableWidgetItem* createItem(const QString& text, bool highlight = false, int alignment = Qt::AlignVCenter|Qt::AlignRight);
-
 	Ui::SequencingRunWidget* ui_;
 	QString run_id_;
+
+	static void highlightItem(QTableWidgetItem* item);
 };
 
 #endif // SEQUENCINGRUNWIDGET_H

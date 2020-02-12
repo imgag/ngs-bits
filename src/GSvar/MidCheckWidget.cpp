@@ -97,10 +97,10 @@ void MidCheckWidget::updateSampleTable()
 	for(int i=0; i<mids_.count(); ++i)
 	{
 		const SampleMids& mid = mids_[i];
-		ui_.samples->setItem(i, 0, createItem(mid.name));
-		ui_.samples->setItem(i, 1, createItem(mid.lanesAsString()));
-		ui_.samples->setItem(i, 2, createItem(mid.mid1_name + " (" + mid.mid1_seq + ")"));
-		ui_.samples->setItem(i, 3, createItem(mid.mid2_seq.isEmpty() ? "" : mid.mid2_name + " (" + mid.mid2_seq + ")"));
+		ui_.samples->setItem(i, 0, GUIHelper::createTableItem(mid.name));
+		ui_.samples->setItem(i, 1, GUIHelper::createTableItem(mid.lanesAsString()));
+		ui_.samples->setItem(i, 2, GUIHelper::createTableItem(mid.mid1_name + " (" + mid.mid1_seq + ")"));
+		ui_.samples->setItem(i, 3, GUIHelper::createTableItem(mid.mid2_seq.isEmpty() ? "" : mid.mid2_name + " (" + mid.mid2_seq + ")"));
 	}
 	GUIHelper::resizeTableCells(ui_.samples);
 }
@@ -243,16 +243,4 @@ SampleMids MidCheckWidget::parseImportLine(QString line, int line_nr)
 	}
 
 	return mid;
-}
-
-QTableWidgetItem* MidCheckWidget::createItem(const QString& text, int alignment)
-{
-	auto item = new QTableWidgetItem();
-	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-
-	item->setText(text);
-
-	item->setTextAlignment(alignment);
-
-	return item;
 }
