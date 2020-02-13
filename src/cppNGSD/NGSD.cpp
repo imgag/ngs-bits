@@ -1405,14 +1405,23 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sq
 		//FK - use name instead of id
 		if(field_info.type==TableFieldInfo::FK)
 		{
+			QHash<QString, QString> cache; //check query result to reduce the number of SQL queries (they are slow)
 			QStringList column = output.extractColumn(c);
 			for(int r=0; r<column.count(); ++r)
 			{
-				const QString& value = column[r];
+				QString value = column[r];
 				if (value!="")
 				{
-					QString fk_value = getValue("SELECT " + field_info.fk_name_sql + " FROM " + field_info.fk_table + " WHERE id=" + value).toString();
-					column[r] = fk_value;
+					if (cache.contains(value))
+					{
+						column[r] = cache.value(value);
+					}
+					else
+					{
+						QString fk_value = getValue("SELECT " + field_info.fk_name_sql + " FROM " + field_info.fk_table + " WHERE id=" + value).toString();
+						column[r] = fk_value;
+						cache[value] = fk_value;
+					}
 				}
 			}
 			output.setColumn(c, column);
