@@ -22,6 +22,9 @@ class CnvWidget
 	Q_OBJECT
 
 public:
+
+	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
+
 	//Constructor for germline samples
 	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 	//Constructor for tumor-normal pairs
@@ -54,6 +57,7 @@ private slots:
 	void editReportConfiguration(int row);
 
 private:
+	void initGUI();
 	void updateGUI();
 	void disableGUI();
 	void addInfoLine(QString text);
@@ -61,13 +65,6 @@ private:
 	void showSpecialTable(QString col, QString text, QByteArray url_prefix);
 	void editGermlineReportConfiguration(int row);
 	void editSomaticReportConfiguration(int row);
-
-	///Delegate constructor
-	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
-	void initGUI();
-
-	QTableWidgetItem* createItem(QString text, int alignment = Qt::AlignLeft|Qt::AlignTop);
-
 	Ui::CnvWidget* ui;
 	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.
 	QString callset_id_; //CNV callset database ID. '' if unknown of if NGSD is disabled.

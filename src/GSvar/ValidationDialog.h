@@ -14,10 +14,13 @@ class ValidationDialog
 
 public:
 	///Constructor
-	ValidationDialog(QWidget* parent, QString filename, const Variant& variant, int quality_annotation_index);
+	ValidationDialog(QWidget* parent, int id);
 
-	///Returns the validation information
-	ValidationInfo info() const;
+	///Stores the changed data to the NGSD
+	void store();
+
+	///Returns the current status.
+	QString status();
 
 private slots:
 	///Updates the validation comment when the status changes
@@ -25,6 +28,8 @@ private slots:
 
 private:
 	Ui::ValidationDialog ui_;
+	NGSD db_;
+	QString val_id_;
 };
 
 #endif // VALIDATIONDIALOG_H

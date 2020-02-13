@@ -2,7 +2,7 @@
 #define DBTABLEADMINISTRATION_H
 
 #include <QWidget>
-
+#include "DelayedInitializationTimer.h"
 #include "ui_DBTableAdministration.h"
 
 class DBTableAdministration
@@ -14,6 +14,7 @@ public:
 	DBTableAdministration(QString table, QWidget* parent = 0);
 
 protected slots:
+	void delayedInitialization();
 	void updateTable();
 	void add();
 	void edit();
@@ -23,6 +24,7 @@ private:
 	Ui::DBTableAdministration ui_;
 	QString table_;
 	QString table_display_name_;
+	DelayedInitializationTimer init_timer_;
 };
 
 #endif // DBTABLEADMINISTRATION_H

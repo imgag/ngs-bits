@@ -128,7 +128,7 @@ void DiagnosticStatusOverviewDialog::copyTableToClipboard()
 
 void DiagnosticStatusOverviewDialog::addItem(int r, int c, QString text, bool text_as_tooltip)
 {
-	text = text.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ').trimmed();
+	text = text.replace('\t', ' ').replace('\n', ' ').replace('\r', "").trimmed();
 	QTableWidgetItem* item = new QTableWidgetItem(text);
 	ui.sample_infos->setItem(r, c, item);
 	if (text_as_tooltip)

@@ -283,14 +283,6 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	}
 };
 
-///Variant validation information
-struct CPPNGSDSHARED_EXPORT ValidationInfo
-{
-	QString status;
-	QString type;
-	QString comments;
-};
-
 ///Variant classification information
 struct CPPNGSDSHARED_EXPORT ClassificationInfo
 {
@@ -555,11 +547,6 @@ public:
 	QVector<double> getQCValues(const QString& accession, const QString& processed_sample_id);
 	///Returns the next processing ID for the given sample.
 	QString nextProcessingId(const QString& sample_id);
-
-	///Returns validation status information
-	ValidationInfo getValidationStatus(const QString& filename, const Variant& variant);
-	///Sets that validation status of a variant in the NGSD. If unset, the user name is taken from the environment.
-	void setValidationStatus(const QString& filename, const Variant& variant, const ValidationInfo& info, QString user_name=Helper::userName());
 
 	///Returns classification information
 	ClassificationInfo getClassification(const Variant& variant);

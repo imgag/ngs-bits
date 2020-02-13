@@ -39,7 +39,7 @@ void DBTableWidget::setData(const DBTable& table)
 	//headers
 	for(int c=0; c<headers.count(); ++c)
 	{
-		setHorizontalHeaderItem(c, createItem(headers[c], Qt::AlignCenter));
+		setHorizontalHeaderItem(c, GUIHelper::createTableItem(headers[c], Qt::AlignCenter));
 	}
 
 	//content
@@ -50,7 +50,7 @@ void DBTableWidget::setData(const DBTable& table)
 		ids_ <<row.id();
 		for(int c=0; c<headers.count(); ++c)
 		{
-			setItem(r, c, createItem(row.value(c)));
+			setItem(r, c,  GUIHelper::createTableItem(row.value(c)));
 		}
 	}
 
@@ -152,18 +152,6 @@ const QString& DBTableWidget::tableName() const
 	return table_;
 }
 
-QTableWidgetItem* DBTableWidget::createItem(const QString& text, int alignment)
-{
-	auto item = new QTableWidgetItem();
-	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-
-	item->setText(text);
-
-	item->setTextAlignment(alignment);
-
-	return item;
-}
-
 void DBTableWidget::keyPressEvent(QKeyEvent* event)
 {
 	if(event->matches(QKeySequence::Copy))
@@ -200,7 +188,7 @@ void DBTableWidget::copyToClipboard()
 		for (int col=0; col<columnCount(); ++col)
 		{
 			if (col!=0) output += "\t";
-			output += item(row, col)->text().replace('\t', ' ').replace('\n', ' ');
+			output += item(row, col)->text().replace('\t', ' ').replace('\n', ' ').replace('\r', "");
 		}
 		output += "\n";
 	}

@@ -55,7 +55,6 @@ public:
 	const QString& tableName() const;
 
 protected:
-	QTableWidgetItem* createItem(const QString& text, int alignment = Qt::AlignVCenter|Qt::AlignLeft);	
 	void keyPressEvent(QKeyEvent* event) override;
 
 protected slots:

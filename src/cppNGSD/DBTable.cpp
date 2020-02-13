@@ -1,11 +1,6 @@
 #include "DBTable.h"
 #include "Exceptions.h"
 
-#include <QSqlDriver>
-#include <QSqlRecord>
-#include <QSqlField>
-#include <QDebug>
-
 const DBRow& DBTable::row(int r) const
 {
 	checkRowIndex(r);
@@ -142,6 +137,18 @@ QStringList DBTable::extractColumn(int c) const
 		output << rows_[r].value(c);
 	}
 	return output;
+}
+
+void DBTable::filterRows(QString text, Qt::CaseSensitivity cs)
+{
+	for(int r=rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
+	{
+		if (!rows_[r].contains(text, cs))
+		{
+			rows_.removeAt(r);
+		}
+	}
+
 }
 
 void DBTable::checkRowIndex(int r) const

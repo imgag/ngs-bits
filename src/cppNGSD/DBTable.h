@@ -105,6 +105,9 @@ class CPPNGSDSHARED_EXPORT DBTable
 		///Creates and returns a list of values for a column.
 		QStringList extractColumn(int c) const;
 
+		///Removes rows that don't contain the given text.
+		void filterRows(QString text, Qt::CaseSensitivity cs = Qt::CaseInsensitive);
+
 		///Writes contents to a stream (TSV representation)
 		void write(QTextStream& stream) const;
 

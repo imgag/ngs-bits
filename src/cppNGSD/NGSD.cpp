@@ -1523,14 +1523,23 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sq
 		//FK - use name instead of id
 		if(field_info.type==TableFieldInfo::FK)
 		{
+			QHash<QString, QString> cache; //check query result to reduce the number of SQL queries (they are slow)
 			QStringList column = output.extractColumn(c);
 			for(int r=0; r<column.count(); ++r)
 			{
-				const QString& value = column[r];
+				QString value = column[r];
 				if (value!="")
 				{
-					QString fk_value = getValue("SELECT " + field_info.fk_name_sql + " FROM " + field_info.fk_table + " WHERE id=" + value).toString();
-					column[r] = fk_value;
+					if (cache.contains(value))
+					{
+						column[r] = cache.value(value);
+					}
+					else
+					{
+						QString fk_value = getValue("SELECT " + field_info.fk_name_sql + " FROM " + field_info.fk_table + " WHERE id=" + value).toString();
+						column[r] = fk_value;
+						cache[value] = fk_value;
+					}
 				}
 			}
 			output.setColumn(c, column);
@@ -1575,13 +1584,7 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sq
 	text_filter = text_filter.trimmed();
 	if (!text_filter.isEmpty())
 	{
-		for(int r=output.rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
-		{
-			if (!output.row(r).contains(text_filter))
-			{
-				output.removeRow(r);
-			}
-		}
+		output.filterRows(text_filter);
 	}
 
 	return output;
@@ -1647,21 +1650,6 @@ QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi,
 	return out;
 }
 
-ValidationInfo NGSD::getValidationStatus(const QString& filename, const Variant& variant)
-{
-	SqlQuery query = getQuery();
-	query.exec("SELECT status, type, comment FROM variant_validation WHERE sample_id='" + sampleId(filename) + "' AND variant_id='" + variantId(variant) + "'");
-	if (query.size()==0)
-	{
-		return ValidationInfo();
-	}
-	else
-	{
-		query.next();
-		return ValidationInfo{ query.value(0).toString().trimmed(), query.value(1).toString().trimmed(), query.value(2).toString().trimmed() };
-	}
-}
-
 QCCollection NGSD::getQCData(const QString& processed_sample_id)
 {
 	//get QC data
@@ -1721,29 +1709,6 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& proce
 	}
 
 	return output;
-}
-
-void NGSD::setValidationStatus(const QString& filename, const Variant& variant, const ValidationInfo& info, QString user_name)
-{
-	QString s_id = sampleId(filename);
-	QString v_id = variantId(variant);
-	QVariant vv_id = getValue("SELECT id FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + v_id + "'");
-
-	SqlQuery query = getQuery(); //use binding (user input)
-	if (vv_id.isNull()) //insert
-	{
-		QString user_id = QString::number(userId(user_name));
-		QString geno = getValue("SELECT genotype FROM detected_variant WHERE variant_id='" + v_id + "' AND processed_sample_id='" + processedSampleId(filename) + "'", false).toString();
-		query.prepare("INSERT INTO variant_validation (user_id, sample_id, variant_id, genotype, status, type, comment) VALUES ('" + user_id + "','" + s_id + "','" + v_id + "','" + geno + "',:0,:1,:2)");
-	}
-	else //update
-	{
-		query.prepare("UPDATE variant_validation SET status=:0, type=:1, comment=:2 WHERE id='" + vv_id.toString() + "'");
-	}
-	query.bindValue(0, info.status);
-	query.bindValue(1, info.type);
-	query.bindValue(2, info.comments);
-	query.exec();
 }
 
 ClassificationInfo NGSD::getClassification(const Variant& variant)

@@ -315,6 +315,13 @@ void SequencingRunWidget::checkMids()
 	}
 }
 
+void SequencingRunWidget::highlightItem(QTableWidgetItem* item)
+{
+	QFont font = item->font();
+	font.setBold(true);
+	item->setFont(font);
+}
+
 void SequencingRunWidget::updateReadQualityTable()
 {
 	QTableWidget* table = ui_->read_quality;
@@ -330,24 +337,35 @@ void SequencingRunWidget::updateReadQualityTable()
 	table->setColumnCount(headers.count());
 	for(int c=0; c<headers.count(); ++c)
 	{
-		table->setHorizontalHeaderItem(c, createItem(headers[c], false, Qt::AlignCenter));
+		table->setHorizontalHeaderItem(c, GUIHelper::createTableItem(headers[c], Qt::AlignCenter));
 	}
 	NGSD db;
 	SqlQuery q_reads = db.getQuery();
 	q_reads.exec("SELECT * FROM runqc_read WHERE sequencing_run_id=" + run_id_ + " ORDER BY read_num ASC");
 	while(q_reads.next())
 	{
-		//all lanes summar line
+		//all lanes summary line
 		int row = table->rowCount();
 		table->setRowCount(row + 1);
 
 		QString text = "R" + q_reads.value("read_num").toString() + " (" + q_reads.value("cycles").toString() + "cycles";
 		if (q_reads.value("is_index").toInt()==1) text += ", index";
 		text += ")";
-		table->setItem(row, 0, createItem(text, true, Qt::AlignLeft|Qt::AlignVCenter));
-		table->setItem(row, 1, createItem("all", true));
-		table->setItem(row, 2, createItem(q_reads.value("q30_perc").toString(), true));
-		table->setItem(row, 3, createItem(q_reads.value("error_rate").toString(), true));
+		QTableWidgetItem* item = GUIHelper::createTableItem(text);
+		highlightItem(item);
+		table->setItem(row, 0, item);
+
+		item = GUIHelper::createTableItem("all");
+		highlightItem(item);
+		table->setItem(row, 1, item);
+
+		item = GUIHelper::createTableItem(q_reads.value("q30_perc").toString());
+		highlightItem(item);
+		table->setItem(row, 2, item);
+
+		item = GUIHelper::createTableItem(q_reads.value("error_rate").toString());
+		highlightItem(item);
+		table->setItem(row, 3, item);
 
 		//inidividual lanes
 		SqlQuery q_lanes = db.getQuery();
@@ -358,14 +376,14 @@ void SequencingRunWidget::updateReadQualityTable()
 			row = table->rowCount();
 			table->setRowCount(row + 1);
 
-			table->setItem(row, 0, createItem(""));
-			table->setItem(row, 1, createItem(q_lanes.value("lane_num").toString()));
-			table->setItem(row, 2, createItem(QString::number(q_lanes.value("q30_perc").toDouble(), 'f', 2)));
-			table->setItem(row, 3, createItem(QString::number(q_lanes.value("error_rate").toDouble(), 'f', 2)));
+			table->setItem(row, 0, GUIHelper::createTableItem(""));
+			table->setItem(row, 1, GUIHelper::createTableItem(q_lanes.value("lane_num").toString()));
+			table->setItem(row, 2, GUIHelper::createTableItem(QString::number(q_lanes.value("q30_perc").toDouble(), 'f', 2)));
+			table->setItem(row, 3, GUIHelper::createTableItem(QString::number(q_lanes.value("error_rate").toDouble(), 'f', 2)));
 			double density = q_lanes.value("cluster_density").toDouble();
-			table->setItem(row, 4, createItem(QString::number(density/1000.0, 'f', 2)));
-			table->setItem(row, 5, createItem(QString::number(q_lanes.value("cluster_density_pf").toDouble()/density*100.0, 'f', 2)));
-			table->setItem(row, 6, createItem(QString::number(q_lanes.value("yield").toDouble()/1000000000.0, 'f', 2)));
+			table->setItem(row, 4, GUIHelper::createTableItem(QString::number(density/1000.0, 'f', 2)));
+			table->setItem(row, 5, GUIHelper::createTableItem(QString::number(q_lanes.value("cluster_density_pf").toDouble()/density*100.0, 'f', 2)));
+			table->setItem(row, 6, GUIHelper::createTableItem(QString::number(q_lanes.value("yield").toDouble()/1000000000.0, 'f', 2)));
 		}
 	}
 	GUIHelper::resizeTableCells(table);
@@ -381,22 +399,4 @@ void SequencingRunWidget::openSelectedSamples()
 
 		emit(openProcessedSampleTab(item->text()));
 	}
-}
-
-QTableWidgetItem* SequencingRunWidget::createItem(const QString& text, bool highlight, int alignment)
-{
-	auto item = new QTableWidgetItem();
-	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-
-	if (highlight)
-	{
-		QFont font;
-		font.setBold(true);
-		item->setFont(font);
-	}
-
-	item->setText(text);
-	item->setTextAlignment(alignment);
-
-	return item;
 }

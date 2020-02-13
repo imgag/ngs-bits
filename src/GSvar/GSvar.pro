@@ -75,7 +75,8 @@ SOURCES += main.cpp\
     SomaticReportVariantDialog.cpp \
     SomaticReportDialog.cpp \
     MidCheckWidget.cpp \
-    CnvSearchWidget.cpp
+    CnvSearchWidget.cpp \
+    VariantValidationWidget.cpp
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -144,7 +145,8 @@ HEADERS  += MainWindow.h \
     SomaticReportVariantDialog.h \
     SomaticReportDialog.h \
     MidCheckWidget.h \
-    CnvSearchWidget.h
+    CnvSearchWidget.h \
+    VariantValidationWidget.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -199,7 +201,8 @@ FORMS    += MainWindow.ui \
     SomaticReportVariantDialog.ui \
     SomaticReportDialog.ui \
     MidCheckWidget.ui \
-    CnvSearchWidget.ui
+    CnvSearchWidget.ui \
+    VariantValidationWidget.ui
 
 
 include("../app_gui.pri")

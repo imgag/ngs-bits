@@ -109,6 +109,7 @@ public slots:
 	void on_actionGenome_triggered();
 	void on_actionMID_triggered();
 	void on_actionProcessingSystem_triggered();
+	void on_actionSample_triggered();
 	void on_actionSampleGroup_triggered();
 	void on_actionSender_triggered();
 	void on_actionSpecies_triggered();
@@ -117,6 +118,7 @@ public slots:
 	void on_actionImportSamples_triggered();
 	void on_actionImportProcessedSamples_triggered();
 	void on_actionMidClashDetection_triggered();
+	void on_actionVariantValidation_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();

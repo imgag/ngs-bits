@@ -326,7 +326,7 @@ void SomaticReportConfigurationWidget::copyToClipboard()
 			if (col!=range.leftColumn()) selected_text.append("\t");
 			QTableWidgetItem* item = ui_->cnvs->item(row, col);
 			if (item==nullptr) continue;
-			selected_text.append(item->text().replace('\n',' ').replace('\r',' '));
+			selected_text.append(item->text().replace('\n',' ').replace('\r', ""));
 		}
 	}
 	QApplication::clipboard()->setText(selected_text);

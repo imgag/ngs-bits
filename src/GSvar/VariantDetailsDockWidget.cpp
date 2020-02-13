@@ -46,7 +46,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	//set up NGSD edit button
 	QMenu* menu = new QMenu();
 	menu->addAction("Edit classification", this, SLOT(editClassification()));
-	menu->addAction("Edit Somatic Classification", this, SLOT(editSomaticClassification()));
+	menu->addAction("Edit classification (somatic)", this, SLOT(editSomaticClassification()));
 	menu->addAction("Edit validation", this, SLOT(editValidation()));
 	menu->addAction("Edit comment", this, SLOT(editComment()));
 	ui->ngsd_edit->setMenu(menu);
@@ -200,13 +200,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	//update NGSD button (and actions depending on AF)
 	ui->ngsd_edit->setEnabled(Settings::boolean("NGSD_enabled", true));
 	ui->var_btn->setEnabled(Settings::boolean("NGSD_enabled", true));
-	bool af_lt_5_perc = maxAlleleFrequency(vl, index)<0.05;
-	foreach(QAction* action, ui->ngsd_edit->menu()->actions())
-	{
-		if (action->text()=="Edit classification" || action->text()=="Edit comment" ||  action->text() == "Edit Somatic Classification") continue;
-
-		action->setEnabled(af_lt_5_perc);
-	}
 }
 
 void VariantDetailsDockWidget::clear()

@@ -149,25 +149,35 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 	{
 		//gap
 		const GapInfo& gap = gaps_[i];
-		ui->gaps->setItem(i, 0, createItem(gap.line.toString(true)));
+		QTableWidgetItem* item = GUIHelper::createTableItem(gap.line.toString(true));
+		ui->gaps->setItem(i, 0, item);
 
 		//size
 		QString size = QString::number(gap.line.length());
 		if (gap.isExonicSplicing()) size += " (" + QString::number(gap.coding_overlap.length()) + ")";
-		ui->gaps->setItem(i, 1, createItem(size, false, true));
+		item = GUIHelper::createTableItem(gap.line.toString(true), Qt::AlignRight|Qt::AlignCenter);
+		ui->gaps->setItem(i, 1, item);
 
 		//depth
 		QString depth = QString::number(gap.avg_depth, 'f', 2);
-		ui->gaps->setItem(i, 2, createItem(depth, gap.avg_depth<10, true));
+		item = GUIHelper::createTableItem(depth, Qt::AlignRight|Qt::AlignCenter);
+		if (gap.avg_depth<10) highlightItem(item);
+		ui->gaps->setItem(i, 2, item);
 
 		//genes
-		ui->gaps->setItem(i, 3, createItem(gap.genes.join(", "), gap.genes.intersectsWith(genes)));
+		item = GUIHelper::createTableItem(gap.genes.join(", "));
+		if (gap.genes.intersectsWith(genes)) highlightItem(item);
+		ui->gaps->setItem(i, 3, item);
 
 		//type
-		ui->gaps->setItem(i, 4, createItem(gap.isExonicSplicing() ? "exonic/splicing" : "intronic/intergenic" , gap.isExonicSplicing()));
+		item = GUIHelper::createTableItem(gap.isExonicSplicing() ? "exonic/splicing" : "intronic/intergenic");
+		if (gap.isExonicSplicing()) highlightItem(item);
+		ui->gaps->setItem(i, 4, item);
 
 		//preferred transcripts
-		ui->gaps->setItem(i, 5, createItem(gap.preferred_transcript, gap.preferred_transcript=="yes"));
+		item = GUIHelper::createTableItem(gap.preferred_transcript);
+		if (gap.preferred_transcript=="yes") highlightItem(item);
+		ui->gaps->setItem(i, 5, item);
 
 		//validate
 		ui->gaps->setItem(i, 6, new QTableWidgetItem());
@@ -287,18 +297,11 @@ void GapDialog::updateGeneFilter(QString text)
 	}
 }
 
-QTableWidgetItem* GapDialog::createItem(QString text, bool highlight, bool align_right)
+void GapDialog::highlightItem(QTableWidgetItem* item)
 {
-	QTableWidgetItem* item = new QTableWidgetItem(text);
-	if (highlight)
-	{
-		QFont font;
-		font.setBold(true);
-		item->setFont(font);
-	}
-	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-	if (align_right) item->setTextAlignment(Qt::AlignRight|Qt::AlignCenter);
-	return item;
+	QFont font = item->font();
+	font.setBold(true);
+	item->setFont(font);
 }
 
 GapValidationLabel::State GapDialog::state(int row) const

@@ -9,6 +9,7 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	, ui_()
 	, table_(table)
 	, table_display_name_(table.replace("_", " "))
+	, init_timer_(this, true)
 {
 	ui_.setupUi(this);
 
@@ -24,15 +25,23 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(remove()));
+}
 
+void DBTableAdministration::delayedInitialization()
+{
 	updateTable();
 }
 
+
 void DBTableAdministration::updateTable()
 {
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
 	NGSD db;
 	DBTable db_table = db.createOverviewTable(table_, ui_.text_filter->text());
 	ui_.table->setData(db_table);
+
+	QApplication::restoreOverrideCursor();
 }
 
 void DBTableAdministration::add()

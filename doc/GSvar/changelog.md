@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2019_11-113 (11.02.20)
+- NGSD: Added batch import: MIDs, samples, processed samples.
+- NGSD: Added MID clash detection.
+- CNV: Added CNV search dialog (context menu of CNV dialog).
+
 ### 2019_11-99 (30.01.20)
 - NGSD: Added run overview.
 - NGSD: Added admin section and statistics.

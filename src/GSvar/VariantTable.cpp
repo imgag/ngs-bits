@@ -625,7 +625,7 @@ void VariantTable::copyToClipboard(bool split_quality)
 			}
 			else
 			{
-				selected_text.append(current_item->text().replace('\n',' ').replace('\r',' '));
+				selected_text.append(current_item->text().replace('\n',' ').replace('\r', ""));
 			}
 		}
 	}
