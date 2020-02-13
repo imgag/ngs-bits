@@ -52,6 +52,30 @@ VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const
 	return result;
 }
 
+VariantList SomaticReportSettings::filterGermlineVariants(const VariantList &germl_snvs, const SomaticReportSettings &sett)
+{
+	QSet<int> variant_indices = sett.report_config.variantIndicesGermline().toSet();
+
+	VariantList result;
+
+	result.copyMetaData(germl_snvs);
+
+	result.addAnnotation("freq_in_tum", "Frequency of variant which was found in normal tissue within the tumor sample.");
+
+	for(int i=0; i< germl_snvs.count(); ++i)
+	{
+		if(variant_indices.contains(i))
+		{
+			result.append(germl_snvs[i]);
+			result[result.count()-1].annotations().append(QByteArray::number(sett.report_config.variantConfigGermline(i).tum_freq) );
+		}
+	}
+
+	return result;
+
+
+}
+
 CnvList SomaticReportSettings::filterCnvs(const CnvList &cnvs, const SomaticReportSettings &sett)
 {
 	QSet<int> cnv_indices = sett.report_config.variantIndices(VariantType::CNVS, false).toSet();

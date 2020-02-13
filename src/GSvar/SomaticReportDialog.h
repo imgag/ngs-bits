@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "SomaticReportSettings.h"
 #include "NGSD.h"
+#include "BamReader.h"
 #include "ui_SomaticReportDialog.h"
 
 class SomaticReportDialog
@@ -48,6 +49,9 @@ public slots:
 
 private slots:
 	void updateGUI();
+
+	void disableGUI();
+	void enableGUI();
 };
 
 #endif // SOMATICREPORTDIALOG_H

@@ -65,6 +65,8 @@ private:
 		som_rep_conf.setQuality("DNA quantity too low");
 		som_rep_conf.setFusionsDetected(true);
 
+
+
 		SomaticReportVariantConfiguration cnv1;
 		cnv1.variant_index = 2;
 		cnv1.variant_type = VariantType::CNVS;
@@ -75,6 +77,7 @@ private:
 
 		SomaticReportGermlineVariantConfiguration var1_germl, var2_germl;
 		var1_germl.variant_index = 2;
+		var1_germl.tum_freq = 0.7;
 		var2_germl.variant_index = 4;
 		som_rep_conf.setGermline(var1_germl);
 		som_rep_conf.setGermline(var2_germl);
@@ -131,7 +134,10 @@ private:
 		QList<SomaticReportGermlineVariantConfiguration> res_germl = res_config.variantConfigGermline();
 		I_EQUAL(res_germl.count(), 2);
 		I_EQUAL(res_germl[0].variant_index, 2);
+		F_EQUAL(res_germl[0].tum_freq, 0.7);
 		I_EQUAL(res_germl[1].variant_index, 4);
+		IS_TRUE(std::isnan(res_germl[1].tum_freq));
+
 
 
 		SomaticReportConfigurationData config_data_1 = db.somaticReportConfigData(config_id);

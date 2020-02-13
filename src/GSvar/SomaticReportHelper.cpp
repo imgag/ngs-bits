@@ -22,15 +22,8 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 {
 	RtfTable table;
 
-
 	//Make list of somatic variants in control tissue, chosen according report settings
-	VariantList som_var_in_normal;
-	som_var_in_normal.copyMetaData(snv_germline_);
-	for(int index : settings_.report_config.variantIndicesGermline() )
-	{
-		som_var_in_normal.append(snv_germline_[index]);
-	}
-
+	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(snv_germline_, settings_);
 
 	QByteArray heading_text = "Punktmutationen (SNVs), kleine Insertionen/Deletionen (INDELs)";
 	if(include_cnvs) heading_text +=  " und Kopienzahlvarianten (CNVs)";
@@ -145,8 +138,6 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			}
 		}
 
-
-
 		temp_snv_row.addCell(3138,gene_info);
 
 
@@ -159,7 +150,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			const CopyNumberVariant& cnv = cnvs[i_corresponding_cnv];
 			double tum_cn_change = cnv.annotations().at(cnv_index_tumor_cn_change_).toDouble();
 			//ignore amplifications <4
-			if(tum_cn_change > 2 && tum_cn_change <4) continue;
+			//if(tum_cn_change > 2 && tum_cn_change <4) continue;
 
 			genes_in_first_part << transcript.gene;
 
@@ -235,16 +226,68 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		}
 	}
 
-	if(!include_cnvs)
+
+
+	//Insert remaining germline variants
+	int i_germl_gene = som_var_in_normal.annotationIndexByName("gene");
+	int i_germl_co_sp = som_var_in_normal.annotationIndexByName("coding_and_splicing");
+	int i_germl_freq_in_tum = som_var_in_normal.annotationIndexByName("freq_in_tum");
+	for(int i=0; i< som_var_in_normal.count(); ++i) //insert next to gene that is already included
 	{
-		return table;
+		const Variant& var = som_var_in_normal[i];
+
+		for(int j=table.count()-1; j>= 0; --j) //start from the end of the table
+		{
+			if( var.annotations()[i_germl_gene].contains(table[j][0].format().content()) )
+			{
+				RtfTableRow temp;
+				temp.addCell(1000, var.annotations()[i_germl_gene], RtfParagraph().setItalic(true));
+
+				QList<VariantTranscript> trans =  var.transcriptAnnotations(i_germl_co_sp);
+				if(trans.count() > 0) temp.addCell({ trans[0].hgvs_c + ":" + trans[0].hgvs_p, RtfText(trans[0].id).setFontSize(14).RtfCode()}, 2900);
+				else temp.addCell(2900, "n/a");
+
+				temp.addCell(1700, (trans.count() > 0 ? trans[0].type : "n/a"));
+				temp.addCell(900, var.annotations()[i_germl_freq_in_tum], RtfParagraph().setHorizontalAlignment("c"));
+
+				//Get af of var in tumor tisse from NGSD
+
+				temp.addCell(3138,"n/a");
+
+				table.insertRow(j+1, temp);
+
+				som_var_in_normal.remove(i);
+				break;
+			}
+		}
 	}
 
-	//Add remaining CNVs to table
 
+
+	for(int i=0; i < som_var_in_normal.count(); ++i) //germline variants without a gene already in table
+	{
+		const Variant& var = som_var_in_normal[i];
+		RtfTableRow temp;
+		temp.addCell(1000, var.annotations()[i_germl_gene], RtfParagraph().setItalic(true));
+
+		QList<VariantTranscript> trans =  var.transcriptAnnotations(i_germl_co_sp);
+		if(trans.count() > 0) temp.addCell({ trans[0].hgvs_c + ":" + trans[0].hgvs_p, RtfText(trans[0].id).setFontSize(14).RtfCode()}, 2900);
+		else temp.addCell(2900, "n/a");
+
+		temp.addCell(1700, (trans.count() > 0 ? trans[0].type : "n/a"));
+		temp.addCell(900, var.annotations()[i_germl_freq_in_tum], RtfParagraph().setHorizontalAlignment("c"));
+		temp.addCell(3138, "n/a");
+
+		table.addRow(temp);
+		break;
+	}
+
+
+	if(!include_cnvs)	return table;
+
+	//Add remaining CNVs to table
 	int i_ncg_oncogene = cnvs_.annotationIndexByName("ncg_oncogene", false);
 	int i_ncg_tsg = cnvs_.annotationIndexByName("ncg_tsg", false);
-
 
 	QMap<QByteArray,RtfTableRow> cna_genes_per_row;
 
@@ -329,38 +372,8 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		}
 	}
 
-	//Insert remaining germline variants
-	int i_germl_gene = som_var_in_normal.annotationIndexByName("gene");
-	int i_germl_co_sp = som_var_in_normal.annotationIndexByName("coding_and_splicing");
-	int i_germl_het_hom = som_var_in_normal.annotationIndexByName(normal_ps_);
-	for(int i=0; i< som_var_in_normal.count(); ++i)
-	{
-		const Variant& var = som_var_in_normal[i];
 
-		for(int j=table.count()-1; j>= 0; --j) //start from the end of the table
-		{
-			if( var.annotations()[i_germl_gene].contains(table[j][0].format().content()) )
-			{
-				RtfTableRow temp;
-				temp.addCell(1000, var.annotations()[i_germl_gene], RtfParagraph().setItalic(true));
-
-				QList<VariantTranscript> trans =  var.transcriptAnnotations(i_germl_co_sp);
-				if(trans.count() > 0) temp.addCell({ trans[0].hgvs_c + ":" + trans[0].hgvs_p, RtfText(trans[0].id).setFontSize(14).RtfCode()}, 2900);
-				else temp.addCell(2900, "n/a");
-
-				temp.addCell(1700, (trans.count() > 0 ? trans[0].type : "n/a"));
-				temp.addCell(900, var.annotations()[i_germl_het_hom], RtfParagraph().setHorizontalAlignment("c"));
-				temp.addCell(3138, "n/a");
-
-				table.insertRow(j+1, temp);
-
-				break;
-			}
-		}
-	}
-
-
-	//Add rows to table, sorted according gene (which is key of cna_genes_per_row QMap)
+	//Add remaining CNVs to table, sorted according gene (which is key of cna_genes_per_row QMap)
 	for(const auto& row : cna_genes_per_row)
 	{
 		table.addRow(row);
@@ -953,6 +966,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	//Filter variants according report configuration settings
 	snv_variants_ = SomaticReportSettings::filterVariants(variants, settings);
 	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings);
+
 	//Sort Variant list by gene
 	snv_variants_.sortByAnnotation(snv_variants_.annotationIndexByName("gene",true,true));
 
@@ -1734,8 +1748,6 @@ VariantList SomaticReportHelper::gsvarToVcf(const VariantList& gsvar_list, const
 		THROW(FileParseException,"Could not find vcf file " + orig_name + " to convert GSvar to VCF format.");
 		return output;
 	}
-
-	qDebug() << orig_name << endl;
 
 	VariantList orig_vcf;
 	orig_vcf.load(orig_name,VCF_GZ, &roi);

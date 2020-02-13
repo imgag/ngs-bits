@@ -1144,6 +1144,7 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration_germl_var` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `somatic_report_configuration_id` int(11) NOT NULL,
   `variant_id` int(11) NOT NULL,
+  `tum_freq` FLOAT UNSIGNED NULL DEFAULT NULL COMMENT 'frequency of this variant in the tumor sample.',
   PRIMARY KEY (`id`),
   CONSTRAINT `som_rep_conf_germl_var_has_rep_conf_id`
     FOREIGN KEY (`somatic_report_configuration_id`)

@@ -62,7 +62,7 @@ const QList<SomaticReportGermlineVariantConfiguration>& SomaticReportConfigurati
 	return germ_variant_config_;
 }
 
-const SomaticReportGermlineVariantConfiguration SomaticReportConfiguration::variantConfigGermline(int variant_index) const
+const SomaticReportGermlineVariantConfiguration& SomaticReportConfiguration::variantConfigGermline(int variant_index) const
 {
 	for(const auto& conf : germ_variant_config_)
 	{

@@ -27,6 +27,8 @@ struct SomaticReportSettings
 	static VariantList filterVariants(const VariantList& snvs, const SomaticReportSettings& sett);
 	///returns cnv list according excluded cnvs from somatic report_config settings
 	static CnvList filterCnvs(const CnvList& cnvs, const SomaticReportSettings& sett);
+	///returns list containing germline variants.
+	static VariantList filterGermlineVariants(const VariantList& germl_snvs, const SomaticReportSettings& sett);
 };
 
 #endif // SOMATICREPORTSETTINGS_H

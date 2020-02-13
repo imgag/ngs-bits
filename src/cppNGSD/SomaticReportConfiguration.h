@@ -34,6 +34,7 @@ struct CPPNGSDSHARED_EXPORT SomaticReportGermlineVariantConfiguration
 	SomaticReportGermlineVariantConfiguration();
 
 	int variant_index = -1;
+	double tum_freq = std::numeric_limits<double>::quiet_NaN(); //allele frequency of variant in tumor sample
 };
 
 class CPPNGSDSHARED_EXPORT SomaticReportConfiguration
@@ -50,7 +51,7 @@ public:
 
 	const QList<SomaticReportGermlineVariantConfiguration>& variantConfigGermline() const;
 	///Returns variant configuration for (germline!) variant_index (index referes to index of germline variant list!)
-	const SomaticReportGermlineVariantConfiguration variantConfigGermline(int variant_index) const;
+	const SomaticReportGermlineVariantConfiguration& variantConfigGermline(int variant_index) const;
 
 	QList<int> variantIndices(VariantType type, bool only_selected) const;
 

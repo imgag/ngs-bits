@@ -106,7 +106,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QDialogButtonBox" name="buttonBox">
+       <widget class="QDialogButtonBox" name="ok_cancel_button">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -181,7 +181,7 @@
     </widget>
    </item>
    <item row="1" column="0">
-    <widget class="QTabWidget" name="tabWidget">
+    <widget class="QTabWidget" name="tabs">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
        <horstretch>0</horstretch>
@@ -581,6 +581,11 @@
          </column>
          <column>
           <property name="text">
+           <string>freq_in_tum</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
            <string>class</string>
           </property>
          </column>
@@ -600,7 +605,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>ok_cancel_button</sender>
    <signal>accepted()</signal>
    <receiver>SomaticReportDialog</receiver>
    <slot>accept()</slot>
@@ -616,7 +621,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>buttonBox</sender>
+   <sender>ok_cancel_button</sender>
    <signal>rejected()</signal>
    <receiver>SomaticReportDialog</receiver>
    <slot>reject()</slot>

@@ -3615,7 +3615,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 	{
 		SqlQuery query_germl_var = getQuery();
 
-		query_germl_var.prepare("INSERT INTO `somatic_report_configuration_germl_var` (`somatic_report_configuration_id`, `variant_id`) VALUES (:0, :1)");
+		query_germl_var.prepare("INSERT INTO `somatic_report_configuration_germl_var` (`somatic_report_configuration_id`, `variant_id`, `tum_freq`) VALUES (:0, :1, :2)");
 
 		for(const auto& var_conf : config.variantConfigGermline())
 		{
@@ -3635,6 +3635,10 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 			query_germl_var.bindValue(0, id);
 			query_germl_var.bindValue(1, variant_id);
+
+
+			if(!std::isnan(var_conf.tum_freq)) query_germl_var.bindValue(2, var_conf.tum_freq);
+			else query_germl_var.bindValue(2, QVariant(QVariant::Double) );
 
 			query_germl_var.exec();
 		}
@@ -3776,6 +3780,10 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 		{
 			messages << "Could not find germline variant '" + var.toString() + "' in given variant list!";
 		}
+
+		if(!query.value("tum_freq").isNull()) var_conf.tum_freq = query.value("tum_freq").toDouble();
+		else var_conf.tum_freq = std::numeric_limits<double>::quiet_NaN();
+
 		output.setGermline(var_conf);
 	}
 
