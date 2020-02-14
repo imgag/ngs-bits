@@ -26,6 +26,7 @@ public:
 		addString("system", "Processing system name filter (short name).", true, "");
 		addString("run", "Sequencing run name filter.", true, "");
 		addFlag("run_finished", "Only show samples where the analysis of the run is finished.");
+		addString("run_device", "Sequencing run device name filter.", true, "");
 		addFlag("no_bad_runs", "If set, sequencing runs with 'bad' quality are excluded.");
 		addFlag("add_qc", "If set, QC columns are added to output.");
 		addFlag("add_outcome", "If set, diagnostic outcome columns are added to output.");
@@ -59,6 +60,7 @@ public:
 		params.r_name = getString("run");
 		params.include_bad_quality_runs = !getFlag("no_bad_runs");
 		params.run_finished = getFlag("run_finished");
+		params.r_device_name = getString("run_device");
 		params.add_qc = getFlag("add_qc");
 		params.add_outcome = getFlag("add_outcome");
 		params.add_disease_details = getFlag("add_disease_details");
@@ -93,6 +95,16 @@ public:
 			if (tmp.isNull())
 			{
 				THROW(DatabaseException, "Invalid sequencing run name '"+params.r_name+".\nValid names are: " + db.getValues("SELECT name FROM sequencing_run ORDER BY name ASC").join(", "));
+			}
+		}
+
+		if (params.r_device_name!="")
+		{
+			//check that name is valid
+			QVariant tmp = db.getValue("SELECT id FROM device WHERE name=:0", true, params.r_device_name);
+			if (tmp.isNull())
+			{
+				THROW(DatabaseException, "Invalid sequencing run device name '"+params.r_device_name+".\nValid names are: " + db.getValues("SELECT name FROM device ORDER BY name ASC").join(", "));
 			}
 		}
 

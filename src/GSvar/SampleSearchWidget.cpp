@@ -44,6 +44,7 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	ui_.sys_type->addItems(db_.getEnum("processing_system", "type"));
 	//run
 	ui_.r_name->fill(db_.createTable("sequencing_run", "SELECT id, name FROM sequencing_run"), true);
+	ui_.r_device_name->fill(db_.createTable("device", "SELECT id, name FROM device"), true);
 
 	//signals/slots
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
@@ -78,6 +79,7 @@ void SampleSearchWidget::search()
 	params.r_name = ui_.r_name->text();
 	params.include_bad_quality_runs = ui_.r_bad_quality->isChecked();
 	params.run_finished = ui_.r_analysis_finished->isChecked();
+	params.r_device_name = ui_.r_device_name->text();
 
 	params.add_outcome = ui_.add_outcome->isChecked();
 	params.add_disease_details = ui_.add_disease_details->isChecked();

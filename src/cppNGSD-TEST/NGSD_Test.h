@@ -720,6 +720,7 @@ private slots:
 		params.sys_name = "hpHBOCv5";
 		params.sys_type = "Panel Haloplex";
 		params.r_name = "#00372";
+		params.r_device_name = "Neo";
 		params.include_bad_quality_runs = false;
 		params.run_finished = true;
 		ps_table = db.processedSampleSearch(params);

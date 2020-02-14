@@ -405,7 +405,7 @@ public:
 		out << "Class B: >=0.5 Mb and <1.5 Mb" << endl;
 		out << "Class B ROH count: " << count_b << endl;
 		out << "Class B ROH size sum: " << QString::number(sum_b/1000000.0 ,'f', 2) << "Mb" << endl;
-		out << "Class A: >=1.5 Mb" << endl;
+		out << "Class C: >=1.5 Mb" << endl;
 		out << "Class C ROH count: " << count_c << endl;
 		out << "Class C ROH size sum: " << QString::number(sum_c/1000000.0 ,'f', 2) << "Mb" << endl;
 		out << endl;
