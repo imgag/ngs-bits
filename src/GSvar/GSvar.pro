@@ -74,7 +74,8 @@ SOURCES += main.cpp\
     SequencingRunOverview.cpp \
     MidCheckWidget.cpp \
     CnvSearchWidget.cpp \
-    VariantValidationWidget.cpp
+    VariantValidationWidget.cpp \
+    GeneOmimInfoWidget.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -143,7 +144,8 @@ HEADERS  += MainWindow.h \
     SequencingRunOverview.h \
     MidCheckWidget.h \
     CnvSearchWidget.h \
-    VariantValidationWidget.h
+    VariantValidationWidget.h \
+    GeneOmimInfoWidget.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
@@ -199,7 +201,8 @@ FORMS    += MainWindow.ui \
     SequencingRunOverview.ui \
     MidCheckWidget.ui \
     CnvSearchWidget.ui \
-    VariantValidationWidget.ui
+    VariantValidationWidget.ui \
+    GeneOmimInfoWidget.ui
 
 include("../app_gui.pri")
 
