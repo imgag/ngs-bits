@@ -103,7 +103,7 @@
        </property>
        <property name="icon">
         <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/AddTemporary.png</normaloff>:/Icons/AddTemporary.png</iconset>
+         <normaloff>:/Icons/Add_batch.png</normaloff>:/Icons/Add_batch.png</iconset>
        </property>
       </widget>
      </item>

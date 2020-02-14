@@ -22,7 +22,7 @@ public:
 	bool isOpen() const;
 
 	///Returns all tables in the database
-	QStringList tables();
+	QStringList tables() const;
 
 	///Returns the number of entries with the given sample name
 	bool entriesExistForSample(QString sample_name);

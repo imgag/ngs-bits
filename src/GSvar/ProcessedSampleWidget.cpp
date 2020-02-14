@@ -98,11 +98,11 @@ void ProcessedSampleWidget::updateGUI()
 	styleQualityLabel(ui_->quality, ps_data.quality);
 	ui_->name->setText(ps_data.name);
 	ui_->comments_processed_sample->setText(ps_data.comments);
-	QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer='" + ps_data.processing_system + "'").toString();
+	QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_data.processing_system).toString();
 	ui_->system->setText("<a href=\"" + name_short + "\">"+ps_data.processing_system+"</a>");
 	ui_->project->setText("<a href=\"" + ps_data.project_name + "\">"+ps_data.project_name+"</a>");
 	QString run = ps_data.run_name;
-	QString run_quality = db.getValue("SELECT quality FROM sequencing_run WHERE name='" + run + "'").toString();
+	QString run_quality = db.getValue("SELECT quality FROM sequencing_run WHERE name=:0", true, run).toString();
 	styleQualityLabel(ui_->r_quality, run_quality);
 	ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");
 	ui_->merged->setText(mergedSamples());

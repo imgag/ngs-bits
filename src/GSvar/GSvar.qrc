@@ -93,5 +93,6 @@
         <file>Icons/email.png</file>
         <file>Icons/NGSD_run_overview.png</file>
         <file>Icons/mid_clash.png</file>
+        <file>Icons/Add_batch.png</file>
     </qresource>
 </RCC>

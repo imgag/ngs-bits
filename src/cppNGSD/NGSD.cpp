@@ -205,6 +205,12 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "r.status='analysis_finished'";
 	}
+	if (p.r_device_name.trimmed()!="")
+	{
+		tables << "device d";
+		conditions << "d.id=r.device_id"
+				   << "d.name LIKE '%" + escapeForSql(p.r_device_name) + "%'";
+	}
 
 	//add outcome
 	if (p.add_outcome)

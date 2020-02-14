@@ -58,6 +58,16 @@ void CnvSearchWidget::search()
 			query_str += " AND chr='" + chr.strNormalized(true) + "' AND start<=" + QString::number(start) + " AND end>=" + QString::number(end);
 		}
 		else THROW(ProgrammingException, "Invalid operation: " + operation);
+		if (ui_.cn_0->isChecked() || ui_.cn_1->isChecked() || ui_.cn_2->isChecked() || ui_.cn_3->isChecked() || ui_.cn_4_plus->isChecked())
+		{
+			QStringList tmp;
+			if (ui_.cn_0->isChecked()) tmp << "c.cn=0";
+			if (ui_.cn_1->isChecked()) tmp << "c.cn=1";
+			if (ui_.cn_2->isChecked()) tmp << "c.cn=2";
+			if (ui_.cn_3->isChecked()) tmp << "c.cn=3";
+			if (ui_.cn_4_plus->isChecked()) tmp << "c.cn>=4";
+			query_str += " AND (" + tmp.join(" OR ") + ")";
+		}
 		if (ui_.q_ps_good->isChecked() || ui_.q_ps_medium->isChecked() || ui_.q_ps_bad->isChecked() || ui_.q_ps_na->isChecked())
 		{
 			QStringList tmp;
