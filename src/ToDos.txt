@@ -18,12 +18,10 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-#### Run overview: Add column '#samples'
-#### OMIM import: handle escaped symbol: %3D
-#### quality column> icon before name (ps search, run overview, sample admin)
+#### Run overview: Add column '# samples'
+#### Run tab: add column '% reads'
+#### quality column> icon before name (ps search - sample and run, run overview, sample admin, samples on run tab)
 #### Popup notification for segregations - every time a new case is loaded
-#### CNV filter: filter by CN 0,1,2,3,4+
-#### Sample search: add device
 *** gene selector: add support for CnvHunter (needs low-quality regions (also CNV to track name) > update ClinCNV first > update docu)
 *** XML report: add OMIM gene / phenotype disease info
 ** Sample search: add option option "export all infos"
