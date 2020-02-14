@@ -36,9 +36,24 @@ void SequencingRunOverview::updateTable()
 	NGSD db;
 	DBTable table = db.createOverviewTable("sequencing_run", ui_.text_filter->text(), "name DESC");
 
+	//add sample count column (before status)
+	QHash<QString, QString> counts;
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT r.id, COUNT(ps.id) FROM processed_sample ps, sequencing_run r WHERE ps.sequencing_run_id=r.id GROUP BY r.id");
+	while(query.next())
+	{
+		counts[query.value(0).toString()] = query.value(1).toString();
+	}
+	QStringList column;
+	for (int r=0; r<table.rowCount(); ++r)
+	{
+		column << counts.value(table.row(r).id());
+	}
+	table.insertColumn(table.columnIndex("status"), column, "sample count");
+
 	//mark runs where there is something to do with '...'
 	int status_col = table.columnIndex("status");
-	QStringList column = table.extractColumn(status_col);
+	column = table.extractColumn(status_col);
 	for (int i=0; i<column.count(); ++i)
 	{
 		if (column[i]=="run_started" || column[i]=="run_finished" ||column[i]=="demultiplexing_started" ||column[i]=="analysis_started")

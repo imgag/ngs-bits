@@ -18,7 +18,6 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-#### Run overview: Add column '# samples'
 #### Run tab: add column '% reads'
 #### quality column> icon before name (ps search - sample and run, run overview, sample admin, samples on run tab)
 #### Popup notification for segregations - every time a new case is loaded

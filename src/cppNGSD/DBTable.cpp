@@ -63,6 +63,24 @@ int DBTable::columnIndex(const QString& name) const
 	return output[0];
 }
 
+void DBTable::insertColumn(int i, const QStringList& values, const QString& header)
+{
+	//check
+	if (values.count()!=rowCount())
+	{
+		THROW(ArgumentException, "Invalid value count '" + QString::number(values.count()) + "' in DB table for '" + table_name_ + "'. Expected " + QString::number(rowCount()) + "!");
+	}
+
+	//header
+	headers_.insert(i, header);
+
+	//content
+	for (int r=0; r<rowCount(); ++r)
+	{
+		rows_[r].insertValue(i, values[r]);
+	}
+}
+
 int DBTable::addColumn(const QStringList& values, const QString& header)
 {
 	//check
@@ -92,6 +110,7 @@ QStringList DBTable::takeColumn(int c)
 
 	//content
 	QStringList output;
+	output.reserve(rowCount());
 	for (int r=0; r<rows_.count(); ++r)
 	{
 		DBRow current_row = row(r);
@@ -132,6 +151,7 @@ QStringList DBTable::extractColumn(int c) const
 
 	//content
 	QStringList output;
+	output.reserve(rowCount());
 	for (int r=0; r<rowCount(); ++r)
 	{
 		output << rows_[r].value(c);
@@ -180,6 +200,7 @@ void DBRow::setValue(int i, const QString& value)
 
 	values_[i] = value;
 }
+
 
 void DBRow::removeValue(int i)
 {

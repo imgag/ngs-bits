@@ -7,22 +7,14 @@ ClassificationDialog::ClassificationDialog(QWidget* parent, const Variant& varia
 {
 	ui_.setupUi(this);
 	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(classificationChanged()));
+	if (is_somatic)
+	{
+		setWindowTitle("Variant classification (somatic)");
+	}
 
-
+	//set status options
 	NGSD db;
-
-	QStringList status;
-
-	if(is_somatic)
-	{
-		status = db.getEnum("somatic_variant_classification", "class");
-	}
-	else
-	{
-		status = db.getEnum("variant_classification", "class");
-
-	}
-
+	QStringList status = db.getEnum(is_somatic ? "somatic_variant_classification" : "variant_classification", "class");
 	foreach(QString s, status)
 	{
 		ui_.classification->addItem(s);
@@ -44,7 +36,6 @@ ClassificationDialog::ClassificationDialog(QWidget* parent, const Variant& varia
 		ui_.classification->setCurrentText(class_info.classification);
 		ui_.comment->setPlainText(class_info.comments);
 	}
-
 }
 
 ClassificationInfo ClassificationDialog::classificationInfo() const
