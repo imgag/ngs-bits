@@ -171,10 +171,11 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 				ui_.germline_variants->item(i,j)->setFlags(ui_.germline_variants->item(i,j)->flags() & ~Qt::ItemIsEditable);
 			}
 		}
+		if(ui_.germline_variants->rowCount() == 0) ui_.tabs->setTabEnabled(1, false);
 	}
 	else
 	{
-		ui_.germline_variants->setEnabled(false);
+		ui_.tabs->setTabEnabled(1, false);
 	}
 
 	updateGUI();
@@ -306,7 +307,7 @@ void SomaticReportDialog::writeBackSettings()
 
 			try
 			{
-				var_conf.tum_freq = Helper::toDouble(ui_.germline_variants->item( i,6 )->text());
+				var_conf.tum_freq = Helper::toDouble(ui_.germline_variants->item( i, 6 )->text());
 			}
 			catch(ArgumentException)
 			{

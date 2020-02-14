@@ -309,9 +309,6 @@ public:
 	///Parses CGI driver statement into German language
 	static QByteArray CgiDriverDescription(QByteArray raw_cgi_input);
 
-	///Returns CNV size description, e.g. "fokal" or "Cluster", in German language
-	static QByteArray CnvSizeDescription(QByteArray orig_entry);
-
 	///Returns CNV type, e.g. DEL (het) according copy number
 	static QByteArray CnvTypeDescription(int tumor_cn);
 
@@ -349,8 +346,6 @@ private:
 	///Creates table containing alterations relevant in pharmacogenomics (from normal sample)
 	RtfTable pharamacogeneticsTable();
 
-	RtfTable germlineAlterationTable(const VariantList& somatic_snvs);
-
 	///Returns text for fusions, appears multiple times in report
 	RtfParagraph fusionsText()
 	{
@@ -366,6 +361,24 @@ private:
 
 	QString trans(const QString& text) const;
 
+	QByteArray trans(QByteArray text) const
+	{
+		return trans( QString(text) ).toUtf8();
+	}
+
+	///returns description of germline variant
+	QByteArray germlVarDesc(QByteArray desc, QByteArray som_class = "")
+	{
+		QByteArray out;
+
+		if(desc.contains("het")) out =  "heterozygot im Normalgewebe";
+		else if(desc.contains("hom")) out =  "homozygot im Normalgewebe";
+		else out = "nachgewiesen im Normalgewebe";
+
+		if(som_class != "") out += " (Klasse " + som_class + ")";
+		return out;
+	}
+
 
 	RtfTableRow tumorContent();
 
@@ -377,13 +390,8 @@ private:
 	///target region
 	QString target_region_ = "";
 
-	///Germline filenames;
-	QString germline_snv_filename_;
-
 	///path to CGI drug annotation file
 	QString cgi_drugs_path_;
-	///path to germline SNV file
-	QDir germline_snv_path_;
 
 	///path to MANTIS file (microsatellite instabilities)
 	QString mantis_msi_path_;
@@ -434,11 +442,8 @@ private:
 	double mutation_burden_;
 
 	///indices for somatic variant file
-	int snv_index_cgi_driver_statement_;
-	int snv_index_cgi_gene_role_;
-	int snv_index_cgi_transcript_;
+	int snv_index_som_class_;
 	int snv_index_coding_splicing_;
-	int snv_index_cgi_gene_;
 
 	///indices for somatic CNV file
 	int cnv_index_cn_change_;

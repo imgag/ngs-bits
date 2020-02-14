@@ -2318,11 +2318,9 @@ void MainWindow::generateReportSomaticRTF()
 			//check CGI columns are present
 			if(!SomaticReportHelper::checkRequiredSNVAnnotations(variants_))
 			{
-				QMessageBox::warning(this,"Somatic report", "DNA report cannot be created because GSVar-file does not contain CGI-data.");
+				QMessageBox::warning(this,"Somatic report", "DNA report cannot be created because GSVar-file does not contain NCG or somatic classification annotation columns.");
 				return;
 			}
-
-			//SomaticReportHelper report(filename_, cnvs_, ui_.filters->filters(),ui_.filters->targetRegion());
 
 			SomaticReportHelper report(variants_, cnvs_, somatic_control_tissue_variants_, somatic_report_settings_);
 
