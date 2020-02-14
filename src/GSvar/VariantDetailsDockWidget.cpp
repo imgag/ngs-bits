@@ -43,14 +43,6 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 		label->setWordWrap(true);
 	}
 
-	//set up NGSD edit button
-	QMenu* menu = new QMenu();
-	menu->addAction("Edit classification", this, SLOT(editClassification()));
-	menu->addAction("Edit classification (somatic)", this, SLOT(editSomaticClassification()));
-	menu->addAction("Edit validation", this, SLOT(editValidation()));
-	menu->addAction("Edit comment", this, SLOT(editComment()));
-	ui->ngsd_edit->setMenu(menu);
-
 	//reset
 	clear();
 }
@@ -198,7 +190,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->ngsd_validation, vl, index, "validation");
 
 	//update NGSD button (and actions depending on AF)
-	ui->ngsd_edit->setEnabled(Settings::boolean("NGSD_enabled", true));
 	ui->var_btn->setEnabled(Settings::boolean("NGSD_enabled", true));
 }
 
@@ -223,7 +214,6 @@ void VariantDetailsDockWidget::clear()
 	ui->trans_next->setEnabled(false);
 
 	//edit button
-	ui->ngsd_edit->setEnabled(false);
 	ui->var_btn->setEnabled(false);
 }
 
@@ -739,26 +729,6 @@ void VariantDetailsDockWidget::gnomadClicked(QString link)
 		url =  chr.strNormalized(false) + "-" + start + "-" + ref + "-" + obs;
 	}
 	QDesktopServices::openUrl(QUrl("http://gnomad.broadinstitute.org/variant/" + url));
-}
-
-void VariantDetailsDockWidget::editClassification()
-{
-	emit editVariantClassification();
-}
-
-void VariantDetailsDockWidget::editSomaticClassification()
-{
-	emit editSomaticVariantClassification();
-}
-
-void VariantDetailsDockWidget::editValidation()
-{
-	emit editVariantValidation();
-}
-
-void VariantDetailsDockWidget::editComment()
-{
-	emit editVariantComment();
 }
 
 void VariantDetailsDockWidget::openVariantTab()

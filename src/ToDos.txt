@@ -10,7 +10,6 @@ NGSD:
     - make page where TA can select gaps (by gene/DX number)
         - also allow copying multiple gaps into clipboard (as table and for primer gap)
         - add link for PrimerDesign tool
-*** Add open jobs list > Email an: Alex, Esma, Sonja, Ines, Elisabeth
 - Sample tab: allow import disease info, disease group/status, gender from same samples
 - Sample: allow several disease_groups per sample (requested by CS)
 - add multi-sample report-config
@@ -19,6 +18,12 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+#### Run overview: Add column '#samples'
+#### OMIM import: handle escaped symbol: %3D
+#### quality column> icon before name (ps search, run overview, sample admin)
+#### Popup notification for segregations - every time a new case is loaded
+#### CNV filter: filter by CN 0,1,2,3,4+
+#### Sample search: add device
 *** gene selector: add support for CnvHunter (needs low-quality regions (also CNV to track name) > update ClinCNV first > update docu)
 *** XML report: add OMIM gene / phenotype disease info
 ** Sample search: add option option "export all infos"
@@ -26,7 +31,6 @@ GSvar:
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
 - add coloring of quality columns in DB tables (e.g. in run tab)
-- replace GeneInfoOMIM webservice by new tab in GSvar (after removing Patientennetz)
 ** allow creating somatic report and XML-export for tumor-only (after tumor-normal is done)
 
 Tools:

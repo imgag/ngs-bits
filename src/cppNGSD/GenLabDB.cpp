@@ -51,7 +51,7 @@ bool GenLabDB::isOpen() const
 	return QSqlQuery(*db_).exec("SELECT 1");
 }
 
-QStringList GenLabDB::tables()
+QStringList GenLabDB::tables() const
 {
 	QStringList output;
 

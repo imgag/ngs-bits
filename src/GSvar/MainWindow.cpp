@@ -86,6 +86,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "MidCheckWidget.h"
 #include "CnvSearchWidget.h"
 #include "VariantValidationWidget.h"
+#include "GeneOmimInfoWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -109,10 +110,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.splitter_2->setStretchFactor(0, 10);
 	ui_.splitter_2->setStretchFactor(1, 1);
 	connect(ui_.variant_details, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
-	connect(ui_.variant_details, SIGNAL(editVariantClassification()), this, SLOT(editVariantClassificationOfSelectedVariant()));
-	connect(ui_.variant_details, SIGNAL(editSomaticVariantClassification()), this, SLOT(editSomaticVariantClassificationOfSelectedVariant()));
-	connect(ui_.variant_details, SIGNAL(editVariantValidation()), this, SLOT(editVariantValidation()));
-	connect(ui_.variant_details, SIGNAL(editVariantComment()), this, SLOT(editVariantComment()));
 	connect(ui_.variant_details, SIGNAL(openCurrentVariantTab()), this, SLOT(openCurrentVariantTab()));
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled"));
@@ -393,8 +390,14 @@ void MainWindow::on_actionGeneSelector_triggered()
 void MainWindow::on_actionGeneVariantInfo_triggered()
 {
 	CandidateGeneDialog dlg(this);
-
 	dlg.exec();
+}
+
+void MainWindow::on_actionGeneOmimInfo_triggered()
+{
+	GeneOmimInfoWidget* widget = new GeneOmimInfoWidget(this);
+	auto dlg = GUIHelper::createDialog(widget, "OMIM information for genes");
+	dlg->exec();
 }
 
 void MainWindow::openVariantListFolder()
@@ -402,7 +405,6 @@ void MainWindow::openVariantListFolder()
 	if (filename_=="") return;
 
 	QDesktopServices::openUrl(QFileInfo(filename_).absolutePath());
-
 }
 
 void MainWindow::on_actionPublishVariantInLOVD_triggered()
@@ -715,29 +717,9 @@ void MainWindow::openInIGV(QString region)
 	executeIGVCommands(QStringList() << "goto " + region);
 }
 
-void MainWindow::editVariantClassificationOfSelectedVariant()
+void MainWindow::editVariantValidation(int index)
 {
-	int index = ui_.vars->selectedVariantIndex();
-	if (index==-1) return;
-
-	editVariantClassification(variants_, index);
-}
-
-void MainWindow::editSomaticVariantClassificationOfSelectedVariant()
-{
-	int index = ui_.vars->selectedVariantIndex();
-	if (index==-1) return;
-
-	editVariantClassification(variants_, index, true);
-}
-
-
-void MainWindow::editVariantValidation()
-{
-	int var_curr = ui_.vars->selectedVariantIndex();
-	if (var_curr==-1) return;
-
-	Variant& variant = variants_[var_curr];
+	Variant& variant = variants_[index];
 
 	try
 	{
@@ -747,7 +729,7 @@ void MainWindow::editVariantValidation()
 		QString variant_id = db.variantId(variant, false);
 		if (variant_id=="")
 		{
-			variant_id = db.addVariant(variants_[var_curr], variants_);
+			variant_id = db.addVariant(variant, variants_);
 		}
 
 		//get sample ID
@@ -782,7 +764,7 @@ void MainWindow::editVariantValidation()
 			variant.annotations()[i_validation] = status;
 
 			//update details widget and filtering
-			ui_.variant_details->updateVariant(variants_, var_curr);
+			ui_.variant_details->updateVariant(variants_, index);
 			refreshVariantTable();
 		}
 	}
@@ -793,13 +775,9 @@ void MainWindow::editVariantValidation()
 	}
 }
 
-void MainWindow::editVariantComment()
+void MainWindow::editVariantComment(int index)
 {
-	int var_index = ui_.vars->selectedVariantIndex();
-	int var_row = ui_.vars->selectedVariantIndex(true);
-	if (var_index==-1 || var_row==-1) return;
-
-	Variant& variant = variants_[var_index];
+	Variant& variant = variants_[index];
 
 	try
 	{
@@ -807,7 +785,7 @@ void MainWindow::editVariantComment()
 		NGSD db;
 		if (db.variantId(variant, false)=="")
 		{
-			db.addVariant(variants_[var_index], variants_);
+			db.addVariant(variant, variants_);
 		}
 
 		bool ok = true;
@@ -3451,12 +3429,25 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	//create context menu
 	QMenu menu(ui_.vars);
 
-	//report configuration
-	menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration")->setEnabled(ngsd_enabled_);
-	menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration")->setEnabled(ngsd_enabled_ && report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
+	//NGSD report configuration
+	QAction* a_report_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
+	a_report_edit->setEnabled(ngsd_enabled_);
+	QAction* a_report_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
+	a_report_del->setEnabled(ngsd_enabled_ && report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
 	menu.addSeparator();
 
-	//gene info
+	//NGSD variant options
+	QAction* a_var_class = menu.addAction("Edit classification");
+	a_var_class->setEnabled(ngsd_enabled_);
+	QAction* a_var_class_somatic = menu.addAction("Edit classification  (somatic)");
+	a_var_class_somatic->setEnabled(ngsd_enabled_);
+	QAction* a_var_comment = menu.addAction("Edit comment");
+	a_var_comment->setEnabled(ngsd_enabled_);
+	QAction* a_var_val = menu.addAction("Perform variant validation");
+	a_var_val->setEnabled(ngsd_enabled_);
+	menu.addSeparator();
+
+	//NGSD gene info
 	QMenu* sub_menu = nullptr;
 	if (!genes.isEmpty())
 	{
@@ -3506,10 +3497,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		}
 	}
 
-	//PrimerDesign
-	QAction* action = menu.addAction(QIcon("://Icons/WebService.png"), "PrimerDesign");
-	action->setEnabled(Settings::string("PrimerDesign")!="");
-
 	//Alamut
 	if (Settings::string("Alamut")!="")
 	{
@@ -3553,20 +3540,18 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	}
 
 	//UCSC
-	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
-	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser (override tracks)");
+	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
+	QAction* a_ucsc_override = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser (override tracks)");
 
 	//LOVD upload
 	sub_menu = menu.addMenu(QIcon("://Icons/LOVD.png"), "LOVD");
-	sub_menu->addAction("Find in LOVD");
-	action = sub_menu->addAction("Publish in LOVD");
-	action->setEnabled(ngsd_enabled_);
+	QAction* a_lovd_find = sub_menu->addAction("Find in LOVD");
+	QAction* a_lovd_pub = sub_menu->addAction("Publish in LOVD");
+	a_lovd_pub->setEnabled(ngsd_enabled_);
 
 	//MitoMap
-	if (variant.chr().isM())
-	{
-		menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
-	}
+	QAction* a_mitomap = menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
+	a_mitomap->setEnabled(variant.chr().isM());
 
 	//SysID
 	sub_menu = menu.addMenu(QIcon(":/Icons/SysID.png"), "SysID");
@@ -3576,7 +3561,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	}
 
 	//varsome
-	menu.addAction(QIcon("://Icons/VarSome.png"), "VarSome");
+	QAction* a_varsome =  menu.addAction(QIcon("://Icons/VarSome.png"), "VarSome");
 
 	//ClinGen
 	sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinGen");
@@ -3586,43 +3571,47 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	}
 
 	//Execute menu
-	action = menu.exec(pos);
+	QAction* action = menu.exec(pos);
 	if (!action) return;
-	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
+
 
 	QByteArray text = action->text().toLatin1();
+	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 
-	if (text=="PrimerDesign")
+	if (action==a_var_class)
 	{
-		try
-		{
-			QString url = Settings::string("PrimerDesign")+"/index.php?user="+Helper::userName()+"&sample="+sampleName()+"&chr="+variant.chr().str()+"&start="+QString::number(variant.start())+"&end="+QString::number(variant.end())+"";
-			QDesktopServices::openUrl(QUrl(url));
-		}
-		catch (Exception& e)
-		{
-			GUIHelper::showMessage("NGSD error", "Error while processing'"  + filename_ + "'!\nError message: " + e.message());
-			return;
-		}
+		editVariantClassification(variants_, index);
 	}
-	else if (text=="Open in UCSC browser")
+	else if (action==a_var_class_somatic)
+	{
+		editVariantClassification(variants_, index, true);
+	}
+	else if (action==a_var_comment)
+	{
+		editVariantComment(index);
+	}
+	else if (action==a_var_val)
+	{
+		editVariantValidation(index);
+	}
+	else if (action==a_ucsc)
 	{
 		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
 	}
-	else if (text=="Open in UCSC browser (override tracks)")
+	else if (action==a_ucsc_override)
 	{
 		//TODO > ask Rebecca
 		QMessageBox::warning(this, "Not implemented", "This feature is not yet implemented");
 	}
-	else if (text=="Find in LOVD")
+	else if (action==a_lovd_find)
 	{
 		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false)+"&search_VariantOnGenome/DNA=g." + QString::number(variant.start())));
 	}
-	else if (text=="Open in MitoMap")
+	else if (action==a_mitomap)
 	{
 		QDesktopServices::openUrl(QUrl("https://www.mitomap.org/cgi-bin/search_allele?starting="+QString::number(variant.start())+"&ending="+QString::number(variant.end())));
 	}
-	else if (text=="Publish in LOVD")
+	else if (action==a_lovd_pub)
 	{
 		try
 		{
@@ -3719,7 +3708,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	{
 		QDesktopServices::openUrl(QUrl("https://sysid.cmbi.umcn.nl/search?search=" + text));
 	}
-	else if (text=="VarSome")
+	else if (action==a_varsome)
 	{
 		QString ref = variant.ref();
 		ref.replace("-", "");
@@ -3729,11 +3718,11 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		QString genome = variant.chr().isM() ? "hg38" : "hg19";
 		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/" + genome + "/" + var));
 	}
-	else if (text=="Add/edit report configuration")
+	else if (action==a_report_edit)
 	{
 		editVariantReportConfiguration(index);
 	}
-	else if (text=="Delete report configuration")
+	else if (action==a_report_del)
 	{
 		report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
 		storeReportConfig();
@@ -3743,25 +3732,20 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	{
 		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=" + text));
 	}
-	else if (text=="ClinGen")
-	{
-		QDesktopServices::openUrl(QUrl("Gene Symbol=" + text));
-	}
 }
 
 void MainWindow::contextMenuTwoVariants(QPoint pos, int index1, int index2)
 {
 	//create context menu
 	QMenu menu(ui_.vars);
-	menu.addAction(QIcon("://Icons/LOVD.png"), "Publish in LOVD (comp-het)");
+	QAction* a_lovd = menu.addAction(QIcon("://Icons/LOVD.png"), "Publish in LOVD (comp-het)");
 
 	//execute
 	QAction* action = menu.exec(pos);
 	if (!action) return;
 
 	//react
-	QByteArray text = action->text().toLatin1();
-	if (text=="Publish in LOVD (comp-het)")
+	if (action==a_lovd)
 	{
 		try
 		{

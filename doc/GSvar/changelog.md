@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2019_11-115 (13.02.20)
+- NGSD: Added variant validation dialog.
+
 ### 2019_11-113 (11.02.20)
 - NGSD: Added batch import: MIDs, samples, processed samples.
 - NGSD: Added MID clash detection.

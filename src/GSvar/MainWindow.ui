@@ -412,6 +412,7 @@
       <string>Genes</string>
      </property>
      <addaction name="actionGeneVariantInfo"/>
+     <addaction name="actionGeneOmimInfo"/>
      <addaction name="actionConvertHgnc"/>
      <addaction name="actionGenesToRegions"/>
      <addaction name="separator"/>
@@ -448,6 +449,10 @@
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
       <string>Batch import</string>
+     </property>
+     <property name="icon">
+      <iconset resource="GSvar.qrc">
+       <normaloff>:/Icons/Add_batch.png</normaloff>:/Icons/Add_batch.png</iconset>
      </property>
      <addaction name="actionImportMids"/>
      <addaction name="actionImportSamples"/>
@@ -1020,6 +1025,11 @@
   <action name="actionSample">
    <property name="text">
     <string>Sample</string>
+   </property>
+  </action>
+  <action name="actionGeneOmimInfo">
+   <property name="text">
+    <string>Gene OMIM info</string>
    </property>
   </action>
  </widget>

@@ -171,6 +171,8 @@ public slots:
 	void on_actionGeneSelector_triggered();
 	///Open gene variant info check dialog.
 	void on_actionGeneVariantInfo_triggered();
+	///Open gene OMIM info dialog.
+	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
 	void openVariantListFolder();
 	///Upload variant that is not part of the variant list to LOVD.
@@ -231,15 +233,11 @@ public slots:
 	void variantHeaderDoubleClicked(int row);
 	///Open region in IGV
 	void openInIGV(QString region);
-	///Edit classification of current variant
-	void editVariantClassificationOfSelectedVariant();
-	///Edit somatic classification of current variant
-	void editSomaticVariantClassificationOfSelectedVariant();
 
 	///Edit validation status of current variant
-	void editVariantValidation();
+	void editVariantValidation(int index);
 	///Edit comment of current variant
-	void editVariantComment();
+	void editVariantComment(int index);
 	///Show allele frequency histogram
 	void showAfHistogram();
 	///Show encryption helper

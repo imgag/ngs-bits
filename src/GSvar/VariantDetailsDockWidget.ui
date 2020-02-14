@@ -1146,16 +1146,6 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="ngsd_edit">
-              <property name="toolTip">
-               <string>Enabled only for variants in the NGSD, i.e. AF&lt;5%</string>
-              </property>
-              <property name="text">
-               <string>NGSD</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <spacer name="horizontalSpacer">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
