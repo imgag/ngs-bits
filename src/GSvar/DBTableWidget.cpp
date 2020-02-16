@@ -71,6 +71,44 @@ int DBTableWidget::columnIndex(const QString& column_header) const
 	THROW(ArgumentException, "Could not find column with header '" + column_header + "'");
 }
 
+void DBTableWidget::setQualityIcons(const QString& column_header, const QStringList& quality_values)
+{
+	if (quality_values.count()!=rowCount())
+	{
+		THROW(ArgumentException, "Invalid quality value count '" + QString::number(quality_values.count()) + "' in DBTableWidget::setQualityIcons - expected '" + QString::number(rowCount()) + "'!");
+	}
+
+	int c = columnIndex(column_header);
+	for(int r=0; r<rowCount(); ++r)
+	{
+		QTableWidgetItem* table_item = item(r, c);
+		if (table_item==nullptr) continue;
+
+		if (quality_values[r]=="good")
+		{
+			table_item->setIcon(QIcon(":/Icons/quality_good.png"));
+		}
+		else if (quality_values[r]=="medium")
+		{
+			table_item->setIcon(QIcon(":/Icons/quality_medium.png"));
+		}
+		else if (quality_values[r]=="bad")
+		{
+			table_item->setIcon(QIcon(":/Icons/quality_bad.png"));
+		}
+		else if (quality_values[r]=="n/a")
+		{
+			table_item->setIcon(QIcon(":/Icons/quality_unset.png"));
+		}
+		else
+		{
+			THROW(ArgumentException, "Invalid quality value '" + quality_values[r] + "' in DBTableWidget::setQualityIcons!");
+		}
+	}
+
+	setColumnWidth(c, columnWidth(c) + 25);
+}
+
 void DBTableWidget::setColumnTooltips(const QString& column_header, const QStringList& tooltips)
 {
 	if (tooltips.count()!=rowCount())

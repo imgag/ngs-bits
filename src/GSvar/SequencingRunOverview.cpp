@@ -63,13 +63,13 @@ void SequencingRunOverview::updateTable()
 	}
 	table.setColumn(status_col, column);
 
+	//show table (quality as icons)
+	QStringList quality_values = table.takeColumn(table.columnIndex("quality"));
 	ui_.table->setData(table);
+	ui_.table->setQualityIcons("name", quality_values);
 
 	//color
-	QColor orange = QColor(255,150,0,125);
 	QColor red = QColor(255,0,0,125);
-	ui_.table->setBackgroundColorIfEqual("quality", orange, "medium");
-	ui_.table->setBackgroundColorIfEqual("quality", red, "bad");
 	ui_.table->setBackgroundColorIfEqual("status", red, "analysis_not_possible");
 	ui_.table->setBackgroundColorIfEqual("status", red, "run_aborted");
 	ui_.table->setBackgroundColorIfEqual("backup done", red, "no");
