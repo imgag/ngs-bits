@@ -33,6 +33,10 @@ class CPPNGSDSHARED_EXPORT DBRow
 			values_.append(value);
 		}
 		void setValue(int i, const QString& value);
+		void insertValue(int i, const QString& value)
+		{
+			values_.insert(i, value);
+		}
 		void removeValue(int i);
 
 		//Returns if any value of the row contains the text
@@ -98,6 +102,8 @@ class CPPNGSDSHARED_EXPORT DBTable
 		int columnIndex(const QString& name) const;
 		///Adds a new column, returns the index of the new column.
 		int addColumn(const QStringList& values, const QString& header);
+		///Inserts a new column at the given column index;
+		void insertColumn(int i, const QStringList& values, const QString& header);
 		///Removes a column and returns the all values.
 		QStringList takeColumn(int c);
 		///Sets a the values and optionally the header of a column.

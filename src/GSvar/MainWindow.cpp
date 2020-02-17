@@ -2576,8 +2576,8 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 			if (table=="processed_sample")
 			{
 				QString sample_name = parts[0];
-				QString next_ps_number = db.getValue("SELECT MAX(ps.process_id)+1 FROM sample as s, processed_sample as ps WHERE s.id=ps.sample_id AND s.name=:0", true, sample_name).toString();
-				parts.append(next_ps_number=="" ? "1" : next_ps_number);
+				QVariant next_ps_number = db.getValue("SELECT MAX(ps.process_id)+1 FROM sample as s, processed_sample as ps WHERE s.id=ps.sample_id AND s.name=:0", true, sample_name);
+				parts.append(next_ps_number.isNull() ? "1" : next_ps_number.toString());
 			}
 
 			//check tab-separated parts count

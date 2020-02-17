@@ -20,6 +20,8 @@ public:
 	void setData(const DBTable& table);
 	//returns the column index, or throws ArgumentException if column is not present.
 	int columnIndex(const QString& column_header) const;
+	//Converts quality values to icons
+	void setQualityIcons(const QString& column_header, const QStringList& quality_values);
 	//Set tooltips for a column
 	void setColumnTooltips(const QString& column_header, const QStringList& tooltips);
 	//Set background color for a column
