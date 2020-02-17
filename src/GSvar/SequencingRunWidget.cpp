@@ -130,7 +130,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	ui_->samples->setData(samples);
 	ui_->samples->setColumnWidth(ui_->samples->columnIndex("comments"), 350);
 
-	//colors
+	//colors //TODO expose as settings in GSvar
 	QColor orange = QColor(255,150,0,125);
 	QColor red = QColor(255,0,0,125);
 	ui_->samples->setBackgroundColorIfEqual("quality", orange, "medium");
@@ -149,7 +149,7 @@ void SequencingRunWidget::updateRunSampleTable()
 			}
 			if (accession=="QC:2000023") //insert size
 			{
-				ui_->samples->setBackgroundColorIfLt(header, orange, 200);
+				ui_->samples->setBackgroundColorIfLt(header, orange, 190);
 				ui_->samples->setBackgroundColorIfLt(header, red, 150);
 			}
 			if (accession=="QC:2000025") //avg depth
@@ -164,8 +164,8 @@ void SequencingRunWidget::updateRunSampleTable()
 			}
 			if (accession=="QC:2000024") //duplicates
 			{
-				ui_->samples->setBackgroundColorIfGt(header, orange, 10);
-				ui_->samples->setBackgroundColorIfGt(header, red, 20);
+				ui_->samples->setBackgroundColorIfGt(header, orange, 25);
+				ui_->samples->setBackgroundColorIfGt(header, red, 35);
 			}
 			if (accession=="QC:2000051") //AF deviation
 			{
