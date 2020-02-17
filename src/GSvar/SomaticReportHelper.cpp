@@ -18,7 +18,7 @@
 #include <QMap>
 #include <QPair>
 
-RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes)
+RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes, int min_amp_cn)
 {
 	RtfTable table;
 
@@ -94,8 +94,14 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		{
 			gene_info = trans( snv.annotations()[snv_index_som_class_] );
 		}
-
-
+		else if(snv.annotations()[snv_index_cgi_statement_].contains("known"))
+		{
+			gene_info = "Treiber (bekannt)";
+		}
+		else if(snv.annotations()[snv_index_cgi_statement_].contains("predicted driver"))
+		{
+			gene_info = "Treiber (vorhergesagt)";
+		}
 
 		int i_snvs_oncogene_info = snvs.annotationIndexByName("ncg_oncogene",true,false);
 		int i_snvs_tsg_info = snvs.annotationIndexByName("ncg_tsg",true,false);
@@ -134,8 +140,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		{
 			const CopyNumberVariant& cnv = cnvs[i_corresponding_cnv];
 			double tum_cn_change = cnv.annotations().at(cnv_index_tumor_cn_change_).toDouble();
-			//ignore amplifications <4
-			//if(tum_cn_change > 2 && tum_cn_change <4) continue;
+
 
 			genes_in_first_part << transcript.gene;
 
@@ -177,7 +182,6 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 			temp_cnv_row.addCell(900,QByteArray::number(cnv.annotations().at(i_cnv_tum_clonality).toDouble(),'f',2),RtfParagraph().setHorizontalAlignment("c"));
 
-			QByteArrayList cnv_driver_statements = cnv.annotations().at(cnv_index_cgi_driver_statement_).split(',');
 			QByteArrayList cnv_genes = cnv.annotations().at(cnv_index_cgi_genes_).split(',');
 
 			//Parse driver statements
@@ -188,7 +192,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 				{
 					if(gene == cnv_genes[j])
 					{
-						driver_statements << CgiDriverDescription(cnv_driver_statements[j]);
+						driver_statements << CnvDescription(cnv);
 					}
 				}
 			}
@@ -211,8 +215,6 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		}
 	}
 
-
-
 	//Insert remaining germline variants
 	int i_germl_gene = som_var_in_normal.annotationIndexByName("gene");
 	int i_germl_co_sp = som_var_in_normal.annotationIndexByName("coding_and_splicing");
@@ -234,7 +236,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 				if(trans.count() > 0) temp.addCell({ trans[0].hgvs_c + ":" + trans[0].hgvs_p, RtfText(trans[0].id).setFontSize(14).RtfCode()}, 2900);
 				else temp.addCell(2900, "n/a");
 
-				temp.addCell(1700, (trans.count() > 0 ? trans[0].type : "n/a"));
+				temp.addCell(1700, (trans.count() > 0 ? trans[0].type.replace("_variant","") : "n/a"));
 				temp.addCell(900, var.annotations()[i_germl_freq_in_tum], RtfParagraph().setHorizontalAlignment("c"));
 
 				//Get af of var in tumor tisse from NGSD
@@ -248,8 +250,6 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		}
 	}
 
-
-
 	for(int i=0; i < som_var_in_normal.count(); ++i) //germline variants without a gene already in table
 	{
 		const Variant& var = som_var_in_normal[i];
@@ -260,7 +260,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		if(trans.count() > 0) temp.addCell({ trans[0].hgvs_c + ":" + trans[0].hgvs_p, RtfText(trans[0].id).setFontSize(14).RtfCode()}, 2900);
 		else temp.addCell(2900, "n/a");
 
-		temp.addCell(1700, (trans.count() > 0 ? trans[0].type : "n/a"));
+		temp.addCell(1700, (trans.count() > 0 ? trans[0].type.replace("_variant", "") : "n/a"));
 		temp.addCell(900, var.annotations()[i_germl_freq_in_tum], RtfParagraph().setHorizontalAlignment("c"));
 
 		temp.addCell( 3138, germlVarDesc(var.annotations()[i_germl_hom_het], var.annotations()[i_germl_class]) );
@@ -268,7 +268,6 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		table.addRow(temp);
 		break;
 	}
-
 
 	if(!include_cnvs)	return table;
 
@@ -287,8 +286,21 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 
 		QByteArrayList genes = cnv.annotations().at(cnv_index_cgi_genes_).split(',');
-
 		QByteArrayList statements = cnv.annotations().at(cnv_index_cgi_driver_statement_).split(',');
+
+		//ignore amplifications <4
+		double tum_cn_change = cnv.annotations().at(cnv_index_tumor_cn_change_).toDouble();
+		if(tum_cn_change > 2 && tum_cn_change < min_amp_cn)
+		{
+			for(int j=0; j<genes.count(); ++j)
+			{
+				if(statements[j].contains("driver") || statements[j].contains("known") || target_genes.contains(genes[j]))	skipped_amp_ << genes[j];
+			}
+
+			continue;
+		}
+
+
 		if(genes.count() != statements.count())
 		{
 			THROW(FileParseException, "Unequal number of genes and driver statements in somatic ClinCNV file in CNV " + cnv.toString());
@@ -341,7 +353,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 				//Gene description
 				QByteArrayList desc;
-				desc << CgiDriverDescription(statements[index]);
+				desc << CnvDescription(cnv);
 
 				if(i_ncg_oncogene > -1 && i_ncg_tsg > -1)
 				{
@@ -359,15 +371,11 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		}
 	}
 
-
 	//Add remaining CNVs to table, sorted according gene (which is key of cna_genes_per_row QMap)
 	for(const auto& row : cna_genes_per_row)
 	{
 		table.addRow(row);
 	}
-
-
-
 	return table;
 }
 
@@ -376,8 +384,9 @@ bool SomaticReportHelper::checkRequiredSNVAnnotations(const VariantList &snvs)
 	int i_ncg_oncogene = snvs.annotationIndexByName("ncg_oncogene", true, false);
 	int i_ncg_tsg = snvs.annotationIndexByName("ncg_tsg", true, false);
 	int i_som_class = snvs.annotationIndexByName("somatic_classification", true, false);
+	int i_cgi = snvs.annotationIndexByName("CGI_driver_statement", true, false);
 
-	if(i_ncg_oncogene < 0 || i_ncg_tsg < 0 || i_som_class < 0) return false;
+	if(i_ncg_oncogene < 0 || i_ncg_tsg < 0 || i_som_class < 0 || i_cgi < 0) return false;
 
 	return true;
 }
@@ -944,8 +953,9 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	}
 
 	//Assign SNV annotation indices
-	snv_index_som_class_ = snv_variants_.annotationIndexByName("somatic_classification", true, true);
-	snv_index_coding_splicing_ = snv_variants_.annotationIndexByName("coding_and_splicing",true,true);
+	snv_index_som_class_ = snv_variants_.annotationIndexByName("somatic_classification");
+	snv_index_coding_splicing_ = snv_variants_.annotationIndexByName("coding_and_splicing");
+	snv_index_cgi_statement_ = snv_variants_.annotationIndexByName("CGI_driver_statement");
 
 	//assign CNV annotation indices
 	cnv_index_cn_change_ = cnvs_.annotationIndexByName("CN_change", false);
@@ -1732,15 +1742,33 @@ QByteArray SomaticReportHelper::CnvTypeDescription(int tumor_cn)
 	return type;
 }
 
-QByteArray SomaticReportHelper::CgiDriverDescription(QByteArray raw_cgi_input)
+QByteArray SomaticReportHelper::CnvDescription(const CopyNumberVariant& cnv)
 {
-	QByteArray out = raw_cgi_input;
+	if(cnv.annotations()[cnv_index_cn_change_].toDouble() > 2.) return "mögl. Überexpression";
+	else if(cnv.annotations()[cnv_index_cn_change_].toDouble() < 2.) return "mögl. reduzierte Expression";
+	return "unklare Bedeutung";
+}
 
-	if(raw_cgi_input.contains("predicted driver")) out = "Treiber (vorhergesagt)";
-	else if(raw_cgi_input.contains("known in")) out = "Treiber (bekannt)";
-	else out = "Unklare Bedeutung";
+int SomaticReportHelper::snvByGene(const VariantList &snvs, QByteArray gene_symbol)
+{
+	int i_gene = snvs.annotationIndexByName("gene", true, false);
+	if(i_gene < 0) return -1;
 
-	return out;
+	QList<int> matches = {};
+
+	for(int i=0; i<snvs.count(); ++i)
+	{
+		QByteArrayList genes = snvs[i].annotations()[i_gene].split(',');
+
+		for(const auto& gene : genes)
+		{
+			if(gene.trimmed() == gene_symbol) matches << i;
+		}
+	}
+
+	if(matches.count() != 1) return -1;
+
+	return matches[0];
 }
 
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)
@@ -1969,8 +1997,11 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	{
 		for(int i=0;i<snv_variants_.count();++i)
 		{
-			QByteArray som_class = snv_variants_[i].annotations().at(snv_index_som_class_);
+			const QByteArray& som_class = snv_variants_[i].annotations().at(snv_index_som_class_);
 			if(!som_class.isEmpty() && som_class != "n/a")	pass[i] = true;
+
+			const QByteArray& cgi = snv_variants_[i].annotations().at(snv_index_cgi_statement_);
+			if(cgi.contains("known") || cgi.contains("predicted driver")) pass[i] = true;
 		}
 	}
 	else //Remove SNVs outside target region (EBM report)
@@ -1996,16 +2027,25 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		 target_genes = db_.genesToApproved(target_genes,true);
 	}
 
-	doc_.addPart(somaticAlterationTable(snvs_to_be_printed, cnvs_, true, target_genes).setUniqueBorder(1,"brdrhair",4).RtfCode());
+	doc_.addPart(somaticAlterationTable(snvs_to_be_printed, cnvs_, true, target_genes, 4).setUniqueBorder(1,"brdrhair",4).RtfCode());
 
 
-	RtfSourceCode snv_expl  = RtfText("Anteil:").setBold(true).setFontSize(14).RtfCode() + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil der Zellen mit der entsprechenden Kopienzahlvariante (CNV). ";
-	snv_expl += RtfText("Beschreibung:").setFontSize(14).setBold(true).RtfCode() + " Klassifikation der Varianten und ggf. Bewertung der Genfunktion als Onkogen bzw. Tumorsuppressorgen (TSG). ";
-	snv_expl += "Erweiterte Legende und Abkürzungen siehe unten. ";
-	snv_expl += RtfText("§ Es wurden weitere Varianten unklarer Signifikanz in der Normalprobe nachgewiesen (siehe Anlage unten).").highlight(3).setFontSize(14).RtfCode();
+	RtfSourceCode snv_expl  = RtfText("Anteil:").setBold(true).setFontSize(14).RtfCode() + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil der Zellen mit der entsprechenden Kopienzahlvariante (CNV) in der untersuchten Probe. ";
+	snv_expl += RtfText("Beschreibung:").setFontSize(14).setBold(true).RtfCode() + " SNV: Einschätzung der Varianten und ggf. Bewertung der Genfunktion als Onkogen bzw. Tumorsuppressorgen (TSG). CNV: Deletionen, fokale Amplifikationen und Amplifikationen mit mehr als 4 Kopien. ";
+	snv_expl += "Erweiterte Legende und Abkürzungen siehe unten.";
+	doc_.addPart( RtfParagraph(snv_expl).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode() );
+
+	snv_expl = "Weiterhin wurden nicht-fokale Amplifikationen (3 Kopien) für die folgenden relevanten Gene nachgewiesen: ";
+	std::sort(skipped_amp_.begin(), skipped_amp_.end());
+	snv_expl += RtfText(skipped_amp_.join(", ")).setFontSize(14).setItalic(true).RtfCode();
+	snv_expl += ".";
 	doc_.addPart(RtfParagraph(snv_expl).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode());
 
-	doc_.addPart(RtfParagraph("").RtfCode());
+	snv_expl = RtfText("Zusätzliche genetische Daten:").setFontSize(14).setBold(true).RtfCode();
+	snv_expl += " Weitere Informationen zu allen nachgewiesenen somatischen Veränderungen und pharmakogenetisch relevanten Polymorphismen entnehmen Sie bitte der Anlage 1.";
+	doc_.addPart(RtfParagraph(snv_expl).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode());
+
+	doc_.addPart( RtfParagraph("").RtfCode() );
 
 	doc_.newPage();
 

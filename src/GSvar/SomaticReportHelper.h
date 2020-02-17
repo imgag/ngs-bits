@@ -306,8 +306,7 @@ public:
 	///returns CGI cancertype if available from VariantList
 	static QByteArray cgiCancerTypeFromVariantList(const VariantList& variants);
 
-	///Parses CGI driver statement into German language
-	static QByteArray CgiDriverDescription(QByteArray raw_cgi_input);
+
 
 	///Returns CNV type, e.g. DEL (het) according copy number
 	static QByteArray CnvTypeDescription(int tumor_cn);
@@ -335,7 +334,9 @@ private:
 	QMap<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
 
 	///Writes Rtf table containing most relevant SNVs and CNVs
-	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet());
+	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet(), int min_amp_cn = 2.);
+	//skipped amplifications in somaticalterationtable
+	QByteArrayList skipped_amp_ = {};
 
 	///generates table with CNVs
 	RtfTable createCnvTable();
@@ -381,6 +382,12 @@ private:
 
 
 	RtfTableRow tumorContent();
+
+	///Parses CN to description
+	QByteArray CnvDescription(const CopyNumberVariant& cnv);
+
+	///Finds SNV by gene symbol, returns index, -1 otherwise
+	int snvByGene(const VariantList& snvs, QByteArray gene_symbol);
 
 	const SomaticReportSettings& settings_;
 
@@ -444,6 +451,7 @@ private:
 	///indices for somatic variant file
 	int snv_index_som_class_;
 	int snv_index_coding_splicing_;
+	int snv_index_cgi_statement_;
 
 	///indices for somatic CNV file
 	int cnv_index_cn_change_;
@@ -460,6 +468,7 @@ private:
 	RtfDocument doc_;
 
 	BedpeFile fusions_;
+
 
 };
 
