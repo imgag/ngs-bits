@@ -579,7 +579,6 @@ CREATE  TABLE IF NOT EXISTS `variant_validation`
   `variant_id` INT(11) NOT NULL,
   `genotype` ENUM('hom','het') NOT NULL,
   `status` ENUM('n/a','to validate','to segregate','for reporting','true positive','false positive','wrong genotype') NOT NULL DEFAULT 'n/a',
-  `type` ENUM('research','diagnostics') NOT NULL DEFAULT 'research',
   `comment` TEXT NULL DEFAULT NULL,
 PRIMARY KEY (`id`),
 INDEX `fk_user_id` (`user_id` ASC),
