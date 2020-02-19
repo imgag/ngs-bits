@@ -175,7 +175,7 @@ void CnvWidget::addInfoLine(QString text)
 		//add distribution menu entry (only once for each metric)
 		if (!metrics_done_.contains(metric))
 		{
-			ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()));
+			ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()))->setEnabled(ngsd_enabled_ && ps_id_!="");
 			metrics_done_ << metric;
 		}
 	}

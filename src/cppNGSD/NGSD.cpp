@@ -1435,8 +1435,6 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 			//read-only
 			if (
 				(table=="sample" && info.name=="name") ||
-				(table=="sequencing_run" && info.name=="name") ||
-				(table=="project" && info.name=="name") ||
 				(table=="processing_system" && info.name=="name_short")
 			   )
 			{
