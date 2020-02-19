@@ -6,6 +6,7 @@
 #include <QSharedPointer>
 #include "cppNGSD_global.h"
 #include <Phenotype.h>
+#include "NGSD.h"
 
 /// GenLabDB accessor
 class CPPNGSDSHARED_EXPORT GenLabDB
@@ -23,6 +24,8 @@ public:
 
 	///Returns all tables in the database
 	QStringList tables() const;
+	///Returns table meta data.
+	const TableInfo& tableInfo(const QString& table) const;
 
 	///Returns the number of entries with the given sample name
 	bool entriesExistForSample(QString sample_name);
@@ -45,10 +48,18 @@ public:
 protected:
 	///Copy constructor "declared away".
 	GenLabDB(const GenLabDB&) = delete;
+	///Returns a SqlQuery object on the NGSD for custom queries.
+	SqlQuery getQuery() const
+	{
+		return SqlQuery(*db_);
+	}
+
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
 	bool is_open_;
+
+	static QMap<QString, TableInfo> infos_;
 };
 
 

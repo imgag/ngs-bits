@@ -109,6 +109,7 @@ public slots:
 	void on_actionGenome_triggered();
 	void on_actionMID_triggered();
 	void on_actionProcessingSystem_triggered();
+	void on_actionProject_triggered();
 	void on_actionSample_triggered();
 	void on_actionSampleGroup_triggered();
 	void on_actionSender_triggered();

@@ -439,6 +439,7 @@
      <addaction name="actionGenome"/>
      <addaction name="actionMID"/>
      <addaction name="actionProcessingSystem"/>
+     <addaction name="actionProject"/>
      <addaction name="actionSample"/>
      <addaction name="actionSampleGroup"/>
      <addaction name="actionSender"/>
@@ -1030,6 +1031,11 @@
   <action name="actionGeneOmimInfo">
    <property name="text">
     <string>Gene OMIM info</string>
+   </property>
+  </action>
+  <action name="actionProject">
+   <property name="text">
+    <string>Project</string>
    </property>
   </action>
  </widget>

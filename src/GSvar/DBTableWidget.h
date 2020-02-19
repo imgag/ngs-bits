@@ -56,11 +56,16 @@ public:
 	//Returns the database table name
 	const QString& tableName() const;
 
+signals:
+	//Emitted if a row is double-clicked
+	void rowDoubleClicked(int row);
+
 protected:
 	void keyPressEvent(QKeyEvent* event) override;
 
 protected slots:
 	void copyToClipboard();
+	void processDoubleClick(int row, int column);
 
 protected:
 	QString table_;

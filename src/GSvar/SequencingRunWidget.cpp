@@ -23,10 +23,10 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	connect(ui_->edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
 	connect(ui_->email_btn, SIGNAL(clicked(bool)), this, SLOT(sendStatusEmail()));
 	connect(ui_->mid_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMids()));
-
+	connect(ui_->samples, SIGNAL(rowDoubleClicked(int)), this, SLOT(openSampleTab(int)));
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_->samples->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSamples()));
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
 
 	action = new QAction("Set quality", this);
 	ui_->samples->addAction(action);
@@ -127,14 +127,14 @@ void SequencingRunWidget::updateRunSampleTable()
 		}
 	}
 	samples.setHeaders(headers);
+	QStringList quality_values = samples.takeColumn(samples.columnIndex("quality"));
 	ui_->samples->setData(samples);
+	ui_->samples->setQualityIcons("sample", quality_values);
 	ui_->samples->setColumnWidth(ui_->samples->columnIndex("comments"), 350);
 
-	//colors //TODO expose as settings in GSvar
+	//colors
 	QColor orange = QColor(255,150,0,125);
 	QColor red = QColor(255,0,0,125);
-	ui_->samples->setBackgroundColorIfEqual("quality", orange, "medium");
-	ui_->samples->setBackgroundColorIfEqual("quality", red, "bad");
 	if (ui_->show_qc->isChecked())
 	{
 		for(int i=0; i<accessions.count(); ++i)
@@ -389,7 +389,7 @@ void SequencingRunWidget::updateReadQualityTable()
 	GUIHelper::resizeTableCells(table);
 }
 
-void SequencingRunWidget::openSelectedSamples()
+void SequencingRunWidget::openSelectedSampleTabs()
 {
 	int col = ui_->samples->columnIndex("sample");
 	QList<int> selected_rows = ui_->samples->selectedRows().toList();
@@ -399,4 +399,10 @@ void SequencingRunWidget::openSelectedSamples()
 
 		emit(openProcessedSampleTab(item->text()));
 	}
+}
+
+void SequencingRunWidget::openSampleTab(int row)
+{
+	int col = ui_->samples->columnIndex("sample");
+	emit(openProcessedSampleTab(ui_->samples->item(row, col)->text()));
 }

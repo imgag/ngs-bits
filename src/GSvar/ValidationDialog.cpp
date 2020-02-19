@@ -4,8 +4,6 @@
 #include "BasicStatistics.h"
 #include <QStringList>
 
-//TODO remove variant_validation/type from NGSD schema, once the deployed version of GSvar can work without it > MARC
-
 ValidationDialog::ValidationDialog(QWidget* parent, int id)
 	: QDialog(parent)
 	, ui_()
@@ -27,8 +25,12 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 	query.exec("SELECT * FROM variant_validation WHERE id=" + val_id_);
 	query.next();
 
-	Variant variant = db_.variant(query.value("variant_id").toString());
+	QString variant_id = query.value("variant_id").toString();
+	Variant variant = db_.variant(variant_id);
 	ui_.variant->setText(variant.toString() + " (" + query.value("genotype").toString() + ")");
+
+	QString transcript_info = db_.getValue("SELECT coding FROM variant WHERE id=" + variant_id).toString().replace(",", "<br>");
+	ui_.transcript_info->setText(transcript_info);
 
 	ui_.sample->setText(db_.getValue("SELECT name FROM sample WHERE id=" + query.value("sample_id").toString()).toString());
 

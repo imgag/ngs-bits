@@ -59,7 +59,6 @@ void VariantValidationWidget::updateTable()
 	cols << "(SELECT CONCAT(v.chr, ':', v.start, '-', v.end, ' ', v.ref, '>', v.obs, ' (', v.gene, ')') FROM variant v WHERE v.id=vv.variant_id) as variant";
 	cols << "vv.genotype";
 	cols << "vv.status";
-	cols << "vv.type";
 	cols << "vv.comment";
 	QString query_str = "SELECT " + cols.join(", ") + " FROM variant_validation vv WHERE 1";
 	if (ui_.status->currentText()!="")

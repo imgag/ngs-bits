@@ -22,12 +22,10 @@ GSvar:
 ** CNVs add filter: log-likelihood/regions >= x
 * Allow showing BAF histogram for region and show background distribution on other regions.
 * Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
-#### sample search: show tumor/ffpe as yes/no
-#### DB tables: open corresponding tab by double-clicking (run overview, sample search, run)
+#### Sample search: Delete processed samples
 #### Run tab: add column '% reads'
-#### quality column> icon before name (ps search - sample and run, run overview, sample admin, samples on run tab)
-#### Popup notification for segregations - every time a new case is loaded
-*** gene selector: add support for CnvHunter (needs low-quality regions (also CNV to track name) > update ClinCNV first > update docu)
+** Popup notification for segregations - every time a new case is loaded
+*** gene selector: add support for CnvHunter (needs low-quality regions (also CNV to track name) > update ClinCNV first> update docu)
 *** XML report: add OMIM gene / phenotype disease info
 ** Sample search: add option option "export all infos"
 * Allow ClinCNV upload

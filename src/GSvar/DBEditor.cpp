@@ -143,7 +143,7 @@ void DBEditor::createGUI()
 		}
 		else
 		{
-			THROW(ProgrammingException, "Unhandled table field type '" + QString::number(field_info.type) + "'!");
+			THROW(ProgrammingException, "Unhandled table field type '" + field_info.typeAsString() + "'!");
 		}
 		widget->setObjectName("editor_" + field);
 		widget->setEnabled(!field_info.is_readonly || id_==-1);
@@ -254,7 +254,7 @@ void DBEditor::fillFormWithDefaultData()
 		}
 		else
 		{
-			THROW(ProgrammingException, "Unhandled table field type '" + QString::number(field_info.type) + "'!");
+			THROW(ProgrammingException, "Unhandled table field type '" + field_info.typeAsString() + "'!");
 		}
 	}
 }
@@ -329,7 +329,7 @@ void DBEditor::fillFormWithItemData()
 		}
 		else
 		{
-			THROW(ProgrammingException, "Unhandled table field type '" + QString::number(field_info.type) + "'!");
+			THROW(ProgrammingException, "Unhandled table field type '" + field_info.typeAsString() + "'!");
 		}
 	}
 }
@@ -563,7 +563,7 @@ void DBEditor::store()
 		}
 		else
 		{
-			THROW(ProgrammingException, "Unhandled table field type '" + QString::number(field_info.type) + "'!");
+			THROW(ProgrammingException, "Unhandled table field type '" + field_info.typeAsString() + "'!");
 		}
 	}
 

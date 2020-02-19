@@ -10,6 +10,7 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	, db_()
 {
 	ui_.setupUi(this);
+	connect(ui_.sample_table, SIGNAL(rowDoubleClicked(int)), this, SLOT(openProcessedSampleTab(int)));
 
 	//context menu
 	QAction* action = new QAction(QIcon(":/Icons/Icon.png"), "Open variant list", this);
@@ -90,15 +91,15 @@ void SampleSearchWidget::search()
 	try
 	{
 		DBTable ps_table = db_.processedSampleSearch(params);
-		ui_.sample_table->setData(ps_table);
+		ps_table.formatBooleanColumn(ps_table.columnIndex("is_tumor"));
+		ps_table.formatBooleanColumn(ps_table.columnIndex("is_ffpe"));
 
-		//color
-		QColor orange = QColor(255,150,0,125);
-		QColor red = QColor(255,0,0,125);
-		ui_.sample_table->setBackgroundColorIfEqual("quality", orange, "medium");
-		ui_.sample_table->setBackgroundColorIfEqual("quality", red, "bad");
-		ui_.sample_table->setBackgroundColorIfEqual("run_quality", orange, "medium");
-		ui_.sample_table->setBackgroundColorIfEqual("run_quality", red, "bad");
+		//show (quality columns as icons)
+		QStringList quality_values_ps = ps_table.takeColumn(ps_table.columnIndex("quality"));
+		QStringList quality_values_run = ps_table.takeColumn(ps_table.columnIndex("run_quality"));
+		ui_.sample_table->setData(ps_table);
+		ui_.sample_table->setQualityIcons("name", quality_values_ps);
+		ui_.sample_table->setQualityIcons("run_name", quality_values_run);
 
 		//text
 		ui_.search_status->setText("Found " + QString::number(ps_table.rowCount()) + " matching samples.");
@@ -113,13 +114,18 @@ void SampleSearchWidget::search()
 
 void SampleSearchWidget::openProcessedSampleTab()
 {
-
 	QSet<int> rows = ui_.sample_table->selectedRows();
 	foreach(int row, rows)
 	{
 		QString ps_id = ui_.sample_table->getId(row);
 		emit openProcessedSampleTab(db_.processedSampleName(ps_id));
 	}
+}
+
+void SampleSearchWidget::openProcessedSampleTab(int row)
+{
+	QString ps_id = ui_.sample_table->getId(row);
+	emit openProcessedSampleTab(db_.processedSampleName(ps_id));
 }
 
 void SampleSearchWidget::openProcessedSample()

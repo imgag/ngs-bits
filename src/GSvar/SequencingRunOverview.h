@@ -20,6 +20,7 @@ protected slots:
 	void delayedInitialization();
 	void updateTable();
 	void openRunTab();
+	void openRunTab(int row);
 	void editRun();
 	void addRun();
 

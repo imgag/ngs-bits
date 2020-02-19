@@ -52,14 +52,14 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 
 	//type info
 	Type type;
-	bool is_nullable;
-	bool is_unsigned;
+	bool is_nullable = false;
+	bool is_unsigned = false;
 	TableFieldConstraints type_constraints;
 	QString default_value;
 
 	//index+key info
-	bool is_primary_key;
-	bool is_unique;
+	bool is_primary_key = false;
+	bool is_unique = false;
 	QString fk_table; //target table of FK
 	QString fk_field; //target field of FK
 	QString fk_name_sql; //SQL code to get the name in the target table - normally 'name', but can contain any valid SQL query
@@ -70,8 +70,16 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 	bool is_readonly = false; //shown, but not editable (after it is initially set)
 	QString tooltip; //tooltip taken from column comment of the SQL database
 
+	///Returns type as string.
+	QString typeAsString() const
+	{
+		return typeToString(type);
+	}
 	///String representation of the table field
 	QString toString() const;
+
+	///Converts type to human-readable string.
+	static QString typeToString(Type type);
 };
 
 ///General database table information.

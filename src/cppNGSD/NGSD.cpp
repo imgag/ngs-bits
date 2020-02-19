@@ -1552,20 +1552,7 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sq
 		//BOOL - replace number by yes/no
 		if(field_info.type==TableFieldInfo::BOOL)
 		{
-			QStringList column = output.extractColumn(c);
-			for(int r=0; r<column.count(); ++r)
-			{
-				const QString& value = column[r];
-				if (value=="0")
-				{
-					column[r] = "no";
-				}
-				else if (value=="1")
-				{
-					column[r] = "yes";
-				}
-			}
-			output.setColumn(c, column);
+			output.formatBooleanColumn(output.columnIndex(field_info.name));
 		}
 
 		//PASSWORD - replace hashes
@@ -3863,9 +3850,50 @@ QString ReportConfigurationCreationData::toText() const
 
 QString TableFieldInfo::toString() const
 {
-	return "TableFieldInfo(" + name + "): index=" + QString::number(index) + "  type=" + QString::number(type) +" is_nullable=" + (is_nullable ? "yes" : "no") + " is_unsigned=" + (is_unsigned ? "yes" : "no") + " default_value: " + default_value + " is_primary_key=" + (is_primary_key ? "yes" : "no") + " fk_table=" + fk_table + " fk_field=" + fk_field;
+	return "TableFieldInfo(" + name + "): index=" + QString::number(index) + "  type=" + typeToString(type) +" is_nullable=" + (is_nullable ? "yes" : "no") + " is_unsigned=" + (is_unsigned ? "yes" : "no") + " default_value: " + default_value + " is_primary_key=" + (is_primary_key ? "yes" : "no") + " fk_table=" + fk_table + " fk_field=" + fk_field;
 }
 
+QString TableFieldInfo::typeToString(TableFieldInfo::Type type)
+{
+	switch(type)
+	{
+		case BOOL:
+			return "BOOL";
+			break;
+		case INT:
+			return "INT";
+			break;
+		case FLOAT:
+			return "FLOAT";
+			break;
+		case TEXT:
+			return "TEXT";
+			break;
+		case VARCHAR:
+			return "VARCHAR";
+			break;
+		case VARCHAR_PASSWORD:
+			return "VARCHAR_PASSWORD";
+			break;
+		case ENUM:
+			return"ENUM";
+			break;
+		case DATE:
+			return "DATE";
+			break;
+		case DATETIME:
+			return "DATETIME";
+			break;
+		case TIMESTAMP:
+			return "TIMESTAMP";
+			break;
+		case FK:
+			return "FK";
+			break;
+		default:
+			THROW(NotImplementedException, "Unhandled type '" + QString::number(type) + "' in TableFieldInfo::typeToString!");
+	}
+}
 
 QStringList NGSD::checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const
 {

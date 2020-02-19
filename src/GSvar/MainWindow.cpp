@@ -1373,6 +1373,7 @@ void MainWindow::loadFile(QString filename)
 			try
 			{
 				cnvs_.load(cnv_file);
+				if (cnvs_.count()>50000) THROW(ArgumentException, "CNV file contains too many CNVs - could not load it!")
 			}
 			catch(Exception& e)
 			{
@@ -2821,56 +2822,65 @@ void MainWindow::on_actionDevice_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("device");
 	auto dlg = GUIHelper::createDialog(widget, "Device administration");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionGenome_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("genome");
 	auto dlg = GUIHelper::createDialog(widget, "Genome administration");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionMID_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("mid");
 	auto dlg = GUIHelper::createDialog(widget, "MID administration");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionProcessingSystem_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("processing_system");
+	connect(widget, SIGNAL(openProcessingSystemTab(QString)), this, SLOT(openProcessingSystemTab(QString)));
 	auto dlg = GUIHelper::createDialog(widget, "Processing system administration");
-	dlg->exec();
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionProject_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("project");
+	connect(widget, SIGNAL(openProjectTab(QString)), this, SLOT(openProjectTab(QString)));
+	auto dlg = GUIHelper::createDialog(widget, "Project administration");
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSample_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("sample");
 	auto dlg = GUIHelper::createDialog(widget, "Sample administration");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSampleGroup_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("sample_group");
 	auto dlg = GUIHelper::createDialog(widget, "Sample group administration");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSender_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("sender");
 	auto dlg = GUIHelper::createDialog(widget, "Sender administration");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSpecies_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("species");
 	auto dlg = GUIHelper::createDialog(widget, "Species administration");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionUsers_triggered()
@@ -2889,7 +2899,7 @@ void MainWindow::on_actionUsers_triggered()
 	//show user table
 	DBTableAdministration* widget = new DBTableAdministration("user");
 	auto dlg = GUIHelper::createDialog(widget, "User administration");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionImportMids_triggered()
