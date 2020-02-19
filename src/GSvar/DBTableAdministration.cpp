@@ -17,6 +17,7 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	connect(ui_.edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
 	connect(ui_.delete_btn, SIGNAL(clicked(bool)), this, SLOT(remove()));
 	connect(ui_.text_filter_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
+	connect(ui_.table, SIGNAL(rowDoubleClicked(int)), this, SLOT(processRowDoubleClick(int)));
 
 	QAction* action = new QAction(QIcon(":/Icons/Edit.png"), "Edit", this);
 	ui_.table->addAction(action);
@@ -135,5 +136,21 @@ void DBTableAdministration::remove()
 	}
 
 	updateTable();
+}
+
+void DBTableAdministration::processRowDoubleClick(int row)
+{
+	QString id = ui_.table->getId(row);
+
+	if (table_=="project")
+	{
+		QString name = NGSD().getValue("SELECT name FROM project WHERE id=" + id).toString();
+		emit openProjectTab(name);
+	}
+	else if (table_=="processing_system")
+	{
+		QString name = NGSD().getValue("SELECT name_short FROM processing_system WHERE id=" + id).toString();
+		emit openProcessingSystemTab(name);
+	}
 }
 

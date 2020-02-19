@@ -23,7 +23,8 @@ signals:
 
 protected slots:
 	void updateGUI();
-	void openSelectedSamples();
+	void openSelectedSampleTabs();
+	void openSampleTab(int row);
 	void updateReadQualityTable();
 	void updateRunSampleTable();
 	void setQuality();

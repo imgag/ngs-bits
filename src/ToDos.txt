@@ -22,7 +22,6 @@ GSvar:
 ** CNVs add filter: log-likelihood/regions >= x
 * Allow showing BAF histogram for region and show background distribution on other regions.
 * Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
-#### DB tables: open corresponding tab by double-clicking (run overview, sample search, run, admin project, admin processing system)
 #### Sample search: Delete processed samples
 #### Run tab: add column '% reads'
 ** Popup notification for segregations - every time a new case is loaded

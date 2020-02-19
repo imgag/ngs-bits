@@ -20,6 +20,7 @@ signals:
 protected slots:
 	void search();
 	void openProcessedSampleTab();
+	void openProcessedSampleTab(int row);
 	void openProcessedSample();
 	void deleteSampleData();
 	void queueAnalysis();

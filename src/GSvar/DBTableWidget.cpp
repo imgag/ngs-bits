@@ -16,6 +16,7 @@ DBTableWidget::DBTableWidget(QWidget* parent)
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	setSelectionBehavior(QAbstractItemView::SelectRows);
 	setWordWrap(false);
+	connect(this, SIGNAL(cellDoubleClicked(int,int)), this, SLOT(processDoubleClick(int, int)));
 
 	//context menu
 	setContextMenuPolicy(Qt::ActionsContextMenu);
@@ -241,4 +242,9 @@ void DBTableWidget::copyToClipboard()
 	}
 
 	QApplication::clipboard()->setText(output);
+}
+
+void DBTableWidget::processDoubleClick(int row, int /*column*/)
+{
+	emit rowDoubleClicked(row);
 }

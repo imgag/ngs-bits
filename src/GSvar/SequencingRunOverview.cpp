@@ -13,6 +13,7 @@ SequencingRunOverview::SequencingRunOverview(QWidget *parent)
 	connect(ui_.text_filter, SIGNAL(editingFinished()), this, SLOT(updateTable()));
 	connect(ui_.text_filter_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
 	connect(ui_.add_btn, SIGNAL(clicked(bool)), this, SLOT(addRun()));
+	connect(ui_.table, SIGNAL(rowDoubleClicked(int)), this, SLOT(openRunTab(int)));
 
 	//table context menu
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run tab");
@@ -88,6 +89,13 @@ void SequencingRunOverview::openRunTab()
 	{
 		emit openRun(ui_.table->item(row, name_col)->text());
 	}
+}
+
+void SequencingRunOverview::openRunTab(int row)
+{
+	int name_col = ui_.table->columnIndex("name");
+
+	emit openRun(ui_.table->item(row, name_col)->text());
 }
 
 void SequencingRunOverview::editRun()

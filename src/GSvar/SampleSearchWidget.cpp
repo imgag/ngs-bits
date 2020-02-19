@@ -10,6 +10,7 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	, db_()
 {
 	ui_.setupUi(this);
+	connect(ui_.sample_table, SIGNAL(rowDoubleClicked(int)), this, SLOT(openProcessedSampleTab(int)));
 
 	//context menu
 	QAction* action = new QAction(QIcon(":/Icons/Icon.png"), "Open variant list", this);
@@ -113,13 +114,18 @@ void SampleSearchWidget::search()
 
 void SampleSearchWidget::openProcessedSampleTab()
 {
-
 	QSet<int> rows = ui_.sample_table->selectedRows();
 	foreach(int row, rows)
 	{
 		QString ps_id = ui_.sample_table->getId(row);
 		emit openProcessedSampleTab(db_.processedSampleName(ps_id));
 	}
+}
+
+void SampleSearchWidget::openProcessedSampleTab(int row)
+{
+	QString ps_id = ui_.sample_table->getId(row);
+	emit openProcessedSampleTab(db_.processedSampleName(ps_id));
 }
 
 void SampleSearchWidget::openProcessedSample()
