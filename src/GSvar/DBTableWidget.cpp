@@ -73,6 +73,13 @@ int DBTableWidget::columnIndex(const QString& column_header) const
 
 void DBTableWidget::setQualityIcons(const QString& column_header, const QStringList& quality_values)
 {
+	//init
+	static QIcon i_good = QIcon(":/Icons/quality_good.png");
+	static QIcon i_medium = QIcon(":/Icons/quality_medium.png");
+	static QIcon i_bad = QIcon(":/Icons/quality_bad.png");
+	static QIcon i_na = QIcon(":/Icons/quality_unset.png");
+
+	//check
 	if (quality_values.count()!=rowCount())
 	{
 		THROW(ArgumentException, "Invalid quality value count '" + QString::number(quality_values.count()) + "' in DBTableWidget::setQualityIcons - expected '" + QString::number(rowCount()) + "'!");
@@ -84,21 +91,23 @@ void DBTableWidget::setQualityIcons(const QString& column_header, const QStringL
 		QTableWidgetItem* table_item = item(r, c);
 		if (table_item==nullptr) continue;
 
-		if (quality_values[r]=="good")
+		const QString& quality = quality_values[r];
+
+		if (quality=="good")
 		{
-			table_item->setIcon(QIcon(":/Icons/quality_good.png"));
+			table_item->setIcon(i_good);
 		}
-		else if (quality_values[r]=="medium")
+		else if (quality=="medium")
 		{
-			table_item->setIcon(QIcon(":/Icons/quality_medium.png"));
+			table_item->setIcon(i_medium);
 		}
-		else if (quality_values[r]=="bad")
+		else if (quality=="bad")
 		{
-			table_item->setIcon(QIcon(":/Icons/quality_bad.png"));
+			table_item->setIcon(i_bad);
 		}
-		else if (quality_values[r]=="n/a")
+		else if (quality=="n/a" || quality=="")
 		{
-			table_item->setIcon(QIcon(":/Icons/quality_unset.png"));
+			table_item->setIcon(i_na);
 		}
 		else
 		{

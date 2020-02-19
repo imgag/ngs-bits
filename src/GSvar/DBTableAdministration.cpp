@@ -37,9 +37,21 @@ void DBTableAdministration::updateTable()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
+	//create table
 	NGSD db;
 	DBTable db_table = db.createOverviewTable(table_, ui_.text_filter->text());
-	ui_.table->setData(db_table);
+
+	//show table
+	if (table_=="sample")
+	{
+		QStringList quality_values = db_table.takeColumn(db_table.columnIndex("quality"));
+		ui_.table->setData(db_table);
+		ui_.table->setQualityIcons("name", quality_values);
+	}
+	else
+	{
+		ui_.table->setData(db_table);
+	}
 
 	QApplication::restoreOverrideCursor();
 }

@@ -90,15 +90,15 @@ void SampleSearchWidget::search()
 	try
 	{
 		DBTable ps_table = db_.processedSampleSearch(params);
-		ui_.sample_table->setData(ps_table);
+		ps_table.formatBooleanColumn(ps_table.columnIndex("is_tumor"));
+		ps_table.formatBooleanColumn(ps_table.columnIndex("is_ffpe"));
 
-		//color
-		QColor orange = QColor(255,150,0,125);
-		QColor red = QColor(255,0,0,125);
-		ui_.sample_table->setBackgroundColorIfEqual("quality", orange, "medium");
-		ui_.sample_table->setBackgroundColorIfEqual("quality", red, "bad");
-		ui_.sample_table->setBackgroundColorIfEqual("run_quality", orange, "medium");
-		ui_.sample_table->setBackgroundColorIfEqual("run_quality", red, "bad");
+		//show (quality columns as icons)
+		QStringList quality_values_ps = ps_table.takeColumn(ps_table.columnIndex("quality"));
+		QStringList quality_values_run = ps_table.takeColumn(ps_table.columnIndex("run_quality"));
+		ui_.sample_table->setData(ps_table);
+		ui_.sample_table->setQualityIcons("name", quality_values_ps);
+		ui_.sample_table->setQualityIcons("run_name", quality_values_run);
 
 		//text
 		ui_.search_status->setText("Found " + QString::number(ps_table.rowCount()) + " matching samples.");

@@ -127,14 +127,14 @@ void SequencingRunWidget::updateRunSampleTable()
 		}
 	}
 	samples.setHeaders(headers);
+	QStringList quality_values = samples.takeColumn(samples.columnIndex("quality"));
 	ui_->samples->setData(samples);
+	ui_->samples->setQualityIcons("sample", quality_values);
 	ui_->samples->setColumnWidth(ui_->samples->columnIndex("comments"), 350);
 
-	//colors //TODO expose as settings in GSvar
+	//colors
 	QColor orange = QColor(255,150,0,125);
 	QColor red = QColor(255,0,0,125);
-	ui_->samples->setBackgroundColorIfEqual("quality", orange, "medium");
-	ui_->samples->setBackgroundColorIfEqual("quality", red, "bad");
 	if (ui_->show_qc->isChecked())
 	{
 		for(int i=0; i<accessions.count(); ++i)

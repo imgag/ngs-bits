@@ -159,6 +159,36 @@ QStringList DBTable::extractColumn(int c) const
 	return output;
 }
 
+void DBTable::formatBooleanColumn(int c)
+{
+	//init
+	static QString s_yes = "yes";
+	static QString s_no = "no";
+
+	//check
+	checkColumnIndex(c);
+
+
+	//content
+	for (int r=0; r<rowCount(); ++r)
+	{
+		const QString& value = rows_[r].value(c);
+		if (value=="1")
+		{
+			rows_[r].setValue(c, s_yes);
+
+		}
+		else if (value=="0")
+		{
+			rows_[r].setValue(c, s_no);
+		}
+		else
+		{
+			THROW(ProgrammingException, "Unhandled value '" + value + "' in DBTable::formatBooleanColumn!");
+		}
+	}
+}
+
 void DBTable::filterRows(QString text, Qt::CaseSensitivity cs)
 {
 	for(int r=rowCount()-1; r>=0; --r) //reverse, so that all indices are valid

@@ -5,7 +5,8 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Log.h"
-#include "NGSD.h"
+
+QMap<QString, TableInfo> GenLabDB::infos_;
 
 GenLabDB::GenLabDB()
 {
@@ -65,13 +66,85 @@ QStringList GenLabDB::tables() const
 	return output;
 }
 
+const TableInfo& GenLabDB::tableInfo(const QString& table) const
+{
+	//create if necessary
+	if (!infos_.contains(table))
+	{
+		//check table exists
+		if (!tables().contains(table))
+		{
+			THROW(DatabaseException, "Table '" + table + "' not found in GenLab database!");
+		}
+
+		TableInfo output;
+		output.setTable(table);
+
+		QList<TableFieldInfo> infos;
+		SqlQuery query = getQuery();
+		query.exec("SELECT column_name, data_type, is_nullable, column_default, character_maximum_length FROM information_schema.columns WHERE table_name='" + table + "' ORDER BY ordinal_position");
+		while(query.next())
+		{
+			//qDebug() << query.value(0) << query.value(1) << query.value(2) << query.value(3) << query.value(4);
+			TableFieldInfo info;
+
+			//name
+			info.name = query.value("column_name").toString();
+
+			//index
+			info.index = output.fieldCount();
+
+			//type
+			QString type = query.value("data_type").toString().toLower();
+			info.is_unsigned = type.contains(" unsigned");
+			if (info.is_unsigned)
+			{
+				type = type.replace(" unsigned", "");
+			}
+			if(type=="int" || type=="smallint") info.type = TableFieldInfo::INT;
+			else if(type=="decimal") info.type = TableFieldInfo::FLOAT;
+			else if(type=="datetime") info.type = TableFieldInfo::DATETIME;
+			else if(type=="nvarchar")
+			{
+				info.type = TableFieldInfo::VARCHAR;
+				if (!query.value("character_maximum_length").isNull())
+				{
+					info.type_constraints.max_length = query.value("character_maximum_length").toInt();
+				}
+			}
+			else
+			{
+				THROW(ProgrammingException, "Unhandled SQL field type '" + type + "' in field '" + info.name + "' of table '" + table + "'!");
+			}
+
+			//nullable
+			info.is_nullable = query.value("is_nullable").toString().toLower()=="YES";
+
+			//default value
+			info.default_value =  query.value("column_default").isNull() ? QString() : query.value(4).toString();
+
+			//labels
+			info.label = info.name;
+			info.label.replace('_', ' ');
+
+			infos.append(info);
+		}
+
+		output.setFieldInfo(infos);
+		infos_.insert(table, output);
+	}
+
+	return infos_[table];
+}
+
 bool GenLabDB::entriesExistForSample(QString sample_name)
 {
 	QStringList tables;
 	tables << "v_ngs_einsender" << "v_ngs_geschlecht" << "v_ngs_icd10" << "v_ngs_hpo"  << "v_ngs_tumoranteil" << "v_ngs_orpha";
 	foreach(QString table, tables)
 	{
-		QSqlQuery query = db_->exec("SELECT COUNT(*) FROM " + table + " WHERE labornummer='" + sample_name + "'");
+		SqlQuery query = getQuery();
+		query.exec("SELECT COUNT(*) FROM " + table + " WHERE labornummer='" + sample_name + "'");
 		query.next();
 		int count = query.value(0).toInt();
 		if (count>0) return true;
@@ -85,7 +158,8 @@ QList<Phenotype> GenLabDB::phenotypes(QString sample_name)
 	NGSD ngsd;
 	QList<Phenotype> output;
 
-	QSqlQuery query = db_->exec("SELECT code FROM v_ngs_hpo WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
+	SqlQuery query = getQuery();
+	query.exec("SELECT code FROM v_ngs_hpo WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
 	while(query.next())
 	{
 		if (query.value(0).toString().trimmed().isEmpty()) continue;
@@ -110,7 +184,8 @@ QList<Phenotype> GenLabDB::phenotypes(QString sample_name)
 
 QStringList GenLabDB::orphanet(QString sample_name)
 {
-	QSqlQuery query = db_->exec("SELECT code FROM v_ngs_orpha WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
+	SqlQuery query = getQuery();
+	query.exec("SELECT code FROM v_ngs_orpha WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
 
 	QStringList output;
 	while(query.next())
@@ -132,7 +207,8 @@ QStringList GenLabDB::orphanet(QString sample_name)
 
 QStringList GenLabDB::diagnosis(QString sample_name)
 {
-	QSqlQuery query = db_->exec("SELECT code FROM v_ngs_icd10 WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
+	SqlQuery query = getQuery();
+	query.exec("SELECT code FROM v_ngs_icd10 WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
 
 	QStringList output;
 	while(query.next())
@@ -149,7 +225,8 @@ QStringList GenLabDB::diagnosis(QString sample_name)
 
 QStringList GenLabDB::tumorFraction(QString sample_name)
 {
-	QSqlQuery query = db_->exec("SELECT TUMORANTEIL FROM v_ngs_tumoranteil WHERE labornummer='" + sample_name + "' AND TUMORANTEIL IS NOT NULL");
+	SqlQuery query = getQuery();
+	query.exec("SELECT TUMORANTEIL FROM v_ngs_tumoranteil WHERE labornummer='" + sample_name + "' AND TUMORANTEIL IS NOT NULL");
 
 	QStringList output;
 	while(query.next())
@@ -169,7 +246,8 @@ QPair<QString, QString> GenLabDB::diseaseInfo(QString ps_name)
 	QString group = "n/a";
 	QString status = "n/a";
 
-	QSqlQuery query = db_->exec("SELECT krankheitsgruppe,patienttyp FROM v_krankheitsgruppe_pattyp WHERE labornummer='" + ps_name + "'");
+	SqlQuery query = getQuery();
+	query.exec("SELECT krankheitsgruppe,patienttyp FROM v_krankheitsgruppe_pattyp WHERE labornummer='" + ps_name + "'");
 	while (query.next())
 	{
 		//group

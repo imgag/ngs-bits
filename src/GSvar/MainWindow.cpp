@@ -1363,6 +1363,7 @@ void MainWindow::loadFile(QString filename)
 			try
 			{
 				cnvs_.load(cnv_file);
+				if (cnvs_.count()>50000) THROW(ArgumentException, "CNV file contains too many CNVs - could not load it!")
 			}
 			catch(Exception& e)
 			{
@@ -2710,6 +2711,13 @@ void MainWindow::on_actionProcessingSystem_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("processing_system");
 	auto dlg = GUIHelper::createDialog(widget, "Processing system administration");
+	dlg->exec();
+}
+
+void MainWindow::on_actionProject_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("project");
+	auto dlg = GUIHelper::createDialog(widget, "Project administration");
 	dlg->exec();
 }
 

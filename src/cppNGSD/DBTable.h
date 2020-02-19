@@ -107,6 +107,9 @@ class CPPNGSDSHARED_EXPORT DBTable
 		///Creates and returns a list of values for a column.
 		QStringList extractColumn(int c) const;
 
+		///Replace 0/1 in boolean column by yes/no
+		void formatBooleanColumn(int c);
+
 		///Removes rows that don't contain the given text.
 		void filterRows(QString text, Qt::CaseSensitivity cs = Qt::CaseInsensitive);
 
