@@ -37,7 +37,7 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	, include_msi_status_(false)
 	, include_cnv_burden_(false)
 	, hrd_score_(0)
-	, include_cin_hint_(false)
+	, cin_chromosomes_()
 	, fusions_detected_(false)
 {
 }
@@ -298,14 +298,27 @@ void SomaticReportConfiguration::setHrdScore(int hrd_score)
 	else hrd_score_ = 0;
 }
 
-bool SomaticReportConfiguration::cinHint() const
+
+const QList<QString>& SomaticReportConfiguration::cinChromosomes() const
 {
-	return include_cin_hint_;
+	return cin_chromosomes_;
 }
 
-void SomaticReportConfiguration::setCinHint(bool include_cin_hint)
+void SomaticReportConfiguration::setCinChromosomes(const QList<QString>& chromosomes)
 {
-	include_cin_hint_ = include_cin_hint;
+
+	const QList<QString> values = {"chr1","chr2","chr3","chr4","chr5","chr6","chr7","chr8","chr9","chr10","chr11","chr12","chr13","chr14","chr15","chr16","chr17","chr18","chr19","chr20","chr21","chr22","chrX","chrY", "chrMT"};
+
+	for(const auto& chr : chromosomes)
+	{
+		if(!values.contains(chr))
+		{
+			THROW(ArgumentException, "Chromosome " + chr +" does not match nomenclature in SomaticReportConfiguration::setCinChromosomes");
+		}
+	}
+
+
+	cin_chromosomes_ = chromosomes;
 }
 
 bool SomaticReportConfiguration::fusionsDetected() const

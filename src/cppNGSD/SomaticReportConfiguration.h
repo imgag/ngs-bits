@@ -4,6 +4,7 @@
 #include "VariantType.h"
 #include "Helper.h"
 #include "ReportConfiguration.h"
+#include <Chromosome.h>
 #include <QString>
 #include <QDateTime>
 
@@ -110,8 +111,9 @@ public:
 	int hrdScore() const;
 	void setHrdScore(int score);
 
-	bool cinHint() const;
-	void setCinHint(bool include_cin_hint);
+	const QList<QString>& cinChromosomes() const;
+	///Setter for CIN chromosomes, pass argument in the form {"chr1", "chr2", ...}
+	void setCinChromosomes(const QList<QString>& chromosomes);
 
 	bool fusionsDetected() const;
 	void setFusionsDetected(bool detected);
@@ -138,7 +140,9 @@ private:
 	bool include_msi_status_;
 	bool include_cnv_burden_;
 	int hrd_score_; //0 no HRD; 1,2 low; 3 intermediate HRD; 4,5 high HRD
-	bool include_cin_hint_;
+
+	//list of instable chromosomes in the form {"chr1", "chr2" ....}
+	QList<QString> cin_chromosomes_;
 
 	bool fusions_detected_;
 

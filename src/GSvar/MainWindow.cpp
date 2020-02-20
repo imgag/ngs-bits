@@ -2237,7 +2237,7 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.filters = ui_.filters->filters();
 
 	NGSD db;
-	//Preselect report settings if not exists to most common values
+	//Preselect report settings if not already exists to most common values
 	if(db.somaticReportConfigId(db.processedSampleId(processedSampleName()), db.processedSampleId(normalSampleName())) == -1)
 	{
 		somatic_report_settings_.report_config.setTumContentByMaxSNV(true);
@@ -2246,7 +2246,6 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setMsiStatus(true);
 		somatic_report_settings_.report_config.setCnvBurden(true);
 		somatic_report_settings_.report_config.setHrdScore(0);
-		somatic_report_settings_.report_config.setCinHint(false);
 	}
 
 	SomaticReportDialog dlg(somatic_report_settings_, variants_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings

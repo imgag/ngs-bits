@@ -1075,10 +1075,10 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `msi_status` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include microsatellite instability status',
   `cnv_burden` BOOLEAN NOT NULL DEFAULT FALSE,
   `hrd_score` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'homologous recombination deficiency score',
-  `cin_hint` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'text hint in report whether there is chromosomal instability',
   `tmb_ref_text` VARCHAR(200) NULL DEFAULT NULL COMMENT 'reference data as free text for tumor mutation burden',
   `quality` ENUM('no abnormalities','tumor cell content too low', 'quality of tumor DNA too low', 'DNA quantity too low') NULL DEFAULT NULL COMMENT 'user comment on the quality of the DNA',
   `fusions_detected` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'fusions or other SVs were detected. Cannot be determined automatically, because manta files contain too many false positives',
+  `cin_chr` TEXT NULL DEFAULT NULL COMMENT 'comma separated list of instable chromosomes',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `combo_som_rep_conf_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
   CONSTRAINT `somatic_report_config_created_by_user` 

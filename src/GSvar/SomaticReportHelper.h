@@ -386,8 +386,12 @@ private:
 	///Parses CN to description
 	QByteArray CnvDescription(const CopyNumberVariant& cnv);
 
+	///Parses annotated cytobands to text, "" if not annotation available
+	QByteArray cytoband(const CopyNumberVariant& cnv);
+
 	///Finds SNV by gene symbol, returns index, -1 otherwise
 	int snvByGene(const VariantList& snvs, QByteArray gene_symbol);
+
 
 	const SomaticReportSettings& settings_;
 
@@ -461,6 +465,7 @@ private:
 	int cnv_index_cgi_driver_statement_;
 	int cnv_index_tumor_clonality_;
 	int cnv_index_tumor_cn_change_;
+	int cnv_index_cytoband_;
 
 	///List of CGI cancer abbreviations that occur ANYWHERE in the report
 	QByteArrayList cgi_acronyms_;

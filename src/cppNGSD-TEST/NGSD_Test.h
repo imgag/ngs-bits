@@ -60,10 +60,11 @@ private:
 		som_rep_conf.setMsiStatus(true);
 		som_rep_conf.setCnvBurden(true);
 		som_rep_conf.setHrdScore(4);
-		som_rep_conf.setCinHint(true);
 		som_rep_conf.setTmbReferenceText("Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
 		som_rep_conf.setQuality("DNA quantity too low");
 		som_rep_conf.setFusionsDetected(true);
+
+		som_rep_conf.setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
 
 
 
@@ -96,10 +97,11 @@ private:
 		IS_TRUE(res_config.msiStatus());
 		IS_TRUE(res_config.cnvBurden());
 		I_EQUAL(res_config.hrdScore(), 4);
-		IS_TRUE(res_config.cinHint());
 		S_EQUAL(res_config.tmbReferenceText(), "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
 		S_EQUAL(res_config.quality(), "DNA quantity too low");
 		IS_TRUE(res_config.fusionsDetected());
+		S_EQUAL(res_config.cinChromosomes().join(','), "chr1,chr5,chr9,chrX,chrY");
+		IS_THROWN(ArgumentException, som_rep_conf.setCinChromosomes({"chr1", "chr24"}));
 
 		//Test variants included in resolved report
 		QList<SomaticReportVariantConfiguration> res =  res_config.variantConfig();
@@ -154,10 +156,12 @@ private:
 		som_rep_conf.setMsiStatus(false);
 		som_rep_conf.setCnvBurden(false);
 		som_rep_conf.setHrdScore(0);
-		som_rep_conf.setCinHint(false);
 		som_rep_conf.setTmbReferenceText("An alternative tmb reference value.");
 		som_rep_conf.setQuality("NON EXISTING IN SOMTATIC_REPORT_CONFIGURATION TABLE");
 		som_rep_conf.setFusionsDetected(false);
+		som_rep_conf.setCinChromosomes({"chr10","chr21"});
+
+
 
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
 
@@ -168,10 +172,10 @@ private:
 		IS_FALSE(res_config_2.msiStatus());
 		IS_FALSE(res_config_2.cnvBurden());
 		I_EQUAL(res_config_2.hrdScore(), 0);
-		IS_FALSE(res_config_2.cinHint());
 		S_EQUAL(res_config_2.tmbReferenceText(), "An alternative tmb reference value.");
 		S_EQUAL(res_config_2.quality(), "");
 		IS_FALSE(res_config_2.fusionsDetected());
+		S_EQUAL(res_config_2.cinChromosomes().join(','), "chr10,chr21");
 
 		SomaticReportConfigurationData config_data_2 =  db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_2.created_by, "Max Mustermann");

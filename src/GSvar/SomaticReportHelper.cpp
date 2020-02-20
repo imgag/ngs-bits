@@ -17,6 +17,7 @@
 #include <QSqlError>
 #include <QMap>
 #include <QPair>
+#include <QCollator>
 
 RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes, int min_amp_cn)
 {
@@ -157,24 +158,30 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			double tum_af = snv.annotations().at(i_tum_af).toDouble();
 			double tum_maximum_clonality = getCnvMaxTumorClonality(cnvs);
 
-
-			QByteArray statement = "";
+			RtfText statement = RtfText("");
 			if(tum_cn_change > 2)
 			{
-				if(tum_af < tum_maximum_clonality/2.) statement = "AMP WT (" + cnv.annotations().at(cnv_index_tumor_cn_change_) + " Kopien)";
-				else if(tum_af > tum_maximum_clonality/2.) statement = "AMP MUT (" + cnv.annotations().at(cnv_index_tumor_cn_change_) + " Kopien)";
+				if(tum_af < tum_maximum_clonality/2.) statement.append("AMP WT (" + cnv.annotations().at(cnv_index_tumor_cn_change_) + " Kopien)");
+				else if(tum_af > tum_maximum_clonality/2.) statement.append("AMP MUT (" + cnv.annotations().at(cnv_index_tumor_cn_change_) + " Kopien)");
 			}
 			else if(tum_cn_change < 2)
 			{
-				if(tum_cn_change == 1 ) statement = "DEL (het)";
-				else if(tum_cn_change == 0) statement = "DEL (hom)";
+				if(tum_cn_change == 1 ) statement.append("DEL (het)");
+				else if(tum_cn_change == 0) statement.append("DEL (hom)");
 			}
 			else if(tum_cn_change == 2)
 			{
-				if(tum_af > tum_clonality/2.) statement = "LOH";
+				if(tum_af > tum_clonality/2.) statement.append("LOH");
+			}
+			statement.setFontSize(18);
+
+			statement.append(RtfText(cnv.chr().strNormalized(true)).setFontSize(14).RtfCode(),true); //chromosome in new line
+			if(cnv_index_cytoband_ > -1)
+			{
+				statement.append(RtfText("; " + cytoband(cnv)).setFontSize(14).RtfCode());
 			}
 
-			temp_cnv_row.addCell(2900,RtfText(statement).setFontSize(18).append(RtfText(cnv.chr().strNormalized(true)).setFontSize(14).RtfCode(),true).RtfCode());
+			temp_cnv_row.addCell(2900,statement.RtfCode());
 
 			QByteArray cnv_type = cnv.annotations().at(cnv_index_cnv_type_);
 			if(!cnv_type.contains("focal") && !cnv_type.contains("cluster")) cnv_type = "non-focal";
@@ -200,7 +207,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			{
 				temp_cnv_row.addCell(3138, driver_statements.join(", "));
 			}
-			else if(statement == "LOH")
+			else if(statement.content().contains("LOH"))
 			{
 				temp_cnv_row.addCell(3138, "Unklare Bedeutung / Verlust des Wildtyp-Allels",RtfParagraph().highlight(3));
 			}
@@ -215,7 +222,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		}
 	}
 
-	//Insert remaining germline variants
+	//Insert remaining germline variantst
 	int i_germl_gene = som_var_in_normal.annotationIndexByName("gene");
 	int i_germl_co_sp = som_var_in_normal.annotationIndexByName("coding_and_splicing");
 	int i_germl_freq_in_tum = som_var_in_normal.annotationIndexByName("freq_in_tum");
@@ -268,6 +275,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		table.addRow(temp);
 		break;
 	}
+
 
 	if(!include_cnvs)	return table;
 
@@ -334,6 +342,9 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		{
 			RtfText cn_statement( CnvTypeDescription(cnv.annotations().at(cnv_index_tumor_cn_change_).toInt()) );
 			cn_statement.append(RtfText(cnv.chr().strNormalized(true)).setFontSize(14).RtfCode(), true);
+
+			if(cnv_index_cytoband_ > -1 ) cn_statement.append(RtfText("; " + cytoband(cnv)).setFontSize(14).RtfCode());
+
 
 			QByteArray tumor_clonality = QByteArray::number(cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2);
 
@@ -965,6 +976,8 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	cnv_index_cgi_driver_statement_ = cnvs_.annotationIndexByName("CGI_driver_statement", false);
 	cnv_index_tumor_clonality_ = cnvs_.annotationIndexByName("tumor_clonality", false);
 	cnv_index_tumor_cn_change_ = cnvs_.annotationIndexByName("tumor_CN_change", false);
+
+	cnv_index_cytoband_ = cnvs.annotationIndexByName("cytoband", false);
 
 
 	//load qcml data
@@ -1749,6 +1762,19 @@ QByteArray SomaticReportHelper::CnvDescription(const CopyNumberVariant& cnv)
 	return "unklare Bedeutung";
 }
 
+QByteArray SomaticReportHelper::cytoband(const CopyNumberVariant &cnv)
+{
+	QByteArray out = "";
+	if(cnv_index_cytoband_ > -1)
+	{
+		QByteArrayList parts = cnv.annotations()[cnv_index_cytoband_].trimmed().split(',');
+		std::sort(parts.begin(),parts.end());
+		if(parts.count() == 1 && !parts[0].isEmpty()) out = parts[0];
+		else if(parts.count() > 1) out = parts.first() + parts.last(); //ISCN 2016 nomenclature
+	}
+	return out;
+}
+
 int SomaticReportHelper::snvByGene(const VariantList &snvs, QByteArray gene_symbol)
 {
 	int i_gene = snvs.annotationIndexByName("gene", true, false);
@@ -1957,9 +1983,22 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 			text_cnv_burden =  "Keine CNVs nachgewiesen";
 		}
 
-		if(settings_.report_config.cinHint())
+		if(settings_.report_config.cinChromosomes().count() > 0)
 		{
-			text_cnv_burden += ", es gibt Hinweise auf eine chromosomale Instabilität)";
+			QList<QString> chr = settings_.report_config.cinChromosomes();
+
+			//Sort chromosomes naturally
+			QCollator coll;
+			coll.setNumericMode(true);
+			std::sort(chr.begin(), chr.end(), [&](const QString s1, const QString& s2){return coll.compare(s1,s2) < 0;});
+
+			text_cnv_burden += ", es gibt Hinweise auf eine chromosomale Instabilität auf Chromosom ";
+			for(int i=0; i< settings_.report_config.cinChromosomes().count(); ++i)
+			{
+				if( i< settings_.report_config.cinChromosomes().count() - 2) text_cnv_burden += chr[i].toUtf8().replace("chr","") + ", ";
+				else if(i == settings_.report_config.cinChromosomes().count() -2 ) text_cnv_burden += chr[i].toUtf8().replace("chr","") + " und ";
+				else text_cnv_burden += chr[i].toUtf8().replace("chr","");
+			}
 		}
 		else
 		{

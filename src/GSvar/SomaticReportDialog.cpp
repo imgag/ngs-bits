@@ -19,6 +19,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 
 	connect(ui_.report_type_rna, SIGNAL(clicked(bool)), this, SLOT(disableGUI()));
 	connect(ui_.report_type_dna, SIGNAL(clicked(bool)), this, SLOT(enableGUI()));
+	connect(ui_.include_cnv_burden, SIGNAL(stateChanged(int)), this, SLOT(cinState()));
 
 
 	//Resolve tumor content estimate from NGSD
@@ -234,9 +235,11 @@ void SomaticReportDialog::updateGUI()
 		ui_.include_cnv_burden->setCheckable(false);
 	}
 
+	//Set CIN options, depends on check state of cnv burden
+	cinState();
+
 	//Preselect remaining options
 	ui_.include_msi_status->setChecked(settings_.report_config.msiStatus());
-	ui_.include_cin_hint->setChecked(settings_.report_config.cinHint());
 	ui_.fusions_detected->setChecked(settings_.report_config.fusionsDetected());
 
 	//index of hrd_score is equal to actual score value
@@ -283,7 +286,6 @@ void SomaticReportDialog::writeBackSettings()
 	settings_.report_config.setTumContentByHistological(ui_.include_tum_content_histological->isChecked());
 	settings_.report_config.setMsiStatus(ui_.include_msi_status->isChecked());
 	settings_.report_config.setCnvBurden(ui_.include_cnv_burden->isChecked());
-	settings_.report_config.setCinHint(ui_.include_cin_hint->isChecked());
 	settings_.report_config.setFusionsDetected(ui_.fusions_detected->isChecked());
 
 	//current index of hrd_score is identical to value!
@@ -321,6 +323,9 @@ void SomaticReportDialog::writeBackSettings()
 			settings_.report_config.removeGermline(ui_.germline_variants->verticalHeaderItem(i)->text().toInt());
 		}
 	}
+
+	//Resolve CIN settings
+	settings_.report_config.setCinChromosomes(resolveCIN());
 }
 
 SomaticReportDialog::report_type SomaticReportDialog::getReportType()
@@ -339,4 +344,38 @@ void SomaticReportDialog::enableChoiceReportType(bool enabled)
 void SomaticReportDialog::enableGapStatistics(bool enabled)
 {
 	ui_.include_low_cov->setEnabled(enabled);
+}
+
+void SomaticReportDialog::cinState()
+{
+	if(ui_.include_cnv_burden->isChecked())
+	{
+		ui_.tabs->setTabEnabled(2, true);
+		//preselect CIN chromosomes
+		for(const auto& chr : settings_.report_config.cinChromosomes())
+		{
+			ui_.cinbox->findChild<QCheckBox*>(chr)->setChecked(true);
+		}
+	}
+	else
+	{
+
+		ui_.tabs->setTabEnabled(2, false); //CIN tab
+
+
+		for(const auto& checkbox : ui_.cinbox->findChildren<QCheckBox*>())
+		{
+			checkbox->setChecked(false);
+		}
+	}
+}
+
+QList<QString> SomaticReportDialog::resolveCIN()
+{
+	QList<QString> out = {};
+	for(const auto& checkbox : ui_.cinbox->findChildren<QCheckBox*>())
+	{
+		if(checkbox->isChecked()) out << checkbox->text();
+	}
+	return out;
 }

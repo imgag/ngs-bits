@@ -3433,7 +3433,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 
 
 		//Update somatic report configuration: last_edit_by, last_edit_user and target_file
-		query.prepare("UPDATE `somatic_report_configuration` SET `last_edit_by`= :0, `last_edit_date` = CURRENT_TIMESTAMP, `target_file`= :1, `tum_content_max_af` =:2, `tum_content_max_clonality` =:3, `tum_content_hist` =:4, `msi_status` =:5, `cnv_burden` =:6, `hrd_score` =:7, `cin_hint` =:8, `tmb_ref_text` =:9, `quality` =:10, `fusions_detected` = :11 WHERE id=:12");
+		query.prepare("UPDATE `somatic_report_configuration` SET `last_edit_by`= :0, `last_edit_date` = CURRENT_TIMESTAMP, `target_file`= :1, `tum_content_max_af` =:2, `tum_content_max_clonality` =:3, `tum_content_hist` =:4, `msi_status` =:5, `cnv_burden` =:6, `hrd_score` =:7, `tmb_ref_text` =:8, `quality` =:9, `fusions_detected`=:10, `cin_chr`=:11 WHERE id=:12");
 		query.bindValue(0, userId(user_name));
 		if(target_file != "") query.bindValue(1, target_file);
 		else query.bindValue(1, QVariant(QVariant::String));
@@ -3443,14 +3443,15 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		query.bindValue(5, config.msiStatus());
 		query.bindValue(6, config.cnvBurden());
 		query.bindValue(7, config.hrdScore());
-		query.bindValue(8, config.cinHint());
-		query.bindValue(9, config.tmbReferenceText());
 
-		if( getEnum("somatic_report_configuration", "quality").contains(config.quality()) ) query.bindValue(10, config.quality());
-		else query.bindValue(10, QVariant(QVariant::String));
+		query.bindValue(8, config.tmbReferenceText());
 
-		query.bindValue(11, config.fusionsDetected());
+		if( getEnum("somatic_report_configuration", "quality").contains(config.quality()) ) query.bindValue(9, config.quality());
+		else query.bindValue(9, QVariant(QVariant::String));
 
+		query.bindValue(10, config.fusionsDetected());
+		if(config.cinChromosomes().count() > 0)	query.bindValue( 11, config.cinChromosomes().join(',') );
+		else query.bindValue( 11, QVariant(QVariant::String) );
 
 		query.bindValue(12, id);
 		query.exec();
@@ -3458,7 +3459,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 	else
 	{
 		SqlQuery query = getQuery();
-		query.prepare("INSERT INTO `somatic_report_configuration` (`ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_score`, `cin_hint`, `tmb_ref_text`, `quality`, `fusions_detected`) VALUES (:0, :1, :2, :3, :4, CURRENT_TIMESTAMP, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15)");
+		query.prepare("INSERT INTO `somatic_report_configuration` (`ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_score`, `tmb_ref_text`, `quality`, `fusions_detected`, `cin_chr`) VALUES (:0, :1, :2, :3, :4, CURRENT_TIMESTAMP, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15)");
 
 		query.bindValue(0, t_ps_id);
 		query.bindValue(1, n_ps_id);
@@ -3475,14 +3476,16 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 		query.bindValue(9, config.msiStatus());
 		query.bindValue(10, config.cnvBurden());
 		query.bindValue(11, config.hrdScore());
-		query.bindValue(12, config.cinHint());
 
-		query.bindValue(13, config.tmbReferenceText());
+		query.bindValue(12, config.tmbReferenceText());
 
-		if( getEnum("somatic_report_configuration", "quality").contains(config.quality()) ) query.bindValue(14, config.quality());
-		else query.bindValue(14, QVariant(QVariant::String));
+		if( getEnum("somatic_report_configuration", "quality").contains(config.quality()) ) query.bindValue(13, config.quality());
+		else query.bindValue(13, QVariant(QVariant::String));
 
-		query.bindValue(15, config.fusionsDetected());
+		query.bindValue(14, config.fusionsDetected());
+
+		if(config.cinChromosomes().count() != 0) query.bindValue(15, config.cinChromosomes().join(','));
+		else query.bindValue(15, QVariant(QVariant::String));
 
 		query.exec();
 		id = query.lastInsertId().toInt();
@@ -3646,7 +3649,6 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 	output.setMsiStatus(query.value("msi_status").toBool());
 	output.setCnvBurden(query.value("cnv_burden").toBool());
 	output.setHrdScore(query.value("hrd_score").toInt());
-	output.setCinHint(query.value("cin_hint").toBool());
 
 	if(query.value("tmb_ref_text").isNull()) output.setTmbReferenceText("");
 	else output.setTmbReferenceText(query.value("tmb_ref_text").toString());
@@ -3655,6 +3657,8 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 	else output.setQuality(query.value("quality").toString());
 
 	output.setFusionsDetected(query.value("fusions_detected").toBool());
+
+	if(!query.value("cin_chr").isNull()) output.setCinChromosomes( query.value("cin_chr").toString().split(',') );
 
 
 	//Load SNVs

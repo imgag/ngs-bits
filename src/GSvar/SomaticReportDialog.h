@@ -52,6 +52,11 @@ private slots:
 
 	void disableGUI();
 	void enableGUI();
+
+	///Disable CIN tab and uncheck all chromosomes. Depends on CNV burden
+	void cinState();
+
+	QList<QString> resolveCIN();
 };
 
 #endif // SOMATICREPORTDIALOG_H
