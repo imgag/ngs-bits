@@ -2580,8 +2580,7 @@ void MainWindow::on_actionStatistics_triggered()
 {
 	try
 	{
-		NGSD db;
-		db.checkUserHasAccess(QStringList() << "admin");
+		LoginManager::checkRoleIn(QStringList() << "admin");
 	}
 	catch (Exception& e)
 	{
@@ -2751,8 +2750,7 @@ void MainWindow::on_actionUsers_triggered()
 {
 	try
 	{
-		NGSD db;
-		db.checkUserHasAccess(QStringList() << "admin");
+		LoginManager::checkRoleIn(QStringList() << "admin");
 	}
 	catch (Exception& e)
 	{
@@ -4390,9 +4388,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionRunOverview->setEnabled(ngsd_user_logged_in);
 	//toolbar - NGSD search menu
 	QToolButton* ngsd_search_btn = ui_.tools->findChild<QToolButton*>("ngsd_search_btn");
-	qDebug() << ngsd_search_btn;
-	QList<QAction*> ngsd_search_actions = ngsd_search_btn->menu()->findChildren<QAction*>();
-	qDebug() << ngsd_search_actions;
+	QList<QAction*> ngsd_search_actions = ngsd_search_btn->menu()->actions();
 	foreach(QAction* action, ngsd_search_actions)
 	{
 		action->setEnabled(ngsd_user_logged_in);

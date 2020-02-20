@@ -33,7 +33,7 @@ void LoginManager::login(QString user)
 	NGSD db;
 	QString user_id = QString::number(db.userId(user, true));
 
-	//determine type
+	//determine role
 	LoginManager& manager = instance();
 	manager.user_ = user;
 	manager.role_ = db.getValue("SELECT type FROM user WHERE id='" + user_id + "'").toString();

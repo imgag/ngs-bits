@@ -23,7 +23,6 @@ GSvar:
 * Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
 #### Sample search: Delete processed samples
 #### Run tab: add column '% reads'
-#### Disable NGSD functionality if there is no account (LoginManager class - login, ngsd_enabed, user type)
 ** Popup notification for segregations - every time a new case is loaded
 *** gene selector: add support for CnvHunter (needs low-quality regions (also CNV to track name) > update ClinCNV first> update docu)
 *** XML report: add OMIM gene / phenotype disease info
