@@ -311,7 +311,6 @@ protected:
 private:
 	//GUI
 	Ui::MainWindow ui_;
-	bool ngsd_enabled_;
 	int var_last_;
 	BusyDialog* busy_dialog_;
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
