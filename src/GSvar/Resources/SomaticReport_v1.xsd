@@ -47,7 +47,7 @@
 					<xs:complexType>
 						<xs:attribute name="name" use="required">
 							<xs:annotation>
-								<xs:documentation>sample name</xs:documentation>
+								<xs:documentation>sample name/identifier</xs:documentation>
 							</xs:annotation>
 							<xs:simpleType>
 								<xs:restriction base="xs:string">
@@ -77,35 +77,66 @@
 								<xs:documentation>Sequencer used for data generation</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
-						<xs:attribute name="average_depth" type="xs:float" use="required">
+						<xs:attribute name="average_depth" use="required">
 							<xs:annotation>
 								<xs:documentation>Average depth of the sample (in the target region)</xs:documentation>
 							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+								</xs:restriction>
+							</xs:simpleType>
 						</xs:attribute>
-						<xs:attribute name="tumor_content_histology" type="xs:string">
+						<xs:attribute name="tumor_content_histology">
 							<xs:annotation>
 								<xs:documentation>tumor content determined by pathology</xs:documentation>
 							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+									<xs:maxInclusive value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
 						</xs:attribute>
-						<xs:attribute name="tumor_content_bioinformatic" type="xs:string">
+						<xs:attribute name="tumor_content_bioinformatic">
 							<xs:annotation>
 								<xs:documentation>tumor content determined from the data</xs:documentation>
 							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+									<xs:maxInclusive value="1"/>
+								</xs:restriction>
+							</xs:simpleType>
 						</xs:attribute>
-						<xs:attribute name="mutation_burden" type="xs:string">
+						<xs:attribute name="mutation_burden">
 							<xs:annotation>
 								<xs:documentation>tumor mutation burden in mutations per megabase</xs:documentation>
 							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+								</xs:restriction>
+							</xs:simpleType>
 						</xs:attribute>
-						<xs:attribute name="microsatellite_instabilty" type="xs:string">
+						<xs:attribute name="microsatellite_instabilty">
 							<xs:annotation>
 								<xs:documentation>Microsatellite instabiilty score</xs:documentation>
 							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+									<xs:maxInclusive value="2"/>
+								</xs:restriction>
+							</xs:simpleType>
 						</xs:attribute>
-						<xs:attribute name="hrd_score" type="xs:string">
+						<xs:attribute name="hrd_score">
 							<xs:annotation>
 								<xs:documentation>homologous recombination deficiency score</xs:documentation>
 							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:int"/>
+							</xs:simpleType>
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
@@ -116,7 +147,7 @@
 					<xs:complexType>
 						<xs:attribute name="name" use="required">
 							<xs:annotation>
-								<xs:documentation>sample name</xs:documentation>
+								<xs:documentation>sample name/identifier</xs:documentation>
 							</xs:annotation>
 							<xs:simpleType>
 								<xs:restriction base="xs:string">
@@ -146,10 +177,15 @@
 								<xs:documentation>Sequencer used for data generation</xs:documentation>
 							</xs:annotation>
 						</xs:attribute>
-						<xs:attribute name="average_depth" type="xs:float" use="required">
+						<xs:attribute name="average_depth" use="required">
 							<xs:annotation>
 								<xs:documentation>Average depth of the sample (in the target region)</xs:documentation>
 							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:float">
+									<xs:minInclusive value="0"/>
+								</xs:restriction>
+							</xs:simpleType>
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
@@ -234,6 +270,11 @@
 									<xs:attribute name="name" type="xs:string" use="required">
 										<xs:annotation>
 											<xs:documentation>Gene symbol (HGNC)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="id" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>HGNC gene identifer</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
 								</xs:complexType>
@@ -325,6 +366,21 @@
 														<xs:documentation>HGNC gene identifer</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
+												<xs:attribute name="effect">
+													<xs:annotation>
+														<xs:documentation>Effect of the variant on the gene</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="activating"/>
+															<xs:enumeration value="likely activating"/>
+															<xs:enumeration value="likely inactivating"/>
+															<xs:enumeration value="inactivating"/>
+															<xs:enumeration value="unclear"/>
+															<xs:enumeration value="test dependent"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
 											</xs:complexType>
 										</xs:element>
 										<xs:element name="TranscriptInformation" minOccurs="0" maxOccurs="unbounded">
@@ -360,6 +416,11 @@
 												<xs:attribute name="exon" type="xs:string" use="required">
 													<xs:annotation>
 														<xs:documentation>exon number, e.g. 11/27. The second number is the overal number of exons of the transcript</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="variant_type" type="xs:string" use="required">
+													<xs:annotation>
+														<xs:documentation>variant type according to sequence ontology, see http://www.sequenceontology.org/</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
 												<xs:attribute name="main_transcript" type="xs:boolean" use="required">
@@ -533,6 +594,21 @@
 														<xs:documentation>HGNC gene identifer</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
+												<xs:attribute name="effect">
+													<xs:annotation>
+														<xs:documentation>Effect of the variant on the gene</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="activating"/>
+															<xs:enumeration value="likely activating"/>
+															<xs:enumeration value="likely inactivating"/>
+															<xs:enumeration value="inactivating"/>
+															<xs:enumeration value="unclear"/>
+															<xs:enumeration value="test dependent"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
 											</xs:complexType>
 										</xs:element>
 									</xs:sequence>
@@ -595,6 +671,36 @@
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
+									<xs:attribute name="cn" use="required">
+										<xs:annotation>
+											<xs:documentation>Estimated copy-number in tumor</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:int">
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="cn_a" use="required">
+										<xs:annotation>
+											<xs:documentation>Estimated copy-number in allele A of tumor</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:int">
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="cn_b" use="required">
+										<xs:annotation>
+											<xs:documentation>Estimated copy-number in allele B of tumor</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:int">
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 						</xs:sequence>
@@ -636,7 +742,7 @@
 			</xs:attribute>
 			<xs:attribute name="genome_build" use="required">
 				<xs:annotation>
-					<xs:documentation>genome build that all variant positions refer to</xs:documentation>
+					<xs:documentation>reference genome build that all variant positions refer to</xs:documentation>
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
