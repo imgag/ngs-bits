@@ -45,8 +45,6 @@ FilterWidget::FilterWidget(QWidget *parent)
 
 	connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 	connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
-	ui_.hpo_terms->setEnabled(LoginManager::active());
-
 
 	connect(ui_.gene, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showGeneContextMenu(QPoint)));
 
@@ -180,6 +178,11 @@ void FilterWidget::setFilter(QString name)
 			return;
 		}
 	}
+}
+
+void FilterWidget::updateNGSDSupport()
+{
+	ui_.hpo_terms->setEnabled(LoginManager::active());
 }
 
 void FilterWidget::reset(bool clear_roi)

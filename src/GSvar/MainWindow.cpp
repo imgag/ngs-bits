@@ -4401,6 +4401,8 @@ void MainWindow::updateNGSDSupport()
 	//other actions
 	ui_.actionOpenByName->setEnabled(ngsd_user_logged_in);
 	ui_.ps_details->setEnabled(ngsd_user_logged_in);
+
+	ui_.filters->updateNGSDSupport();
 }
 
 void MainWindow::openRecentFile()

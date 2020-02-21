@@ -4,6 +4,7 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
+#### Device: add comment column (TEXT)
 ** gene tab: show transcript table, add links (gnomad, ....)
 * Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
@@ -19,7 +20,8 @@ NGSD:
 GSvar:
 * Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
 * Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
-#### Admin pages: Edit via double-click on line
+#### Use user name instead of Helper::userName() in GSvar
+#### Admin pages, variant validation, elsewhere? - search for 'Edit'! : Edit via double-click on line
 #### Sample search: Add option to delete processed samples
 ** Popup notification for segregations - every time a new case is loaded
 *** gene selector: add support for CnvHunter > update docu of low quality regions > LEON
