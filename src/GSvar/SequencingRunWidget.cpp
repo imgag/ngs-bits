@@ -95,11 +95,12 @@ void SequencingRunWidget::updateRunSampleTable()
 	QStringList headers;
 	headers << "lane" << "quality" << "sample" << "project" << "MID i7" << "MID i5" << "species" << "processing system" << "operator" << "comments";
 
-	//qc data
+	//add QC data
 	QStringList accessions;
 	accessions << "QC:2000005" << "QC:2000023" << "QC:2000021" << "QC:2000024" << "QC:2000025" << "QC:2000027" << "QC:2000013" << "QC:2000014" << "QC:2000051";
 	if (ui_->show_qc->isChecked())
 	{
+		//create column data
 		QList<QStringList> cols;
 		while(cols.count()< accessions.count()) cols << QStringList();
 		for (int r=0; r<samples.rowCount(); ++r)
@@ -118,15 +119,42 @@ void SequencingRunWidget::updateRunSampleTable()
 				}
 			}
 		}
+		//add columns
 		for(int i=0; i<accessions.count(); ++i)
 		{
 			QString header = db.getValue("SELECT name FROM qc_terms WHERE qcml_id=:0", true, accessions[i]).toString();
 			header.replace("percentage", "%");
 			samples.addColumn(cols[i], header);
 			headers << header;
+
+			//add 'read %' column
+			if (accessions[i]=="QC:2000005")
+			{
+				double sum = 0;
+				foreach(const QString& count, cols[i])
+				{
+					if (!count.isEmpty()) sum += count.toDouble();
+				}
+				QStringList col;
+				foreach(const QString& count, cols[i])
+				{
+					if (count.isEmpty())
+					{
+						col << "";
+					}
+					else
+					{
+						col << QString::number(100.0 * count.toDouble() / sum, 'f', 2);
+					}
+				}
+				samples.addColumn(col, "read %");
+				headers << "read %";
+			}
 		}
 	}
 	samples.setHeaders(headers);
+
+	//show table in GUI
 	QStringList quality_values = samples.takeColumn(samples.columnIndex("quality"));
 	ui_->samples->setData(samples);
 	ui_->samples->setQualityIcons("sample", quality_values);

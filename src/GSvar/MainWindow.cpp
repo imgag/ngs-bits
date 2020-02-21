@@ -510,7 +510,7 @@ void MainWindow::delayedInitialization()
 		Settings::createBackup();
 	}
 
-	//TODO also check user password - force new password when salt is missing - AFTER NGSD IS NO LONGER USED > MARC
+	//TODO also check user password (show dialog where the user name is pre-filled but can be changed) - force new password when salt is missing - AFTER NGSD IS NO LONGER USED > MARC
 	//check user is in NGSD
 	if (Settings::boolean("NGSD_enabled", true))
 	{

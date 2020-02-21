@@ -36,7 +36,7 @@ void LoginManager::login(QString user)
 	//determine role
 	LoginManager& manager = instance();
 	manager.user_ = user;
-	manager.role_ = db.getValue("SELECT type FROM user WHERE id='" + user_id + "'").toString();
+	manager.role_ = db.getValue("SELECT user_role FROM user WHERE id='" + user_id + "'").toString();
 
 	//update last login
 	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + user_id + "'");

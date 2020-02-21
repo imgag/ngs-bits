@@ -17,14 +17,12 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-** CNVs add columns: overlap with class 4/5 CNV in NGSD
-** CNVs add filter: log-likelihood/regions >= x
 * Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
 * Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
-#### Sample search: Delete processed samples
-#### Run tab: add column '% reads'
+#### Admin pages: Edit via double-click on line
+#### Sample search: Add option to delete processed samples
 ** Popup notification for segregations - every time a new case is loaded
-*** gene selector: add support for CnvHunter (needs low-quality regions (also CNV to track name) > update ClinCNV first> update docu)
+*** gene selector: add support for CnvHunter > update docu of low quality regions > LEON
 *** XML report: add OMIM gene / phenotype disease info
 * Allow ClinCNV upload
     - small variants and CNVs

@@ -1,8 +1,8 @@
 # GSvar change log
 
 ### 2019_11-122 (17.02.20)
-- moved comment, classification and variant validation from variant details to variant context menu.
-- added OMIM dialog (NGSD > genes > Gene OMIM info)
+- General: moved comment, classification and variant validation from variant details to variant context menu.
+- General: Added OMIM dialog (NGSD > genes > Gene OMIM info)
 - Sample search: Added device filter.
 - CNV search: Added copy-number filter.
 - Sequencing run overview: Added column 'sample count'.

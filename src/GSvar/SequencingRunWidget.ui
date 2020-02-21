@@ -457,7 +457,7 @@
        <item row="0" column="0" colspan="3">
         <widget class="QLabel" name="sample_count">
          <property name="text">
-          <string>TextLabel</string>
+          <string>#samples, etc</string>
          </property>
         </widget>
        </item>
