@@ -89,11 +89,11 @@ QT_CHARTS_USE_NAMESPACE
 #include "VariantValidationWidget.h"
 #include "SomaticReportDialog.h"
 #include "GeneOmimInfoWidget.h"
+#include "LoginManager.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
-	, ngsd_enabled_(Settings::boolean("NGSD_enabled", true))
 	, var_last_(-1)
 	, busy_dialog_(nullptr)
 	, filename_()
@@ -118,10 +118,11 @@ MainWindow::MainWindow(QWidget *parent)
 
 	//NGSD search button
 	auto ngsd_btn = new QToolButton();
+	ngsd_btn->setObjectName("ngsd_search_btn");
 	ngsd_btn->setIcon(QIcon(":/Icons/NGSD_search.png"));
 	ngsd_btn->setToolTip("Open NGSD item as tab.");
 	ngsd_btn->setMenu(new QMenu());
-	ngsd_btn->menu()->addAction(ui_.actionOpenProcessedSampleTabByName );
+	ngsd_btn->menu()->addAction(ui_.actionOpenProcessedSampleTabByName);
 	ngsd_btn->menu()->addAction(ui_.actionOpenSequencingRunTabByName);
 	ngsd_btn->menu()->addAction(ui_.actionOpenGeneTabByName);
 	ngsd_btn->menu()->addAction(ui_.actionOpenProjectTab);
@@ -129,7 +130,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->menu()->addAction(ui_.actionOpenProcessingSystemTab);
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
-	ngsd_btn->menu()->setEnabled(ngsd_enabled_);
 
 	//signals and slots
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
@@ -302,17 +302,19 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	//determine processed sample ID (needed for report config - so only germline)
-	QString ps_id = NGSD().processedSampleId(processedSampleName(), false);
+	QString ps_id = "";
+	CnvWidget *list;
+	if (LoginManager::active())
+	{
+		if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+		{
+			list = new CnvWidget(cnvs_, ps_id, ui_.filters, somatic_report_settings_.report_config, het_hit_genes, gene2region_cache_);
+		}
+		else if(germlineReportSupported(variants_.type()))
+		{
+			list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
+		}
 
-	//open CNV window
-	CnvWidget* list;
-	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
-	{
-		list = new CnvWidget(cnvs_, ps_id, ui_.filters, somatic_report_settings_.report_config, het_hit_genes, gene2region_cache_);
-	}
-	else
-	{
-		list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
 	}
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	connect(list, SIGNAL(storeReportConfiguration()), this, SLOT(storeReportConfig()));
@@ -517,22 +519,18 @@ void MainWindow::delayedInitialization()
 		Settings::createBackup();
 	}
 
-	//TODO also check user password - force new password when salt is missing - AFTER NGSD IS NO LONGER USED > MARC
+	//TODO also check user password (show dialog where the user name is pre-filled but can be changed) - force new password when salt is missing - AFTER NGSD IS NO LONGER USED > MARC
 	//check user is in NGSD
-	if (ngsd_enabled_&& !Settings::boolean("debug_mode_enabled"))
+	if (Settings::boolean("NGSD_enabled", true))
 	{
 		QString user_name = Helper::userName();
 		try
 		{
-			NGSD db;
-			int user_id = db.userId(user_name, true);
-			db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(user_id) + "'");
+			LoginManager::login(user_name);
 		}
 		catch (DatabaseException& e)
 		{
-			QMessageBox::warning(this, "Unknown user", "There is no active NGSD account with user name '" + user_name + "'.\n\nPlease contact the NGSD adminstrator to create an account!");
-			close();
-			return;
+			QMessageBox::warning(this, "Unknown user", "There is no active NGSD account with user name '" + user_name + "'.\n\nNGSD functionality is disabled!");
 		}
 	}
 
@@ -552,7 +550,7 @@ void MainWindow::delayedInitialization()
 			{
 				loadFile(arg);
 			}
-			else if (ngsd_enabled_) //processed sample name (via NGSD)
+			else if (LoginManager::active()) //processed sample name (via NGSD)
 			{
 				NGSD db;
 				if (db.processedSampleId(arg, false)!="")
@@ -585,7 +583,7 @@ void MainWindow::variantCellDoubleClicked(int row, int /*col*/)
 
 void MainWindow::variantHeaderDoubleClicked(int row)
 {
-	if (!ngsd_enabled_) return;
+	if (!LoginManager::active()) return;
 
 	int var_index = ui_.vars->rowToVariantIndex(row);
 	editVariantReportConfiguration(var_index);
@@ -1438,7 +1436,7 @@ void MainWindow::loadFile(QString filename)
 	SettingsType settings_type = ReportSettingsType();
 
 	//load report config
-	if (ngsd_enabled_ && settings_type == SettingsType::GERMLINE)
+	if (LoginManager::active() && settings_type == SettingsType::GERMLINE)
 	{
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
@@ -1451,7 +1449,7 @@ void MainWindow::loadFile(QString filename)
 			}
 		}
 	}
-	else if(ngsd_enabled_ && settings_type == SettingsType::SOMATIC)
+	else if(LoginManager::active() && settings_type == SettingsType::SOMATIC)
 	{
 		ui_.filters->disableReportConfigurationVariantsOnly();
 		loadSomaticReportConfig();
@@ -1718,7 +1716,7 @@ void MainWindow::loadSomaticReportConfig()
 void MainWindow::storeSomaticReportConfig()
 {
 	if(filename_ == "") return;
-	if(!ngsd_enabled_) return;
+	if(!LoginManager::active()) return;
 	if(variants_.type() != SOMATIC_PAIR) return;
 
 	NGSD db;
@@ -1759,7 +1757,7 @@ void MainWindow::storeReportConfig()
 {
 	//check if applicable
 	if (filename_=="") return;
-	if (!ngsd_enabled_) return;
+	if (!LoginManager::active()) return;
 	if (!germlineReportSupported(variants_.type())) return;
 
 	//check sample
@@ -2228,7 +2226,7 @@ void MainWindow::generateReport()
 
 void MainWindow::generateReportSomaticRTF()
 {
-	if(!ngsd_enabled_) return;
+	if(!LoginManager::active()) return;
 
 	//Set data in somatic report settings
 	somatic_report_settings_.report_config.setTargetFile(ui_.filters->targetRegion());
@@ -2715,8 +2713,7 @@ void MainWindow::on_actionStatistics_triggered()
 {
 	try
 	{
-		NGSD db;
-		db.checkUserHasAccess(QStringList() << "admin");
+		LoginManager::checkRoleIn(QStringList() << "admin");
 	}
 	catch (Exception& e)
 	{
@@ -2886,8 +2883,7 @@ void MainWindow::on_actionUsers_triggered()
 {
 	try
 	{
-		NGSD db;
-		db.checkUserHasAccess(QStringList() << "admin");
+		LoginManager::checkRoleIn(QStringList() << "admin");
 	}
 	catch (Exception& e)
 	{
@@ -3089,7 +3085,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 			genes = GeneSet::createFromFile(genes_file);
 		}
 	}
-	else if (ngsd_enabled_)
+	else if (LoginManager::active())
 	{
 		QMessageBox::StandardButton btn = QMessageBox::information(this, "Gaps error", "No target region filter set!<br>Do you want to look up gaps for a specific gene?", QMessageBox::Yes, QMessageBox::No);
 		if (btn!=QMessageBox::Yes) return;
@@ -3528,7 +3524,7 @@ void MainWindow::varsContextMenu(QPoint pos)
 
 void MainWindow::varHeaderContextMenu(QPoint pos)
 {
-	if (!ngsd_enabled_) return;
+	if (!LoginManager::active()) return;
 
 	//get variant index
 	int row = ui_.vars->verticalHeader()->visualIndexAt(pos.ry());
@@ -3563,6 +3559,7 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 {
 	//init
+	bool  ngsd_user_logged_in = LoginManager::active();
 	const Variant& variant = variants_[index];
 	int i_gene = variants_.annotationIndexByName("gene", true, true);
 	QStringList genes = QString(variant.annotations()[i_gene]).split(',', QString::SkipEmptyParts);
@@ -3576,20 +3573,20 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 
 	//NGSD report configuration
 	QAction* a_report_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
-	a_report_edit->setEnabled(ngsd_enabled_);
+	a_report_edit->setEnabled(ngsd_user_logged_in);
 	QAction* a_report_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	a_report_del->setEnabled(ngsd_enabled_ && (report_settings_.report_config.exists(VariantType::SNVS_INDELS, index) || somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index)));
+	a_report_del->setEnabled(ngsd_user_logged_in && report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
 	menu.addSeparator();
 
 	//NGSD variant options
 	QAction* a_var_class = menu.addAction("Edit classification");
-	a_var_class->setEnabled(ngsd_enabled_);
+	a_var_class->setEnabled(ngsd_user_logged_in);
 	QAction* a_var_class_somatic = menu.addAction("Edit classification  (somatic)");
-	a_var_class_somatic->setEnabled(ngsd_enabled_);
+	a_var_class_somatic->setEnabled(ngsd_user_logged_in);
 	QAction* a_var_comment = menu.addAction("Edit comment");
-	a_var_comment->setEnabled(ngsd_enabled_);
+	a_var_comment->setEnabled(ngsd_user_logged_in);
 	QAction* a_var_val = menu.addAction("Perform variant validation");
-	a_var_val->setEnabled(ngsd_enabled_);
+	a_var_val->setEnabled(ngsd_user_logged_in);
 	menu.addSeparator();
 
 	//NGSD gene info
@@ -3601,7 +3598,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		{
 			sub_menu->addAction(g);
 		}
-		sub_menu->setEnabled(ngsd_enabled_);
+		sub_menu->setEnabled(ngsd_user_logged_in);
 	}
 
 	//HGMD
@@ -3692,7 +3689,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	sub_menu = menu.addMenu(QIcon("://Icons/LOVD.png"), "LOVD");
 	QAction* a_lovd_find = sub_menu->addAction("Find in LOVD");
 	QAction* a_lovd_pub = sub_menu->addAction("Publish in LOVD");
-	a_lovd_pub->setEnabled(ngsd_enabled_);
+	a_lovd_pub->setEnabled(ngsd_user_logged_in);
 
 	//MitoMap
 	QAction* a_mitomap = menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
@@ -4223,7 +4220,7 @@ QList<IgvFile> MainWindow::getBamFiles()
 			found = true;
 			output << IgvFile{info.id, "BAM" , bam2};
 		}
-		else if (ngsd_enabled_)
+		else if (LoginManager::active())
 		{
 			NGSD db;
 			QString ps_id = db.processedSampleId(info.id, false);
@@ -4578,24 +4575,35 @@ void MainWindow::updateIGVMenu()
 
 void MainWindow::updateNGSDSupport()
 {
+	//init
 	bool target_file_folder_set = Settings::string("target_file_folder_windows")!="" && Settings::string("target_file_folder_linux")!="";
+	bool ngsd_user_logged_in = LoginManager::active();
 
 	//toolbar
-	ui_.report_btn->setEnabled(ngsd_enabled_);
-	ui_.actionAnalysisStatus->setEnabled(ngsd_enabled_);
-	ui_.actionReanalyze->setEnabled(ngsd_enabled_);
-	ui_.actionGapsRecalculate->setEnabled(ngsd_enabled_);
-	ui_.actionGeneSelector->setEnabled(ngsd_enabled_);
-	ui_.actionSampleSearch->setEnabled(ngsd_enabled_);
-	ui_.actionRunOverview->setEnabled(ngsd_enabled_);
+	ui_.report_btn->setEnabled(ngsd_user_logged_in);
+	ui_.actionAnalysisStatus->setEnabled(ngsd_user_logged_in);
+	ui_.actionReanalyze->setEnabled(ngsd_user_logged_in);
+	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
+	ui_.actionGeneSelector->setEnabled(ngsd_user_logged_in);
+	ui_.actionSampleSearch->setEnabled(ngsd_user_logged_in);
+	ui_.actionRunOverview->setEnabled(ngsd_user_logged_in);
+	//toolbar - NGSD search menu
+	QToolButton* ngsd_search_btn = ui_.tools->findChild<QToolButton*>("ngsd_search_btn");
+	QList<QAction*> ngsd_search_actions = ngsd_search_btn->menu()->actions();
+	foreach(QAction* action, ngsd_search_actions)
+	{
+		action->setEnabled(ngsd_user_logged_in);
+	}
 
 	//NGSD menu
-	ui_.menuNGSD->setEnabled(ngsd_enabled_);
-	ui_.actionDesignSubpanel->setEnabled(ngsd_enabled_ && target_file_folder_set);
+	ui_.menuNGSD->setEnabled(ngsd_user_logged_in);
+	ui_.actionDesignSubpanel->setEnabled(ngsd_user_logged_in && target_file_folder_set);
 
 	//other actions
-	ui_.actionOpenByName->setEnabled(ngsd_enabled_);
-	ui_.ps_details->setEnabled(ngsd_enabled_);
+	ui_.actionOpenByName->setEnabled(ngsd_user_logged_in);
+	ui_.ps_details->setEnabled(ngsd_user_logged_in);
+
+	ui_.filters->updateNGSDSupport();
 }
 
 void MainWindow::openRecentFile()

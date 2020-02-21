@@ -6,6 +6,7 @@
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
+#include "LoginManager.h"
 #include <QFileInfo>
 #include <QCompleter>
 #include <QMenu>
@@ -43,7 +44,7 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	ui_.roi->addAction(action);
 
 	connect(ui_.hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
-	ui_.hpo->setEnabled(Settings::boolean("NGSD_enabled", true));
+	ui_.hpo->setEnabled(LoginManager::active());
 
 	FilterWidget::loadTargetRegions(ui_.roi);
 	loadFilters();

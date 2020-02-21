@@ -519,8 +519,6 @@ public:
 	QString userName(int user_id=-1);
 	///Returns the user email corresponding the given ID. If no ID is given, the current user ID is used (see userId()).
 	QString userEmail(int user_id=-1);
-	///Checks that the user has one of the given user roles. Throws an Exception otherwise.
-	void checkUserHasAccess(QStringList roles, QString user_name=Helper::userName());
 	///Replacement for passwords when they are shown in the GUI.
 	static const QString& passordReplacement();
 

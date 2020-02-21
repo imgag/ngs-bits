@@ -58,11 +58,13 @@ public:
 	/// Helper for loading target regions (also in CNV/SV widget)
 	static void loadTargetRegions(QComboBox* box);
 
-	//Returns the filter INI file name
+	///Returns the filter INI file name
 	static QString filterFileName();
 	///Sets the filter (for small variants)
 	void setFilter(QString name);
 
+	//Updates widgets according to NGSD support
+	void updateNGSDSupport();
 
 signals:
 	/// Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)

@@ -13,6 +13,7 @@
 #include "Log.h"
 #include "HttpHandler.h"
 #include "GSvarHelper.h"
+#include "LoginManager.h"
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	: QWidget(parent)
@@ -190,7 +191,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->ngsd_validation, vl, index, "validation");
 
 	//update NGSD button (and actions depending on AF)
-	ui->var_btn->setEnabled(Settings::boolean("NGSD_enabled", true));
+	ui->var_btn->setEnabled(LoginManager::active());
 }
 
 void VariantDetailsDockWidget::clear()

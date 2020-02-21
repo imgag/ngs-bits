@@ -13,6 +13,7 @@
 #include <QCompleter>
 #include <QMenu>
 #include <QMessageBox>
+#include "LoginManager.h"
 
 FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)
@@ -44,8 +45,6 @@ FilterWidget::FilterWidget(QWidget *parent)
 
 	connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 	connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
-	ui_.hpo_terms->setEnabled(Settings::boolean("NGSD_enabled", true));
-
 
 	connect(ui_.gene, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showGeneContextMenu(QPoint)));
 
@@ -179,6 +178,11 @@ void FilterWidget::setFilter(QString name)
 			return;
 		}
 	}
+}
+
+void FilterWidget::updateNGSDSupport()
+{
+	ui_.hpo_terms->setEnabled(LoginManager::active());
 }
 
 void FilterWidget::reset(bool clear_roi)
@@ -494,7 +498,7 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 {
 	//set up
 	QMenu menu;
-	if (Settings::boolean("NGSD_enabled", true))
+	if (LoginManager::active())
 	{
 		menu.addAction("load from NGSD");
 		menu.addAction("create sub-panel");
@@ -528,7 +532,7 @@ void FilterWidget::showGeneContextMenu(QPoint pos)
 {
 	//set up
 	QMenu menu;
-	if (Settings::boolean("NGSD_enabled", true))
+	if (LoginManager::active())
 	{
 		menu.addAction("select via disease");
 	}

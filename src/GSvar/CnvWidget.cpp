@@ -12,6 +12,7 @@
 #include "ReportVariantDialog.h"
 #include "SomaticReportVariantDialog.h"
 #include "CnvSearchWidget.h"
+#include "LoginManager.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -56,7 +57,7 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	, special_cols_()
 	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
-	, ngsd_enabled_(Settings::boolean("NGSD_enabled", true))
+	, ngsd_enabled_(LoginManager::active())
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
