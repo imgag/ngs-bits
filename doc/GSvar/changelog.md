@@ -1,5 +1,12 @@
 # GSvar change log
 
+### 2019_11-129 (21.02.20)
+- NGSD: added 'read %' column to sequencing run sample table.
+- NGSD: added double click to open tabs (run overview, sample search, run, admin project, admin processing system)
+- NGSD: added prject admin page.
+- NGSD: using icons to show qualities.
+- NGSD: variant validation now shows transcript information.
+
 ### 2019_11-122 (17.02.20)
 - General: moved comment, classification and variant validation from variant details to variant context menu.
 - General: Added OMIM dialog (NGSD > genes > Gene OMIM info)
