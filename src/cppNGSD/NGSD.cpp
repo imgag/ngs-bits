@@ -74,26 +74,6 @@ QString NGSD::userEmail(int user_id)
 	return getValue("SELECT email FROM user WHERE id=:0", false,  QString::number(user_id)).toString();
 }
 
-void NGSD::checkUserHasAccess(QStringList roles, QString user_name)
-{
-	//check roles are valid
-	QStringList valid_roles = getEnum("user", "user_role");
-	foreach(QString role, roles)
-	{
-		if (!valid_roles.contains(role)) THROW (ProgrammingException, "Invalid role '" + role + "' in checkUserRole!");
-	}
-
-	//check if user has role
-	int user_id = userId(user_name, true);
-	QString user_role = getValue("SELECT user_role FROM user WHERE id=:0", false, QString::number(user_id)).toString();
-	if (!roles.contains(user_role))
-	{
-		THROW(Exception, "Access denied.\nOnly users with the roles '" + roles.join("', '") + "' have access.\nThe user '" + user_name + "' has the role '" + user_role + "'!");
-		return;
-	}
-
-}
-
 const QString& NGSD::passordReplacement()
 {
 	static QString output = "********";

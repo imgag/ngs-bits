@@ -10,7 +10,6 @@ NGSD:
     - make page where TA can select gaps (by gene/DX number)
         - also allow copying multiple gaps into clipboard (as table and for primer gap)
         - add link for PrimerDesign tool
-- Sample tab: allow import disease info, disease group/status, gender from same samples
 - Sample: allow several disease_groups per sample (requested by CS)
 - add multi-sample report-config
     - 1 affected > easy
@@ -20,18 +19,17 @@ NGSD:
 GSvar:
 ** CNVs add columns: overlap with class 4/5 CNV in NGSD
 ** CNVs add filter: log-likelihood/regions >= x
-* Allow showing BAF histogram for region and show background distribution on other regions.
+* Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
 * Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
 #### Sample search: Delete processed samples
 #### Run tab: add column '% reads'
 ** Popup notification for segregations - every time a new case is loaded
 *** gene selector: add support for CnvHunter (needs low-quality regions (also CNV to track name) > update ClinCNV first> update docu)
 *** XML report: add OMIM gene / phenotype disease info
-** Sample search: add option option "export all infos"
 * Allow ClinCNV upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
-- add coloring of quality columns in DB tables (e.g. in run tab)
+    - use XML format: https://www.ncbi.nlm.nih.gov/projects/clinvar/ClinVarDataDictionary.pdf (see also email 'Programm für AG Genom-Informatik')
 ** allow creating somatic report and XML-export for tumor-only (after tumor-normal is done)
 
 Tools:
