@@ -938,6 +938,7 @@ private slots:
 		//default
 		FilterCnvLoglikelihood filter;
 		filter.setDouble("min_ll", 11.0);
+		filter.setBool("scale_by_region", false);
 		filter.apply(cnvs, result);
 		I_EQUAL(result.countPassing(), 2);
 	}
