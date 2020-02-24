@@ -42,17 +42,6 @@ protected slots:
 	///Extracts entry of column following to "FORMAT" column.
 	QByteArray getFormatEntryByKey(const QByteArray& key, const QByteArray& format_desc, const QByteArray& format_data);
 
-	/*
-	void importROI();
-	void roiSelectionChanged(int index);
-	*/
-	/*
-	void importHPO();
-	void editPhenotypes();
-	void phenotypesChanged();
-	void showPhenotypeContextMenu(QPoint pos);
-	*/
-
 private:
 	Ui::SvWidget* ui;
 
@@ -65,10 +54,6 @@ private:
 
 	BedFile roi_;
 	QString roi_filename_;
-	/*
-	QList<Phenotype> phenotypes_;
-	BedFile phenotypes_roi_; //cache for phenotype target region (avoid re-calculating it every time the filters are applied)
-	*/
 
 	// Pointer to the FilterWidget of the varaint view (used for import settings to SV view)
 	FilterWidget* variant_filter_widget_;

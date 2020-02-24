@@ -31,37 +31,12 @@ SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* variant_fi
 	//Setup signals and slots
 	connect(ui->copy_to_clipboard,SIGNAL(clicked()),this,SLOT(copyToClipboard()));
 
-//	connect(ui->filter_type,SIGNAL(currentIndexChanged(int)),this,SLOT(applyFilters()));
-//	connect(ui->filter_qual,SIGNAL(currentIndexChanged(int)),this,SLOT(applyFilters()));
-//	connect(ui->filter_geno,SIGNAL(currentIndexChanged(int)),this,SLOT(applyFilters()));
-//	connect(ui->filter_text,SIGNAL(textEdited(QString)),this,SLOT(applyFilters()));
-//	connect(ui->filter_text_search_type,SIGNAL(currentTextChanged(QString)),this,SLOT(applyFilters()));
-//	connect(ui->filter_quality_score,SIGNAL(valueChanged(int)),this,SLOT(applyFilters()));
-//	connect(ui->ignore_special_chromosomes,SIGNAL(stateChanged(int)),this,SLOT(applyFilters()));
-//	connect(ui->filter_pe_af,SIGNAL(valueChanged(double)),this,SLOT(applyFilters()));
-//	connect(ui->filter_sr_af,SIGNAL(valueChanged(double)),this,SLOT(applyFilters()));
-//	connect(ui->filter_somaticscore, SIGNAL(valueChanged(int)), this, SLOT(applyFilters()));
-
-
-//	connect(ui->filter_pe_reads,SIGNAL(valueChanged(int)),this,SLOT(applyFilters()));
-
 	connect(ui->svs,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(SvDoubleClicked(QTableWidgetItem*)));
 
 	connect(ui->svs,SIGNAL(itemSelectionChanged()),this,SLOT(SvSelectionChanged()));
 
 	connect(ui->svs,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
 
-/*
-	FilterWidget::loadTargetRegions(ui->roi);
-	connect(ui->roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
-	connect(ui->roi_import, SIGNAL(clicked(bool)), this, SLOT(importROI()));
-*/
-/*
-	connect(ui->hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
-	connect(ui->hpo, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
-	ui->hpo->setEnabled(Settings::boolean("NGSD_enabled", true));
-	connect(ui->hpo_import, SIGNAL(clicked(bool)), this, SLOT(importHPO()));
-*/
 
 	//signals from the filter widget
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
@@ -80,24 +55,10 @@ SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* variant_fi
 		//Disable filters that cannot apply for tumor normal pairs (data is expanded already)
 		if(sv_bedpe_file_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
 		{
-//			ui->filter_somaticscore->setEnabled(true);
-
 			ui->info_a->setEnabled(false);
 			ui->info_b->setEnabled(false);
 			ui->sv_details->setEnabled(false);
-/*
-			ui->filter_pe_af->setEnabled(false);
-			ui->filter_sr_af->setEnabled(false);
-			ui->filter_geno->setEnabled(false);
-			ui->filter_quality_score->setEnabled(false);
-			ui->filter_pe_reads->setEnabled(false);
 
-			ui->roi->setEnabled(false);
-			ui->roi_import->setEnabled(false);
-
-			ui->hpo->setEnabled(false);
-			ui->hpo_import->setEnabled(false);
-*/
 		}
 	}
 }
@@ -207,34 +168,6 @@ void SvWidget::clearGUI()
 	ui->svs->setRowCount(0);
 	ui->svs->setColumnCount(6);
 
-/*
-	//clear filters
-	ui->filter_type->setCurrentIndex(0);
-	ui->filter_qual->clear();
-	ui->filter_quality_score->setValue(0);
-	ui->filter_geno->setCurrentIndex(0);
-
-	ui->filter_pe_af->setValue(0);
-	ui->filter_sr_af->setValue(0);
-
-	ui->ignore_special_chromosomes->setCheckState(Qt::CheckState::Checked);
-
-	ui->filter_text->clear();
-	ui->filter_text_search_type->setCurrentIndex(0);
-
-	//clear filter widget
-	ui->filter_widget->reset(true);
-*/
-
-/*
-	ui->roi->setCurrentIndex(1); //first is search mode, second is 'none'
-
-	ui->hpo->clear();
-*/
-/*
-	phenotypes_.clear();
-	phenotypes_roi_.clear();
-*/
 }
 
 void SvWidget::resizeQTableWidget(QTableWidget *table_widget)
@@ -387,7 +320,6 @@ void SvWidget::applyFilters(bool debug_time)
 			int i_genes = sv_bedpe_file_.annotationIndexByName("GENES", false);
 			if (i_genes == -1)
 			{
-//				THROW(FileParseException, "No 'GENES' column found in BEDPE file! Please reannotate structural variant file.");
 				QMessageBox::warning(this, "Filtering error", "BEDPE files does not contain a 'GENES' column! \nFiltering based on genes is not possible. Please reannotate the structural variant file.");
 
 			}
@@ -459,196 +391,6 @@ void SvWidget::applyFilters(bool debug_time)
 
 		filter_result = FilterResult(row_count, false);
 	}
-
-
-
-
-	// legacy filter of SVWidget
-/*
-	//Skip special chromosomes
-	if(ui->ignore_special_chromosomes->isChecked())
-	{
-		for(int row=0; row<row_count; ++row)
-		{
-			if(!filter_result.flags()[row]) continue;
-
-			const BedpeLine& sv = sv_bedpe_file_[row];
-			if (!(sv.chr1().isNonSpecial() && sv.chr2().isNonSpecial())) filter_result.flags()[row] = false;
-		}
-	}
-
-	//SV type (e.g. DUP,DEL or INV)
-	QByteArray filter_type = ui->filter_type->currentText().toLatin1();
-	if(filter_type!="n/a")
-	{
-		StructuralVariantType type = BedpeFile::stringToType(filter_type);
-		for(int row=0; row<row_count; ++row)
-		{
-			if(!filter_result.flags()[row]) continue;
-
-			const BedpeLine& sv = sv_bedpe_file_[row];
-			if(sv.type()!=type) filter_result.flags()[row] = false;
-		}
-	}
-
-	//Free text filter
-	QString filter_text_type = ui->filter_text_search_type->currentText().trimmed();
-	QString filter_text = ui->filter_text->text().trimmed();
-	if(!filter_text.isEmpty() && !filter_text_type.isEmpty())
-	{
-		bool contains = filter_text_type == "contains";
-
-		for(int row=0; row<row_count; ++row)
-		{
-			if(!filter_result.flags()[row]) continue;
-
-			bool in_any_item = false;
-			for(int c=0;c<ui->svs->columnCount();++c)
-			{
-				if(ui->svs->item(row,c)->text().contains(filter_text, Qt::CaseInsensitive))
-				{
-					in_any_item = true;
-					break;
-				}
-			}
-
-			if(contains)
-			{
-				filter_result.flags()[row] = in_any_item;
-			}
-			else
-			{
-				filter_result.flags()[row] = !in_any_item;
-			}
-		}
-	}
-
-	//Genotype
-	QString filter_geno = ui->filter_geno->currentText();
-	if(filter_geno!="")
-	{
-		if (filter_geno=="hom")
-		{
-			filter_geno = "1/1";
-		}
-		else if (filter_geno=="het")
-		{
-			filter_geno = "0/1";
-		}
-		else
-		{
-			THROW(ProgrammingException, "Unhandled filter genotype: " + filter_geno);
-		}
-
-		int i_format = colIndexbyName("FORMAT");
-		if(i_format > -1)
-		{
-			for(int row=0; row<row_count; ++row)
-			{
-				if(!filter_result.flags()[row]) continue;
-
-				QByteArray desc = ui->svs->item(row, i_format)->text().toUtf8();
-				QByteArray data = ui->svs->item(row, i_format+1)->text().toUtf8();
-				QByteArray gt = getFormatEntryByKey("GT", desc, data);
-
-				if (gt!=filter_geno) filter_result.flags()[row] = false;
-			}
-		}
-	}
-
-	//SV quality (e.g. PASS, LowFreq etc)
-	QString filter_quality_col = ui->filter_qual->currentText();
-	if(filter_quality_col != "n/a")
-	{
-		int i_qual_filter = colIndexbyName("FILTER");
-		if(i_qual_filter > -1)
-		{
-			for(int row=0; row<row_count; ++row)
-			{
-				if(!filter_result.flags()[row]) continue;
-
-				if(!ui->svs->item(row,i_qual_filter)->text().contains(filter_quality_col)) filter_result.flags()[row] = false;
-			}
-		}
-	}
-
-	//SV quality score
-	double filter_quality_score = ui->filter_quality_score->value();
-	if(filter_quality_score > 0)
-	{
-		int i_qual_score = colIndexbyName("QUAL");
-		if(i_qual_score != -1)
-		{
-			for(int row=0; row<row_count; ++row)
-			{
-				if(!filter_result.flags()[row]) continue;
-
-				bool ok = false;
-				double val = ui->svs->item(row,i_qual_score)->text().toDouble(&ok);
-				if(!ok) continue;
-
-				//skip values smaller than threshold
-				if(val < filter_quality_score) filter_result.flags()[row] = false;
-			}
-		}
-	}
-
-	//Paired End Reads Allele Frequency
-	if(ui->filter_pe_af->value() != 0)
-	{
-		double upper_limit = ui->filter_pe_af->value() + 0.1;
-		double lower_limit = ui->filter_pe_af->value() - 0.1;
-
-		for(int row=0; row<row_count; ++row)
-		{
-			if(!filter_result.flags()[row]) continue;
-			double val = alleleFrequency(row, "PR");
-			if(val > upper_limit || val < lower_limit) filter_result.flags()[row] = false;
-		}
-	}
-
-	//Split Reads Allele Frequency Filter
-	if(ui->filter_sr_af->value() != 0)
-	{
-		double upper_limit = ui->filter_sr_af->value() + 0.1;
-		double lower_limit = ui->filter_sr_af->value() - 0.1;
-
-		for(int row=0; row<row_count; ++row)
-		{
-			if(!filter_result.flags()[row]) continue;
-			double val = alleleFrequency(row, "SR");
-			if(val > upper_limit || val < lower_limit) filter_result.flags()[row] = false;
-		}
-	}
-
-	//Total number Paired End Reads
-	if(ui->filter_pe_reads->value() != 0)
-	{
-		int pe_reads_thres = ui->filter_pe_reads->value();
-
-		for(int row=0; row<row_count; ++row)
-		{
-			if(!filter_result.flags()[row]) continue;
-			if(pairedEndReadCount(row) < pe_reads_thres) filter_result.flags()[row] = false;
-		}
-	}
-
-
-	//filter by somaticscore (in case of tumor-normal pair)
-	if(ui->filter_somaticscore->isEnabled())
-	{
-		int i_somaticscore = sv_bedpe_file_.annotationIndexByName("SOMATICSCORE");
-		for(int row=0; row<row_count; ++row)
-		{
-			if(!filter_result.flags()[row]) continue;
-			bool ok = false;
-			double score = sv_bedpe_file_[row].annotations()[i_somaticscore].toDouble(&ok);
-			if(!ok) continue;
-			if(score < ui->filter_somaticscore->value()) filter_result.flags()[row] = false;
-		}
-	}
-
-*/
 
 	//hide rows not passing filters
 	for(int row=0; row<row_count; ++row)
@@ -760,129 +502,6 @@ QByteArray SvWidget::getFormatEntryByKey(const QByteArray& key, const QByteArray
 
 	return "";
 }
-
-/*
-void SvWidget::importHPO()
-{
-	phenotypes_ = filter_widget_->phenotypes();
-	phenotypesChanged();
-}
-*/
-
-/*
-void SvWidget::importROI()
-{
-	ui->roi->setCurrentText(variant_filter_widget_->targetRegionName());
-}
-*/
-
-/*
-void SvWidget::roiSelectionChanged(int index)
-{
-	//delete old completer
-	QCompleter* completer_old = ui->roi->completer();
-	if (completer_old!=nullptr)
-	{
-		completer_old->deleteLater();
-	}
-
-	//create completer for search mode
-	if (index==0)
-	{
-		ui->roi->setEditable(true);
-
-		QCompleter* completer = new QCompleter(ui->roi->model(), ui->roi);
-		completer->setCompletionMode(QCompleter::PopupCompletion);
-		completer->setCaseSensitivity(Qt::CaseInsensitive);
-		completer->setFilterMode(Qt::MatchContains);
-		completer->setCompletionRole(Qt::DisplayRole);
-		ui->roi->setCompleter(completer);
-	}
-	else
-	{
-		ui->roi->setEditable(false);
-	}
-
-
-	ui->roi->setToolTip(ui->roi->itemData(index).toString());
-
-	//update
-	if(index!=0)
-	{
-		applyFilters();
-	}
-}
-*/
-
-/*
-void SvWidget::editPhenotypes()
-{
-	//edit
-	PhenotypeSelectionWidget* selector = new PhenotypeSelectionWidget(this);
-	selector->setPhenotypes(phenotypes_);
-	auto dlg = GUIHelper::createDialog(selector, "Select HPO terms", "", true);
-
-	//update
-	if (dlg->exec()==QDialog::Accepted)
-	{
-		phenotypes_ = selector->selectedPhenotypes();
-		phenotypesChanged();
-	}
-}
-
-void SvWidget::phenotypesChanged()
-{
-	QApplication::setOverrideCursor(Qt::BusyCursor);
-
-	//update GUI
-	QByteArrayList tmp;
-	foreach(const Phenotype& pheno, phenotypes_)
-	{
-		tmp << pheno.name();
-	}
-
-	ui->hpo->setText(tmp.join("; "));
-
-	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on the phenotype-associated gene loci including 5000 flanking bases.";
-	if (!phenotypes_.isEmpty())
-	{
-		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
-		foreach(const Phenotype& pheno, phenotypes_)
-		{
-			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
-		}
-	}
-	ui->hpo->setToolTip(tooltip);
-
-	//get phenotype-based gene list
-	NGSD db;
-	GeneSet pheno_genes;
-	foreach(const Phenotype& pheno, phenotypes_)
-	{
-		pheno_genes << db.phenotypeToGenes(pheno, true);
-	}
-
-	//convert genes to ROI (using a cache to speed up repeating queries)
-	phenotypes_roi_.clear();
-	foreach(const QByteArray& gene, pheno_genes)
-	{
-		if (!gene2region_cache_.contains(gene))
-		{
-			BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
-			tmp.clearAnnotations();
-			tmp.extend(5000);
-			tmp.merge();
-			gene2region_cache_[gene] = tmp;
-		}
-		phenotypes_roi_.add(gene2region_cache_[gene]);
-	}
-	phenotypes_roi_.merge();
-
-	QApplication::restoreOverrideCursor();
-
-	applyFilters();
-}
-*/
 
 void SvWidget::SvSelectionChanged()
 {
@@ -1005,23 +624,3 @@ void SvWidget::showContextMenu(QPoint pos)
 		QApplication::clipboard()->setText(sv.position2());
 	}
 }
-
-/*
-void SvWidget::showPhenotypeContextMenu(QPoint pos)
-{
-	//set up
-	QMenu menu;
-	QAction* a_clear = menu.addAction("clear");
-
-
-	//exec
-	QAction* action = menu.exec(ui->hpo->mapToGlobal(pos));
-	if (action==nullptr) return;
-
-	if (action == a_clear)
-	{
-		phenotypes_.clear();
-		phenotypesChanged();
-	}
-}
-*/
