@@ -3452,7 +3452,7 @@ void FilterSvSomaticscore::apply(const BedpeFile& svs, FilterResult& result) con
 		// get somaticscore
 		double somaticscore = Helper::toInt(svs[i].annotations()[i_somaticscore], "Somaticscore", QString::number(i));
 		// compare AF with filter
-		result.flags()[i] = (min_somaticscore < somaticscore);
+		result.flags()[i] = (min_somaticscore <= somaticscore);
 	}
 }
 

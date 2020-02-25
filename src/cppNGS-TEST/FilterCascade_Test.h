@@ -943,6 +943,21 @@ private slots:
 		I_EQUAL(result.countPassing(), 2);
 	}
 
+	void FilterCnvLoglikelihood_apply_scaled()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvLoglikelihood filter;
+		filter.setDouble("min_ll", 7.0);
+		filter.setBool("scale_by_region", true);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 7);
+	}
+
 	void FilterCnvLoglikelihood_apply_multi()
 	{
 		CnvList cnvs;
@@ -1093,6 +1108,205 @@ private slots:
 		FilterResult result = filters.apply(cnvs, true);
 		I_EQUAL(result.countPassing(), 28);
 	}
+
+
+	/********************************************* Filters for CNVs *********************************************/
+
+	void FilterSvType_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvType filter;
+		filter.setStringList("Structural variant type", QStringList("DEL"));
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 29);
+	}
+
+	void FilterSvRemoveChromosomeType_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		//default
+		FilterSvRemoveChromosomeType filter;
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 74);
+	}
+
+	void FilterSvGenotype_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvGenotype filter;
+		filter.setStringList("Genotype", QStringList("hom"));
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 43);
+	}
+
+	void FilterSvQuality_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvQuality filter;
+		filter.setInteger("quality", 365);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 72);
+	}
+
+	void FilterSvFilterColumn_remove()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvFilterColumn filter;
+		filter.setStringList("entries", QStringList("AMBIGUOUS"));
+		filter.setString("action", "REMOVE");
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 74);
+	}
+
+	void FilterSvFilterColumn_filter()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvFilterColumn filter;
+		filter.setStringList("entries", QStringList("MaxDepth"));
+		filter.setString("action", "FILTER");
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 2);
+	}
+
+	void FilterSvPairedReadAF_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvPairedReadAF filter;
+		filter.setDouble("Paired Read AF", 0.4);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 8);
+	}
+
+	void FilterSvSplitReadAF_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvSplitReadAF filter;
+		filter.setDouble("Split Read AF", 0.2);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 11);
+	}
+
+	void FilterSvPeReadDepth_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvPeReadDepth filter;
+		filter.setInteger("PE Read Depth", 10);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 35);
+	}
+
+	void FilterSvSomaticscore_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_somatic.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvSomaticscore filter;
+		filter.setInteger("Somaticscore", 60);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 4);
+	}
+
+	void FilterSvGeneConstraint_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// default
+		FilterSvGeneConstraint filter;
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 21l);
+	}
+
+	void FilterSvSize_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvSize filter;
+		filter.setInteger("min_size", 100);
+		filter.setInteger("max_size", 600);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 33);
+	}
+
+	void FilterSvOMIM_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// default
+		FilterSvOMIM filter;
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 12);
+	}
+
+	/********************************************* Default filters for SVs *********************************************/
+
+	void default_filters_SV_germline()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterCascade filters = FilterCascadeFile::load(TESTDATA("data_in/SV_filters.ini"), "germline");
+		FilterResult result = filters.apply(svs, true);
+		I_EQUAL(result.countPassing(), 74);
+	}
+
+	void default_filters_SV_somatic()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_somatic.bedpe"));
+
+		FilterCascade filters = FilterCascadeFile::load(TESTDATA("data_in/SV_filters.ini"), "somatic");
+		FilterResult result = filters.apply(svs, true);
+		I_EQUAL(result.countPassing(), 8);
+	}
+
+
 
 
 };
