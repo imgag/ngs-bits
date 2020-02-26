@@ -111,7 +111,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     NGSDExportCnvTrack_Test.h \
     CnvGeneAnnotation_Test.h \
     BedpeGeneAnnotation_Test.h \
-    BedpeAnnotateFromBed_Test.h
+    BedpeAnnotateFromBed_Test.h \
+    NGSDAnnotateCNV.h
 
 SOURCES += \
     main.cpp

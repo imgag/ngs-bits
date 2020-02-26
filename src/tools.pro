@@ -369,5 +369,9 @@ SUBDIRS += BedpeAnnotateFromBed
 tools-TEST.depends += BedpeAnnotateFromBed
 BedpeAnnotateFromBed.depends = cppNGS
 
+SUBDIRS += NGSDAnnotateCNV
+tools-TEST.depends += NGSDAnnotateCNV
+NGSDAnnotateCNV.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
