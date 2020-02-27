@@ -19,6 +19,7 @@ VariantValidationWidget::VariantValidationWidget(QWidget *parent)
 	QAction* action = new QAction(QIcon(":/Icons/Edit.png"), "Edit", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(edit()));
+	connect(ui_.table, SIGNAL(rowDoubleClicked(int)), this, SLOT(edit(int)));
 
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
 	ui_.table->addAction(action);
@@ -91,8 +92,13 @@ void VariantValidationWidget::edit()
 		return;
 	}
 
+	edit(rows.toList().first());
+}
+
+void VariantValidationWidget::edit(int row)
+{
 	//edit
-	int id = ui_.table->getId(rows.toList().first()).toInt();
+	int id = ui_.table->getId(row).toInt();
 	ValidationDialog dlg(this, id);
 	if (!dlg.exec()) return;
 
