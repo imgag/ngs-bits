@@ -4,6 +4,7 @@
 #include "DBEditor.h"
 #include "Settings.h"
 #include "ValidationDialog.h"
+#include "LoginManager.h"
 #include <QMessageBox>
 #include <QDesktopServices>
 
@@ -146,7 +147,7 @@ void VariantValidationWidget::openPrimerDesign()
 			QString variant_id = db.getValue("SELECT variant_id FROM variant_validation WHERE id=" + ui_.table->getId(row)).toString();
 			Variant variant = db.variant(variant_id);
 
-			QString url = Settings::string("PrimerDesign")+"/index.php?user="+Helper::userName()+"&sample="+sample+"&chr="+variant.chr().str()+"&start="+QString::number(variant.start())+"&end="+QString::number(variant.end())+"";
+			QString url = Settings::string("PrimerDesign")+"/index.php?user="+LoginManager::user()+"&sample="+sample+"&chr="+variant.chr().str()+"&start="+QString::number(variant.start())+"&end="+QString::number(variant.end())+"";
 			QDesktopServices::openUrl(QUrl(url));
 		}
 	}

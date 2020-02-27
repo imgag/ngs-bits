@@ -6,6 +6,7 @@
 #include "GUIHelper.h"
 #include "Settings.h"
 #include "MidCheck.h"
+#include "LoginManager.h";
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QDesktopServices>
@@ -307,7 +308,7 @@ void SequencingRunWidget::sendStatusEmail()
 
 	body << "";
 	body << "Viele Gruesse, ";
-	body << "  " + db.userName();
+	body << "  " + db.userName(LoginManager::userId());
 
 	//send email (only once to each recipient)
 	std::for_each(to.begin(), to.end(), [](QString& value){ value = value.toLower(); });

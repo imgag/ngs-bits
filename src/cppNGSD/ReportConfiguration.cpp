@@ -2,6 +2,7 @@
 #include "Exceptions.h"
 #include "NGSD.h"
 #include "Helper.h"
+#include "LoginManager.h"
 
 /*************************************** ReportVariantConfiguration ***************************************/
 
@@ -53,7 +54,7 @@ QStringList ReportVariantConfiguration::getClassificationOptions(bool test_db)
 
 ReportConfiguration::ReportConfiguration()
 	: variant_config_()
-	, created_by_(Helper::userName())
+	, created_by_(LoginManager::user())
 	, created_at_(QDateTime::currentDateTime())
 {
 }

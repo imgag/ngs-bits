@@ -11,6 +11,7 @@
 #include "NGSHelper.h"
 #include "FilterCascade.h"
 #include "GSvarHelper.h"
+#include "LoginManager.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -496,7 +497,7 @@ void ReportWorker::writeHTML()
 	stream << "<br />" << trans("Prozessierungssystem-Typ") << ": " << processed_sample_data.processing_system_type << endl;
 	stream << "<br />" << trans("Referenzgenom") << ": " << system_data.genome << endl;
 	stream << "<br />" << trans("Datum") << ": " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
-	stream << "<br />" << trans("Benutzer") << ": " << Helper::userName() << endl;
+	stream << "<br />" << trans("Benutzer") << ": " << LoginManager::user() << endl;
 	stream << "<br />" << trans("Analysepipeline") << ": "  << variants_.getPipeline() << endl;
 	stream << "<br />" << trans("Auswertungssoftware") << ": "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
 	stream << "<br />" << trans("KASP-Ergebnis") << ": " << db_.getQCData(processed_sample_id).value("kasp").asString() << endl;
@@ -1000,7 +1001,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 	//element ReportGeneration
 	w.writeStartElement("ReportGeneration");
 	w.writeAttribute("date", QDate::currentDate().toString("yyyy-MM-dd"));
-	w.writeAttribute("user_name", Helper::userName());
+	w.writeAttribute("user_name", LoginManager::user());
 	w.writeAttribute("software", QCoreApplication::applicationName() + " " + QCoreApplication::applicationVersion());
 	w.writeAttribute("outcome", settings_.diag_status.outcome);
 	w.writeEndElement();
