@@ -55,7 +55,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 	int i_germl_class = som_var_in_normal.annotationIndexByName("classification");
 
 
-	QMap<Variant, RtfTableRow> temp_rows; //combined list of germline/somatic snvs
+	QList<QPair<Variant, RtfTableRow>> temp_rows; //combined list of germline/somatic snvs
 
 	for(int i=0; i< som_var_in_normal.count(); ++i) //insert next to gene that is already included
 	{
@@ -74,7 +74,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		//Get af of var in tumor tisse from NGSD
 		temp.addCell( 3138, germlVarDesc(var.annotations()[i_germl_hom_het], var.annotations()[i_germl_class]) );
 
-		temp_rows.insert(var, temp);
+		temp_rows.append(QPair<Variant,RtfTableRow>(var,temp));
 	}
 
 
@@ -131,14 +131,21 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		}
 
 		row.addCell(3138, gene_info);
-		temp_rows.insert(snv, row);
+		temp_rows.append(QPair<Variant,RtfTableRow>(snv, row));
 	}
 
-	//Fill RTF table
-	for(const auto& snv : temp_rows.keys())
-	{
+	//sort according gene name (first cell in RtfTableRow)
+	std::sort(temp_rows.begin(), temp_rows.end(), [](const QPair<Variant,RtfTableRow>& a, const QPair<Variant,RtfTableRow>& b){return a.second[0].format().content() < b.second[0].format().content();});
 
-		table.addRow(temp_rows.value(snv));
+
+
+	//Fill RTF table
+	for(const auto& pair : temp_rows)
+	{
+		const Variant& snv = pair.first;
+		const RtfTableRow& row = pair.second;
+
+		table.addRow(row);
 
 		//Find overlapping CNV for each SNV
 		for(int i=0; i<cnvs.count(); ++i)
@@ -147,7 +154,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			if(!cnv.overlapsWith(snv.chr(), snv.start(),snv.end())) continue;
 
 			double tum_cn_change = cnv.annotations().at(cnv_index_tumor_cn_change_).toDouble();
-			QByteArray gene = temp_rows.value(snv)[0].format().content(); //access cell with gene name
+			QByteArray gene = row[0].format().content(); //access cell with gene name
 			genes_in_first_part << gene;
 
 			//set first cell that contains gene name as cell over multiple rows
@@ -161,7 +168,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			//Add CNV information to transcript type (if cnv at this locus exists and is available)
 			double tum_clonality = cnv.annotations().at(i_cnv_tum_clonality).toDouble();
 
-			double tum_af = temp_rows.value(snv)[3].format().content().toDouble();
+			double tum_af = row[3].format().content().toDouble();
 
 			double tum_maximum_clonality = getCnvMaxTumorClonality(cnvs);
 
@@ -1927,7 +1934,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 
 	if(settings_.report_config.cnvBurden())
 	{
-		QByteArray text_cnv_burden = "";
+		RtfSourceCode text_cnv_burden = "";
 		double cnv_altered_percentage = cnvBurden(cnvs_);
 		if(cnv_altered_percentage >= 0.01)
 		{
@@ -1947,17 +1954,18 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 			coll.setNumericMode(true);
 			std::sort(chr.begin(), chr.end(), [&](const QString s1, const QString& s2){return coll.compare(s1,s2) < 0;});
 
-			text_cnv_burden += ", es gibt Hinweise auf eine chromosomale Instabilität auf Chromosom ";
+			text_cnv_burden += " \\endash  Es gibt Hinweise auf eine chromosomale Instabilität auf Chr. ";
 			for(int i=0; i< settings_.report_config.cinChromosomes().count(); ++i)
 			{
 				if( i< settings_.report_config.cinChromosomes().count() - 2) text_cnv_burden += chr[i].toUtf8().replace("chr","") + ", ";
 				else if(i == settings_.report_config.cinChromosomes().count() -2 ) text_cnv_burden += chr[i].toUtf8().replace("chr","") + " und ";
 				else text_cnv_burden += chr[i].toUtf8().replace("chr","");
 			}
+			text_cnv_burden += ".";
 		}
 		else
 		{
-			text_cnv_burden += ", keine Hinweise auf chromosomale Instabilität";
+			text_cnv_burden += " \\endash  Es gibt keine Hinweise auf chromosomale Instabilität.";
 		}
 
 		general_info_table.addRow(RtfTableRow({"CNV-Last:", text_cnv_burden},{2500,7137},RtfParagraph()).setBorders(1,"brdrhair",4));
