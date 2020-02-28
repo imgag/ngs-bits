@@ -38,6 +38,7 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	, include_cnv_burden_(false)
 	, hrd_score_(0)
 	, cin_chromosomes_()
+	, limitations_()
 	, fusions_detected_(false)
 {
 }
@@ -349,6 +350,16 @@ QString SomaticReportConfiguration::quality() const
 void SomaticReportConfiguration::setQuality(QString qual)
 {
 	quality_ = qual;
+}
+
+QString SomaticReportConfiguration::limitations() const
+{
+	return limitations_;
+}
+
+void SomaticReportConfiguration::setLimitations(QString limitations)
+{
+	limitations_ = limitations;
 }
 
 

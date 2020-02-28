@@ -124,6 +124,9 @@ public:
 	QString quality() const;
 	void setQuality(QString qual);
 
+	QString limitations() const;
+	void setLimitations(QString limitations);
+
 private:
 	QList<SomaticReportVariantConfiguration> variant_config_;
 
@@ -143,6 +146,8 @@ private:
 
 	//list of instable chromosomes in the form {"chr1", "chr2" ....}
 	QList<QString> cin_chromosomes_;
+
+	QString limitations_;
 
 	bool fusions_detected_;
 

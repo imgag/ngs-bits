@@ -335,6 +335,8 @@ private:
 
 	///Writes Rtf table containing most relevant SNVs and CNVs
 	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet(), int min_amp_cn = 2.);
+
+
 	//skipped amplifications in somaticalterationtable
 	QByteArrayList skipped_amp_ = {};
 

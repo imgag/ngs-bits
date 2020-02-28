@@ -43,6 +43,8 @@ private:
 	double tum_cont_max_clonality_;
 	double tum_cont_histological_;
 
+	QString limitations_;
+
 
 public slots:
 	void writeBackSettings();
@@ -53,8 +55,11 @@ private slots:
 	void disableGUI();
 	void enableGUI();
 
-	///Disable CIN tab and uncheck all chromosomes. Depends on CNV burden
+	///Disable/Enable CIN tab and uncheck all chromosomes. Depends on CNV burden
 	void cinState();
+
+	///Disable/Enable limitations text field
+	void limitationState();
 
 	QList<QString> resolveCIN();
 };

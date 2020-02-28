@@ -14,12 +14,14 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	, tum_cont_snps_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_max_clonality_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_histological_(std::numeric_limits<double>::quiet_NaN())
+	, limitations_()
 {
 	ui_.setupUi(this);
 
 	connect(ui_.report_type_rna, SIGNAL(clicked(bool)), this, SLOT(disableGUI()));
 	connect(ui_.report_type_dna, SIGNAL(clicked(bool)), this, SLOT(enableGUI()));
 	connect(ui_.include_cnv_burden, SIGNAL(stateChanged(int)), this, SLOT(cinState()));
+	connect(ui_.limitations_check, SIGNAL(stateChanged(int)), this, SLOT(limitationState()));
 
 
 	//Resolve tumor content estimate from NGSD
@@ -179,6 +181,27 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 		ui_.tabs->setTabEnabled(1, false);
 	}
 
+	//limitations
+	if(settings.report_config.limitations() != "")
+	{
+		ui_.limitations_text->setPlainText(settings.report_config.limitations());
+		ui_.limitations_check->setChecked(true);
+	}
+	else
+	{
+		QString text = "Aufgrund der geringen DNA-Konzentration (x,y ng/µl) / DNA-Qualität / des geringen Tumorgehaltes / der Heterogenität der verwendeten Tumorprobe war";
+		text += " nur eine eingeschränkte Detektion somatischer Varianten (Punktmutationen und Kopienzahlveränderungen / Kopienzahlveränderungen) möglich. ";
+		text += "Es zeigte sich ein komplexes Bild, dass am ehesten mit einer Polysomie bzw. Monosomie mehrerer Chromosomen vereinbar ist. ";
+		text += "Die Mutationslast und MSI-Status sind nicht bestimmbar. Eine Wiederholung der DNA-Isolation aus Tumorgewebe war nicht möglich.\n\n";
+		text +="Aufgrund der Allelfrequenz der einzelnen tumorspezifischen Varianten schätzen wir den Tumorgehalt bei unter 10%. Aufgrund des geringen Tumorgehaltes der ";
+		text += "verwendeten Tumorprobe war nur eine eingeschränkte Detektion somatischer Varianten (Punktmutationen und Kopienzahlveränderungen) möglich. Die Mutationslast und";
+		text += " MSI-Status sind nicht bestimmbar. Die hier berichteten Varianten wurden vor allem durch eine Senkung des Detektionslimits der Allelfrequenz auf unter 5% detektiert ";
+		text += " und wurden manuell überprüft. Eine Wiederholung der DNA-Isolation aus Tumorgewebe war nicht möglich.";
+		ui_.limitations_text->setPlainText(text);
+	}
+
+
+
 	updateGUI();
 }
 
@@ -326,6 +349,17 @@ void SomaticReportDialog::writeBackSettings()
 
 	//Resolve CIN settings
 	settings_.report_config.setCinChromosomes(resolveCIN());
+
+
+	if(ui_.limitations_check->isChecked())
+	{
+		settings_.report_config.setLimitations(ui_.limitations_text->toPlainText());
+	}
+	else
+	{
+		settings_.report_config.setLimitations("");
+	}
+
 }
 
 SomaticReportDialog::report_type SomaticReportDialog::getReportType()
@@ -368,6 +402,12 @@ void SomaticReportDialog::cinState()
 			checkbox->setChecked(false);
 		}
 	}
+}
+
+void SomaticReportDialog::limitationState()
+{
+	if(ui_.limitations_check->isChecked()) ui_.limitations_text->setEnabled(true);
+	else ui_.limitations_text->setEnabled(false);
 }
 
 QList<QString> SomaticReportDialog::resolveCIN()

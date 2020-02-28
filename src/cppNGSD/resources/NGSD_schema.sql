@@ -1079,6 +1079,7 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `quality` ENUM('no abnormalities','tumor cell content too low', 'quality of tumor DNA too low', 'DNA quantity too low') NULL DEFAULT NULL COMMENT 'user comment on the quality of the DNA',
   `fusions_detected` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'fusions or other SVs were detected. Cannot be determined automatically, because manta files contain too many false positives',
   `cin_chr` TEXT NULL DEFAULT NULL COMMENT 'comma separated list of instable chromosomes',
+  `limitations` TEXT NULL DEFAULT NULL COMMENT 'manually created text if the analysis has special limitations',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `combo_som_rep_conf_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
   CONSTRAINT `somatic_report_config_created_by_user` 
