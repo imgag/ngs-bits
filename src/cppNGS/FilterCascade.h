@@ -858,22 +858,12 @@ class CPPNGSSHARED_EXPORT FilterSvGeneOverlap
 		QByteArrayList selectedOptions() const;
 };
 
-//Filter SV min size
-class CPPNGSSHARED_EXPORT FilterSvMinSize
+//Filter SV size
+class CPPNGSSHARED_EXPORT FilterSvSize
 	: public FilterBase
 {
 	public:
-		FilterSvMinSize();
-		QString toText() const override;
-		void apply(const BedpeFile& svs, FilterResult& result) const override;
-};
-
-//Filter SV min size
-class CPPNGSSHARED_EXPORT FilterSvMaxSize
-	: public FilterBase
-{
-	public:
-		FilterSvMaxSize();
+		FilterSvSize();
 		QString toText() const override;
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };
@@ -888,7 +878,7 @@ class CPPNGSSHARED_EXPORT FilterSvOMIM
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };
 
-//Filter CNV compound-heterozygous
+//Filter SV compound-heterozygous
 class CPPNGSSHARED_EXPORT FilterSvCompHet
 	: public FilterBase
 {
