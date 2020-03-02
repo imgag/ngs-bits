@@ -6,7 +6,7 @@
 #include "GUIHelper.h"
 #include "Settings.h"
 #include "MidCheck.h"
-#include "LoginManager.h";
+#include "LoginManager.h"
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QDesktopServices>

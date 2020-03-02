@@ -41,9 +41,9 @@ bool LoginManager::active()
 	return !instance().user_.isEmpty();
 }
 
-void LoginManager::login(QString user)
+void LoginManager::login(QString user, bool test_db)
 {
-	NGSD db;
+	NGSD db(test_db);
 	QString user_id = QString::number(db.userId(user, true));
 
 	//determine role

@@ -1,5 +1,5 @@
 ### VcfCheck tool help
-	VcfCheck (2018_06-59-g24102d3)
+	VcfCheck (2019_11-129-g4a5e7bf9)
 	
 	Checks a VCF file for errors.
 	
@@ -25,7 +25,9 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfCheck changelog
-	VcfCheck 2018_06-59-g24102d3
+	VcfCheck 2019_11-129-g4a5e7bf9
 	
+	2019-12-13 Added support for gzipped VCF files.
+	2019-12-11 Added check for invalid characters in INFO column.
 	2018-12-03 Initial implementation.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
