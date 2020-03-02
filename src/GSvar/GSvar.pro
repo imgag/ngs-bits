@@ -76,7 +76,6 @@ SOURCES += main.cpp\
     CnvSearchWidget.cpp \
     VariantValidationWidget.cpp \
     GeneOmimInfoWidget.cpp \
-    LoginManager.cpp
 
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
@@ -147,7 +146,6 @@ HEADERS  += MainWindow.h \
     CnvSearchWidget.h \
     VariantValidationWidget.h \
     GeneOmimInfoWidget.h \
-    LoginManager.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \

@@ -6,6 +6,7 @@
 #include "ChromosomalIndex.h"
 #include "NGSHelper.h"
 #include "FilterCascade.h"
+#include "LoginManager.h"
 #include <QFileInfo>
 #include <QPair>
 #include <QSqlDriver>
@@ -62,14 +63,14 @@ int NGSD::userId(QString user_name, bool only_active)
 
 QString NGSD::userName(int user_id)
 {
-	if (user_id==-1) user_id = userId();
+	if (user_id==-1) user_id = LoginManager::userId();
 
 	return getValue("SELECT name FROM user WHERE id=:0", false, QString::number(user_id)).toString();
 }
 
 QString NGSD::userEmail(int user_id)
 {
-	if (user_id==-1) user_id = userId();
+	if (user_id==-1) user_id = LoginManager::userId();
 
 	return getValue("SELECT email FROM user WHERE id=:0", false,  QString::number(user_id)).toString();
 }
@@ -1767,7 +1768,7 @@ void NGSD::addVariantPublication(QString filename, const Variant& variant, QStri
 {
 	QString s_id = sampleId(filename);
 	QString v_id = variantId(variant);
-	QString user_id = QString::number(userId());
+	QString user_id = LoginManager::userIdAsString();
 
 	//insert
 	getQuery().exec("INSERT INTO variant_publication (sample_id, variant_id, db, class, details, user_id) VALUES ("+s_id+","+v_id+", '"+database+"', '"+classification+"', '"+details+"', "+user_id+")");
@@ -1848,7 +1849,7 @@ AnalysisJob NGSD::analysisInfo(int job_id, bool throw_if_fails)
 	return output;
 }
 
-void NGSD::queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples, QString user_name)
+void NGSD::queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples)
 {
 	SqlQuery query = getQuery();
 
@@ -1863,17 +1864,17 @@ void NGSD::queueAnalysis(QString type, bool high_priority, QStringList args, QLi
 	}
 
 	//insert status
-	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + job_id + ",'" + Helper::dateTime("") + "'," + QString::number(userId(user_name)) + ",'queued', '')");
+	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + job_id + ",'" + Helper::dateTime("") + "'," + LoginManager::userIdAsString() + ",'queued', '')");
 }
 
-bool NGSD::cancelAnalysis(int job_id, QString user_name)
+bool NGSD::cancelAnalysis(int job_id)
 {
 	//check if running or already canceled
 	AnalysisJob job = analysisInfo(job_id, false);
 	if (!job.isRunning()) return false;
 
 	SqlQuery query = getQuery();
-	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + QString::number(job_id) + ",'" + Helper::dateTime("") + "'," + QString::number(userId(user_name)) + ",'cancel', '')");
+	query.exec("INSERT INTO `analysis_job_history`(`analysis_job_id`, `time`, `user_id`, `status`, `output`) VALUES (" + QString::number(job_id) + ",'" + Helper::dateTime("") + "'," + LoginManager::userIdAsString() + ",'cancel', '')");
 
 	return true;
 }
@@ -3097,10 +3098,10 @@ DiagnosticStatusData NGSD::getDiagnosticStatus(const QString& processed_sample_i
 	return output;
 }
 
-void NGSD::setDiagnosticStatus(const QString& processed_sample_id, DiagnosticStatusData status, QString user_name)
+void NGSD::setDiagnosticStatus(const QString& processed_sample_id, DiagnosticStatusData status)
 {
 	//get current user ID
-	QString user_id = QString::number(userId(user_name));
+	QString user_id = LoginManager::userIdAsString();
 
 	//update status
 	SqlQuery query = getQuery();
@@ -3230,7 +3231,7 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 	return output;
 }
 
-int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs, QString user_name)
+int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs)
 {
 	//create report config (if missing)
 	int id = reportConfigId(processed_sample_id);
@@ -3242,7 +3243,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 		query.exec("DELETE FROM `report_configuration_cnv` WHERE report_configuration_id=" + QString::number(id));
 
 		//update report config
-		query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + QString::number(userId(user_name)) + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" + QString::number(id));
+		query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + LoginManager::userIdAsString() + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" + QString::number(id));
 	}
 	else
 	{

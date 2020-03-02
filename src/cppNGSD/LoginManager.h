@@ -2,20 +2,26 @@
 #define LOGINMANAGER_H
 
 #include <QString>
+#include "cppNGSD_global.h"
 
 ///NGSD login manager (singleton)
-class LoginManager
+class CPPNGSDSHARED_EXPORT LoginManager
 {
 public:
-	//Returns user identifier from NGSD (not name)
+	//Returns user login from NGSD
 	static QString user();
+	//Returns user identifier from NGSD
+	static int userId();
+	//Returns user identifier from NGSD (as string)
+	static QString userIdAsString();
+
 	//Returns user role from NGSD
 	static QString role();
 	//Returns if a user is logged in (and that the NGSD is enabled)
 	static bool active();
 
 	//User is logged in
-	static void login(QString user);
+	static void login(QString user, bool test_db = false);
 	//Log out user
 	static void logout();
 
@@ -27,6 +33,7 @@ private:
 	static LoginManager& instance();
 
 	QString user_;
+	int user_id_;
 	QString role_;
 };
 

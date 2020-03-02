@@ -3,6 +3,7 @@
 
 LoginManager::LoginManager()
 	: user_()
+	, user_id_(-1)
 	, role_()
 {
 }
@@ -18,6 +19,18 @@ QString LoginManager::user()
 	return instance().user_;
 }
 
+int LoginManager::userId()
+{
+	int id = instance().user_id_;
+	if (id==-1) THROW(ProgrammingException, "Cannot use LoginManager::userId() if no user is logged in!");
+	return id;
+}
+
+QString LoginManager::userIdAsString()
+{
+	return QString::number(userId());
+}
+
 QString LoginManager::role()
 {
 	return instance().role_;
@@ -28,14 +41,15 @@ bool LoginManager::active()
 	return !instance().user_.isEmpty();
 }
 
-void LoginManager::login(QString user)
+void LoginManager::login(QString user, bool test_db)
 {
-	NGSD db;
+	NGSD db(test_db);
 	QString user_id = QString::number(db.userId(user, true));
 
 	//determine role
 	LoginManager& manager = instance();
 	manager.user_ = user;
+	manager.user_id_ = user_id.toInt();
 	manager.role_ = db.getValue("SELECT user_role FROM user WHERE id='" + user_id + "'").toString();
 
 	//update last login
@@ -46,6 +60,7 @@ void LoginManager::logout()
 {
 	LoginManager& manager = instance();
 	manager.user_.clear();
+	manager.user_id_ = -1;
 	manager.role_.clear();
 }
 

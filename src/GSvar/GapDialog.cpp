@@ -155,12 +155,12 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 		//size
 		QString size = QString::number(gap.line.length());
 		if (gap.isExonicSplicing()) size += " (" + QString::number(gap.coding_overlap.length()) + ")";
-		item = GUIHelper::createTableItem(gap.line.toString(true), Qt::AlignRight|Qt::AlignCenter);
+		item = GUIHelper::createTableItem(size, Qt::AlignRight|Qt::AlignTop);
 		ui->gaps->setItem(i, 1, item);
 
 		//depth
 		QString depth = QString::number(gap.avg_depth, 'f', 2);
-		item = GUIHelper::createTableItem(depth, Qt::AlignRight|Qt::AlignCenter);
+		item = GUIHelper::createTableItem(depth, Qt::AlignRight|Qt::AlignTop);
 		if (gap.avg_depth<10) highlightItem(item);
 		ui->gaps->setItem(i, 2, item);
 

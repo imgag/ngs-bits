@@ -1,11 +1,13 @@
 ### NGSDExportGenes tool help
-	NGSDExportGenes (2019_08-30-g3e908330)
+	NGSDExportGenes (2019_11-129-g4a5e7bf9)
 	
 	Lists genes from NGSD.
 	
 	Optional parameters:
 	  -out <file>  Output TSV file. If unset, writes to STDOUT.
 	               Default value: ''
+	  -hpo         Annotate with HPO terms (slow).
+	               Default value: 'false'
 	  -test        Uses the test database instead of on the production database.
 	               Default value: 'false'
 	
@@ -16,7 +18,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportGenes changelog
-	NGSDExportGenes 2019_08-30-g3e908330
+	NGSDExportGenes 2019_11-129-g4a5e7bf9
 	
 	2019-09-20 Added several columns with gene details.
 	2018-05-03 First version

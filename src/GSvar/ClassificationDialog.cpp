@@ -1,5 +1,6 @@
 #include "ClassificationDialog.h"
 #include "Helper.h"
+#include "LoginManager.h"
 
 ClassificationDialog::ClassificationDialog(QWidget* parent, const Variant& variant, bool is_somatic)
 	: QDialog(parent)
@@ -47,6 +48,6 @@ void ClassificationDialog::classificationChanged()
 {
 	QString text = ui_.comment->toPlainText().trimmed();
 	if (text!="") text += "\n";
-	text += "[" + ui_.classification->currentText() + "] " + Helper::userName() + " " + QDate::currentDate().toString("dd.MM.yyyy");
+	text += "[" + ui_.classification->currentText() + "] " + LoginManager::user() + " " + QDate::currentDate().toString("dd.MM.yyyy");
 	ui_.comment->setPlainText(text);
 }

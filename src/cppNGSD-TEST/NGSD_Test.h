@@ -1,6 +1,7 @@
 #include "TestFramework.h"
 #include "Settings.h"
 #include "NGSD.h"
+#include "LoginManager.h"
 #include <QThread>
 
 TEST_CLASS(NGSD_Test)
@@ -19,6 +20,9 @@ private slots:
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
+
+		//log in user
+		LoginManager::login("ahmustm1", true);
 
 		//getEnum
 		QStringList enum_values = db.getEnum("sample", "disease_group");
@@ -453,7 +457,7 @@ private slots:
 		diag_status.dagnostic_status = "done";
 		diag_status.outcome = "significant findings";
 		diag_status.comments = "comment1";
-		db.setDiagnosticStatus(db.processedSampleId("NA12878_04"), diag_status, "ahmustm1");
+		db.setDiagnosticStatus(db.processedSampleId("NA12878_04"), diag_status);
 		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_04"));
 		S_EQUAL(diag_status.user, "Max Mustermann");
 		IS_TRUE(diag_status.date.isValid());
@@ -463,7 +467,7 @@ private slots:
 		//update existing entry
 		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
 		diag_status.comments = "comment2";
-		db.setDiagnosticStatus(db.processedSampleId("NA12878_03"), diag_status, "ahmustm1");
+		db.setDiagnosticStatus(db.processedSampleId("NA12878_03"), diag_status);
 		diag_status = db.getDiagnosticStatus(db.processedSampleId("NA12878_03"));
 		IS_TRUE(diag_status.date.isValid());
 		S_EQUAL(diag_status.user, "Max Mustermann");
@@ -569,7 +573,7 @@ private slots:
 		S_EQUAL(analysis_job.history[2].output.join("\n"), "warning: bla bla bla");
 
 		//queueAnalysis
-		db.queueAnalysis("single sample", true, QStringList() << "-steps ma,vc,an", QList<AnalysisJobSample>() << AnalysisJobSample { "NA12878_03", "index" }, "ahmustm1");
+		db.queueAnalysis("single sample", true, QStringList() << "-steps ma,vc,an", QList<AnalysisJobSample>() << AnalysisJobSample { "NA12878_03", "index" });
 		analysis_job = db.analysisInfo(2);
 		S_EQUAL(analysis_job.type, "single sample");
 		I_EQUAL(analysis_job.high_priority, true);
@@ -586,7 +590,7 @@ private slots:
 		S_EQUAL(analysis_job.history[0].output.join("\n"), "");
 
 		//cancelAnalysis
-		bool canceled = db.cancelAnalysis(2, "ahmustm1");
+		bool canceled = db.cancelAnalysis(2);
 		I_EQUAL(canceled, true);
 		analysis_job = db.analysisInfo(2);
 		I_EQUAL(analysis_job.history.count(), 2);
@@ -597,7 +601,7 @@ private slots:
 		IS_TRUE(analysis_job.history[1].timeAsString().startsWith(QDate::currentDate().toString(Qt::ISODate)));
 		S_EQUAL(analysis_job.history[1].output.join("\n"), "");
 
-		canceled = db.cancelAnalysis(2, "ahmustm1");
+		canceled = db.cancelAnalysis(2);
 		I_EQUAL(canceled, false);
 
 		//lastAnalysisOf
@@ -615,13 +619,13 @@ private slots:
 		//analysisJobFolder
 		QString folder = db.analysisJobFolder(1);
 		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Sample_NA12878_03/"));
-		db.queueAnalysis("somatic", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12345_01", "tumor"} << AnalysisJobSample{"NA12878_03", "normal"}, "ahmustm1");
+		db.queueAnalysis("somatic", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12345_01", "tumor"} << AnalysisJobSample{"NA12878_03", "normal"});
 		folder = db.analysisJobFolder(3);
 		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/"));
-		db.queueAnalysis("trio", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12878_03", "child"} << AnalysisJobSample{"NA12123_04", "father"} << AnalysisJobSample{"NA12345_01", "mother"}, "ahmustm1");
+		db.queueAnalysis("trio", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12878_03", "child"} << AnalysisJobSample{"NA12123_04", "father"} << AnalysisJobSample{"NA12345_01", "mother"});
 		folder = db.analysisJobFolder(4);
 		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/"));
-		db.queueAnalysis("multi sample", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12123_04", "affected"} << AnalysisJobSample{"NA12345_01", "affected"}, "ahmustm1");
+		db.queueAnalysis("multi sample", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12123_04", "affected"} << AnalysisJobSample{"NA12345_01", "affected"});
 		folder = db.analysisJobFolder(5);
 		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/"));
 
@@ -754,7 +758,7 @@ private slots:
 		report_var_conf2.classification = "4";
 		report_var_conf2.report_type = "diagnostic variant";
 		report_conf.set(report_var_conf2);
-		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, "ahmustm1");
+		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs);
 
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
@@ -767,14 +771,14 @@ private slots:
 		IS_TRUE(rc_creation_data.last_edit_date!="");
 		//update
 		QThread::sleep(1);
-		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, "ahkerra1");
+		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs);
 		IS_TRUE(conf_id1==conf_id2);
 		//check that no double entries are inserted after second execution of setReportConfig
 		I_EQUAL(db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=1 AND chr='chr2' AND start=89246800 AND end=89545067 AND cn=1").toInt(), 1);
 
 		ReportConfigurationCreationData rc_creation_data2 = db.reportConfigCreationData(conf_id);
 		S_EQUAL(rc_creation_data2.created_by, "Max Mustermann");
-		S_EQUAL(rc_creation_data2.last_edit_by, "Sarah Kerrigan");
+		S_EQUAL(rc_creation_data2.last_edit_by,  "Max Mustermann");
 		IS_TRUE(rc_creation_data.created_date==rc_creation_data2.created_date);
 		IS_TRUE(rc_creation_data2.last_edit_date!="");
 
