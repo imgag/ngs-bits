@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>931</width>
-    <height>432</height>
+    <height>450</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -98,6 +98,19 @@
       <widget class="QCheckBox" name="report_config">
        <property name="text">
         <string>report configuration</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <widget class="QCheckBox" name="somatic_report_config">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="text">
+        <string>somatic report configuration</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

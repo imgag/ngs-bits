@@ -306,6 +306,9 @@ public slots:
 	///Finished storing the current  currently open list
 	void storingVariantListFinished(bool success);
 
+	///Clears somatic report settings
+	void clearSomaticReportSettings(QString ps_id_in_other_widget);
+
 
 protected:
 	enum class SettingsType

@@ -29,6 +29,7 @@ signals:
 	void openProjectTab(QString project_name);
 	void executeIGVCommands(QStringList commands);
 	void openProcessedSampleFromNGSD(QString gsvar);
+	void clearMainTableSomReport(QString ps_name);
 
 protected slots:
 	void updateGUI();
@@ -48,6 +49,7 @@ protected slots:
 	void addCnvsToIgv();
 	void addSvsToIgv();
 	void addBafsToIgv();
+	void somRepDeleted();
 
 	///Opens the processed sample edit dialog
 	void edit();

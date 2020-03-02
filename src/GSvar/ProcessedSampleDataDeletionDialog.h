@@ -16,6 +16,9 @@ public:
 protected slots:
 	void deleteData();
 
+signals:
+	void somRepDeleted();
+
 private:
 	Ui::ProcessedSampleDataDeletionDialog ui_;
 	QStringList ps_ids_;

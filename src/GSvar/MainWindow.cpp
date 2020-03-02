@@ -1200,6 +1200,9 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 	connect(widget, SIGNAL(openProcessingSystemTab(QString)), this, SLOT(openProcessingSystemTab(QString)));
 	connect(widget, SIGNAL(openProjectTab(QString)), this, SLOT(openProjectTab(QString)));
 	connect(widget, SIGNAL(openProcessedSampleFromNGSD(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
+
+	connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
+
 	openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
 }
 
@@ -4187,6 +4190,18 @@ void MainWindow::storingVariantListFinished(bool success)
 
 	//enable file watcher again
 	filewatcher_.setFile(filename_);
+}
+
+void MainWindow::clearSomaticReportSettings(QString ps_id_in_other_widget)
+{
+	if(!Settings::boolean("NGSD_enabled", false)) return;
+
+	QString this_ps_id = NGSD().processedSampleId(processedSampleName(),false);
+	if(this_ps_id == "") return;
+
+	if(this_ps_id != ps_id_in_other_widget) return; //skip if ps id of file is different than in other widget
+	somatic_report_settings_ = SomaticReportSettings();
+	refreshVariantTable();
 }
 
 QStringList MainWindow::getLogFiles()
