@@ -14,5 +14,13 @@ GSvarStoreWorker::~GSvarStoreWorker()
 
 void GSvarStoreWorker::process()
 {
+	//make backup
+	QString backup = filename_ + ".backup";
+	QFile::copy(filename_, backup);
+
+	//store
 	variants_.store(filename_);
+
+	//remove backup
+	QFile::remove(backup);
 }
