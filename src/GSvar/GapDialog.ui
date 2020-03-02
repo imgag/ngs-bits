@@ -118,7 +118,7 @@
        <string>size</string>
       </property>
       <property name="toolTip">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Gap size.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Gap size.&lt;br/&gt;Overlap with coding region in brackets.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </column>
      <column>

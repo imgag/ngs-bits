@@ -1,5 +1,5 @@
 ### BedAnnotateFromBed tool help
-	BedAnnotateFromBed (2019_05-36-gb3caeea)
+	BedAnnotateFromBed (2019_11-129-g4a5e7bf9)
 	
 	Annotates BED file regions with information from a second BED file.
 	
@@ -19,6 +19,8 @@
 	                  Default value: 'false'
 	  -overlap        Annotate overlap with regions in 'in2'. The regular annotation is appended in brackets.
 	                  Default value: 'false'
+	  -url_decode     Decode URL encoded characters
+	                  Default value: 'false'
 	
 	Special parameters:
 	  --help          Shows this help and exits.
@@ -27,7 +29,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedAnnotateFromBed changelog
-	BedAnnotateFromBed 2019_05-36-gb3caeea
+	BedAnnotateFromBed 2019_11-129-g4a5e7bf9
 	
 	2019-07-09 Added parameters 'col', 'overlap' and 'no_duplicates'; Fixed 'clear' parameter.
 	2017-11-28 Added 'clear' flag.

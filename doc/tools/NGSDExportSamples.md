@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2019_11-21-ga4bba306)
+	NGSDExportSamples (2019_11-129-g4a5e7bf9)
 	
 	Lists processed samples from the NGSD.
 	
@@ -26,6 +26,8 @@
 	                        Default value: ''
 	  -run_finished         Only show samples where the analysis of the run is finished.
 	                        Default value: 'false'
+	  -run_device <string>  Sequencing run device name filter.
+	                        Default value: ''
 	  -no_bad_runs          If set, sequencing runs with 'bad' quality are excluded.
 	                        Default value: 'false'
 	  -add_qc               If set, QC columns are added to output.
@@ -48,7 +50,7 @@
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2019_11-21-ga4bba306
+	NGSDExportSamples 2019_11-129-g4a5e7bf9
 	
 	2019-12-11 Added 'run_finished' and 'add_report_config' flags.
 	2019-05-17 Added 'with_merged' flag.

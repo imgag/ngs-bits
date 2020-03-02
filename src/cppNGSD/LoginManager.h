@@ -21,7 +21,7 @@ public:
 	static bool active();
 
 	//User is logged in
-	static void login(QString user);
+	static void login(QString user, bool test_db = false);
 	//Log out user
 	static void logout();
 

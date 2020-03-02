@@ -1,5 +1,5 @@
 ### SampleDiff tool help
-	SampleDiff (2018_11-159-gcaa7694)
+	SampleDiff (2019_11-129-g4a5e7bf9)
 	
 	Calculates the differences/overlap between variant lists.
 	
@@ -12,7 +12,7 @@
 	                Default value: ''
 	  -window <int> Window to consider around indel positions to compensate for differing alignments.
 	                Default value: '100'
-	  -ei           Exact indel matches only. If unset, all indels in the window are considered matches.
+	  -nei          Allow non-exact indel matches. If set, all indels in the window are considered matches.
 	                Default value: 'false'
 	  -sm           Also show matches. If unset, matching variants are not printed.
 	                Default value: 'false'
@@ -24,6 +24,6 @@
 	  --tdx         Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleDiff changelog
-	SampleDiff 2018_11-159-gcaa7694
+	SampleDiff 2019_11-129-g4a5e7bf9
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

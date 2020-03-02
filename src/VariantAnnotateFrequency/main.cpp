@@ -21,9 +21,9 @@ public:
 	virtual void setup()
 	{
 		setDescription("Annotates a variant list with variant frequencies from a BAM file.");
-		addInfile("in", "Input variant list to annotate in TSV format (chr, start, end, ref, obs).", false, true);
+		addInfile("in", "Input variant list to annotate in VCF or GSvar format.", false, true);
 		addInfile("bam", "Input BAM file.", false, true);
-		addOutfile("out", "Output TSV file.", false, true);
+		addOutfile("out", "Output variant list file name (VCF or GSvar).", false, true);
 		//optional
 		addFlag("depth", "Annotate an additional column containing the depth.");
 		addFlag("mapq0", "Annotate an additional column containing the percentage of mapq 0 reads.");
