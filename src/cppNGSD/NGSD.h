@@ -19,6 +19,7 @@
 #include "DBTable.h"
 #include "ReportConfiguration.h"
 #include "CnvList.h"
+#include "BedpeFile.h"
 
 ///Type constraints class for database fields
 struct TableFieldConstraints
@@ -498,6 +499,9 @@ public:
 	QString cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
 	///Returns the CNV corresponding to the given identifiers or throws an exception if the ID does not exist.
 	CopyNumberVariant cnv(int cnv_id);
+
+	///Adds a SV to the NGSD. Returns the SV ID.
+	int addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs);
 
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
 	int userId(QString user_name=Helper::userName(), bool only_active=false);

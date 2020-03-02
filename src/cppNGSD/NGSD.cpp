@@ -983,6 +983,137 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 	return query.lastInsertId().toString();
 }
 
+int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
+{
+	//TODO: remove
+	QTextStream out(stdout);
+
+	// parse qc data
+	QJsonObject quality_metrics;
+	// get quality value
+	quality_metrics.insert("quality", QString(sv.annotations()[svs.annotationIndexByName("QUAL")].trimmed()));
+	// get filter values
+	quality_metrics.insert("filter", QString(sv.annotations()[svs.annotationIndexByName("FILTER")].trimmed()));
+	QJsonDocument json_doc;
+	json_doc.setObject(quality_metrics);
+	QByteArray quality_metrics_string = json_doc.toJson(QJsonDocument::Compact);
+
+	if (sv.type() == StructuralVariantType::DEL || sv.type() == StructuralVariantType::DUP || sv.type() == StructuralVariantType::INV)
+	{
+		// get correct sv table
+		QByteArray table;
+		switch (sv.type())
+		{
+			case StructuralVariantType::DEL:
+				table = "sv_deletion";
+				break;
+			case StructuralVariantType::DUP:
+				table = "sv_duplication";
+				break;
+			case StructuralVariantType::INV:
+				table = "sv_inversion";
+				break;
+			default:
+				THROW(FileParseException, "Invalid structural variant type!");
+				break;
+		}
+
+		// insert SV into the NGSD
+		SqlQuery query = getQuery();
+		query.prepare("INSERT INTO `" + table + "` (`sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) " +
+					  "VALUES (:0, :1,  :2, :3, :4, :5, :6)");
+		query.bindValue(0, callset_id);
+		query.bindValue(1, sv.chr1().strNormalized(true));
+		query.bindValue(2,  sv.start1());
+		query.bindValue(3,  sv.end1());
+		query.bindValue(4,  sv.start2());
+		query.bindValue(5,  sv.end2());
+		query.bindValue(6, quality_metrics_string);
+		query.exec();
+
+		//return insert ID
+		return query.lastInsertId().toInt();
+
+	}
+	else if (sv.type() == StructuralVariantType::INS)
+	{
+		// get inserted sequence
+		QByteArray inserted_sequence, known_left, known_right;
+		QByteArray alt_seq = sv.annotations().at(svs.annotationIndexByName("ALT_A"));
+		if (alt_seq != "<INS>")
+		{
+			// complete sequence available
+			inserted_sequence = alt_seq;
+		}
+		else
+		{
+			// only right/left part of insertion available
+			bool left_part_found = false;
+			bool right_part_found = false;
+			QByteArrayList info_a = sv.annotations().at(svs.annotationIndexByName("INFO_A")).split(';');
+			foreach (const QByteArray& kv_pair, info_a)
+			{
+				if (kv_pair.startsWith("LEFT_SVINSSEQ="))
+				{
+					// left part
+					known_left = kv_pair.split('=')[1].trimmed();
+					left_part_found = true;
+				}
+				if (kv_pair.startsWith("RIGHT_SVINSSEQ="))
+				{
+					// right part
+					known_right = kv_pair.split('=')[1].trimmed();
+					right_part_found = true;
+				}
+				if (left_part_found && right_part_found) break;
+			}
+		}
+
+		// insert SV into the NGSD
+		SqlQuery query = getQuery();
+		query.prepare(QByteArray() + "INSERT INTO `sv_insertion` (`sv_callset_id`, `chr`, `pos`, `ci_lower`, `ci_upper`, `inserted_sequence`, "
+					  + "`known_left`, `known_right`, `quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6, :7, :8)");
+		query.bindValue(0, callset_id);
+		query.bindValue(1, sv.chr1().strNormalized(true));
+		query.bindValue(2, sv.start2());
+		query.bindValue(3, sv.start2() - sv.start1());
+		query.bindValue(4, sv.end2() - sv.start2());
+		query.bindValue(5, inserted_sequence);
+		query.bindValue(6, known_left);
+		query.bindValue(7, known_right);
+		query.bindValue(8, quality_metrics_string);
+		query.exec();
+
+		//return insert ID
+		return query.lastInsertId().toInt();
+	}
+	else if (sv.type() == StructuralVariantType::BND)
+	{
+		// insert SV into the NGSD
+		SqlQuery query = getQuery();
+		query.prepare(QByteArray() + "INSERT INTO `sv_translocation` (`sv_callset_id`, `chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, "
+					  + "`quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6, :7)");
+		query.bindValue(0, callset_id);
+		query.bindValue(1, sv.chr1().strNormalized(true));
+		query.bindValue(2, sv.start1());
+		query.bindValue(3, sv.end1());
+		query.bindValue(4, sv.chr2().strNormalized(true));
+		query.bindValue(5, sv.start2());
+		query.bindValue(6, sv.end2());
+		query.bindValue(7, quality_metrics_string);
+		query.exec();
+
+		//return insert ID
+		return query.lastInsertId().toInt();
+	}
+	else
+	{
+		THROW(FileParseException, "Invalid structural variant type!");
+		return -1;
+	}
+
+}
+
 QVariant NGSD::getValue(const QString& query, bool no_value_is_ok, QString bind_value) const
 {
 	//exeucte query
