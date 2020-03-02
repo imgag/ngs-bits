@@ -18,10 +18,8 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-* Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
-* Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
-#### Use user name instead of Helper::userName() in GSvar
-#### Admin pages, variant validation, elsewhere? - search for 'Edit'! : Edit via double-click on line
+- Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
+- Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
 #### Sample search: Add option to delete processed samples
 ** Popup notification for segregations - every time a new case is loaded
 *** gene selector: add support for CnvHunter > update docu of low quality regions > LEON

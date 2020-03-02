@@ -6,6 +6,7 @@
 #include <QMenu>
 #include <QInputDialog>
 #include <QMessageBox>
+#include "LoginManager.h"
 
 SampleDiseaseInfoWidget::SampleDiseaseInfoWidget(QString sample_name, QWidget *parent)
 	: QWidget(parent)
@@ -76,7 +77,7 @@ void SampleDiseaseInfoWidget::addDiseaseInfo()
 	//preprare entry
 	SampleDiseaseInfo tmp;
 	tmp.type = type;
-	tmp.user = Helper::userName();
+	tmp.user = LoginManager::user();
 	tmp.date = QDateTime::currentDateTime();
 
 	//get info from user

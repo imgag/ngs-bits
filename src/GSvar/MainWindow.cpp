@@ -750,7 +750,7 @@ void MainWindow::editVariantValidation(int index)
 
 			//insert
 			SqlQuery query = db.getQuery();
-			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_id, genotype, status) VALUES ('" + QString::number(db.userId()) + "','" + sample_id + "','" + variant_id + "','" + genotype + "','n/a')");
+			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_id, genotype, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','" + variant_id + "','" + genotype + "','n/a')");
 			val_id = query.lastInsertId();
 		}
 
@@ -1774,7 +1774,7 @@ void MainWindow::storeReportConfig()
 	if (conf_id!=-1)
 	{
 		ReportConfigurationCreationData conf_creation = db.reportConfigCreationData(conf_id);
-		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=db.userName())
+		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=db.userName(LoginManager::userId()))
 		if (QMessageBox::question(this, "Storing report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
 		{
 			return;
@@ -1784,7 +1784,7 @@ void MainWindow::storeReportConfig()
 	//store
 	try
 	{
-		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_, Helper::userName());
+		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_);
 	}
 	catch (Exception& e)
 	{

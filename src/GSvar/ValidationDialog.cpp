@@ -3,6 +3,7 @@
 #include "Helper.h"
 #include "BasicStatistics.h"
 #include <QStringList>
+#include "LoginManager.h"
 
 ValidationDialog::ValidationDialog(QWidget* parent, int id)
 	: QDialog(parent)
@@ -59,6 +60,6 @@ void ValidationDialog::statusChanged()
 {
 	QString text = ui_.comment->toPlainText().trimmed();
 	if (text!="") text += "\n";
-	text += "[" + ui_.status->currentText() + "] " + Helper::userName() + " " + QDate::currentDate().toString("dd.MM.yyyy");
+	text += "[" + ui_.status->currentText() + "] " + LoginManager::user() + " " + QDate::currentDate().toString("dd.MM.yyyy");
 	ui_.comment->setPlainText(text);
 }

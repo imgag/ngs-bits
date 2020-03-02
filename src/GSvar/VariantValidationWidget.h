@@ -18,6 +18,7 @@ protected slots:
 	void delayedInitialization();
 	void updateTable();
 	void edit();
+	void edit(int row);
 	void remove();
 	void openPrimerDesign();
 

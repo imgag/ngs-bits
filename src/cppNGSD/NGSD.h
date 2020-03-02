@@ -514,7 +514,7 @@ public:
 	CopyNumberVariant somaticCnv(int cnv_id);
 
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
-	int userId(QString user_name=Helper::userName(), bool only_active=false);
+	int userId(QString user_name, bool only_active=false);
 	///Returns the user name corresponding the given ID. If no ID is given, the current users ID is used (see userId()).
 	QString userName(int user_id=-1);
 	///Returns the user email corresponding the given ID. If no ID is given, the current user ID is used (see userId()).
@@ -577,8 +577,7 @@ public:
 	///Returns the diagnostic status of a sample. If there is no such entry, a default-constructed instance of DiagnosticStatusData is returned.
 	DiagnosticStatusData getDiagnosticStatus(const QString& processed_sample_id);
 	///Sets the diagnostic status. Throws an exception, if the processed sample is not in the database. If unset, the user name is taken from the environment.
-	void setDiagnosticStatus(const QString& processed_sample_id, DiagnosticStatusData status, QString user_name=Helper::userName());
-
+	void setDiagnosticStatus(const QString& processed_sample_id, DiagnosticStatusData status);
 	///Returns if the report configuration database ID, or -1 if not present.
 	int reportConfigId(const QString& processed_sample_id);
 	///Returns the report config creation data (user/date).
@@ -586,7 +585,7 @@ public:
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.
 	ReportConfiguration reportConfig(const QString& processed_sample_id, const VariantList& variants, const CnvList& cnvs, QStringList& messages);
 	///Sets/overwrites the report configuration for a processed sample. Returns its database primary key. The variant list is needed to determine the annotation column indices.
-	int setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs, QString user_name);
+	int setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs);
 	///Deletes a report configuration.
 	void deleteReportConfig(int id);
 
@@ -616,9 +615,9 @@ public:
 	///Returns information about an analysis job
 	AnalysisJob analysisInfo(int job_id, bool throw_if_fails = true);
 	///Queues an analysis.
-	void queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples, QString user_name=Helper::userName());
+	void queueAnalysis(QString type, bool high_priority, QStringList args, QList<AnalysisJobSample> samples);
 	///Canceles an analysis. Returns 'true' if it was canceled and 'false' if it was not running anymore.
-	bool cancelAnalysis(int job_id, QString user_name=Helper::userName());
+	bool cancelAnalysis(int job_id);
 	///Deletes the analysis job record. Returns 'true' if a job was deleted, i.e. a job with the given ID existed.
 	bool deleteAnalysis(int job_id);
 	///Returns the folder of an analysis job.
