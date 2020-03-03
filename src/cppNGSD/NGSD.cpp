@@ -15,6 +15,7 @@
 #include <QSqlError>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QCryptographicHash>
 #include "cmath"
 
 QMap<QString, TableInfo> NGSD::infos_;
@@ -75,11 +76,43 @@ QString NGSD::userEmail(int user_id)
 	return getValue("SELECT email FROM user WHERE id=:0", false,  QString::number(user_id)).toString();
 }
 
-const QString& NGSD::passordReplacement()
+const QString& NGSD::passwordReplacement()
 {
 	static QString output = "********";
 
 	return output;
+}
+
+QString NGSD::checkPassword(QString user_name, QString password, bool only_active)
+{
+	//check user id
+	QString id = getValue("SELECT id FROM user WHERE user_id=:0", true, user_name).toString();
+	if (id.isEmpty())
+	{
+		return "User '" + user_name + "' does not exist!";
+	}
+
+	//check user is active
+	if (only_active)
+	{
+		QString active = getValue("SELECT active FROM user WHERE id=:0", false, id).toString();
+		if (active=="0")
+		{
+			return "User '" + user_name + "' is no longer active!";
+		}
+	}
+
+	//check password
+	QString salt = getValue("SELECT salt FROM user WHERE id=:0", false, id).toString();
+	if (salt.isEmpty()) salt = user_name; //needed for backward compatibility
+	QByteArray hash = QCryptographicHash::hash((salt+password).toUtf8(), QCryptographicHash::Sha1).toHex();
+	//qDebug() << user_name << salt << hash;
+	if (hash!=getValue("SELECT password FROM user WHERE id=:0", false, id).toString())
+	{
+		return "Invalid password for user '" + user_name + "'!";
+	}
+
+	return "";
 }
 
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
@@ -1310,7 +1343,8 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 				info.type==TableFieldInfo::TIMESTAMP ||
 				info.type==TableFieldInfo::DATETIME ||
 				(table=="processed_sample" && info.name=="sample_id") ||
-				(table=="processed_sample" && info.name=="process_id")
+				(table=="processed_sample" && info.name=="process_id") ||
+				(table=="user" && info.name=="salt")
 			   )
 			{
 				info.is_hidden = true;
@@ -1422,8 +1456,20 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sq
 		if(field_info.type==TableFieldInfo::VARCHAR_PASSWORD)
 		{
 			QStringList column;
-			while(column.count() < output.rowCount()) column << passordReplacement();
+			while(column.count() < output.rowCount()) column << passwordReplacement();
 			output.setColumn(c, column);
+		}
+	}
+
+	//remove hidden columns (reverse order so that indices stay valid)
+	for (int c=headers.count()-1; c>=0; --c)
+	{
+		const TableFieldInfo& field_info = table_info.fieldInfo(headers[c]);
+
+		if (field_info.is_hidden)
+		{
+			output.takeColumn(c);
+			headers.removeAt(c);
 		}
 	}
 
@@ -3506,50 +3552,34 @@ QStringList NGSD::checkValue(const QString& table, const QString& field, const Q
 			break;
 
 		case TableFieldInfo::VARCHAR_PASSWORD:
-			//check not empty
-			if (!field_info.is_nullable && value.isEmpty())
-			{
-				errors << "Field must not be empty!";
-			}
-
 			//check length
+			if (value.length()<6)
+			{
+				errors << "Minimum length is 6";
+			}
 			if (value.length()>field_info.type_constraints.max_length)
 			{
 				errors << "Maximum length is " + QString::number(field_info.type_constraints.max_length);
 			}
-			if (value.length()<8)
-			{
-				errors << "Minimum length is 8";
-			}
 
 			//check composition
 			{
-				bool has_upper = false;
-				bool has_lower = false;
-				bool has_digit = false;
-				bool has_symbol = false;
+				bool has_letter = false;
+				bool has_number = false;
 				foreach (const QChar& character, value)
 				{
-					if (character.isUpper())
+					if (character.isUpper() || character.isLower())
 					{
-						has_upper = true;
-					}
-					else if (character.isLower())
-					{
-						has_lower = true;
+						has_letter = true;
 					}
 					else if (character.isDigit())
 					{
-						has_digit = true;
-					}
-					else
-					{
-						has_symbol = true;
+						has_number = true;
 					}
 				}
-				if (!has_lower || !has_upper || !has_digit || !has_symbol)
+				if (!has_letter || !has_number)
 				{
-					errors << "Must contains at least one letter of each class: upper-case, lower-case, digit, symbol";
+					errors << "Must contain at least one character of each class: letter, number";
 				}
 			}
 			break;

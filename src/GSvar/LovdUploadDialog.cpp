@@ -351,7 +351,7 @@ void LovdUploadDialog::updatePrintButton()
 
 void LovdUploadDialog::queryRefSeqWebservice()
 {
-	QString url = Settings::string("VariantInfoRefSeq");
+	QString url = Settings::string("VariantInfoRefSeq"); //TODO remove once not used anymore - also in UI, docu and settings > MARC
 	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn) && variant1_.isValid()) url += "?variant_data=" + variant1_.toString(true).replace(" ", "\t").replace("chrMT", "chrM");
 	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn2) && variant2_.isValid()) url += "?variant_data=" + variant2_.toString(true).replace(" ", "\t").replace("chrMT", "chrM");
 	QDesktopServices::openUrl(QUrl(url));

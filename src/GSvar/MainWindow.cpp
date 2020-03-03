@@ -88,6 +88,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "VariantValidationWidget.h"
 #include "GeneOmimInfoWidget.h"
 #include "LoginManager.h"
+#include "LoginDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -510,18 +511,13 @@ void MainWindow::delayedInitialization()
 		Settings::createBackup();
 	}
 
-	//TODO also check user password (show dialog where the user name is pre-filled but can be changed) - force new password when salt is missing - AFTER NGSD IS NO LONGER USED > MARC
 	//check user is in NGSD
 	if (Settings::boolean("NGSD_enabled", true))
 	{
-		QString user_name = Helper::userName();
-		try
+		LoginDialog dlg(this);
+		if (dlg.exec()==QDialog::Accepted)
 		{
-			LoginManager::login(user_name);
-		}
-		catch (DatabaseException& e)
-		{
-			QMessageBox::warning(this, "Unknown user", "There is no active NGSD account with user name '" + user_name + "'.\n\nNGSD functionality is disabled!");
+			LoginManager::login(dlg.userName());
 		}
 	}
 

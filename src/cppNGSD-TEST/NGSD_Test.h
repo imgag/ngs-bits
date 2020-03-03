@@ -891,7 +891,14 @@ private slots:
 		S_EQUAL(db.userName(101), "Sarah Kerrigan");
 
 		//userEmail
-		S_EQUAL(db.userEmail(101), "no.mail2@max.de");
+		S_EQUAL(db.userEmail(101), "queen_of_blades@the_swarm.org");
+
+		//checkPasword
+		S_EQUAL(db.checkPassword("bla", ""), "User 'bla' does not exist!");
+		S_EQUAL(db.checkPassword("ahkerra1", ""), "User 'ahkerra1' is no longer active!");
+		S_EQUAL(db.checkPassword("ahkerra1", "", false), "Invalid password for user 'ahkerra1'!");
+		S_EQUAL(db.checkPassword("ahmustm1", "123456"), ""); //with salt
+		S_EQUAL(db.checkPassword("admin", "admin"), ""); //no salt
 
 		//checkValue
 		I_EQUAL(db.checkValue("sample", "name", "NA12878", false).count(), 0); //VARCHAR

@@ -506,7 +506,9 @@ public:
 	///Returns the user email corresponding the given ID. If no ID is given, the current user ID is used (see userId()).
 	QString userEmail(int user_id=-1);
 	///Replacement for passwords when they are shown in the GUI.
-	static const QString& passordReplacement();
+	static const QString& passwordReplacement();
+	///Checks if the given user/password tuple is correct. If ok, returns an empty string. If not, returns an error message.
+	QString checkPassword(QString user_name, QString password, bool only_active=true);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples

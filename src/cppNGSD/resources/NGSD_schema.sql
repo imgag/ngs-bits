@@ -324,6 +324,7 @@ CREATE  TABLE IF NOT EXISTS `user`
   `created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_login` DATETIME NULL DEFAULT NULL,
   `active` TINYINT(1) NOT NULL,
+  `salt` VARCHAR(40) NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`user_id` ASC),
   UNIQUE INDEX `email_UNIQUE` (`email` ASC)
@@ -1262,9 +1263,9 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 -- Table `user`
 -- -----------------------------------------------------
-INSERT INTO user VALUES (NULL, 'admin', 'dd94709528bb1c83d08f3088d4043f4742891f4f', 'admin', 'Admin','no_valid@email.de', CURDATE(), NULL, 1);
-INSERT INTO user VALUES (NULL, 'genlab_import', '', 'special', 'GenLab import','no_valid@email2.de', CURDATE(), NULL, 1);
-INSERT INTO user VALUES (NULL, 'unknown', '', 'special', 'Unknown user','no_valid@email3.de', CURDATE(), NULL, 1);
+INSERT INTO user VALUES (NULL, 'admin', 'dd94709528bb1c83d08f3088d4043f4742891f4f', 'admin', 'Admin','no_valid@email.de', CURDATE(), NULL, 1, NULL);
+INSERT INTO user VALUES (NULL, 'genlab_import', '', 'special', 'GenLab import','no_valid@email2.de', CURDATE(), NULL, 1, NULL);
+INSERT INTO user VALUES (NULL, 'unknown', '', 'special', 'Unknown user','no_valid@email3.de', CURDATE(), NULL, 1, NULL);
 
 
 -- -----------------------------------------------------
