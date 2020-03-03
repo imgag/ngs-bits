@@ -20,6 +20,10 @@ GeneSelectorDialog::GeneSelectorDialog(QString sample_folder, QString sample_nam
 	ui->splitter->setStretchFactor(1, 3);
 	GUIHelper::styleSplitter(ui->splitter);
 
+	// create tool tips for details header cells
+	ui->details->horizontalHeaderItem(5)->setToolTip("<html><head/><body><p>Lists number of (high-quality) CNVs of the current sample which overlaps the transcript region of the selected genes.</p></body></html>");
+	ui->details->horizontalHeaderItem(6)->setToolTip("<html><head/><body><p>Lists number of low-quality CNVs (marked as failing by CnvHunter or log-likelihood &le; 20 in case of ClinCNV) of the current sample which overlaps the transcript region of the selected gene as 'bad qc' and the number of transcript regions which are not present in the copy-number seg file as 'not covered' </p></body></html>");
+
 	connect(ui->update_btn, SIGNAL(pressed()), this, SLOT(updateGeneTable()));
 	connect(ui->details, SIGNAL(cellChanged(int,int)), this, SLOT(geneTableItemChanged(int, int)));
 	connect(ui->details, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(geneDoubleClicked(QTableWidgetItem*)));
@@ -218,7 +222,7 @@ void GeneSelectorDialog::updateGeneTable()
 				// count CNVs with low log-likelihood In case of ClinCNV
 				if (clincnv)
 				{
-					if (Helper::toDouble(cnv_data[i].annotations()[1], "CNV log-likelihood") < 20.00)
+					if (Helper::toDouble(cnv_data[i].annotations()[1], "CNV log-likelihood") <= 20.00)
 					{
 						++cnv_bad_qc;
 						continue;
