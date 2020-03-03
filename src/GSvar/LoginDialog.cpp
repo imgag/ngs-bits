@@ -13,7 +13,7 @@ LoginDialog::LoginDialog(QWidget *parent)
 	connect(ui_.ok_btn, SIGNAL(clicked(bool)), this, SLOT(checkPassword()));
 
 	//init
-	if (ui_.user_name->text().isEmpty()) ui_.user_name->setText(Helper::userName());
+	if (ui_.user_name->text().isEmpty()) ui_.user_name->setText(Helper::userName().toLower());
 	ui_.password->setFocus();
 }
 

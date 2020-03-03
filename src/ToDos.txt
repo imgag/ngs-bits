@@ -20,9 +20,7 @@ GSvar:
 - Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
 - Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
 ** Popup notification for segregations - every time a new case is loaded
-*** gene selector: add support for CnvHunter > update docu of low quality regions > LEON
-*** XML report: add OMIM gene / phenotype disease info
-* Allow ClinCNV upload
+* Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
     - use XML format: https://www.ncbi.nlm.nih.gov/projects/clinvar/ClinVarDataDictionary.pdf (see also email 'Programm für AG Genom-Informatik')

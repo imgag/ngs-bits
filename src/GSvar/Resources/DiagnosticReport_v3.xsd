@@ -235,6 +235,8 @@
 														<xs:restriction base="xs:string">
 															<xs:minLength value="1"/>
 															<xs:enumeration value="OrphaNet"/>
+															<xs:enumeration value="OMIM gene"/>
+															<xs:enumeration value="OMIM phenotype"/>
 														</xs:restriction>
 													</xs:simpleType>
 												</xs:attribute>
