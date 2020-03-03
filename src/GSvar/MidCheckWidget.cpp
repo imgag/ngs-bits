@@ -8,8 +8,6 @@
 #include <QDialog>
 #include <QMessageBox>
 
-//TODO remove GSmix link when not needed anymore > MARC
-
 MidCheckWidget::MidCheckWidget(QWidget *parent)
 	: QWidget(parent)
 	, ui_()

@@ -108,5 +108,30 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 		}
 	}
 
+	//processed sample
+	if (ui_.processed_sample->isChecked())
+	{
+		foreach(const QString& ps_id, ps_ids_)
+		{
+			//delete analysis jobs
+			QStringList analysis_job_ids = db.getValues("SELECT analysis_job_id FROM analysis_job_sample WHERE processed_sample_id='" + ps_id + "'");
+			foreach(QString job_id, analysis_job_ids)
+			{
+				db.deleteAnalysis( job_id.toInt());
+			}
+
+			//delete processed sample
+			try
+			{
+				db.getQuery().exec("DELETE FROM processed_sample WHERE id='" + ps_id + "'");
+			}
+			catch(DatabaseException& e)
+			{
+				QMessageBox::warning(this, "Error deleting processed sample", "Could not delete sample '" + db.processedSampleName(ps_id, false) + "'.\nProbably associated data is still present, which has to be deleted before.\n\nDatabase error:\n" + e.message());
+				break;
+			}
+		}
+	}
+
 	QApplication::restoreOverrideCursor();
 }

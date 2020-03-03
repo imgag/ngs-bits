@@ -19,7 +19,7 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSampleTab()));
-	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete associated data", this);
+	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(deleteSampleData()));
 	action = new QAction(QIcon(":/Icons/reanalysis.png"), "Queue analysis", this);
