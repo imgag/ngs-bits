@@ -1132,6 +1132,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 		{
 			foreach(const QByteArray& gene, genes)
 			{
+				//OrphaNet
 				SqlQuery query = db_.getQuery();
 				query.exec("SELECT dt.* FROM disease_gene dg, disease_term dt WHERE dt.id=dg.disease_term_id AND dg.gene='" + gene + "'");
 				while(query.next())
@@ -1142,6 +1143,31 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 					w.writeAttribute("identifier", query.value("identifier").toString());
 					w.writeAttribute("name", query.value("name").toString());
 					w.writeEndElement();
+				}
+
+				//OMIM
+				QString omim_gene_id = db_.getValue("SELECT id FROM omim_gene WHERE gene=:0", true, gene).toString();
+				if (omim_gene_id!="")
+				{
+					//gene
+					w.writeStartElement("GeneDiseaseInformation");
+					w.writeAttribute("gene", gene);
+					w.writeAttribute("source", "OMIM gene");
+					w.writeAttribute("identifier", db_.getValue("SELECT mim FROM omim_gene WHERE id=" + omim_gene_id).toString());
+					w.writeAttribute("name", gene);
+					w.writeEndElement();
+
+					//phenotypes
+					QStringList phenos = db_.getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + omim_gene_id);
+					foreach(QString pheno, phenos)
+					{
+						w.writeStartElement("GeneDiseaseInformation");
+						w.writeAttribute("gene", gene);
+						w.writeAttribute("source", "OMIM phenotype");
+						w.writeAttribute("identifier", "[see name]");
+						w.writeAttribute("name", pheno);
+						w.writeEndElement();
+					}
 				}
 			}
 		}

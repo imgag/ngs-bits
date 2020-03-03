@@ -316,7 +316,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `user`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `user_id` VARCHAR(45) NOT NULL COMMENT 'Use the Windows domain name!',
+  `user_id` VARCHAR(45) NOT NULL COMMENT 'Use the lower-case Windows domain name!',
   `password` VARCHAR(64) NOT NULL,
   `user_role` ENUM('user','admin','special') NOT NULL,
   `name` VARCHAR(45) NOT NULL,

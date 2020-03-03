@@ -1441,6 +1441,7 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 				if (table=="processing_system" && info.name=="adapter1_p5") info.type_constraints.regexp = QRegularExpression("^[ACGT]*$");
 				if (table=="processing_system" && info.name=="adapter2_p7") info.type_constraints.regexp = QRegularExpression("^[ACGT]*$");
 				if (table=="processed_sample" && info.name=="lane") info.type_constraints.regexp = QRegularExpression("^[1-8](,[1-8])*$");
+				if (table=="user" && info.name=="user_id") info.type_constraints.regexp = QRegularExpression("^[a-z0-9_]+$");
 			}
 			else
 			{
