@@ -158,7 +158,6 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 		{
 			QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
 			if(ps_normal_id == "") continue;
-			qDebug() << ps_tumor_id << " " << ps_normal_id << endl;
 			db.deleteSomaticVariants(ps_tumor_id, ps_normal_id, VariantType::CNVS);
 		}
 	}
