@@ -2035,7 +2035,6 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	if(settings_.report_config.countGermline() > 0) snv_expl += "\\line\n" +RtfText("#:").setFontSize(14).setBold(true).RtfCode() + " Auch in der Normalprobe nachgewiesen.";
 
 	doc_.addPart( RtfParagraph(snv_expl).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode() );
-	doc_.addPart( RtfParagraph("").RtfCode() );
 
 
 	snv_expl = "Weiterhin wurden nicht-fokale Amplifikationen (3 Kopien) für die folgenden relevanten Gene nachgewiesen: ";
@@ -2043,7 +2042,6 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	snv_expl += RtfText(skipped_amp_.join(", ")).setFontSize(18).setItalic(true).RtfCode();
 	snv_expl += ".";
 	doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode());
-	doc_.addPart(RtfParagraph("").RtfCode());
 
 	//support for limitation text
 	snv_expl = RtfText("Limitationen: ").setBold(true).setFontSize(18).RtfCode();
