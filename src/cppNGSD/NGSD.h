@@ -20,6 +20,7 @@
 #include "ReportConfiguration.h"
 #include "SomaticReportConfiguration.h"
 #include "CnvList.h"
+#include "BedpeFile.h"
 
 ///Type constraints class for database fields
 struct TableFieldConstraints
@@ -509,10 +510,10 @@ public:
 	///Returns the CNV corresponding to the given identifiers or throws an exception if the ID does not exist.
 	CopyNumberVariant cnv(int cnv_id);
 
-	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
+	///Adds a SV to the NGSD. Returns the SV ID.
+	int addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs);	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
 	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
 	CopyNumberVariant somaticCnv(int cnv_id);
-
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
 	int userId(QString user_name, bool only_active=false);
 	///Returns the user name corresponding the given ID. If no ID is given, the current users ID is used (see userId()).
@@ -520,7 +521,9 @@ public:
 	///Returns the user email corresponding the given ID. If no ID is given, the current user ID is used (see userId()).
 	QString userEmail(int user_id=-1);
 	///Replacement for passwords when they are shown in the GUI.
-	static const QString& passordReplacement();
+	static const QString& passwordReplacement();
+	///Checks if the given user/password tuple is correct. If ok, returns an empty string. If not, returns an error message.
+	QString checkPassword(QString user_name, QString password, bool only_active=true);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples

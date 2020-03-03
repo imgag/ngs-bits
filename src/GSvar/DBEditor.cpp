@@ -306,7 +306,7 @@ void DBEditor::fillFormWithItemData()
 		else if (field_info.type==TableFieldInfo::VARCHAR_PASSWORD)
 		{
 			QLineEdit* edit = getEditWidget<QLineEdit*>(field);
-			edit->setText(NGSD::passordReplacement());
+			edit->setText(NGSD::passwordReplacement());
 		}
 		else if (field_info.type==TableFieldInfo::ENUM)
 		{
@@ -391,7 +391,7 @@ void DBEditor::check(QString field)
 	{
 		QLineEdit* edit = getEditWidget<QLineEdit*>(field);
 		QString value = edit->text().trimmed();
-		if (value!=NGSD::passordReplacement() || id_==-1)
+		if (value!=NGSD::passwordReplacement() || id_==-1)
 		{
 			errors = db_.checkValue(table_, field, value, id_==-1);
 		}
@@ -489,6 +489,7 @@ void DBEditor::store()
 	//create fields/values
 	QStringList fields;
 	QStringList values;
+	QString salt;
 	foreach(const QString& field, table_info.fieldNames())
 	{
 		const TableFieldInfo& field_info = table_info.fieldInfo(field);
@@ -532,15 +533,14 @@ void DBEditor::store()
 		{
 			QLineEdit* editor = getEditWidget<QLineEdit*>(field);
 			QString value = editor->text().trimmed();
-			if (value==NGSD::passordReplacement()) //password unchanged > use old password
+			if (value==NGSD::passwordReplacement()) //password unchanged > use old password
 			{
 				values << db_.getValue("SELECT " + field_info.name + " FROM " + table_ + " WHERE id=" + QString::number(id_)).toString();
 			}
 			else
 			{
-				//TODO don't use user name as salt, use random salt stored in user table (and use slower hash function) - AFTER NGSD IS NO LONGER USED > MARC
-				QString user_id = getEditWidget<QLineEdit*>("user_id")->text().trimmed();
-				values << QCryptographicHash::hash((user_id+value).toUtf8(), QCryptographicHash::Sha1).toHex();
+				salt = Helper::randomString(40);
+				values << QCryptographicHash::hash((salt+value).toUtf8(), QCryptographicHash::Sha1).toHex();
 			}
 		}
 		else if (field_info.type==TableFieldInfo::ENUM)
@@ -565,6 +565,13 @@ void DBEditor::store()
 		{
 			THROW(ProgrammingException, "Unhandled table field type '" + field_info.typeAsString() + "'!");
 		}
+	}
+
+	//special handling of password column with associated salt columnn
+	if (!salt.isEmpty())
+	{
+		fields << "salt";
+		values << salt;
 	}
 
 	//update/insert

@@ -163,7 +163,7 @@ private:
 		som_rep_conf.setQuality("NON EXISTING IN SOMTATIC_REPORT_CONFIGURATION TABLE");
 		som_rep_conf.setFusionsDetected(false);
 		som_rep_conf.setCinChromosomes({"chr10","chr21"});
-		som_rep_conf.setLimitations("With German umlauts: Ã¤Ã¶Ã¼ÃŸÃ„Ã–Ãœ");
+		som_rep_conf.setLimitations("With German umlauts: äöüßÄÖÜ");
 
 
 
@@ -180,7 +180,7 @@ private:
 		S_EQUAL(res_config_2.quality(), "");
 		IS_FALSE(res_config_2.fusionsDetected());
 		S_EQUAL(res_config_2.cinChromosomes().join(','), "chr10,chr21");
-		S_EQUAL(res_config_2.limitations(), "With German umlauts: Ã¤Ã¶Ã¼ÃŸÃ„Ã–Ãœ");
+		S_EQUAL(res_config_2.limitations(), "With German umlauts: äöüßÄÖÜ");
 
 		SomaticReportConfigurationData config_data_2 =  db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_2.created_by, "Max Mustermann");
@@ -1140,7 +1140,14 @@ private slots:
 		S_EQUAL(db.userName(101), "Sarah Kerrigan");
 
 		//userEmail
-		S_EQUAL(db.userEmail(101), "no.mail2@max.de");
+		S_EQUAL(db.userEmail(101), "queen_of_blades@the_swarm.org");
+		//checkPasword
+		S_EQUAL(db.checkPassword("bla", ""), "User 'bla' does not exist!");
+		S_EQUAL(db.checkPassword("ahkerra1", ""), "User 'ahkerra1' is no longer active!");
+		S_EQUAL(db.checkPassword("ahkerra1", "", false), "Invalid password for user 'ahkerra1'!");
+		S_EQUAL(db.checkPassword("ahmustm1", "123456"), ""); //with salt
+		S_EQUAL(db.checkPassword("admin", "admin"), ""); //no salt
+
 		//checkValue
 		I_EQUAL(db.checkValue("sample", "name", "NA12878", false).count(), 0); //VARCHAR
 		I_EQUAL(db.checkValue("sample", "name", "NA12878", true).count(), 1); //VARCHAR: unique

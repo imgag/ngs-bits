@@ -324,6 +324,7 @@ CREATE  TABLE IF NOT EXISTS `user`
   `created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_login` DATETIME NULL DEFAULT NULL,
   `active` TINYINT(1) DEFAULT 0 NOT NULL,
+  `salt` VARCHAR(40) NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`user_id` ASC),
   UNIQUE INDEX `email_UNIQUE` (`email` ASC)
@@ -1453,6 +1454,189 @@ CREATE TABLE IF NOT EXISTS `report_configuration_cnv`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `sv_callset`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `sv_callset`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL,
+  `caller` ENUM('Manta', 'Delly') NOT NULL,
+  `caller_version` varchar(25) NOT NULL,
+  `call_date` DATETIME DEFAULT NULL,
+  `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
+  PRIMARY KEY (`id`),
+  INDEX `caller` (`quality` ASC),
+  INDEX `call_date` (`call_date` ASC),
+  INDEX `quality` (`quality` ASC),
+  UNIQUE KEY `sv_callset_references_processed_sample` (`processed_sample_id`),
+  CONSTRAINT `sv_callset_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='SV call set';
+
+-- -----------------------------------------------------
+-- Table `sv_deletion`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `sv_deletion`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `sv_callset_id` INT(11) UNSIGNED NOT NULL,
+  `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start_min` INT(11) UNSIGNED NOT NULL,
+  `start_max` INT(11) UNSIGNED NOT NULL,
+  `end_min` INT(11) UNSIGNED NOT NULL,
+  `end_max` INT(11) UNSIGNED NOT NULL,
+  `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `sv_del_references_sv_callset`
+    FOREIGN KEY (`sv_callset_id`)
+    REFERENCES `sv_callset` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  INDEX `chr` (`chr` ASC),
+  INDEX `start_min` (`start_min` ASC),
+  INDEX `start_max` (`start_max` ASC),
+  INDEX `end_min` (`end_min` ASC),
+  INDEX `end_max` (`end_max` ASC),
+  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
+  INDEX `overlap_match` (`chr`, `end_max`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='SV deletion';
+
+-- -----------------------------------------------------
+-- Table `sv_duplication`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `sv_duplication`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `sv_callset_id` INT(11) UNSIGNED NOT NULL,
+  `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start_min` INT(11) UNSIGNED NOT NULL,
+  `start_max` INT(11) UNSIGNED NOT NULL,
+  `end_min` INT(11) UNSIGNED NOT NULL,
+  `end_max` INT(11) UNSIGNED NOT NULL,
+  `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `sv_dup_references_sv_callset`
+    FOREIGN KEY (`sv_callset_id`)
+    REFERENCES `sv_callset` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  INDEX `chr` (`chr` ASC),
+  INDEX `start_min` (`start_min` ASC),
+  INDEX `start_max` (`start_max` ASC),
+  INDEX `end_min` (`end_min` ASC),
+  INDEX `end_max` (`end_max` ASC),
+  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
+  INDEX `overlap_match` (`chr`, `end_max`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='SV duplication';
+
+-- -----------------------------------------------------
+-- Table `sv_insertion`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `sv_insertion`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `sv_callset_id` INT(11) UNSIGNED NOT NULL,
+  `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `pos`INT(11) UNSIGNED NOT NULL,
+  `ci_lower` INT(5) UNSIGNED NOT NULL,
+  `ci_upper` INT(5) UNSIGNED NOT NULL,
+  `inserted_sequence` TEXT DEFAULT NULL,
+  `known_left` TEXT DEFAULT NULL,
+  `known_right` TEXT DEFAULT NULL,
+  `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `sv_ins_references_sv_callset`
+    FOREIGN KEY (`sv_callset_id`)
+    REFERENCES `sv_callset` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  INDEX `chr` (`chr` ASC),
+  INDEX `pos` (`pos` ASC),
+  INDEX `ci_lower` (`ci_lower` ASC),
+  INDEX `ci_upper` (`ci_upper` ASC),
+  INDEX `exact_match` (`chr`, `pos`),
+  INDEX `overlap_match` (`chr`, `pos`, `ci_lower`, `ci_upper`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='SV insertion';
+
+-- -----------------------------------------------------
+-- Table `sv_inversion`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `sv_inversion`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `sv_callset_id` INT(11) UNSIGNED NOT NULL,
+  `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start_min` INT(11) UNSIGNED NOT NULL,
+  `start_max` INT(11) UNSIGNED NOT NULL,
+  `end_min` INT(11) UNSIGNED NOT NULL,
+  `end_max` INT(11) UNSIGNED NOT NULL,
+  `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `sv_inv_references_sv_callset`
+    FOREIGN KEY (`sv_callset_id`)
+    REFERENCES `sv_callset` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  INDEX `chr` (`chr` ASC),
+  INDEX `start_min` (`start_min` ASC),
+  INDEX `start_max` (`start_max` ASC),
+  INDEX `end_min` (`end_min` ASC),
+  INDEX `end_max` (`end_max` ASC),
+  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
+  INDEX `overlap_match` (`chr`, `end_max`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='SV inversion';
+
+-- -----------------------------------------------------
+-- Table `sv_translocation`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `sv_translocation`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `sv_callset_id` INT(11) UNSIGNED NOT NULL,
+  `chr1` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start1` INT(11) UNSIGNED NOT NULL,
+  `end1` INT(11) UNSIGNED NOT NULL,
+  `chr2` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start2` INT(11) UNSIGNED NOT NULL,
+  `end2` INT(11) UNSIGNED NOT NULL,
+  `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `sv_bnd_references_sv_callset`
+    FOREIGN KEY (`sv_callset_id`)
+    REFERENCES `sv_callset` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  INDEX `chr1` (`chr1` ASC),
+  INDEX `start1` (`start1` ASC),
+  INDEX `end1` (`end1` ASC),
+  INDEX `chr2` (`chr2` ASC),
+  INDEX `start2` (`start2` ASC),
+  INDEX `end2` (`end2` ASC),
+  INDEX `match` (`chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='SV translocation';
+
 -- ----------------------------------------------------------------------------------------------------------
 --                                                 INITIAL DATA
 -- ----------------------------------------------------------------------------------------------------------
@@ -1461,9 +1645,9 @@ DEFAULT CHARACTER SET = utf8;
 -- -----------------------------------------------------
 -- Table `user`
 -- -----------------------------------------------------
-INSERT INTO user VALUES (NULL, 'admin', 'dd94709528bb1c83d08f3088d4043f4742891f4f', 'admin', 'Admin','no_valid@email.de', CURDATE(), NULL, 1);
-INSERT INTO user VALUES (NULL, 'genlab_import', '', 'special', 'GenLab import','no_valid@email2.de', CURDATE(), NULL, 1);
-INSERT INTO user VALUES (NULL, 'unknown', '', 'special', 'Unknown user','no_valid@email3.de', CURDATE(), NULL, 1);
+INSERT INTO user VALUES (NULL, 'admin', 'dd94709528bb1c83d08f3088d4043f4742891f4f', 'admin', 'Admin','no_valid@email.de', CURDATE(), NULL, 1, NULL);
+INSERT INTO user VALUES (NULL, 'genlab_import', '', 'special', 'GenLab import','no_valid@email2.de', CURDATE(), NULL, 1, NULL);
+INSERT INTO user VALUES (NULL, 'unknown', '', 'special', 'Unknown user','no_valid@email3.de', CURDATE(), NULL, 1, NULL);
 
 
 -- -----------------------------------------------------

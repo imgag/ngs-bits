@@ -26,7 +26,6 @@ This file contains settings specific for `GSvar`. If it is missing, copy the exa
 
 The most important settings are:
 
-- *NGSD\_enabled*: If NGSD-based functionality is enabled
 - *lovd\_...*: LOVD credentials for upload of variants
 - *analysis\_steps\_...*: Analysis steps of queuing of analysis on cluster
 - *proxy\_...*: Proxy settings (if needed)
@@ -35,6 +34,7 @@ The most important settings are:
 	- track name
 	- checked by default (0 or 1)
 	- path to track file
+- *email\_run\_...*: semicolon-separated list of additional email adresses that are used when the email button on the run tab is pressed.
 
 ## Filters
 
