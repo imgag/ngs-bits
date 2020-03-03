@@ -168,7 +168,8 @@ QStringList SingleSampleAnalysisDialog::arguments(const QWidget* widget)
 				steps << box->objectName().mid(5);
 			}
 		}
-		output << "-steps " + steps.join(",");
+		// do not set "-steps" parameter if no steps are checked
+		if (steps.size() > 0) output << "-steps " + steps.join(",");
 	}
 
 	return output;

@@ -57,7 +57,7 @@ public:
 
 		// modify header
 		QByteArrayList header = cnv_input_file.header();
-		header.append("ngsd_pathogenic_counts");
+		header.append("ngsd_pathogenic_cnvs");
 		output_buffer << "#" + header.join("\t");
 
 		// get indices for position
