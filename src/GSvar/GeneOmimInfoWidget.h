@@ -1,8 +1,6 @@
 #ifndef GENEOMIMINFOWIDGET_H
 #define GENEOMIMINFOWIDGET_H
 
-//TODO remove webservice once it is not used anymore > MARC
-
 #include <QWidget>
 #include "ui_GeneOmimInfoWidget.h"
 

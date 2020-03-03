@@ -29,6 +29,8 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->diag_status_edit_btn, SIGNAL(clicked(bool)), this, SLOT(editDiagnosticStatus()));
 	connect(ui_->disease_details_edit_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseDetails()));
 	connect(ui_->sample_edit_btn, SIGNAL(clicked(bool)), this, SLOT(editSample()));
+	connect(ui_->edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
+	connect(ui_->delete_btn, SIGNAL(clicked(bool)), this, SLOT(deleteSampleData()));
 	connect(ui_->relation_add_btn, SIGNAL(clicked(bool)), this, SLOT(addRelation()));
 	connect(ui_->relation_delete_btn, SIGNAL(clicked(bool)), this, SLOT(removeRelation()));
 	connect(ui_->merged, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
@@ -51,15 +53,8 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	ui_->disease_details->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openExternalDiseaseDatabase()));
 
-	//sample edit button
-	QMenu* menu = new QMenu();
-	menu->addAction("Edit", this, SLOT(edit()));
-	menu->addSeparator();
-	menu->addAction(QIcon(":/Icons/Remove.png"), "Delete associated data", this, SLOT(deleteSampleData()));
-	ui_->edit_btn->setMenu(menu);
-
 	//IGV button
-	menu = new QMenu();
+	QMenu* menu = new QMenu();
 	menu->addAction("Add BAM track", this, SLOT(addBamToIgv()));
 	menu->addSeparator();
 	menu->addAction("Add variant track", this, SLOT(addVariantsToIgv()));

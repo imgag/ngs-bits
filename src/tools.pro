@@ -361,10 +361,6 @@ SUBDIRS += BedpeGeneAnnotation
 tools-TEST.depends += BedpeGeneAnnotation
 BedpeGeneAnnotation.depends = cppNGS
 
-#SUBDIRS += BedpeOverlapAnnotation
-#tools-TEST.depends += BedpeOverlapAnnotation
-#BedpeOverlapAnnotation.depends = cppNGS
-
 SUBDIRS += BedpeAnnotateFromBed
 tools-TEST.depends += BedpeAnnotateFromBed
 BedpeAnnotateFromBed.depends = cppNGS
