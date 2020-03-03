@@ -289,14 +289,18 @@ void SomaticReportDialog::updateGUI()
 
 void SomaticReportDialog::disableGUI()
 {
-	ui_.tabs->setTabEnabled(0, false);
-	ui_.tabs->setTabEnabled(1, false);
+	for(int i=0; i<ui_.tabs->count(); ++i)
+	{
+		ui_.tabs->setTabEnabled(i, false);
+	}
 }
 
 void SomaticReportDialog::enableGUI()
 {
-	ui_.tabs->setTabEnabled(0, true);
-	ui_.tabs->setTabEnabled(1, true);
+	for(int i=0; i<ui_.tabs->count(); ++i)
+	{
+		ui_.tabs->setTabEnabled(i, true);
+	}
 }
 
 void SomaticReportDialog::writeBackSettings()

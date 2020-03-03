@@ -501,8 +501,6 @@ RtfTable SomaticReportHelper::createCnvTable()
 	}
 	cnv_table.setUniqueBorder(1,"brdrhair",4);
 
-	cnv_table.addRow(RtfTableRow("Gene mit potentiell relevanten Veränderungen sind fett markiert.",doc_.maxWidth(),RtfParagraph().setFontSize(14).setHorizontalAlignment("j")).setBorders(0));
-
 	return cnv_table;
 }
 
@@ -1867,7 +1865,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 
 	QByteArray tumor_content_bioinf = "";
 
-	if(settings_.report_config.tumContentByClonality()) tumor_content_bioinf = QByteArray::number(getCnvMaxTumorClonality(cnvs_) * 100., 'f', 1) + "\%";
+	if(settings_.report_config.tumContentByClonality()) tumor_content_bioinf = QByteArray::number(getCnvMaxTumorClonality(cnvs_) * 100., 'f', 1) + " \%";
 	if(settings_.report_config.tumContentByMaxSNV())
 	{
 		double tumor_molecular_proportion;
@@ -1884,7 +1882,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 
 		if(tumor_content_bioinf != "") tumor_content_bioinf += ", ";
 
-		tumor_content_bioinf += QByteArray::number(tumor_molecular_proportion, 'f', 1) + "\%";
+		tumor_content_bioinf += QByteArray::number(tumor_molecular_proportion, 'f', 1) + " \%";
 	}
 
 	if(!settings_.report_config.tumContentByClonality() && !settings_.report_config.tumContentByMaxSNV())
@@ -1895,7 +1893,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	QByteArray tumor_content_hist = "nicht bestimmbar";
 	if(settings_.report_config.tumContentByHistological())
 	{
-		tumor_content_hist = QByteArray::number(histol_tumor_fraction_, 'f', 1) + "\%";
+		tumor_content_hist = QByteArray::number(histol_tumor_fraction_, 'f', 1) + " \%";
 	}
 	general_info_table.addRow(RtfTableRow({"Tumoranteil (hist./bioinf.)", tumor_content_hist + " / " + tumor_content_bioinf}, {2500, 7137}).setBorders(1,"brdrhair", 4));
 
@@ -1938,7 +1936,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		double cnv_altered_percentage = cnvBurden(cnvs_);
 		if(cnv_altered_percentage >= 0.01)
 		{
-			text_cnv_burden = QByteArray::number(cnv_altered_percentage,'f',1) + "\%" ;
+			text_cnv_burden = QByteArray::number(cnv_altered_percentage,'f',1) + " \%" ;
 		}
 		else
 		{
@@ -2034,6 +2032,8 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	RtfSourceCode snv_expl  = RtfText("Anteil:").setBold(true).setFontSize(14).RtfCode() + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil der Zellen mit der entsprechenden Kopienzahlvariante (CNV) in der untersuchten Probe. ";
 	snv_expl += RtfText("Beschreibung:").setFontSize(14).setBold(true).RtfCode() + " SNV: Einschätzung der Varianten und ggf. Bewertung der Genfunktion als Onkogen bzw. Tumorsuppressorgen (TSG). CNV: Deletionen, fokale Amplifikationen und Amplifikationen mit mehr als 4 Kopien. ";
 	snv_expl += "Erweiterte Legende und Abkürzungen siehe unten.";
+	if(settings_.report_config.countGermline() > 0) snv_expl += "\\line\n" +RtfText("#:").setFontSize(14).setBold(true).RtfCode() + " Auch in der Normalprobe nachgewiesen.";
+
 	doc_.addPart( RtfParagraph(snv_expl).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode() );
 	doc_.addPart( RtfParagraph("").RtfCode() );
 
@@ -2046,7 +2046,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	doc_.addPart(RtfParagraph("").RtfCode());
 
 	//support for limitation text
-	snv_expl =RtfText("Limitationen: ").setBold(true).setFontSize(18).RtfCode();
+	snv_expl = RtfText("Limitationen: ").setBold(true).setFontSize(18).RtfCode();
 	if(settings_.report_config.limitations().isEmpty())
 	{
 		snv_expl += "Die Probenqualität zeigt keine Auffälligkeiten. Methodisch bedingte Limitationen sind im Anhang erläutert.";
@@ -2055,7 +2055,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	{
 		snv_expl += settings_.report_config.limitations().replace("\n","\n\\line\n");
 	}
-	doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).RtfCode());
+	doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode());
 
 
 
@@ -2091,7 +2091,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	}
 
 	doc_.addPart(somaticAlterationTable(snvs_reordered, cnvs_, true).setUniqueBorder(1,"brdrhair",4).RtfCode());
-	RtfSourceCode desc = "Diese Tabelle enthält sämtliche in der Tumorprobe nachgewiesenen SNVs und INDELs, unabhängig von der funktionellen Einschätzung und der abzurechnenden Zielregion. Sie enthält ferner alle Kopienzahlveränderungen in Genen, die als Treiber eingestuft wurden. Gene mit potentiell relevanten somatischen Veränderungen sind fett markiert. ";
+	RtfSourceCode desc = "Diese Tabelle enthält sämtliche in der Tumorprobe nachgewiesenen SNVs und INDELs, unabhängig von der funktionellen Einschätzung und der abzurechnenden Zielregion. Sie enthält ferner alle Kopienzahlveränderungen in Genen, die als Treiber eingestuft wurden.";
 
 	doc_.addPart(RtfParagraph(desc).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode());
 
@@ -2108,9 +2108,10 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	if(settings_.report_config.fusionsDetected())
 	{
 		RtfTable fusion_table;
-		fusion_table.addRow(RtfTableRow("Fusionen",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(5));
-		fusion_table.addRow(RtfTableRow());
-		fusion_table.last().addCell(doc_.maxWidth(), fusionsText());
+		fusion_table.addRow(RtfTableRow("Strukturvarianten",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(5));
+		fusion_table.addRow(RtfTableRow({"Region A", "Region B", "Beschreibung"}, {2409, 2409, 4818}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader());
+		fusion_table.addRow(RtfTableRow({"", "", "", "", ""}, {1000,1409,1000,1409,4818}, RtfParagraph()));
+
 		fusion_table.setUniqueBorder(1,"brdrhair",4);
 		doc_.addPart(fusion_table.RtfCode());
 	}
@@ -2192,11 +2193,11 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	metadata.addRow(RtfTableRow({RtfText("Allgemeine Informationen").setBold(true).setFontSize(16).RtfCode(),RtfText("Qualitätsparameter").setBold(true).setFontSize(16).RtfCode()}, {4550,5087}));
 	metadata.addRow(RtfTableRow({"Datum:",QDate::currentDate().toString("dd.MM.yyyy").toUtf8(),"Analysepipeline:", snv_variants_.getPipeline().toUtf8()}, {1550,3000,2250,2837}));
 	metadata.addRow(RtfTableRow({"Proben-ID (Tumor):", tumor_ps_.toUtf8(), "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()},{1550,3000,2250,2837}));
-	metadata.addRow(RtfTableRow({"Proben-ID (Keimbahn):", normal_ps_.toUtf8(), "Coverage Tumor 100x:", qcml_data_tumor.value("QC:2000030",true).toString().toUtf8() + "\%"},{1550,3000,2250,2837}));
+	metadata.addRow(RtfTableRow({"Proben-ID (Keimbahn):", normal_ps_.toUtf8(), "Coverage Tumor 100x:", qcml_data_tumor.value("QC:2000030",true).toString().toUtf8() + " \%"},{1550,3000,2250,2837}));
 	metadata.addRow(RtfTableRow({"CGI-Tumortyp:", cgi_cancer_type_.toUtf8(), "Durchschnittliche Tiefe Tumor:", qcml_data_tumor.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,2837}));
 
 
-	metadata.addRow(RtfTableRow({"MSI-Status:", (std::isnan(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3)), "Coverage Normal 100x:", qcml_data_normal.value("QC:2000030",true).toString().toUtf8() + "\%"} , {1550,3000,2250,2837} ));
+	metadata.addRow(RtfTableRow({"MSI-Status:", (std::isnan(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3)), "Coverage Normal 100x:", qcml_data_normal.value("QC:2000030",true).toString().toUtf8() + " \%"} , {1550,3000,2250,2837} ));
 
 	GeneSet gene_set = GeneSet::createFromFile(processing_system_data.target_file.left(processing_system_data.target_file.size()-4) + "_genes.txt");
 	metadata.addRow(RtfTableRow({"Prozessierungssystem:",processing_system_data.name.toUtf8() + " (" + QByteArray::number(gene_set.count()) + ")", "Durchschnittliche Tiefe Normal:", qcml_data_normal.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,2837}));
