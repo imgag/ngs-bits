@@ -304,19 +304,21 @@ void MainWindow::on_actionCNV_triggered()
 
 	//determine processed sample ID (needed for report config - so only germline)
 	QString ps_id = "";
-	CnvWidget *list;
-	if (LoginManager::active())
+	if (LoginManager::active() && germlineReportSupported(variants_.type()))
 	{
-		if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
-		{
-			list = new CnvWidget(cnvs_, ps_id, ui_.filters, somatic_report_settings_.report_config, het_hit_genes, gene2region_cache_);
-		}
-		else if(germlineReportSupported(variants_.type()))
-		{
-			list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
-		}
-
+		ps_id = NGSD().processedSampleId(processedSampleName(), false);
 	}
+
+	CnvWidget *list;
+	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	{
+		list = new CnvWidget(cnvs_, ps_id, ui_.filters, somatic_report_settings_.report_config, het_hit_genes, gene2region_cache_);
+	}
+	else
+	{
+		list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
+	}
+
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	connect(list, SIGNAL(storeReportConfiguration()), this, SLOT(storeReportConfig()));
 	connect(list, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
@@ -1747,7 +1749,7 @@ void MainWindow::storeSomaticReportConfig()
 		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, somatic_control_tissue_variants_, Helper::userName());
 	}
 	catch (Exception& e)
-	{
+	{	
 		QMessageBox::warning(this, "Storing somatic report configuration", "Error: Could not store the somatic report configuration.\nPlease resolve this error or report it to the administrator:\n\n" + e.message());
 	}
 }

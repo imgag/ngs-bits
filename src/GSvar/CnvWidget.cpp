@@ -720,6 +720,8 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 	QAction* action = menu.exec(pos);
 	if (action==nullptr) return;
 
+	if(!LoginManager::active()) return; //do nothing if no access to NGSD
+
 	//actions
 	if (action==a_edit)
 	{
