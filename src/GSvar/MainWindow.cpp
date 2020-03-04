@@ -2295,7 +2295,8 @@ void MainWindow::generateReportSomaticRTF()
 			//check CGI columns are present
 			if(!SomaticReportHelper::checkRequiredSNVAnnotations(variants_))
 			{
-				QMessageBox::warning(this,"Somatic report", "DNA report cannot be created because GSVar-file does not contain NCG, CGI or somatic classification annotation columns.");
+				QApplication::restoreOverrideCursor();
+				QMessageBox::warning(this,"Somatic report", "DNA report cannot be created because GSVar-file does not contain NCG, CGI or somatic_classification annotation columns.");
 				return;
 			}
 

@@ -349,19 +349,6 @@ private:
 	///Creates table containing alterations relevant in pharmacogenomics (from normal sample)
 	RtfTable pharamacogeneticsTable();
 
-	///Returns text for fusions, appears multiple times in report
-	RtfParagraph fusionsText()
-	{
-		if(fusions_.count() > 0)
-		{
-			return RtfParagraph("Fusionen gefunden. Bitte Datei mit Strukturvarianten prüfen.").highlight(3);
-		}
-		else
-		{
-			return RtfParagraph("Es wurde keine der untersuchten Fusionen nachgewiesen.");
-		}
-	}
-
 	QString trans(const QString& text) const;
 
 	QByteArray trans(QByteArray text) const
@@ -473,10 +460,6 @@ private:
 	QByteArrayList cgi_acronyms_;
 
 	RtfDocument doc_;
-
-	BedpeFile fusions_;
-
-
 };
 
 #endif // SomaticReportHelper_H

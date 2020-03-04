@@ -878,10 +878,6 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 		mantis_msi_swd_value_ = std::numeric_limits<double>::quiet_NaN();
 	}
 
-	//Load somatic fusions
-	QString fusion_path = Helper::canonicalPath(settings_.sample_dir + "/" + prefix + "_var_structural.bedpe");
-	if(QFile::exists(fusion_path)) fusions_.load(fusion_path);
-
 	//Load virus data (from tumor sample dir)
 	try
 	{
