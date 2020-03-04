@@ -241,7 +241,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 		if (!transcript.isValid())
 		{
 			transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS, true, true);
-			if (!transcript.isValid() || transcript.regions().baseCount()==0)
+			if (!transcript.isValid() || transcript.codingRegions().baseCount()==0)
 			{
 				genes_notranscript.insert(gene);
 				if (gap_table) stream << "<tr><td>" + symbol + "</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td><td>n/a</td></tr>";
@@ -255,7 +255,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 
 		//gaps
 		QString message;
-		BedFile roi = transcript.regions();
+		BedFile roi = transcript.codingRegions();
 		if (extend>0)
 		{
 			roi.extend(extend);

@@ -56,9 +56,27 @@ public:
 	{
 		return regions_;
 	}
-	void setRegions(const BedFile& regions)
+	void setRegions(const BedFile& regions, int coding_start=0, int coding_end=0);
+
+	//Returns if the transcript is coding
+	bool isCoding() const
 	{
-		regions_ = regions;
+		return coding_start_!=0 && coding_end_!=0;
+	}
+	//Returns the start of the coding region
+	int codingStart() const
+	{
+		return coding_start_;
+	}
+	//Returns the end of the coding region (including stop codon)
+	int codingEnd() const
+	{
+		return coding_end_;
+	}
+	//Returns the coding regions (empty for non-coding transcripts)
+	const BedFile& codingRegions() const
+	{
+		return coding_regions_;
 	}
 
 	///Converts source enum to string value.
@@ -76,6 +94,9 @@ protected:
 	SOURCE source_;
 	STRAND strand_;
 	BedFile regions_;
+	int coding_start_;
+	int coding_end_;
+	BedFile coding_regions_;
 };
 
 #endif // TRANSCRIPT_H

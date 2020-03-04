@@ -294,6 +294,8 @@ private slots:
 		I_EQUAL(transcripts[0].source(), Transcript::CCDS);
 		I_EQUAL(transcripts[0].regions().count(), 4);
 		I_EQUAL(transcripts[0].regions().baseCount(), 44);
+		I_EQUAL(transcripts[0].codingRegions().count(), 4);
+		I_EQUAL(transcripts[0].codingRegions().baseCount(), 44);
 
 		transcripts = db.transcripts(3, Transcript::ENSEMBL, true); //NIPA1, Ensembl, coding
 		I_EQUAL(transcripts.count(), 2);
@@ -302,11 +304,15 @@ private slots:
 		I_EQUAL(transcripts[0].source(), Transcript::ENSEMBL);
 		I_EQUAL(transcripts[0].regions().count(), 2);
 		I_EQUAL(transcripts[0].regions().baseCount(), 202);
+		I_EQUAL(transcripts[0].codingRegions().count(), 2);
+		I_EQUAL(transcripts[0].codingRegions().baseCount(), 202);
 		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
 		I_EQUAL(transcripts[1].strand(), Transcript::MINUS);
 		I_EQUAL(transcripts[1].source(), Transcript::ENSEMBL);
-		I_EQUAL(transcripts[1].regions().count(), 2);
-		I_EQUAL(transcripts[1].regions().baseCount(), 102);
+		I_EQUAL(transcripts[1].regions().count(), 4);
+		I_EQUAL(transcripts[1].regions().baseCount(), 224);
+		I_EQUAL(transcripts[1].codingRegions().count(), 2);
+		I_EQUAL(transcripts[1].codingRegions().baseCount(), 102);
 
 		transcripts = db.transcripts(3, Transcript::ENSEMBL, false); //NIPA1, Ensembl, non-coding
 		I_EQUAL(transcripts.count(), 2);
@@ -315,11 +321,15 @@ private slots:
 		I_EQUAL(transcripts[0].source(), Transcript::ENSEMBL);
 		I_EQUAL(transcripts[0].regions().count(), 2);
 		I_EQUAL(transcripts[0].regions().baseCount(), 202);
+		I_EQUAL(transcripts[0].codingRegions().count(), 2);
+		I_EQUAL(transcripts[0].codingRegions().baseCount(), 202);
 		S_EQUAL(transcripts[1].name(), "NIPA1_TR2");
 		I_EQUAL(transcripts[1].strand(), Transcript::MINUS);
 		I_EQUAL(transcripts[1].source(), Transcript::ENSEMBL);
 		I_EQUAL(transcripts[1].regions().count(), 4);
 		I_EQUAL(transcripts[1].regions().baseCount(), 224);
+		I_EQUAL(transcripts[1].codingRegions().count(), 2);
+		I_EQUAL(transcripts[1].codingRegions().baseCount(), 102);
 
 		transcripts = db.transcripts(4, Transcript::ENSEMBL, true); //NON-CODING, Ensembl, coding
 		I_EQUAL(transcripts.count(), 0);
@@ -329,6 +339,8 @@ private slots:
 		S_EQUAL(transcripts[0].name(), "NON-CODING_TR1");
 		I_EQUAL(transcripts[0].regions().count(), 2);
 		I_EQUAL(transcripts[0].regions().baseCount(), 202);
+		I_EQUAL(transcripts[0].codingRegions().count(), 0);
+		I_EQUAL(transcripts[0].codingRegions().baseCount(), 0);
 
 		//longestCodingTranscript
 		Transcript transcript = db.longestCodingTranscript(4, Transcript::ENSEMBL); //NON-CODING, zero transcripts
@@ -339,12 +351,16 @@ private slots:
 		S_EQUAL(transcript.name(), "BRCA1_TR1");
 		I_EQUAL(transcript.regions().count(), 4);
 		I_EQUAL(transcript.regions().baseCount(), 44);
+		I_EQUAL(transcript.codingRegions().count(), 4);
+		I_EQUAL(transcript.codingRegions().baseCount(), 44);
 
 		transcript = db.longestCodingTranscript(3, Transcript::ENSEMBL); //NIPA1, two transcripts
 		IS_TRUE(transcript.isValid());
 		S_EQUAL(transcript.name(), "NIPA1_TR1");
 		I_EQUAL(transcript.regions().count(), 2);
 		I_EQUAL(transcript.regions().baseCount(), 202);
+		I_EQUAL(transcript.codingRegions().count(), 2);
+		I_EQUAL(transcript.codingRegions().baseCount(), 202);
 
 		//geneInfo
 		GeneInfo ginfo = db.geneInfo("BRCA1");

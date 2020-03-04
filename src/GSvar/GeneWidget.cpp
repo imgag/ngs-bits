@@ -1,8 +1,8 @@
 #include "GeneWidget.h"
 #include "Helper.h"
-#include "NGSD.h"
 #include "CandidateGeneDialog.h"
 #include "LoginManager.h"
+#include "GUIHelper.h"
 #include <QPushButton>
 #include <QInputDialog>
 #include <QMenu>
@@ -93,6 +93,8 @@ void GeneWidget::updateGUI()
 		orpha_links << ("<a href=\"https://www.orpha.net/consor/cgi-bin/OC_Exp.php?Expert=" + number + "\">" + identifier + "</a>\n" + name);
 	}
 	ui_.diseases->setText(orpha_links.join(orpha_links.count()>20 ? " "  : "\n"));
+
+	updateTranscriptsTable(db);
 }
 
 void GeneWidget::editInheritance()
@@ -132,4 +134,48 @@ void GeneWidget::showGeneVariationDialog()
 	CandidateGeneDialog dlg(this);
 	dlg.setGene(symbol_);
 	dlg.exec();
+}
+
+void GeneWidget::updateTranscriptsTable(NGSD& db)
+{
+	//clear
+	ui_.transcripts->setRowCount(0);
+
+	//get transcripts
+	int gene_id = db.geneToApprovedID(symbol_);
+	QList<Transcript> transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
+
+	//sort transcripts
+	std::stable_sort(transcripts.begin(), transcripts.end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });
+	std::stable_sort(transcripts.begin(), transcripts.end(), [](const Transcript& a, const Transcript& b){ return a.codingRegions().baseCount() > b.codingRegions().baseCount(); });
+
+	//display
+	foreach(const Transcript& transcript, transcripts)
+	{
+		int row = ui_.transcripts->rowCount();
+		ui_.transcripts->setRowCount(row+1);
+
+		ui_.transcripts->setItem(row, 0, GUIHelper::createTableItem(transcript.name()));
+
+		QString coords = "";
+		int reg_count = transcript.regions().count();
+		if (reg_count>0)
+		{
+			coords = transcript.regions()[0].chr().strNormalized(true) + ":" + QString::number(transcript.regions()[0].start()) + "-" + QString::number(transcript.regions()[reg_count-1].end());
+		}
+		ui_.transcripts->setItem(row, 1, GUIHelper::createTableItem(coords));
+
+		QString bases = QString::number(transcript.regions().baseCount());
+		ui_.transcripts->setItem(row, 2, GUIHelper::createTableItem(bases));
+
+		QString coding_bases_exons = "";
+		if (transcript.isCoding()) coding_bases_exons = QString::number(transcript.codingRegions().baseCount()-3) + " / " + QString::number(transcript.codingRegions().count());
+		ui_.transcripts->setItem(row, 3, GUIHelper::createTableItem(coding_bases_exons));
+
+		QString aas = "no protein";
+		if (transcript.isCoding()) aas = QString::number(transcript.codingRegions().baseCount()/3-1);
+		ui_.transcripts->setItem(row, 4, GUIHelper::createTableItem(aas));
+	}
+
+	GUIHelper::resizeTableCells(ui_.transcripts);
 }
