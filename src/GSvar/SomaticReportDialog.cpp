@@ -121,6 +121,8 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	BamReader bam_reader(db_.processedSamplePath(db_.processedSampleId(settings_.normal_ps), NGSD::PathType::BAM));
 	FastaFileIndex fasta_idx(Settings::string("reference_genome"));
 
+	QList<int> germl_indices_in_report = settings_.report_config.variantIndicesGermline();
+
 	if(i_class != -1 && i_co_sp != -1)
 	{
 		for(int i=0; i<germl_variants_.count(); ++i)
@@ -143,13 +145,18 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 			double freq_in_tum = bam_reader.getVariantDetails(fasta_idx, snv).frequency;
 
 			ui_.germline_variants->insertRow(ui_.germline_variants->rowCount());
-			QTableWidgetItem *check = new QTableWidgetItem();
-			check->setCheckState(Qt::Checked);
 
 			const int row = ui_.germline_variants->rowCount()-1;
 
 			ui_.germline_variants->setVerticalHeaderItem( row, new QTableWidgetItem(QString::number(i)) ); //variant index
+
+			//preselect variants contained in report configuration
+			QTableWidgetItem *check = new QTableWidgetItem();
+			if(germl_indices_in_report.contains(i)) check->setCheckState(Qt::Checked);
+			else check->setCheckState(Qt::Unchecked);
 			ui_.germline_variants->setItem( row, 0, check );
+
+
 			ui_.germline_variants->setItem( row, 1, new QTableWidgetItem( QString(snv.chr().strNormalized(true))) );
 			ui_.germline_variants->setItem( row, 2, new QTableWidgetItem( QString::number(snv.start())) );
 			ui_.germline_variants->setItem( row, 3, new QTableWidgetItem( QString::number(snv.end())) );

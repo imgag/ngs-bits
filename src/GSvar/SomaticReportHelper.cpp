@@ -223,11 +223,11 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			}
 			else if(statement.content().contains("LOH"))
 			{
-				temp_cnv_row.addCell(3138, "Unklare Bedeutung / Verlust des Wildtyp-Allels",RtfParagraph().highlight(3));
+				temp_cnv_row.addCell(3138, "unklare Bedeutung / Verlust des Wildtyp-Allels",RtfParagraph().highlight(3));
 			}
 			else
 			{
-				temp_cnv_row.addCell(3138,"Unklare Bedeutung");
+				temp_cnv_row.addCell(3138,"unklare Bedeutung");
 			}
 
 			//set first cell of corresponding cnv (contains gene name) as end of cell over multiple rows
