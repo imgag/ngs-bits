@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>854</width>
-    <height>485</height>
+    <height>757</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -81,7 +81,7 @@
        </property>
        <property name="icon">
         <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/reanalysis.png</normaloff>:/Icons/reanalysis.png</iconset>
+         <normaloff>:/Icons/Refresh.png</normaloff>:/Icons/Refresh.png</iconset>
        </property>
       </widget>
      </item>
@@ -528,17 +528,66 @@
     </widget>
    </item>
    <item>
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="title">
+      <string>Transcripts</string>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>154</width>
-       <height>199</height>
-      </size>
+     <property name="flat">
+      <bool>true</bool>
      </property>
-    </spacer>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="spacing">
+       <number>3</number>
+      </property>
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
+       <number>3</number>
+      </property>
+      <item>
+       <widget class="QTableWidget" name="transcripts">
+        <attribute name="verticalHeaderVisible">
+         <bool>false</bool>
+        </attribute>
+        <column>
+         <property name="text">
+          <string>transcript ID</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>coordinates</string>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Genomic coordinates of transcript (coding and non-coding part).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>bases</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>coding bases/exons</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>amino acids</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>

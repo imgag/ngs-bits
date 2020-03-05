@@ -17,7 +17,7 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	connect(ui_.edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
 	connect(ui_.delete_btn, SIGNAL(clicked(bool)), this, SLOT(remove()));
 	connect(ui_.text_filter_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
-	connect(ui_.table, SIGNAL(rowDoubleClicked(int)), this, SLOT(processRowDoubleClick(int)));
+	connect(ui_.table, SIGNAL(rowDoubleClicked(int)), this, SLOT(edit(int)));
 
 	QAction* action = new QAction(QIcon(":/Icons/Edit.png"), "Edit", this);
 	ui_.table->addAction(action);
@@ -26,6 +26,19 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(remove()));
+
+	if (table_=="project")
+	{
+		action = new QAction(QIcon(":/Icons/NGSD_project.png"), "Open project tab(s)", this);
+		ui_.table->addAction(action);
+		connect(action, SIGNAL(triggered(bool)), this, SLOT(openTabs()));
+	}
+	else if (table_=="processing_system")
+	{
+		action = new QAction(QIcon(":/Icons/NGSD_processing_system.png"), "Open processing system tab(s)", this);
+		ui_.table->addAction(action);
+		connect(action, SIGNAL(triggered(bool)), this, SLOT(openTabs()));
+	}
 }
 
 void DBTableAdministration::delayedInitialization()
@@ -86,8 +99,14 @@ void DBTableAdministration::edit()
 		return;
 	}
 
+
+	edit(rows.toList().first());
+}
+
+void DBTableAdministration::edit(int row)
+{
 	//edit
-	int id = ui_.table->getId(rows.toList().first()).toInt();
+	int id = ui_.table->getId(row).toInt();
 	DBEditor* editor = new DBEditor(this, table_, id);
 	auto dlg = GUIHelper::createDialog(editor, "Edit " + table_display_name_, "", true);
 	if (dlg->exec()==QDialog::Accepted)
@@ -138,19 +157,24 @@ void DBTableAdministration::remove()
 	updateTable();
 }
 
-void DBTableAdministration::processRowDoubleClick(int row)
+void DBTableAdministration::openTabs()
 {
-	QString id = ui_.table->getId(row);
+	QSet<int> rows = ui_.table->selectedRows();
 
-	if (table_=="project")
+	foreach(int row, rows)
 	{
-		QString name = NGSD().getValue("SELECT name FROM project WHERE id=" + id).toString();
-		emit openProjectTab(name);
-	}
-	else if (table_=="processing_system")
-	{
-		QString name = NGSD().getValue("SELECT name_short FROM processing_system WHERE id=" + id).toString();
-		emit openProcessingSystemTab(name);
+		QString id = ui_.table->getId(row);
+
+		if (table_=="project")
+		{
+			QString name = NGSD().getValue("SELECT name FROM project WHERE id=" + id).toString();
+			emit openProjectTab(name);
+		}
+		else if (table_=="processing_system")
+		{
+			QString name = NGSD().getValue("SELECT name_short FROM processing_system WHERE id=" + id).toString();
+			emit openProcessingSystemTab(name);
+		}
 	}
 }
 

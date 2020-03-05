@@ -4,7 +4,7 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-** gene tab: show transcript table, add links (gnomad, ....)
+** gene tab: add links for genes/transcripts (gnomAD, Ensembl, ...), add refseq/CCDS matches with links
 * Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)
@@ -17,6 +17,7 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+### Sample batch import: Add disease group/status, mark mandatory fields
 - Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
 - Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
 ** Popup notification for segregations - every time a new case is loaded

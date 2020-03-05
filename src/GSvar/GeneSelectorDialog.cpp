@@ -173,7 +173,7 @@ void GeneSelectorDialog::updateGeneTable()
 
 		//transcript
 		Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::CCDS, true);
-		BedFile region = transcript.regions();
+		BedFile region = transcript.codingRegions();
 		setGeneTableItem(r, 1, transcript.name() + " (" + QString::number(region.count()) + " exons)");
 
 		//size

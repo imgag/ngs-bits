@@ -3,7 +3,7 @@
 
 #include <QWidget>
 #include "ui_GeneWidget.h"
-
+#include "NGSD.h"
 
 class GeneWidget
     : public QWidget
@@ -18,10 +18,13 @@ private slots:
     void editInheritance();
     void editComment();
 	void showGeneVariationDialog();
+	void openLink(QString url);
 
 private:
     Ui::GeneWidget ui_;
     QByteArray symbol_;
+
+	void updateTranscriptsTable(NGSD& db);
 };
 
 #endif // GENEWIDGET_H
