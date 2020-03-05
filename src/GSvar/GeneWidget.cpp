@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QInputDialog>
 #include <QMenu>
+#include <QDesktopServices>
 
 GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
     : QWidget(parent)
@@ -136,6 +137,11 @@ void GeneWidget::showGeneVariationDialog()
 	dlg.exec();
 }
 
+void GeneWidget::openLink(QString url)
+{
+	QDesktopServices::openUrl(QUrl(url));
+}
+
 void GeneWidget::updateTranscriptsTable(NGSD& db)
 {
 	//clear
@@ -155,7 +161,11 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		int row = ui_.transcripts->rowCount();
 		ui_.transcripts->setRowCount(row+1);
 
-		ui_.transcripts->setItem(row, 0, GUIHelper::createTableItem(transcript.name()));
+		QLabel* label = new QLabel("<a href='http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + transcript.name() + "'>" + transcript.name() + "</a>");
+		label->setAlignment(Qt::AlignLeft|Qt::AlignTop);
+		label->setOpenExternalLinks(true);
+		connect(label, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
+		ui_.transcripts->setCellWidget(row, 0, label);
 
 		QString coords = "";
 		int reg_count = transcript.regions().count();

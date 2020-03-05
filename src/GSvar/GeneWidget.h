@@ -18,6 +18,7 @@ private slots:
     void editInheritance();
     void editComment();
 	void showGeneVariationDialog();
+	void openLink(QString url);
 
 private:
     Ui::GeneWidget ui_;
