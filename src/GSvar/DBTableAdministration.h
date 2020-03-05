@@ -22,8 +22,9 @@ protected slots:
 	void updateTable();
 	void add();
 	void edit();
+	void edit(int row);
 	void remove();
-	void processRowDoubleClick(int row);
+	void openTabs();
 
 private:
 	Ui::DBTableAdministration ui_;

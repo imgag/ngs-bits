@@ -1137,9 +1137,6 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 
 int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 {
-	//TODO: remove
-	QTextStream out(stdout);
-
 	// parse qc data
 	QJsonObject quality_metrics;
 	// get quality value
@@ -3195,25 +3192,20 @@ QList<Transcript> NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool
 		//get exons
 		BedFile regions;
 		QByteArray chr = query.value(2).toByteArray();
-		int start_coding = query.value(3).toUInt();
-		int end_coding = query.value(4).toUInt();
 		SqlQuery query2 = getQuery();
-		int id = query.value(0).toUInt();
+		int id = query.value(0).toInt();
 		query2.exec("SELECT start, end FROM gene_exon WHERE transcript_id=" + QString::number(id) + " ORDER BY start");
 		while(query2.next())
 		{
-			int start = query2.value(0).toUInt();
-			int end = query2.value(1).toUInt();
-			if (coding_only)
-			{
-				start = std::max(start, start_coding);
-				end = std::min(end, end_coding);
-				if (end<start_coding || start>end_coding) continue;
-			}
+			int start = query2.value(0).toInt();
+			int end = query2.value(1).toInt();
 			regions.append(BedLine(chr, start, end));
 		}
 		regions.merge();
-		transcript.setRegions(regions);
+
+		int start_coding = query.value(3).toInt();
+		int end_coding = query.value(4).toInt();
+		transcript.setRegions(regions, start_coding, end_coding);
 
 		output.push_back(transcript);
 	}
@@ -3237,7 +3229,7 @@ Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source,
 	if (list.isEmpty()) return Transcript();
 
 	//get longest transcript (transcripts regions are merged!)
-	auto max_it = std::max_element(list.begin(), list.end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() < b.regions().baseCount(); });
+	auto max_it = std::max_element(list.begin(), list.end(), [](const Transcript& a, const Transcript& b){ return a.codingRegions().baseCount() < b.codingRegions().baseCount(); });
 	return *max_it;
 }
 

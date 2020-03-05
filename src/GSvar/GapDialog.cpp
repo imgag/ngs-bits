@@ -68,7 +68,7 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 				genes_noncoding.insert(gene);
 				transcript = db.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
 			}
-			coding_overlap.add(transcript.regions());
+			coding_overlap.add(transcript.codingRegions());
 		}
 		coding_overlap.extend(5);
 		BedFile current_gap;
