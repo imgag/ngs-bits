@@ -746,6 +746,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV size"] = &createInstance<FilterSvSize>;
 		output["SV OMIM genes"] = &createInstance<FilterSvOMIM>;
 		output["SV compound-heterozygous"] = &createInstance<FilterSvCompHet>;
+		output["CNV pathogenic CNV overlap"] = &createInstance<FilterCnvPathogenicCnvOverlap>;
 	}
 
 	return output;
@@ -2981,6 +2982,37 @@ QByteArrayList FilterCnvGeneOverlap::selectedOptions() const
 	if (getBool("intronic/intergenic")) output << "intronic/intergenic";
 
 	return output;
+}
+
+FilterCnvPathogenicCnvOverlap::FilterCnvPathogenicCnvOverlap()
+{
+	name_ = "CNV pathogenic CNV overlap";
+	type_ = VariantType::CNVS;
+	description_ = QStringList() << "Filter for overlap with pathogenic CNVs from the NGSD i.e. the 'ngsd_pathogenic_cnvs' column is not empty.";
+
+	checkIsRegistered();
+}
+
+QString FilterCnvPathogenicCnvOverlap::toText() const
+{
+	return name();
+}
+
+void FilterCnvPathogenicCnvOverlap::apply(const CnvList& cnvs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int index = cnvs.annotationIndexByName("ngsd_pathogenic_cnvs", true);
+
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		if (cnvs[i].annotations()[index].trimmed().isEmpty())
+		{
+			result.flags()[i] = false;
+		}
+	}
 }
 
 

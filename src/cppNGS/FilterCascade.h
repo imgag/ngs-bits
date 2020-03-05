@@ -744,6 +744,16 @@ class CPPNGSSHARED_EXPORT FilterCnvGeneOverlap
 		QByteArrayList selectedOptions() const;
 };
 
+//Filter CNVs for overlaps with pathogenic CNVs
+class CPPNGSSHARED_EXPORT FilterCnvPathogenicCnvOverlap
+	: public FilterBase
+{
+	public:
+		FilterCnvPathogenicCnvOverlap();
+		QString toText() const override;
+		void apply(const CnvList& cnvs, FilterResult& result) const override;
+};
+
 /*************************************************** filters for SVs ***************************************************/
 
 // Filter SVs for SV type
