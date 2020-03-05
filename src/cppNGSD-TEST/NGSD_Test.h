@@ -938,6 +938,21 @@ private slots:
 
 		I_EQUAL(db.checkValue("sample", "received", "1977-12-01", true).count(), 0); //DATE
 		I_EQUAL(db.checkValue("sample", "received", "somewhen", true).count(), 1); //DATE: not convertable
+
+		//omimInfo
+		OmimInfo omim_info = db.omimInfo("DOES_NOT_EXIST");
+		S_EQUAL(omim_info.gene_symbol, "");
+		S_EQUAL(omim_info.mim, "");
+		I_EQUAL(omim_info.phenotypes.count(), 0);
+
+		omim_info = db.omimInfo("ATM");
+		S_EQUAL(omim_info.gene_symbol, "ATM");
+		S_EQUAL(omim_info.mim, "607585");
+		I_EQUAL(omim_info.phenotypes.count(), 5);
+		S_EQUAL(omim_info.phenotypes[0].accession(), "208900");
+		S_EQUAL(omim_info.phenotypes[0].name(), "Ataxia-telangiectasia, 208900 (3)");
+		S_EQUAL(omim_info.phenotypes[1].accession(), "");
+		S_EQUAL(omim_info.phenotypes[1].name(), "Lymphoma, B-cell non-Hodgkin, somatic (3)");
 	}
 
 	//Test for debugging (without initialization because of speed)

@@ -1,7 +1,6 @@
 #include "GeneOmimInfoWidget.h"
 #include "GUIHelper.h"
 #include "NGSD.h"
-#include <QDesktopServices>
 #include <QTextDocument>
 #include <QClipboard>
 
@@ -40,39 +39,23 @@ void GeneOmimInfoWidget::updateTable()
 		QString gene_approved = db.geneToApproved(gene.toLatin1(), false);
 		ui_.table->setItem(row, 1, GUIHelper::createTableItem(gene_approved));
 
-		//OMIM gene
-		QString omim_gene_id = db.getValue("SELECT id FROM omim_gene WHERE gene=:0", true, gene_approved).toString();
-		if (omim_gene_id=="")
+		//OMIM
+		OmimInfo omim_info = db.omimInfo(gene.toLatin1());
+		if (!omim_info.gene_symbol.isEmpty())
 		{
-			omim_gene_id = db.getValue("SELECT id FROM omim_gene WHERE gene=:0", true, gene).toString();
-		}
-		if (omim_gene_id!="")
-		{
-			QString mim = db.getValue("SELECT mim FROM omim_gene WHERE id=" + omim_gene_id).toString();
-			QString gene_omim = db.getValue("SELECT gene FROM omim_gene WHERE id=" + omim_gene_id).toString();
-
-			QLabel* label = new QLabel(link(mim, '*')+ " " + gene_omim);
-			label->setAlignment(Qt::AlignLeft|Qt::AlignTop);
-			label->setOpenExternalLinks(true);
-			connect(label, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
-
+			QLabel* label = GUIHelper::createLinkLabel(link(omim_info.mim, '*')+ " " + omim_info.gene_symbol);
 			ui_.table->setCellWidget(row, 2, label);
-		}
 
-		//OMIM phenotypes
-		if (omim_gene_id!="")
-		{
-			QStringList phenos = db.getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + omim_gene_id);
+			QStringList phenos;
+			foreach(const Phenotype& p, omim_info.phenotypes)
+			{
+				phenos << p.name();
+			}
 
 			ui_.table->setItem(row, 3, GUIHelper::createTableItem(phenos.join("\n")));
 		}
 	}
 	ui_.table->resizeRowsToContents();
-}
-
-void GeneOmimInfoWidget::openLink(QString url)
-{
-	QDesktopServices::openUrl(QUrl(url));
 }
 
 void GeneOmimInfoWidget::copyToClipboard()

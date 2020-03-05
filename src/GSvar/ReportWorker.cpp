@@ -721,28 +721,24 @@ void ReportWorker::writeHTML()
 	//OMIM table
 	if (settings_.show_omim_table)
 	{
-		//prepare queries
-		SqlQuery q_genes = db_.getQuery();
-		q_genes.prepare("SELECT id, mim FROM omim_gene WHERE gene=:1");
-
 		stream << "<p><b>" << trans("OMIM Gene und Phenotypen") << "</b>" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("OMIM Gen MIM") << "</b></td><td><b>" << trans("OMIM Phenotypen") << "</b></td></tr>" << endl;
+		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Gen MIM") << "</b></td><td><b>" << trans("Phenotyp") << "</b></td><td><b>" << trans("Phenotyp MIM") << "</b></td></tr>" << endl;
 		foreach(QByteArray gene, genes_)
 		{
-			//approved gene symbol
-			QByteArray gene_approved = db_.geneToApproved(gene, true);
-
-			//generate table rows
-			q_genes.bindValue(0, gene_approved);
-			q_genes.exec();
-			while (q_genes.next())
+			OmimInfo omim_info = db_.omimInfo(gene);
+			if (!omim_info.gene_symbol.isEmpty())
 			{
-				QString gene_id = q_genes.value(0).toByteArray();
-				QString gene_mim = q_genes.value(1).toByteArray();
+				QStringList names;
+				QStringList accessions;
+				foreach(const Phenotype& p, omim_info.phenotypes)
+				{
+					names << p.name();
+					accessions << p.accession();
+				}
 
-				stream << "<tr><td>" << gene << "</td><td>" << gene_mim << "</td><td>" << db_.getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + gene_id).join("<br>")<< "</td></tr>";
+				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << omim_info.mim << "</td><td>" << names.join("<br>")<< "</td><td>" << accessions.join("<br>")<< "</td></tr>";
 			}
 		}
 		stream << "</table>" << endl;
@@ -945,8 +941,9 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Name"] = "Name";
 		de2en["Ausgewertete Gene"] = "Genes analyzed";
 		de2en["OMIM Gene und Phenotypen"] = "OMIM gene and phenotypes";
-		de2en["OMIM Phenotypen"] = "OMIM phenotypes";
-		de2en["OMIM Gen MIM"] = "OMIM gene MIM";
+		de2en["Phenotyp"] = "phenotype";
+		de2en["Gen MIM"] = "gene MIM";
+		de2en["Phenotyp MIM"] = "phenotype MIM";
 		de2en["Gen(e)"] = "Genes";
 		de2en["Details zu Programmen der Analysepipeline"] = "Analysis pipeline tool details";
 		de2en["Parameter"] = "Parameters";

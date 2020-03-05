@@ -437,3 +437,14 @@ INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`) VALUES
 -- report config
 INSERT INTO `report_configuration` (`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
 (4003, 99, '2018-02-12T10:20:45', 99, '2018-07-12T10:20:43');
+
+-- omim
+INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES
+(199989, 'ATM', '607585');
+
+INSERT INTO `omim_phenotype` (`omim_gene_id`, `phenotype`) VALUES
+(199989, 'Ataxia-telangiectasia, 208900 (3)'),
+(199989, 'Lymphoma, B-cell non-Hodgkin, somatic (3)'),
+(199989, 'Lymphoma, mantle cell, somatic (3)'),
+(199989, 'T-cell prolymphocytic leukemia, somatic (3)'),
+(199989, '{Breast cancer, susceptibility to}, 114480 (3)');
