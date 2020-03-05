@@ -3553,7 +3553,8 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	}
 	else if (action==a_delete)
 	{
-		report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+		if(ReportSettingsType() == SettingsType::GERMLINE) report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+		else somatic_report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
 		updateReportConfigHeaderIcon(index);
 	}
 }
@@ -3577,7 +3578,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QAction* a_report_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	a_report_edit->setEnabled(ngsd_user_logged_in);
 	QAction* a_report_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	a_report_del->setEnabled(ngsd_user_logged_in && report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
+
+	a_report_del->setEnabled(ngsd_user_logged_in && (report_settings_.report_config.exists(VariantType::SNVS_INDELS, index) || somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index)));
 	menu.addSeparator();
 
 	//NGSD variant options

@@ -102,7 +102,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			row.addCell({transcript.hgvs_c + ":" + transcript.hgvs_p, RtfText(transcript.id).setFontSize(14).RtfCode()},2900);
 		}
 
-		row.last().format().setLineSpacing(176);
+		row.last().format().setLineSpacing(276);
 
 		row.addCell(1700,transcript.type);
 		int i_tum_af = snvs.annotationIndexByName("tumor_af",true,true);
@@ -140,6 +140,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 
 	//Fill RTF table
+	int i_cnv_state = cnvs_.annotationIndexByName("state", false);
 	for(const auto& pair : temp_rows)
 	{
 		const Variant& snv = pair.first;
@@ -158,16 +159,14 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			genes_in_first_part << gene;
 
 			//set first cell that contains gene name as cell over multiple rows
-			table.last()[0].addHeaderControlWord("clvmgf");
-			table.last()[4].addHeaderControlWord("clvmgf");
+			//table.last()[0].addHeaderControlWord("clvmgf");
+			//table.last()[4].addHeaderControlWord("clvmgf");
 
 			RtfTableRow temp_cnv_row;
 			temp_cnv_row.addCell(1000, gene, RtfParagraph().setItalic(true));
 
 
 			//Add CNV information to transcript type (if cnv at this locus exists and is available)
-			double tum_clonality = cnv.annotations().at(i_cnv_tum_clonality).toDouble();
-
 			double tum_af = row[3].format().content().toDouble();
 
 			double tum_maximum_clonality = getCnvMaxTumorClonality(cnvs);
@@ -183,9 +182,9 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 				if(tum_cn_change == 1 ) statement.append("DEL (het)");
 				else if(tum_cn_change == 0) statement.append("DEL (hom)");
 			}
-			else if(tum_cn_change == 2)
+			else
 			{
-				if(tum_af > tum_clonality/2.) statement.append("LOH");
+				statement.append(cnv.annotations()[i_cnv_state]);
 			}
 			statement.setFontSize(18);
 
@@ -231,7 +230,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			}
 
 			//set first cell of corresponding cnv (contains gene name) as end of cell over multiple rows
-			temp_cnv_row[0].addHeaderControlWord("clvmrg");
+			//temp_cnv_row[0].addHeaderControlWord("clvmrg");
 			table.addRow(temp_cnv_row);
 
 		}
@@ -348,6 +347,20 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 	{
 		table.addRow(row);
 	}
+
+	//Merge cells with the same gene name
+	for(int r=2; r<table.count()-1; ++r)
+	{
+		if(table[r-1][0].format().content() == table[r][0].format().content())
+		{
+			//set first row cell that contains gene name as cell over multiple rows as "clvmgf"
+			if(table[r-1][0].controlWord().isEmpty()) table[r-1][0].setHeaderControlWord("clvmgf");
+
+			//set second row cell as cell in center / at end of merge
+			table[r][0].setHeaderControlWord("clvmrg");
+		}
+	}
+
 	return table;
 }
 
@@ -381,18 +394,21 @@ RtfTable SomaticReportHelper::createCnvTable()
 	{
 		cnv_table.removeRow(1);
 		cnv_table.addRow(RtfTableRow("Es wurden keine CNVs gefunden.",doc_.maxWidth()));
+		cnv_table.setUniqueBorder(1,"brdrhair",4);
 		return cnv_table;
 	}
 
 	if(cnv_index_cgi_genes_ < 0 || cnv_index_cgi_driver_statement_ < 0 || cnv_index_cgi_gene_role_ < 0)
 	{
 		cnv_table.addRow(RtfTableRow("Fehlerhafte CGI statements in ClinCNV-Datei.",doc_.maxWidth()));
+		cnv_table.setUniqueBorder(1,"brdrhair",4);
 		return cnv_table;
 	}
 
 	if(cnv_index_tumor_cn_change_ < 0 || cnv_index_tumor_clonality_ < 0)
 	{
 		cnv_table.addRow(RtfTableRow("Die ClinCNV-Datei enthält keine Tumor Clonality. Bitte mit einer aktuelleren Version von ClinCNV neu berechnen.",doc_.maxWidth()));
+		cnv_table.setUniqueBorder(1,"brdrhair",4);
 		return cnv_table;
 	}
 
@@ -447,7 +463,9 @@ RtfTable SomaticReportHelper::createCnvTable()
 		temp_row.last().format().setHorizontalAlignment("c");
 
 		//Type
-		temp_row.addCell(800,variant.annotations().at(cnv_index_cnv_type_),RtfParagraph().setHorizontalAlignment("c"));
+		QByteArray type_statement = variant.annotations().at(cnv_index_cnv_type_);
+		type_statement = type_statement.replace("chromosome", "chr");
+		temp_row.addCell(800, type_statement, RtfParagraph().setHorizontalAlignment("c"));
 
 		//copy numbers
 		temp_row.addCell(400,variant.annotations().at(cnv_index_tumor_cn_change_));
@@ -1827,7 +1845,16 @@ RtfTable SomaticReportHelper::pharamacogeneticsTable()
 
 					row.addCell(1200,snv.annotations().at(i_dbsnp),RtfParagraph().setFontSize(14));
 					row.addCell(800,trans.gene,RtfParagraph().setFontSize(14));
-					row.addCell(1800,trans.hgvs_c + ":" + trans.hgvs_p,RtfParagraph().setFontSize(14));
+
+					if(!trans.hgvs_c.isEmpty() && !trans.hgvs_p.isEmpty())
+					{
+						row.addCell(1800,trans.hgvs_c + ":" + trans.hgvs_p,RtfParagraph().setFontSize(14));
+					}
+					else //use genomic position if no AA change available
+					{
+						row.addCell(1800, "g." + QByteArray::number(snv.start()) + snv.ref() + ">" + snv.obs(), RtfParagraph().setFontSize(14) );
+					}
+
 					row.addCell(800,snv.annotations().at(i_genotype),RtfParagraph().setFontSize(14));
 					row.addCell(1300,value.first,RtfParagraph().setFontSize(14));
 					row.addCell(3737,value.second,RtfParagraph().setFontSize(14));
@@ -1993,10 +2020,15 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		for(int i=0;i<snv_variants_.count();++i)
 		{
 			const QByteArray& som_class = snv_variants_[i].annotations().at(snv_index_som_class_);
-			if(!som_class.isEmpty() && som_class != "n/a")	pass[i] = true;
-
-			const QByteArray& cgi = snv_variants_[i].annotations().at(snv_index_cgi_statement_);
-			if(cgi.contains("known") || cgi.contains("predicted driver")) pass[i] = true;
+			if(!som_class.isEmpty()) //in house classification overwrites CGI
+			{
+				if(som_class != "n/a" && som_class != "unclear") pass[i] = true;
+			}
+			else //fallback to CGI
+			{
+				const QByteArray& cgi = snv_variants_[i].annotations().at(snv_index_cgi_statement_);
+				if(cgi.contains("known") || cgi.contains("predicted driver")) pass[i] = true;
+			}
 		}
 	}
 	else //Remove SNVs outside target region (EBM report)
@@ -2030,14 +2062,27 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	snv_expl += "Erweiterte Legende und Abkürzungen siehe unten.";
 	if(settings_.report_config.countGermline() > 0) snv_expl += "\\line\n" +RtfText("#:").setFontSize(14).setBold(true).RtfCode() + " Auch in der Normalprobe nachgewiesen.";
 
-	doc_.addPart( RtfParagraph(snv_expl).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode() );
+	doc_.addPart( RtfParagraph(snv_expl).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(276).RtfCode() );
+	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode());
+
+	if(skipped_amp_.count() > 0)
+	{
+		snv_expl = "Weiterhin wurden nicht-fokale Amplifikationen (3 Kopien) für die folgenden relevanten Gene nachgewiesen: ";
+		std::sort(skipped_amp_.begin(), skipped_amp_.end());
+		snv_expl += RtfText(skipped_amp_.join(", ")).setFontSize(18).setItalic(true).RtfCode();
+		snv_expl += ".";
+		doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
+		doc_.addPart(RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode());
+	}
+
+	if(settings_.report_config.fusionsDetected())
+	{
+		snv_expl = "Es gibt Hinweise auf eine Deletion/Fusion/Translokation/Strukturvariante, die zu einer Fusion/Deletion/... führen könnte. Eine Bestätigung dieser Beobachtung sollte mit einer unabhängigen Methode erfolgen.";
+		doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setBold(true).highlight(3).RtfCode());
+		doc_.addPart(RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode());
+	}
 
 
-	snv_expl = "Weiterhin wurden nicht-fokale Amplifikationen (3 Kopien) für die folgenden relevanten Gene nachgewiesen: ";
-	std::sort(skipped_amp_.begin(), skipped_amp_.end());
-	snv_expl += RtfText(skipped_amp_.join(", ")).setFontSize(18).setItalic(true).RtfCode();
-	snv_expl += ".";
-	doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode());
 
 	//support for limitation text
 	snv_expl = RtfText("Limitationen: ").setBold(true).setFontSize(18).RtfCode();
@@ -2049,16 +2094,16 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	{
 		snv_expl += settings_.report_config.limitations().replace("\n","\n\\line\n");
 	}
-	doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode());
+	doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setHorizontalAlignment("j").RtfCode());
 
 
-
+	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setFontSize(18).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).RtfCode());
 
 	snv_expl = RtfText("Zusätzliche genetische Daten:").setFontSize(18).setBold(true).RtfCode();
 	snv_expl += " Weitere Informationen zu allen nachgewiesenen somatischen Veränderungen und pharmakogenetisch relevanten Polymorphismen entnehmen Sie bitte der Anlage 1.";
-	doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode());
+	doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 
-	doc_.addPart( RtfParagraph("").RtfCode() );
+	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setLineSpacing(276).setFontSize(18).RtfCode());
 
 	doc_.newPage();
 
@@ -2087,7 +2132,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	doc_.addPart(somaticAlterationTable(snvs_reordered, cnvs_, true).setUniqueBorder(1,"brdrhair",4).RtfCode());
 	RtfSourceCode desc = "Diese Tabelle enthält sämtliche in der Tumorprobe nachgewiesenen SNVs und INDELs, unabhängig von der funktionellen Einschätzung und der abzurechnenden Zielregion. Sie enthält ferner alle Kopienzahlveränderungen in Genen, die als Treiber eingestuft wurden.";
 
-	doc_.addPart(RtfParagraph(desc).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(175).RtfCode());
+	doc_.addPart(RtfParagraph(desc).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 
 	doc_.addPart(RtfParagraph(" ").RtfCode());
 
@@ -2103,8 +2148,8 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	{
 		RtfTable fusion_table;
 		fusion_table.addRow(RtfTableRow("Strukturvarianten",doc_.maxWidth(),RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader().setBackgroundColor(5));
-		fusion_table.addRow(RtfTableRow({"Region A", "Region B", "Beschreibung"}, {2409, 2409, 4818}, RtfParagraph().setBold(true).setHorizontalAlignment("c")).setHeader());
-		fusion_table.addRow(RtfTableRow({"", "", "", "", ""}, {1000,1409,1000,1409,4818}, RtfParagraph()));
+		fusion_table.addRow(RtfTableRow({"Region A", "Region B", "Beschreibung"}, {2409, 2409, 4818}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
+		fusion_table.addRow(RtfTableRow({"", "", "", "", ""}, {1000,1409,1000,1409,4818}, RtfParagraph().setFontSize(16)));
 
 		fusion_table.setUniqueBorder(1,"brdrhair",4);
 		doc_.addPart(fusion_table.RtfCode());
@@ -2164,7 +2209,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	{
 		if(cgi_acronyms_.contains(data.acronym)) cgi_acronym_explanation << data.acronym + ": " + data.def_german;
 	}
-	cgi_acronyms_table.addRow(RtfTableRow(cgi_acronym_explanation.join(", "),doc_.maxWidth(), RtfParagraph().setFontSize(14).setHorizontalAlignment("j").setLineSpacing(175)));
+	cgi_acronyms_table.addRow(RtfTableRow(cgi_acronym_explanation.join(", "),doc_.maxWidth(), RtfParagraph().setFontSize(14).setHorizontalAlignment("j").setLineSpacing(276)));
 
 	doc_.addPart(cgi_acronyms_table.RtfCode());
 
