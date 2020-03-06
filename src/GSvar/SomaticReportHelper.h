@@ -334,7 +334,7 @@ private:
 	QMap<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
 
 	///Writes Rtf table containing most relevant SNVs and CNVs
-	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet(), int min_amp_cn = 4);
+	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet(), bool sort_by_gene = false);
 
 
 	//skipped amplifications in somaticalterationtable
@@ -369,17 +369,11 @@ private:
 		return out;
 	}
 
-
-	RtfTableRow tumorContent();
-
 	///Parses CN to description
 	QByteArray CnvDescription(const CopyNumberVariant& cnv);
 
 	///Parses annotated cytobands to text, "" if not annotation available
 	QByteArray cytoband(const CopyNumberVariant& cnv);
-
-	///Finds SNV by gene symbol, returns index, -1 otherwise
-	int snvByGene(const VariantList& snvs, QByteArray gene_symbol);
 
 
 	const SomaticReportSettings& settings_;

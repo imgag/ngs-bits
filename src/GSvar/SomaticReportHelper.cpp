@@ -19,7 +19,7 @@
 #include <QPair>
 #include <QCollator>
 
-RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes, int min_amp_cn)
+RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes, bool sort_by_gene)
 {
 	RtfTable table;
 
@@ -134,8 +134,30 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		temp_rows.append(QPair<Variant,RtfTableRow>(snv, row));
 	}
 
-	//sort according gene name (first cell in RtfTableRow)
-	std::sort(temp_rows.begin(), temp_rows.end(), [](const QPair<Variant,RtfTableRow>& a, const QPair<Variant,RtfTableRow>& b){return a.second[0].format().content() < b.second[0].format().content();});
+	if(sort_by_gene)
+	{
+		std::sort(temp_rows.begin(), temp_rows.end(), [](const QPair<Variant,RtfTableRow>& a, const QPair<Variant,RtfTableRow>& b){return a.second[0].format().content() < b.second[0].format().content();});
+	}
+	else//sort according classifcation, then by gene name
+	{
+		std::sort(temp_rows.begin(), temp_rows.end(), [](const QPair<Variant,RtfTableRow>& a, const QPair<Variant,RtfTableRow>& b)
+		{
+			if(a.second[4].format().content().contains("aktivierend") && !b.second[4].format().content().contains("aktivierend") ) return true;
+			if(!a.second[4].format().content().contains("aktivierend") && b.second[4].format().content().contains("aktivierend") ) return false; //equal
+
+			if(a.second[4].format().content().contains("bekannt") && !b.second[4].format().content().contains("bekannt") ) return true;
+			if(!a.second[4].format().content().contains("bekannt") && b.second[4].format().content().contains("bekannt") ) return false; //equal
+
+			if(a.second[4].format().content().contains("vorhergesagt") && !b.second[4].format().content().contains("vorhergesagt") ) return true;
+			if(!a.second[4].format().content().contains("vorhergesagt") && b.second[4].format().content().contains("vorhergesagt") ) return false; //equal
+
+			if(a.second[0].format().content() < b.second[0].format().content()) return true; //gene alphabetically;
+			if(a.second[0].format().content() > b.second[0].format().content()) return false;
+
+			return false; //everything else equal
+		}
+		);
+	}
 
 
 
@@ -157,10 +179,6 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			double tum_cn_change = cnv.annotations().at(cnv_index_tumor_cn_change_).toDouble();
 			QByteArray gene = row[0].format().content(); //access cell with gene name
 			genes_in_first_part << gene;
-
-			//set first cell that contains gene name as cell over multiple rows
-			//table.last()[0].addHeaderControlWord("clvmgf");
-			//table.last()[4].addHeaderControlWord("clvmgf");
 
 			RtfTableRow temp_cnv_row;
 			temp_cnv_row.addCell(1000, gene, RtfParagraph().setItalic(true));
@@ -230,7 +248,6 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			}
 
 			//set first cell of corresponding cnv (contains gene name) as end of cell over multiple rows
-			//temp_cnv_row[0].addHeaderControlWord("clvmrg");
 			table.addRow(temp_cnv_row);
 
 		}
@@ -258,7 +275,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 		//ignore amplifications <4
 		double tum_cn_change = cnv.annotations().at(cnv_index_tumor_cn_change_).toDouble();
-		if(tum_cn_change > 2 && tum_cn_change < min_amp_cn)
+		if(tum_cn_change > 2 && tum_cn_change < 4)
 		{
 			//make list of skipped amplified genes (driver only!)
 			for(int j=0; j<genes.count(); ++j)
@@ -1138,8 +1155,8 @@ RtfTable SomaticReportHelper::createGapStatisticsTable(const QList<int>& col_wid
 	if(grouped.keys().count() < 25)
 	{
 		widths.clear();
-		widths << 900 << 1000 << 1000 << 6637;
-		table.addRow(RtfTableRow({"Gen","Lücken","Chr","Koordinaten (GRCh37)"},widths,RtfParagraph().setBold(true).setSpaceBefore(50)));
+		widths << 700 << 700 << 900 << 7337;
+		table.addRow(RtfTableRow({"Gen","Lücken","Chromosom","Koordinaten (GRCh37)"},widths,RtfParagraph().setBold(true).setFontSize(16).setSpaceBefore(50)));
 
 		for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
 		{
@@ -1150,7 +1167,7 @@ RtfTable SomaticReportHelper::createGapStatisticsTable(const QList<int>& col_wid
 			{
 				coords << QByteArray::number(gaps[i].start()) + "\\_" + QByteArray::number(gaps[i].end());
 			}
-			table.addRow(RtfTableRow({RtfText(it.key()).setItalic(true).RtfCode(),QByteArray::number(gaps.baseCount()),chr,coords.join(", ")},widths,RtfParagraph()));
+			table.addRow(RtfTableRow({RtfText(it.key()).setItalic(true).setFontSize(14).RtfCode(),QByteArray::number(gaps.baseCount()),chr,coords.join(", ")},widths,RtfParagraph()));
 		}
 	}
 
@@ -1751,28 +1768,6 @@ QByteArray SomaticReportHelper::cytoband(const CopyNumberVariant &cnv)
 	return out;
 }
 
-int SomaticReportHelper::snvByGene(const VariantList &snvs, QByteArray gene_symbol)
-{
-	int i_gene = snvs.annotationIndexByName("gene", true, false);
-	if(i_gene < 0) return -1;
-
-	QList<int> matches = {};
-
-	for(int i=0; i<snvs.count(); ++i)
-	{
-		QByteArrayList genes = snvs[i].annotations()[i_gene].split(',');
-
-		for(const auto& gene : genes)
-		{
-			if(gene.trimmed() == gene_symbol) matches << i;
-		}
-	}
-
-	if(matches.count() != 1) return -1;
-
-	return matches[0];
-}
-
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)
 {
 	int i_cnv_tum_clonality = cnvs.annotationIndexByName("tumor_clonality", false);
@@ -2009,7 +2004,6 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	/********************************
 	 * RELEVANT SOMATIC ALTERATIONS *
 	 ********************************/
-	doc_.newPage();
 	doc_.addPart(RtfParagraph("Potentiell relevante somatische Veränderungen:").setBold(true).setIndent(0,0,0).setSpaceBefore(250).RtfCode());
 
 	VariantList snvs_to_be_printed;
@@ -2056,8 +2050,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		 target_genes = db_.genesToApproved(target_genes,true);
 	}
 
-	doc_.addPart(somaticAlterationTable(snvs_to_be_printed, cnvs_, true, target_genes, 4).setUniqueBorder(1,"brdrhair",4).RtfCode());
-
+	doc_.addPart(somaticAlterationTable(snvs_to_be_printed, cnvs_, true, target_genes, true).setUniqueBorder(1,"brdrhair",4).RtfCode());
 
 	RtfSourceCode snv_expl  = RtfText("Anteil:").setBold(true).setFontSize(14).RtfCode() + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil der Zellen mit der entsprechenden Kopienzahlvariante (CNV) in der untersuchten Probe. ";
 	snv_expl += RtfText("Beschreibung:").setFontSize(14).setBold(true).RtfCode() + " SNV: Einschätzung der Varianten und ggf. Bewertung der Genfunktion als Onkogen bzw. Tumorsuppressorgen (TSG). CNV: Deletionen, fokale Amplifikationen und Amplifikationen mit mehr als 4 Kopien. ";
@@ -2114,24 +2107,8 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	 *********************/
 	doc_.addPart(RtfParagraph("Alle nachgewiesenen somatischen Veränderungen:").setBold(true).setSpaceAfter(45).setFontSize(18).RtfCode());
 
-	//SNVs shall be divided into driver first (entry in som class!) , then alphabetically
-	VariantList snvs_reordered;
-	snvs_reordered.copyMetaData(snv_variants_);
-	for(int i=0; i<snv_variants_.count(); ++i)
-	{
-		if(!snv_variants_[i].annotations()[snv_index_som_class_].isEmpty() && snv_variants_[i].annotations()[snv_index_som_class_] != "n/a")
-		{
-			snvs_reordered.append(snv_variants_[i]);
-		}
-	}
-	for(int i=0; i<snv_variants_.count(); ++i) //non classified variants
-	{
-		if(!snv_variants_[i].annotations()[snv_index_som_class_].isEmpty() && snv_variants_[i].annotations()[snv_index_som_class_] != "n/a") continue;
+	doc_.addPart(somaticAlterationTable(snv_variants_, cnvs_, true).setUniqueBorder(1,"brdrhair",4).RtfCode());
 
-		snvs_reordered.append(snv_variants_[i]);
-	}
-
-	doc_.addPart(somaticAlterationTable(snvs_reordered, cnvs_, true).setUniqueBorder(1,"brdrhair",4).RtfCode());
 	RtfSourceCode desc = "Diese Tabelle enthält sämtliche in der Tumorprobe nachgewiesenen SNVs und INDELs, unabhängig von der funktionellen Einschätzung und der abzurechnenden Zielregion. Sie enthält ferner alle Kopienzahlveränderungen in Genen, die als Treiber eingestuft wurden.";
 
 	doc_.addPart(RtfParagraph(desc).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
