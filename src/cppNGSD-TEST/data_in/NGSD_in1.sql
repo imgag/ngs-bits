@@ -443,7 +443,6 @@ INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`) VALUES
 -- report config
 INSERT INTO `report_configuration` (`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
 (4003, 99, '2018-02-12T10:20:45', 99, '2018-07-12T10:20:43');
-
 -- somatic_cnv_callset_id`
 INSERT INTO `somatic_cnv_callset` (`id`, `ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
 (1, 4000, 3999, 'ClinCNV', 'v 1.16', '2020-01-12T13:35:01', '{"estimated fdr":"0","gender of sample":"F","ploidy":"2.21","clonality by BAF (if != 1)":"0;0.725;0.25"}', 'good'),
@@ -464,3 +463,14 @@ INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id
 `exclude_high_baf_deviation`, `exclude_other_reason`, `comment`) VALUES
 (3, 4, true, false, false, false, false, "");
 
+
+-- omim
+INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES
+(199989, 'ATM', '607585');
+
+INSERT INTO `omim_phenotype` (`omim_gene_id`, `phenotype`) VALUES
+(199989, 'Ataxia-telangiectasia, 208900 (3)'),
+(199989, 'Lymphoma, B-cell non-Hodgkin, somatic (3)'),
+(199989, 'Lymphoma, mantle cell, somatic (3)'),
+(199989, 'T-cell prolymphocytic leukemia, somatic (3)'),
+(199989, '{Breast cancer, susceptibility to}, 114480 (3)');

@@ -14,7 +14,6 @@ public:
 
 protected slots:
 	void updateTable();
-	void openLink(QString url);
 	void copyToClipboard();
 
 private:

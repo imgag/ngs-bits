@@ -2877,6 +2877,42 @@ QList<Phenotype> NGSD::phenotypeChildTems(const Phenotype& phenotype, bool recur
 	return terms;
 }
 
+OmimInfo NGSD::omimInfo(const QByteArray& symbol)
+{
+	OmimInfo output;
+
+	//OMIM gene
+	QString omim_gene_id = getValue("SELECT id FROM omim_gene WHERE gene=:0", true, symbol).toString();
+	if (omim_gene_id=="")
+	{
+		QString symbol_approved = geneToApproved(symbol, true);
+		omim_gene_id = getValue("SELECT id FROM omim_gene WHERE gene=:0", true, symbol_approved).toString();
+	}
+
+	if (omim_gene_id!="")
+	{
+		output.mim = getValue("SELECT mim FROM omim_gene WHERE id=" + omim_gene_id).toByteArray();
+		output.gene_symbol = getValue("SELECT gene FROM omim_gene WHERE id=" + omim_gene_id).toByteArray();
+
+		QRegExp mim_exp("[^0-9]([0-9]{6})[^0-9]");
+		QStringList phenos = getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + omim_gene_id + " ORDER BY phenotype ASC");
+		foreach(QString pheno, phenos)
+		{
+			Phenotype tmp;
+
+			tmp.setName(pheno.toLatin1());
+			if (mim_exp.indexIn(pheno)!=-1)
+			{
+				tmp.setAccession(mim_exp.cap(1).toLatin1());
+			}
+
+			output.phenotypes << tmp;
+		}
+	}
+
+	return output;
+}
+
 
 Phenotype NGSD::phenotypeByName(const QByteArray& name, bool throw_on_error)
 {

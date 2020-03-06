@@ -149,7 +149,7 @@ void MidCheckWidget::addBatch()
 	QTextEdit* edit = new QTextEdit(this);
 	edit->setAcceptRichText(false);
 	edit->setMinimumSize(600, 400);
-	auto dlg = GUIHelper::createDialog(edit, "Batch MID import", "Enter sample MID data. Paste four tab-separated columnns, e.g. from Excel:\nsample name, lane(s), mid1, mid2\nNote: lanes must be comma-separated.\nNote: MIDs can be given by sequence or by their name in the NGSD.", true);
+	auto dlg = GUIHelper::createDialog(edit, "Batch MID import", "Enter sample MID data. Paste four tab-separated columnns, e.g. from Excel:<br>sample name, lane(s), mid1, mid2<br>Note: lanes must be comma-separated.<br>Note: MIDs can be given by sequence or by their name in the NGSD.", true);
 	if (dlg->exec()!=QDialog::Accepted) return;
 
 	//parse input
