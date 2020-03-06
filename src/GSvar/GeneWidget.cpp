@@ -3,6 +3,7 @@
 #include "CandidateGeneDialog.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
+#include "GeneInfoDBs.h"
 #include <QPushButton>
 #include <QInputDialog>
 #include <QMenu>
@@ -23,6 +24,17 @@ GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
     menu->addAction("Edit inheritance", this, SLOT(editInheritance()));
     menu->addAction("Edit comment", this, SLOT(editComment()));
     ui_.edit_btn->setMenu(menu);
+
+	//gene database buttons
+	QHBoxLayout* layout = ui_.gene_button_layout;
+	foreach(const GeneDB& db, GeneInfoDBs::all())
+	{
+		QToolButton* btn = new QToolButton();
+		btn->setToolTip(db.name);
+		btn->setIcon(db.icon);
+		layout->addWidget(btn);
+		connect(btn, SIGNAL(clicked(bool)), this, SLOT(openGeneDatabase()));
+	}
 
     updateGUI();
 }
@@ -136,6 +148,12 @@ void GeneWidget::showGeneVariationDialog()
 	CandidateGeneDialog dlg(this);
 	dlg.setGene(symbol_);
 	dlg.exec();
+}
+
+void GeneWidget::openGeneDatabase()
+{
+	QToolButton* btn = qobject_cast<QToolButton*>(sender());
+	GeneInfoDBs::openUrl(btn->toolTip(), symbol_);
 }
 
 void GeneWidget::updateTranscriptsTable(NGSD& db)

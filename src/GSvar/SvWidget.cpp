@@ -14,6 +14,9 @@
 #include "PhenotypeSelectionWidget.h"
 #include "Settings.h"
 #include "Log.h"
+#include "LoginManager.h"
+#include "GeneInfoDBs.h"
+#include <QDesktopServices>
 
 SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* variant_filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: QWidget(parent)
@@ -310,7 +313,6 @@ void SvWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by genes
-
 		GeneSet gene_whitelist = ui->filter_widget->genes();
 		if (!gene_whitelist.isEmpty())
 		{
@@ -321,7 +323,6 @@ void SvWidget::applyFilters(bool debug_time)
 			if (i_genes == -1)
 			{
 				QMessageBox::warning(this, "Filtering error", "BEDPE files does not contain a 'GENES' column! \nFiltering based on genes is not possible. Please reannotate the structural variant file.");
-
 			}
 			else
 			{
@@ -361,8 +362,6 @@ void SvWidget::applyFilters(bool debug_time)
 				}
 			}
 		}
-
-
 
 		//filter annotations by text
 		QByteArray text = ui->filter_widget->text().trimmed().toLower();
@@ -473,7 +472,7 @@ void SvWidget::SvDoubleClicked(QTableWidgetItem *item)
 	int row = item->row();
 	QString coords = sv_bedpe_file_[row].positionRange();
 
-	emit openSvInIGV(coords);
+	emit openInIGV(coords);
 }
 
 void SvWidget::disableGUI(const QString& message)
@@ -588,7 +587,9 @@ void SvWidget::showContextMenu(QPoint pos)
 	QModelIndexList rows = ui->svs->selectionModel()->selectedRows();
 	if(rows.count() != 1) return;
 
-	//show menu
+	int row = rows.at(0).row();
+
+	//create menu
 	QMenu menu(ui->svs);
 	QAction* igv_pos1 = menu.addAction("Open position A in IGV");
 	QAction* igv_pos2 = menu.addAction("Open position B in IGV");
@@ -596,24 +597,50 @@ void SvWidget::showContextMenu(QPoint pos)
 	menu.addSeparator();
 	QAction* copy_pos1 = menu.addAction("Copy position A to clipboard");
 	QAction* copy_pos2 = menu.addAction("Copy position B to clipboard");
+	//gene sub-menus
+	int i_genes = sv_bedpe_file_.annotationIndexByName("GENES", false);
+	if (i_genes!=-1)
+	{
+		GeneSet genes = GeneSet::createFromText(sv_bedpe_file_[row].annotations()[i_genes], ',');
+		if (!genes.isEmpty())
+		{
+			menu.addSeparator();
 
+			int gene_nr = 1;
+			foreach(const QByteArray& gene, genes)
+			{
+				++gene_nr;
+				if (gene_nr>=10) break; //don't show too many sub-menues for large variants!
+
+				QMenu* sub_menu = menu.addMenu(gene);
+				sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(LoginManager::active());
+				sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
+				foreach(const GeneDB& db, GeneInfoDBs::all())
+				{
+					sub_menu->addAction(db.icon, db.name);
+				}
+			}
+		}
+	}
+
+	//execute menu
 	QAction* action = menu.exec(ui->svs->viewport()->mapToGlobal(pos));
 	if (action == nullptr) return;
 
-	//open in IGV
-	int index = rows.at(0).row();
-	const BedpeLine& sv = sv_bedpe_file_[index];
+	//react
+	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
+	const BedpeLine& sv = sv_bedpe_file_[row];
 	if (action == igv_pos1)
 	{
-		emit(openSvInIGV(sv.position1()));
+		emit(openInIGV(sv.position1()));
 	}
 	else if (action == igv_pos2)
 	{
-		emit(openSvInIGV(sv.position2()));
+		emit(openInIGV(sv.position2()));
 	}
 	else if (action == igv_split)
 	{
-		emit(openSvInIGV(sv.position1() + " " + sv.position2()));
+		emit(openInIGV(sv.position1() + " " + sv.position2()));
 	}
 	else if (action == copy_pos1)
 	{
@@ -622,5 +649,30 @@ void SvWidget::showContextMenu(QPoint pos)
 	else if (action == copy_pos2)
 	{
 		QApplication::clipboard()->setText(sv.position2());
+	}
+	else if (parent_menu)
+	{
+		QString gene = parent_menu->title();
+		QString db_name = action->text();
+
+		if (db_name=="Gene tab")
+		{
+			openGeneTab(gene);
+		}
+		else if (db_name=="Google")
+		{
+			QString query = gene + " AND (mutation";
+			foreach(const Phenotype& pheno, ui->filter_widget->phenotypes())
+			{
+				query += " OR \"" + pheno.name() + "\"";
+			}
+			query += ")";
+
+			QDesktopServices::openUrl(QUrl("https://www.google.com/search?q=" + query.replace("+", "%2B").replace(' ', '+')));
+		}
+		else //other databases
+		{
+			GeneInfoDBs::openUrl(db_name, gene);
+		}
 	}
 }

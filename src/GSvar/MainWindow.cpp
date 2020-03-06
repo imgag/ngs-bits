@@ -91,6 +91,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneOmimInfoWidget.h"
 #include "LoginManager.h"
 #include "LoginDialog.h"
+#include "GeneInfoDBs.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -113,7 +114,8 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.splitter_2->setStretchFactor(0, 10);
 	ui_.splitter_2->setStretchFactor(1, 1);
 	connect(ui_.variant_details, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
-	connect(ui_.variant_details, SIGNAL(openCurrentVariantTab()), this, SLOT(openCurrentVariantTab()));
+	connect(ui_.variant_details, SIGNAL(openVariantTab(Variant)), this, SLOT(openVariantTab(Variant)));
+	connect(ui_.variant_details, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled"));
 
@@ -251,7 +253,8 @@ void MainWindow::on_actionSV_triggered()
 		//open SV wisget
 		SvWidget* list = new SvWidget(file_names, ui_.filters, het_hit_genes, gene2region_cache_, this);
 		auto dlg = GUIHelper::createDialog(list, "Structural variants");
-		connect(list,SIGNAL(openSvInIGV(QString)),this,SLOT(openInIGV(QString)));
+		connect(list,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
+		connect(list,SIGNAL(openGeneTab(QString)),this,SLOT(openGeneTab(QString)));
 		addModelessDialog(dlg);
 	}
 	catch(FileParseException error)
@@ -322,6 +325,7 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
+	connect(list, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	connect(list, SIGNAL(storeReportConfiguration()), this, SLOT(storeReportConfig()));
 	connect(list, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
@@ -998,37 +1002,6 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 	openSubpanelDesignDialog(genes);
 }
 
-QStringList MainWindow::geneInheritanceMissing(QBitArray selected)
-{
-	//get set of genes
-	int genes_index = variants_.annotationIndexByName("gene", true, true);
-	QSet<QByteArray> genes;
-	for (int i=0; i<variants_.count(); ++i)
-	{
-		if(selected[i])
-		{
-			foreach(QByteArray gene, variants_[i].annotations()[genes_index].split(','))
-			{
-				genes.insert(gene.trimmed());
-			}
-		}
-	}
-
-	//check if inheritance is missing
-	QStringList output;
-	NGSD db;
-	foreach(QByteArray gene, genes)
-	{
-		QString inheritance = db.geneInfo(gene).inheritance;
-		if (inheritance=="n/a")
-		{
-			output.append(gene);
-		}
-	}
-
-	return output;
-}
-
 void MainWindow::on_actionOpen_triggered()
 {
 	//get file to open
@@ -1253,14 +1226,6 @@ void MainWindow::openVariantTab(Variant variant)
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(), widget);
-}
-
-void MainWindow::openCurrentVariantTab()
-{
-	QList<int> indices = ui_.vars->selectedVariantsIndices();
-	if (indices.count()!=1) return;
-
-	openVariantTab(variants_[indices.first()]);
 }
 
 void MainWindow::openProcessingSystemTab(QString name_short)
@@ -3567,7 +3532,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	bool  ngsd_user_logged_in = LoginManager::active();
 	const Variant& variant = variants_[index];
 	int i_gene = variants_.annotationIndexByName("gene", true, true);
-	QStringList genes = QString(variant.annotations()[i_gene]).split(',', QString::SkipEmptyParts);
+	GeneSet genes = GeneSet::createFromText(variant.annotations()[i_gene], ',');
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(i_co_sp);
 	int i_dbsnp = variants_.annotationIndexByName("dbSNP", true, true);
@@ -3595,48 +3560,11 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	a_var_val->setEnabled(ngsd_user_logged_in);
 	menu.addSeparator();
 
-	//NGSD gene info
-	QMenu* sub_menu = nullptr;
-	if (!genes.isEmpty())
-	{
-		sub_menu = menu.addMenu(QIcon("://Icons/NGSD_gene.png"), "Gene info");
-		foreach(QString g, genes)
-		{
-			sub_menu->addAction(g);
-		}
-		sub_menu->setEnabled(ngsd_user_logged_in);
-	}
-
-	//HGMD
-	sub_menu = menu.addMenu(QIcon("://Icons/HGMD.png"), "HGMD");
-	foreach(QString g, genes)
-	{
-		sub_menu->addAction(g);
-	}
-
-	//OMIM
-	sub_menu = menu.addMenu(QIcon("://Icons/OMIM.png"), "OMIM");
-	foreach(QString g, genes)
-	{
-		sub_menu->addAction(g);
-	}
-
-	//GeneCards
-	sub_menu = menu.addMenu(QIcon("://Icons/GeneCards.png"), "GeneCards");
-	foreach(QString g, genes)
-	{
-		sub_menu->addAction(g);
-	}
-
 	//Google
-	sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
-	foreach(QString g, genes)
-	{
-		sub_menu->addAction("gene: " + g);
-	}
+	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
 	foreach(const VariantTranscript& trans, transcripts)
 	{
-		QAction* action = sub_menu->addAction("variant: " + trans.gene + " " + trans.id + " " + trans.hgvs_c + " " + trans.hgvs_p);
+		QAction* action = sub_menu->addAction(trans.gene + " " + trans.id + " " + trans.hgvs_c + " " + trans.hgvs_p);
 		if (preferred_transcripts.value(trans.gene).contains(trans.id))
 		{
 			QFont font = action->font();
@@ -3663,7 +3591,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		sub_menu->addAction(loc + variant.ref() + ">" + variant.obs());
 
 		//genes
-		foreach(QString g, genes)
+		foreach(const QByteArray& g, genes)
 		{
 			sub_menu->addAction(g);
 		}
@@ -3701,28 +3629,30 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QAction* a_mitomap = menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
 	a_mitomap->setEnabled(variant.chr().isM());
 
-	//SysID
-	sub_menu = menu.addMenu(QIcon(":/Icons/SysID.png"), "SysID");
-	foreach(QString g, genes)
-	{
-		sub_menu->addAction(g);
-	}
-
 	//varsome
 	QAction* a_varsome =  menu.addAction(QIcon("://Icons/VarSome.png"), "VarSome");
 
-	//ClinGen
-	sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinGen");
-	foreach(QString g, genes)
+	//add gene databases
+	if (!genes.isEmpty())
 	{
-		sub_menu->addAction(g);
+		menu.addSeparator();
+		foreach(const QByteArray& g, genes)
+		{
+			sub_menu = menu.addMenu(g);
+			sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_user_logged_in);
+			sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
+			foreach(const GeneDB& db, GeneInfoDBs::all())
+			{
+				sub_menu->addAction(db.icon, db.name);
+			}
+		}
 	}
 
-	//Execute menu
+	//execute menu
 	QAction* action = menu.exec(pos);
 	if (!action) return;
 
-
+	//perform actions
 	QByteArray text = action->text().toLatin1();
 	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 
@@ -3771,22 +3701,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			return;
 		}
 	}
-	else if (parent_menu && parent_menu->title()=="Gene info")
-	{
-		openGeneTab(text);
-	}
-	else if (parent_menu && parent_menu->title()=="HGMD")
-	{
-		QDesktopServices::openUrl(QUrl("https://portal.biobase-international.com/hgmd/pro/gene.php?gene=" + text));
-	}
-	else if (parent_menu && parent_menu->title()=="OMIM")
-	{
-		QDesktopServices::openUrl(QUrl("https://omim.org/search/?search=" + text));
-	}
-	else if (parent_menu && parent_menu->title()=="GeneCards")
-	{
-		QDesktopServices::openUrl(QUrl("http://www.genecards.org/cgi-bin/carddisp.pl?gene=" + text));
-	}
 	else if (parent_menu && parent_menu->title()=="Alamut")
 	{
 		//documentation of the alamut API:
@@ -3818,43 +3732,22 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	{
 		QByteArray query;
 		QByteArrayList parts = text.split(' ');
-		QByteArray type = parts[0].trimmed();
-		QByteArray gene = parts[1].trimmed();
-
-		//gene + phenotype query
-		if (type == "gene:")
+		QByteArray gene = parts[0].trimmed();
+		QByteArray hgvs_c = parts[2].trimmed();
+		QByteArray hgvs_p = parts[3].trimmed();
+		query = gene + " AND (\"" + hgvs_c.mid(2) + "\" OR \"" + hgvs_c.mid(2).replace(">", "->") + "\" OR \"" + hgvs_c.mid(2).replace(">", "-->") + "\" OR \"" + hgvs_c.mid(2).replace(">", "/") + "\"";
+		if (hgvs_p!="")
 		{
-			query = gene + " AND (mutation";
-			foreach(const Phenotype& pheno, ui_.filters->phenotypes())
-			{
-				query += " OR \"" + pheno.name() + "\"";
-			}
-			query += ")";
+			query += " OR \"" + hgvs_p.mid(2) + "\"";
 		}
-
-		//variant query
-		if (type == "variant:")
+		QByteArray dbsnp = variant.annotations()[i_dbsnp].trimmed();
+		if (dbsnp!="")
 		{
-			QByteArray hgvs_c = parts[3].trimmed();
-			QByteArray hgvs_p = parts[4].trimmed();
-			query = gene + " AND (\"" + hgvs_c.mid(2) + "\" OR \"" + hgvs_c.mid(2).replace(">", "->") + "\" OR \"" + hgvs_c.mid(2).replace(">", "-->") + "\" OR \"" + hgvs_c.mid(2).replace(">", "/") + "\"";
-			if (hgvs_p!="")
-			{
-				query += " OR \"" + hgvs_p.mid(2) + "\"";
-			}
-			QByteArray dbsnp = variant.annotations()[i_dbsnp].trimmed();
-			if (dbsnp!="")
-			{
-				query += " OR \"" + dbsnp + "\"";
-			}
-			query += ")";
+			query += " OR \"" + dbsnp + "\"";
 		}
+		query += ")";
 
 		QDesktopServices::openUrl(QUrl("https://www.google.com/search?q=" + query.replace("+", "%2B").replace(' ', '+')));
-	}
-	else if (parent_menu && parent_menu->title()=="SysID")
-	{
-		QDesktopServices::openUrl(QUrl("https://sysid.cmbi.umcn.nl/search?search=" + text));
 	}
 	else if (action==a_varsome)
 	{
@@ -3885,9 +3778,29 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 
 		updateReportConfigHeaderIcon(index);
 	}
-	else if (parent_menu && parent_menu->title()=="ClinGen")
+	else if (parent_menu) //gene menus
 	{
-		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=" + text));
+		QString gene = parent_menu->title();
+
+		if (text=="Gene tab")
+		{
+			openGeneTab(gene);
+		}
+		else if (text=="Google")
+		{
+			QString query = gene + " AND (mutation";
+			foreach(const Phenotype& pheno, ui_.filters->phenotypes())
+			{
+				query += " OR \"" + pheno.name() + "\"";
+			}
+			query += ")";
+
+			QDesktopServices::openUrl(QUrl("https://www.google.com/search?q=" + query.replace("+", "%2B").replace(' ', '+')));
+		}
+		else //other databases
+		{
+			GeneInfoDBs::openUrl(text, gene);
+		}
 	}
 }
 
@@ -4087,6 +4000,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		const Variant& variant = variants_[index];
 		QList<KeyValuePair> inheritance_by_gene;
 		int i_genes = variants_.annotationIndexByName("gene", true, false);
+
 		if (i_genes!=-1)
 		{
 			QByteArrayList genes = variant.annotations()[i_genes].split(',');

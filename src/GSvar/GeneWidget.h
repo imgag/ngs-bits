@@ -18,6 +18,7 @@ private slots:
     void editInheritance();
     void editComment();
 	void showGeneVariationDialog();
+	void openGeneDatabase();
 
 private:
     Ui::GeneWidget ui_;
