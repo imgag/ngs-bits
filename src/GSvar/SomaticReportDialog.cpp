@@ -314,7 +314,6 @@ void SomaticReportDialog::writeBackSettings()
 {
 	if(getReportType() == RNA) return; //No report configuration for RNA samples
 
-	settings_.include_gap_statistics = ui_.include_low_cov->isChecked();
 	settings_.report_config.setTumContentByMaxSNV(ui_.include_max_tum_freq->isChecked());
 	settings_.report_config.setTumContentByClonality(ui_.include_max_clonality->isChecked());
 	settings_.report_config.setTumContentByHistological(ui_.include_tum_content_histological->isChecked());
@@ -384,11 +383,6 @@ void SomaticReportDialog::enableChoiceReportType(bool enabled)
 	ui_.report_type_label->setEnabled(enabled);
 	ui_.report_type_dna->setEnabled(enabled);
 	ui_.report_type_rna->setEnabled(enabled);
-}
-
-void SomaticReportDialog::enableGapStatistics(bool enabled)
-{
-	ui_.include_low_cov->setEnabled(enabled);
 }
 
 void SomaticReportDialog::cinState()

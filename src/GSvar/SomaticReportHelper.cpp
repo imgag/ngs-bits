@@ -1106,7 +1106,7 @@ RtfTable SomaticReportHelper::createGapStatisticsTable(const QList<int>& col_wid
 	region_of_interest.load(target_region_);
 
 	GeneSet genes_in_target_region;
-	if(!target_region_.isEmpty()) GeneSet::createFromFile(target_region_.left(target_region_.size()-4)+"_genes.txt");
+	if(!target_region_.isEmpty()) genes_in_target_region = GeneSet::createFromFile(target_region_.left(target_region_.size()-4)+"_genes.txt");
 
 	QList<int> widths = col_widths;
 
@@ -1153,6 +1153,8 @@ RtfTable SomaticReportHelper::createGapStatisticsTable(const QList<int>& col_wid
 			table.addRow(RtfTableRow({RtfText(it.key()).setItalic(true).RtfCode(),QByteArray::number(gaps.baseCount()),chr,coords.join(", ")},widths,RtfParagraph()));
 		}
 	}
+
+	table.setUniqueFontSize(14);
 	return table;
 }
 
@@ -2248,11 +2250,11 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	/******************
 	 * GAP STATISTICS *
 	 ******************/
-	if(settings_.include_gap_statistics) //Only for EBM report: gap statistics
+	if(!target_region_.isEmpty()) //Only for EBM report: gap statistics
 	{
 		doc_.addPart(RtfParagraph("").RtfCode());
-		doc_.addPart(RtfParagraph("Lückenstatistik:").setBold(true).setSpaceAfter(45).setSpaceBefore(45).setFontSize(18).RtfCode());
-		doc_.addPart(createGapStatisticsTable({2200,7437}).RtfCode());
+		doc_.addPart(RtfParagraph("Lückenstatistik:").setBold(true).setSpaceAfter(45).setSpaceBefore(45).setFontSize(16).RtfCode());
+		doc_.addPart(createGapStatisticsTable({1550,8087}).RtfCode());
 	}
 	doc_.save(out_file);
 }

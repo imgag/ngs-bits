@@ -17,8 +17,6 @@ struct SomaticReportSettings
 
 	FilterCascade filters;
 
-	bool include_gap_statistics;
-
 	QByteArray cancer_type;
 
 	QString sample_dir;

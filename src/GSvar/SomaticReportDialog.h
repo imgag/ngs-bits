@@ -27,9 +27,6 @@ public:
 	///enable option to choose between DNA or RNA report
 	void enableChoiceReportType(bool enabled);
 
-	///enable option to include gap statistics
-	void enableGapStatistics(bool enabled);
-
 private:
 	Ui::SomaticReportDialog ui_;
 	NGSD db_;
