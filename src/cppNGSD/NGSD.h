@@ -21,6 +21,15 @@
 #include "CnvList.h"
 #include "BedpeFile.h"
 
+///OMIM information datastructure
+struct OmimInfo
+{
+	QByteArray gene_symbol;
+	QByteArray mim;
+
+	QList<Phenotype> phenotypes;
+};
+
 ///Type constraints class for database fields
 struct TableFieldConstraints
 {
@@ -453,7 +462,7 @@ public:
 	///Returns the list of all approved gene names
 	const GeneSet& approvedGeneNames();
 
-	/*** phenotype handling (HPO) ***/
+	/*** phenotype handling (HPO, OMIM) ***/
 	///Returns the phenotype for a given HPO accession.
 	Phenotype phenotypeByName(const QByteArray& name, bool throw_on_error=true);
 	///Returns the phenotype for a given HPO accession.
@@ -466,6 +475,8 @@ public:
 	GeneSet phenotypeToGenes(const Phenotype& phenotype, bool recursive);
 	///Returns all child terms of the given phenotype
 	QList<Phenotype> phenotypeChildTems(const Phenotype& phenotype, bool recursive);
+	///Returns OMIM information for a gene. Returns a default-constructed element, if the gene is not a OMIM gene.
+	OmimInfo omimInfo(const QByteArray& symbol);
 
 	/*** Base functionality for file/variant processing ***/
 	///Returns the processed sample name for an ID.

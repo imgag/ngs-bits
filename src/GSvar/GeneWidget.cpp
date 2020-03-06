@@ -6,7 +6,6 @@
 #include <QPushButton>
 #include <QInputDialog>
 #include <QMenu>
-#include <QDesktopServices>
 
 GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
     : QWidget(parent)
@@ -31,7 +30,7 @@ GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
 void GeneWidget::updateGUI()
 {
     //get gene info
-    NGSD db;
+	NGSD db;
     GeneInfo info = db.geneInfo(symbol_);
 
 	//show symbol
@@ -73,18 +72,20 @@ void GeneWidget::updateGUI()
 	ui_.hpo->setText(hpo_links.join(hpo_links.count()>20 ? " "  : "\n"));
 
     //show OMIM info
-    SqlQuery query = db.getQuery();
-    query.exec("SELECT id, mim FROM omim_gene WHERE gene='" + symbol_ + "'");
-    if (query.next())
-    {
-		QString id = query.value("id").toString();
-		QString mim = query.value("mim").toString();
-        QStringList omim_phenos = db.getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + id);
-		ui_.omim->setText("MIM: <a href=\"http://omim.org/entry/" + mim + "\">" + mim + "</a>\n" + omim_phenos.join(omim_phenos.count()>20 ? " "  : "\n"));
+	OmimInfo omim = db.omimInfo(symbol_);
+	if (!omim.gene_symbol.isEmpty())
+	{
+		QStringList omim_phenos;
+		foreach(const Phenotype& p, omim.phenotypes)
+		{
+			omim_phenos << p.name();
+		}
+		ui_.omim->setText("MIM: <a href=\"http://omim.org/entry/" + omim.mim + "\">" + omim.mim + "</a>\n" + omim_phenos.join(omim_phenos.count()>20 ? " "  : "\n"));
     }
 
 	//show OrphaNet info
 	QByteArrayList orpha_links;
+	SqlQuery query = db.getQuery();
 	query.exec("SELECT dt.* FROM disease_term dt, disease_gene dg WHERE dg.disease_term_id=dt.id AND dg.gene='" + symbol_ + "'");
 	if (query.next())
 	{
@@ -137,11 +138,6 @@ void GeneWidget::showGeneVariationDialog()
 	dlg.exec();
 }
 
-void GeneWidget::openLink(QString url)
-{
-	QDesktopServices::openUrl(QUrl(url));
-}
-
 void GeneWidget::updateTranscriptsTable(NGSD& db)
 {
 	//clear
@@ -161,10 +157,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		int row = ui_.transcripts->rowCount();
 		ui_.transcripts->setRowCount(row+1);
 
-		QLabel* label = new QLabel("<a href='http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + transcript.name() + "'>" + transcript.name() + "</a>");
-		label->setAlignment(Qt::AlignLeft|Qt::AlignTop);
-		label->setOpenExternalLinks(true);
-		connect(label, SIGNAL(linkActivated(QString)), this, SLOT(openLink(QString)));
+		QLabel* label = GUIHelper::createLinkLabel("<a href='http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + transcript.name() + "'>" + transcript.name() + "</a>");
 		ui_.transcripts->setCellWidget(row, 0, label);
 
 		QString coords = "";
