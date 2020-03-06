@@ -17,7 +17,7 @@ class VariantDetailsDockWidget
 	Q_OBJECT
 
 public:
-	explicit VariantDetailsDockWidget(QWidget* parent);
+	VariantDetailsDockWidget(QWidget* parent);
 	~VariantDetailsDockWidget();
 
 	//Sets tooltips of labels
@@ -43,14 +43,16 @@ public:
 
 signals:
 	void jumbToRegion(QString region);
-	void openCurrentVariantTab();
+	void openVariantTab(Variant variant);
+	void openGeneTab(QString gene);
 
 private slots:
 	void nextTanscript();
 	void previousTanscript();
 	void variantClicked(QString link);
 	void gnomadClicked(QString link);
-	void openVariantTab();
+	void transcriptClicked(QString link);
+	void variantButtonClicked();
 
 private:
 	enum Color
@@ -80,6 +82,8 @@ private:
 	//Set transcript details
 	void setTranscript(int index);
 
+	//variant string representation (empty if no variant selected)
+	QString variant_str;
 	//current transcript
 	int trans_curr;
 	//Transcript data

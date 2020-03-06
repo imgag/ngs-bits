@@ -22,7 +22,8 @@ public:
 	SvWidget(const QStringList& bedpe_file_paths, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
 
 signals:
-	void openSvInIGV(QString coords);
+	void openInIGV(QString coords);
+	void openGeneTab(QString symbol);
 
 protected slots:
 	///copy filtered SV table to clipboard

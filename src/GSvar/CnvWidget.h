@@ -30,6 +30,7 @@ protected:
 
 signals:
 	void openRegionInIGV(QString region);
+	void openGeneTab(QString region);
 	void storeReportConfiguration();
 
 private slots:
