@@ -175,10 +175,12 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	CnvSearchWidget* widget = new CnvSearchWidget();
-	widget->setCoordinates("chr17", 57297834, 57351873);
-	auto dlg = GUIHelper::createDialog(widget, "CNV search");
+	QString text = QInputDialog::getText(this, "Hash text", "text:");
+	QString text_hash = QCryptographicHash::hash(text.toLatin1(), QCryptographicHash::Sha1).toHex();
 
+	QLineEdit* widget = new QLineEdit();
+	widget->setText(text_hash);
+	auto dlg = GUIHelper::createDialog(widget, "Hash result", "hash");
 	dlg->exec();
 }
 
@@ -2763,7 +2765,7 @@ void MainWindow::on_actionUsers_triggered()
 void MainWindow::on_actionImportMids_triggered()
 {
 	importBatch("Import MIDs",
-				"Batch import of MIDs. Please enter MIDs as tab-delimited text.\nExample:\n\nillumina 1 → CGTGAT\nillumina 2 → AGATAC\nillumina 3 → GTCATG",
+				"Batch import of MIDs. Please enter MIDs as tab-delimited text.<br>Example:<br><br>illumina 1 → CGTGAT<br>illumina 2 → AGATA<br>illumina 3 → GTCATG",
 				 "mid",
 				QStringList() << "name" << "sequence"
 				);
@@ -2772,7 +2774,7 @@ void MainWindow::on_actionImportMids_triggered()
 void MainWindow::on_actionImportSamples_triggered()
 {
 	importBatch("Import samples",
-				"Batch import of samples. Must contain the following tab-separated fields:\nname, name external, sender, received, received by, sample type, tumor, ffpe, species, concentration [ng/ul], volume, 260/280, 260/230, RIN/DIN, gender, quality, comment",
+				"Batch import of samples. Must contain the following tab-separated fields:<br><b>name</b>, name external, <b>sender</b>, received, received by, <b>sample type</b>, <b>tumor</b>, <b>ffpe</b>, <b>species</b>, concentration [ng/ul], volume, 260/280, 260/230, RIN/DIN, <br>gender</b>, <b>quality</b>, comment",
 				"sample",
 				QStringList() << "name" << "name_external" << "sender_id" << "received" << "receiver_id" << "sample_type" << "tumor" << "ffpe" << "species_id" << "concentration" << "volume" << "od_260_280" << "od_260_230" << "integrity_number" << "gender" << "quality" << "comment"
 				);
@@ -2781,7 +2783,7 @@ void MainWindow::on_actionImportSamples_triggered()
 void MainWindow::on_actionImportProcessedSamples_triggered()
 {
 	importBatch("Import processed samples",
-				"Batch import of processed samples. Must contain the following tab-separated fields:\nsample, project, run name, lane, mid1 name, mid2 name, operator, processing system, processing input [ng], molarity [nM], comment, normal processed sample\n",
+				"Batch import of processed samples. Must contain the following tab-separated fields:<br><b>sample</b>, <b>project</b>, <b>run name</b>, <b>lane</b>, mid1 name, mid2 name, operator, <b>processing system</b>, processing input [ng], molarity [nM], comment, normal processed sample",
 				"processed_sample",
 				QStringList() << "sample_id" << "project_id" << "sequencing_run_id" << "lane" << "mid1_i7" << "mid2_i5" << "operator_id" << "processing_system_id" << "processing_input" << "molarity" << "comment" << "normal_id"
 				);
