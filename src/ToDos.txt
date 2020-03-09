@@ -18,7 +18,6 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-#### CNV search: copy coords (context menu), show size as column
 - Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
 - Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
 ** Popup notification for segregations - every time a new case is loaded
