@@ -17,7 +17,7 @@ Changes already implemented in GIT master for next release:
 
 * none so far
 
-Changes in release 2019_11:
+Changes in release 2020_03:
 
 * RohHunter: added support for AF annotations in INFO field.
 * BamToFastq: added flag to remove duplicates.

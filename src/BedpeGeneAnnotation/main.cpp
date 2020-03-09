@@ -21,12 +21,12 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annotates a given BEDPE file with SVs based on the gene information of the NGSD.");
+		setDescription("Annotates a BEDPE file with gene information from the NGSD.");
 		addInfile("in", "Input BEDPE file containing the SVs.", false, true);
 		addOutfile("out", "Output BEDPE file containing the annotated SVs.", false, true);
 
 		//optional
-		addFlag("add_simple_gene_names", "Adds an additioal column containing only the list of gene names.");
+		addFlag("add_simple_gene_names", "Adds an additional column containing only the list of gene names.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2020, 1, 27, "Bugfix: 0-based BEDPE positions are now converted into 1-based BED positions.");
