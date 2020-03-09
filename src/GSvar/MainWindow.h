@@ -301,9 +301,13 @@ public slots:
 	///Finished storing the current  currently open list
 	void storingVariantListFinished(bool success);
 
+	///Check for variant validations that need action.
+	void checkPendingVariantValidations();
+	///Shows a notification.
+	void showNotification(QString text);
+
 	///Clears somatic report settings
 	void clearSomaticReportSettings(QString ps_id_in_other_widget);
-
 
 protected:
 	enum class SettingsType
@@ -327,6 +331,7 @@ private:
 	int var_last_;
 	BusyDialog* busy_dialog_;
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
+	QLabel* notification_label_;
 
 	//DATA
 	QString filename_;
