@@ -6,6 +6,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QMessageBox>
+#include <QClipboard>
 
 CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 	: QWidget(parent)
@@ -20,6 +21,9 @@ CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 	ui_.caller->addItems(callers);
 	ui_.caller->setCurrentText("ClinCNV");
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
+	QAction* action = new QAction("Copy coordinates");
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyCoodinatesToClipboard()));
+	ui_.table->addAction(action);
 }
 
 void CnvSearchWidget::setCoordinates(Chromosome chr, int start, int end)
@@ -44,7 +48,7 @@ void CnvSearchWidget::search()
 		int end = Helper::toInt(parts[2], "End cooridinate");
 
 		//(1) search matching CNVs
-		QString query_str = "SELECT c.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, s.disease_group, s.disease_status, cs.caller, cs.quality as quality_callset, cs.quality_metrics as callset_metrics, c.chr, c.start, c.end, c.cn, c.quality_metrics as cnv_metrics, rc.class "
+		QString query_str = "SELECT c.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, s.disease_group, s.disease_status, cs.caller, cs.quality as quality_callset, cs.quality_metrics as callset_metrics, c.chr, c.start, c.end, c.cn, (c.end-c.start)/1000.0 as size_kb, c.quality_metrics as cnv_metrics, rc.class "
 							"FROM cnv_callset cs, processed_sample ps, processing_system sys, sample s, cnv c LEFT JOIN report_configuration_cnv rc ON rc.cnv_id=c.id "
 							"WHERE s.id=ps.sample_id AND sys.id=ps.processing_system_id AND c.cnv_callset_id=cs.id AND ps.id=cs.processed_sample_id ";
 		QString operation = ui_.operation->currentText();
@@ -139,12 +143,24 @@ void CnvSearchWidget::search()
 		//(3) process cnv metrics
 		int min_regions = ui_.regions->value();
 		int min_ll = ui_.ll->value();
+		double min_size = ui_.size->value();
 		int col_cnv_metrics = table.columnIndex("cnv_metrics");
+		int col_size = table.columnIndex("size_kb");
 		for (int r=table.rowCount()-1; r>=0; --r)
 		{
 			const DBRow& row = table.row(r);
 			QString value = row.value(col_cnv_metrics);
 			QJsonDocument json = QJsonDocument::fromJson(value.toLatin1());
+
+			//filter by size
+			if (min_size>0.0)
+			{
+				if (row.value(col_size).toDouble()<min_size)
+				{
+					table.removeRow(r);
+					continue;
+				}
+			}
 
 			//filter by regions
 			if (json.object().value("regions").toString().toInt()<min_regions)
@@ -198,4 +214,19 @@ void CnvSearchWidget::delayedInitialization()
 	{
 		search();
 	}
+}
+
+void CnvSearchWidget::copyCoodinatesToClipboard()
+{
+	int c_chr = ui_.table->columnIndex("chr");
+	int c_start = ui_.table->columnIndex("start");
+	int c_end = ui_.table->columnIndex("end");
+
+	QStringList coords;
+	foreach(int row, ui_.table->selectedRows())
+	{
+		coords << ui_.table->item(row, c_chr)->text() + ":" + ui_.table->item(row, c_start)->text() + "-" + ui_.table->item(row, c_end)->text();
+	}
+
+	QApplication::clipboard()->setText(coords.join("\n"));
 }

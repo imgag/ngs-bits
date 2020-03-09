@@ -30,7 +30,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Exports a CNV track for a processing system.");
+		setDescription("Exports a IGV-conform CNV track for a processing system.");
 		addString("system", "Processing system name filter (short name).", true, "");
 		addOutfile("out", "Output IGV file.", false);
 		//optional

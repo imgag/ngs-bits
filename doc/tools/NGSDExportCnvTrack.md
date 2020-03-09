@@ -1,7 +1,7 @@
 ### NGSDExportCnvTrack tool help
-	NGSDExportCnvTrack (2019_11-21-ga4bba306)
+	NGSDExportCnvTrack (2019_11-153-ge9f0496d)
 	
-	Exports a CNV track for a processing system.
+	Exports a IGV-conform CNV track for a processing system.
 	
 	Mandatory parameters:
 	  -out <file>              Output IGV file.
@@ -29,7 +29,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportCnvTrack changelog
-	NGSDExportCnvTrack 2019_11-21-ga4bba306
+	NGSDExportCnvTrack 2019_11-153-ge9f0496d
 	
 	2019-10-21 First version
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

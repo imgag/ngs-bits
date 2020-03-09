@@ -24,7 +24,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annotates a CNV file with overlaping pathogenic CNVs.");
+		setDescription("Annotates a CNV file with overlaping pathogenic CNVs from NGSD.");
 		addInfile("in", "TSV file containing CNV.", false);
 		addOutfile("out", "TSV output file.", false);
 

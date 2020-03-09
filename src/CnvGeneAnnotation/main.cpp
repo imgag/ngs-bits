@@ -20,12 +20,12 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annotates a given TSV file with CNVs based on the gene information of the NGSD.");
+		setDescription("Annotates TSV file containing CNVs with gene information from NGSD.");
 		addInfile("in", "Input TSV file containing the CNVs.", false, true);
 		addOutfile("out", "Output TSV file containing the annotated CNVs.", false, true);
 
 		//optional
-		addFlag("add_simple_gene_names", "Adds an additioal column containing only the list of gene names.");
+		addFlag("add_simple_gene_names", "Adds an additional column containing only the list of gene names.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2019, 11, 11, "Initial version of this tool.");

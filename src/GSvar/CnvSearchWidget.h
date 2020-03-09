@@ -18,6 +18,7 @@ public:
 protected slots:
 	void search();
 	void delayedInitialization();
+	void copyCoodinatesToClipboard();
 
 private:
 	Ui::CnvSearchWidget ui_;

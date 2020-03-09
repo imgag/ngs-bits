@@ -17,18 +17,14 @@ Changes already implemented in GIT master for next release:
 
 * none so far
 
-Changes in release 2019_11:
+Changes in release 2020_03:
 
-* RohHunter: added support for AF annotations in INFO field.
-* BamToFastq: added flag to remove duplicates.
-* NGSDExportGenes: Added more columns.
-* added tools: VcfAnnotateFromVcf
-* NGSD:
-	* updated projects table (analysis, preserve_fastqs)
-	* removed 'dbsnp' column from the 'variant' table.
-	* added processing system type 'WGS (shallow)'
-	* remove pre-calculation of variant counts in NGSD (now done via export of a VCF file - see NGSDExportAnnotationData).
-* added NGSD-based tools: NGSDImportORPHA, NGSDAddVariantsGermline, NGSDExportAnnotationData, NGSDExportCnvTrack, CnvGeneAnnotation
+* Added tools: BedpeGeneAnnotation, BedpeAnnotateFromBed, NGSDAnnotateCNV
+* NGSDImportORPHA: Added handling of outdated gene names.
+* NGSDExportSamples: Added report config output and a filter for analyzed runs only.
+* VcfCheck: added test for invalid characters in INFO column, added support for VCF.GZ files.
+* NGSDExportGenes: made HPO-annotation optional because it is slow.
+
 
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
@@ -56,7 +52,10 @@ For some tools the documentation pages contain only the command-line help, for o
 
 ## Tools list
 
-_ngs-bits_ contains a lot of tools that are used for NGS-based diagnostics in our [institute](http://www.uni-tuebingen.de/Klinische_Genetik/start.html):
+_ngs-bits_ contains a lot of tools that are used for NGS-based diagnostics in our [institute](http://www.uni-tuebingen.de/Klinische_Genetik/start.html).
+
+Some of the tools need the NGSD, a database that contains for example gene, transcript and exon data.  
+Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 
 ### Main tools
 
@@ -90,9 +89,11 @@ The default output format of the quality control tools is [qcML](https://github.
 * [BedAdd](doc/tools/BedAdd.md) - Merges regions from several BED files.
 * [BedAnnotateFromBed](doc/tools/BedAnnotateFromBed.md) - Annotates BED file regions with information from a second BED file.
 * [BedAnnotateGC](doc/tools/BedAnnotateGC.md) - Annnotates the regions in a BED file with GC content.
+* [BedAnnotateGenes](doc/tools/BedAnnotateGenes.md) - Annotates BED file regions with gene names (needs [NGSD](doc/install_ngsd.md)).
 * [BedChunk](doc/tools/BedChunk.md) - Splits regions in a BED file to chunks of a desired size.
 * [BedCoverage](doc/tools/BedCoverage.md) - Annotates the regions in a BED file with the average coverage in one or several BAM files.
 * [BedExtend](doc/tools/BedExtend.md) - Extends the regions in a BED file by _n_ bases.
+* [BedGeneOverlap](doc/tools/BedGeneOverlap.md) - Calculates how much of each overlapping gene is covered (needs [NGSD](doc/install_ngsd.md)).
 * [BedInfo](doc/tools/BedInfo.md) - Prints summary information about a BED file.
 * [BedIntersect](doc/tools/BedIntersect.md) - Intersects two BED files.
 * [BedLowCoverage](doc/tools/BedLowCoverage.md) - Calcualtes regions of low coverage based on a input BED and BAM file.
@@ -117,7 +118,7 @@ The default output format of the quality control tools is [qcML](https://github.
 * [FastqToFasta](doc/tools/FastqToFasta.md) - Converts FASTQ to FASTA format.
 * [FastqTrim](doc/tools/FastqTrim.md) - Trims start/end bases from the reads in a FASTQ file.
 
-### VCF tools
+### VCF tools (small variants)
 
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf.md) - Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided)
@@ -131,21 +132,24 @@ The default output format of the quality control tools is [qcML](https://github.
 * [VcfToBedpe](doc/tools/VcfToBedpe.md) - Converts a VCF file containing structural variants to BEDPE format.
 * [VcfToTsv](doc/tools/VcfToTsv.md) - Converts a VCF file to a tab-separated text file.
 
-### NGSD-based tools
 
-Some of the tools need the NGSD, a MySQL database that contains for example gene, transcript and exon data.  
-Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
+### BEDPE tools (structural variants)
 
-* [BedAnnotateGenes](doc/tools/BedAnnotateGenes.md) - Annotates BED file regions with gene names.
-* [BedGeneOverlap](doc/tools/BedGeneOverlap.md) - Calculates how much of each overlapping gene is covered.
-* [GenesToApproved](doc/tools/GenesToApproved.md) - Replaces gene symbols by approved symbols using the HGNC database.
-* [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file.
-* [NGSDExportGenes](doc/tools/NGSDExportGenes.md) - Lists genes from NGSD.
-* [NGSDExportAnnotationData](doc/tools/NGSDExportAnnotationData.md) -Generates a VCF file with all variants and annotations from the NGSD and a BED file containing the gene information of the NGSD.
-* [NGSDExportCnvTrack](doc/tools/NGSDExportCnvTrack.md) - Exports a CNV track for a processing system.
-* [CnvGeneAnnotation](doc/tools/CnvGeneAnnotation.md) - Annotates a CNVs file with gene information from NGSD (gene constraint, gene region).
+* [BedpeAnnotateFromBed](doc/tools/BedpeAnnotateFromBed.md) - Annotates a BEDPE file with information from a BED file.
+* [BedpeGeneAnnotation](doc/tools/BedpeGeneAnnotation.md) - Annotates a BEDPE file with gene information from the NGSD (needs [NGSD](doc/install_ngsd.md)).
 
-### Other tools
+### Gene handling tools
+
+* [CnvGeneAnnotation](doc/tools/CnvGeneAnnotation.md) - Annotates TSV file containing CNVs with gene information from NGSD (needs [NGSD](doc/install_ngsd.md)).
+* [GenesToApproved](doc/tools/GenesToApproved.md) - Replaces gene symbols by approved symbols using the HGNC database (needs [NGSD](doc/install_ngsd.md)).
+* [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file (needs [NGSD](doc/install_ngsd.md)).
+* [NGSDExportGenes](doc/tools/NGSDExportGenes.md) - Lists genes from NGSD (needs [NGSD](doc/install_ngsd.md)).
+
+### Misc tools
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
+* [NGSDAnnotateCNV](doc/tools/NGSDAnnotateCNV.md) - Annotates a CNV file with overlaping pathogenic CNVs from NGSD (needs [NGSD](doc/install_ngsd.md)).
+* [NGSDExportAnnotationData](doc/tools/NGSDExportAnnotationData.md) - Generates a VCF file with all variants and annotations from the NGSD and a BED file containing the gene information of the NGSD (needs [NGSD](doc/install_ngsd.md)).
+* [NGSDExportCnvTrack](doc/tools/NGSDExportCnvTrack.md) - Exports a IGV-conform CNV track for a processing system (needs [NGSD](doc/install_ngsd.md)).
+* [NGSDExportSamples](doc/tools/NGSDExportSamples.md) - Lists processed samples from the NGSD (needs [NGSD](doc/install_ngsd.md)).
