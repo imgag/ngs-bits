@@ -26,6 +26,7 @@
 #include <QSqlError>
 #include <QChartView>
 #include <GenLabDB.h>
+#include <QToolTip>
 QT_CHARTS_USE_NAMESPACE
 #include "ReportWorker.h"
 #include "ScrollableTextDialog.h"
@@ -96,6 +97,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, ui_()
 	, var_last_(-1)
 	, busy_dialog_(nullptr)
+	, notification_label_(new QLabel())
 	, filename_()
 	, db_annos_updated_(NO)
 	, igv_initialized_(false)
@@ -173,6 +175,12 @@ MainWindow::MainWindow(QWidget *parent)
 	{
 		last_report_path_ = gsvar_report_folder;
 	}
+
+	//add notification icon
+	notification_label_->setScaledContents(true);
+	notification_label_->setMaximumSize(16,16);
+	notification_label_->setPixmap(QPixmap(":/Icons/email.png"));
+	ui_.statusBar->addPermanentWidget(notification_label_);
 }
 
 void MainWindow::on_actionDebug_triggered()
@@ -1404,6 +1412,9 @@ void MainWindow::loadFile(QString filename)
 	{
 		checkMendelianErrorRate();
 	}
+
+	//notify for variant validation
+	checkPendingVariantValidations();
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -3907,6 +3918,32 @@ void MainWindow::storingVariantListFinished(bool success)
 
 	//enable file watcher again
 	filewatcher_.setFile(filename_);
+}
+
+void MainWindow::checkPendingVariantValidations()
+{
+	if (!LoginManager::active()) return;
+
+	NGSD db;
+	QStringList vv_pending = db.getValues("SELECT id FROM variant_validation WHERE status='for reporting' AND user_id='" + LoginManager::userIdAsString() + "'");
+	if (vv_pending.isEmpty()) return;
+
+	showNotification("Variant validation: " + QString::number(vv_pending.count()) + " pending variants 'for reporing'!");
+}
+
+void MainWindow::showNotification(QString text)
+{
+	text = text.trimmed();
+
+	//update tooltip
+	QStringList tooltips = notification_label_->toolTip().split("\n", QString::SkipEmptyParts);
+	qDebug() << tooltips;
+	if (!tooltips.contains(text)) tooltips.prepend(text);
+	notification_label_->setToolTip(tooltips.join("<br>"));
+
+	//show popup
+	QPoint pos = ui_.statusBar->mapToGlobal(notification_label_->pos()) + QPoint(8,8);
+	QToolTip::showText(pos, text);
 }
 
 QStringList MainWindow::getLogFiles()
