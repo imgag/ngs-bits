@@ -142,19 +142,27 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 	{
 		std::sort(temp_rows.begin(), temp_rows.end(), [](const QPair<Variant,RtfTableRow>& a, const QPair<Variant,RtfTableRow>& b)
 		{
+			//germline variants
+			if(a.second[0].format().content().contains("#") && b.second[0].format().content().contains("#")) return true;
+			if(!a.second[0].format().content().contains("#") && b.second[0].format().content().contains("#")) return false;
+
+			//inhouse classification
 			if(a.second[4].format().content().contains("aktivierend") && !b.second[4].format().content().contains("aktivierend") ) return true;
-			if(!a.second[4].format().content().contains("aktivierend") && b.second[4].format().content().contains("aktivierend") ) return false; //equal
+			if(!a.second[4].format().content().contains("aktivierend") && b.second[4].format().content().contains("aktivierend") ) return false;
 
+			//CGI known driver
 			if(a.second[4].format().content().contains("bekannt") && !b.second[4].format().content().contains("bekannt") ) return true;
-			if(!a.second[4].format().content().contains("bekannt") && b.second[4].format().content().contains("bekannt") ) return false; //equal
+			if(!a.second[4].format().content().contains("bekannt") && b.second[4].format().content().contains("bekannt") ) return false;
 
+			//CGI predicted driver
 			if(a.second[4].format().content().contains("vorhergesagt") && !b.second[4].format().content().contains("vorhergesagt") ) return true;
-			if(!a.second[4].format().content().contains("vorhergesagt") && b.second[4].format().content().contains("vorhergesagt") ) return false; //equal
+			if(!a.second[4].format().content().contains("vorhergesagt") && b.second[4].format().content().contains("vorhergesagt") ) return false;
 
-			if(a.second[0].format().content() < b.second[0].format().content()) return true; //gene alphabetically;
+			//gene symbol
+			if(a.second[0].format().content() < b.second[0].format().content()) return true;
 			if(a.second[0].format().content() > b.second[0].format().content()) return false;
 
-			return false; //everything else equal
+			return false; //"equal"
 		}
 		);
 	}
