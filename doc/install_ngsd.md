@@ -4,7 +4,7 @@ NGSD is an acronym for the *next gen sequencing database*.
 The NGSD manages samples, runs, variants, QC data and genes data for NGS sequencing.
 
 This document describes the installation of the NGSD database.
-The installation instructions are based on Ubuntu 16.04 LTS, but should work similarly on other Linux distributions.
+The installation instructions are based on Ubuntu 18.04 LTS, but should work similarly on other Linux distributions.
 
 These instructions assume that the installation is performed as root. If that is not the case, you have to prepend `sudo ` to all commands that need root privileges. 
 
