@@ -94,5 +94,6 @@
         <file>Icons/NGSD_run_overview.png</file>
         <file>Icons/mid_clash.png</file>
         <file>Icons/Add_batch.png</file>
+        <file>Icons/gnomAD.png</file>
     </qresource>
 </RCC>

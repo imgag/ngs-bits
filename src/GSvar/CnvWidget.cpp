@@ -12,6 +12,7 @@
 #include "ReportVariantDialog.h"
 #include "CnvSearchWidget.h"
 #include "LoginManager.h"
+#include "GeneInfoDBs.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -471,44 +472,90 @@ void CnvWidget::showContextMenu(QPoint p)
 	QAction* a_dgv = menu.addAction(QIcon("://Icons/DGV.png"), "Open in DGV");
 	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
 	QAction* a_ucsc_override = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser (override tracks)");
+	//gene sub-menus
+	if (!cnvs_[row].genes().isEmpty())
+	{
+		menu.addSeparator();
+
+		int gene_nr = 1;
+		foreach(const QByteArray& gene, cnvs_[row].genes())
+		{
+			++gene_nr;
+			if (gene_nr>=10) break; //don't show too many sub-menues for large variants!
+
+			QMenu* sub_menu = menu.addMenu(gene);
+			sub_menu->addAction(QIcon("://Icons/NGSD_gene.png"), "Gene tab")->setEnabled(ngsd_enabled_);
+			sub_menu->addAction(QIcon("://Icons/Google.png"), "Google");
+			foreach(const GeneDB& db, GeneInfoDBs::all())
+			{
+				sub_menu->addAction(db.icon, db.name);
+			}
+		}
+	}
 
 	//exec menu
 	QAction* action = menu.exec(ui->cnvs->viewport()->mapToGlobal(p));
 	if (action==nullptr) return;
 
-	//do stuff
+	//react on selection
+	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 	if (action==a_dgv)
 	{
 		QDesktopServices::openUrl(QUrl("http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/?name=" + cnvs_[row].toString()));
 	}
-	if (action==a_ucsc)
+	else if (action==a_ucsc)
 	{
 		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + cnvs_[row].toString()));
 	}
-	if (action==a_ucsc_override)
+	else if (action==a_ucsc_override)
 	{
 		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&ignoreCookie=1&hideTracks=1&cytoBand=pack&refSeqComposite=dense&ensGene=dense&omimGene2=pack&geneReviews=pack&dgvPlus=squish&genomicSuperDups=squish&position=" + cnvs_[row].toString()));
 	}
-	if (action==a_deciphter)
+	else if (action==a_deciphter)
 	{
 		QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + cnvs_[row].toString()));
 	}
-	if (action==a_rep_edit)
+	else if (action==a_rep_edit)
 	{
 		editReportConfiguration(row);
 	}
-	if (action==a_rep_del)
+	else if (action==a_rep_del)
 	{
 		report_config_.remove(VariantType::CNVS, row);
 		updateReportConfigHeaderIcon(row);
 	}
-	if (action==a_ngsd_search)
+	else if (action==a_ngsd_search)
 	{
 		CnvSearchWidget* widget = new CnvSearchWidget();
 		widget->setCoordinates(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end());
 		auto dlg = GUIHelper::createDialog(widget, "CNV search");
 
 		dlg->exec();
+	}
+	else if (parent_menu) //gene sub-menus
+	{
+		QString gene = parent_menu->title();
+		QString db_name = action->text();
+
+		if (db_name=="Gene tab")
+		{
+			openGeneTab(gene);
+		}
+		else if (db_name=="Google")
+		{
+			QString query = gene + " AND (mutation";
+			foreach(const Phenotype& pheno, ui->filter_widget->phenotypes())
+			{
+				query += " OR \"" + pheno.name() + "\"";
+			}
+			query += ")";
+
+			QDesktopServices::openUrl(QUrl("https://www.google.com/search?q=" + query.replace("+", "%2B").replace(' ', '+')));
+		}
+		else //other databases
+		{
+			GeneInfoDBs::openUrl(db_name, gene);
+		}
 	}
 }
 

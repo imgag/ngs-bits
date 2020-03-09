@@ -20,3 +20,4 @@
 
 - [Configuration](configuration.md)
 - [ChangeLog](changelog.md)
+- [FAQ](faq.md)

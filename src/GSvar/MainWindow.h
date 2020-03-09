@@ -248,9 +248,6 @@ public slots:
 	///Show run overview
 	void on_actionRunOverview_triggered();
 
-	///Returns a gene list where the inheritance information is not set (selected variants only)
-	QStringList geneInheritanceMissing(QBitArray selected);
-
 	///Subpanel design dialog
 	void openSubpanelDesignDialog(const GeneSet& genes = GeneSet());
 
@@ -278,8 +275,6 @@ public slots:
 	void openGeneTab(QString symbol);
 	///Open variant tab
 	void openVariantTab(Variant variant);
-	///Open variant tab of current variant (if exactly one)
-	void openCurrentVariantTab();
 	///Open pocessing system tab
 	void openProcessingSystemTab(QString name_short);
 	///Open project tab

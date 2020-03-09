@@ -26,8 +26,8 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->trans_next, SIGNAL(clicked(bool)), this, SLOT(nextTanscript()));
 	connect(ui->variant, SIGNAL(linkActivated(QString)), this, SLOT(variantClicked(QString)));
 	connect(ui->gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
-	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SIGNAL(openCurrentVariantTab()));
-
+	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SLOT(variantButtonClicked()));
+	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
@@ -106,6 +106,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 	//variant
 	QString variant = vl[index].toString(false, 10);
+	variant_str = vl[index].toString();
 	if(geno_i!=-1)
 	{
 		variant += " (" + vl[index].annotations()[geno_i] + ")";
@@ -190,7 +191,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->ngsd_comment, vl, index, "comment");
 	setAnnotation(ui->ngsd_validation, vl, index, "validation");
 
-	//update NGSD button (and actions depending on AF)
+	//update NGSD button
 	ui->var_btn->setEnabled(LoginManager::active());
 }
 
@@ -206,6 +207,7 @@ void VariantDetailsDockWidget::clear()
 	}
 
 	//variant
+	variant_str.clear();
 	ui->variant->setText("No variant or several variants selected");
 	ui->warn_closeby->setVisible(false);
 
@@ -600,7 +602,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	const VariantTranscript& trans = trans_data[index];
 
 	//set transcript label
-	QString text = formatLink(trans.gene, "https://gnomad.broadinstitute.org/gene/" + trans.gene) + " " + formatLink(trans.id, "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
+	QString text = formatLink(trans.gene, trans.gene) + " " + formatLink(trans.id, "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
 	if (trans_data.count()>1)
 	{
 		text += " (" + QString::number(index+1) + "/" + QString::number(trans_data.count()) + ")";
@@ -732,9 +734,23 @@ void VariantDetailsDockWidget::gnomadClicked(QString link)
 	QDesktopServices::openUrl(QUrl("http://gnomad.broadinstitute.org/variant/" + url));
 }
 
-void VariantDetailsDockWidget::openVariantTab()
+void VariantDetailsDockWidget::transcriptClicked(QString link)
 {
+	if (link.startsWith("http")) //transcript
+	{
+		QDesktopServices::openUrl(QUrl(link));
+	}
+	else //gene
+	{
+		emit openGeneTab(link);
+	}
+}
 
+void VariantDetailsDockWidget::variantButtonClicked()
+{
+	if (variant_str.isEmpty()) return;
+
+	emit openVariantTab(Variant::fromString(variant_str));
 }
 
 QList<KeyValuePair> VariantDetailsDockWidget::DBEntry::splitByName() const
