@@ -15,7 +15,7 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* none so far
+* NGSDImportHPO: Added support for new HPO annotation file format and optimized the NGSD hpo-gene relation table.
 
 Changes in release 2020_03:
 
