@@ -209,11 +209,6 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 
 
 
-	updateGUI();
-}
-
-void SomaticReportDialog::updateGUI()
-{
 	//Update GUI
 	if(!std::isnan(tum_cont_snps_))
 	{

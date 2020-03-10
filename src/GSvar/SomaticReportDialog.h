@@ -44,20 +44,21 @@ private:
 
 
 public slots:
+	///writes settings into "settings" passed to constructur
 	void writeBackSettings();
 
 private slots:
-	void updateGUI();
-
+	///Deactivates all GUI elements (e.g. if user chooses RNA report)
 	void disableGUI();
 	void enableGUI();
 
-	///Disable/Enable CIN tab and uncheck all chromosomes. Depends on CNV burden
+	///Disable/Enable CIN tab and uncheck all chromosomes. Depends whether CNV burden is checked
 	void cinState();
 
 	///Disable/Enable limitations text field
 	void limitationState();
 
+	///Returns list of all chromosomes checked in CIN tab
 	QList<QString> resolveCIN();
 };
 

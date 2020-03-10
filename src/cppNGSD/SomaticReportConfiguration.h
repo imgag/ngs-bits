@@ -45,31 +45,29 @@ public:
 
 	///Returns list containing all report variant configurations
 	const QList<SomaticReportVariantConfiguration>& variantConfig() const;
-
 	///Returns variant configuration for variant_index (index referes to index of main variant list!)
 	const SomaticReportVariantConfiguration& variantConfig(int variant_index) const;
-
-
+	///Returns all variant configurations for all (germline!) report variant configurations
 	const QList<SomaticReportGermlineVariantConfiguration>& variantConfigGermline() const;
 	///Returns variant configuration for (germline!) variant_index (index referes to index of germline variant list!)
 	const SomaticReportGermlineVariantConfiguration& variantConfigGermline(int variant_index) const;
 
+	///all variant indices in configuration
 	QList<int> variantIndices(VariantType type, bool only_selected) const;
-
 	QList<int> variantIndicesGermline() const;
 
+	///Check whether variant configuration exists for index
 	bool exists(VariantType type, int index) const;
 
 	///sets / adds somatic variant configuration to list.
 	bool set(const SomaticReportVariantConfiguration& config);
-
 	///sets /adds germline variant to somatic report configuration
 	bool setGermline(const SomaticReportGermlineVariantConfiguration& config);
 
+	///Somatic variant report configuration according type and index in file
 	const SomaticReportVariantConfiguration& get(VariantType type, int index) const;
-
+	///Somatic germline (!) variant report configuration according type and index in germline file
 	const SomaticReportGermlineVariantConfiguration& getGermline(int index) const;
-
 
 	bool remove(VariantType type, int index);
 
@@ -82,7 +80,7 @@ public:
 
 	void sortByPosition();
 
-
+	///GETTER/SETTER
 
 	QString targetFile() const;
 	void setTargetFile(QString target_bed);
