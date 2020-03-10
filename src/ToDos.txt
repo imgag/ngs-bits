@@ -20,7 +20,6 @@ NGSD:
 GSvar:
 - Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
 - Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
-** Popup notification for segregations - every time a new case is loaded
 * Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater

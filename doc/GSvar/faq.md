@@ -3,7 +3,8 @@
 
 ## Links clicked in GSvar don't open in the browser
 
-You have to set the application of handling links. E.g. in Windows do:
+You have to set the application for handling links.  
+In Windows 7 to this:
 
 - Through the Windows main menu open `Default Programs`/`Standardprogramme`
 - Select `Set your default programs`/`Standardprogramme festlegen`
