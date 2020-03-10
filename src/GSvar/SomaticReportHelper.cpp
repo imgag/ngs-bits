@@ -69,7 +69,8 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		else temp.addCell(2900, "n/a");
 
 		temp.addCell(1700, (trans.count() > 0 ? trans[0].type.replace("_variant","") : "n/a"));
-		temp.addCell(900, var.annotations()[i_germl_freq_in_tum], RtfParagraph().setHorizontalAlignment("c"));
+
+		temp.addCell(900, QByteArray::number(var.annotations()[i_germl_freq_in_tum].toDouble(), 'f', 2), RtfParagraph().setHorizontalAlignment("c"));
 
 		//Get af of var in tumor tisse from NGSD
 		temp.addCell( 3138, germlVarDesc(var.annotations()[i_germl_hom_het], var.annotations()[i_germl_class]) );
@@ -108,7 +109,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		int i_tum_af = snvs.annotationIndexByName("tumor_af",true,true);
 		row.addCell(900,QByteArray::number(snv.annotations().at(i_tum_af).toDouble(),'f',2),RtfParagraph().setHorizontalAlignment("c")); //tumor allele frequency
 
-		RtfSourceCode gene_info = "NA";
+		RtfSourceCode gene_info = "unklare Funktion";
 		if(!snv.annotations()[snv_index_som_class_].isEmpty())
 		{
 			gene_info = trans( snv.annotations()[snv_index_som_class_] );
@@ -488,8 +489,10 @@ RtfTable SomaticReportHelper::createCnvTable()
 		temp_row.last().format().setHorizontalAlignment("c");
 
 		//Type
-		QByteArray type_statement = variant.annotations().at(cnv_index_cnv_type_);
+		RtfSourceCode type_statement = variant.annotations().at(cnv_index_cnv_type_);
 		type_statement = type_statement.replace("chromosome", "chr");
+		type_statement = type_statement.replace("partial p-arm", "partial\\line p-arm");
+		type_statement = type_statement.replace("partial q-arm", "partial\\line q-arm");
 		temp_row.addCell(800, type_statement, RtfParagraph().setHorizontalAlignment("c"));
 
 		//copy numbers
@@ -1941,7 +1944,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	//MSI status, values larger than 0.16 are considered unstable
 	if(settings_.report_config.msiStatus())
 	{
-		general_info_table.addRow(RtfTableRow({"Mikrosatelliten-Analyse:", ( mantis_msi_swd_value_ <= 0.16 ? "kein Hinweis auf eine MSI" : "instabil" ) },{2500,7137}).setBorders(1,"brdrhair",4));
+		general_info_table.addRow(RtfTableRow({"Mikrosatelliten:", ( mantis_msi_swd_value_ <= 0.16 ? "kein Hinweis auf eine MSI" : "Hinweise auf MSI" ) },{2500,7137}).setBorders(1,"brdrhair",4));
 	}
 
 	//Fusion status
@@ -1980,18 +1983,19 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 			coll.setNumericMode(true);
 			std::sort(chr.begin(), chr.end(), [&](const QString s1, const QString& s2){return coll.compare(s1,s2) < 0;});
 
-			text_cnv_burden += " \\endash  Es gibt Hinweise auf eine chromosomale Instabilität auf Chr. ";
+			RtfSourceCode temp = "\\line Es gibt Hinweise auf eine chromosomale Instabilität auf Chr. ";
 			for(int i=0; i< settings_.report_config.cinChromosomes().count(); ++i)
 			{
-				if( i< settings_.report_config.cinChromosomes().count() - 2) text_cnv_burden += chr[i].toUtf8().replace("chr","") + ", ";
-				else if(i == settings_.report_config.cinChromosomes().count() -2 ) text_cnv_burden += chr[i].toUtf8().replace("chr","") + " und ";
-				else text_cnv_burden += chr[i].toUtf8().replace("chr","");
+				if( i< settings_.report_config.cinChromosomes().count() - 2) temp += chr[i].toUtf8().replace("chr","") + ", ";
+				else if(i == settings_.report_config.cinChromosomes().count() -2 ) temp += chr[i].toUtf8().replace("chr","") + " und ";
+				else temp += chr[i].toUtf8().replace("chr","");
 			}
-			text_cnv_burden += ".";
+			temp +=".";
+			text_cnv_burden += RtfText(temp).setFontSize(14).RtfCode();
 		}
 		else
 		{
-			text_cnv_burden += " \\endash  Es gibt keine Hinweise auf chromosomale Instabilität.";
+			text_cnv_burden += RtfText("\\line Es gibt keine Hinweise auf chromosomale Instabilität.").setFontSize(14).RtfCode();
 		}
 
 		general_info_table.addRow(RtfTableRow({"CNV-Last:", text_cnv_burden},{2500,7137},RtfParagraph()).setBorders(1,"brdrhair",4));
@@ -2002,7 +2006,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	else hrd_text = "nicht nachgewiesen";
 	general_info_table.addRow(RtfTableRow({"HRD-Score:", hrd_text}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
 
-	general_info_table.addRow(RtfTableRow({"Probenqualität", trans(settings_.report_config.quality()).toUtf8()}, {2500, 7137}, RtfParagraph()).setBorders(1, "brdrhair", 4));
+	general_info_table.addRow(RtfTableRow({"Kommentar", trans(settings_.report_config.quality()).toUtf8()}, {2500, 7137}, RtfParagraph()).setBorders(1, "brdrhair", 4));
 
 
 	doc_.addPart(general_info_table.RtfCode());
@@ -2103,8 +2107,13 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setFontSize(18).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).RtfCode());
 
 	snv_expl = RtfText("Zusätzliche genetische Daten:").setFontSize(18).setBold(true).RtfCode();
-	snv_expl += " Weitere Informationen zu allen nachgewiesenen somatischen Veränderungen und pharmakogenetisch relevanten Polymorphismen entnehmen Sie bitte der Anlage 1.";
-	doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
+	snv_expl += " Weitere Informationen zu allen nachgewiesenen somatischen Veränderungen und pharmakogenetisch relevanten Polymorphismen entnehmen Sie bitte der Anlage. ";
+	snv_expl += "\\line Die Varianten- und Gendosisanalysen der Gene " + RtfText("BRCA1").setItalic(true).setFontSize(18).RtfCode() + " und " + RtfText("BRCA2").setItalic(true).setFontSize(18).RtfCode();
+	snv_expl += " in der Normalprobe waren unauffällig.";
+	snv_expl += "\\line Eine Analyse des Transkriptoms bei dieser Tumorprobe wird nachträglich berichtet.";
+	snv_expl += "\\line Eine somatische Analyse einer zusätzlichen Tumorprobe wird nachträglich berichtet.";
+
+	doc_.addPart(RtfParagraph(snv_expl).highlight(3).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 
 	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setLineSpacing(276).setFontSize(18).RtfCode());
 
@@ -2118,6 +2127,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	doc_.addPart(somaticAlterationTable(snv_variants_, cnvs_, true).setUniqueBorder(1,"brdrhair",4).RtfCode());
 
 	RtfSourceCode desc = "Diese Tabelle enthält sämtliche in der Tumorprobe nachgewiesenen SNVs und INDELs, unabhängig von der funktionellen Einschätzung und der abzurechnenden Zielregion. Sie enthält ferner alle Kopienzahlveränderungen in Genen, die als Treiber eingestuft wurden.";
+	if(settings_.report_config.countGermline() > 0) desc += "\\line\n" +RtfText("#:").setFontSize(14).setBold(true).RtfCode() + " Auch in der Normalprobe nachgewiesen.";
 
 	doc_.addPart(RtfParagraph(desc).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 

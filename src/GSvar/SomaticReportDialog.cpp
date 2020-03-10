@@ -118,7 +118,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	int i_class = germl_variants.annotationIndexByName("classification", true, false);
 	int i_co_sp = germl_variants.annotationIndexByName("coding_and_splicing", true, false);
 
-	BamReader bam_reader(db_.processedSamplePath(db_.processedSampleId(settings_.normal_ps), NGSD::PathType::BAM));
+	BamReader bam_reader(db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), NGSD::PathType::BAM));
 	FastaFileIndex fasta_idx(Settings::string("reference_genome"));
 
 	QList<int> germl_indices_in_report = settings_.report_config.variantIndicesGermline();
@@ -199,7 +199,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 		QString text = "Aufgrund der geringen DNA-Konzentration (x,y ng/µl) / DNA-Qualität / des geringen Tumorgehaltes / der Heterogenität der verwendeten Tumorprobe war";
 		text += " nur eine eingeschränkte Detektion somatischer Varianten (Punktmutationen und Kopienzahlveränderungen / Kopienzahlveränderungen) möglich. ";
 		text += "Es zeigte sich ein komplexes Bild, dass am ehesten mit einer Polysomie bzw. Monosomie mehrerer Chromosomen vereinbar ist. ";
-		text += "Die Mutationslast und MSI-Status sind nicht bestimmbar. Eine Wiederholung der DNA-Isolation aus Tumorgewebe war nicht möglich.\n\n";
+		text += "Die Mutationslast und der MSI-Status sind nicht bestimmbar. Eine Wiederholung der DNA-Isolation aus Tumorgewebe war nicht möglich.\n\n";
 		text +="Aufgrund der Allelfrequenz der einzelnen tumorspezifischen Varianten schätzen wir den Tumorgehalt bei unter 10%. Aufgrund des geringen Tumorgehaltes der ";
 		text += "verwendeten Tumorprobe war nur eine eingeschränkte Detektion somatischer Varianten (Punktmutationen und Kopienzahlveränderungen) möglich. Die Mutationslast und";
 		text += " MSI-Status sind nicht bestimmbar. Die hier berichteten Varianten wurden vor allem durch eine Senkung des Detektionslimits der Allelfrequenz auf unter 5% detektiert ";
