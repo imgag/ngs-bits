@@ -28,7 +28,7 @@ private slots:
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 53)
+		I_EQUAL(count, 121)
 		count = db.getValue("SELECT count(*) FROM hpo_genes WHERE gene='PTEN_ALT'").toInt();
 		I_EQUAL(count, 0)
 		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA1"))
@@ -55,7 +55,7 @@ private slots:
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 66)
+		I_EQUAL(count, 149)
 		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA1"))
 		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA2"))
 		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Autosomal dominant inheritance"), false).contains("PTEN"))
@@ -80,7 +80,7 @@ private slots:
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 55)
+		I_EQUAL(count, 122)
 		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA1"))
 		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA2"))
 		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Autosomal dominant inheritance"), false).contains("PTEN"))

@@ -18,7 +18,7 @@ public:
 	{
 		setDescription("Imports HPO terms and gene-phenotype relations into the NGSD.");
 		addInfile("obo", "HPO ontology file from 'http://purl.obolibrary.org/obo/hp.obo'.", false);
-		addInfile("anno", "HPO annotations file from 'http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt'", false);
+		addInfile("anno", "HPO annotations file from 'http://compbio.charite.de/jenkins/job/hpo.annotations/lastSuccessfulBuild/artifact/util/annotation/phenotype_to_genes.txt'", false);
 
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
@@ -26,6 +26,10 @@ public:
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 		addFlag("debug", "Enables debug output");
+
+		changeLog(2020, 3, 5, "Added support for new HPO annotation file.");
+		changeLog(2020, 3, 9, "Added optimization for hpo-gene relations.");
+		changeLog(2020, 3, 10, "Removed support for old HPO annotation file.");
 	}
 
 	int importTermGeneRelations(SqlQuery& qi_gene, const QHash<int, QSet<QByteArray> >& term2diseases, const QHash<QByteArray, GeneSet>& disease2genes)
@@ -185,17 +189,21 @@ public:
 		//parse term-disease and disease-gene relations from HPO
 		fp = Helper::openFileForReading(getInfile("anno"));
 		QSet<QByteArray> non_hgnc_genes;
-		QList<Phenotype> inheritance_terms = db.phenotypeChildTems(Phenotype("HP:0000005", "Mode of inheritance"), true);
+		QList<Phenotype> inheritance_terms = db.phenotypeChildTerms(Phenotype("HP:0000005", "Mode of inheritance"), true);
+
 		QHash<int, QSet<QByteArray> > term2diseases;
 		QHash<QByteArray, GeneSet> disease2genes;
 		while(!fp->atEnd())
 		{
-			QByteArrayList parts = fp->readLine().split('\t');
-			if (parts.count()<5) continue;
+			QByteArray line =  fp->readLine();
+			QByteArrayList parts =line.split('\t');
 
-			QByteArray disease = parts[0].trimmed();
-			QByteArray gene = parts[1].trimmed();
-			QByteArray term_accession = parts[3].trimmed();
+			if (parts.count()<7) continue;
+
+			// parse line
+			QByteArray disease = parts[6].trimmed();
+			QByteArray gene = parts[3].trimmed();
+			QByteArray term_accession = parts[0].trimmed();
 
 			int gene_db_id = db.geneToApprovedID(gene);
 			int term_db_id = id2ngsd.value(term_accession, -1);
@@ -392,7 +400,88 @@ public:
 			out << "Imported " << c_imported << " additional term-gene relations (direct) from ClinVar." << endl;
 		}
 
-		out << "Overall term-gene relations: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
+		out << "Overall imported term-gene relations: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
+
+		out << "Optimize term-gene relations...\n";
+		out << "(removing all genes which are already present in leaf nodes)" << endl;
+
+		Phenotype root = Phenotype("HP:0000001", "All");
+		int removed_genes = 0;
+		optimizeHpoGeneTable(root, db, id2ngsd, removed_genes);
+
+		// compute import stats
+
+		// get first level of subtrees:
+		QList<Phenotype> subtree_roots = db.phenotypeChildTerms(root, false);
+		QList<QList<Phenotype>> subtrees;
+		foreach (const Phenotype& pt, subtree_roots)
+		{
+			subtrees.append(db.phenotypeChildTerms(pt, true));
+		}
+		QVector<int> subtree_counts(subtree_roots.size());
+
+		//calulate stats:
+		QStringList hpo_terms = db.getValues("SELECT ht.hpo_id, hg.gene FROM hpo_genes hg INNER JOIN hpo_term ht ON hg.hpo_term_id = ht.id");
+		foreach (const QString& hpo_term, hpo_terms)
+		{
+			Phenotype pt = Phenotype(hpo_term.toUtf8(), "");
+			for (int i = 0; i < subtree_roots.size(); ++i)
+			{
+				if (subtrees.at(i).contains(pt)) subtree_counts[i]++;
+			}
+		}
+
+		out << "Imported HPO-Gene relations: \n";
+		out << " Overall:\t" << hpo_terms.size() << "\n";
+		for (int i = 0; i < subtree_roots.size(); ++i)
+		{
+			out << " " << subtree_roots.at(i).name() << ":\t" << subtree_counts.at(i) << "\n";
+		}
+
+		out << removed_genes << " duplicate genes removed during optimization" << endl;
+	}
+
+	void optimizeHpoGeneTable(const Phenotype& root, NGSD& db, const QHash<QByteArray, int>& pt2id, int& removed_genes)
+	{
+		// get all child nodes
+		QList<Phenotype> children = db.phenotypeChildTerms(root, false);
+
+		// abort if leaf node
+		if (children.size() == 0) return;
+
+		// get all genes which are associated with the sub-trees
+		GeneSet genes_children;
+		foreach (const Phenotype& child, children)
+		{
+			genes_children.insert(db.phenotypeToGenes(child, true));
+		}
+
+		// intersect with genes present in the root node
+		GeneSet genes_to_remove = genes_children.intersect(db.phenotypeToGenes(root, false));
+
+		if (genes_to_remove.count() != 0)
+		{
+			// get phenotype id
+			int pt_id = pt2id.value(root.accession());
+
+			// remove all duplicate genes
+			SqlQuery remove_gene_query = db.getQuery();
+			remove_gene_query.prepare("DELETE FROM hpo_genes WHERE hpo_term_id=" + QByteArray::number(pt_id) + " AND gene=:0");
+			foreach (const QByteArray& gene, genes_to_remove)
+			{
+				remove_gene_query.bindValue(0, gene);
+				remove_gene_query.exec();
+				removed_genes++;
+			}
+		}
+
+		// start optimization for all child nodes
+		foreach (const Phenotype& child, children)
+		{
+			optimizeHpoGeneTable(child, db, pt2id, removed_genes);
+		}
+
+		return;
 	}
 };
 

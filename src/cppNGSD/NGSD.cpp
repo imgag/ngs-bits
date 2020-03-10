@@ -2845,7 +2845,7 @@ GeneSet NGSD::phenotypeToGenes(const Phenotype& phenotype, bool recursive)
 	return genes;
 }
 
-QList<Phenotype> NGSD::phenotypeChildTems(const Phenotype& phenotype, bool recursive)
+QList<Phenotype> NGSD::phenotypeChildTerms(const Phenotype& phenotype, bool recursive)
 {
 	//prepare queries
 	SqlQuery pid2children = getQuery();

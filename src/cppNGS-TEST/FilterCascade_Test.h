@@ -1051,12 +1051,24 @@ private slots:
 
 		FilterResult result(cnvs.count());
 
-		//default
 		FilterCnvCnpOverlap filter;
 		filter.setDouble("max_ol", 0.001);
 		filter.apply(cnvs, result);
 		I_EQUAL(result.countPassing(), 65);
 	}
+
+	void FilterCnvPathogenicCnvOverlap_apply()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_somatic.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		FilterCnvPathogenicCnvOverlap filter;
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 3);
+	}
+
 	/********************************************* Default filters for CNVs *********************************************/
 
 	void default_filters_ClinCNV_germline_single()
@@ -1110,7 +1122,7 @@ private slots:
 	}
 
 
-	/********************************************* Filters for CNVs *********************************************/
+	/********************************************* Filters for SVs *********************************************/
 
 	void FilterSvType_apply()
 	{
