@@ -63,6 +63,7 @@ void SampleSearchWidget::search()
 	//create search parameters
 	ProcessedSampleSearchParameters params;
 	params.s_name = ui_.s_name->text();
+	params.s_name_ext = ui_.s_name_ext->isChecked();
 	params.s_species = ui_.s_species->text();
 	params.s_disease_group = ui_.s_disease_group->currentText();
 	params.s_disease_status = ui_.s_disease_status->currentText();
