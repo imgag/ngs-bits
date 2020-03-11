@@ -1,5 +1,18 @@
 # GSvar change log
 
+### 2020_03-11 (11.03.20)
+- NGSD: added notification when there are pending validated variants.
+- NSGD: added option to search for external sample name in sample search.
+- General: gene database links now available through gene tab and and context menu of small variants, CNVs and SVs.
+- CNV search: added size column and filter.
+
+### 2019_11-153 (05.03.20)
+- NGSD: added NGSD user name check.
+- NGSD: Added transcript list to gene tab.
+- NGSD: deleting processed samples is now possible (from processed sample tab and sample search tab).
+- Report: Added OMIM information to XML report (only for causal variants).
+- Gene selector dialog: added support for ClinCNV.
+
 ### 2019_11-129 (21.02.20)
 - NGSD: added 'read %' column to sequencing run sample table.
 - NGSD: added double click to open tabs (run overview, sample search, run, admin project, admin processing system)
