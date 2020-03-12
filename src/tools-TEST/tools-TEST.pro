@@ -112,7 +112,8 @@ HEADERS += \
     CnvGeneAnnotation_Test.h \
     BedpeGeneAnnotation_Test.h \
     BedpeAnnotateFromBed_Test.h \
-    NGSDAnnotateCNV.h
+    NGSDAnnotateSV_Test.h \
+    NGSDAnnotateCNV_Test.h
 
 SOURCES += \
     main.cpp

@@ -1,0 +1,353 @@
+#include "ToolBase.h"
+#include "NGSD.h"
+#include "Exceptions.h"
+#include "Helper.h"
+#include "BedpeFile.h"
+
+class ConcreteTool
+		: public ToolBase
+{
+	Q_OBJECT
+
+public:
+	ConcreteTool(int& argc, char *argv[])
+		: ToolBase(argc, argv)
+	{
+	}
+
+	virtual void setup()
+	{
+		setDescription("Annotates the structural variants of a given BEDPE file by the NGSD counts.");
+		addInfile("in", "BEDPE file containing structural variants.", false);
+		addOutfile("out", "Output BEDPE file containing annotated structural variants.", false);
+		addString("ps_name", "Processed sample name.", false);
+
+		//optional
+		addFlag("test", "Uses the test database instead of on the production database.");
+		addFlag("ignore_processing_system", "Use all SVs for annotation (otherwise only SVs of the same processing system are used)");
+		addFlag("debug", "Provide additional information in STDOUT (e.g. query runtime)");
+
+		changeLog(2020, 2, 21, "Initial version.");
+		changeLog(2020, 2, 27, "Added temporary db table with same processing system.");
+		changeLog(2020, 3, 11, "Updated match computation for INS and BND");
+		changeLog(2020, 3, 12, "Bugfix in match computation for INS and BND");
+	}
+
+	virtual void main()
+	{
+		//init
+		NGSD db(getFlag("test"));
+		QByteArray ps_name = getString("ps_name").toUtf8();
+		QTextStream out(stdout);
+		QTime timer;
+		timer.start();
+		bool debug = getFlag("debug");
+		QTime init_timer, del_timer, dup_timer, inv_timer, ins_timer, bnd_timer;
+		int time_init=0, time_sum_del=0, time_sum_dup=0, time_sum_inv=0, time_sum_ins=0, time_sum_bnd=0;
+		int n_del=0, n_dup=0, n_inv=0, n_ins=0, n_bnd=0;
+		int sample_count = 0; // number of samples with the same processing system in the NGSD
+
+
+		if (debug) init_timer.start();
+
+		// get processed sample id
+		int ps_id = Helper::toInt(db.processedSampleId(ps_name));
+		out << "Processed sample id: " << ps_id << endl;
+
+		// check if processed sample has already been imported
+		QByteArray previous_callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, QString::number(ps_id)).toString().toUtf8();
+		QByteArray sql_exclude_prev_callset;
+		if(previous_callset_id!="")
+		{
+			sql_exclude_prev_callset = "sc.id != " + previous_callset_id + " AND ";
+			out << "NOTE: Processed sample '" << ps_name << "' already imported. Ignoring SVs of this sample in the annotation." << endl;
+		}
+
+		// create temporary tables for each SV type filtered by the current processing system
+		QByteArray table_prefix;
+		if (!getFlag("ignore_processing_system"))
+		{
+			// get processing system of current sample
+			int processing_system_id = db.processingSystemIdFromProcessedSample(ps_name);
+
+			// create a temp table with all valid ps ids
+			SqlQuery temp_table = db.getQuery();
+			temp_table.exec("CREATE TEMPORARY TABLE temp_valid_sv_cs_ids SELECT sc.id FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id WHERE " + sql_exclude_prev_callset + "ps.processing_system_id = " + QByteArray::number(processing_system_id));
+
+			// get number of valid callset ids (= known samples)
+			sample_count = db.getValue("SELECT COUNT(*) FROM temp_valid_sv_cs_ids").toInt();
+
+			// generate joined tables of all SV types which were called on the same processing system.d
+			SqlQuery create_temp_table = db.getQuery();
+			QByteArrayList table_names;
+			table_names << "sv_deletion" << "sv_duplication" << "sv_inversion";
+			foreach (QByteArray table_name, table_names)
+			{
+				// DEL, DUP, INV
+				create_temp_table.exec("CREATE TEMPORARY TABLE temp_" + table_name + " SELECT sv.id, sv.sv_callset_id, sv.chr, sv.start_min, sv.start_max, sv.end_min, sv.end_max, sv.quality_metrics FROM "
+									   + table_name + " sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
+			}
+			//INS
+			create_temp_table.exec("CREATE TEMPORARY TABLE temp_sv_insertion SELECT sv.id, sv.sv_callset_id, sv.chr, sv.pos, sv.ci_lower, sv.ci_upper, sv.quality_metrics FROM sv_insertion sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
+			//BND
+			create_temp_table.exec("CREATE TEMPORARY TABLE temp_sv_translocation SELECT sv.id, sv.sv_callset_id, sv.chr1, sv.start1, sv.end1, sv.chr2, sv.start2, sv.end2, sv.quality_metrics FROM sv_translocation sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
+
+			// create indices for exact and overlap matching
+			SqlQuery create_index = db.getQuery();			
+			foreach (QByteArray table_name, table_names)
+			{
+				// DEL, DUP, INV
+				create_index.exec("CREATE INDEX `exact_match` ON temp_" + table_name + "(`chr`, `start_min`, `start_max`, `end_min`, `end_max`)");
+				create_index.exec("CREATE INDEX `overlap_match` ON temp_" + table_name + "(`chr`, `start_min`, `end_max`)");
+			}
+			//INS
+			create_index.exec("CREATE INDEX `match` ON temp_sv_insertion(`chr`, `pos`, `ci_lower`, `ci_upper`)");
+			//BND
+			create_index.exec("CREATE INDEX `match` ON temp_sv_translocation(`chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`)");
+
+			// set prefix for temp tables
+			table_prefix = "temp_";
+		}
+		else
+		{
+			// get number of callset ids (= known samples)
+			sample_count = db.getValue("SELECT COUNT(*) FROM sv_callset").toInt();
+		}
+
+		// prepare a query for each SV
+		QByteArray select_count = "SELECT COUNT(*) FROM ";
+
+
+		QByteArray exact_match_del_dup_inv = "WHERE sv.chr = :0 AND sv.start_min <= :1 AND :2 <= sv.start_max AND sv.end_min <= :3 AND :4 <= sv.end_max";
+		QByteArray contained_del_dup_inv = "WHERE sv.chr = :0 AND sv.start_min <= :1 AND :2 <= sv.end_max";
+
+		SqlQuery count_sv_deletion_em = db.getQuery();
+		count_sv_deletion_em.prepare(select_count + table_prefix + "sv_deletion sv " + exact_match_del_dup_inv);
+		SqlQuery count_sv_duplication_em = db.getQuery();
+		count_sv_duplication_em.prepare(select_count + table_prefix + "sv_duplication sv " + exact_match_del_dup_inv);
+		SqlQuery count_sv_inversion_em = db.getQuery();
+		count_sv_inversion_em.prepare(select_count + table_prefix + "sv_inversion sv " + exact_match_del_dup_inv);
+
+		SqlQuery count_sv_deletion_c = db.getQuery();
+		count_sv_deletion_c.prepare(select_count + table_prefix + "sv_deletion sv " + contained_del_dup_inv);
+		SqlQuery count_sv_duplication_c = db.getQuery();
+		count_sv_duplication_c.prepare(select_count + table_prefix + "sv_duplication sv " + contained_del_dup_inv);
+		SqlQuery count_sv_inversion_c = db.getQuery();
+		count_sv_inversion_c.prepare(select_count + table_prefix + "sv_inversion sv " + contained_del_dup_inv);
+
+		QByteArray match_ins = table_prefix + "sv_insertion sv WHERE sv.chr = :0 AND (sv.pos - sv.ci_lower) <= :1 AND :2 <= (sv.pos + sv.ci_upper)";
+
+		SqlQuery count_sv_insertion_m = db.getQuery();
+		count_sv_insertion_m.prepare(select_count + match_ins);
+
+		QByteArray match_bnd = table_prefix + "sv_translocation sv WHERE sv.chr1 = :0 AND sv.start1 <= :1 AND :2 <= sv.end1 AND sv.chr2 = :3 AND sv.start2 <= :4 AND :5 <= sv.end2";
+
+		SqlQuery count_sv_translocation_em = db.getQuery();
+		count_sv_translocation_em.prepare(select_count + match_bnd);
+
+		if (debug) time_init = init_timer.elapsed();
+
+		// open BEDPE file
+		BedpeFile svs;
+		svs.load(getInfile("in"));
+
+		// create QByteArrayList to buffer output stream
+		QByteArrayList output_buffer;
+
+		// copy comments to output buffer
+		output_buffer << svs.comments().join('\n') << "\n";
+
+		// check if file already contains NGSD counts
+		QList<QByteArray> header = svs.annotationHeaders();
+		QList<QByteArray> additional_columns;
+		int i_ngsd_count = header.indexOf("NGSD_COUNT");
+		if (i_ngsd_count < 0)
+		{
+			// no NGSD column found -> append column at the end
+			header.append("NGSD_COUNT");
+			additional_columns.append("0 (0.000)");
+			i_ngsd_count = header.size() - 1;
+		}
+		int i_ngsd_count_overlap = header.indexOf("NGSD_COUNT_OVERLAP");
+		if (i_ngsd_count_overlap < 0)
+		{
+			// no NGSD column found -> append column at the end
+			header.append("NGSD_COUNT_OVERLAP");
+			additional_columns.append("0");
+			i_ngsd_count_overlap = header.size() - 1;
+		}
+		output_buffer << "#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\t" << header.join("\t") << "\n";
+
+
+		// iterate over structural variants
+		for (int i = 0; i < svs.count(); i++)
+		{
+			BedpeLine& sv = svs[i];
+
+			QList<QByteArray> sv_annotations = sv.annotations();
+			// extend annotation by new columns
+			if (additional_columns.size() > 0) sv_annotations.append(additional_columns);
+
+			// ignore SVs on special chromosomes
+			if (svs[i].chr1().isNonSpecial() && svs[i].chr2().isNonSpecial())
+			{
+				int ngsd_count_em = 0;
+				int ngsd_count_overlap = 0;
+
+				// annotate
+				if(sv.type() == StructuralVariantType::BND)
+				{
+					//Translocation
+					if (debug) bnd_timer.start();
+					//get matches
+					// bind values
+					count_sv_translocation_em.bindValue(0, sv.chr1().strNormalized(true));
+					count_sv_translocation_em.bindValue(1, sv.end1());
+					count_sv_translocation_em.bindValue(2, sv.start1());
+					count_sv_translocation_em.bindValue(3, sv.chr2().strNormalized(true));
+					count_sv_translocation_em.bindValue(4, sv.end2());
+					count_sv_translocation_em.bindValue(5, sv.start2());
+					// execute query
+					count_sv_translocation_em.exec();
+					// parse result
+					count_sv_translocation_em.next();
+					ngsd_count_em = count_sv_translocation_em.value(0).toInt();
+					ngsd_count_overlap = count_sv_translocation_em.value(0).toInt();
+
+					n_bnd++;
+					if (debug) time_sum_bnd += bnd_timer.elapsed();
+				}
+				else if(sv.type() == StructuralVariantType::INS)
+				{
+					//Insertion
+					if (debug) ins_timer.start();
+					//get exact matches
+					// bind values
+					count_sv_insertion_m.bindValue(0, sv.chr1().strNormalized(true));
+					count_sv_insertion_m.bindValue(1, sv.end1());
+					count_sv_insertion_m.bindValue(2, sv.start1());
+					// execute query
+					count_sv_insertion_m.exec();
+					// parse result
+					count_sv_insertion_m.next();
+					ngsd_count_em = count_sv_insertion_m.value(0).toInt();
+					ngsd_count_overlap = count_sv_insertion_m.value(0).toInt();
+
+					n_ins++;
+					if (debug) time_sum_ins += ins_timer.elapsed();
+				}
+				else
+				{
+					//Del, Dup or Inv
+
+					// get exact matches
+					SqlQuery query_em = db.getQuery();
+					if (sv.type() == StructuralVariantType::DEL) query_em = count_sv_deletion_em;
+					else if (sv.type() == StructuralVariantType::DUP) query_em = count_sv_duplication_em;
+					else if (sv.type() == StructuralVariantType::INV) query_em = count_sv_inversion_em;
+					else THROW(FileParseException, "Invalid SV type in BEDPE line.");
+
+					if (debug)
+					{
+						if (sv.type() == StructuralVariantType::DEL) del_timer.start();
+						else if (sv.type() == StructuralVariantType::DUP) dup_timer.start();
+						else inv_timer.start();
+					}
+
+					// bind values
+					query_em.bindValue(0, sv.chr1().strNormalized(true));
+					query_em.bindValue(1, sv.end1());
+					query_em.bindValue(2, sv.start1());
+					query_em.bindValue(3, sv.end2());
+					query_em.bindValue(4, sv.start2());
+
+					// execute query
+					query_em.exec();
+
+					// parse result
+					query_em.next();
+					ngsd_count_em = query_em.value(0).toInt();
+
+
+					// get contained matches
+					SqlQuery query_c = db.getQuery();
+					if (sv.type() == StructuralVariantType::DEL) query_c = count_sv_deletion_c;
+					else if (sv.type() == StructuralVariantType::DUP) query_c = count_sv_duplication_c;
+					else if (sv.type() == StructuralVariantType::INV) query_c = count_sv_inversion_c;
+					else THROW(FileParseException, "Invalid SV type in BEDPE line.");
+
+					// bind values
+					query_c.bindValue(0, sv.chr1().strNormalized(true));
+					query_c.bindValue(1, sv.end2());
+					query_c.bindValue(2, sv.start1());
+
+					// execute query
+					query_c.exec();
+
+					// parse result
+					query_c.next();
+					ngsd_count_overlap = query_c.value(0).toInt();
+
+					if (debug)
+					{
+						if (sv.type() == StructuralVariantType::DEL) time_sum_del += del_timer.elapsed();
+						else if (sv.type() == StructuralVariantType::DUP) time_sum_dup += dup_timer.elapsed();
+						else time_sum_inv += inv_timer.elapsed();
+					}
+
+					// count SVs
+					if (sv.type() == StructuralVariantType::DEL) n_del++;
+					else if (sv.type() == StructuralVariantType::DUP) n_dup++;
+					else n_inv++;
+				}
+
+				// write annotations
+				double af = 0.00;
+				if (sample_count != 0) af = (double) ngsd_count_em / (double) sample_count;
+				sv_annotations[i_ngsd_count] = QByteArray::number(ngsd_count_em)
+						+ " (" + QByteArray::number(af, 'f', 4) + ")";
+				sv_annotations[i_ngsd_count_overlap] = QByteArray::number(ngsd_count_overlap);
+			}
+
+			//write annotation back to BedpeLine
+			sv.setAnnotations(sv_annotations);
+
+			// store line in output buffer
+			output_buffer << sv.toTsv() << "\n";
+
+		}
+
+		out << "writing annotated SVs to file..." << endl;
+
+		// open output file
+		QSharedPointer<QFile> output_file = Helper::openFileForWriting(getOutfile("out"),false,false);
+		// write buffer to file
+		foreach (const QByteArray& line, output_buffer)
+		{
+			output_file->write(line);
+		}
+		output_file->close();
+
+		// debug summary
+		if (debug)
+		{
+			out << "Debug-Output: \n SQL query runtime / SVs:\n";
+			out << "\t init: " << (double) time_init/1000.00 << "s \n";
+			out << "\t DEL: " << (double) time_sum_del/1000.00 << "s / " << n_del << "\n";
+			out << "\t DUP: " << (double) time_sum_dup/1000.00 << "s / " << n_dup << "\n";
+			out << "\t INV: " << (double) time_sum_inv/1000.00 << "s / " << n_inv << "\n";
+			out << "\t INS: " << (double) time_sum_ins/1000.00 << "s / " << n_ins << "\n";
+			out << "\t BND: " << (double) time_sum_bnd/1000.00 << "s / " << n_bnd << "\n";
+		}
+
+		out << "finished (" << Helper::elapsedTime(timer) << ") " << endl;
+	}
+};
+
+#include "main.moc"
+
+int main(int argc, char *argv[])
+{
+	ConcreteTool tool(argc, argv);
+	return tool.execute();
+}
