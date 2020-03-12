@@ -27,6 +27,8 @@ public:
 		addFlag("var_force", "Force import of small variants, even if already imported.");
 		addInfile("cnv", "CNV list in TSV format (as produced by megSAP).", true, true);
 		addFlag("cnv_force", "Force import of CNVs, even if already imported.");
+		addInfile("sv", "SV list in Bedpe format (as produced by megSAP).", true, true);
+		addFlag("sv_force", "Force import of SVs, even if already imported.");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFloat("max_af", "Maximum allele frequency of small variants to import (1000g and gnomAD).", true, 0.05);
 		addFlag("test", "Uses the test database instead of on the production database.");
@@ -317,6 +319,136 @@ public:
 		}
 	}
 
+	void importSVs(NGSD& db, QTextStream& out, QString ps_name, bool debug, bool no_time, bool sv_force)
+	{
+		QString filename = getInfile("sv");
+		if (filename=="") return;
+
+		out << "\n";
+		out << "### importing SVs for " << ps_name << " ###\n";
+		out << "filename: " << filename << "\n";
+
+		QTime timer;
+		timer.start();
+
+		// get processed sample id
+		int ps_id = Helper::toInt(db.processedSampleId(ps_name));
+		if(debug) out << "Processed sample id: " << ps_id << endl;
+
+		// check if processed sample has already been imported
+		QString previous_callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, QString::number(ps_id)).toString();
+		if(previous_callset_id!="" && !sv_force)
+		{
+			out << "NOTE: SVs were already imported for '" << ps_name << "' - skipping import\n";
+			return;
+		}
+		//remove old imports of this processed sample
+		if (previous_callset_id!="" && sv_force)
+		{
+			db.getQuery().exec("DELETE FROM sv_deletion WHERE sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM sv_duplication WHERE sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM sv_inversion WHERE sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM sv_insertion WHERE sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM sv_translocation WHERE sv_callset_id='" + previous_callset_id + "'");
+			db.getQuery().exec("DELETE FROM sv_callset WHERE id='" + previous_callset_id + "'");
+
+			out << "Deleted previous SV callset\n";
+		}
+
+
+		// open BEDPE file
+		BedpeFile svs;
+		svs.load(filename);
+
+		// create SV callset for given processed sample
+		QByteArray caller;
+		QByteArray caller_version;
+		QDate date;
+		foreach (const QByteArray &comment, svs.comments())
+		{
+			// parse date
+			if (comment.startsWith("##fileDate="))
+			{
+				date = QDate::fromString(comment.split('=')[1].trimmed(), "yyyyMMdd");
+			}
+
+			// parse manta version
+			if (comment.startsWith("##source="))
+			{
+				QByteArrayList application_string = comment.split('=')[1].trimmed().split(' ');
+				if (application_string[0].startsWith("GenerateSVCandidates")) caller = "Manta";
+				caller_version = application_string[1].trimmed();
+			}
+
+		}
+
+		// check if all required data is available
+		if (caller == "") THROW(FileParseException, "Caller is missing");
+		if(caller_version == "") THROW(FileParseException, "Version is missing");
+		if(date.isNull()) THROW(FileParseException, "Date is missing");
+
+		// create callset entry
+		SqlQuery insert_callset = db.getQuery();
+		insert_callset.prepare("INSERT INTO `sv_callset` (`processed_sample_id`, `caller`, `caller_version`, `call_date`, `quality`) VALUES (:0,:1,:2,:3,:4)");
+		insert_callset.bindValue(0, ps_id);
+		insert_callset.bindValue(1, caller);
+		insert_callset.bindValue(2, caller_version);
+		insert_callset.bindValue(3, date);
+		insert_callset.bindValue(4, "n/a");
+		insert_callset.exec();
+		int callset_id = insert_callset.lastInsertId().toInt();
+
+		if(debug) out << "Callset id: " << callset_id << endl;
+
+		// import structural variants
+		int sv_imported = 0;
+		for (int i = 0; i < svs.count(); i++)
+		{
+			// ignore SVs on special chromosomes
+			if (!svs[i].chr1().isNonSpecial() || !svs[i].chr2().isNonSpecial()) continue;
+
+			int sv_id = db.addSv(callset_id, svs[i], svs);
+			sv_imported++;
+			if (debug)
+			{
+				QByteArray db_table_name;
+				switch (svs[i].type())
+				{
+					case StructuralVariantType::DEL:
+						db_table_name = "sv_deletion";
+						break;
+					case StructuralVariantType::DUP:
+						db_table_name = "sv_duplication";
+						break;
+					case StructuralVariantType::INS:
+						db_table_name = "sv_insertion";
+						break;
+					case StructuralVariantType::INV:
+						db_table_name = "sv_inversion";
+						break;
+					case StructuralVariantType::BND:
+						db_table_name = "sv_translocation";
+						break;
+					default:
+						THROW(FileParseException, "Invalid structural variant type!");
+						break;
+				}
+				out << "DEBUG: " << svs[i].positionRange() << " sv: " << BedpeFile::typeToString(svs[i].type()) << " quality: "
+					<< db.getValue("SELECT quality_metrics FROM " + db_table_name + " WHERE id=" + QByteArray::number(sv_id)).toString() << "\n";
+			}
+
+		}
+
+		out << "Imported SVs: " << sv_imported << "\n";
+		out << "Skipped SVs: " << svs.count() - sv_imported << "\n";
+
+		//output timing
+		if (!no_time)
+		{
+			out << "Import took: " << Helper::elapsedTime(timer) << "\n";
+		}
+	}
+
 	virtual void main()
 	{
 		//init
@@ -328,6 +460,7 @@ public:
 		bool no_time = getFlag("no_time");
 		bool var_force = getFlag("var_force");
 		bool cnv_force = getFlag("cnv_force");
+		bool sv_force = getFlag("sv_force");
 
 		//prevent tumor samples from being imported into the germline variant tables
 		QString s_id = db.sampleId(ps_name);
@@ -340,6 +473,7 @@ public:
 		//import
 		importSmallVariants(db, stream, ps_name, debug, no_time, var_force);
 		importCNVs(db, stream, ps_name, debug, no_time, cnv_force);
+		importSVs(db, stream, ps_name, debug, no_time, sv_force);
 	}
 };
 
