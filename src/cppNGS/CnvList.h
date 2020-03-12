@@ -5,9 +5,12 @@
 #include "Chromosome.h"
 #include "GeneSet.h"
 #include "BasicStatistics.h"
+#include "KeyValuePair.h"
 #include <QList>
 #include <QByteArrayList>
 #include <QMap>
+#include <QJsonObject>
+#include <QDateTime>
 
 ///Copy-number variant composed of sub-regions.
 class CPPNGSSHARED_EXPORT CopyNumberVariant
@@ -81,7 +84,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			return chr == chr_ && BasicStatistics::rangeOverlaps(start_, end_, start, end);
 		}
 
-		//Returns the copy-number. If not available, ProgrammingException is thrown, or '-1' is returned.
+		//Returns the copy-number. If not available, ProgrammingException is thrown, or '-1' is returned. (Germline only)
 		int copyNumber(const QByteArrayList& annotation_headers, bool throw_if_not_found=true) const;
 
 	protected:
@@ -110,6 +113,14 @@ enum class CnvListType
 	CLINCNV_GERMLINE_SINGLE,
 	CLINCNV_GERMLINE_MULTI,
 	CLINCNV_TUMOR_NORMAL_PAIR
+};
+
+struct CnvListCallData
+{
+	QString caller = "";
+	QString caller_version = "";
+	QDateTime call_date;
+	QJsonObject quality_metrics;
 };
 
 ///CNV list
@@ -196,7 +207,10 @@ class CPPNGSSHARED_EXPORT CnvList
 		}
 
 		///Returns the size sum of all all CNVs
-		long long totalCnvSize();
+		long long totalCnvSize() const;
+
+		///Returns call data from original file (e.g. version, caller...), specify ps_name in case of CNVHunter samples
+		static CnvListCallData getCallData(const CnvList& cnvs, QString filename, QString ps_name = "", bool ignore_inval_header_lines = false);
 
 	protected:
 		CnvListType type_;
@@ -204,6 +218,10 @@ class CPPNGSSHARED_EXPORT CnvList
 		QByteArrayList annotation_headers_;
 		QMap<QByteArray, QByteArray> annotation_header_desc_;
 		QList<CopyNumberVariant> variants_;
+
+	private:
+		///split key-value pair from file header based on separator
+		static KeyValuePair split(const QByteArray& string, char sep);
 };
 
 #endif // CNVLIST_H

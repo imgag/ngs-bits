@@ -180,6 +180,11 @@ void FilterWidget::setFilter(QString name)
 	}
 }
 
+QString FilterWidget::filterName() const
+{
+	return ui_.filters->currentText();
+}
+
 void FilterWidget::updateNGSDSupport()
 {
 	ui_.hpo_terms->setEnabled(LoginManager::active());
@@ -244,6 +249,12 @@ void FilterWidget::setRegion(QString region)
 bool FilterWidget::reportConfigurationVariantsOnly() const
 {
 	return ui_.report_config->isChecked();
+}
+
+void FilterWidget::disableReportConfigurationVariantsOnly() const
+{
+	ui_.report_config->setChecked(false);
+	ui_.report_config->setEnabled(false);
 }
 
 const QList<Phenotype>& FilterWidget::phenotypes() const

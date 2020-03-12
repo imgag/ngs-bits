@@ -144,7 +144,7 @@ RtfTable SomaticRnaReport::snvTable()
 
 		row.addCell(750, QByteArray::number(var.annotations()[i_tum_af].toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
-		row.addCell(1750, SomaticReportHelper::CgiDriverDescription(var.annotations()[i_cgi_statem]), RtfParagraph().setFontSize(16));
+		row.addCell(1750, CgiDriverDescription(var.annotations()[i_cgi_statem]), RtfParagraph().setFontSize(16));
 
 		row.addCell(675, var.annotations()[i_rna_af], RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 
@@ -220,7 +220,7 @@ RtfTable SomaticRnaReport::cnvTable()
 				temp.addCell(500, cnv.annotations().at(i_tumor_cn), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
 				temp.addCell(750, QByteArray::number(cnv.annotations().at(i_tum_clonality).toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
-				temp.addCell(1986, SomaticReportHelper::CgiDriverDescription(statements[j]), RtfParagraph().setFontSize(16));
+				temp.addCell(1986, CgiDriverDescription(statements[j]), RtfParagraph().setFontSize(16));
 
 				temp.addCell(900, QByteArray::number(getTpm(genes[j], cnv.annotations().at(i_rna_tpm)), 'f', 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 				temp.addCell(900, QByteArray::number(getTpm(genes[j], cnv.annotations().at(i_ref_rna_tpm)), 'f', 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );

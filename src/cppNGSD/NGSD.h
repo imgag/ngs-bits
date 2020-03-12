@@ -18,6 +18,7 @@
 #include "Helper.h"
 #include "DBTable.h"
 #include "ReportConfiguration.h"
+#include "SomaticReportConfiguration.h"
 #include "CnvList.h"
 #include "BedpeFile.h"
 
@@ -369,6 +370,12 @@ struct CPPNGSDSHARED_EXPORT ReportConfigurationCreationData
 	QString toText() const;
 };
 
+///Meta data about somatic report configuration (e.g. creation/update, target bed file)
+struct CPPNGSDSHARED_EXPORT SomaticReportConfigurationData : public ReportConfigurationCreationData
+{
+	QString target_file;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -505,6 +512,9 @@ public:
 	///Deletes the variants of a processed sample (a specific type)
 	void deleteVariants(const QString& ps_id, VariantType type);
 
+	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id);
+	void deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type);
+
 	///Adds a CNV to the NGSD. Returns the CNV ID.
 	QString addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
 	///Returns the NGSD ID for a CNV. Returns '' or throws an exception if the ID cannot be determined.
@@ -513,8 +523,9 @@ public:
 	CopyNumberVariant cnv(int cnv_id);
 
 	///Adds a SV to the NGSD. Returns the SV ID.
-	int addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs);
-
+	int addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs);	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
+	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
+	CopyNumberVariant somaticCnv(int cnv_id);
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
 	int userId(QString user_name, bool only_active=false);
 	///Returns the user name corresponding the given ID. If no ID is given, the current users ID is used (see userId()).
@@ -592,6 +603,19 @@ public:
 	int setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs);
 	///Deletes a report configuration.
 	void deleteReportConfig(int id);
+
+	///Returns the report config creation data (user/date) for somatic reports
+	SomaticReportConfigurationData somaticReportConfigData(int id);
+
+
+	///Returns database ID of somatic report configuration, -1 if not present
+	int somaticReportConfigId(QString t_ps_id, QString n_ps_id);
+	///Sets/overwrites somatic report configuration for tumor-normal processed sample pair
+	int setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const VariantList& germl_snvs, QString user_name);
+	///Removes a somatic report configuration from NGSD, including its variant and cnv configurations
+	void deleteSomaticReportConfig(int id);
+	///Retrieve somatic report configuration using tumor and normal processed sample ids
+	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const VariantList& germline_snvs, QStringList& messages);
 
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality);

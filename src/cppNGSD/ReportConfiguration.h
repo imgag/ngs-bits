@@ -40,6 +40,7 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	static QStringList getClassificationOptions(bool test_db = false);
 };
 
+
 ///Report configuration
 class CPPNGSDSHARED_EXPORT ReportConfiguration
 {

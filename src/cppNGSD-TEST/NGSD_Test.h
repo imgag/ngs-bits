@@ -3,10 +3,260 @@
 #include "NGSD.h"
 #include "LoginManager.h"
 #include <QThread>
+#include <cmath>
 
 TEST_CLASS(NGSD_Test)
 {
 Q_OBJECT
+private:
+	//Test SomaticReportConfiguration, method has to be claled in main_tests();
+	inline void somaticReportTest(NGSD& db)
+	{
+		VariantList vl;
+		vl.load(TESTDATA("../cppNGS-TEST/data_in/somatic_report_config.GSvar"));
+
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/somatic_cnvs_clincnv.tsv"));
+
+		VariantList vl_germl;
+		vl_germl.load(TESTDATA("../cppNGSD-TEST/data_in/somatic_report_config_germline.GSvar"));
+
+		//Resolve somatic report configuration ID
+		I_EQUAL(db.somaticReportConfigId("5","6"), 3);
+		I_EQUAL(db.somaticReportConfigId("5","4000"), 51);
+		I_EQUAL(db.somaticReportConfigId("5","10"), -1);
+
+		//Resolve rep conf. creation data
+		SomaticReportConfigurationData config_data = db.somaticReportConfigData(51);
+		S_EQUAL(config_data.created_by,"Max Mustermann");
+		S_EQUAL(config_data.created_date, "05.01.2019 14:06:12");
+		S_EQUAL(config_data.last_edit_by, "Sarah Kerrigan");
+		S_EQUAL(config_data.last_edit_date, "07.12.2019 17:06:10");
+		S_EQUAL(config_data.target_file, "nowhere.bed");
+
+		//set somatic report configuration in test NGSD, using 2 SNVs
+		SomaticReportVariantConfiguration var1;
+		var1.variant_index = 1;
+		var1.variant_type = VariantType::SNVS_INDELS;
+		var1.exclude_artefact = true;
+		var1.exclude_high_baf_deviation = true;
+		var1.exclude_low_copy_number = true;
+		var1.exclude_low_tumor_content = true;
+		var1.comment = "This variant is a test variant and shall be excluded.";
+
+		SomaticReportVariantConfiguration var2;
+		var2.variant_index = 2;
+		var2.variant_type = VariantType::SNVS_INDELS;
+		var2.include_variant_alteration = "c.-124A>C";
+		var2.include_variant_description = "Testtreiber (bekannt)";
+		var2.comment = "known test driver was not included in any db yet.";
+
+		SomaticReportConfiguration som_rep_conf;
+		som_rep_conf.set(var1);
+		som_rep_conf.set(var2);
+		som_rep_conf.setCreatedBy("ahmustm1");
+		som_rep_conf.setTargetFile("/path/to/somewhere.bed");
+		som_rep_conf.setTumContentByMaxSNV(true);
+		som_rep_conf.setTumContentByClonality(true);
+		som_rep_conf.setTumContentByHistological(true);
+		som_rep_conf.setMsiStatus(true);
+		som_rep_conf.setCnvBurden(true);
+		som_rep_conf.setHrdScore(4);
+		som_rep_conf.setTmbReferenceText("Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
+		som_rep_conf.setQuality("DNA quantity too low");
+		som_rep_conf.setFusionsDetected(true);
+
+		som_rep_conf.setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
+		som_rep_conf.setLimitations("Due to low coverage we could not detect all variants for gene BRAF.");
+		som_rep_conf.setFilter("somatic");
+
+
+
+		SomaticReportVariantConfiguration cnv1;
+		cnv1.variant_index = 2;
+		cnv1.variant_type = VariantType::CNVS;
+		cnv1.exclude_artefact = true;
+		cnv1.exclude_other_reason = true;
+		cnv1.comment = "This test somatic cnv shall be excluded.";
+		som_rep_conf.set(cnv1);
+
+		SomaticReportGermlineVariantConfiguration var1_germl, var2_germl;
+		var1_germl.variant_index = 2;
+		var1_germl.tum_freq = 0.7;
+		var2_germl.variant_index = 4;
+		som_rep_conf.setGermline(var1_germl);
+		som_rep_conf.setGermline(var2_germl);
+
+		QString t_ps_id = db.processedSampleId("NA12345_01");
+		QString n_ps_id = db.processedSampleId("NA12123_04");
+		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
+
+		QStringList messages = {};
+
+		//Test resolving report config
+		SomaticReportConfiguration res_config = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, vl_germl, messages);
+		IS_TRUE(res_config.tumContentByMaxSNV());
+		IS_TRUE(res_config.tumContentByClonality());
+		IS_TRUE(res_config.tumContentByHistological());
+		IS_TRUE(res_config.msiStatus());
+		IS_TRUE(res_config.cnvBurden());
+		I_EQUAL(res_config.hrdScore(), 4);
+		S_EQUAL(res_config.tmbReferenceText(), "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
+		S_EQUAL(res_config.quality(), "DNA quantity too low");
+		IS_TRUE(res_config.fusionsDetected());
+		S_EQUAL(res_config.cinChromosomes().join(','), "chr1,chr5,chr9,chrX,chrY");
+		IS_THROWN(ArgumentException, som_rep_conf.setCinChromosomes({"chr1", "chr24"}));
+		S_EQUAL(res_config.limitations(), "Due to low coverage we could not detect all variants for gene BRAF.");
+		S_EQUAL(res_config.filter(), "somatic");
+
+		//Test variants included in resolved report
+		QList<SomaticReportVariantConfiguration> res =  res_config.variantConfig();
+		const SomaticReportVariantConfiguration& res0 = res.at(0);
+
+		I_EQUAL(res.count(), 3);
+
+		I_EQUAL(res0.variant_index, 1);
+		IS_TRUE(res0.exclude_artefact);
+		IS_TRUE(res0.exclude_low_tumor_content);
+		IS_TRUE(res0.exclude_low_copy_number);
+		IS_TRUE(res0.exclude_high_baf_deviation);
+		IS_FALSE(res0.exclude_other_reason);
+		S_EQUAL(res0.include_variant_alteration, "");
+		S_EQUAL(res0.include_variant_description, "");
+		S_EQUAL(res0.comment, "This variant is a test variant and shall be excluded.");
+		IS_FALSE(res0.showInReport());
+
+		const SomaticReportVariantConfiguration& res1 = res.at(1);
+		I_EQUAL(res1.variant_index, 2);
+		IS_FALSE(res1.exclude_artefact);
+		IS_FALSE(res1.exclude_low_tumor_content);
+		IS_FALSE(res1.exclude_low_copy_number);
+		IS_FALSE(res1.exclude_high_baf_deviation);
+		IS_FALSE(res1.exclude_other_reason);
+		S_EQUAL(res1.include_variant_alteration, "c.-124A>C");
+		S_EQUAL(res1.include_variant_description, "Testtreiber (bekannt)");
+		S_EQUAL(res1.comment, "known test driver was not included in any db yet.");
+		IS_TRUE(res1.showInReport());
+
+		//Test germline variants included in resolved report
+		QList<SomaticReportGermlineVariantConfiguration> res_germl = res_config.variantConfigGermline();
+		I_EQUAL(res_germl.count(), 2);
+		I_EQUAL(res_germl[0].variant_index, 2);
+		F_EQUAL(res_germl[0].tum_freq, 0.7);
+		I_EQUAL(res_germl[1].variant_index, 4);
+		IS_TRUE(std::isnan(res_germl[1].tum_freq));
+
+
+
+		SomaticReportConfigurationData config_data_1 = db.somaticReportConfigData(config_id);
+		S_EQUAL(config_data_1.created_by, "Max Mustermann");
+		S_EQUAL(config_data_1.last_edit_by, "Max Mustermann");
+		S_EQUAL(config_data_1.target_file, "somewhere.bed");
+
+
+		//Update somatic report configuration (by other user), should update target_file and last_edits
+		som_rep_conf.setTargetFile("/path/to/somewhere/else.bed");
+		som_rep_conf.setTumContentByMaxSNV(false);
+		som_rep_conf.setTumContentByClonality(false);
+		som_rep_conf.setTumContentByHistological(false);
+		som_rep_conf.setMsiStatus(false);
+		som_rep_conf.setCnvBurden(false);
+		som_rep_conf.setHrdScore(0);
+		som_rep_conf.setTmbReferenceText("An alternative tmb reference value.");
+		som_rep_conf.setQuality("NON EXISTING IN SOMTATIC_REPORT_CONFIGURATION TABLE");
+		som_rep_conf.setFusionsDetected(false);
+		som_rep_conf.setCinChromosomes({"chr10","chr21"});
+		som_rep_conf.setLimitations("With German umlauts: ???????");
+		som_rep_conf.setFilter("");
+
+
+
+		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
+
+		SomaticReportConfiguration res_config_2 = db.somaticReportConfig(t_ps_id, n_ps_id, vl, cnvs, vl_germl, messages);
+		IS_FALSE(res_config_2.tumContentByMaxSNV());
+		IS_FALSE(res_config_2.tumContentByClonality());
+		IS_FALSE(res_config_2.tumContentByHistological());
+		IS_FALSE(res_config_2.msiStatus());
+		IS_FALSE(res_config_2.cnvBurden());
+		I_EQUAL(res_config_2.hrdScore(), 0);
+		S_EQUAL(res_config_2.tmbReferenceText(), "An alternative tmb reference value.");
+		S_EQUAL(res_config_2.quality(), "");
+		IS_FALSE(res_config_2.fusionsDetected());
+		S_EQUAL(res_config_2.cinChromosomes().join(','), "chr10,chr21");
+		S_EQUAL(res_config_2.limitations(), "With German umlauts: ???????");
+		S_EQUAL(res_config_2.filter(), "");
+
+		SomaticReportConfigurationData config_data_2 =  db.somaticReportConfigData(config_id);
+		S_EQUAL(config_data_2.created_by, "Max Mustermann");
+		S_EQUAL(config_data_2.last_edit_by, "Sarah Kerrigan");
+		S_EQUAL(config_data_2.target_file, "else.bed");
+		IS_TRUE(config_data_2.created_date == config_data_1.created_date);
+		IS_TRUE(config_data_2.last_edit_date != "");
+
+		//report config in case of no target file
+		som_rep_conf.setTargetFile("");
+		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
+		SomaticReportConfigurationData config_data_3 = db.somaticReportConfigData(config_id);
+		S_EQUAL(config_data_3.target_file, "");
+
+		//Test CNV report configuration
+		const SomaticReportVariantConfiguration& res2 = res.at(2);
+		I_EQUAL(res2.variant_index, 2);
+		IS_TRUE(res2.exclude_artefact);
+		IS_FALSE(res2.exclude_low_tumor_content);
+		IS_FALSE(res2.exclude_high_baf_deviation);
+		IS_TRUE(res2.exclude_other_reason);
+		S_EQUAL(res2.comment, "This test somatic cnv shall be excluded.");
+
+		//Delete a somatic report configuration
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration").toInt(), 3);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 2); //one CNV is already inserted by NGSD init.
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_variant").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_germl_var").toInt(), 2);
+
+		db.deleteSomaticReportConfig(config_id);
+
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_variant").toInt(), 0);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_germl_var").toInt(), 0);
+
+
+		//Delete Variants
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 4);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM detected_somatic_variant").toInt(), 1);
+		db.deleteSomaticVariants("4000", "3999");
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 2);
+		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 1);
+		I_EQUAL(db.getValue("SELECT count(*) FROM detected_somatic_variant").toInt(), 0);
+	}
+
+
+	inline void SomaticCNVmethods(NGSD& db)
+	{
+		//get somatic CNV
+		S_EQUAL(db.somaticCnv(1).toString(), "chr4:18000-200000");
+
+		//Test get CNV ID
+		S_EQUAL(db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87000, 350000), 5, false), "4");
+		S_EQUAL(db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87000, 350000), 1, false), ""); //CNV on callset 1 does not exist
+		S_EQUAL(db.somaticCnvId(CopyNumberVariant(Chromosome("chr8"), 87000, 350000), 5, false), ""); //CNV does not exist
+		S_EQUAL(db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87040, 350000), 5, false), ""); //CNV does not exist
+		S_EQUAL(db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87000, 350005), 5, false), ""); //CNV does not exist
+		IS_THROWN(DatabaseException, db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87000, 350000), 1));
+
+
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/somatic_cnvs_clincnv.tsv"));
+		int cnv_id =  db.addSomaticCnv(1, cnvs[3], cnvs).toInt();
+		CopyNumberVariant res_cnv = db.somaticCnv(cnv_id);
+		S_EQUAL(res_cnv.chr().strNormalized(true), "chr11");
+		I_EQUAL(res_cnv.start(), 26582421);
+		I_EQUAL(res_cnv.end(), 27694430);
+	}
+
 private slots:
 
 	//Normally, one member is tested in one QT slot.
@@ -702,32 +952,32 @@ private slots:
 		//processedSampleSearch
 		ProcessedSampleSearchParameters params;
 		DBTable ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 18);
 		//add path
 		params.add_path = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 19);
 		//add outcome
 		params.add_outcome = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 21);
 		//add disease details
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 30);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 69);
 		//add report config
 		params.add_report_config = true;
 		ps_table = db.processedSampleSearch(params);
-		I_EQUAL(ps_table.rowCount(), 5);
+		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 70);
 		//apply all search parameters
 		params.s_name = "NA12878";
@@ -775,6 +1025,7 @@ private slots:
 		report_var_conf2.report_type = "diagnostic variant";
 		report_conf.set(report_var_conf2);
 		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs);
+
 
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
@@ -848,6 +1099,9 @@ private slots:
 		db.deleteReportConfig(conf_id);
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
 
+		SomaticCNVmethods(db);
+		somaticReportTest(db);
+
 		//cnvId
 		CopyNumberVariant cnv = CopyNumberVariant("chr1", 1000, 2000, 1, GeneSet(), QByteArrayList());
 		QString cnv_id = db.cnvId(cnv, 4711, false); //callset 4711 does not exist
@@ -908,7 +1162,6 @@ private slots:
 
 		//userEmail
 		S_EQUAL(db.userEmail(101), "queen_of_blades@the_swarm.org");
-
 		//checkPasword
 		S_EQUAL(db.checkPassword("bla", ""), "User 'bla' does not exist!");
 		S_EQUAL(db.checkPassword("ahkerra1", ""), "User 'ahkerra1' is no longer active!");

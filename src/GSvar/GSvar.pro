@@ -39,7 +39,6 @@ SOURCES += main.cpp\
     SvWidget.cpp \
     SingleSampleAnalysisDialog.cpp \
     SomaticDialog.cpp \
-    SomaticReportConfiguration.cpp \
     FilterEditDialog.cpp \
     SampleDiseaseInfoWidget.cpp \
     DBTableWidget.cpp \
@@ -72,13 +71,15 @@ SOURCES += main.cpp\
     FilterWidgetSV.cpp \
     DBTableAdministration.cpp \
     SequencingRunOverview.cpp \
+    SomaticReportSettings.cpp \
+    SomaticReportVariantDialog.cpp \
+    SomaticReportDialog.cpp \
     MidCheckWidget.cpp \
     CnvSearchWidget.cpp \
     VariantValidationWidget.cpp \
     GeneOmimInfoWidget.cpp \
     LoginDialog.cpp \
     GeneInfoDBs.cpp
-
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -111,7 +112,6 @@ HEADERS  += MainWindow.h \
     SvWidget.h \
     SingleSampleAnalysisDialog.h \
     SomaticDialog.h \
-    SomaticReportConfiguration.h \
     FilterEditDialog.h \
     SampleDiseaseInfoWidget.h \
     DBTableWidget.h \
@@ -144,13 +144,15 @@ HEADERS  += MainWindow.h \
     FilterWidgetSV.h \
     DBTableAdministration.h \
     SequencingRunOverview.h \
+    SomaticReportSettings.h \
+    SomaticReportVariantDialog.h \
+    SomaticReportDialog.h \
     MidCheckWidget.h \
     CnvSearchWidget.h \
     VariantValidationWidget.h \
     GeneOmimInfoWidget.h \
     LoginDialog.h \
     GeneInfoDBs.h
-
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -181,7 +183,6 @@ FORMS    += MainWindow.ui \
     SvWidget.ui \
     SingleSampleAnalysisDialog.ui \
     SomaticDialog.ui \
-    SomaticReportConfiguration.ui \
     FilterEditDialog.ui \
     SampleDiseaseInfoWidget.ui \
     ProcessedSampleWidget.ui \
@@ -203,14 +204,16 @@ FORMS    += MainWindow.ui \
     FilterWidgetSV.ui \
     DBTableAdministration.ui \
     SequencingRunOverview.ui \
+    SomaticReportVariantDialog.ui \
+    SomaticReportDialog.ui \
     MidCheckWidget.ui \
     CnvSearchWidget.ui \
     VariantValidationWidget.ui \
     GeneOmimInfoWidget.ui \
     LoginDialog.ui
 
-include("../app_gui.pri")
 
+include("../app_gui.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD

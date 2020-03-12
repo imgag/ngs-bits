@@ -11,7 +11,7 @@
 #include "FilterCascade.h"
 #include "ReportSettings.h"
 #include "DelayedInitializationTimer.h"
-
+#include "SomaticReportSettings.h"
 struct IgvFile
 {
 	QString id; //sample identifier/name (for visualization)
@@ -189,6 +189,10 @@ public slots:
 	void loadReportConfig();
 	///Store report configuration
 	void storeReportConfig();
+	///Load somatic report configuration
+	void loadSomaticReportConfig();
+	///Store somatic report configuration
+	void storeSomaticReportConfig();
 	///Prints a variant sheet based on the report configuration
 	void generateVariantSheet();
 	///Shows information about the report config
@@ -302,10 +306,24 @@ public slots:
 	///Shows a notification.
 	void showNotification(QString text);
 
+	///Clears somatic report settings
+	void clearSomaticReportSettings(QString ps_id_in_other_widget);
+
 protected:
+	enum class SettingsType
+	{
+		GERMLINE,
+		SOMATIC,
+		INVALID
+	};
+
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
 	void closeEvent(QCloseEvent* event);
+	MainWindow::SettingsType ReportSettingsType();
+	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
+	QString normalSampleName();
+
 
 private:
 	//GUI
@@ -332,6 +350,8 @@ private:
 	BedFile last_phenos_roi_;
     QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
+	SomaticReportSettings somatic_report_settings_;
+	VariantList somatic_control_tissue_variants_;
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;

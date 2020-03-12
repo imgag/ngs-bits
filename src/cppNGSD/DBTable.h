@@ -41,7 +41,11 @@ class CPPNGSDSHARED_EXPORT DBRow
 
 		//Returns if any value of the row contains the text
 		bool contains(const QString& text, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
-
+		//Returns whole row as string
+		QString asString(char sep = '\t') const
+		{
+			return id_ + sep + values_.join(sep);
+		}
 	protected:
 		QString id_;
 		QStringList values_;

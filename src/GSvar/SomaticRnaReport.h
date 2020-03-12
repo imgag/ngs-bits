@@ -64,6 +64,17 @@ private:
 
 	RtfDocument doc_;
 
+	QByteArray CgiDriverDescription(QByteArray raw_cgi_input)
+	{
+		QByteArray out = raw_cgi_input;
+
+		if(raw_cgi_input.contains("predicted driver")) out = "Treiber (vorhergesagt)";
+		else if(raw_cgi_input.contains("known in")) out = "Treiber (bekannt)";
+		else out = "Unklare Bedeutung";
+
+		return out;
+	}
+
 };
 
 #endif // SOMATICRNAREPORT_H

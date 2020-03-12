@@ -1,5 +1,5 @@
-#ifndef SOMATICREPORTCONFIGURATION_H
-#define SOMATICREPORTCONFIGURATION_H
+#ifndef SomaticReportConfigurationWidget_H
+#define SomaticReportConfigurationWidget_H
 
 #include "CnvList.h"
 #include <QBitArray>
@@ -9,16 +9,16 @@
 #include "NGSD.h"
 
 namespace Ui {
-class SomaticReportConfiguration;
+class SomaticReportConfigurationWidget;
 }
 
-class SomaticReportConfiguration : public QDialog
+class SomaticReportConfigurationWidget : public QDialog
 {
 	Q_OBJECT
 
 public:
-	explicit SomaticReportConfiguration(const CnvList& cnv_input, QWidget *parent = 0);
-	~SomaticReportConfiguration();
+	explicit SomaticReportConfigurationWidget(const CnvList& cnv_input, QWidget *parent = 0);
+	~SomaticReportConfigurationWidget();
 
 	///Returns the selected CNVs
 	CnvList getSelectedCNVs();
@@ -35,7 +35,7 @@ public:
 	void setSelectionRnaDna(bool enabled = false);
 
 private:
-	Ui::SomaticReportConfiguration *ui_;
+	Ui::SomaticReportConfigurationWidget *ui_;
 
 	///List with cnvs
 	CnvList cnvs_;
@@ -74,4 +74,4 @@ signals:
 	void openRegionInIGV(QString region);
 };
 
-#endif // SOMATICREPORTCONFIGURATION_H
+#endif // SomaticReportConfigurationWidget_H

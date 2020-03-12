@@ -40,7 +40,7 @@ RtfSourceCode RtfParagraph::RtfCode()
 	if(indent_block_left_ != 0) output << "\\li" + QByteArray::number(indent_block_left_);
 	if(indent_block_right_ != 0) output << "\\ri" + QByteArray::number(indent_block_right_);
 	if(indent_first_line_ != 0) output << "\\fi" + QByteArray::number(indent_first_line_);
-	if(line_spacing_ != 0) output << "\\sl" + QByteArray::number(line_spacing_);
+	if(line_spacing_ != 0) output << "\\sl" + QByteArray::number(line_spacing_) + "\\slmult1";
 
 	output.append(RtfText::RtfCode());
 
@@ -306,12 +306,9 @@ RtfSourceCode RtfTableRow::writeRowHeader()
 		if(cell.background_color_ != 0) output.append("\\clcbpat" + QByteArray::number(cell.background_color_));
 
 		//Add specific control words
-		if(cell.controlWords().count() > 0)
+		if(!cell.controlWord().isEmpty())
 		{
-			for(auto control_word : cell.controlWords())
-			{
-				output.append("\\" + control_word);
-			}
+			output.append("\\" + cell.controlWord() );
 		}
 
 		//cell width

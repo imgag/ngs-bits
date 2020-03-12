@@ -28,7 +28,7 @@ HP:0009592	351	1.8	87.4	brain astrocytoma
 HP:0009592	73	1.8	85.6	brain oligoastrocytoma
 n.n.	51	3.6	157.7	brain gliosarcoma
 HP:0003002	4722	3.8	135.1	breast carcinoma (nos)
-HP:0040276	7758	4.5	752.3	colon adenocarcinoma (crc)
+HP:0003003	7758	4.5	752.3	colon adenocarcinoma (crc)
 HP:0030442	52	5.9	33.3	rectum squamous cell carcinoma (scc)
 HP:0030439	1318	3.6	851.4	rectum adenocarcinoma (crc)
 HP:0006765	93	1.7	69.3	bone chondrosarcoma
@@ -38,7 +38,7 @@ HP:0006771	249	3.6	126.1	duodenum adenocarcinoma
 HP:0012193	348	10	251.2	lymph node lymphoma diffuse large b cell
 HP:0100242	65	1.7	10.8	soft tissue desmoplastic small round cell tumor
 HP:0031499	106	1.8	51.7	appendix mucinous neoplasm (nos)
-n.n.	400	2.5	64.9	appendix adenocarcinoma
+HP:0003003	400	2.5	64.9	appendix adenocarcinoma
 HP:0100634	140	3.7	63.1	colon neuroendocrine carcinoma
 HP:0100751	1498	5	865.8	gastroesophageal junction adenocarcinoma
 HP:0030127	459	4.5	615.3	uterus endometrial adenocarcinoma endometrioid
