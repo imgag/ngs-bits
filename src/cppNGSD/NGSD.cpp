@@ -3802,7 +3802,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 			query_germl_var.bindValue(1, variant_id);
 
 
-			if(!std::isnan(var_conf.tum_freq)) query_germl_var.bindValue(2, var_conf.tum_freq);
+			if(BasicStatistics::isValidFloat(var_conf.tum_freq)) query_germl_var.bindValue(2, var_conf.tum_freq);
 			else query_germl_var.bindValue(2, QVariant(QVariant::Double) );
 
 			query_germl_var.exec();

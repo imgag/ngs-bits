@@ -210,7 +210,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 
 
 	//Update GUI
-	if(!std::isnan(tum_cont_snps_))
+	if(BasicStatistics::isValidFloat(tum_cont_snps_))
 	{
 		ui_.include_max_tum_freq->setChecked(settings_.report_config.tumContentByMaxSNV());
 		ui_.include_max_tum_freq->setText(ui_.include_max_tum_freq->text() + " ("  + QString::number(tum_cont_snps_, 'f', 1) +"%)");
@@ -220,7 +220,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 		ui_.include_max_tum_freq->setEnabled(false);
 	}
 
-	if(!std::isnan( tum_cont_max_clonality_))
+	if(BasicStatistics::isValidFloat( tum_cont_max_clonality_))
 	{
 		ui_.include_max_clonality->setChecked(settings_.report_config.tumContentByClonality());
 		ui_.include_max_clonality->setText(ui_.include_max_clonality->text() + " ("  + QString::number(tum_cont_max_clonality_ * 100., 'f', 1) +"%)");
@@ -230,7 +230,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 		ui_.include_max_clonality->setCheckable(false);
 	}
 
-	if(!std::isnan( tum_cont_histological_) && tum_cont_histological_ > 0.)
+	if(BasicStatistics::isValidFloat( tum_cont_histological_) && tum_cont_histological_ > 0.)
 	{
 		ui_.include_tum_content_histological->setChecked(settings_.report_config.tumContentByHistological());
 		ui_.include_tum_content_histological->setText(ui_.include_tum_content_histological->text() + " (" + QString::number(tum_cont_histological_, 'f', 1)+"%)");
