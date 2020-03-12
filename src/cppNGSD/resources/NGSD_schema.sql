@@ -1306,7 +1306,7 @@ CREATE  TABLE IF NOT EXISTS `sv_deletion`
   INDEX `end_min` (`end_min` ASC),
   INDEX `end_max` (`end_max` ASC),
   INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
-  INDEX `overlap_match` (`chr`, `end_max`)
+  INDEX `overlap_match` (`chr`, `start_min`, `end_max`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
@@ -1337,7 +1337,7 @@ CREATE  TABLE IF NOT EXISTS `sv_duplication`
   INDEX `end_min` (`end_min` ASC),
   INDEX `end_max` (`end_max` ASC),
   INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
-  INDEX `overlap_match` (`chr`, `end_max`)
+  INDEX `overlap_match` (`chr`, `start_min`, `end_max`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
@@ -1400,7 +1400,7 @@ CREATE  TABLE IF NOT EXISTS `sv_inversion`
   INDEX `end_min` (`end_min` ASC),
   INDEX `end_max` (`end_max` ASC),
   INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
-  INDEX `overlap_match` (`chr`, `end_max`)
+  INDEX `overlap_match` (`chr`, `start_min`, `end_max`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
