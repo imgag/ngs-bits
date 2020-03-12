@@ -913,4 +913,24 @@ class CPPNGSSHARED_EXPORT FilterSvCompHet
 		mutable GeneSet het_hit_genes_;
 };
 
+//NGSD SV count filter
+class CPPNGSSHARED_EXPORT FilterSvCountNGSD
+	: public FilterBase
+{
+	public:
+		FilterSvCountNGSD();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+//NGSD SV count filter
+class CPPNGSSHARED_EXPORT FilterSvAfNGSD
+	: public FilterBase
+{
+	public:
+		FilterSvAfNGSD();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
 #endif // FILTERCASCADE_H

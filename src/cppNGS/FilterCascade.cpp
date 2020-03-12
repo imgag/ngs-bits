@@ -747,6 +747,8 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV OMIM genes"] = &createInstance<FilterSvOMIM>;
 		output["SV compound-heterozygous"] = &createInstance<FilterSvCompHet>;
 		output["CNV pathogenic CNV overlap"] = &createInstance<FilterCnvPathogenicCnvOverlap>;
+		output["SV count NGSD"] = &createInstance<FilterSvCountNGSD>;
+		output["SV AF NGSD"] = &createInstance<FilterSvAfNGSD>;
 	}
 
 	return output;
@@ -3786,6 +3788,97 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 		genes << svs[i].annotations()[i_genes].split(';');
 		result.flags()[i] = genes.intersectsWith(comphet_hit);
 	}
+}
+
+FilterSvCountNGSD::FilterSvCountNGSD()
+{
+	name_ = "SV count NGSD";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter based on the occurances of a structural variant in the NGSD.";
+	params_ << FilterParameter("max_count", INT, 20, "Maximum NGSD SV count");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("overlap_matches", BOOL, false, "If set, overlaping SVs are considered also.");
+
+	checkIsRegistered();
+}
+
+QString FilterSvCountNGSD::toText() const
+{
+	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("overlap_matches") ? " (overlap_matches)" : "");
+}
+
+void FilterSvCountNGSD::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int max_count = getInt("max_count");
+	bool overlap_match = getBool("overlap_matches");
+
+	int ngsd_col_index;
+	if (overlap_match)
+	{
+		ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT_OVERLAP");
+
+	}
+	else
+	{
+		ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT");
+	}
+
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		int ngsd_count;
+
+		if (overlap_match)
+		{
+			ngsd_count = Helper::toInt(svs[i].annotations()[ngsd_col_index], "NGSD count overlap column", QString::number(i));
+		}
+		else
+		{
+			ngsd_count = Helper::toInt(svs[i].annotations()[ngsd_col_index].split('(')[0], "NGSD count column", QString::number(i));
+		}
+
+		result.flags()[i] = ngsd_count <= max_count;
+	}
+
+}
+
+
+FilterSvAfNGSD::FilterSvAfNGSD()
+{
+	name_ = "SV AF NGSD";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter based on the allele frequency of a structural variant in the NGSD."
+								 << "Note: this filter should only be used for whole genome samples.";
+	params_ << FilterParameter("max_af", DOUBLE, 0.01, "Maximum allele frequency");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "1.0";
+
+	checkIsRegistered();
+}
+
+QString FilterSvAfNGSD::toText() const
+{
+	return name() + " &le; " + QString::number(getDouble("max_af", false));
+}
+
+void FilterSvAfNGSD::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double max_af = getDouble("max_af");
+
+	int ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT");
+
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		result.flags()[i] = Helper::toDouble(svs[i].annotations()[ngsd_col_index].split('(')[1].split(')')[0], "NGSD count column", QString::number(i)) <= max_af;
+	}
+
 }
 
 
