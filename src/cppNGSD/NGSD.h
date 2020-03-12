@@ -327,6 +327,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 {
 	//filters sample
 	QString s_name;
+	bool s_name_ext;
 	QString s_species;
 	QString s_disease_group;
 	QString s_disease_status;

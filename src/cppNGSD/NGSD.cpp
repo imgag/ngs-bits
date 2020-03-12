@@ -153,7 +153,14 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	//add filters (sample)
 	if (p.s_name.trimmed()!="")
 	{
-		conditions << "s.name LIKE '%" + escapeForSql(p.s_name) + "%'";
+		if (p.s_name_ext)
+		{
+			conditions << "(s.name LIKE '%" + escapeForSql(p.s_name) + "%' OR s.name_external LIKE '%" + escapeForSql(p.s_name) + "%')";
+		}
+		else
+		{
+			conditions << "s.name LIKE '%" + escapeForSql(p.s_name) + "%'";
+		}
 	}
 	if (p.s_species.trimmed()!="")
 	{

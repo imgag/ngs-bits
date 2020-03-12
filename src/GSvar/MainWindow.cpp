@@ -179,6 +179,7 @@ MainWindow::MainWindow(QWidget *parent)
 	}
 
 	//add notification icon
+	notification_label_->hide();
 	notification_label_->setScaledContents(true);
 	notification_label_->setMaximumSize(16,16);
 	notification_label_->setPixmap(QPixmap(":/Icons/email.png"));
@@ -4151,6 +4152,7 @@ void MainWindow::showNotification(QString text)
 	notification_label_->setToolTip(tooltips.join("<br>"));
 
 	//show popup
+	notification_label_->show();
 	QPoint pos = ui_.statusBar->mapToGlobal(notification_label_->pos()) + QPoint(8,8);
 	QToolTip::showText(pos, text);
 }
