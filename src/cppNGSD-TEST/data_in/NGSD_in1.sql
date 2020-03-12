@@ -20,7 +20,9 @@ INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`
 (1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the blood or blood-forming organs', 'Unaffected'),
 (2, 'NA12123', 'ex2', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'Neoplasms', 'Affected'),
 (3, 'NA12345', 'ex3', 'DNA', 1, 'male', 'bad', 1 ,1, 1, 'comment_s3', 'Diseases of the immune system', 'Affected'),
-(4, 'NA12123repeat', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected');
+(4, 'NA12123repeat', 'ex4', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s4', 'Neoplasms', 'Affected'),
+(5, 'DX184894', 'ex5', 'DNA', 1, 'female', 'good', 1, 1, 1, 'comment_s5', 'Neoplasms', 'Affected'),
+(6, 'DX184263', 'ex6', 'DNA', 1, 'female', 'good', 0, 0, 1, 'comment_s6', 'Neoplasms', 'Affected');
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv5.bed', 1),
@@ -31,7 +33,11 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (4000, 1, 4, 1, '1', 1, 1, 'medium', 'comment_ps2', null),
 (4001, 2, 4, 1, '1', 1, 1, 'medium', 'comment_ps3', null),
 (4002, 3, 1, 1, '1', 1, 1, 'good', 'comment_ps4', 3999),
-(4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null);
+(4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null),
+(5, 2, 23, 1, '1', 1, 1, 'medium', 'comment_ps5', null),
+(6, 3, 44, 1, '1', 1, 1, 'medium', 'comment_ps6', null),
+(7, 6, 1, '1', '1,2,3,4', 1, 1, 'good', 'comment_ps7', null),
+(8, 5, 1, '1', '1,2,3,4', 1, 1, 'good', 'comment_ps8', 7);
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text");
@@ -437,6 +443,26 @@ INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`) VALUES
 -- report config
 INSERT INTO `report_configuration` (`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
 (4003, 99, '2018-02-12T10:20:45', 99, '2018-07-12T10:20:43');
+-- somatic_cnv_callset_id`
+INSERT INTO `somatic_cnv_callset` (`id`, `ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
+(1, 4000, 3999, 'ClinCNV', 'v 1.16', '2020-01-12T13:35:01', '{"estimated fdr":"0","gender of sample":"F","ploidy":"2.21","clonality by BAF (if != 1)":"0;0.725;0.25"}', 'good'),
+(5, 4002, 4001, 'ClinCNV', 'v 1.16', '2019-01-12T13:35:01', '{"estimated fdr":"0","gender of sample":"F","ploidy":"2.21","clonality by BAF (if != 1)":"0;0.725;0.25"}', 'bad');
+
+-- somatic cnv_callset
+INSERT INTO `somatic_cnv` (`id`, `somatic_cnv_callset_id`, `chr`, `start`, `end`, `cn`, `tumor_cn`, `tumor_clonality`) VALUES
+(1, 1, 'chr4', 18000, 200000, 2.54, 3, 0.75),
+(4, 5, 'chr7', 87000, 350000, 3.14, 4, 0.8);
+
+-- somatic_report_configuration
+INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_score`, `tmb_ref_text`, `quality`, `filter`) VALUES 
+(3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10', NULL, false, false, false, false, false, 0, NULL, 'tumor cell content too low', 'somatic'),
+(51,5,4000,99,'2019-01-05 14:06:12', 101, '2019-12-07 17:06:10', 'nowhere.bed' , true, true, true, true, true, 1, "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp", NULL, NULL);
+
+--somatic_report_configuration_cnv
+INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id`, `somatic_cnv_id`, `exclude_artefact`, `exclude_low_tumor_content` , `exclude_low_copy_number`,
+`exclude_high_baf_deviation`, `exclude_other_reason`, `comment`) VALUES
+(3, 4, true, false, false, false, false, "");
+
 
 -- omim
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES

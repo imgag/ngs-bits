@@ -3,6 +3,8 @@
 #include "Helper.h"
 #include "TSVFileStream.h"
 #include "BasicStatistics.h"
+#include "KeyValuePair.h"
+#include <QFileInfo>
 
 CopyNumberVariant::CopyNumberVariant()
 	: chr_()
@@ -415,7 +417,7 @@ int CnvList::annotationIndexByName(const QByteArray& name, bool throw_on_error) 
 	return matches.at(0);
 }
 
-long long CnvList::totalCnvSize()
+long long CnvList::totalCnvSize() const
 {
 	long long total_size = 0;
 	for(const CopyNumberVariant& variant : variants_)
@@ -423,4 +425,62 @@ long long CnvList::totalCnvSize()
 		total_size += variant.size();
 	}
 	return total_size;
+}
+
+
+KeyValuePair CnvList::split(const QByteArray& string, char sep)
+{
+	QByteArrayList parts = string.split(sep);
+
+	QString key = parts.takeFirst().trimmed().mid(2); //remove '##'
+	QString value = parts.join(sep).trimmed();
+
+	return KeyValuePair(key, value);
+}
+
+CnvListCallData CnvList::getCallData(const CnvList& cnvs, QString filename, QString ps_name, bool ignore_inval_header_lines)
+{
+	//parse file header
+	CnvListCallData out;
+
+	out.caller = cnvs.callerAsString();
+
+	foreach(const QByteArray& line, cnvs.comments())
+	{
+		if (line.contains(":"))
+		{
+			KeyValuePair pair = split(line, ':');
+
+			if (pair.key.endsWith(" version"))
+			{
+				out.caller_version = pair.value;
+			}
+			else if (pair.key.endsWith(" finished on"))
+			{
+				out.call_date = QDateTime::fromString(pair.value, "yyyy-MM-dd hh:mm:ss");
+			}
+			else //quality metrics
+			{
+				if (pair.key.startsWith(ps_name + " ")) //remove sample name prefix (CnvHunter only)
+				{
+					pair.key = pair.key.mid(ps_name.length()+1).trimmed();
+				}
+
+				out.quality_metrics.insert(pair.key, pair.value);
+			}
+		}
+		else if(!ignore_inval_header_lines)
+		{
+			THROW(FileParseException, "Invalid header line '" + line + "' in file '" + filename + "'!");
+		}
+	}
+
+	if (out.call_date.isNull()) //fallback if CNV file does not contain any dates
+	{
+		if(filename != "") out.call_date = QFileInfo(filename).created();
+		else THROW(ArgumentException, "Cannot determine date of CnvHunter file, not given in header and there is no filename given.");
+	}
+
+	return out;
+
 }

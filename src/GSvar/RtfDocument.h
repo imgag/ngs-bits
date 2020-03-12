@@ -29,10 +29,11 @@ public:
 		setContent(content);
 	}
 
-	void append(const QByteArray& content,bool new_line = false)
+	virtual RtfText& append(const QByteArray& content,bool new_line = false)
 	{
-		if(new_line) content_.append("\n\\newline\n" + content);
+		if(new_line) content_.append("\n\\line\n" + content);
 		else content_.append(content);
+		return *this;
 	}
 
 	virtual RtfText& setFontSize(int font_size)
@@ -330,15 +331,16 @@ public:
 	}
 
 	///Method can be used to add special control words to the header of a cell. Do not include "\" into statement.
-	void addHeaderControlWord(const QByteArray& statement)
+	void setHeaderControlWord(const QByteArray& statement)
 	{
-		control_words_ << statement;
+		control_word_ = statement;
 	}
 
-	const QList<QByteArray>& controlWords() const
+	const QByteArray controlWord()
 	{
-		return control_words_;
+		return control_word_;
 	}
+
 
 private:
 	///private constructor, only to be accessed by friend class
@@ -363,8 +365,7 @@ private:
 	//Cell border style
 	QByteArray border_type_ = "brdrs";
 
-	//Add additional style elements, placed directly in front of "\cellx" in row header
-	QList<QByteArray> control_words_;
+	QByteArray control_word_ = "";
 
 	//Background color as specified in color table
 	int background_color_ = 0;
@@ -395,7 +396,7 @@ public:
 	{
 		for(auto& cell : cells_)
 		{
-			cell.addHeaderControlWord("trhdr");
+			cell.setHeaderControlWord("trhdr");
 		}
 		return *this;
 	}
@@ -480,9 +481,14 @@ public:
 		rows_.append(row);
 	}
 
-	void prependRow(const RtfTableRow row)
+	void prependRow(const RtfTableRow& row)
 	{
 		rows_.prepend(row);
+	}
+
+	void insertRow(int idx, const RtfTableRow& row)
+	{
+		rows_.insert(idx, row);
 	}
 
 	void removeRow(int row)

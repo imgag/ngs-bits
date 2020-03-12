@@ -42,8 +42,23 @@ ProcessedSampleDataDeletionDialog::ProcessedSampleDataDeletionDialog(QWidget* pa
 				<< "ps.project_id=p.id"
 				<< "(ps.id=" + ids.join(" OR ps.id=") + ")";
 
-	DBTable ps_table = NGSD().createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
+	NGSD db;
+
+	DBTable ps_table = db.createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
 	ui_.sample_table->setData(ps_table);
+
+	//Activate option for somatic variants/cnvs/report configuration if ids contains matched tumor-control
+	for(const auto& ps_id: ps_ids_)
+	{
+		if(db.getProcessedSampleData(ps_id).normal_sample_name != "")
+		{
+			ui_.somatic_report_config->setEnabled(true);
+			ui_.somatic_var_small->setEnabled(true);
+			ui_.somatic_var_cnv->setEnabled(true);
+			break;
+		}
+	}
+
 }
 
 void ProcessedSampleDataDeletionDialog::deleteData()
@@ -82,6 +97,23 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 		}
 	}
 
+	//somatic report config first (it references som. variants)
+	if (ui_.somatic_report_config->isChecked())
+	{
+		for(const auto& ps_tumor_id : ps_ids_)
+		{
+			QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
+			if(ps_normal_id == "") continue;
+
+			int conf_id = db.somaticReportConfigId(ps_tumor_id, ps_normal_id);
+			if(conf_id == -1) continue;
+
+			db.deleteSomaticReportConfig(conf_id);
+			emit somRepDeleted();
+		}
+	}
+
+
 	if (ui_.kasp->isChecked())
 	{
 		db.getQuery().exec("DELETE FROM kasp_status WHERE processed_sample_id=" + ps_ids_.join(" OR processed_sample_id="));
@@ -92,6 +124,7 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 		db.getQuery().exec("DELETE FROM diag_status WHERE processed_sample_id=" + ps_ids_.join(" OR processed_sample_id="));
 	}
 
+	//variants
 	if (ui_.var_small->isChecked())
 	{
 		foreach(const QString& ps_id, ps_ids_)
@@ -105,6 +138,27 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 		foreach(const QString& ps_id, ps_ids_)
 		{
 			db.deleteVariants(ps_id, VariantType::CNVS);
+		}
+	}
+
+	//somatic variants
+	if (ui_.somatic_var_small->isChecked())
+	{
+		for(const auto& ps_tumor_id : ps_ids_)
+		{
+			QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
+			if(ps_normal_id == "") continue;
+			db.deleteSomaticVariants(ps_tumor_id, ps_normal_id, VariantType::SNVS_INDELS);
+		}
+	}
+
+	if (ui_.somatic_var_cnv->isChecked())
+	{
+		for(const auto& ps_tumor_id : ps_ids_)
+		{
+			QString ps_normal_id = matchedNormalPsID(db, ps_tumor_id);
+			if(ps_normal_id == "") continue;
+			db.deleteSomaticVariants(ps_tumor_id, ps_normal_id, VariantType::CNVS);
 		}
 	}
 

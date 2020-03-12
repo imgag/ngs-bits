@@ -905,6 +905,33 @@ QPair<int, int> NGSD::variantCounts(const QString& variant_id)
 	return qMakePair(count_het, count_hom);
 }
 
+void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id)
+{
+	deleteSomaticVariants(t_ps_id, n_ps_id, VariantType::SNVS_INDELS);
+	deleteSomaticVariants(t_ps_id, n_ps_id, VariantType::CNVS);
+}
+
+void NGSD::deleteSomaticVariants(QString t_ps_id, QString n_ps_id, VariantType type)
+{
+	if(type==VariantType::SNVS_INDELS)
+	{
+		getQuery().exec("DELETE FROM detected_somatic_variant WHERE processed_sample_id_tumor=" + t_ps_id + " AND processed_sample_id_normal=" +n_ps_id);
+	}
+	else if(type == VariantType::CNVS)
+	{
+		QString callset_id = getValue("SELECT id FROM somatic_cnv_callset WHERE ps_tumor_id=" + t_ps_id + " AND ps_normal_id=" + n_ps_id).toString();
+		if(callset_id != "")
+		{
+			getQuery().exec("DELETE FROM somatic_cnv WHERE somatic_cnv_callset_id=" + callset_id);
+			getQuery().exec("DELETE FROM somatic_cnv_callset WHERE id=" + callset_id);
+		}
+	}
+	else
+	{
+		THROW(NotImplementedException, "Deleting somatic variants of type '" + QString::number((int)type) + "' not implemented!");
+	}
+}
+
 void NGSD::deleteVariants(const QString& ps_id)
 {
 	deleteVariants(ps_id, VariantType::SNVS_INDELS);
@@ -932,6 +959,29 @@ void NGSD::deleteVariants(const QString& ps_id, VariantType type)
 	}
 }
 
+QString NGSD::somaticCnvId(const CopyNumberVariant &cnv, int callset_id, bool throw_if_fails)
+{
+	SqlQuery query = getQuery();
+	query.prepare("SELECT id FROM somatic_cnv WHERE somatic_cnv_callset_id=:0 AND chr=:1 AND start=:2 AND end=:3");
+	query.bindValue(0, callset_id);
+	query.bindValue(1, cnv.chr().strNormalized(true));
+	query.bindValue(2, cnv.start());
+	query.bindValue(3, cnv.end());
+	query.exec();
+	if(!query.next())
+	{
+		if(throw_if_fails)
+		{
+			THROW(DatabaseException, "Somatic CNV " + cnv.toString() + " with somatic callset id '" + QString::number(callset_id) + "' not found in NGSD!");
+		}
+		else
+		{
+			return "";
+		}
+	}
+	return query.value(0).toString();
+}
+
 QString NGSD::cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails)
 {
 	SqlQuery query = getQuery(); //use binding user input (safety)
@@ -945,7 +995,7 @@ QString NGSD::cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_
 	{
 		if (throw_if_fails)
 		{
-			THROW(DatabaseException, "CNV " + cnv.toString() + " if callset with id '" + callset_id + "' not found in NGSD!");
+			THROW(DatabaseException, "CNV " + cnv.toString() + " if callset with id '" + QString::number(callset_id) + "' not found in NGSD!");
 		}
 		else
 		{
@@ -956,6 +1006,16 @@ QString NGSD::cnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_
 	return query.value(0).toString();
 }
 
+
+CopyNumberVariant NGSD::somaticCnv(int cnv_id)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT * FROM somatic_cnv WHERE id='" + QString::number(cnv_id)  + "'");
+	if(!query.next()) THROW(DatabaseException, "Somatic CNV with identifier '" + QString::number(cnv_id) + "' does not exist!");
+
+	return CopyNumberVariant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt());
+}
+
 CopyNumberVariant NGSD::cnv(int cnv_id)
 {
 	SqlQuery query = getQuery();
@@ -963,6 +1023,64 @@ CopyNumberVariant NGSD::cnv(int cnv_id)
 	if (!query.next()) THROW(DatabaseException, "CNV with identifier '" + QString::number(cnv_id) + "' does not exist!");
 
 	return CopyNumberVariant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt());
+}
+
+QString NGSD::addSomaticCnv(int callset_id, const CopyNumberVariant &cnv, const CnvList &cnv_list, double max_ll)
+{
+	if(cnv_list.type() != CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	{
+		THROW(ProgrammingException, "NGSD::addSomaticCnv can only be used with tumor-normal ClinCNV data.");
+	}
+
+	QJsonObject quality_metrics;
+	quality_metrics.insert("regions", QString::number(cnv.regions()));
+
+	//Quality metrics to be included (determinend from columns in CNV file)
+	const QList<QString> qc_metric_cols = {"major_CN_allele", "minor_CN_allele", "loglikelihood", "regions", "Ontarget_RD_CI_lower", "Ontarget_RD_CI_upper","Offtarget_RD_CI_lower",
+								 "Offtarget_RD_CI_upper", "Lowmed_tumor_BAF", "Highmed_tumor_BAF", "BAF_qval_fdr", "Overall_qvalue"};
+
+	for(int i=0; i<cnv_list.annotationHeaders().count(); ++i)
+	{
+		const QByteArray& col_name = cnv_list.annotationHeaders()[i];
+		const QByteArray& entry = cnv.annotations()[i];
+
+		if(qc_metric_cols.contains(col_name))
+		{
+			if(col_name == "loglikelihood")
+			{
+				if (max_ll>0.0 && Helper::toDouble(entry, "log-likelihood")<max_ll)
+				{
+					return "";
+				}
+			}
+			quality_metrics.insert(QString(col_name), QString(entry));
+		}
+	}
+
+
+	int tumor_cn = cnv.annotations()[cnv_list.annotationIndexByName("tumor_CN_change", true)].toInt();
+	double clonality = cnv.annotations()[cnv_list.annotationIndexByName("tumor_clonality", true)].toDouble();
+	double normal_cn = cnv.annotations()[cnv_list.annotationIndexByName("CN_change", true)].toDouble();
+
+	//Insert data
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO `somatic_cnv` (`somatic_cnv_callset_id`, `chr`, `start`, `end`, `cn`, `tumor_cn`, `tumor_clonality`, `quality_metrics`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7)");
+
+	query.bindValue(0, callset_id);
+	query.bindValue(1, cnv.chr().strNormalized(true));
+	query.bindValue(2, cnv.start());
+	query.bindValue(3, cnv.end());
+	query.bindValue(4, normal_cn);
+	query.bindValue(5, tumor_cn);
+	query.bindValue(6, clonality);
+	QJsonDocument json_doc;
+	json_doc.setObject(quality_metrics);
+	query.bindValue(7, json_doc.toJson(QJsonDocument::Compact));
+	query.exec();
+
+	//return ID of inserted somatic CNV
+	return query.lastInsertId().toString();
+
 }
 
 QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll)
@@ -1000,7 +1118,7 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 		}
 		else
 		{
-			THROW(ProgrammingException, "CNV caller type not handled in NGSD::addCnv")
+			THROW(ProgrammingException, "CNV caller type not handled in NGSD::addCnv");
 		}
 	}
 
@@ -3458,6 +3576,388 @@ void NGSD::deleteReportConfig(int id)
 	query.exec("DELETE FROM `report_configuration_cnv` WHERE `report_configuration_id`=" + rc_id);
 	query.exec("DELETE FROM `report_configuration_variant` WHERE `report_configuration_id`=" + rc_id);
 	query.exec("DELETE FROM `report_configuration` WHERE `id`=" + rc_id);
+}
+
+SomaticReportConfigurationData NGSD::somaticReportConfigData(int id)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date, target_file FROM somatic_report_configuration WHERE id=" + QString::number(id));
+	query.next();
+
+	SomaticReportConfigurationData output;
+	output.created_by = userName(query.value("created_by").toInt());
+	QDateTime created_date = query.value("created_date").toDateTime();
+	output.created_date = created_date.isNull() ? "" : created_date.toString("dd.MM.yyyy hh:mm:ss");
+	output.last_edit_by = query.value("last_edit_by").toString();
+	QDateTime last_edit_date = query.value("last_edit_date").toDateTime();
+	output.last_edit_date = last_edit_date.isNull() ? "" : last_edit_date.toString("dd.MM.yyyy hh:mm:ss");
+
+	if(!query.value("target_file").isNull()) output.target_file = query.value("target_file").toString();
+	else output.target_file = "";
+
+	return output;
+}
+
+
+int NGSD::somaticReportConfigId(QString t_ps_id, QString n_ps_id)
+{
+	//Identify report configuration using tumor and normal processed sample ids (and rna ps if available)
+	QString query = "SELECT id FROM somatic_report_configuration WHERE ps_tumor_id='" +t_ps_id + "' AND ps_normal_id='" + n_ps_id + "'";
+	QVariant id = getValue(query, true);
+	return id.isValid() ? id.toInt() : -1;
+}
+
+int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const SomaticReportConfiguration& config, const VariantList& snvs, const CnvList& cnvs, const VariantList& germl_snvs, QString user_name)
+{
+	int id = somaticReportConfigId(t_ps_id, n_ps_id);
+
+	QString target_file = "";
+	if(!config.targetFile().isEmpty())
+	{
+		target_file = QFileInfo(config.targetFile()).fileName(); //store filename without path
+	}
+
+	if(id != -1) //delete old report if id exists
+	{
+		//Delete somatic report configuration variants that are assigned to report
+		SqlQuery query = getQuery();
+		query.exec("DELETE FROM `somatic_report_configuration_variant` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
+		query.exec("DELETE FROM `somatic_report_configuration_cnv` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
+		query.exec("DELETE FROM `somatic_report_configuration_germl_var` WHERE somatic_report_configuration_id=" + QByteArray::number(id));
+
+
+		//Update somatic report configuration: last_edit_by, last_edit_user and target_file
+		query.prepare("UPDATE `somatic_report_configuration` SET `last_edit_by`= :0, `last_edit_date` = CURRENT_TIMESTAMP, `target_file`= :1, `tum_content_max_af` =:2, `tum_content_max_clonality` =:3, `tum_content_hist` =:4, `msi_status` =:5, `cnv_burden` =:6, `hrd_score` =:7, `tmb_ref_text` =:8, `quality` =:9, `fusions_detected`=:10, `cin_chr`=:11, `limitations` = :12, `filter` = :13 WHERE id=:14");
+		query.bindValue(0, userId(user_name));
+		if(target_file != "") query.bindValue(1, target_file);
+		else query.bindValue(1, QVariant(QVariant::String));
+		query.bindValue(2, config.tumContentByMaxSNV());
+		query.bindValue(3, config.tumContentByClonality());
+		query.bindValue(4, config.tumContentByHistological());
+		query.bindValue(5, config.msiStatus());
+		query.bindValue(6, config.cnvBurden());
+		query.bindValue(7, config.hrdScore());
+
+		query.bindValue(8, config.tmbReferenceText());
+
+		if( getEnum("somatic_report_configuration", "quality").contains(config.quality()) ) query.bindValue(9, config.quality());
+		else query.bindValue(9, QVariant(QVariant::String));
+
+		query.bindValue(10, config.fusionsDetected());
+		if(config.cinChromosomes().count() > 0)	query.bindValue( 11, config.cinChromosomes().join(',') );
+		else query.bindValue( 11, QVariant(QVariant::String) );
+
+		if( !config.limitations().isEmpty()) query.bindValue(12, config.limitations() );
+		else query.bindValue( 12, QVariant(QVariant::String) );
+
+		if( !config.filter().isEmpty() ) query.bindValue(13, config.filter());
+		else query.bindValue( 13, QVariant(QVariant::String) );
+
+		query.bindValue(14, id);
+		query.exec();
+	}
+	else
+	{
+		SqlQuery query = getQuery();
+		query.prepare("INSERT INTO `somatic_report_configuration` (`ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_score`, `tmb_ref_text`, `quality`, `fusions_detected`, `cin_chr`, `limitations`, `filter`) VALUES (:0, :1, :2, :3, :4, CURRENT_TIMESTAMP, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17)");
+
+		query.bindValue(0, t_ps_id);
+		query.bindValue(1, n_ps_id);
+		query.bindValue(2, userId(config.createdBy()));
+		query.bindValue(3, config.createdAt());
+		query.bindValue(4, userId(user_name));
+		if(target_file != "") query.bindValue(5, target_file);
+		else query.bindValue(5, QVariant(QVariant::String));
+
+		query.bindValue(6, config.tumContentByMaxSNV());
+		query.bindValue(7, config.tumContentByClonality());
+		query.bindValue(8, config.tumContentByHistological());
+
+		query.bindValue(9, config.msiStatus());
+		query.bindValue(10, config.cnvBurden());
+		query.bindValue(11, config.hrdScore());
+
+		query.bindValue(12, config.tmbReferenceText());
+
+		if( getEnum("somatic_report_configuration", "quality").contains(config.quality()) ) query.bindValue(13, config.quality());
+		else query.bindValue(13, QVariant(QVariant::String));
+
+		query.bindValue(14, config.fusionsDetected());
+
+		if(config.cinChromosomes().count() != 0) query.bindValue(15, config.cinChromosomes().join(','));
+		else query.bindValue(15, QVariant(QVariant::String));
+
+		if(!config.limitations().isEmpty()) query.bindValue(16, config.limitations());
+		else query.bindValue(16, QVariant(QVariant::String));
+
+		if( !config.filter().isEmpty() ) query.bindValue( 17, config.filter() );
+		else query.bindValue( 17, QVariant(QVariant::String) );
+
+		query.exec();
+		id = query.lastInsertId().toInt();
+	}
+
+	//Store variants in NGSD
+	SqlQuery query_var = getQuery();
+
+	query_var.prepare("INSERT INTO `somatic_report_configuration_variant` (`somatic_report_configuration_id`, `variant_id`, `exclude_artefact`, `exclude_low_tumor_content`, `exclude_low_copy_number`, `exclude_high_baf_deviation`, `exclude_other_reason`, `include_variant_alteration`, `include_variant_description`, `comment`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9)");
+
+	SqlQuery query_cnv = getQuery();
+	query_cnv.prepare("INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id`, `somatic_cnv_id`, `exclude_artefact`, `exclude_low_tumor_content`, `exclude_low_copy_number`, `exclude_high_baf_deviation`, `exclude_other_reason`, `comment`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7)");
+
+
+	for(const auto& var_conf : config.variantConfig())
+	{
+		if(var_conf.variant_type == VariantType::SNVS_INDELS)
+		{
+			//check whether indices exist in variant list
+			if(var_conf.variant_index<0 || var_conf.variant_index >= snvs.count())
+			{
+				THROW(ProgrammingException, "Variant list does not contain variant with index '" + QByteArray::number(var_conf.variant_index) + "' in NGSD::setSomaticReportConfig!");
+			}
+
+			const Variant& variant = snvs[var_conf.variant_index];
+			QString variant_id = variantId(variant, false);
+			if(variant_id=="")
+			{
+				variant_id = addVariant(variant, snvs);
+			}
+
+			query_var.bindValue(0, id);
+			query_var.bindValue(1, variant_id);
+			query_var.bindValue(2, var_conf.exclude_artefact);
+			query_var.bindValue(3, var_conf.exclude_low_tumor_content);
+			query_var.bindValue(4, var_conf.exclude_low_copy_number);
+			query_var.bindValue(5, var_conf.exclude_high_baf_deviation);
+			query_var.bindValue(6, var_conf.exclude_other_reason);
+			query_var.bindValue(7, var_conf.include_variant_alteration.trimmed().isEmpty() ? "" : var_conf.include_variant_alteration);
+			query_var.bindValue(8, var_conf.include_variant_description.trimmed().isEmpty() ? "" : var_conf.include_variant_description);
+			query_var.bindValue(9, var_conf.comment.trimmed().isEmpty() ? "" : var_conf.comment);
+
+			query_var.exec();
+
+		}
+		else if(var_conf.variant_type == VariantType::CNVS)
+		{
+			if(var_conf.variant_index<0 || var_conf.variant_index > cnvs.count())
+			{
+				THROW(ProgrammingException, "Somatic CNV list does not contain CNV with index '" + QString::number(var_conf.variant_index) + "' in NGSD::setSomaticReportConfig!");
+			}
+
+			//check that report somatic CNV callset exists
+			QVariant callset_id = getValue("SELECT id FROM somatic_cnv_callset WHERE ps_tumor_id='" + t_ps_id + "' AND ps_normal_id='" + n_ps_id + "'", true);
+			if(!callset_id.isValid())
+			{
+				THROW(ProgrammingException, "No somatic CNV callset defined for tumor-normal processed sample ids " + t_ps_id + "-" + n_ps_id + "in NGSD::setSomaticReportConfig!");
+			}
+
+			const CopyNumberVariant& cnv = cnvs[var_conf.variant_index];
+			QString cnv_id = somaticCnvId(cnv, callset_id.toInt(), false);
+
+			if(cnv_id=="")
+			{
+				cnv_id = addSomaticCnv(callset_id.toInt(), cnv, cnvs);
+			}
+
+			query_cnv.bindValue(0, id);
+			query_cnv.bindValue(1, cnv_id);
+			query_cnv.bindValue(2, var_conf.exclude_artefact);
+			query_cnv.bindValue(3, var_conf.exclude_low_tumor_content);
+			query_cnv.bindValue(4, var_conf.exclude_low_copy_number);
+			query_cnv.bindValue(5, var_conf.exclude_high_baf_deviation);
+			query_cnv.bindValue(6, var_conf.exclude_other_reason);
+			query_cnv.bindValue(7, var_conf.comment);
+
+			query_cnv.exec();
+		}
+		else
+		{
+			THROW(NotImplementedException, "Storing of somatic report configuration variant with type '" + QByteArray::number((int)var_conf.variant_type) + "' not implemented!");
+		}
+	}
+
+	if(germl_snvs.count() > 0)
+	{
+		SqlQuery query_germl_var = getQuery();
+
+		query_germl_var.prepare("INSERT INTO `somatic_report_configuration_germl_var` (`somatic_report_configuration_id`, `variant_id`, `tum_freq`) VALUES (:0, :1, :2)");
+
+		for(const auto& var_conf : config.variantConfigGermline())
+		{
+			//check whether indices exist in variant list
+			if(var_conf.variant_index<0 || var_conf.variant_index >= germl_snvs.count())
+			{
+				THROW(ProgrammingException, "Variant list does not contain variant with index '" + QByteArray::number(var_conf.variant_index) + "' in NGSD::setSomaticReportConfig!");
+			}
+
+			const Variant& variant = germl_snvs[var_conf.variant_index];
+
+			QString variant_id = variantId(variant, false);
+			if(variant_id=="")
+			{
+				variant_id = addVariant(variant, germl_snvs);
+			}
+
+			query_germl_var.bindValue(0, id);
+			query_germl_var.bindValue(1, variant_id);
+
+
+			if(!std::isnan(var_conf.tum_freq)) query_germl_var.bindValue(2, var_conf.tum_freq);
+			else query_germl_var.bindValue(2, QVariant(QVariant::Double) );
+
+			query_germl_var.exec();
+		}
+	}
+
+	return id;
+}
+
+void NGSD::deleteSomaticReportConfig(int id)
+{
+	QString report_conf_id = QString::number(id);
+
+	bool exists = getValue("SELECT id FROM `somatic_report_configuration` WHERE `id`=" + report_conf_id).isValid();
+	if(!exists)
+	{
+		THROW(DatabaseException, "Cannot delete somatic report configuration with id=" + report_conf_id + " because it does not exist!");
+	}
+
+	//Delete
+	SqlQuery query = getQuery();
+	query.exec("DELETE FROM `somatic_report_configuration_cnv` WHERE `somatic_report_configuration_id`=" + report_conf_id);
+	query.exec("DELETE FROM `somatic_report_configuration_variant` WHERE `somatic_report_configuration_id`=" + report_conf_id);
+	query.exec("DELETE FROM `somatic_report_configuration_germl_var` WHERE `somatic_report_configuration_id`=" + report_conf_id);
+	query.exec("DELETE FROM `somatic_report_configuration` WHERE `id`=" + report_conf_id);
+}
+
+SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs,  const VariantList& germline_snvs, QStringList& messages)
+{
+	SomaticReportConfiguration output;
+
+	int config_id = somaticReportConfigId(t_ps_id, n_ps_id);
+	if(config_id == -1)
+	{
+		QString message = "Somatic report for the processed samples with the database ids " + t_ps_id + " (tumor) and " + n_ps_id + " (normal) does not exist!";
+		THROW(DatabaseException, message);
+	}
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT u.name, r.* FROM somatic_report_configuration r, user u WHERE r.id=" + QByteArray::number(config_id) + " AND u.id = r.created_by");
+	query.next();
+	output.setCreatedBy(query.value("name").toString());
+	output.setCreatedAt(query.value("created_date").toDateTime());
+	output.setTargetFile(query.value("target_file").toString());
+
+	output.setTumContentByMaxSNV(query.value("tum_content_max_af").toBool());
+	output.setTumContentByClonality(query.value("tum_content_max_clonality").toBool());
+	output.setTumContentByHistological(query.value("tum_content_hist").toBool());
+
+	output.setMsiStatus(query.value("msi_status").toBool());
+	output.setCnvBurden(query.value("cnv_burden").toBool());
+	output.setHrdScore(query.value("hrd_score").toInt());
+
+	if(query.value("tmb_ref_text").isNull()) output.setTmbReferenceText("");
+	else output.setTmbReferenceText(query.value("tmb_ref_text").toString());
+
+	if(query.value("quality").isNull()) output.setQuality("");
+	else output.setQuality(query.value("quality").toString());
+
+	output.setFusionsDetected(query.value("fusions_detected").toBool());
+
+	if(!query.value("cin_chr").isNull()) output.setCinChromosomes( query.value("cin_chr").toString().split(',') );
+
+	if(!query.value("limitations").isNull()) output.setLimitations( query.value("limitations").toString() );
+
+	if(!query.value("filter").isNull()) output.setFilter( query.value("filter").toString() );
+
+
+	//Load SNVs
+	//Resolve variants stored in NGSD and compare to those in VariantList snvs
+	query.exec("SELECT * FROM somatic_report_configuration_variant WHERE somatic_report_configuration_id=" + QString::number(config_id));
+	while(query.next())
+	{
+		SomaticReportVariantConfiguration var_conf;
+		Variant var = variant(query.value("variant_id").toString()); //variant resolved by its ID
+		for(int i=0; i<snvs.count(); ++i)
+		{
+			if(var==snvs[i])
+			{
+				var_conf.variant_index = i;
+			}
+		}
+		if(var_conf.variant_index == -1)
+		{
+			messages << "Could not find somatic variant '" + var.toString() + "' in given variant list!";
+		}
+
+		var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
+		var_conf.exclude_low_tumor_content = query.value("exclude_low_tumor_content").toBool();
+		var_conf.exclude_low_copy_number = query.value("exclude_low_copy_number").toBool();
+		var_conf.exclude_high_baf_deviation = query.value("exclude_high_baf_deviation").toBool();
+		var_conf.exclude_other_reason = query.value("exclude_other_reason").toBool();
+
+		var_conf.include_variant_alteration = query.value("include_variant_alteration").toString();
+		var_conf.include_variant_description = query.value("include_variant_description").toString();
+
+		var_conf.comment = query.value("comment").toString();
+
+		output.set(var_conf);
+	}
+
+	//Load Cnvs
+	query.exec("SELECT * FROM somatic_report_configuration_cnv WHERE somatic_report_configuration_id=" + QString::number(config_id));
+	while(query.next())
+	{
+		SomaticReportVariantConfiguration var_conf;
+		var_conf.variant_type = VariantType::CNVS;
+
+		CopyNumberVariant cnv = somaticCnv(query.value("somatic_cnv_id").toInt());
+		for(int i=0; i< cnvs.count(); ++i)
+		{
+			if(cnvs[i].hasSamePosition(cnv))
+			{
+				var_conf.variant_index = i;
+			}
+		}
+		if(var_conf.variant_index == -1)
+		{
+			messages << "Could not find somatic CNV '" + cnv.toString() + "' in given variant list!";
+			continue;
+		}
+
+		var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
+		var_conf.exclude_low_tumor_content = query.value("exclude_low_tumor_content").toBool();
+		var_conf.exclude_low_copy_number = query.value("exclude_low_copy_number").toBool();
+		var_conf.exclude_high_baf_deviation = query.value("exclude_high_baf_deviation").toBool();
+		var_conf.exclude_other_reason = query.value("exclude_other_reason").toBool();
+		var_conf.comment = query.value("comment").toString();
+
+
+		output.set(var_conf);
+	}
+
+	//Load germline SNVs related to tumor
+	query.exec("SELECT * FROM somatic_report_configuration_germl_var WHERE somatic_report_configuration_id=" + QString::number(config_id));
+	while(query.next())
+	{
+		SomaticReportGermlineVariantConfiguration var_conf;
+		Variant var = variant(query.value("variant_id").toString()); //variant resolved by its id
+		for(int i=0; i<germline_snvs.count(); ++i)
+		{
+			if(var == germline_snvs[i]) var_conf.variant_index = i;
+		}
+		if(var_conf.variant_index == -1)
+		{
+			messages << "Could not find germline variant '" + var.toString() + "' in given variant list!";
+		}
+
+		if(!query.value("tum_freq").isNull()) var_conf.tum_freq = query.value("tum_freq").toDouble();
+		else var_conf.tum_freq = std::numeric_limits<double>::quiet_NaN();
+
+		output.setGermline(var_conf);
+	}
+
+	return output;
 }
 
 void NGSD::setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality)

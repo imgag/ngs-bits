@@ -323,7 +323,7 @@ CREATE  TABLE IF NOT EXISTS `user`
   `email` VARCHAR(45) NOT NULL,
   `created` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `last_login` DATETIME NULL DEFAULT NULL,
-  `active` TINYINT(1) NOT NULL,
+  `active` TINYINT(1) DEFAULT 0 NOT NULL,
   `salt` VARCHAR(40) NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`user_id` ASC),
@@ -1058,6 +1058,206 @@ CREATE TABLE IF NOT EXISTS `merged_processed_samples`
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `somatic_report_configuration`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ps_tumor_id` int(11) NOT NULL,
+  `ps_normal_id` int(11) NOT NULL,
+  `created_by` int(11) NOT NULL,
+  `created_date` DATETIME NOT NULL,
+  `last_edit_by` int(11) DEFAULT NULL,
+  `last_edit_date` timestamp NULL DEFAULT NULL,
+  `target_file` VARCHAR(255) NULL DEFAULT NULL COMMENT 'filename of sub-panel BED file without preceding path. Path must be resolved using target_file_folder in ngs-bits settings.ini',
+  `tum_content_max_af` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include tumor content calculated by median value maximum allele frequency',
+  `tum_content_max_clonality` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include tumor content calculated by maximum CNV clonality',
+  `tum_content_hist` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include histological tumor content estimate ',
+  `msi_status` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include microsatellite instability status',
+  `cnv_burden` BOOLEAN NOT NULL DEFAULT FALSE,
+  `hrd_score` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'homologous recombination deficiency score',
+  `tmb_ref_text` VARCHAR(200) NULL DEFAULT NULL COMMENT 'reference data as free text for tumor mutation burden',
+  `quality` ENUM('no abnormalities','tumor cell content too low', 'quality of tumor DNA too low', 'DNA quantity too low') NULL DEFAULT NULL COMMENT 'user comment on the quality of the DNA',
+  `fusions_detected` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'fusions or other SVs were detected. Cannot be determined automatically, because manta files contain too many false positives',
+  `cin_chr` TEXT NULL DEFAULT NULL COMMENT 'comma separated list of instable chromosomes',
+  `limitations` TEXT NULL DEFAULT NULL COMMENT 'manually created text if the analysis has special limitations',
+  `filter` VARCHAR(255) NULL DEFAULT NULL COMMENT 'name of the variant filter', 
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `combo_som_rep_conf_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
+  CONSTRAINT `somatic_report_config_created_by_user` 
+    FOREIGN KEY (`created_by`)
+    REFERENCES `user` (`id`) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION,
+  CONSTRAINT `somatic_report_config_last_edit_by_user`
+    FOREIGN KEY (`last_edit_by`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `somatic_report_config_ps_normal_id`
+    FOREIGN KEY (`ps_normal_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `somatic_report_config_ps_tumor_id`
+    FOREIGN KEY (`ps_tumor_id`) 
+    REFERENCES `processed_sample` (`id`) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARSET = utf8;
+
+-- -----------------------------------------------------
+-- Table `somatic_report_configuration_variant`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_report_configuration_variant` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `somatic_report_configuration_id` int(11) NOT NULL,
+  `variant_id` int(11) NOT NULL,
+  `exclude_artefact` BOOLEAN NOT NULL,
+  `exclude_low_tumor_content` BOOLEAN NOT NULL,
+  `exclude_low_copy_number` BOOLEAN NOT NULL,
+  `exclude_high_baf_deviation` BOOLEAN NOT NULL,
+  `exclude_other_reason` BOOLEAN NOT NULL,
+  `include_variant_alteration` text DEFAULT NULL,
+  `include_variant_description` text DEFAULT NULL,
+  `comment` text NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `som_rep_conf_var_has_som_rep_conf_id` 
+    FOREIGN KEY (`somatic_report_configuration_id`) 
+    REFERENCES `somatic_report_configuration` (`id`) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION,
+  CONSTRAINT `somatic_report_configuration_variant_has_variant_id`
+    FOREIGN KEY (`variant_id`)
+    REFERENCES `variant` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  UNIQUE INDEX `som_conf_var_combo_uniq_index` (`somatic_report_configuration_id` ASC, `variant_id` ASC)
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
+
+-- -----------------------------------------------------
+-- Table `somatic_report_configuration_germl_snv`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_report_configuration_germl_var` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `somatic_report_configuration_id` int(11) NOT NULL,
+  `variant_id` int(11) NOT NULL,
+  `tum_freq` FLOAT UNSIGNED NULL DEFAULT NULL COMMENT 'frequency of this variant in the tumor sample.',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `som_rep_conf_germl_var_has_rep_conf_id`
+    FOREIGN KEY (`somatic_report_configuration_id`)
+	REFERENCES `somatic_report_configuration` (`id`)
+	ON DELETE NO ACTION
+	ON UPDATE NO ACTION,
+  CONSTRAINT `som_rep_germl_var_has_var_id`
+    FOREIGN KEY (`variant_id`)
+	REFERENCES `variant` (`id`)
+	ON DELETE NO ACTION
+	ON UPDATE NO ACTION,
+  UNIQUE INDEX `som_conf_germl_var_combo_uni_idx` (`somatic_report_configuration_id` ASC, `variant_id` ASC)
+) COMMENT='variants detected in control tissue that are marked as tumor related by the user'
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
+
+
+-- -----------------------------------------------------
+-- Table `somatic_cnv_callset`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `somatic_cnv_callset`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `ps_tumor_id` INT(11) NOT NULL,
+  `ps_normal_id` INT(11) NOT NULL,
+  `caller` ENUM('ClinCNV') NOT NULL,
+  `caller_version` varchar(25) NOT NULL,
+  `call_date` DATETIME NOT NULL,
+  `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
+  `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
+  PRIMARY KEY (`id`),
+  INDEX `caller` (`caller` ASC),
+  INDEX `call_date` (`call_date` ASC),
+  INDEX `quality` (`quality` ASC),
+  UNIQUE INDEX `combo_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
+  CONSTRAINT `som_cnv_callset_ps_normal_id`
+    FOREIGN KEY (`ps_normal_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `som_cnv_callset_ps_tumor_id`
+    FOREIGN KEY (`ps_tumor_id`) 
+    REFERENCES `processed_sample` (`id`) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='somatic CNV call set';
+
+-- -----------------------------------------------------
+-- Table `somatic_cnv`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_cnv`
+(
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `somatic_cnv_callset_id` INT(11) UNSIGNED NOT NULL,
+  `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start` INT(11) UNSIGNED NOT NULL,
+  `end` INT(11) UNSIGNED NOT NULL,
+  `cn` FLOAT UNSIGNED NOT NULL COMMENT 'copy-number change in whole sample, including normal parts',
+  `tumor_cn` INT(11) UNSIGNED NOT NULL COMMENT 'copy-number change normalized to tumor tissue only',
+  `tumor_clonality` FLOAT NOT NULL COMMENT 'tumor clonality, i.e. fraction of tumor cells',
+  `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
+  PRIMARY KEY (`id`),
+  CONSTRAINT `som_cnv_references_cnv_callset`
+    FOREIGN KEY (`somatic_cnv_callset_id`)
+    REFERENCES `somatic_cnv_callset` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `unique_callset_cnv_pair`
+    UNIQUE(`somatic_cnv_callset_id`,`chr`,`start`,`end`),
+  INDEX `chr` (`chr` ASC),
+  INDEX `start` (`start` ASC),
+  INDEX `end` (`end` ASC),
+  INDEX `tumor_cn` (`tumor_cn` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COMMENT='somatic CNV';
+
+-- -----------------------------------------------------
+-- Table `somatic_report_configuration_cnv`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_report_configuration_cnv` 
+(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `somatic_report_configuration_id` int(11) NOT NULL,
+  `somatic_cnv_id` int(11) UNSIGNED NOT NULL,
+  `exclude_artefact` BOOLEAN NOT NULL,
+  `exclude_low_tumor_content` BOOLEAN NOT NULL,
+  `exclude_low_copy_number` BOOLEAN NOT NULL,
+  `exclude_high_baf_deviation` BOOLEAN NOT NULL,
+  `exclude_other_reason` BOOLEAN NOT NULL,
+  `comment` text NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `som_rep_conf_cnv_has_som_rep_conf_id` 
+    FOREIGN KEY (`somatic_report_configuration_id`) 
+    REFERENCES `somatic_report_configuration` (`id`) 
+    ON DELETE NO ACTION 
+    ON UPDATE NO ACTION,
+  CONSTRAINT `som_report_conf_cnv_has_som_cnv_id`
+    FOREIGN KEY (`somatic_cnv_id`)
+    REFERENCES `somatic_cnv` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+    UNIQUE INDEX `som_conf_cnv_combo_uniq_index` (`somatic_report_configuration_id` ASC, `somatic_cnv_id` ASC)
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8;
 
 
 -- -----------------------------------------------------

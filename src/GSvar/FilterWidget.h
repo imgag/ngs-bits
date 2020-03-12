@@ -45,6 +45,8 @@ public:
 	void setRegion(QString region);
 	/// Returns the state of the report configuration
 	bool reportConfigurationVariantsOnly() const;
+	/// Disables checkbox for option of reportConfigurationVariantsOnly
+	void disableReportConfigurationVariantsOnly() const;
 
 	///Returns selected phenotype terms.
 	const QList<Phenotype>& phenotypes() const;
@@ -60,6 +62,9 @@ public:
 	static QString filterFileName();
 	///Sets the filter (for small variants)
 	void setFilter(QString name);
+
+	///Returns current filter name
+	QString filterName() const;
 
 	//Updates widgets according to NGSD support
 	void updateNGSDSupport();

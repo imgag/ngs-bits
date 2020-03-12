@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SomaticReportConfiguration</class>
- <widget class="QWidget" name="SomaticReportConfiguration">
+ <class>SomaticReportConfigurationWidget</class>
+ <widget class="QWidget" name="SomaticReportConfigurationWidget">
   <property name="geometry">
    <rect>
     <x>0</x>

@@ -337,6 +337,10 @@ SUBDIRS += NGSDAddVariantsGermline
 tools-TEST.depends += NGSDAddVariantsGermline
 NGSDAddVariantsGermline.depends = cppNGS
 
+SUBDIRS += NGSDAddVariantsSomatic
+tools-TEST.depends += NGSDAddVariantsSomatic
+NGSDAddVariantSomatic.depends = cppNGS
+
 SUBDIRS += NGSDExportAnnotationData
 tools-TEST.depends += NGSDExportAnnotationData
 NGSDExportAnnotationData.depends = cppNGS

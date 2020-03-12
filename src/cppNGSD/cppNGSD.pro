@@ -39,6 +39,7 @@ SOURCES += \
     GenLabDB.cpp \
     DBTable.cpp \
     ReportConfiguration.cpp \
+    SomaticReportConfiguration.cpp \
     LoginManager.cpp
 
 HEADERS += \
@@ -47,6 +48,7 @@ HEADERS += \
     GenLabDB.h \
     DBTable.h \
     ReportConfiguration.h \
+    SomaticReportConfiguration.h \
     LoginManager.h
 
 RESOURCES += \

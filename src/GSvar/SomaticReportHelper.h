@@ -16,6 +16,7 @@
 #include <QDir>
 #include "RtfDocument.h"
 #include "BedpeFile.h"
+#include "SomaticReportSettings.h"
 
 ///representation of CGI information of a drug reported by CGI
 class CGIDrugReportLine
@@ -77,6 +78,11 @@ public:
 		return source_;
 	}
 
+	bool showInReport()
+	{
+		return show_in_report_;
+	}
+
 	const QList<QString> asStringList() const
 	{
 		QList<QString> result;
@@ -105,6 +111,11 @@ public:
 		entity_ = entity;
 	}
 
+	void setShowInReport(bool show)
+	{
+		show_in_report_ = show;
+	}
+
 	///returns amino acid change in 3-letters-code if nomenclature in alteration_type was recognized.
 	///returns "AMP" and "DEL" in case of CNVs
 	static const QString proteinChange(QString aa_change);
@@ -126,6 +137,9 @@ private:
 	QString evidence_;
 	///publications assigned to drug
 	QString source_;
+
+	///This DrugReportLine will appear in report
+	bool show_in_report_ = true;
 };
 
 class CGIDrugTable
@@ -149,10 +163,6 @@ public:
 	///Merges duplicates which occur in the same evidence level
 	void mergeDuplicates(int evid_level);
 
-	const QList<CGIDrugReportLine> values() const
-	{
-		return drug_list_.values();
-	}
 
 	int count()
 	{
@@ -280,7 +290,8 @@ class SomaticReportHelper
 {
 public:
 	///Constructor loads data into class
-	SomaticReportHelper(QString snv_filename, const CnvList& filtered_cnvs, const FilterCascade& filters, const QString& target_region="");
+	SomaticReportHelper(const VariantList& variants, const CnvList &cnvs, const VariantList& germline_variants, const SomaticReportSettings& settings);
+
 	///write Rtf File
 	void writeRtf(const QByteArray& out_file);
 
@@ -295,17 +306,22 @@ public:
 	///returns CGI cancertype if available from VariantList
 	static QByteArray cgiCancerTypeFromVariantList(const VariantList& variants);
 
-	///Parses CGI driver statement into German language
-	static QByteArray CgiDriverDescription(QByteArray raw_cgi_input);
 
-	///Returns CNV size description, e.g. "fokal" or "Cluster", in German language
-	static QByteArray CnvSizeDescription(QByteArray orig_entry);
 
 	///Returns CNV type, e.g. DEL (het) according copy number
 	static QByteArray CnvTypeDescription(int tumor_cn);
 
 	///Returns true if all required annotation (CGI, NCG) are available
 	static bool checkRequiredSNVAnnotations(const VariantList& snvs);
+
+	///Returns maximum tumor clonailty in cnv file
+	static double getCnvMaxTumorClonality(const CnvList& cnvs);
+
+	///Returns CNV burden, i.e. total cnv size divided by genome size in %
+	static double cnvBurden(const CnvList& cnvs)
+	{
+		return cnvs.totalCnvSize() / 3101788170. * 100;
+	}
 
 private:
 	///transforms GSVar coordinates of Variants to VCF INDEL-standard
@@ -318,9 +334,11 @@ private:
 	QMap<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
 
 	///Writes Rtf table containing most relevant SNVs and CNVs
-	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet());
+	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet(), bool sort_by_gene = false);
 
-	RtfTable germlineAlterationTable(const VariantList& somatic_snvs);
+
+	//skipped amplifications in somaticalterationtable
+	QByteArrayList skipped_amp_ = {};
 
 	///generates table with CNVs
 	RtfTable createCnvTable();
@@ -331,23 +349,34 @@ private:
 	///Creates table containing alterations relevant in pharmacogenomics (from normal sample)
 	RtfTable pharamacogeneticsTable();
 
+	QString trans(const QString& text) const;
 
-
-	///Returns maximum tumor clonailty in cnv file
-	double getCnvMaxTumorClonality(const CnvList& cnvs);
-
-	///Returns text for fusions, appears multiple times in report
-	RtfParagraph fusionsText()
+	QByteArray trans(QByteArray text) const
 	{
-		if(fusions_.count() > 0)
-		{
-			return RtfParagraph("Fusionen gefunden. Bitte Datei mit Strukturvarianten prüfen.").highlight(3);
-		}
-		else
-		{
-			return RtfParagraph("Es wurde keine der untersuchten Fusionen nachgewiesen.");
-		}
+		return trans( QString(text) ).toUtf8();
 	}
+
+	///returns description of germline variant
+	QByteArray germlVarDesc(QByteArray desc, QByteArray som_class = "")
+	{
+		QByteArray out;
+
+		if(desc.contains("het")) out =  "heterozygot im Normalgewebe";
+		else if(desc.contains("hom")) out =  "homozygot im Normalgewebe";
+		else out = "nachgewiesen im Normalgewebe";
+
+		if(som_class != "") out += " (Klasse " + som_class + ")";
+		return out;
+	}
+
+	///Parses CN to description
+	QByteArray CnvDescription(const CopyNumberVariant& cnv);
+
+	///Parses annotated cytobands to text, "" if not annotation available
+	QByteArray cytoband(const CopyNumberVariant& cnv);
+
+
+	const SomaticReportSettings& settings_;
 
 	///SNV file
 	QString snv_filename_;
@@ -355,13 +384,8 @@ private:
 	///target region
 	QString target_region_ = "";
 
-	///Germline filenames;
-	QString germline_snv_filename_;
-
 	///path to CGI drug annotation file
 	QString cgi_drugs_path_;
-	///path to germline SNV file
-	QDir germline_snv_path_;
 
 	///path to MANTIS file (microsatellite instabilities)
 	QString mantis_msi_path_;
@@ -371,19 +395,19 @@ private:
 	OntologyTermCollection obo_terms_coding_splicing_;
 
 	///tumor ID
-	QString tumor_id_;
+	QString tumor_ps_;
 
 	///normal ID
-	QString normal_id_;
+	QString normal_ps_;
 
 	///Input VariantList
 	VariantList snv_variants_;
 
 	///VariantList for relevant germline SNVs
-	VariantList snv_germline_;
+	const VariantList& snv_germline_;
 
 	///CNVList for input (filtered) variants
-	CnvList cnvs_filtered_;
+	CnvList cnvs_;
 
 	///Somatic viruses (original file usually in tumor dir)
 	QList<somatic_virus> validated_viruses_;
@@ -404,7 +428,7 @@ private:
 	///ICD10 text diagnosis tumor
 	QString icd10_diagnosis_code_;
 	///tumor fraction according genlab
-	QString histol_tumor_fraction_;
+	double histol_tumor_fraction_;
 
 	///HPO term listed in NGSD
 	QString hpo_term_;
@@ -412,11 +436,9 @@ private:
 	double mutation_burden_;
 
 	///indices for somatic variant file
-	int snv_index_cgi_driver_statement_;
-	int snv_index_cgi_gene_role_;
-	int snv_index_cgi_transcript_;
+	int snv_index_som_class_;
 	int snv_index_coding_splicing_;
-	int snv_index_cgi_gene_;
+	int snv_index_cgi_statement_;
 
 	///indices for somatic CNV file
 	int cnv_index_cn_change_;
@@ -426,17 +448,12 @@ private:
 	int cnv_index_cgi_driver_statement_;
 	int cnv_index_tumor_clonality_;
 	int cnv_index_tumor_cn_change_;
+	int cnv_index_cytoband_;
 
 	///List of CGI cancer abbreviations that occur ANYWHERE in the report
 	QByteArrayList cgi_acronyms_;
 
-	///Filter list
-	FilterCascade filters_;
-
 	RtfDocument doc_;
-
-	BedpeFile fusions_;
-
 };
 
 #endif // SomaticReportHelper_H

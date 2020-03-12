@@ -416,6 +416,9 @@ void ProcessedSampleWidget::removeRelation()
 void ProcessedSampleWidget::deleteSampleData()
 {
 	ProcessedSampleDataDeletionDialog* dlg = new ProcessedSampleDataDeletionDialog(this, QStringList() << ps_id_);
+
+	connect(dlg, SIGNAL(somRepDeleted()), this, SLOT(somRepDeleted()));
+
 	dlg->exec();
 }
 
@@ -470,6 +473,11 @@ void ProcessedSampleWidget::addBafsToIgv()
 	QString bafs = bam.left(bam.length()-4) + "_bafs.igv";
 
 	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(bafs) + "\"");
+}
+
+void ProcessedSampleWidget::somRepDeleted()
+{
+	emit clearMainTableSomReport(ps_id_);
 }
 
 void ProcessedSampleWidget::editSample()
