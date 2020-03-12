@@ -125,6 +125,9 @@ public:
 	QString limitations() const;
 	void setLimitations(QString limitations);
 
+	QString filter() const;
+	void setFilter(QString filter);
+
 private:
 	QList<SomaticReportVariantConfiguration> variant_config_;
 
@@ -154,6 +157,9 @@ private:
 
 	//Quality description
 	QString quality_;
+
+	//Name of filter
+	QString filter_;
 };
 
 #endif // SOMATICREPORTCONFIGURATION_H

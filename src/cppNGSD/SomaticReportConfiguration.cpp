@@ -40,6 +40,7 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	, cin_chromosomes_()
 	, limitations_()
 	, fusions_detected_(false)
+	, filter_()
 {
 }
 
@@ -360,6 +361,16 @@ QString SomaticReportConfiguration::limitations() const
 void SomaticReportConfiguration::setLimitations(QString limitations)
 {
 	limitations_ = limitations;
+}
+
+QString SomaticReportConfiguration::filter() const
+{
+	return filter_;
+}
+
+void SomaticReportConfiguration::setFilter(QString filter)
+{
+	filter_ = filter;
 }
 
 

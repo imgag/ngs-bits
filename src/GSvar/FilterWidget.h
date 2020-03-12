@@ -63,6 +63,9 @@ public:
 	///Sets the filter (for small variants)
 	void setFilter(QString name);
 
+	///Returns current filter name
+	QString filterName() const;
+
 	//Updates widgets according to NGSD support
 	void updateNGSDSupport();
 

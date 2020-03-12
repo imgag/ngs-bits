@@ -1689,6 +1689,12 @@ void MainWindow::loadSomaticReportConfig()
 		if(QFileInfo(full_path).exists()) ui_.filters->setTargetRegion(full_path);
 	}
 
+	//Preselect filter from NGSD som. rep. conf.
+	if(somatic_report_settings_.report_config.filter() != "")
+	{
+		ui_.filters->setFilter( somatic_report_settings_.report_config.filter() );
+	}
+
 	refreshVariantTable();
 }
 
@@ -2209,9 +2215,12 @@ void MainWindow::generateReportSomaticRTF()
 
 	//Set data in somatic report settings
 	somatic_report_settings_.report_config.setTargetFile(ui_.filters->targetRegion());
+
+	somatic_report_settings_.report_config.setFilter((ui_.filters->filterName() != "[none]" ? ui_.filters->filterName() : "") ); //filter name -> goes to NGSD som. rep. conf.
+	somatic_report_settings_.filters = ui_.filters->filters(); //filter cascase -> goes to report helper
+
 	somatic_report_settings_.tumor_ps = processedSampleName();
 	somatic_report_settings_.normal_ps = normalSampleName();
-	somatic_report_settings_.filters = ui_.filters->filters();
 
 	NGSD db;
 	//Preselect report settings if not already exists to most common values

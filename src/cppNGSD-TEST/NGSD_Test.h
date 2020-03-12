@@ -68,6 +68,7 @@ private:
 
 		som_rep_conf.setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
 		som_rep_conf.setLimitations("Due to low coverage we could not detect all variants for gene BRAF.");
+		som_rep_conf.setFilter("somatic");
 
 
 
@@ -106,6 +107,7 @@ private:
 		S_EQUAL(res_config.cinChromosomes().join(','), "chr1,chr5,chr9,chrX,chrY");
 		IS_THROWN(ArgumentException, som_rep_conf.setCinChromosomes({"chr1", "chr24"}));
 		S_EQUAL(res_config.limitations(), "Due to low coverage we could not detect all variants for gene BRAF.");
+		S_EQUAL(res_config.filter(), "somatic");
 
 		//Test variants included in resolved report
 		QList<SomaticReportVariantConfiguration> res =  res_config.variantConfig();
@@ -165,6 +167,7 @@ private:
 		som_rep_conf.setFusionsDetected(false);
 		som_rep_conf.setCinChromosomes({"chr10","chr21"});
 		som_rep_conf.setLimitations("With German umlauts: ???????");
+		som_rep_conf.setFilter("");
 
 
 
@@ -182,6 +185,7 @@ private:
 		IS_FALSE(res_config_2.fusionsDetected());
 		S_EQUAL(res_config_2.cinChromosomes().join(','), "chr10,chr21");
 		S_EQUAL(res_config_2.limitations(), "With German umlauts: ???????");
+		S_EQUAL(res_config_2.filter(), "");
 
 		SomaticReportConfigurationData config_data_2 =  db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_2.created_by, "Max Mustermann");

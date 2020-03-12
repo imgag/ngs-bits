@@ -180,6 +180,11 @@ void FilterWidget::setFilter(QString name)
 	}
 }
 
+QString FilterWidget::filterName() const
+{
+	return ui_.filters->currentText();
+}
+
 void FilterWidget::updateNGSDSupport()
 {
 	ui_.hpo_terms->setEnabled(LoginManager::active());

@@ -2006,7 +2006,10 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	else hrd_text = "nicht nachgewiesen";
 	general_info_table.addRow(RtfTableRow({"HRD-Score:", hrd_text}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
 
-	general_info_table.addRow(RtfTableRow({"Kommentar", trans(settings_.report_config.quality()).toUtf8()}, {2500, 7137}, RtfParagraph()).setBorders(1, "brdrhair", 4));
+	if(settings_.report_config.quality() != "no abnormalities")
+	{
+		general_info_table.addRow(RtfTableRow({"Kommentar", trans(settings_.report_config.quality()).toUtf8()}, {2500, 7137}, RtfParagraph()).setBorders(1, "brdrhair", 4));
+	}
 
 
 	doc_.addPart(general_info_table.RtfCode());
