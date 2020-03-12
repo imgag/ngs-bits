@@ -144,7 +144,7 @@ private:
 		I_EQUAL(res_germl[0].variant_index, 2);
 		F_EQUAL(res_germl[0].tum_freq, 0.7);
 		I_EQUAL(res_germl[1].variant_index, 4);
-		IS_TRUE(std::isnan(res_germl[1].tum_freq));
+		IS_FALSE(BasicStatistics::isValidFloat(res_germl[1].tum_freq));
 
 
 

@@ -2236,7 +2236,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	metadata.addRow(RtfTableRow({"CGI-Tumortyp:", cgi_cancer_type_.toUtf8(), "Durchschnittliche Tiefe Tumor:", qcml_data_tumor.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,2837}));
 
 
-	metadata.addRow(RtfTableRow({"MSI-Status:", (std::isnan(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3)), "Coverage Normal 100x:", qcml_data_normal.value("QC:2000030",true).toString().toUtf8() + " \%"} , {1550,3000,2250,2837} ));
+	metadata.addRow(RtfTableRow({"MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3)), "Coverage Normal 100x:", qcml_data_normal.value("QC:2000030",true).toString().toUtf8() + " \%"} , {1550,3000,2250,2837} ));
 
 	GeneSet gene_set = GeneSet::createFromFile(processing_system_data.target_file.left(processing_system_data.target_file.size()-4) + "_genes.txt");
 	metadata.addRow(RtfTableRow({"Prozessierungssystem:",processing_system_data.name.toUtf8() + " (" + QByteArray::number(gene_set.count()) + ")", "Durchschnittliche Tiefe Normal:", qcml_data_normal.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,2837}));
