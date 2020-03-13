@@ -214,6 +214,14 @@ void MainWindow::on_actionConvertVcfToGSvar_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionConvertHgvsToGSvar_triggered()
+{
+	VariantConversionWidget* widget = new VariantConversionWidget();
+	widget->setMode(VariantConversionWidget::HGVSC_TO_GSVAR);
+	auto dlg = GUIHelper::createDialog(widget, "Variant conversion");
+	addModelessDialog(dlg);
+}
+
 void MainWindow::on_actionClose_triggered()
 {
 	loadFile();

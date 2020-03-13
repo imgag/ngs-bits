@@ -89,6 +89,9 @@ public:
 	///Converts string to strand enum.
     static STRAND stringToStrand(QByteArray strand);
 
+	///Converts a cDNA coordinate to genomic coordinates. Throws an exception if the cDNA-coordinate is not valid.
+	int cDnaToGenomic(int cdna_cordinate);
+
 protected:
     QByteArray name_;
 	SOURCE source_;

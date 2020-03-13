@@ -90,3 +90,42 @@ Transcript::STRAND Transcript::stringToStrand(QByteArray strand)
 	THROW(ProgrammingException, "Unknown transcript strand string '" + strand + "!");
 }
 
+int Transcript::cDnaToGenomic(int coord)
+{
+	if (coord<1) THROW(ArgumentException, "Invalid cDNA coordinate " + QString::number(coord) + " given for transcript " + name_ +"!");
+
+	int tmp = coord;
+	if(strand_==PLUS)
+	{
+		for (int i=0; i<coding_regions_.count(); ++i)
+		{
+			const BedLine& line = coding_regions_[i];
+			int start = line.start();
+			int end = line.end();
+			int length = end - start + 1;
+
+			tmp -= length;
+			//qDebug() << start << end << length << tmp;
+
+			if (tmp<=0) return end + tmp;
+		}
+	}
+	else
+	{
+		for (int i=coding_regions_.count()-1; i>=0; --i)
+		{
+			const BedLine& line = coding_regions_[i];
+			int start = line.start();
+			int end = line.end();
+			int length = end - start + 1;
+
+			tmp -= length;
+			//qDebug() << start << end << length << tmp;
+
+			if (tmp<=0) return start - tmp;
+		}
+	}
+
+	THROW(ArgumentException, "Invalid cDNA coordinate " + QString::number(coord) + " (bigger than coding region) given for transcript " + name_ +"!");
+}
+

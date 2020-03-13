@@ -3214,6 +3214,11 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 	return output;
 }
 
+int NGSD::transcriptId(QString name)
+{
+	return getValue("SELECT id FROM gene_transcript WHERE name=:0", false, name).toInt();
+}
+
 QList<Transcript> NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool coding_only)
 {
 	QList<Transcript> output;
@@ -3223,37 +3228,47 @@ QList<Transcript> NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool
 
 	//get transcripts
 	SqlQuery query = getQuery();
-	query.exec("SELECT id, name, chromosome, start_coding, end_coding, strand FROM gene_transcript WHERE gene_id=" + gene_id_str + " AND source='" + Transcript::sourceToString(source) + "' " + (coding_only ? "AND start_coding IS NOT NULL AND end_coding IS NOT NULL" : "") + " ORDER BY name");
+	query.exec("SELECT id FROM gene_transcript WHERE gene_id=" + gene_id_str + " AND source='" + Transcript::sourceToString(source) + "' " + (coding_only ? "AND start_coding IS NOT NULL AND end_coding IS NOT NULL" : "") + " ORDER BY name");
 	while(query.next())
 	{
-		//get base information
-		Transcript transcript;
-		transcript.setName(query.value(1).toByteArray());
-		transcript.setSource(source);
-		transcript.setStrand(Transcript::stringToStrand(query.value(5).toByteArray()));
-
-		//get exons
-		BedFile regions;
-		QByteArray chr = query.value(2).toByteArray();
-		SqlQuery query2 = getQuery();
-		int id = query.value(0).toInt();
-		query2.exec("SELECT start, end FROM gene_exon WHERE transcript_id=" + QString::number(id) + " ORDER BY start");
-		while(query2.next())
-		{
-			int start = query2.value(0).toInt();
-			int end = query2.value(1).toInt();
-			regions.append(BedLine(chr, start, end));
-		}
-		regions.merge();
-
-		int start_coding = query.value(3).toInt();
-		int end_coding = query.value(4).toInt();
-		transcript.setRegions(regions, start_coding, end_coding);
-
-		output.push_back(transcript);
+		output.push_back(transcript(query.value(0).toInt()));
 	}
 
 	return output;
+}
+
+Transcript NGSD::transcript(int id)
+{
+	QString id_str = QString::number(id);
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT source, name, chromosome, start_coding, end_coding, strand FROM gene_transcript WHERE id=" + id_str);
+	if (query.size()==0) THROW(DatabaseException, "Could not find transcript with identifer  '" + id_str + "' in NGSD!");
+	query.next();
+
+	//get base information
+	Transcript transcript;
+	transcript.setName(query.value(1).toByteArray());
+	transcript.setSource(Transcript::stringToSource(query.value(0).toString()));
+	transcript.setStrand(Transcript::stringToStrand(query.value(5).toByteArray()));
+
+	//get exons
+	BedFile regions;
+	Chromosome chr = query.value(2).toByteArray();
+	SqlQuery query2 = getQuery();
+	query2.exec("SELECT start, end FROM gene_exon WHERE transcript_id=" + id_str + " ORDER BY start");
+	while(query2.next())
+	{
+		int start = query2.value(0).toInt();
+		int end = query2.value(1).toInt();
+		regions.append(BedLine(chr, start, end));
+	}
+
+	int start_coding = query.value(3).toInt();
+	int end_coding = query.value(4).toInt();
+	transcript.setRegions(regions, start_coding, end_coding);
+
+	return transcript;
 }
 
 Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source, bool fallback_alt_source_nocoding)

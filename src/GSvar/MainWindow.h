@@ -186,6 +186,8 @@ public slots:
 	void on_actionDebug_triggered();
 	///Action for variant conversion (VCF > GSvar)
 	void on_actionConvertVcfToGSvar_triggered();
+	///Action for variant conversion (HGVS.c > GSvar)
+	void on_actionConvertHgvsToGSvar_triggered();
 
 	///Load report configuration
 	void loadReportConfig();

@@ -2,8 +2,6 @@
 #include "Helper.h"
 #include "NGSD.h"
 
-//TODO force new password when salt is missing - AFTER NGSD IS NO LONGER USED > MARC
-
 LoginDialog::LoginDialog(QWidget *parent)
 	: QDialog(parent)
 	, ui_()
