@@ -18,6 +18,8 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+** Add HGVS.c > GSvar conversion
+* sample search: add causal variants column with small variants (variant, gentype, gene list) and CNVs (variant, copy-number, genes?)
 - Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
 - Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
 * Allow ClinVar upload

@@ -401,6 +401,8 @@
     <property name="title">
      <string>Variants</string>
     </property>
+    <addaction name="actionConvertVcfToGSvar"/>
+    <addaction name="separator"/>
     <addaction name="actionPublishVariantInLOVD"/>
    </widget>
    <widget class="QMenu" name="menuNGSD">
@@ -1036,6 +1038,11 @@
   <action name="actionProject">
    <property name="text">
     <string>Project</string>
+   </property>
+  </action>
+  <action name="actionConvertVcfToGSvar">
+   <property name="text">
+    <string>Convert VCF &gt; GSvar</string>
    </property>
   </action>
  </widget>

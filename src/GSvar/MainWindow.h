@@ -184,6 +184,8 @@ public slots:
 	void on_actionAnnotateSomaticVariants_triggered();
 	///Action for debugging
 	void on_actionDebug_triggered();
+	///Action for variant conversion (VCF > GSvar)
+	void on_actionConvertVcfToGSvar_triggered();
 
 	///Load report configuration
 	void loadReportConfig();

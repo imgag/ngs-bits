@@ -36,12 +36,7 @@ public:
 		for (int i=0; i<vl.count(); ++i)
 		{
 			Variant& v = vl[i];
-			v.normalize("-");
-			if (v.ref()=="-")
-			{
-				v.setStart(v.start()-1);
-				v.setEnd(v.end()-1);
-			}
+			v.normalize("-", true);
 		}
 
 		//store
