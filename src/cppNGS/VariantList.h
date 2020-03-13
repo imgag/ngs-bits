@@ -189,7 +189,7 @@ public:
 	void checkValid() const;
 
     /// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
-	void normalize(const Sequence& empty_seq="");
+	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=false);
 	/// Returns HGVS g. notation of the variant
 	QString toHGVS(const FastaFileIndex& genome_index) const;
 

@@ -48,24 +48,6 @@ public:
 		}
 	}
 
-	void normalize(int& start, Sequence& ref, Sequence& alt)
-	{
-		//remove common prefix
-		while(ref.length()>0 && alt.length()>0 && ref[0]==alt[0])
-		{
-			ref = ref.mid(1);
-			alt = alt.mid(1);
-			start += 1;
-		}
-
-		//remove common suffix
-		while(ref.length()>0 && alt.length()>0 && ref[ref.length()-1]==alt[alt.length()-1])
-		{
-			ref.resize(ref.length()-1);
-			alt.resize(alt.length()-1);
-		}
-	}
-
 	virtual void main()
 	{
 		//open refererence genome file
@@ -129,7 +111,7 @@ public:
 			}
 
 			//skip SNVs disguised as indels (e.g. ACGT => AXGT)
-			normalize(pos, ref, alt);
+			Variant::normalize(pos, ref, alt);
 			if (ref.length()==1 && alt.length()==1)
 			{
 				writeLine(out_p, parts, pos, ref, alt);

@@ -257,6 +257,12 @@ private slots:
 		S_EQUAL(v.obs(), Sequence("GG"));
 		I_EQUAL(v.start(), 18);
 		I_EQUAL(v.end(), 18);
+		v = Variant("chr1", 17, 17, "ATG", "AGGTG");
+		v.normalize("-", true);
+		S_EQUAL(v.ref(), Sequence("-"));
+		S_EQUAL(v.obs(), Sequence("GG"));
+		I_EQUAL(v.start(), 17);
+		I_EQUAL(v.end(), 17);
 
 		v = Variant("chr1", 17, 18, "TT", "");
 		v.normalize("-");
@@ -267,6 +273,13 @@ private slots:
 
 		v = Variant("chr1", 17, 19, "TAT", "TT");
 		v.normalize("-");
+		X_EQUAL(v.ref(), Sequence("A"));
+		X_EQUAL(v.obs(), Sequence("-"));
+		I_EQUAL(v.start(), 18);
+		I_EQUAL(v.end(), 18);
+		//
+		v = Variant("chr1", 17, 19, "TAT", "TT");
+		v.normalize("-", true);
 		X_EQUAL(v.ref(), Sequence("A"));
 		X_EQUAL(v.obs(), Sequence("-"));
 		I_EQUAL(v.start(), 18);

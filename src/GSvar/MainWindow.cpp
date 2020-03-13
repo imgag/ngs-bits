@@ -93,6 +93,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "LoginManager.h"
 #include "LoginDialog.h"
 #include "GeneInfoDBs.h"
+#include "VariantConversionWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -188,13 +189,29 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	QString text = QInputDialog::getText(this, "Hash text", "text:");
-	QString text_hash = QCryptographicHash::hash(text.toLatin1(), QCryptographicHash::Sha1).toHex();
+	QString file_name = QFileDialog::getOpenFileName(this, "Variants", QString(), "Variant files(*.vcf,*.GSvar);;All files(*.*)");
 
-	QLineEdit* widget = new QLineEdit();
-	widget->setText(text_hash);
-	auto dlg = GUIHelper::createDialog(widget, "Hash result", "hash");
+	VariantList vl;
+	vl.load(file_name);
+
+	QStringList text;
+	for(int i=0; i<vl.count(); ++i)
+	{
+		text << vl[i].toString();
+	}
+
+	QTextEdit* widget = new QTextEdit();
+	widget->setText(text.join("\n"));
+	auto dlg = GUIHelper::createDialog(widget, "Debug");
 	dlg->exec();
+}
+
+void MainWindow::on_actionConvertVcfToGSvar_triggered()
+{
+	VariantConversionWidget* widget = new VariantConversionWidget();
+	widget->setMode(VariantConversionWidget::VCF_TO_GSVAR);
+	auto dlg = GUIHelper::createDialog(widget, "Variant conversion");
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionClose_triggered()

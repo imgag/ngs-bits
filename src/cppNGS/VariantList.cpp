@@ -155,7 +155,7 @@ void Variant::checkValid() const
 	}
 }
 
-void Variant::normalize(const Sequence& empty_seq)
+void Variant::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 {
 	Variant::normalize(start_, ref_, obs_);
 	end_ = start_ + ref_.length() - 1;
@@ -167,6 +167,12 @@ void Variant::normalize(const Sequence& empty_seq)
 	if (obs_.isEmpty())
 	{
 		obs_ = empty_seq;
+	}
+
+	if (to_gsvar_format && ref_==empty_seq)
+	{
+		start_ -= 1;
+		end_ -= 1;
 	}
 }
 
