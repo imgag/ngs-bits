@@ -65,12 +65,12 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		temp.addCell(1000, var.annotations()[i_germl_gene] + "\\super#", RtfParagraph().setItalic(true) );
 
 		QList<VariantTranscript> trans =  var.transcriptAnnotations(i_germl_co_sp);
-		if(trans.count() > 0) temp.addCell({ trans[0].hgvs_c + ":" + trans[0].hgvs_p, RtfText(trans[0].id).setFontSize(14).RtfCode()}, 2900);
+		if(trans.count() > 0) temp.addCell({ trans[0].hgvs_c + ", " + trans[0].hgvs_p, RtfText(trans[0].id).setFontSize(14).RtfCode()}, 2900);
 		else temp.addCell(2900, "n/a");
 
 		temp.addCell(1700, (trans.count() > 0 ? trans[0].type.replace("_variant","") : "n/a"));
 
-		temp.addCell(900, QByteArray::number(var.annotations()[i_germl_freq_in_tum].toDouble(), 'f', 2), RtfParagraph().setHorizontalAlignment("c"));
+		temp.addCell(900, QByteArray::number(var.annotations()[i_germl_freq_in_tum].toDouble(), 'f', 2).replace(".",","), RtfParagraph().setHorizontalAlignment("c"));
 
 		//Get af of var in tumor tisse from NGSD
 		temp.addCell( 3138, germlVarDesc(var.annotations()[i_germl_hom_het], var.annotations()[i_germl_class]) );
@@ -96,18 +96,18 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		//In case there is som. report annotation, overwrite protein change in RTF table
 		if(i_som_rep_alt > -1 && i_som_rep_desc > -1 && (snv.annotations().at(i_som_rep_alt) != "" || snv.annotations().at(i_som_rep_desc) != ""))
 		{
-			row.addCell(2900, snv.annotations()[i_som_rep_alt] + ":" + snv.annotations()[i_som_rep_desc]);
+			row.addCell(2900, snv.annotations()[i_som_rep_alt] + ", " + snv.annotations()[i_som_rep_desc]);
 		}
 		else //no annotation entry from somatic report conf
 		{
-			row.addCell({transcript.hgvs_c + ":" + transcript.hgvs_p, RtfText(transcript.id).setFontSize(14).RtfCode()},2900);
+			row.addCell({transcript.hgvs_c + ", " + transcript.hgvs_p, RtfText(transcript.id).setFontSize(14).RtfCode()},2900);
 		}
 
 		row.last().format().setLineSpacing(276);
 
 		row.addCell(1700,transcript.type);
 		int i_tum_af = snvs.annotationIndexByName("tumor_af",true,true);
-		row.addCell(900,QByteArray::number(snv.annotations().at(i_tum_af).toDouble(),'f',2),RtfParagraph().setHorizontalAlignment("c")); //tumor allele frequency
+		row.addCell(900,QByteArray::number(snv.annotations().at(i_tum_af).toDouble(),'f',2).replace(".",","), RtfParagraph().setHorizontalAlignment("c")); //tumor allele frequency
 
 		RtfSourceCode gene_info = "unklare Funktion";
 		if(!snv.annotations()[snv_index_som_class_].isEmpty())
@@ -227,7 +227,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			if(!cnv_type.contains("focal") && !cnv_type.contains("cluster")) cnv_type = "non-focal";
 			temp_cnv_row.addCell(1700,cnv_type);
 
-			temp_cnv_row.addCell(900,QByteArray::number(cnv.annotations().at(i_cnv_tum_clonality).toDouble(),'f',2),RtfParagraph().setHorizontalAlignment("c"));
+			temp_cnv_row.addCell(900,QByteArray::number(cnv.annotations().at(i_cnv_tum_clonality).toDouble(),'f',2).replace(".", ","),RtfParagraph().setHorizontalAlignment("c"));
 
 			QByteArrayList cnv_genes = cnv.annotations().at(cnv_index_cgi_genes_).split(',');
 
@@ -332,7 +332,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			if(cnv_index_cytoband_ > -1 ) cn_statement.append(RtfText("; " + cytoband(cnv)).setFontSize(14).RtfCode());
 
 
-			QByteArray tumor_clonality = QByteArray::number(cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2);
+			QByteArray tumor_clonality = QByteArray::number(cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2).replace(".", ",");
 
 			QByteArray cnv_type = cnv.annotations().at(cnv_index_cnv_type_);
 			if(!cnv_type.contains("focal") && !cnv_type.contains("cluster")) cnv_type = "non-focal";
@@ -501,7 +501,7 @@ RtfTable SomaticReportHelper::createCnvTable()
 		temp_row.last().format().setHorizontalAlignment("c");
 
 		//tumor clonality
-		temp_row.addCell(700,QByteArray::number(variant.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2),RtfParagraph().setHorizontalAlignment("c"));
+		temp_row.addCell(700,QByteArray::number(variant.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2).replace(".", ","), RtfParagraph().setHorizontalAlignment("c"));
 
 		//gene names
 		//only print genes which lie in target region
@@ -1856,7 +1856,7 @@ RtfTable SomaticReportHelper::pharamacogeneticsTable()
 
 					if(!trans.hgvs_c.isEmpty() && !trans.hgvs_p.isEmpty())
 					{
-						row.addCell(1800,trans.hgvs_c + ":" + trans.hgvs_p,RtfParagraph().setFontSize(14));
+						row.addCell(1800,trans.hgvs_c + ", " + trans.hgvs_p,RtfParagraph().setFontSize(14));
 					}
 					else //use genomic position if no AA change available
 					{
@@ -2001,10 +2001,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		general_info_table.addRow(RtfTableRow({"CNV-Last:", text_cnv_burden},{2500,7137},RtfParagraph()).setBorders(1,"brdrhair",4));
 	}
 
-	QByteArray hrd_text;
-	if(settings_.report_config.hrdScore() > 0) hrd_text = QByteArray::number(settings_.report_config.hrdScore());
-	else hrd_text = "nicht nachgewiesen";
-	general_info_table.addRow(RtfTableRow({"HRD-Score:", hrd_text}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+	general_info_table.addRow(RtfTableRow({"HRD-Score:", QByteArray::number(settings_.report_config.hrdScore())}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
 
 	if(settings_.report_config.quality() != "no abnormalities")
 	{
@@ -2111,10 +2108,11 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 
 	snv_expl = RtfText("Zusätzliche genetische Daten:").setFontSize(18).setBold(true).RtfCode();
 	snv_expl += " Weitere Informationen zu allen nachgewiesenen somatischen Veränderungen und pharmakogenetisch relevanten Polymorphismen entnehmen Sie bitte der Anlage. ";
-	snv_expl += "\\line Die Varianten- und Gendosisanalysen der Gene " + RtfText("BRCA1").setItalic(true).setFontSize(18).RtfCode() + " und " + RtfText("BRCA2").setItalic(true).setFontSize(18).RtfCode();
+	snv_expl += "\\line\\line Die Varianten- und Gendosisanalysen der Gene " + RtfText("BRCA1").setItalic(true).setFontSize(18).RtfCode() + " und " + RtfText("BRCA2").setItalic(true).setFontSize(18).RtfCode();
 	snv_expl += " in der Normalprobe waren unauffällig.";
-	snv_expl += "\\line Eine Analyse des Transkriptoms bei dieser Tumorprobe wird nachträglich berichtet.";
-	snv_expl += "\\line Eine somatische Analyse einer zusätzlichen Tumorprobe wird nachträglich berichtet.";
+
+	snv_expl += "\\line\\line Über die Analyse des Transkriptoms bei dieser Tumorprobe wird nachträglich berichtet.";
+	snv_expl += "\\line\\line Über die somatische Analyse einer zusätzlichen Tumorprobe wird nachträglich berichtet.";
 
 	doc_.addPart(RtfParagraph(snv_expl).highlight(3).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 
