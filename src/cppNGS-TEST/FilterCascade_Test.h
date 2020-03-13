@@ -1296,6 +1296,80 @@ private slots:
 		I_EQUAL(result.countPassing(), 12);
 	}
 
+	void FilterSvCountNGSD_apply_default()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// default
+		FilterSvCountNGSD filter1;
+		filter1.apply(svs, result);
+		I_EQUAL(result.countPassing(), 24);
+	}
+
+	void FilterrSvCountNGSD_apply_overlap()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// overlap
+		FilterSvCountNGSD filter;
+		filter.setBool("overlap_matches", true);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 22);
+
+
+	}
+
+	void FilterrSvCountNGSD_apply_custom()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// custom maximum
+		FilterSvCountNGSD filter;
+		filter.setInteger("max_count", 10);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 22);
+	}
+
+	void FilterrSvAfNGSD_apply_default()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// custom maximum
+		FilterSvAfNGSD filter;
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 18);
+	}
+
+	void FilterrSvAfNGSD_apply_custom()
+	{
+
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// custom maximum
+		FilterSvAfNGSD filter;
+		filter.setDouble("max_af", 0.5);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 55);
+	}
+
+
 	/********************************************* Default filters for SVs *********************************************/
 
 	void default_filters_SV_germline()
