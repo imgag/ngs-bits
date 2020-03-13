@@ -20,7 +20,7 @@ public:
 		setDescription("Annotates the structural variants of a given BEDPE file by the NGSD counts.");
 		addInfile("in", "BEDPE file containing structural variants.", false);
 		addOutfile("out", "Output BEDPE file containing annotated structural variants.", false);
-		addString("ps_name", "Processed sample name.", false);
+		addString("ps", "Processed sample name.", false);
 
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
@@ -37,7 +37,7 @@ public:
 	{
 		//init
 		NGSD db(getFlag("test"));
-		QByteArray ps_name = getString("ps_name").toUtf8();
+		QByteArray ps_name = getString("ps").toUtf8();
 		QTextStream out(stdout);
 		QTime timer;
 		timer.start();
@@ -165,7 +165,7 @@ public:
 		{
 			// no NGSD column found -> append column at the end
 			header.append("NGSD_COUNT");
-			additional_columns.append("0 (0.000)");
+			additional_columns.append("0 (0.0000)");
 			i_ngsd_count = header.size() - 1;
 		}
 		int i_ngsd_count_overlap = header.indexOf("NGSD_COUNT_OVERLAP");
