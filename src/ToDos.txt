@@ -19,6 +19,7 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+### search trios based on NGSD and folder, search in file system for multi-sample analysis (two check boxes)
 * sample search: add causal variants column with small variants (variant, gentype, gene list) and CNVs (variant, copy-number, genes?)
 - Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
 - Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
