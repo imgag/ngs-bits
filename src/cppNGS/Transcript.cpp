@@ -129,3 +129,10 @@ int Transcript::cDnaToGenomic(int coord)
 	THROW(ArgumentException, "Invalid cDNA coordinate " + QString::number(coord) + " (bigger than coding region) given for transcript " + name_ +"!");
 }
 
+Variant Transcript::hgvsToVariant(QString hgvs_c)
+{
+	Variant variant;
+	//TODO
+	return variant;
+}
+

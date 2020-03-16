@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "BedFile.h"
+#include "VariantList.h"
 
 ///Representation of a gene transcript.
 class CPPNGSSHARED_EXPORT Transcript
@@ -91,6 +92,9 @@ public:
 
 	///Converts a cDNA coordinate to genomic coordinates. Throws an exception if the cDNA-coordinate is not valid.
 	int cDnaToGenomic(int cdna_cordinate);
+
+	///Converts a HGVS cDNA change to a variant in GSvar format.
+	static Variant hgvsToVariant(QString hgvs_c);
 
 protected:
     QByteArray name_;

@@ -4,6 +4,7 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "Settings.h"
+#include "NGSD.h"
 #include <QDebug>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -17,6 +18,7 @@ VariantConversionWidget::VariantConversionWidget(QWidget* parent)
 	GUIHelper::styleSplitter(ui_.splitter);
 	connect(ui_.convert_btn, SIGNAL(clicked(bool)), this, SLOT(convert()));
 	connect(ui_.load_btn, SIGNAL(clicked(bool)), this, SLOT(loadInputFromFile()));
+	ui_.input->setText("ENST00000294008:c.4409C>T");
 }
 
 void VariantConversionWidget::setMode(VariantConversionWidget::ConversionMode mode)
@@ -70,15 +72,17 @@ void VariantConversionWidget::convert()
 	{
 		QStringList lines = ui_.input->toPlainText().split("\n");
 		QStringList output;
-		foreach(QString line, lines)
+		if (mode_==VCF_TO_GSVAR)
 		{
-			line = line.trimmed();
-			if (line=="" || line[0]=="#")
+			foreach(QString line, lines)
 			{
-				output << "";
-			}
-			else if (mode_==VCF_TO_GSVAR)
-			{
+				line = line.trimmed();
+				if (line=="" || line[0]=="#")
+				{
+					output << "";
+					continue;
+				}
+
 				QStringList parts = line.split("\t");
 				if (parts.count()<5) THROW(ArgumentException, "Invalid VCF variant '" + line + "' - too few tab-separated parts!");
 
@@ -91,8 +95,41 @@ void VariantConversionWidget::convert()
 
 				output << variant.toString(true).replace(" ", "\t");
 			}
-			else if (mode_==HGVSC_TO_GSVAR)
+		}
+		else if (mode_==HGVSC_TO_GSVAR)
+		{
+			NGSD db;
+
+			foreach(QString line, lines)
 			{
+				line = line.trimmed();
+				if (line=="" || line[0]=="#")
+				{
+					output << "";
+					continue;
+				}
+
+				int sep_pos = line.indexOf(':');
+				if (sep_pos==-1) THROW(ArgumentException, "Invalid HGVS.c variant '" + line + "' - the format is [transcipt name]:[variant]");
+				QString transcript_name = line.left(sep_pos);
+				QString hgvs_c = line.mid(sep_pos+1);
+
+				Transcript transcript = db.transcript(db.transcriptId(transcript_name));
+				Variant variant = transcript.hgvsToVariant(hgvs_c);
+
+				output << variant.toString(true).replace(" ", "\t");
+
+			}
+		}
+
+		ui_.output->setPlainText(output.join("\n"));
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Conversion error", e.message());
+	}
+}
+
 /*
 
 
@@ -314,13 +351,3 @@ check(convert_hgvs2genomic("GRCh37", "NM_007294.3", "c.1A>G"),array("chr17",4127
 end_test();
 
 */
-			}
-		}
-
-		ui_.output->setPlainText(output.join("\n"));
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::warning(this, "Conversion error", e.message());
-	}
-}

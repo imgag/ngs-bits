@@ -189,21 +189,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	QString file_name = QFileDialog::getOpenFileName(this, "Variants", QString(), "Variant files(*.vcf,*.GSvar);;All files(*.*)");
-
-	VariantList vl;
-	vl.load(file_name);
-
-	QStringList text;
-	for(int i=0; i<vl.count(); ++i)
-	{
-		text << vl[i].toString();
-	}
-
-	QTextEdit* widget = new QTextEdit();
-	widget->setText(text.join("\n"));
-	auto dlg = GUIHelper::createDialog(widget, "Debug");
-	dlg->exec();
+	on_actionConvertHgvsToGSvar_triggered();
 }
 
 void MainWindow::on_actionConvertVcfToGSvar_triggered()
@@ -4590,6 +4576,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionGeneSelector->setEnabled(ngsd_user_logged_in);
 	ui_.actionSampleSearch->setEnabled(ngsd_user_logged_in);
 	ui_.actionRunOverview->setEnabled(ngsd_user_logged_in);
+	ui_.actionConvertHgvsToGSvar->setEnabled(ngsd_user_logged_in);
 	//toolbar - NGSD search menu
 	QToolButton* ngsd_search_btn = ui_.tools->findChild<QToolButton*>("ngsd_search_btn");
 	QList<QAction*> ngsd_search_actions = ngsd_search_btn->menu()->actions();
