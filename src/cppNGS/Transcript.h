@@ -94,7 +94,7 @@ public:
 	int cDnaToGenomic(int cdna_cordinate);
 
 	///Converts a HGVS cDNA change to a variant in GSvar format.
-	static Variant hgvsToVariant(QString hgvs_c);
+	Variant hgvsToVariant(QString hgvs_c);
 
 protected:
     QByteArray name_;

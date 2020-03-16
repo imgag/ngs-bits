@@ -1,5 +1,7 @@
 #include "Transcript.h"
 #include "Exceptions.h"
+#include "NGSHelper.h"
+#include <QRegularExpression>
 
 Transcript::Transcript()
 	: coding_start_(0)
@@ -131,8 +133,162 @@ int Transcript::cDnaToGenomic(int coord)
 
 Variant Transcript::hgvsToVariant(QString hgvs_c)
 {
-	Variant variant;
-	//TODO
-	return variant;
+	//init
+	static QRegularExpression exp_snv = QRegularExpression("^(\\d+)([-+]\\d+)?([ACGT])[><]([ACGT])$");
+	int start = -1;
+	int end = -1;
+	int offset1 = 0;
+	int offset2 = 0;
+	Sequence ref;
+	Sequence obs;
+
+	//check prerequisites
+	if (regions_.count()==0) THROW(ProgrammingException, "Transcript '" + name_ + "' has no regions() defined!");
+
+	//remove prefix
+	hgvs_c = hgvs_c.trimmed();
+	if (hgvs_c.startsWith("c.")) hgvs_c = hgvs_c.mid(2);
+	qDebug() << hgvs_c;
+
+	//SNV
+	QRegularExpressionMatch match = exp_snv.match(hgvs_c);
+	if(match.hasMatch())
+	{
+		//qDebug() << "SNV:" << match.capturedRef(1) << match.capturedRef(2) << match.capturedRef(3) << match.capturedRef(4);
+		start = cDnaToGenomic(match.capturedRef(1).toInt());
+		end = start;
+		if (!match.capturedRef(2).isEmpty())
+		{
+			offset1 = match.capturedRef(2).toInt();
+			offset2 = offset1;
+		}
+		ref = match.capturedRef(3).toLatin1().toUpper();
+		obs = match.capturedRef(4).toLatin1().toUpper();
+	}
+
+	if(strand_==Transcript::PLUS)
+	{
+		start += offset1;
+		end += offset2;
+		//TODO??? if($obs=="-" && empty($ref)) $ref = get_ref_seq($build,$chr,$start,$end);
+	}
+	else
+	{
+		start -= offset1;
+		end -= offset2;
+
+		//convert reference
+		//TODO??? if($obs=="-" && empty($ref))	$ref = strtoupper(get_ref_seq($build,$chr,$start,$end));
+		ref = NGSHelper::changeSeq(ref, true, true);
+		obs = NGSHelper::changeSeq(obs, true, true);
+	}
+	qDebug() << start << end << ref << obs;
+
+	//check reference length
+	int length = end - start + 1;
+	int bases = ref.length();
+	if(length!=bases)
+	{
+		THROW(ProgrammingException, "HGVS.c '" + name_ + ":" + hgvs_c + "': reference length of coordinates (" + QString::number(length) + ") and sequence (" + QString::number(bases) + ") do not match!");
+	}
+
+	//TODO check reference sequence
+	/*
+	$r = get_ref_seq($build,$chr,$start,$end);	//adopt for different builds
+	if(!empty($chr) && !empty($ref) && $ref!="-" && strtoupper($r)!=strtoupper($ref))
+	{
+		if($error)	trigger_error("Wrong reference sequence for HGVS '$transcript:$cdna': is '$ref', should be '".$r."' ($chr:$start-$end).",E_USER_ERROR);
+		return "Wrong reference sequence for HGVS '$transcript:$cdna': is '$ref', should be '".$r."' ($chr:$start-$end).";
+	}
+	*/
+
+	return Variant(regions()[0].chr(), start, end, ref, obs);
 }
 
+
+/*
+
+	...
+
+	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?del(?<ref>[CATG]+)?$/i",$cdna,$matches)!=0)	//Deletion
+	{
+		if(empty($matches["end"]))	$matches["end"] = $matches["start"];	//if no end position is given
+
+		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
+		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
+		else	$e = $result;
+
+		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
+		$offset2 = $offset1;
+		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
+		if(!empty($matches["ref"]))	$ref = $matches["ref"];
+		$obs = "-";
+	}
+	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?del(?<ref_count>\d+)?$/i",$cdna,$matches)!=0)	//Deletion, e.g. c.644-12del16
+	{
+		if(empty($matches["end"]))	$matches["end"] = $matches["start"];	//if no end position is given
+
+		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
+		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
+		else	$e = $result;
+
+		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
+		$offset2 = $offset1;
+		if(!empty($matches["ref_count"]))	$offset2 += $matches["ref_count"]-1;	//if no end position is given
+		$obs = "-";
+	}
+	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?ins(?<obs>[CATG]+)$/i",$cdna,$matches)!=0)	//Insertion
+	{
+		//skip end and offset2, since insertion is always next to start (both splicing and coding)
+		$result = convert_coding2genomic($transcript, $matches["start"], $matches["start"],$error);
+		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
+		else	$e = $result;
+
+		//offsets
+		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
+		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
+		if($strand=="+" && $offset1!=0 && $offset2!=0)	$offset1 = min($offset1, $offset2);
+		if($strand=="-" && $offset1!=0 && $offset2!=0)	$offset1 = max($offset1, $offset2);
+		$offset2 = $offset1;
+		if($strand=="-" && empty($offset1) && empty($offset2))	$end = --$start;	//change of insertion site required for "-"-strand variants.
+
+		//alleles
+		$ref = "-";
+		$obs = $matches["obs"];
+	}
+	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?del(?<ref>[CATG]+)?ins(?<obs>[CATG]+)$/i",$cdna,$matches)!=0)	//combined InDel
+	{
+		if(empty($matches["end"]))	$matches["end"] = $matches["start"];	//if no end position is given
+
+		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
+		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
+		else	$e = $result;
+
+
+		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
+		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
+		if(!empty($matches["ref"]))	$ref = $matches["ref"];
+		if(empty($ref))	$ref = get_ref_seq($build,$chr,$start,$end);
+		if($strand=="-")	$ref = rev_comp ($ref);
+		$obs = $matches["obs"];
+	}
+	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?dup(?<obs>[CATG]+)?$/i",$cdna,$matches)!=0)	//Duplication
+	{
+		if(empty($matches["end"]))	$matches["end"] = $matches["start"];
+
+		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
+		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
+		else	$e = $result;
+
+		if($strand == "+")	$end = --$start;
+		if($strand == "-")	$start = $end;
+		//if on - strand move insertion to the right
+		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
+		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
+		$ref = "-";
+		$obs = get_ref_seq($build,$chr,$start,$end);
+		if(!empty($matches["obs"]))	$obs = $matches["obs"];
+		if(strlen($obs)==1)	$start=--$end;
+	}
+
+*/

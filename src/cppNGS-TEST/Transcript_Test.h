@@ -4,15 +4,15 @@
 TEST_CLASS(Transcript_Test)
 {
 Q_OBJECT
-private slots:
 
-	void initialization()
+	Transcript trans_SLC51A()
 	{
-		//plus strand (SLC51A)
 		Transcript t;
+
 		t.setName("ENST00000296327");
 		t.setSource(Transcript::ENSEMBL);
 		t.setStrand(Transcript::PLUS);
+
 		BedFile regions;
 		regions.append(BedLine("chr3", 195943375, 195943621));
 		regions.append(BedLine("chr3", 195944713, 195944807));
@@ -25,6 +25,34 @@ private slots:
 		regions.append(BedLine("chr3", 195959934, 195960301));
 		t.setRegions(regions, 195943584, 195960070);
 
+		return t;
+	}
+
+	Transcript trans_APOD()
+	{
+		Transcript t;
+
+		t.setName("ENST00000343267");
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::MINUS);
+
+		BedFile regions;
+		regions.append(BedLine("chr3", 195295573, 195296006));
+		regions.append(BedLine("chr3", 195298148, 195298236));
+		regions.append(BedLine("chr3", 195300721, 195300842));
+		regions.append(BedLine("chr3", 195306210, 195306366));
+		regions.append(BedLine("chr3", 195310749, 195311076));
+		t.setRegions(regions, 195295771, 195306332);
+
+		return t;
+	}
+
+private slots:
+
+	void initialization()
+	{
+		//plus strand (SLC51A)
+		Transcript t = trans_SLC51A();
 		S_EQUAL(t.name(), "ENST00000296327");
 		I_EQUAL(t.strand(), Transcript::PLUS);
 		I_EQUAL(t.source(), Transcript::ENSEMBL);
@@ -33,19 +61,8 @@ private slots:
 		I_EQUAL(t.codingRegions().count(), 9);
 		I_EQUAL(t.codingRegions().baseCount(), 1023);
 
-
 		//minus strand (APOD)
-		t.setName("ENST00000343267");
-		t.setSource(Transcript::ENSEMBL);
-		t.setStrand(Transcript::MINUS);
-		regions.clear();
-		regions.append(BedLine("chr3", 195295573, 195296006));
-		regions.append(BedLine("chr3", 195298148, 195298236));
-		regions.append(BedLine("chr3", 195300721, 195300842));
-		regions.append(BedLine("chr3", 195306210, 195306366));
-		regions.append(BedLine("chr3", 195310749, 195311076));
-		t.setRegions(regions, 195295771, 195306332);
-
+		t = trans_APOD();
 		I_EQUAL(t.regions().count(), 5);
 		I_EQUAL(t.regions().baseCount(), 1130);
 		I_EQUAL(t.codingRegions().count(), 4);
@@ -55,22 +72,7 @@ private slots:
 	void cDnaToGenomic()
 	{
 		//plus strand (SLC51A)
-		Transcript t;
-		t.setName("ENST00000296327");
-		t.setSource(Transcript::ENSEMBL);
-		t.setStrand(Transcript::PLUS);
-		BedFile regions;
-		regions.append(BedLine("chr3", 195943375, 195943621));
-		regions.append(BedLine("chr3", 195944713, 195944807));
-		regions.append(BedLine("chr3", 195953836, 195953990));
-		regions.append(BedLine("chr3", 195954535, 195954608));
-		regions.append(BedLine("chr3", 195954986, 195955144));
-		regions.append(BedLine("chr3", 195955680, 195955791));
-		regions.append(BedLine("chr3", 195956786, 195956932));
-		regions.append(BedLine("chr3", 195959290, 195959395));
-		regions.append(BedLine("chr3", 195959934, 195960301));
-		t.setRegions(regions, 195943584, 195960070);
-
+		Transcript t = trans_SLC51A();
 		IS_THROWN(ArgumentException, t.cDnaToGenomic(0));
 		I_EQUAL(t.cDnaToGenomic(1), 195943584); //exon 1, start codon
 		I_EQUAL(t.cDnaToGenomic(4), 195943587); //exon 1, first coding base
@@ -82,17 +84,7 @@ private slots:
 		IS_THROWN(ArgumentException, t.cDnaToGenomic(1024));
 
 		//minus strand (APOD)
-		t.setName("ENST00000343267");
-		t.setSource(Transcript::ENSEMBL);
-		t.setStrand(Transcript::MINUS);
-		regions.clear();
-		regions.append(BedLine("chr3", 195295573, 195296006));
-		regions.append(BedLine("chr3", 195298148, 195298236));
-		regions.append(BedLine("chr3", 195300721, 195300842));
-		regions.append(BedLine("chr3", 195306210, 195306366));
-		regions.append(BedLine("chr3", 195310749, 195311076));
-		t.setRegions(regions, 195295771, 195306332);
-
+		t = trans_APOD();
 		IS_THROWN(ArgumentException, t.cDnaToGenomic(0));
 		I_EQUAL(t.cDnaToGenomic(1), 195306332); //exon 1, start codon
 		I_EQUAL(t.cDnaToGenomic(4), 195306329); //exon 1, first coding base
@@ -103,5 +95,22 @@ private slots:
 		I_EQUAL(t.cDnaToGenomic(570), 195295771); //exon 5, stop codon base 2
 		IS_THROWN(ArgumentException, t.cDnaToGenomic(571));
 	}
+
+	void hgvsToVariant()
+	{
+		//plus strand (SLC51A)
+		Transcript t = trans_APOD();
+		Variant variant = t.hgvsToVariant("c.245+45T>C");
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 195300676);
+		I_EQUAL(variant.end(), 195300676);
+		S_EQUAL(variant.ref(), "A");
+		S_EQUAL(variant.obs(), "G");
+
+		//TODO chr3	195295702	195295702	-	GGC	hom	off-target	QUAL=414;DP=19;AF=0.95;MQM=60	APOD	3'UTR	APOD:ENST00000343267:3_prime_UTR_variant:MODIFIER:exon5/5:c.*68_*69insGCC::	regulatory_region_variant:promoter_flanking_region					rs146445395										3.78						596	824	50 / 89					APOD (inh=n/a oe_syn=0.96 oe_mis=0.95 oe_lof=0.68)
+		//TODO chr3	195295708	195295708	-	T	hom	off-target	QUAL=414;DP=19;AF=0.95;MQM=60	APOD	3'UTR	APOD:ENST00000343267:3_prime_UTR_variant:MODIFIER:exon5/5:c.*62_*63insA::	regulatory_region_variant:promoter_flanking_region					rs142189206	0.2240									1.21						n/a (AF>5%)	n/a (AF>5%)	n/a (AF>5%)					APOD (inh=n/a oe_syn=0.96 oe_mis=0.95 oe_lof=0.68)
+
+	}
+
 
 };

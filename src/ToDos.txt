@@ -4,7 +4,7 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-#### sample name no '-'
+#### conversion: left-normalize (checkbox) - allow 100% matching UCSC-transcripts - wait for infos from Julian
 ** gene tab: add refseq/CCDS matches with links - wait for infos from Julian
 * Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
