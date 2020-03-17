@@ -134,7 +134,6 @@ int Transcript::cDnaToGenomic(int coord)
 Variant Transcript::hgvsToVariant(QString hgvs_c)
 {
 	//init
-	static QRegularExpression exp_snv = QRegularExpression("^(\\d+)([-+]\\d+)?([ACGT])[><]([ACGT])$");
 	int start = -1;
 	int end = -1;
 	int offset1 = 0;
@@ -148,29 +147,69 @@ Variant Transcript::hgvsToVariant(QString hgvs_c)
 	//remove prefix
 	hgvs_c = hgvs_c.trimmed();
 	if (hgvs_c.startsWith("c.")) hgvs_c = hgvs_c.mid(2);
-	qDebug() << hgvs_c;
+	int length = hgvs_c.length();
+	if (length<4) THROW(ProgrammingException, "Invalid cDNA change '" + hgvs_c + "'!");
+	qDebug() << hgvs_c << length;
 
 	//SNV
-	QRegularExpressionMatch match = exp_snv.match(hgvs_c);
-	if(match.hasMatch())
+	if(hgvs_c[length-4].isDigit() && hgvs_c[length-3].isLetter() && hgvs_c[length-2]=='>' && hgvs_c[length-1].isLetter())
 	{
-		//qDebug() << "SNV:" << match.capturedRef(1) << match.capturedRef(2) << match.capturedRef(3) << match.capturedRef(4);
-		start = cDnaToGenomic(match.capturedRef(1).toInt());
-		end = start;
-		if (!match.capturedRef(2).isEmpty())
+		QString position = hgvs_c.left(length-3);
+
+		if (position.contains('+'))
 		{
-			offset1 = match.capturedRef(2).toInt();
-			offset2 = offset1;
+			//qDebug() << "SNV:" << position << '+';
+			int sep_pos = position.indexOf('+');
+			start = cDnaToGenomic(position.left(sep_pos).toInt());
+			offset1 = position.mid(sep_pos+1).toInt();
 		}
-		ref = match.capturedRef(3).toLatin1().toUpper();
-		obs = match.capturedRef(4).toLatin1().toUpper();
+		else if (position.contains('-'))
+		{
+			//qDebug() << "SNV:" << position << '-';
+			int sep_pos = position.indexOf('-');
+			if (sep_pos==0)
+			{
+				start = cDnaToGenomic(1);
+			}
+			else
+			{
+				start = cDnaToGenomic(position.left(sep_pos).toInt());
+			}
+			offset1 = -1 * position.mid(sep_pos+1).toInt();
+		}
+		else if (position.contains('*'))
+		{
+			//qDebug() << "SNV:" << position << '*';
+			int sep_pos = position.indexOf('*');
+			if (sep_pos==0)
+			{
+				start = cDnaToGenomic(coding_regions_.baseCount());
+			}
+			else
+			{
+				start = cDnaToGenomic(position.left(sep_pos).toInt());
+			}
+			offset1 = position.mid(sep_pos+1).toInt();
+		}
+		else
+		{
+			//qDebug() << "SNV:" << position << "default";
+			start = cDnaToGenomic(position.toInt());
+		}
+		end = start;
+		offset2 = offset1;
+		ref.append(hgvs_c[length-3].toUpper());
+		obs.append(hgvs_c[length-1].toUpper());
+	}
+	else
+	{
+		THROW(ArgumentException, "Unsupported cDNA change '" + hgvs_c + "'!");
 	}
 
 	if(strand_==Transcript::PLUS)
 	{
 		start += offset1;
 		end += offset2;
-		//TODO??? if($obs=="-" && empty($ref)) $ref = get_ref_seq($build,$chr,$start,$end);
 	}
 	else
 	{
@@ -178,18 +217,17 @@ Variant Transcript::hgvsToVariant(QString hgvs_c)
 		end -= offset2;
 
 		//convert reference
-		//TODO??? if($obs=="-" && empty($ref))	$ref = strtoupper(get_ref_seq($build,$chr,$start,$end));
 		ref = NGSHelper::changeSeq(ref, true, true);
 		obs = NGSHelper::changeSeq(obs, true, true);
 	}
 	qDebug() << start << end << ref << obs;
 
 	//check reference length
-	int length = end - start + 1;
-	int bases = ref.length();
-	if(length!=bases)
+	int length_pos = end - start + 1;
+	int length_bases = ref.length();
+	if(length_pos!=length_bases)
 	{
-		THROW(ProgrammingException, "HGVS.c '" + name_ + ":" + hgvs_c + "': reference length of coordinates (" + QString::number(length) + ") and sequence (" + QString::number(bases) + ") do not match!");
+		THROW(ProgrammingException, "HGVS.c '" + name_ + ":" + hgvs_c + "': reference length of coordinates (" + QString::number(length_pos) + ") and sequence (" + QString::number(length_bases) + ") do not match!");
 	}
 
 	//TODO check reference sequence

@@ -43,11 +43,7 @@
         <string>Convert.</string>
        </property>
        <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/Refresh.png</normaloff>:/Icons/Refresh.png</iconset>
+        <string>convert</string>
        </property>
       </widget>
      </item>
@@ -85,7 +81,7 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <property name="spacing">
         <number>3</number>
@@ -106,7 +102,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="spacing">
         <number>3</number>

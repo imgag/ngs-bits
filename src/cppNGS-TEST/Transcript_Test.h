@@ -99,14 +99,28 @@ private slots:
 	void hgvsToVariant()
 	{
 		//plus strand (SLC51A)
-		Transcript t = trans_APOD();
+		Transcript t = trans_SLC51A();
 
-		Variant variant = t.hgvsToVariant("c.245+45T>C");
+		Variant variant = t.hgvsToVariant("c.123A>G");
 		S_EQUAL(variant.chr().str(), "chr3");
-		I_EQUAL(variant.start(), 195300676);
-		I_EQUAL(variant.end(), 195300676);
+		I_EQUAL(variant.start(), 195944797);
+		I_EQUAL(variant.end(), 195944797);
 		S_EQUAL(variant.ref(), "A");
 		S_EQUAL(variant.obs(), "G");
+
+		variant = t.hgvsToVariant("c.38+46G>T");
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 195943667);
+		I_EQUAL(variant.end(), 195943667);
+		S_EQUAL(variant.ref(), "G");
+		S_EQUAL(variant.obs(), "T");
+
+		variant = t.hgvsToVariant("c.134-43C>T");
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 195953793);
+		I_EQUAL(variant.end(), 195953793);
+		S_EQUAL(variant.ref(), "C");
+		S_EQUAL(variant.obs(), "T");
 
 		variant = t.hgvsToVariant("c.-207A>G");
 		S_EQUAL(variant.chr().str(), "chr3");
@@ -114,6 +128,13 @@ private slots:
 		I_EQUAL(variant.end(), 195943377);
 		S_EQUAL(variant.ref(), "A");
 		S_EQUAL(variant.obs(), "G");
+
+		variant = t.hgvsToVariant("c.*48A>C");
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 195960118);
+		I_EQUAL(variant.end(), 195960118);
+		S_EQUAL(variant.ref(), "A");
+		S_EQUAL(variant.obs(), "C");
 
 /*
 #variant	coding and splicing
