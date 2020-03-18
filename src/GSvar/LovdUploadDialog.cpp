@@ -445,16 +445,19 @@ QByteArray LovdUploadDialog::createJson()
 	stream << "                \"gender\": {\n";
 	stream << "                    \"@code\": \"" << convertGender(ui_.gender->currentText().trimmed()) <<"\"\n";
 	stream << "                },\n";
-	foreach(const Phenotype& pheno, ui_.phenos->selectedPhenotypes())
+	stream << "                \"phenotype\": [\n";
+	QList<Phenotype> phenotypes = ui_.phenos->selectedPhenotypes();
+	for (int i=0; i<phenotypes.count(); ++i)
 	{
-		stream << "                \"phenotype\": [\n";
 		stream << "                    {\n";
-		stream << "                        \"@term\": \"" << pheno.name().trimmed() << "\",\n";
+		stream << "                        \"@term\": \"" << phenotypes[i].name().trimmed() << "\",\n";
 		stream << "                        \"@source\": \"HPO\",\n";
-		stream << "                        \"@accession\": \"" << pheno.accession().mid(3).trimmed() << "\"\n";
-		stream << "                    }\n";
-		stream << "                ],\n";
+		stream << "                        \"@accession\": \"" << phenotypes[i].accession().mid(3).trimmed() << "\"\n";
+		stream << "                    }";
+		if (i<phenotypes.count()-1) stream << ",";
+		stream << "\n";
 	}
+	stream << "                ],\n";
 
 	//variant info
 	stream << "                \"variant\": [\n";
