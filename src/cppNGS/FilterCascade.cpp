@@ -748,7 +748,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV compound-heterozygous"] = &createInstance<FilterSvCompHet>;
 		output["CNV pathogenic CNV overlap"] = &createInstance<FilterCnvPathogenicCnvOverlap>;
 		output["SV count NGSD"] = &createInstance<FilterSvCountNGSD>;
-		output["SV AF NGSD"] = &createInstance<FilterSvAfNGSD>;
+		output["SV allele frequency NGSD"] = &createInstance<FilterSvAfNGSD>;
 	}
 
 	return output;
@@ -3848,27 +3848,27 @@ void FilterSvCountNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 
 FilterSvAfNGSD::FilterSvAfNGSD()
 {
-	name_ = "SV AF NGSD";
+	name_ = "SV allele frequency NGSD";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Filter based on the allele frequency of a structural variant in the NGSD."
+	description_ = QStringList() << "Filter based on the allele frequency of this structural variant in the NGSD."
 								 << "Note: this filter should only be used for whole genome samples.";
-	params_ << FilterParameter("max_af", DOUBLE, 0.01, "Maximum allele frequency");
+	params_ << FilterParameter("max_af", DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
+	params_.last().constraints["max"] = "100.0";
 
 	checkIsRegistered();
 }
 
 QString FilterSvAfNGSD::toText() const
 {
-	return name() + " &le; " + QString::number(getDouble("max_af", false));
+	return name() + " &le; " + QString::number(getDouble("max_af", false)) + "%";
 }
 
 void FilterSvAfNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 {
 	if (!enabled_) return;
 
-	double max_af = getDouble("max_af");
+	double max_af = getDouble("max_af")/100.0;
 
 	int ngsd_col_index = svs.annotationIndexByName("NGSD_COUNT");
 

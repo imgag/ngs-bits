@@ -61,12 +61,19 @@ Copy the template:
 
 and then set the `reference_genome` parameter in the `bin/settings.ini` file.  
 
-### Setting up the NGSD
+## Setting up the NGSD (optional)
 
 Some of the tools need the NGSD, a MySQL database that contains for example gene, transcript and exon data.  
 Installation instructions for the NGSD can be found [here](install_ngsd.md).
 
 
+## Building GSvar (optional)
 
+GSvar is a GUI for viewing the variant calls produced by the [megSAP pipeline](https://github.com/imgag/megSAP).  
+Additionally, it offers a  user interface to the NGSD (see above).
 
+To build GSvar, execute the following command:
 
+    > make build_3rdparty
+
+Now you need to [configure GSVar](GSvar/configuration.md).
