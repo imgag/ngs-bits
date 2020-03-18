@@ -42,8 +42,6 @@ LovdUploadDialog::LovdUploadDialog(QWidget *parent)
 
 	connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
 	connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
-	connect(ui_.refseq_btn, SIGNAL(clicked(bool)), this, SLOT(queryRefSeqWebservice()));
-	connect(ui_.refseq_btn2, SIGNAL(clicked(bool)), this, SLOT(queryRefSeqWebservice()));
 }
 
 void LovdUploadDialog::setData(LovdUploadData data)
@@ -347,14 +345,6 @@ void LovdUploadDialog::printResults()
 void LovdUploadDialog::updatePrintButton()
 {
 	ui_.print_btn->setEnabled(!ui_.comment_upload->toPlainText().trimmed().isEmpty());
-}
-
-void LovdUploadDialog::queryRefSeqWebservice()
-{
-	QString url = Settings::string("VariantInfoRefSeq"); //TODO remove once not used anymore - also in UI, docu and settings > MARC
-	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn) && variant1_.isValid()) url += "?variant_data=" + variant1_.toString(true).replace(" ", "\t").replace("chrMT", "chrM");
-	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn2) && variant2_.isValid()) url += "?variant_data=" + variant2_.toString(true).replace(" ", "\t").replace("chrMT", "chrM");
-	QDesktopServices::openUrl(QUrl(url));
 }
 
 void LovdUploadDialog::updateSecondVariantGui()

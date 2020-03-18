@@ -30,7 +30,6 @@ analysis_steps_somatic=vc - variant calling, cn - copy number calling, an - anno
 #webservice URLs
 PrimerDesign = ""
 Alamut = ""
-VariantInfoRefSeq = ""
 
 #proxy settings for GSvar
 proxy_host = ""
