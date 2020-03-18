@@ -65,7 +65,7 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::preferredTranscripts(bool r
         QStringList lines = Helper::loadTextFile(filename, true, '#', true);
         foreach(const QString& line, lines)
         {
-            QByteArrayList parts = line.toLatin1().split('\t');
+			QByteArrayList parts = line.toLatin1().replace(',', '\t').split('\t');
             if (parts.count()>=2)
             {
                 QByteArray gene = parts[0].trimmed();
