@@ -34,7 +34,7 @@ void VariantConversionWidget::setMode(VariantConversionWidget::ConversionMode mo
 	else if (mode==HGVSC_TO_GSVAR)
 	{
 		ui_.message->setVisible(true);
-		ui_.message->setText("<font color='red'>Attention: This feature is experimental. Please report any errors to the developers!</font>");
+		ui_.message->setText("<font color='red'>Attention: This feature is experimental. Please report any errors!</font>");
 		ui_.input_label->setText("Input (HGVS.c):");
 		ui_.output_label->setText("Output (GSvar):");
 		ui_.load_btn->setVisible(false);
@@ -99,15 +99,13 @@ void VariantConversionWidget::convert()
 				variant.normalize("-", true);
 
 				variant.checkValid();
-				variant.checkReferenceSequence(ref_genome_idx);
+				if (variant.ref()!="-") variant.checkReferenceSequence(ref_genome_idx);
 
 				output << variant.toString(true, -1, true).replace(" ", "\t");
 			}
 		}
 		else if (mode_==HGVSC_TO_GSVAR)
 		{
-			FastaFileIndex genome_idx(Settings::string("reference_genome"));
-
 			NGSD db;
 
 			foreach(QString line, lines)
@@ -125,10 +123,10 @@ void VariantConversionWidget::convert()
 				QString hgvs_c = line.mid(sep_pos+1);
 
 				Transcript transcript = db.transcript(db.transcriptId(transcript_name));
-				Variant variant = transcript.hgvsToVariant(hgvs_c, genome_idx);
+				Variant variant = transcript.hgvsToVariant(hgvs_c, ref_genome_idx);
 
 				variant.checkValid();
-				variant.checkReferenceSequence(ref_genome_idx);
+				if (variant.ref()!="-") variant.checkReferenceSequence(ref_genome_idx);
 
 				output << variant.toString(true, -1, true).replace(" ", "\t");
 			}

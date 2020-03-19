@@ -132,7 +132,7 @@ int Transcript::cDnaToGenomic(int coord)
 }
 
 Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_idx)
-{//TODO warnings
+{
 	//init
 	const Chromosome& chr = regions()[0].chr();
 	int start = -1;
@@ -151,7 +151,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	//qDebug() << "### cDNA:" << hgvs_c << "###";
 
 	//SNV
-	if(hgvs_c[length-4].isDigit() && hgvs_c[length-3].isLetter() && hgvs_c[length-2]=='>' && hgvs_c[length-1].isLetter())
+	if(hgvs_c.at(length-4).isDigit() && hgvs_c.at(length-3).isLetter() && hgvs_c.at(length-2)=='>' && hgvs_c.at(length-1).isLetter())
 	{
 		//detemine position
 		QString position = hgvs_c.left(length-3);
