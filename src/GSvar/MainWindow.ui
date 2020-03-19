@@ -402,6 +402,7 @@
      <string>Variants</string>
     </property>
     <addaction name="actionConvertVcfToGSvar"/>
+    <addaction name="actionConvertHgvsToGSvar"/>
     <addaction name="separator"/>
     <addaction name="actionPublishVariantInLOVD"/>
    </widget>
@@ -1043,6 +1044,11 @@
   <action name="actionConvertVcfToGSvar">
    <property name="text">
     <string>Convert VCF &gt; GSvar</string>
+   </property>
+  </action>
+  <action name="actionConvertHgvsToGSvar">
+   <property name="text">
+    <string>Convert HGVs.c &gt; GSvar</string>
    </property>
   </action>
  </widget>

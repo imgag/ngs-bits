@@ -189,28 +189,36 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	QString file_name = QFileDialog::getOpenFileName(this, "Variants", QString(), "Variant files(*.vcf,*.GSvar);;All files(*.*)");
+	QApplication::clipboard()->setText("ENST00000343267:c.*179C>A\n"
+						"ENST00000343267:c.335-553G>C\n"
+						"ENST00000343267:c.334+158G>A\n"
+						"ENST00000343267:c.-34-2A>G\n"
+						"ENST00000343267:c.178C>T\n"
+						"ENST00000343267:c.246-13dup\n"
+						"ENST00000343267:c.*65_*69dup\n"
+						"ENST00000343267:c.*68del\n"
+						"ENST00000343267:c.335-239_335-238del\n"
+						"ENST00000343267:c.*62_*63insA\n"
+						"ENST00000343267:c.-34-875_-34-874insGAA\n"
+						"ENST00000343267:c.*69delinsCCCCCC\n"
+						"ENST00000343267:c.-4_-7delinsAA\n");
 
-	VariantList vl;
-	vl.load(file_name);
-
-	QStringList text;
-	for(int i=0; i<vl.count(); ++i)
-	{
-		text << vl[i].toString();
-	}
-
-	QTextEdit* widget = new QTextEdit();
-	widget->setText(text.join("\n"));
-	auto dlg = GUIHelper::createDialog(widget, "Debug");
-	dlg->exec();
+	on_actionConvertHgvsToGSvar_triggered();
 }
 
 void MainWindow::on_actionConvertVcfToGSvar_triggered()
 {
 	VariantConversionWidget* widget = new VariantConversionWidget();
 	widget->setMode(VariantConversionWidget::VCF_TO_GSVAR);
-	auto dlg = GUIHelper::createDialog(widget, "Variant conversion");
+	auto dlg = GUIHelper::createDialog(widget, "Variant conversion (VCF > GSvar)");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionConvertHgvsToGSvar_triggered()
+{
+	VariantConversionWidget* widget = new VariantConversionWidget();
+	widget->setMode(VariantConversionWidget::HGVSC_TO_GSVAR);
+	auto dlg = GUIHelper::createDialog(widget, "Variant conversion (HGVS.c > GSvar)");
 	addModelessDialog(dlg);
 }
 
@@ -4581,6 +4589,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionGeneSelector->setEnabled(ngsd_user_logged_in);
 	ui_.actionSampleSearch->setEnabled(ngsd_user_logged_in);
 	ui_.actionRunOverview->setEnabled(ngsd_user_logged_in);
+	ui_.actionConvertHgvsToGSvar->setEnabled(ngsd_user_logged_in);
 	//toolbar - NGSD search menu
 	QToolButton* ngsd_search_btn = ui_.tools->findChild<QToolButton*>("ngsd_search_btn");
 	QList<QAction*> ngsd_search_actions = ngsd_search_btn->menu()->actions();

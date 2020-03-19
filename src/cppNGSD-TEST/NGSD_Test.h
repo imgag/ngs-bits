@@ -535,6 +535,18 @@ private slots:
 		I_EQUAL(regions.baseCount(), 202);
 		IS_TRUE(messages.isEmpty());
 
+		//transcriptId
+		I_EQUAL(db.transcriptId("NIPA1_TR2"), 4);
+
+		//transcript
+		Transcript transcript = db.transcript(4);
+		S_EQUAL(transcript.name(), "NIPA1_TR2");
+		I_EQUAL(transcript.strand(), Transcript::MINUS);
+		I_EQUAL(transcript.source(), Transcript::ENSEMBL);
+		I_EQUAL(transcript.regions().count(), 4);
+		I_EQUAL(transcript.regions().baseCount(), 224);
+		I_EQUAL(transcript.codingRegions().count(), 2);
+		I_EQUAL(transcript.codingRegions().baseCount(), 102);
 
 		//transcripts
 		QList<Transcript> transcripts = db.transcripts(1, Transcript::CCDS, true); //BRCA1, CCDS, coding
@@ -593,7 +605,7 @@ private slots:
 		I_EQUAL(transcripts[0].codingRegions().baseCount(), 0);
 
 		//longestCodingTranscript
-		Transcript transcript = db.longestCodingTranscript(4, Transcript::ENSEMBL); //NON-CODING, zero transcripts
+		transcript = db.longestCodingTranscript(4, Transcript::ENSEMBL); //NON-CODING, zero transcripts
 		IS_FALSE(transcript.isValid());
 
 		transcript = db.longestCodingTranscript(1, Transcript::CCDS); //BRCA1, one transcript

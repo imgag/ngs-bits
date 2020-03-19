@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "BedFile.h"
+#include "VariantList.h"
 
 ///Representation of a gene transcript.
 class CPPNGSSHARED_EXPORT Transcript
@@ -89,6 +90,12 @@ public:
 	///Converts string to strand enum.
     static STRAND stringToStrand(QByteArray strand);
 
+	///Converts a cDNA coordinate to genomic coordinates. Throws an exception if the cDNA-coordinate is not valid.
+	int cDnaToGenomic(int cdna_cordinate);
+
+	///Converts a HGVS cDNA change to a variant in GSvar format.
+	Variant hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_idx);
+
 protected:
     QByteArray name_;
 	SOURCE source_;
@@ -97,6 +104,8 @@ protected:
 	int coding_start_;
 	int coding_end_;
 	BedFile coding_regions_;
+
+	void hgvsParsePosition(const QString& position, int& pos, int& offset);
 };
 
 #endif // TRANSCRIPT_H

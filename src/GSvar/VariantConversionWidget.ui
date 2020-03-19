@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,1">
+  <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,1">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -36,14 +36,21 @@
     <number>3</number>
    </property>
    <item>
+    <widget class="QLabel" name="message">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QToolButton" name="convert_btn">
+      <widget class="QPushButton" name="convert_btn">
        <property name="toolTip">
         <string>Convert.</string>
        </property>
        <property name="text">
-        <string>...</string>
+        <string>convert</string>
        </property>
        <property name="icon">
         <iconset resource="GSvar.qrc">
@@ -85,7 +92,7 @@
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <property name="spacing">
         <number>3</number>
@@ -106,7 +113,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget1">
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="spacing">
         <number>3</number>

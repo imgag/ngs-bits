@@ -59,7 +59,8 @@ HEADERS += \
         VcfFile_Test.h \
         BedpeLine_Test.h \
     CnvList_Test.h \
-    StructuralVariantType_Test.h
+    StructuralVariantType_Test.h \
+    Transcript_Test.h
 
 SOURCES += \
         main.cpp

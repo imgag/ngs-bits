@@ -1,0 +1,438 @@
+#chr	start	end	ref	obs	genotype	snp_q	depth	map_q	variant	variant_frequency	region	gene	variant_details	coding	snp_1000g2012feb_all	snp_snp137	ljb_phylop	ljb_mt	esp6500si_ea	cosmic61	repeatmasker	omim_ids	omim_titles	omim_disorders	quality_filter	ihdb_hom_10	ihdb_het_10	ihdb_wt_10	ihdb_allsys	vus	validated
+chr1	1647893	1647893	-	TTTTCT	het	217	1370	47	INDEL	0.3595	exonic	CDK11A,CDK11B	nonframeshift insertion	CDK11B:NM_033486:exon5:c.379_380insAAGAAA:p.R127delinsKKR,CDK11B:NM_033488:exon6:c.244_245insAAGAAA:p.R82delinsKKR,CDK11B:NM_033492:exon5:c.346_347insAAGAAA:p.R116delinsKKR,CDK11A:NM_024011:exon5:c.379_380insAAGAAA:p.R127delinsKKR,CDK11A:NM_033529:exon5:c.349_350insAAGAAA:p.R117delinsKKR,CDK11B:NM_033489:exon6:c.277_278insAAGAAA:p.R93delinsKKR,CDK11B:NM_033493:exon5:c.346_347insAAGAAA:p.R116delinsKKR,	.	.	.	.	.	.	.				passed	0	1	0	48	.	.
+chr1	1647969	1647969	-	AT	het	217	246	47	INDEL	0.4341	intronic	CDK11A,CDK11B	.	.	.	rs34259364	.	.	.	.	.				passed	0	0.8	0.2	9	.	.
+chr1	15439084	15439084	-	AGGTCTTTTTTTTCTTCTCCCAGCGGC	het	104	375	50	INDEL	0.1499	ncRNA_exonic	TMEM51-AS1	.	.	.	.	.	.	.	.	.				passed	0.1	0.5	0.4	17	.	.
+chr1	26608862	26608862	-	GGGAGA	het	199	133	42	INDEL	0.0818	exonic	UBXN11	nonframeshift insertion	UBXN11:NM_001077262:exon11:c.1131_1132insTCTCCC:p.P377delinsPLP,UBXN11:NM_145345:exon15:c.1392_1393insTCTCCC:p.P464delinsPLP,UBXN11:NM_183008:exon16:c.1491_1492insTCTCCC:p.P497delinsPLP,	.	.	.	.	.	.	369				passed	0	0.3	0.7	3	.	.
+chr1	26608878	26608883	CCGGGA	-	het	217	163	48	INDEL	0.3967	exonic	UBXN11	nonframeshift deletion	UBXN11:NM_001077262:exon11:c.1110_1115del:p.370_372del,UBXN11:NM_145345:exon15:c.1371_1376del:p.457_459del,UBXN11:NM_183008:exon16:c.1470_1475del:p.490_492del,	.	rs140364749	.	.	.	.	369				passed	0.3	0.4	0.3	27	.	.
+chr1	31905890	31905890	-	CAG	hom	214	1123	50	INDEL	0.7851	exonic	SERINC2	nonframeshift insertion	SERINC2:NM_018565:exon9:c.1102_1103insCAG:p.Q368delinsPE,SERINC2:NM_001199038:exon10:c.1117_1118insCAG:p.Q373delinsPE,SERINC2:NM_001199037:exon9:c.1102_1103insCAG:p.Q368delinsPE,SERINC2:NM_001199039:exon10:c.925_926insCAG:p.Q309delinsPE,SERINC2:NM_178865:exon9:c.1090_1091insCAG:p.Q364delinsPE,	.	rs33956499	.	.	.	.	.				passed	0.7	0.2	0.1	51	.	.
+chr1	40981246	40981246	-	G	het	217	1130	48	INDEL	0.4496	exonic	EXO5	frameshift insertion	EXO5:NM_022774:exon3:c.1030_1031insG:p.R344fs,	.	.	.	.	.	.	.				passed	0	0.2	0.8	8	.	.
+chr1	54605320	54605320	-	C	hom	122	1059	50	INDEL	1	exonic	CDCP2	frameshift insertion	CDCP2:NM_201546:exon4:c.1223_1224insG:p.P408fs,	.	.	.	.	.	.	.				passed	0.6	0	0.4	33	.	.
+chr1	78024345	78024345	-	TTA	het	217	291	50	INDEL	0.4456	exonic	AK5	nonframeshift insertion	AK5:NM_174858:exon14:c.1680_1681insTAT:p.S560delinsSY,AK5:NM_012093:exon14:c.1602_1603insTAT:p.S534delinsSY,	.	rs71756472	.	.	.	.	.				passed	0.6	0.4	0	52	.	.
+chr1	109792735	109792735	-	CCG	het	217	67	47	INDEL	0.4531	exonic	CELSR2	nonframeshift insertion	CELSR2:NM_001408:exon1:c.35_36insCGC:p.T12delinsTA,	.	rs72003155	.	.	.	.	.				passed	0.6	0.3	0.1	20	.	.
+chr1	117122289	117122289	-	TCC	het	217	1178	49	INDEL	0.2426	exonic	IGSF3	nonframeshift insertion	IGSF3:NM_001007237:exon10:c.3059_3060insGGA:p.D1020delinsGN,IGSF3:NM_001542:exon11:c.3119_3120insGGA:p.D1040delinsGN,	.	rs72034493	.	.	.	.	222				passed	0.1	0.3	0.6	30	.	.
+chr1	120612003	120612004	GG	-	het	22.5	92	38	INDEL	0.2043	exonic	NOTCH2	frameshift deletion	NOTCH2:NM_001200001:exon1:c.17_18del:p.6_6del,NOTCH2:NM_024408:exon1:c.17_18del:p.6_6del,	.	.	.	.	.	ID=COSM132830;OCCURENCE=1(central_nervous_system)	.				failed	0	0.4	0.6	10	.	.
+chr1	144854502	144854503	CT	-	het	118	1571	37	INDEL	0.1574	intronic	PDE4DIP	.	.	.	rs142453097	.	.	.	.	.				passed	0	0.1	0.9	12	.	.
+chr1	144923824	144923837	AGGAAGAAACGGCA	-	het	217	1133	49	INDEL	0.4709	splicing	PDE4DIP	.	.	.	rs11268079	.	.	0.7740	.	.				passed	0.2	0.7	0.1	49	.	.
+chr1	152195729	152195729	T	-	hom	71.5	352	50	INDEL	0.5688	exonic	HRNR	frameshift deletion	HRNR:NM_001009931:exon2:c.1delA:p.M1fs,	.	.	.	.	.	ID=COSM111478;OCCURENCE=2(ovary)	.				passed	0.6	0	0.4	45	.	.
+chr1	152681681	152681681	-	AGCTCTGGGGGATGCTGT	hom	214	921	46	INDEL	0.797	exonic	LCE4A	nonframeshift insertion	LCE4A:NM_178356:exon1:c.130_131insAGCTCTGGGGGATGCTGT:p.S44delinsKLWGMLC,	.	.	.	.	.	.	.				passed	0.2	0	0.8	3	.	.
+chr1	153233489	153233489	-	GGCGGT	het	217	311	49	INDEL	0.4295	exonic	LOR	nonframeshift insertion	LOR:NM_000427:exon2:c.64_65insGGCGGT:p.G22delinsGRC,	.	.	.	.	.	.	362				passed	0	0.2	0.8	18	.	.
+chr1	153233996	153233996	-	GGCGGCGGCGCT	het	217	260	47	INDEL	0.4593	exonic	LOR	nonframeshift insertion	LOR:NM_000427:exon2:c.572_573insGCGGCGGCGCTG:p.G191delinsGRRRC,	.	.	.	.	.	.	277				passed	0	0	1	0	.	.
+chr1	153907279	153907287	CTGCTGCTG	-	het	217	1276	49	INDEL	0.3503	exonic	DENND4B	nonframeshift deletion	DENND4B:NM_014856:exon18:c.2722_2730del:p.908_910del,	.	rs141373027	.	.	0.3035	.	420				passed	0.1	0.4	0.5	27	.	.
+chr1	154842200	154842200	-	GCTGCTGCTGCTGCT	hom	214	1015	47	INDEL	0.1167	exonic	KCNN3	nonframeshift insertion	KCNN3:NM_002249:exon1:c.241_242insAGCAGCAGCAGCAGC:p.P81delinsSSSSSP,KCNN3:NM_001204087:exon1:c.241_242insAGCAGCAGCAGCAGC:p.P81delinsSSSSSP,	.	.	.	.	.	.	430				passed	0.2	0.1	0.7	6	.	.
+chr1	156565050	156565050	-	AC	hom	214	984	50	INDEL	0.9418	exonic	GPATCH4	frameshift insertion	GPATCH4:NM_182679:exon8:c.1068_1069insGT:p.T356fs,GPATCH4:NM_015590:exon8:c.1083_1084insGT:p.T361fs,	.	.	.	.	.	.	.				passed	1	0	0	58	.	.
+chr1	169777749	169777749	-	TTT	het	218	49	50	INDEL	0.6111	intronic	C1orf112	.	.	.	.	.	.	.	.	2320				passed	0.1	0	0.9	3	.	.
+chr1	197576307	197576307	-	T	hom	214	126	50	INDEL	0.8058	splicing	DENND1B(NM_001195215:exon14:c.820-4->A,NM_144977:exon14:c.820-4->A)	.	.	.	rs34849458	.	.	.	.	.				passed	1	0	0	53	.	.
+chr1	209605637	209605648	AGCAGCAGCAGC	-	hom	214	202	50	INDEL	0.3577	exonic	MIR205HG	nonframeshift deletion	MIR205HG:NM_001104548:exon4:c.252_263del:p.84_88del,	.	.	.	.	.	.	360				passed	0.4	0.5	0.1	44	.	.
+chr1	228504701	228504701	-	CCTC	het	217	1135	48	INDEL	0.4896	intronic	OBSCN	.	.	.	.	.	.	.	.	.				passed	0.8	0.1	0.1	18	.	.
+chr1	240255569	240255571	GGC	-	het	217	251	50	INDEL	0.1156	exonic	FMN2	nonframeshift deletion	FMN2:NM_020066:exon1:c.160_162del:p.54_54del,	0.68	rs140531536	.	.	.	ID=COSM244564;OCCURENCE=1(prostate)	22				passed	0.7	0.3	0	19	.	.
+chr1	240370914	240370946	GCCCCCTCTACCCGGAGCGGGAATACCTCCTCC	-	het	217	752	48	INDEL	0.3365	exonic	FMN2	nonframeshift deletion	FMN2:NM_020066:exon5:c.2802_2834del:p.934_945del,	.	.	.	.	0.2568	.	.				passed	0	0.1	0.9	5	.	.
+chr2	24387178	24387178	-	C	hom	214	739	50	INDEL	0.9986	exonic	FAM228B	unknown	UNKNOWN	.	rs3214485	.	.	.	.	.				passed	0.9	0.1	0	53	.	.
+chr2	25994412	25994412	-	G	het	217	563	50	INDEL	0.3904	splicing	ASXL2(NM_018263:exon6:c.404-4->C)	.	.	.	.	.	.	.	.	.				passed	0.3	0.4	0.3	28	.	.
+chr2	26477126	26477126	-	ACT	hom	214	221	50	INDEL	0.869	exonic	HADHB	nonframeshift insertion	HADHB:NM_000183:exon2:c.4_5insACT:p.T2delinsNS,	.	rs67852333	.	.	.	.	.	143450	Hydroxyacyl-Coenzyme A dehydrogenase/3-ketoacyl-Coenzyme A thiolase	Trifunctional protein deficiency, 609015 (3)	passed	0.9	0.1	0	82	.	.
+chr2	31805880	31805880	-	G	hom	214	926	50	INDEL	1	exonic	SRD5A2	unknown	UNKNOWN	.	rs58432514	.	.	.	.	.				passed	1	0	0	94	.	.
+chr2	32757202	32757202	-	GTGTGTGTGT	hom	72.5	185	50	INDEL	0.4219	intronic	BIRC6	.	.	.	.	.	.	.	.	333				passed	0.2	0	0.8	6	.	.
+chr2	71062833	71062833	-	C	hom	214	1346	50	INDEL	1	exonic	CD207	frameshift insertion	CD207:NM_015717:exon1:c.73_74insG:p.E25fs,	.	rs11450450	.	.	.	.	.				passed	1	0	0	56	.	.
+chr2	73496577	73496594	GCAGCGGCGGCGGCGGCC	-	het	217	121	50	INDEL	0.4405	exonic	FBXO41	nonframeshift deletion	FBXO41:NM_001080410:exon1:c.165_182del:p.55_61del,	.	.	.	.	.	.	252				passed	0.1	0	0.9	1	.	.
+chr2	73613032	73613037	GGAGGA	-	het	217	501	49	INDEL	0.164	exonic	ALMS1	nonframeshift deletion	ALMS1:NM_015120:exon1:c.36_41del:p.12_14del,	.	.	.	.	.	ID=COSM111368;OCCURENCE=1(ovary)	429	606844	Alstrom syndrome gene	Alstrom syndrome, 203800 (3)	passed	0	0.6	0.4	18	.	.
+chr2	73675226	73675226	-	TCC	het	217	680	50	INDEL	0.4503	exonic	ALMS1	nonframeshift insertion	ALMS1:NM_015120:exon8:c.1571_1572insCTC:p.S524delinsSS,	.	rs71733062	.	.	.	.	.	606844	Alstrom syndrome gene	Alstrom syndrome, 203800 (3)	passed	0.3	0.7	0	74	.	.
+chr2	89867484	89867484	-	CACTG	hom	196	43	29	INDEL	0.7805	intergenic	MIR4436A(dist=755516),LOC654342(dist=1957225)	.	.	.	.	.	.	.	.	1167				passed	0.8	0	0.2	8	.	.
+chr2	89875305	89875305	-	AATGC	hom	31	153	12	INDEL	0.3846	intergenic	MIR4436A(dist=763337),LOC654342(dist=1949404)	.	.	.	.	.	.	.	.	861				failed	0.2	0	0.8	2	.	.
+chr2	95847041	95847043	GCG	-	hom	214	546	50	INDEL	0.8836	exonic	ZNF2	nonframeshift deletion	ZNF2:NM_021088:exon5:c.468_470del:p.156_157del,ZNF2:NM_001017396:exon4:c.342_344del:p.114_115del,	.	rs10578519	.	.	0.9877	.	.				passed	0.8	0.2	0	52	.	.
+chr2	96780985	96780985	-	CTTCCTCCT	het	217	669	50	INDEL	0.3275	exonic	ADRA2B	nonframeshift insertion	ADRA2B:NM_000682:exon1:c.902_903insAGAGGAGGA:p.E301delinsERRK,	.	.	.	.	.	.	201				passed	0.4	0.6	0	69	.	.
+chr2	97817564	97817564	-	T	hom	214	265	33	INDEL	0.7895	intronic	ANKRD36	.	.	.	rs33971912	.	.	.	.	.				passed	1	0	0	41	.	.
+chr2	112832536	112832538	AAT	-	het	217	200	50	INDEL	0.3731	exonic	TMEM87B	nonframeshift deletion	TMEM87B:NM_032824:exon5:c.498_500del:p.166_167del,	0.28	rs71385858	.	.	0.3941	.	.				passed	0.2	0.6	0.2	37	.	.
+chr2	120194651	120194651	-	CGTGTG	hom	214	914	50	INDEL	1	exonic	TMEM37	nonframeshift insertion	TMEM37:NM_183240:exon2:c.209_210insGTGTGC:p.T70delinsTCA,	.	rs33980232	.	.	.	.	.				passed	0.9	0.1	0	55	.	.
+chr2	120404630	120404630	T	-	hom	13.6	160	50	INDEL	0.2545	splicing	PCDP1(NM_001271049:exon22:c.2318+4T>-)	.	.	.	rs11349518	.	.	.	.	.				failed	0.7	0	0.3	17	.	.
+chr2	131129928	131129933	AGACGG	-	het	217	383	50	INDEL	0.6733	exonic	PTPN18	nonframeshift deletion	PTPN18:NM_014369:exon13:c.1112_1117del:p.371_373del,PTPN18:NM_001142370:exon9:c.791_796del:p.264_266del,	.	.	.	.	.	.	236				passed	0	0	1	0	.	.
+chr2	133014651	133014651	-	C	het	7.35	726	48	INDEL	0.3093	ncRNA_exonic	MIR663B	.	.	.	rs147164632	.	.	.	.	.				failed	0	0.8	0.2	25	.	.
+chr2	133015514	133015514	-	CGGG	het	217	769	42	INDEL	0.1306	ncRNA_exonic	ANKRD30BL	.	.	.	.	.	.	.	.	.				passed	0	0.9	0.1	45	.	.
+chr2	153476067	153476067	-	CCA	hom	214	93	49	INDEL	0.5038	exonic	FMNL2	nonframeshift insertion	FMNL2:NM_052905:exon15:c.1672_1673insCCA:p.P558delinsPT,	.	rs35246864	.	.	.	.	246				passed	1	0	0	47	.	.
+chr2	166810167	166810167	-	CCACCCGC	het	217	350	49	INDEL	0.4254	intronic	TTC21B	.	.	.	.	.	.	.	.	237				passed	0	0	1	1	.	.
+chr2	166810182	166810182	-	CTCACCCA	het	217	385	49	INDEL	0.3563	intronic	TTC21B	.	.	.	.	.	.	.	.	237				passed	0	0	1	1	.	.
+chr2	178494174	178494174	-	GGA	het	217	1312	50	INDEL	0.472	exonic	PDE11A	nonframeshift insertion	PDE11A:NM_001077197:exon21:c.2013_2014insTCC:p.S671delinsSP,PDE11A:NM_001077196:exon17:c.1431_1432insTCC:p.S477delinsSP,PDE11A:NM_001077358:exon19:c.1689_1690insTCC:p.S563delinsSP,PDE11A:NM_016953:exon20:c.2763_2764insTCC:p.S921delinsSP,	.	rs67772336	.	.	.	.	.				passed	0.6	0.4	0	44	.	.
+chr2	178682557	178682557	-	ACTATAA	het	217	45	49	INDEL	0.2286	intronic	PDE11A	.	.	.	rs66520183	.	.	.	.	.				passed	0.2	0.1	0.7	18	.	.
+chr2	185802208	185802208	-	AAC	het	217	167	49	INDEL	0.3588	exonic	ZNF804A	nonframeshift insertion	ZNF804A:NM_194250:exon4:c.2089_2090insACA:p.T697delinsNT,	.	rs34197025	.	.	.	.	.				passed	0.3	0.5	0.2	43	.	.
+chr2	187559048	187559048	-	CAA	hom	214	401	50	INDEL	0.4766	exonic	FAM171B	nonframeshift insertion	FAM171B:NM_177454:exon1:c.148_149insCAA:p.Q50delinsPK,	.	rs72302152	.	.	.	.	261				passed	0.4	0	0.6	24	.	.
+chr2	228560801	228560801	A	-	hom	122	420	50	INDEL	0.8862	splicing	SLC19A3(NM_025243:exon5:c.980-4T>-)	.	.	.	rs11334205	.	.	0.9993	.	.				passed	1	0	0	50	.	.
+chr2	233712227	233712229	ACA	-	het	217	604	48	INDEL	0.4298	exonic	GIGYF2	nonframeshift deletion	GIGYF2:NM_001103147:exon29:c.3693_3695del:p.1231_1232del,GIGYF2:NM_001103148:exon26:c.3612_3614del:p.1204_1205del,GIGYF2:NM_001103146:exon27:c.3630_3632del:p.1210_1211del,GIGYF2:NM_015575:exon29:c.3630_3632del:p.1210_1211del,	0.64	rs10555297	.	.	.	ID=COSM111734;OCCURENCE=1(ovary)	339				passed	0.2	0.5	0.3	219	.	.
+chr3	12046124	12046132	AGCGCCGAC	-	hom	214	63	42	INDEL	0.3636	exonic	SYN2	unknown	UNKNOWN	.	rs202010288	.	.	.	.	34				passed	0.9	0	0.1	27	.	.
+chr3	12046277	12046277	-	GCCCGCGCCGACG	hom	8.15	7	17	INDEL	0.5789	exonic	SYN2	unknown	UNKNOWN	.	.	.	.	.	.	.				failed	0	0	1	2	.	.
+chr3	12942851	12942851	C	-	hom	214	90	50	INDEL	0.6667	splicing	IQSEC1(NM_001134382:exon15:c.2976+1G>-,NM_001134382:exon16:c.2977-1G>-)	.	.	0.99	rs56387830	.	.	0.9989	.	.				passed	1	0	0	26	.	.
+chr3	14561627	14561627	-	G	hom	214	924	50	INDEL	1	exonic	GRIP2	unknown	UNKNOWN	.	rs33939411	.	.	.	.	.				passed	1	0	0	54	.	.
+chr3	40503521	40503521	-	CTGCGGCTG	het	217	271	27	INDEL	0.2952	exonic	RPL14	nonframeshift insertion	RPL14:NM_003973:exon6:c.446_447insCTGCGGCTG:p.T149delinsTCGC,RPL14:NM_001034996:exon6:c.446_447insCTGCGGCTG:p.T149delinsTCGC,	.	.	.	.	.	.	288				passed	0	0	1	0	.	.
+chr3	46501285	46501285	-	CTT	hom	214	1168	50	INDEL	0.9592	exonic	LTF	nonframeshift insertion	LTF:NM_002343:exon2:c.68_69insAAG:p.R23delinsKG,	.	.	.	.	.	.	.				passed	1	0	0	54	.	.
+chr3	46751074	46751076	AAG	-	het	217	624	50	INDEL	0.2824	exonic	TMIE	nonframeshift deletion	TMIE:NM_147196:exon4:c.367_369del:p.123_123del,	.	rs10578999	.	.	.	.	243				passed	0.5	0.3	0.2	50	.	.
+chr3	50155888	50155889	GA	-	het	31.5	890	50	INDEL	0.1151	exonic	RBM5	frameshift deletion	RBM5:NM_005778:exon25:c.2447_2448del:p.816_816del,	.	rs112672304	.	.	.	.	201				failed	0	0.5	0.5	26	.	.
+chr3	50251833	50251833	-	G	hom	214	1046	50	INDEL	0.9872	exonic	SLC38A3	frameshift insertion	SLC38A3:NM_006841:exon3:c.102_103insG:p.R34fs,	.	rs5848902	.	.	.	.	.				passed	1	0	0	55	.	.
+chr3	50306752	50306752	-	C	hom	214	305	49	INDEL	0.8028	exonic	SEMA3B	unknown	UNKNOWN	.	rs67324803	.	.	.	.	.				passed	1	0	0	34	.	.
+chr3	53324820	53324825	TGGCAC	-	hom	214	508	50	INDEL	1	splicing	DCP1A	.	.	0.99	rs66506434	.	.	0.9999	.	.				passed	1	0	0	52	.	.
+chr3	56591279	56591279	-	GGGGTAAGCA	hom	214	1423	49	INDEL	0.623	exonic	CCDC66	frameshift insertion	CCDC66:NM_001141947:exon1:c.9_10insGGGGTAAGCA:p.L3fs,	.	rs72430164	.	.	.	.	.				passed	0.5	0	0.5	27	.	.
+chr3	56650052	56650052	-	CTT	het	217	295	50	INDEL	0.4265	exonic	CCDC66	nonframeshift insertion	CCDC66:NM_001141947:exon13:c.1814_1815insCTT:p.T605delinsTF,CCDC66:NM_001012506:exon13:c.1712_1713insCTT:p.T571delinsTF,	.	rs67797937	.	.	.	.	.				passed	0	0.4	0.6	22	.	.
+chr3	73651622	73651622	A	-	hom	67.5	297	50	INDEL	0.629	intronic	PDZRN3	.	.	.	rs11343439	.	.	.	.	.				passed	0.9	0	0.1	41	.	.
+chr3	101576030	101576030	-	ACTTTTAGAAAGCTTTAATAACC	hom	214	256	49	INDEL	0.7009	splicing	NFKBIZ(NM_001005474:exon11:c.1635+3->ACTTTTAGAAAGCTTTAATAACC,NM_031419:exon10:c.1935+3->ACTTTTAGAAAGCTTTAATAACC)	.	.	.	rs33981747	.	.	.	.	.				passed	0.7	0.1	0.2	45	.	.
+chr3	113376111	113376113	TGC	-	het	217	594	50	INDEL	0.1374	exonic	KIAA2018	nonframeshift deletion	KIAA2018:NM_001009899:exon7:c.4416_4418del:p.1472_1473del,	.	rs10606566	.	.	.	.	384				passed	0.3	0.2	0.5	19	.	.
+chr3	121351316	121351316	-	GGCTCAGGCTCA	het	217	1112	49	INDEL	0.3361	exonic	HCLS1	nonframeshift insertion	HCLS1:NM_005335:exon12:c.1103_1104insTGAGCCTGAGCC:p.P368delinsLSLSP,	.	.	.	.	.	.	.				passed	0	0.6	0.4	26	.	.
+chr3	124646706	124646706	-	AAG	hom	214	954	50	INDEL	0.9371	exonic	MUC13	nonframeshift insertion	MUC13:NM_033049:exon2:c.184_185insCTT:p.F62delinsLF,	.	rs34599528	.	.	.	.	.				passed	1	0	0	53	.	.
+chr3	125725269	125725272	AACA	-	het	217	152	50	INDEL	0.371	exonic	SLC41A3	frameshift deletion	SLC41A3:NM_001008485:exon12:c.1502_1505del:p.501_502del,SLC41A3:NM_001008486:exon11:c.1394_1397del:p.465_466del,	0.16	rs138918975	.	.	0.2157	.	.				passed	0	0.7	0.3	26	.	.
+chr3	129814935	129814935	C	-	het	217	1187	46	INDEL	0.5009	exonic	ALG1L2	frameshift deletion	ALG1L2:NM_001136152:exon6:c.468delC:p.G156fs,	.	rs55800015	.	.	0.7241	.	.				passed	0.5	0.4	0.1	53	.	.
+chr3	133969437	133969437	-	G	hom	63.4	4	50	INDEL	0.6667	exonic	RYK	unknown	UNKNOWN	.	.	.	.	.	.	.				failed	0.1	0	0.9	1	.	.
+chr3	133969487	133969487	-	C	hom	49.4	4	50	INDEL	1	exonic	RYK	unknown	UNKNOWN	.	.	.	.	.	.	200				failed	0.1	0	0.9	1	.	.
+chr3	158537416	158537420	TTTTT	-	hom	214	100	47	INDEL	0.2626	intronic	MFSD1	.	.	.	rs146160361	.	.	.	.	180				passed	0.3	0.1	0.6	18	.	.
+chr3	179527459	179527459	-	A	hom	23.5	142	50	INDEL	0.2308	splicing	PEX5L(NM_016559:exon13:c.1155-4->T,NM_001256753:exon11:c.978-4->T,NM_001256751:exon12:c.1083-4->T,NM_001256754:exon13:c.1026-4->T,NM_001256750:exon13:c.1149-4->T,NM_001256752:exon12:c.1050-4->T,NM_001256756:exon12:c.579-4->T,NM_001256755:exon12:c.831-4->T)	.	.	.	rs68068515	.	.	.	.	.				failed	0.4	0	0.6	9	.	.
+chr3	183493744	183493746	GGA	-	het	217	642	50	INDEL	0.2614	exonic	YEATS2	nonframeshift deletion	YEATS2:NM_018023:exon18:c.2410_2412del:p.804_804del,	.	rs146705467	.	.	.	.	309				passed	0	0.9	0.1	39	.	.
+chr3	184429134	184429134	-	TCC	het	217	608	50	INDEL	0.3513	exonic	MAGEF1	nonframeshift insertion	MAGEF1:NM_022149:exon1:c.476_477insGGA:p.D159delinsGN,	.	rs72215688	.	.	.	.	189				passed	0.3	0.6	0.1	48	.	.
+chr3	194353773	194353773	-	CCGCCCGACCG	het	217	274	50	INDEL	0.1834	intronic	TMEM44	.	.	.	.	.	.	.	.	.				passed	0	0	1	0	.	.
+chr3	195447796	195447798	CCT	-	het	209	1013	49	INDEL	0.1723	UTR5	MUC20	.	.	0.10	rs147994480	.	.	.	.	.				passed	0	0.4	0.6	9	.	.
+chr3	195512374	195512374	-	GAT	het	217	2839	47	INDEL	0.2004	exonic	MUC4	nonframeshift insertion	MUC4:NM_018406:exon2:c.6077_6078insATC:p.S2026delinsYP,	.	rs63118461	.	.	.	.	.				passed	0	0.5	0.5	35	.	.
+chr3	195518113	195518113	-	GTCTCCTGCGTAACA	hom	214	846	50	INDEL	0.8763	exonic	MUC4	nonframeshift insertion	MUC4:NM_018406:exon2:c.338_339insTGTTACGCAGGAGAC:p.T113delinsMLRRRP,	.	.	.	.	.	.	.				passed	1	0	0	44	.	.
+chr3	197880131	197880136	GCAGCA	-	het	217	628	40	INDEL	0.0747	exonic	FAM157A	nonframeshift deletion	FAM157A:NM_001145248:exon2:c.210_215del:p.70_72del,	.	.	.	.	.	.	378				passed	0	0.1	0.9	10	.	.
+chr4	85995	85995	-	A	hom	214	197	48	INDEL	0.9691	exonic	ZNF595	unknown	UNKNOWN	.	rs61336127	.	.	.	.	.				passed	1	0	0	43	.	.
+chr4	86018	86018	-	CTTTAATAGG	hom	39.7	31	44	INDEL	1	exonic	ZNF595	unknown	UNKNOWN	.	.	.	.	.	.	.				failed	0.1	0	0.9	1	.	.
+chr4	86101	86101	-	C	hom	178	8	43	INDEL	0.8	exonic	ZNF595	unknown	UNKNOWN	.	rs58319295	.	.	.	.	.				failed	1	0	0	55	.	.
+chr4	87313	87313	-	A	hom	214	591	48	INDEL	1	exonic	ZNF595	unknown	UNKNOWN	.	rs60154095	.	.	.	.	.				passed	1	0	0	54	.	.
+chr4	1988189	1988189	-	CT	het	217	790	47	INDEL	0.5396	ncRNA_exonic	MIR943	.	.	.	rs35401110	.	.	.	.	.				passed	0	0.2	0.8	21	.	.
+chr4	49111533	49111533	-	CCCTG	hom	25.4	70	16	INDEL	0.6833	intergenic	CWH43(dist=47438),NONE(dist=NONE)	.	.	.	.	.	.	.	.	1224				failed	0.1	0	0.9	1	.	.
+chr4	88231392	88231392	-	A	hom	214	308	50	INDEL	1	splicing	HSD17B13(NM_001136230:exon6:c.704+2->T,NM_178135:exon7:c.812+2->T)	.	.	.	rs35784587	.	.	.	.	.				passed	0.3	0.4	0.3	25	.	.
+chr4	88536458	88536458	-	AGTAGTGAC	het	217	738	46	INDEL	0.2039	exonic	DSPP	stopgain SNV	DSPP:NM_014208:exon5:c.2644_2645insAGTAGTGAC:p.S882delinsKX,	.	.	.	.	.	.	402				passed	0.6	0.3	0.1	48	.	.
+chr4	88536869	88536886	AGTGACAGCAGCAATAGC	-	het	217	806	44	INDEL	0.006	exonic	DSPP	nonframeshift deletion	DSPP:NM_014208:exon5:c.3069_3086del:p.1023_1029del,	.	.	.	.	.	.	501				passed	0.6	0.3	0.1	34	.	.
+chr4	140651585	140651587	CTG	-	hom	185	9	50	INDEL	0.875	exonic	MAML3	nonframeshift deletion	MAML3:NM_018717:exon4:c.2302_2304del:p.768_768del,	.	rs5862430	.	.	.	.	255				failed	0.5	0	0.5	48	.	.
+chr4	186361925	186361930	TCTCTT	-	het	21.5	25	47	INDEL	0.2	intronic	C4orf47	.	.	.	.	.	.	.	.	.				failed	0	0	1	0	.	.
+chr4	190878538	190878538	-	T	hom	214	80	30	INDEL	0.1424	intronic	FRG1	.	.	.	rs143630097	.	.	.	.	.				passed	0.1	0	0.9	26	.	.
+chr5	271858	271869	CCGGCCCTGGGG	-	het	217	231	50	INDEL	0.4571	exonic	PDCD6	nonframeshift deletion	PDCD6:NM_001267556:exon1:c.23_34del:p.8_12del,PDCD6:NM_013232:exon1:c.23_34del:p.8_12del,PDCD6:NM_001267559:exon1:c.23_34del:p.8_12del,PDCD6:NM_001267557:exon1:c.23_34del:p.8_12del,	0.12	rs147793210	.	.	0.1172	.	.				passed	0	0.5	0.5	12	.	.
+chr5	13868104	13868104	A	-	het	11.8	181	50	INDEL	0.272	splicing	DNAH5(NM_001369:exon26:c.3835-3T>-)	.	.	.	rs35398031	.	.	0.4444	.	.				failed	0.6	0.2	0.2	23	.	.
+chr5	34925312	34925312	C	-	het	21.5	28	50	INDEL	0.175	intronic	BRIX1	.	.	.	.	.	.	.	.	.				failed	0	0	1	0	.	.
+chr5	56177849	56177851	CAA	-	het	217	421	50	INDEL	0.2528	exonic	MAP3K1	nonframeshift deletion	MAP3K1:NM_005921:exon14:c.2822_2824del:p.941_942del,	.	rs5868032	.	.	.	.	234				passed	0.5	0.5	0	47	.	.
+chr5	64070618	64070618	-	AATTATGAC	hom	214	78	50	INDEL	0.8409	splicing	CWC27(NM_005869:exon2:c.139+4->AATTATGAC)	.	.	.	rs34446165	.	.	.	.	.				passed	0.6	0.1	0.3	37	.	.
+chr5	72743296	72743296	-	GC	hom	141	5	50	INDEL	0.3636	exonic	FOXD1	unknown	UNKNOWN	.	rs35413932	.	.	.	.	233				failed	0.6	0	0.4	7	.	.
+chr5	77745853	77745853	-	A	hom	214	218	49	INDEL	0.9183	exonic	SCAMP1	unknown	UNKNOWN	.	rs66744502	.	.	.	.	.				passed	1	0	0	53	.	.
+chr5	111500825	111500825	-	AATAC	hom	214	45	50	INDEL	0.5227	intronic	EPB41L4A	.	.	.	.	.	.	.	.	.				passed	0	0	1	5	.	.
+chr5	113698632	113698632	-	GCC	hom	214	417	49	INDEL	0.6456	exonic	KCNN2	nonframeshift insertion	KCNN2:NM_021614:exon1:c.160_161insGCC:p.A54delinsGP,	.	rs34838882	.	.	.	.	.				passed	0.1	0.4	0.5	24	.	.
+chr5	135513086	135513086	-	C	hom	214	510	50	INDEL	0.925	exonic	SMAD5	unknown	UNKNOWN	.	rs33995876	.	.	.	.	.				passed	1	0	0	52	.	.
+chr5	140568034	140568034	-	A	hom	214	324	50	INDEL	0.96	exonic	PCDHB9	unknown	UNKNOWN	.	rs33974901	.	.	.	.	.				passed	1	0	0	54	.	.
+chr5	156479569	156479569	-	GTT	hom	214	2172	49	INDEL	0.9599	exonic	HAVCR1	nonframeshift insertion	HAVCR1:NM_001173393:exon4:c.476_477insAAC:p.T159delinsKP,HAVCR1:NM_001099414:exon4:c.476_477insAAC:p.T159delinsKP,HAVCR1:NM_012206:exon3:c.476_477insAAC:p.T159delinsKP,	.	.	.	.	.	.	.				passed	0.8	0	0.2	32	.	.
+chr5	156721863	156721863	-	C	hom	214	1244	50	INDEL	0.9942	exonic	CYFIP2	frameshift insertion	CYFIP2:NM_001037333:exon4:c.280_281insC:p.P94fs,CYFIP2:NM_001037332:exon4:c.280_281insC:p.P94fs,CYFIP2:NM_014376:exon4:c.280_281insC:p.P94fs,	.	rs5872508	.	.	.	.	.				passed	1	0	0	53	.	.
+chr5	158588634	158588638	AAAAA	-	het	218	79	50	INDEL	0.3396	splicing	RNF145	.	.	.	rs139682876	.	.	.	.	.				passed	0.7	0.3	0	30	.	.
+chr5	176026120	176026143	CTCAAAGACCCAGGATCCTCCTTC	-	het	217	864	50	INDEL	0.3333	exonic	GPRIN1	nonframeshift deletion	GPRIN1:NM_052899:exon2:c.693_716del:p.231_239del,	.	rs142779818	.	.	0.1906	.	.				passed	0.1	0.8	0.1	23	.	.
+chr6	16327865	16327865	-	TGC	het	105	134	48	INDEL	0.0065	exonic	ATXN1	nonframeshift insertion	ATXN1:NM_001128164:exon7:c.677_678insGCA:p.H226delinsRN,ATXN1:NM_000332:exon8:c.677_678insGCA:p.H226delinsRN,	.	.	.	.	.	.	753	601556	Ataxin-1	Spinocerebellar ataxia 1, 164400 (3)	passed	0.1	0.3	0.6	30	.	.
+chr6	16327916	16327927	TGCTGCTGCTGC	-	het	121	77	44	INDEL	0.024	exonic	ATXN1	nonframeshift deletion	ATXN1:NM_001128164:exon7:c.615_626del:p.205_209del,ATXN1:NM_000332:exon8:c.615_626del:p.205_209del,	.	.	.	.	0.0061	.	753	601556	Ataxin-1	Spinocerebellar ataxia 1, 164400 (3)	passed	0	0.1	0.9	1	.	.
+chr6	28239932	28239932	-	G	hom	214	845	50	INDEL	1	exonic	ZSCAN26	unknown	UNKNOWN	.	rs61622742	.	.	.	.	.				passed	1	0	0	53	.	.
+chr6	35108990	35108990	C	-	het	86.5	336	50	INDEL	0.4691	exonic	TCP11	frameshift deletion	TCP11:NM_001261817:exon1:c.17delG:p.G6fs,TCP11:NM_001261818:exon1:c.17delG:p.G6fs,TCP11:NM_001093728:exon1:c.17delG:p.G6fs,TCP11:NM_001261819:exon1:c.17delG:p.G6fs,	0.14	rs142993601	.	.	0.0912	ID=COSM247769;OCCURENCE=1(prostate)	.				passed	0	0.4	0.6	5	.	.
+chr6	35109033	35109040	GCGGCCTG	-	het	217	160	50	INDEL	0.2673	UTR5	TCP11	.	.	0.48	rs142118879	.	.	.	.	.				passed	0.2	0.7	0.1	14	.	.
+chr6	41754574	41754574	-	CTT	hom	214	856	50	INDEL	0.9785	exonic	PRICKLE4	nonframeshift insertion	PRICKLE4:NM_013397:exon8:c.862_863insCTT:p.L288delinsPF,	.	.	.	.	.	.	.				passed	0.3	0.1	0.6	37	.	.
+chr6	65016978	65016979	GA	-	het	217	115	50	INDEL	0.3311	splicing	EYS	.	.	.	rs35395170	.	.	.	.	198				passed	0.2	0.5	0.3	36	.	.
+chr6	101215224	101215224	A	-	hom	64.5	237	50	INDEL	0.7122	splicing	ASCC3(NM_006828:exon10:c.1396-3T>-)	.	.	.	rs11345864	.	.	.	.	.				passed	1	0	0	54	.	.
+chr6	105300263	105300263	-	AG	het	217	204	47	INDEL	0.2562	intronic	HACE1	.	.	.	.	.	.	.	.	.				passed	0.3	0.6	0.1	43	.	.
+chr6	108243119	108243119	-	AGGGAAAAA	hom	195	95	46	INDEL	0.7257	intronic	SEC63	.	.	.	.	.	.	.	.	.				passed	0.1	0	0.9	1	.	.
+chr6	116600465	116600465	-	CCA	het	217	1141	48	INDEL	0.451	exonic	TSPYL1	nonframeshift insertion	TSPYL1:NM_003309:exon1:c.528_529insGTG:p.V176delinsVW,	.	rs140644109	.	.	.	.	296	604714	Y-encoded testis-specific protein-like	Sudden infant death with dysgenesis of the testes syndrome, 608800(3)	passed	0.4	0.6	0	76	.	.
+chr6	159660780	159660797	CCACCACCCGCCGCACGA	-	hom	214	1114	45	INDEL	0.6269	exonic	FNDC1	nonframeshift deletion	FNDC1:NM_032532:exon14:c.4412_4429del:p.1471_1477del,	0.78	rs141435210	.	.	0.8723	.	333				passed	0.5	0.5	0	47	.	.
+chr6	161519351	161519356	CTGCTG	-	het	217	384	50	INDEL	0.4131	exonic	MAP3K4	nonframeshift deletion	MAP3K4:NM_005922:exon17:c.3566_3571del:p.1189_1191del,	.	.	.	.	.	.	339				passed	0	0.1	0.9	2	.	.
+chr6	170871014	170871014	-	CAG	hom	214	560	46	INDEL	0.4004	exonic	TBP	nonframeshift insertion	TBP:NM_001172085:exon2:c.130_131insCAG:p.Q44delinsPE,TBP:NM_003194:exon3:c.190_191insCAG:p.Q64delinsPE,	.	.	.	.	.	.	938	600075	TATA box binding protein	Spinocerebellar ataxia 17, 607136 (3); {Parkinson disease,susceptibility to}, 168600 (3)	passed	0.9	0	0.1	61	.	.
+chr7	1586654	1586654	-	GCC	het	217	387	50	INDEL	0.2209	exonic	TMEM184A	nonframeshift insertion	TMEM184A:NM_001097620:exon9:c.1176_1177insGGC:p.G392delinsGA,	.	.	.	.	.	.	.				passed	0.1	0.4	0.5	31	.	.
+chr7	2552881	2552881	-	GGAT	het	217	855	50	INDEL	0.1556	exonic	LFNG	stopgain SNV	LFNG:NM_001166355:exon2:c.139_140insGATG:p.D47_G48delinsGX,	.	.	.	.	.	.	405				passed	0	0.6	0.4	24	.	.
+chr7	4901466	4901466	-	CACGTCCCCCACCACCGCGACCTT	hom	214	454	49	INDEL	0.3636	UTR5	PAPOLB	.	.	.	rs71911252	.	.	.	.	.				passed	0.4	0.4	0.2	12	.	.
+chr7	5352665	5352665	-	GGAGGA	het	217	273	43	INDEL	0.3242	exonic	TNRC18	nonframeshift insertion	TNRC18:NM_001080495:exon27:c.7856_7857insCTCCTC:p.S2619delinsSPP,	.	.	.	.	.	.	1209				passed	0	0.2	0.8	4	.	.
+chr7	19184745	19184745	-	CTT	het	217	791	50	INDEL	0.3511	exonic	FERD3L	nonframeshift insertion	FERD3L:NM_152898:exon1:c.239_240insAGA:p.E80delinsEK,	.	rs138944204	.	.	.	.	263				passed	0.1	0.7	0.2	32	.	.
+chr7	28997596	28997596	-	C	hom	214	452	50	INDEL	0.9463	exonic	TRIL	unknown	UNKNOWN	.	rs5883174	.	.	.	.	.				passed	1	0	0	53	.	.
+chr7	75914934	75914934	-	C	hom	214	616	50	INDEL	0.9702	exonic	SRRM3	unknown	UNKNOWN	.	rs11402364	.	.	.	.	.				passed	1	0	0	50	.	.
+chr7	82581489	82581489	-	TCA	hom	214	376	50	INDEL	0.7113	exonic	PCLO	nonframeshift insertion	PCLO:NM_033026:exon5:c.8780_8781insTGA:p.E2927delinsVK,PCLO:NM_014510:exon5:c.8780_8781insTGA:p.E2927delinsVK,	.	rs34366668	.	.	.	.	.				passed	0.9	0.1	0	53	.	.
+chr7	90894460	90894460	-	CCG	het	217	84	50	INDEL	0.218	exonic	FZD1	nonframeshift insertion	FZD1:NM_003505:exon1:c.265_266insCCG:p.P89delinsPA,	.	.	.	.	.	.	.				passed	0	0.5	0.5	22	.	.
+chr7	100371477	100371477	-	G	het	217	876	49	INDEL	0.4322	exonic	ZAN	unknown	UNKNOWN	.	.	.	.	.	.	.				passed	0.2	0.4	0.4	30	.	.
+chr7	101200669	101200669	-	G	hom	214	1077	50	INDEL	0.9401	exonic	COL26A1	unknown	UNKNOWN	.	rs67335052	.	.	.	.	.				passed	1	0	0	52	.	.
+chr7	102575000	102575002	GAA	-	hom	214	263	50	INDEL	0.891	exonic	LRRC17	nonframeshift deletion	LRRC17:NM_005824:exon2:c.640_642del:p.214_214del,LRRC17:NM_001031692:exon2:c.640_642del:p.214_214del,	0.67	rs3832497	.	.	0.8175	.	.				passed	0.7	0.2	0.1	39	.	.
+chr7	123672457	123672459	GCT	-	het	217	55	48	INDEL	0.4583	exonic	TMEM229A	nonframeshift deletion	TMEM229A:NM_001136002:exon1:c.599_601del:p.200_201del,	.	.	.	.	.	.	333				passed	0	0.1	0.9	4	.	.
+chr7	127234141	127234142	TA	-	het	217	246	47	INDEL	0.4403	intronic	FSCN3	.	.	0.35	rs148632991	.	.	.	.	384				passed	0	0.2	0.8	2	.	.
+chr7	128533514	128533514	-	C	hom	214	1132	50	INDEL	0.9855	exonic	KCP	unknown	UNKNOWN	.	rs68069895	.	.	.	.	.				passed	1	0	0	55	.	.
+chr7	128550681	128550681	C	-	hom	214	445	50	INDEL	0.9244	splicing	KCP(NM_001135914:exon2:c.49+1G>-,NM_001135914:exon3:c.50-1G>-,NM_199349:exon2:c.49+1G>-,NM_199349:exon3:c.50-1G>-)	.	.	0.99	rs11335250	.	.	0.9995	.	.				passed	1	0	0	47	.	.
+chr7	128587352	128587381	ACTCTGCAGCCGCCCACTCTGCGGCCGCCT	-	het	217	506	49	INDEL	0.3312	exonic	IRF5	nonframeshift deletion	IRF5:NM_001098627:exon6:c.502_531del:p.168_177del,IRF5:NM_001098630:exon6:c.502_531del:p.168_177del,IRF5:NM_032643:exon6:c.502_531del:p.168_177del,IRF5:NM_001098629:exon6:c.550_579del:p.184_193del,	0.45	.	.	.	0.4851	.	.				passed	0.3	0.2	0.5	18	.	.
+chr7	131241030	131241030	-	GGCGAC	hom	214	656	49	INDEL	0.1219	exonic	PODXL	nonframeshift insertion	PODXL:NM_005397:exon1:c.89_90insGTCGCC:p.P30delinsRRP,PODXL:NM_001018111:exon1:c.89_90insGTCGCC:p.P30delinsRRP,	.	.	.	.	.	.	240				passed	0	0.3	0.7	5	.	.
+chr7	131241050	131241055	CGACGA	-	het	217	648	48	INDEL	0.4496	exonic	PODXL	nonframeshift deletion	PODXL:NM_005397:exon1:c.64_69del:p.22_23del,PODXL:NM_001018111:exon1:c.64_69del:p.22_23del,	.	.	.	.	.	.	240				passed	0	0	1	0	.	.
+chr7	137612914	137612916	TGG	-	het	217	1385	50	INDEL	0.4374	exonic	CREB3L2	nonframeshift deletion	CREB3L2:NM_194071:exon2:c.299_301del:p.100_101del,CREB3L2:NM_001253775:exon2:c.299_301del:p.100_101del,	.	rs66593747	.	.	0.6232	.	.				passed	0.4	0.5	0.1	47	.	.
+chr7	149420820	149420820	-	T	het	217	835	50	INDEL	0.4637	splicing	KRBA1(NM_032534:exon8:c.773-4->T)	.	.	.	rs11462346	.	.	.	.	.				passed	0.4	0.6	0	50	.	.
+chr7	149426305	149426305	-	C	hom	214	692	50	INDEL	0.9265	exonic	KRBA1	unknown	UNKNOWN	.	rs11424737	.	.	.	.	.				passed	1	0	0	51	.	.
+chr7	149476666	149476666	-	C	hom	214	1177	50	INDEL	0.8966	exonic;splicing	SSPO;SSPO(NM_198455:exon9:c.1116+3->C)	frameshift insertion	SSPO:NM_198455:exon10:c.1117_1118insC:p.P373fs,	.	rs57553723	.	.	.	.	.				passed	1	0	0	54	.	.
+chr7	149506211	149506211	-	C	hom	214	1148	50	INDEL	0.984	exonic	SSPO	frameshift insertion	SSPO:NM_198455:exon63:c.9204_9205insC:p.S3068fs,	.	rs71194663	.	.	.	.	.				passed	1	0	0	54	.	.
+chr7	150713902	150713902	-	C	hom	214	1092	50	INDEL	0.9888	exonic	ATG9B	unknown	UNKNOWN	.	rs56128050	.	.	.	.	.				passed	1	0	0	55	.	.
+chr8	8234869	8234869	-	GCCGCT	het	217	976	49	INDEL	0.3423	exonic	SGK223	nonframeshift insertion	SGK223:NM_001080826:exon2:c.1050_1051insAGCGGC:p.G350delinsGAA,	.	rs35972623	.	.	.	.	.				passed	0.1	0.7	0.2	18	.	.
+chr8	10467630	10467630	-	TTC	het	217	559	44	INDEL	0.5953	exonic	RP1L1	nonframeshift insertion	RP1L1:NM_178857:exon4:c.3978_3979insGAA:p.K1326delinsKK,	.	.	.	.	.	.	244				passed	0	0.1	0.9	10	.	.
+chr8	17827260	17827260	-	C	hom	214	435	50	INDEL	1	splicing	PCM1(NM_006197:exon22:c.3584+4->C)	.	.	.	rs3214087	.	.	.	.	.				passed	0.6	0.3	0.1	48	.	.
+chr8	22262229	22262234	GCTGCT	-	het	217	920	49	INDEL	0.3165	exonic	SLC39A14	nonframeshift deletion	SLC39A14:NM_001128431:exon2:c.6_11del:p.2_4del,SLC39A14:NM_001135153:exon2:c.6_11del:p.2_4del,SLC39A14:NM_001135154:exon2:c.6_11del:p.2_4del,SLC39A14:NM_015359:exon2:c.6_11del:p.2_4del,	0.30	rs111662782	.	.	0.1725	.	.				passed	0.1	0.4	0.5	19	.	.
+chr8	30620840	30620840	-	T	hom	214	830	50	INDEL	0.9235	exonic	UBXN8	unknown	UNKNOWN	.	rs67757063	.	.	.	.	.				passed	1	0	0	53	.	.
+chr8	41517958	41517958	-	G	hom	214	661	50	INDEL	0.9026	ncRNA_exonic	MIR486	.	.	.	rs59908561	.	.	.	.	.				passed	1	0	0	51	.	.
+chr8	48805816	48805816	-	G	hom	214	848	50	INDEL	1	exonic	PRKDC	unknown	UNKNOWN	.	rs33914855	.	.	.	.	.				passed	1	0	0	94	.	.
+chr8	63978659	63978659	A	-	hom	118	243	50	INDEL	0.7313	splicing	TTPA(NM_000370:exon4:c.359-3T>-)	.	.	.	rs5891887	.	.	0.9999	.	.	600415	Tocopherol, alpha, transfer protein	Ataxia with isolated vitamin E deficiency, 277460 (3)	passed	0.9	0	0.1	113	.	.
+chr8	64098730	64098730	-	G	hom	214	1026	50	INDEL	1	exonic	YTHDF3	unknown	UNKNOWN	.	rs33994594	.	.	.	.	.				passed	1	0	0	52	.	.
+chr8	65494008	65494008	-	AGCGGC	het	217	379	47	INDEL	0.1126	exonic	BHLHE22	nonframeshift insertion	BHLHE22:NM_152414:exon1:c.661_662insAGCGGC:p.S221delinsKRR,	.	.	.	.	.	.	423				passed	0	0.1	0.9	1	.	.
+chr8	65494021	65494021	-	GCA	het	217	125	47	INDEL	0.1692	exonic	BHLHE22	nonframeshift insertion	BHLHE22:NM_152414:exon1:c.674_675insGCA:p.G225delinsGH,	.	.	.	.	.	.	423				passed	0.2	0.2	0.6	7	.	.
+chr8	86126828	86126828	-	AACATT	hom	214	455	47	INDEL	1	exonic	C8orf59	nonframeshift insertion	C8orf59:NM_001099671:exon5:c.264_265insAATGTT:p.V88delinsVMF,C8orf59:NM_001099673:exon4:c.264_265insAATGTT:p.V88delinsVMF,C8orf59:NM_001099672:exon5:c.264_265insAATGTT:p.V88delinsVMF,C8orf59:NM_001099670:exon5:c.264_265insAATGTT:p.V88delinsVMF,	.	rs141613857	.	.	.	.	.				passed	1	0	0	52	.	.
+chr8	101206460	101206460	-	GAC	het	217	281	50	INDEL	0.5921	exonic	SPAG1	nonframeshift insertion	SPAG1:NM_003114:exon10:c.1060_1061insGAC:p.S354delinsRR,SPAG1:NM_172218:exon10:c.1060_1061insGAC:p.S354delinsRR,	.	rs72062044	.	.	.	.	.				passed	0.2	0.5	0.3	25	.	.
+chr8	103573011	103573037	TGCAACCCCTGCAGCCCCTGCAACCCG	-	het	217	1188	41	INDEL	0.4274	exonic	ODF1	nonframeshift deletion	ODF1:NM_024410:exon2:c.652_678del:p.218_226del,	.	.	.	.	.	.	.				passed	0	0.6	0.4	22	.	.
+chr8	109498728	109498728	-	TTTTTC	het	30.5	43	50	INDEL	0.0654	intronic	EMC2	.	.	.	.	.	.	.	.	22				failed	0	0	1	0	.	.
+chr8	120220776	120220776	G	-	hom	214	404	50	INDEL	0.9843	splicing	MAL2(NM_052886:exon1:c.64+1G>-,NM_052886:exon2:c.65-1G>-)	.	.	0.99	rs71302978	.	.	0.9944	.	.				passed	0.9	0	0.1	31	.	.
+chr8	144511954	144511959	TGGTGG	-	het	217	513	48	INDEL	0.2794	exonic	MAFA	nonframeshift deletion	MAFA:NM_201589:exon1:c.618_623del:p.206_208del,	.	.	.	.	.	.	280				passed	0	0.1	0.9	4	.	.
+chr8	145106939	145106940	CC	-	hom	214	406	50	INDEL	0.8611	splicing	OPLAH	.	.	0.99	rs141499204	.	.	0.9987	.	.				passed	1	0	0	34	.	.
+chr8	145617535	145617549	GGGGGTGCAAGGTGA	-	het	217	815	49	INDEL	0.4161	exonic	ADCK5	frameshift deletion	ADCK5:NM_174922:exon12:c.1257_1267del:p.419_423del,	0.51	rs148509143	.	.	0.3132	ID=COSM242846;OCCURENCE=2(prostate)	.				passed	0.1	0.5	0.4	31	.	.
+chr9	32986033	32986053	AAAAAAAACAAAAAAAAAAAC	-	het	119	34	41	INDEL	0.2027	intronic	APTX	.	.	.	.	.	.	.	.	276	606350	Aprataxin	Ataxia, early-onset, with oculomotor apraxia and hypoalbuminemia,208920 (3); Coenzyme Q10 deficiency, 607426 (3)	passed	0	0	1	4	.	.
+chr9	73458045	73458045	-	A	hom	51.5	223	49	INDEL	0.3719	splicing	TRPM3(NM_001007471:exon6:c.677-3->T,NM_206944:exon6:c.218-3->T,NM_020952:exon6:c.218-3->T,NM_024971:exon6:c.218-3->T,NM_206945:exon6:c.218-3->T,NM_206947:exon6:c.218-3->T,NM_206946:exon6:c.218-3->T,NM_001007470:exon6:c.218-3->T,NM_206948:exon6:c.218-3->T)	.	.	.	rs57188233	.	.	.	.	.				passed	0.8	0	0.2	25	.	.
+chr9	95237025	95237027	TCA	-	het	217	384	50	INDEL	0.125	exonic	ASPN	nonframeshift deletion	ASPN:NM_001193335:exon2:c.153_155del:p.51_52del,ASPN:NM_017680:exon2:c.153_155del:p.51_52del,	.	rs3078372	.	.	.	.	396				passed	0.4	0.3	0.3	30	.	.
+chr9	96439005	96439005	-	CCTGCCTCCACCACA	het	217	926	49	INDEL	0.5542	exonic	PHF2	nonframeshift insertion	PHF2:NM_005392:exon21:c.2963_2964insCTGCCTCCACCACAC:p.P988delinsPCLHHT,	.	.	.	.	.	.	342				passed	0	0	1	0	.	.
+chr9	100092967	100092967	-	AGGAGG	het	217	461	50	INDEL	0.2395	exonic	C9orf174	nonframeshift insertion	C9orf174:NM_020893:exon18:c.2326_2327insGAGGAG:p.E776delinsGGE,	.	.	.	.	.	.	402				passed	0.1	0.9	0	32	.	.
+chr9	115932151	115932151	-	TTC	het	217	536	50	INDEL	0.292	exonic	FKBP15	nonframeshift insertion	FKBP15:NM_015258:exon26:c.2838_2839insGAA:p.E946delinsEK,	.	.	.	.	.	.	180				passed	0	0.1	0.9	1	.	.
+chr9	132630665	132630667	GAC	-	hom	214	1132	50	INDEL	0.8174	exonic	USP20	nonframeshift deletion	USP20:NM_001110303:exon11:c.1072_1074del:p.358_358del,USP20:NM_006676:exon11:c.1072_1074del:p.358_358del,USP20:NM_001008563:exon11:c.1072_1074del:p.358_358del,	.	rs10602985	.	.	0.8795	.	.				passed	0.9	0.1	0	51	.	.
+chr9	139235482	139235482	C	-	het	164	540	49	INDEL	0.4706	exonic	GPSM1	frameshift deletion	GPSM1:NM_015597:exon9:c.1239delC:p.L413fs,	0.14	rs145729152	.	.	0.1476	.	.				passed	0	0.1	0.9	6	.	.
+chr9	139277995	139277997	GCT	-	het	217	1208	50	INDEL	0.2366	exonic	SNAPC4	nonframeshift deletion	SNAPC4:NM_003086:exon15:c.1624_1626del:p.542_542del,	.	rs147271628	.	.	.	ID=COSM247490;OCCURENCE=1(prostate),1(central_nervous_system)	384				passed	0.1	0.2	0.7	16	.	.
+chr9	141107537	141107537	-	GCA	het	218	163	38	INDEL	0.0015	exonic	FAM157B	nonframeshift insertion	FAM157B:NM_001145249:exon2:c.219_220insGCA:p.R73delinsRA,	.	.	.	.	.	.	363				passed	0	0.3	0.7	10	.	.
+chr10	3208566	3208566	-	TGGCATGCTAGGGAAGAGAGAGGAA	het	217	1143	45	INDEL	0.7403	exonic	PITRM1	frameshift insertion	PITRM1:NM_014889:exon4:c.271_272insCATTCCTCTCTCTTCCCTAGCATGC:p.Q91fs,PITRM1:NM_001242307:exon4:c.271_272insCATTCCTCTCTCTTCCCTAGCATGC:p.Q91fs,PITRM1:NM_001242309:exon3:c.175_176insCATTCCTCTCTCTTCCCTAGCATGC:p.Q59fs,	.	.	.	.	.	.	.				passed	0	0	1	1	.	.
+chr10	21805467	21805467	-	CCTCCT	het	217	555	50	INDEL	0.3415	exonic	SKIDA1	nonframeshift insertion	SKIDA1:NM_207371:exon4:c.1285_1286insAGGAGG:p.G429delinsRRG,	.	.	.	.	.	.	390				passed	0.3	0.3	0.4	26	.	.
+chr10	39125623	39125623	-	GATTGGAACGAAATC	hom	171	49	18	INDEL	0.6667	intergenic	ACTR3BP5(dist=134252),NONE(dist=NONE)	.	.	.	.	.	.	.	.	738				passed	0.7	0	0.3	8	.	.
+chr10	42380231	42380231	-	TTCGGGTTG	hom	126	266	19	INDEL	0.9589	intergenic	NONE(dist=NONE),LOC441666(dist=447083)	.	.	.	.	.	.	.	.	1038				passed	0.1	0	0.9	1	.	.
+chr10	42393090	42393090	-	AAT	het	72.5	29	21	INDEL	0.4444	intergenic	NONE(dist=NONE),LOC441666(dist=434223)	.	.	.	.	.	.	.	.	977				passed	0.5	0.4	0.1	10	.	.
+chr10	42396910	42396910	G	-	hom	214	96	31	INDEL	0.9362	intergenic	NONE(dist=NONE),LOC441666(dist=430404)	.	.	.	rs72505281	.	.	.	.	971				passed	1	0	0	11	.	.
+chr10	42530677	42530677	-	T	hom	32.2	27	21	INDEL	0.8205	intergenic	NONE(dist=NONE),LOC441666(dist=296636)	.	.	.	.	.	.	.	.	1426				failed	0.4	0	0.6	4	.	.
+chr10	42600130	42600130	-	GAATGGAAAT	het	105	50	24	INDEL	0.2281	intergenic	NONE(dist=NONE),LOC441666(dist=227182)	.	.	.	.	.	.	.	.	1013				passed	0	0.4	0.6	4	.	.
+chr10	46999592	46999592	-	AGGAGGGAG	het	217	1698	49	INDEL	0.2828	exonic	GPRIN2	nonframeshift insertion	GPRIN2:NM_014696:exon3:c.712_713insAGGAGGGAG:p.M238delinsKEGV,	.	.	.	.	.	.	.				passed	0	0	1	0	.	.
+chr10	46999608	46999608	-	AGGTGGGGG	het	217	1966	48	INDEL	0.2521	exonic	GPRIN2	nonframeshift insertion	GPRIN2:NM_014696:exon3:c.728_729insAGGTGGGGG:p.A243delinsAGGG,	.	rs67405355	.	.	.	.	.				passed	0	0.8	0.2	12	.	.
+chr10	50534970	50534970	-	ACACACCCACACAC	het	217	325	49	INDEL	0.2025	UTR3	C10orf71	.	.	.	.	.	.	.	.	342				passed	0	0	1	0	.	.
+chr10	51623052	51623052	-	T	het	217	466	37	INDEL	0.595	intronic	TIMM23	.	.	.	.	.	.	.	.	.				passed	0	1	0	11	.	.
+chr10	63977012	63977016	AAAAA	-	hom	214	122	49	INDEL	0.2254	splicing	RTKN2	.	.	.	rs148142088	.	.	.	.	.				passed	0.5	0.3	0.2	38	.	.
+chr10	66586163	66586163	-	A	hom	214	869	50	INDEL	1	ncRNA_exonic	ANXA2P3	.	.	.	rs143234037	.	.	.	.	.				passed	0.3	0.5	0.2	15	.	.
+chr10	97920099	97920099	-	C	hom	214	390	50	INDEL	1	exonic	ZNF518A	unknown	UNKNOWN	.	rs67530050	.	.	.	.	.				passed	1	0	0	53	.	.
+chr10	99804143	99804143	-	GACAACAGCAGCAAT	het	217	1100	38	INDEL	0.9155	intergenic	CRTAC1(dist=13558),R3HCC1L(dist=90238)	.	.	.	.	.	.	.	.	981				passed	0	0.4	0.6	4	.	.
+chr10	99804183	99804183	-	ACAACAGCAGCG	het	217	1843	27	INDEL	0.366	intergenic	CRTAC1(dist=13598),R3HCC1L(dist=90198)	.	.	.	.	.	.	.	.	981				passed	0	0.4	0.6	5	.	.
+chr10	99804197	99804197	-	AGCAGCAGCAAC	hom	214	1578	31	INDEL	0.3517	intergenic	CRTAC1(dist=13612),R3HCC1L(dist=90184)	.	.	.	.	.	.	.	.	981				passed	0.2	0	0.8	3	.	.
+chr10	99804219	99804219	-	ACA	hom	214	850	30	INDEL	0.8354	intergenic	CRTAC1(dist=13634),R3HCC1L(dist=90162)	.	.	.	.	.	.	.	.	981				passed	0.1	0	0.9	2	.	.
+chr10	99804261	99804261	-	ATAGCAGCA	hom	214	1060	36	INDEL	1	intergenic	CRTAC1(dist=13676),R3HCC1L(dist=90120)	.	.	.	.	.	.	.	.	981				passed	0.4	0	0.6	4	.	.
+chr10	105110744	105110744	-	GGCGGC	het	217	450	47	INDEL	0.8278	exonic	PCGF6	nonframeshift insertion	PCGF6:NM_001011663:exon1:c.80_81insGCCGCC:p.P27delinsRRP,PCGF6:NM_032154:exon1:c.80_81insGCCGCC:p.P27delinsRRP,	.	.	.	.	.	.	206				passed	0	0.1	0.9	1	.	.
+chr10	115405703	115405703	-	AA	hom	152	142	48	INDEL	0.3831	splicing	NRAP(NM_006175:exon12:c.994-4->TT,NM_198060:exon12:c.994-4->TT,NM_001261463:exon12:c.994-4->TT)	.	.	.	rs35741231	.	.	.	.	.				passed	0.5	0.3	0.2	35	.	.
+chr10	118383463	118383463	-	G	hom	214	737	50	INDEL	0.9945	exonic	PNLIPRP2	unknown	UNKNOWN	.	rs56189579	.	.	.	.	.				passed	1	0	0	52	.	.
+chr11	1092602	1092619	CCACCACTCCCAGCCCTC	-	het	217	980	42	INDEL	0.0172	exonic	MUC2	nonframeshift deletion	MUC2:NM_002457:exon30:c.4421_4438del:p.1474_1480del,	.	rs201595190	.	.	.	.	219				passed	0	0.8	0.2	39	.	.
+chr11	1212785	1212785	-	GAGCA	hom	214	374	32	INDEL	0.589	intergenic	MUC2(dist=108368),MUC5B(dist=31510)	.	.	.	.	.	.	.	.	.				passed	0	0	1	0	.	.
+chr11	1258386	1258386	-	GACGCACACGTATGCT	het	21.5	310	49	INDEL	0.4663	exonic	MUC5B	frameshift insertion	MUC5B:NM_002458:exon25:c.3290_3291insACGCACACGTATGCTG:p.R1097fs,	.	.	.	.	.	.	.				failed	0	0	1	11	.	.
+chr11	3661586	3661586	-	TGG	hom	214	688	50	INDEL	0.9438	exonic	ART5	nonframeshift insertion	ART5:NM_053017:exon2:c.73_74insCCA:p.I25delinsPI,ART5:NM_001079536:exon3:c.73_74insCCA:p.I25delinsPI,	.	.	.	.	.	.	.				passed	1	0	0	25	.	.
+chr11	4592709	4592709	-	AG	het	217	628	50	INDEL	0.3261	exonic	C11orf40	frameshift insertion	C11orf40:NM_144663:exon4:c.598_599insCT:p.C200fs,	.	.	.	.	.	.	1216				passed	0.1	0.4	0.5	23	.	.
+chr11	5172795	5172795	-	C	het	217	369	46	INDEL	0.5457	exonic	OR52A1	frameshift insertion	OR52A1:NM_012375:exon1:c.804_805insG:p.G268fs,	.	.	.	.	.	.	.				passed	0	0.5	0.5	29	.	.
+chr11	6567896	6567896	-	TGCCCTACTGCA	hom	214	893	50	INDEL	0.8787	exonic	DNHD1	nonframeshift insertion	DNHD1:NM_144666:exon21:c.5727_5728insTGCCCTACTGCA:p.A1909delinsACPTA,	.	rs35685553	.	.	.	.	.				passed	0.9	0	0.1	36	.	.
+chr11	7717197	7717206	AAAAAAAAAA	-	hom	57	12	50	INDEL	0.5172	intronic	OVCH2	.	.	.	.	.	.	.	.	2908				passed	0.1	0	0.9	2	.	.
+chr11	7717220	7717220	-	GAGAATTAGAGCCAAT	hom	146	12	48	INDEL	0.2424	exonic	OVCH2	frameshift insertion	OVCH2:NM_198185:exon11:c.1179_1180insATTGGCTCTAATTCTC:p.L393fs,	.	.	.	.	.	.	2908				passed	0.9	0	0.1	10	.	.
+chr11	14101493	14101493	-	C	hom	214	663	50	INDEL	1	exonic	SPON1	unknown	UNKNOWN	.	rs5789821	.	.	.	.	.				passed	1	0	0	52	.	.
+chr11	46342259	46342259	-	G	hom	214	714	50	INDEL	0.9434	exonic	CREB3L1	frameshift insertion	CREB3L1:NM_052854:exon12:c.1524_1525insG:p.R508fs,	.	rs67904785	.	.	.	.	.				passed	1	0	0	54	.	.
+chr11	48346661	48346669	TTGCTGATC	-	het	217	657	47	INDEL	0.3566	exonic	OR4C3	nonframeshift deletion	OR4C3:NM_001004702:exon1:c.169_177del:p.57_59del,	.	rs138704181	.	.	.	.	.				passed	0	0.9	0.1	49	.	.
+chr11	48367051	48367051	-	AG	het	217	482	46	INDEL	0.3638	exonic	OR4C45	unknown	UNKNOWN	.	rs34597308	.	.	.	.	.				passed	0	1	0	53	.	.
+chr11	48374000	48374000	-	T	het	208	309	44	INDEL	0.3879	upstream	OR4C45	.	.	.	rs66770722	.	.	.	.	.				passed	0	0.7	0.3	37	.	.
+chr11	61165732	61165732	-	A	hom	214	442	45	INDEL	0.9775	splicing	TMEM216(NM_001173991:exon5:c.432-1->A,NM_016499:exon5:c.249-1->A)	.	.	.	rs33963896	.	.	.	.	.	613277	Transmembrane protein 216	Joubert syndrome 2, 608091 (3)	passed	0.8	0.2	0	84	.	.
+chr11	66512291	66512291	-	GGC	het	83.5	142	50	INDEL	0.0278	exonic	C11orf80	nonframeshift insertion	C11orf80:NM_024650:exon1:c.78_79insGGC:p.G26delinsGG,	.	rs72214360	.	.	.	.	234				passed	0	0.1	0.9	1	.	.
+chr11	67765163	67765163	-	G	hom	214	854	50	INDEL	0.9811	exonic	UNC93B1	unknown	UNKNOWN	.	.	.	.	.	.	.	608204	UNC93, C. elegans, homolog of, B1	{Herpes simplex encephalitis, susceptibility to, 1}, 610551 (3)	passed	1	0	0	88	.	.
+chr11	67786064	67786064	-	C	hom	214	1043	50	INDEL	1	exonic	ALDH3B1	unknown	UNKNOWN	.	rs11433668	.	.	.	.	.				passed	1	0	0	56	.	.
+chr11	67789293	67789293	-	C	hom	214	866	45	INDEL	0.9066	exonic	ALDH3B1	unknown	UNKNOWN	.	rs58160034	.	.	.	.	.				passed	1	0	0	59	.	.
+chr11	67795378	67795378	-	C	hom	214	773	50	INDEL	0.964	exonic	ALDH3B1	unknown	UNKNOWN	.	rs58238184	.	.	.	.	.				passed	1	0	0	54	.	.
+chr11	76751542	76751542	T	-	hom	214	448	49	INDEL	0.9765	splicing	B3GNT6(NM_138706:exon2:c.946+1T>-,NM_138706:exon3:c.947-1T>-)	.	.	1.00	rs11292198	.	.	.	.	.				passed	1	0	0	53	.	.
+chr11	76751585	76751585	T	-	hom	119	306	50	INDEL	1	splicing	B3GNT6(NM_138706:exon3:c.988+1T>-,NM_138706:exon4:c.989-1T>-)	.	.	1.00	rs11292199	.	.	0.9997	.	.				passed	1	0	0	53	.	.
+chr11	76751604	76751604	T	-	hom	214	239	50	INDEL	1	splicing	B3GNT6(NM_138706:exon4:c.1006+1T>-,NM_138706:exon5:c.1007-1T>-)	.	.	1.00	rs11292200	.	.	1.0000	.	.				passed	1	0	0	53	.	.
+chr11	76895771	76895792	GGAGGCGGGGACACCAGGGCCT	-	het	217	423	50	INDEL	0.2758	exonic	MYO7A	frameshift deletion	MYO7A:NM_001127179:exon27:c.3514_3535del:p.1172_1179del,	0.43	rs143953991	.	.	0.3960	.	.	276903	Myosin VIIA	Usher syndrome, type 1B, 276900 (3); Deafness, autosomal recessive 2,neurosensory, 600060 (3); Deafness, autosomal dominant 11, neurosensory, 601317 (3)	passed	0	0.7	0.3	57	.	.
+chr11	76954788	76954788	-	A	hom	214	188	45	INDEL	0.8182	exonic	GDPD4	frameshift insertion	GDPD4:NM_182833:exon12:c.1191_1192insT:p.N397fs,	.	rs71272231	.	.	.	.	.				passed	0.2	0.5	0.3	31	.	.
+chr11	94699392	94699392	-	AC	het	69.5	299	49	INDEL	0.0233	intronic	CWC15	.	.	.	.	.	.	.	.	441				passed	0	0.1	0.9	4	.	.
+chr11	94699507	94699507	-	T	hom	214	488	49	INDEL	0.9692	exonic	CWC15	unknown	UNKNOWN	.	rs58529691	.	.	.	.	.				passed	1	0	0	53	.	.
+chr11	94800902	94800902	-	C	hom	214	917	50	INDEL	1	exonic	SRSF8	unknown	UNKNOWN	.	rs5793709	.	.	.	.	.				passed	1	0	0	55	.	.
+chr11	95825375	95825383	TGCTGCTGC	-	het	217	390	47	INDEL	0.3642	exonic	MAML2	nonframeshift deletion	MAML2:NM_032427:exon2:c.1812_1820del:p.604_607del,	.	rs141671766	.	.	.	.	842				passed	0.9	0	0.1	21	.	.
+chr11	102738793	102738793	-	T	hom	214	530	50	INDEL	0.9698	exonic	MMP12	unknown	UNKNOWN	.	rs35342965	.	.	.	.	.				passed	1	0	0	52	.	.
+chr11	111742146	111742146	G	-	hom	214	156	50	INDEL	0.9068	splicing	ALG9(NM_024740:exon2:c.60+1C>-,NM_024740:exon3:c.61-1C>-,NM_001077690:exon2:c.60+1C>-,NM_001077690:exon3:c.61-1C>-)	.	.	0.99	rs10708475	.	.	1.0000	.	.	606941	Alg9, yeast, homolog of	Congenital disorder of glycosylation, type Il, 608776 (3)	passed	1	0	0	63	.	.
+chr11	111853106	111853106	-	C	hom	214	306	50	INDEL	0.9867	exonic	DIXDC1	unknown	UNKNOWN	.	rs11455434	.	.	.	.	.				passed	1	0	0	52	.	.
+chr11	117789313	117789327	GGGCTGGAGATGCCT	-	hom	214	739	47	INDEL	0.4775	exonic	TMPRSS13	nonframeshift deletion	TMPRSS13:NM_001206790:exon2:c.248_262del:p.83_88del,TMPRSS13:NM_001244995:exon2:c.248_262del:p.83_88del,TMPRSS13:NM_001206789:exon2:c.248_262del:p.83_88del,TMPRSS13:NM_001077263:exon2:c.248_262del:p.83_88del,	0.74	rs201746372	.	.	0.7523	ID=COSM253906;OCCURENCE=1(urinary_tract)	.				passed	0.6	0.3	0.1	39	.	.
+chr11	118529045	118529045	-	G	hom	214	792	39	INDEL	0.956	exonic	TREH	unknown	UNKNOWN	.	rs35912300	.	.	.	.	.				passed	1	0	0	57	.	.
+chr11	118939939	118939939	-	C	hom	214	903	50	INDEL	1	exonic	VPS11	unknown	UNKNOWN	.	rs33936067	.	.	.	.	.				passed	1	0	0	53	.	.
+chr11	125452300	125452300	-	C	hom	214	248	46	INDEL	0.9008	exonic	EI24	frameshift insertion	EI24:NM_001007277:exon9:c.733_734insC:p.P245fs,	.	rs55912941	.	.	.	.	.				passed	1	0	0	52	.	.
+chr11	129991653	129991658	GAAGAG	-	het	217	316	49	INDEL	0.4227	exonic	APLP2	nonframeshift deletion	APLP2:NM_001642:exon5:c.661_666del:p.221_222del,APLP2:NM_001142276:exon5:c.661_666del:p.221_222del,APLP2:NM_001243299:exon5:c.691_696del:p.231_232del,APLP2:NM_001142277:exon5:c.661_666del:p.221_222del,	0.11	rs71750553	.	.	.	.	303				passed	0	0.2	0.8	8	.	.
+chr12	6777070	6777072	TGC	-	hom	214	609	50	INDEL	0.1933	exonic	ZNF384	nonframeshift deletion	ZNF384:NM_001135734:exon11:c.1542_1544del:p.514_515del,ZNF384:NM_001039920:exon9:c.1194_1196del:p.398_399del,ZNF384:NM_133476:exon10:c.1359_1361del:p.453_454del,	.	rs3835029	.	.	.	.	420				passed	0.6	0.4	0	33	.	.
+chr12	6938023	6938023	-	G	hom	214	274	50	INDEL	0.8072	exonic	LEPREL2	unknown	UNKNOWN	.	rs57050687	.	.	.	.	22				passed	1	0	0	22	.	.
+chr12	7045892	7045906	CAGCAGCAGCAGCAG	-	het	217	1030	48	INDEL	0.1848	exonic	ATN1	nonframeshift deletion	ATN1:NM_001940:exon5:c.1462_1476del:p.488_492del,ATN1:NM_001007026:exon5:c.1462_1476del:p.488_492del,	.	.	.	.	.	.	489	607462	Atrophin 1	Dentatorubro-pallidoluysian atrophy, 125370 (3)	passed	0	0.3	0.7	17	.	.
+chr12	7080210	7080210	-	G	hom	214	969	50	INDEL	0.9802	exonic	EMG1	unknown	UNKNOWN	.	rs60117710	.	.	.	.	.				passed	0.7	0	0.3	47	.	.
+chr12	7521564	7521565	GA	-	het	180	562	50	INDEL	0.1566	splicing	CD163L1	.	.	.	rs148414953	.	.	.	.	216				passed	0	1	0	46	.	.
+chr12	8374778	8374778	-	GAC	het	217	1573	42	INDEL	0.7157	exonic	FAM90A1	nonframeshift insertion	FAM90A1:NM_018088:exon7:c.1031_1032insCGT:p.T344delinsTS,	.	rs149653769	.	.	.	.	.				passed	0.4	0.5	0.1	55	.	.
+chr12	9572789	9572789	-	GCACCTGGAT	hom	214	249	31	INDEL	0.2514	ncRNA_exonic	DDX12P	.	.	.	rs67116278	.	.	.	.	.				passed	0.9	0	0.1	44	.	.
+chr12	9590649	9590649	-	AACCTGAGT	het	172	1138	27	INDEL	0.1985	ncRNA_exonic	DDX12P	.	.	.	rs67498691	.	.	.	.	.				passed	0	0.8	0.2	33	.	.
+chr12	9885707	9885707	-	TTAAG	het	217	290	50	INDEL	0.3738	exonic	CLECL1	frameshift insertion	CLECL1:NM_001267701:exon1:c.153_154insACTTA:p.L51fs,CLECL1:NM_001253750:exon1:c.153_154insACTTA:p.L51fs,CLECL1:NM_172004:exon1:c.153_154insACTTA:p.L51fs,	.	rs71929655	.	.	.	.	.				passed	0	0.5	0.5	32	.	.
+chr12	10217327	10217327	-	TT	hom	214	173	50	INDEL	0.8284	splicing	CLEC9A(NM_207345:exon8:c.472-4->TT)	.	.	.	rs34294014	.	.	.	.	.				passed	1	0	0	52	.	.
+chr12	11420334	11420334	G	-	hom	214	704	43	INDEL	0.8995	splicing	PRB3(NM_006249:exon5:c.725-3C>-)	.	.	.	rs3842295	.	.	.	.	.				passed	1	0	0	58	.	.
+chr12	26834805	26834805	-	ACTC	het	217	381	50	INDEL	0.4378	splicing	ITPR2(NM_002223:exon14:c.1409+2->GAGT)	.	.	.	rs72070209	.	.	.	.	.				passed	0.3	0.7	0	45	.	.
+chr12	49091972	49091972	-	AA	het	217	116	50	INDEL	0.4365	intronic	CCNT1	.	.	.	.	.	.	.	.	.				passed	0	0.3	0.7	4	.	.
+chr12	55714406	55714406	-	A	het	217	173	50	INDEL	0.3468	exonic	OR6C1	frameshift insertion	OR6C1:NM_001005182:exon1:c.24_25insA:p.T8fs,	.	rs35291292	.	.	.	.	.				passed	0.2	0.7	0.1	40	.	.
+chr12	68552042	68552042	A	-	hom	33.5	127	50	INDEL	0.3419	splicing	IFNG(NM_000619:exon3:c.115-3T>-)	.	.	.	rs2234686	.	.	.	.	.				failed	0.2	0	0.8	6	.	.
+chr12	72028608	72028608	A	-	hom	26.5	96	50	INDEL	0.4733	splicing	ZFC3H1(NM_144982:exon12:c.2239-3T>-)	.	.	.	rs34399921	.	.	.	.	.				failed	0.4	0	0.6	10	.	.
+chr12	72666481	72666483	AAG	-	het	217	247	44	INDEL	0.264	ncRNA_exonic	TRHDE-AS1	.	.	0.69	rs201267265	.	.	.	.	360				passed	0	0.7	0.3	7	.	.
+chr12	72666500	72666500	-	AGG	het	217	572	42	INDEL	0.0461	ncRNA_exonic	TRHDE-AS1	.	.	.	.	.	.	.	.	360				passed	0	0.7	0.3	7	.	.
+chr12	75816814	75816814	-	AAC	het	217	177	50	INDEL	0.3602	exonic	GLIPR1L2	nonframeshift insertion	GLIPR1L2:NM_152436:exon4:c.716_717insACA:p.D239delinsEH,	.	rs72459789	.	.	.	.	.				passed	0.3	0.5	0.2	36	.	.
+chr12	80943506	80943523	TGAAACAGGTAACTAACG	-	het	217	822	49	INDEL	0.3119	exonic	PTPRQ	frameshift deletion	PTPRQ:NM_001145026:exon22:c.3762_3769del:p.1254_1257del,	.	rs141686707	.	.	0.0620	.	.				passed	0	0.1	0.9	3	.	.
+chr12	89866055	89866064	AGAAAGAAGA	-	het	217	235	50	INDEL	0.3815	splicing	POC1B	.	.	.	rs59139895	.	.	0.4644	.	.				passed	0.2	0.5	0.3	35	.	.
+chr12	112036754	112036756	GCT	-	hom	214	83	50	INDEL	0.3333	exonic	ATXN2	nonframeshift deletion	ATXN2:NM_002973:exon1:c.563_565del:p.188_189del,	0.85	rs10560189	.	.	0.9177	.	609	601517	Ataxin-2	Spinocerebellar ataxia 2, 183090 (3)	passed	0.8	0	0.2	76	.	.
+chr12	118506328	118506330	TCC	-	het	217	772	50	INDEL	0.3364	exonic	VSIG10	nonframeshift deletion	VSIG10:NM_019086:exon8:c.1419_1421del:p.473_474del,	.	.	.	.	.	.	279				passed	0	0.1	0.9	4	.	.
+chr12	122359398	122359398	-	GAGGAGGAGGAGAAA	hom	214	458	50	INDEL	0.7485	exonic	WDR66	nonframeshift insertion	WDR66:NM_144668:exon2:c.187_188insGAGGAGGAGGAGAAA:p.E63delinsGGGGEK,WDR66:NM_001178003:exon2:c.187_188insGAGGAGGAGGAGAAA:p.E63delinsGGGGEK,	.	rs67558673	.	.	.	.	226				passed	0.3	0.4	0.3	41	.	.
+chr12	123340453	123340453	-	C	hom	214	323	49	INDEL	0.8902	splicing	HIP1R(NM_003959:exon13:c.1128+4->C)	.	.	.	rs72474035	.	.	.	.	.				passed	0.7	0.2	0.1	51	.	.
+chr12	124824722	124824722	-	GCCGCTGCT	hom	214	542	49	INDEL	0.5761	exonic	NCOR2	nonframeshift insertion	NCOR2:NM_001077261:exon38:c.5487_5488insAGCAGCGGC:p.G1829delinsGAAA,NCOR2:NM_001206654:exon38:c.5487_5488insAGCAGCGGC:p.G1829delinsGAAA,NCOR2:NM_006312:exon39:c.5517_5518insAGCAGCGGC:p.G1839delinsGAAA,	.	rs72176101	.	.	.	.	203				passed	0.6	0	0.4	43	.	.
+chr12	124887059	124887059	-	GCT	het	217	753	50	INDEL	0.1147	exonic	NCOR2	nonframeshift insertion	NCOR2:NM_001077261:exon16:c.1528_1529insAGC:p.P510delinsSP,NCOR2:NM_001206654:exon16:c.1528_1529insAGC:p.P510delinsSP,NCOR2:NM_006312:exon16:c.1531_1532insAGC:p.P511delinsSP,	.	rs67031864	.	.	.	.	426				passed	0.5	0.2	0.3	33	.	.
+chr13	52718050	52718050	-	T	hom	83.5	72	48	INDEL	0.7882	exonic	NEK3	frameshift insertion	NEK3:NM_152720:exon10:c.876_877insA:p.K292fs,NEK3:NM_001146099:exon10:c.876_877insA:p.K292fs,NEK3:NM_002498:exon10:c.876_877insA:p.K292fs,	.	rs3837575	.	.	.	.	.				passed	0.5	0.5	0	44	.	.
+chr13	60385061	60385061	-	TTAC	hom	214	110	50	INDEL	0.9008	splicing	DIAPH3(NM_001258368:exon24:c.2818-4->GTAA,NM_001258367:exon24:c.2890-4->GTAA,NM_001258366:exon25:c.2995-4->GTAA,NM_001042517:exon26:c.3028-4->GTAA,NM_001258369:exon26:c.3028-4->GTAA,NM_030932:exon20:c.2239-4->GTAA)	.	.	.	rs33982149	.	.	.	.	.				passed	0.9	0	0.1	51	.	.
+chr13	108518716	108518727	GCTGCTGCTGCT	-	het	217	572	50	INDEL	0.4201	exonic	FAM155A	nonframeshift deletion	FAM155A:NM_001080396:exon1:c.218_229del:p.73_77del,	0.09	rs3832903	.	.	0.2809	.	606				passed	0	0.3	0.7	5	.	.
+chr14	20666175	20666175	-	A	hom	198	457	50	INDEL	0.7326	exonic	OR11G2	frameshift insertion	OR11G2:NM_001005503:exon1:c.682_683insA:p.K228fs,	.	rs55781225	.	.	.	.	.				passed	0.7	0.1	0.2	49	.	.
+chr14	23371256	23371256	-	GGC	het	217	420	50	INDEL	0.2377	exonic	RBM23	nonframeshift insertion	RBM23:NM_018107:exon11:c.1131_1132insGCC:p.A377delinsAP,RBM23:NM_001077351:exon12:c.1179_1180insGCC:p.A393delinsAP,RBM23:NM_001077352:exon10:c.1077_1078insGCC:p.A359delinsAP,	.	rs66471914	.	.	.	.	.				passed	0.1	0.7	0.2	34	.	.
+chr14	23744801	23744803	CAT	-	het	217	347	50	INDEL	0.3172	exonic	HOMEZ	nonframeshift deletion	HOMEZ:NM_020834:exon2:c.1634_1636del:p.545_546del,	.	rs148005528	.	.	.	.	225				passed	0	0.2	0.8	29	.	.
+chr14	23744827	23744829	TCC	-	het	217	143	50	INDEL	0.6234	exonic	HOMEZ	nonframeshift deletion	HOMEZ:NM_020834:exon2:c.1608_1610del:p.536_537del,	.	rs67447855	.	.	.	.	252				passed	0.4	0.4	0.2	32	.	.
+chr14	24646407	24646407	-	GAA	hom	214	651	50	INDEL	0.8369	exonic	REC8	nonframeshift insertion	REC8:NM_001048205:exon8:c.682_683insGAA:p.E228delinsGK,REC8:NM_005132:exon9:c.682_683insGAA:p.E228delinsGK,	.	rs140232874	.	.	.	.	.				passed	1	0	0	52	.	.
+chr14	24769848	24769848	-	AGGAGGAGG	het	217	1038	50	INDEL	0.2046	exonic	NOP9	nonframeshift insertion	NOP9:NM_174913:exon2:c.484_485insGAGGAGGAG:p.E162delinsGGGE,	.	.	.	.	.	.	234				passed	0	0.3	0.7	9	.	.
+chr14	39784013	39784013	-	TGTGTGTGTG	hom	214	107	49	INDEL	0.5597	intronic	CTAGE5	.	.	.	.	.	.	.	.	.				passed	0	0	1	4	.	.
+chr14	63784407	63784407	-	G	hom	214	839	50	INDEL	0.9786	exonic	GPHB5	unknown	UNKNOWN	.	rs11452510	.	.	.	.	.				passed	1	0	0	58	.	.
+chr14	73957981	73957981	-	C	hom	214	391	50	INDEL	0.8951	exonic	C14orf169	unknown	UNKNOWN	.	rs33983045	.	.	.	.	.				passed	1	0	0	43	.	.
+chr14	77493762	77493767	TGCTGC	-	hom	214	922	49	INDEL	0.4056	exonic	IRF2BPL	nonframeshift deletion	IRF2BPL:NM_024496:exon1:c.369_374del:p.123_125del,	0.81	rs200317113	.	.	.	.	620				passed	0.8	0.2	0	23	.	.
+chr14	88417096	88417096	A	-	hom	47.5	150	50	INDEL	0.4879	splicing	GALC(NM_000153:exon12:c.1162-4T>-,NM_001201402:exon12:c.1084-4T>-,NM_001201401:exon11:c.1093-4T>-)	.	.	.	rs11300320	.	.	.	.	.	606890	Galactosylceraminidase	Krabbe disease, 245200 (3)	passed	1	0	0	174	.	.
+chr14	92537355	92537355	-	CTGCTGCTGCTGCTGCTGCTGCTGCTG	hom	214	644	46	INDEL	0.352	exonic	ATXN3	nonframeshift insertion	ATXN3:NM_001164777:exon3:c.112_113insCAGCAGCAGCAGCAGCAGCAGCAGCAG:p.G38delinsQQQQQQQQQG,ATXN3:NM_001164779:exon6:c.552_553insCAGCAGCAGCAGCAGCAGCAGCAGCAG:p.Q184delinsHSSSSSSSSR,ATXN3:NM_030660:exon9:c.750_751insCAGCAGCAGCAGCAGCAGCAGCAGCAG:p.Q250delinsHSSSSSSSSR,ATXN3:NM_001164780:exon7:c.378_379insCAGCAGCAGCAGCAGCAGCAGCAGCAG:p.Q126delinsHSSSSSSSSR,ATXN3:NM_004993:exon10:c.915_916insCAGCAGCAGCAGCAGCAGCAGCAGCAG:p.Q305delinsHSSSSSSSSR,ATXN3:NM_001127697:exon8:c.762_763insCAGCAGCAGCAGCAGCAGCAGCAGCAG:p.Q254delinsHSSSSSSSSR,ATXN3:NM_001164782:exon2:c.67_68insCAGCAGCAGCAGCAGCAGCAGCAGCAG:p.G23delinsQQQQQQQQQG,ATXN3:NM_001164781:exon8:c.705_706insCAGCAGCAGCAGCAGCAGCAGCAGCAG:p.Q235delinsHSSSSSSSSR,ATXN3:NM_001164776:exon4:c.277_278insCAGCAGCAGCAGCAGCAGCAGCAGCAG:p.G93delinsQQQQQQQQQG,ATXN3:NM_001127696:exon9:c.870_871insCAGCAGCAGCAGCAGCAGCAGCAGCAG:p.Q290delinsHSSSSSSSSR,ATXN3:NM_001164774:exon3:c.232_233insCAGCAGCAGCAGCAGCAGCAGCAGCAG:p.G78delinsQQQQQQQQQG,ATXN3:NM_001164778:exon6:c.430_431insCAGCAGCAGCAGCAGCAGCAGCAGCAG:p.G144delinsQQQQQQQQQG,	.	.	.	.	.	.	303	607047	Ataxin-3 (josephin)	Machado-Joseph disease, 109150 (3)	passed	0.5	0	0.5	21	.	.
+chr14	93154538	93154540	GGC	-	hom	214	752	50	INDEL	0.6053	exonic	RIN3	nonframeshift deletion	RIN3:NM_024832:exon10:c.2899_2901del:p.967_967del,	0.67	rs148538588	.	.	0.6701	.	.				passed	0.1	0.9	0	24	.	.
+chr14	105055119	105055127	GACGGGCAG	-	hom	214	808	50	INDEL	0.6382	exonic	C14orf180	frameshift deletion	C14orf180:NM_001008404:exon5:c.482_784del:p.161_161del,	0.59	rs111285011	.	.	0.2906	.	.				passed	0.3	0.2	0.5	29	.	.
+chr14	105417222	105417222	-	TTTGGGTG	het	106	87	25	INDEL	0.13	exonic	AHNAK2	synonymous SNV	AHNAK2:NM_138420:exon7:c.G4566A:p.K1522K,	.	.	.	.	.	.	.				passed	0	0	1	0	.	.
+chr15	35230934	35230934	-	TTAG	het	217	239	49	INDEL	0.2521	splicing	AQR(NM_014691:exon10:c.718+3->ACTA)	.	.	.	rs67563334	.	.	.	.	.				passed	0.6	0.3	0.1	47	.	.
+chr15	41099900	41099900	-	GGGGA	het	218	263	50	INDEL	0.7414	exonic	ZFYVE19	frameshift insertion	ZFYVE19:NM_001258420:exon1:c.113_114insGGGGA:p.W38fs,ZFYVE19:NM_001077268:exon1:c.113_114insGGGGA:p.W38fs,	.	.	.	.	.	.	.				passed	0	0	1	0	.	.
+chr15	71276481	71276483	CAA	-	het	217	462	50	INDEL	0.6874	exonic	LRRC49	nonframeshift deletion	LRRC49:NM_001199017:exon11:c.1069_1071del:p.357_357del,LRRC49:NM_001199018:exon12:c.922_924del:p.308_308del,LRRC49:NM_017691:exon11:c.1054_1056del:p.352_352del,	.	rs3834543	.	.	0.4736	.	.				passed	0.3	0.3	0.4	30	.	.
+chr15	72879654	72879654	-	TCTATTG	het	217	280	50	INDEL	0.8546	ncRNA_exonic	MIR630	.	.	.	.	.	.	.	.	.				passed	0	0	1	0	.	.
+chr15	78913068	78913070	CAG	-	het	217	600	50	INDEL	0.1855	exonic	CHRNA3	nonframeshift deletion	CHRNA3:NM_001166694:exon1:c.67_69del:p.23_23del,CHRNA3:NM_000743:exon1:c.67_69del:p.23_23del,	.	rs66793222	.	.	.	.	231				passed	0.2	0.6	0.2	19	.	.
+chr15	85438312	85438312	-	TTG	het	217	967	50	INDEL	0.2253	exonic	SLC28A1	nonframeshift insertion	SLC28A1:NM_004213:exon6:c.419_420insTTG:p.L140delinsLC,SLC28A1:NM_201651:exon6:c.419_420insTTG:p.L140delinsLC,	.	.	.	.	.	.	.				passed	0	0.7	0.3	38	.	.
+chr15	89876828	89876828	-	TGC	het	217	949	49	INDEL	0.2039	exonic	POLG	nonframeshift insertion	POLG:NM_001126131:exon2:c.158_159insGCA:p.Q53delinsRK,POLG:NM_002693:exon2:c.158_159insGCA:p.Q53delinsRK,	.	.	.	.	.	.	411	174763	Polymerase (DNA directed), gamma	Progressive external ophthalmoplegia, autosomal recessive, 258450(3); Progressive external ophthalmoplegia, autosomal dominant, 157640 (3); Mitochondrial DNA depletion syndrome 4B (MNGIE type), 613662 (3); MitochondrialDNA depletion syndrome 4A (Alpers type), 203700 (3); Mitochondrial recessive ataxia syndrome (includes SANDO and SCAE), 607459 (3)	passed	0	0.5	0.5	29	.	.
+chr15	90320121	90320144	AGGGGCAGGGGCAAGGGCAGGGGC	-	hom	214	114	48	INDEL	0.4701	exonic	MESP2	nonframeshift deletion	MESP2:NM_001039958:exon1:c.533_556del:p.178_186del,	0.77	rs200021459	.	.	0.6997	ID=COSM128727;OCCURENCE=1(upper_aerodigestive_tract)	192				passed	0.5	0	0.5	10	.	.
+chr15	93198679	93198684	TGGAGC	-	hom	214	707	46	INDEL	0.7068	exonic	FAM174B	nonframeshift deletion	FAM174B:NM_207446:exon1:c.206_211del:p.69_71del,	0.97	rs68056278	.	.	0.9883	.	.				passed	0.9	0	0.1	51	.	.
+chr15	98995052	98995052	-	T	hom	214	1387	47	INDEL	0.9932	splicing	FAM169B(NM_182562:exon6:c.367+4->A)	.	.	.	rs56374714	.	.	.	.	.				passed	1	0	0	53	.	.
+chr15	99511804	99511804	-	C	hom	214	812	45	INDEL	1	exonic	PGPEP1L	frameshift insertion	PGPEP1L:NM_001102612:exon5:c.493_494insG:p.V165fs,PGPEP1L:NM_001167902:exon5:c.331_332insG:p.V111fs,	.	rs5814920	.	.	.	.	.				passed	0.2	0.7	0.1	42	.	.
+chr15	99646108	99646108	-	G	hom	214	324	50	INDEL	1	exonic	SYNM	unknown	UNKNOWN	.	rs67855410	.	.	.	.	.				passed	1	0	0	51	.	.
+chr15	100252710	100252715	CAGCAG	-	hom	214	206	49	INDEL	0.3365	exonic	MEF2A	nonframeshift deletion	MEF2A:NM_005587:exon11:c.1234_1239del:p.412_413del,MEF2A:NM_001130927:exon10:c.1048_1053del:p.350_351del,MEF2A:NM_001171894:exon12:c.1228_1233del:p.410_411del,MEF2A:NM_001130928:exon8:c.1024_1029del:p.342_343del,MEF2A:NM_001130926:exon10:c.1228_1233del:p.410_411del,	.	.	.	.	.	.	306				passed	0.3	0.4	0.3	28	.	.
+chr15	102029686	102029686	-	GC	hom	214	54	50	INDEL	0.9273	exonic	PCSK6	unknown	UNKNOWN	.	.	.	.	.	.	265				passed	0.9	0	0.1	12	.	.
+chr16	138772	138772	-	G	hom	214	1446	50	INDEL	0.9893	exonic	NPRL3	unknown	UNKNOWN	.	rs57321480	.	.	.	.	.				passed	1	0	0	56	.	.
+chr16	1822798	1822798	-	ACCT	het	217	283	50	INDEL	0.4479	splicing	MRPS34(NM_023936:exon2:c.321+2->AGGT)	.	.	.	rs33993627	.	.	.	.	.				passed	0.3	0.4	0.3	22	.	.
+chr16	2059622	2059622	C	-	hom	214	347	49	INDEL	0.9877	splicing	ZNF598(NM_178167:exon3:c.125+1G>-,NM_178167:exon4:c.126-1G>-)	.	.	0.98	rs11366527	.	.	0.9986	.	.				passed	1	0	0	45	.	.
+chr16	3119305	3119305	-	G	het	196	602	45	INDEL	0.2857	exonic	IL32	frameshift insertion	IL32:NM_001012636:exon5:c.489_490insG:p.D163fs,IL32:NM_001012632:exon7:c.516_517insG:p.D172fs,IL32:NM_004221:exon7:c.516_517insG:p.D172fs,IL32:NM_001012634:exon6:c.456_457insG:p.D152fs,IL32:NM_001012718:exon7:c.516_517insG:p.D172fs,IL32:NM_001012631:exon8:c.516_517insG:p.D172fs,IL32:NM_001012635:exon6:c.456_457insG:p.D152fs,IL32:NM_001012633:exon8:c.345_346insG:p.D115fs,	.	.	.	.	.	.	.				passed	0	0.6	0.4	30	.	.
+chr16	24564880	24564881	TA	-	hom	206	65	50	INDEL	0.1136	splicing	RBBP6	.	.	.	rs72133882	.	.	.	ID=COSM132840;OCCURENCE=1(central_nervous_system)	.				passed	0.2	0.1	0.7	19	.	.
+chr16	24788423	24788434	GCAGCCACAGCC	-	het	60.5	347	47	INDEL	0.0508	exonic	TNRC6A	nonframeshift deletion	TNRC6A:NM_014494:exon5:c.333_344del:p.111_115del,	0.09	rs71383714	.	.	0.1895	.	564				passed	0	0.3	0.7	15	.	.
+chr16	31770696	31770696	-	A	hom	96.5	111	46	INDEL	0.8667	exonic	ZNF720	frameshift insertion	ZNF720:NM_001130913:exon5:c.381_382insA:p.X127delinsX,	.	rs34487972	.	.	.	.	545				passed	0.5	0.4	0.1	45	.	.
+chr16	67229794	67229796	CAG	-	het	36.5	170	49	INDEL	0	exonic	E2F4	nonframeshift deletion	E2F4:NM_001950:exon7:c.918_920del:p.306_307del,	.	rs112970553	.	.	0.1483	.	450				failed	0	0.1	0.9	10	.	.
+chr16	67876824	67876826	CAG	-	het	217	125	47	INDEL	0.2692	exonic	THAP11	nonframeshift deletion	THAP11:NM_020457:exon1:c.367_369del:p.123_123del,	.	rs111586870	.	.	.	.	708				passed	0	0.2	0.8	14	.	.
+chr16	72831358	72831358	-	TTGTTG	het	217	930	50	INDEL	0.178	exonic	ZFHX3	nonframeshift insertion	ZFHX3:NM_006885:exon9:c.5223_5224insCAACAA:p.Q1741delinsHNK,ZFHX3:NM_001164766:exon8:c.2481_2482insCAACAA:p.Q827delinsHNK,	.	.	.	.	.	.	387				passed	0	0.1	0.9	4	.	.
+chr16	76311602	76311602	-	T	hom	214	486	50	INDEL	0.9875	exonic	CNTNAP4	unknown	UNKNOWN	.	rs59314262	.	.	.	.	.				passed	1	0	0	51	.	.
+chr16	88599700	88599705	CTCTGG	-	hom	214	151	50	INDEL	0.7638	exonic	ZFPM1	nonframeshift deletion	ZFPM1:NM_153813:exon10:c.1334_1339del:p.445_447del,	0.97	rs149145771	.	.	0.9975	.	.				passed	1	0	0	37	.	.
+chr16	89167076	89167076	-	CCCAGGAGGCTCCCGGGAG	het	207	1256	47	INDEL	0.357	UTR5	ACSF3	.	.	.	rs67522353	.	.	.	.	.				passed	0.1	0.3	0.6	18	.	.
+chr16	89612992	89612992	A	-	het	77.5	388	50	INDEL	0.1388	intronic	SPG7	.	.	.	.	.	.	.	.	.	602783	Paraplegin	Spastic paraplegia-7, 607259 (3)	passed	0	0.1	0.9	2	.	.
+chr16	90095616	90095616	-	GCCTGCGGGGCA	het	217	923	43	INDEL	0.4695	exonic	C16orf3	nonframeshift insertion	C16orf3:NM_001214:exon1:c.133_134insGCTGCCCCGCAG:p.A45delinsAAPQA,	.	.	.	.	.	.	.				passed	0	0.4	0.6	16	.	.
+chr17	5338302	5338315	AAAACAGACAAGGC	-	het	217	703	49	INDEL	0.2776	intronic	C1QBP	.	.	0.36	rs137972227	.	.	0.2055	.	.				passed	0	0.3	0.7	17	.	.
+chr17	6555546	6555546	-	G	hom	214	635	49	INDEL	0.8783	exonic	C17orf100	frameshift insertion	C17orf100:NM_001105520:exon1:c.314_315insG:p.R105fs,	.	rs56268735	.	.	.	.	.				passed	1	0	0	49	.	.
+chr17	6928020	6928020	-	CAG	hom	214	621	50	INDEL	0.2828	exonic	BCL6B	nonframeshift insertion	BCL6B:NM_181844:exon4:c.702_703insCAG:p.S234delinsSQ,	.	rs66978918	.	.	.	.	270				passed	0.5	0.2	0.3	41	.	.
+chr17	7750178	7750178	-	ACCACC	hom	136	274	50	INDEL	0.0414	exonic	KDM6B	nonframeshift insertion	KDM6B:NM_001080424:exon9:c.753_754insACCACC:p.L251delinsLTT,	.	.	.	.	.	.	414				passed	0.3	0	0.7	19	.	.
+chr17	7751859	7751861	CAC	-	het	66.5	589	50	INDEL	0.0445	exonic	KDM6B	nonframeshift deletion	KDM6B:NM_001080424:exon11:c.2253_2255del:p.751_752del,	.	.	.	.	.	.	306				passed	0	0.1	0.9	10	.	.
+chr17	8725214	8725214	-	G	hom	214	1357	50	INDEL	0.9855	exonic	PIK3R6	unknown	UNKNOWN	.	rs56322041	.	.	.	.	.				passed	1	0	0	55	.	.
+chr17	15343525	15343525	-	CTT	hom	214	376	50	INDEL	0.8506	exonic	CDRT4	nonframeshift insertion	CDRT4:NM_001204477:exon3:c.28_29insAAG:p.V10delinsKV,	.	rs66754946	.	.	.	.	.				passed	1	0	0	55	.	.
+chr17	17039562	17039564	CAG	-	het	217	284	50	INDEL	0.1445	exonic	MPRIP	nonframeshift deletion	MPRIP:NM_015134:exon6:c.534_536del:p.178_179del,MPRIP:NM_201274:exon6:c.534_536del:p.178_179del,	.	rs3833098	.	.	.	ID=COSM249625;OCCURENCE=1(kidney)	315				passed	0.5	0.5	0	49	.	.
+chr17	17697094	17697094	-	CAG	het	217	170	49	INDEL	0.1272	exonic	RAI1	nonframeshift insertion	RAI1:NM_030665:exon3:c.832_833insCAG:p.Q278delinsPE,	.	.	.	.	.	.	369	607642	Retinoic acid-induced gene 1	Smith-Magenis syndrome, 182290 (3)	passed	0	0.1	0.9	1	.	.
+chr17	18498059	18498059	-	A	hom	5.77	26	19	INDEL	0.0189	ncRNA_exonic	CCDC144B	.	.	.	rs58487823	.	.	.	.	.				failed	0.6	0	0.4	24	.	.
+chr17	18498497	18498497	-	A	hom	14.6	88	33	INDEL	0.2346	ncRNA_splicing	CCDC144B(NR_036647:exon8:c.1886-4->T)	.	.	.	rs59933375	.	.	.	.	.				failed	0.3	0.1	0.6	17	.	.
+chr17	18874686	18874686	-	GGT	hom	214	964	48	INDEL	0.9235	exonic	FAM83G	nonframeshift insertion	FAM83G:NM_001039999:exon6:c.2458_2459insACC:p.R820delinsTR,	.	rs36060906	.	.	.	.	.				passed	0.1	0.7	0.2	38	.	.
+chr17	21156530	21156530	-	C	hom	214	245	50	INDEL	1	exonic	C17orf103	unknown	UNKNOWN	.	rs71784359	.	.	.	.	.				passed	1	0	0	23	.	.
+chr17	26684390	26684390	-	C	hom	214	241	50	INDEL	0.9048	exonic	POLDIP2	unknown	UNKNOWN	.	rs67934205	.	.	.	.	.				passed	1	0	0	41	.	.
+chr17	26692224	26692224	-	G	hom	214	861	50	INDEL	0.9727	exonic	SEBOX	frameshift insertion	SEBOX:NM_001080837:exon1:c.27_28insC:p.A9fs,	.	rs11387886	.	.	.	.	.				passed	1	0	0	56	.	.
+chr17	26699196	26699196	-	G	hom	96.5	38	47	INDEL	1	exonic	SARM1	frameshift insertion	SARM1:NM_015077:exon1:c.143_144insG:p.P48fs,	.	rs67356455	.	.	.	.	.				passed	0.7	0	0.3	8	.	.
+chr17	26699367	26699367	-	C	hom	214	451	50	INDEL	1	exonic	SARM1	frameshift insertion	SARM1:NM_015077:exon2:c.314_315insC:p.A105fs,	.	rs11437594	.	.	.	.	.				passed	1	0	0	42	.	.
+chr17	34100351	34100351	-	C	hom	214	666	50	INDEL	1	exonic	MMP28	unknown	UNKNOWN	.	rs67430205	.	.	.	.	.				passed	1	0	0	53	.	.
+chr17	39305776	39305776	-	GGCAGCAGCTGGGGC	hom	214	205	40	INDEL	0.9267	exonic	KRTAP4-5	nonframeshift insertion	KRTAP4-5:NM_033188:exon1:c.244_245insGCCCCAGCTGCTGCC:p.Q82delinsAPAAAQ,	.	rs146438235	.	.	.	.	273				passed	0.3	0.6	0.1	44	.	.
+chr17	39305800	39305800	-	AGGGGCGGCAACAGC	het	105	178	45	INDEL	0.9316	exonic	KRTAP4-5	nonframeshift insertion	KRTAP4-5:NM_033188:exon1:c.220_221insGCTGTTGCCGCCCCT:p.S74delinsAVAAPS,	.	.	.	.	.	.	273				passed	0	0	1	0	.	.
+chr17	40835820	40835820	-	T	het	217	1089	50	INDEL	0.5062	intronic	CNTNAP1	.	.	.	rs67279478	.	.	.	.	.				passed	0	0.6	0.4	37	.	.
+chr17	43192549	43192549	-	C	hom	214	1196	50	INDEL	0.9535	exonic	PLCD3	unknown	UNKNOWN	.	rs35911033	.	.	.	.	.				passed	1	0	0	56	.	.
+chr17	43364293	43364293	-	G	hom	214	605	50	INDEL	0.9458	exonic	MAP3K14	unknown	UNKNOWN	.	rs66766023	.	.	.	.	.				passed	1	0	0	50	.	.
+chr17	45234407	45234407	A	-	het	217	497	35	INDEL	0.5484	exonic	CDC27	frameshift deletion	CDC27:NM_001114091:exon7:c.714delT:p.A238fs,CDC27:NM_001256:exon7:c.714delT:p.A238fs,	.	rs112848754	.	.	.	.	.				passed	0	0.9	0.1	70	.	.
+chr17	45234760	45234760	-	A	hom	16.6	88	49	INDEL	0.1689	intronic	CDC27	.	.	.	rs11372544	.	.	.	.	.				failed	0.2	0	0.8	11	.	.
+chr17	45669428	45669428	-	A	hom	57.5	209	36	INDEL	0.1439	splicing	NPEPPS(NM_006310:exon11:c.1365+3->A)	.	.	.	.	.	.	.	.	.				passed	0.6	0	0.4	24	.	.
+chr17	46973140	46973140	G	-	hom	165	499	50	INDEL	0.8126	UTR3	ATP5G1	.	.	0.98	rs35074390	.	.	.	.	.				passed	1	0	0	54	.	.
+chr17	56833458	56833458	-	GAACCC	het	217	587	47	INDEL	0.2353	exonic	PPM1E	nonframeshift insertion	PPM1E:NM_014906:exon1:c.100_101insGAACCC:p.E34delinsGTQ,	.	rs71943149	.	.	.	.	426				passed	0	0.6	0.4	28	.	.
+chr17	61660890	61660890	G	-	hom	188	838	50	INDEL	0.9317	splicing	DCAF7(NM_005828:exon5:c.555+1G>-,NM_005828:exon6:c.556-1G>-)	.	.	.	rs66502552	.	.	0.9996	.	.				passed	1	0	0	53	.	.
+chr17	62075995	62075995	-	A	het	31.5	313	50	INDEL	0.5078	intronic	C17orf72	.	.	.	rs35627885	.	.	.	.	.				failed	0.2	0.6	0.2	9	.	.
+chr17	67193150	67193150	-	GGGGAG	het	161	52	50	INDEL	0.1212	intronic	ABCA10	.	.	.	.	.	.	.	.	354				passed	0	0.1	0.9	17	.	.
+chr17	73094073	73094075	CTC	-	hom	214	507	50	INDEL	0.8717	intronic	SLC16A5	.	.	0.35	rs71159431	.	.	.	.	.				passed	0.3	0.4	0.3	8	.	.
+chr17	73626919	73626919	-	TG	het	217	538	49	INDEL	0.5054	splicing	RECQL5(NM_004259:exon13:c.1586-2->CA)	.	.	.	.	.	.	.	.	.				passed	0.6	0.2	0.2	28	.	.
+chr17	76798549	76798554	TTTTTC	-	het	217	300	50	INDEL	0.2841	exonic	USP36	nonframeshift deletion	USP36:NM_025090:exon17:c.2874_2879del:p.958_960del,	0.36	rs71964596	.	.	0.5182	ID=COSM111726;OCCURENCE=1(ovary)	.				passed	0.6	0.4	0	39	.	.
+chr18	11689670	11689670	-	GGCCCT	het	121	20	48	INDEL	0.2333	exonic	GNAL	nonframeshift insertion	GNAL:NM_182978:exon1:c.108_109insGGCCCT:p.P36delinsPGP,	.	.	.	.	.	.	21				passed	0	0.6	0.4	16	.	.
+chr18	19100758	19100758	-	TTC	hom	214	244	50	INDEL	0.784	exonic	GREB1L	nonframeshift insertion	GREB1L:NM_001142966:exon32:c.5583_5584insTCT:p.D1861delinsDS,	.	rs139920847	.	.	.	.	.				passed	0.9	0	0.1	51	.	.
+chr18	28739495	28739495	-	AAA	het	32.5	15	50	INDEL	0.0726	splicing	DSC1(NM_004948:exon3:c.64-4->TTT,NM_024421:exon3:c.64-4->TTT)	.	.	.	.	.	.	.	.	.				failed	0.1	0.1	0.8	3	.	.
+chr18	43833702	43833702	-	CTG	het	217	607	50	INDEL	0.4509	exonic	C18orf25	nonframeshift insertion	C18orf25:NM_145055:exon4:c.938_939insCTG:p.S313delinsSC,C18orf25:NM_001008239:exon3:c.755_756insCTG:p.S252delinsSC,	.	rs148874606	.	.	.	.	.				passed	0.5	0.3	0.2	47	.	.
+chr18	48723146	48723154	GCCGCCGCG	-	hom	214	415	50	INDEL	0.5918	exonic	MEX3C	nonframeshift deletion	MEX3C:NM_016626:exon1:c.537_545del:p.179_182del,	0.33	rs147438518	.	.	0.4793	.	201				passed	0.4	0.2	0.4	27	.	.
+chr18	61326628	61326628	-	T	hom	214	361	33	INDEL	0.7121	splicing	SERPINB3(NM_006919:exon5:c.351+4->A)	.	.	.	rs11424286	.	.	.	.	.				passed	1	0	0	52	.	.
+chr18	67863849	67863849	-	TCC	hom	214	492	50	INDEL	0.9539	exonic	RTTN	nonframeshift insertion	RTTN:NM_173630:exon7:c.727_728insGAG:p.D243delinsED,	.	rs34173723	.	.	.	.	.				passed	1	0	0	50	.	.
+chr19	2340154	2340154	-	C	hom	214	777	50	INDEL	0.9627	exonic	SPPL2B	unknown	UNKNOWN	.	rs34470694	.	.	.	.	.				passed	1	0	0	56	.	.
+chr19	4499664	4499664	-	CGCCCC	het	217	431	48	INDEL	0.0054	exonic	HDGFRP2	nonframeshift insertion	HDGFRP2:NM_001001520:exon15:c.1738_1739insGCCCCC:p.L580delinsRPL,HDGFRP2:NM_032631:exon15:c.1738_1739insGCCCCC:p.L580delinsRPL,	.	.	.	.	.	.	221				passed	0	0	1	0	.	.
+chr19	4817289	4817289	-	AGG	het	217	650	50	INDEL	0.2144	exonic	TICAM1	nonframeshift insertion	TICAM1:NM_182919:exon2:c.1101_1102insCCT:p.P367delinsPL,	.	.	.	.	.	.	216				passed	0.1	0.3	0.6	12	.	.
+chr19	4954679	4954679	-	C	hom	214	173	43	INDEL	0.7185	exonic	UHRF1	unknown	UNKNOWN	.	rs55946225	.	.	.	.	.				passed	1	0	0	55	.	.
+chr19	9236699	9236699	-	ATGGT	het	217	687	50	INDEL	0.4066	exonic	OR7G3	frameshift insertion	OR7G3:NM_001001958:exon1:c.928_929insACCAT:p.S310fs,	.	rs138680298	.	.	.	.	.				passed	0	0.7	0.3	33	.	.
+chr19	11558341	11558346	GAGGAG	-	het	217	429	50	INDEL	0.3293	exonic	PRKCSH	nonframeshift deletion	PRKCSH:NM_001001329:exon11:c.937_942del:p.313_314del,PRKCSH:NM_002743:exon11:c.937_942del:p.313_314del,	.	.	.	.	.	.	435				passed	0	0.3	0.7	10	.	.
+chr19	15052984	15052984	-	ATC	hom	214	509	50	INDEL	0.884	exonic	OR7C2	nonframeshift insertion	OR7C2:NM_012377:exon1:c.684_685insATC:p.V228delinsVI,	.	rs151320992	.	.	.	.	.				passed	1	0	0	52	.	.
+chr19	15730499	15730499	-	C	hom	214	872	49	INDEL	0.9714	exonic	CYP4F8	unknown	UNKNOWN	.	rs143856292	.	.	.	.	.				passed	1	0	0	55	.	.
+chr19	16268208	16268208	A	-	hom	186	827	50	INDEL	0.9326	splicing	HSH2D(NM_032855:exon8:c.662+1A>-,NM_032855:exon9:c.663-1A>-)	.	.	.	rs5827321	.	.	.	.	.				passed	1	0	0	52	.	.
+chr19	20807177	20807177	-	A	hom	88.5	30	18	INDEL	0.9	exonic	ZNF626	frameshift insertion	ZNF626:NM_001076675:exon4:c.1505_1506insT:p.I502fs,	.	.	.	.	.	.	.				passed	0.7	0	0.3	35	.	.
+chr19	21299773	21299773	-	TAA	hom	214	314	49	INDEL	0.9605	exonic	ZNF714	stopgain SNV	ZNF714:NM_182515:exon5:c.305_306insATA:p.Y102delinsX,	.	rs139363381	.	.	.	.	.				passed	1	0	0	54	.	.
+chr19	30500119	30500121	TGA	-	het	217	949	50	INDEL	0.3019	exonic	URI1	nonframeshift deletion	URI1:NM_003796:exon8:c.894_896del:p.298_299del,URI1:NM_001252641:exon8:c.840_842del:p.280_281del,	.	rs3840928	.	.	.	.	315				passed	0.6	0.4	0	49	.	.
+chr19	35758276	35758276	-	GGA	het	217	797	50	INDEL	0.5096	exonic	LSR	nonframeshift insertion	LSR:NM_015925:exon8:c.1496_1497insGGA:p.G499delinsGE,LSR:NM_001260490:exon6:c.1229_1230insGGA:p.G410delinsGE,LSR:NM_001260489:exon8:c.1493_1494insGGA:p.G498delinsGE,LSR:NM_205835:exon7:c.1349_1350insGGA:p.G450delinsGE,LSR:NM_205834:exon9:c.1553_1554insGGA:p.G518delinsGE,	.	rs71799970	.	.	.	.	.				passed	0.5	0.5	0	50	.	.
+chr19	36002394	36002394	-	GCCACTGCTGCT	het	217	899	48	INDEL	0.2875	exonic	DMKN	nonframeshift insertion	DMKN:NM_001126058:exon5:c.837_838insAGCAGCAGTGGC:p.G279delinsGAAVA,DMKN:NM_001190348:exon5:c.837_838insAGCAGCAGTGGC:p.G279delinsGAAVA,DMKN:NM_033317:exon5:c.837_838insAGCAGCAGTGGC:p.G279delinsGAAVA,DMKN:NM_001126057:exon5:c.837_838insAGCAGCAGTGGC:p.G279delinsGAAVA,DMKN:NM_001190349:exon5:c.837_838insAGCAGCAGTGGC:p.G279delinsGAAVA,	.	.	.	.	.	.	399				passed	0	0.5	0.5	9	.	.
+chr19	36214632	36214632	-	G	hom	214	1030	50	INDEL	1	exonic	MLL4	frameshift insertion	MLL4:NM_014727:exon8:c.3059_3060insG:p.G1020fs,	.	rs11373774	.	.	.	.	.				passed	1	0	0	19	.	.
+chr19	36258938	36258938	G	-	hom	214	302	50	INDEL	1	splicing	C19orf55(NM_001039887:exon9:c.1190+1G>-,NM_001039887:exon10:c.1191-1G>-)	.	.	1.00	rs5827939	.	.	.	.	.				passed	1	0	0	49	.	.
+chr19	41095087	41095112	GAGGACAGTCCTGTCCAACAGGGAGG	-	het	217	1387	49	INDEL	0.2341	splicing	SHKBP1	.	.	.	.	.	.	.	.	.				passed	0	0.7	0.3	33	.	.
+chr19	41123093	41123093	-	G	hom	214	1615	50	INDEL	0.9936	exonic	LTBP4	unknown	UNKNOWN	.	rs59030801	.	.	.	.	.				passed	1	0	0	55	.	.
+chr19	41173893	41173898	TGCTGT	-	het	217	700	48	INDEL	0.351	exonic	NUMBL	nonframeshift deletion	NUMBL:NM_004756:exon10:c.1305_1310del:p.435_437del,	0.66	rs141662737	.	.	.	.	473				passed	0.1	0.6	0.3	37	.	.
+chr19	49657711	49657711	-	CAT	het	217	785	49	INDEL	0.1331	exonic	HRC	nonframeshift insertion	HRC:NM_002152:exon1:c.784_785insATG:p.V262delinsMV,	.	.	.	.	.	.	426				passed	0	0.1	0.9	8	.	.
+chr19	51835892	51835892	-	G	hom	214	825	50	INDEL	0.9429	exonic	VSIG10L	frameshift insertion	VSIG10L:NM_001163922:exon10:c.2576_2577insC:p.A859fs,	.	rs11402251	.	.	.	.	.				passed	1	0	0	50	.	.
+chr19	52227138	52227138	-	ACACACAC	hom	25.3	140	49	INDEL	0.2067	intronic	HAS1	.	.	.	.	.	.	.	.	360				failed	0.1	0	0.9	6	.	.
+chr19	52887247	52887247	-	CAA	het	217	222	50	INDEL	0.3925	exonic	ZNF880	nonframeshift insertion	ZNF880:NM_001145434:exon4:c.414_415insCAA:p.I138delinsIQ,	.	rs71836013	.	.	.	.	.				passed	0.1	0.9	0	39	.	.
+chr19	53454476	53454476	-	ACT	het	217	374	50	INDEL	0.4735	exonic	ZNF816	nonframeshift insertion	ZNF816:NM_001202456:exon4:c.552_553insAGT:p.I184delinsIV,ZNF816:NM_001202457:exon4:c.552_553insAGT:p.I184delinsIV,ZNF816:NM_001031665:exon5:c.552_553insAGT:p.I184delinsIV,	.	rs139421374	.	.	.	.	.				passed	0	0.7	0.3	38	.	.
+chr19	54973989	54973991	CCT	-	het	217	1170	50	INDEL	0.4625	exonic	LENG9	nonframeshift deletion	LENG9:NM_198988:exon1:c.785_787del:p.262_263del,	0.39	rs140013148	.	.	0.5551	.	.				passed	0.4	0.5	0.1	34	.	.
+chr19	55869880	55869903	GCTCCTTCATCTCGCCCCATGGCT	-	hom	214	801	49	INDEL	0.6029	exonic	FAM71E2	nonframeshift deletion	FAM71E2:NM_001145402:exon9:c.2333_2356del:p.778_786del,	0.87	rs67168196	.	.	0.8407	.	.				passed	0.6	0.4	0	52	.	.
+chr19	56089909	56089909	-	CCG	het	217	175	50	INDEL	0.4188	exonic	ZNF579	nonframeshift insertion	ZNF579:NM_152600:exon2:c.1097_1098insCGG:p.G366delinsAG,	.	rs144853314	.	.	.	.	.				passed	0.4	0.5	0.1	17	.	.
+chr19	56599438	56599440	TCG	-	het	217	411	50	INDEL	0.4916	exonic	ZNF787	nonframeshift deletion	ZNF787:NM_001002836:exon3:c.1101_1103del:p.367_368del,	0.85	rs5828672	.	.	.	.	.				passed	0.9	0.1	0	31	.	.
+chr19	57742494	57742507	GGACGAGCAGGATT	-	hom	214	376	41	INDEL	0.6375	UTR5	AURKC	.	.	0.76	rs142269286	.	.	0.6968	.	.				passed	0.4	0.4	0.2	34	.	.
+chr19	58718360	58718360	-	G	hom	214	757	49	INDEL	1	exonic	ZNF274	unknown	UNKNOWN	.	rs59557917	.	.	.	.	.				passed	1	0	0	53	.	.
+chr20	271223	271223	-	TTA	hom	214	68	50	INDEL	0.3019	splicing	C20orf96(NM_080571:exon2:c.17+2->TAA)	.	.	.	.	.	.	.	.	.				passed	0.1	0	0.9	2	.	.
+chr20	278688	278690	CGG	-	hom	214	190	50	INDEL	0.7991	exonic	ZCCHC3	nonframeshift deletion	ZCCHC3:NM_033089:exon1:c.461_463del:p.154_155del,	0.85	rs5839847	.	.	.	ID=COSM248430;OCCURENCE=2(prostate),1(large_intestine)	21				passed	1	0	0	18	.	.
+chr20	16729655	16729655	-	AGATG	hom	214	288	50	INDEL	0.836	splicing	OTOR(NM_020157:exon2:c.255+4->AGATG)	.	.	.	.	.	.	.	.	.				passed	0.9	0	0.1	41	.	.
+chr20	21186161	21186161	-	G	hom	214	868	50	INDEL	1	exonic	PLK1S1	unknown	UNKNOWN	.	rs33922131	.	.	.	.	.				passed	1	0	0	53	.	.
+chr20	25457050	25457055	CTCCCA	-	hom	214	611	47	INDEL	0.8778	exonic	NINL	nonframeshift deletion	NINL:NM_025176:exon17:c.2872_2877del:p.958_959del,	0.55	rs68078266	.	.	0.3980	.	.				passed	0.3	0.4	0.3	25	.	.
+chr20	26061751	26061751	-	TTTTA	hom	206	487	32	INDEL	0.0826	ncRNA_intronic	FAM182A	.	.	.	.	.	.	.	.	.				passed	0.5	0.2	0.3	11	.	.
+chr20	26061783	26061784	TT	-	het	127	785	36	INDEL	0.2746	ncRNA_intronic	FAM182A	.	.	.	.	.	.	.	.	189				passed	0	1	0	27	.	.
+chr20	26061831	26061831	G	-	het	21.5	1834	31	INDEL	0.2762	ncRNA_exonic	FAM182A	.	.	.	rs78032466	.	.	.	ID=COSM165993;OCCURENCE=1(breast)	.				failed	0	0.6	0.4	10	.	.
+chr20	29632674	29632674	-	A	het	104	869	37	INDEL	0.1403	ncRNA_exonic	FRG1B	.	.	.	rs57432223	.	.	.	.	.				passed	0	0.6	0.4	8	.	.
+chr20	32664866	32664866	-	AGT	hom	214	774	50	INDEL	0.9001	exonic	RALY	nonframeshift insertion	RALY:NM_016732:exon8:c.691_692insAGT:p.G231delinsEC,RALY:NM_007367:exon7:c.643_644insAGT:p.G215delinsEC,	.	.	.	.	.	.	354				passed	0	0	1	3	.	.
+chr20	35807791	35807791	-	CTTATAGACAGGGCCCCGCGGCCGGCACT	hom	214	391	49	INDEL	0.878	exonic	MROH8	unknown	UNKNOWN	.	.	.	.	.	.	.				passed	0.7	0	0.3	35	.	.
+chr20	46279837	46279839	CAG	-	het	217	351	48	INDEL	0.182	exonic	NCOA3	nonframeshift deletion	NCOA3:NM_001174087:exon20:c.3760_3762del:p.1254_1254del,NCOA3:NM_181659:exon20:c.3763_3765del:p.1255_1255del,NCOA3:NM_006534:exon20:c.3751_3753del:p.1251_1251del,NCOA3:NM_001174088:exon20:c.3736_3738del:p.1246_1246del,	0.33	rs147879509	.	.	0.3980	ID=COSM128730;OCCURENCE=1(upper_aerodigestive_tract)	657				passed	0.3	0.4	0.3	32	.	.
+chr21	11058405	11058405	-	CT	het	193	83	43	INDEL	0.1786	intronic	BAGE,BAGE2,BAGE3,BAGE4,BAGE5	.	.	.	rs75020314	.	.	.	.	.				passed	0	0.9	0.1	10	.	.
+chr21	31913982	31913982	G	-	hom	214	373	46	INDEL	0.823	exonic	KRTAP19-6	frameshift deletion	KRTAP19-6:NM_181612:exon1:c.171delC:p.F57fs,	0.76	rs146186553	.	.	0.7090	.	.				passed	0.6	0.3	0.1	47	.	.
+chr21	33691502	33691502	-	C	hom	204	214	50	INDEL	0.6643	intronic	URB1	.	.	.	rs11402028	.	.	.	.	.				passed	1	0	0	36	.	.
+chr21	34948684	34948684	-	A	hom	214	241	49	INDEL	0.8776	exonic	SON	frameshift insertion	SON:NM_138927:exon12:c.7236_7237insA:p.G2412fs,	.	rs34377180	.	.	.	.	.				passed	0.9	0	0.1	50	.	.
+chr21	34948697	34948697	A	-	hom	214	256	46	INDEL	0.948	exonic	SON	frameshift deletion	SON:NM_138927:exon12:c.7248delA:p.R2416fs,	1.00	rs34373121	.	.	.	.	.				passed	0.6	0	0.4	46	.	.
+chr21	44593841	44593841	-	CCACT	hom	214	912	36	INDEL	1	downstream	CRYAA	.	.	.	rs72034234	.	.	.	.	326				passed	0.7	0	0.3	7	.	.
+chr21	46924425	46924434	CGGCCCCCCA	-	het	217	145	50	INDEL	0.2907	exonic	COL18A1	frameshift deletion	COL18A1:NM_130445:exon34:c.2823_2824del:p.941_942del,COL18A1:NM_030582:exon33:c.3363_3364del:p.1121_1122del,	.	.	.	.	0.4018	.	23	120328	Collagen XVIII, alpha-1 polypeptide	Knobloch syndrome, type 1, 267750 (3)	passed	0	0.2	0.8	4	.	.
+chr21	47417432	47417432	-	G	hom	179	258	47	INDEL	0.6754	intronic	COL6A1	.	.	.	rs3216137	.	.	.	.	.	120220	Collagen VI, alpha-1 polypeptide	Bethlem myopathy, 158810 (3); Ullrich congenital muscular dystrophy,254090 (3); {Ossification of the posterior longitudinal spinal ligaments}, 602475 (2)	passed	0.6	0.4	0	58	.	.
+chr22	19189003	19189003	-	C	hom	214	886	50	INDEL	1	splicing	CLTCL1(NM_001835:exon24:c.3602-1->G,NM_007098:exon24:c.3602-1->G)	.	.	.	rs11386977	.	.	.	.	.				passed	1	0	0	52	.	.
+chr22	20779973	20779973	-	G	hom	214	28	45	INDEL	1	exonic	SCARF2	frameshift insertion	SCARF2:NM_182895:exon11:c.2289_2290insC:p.A763fs,SCARF2:NM_153334:exon11:c.2304_2305insC:p.A768fs,	.	rs5844419	.	.	.	.	.				passed	0.9	0	0.1	11	.	.
+chr22	20920814	20920814	-	CAG	het	217	391	49	INDEL	0.1192	exonic	MED15	nonframeshift insertion	MED15:NM_001003891:exon7:c.751_752insCAG:p.Q251delinsPE,MED15:NM_015889:exon7:c.751_752insCAG:p.Q251delinsPE,	.	rs67182670	.	.	.	.	490				passed	0	0.3	0.7	13	.	.
+chr22	23165839	23165839	-	C	hom	214	495	49	INDEL	0.9726	downstream	MIR650	.	.	.	rs5844528	.	.	.	.	.				passed	1	0	0	11	.	.
+chr22	23241754	23241754	-	A	hom	214	184	35	INDEL	0.6825	intergenic	IGLL5(dist=3741),RTDR1(dist=159839)	.	.	.	rs66963410	.	.	.	.	.				passed	0.4	0	0.6	25	.	.
+chr22	29707639	29707639	-	C	hom	214	92	50	INDEL	1	exonic	GAS2L1	unknown	UNKNOWN	.	rs59499896	.	.	.	.	.				passed	1	0	0	20	.	.
+chr22	29885568	29885568	-	AAGTCCCCTGAGAAGGCC	hom	214	804	47	INDEL	0.5923	exonic	NEFH	stopgain SNV	NEFH:NM_021076:exon4:c.1939_1940insAAGTCCCCTGAGAAGGCC:p.K647delinsKVPX,	.	.	.	.	.	.	.				passed	0.4	0.1	0.5	31	.	.
+chr22	37465386	37465390	TGGGG	-	het	217	436	50	INDEL	0.0413	splicing	TMPRSS6	.	.	0.47	rs200434923	.	.	0.4130	.	354				passed	0.1	0.7	0.2	10	.	.
+chr22	38482353	38482394	TGCGGGAGCGGGACTGGCCATCCCAGTACTCCGAGGGTGCTA	-	het	217	987	50	INDEL	0.3195	exonic	BAIAP2L2	nonframeshift deletion	BAIAP2L2:NM_025045:exon12:c.1322_1363del:p.441_455del,	.	.	.	.	0.1479	.	.				passed	0	0.5	0.5	21	.	.
+chr22	38483156	38483156	-	TCATGGGTG	het	217	1137	49	INDEL	0.365	exonic	BAIAP2L2	stopgain SNV	BAIAP2L2:NM_025045:exon11:c.1234_1235insCACCCATGA:p.N412delinsHPX,	.	.	.	.	.	.	.				passed	0	0.5	0.5	24	.	.
+chr22	38483175	38483175	-	CATGGAGGT	het	217	1142	45	INDEL	0.5292	exonic	BAIAP2L2	nonframeshift insertion	BAIAP2L2:NM_025045:exon11:c.1215_1216insACCTCCATG:p.M405delinsIPPW,	.	rs71802743	.	.	.	.	.				passed	0	0.1	0.9	4	.	.
+chr22	39496323	39496325	AAC	-	hom	214	699	45	INDEL	0.8411	exonic	APOBEC3H	nonframeshift deletion	APOBEC3H:NM_001166004:exon2:c.40_42del:p.14_14del,APOBEC3H:NM_181773:exon2:c.40_42del:p.14_14del,APOBEC3H:NM_001166002:exon2:c.40_42del:p.14_14del,APOBEC3H:NM_001166003:exon2:c.40_42del:p.14_14del,	0.30	rs140936762	.	.	0.3252	.	.				passed	0.1	0.6	0.3	33	.	.
+chr22	39777823	39777823	-	CAA	hom	214	952	50	INDEL	0.9522	exonic	SYNGR1	nonframeshift insertion	SYNGR1:NM_004711:exon4:c.606_607insCAA:p.P202delinsPQ,	.	.	.	.	.	.	.				passed	0.3	0.5	0.2	48	.	.
+chr22	45810278	45810278	-	C	hom	214	321	49	INDEL	0.8833	exonic	RIBC2	unknown	UNKNOWN	.	rs59404993	.	.	.	.	.				passed	1	0	0	52	.	.
+chrX	50121146	50121146	-	G	hom	214	318	49	INDEL	0.9309	exonic	DGKK	unknown	UNKNOWN	.	rs11415594	.	.	.	.	.				passed	1	0	0	112	.	.
+chrX	51239296	51239309	TCCTCGAGGCAGCC	-	hom	214	316	38	INDEL	0.2909	exonic	NUDT11	frameshift deletion	NUDT11:NM_018159:wholegene,	.	.	.	.	0.9486	.	.				passed	1	0	0	88	.	.
+chrX	52891620	52891620	T	-	het	137	125	44	INDEL	0.3446	UTR3	XAGE3	.	.	.	rs66488051	.	.	.	.	.				passed	0	0.6	0.4	94	.	.
+chrX	54209311	54209311	-	CGGCGA	het	132	110	49	INDEL	0.1927	exonic	FAM120C	nonframeshift insertion	FAM120C:NM_198456:exon1:c.321_322insTCGCCG:p.P107delinsPRR,FAM120C:NM_017848:exon1:c.321_322insTCGCCG:p.P107delinsPRR,	.	.	.	.	.	.	.				passed	0	0	1	0	.	.
+chrX	69898743	69898743	A	-	hom	21.5	104	49	INDEL	0.3692	splicing	TEX11(NM_031276:exon16:c.1157-4T>-,NM_001003811:exon17:c.1202-4T>-)	.	.	.	rs55853716	.	.	.	.	.				failed	0.7	0	0.3	48	.	.
+chrX	101395780	101395780	-	G	hom	214	136	36	INDEL	0.5939	exonic	TCEAL6	frameshift insertion	TCEAL6:NM_001006938:exon3:c.523_524insC:p.Q175fs,	.	rs11408120	.	.	0.9680	.	.				passed	1	0	0	111	.	.
+chrX	104464277	104464277	A	-	hom	214	492	50	INDEL	1	exonic;splicing	TEX13A;TEX13A(NM_031274:exon5:c.598+2T>-)	frameshift deletion	TEX13A:NM_031274:exon5:c.599delT:p.V200fs,	1.00	rs56000396	.	.	0.9995	.	.				passed	0.8	0	0.2	49	.	.
+chrX	114425181	114425181	-	GGAGGCCGCGCGCCCAACGCCCACAGC	het	217	326	47	INDEL	0.717	exonic	RBMXL3	nonframeshift insertion	RBMXL3:NM_001145346:exon1:c.1178_1179insGAGGCCGCGCGCCCAACGCCCACAGCG:p.R393delinsRRPRAQRPQR,	.	.	.	.	.	.	.				passed	0	0.2	0.8	2	.	.
+chrX	118603706	118603706	-	G	het	208	974	43	INDEL	0.5214	exonic	SLC25A5	frameshift insertion	SLC25A5:NM_001152:exon2:c.195_196insG:p.Q65fs,	.	.	.	.	.	.	.				passed	0	0.5	0.5	28	.	.
+chrX	119387834	119387834	-	TGA	hom	214	243	50	INDEL	0.748	exonic	ZBTB33	stopgain SNV	ZBTB33:NM_006777:exon2:c.564_565insTGA:p.S188delinsSX,ZBTB33:NM_001184742:exon3:c.564_565insTGA:p.S188delinsSX,	.	rs72413232	.	.	.	.	180				passed	0.6	0.2	0.2	65	.	.
+chrX	135474445	135474447	GAT	-	hom	214	240	46	INDEL	0.9134	exonic	GPR112	nonframeshift deletion	GPR112:NM_153834:exon17:c.7966_7968del:p.2656_2656del,	.	rs34255702	.	.	0.6067	.	.				passed	0.6	0.2	0.2	78	.	.
+chrX	135960146	135960146	-	AA	het	217	776	30	INDEL	0.469	exonic	RBMX	frameshift insertion	RBMX:NM_002139:exon4:c.315_316insTT:p.P105fs,	.	.	.	.	.	.	.				passed	0	0.5	0.5	68	.	.
+chrX	135961587	135961587	G	-	het	14.6	87	44	INDEL	0.0289	UTR5	RBMX	.	.	0.74	rs201673579	.	.	.	.	.				failed	0	0.2	0.8	50	.	.
+chrX	150349558	150349569	CACCACTGGCCA	-	hom	214	374	50	INDEL	0.8368	exonic	GPR50	nonframeshift deletion	GPR50:NM_004224:exon2:c.1503_1514del:p.501_505del,	.	rs68058591	.	.	0.3940	.	.				passed	0.2	0.2	0.6	39	.	.
+chrX	152864477	152864477	-	C	hom	214	57	47	INDEL	0.64	exonic	FAM58A	unknown	UNKNOWN	.	.	.	.	.	.	.				passed	1	0	0	80	.	.
+chrX	152864513	152864513	-	C	hom	50	16	44	INDEL	0.7647	exonic	FAM58A	unknown	UNKNOWN	.	.	.	.	.	.	.				passed	1	0	0	80	.	.

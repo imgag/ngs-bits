@@ -4,7 +4,9 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-** gene tab: add refseq/CCDS matches with links - wait for infos from Julian
+#### conversion: left-normalize (checkbox) - allow 100% matching UCSC-transcripts - wait for infos from Julian
+** gene tab: add refseq/CCDS matches with links
+** gene tab: add preferred transcripts
 * Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)
@@ -18,7 +20,7 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-** Add HGVS.c > GSvar conversion
+### search trios based on NGSD and folder, search in file system for multi-sample analysis (two check boxes)
 * sample search: add causal variants column with small variants (variant, gentype, gene list) and CNVs (variant, copy-number, genes?)
 - Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
 - Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
@@ -33,7 +35,7 @@ Tools:
 - SomaticQC: replace 'QC:?' by real qcML identifier - add to https://github.com/HUPO-PSI/mzQC (CS)
 
 External:
-** implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM): /mnt/SRV018/users/ahmattj1/dev/MultiQC/venv3/bin/multiqc -m readqc -m mappingqc -m variantqc .
+#### implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM): /mnt/SRV018/users/ahmattj1/dev/MultiQC/venv3/bin/multiqc -m readqc -m mappingqc -m variantqc .
 
 RohHunter:
 - exclude CNP regions?

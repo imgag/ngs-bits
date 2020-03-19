@@ -107,7 +107,7 @@ bool Variant::operator<(const Variant& rhs) const
 	return false;
 }
 
-QString Variant::toString(bool space_separated, int max_sequence_length) const
+QString Variant::toString(bool space_separated, int max_sequence_length, bool chr_normalized) const
 {
 	QByteArray ref = ref_;
 	QByteArray obs = obs_;
@@ -124,11 +124,11 @@ QString Variant::toString(bool space_separated, int max_sequence_length) const
 	}
 	if (space_separated)
 	{
-		return chr_.str() + " " + QString::number(start_) + " " + QString::number(end_) + " " + ref + " " + obs;
+		return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + " " + QString::number(start_) + " " + QString::number(end_) + " " + ref + " " + obs;
 	}
 	else
 	{
-		return chr_.str() + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref + ">" + obs;
+		return (chr_normalized ? chr_.strNormalized(true) : chr_.str()) + ":" + QString::number(start_) + "-" + QString::number(end_) + " " + ref + ">" + obs;
 	}
 }
 
@@ -136,23 +136,107 @@ void Variant::checkValid() const
 {
 	if (!chr_.isValid())
 	{
-		THROW(ArgumentException, "Invalid variant chromosome string in variant '" + toString());
+		THROW(ArgumentException, "Invalid variant chromosome string in variant '" + toString() + "'");
 	}
 
 	if (start_<1 || end_<1 || start_>end_)
 	{
-		THROW(ArgumentException, "Invalid variant position range in variant '" + toString());
+		THROW(ArgumentException, "Invalid variant position range in variant '" + toString() + "'");
 	}
 
 	if (ref()!="-" && !QRegExp("[ACGTN]+").exactMatch(ref()))
 	{
-		THROW(ArgumentException, "Invalid variant reference sequence in variant '" + toString());
+		THROW(ArgumentException, "Invalid variant reference sequence in variant '" + toString() + "'");
 	}
 
 	if (obs()!="-" && obs()!="." && !QRegExp("[ACGTN,]+").exactMatch(obs()))
 	{
-		THROW(ArgumentException, "Invalid variant observed sequence in variant '" + toString());
+		THROW(ArgumentException, "Invalid variant observed sequence in variant '" + toString() + "'");
 	}
+}
+
+void Variant::checkReferenceSequence(const FastaFileIndex& reference)
+{
+	if (ref_.isEmpty()) return;
+
+	Sequence seq_genome = reference.seq(chr_, start_, end_-start_+1);
+	if (seq_genome!=ref_)
+	{
+		THROW(ArgumentException, "Invalid reference sequence of variant '" + toString() + "': Variant reference sequence is '" + ref_ + "', but the genome sequence is '" + seq_genome + "'");
+	}
+}
+
+void Variant::leftAlign(const FastaFileIndex& reference)
+{
+	//skip SNVs
+	if (isSNV()) return;
+
+	//skip complex variants
+	if (obs_.length()>1 && ref_.length()>1) return;
+
+	ref_ = ref_.toUpper();
+	obs_ = obs_.toUpper();
+
+	//INSERTION
+	if (ref_=="-")
+	{
+		ref_.clear();
+
+		//block shift insertion
+		Sequence block = Variant::minBlock(obs_);
+		start_ -= block.length() - 1; //-1 because: GSvar insertions are inserted after the position
+		while(reference.seq(chr_, start_, block.length())==block)
+		{
+			start_ -= block.length();
+		}
+		start_ += block.length() - 1; //-1 because: see above
+
+		ref_ = reference.seq(chr_, start_, 1);
+		obs_ = ref_ + obs_;
+
+		//shift insertion to the left (because e.g. multiples of AGA could be multiples of AAG)
+		while(ref_==obs_.right(1))
+		{
+			start_ -= 1;
+			ref_ = reference.seq(chr_, start_, 1);
+			obs_ = ref_ + obs_.left(obs_.length()-1);
+		}
+
+		ref_ = "-";
+		obs_ = obs_.right(obs_.length()-1);
+	}
+	//DELETION (everything as a above, except ref and alt exchanged)
+	else if (obs_=="-")
+	{
+		obs_.clear();
+
+		//block shift deletion
+		Sequence block = Variant::minBlock(ref_);
+		while(reference.seq(chr_, start_, block.length())==block)
+		{
+			start_ -= block.length();
+		}
+		start_ += block.length();
+
+		//prepend prefix base
+		start_ -= 1;
+		obs_ = reference.seq(chr_, start_, 1);
+		ref_ = obs_ + ref_;
+
+		//single-base shift deletion
+		while(ref_.right(1)==obs_)
+		{
+			start_ -= 1;
+			obs_ = reference.seq(chr_, start_, 1);
+			ref_ = obs_ + ref_.left(ref_.length()-1);
+		}
+
+		obs_ = "-";
+		ref_ = ref_.right(ref_.length()-1);
+		start_ += 1;
+	}
+
+	end_ = start_ + ref_.length() - 1;
 }
 
 void Variant::normalize(const Sequence& empty_seq, bool to_gsvar_format)
@@ -1398,156 +1482,9 @@ void VariantList::leftAlign(QString ref_file, bool sort_by_quality)
 	FastaFileIndex reference(ref_file);
 
 	//init
-	for (QVector<Variant>::iterator variant = variants_.begin(); variant != variants_.end(); ++variant)
+	for (QVector<Variant>::iterator variant=variants_.begin(); variant!=variants_.end(); ++variant)
 	{
-		Chromosome chr = variant->chr();
-		int pos = variant->start();
-		Sequence ref = variant->ref().toUpper();
-		Sequence alt = variant->obs().toUpper();
-
-		//skip SNVs
-		if (variant->isSNV()) continue;
-
-		//skip SNVs disguised as indels (ACGT => AXGT)
-		if (!alt.contains(','))
-		{
-			Variant v2 = *variant;
-			v2.normalize("");
-			if (v2.isSNV())
-			{
-				variant->setStart(v2.start());
-				variant->setEnd(v2.end());
-				variant->setRef(v2.ref());
-				variant->setObs(v2.obs());
-				continue;
-			}
-		}
-
-		//normalize (remove surrounding bases)
-		QList<Sequence> alt_ma = alt.split(',');//list of alternative alleles
-		QVector<int> pos_ma(alt_ma.count(), pos);//vector with size equal to number of alleles and values of pos
-		QVector<Sequence> ref_ma(alt_ma.count(), ref);//vector with size equal to number of alleles and values of ref
-		bool complex = false;
-		bool tsv_style= false;//(e.g. deletion in VCF: "AG"->"A", deletion in tsv: "G"->"-")
-		for (int i=0; i<alt_ma.count(); ++i)
-		{
-			if(ref_ma[i]=="-")//if it is a simple insertion from a tsv-file
-			{
-				ref_ma[i]="";
-				tsv_style=true;
-			}
-			if(alt_ma[i]=="-")//if it is a simple deletion from a tsv-file
-			{
-				alt_ma[i]="";
-				tsv_style=true;
-			}
-			//remove common bases at beginning or end of ref and alt and shift pos if beginning was removed
-			Variant::normalize(pos_ma[i], ref_ma[i], alt_ma[i]);
-			//skip complex indels
-			if (ref_ma[i].length()!=0 && alt_ma[i].length()!=0)
-			{
-				complex = true;
-				break;
-			}
-		}
-
-		//skip complex variants
-		if (complex) continue;
-
-		//left-align
-		bool same_ref_ma = true;
-		for (int i=0; i<alt_ma.count(); ++i)
-		{
-			//INSERTION
-			//if the reference bases were completely included in the alt bases
-			if (ref_ma[i].length()==0)
-			{
-				//block shift insertion
-				Sequence block = Variant::minBlock(alt_ma[i]);//the normalized alt bases[i](or the smallest non-alternating part of it)
-				pos_ma[i] -= block.length();//position is moved to left by size of sequence
-				//as long as the ref matches the normalized alt, position is moved to left by size of sequence
-				while(reference.seq(chr, pos_ma[i], block.length())==block)
-				{
-					pos_ma[i] -= block.length();
-				}
-				//after the ref didn't matches the normalized alt, position is moved back to the right by size of sequence
-				pos_ma[i] += block.length();
-
-				//prepend prefix base
-				if(!tsv_style)
-				{
-					pos_ma[i] -= 1;//position is moved to left by one
-				}
-				ref_ma[i] = reference.seq(chr, pos_ma[i], 1);//ref_ma= ref base at position
-				alt_ma[i] = ref_ma[i] + alt_ma[i];//ref_ma= ref base is added to alt bases
-				//single-base shift insertion
-				//as long as the ref base at position matches the right-end base of the alt seq
-				//shift insertion to the lef (because e.g. multiples of AGA could be multiples of AAG)
-				while(ref_ma[i]==alt_ma[i].right(1))
-				{
-					pos_ma[i] -= 1;//
-					ref_ma[i] = reference.seq(chr, pos_ma[i], 1);
-					alt_ma[i] = ref_ma[i] + alt_ma[i].left(alt_ma[i].length()-1);
-				}
-				if (tsv_style)
-				{
-					ref_ma[i]="-";//VCF "G" -> TSV "-"
-					alt_ma[i]=alt_ma[i].right(alt_ma[i].length()-1);//VCF "GA" -> TSV "A"
-				}
-			}
-			//DELETION
-			//if the alternative bases were completely included in reference bases
-			//everything as a above, except ref and alt exchanged
-			else if (alt_ma[i].length()==0)
-			{
-				//block shift deletion
-				Sequence block = Variant::minBlock(ref_ma[i]);
-				while(reference.seq(chr, pos_ma[i], block.length())==block)
-				{
-					pos_ma[i] -= block.length();
-				}
-				pos_ma[i] += block.length();
-
-				//prepend prefix base
-				pos_ma[i] -= 1;
-				alt_ma[i] = reference.seq(chr, pos_ma[i], 1);
-				ref_ma[i] = alt_ma[i] + ref_ma[i];
-
-				//single-base shift deletion
-				while(ref_ma[i].right(1)==alt_ma[i])
-				{
-					pos_ma[i] -= 1;
-					alt_ma[i] = reference.seq(chr, pos_ma[i], 1);
-					ref_ma[i] = alt_ma[i] + ref_ma[i].left(ref_ma[i].length()-1);
-				}
-
-				if (tsv_style)
-				{
-					alt_ma[i]="-";//VCF "G" -> TSV "-"
-					ref_ma[i]=ref_ma[i].right(ref_ma[i].length()-1);//VCF "GA" -> TSV "A"
-					pos_ma[i] += 1;//go one base to the right, since the common "G" is not saved in TSV-entries
-				}
-			}
-
-			if (ref_ma[i]!=ref_ma[0] || pos_ma[i]!=pos_ma[0])
-			{
-				same_ref_ma = false;
-			}
-		}
-
-		//skip multi-allelic variants the have different reference sequence after normalization and left-alignment
-		if(!same_ref_ma) continue;
-
-		//save left-aligned and normalized ref,alt and pos
-		variant->setRef(ref_ma[0]);
-		variant->setStart(pos_ma[0]);
-		variant->setEnd(pos_ma[0]+ref_ma[0].length()-1);
-		alt = alt_ma[0];
-		for (int i=1; i<alt_ma.count(); ++i)//for each of multiples alt alleles
-		{
-			alt.append("," + alt_ma[i]);
-		}
-		variant->setObs(alt);
+		variant->leftAlign(reference);
 	}
 
 	//by shifting all indels to the left, we might have produced duplicates - remove them
