@@ -183,11 +183,13 @@ public:
 		return obs_.length()==1 && ref_.length()==1 && obs_!="-" && ref_!="-";
     }
     ///Returns the coordinates and base exchange as a string e.g. "chr1:3435345-3435345 A>G"
-	QString toString(bool space_separated=false, int max_sequence_length=-1) const;
+	QString toString(bool space_separated=false, int max_sequence_length=-1, bool chr_normalized=false) const;
 
 	///Checks if the variant is valid (without annotations). Throws ArgumentException if not.
 	void checkValid() const;
 
+	/// Left-align indels in repeat regions. Works for GSvar files only - assumes the variants are normalized.
+	void leftAlign(const FastaFileIndex& reference);
     /// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
 	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=false);
 	/// Returns HGVS g. notation of the variant

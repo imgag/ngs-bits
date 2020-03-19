@@ -131,13 +131,12 @@ int Transcript::cDnaToGenomic(int coord)
 	THROW(ArgumentException, "Invalid cDNA coordinate " + QString::number(coord) + " (bigger than coding region) given for transcript " + name_ +"!");
 }
 
-Variant Transcript::hgvsToVariant(QString hgvs_c)
+Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_idx)
 {
 	//init
+	const Chromosome& chr = regions()[0].chr();
 	int start = -1;
 	int end = -1;
-	int offset1 = 0;
-	int offset2 = 0;
 	Sequence ref;
 	Sequence obs;
 
@@ -149,78 +148,53 @@ Variant Transcript::hgvsToVariant(QString hgvs_c)
 	if (hgvs_c.startsWith("c.")) hgvs_c = hgvs_c.mid(2);
 	int length = hgvs_c.length();
 	if (length<4) THROW(ProgrammingException, "Invalid cDNA change '" + hgvs_c + "'!");
-	qDebug() << hgvs_c << length;
 
 	//SNV
 	if(hgvs_c[length-4].isDigit() && hgvs_c[length-3].isLetter() && hgvs_c[length-2]=='>' && hgvs_c[length-1].isLetter())
 	{
 		QString position = hgvs_c.left(length-3);
-
-		if (position.contains('+'))
+		int offset = 0;
+		hgvsParsePosition(position, start, offset);
+		start += strand_==Transcript::PLUS ? offset : -1 * offset;
+		end = start;
+		ref.append(hgvs_c[length-3].toUpper());
+		obs.append(hgvs_c[length-1].toUpper());
+	}
+	else if (hgvs_c.endsWith("dup")) //e.g. "39-286dup" or "289-102_289-100dup"
+	{
+		QString position = hgvs_c.left(hgvs_c.length()-3);
+		int pos_underscore = position.indexOf('_');
+		if (pos_underscore!=-1)
 		{
-			//qDebug() << "SNV:" << position << '+';
-			int sep_pos = position.indexOf('+');
-			start = cDnaToGenomic(position.left(sep_pos).toInt());
-			offset1 = position.mid(sep_pos+1).toInt();
-		}
-		else if (position.contains('-'))
-		{
-			//qDebug() << "SNV:" << position << '-';
-			int sep_pos = position.indexOf('-');
-			if (sep_pos==0)
-			{
-				start = cDnaToGenomic(1);
-			}
-			else
-			{
-				start = cDnaToGenomic(position.left(sep_pos).toInt());
-			}
-			offset1 = -1 * position.mid(sep_pos+1).toInt();
-		}
-		else if (position.contains('*'))
-		{
-			//qDebug() << "SNV:" << position << '*';
-			int sep_pos = position.indexOf('*');
-			if (sep_pos==0)
-			{
-				start = cDnaToGenomic(coding_regions_.baseCount());
-			}
-			else
-			{
-				start = cDnaToGenomic(position.left(sep_pos).toInt());
-			}
-			offset1 = position.mid(sep_pos+1).toInt();
+			int offset1 = 0;
+			hgvsParsePosition(position.left(pos_underscore), start, offset1);
+			start += (strand_==Transcript::PLUS ? offset1 : -1 * offset1);
+			int offset2 = 0;
+			hgvsParsePosition(position.mid(pos_underscore+1), end, offset2);
+			end += (strand_==Transcript::PLUS ? offset2 : -1 * offset2);
 		}
 		else
 		{
-			//qDebug() << "SNV:" << position << "default";
-			start = cDnaToGenomic(position.toInt());
+			int offset = 0;
+			hgvsParsePosition(position, start, offset);
+			start += (strand_==Transcript::PLUS ? offset : -1 * offset);
+			end = start;
 		}
-		end = start;
-		offset2 = offset1;
-		ref.append(hgvs_c[length-3].toUpper());
-		obs.append(hgvs_c[length-1].toUpper());
+		ref.append('-');
+		obs = genome_idx.seq(chr, start, end-start+1);
 	}
 	else
 	{
 		THROW(ArgumentException, "Unsupported cDNA change '" + hgvs_c + "'!");
 	}
 
-	if(strand_==Transcript::PLUS)
+	//convert reference
+	if(strand_==Transcript::MINUS)
 	{
-		start += offset1;
-		end += offset2;
-	}
-	else
-	{
-		start -= offset1;
-		end -= offset2;
-
-		//convert reference
 		ref = NGSHelper::changeSeq(ref, true, true);
 		obs = NGSHelper::changeSeq(obs, true, true);
 	}
-	qDebug() << start << end << ref << obs;
+	qDebug() << chr.str() << start << end << ref << obs;
 
 	//check reference length
 	int length_pos = end - start + 1;
@@ -240,7 +214,57 @@ Variant Transcript::hgvsToVariant(QString hgvs_c)
 	}
 	*/
 
-	return Variant(regions()[0].chr(), start, end, ref, obs);
+	Variant variant(chr, start, end, ref, obs);
+	variant.leftAlign(genome_idx);
+	return variant;
+}
+
+void Transcript::hgvsParsePosition(const QString& position, int& pos, int& offset)
+{
+	//determine special characters
+	int pos_plus = -1;
+	int pos_minus = -1;
+	int pos_star = -1;
+	for (int i=0; i<position.length(); ++i)
+	{
+		if (position[i]=='+')
+		{
+			pos_plus = i;
+			break;
+		}
+		else if (position[i]=='-')
+		{
+			pos_minus = i;
+			break;
+		}
+		else if (position[i]=='*')
+		{
+			pos_star = i;
+			break;
+		}
+	}
+
+	//determine offset
+	if (pos_plus!=-1)
+	{
+		pos = cDnaToGenomic(position.left(pos_plus).toInt());
+		offset = position.mid(pos_plus+1).toInt();
+	}
+	else if (pos_minus!=-1)
+	{
+		pos = cDnaToGenomic(pos_minus==0 ? 1 : position.left(pos_minus).toInt());
+		offset = -1 * position.mid(pos_minus+1).toInt();
+	}
+	else if (pos_star!=-1)
+	{
+		pos = cDnaToGenomic(pos_star==0 ? coding_regions_.baseCount() : position.left(pos_star).toInt());
+		offset = position.mid(pos_star+1).toInt();
+	}
+	else
+	{
+		pos = cDnaToGenomic(position.toInt());
+		offset = 0;
+	}
 }
 
 
@@ -309,24 +333,6 @@ Variant Transcript::hgvsToVariant(QString hgvs_c)
 		if(empty($ref))	$ref = get_ref_seq($build,$chr,$start,$end);
 		if($strand=="-")	$ref = rev_comp ($ref);
 		$obs = $matches["obs"];
-	}
-	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?dup(?<obs>[CATG]+)?$/i",$cdna,$matches)!=0)	//Duplication
-	{
-		if(empty($matches["end"]))	$matches["end"] = $matches["start"];
-
-		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
-		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
-		else	$e = $result;
-
-		if($strand == "+")	$end = --$start;
-		if($strand == "-")	$start = $end;
-		//if on - strand move insertion to the right
-		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
-		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
-		$ref = "-";
-		$obs = get_ref_seq($build,$chr,$start,$end);
-		if(!empty($matches["obs"]))	$obs = $matches["obs"];
-		if(strlen($obs)==1)	$start=--$end;
 	}
 
 */

@@ -22,63 +22,11 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		VariantList vl;
-		vl.load(TESTDATA("data_in/LeftAlign_in1.vcf"));
-		vl.leftAlign(ref_file, true);
-		vl.store("out/LeftAlign_out1.vcf");
-		COMPARE_FILES("out/LeftAlign_out1.vcf", TESTDATA("data_out/LeftAlign_out1.vcf"));
-
-		VCF_IS_VALID("out/LeftAlign_out1.vcf")
-	}
-
-	void leftAlign02()
-	{
-		QString ref_file = Settings::string("reference_genome");
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-
-		VariantList vl;
-		vl.load(TESTDATA("data_in/LeftAlign_in2.vcf"));
-		vl.checkValid();
-		vl.leftAlign(ref_file, true);
-		vl.store("out/LeftAlign_out2.vcf");
-		COMPARE_FILES("out/LeftAlign_out2.vcf", TESTDATA("data_out/LeftAlign_out2.vcf"));
-
-		VCF_IS_VALID("out/LeftAlign_out2.vcf")
-	}
-
-	void leftAlign03()
-	{
-		QString ref_file = Settings::string("reference_genome");
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-
-		VariantList vl;
-		vl.load(TESTDATA("data_in/LeftAlign_in.tsv"));
+		vl.load(TESTDATA("data_in/LeftAlign_in.GSvar"));
 		vl.checkValid();
 		vl.leftAlign(ref_file, false);
-		vl.store("out/LeftAlign_out.tsv");
-		COMPARE_FILES("out/LeftAlign_out.tsv", TESTDATA("data_out/LeftAlign_out.tsv"));
-	}
-
-	void leftAlign04()
-	{
-		QString ref_file = Settings::string("reference_genome");
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-
-		VariantList vl;
-		vl.load(TESTDATA("data_in/LeftAlign_in4.vcf"));
-		vl.checkValid();
-		vl.leftAlign(ref_file, true);
-		vl.store("out/LeftAlign_out4.vcf");
-		COMPARE_FILES("out/LeftAlign_out4.vcf", TESTDATA("data_out/LeftAlign_out4.vcf"));
-	}
-
-	//check that it works with empty variant lists
-	void leftAlign_Empty()
-	{
-		QString ref_file = Settings::string("reference_genome");
-		if (ref_file=="") SKIP("Test needs the reference genome!");
-
-		VariantList vl;
-		vl.leftAlign(ref_file, true);
+		vl.store("out/LeftAlign_out.GSvar");
+		COMPARE_FILES("out/LeftAlign_out.GSvar", TESTDATA("data_out/LeftAlign_out.GSvar"));
 	}
 
 	void removeDuplicates_VCF()

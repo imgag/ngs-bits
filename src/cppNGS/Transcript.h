@@ -94,7 +94,7 @@ public:
 	int cDnaToGenomic(int cdna_cordinate);
 
 	///Converts a HGVS cDNA change to a variant in GSvar format.
-	Variant hgvsToVariant(QString hgvs_c);
+	Variant hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_idx);
 
 protected:
     QByteArray name_;
@@ -104,6 +104,8 @@ protected:
 	int coding_start_;
 	int coding_end_;
 	BedFile coding_regions_;
+
+	void hgvsParsePosition(const QString& position, int& pos, int& offset);
 };
 
 #endif // TRANSCRIPT_H

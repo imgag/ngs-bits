@@ -390,4 +390,14 @@ private slots:
 		S_EQUAL(v3.toString(), "chr11:111742146-111742146 G>-");
 	}
 
+
+
+	void leftAlign()
+	{
+		QString ref_file = Settings::string("reference_genome");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		Variant v("chr4", 88536883, 88536900, "TAGCAGTGACAGCAGCAA", "-");
+		v.leftAlign(ref_file);
+	}
 };

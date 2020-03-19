@@ -196,7 +196,7 @@ void MainWindow::on_actionConvertVcfToGSvar_triggered()
 {
 	VariantConversionWidget* widget = new VariantConversionWidget();
 	widget->setMode(VariantConversionWidget::VCF_TO_GSVAR);
-	auto dlg = GUIHelper::createDialog(widget, "Variant conversion");
+	auto dlg = GUIHelper::createDialog(widget, "Variant conversion (VCF > GSvar)");
 	addModelessDialog(dlg);
 }
 
@@ -204,7 +204,7 @@ void MainWindow::on_actionConvertHgvsToGSvar_triggered()
 {
 	VariantConversionWidget* widget = new VariantConversionWidget();
 	widget->setMode(VariantConversionWidget::HGVSC_TO_GSVAR);
-	auto dlg = GUIHelper::createDialog(widget, "Variant conversion");
+	auto dlg = GUIHelper::createDialog(widget, "Variant conversion (HGVS.c > GSvar)");
 	addModelessDialog(dlg);
 }
 

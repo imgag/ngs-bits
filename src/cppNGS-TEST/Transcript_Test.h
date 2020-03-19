@@ -1,5 +1,6 @@
 #include "TestFramework.h"
 #include "Transcript.h"
+#include "Settings.h"
 
 TEST_CLASS(Transcript_Test)
 {
@@ -98,43 +99,63 @@ private slots:
 
 	void hgvsToVariant()
 	{
+		QString ref_file = Settings::string("reference_genome");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex reference(ref_file);
+
 		//plus strand (SLC51A)
 		Transcript t = trans_SLC51A();
 
-		Variant variant = t.hgvsToVariant("c.123A>G");
+		Variant variant = t.hgvsToVariant("c.123A>G", reference);
 		S_EQUAL(variant.chr().str(), "chr3");
 		I_EQUAL(variant.start(), 195944797);
 		I_EQUAL(variant.end(), 195944797);
 		S_EQUAL(variant.ref(), "A");
 		S_EQUAL(variant.obs(), "G");
 
-		variant = t.hgvsToVariant("c.38+46G>T");
+		variant = t.hgvsToVariant("c.38+46G>T", reference);
 		S_EQUAL(variant.chr().str(), "chr3");
 		I_EQUAL(variant.start(), 195943667);
 		I_EQUAL(variant.end(), 195943667);
 		S_EQUAL(variant.ref(), "G");
 		S_EQUAL(variant.obs(), "T");
 
-		variant = t.hgvsToVariant("c.134-43C>T");
+		variant = t.hgvsToVariant("c.134-43C>T", reference);
 		S_EQUAL(variant.chr().str(), "chr3");
 		I_EQUAL(variant.start(), 195953793);
 		I_EQUAL(variant.end(), 195953793);
 		S_EQUAL(variant.ref(), "C");
 		S_EQUAL(variant.obs(), "T");
 
-		variant = t.hgvsToVariant("c.-207A>G");
+		variant = t.hgvsToVariant("c.-207A>G", reference);
 		S_EQUAL(variant.chr().str(), "chr3");
 		I_EQUAL(variant.start(), 195943377);
 		I_EQUAL(variant.end(), 195943377);
 		S_EQUAL(variant.ref(), "A");
 		S_EQUAL(variant.obs(), "G");
 
-		variant = t.hgvsToVariant("c.*48A>C");
+		variant = t.hgvsToVariant("c.*48A>C", reference);
 		S_EQUAL(variant.chr().str(), "chr3");
 		I_EQUAL(variant.start(), 195960118);
 		I_EQUAL(variant.end(), 195960118);
 		S_EQUAL(variant.ref(), "A");
 		S_EQUAL(variant.obs(), "C");
+
+		variant = t.hgvsToVariant("c.39-286dup", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 195944418);
+		I_EQUAL(variant.end(), 195944418);
+		S_EQUAL(variant.ref(), "-");
+		S_EQUAL(variant.obs(), "A");
+
+		variant = t.hgvsToVariant("c.289-102_289-100dup", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 195954431);
+		I_EQUAL(variant.end(), 195954431);
+		S_EQUAL(variant.ref(), "-");
+		S_EQUAL(variant.obs(), "CCT");
+
+
 
 /*
 #variant	coding and splicing

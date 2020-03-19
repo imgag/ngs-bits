@@ -93,11 +93,13 @@ void VariantConversionWidget::convert()
 
 				variant.normalize("-", true);
 
-				output << variant.toString(true).replace(" ", "\t");
+				output << variant.toString(true, -1, true).replace(" ", "\t");
 			}
 		}
 		else if (mode_==HGVSC_TO_GSVAR)
 		{
+			FastaFileIndex genome_idx(Settings::string("reference_genome"));
+
 			NGSD db;
 
 			foreach(QString line, lines)
@@ -115,10 +117,9 @@ void VariantConversionWidget::convert()
 				QString hgvs_c = line.mid(sep_pos+1);
 
 				Transcript transcript = db.transcript(db.transcriptId(transcript_name));
-				Variant variant = transcript.hgvsToVariant(hgvs_c);
+				Variant variant = transcript.hgvsToVariant(hgvs_c, genome_idx);
 
-				output << variant.toString(true).replace(" ", "\t");
-
+				output << variant.toString(true, -1, true).replace(" ", "\t");
 			}
 		}
 
