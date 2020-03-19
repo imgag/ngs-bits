@@ -15,7 +15,10 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
+* Added tools: NGSDAnnotateSV
 * NGSDImportHPO: Added support for new HPO annotation file format and optimized the NGSD hpo-gene relation table.
+* NGSDAddVariantsGermline: added import of structural variants
+* GSvar: added structural variant filter for NGSD counts/allele frequency 
 
 Changes in release 2020_03:
 

@@ -54,7 +54,6 @@ private slots:
 	void checkGuiData();
 	void printResults();
 	void updatePrintButton();
-	void queryRefSeqWebservice();
 	void updateSecondVariantGui();
 	void setTranscriptInfoVariant1();
 	void setTranscriptInfoVariant2();

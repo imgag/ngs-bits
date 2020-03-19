@@ -1688,7 +1688,6 @@ void MainWindow::loadSomaticReportConfig()
 
 	somatic_report_settings_.sample_dir = QFileInfo(filename_).dir().absolutePath();
 
-
 	try //load normal sample
 	{
 		QDir dir = QFileInfo(filename_).dir();

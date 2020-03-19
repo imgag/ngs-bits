@@ -77,3 +77,7 @@ Normally, sub-panels are designed a coding regions plus 5 to 20 flanking bases. 
 Each line starts the a gene name followed by one or more regions in the format `chr:start-end`.
 
 *Note:* The separator used is tab, also between regions!
+
+--
+
+[back to main page](index.md)

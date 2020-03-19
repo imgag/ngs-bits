@@ -42,8 +42,6 @@ LovdUploadDialog::LovdUploadDialog(QWidget *parent)
 
 	connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
 	connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
-	connect(ui_.refseq_btn, SIGNAL(clicked(bool)), this, SLOT(queryRefSeqWebservice()));
-	connect(ui_.refseq_btn2, SIGNAL(clicked(bool)), this, SLOT(queryRefSeqWebservice()));
 }
 
 void LovdUploadDialog::setData(LovdUploadData data)
@@ -349,14 +347,6 @@ void LovdUploadDialog::updatePrintButton()
 	ui_.print_btn->setEnabled(!ui_.comment_upload->toPlainText().trimmed().isEmpty());
 }
 
-void LovdUploadDialog::queryRefSeqWebservice()
-{
-	QString url = Settings::string("VariantInfoRefSeq"); //TODO remove once not used anymore - also in UI, docu and settings > MARC
-	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn) && variant1_.isValid()) url += "?variant_data=" + variant1_.toString(true).replace(" ", "\t").replace("chrMT", "chrM");
-	if (sender()==qobject_cast<QObject*>(ui_.refseq_btn2) && variant2_.isValid()) url += "?variant_data=" + variant2_.toString(true).replace(" ", "\t").replace("chrMT", "chrM");
-	QDesktopServices::openUrl(QUrl(url));
-}
-
 void LovdUploadDialog::updateSecondVariantGui()
 {
 	bool enabled = ui_.genotype->currentText()=="het" && ui_.genotype2->currentText()=="het";
@@ -455,16 +445,19 @@ QByteArray LovdUploadDialog::createJson()
 	stream << "                \"gender\": {\n";
 	stream << "                    \"@code\": \"" << convertGender(ui_.gender->currentText().trimmed()) <<"\"\n";
 	stream << "                },\n";
-	foreach(const Phenotype& pheno, ui_.phenos->selectedPhenotypes())
+	stream << "                \"phenotype\": [\n";
+	QList<Phenotype> phenotypes = ui_.phenos->selectedPhenotypes();
+	for (int i=0; i<phenotypes.count(); ++i)
 	{
-		stream << "                \"phenotype\": [\n";
 		stream << "                    {\n";
-		stream << "                        \"@term\": \"" << pheno.name().trimmed() << "\",\n";
+		stream << "                        \"@term\": \"" << phenotypes[i].name().trimmed() << "\",\n";
 		stream << "                        \"@source\": \"HPO\",\n";
-		stream << "                        \"@accession\": \"" << pheno.accession().mid(3).trimmed() << "\"\n";
-		stream << "                    }\n";
-		stream << "                ],\n";
+		stream << "                        \"@accession\": \"" << phenotypes[i].accession().mid(3).trimmed() << "\"\n";
+		stream << "                    }";
+		if (i<phenotypes.count()-1) stream << ",";
+		stream << "\n";
 	}
+	stream << "                ],\n";
 
 	//variant info
 	stream << "                \"variant\": [\n";

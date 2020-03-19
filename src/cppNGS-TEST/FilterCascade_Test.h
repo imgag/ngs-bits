@@ -1364,7 +1364,7 @@ private slots:
 
 		// custom maximum
 		FilterSvAfNGSD filter;
-		filter.setDouble("max_af", 0.5);
+		filter.setDouble("max_af", 50.0);
 		filter.apply(svs, result);
 		I_EQUAL(result.countPassing(), 55);
 	}

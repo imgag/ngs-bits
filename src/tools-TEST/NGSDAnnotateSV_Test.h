@@ -17,7 +17,7 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAnnotateSV_init.sql"));
 
-		EXECUTE("NGSDAnnotateSV", "-test -debug -ps_name NA12878_46 -in " + TESTDATA("data_in/NGSDAnnotateSV_in1.bedpe") + " -out out/NGSDAnnotateSV_out1.bedpe");
+		EXECUTE("NGSDAnnotateSV", "-test -debug -ps NA12878_46 -in " + TESTDATA("data_in/NGSDAnnotateSV_in1.bedpe") + " -out out/NGSDAnnotateSV_out1.bedpe");
 
 		COMPARE_FILES("out/NGSDAnnotateSV_out1.bedpe", TESTDATA("data_out/NGSDAnnotateSV_out1.bedpe"))
 
@@ -33,7 +33,7 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAnnotateSV_init.sql"));
 
-		EXECUTE("NGSDAnnotateSV", "-test -debug -ps_name NA12878_45 -in " + TESTDATA("data_in/NGSDAnnotateSV_in1.bedpe") + " -out out/NGSDAnnotateSV_out2.bedpe");
+		EXECUTE("NGSDAnnotateSV", "-test -debug -ps NA12878_45 -in " + TESTDATA("data_in/NGSDAnnotateSV_in1.bedpe") + " -out out/NGSDAnnotateSV_out2.bedpe");
 
 		COMPARE_FILES("out/NGSDAnnotateSV_out2.bedpe", TESTDATA("data_out/NGSDAnnotateSV_out2.bedpe"))
 
@@ -49,7 +49,7 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAnnotateSV_init.sql"));
 
-		EXECUTE("NGSDAnnotateSV", "-test -debug -ignore_processing_system -ps_name NA12878_46 -in " + TESTDATA("data_in/NGSDAnnotateSV_in1.bedpe") + " -out out/NGSDAnnotateSV_out3.bedpe");
+		EXECUTE("NGSDAnnotateSV", "-test -debug -ignore_processing_system -ps NA12878_46 -in " + TESTDATA("data_in/NGSDAnnotateSV_in1.bedpe") + " -out out/NGSDAnnotateSV_out3.bedpe");
 
 		COMPARE_FILES("out/NGSDAnnotateSV_out3.bedpe", TESTDATA("data_out/NGSDAnnotateSV_out3.bedpe"))
 

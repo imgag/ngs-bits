@@ -37,7 +37,8 @@ We can now build ngs-bits:
 * Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`.
 
 
-Now the executables can be found in the `bin` folder and can be executed from *QtCreator*.
+Now the executables can be found in the `bin` folder and can be executed from *QtCreator*.  
+To use GSvar, it needs to be [configured](GSvar/configuration.md) first.
 
 ## Making the ngs-bits tools portable
 
@@ -69,7 +70,3 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 		<td>libmysql.dll</td>
 	</tr>
 </table>
-
-
-
-
