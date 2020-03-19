@@ -259,6 +259,76 @@ private:
 
 private slots:
 
+	void batch_test_HGVS2GSvar()
+	{
+		QString ref_genome = Settings::string("reference_genome");
+		FastaFileIndex idx(ref_genome);
+		NGSD db;
+
+		QHash<QString, Transcript> transcrips;
+		VariantList vl;
+		vl.load("D:\\Data\\NGS\\Sample_NA12878_38\\NA12878_38.GSvar");
+		int i_co = vl.annotationIndexByName("coding_and_splicing");
+		int tests = 0;
+		int correct = 0;
+		int wrong = 0;
+		int error = 0;
+		for (int i=0; i<vl.count(); ++i)
+		{
+			QStringList vep_annos = QString(vl[i].annotations()[i_co]).split(',');
+			foreach(QString vep_anno, vep_annos)
+			{
+				QStringList parts = vep_anno.split(":");
+				//qDebug() << parts;
+				QString gene = parts[0];
+				QString trans_name = parts[1];
+				QString type = parts[2];
+				QString cdna = parts[5].trimmed();
+				if (cdna.isEmpty()) continue;
+
+				if (!transcrips.contains(trans_name))
+				{
+					try
+					{
+						int trans_id = db.transcriptId(trans_name);
+						transcrips[trans_name] = db.transcript(trans_id);
+					}
+					catch(Exception& e)
+					{
+						continue;
+					}
+				}
+
+				++tests;
+				Transcript trans = transcrips[trans_name];
+				try
+				{
+					Variant v = trans.hgvsToVariant(cdna, idx);
+					if (v==vl[i]) ++correct;
+					else
+					{
+						++wrong;
+						qDebug() << "Conversion wrong:" << gene << trans_name << cdna << type;
+						qDebug() << "  should be:" << vl[i].toString();
+						qDebug() << "  is       :" << v.toString();
+					}
+				}
+				catch(Exception& e)
+				{
+					++error;
+					//qDebug() << "Conversion error:" << gene << trans_name << cdna << type;
+					//qDebug() << "  " << e.message();
+				}
+			}
+		}
+
+		qDebug() << "variants: " << vl.count();
+		qDebug() << "tests   : " << tests;
+		qDebug() << "correct : " << correct << " (" << QString::number(100.0 * correct / tests, 'f', 3) << "%)";
+		qDebug() << "wrong   : " << wrong << " (" << QString::number(100.0 * wrong / tests, 'f', 3) << "%)";
+		qDebug() << "error   : " << error << " (" << QString::number(100.0 * error / tests, 'f', 3) << "%)";
+	}
+
 	//Normally, one member is tested in one QT slot.
 	//Because initializing the database takes very long, all NGSD functionality is tested in one slot.
 	void main_tests()

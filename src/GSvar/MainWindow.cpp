@@ -204,6 +204,9 @@ void MainWindow::on_actionDebug_triggered()
 						"ENST00000343267:c.-4_-7delinsAA\n");
 
 	on_actionConvertHgvsToGSvar_triggered();
+	
+	//NGSD db;
+	//db.getQuery().exec("UPDATE user SET password='db3545a6c6b12b8ac630353f240f4b309482e8dc', salt='QyTpU9OXipeuDkrjdHlfSFWpNQjsJ2saLOhesFwv' WHERE id='4'");
 }
 
 void MainWindow::on_actionConvertVcfToGSvar_triggered()

@@ -90,8 +90,10 @@ public:
 	///Converts string to strand enum.
     static STRAND stringToStrand(QByteArray strand);
 
-	///Converts a cDNA coordinate to genomic coordinates. Throws an exception if the cDNA-coordinate is not valid.
-	int cDnaToGenomic(int cdna_cordinate);
+	///Converts a cDNA coordinate to genomic coordinates. Throws an exception if the coordinate is not valid.
+	int cDnaToGenomic(int coord);
+	///Converts a non-coding DNA coordinate to genomic coordinates. Throws an exception if the coordinate is not valid.
+	int nDnaToGenomic(int coord);
 
 	///Converts a HGVS cDNA change to a variant in GSvar format.
 	Variant hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_idx);
@@ -105,7 +107,7 @@ protected:
 	int coding_end_;
 	BedFile coding_regions_;
 
-	void hgvsParsePosition(const QString& position, int& pos, int& offset);
+	void hgvsParsePosition(const QString& position, bool non_coding, int& pos, int& offset);
 };
 
 #endif // TRANSCRIPT_H

@@ -13,8 +13,6 @@ private slots:
 		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline.tsv"));
 
 		S_EQUAL(cnvs.qcMetric("number of iterations"), "1");
-
-		//TODO trio test
 	}
 
 };

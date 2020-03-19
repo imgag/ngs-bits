@@ -131,6 +131,46 @@ int Transcript::cDnaToGenomic(int coord)
 	THROW(ArgumentException, "Invalid cDNA coordinate " + QString::number(coord) + " (bigger than coding region) given for transcript " + name_ +"!");
 }
 
+int Transcript::nDnaToGenomic(int coord)
+{
+	if (coord<1) THROW(ArgumentException, "Invalid non-coding DNA coordinate " + QString::number(coord) + " given for transcript " + name_ +"!");
+
+	int tmp = coord;
+	if(strand_==PLUS)
+	{
+		for (int i=0; i<regions_.count(); ++i)
+		{
+			const BedLine& line = regions_[i];
+			int start = line.start();
+			int end = line.end();
+			int length = end - start + 1;
+
+			tmp -= length;
+			//qDebug() << start << end << length << tmp;
+
+			if (tmp<=0) return end + tmp;
+		}
+	}
+	else
+	{
+		for (int i=regions_.count()-1; i>=0; --i)
+		{
+			const BedLine& line = regions_[i];
+			int start = line.start();
+			int end = line.end();
+			int length = end - start + 1;
+
+			tmp -= length;
+			//qDebug() << start << end << length << tmp;
+
+			if (tmp<=0) return start - tmp;
+		}
+	}
+
+	THROW(ArgumentException, "Invalid non-coding DNA coordinate " + QString::number(coord) + " (bigger than non-coding region) given for transcript " + name_ +"!");
+
+}
+
 Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_idx)
 {
 	//init
@@ -146,6 +186,12 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	//remove prefix
 	hgvs_c = hgvs_c.trimmed();
 	if (hgvs_c.startsWith("c.")) hgvs_c = hgvs_c.mid(2);
+	bool non_coding = false;
+	if (hgvs_c.startsWith("n."))
+	{
+		hgvs_c = hgvs_c.mid(2);
+		non_coding = true;
+	}
 	int length = hgvs_c.length();
 	if (length<4) THROW(ProgrammingException, "Invalid cDNA change '" + hgvs_c + "'!");
 	//qDebug() << "### cDNA:" << hgvs_c << "###";
@@ -156,7 +202,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		//detemine position
 		QString position = hgvs_c.left(length-3);
 		int offset = 0;
-		hgvsParsePosition(position, start, offset);
+		hgvsParsePosition(position, non_coding, start, offset);
 		start += strand_==Transcript::PLUS ? offset : -1 * offset;
 		end = start;
 
@@ -180,10 +226,10 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		if (pos_underscore!=-1)
 		{
 			int offset1 = 0;
-			hgvsParsePosition(position.left(pos_underscore), start, offset1);
+			hgvsParsePosition(position.left(pos_underscore), non_coding, start, offset1);
 			start += (strand_==Transcript::PLUS ? offset1 : -1 * offset1);
 			int offset2 = 0;
-			hgvsParsePosition(position.mid(pos_underscore+1), end, offset2);
+			hgvsParsePosition(position.mid(pos_underscore+1), non_coding, end, offset2);
 			end += (strand_==Transcript::PLUS ? offset2 : -1 * offset2);
 
 			if (start>end)
@@ -196,7 +242,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		else
 		{
 			int offset = 0;
-			hgvsParsePosition(position, start, offset);
+			hgvsParsePosition(position, non_coding, start, offset);
 			start += (strand_==Transcript::PLUS ? offset : -1 * offset);
 			end = start;
 		}
@@ -218,10 +264,10 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		if (pos_underscore!=-1)
 		{
 			int offset1 = 0;
-			hgvsParsePosition(position.left(pos_underscore), start, offset1);
+			hgvsParsePosition(position.left(pos_underscore), non_coding, start, offset1);
 			start += (strand_==Transcript::PLUS ? offset1 : -1 * offset1);
 			int offset2 = 0;
-			hgvsParsePosition(position.mid(pos_underscore+1), end, offset2);
+			hgvsParsePosition(position.mid(pos_underscore+1), non_coding, end, offset2);
 			end += (strand_==Transcript::PLUS ? offset2 : -1 * offset2);
 
 			if (start>end)
@@ -234,7 +280,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		else
 		{
 			int offset = 0;
-			hgvsParsePosition(position, start, offset);
+			hgvsParsePosition(position, non_coding, start, offset);
 			start += (strand_==Transcript::PLUS ? offset : -1 * offset);
 			end = start;
 		}
@@ -254,16 +300,16 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		if (pos_underscore!=-1)
 		{
 			int offset1 = 0;
-			hgvsParsePosition(position.left(pos_underscore), start, offset1);
+			hgvsParsePosition(position.left(pos_underscore), non_coding, start, offset1);
 			start += (strand_==Transcript::PLUS ? offset1 : -1 * offset1);
 			int offset2 = 0;
-			hgvsParsePosition(position.mid(pos_underscore+1), end, offset2);
+			hgvsParsePosition(position.mid(pos_underscore+1), non_coding, end, offset2);
 			end += (strand_==Transcript::PLUS ? offset2 : -1 * offset2);
 		}
 		else
 		{
 			int offset = 0;
-			hgvsParsePosition(position, start, offset);
+			hgvsParsePosition(position, non_coding, start, offset);
 			start += (strand_==Transcript::PLUS ? offset : -1 * offset);
 			end = start;
 		}
@@ -287,10 +333,10 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		QString position = hgvs_c.left(ins_pos);
 		int pos_underscore = position.indexOf('_');
 		int offset1 = 0;
-		hgvsParsePosition(position.left(pos_underscore), start, offset1);
+		hgvsParsePosition(position.left(pos_underscore), non_coding, start, offset1);
 		start += (strand_==Transcript::PLUS ? offset1 : -1 * offset1);
 		int offset2 = 0;
-		hgvsParsePosition(position.mid(pos_underscore+1), end, offset2);
+		hgvsParsePosition(position.mid(pos_underscore+1), non_coding, end, offset2);
 		end += (strand_==Transcript::PLUS ? offset2 : -1 * offset2);
 		if (start>end)
 		{
@@ -339,7 +385,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	return variant;
 }
 
-void Transcript::hgvsParsePosition(const QString& position, int& pos, int& offset)
+void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int& pos, int& offset)
 {
 	//determine positions of special characters
 	QList<int> special_char_positions;
@@ -351,7 +397,14 @@ void Transcript::hgvsParsePosition(const QString& position, int& pos, int& offse
 	//determine offset
 	if (special_char_positions.count()==0)
 	{
-		pos = cDnaToGenomic(position.toInt());
+		if (non_coding)
+		{
+			pos = nDnaToGenomic(position.toInt());
+		}
+		else
+		{
+			pos = cDnaToGenomic(position.toInt());
+		}
 		offset = 0;
 		return;
 	}
@@ -362,19 +415,40 @@ void Transcript::hgvsParsePosition(const QString& position, int& pos, int& offse
 
 		if (s_char=='+')
 		{
-			pos = cDnaToGenomic(position.left(s_pos).toInt());
+			if (non_coding)
+			{
+				pos = nDnaToGenomic(position.left(s_pos).toInt());
+			}
+			else
+			{
+				pos = cDnaToGenomic(position.left(s_pos).toInt());
+			}
 			offset = position.mid(s_pos+1).toInt();
 			return;
 		}
 		else if (s_char=='-')
 		{
-			pos = cDnaToGenomic(s_pos==0 ? 1 : position.left(s_pos).toInt());
+			if (non_coding)
+			{
+				pos = nDnaToGenomic(s_pos==0 ? 1 : position.left(s_pos).toInt());
+			}
+			else
+			{
+				pos = cDnaToGenomic(s_pos==0 ? 1 : position.left(s_pos).toInt());
+			}
 			offset = -1 * position.mid(s_pos+1).toInt();
 			return;
 		}
 		else if (s_char=='*')
 		{
-			pos = cDnaToGenomic(s_pos==0 ? coding_regions_.baseCount() : position.left(s_pos).toInt());
+			if (non_coding)
+			{
+				pos = nDnaToGenomic(s_pos==0 ? regions_.baseCount() : position.left(s_pos).toInt());
+			}
+			else
+			{
+				pos = cDnaToGenomic(s_pos==0 ? coding_regions_.baseCount() : position.left(s_pos).toInt());
+			}
 			offset = position.mid(s_pos+1).toInt();
 			return;
 		}
@@ -386,10 +460,56 @@ void Transcript::hgvsParsePosition(const QString& position, int& pos, int& offse
 		int s_pos2 = special_char_positions[1];
 		QChar s_char2 = position[s_pos2];
 
-		if (s_pos1==0 && s_char1=='-' && s_char2=='-')
+		if (s_pos1==0 && s_char1=='-' && s_char2=='-') //-15-59
 		{
-			pos = cDnaToGenomic(1);
+			if (non_coding)
+			{
+				pos = nDnaToGenomic(1);
+			}
+			else
+			{
+				pos = cDnaToGenomic(1);
+			}
 			offset = -1 * position.mid(1, s_pos2-1).toInt() - position.mid(s_pos2+1).toInt();
+			return;
+		}
+		else if (s_pos1==0 && s_char1=='-' && s_char2=='+') //-15+59
+		{
+			if (non_coding)
+			{
+				pos = nDnaToGenomic(1);
+			}
+			else
+			{
+				pos = cDnaToGenomic(1);
+			}
+			offset = -1 * position.mid(1, s_pos2-1).toInt() + position.mid(s_pos2+1).toInt();
+			return;
+		}
+		else if (s_pos1==0 && s_char1=='*' && s_char2=='+') //*700+581
+		{
+			if (non_coding)
+			{
+				pos = nDnaToGenomic(regions_.baseCount());
+			}
+			else
+			{
+				pos = cDnaToGenomic(coding_regions_.baseCount());
+			}
+			offset = position.mid(1, s_pos2-1).toInt() + position.mid(s_pos2+1).toInt();
+			return;
+		}
+		else if (s_pos1==0 && s_char1=='*' && s_char2=='-') //*9-74
+		{
+			if (non_coding)
+			{
+				pos = nDnaToGenomic(regions_.baseCount());
+			}
+			else
+			{
+				pos = cDnaToGenomic(coding_regions_.baseCount());
+			}
+			offset = position.mid(1, s_pos2-1).toInt() - position.mid(s_pos2+1).toInt();
 			return;
 		}
 	}
