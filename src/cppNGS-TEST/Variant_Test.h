@@ -390,14 +390,68 @@ private slots:
 		S_EQUAL(v3.toString(), "chr11:111742146-111742146 G>-");
 	}
 
+	void checkReferenceSequence()
+	{
+		QString ref_file = Settings::string("reference_genome");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
 
+		Variant v;
+
+		v = Variant ("chr4", 88536883, 88536900, "TAGCAGTGACAGCAGCAA", "-");
+		v.checkReferenceSequence(ref_file);
+
+		v = Variant("chr5", 76841292, 76841292, "G", "-");
+		v.checkReferenceSequence(ref_file);
+
+		v = Variant("chr5", 76841292, 76841292, "T", "-");
+		IS_THROWN(ArgumentException, v.checkReferenceSequence(ref_file));
+	}
 
 	void leftAlign()
 	{
 		QString ref_file = Settings::string("reference_genome");
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
-		Variant v("chr4", 88536883, 88536900, "TAGCAGTGACAGCAGCAA", "-");
+		Variant v;
+
+		//SNP > no change
+		v = Variant("chr17", 41246534, 41246534, "T", "A");
 		v.leftAlign(ref_file);
+		I_EQUAL(v.start(), 41246534);
+		I_EQUAL(v.end(), 41246534);
+		S_EQUAL(v.ref(), "T");
+		S_EQUAL(v.obs(), "A");
+
+		//INS (one base block shift)
+		v = Variant("chr17", 41246534, 41246534, "-", "T");
+		v.leftAlign(ref_file);
+		I_EQUAL(v.start(), 41246531);
+		I_EQUAL(v.end(), 41246531);
+		S_EQUAL(v.ref(), "-");
+		S_EQUAL(v.obs(), "T");
+
+		//INS (no block shift)
+		v = Variant("chr3", 195307240, 195307240, "-", "TTC");
+		v.leftAlign(ref_file);
+		I_EQUAL(v.start(), 195307240);
+		I_EQUAL(v.end(), 195307240);
+		S_EQUAL(v.ref(), "-");
+		S_EQUAL(v.obs(), "TTC");
+
+		//DEL (two base block shift)
+		v = Variant("chr3", 195956747, 195956748, "AG", "-");
+		v.leftAlign(ref_file);
+		I_EQUAL(v.start(), 195956727);
+		I_EQUAL(v.end(), 195956728);
+		S_EQUAL(v.ref(), "AG");
+		S_EQUAL(v.obs(), "-");
+
+		//DEL (no block shift, but part of sequence before and after match)
+		v = Variant("chr4", 88536883, 88536900, "TAGCAGTGACAGCAGCAA", "-");
+		v.leftAlign(ref_file);
+		I_EQUAL(v.start(), 88536869);
+		I_EQUAL(v.end(), 88536886);
+		S_EQUAL(v.ref(), "AGTGACAGCAGCAATAGC");
+		S_EQUAL(v.obs(), "-");
 	}
 };

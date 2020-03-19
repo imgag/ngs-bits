@@ -187,12 +187,14 @@ public:
 
 	///Checks if the variant is valid (without annotations). Throws ArgumentException if not.
 	void checkValid() const;
+	///Checks if the reference sequence matches the reference genome. Throws ArgumentException if not.
+	void checkReferenceSequence(const FastaFileIndex& reference);
 
 	/// Left-align indels in repeat regions. Works for GSvar files only - assumes the variants are normalized.
 	void leftAlign(const FastaFileIndex& reference);
     /// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
 	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=false);
-	/// Returns HGVS g. notation of the variant
+	/// Returns the HGVS.g notation of the variant
 	QString toHGVS(const FastaFileIndex& genome_index) const;
 
     ///Auxilary function: Removes common prefix and suffix bases from indels and adapts the start position accordingly.

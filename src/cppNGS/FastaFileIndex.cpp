@@ -76,15 +76,21 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 {
 	//subtract 1 to make the coordinates 0-based
 	start -= 1;
-
-	//check if coords are valid
-	const FastaIndexEntry& entry = index(chr);
-	if((start+length) > entry.length)	Log::warn("Sequence length changed to chromosome end, was: " + chr.strNormalized(true) + ":" + QString::number(start+1) + "-" + QString::number(start+length));
-	length = min(length, entry.length - start);
-	if (start < 0 || length < 1)
+	if (start < 0)
 	{
-		Log::error("Negative start or start bigger than chromosome length, was: " + chr.strNormalized(true) + ":" + QString::number(start+1));
-		return "";
+		THROW(ProgrammingException, "FastaFileIndex::seq: Invalid start position (" + QString::number(start) + ") for " + chr.strNormalized(true) + ":" + QString::number(start+1) + "-" + QString::number(start+length));
+	}
+	if (length < 0)
+	{
+		THROW(ProgrammingException, "FastaFileIndex::seq: Invalid length (" + QString::number(length) + ") for " + chr.strNormalized(true) + ":" + QString::number(start+1) + "-" + QString::number(start+length));
+	}
+
+	//restrict to chromosome length
+	const FastaIndexEntry& entry = index(chr);
+	if((start+length) > entry.length)
+	{
+		Log::warn("FastaFileIndex::seq: Sequence length changed to chromosome end for : " + chr.strNormalized(true) + ":" + QString::number(start+1) + "-" + QString::number(start+length));
+		length = min(length, entry.length - start);
 	}
 
 	//jump to postion

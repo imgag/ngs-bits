@@ -132,7 +132,7 @@ int Transcript::cDnaToGenomic(int coord)
 }
 
 Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_idx)
-{
+{//TODO warnings
 	//init
 	const Chromosome& chr = regions()[0].chr();
 	int start = -1;
@@ -148,21 +148,108 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	if (hgvs_c.startsWith("c.")) hgvs_c = hgvs_c.mid(2);
 	int length = hgvs_c.length();
 	if (length<4) THROW(ProgrammingException, "Invalid cDNA change '" + hgvs_c + "'!");
+	//qDebug() << "### cDNA:" << hgvs_c << "###";
 
 	//SNV
 	if(hgvs_c[length-4].isDigit() && hgvs_c[length-3].isLetter() && hgvs_c[length-2]=='>' && hgvs_c[length-1].isLetter())
 	{
+		//detemine position
 		QString position = hgvs_c.left(length-3);
 		int offset = 0;
 		hgvsParsePosition(position, start, offset);
 		start += strand_==Transcript::PLUS ? offset : -1 * offset;
 		end = start;
+
+		//set sequence
 		ref.append(hgvs_c[length-3].toUpper());
 		obs.append(hgvs_c[length-1].toUpper());
+
+		//convert reference to correct strand
+		if(strand_==Transcript::MINUS)
+		{
+			ref = NGSHelper::changeSeq(ref, true, true);
+			obs = NGSHelper::changeSeq(obs, true, true);
+		}
 	}
-	else if (hgvs_c.endsWith("dup")) //e.g. "39-286dup" or "289-102_289-100dup"
+	//DUP e.g. "39-286dup" or "289-102_289-100dup"
+	else if (hgvs_c.endsWith("dup"))
 	{
+		//coordinates (of dup)
 		QString position = hgvs_c.left(hgvs_c.length()-3);
+		int pos_underscore = position.indexOf('_');
+		if (pos_underscore!=-1)
+		{
+			int offset1 = 0;
+			hgvsParsePosition(position.left(pos_underscore), start, offset1);
+			start += (strand_==Transcript::PLUS ? offset1 : -1 * offset1);
+			int offset2 = 0;
+			hgvsParsePosition(position.mid(pos_underscore+1), end, offset2);
+			end += (strand_==Transcript::PLUS ? offset2 : -1 * offset2);
+
+			if (start>end)
+			{
+				int tmp = start;
+				start = end;
+				end = tmp;
+			}
+		}
+		else
+		{
+			int offset = 0;
+			hgvsParsePosition(position, start, offset);
+			start += (strand_==Transcript::PLUS ? offset : -1 * offset);
+			end = start;
+		}
+
+		//sequence
+		ref.append('-');
+		obs = genome_idx.seq(chr, start, end-start+1);
+
+		//coordinates
+		start = start-1; //in GSvar format insertions are to the right of the coordinate
+		end = start;
+	}
+	//DEL e.g. "c.134-3651del" or "c.134-1926_134-1925del"
+	else if (hgvs_c.endsWith("del"))
+	{
+		//coordinates
+		QString position = hgvs_c.left(hgvs_c.length()-3);
+		int pos_underscore = position.indexOf('_');
+		if (pos_underscore!=-1)
+		{
+			int offset1 = 0;
+			hgvsParsePosition(position.left(pos_underscore), start, offset1);
+			start += (strand_==Transcript::PLUS ? offset1 : -1 * offset1);
+			int offset2 = 0;
+			hgvsParsePosition(position.mid(pos_underscore+1), end, offset2);
+			end += (strand_==Transcript::PLUS ? offset2 : -1 * offset2);
+
+			if (start>end)
+			{
+				int tmp = start;
+				start = end;
+				end = tmp;
+			}
+		}
+		else
+		{
+			int offset = 0;
+			hgvsParsePosition(position, start, offset);
+			start += (strand_==Transcript::PLUS ? offset : -1 * offset);
+			end = start;
+		}
+
+		//sequence
+		ref = genome_idx.seq(chr, start, end-start+1);
+		obs.append('-');
+	}
+	//INS+DEL
+	else if (hgvs_c.contains("delins"))
+	{
+		int delins_pos = hgvs_c.indexOf("delins");
+
+		//coordinates
+		QString position = hgvs_c.left(delins_pos);
 		int pos_underscore = position.indexOf('_');
 		if (pos_underscore!=-1)
 		{
@@ -180,21 +267,60 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 			start += (strand_==Transcript::PLUS ? offset : -1 * offset);
 			end = start;
 		}
+
+		//sequence
+		ref = genome_idx.seq(chr, start, end-start+1);
+		obs = hgvs_c.mid(delins_pos + 6).toLatin1();
+
+		//convert reference to correct strand
+		if(strand_==Transcript::MINUS)
+		{
+			obs = NGSHelper::changeSeq(obs, true, true);
+		}
+	}
+	//INS
+	else if (hgvs_c.contains("ins") && hgvs_c.indexOf('_')!=-1)
+	{
+		int ins_pos = hgvs_c.indexOf("ins");
+
+		//coordinates
+		QString position = hgvs_c.left(ins_pos);
+		int pos_underscore = position.indexOf('_');
+		int offset1 = 0;
+		hgvsParsePosition(position.left(pos_underscore), start, offset1);
+		start += (strand_==Transcript::PLUS ? offset1 : -1 * offset1);
+		int offset2 = 0;
+		hgvsParsePosition(position.mid(pos_underscore+1), end, offset2);
+		end += (strand_==Transcript::PLUS ? offset2 : -1 * offset2);
+		if (start>end)
+		{
+			int tmp = start;
+			start = end;
+			end = tmp;
+		}
+
+		if (start!=end-1) THROW(ArgumentException, "Insertion '" + hgvs_c + "' has coordinates that are not next to each other: " + QString::number(start) + "/" + QString::number(end) + "!");
+		end = start;
+
+		//sequence
 		ref.append('-');
-		obs = genome_idx.seq(chr, start, end-start+1);
+		obs.append(hgvs_c.mid(ins_pos+3));
+
+		//convert reference to correct strand
+		if(strand_==Transcript::MINUS)
+		{
+			obs = NGSHelper::changeSeq(obs, true, true);
+		}
 	}
 	else
 	{
-		THROW(ArgumentException, "Unsupported cDNA change '" + hgvs_c + "'!");
+		QStringList lines;
+		lines << "Unsupported cDNA change '" + hgvs_c + "'. Please note:";
+		lines << "- Adjacent SNVs changes e.g. 'c.1234CA>TC' are not supported. Spit them in single base changes or format them as 'delins'.";
+		lines << "- Duplication must end with 'dup'. Remove everyhing after.";
+		lines << "- Deletions must end with 'del'. Remove everyhing after.";
+		THROW(ArgumentException, lines.join("\n"));
 	}
-
-	//convert reference
-	if(strand_==Transcript::MINUS)
-	{
-		ref = NGSHelper::changeSeq(ref, true, true);
-		obs = NGSHelper::changeSeq(obs, true, true);
-	}
-	qDebug() << chr.str() << start << end << ref << obs;
 
 	//check reference length
 	int length_pos = end - start + 1;
@@ -204,135 +330,69 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		THROW(ProgrammingException, "HGVS.c '" + name_ + ":" + hgvs_c + "': reference length of coordinates (" + QString::number(length_pos) + ") and sequence (" + QString::number(length_bases) + ") do not match!");
 	}
 
-	//TODO check reference sequence
-	/*
-	$r = get_ref_seq($build,$chr,$start,$end);	//adopt for different builds
-	if(!empty($chr) && !empty($ref) && $ref!="-" && strtoupper($r)!=strtoupper($ref))
-	{
-		if($error)	trigger_error("Wrong reference sequence for HGVS '$transcript:$cdna': is '$ref', should be '".$r."' ($chr:$start-$end).",E_USER_ERROR);
-		return "Wrong reference sequence for HGVS '$transcript:$cdna': is '$ref', should be '".$r."' ($chr:$start-$end).";
-	}
-	*/
-
+	//left-aign (GSVar variants are always left-aligned)
 	Variant variant(chr, start, end, ref, obs);
+	//qDebug() << "  After conversion:" << variant.toString(true, -1, true);
 	variant.leftAlign(genome_idx);
+	//qDebug() << "  Left aligned    :" << variant.toString(true, -1, true);
+
 	return variant;
 }
 
 void Transcript::hgvsParsePosition(const QString& position, int& pos, int& offset)
 {
-	//determine special characters
-	int pos_plus = -1;
-	int pos_minus = -1;
-	int pos_star = -1;
+	//determine positions of special characters
+	QList<int> special_char_positions;
 	for (int i=0; i<position.length(); ++i)
 	{
-		if (position[i]=='+')
-		{
-			pos_plus = i;
-			break;
-		}
-		else if (position[i]=='-')
-		{
-			pos_minus = i;
-			break;
-		}
-		else if (position[i]=='*')
-		{
-			pos_star = i;
-			break;
-		}
+		if (!position[i].isDigit()) special_char_positions << i;
 	}
 
 	//determine offset
-	if (pos_plus!=-1)
-	{
-		pos = cDnaToGenomic(position.left(pos_plus).toInt());
-		offset = position.mid(pos_plus+1).toInt();
-	}
-	else if (pos_minus!=-1)
-	{
-		pos = cDnaToGenomic(pos_minus==0 ? 1 : position.left(pos_minus).toInt());
-		offset = -1 * position.mid(pos_minus+1).toInt();
-	}
-	else if (pos_star!=-1)
-	{
-		pos = cDnaToGenomic(pos_star==0 ? coding_regions_.baseCount() : position.left(pos_star).toInt());
-		offset = position.mid(pos_star+1).toInt();
-	}
-	else
+	if (special_char_positions.count()==0)
 	{
 		pos = cDnaToGenomic(position.toInt());
 		offset = 0;
+		return;
 	}
+	else if (special_char_positions.count()==1)
+	{
+		int s_pos = special_char_positions[0];
+		QChar s_char = position[s_pos];
+
+		if (s_char=='+')
+		{
+			pos = cDnaToGenomic(position.left(s_pos).toInt());
+			offset = position.mid(s_pos+1).toInt();
+			return;
+		}
+		else if (s_char=='-')
+		{
+			pos = cDnaToGenomic(s_pos==0 ? 1 : position.left(s_pos).toInt());
+			offset = -1 * position.mid(s_pos+1).toInt();
+			return;
+		}
+		else if (s_char=='*')
+		{
+			pos = cDnaToGenomic(s_pos==0 ? coding_regions_.baseCount() : position.left(s_pos).toInt());
+			offset = position.mid(s_pos+1).toInt();
+			return;
+		}
+	}
+	else if (special_char_positions.count()==2)
+	{
+		int s_pos1 = special_char_positions[0];
+		QChar s_char1 = position[s_pos1];
+		int s_pos2 = special_char_positions[1];
+		QChar s_char2 = position[s_pos2];
+
+		if (s_pos1==0 && s_char1=='-' && s_char2=='-')
+		{
+			pos = cDnaToGenomic(1);
+			offset = -1 * position.mid(1, s_pos2-1).toInt() - position.mid(s_pos2+1).toInt();
+			return;
+		}
+	}
+
+	THROW(ProgrammingException, "Unsupported HGVS.c position string '" + position + "'!");
 }
-
-
-/*
-
-	...
-
-	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?del(?<ref>[CATG]+)?$/i",$cdna,$matches)!=0)	//Deletion
-	{
-		if(empty($matches["end"]))	$matches["end"] = $matches["start"];	//if no end position is given
-
-		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
-		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
-		else	$e = $result;
-
-		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
-		$offset2 = $offset1;
-		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
-		if(!empty($matches["ref"]))	$ref = $matches["ref"];
-		$obs = "-";
-	}
-	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?del(?<ref_count>\d+)?$/i",$cdna,$matches)!=0)	//Deletion, e.g. c.644-12del16
-	{
-		if(empty($matches["end"]))	$matches["end"] = $matches["start"];	//if no end position is given
-
-		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
-		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
-		else	$e = $result;
-
-		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
-		$offset2 = $offset1;
-		if(!empty($matches["ref_count"]))	$offset2 += $matches["ref_count"]-1;	//if no end position is given
-		$obs = "-";
-	}
-	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?ins(?<obs>[CATG]+)$/i",$cdna,$matches)!=0)	//Insertion
-	{
-		//skip end and offset2, since insertion is always next to start (both splicing and coding)
-		$result = convert_coding2genomic($transcript, $matches["start"], $matches["start"],$error);
-		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
-		else	$e = $result;
-
-		//offsets
-		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
-		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
-		if($strand=="+" && $offset1!=0 && $offset2!=0)	$offset1 = min($offset1, $offset2);
-		if($strand=="-" && $offset1!=0 && $offset2!=0)	$offset1 = max($offset1, $offset2);
-		$offset2 = $offset1;
-		if($strand=="-" && empty($offset1) && empty($offset2))	$end = --$start;	//change of insertion site required for "-"-strand variants.
-
-		//alleles
-		$ref = "-";
-		$obs = $matches["obs"];
-	}
-	else if(preg_match("/^c\.(?<start>\d+)(?<offset1>[\-\+]\d+)?_?(?<end>\d+)?(?<offset2>[\-\+]\d+)?del(?<ref>[CATG]+)?ins(?<obs>[CATG]+)$/i",$cdna,$matches)!=0)	//combined InDel
-	{
-		if(empty($matches["end"]))	$matches["end"] = $matches["start"];	//if no end position is given
-
-		$result = convert_coding2genomic($transcript, $matches["start"], $matches["end"],$error);
-		if(is_array($result))	list($chr,$start,$end,$strand) = $result;
-		else	$e = $result;
-
-
-		if(!empty($matches["offset1"]))	$offset1 = $matches["offset1"];
-		if(!empty($matches["offset2"]))	$offset2 = $matches["offset2"];
-		if(!empty($matches["ref"]))	$ref = $matches["ref"];
-		if(empty($ref))	$ref = get_ref_seq($build,$chr,$start,$end);
-		if($strand=="-")	$ref = rev_comp ($ref);
-		$obs = $matches["obs"];
-	}
-
-*/

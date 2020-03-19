@@ -29,6 +29,19 @@ private slots:
 		COMPARE_FILES("out/LeftAlign_out.GSvar", TESTDATA("data_out/LeftAlign_out.GSvar"));
 	}
 
+	void leftAlign_nothing_to_do()
+	{
+		QString ref_file = Settings::string("reference_genome");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		VariantList vl;
+		vl.load(TESTDATA("data_in/LeftAlign_in2.GSvar"));
+		vl.checkValid();
+		vl.leftAlign(ref_file, false);
+		vl.store("out/LeftAlign_out2.GSvar");
+		COMPARE_FILES("out/LeftAlign_out2.GSvar", TESTDATA("data_out/LeftAlign_out2.GSvar"));
+	}
+
 	void removeDuplicates_VCF()
 	{
 		VariantList vl,vl2;

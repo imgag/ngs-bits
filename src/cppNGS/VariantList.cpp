@@ -136,22 +136,33 @@ void Variant::checkValid() const
 {
 	if (!chr_.isValid())
 	{
-		THROW(ArgumentException, "Invalid variant chromosome string in variant '" + toString());
+		THROW(ArgumentException, "Invalid variant chromosome string in variant '" + toString() + "'");
 	}
 
 	if (start_<1 || end_<1 || start_>end_)
 	{
-		THROW(ArgumentException, "Invalid variant position range in variant '" + toString());
+		THROW(ArgumentException, "Invalid variant position range in variant '" + toString() + "'");
 	}
 
 	if (ref()!="-" && !QRegExp("[ACGTN]+").exactMatch(ref()))
 	{
-		THROW(ArgumentException, "Invalid variant reference sequence in variant '" + toString());
+		THROW(ArgumentException, "Invalid variant reference sequence in variant '" + toString() + "'");
 	}
 
 	if (obs()!="-" && obs()!="." && !QRegExp("[ACGTN,]+").exactMatch(obs()))
 	{
-		THROW(ArgumentException, "Invalid variant observed sequence in variant '" + toString());
+		THROW(ArgumentException, "Invalid variant observed sequence in variant '" + toString() + "'");
+	}
+}
+
+void Variant::checkReferenceSequence(const FastaFileIndex& reference)
+{
+	if (ref_.isEmpty()) return;
+
+	Sequence seq_genome = reference.seq(chr_, start_, end_-start_+1);
+	if (seq_genome!=ref_)
+	{
+		THROW(ArgumentException, "Invalid reference sequence of variant '" + toString() + "': Variant reference sequence is '" + ref_ + "', but the genome sequence is '" + seq_genome + "'");
 	}
 }
 
@@ -173,12 +184,12 @@ void Variant::leftAlign(const FastaFileIndex& reference)
 
 		//block shift insertion
 		Sequence block = Variant::minBlock(obs_);
-		start_ -= block.length();
+		start_ -= block.length() - 1; //-1 because: GSvar insertions are inserted after the position
 		while(reference.seq(chr_, start_, block.length())==block)
 		{
 			start_ -= block.length();
 		}
-		start_ += block.length();
+		start_ += block.length() - 1; //-1 because: see above
 
 		ref_ = reference.seq(chr_, start_, 1);
 		obs_ = ref_ + obs_;

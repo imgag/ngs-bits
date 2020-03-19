@@ -18,7 +18,6 @@ VariantConversionWidget::VariantConversionWidget(QWidget* parent)
 	GUIHelper::styleSplitter(ui_.splitter);
 	connect(ui_.convert_btn, SIGNAL(clicked(bool)), this, SLOT(convert()));
 	connect(ui_.load_btn, SIGNAL(clicked(bool)), this, SLOT(loadInputFromFile()));
-	ui_.input->setText("ENST00000294008:c.4409C>T");
 }
 
 void VariantConversionWidget::setMode(VariantConversionWidget::ConversionMode mode)
@@ -27,12 +26,15 @@ void VariantConversionWidget::setMode(VariantConversionWidget::ConversionMode mo
 
 	if (mode==VCF_TO_GSVAR)
 	{
+		ui_.message->setVisible(false);
 		ui_.input_label->setText("Input (VCF):");
 		ui_.output_label->setText("Output (GSvar):");
 		ui_.load_btn->setVisible(true);
 	}
 	else if (mode==HGVSC_TO_GSVAR)
 	{
+		ui_.message->setVisible(true);
+		ui_.message->setText("<font color='red'>Attention: This feature is experimental. Please report any errors to the developers!</font>");
 		ui_.input_label->setText("Input (HGVS.c):");
 		ui_.output_label->setText("Output (GSvar):");
 		ui_.load_btn->setVisible(false);
@@ -67,6 +69,9 @@ void VariantConversionWidget::convert()
 	//clear
 	ui_.output->clear();
 
+	//load reference genome
+	FastaFileIndex ref_genome_idx(Settings::string("reference_genome"));
+
 	//convert
 	try
 	{
@@ -89,9 +94,12 @@ void VariantConversionWidget::convert()
 				int start = Helper::toInt(parts[1], "VCF start position", line);
 				Sequence ref_bases = parts[3].toLatin1().toUpper();
 				int end = start + ref_bases.length()-1;
-				Variant variant(parts[0], start, end, ref_bases, parts[4].toLatin1().toUpper());
 
+				Variant variant(parts[0], start, end, ref_bases, parts[4].toLatin1().toUpper());
 				variant.normalize("-", true);
+
+				variant.checkValid();
+				variant.checkReferenceSequence(ref_genome_idx);
 
 				output << variant.toString(true, -1, true).replace(" ", "\t");
 			}
@@ -118,6 +126,9 @@ void VariantConversionWidget::convert()
 
 				Transcript transcript = db.transcript(db.transcriptId(transcript_name));
 				Variant variant = transcript.hgvsToVariant(hgvs_c, genome_idx);
+
+				variant.checkValid();
+				variant.checkReferenceSequence(ref_genome_idx);
 
 				output << variant.toString(true, -1, true).replace(" ", "\t");
 			}
