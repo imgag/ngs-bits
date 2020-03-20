@@ -206,7 +206,6 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 		}
 		setVerticalHeaderItem(r, item);
 	}
-
 }
 
 void VariantTable::update(const VariantList& variants, const FilterResult& filter_result, const ReportSettings& report_settings, int max_variants)

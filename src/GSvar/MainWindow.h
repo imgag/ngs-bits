@@ -68,8 +68,10 @@ public:
 	///Returns the CNV file corresponding to the GSvar file
 	QString cnvFile(QString gsvar_file);
 
-	///Returns if report config is supported for the given analysis type
-	static bool germlineReportSupported(AnalysisType type);
+	///Returns if germline report is supported for current variant list.
+	bool germlineReportSupported();
+	///Returns if somatic report is supported for current variant list.
+	bool somaticReportSupported();
 
 	///Lets the user select a gene. If the user aborts, "" is returned.
 	static QString selectGene();
@@ -314,17 +316,9 @@ public slots:
 	void clearSomaticReportSettings(QString ps_id_in_other_widget);
 
 protected:
-	enum class SettingsType
-	{
-		GERMLINE,
-		SOMATIC,
-		INVALID
-	};
-
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);
 	void closeEvent(QCloseEvent* event);
-	MainWindow::SettingsType ReportSettingsType();
 	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
 	QString normalSampleName();
 

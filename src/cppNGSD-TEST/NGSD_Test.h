@@ -261,8 +261,12 @@ private slots:
 
 	void batch_test_HGVS2GSvar()
 	{
-		QString ref_genome = Settings::string("reference_genome");
-		FastaFileIndex idx(ref_genome);
+		QString ref_file = Settings::string("reference_genome");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex idx(ref_file);
+
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
 		NGSD db;
 
 		QHash<QString, Transcript> transcrips;

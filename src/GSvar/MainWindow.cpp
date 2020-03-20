@@ -346,7 +346,7 @@ void MainWindow::on_actionCNV_triggered()
 
 	//determine processed sample ID (needed for report config - so only germline)
 	QString ps_id = "";
-	if (LoginManager::active() && germlineReportSupported(variants_.type()))
+	if (LoginManager::active() && germlineReportSupported())
 	{
 		ps_id = NGSD().processedSampleId(processedSampleName(), false);
 	}
@@ -1438,10 +1438,8 @@ void MainWindow::loadFile(QString filename)
 		QMessageBox::warning(this, "Outdated GSvar file", "The GSvar file contains the following error:\n" + e.message() + "\n\nTo ensure that GSvar works as expected, re-run the analysis starting from annotation!");
 	}
 
-	SettingsType settings_type = ReportSettingsType();
-
 	//load report config
-	if (LoginManager::active() && settings_type == SettingsType::GERMLINE)
+	if (LoginManager::active() && germlineReportSupported())
 	{
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
@@ -1454,7 +1452,7 @@ void MainWindow::loadFile(QString filename)
 			}
 		}
 	}
-	else if(LoginManager::active() && settings_type == SettingsType::SOMATIC)
+	else if(LoginManager::active() && somaticReportSupported())
 	{
 		ui_.filters->disableReportConfigurationVariantsOnly();
 		loadSomaticReportConfig();
@@ -1478,8 +1476,6 @@ void MainWindow::on_actionAbout_triggered()
 void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 {
 	QApplication::setOverrideCursor(Qt::WaitCursor);
-
-
 
 	//Only germline files shall be annotated
 	if(variants_.type() != AnalysisType::GERMLINE_SINGLESAMPLE)
@@ -1652,7 +1648,7 @@ void MainWindow::loadReportConfig()
 {
 	//check if applicable
 	if (filename_=="") return;
-	if (!germlineReportSupported(variants_.type())) return;
+	if (!germlineReportSupported()) return;
 
 	//load
 	NGSD db;
@@ -1771,7 +1767,7 @@ void MainWindow::storeReportConfig()
 	//check if applicable
 	if (filename_=="") return;
 	if (!LoginManager::active()) return;
-	if (!germlineReportSupported(variants_.type())) return;
+	if (!germlineReportSupported()) return;
 
 	//check sample
 	NGSD db;
@@ -1810,7 +1806,7 @@ void MainWindow::generateVariantSheet()
 	if (filename_=="") return;
 
 	//check if applicable
-	if (!germlineReportSupported(variants_.type()))
+	if (!germlineReportSupported())
 	{
 		QMessageBox::information(this, "Variant sheet error", "Variant sheet not supported for this type of analysis!");
 		return;
@@ -2036,7 +2032,7 @@ void MainWindow::showReportConfigInfo()
 	}
 
 	//check config exists
-	if(ReportSettingsType() == SettingsType::GERMLINE)
+	if(germlineReportSupported())
 	{
 		int conf_id = db.reportConfigId(processed_sample_id);
 		if (conf_id==-1)
@@ -2046,7 +2042,7 @@ void MainWindow::showReportConfigInfo()
 		}
 		QMessageBox::information(this, "Report configuration information", db.reportConfigCreationData(conf_id).toText());
 	}
-	else
+	else if(somaticReportSupported())
 	{
 		QString ps_normal_id = db.processedSampleId(normalSampleName(), false);
 		int conf_id = db.somaticReportConfigId(processed_sample_id, ps_normal_id);
@@ -2057,8 +2053,6 @@ void MainWindow::showReportConfigInfo()
 		}
 		QMessageBox::information(this, "Somatic report configuration information", db.somaticReportConfigData(conf_id).toText());
 	}
-
-
 }
 
 void MainWindow::printVariantSheetRowHeader(QTextStream& stream, bool causal)
@@ -2222,12 +2216,11 @@ void MainWindow::generateReport()
 	if (filename_=="") return;
 
 	//check if this is a germline or somatic
-	AnalysisType type = variants_.type();
-	if (type==SOMATIC_PAIR)
+	if (somaticReportSupported())
 	{
 		generateReportSomaticRTF();
 	}
-	else if (germlineReportSupported(type))
+	else if (germlineReportSupported())
 	{
 		generateReportGermline();
 	}
@@ -3508,8 +3501,20 @@ void MainWindow::refreshVariantTable(bool keep_widths)
 
 	//update variant table
 	QList<int> col_widths = ui_.vars->columnWidths();
-	if(ReportSettingsType() == SettingsType::GERMLINE) ui_.vars->update(variants_, filter_result_, report_settings_, max_variants);
-	else if(ReportSettingsType() == SettingsType::SOMATIC) ui_.vars->update(variants_, filter_result_, somatic_report_settings_, max_variants);
+	AnalysisType type = variants_.type();
+	if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR)
+	{
+		ui_.vars->update(variants_, filter_result_, somatic_report_settings_, max_variants);
+	}
+	else if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
+	{
+		ui_.vars->update(variants_, filter_result_, report_settings_, max_variants);
+	}
+	else
+	{
+		THROW(ProgrammingException, "Unsupported analysis type in refreshVariantTable!");
+	}
+
 	ui_.vars->adaptRowHeights();
 	if (keep_widths)
 	{
@@ -3552,9 +3557,18 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	QAction* a_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	QAction* a_delete =menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 
-	if(ReportSettingsType() == SettingsType::GERMLINE) a_delete->setEnabled(report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
-	else if(ReportSettingsType() == SettingsType::SOMATIC) a_delete->setEnabled(somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
-	else a_delete->setEnabled(false);
+	if(germlineReportSupported())
+	{
+		a_delete->setEnabled(report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
+	}
+	else if(somaticReportSupported())
+	{
+		 a_delete->setEnabled(somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
+	}
+	else
+	{
+		a_delete->setEnabled(false);
+	}
 
 	//exec menu
 	pos = ui_.vars->verticalHeader()->viewport()->mapToGlobal(pos);
@@ -3568,8 +3582,14 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	}
 	else if (action==a_delete)
 	{
-		if(ReportSettingsType() == SettingsType::GERMLINE) report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
-		else somatic_report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+		if(germlineReportSupported())
+		{
+			report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+		}
+		else
+		{
+			somatic_report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+		}
 		updateReportConfigHeaderIcon(index);
 	}
 }
@@ -3813,12 +3833,12 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	}
 	else if (action==a_report_del)
 	{
-		if(ReportSettingsType() == SettingsType::GERMLINE)
+		if(germlineReportSupported())
 		{
 			report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
 			storeReportConfig();
 		}
-		else if(ReportSettingsType() == SettingsType::SOMATIC)
+		else if(somaticReportSupported())
 		{
 			somatic_report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
 			storeSomaticReportConfig();
@@ -3949,16 +3969,15 @@ QString MainWindow::cnvFile(QString gsvar_file)
 	return cnv_file;
 }
 
-bool MainWindow::germlineReportSupported(AnalysisType type)
+bool MainWindow::germlineReportSupported()
 {
+	AnalysisType type = variants_.type();
 	return type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO;
 }
 
-MainWindow::SettingsType MainWindow::ReportSettingsType()
+bool MainWindow::somaticReportSupported()
 {
-	if(variants_.type() == GERMLINE_SINGLESAMPLE || variants_.type() == GERMLINE_TRIO) return SettingsType::GERMLINE;
-	if(variants_.type() == SOMATIC_PAIR) return SettingsType::SOMATIC;
-	return SettingsType::INVALID;
+	return variants_.type()==SOMATIC_PAIR;
 }
 
 void MainWindow::updateVariantDetails()
@@ -4022,7 +4041,7 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 
 void MainWindow::editVariantReportConfiguration(int index)
 {
-	if (ReportSettingsType() == SettingsType::INVALID)
+	if (!germlineReportSupported() && !somaticReportSupported())
 	{
 		QMessageBox::information(this, "Report configuration error", "Report configuration not supported for this type of analysis!");
 		return;
@@ -4030,7 +4049,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 
 	NGSD db;
 
-	if(ReportSettingsType() == SettingsType::GERMLINE) //germline report configuration
+	if(germlineReportSupported()) //germline report configuration
 	{
 		//init/get config
 		ReportVariantConfiguration var_config;
@@ -4080,7 +4099,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 			}
 		}
 	}
-	else if(ReportSettingsType() == SettingsType::SOMATIC) //somatic report variant configuration
+	else if(somaticReportSupported()) //somatic report variant configuration
 	{
 		SomaticReportVariantConfiguration var_config;
 		bool settings_exists = somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index);
@@ -4105,7 +4124,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 
 void MainWindow::updateReportConfigHeaderIcon(int index)
 {
-	if(ReportSettingsType() == SettingsType::GERMLINE)
+	if(germlineReportSupported())
 	{
 		//report config-based filter is on => update whole variant list
 		if (ui_.filters->reportConfigurationVariantsOnly())
@@ -4117,7 +4136,7 @@ void MainWindow::updateReportConfigHeaderIcon(int index)
 			ui_.vars->updateVariantHeaderIcon(report_settings_, index);
 		}
 	}
-	else if(ReportSettingsType() == SettingsType::SOMATIC)
+	else if(somaticReportSupported())
 	{
 		if(ui_.filters->targetRegion() == "" || ui_.filters->filters().count() > 0)
 		{
@@ -4488,7 +4507,7 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 
 		//report configuration filter (show only variants with report configuration)
-		if (ReportSettingsType() == SettingsType::GERMLINE && ui_.filters->reportConfigurationVariantsOnly())
+		if (germlineReportSupported() && ui_.filters->reportConfigurationVariantsOnly())
 		{
 			QSet<int> report_variant_indices = report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
 			for(int i=0; i<variants_.count(); ++i)
@@ -4500,7 +4519,7 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 
 		//somatic report configuration filter (include also variants that are marked as such in report config)
-		if(ReportSettingsType() == SettingsType::SOMATIC)
+		if(somaticReportSupported())
 		{
 			for(int index : somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false))
 			{
