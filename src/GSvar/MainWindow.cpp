@@ -1345,8 +1345,8 @@ void MainWindow::loadFile(QString filename)
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
 
-
 	somatic_report_settings_ = SomaticReportSettings();
+
 
 	ui_.tabs->setCurrentIndex(0);
 	for (int t=ui_.tabs->count()-1; t>0; --t)
@@ -1455,6 +1455,7 @@ void MainWindow::loadFile(QString filename)
 	else if(LoginManager::active() && somaticReportSupported())
 	{
 		ui_.filters->disableReportConfigurationVariantsOnly();
+
 		loadSomaticReportConfig();
 	}
 
@@ -1678,9 +1679,6 @@ void MainWindow::loadSomaticReportConfig()
 	QString ps_normal_id = db.processedSampleId(ps_normal_name, false);
 	if(ps_normal_id == "") return;
 
-	//Check whether somatic report config exists
-	if(db.somaticReportConfigId(ps_tumor_id, ps_normal_id) == -1) return;
-
 
 	somatic_report_settings_.tumor_ps = processedSampleName();
 	somatic_report_settings_.normal_ps = normalSampleName();
@@ -1695,6 +1693,11 @@ void MainWindow::loadSomaticReportConfig()
 		somatic_control_tissue_variants_.load( Helper::canonicalPath(dir.absolutePath() + "/" +normalSampleName() + ".GSvar" ) );
 	}
 	catch(...) {}; //Nothing to do here
+
+
+
+	//Continue loading report (only if existing in NGSD)
+	if(db.somaticReportConfigId(ps_tumor_id, ps_normal_id) == -1) return;
 
 
 	QStringList messages;

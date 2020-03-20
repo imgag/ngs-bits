@@ -19,6 +19,7 @@ SomaticReportVariantConfiguration::SomaticReportVariantConfiguration()
 
 SomaticReportGermlineVariantConfiguration::SomaticReportGermlineVariantConfiguration()
 	: variant_index(-1)
+	, tum_freq(std::numeric_limits<double>::quiet_NaN())
 {
 }
 
@@ -29,8 +30,10 @@ bool SomaticReportVariantConfiguration::showInReport() const
 
 SomaticReportConfiguration::SomaticReportConfiguration()
 	: variant_config_()
+	, germ_variant_config_()
 	, created_by_(Helper::userName())
 	, created_at_(QDateTime::currentDateTime())
+	, target_file_()
 	, include_tum_content_clonality_(false)
 	, include_tum_content_snp_af_(false)
 	, include_tum_content_histological_(false)
@@ -40,6 +43,8 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	, cin_chromosomes_()
 	, limitations_()
 	, fusions_detected_(false)
+	, tmb_reference_text_()
+	, quality_()
 	, filter_()
 {
 }
