@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2020_03-36 (20.03.20)
+- Multi-sample analysis: fixed bug that prevented displaying variants.
+- General: Added variant conversion (VCF>GSvar and HGVS.c>GSvar) via main menu > 'Variants'.
+- LOVD upload: multiple HPO terms are now correctly transmitted to LOVD.
+
+
 ### 2020_03-11 (11.03.20)
 - NGSD: added notification when there are pending validated variants.
 - NSGD: added option to search for external sample name in sample search.
@@ -475,3 +481,4 @@
 --
 
 [back to main page](index.md)
+

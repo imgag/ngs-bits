@@ -4,7 +4,7 @@ libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-#### conversion: left-normalize (checkbox) - allow 100% matching UCSC-transcripts - wait for infos from Julian
+#### conversion: left-normalize (checkbox) - allow 100% matching UCSC-transcripts
 ** gene tab: add refseq/CCDS matches with links
 ** gene tab: add preferred transcripts
 * Implement "closing gaps by sanger"
@@ -24,6 +24,7 @@ GSvar:
     - Reset password > random password with 16 characters + email
     - Allow users to change their password
 ### search trios based on NGSD and folder, search in file system for multi-sample analysis (two check boxes)
+** Include CNV QC metrics in report HTML/XML?!
 * sample search: add causal variants column with small variants (variant, gentype, gene list) and CNVs (variant, copy-number, genes?)
 - Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
 - Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs

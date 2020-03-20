@@ -158,7 +158,9 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 
 void CnvWidget::addInfoLine(QString text)
 {
-	ui->info_messages->layout()->addWidget(new QLabel(text));
+	QLabel* label = new QLabel(text);
+	label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+	ui->info_messages->layout()->addWidget(label);
 
 	if (text.contains(":"))
 	{
