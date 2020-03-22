@@ -4,36 +4,99 @@
 #include <QRegularExpression>
 
 Transcript::Transcript()
-	: coding_start_(0)
+	: strand_(INVALID)
+	, coding_start_(0)
 	, coding_end_(0)
 {
 }
 
 void Transcript::setRegions(const BedFile& regions, int coding_start, int coding_end)
 {
-	regions_ = regions;
+	//check
+	if (strand_==INVALID) THROW(ProgrammingException, "Transcript::setRegions must be called after Transcript::setStrand!");
 
+	//init
+	regions_ = regions;
 	coding_start_ = coding_start;
 	coding_end_ = coding_end;
+	coding_regions_.clear();
 
-	if (isCoding())
+	//check if coding
+	if (!isCoding()) return;
+	if (strand_==PLUS && coding_start>coding_end) THROW(ProgrammingException, "Coding start position must be smaller than coding end position on forward strand!");
+	if (strand_==MINUS && coding_start<coding_end) THROW(ProgrammingException, "Coding start position must be bigger than coding end position on reverse strand!");
+
+	//create coding and UTR regions
+	for (int i=0; i<regions_.count(); ++i)
 	{
-		coding_regions_.clear();
+		const BedLine& region = regions_[i];
 
-		for (int i=0; i<regions_.count(); ++i)
+		if (strand_==PLUS)
 		{
-			const BedLine& line = regions_[i];
-
-			int start = std::max(line.start(), coding_start_);
-			int end = std::min(line.end(), coding_end_);
-
-			if (end<coding_start_ || start>coding_end_) continue;
-
-			coding_regions_.append(BedLine(line.chr(), start, end));
+			//completely UTR
+			if (region.end()<coding_start_)
+			{
+				utr_5prime_.append(region);
+			}
+			else if (region.start()>coding_end_)
+			{
+				utr_3prime_.append(region);
+			}
+			//completely coding
+			else if (region.start()>=coding_start_ && region.end()<=coding_end_)
+			{
+				coding_regions_.append(region);
+			}
+			//part coding and part UTR
+			else
+			{
+				coding_regions_.append(BedLine(region.chr(), std::max(region.start(), coding_start_), std::min(region.end(), coding_end_)));
+				if (region.start()<coding_start_)
+				{
+					utr_5prime_.append(BedLine(region.chr(), region.start(), coding_start_-1));
+				}
+				if (region.end()>coding_end_)
+				{
+					utr_3prime_.append(BedLine(region.chr(), coding_end_+1, region.end()));
+				}
+			}
 		}
-
-		coding_regions_.merge();
+		else
+		{
+			//completely UTR
+			if (region.end()<coding_end_)
+			{
+				utr_3prime_.append(region);
+			}
+			else if (region.start()>coding_start_)
+			{
+				utr_5prime_.append(region);
+			}
+			//completely coding
+			else if (region.start()>=coding_end_ && region.end()<=coding_start_)
+			{
+				coding_regions_.append(region);
+			}
+			//part coding and part UTR
+			else
+			{
+				coding_regions_.append(BedLine(region.chr(), std::max(region.start(), coding_end_), std::min(region.end(), coding_start_)));
+				if (region.start()<coding_end_)
+				{
+					utr_3prime_.append(BedLine(region.chr(), region.start(), coding_end_-1));
+				}
+				if (region.end()>coding_start_)
+				{
+					utr_5prime_.append(BedLine(region.chr(), coding_start_+1, region.end()));
+				}
+			}
+		}
 	}
+
+	//sort and merge regions
+	utr_3prime_.merge();
+	utr_5prime_.merge();
+	coding_regions_.merge();
 }
 
 QString Transcript::sourceToString(Transcript::SOURCE source)
@@ -72,6 +135,8 @@ QByteArray Transcript::strandToString(Transcript::STRAND strand)
 			return "+";
 		case MINUS:
 			return "-";
+		case INVALID:
+			return "n/a";
 	}
 
 	THROW(ProgrammingException, "Unknown transcript strand enum value '" + QString::number(strand) + "!");
@@ -183,15 +248,23 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	//check prerequisites
 	if (regions_.count()==0) THROW(ProgrammingException, "Transcript '" + name_ + "' has no regions() defined!");
 
-	//remove prefix
+	//check prefix
 	hgvs_c = hgvs_c.trimmed();
-	if (hgvs_c.startsWith("c.")) hgvs_c = hgvs_c.mid(2);
 	bool non_coding = false;
-	if (hgvs_c.startsWith("n."))
+	if (hgvs_c.startsWith("c."))
+	{
+		hgvs_c = hgvs_c.mid(2);
+	}
+	else if (hgvs_c.startsWith("n."))
 	{
 		hgvs_c = hgvs_c.mid(2);
 		non_coding = true;
 	}
+	else
+	{
+		THROW(ProgrammingException, "Unhandles HGVS.c prefix '" + hgvs_c.left(2) + "'!");
+	}
+
 	int length = hgvs_c.length();
 	if (length<4) THROW(ProgrammingException, "Invalid cDNA change '" + hgvs_c + "'!");
 	//qDebug() << "### cDNA:" << hgvs_c << "###";
@@ -413,7 +486,7 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 		int s_pos = special_char_positions[0];
 		QChar s_char = position[s_pos];
 
-		if (s_char=='+')
+		if (s_char=='+') //e.g. "49+17"
 		{
 			if (non_coding)
 			{
@@ -426,30 +499,47 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			offset = position.mid(s_pos+1).toInt();
 			return;
 		}
-		else if (s_char=='-')
+		else if (s_char=='-' && s_pos==0) //e.g. "-49" (before the first base)
 		{
 			if (non_coding)
 			{
-				pos = nDnaToGenomic(s_pos==0 ? 1 : position.left(s_pos).toInt());
+				pos = nDnaToGenomic(1);
 			}
 			else
 			{
-				pos = cDnaToGenomic(s_pos==0 ? 1 : position.left(s_pos).toInt());
+				pos = cDnaToGenomic(1);
+			}
+			offset = -1 * position.mid(s_pos+1).toInt();
+
+			//fix offset if UTR is split in several regions
+			if (!non_coding) correct5PrimeUtrOffset(offset);
+			return;
+		}
+		else if (s_char=='-' && s_pos>0) //e.g. "43-25"
+		{
+			if (non_coding)
+			{
+				pos = nDnaToGenomic(position.left(s_pos).toInt());
+			}
+			else
+			{
+				pos = cDnaToGenomic(position.left(s_pos).toInt());
 			}
 			offset = -1 * position.mid(s_pos+1).toInt();
 			return;
 		}
-		else if (s_char=='*')
+		else if (s_char=='*') //e.g. "*49" (after the last base)
 		{
 			if (non_coding)
 			{
-				pos = nDnaToGenomic(s_pos==0 ? regions_.baseCount() : position.left(s_pos).toInt());
+				pos = nDnaToGenomic(regions_.baseCount());
 			}
 			else
 			{
-				pos = cDnaToGenomic(s_pos==0 ? coding_regions_.baseCount() : position.left(s_pos).toInt());
+				pos = cDnaToGenomic(coding_regions_.baseCount());
 			}
 			offset = position.mid(s_pos+1).toInt();
+			//TODO fix coordinates for split
 			return;
 		}
 	}
@@ -460,7 +550,7 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 		int s_pos2 = special_char_positions[1];
 		QChar s_char2 = position[s_pos2];
 
-		if (s_pos1==0 && s_char1=='-' && s_char2=='-') //-15-59
+		if (s_pos1==0 && s_char1=='-' && s_char2=='-') //e.g. "-15-59"
 		{
 			if (non_coding)
 			{
@@ -470,10 +560,12 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			{
 				pos = cDnaToGenomic(1);
 			}
-			offset = -1 * position.mid(1, s_pos2-1).toInt() - position.mid(s_pos2+1).toInt();
+			offset = -1 * position.mid(1, s_pos2-1).toInt() ;
+			if (!non_coding) correct5PrimeUtrOffset(offset);
+			offset -=  position.mid(s_pos2+1).toInt();
 			return;
 		}
-		else if (s_pos1==0 && s_char1=='-' && s_char2=='+') //-15+59
+		else if (s_pos1==0 && s_char1=='-' && s_char2=='+') //e.g. "-15+59"
 		{
 			if (non_coding)
 			{
@@ -483,10 +575,12 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			{
 				pos = cDnaToGenomic(1);
 			}
-			offset = -1 * position.mid(1, s_pos2-1).toInt() + position.mid(s_pos2+1).toInt();
+			offset = -1 * position.mid(1, s_pos2-1).toInt();
+			if (!non_coding) correct5PrimeUtrOffset(offset);
+			offset += position.mid(s_pos2+1).toInt();
 			return;
 		}
-		else if (s_pos1==0 && s_char1=='*' && s_char2=='+') //*700+581
+		else if (s_char1=='*' && s_char2=='+') // e.g. "*700+581"
 		{
 			if (non_coding)
 			{
@@ -499,7 +593,7 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			offset = position.mid(1, s_pos2-1).toInt() + position.mid(s_pos2+1).toInt();
 			return;
 		}
-		else if (s_pos1==0 && s_char1=='*' && s_char2=='-') //*9-74
+		else if (s_char1=='*' && s_char2=='-') //e.g. "*9-74"
 		{
 			if (non_coding)
 			{
@@ -515,4 +609,54 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 	}
 
 	THROW(ProgrammingException, "Unsupported HGVS.c position string '" + position + "'!");
+}
+
+void Transcript::correct5PrimeUtrOffset(int& offset)
+{
+	//nothing to do if UTR consists of one region only
+	if (utr_5prime_.count()==1) return;
+
+	//determine gap sum
+	int gap_sum = 0;
+	if (strand_==PLUS)
+	{
+		bool first = true;
+		int size_sum = 0;
+		int index = utr_5prime_.count()-1;
+		while(size_sum>offset && index>=0)
+		{
+			size_sum -= utr_5prime_[index].length();
+			if (first)
+			{
+				first = false;
+			}
+			else
+			{
+				gap_sum += utr_5prime_[index+1].start() - utr_5prime_[index].end()  - 1;
+			}
+			--index;
+		}
+	}
+	else
+	{
+		bool first = true;
+		int size_sum = 0;
+		int index = 0;
+		while(size_sum>offset && index<utr_5prime_.count())
+		{
+			size_sum -= utr_5prime_[index].length();
+			if (first)
+			{
+				first = false;
+			}
+			else
+			{
+				gap_sum += utr_5prime_[index].start() - utr_5prime_[index-1].end() - 1;
+			}
+
+			++index;
+		}
+	}
+
+	offset -= gap_sum;
 }

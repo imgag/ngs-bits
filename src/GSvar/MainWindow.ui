@@ -1048,7 +1048,7 @@
   </action>
   <action name="actionConvertHgvsToGSvar">
    <property name="text">
-    <string>Convert HGVs.c &gt; GSvar</string>
+    <string>Convert HGVS.c &gt; GSvar</string>
    </property>
   </action>
  </widget>

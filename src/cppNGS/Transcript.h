@@ -9,11 +9,12 @@
 class CPPNGSSHARED_EXPORT Transcript
 {
 public:
+	///Default construtor - creates an invalid transcript
 	Transcript();
 
 	bool isValid() const
 	{
-		return !(name_.isEmpty());
+		return strand_!=INVALID && !(name_.isEmpty());
 	}
 
     const QByteArray& name() const
@@ -41,6 +42,7 @@ public:
 
 	enum STRAND
 	{
+		INVALID,
 		PLUS,
 		MINUS
 	};
@@ -57,6 +59,7 @@ public:
 	{
 		return regions_;
 	}
+	//Sets the regions. If coding start and end is given, the coding regions and UTRs are calculated as well.
 	void setRegions(const BedFile& regions, int coding_start=0, int coding_end=0);
 
 	//Returns if the transcript is coding
@@ -64,12 +67,12 @@ public:
 	{
 		return coding_start_!=0 && coding_end_!=0;
 	}
-	//Returns the start of the coding region
+	//Returns the start of the coding region (0 for non-coding transcripts)
 	int codingStart() const
 	{
 		return coding_start_;
 	}
-	//Returns the end of the coding region (including stop codon)
+	//Returns the end of the coding region (0 for non-coding transcripts)
 	int codingEnd() const
 	{
 		return coding_end_;
@@ -78,6 +81,16 @@ public:
 	const BedFile& codingRegions() const
 	{
 		return coding_regions_;
+	}
+	//Returns the 3' UTR regions, i.e. the after the end codon (empty for non-coding transcripts)
+	const BedFile& utr3prime() const
+	{
+		return utr_3prime_;
+	}
+	//Returns the 5' UTR regions, i.e. the before the start codon (empty for non-coding transcripts)
+	const BedFile& utr5prime() const
+	{
+		return utr_5prime_;
 	}
 
 	///Converts source enum to string value.
@@ -106,8 +119,13 @@ protected:
 	int coding_start_;
 	int coding_end_;
 	BedFile coding_regions_;
+	BedFile utr_3prime_;
+	BedFile utr_5prime_;
 
+	///Auxilary function: parses a HGVS.c position (single position, not a range!)
 	void hgvsParsePosition(const QString& position, bool non_coding, int& pos, int& offset);
+	///Auxilary function: correcte 5'UTR offset when UTR is split into several regions
+	void correct5PrimeUtrOffset(int& offset);
 };
 
 #endif // TRANSCRIPT_H

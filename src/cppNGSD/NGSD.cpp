@@ -3265,8 +3265,14 @@ Transcript NGSD::transcript(int id)
 		regions.append(BedLine(chr, start, end));
 	}
 
-	int start_coding = query.value(3).toInt();
-	int end_coding = query.value(4).toInt();
+	int start_coding = query.value(3).isNull() ? 0 : query.value(3).toInt();
+	int end_coding = query.value(4).isNull() ? 0 : query.value(4).toInt();
+	if (transcript.strand()==Transcript::MINUS)
+	{
+		int tmp = start_coding;
+		start_coding = end_coding;
+		end_coding = tmp;
+	}
 	transcript.setRegions(regions, start_coding, end_coding);
 
 	return transcript;

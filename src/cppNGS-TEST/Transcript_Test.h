@@ -43,14 +43,14 @@ Q_OBJECT
 		regions.append(BedLine("chr3", 195300721, 195300842));
 		regions.append(BedLine("chr3", 195306210, 195306366));
 		regions.append(BedLine("chr3", 195310749, 195311076));
-		t.setRegions(regions, 195295771, 195306332);
+		t.setRegions(regions, 195306332, 195295771);
 
 		return t;
 	}
 
 private slots:
 
-	void initialization()
+	void setRegions()
 	{
 		//plus strand (SLC51A)
 		Transcript t = trans_SLC51A();
@@ -61,13 +61,26 @@ private slots:
 		I_EQUAL(t.regions().baseCount(), 1463);
 		I_EQUAL(t.codingRegions().count(), 9);
 		I_EQUAL(t.codingRegions().baseCount(), 1023);
+		I_EQUAL(t.utr3prime().count(), 1);
+		I_EQUAL(t.utr3prime().baseCount(), 231);
+		I_EQUAL(t.utr5prime().count(), 1);
+		I_EQUAL(t.utr5prime().baseCount(), 209);
 
 		//minus strand (APOD)
 		t = trans_APOD();
+		S_EQUAL(t.name(), "ENST00000343267");
+		I_EQUAL(t.strand(), Transcript::MINUS);
+		I_EQUAL(t.source(), Transcript::ENSEMBL);
 		I_EQUAL(t.regions().count(), 5);
 		I_EQUAL(t.regions().baseCount(), 1130);
 		I_EQUAL(t.codingRegions().count(), 4);
 		I_EQUAL(t.codingRegions().baseCount(), 570);
+		I_EQUAL(t.utr3prime().count(), 1);
+		I_EQUAL(t.utr3prime().baseCount(), 198);
+		I_EQUAL(t.utr5prime().count(), 2);
+		I_EQUAL(t.utr5prime().baseCount(), 362);
+		I_EQUAL(t.utr5prime()[0].length(), 34);
+		I_EQUAL(t.utr5prime()[1].length(), 328);
 	}
 
 	void cDnaToGenomic()
@@ -304,15 +317,20 @@ private slots:
 		S_EQUAL(variant.ref(), "GGGG");
 		S_EQUAL(variant.obs(), "TT");
 
-//TODO The case that an UTR is split in several regions is not correctly handled yet. Implement test for both UTRs and both strands > MARC
-/*
-		variant = t.hgvsToVariant("c.-318_-320delinsACACACA", reference);
+
+		variant = t.hgvsToVariant("c.-34delinsACACACA", reference);
 		S_EQUAL(variant.chr().str(), "chr3");
-		I_EQUAL(variant.start(), 195311030);
-		I_EQUAL(variant.end(), 195311032);
-		S_EQUAL(variant.ref(), "CGC");
-		S_EQUAL(variant.obs(), "ACACACA");
-*/
+		I_EQUAL(variant.end(), 195306366);
+		I_EQUAL(variant.start(), 195306366);
+		S_EQUAL(variant.ref(), "G");
+		S_EQUAL(variant.obs(), "TGTGTGT");
+
+		variant = t.hgvsToVariant("c.-35delinsACACACA", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.end(), 195310749);
+		I_EQUAL(variant.start(), 195310749);
+		S_EQUAL(variant.ref(), "C");
+		S_EQUAL(variant.obs(), "TGTGTGT");
 	}
 
 };

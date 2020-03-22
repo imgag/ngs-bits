@@ -312,9 +312,9 @@ private slots:
 					else
 					{
 						++wrong;
-						qDebug() << "Conversion wrong:" << gene << trans_name << cdna << type;
-						qDebug() << "  should be:" << vl[i].toString();
-						qDebug() << "  is       :" << v.toString();
+						//qDebug() << "Conversion wrong:" << gene << trans_name << cdna << type;
+						//qDebug() << "  should be:" << vl[i].toString();
+						//qDebug() << "  is       :" << v.toString();
 					}
 				}
 				catch(Exception& e)
