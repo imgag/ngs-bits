@@ -4,6 +4,7 @@
 #include "LoginManager.h"
 #include "GUIHelper.h"
 #include "GeneInfoDBs.h"
+#include "GSvarHelper.h"
 #include <QPushButton>
 #include <QInputDialog>
 #include <QMenu>
@@ -196,6 +197,10 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		QString aas = "no protein";
 		if (transcript.isCoding()) aas = QString::number(transcript.codingRegions().baseCount()/3-1);
 		ui_.transcripts->setItem(row, 4, GUIHelper::createTableItem(aas));
+
+		QString pt = "";
+		if (GSvarHelper::preferredTranscripts().value(symbol_).contains(transcript.name())) pt = "yes";
+		ui_.transcripts->setItem(row, 5, GUIHelper::createTableItem(pt));
 	}
 
 	GUIHelper::resizeTableCells(ui_.transcripts);

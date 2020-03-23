@@ -6,7 +6,6 @@ libs:
 NGSD:
 #### conversion: allow 100% matching UCSC-transcripts
 ** gene tab: add refseq/CCDS matches with links
-** gene tab: add preferred transcripts
 * Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)

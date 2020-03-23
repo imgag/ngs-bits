@@ -607,6 +607,11 @@
           <string>amino acids</string>
          </property>
         </column>
+        <column>
+         <property name="text">
+          <string>preferred transcipt</string>
+         </property>
+        </column>
        </widget>
       </item>
      </layout>
