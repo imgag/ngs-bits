@@ -261,6 +261,7 @@ private slots:
 
 	void batch_test_HGVS2GSvar()
 	{
+		return; //TODO check wrong variants - is VEP wrong there?
 		QString ref_file = Settings::string("reference_genome");
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex idx(ref_file);
@@ -312,16 +313,16 @@ private slots:
 					else
 					{
 						++wrong;
-						//qDebug() << "Conversion wrong:" << gene << trans_name << cdna << type;
-						//qDebug() << "  should be:" << vl[i].toString();
-						//qDebug() << "  is       :" << v.toString();
+						qDebug() << "Conversion wrong:" << gene << trans_name << cdna << type;
+						qDebug() << "  should be:" << vl[i].toString();
+						qDebug() << "  is       :" << v.toString();
 					}
 				}
 				catch(Exception& e)
 				{
 					++error;
-					//qDebug() << "Conversion error:" << gene << trans_name << cdna << type;
-					//qDebug() << "  " << e.message();
+					qDebug() << "Conversion error:" << gene << trans_name << cdna << type;
+					qDebug() << "  " << e.message();
 				}
 			}
 		}

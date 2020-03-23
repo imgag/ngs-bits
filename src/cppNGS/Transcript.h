@@ -104,9 +104,9 @@ public:
     static STRAND stringToStrand(QByteArray strand);
 
 	///Converts a cDNA coordinate to genomic coordinates. Throws an exception if the coordinate is not valid.
-	int cDnaToGenomic(int coord);
+	int cDnaToGenomic(int coord) const;
 	///Converts a non-coding DNA coordinate to genomic coordinates. Throws an exception if the coordinate is not valid.
-	int nDnaToGenomic(int coord);
+	int nDnaToGenomic(int coord) const;
 
 	///Converts a HGVS cDNA change to a variant in GSvar format.
 	Variant hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_idx);
@@ -123,9 +123,15 @@ protected:
 	BedFile utr_5prime_;
 
 	///Auxilary function: parses a HGVS.c position (single position, not a range!)
-	void hgvsParsePosition(const QString& position, bool non_coding, int& pos, int& offset);
-	///Auxilary function: correcte 5'UTR offset when UTR is split into several regions
-	void correct5PrimeUtrOffset(int& offset);
+	void hgvsParsePosition(const QString& position, bool non_coding, int& pos, int& offset) const;
+	///Auxilary function: corrects 5'UTR offset when UTR is split into several regions
+	void correct5PrimeUtrOffset(int& offset) const;
+	///Auxilary function: corrects 3'UTR offset when UTR is split into several regions
+	void correct3PrimeUtrOffset(int& offset) const;
+	///Returns the genomic end position of the 5' UTR, i.e. the last base before the start codon
+	int utr5primeEnd() const;
+	///Returns the genomic start position of the 3' UTR, i.e. the first base after the stop codon
+	int utr3primeStart() const;
 };
 
 #endif // TRANSCRIPT_H

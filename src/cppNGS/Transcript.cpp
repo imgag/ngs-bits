@@ -157,7 +157,7 @@ Transcript::STRAND Transcript::stringToStrand(QByteArray strand)
 	THROW(ProgrammingException, "Unknown transcript strand string '" + strand + "!");
 }
 
-int Transcript::cDnaToGenomic(int coord)
+int Transcript::cDnaToGenomic(int coord) const
 {
 	if (coord<1) THROW(ArgumentException, "Invalid cDNA coordinate " + QString::number(coord) + " given for transcript " + name_ +"!");
 
@@ -196,7 +196,7 @@ int Transcript::cDnaToGenomic(int coord)
 	THROW(ArgumentException, "Invalid cDNA coordinate " + QString::number(coord) + " (bigger than coding region) given for transcript " + name_ +"!");
 }
 
-int Transcript::nDnaToGenomic(int coord)
+int Transcript::nDnaToGenomic(int coord) const
 {
 	if (coord<1) THROW(ArgumentException, "Invalid non-coding DNA coordinate " + QString::number(coord) + " given for transcript " + name_ +"!");
 
@@ -449,7 +449,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		THROW(ProgrammingException, "HGVS.c '" + name_ + ":" + hgvs_c + "': reference length of coordinates (" + QString::number(length_pos) + ") and sequence (" + QString::number(length_bases) + ") do not match!");
 	}
 
-	//left-aign (GSVar variants are always left-aligned)
+	//left-align (GSVar variants are always left-aligned)
 	Variant variant(chr, start, end, ref, obs);
 	//qDebug() << "  After conversion:" << variant.toString(true, -1, true);
 	variant.leftAlign(genome_idx);
@@ -458,7 +458,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	return variant;
 }
 
-void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int& pos, int& offset)
+void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int& pos, int& offset) const
 {
 	//determine positions of special characters
 	QList<int> special_char_positions;
@@ -507,7 +507,7 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			}
 			else
 			{
-				pos = cDnaToGenomic(1);
+				pos = utr5primeEnd();
 			}
 			offset = -1 * position.mid(s_pos+1).toInt();
 
@@ -536,10 +536,10 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			}
 			else
 			{
-				pos = cDnaToGenomic(coding_regions_.baseCount());
+				pos = utr3primeStart();
 			}
 			offset = position.mid(s_pos+1).toInt();
-			//TODO fix coordinates for split
+			correct3PrimeUtrOffset(offset);
 			return;
 		}
 	}
@@ -558,7 +558,7 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			}
 			else
 			{
-				pos = cDnaToGenomic(1);
+				pos = utr5primeEnd();
 			}
 			offset = -1 * position.mid(1, s_pos2-1).toInt() ;
 			if (!non_coding) correct5PrimeUtrOffset(offset);
@@ -573,7 +573,7 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			}
 			else
 			{
-				pos = cDnaToGenomic(1);
+				pos = utr5primeEnd();
 			}
 			offset = -1 * position.mid(1, s_pos2-1).toInt();
 			if (!non_coding) correct5PrimeUtrOffset(offset);
@@ -588,9 +588,11 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			}
 			else
 			{
-				pos = cDnaToGenomic(coding_regions_.baseCount());
+				pos = utr3primeStart();
 			}
-			offset = position.mid(1, s_pos2-1).toInt() + position.mid(s_pos2+1).toInt();
+			offset = position.mid(1, s_pos2-1).toInt();
+			correct3PrimeUtrOffset(offset);
+			offset += position.mid(s_pos2+1).toInt();
 			return;
 		}
 		else if (s_char1=='*' && s_char2=='-') //e.g. "*9-74"
@@ -601,9 +603,11 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 			}
 			else
 			{
-				pos = cDnaToGenomic(coding_regions_.baseCount());
+				pos = utr3primeStart();
 			}
-			offset = position.mid(1, s_pos2-1).toInt() - position.mid(s_pos2+1).toInt();
+			offset = position.mid(1, s_pos2-1).toInt();
+			correct3PrimeUtrOffset(offset);
+			offset -= position.mid(s_pos2+1).toInt();
 			return;
 		}
 	}
@@ -611,10 +615,10 @@ void Transcript::hgvsParsePosition(const QString& position, bool non_coding, int
 	THROW(ProgrammingException, "Unsupported HGVS.c position string '" + position + "'!");
 }
 
-void Transcript::correct5PrimeUtrOffset(int& offset)
+void Transcript::correct5PrimeUtrOffset(int& offset) const
 {
 	//nothing to do if UTR consists of one region only
-	if (utr_5prime_.count()==1) return;
+	if (utr_5prime_.count()<2) return;
 
 	//determine gap sum
 	int gap_sum = 0;
@@ -632,7 +636,7 @@ void Transcript::correct5PrimeUtrOffset(int& offset)
 			}
 			else
 			{
-				gap_sum += utr_5prime_[index+1].start() - utr_5prime_[index].end()  - 1;
+				gap_sum += utr_5prime_[index+1].start() - utr_5prime_[index].end() - 1;
 			}
 			--index;
 		}
@@ -659,4 +663,81 @@ void Transcript::correct5PrimeUtrOffset(int& offset)
 	}
 
 	offset -= gap_sum;
+}
+
+void Transcript::correct3PrimeUtrOffset(int& offset) const
+{
+	//nothing to do if UTR consists of one region only
+	if (utr_3prime_.count()<2) return;
+
+	//determine gap sum
+	int gap_sum = 0;
+	if (strand_==PLUS)
+	{
+		bool first = true;
+		int size_sum = 0;
+		int index = 0;
+		while(size_sum<offset && index<utr_3prime_.count())
+		{
+			size_sum += utr_3prime_[index].length();
+			if (first)
+			{
+				first = false;
+			}
+			else
+			{
+				gap_sum += utr_3prime_[index].start() - utr_3prime_[index-1].end() - 1;
+			}
+			++index;
+		}
+	}
+	else
+	{
+		bool first = true;
+		int size_sum = 0;
+		int index = utr_3prime_.count()-1;
+		while(size_sum<offset && index>=0)
+		{
+			size_sum += utr_3prime_[index].length();
+			if (first)
+			{
+				first = false;
+			}
+			else
+			{
+				gap_sum += utr_3prime_[index+1].start() - utr_3prime_[index].end() - 1;
+			}
+			--index;
+		}
+	}
+
+	offset += gap_sum;
+}
+
+int Transcript::utr5primeEnd() const
+{
+	if (utr_5prime_.count()==0) THROW(ProgrammingException, "Cannot determine 5' UTR end for transcript " + name_ + " without 5' UTR regions!");
+
+	if (strand_==PLUS)
+	{
+		return utr_5prime_[utr_5prime_.count()-1].end()+1;
+	}
+	else
+	{
+		return utr_5prime_[0].start()-1;
+	}
+}
+
+int Transcript::utr3primeStart() const
+{
+	if (utr_3prime_.count()==0) THROW(ProgrammingException, "Cannot determine 3' UTR start for transcript " + name_ + " without 3' UTR regions!");
+
+	if (strand_==PLUS)
+	{
+		return utr_3prime_[0].start()-1;
+	}
+	else
+	{
+		return utr_3prime_[utr_3prime_.count()-1].end()+1;
+	}
 }
