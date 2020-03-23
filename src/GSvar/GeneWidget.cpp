@@ -161,6 +161,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 {
 	//clear
 	ui_.transcripts->setRowCount(0);
+	const QMap<QByteArray, QByteArrayList>&  matches = GSvarHelper::transcriptMatches();
 
 	//get transcripts
 	int gene_id = db.geneToApprovedID(symbol_);
@@ -201,6 +202,25 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		QString pt = "";
 		if (GSvarHelper::preferredTranscripts().value(symbol_).contains(transcript.name())) pt = "yes";
 		ui_.transcripts->setItem(row, 5, GUIHelper::createTableItem(pt));
+
+		QStringList ccds;
+		QStringList refseq;
+		QByteArrayList tmp = matches.value(transcript.name());
+		foreach(QByteArray match, tmp)
+		{
+			match = match.trimmed();
+			if (match.startsWith("CCDS"))
+			{
+				ccds << "<a href='https://www.ncbi.nlm.nih.gov/CCDS/CcdsBrowse.cgi?REQUEST=CCDS&DATA=" + match + "'>" + match + "</a>";
+			}
+			else if (match.startsWith("NM_"))
+			{
+				refseq << "<a href='https://www.ncbi.nlm.nih.gov/nuccore/" + match + "'>" + match + "</a>";
+			}
+		}
+
+		ui_.transcripts->setCellWidget(row, 6, GUIHelper::createLinkLabel(ccds.join(", ")));
+		ui_.transcripts->setCellWidget(row, 7, GUIHelper::createLinkLabel(refseq.join(", ")));
 	}
 
 	GUIHelper::resizeTableCells(ui_.transcripts);

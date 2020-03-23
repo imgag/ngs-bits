@@ -8,5 +8,6 @@
         <file>Resources/hg38_ancestry.vcf</file>
         <file>Resources/imprinting_genes.tsv</file>
         <file>Resources/cyto_band.bed</file>
+        <file>Resources/hg19_ensembl_transcript_matches.tsv</file>
     </qresource>
 </RCC>

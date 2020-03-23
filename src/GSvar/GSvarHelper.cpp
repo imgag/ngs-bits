@@ -6,6 +6,7 @@ GeneSet GSvarHelper::imprinting_genes_ = GeneSet();
 GeneSet GSvarHelper::hi0_genes_ = GeneSet();
 QMap<QByteArray, QByteArrayList> GSvarHelper::preferred_transcripts_ = QMap<QByteArray, QByteArrayList>();
 QMap<QByteArray, QList<BedLine>> GSvarHelper::special_regions_ = QMap<QByteArray, QList<BedLine>>();
+QMap<QByteArray, QByteArrayList> GSvarHelper::transcript_matches_ = QMap<QByteArray, QByteArrayList>();
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -108,7 +109,31 @@ const QMap<QByteArray, QList<BedLine>> & GSvarHelper::specialRegions()
         initialized = true;
     }
 
-    return special_regions_;
+	return special_regions_;
+}
+
+const QMap<QByteArray, QByteArrayList>& GSvarHelper::transcriptMatches()
+{
+	static bool initialized = false;
+
+	if (!initialized)
+	{
+		QStringList lines = Helper::loadTextFile(":/Resources/hg19_ensembl_transcript_matches.tsv", true, '#', true);
+		foreach(const QString& line, lines)
+		{
+			QByteArrayList parts = line.toLatin1().split('\t');
+			if (parts.count()>=2)
+			{
+				QByteArray enst = parts[0];
+				QByteArray match = parts[1];
+				transcript_matches_[enst] << match;
+			}
+		}
+
+		initialized = true;
+	}
+
+	return transcript_matches_;
 }
 
 QString GSvarHelper::applicationBaseName()

@@ -612,6 +612,16 @@
           <string>preferred transcipt</string>
          </property>
         </column>
+        <column>
+         <property name="text">
+          <string>CCDS</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>RefSeq</string>
+         </property>
+        </column>
        </widget>
       </item>
      </layout>
