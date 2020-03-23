@@ -2,7 +2,9 @@
 #include "NGSD.h"
 #include "DBEditor.h"
 #include "GUIHelper.h"
+#include "LoginManager.h"
 #include <QMessageBox>
+#include <QDesktopServices>
 
 DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	: QWidget(parent)
@@ -38,6 +40,12 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 		action = new QAction(QIcon(":/Icons/NGSD_processing_system.png"), "Open processing system tab(s)", this);
 		ui_.table->addAction(action);
 		connect(action, SIGNAL(triggered(bool)), this, SLOT(openTabs()));
+	}
+	else if (table_=="user")
+	{
+		action = new QAction("Reset user password", this);
+		ui_.table->addAction(action);
+		connect(action, SIGNAL(triggered(bool)), this, SLOT(resetUserPassword()));
 	}
 }
 
@@ -176,5 +184,36 @@ void DBTableAdministration::openTabs()
 			emit openProcessingSystemTab(name);
 		}
 	}
+}
+
+void DBTableAdministration::resetUserPassword()
+{
+	//checks
+	QSet<int> rows = ui_.table->selectedRows();
+	if (rows.count()!=1)
+	{
+		QMessageBox::information(this, "Selection error", "Please select exactly one item!");
+		return;
+	}
+
+	//set password
+	int user_id = ui_.table->getId(rows.toList().first()).toInt();
+	QString password = Helper::randomString(15) + Helper::randomString(1, "0123456789");
+	NGSD db;
+	db.setPassword(user_id, password);
+
+	//create email
+	QString to = db.userEmail(user_id);
+	QString subject = "[NGSD] Passwort zur&uuml;ckgesetzt";
+	QStringList body;
+
+	body << "Hallo " + db.userName(user_id) + ",";
+	body << "";
+	body << "das neue Passwort f&uuml;r die NGSD ist: " + password;
+	body << "";
+	body << "Viele Grue&szlig;e, ";
+	body << "  " + db.userName(LoginManager::userId());
+
+	QDesktopServices::openUrl(QUrl("mailto:" + to + "?subject=" + subject + "&body=" + body.join("\n")));
 }
 

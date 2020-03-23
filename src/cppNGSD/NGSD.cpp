@@ -115,6 +115,14 @@ QString NGSD::checkPassword(QString user_name, QString password, bool only_activ
 	return "";
 }
 
+void NGSD::setPassword(int user_id, QString password)
+{
+	QString salt = Helper::randomString(40);
+	QString hash = QCryptographicHash::hash((salt+password).toUtf8(), QCryptographicHash::Sha1).toHex();
+
+	getQuery().exec("UPDATE user SET password='" + hash + "', salt='" + salt + "' WHERE id=" + QString::number(user_id));
+}
+
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 {
 	//init

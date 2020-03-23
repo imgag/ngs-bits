@@ -530,6 +530,8 @@ public:
 	int addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs);	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
 	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
 	CopyNumberVariant somaticCnv(int cnv_id);
+
+	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
 	int userId(QString user_name, bool only_active=false);
 	///Returns the user name corresponding the given ID. If no ID is given, the current users ID is used (see userId()).
@@ -540,6 +542,8 @@ public:
 	static const QString& passwordReplacement();
 	///Checks if the given user/password tuple is correct. If ok, returns an empty string. If not, returns an error message.
 	QString checkPassword(QString user_name, QString password, bool only_active=true);
+	///Sets the password for a NGSD user using a new random salt.
+	void setPassword(int user_id, QString password);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples

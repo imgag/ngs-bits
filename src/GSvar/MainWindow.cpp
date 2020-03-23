@@ -94,6 +94,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "LoginDialog.h"
 #include "GeneInfoDBs.h"
 #include "VariantConversionWidget.h"
+#include "PasswordDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -204,9 +205,6 @@ void MainWindow::on_actionDebug_triggered()
 						"ENST00000343267:c.-4_-7delinsAA\n");
 
 	on_actionConvertHgvsToGSvar_triggered();
-	
-	//NGSD db;
-	//db.getQuery().exec("UPDATE user SET password='db3545a6c6b12b8ac630353f240f4b309482e8dc', salt='QyTpU9OXipeuDkrjdHlfSFWpNQjsJ2saLOhesFwv' WHERE id='4'");
 }
 
 void MainWindow::on_actionConvertVcfToGSvar_triggered()
@@ -2949,6 +2947,16 @@ void MainWindow::on_actionVariantValidation_triggered()
 	VariantValidationWidget* widget = new VariantValidationWidget();
 	auto dlg = GUIHelper::createDialog(widget, "Variant validation");
 	dlg->exec();
+}
+
+void MainWindow::on_actionChangePassword_triggered()
+{
+	PasswordDialog dlg(this);
+	if(dlg.exec()==QDialog::Accepted)
+	{
+		NGSD db;
+		db.setPassword(LoginManager::userId(), dlg.password());
+	}
 }
 
 void MainWindow::on_actionGenderXY_triggered()

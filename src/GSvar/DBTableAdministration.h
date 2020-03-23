@@ -25,6 +25,7 @@ protected slots:
 	void edit(int row);
 	void remove();
 	void openTabs();
+	void resetUserPassword();
 
 private:
 	Ui::DBTableAdministration ui_;

@@ -80,7 +80,8 @@ SOURCES += main.cpp\
     GeneOmimInfoWidget.cpp \
     LoginDialog.cpp \
     GeneInfoDBs.cpp \
-    VariantConversionWidget.cpp
+    VariantConversionWidget.cpp \
+    PasswordDialog.cpp
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -154,7 +155,8 @@ HEADERS  += MainWindow.h \
     GeneOmimInfoWidget.h \
     LoginDialog.h \
     GeneInfoDBs.h \
-    VariantConversionWidget.h
+    VariantConversionWidget.h \
+    PasswordDialog.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -213,7 +215,8 @@ FORMS    += MainWindow.ui \
     VariantValidationWidget.ui \
     GeneOmimInfoWidget.ui \
     LoginDialog.ui \
-    VariantConversionWidget.ui
+    VariantConversionWidget.ui \
+    PasswordDialog.ui
 
 
 include("../app_gui.pri")
