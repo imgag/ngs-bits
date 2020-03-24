@@ -432,17 +432,26 @@ INSERT INTO `sample_disease_info`(`id`, `sample_id`, `disease_info`, `type`, `us
 
 -- cnv_callset
 INSERT INTO `cnv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
-(1, 3999, 'ClinCNV', 'v 1.16.1', '2019-10-20T09:55:01', '{"fraction of outliers":"0.052","gender of sample":"M","high-quality cnvs":"127","number of iterations":"1","quality used at final iteration":"20","was it outlier after clustering":"FALSE"}', 'good');
+(1, 3999, 'ClinCNV', 'v 1.16.1', '2019-10-20T09:55:01', '{"fraction of outliers":"0.052","gender of sample":"M","high-quality cnvs":"127","number of iterations":"1","quality used at final iteration":"20","was it outlier after clustering":"FALSE"}', 'good'),
+(2, 4003, 'ClinCNV', 'v 1.16.1', '2019-10-20T09:55:01', '{"fraction of outliers":"0.052","gender of sample":"M","high-quality cnvs":"127","number of iterations":"1","quality used at final iteration":"20","was it outlier after clustering":"FALSE"}', 'good');
 
 -- cnv
 INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`) VALUES
 (1, 1, 'chr1', 1000, 2000, 1),
 (2, 1, 'chr1', 3000, 4000, 1),
-(3, 1, 'chr2', 10000, 40000, 1);
+(3, 1, 'chr2', 10000, 40000, 1),
+(4, 2, 'chr1', 3000, 4000, 1);
 
 -- report config
-INSERT INTO `report_configuration` (`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
-(4003, 99, '2018-02-12T10:20:45', 99, '2018-07-12T10:20:43');
+INSERT INTO `report_configuration` (`id`, `processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
+(1, 4003, 99, '2018-02-12T10:20:45', 99, '2018-07-12T10:20:43');
+
+INSERT INTO `report_configuration_variant` (`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES
+(1, 2407544, 'diagnostic variant', '1', 'AD', '0', '0', '0', '0', '0', '0', '0', '0', 'bla', 'bla bla');
+
+INSERT INTO `report_configuration_cnv` (`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES
+(1, 4, 'diagnostic variant', '1', '4', 'AD', '0', '0', '0', '0', '0', '0', '0', '0', 'bla', 'bla bla');
+
 -- somatic_cnv_callset_id`
 INSERT INTO `somatic_cnv_callset` (`id`, `ps_tumor_id`, `ps_normal_id`, `caller`, `caller_version`, `call_date`, `quality_metrics`, `quality`) VALUES
 (1, 4000, 3999, 'ClinCNV', 'v 1.16', '2020-01-12T13:35:01', '{"estimated fdr":"0","gender of sample":"F","ploidy":"2.21","clonality by BAF (if != 1)":"0;0.725;0.25"}', 'good'),

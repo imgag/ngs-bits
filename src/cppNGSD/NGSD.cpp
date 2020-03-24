@@ -340,14 +340,31 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		QStringList report_conf_col;
 		for (int r=0; r<output.rowCount(); ++r)
 		{
+			QString ps_id = output.row(r).id();
 			QString text;
-			SqlQuery rc_res = getQuery();
-			rc_res.exec("SELECT rc.id, EXISTS(SELECT rcv.id FROM report_configuration_variant rcv WHERE rcv.report_configuration_id=rc.id) as vars, EXISTS(SELECT rcc.id FROM report_configuration_cnv rcc WHERE rcc.report_configuration_id=rc.id) as cnvs FROM report_configuration rc WHERE rc.processed_sample_id="+output.row(r).id());
-			if (rc_res.next())
+			QVariant rc_id = getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0", true, ps_id);
+			if (rc_id.isValid())
 			{
 				text = "exists";
-				if (rc_res.value("vars").toInt()>0) text += ",has_small_variants";
-				if (rc_res.value("cnvs").toInt()>0) text += ",has_cnvs";
+
+				//find causal small variants
+				QStringList causal_ids = getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='1' AND report_configuration_id=" + rc_id.toString());
+				foreach(QString id, causal_ids)
+				{
+					Variant var = variant(id);
+					QString genotype = getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + id + "'").toString();
+					QString genes = getValue("SELECT gene FROM variant WHERE id='" + id + "'").toString();
+					text += ", causal variant: " + var.toString() + " (genotype:" + genotype + " genes:" + genes + ")";
+				}
+
+				//find causal CNVs
+				causal_ids = getValues("SELECT cnv_id FROM report_configuration_cnv WHERE causal='1' AND report_configuration_id=" + rc_id.toString());
+				foreach(QString id, causal_ids)
+				{
+					CopyNumberVariant var = cnv(id.toInt());
+					QString cn = getValue("SELECT cn FROM cnv WHERE id='" + id + "'").toString();
+					text += ", causal CNV: " + var.toString() + " (cn:" + cn + ")";
+				}
 			}
 			report_conf_col << text;
 		}

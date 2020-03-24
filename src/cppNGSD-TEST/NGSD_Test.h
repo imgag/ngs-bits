@@ -1067,6 +1067,9 @@ private slots:
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 70);
+		S_EQUAL(ps_table.row(0).value(69), "");
+		S_EQUAL(ps_table.row(4).value(69), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1,LOC100507346), causal CNV: chr1:3000-4000 (cn:1)");
+
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
@@ -1210,7 +1213,7 @@ private slots:
 		S_EQUAL(cnv_id, "");
 
 		cnv_id = db.addCnv(1, cnv_list[0], cnv_list);
-		S_EQUAL(cnv_id, "5");
+		S_EQUAL(cnv_id, "6");
 		S_EQUAL(db.getValue("SELECT cn FROM cnv WHERE id="+cnv_id).toString(), "0");
 		S_EQUAL(db.getValue("SELECT quality_metrics FROM cnv WHERE id="+cnv_id).toString(), "{\"loglikelihood\":\"200\",\"qvalue\":\"0\",\"regions\":\"2\"}");
 
@@ -1218,7 +1221,7 @@ private slots:
 		cnv_id = db.addCnv(1, cnv_list[1], cnv_list);
 		S_EQUAL(db.getValue("SELECT cn FROM cnv WHERE id="+cnv_id).toString(), "1");
 		S_EQUAL(db.getValue("SELECT quality_metrics FROM cnv WHERE id="+cnv_id).toString(), "{\"region_zscores\":\"-4.48,-3.45,-4.27\",\"regions\":\"3\"}");
-		S_EQUAL(cnv_id, "6");
+		S_EQUAL(cnv_id, "7");
 
 		//cnvCallsetMetrics (of sample)
 		QHash<QString, QString> callset_metrics = db.cnvCallsetMetrics(1);
