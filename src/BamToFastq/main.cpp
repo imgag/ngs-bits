@@ -19,7 +19,11 @@ public:
 		addInfile("in", "Input BAM file.", false, true);
 		addOutfile("out1", "Read 1 output FASTQ.GZ file.", false);
 		addOutfile("out2", "Read 2 output FASTQ.GZ file.", false);
+		//optional
+		addString("reg", "Export only reads in the given region. Format: chr:start-end.", true);
 		addFlag("remove_duplicates", "Does not export duplicate reads into the FASTQ file.");
+
+		changeLog(2020,  3, 21, "Added 'reg' parameter.");
 	}
 
 	void write(FastqOutfileStream& out, const BamAlignment& al, bool rev_comp)
@@ -45,10 +49,20 @@ public:
 		//init
 		QTextStream out(stdout);
 		BamReader reader(getInfile("in"));
+		QString reg = getString("reg");
+		if (reg!="")
+		{
+			BedLine region = BedLine::fromString(reg);
+			if (!region.isValid())
+			{
+				THROW(CommandLineParsingException, "Given region '" + reg + "' is not valid!");
+			}
+			reader.setRegion(region.chr(), region.start(), region.end());
+		}
+		bool remove_duplicates = getFlag("remove_duplicates");
 
 		FastqOutfileStream out1(getOutfile("out1"));
 		FastqOutfileStream out2(getOutfile("out2"));
-		bool remove_duplicates = getFlag("remove_duplicates");
 
 		long long c_unpaired = 0;
 		long long c_paired = 0;
@@ -64,6 +78,8 @@ public:
 			
 			//skip secondary alinments
 			if(al.isSecondaryAlignment()) continue;
+
+			//skip duplicates
 			if (remove_duplicates && al.isDuplicate())
 			{
 				++c_duplicates;

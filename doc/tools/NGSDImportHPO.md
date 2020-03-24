@@ -1,11 +1,11 @@
 ### NGSDImportHPO tool help
-	NGSDImportHPO (2019_09-86-g7f86039a)
+	NGSDImportHPO (2019_09-51-g84b6c695)
 	
 	Imports HPO terms and gene-phenotype relations into the NGSD.
 	
 	Mandatory parameters:
 	  -obo <file>     HPO ontology file from 'http://purl.obolibrary.org/obo/hp.obo'.
-	  -anno <file>    HPO annotations file from 'http://compbio.charite.de/jenkins/job/hpo.annotations.monthly/lastStableBuild/artifact/annotation/ALL_SOURCES_ALL_FREQUENCIES_diseases_to_genes_to_phenotypes.txt'
+	  -anno <file>    HPO annotations file from 'http://compbio.charite.de/jenkins/job/hpo.annotations/lastSuccessfulBuild/artifact/util/annotation/phenotype_to_genes.txt'
 	
 	Optional parameters:
 	  -omim <file>    OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.
@@ -26,6 +26,9 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportHPO changelog
-	NGSDImportHPO 2019_09-86-g7f86039a
+	NGSDImportHPO 2019_09-51-g84b6c695
 	
+	2020-03-10 Removed support for old HPO annotation file.
+	2020-03-09 Added optimization for hpo-gene relations.
+	2020-03-05 Added support for new HPO annotation file.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
