@@ -190,19 +190,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	QApplication::clipboard()->setText("ENST00000343267:c.*179C>A\n"
-						"ENST00000343267:c.335-553G>C\n"
-						"ENST00000343267:c.334+158G>A\n"
-						"ENST00000343267:c.-34-2A>G\n"
-						"ENST00000343267:c.178C>T\n"
-						"ENST00000343267:c.246-13dup\n"
-						"ENST00000343267:c.*65_*69dup\n"
-						"ENST00000343267:c.*68del\n"
-						"ENST00000343267:c.335-239_335-238del\n"
-						"ENST00000343267:c.*62_*63insA\n"
-						"ENST00000343267:c.-34-875_-34-874insGAA\n"
-						"ENST00000343267:c.*69delinsCCCCCC\n"
-						"ENST00000343267:c.-4_-7delinsAA\n");
+	QApplication::clipboard()->setText("ENST00000294008:c.4409C>T\n"
+									   "NM_032444:c.4409C>T");
 
 	on_actionConvertHgvsToGSvar_triggered();
 }

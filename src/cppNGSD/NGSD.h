@@ -465,8 +465,8 @@ public:
 	BedFile genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns transcript by id. Throws an exception if not found in NGSD.
 	Transcript transcript(int id);
-	///Returns transcript identifier. Throws an exception if not found in NGSD.
-	int transcriptId(QString name);
+	///Returns transcript identifier. Throws an exception if not found in NGSD, or returns -1.
+	int transcriptId(QString name, bool throw_on_error=true);
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
 	QList<Transcript> transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
 	///Returns longest coding transcript of a gene.

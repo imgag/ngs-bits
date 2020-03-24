@@ -3223,9 +3223,15 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 	return output;
 }
 
-int NGSD::transcriptId(QString name)
+int NGSD::transcriptId(QString name, bool throw_on_error)
 {
-	return getValue("SELECT id FROM gene_transcript WHERE name=:0", false, name).toInt();
+	QVariant value = getValue("SELECT id FROM gene_transcript WHERE name=:0", !throw_on_error, name);
+	if (!value.isValid())
+	{
+		if (!throw_on_error) return -1;
+		THROW(DatabaseException, "No transcript with name '" + name + "' found in NGSD!");
+	}
+	return value.toInt();
 }
 
 QList<Transcript> NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool coding_only)

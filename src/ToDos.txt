@@ -1,11 +1,10 @@
 === TODO ===
 
 libs:
+#### cppCORE: add to scripts: script.append("from numpy import nan");
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
-#### conversion: allow 100% matching UCSC-transcripts
-#### table fields with links: allow copy, add borders
 * Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)

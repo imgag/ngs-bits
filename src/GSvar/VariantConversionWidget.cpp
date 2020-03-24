@@ -5,6 +5,7 @@
 #include "Helper.h"
 #include "Settings.h"
 #include "NGSD.h"
+#include "GSvarHelper.h"
 #include <QDebug>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -122,7 +123,28 @@ void VariantConversionWidget::convert()
 				QString transcript_name = line.left(sep_pos);
 				QString hgvs_c = line.mid(sep_pos+1);
 
-				Transcript transcript = db.transcript(db.transcriptId(transcript_name));
+				int trans_id = db.transcriptId(transcript_name, false);
+				if (trans_id==-1) //try to match CCDS/RefSeq toEnsembl
+				{
+					QString transcript_name2 = "";
+					const QMap<QByteArray, QByteArrayList>& matches = GSvarHelper::transcriptMatches();
+					for (auto it=matches.begin(); it!=matches.end(); ++it)
+					{
+						foreach(const QByteArray& trans, it.value())
+						{
+							if (trans==transcript_name)
+							{
+								transcript_name2 = it.key();
+							}
+						}
+					}
+					if (transcript_name2!="")
+					{
+						trans_id = db.transcriptId(transcript_name2, false);
+					}
+				}
+				if (trans_id==-1) THROW(ArgumentException, "Cannot determine Ensembl transcript for CCDS/RefSeq/Ensembl transcript identifier '" + transcript_name + "'!");
+				Transcript transcript = db.transcript(trans_id);
 				Variant variant = transcript.hgvsToVariant(hgvs_c, ref_genome_idx);
 
 				variant.checkValid();
