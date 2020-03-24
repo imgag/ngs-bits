@@ -88,7 +88,11 @@ When increasing the required number of subsequent regions, e.g. to 3, the number
 
 Usually, three tracks are shown that help you interprete the CNV (see the screenshot below):
 
-* copy number track (1): The copy-number estimates for each region (exon/bin) are shown. Gains are displayed in blue and losses are displayed in red. When hovering over a region, the variance in the reference cohort is also shown.
+* copy number track (1): The copy-number estimates for each region (exon/bin) are shown. Gains are displayed in blue and losses are displayed in red. When hovering over a region, the variance in the reference cohort is also shown. Target regions in which no calling could be performed are assigned -0.001.
+	* LowRawCoverage: Regions the are excluded because the depth is low or zero in most samples.
+	* SystematicallyLowCov: Regions that are excluded because the normalized depth is not distributes around 1.
+	* TooShortOrNA: Regions that are excluded because GC content could not be reliably determined, mainly regions with less than 50 bases.
+	* GCnormFailed: Regions that are excluded because of extreme GC content which cannot be normalized.
 * BAF track (2): b-allele-frequency of known SNPs in the sample. This track can be used to validate large deletions (no heterozygous variants, thus all BAFs should be 0 or 1) and for large heterozygous duplications (the center line of SNPs with AF 0.5 should split in two lines around 0.33 and 0.66).
 * AF TruSeqPCRfree (3): This track shows the copy-number-poymorphism regions (i.e. regions in wich more than 2% of our WGS samples don't have copy-number two). Lighter blue indicates lower AF, darker blue indicates higher AF and gray means that this region is not a CNP region. When hovering over a CNP region, the copy-number distribution in our cohort is shown in brackets as count for copy-number 0, copy-nuber 1, etc. up to count for copy-number 10.
 
