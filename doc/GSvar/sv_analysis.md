@@ -18,34 +18,30 @@ For the detection of insertions reads which overlap the start and end of the ins
 ## Details
 
 For SV calling [Manta](https://github.com/Illumina/manta) is used.
-For detailed information, please have a look a the analysis section:
-
-- [SV analysis](sv_analysis.md)
-
 
 ## SV analysis window
 
 The visualization and filtering of is done with the "Structural variants" dialog which can be started from the main menu:
-[SV menu](sv_menu.png)
+![SV menu](sv_menu.png)
 
 The "Structural variants" dialog shows the filtered list of all detected SVs with all annotations in the top left table view (1). For each SV the following values are shown:
 
-	* genomic position
-	* quality
-	* SV type
-	* filter
-	* sequence of the reference
-	* sequence of the SV
-	* genes
-	* gene info: gene-specific information from NGSD
-		* gnomAD o/e score for LOF variants
-		* overlap with gene (complete, intronic/intergenic, exonic/splicing) 
-	* NGSD count: number of exact matches in the NGSD and the allele frequency in brackets
-	* NGSD overlap: number of SVs in the NGSD which overlap the SV
-	* OMIM genes	
+* genomic position
+* quality
+* SV type
+* filter
+* sequence of the reference
+* sequence of the SV
+* genes
+* gene info: gene-specific information from NGSD
+	* gnomAD o/e score for LOF variants
+	* overlap with gene (complete, intronic/intergenic, exonic/splicing) 
+* NGSD count: number of exact matches in the NGSD and the allele frequency in brackets
+* NGSD overlap: number of SVs in the NGSD which overlap the SV
+* OMIM genes	
 
 Additionally the Format and Info columns of the currently selected SV is expanded below this table (2). On the right side there is a filter widget similar to the variant or CNV view where filters can be added and modified (3). Below that the target, chromosomal or phenotype region can be defined and the SVs filtered by genes or text (4). 
-[SV window](sv_window.png)
+![SV window](sv_window.png)
 
 
 ## FAQ
@@ -53,7 +49,7 @@ Additionally the Format and Info columns of the currently selected SV is expande
 ### (Re-)start SV analysis
 
 The SV (re-)analysis can be started 
-[SV reanalysis](sv_reanalysis.png)
+![SV reanalysis](sv_reanalysis.png)
 
 
 --
