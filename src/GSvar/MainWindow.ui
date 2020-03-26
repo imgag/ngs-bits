@@ -197,6 +197,9 @@
                    <iconset resource="GSvar.qrc">
                     <normaloff>:/Icons/AF_histogram.png</normaloff>:/Icons/AF_histogram.png</iconset>
                   </property>
+                  <property name="popupMode">
+                   <enum>QToolButton::InstantPopup</enum>
+                  </property>
                  </widget>
                 </item>
                 <item>

@@ -167,7 +167,9 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Show report configuration info", this, SLOT(showReportConfigInfo()));
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
-	connect(ui_.vars_af_hist, SIGNAL(clicked(bool)), this, SLOT(showAfHistogram()));
+	ui_.vars_af_hist->setMenu(new QMenu());
+	ui_.vars_af_hist->menu()->addAction("Show histogram (all variants)", this, SLOT(showAfHistogram_all()));
+	ui_.vars_af_hist->menu()->addAction("Show histogram (variants after filter)", this, SLOT(showAfHistogram_filtered()));
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentSample()));
 
 	//misc initialization
@@ -845,7 +847,17 @@ void MainWindow::editVariantComment(int index)
 	}
 }
 
-void MainWindow::showAfHistogram()
+void MainWindow::showAfHistogram_all()
+{
+	showAfHistogram(false);
+}
+
+void MainWindow::showAfHistogram_filtered()
+{
+	showAfHistogram(true);
+}
+
+void MainWindow::showAfHistogram(bool filtered)
 {
 	AnalysisType type = variants_.type();
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO)
@@ -856,14 +868,14 @@ void MainWindow::showAfHistogram()
 
 	//create histogram
 	Histogram hist(0.0, 1.0, 0.05);
-	int col = ui_.vars->columnIndex("quality");
-	for (int row=0; row<=ui_.vars->rowCount(); ++row)
+	int col_quality = variants_.annotationIndexByName("quality");
+	for (int i=0; i<variants_.count(); ++i)
 	{
-		QTableWidgetItem* item = ui_.vars->item(row, col);
-		if (item==nullptr) continue;
 
-		QStringList parts = item->text().split(';');
-		foreach(const QString& part, parts)
+		if (filtered && !filter_result_.passing(i)) continue;
+
+		QByteArrayList parts = variants_[i].annotations()[col_quality].split(';');
+		foreach(const QByteArray& part, parts)
 		{
 			if (part.startsWith("AF="))
 			{
@@ -881,7 +893,7 @@ void MainWindow::showAfHistogram()
 
 	//show chart
 	QChartView* view = GUIHelper::histogramChart(hist, "Allele frequency");
-	auto dlg = GUIHelper::createDialog(view, "Allele frequency histogram");
+	auto dlg = GUIHelper::createDialog(view, QString("Allele frequency histogram ") + (filtered ? "(after filter)" : "(all variants)"));
 	dlg->exec();
 }
 

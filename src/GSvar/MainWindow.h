@@ -250,8 +250,12 @@ public slots:
 	void editVariantValidation(int index);
 	///Edit comment of current variant
 	void editVariantComment(int index);
-	///Show allele frequency histogram
-	void showAfHistogram();
+	///Show allele frequency histogram (all variants)
+	void showAfHistogram_all();
+	///Show allele frequency histogram (after filter)
+	void showAfHistogram_filtered();
+	///Shows an allele frequency histogram
+	void showAfHistogram(bool filtered);
 	///Show encryption helper
 	void on_actionEncrypt_triggered();
 	///Show sample search dialog

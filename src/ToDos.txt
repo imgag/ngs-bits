@@ -18,7 +18,6 @@ NGSD:
 
 GSvar:
 *** Include CNV QC metrics in report HTML/XML?!
-#### Allow showing BAF histogram for all variant, region only or all vs region
 - Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
 * Allow ClinVar upload
     - small variants and CNVs
