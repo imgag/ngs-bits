@@ -1,7 +1,6 @@
 === TODO ===
 
 libs:
-#### cppCORE: add to scripts: script.append("from numpy import nan");
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 
 NGSD:
@@ -19,7 +18,7 @@ NGSD:
 
 GSvar:
 *** Include CNV QC metrics in report HTML/XML?!
-- Allow showing BAF histogram for region and show background distribution on other regions in autosomes.
+#### Allow showing BAF histogram for all variant, region only or all vs region
 - Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
 * Allow ClinVar upload
     - small variants and CNVs

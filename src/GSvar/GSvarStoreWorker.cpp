@@ -14,13 +14,11 @@ GSvarStoreWorker::~GSvarStoreWorker()
 
 void GSvarStoreWorker::process()
 {
-	//make backup
-	QString backup = filename_ + ".backup";
-	QFile::copy(filename_, backup);
+	//store to temporary file
+	QString tmp = filename_ + ".tmp";
+	variants_.store(tmp, VariantListFormat::TSV);
 
-	//store
-	variants_.store(filename_);
-
-	//remove backup
-	QFile::remove(backup);
+	//copy temp
+	QFile::remove(filename_);
+	QFile::rename(tmp, filename_);
 }
