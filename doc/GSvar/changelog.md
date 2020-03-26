@@ -1,5 +1,13 @@
 # GSvar change log
 
+### 2020_03-53 (26.03.20)
+- NGSD: users can change their NGSD password ('NGSD > Admin > Change password') 
+- NGSD: Admins can reset user passwords through the user table context menu.
+- Gene tab: Added preferred transcript information.
+- Gene tab: Added matching RefSeq/CCDS transcript information (based on cDNA sequence, ignoring UTR).
+- Sample search: added causal variant information to report configuration column.
+- General: AF histogram can now be shown for all variants or for filtered variants only.
+
 ### 2020_03-36 (20.03.20)
 - Multi-sample analysis: fixed bug that prevented displaying variants.
 - General: Added variant conversion (VCF>GSvar and HGVS.c>GSvar) via main menu > 'Variants'.
@@ -481,4 +489,5 @@
 --
 
 [back to main page](index.md)
+
 
