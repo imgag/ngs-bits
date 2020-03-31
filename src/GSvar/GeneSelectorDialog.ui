@@ -124,7 +124,7 @@
       </column>
       <column>
        <property name="text">
-        <string>CNV regions missing</string>
+        <string>CNV regions with failed QC</string>
        </property>
       </column>
      </widget>

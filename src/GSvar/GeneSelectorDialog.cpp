@@ -47,102 +47,79 @@ void GeneSelectorDialog::updateGeneTable()
 	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
 	ui->details->blockSignals(true); //otherwise itemChanged is emitted
 
-	//check for CNA results
-	//check for ClinCNV CN calling:
-	bool clincnv = false;
-	bool cna_result_present = false;
+	//check for CN calling results
+	CnvCallerType cnv_caller = CnvCallerType::INVALID;
 	QStringList seg_files = Helper::findFiles(sample_folder_, "*_cnvs_clincnv.seg", false);
 	QStringList tsv_files = Helper::findFiles(sample_folder_, "*_cnvs_clincnv.tsv", false);
-	if (seg_files.count() > 0 && tsv_files.size() > 0)
+	if (seg_files.count()==1 && tsv_files.size()==1)
 	{
-		clincnv = true;
-		cna_result_present = true;
+		cnv_caller = CnvCallerType::CLINCNV;
 	}
-
-	//if no ClinCNV files found check for CnvHunter
-	if (!clincnv)
+	else //CnvHunter
 	{
 		seg_files = Helper::findFiles(sample_folder_, "*_cnvs.seg", false);
-		cna_result_present = (seg_files.count()==1);
+		tsv_files = Helper::findFiles(sample_folder_, "*_cnvs.tsv", false);
+		if (seg_files.count()==1 && tsv_files.size()==1)
+		{
+			cnv_caller = CnvCallerType::CNVHUNTER;
+		}
+	}
+	if (cnv_caller==CnvCallerType::INVALID)
+	{
+		QMessageBox::warning(this, "CNV data not found", "CNV files not found not in sample folder.\nSkipping CNV statistics!\n\nThis should only happen if CNV calling was not possible for the sample!");
 	}
 
-
-
-
 	//load CNA results
-	BedFile cnvhunter_seg_file;
-	BedFile clincnv_seg_file;
-	BedFile clincnv_tsv_file;
-	if (cna_result_present)
+	BedFile cnv_calls;
+	BedFile cnv_regions_skipped;
+	if (cnv_caller!=CnvCallerType::INVALID)
 	{
-		if (clincnv)
+		//load calls
+		cnv_calls.load(tsv_files[0]);
+		cnv_calls.merge();
+
+		//load skipped regions from SEG file
+		auto f = Helper::openFileForReading(seg_files[0]);
+		while(!f->atEnd())
 		{
-			//ClinCNV
-			// read SEG file
-			auto f = Helper::openFileForReading(seg_files[0]);
-			bool header_line_parsed = false;
-			while(!f->atEnd())
+			QByteArray line = f->readLine();
+
+			//skip empty and comment lines
+			if (line.trimmed().isEmpty() || line.startsWith('#')) continue;
+			if (line.startsWith("ID\t")) continue;
+
+			QList<QByteArray> parts = line.split('\t');
+			if (parts.count()<5) THROW(FileParseException, "SEG file line invalid - less than 5 few tab-separated parts: " + line);
+
+			//determine if region QC failed
+			//CnvHunter: log2-ratio = "QC failed"
+			//ClinCNV: variance = "LowRawCoverage", "TooShortOrNA", "GCnormFailed", ...
+			bool ok = true;
+			parts[4].toDouble(&ok);
+			if (!ok)
 			{
-				QByteArray line = f->readLine();
-
-				//skip empty and comment lines
-				if (line.isEmpty() || line.startsWith('#')) continue;
-
-				if (!header_line_parsed)
-				{
-					// skip first non-comment line (-> header)
-					header_line_parsed = true;
-					continue;
-				}
-
 				//parse content
-				QList<QByteArray> parts = line.split('\t');
-				if (parts.count()<6) THROW(FileParseException, "SEG file line invalid: " + line);
 				Chromosome chr(parts[1]);
-				int start = Helper::toInt(parts[2], "SEG start position", line);
-				int end = Helper::toInt(parts[3], "SEG end position", line);
-				clincnv_seg_file.append(BedLine(chr, start, end));
-			}
-			clincnv_seg_file.merge();
-			clincnv_seg_file.sort();
-
-			// read TSV CNV file
-			clincnv_tsv_file.load(tsv_files[0]);
-		}
-		else
-		{
-			//CnvHunter
-			auto f = Helper::openFileForReading(seg_files[0]);
-			while(!f->atEnd())
-			{
-				QByteArray line = f->readLine();
-
-				//skip headers
-				if (line.isEmpty() || line[0]!='\t')
-				{
-					continue;
-				}
-
-				//parse content
-				QList<QByteArray> parts = line.split('\t');
-				if (parts.count()<6) THROW(FileParseException, "SEG file line invalid: " + line);
-				Chromosome chr(parts[1]);
-				int start = Helper::toInt(parts[2], "SEG start position", line);
-				int end = Helper::toInt(parts[3], "SEG end position", line);
-				cnvhunter_seg_file.append(BedLine(chr, start, end, QList<QByteArray>() << parts[5]));
+				int start = Helper::toInt(parts[2], "SEG start position", line)+1;
+				int end = Helper::toInt(parts[3], "SEG end position", line)+1;
+				cnv_regions_skipped.append(BedLine(chr, start, end));
 			}
 		}
+		cnv_regions_skipped.merge();
 	}
 
 	//load low-coverage file for processing system
-	QStringList files = Helper::findFiles(sample_folder_, "*_lowcov.bed", false);
-	if(files.count()!=1)
-	{
-		updateError("Gene selection error", "Low-coverage BED file not found in " + sample_folder_);
-		return;
-	}
 	BedFile sys_gaps;
-	sys_gaps.load(files[0]);
+	QStringList files = Helper::findFiles(sample_folder_, "*_lowcov.bed", false);
+	bool gaps_file_exists = files.count()==1;
+	if(gaps_file_exists)
+	{
+		sys_gaps.load(files[0]);
+	}
+	else
+	{
+		QMessageBox::warning(this, "Gaps not found", "Low-coverage BED file not found in sample folder.\nSkipping gap statistics!\n\nThis is normal for WGS samples, but should not happen for panel/exome!");
+	}
 
 	//load processing system target region
 	NGSD db;
@@ -183,89 +160,43 @@ void GeneSelectorDialog::updateGeneTable()
 		setGeneTableItem(r, 2, QString::number(bases), Qt::AlignRight);
 
 		//calculate gaps inside target region
-		BedFile gaps = sys_gaps;
-		gaps.intersect(region);
-		//add target region bases not covered by processing system target file
-		BedFile uncovered(region);
-		uncovered.subtract(sys_roi);
-		gaps.add(uncovered);
-		gaps.merge();
-		//output (absolute and percentage)
-		long long gap_bases = gaps.baseCount();
-		setGeneTableItem(r, 3, QString::number(gap_bases), Qt::AlignRight);
-		setGeneTableItem(r, 4, QString::number(100.0 * gap_bases / bases, 'f', 2), Qt::AlignRight);
+		if (!gaps_file_exists)
+		{
+			setGeneTableItem(r, 3, "n/a", Qt::AlignRight);
+			setGeneTableItem(r, 4, "n/a", Qt::AlignRight);
+		}
+		else
+		{
+			BedFile gaps = sys_gaps;
+			gaps.intersect(region);
 
-		//cnvs + cnv gaps
-		if (!cna_result_present)
+			//add target region bases not covered by processing system target file
+			BedFile uncovered(region);
+			uncovered.subtract(sys_roi);
+			gaps.add(uncovered);
+			gaps.merge();
+
+			//output (absolute and percentage)
+			long long gap_bases = gaps.baseCount();
+			setGeneTableItem(r, 3, QString::number(gap_bases), Qt::AlignRight);
+			setGeneTableItem(r, 4, QString::number(100.0 * gap_bases / bases, 'f', 2), Qt::AlignRight);
+		}
+
+		//CNVs detected and CNV region fails
+		if (cnv_caller==CnvCallerType::INVALID)
 		{
 			setGeneTableItem(r, 5, "n/a", Qt::AlignRight);
 			setGeneTableItem(r, 6, "n/a", Qt::AlignRight);
 		}
 		else
 		{
-			BedFile cnv_data;
-			if (clincnv)
-			{
-				cnv_data = clincnv_tsv_file;
-			}
-			else
-			{
-				cnv_data = cnvhunter_seg_file;
-			}
-			cnv_data.overlapping(region);
-			cnv_data.sort();
-			int cnv_del = 0;
-			int cnv_dup = 0;
-			int cnv_bad_qc = 0;
-			for(int i=0; i<cnv_data.count(); ++i)
-			{
-				// count CNVs with low log-likelihood In case of ClinCNV
-				if (clincnv)
-				{
-					if (Helper::toDouble(cnv_data[i].annotations()[1], "CNV log-likelihood") <= 20.00)
-					{
-						++cnv_bad_qc;
-						continue;
-					}
-				}
+			BedFile tmp = region;
+			tmp.overlapping(cnv_calls);
+			setGeneTableItem(r, 5, QString::number(tmp.count()), Qt::AlignRight, Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
 
-				QString cn = cnv_data[i].annotations()[0];
-				bool ok = false;
-				int cn_num = cn.toInt(&ok);
-				if (!ok)
-				{
-					++cnv_bad_qc;
-				}
-				else if(cn_num<2)
-				{
-					++cnv_del;
-				}
-				else if(cn_num>2)
-				{
-					++cnv_dup;
-				}
-			}
-			QStringList parts;
-			if (cnv_del) parts << QString::number(cnv_del) + " del";
-			if (cnv_dup) parts << QString::number(cnv_dup) + " dup";
-			setGeneTableItem(r, 5, parts.join(", "), Qt::AlignRight, Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-
-			parts.clear();
-			if (cnv_bad_qc) parts << QString::number(cnv_bad_qc) + " bad qc";
-			int n_cnv_gaps;
-			BedFile region_covered = region;
-
-			if (clincnv)
-			{
-				region_covered.overlapping(clincnv_seg_file);
-			}
-			else
-			{
-				region_covered.overlapping(cnv_data);
-			}
-			n_cnv_gaps = region.count() - region_covered.count();
-			if (n_cnv_gaps) parts << QString::number(n_cnv_gaps) + " not covered";
-			setGeneTableItem(r, 6, parts.join(", "), Qt::AlignRight);
+			tmp = region;
+			tmp.overlapping(cnv_regions_skipped);
+			setGeneTableItem(r, 6, QString::number(tmp.count()), Qt::AlignRight);
 		}
 	}
 

@@ -585,7 +585,7 @@ void MainWindow::delayedInitialization()
 				NGSD db;
 				if (db.processedSampleId(arg, false)!="")
 				{
-					openProcessedSampleFromNGSD(arg);
+					openProcessedSampleFromNGSD(arg, false);
 				}
 			}
 		}
