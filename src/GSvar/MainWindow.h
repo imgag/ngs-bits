@@ -307,10 +307,10 @@ public slots:
 	///Updates the variant table icon for the variant with the given index
 	void updateReportConfigHeaderIcon(int index);
 
-	///Store the currently open file
+	///Mark the current variant list as changed. It is stored when the sample is closed.
+	void markVariantListChanged();
+	///Store the current variant list.
 	void storeCurrentVariantList();
-	///Finished storing the current  currently open list
-	void storingVariantListFinished(bool success);
 
 	///Check for variant validations that need action.
 	void checkPendingVariantValidations();
@@ -342,6 +342,7 @@ private:
 	enum {YES, NO, ROI} db_annos_updated_;
 	bool igv_initialized_;
 	VariantList variants_;
+	bool variants_changed_;
 	CnvList cnvs_;
 	FilterResult filter_result_;
 	QMap<QString, QString> link_columns_;

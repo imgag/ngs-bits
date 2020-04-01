@@ -80,7 +80,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticRnaReport.h"
 #include "ProcessingSystemWidget.h"
 #include "ProjectWidget.h"
-#include "GSvarStoreWorker.h"
 #include "DBEditor.h"
 #include "TsvTableWidget.h"
 #include "DBTableAdministration.h"
@@ -105,6 +104,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, filename_()
 	, db_annos_updated_(NO)
 	, igv_initialized_(false)
+	, variants_changed_(false)
 	, last_report_path_(QDir::homePath())
 	, init_timer_(this, true)
 {
@@ -801,6 +801,9 @@ void MainWindow::editVariantValidation(int index)
 			//update details widget and filtering
 			ui_.variant_details->updateVariant(variants_, index);
 			refreshVariantTable();
+
+			//mark variant list as changed
+			markVariantListChanged();
 		}
 	}
 	catch (DatabaseException& e)
@@ -837,6 +840,9 @@ void MainWindow::editVariantComment(int index)
 			{
 				variant.annotations()[col_index] = text;
 				refreshVariantTable();
+
+				//mark variant list as changed
+				markVariantListChanged();
 			}
 		}
 	}
@@ -1025,7 +1031,7 @@ void MainWindow::importPhenotypesFromNGSD()
 void MainWindow::createSubPanelFromPhenotypeFilter()
 {
 	//convert phenotypes to genes
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	NGSD db;
 	GeneSet genes;
 	foreach(const Phenotype& pheno, ui_.filters->phenotypes())
@@ -1329,6 +1335,16 @@ void MainWindow::on_actionChangeLog_triggered()
 
 void MainWindow::loadFile(QString filename)
 {
+	//store variant list in case it changed
+	if (variants_changed_)
+	{
+		int result = QMessageBox::question(this, "Store GSvar file?", "The GSvar file was changed by you.\nDo you want to store the changes to file?", QMessageBox::Yes, QMessageBox::No);
+		if (result==QMessageBox::Yes)
+		{
+			storeCurrentVariantList();
+		}
+	}
+
 	QTime timer;
 	timer.start();
 
@@ -1337,6 +1353,7 @@ void MainWindow::loadFile(QString filename)
 	ui_.filters->reset(true);
 	filename_ = "";
 	variants_.clear();
+	variants_changed_ = false;
 	cnvs_.clear();
 	filewatcher_.clearFile();
 	db_annos_updated_ = NO;
@@ -1359,7 +1376,7 @@ void MainWindow::loadFile(QString filename)
 	if (filename=="") return;
 
 	//load data
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	try
 	{
 		//load variants
@@ -1636,12 +1653,12 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 			snv.annotations()[i_germline_annot_cnvs] = annotations.join(":");
 		}
 	}
+	QApplication::restoreOverrideCursor();
 
 	QMessageBox::information(this,"Success","Somatic variants from " + filename + " were annotated successfully.");
 
-	storeCurrentVariantList();
-
-	QApplication::restoreOverrideCursor();
+	//mark variant list as changed
+	markVariantListChanged();
 }
 
 void MainWindow::loadReportConfig()
@@ -3115,7 +3132,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 		QByteArray symbol = selectGene().toUtf8();
 		if (symbol=="") return;
 
-		QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+		QApplication::setOverrideCursor(Qt::BusyCursor);
 
 		roi_name = "Gene " + symbol;
 
@@ -3134,7 +3151,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	}
 
 	//prepare dialog
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	GapDialog dlg(this, sample_name, roi_name);
 	dlg.process(bam_file, roi, genes);
 	QApplication::restoreOverrideCursor();
@@ -3482,6 +3499,9 @@ void MainWindow::dropEvent(QDropEvent* e)
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+	//unload the data
+	loadFile();
+
 	//here one could cancel closing the window by calling event->ignore()
 
 	event->accept();
@@ -3489,7 +3509,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::refreshVariantTable(bool keep_widths)
 {
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	QTime timer;
 	timer.start();
@@ -3949,8 +3969,8 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 		ui_.variant_details->updateVariant(variants, index);
 		refreshVariantTable();
 
-		//store variant table
-		storeCurrentVariantList();
+		//mark variant list as changed
+		markVariantListChanged();
 	}
 	catch (DatabaseException& e)
 	{
@@ -4011,7 +4031,7 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 {
 	bool success = true;
 
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	try
 	{
@@ -4161,31 +4181,36 @@ void MainWindow::updateReportConfigHeaderIcon(int index)
 	}
 }
 
-void MainWindow::storeCurrentVariantList()
+void MainWindow::markVariantListChanged()
 {
-	//disable file watcher
-	filewatcher_.clearFile();
-
-	//store
-	GSvarStoreWorker* worker = new GSvarStoreWorker(variants_, filename_);
-	connect(worker, SIGNAL(finished(bool)), this, SLOT(storingVariantListFinished(bool)));
-	worker->start();
+	variants_changed_ = true;
 }
 
-void MainWindow::storingVariantListFinished(bool success)
+void MainWindow::storeCurrentVariantList()
 {
-	//show result info box
-	GSvarStoreWorker* worker = qobject_cast<GSvarStoreWorker*>(sender());
-	if (!success)
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+	filewatcher_.clearFile();
+
+	try
 	{
-		QMessageBox::warning(this, "Error", "Storing GSvar failed:\n" + worker->errorMessage());
+		//store to temporary file
+		QString tmp = filename_ + ".tmp";
+		variants_.store(tmp, VariantListFormat::TSV);
+
+		//copy temp
+		QFile::remove(filename_);
+		QFile::rename(tmp, filename_);
+
+		variants_changed_ = false;
+	}
+	catch(Exception& e)
+	{
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "Error stroring GSvar file", "The GSvar file could not be stored:\n" + e.message());
 	}
 
-	//clean
-	worker->deleteLater();
-
-	//enable file watcher again
 	filewatcher_.setFile(filename_);
+	QApplication::restoreOverrideCursor();
 }
 
 void MainWindow::checkPendingVariantValidations()

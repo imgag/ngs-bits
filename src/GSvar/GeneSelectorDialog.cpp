@@ -44,7 +44,7 @@ void GeneSelectorDialog::updateGeneTable()
 	if (genes.isEmpty()) return;
 
 	//set cursor
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	ui->details->blockSignals(true); //otherwise itemChanged is emitted
 
 	//check for CN calling results

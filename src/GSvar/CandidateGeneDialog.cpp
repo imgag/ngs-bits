@@ -32,7 +32,7 @@ void CandidateGeneDialog::updateVariants()
 	QByteArray genes_text = ui_.genes->text().toLatin1().trimmed();
 	if (genes_text.isEmpty()) return;
 
-	QApplication::setOverrideCursor(QCursor(Qt::BusyCursor));
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	//init
 	NGSD db;

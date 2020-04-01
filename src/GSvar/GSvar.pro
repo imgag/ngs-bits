@@ -66,7 +66,6 @@ SOURCES += main.cpp\
     VariantWidget.cpp \
     ProcessingSystemWidget.cpp \
     ProjectWidget.cpp \
-    GSvarStoreWorker.cpp \
     DBEditor.cpp \
     FilterWidgetSV.cpp \
     DBTableAdministration.cpp \
@@ -141,7 +140,6 @@ HEADERS  += MainWindow.h \
     VariantWidget.h \
     ProcessingSystemWidget.h \
     ProjectWidget.h \
-    GSvarStoreWorker.h \
     DBEditor.h \
     FilterWidgetSV.h \
     DBTableAdministration.h \
