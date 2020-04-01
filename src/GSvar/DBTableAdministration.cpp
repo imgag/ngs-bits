@@ -209,7 +209,8 @@ void DBTableAdministration::resetUserPassword()
 
 	body << "Hello " + db.userName(user_id) + ",";
 	body << "";
-	body << "your new password for NGSD is: " + password;
+	body << "your new password for NGSD/GSvar is: " + password;
+	body << "You can change the password in the GSvar main menu (NGSD > Admin > Change password).";
 	body << "";
 	body << "Best regards, ";
 	body << "  " + db.userName(LoginManager::userId());
