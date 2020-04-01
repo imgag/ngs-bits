@@ -4205,7 +4205,6 @@ void MainWindow::showNotification(QString text)
 
 	//update tooltip
 	QStringList tooltips = notification_label_->toolTip().split("\n", QString::SkipEmptyParts);
-	qDebug() << tooltips;
 	if (!tooltips.contains(text)) tooltips.prepend(text);
 	notification_label_->setToolTip(tooltips.join("<br>"));
 
@@ -4214,6 +4213,7 @@ void MainWindow::showNotification(QString text)
 	QPoint pos = ui_.statusBar->mapToGlobal(notification_label_->pos()) + QPoint(8,8);
 	QToolTip::showText(pos, text);
 }
+
 void MainWindow::clearSomaticReportSettings(QString ps_id_in_other_widget)
 {
 	if(!LoginManager::active()) return;

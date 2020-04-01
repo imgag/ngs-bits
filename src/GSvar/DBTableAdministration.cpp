@@ -204,14 +204,14 @@ void DBTableAdministration::resetUserPassword()
 
 	//create email
 	QString to = db.userEmail(user_id);
-	QString subject = "[NGSD] Passwort zur&uuml;ckgesetzt";
+	QString subject = "[NGSD] Password reset";
 	QStringList body;
 
-	body << "Hallo " + db.userName(user_id) + ",";
+	body << "Hello " + db.userName(user_id) + ",";
 	body << "";
-	body << "das neue Passwort f&uuml;r die NGSD ist: " + password;
+	body << "your new password for NGSD is: " + password;
 	body << "";
-	body << "Viele Grue&szlig;e, ";
+	body << "Best regards, ";
 	body << "  " + db.userName(LoginManager::userId());
 
 	QDesktopServices::openUrl(QUrl("mailto:" + to + "?subject=" + subject + "&body=" + body.join("\n")));
