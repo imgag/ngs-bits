@@ -1,0 +1,2240 @@
+<xs:schema version="1.6; February 10, 2020" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:annotation>
+        <xs:documentation> If you have any question about this xsd, please contact us.
+            (clinvar@ncbi.nlm.nih.gov). </xs:documentation>
+    </xs:annotation>
+    <xs:simpleType name="StatusTypeList">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="novel"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:attributeGroup name="CVIdentifiers">
+        <xs:annotation>
+            <xs:documentation>The database ID will be captured as attribute when a submission is
+                updating a record with an identifier.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="id" type="xs:positiveInteger" use="optional"/>
+        <xs:attribute name="ncbi_id" type="xs:positiveInteger" use="optional"/>
+        <xs:attribute name="id_status" type="StatusTypeList" use="optional"/>
+        <xs:attribute name="uid" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>Temporary unique ID, used for submission processing.  For internal
+                    use only.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:complexType name="typeContactInfo">
+        <xs:annotation>
+            <xs:documentation>Contact info - an address with email</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="email" type="xs:string" use="required"/>
+        <xs:attribute name="phone" type="xs:string"/>
+        <xs:attribute name="fax" type="xs:string"/>
+        <xs:attribute default="false" name="Public" type="xs:boolean" use="optional"/>
+    </xs:complexType>
+    <xs:complexType name="typeAccount">
+        <xs:annotation>
+            <xs:documentation>Account - a person with logon</xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element minOccurs="1" name="Contact" type="typeContactInfo">
+                <xs:annotation>
+                    <xs:documentation>Contact information if known. This usage is required when
+                        logging in via NCBI's submission system.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="user_name" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>Logon name</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="authority" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>eRA,pda,NIH,ncbi/ftp-private,.....</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="GTRPersonId" type="xs:int" use="optional"/>
+    </xs:complexType>
+    <xs:simpleType name="typeIdName">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="id"/>
+            <xs:enumeration value="name"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="XrefType">
+        <xs:annotation>
+            <xs:documentation>XRefs are used to represent references to data from external
+                databases. These are stored in the ClinVar database to represent objects like
+                GeneIDs in Gene or MIM numbers in OMIM, and are flexible enough to be used broadly.
+                The db is the database name used for the external reference (e.g. 'Gene' or 'OMIM')
+                and the ID is that database identifier (e.g. the GeneID or MIM number). The type is
+                optional and should be used if there are multiple types of identifiers from a
+                database. For example, from OMIM we may get both MIM numbers and identifiers for
+                allelic variants; those should be specified as the type for the XRef. Expect ID to
+                not be provided only if this is used for submitting a URL on it's own. XSD does not
+                permit choice for attributes so validation of these will need to be in another layer
+                (XSLT) </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="db" type="xs:string" use="required"/>
+        <xs:attribute name="type" type="xs:string" use="optional"/>
+        <xs:attribute name="id" type="xs:string" use="optional"/>
+        <xs:attribute name="URL" type="xs:anyURI" use="optional"/>
+        <xs:attribute default="0" name="cv_id" type="xs:int" use="optional"/>
+        <xs:attribute default="current" name="Status" type="typeStatus" use="optional"/>
+    </xs:complexType>
+    <xs:complexType name="CommentType">
+        <xs:annotation>
+            <xs:documentation>A free text comment to submit data (public) or to provide explanations
+                for internal use. </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="CommentText" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="1" name="Type">
+                <xs:annotation>
+                    <xs:documentation>The name or id of comment_type in clinvar</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="typeCommenttypelist">
+                            <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute default="0" name="id" type="xs:int" use="optional"/>
+        <xs:attribute default="current" name="Status" type="typeStatus" use="optional"/>
+    </xs:complexType>
+    <xs:simpleType name="typeCommenttypelist">
+        <xs:union memberTypes="xs:positiveInteger Commenttypelist"/>
+    </xs:simpleType>
+    <xs:simpleType name="Commenttypelist">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="public"/>
+            <xs:enumeration value="internal use"/>
+            <xs:enumeration value="ConvertedByNCBI"/>
+            <xs:enumeration value="ExplanationOfInterpretation"/>
+            <xs:enumeration value="processing comment">
+                <xs:annotation>
+                    <xs:documentation>This is for internal use only.</xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="CitationType">
+        <xs:annotation>
+            <xs:documentation> Citations provide the identifers or descriptions of a publication
+                that supports a data element. The citation can be any of (1) the combination of a
+                data source and the identifier used by that source (e.g. PubMed and PubMed UID), (2)
+                a URL, or (3) a text title. </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" name="CitationType">
+                <xs:annotation>
+                    <xs:documentation>Will be set to 'general' on submission processing if not
+                        provided.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="typeCitationtype">
+                            <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="ID">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute name="Source" type="xs:string" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="URL" type="xs:anyURI"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="CitationText" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+        <xs:attribute name="Rank" type="xs:int" use="optional"/>
+        <xs:attribute name="Abbrev" type="xs:string" use="optional"/>
+        <xs:attribute default="current" name="Status" type="typeStatus" use="optional"/>
+        <xs:attribute default="0" name="cv_id" type="xs:int" use="optional"/>
+    </xs:complexType>
+    <xs:simpleType name="typeCitationtype">
+        <xs:union memberTypes="xs:positiveInteger Citationtypelist"/>
+    </xs:simpleType>
+    <xs:simpleType name="Citationtypelist">
+        <xs:restriction base="xs:string"> </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="AttributeType">
+        <xs:annotation>
+            <xs:documentation>The attribute is a general element to represent a defined set of data
+                qualified by an enumerated set of types. For each attribute element, the value will
+                be a character string and is optional. Source shall be used to store identifiers for
+                supplied data from source other than the submitter (e.g. SequenceOntology). The data
+                submitted where Type="variation" shall be validated against sequence_alternation in
+                Sequence Ontology http://www.sequenceontology.org/. This is to be a generic version
+                of AttributeType and should be used with extension when it is used to specify Type
+                and its enumerations.</xs:documentation>
+        </xs:annotation>
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="integerValue" type="xs:int" use="optional"/>
+                <xs:attribute name="dateValue" type="xs:date" use="optional"/>
+                <xs:attribute name="source" type="xs:string" use="optional"/>
+                <xs:attribute default="current" name="Status" type="typeStatus" use="optional"/>
+                <xs:attribute default="3" name="pubStat" type="xs:string" use="optional"/>
+                <xs:attributeGroup ref="CVIdentifiers"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="AttributeBundleType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="AttributeType">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="AttributeTypeType"/>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="1" name="Attribute" type="AttributeType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="typeAttributeType">
+        <xs:union memberTypes="xs:positiveInteger xs:string"/>
+    </xs:simpleType>
+    <xs:complexType name="AttributeTypeType">
+        <xs:simpleContent>
+            <xs:extension base="typeAttributeType">
+                <xs:attribute name="val_type" type="typeIdName" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:simpleType name="typeStatus">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="current"/>
+            <xs:enumeration value="completed and retired"/>
+            <xs:enumeration value="delete"/>
+            <xs:enumeration value="in development"/>
+            <xs:enumeration value="reclassified"/>
+            <xs:enumeration value="reject"/>
+            <xs:enumeration value="secondary"/>
+            <xs:enumeration value="suppressed"/>
+            <xs:enumeration value="under review"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="SoftwareSet">
+        <xs:annotation>
+            <xs:documentation>Structure to describe the name, version, and use of code used in a
+                particular method. </xs:documentation>
+            <!--- SVN-182, SVN hook -->
+        </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="version" type="xs:string" use="optional"/>
+        <xs:attribute name="purpose" type="xs:string" use="optional"/>
+        <xs:attribute default="0" name="cv_id" type="xs:int" use="optional"/>
+        <!-- JIRA:MDI-1681 -->
+    </xs:complexType>
+    <xs:complexType name="FamilyInfo">
+        <xs:annotation>
+            <xs:documentation>Structure to describe attributes of any family data in an observation.
+                If the details of the number of families and the de-identified pedigree id are not
+                available,                 use FamilyHistory to describe what type of family data is
+                available.                 Can also be used to report 'Yes' or 'No' if there are no
+                more details.             </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" name="FamilyHistory" type="xs:string"/>
+        </xs:sequence>
+        <xs:attribute name="NumFamilies" type="xs:int" use="optional"/>
+        <xs:attribute name="NumFamiliesWithVariant" type="xs:int" use="optional"/>
+        <xs:attribute name="NumFamiliesWithSegregationObserved" type="xs:int" use="optional"/>
+        <xs:attribute name="PedigreeID" type="xs:string" use="optional"/>
+        <xs:attribute name="SegregationObserved" type="xs:string" use="optional"/>
+    </xs:complexType>
+    <xs:complexType name="SetElementSetType">
+        <xs:annotation>
+            <xs:documentation>The attribute set groups an attribute and citations for that
+                attribute. We allow citations for each attribute. </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="ElementValueType">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="typeElementValuetype">
+                            <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="ElementValue">
+                <xs:annotation>
+                    <xs:documentation> Used generically to define the attributes of sets of data
+                        (such as sets of conditions or phenotypes, or sets of variations) or their
+                        relationships (measure-target). </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute name="db" type="xs:string" use="optional"/>
+                            <xs:attribute name="id" type="xs:int" use="optional"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+        <xs:attribute name="derived_by" use="optional">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="NCBI"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+    </xs:complexType>
+    <xs:complexType name="AttributeDecimalType">
+        <xs:annotation>
+            <xs:documentation>The attribute is a general element to represent a defined set of data
+                qualified by an enumerated set of types. For each decimal attribute element, the
+                value will be a decimal and is optional. Source shall be used to store identifiers
+                for supplied data from source other than the submitter (e.g. SequenceOntology). This
+                is a generic version for decimal attributes and should be used with extension when
+                it is used to specify Type and its enumerations. The integerValue attribute type is
+                retained as                 an option because the generic structure of this element
+                could support a decimal value                 being submitted with some qualifying
+                integer value as well.</xs:documentation>
+        </xs:annotation>
+        <xs:simpleContent>
+            <xs:extension base="xs:decimal">
+                <xs:attribute name="integerValue" type="xs:int" use="optional"/>
+                <xs:attribute name="dateValue" type="xs:date" use="optional"/>
+                <xs:attribute name="source" type="xs:string" use="optional"/>
+                <xs:attribute default="current" name="Status" type="typeStatus" use="optional"/>
+                <xs:attributeGroup ref="CVIdentifiers"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="MethodType">
+        <xs:annotation>
+            <xs:documentation> Details of a method used to generate variant calls or predict/report
+                functional consequence. The name of the platform should represent a sequencer or an
+                array, e.g. sequencing or array , e.g. capillary, 454, Helicos, Solexa, SOLiD. This
+                structure should also be used if the method is 'Curation'. </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" name="NamePlatform" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="TypePlatform" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Purpose" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="ResultType">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="number of occurrences"/>
+                        <xs:enumeration value="p value"/>
+                        <xs:enumeration value="odds ratio"/>
+                        <xs:enumeration value="variant call"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="MinReported" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="MaxReported" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="ReferenceStandard" type="xs:string"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Description" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation> Free text to enrich the description of the method and to
+                        provide information not captured in specific fields. </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Software" type="SoftwareSet"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="SourceType">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="submitter-generated"/>
+                        <xs:enumeration value="data mining"/>
+                        <xs:enumeration value="data review"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="1" name="MethodType">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="typeMethodtype">
+                            <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="MethodAttribute"
+                type="MethodAttributeType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="ObsMethodAttribute"
+                type="ObsMethodAttributeType">
+                <xs:annotation>
+                    <xs:documentation> Use this when this attribute is not a generic attribute of
+                        this method but rather an attribute specific this method in conjuction with
+                        this observation                         An example is a method used to
+                        validate the the variant call; the AttributeType would be MethodResult, and
+                        value is one of pass/fail/inconclusive                         Another
+                        example is indication TestingLaboratory and interpretation made by the
+                        testing lab;  use AttributeType TestingLaboratory, and put name of the lab
+                        as value, and                        </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+    </xs:complexType>
+    <xs:simpleType name="typeMethodAttributeTypelist">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ControlsAppropriate"/>
+            <xs:enumeration value="MethodAppropriate"/>
+            <xs:enumeration value="TestName"/>
+            <xs:enumeration value="StructVarMethodType"/>
+            <xs:enumeration value="ProbeAccession"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeMethodAttributeType">
+        <xs:union memberTypes="xs:positiveInteger typeMethodAttributeTypelist"/>
+    </xs:simpleType>
+    <xs:complexType name="MethodAttributeTypeType">
+        <xs:simpleContent>
+            <xs:extension base="typeMethodAttributeType">
+                <xs:attribute name="val_type" type="typeIdName" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="MethodAttributeType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="AttributeType">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="MethodAttributeTypeType"/>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="1" name="Attribute" type="AttributeType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="typeObsMethodAttributeTypelist">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="MethodResult"/>
+            <xs:enumeration value="TestingLaboratory"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeObsMethodAttributeType">
+        <xs:union memberTypes="xs:positiveInteger typeObsMethodAttributeTypelist"/>
+    </xs:simpleType>
+    <xs:complexType name="ObsMethodAttributeTypeType">
+        <xs:simpleContent>
+            <xs:extension base="typeObsMethodAttributeType">
+                <xs:attribute name="val_type" type="typeIdName" use="required"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="ObsMethodAttributeType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="AttributeType">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="ObsMethodAttributeTypeType"/>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="1" name="Attribute" type="AttributeType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ObservedDataType">
+        <xs:annotation>
+            <xs:documentation>This is an AttributeSet, there will be 1 attribute supported by
+                optional citations, xrefs and comment.                  There must be at least one
+                ObservedData Set, but can be any number.                 For each ObservedData set
+                the Attribute will be either decimal or string depending on type.
+                The value will be stored here, but decimals will be entered to the database as a
+                string.             </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:choice>
+                <xs:element maxOccurs="1" minOccurs="1" name="ObsAttributeType">
+                    <xs:complexType>
+                        <xs:simpleContent>
+                            <xs:extension base="typeObsAttributetype">
+                                <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                            </xs:extension>
+                        </xs:simpleContent>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element maxOccurs="1" minOccurs="1" name="ObsDecAttributeType">
+                    <xs:complexType>
+                        <xs:simpleContent>
+                            <xs:extension base="typeObsdecAttributetype">
+                                <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                            </xs:extension>
+                        </xs:simpleContent>
+                    </xs:complexType>
+                </xs:element>
+            </xs:choice>
+            <xs:element maxOccurs="1" minOccurs="1" name="Attribute" type="AttributeType"> </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="Zygosity" type="ZygosityType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+    </xs:complexType>
+    <xs:complexType name="ObservationSet">
+        <xs:annotation>
+            <xs:documentation>Documents in what populations or samples an allele or genotype has
+                been observed relative to the described trait. Summary observations can be
+                registered per submitted assertion, grouped by common citation, study type, origin,
+                ethnicity, tissue, cell line, and species data. Not all options are valid per study
+                type, but these will not be validated in the xsd. </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="Sample" type="SampleType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="1" name="Method" type="MethodType"> </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="1" name="ObservedData"
+                type="ObservedDataType"> </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="Severity" type="SeverityType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Co-occurrenceSet"
+                type="Co-occurrenceType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="TraitSet" type="TraitSetType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+        <xs:attribute default="current" name="Status" type="typeStatus" use="optional"/>
+        <xs:attribute default="3" name="pubStat" type="xs:string" use="optional"/>
+        <xs:attribute name="Aggregate" type="xs:boolean"/>
+    </xs:complexType>
+    <xs:complexType name="SubmissionType">
+        <xs:annotation>
+            <xs:documentation>Each ClinVar submission is a single asserted relationship. There must
+                be at least 1 in a set, but there may be many. </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" name="RecordStatus">
+                <xs:annotation>
+                    <xs:documentation>Record status is optional, because if not supplied it defaults
+                        to current. </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="novel"/>
+                        <xs:enumeration value="update"/>
+                        <xs:enumeration value="delete"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element default="public" maxOccurs="1" minOccurs="0" name="ReleaseStatus"
+                type="ReleaseStatusType">
+                <xs:annotation>
+                    <xs:documentation>A release status can be applied to each assertion in the
+                        submission.  When not provided, the value is set to 'public'.
+                        This value has precedence over that in ClinvarSubmissionSet.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="1" name="ClinvarSubmissionID">
+                <xs:complexType>
+                    <xs:attribute name="submitter" type="xs:string" use="optional"/>
+                    <xs:attribute name="title" type="xs:string" use="optional"/>
+                    <xs:attribute name="localKey" type="xs:string" use="required"/>
+                    <xs:attribute name="submittedAssembly" type="xs:string" use="optional"/>
+                    <xs:attribute name="submitterDate" type="xs:date" use="optional"/>
+                    <xs:attribute name="submitter_variant_id" type="xs:string" use="optional"/>
+                    <xs:attribute name="localKeyIsSubmitted">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:unsignedInt">
+                                <xs:enumeration value="1"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="ClinvarSubmissionAcc">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="ClinvarSubmissionAccType">
+                            <xs:annotation>
+                                <xs:documentation>Each assertion of the relationship between a set
+                                    of                                     variations and a set of
+                                    phenotype measures is assigned an accession
+                                    in ClinVar. The prefix for the an external submitter's accession
+                                    is                                     SCV (submitted ClinVar);
+                                    assertions curated by NCBI staff are
+                                    assigned a private NCV accession (such as gene-disease
+                                    relationship                                     reported in the
+                                    literature. The aggregate of submissions for the
+                                    same assertion is assigned an RCV accession (aka reference
+                                    ClinVar)                                 </xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="typeClinvarSubmissionAcc">
+                                        <xs:attribute name="val_type" type="typeIdName"
+                                            use="required"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="Acc" type="xs:string" use="required"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="ReplacesAccession"
+                type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>If this accession replaces another, the other does not need to
+                        be submitted explictitly but can be listed here                         and
+                        clinvar will do the merge on the database side.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="1" name="MeasureTrait" type="MeasureTraitType">
+                <xs:annotation>
+                    <xs:documentation>ClinVar uses the term measure to indicate what is measured
+                        (sequence variation, expression, protein electrophoretic mobility, etc.) to
+                        assess the asserted relationship to the phenotype or condition (trait).
+                        Measures of the same type can be grouped into sets; this is useful when, for
+                        example, a combination of alleles defines a 'diagnosis' name; or a local
+                        haplotype needs to be defined. All measures in a measure-set will have the
+                        asserted relationship to all traits in the trait set described here. The
+                        measures and traits for this assertion are described below, this element
+                        describes only the attributes of the assertion itself. </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:choice>
+                <xs:element maxOccurs="1" minOccurs="1" name="MeasureSet" type="MeasureSetType">
+                    <xs:annotation>
+                        <xs:documentation>The measure set describes the set of measures (analytes,
+                            genes, variants, etc.) indicated for this assertion. If variants, should
+                            represent data from one                             chromosome (in
+                            cis)</xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element maxOccurs="1" minOccurs="1" name="GenotypeSet" type="GenotypeSetType">
+                    <xs:annotation>
+                        <xs:documentation>Container for 2 MeasureSets, one for each allele
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:choice>
+            <xs:element maxOccurs="1" minOccurs="1" name="TraitSet" type="TraitSetType">
+                <xs:annotation>
+                    <xs:documentation>The trait set describes the set of traits (phenotypes,
+                        conditions, etc.) indicated for this assertion. </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="2" minOccurs="0" name="Comment" type="CommentType">
+                <xs:annotation>
+                    <xs:documentation>private comment or public comment; expect at most one of each,
+                        but not controlled explicitly in the XSD.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+    </xs:complexType>
+    <xs:complexType name="ClinVarDeletionType">
+        <xs:annotation>
+            <xs:documentation>Structure to report the organization and person requesting that one or
+                more accessions they submitted be deleted.                 The accessions must be
+                listed, and either the reason for each accession being deleted, or a general reason
+                to be applied to all that are listed.                 Because the data about the
+                submission must already be in the database, the source of the request can be simple
+                and processed only by OrgID and PersonID             </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="ReasonForDeleting" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>The reason reported at this level will be applied to each
+                        accession being deleted.                        </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="1" name="AccessionSet"
+                type="typeAccessionSet"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="typeAccessionSet">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="Accession" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="ReasonForDeleting" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="MeasureTraitType">
+        <xs:annotation>
+            <xs:documentation> MeasureTrait type is the assertion relationship stored in the
+                clinvar.measure_target table. This represents a single asserted relationship which
+                will be assigned an accession of the type SCV, RCV or NCV. </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="Assertion">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="AssertionType">
+                            <xs:annotation>
+                                <xs:documentation>relat_type in measure_target</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="typeAssertionType">
+                                        <xs:attribute name="val_type" type="typeIdName"
+                                            use="required"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element maxOccurs="1" minOccurs="0" name="AssertionCriteriaFile"
+                            type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation"
+                            type="CitationType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="1" name="ClinicalSignificance"
+                type="ClinicalSignificanceType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="PathogenicityProperty"
+                type="PathogenicityPropertyType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="CustomAssertionScore">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="CustomAssertionScoreType"
+                            type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation"
+                            type="CitationType"/>
+                    </xs:sequence>
+                    <xs:attribute name="Value" type="xs:string" use="optional"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="ExternalID" type="XrefType">
+                <xs:annotation>
+                    <xs:documentation>XRef type to identify the source of this assertion. In the
+                        database this will be used as the source for the data in the
+                        ClinvarSubmission XML. This is optional becuase not all sources have an ID
+                        specific to the assertion. When there is no ID the extrn_src is calculated
+                        from the submitter information. </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="AttributeSet">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="MeasureTraitAttributeType">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="typeMeasureTraitAttributetype">
+                                        <xs:attribute name="val_type" type="typeIdName"
+                                            use="required"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element maxOccurs="1" minOccurs="1" name="Attribute"
+                            type="AttributeType"> </xs:element>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation"
+                            type="CitationType"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="Comment"
+                            type="CommentType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="Severity" type="SeverityType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="1" name="ObservedIn" type="ObservationSet"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+    </xs:complexType>
+    <xs:complexType name="MeasureSetType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="MeasureSetType">
+                <xs:annotation>
+                    <xs:documentation>The name or id of measureset_type in
+                        clinvar</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="typeMeasuresettypelist">
+                            <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="1" name="Measure">
+                <xs:annotation>
+                    <xs:documentation> Measure is used to represent the sequence or analyte being
+                        measured to evaluate a relationship to the trait. This can be a gene, a
+                        variation, a protein, etc. The measure must be unambiguously defined. That
+                        definition may be supplied either by a unique name or symbol or expression,
+                        a sequence location, or an identifier in a public database such as a GeneID
+                        or an HGNC id. </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="MeasureType">
+                            <xs:annotation>
+                                <xs:documentation>The name or id of measure_type in
+                                    clinvar</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="typeMeasuretype">
+                                        <xs:attribute name="val_type" type="typeIdName"
+                                            use="required"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="Name"
+                            type="SetElementSetType"> </xs:element>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="Symbol"
+                            type="SetElementSetType"> </xs:element>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="AttributeSet">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element maxOccurs="1" minOccurs="1"
+                                        name="MeasureAttributeType">
+                                        <xs:annotation>
+                                            <xs:documentation>The name or id of measure_attr_type in
+                                                clinvar</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                            <xs:simpleContent>
+                                                <xs:extension base="typeMeasureAttributetype">
+                                                  <xs:attribute name="val_type" type="typeIdName"
+                                                  use="required"/>
+                                                </xs:extension>
+                                            </xs:simpleContent>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="Attribute"
+                                        type="AttributeType">
+                                        <xs:annotation>
+                                            <xs:documentation> An AttributeSet is used to represent
+                                                a single attribute which will have just one
+                                                attribute value but can have many citations or
+                                                xrefs. Multiple attributes are represented by
+                                                multiple attribute sets. </xs:documentation>
+                                        </xs:annotation>
+                                    </xs:element>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation"
+                                        type="CitationType"/>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef"
+                                        type="XrefType"/>
+                                    <xs:element maxOccurs="1" minOccurs="0" name="Comment"
+                                        type="CommentType"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element maxOccurs="1" minOccurs="0" name="CytogeneticLocation"
+                            type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="SequenceLocation"
+                            type="SequenceLocationType"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="MeasureRelationship">
+                            <xs:annotation>
+                                <xs:documentation>MeasureRelationship is used to represent
+                                    relationships to genes or other objects.
+                                </xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element maxOccurs="1" minOccurs="1"
+                                        name="MeasureRelationshipType">
+                                        <xs:complexType>
+                                            <xs:simpleContent>
+                                                <xs:extension base="typeMeasureRelationshiptype">
+                                                  <xs:attribute name="val_type" type="typeIdName"
+                                                  use="required"/>
+                                                </xs:extension>
+                                            </xs:simpleContent>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="Name"
+                                        type="SetElementSetType"/>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="Symbol"
+                                        type="SetElementSetType"> </xs:element>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0"
+                                        name="AttributeSet">
+                                        <xs:complexType>
+                                            <xs:sequence>
+                                                <xs:element maxOccurs="1" minOccurs="1"
+                                                  name="MeasureRelationshipAttributeType">
+                                                  <xs:annotation>
+                                                  <xs:documentation>The name or id of
+                                                  measure_attr_type in clinvar</xs:documentation>
+                                                  </xs:annotation>
+                                                  <xs:complexType>
+                                                  <xs:simpleContent>
+                                                  <xs:extension
+                                                  base="typeMeasureRelationshipAttributetype">
+                                                  <xs:attribute name="val_type" type="typeIdName"
+                                                  use="required"/>
+                                                  </xs:extension>
+                                                  </xs:simpleContent>
+                                                  </xs:complexType>
+                                                </xs:element>
+                                                <xs:element maxOccurs="1" minOccurs="1"
+                                                  name="Attribute" type="AttributeType"/>
+                                                <xs:element maxOccurs="unbounded" minOccurs="0"
+                                                  name="Citation" type="CitationType"/>
+                                                <xs:element maxOccurs="unbounded" minOccurs="0"
+                                                  name="XRef" type="XrefType"/>
+                                                <xs:element maxOccurs="unbounded" minOccurs="0"
+                                                  name="Comment" type="CommentType"/>
+                                            </xs:sequence>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation"
+                                        type="CitationType"/>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef"
+                                        type="XrefType"/>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="Comment"
+                                        type="CommentType"/>
+                                </xs:sequence>
+                                <xs:attributeGroup ref="CVIdentifiers"/>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation"
+                            type="CitationType"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="Comment" type="CommentType"/>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="CVIdentifiers"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Name" type="SetElementSetType"> </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Symbol" type="SetElementSetType"> </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="AttributeSet"
+                type="MeasureSetAttributeSetType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+        <xs:attribute name="NumberOfChromosomes" type="xs:positiveInteger" use="optional"/>
+    </xs:complexType>
+    <xs:complexType name="MeasureSetAttributeSetType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="MeasureSetAttributeType">
+                <xs:annotation>
+                    <xs:documentation>The name or id of measure_set_attr_type in
+                        clinvar</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="typeMeasuresetAttributetype">
+                            <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="1" name="Attribute" type="AttributeType"> </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="TraitSetType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="TraitSetType">
+                <xs:annotation>
+                    <xs:documentation>The name or id of trait_set_type in clinvar</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="typeTraitsettypelist">
+                            <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="1" name="Trait" type="TraitType">
+                <xs:annotation>
+                    <xs:documentation>To assert that an allele is thought to be benign, without
+                        enumerating disorders for which it is benign,
+                        please submit the trait name 'not specified'
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Name" type="SetElementSetType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Symbol" type="SetElementSetType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="AttributeSet"
+                type="TraitSetAttributeSetType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+        <xs:attribute name="DateLastEvaluated" type="xs:date" use="optional"/>
+    </xs:complexType>
+    <xs:complexType name="IndicationType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="TraitSetType">
+                <xs:annotation>
+                    <xs:documentation>The name or id of trait_set_type in clinvar</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="typeIndicationtypelist">
+                            <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="1" name="Trait" type="TraitType">
+                <xs:annotation>
+                    <xs:documentation>Represent the value for the test indication as a name of a
+                        trait.                     </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Name" type="SetElementSetType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Symbol" type="SetElementSetType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="AttributeSet"
+                type="TraitSetAttributeSetType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+    </xs:complexType>
+    <xs:complexType name="TraitSetAttributeSetType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="TraitSetAttributeType">
+                <xs:annotation>
+                    <xs:documentation>The name or id of tset_attr_type in clinvar</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="typeTraitsetAttributetype">
+                            <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="1" name="Attribute" type="AttributeType"> </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="TraitType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="TraitType">
+                <xs:annotation>
+                    <xs:documentation>The name or id of trait_type in clinvar</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="typeTraittypelist">
+                            <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Name" type="SetElementSetType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Symbol" type="SetElementSetType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="AttributeSet">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="TraitAttributeType">
+                            <xs:annotation>
+                                <xs:documentation>The name or id of trait_attr_type in
+                                    clinvar</xs:documentation>
+                            </xs:annotation>
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="typeTraitAttributetype">
+                                        <xs:attribute name="val_type" type="typeIdName"
+                                            use="required"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element maxOccurs="1" minOccurs="1" name="Attribute"
+                            type="AttributeType"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation"
+                            type="CitationType"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="Comment"
+                            type="CommentType"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="TraitRelationship">
+                <xs:annotation>
+                    <xs:documentation>TraitRelationship is used to represent relationships among
+                        traits. In the relational model, this is captured in the tset and tsubset
+                        tables. The type of relationship is captured in TraitRelationshipType.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="TraitRelationshipType">
+                            <xs:complexType>
+                                <xs:simpleContent>
+                                    <xs:extension base="typeTraitRelationshiptype">
+                                        <xs:attribute name="val_type" type="typeIdName"
+                                            use="required"/>
+                                    </xs:extension>
+                                </xs:simpleContent>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="Name"
+                            type="SetElementSetType"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="Symbol"
+                            type="SetElementSetType"> </xs:element>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="AttributeSet">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element maxOccurs="1" minOccurs="1"
+                                        name="TraitRelationshipAttributeType">
+                                        <xs:complexType>
+                                            <xs:simpleContent>
+                                                <xs:extension
+                                                  base="typeTraitRelationshipAttributetype">
+                                                  <xs:attribute name="val_type" type="typeIdName"
+                                                  use="required"/>
+                                                </xs:extension>
+                                            </xs:simpleContent>
+                                        </xs:complexType>
+                                    </xs:element>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="Attribute"
+                                        type="AttributeType"/>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation"
+                                        type="CitationType"/>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef"
+                                        type="XrefType"/>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="Comment"
+                                        type="CommentType"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation"
+                            type="CitationType"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="Comment" type="CommentType"/>
+                    </xs:sequence>
+                    <xs:attributeGroup ref="CVIdentifiers"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+    </xs:complexType>
+    <xs:complexType name="AlleleDescType">
+        <xs:annotation>
+            <xs:documentation>This is to be used within co-occurrence set </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="Name" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="RelativeOrientation"
+                type="OrientationType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Zygosity" type="ZygosityType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="ClinicalSignificance"
+                type="ClinicalSignificanceType"/>
+        </xs:sequence>
+        <xs:attribute default="0" name="cv_id" type="xs:int" use="optional"/>
+    </xs:complexType>
+    <xs:simpleType name="ZygosityType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Homozygote"/>
+            <xs:enumeration value="Single heterozygote"/>
+            <xs:enumeration value="Compound heterozygote"/>
+            <xs:enumeration value="Hemizygote"/>
+            <xs:enumeration value="not provided"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="OrientationType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="cis"/>
+            <xs:enumeration value="trans"/>
+            <xs:enumeration value="unknown"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="SampleType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" name="SampleDescription">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" name="Description" type="CommentType"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="Citation" type="CitationType"
+                        />
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="1" name="Origin">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="germline"/>
+                        <xs:enumeration value="somatic"/>
+                        <xs:enumeration value="de novo"/>
+                        <xs:enumeration value="unknown"/>
+                        <xs:enumeration value="not provided"/>
+                        <xs:enumeration value="inherited"/>
+                        <xs:enumeration value="maternal"/>
+                        <xs:enumeration value="paternal"/>
+                        <xs:enumeration value="uniparental"/>
+                        <xs:enumeration value="biparental"/>
+                        <xs:enumeration value="not-reported"/>
+                        <xs:enumeration value="tested-inconclusive"/>
+                        <xs:enumeration value="not applicable"/>
+                        <xs:enumeration value="experimentally generated"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="Ethnicity" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="GeographicOrigin" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Tissue" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="FractionTumor" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="CellLine" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Species">
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute name="TaxonomyId" type="xs:int" use="optional"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="2" minOccurs="0" name="Age">
+                <xs:annotation>
+                    <xs:documentation>Age can be a single value or a range, defined by the use of
+                        type.  </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:int">
+                            <xs:attribute name="age_unit" use="required">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="days"/>
+                                        <xs:enumeration value="weeks"/>
+                                        <xs:enumeration value="months"/>
+                                        <xs:enumeration value="years"/>
+                                        <xs:enumeration value="weeks gestation"/>
+                                        <xs:enumeration value="months gestation"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:attribute>
+                            <xs:attribute name="type" use="required">
+                                <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                        <xs:enumeration value="minimum"/>
+                                        <xs:enumeration value="maximum"/>
+                                        <xs:enumeration value="single"/>
+                                    </xs:restriction>
+                                </xs:simpleType>
+                            </xs:attribute>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="Strain" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="1" name="AffectedStatus">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="yes"/>
+                        <xs:enumeration value="no"/>
+                        <xs:enumeration value="unknown"/>
+                        <xs:enumeration value="not provided"/>
+                        <xs:enumeration value="not applicable"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="NumberTested" type="xs:int">
+                <xs:annotation>
+                    <xs:documentation>Denominator, total individuals included in this observation
+                        set.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="NumberMales" type="xs:int">
+                <xs:annotation>
+                    <xs:documentation>Denominator, total males included in this observation
+                        set.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="NumberFemales" type="xs:int">
+                <xs:annotation>
+                    <xs:documentation>Denominator, total females included in this observation
+                        set.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="NumberChrTested" type="xs:int">
+                <xs:annotation>
+                    <xs:documentation>Denominator, total number chromosomes tested.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="Gender">
+                <xs:annotation>
+                    <xs:documentation>Gender should be used ONLY if explicit values are not
+                        available for                         number of males or females, and there
+                        is a need to indicate that the genders in the sample are
+                        known.                          </xs:documentation>
+                </xs:annotation>
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="male"/>
+                        <xs:enumeration value="female"/>
+                        <xs:enumeration value="mixed"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="FamilyData" type="FamilyInfo"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Proband" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Indication" type="IndicationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+    </xs:complexType>
+    <xs:complexType name="Co-occurrenceType">
+        <xs:sequence>
+            <xs:annotation>
+                <xs:documentation>this refers to the variant being asserted's
+                    zygosity</xs:documentation>
+            </xs:annotation>
+            <xs:element maxOccurs="1" minOccurs="0" name="Zygosity" type="ZygosityType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="AlleleDescSet"
+                type="AlleleDescType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Count" type="xs:int"/>
+        </xs:sequence>
+        <xs:attribute default="0" name="cv_id" type="xs:int" use="optional"/>
+    </xs:complexType>
+    <xs:complexType name="ClinicalSignificanceType">
+        <xs:sequence>
+            <xs:annotation>
+                <xs:documentation>Review status is used to summarize the level of support for
+                    the interpretation of clinical significance based on submissions to ClinVar.
+                    'reviewed by professional society' includes practice guidelines.
+                    'DateLastEvaluated' is the date the significance was last evaluated; it may
+                    differ                  from the submission date.
+                </xs:documentation>
+            </xs:annotation>
+            <xs:element maxOccurs="1" minOccurs="0" name="ReviewStatus">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:enumeration value="no assertion provided"/>
+                        <xs:enumeration value="no assertion criteria provided"/>
+                        <xs:enumeration value="criteria provided, single submitter"/>
+                        <xs:enumeration value="criteria provided, multiple submitters, no conflicts"/>
+                        <xs:enumeration value="criteria provided, conflicting interpretations"/>
+                        <xs:enumeration value="reviewed by expert panel"/>
+                        <xs:enumeration value="practice guideline"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Description" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="DateLastEvaluated" type="xs:date"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"> </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:simpleType name="typeMeasuresettypelist">
+        <xs:union memberTypes="xs:positiveInteger Measuresettypelist"/>
+    </xs:simpleType>
+    <xs:simpleType name="Measuresettypelist">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Gene"/>
+            <xs:enumeration value="Variant"/>
+            <xs:enumeration value="Haplotype"/>
+            <xs:enumeration value="Phase unknown"/>
+            <xs:enumeration value="Distinct chromosomes"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeGenotypesettypelist">
+        <xs:union memberTypes="xs:positiveInteger Genotypesettypelist"/>
+    </xs:simpleType>
+    <xs:simpleType name="Genotypesettypelist">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Diplotype"/>
+            <xs:enumeration value="CompoundHeterozygote"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeMeasuretype">
+        <xs:union memberTypes="xs:positiveInteger Measuretype"/>
+    </xs:simpleType>
+    <xs:simpleType name="Measuretype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Gene"/>
+            <xs:enumeration value="Variation"/>
+            <xs:enumeration value="Insertion"/>
+            <xs:enumeration value="Mobile element insertion"/>
+            <xs:enumeration value="Novel sequence insertion"/>
+            <xs:enumeration value="Microsatellite"/>
+            <xs:enumeration value="Deletion"/>
+            <xs:enumeration value="single nucleotide variant"/>
+            <xs:enumeration value="Multiple nucleotide variation"/>
+            <xs:enumeration value="Indel"/>
+            <xs:enumeration value="Duplication"/>
+            <xs:enumeration value="Tandem duplication"/>
+            <xs:enumeration value="copy number loss"/>
+            <xs:enumeration value="copy number gain"/>
+            <xs:enumeration value="protein only"/>
+            <xs:enumeration value="Inversion"/>
+            <xs:enumeration value="Translocation"/>
+            <xs:enumeration value="Interchromosomal breakpoint"/>
+            <xs:enumeration value="Intrachromosomal breakpoint"/>
+            <xs:enumeration value="Complex"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeElementValuetype">
+        <xs:union memberTypes="xs:positiveInteger ElementValuetype"/>
+    </xs:simpleType>
+    <xs:simpleType name="ElementValuetype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Preferred"/>
+            <xs:enumeration value="Alternate"/>
+            <xs:enumeration value="MIM"/>
+            <xs:enumeration value="included"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeMeasureAttributetype">
+        <xs:union memberTypes="xs:positiveInteger MeasureAttributetype"/>
+    </xs:simpleType>
+    <xs:simpleType name="MeasureAttributetype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="HGVS"/>
+            <xs:enumeration value="NonHGVS"/>
+            <xs:enumeration value="rsNumber"/>
+            <xs:enumeration value="Location"/>
+            <xs:enumeration value="Description"/>
+            <xs:enumeration value="FunctionalConsequence"/>
+            <xs:enumeration value="MolecularConsequence"/>
+            <xs:enumeration value="ProteinChange1LetterCode"/>
+            <xs:enumeration value="HGVS, previous"/>
+            <xs:enumeration value="dbVarVariantRegionId"/>
+            <xs:enumeration value="dbVarVariantCallId"/>
+            <xs:enumeration value="ActivityLevel"/>
+            <xs:enumeration value="AbsoluteCopyNumber"/>
+            <xs:enumeration value="ReferenceCopyNumber"/>
+            <xs:enumeration value="CopyNumberTuple"/>
+            <xs:enumeration value="NucleotideChange"/>
+            <xs:enumeration value="COSMIC"/>
+            <xs:enumeration value="SubmitterVariantId"/>
+            <xs:enumeration value="ISCNCoordinates"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeMeasureRelationshiptype">
+        <xs:union memberTypes="xs:positiveInteger MeasureRelationshiptype"/>
+    </xs:simpleType>
+    <xs:simpleType name="MeasureRelationshiptype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="variant in gene"/>
+            <xs:enumeration value="co-occurring variant"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeMeasureRelationshipAttributetype">
+        <xs:union memberTypes="xs:positiveInteger MeasureRelationshipAttributetype"/>
+    </xs:simpleType>
+    <xs:simpleType name="MeasureRelationshipAttributetype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="HGVS"/>
+            <xs:enumeration value="genotype"/>
+            <xs:enumeration value="gene relationships"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeMeasuresetAttributetype">
+        <xs:union memberTypes="xs:positiveInteger MeasuresetAttributetype"/>
+    </xs:simpleType>
+    <xs:simpleType name="MeasuresetAttributetype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Location"/>
+            <xs:enumeration value="HGVS"/>
+            <xs:enumeration value="Description"/>
+            <xs:enumeration value="FunctionalConsequence"/>
+            <xs:enumeration value="MolecularConsequence"/>
+            <xs:enumeration value="ISCNCoordinates"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeTraitsettypelist">
+        <xs:union memberTypes="xs:positiveInteger Traitsettypelist"/>
+    </xs:simpleType>
+    <xs:simpleType name="Traitsettypelist">
+        <xs:annotation>
+            <xs:documentation>                 A trait set allows the submitter to provide one or
+                more traits, either characterizing the assertion (//ClinvarSubmission/TraitSet)
+                or the set of findings (clinical features) characteristic of an observation
+                (//ObservedIn/TraitSet). Unless the type is TraitChoice,                 a
+                submission of multiple values is asssumed to represent all values were always
+                observed, i.e. asserted to be Pathogenic for the                  co-occurence of
+                Disease A and Disease B. If a variant is identified to be Pathogenic for Disease A
+                and also Pathogeneic for Disease B,                 these should be submitted as
+                distinct ClinvarSubmissions, not as one ClinvarSubmission with a multi-member
+                TraitSet.                 If, however, data are not currently available to represent
+                distinct submissions, the TraitChoice can be used to indicate an assertion is
+                about any one of the Traits in the TraitSet.             </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Disease"/>
+            <xs:enumeration value="DrugResponse"/>
+            <xs:enumeration value="Finding"/>
+            <xs:enumeration value="PhenotypeInstruction"/>
+            <xs:enumeration value="TraitChoice"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeIndicationtypelist">
+        <xs:union memberTypes="xs:positiveInteger Indicationtypelist"/>
+    </xs:simpleType>
+    <xs:simpleType name="Indicationtypelist">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Indication"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeTraitsetAttributetype">
+        <xs:union memberTypes="xs:positiveInteger TraitsetAttributetype"/>
+    </xs:simpleType>
+    <xs:simpleType name="TraitsetAttributetype">
+        <xs:restriction base="xs:string"> </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeTraittypelist">
+        <xs:union memberTypes="xs:positiveInteger Traittypelist"/>
+    </xs:simpleType>
+    <xs:simpleType name="Traittypelist">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Disease"/>
+            <xs:enumeration value="DrugResponse"/>
+            <xs:enumeration value="Subphenotype"/>
+            <xs:enumeration value="BloodGroup"/>
+            <xs:enumeration value="Finding"/>
+            <xs:enumeration value="InfectionResistance"/>
+            <xs:enumeration value="PhenotypeInstruction"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeTraitAttributetype">
+        <xs:union memberTypes="xs:positiveInteger TraitAttributetype"/>
+    </xs:simpleType>
+    <xs:simpleType name="TraitAttributetype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="description"/>
+            <xs:enumeration value="prevalence"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeTraitRelationshiptype">
+        <xs:union memberTypes="xs:positiveInteger TraitRelationshiptype"/>
+    </xs:simpleType>
+    <xs:simpleType name="TraitRelationshiptype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Disease"/>
+            <xs:enumeration value="DrugResponse"/>
+            <xs:enumeration value="DrugResponseAndDisease"/>
+            <xs:enumeration value="Subphenotype"/>
+            <xs:enumeration value="BloodGroup"/>
+            <xs:enumeration value="Finding"/>
+            <xs:enumeration value="InfectionResistance"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeTraitRelationshipAttributetype">
+        <xs:union memberTypes="xs:positiveInteger TraitRelationshipAttributetype"/>
+    </xs:simpleType>
+    <xs:simpleType name="TraitRelationshipAttributetype">
+        <xs:restriction base="xs:string"> </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeClinvarSubmissionAcc">
+        <xs:union memberTypes="xs:positiveInteger ClinvarSubmissionAcctype"/>
+    </xs:simpleType>
+    <xs:simpleType name="ClinvarSubmissionAcctype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="SCV"/>
+            <xs:enumeration value="RCV"/>
+            <xs:enumeration value="NCV"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeAssertionType">
+        <xs:union memberTypes="xs:positiveInteger AssertionType"/>
+    </xs:simpleType>
+    <xs:simpleType name="AssertionType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="variation to disease"/>
+            <xs:enumeration value="variation to included disease"/>
+            <xs:enumeration value="variation in modifier gene to disease"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeMeasureTraitAttributetype">
+        <xs:union memberTypes="xs:positiveInteger MeasureTraitAttributetype"/>
+    </xs:simpleType>
+    <xs:simpleType name="MeasureTraitAttributetype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ModeOfInheritance"/>
+            <xs:enumeration value="Penetrance"/>
+            <xs:enumeration value="AgeOfOnset"/>
+            <xs:enumeration value="ClinicalSignificanceHistory"/>
+            <xs:enumeration value="SeverityDescription"/>
+            <xs:enumeration value="AssertionMethod"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="SeverityType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="mild"/>
+            <xs:enumeration value="moderate"/>
+            <xs:enumeration value="severe"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="PathogenicityPropertyType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="this variant, in a female, is causative"/>
+            <xs:enumeration value="this variant, in a male, is causative"/>
+            <xs:enumeration value="this variant is causative"/>
+            <xs:enumeration value="this variant, when inherited from the father, is causative"/>
+            <xs:enumeration value="this variant, when inherited from the mother, is causative"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="ReleaseStatusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="public"/>
+            <xs:enumeration value="hold until published"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeMethodtype">
+        <xs:union memberTypes="xs:positiveInteger Methodtypelist"/>
+    </xs:simpleType>
+    <xs:simpleType name="Methodtypelist">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="curation"/>
+            <xs:enumeration value="literature only"/>
+            <xs:enumeration value="reference population"/>
+            <xs:enumeration value="provider interpretation"/>
+            <xs:enumeration value="phenotyping only"/>
+            <xs:enumeration value="case-control"/>
+            <xs:enumeration value="clinical testing"/>
+            <xs:enumeration value="in vitro"/>
+            <xs:enumeration value="in vivo"/>
+            <xs:enumeration value="research"/>
+            <xs:enumeration value="not provided"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeObsAttributetype">
+        <xs:union memberTypes="xs:positiveInteger ObsAttributetype"/>
+    </xs:simpleType>
+    <xs:simpleType name="ObsAttributetype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Description"/>
+            <xs:enumeration value="VariantAlleles"/>
+            <xs:enumeration value="VariantChromosomes"/>
+            <xs:enumeration value="SubjectsWithVariant"/>
+            <xs:enumeration value="SubjectsOnlyVariant"/>
+            <xs:enumeration value="SubjectsWithDifferentCausativeVariant"/>
+            <xs:enumeration value="IndependentObservations"/>
+            <xs:enumeration value="SingleHeterozygote"/>
+            <xs:enumeration value="CompoundHeterozygote"/>
+            <xs:enumeration value="Hemizygote"/>
+            <xs:enumeration value="Homozygote"/>
+            <xs:enumeration value="NumberMosaic"/>
+            <xs:enumeration value="ObservedUnspecified"/>
+            <xs:enumeration value="ReadAccession"/>
+            <xs:enumeration value="ActivityLevel"/>
+            <xs:enumeration value="SecondaryFinding"/>
+            <!--subset if family data are available-->
+            <xs:enumeration value="GenotypeAndMOIConsistent"/>
+            <xs:enumeration value="UnaffectedFamilyMemberWithCausativeVariant"/>
+            <xs:enumeration value="CosegregatingFamilies"/>
+            <xs:enumeration value="HetParentTransmitNormalAllele"/>
+            <xs:enumeration value="InformativeMeioses"/>
+            <xs:enumeration value="SampleLocalID"/>
+            <xs:enumeration value="SubmitterVariantId"/>
+            <xs:enumeration value="SampleVariantID"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="typeObsdecAttributetype">
+        <xs:union memberTypes="xs:positiveInteger ObsdecAttributetype"/>
+    </xs:simpleType>
+    <xs:simpleType name="ObsdecAttributetype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="AlleleFrequency"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="SequenceLocationType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="Assembly" type="xs:string" use="required"/>
+                <xs:attribute name="Chr" type="xs:string" use="required"/>
+                <xs:attribute name="Accession" type="xs:string" use="optional"/>
+                <xs:attribute name="outerStart" type="xs:nonNegativeInteger" use="optional"/>
+                <xs:attribute name="innerStart" type="xs:nonNegativeInteger" use="optional"/>
+                <xs:attribute name="start" type="xs:nonNegativeInteger" use="optional"/>
+                <xs:attribute name="stop" type="xs:positiveInteger" use="optional"/>
+                <xs:attribute name="innerStop" type="xs:positiveInteger" use="optional"/>
+                <xs:attribute name="outerStop" type="xs:positiveInteger" use="optional"/>
+                <xs:attribute name="Strand" type="Strandtype" use="optional"/>
+                <xs:attribute name="variantLength" type="xs:positiveInteger" use="optional"/>
+                <xs:attribute name="referenceAllele" type="xs:string" use="optional"/>
+                <xs:attribute name="alternateAllele" type="xs:string" use="optional"/>
+                <xs:attributeGroup ref="CVIdentifiers"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="GenotypeSetType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="GenotypeSetType">
+                <xs:annotation>
+                    <xs:documentation>The name or id of measureset_type in
+                        clinvar</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="typeGenotypesettypelist">
+                            <xs:attribute name="val_type" type="typeIdName" use="required"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="1" name="MeasureSet" type="MeasureSetType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Name" type="SetElementSetType"> </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Symbol" type="SetElementSetType"> </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="AttributeSet"
+                type="MeasureSetAttributeSetType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Comment" type="CommentType"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+        <xs:attribute name="num_chr" type="xs:positiveInteger" use="optional"/>
+    </xs:complexType>
+    <xs:simpleType name="Strandtype">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="+"/>
+            <xs:enumeration value="-"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="SubmitterType">
+        <xs:annotation>
+            <xs:documentation>This is used to identify the one individual or process that is the
+                submitter of record,                 in contrast to the many who contributed to the
+                submission. The latter are reported under submitter.             </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element minOccurs="1" name="Person">
+                <xs:annotation>
+                    <xs:documentation>The person submitting the data. Internally, represented in the
+                        entered_by fields.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="Name">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="First"
+                                        type="xs:string"/>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="Last"
+                                        type="xs:string"/>
+                                    <xs:element maxOccurs="1" minOccurs="0" name="Middle"
+                                        type="xs:string"/>
+                                    <xs:element maxOccurs="1" minOccurs="0" name="Suffix"
+                                        type="xs:string"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                        <xs:element maxOccurs="1" minOccurs="0" name="SubmitterHandle"
+                            type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="AccountInfo"
+                            type="typeAccount">
+                            <xs:annotation>
+                                <xs:documentation>used in submissions via submit.ncbi.nlm.nih.gov to
+                                    identify the submitte</xs:documentation>
+                            </xs:annotation>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="PersonID" type="xs:int" use="optional"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="1" name="Organization">
+                <xs:annotation>
+                    <xs:documentation>Need to be able to identify the organization or extrn_src for
+                        who is making this assertion</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="0" name="Name" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="Institution" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="Department" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="SubmitterHandle"
+                            type="xs:string"/>
+                        <xs:element default="lab" name="OrganizationCategory"
+                            type="OrganizationCategoryList"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="NCBIOrganizationID"
+                            type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="OrgType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="Organization" type="OrganizationType">
+                <xs:annotation>
+                    <xs:documentation>Names and addresses of an organization.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="1" name="Personnel" type="PersonnelType">
+                <xs:annotation>
+                    <xs:documentation>Representation of staff in the organization</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+        <xs:attribute name="Type" use="required">
+            <xs:annotation>
+                <xs:documentation>For Type use 'primary' if this is the primary organization that
+                    should get attribution for the    submission; use 'secondary' if this is an
+                    additional organization that should get attribution; use 'behalf' if this is
+                    an organization that is submitting on behalf of another and should not get
+                    attribution for the submission                  </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="primary"/>
+                    <xs:enumeration value="secondary"/>
+                    <xs:enumeration value="behalf"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="OrganizationType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="Name" type="xs:string"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="NameAcronym" type="AcronymType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Institution">
+                <xs:annotation>
+                    <xs:documentation> Not required, name may be sufficient for
+                        some organizations. To be used if an organization is part of a larger
+                        institution.                     </xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute default="0" name="cv_id" type="xs:int" use="optional"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="InstitutionAcronym"
+                type="AcronymType"/>
+            <xs:element default="lab" name="OrganizationCategory" type="OrganizationCategoryList"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Department" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="MailingAddress" type="AddressType">
+                <xs:annotation>
+                    <xs:documentation>Must have at least city,state and country of
+                        mailing address</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="StreetAddress" type="AddressType">
+                <xs:annotation>
+                    <xs:documentation>The number and name of the street or
+                        avenue.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="LabContact" type="ContactType">
+                <xs:annotation>
+                    <xs:documentation>Official(not personal) contact for the organization
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="URL" type="xs:anyURI"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="OrgAttribute"
+                type="AttributeBundleType"/>
+            <!-- MDI-1987 -->
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="AddressType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" name="Line1" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Line2" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Line3" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="1" name="City" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="State">
+                <xs:annotation>
+                    <xs:documentation>List of states is in db.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attributeGroup ref="CVIdentifiers"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="PostCode" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="1" name="Country">
+                <xs:annotation>
+                    <xs:documentation>List of countries is in db. Needs to be on the
+                        list.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attributeGroup ref="CVIdentifiers"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+        <xs:attribute name="Public" type="xs:boolean" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="PersonnelType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="Person" type="PersonType"/>
+            <xs:choice maxOccurs="1" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>You have to provide between one and two contacts per
+                        Personnel.                      If you provide two, one has to be
+                        PublicContact and the other PrivateContact.                      Both may
+                        contain the same contact information (i.e., email, phone, etc.), however.
+                        In that case, the PublicContact will have precedence</xs:documentation>
+                </xs:annotation>
+                <xs:sequence>
+                    <xs:element maxOccurs="1" minOccurs="1" name="PublicContact" type="ContactType"/>
+                    <xs:element maxOccurs="1" minOccurs="0" name="PrivateContact" type="ContactType"
+                    />
+                </xs:sequence>
+                <xs:sequence>
+                    <xs:element maxOccurs="1" minOccurs="1" name="PrivateContact" type="ContactType"/>
+                    <xs:element maxOccurs="1" minOccurs="0" name="PublicContact" type="ContactType"
+                    />
+                </xs:sequence>
+            </xs:choice>
+            <xs:element maxOccurs="1" minOccurs="0" name="Title" type="TitleList">
+                <xs:annotation>
+                    <xs:documentation>will provide a list of suggested titles. List is in the
+                        TitleList type.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="PersonRef" type="XrefType">
+                <xs:annotation>
+                    <xs:documentation> If the submitter has an ID in another system.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="PersonPermissions"
+                type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>May want to think about how we do this. Perhaps boolean values
+                        for all permission options, for now will leave as text and can have 1 to
+                        many</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+        <xs:attribute name="PrimaryContact" type="xs:boolean" use="optional"/>
+        <xs:attribute name="IsDirector" type="xs:boolean" use="optional"/>
+        <xs:attribute name="DisplayWeb" type="xs:boolean" use="required"/>
+        <xs:attribute default="current" name="Status" type="typeStatus" use="optional"/>
+        <xs:attribute default="3" name="pubStat" type="xs:string" use="optional"/>
+        <xs:attribute default="0" name="cv_org_id" type="xs:int" use="optional"/>
+    </xs:complexType>
+    <xs:simpleType name="TitleList">
+        <xs:restriction base="xs:string">
+            <xs:annotation>
+                <xs:documentation>Need the full controlled list of titles here.</xs:documentation>
+            </xs:annotation>
+            <xs:enumeration value="Lab Director"/>
+            <xs:enumeration value="Lab Associate Director"/>
+            <xs:enumeration value="Medical Director"/>
+            <xs:enumeration value="Genetic Counselor"/>
+            <xs:enumeration value="Nurse"/>
+            <xs:enumeration value="Research Nurse"/>
+            <xs:enumeration value="Administrator"/>
+            <xs:enumeration value="Staff"/>
+            <xs:enumeration value="Principal Investigator"/>
+            <xs:enumeration value="Contact"/>
+            <xs:enumeration value="Informatics staff"/>
+            <xs:enumeration value="CEO"/>
+            <xs:enumeration value="Coordinator"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="PersonType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="Name">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="First" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="Last" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="Middle" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="Prefix" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="Suffix" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="LabPersonID" type="xs:string"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Degree">
+                <xs:complexType>
+                    <xs:complexContent>
+                        <xs:extension base="DegreeType">
+                            <xs:attribute name="Display" type="xs:boolean"/>
+                        </xs:extension>
+                    </xs:complexContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Certification"
+                type="PersonCertificationType"> </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Credential">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="Name"/>
+                    </xs:sequence>
+                    <xs:attribute name="Display" type="xs:boolean"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+        <xs:attribute default="current" name="Status" type="typeStatus" use="optional"/>
+        <xs:attribute default="3" name="pubStat" type="xs:string" use="optional"/>
+        <xs:attribute name="cv_type" type="xs:int" use="optional"/>
+    </xs:complexType>
+    <xs:complexType name="PersonCertificationType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" name="SubSpecialty" type="xs:string"> </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="Specialty" type="xs:string"> </xs:element>
+            <xs:element maxOccurs="1" minOccurs="1" name="Board" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="ExpirationDate" type="xs:date"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Number" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="CertificationType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" name="Qualifier" type="xs:string"> </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="Unit" type="xs:string"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="ExpirationDate" type="xs:date"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="Number" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="LabCertificationType">
+        <xs:complexContent>
+            <xs:extension base="CertificationType">
+                <xs:sequence>
+                    <xs:element maxOccurs="1" minOccurs="1" name="Name">
+                        <xs:simpleType>
+                            <xs:restriction base="xs:string">
+                                <xs:annotation>
+                                    <xs:documentation>Need the full controlled list of
+                                        certifications here and include an other.
+                                    </xs:documentation>
+                                </xs:annotation>
+                                <xs:enumeration value="CLIA"/>
+                                <xs:enumeration value="CAP"/>
+                                <xs:enumeration value="NY CLEP"/>
+                                <xs:enumeration value="AABB"/>
+                                <xs:enumeration value="EMQN"/>
+                                <xs:enumeration value="CA State License"/>
+                                <xs:enumeration value="MD State License"/>
+                                <xs:enumeration value="License for Tennessee"/>
+                                <xs:enumeration value="License for Florida"/>
+                                <xs:enumeration value="License for Maryland"/>
+                            </xs:restriction>
+                        </xs:simpleType>
+                    </xs:element>
+                </xs:sequence>
+                <xs:attribute name="Type" use="required">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="Certification"/>
+                            <xs:enumeration value="State License"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:attribute>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="DegreeType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="Name">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>Need the full controlled list of degrees here and
+                                include an other. </xs:documentation>
+                        </xs:annotation>
+                        <xs:enumeration value="PhD"/>
+                        <xs:enumeration value="MD"/>
+                        <xs:enumeration value="MS"/>
+                        <xs:enumeration value="BS"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="Qualifier" type="xs:string"> </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="CredentialType">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="1" name="Name">
+                <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>Need the full controlled list of credentials here and
+                                include an other. </xs:documentation>
+                        </xs:annotation>
+                        <xs:enumeration value="CGC"/>
+                        <xs:enumeration value="FACMG"/>
+                        <xs:enumeration value="MT(ASCP)"/>
+                    </xs:restriction>
+                </xs:simpleType>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="Qualifier" type="xs:string"> </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="Unit" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ContactType">
+        <xs:sequence>
+            <xs:element name="Email" type="xs:string"/>
+            <xs:element minOccurs="0" name="Phone" type="xs:string"/>
+            <xs:element minOccurs="0" name="Fax" type="xs:string"/>
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+    </xs:complexType>
+    <xs:complexType name="OrgIDType">
+        <xs:simpleContent>
+            <xs:extension base="xs:int">
+                <xs:attribute name="Type" use="required">
+                    <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                            <xs:enumeration value="primary"/>
+                            <xs:enumeration value="secondary"/>
+                            <xs:enumeration value="behalf"/>
+                        </xs:restriction>
+                    </xs:simpleType>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:simpleType name="OrganizationCategoryList">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="lab"/>
+            <xs:enumeration value="LSDB"/>
+            <xs:enumeration value="clinic"/>
+            <xs:enumeration value="resource"/>
+            <xs:enumeration value="consortium"/>
+            <xs:enumeration value="patient registry"/>
+            <xs:enumeration value="other"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="AcronymType">
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="ncbi_id" type="xs:positiveInteger" use="optional"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:element name="ClinvarSubmissionSet" type="SubmissionSetType"> </xs:element>
+    <xs:complexType name="SubmissionSetType">
+        <xs:annotation>
+            <xs:documentation> The SubmissionSet is a set of asserted relationships. Within ClinVar
+                this may be the set of assertions that constitute the accession (prefix RCV)
+                assigned to independent assertions (accession prefix SCV). For testing laboratories,
+                this may be a test panel. If the set represents a reference accession (RCV) there
+                can be be only 1 for the SubmissionSet. If the Set is a test panel, the Set can
+                consist of any mixture of RCV and SCV assertions. If an SCV is known to be a member
+                of an RCV, only the RCV should be included in the submission. The set can also be
+                used to submit a set of assertions from a source that are not part of a single
+                accession, but a collection of SCV's from a laboratory. </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:annotation>
+                <xs:documentation> This data structure is consistent with the Genetic Testing
+                    Registry (GTR) and                         is used to describe the organization
+                    submitting data.  This may be an LSDB, a testing laboratory, etc.
+                </xs:documentation>
+            </xs:annotation>
+            <xs:choice>
+                <xs:element maxOccurs="1" minOccurs="1" name="SubmitterOfRecord"
+                    type="SubmitterType"/>
+                <xs:element maxOccurs="1" minOccurs="1" name="SubmitterOfRecordID" type="xs:int"/>
+            </xs:choice>
+            <xs:choice>
+                <xs:element maxOccurs="unbounded" minOccurs="0" name="Submitter" type="OrgType">
+                    <xs:annotation>
+                        <xs:documentation>Use submitter if there is more than one person or group to
+                            be acknowledged for generating the                         content of
+                            the submission. In other words, use submitter to document persons and
+                            organizations not                          documented under Submitter of
+                            Record.                       </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+                <xs:element maxOccurs="unbounded" minOccurs="0" name="OrgID" type="OrgIDType"/>
+            </xs:choice>
+            <xs:element maxOccurs="1" minOccurs="0" name="Title" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>A title is recommended to describe the asserted relationship.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="1" minOccurs="0" name="RefTrait" type="TraitType">
+                <xs:annotation>
+                    <xs:documentation> This is the primary condition/phenotype/trait for the
+                        submission. If there are multiple assertions that all are for the same
+                        trait, the trait can be defined once here. If there are multiple, they must
+                        be submitted in the TraitSet section. </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:choice>
+                <xs:sequence>
+                    <xs:element maxOccurs="unbounded" minOccurs="1" name="ClinvarSubmission"
+                        type="SubmissionType"/>
+                    <xs:element minOccurs="0" name="ClinVarDeletion" type="ClinVarDeletionType"/>
+                </xs:sequence>
+                <xs:sequence>
+                    <xs:element name="ClinVarDeletion" type="ClinVarDeletionType"/>
+                </xs:sequence>
+            </xs:choice>
+            <xs:element maxOccurs="1" minOccurs="0" name="Comment" type="CommentType">
+                <xs:annotation>
+                    <xs:documentation>Comment intended for internal use only; not part of the public
+                        display.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="Citation" type="CitationType">
+                <xs:annotation>
+                    <xs:documentation>When a citation is submitted at this level, the citation  will
+                        be added to the display of each Measure Trait, TraitSet, and
+                        MeasureSet</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="XRef" type="XrefType"/>
+            <xs:element maxOccurs="1" minOccurs="0" name="StudyName" type="xs:string"/>
+            <xs:element default="public" maxOccurs="1" minOccurs="0" name="ReleaseStatus"
+                type="ReleaseStatusType">
+                <xs:annotation>
+                    <xs:documentation>A release status can be applied the set of submissions, or to
+                        each submission.  When not provided, the value is set to 'public'.
+                        If some assertions need to have a value different from the complete set, the
+                        value of ReleaseStatus at the ClinvarSubmission level has precedence.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element maxOccurs="unbounded" minOccurs="0" name="StudyDescription" type="xs:string"
+            />
+        </xs:sequence>
+        <xs:attributeGroup ref="CVIdentifiers"/>
+        <xs:attribute name="sub_id" type="xs:string" use="optional"/>
+        <xs:attribute name="input_spreadsheet" type="xs:string" use="optional"/>
+        <xs:attribute name="Date" type="xs:date" use="required">
+            <xs:annotation>
+                <xs:documentation>date of submission</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="set_key" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>          This attribute should be used if the the submission set
+                    has public data associated with the set, such as a citation or an accession. The
+                    set_key facilitates tracking of a batch of records as a unit,          and is
+                    particularly important if a submitter provides multiple submissions sets that
+                    need to be processed          as discrete sets.          </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+</xs:schema>

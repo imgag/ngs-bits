@@ -9,5 +9,6 @@
         <file>Resources/imprinting_genes.tsv</file>
         <file>Resources/cyto_band.bed</file>
         <file>Resources/hg19_ensembl_transcript_matches.tsv</file>
+        <file>Resources/clinvar_submission_1.6.xsd</file>
     </qresource>
 </RCC>

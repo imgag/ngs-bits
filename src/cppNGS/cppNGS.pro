@@ -60,7 +60,8 @@ SOURCES += BedFile.cpp \
     VcfFile.cpp \
     TabixIndexedFile.cpp \
     BedpeFile.cpp \
-    MidCheck.cpp
+    MidCheck.cpp \
+    ClinvarSubmissionGenerator.cpp
 
 
 HEADERS += BedFile.h \
@@ -91,7 +92,8 @@ HEADERS += BedFile.h \
     BedpeFile.h \
     KeyValuePair.h \
     VariantType.h \
-    MidCheck.h
+    MidCheck.h \
+    ClinvarSubmissionGenerator.h
 
 
 RESOURCES += \

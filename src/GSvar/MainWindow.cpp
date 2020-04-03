@@ -3271,7 +3271,7 @@ void MainWindow::exportGSvar()
 		}
 	}
 
-	//store to VCF file
+	//store to GSvar file
 	QString file_name = filename_;
 	file_name.replace(".GSvar", "_export.GSvar");
 	file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "GSvar (*.gsvar);;All files (*.*)");
