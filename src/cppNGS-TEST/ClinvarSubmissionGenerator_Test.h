@@ -9,11 +9,10 @@ private:
 	ClinvarSubmissionData minimalData()
 	{
 		ClinvarSubmissionData data;
-
-		data.local_key = "SomeLocalIdentifierOfTheSubmission";
-		data.submitter_first_name = "Max";
-		data.submitter_last_name = "Mustermann";
-		data.submitter_email = "Max.Mustermann@med.uni-tuebingen.de";
+		data.date = QDate::fromString("2020-04-03", Qt::ISODate);
+		data.local_key = "use sample-variant-tuple as identifier";
+		data.submission_id = "123456";
+		data.submitter_id = "78325";
 		data.organization_id = "506385";
 		data.variant = Variant("chr7",  140453136, 140453136, "T", "A");
 		data.variant_classification = "Pathogenic";

@@ -4,17 +4,18 @@
 #include "cppNGS_global.h"
 #include "Phenotype.h"
 #include "VariantList.h"
+#include <QDate>
 
 ///Container for ClinVar submission data
 struct CPPNGSSHARED_EXPORT ClinvarSubmissionData
 {
 	//submission meta data
-	QString local_key; //local identifier for the submission, e.g. sample identifier plus variant identifiers
+	QDate date = QDate::currentDate(); //submission date
+	QString submission_id; //submission ID. For now, get it from the website when creating the submission. Later, the API should generate it.
+	QString local_key; //local identifier for the submission, e.g. sample identifier plus variant identifier
 
 	//submitter data
-	QString submitter_first_name;
-	QString submitter_last_name;
-	QString submitter_email;
+	QString submitter_id; //NCBI person ID
 	QString organization_id; //NCBI organization ID, e.g. https://www.ncbi.nlm.nih.gov/clinvar/submitters/506385/
 
 	//variant data

@@ -1,24 +1,11 @@
 <?xml version="1.0"?>
-<ClinvarSubmissionSet Date="2020-04-03">
-    <SubmitterOfRecord>
-        <Person>
-            <Name>
-                <First>Max</First>
-                <Last>Mustermann</Last>
-            </Name>
-            <AccountInfo>
-                <Contact email="Max.Mustermann@med.uni-tuebingen.de"/>
-            </AccountInfo>
-        </Person>
-        <Organization>
-            <OrganizationCategory>clinic</OrganizationCategory>
-            <NCBIOrganizationID>506385</NCBIOrganizationID>
-        </Organization>
-    </SubmitterOfRecord>
+<ClinvarSubmissionSet sub_id="123456" Date="2020-04-03">
+    <SubmitterOfRecordID>78325</SubmitterOfRecordID>
+    <OrgID Type="primary">506385</OrgID>
     <ClinvarSubmission>
         <RecordStatus>novel</RecordStatus>
         <ReleaseStatus>public</ReleaseStatus>
-        <ClinvarSubmissionID localKey="SomeLocalIdentifierOfTheSubmission"/>
+        <ClinvarSubmissionID localKey="use sample-variant-tuple as identifier" submitterDate="2020-04-03"/>
         <MeasureTrait>
             <Assertion>
                 <AssertionType val_type="name">variation to disease</AssertionType>

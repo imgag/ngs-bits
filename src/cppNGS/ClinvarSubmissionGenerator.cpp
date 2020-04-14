@@ -7,9 +7,8 @@ void ClinvarSubmissionData::check() const
 {
 	checkNotEmpty("local_key", local_key);
 
-	checkNotEmpty("submitter_first_name", submitter_first_name);
-	checkNotEmpty("submitter_last_name", submitter_last_name);
-	checkNotEmpty("submitter_email", submitter_email);
+	checkNotEmpty("submission_id", submission_id);
+	checkNotEmpty("submitter_id", submitter_id);
 	checkNotEmpty("organization_id", organization_id);
 
 	if (!variant.isValid()) THROW(ArgumentException, "ClinVar submission variant is not valid!");
@@ -81,45 +80,27 @@ void ClinvarSubmissionGenerator::generateXML(const ClinvarSubmissionData& data, 
 	//XML schema: https://ftp.ncbi.nlm.nih.gov/pub/clinvar/xsd_submission/
 	//Documentation: https://www.ncbi.nlm.nih.gov/projects/clinvar/ClinVarDataDictionary.pdf
 
-	//init
-	QString date = QDate::currentDate().toString(Qt::ISODate);
-
 	//start document
 	QXmlStreamWriter w(&output);
 	w.setAutoFormatting(true);
 	w.writeStartDocument();
 	w.writeStartElement("ClinvarSubmissionSet");
-	w.writeAttribute("Date", date);
+	w.writeAttribute("sub_id", data.submission_id);
 
-	//element "SubmitterOfRecord"
+	w.writeAttribute("Date", data.date.toString(Qt::ISODate));
+
+	//element "SubmitterOfRecordID"
 	{
-		w.writeStartElement("SubmitterOfRecord");
+		w.writeStartElement("SubmitterOfRecordID");
+		w.writeCharacters(data.submitter_id);
+		w.writeEndElement();
+	}
 
-		w.writeStartElement("Person");
-		w.writeStartElement("Name");
-		w.writeStartElement("First");
-		w.writeCharacters(data.submitter_first_name);
-		w.writeEndElement();
-		w.writeStartElement("Last");
-		w.writeCharacters(data.submitter_last_name);
-		w.writeEndElement();
-		w.writeEndElement();
-		w.writeStartElement("AccountInfo");
-		w.writeStartElement("Contact");
-		w.writeAttribute("email", data.submitter_email);
-		w.writeEndElement();
-		w.writeEndElement();
-		w.writeEndElement();
-
-		w.writeStartElement("Organization");
-		w.writeStartElement("OrganizationCategory");
-		w.writeCharacters("clinic");
-		w.writeEndElement();
-		w.writeStartElement("NCBIOrganizationID");
+	//element "OrgID"
+	{
+		w.writeStartElement("OrgID");
+		w.writeAttribute("Type", "primary");
 		w.writeCharacters(data.organization_id);
-		w.writeEndElement();
-		w.writeEndElement();
-
 		w.writeEndElement();
 	}
 
@@ -137,6 +118,7 @@ void ClinvarSubmissionGenerator::generateXML(const ClinvarSubmissionData& data, 
 
 		w.writeStartElement("ClinvarSubmissionID");
 		w.writeAttribute("localKey", data.local_key);
+		w.writeAttribute("submitterDate", data.date.toString(Qt::ISODate));
 		w.writeEndElement();
 
 		//element "MeasureTrait"
@@ -158,7 +140,7 @@ void ClinvarSubmissionGenerator::generateXML(const ClinvarSubmissionData& data, 
 			w.writeCharacters(data.variant_classification);
 			w.writeEndElement();
 			w.writeStartElement("DateLastEvaluated");
-			w.writeCharacters(date);
+			w.writeCharacters(data.date.toString(Qt::ISODate));
 			w.writeEndElement();
 			w.writeEndElement();
 
