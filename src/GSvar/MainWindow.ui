@@ -594,7 +594,7 @@
     <string>Show gaps</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show low-coverage regions from the pre-calcualated low-coverage BED file in the sample folder.&lt;/p&gt;&lt;p&gt;Note: the gaps are based on the target region of the mapping step, not the current target region&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show low-coverage regions from the pre-calcualated low-coverage BED file in the sample folder.&lt;/p&gt;&lt;p&gt;Note: the gaps are based on the target region of the processing system, not the current target region&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionShowHGMD">

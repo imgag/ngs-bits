@@ -3045,6 +3045,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 
 	//get gene name from user
 	QString gene = QInputDialog::getText(this, "Display gaps", "Gene:");
+	gene = gene.trimmed();
 	if (gene=="") return;
 
 	//locate report(s)
@@ -3056,6 +3057,41 @@ void MainWindow::on_actionGapsLookup_triggered()
 	{
 		GUIHelper::showMessage("Error", "Could not detect low-coverage BED file in folder '" + folder + "'.");
 		return;
+	}
+
+
+	//check if gene is in target region
+	if (LoginManager::active())
+	{
+		NGSD db;
+		QString ps_id = db.processedSampleId(processedSampleName());
+		if (ps_id!="")
+		{
+			QString sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=:0", true, ps_id).toString();
+			QString roi = db.getProcessingSystemData(sys_id.toInt(), true).target_file;
+			if (roi!="")
+			{
+				BedFile region = db.geneToRegions(gene.toLatin1(), Transcript::ENSEMBL, "gene");
+				region.merge();
+
+				if (region.count()==0)
+				{
+					QMessageBox::warning(this, "Precalculated gaps for gene", "Error:\nCould not convert gene symbol '" + gene + "' to a target region.\nIs this a HGNC-approved gene name with associated transcripts?");
+					return;
+				}
+				else
+				{
+					BedFile sys_regions;
+					sys_regions.load(roi);
+					region.intersect(sys_regions);
+					if (region.count()==0)
+					{
+						QMessageBox::warning(this, "Precalculated gaps for gene", "Error:\nGene '" + gene + "' locus does not overlap with sample target region!");
+						return;
+					}
+				}
+			}
+		}
 	}
 
 	//select report
