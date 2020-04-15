@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2020_03-63 (15.04.20)
+- Gene tab: Improved matching RefSeq/CCDS transcript information (now includes UTR).
+- Gene selector: now usable for WGS samples.
+- General: Moved storing the GSvar file from background to the main application to avoid corrupted GSvar files.
+- General: Precalcualted gap dialog now performs check for gene name and target region overlap.
+
 ### 2020_03-53 (26.03.20)
 - NGSD: users can change their NGSD password ('NGSD > Admin > Change password') 
 - NGSD: Admins can reset user passwords through the user table context menu.
@@ -489,5 +495,3 @@
 --
 
 [back to main page](index.md)
-
-

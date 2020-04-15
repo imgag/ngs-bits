@@ -1218,7 +1218,11 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 
 	connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
 
-	openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
+	int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
+	if (Settings::boolean("debug_mode_enabled"))
+	{
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + ps_id);
+	}
 }
 
 void MainWindow::openRunTab(QString run_name)
@@ -1236,7 +1240,11 @@ void MainWindow::openRunTab(QString run_name)
 
 	SequencingRunWidget* widget = new SequencingRunWidget(this, run_id);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
-	openTab(QIcon(":/Icons/NGSD_run.png"), run_name, widget);
+	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_name, widget);
+	if (Settings::boolean("debug_mode_enabled"))
+	{
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + run_id);
+	}
 }
 
 void MainWindow::openGeneTab(QString symbol)
@@ -1249,7 +1257,11 @@ void MainWindow::openGeneTab(QString symbol)
 	}
 
 	GeneWidget* widget = new GeneWidget(this, symbol.toLatin1());
-	openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, widget);
+	int index = openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, widget);
+	if (Settings::boolean("debug_mode_enabled"))
+	{
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(NGSD().geneToApprovedID(symbol.toLatin1())));
+	}
 }
 
 void MainWindow::openVariantTab(Variant variant)
@@ -1267,7 +1279,11 @@ void MainWindow::openVariantTab(Variant variant)
 	VariantWidget* widget = new VariantWidget(variant, this);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
-	openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(), widget);
+	int index = openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(), widget);
+	if (Settings::boolean("debug_mode_enabled"))
+	{
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + v_id);
+	}
 }
 
 void MainWindow::openProcessingSystemTab(QString name_short)
@@ -1282,17 +1298,25 @@ void MainWindow::openProcessingSystemTab(QString name_short)
 
 	ProcessingSystemWidget* widget = new ProcessingSystemWidget(this, sys_id);
 	connect(widget, SIGNAL(executeIGVCommands(QStringList)), this, SLOT(executeIGVCommands(QStringList)));
-	openTab(QIcon(":/Icons/NGSD_processing_system.png"), name_short, widget);
+	int index = openTab(QIcon(":/Icons/NGSD_processing_system.png"), name_short, widget);
+	if (Settings::boolean("debug_mode_enabled"))
+	{
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(sys_id));
+	}
 }
 
 void MainWindow::openProjectTab(QString name)
 {
 	ProjectWidget* widget = new ProjectWidget(this, name);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
-	openTab(QIcon(":/Icons/NGSD_project.png"), name, widget);
+	int index = openTab(QIcon(":/Icons/NGSD_project.png"), name, widget);
+	if (Settings::boolean("debug_mode_enabled"))
+	{
+		ui_.tabs->setTabToolTip(index, "NGSD ID: " + NGSD().getValue("SELECT id FROM project WHERE name=:0", true, name).toString());
+	}
 }
 
-void MainWindow::openTab(QIcon icon, QString name, QWidget* widget)
+int MainWindow::openTab(QIcon icon, QString name, QWidget* widget)
 {
 	QScrollArea* scroll_area = new QScrollArea(this);
 	scroll_area->setFrameStyle(QFrame::NoFrame);
@@ -1308,6 +1332,8 @@ void MainWindow::openTab(QIcon icon, QString name, QWidget* widget)
 	//show tab
 	int index = ui_.tabs->addTab(scroll_area, icon, name);
 	ui_.tabs->setCurrentIndex(index);
+
+	return index;
 }
 
 void MainWindow::closeTab(int index)

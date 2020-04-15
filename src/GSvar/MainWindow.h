@@ -294,8 +294,8 @@ public slots:
 	void openProcessingSystemTab(QString name_short);
 	///Open project tab
 	void openProjectTab(QString name);
-	///Opens a tab
-	void openTab(QIcon icon, QString name, QWidget* widget);
+	///Opens a tab and returns its index.
+	int openTab(QIcon icon, QString name, QWidget* widget);
 	///Closes a tab by index
 	void closeTab(int index);
 
