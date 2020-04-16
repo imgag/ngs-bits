@@ -373,5 +373,9 @@ SUBDIRS += NGSDAnnotateSV
 tools-TEST.depends += NGSDAnnotateSV
 NGSDAnnotateSV.depends = cppNGS
 
+SUBDIRS += SvFilterAnnotations
+tools-TEST.depends += SvFilterAnnotations
+SvFilterAnnotations.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt

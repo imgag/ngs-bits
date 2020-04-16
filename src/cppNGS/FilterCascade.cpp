@@ -83,6 +83,48 @@ void FilterResult::removeFlagged(VariantList& variants)
 	pass = QBitArray(variants.count(), true);
 }
 
+void FilterResult::removeFlagged(CnvList& cnvs)
+{
+    //skip if all variants pass
+    if (countPassing()==cnvs.count()) return;
+
+    // create new empty CnvList
+    CnvList passed_cnvs;
+    passed_cnvs.copyMetaData(cnvs);
+
+    //copy passing variants to the new variant list
+    for (int i=0; i<cnvs.count(); ++i)
+    {
+        if (pass[i]) passed_cnvs.append(cnvs[i]);
+    }
+
+    // overwrite original CnvList
+    cnvs = passed_cnvs;
+
+    //update flags
+    pass = QBitArray(cnvs.count(), true);
+}
+
+void FilterResult::removeFlagged(BedpeFile& svs)
+{
+    //skip if all variants pass
+    if (countPassing()==svs.count()) return;
+
+    //remove non-passing structural variants from list
+    int removed_svs = 0; // index offset for already removed list entries
+    for (int i=0; i<pass.size(); ++i)
+    {
+        if (!pass[i])
+        {
+            svs.removeAt(i - removed_svs);
+            removed_svs++;
+        }
+    }
+
+    //update flags
+    pass = QBitArray(svs.count(), true);
+}
+
 void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArray description)
 {
 	//create 'filter' column (if missing)

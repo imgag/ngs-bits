@@ -1,0 +1,2 @@
+SV remove chr type	chromosome type=standard chromosomes
+SV OMIM genes	

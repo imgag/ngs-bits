@@ -88,6 +88,8 @@ class CPPNGSSHARED_EXPORT FilterResult
 
 		///Remove variants that did not pass the filter (with 'false' flag).
 		void removeFlagged(VariantList& variants);
+        void removeFlagged(CnvList& cnvs);
+        void removeFlagged(BedpeFile& svs);
 
 		///Tag variants that did not pass the filter using the 'filter' column.
 		void tagNonPassing(VariantList& variants, QByteArray tag, QByteArray description);

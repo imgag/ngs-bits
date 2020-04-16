@@ -213,6 +213,12 @@ public:
 		return lines_[index];
 	}
 
+    ///Remove structural variant from list at index.
+    void removeAt(int index)
+    {
+        lines_.removeAt(index);
+    }
+
 	///returns index of annotation, -1 if not found
 	int annotationIndexByName(const QByteArray& name, bool error_on_mismatch = true) const;
 
