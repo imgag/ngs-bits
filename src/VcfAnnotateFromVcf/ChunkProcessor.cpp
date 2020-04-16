@@ -466,7 +466,7 @@ void ChunkProcessor::run()
                 //append header line for new annotation
                 if (line.startsWith("#CHROM"))
                 {
-                    job.annotation=annotation_header_lines.join();
+                    job.current_chunk_processed.append(annotation_header_lines);
                 }
 
                 job.current_chunk_processed.append(line);

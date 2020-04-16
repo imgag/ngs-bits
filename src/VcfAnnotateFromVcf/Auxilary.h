@@ -18,7 +18,6 @@ struct AnalysisJob
 {
     QList<QByteArray> current_chunk;
     QList<QByteArray> current_chunk_processed;
-    QByteArray annotation;
     QString error_message;
 
     //id used to keep the vcf file in order

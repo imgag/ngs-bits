@@ -45,6 +45,7 @@ public:
         addInt("threads", "The number of threads used to read, process and write files.", true, 1);
         addInt("block_size", "Number of lines in one block", true, 5000);
 
+        changeLog(2020, 4, 11, "Added multithread support by Julian Fratte.");
         changeLog(2019, 8, 19, "Added support for multiple annotations files through config file.");
         changeLog(2019, 8, 14, "Added VCF.GZ support.");
         changeLog(2019, 8, 13, "Initial implementation.");
