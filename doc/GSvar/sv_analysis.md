@@ -43,12 +43,25 @@ The "Structural variants" dialog shows the filtered list of all detected SVs wit
 Additionally the Format and Info columns of the currently selected SV is expanded below this table (2). On the right side there is a filter widget similar to the variant or CNV view where filters can be added and modified (3). Below that the target, chromosomal or phenotype region can be defined and the SVs filtered by genes or text (4). 
 ![SV window](sv_window.png)
 
+## Filtering
+
+A set of default filters can be loaded by selecting *germline* in the drop-down menu above the filter widget (3). Since the useful filter settings highly depends on the sample, most of the filters are deactivated by default and can be activated by checking the corresponding checkbox. Seven filters are added by default:
+
+* *SV remove chr type*: This filter is enabled by default and removes all structural variants which are located on non-standard chromosomes.
+* *SV type*: This filter is enabled by default, but contains all available SV types. It can be modified to limit the analysis to a certain set of SV types (e.g. only analyse deletions).
+* *SV filter columns REMOVE: off-target*: Only useful for samples with a target region (e.g. WES). Removes all SVs which are marked as *off-target* (SV is located outside the target region).
+* *SV filter columns FILTER: PASS*: Removes all SVs which do not pass the QC of the SV caller.
+* *SV quality ≥ 30*: Removes low-quality SVs.
+* *SV size ≥ 100 bases*: Removes all small SVs.
+* *SV OMIM genes*: Removes all SVs which do not overlap with an OMIM gene.
+
+A list of all available filters can be found here: [SvFilterAnnotation]()
 
 ## FAQ
 
 ### (Re-)start SV analysis
 
-The SV (re-)analysis can be started 
+The SV (re-)analysis can be started by clicking on the 6th button of the GSvar toolbar. Here the structural variant calling step has to be selected. (For samples which has been mapped with an older megSAP version the mapping step has to be selected, too.)
 ![SV reanalysis](sv_reanalysis.png)
 
 
