@@ -38,6 +38,18 @@
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
+				<xs:element name="PatientInfo">
+					<xs:annotation>
+						<xs:documentation>Meta data about the patient</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:attribute name="sap_patient_identifier" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>SAP patient identifier</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
 				<xs:element name="TumorSample">
 					<xs:annotation>
 						<xs:documentation>Information about the tumor sample</xs:documentation>
