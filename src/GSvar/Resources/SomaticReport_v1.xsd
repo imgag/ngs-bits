@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2014 (x64) (http://www.altova.com) von Dr. Peter Bauer (Universitätsklinikum Tübingen) bearbeitet -->
-<!-- edited with XMLSpy v2014 (x64) (http://www.altova.com) by Dr. Peter Bauer (Universitätsklinikum Tübingen) -->
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
 	<xs:element name="SomaticNgsReport">
 		<xs:annotation>
@@ -119,9 +117,9 @@
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
-						<xs:attribute name="microsatellite_instabilty">
+						<xs:attribute name="microsatellite_instability">
 							<xs:annotation>
-								<xs:documentation>Microsatellite instabiilty score</xs:documentation>
+								<xs:documentation>Microsatellite instability score</xs:documentation>
 							</xs:annotation>
 							<xs:simpleType>
 								<xs:restriction base="xs:float">
@@ -373,11 +371,11 @@
 													<xs:simpleType>
 														<xs:restriction base="xs:string">
 															<xs:enumeration value="activating"/>
-															<xs:enumeration value="likely activating"/>
-															<xs:enumeration value="likely inactivating"/>
+															<xs:enumeration value="likely_activating"/>
+															<xs:enumeration value="likely_inactivating"/>
 															<xs:enumeration value="inactivating"/>
 															<xs:enumeration value="unclear"/>
-															<xs:enumeration value="test dependent"/>
+															<xs:enumeration value="test_dependent"/>
 														</xs:restriction>
 													</xs:simpleType>
 												</xs:attribute>
@@ -489,48 +487,32 @@
 											<xs:documentation>Tumor allele frequency</xs:documentation>
 										</xs:annotation>
 										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="hom"/>
-												<xs:enumeration value="het"/>
-												<xs:enumeration value="hemi"/>
+										<xs:restriction base="xs:float">
+											<xs:minInclusive value="0"/>
+											<xs:maxInclusive value="1"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="depth_tumor" use="required">
+									<xs:attribute name="depth_tumor"  type="xs:int" use="required">
 										<xs:annotation>
 											<xs:documentation>Tumor depth</xs:documentation>
 										</xs:annotation>
-										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="hom"/>
-												<xs:enumeration value="het"/>
-												<xs:enumeration value="hemi"/>
-											</xs:restriction>
-										</xs:simpleType>
 									</xs:attribute>
 									<xs:attribute name="af_normal">
 										<xs:annotation>
 											<xs:documentation>Normal sample frequency</xs:documentation>
 										</xs:annotation>
 										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="hom"/>
-												<xs:enumeration value="het"/>
-												<xs:enumeration value="hemi"/>
+											<xs:restriction base="xs:float">
+												<xs:minInclusive value="0"/>
+												<xs:maxInclusive value="1"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="depth_normal">
+									<xs:attribute name="depth_normal"  type="xs:int" >
 										<xs:annotation>
 											<xs:documentation>Normal sample depth</xs:documentation>
 										</xs:annotation>
-										<xs:simpleType>
-											<xs:restriction base="xs:string">
-												<xs:enumeration value="hom"/>
-												<xs:enumeration value="het"/>
-												<xs:enumeration value="hemi"/>
-											</xs:restriction>
-										</xs:simpleType>
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
@@ -642,7 +624,7 @@
 											<xs:documentation>Allele frequency in tumor sample (not considerung the tumor content)</xs:documentation>
 										</xs:annotation>
 										<xs:simpleType>
-											<xs:restriction base="xs:int">
+											<xs:restriction base="xs:float">
 												<xs:minInclusive value="0"/>
 											</xs:restriction>
 										</xs:simpleType>
@@ -653,8 +635,9 @@
 										</xs:annotation>
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
-												<xs:enumeration value="Amplification"/>
-												<xs:enumeration value="Deletion"/>
+												<xs:enumeration value="AMP"/>
+												<xs:enumeration value="DEL"/>
+												<xs:enumeration value="LOH"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
@@ -665,9 +648,13 @@
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
 												<xs:enumeration value="chromosome"/>
+												<xs:enumeration value="partial chromosome"/>
 												<xs:enumeration value="p-arm"/>
 												<xs:enumeration value="q-arm"/>
+												<xs:enumeration value="partial p-arm"/>
+												<xs:enumeration value="partial q-arm"/>
 												<xs:enumeration value="focal"/>
+												<xs:enumeration value="cluster"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
