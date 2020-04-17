@@ -487,8 +487,8 @@ public:
 	GeneSet phenotypeToGenes(const Phenotype& phenotype, bool recursive);
 	///Returns all child terms of the given phenotype
 	QList<Phenotype> phenotypeChildTerms(const Phenotype& phenotype, bool recursive);
-	///Returns OMIM information for a gene. Returns a default-constructed element, if the gene is not a OMIM gene.
-	OmimInfo omimInfo(const QByteArray& symbol);
+	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.
+	QList<OmimInfo> omimInfo(const QByteArray& symbol);
 
 	/*** Base functionality for file/variant processing ***/
 	///Returns the processed sample name for an ID.

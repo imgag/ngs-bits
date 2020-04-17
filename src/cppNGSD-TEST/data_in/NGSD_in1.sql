@@ -475,11 +475,19 @@ INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id
 
 -- omim
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES
-(199989, 'ATM', '607585');
+(199989, 'ATM', '607585'),
+(193906, 'SHOX', '312865'),
+(193942, 'SHOX', '400020');
 
 INSERT INTO `omim_phenotype` (`omim_gene_id`, `phenotype`) VALUES
 (199989, 'Ataxia-telangiectasia, 208900 (3)'),
 (199989, 'Lymphoma, B-cell non-Hodgkin, somatic (3)'),
 (199989, 'Lymphoma, mantle cell, somatic (3)'),
 (199989, 'T-cell prolymphocytic leukemia, somatic (3)'),
-(199989, '{Breast cancer, susceptibility to}, 114480 (3)');
+(199989, '{Breast cancer, susceptibility to}, 114480 (3)'),
+(193906, 'Langer mesomelic dysplasia, 249700 (3)'),
+(193906, 'Leri-Weill dyschondrosteosis, 127300 (3)'),
+(193906, 'Short stature, idiopathic familial, 300582 (3)'),
+(193942, 'Langer mesomelic dysplasia, 249700 (3)'),
+(193942, 'Leri-Weill dyschondrosteosis, 127300 (3)'),
+(193942, 'Short stature, idiopathic familial, 300582 (3)');

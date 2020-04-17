@@ -2910,22 +2910,18 @@ QList<Phenotype> NGSD::phenotypeChildTerms(const Phenotype& phenotype, bool recu
 	return terms;
 }
 
-OmimInfo NGSD::omimInfo(const QByteArray& symbol)
+QList<OmimInfo> NGSD::omimInfo(const QByteArray& symbol)
 {
-	OmimInfo output;
+	QList<OmimInfo> output;
 
-	//OMIM gene
-	QString omim_gene_id = getValue("SELECT id FROM omim_gene WHERE gene=:0", true, symbol).toString();
-	if (omim_gene_id=="")
+	//get matching ids
+	QString symbol_approved = geneToApproved(symbol, true);
+	QStringList omim_gene_ids = getValues("SELECT id FROM omim_gene WHERE gene=:0 OR gene='" + symbol_approved + "' ORDER BY mim", symbol);
+	foreach(QString omim_gene_id, omim_gene_ids)
 	{
-		QString symbol_approved = geneToApproved(symbol, true);
-		omim_gene_id = getValue("SELECT id FROM omim_gene WHERE gene=:0", true, symbol_approved).toString();
-	}
-
-	if (omim_gene_id!="")
-	{
-		output.mim = getValue("SELECT mim FROM omim_gene WHERE id=" + omim_gene_id).toByteArray();
-		output.gene_symbol = getValue("SELECT gene FROM omim_gene WHERE id=" + omim_gene_id).toByteArray();
+		OmimInfo info;
+		info.mim = getValue("SELECT mim FROM omim_gene WHERE id=" + omim_gene_id).toByteArray();
+		info.gene_symbol = getValue("SELECT gene FROM omim_gene WHERE id=" + omim_gene_id).toByteArray();
 
 		QRegExp mim_exp("[^0-9]([0-9]{6})[^0-9]");
 		QStringList phenos = getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + omim_gene_id + " ORDER BY phenotype ASC");
@@ -2939,8 +2935,10 @@ OmimInfo NGSD::omimInfo(const QByteArray& symbol)
 				tmp.setAccession(mim_exp.cap(1).toLatin1());
 			}
 
-			output.phenotypes << tmp;
+			info.phenotypes << tmp;
 		}
+
+		output << info;
 	}
 
 	return output;

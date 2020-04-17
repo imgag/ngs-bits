@@ -82,19 +82,21 @@ void GeneWidget::updateGUI()
 	{
         hpo_links << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name();
 	}
-	ui_.hpo->setText(hpo_links.join(hpo_links.count()>20 ? " "  : "\n"));
+	ui_.hpo->setText(hpo_links.join(hpo_links.count()>20 ? " "  : "<br>"));
 
     //show OMIM info
-	OmimInfo omim = db.omimInfo(symbol_);
-	if (!omim.gene_symbol.isEmpty())
+	QStringList omim_lines;
+	QList<OmimInfo> omim_infos = db.omimInfo(symbol_);
+	foreach(const OmimInfo& omim, omim_infos)
 	{
 		QStringList omim_phenos;
 		foreach(const Phenotype& p, omim.phenotypes)
 		{
 			omim_phenos << p.name();
 		}
-		ui_.omim->setText("MIM: <a href=\"http://omim.org/entry/" + omim.mim + "\">" + omim.mim + "</a>\n" + omim_phenos.join(omim_phenos.count()>20 ? " "  : "\n"));
+		omim_lines << ("<a href=\"http://omim.org/entry/" + omim.mim + "\">MIM *" + omim.mim + "</a>:<br>" + omim_phenos.join(omim_phenos.count()>20 ? " "  : "<br>"));
     }
+	ui_.omim->setText(omim_lines.join("<br>"));
 
 	//show OrphaNet info
 	QByteArrayList orpha_links;
@@ -105,9 +107,9 @@ void GeneWidget::updateGUI()
 		QByteArray identifier = query.value("identifier").toByteArray();
 		QByteArray number = identifier.mid(6);
 		QByteArray name = query.value("name").toByteArray();
-		orpha_links << ("<a href=\"https://www.orpha.net/consor/cgi-bin/OC_Exp.php?Expert=" + number + "\">" + identifier + "</a>\n" + name);
+		orpha_links << ("<a href=\"https://www.orpha.net/consor/cgi-bin/OC_Exp.php?Expert=" + number + "\">" + identifier + "</a><br>" + name);
 	}
-	ui_.diseases->setText(orpha_links.join(orpha_links.count()>20 ? " "  : "\n"));
+	ui_.diseases->setText(orpha_links.join(orpha_links.count()>20 ? " "  : "<br>"));
 
 	updateTranscriptsTable(db);
 }

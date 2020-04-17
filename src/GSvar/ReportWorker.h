@@ -71,8 +71,8 @@ private:
 	QString trans(const QString& text) const;
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
 	QByteArray formatGenotype(const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
-	void writeHTML();
-	void writeXML(QString outfile_name, QString report_document);
+	void writeHTML(); //TODO: Move to cppNGSD library and add test
+	void writeXML(QString outfile_name, QString report_document); //TODO: Move to cppNGSD library and add test
 };
 
 #endif

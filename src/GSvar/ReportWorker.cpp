@@ -727,8 +727,8 @@ void ReportWorker::writeHTML()
 		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Gen MIM") << "</b></td><td><b>" << trans("Phenotyp") << "</b></td><td><b>" << trans("Phenotyp MIM") << "</b></td></tr>" << endl;
 		foreach(QByteArray gene, genes_)
 		{
-			OmimInfo omim_info = db_.omimInfo(gene);
-			if (!omim_info.gene_symbol.isEmpty())
+			QList<OmimInfo> omim_infos = db_.omimInfo(gene);
+			foreach(const OmimInfo& omim_info, omim_infos)
 			{
 				QStringList names;
 				QStringList accessions;
@@ -1143,26 +1143,27 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 				}
 
 				//OMIM
-				QString omim_gene_id = db_.getValue("SELECT id FROM omim_gene WHERE gene=:0", true, gene).toString();
-				if (omim_gene_id!="")
+				QList<OmimInfo> omim_infos = db_.omimInfo(gene);
+				foreach(const OmimInfo& omim_info, omim_infos)
 				{
 					//gene
 					w.writeStartElement("GeneDiseaseInformation");
-					w.writeAttribute("gene", gene);
+					w.writeAttribute("gene", omim_info.gene_symbol);
 					w.writeAttribute("source", "OMIM gene");
-					w.writeAttribute("identifier", db_.getValue("SELECT mim FROM omim_gene WHERE id=" + omim_gene_id).toString());
-					w.writeAttribute("name", gene);
+					w.writeAttribute("identifier", omim_info.mim);
+					w.writeAttribute("name", omim_info.gene_symbol);
 					w.writeEndElement();
 
 					//phenotypes
-					QStringList phenos = db_.getValues("SELECT phenotype FROM omim_phenotype WHERE omim_gene_id=" + omim_gene_id);
-					foreach(QString pheno, phenos)
+					foreach(const Phenotype& pheno, omim_info.phenotypes)
 					{
 						w.writeStartElement("GeneDiseaseInformation");
-						w.writeAttribute("gene", gene);
+						w.writeAttribute("gene", omim_info.gene_symbol);
 						w.writeAttribute("source", "OMIM phenotype");
-						w.writeAttribute("identifier", "[see name]");
-						w.writeAttribute("name", pheno);
+						QString accession = pheno.accession().trimmed();
+						if (accession=="") accession = "n/a";
+						w.writeAttribute("identifier", accession);
+						w.writeAttribute("name", pheno.name());
 						w.writeEndElement();
 					}
 				}

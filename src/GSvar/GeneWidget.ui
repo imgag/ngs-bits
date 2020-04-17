@@ -434,6 +434,9 @@
         <property name="openExternalLinks">
          <bool>true</bool>
         </property>
+        <property name="textInteractionFlags">
+         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+        </property>
        </widget>
       </item>
      </layout>
@@ -535,6 +538,9 @@
         <property name="text">
          <string>OrphaNet diseases:</string>
         </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
        </widget>
       </item>
       <item row="2" column="1">
@@ -544,6 +550,9 @@
         </property>
         <property name="openExternalLinks">
          <bool>true</bool>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
         </property>
        </widget>
       </item>

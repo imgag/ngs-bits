@@ -40,9 +40,16 @@ void GeneOmimInfoWidget::updateTable()
 		ui_.table->setItem(row, 1, GUIHelper::createTableItem(gene_approved));
 
 		//OMIM
-		OmimInfo omim_info = db.omimInfo(gene.toLatin1());
-		if (!omim_info.gene_symbol.isEmpty())
+		QList<OmimInfo> omim_infos = db.omimInfo(gene.toLatin1());
+		for(int i=0; i<omim_infos.count(); ++i)
 		{
+			if (i>0)
+			{
+				row = ui_.table->rowCount();
+				ui_.table->setRowCount(ui_.table->rowCount()+1);
+			}
+
+			const OmimInfo& omim_info = omim_infos[i];
 			QLabel* label = GUIHelper::createLinkLabel(link(omim_info.mim, '*')+ " " + omim_info.gene_symbol);
 			ui_.table->setCellWidget(row, 2, label);
 
