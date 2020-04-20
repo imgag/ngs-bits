@@ -1,0 +1,10 @@
+changes:
+
+- inspired by SeqPurge implementation
+- introduced Auxilary.h containing AnalysisJob-struct that holds information about the current status of job (to avoid Mutex-Lock)
+- introduced ChunkProcessor class used for annotation work (used by QThreadPool)
+- reading and writing in main 
+- shifted required methods for annotation from main to ChunkProcessor
+- introduced parameter "max_job_number": determines the number AnalysisJob instances created
+- introduced parameter "block_size": number of lines from the input VCF to be processed in one thread
+- introduced parameter "threads": number of threads
