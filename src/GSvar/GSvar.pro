@@ -80,7 +80,8 @@ SOURCES += main.cpp\
     LoginDialog.cpp \
     GeneInfoDBs.cpp \
     VariantConversionWidget.cpp \
-    PasswordDialog.cpp
+    PasswordDialog.cpp \
+    CircosPlotWidget.cpp
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -154,7 +155,8 @@ HEADERS  += MainWindow.h \
     LoginDialog.h \
     GeneInfoDBs.h \
     VariantConversionWidget.h \
-    PasswordDialog.h
+    PasswordDialog.h \
+    CircosPlotWidget.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -214,7 +216,8 @@ FORMS    += MainWindow.ui \
     GeneOmimInfoWidget.ui \
     LoginDialog.ui \
     VariantConversionWidget.ui \
-    PasswordDialog.ui
+    PasswordDialog.ui \
+    CircosPlotWidget.ui
 
 
 include("../app_gui.pri")

@@ -94,6 +94,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneInfoDBs.h"
 #include "VariantConversionWidget.h"
 #include "PasswordDialog.h"
+#include "CircosPlotWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -429,6 +430,16 @@ void MainWindow::on_actionGeneSelector_triggered()
 			openSubpanelDesignDialog(dlg.genesForVariants());
 		}
 	}
+}
+
+void MainWindow::on_actionCircos_triggered()
+{
+	if (filename_=="") return;
+
+	//show dialog
+	CircosPlotWidget* widget = new CircosPlotWidget(filename_);
+	auto dlg = GUIHelper::createDialog(widget, "Circos Plot");
+	addModelessDialog(dlg, false);
 }
 
 void MainWindow::on_actionGeneVariantInfo_triggered()
@@ -1509,6 +1520,21 @@ void MainWindow::loadFile(QString filename)
 
 	//notify for variant validation
 	checkPendingVariantValidations();
+
+
+	//activate Circos plot menu item if plot is available
+	QString path = QFileInfo(filename).absolutePath();
+	QStringList plot_files = Helper::findFiles(path, "*_circos.png", false);
+	if (plot_files.size() < 1)
+	{
+		//deactivate
+		ui_.actionCircos->setEnabled(false);
+	}
+	else
+	{
+		//activate
+		ui_.actionCircos->setEnabled(true);
+	}
 }
 
 void MainWindow::on_actionAbout_triggered()

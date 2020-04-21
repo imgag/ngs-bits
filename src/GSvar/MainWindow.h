@@ -170,9 +170,12 @@ public slots:
 	void on_actionCNV_triggered();
 	///Open ROH dialog
 	void on_actionROH_triggered();
+	///Open SV dialog
 	void on_actionSV_triggered();
 	///Open gene picker dialog
 	void on_actionGeneSelector_triggered();
+	///Open Circos plot
+	void on_actionCircos_triggered();
 	///Open gene variant info check dialog.
 	void on_actionGeneVariantInfo_triggered();
 	///Open gene OMIM info dialog.

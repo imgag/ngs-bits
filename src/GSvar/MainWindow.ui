@@ -286,10 +286,10 @@
                 <bool>false</bool>
                </property>
                <attribute name="horizontalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
                <attribute name="verticalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
               </widget>
              </item>
@@ -513,6 +513,8 @@
    <addaction name="actionSV"/>
    <addaction name="actionGeneSelector"/>
    <addaction name="actionDebug"/>
+   <addaction name="separator"/>
+   <addaction name="actionCircos"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -1058,6 +1060,21 @@
   <action name="actionChangePassword">
    <property name="text">
     <string>Change password</string>
+   </property>
+  </action>
+  <action name="actionCircos">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/Circos.png</normaloff>:/Icons/Circos.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Circos plot</string>
+   </property>
+   <property name="toolTip">
+    <string>Show Circos plot of the current sample</string>
    </property>
   </action>
  </widget>
