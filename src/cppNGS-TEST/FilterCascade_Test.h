@@ -1204,6 +1204,20 @@ private slots:
 		I_EQUAL(result.countPassing(), 2);
 	}
 
+	void FilterSvFilterColumn_filterMulti()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvFilterColumn filter;
+		filter.setStringList("entries", QStringList() << "MaxDepth" << "SampleFT");
+		filter.setString("action", "FILTER");
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 7);
+	}
+
 	void FilterSvPairedReadAF_apply()
 	{
 		BedpeFile svs;
