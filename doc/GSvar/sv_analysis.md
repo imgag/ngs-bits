@@ -74,7 +74,7 @@ The following view settings are recommended and can be selected by right clickin
 * *Collapsed*/*Squished* reduces the height for each read which allows to display more reads. This can be useful depending on sample depth and display resolution.
 * *Group alignments by* -> *chromosomes of mate* can be usful to visualize translocations.
 
-![SV IGV context menu](sv_igv_contextMenu)
+![SV IGV context menu](sv_igv_contextMenu.png)
 
 
 
