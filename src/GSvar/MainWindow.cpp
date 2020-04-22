@@ -654,8 +654,16 @@ void MainWindow::openInIGV(QString region)
 		if (bams.empty()) return;
 		foreach(const IgvFile& file, bams)
 		{
-			dlg.addFile(file.id, file.type, file.filename, true);
+			dlg.addFile(file.id, file.type, file.filename, true);	
 		}
+
+		//sample Manta evidence file(s)
+		QList<IgvFile> evidence_files = getMantaEvidenceFiles();
+		foreach(const IgvFile& file, evidence_files)
+		{
+			dlg.addFile(file.id, file.type, file.filename, false);
+		}
+
 
 		//sample CNV file(s)
 		QList<IgvFile> segs = getSegFilesCnv();
@@ -4469,6 +4477,37 @@ QList<IgvFile> MainWindow::getIgvFilesBaf()
 	}
 
 	return output;
+}
+
+QList<IgvFile> MainWindow::getMantaEvidenceFiles()
+{
+	QList<IgvFile> evidence_files;
+
+	// search at location of all available BAM files
+	QList<IgvFile> bam_files = getBamFiles();
+	foreach (IgvFile bam_file, bam_files)
+	{
+		QDir evidence_dir (QFileInfo(bam_file.filename).absolutePath() + "/manta_evid/");
+
+
+		// check if manta evidence dir exists
+		if (!evidence_dir.exists()) continue;
+
+		// get all matching files
+		QString suffix = "*." + processedSampleName() + ".bam";
+		QStringList matching_files = evidence_dir.entryList(QStringList() << suffix);
+
+		// add all matching files to list:
+		foreach (QString filename, matching_files)
+		{
+			IgvFile	evidence_file;
+			evidence_file.filename = evidence_dir.absoluteFilePath(filename);
+			evidence_file.type = "BAM";
+			evidence_file.id = filename;
+			evidence_files.append(evidence_file);
+		}
+	}
+	return evidence_files;
 }
 
 void MainWindow::applyFilters(bool debug_time)

@@ -38,6 +38,8 @@ public:
 	QList<IgvFile> getSegFilesCnv();
 	///Returns BAF SEG files for the analysis.
 	QList<IgvFile> getIgvFilesBaf();
+	///Returns Manta evidence BAM files for the analysis.
+	QList<IgvFile> getMantaEvidenceFiles();
 	///Adds a file to the recent file list
 	void addToRecentFiles(QString filename);
 	///Updates recent files menu
