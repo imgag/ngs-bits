@@ -57,6 +57,27 @@ A set of default filters can be loaded by selecting *germline* in the drop-down 
 
 A list of all available filters can be found here: [SvFilterAnnotation]()
 
+## IGV
+
+A double click on a structural variant will open this variant in IGV. In case of a translocation a double click will open only the first breakpoint. To display the second breakpoint right click and select *Open position B in IGV* or *Open position A/B in IGV split screen*. In the following dialog select the Manta evidence BAM file (starting with *evidence_*):
+
+![SV IGV init dialog](sv_igv_initdlg.png)
+
+In IGV you have now two tracks of reads. One contains all the reads of the selected area and the other contains only reads wihich were used by Manta as evidence to call the selected structural variance:
+
+![SV IGV tracks](sv_igv_tracks.png)
+
+The following view settings are recommended and can be selected by right clicking on a BAM track and selecting the corresponding menu entries:
+
+* *View as pairs* connects each read with its mats by a line and shows them together.
+* *Color Alignments by* -> *insert size and pair orientation* colors with high insert size or wrong read orientation.
+* *Collapsed*/*Squished* reduces the height for each read which allows to display more reads. This can be useful depending on sample depth and display resolution.
+* *Group alignments by* -> *chromosomes of mate* can be usful to visualize translocations.
+
+![SV IGV context menu](sv_igv_contextMenu)
+
+
+
 ## FAQ
 
 ### (Re-)start SV analysis
