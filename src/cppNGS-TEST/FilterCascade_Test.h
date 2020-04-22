@@ -972,6 +972,20 @@ private slots:
 		I_EQUAL(result.countPassing(), 7);
 	}
 
+	void FilterCnvLoglikelihood_apply_trio_with_regions()
+	{
+		CnvList cnvs;
+		cnvs.load(TESTDATA("data_in/CnvList_ClinCNV_germline_trio_with_regions.tsv"));
+
+		FilterResult result(cnvs.count());
+
+		//default
+		FilterCnvLoglikelihood filter;
+		filter.setDouble("min_ll", 20.0);
+		filter.setBool("scale_by_regions", true);
+		filter.apply(cnvs, result);
+		I_EQUAL(result.countPassing(), 7);
+	}
 
 	void FilterCnvQvalue_apply()
 	{
