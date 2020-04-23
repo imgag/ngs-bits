@@ -17,8 +17,9 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+### QC plots: restict to diagnostic samples (by default), and good/medium quality and allow export as TSV
+### Sample search: Allow search for HPO term
 *** Include CNV QC metrics in report HTML/XML?!
-- Show circus plot of CNVs (del+dup), LOHs, UPDs, BAFs
 * Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater

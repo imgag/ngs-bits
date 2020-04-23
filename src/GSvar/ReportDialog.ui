@@ -209,6 +209,9 @@
       </property>
       <item>
        <widget class="QCheckBox" name="details_cov">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Added information about the coverage of the target region.&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;Note: Disabled if no target region is set.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Add coverage details</string>
         </property>
@@ -237,6 +240,9 @@
         </item>
         <item>
          <widget class="QCheckBox" name="depth_calc">
+          <property name="toolTip">
+           <string>Note: This option can be very slow for large target regions!</string>
+          </property>
           <property name="text">
            <string>Re-calculate average depth for target region (otherwise the value from NGSD is used).</string>
           </property>
@@ -294,6 +300,9 @@
         </item>
         <item>
          <widget class="QLabel" name="min_cov_label">
+          <property name="toolTip">
+           <string>Note: Changing the cutoff can be very slow for large target regions!</string>
+          </property>
           <property name="text">
            <string>Minimum coverage for gap calculation:</string>
           </property>

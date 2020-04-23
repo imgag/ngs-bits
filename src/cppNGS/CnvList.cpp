@@ -179,7 +179,8 @@ void CnvList::load(QString filename)
 	else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI)
 	{
 		//mandatory columns
-		i_region_count = -2; //not present
+		int no_of_regions_idx = file.colIndex("no_of_regions", false);
+		i_region_count = no_of_regions_idx>=0 ? no_of_regions_idx : -2; //not present
 		//remove
 		int i_sample = file.colIndex("sample", true);
 		annotation_indices.removeAll(i_sample);
