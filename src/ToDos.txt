@@ -17,6 +17,7 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+### LOVD upload dialog: check that HGVS strings contain g. c. p.
 ### QC plots: restict to diagnostic samples (by default), and good/medium quality and allow export as TSV
 ### Sample search: Allow search for HPO term
 *** Include CNV QC metrics in report HTML/XML?!
