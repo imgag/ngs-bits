@@ -4487,7 +4487,7 @@ QList<IgvFile> MainWindow::getMantaEvidenceFiles()
 	QList<IgvFile> bam_files = getBamFiles();
 	foreach (IgvFile bam_file, bam_files)
 	{
-		QString evidence_bam_file = Helper::getEvidenceFile(bam_file.filename);
+		QString evidence_bam_file = GSvarHelper::getEvidenceFile(bam_file.filename);
 
 		// check if evidence file exists
 		if (!QFile::exists(evidence_bam_file)) continue;

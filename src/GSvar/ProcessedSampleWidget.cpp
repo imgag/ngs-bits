@@ -9,6 +9,7 @@
 #include "ProcessedSampleDataDeletionDialog.h"
 #include "SingleSampleAnalysisDialog.h"
 #include "DBEditor.h"
+#include "GSvarHelper.h"
 
 #include <QMessageBox>
 
@@ -189,7 +190,7 @@ void ProcessedSampleWidget::updateGUI()
 		if (action->text() == "Add Manta evidence BAM track")
 		{
 			// check if evidence BAM file exists:
-			action->setEnabled(QFile::exists(Helper::getEvidenceFile(NGSD().processedSamplePath(ps_id_, NGSD::BAM))));
+			action->setEnabled(QFile::exists(GSvarHelper::getEvidenceFile(NGSD().processedSamplePath(ps_id_, NGSD::BAM))));
 		}
 		else if (action->text() == "Add SV track")
 		{
@@ -501,7 +502,7 @@ void ProcessedSampleWidget::addBafsToIgv()
 void ProcessedSampleWidget::addEvidenceBamToIgv()
 {
 	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
-	QString evidence_bam = Helper::getEvidenceFile(bam);
+	QString evidence_bam = GSvarHelper::getEvidenceFile(bam);
 
 	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(evidence_bam) + "\"");
 }
