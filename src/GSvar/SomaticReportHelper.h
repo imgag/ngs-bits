@@ -317,6 +317,8 @@ public:
 	///Returns maximum tumor clonailty in cnv file
 	static double getCnvMaxTumorClonality(const CnvList& cnvs);
 
+	double getTumorContentBySNVs();
+
 	///Returns CNV burden, i.e. total cnv size divided by genome size in %
 	static double cnvBurden(const CnvList& cnvs)
 	{
@@ -417,7 +419,7 @@ private:
 	QCCollection qcml_data_;
 
 	///Processing system data
-	ProcessingSystemData processing_system_data;
+	ProcessingSystemData processing_system_data_;
 
 	///CGI cancer acronym (extracted from .GSVar file)
 	QString cgi_cancer_type_;

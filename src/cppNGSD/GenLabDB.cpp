@@ -285,3 +285,22 @@ QPair<QString, QString> GenLabDB::diseaseInfo(QString ps_name)
 	return qMakePair(group, status);
 }
 
+
+QString GenLabDB::sapID(QString imgag_lab_id)
+{
+	SqlQuery query = getQuery();
+
+	QString sample_name = imgag_lab_id.append('_').split('_')[0];
+
+
+	query.exec("SELECT identnr, labornummer FROM v_ngs_sap WHERE labornummer='" + sample_name + "'");
+
+	if(query.next()) return query.value(0).toString();
+
+	query.exec("SELECT identnr, labornummer FROM v_ngs_sap WHERE labornummer LIKE '"+ sample_name +"_[0-9][0-9]'" );
+
+	if(query.next()) return query.value(0).toString();
+
+	return "";
+}
+

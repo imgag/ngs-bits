@@ -4,6 +4,7 @@ CONFIG += c++11
 #base settings
 QT       -= gui
 QT       += sql
+QT       += xml xmlpatterns
 QTPLUGIN += QSQLMYSQL
 TEMPLATE = lib
 TARGET = cppNGSD
@@ -26,6 +27,10 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 
+#include cppXML library
+INCLUDEPATH += $$PWD/../cppXML
+LIBS += -L$$PWD/../../bin -lcppXML
+
 #include htslib library
 INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts
@@ -40,7 +45,9 @@ SOURCES += \
     DBTable.cpp \
     ReportConfiguration.cpp \
     SomaticReportConfiguration.cpp \
-    LoginManager.cpp
+    LoginManager.cpp \
+    SomaticXmlReportGenerator.cpp \
+    SomaticReportSettings.cpp
 
 HEADERS += \
     SqlQuery.h \
@@ -49,7 +56,11 @@ HEADERS += \
     DBTable.h \
     ReportConfiguration.h \
     SomaticReportConfiguration.h \
-    LoginManager.h
+    LoginManager.h \
+    SomaticXmlReportGenerator.h \
+    SomaticReportSettings.h
 
 RESOURCES += \
     cppNGSD.qrc
+
+DISTFILES +=

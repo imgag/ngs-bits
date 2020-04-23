@@ -70,7 +70,6 @@ SOURCES += main.cpp\
     FilterWidgetSV.cpp \
     DBTableAdministration.cpp \
     SequencingRunOverview.cpp \
-    SomaticReportSettings.cpp \
     SomaticReportVariantDialog.cpp \
     SomaticReportDialog.cpp \
     MidCheckWidget.cpp \
@@ -145,7 +144,6 @@ HEADERS  += MainWindow.h \
     FilterWidgetSV.h \
     DBTableAdministration.h \
     SequencingRunOverview.h \
-    SomaticReportSettings.h \
     SomaticReportVariantDialog.h \
     SomaticReportDialog.h \
     MidCheckWidget.h \

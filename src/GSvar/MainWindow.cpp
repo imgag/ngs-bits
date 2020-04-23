@@ -95,7 +95,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "VariantConversionWidget.h"
 #include "PasswordDialog.h"
 #include "CircosPlotWidget.h"
-
+#include "SomaticXmlReportGenerator.h"
+#include "SomaticReportSettings.h"
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -193,6 +194,32 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
+	loadSomaticReportConfig();
+	SomaticXmlReportGeneratorData data(somatic_report_settings_, variants_, somatic_control_tissue_variants_, cnvs_);
+
+	SomaticXmlReportGenerator test;
+	QString out;
+
+	data.tumor_content_histology = 0.6;
+	data.tumor_content_clonality = 0.7;
+	data.tumor_mutation_burden = 17;
+	data.mantis_msi = 1.9;
+
+
+	//out = test.generateXML(data);
+
+
+	QSharedPointer<QFile> outfile = Helper::openFileForWriting("D:\\test.xml");
+
+	QTextStream out_stream(outfile.data());
+
+	out_stream << out;
+
+
+	out_stream.flush();
+	outfile->close();
+
+
 	QApplication::clipboard()->setText("ENST00000294008:c.4409C>T\n"
 									   "NM_032444:c.4409C>T");
 
