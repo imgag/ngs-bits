@@ -4487,25 +4487,16 @@ QList<IgvFile> MainWindow::getMantaEvidenceFiles()
 	QList<IgvFile> bam_files = getBamFiles();
 	foreach (IgvFile bam_file, bam_files)
 	{
-		QDir evidence_dir (QFileInfo(bam_file.filename).absolutePath() + "/manta_evid/");
+		QString evidence_bam_file = Helper::getEvidenceFile(bam_file.filename);
 
+		// check if evidence file exists
+		if (!QFile::exists(evidence_bam_file)) continue;
 
-		// check if manta evidence dir exists
-		if (!evidence_dir.exists()) continue;
-
-		// get all matching files
-		QString suffix = "*." + processedSampleName() + ".bam";
-		QStringList matching_files = evidence_dir.entryList(QStringList() << suffix);
-
-		// add all matching files to list:
-		foreach (QString filename, matching_files)
-		{
-			IgvFile	evidence_file;
-			evidence_file.filename = evidence_dir.absoluteFilePath(filename);
-			evidence_file.type = "BAM";
-			evidence_file.id = filename;
-			evidence_files.append(evidence_file);
-		}
+		IgvFile	evidence_file;
+		evidence_file.filename = evidence_bam_file;
+		evidence_file.type = "BAM";
+		evidence_file.id = QFileInfo(evidence_bam_file).baseName();
+		evidence_files.append(evidence_file);
 	}
 	return evidence_files;
 }

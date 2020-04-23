@@ -49,6 +49,7 @@ protected slots:
 	void addCnvsToIgv();
 	void addSvsToIgv();
 	void addBafsToIgv();
+	void addEvidenceBamToIgv();
 	void somRepDeleted();
 
 	///Opens the processed sample edit dialog

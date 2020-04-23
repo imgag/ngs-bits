@@ -56,6 +56,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	//IGV button
 	QMenu* menu = new QMenu();
 	menu->addAction("Add BAM track", this, SLOT(addBamToIgv()));
+	menu->addAction("Add Manta evidence BAM track", this, SLOT(addEvidenceBamToIgv()));
 	menu->addSeparator();
 	menu->addAction("Add variant track", this, SLOT(addVariantsToIgv()));
 	menu->addAction("Add CNV track", this, SLOT(addCnvsToIgv()));
@@ -181,6 +182,28 @@ void ProcessedSampleWidget::updateGUI()
 
 	//#### QC ####
 	updateQCMetrics();
+
+	//IGV button deactivate tracks which are not
+	foreach (QAction* action, ui_->igv_btn->menu()->actions())
+	{
+		if (action->text() == "Add Manta evidence BAM track")
+		{
+			// check if evidence BAM file exists:
+			action->setEnabled(QFile::exists(Helper::getEvidenceFile(NGSD().processedSamplePath(ps_id_, NGSD::BAM))));
+		}
+		else if (action->text() == "Add SV track")
+		{
+			// check if evidence BAM file exists:
+			QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
+			action->setEnabled(QFile::exists(bam.left(bam.length()-4) + "_manta_var_structural.vcf.gz"));
+		}
+		else if (action->text() == "Add BAF track")
+		{
+			// check if evidence BAM file exists:
+			QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
+			action->setEnabled(QFile::exists(bam.left(bam.length()-4) + "_bafs.igv"));
+		}
+	};
 }
 
 void ProcessedSampleWidget::updateQCMetrics()
@@ -473,6 +496,14 @@ void ProcessedSampleWidget::addBafsToIgv()
 	QString bafs = bam.left(bam.length()-4) + "_bafs.igv";
 
 	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(bafs) + "\"");
+}
+
+void ProcessedSampleWidget::addEvidenceBamToIgv()
+{
+	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
+	QString evidence_bam = Helper::getEvidenceFile(bam);
+
+	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(evidence_bam) + "\"");
 }
 
 void ProcessedSampleWidget::somRepDeleted()
