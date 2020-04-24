@@ -26,7 +26,8 @@ INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv5.bed', 1),
-(2, 'hpHBOCv6', 'HaloPlex HBOC v6', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv6.bed', 1);
+(2, 'hpHBOCv6', 'HaloPlex HBOC v6', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv6.bed', 1),
+(3, 'ssSC_vTEST', 'SureSelect Somatic vTEST', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel', 1, '/mnt/share/data/enrichment/ssSC_test.bed', 1);
 
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`) VALUES
 (3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
@@ -36,8 +37,8 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (4003, 4, 1, 1, '1', 1, 1, 'good', 'comment_ps4', null),
 (5, 2, 23, 1, '1', 1, 1, 'medium', 'comment_ps5', null),
 (6, 3, 44, 1, '1', 1, 1, 'medium', 'comment_ps6', null),
-(7, 6, 1, '1', '1,2,3,4', 1, 1, 'good', 'comment_ps7', null),
-(8, 5, 1, '1', '1,2,3,4', 1, 1, 'good', 'comment_ps8', 7);
+(7, 6, 1, '1', '1,2,3,4', 3, 1, 'good', 'comment_ps7', null),
+(8, 5, 1, '1', '1,2,3,4', 3, 1, 'good', 'comment_ps8', 7);
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text");
@@ -50,7 +51,14 @@ INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
 (415153, 3418, 'EPRS', 'glutamyl-prolyl-tRNA synthetase', 'protein-coding gene'),
 (427667, 7421, 'MT-CO2', 'mitochondrially encoded cytochrome c oxidase II', 'protein-coding gene'),
 (433223, 9605, 'PTGS2', 'prostaglandin-endoperoxide synthase 2', 'protein-coding gene'),
-(433401, 9751, 'QARS1', 'glutaminyl-tRNA synthetase 1', 'protein-coding gene');
+(433401, 9751, 'QARS1', 'glutaminyl-tRNA synthetase 1', 'protein-coding gene'),
+(496483, 2682, 'DAZ1', 'deted in azoospermia 1', 'protein-coding gene'),
+(498651, 18403, 'FAM9A', 'family with sequence similarity 9 member A', 'protein-coding gene'),
+(499568, 3823, 'FOXP1', 'forkhead box P1', 'protein-coding gene'),
+(511007, 7436, 'MTHFR', 'methylenetetrahydrofolate reductase', 'protein-coding gene'),
+(512576, 7981, 'NR4A2', 'nuclear receptor subfamily 4 group A member 2', 'protein-coding gene'),
+(526175, 17575, 'SPEN', 'spen family transcriptional repressor', 'protein-coding gene');
+
 
 
 INSERT INTO `gene_alias` (`gene_id`, `symbol`, `type`) VALUES
@@ -410,7 +418,10 @@ INSERT INTO `qc_terms`(`id`, `qcml_id`, `name`, `description`, `type`, `obsolete
 INSERT INTO `processed_sample_qc`(`id`, `processed_sample_id`, `qc_terms_id`, `value`) VALUES
 (1, 3999, 31, "95.96"),
 (2, 3999, 47, "103.24"),
-(3, 4001, 47, "132.24");
+(3, 4001, 47, "132.24"),
+(4, 8,    47, "457.34"),
+(5, 7,    47, "251.78");
+
 
 INSERT INTO `analysis_job`(`type`, `high_priority`, `args`, `sge_id`, `sge_queue`) VALUES
 ('single sample',0,'','4711','default_srv018');

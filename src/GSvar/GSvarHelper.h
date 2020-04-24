@@ -20,11 +20,15 @@ public:
 	//Returns a list of matching regions for ENST transcripts (no version numbers!)
 	static const QMap<QByteArray, QByteArrayList>& transcriptMatches();
 
-    //Resturns the application base name - path and filename
+	//Returns the application base name - path and filename
     static QString applicationBaseName();
 
 	//colors imprinting and non-haploinsufficiency genes.
 	static void colorGeneItem(QTableWidgetItem* item, const GeneSet& genes);
+
+	//Returns the file path to the Manta evididence file for a given BAM file.
+	static QString getEvidenceFile(const QString& bam_file);
+
 
 protected:
 	GSvarHelper() = delete;

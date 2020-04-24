@@ -8,6 +8,9 @@
 #include "ReportWorker.h"
 #include "SomaticReportSettings.h"
 #include "NGSD.h"
+#include "LoginManager.h"
+#include "XmlHelper.h"
+#include "GenLabDB.h"
 
 #include <cmath>
 #include <QFileInfo>
@@ -18,6 +21,7 @@
 #include <QMap>
 #include <QPair>
 #include <QCollator>
+#include <QXmlStreamWriter>
 
 RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes, bool sort_by_gene)
 {
@@ -172,6 +176,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 	//Fill RTF table
 	int i_cnv_state = cnvs_.annotationIndexByName("state", false);
+
 	for(const auto& pair : temp_rows)
 	{
 		const Variant& snv = pair.first;
@@ -179,9 +184,11 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 		table.addRow(row);
 
+
 		//Find overlapping CNV for each SNV
 		for(int i=0; i<cnvs.count(); ++i)
 		{
+
 			const CopyNumberVariant& cnv = cnvs[i];
 			if(!cnv.overlapsWith(snv.chr(), snv.start(),snv.end())) continue;
 
@@ -224,7 +231,9 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			temp_cnv_row.addCell(2900,statement.RtfCode());
 
 			QByteArray cnv_type = cnv.annotations().at(cnv_index_cnv_type_);
+
 			if(!cnv_type.contains("focal") && !cnv_type.contains("cluster")) cnv_type = "non-focal";
+
 			temp_cnv_row.addCell(1700,cnv_type);
 
 			temp_cnv_row.addCell(900,QByteArray::number(cnv.annotations().at(i_cnv_tum_clonality).toDouble(),'f',2).replace(".", ","),RtfParagraph().setHorizontalAlignment("c"));
@@ -255,6 +264,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			{
 				temp_cnv_row.addCell(3138,"unklare Bedeutung");
 			}
+
 
 			//set first cell of corresponding cnv (contains gene name) as end of cell over multiple rows
 			table.addRow(temp_cnv_row);
@@ -440,7 +450,7 @@ RtfTable SomaticReportHelper::createCnvTable()
 
 	//neccessary for filtering for target region
 	//create set with target genes
-	QString target_region = processing_system_data.target_file;
+	QString target_region = processing_system_data_.target_file;
 	GeneSet target_genes = GeneSet::createFromFile(target_region.left(target_region.size()-4) + "_genes.txt");
 	target_genes = db_.genesToApproved(target_genes);
 
@@ -985,7 +995,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	//load qcml data
 	qcml_data_ = QCCollection::fromQCML(Helper::canonicalPath(settings_.sample_dir + "/" +prefix + "_stats_som.qcML"));
 
-	processing_system_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_ps_), true);
+	processing_system_data_ = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_ps_), true);
 
 	//load disease details from NGSD
 	QStringList tmp;
@@ -1796,6 +1806,23 @@ double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)
 	return tum_maximum_clonality;
 }
 
+double SomaticReportHelper::getTumorContentBySNVs()
+{
+	double tumor_molecular_proportion;
+	try
+	{
+		 tumor_molecular_proportion = qcml_data_.value("QC:2000054",true).toString().toDouble();
+	}
+	catch(...)
+	{
+		tumor_molecular_proportion = std::numeric_limits<double>::quiet_NaN();
+	}
+
+	if(tumor_molecular_proportion > 100.)	tumor_molecular_proportion = 100.;
+
+	return tumor_molecular_proportion;
+}
+
 RtfTable SomaticReportHelper::pharamacogeneticsTable()
 {
 	RtfTable table;
@@ -1899,18 +1926,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	if(settings_.report_config.tumContentByClonality()) tumor_content_bioinf = QByteArray::number(getCnvMaxTumorClonality(cnvs_) * 100., 'f', 1) + " \%";
 	if(settings_.report_config.tumContentByMaxSNV())
 	{
-		double tumor_molecular_proportion;
-		try
-		{
-			 tumor_molecular_proportion = qcml_data_.value("QC:2000054",true).toString().toDouble();
-		}
-		catch(...)
-		{
-			tumor_molecular_proportion = std::numeric_limits<double>::quiet_NaN();
-		}
-
-		if(tumor_molecular_proportion > 100.)	tumor_molecular_proportion = 100.;
-
+		double tumor_molecular_proportion = getTumorContentBySNVs();
 		if(tumor_content_bioinf != "") tumor_content_bioinf += ", ";
 
 		tumor_content_bioinf += QByteArray::number(tumor_molecular_proportion, 'f', 1) + " \%";
@@ -1960,7 +1976,6 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 
 
 	//Calc percentage of CNV altered genome
-
 	if(settings_.report_config.cnvBurden())
 	{
 		RtfSourceCode text_cnv_burden = "";
@@ -2088,7 +2103,6 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setBold(true).highlight(3).RtfCode());
 		doc_.addPart(RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode());
 	}
-
 
 
 	//support for limitation text
@@ -2236,8 +2250,8 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 
 	metadata.addRow(RtfTableRow({"MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3)), "Coverage Normal 100x:", qcml_data_normal.value("QC:2000030",true).toString().toUtf8() + " \%"} , {1550,3000,2250,2837} ));
 
-	GeneSet gene_set = GeneSet::createFromFile(processing_system_data.target_file.left(processing_system_data.target_file.size()-4) + "_genes.txt");
-	metadata.addRow(RtfTableRow({"Prozessierungssystem:",processing_system_data.name.toUtf8() + " (" + QByteArray::number(gene_set.count()) + ")", "Durchschnittliche Tiefe Normal:", qcml_data_normal.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,2837}));
+	GeneSet gene_set = GeneSet::createFromFile(processing_system_data_.target_file.left(processing_system_data_.target_file.size()-4) + "_genes.txt");
+	metadata.addRow(RtfTableRow({"Prozessierungssystem:",processing_system_data_.name.toUtf8() + " (" + QByteArray::number(gene_set.count()) + ")", "Durchschnittliche Tiefe Normal:", qcml_data_normal.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,2837}));
 
 	metadata.setUniqueFontSize(14);
 

@@ -45,6 +45,9 @@ public:
 	///Returns disease group and disease status of a processed sample
 	QPair<QString, QString> diseaseInfo(QString ps_name);
 
+	///Returns SAP patient identifier
+	QString sapID(QString imgag_lab_id);
+
 protected:
 	///Copy constructor "declared away".
 	GenLabDB(const GenLabDB&) = delete;

@@ -3289,14 +3289,10 @@ void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) con
 			if (!result.flags()[i]) continue;
 
 			QSet<QString> sv_entries = QString(svs[i].annotations()[filter_col_index]).split(';').toSet();
-			// iterate over list of required entries
-			foreach (QString filter_entry, filter_entries)
+			// compute intersection
+			if (!sv_entries.intersects(filter_entries))
 			{
-				if (!sv_entries.contains(filter_entry))
-				{
-					result.flags()[i] = false;
-					break;
-				}
+				result.flags()[i] = false;
 			}
 		}
 	}

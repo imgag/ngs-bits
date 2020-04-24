@@ -2,8 +2,11 @@
 #include "Settings.h"
 #include "NGSD.h"
 #include "LoginManager.h"
+#include "SomaticXmlReportGenerator.h"
+#include "SomaticReportSettings.h"
 #include <QThread>
 #include <cmath>
+#include <QCoreApplication>
 
 TEST_CLASS(NGSD_Test)
 {
@@ -13,7 +16,7 @@ private:
 	inline void somaticReportTest(NGSD& db)
 	{
 		VariantList vl;
-		vl.load(TESTDATA("../cppNGS-TEST/data_in/somatic_report_config.GSvar"));
+		vl.load(TESTDATA("../cppNGSD-TEST/data_in/somatic_report_config.GSvar"));
 
 		CnvList cnvs;
 		cnvs.load(TESTDATA("data_in/somatic_cnvs_clincnv.tsv"));
@@ -83,7 +86,11 @@ private:
 		SomaticReportGermlineVariantConfiguration var1_germl, var2_germl;
 		var1_germl.variant_index = 2;
 		var1_germl.tum_freq = 0.7;
+		var1_germl.tum_depth = 1210;
+
 		var2_germl.variant_index = 4;
+		var2_germl.tum_freq = 0.68;
+		var2_germl.tum_depth = 1022;
 		som_rep_conf.setGermline(var1_germl);
 		som_rep_conf.setGermline(var2_germl);
 
@@ -143,8 +150,11 @@ private:
 		I_EQUAL(res_germl.count(), 2);
 		I_EQUAL(res_germl[0].variant_index, 2);
 		F_EQUAL(res_germl[0].tum_freq, 0.7);
+		F_EQUAL(res_germl[0].tum_depth, 1210);
+
 		I_EQUAL(res_germl[1].variant_index, 4);
-		IS_FALSE(BasicStatistics::isValidFloat(res_germl[1].tum_freq));
+		F_EQUAL(res_germl[1].tum_freq, 0.68);
+		I_EQUAL(res_germl[1].tum_depth, 1022);
 
 
 
@@ -209,6 +219,9 @@ private:
 		IS_TRUE(res2.exclude_other_reason);
 		S_EQUAL(res2.comment, "This test somatic cnv shall be excluded.");
 
+
+
+
 		//Delete a somatic report configuration
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration").toInt(), 3);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_report_configuration_cnv").toInt(), 2); //one CNV is already inserted by NGSD init.
@@ -231,6 +244,28 @@ private:
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv").toInt(), 2);
 		I_EQUAL(db.getValue("SELECT count(*) FROM somatic_cnv_callset").toInt(), 1);
 		I_EQUAL(db.getValue("SELECT count(*) FROM detected_somatic_variant").toInt(), 0);
+
+
+		//Test somatic xml report
+		SomaticReportSettings settings;
+		settings.report_config = res_config;
+		settings.tumor_ps = "DX184894_01";
+		settings.normal_ps = "DX184263_01";
+
+
+		SomaticXmlReportGeneratorData xml_data(settings, vl, vl_germl, cnvs);
+
+		IS_THROWN(ArgumentException, xml_data.check());
+
+		xml_data.mantis_msi = 0.74;
+		xml_data.tumor_content_histology = 0.6;
+		xml_data.tumor_mutation_burden = 17.3;
+		xml_data.tumor_content_clonality = 0.8;
+		xml_data.tumor_content_snvs = 0.73;
+
+		QString out = SomaticXmlReportGenerator::generateXML(xml_data, db);
+		Helper::storeTextFile("out/somatic_report.xml", out.split("\n"));
+		COMPARE_FILES("out/somatic_report.xml", TESTDATA("data_out/somatic_report.xml"));
 	}
 
 
@@ -341,6 +376,8 @@ private slots:
 		QString host = Settings::string("ngsd_test_host");
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
+		QCoreApplication::setApplicationVersion("0.1-cppNGSD-TEST-Version"); //application version (is written into somatic xml report)
+
 		//init
 		NGSD db(true);
 		db.init();
@@ -356,7 +393,7 @@ private slots:
 
 		//getProcessingSystems
 		QMap<QString, QString> systems = db.getProcessingSystems(false, false);
-		I_EQUAL(systems.size(), 2);
+		I_EQUAL(systems.size(), 3);
 		IS_TRUE(systems.contains("HaloPlex HBOC v5"))
 		IS_TRUE(systems.contains("HaloPlex HBOC v6"))
 
@@ -753,7 +790,7 @@ private slots:
 
 		//approvedGeneNames
 		GeneSet approved = db.approvedGeneNames();
-		I_EQUAL(approved.count(), 8);
+		I_EQUAL(approved.count(), 14);
 
 		//phenotypes
 		QList<Phenotype> phenos = db.phenotypes(QStringList() << "aBNOrmality");
@@ -1321,7 +1358,7 @@ private slots:
 		NGSD db(true);
 
 		//getProcessingSystem
-		QString sys = db.getProcessingSystem("NA12878_03", NGSD::SHORT);
+		QString sys = db.getProcessingSystem("tumor_cnvs._03", NGSD::SHORT);
 		S_EQUAL(sys, "hpHBOCv5");
 	}
 	*/

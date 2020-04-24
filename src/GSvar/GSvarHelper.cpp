@@ -1,6 +1,8 @@
 #include "GSvarHelper.h"
 #include "Helper.h"
 #include <QCoreApplication>
+#include <QDir>
+#include <QFileInfo>
 
 GeneSet GSvarHelper::imprinting_genes_ = GeneSet();
 GeneSet GSvarHelper::hi0_genes_ = GeneSet();
@@ -163,4 +165,16 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 		item->setBackgroundColor(Qt::cyan);
 		item->setToolTip("No evidence for haploinsufficiency");
 	}
+}
+
+QString GSvarHelper::getEvidenceFile(const QString& bam_file)
+{
+	if (!bam_file.endsWith(".bam", Qt::CaseInsensitive))
+	{
+		THROW(ArgumentException, "Invalid BAM file path \"" + bam_file + "\"!");
+	}
+	QFileInfo bam_file_info(bam_file);
+	QDir evidence_dir(bam_file_info.absolutePath() + "/manta_evid/");
+	QString ps_name = bam_file_info.fileName().left(bam_file_info.fileName().length() - 4);
+	return evidence_dir.absoluteFilePath(ps_name + "_manta_evidence.bam");
 }

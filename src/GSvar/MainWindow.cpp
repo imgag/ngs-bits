@@ -95,7 +95,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "VariantConversionWidget.h"
 #include "PasswordDialog.h"
 #include "CircosPlotWidget.h"
-
+#include "SomaticXmlReportGenerator.h"
+#include "SomaticReportSettings.h"
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -193,6 +194,32 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
+	loadSomaticReportConfig();
+	SomaticXmlReportGeneratorData data(somatic_report_settings_, variants_, somatic_control_tissue_variants_, cnvs_);
+
+	SomaticXmlReportGenerator test;
+	QString out;
+
+	data.tumor_content_histology = 0.6;
+	data.tumor_content_clonality = 0.7;
+	data.tumor_mutation_burden = 17;
+	data.mantis_msi = 1.9;
+
+
+	//out = test.generateXML(data);
+
+
+	QSharedPointer<QFile> outfile = Helper::openFileForWriting("D:\\test.xml");
+
+	QTextStream out_stream(outfile.data());
+
+	out_stream << out;
+
+
+	out_stream.flush();
+	outfile->close();
+
+
 	QApplication::clipboard()->setText("ENST00000294008:c.4409C>T\n"
 									   "NM_032444:c.4409C>T");
 
@@ -4487,25 +4514,16 @@ QList<IgvFile> MainWindow::getMantaEvidenceFiles()
 	QList<IgvFile> bam_files = getBamFiles();
 	foreach (IgvFile bam_file, bam_files)
 	{
-		QDir evidence_dir (QFileInfo(bam_file.filename).absolutePath() + "/manta_evid/");
+		QString evidence_bam_file = GSvarHelper::getEvidenceFile(bam_file.filename);
 
+		// check if evidence file exists
+		if (!QFile::exists(evidence_bam_file)) continue;
 
-		// check if manta evidence dir exists
-		if (!evidence_dir.exists()) continue;
-
-		// get all matching files
-		QString suffix = "*." + processedSampleName() + ".bam";
-		QStringList matching_files = evidence_dir.entryList(QStringList() << suffix);
-
-		// add all matching files to list:
-		foreach (QString filename, matching_files)
-		{
-			IgvFile	evidence_file;
-			evidence_file.filename = evidence_dir.absoluteFilePath(filename);
-			evidence_file.type = "BAM";
-			evidence_file.id = filename;
-			evidence_files.append(evidence_file);
-		}
+		IgvFile	evidence_file;
+		evidence_file.filename = evidence_bam_file;
+		evidence_file.type = "BAM";
+		evidence_file.id = QFileInfo(evidence_bam_file).baseName();
+		evidence_files.append(evidence_file);
 	}
 	return evidence_files;
 }

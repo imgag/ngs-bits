@@ -55,7 +55,7 @@ A set of default filters can be loaded by selecting *germline* in the drop-down 
 * *SV size ≥ 100 bases*: Removes all small SVs.
 * *SV OMIM genes*: Removes all SVs which do not overlap with an OMIM gene.
 
-A list of all available filters can be found here: [SvFilterAnnotation]()
+A list of all available filters can be found here: [SvFilterAnnotation](https://github.com/imgag/ngs-bits/blob/master/doc/tools/SvFilterAnnotations.md)
 
 ## IGV
 

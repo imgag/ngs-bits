@@ -1,5 +1,4 @@
 #include "SomaticReportSettings.h"
-#include "SomaticReportHelper.h"
 
 
 SomaticReportSettings::SomaticReportSettings()
@@ -60,13 +59,15 @@ VariantList SomaticReportSettings::filterGermlineVariants(const VariantList &ger
 	result.copyMetaData(germl_snvs);
 
 	result.addAnnotation("freq_in_tum", "Frequency of variant which was found in normal tissue within the tumor sample.");
+	result.addAnnotation("depth_in_tum", "Depth of variant which was found in normal tissue within the tumor sample.");
 
 	for(int i=0; i< germl_snvs.count(); ++i)
 	{
 		if(variant_indices.contains(i))
 		{
 			result.append(germl_snvs[i]);
-			result[result.count()-1].annotations().append(QByteArray::number(sett.report_config.variantConfigGermline(i).tum_freq) );
+			result[result.count()-1].annotations().append( QByteArray::number(sett.report_config.variantConfigGermline(i).tum_freq) );
+			result[result.count()-1].annotations().append( QByteArray::number(sett.report_config.variantConfigGermline(i).tum_depth) );
 		}
 	}
 

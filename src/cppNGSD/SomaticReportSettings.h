@@ -6,7 +6,7 @@
 #include "NGSD.h"
 #include "VariantList.h"
 
-struct SomaticReportSettings
+struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 {
 	///Default constructor
 	SomaticReportSettings();

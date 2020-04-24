@@ -465,6 +465,11 @@
          </column>
          <column>
           <property name="text">
+           <string>depth_in_tum</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
            <string>class</string>
           </property>
          </column>

@@ -143,6 +143,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 
 			//determine frequency of variant in tumor bam
 			double freq_in_tum = bam_reader.getVariantDetails(fasta_idx, snv).frequency;
+			double depth_in_tum = bam_reader.getVariantDetails(fasta_idx, snv).depth;
 
 			ui_.germline_variants->insertRow(ui_.germline_variants->rowCount());
 
@@ -163,11 +164,12 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 			ui_.germline_variants->setItem( row, 4, new QTableWidgetItem( QString(snv.ref())) );
 			ui_.germline_variants->setItem( row, 5, new QTableWidgetItem( QString(snv.obs())) );
 			ui_.germline_variants->setItem( row, 6, new QTableWidgetItem( QString::number(freq_in_tum, 'f', 2) ) );
+			ui_.germline_variants->setItem( row, 7, new QTableWidgetItem( QString::number(depth_in_tum) ) );
 
-			ui_.germline_variants->setItem( row, 7, new QTableWidgetItem( QString(snv.annotations()[i_class])) );
-			ui_.germline_variants->item( row, 7)->setBackground(Qt::red);
+			ui_.germline_variants->setItem( row, 8, new QTableWidgetItem( QString(snv.annotations()[i_class])) );
+			ui_.germline_variants->item( row, 8)->setBackground(Qt::red);
 
-			ui_.germline_variants->setItem( row, 8, new QTableWidgetItem( QString(snv.annotations()[i_co_sp])) );
+			ui_.germline_variants->setItem( row, 9, new QTableWidgetItem( QString(snv.annotations()[i_co_sp])) );
 		}
 
 		ui_.germline_variants->setRowCount(ui_.germline_variants->rowCount());
@@ -342,6 +344,15 @@ void SomaticReportDialog::writeBackSettings()
 			catch(ArgumentException)
 			{
 				var_conf.tum_freq = std::numeric_limits<double>::quiet_NaN();
+			}
+
+			try
+			{
+				var_conf.tum_depth = Helper::toDouble( ui_.germline_variants->item(i, 7)->text() );
+			}
+			catch(ArgumentException)
+			{
+				var_conf.tum_depth = std::numeric_limits<double>::quiet_NaN();
 			}
 
 			settings_.report_config.setGermline(var_conf);

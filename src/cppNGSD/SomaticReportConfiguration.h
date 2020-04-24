@@ -36,6 +36,7 @@ struct CPPNGSDSHARED_EXPORT SomaticReportGermlineVariantConfiguration
 
 	int variant_index = -1;
 	double tum_freq = std::numeric_limits<double>::quiet_NaN(); //allele frequency of variant in tumor sample
+	double tum_depth = std::numeric_limits<double>::quiet_NaN(); //depth of variant in tumor sample
 };
 
 class CPPNGSDSHARED_EXPORT SomaticReportConfiguration
