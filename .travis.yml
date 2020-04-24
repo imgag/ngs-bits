@@ -6,7 +6,9 @@ services:
 
 matrix:
   include:
-    - env: COMPILER=gcc
+    - env: 
+        - COMPILER=gcc
+        - DEBIAN_FRONTEND=noninteractive
       os: linux
       compiler: gcc
     - env: COMPILER=clang
