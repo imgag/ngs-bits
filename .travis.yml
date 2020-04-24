@@ -6,10 +6,7 @@ services:
 
 matrix:
   include:
-    - env: 
-        - COMPILER=gcc
-        - DEBIAN_FRONTEND=noninteractive
-        - TZ=Europe/Berlin
+    - env: COMPILER=gcc
       os: linux
       compiler: gcc
     - env: COMPILER=clang
