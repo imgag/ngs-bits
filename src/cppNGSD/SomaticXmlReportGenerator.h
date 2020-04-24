@@ -37,8 +37,8 @@ class CPPNGSDSHARED_EXPORT SomaticXmlReportGenerator
 public:
 	SomaticXmlReportGenerator();
 
-	static QString generateXML(const SomaticXmlReportGeneratorData &data, NGSD& db);
-	static void generateXML(const SomaticXmlReportGeneratorData& data, QString& output, NGSD& db);
+	static QString generateXML(const SomaticXmlReportGeneratorData &data, NGSD& db, bool test=false);
+	static void generateXML(const SomaticXmlReportGeneratorData& data, QString& output, NGSD& db, bool test);
 
 private:
 	//validates somatic xml report against .xsd file in resources dir

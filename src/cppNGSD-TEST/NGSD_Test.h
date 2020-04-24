@@ -263,7 +263,7 @@ private:
 		xml_data.tumor_content_clonality = 0.8;
 		xml_data.tumor_content_snvs = 0.73;
 
-		QString out = SomaticXmlReportGenerator::generateXML(xml_data, db);
+		QString out = SomaticXmlReportGenerator::generateXML(xml_data, db, true);
 		Helper::storeTextFile("out/somatic_report.xml", out.split("\n"));
 		COMPARE_FILES("out/somatic_report.xml", TESTDATA("data_out/somatic_report.xml"));
 	}
