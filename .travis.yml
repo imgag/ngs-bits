@@ -9,6 +9,7 @@ matrix:
     - env: 
         - COMPILER=gcc
         - DEBIAN_FRONTEND=noninteractive
+        - TZ='Europe/Berlin'
       os: linux
       compiler: gcc
     - env: COMPILER=clang
