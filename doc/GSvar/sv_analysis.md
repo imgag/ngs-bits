@@ -59,7 +59,7 @@ A list of all available filters can be found here: [SvFilterAnnotation](https://
 
 ## IGV
 
-A double click on a structural variant will open this variant in IGV. In case of a translocation a double click will open only the first breakpoint. To display the second breakpoint right click and select *Open position B in IGV* or *Open position A/B in IGV split screen*. In the following dialog select the Manta evidence BAM file (starting with *evidence_*):
+A double click on a structural variant will open this variant in IGV. In case of a translocation a double click will open only the first breakpoint. To display the second breakpoint right click and select *Open position B in IGV* or *Open position A/B in IGV split screen*. In the following dialog select the Manta evidence BAM file:
 
 ![SV IGV init dialog](sv_igv_initdlg.png)
 
