@@ -824,7 +824,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 
 	//sample correlation
 	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, &target_file);
-	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, &target_file);
+	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, normal_bam, 30, 500, true, &target_file);
 	SampleSimilarity sc;
 	sc.calculateSimilarity(tumor_genotypes, normal_genotypes);
 	output.insert(QCValue("sample correlation", ( sc.olCount()<100 ? "n/a (too few variants)" : QString::number(sc.sampleCorrelation(),'f',2) ), "SNP-based sample correlation of tumor / normal.", "QC:2000040"));
