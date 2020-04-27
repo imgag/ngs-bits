@@ -47,6 +47,8 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString t_ps_id, FilterWidget* filter_
 	somatic_report_config_ = &som_rep_conf;
 	is_somatic_ = true;
 	initGUI();
+
+	ui->cnvs->setSelectionMode(QAbstractItemView::ExtendedSelection);
 }
 
 CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
@@ -565,7 +567,13 @@ void CnvWidget::showContextMenu(QPoint p)
 		}
 		else
 		{
-			somatic_report_config_->remove(VariantType::CNVS, row);
+			//Delete som variant configuration for more than one cnv
+			QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
+			for(const auto& selected_row : selectedRows)
+			{
+				somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
+				updateReportConfigHeaderIcon(selected_row.row());
+			}
 			emit storeSomaticReportConfiguration();
 		}
 		updateReportConfigHeaderIcon(row);
@@ -778,9 +786,22 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 	}
 	else if (action==a_delete)
 	{
-		if(!is_somatic_) report_config_->remove(VariantType::CNVS, row);
-		else somatic_report_config_->remove(VariantType::CNVS, row);
-		updateReportConfigHeaderIcon(row);
+		if(!is_somatic_)
+		{
+			report_config_->remove(VariantType::CNVS, row);
+			updateReportConfigHeaderIcon(row);
+		}
+		else
+		{
+			//Delete som variant configuration for more than one cnv
+			QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
+			for(const auto& selected_row : selectedRows)
+			{
+				somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
+				updateReportConfigHeaderIcon(selected_row.row());
+			}
+		}
+
 		if(!is_somatic_) emit storeReportConfiguration();
 		else emit storeSomaticReportConfiguration();
 	}
@@ -868,7 +889,22 @@ void CnvWidget::editReportConfiguration(int row)
 {
 	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
 	{
-		editSomaticReportConfiguration(row);
+
+		//Handle som variant configuration for more than one variant
+		QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
+		if(selectedRows.count() > 1)
+		{
+			QList<int> rows;
+			for(const auto& selectedRow : selectedRows)
+			{
+				rows << selectedRow.row();
+			}
+			editSomaticReportConfiguration(rows);
+		}
+		else //single somatic variant
+		{
+			editSomaticReportConfiguration(row);
+		}
 	}
 	else
 	{
@@ -949,4 +985,31 @@ void CnvWidget::editSomaticReportConfiguration(int row)
 	emit storeSomaticReportConfiguration();
 }
 
+void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)
+{
+	if(somatic_report_config_ == nullptr)
+	{
+		THROW(ProgrammingException, "SomaticReportConfiguration in CnvWidget is null pointer.");
+	}
+
+	SomaticReportVariantConfiguration generic_var_config;
+	generic_var_config.variant_index = -1;
+	generic_var_config.variant_type = VariantType::CNVS;
+
+	SomaticReportVariantDialog* dlg = new SomaticReportVariantDialog(QString::number(rows.count()) +" selected cnvs", generic_var_config, this);
+	dlg->disableIncludeForm();
+	if(dlg->exec() != QDialog::Accepted) return;
+
+	//Accepted was pressed -> see slot writeBackSettings()
+	for(int row : rows)
+	{
+		SomaticReportVariantConfiguration temp_var_config = generic_var_config;
+		temp_var_config.variant_index = row;
+
+		somatic_report_config_->set(temp_var_config);
+
+		updateReportConfigHeaderIcon(row);
+	}
+	emit storeSomaticReportConfiguration();
+}
 
