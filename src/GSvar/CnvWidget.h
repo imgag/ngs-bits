@@ -66,6 +66,8 @@ private:
 	void showSpecialTable(QString col, QString text, QByteArray url_prefix);
 	void editGermlineReportConfiguration(int row);
 	void editSomaticReportConfiguration(int row);
+	///Handles somatic report configuration if multiple rows are selected;
+	void editSomaticReportConfiguration(const QList<int>& rows);
 	Ui::CnvWidget* ui;
 	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.
 	QString callset_id_; //CNV callset database ID. '' if unknown of if NGSD is disabled.

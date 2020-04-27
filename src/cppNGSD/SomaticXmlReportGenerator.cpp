@@ -48,12 +48,12 @@ SomaticXmlReportGenerator::SomaticXmlReportGenerator()
 }
 
 
-QString SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, NGSD& db)
+QString SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, NGSD& db, bool test)
 {
 	QString output;
 
 	data.check();
-	generateXML(data, output, db);
+	generateXML(data, output, db, test);
 
 	validateXml(output);
 
@@ -61,7 +61,7 @@ QString SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorDa
 	return output;
 }
 
-void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, QString& output, NGSD& db)
+void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, QString& output, NGSD& db, bool test)
 {
 	QXmlStreamWriter w(&output);
 
@@ -77,15 +77,23 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	//Element ReportGeneration
 	w.writeStartElement("ReportGeneration");
-	w.writeAttribute("date", QDate::currentDate().toString("yyyy-MM-dd"));
+	w.writeAttribute("date", (test ? "2000-01-01" : QDate::currentDate().toString("yyyy-MM-dd") ) );
 	w.writeAttribute("user_name", LoginManager::user());
 	w.writeAttribute("software", QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion());
 	w.writeEndElement();
 
 	//Element PatientInfo
 	w.writeStartElement("PatientInfo");
-	GenLabDB genlab;
-	w.writeAttribute("sap_patient_identifier", genlab.sapID(data.settings.tumor_ps) );
+
+	if(test)
+	{
+		w.writeAttribute("sap_patient_identifier", "SAP_TEST_IDENTIFIER");
+	}
+	else
+	{
+		GenLabDB genlab;
+		w.writeAttribute("sap_patient_identifier", genlab.sapID(data.settings.tumor_ps) );
+	}
 
 	w.writeEndElement();
 
@@ -147,7 +155,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	//Element TargetRegion
 	w.writeStartElement("TargetRegion");
 
-	ProcessingSystemData processing_system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(data.settings.tumor_ps), true);
+	ProcessingSystemData processing_system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(data.settings.tumor_ps), QSysInfo::productType().contains("windows"));
 	w.writeAttribute("name", processing_system_data.name); //in our workflow identical to processing system name
 
 
