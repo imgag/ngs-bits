@@ -7,7 +7,7 @@
 - [Sample quality control](sample_quality_control.md)
 - [Variant filtering](variant_filtering.md)
 - [CNV analysis](cnv_analysis.md)
-- [SV analysis](sv_analysis)
+- [SV analysis](sv_analysis.md)
 - [ROH analysis](roh_analysis.md)
 - [Report generation](report_generation.md)
 
