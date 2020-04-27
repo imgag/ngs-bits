@@ -45,15 +45,28 @@ Additionally the Format and Info columns of the currently selected SV is expande
 
 ## Filtering
 
-A set of default filters can be loaded by selecting *germline* in the drop-down menu above the filter widget (3). Since the useful filter settings highly depends on the sample, most of the filters are deactivated by default and can be activated by checking the corresponding checkbox. Seven filters are added by default:
+A set of default filters can be loaded by selecting a set of filters in the drop-down menu above the filter widget (3). Since the useful filter settings highly depends on the sample, most of the filters are deactivated by default and can be activated by checking the corresponding checkbox. There are four default filter sets for germline which can be selected depending on the sample:
 
-* *SV remove chr type*: This filter is enabled by default and removes all structural variants which are located on non-standard chromosomes.
-* *SV type*: This filter is enabled by default, but contains all available SV types. It can be modified to limit the analysis to a certain set of SV types (e.g. only analyse deletions).
-* *SV filter columns REMOVE: off-target*: Only useful for samples with a target region (e.g. WES). Removes all SVs which are marked as *off-target* (SV is located outside the target region).
-* *SV filter columns FILTER: PASS*: Removes all SVs which do not pass the QC of the SV caller.
-* *SV quality ≥ 30*: Removes low-quality SVs.
-* *SV size ≥ 100 bases*: Removes all small SVs.
-* *SV OMIM genes*: Removes all SVs which do not overlap with an OMIM gene.
+* *wgs stringent*
+* *wgs relaxed*
+* *exome stringent*
+* *exome relaxed*
+
+The relaxed fiter sets contain the following default filters:
+
+* *SV remove chr type* (enabled by default): This filter removes all structural variants which are located on non-standard chromosomes.
+* *SV allele frequency NGSD ≤ 1%* (enabled by default, only WGS): This filter removes all structural variants which have a allele frequency of more than 1% in the NGSD.
+* *SV type* (disabled by default): This filter can be modified to limit the analysis to a certain set of SV types (e.g. only analyze deletions).
+* *SV genotype* (disabled by default): This filter can be used to display only hom/het structural variants.
+* *SV OMIM genes* (disabled by default): Removes all SVs which do not overlap with an OMIM gene.
+* *SV compound-heterozygous* (disabled by default): Filter for compound-heterozygous SVs.
+
+The stringent filter sets contain additional quality filters:
+
+* *SV count NGSD ≤ 30* (enabled by default, only exome): This filter removes all SVs with at least 30 hits in the NGSD.
+* *SV filter columns FILTER: PASS* (enabled by default): Displays only SVs which pass the Manta quality control.
+* *SV PE read depth ≥ 5* (enabled by default): Shows only SVs which are supported by at least 5 reads.
+* *SV quality ≥ 100* (enabled by default): Displays only SVs which have a quality score of at least 100.
 
 A list of all available filters can be found here: [SvFilterAnnotation](https://github.com/imgag/ngs-bits/blob/master/doc/tools/SvFilterAnnotations.md)
 
