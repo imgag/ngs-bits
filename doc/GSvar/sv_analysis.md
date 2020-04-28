@@ -1,7 +1,7 @@
 ## SV analysis
 
-Structural variant (SV) calling is performed based on paired-end reads which are mapped on different areas or in different orientations.
-There are five different structural variants which are detected by a characteristic paired-end read pattern:
+Structural variant (SV) calling is performed based on paired-end reads which are mapped on different areas or in different orientations and based on soft-clipped bases.
+There are five different structural variants which are detected by a characteristic paired-end read pattern. This plot gives the genome structure of a sample (top) and the read representation in IGV (bottom) for several common structural variants:
 ![alt text](sv_read_pattern.png)
 
 Deletions can be detected by paired-end reads which overlap the deletion. After mapping one mate of these reads is mapped to the start of the deletion and the other mate to the end of the deletion. 
@@ -15,9 +15,10 @@ To detect translocations again reads are required which overlap the start and en
 For the detection of insertions reads which overlap the start and end of the insertion. After mapping one mate of these reads is mapped right before/after the insertion whereas the other mate cannot be mapped to the reference.
 
 
-## Details
+## Algorithm details
 
-For SV calling [Manta](https://github.com/Illumina/manta) is used.
+For SV calling [Manta](https://github.com/Illumina/manta) is used.  
+For algorithm details, see the Manta documentation.
 
 ## SV analysis window
 
@@ -37,13 +38,13 @@ The "Structural variants" dialog shows the filtered list of all detected SVs wit
 	* gnomAD o/e score for LOF variants
 	* overlap with gene (complete, intronic/intergenic, exonic/splicing) 
 * NGSD count: number of exact matches in the NGSD and the allele frequency in brackets
-* NGSD overlap: number of SVs in the NGSD which overlap the SV
+* NGSD overlap: number of SVs of the sample type in the NGSD which overlap the current SV
 * OMIM genes	
 
-Additionally the Format and Info columns of the currently selected SV is expanded below this table (2). On the right side there is a filter widget similar to the variant or CNV view where filters can be added and modified (3). Below that the target, chromosomal or phenotype region can be defined and the SVs filtered by genes or text (4). 
+Additionally the `Format` and `Info` columns of the currently selected SV is expanded below this table (2). On the right side there is a filter widget similar to the variant or CNV view where filters can be added and modified (3). Below that the target, chromosomal or phenotype region can be defined and the SVs filtered by genes or text (4). 
 ![SV window](sv_window.png)
 
-## Filtering
+## Filtering SVs
 
 A set of default filters can be loaded by selecting a set of filters in the drop-down menu above the filter widget (3). Since the useful filter settings highly depends on the sample, most of the filters are deactivated by default and can be activated by checking the corresponding checkbox. There are four default filter sets for germline which can be selected depending on the sample:
 
@@ -65,12 +66,12 @@ The stringent filter sets contain additional quality filters:
 
 * *SV count NGSD ≤ 30* (enabled by default, only exome): This filter removes all SVs with at least 30 hits in the NGSD.
 * *SV filter columns FILTER: PASS* (enabled by default): Displays only SVs which pass the Manta quality control.
-* *SV PE read depth ≥ 5* (enabled by default): Shows only SVs which are supported by at least 5 reads.
+* *SV PE read depth ≥ 5* (enabled by default): Shows only SVs which are supported by at least 5 paired-end reads.
 * *SV quality ≥ 100* (enabled by default): Displays only SVs which have a quality score of at least 100.
 
 A list of all available filters can be found here: [SvFilterAnnotation](https://github.com/imgag/ngs-bits/blob/master/doc/tools/SvFilterAnnotations.md)
 
-## IGV
+## Opening SVs in IGV
 
 A double click on a structural variant will open this variant in IGV. In case of a translocation a double click will open only the first breakpoint. To display the second breakpoint right click and select *Open position B in IGV* or *Open position A/B in IGV split screen*. In the following dialog select the Manta evidence BAM file:
 
@@ -79,6 +80,8 @@ A double click on a structural variant will open this variant in IGV. In case of
 In IGV you have now two tracks of reads. One contains all the reads of the selected area and the other contains only reads wihich were used by Manta as evidence to call the selected structural variance:
 
 ![SV IGV tracks](sv_igv_tracks.png)
+
+## IGV settings
 
 The following view settings are recommended and can be selected by right clicking on a BAM track and selecting the corresponding menu entries:
 
@@ -95,35 +98,10 @@ The following view settings are recommended and can be selected by right clickin
 
 ### (Re-)start SV analysis
 
-The SV (re-)analysis can be started by clicking on the 6th button of the GSvar toolbar. Here the structural variant calling step has to be selected. (For samples which has been mapped with an older megSAP version the mapping step has to be selected, too.)
+The SV (re-)analysis can be started by clicking on the `analysis status` button of the GSvar toolbar. In the dialog, the `structural variant calling` step has to be selected. (For samples which has been mapped with an older megSAP version the `mapping` step has to repeated too.)
 ![SV reanalysis](sv_reanalysis.png)
 
 
 --
 
 [back to main page](index.md)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
