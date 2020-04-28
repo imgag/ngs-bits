@@ -377,5 +377,9 @@ SUBDIRS += SvFilterAnnotations
 tools-TEST.depends += SvFilterAnnotations
 SvFilterAnnotations.depends = cppNGS
 
+SUBDIRS += BedpeToBed
+tools-TEST.depends += BedpeToBed
+BedpeToBed.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
