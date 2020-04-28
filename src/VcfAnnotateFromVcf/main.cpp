@@ -41,7 +41,6 @@ public:
         addFlag("allow_missing_header", "If set the execution is not aborted if a INFO header is missing in annotation file");
         addInfile("in", "Input VCF(.GZ) file. If unset, reads from STDIN.", true, true);
         addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
-        addInt("max_job_number", "The max Number of jobs", true, 1000);
         addInt("threads", "The number of threads used to read, process and write files.", true, 1);
         addInt("block_size", "Number of lines in one block", true, 5000);
 
@@ -72,7 +71,6 @@ public:
         QByteArray id_prefix = getString("id_prefix").toLatin1().trimmed();
         bool allow_missing_header = getFlag("allow_missing_header");
 
-        int max_job_number = getInt("max_job_number");
         int block_size = getInt("block_size");
         int threads = getInt("threads");
 
@@ -215,13 +213,6 @@ public:
             THROW(ArgumentException, "Input and output files must be different when streaming!");
         }
 
-        QList<AnalysisJob> job_pool;
-
-        while(job_pool.count() < max_job_number)
-        {
-            job_pool << AnalysisJob();
-        }
-
         QThreadPool analysis_pool;
         analysis_pool.setMaxThreadCount(getInt("threads"));
 
@@ -272,12 +263,13 @@ public:
         int current_chunk = 0;
         int vcf_line_idx = 0;
 
-        // iterate over the vcf file line by line
+
+		// iterate over the vcf file line by line and create job pool
+		QList<AnalysisJob> job_pool;
         while(!eof)
         {
-            AnalysisJob& job = job_pool[current_chunk];
+			AnalysisJob job = AnalysisJob();
 
-            //job.current_chunk = data;
             job.chunk_id = current_chunk;
             job.status = TO_BE_PROCESSED;
 
@@ -321,22 +313,27 @@ public:
 
             }
 
-            analysis_pool.start(new ChunkProcessor(job,
-                                                   prefix_list,
-                                                   unique_output_ids,
-                                                   info_id_list,
-                                                   out_info_id_list,
-                                                   id_column_name_list,
-                                                   out_id_column_name_list,
-                                                   allow_missing_header_list,
-                                                   annotation_file_list,
-                                                   output_path,
-                                                   input_path));
 
             vcf_line_idx=0;
             ++current_chunk;
-
+			job_pool << job;
         }
+
+		// start all created jobs
+		for (int i = 0; i < job_pool.size(); ++i)
+		{
+			analysis_pool.start(new ChunkProcessor(job_pool[i],
+												   prefix_list,
+												   unique_output_ids,
+												   info_id_list,
+												   out_info_id_list,
+												   id_column_name_list,
+												   out_id_column_name_list,
+												   allow_missing_header_list,
+												   annotation_file_list,
+												   output_path,
+												   input_path));
+		}
         // close files
         if (format == VariantListFormat::VCF)
         {
