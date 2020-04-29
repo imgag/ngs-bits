@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2020_03-104 (29.04.20)
+- General: added Circos plot button.
+- IGV: added Manta evidence BAM to IGV init dialog.
+- SVs: Added NGSD annotations, NGSD-based filtering and updated default filters.
+
 ### 2020_03-63 (15.04.20)
 - Gene tab: Improved matching RefSeq/CCDS transcript information (now includes UTR).
 - Gene selector: now usable for WGS samples.

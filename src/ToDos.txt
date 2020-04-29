@@ -17,6 +17,7 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+### Add label to CNV/SV/ROH buttons.
 ### Converter chromosomal bands > coordinates
 ### LOVD upload dialog: check that HGVS strings contain g. c. p.
 ### QC plots: restict to diagnostic samples (by default), and good/medium quality and allow export as TSV
