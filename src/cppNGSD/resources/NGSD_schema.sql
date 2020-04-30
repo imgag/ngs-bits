@@ -1466,11 +1466,9 @@ CREATE  TABLE IF NOT EXISTS `sv_callset`
   `caller` ENUM('Manta', 'Delly') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
   `call_date` DATETIME DEFAULT NULL,
-  `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
-  INDEX `caller` (`quality` ASC),
+  INDEX `caller` (`caller` ASC),
   INDEX `call_date` (`call_date` ASC),
-  INDEX `quality` (`quality` ASC),
   UNIQUE KEY `sv_callset_references_processed_sample` (`processed_sample_id`),
   CONSTRAINT `sv_callset_references_processed_sample`
     FOREIGN KEY (`processed_sample_id`)

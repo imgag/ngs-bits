@@ -389,12 +389,11 @@ public:
 
 		// create callset entry
 		SqlQuery insert_callset = db.getQuery();
-		insert_callset.prepare("INSERT INTO `sv_callset` (`processed_sample_id`, `caller`, `caller_version`, `call_date`, `quality`) VALUES (:0,:1,:2,:3,:4)");
+		insert_callset.prepare("INSERT INTO `sv_callset` (`processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES (:0,:1,:2,:3)");
 		insert_callset.bindValue(0, ps_id);
 		insert_callset.bindValue(1, caller);
 		insert_callset.bindValue(2, caller_version);
 		insert_callset.bindValue(3, date);
-		insert_callset.bindValue(4, "n/a");
 		insert_callset.exec();
 		int callset_id = insert_callset.lastInsertId().toInt();
 
