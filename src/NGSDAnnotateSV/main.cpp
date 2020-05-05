@@ -70,9 +70,9 @@ public:
 			// get processing system of current sample
 			int processing_system_id = db.processingSystemIdFromProcessedSample(ps_name);
 
-			// create a temp table with all valid ps ids
+			// create a temp table with all valid ps ids ignoring bad/merged samples
 			SqlQuery temp_table = db.getQuery();
-			temp_table.exec("CREATE TEMPORARY TABLE temp_valid_sv_cs_ids SELECT sc.id FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id WHERE " + sql_exclude_prev_callset + "ps.processing_system_id = " + QByteArray::number(processing_system_id));
+			temp_table.exec("CREATE TEMPORARY TABLE temp_valid_sv_cs_ids SELECT sc.id FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id WHERE " + sql_exclude_prev_callset + "ps.processing_system_id = " + QByteArray::number(processing_system_id) + " AND ps.quality != 'bad' AND NOT EXISTS (SELECT 1 FROM merged_processed_samples mps WHERE mps.processed_sample_id = sc.processed_sample_id)");
 
 			// get number of valid callset ids (= known samples)
 			sample_count = db.getValue("SELECT COUNT(*) FROM temp_valid_sv_cs_ids").toInt();
