@@ -61,7 +61,7 @@ QString SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorDa
 	return output;
 }
 
-void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, QString& output, NGSD& db, bool test)
+void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, QString& output, NGSD& db, bool test = false)
 {
 	QXmlStreamWriter w(&output);
 
