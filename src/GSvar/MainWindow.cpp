@@ -198,7 +198,7 @@ void MainWindow::on_actionDebug_triggered()
 	SomaticXmlReportGeneratorData data(somatic_report_settings_, variants_, somatic_control_tissue_variants_, cnvs_);
 
 	SomaticXmlReportGenerator test;
-	QString out;
+	NGSD db;
 
 	data.tumor_content_histology = 0.6;
 	data.tumor_content_clonality = 0.7;
@@ -206,7 +206,7 @@ void MainWindow::on_actionDebug_triggered()
 	data.mantis_msi = 1.9;
 
 
-	//out = test.generateXML(data);
+	QString out = test.generateXML(data, db);
 
 
 	QSharedPointer<QFile> outfile = Helper::openFileForWriting("D:\\test.xml");

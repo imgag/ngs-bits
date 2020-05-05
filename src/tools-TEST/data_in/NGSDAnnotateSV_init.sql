@@ -21,16 +21,23 @@ INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapt
 (145, 'ssHAEv6', 'SureSelectXT Human All Exon V6', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'WES', 1, 'n/a', '/some_path/ssHAEv6_2019_07_19.bed', 1),
 (165, 'TruSeqPCRfree', 'TruSeq DNA PCR-Free', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'WGS', 1, 'n/a', '/some_path/WGS_hg19.bed', 1);
 
-INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`) VALUES
-(3999, 1, 18, 1, '1', 96, 1),
-(4000, 1, 38, 1, '2', 145, 1),
-(4001, 1, 45, 1, '1,2,3,4', 165, 1),
-(4002, 1, 46, 1, '1,2,3,4', 165, 1);
+INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`) VALUES
+(3999, 1, 18, 1, '1', 96, 1, 'good'),
+(4000, 1, 38, 1, '2', 145, 1, 'good'),
+(4001, 1, 45, 1, '1,2,3,4', 165, 1, 'good'),
+(4002, 1, 46, 1, '1,2,3,4', 165, 1, 'good');
+(4007, 1, 47, 1, '1,2,3,4', 165, 1, 'bad');
+(4008, 1, 48, 1, '1,2,3,4', 165, 1, 'good');
 
 INSERT INTO `sv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES
 (1, 4001, 'Manta', '1.6.0', '2020-01-01'),
 (2, 4000, 'Manta', '1.5.0', '2019-08-13'),
-(3, 3999, 'Manta', '1.2.0', '2018-12-21');
+(3, 3999, 'Manta', '1.2.0', '2018-12-21'),
+(4, 4007, 'Manta', '1.6.0', '2020-01-05'),
+(5, 4008, 'Manta', '1.6.0', '2020-01-08');
+
+INSERT INTO `merged_processed_samples` (`processed_sample_id`, `merged_into`) VALUES
+(4008, 4007);
 
 INSERT INTO `sv_deletion` (`id`, `sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
 (1, 1, 'chr1', 1000, 1020, 12000, 13000, ''),
@@ -40,7 +47,23 @@ INSERT INTO `sv_deletion` (`id`, `sv_callset_id`, `chr`, `start_min`, `start_max
 (5, 3, 'chr1', 1000, 1020, 20000, 20000, ''),
 (6, 3, 'chr1', 1000, 1020, 20000, 20000, ''),
 (7, 1, 'chr3', 1000, 1020, 12000, 13000, ''),
-(8, 1, 'chr4', 1000, 1020, 20000, 20000, '');
+(8, 1, 'chr4', 1000, 1020, 20000, 20000, ''),
+(11, 4, 'chr1', 1000, 1020, 12000, 13000, ''),
+(21, 4, 'chr1', 1000, 1020, 20000, 20000, ''),
+(31, 4, 'chr1', 5, 50, 12000, 13000, ''),
+(41, 4, 'chr1', 1000, 1020, 20000, 20000, ''),
+(51, 4, 'chr1', 1000, 1020, 20000, 20000, ''),
+(61, 4, 'chr1', 1000, 1020, 20000, 20000, ''),
+(71, 4, 'chr3', 1000, 1020, 12000, 13000, ''),
+(81, 4, 'chr4', 1000, 1020, 20000, 20000, ''),
+(15, 5, 'chr1', 1000, 1020, 12000, 13000, ''),
+(25, 5, 'chr1', 1000, 1020, 20000, 20000, ''),
+(35, 5, 'chr1', 5, 50, 12000, 13000, ''),
+(45, 5, 'chr1', 1000, 1020, 20000, 20000, ''),
+(55, 5, 'chr1', 1000, 1020, 20000, 20000, ''),
+(65, 5, 'chr1', 1000, 1020, 20000, 20000, ''),
+(75, 5, 'chr3', 1000, 1020, 12000, 13000, ''),
+(85, 5, 'chr4', 1000, 1020, 20000, 20000, '');
 
 INSERT INTO `sv_duplication` (`id`, `sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
 (1, 1, 'chr1', 101000, 101020, 112000, 113000, ''),
@@ -50,7 +73,23 @@ INSERT INTO `sv_duplication` (`id`, `sv_callset_id`, `chr`, `start_min`, `start_
 (5, 3, 'chr1', 101000, 101020, 120000, 120000, ''),
 (6, 3, 'chr1', 101000, 101020, 120000, 120000, ''),
 (7, 1, 'chr3', 101000, 101020, 112000, 113000, ''),
-(8, 1, 'chr4', 101000, 101020, 120000, 120000, '');
+(8, 1, 'chr4', 101000, 101020, 120000, 120000, ''),
+(11, 4, 'chr1', 101000, 101020, 112000, 113000, ''),
+(21, 4, 'chr1', 101000, 101020, 120000, 120000, ''),
+(31, 4, 'chr1', 100005, 100050, 112000, 113000, ''),
+(41, 4, 'chr1', 101000, 101020, 120000, 120000, ''),
+(51, 4, 'chr1', 101000, 101020, 120000, 120000, ''),
+(61, 4, 'chr1', 101000, 101020, 120000, 120000, ''),
+(71, 4, 'chr3', 101000, 101020, 112000, 113000, ''),
+(81, 4, 'chr4', 101000, 101020, 120000, 120000, ''),
+(15, 5, 'chr1', 101000, 101020, 112000, 113000, ''),
+(25, 5, 'chr1', 101000, 101020, 120000, 120000, ''),
+(35, 5, 'chr1', 100005, 100050, 112000, 113000, ''),
+(45, 5, 'chr1', 101000, 101020, 120000, 120000, ''),
+(55, 5, 'chr1', 101000, 101020, 120000, 120000, ''),
+(65, 5, 'chr1', 101000, 101020, 120000, 120000, ''),
+(75, 5, 'chr3', 101000, 101020, 112000, 113000, ''),
+(85, 5, 'chr4', 101000, 101020, 120000, 120000, '');
 
 INSERT INTO `sv_inversion` (`id`, `sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
 (1, 1, 'chr1', 9101000, 9101020, 9112000, 9113000, ''),
