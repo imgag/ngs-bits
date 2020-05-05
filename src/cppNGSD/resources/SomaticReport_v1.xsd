@@ -1,4 +1,5 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mit XMLSpy v2014 (x64) (http://www.altova.com) von Dr. Peter Bauer (Universitätsklinikum Tübingen) bearbeitet -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" xmlns:altova="http://www.altova.com/xml-schema-extensions" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
 	<xs:element name="SomaticNgsReport">
 		<xs:annotation>
@@ -333,7 +334,7 @@
 										</xs:element>
 										<xs:element name="Gene" minOccurs="0" maxOccurs="unbounded">
 											<xs:annotation>
-												<xs:documentation>Genes that overlap the CNV</xs:documentation>
+												<xs:documentation>Genes that overlap the variant</xs:documentation>
 											</xs:annotation>
 											<xs:complexType>
 												<xs:sequence>
@@ -499,13 +500,13 @@
 											<xs:documentation>Tumor allele frequency</xs:documentation>
 										</xs:annotation>
 										<xs:simpleType>
-										<xs:restriction base="xs:float">
-											<xs:minInclusive value="0"/>
-											<xs:maxInclusive value="1"/>
+											<xs:restriction base="xs:float">
+												<xs:minInclusive value="0"/>
+												<xs:maxInclusive value="1"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="depth_tumor"  type="xs:int" use="required">
+									<xs:attribute name="depth_tumor" type="xs:int" use="required">
 										<xs:annotation>
 											<xs:documentation>Tumor depth</xs:documentation>
 										</xs:annotation>
@@ -521,7 +522,7 @@
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="depth_normal"  type="xs:int" >
+									<xs:attribute name="depth_normal" type="xs:int">
 										<xs:annotation>
 											<xs:documentation>Normal sample depth</xs:documentation>
 										</xs:annotation>
@@ -587,21 +588,6 @@
 													<xs:annotation>
 														<xs:documentation>HGNC gene identifer</xs:documentation>
 													</xs:annotation>
-												</xs:attribute>
-												<xs:attribute name="effect">
-													<xs:annotation>
-														<xs:documentation>Effect of the variant on the gene</xs:documentation>
-													</xs:annotation>
-													<xs:simpleType>
-														<xs:restriction base="xs:string">
-															<xs:enumeration value="activating"/>
-															<xs:enumeration value="likely activating"/>
-															<xs:enumeration value="likely inactivating"/>
-															<xs:enumeration value="inactivating"/>
-															<xs:enumeration value="unclear"/>
-															<xs:enumeration value="test dependent"/>
-														</xs:restriction>
-													</xs:simpleType>
 												</xs:attribute>
 											</xs:complexType>
 										</xs:element>
