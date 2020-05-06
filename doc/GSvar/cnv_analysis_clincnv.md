@@ -89,7 +89,7 @@ When increasing the required number of subsequent regions, e.g. to 3, the number
 Usually, three tracks are shown that help you interprete the CNV (see the screenshot below):
 
 * copy number track (1): The copy-number estimates for each region (exon/bin) are shown. Gains are displayed in blue and losses are displayed in red. When hovering over a region, the variance in the reference cohort is also shown. Target regions in which no calling could be performed are assigned copy-number -0.001 and one of these error codes:
-	* LowRawCoverage: Regions the are excluded because the depth is low or zero in most samples.
+	* LowRawCoverage: Regions that are excluded because the depth is low or zero in most samples.
 	* SystematicallyLowCov: Regions that are excluded because the normalized depth is not distributes around 1.
 	* TooShortOrNA: Regions that are excluded because GC content could not be reliably determined, mainly regions with less than 50 bases.
 	* GCnormFailed: Regions that are excluded because of extreme GC content which cannot be normalized.

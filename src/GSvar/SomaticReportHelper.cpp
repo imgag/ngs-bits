@@ -1998,7 +1998,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 			coll.setNumericMode(true);
 			std::sort(chr.begin(), chr.end(), [&](const QString s1, const QString& s2){return coll.compare(s1,s2) < 0;});
 
-			RtfSourceCode temp = "\\line Es gibt Hinweise auf eine chromosomale Instabilität auf Chr. ";
+			RtfSourceCode temp = "\\line Verdacht auf chromosomale Instabilität: Chr. ";
 			for(int i=0; i< settings_.report_config.cinChromosomes().count(); ++i)
 			{
 				if( i< settings_.report_config.cinChromosomes().count() - 2) temp += chr[i].toUtf8().replace("chr","") + ", ";
@@ -2016,7 +2016,8 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		general_info_table.addRow(RtfTableRow({"CNV-Last:", text_cnv_burden},{2500,7137},RtfParagraph()).setBorders(1,"brdrhair",4));
 	}
 
-	general_info_table.addRow(RtfTableRow({"HRD-Score:", QByteArray::number(settings_.report_config.hrdScore())}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+
+	general_info_table.addRow(RtfTableRow({"HRD-Score:", QByteArray::number(settings_.report_config.hrdScore()) + RtfText("\\line Score \\u8805;3 ist ein Verdacht auf HRD.").setFontSize(14).RtfCode()}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
 
 	if(settings_.report_config.quality() != "no abnormalities")
 	{

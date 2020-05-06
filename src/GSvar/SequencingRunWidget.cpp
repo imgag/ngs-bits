@@ -7,9 +7,9 @@
 #include "Settings.h"
 #include "MidCheck.h"
 #include "LoginManager.h"
+#include "EmailDialog.h"
 #include <QMessageBox>
 #include <QInputDialog>
-#include <QDesktopServices>
 
 SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	: QWidget(parent)
@@ -71,8 +71,6 @@ void SequencingRunWidget::updateGUI()
 		QString status = query.value("status").toString();
 		ui_->status->setText(status);
 		ui_->backup->setText(query.value("backup_done").toString()=="1" ? "yes" : "no");
-
-		ui_->email_btn->setEnabled(status=="analysis_finished" || status=="run_finished");
 
 		//#### run quality ####
 		updateReadQualityTable();
@@ -255,6 +253,13 @@ void SequencingRunWidget::edit()
 
 void SequencingRunWidget::sendStatusEmail()
 {
+	QString status = ui_->status->text();
+	if (status!="analysis_finished" && status!="run_finished")
+	{
+		QMessageBox::information(this, "Run status email", "Run status emails can only be generated for runs with status 'analysis_finished' or 'run_finished'!");
+		return;
+	}
+
 	NGSD db;
 	QString run_name = ui_->name->text();
 
@@ -262,7 +267,6 @@ void SequencingRunWidget::sendStatusEmail()
 	QStringList to, body;
 	QString subject;
 
-	QString status = ui_->status->text();
 	if (status=="analysis_finished")
 	{
 		to << Settings::string("email_run_analyzed").split(";");
@@ -310,10 +314,9 @@ void SequencingRunWidget::sendStatusEmail()
 	body << "Viele Gruesse, ";
 	body << "  " + db.userName(LoginManager::userId());
 
-	//send email (only once to each recipient)
-	std::for_each(to.begin(), to.end(), [](QString& value){ value = value.toLower(); });
-	to.removeDuplicates();
-	QDesktopServices::openUrl(QUrl("mailto:" + to.join(";") + "?subject=" + subject + "&body=" + body.join("\n")));
+	//send
+	EmailDialog dlg(this, to, subject, body);
+	dlg.exec();
 }
 
 void SequencingRunWidget::checkMids()

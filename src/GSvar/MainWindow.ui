@@ -508,13 +508,14 @@
    <addaction name="separator"/>
    <addaction name="actionGapsLookup"/>
    <addaction name="actionGapsRecalculate"/>
+   <addaction name="separator"/>
    <addaction name="actionCNV"/>
-   <addaction name="actionROH"/>
    <addaction name="actionSV"/>
+   <addaction name="actionROH"/>
+   <addaction name="actionCircos"/>
+   <addaction name="separator"/>
    <addaction name="actionGeneSelector"/>
    <addaction name="actionDebug"/>
-   <addaction name="separator"/>
-   <addaction name="actionCircos"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -714,7 +715,7 @@
     <string>CNV</string>
    </property>
    <property name="toolTip">
-    <string>Show copy-number variants.</string>
+    <string>Show copy-number variants of the current sample.</string>
    </property>
   </action>
   <action name="actionGeneSelector">
@@ -773,7 +774,7 @@
     <string>ROH</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show runs of homozygosity (ROH).&lt;br/&gt;&lt;br/&gt;For trios, ROHs of the child (index) are shown.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show runs of homozygosity of the current sample.&lt;br/&gt;&lt;br/&gt;For trios, ROHs of the child (index) are shown.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionSV">
@@ -785,7 +786,7 @@
     <string>Show Structural Variants</string>
    </property>
    <property name="toolTip">
-    <string>Show Structural Variants</string>
+    <string>Show structural variants of the current sample.</string>
    </property>
   </action>
   <action name="actionAnalysisStatus">
@@ -1074,7 +1075,7 @@
     <string>Show Circos plot</string>
    </property>
    <property name="toolTip">
-    <string>Show Circos plot of the current sample</string>
+    <string>Show Circos plot of the current sample.</string>
    </property>
   </action>
  </widget>

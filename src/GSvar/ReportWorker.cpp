@@ -492,7 +492,7 @@ void ReportWorker::writeHTML()
 		stream << "<br />" << trans("Mutter") << ": "  << info_mother.id << endl;
 	}
 	stream << "<br />" << endl;
-	stream << "<br />" << trans("Geschlecht") << ": " << processed_sample_data.gender << endl;
+	stream << "<br />" << trans("Geschlecht") << ": " << trans(processed_sample_data.gender) << endl;
 	stream << "<br />" << trans("Prozessierungssystem") << ": " << processed_sample_data.processing_system << endl;
 	stream << "<br />" << trans("Prozessierungssystem-Typ") << ": " << processed_sample_data.processing_system_type << endl;
 	stream << "<br />" << trans("Referenzgenom") << ": " << system_data.genome << endl;
@@ -970,6 +970,9 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Gene"] = "genes";
 		de2en["CNV"] = "CNV";
 		de2en["CN"] = "CN";
+		de2en["male"] = "m&auml;nnlich";
+		de2en["female"] = "weiblich";
+		de2en["n/a"] = "n/a";
 
 		if (!de2en.contains(text))
 		{

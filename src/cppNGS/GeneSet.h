@@ -99,13 +99,7 @@ class CPPNGSSHARED_EXPORT GeneSet
 		///Checks if any gene is contained
 		bool intersectsWith(const GeneSet& genes) const
 		{
-			//NOTE: can be replaced when we no longer use Qt 5.5: return set_.intersects(genes.set_);
-			for (auto it = genes.cbegin(); it != genes.cend(); ++it)
-			{
-				if (contains(*it)) return true;
-			}
-
-			return false;
+			return set_.intersects(genes.set_);
 		}
 
 		///Load gene list from file
