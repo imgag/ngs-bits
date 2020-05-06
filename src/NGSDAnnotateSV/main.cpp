@@ -24,8 +24,10 @@ public:
 
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
-		addFlag("ignore_processing_system", "Use all SVs for annotation (otherwise only SVs of the same processing system are used)");
+		addFlag("ignore_processing_system", "Use all SVs for annotation (otherwise only SVs from good samples of the same processing system are used)");
 		addFlag("debug", "Provide additional information in STDOUT (e.g. query runtime)");
+
+		setExtendedDescription(QStringList() << "NOTICE: the parameter '-ignore_processing_system' will also use SVs from low quality samples (bad samples).");
 
 		changeLog(2020, 2, 21, "Initial version.");
 		changeLog(2020, 2, 27, "Added temporary db table with same processing system.");

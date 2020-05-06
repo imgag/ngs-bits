@@ -239,7 +239,7 @@ void CnvList::load(QString filename)
 	}
 }
 
-/*
+
 void CnvList::store(QString filename)
 {
 	// check if CnvListType is valid
@@ -252,12 +252,13 @@ void CnvList::store(QString filename)
 	//write header lines
 
 	//analysis type
-	stream <<  "##ANALYSISTYPE=";
-	if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE) stream << "CNVHUNTER_GERMLINE_SINGLE\n";
-	else if (type()==CnvListType::CNVHUNTER_GERMLINE_MULTI) stream << "CNVHUNTER_GERMLINE_MULTI\n";
-	else if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE) stream << "CLINCNV_GERMLINE_SINGLE\n";
-	else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI) stream << "CLINCNV_GERMLINE_MULTI\n";
-	else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR) stream << "CLINCNV_TUMOR_NORMAL_PAIR\n";
+	stream << "##ANALYSISTYPE=" << typeAsString() << "\n";
+
+	//comments
+	foreach (QByteArray comment_line, comments_)
+	{
+		stream << comment_line << "\n";
+	}
 
 	//description
 	foreach (QByteArray header, annotation_headers_)
@@ -268,32 +269,102 @@ void CnvList::store(QString filename)
 		}
 	}
 
-	//other comments
-	foreach (QByteArray comment_line, comments_)
+	// header line
+	stream << "#chr\tstart\tend";
+	QByteArrayList header_line = annotation_headers_;
+
+	if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
 	{
-		stream << comment_line << "\n";
+		// assemble header line
+		header_line.insert(2, "no_of_regions");
+		header_line.insert(3, "length_KB");
+		header_line.insert(5, "genes");
+	}
+	else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI)
+	{
+		// assemble header line
+		header_line.insert(0, "sample");
+		header_line.insert(1, "size");
+		header_line.insert(9, "genes");
+	}
+	else if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
+	{
+		// assemble header line
+		header_line.insert(0, "sample");
+		header_line.insert(1, "size");
+		header_line.insert(2, "region_count");
+		header_line.insert(8, "genes");
+	}
+	else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	{
+		// assemble header line
+		header_line.insert(0, "sample");
+		header_line.insert(1, "size");
+		header_line.insert(9, "number_of_regions");
+		header_line.insert(10, "genes");
+	}
+	else
+	{
+		THROW(NotImplementedException, "Export of this CnvListType is not supported!");
 	}
 
-	// header line
-	stream << "#chr\tstart\tend\tgenes";
-	if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE || type()==CnvListType::CNVHUNTER_GERMLINE_MULTI) stream << "\tregion_count";
-	if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE) stream << "\tno_of_regions";
-	if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR) stream << "\tnumber_of_regions";
-	if (annotation_headers_.size() > 0) stream << "\t" << annotation_headers_.join(",");
-	stream << "\n";
-
+	stream << "\t" << header_line.join("\t") << "\n";
 
 	// CNVs
-	foreach (CopyNumberVariant varinat, variants_)
+	foreach (CopyNumberVariant variant, variants_)
 	{
-		// write position and gene names:
-		stream << variant.chr().strNormalized(true) << "\t" << variant.start() << "\t" << variant.end() << "\t" << variant.genes().join(",");
-		if (type() != CnvListType::CLINCNV_GERMLINE_MULTI) stream << "\t" << variant.regions();
+		// write position:
+		stream << variant.chr().strNormalized(true) << "\t" << variant.start() << "\t" << variant.end();
+		QByteArrayList cnv_annotations = variant.annotations();
 
+		if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
+		{
+			// assemble CNV line
+			cnv_annotations.insert(2, QByteArray::number(variant.regions()));
+			cnv_annotations.insert(3, QByteArray::number(((variant.size() - 1)/1000.0), 'f', 3).rightJustified(8, ' '));
+			cnv_annotations.insert(5, variant.genes().toStringList().join(",").toUtf8());
+		}
+		else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI)
+		{
+			// assemble CNV line
+			cnv_annotations.insert(0, "multi");
+			cnv_annotations.insert(1, QByteArray::number(variant.size() - 1));
+			cnv_annotations.insert(9, variant.genes().toStringList().join(", ").toUtf8());
+		}
+		else if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
+		{
+			// assemble CNV line
+			cnv_annotations.insert(0, "");
+			cnv_annotations.insert(1, QByteArray::number(variant.size()));
+			cnv_annotations.insert(2, QByteArray::number(variant.regions()));
+			cnv_annotations.insert(8, variant.genes().toStringList().join(",").toUtf8());
+		}
+		else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+		{
+			// assemble header line
+			cnv_annotations.insert(0, "somatic");
+			cnv_annotations.insert(1, QByteArray::number(variant.size()));
+			cnv_annotations.insert(9, QByteArray::number(variant.regions()));
+			cnv_annotations.insert(10, variant.genes().toStringList().join(",").toUtf8());
+		}
+		stream << "\t" << cnv_annotations.join("\t") << "\n";
 	}
 
+	stream.flush();
+	file.data()->close();
 }
-*/
+
+QString CnvList::typeAsString() const
+{
+	if (type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE) return "CNVHUNTER_GERMLINE_SINGLE";
+	else if (type()==CnvListType::CNVHUNTER_GERMLINE_MULTI) return "CNVHUNTER_GERMLINE_MULTI";
+	else if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE) return "CLINCNV_GERMLINE_SINGLE";
+	else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI) return "CLINCNV_GERMLINE_MULTI";
+	else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR) return "CLINCNV_TUMOR_NORMAL_PAIR";
+	else if (type()==CnvListType::INVALID) return "INVALID";
+
+	THROW(NotImplementedException, "Unknown CnvListType!");
+}
 
 CnvCallerType CnvList::caller() const
 {

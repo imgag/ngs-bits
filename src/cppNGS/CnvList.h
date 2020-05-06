@@ -84,7 +84,7 @@ class CPPNGSSHARED_EXPORT CopyNumberVariant
 			return chr == chr_ && BasicStatistics::rangeOverlaps(start_, end_, start, end);
 		}
 
-		//Returns the copy-number. If not available, ProgrammingException is thrown, or '-1' is returned. (Germline only)
+		///Returns the copy-number. If not available, ProgrammingException is thrown, or '-1' is returned. (Germline only)
 		int copyNumber(const QByteArrayList& annotation_headers, bool throw_if_not_found=true) const;
 
 	protected:
@@ -134,18 +134,19 @@ class CPPNGSSHARED_EXPORT CnvList
 		///Loads CNV text file (TSV format).
 		void load(QString filename);
 
-		/*
 		///Stores CNV text file (TSV format).
 		///
 		/// not completeted implementation, final export of CNVs is not implemented yet
 		void store(QString filename);
-		*/
+
 
 		///Returns the CNV list type
 		CnvListType type() const
 		{
 			return type_;
 		}
+		///Returns the CNV list type
+		QString typeAsString() const;
 
 		///Returns the CNV caller
 		CnvCallerType caller() const;

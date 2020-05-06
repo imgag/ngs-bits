@@ -25,8 +25,8 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (3999, 1, 18, 1, '1', 96, 1, 'good'),
 (4000, 1, 38, 1, '2', 145, 1, 'good'),
 (4001, 1, 45, 1, '1,2,3,4', 165, 1, 'good'),
-(4002, 1, 46, 1, '1,2,3,4', 165, 1, 'good');
-(4007, 1, 47, 1, '1,2,3,4', 165, 1, 'bad');
+(4002, 1, 46, 1, '1,2,3,4', 165, 1, 'good'),
+(4007, 1, 47, 1, '1,2,3,4', 165, 1, 'bad'),
 (4008, 1, 48, 1, '1,2,3,4', 165, 1, 'good');
 
 INSERT INTO `sv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES
