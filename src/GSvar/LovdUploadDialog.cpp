@@ -28,10 +28,12 @@ LovdUploadDialog::LovdUploadDialog(QWidget *parent)
 	connect(ui_.nm_number, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.hgvs_c, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.hgvs_g, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.hgvs_p, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.hgvs_c2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.hgvs_g2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.hgvs_p2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.classification2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
@@ -276,9 +278,21 @@ void LovdUploadDialog::checkGuiData()
 	{
 		errors << "HGVS.g unset!";
 	}
+	if (!ui_.hgvs_g->text().trimmed().isEmpty() && !ui_.hgvs_g->text().trimmed().startsWith("g."))
+	{
+		errors << "HGVS.g must start with 'g.'!";
+	}
 	if (ui_.hgvs_c->text().trimmed().isEmpty())
 	{
 		errors << "HGVS.c unset!";
+	}
+	if (!ui_.hgvs_c->text().trimmed().isEmpty() && !ui_.hgvs_c->text().trimmed().startsWith("c."))
+	{
+		errors << "HGVS.c must start with 'c.'!";
+	}
+	if (!ui_.hgvs_p->text().trimmed().isEmpty() && !ui_.hgvs_p->text().trimmed().startsWith("p."))
+	{
+		errors << "HGVS.p must start with 'p.'!";
 	}
 	if (ui_.genotype->currentText().trimmed().isEmpty())
 	{
@@ -295,9 +309,21 @@ void LovdUploadDialog::checkGuiData()
 		{
 			errors << "HGVS.g unset (variant 2)!";
 		}
+		if (!ui_.hgvs_g2->text().trimmed().isEmpty() && !ui_.hgvs_g2->text().trimmed().startsWith("g."))
+		{
+			errors << "HGVS.g must start with 'g.' (variant 2)!";
+		}
 		if (ui_.hgvs_c2->text().trimmed().isEmpty())
 		{
 			errors << "HGVS.c unset (variant 2)!";
+		}
+		if (!ui_.hgvs_c2->text().trimmed().isEmpty() && !ui_.hgvs_c2->text().trimmed().startsWith("c."))
+		{
+			errors << "HGVS.c must start with 'c.' (variant 2)!";
+		}
+		if (!ui_.hgvs_p2->text().trimmed().isEmpty() && !ui_.hgvs_p2->text().trimmed().startsWith("p."))
+		{
+			errors << "HGVS.p must start with 'p.' (variant 2)!";
 		}
 		if (ui_.genotype->currentText()!="het" || ui_.genotype2->currentText()!="het")
 		{

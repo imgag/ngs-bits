@@ -18,7 +18,6 @@ NGSD:
 
 GSvar:
 ### Converter chromosomal bands > coordinates
-### LOVD upload dialog: check that HGVS strings contain g. c. p.
 ### QC plots: restict to diagnostic samples (by default), and good/medium quality and allow export as TSV
 *** Include CNV QC metrics in report HTML/XML?! (discuss with Anastasia/Anne)
 * Allow ClinVar upload
