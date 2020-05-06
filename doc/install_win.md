@@ -32,7 +32,7 @@ Open a *Git CMD* and clone the most recent release (the source code package of G
 
 We can now build ngs-bits:
 
-* Unzip the [htslib](https://github.com/samtools/htslib) headers and DLL from `ngs-bits\htslib\build_win.zip`.
+* Unzip the [htslib](https://github.com/samtools/htslib) headers and DLL from `ngs-bits\htslib\htslib_win.zip`.
 * Build the ngs-bits tools using the QtCreator project file `src\tools.pro`.  
 * Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`.
 

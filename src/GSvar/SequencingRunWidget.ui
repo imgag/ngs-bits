@@ -67,7 +67,7 @@
          <item>
           <widget class="QToolButton" name="email_btn">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Send status by email.&lt;br/&gt;Note: only available for 'run_finished' and 'run_analyzed'!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Send status by email.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -169,7 +169,7 @@
              </size>
             </property>
             <attribute name="horizontalHeaderVisible">
-             <bool>true</bool>
+             <bool>false</bool>
             </attribute>
             <attribute name="verticalHeaderVisible">
              <bool>false</bool>

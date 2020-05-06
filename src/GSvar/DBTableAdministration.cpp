@@ -3,8 +3,8 @@
 #include "DBEditor.h"
 #include "GUIHelper.h"
 #include "LoginManager.h"
+#include "EmailDialog.h"
 #include <QMessageBox>
-#include <QDesktopServices>
 
 DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	: QWidget(parent)
@@ -215,6 +215,8 @@ void DBTableAdministration::resetUserPassword()
 	body << "Best regards, ";
 	body << "  " + db.userName(LoginManager::userId());
 
-	QDesktopServices::openUrl(QUrl("mailto:" + to + "?subject=" + subject + "&body=" + body.join("\n")));
+	//send
+	EmailDialog dlg(this, QStringList() << to, subject, body);
+	dlg.exec();
 }
 

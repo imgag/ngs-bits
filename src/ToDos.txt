@@ -17,12 +17,10 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-### Add label to CNV/SV/ROH buttons.
 ### Converter chromosomal bands > coordinates
 ### LOVD upload dialog: check that HGVS strings contain g. c. p.
 ### QC plots: restict to diagnostic samples (by default), and good/medium quality and allow export as TSV
-### Sample search: Allow search for HPO term
-*** Include CNV QC metrics in report HTML/XML?!
+*** Include CNV QC metrics in report HTML/XML?! (discuss with Anastasia/Anne)
 * Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
