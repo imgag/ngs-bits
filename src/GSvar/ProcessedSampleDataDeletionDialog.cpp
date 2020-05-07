@@ -171,8 +171,11 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 			QStringList analysis_job_ids = db.getValues("SELECT analysis_job_id FROM analysis_job_sample WHERE processed_sample_id='" + ps_id + "'");
 			foreach(QString job_id, analysis_job_ids)
 			{
-				db.deleteAnalysis( job_id.toInt());
+				db.deleteAnalysis(job_id.toInt());
 			}
+
+			//delete QC data
+			db.getQuery().exec("DELETE FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'");
 
 			//delete processed sample
 			try
