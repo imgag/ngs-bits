@@ -90,7 +90,7 @@ public:
 									   + table_name + " sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
 			}
 			//INS
-			create_temp_table.exec("CREATE TEMPORARY TABLE temp_sv_insertion SELECT sv.id, sv.sv_callset_id, sv.chr, sv.pos, sv.ci_lower, sv.ci_upper, sv.quality_metrics FROM sv_insertion sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
+			create_temp_table.exec("CREATE TEMPORARY TABLE temp_sv_insertion SELECT sv.id, sv.sv_callset_id, sv.chr, sv.pos, sv.ci_upper, sv.quality_metrics FROM sv_insertion sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
 			//BND
 			create_temp_table.exec("CREATE TEMPORARY TABLE temp_sv_translocation SELECT sv.id, sv.sv_callset_id, sv.chr1, sv.start1, sv.end1, sv.chr2, sv.start2, sv.end2, sv.quality_metrics FROM sv_translocation sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
 
@@ -103,7 +103,7 @@ public:
 				create_index.exec("CREATE INDEX `overlap_match` ON temp_" + table_name + "(`chr`, `start_min`, `end_max`)");
 			}
 			//INS
-			create_index.exec("CREATE INDEX `match` ON temp_sv_insertion(`chr`, `pos`, `ci_lower`, `ci_upper`)");
+			create_index.exec("CREATE INDEX `match` ON temp_sv_insertion(`chr`, `pos`, `ci_upper`)");
 			//BND
 			create_index.exec("CREATE INDEX `match` ON temp_sv_translocation(`chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`)");
 
@@ -137,7 +137,7 @@ public:
 		SqlQuery count_sv_inversion_c = db.getQuery();
 		count_sv_inversion_c.prepare(select_count + table_prefix + "sv_inversion sv " + contained_del_dup_inv);
 
-		QByteArray match_ins = table_prefix + "sv_insertion sv WHERE sv.chr = :0 AND (sv.pos - sv.ci_lower) <= :1 AND :2 <= (sv.pos + sv.ci_upper)";
+		QByteArray match_ins = table_prefix + "sv_insertion sv WHERE sv.chr = :0 AND sv.pos <= :1 AND :2 <= (sv.pos + sv.ci_upper)";
 
 		SqlQuery count_sv_insertion_m = db.getQuery();
 		count_sv_insertion_m.prepare(select_count + match_ins);
@@ -223,11 +223,14 @@ public:
 				{
 					//Insertion
 					if (debug) ins_timer.start();
+					//get min and max position
+					int min_pos = std::min(std::min(sv.start1(), sv.start2()), std::min(sv.end1(), sv.end2()));
+					int max_pos = std::max(std::max(sv.start1(), sv.start2()), std::max(sv.end1(), sv.end2()));
 					//get exact matches
 					// bind values
 					count_sv_insertion_m.bindValue(0, sv.chr1().strNormalized(true));
-					count_sv_insertion_m.bindValue(1, sv.end1());
-					count_sv_insertion_m.bindValue(2, sv.start1());
+					count_sv_insertion_m.bindValue(1, max_pos);
+					count_sv_insertion_m.bindValue(2, min_pos);
 					// execute query
 					count_sv_insertion_m.exec();
 					// parse result

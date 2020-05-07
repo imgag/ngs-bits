@@ -101,15 +101,15 @@ INSERT INTO `sv_inversion` (`id`, `sv_callset_id`, `chr`, `start_min`, `start_ma
 (7, 1, 'chr3', 9101000, 9101020, 9112000, 9113000, ''),
 (8, 1, 'chr4', 9101000, 9101020, 9120000, 9120000, '');
 
-INSERT INTO `sv_insertion` (`id`, `sv_callset_id`, `chr`, `pos`, `ci_lower`, `ci_upper`) VALUES
-(1, 1, 'chr1', 15482455, 250, 0),
-(2, 1, 'chr1', 16482455, 0, 60),
-(3, 1, 'chr1', 17482455, 23, 54),
-(4, 2, 'chr1', 15482455, 50, 87),
-(5, 3, 'chr1', 15482455, 0, 0),
-(6, 3, 'chr1', 16482455, 12, 12),
-(7, 1, 'chr3', 12482455, 0, 0),
-(8, 1, 'chr4', 11482455, 0, 0);
+INSERT INTO `sv_insertion` (`id`, `sv_callset_id`, `chr`, `pos`, `ci_upper`) VALUES
+(1, 1, 'chr1', 15482205, 250),
+(2, 1, 'chr1', 16482455, 60),
+(3, 1, 'chr1', 17482432, 77),
+(4, 2, 'chr1', 15482405, 137),
+(5, 3, 'chr1', 15482455, 0),
+(6, 3, 'chr1', 16482443, 24),
+(7, 1, 'chr3', 12482455, 0),
+(8, 1, 'chr4', 11482455, 0);
 
 INSERT INTO `sv_translocation` (`id`, `sv_callset_id`, `chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, `quality_metrics`) VALUES
 (1, 1, 'chr1', 9101000, 9101020, 'chr5', 4112000, 4113000, ''),

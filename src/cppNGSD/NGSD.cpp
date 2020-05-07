@@ -1218,6 +1218,7 @@ int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 	}
 	else if (sv.type() == StructuralVariantType::INS)
 	{
+		if (sv.chr1() != sv.chr2()) THROW(ArgumentException, "Invalid insertion position:'" + sv.position1() + ", " + sv.position2() + "'!");
 		// get inserted sequence
 		QByteArray inserted_sequence, known_left, known_right;
 		QByteArray alt_seq = sv.annotations().at(svs.annotationIndexByName("ALT_A"));
@@ -1250,19 +1251,21 @@ int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 			}
 		}
 
+		// determine position and upper CI:
+		int pos = std::min(std::min(sv.start1(), sv.start2()), std::min(sv.end1(), sv.end2()));
+		int ci_upper = std::max(std::max(sv.start1(), sv.start2()), std::max(sv.end1(), sv.end2())) - pos;
 		// insert SV into the NGSD
 		SqlQuery query = getQuery();
-		query.prepare(QByteArray() + "INSERT INTO `sv_insertion` (`sv_callset_id`, `chr`, `pos`, `ci_lower`, `ci_upper`, `inserted_sequence`, "
-					  + "`known_left`, `known_right`, `quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6, :7, :8)");
+		query.prepare(QByteArray() + "INSERT INTO `sv_insertion` (`sv_callset_id`, `chr`, `pos`, `ci_upper`, `inserted_sequence`, "
+					  + "`known_left`, `known_right`, `quality_metrics`) VALUES (:0, :1,  :2, :3, :4, :5, :6, :7)");
 		query.bindValue(0, callset_id);
 		query.bindValue(1, sv.chr1().strNormalized(true));
-		query.bindValue(2, sv.start2());
-		query.bindValue(3, sv.start2() - sv.start1());
-		query.bindValue(4, sv.end2() - sv.start2());
-		query.bindValue(5, inserted_sequence);
-		query.bindValue(6, known_left);
-		query.bindValue(7, known_right);
-		query.bindValue(8, quality_metrics_string);
+		query.bindValue(2, pos);
+		query.bindValue(3, ci_upper);
+		query.bindValue(4, inserted_sequence);
+		query.bindValue(5, known_left);
+		query.bindValue(6, known_right);
+		query.bindValue(7, quality_metrics_string);
 		query.exec();
 
 		//return insert ID

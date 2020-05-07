@@ -1551,7 +1551,7 @@ CREATE  TABLE IF NOT EXISTS `sv_insertion`
   `sv_callset_id` INT(11) UNSIGNED NOT NULL,
   `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
   `pos`INT(11) UNSIGNED NOT NULL,
-  `ci_lower` INT(5) UNSIGNED NOT NULL,
+  `ci_lower` INT(5) UNSIGNED NOT NULL DEFAULT 0,
   `ci_upper` INT(5) UNSIGNED NOT NULL,
   `inserted_sequence` TEXT DEFAULT NULL,
   `known_left` TEXT DEFAULT NULL,
