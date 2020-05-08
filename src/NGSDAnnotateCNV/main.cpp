@@ -107,13 +107,13 @@ public:
 			QPair<int,double> p_cnv;
 			foreach(p_cnv, pathogenic_cnvs)
 			{
-				pathogenic_cnv_entries.append("(" + QByteArray::number(p_cnv.first) + "," + QByteArray::number(p_cnv.second) + ")");
+				pathogenic_cnv_entries.append(QByteArray::number(p_cnv.first) + "/" + QByteArray::number(std::max(p_cnv.second, 0.0001), 'f', 4));
 			}
 
 
 			// extend annotation
 			QByteArray annotated_line = tsv_line.join("\t");
-			annotated_line += "\t" + pathogenic_cnv_entries.join(",");
+			annotated_line += "\t" + pathogenic_cnv_entries.join(" ");
 
 			//add annotated line to buffer
 			output_buffer << annotated_line;
