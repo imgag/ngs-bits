@@ -70,6 +70,7 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	connect(ui->cnvs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(cnvHeaderDoubleClicked(int)));
 	ui->cnvs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
+	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 
 	//determine callset ID
 	if (ps_id!="")
@@ -910,6 +911,15 @@ void CnvWidget::editReportConfiguration(int row)
 	{
 		editGermlineReportConfiguration(row);
 	}
+}
+
+void CnvWidget::importPhenotypesFromNGSD()
+{
+	NGSD db;
+	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_id_).toString();
+	QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
+
+	ui->filter_widget->setPhenotypes(phenotypes);
 }
 
 void CnvWidget::editGermlineReportConfiguration(int row)

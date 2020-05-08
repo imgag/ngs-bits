@@ -19,7 +19,7 @@ class SvWidget
 	Q_OBJECT
 
 public:
-	SvWidget(const QStringList& bedpe_file_paths, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
+	SvWidget(const QStringList& bedpe_file_paths, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
 
 signals:
 	void openInIGV(QString coords);
@@ -43,8 +43,13 @@ protected slots:
 	///Extracts entry of column following to "FORMAT" column.
 	QByteArray getFormatEntryByKey(const QByteArray& key, const QByteArray& format_desc, const QByteArray& format_data);
 
+	///Import phenotypes from NGSD
+	void importPhenotypesFromNGSD();
+
 private:
 	Ui::SvWidget* ui;
+
+	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.
 
 	bool loading_svs_ = false;
 

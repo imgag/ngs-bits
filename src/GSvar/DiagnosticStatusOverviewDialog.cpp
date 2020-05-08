@@ -92,14 +92,7 @@ void DiagnosticStatusOverviewDialog::updateOverviewTable()
 			tmp.append(entry.disease_info);
 		}
 		addItem(r, 5, tmp.join(", "));
-		tmp.clear();
-		disease_info = db.getSampleDiseaseInfo(sample_id, "HPO term id");
-		foreach(const SampleDiseaseInfo& entry, disease_info)
-		{
-			Phenotype pheno = db.phenotypeByAccession(entry.disease_info.toLatin1(), false);
-			tmp.append(pheno.name());
-		}
-		addItem(r, 6, tmp.join(", "));
+		addItem(r, 6, sample_data.phenotypesAsStrings().join(", "));
 		addItem(r, 7, processed_sample_data.run_name);
 		addItem(r, 8, processed_sample_data.processing_system);
 		addItem(r, 9, processed_sample_data.project_name);

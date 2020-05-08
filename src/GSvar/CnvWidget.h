@@ -55,7 +55,8 @@ private slots:
 	void updateReportConfigHeaderIcon(int row);
 	void cnvHeaderDoubleClicked(int row);
 	void cnvHeaderContextMenu(QPoint pos);
-	void editReportConfiguration(int row);
+	void editReportConfiguration(int row);	
+	void importPhenotypesFromNGSD();
 
 private:
 	void initGUI();

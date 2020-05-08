@@ -232,6 +232,9 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString received;
 	QString received_by;
 	QList<SampleGroup> sample_groups;
+
+	//Returns the phenotype names
+	QStringList phenotypesAsStrings() const;
 };
 
 ///Sample disease information.

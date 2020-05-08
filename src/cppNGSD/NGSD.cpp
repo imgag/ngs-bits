@@ -4407,3 +4407,15 @@ QStringList NGSD::checkValue(const QString& table, const QString& field, const Q
 
 	return errors;
 }
+
+QStringList SampleData::phenotypesAsStrings() const
+{
+	QStringList output;
+
+	foreach(const Phenotype& phenotype, phenotypes)
+	{
+		output << phenotype.name();
+	}
+
+	return output;
+}

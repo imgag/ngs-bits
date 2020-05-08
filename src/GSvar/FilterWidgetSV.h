@@ -56,6 +56,8 @@ signals:
 	void filtersChanged();
 	////Signal is emitted when the target region changes
 	void targetRegionChanged();
+	/// Signal that loading phenotype data from NGSD was requested (this cannot be done inside the widget, because it knows nothing about the sample)
+	void phenotypeImportNGSDRequested();
 
 protected slots:
 	void roiSelectionChanged(int index);

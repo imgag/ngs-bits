@@ -54,8 +54,7 @@ void CnvSearchWidget::search()
 		QString operation = ui_.operation->currentText();
 		if (operation=="overlaps")
 		{
-			query_str += " AND chr='" + chr.strNormalized(true) + "' AND ((" + QString::number(start) + ">=start AND " + QString::number(start) + "<=end) OR (start>=" + QString::number(start) + " AND start<=" + QString::number(end) + "))";
-
+			query_str += " AND chr='" + chr.strNormalized(true) + "' AND " + QString::number(start) + "<=end AND " + QString::number(end) + ">=start";
 		}
 		else if (operation=="contains")
 		{

@@ -508,13 +508,12 @@
    <addaction name="separator"/>
    <addaction name="actionGapsLookup"/>
    <addaction name="actionGapsRecalculate"/>
+   <addaction name="actionGeneSelector"/>
    <addaction name="separator"/>
    <addaction name="actionCNV"/>
    <addaction name="actionSV"/>
    <addaction name="actionROH"/>
    <addaction name="actionCircos"/>
-   <addaction name="separator"/>
-   <addaction name="actionGeneSelector"/>
    <addaction name="actionDebug"/>
   </widget>
   <action name="actionOpen">

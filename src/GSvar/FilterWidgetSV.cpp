@@ -261,6 +261,11 @@ void FilterWidgetSV::showPhenotypeContextMenu(QPoint pos)
 {
 	//set up
 	QMenu menu;
+	if (LoginManager::active())
+	{
+		menu.addAction("load from NGSD");
+		menu.addSeparator();
+	}
 	menu.addAction("clear");
 
 	//exec
@@ -271,6 +276,10 @@ void FilterWidgetSV::showPhenotypeContextMenu(QPoint pos)
 	{
 		phenotypes_.clear();
 		phenotypesChanged();
+	}
+	else if (action->text()=="load from NGSD")
+	{
+		emit phenotypeImportNGSDRequested();
 	}
 }
 

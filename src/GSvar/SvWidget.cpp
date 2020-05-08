@@ -18,9 +18,10 @@
 #include "GeneInfoDBs.h"
 #include <QDesktopServices>
 
-SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* variant_filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+SvWidget::SvWidget(const QStringList& bedpe_file_paths, QString ps_id, FilterWidget* variant_filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
+	, ps_id_(ps_id)
 	, variant_filter_widget_(variant_filter_widget)
 	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
@@ -33,16 +34,11 @@ SvWidget::SvWidget(const QStringList& bedpe_file_paths, FilterWidget* variant_fi
 
 	//Setup signals and slots
 	connect(ui->copy_to_clipboard,SIGNAL(clicked()),this,SLOT(copyToClipboard()));
-
 	connect(ui->svs,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(SvDoubleClicked(QTableWidgetItem*)));
-
 	connect(ui->svs,SIGNAL(itemSelectionChanged()),this,SLOT(SvSelectionChanged()));
-
 	connect(ui->svs,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
-
-
-	//signals from the filter widget
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
+	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 
 	//clear GUI
 	clearGUI();
@@ -500,6 +496,15 @@ QByteArray SvWidget::getFormatEntryByKey(const QByteArray& key, const QByteArray
 	}
 
 	return "";
+}
+
+void SvWidget::importPhenotypesFromNGSD()
+{
+	NGSD db;
+	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_id_).toString();
+	QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
+
+	ui->filter_widget->setPhenotypes(phenotypes);
 }
 
 void SvWidget::SvSelectionChanged()

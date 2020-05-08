@@ -304,8 +304,15 @@ void MainWindow::on_actionSV_triggered()
 		file_names.sort();
 		std::reverse(file_names.begin(), file_names.end());
 
+		//determine processed sample ID (needed for report config - so only germline)
+		QString ps_id = "";
+		if (LoginManager::active() && germlineReportSupported())
+		{
+			ps_id = NGSD().processedSampleId(processedSampleName(), false);
+		}
+
 		//open SV wisget
-		SvWidget* list = new SvWidget(file_names, ui_.filters, het_hit_genes, gene2region_cache_, this);
+		SvWidget* list = new SvWidget(file_names, ps_id, ui_.filters, het_hit_genes, gene2region_cache_, this);
 		auto dlg = GUIHelper::createDialog(list, "Structural variants");
 		connect(list,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
 		connect(list,SIGNAL(openGeneTab(QString)),this,SLOT(openGeneTab(QString)));
@@ -1054,22 +1061,9 @@ void MainWindow::cleanUpModelessDialogs()
 
 void MainWindow::importPhenotypesFromNGSD()
 {
-	QList<Phenotype> phenotypes;
-
-	//load from NGSD
 	NGSD db;
-	QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(db.sampleId(processedSampleName()), "HPO term id");
-	foreach(const SampleDiseaseInfo& entry, disease_info)
-	{
-		try
-		{
-			phenotypes << db.phenotypeByAccession(entry.disease_info.toLatin1());
-		}
-		catch(Exception& e)
-		{
-			qDebug() << e.message();
-		}
-	}
+	QString sample_id = db.sampleId(processedSampleName());
+	QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
 
 	ui_.filters->setPhenotypes(phenotypes);
 }
@@ -3556,14 +3550,11 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	//gender
 	NGSD db;
 	QString sample_id = db.sampleId(data.processed_sample);
-	data.gender = db.getSampleData(sample_id).gender;
+	SampleData sample_data = db.getSampleData(sample_id);
+	data.gender = sample_data.gender;
 
 	//phenotype(s)
-	QList<SampleDiseaseInfo> disease_info = db.getSampleDiseaseInfo(sample_id, "HPO term id");
-	foreach(const SampleDiseaseInfo& entry, disease_info)
-	{
-		data.phenos << db.phenotypeByAccession(entry.disease_info.toLatin1(), false);
-	}
+	data.phenos = sample_data.phenotypes;
 
 	//data 1st variant
 	const Variant& variant = variants_[variant_index];
