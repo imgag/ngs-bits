@@ -164,7 +164,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system`
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
   `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq') NOT NULL,
   `shotgun` TINYINT(1) NOT NULL,
-  `umi_type` ENUM('n/a','HaloPlex HS','SureSelect HS','ThruPLEX','Safe-SeqS','MIPs') NOT NULL DEFAULT 'n/a',
+  `umi_type` ENUM('n/a','HaloPlex HS','SureSelect HS','ThruPLEX','Safe-SeqS','MIPs','QIAseq') NOT NULL DEFAULT 'n/a',
   `target_file` VARCHAR(255) NULL DEFAULT NULL,
   `genome_id` INT(11) NOT NULL,
   PRIMARY KEY (`id`),
