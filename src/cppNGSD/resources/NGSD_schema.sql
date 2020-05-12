@@ -1463,11 +1463,10 @@ CREATE  TABLE IF NOT EXISTS `sv_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
-  `caller` ENUM('Manta', 'Delly') NOT NULL,
+  `caller` ENUM('Manta') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
   `call_date` DATETIME DEFAULT NULL,
   PRIMARY KEY (`id`),
-  INDEX `caller` (`caller` ASC),
   INDEX `call_date` (`call_date` ASC),
   UNIQUE KEY `sv_callset_references_processed_sample` (`processed_sample_id`),
   CONSTRAINT `sv_callset_references_processed_sample`
