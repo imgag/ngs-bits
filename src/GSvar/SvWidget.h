@@ -7,6 +7,7 @@
 #include <QByteArrayList>
 #include "BedpeFile.h"
 #include "FilterWidget.h"
+#include "ReportConfiguration.h"
 
 namespace Ui {
 	class SvWidget;
@@ -19,11 +20,16 @@ class SvWidget
 	Q_OBJECT
 
 public:
-	SvWidget(const QStringList& bedpe_file_paths, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
+	//default constructor without report config
+	SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
+
+	//constructor with report config for germline
+	SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
 
 signals:
 	void openInIGV(QString coords);
 	void openGeneTab(QString symbol);
+	void storeReportConfiguration();
 
 protected slots:
 	///copy filtered SV table to clipboard
@@ -46,29 +52,13 @@ protected slots:
 	///Import phenotypes from NGSD
 	void importPhenotypesFromNGSD();
 
+private slots:
+	void updateReportConfigHeaderIcon(int row);
+	void editReportConfiguration(int row);
+
 private:
-	Ui::SvWidget* ui;
-
-	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.
-
-	bool loading_svs_ = false;
-
-	BedpeFile sv_bedpe_file_;
-
-	///List of annotations which are shown in the widget
-	QByteArrayList annotations_to_show_;
-
-	BedFile roi_;
-	QString roi_filename_;
-
-	// Pointer to the FilterWidget of the varaint view (used for import settings to SV view)
-	FilterWidget* variant_filter_widget_;
-
-	GeneSet var_het_genes_;
-	QHash<QByteArray, BedFile>& gene2region_cache_;
-
 	///load bedpe data file and set display
-	void loadSVs(const QString& file_name);
+	void initGUI();
 
 	void disableGUI(const QString& message);
 
@@ -89,6 +79,28 @@ private:
 
 	///calculate AF of SV, either by paired end reads ("PR") or split reads ("SR");
 	double alleleFrequency(int row, const QByteArray& read_type = "PR");
+
+	void editGermlineReportConfiguration(int row);
+
+	Ui::SvWidget* ui;
+	BedpeFile sv_bedpe_file_;
+	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.
+	FilterWidget* variant_filter_widget_; // Pointer to the FilterWidget of the varaint view (used for import settings to SV view)
+	GeneSet var_het_genes_;
+	QHash<QByteArray, BedFile>& gene2region_cache_;
+	bool ngsd_enabled_;
+
+	ReportConfiguration* report_config_ = nullptr;
+
+	///List of annotations which are shown in the widget
+	QByteArrayList annotations_to_show_;
+
+	BedFile roi_;
+	QString roi_filename_;
+	bool is_somatic_;
+	bool loading_svs_ = false;
+
+
 
 };
 

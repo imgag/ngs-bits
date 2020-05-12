@@ -50,6 +50,9 @@ public:
 	////Sets selected phenotype terms.
 	void setPhenotypes(const QList<Phenotype>& phenotypes);
 
+	///Returns if only SVs with report config should be shown
+	bool reportConfigurationOnly() const;
+
 
 signals:
 	////Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)

@@ -69,6 +69,8 @@ public:
 
 	///Returns the CNV file corresponding to the GSvar file
 	QString cnvFile(QString gsvar_file);
+	///Returns the Manta SV file corresponding to the GSvar file
+	QString svFile(QString gsvar_file);
 
 	///Returns if germline report is supported for current variant list.
 	bool germlineReportSupported();
@@ -349,6 +351,7 @@ private:
 	VariantList variants_;
 	bool variants_changed_;
 	CnvList cnvs_;
+	BedpeFile svs_;
 	FilterResult filter_result_;
 	QMap<QString, QString> link_columns_;
 	QSet<int> link_indices_;

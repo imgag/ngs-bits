@@ -1132,6 +1132,8 @@ private slots:
 		//setReportConfig
 		CnvList cnvs;
 		cnvs.load(TESTDATA("data_in/cnvs_clincnv.tsv"));
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/sv_manta.bedpe"));
 
 		ReportConfiguration report_conf;
 		report_conf.setCreatedBy("ahmustm1");
@@ -1152,7 +1154,14 @@ private slots:
 		report_var_conf2.classification = "4";
 		report_var_conf2.report_type = "diagnostic variant";
 		report_conf.set(report_var_conf2);
-		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs);
+		ReportVariantConfiguration report_var_conf3;
+		report_var_conf3.variant_type = VariantType::SVS;
+		report_var_conf3.variant_index = 81;
+		report_var_conf3.causal = true;
+		report_var_conf3.classification = "5";
+		report_var_conf3.report_type = "diagnostic variant";
+		report_conf.set(report_var_conf3);
+		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
 
 
 		//reportConfigId
@@ -1166,7 +1175,7 @@ private slots:
 		IS_TRUE(rc_creation_data.last_edit_date!="");
 		//update
 		QThread::sleep(1);
-		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs);
+		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
 		IS_TRUE(conf_id1==conf_id2);
 		//check that no double entries are inserted after second execution of setReportConfig
 		I_EQUAL(db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=1 AND chr='chr2' AND start=89246800 AND end=89545067 AND cn=1").toInt(), 1);
@@ -1179,11 +1188,11 @@ private slots:
 
 		//reportConfig
 		QStringList messages2;
-		ReportConfiguration report_conf2 = db.reportConfig(ps_id, vl, cnvs, messages2);
+		ReportConfiguration report_conf2 = db.reportConfig(ps_id, vl, cnvs, svs, messages2);
 		I_EQUAL(messages2.count(), 0);
 		S_EQUAL(report_conf2.createdBy(), "Max Mustermann");
 		IS_TRUE(report_conf2.createdAt().date()==QDate::currentDate());
-		I_EQUAL(report_conf2.variantConfig().count(), 2);
+		I_EQUAL(report_conf2.variantConfig().count(), 3);
 		ReportVariantConfiguration var_conf = report_conf2.variantConfig()[1]; //order changed because they are sorted by index
 		I_EQUAL(var_conf.variant_index, 47);
 		IS_TRUE(var_conf.causal);
@@ -1214,12 +1223,28 @@ private slots:
 		IS_FALSE(var_conf.exclude_mechanism);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
+		var_conf = report_conf2.variantConfig()[2];
+		I_EQUAL(var_conf.variant_index, 81);
+		IS_TRUE(var_conf.causal);
+		S_EQUAL(var_conf.classification, "5");
+		S_EQUAL(var_conf.report_type, report_var_conf2.report_type);
+		IS_FALSE(var_conf.mosaic);
+		IS_FALSE(var_conf.exclude_artefact);
+		S_EQUAL(var_conf.comments, report_var_conf2.comments);
+		S_EQUAL(var_conf.comments2, report_var_conf2.comments2);
+		IS_FALSE(var_conf.de_novo);
+		IS_FALSE(var_conf.comp_het);
+		IS_FALSE(var_conf.exclude_frequency);
+		IS_FALSE(var_conf.exclude_mechanism);
+		IS_FALSE(var_conf.exclude_other);
+		IS_FALSE(var_conf.exclude_phenotype);
+		IS_TRUE(var_conf.variant_type == VariantType::SVS);
 
 		vl.clear();
-		report_conf2 = db.reportConfig(ps_id, vl, cnvs, messages2);
+		report_conf2 = db.reportConfig(ps_id, vl, cnvs, svs, messages2);
 		I_EQUAL(messages2.count(), 1);
 		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list!");
-		I_EQUAL(report_conf2.variantConfig().count(), 1);
+		I_EQUAL(report_conf2.variantConfig().count(), 2);
 		X_EQUAL(report_conf2.variantConfig()[0].variant_type, VariantType::CNVS);
 
 		//deleteReportConfig

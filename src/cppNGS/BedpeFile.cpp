@@ -158,6 +158,18 @@ BedFile BedpeLine::affectedRegion()
 	return sv_region;
 }
 
+QString BedpeLine::toString()
+{
+	if(type() == StructuralVariantType::BND)
+	{
+		return "BND from " + affectedRegion()[0].toString(true) + " to " + affectedRegion()[1].toString(true);
+	}
+	else
+	{
+		return BedpeFile::typeToString(type()) + " at " + affectedRegion()[0].toString(true);
+	}
+}
+
 BedpeFile::BedpeFile()
 {
 }
@@ -386,4 +398,82 @@ int BedpeFile::estimatedSvSize(int index) const
 	}
 
 	return sv_length;
+}
+
+int BedpeFile::findMatch(const BedpeLine& sv, bool deep_ins_compare, bool error_on_mismatch) const
+{
+	int alt_a_idx = -1, info_a_idx = -1, pos_min_query = -1, pos_max_query = -1;
+	QByteArray left_seq_query, right_seq_query;
+
+	if(deep_ins_compare)
+	{
+		// get index columns
+		alt_a_idx = annotationIndexByName("ALT_A");
+		info_a_idx = annotationIndexByName("INFO_A");
+
+		// precompute left-shift
+		pos_min_query = std::min(std::min(sv.start1(), sv.end1()), std::min(sv.start2(), sv.end2()));
+		pos_max_query = std::max(std::max(sv.start1(), sv.end1()), std::max(sv.start2(), sv.end2()));
+
+		// extract partial sequences
+		foreach (const QByteArray entry, sv.annotations()[info_a_idx].split(';'))
+		{
+			if(entry.trimmed().startsWith("LEFT_SVINSSEQ=")) left_seq_query = entry.trimmed();
+			else if(entry.trimmed().startsWith("RIGHT_SVINSSEQ=")) right_seq_query = entry.trimmed();
+		}
+	}
+
+	// search in all SVs
+	for (int i = 0; i < count(); ++i)
+	{
+		if(lines_[i].type() != sv.type()) continue;
+		if(lines_[i].chr1() != sv.chr1()) continue;
+		if(lines_[i].chr2() != sv.chr2()) continue;
+
+		if(sv.type() == StructuralVariantType::INS && deep_ins_compare)
+		{
+			//compare after left-shift
+			int pos_min_ref = std::min(std::min(lines_[i].start1(), lines_[i].end1()), std::min(lines_[i].start2(), lines_[i].end2()));
+			if(pos_min_query != pos_min_ref) continue;
+			int pos_max_ref = std::max(std::max(lines_[i].start1(), lines_[i].end1()), std::max(lines_[i].start2(), lines_[i].end2()));
+			if(pos_max_query != pos_max_ref) continue;
+
+			//compare sequence
+			if(lines_[i].annotations()[alt_a_idx] != sv.annotations()[alt_a_idx]) continue;
+
+
+			// extract partial sequences
+			QByteArray left_seq_ref, right_seq_ref;
+			foreach (const QByteArray entry, lines_[i].annotations()[info_a_idx].split(';'))
+			{
+				if(entry.trimmed().startsWith("LEFT_SVINSSEQ=")) left_seq_ref = entry.trimmed();
+				else if(entry.trimmed().startsWith("RIGHT_SVINSSEQ=")) right_seq_ref = entry.trimmed();
+			}
+
+			if(left_seq_query != left_seq_ref) continue;
+			if(right_seq_query != right_seq_ref) continue;
+
+			// match found:
+			return i;
+		}
+		else
+		{
+			// compare SV positions
+			if(lines_[i].start1() != sv.start1()) continue;
+			if(lines_[i].end1() != sv.end1()) continue;
+			if(lines_[i].start2() != sv.start2()) continue;
+			if(lines_[i].end2() != sv.end2()) continue;
+
+			// match found:
+			return i;
+		}
+	}
+
+	// Throw error
+	if(error_on_mismatch)
+	{
+		THROW(ArgumentException, "No match found in given SV in BedpeFile!");
+	}
+
+	return -1;
 }

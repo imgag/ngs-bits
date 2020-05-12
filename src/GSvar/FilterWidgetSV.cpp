@@ -37,6 +37,7 @@ FilterWidgetSV::FilterWidgetSV(QWidget *parent)
 	connect(ui_.region_import, SIGNAL(clicked(bool)), this, SLOT(importRegion()));
 	connect(ui_.gene_import, SIGNAL(clicked(bool)), this, SLOT(importGene()));
 	connect(ui_.text_import, SIGNAL(clicked(bool)), this, SLOT(importText()));
+	connect(ui_.report_config, SIGNAL(clicked(bool)), this, SLOT(regionChanged()));
 
 	QAction* action = new QAction("clear", this);
 	connect(action, &QAction::triggered, this, &FilterWidgetSV::clearTargetRegion);
@@ -158,6 +159,11 @@ void FilterWidgetSV::setPhenotypes(const QList<Phenotype>& phenotypes)
 {
 	phenotypes_ = phenotypes;
 	phenotypesChanged();
+}
+
+bool FilterWidgetSV::reportConfigurationOnly() const
+{
+	return ui_.report_config->isChecked();
 }
 
 

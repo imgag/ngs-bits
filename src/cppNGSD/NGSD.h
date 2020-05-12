@@ -532,7 +532,17 @@ public:
 	CopyNumberVariant cnv(int cnv_id);
 
 	///Adds a SV to the NGSD. Returns the SV ID.
-	int addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs);	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
+	int addSv(int callset_id, const BedpeLine& structural_variant, const BedpeFile& svs);
+	///Returns the NGSD ID for a SV. Returns '' or throws an exception if the ID cannot be determined.
+	QString svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails = true);
+	///Returns the SV corresponding to the given identifiers or throws an exception if the ID does not exist.
+	BedpeLine structural_variant(int sv_id, StructuralVariantType type, const BedpeFile& svs);
+	///Returns the SQL table name for a given StructuralVariantType
+	static QString svTableName(StructuralVariantType type);
+
+
+	///Adds a somatic CNV to the NGSD. Returns the somatic CNV ID.
+	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
 	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
 	CopyNumberVariant somaticCnv(int cnv_id);
 
@@ -611,9 +621,9 @@ public:
 	///Returns the report config creation data (user/date).
 	ReportConfigurationCreationData reportConfigCreationData(int id);
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.
-	ReportConfiguration reportConfig(const QString& processed_sample_id, const VariantList& variants, const CnvList& cnvs, QStringList& messages);
+	ReportConfiguration reportConfig(const QString& processed_sample_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QStringList& messages);
 	///Sets/overwrites the report configuration for a processed sample. Returns its database primary key. The variant list is needed to determine the annotation column indices.
-	int setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs);
+	int setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs);
 	///Deletes a report configuration.
 	void deleteReportConfig(int id);
 

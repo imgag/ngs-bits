@@ -57,11 +57,12 @@ HEADERS += \
         OntologyTermCollection_Test.h \
         BamReader_Test.h \
         VcfFile_Test.h \
-        BedpeLine_Test.h \
     CnvList_Test.h \
     StructuralVariantType_Test.h \
     Transcript_Test.h \
-    ClinvarSubmissionGenerator_Test.h
+    ClinvarSubmissionGenerator_Test.h \
+    BedpeLine_Test.h \
+    BedpeFile_Test.h
 
 SOURCES += \
         main.cpp

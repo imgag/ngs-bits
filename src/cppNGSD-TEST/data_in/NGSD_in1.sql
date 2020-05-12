@@ -502,3 +502,32 @@ INSERT INTO `omim_phenotype` (`omim_gene_id`, `phenotype`) VALUES
 (193942, 'Langer mesomelic dysplasia, 249700 (3)'),
 (193942, 'Leri-Weill dyschondrosteosis, 127300 (3)'),
 (193942, 'Short stature, idiopathic familial, 300582 (3)');
+
+--structural variants
+INSERT INTO `sv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES
+(1, 3999, 'Manta', '1.6.0', '2020-01-01');
+
+INSERT INTO `sv_deletion` (`id`, `sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
+(1, 1, 'chr1', 1000, 1020, 12000, 13000, ''),
+(2, 1, 'chr1', 1000, 1020, 20000, 20000, ''),
+(3, 1, 'chr1', 5, 50, 12000, 13000, '');
+
+INSERT INTO `sv_duplication` (`id`, `sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
+(1, 1, 'chr1', 101000, 101020, 112000, 113000, ''),
+(2, 1, 'chr1', 101000, 101020, 120000, 120000, ''),
+(3, 1, 'chr1', 100005, 100050, 112000, 113000, '');
+
+INSERT INTO `sv_inversion` (`id`, `sv_callset_id`, `chr`, `start_min`, `start_max`, `end_min`, `end_max`, `quality_metrics`) VALUES
+(1, 1, 'chr1', 9101000, 9101020, 9112000, 9113000, ''),
+(2, 1, 'chr1', 9101000, 9101020, 9120000, 9120000, ''),
+(3, 1, 'chr1', 9100005, 9100050, 9112000, 9113000, '');
+
+INSERT INTO `sv_insertion` (`id`, `sv_callset_id`, `chr`, `pos`, `ci_upper`) VALUES
+(1, 1, 'chr1', 15482205, 250),
+(2, 1, 'chr1', 16482455, 60),
+(3, 1, 'chr1', 17482432, 77);
+
+INSERT INTO `sv_translocation` (`id`, `sv_callset_id`, `chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, `quality_metrics`) VALUES
+(1, 1, 'chr1', 9101000, 9101020, 'chr5', 4112000, 4113000, ''),
+(2, 1, 'chr1', 9101000, 9101020, 'chr5', 4120000, 4120000, ''),
+(3, 1, 'chr1', 9100005, 9100050, 'chr5', 4112000, 4113000, '');

@@ -299,11 +299,6 @@ void MainWindow::on_actionSV_triggered()
 
 	try
 	{
-		//determine SV files (revert to make Manta the first one)
-		QStringList file_names = Helper::findFiles(QFileInfo(filename_).absolutePath(), "*var_structural.bedpe", false);
-		file_names.sort();
-		std::reverse(file_names.begin(), file_names.end());
-
 		//determine processed sample ID (needed for report config - so only germline)
 		QString ps_id = "";
 		if (LoginManager::active() && germlineReportSupported())
@@ -311,11 +306,20 @@ void MainWindow::on_actionSV_triggered()
 			ps_id = NGSD().processedSampleId(processedSampleName(), false);
 		}
 
-		//open SV wisget
-		SvWidget* list = new SvWidget(file_names, ps_id, ui_.filters, het_hit_genes, gene2region_cache_, this);
+		//open SV widget
+		SvWidget* list;
+		if(svs_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL || svs_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY)
+		{
+			list = new SvWidget(svs_, ps_id, ui_.filters, het_hit_genes, gene2region_cache_, this);
+		}
+		else
+		{
+			list = new SvWidget(svs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_, this);
+		}
 		auto dlg = GUIHelper::createDialog(list, "Structural variants");
 		connect(list,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
 		connect(list,SIGNAL(openGeneTab(QString)),this,SLOT(openGeneTab(QString)));
+		connect(list, SIGNAL(storeReportConfiguration()), this, SLOT(storeReportConfig()));
 		addModelessDialog(dlg);
 	}
 	catch(FileParseException error)
@@ -1421,6 +1425,7 @@ void MainWindow::loadFile(QString filename)
 	variants_.clear();
 	variants_changed_ = false;
 	cnvs_.clear();
+	svs_.clear();
 	filewatcher_.clearFile();
 	db_annos_updated_ = NO;
 	igv_initialized_ = false;
@@ -1467,6 +1472,23 @@ void MainWindow::loadFile(QString filename)
 			}
 		}
 		Log::perf("Loading CNV list took ", timer);
+
+		//load SVs
+		timer.restart();
+		QString sv_file = svFile(filename);
+		if (sv_file!="")
+		{
+			try
+			{
+				svs_.load(sv_file);
+			}
+			catch(Exception& e)
+			{
+				QMessageBox::warning(this, "Error loading SVs", e.message());
+				svs_.clear();
+			}
+		}
+		Log::perf("Loading SV list took ", timer);
 
 		ui_.filters->setValidFilterEntries(variants_.filters().keys());
 
@@ -1752,7 +1774,7 @@ void MainWindow::loadReportConfig()
 	NGSD db;
 	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
 	QStringList messages;
-	report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, cnvs_, messages);
+	report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, cnvs_, svs_, messages);
 	if (!messages.isEmpty())
 	{
 		QMessageBox::warning(this, "Report configuration", "The following problems were encountered while loading the report configuration:\n" + messages.join("\n"));
@@ -1893,7 +1915,7 @@ void MainWindow::storeReportConfig()
 	//store
 	try
 	{
-		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_);
+		db.setReportConfig(processed_sample_id, report_settings_.report_config, variants_, cnvs_, svs_);
 	}
 	catch (Exception& e)
 	{
@@ -4113,6 +4135,22 @@ QString MainWindow::cnvFile(QString gsvar_file)
 	}
 
 	return cnv_file;
+}
+
+QString MainWindow::svFile(QString gsvar_file)
+{
+	QFileInfo file_info(gsvar_file);
+	QString base = file_info.absolutePath() + QDir::separator() + file_info.baseName();
+
+	QString sv_file = base + "_manta_var_structural.bedpe";
+	if (QFile::exists(sv_file))
+	{
+		return sv_file;
+	}
+	else
+	{
+		return "";
+	}
 }
 
 bool MainWindow::germlineReportSupported()

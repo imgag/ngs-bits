@@ -1636,6 +1636,69 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
 COMMENT='SV translocation';
 
+-- -----------------------------------------------------
+-- Table `report_configuration_sv`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `report_configuration_sv`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `report_configuration_id` INT(11) NOT NULL,
+  `sv_deletion_id` INT(11) UNSIGNED DEFAULT NULL,
+  `sv_duplication_id` INT(11) UNSIGNED DEFAULT NULL,
+  `sv_insertion_id` INT(11) UNSIGNED DEFAULT NULL,
+  `sv_inversion_id` INT(11) UNSIGNED DEFAULT NULL,
+  `sv_translocation_id` INT(11) UNSIGNED DEFAULT NULL,
+  `type` ENUM('diagnostic variant', 'candidate variant', 'incidental finding') NOT NULL,
+  `causal` BOOLEAN NOT NULL,
+  `class` ENUM('n/a','1','2','3','4','5','M') NOT NULL,
+  `inheritance` ENUM('n/a', 'AR','AD','AR+AD','XLR','XLD','XLR+XLD','MT') NOT NULL,
+  `de_novo` BOOLEAN NOT NULL,
+  `mosaic` BOOLEAN NOT NULL,
+  `compound_heterozygous` BOOLEAN NOT NULL,
+  `exclude_artefact` BOOLEAN NOT NULL,
+  `exclude_frequency` BOOLEAN NOT NULL,
+  `exclude_phenotype` BOOLEAN NOT NULL,
+  `exclude_mechanism` BOOLEAN NOT NULL,
+  `exclude_other` BOOLEAN NOT NULL,
+  `comments` text NOT NULL,
+  `comments2` text NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_report_configuration3`
+    FOREIGN KEY (`report_configuration_id` )
+    REFERENCES `report_configuration` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_report_configuration_sv_has_sv_deletion`
+    FOREIGN KEY (`sv_deletion_id`)
+    REFERENCES `sv_deletion` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_report_configuration_sv_has_sv_duplication`
+    FOREIGN KEY (`sv_duplication_id`)
+    REFERENCES `sv_duplication` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_report_configuration_sv_has_sv_insertion`
+    FOREIGN KEY (`sv_insertion_id`)
+    REFERENCES `sv_insertion` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_report_configuration_sv_has_sv_inversion`
+    FOREIGN KEY (`sv_inversion_id`)
+    REFERENCES `sv_inversion` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_report_configuration_sv_has_sv_translocation`
+    FOREIGN KEY (`sv_translocation_id`)
+    REFERENCES `sv_translocation` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  UNIQUE INDEX `config_variant_combo_uniq` (`report_configuration_id` ASC, `sv_deletion_id` ASC, `sv_duplication_id` ASC, `sv_insertion_id` ASC, `sv_inversion_id` ASC, `sv_translocation_id` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
 -- ----------------------------------------------------------------------------------------------------------
 --                                                 INITIAL DATA
 -- ----------------------------------------------------------------------------------------------------------

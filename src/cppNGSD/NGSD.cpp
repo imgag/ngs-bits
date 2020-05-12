@@ -1169,6 +1169,12 @@ QString NGSD::addCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList
 
 int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 {
+	// skip SVs on special chr
+	if (!sv.chr1().isNonSpecial() || !sv.chr2().isNonSpecial() )
+	{
+		THROW(ArgumentException, "Structural variants on special chromosomes can not be added to the NGSD!");
+		return -1;
+	}
 	// parse qc data
 	QJsonObject quality_metrics;
 	// get quality value
@@ -1265,8 +1271,7 @@ int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 		query.bindValue(4, inserted_sequence);
 		query.bindValue(5, known_left);
 		query.bindValue(6, known_right);
-		query.bindValue(7, quality_metrics_string);
-		query.exec();
+		query.bindValue(7, quality_metrics_string);		query.exec();
 
 		//return insert ID
 		return query.lastInsertId().toInt();
@@ -1292,10 +1297,258 @@ int NGSD::addSv(int callset_id, const BedpeLine& sv, const BedpeFile& svs)
 	}
 	else
 	{
-		THROW(FileParseException, "Invalid structural variant type!");
+		THROW(ArgumentException, "Invalid structural variant type!");
 		return -1;
 	}
 
+}
+
+QString NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails)
+{
+	QString db_table_name = svTableName(sv.type());
+	SqlQuery query = getQuery();
+	if (sv.type() == StructuralVariantType::DEL || sv.type() == StructuralVariantType::DUP || sv.type() == StructuralVariantType::INV)
+	{
+		// get SV from NGSD
+		query.exec("SELECT id FROM `" + db_table_name + "` WHERE `sv_callset_id`=" + QString::number(callset_id)
+				   + " AND `chr`=\"" + sv.chr1().strNormalized(true) + "\""
+				   + " AND `start_min`=" + QString::number(sv.start1())
+				   + " AND `start_max`=" + QString::number(sv.end1())
+				   + " AND `end_min`="+ QString::number(sv.start2())
+				   + " AND `end_max`="+ QString::number(sv.end2()));
+	}
+	else if (sv.type() == StructuralVariantType::INS)
+	{
+		if (sv.chr1() != sv.chr2()) THROW(ArgumentException, "Invalid insertion position:'" + sv.position1() + ", " + sv.position2() + "'!");
+
+		// get inserted sequence
+		QByteArray inserted_sequence, known_left, known_right;
+		QByteArray alt_seq = sv.annotations().at(svs.annotationIndexByName("ALT_A"));
+		if (alt_seq != "<INS>")
+		{
+			// complete sequence available
+			inserted_sequence = alt_seq;
+		}
+		else
+		{
+			// only right/left part of insertion available
+			bool left_part_found = false;
+			bool right_part_found = false;
+			QByteArrayList info_a = sv.annotations().at(svs.annotationIndexByName("INFO_A")).split(';');
+			foreach (const QByteArray& kv_pair, info_a)
+			{
+				if (kv_pair.startsWith("LEFT_SVINSSEQ="))
+				{
+					// left part
+					known_left = kv_pair.split('=')[1].trimmed();
+					left_part_found = true;
+				}
+				if (kv_pair.startsWith("RIGHT_SVINSSEQ="))
+				{
+					// right part
+					known_right = kv_pair.split('=')[1].trimmed();
+					right_part_found = true;
+				}
+				if (left_part_found && right_part_found) break;
+			}
+		}
+
+		// determine position and upper CI:
+		int pos = std::min(std::min(sv.start1(), sv.start2()), std::min(sv.end1(), sv.end2()));
+		int ci_upper = std::max(std::max(sv.start1(), sv.start2()), std::max(sv.end1(), sv.end2())) - pos;
+
+		// get SV from NGSD
+		query.exec("SELECT id FROM `" + db_table_name + "` WHERE `sv_callset_id`=" + QString::number(callset_id)
+				   + " AND `chr`=\"" + sv.chr1().strNormalized(true) + "\""
+				   + " AND `pos`=" + QString::number(pos)
+				   + " AND `ci_upper`=" + QString::number(ci_upper)
+				   + " AND `inserted_sequence`=\"" + inserted_sequence + "\""
+				   + " AND `known_left`=\"" + known_left + "\""
+				   + " AND `known_right`=\"" + known_right + "\"");
+	}
+	else if (sv.type() == StructuralVariantType::BND)
+	{
+		// get SV from NGSD
+		query.exec("SELECT id FROM `" + db_table_name + "` WHERE `sv_callset_id`=" + QString::number(callset_id)
+				   + " AND `chr1`=\"" + sv.chr1().strNormalized(true) + "\""
+				   + " AND `start1`=" + QString::number(sv.start1())
+				   + " AND `end1`=" + QString::number(sv.end1())
+				   + " AND `chr2`=\"" + sv.chr2().strNormalized(true) + "\""
+				   + " AND `start2`=" + QString::number(sv.start2())
+				   + " AND `end2`=" + QString::number(sv.end2()));
+	}
+	else
+	{
+		THROW(FileParseException, "Invalid structural variant type!");
+	}
+
+	query.next();
+
+	// Throw error if multiple matches found
+	if(query.size() > 1) THROW(DatabaseException, "Multiple matching SVs found in NGSD!");
+
+	if(query.size() < 1)
+	{
+		if(!throw_if_fails) return "";
+
+		THROW(DatabaseException, "SV " + BedpeFile::typeToString(sv.type()) + " at " + sv.positionRange() + " for callset with id '" + QString::number(callset_id) + "' not found in NGSD!");
+	}
+
+	return query.value("id").toString();
+
+}
+
+BedpeLine NGSD::structural_variant(int sv_id, StructuralVariantType type, const BedpeFile& svs)
+{
+	BedpeLine sv;
+	QList<QByteArray> annotations = QVector<QByteArray>(svs.annotationHeaders().size()).toList();
+
+
+	// determine indices for annotations
+	int qual_idx = svs.annotationIndexByName("QUAL");
+	int filter_idx = svs.annotationIndexByName("FILTER");
+	int alt_a_idx = svs.annotationIndexByName("ALT_A");
+	int info_a_idx = svs.annotationIndexByName("INFO_A");
+
+	// get DEL, DUP or INV
+	if (type == StructuralVariantType::DEL || type == StructuralVariantType::DUP || type == StructuralVariantType::INV)
+	{
+		// define pos varaibles
+		Chromosome chr1, chr2;
+		int start1, start2, end1, end2;
+
+		// get correct sv table
+		QByteArray table;
+		switch (type)
+		{
+			case StructuralVariantType::DEL:
+				table = "sv_deletion";
+				break;
+			case StructuralVariantType::DUP:
+				table = "sv_duplication";
+				break;
+			case StructuralVariantType::INV:
+				table = "sv_inversion";
+				break;
+			default:
+				THROW(FileParseException, "Invalid structural variant type!");
+				break;
+		}
+
+		// get SV from the NGSD
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM `" + table + "` WHERE id=" + QByteArray::number(sv_id));
+		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + QString::number(sv_id) + "'not found in table '" + table + "'!" );
+		query.next();
+		chr1 = Chromosome(query.value("chr").toByteArray());
+		chr2 = Chromosome(query.value("chr").toByteArray());
+		start1 = query.value("start_min").toInt();
+		end1 = query.value("start_max").toInt();
+		start2 = query.value("end_min").toInt();
+		end2 = query.value("end_max").toInt();
+
+		// parse quality & filter
+		QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
+		annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
+		annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
+
+
+		// create SV
+		sv = BedpeLine(chr1, start1, end1, chr2, start2, end2, type, annotations);
+	}
+	else if (type == StructuralVariantType::INS)
+	{
+		// get INS from the NGSD
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM `sv_insertion` WHERE id=" + QByteArray::number(sv_id));
+		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + QString::number(sv_id) + "'not found in table 'sv_insertion'!" );
+		query.next();
+		Chromosome chr = Chromosome(query.value("chr").toByteArray());
+		int pos = query.value("pos").toInt();
+		int pos_upper = pos + query.value("ci_upper").toInt();
+
+
+		// parse quality & filter
+		QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
+		annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
+		annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
+
+		// get inserted sequences:
+		if (!query.value("inserted_sequence").isNull())
+		{
+			annotations[alt_a_idx] = query.value("inserted_sequence").toByteArray();
+		}
+		else
+		{
+			annotations[alt_a_idx] = "<INS>";
+		}
+
+		QByteArrayList partial_sequences;
+		if (!query.value("known_left").isNull())
+		{
+			partial_sequences << "LEFT_SVINSSEQ=" + query.value("known_left").toByteArray();
+		}
+		if (!query.value("known_right").isNull())
+		{
+			partial_sequences << "RIGHT_SVINSSEQ=" + query.value("known_right").toByteArray();
+		}
+		annotations[info_a_idx] = partial_sequences.join(";");
+
+		// create SV
+		sv = BedpeLine(chr, pos, pos_upper, chr, pos, pos, type, annotations);
+	}
+	else if (type == StructuralVariantType::BND)
+	{
+		// define pos varaibles
+		Chromosome chr1, chr2;
+		int start1, start2, end1, end2;
+
+		// get SV from the NGSD
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM `sv_translocation` WHERE id=" + QByteArray::number(sv_id));
+		if (query.size() == 0 ) THROW(DatabaseException, "SV with id '" + QString::number(sv_id) + "'not found in table 'sv_translocation'!" );
+		query.next();
+		chr1 = Chromosome(query.value("chr1").toByteArray());
+		chr2 = Chromosome(query.value("chr2").toByteArray());
+		start1 = query.value("start1").toInt();
+		end1 = query.value("end1").toInt();
+		start2 = query.value("start2").toInt();
+		end2 = query.value("end2").toInt();
+
+		// parse quality & filter
+		QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
+		annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
+		annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
+
+		// create SV
+		sv = BedpeLine(chr1, start1, end1, chr2, start2, end2, type, annotations);
+	}
+	else
+	{
+		THROW(ArgumentException, "Invalid structural variant type!");
+	}
+
+	return sv;
+}
+
+QString NGSD::svTableName(StructuralVariantType type)
+{
+	switch (type)
+	{
+		case StructuralVariantType::DEL:
+			return "sv_deletion";
+		case StructuralVariantType::DUP:
+			return "sv_duplication";
+		case StructuralVariantType::INS:
+			return "sv_insertion";
+		case StructuralVariantType::INV:
+			return "sv_invertion";
+		case StructuralVariantType::BND:
+			return "sv_translocation";
+		default:
+			THROW(ArgumentException, "Invalid structural variant type!");
+			break;
+	}
 }
 
 QVariant NGSD::getValue(const QString& query, bool no_value_is_ok, QString bind_value) const
@@ -3395,7 +3648,7 @@ ReportConfigurationCreationData NGSD::reportConfigCreationData(int id)
 	return output;
 }
 
-ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const VariantList& variants, const CnvList& cnvs, QStringList& messages)
+ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QStringList& messages)
 {
 	ReportConfiguration output;
 
@@ -3487,10 +3740,79 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 		output.set(var_conf);
 	}
 
+	//load SV data
+	query.exec("SELECT * FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(conf_id));
+	while(query.next())
+	{
+		ReportVariantConfiguration var_conf;
+		var_conf.variant_type = VariantType::SVS;
+
+		//get SV id
+		int sv_id;
+		StructuralVariantType type;
+
+		//determine SV type and id
+		if(!query.value("sv_deletion_id").isNull())
+		{
+			type = StructuralVariantType::DEL;
+			sv_id = query.value("sv_deletion_id").toInt();
+		}
+		else if(!query.value("sv_duplication_id").isNull())
+		{
+			type = StructuralVariantType::DUP;
+			sv_id = query.value("sv_duplication_id").toInt();
+		}
+		else if(!query.value("sv_insertion_id").isNull())
+		{
+			type = StructuralVariantType::INS;
+			sv_id = query.value("sv_insertion_id").toInt();
+		}
+		else if(!query.value("sv_inversion_id").isNull())
+		{
+			type = StructuralVariantType::INV;
+			sv_id = query.value("sv_inversion_id").toInt();
+		}
+		else if(!query.value("sv_translocation_id").isNull())
+		{
+			type = StructuralVariantType::BND;
+			sv_id = query.value("sv_translocation_id").toInt();
+		}
+		else
+		{
+			THROW(DatabaseException, "Report config entry does not contain a SV id!");
+		}
+
+		BedpeLine sv = structural_variant(sv_id, type, svs);
+
+		var_conf.variant_index = svs.findMatch(sv, true, false);
+		if (var_conf.variant_index==-1)
+		{
+			messages << "Could not find CNV '" + BedpeFile::typeToString(sv.type()) + " " + sv.positionRange() + "' in given variant list!";
+			continue;
+		}
+
+		var_conf.report_type = query.value("type").toString();
+		var_conf.causal = query.value("causal").toBool();
+		var_conf.classification = query.value("class").toString();
+		var_conf.inheritance = query.value("inheritance").toString();
+		var_conf.de_novo = query.value("de_novo").toBool();
+		var_conf.mosaic = query.value("mosaic").toBool();
+		var_conf.comp_het = query.value("compound_heterozygous").toBool();
+		var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
+		var_conf.exclude_frequency = query.value("exclude_frequency").toBool();
+		var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
+		var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
+		var_conf.exclude_other = query.value("exclude_other").toBool();
+		var_conf.comments = query.value("comments").toString();
+		var_conf.comments2 = query.value("comments2").toString();
+
+		output.set(var_conf);
+	}
+
 	return output;
 }
 
-int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs)
+int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs)
 {
 	//create report config (if missing)
 	int id = reportConfigId(processed_sample_id);
@@ -3500,6 +3822,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 		SqlQuery query = getQuery();
 		query.exec("DELETE FROM `report_configuration_variant` WHERE report_configuration_id=" + QString::number(id));
 		query.exec("DELETE FROM `report_configuration_cnv` WHERE report_configuration_id=" + QString::number(id));
+		query.exec("DELETE FROM `report_configuration_sv` WHERE report_configuration_id=" + QString::number(id));
 
 		//update report config
 		query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + LoginManager::userIdAsString() + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" + QString::number(id));
@@ -3524,6 +3847,8 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 	query_var.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14)");
 	SqlQuery query_cnv = getQuery();
 	query_cnv.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15)");
+	SqlQuery query_sv = getQuery();
+	query_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19)");
 	foreach(const ReportVariantConfiguration& var_conf, config.variantConfig())
 	{
 		if (var_conf.variant_type==VariantType::SNVS_INDELS)
@@ -3609,6 +3934,79 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 			query_cnv.exec();
 
 		}
+		else if (var_conf.variant_type==VariantType::SVS)
+		{
+			//check SV index exists in SV list
+			if (var_conf.variant_index<0 || var_conf.variant_index>=svs.count())
+			{
+				THROW(ProgrammingException, "SV list does not contain SV with index '" + QString::number(var_conf.variant_index) + "' in NGSD::setReportConfig!");
+			}
+
+			//check that report SV callset exists
+			QVariant callset_id = getValue("SELECT id FROM sv_callset WHERE processed_sample_id=" + processed_sample_id, true);
+			if (!callset_id.isValid())
+			{
+				THROW(ProgrammingException, "No SV callset defined for processed sample with ID '" + processed_sample_id + "' in NGSD::setReportConfig!");
+			}
+
+			//get SV id and table (add SV if not in DB)
+			const BedpeLine& sv = svs[var_conf.variant_index];
+			QString sv_id = svId(sv, callset_id.toInt(), svs, false);
+			if (sv_id == "")
+			{
+				sv_id = QByteArray::number(addSv(callset_id.toInt(), sv, svs));
+			}
+
+
+
+			//define SQL query
+			query_sv.bindValue(0, id);
+			query_sv.bindValue(1, QVariant(QVariant::String));
+			query_sv.bindValue(2, QVariant(QVariant::String));
+			query_sv.bindValue(3, QVariant(QVariant::String));
+			query_sv.bindValue(4, QVariant(QVariant::String));
+			query_sv.bindValue(5, QVariant(QVariant::String));
+			query_sv.bindValue(6, var_conf.report_type);
+			query_sv.bindValue(7, var_conf.causal);
+			query_sv.bindValue(8, var_conf.classification);
+			query_sv.bindValue(9, var_conf.inheritance);
+			query_sv.bindValue(10, var_conf.de_novo);
+			query_sv.bindValue(11, var_conf.mosaic);
+			query_sv.bindValue(12, var_conf.comp_het);
+			query_sv.bindValue(13, var_conf.exclude_artefact);
+			query_sv.bindValue(14, var_conf.exclude_frequency);
+			query_sv.bindValue(15, var_conf.exclude_phenotype);
+			query_sv.bindValue(16, var_conf.exclude_mechanism);
+			query_sv.bindValue(17, var_conf.exclude_other);
+			query_sv.bindValue(18, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+			query_sv.bindValue(19, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+
+			// set SV id
+			switch (sv.type())
+			{
+				case StructuralVariantType::DEL:
+					query_sv.bindValue(1, sv_id);
+					break;
+				case StructuralVariantType::DUP:
+					query_sv.bindValue(2, sv_id);
+					break;
+				case StructuralVariantType::INS:
+					query_sv.bindValue(3, sv_id);
+					break;
+				case StructuralVariantType::INV:
+					query_sv.bindValue(4, sv_id);
+					break;
+				case StructuralVariantType::BND:
+					query_sv.bindValue(5, sv_id);
+					break;
+				default:
+					THROW(ArgumentException, "Invalid structural variant type!")
+					break;
+			}
+
+			query_sv.exec();
+
+		}
 		else
 		{
 			THROW(NotImplementedException, "Storing of report config variants with type '" + QString::number((int)var_conf.variant_type) + "' not implemented!");
@@ -3634,6 +4032,7 @@ void NGSD::deleteReportConfig(int id)
 	SqlQuery query = getQuery();
 	query.exec("DELETE FROM `report_configuration_cnv` WHERE `report_configuration_id`=" + rc_id);
 	query.exec("DELETE FROM `report_configuration_variant` WHERE `report_configuration_id`=" + rc_id);
+	query.exec("DELETE FROM `report_configuration_sv` WHERE `report_configuration_id`=" + rc_id);
 	query.exec("DELETE FROM `report_configuration` WHERE `id`=" + rc_id);
 }
 

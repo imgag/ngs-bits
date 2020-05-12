@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>350</width>
-    <height>581</height>
+    <height>574</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -327,6 +327,31 @@
         <property name="icon">
          <iconset resource="GSvar.qrc">
           <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_Misc">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="title">
+      <string>Misc</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QCheckBox" name="report_config">
+        <property name="text">
+         <string>Show SVs with report configuration only</string>
         </property>
        </widget>
       </item>

@@ -145,6 +145,9 @@ public:
 	///Returns the affected chromosomal region als BED file
 	BedFile affectedRegion();
 
+	///Returns the SV as String
+	QString toString();
+
 protected:
 	Chromosome chr1_;
 	int start1_;
@@ -227,6 +230,11 @@ public:
 	{
 		return annotation_headers_;
 	}
+	///Sets the annotation headers for the BEDPE file
+	void setAnnotationHeaders(QList<QByteArray> annotation_headers)
+	{
+		annotation_headers_ = annotation_headers;
+	}
 
 	///Get description of annotations as written in vcf comments, e.g. FORMAT
 	QMap<QByteArray,QByteArray> annotationDescriptionByID(const QByteArray& name);
@@ -249,6 +257,11 @@ public:
 	///		For INS without SVLEN the sum of LEFT_SVINSSEQ and RIGHT_SVINSSEQ (known left/right inserted bases)
 	///		For BND return -1.
 	int estimatedSvSize(int index) const;
+
+	///Returns the index of the BedpeLine which matches the given SV, -1 if not found
+	///     NOTICE: 'deep_ins_compare' will perform a left-shift and a sequence comparison. In this case headers
+	///             of the given BedpeLine has to match the headers of this file
+	int findMatch(const BedpeLine& sv, bool deep_ins_compare = false, bool error_on_mismatch = true) const;
 
 private:
 	QList<QByteArray> annotation_headers_;
