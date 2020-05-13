@@ -352,6 +352,32 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
 	THROW(ProgrammingException, "Could not convert variant " + toString(false) + " to string! This should not happen!");
 }
 
+QString Variant::toVCF(const FastaFileIndex& genome_index) const
+{
+	int pos = start_;
+	Sequence ref = ref_;
+	Sequence obs = obs_;
+
+	//prepend base for InDels
+	if (!isSNV())
+	{
+		if (ref=="-")
+		{
+			ref = "";
+		}
+		else if (obs=="-")
+		{
+			pos -= 1;
+			obs = "";
+		}
+		Sequence prefix_base = genome_index.seq(chr_, pos, 1);
+		ref = prefix_base + ref;
+		obs = prefix_base + obs;
+	}
+
+	return chr_.str() + "\t" + QString::number(pos) + "\t.\t" + ref + "\t" + obs + "\t30\tPASS\t.";
+}
+
 VariantList::LessComparatorByAnnotation::LessComparatorByAnnotation(int annotation_index)
 	: annotation_index_(annotation_index)
 {

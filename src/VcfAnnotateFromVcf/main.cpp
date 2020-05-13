@@ -42,7 +42,7 @@ public:
         addInfile("in", "Input VCF(.GZ) file. If unset, reads from STDIN.", true, true);
         addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
         addInt("threads", "The number of threads used to read, process and write files.", true, 1);
-        addInt("block_size", "Number of lines in one block", true, 5000);
+		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
 
         changeLog(2020, 4, 11, "Added multithread support by Julian Fratte.");
         changeLog(2019, 8, 19, "Added support for multiple annotations files through config file.");
@@ -52,11 +52,8 @@ public:
 
     virtual void main()
     {
-
         //init
-        QTextStream out(stdout);
-        //QElapsedTimer timer;
-        //timer.start();
+		QTextStream out(stdout);
 
         QElapsedTimer timer;
         timer.start();

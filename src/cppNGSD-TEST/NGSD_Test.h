@@ -414,7 +414,7 @@ private slots:
 		S_EQUAL(system_data.type, "Panel Haloplex");
 		IS_FALSE(system_data.shotgun);
 		S_EQUAL(system_data.umi_type, "n/a");
-		S_EQUAL(system_data.genome, "hg19");
+		S_EQUAL(system_data.genome, "GRCh37");
 
 		//normalSample
 		S_EQUAL(db.normalSample(db.processedSampleId("NA12345_01")), "NA12878_03")

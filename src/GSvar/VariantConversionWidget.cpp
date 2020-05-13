@@ -40,6 +40,13 @@ void VariantConversionWidget::setMode(VariantConversionWidget::ConversionMode mo
 		ui_.output_label->setText("Output (GSvar):");
 		ui_.load_btn->setVisible(false);
 	}
+	else if (mode==GSVAR_TO_VCF)
+	{
+		ui_.message->setVisible(false);
+		ui_.input_label->setText("Input (GSvar):");
+		ui_.output_label->setText("Output (VCF):");
+		ui_.load_btn->setVisible(false);
+	}
 }
 
 void VariantConversionWidget::loadInputFromFile()
@@ -151,6 +158,31 @@ void VariantConversionWidget::convert()
 				if (variant.ref()!="-") variant.checkReferenceSequence(ref_genome_idx);
 
 				output << variant.toString(true, -1, true).replace(" ", "\t");
+			}
+		}
+		else if (mode_==GSVAR_TO_VCF)
+		{
+			FastaFileIndex idx(Settings::string("reference_genome"));
+
+			foreach(QString line, lines)
+			{
+				line = line.trimmed();
+				if (line=="" || line[0]=="#")
+				{
+					output << "";
+					continue;
+				}
+
+				QStringList parts = line.split("\t");
+				if (parts.count()<5) THROW(ArgumentException, "Invalid GSvar variant '" + line + "' - too few tab-separated parts!");
+
+				int start = Helper::toInt(parts[1], "GSvar start position", line);
+				int end = Helper::toInt(parts[2], "GSvar end position", line);
+				Sequence ref = parts[3].toLatin1().toUpper().trimmed();
+				Sequence obs = parts[4].toLatin1().toUpper().trimmed();
+
+				Variant variant(parts[0], start, end, ref, obs);
+				output << variant.toVCF(idx);
 			}
 		}
 

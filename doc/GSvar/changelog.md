@@ -1,5 +1,10 @@
 # GSvar change log
 
+
+### 2020_03-120 (08.05.20)
+- General: sample phenotypes can now be loaded from the filter panel in the CNV/SV window
+- General: added email dialog as workaround if there is no email client installed.
+
 ### 2020_03-104 (29.04.20)
 - General: added Circos plot button.
 - IGV: added Manta evidence BAM to IGV init dialog.

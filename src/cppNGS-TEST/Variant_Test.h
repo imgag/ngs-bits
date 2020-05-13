@@ -357,6 +357,23 @@ private slots:
 		S_EQUAL(v.toHGVS(genome_index), "g.120611948_120611952inv");
 	}
 
+	void toVCF()
+	{
+		QString ref_file = Settings::string("reference_genome");
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		FastaFileIndex genome_index(ref_file);
+
+		Variant v;
+		v = Variant("chr1", 47110766, 47110766, "-", "C");
+		S_EQUAL(v.toVCF(genome_index), "chr1\t47110766\t.\tG\tGC\t30\tPASS\t.");
+
+		v = Variant("chr1", 47133811, 47133811, "T", "C");
+		S_EQUAL(v.toVCF(genome_index), "chr1\t47133811\t.\tT\tC\t30\tPASS\t.");
+
+		v = Variant("chr1", 47181921, 47181921, "A", "-");
+		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCA\tC\t30\tPASS\t.");
+	}
+
 	void addFilter()
 	{
 		Variant v = Variant("chr1", 120611964, 120611964, "G", "C");

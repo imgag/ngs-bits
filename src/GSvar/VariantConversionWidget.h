@@ -14,6 +14,7 @@ public:
 	{
 		VCF_TO_GSVAR,
 		HGVSC_TO_GSVAR,
+		GSVAR_TO_VCF,
 		NONE
 	};
 	VariantConversionWidget(QWidget* parent = 0);

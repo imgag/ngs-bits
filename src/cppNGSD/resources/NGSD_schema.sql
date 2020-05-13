@@ -1721,8 +1721,8 @@ INSERT INTO species VALUES (NULL, 'human');
 -- -----------------------------------------------------
 -- Table `genome`
 -- -----------------------------------------------------
-INSERT INTO genome VALUES (NULL, 'hg19', 'Human genome hg19');
-INSERT INTO genome VALUES (NULL, 'hg38', 'Human genome hg38');
+INSERT INTO genome VALUES (NULL, 'GRCh37', 'Human genome GRCh37 (hg19)');
+INSERT INTO genome VALUES (NULL, 'GRCh38', 'Human genome GRCh38 (hg38)');
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

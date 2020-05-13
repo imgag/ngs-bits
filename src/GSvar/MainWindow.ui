@@ -406,6 +406,7 @@
     </property>
     <addaction name="actionConvertVcfToGSvar"/>
     <addaction name="actionConvertHgvsToGSvar"/>
+    <addaction name="actionConvertGSvarToVcf"/>
     <addaction name="separator"/>
     <addaction name="actionPublishVariantInLOVD"/>
    </widget>
@@ -1075,6 +1076,11 @@
    </property>
    <property name="toolTip">
     <string>Show Circos plot of the current sample.</string>
+   </property>
+  </action>
+  <action name="actionConvertGSvarToVcf">
+   <property name="text">
+    <string>Convert GSvar &gt; VCF</string>
    </property>
   </action>
  </widget>
