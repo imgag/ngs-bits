@@ -1790,9 +1790,9 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 	{
 		THROW(ArgumentException, "Merged and sorted BED file required for high-coverage statistics!");
 	}
-	if (cutoff > INT_MAX)
+	if (cutoff > std::numeric_limits<int>::max())
 	{
-		THROW(ArgumentException, "Cutoff cannot be bigger than " + QString::number(INT_MAX) + "!");
+		THROW(ArgumentException, "Cutoff cannot be bigger than " + QString::number(std::numeric_limits<int>::max()) + "!");
 	}
 	else if (cutoff <= 0)
 	{
@@ -1810,7 +1810,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 		const int bed_start = bed_line.start();
 
 		//jump to region
-		reader.setRegion(bed_line.chr(), bed_line.start(), bed_line.end());
+		reader.setRegion(bed_line.chr(), bed_start, bed_line.end());
 
 		//iterate through all alignments
 		int coverage_count = 0;
@@ -1889,9 +1889,9 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 
 BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq)
 {
-	if (cutoff > INT_MAX)
+	if (cutoff > std::numeric_limits<int>::max())
 	{
-		THROW(ArgumentException, "Cutoff cannot be bigger than " + QString::number(INT_MAX) + "!")
+		THROW(ArgumentException, "Cutoff cannot be bigger than " + QString::number(std::numeric_limits<int>::max()) + "!")
 	}
 	else if (cutoff <= 0)
 	{
