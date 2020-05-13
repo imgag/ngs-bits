@@ -430,7 +430,19 @@ private slots:
         I_EQUAL(low_cov.baseCount(), 3095115275ll);
     }
 
-	void highCoverage_mapq20()
+	void highCoverage_roi_mapq20()
+	{
+		BedFile bed_file;
+		bed_file.load(TESTDATA("data_in/panel.bed"));
+		bed_file.merge();
+		I_EQUAL(bed_file.baseCount(), 271536);
+
+		BedFile low_cov =  Statistics::highCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, 20);
+		I_EQUAL(low_cov.count(), 1700);
+		I_EQUAL(low_cov.baseCount(), 255420);
+	}
+
+	void highCoverage_wgs_mapq20()
 	{
 		BedFile high_cov = Statistics::highCoverage(TESTDATA("data_in/panel.bam"), 20, 20);
 		I_EQUAL(high_cov.count(), 1781);

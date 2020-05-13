@@ -25,10 +25,6 @@ SUBDIRS += NGSDImportQC
 tools-TEST.depends += NGSDImportQC
 NGSDImportQC.depends = cppNGSD
 
-SUBDIRS += BamHighCoverage
-tools-TEST.depends += BamHighCoverage
-BamHighCoverage.depends = cppNGSD
-
 SUBDIRS += NGSDExportGenes
 tools-TEST.depends += NGSDExportGenes
 NGSDExportGenes.depends = cppNGSD
@@ -380,6 +376,10 @@ SvFilterAnnotations.depends = cppNGS
 SUBDIRS += BedpeToBed
 tools-TEST.depends += BedpeToBed
 BedpeToBed.depends = cppNGS
+
+SUBDIRS += BedHighCoverage
+tools-TEST.depends += BedHighCoverage
+BedHighCoverage.depends = cppNGS
 
 #other stuff
 OTHER_FILES += ToDos.txt

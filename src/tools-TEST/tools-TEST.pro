@@ -30,12 +30,12 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     SvFilterAnnotations_Test.h \
     UpdHunter_Test.h \
     NGSDImportQC_Test.h \
-    BamHighCoverage_Test.h \
     NGSDExportGenes_Test.h \
     SampleOverview_Test.h \
     BedAnnotateGenes_Test.h \
     BedAnnotateGC_Test.h \
     BedCoverage_Test.h \
+    BedHighCoverage_Test.h \
     BedLowCoverage_Test.h \
     BedMerge_Test.h \
     BedInfo_Test.h \
