@@ -22,7 +22,6 @@ GSvar:
 ### Plots: <2 samples with date > no plot
 ### Converter chromosomal bands > coordinates
 ### QC plots: allow export as TSV (with PS qualiy, project, project type)
-*** Include CNV QC metrics in report HTML/XML?! (discuss with Anastasia/Anne)
 * Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater

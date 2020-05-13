@@ -99,8 +99,15 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->system->setText("<a href=\"" + name_short + "\">"+ps_data.processing_system+"</a>");
 	ui_->project->setText("<a href=\"" + ps_data.project_name + "\">"+ps_data.project_name+"</a>");
 	QString run = ps_data.run_name;
-	QString run_quality = db.getValue("SELECT quality FROM sequencing_run WHERE name=:0", true, run).toString();
-	styleQualityLabel(ui_->r_quality, run_quality);
+	if (run.isEmpty())
+	{
+		ui_->r_quality->setVisible(false);
+	}
+	else
+	{
+		QString run_quality = db.getValue("SELECT quality FROM sequencing_run WHERE name=:0", true, run).toString();
+		styleQualityLabel(ui_->r_quality, run_quality);
+	}
 	ui_->run->setText("<a href=\"" + run + "\">"+run+"</a>");
 	ui_->merged->setText(mergedSamples());
 	ui_->lab_operator->setText(ps_data.lab_operator);
