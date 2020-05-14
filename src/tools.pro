@@ -401,5 +401,9 @@ SUBDIRS += BedpeAnnotateCnvOverlap
 tools-TEST.depends += BedpeAnnotateCnvOverlap
 BedpeAnnotateCnvOverlap.depends = cppNGS
 
+SUBDIRS += TrioMaternalContamination
+tools-TEST.depends += TrioMaternalContamination
+TrioMaternalContamination.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt

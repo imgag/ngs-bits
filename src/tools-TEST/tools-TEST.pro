@@ -121,7 +121,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     PhenotypeSubtree_Test.h \
     BedpeFilter_Test.h \
     BedpeAnnotateCnvOverlap_Test.h
-	
+    TrioMaternalContamination.h
+
 SOURCES += \
     main.cpp
 
