@@ -15,10 +15,10 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* Added tools: NGSDAnnotateSV, BedpeToBed, BedHighCoverage (replaced BamHighCoverage)
+* Added tools: NGSDAnnotateSV, BedpeToBed, BedHighCoverage
+* Removed tools: BamHighCoverage
 * NGSDImportHPO: Added support for new HPO annotation file format and optimized the NGSD hpo-gene relation table.
 * NGSDAddVariantsGermline: added import of structural variants
-* GSvar: added structural variant filter for NGSD counts/allele frequency 
 
 Changes in release 2020_03:
 
@@ -141,6 +141,7 @@ The default output format of the quality control tools is [qcML](https://github.
 * [BedpeAnnotateFromBed](doc/tools/BedpeAnnotateFromBed.md) - Annotates a BEDPE file with information from a BED file.
 * [BedpeGeneAnnotation](doc/tools/BedpeGeneAnnotation.md) - Annotates a BEDPE file with gene information from the NGSD (needs [NGSD](doc/install_ngsd.md)).
 * [NGSDAnnotateSV](doc/tools/NGSDAnnotateSV.md) - Annotates the structural variants of a given BEDPE file by the NGSD counts (needs [NGSD](doc/install_ngsd.md)).
+* [BedpeToBed](doc/tools/BedpeToBed.md) - Converts a BEDPE file into BED file.
 
 ### Gene handling tools
 

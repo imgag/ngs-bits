@@ -1,7 +1,9 @@
 ### BedHighCoverage tool help
-	BedHighCoverage (2020_03-126-gcc29093f)
+	BedHighCoverage (2019_11)
 	
 	Detects high-coverage regions from a BAM file.
+	
+	Note that only read start/end are used. Thus, deletions in the CIGAR string are treated as covered.
 	
 	Mandatory parameters:
 	  -bam <file>     Input BAM file.
@@ -24,7 +26,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedHighCoverage changelog
-	BedHighCoverage 2020_03-126-gcc29093f
+	BedHighCoverage 2019_11
 	
-	2016-06-09 The BED line name of the input BED file is now passed on to the output BED file.
+	2020-05-14 First version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

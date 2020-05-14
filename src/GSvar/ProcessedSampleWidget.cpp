@@ -340,7 +340,7 @@ void ProcessedSampleWidget::openSampleTab()
 			s = ui_->sample_relations->item(row, 3)->text();
 		}
 
-		QStringList tmp = db.getValues("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name=:0", s);
+		QStringList tmp = db.getValues("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name=:0 AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)", s);
 		foreach(QString ps_id, tmp)
 		{
 			ps_names << db.processedSampleName(ps_id);

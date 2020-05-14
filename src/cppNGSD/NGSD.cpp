@@ -961,6 +961,7 @@ void NGSD::deleteVariants(const QString& ps_id)
 {
 	deleteVariants(ps_id, VariantType::SNVS_INDELS);
 	deleteVariants(ps_id, VariantType::CNVS);
+	deleteVariants(ps_id, VariantType::SVS);
 }
 
 void NGSD::deleteVariants(const QString& ps_id, VariantType type)
@@ -976,6 +977,19 @@ void NGSD::deleteVariants(const QString& ps_id, VariantType type)
 		{
 			getQuery().exec("DELETE FROM cnv WHERE cnv_callset_id='" + callset_id + "'");
 			getQuery().exec("DELETE FROM cnv_callset WHERE id='" + callset_id + "'");
+		}
+	}
+	else if (type==VariantType::SVS)
+	{
+		QString callset_id = getValue("SELECT id FROM sv_callset WHERE processed_sample_id=" + ps_id).toString();
+		if (callset_id!="")
+		{
+			getQuery().exec("DELETE FROM sv_deletion WHERE sv_callset_id='" + callset_id + "'");
+			getQuery().exec("DELETE FROM sv_duplication WHERE sv_callset_id='" + callset_id + "'");
+			getQuery().exec("DELETE FROM sv_insertion WHERE sv_callset_id='" + callset_id + "'");
+			getQuery().exec("DELETE FROM sv_inversion WHERE sv_callset_id='" + callset_id + "'");
+			getQuery().exec("DELETE FROM sv_translocation WHERE sv_callset_id='" + callset_id + "'");
+			getQuery().exec("DELETE FROM sv_callset WHERE id='" + callset_id + "'");
 		}
 	}
 	else

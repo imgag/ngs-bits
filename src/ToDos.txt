@@ -17,7 +17,6 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-#### delete ps: delete sv_callset first (and all other tables: detected_variant processed_sample_qc diag_status kasp_status analysis_job_sample merged_processed_samples report_configuration cnv_callset sv_callset)
 ### Add sample: No 'senders' set > don't enable 'ok' button
 ### Plots: <2 samples with date > no plot
 ### Converter chromosomal bands > coordinates

@@ -18,6 +18,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Detects high-coverage regions from a BAM file.");
+		setExtendedDescription(QStringList() << "Note that only read start/end are used. Thus, deletions in the CIGAR string are treated as covered.");
 		addInfile("bam", "Input BAM file.", false);
 		addInt("cutoff", "Minimum depth to consider a base 'high coverage'.", false);
 		//optional
@@ -26,7 +27,7 @@ public:
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
 
-		changeLog(2016,  6,  9, "The BED line name of the input BED file is now passed on to the output BED file.");
+		changeLog(2020,  5,  14, "First version.");
 	}
 
 	virtual void main()

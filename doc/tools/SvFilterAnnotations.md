@@ -1,5 +1,5 @@
 ### SvFilterAnnotations tool help
-	SvFilterAnnotations (2020_03-72-ga487e6e9)
+	SvFilterAnnotations (2019_11)
 	
 	Filter a structural variant list in Bedpe format based on variant annotations.
 	
@@ -51,9 +51,9 @@
 	SV genotype              Filter structural variants based on their genotype.
 	                         Parameters:
 	                           Genotype - Structural variant genotype [valid=het,hom] [non-empty]
-	SV paired read AF        Show only SVs with a certain Paired Read Allele Frequency Â± 10%
+	SV paired read AF        Show only SVs with a certain Paired Read Allele Frequency ± 10%
 	                         Parameters:
-	                           Paired Read AF - Paired Read Allele Frequency Â± 10% [default=0] [min=0.0] [max=1.0]
+	                           Paired Read AF - Paired Read Allele Frequency ± 10% [default=0] [min=0.0] [max=1.0]
 	SV quality               Filter structural variants based on their quality.
 	                         Parameters:
 	                           quality - Minimum quality score [default=0] [min=0]
@@ -64,9 +64,9 @@
 	                         Parameters:
 	                           min_size - Minimum SV size (absolute size). [default=0] [min=0]
 	                           max_size - Maximum SV size (absolute size). Select 0 for infinity. [default=0] [min=0]
-	SV split read AF         Show only SVs with a certain Split Read Allele Frequency Â± 10%
+	SV split read AF         Show only SVs with a certain Split Read Allele Frequency ± 10%
 	                         Parameters:
-	                           Split Read AF - Split Read Allele Frequency Â± 10% [default=0] [min=0.0] [max=1.0]
+	                           Split Read AF - Split Read Allele Frequency ± 10% [default=0] [min=0.0] [max=1.0]
 	SV type                  Filter based on SV types.
 	                         Parameters:
 	                           Structural variant type - Structural variant type [valid=DEL,DUP,INS,INV,BND] [non-empty]
@@ -83,7 +83,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SvFilterAnnotations changelog
-	SvFilterAnnotations 2020_03-72-ga487e6e9
+	SvFilterAnnotations 2019_11
 	
 	2020-04-16 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

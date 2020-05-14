@@ -1,7 +1,9 @@
 ### NGSDAnnotateSV tool help
-	NGSDAnnotateSV (2019_09-51-g84b6c695)
+	NGSDAnnotateSV (2019_11)
 	
 	Annotates the structural variants of a given BEDPE file by the NGSD counts.
+	
+	NOTICE: the parameter '-ignore_processing_system' will also use SVs from low quality samples (bad samples).
 	
 	Mandatory parameters:
 	  -in <file>                 BEDPE file containing structural variants.
@@ -11,7 +13,7 @@
 	Optional parameters:
 	  -test                      Uses the test database instead of on the production database.
 	                             Default value: 'false'
-	  -ignore_processing_system  Use all SVs for annotation (otherwise only SVs of the same processing system are used)
+	  -ignore_processing_system  Use all SVs for annotation (otherwise only SVs from good samples of the same processing system are used)
 	                             Default value: 'false'
 	  -debug                     Provide additional information in STDOUT (e.g. query runtime)
 	                             Default value: 'false'
@@ -23,7 +25,7 @@
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDAnnotateSV changelog
-	NGSDAnnotateSV 2019_09-51-g84b6c695
+	NGSDAnnotateSV 2019_11
 	
 	2020-03-12 Bugfix in match computation for INS and BND
 	2020-03-11 Updated match computation for INS and BND

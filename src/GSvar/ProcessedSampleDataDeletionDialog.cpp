@@ -64,7 +64,7 @@ ProcessedSampleDataDeletionDialog::ProcessedSampleDataDeletionDialog(QWidget* pa
 void ProcessedSampleDataDeletionDialog::deleteData()
 {
 	//check consistency of selection
-	if (!ui_.report_config->isChecked() && (ui_.var_small->isChecked() || ui_.var_cnv->isChecked()))
+	if (!ui_.report_config->isChecked() && (ui_.var_small->isChecked() || ui_.var_cnv->isChecked() || ui_.var_sv->isChecked()))
 	{
 		QMessageBox::question(this, "Deleting variants from NGSD", "You cannot delete variants and keep the report configuration.\nPlease correct the selection and try again!");
 		return;
@@ -141,6 +141,14 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 		}
 	}
 
+	if (ui_.var_sv->isChecked())
+	{
+		foreach(const QString& ps_id, ps_ids_)
+		{
+			db.deleteVariants(ps_id, VariantType::SVS);
+		}
+	}
+
 	//somatic variants
 	if (ui_.somatic_var_small->isChecked())
 	{
@@ -167,6 +175,9 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 	{
 		foreach(const QString& ps_id, ps_ids_)
 		{
+			//delete merged processed samples
+			db.getQuery().exec("DELETE FROM merged_processed_samples WHERE processed_sample_id='" + ps_id + "' OR merged_into='" + ps_id + "'");
+
 			//delete analysis jobs
 			QStringList analysis_job_ids = db.getValues("SELECT analysis_job_id FROM analysis_job_sample WHERE processed_sample_id='" + ps_id + "'");
 			foreach(QString job_id, analysis_job_ids)

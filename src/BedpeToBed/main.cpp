@@ -26,7 +26,7 @@ public:
 		addInfile("in", "Input BEDPE file.", false);
 		addOutfile("out", "Output BED file.", false);
 		//optional
-		addFlag("merge", "Merge the resulting BED file (overwrites 'keep_annotations').");
+		addFlag("merge", "Merge the resulting BED file.");
 		changeLog(2020, 4, 27, "Initial commit.");
 	}
 

@@ -18,6 +18,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Detects low-coverage regions from a BAM file.");
+		setExtendedDescription(QStringList() << "Note that only read start/end are used. Thus, deletions in the CIGAR string are treated as covered.");
 		addInfile("bam", "Input BAM file.", false);
 		addInt("cutoff", "Minimum depth to consider a base 'high coverage'.", false);
 		//optional

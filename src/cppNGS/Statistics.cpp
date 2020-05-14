@@ -1600,7 +1600,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
         QVector<int> roi_cov(bed_line.length(), 0);
 
 		//jump to region
-		reader.setRegion(bed_line.chr(), bed_line.start(), bed_line.end());
+		reader.setRegion(bed_line.chr(), start, bed_line.end());
 
 		//iterate through all alignments
 		BamAlignment al;
