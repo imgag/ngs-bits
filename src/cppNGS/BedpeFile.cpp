@@ -130,7 +130,7 @@ int BedpeLine::size() const
 	THROW(ProgrammingException, "Unhandled variant type (int): " + BedpeFile::typeToString(t));
 }
 
-BedFile BedpeLine::affectedRegion()
+BedFile BedpeLine::affectedRegion() const
 {
 	BedFile sv_region;
 
@@ -145,10 +145,14 @@ BedFile BedpeLine::affectedRegion()
 			break;
 
 		case StructuralVariantType::BND:
-		case StructuralVariantType::INS:
 			// consider pos 1 and pos 2 seperately (+1 because BEDPE is 0-based)
 			sv_region.append(BedLine(chr1(), start1() + 1, end1() + 1));
 			sv_region.append(BedLine(chr2(), start2() + 1, end2() + 1));
+			break;
+
+		case StructuralVariantType::INS:
+			// compute CI of insertion (+1 because BEDPE is 0-based)
+			sv_region.append(BedLine(chr1(), std::min(start1(), start2()) + 1, std::max(end1(), end2()) + 1));
 			break;
 
 		default:
@@ -168,6 +172,54 @@ QString BedpeLine::toString()
 	{
 		return BedpeFile::typeToString(type()) + " at " + affectedRegion()[0].toString(true);
 	}
+}
+
+QByteArray BedpeLine::formatValueByKey(QByteArray format_key, const QList<QByteArray>& annotation_headers, bool error_on_mismatch, QByteArray format_header_name) const
+{
+
+	// get keys/values of the FORMAT column
+	int format_idx = annotation_headers.indexOf(format_header_name);
+	if (format_idx == -1)
+	{
+		if (error_on_mismatch) THROW(ArgumentException, "Column \"" + format_header_name + "\" not found in annotation header!");
+		return "";
+	}
+	QByteArrayList keys = annotations_[format_idx].split(':');
+	QByteArrayList values = annotations_[format_idx + 1].split(':');
+
+	if (keys.size() != values.size())
+	{
+		THROW(ArgumentException, "Format and value column differ in length!");
+	}
+
+	//get value for the given key
+	int field_idx = keys.indexOf(format_key);
+	if (field_idx != -1)
+	{
+		//match found -> return value
+		return values[field_idx];
+	}
+	else if (error_on_mismatch)
+	{
+		THROW(ArgumentException, "Key \"" + format_key + "\" was not found in format column!");
+		return "";
+	}
+	else
+	{
+		return "";
+	}
+
+
+
+}
+
+GeneSet BedpeLine::genes(const QList<QByteArray>& annotation_headers, bool error_on_mismatch) const
+{
+	int gene_idx = annotation_headers.indexOf("GENES");
+
+	if (gene_idx != -1) return GeneSet() << annotations_.at(gene_idx);
+	if (error_on_mismatch) THROW(ArgumentException, "Column \"GENES\" not found in annotation header!")
+	return GeneSet();
 }
 
 BedpeFile::BedpeFile()

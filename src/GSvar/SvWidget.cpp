@@ -43,6 +43,9 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 	connect(ui->svs,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
 	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
+	connect(ui->svs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(svHeaderDoubleClicked(int)));
+	ui->svs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(ui->svs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(svHeaderContextMenu(QPoint)));
 
 	//clear GUI
 	clearGUI();
@@ -589,6 +592,52 @@ void SvWidget::importPhenotypesFromNGSD()
 	QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
 
 	ui->filter_widget->setPhenotypes(phenotypes);
+}
+
+void SvWidget::svHeaderDoubleClicked(int row)
+{
+	if (!ngsd_enabled_) return;
+	editReportConfiguration(row);
+}
+
+void SvWidget::svHeaderContextMenu(QPoint pos)
+{
+	if (!ngsd_enabled_) return;
+
+	//skip somatic samples:
+	if(is_somatic_) return;
+
+	//get variant index
+	int row = ui->svs->verticalHeader()->visualIndexAt(pos.ry());
+
+	//set up menu
+	QMenu menu(ui->svs->verticalHeader());
+	QAction* a_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
+	QAction* a_delete = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
+	if(!is_somatic_) a_delete->setEnabled(report_config_->exists(VariantType::SVS, row));
+
+
+	//exec menu
+	pos = ui->svs->verticalHeader()->viewport()->mapToGlobal(pos);
+	QAction* action = menu.exec(pos);
+	if (action==nullptr) return;
+
+	if(!LoginManager::active()) return; //do nothing if no access to NGSD
+
+	//actions
+	if (action==a_edit)
+	{
+		editReportConfiguration(row);
+	}
+	else if (action==a_delete)
+	{
+		if(!is_somatic_)
+		{
+			report_config_->remove(VariantType::SVS, row);
+			updateReportConfigHeaderIcon(row);
+			emit storeReportConfiguration();
+		}
+	}
 }
 
 void SvWidget::updateReportConfigHeaderIcon(int row)

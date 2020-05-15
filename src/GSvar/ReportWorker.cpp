@@ -24,13 +24,14 @@
 
 
 
-ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const CnvList& cnvs, const FilterCascade& filters, ReportSettings settings, QStringList log_files, QString file_rep)
+ReportWorker::ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const FilterCascade& filters, ReportSettings settings, QStringList log_files, QString file_rep)
 	: WorkerBase("Report generation")
 	, sample_name_(sample_name)
 	, file_bam_(file_bam)
 	, file_roi_(file_roi)
 	, variants_(variants)
 	, cnvs_(cnvs)
+	, svs_(svs)
 	, filters_(filters)
 	, settings_(settings)
 	, log_files_(log_files)
@@ -577,6 +578,34 @@ void ReportWorker::writeHTML()
 		}
 	}
 	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnv_count << endl;
+
+	int selected_sv_count = 0;
+	foreach(int index, settings_.report_config.variantIndices(VariantType::SVS, true, settings_.report_type))
+	{
+		const BedpeLine& sv = svs_[index];
+		BedFile affected_region = sv.affectedRegion();
+		if (file_roi_!="")
+		{
+			if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end()))
+			{
+				if (sv.type() == StructuralVariantType::BND)
+				{
+					if (!roi_.overlapsWith(affected_region[1].chr(), affected_region[1].start(), affected_region[1].end()))
+					{
+						// both positions outside of the target region
+						continue;
+					}
+				}
+				else
+				{
+					// SV outside of the target region
+					continue;
+				}
+			}
+		}
+		selected_sv_count++;
+	}
+	stream << "<br />" << trans("Anzahl SVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_sv_count << endl;
 	stream << "</p>" << endl;
 
 	//output: selected variants
@@ -661,9 +690,10 @@ void ReportWorker::writeHTML()
 	stream << "</table>" << endl;
 
 	//CNVs
-	stream << "<br>" << endl;
+	stream << "<p></p>" << endl;
 	stream << "<table>" << endl;
-	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>" << trans("Gen(e)") << "</b><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></td></tr>" << endl;
+	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>"
+		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></tr>" << endl;
 
 	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
 	{
@@ -688,6 +718,99 @@ void ReportWorker::writeHTML()
 		stream << "</tr>" << endl;
 	}
 	stream << "</table>" << endl;
+
+	//--------------------------------------------------------------------------------------
+	//SVs
+	stream << "<p></p>" << endl;
+	stream << "<table>" << endl;
+	stream << "<tr><td><b>" << trans("SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>"
+		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></tr>" << endl;
+
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	{
+		if (var_conf.variant_type!=VariantType::SVS) continue;
+		if (!var_conf.showInReport()) continue;
+		if (var_conf.report_type!=settings_.report_type) continue;
+		const BedpeLine& sv = svs_[var_conf.variant_index];
+		BedFile affected_region = sv.affectedRegion();
+		if (file_roi_!="")
+		{
+			if ( sv.type() != StructuralVariantType::BND && (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())))  continue;
+			if (sv.type() == StructuralVariantType::BND)
+			{
+				// check both positions and skip only if both are outside of the target region
+				if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())
+					&& !roi_.overlapsWith(affected_region[1].chr(), affected_region[1].start(), affected_region[1].end())) continue;
+			}
+			else
+			{
+				// skip if SV is outside of the target region
+				if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end()))  continue;
+			}
+		}
+
+		stream << "<tr>" << endl;
+		//type
+		stream << "<td>";
+
+		switch (sv.type()) // determine type String
+		{
+			case StructuralVariantType::DEL:
+				stream << trans("Deletion") << "</td>" << endl;
+				break;
+			case StructuralVariantType::DUP:
+				stream << trans("Duplikation") << "</td>" << endl;
+				break;
+			case StructuralVariantType::INS:
+				stream << trans("Insertion") << "</td>" << endl;
+				break;
+			case StructuralVariantType::INV:
+				stream << trans("Inversion") << "</td>" << endl;
+				break;
+			case StructuralVariantType::BND:
+				stream << trans("Translokation") << "</td>" << endl;
+				break;
+			default:
+				THROW(ArgumentException, "Invalid SV type!")
+				break;
+		}
+
+		//pos
+		stream << "<td>" << affected_region[0].toString(true);
+		if (sv.type() == StructuralVariantType::BND) stream << " &lt;-&gt; " << affected_region[1].toString(true);
+		stream << "</td>" << endl;
+
+
+		//genotype
+		QByteArray gt = sv.formatValueByKey("GT", svs_.annotationHeaders());
+		if (gt == "1/1")
+		{
+			stream << "<td>hom";
+		}
+		else
+		{
+			stream << "<td>het";
+		}
+
+		if (var_conf.de_novo) stream << " (de-novo)";
+		if (var_conf.mosaic) stream << " (mosaic)";
+		if (var_conf.comp_het) stream << " (comp-het)";
+		stream << "</td>" << endl;
+
+		//genes
+		stream << "<td>" << sv.genes(svs_.annotationHeaders()).join(", ") << "</td>" << endl;
+
+		//classification
+		stream << "<td>" << var_conf.classification << "</td>" << endl;
+
+		//inheritance
+		stream << "<td>" << var_conf.inheritance << "</td>" << endl;
+		stream << "</tr>" << endl;
+	}
+	stream << "</table>" << endl;
+	stream << "<p></p>" << endl;
+
+	//-----------------------------------------------------------------------------------
 
 	stream << "<p>" << trans("F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen.") << endl;
 	stream << "</p>" << endl;
@@ -915,6 +1038,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Gefundene Varianten in Zielregion gesamt"] = "Variants in target region";
 		de2en["Anzahl Varianten ausgew&auml;hlt f&uuml;r Report"] = "Variants selected for report";
 		de2en["Anzahl CNVs ausgew&auml;hlt f&uuml;r Report"] = "CNVs selected for report";
+		de2en["Anzahl SVs ausgew&auml;hlt f&uuml;r Report"] = "SVs selected for report";
 		de2en["Varianten nach klinischer Interpretation im Kontext der Fragestellung"] = "List of prioritized variants";
 		de2en["Vererbung"] = "Inheritance";
 		de2en["Klasse"] = "Class";
@@ -973,6 +1097,13 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["male"] = "m&auml;nnlich";
 		de2en["female"] = "weiblich";
 		de2en["n/a"] = "n/a";
+		de2en["SV"] = "SV";
+		de2en["Position"] = "Position";
+		de2en["Deletion"] = "deletion";
+		de2en["Duplikation"] = "duplication";
+		de2en["Insertion"] = "insertion";
+		de2en["Inversion"] = "inversion";
+		de2en["Translokation"] = "translocation";
 
 		if (!de2en.contains(text))
 		{

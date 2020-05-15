@@ -5,12 +5,13 @@
 #include <QMenu>
 
 
-ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, QString target_region, QWidget* parent)
+ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QString target_region, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
 	, settings_(settings)
 	, variants_(variants)
 	, cnvs_(cnvs)
+	, svs_(svs)
 	, roi_file_(target_region.trimmed())
 	, roi_()
 {
@@ -119,6 +120,38 @@ void ReportDialog::updateGUI()
 		ui_.vars->setItem(row, 3, new QTableWidgetItem(var_conf.classification));
 		++row;
 	}
+
+	//add Svs
+	foreach(int i, settings_.report_config.variantIndices(VariantType::SVS, true, type()))
+	{
+		const BedpeLine& sv = svs_[i];
+		BedFile affected_region = sv.affectedRegion();
+		if (roi_file_!="")
+		{
+			if (sv.type() != StructuralVariantType::BND)
+			{
+				if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())) continue;
+			}
+			else
+			{
+				if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())
+					&& !roi_.overlapsWith(affected_region[1].chr(), affected_region[1].start(), affected_region[1].end())) continue;
+			}
+		}
+		const ReportVariantConfiguration& var_conf = settings_.report_config.get(VariantType::SVS,i);
+
+		QString sv_string = "SV " + affected_region[0].toString(true);
+		if (sv.type()==StructuralVariantType::BND) sv_string += " <-> " + affected_region[1].toString(true);
+		sv_string += " type=" + BedpeFile::typeToString(sv.type());
+
+		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
+		ui_.vars->setItem(row, 0, new QTableWidgetItem(var_conf.report_type + (var_conf.causal ? " (causal)" : "")));
+		ui_.vars->setItem(row, 1, new QTableWidgetItem(sv_string));
+		ui_.vars->setItem(row, 2, new QTableWidgetItem(sv.genes(svs_.annotationHeaders()).join(", "), QTableWidgetItem::Type));
+		ui_.vars->setItem(row, 3, new QTableWidgetItem(var_conf.classification));
+		++row;
+	}
+
 
 	//resize table cells
 	GUIHelper::resizeTableCells(ui_.vars);

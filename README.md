@@ -19,6 +19,8 @@ Changes already implemented in GIT master for next release:
 * Removed tools: BamHighCoverage
 * NGSDImportHPO: Added support for new HPO annotation file format and optimized the NGSD hpo-gene relation table.
 * NGSDAddVariantsGermline: added import of structural variants
+* NGSD: Added SV report configuration
+* GSvar: Added support for SVs in report config/export
 
 Changes in release 2020_03:
 

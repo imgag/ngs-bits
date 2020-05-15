@@ -46,11 +46,18 @@ protected slots:
 	///Context menu that shall appear if right click on variant
 	void showContextMenu(QPoint pos);
 
+
 	///Extracts entry of column following to "FORMAT" column.
 	QByteArray getFormatEntryByKey(const QByteArray& key, const QByteArray& format_desc, const QByteArray& format_data);
 
 	///Import phenotypes from NGSD
 	void importPhenotypesFromNGSD();
+
+	///Edit report config
+	void svHeaderDoubleClicked(int row);
+
+	///Show context menu to add/remove SV to/from report config
+	void svHeaderContextMenu(QPoint pos);
 
 private slots:
 	void updateReportConfigHeaderIcon(int row);

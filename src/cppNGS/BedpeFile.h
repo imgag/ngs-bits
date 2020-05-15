@@ -5,6 +5,7 @@
 #include "Chromosome.h"
 #include "Helper.h"
 #include "BedFile.h"
+#include "GeneSet.h"
 #include <QByteArrayList>
 #include <QMap>
 
@@ -22,26 +23,6 @@ enum StructuralVariantType
 QString CPPNGSSHARED_EXPORT StructuralVariantTypeToString(StructuralVariantType type);
 ///Converts a QString to the correct StructuralVariantType
 StructuralVariantType CPPNGSSHARED_EXPORT StructuralVariantTypeFromString(QString type_string);
-
-//struct StructuralVariantType
-//{
-//	enum StructuralVariantType
-//	{
-//		DEL, //deletion
-//		DUP, //duplication (tandem)
-//		INS, //insertion
-//		INV, //inversion
-//		BND,  //breakpoint (translocations, etc)
-//		UNKNOWN
-//	};
-
-//	static QString toString(StructuralVariantType type);
-//	static StructuralVariantType fromString(QString type_string);
-
-//	private:
-//		StructuralVariantType() = delete;
-//};
-
 
 class CPPNGSSHARED_EXPORT BedpeLine
 {
@@ -143,10 +124,18 @@ public:
 	int size() const;
 
 	///Returns the affected chromosomal region als BED file
-	BedFile affectedRegion();
+	BedFile affectedRegion() const;
 
 	///Returns the SV as String
 	QString toString();
+
+	///Returns the value of a given FORMAT key:
+	///		(only for germline single samples)
+	QByteArray formatValueByKey(QByteArray format_key, const QList<QByteArray>& annotation_headers, bool error_on_mismatch=true, QByteArray format_header_name="FORMAT") const;
+
+	///Returns the genes as GeneSet
+	GeneSet genes(const QList<QByteArray>& annotation_headers, bool error_on_mismatch=true) const;
+
 
 protected:
 	Chromosome chr1_;

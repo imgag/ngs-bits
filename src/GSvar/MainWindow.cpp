@@ -2137,6 +2137,35 @@ void MainWindow::generateVariantSheet()
 	stream << "      </table>" << endl;
 	stream << "    </p>" << endl;
 
+	//SVs
+	stream << "    <p><b>Kausale SVs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderSv(stream, true);
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	{
+		if (conf.variant_type!=VariantType::SVS) continue;
+		if (conf.causal)
+		{
+			printVariantSheetRowSv(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	stream << "    <p><b>Sonstige SVs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderSv(stream, false);
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	{
+		if (conf.variant_type!=VariantType::SVS) continue;
+		if (!conf.causal)
+		{
+			printVariantSheetRowSv(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
 	//write footer
 	stream << "  </body>" << endl;
 	stream << "</html>" << endl;
@@ -2318,6 +2347,54 @@ void MainWindow::printVariantSheetRowCnv(QTextStream& stream, const ReportVarian
 	if (conf.causal)
 	{
 		stream << "       <td>regions:" << cnv.regions() << " size:" << QString::number(cnv.size()/1000.0, 'f', 3) << "kb</td>" << endl;
+	}
+	else
+	{
+		stream << "       <td>" << exclusionCriteria(conf) << "</td>" << endl;
+	}
+	stream << "       <td>" << conf.comments << "</td>" << endl;
+	stream << "       <td>" << conf.comments2 << "</td>" << endl;
+	stream << "       <td>" << conf.classification << "</td>" << endl;
+	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void MainWindow::printVariantSheetRowHeaderSv(QTextStream& stream, bool causal)
+{
+	stream << "     <tr>" << endl;
+	stream << "       <th>SV</th>" << endl;
+	stream << "       <th>Typ</th>" << endl;
+	stream << "       <th>Gene</th>" << endl;
+	stream << "       <th>Erbgang</th>" << endl;
+	if (causal)
+	{
+		stream << "       <th>Infos</th>" << endl;
+	}
+	else
+	{
+		stream << "       <th>Ausschlussgrund</th>" << endl;
+	}
+	stream << "       <th nowrap>Kommentar 1. Auswerter</th>" << endl;
+	stream << "       <th nowrap>Kommentar 2. Auswerter</th>" << endl;
+	stream << "       <th>Klasse</th>" << endl;
+	stream << "       <th nowrap>In Report</th>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void MainWindow::printVariantSheetRowSv(QTextStream& stream, const ReportVariantConfiguration& conf)
+{
+	const BedpeLine& sv = svs_[conf.variant_index];
+	BedFile affected_region = sv.affectedRegion();
+	stream << "     <tr>" << endl;
+	stream << "       <td>" << affected_region[0].toString(true);
+	if(sv.type() == StructuralVariantType::BND) stream << " &lt;-&gt; " << affected_region[1].toString(true);
+	stream << "</td>" << endl;
+	stream << "       <td>" << BedpeFile::typeToString(sv.type()) << "</td>" << endl;
+	stream << "       <td>" << sv.genes(svs_.annotationHeaders()).join(", ") << "</td>" << endl;
+	stream << "       <td>" << conf.inheritance << "</th>" << endl;
+	if (conf.causal)
+	{
+		stream << "       <td>estimated size:" << QString::number(svs_.estimatedSvSize(conf.variant_index)/1000.0, 'f', 3) << "kb</td>" << endl;
 	}
 	else
 	{
@@ -2553,7 +2630,7 @@ void MainWindow::generateReportGermline()
 	report_settings_.diag_status = db.getDiagnosticStatus(processed_sample_id);
 
 	//show report dialog
-	ReportDialog dialog(report_settings_, variants_, cnvs_, ui_.filters->targetRegion(),this);
+	ReportDialog dialog(report_settings_, variants_, cnvs_, svs_, ui_.filters->targetRegion(),this);
 	if (!dialog.exec()) return;
 
 	//set report type
@@ -2580,7 +2657,7 @@ void MainWindow::generateReportGermline()
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(ps_name, bam_file, ui_.filters->targetRegion(), variants_, cnvs_, ui_.filters->filters(), report_settings_, getLogFiles(), file_rep);
+	ReportWorker* worker = new ReportWorker(ps_name, bam_file, ui_.filters->targetRegion(), variants_, cnvs_, svs_, ui_.filters->filters(), report_settings_, getLogFiles(), file_rep);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }
@@ -2602,7 +2679,6 @@ void MainWindow::reportGenerationFinished(bool success)
 	{
 		QMessageBox::warning(this, "Error", "Report generation failed:\n" + worker->errorMessage());
 	}
-
 	//clean
 	worker->deleteLater();
 }

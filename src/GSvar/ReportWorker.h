@@ -19,7 +19,7 @@ class ReportWorker
 
 public:
 	///Constructor.
-	ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const CnvList& cnvs, const FilterCascade& filters, ReportSettings settings, QStringList log_files, QString file_rep);
+	ReportWorker(QString sample_name, QString file_bam, QString file_roi, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const FilterCascade& filters, ReportSettings settings, QStringList log_files, QString file_rep);
 	virtual void process();
 
 	///Returns the file to which the HTML report was written.
@@ -52,6 +52,7 @@ private:
 	QString file_roi_;
 	const VariantList& variants_;
 	const CnvList& cnvs_;
+	const BedpeFile& svs_;
     FilterCascade filters_;
 
 	ReportSettings settings_;
