@@ -7,7 +7,7 @@ TEST_CLASS(CnvGeneAnnotation_Test)
 Q_OBJECT
 private slots:
 
-	void test_01()
+	void default_parameter()
 	{
 		QString host = Settings::string("ngsd_test_host");
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
@@ -23,7 +23,7 @@ private slots:
 		COMPARE_FILES("out/CnvGeneAnnotation_out1.tsv", TESTDATA("data_out/CnvGeneAnnotation_out1.tsv"));
 	}
 
-	void test_02()
+	void add_simple_gene_names()
 	{
 		QString host = Settings::string("ngsd_test_host");
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
@@ -37,6 +37,27 @@ private slots:
 		EXECUTE("CnvGeneAnnotation", "-add_simple_gene_names -test -in " + TESTDATA("data_in/CnvGeneAnnotation_in.tsv") + " -out out/CnvGeneAnnotation_out2.tsv");
 
 		COMPARE_FILES("out/CnvGeneAnnotation_out2.tsv", TESTDATA("data_out/CnvGeneAnnotation_out2.tsv"));
+	}
+
+	void reannotate()
+	{
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+
+		//annotate with empty DB
+		EXECUTE("CnvGeneAnnotation", "-test -in " + TESTDATA("data_in/CnvGeneAnnotation_in.tsv") + " -out out/CnvGeneAnnotation_out2_temp.tsv");
+
+		// add DB entries
+		db.executeQueriesFromFile(TESTDATA("data_in/CnvGeneAnnotation_init.sql"));
+
+		//reannotate
+		EXECUTE("CnvGeneAnnotation", "-test -in out/CnvGeneAnnotation_out2_temp.tsv -out out/CnvGeneAnnotation_out2.tsv");
+
+		COMPARE_FILES("out/CnvGeneAnnotation_out2.tsv", TESTDATA("data_out/CnvGeneAnnotation_out1.tsv"));
 	}
 
 

@@ -536,7 +536,8 @@ public:
 	///Returns the NGSD ID for a SV. Returns '' or throws an exception if the ID cannot be determined.
 	QString svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails = true);
 	///Returns the SV corresponding to the given identifiers or throws an exception if the ID does not exist.
-	BedpeLine structural_variant(int sv_id, StructuralVariantType type, const BedpeFile& svs);
+	///		'no_annotation' will only return the SV position
+	BedpeLine structural_variant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false);
 	///Returns the SQL table name for a given StructuralVariantType
 	static QString svTableName(StructuralVariantType type);
 

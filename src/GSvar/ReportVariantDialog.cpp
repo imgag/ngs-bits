@@ -20,7 +20,7 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	ui_.classification->addItems(ReportVariantConfiguration::getClassificationOptions());
 
 	//show classification when needed
-	bool show_classification = config.variant_type==VariantType::CNVS;
+	bool show_classification = (config.variant_type==VariantType::CNVS || config.variant_type==VariantType::SVS);
 	ui_.classification->setVisible(show_classification);
 	ui_.label_classification->setVisible(show_classification);
 

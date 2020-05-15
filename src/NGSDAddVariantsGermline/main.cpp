@@ -335,6 +335,19 @@ public:
 		int ps_id = Helper::toInt(db.processedSampleId(ps_name));
 		if(debug) out << "Processed sample id: " << ps_id << endl;
 
+		//prevent import if report config contains SVs
+		int report_conf_id = db.reportConfigId(QString::number(ps_id));
+		if (report_conf_id!=-1)
+		{
+			SqlQuery query = db.getQuery();
+			query.exec("SELECT * FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(report_conf_id));
+			if (query.size()>0)
+			{
+				out << "Skipped import of SVs for sample " + ps_name + ": a report configuration with SVs exists for this sample!\n";
+				return;
+			}
+		}
+
 		// check if processed sample has already been imported
 		QString previous_callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, QString::number(ps_id)).toString();
 		if(previous_callset_id!="" && !sv_force)

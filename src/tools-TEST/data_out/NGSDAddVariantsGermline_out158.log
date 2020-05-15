@@ -1,0 +1,4 @@
+
+### importing small variants for NA12878_45 ###
+filename: ../src/tools-TEST/data_in/NGSDAddVariantsGermline_in1.GSvar
+Skipped import of small variants for sample NA12878_45: a report configuration with small variants exists for this sample!
