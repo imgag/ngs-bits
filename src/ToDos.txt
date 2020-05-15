@@ -25,7 +25,7 @@ GSvar:
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
     - use XML format: https://www.ncbi.nlm.nih.gov/projects/clinvar/ClinVarDataDictionary.pdf (see also email 'Programm für AG Genom-Informatik')
-** allow creating somatic report and XML-export for tumor-only (after tumor-normal is done)
+** allow creating somatic report and XML-export for tumor-only - after tumor-normal is done (AG)
 
 Tools:
 - UPDHunter: also support chrX?

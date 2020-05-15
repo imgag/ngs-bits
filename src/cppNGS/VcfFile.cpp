@@ -25,8 +25,7 @@ bool VcfFile::isValid(QString vcf_file_path, QString ref_file, QTextStream& out_
 	else
 	{
 		// invalid/unknown file type
-		THROW(FileParseException, "File type of file \"" + vcf_file_path
-			  + "\" is invalid/unknown!");
+		THROW(FileParseException, "File type of file \"" + vcf_file_path  + "\" is invalid/unknown!");
 	}
 
 
@@ -106,8 +105,7 @@ bool VcfFile::isValid(QString vcf_file_path, QString ref_file, QTextStream& out_
 				QByteArray error_message = gzerror(input_vcf_gz, &error_no);
 				if (error_no!=Z_OK && error_no!=Z_STREAM_END)
 				{
-					THROW(FileParseException, "Error while reading file '" + vcf_file_path
-						  + "': " + error_message);
+					THROW(FileParseException, "Error while reading file '" + vcf_file_path + "': " + error_message);
 				}
 			}
 			line = QByteArray(char_array).trimmed();
@@ -400,6 +398,13 @@ bool VcfFile::isValid(QString vcf_file_path, QString ref_file, QTextStream& out_
 				else
 				{
 					defined_formats[name].used +=1;
+				}
+
+				//special handling of "GT" field
+				if (name=="GT" && format_names.indexOf(name)!=0)
+				{
+					printError(out_stream, "FORMAT 'GT' must be first format field!", l, line);
+					return false;
 				}
 			}
 

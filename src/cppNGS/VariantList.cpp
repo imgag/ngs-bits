@@ -395,7 +395,7 @@ VariantList::LessComparatorByFile::LessComparatorByFile(QString filename)
 	//build chromosome (as QString) to rank (as int) dictionary from file (rank=position in file)
 	QStringList lines=Helper::loadTextFile(filename_);
 	int rank=0;
-	foreach(QString line,lines)
+	foreach(const QString& line, lines)
 	{
 		rank++;
 		Chromosome chr(line.split('\t')[0]);
@@ -1086,7 +1086,7 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 
 		//check if annotation description is a possible duplicate
 		bool found = false;
-		foreach(VariantAnnotationDescription vad, annotationDescriptions())
+		foreach(const VariantAnnotationDescription& vad, annotationDescriptions())
 		{
 			if(vad.name()==new_annotation_description.name() && vad.sampleSpecific()==new_annotation_description.sampleSpecific())
 			{
@@ -1098,6 +1098,24 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 		if(found) return;
 
 		annotationDescriptions().append(new_annotation_description);
+
+		//make sure the "GT" format field is always the first format field
+		if (new_annotation_description.name()=="GT" && new_annotation_description.sampleSpecific())
+		{
+			int first_format_index = -1;
+			for(int i=0; i<annotationDescriptions().count(); ++i)
+			{
+				if (!annotationDescriptions()[i].sampleSpecific()) continue; //skip INFO description
+
+				first_format_index = i;
+				break;
+			}
+
+			if (first_format_index<annotationDescriptions().count()-1)
+			{
+				annotationDescriptions().move(annotationDescriptions().count()-1, first_format_index);
+			}
+		}
 
 		return;
 	}
@@ -1595,7 +1613,7 @@ SampleHeaderInfo VariantList::getSampleHeader(bool error_if_missing) const
 
 QString VariantList::getPipeline() const
 {
-	foreach(QString line, comments_)
+	foreach(const QString& line, comments_)
 	{
 		if (line.startsWith("##PIPELINE="))
 		{
@@ -1782,7 +1800,7 @@ QByteArray VariantTranscript::toString(char sep) const
 
 bool VariantTranscript::typeMatchesTerms(const OntologyTermCollection& terms) const
 {
-	foreach(QByteArray type, type.split('&'))
+	foreach(const QByteArray& type, type.split('&'))
 	{
 		if(terms.containsByName(type.trimmed()))
 		{
