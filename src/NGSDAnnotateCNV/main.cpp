@@ -55,9 +55,13 @@ public:
 		QByteArrayList output_buffer;
 		output_buffer.append(cnv_input_file.comments());
 
-		// modify header
+		// check if column already present
 		QByteArrayList header = cnv_input_file.header();
-		header.append("ngsd_pathogenic_cnvs");
+		int i_path_cnvs = header.indexOf("ngsd_pathogenic_cnvs");
+
+		// modify header if neccessary
+		if (i_path_cnvs < 0) header.append("ngsd_pathogenic_cnvs");
+
 		output_buffer << "#" + header.join("\t");
 
 		// get indices for position
@@ -111,12 +115,12 @@ public:
 			}
 
 
-			// extend annotation
-			QByteArray annotated_line = tsv_line.join("\t");
-			annotated_line += "\t" + pathogenic_cnv_entries.join(" ");
+			// update annotation
+			if (i_path_cnvs < 0) tsv_line.append(pathogenic_cnv_entries.join(" "));
+			else tsv_line[i_path_cnvs] = pathogenic_cnv_entries.join(" ");
 
 			//add annotated line to buffer
-			output_buffer << annotated_line;
+			output_buffer << tsv_line.join("\t");
 		}
 
 		out << "Writing output file..." << endl;

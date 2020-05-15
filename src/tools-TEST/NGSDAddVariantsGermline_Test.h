@@ -142,6 +142,45 @@ private slots:
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line122.log", TESTDATA("data_out/NGSDAddVariantsGermline_out122.log"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line125.log", TESTDATA("data_out/NGSDAddVariantsGermline_out125.log"));
 	}
+
+	void import_with_existing_report_config()
+	{
+		QString host = Settings::string("ngsd_test_host");
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_init.sql"));
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_report_config.sql"));
+
+		//try to import variants
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -var_force -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -cnv_force -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -sv_force -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in3.bedpe"));
+
+		//check db content
+		int count = db.getValue("SELECT count(*) FROM variant").toInt();
+		I_EQUAL(count, 1);
+		count = db.getValue("SELECT count(*) FROM cnv").toInt();
+		I_EQUAL(count, 1);
+		count = db.getValue("SELECT count(*) FROM sv_deletion").toInt();
+		I_EQUAL(count, 1);
+		count = db.getValue("SELECT count(*) FROM sv_duplication").toInt();
+		I_EQUAL(count, 0);
+		count = db.getValue("SELECT count(*) FROM sv_insertion").toInt();
+		I_EQUAL(count, 0);
+		count = db.getValue("SELECT count(*) FROM sv_inversion").toInt();
+		I_EQUAL(count, 0);
+		count = db.getValue("SELECT count(*) FROM sv_translocation").toInt();
+		I_EQUAL(count, 0);
+
+		//check log
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line158.log", TESTDATA("data_out/NGSDAddVariantsGermline_out158.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line159.log", TESTDATA("data_out/NGSDAddVariantsGermline_out159.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line160.log", TESTDATA("data_out/NGSDAddVariantsGermline_out160.log"));
+
+	}
 };
 
 

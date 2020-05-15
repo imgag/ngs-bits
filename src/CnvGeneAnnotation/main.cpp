@@ -84,10 +84,14 @@ public:
 		QByteArrayList output_buffer;
 		output_buffer.append(cnv_input_file.comments());
 
-		// modify header
+		//check if gene annotation already exists:
 		QByteArrayList header = cnv_input_file.header();
-		if (add_simple_gene_names_) header.append("genes");
-		header.append("gene_info");
+		int i_genes = header.indexOf("gene_names");
+		int i_gene_info = header.indexOf("gene_info");
+
+		// modify header if neccessary
+		if ((i_genes < 0) && add_simple_gene_names_) header.append("gene_names");
+		if (i_gene_info < 0) header.append("gene_info");
 		output_buffer << "#" + header.join("\t");
 
 		// get indices for position
@@ -145,13 +149,17 @@ public:
 				gene_name_list.append(gene_name);
 			}
 
-			// extend annotation
-			QByteArray annotated_line = tsv_line.join("\t");
-			if (add_simple_gene_names_) annotated_line += "\t" + gene_name_list.join(",");
-			annotated_line += "\t" + gene_info.join(",");
+			// update annotation
+			if (add_simple_gene_names_)
+			{
+				if (i_genes < 0) tsv_line.append(gene_name_list.join(","));
+				else tsv_line[i_genes] = gene_name_list.join(",");
+			}
+			if (i_gene_info < 0) tsv_line.append(gene_info.join(","));
+			else tsv_line[i_gene_info] = gene_info.join(",");
 
 			//add annotated line to buffer
-			output_buffer << annotated_line;
+			output_buffer << tsv_line.join("\t");
 		}
 
 		out << "Writing output file..." << endl;

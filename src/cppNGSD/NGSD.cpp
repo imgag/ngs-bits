@@ -365,6 +365,22 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 					QString cn = getValue("SELECT cn FROM cnv WHERE id='" + id + "'").toString();
 					text += ", causal CNV: " + var.toString() + " (cn:" + cn + ")";
 				}
+
+				//find causal SVs
+				QStringList sv_id_columns = QStringList() << "sv_deletion_id" << "sv_duplication_id" << "sv_insertion_id" << "sv_inversion_id" << "sv_translocation_id";
+				QList<StructuralVariantType> sv_types = {StructuralVariantType::DEL, StructuralVariantType::DUP, StructuralVariantType::INS, StructuralVariantType::INV, StructuralVariantType::BND};
+				BedpeFile svs;
+				for (int i = 0; i < sv_id_columns.size(); ++i)
+				{
+					causal_ids = getValues("SELECT " + sv_id_columns.at(i) + " FROM report_configuration_sv WHERE causal='1' AND report_configuration_id=" + rc_id.toString() + " AND " + sv_id_columns.at(i) + " IS NOT NULL");
+
+					foreach(QString id, causal_ids)
+					{
+
+						BedpeLine var = structural_variant(id.toInt(), sv_types.at(i), svs, true);
+						text += ", causal SV: " + var.toString();
+					}
+				}
 			}
 			report_conf_col << text;
 		}
@@ -1412,17 +1428,23 @@ QString NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bo
 
 }
 
-BedpeLine NGSD::structural_variant(int sv_id, StructuralVariantType type, const BedpeFile& svs)
+BedpeLine NGSD::structural_variant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation)
 {
 	BedpeLine sv;
-	QList<QByteArray> annotations = QVector<QByteArray>(svs.annotationHeaders().size()).toList();
+	QList<QByteArray> annotations;
 
+	int qual_idx = -1, filter_idx = -1, alt_a_idx = -1, info_a_idx = -1;
+	if (!no_annotation)
+	{
+		annotations= QVector<QByteArray>(svs.annotationHeaders().size()).toList();
 
-	// determine indices for annotations
-	int qual_idx = svs.annotationIndexByName("QUAL");
-	int filter_idx = svs.annotationIndexByName("FILTER");
-	int alt_a_idx = svs.annotationIndexByName("ALT_A");
-	int info_a_idx = svs.annotationIndexByName("INFO_A");
+		// determine indices for annotations
+		qual_idx = svs.annotationIndexByName("QUAL");
+		filter_idx = svs.annotationIndexByName("FILTER");
+		alt_a_idx = svs.annotationIndexByName("ALT_A");
+		info_a_idx = svs.annotationIndexByName("INFO_A");
+	}
+
 
 	// get DEL, DUP or INV
 	if (type == StructuralVariantType::DEL || type == StructuralVariantType::DUP || type == StructuralVariantType::INV)
@@ -1461,11 +1483,13 @@ BedpeLine NGSD::structural_variant(int sv_id, StructuralVariantType type, const 
 		start2 = query.value("end_min").toInt();
 		end2 = query.value("end_max").toInt();
 
-		// parse quality & filter
-		QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
-		annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
-		annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
-
+		if (!no_annotation)
+		{
+			// parse quality & filter
+			QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
+			annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
+			annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
+		}
 
 		// create SV
 		sv = BedpeLine(chr1, start1, end1, chr2, start2, end2, type, annotations);
@@ -1481,32 +1505,34 @@ BedpeLine NGSD::structural_variant(int sv_id, StructuralVariantType type, const 
 		int pos = query.value("pos").toInt();
 		int pos_upper = pos + query.value("ci_upper").toInt();
 
+		if (!no_annotation)
+		{
+			// parse quality & filter
+			QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
+			annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
+			annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
 
-		// parse quality & filter
-		QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
-		annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
-		annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
+			// get inserted sequences:
+			if (!query.value("inserted_sequence").isNull())
+			{
+				annotations[alt_a_idx] = query.value("inserted_sequence").toByteArray();
+			}
+			else
+			{
+				annotations[alt_a_idx] = "<INS>";
+			}
 
-		// get inserted sequences:
-		if (!query.value("inserted_sequence").isNull())
-		{
-			annotations[alt_a_idx] = query.value("inserted_sequence").toByteArray();
+			QByteArrayList partial_sequences;
+			if (!query.value("known_left").isNull())
+			{
+				partial_sequences << "LEFT_SVINSSEQ=" + query.value("known_left").toByteArray();
+			}
+			if (!query.value("known_right").isNull())
+			{
+				partial_sequences << "RIGHT_SVINSSEQ=" + query.value("known_right").toByteArray();
+			}
+			annotations[info_a_idx] = partial_sequences.join(";");
 		}
-		else
-		{
-			annotations[alt_a_idx] = "<INS>";
-		}
-
-		QByteArrayList partial_sequences;
-		if (!query.value("known_left").isNull())
-		{
-			partial_sequences << "LEFT_SVINSSEQ=" + query.value("known_left").toByteArray();
-		}
-		if (!query.value("known_right").isNull())
-		{
-			partial_sequences << "RIGHT_SVINSSEQ=" + query.value("known_right").toByteArray();
-		}
-		annotations[info_a_idx] = partial_sequences.join(";");
 
 		// create SV
 		sv = BedpeLine(chr, pos, pos_upper, chr, pos, pos, type, annotations);
@@ -1529,10 +1555,13 @@ BedpeLine NGSD::structural_variant(int sv_id, StructuralVariantType type, const 
 		start2 = query.value("start2").toInt();
 		end2 = query.value("end2").toInt();
 
-		// parse quality & filter
-		QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
-		annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
-		annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
+		if (!no_annotation)
+		{
+			// parse quality & filter
+			QJsonObject quality_metrics = QJsonDocument::fromJson(query.value("quality_metrics").toByteArray()).object();
+			annotations[qual_idx] = quality_metrics.value("quality").toString().toUtf8();
+			annotations[filter_idx] = quality_metrics.value("filter").toString().toUtf8();
+		}
 
 		// create SV
 		sv = BedpeLine(chr1, start1, end1, chr2, start2, end2, type, annotations);
