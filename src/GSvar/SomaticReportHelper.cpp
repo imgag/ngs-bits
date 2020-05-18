@@ -11,6 +11,7 @@
 #include "LoginManager.h"
 #include "XmlHelper.h"
 #include "GenLabDB.h"
+#include "GSvarHelper.h"
 
 #include <cmath>
 #include <QFileInfo>
@@ -60,6 +61,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 
 	QList<QPair<Variant, RtfTableRow>> temp_rows; //combined list of germline/somatic snvs
+	QMap<QByteArray, QByteArrayList> preferred_transcripts = GSvarHelper::preferredTranscripts(true);
 
 	for(int i=0; i< som_var_in_normal.count(); ++i) //insert next to gene that is already included
 	{
@@ -68,11 +70,30 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		RtfTableRow temp;
 		temp.addCell(1000, var.annotations()[i_germl_gene] + "\\super#", RtfParagraph().setItalic(true) );
 
-		QList<VariantTranscript> trans =  var.transcriptAnnotations(i_germl_co_sp);
-		if(trans.count() > 0) temp.addCell({ trans[0].hgvs_c + ", " + trans[0].hgvs_p, RtfText(trans[0].id).setFontSize(14).RtfCode()}, 2900);
-		else temp.addCell(2900, "n/a");
 
-		temp.addCell(1700, (trans.count() > 0 ? trans[0].type.replace("_variant","") : "n/a"));
+		//Select germline transcript
+		QList<VariantTranscript> transcripts =  var.transcriptAnnotations(i_germl_co_sp);
+		if(transcripts.count() > 0)
+		{
+			int i_trans = 0;
+
+			for(int j=0; j<transcripts.count(); ++j)
+			{
+				if(preferred_transcripts.value( transcripts[j].gene ).contains(transcripts[j].id) )
+				{
+					i_trans = j;
+					break;
+				}
+			}
+
+			temp.addCell({ transcripts[i_trans].hgvs_c + ", " + transcripts[i_trans].hgvs_p, RtfText(transcripts[i_trans].id).setFontSize(14).RtfCode()}, 2900);
+			temp.addCell(1700, transcripts[i_trans].type.replace("_variant",""));
+		}
+		else
+		{
+			temp.addCell(2900, "n/a");
+			temp.addCell(1700, "n/a");
+		}
 
 		temp.addCell(900, QByteArray::number(var.annotations()[i_germl_freq_in_tum].toDouble(), 'f', 2).replace(".",","), RtfParagraph().setHorizontalAlignment("c"));
 
