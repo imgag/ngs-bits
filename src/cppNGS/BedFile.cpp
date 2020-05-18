@@ -191,15 +191,22 @@ void BedFile::clearHeaders()
 	headers_.clear();
 }
 
-void BedFile::sort(bool uniq)
+void BedFile::sort()
 {
 	std::sort(lines_.begin(), lines_.end());
+}
 
-	//remove duplicates
-	if (uniq)
-	{
-		lines_.erase(std::unique(lines_.begin(), lines_.end()), lines_.end());
-	}
+void BedFile::sortWithName()
+{
+	LessComparatorWithName comparator;
+	std::sort(lines_.begin(), lines_.end(), comparator);
+}
+
+void BedFile::removeDuplicates()
+{
+	if (!isSorted()) THROW(ProgrammingException, "Cannot use 'BedFile::removeDuplicates' on unsorted BED file!");
+
+	lines_.erase(std::unique(lines_.begin(), lines_.end()), lines_.end());
 }
 
 void BedFile::merge(bool merge_back_to_back, bool merge_names)
@@ -560,4 +567,15 @@ bool BedFile::overlapsWith(const Chromosome& chr, int start, int end) const
 	}
 
 	return false;
+}
+
+bool BedFile::LessComparatorWithName::operator()(const BedLine& a, const BedLine& b) const
+{
+	if (a<b) return true;
+
+	if (b<a) return false;
+
+	QByteArray a_name = a.annotations().isEmpty() ? QByteArray() : a.annotations()[0];
+	QByteArray b_name = b.annotations().isEmpty() ? QByteArray() : b.annotations()[0];
+	return a_name<b_name;
 }

@@ -18,14 +18,25 @@ public:
 		//optional
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
-		addFlag("uniq", "If set, subsequent duplicate entries are removed after sorting.");
+		addFlag("with_name", "Uses name column (i.e. the 4th column) to sort if chr/start/end are equal.");
+		addFlag("uniq", "If set, entries with the same chr/start/end are removed after sorting.");
+
+		changeLog(2020,  5, 18, "Added 'with_name' flag.");
 	}
 
 	virtual void main()
 	{
 		BedFile file;
 		file.load(getInfile("in"));
-		file.sort(getFlag("uniq"));
+		if (getFlag("with_name"))
+		{
+			file.sortWithName();
+		}
+		else
+		{
+			file.sort();
+		}
+		if (getFlag("uniq")) file.removeDuplicates();
 		file.store(getOutfile("out"));
 	}
 };

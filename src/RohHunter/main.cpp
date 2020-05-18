@@ -322,7 +322,7 @@ public:
 		{
 			BedFile anno_file;
 			anno_file.load(anno);
-			anno_file.sort();
+			if (!anno_file.isSorted()) anno_file.sort();
 			ChromosomalIndex<BedFile> anno_index(anno_file);
 			for (int i=0; i<regions.count(); ++i)
 			{

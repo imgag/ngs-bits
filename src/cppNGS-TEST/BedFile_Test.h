@@ -76,18 +76,44 @@ private slots:
 		I_EQUAL(file[4].start(), 15);
 	}
 
-	void sort_uniq()
+	void sortWithName()
+	{
+		BedFile file;
+		file.append(BedLine("chr1", 14, 20, QByteArrayList() << "X"));
+		file.append(BedLine("chr1", 14, 20, QByteArrayList()));
+		file.append(BedLine("chr1", 14, 20, QByteArrayList() << "Y"));
+		file.append(BedLine("chr1", 7, 9, QByteArrayList() << "C"));
+		file.append(BedLine("chr1", 7, 9, QByteArrayList() << "B"));
+		file.append(BedLine("chr1", 7, 9, QByteArrayList() << "A"));
+
+		file.sortWithName();
+		IS_TRUE(file.isSorted());
+		I_EQUAL(file.count(), 6);
+		I_EQUAL(file[0].annotations().count(), 1);
+		S_EQUAL(file[0].annotations()[0], "A");
+		I_EQUAL(file[1].annotations().count(), 1);
+		S_EQUAL(file[1].annotations()[0], "B");
+		I_EQUAL(file[2].annotations().count(), 1);
+		S_EQUAL(file[2].annotations()[0], "C");
+		I_EQUAL(file[3].annotations().count(), 0);
+		I_EQUAL(file[4].annotations().count(), 1);
+		S_EQUAL(file[4].annotations()[0], "X");
+		I_EQUAL(file[5].annotations().count(), 1);
+		S_EQUAL(file[5].annotations()[0], "Y");
+	}
+
+	void removeDuplicates()
 	{
 		BedFile file;
 		file.append(BedLine("chr1", 7, 23));
+		file.append(BedLine("chr1", 7, 23));
+		file.append(BedLine("chr1", 14, 20));
+		file.append(BedLine("chr2", 1, 2));
+		file.append(BedLine("chr2", 1, 2));
 		file.append(BedLine("chr2", 5, 10));
 		file.append(BedLine("chr2", 15, 20));
-		file.append(BedLine("chr2", 1, 2));
-		file.append(BedLine("chr1", 14, 20));
-		file.append(BedLine("chr1", 7, 23));
-		file.append(BedLine("chr2", 1, 2));
 
-		file.sort(true);
+		file.removeDuplicates();
 		IS_TRUE(file.isSorted());
 		I_EQUAL(file.count(), 5);
 		X_EQUAL(file[0].chr(), Chromosome("chr1"));

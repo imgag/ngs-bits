@@ -52,7 +52,7 @@ public:
 		//load BED file
 		BedFile bed_data;
 		bed_data.load(bed);
-		bed_data.sort();
+		if (!bed_data.isSorted()) bed_data.sort();
 		for(int i=0; i<bed_data.count(); ++i)
 		{
 			if (bed_data[i].annotations().count()==0)

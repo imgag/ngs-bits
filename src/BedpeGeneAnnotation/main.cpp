@@ -72,7 +72,7 @@ public:
 		}
 
 		out << "sorting BED file..." << endl;
-		gene_regions.sort();
+		if (!gene_regions.isSorted()) gene_regions.sort();
 
 		out << "generating BED index..." << endl;
 		ChromosomalIndex<BedFile> gene_regions_index(gene_regions);

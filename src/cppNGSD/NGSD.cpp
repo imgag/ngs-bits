@@ -3523,7 +3523,8 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, Q
 		}
 	}
 
-	output.sort(!annotate_transcript_names);
+	output.sort();
+	if (!annotate_transcript_names) output.removeDuplicates();
 
 	return output;
 }
@@ -3537,7 +3538,8 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 		output.add(geneToRegions(gene, source, mode, fallback, annotate_transcript_names, messages));
 	}
 
-	output.sort(!annotate_transcript_names);
+	output.sort();
+	if (!annotate_transcript_names) output.removeDuplicates();
 
 	return output;
 }

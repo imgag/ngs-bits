@@ -51,7 +51,7 @@ public:
 		//load annoation database
 		BedFile anno_file;
 		anno_file.load(bed);
-		anno_file.sort();
+		if (!anno_file.isSorted()) anno_file.sort();
 		ChromosomalIndex<BedFile> anno_index(anno_file);
 
 

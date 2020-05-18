@@ -186,8 +186,13 @@ public:
 	///Clears headers.
 	void clearHeaders();
 
-    ///Sorts the lines accoring to chromosome (lexicographical) and start position (ascending). If the @p uniq is @em true, duplicate entries are removed after sorting.
-    void sort(bool uniq = false);
+	///Sorts the lines accoring to chromosome (lexicographical) and start/end position (ascending).
+	void sort();
+	///Sorts the lines accoring to chromosome (lexicographical), start/end position (ascending) and name column (ascending).
+	void sortWithName();
+	///Removes duplicate entries. Throws a ProgrammingException if not sorted.
+	void removeDuplicates();
+
 	///Merges overlapping regions (by default also merges back-to-back/bookshelf regions).
 	void merge(bool merge_back_to_back = true, bool merge_names = false);
     ///Extends the regions by @p n bases in both directions.
@@ -220,6 +225,14 @@ protected:
 
 	QVector<QByteArray> headers_;
 	QVector<BedLine> lines_;
+
+private:
+	///Comparator helper class used by sortWithName
+	class LessComparatorWithName
+	{
+		public:
+			bool operator()(const BedLine &a, const BedLine &b) const;
+	};
 };
 
 #endif // BEDFILE_H
