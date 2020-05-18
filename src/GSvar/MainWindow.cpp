@@ -1603,22 +1603,24 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 {
-	QApplication::setOverrideCursor(Qt::WaitCursor);
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	//Only germline files shall be annotated
 	if(variants_.type() != AnalysisType::GERMLINE_SINGLESAMPLE)
 	{
-		QMessageBox::warning(this, "Annotation not possible", "Only single-sample germline variants lists can be annotated with data from somatic variant lists!");
 		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "Annotation not possible", "Only single-sample germline variants lists can be annotated with data from somatic variant lists!");
 		return;
 	}
 
 	//Load somatic .GSvar file
 	QString path = Settings::path("path_variantlists");
 	QString filename = QFileDialog::getOpenFileName(this, "Select somatic variant list for annotation", path, "GSvar files (*.GSvar);;All files (*.*)");
-	if(filename == "") return;
-
-
+	if(filename == "")
+	{
+		QApplication::restoreOverrideCursor();
+		return;
+	}
 
 	VariantList somatic_variants;
 	somatic_variants.load(filename);
@@ -1643,8 +1645,11 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 	int i_germline_annot_type = variants_.addAnnotationIfMissing(somatic_prefix + "_somatic_variants","semicolon-separated SNPs in the same gene from the somatic file. genomic_alteration:variant_type:tumor_af:tumor_dp:CGI_driver_statement","");
 
 	//abort if there is a missing column
-	if(i_germline_gene == -1 || i_somatic_gene == -1 || i_somatic_type == -1 || i_somatic_af == -1 || i_somatic_dp == -1) return;
-
+	if(i_germline_gene == -1 || i_somatic_gene == -1 || i_somatic_type == -1 || i_somatic_af == -1 || i_somatic_dp == -1)
+	{
+		QApplication::restoreOverrideCursor();
+		return;
+	}
 
 	NGSD db;
 	//Annotate variants per genes
@@ -1764,8 +1769,8 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 			snv.annotations()[i_germline_annot_cnvs] = annotations.join(":");
 		}
 	}
-	QApplication::restoreOverrideCursor();
 
+	QApplication::restoreOverrideCursor();
 	QMessageBox::information(this,"Success","Somatic variants from " + filename + " were annotated successfully.");
 
 	//mark variant list as changed
