@@ -262,14 +262,21 @@ bool VcfFile::isValid(QString vcf_file_path, QString ref_file, QTextStream& out_
 			}
 
 			//alternate base(s)
-            QByteArrayList alts = parts[VcfFile::ALT].split(',');
-			foreach(const QByteArray& alt, alts)
+			QByteArrayList alts = parts[VcfFile::ALT].split(',');
+			if (alts.count()==1 && alts[0]==".")
 			{
-				if (alt.startsWith('<') && alt.endsWith('>')) continue; //special case for structural variant
-				if (alt=="*") continue; //special case for missing allele due to downstream deletion
-				if (alt.isEmpty() || !alt_regexp.exactMatch(alt))
+				printWarning(out_stream, "Missing value '.' used as alternative allele!", l, line);
+			}
+			else
+			{
+				foreach(const QByteArray& alt, alts)
 				{
-					printError(out_stream, "Invalid alternative allele '" + alt + "'!", l, line);
+					if (alt.startsWith('<') && alt.endsWith('>')) continue; //special case for structural variant
+					if (alt=="*") continue; //special case for missing allele due to downstream deletion
+					if (alt.isEmpty() || !alt_regexp.exactMatch(alt))
+					{
+						printError(out_stream, "Invalid alternative allele '" + alt + "'!", l, line);
+					}
 				}
 			}
 

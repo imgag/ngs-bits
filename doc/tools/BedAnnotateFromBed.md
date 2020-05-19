@@ -1,5 +1,5 @@
 ### BedAnnotateFromBed tool help
-	BedAnnotateFromBed (2019_11-129-g4a5e7bf9)
+	BedAnnotateFromBed (2020_03-137-gb82c85b1)
 	
 	Annotates BED file regions with information from a second BED file.
 	
@@ -21,6 +21,8 @@
 	                  Default value: 'false'
 	  -url_decode     Decode URL encoded characters
 	                  Default value: 'false'
+	  -name <string>  Use this name as column header of TSV files output files. If unset, the base file name if 'in2' is used.
+	                  Default value: ''
 	
 	Special parameters:
 	  --help          Shows this help and exits.
@@ -29,8 +31,9 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedAnnotateFromBed changelog
-	BedAnnotateFromBed 2019_11-129-g4a5e7bf9
+	BedAnnotateFromBed 2020_03-137-gb82c85b1
 	
+	2020-05-19 Added parameter 'name'.
 	2019-07-09 Added parameters 'col', 'overlap' and 'no_duplicates'; Fixed 'clear' parameter.
 	2017-11-28 Added 'clear' flag.
 	2017-11-03 Initial commit.
