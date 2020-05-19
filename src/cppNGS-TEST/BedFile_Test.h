@@ -29,6 +29,9 @@ private slots:
 		file.append(BedLine("chr21", 15, 20));
 		IS_TRUE(file.isSorted());
 
+		file.append(BedLine("chr21", 15, 20));
+		IS_TRUE(file.isSorted());
+
 		file.append(BedLine("chr21", 6, 9));
 		IS_TRUE(!file.isSorted());
 	}

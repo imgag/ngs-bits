@@ -29,7 +29,9 @@ public:
 		addFlag("no_duplicates", "Remove duplicate annotations if several intervals from 'in2' overlap.");
 		addFlag("overlap", "Annotate overlap with regions in 'in2'. The regular annotation is appended in brackets.");
 		addFlag("url_decode", "Decode URL encoded characters");
+		addString("name", "Use this name as column header of TSV files output files. If unset, the base file name if 'in2' is used.", true);
 
+		changeLog(2020,  5,  19, "Added parameter 'name'.");
 		changeLog(2019,  7,  9, "Added parameters 'col', 'overlap' and 'no_duplicates'; Fixed 'clear' parameter.");
 		changeLog(2017, 11, 28, "Added 'clear' flag.");
 		changeLog(2017, 11, 03, "Initial commit.");
@@ -46,6 +48,8 @@ public:
 		bool no_duplicates = getFlag("no_duplicates");
 		bool overlap = getFlag("overlap");
 		bool url_decode = getFlag("url_decode");
+		QString name = getString("name");
+		if (name.isEmpty()) name = QFileInfo(in2).baseName();
 
 		//load annoation database
 		BedFile anno_file;
@@ -126,7 +130,7 @@ public:
 				QByteArray& line = headers[i];
 				if (line.startsWith("#") && !line.startsWith("##") && line.contains("\t"))
 				{
-					line += QByteArray("\t") + (overlap ? "overlap " : "") + QFileInfo(in2).baseName();
+					line += QByteArray("\t") + (overlap ? "overlap " : "") + name;
 				}
 			}
 			file.setHeaders(headers);
