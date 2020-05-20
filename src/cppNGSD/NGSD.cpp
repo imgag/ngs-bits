@@ -3057,7 +3057,7 @@ GeneSet NGSD::synonymousSymbols(int id)
 	GeneSet output;
 
 	SqlQuery q = getQuery();
-	q.exec("SELECT symbol FROM gene_alias WHERE gene_id='" + QByteArray::number(id) + "' AND type='synonymous'");
+	q.exec("SELECT symbol FROM gene_alias WHERE gene_id='" + QByteArray::number(id) + "' AND type='synonym'");
 	while(q.next())
 	{
 		output.insert(q.value(0).toByteArray());

@@ -70,7 +70,7 @@ void GeneWidget::updateGUI()
 
 	//HGNC info
     int gene_id = db.geneToApprovedID(symbol_);
-	QString hgnc_id = "HGNC:" + db.getValue("SELECT hgnc_id FROM gene WHERE id=" + QByteArray::number(gene_id)).toString();
+	QString hgnc_id = "HGNC:" + db.geneHgncId(gene_id);
 	ui_.hgnc_id->setText("<a href='https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/" + hgnc_id + "'>" + hgnc_id + "</a>");
 	ui_.hgnc_previous->setText(db.previousSymbols(gene_id).join(", "));
 	ui_.hgnc_synonymous->setText(db.synonymousSymbols(gene_id).join(", "));

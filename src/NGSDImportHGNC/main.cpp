@@ -17,7 +17,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports genes from the HGNC flat file.");
-		addInfile("in", "HGNC flat file (download and unzip ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc_complete_set.txt.gz)", false);
+		addInfile("in", "HGNC flat file (download ftp://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/hgnc_complete_set.txt)", false);
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
@@ -25,9 +25,10 @@ public:
 
 	void addAliases(SqlQuery& query, const QVariant& gene_id, const QByteArray& name_str, QVariant type)
 	{
-		QList<QByteArray> names = name_str.split(',');
+		QList<QByteArray> names = name_str.split('|');
 		for(QByteArray name : names)
 		{
+			name.replace("\"", "");
 			name = name.trimmed().toUpper();
 			if (name.isEmpty()) continue;
 			query.bindValue(0, gene_id);
@@ -121,17 +122,17 @@ public:
 		while(!fp->atEnd())
 		{
 			QByteArray line = fp->readLine().trimmed();
-			if (line.isEmpty() || line.startsWith("HGNC ID")) continue;
+			if (line.isEmpty() || line.startsWith("hgnc_id")) continue;
 			QList<QByteArray> parts = line.split('\t');
 			if (parts.count()<11) THROW(FileParseException, "Invalid line (too few values): " + line);
 
 			//check status
-			QByteArray status  = parts[3];
-			if (status=="Entry Withdrawn" || status=="Symbol Withdrawn") continue;
+			QByteArray status  = parts[5];
+			if (status=="Entry Withdrawn") continue;
 			if (status!="Approved") THROW(FileParseException, "Unknown status '" + status + "' in line: " + line);
 
 			//check locus
-			QByteArray locus = parts[5];
+			QByteArray locus = parts[3];
 			if (locus=="phenotype") continue;
 			if (!valid_types.contains(locus)) THROW(FileParseException, "Unknown locus '" + locus + "' in line: " + line);
 
@@ -147,7 +148,7 @@ public:
 			gene_query.exec();
 			QVariant gene_id = gene_query.lastInsertId();
 
-			addAliases(alias_query, gene_id, parts[6], "previous");
+			addAliases(alias_query, gene_id, parts[10], "previous");
 			addAliases(alias_query, gene_id, parts[8], "synonym");
 		}
 

@@ -17,6 +17,7 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+### Add HGNC-ID and type to GeneInfo > use it everywhere (SomaticReportGenerator, NGSDOmprtHGNC_Test, ...) > test
 ### Add sample: No 'senders' set > don't enable 'ok' button
 ### Plots: <2 samples with date > no plot
 ### Converter chromosomal bands > coordinates
