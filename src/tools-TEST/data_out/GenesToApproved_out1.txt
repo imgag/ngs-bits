@@ -4,6 +4,6 @@ TP53	KEPT: TP53 is an approved symbol
 IQSEC2	KEPT: IQSEC2 is an approved symbol
 IQSEC2	REPLACED: MRX1 is a previous symbol
 TSPAN7	REPLACED: A15 is a synonymous symbol
-CARP	ERROR: CARP is a synonymous symbol of the genes ANKRD1, CA8, FAM188A
+CARP	ERROR: CARP is a synonymous symbol of the genes ANKRD1, CA8, MINDY3
 SCAX4	ERROR: SCAX4 is unknown symbol
 WT2	ERROR: WT2 is unknown symbol
