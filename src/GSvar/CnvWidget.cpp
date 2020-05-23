@@ -725,8 +725,8 @@ void CnvWidget::showQcMetricHistogram()
 	hist.inc(metrics, true);
 
 	//show histogram
-	QChartView* view = GUIHelper::histogramChart(hist, "#CNVs");
-	auto dlg = GUIHelper::createDialog(view, "High-quality CNV distribution");
+	QChartView* view = GUIHelper::histogramChart(hist, metric_name);
+	auto dlg = GUIHelper::createDialog(view, "QC-metric distribution: " + metric_name);
 	dlg->exec();
 }
 
