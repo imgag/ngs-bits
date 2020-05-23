@@ -1,6 +1,12 @@
 # GSvar change log
 
 
+### 2020_03-142 (23.05.20)
+- Somatic report: now uses germline preferred transcripts for germline variants.
+- Report: SVs can now be added to report (beta version).
+- General: Added GSvar>VCF variant conversion.
+- General: sample phenotypes from  NGSD can now be loaded from the filter panel in CNV/SV windows.
+
 ### 2020_03-120 (08.05.20)
 - General: sample phenotypes can now be loaded from the filter panel in the CNV/SV window
 - General: added email dialog as workaround if there is no email client installed.

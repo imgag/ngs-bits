@@ -386,19 +386,25 @@
     <property name="title">
      <string>IGV</string>
     </property>
-    <widget class="QMenu" name="menuTracks">
+    <widget class="QMenu" name="menuTrackDefaults">
      <property name="title">
-      <string>Tracks</string>
+      <string>Track defaults</string>
      </property>
      <addaction name="actionIgvSample"/>
      <addaction name="actionIgvLowcov"/>
      <addaction name="separator"/>
     </widget>
+    <widget class="QMenu" name="menuOpenCustomTrack">
+     <property name="title">
+      <string>Open custom track</string>
+     </property>
+    </widget>
     <addaction name="actionIgvClear"/>
     <addaction name="separator"/>
     <addaction name="actionIgvInit"/>
     <addaction name="separator"/>
-    <addaction name="menuTracks"/>
+    <addaction name="menuTrackDefaults"/>
+    <addaction name="menuOpenCustomTrack"/>
    </widget>
    <widget class="QMenu" name="menuVariants">
     <property name="title">

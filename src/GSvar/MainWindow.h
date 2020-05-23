@@ -258,6 +258,8 @@ public slots:
 	void variantHeaderDoubleClicked(int row);
 	///Open region in IGV
 	void openInIGV(QString region);
+	///Opens a custom track in IGV
+	void openCustomIgvTrack();
 
 	///Edit validation status of current variant
 	void editVariantValidation(int index);

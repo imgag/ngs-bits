@@ -757,7 +757,7 @@ void MainWindow::openInIGV(QString region)
 		}
 
 		//custom tracks
-		QList<QAction*> igv_actions = ui_.menuTracks->findChildren<QAction*>();
+		QList<QAction*> igv_actions = ui_.menuTrackDefaults->findChildren<QAction*>();
 		foreach(QAction* action, igv_actions)
 		{
 			QString text = action->text();
@@ -815,6 +815,25 @@ void MainWindow::openInIGV(QString region)
 
 	//send commands to IGV - jump
 	executeIGVCommands(QStringList() << "goto " + region);
+}
+
+void MainWindow::openCustomIgvTrack()
+{
+	QAction* action = qobject_cast<QAction*>(sender());
+	if (action==nullptr) return;
+
+	QString name = action->text();
+
+	QStringList entries = Settings::stringList("igv_menu");
+	foreach(QString entry, entries)
+	{
+		QStringList parts = entry.trimmed().split("\t");
+		if(parts[0]==name)
+		{
+			qDebug() << QDir::toNativeSeparators(parts[2]);
+			executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(parts[2]) + "\"");
+		}
+	}
 }
 
 void MainWindow::editVariantValidation(int index)
@@ -4881,7 +4900,9 @@ void MainWindow::updateIGVMenu()
 	QStringList entries = Settings::stringList("igv_menu");
 	if (entries.count()==0)
 	{
-		ui_.menuTracks->addAction("No custom entries in INI file!");
+		ui_.menuTrackDefaults->addAction("No custom entries in INI file!");
+
+		ui_.menuOpenCustomTrack->addAction("No custom entries in INI file!");
 	}
 	else
 	{
@@ -4889,10 +4910,12 @@ void MainWindow::updateIGVMenu()
 		{
 			QStringList parts = entry.trimmed().split("\t");
 			if(parts.count()!=3) continue;
-			QAction* action = ui_.menuTracks->addAction("custom track: " + parts[0]);
+			QAction* action = ui_.menuTrackDefaults->addAction("custom track: " + parts[0]);
 			action->setCheckable(true);
 			action->setChecked(parts[1]=="1");
 			action->setToolTip(parts[2]);
+
+			ui_.menuOpenCustomTrack->addAction(parts[0], this, SLOT(openCustomIgvTrack()));
 		}
 	}
 }
