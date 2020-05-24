@@ -24,23 +24,23 @@
         <Region chr="chrX" start="8764320" end="8764327"/>
         <Region chr="chrY" start="25286748" end="25286869"/>
         <Region chr="chrY" start="25289133" end="25289254"/>
-        <Gene name="DAZ1" id="2682"/>
-        <Gene name="FAM9A" id="18403"/>
-        <Gene name="FOXP1" id="3823"/>
-        <Gene name="MTHFR" id="7436"/>
-        <Gene name="NR4A2" id="7981"/>
-        <Gene name="SPEN" id="17575"/>
+        <Gene name="DAZ1" id="HGNC:2682"/>
+        <Gene name="FAM9A" id="HGNC:18403"/>
+        <Gene name="FOXP1" id="HGNC:3823"/>
+        <Gene name="MTHFR" id="HGNC:7436"/>
+        <Gene name="NR4A2" id="HGNC:7981"/>
+        <Gene name="SPEN" id="HGNC:17575"/>
     </TargetRegion>
     <VariantList>
         <Variant chr="chr2" start="178096717" end="178096717" ref="T" obs="C" af_tumor="0.1057" depth_tumor="389" af_normal="0.0000" depth_normal="603">
-            <Gene name="" id=""/>
+            <Gene name="NFE2L2" id=""/>
             <TranscriptInformation transcript_id="ENST00000397062" gene="NFE2L2" type="missense_variant" hgvs_c="c.614A&gt;G" hgvs_p="p.Asp205Gly" exon="exon5/5" variant_type="missense_variant" main_transcript="true"/>
             <TranscriptInformation transcript_id="ENST00000397063" gene="NFE2L2" type="missense_variant" hgvs_c="c.566A&gt;G" hgvs_p="p.Asp189Gly" exon="exon5/5" variant_type="missense_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000446151" gene="NFE2L2" type="missense_variant" hgvs_c="c.545A&gt;G" hgvs_p="p.Asp182Gly" exon="exon5/5" variant_type="missense_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000464747" gene="NFE2L2" type="missense_variant" hgvs_c="c.566A&gt;G" hgvs_p="p.Asp189Gly" exon="exon8/8" variant_type="missense_variant" main_transcript="false"/>
         </Variant>
         <Variant chr="chr16" start="56870524" end="56870524" ref="A" obs="C" af_tumor="0.1254" depth_tumor="639" af_normal="0.0000" depth_normal="736">
-            <Gene name="" id=""/>
+            <Gene name="NUP93" id=""/>
             <TranscriptInformation transcript_id="ENST00000308159" gene="NUP93" type="synonymous_variant" hgvs_c="c.1794A&gt;C" hgvs_p="p.Ile598=" exon="exon17/22" variant_type="synonymous_variant" main_transcript="true"/>
             <TranscriptInformation transcript_id="ENST00000542526" gene="NUP93" type="synonymous_variant" hgvs_c="c.1425A&gt;C" hgvs_p="p.Ile475=" exon="exon15/20" variant_type="synonymous_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000564887" gene="NUP93" type="synonymous_variant" hgvs_c="c.1425A&gt;C" hgvs_p="p.Ile475=" exon="exon15/20" variant_type="synonymous_variant" main_transcript="false"/>
@@ -72,24 +72,24 @@
     </VariantList>
     <CnvList>
         <Cnv chr="chr1" start="32097627" end="32860246" start_band="p35.1" end_band="p35.2" af="0.775" alteration="AMP" type="cluster" cn="3" cn_a="1" cn_b="2">
-            <Gene name="EPRS" id="3418">
+            <Gene name="EPRS" id="HGNC:3418">
                 <IsOncoGene source="Network of Cancer Genes" source_version="6.0"/>
             </Gene>
         </Cnv>
         <Cnv chr="chr8" start="3489730" end="4474360" start_band="p23.2" end_band="p23.2" af="0.775" alteration="DEL" type="focal" cn="1" cn_a="0" cn_b="1">
-            <Gene name="QARS1" id="9751">
+            <Gene name="QARS1" id="HGNC:9751">
                 <IsTumorSuppressor source="Network of Cancer Genes" source_version="6.0"/>
             </Gene>
         </Cnv>
         <Cnv chr="chr9" start="129905875" end="130616939" start_band="q33.3" end_band="q34.11" af="0.75" alteration="AMP" type="cluster" cn="3" cn_a="1" cn_b="2">
-            <Gene name="FOXP1" id="3823"/>
-            <Gene name="DAZ1" id="2682">
+            <Gene name="FOXP1" id="HGNC:3823"/>
+            <Gene name="DAZ1" id="HGNC:2682">
                 <IsOncoGene source="Network of Cancer Genes" source_version="6.0"/>
             </Gene>
         </Cnv>
         <Cnv chr="chr11" start="26582421" end="27694430" start_band="p14.1" end_band="p14.2" af="0.775" alteration="AMP" type="cluster" cn="3" cn_a="1" cn_b="2">
-            <Gene name="SPEN" id="17575"/>
-            <Gene name="MTHFR" id="7436"/>
+            <Gene name="SPEN" id="HGNC:17575"/>
+            <Gene name="MTHFR" id="HGNC:7436"/>
         </Cnv>
     </CnvList>
     <ReportDocument format="RTF"/>

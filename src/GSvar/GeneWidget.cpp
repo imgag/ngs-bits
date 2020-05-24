@@ -50,6 +50,7 @@ void GeneWidget::updateGUI()
 	setWindowTitle("Gene information '" + info.symbol + "'");
 	ui_.gene->setText(info.symbol);
 	ui_.name->setText(info.name);
+	ui_.type->setText(info.locus_group);
 	ui_.inheritance->setText(info.inheritance);
     QString html = info.comments;
     html.replace(QRegExp("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
@@ -70,8 +71,7 @@ void GeneWidget::updateGUI()
 
 	//HGNC info
     int gene_id = db.geneToApprovedID(symbol_);
-	QString hgnc_id = "HGNC:" + db.geneHgncId(gene_id);
-	ui_.hgnc_id->setText("<a href='https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/" + hgnc_id + "'>" + hgnc_id + "</a>");
+	ui_.hgnc_id->setText("<a href='https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/" + info.hgnc_id + "'>" + info.hgnc_id + "</a>");
 	ui_.hgnc_previous->setText(db.previousSymbols(gene_id).join(", "));
 	ui_.hgnc_synonymous->setText(db.synonymousSymbols(gene_id).join(", "));
 

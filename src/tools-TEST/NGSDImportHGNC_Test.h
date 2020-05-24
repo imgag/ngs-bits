@@ -36,8 +36,7 @@ private slots:
 		S_EQUAL(alias[1], "P53")
 		GeneInfo gene_info = db.geneInfo("TP53");
 		S_EQUAL(gene_info.name, "tumor protein p53")
-		QByteArray hgnc_id = db.geneHgncId(gene_id);
-		S_EQUAL(hgnc_id, "11998")
+		S_EQUAL(gene_info.hgnc_id, "11998")
 		QByteArray type = db.getValue("SELECT type FROM gene WHERE symbol='TP53'").toByteArray();
 		S_EQUAL(type, "protein-coding gene")
 

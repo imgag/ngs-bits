@@ -2886,11 +2886,6 @@ QByteArray NGSD::geneSymbol(int id)
 	return getValue("SELECT symbol FROM gene WHERE id=:0", true, QString::number(id)).toByteArray();
 }
 
-QByteArray NGSD::geneHgncId(int id)
-{
-	return getValue("SELECT hgnc_id FROM gene WHERE id=:0", true, QString::number(id)).toByteArray();
-}
-
 QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconvertable)
 {
 	gene = gene.trimmed().toUpper();
@@ -4483,23 +4478,26 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 	auto approved = geneToApprovedWithMessage(symbol);
 	output.symbol = approved.first;
 	output.symbol_notice = approved.second;
+
+	//get infos from 'gene' table
 	SqlQuery query = getQuery();
-	query.prepare("SELECT name FROM gene WHERE symbol=:0");
-	query.bindValue(0, output.symbol);
-	query.exec();
+	query.exec("SELECT * FROM gene WHERE symbol='" + output.symbol + "'");
 	if (query.size()==0)
 	{
 		output.name = "";
+		output.hgnc_id = "";
+		output.locus_group = "";
 	}
 	else
 	{
 		query.next();
-		output.name = query.value(0).toString();
+		output.name = query.value("name").toString();
+		output.hgnc_id = "HGNC:" + query.value("hgnc_id").toString();
+		output.locus_group = query.value("type").toString();
 	}
 
-	query.prepare("SELECT inheritance, gnomad_oe_syn, gnomad_oe_mis, gnomad_oe_lof, comments FROM geneinfo_germline WHERE symbol=:0");
-	query.bindValue(0, output.symbol);
-	query.exec();
+	//get infos from 'geneinfo_germline' table
+	query.exec("SELECT inheritance, gnomad_oe_syn, gnomad_oe_mis, gnomad_oe_lof, comments FROM geneinfo_germline WHERE symbol='" + output.symbol + "'");
 	if (query.size()==0)
 	{
 		output.inheritance = "n/a";

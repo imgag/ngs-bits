@@ -38,9 +38,10 @@ public:
 	SomaticXmlReportGenerator();
 
 	static QString generateXML(const SomaticXmlReportGeneratorData &data, NGSD& db, bool test=false);
-	static void generateXML(const SomaticXmlReportGeneratorData& data, QString& output, NGSD& db, bool test);
 
 private:
+	static void generateXML(const SomaticXmlReportGeneratorData& data, QString& output, NGSD& db, bool test=false);
+
 	//validates somatic xml report against .xsd file in resources dir
 	static void validateXml(const QString& xml);
 };

@@ -282,7 +282,6 @@ private:
 		S_EQUAL(db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87000, 350005), 5, false), ""); //CNV does not exist
 		IS_THROWN(DatabaseException, db.somaticCnvId(CopyNumberVariant(Chromosome("chr7"), 87000, 350000), 1));
 
-
 		CnvList cnvs;
 		cnvs.load(TESTDATA("data_in/somatic_cnvs_clincnv.tsv"));
 		int cnv_id =  db.addSomaticCnv(1, cnvs[3], cnvs).toInt();
@@ -1252,6 +1251,7 @@ private slots:
 		db.deleteReportConfig(conf_id);
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
 
+		//TODO move to separate test with separate NGSD initialization (add NEFE2LE and NUP93 gene) > AXEL
 		SomaticCNVmethods(db);
 		somaticReportTest(db);
 

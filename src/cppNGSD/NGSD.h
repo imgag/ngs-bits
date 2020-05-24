@@ -286,6 +286,11 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 	QString symbol_notice;
 	//gene name
 	QString name;
+	//HGNC identifier
+	QString hgnc_id;
+	//HGNC locus group
+	QString locus_group;
+
 	//gene inheritance mode
 	QString inheritance;
 	//genomAD o/e score for synonymous variants (default is NULL).
@@ -446,8 +451,6 @@ public:
 	int geneToApprovedID(const QByteArray& gene);
 	///Returns the gene symbol for a gene ID
 	QByteArray geneSymbol(int id);
-	///Retunrs the HGNC id for a gene ID
-	QByteArray geneHgncId(int id);
 	///Returns the the approved gene symbol or "" if it could not be determined.
 	QByteArray geneToApproved(QByteArray gene, bool return_input_when_unconvertable=false);
 	///Returns the the approved gene symbols.

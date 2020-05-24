@@ -8,6 +8,8 @@
 
 #include <QXmlStreamWriter>
 #include <QCoreApplication>
+#include <QFileInfo>
+#include <QDir>
 
 SomaticXmlReportGeneratorData::SomaticXmlReportGeneratorData(const SomaticReportSettings &som_settings, const VariantList& snvs, const VariantList& germl_snvs, const CnvList& cnvs)
 	: settings(som_settings)
@@ -61,7 +63,7 @@ QString SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorDa
 	return output;
 }
 
-void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, QString& output, NGSD& db, bool test = false)
+void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData &data, QString& output, NGSD& db, bool test)
 {
 	QXmlStreamWriter w(&output);
 
@@ -162,9 +164,14 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	ProcessingSystemData processing_system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(data.settings.tumor_ps), QSysInfo::productType().contains("windows"));
 	w.writeAttribute("name", processing_system_data.name); //in our workflow identical to processing system name
 
+		QString target_file = processing_system_data.target_file;
+		if (test)
+		{
+			target_file = QDir::currentPath() + "/../src/cppNGSD-TEST/data_in/" + QFileInfo(target_file).fileName();
+		}
 
 		BedFile target;
-		target.load(processing_system_data.target_file);
+		target.load(target_file);
 		for(int i=0; i< target.count(); ++i)
 		{
 			w.writeStartElement("Region");
@@ -174,10 +181,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			w.writeEndElement();
 		}
 
-
-		QString target_gene_file = processing_system_data.target_file;
-		target_gene_file = target_gene_file.replace(".bed", "") + "_genes.txt";
-
+		QString target_gene_file = target_file.mid(0, target_file.length()-4) + "_genes.txt";
 		if( QFile::exists(target_gene_file) )
 		{
 			GeneSet target_genes = GeneSet::createFromFile(target_gene_file);
@@ -185,9 +189,9 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			for(int i=0; i<target_genes.count(); ++i)
 			{
 				w.writeStartElement("Gene");
-				int id = db.geneToApprovedID(target_genes[i]);
-				w.writeAttribute("name", db.geneSymbol(id) );
-				w.writeAttribute("id", db.geneHgncId(id) );
+				GeneInfo gene_info = db.geneInfo(target_genes[i]);
+				w.writeAttribute("name", gene_info.symbol);
+				w.writeAttribute("id", gene_info.hgnc_id);
 				w.writeEndElement();
 			}
 		}
@@ -235,9 +239,9 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 				for(int j=0; j < genes.count(); ++j)
 				{
 					w.writeStartElement("Gene");
-					int id = db.geneToApprovedID(genes[j]);
-					w.writeAttribute("name", db.geneSymbol(id) );
-					w.writeAttribute("id", db.geneHgncId(id) );
+					GeneInfo gene_info = db.geneInfo(genes[j]);
+					w.writeAttribute("name", gene_info.symbol);
+					w.writeAttribute("id", gene_info.hgnc_id);
 
 					if(!snv.annotations()[i_som_class].isEmpty()) w.writeAttribute("effect", snv.annotations()[i_som_class]);
 
@@ -396,11 +400,9 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			for(int j=0; j<genes.count(); ++j)
 			{
 				w.writeStartElement("Gene");
-				int id = db.geneToApprovedID(genes[j]);
-
-				w.writeAttribute("name", db.geneSymbol(id));
-				w.writeAttribute("id", db.geneHgncId(id));
-
+				GeneInfo gene_info = db.geneInfo(genes[j]);
+				w.writeAttribute("name", gene_info.symbol);
+				w.writeAttribute("id", gene_info.hgnc_id);
 
 				if(tsg[j].contains("1"))
 				{

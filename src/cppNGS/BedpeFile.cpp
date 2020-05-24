@@ -421,7 +421,7 @@ void BedpeFile::sort()
 
 BedpeFileFormat BedpeFile::format() const
 {
-	for(auto comment : comments_) //TODO: return type for germline samples and add test > AXEL
+	for(auto comment : comments_) //TODO: return type for germline samples and throw error if unknown!?, add function "bool isSomatic() const" > AXEL
 	{
 		if(comment.contains("fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
 		if(comment.contains("fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
