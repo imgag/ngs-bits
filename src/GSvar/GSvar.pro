@@ -81,7 +81,8 @@ SOURCES += main.cpp\
     VariantConversionWidget.cpp \
     PasswordDialog.cpp \
     CircosPlotWidget.cpp \
-    EmailDialog.cpp
+    EmailDialog.cpp \
+    CytobandToRegionsDialog.cpp
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -156,7 +157,8 @@ HEADERS  += MainWindow.h \
     VariantConversionWidget.h \
     PasswordDialog.h \
     CircosPlotWidget.h \
-    EmailDialog.h
+    EmailDialog.h \
+    CytobandToRegionsDialog.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -218,7 +220,8 @@ FORMS    += MainWindow.ui \
     VariantConversionWidget.ui \
     PasswordDialog.ui \
     CircosPlotWidget.ui \
-    EmailDialog.ui
+    EmailDialog.ui \
+    CytobandToRegionsDialog.ui
 
 
 include("../app_gui.pri")

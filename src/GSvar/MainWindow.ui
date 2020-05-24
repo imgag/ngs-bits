@@ -473,8 +473,15 @@
      <addaction name="actionImportSamples"/>
      <addaction name="actionImportProcessedSamples"/>
     </widget>
+    <widget class="QMenu" name="menuRegions">
+     <property name="title">
+      <string>Regions</string>
+     </property>
+     <addaction name="actionCytobandsToRegions"/>
+    </widget>
     <addaction name="menuGenes_2"/>
     <addaction name="menuPhenotypes_2"/>
+    <addaction name="menuRegions"/>
     <addaction name="menuSub_panels"/>
     <addaction name="separator"/>
     <addaction name="menuAdmin"/>
@@ -1087,6 +1094,11 @@
   <action name="actionConvertGSvarToVcf">
    <property name="text">
     <string>Convert GSvar &gt; VCF</string>
+   </property>
+  </action>
+  <action name="actionCytobandsToRegions">
+   <property name="text">
+    <string>Cytoband &gt; Regions</string>
    </property>
   </action>
  </widget>

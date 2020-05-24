@@ -342,6 +342,58 @@ QByteArray NGSHelper::cytoBand(Chromosome chr, int pos)
 	THROW(ProgrammingException, "Could not find band for coordinate " + chr.str() + ":" + QString::number(pos));
 }
 
+BedLine NGSHelper::cytoBandToRange(QByteArray cytoband)
+{
+	//init
+	static BedFile bands;
+	if (bands.count()==0)
+	{
+		bands.load(":/Resources/cyto_band.bed");
+	}
+
+	//determine chromosome
+	if (cytoband.contains('-'))
+	{
+		QByteArrayList parts = cytoband.split('-');
+		if (parts.count()!=2)
+		{
+			THROW(ArgumentException, "Cytoband range '" + cytoband + "' contains more than one '-'!");
+		}
+		else
+		{
+			BedLine range1 = cytoBandToRange(parts[0]);
+			BedLine range2 = cytoBandToRange(parts[1]);
+
+			if (range1.chr()!=range2.chr()) THROW(ArgumentException, "Cytoband '" + cytoband + "' contains range with non-matching chromosomes!");
+
+			int start =  std::min(range1.start(), range2.start());
+			int end =  std::max(range1.end(), range2.end());
+			return BedLine(range1.chr(), start, end);
+		}
+	}
+	else
+	{
+		int sep = cytoband.indexOf('p');
+		if (sep==-1) sep = cytoband.indexOf('q');
+		if (sep==-1) THROW(ArgumentException, "Cytoband '" + cytoband + "' contains no 'p' or 'q'!");
+
+		Chromosome chr(cytoband.left(sep));
+		if (!chr.isAutosome() && !chr.isGonosome()) THROW(ArgumentException, "Cytoband '" + cytoband + "' contains invalid chromosome '" + chr.str() + "'!");
+		QByteArray band = cytoband.mid(sep);
+
+		for (int i=0; i<bands.count(); ++i)
+		{
+			if (bands[i].chr()!=chr) continue;
+
+			if (bands[i].annotations()[0]==band)
+			{
+				return BedLine(chr, bands[i].start(), bands[i].end());
+			}
+		}
+		THROW(ArgumentException, "Cytoband '" + cytoband + "' contains unknown band name '" + band + "'!");
+	}
+}
+
 void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos)
 {
 	QList<CigarOp> old_CIGAR = al.cigarData();

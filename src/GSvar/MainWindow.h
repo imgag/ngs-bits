@@ -200,6 +200,8 @@ public slots:
 	void on_actionConvertHgvsToGSvar_triggered();
 	///Action for variant conversion (GSvar > VCF)
 	void on_actionConvertGSvarToVcf_triggered();
+	///Action for region conversion (Cytoband > BED)
+	void on_actionCytobandsToRegions_triggered();
 
 	///Load report configuration
 	void loadReportConfig();

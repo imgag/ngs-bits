@@ -31,6 +31,8 @@ public:
 
 	///Returns the cytogenetic band for to chromosomal position
 	static QByteArray cytoBand(Chromosome chr, int pos);
+	///Returns the chromosomal range of a cytoband or cytoband range.
+	static BedLine cytoBandToRange(QByteArray cytoband);
 
 private:
 	///Constructor declared away

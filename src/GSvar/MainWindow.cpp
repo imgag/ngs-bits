@@ -97,6 +97,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "CircosPlotWidget.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
+#include "CytobandToRegionsDialog.h"
+
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -248,6 +250,13 @@ void MainWindow::on_actionConvertGSvarToVcf_triggered()
 	widget->setMode(VariantConversionWidget::GSVAR_TO_VCF);
 	auto dlg = GUIHelper::createDialog(widget, "Variant conversion (GSvar > VCF)");
 	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionCytobandsToRegions_triggered()
+{
+	CytobandToRegionsDialog dlg(this);
+
+	dlg.exec();
 }
 
 void MainWindow::on_actionClose_triggered()

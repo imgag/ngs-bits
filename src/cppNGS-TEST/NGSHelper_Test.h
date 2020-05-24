@@ -150,4 +150,19 @@ private slots:
 		S_EQUAL(NGSHelper::cytoBand("chrY", 34847524), "Yq12");
 		S_EQUAL(NGSHelper::cytoBand("chr1", 76992611), "1p31.1");
 	}
+
+	void cytoBandToRange()
+	{
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange(""));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("Zr36.33"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("1r36.33"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("1p36.33-"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("1p36.33-5q21.2"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("1p36.33-1p36.32-1p36.31"));
+
+		S_EQUAL(NGSHelper::cytoBandToRange("chr1p36.33").toString(true), "chr1:1-2300000");
+		S_EQUAL(NGSHelper::cytoBandToRange("1p36.33").toString(true), "chr1:1-2300000");
+		S_EQUAL(NGSHelper::cytoBandToRange("1p36.33-1p36.32").toString(true), "chr1:1-5400000");
+		S_EQUAL(NGSHelper::cytoBandToRange("1p36.32-1p36.33").toString(true), "chr1:1-5400000");
+	}
 };
