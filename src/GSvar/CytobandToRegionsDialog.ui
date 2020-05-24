@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>508</width>
-    <height>397</height>
+    <width>821</width>
+    <height>462</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Cytobands &gt; Regions</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">

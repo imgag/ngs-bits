@@ -48,6 +48,8 @@ class DBQCWidget
 		void addHighlightRun();
 		void addHighlightProject();
 
+		void copyQcMetricsToClipboard();
+
 	private:
 		Ui::DBQCWidget ui_;
 		NGSD db_;

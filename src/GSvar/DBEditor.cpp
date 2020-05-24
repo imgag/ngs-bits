@@ -137,7 +137,17 @@ void DBEditor::createGUI()
 
 			if (field_info.fk_name_sql=="") THROW(ProgrammingException, "Foreign key name SQL not set for table/field: " + table_ + "/" + field_info.name);
 
-			selector->fill(db_.createTable(field_info.fk_table, "SELECT id, " + field_info.fk_name_sql + " as display_value FROM " + field_info.fk_table + " ORDER BY display_value"), field_info.is_nullable);
+			DBTable entries = db_.createTable(field_info.fk_table, "SELECT id, " + field_info.fk_name_sql + " as display_value FROM " + field_info.fk_table + " ORDER BY display_value");
+			selector->fill(entries, field_info.is_nullable);
+
+			//Handle rare case that mandatory FK points to empty table.
+			if (entries.rowCount()==0 && !field_info.is_nullable)
+			{
+				QString error = "Missing entries in table '" + field_info.fk_table + "' - please fill this table first!";
+				errors_[field] = QStringList() << error;
+				selector->setToolTip(error);
+				selector->setStyleSheet("QComboBox {border: 2px solid red;}");
+			}
 
 			widget = selector;
 		}
@@ -559,7 +569,7 @@ void DBEditor::store()
 		{
 			DBComboBox* editor = getEditWidget<DBComboBox*>(field);
 			QString value = editor->getCurrentId();
-			values << (value.isEmpty() && field_info.is_nullable  ? "NULL" : value);
+			values << (value.isEmpty() && field_info.is_nullable ? "NULL" : value);
 		}
 		else
 		{

@@ -30,6 +30,7 @@ DBQCWidget::DBQCWidget(QWidget *parent)
 	ui_.system->fill(db_.createTable("processing_system", "SELECT id, name_manufacturer FROM processing_system ORDER BY name_manufacturer ASC"));
 	connect(ui_.system, SIGNAL(currentTextChanged(QString)), this, SLOT(updatePlot()));
 	connect(ui_.highlight, SIGNAL(editingFinished()), this, SLOT(checkHighlightedSamples()));
+	connect(ui_.export_btn, SIGNAL(clicked(bool)), this, SLOT(copyQcMetricsToClipboard()));
 }
 
 void DBQCWidget::setSystemId(QString id)
@@ -130,6 +131,40 @@ void DBQCWidget::addHighlightProject()
 
 	//update plot
 	updatePlot();
+}
+
+void DBQCWidget::copyQcMetricsToClipboard()
+{
+	try
+	{
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		//checks
+		if(ui_.term->currentText().isEmpty()) THROW(ArgumentException, "QC metric 1 has to be set for export!");
+		if (ui_.system->getCurrentId().isEmpty()) THROW(ArgumentException, "A processing system has to be set for export!");
+
+		//create output
+		QStringList output;
+		output << "#" + ui_.term->currentText() + "\tsample\tsample_quality\trun\trun_date\tproject\tproject_type";
+		QString term_id = ui_.term->getCurrentId();
+		QString sys_id = ui_.system->getCurrentId();
+		SqlQuery query = db_.getQuery();
+		query.exec("SELECT qc.value, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.quality, r.name, r.end_date, p.name, p.type FROM processed_sample_qc qc, processed_sample ps, sequencing_run r, project p, sample s WHERE ps.sample_id=s.id AND ps.project_id=p.id AND qc.processed_sample_id=ps.id AND ps.sequencing_run_id=r.id AND qc.qc_terms_id='" + term_id + "' AND ps.processing_system_id='" + sys_id + "' ORDER BY ps.id ASC");
+		while(query.next())
+		{
+			output << query.value(0).toString() + "\t" + query.value(1).toString() + "\t" + query.value(2).toString() + "\t" + query.value(3).toString() + "\t" + query.value(4).toString() + "\t" + query.value(5).toString() + "\t" + query.value(6).toString();
+		}
+
+		//output
+		QApplication::clipboard()->setText(output.join("\n"));
+		QApplication::restoreOverrideCursor();
+		QMessageBox::information(this, "QC export", "Copied " + QString::number(query.size()) + " QC values to clipboard.");
+	}
+	catch(Exception& e)
+	{
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "QC export", "Error: " + e.message());
+	}
 }
 
 void DBQCWidget::checkHighlightedSamples()
@@ -330,10 +365,10 @@ void DBQCWidget::updatePlot()
 	addSeries(chart, x_axis, y_axis, series["bad"]);
 	addSeries(chart, x_axis, y_axis, series["highlight"]);
 
-	//add 1% margin to prevent clipping of data point icons
-	double y_margin = 0.01*(value_max-value_min);
-	double x_margin = 0.01*(value2_max-value2_min);
-	if (x_margin>0 && y_margin>0)
+
+	//margin X (prevent clipping of data point icons)
+	double x_margin = 0.01*(value2_max==value2_min ? value2_max : value2_max-value2_min);
+	if (x_margin>0)
 	{
 		if (scatterplot)
 		{
@@ -345,6 +380,12 @@ void DBQCWidget::updatePlot()
 			x_axis->setMin(QDateTime::fromMSecsSinceEpoch(value2_min-x_margin));
 			x_axis->setMax(QDateTime::fromMSecsSinceEpoch(value2_max+x_margin));
 		}
+	}
+
+	//margin Y (prevent clipping of data point icons)
+	double y_margin = 0.01*(value_max==value_min ? value_max : value_max-value_min);
+	if (y_margin>0)
+	{
 		y_axis->setMin(value_min-y_margin);
 		y_axis->setMax(value_max+y_margin);
 	}
