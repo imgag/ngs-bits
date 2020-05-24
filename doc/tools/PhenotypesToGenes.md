@@ -1,14 +1,13 @@
 ### PhenotypesToGenes tool help
-	PhenotypesToGenes (2019_09-51-g84b6c695)
+	PhenotypesToGenes (2020_03-148-g2adf1853)
 	
 	Converts a phenotype list to a list of matching genes.
 	
 	For each given HPO term, the genes associated with the term itself and the genes associated with any sub-term are returned.
 	
-	Mandatory parameters:
-	  -in <string> Input file, containing one HPO term identifier per line, e.g. HP:0002066. If unset, reads from STDIN.
-	
 	Optional parameters:
+	  -in <string> Input file, containing one HPO term identifier per line, e.g. HP:0002066. If unset, reads from STDIN.
+	               Default value: ''
 	  -out <file>  Output TSV file with genes (column 1) and matched phenotypes (column 2). If unset, writes to STDOUT.
 	               Default value: ''
 	  -test        Uses the test database instead of on the production database.
@@ -21,7 +20,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### PhenotypesToGenes changelog
-	PhenotypesToGenes 2019_09-51-g84b6c695
+	PhenotypesToGenes 2020_03-148-g2adf1853
 	
 	2020-05-24 First version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

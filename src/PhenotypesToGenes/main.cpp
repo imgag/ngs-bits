@@ -17,7 +17,7 @@ public:
 		setDescription("Converts a phenotype list to a list of matching genes.");
 		setExtendedDescription(QStringList() << "For each given HPO term, the genes associated with the term itself and the genes associated with any sub-term are returned.");
 
-		addString("in", "Input file, containing one HPO term identifier per line, e.g. HP:0002066. If unset, reads from STDIN.", false);
+		addString("in", "Input file, containing one HPO term identifier per line, e.g. HP:0002066. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output TSV file with genes (column 1) and matched phenotypes (column 2). If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 
