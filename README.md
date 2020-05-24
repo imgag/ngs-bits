@@ -15,7 +15,7 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* Added tools: NGSDAnnotateSV, BedpeToBed, BedHighCoverage
+* Added tools: NGSDAnnotateSV, BedpeToBed, BedHighCoverage, PhenotypesToGenes
 * Removed tools: BamHighCoverage
 * NGSDImportHPO: Added support for new HPO annotation file format and optimized the NGSD hpo-gene relation table.
 * NGSDAddVariantsGermline: added import of structural variants
@@ -151,6 +151,7 @@ The default output format of the quality control tools is [qcML](https://github.
 * [GenesToApproved](doc/tools/GenesToApproved.md) - Replaces gene symbols by approved symbols using the HGNC database (needs [NGSD](doc/install_ngsd.md)).
 * [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file (needs [NGSD](doc/install_ngsd.md)).
 * [NGSDExportGenes](doc/tools/NGSDExportGenes.md) - Lists genes from NGSD (needs [NGSD](doc/install_ngsd.md)).
+* [PhenotypesToGenes](doc/tools/PhenotypesToGenes.md) - Converts a phenotype list to a list of matching genes (needs [NGSD](doc/install_ngsd.md)).
 
 ### Misc tools
 
@@ -160,3 +161,4 @@ The default output format of the quality control tools is [qcML](https://github.
 * [NGSDExportAnnotationData](doc/tools/NGSDExportAnnotationData.md) - Generates a VCF file with all variants and annotations from the NGSD and a BED file containing the gene information of the NGSD (needs [NGSD](doc/install_ngsd.md)).
 * [NGSDExportCnvTrack](doc/tools/NGSDExportCnvTrack.md) - Exports a IGV-conform CNV track for a processing system (needs [NGSD](doc/install_ngsd.md)).
 * [NGSDExportSamples](doc/tools/NGSDExportSamples.md) - Lists processed samples from the NGSD (needs [NGSD](doc/install_ngsd.md)).
+

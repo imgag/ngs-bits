@@ -381,5 +381,9 @@ SUBDIRS += BedHighCoverage
 tools-TEST.depends += BedHighCoverage
 BedHighCoverage.depends = cppNGS
 
+SUBDIRS += PhenotypesToGenes
+tools-TEST.depends += PhenotypesToGenes
+PhenotypesToGenes.depends = cppNGSD
+
 #other stuff
 OTHER_FILES += ToDos.txt
