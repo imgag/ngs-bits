@@ -1576,7 +1576,7 @@ AncestryEstimates Statistics::ancestry(QString build, const VariantList& vl, int
 	return output;
 }
 
-BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq)
+BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, const int& cutoff, const int& min_mapq, const int& min_baseq)
 {
 	BedFile output;
 
@@ -1614,7 +1614,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 
 			const int ol_start = std::max(start, al.start()) - start;
 			const int ol_end = std::min(bed_line.end(), al.end()) - start;
-			al.qualities(baseQualities, min_baseq, (al.end() - al.start()) + 1);
+//			al.qualities(baseQualities, min_baseq, (al.end() - al.start()) + 1);
 
 			for (int p=ol_start; p<=ol_end; ++p)
 			{
@@ -1652,7 +1652,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	return output;
 }
 
-BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq)
+BedFile Statistics::lowCoverage(const QString& bam_file, const int& cutoff, const int& min_mapq, const int& min_baseq)
 {
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
@@ -1685,7 +1685,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			const int end = al.end();
-			al.qualities(baseQualities, min_baseq, (al.end() - al.start()) + 1);
+//			al.qualities(baseQualities, min_baseq, (al.end() - al.start()) + 1);
 
 			for (int p=al.start()-1; p<end; ++p)
             {
@@ -1792,7 +1792,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 }
 
-BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq)
+BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, const int& cutoff, const int& min_mapq, const int& min_baseq)
 {
 	BedFile output;
 
@@ -1829,15 +1829,24 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 
 			const int ol_start = std::max(start, al.start()) - start;
 			const int ol_end = std::min(bed_line.end(), al.end()) - start;
-			al.qualities(baseQualities, min_baseq, (al.end() - al.start()) + 1);
 
+			int quality_pos = std::max(start, al.start()) - al.start();
+			//qDebug() << "real aln "<<al.start() << al.end();
+			al.qualities(baseQualities, min_baseq, al.end() - al.start() + 1);
 			for (int p=ol_start; p<=ol_end; ++p)
 			{
-				if(baseQualities.testBit(p-ol_start))
+				if(baseQualities.testBit(quality_pos))
 				{
 					++roi_cov[p];
+					if(roi_cov[p]>= cutoff)
+					{
+						qDebug() << bed_line.start()<< ol_start << start << al.start() << p << quality_pos;
+						qDebug() << baseQualities;
+					}
 				}
+				++quality_pos;
 			}
+
 		}
 
 		//create low-coverage regions file
@@ -1860,14 +1869,15 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 		}
 		if (reg_open)
 		{
+			qDebug() <<"end"<< reg_start+start;
 			output.append(BedLine(bed_line.chr(), reg_start+start, bed_line.length()+start-1, bed_line.annotations()));
 		}
 	}
-
+	output.merge();
 	return output;
 }
 
-BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq)
+BedFile Statistics::highCoverage(const QString& bam_file, const int& cutoff, const int& min_mapq, const int& min_baseq)
 {
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
@@ -1900,7 +1910,7 @@ BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_ma
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			const int end = al.end();
-			al.qualities(baseQualities, min_baseq, (al.end() - al.start()) + 1);
+//			al.qualities(baseQualities, min_baseq, (al.end() - al.start()) + 1);
 
 			for (int p=al.start()-1; p<end; ++p)
 			{

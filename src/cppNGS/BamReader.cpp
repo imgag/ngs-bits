@@ -4,6 +4,7 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <unordered_set>
 
 /*
 External documentation used for the implementation:
@@ -198,18 +199,98 @@ QByteArray BamAlignment::qualities() const
 	return output;
 }
 
-void BamAlignment::qualities(QBitArray& qualities, int min_baseq, const int& len) const
+void BamAlignment::qualities(QBitArray& qualities, const int& min_baseq, const int& len) const
 {
+
 	qualities.fill(true, len);
 	uint8_t* q = bam_get_qual(aln_);
-	for(int i=0; i<len; ++i)
+
+
+	int bam_al_idx = 0;
+	int mapped_al_idx = 0;
+	int genome_pos = 0;
+
+	const QList<CigarOp> cigar_data = cigarData();
+	foreach(const CigarOp& op, cigar_data)
 	{
-		if(q[i] < min_baseq)
+		//update positions
+		if (op.Type==BAM_CDEL)
 		{
-			qualities.setBit(i, false);
+			mapped_al_idx += op.Length;
 		}
+		else if (op.Type==BAM_CINS)
+		{
+			bam_al_idx += op.Length;
+		}
+		else if (op.Type==BAM_CMATCH)
+		{
+			for(int i=0; i < op.Length; ++i)
+			{
+				if(q[bam_al_idx] < min_baseq)
+				{
+					qualities.setBit(mapped_al_idx, false);
+				}
+				++bam_al_idx;
+				++mapped_al_idx;
+			}
+		}
+		genome_pos += op.Length;
 	}
 
+/*
+	std::unordered_set<int> deletions;
+	std::unordered_set<int> insertions;
+
+	if(len != aln_->core.l_qseq)
+	{
+		int genome_pos = 0;
+		foreach(const CigarOp& op, cigar_data)
+		{
+			//update positions
+			if (op.Type==BAM_CDEL)
+			{
+				for(int i =0; i < op.Length; ++i)
+				{
+					deletions.insert(genome_pos + i);
+				}
+			}
+			else if (op.Type==BAM_CINS)
+			{
+				for(int i =0; i < op.Length; ++i)
+				{
+					insertions.insert(genome_pos + i);
+				}
+			}
+			genome_pos += op.Length;
+		}
+	}
+	qDebug() << "CIGAR"<< aln_->core.l_qseq << deletions.size() << insertions.size() << len;
+	Q_ASSERT(aln_->core.l_qseq + deletions.size() - insertions.size() == len);
+
+	int deletion_count = 0;
+	int insertion_count = 0;
+	qDebug() << "setting " <<aln_->core.l_qseq << len;
+
+	for(int i = 0; i < aln_->core.l_qseq; ++i)
+	{
+		while(deletions.count(i))
+		{
+			//deletions.erase(j);
+			++i;
+		}
+		while(insertions.count(i))
+		{
+			++insertion_count;
+			//deletions.erase(j);
+			++i;
+		}
+
+		if(q[i] < min_baseq)
+		{
+			qDebug() << deletion_count << insertion_count << i;
+			qualities.setBit(i - insertion_count, false);
+		}
+	}*/
 }
 
 void BamAlignment::setQualities(const QByteArray& qualities)
