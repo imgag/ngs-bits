@@ -186,7 +186,8 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		{
 			return bam_get_qual(aln_)[n];
 		}
-
+		//Fills a bit array representing base qualities - a bit is set if the base quality is >= min_baseq
+		void qualities(QBitArray& qualities, int min_baseq, const int& len) const;
 		//Returns the string data of a tag.
 		QByteArray tag(const QByteArray& tag) const;
 		//Adds a tag to the alignment.

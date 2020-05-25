@@ -198,6 +198,20 @@ QByteArray BamAlignment::qualities() const
 	return output;
 }
 
+void BamAlignment::qualities(QBitArray& qualities, int min_baseq, const int& len) const
+{
+	qualities.fill(true, len);
+	uint8_t* q = bam_get_qual(aln_);
+	for(int i=0; i<len; ++i)
+	{
+		if(q[i] < min_baseq)
+		{
+			qualities.setBit(i, false);
+		}
+	}
+
+}
+
 void BamAlignment::setQualities(const QByteArray& qualities)
 {
 	//check that length stays the same
