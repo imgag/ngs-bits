@@ -385,5 +385,8 @@ SUBDIRS += PhenotypesToGenes
 tools-TEST.depends += PhenotypesToGenes
 PhenotypesToGenes.depends = cppNGSD
 
+SUBDIRS += CnvFilterAnnotations
+tools-TEST.depends += CnvFilterAnnotations
+CnvFilterAnnotations.depends = cppNGS
 #other stuff
 OTHER_FILES += ToDos.txt

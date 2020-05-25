@@ -1,0 +1,6 @@
+CNV size	size=1.0	
+CNV regions	regions=3	
+CNV log-likelihood	min_ll=5.0
+CNV q-value	max_q=0.05	
+CNV copy-number	cn=3	
+CNV OMIM genes	
