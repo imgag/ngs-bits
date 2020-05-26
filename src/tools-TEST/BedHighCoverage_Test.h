@@ -25,7 +25,7 @@ private slots:
 
 	void wgs_min_base_quality_cov()
 	{
-		EXECUTE("BedHighCoverage", "-wgs "+ "-bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/BedHighCoverage_test03_out.bed -cutoff 20 -min_mapq 20 -min_baseq 40");
+		EXECUTE("BedHighCoverage", "-wgs -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/BedHighCoverage_test03_out.bed -cutoff 20 -min_mapq 20 -min_baseq 40");
 		COMPARE_FILES("out/BedHighCoverage_test04_out.bed", TESTDATA("data_out/BedHighCoverage_test04_out.bed"));
 	}
 
