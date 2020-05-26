@@ -48,8 +48,8 @@ public:
 		bool no_duplicates = getFlag("no_duplicates");
 		bool overlap = getFlag("overlap");
 		bool url_decode = getFlag("url_decode");
-		QString name = getString("name");
-		if (name.isEmpty()) name = QFileInfo(in2).baseName();
+		QByteArray name = getString("name").toUtf8();
+		if (name.isEmpty()) name = QFileInfo(in2).baseName().toUtf8();
 
 		//load annoation database
 		BedFile anno_file;
@@ -61,6 +61,35 @@ public:
 		//process
 		BedFile file;
 		file.load(in);
+
+		// mode for TSV files (overwrite existing columns, modify header)
+		int col_idx = -1;
+		if (out.toLower().endsWith(".tsv"))
+		{
+			QVector<QByteArray> headers = file.headers();
+			for(int i=0; i<headers.count(); ++i)
+			{
+				// search for header line
+				QByteArray& line = headers[i];
+				if (line.startsWith("#") && !line.startsWith("##") && line.contains("\t"))
+				{
+					// header line
+					QByteArrayList column_headers = line.split('\t');
+
+					// check if column already exists:
+					col_idx = column_headers.indexOf((overlap ? "overlap " : "") + name) - 3;
+					if (col_idx < 0)
+					{
+						// new column name -> append to header
+						line += QByteArray("\t") + (overlap ? "overlap " : "") + name;
+					}
+				}
+			}
+			file.setHeaders(headers);
+		}
+
+
+
 		if (clear)
 		{
 			file.clearAnnotations();
@@ -118,22 +147,15 @@ public:
 			{
 				anno = VcfFile::decodeInfoValue(anno).toUtf8();
 			}
-			line.annotations().append(anno);
-		}
-
-		//special handling of TSV files (handle header line)
-		if (out.endsWith(".tsv"))
-		{
-			QVector<QByteArray> headers = file.headers();
-			for(int i=0; i<headers.count(); ++i)
+			if (col_idx < 0)
 			{
-				QByteArray& line = headers[i];
-				if (line.startsWith("#") && !line.startsWith("##") && line.contains("\t"))
-				{
-					line += QByteArray("\t") + (overlap ? "overlap " : "") + name;
-				}
+				line.annotations().append(anno);
 			}
-			file.setHeaders(headers);
+			else
+			{
+				line.annotations()[col_idx] = anno;
+			}
+
 		}
 
 		//store
