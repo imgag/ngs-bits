@@ -300,7 +300,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 	int i_ncg_oncogene = cnvs_.annotationIndexByName("ncg_oncogene", false);
 	int i_ncg_tsg = cnvs_.annotationIndexByName("ncg_tsg", false);
 
-	QMap<QByteArray,RtfTableRow> cna_genes_per_row;
+	QMultiMap<QByteArray,RtfTableRow> cna_genes_per_row;
 
 	//Make list of CNV drivers
 	for(int i=0;i<cnvs_.count();++i)
