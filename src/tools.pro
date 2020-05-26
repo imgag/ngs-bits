@@ -385,6 +385,10 @@ SUBDIRS += PhenotypesToGenes
 tools-TEST.depends += PhenotypesToGenes
 PhenotypesToGenes.depends = cppNGSD
 
+SUBDIRS += PhenotypeSubtree
+tools-TEST.depends += PhenotypeSubtree
+PhenotypeSubtree.depends = cppNGSD
+
 SUBDIRS += CnvFilterAnnotations
 tools-TEST.depends += CnvFilterAnnotations
 CnvFilterAnnotations.depends = cppNGS

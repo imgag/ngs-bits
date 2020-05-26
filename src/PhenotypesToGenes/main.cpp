@@ -17,7 +17,7 @@ public:
 		setDescription("Converts a phenotype list to a list of matching genes.");
 		setExtendedDescription(QStringList() << "For each given HPO term, the genes associated with the term itself and the genes associated with any sub-term are returned.");
 
-		addString("in", "Input file, containing one HPO term identifier per line, e.g. HP:0002066. If unset, reads from STDIN.", true);
+		addString("in", "Input file, containing one HPO term identifier per line, e.g. HP:0002066. Text after the identifier is ignored. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output TSV file with genes (column 1) and matched phenotypes (column 2). If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 
@@ -39,7 +39,7 @@ public:
 		{
 			QString line = in_stream->readLine().trimmed();
 			if (line.isEmpty() || line.startsWith('#')) continue;
-			hpo_ids << line;
+			hpo_ids << line.left(10);
 		}
 		hpo_ids.sort();
 		hpo_ids.removeDuplicates();

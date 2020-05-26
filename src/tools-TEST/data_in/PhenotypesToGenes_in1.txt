@@ -1,2 +1,2 @@
-HP:0000003
+HP:0000003	text after tab
 HP:0002862

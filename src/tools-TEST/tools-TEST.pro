@@ -115,9 +115,11 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     BedpeAnnotateFromBed_Test.h \
     NGSDAnnotateSV_Test.h \
     NGSDAnnotateCNV_Test.h \
-    BedpeToBed_Test.h\
-    PhenotypesToGenes_Test.h\
-    CnvFilterAnnotations_Test.h
+    BedpeToBed_Test.h \
+    PhenotypesToGenes_Test.h \
+    CnvFilterAnnotations_Test.h \
+    PhenotypeSubtree_Test.h
+	
 SOURCES += \
     main.cpp
 
