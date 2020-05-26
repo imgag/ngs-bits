@@ -325,7 +325,7 @@ void MainWindow::on_actionSV_triggered()
 
 		//open SV widget
 		SvWidget* list;
-		if(svs_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL || svs_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY)
+		if(svs_.isSomatic())
 		{
 			list = new SvWidget(svs_, ps_id, ui_.filters, het_hit_genes, gene2region_cache_, this);
 		}
@@ -1512,6 +1512,7 @@ void MainWindow::loadFile(QString filename)
 		//load SVs
 		timer.restart();
 		QString sv_file = svFile(filename);
+
 		if (sv_file!="")
 		{
 			try
@@ -4259,7 +4260,13 @@ QString MainWindow::svFile(QString gsvar_file)
 	QFileInfo file_info(gsvar_file);
 	QString base = file_info.absolutePath() + QDir::separator() + file_info.baseName();
 
-	QString sv_file = base + "_manta_var_structural.bedpe";
+	QString sv_file = base + "_manta_var_structural.bedpe"; //germline file naming convention
+
+	if(!QFile::exists(sv_file)) //fallback to somatic TODO: Remove when rename in somatic megSAP pipeline
+	{
+		sv_file = base + "_var_structural.bedpe";
+	}
+
 	if (QFile::exists(sv_file))
 	{
 		return sv_file;

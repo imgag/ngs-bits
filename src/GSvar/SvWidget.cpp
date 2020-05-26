@@ -54,7 +54,7 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 	initGUI();
 
 	//set SV list type
-	is_somatic_ = (bedpe_file.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL) || (bedpe_file.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY);
+	is_somatic_ = bedpe_file.isSomatic();
 
 	//Disable filters that cannot apply for tumor normal pairs (data is expanded already)
 	if(sv_bedpe_file_.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
@@ -63,13 +63,12 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 		ui->info_b->setEnabled(false);
 		ui->sv_details->setEnabled(false);
 	}
-
 }
 
 SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: SvWidget(bedpe_file, ps_id, filter_widget, het_hit_genes, cache, parent)
 {
-	if(bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_SINGLE || bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI || bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO)
+	if(bedpe_file.format()!=BedpeFileFormat::BEDPE_GERMLINE_SINGLE)
 	{
 		THROW(ProgrammingException, "Constructor in SvWidget has to be used using germline SV data.");
 	}

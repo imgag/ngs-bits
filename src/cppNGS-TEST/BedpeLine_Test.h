@@ -45,9 +45,4 @@ private slots:
 		IS_FALSE(second < first);
 	}
 
-	void load()
-	{
-		//TODO AXEL
-	}
-
 };

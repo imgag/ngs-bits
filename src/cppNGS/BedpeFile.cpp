@@ -421,13 +421,19 @@ void BedpeFile::sort()
 
 BedpeFileFormat BedpeFile::format() const
 {
-	for(auto comment : comments_) //TODO: return type for germline samples and throw error if unknown!?, add function "bool isSomatic() const" > AXEL
+	for(auto comment : comments_)
 	{
 		if(comment.contains("fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
 		if(comment.contains("fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
+		if(comment.contains("fileformat=BEDPE")) return BedpeFileFormat::BEDPE_GERMLINE_SINGLE;
 	}
+	THROW(FileParseException, "Could not determine format of BEDPE file.");
+}
 
-	return BedpeFileFormat::BEDPE_UNKNOWN;
+bool BedpeFile::isSomatic() const
+{
+	if(format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL || format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY) return true;
+	return false;
 }
 
 

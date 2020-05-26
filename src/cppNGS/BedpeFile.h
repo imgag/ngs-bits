@@ -161,10 +161,7 @@ protected:
 
 enum BedpeFileFormat
 {
-	BEDPE_UNKNOWN,
 	BEDPE_GERMLINE_SINGLE,
-	BEDPE_GERMLINE_MULTI,
-	BEDPE_GERMLINE_TRIO,
 	BEDPE_SOMATIC_TUMOR_ONLY,
 	BEDPE_SOMATIC_TUMOR_NORMAL
 };
@@ -236,6 +233,8 @@ public:
 
 	///Returns bedpe type according entry in file comments ##fileformat=
 	BedpeFileFormat format() const;
+
+	bool isSomatic() const;
 
 	///Converts type string to enum
 	static StructuralVariantType stringToType(const QByteArray& str);
