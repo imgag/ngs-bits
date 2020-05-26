@@ -8,7 +8,6 @@
 #include "BasicStatistics.h"
 #include <QVector>
 #include "Pileup.h"
-#include "NGSHelper.h"
 #include "FastqFileStream.h"
 #include "LinePlot.h"
 #include "ScatterPlot.h"
@@ -1576,6 +1575,69 @@ AncestryEstimates Statistics::ancestry(QString build, const VariantList& vl, int
 	return output;
 }
 
+void Statistics::countCoverageWithoutBaseQuality(
+		QVector<int>& roi_cov,
+		const int& ol_start,
+		const int& ol_end)
+{
+	for (int p=ol_start; p<=ol_end; ++p)
+	{
+		++roi_cov[p];
+	}
+}
+
+void Statistics::countCoverageWithBaseQuality(
+		const int& min_baseq,
+		QVector<int>& roi_cov,
+		const int& start,
+		const int& ol_start,
+		const int& ol_end,
+		QBitArray& baseQualities,
+		const BamAlignment& al)
+{
+	int quality_pos = std::max(start, al.start()) - al.start();
+	al.qualities(baseQualities, min_baseq, al.end() - al.start() + 1);
+	for (int p=ol_start; p<=ol_end; ++p)
+	{
+		if(baseQualities.testBit(quality_pos))
+		{
+			++roi_cov[p];
+		}
+		++quality_pos;
+	}
+}
+
+void Statistics::countCoverageWGS(
+		const int& start,
+		const int& end,
+		QVector<unsigned char>& cov)
+{
+	for (int p=start; p<end; ++p)
+	{
+		if (cov[p]<254) ++cov[p];
+	}
+}
+
+void Statistics::countCoverageWGSWithBaseQuality(
+		const int& min_baseq,
+		QVector<unsigned char>& cov,
+		const int& start,
+		const int& end,
+		QBitArray& baseQualities,
+		const BamAlignment& al)
+{
+	al.qualities(baseQualities, min_baseq, end - start);
+	int quality_pos = 0;
+	for (int p=start; p<end; ++p)
+	{
+		if(baseQualities.testBit(quality_pos))
+		{
+			++cov[p];
+		}
+		++quality_pos;
+	}
+}
+
 BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, const int& cutoff, const int& min_mapq, const int& min_baseq)
 {
 	BedFile output;
@@ -1614,15 +1676,8 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 
 			const int ol_start = std::max(start, al.start()) - start;
 			const int ol_end = std::min(bed_line.end(), al.end()) - start;
-//			al.qualities(baseQualities, min_baseq, (al.end() - al.start()) + 1);
-
-			for (int p=ol_start; p<=ol_end; ++p)
-			{
-				if(baseQualities.testBit(p-ol_start))
-				{
-					++roi_cov[p];
-				}
-			}
+			min_baseq ? countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) :
+						countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
 		}
 
         //create low-coverage regions file
@@ -1684,13 +1739,9 @@ BedFile Statistics::lowCoverage(const QString& bam_file, const int& cutoff, cons
 			if (al.isSecondaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			const int end = al.end();
-//			al.qualities(baseQualities, min_baseq, (al.end() - al.start()) + 1);
+			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
+						countCoverageWGS(al.start()-1, al.end(), cov);
 
-			for (int p=al.start()-1; p<end; ++p)
-            {
-				if (cov[p]<254 && baseQualities.testBit(p - al.start() + 1)) ++cov[p];
-            }
         }
 
 		//create low-coverage regions file
@@ -1830,26 +1881,12 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 			const int ol_start = std::max(start, al.start()) - start;
 			const int ol_end = std::min(bed_line.end(), al.end()) - start;
 
-			int quality_pos = std::max(start, al.start()) - al.start();
-			//qDebug() << "real aln "<<al.start() << al.end();
-			al.qualities(baseQualities, min_baseq, al.end() - al.start() + 1);
-			for (int p=ol_start; p<=ol_end; ++p)
-			{
-				if(baseQualities.testBit(quality_pos))
-				{
-					++roi_cov[p];
-					if(roi_cov[p]>= cutoff)
-					{
-						qDebug() << bed_line.start()<< ol_start << start << al.start() << p << quality_pos;
-						qDebug() << baseQualities;
-					}
-				}
-				++quality_pos;
-			}
+			min_baseq ? countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) :
+						countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
 
 		}
 
-		//create low-coverage regions file
+		//create high-coverage regions file
 		bool reg_open = false;
 		int reg_start = -1;
 		for (int p=0; p<roi_cov.count(); ++p)
@@ -1869,7 +1906,6 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 		}
 		if (reg_open)
 		{
-			qDebug() <<"end"<< reg_start+start;
 			output.append(BedLine(bed_line.chr(), reg_start+start, bed_line.length()+start-1, bed_line.annotations()));
 		}
 	}
@@ -1909,16 +1945,12 @@ BedFile Statistics::highCoverage(const QString& bam_file, const int& cutoff, con
 			if (al.isSecondaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			const int end = al.end();
-//			al.qualities(baseQualities, min_baseq, (al.end() - al.start()) + 1);
+			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
+						countCoverageWGS(al.start()-1, al.end(), cov);
 
-			for (int p=al.start()-1; p<end; ++p)
-			{
-				if (cov[p]<254 && baseQualities.testBit(p - al.start() + 1)) ++cov[p];
-			}
 		}
 
-		//create low-coverage regions file
+		//create high-coverage regions file
 		bool reg_open = false;
 		int reg_start = -1;
 		for (int p=0; p<chr_size; ++p)

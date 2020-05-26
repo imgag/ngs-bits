@@ -205,8 +205,9 @@ void BamAlignment::qualities(QBitArray& qualities, const int& min_baseq, const i
 	qualities.fill(true, len);
 	uint8_t* q = bam_get_qual(aln_);
 
-
+	//position in the real alignment
 	int bam_al_idx = 0;
+	//position in the mapped alignment (without insertions, with deletions)
 	int mapped_al_idx = 0;
 	int genome_pos = 0;
 
@@ -236,61 +237,6 @@ void BamAlignment::qualities(QBitArray& qualities, const int& min_baseq, const i
 		}
 		genome_pos += op.Length;
 	}
-
-/*
-	std::unordered_set<int> deletions;
-	std::unordered_set<int> insertions;
-
-	if(len != aln_->core.l_qseq)
-	{
-		int genome_pos = 0;
-		foreach(const CigarOp& op, cigar_data)
-		{
-			//update positions
-			if (op.Type==BAM_CDEL)
-			{
-				for(int i =0; i < op.Length; ++i)
-				{
-					deletions.insert(genome_pos + i);
-				}
-			}
-			else if (op.Type==BAM_CINS)
-			{
-				for(int i =0; i < op.Length; ++i)
-				{
-					insertions.insert(genome_pos + i);
-				}
-			}
-			genome_pos += op.Length;
-		}
-	}
-	qDebug() << "CIGAR"<< aln_->core.l_qseq << deletions.size() << insertions.size() << len;
-	Q_ASSERT(aln_->core.l_qseq + deletions.size() - insertions.size() == len);
-
-	int deletion_count = 0;
-	int insertion_count = 0;
-	qDebug() << "setting " <<aln_->core.l_qseq << len;
-
-	for(int i = 0; i < aln_->core.l_qseq; ++i)
-	{
-		while(deletions.count(i))
-		{
-			//deletions.erase(j);
-			++i;
-		}
-		while(insertions.count(i))
-		{
-			++insertion_count;
-			//deletions.erase(j);
-			++i;
-		}
-
-		if(q[i] < min_baseq)
-		{
-			qDebug() << deletion_count << insertion_count << i;
-			qualities.setBit(i - insertion_count, false);
-		}
-	}*/
 }
 
 void BamAlignment::setQualities(const QByteArray& qualities)

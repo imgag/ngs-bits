@@ -6,6 +6,7 @@
 #include "BedFile.h"
 #include "QCCollection.h"
 #include "KeyValuePair.h"
+#include "NGSHelper.h"
 #include <QMap>
 
 
@@ -73,6 +74,13 @@ public:
 protected:
 	///No default constructor
 	Statistics();
+
+private:
+	static void countCoverageWithoutBaseQuality(QVector<int>& roi_cov, const int& ol_start, const int& ol_end);
+	static void countCoverageWithBaseQuality(const int& min_baseq, QVector<int>& roi_cov, const int& start, const int& ol_start, const int& ol_end, QBitArray& baseQualities, const BamAlignment& al);
+	static void countCoverageWGS(const int& start, const int& end, QVector<unsigned char>& cov);
+	static void countCoverageWGSWithBaseQuality(const int& min_baseq, QVector<unsigned char>& cov, const int& start, const int& end, QBitArray& baseQualities, const BamAlignment& al);
+
 };
 
 #endif // STATISTICS_H
