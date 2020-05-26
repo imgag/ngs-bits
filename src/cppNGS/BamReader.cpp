@@ -209,21 +209,12 @@ void BamAlignment::qualities(QBitArray& qualities, const int& min_baseq, const i
 	int bam_al_idx = 0;
 	//position in the mapped alignment (without insertions, with deletions)
 	int mapped_al_idx = 0;
-	int genome_pos = 0;
 
 	const QList<CigarOp> cigar_data = cigarData();
 	foreach(const CigarOp& op, cigar_data)
 	{
 		//update positions
-		if (op.Type==BAM_CDEL)
-		{
-			mapped_al_idx += op.Length;
-		}
-		else if (op.Type==BAM_CINS)
-		{
-			bam_al_idx += op.Length;
-		}
-		else if (op.Type==BAM_CMATCH)
+		if (op.Type==BAM_CMATCH)
 		{
 			for(int i=0; i < op.Length; ++i)
 			{
@@ -235,7 +226,27 @@ void BamAlignment::qualities(QBitArray& qualities, const int& min_baseq, const i
 				++mapped_al_idx;
 			}
 		}
-		genome_pos += op.Length;
+		else if (op.Type==BAM_CDEL)
+		{
+			for(int i=0; i < op.Length; ++i)
+			{
+				qualities.setBit(mapped_al_idx, false);
+				++mapped_al_idx;
+			}
+		}
+		else if(op.Type==BAM_CINS)
+		{
+			bam_al_idx += op.Length;
+		}
+		else if(op.Type==BAM_CREF_SKIP) //skipped reference bases (for RNA)
+		{
+			mapped_al_idx += op.Length;
+		}
+		else if(op.Type==BAM_CSOFT_CLIP) //soft-clipped (only at the beginning/end)
+		{
+			bam_al_idx += op.Length;
+		}
+
 	}
 }
 
