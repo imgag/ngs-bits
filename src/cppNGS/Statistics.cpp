@@ -1607,7 +1607,7 @@ void Statistics::countCoverageWithBaseQuality(
 	}
 }
 
-void Statistics::countCoverageWGS(
+void Statistics::countCoverageWGSWithoutBaseQuality(
 		const int& start,
 		const int& end,
 		QVector<unsigned char>& cov)
@@ -1632,7 +1632,7 @@ void Statistics::countCoverageWGSWithBaseQuality(
 	{
 		if(baseQualities.testBit(quality_pos))
 		{
-			++cov[p];
+			if (cov[p]<254) ++cov[p];
 		}
 		++quality_pos;
 	}
@@ -1740,7 +1740,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, const int& cutoff, cons
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
-						countCoverageWGS(al.start()-1, al.end(), cov);
+						countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
 
         }
 
@@ -1880,7 +1880,6 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 
 			const int ol_start = std::max(start, al.start()) - start;
 			const int ol_end = std::min(bed_line.end(), al.end()) - start;
-
 			min_baseq ? countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) :
 						countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
 
@@ -1946,7 +1945,7 @@ BedFile Statistics::highCoverage(const QString& bam_file, const int& cutoff, con
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
-						countCoverageWGS(al.start()-1, al.end(), cov);
+						countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
 
 		}
 

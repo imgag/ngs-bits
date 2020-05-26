@@ -213,7 +213,6 @@ void BamAlignment::qualities(QBitArray& qualities, const int& min_baseq, const i
 	const QList<CigarOp> cigar_data = cigarData();
 	foreach(const CigarOp& op, cigar_data)
 	{
-		//update positions
 		if (op.Type==BAM_CMATCH)
 		{
 			for(int i=0; i < op.Length; ++i)
@@ -234,11 +233,11 @@ void BamAlignment::qualities(QBitArray& qualities, const int& min_baseq, const i
 		{
 			bam_al_idx += op.Length;
 		}
-		else if(op.Type==BAM_CREF_SKIP) //skipped reference bases (for RNA)
+		else if(op.Type==BAM_CREF_SKIP)
 		{
 			mapped_al_idx += op.Length;
 		}
-		else if(op.Type==BAM_CSOFT_CLIP) //soft-clipped (only at the beginning/end)
+		else if(op.Type==BAM_CSOFT_CLIP)
 		{
 			bam_al_idx += op.Length;
 		}

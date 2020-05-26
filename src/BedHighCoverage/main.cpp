@@ -28,6 +28,7 @@ public:
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
 		addInt("min_baseq", "Minimum base quality to consider a base.", true, 0);
 
+		changeLog(2020,  5,  26, "Added parameter 'min_baseq'.");
 		changeLog(2020,  5,  14, "First version.");
 	}
 
