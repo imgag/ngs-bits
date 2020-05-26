@@ -228,11 +228,7 @@ void BamAlignment::qualities(QBitArray& qualities, const int& min_baseq, const i
 		}
 		else if (op.Type==BAM_CDEL)
 		{
-			for(int i=0; i < op.Length; ++i)
-			{
-				qualities.setBit(mapped_al_idx, false);
-				++mapped_al_idx;
-			}
+			mapped_al_idx += op.Length;
 		}
 		else if(op.Type==BAM_CINS)
 		{
