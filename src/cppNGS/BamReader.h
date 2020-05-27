@@ -189,7 +189,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		}
 		//Fills a bit array representing base qualities - a bit is set if the base quality is >= min_baseq
 		//the array is of size al.end() - al.start() +1 and by that includes deletions
-		void qualities(QBitArray& qualities, const int& min_baseq, const int& len) const;
+		void qualities(QBitArray& qualities, int min_baseq, int len) const;
 		//Returns the string data of a tag.
 		QByteArray tag(const QByteArray& tag) const;
 		//Adds a tag to the alignment.

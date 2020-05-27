@@ -199,7 +199,7 @@ QByteArray BamAlignment::qualities() const
 	return output;
 }
 
-void BamAlignment::qualities(QBitArray& qualities, const int& min_baseq, const int& len) const
+void BamAlignment::qualities(QBitArray& qualities, int min_baseq, int len) const
 {
 
 	qualities.fill(true, len);

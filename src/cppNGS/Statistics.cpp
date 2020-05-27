@@ -1577,8 +1577,8 @@ AncestryEstimates Statistics::ancestry(QString build, const VariantList& vl, int
 
 void Statistics::countCoverageWithoutBaseQuality(
 		QVector<int>& roi_cov,
-		const int& ol_start,
-		const int& ol_end)
+		int ol_start,
+		int ol_end)
 {
 	for (int p=ol_start; p<=ol_end; ++p)
 	{
@@ -1587,11 +1587,11 @@ void Statistics::countCoverageWithoutBaseQuality(
 }
 
 void Statistics::countCoverageWithBaseQuality(
-		const int& min_baseq,
+		int min_baseq,
 		QVector<int>& roi_cov,
-		const int& start,
-		const int& ol_start,
-		const int& ol_end,
+		int start,
+		int ol_start,
+		int ol_end,
 		QBitArray& baseQualities,
 		const BamAlignment& al)
 {
@@ -1608,8 +1608,8 @@ void Statistics::countCoverageWithBaseQuality(
 }
 
 void Statistics::countCoverageWGSWithoutBaseQuality(
-		const int& start,
-		const int& end,
+		int start,
+		int end,
 		QVector<unsigned char>& cov)
 {
 	for (int p=start; p<end; ++p)
@@ -1619,10 +1619,10 @@ void Statistics::countCoverageWGSWithoutBaseQuality(
 }
 
 void Statistics::countCoverageWGSWithBaseQuality(
-		const int& min_baseq,
+		int min_baseq,
 		QVector<unsigned char>& cov,
-		const int& start,
-		const int& end,
+		int start,
+		int end,
 		QBitArray& baseQualities,
 		const BamAlignment& al)
 {
@@ -1638,7 +1638,7 @@ void Statistics::countCoverageWGSWithBaseQuality(
 	}
 }
 
-BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, const int& cutoff, const int& min_mapq, const int& min_baseq)
+BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq)
 {
 	BedFile output;
 
@@ -1706,7 +1706,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	return output;
 }
 
-BedFile Statistics::lowCoverage(const QString& bam_file, const int& cutoff, const int& min_mapq, const int& min_baseq)
+BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq)
 {
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
@@ -1842,7 +1842,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 }
 
-BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, const int& cutoff, const int& min_mapq, const int& min_baseq)
+BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq)
 {
 	BedFile output;
 
@@ -1912,7 +1912,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 	return output;
 }
 
-BedFile Statistics::highCoverage(const QString& bam_file, const int& cutoff, const int& min_mapq, const int& min_baseq)
+BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq)
 {
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 

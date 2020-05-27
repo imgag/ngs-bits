@@ -54,15 +54,15 @@ public:
 	static AncestryEstimates ancestry(QString build, const VariantList& variants, int min_snp=100, double min_pop_dist = 0.15);
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
-	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, const int& cutoff, const int& min_mapq=1, const int& min_baseq=0);
+	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0);
     ///Calculates the part of the genome that has a lower coverage than the given cutoff.
-	static BedFile lowCoverage(const QString& bam_file, const int& cutoff, const int& min_mapq=1, const int& min_baseq=0);
+	static BedFile lowCoverage(const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0);
 	///Calculates and annotates the average coverage of the regions in the bed file. The input BED file must be merged and sorted! Panel mode should be used if only a small part of the BAM data is needed.
 	static void avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq=1, bool include_duplicates=false, bool panel_mode=false, int decimals=2);
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
-	static BedFile highCoverage(const QString& bam_file, const int& cutoff, const int& min_mapq=1, const int& min_baseq=0);
+	static BedFile highCoverage(const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0);
 	///Calculates the part of the genome that has a higher coverage than the given cutoff.
-	static BedFile highCoverage(const BedFile& bed_file, const QString& bam_file, const int& cutoff, const int& min_mapq=1, const int& min_baseq=0);
+	static BedFile highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0);
 
 	///Determines the gender based on the read ratio between X and Y chromosome.
 	static GenderEstimate genderXY(QString bam_file, double max_female=0.06, double min_male=0.09);
@@ -76,10 +76,10 @@ protected:
 	Statistics();
 
 private:
-	static void countCoverageWithoutBaseQuality(QVector<int>& roi_cov, const int& ol_start, const int& ol_end);
-	static void countCoverageWithBaseQuality(const int& min_baseq, QVector<int>& roi_cov, const int& start, const int& ol_start, const int& ol_end, QBitArray& baseQualities, const BamAlignment& al);
-	static void countCoverageWGSWithoutBaseQuality(const int& start, const int& end, QVector<unsigned char>& cov);
-	static void countCoverageWGSWithBaseQuality(const int& min_baseq, QVector<unsigned char>& cov, const int& start, const int& end, QBitArray& baseQualities, const BamAlignment& al);
+	static void countCoverageWithoutBaseQuality(QVector<int>& roi_cov, int ol_start, int ol_end);
+	static void countCoverageWithBaseQuality(int min_baseq, QVector<int>& roi_cov, int start, int ol_start, int ol_end, QBitArray& baseQualities, const BamAlignment& al);
+	static void countCoverageWGSWithoutBaseQuality(int start, int end, QVector<unsigned char>& cov);
+	static void countCoverageWGSWithBaseQuality(int min_baseq, QVector<unsigned char>& cov, int start, int end, QBitArray& baseQualities, const BamAlignment& al);
 
 };
 
