@@ -21,6 +21,11 @@ Sequence::Sequence(const QByteArray& rhs)
 {
 }
 
+Sequence Sequence::left(int n) const
+{
+	return QByteArray::left(n);
+}
+
 void Sequence::reverse()
 {
 	std::reverse(begin(), end());

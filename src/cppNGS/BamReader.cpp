@@ -238,7 +238,7 @@ int BamAlignment::tagi(const QByteArray& tag) const
 
 void BamAlignment::addTag(const QByteArray& tag, char type, const QByteArray& value)
 {
-	if (bam_aux_append(aln_, tag, type, value.length()+1, reinterpret_cast<const unsigned char*>(value.data()))==-1)
+	if (bam_aux_append(aln_, tag, type, value.length()+1, reinterpret_cast<const unsigned char*>(value.constData()))==-1)
 	{
 		THROW(FileAccessException, "Could not add tag '" + tag + "'' with value " + value + " to alignment.");
 	}

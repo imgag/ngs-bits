@@ -102,8 +102,8 @@ void AnalysisWorker::run()
 	}
 
 	//make sure the sequences have the same length
-	QByteArray seq1 = job_.e1.bases;
-	QByteArray seq2 = NGSHelper::changeSeq(job_.e2.bases, true, true);
+	Sequence seq1 = job_.e1.bases;
+	Sequence seq2 = job_.e2.bases.toReverseComplement();
 	job_.length_s1_orig = seq1.count();
 	job_.length_s2_orig = seq2.count();
 	int min_length = std::min(job_.length_s1_orig, job_.length_s2_orig);
@@ -198,7 +198,7 @@ void AnalysisWorker::run()
 			}
 		}
 
-		QByteArray adapter2 = NGSHelper::changeSeq(seq2.left(offset), true, true).left(params_.adapter_overlap);
+		QByteArray adapter2 = seq2.left(offset).toReverseComplement().left(params_.adapter_overlap);
 		int a2_matches = 0;
 		int a2_mismatches = 0;
 		int a2_invalid = 0;
@@ -276,7 +276,7 @@ void AnalysisWorker::run()
 		{
 			stats_.acons1[i].inc(adapter1.at(i));
 		}
-		QByteArray adapter2 = NGSHelper::changeSeq(seq2.left(best_offset), true, true);
+		QByteArray adapter2 = seq2.left(best_offset).toReverseComplement();
 		if (adapter2.count()>40) adapter2.resize(40);
 		for (int i=0; i<adapter2.count(); ++i)
 		{

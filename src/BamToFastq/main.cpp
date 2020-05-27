@@ -24,7 +24,6 @@ public:
 		addString("reg", "Export only reads in the given region. Format: chr:start-end.", true);
 		addFlag("remove_duplicates", "Does not export duplicate reads into the FASTQ file.");
 
-		changeLog(2020,  5, 27, ""); //TODO
 		changeLog(2020,  3, 21, "Added 'reg' parameter.");
 	}
 
@@ -39,11 +38,11 @@ public:
 
 		if (al->isReverseStrand())
 		{
-			e.bases = NGSHelper::changeSeq(e.bases, true, true);
-			e.qualities = NGSHelper::changeSeq(e.qualities, true, false);
+			e.bases.reverseComplement();
+			std::reverse(e.qualities.begin(), e.qualities.end());
 		}
 
-		//out.write(e);
+		out.write(e);
 	}
 
 	virtual void main()

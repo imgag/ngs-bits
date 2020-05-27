@@ -5,7 +5,7 @@
 #include <QByteArray>
 
 ///DNA or RNA sequence class
-class Sequence
+class CPPNGSSHARED_EXPORT Sequence
 	: public QByteArray
 {
 public:
@@ -15,6 +15,9 @@ public:
 	Sequence(const char* rhs);
 	Sequence(const Sequence& rhs);
 	Sequence(const QByteArray& rhs);
+
+	//Returns the left n bases of the sequence
+	Sequence left(int n) const;
 
 	///Changes the sequence to reverse order.
 	void reverse();

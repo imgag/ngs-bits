@@ -143,7 +143,7 @@ public:
 				FastqEntry r2;
 				r1.bases = seq.left(length);
 				r2.bases = seq.right(length);
-				r2.bases = NGSHelper::changeSeq(r2.bases, true, true);
+				r2.bases.reverseComplement();
 
 				//skip read pairs with too many N bases
 				if (r1.bases.count('N')>max_n || r2.bases.count('N')>max_n)

@@ -7,7 +7,7 @@ INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (
 INSERT INTO sequencing_run (id, name, fcid, device_id, recipe, quality) VALUES (2, 'Second run', 'XYZ', 1, '100+8+100', 'good');
 
 -- user
-INSERT INTO user (id, user_id, password, user_role, name, email, created, active) VALUES (99, 'ahuser', 's2d12kjg234hla0830t6hp9h3tt3t3tsdfg', 'user', 'The user', 'u@s.er', CURDATE(), '1');
+INSERT INTO user (id, user_id, password, user_role, name, email, created, active) VALUES (99, 'ahuser', 's2d12kjg234hla0830t6hp9h3tt3t3tsdfg', 'user', 'The user', 'u@s.er', NOW(), '1');
 
 -- sender
 INSERT INTO sender (id, name) VALUES (1, 'sender');

@@ -199,13 +199,13 @@ FastqOutfileStream::~FastqOutfileStream()
 
 void FastqOutfileStream::write(const FastqEntry& entry)
 {
-	gzputs(gzfile_, entry.header.data());
+	gzputs(gzfile_, entry.header.constData());
 	gzwrite(gzfile_, "\n", 1);
-	gzputs(gzfile_, entry.bases.data());
+	gzputs(gzfile_, entry.bases.constData());
 	gzwrite(gzfile_, "\n", 1);
-	gzputs(gzfile_, entry.header2.data());
+	gzputs(gzfile_, entry.header2.constData());
 	gzwrite(gzfile_, "\n", 1);
-	gzputs(gzfile_, entry.qualities.data());
+	gzputs(gzfile_, entry.qualities.constData());
 	int written = gzwrite(gzfile_, "\n", 1);
 	if (written==0)
     {

@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "Exceptions.h"
+#include "Sequence.h"
 #include <zlib.h>
 #include <QString>
 #include <QVector>
@@ -13,7 +14,7 @@ struct CPPNGSSHARED_EXPORT FastqEntry
 	///Main header line.
 	QByteArray header;
 	///Bases string.
-	QByteArray bases;
+	Sequence bases;
 	///Second header line.
 	QByteArray header2;
 	///Qualities string.
