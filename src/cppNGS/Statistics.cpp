@@ -1656,7 +1656,6 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	{
 		const BedLine& bed_line = bed_file[i];
 		const int start = bed_line.start();
-		//qDebug() << bed_line.chr().str().constData() << ":" << bed_line.start() << "-" << bed_line.end();
 
 		//init coverage statistics
         QVector<int> roi_cov(bed_line.length(), 0);
@@ -1908,6 +1907,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 			output.append(BedLine(bed_line.chr(), reg_start+start, bed_line.length()+start-1, bed_line.annotations()));
 		}
 	}
+
 	output.merge();
 	return output;
 }

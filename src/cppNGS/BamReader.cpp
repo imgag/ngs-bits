@@ -205,10 +205,10 @@ void BamAlignment::qualities(QBitArray& qualities, const int& min_baseq, const i
 	qualities.fill(true, len);
 	uint8_t* q = bam_get_qual(aln_);
 
-	//position in the real alignment
-	int bam_al_idx = 0;
-	//position in the mapped alignment (without insertions, with deletions)
-	int mapped_al_idx = 0;
+	//position in the alignment (e.g. contains indels)
+	int alignment_index = 0;
+	//position in the genome (e.g. contains deletions)
+	int genome_position_index = 0;
 
 	const QList<CigarOp> cigar_data = cigarData();
 	foreach(const CigarOp& op, cigar_data)
@@ -217,29 +217,29 @@ void BamAlignment::qualities(QBitArray& qualities, const int& min_baseq, const i
 		{
 			for(int i=0; i < op.Length; ++i)
 			{
-				if(q[bam_al_idx] < min_baseq)
+				if(q[alignment_index] < min_baseq)
 				{
-					qualities.setBit(mapped_al_idx, false);
+					qualities.setBit(genome_position_index, false);
 				}
-				++bam_al_idx;
-				++mapped_al_idx;
+				++alignment_index;
+				++genome_position_index;
 			}
 		}
 		else if (op.Type==BAM_CDEL)
 		{
-			mapped_al_idx += op.Length;
+			genome_position_index += op.Length;
 		}
 		else if(op.Type==BAM_CINS)
 		{
-			bam_al_idx += op.Length;
+			alignment_index += op.Length;
 		}
 		else if(op.Type==BAM_CREF_SKIP)
 		{
-			mapped_al_idx += op.Length;
+			genome_position_index += op.Length;
 		}
 		else if(op.Type==BAM_CSOFT_CLIP)
 		{
-			bam_al_idx += op.Length;
+			alignment_index += op.Length;
 		}
 
 	}
