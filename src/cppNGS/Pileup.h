@@ -64,17 +64,17 @@ public:
       @note Insersions are inserted just before the position, deletions start at the position.
       @note Insersions start with '+', deletions start with  '-'.
     */
-	const QList<QByteArray>& indels() const
+	const QList<Sequence>& indels() const
     {
         return indels_;
     }
 	///Adds indel to the list.
-	void addIndel(const QByteArray& indel)
+	void addIndel(const Sequence& indel)
     {
         indels_.append(indel);
     }
 	///Adds indels to the list.
-	void addIndels(const QList<QByteArray>& indels)
+	void addIndels(const QList<Sequence>& indels)
     {
         indels_ << indels;
     }
@@ -97,7 +97,7 @@ protected:
     long long t_;
     long long n_;
     long long del_;
-	QList<QByteArray> indels_;
+	QList<Sequence> indels_;
 	double mapq0_frac_;
 };
 

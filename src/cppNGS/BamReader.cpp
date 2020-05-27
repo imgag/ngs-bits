@@ -302,10 +302,10 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 	THROW(Exception, "Could not find position  " + QString::number(pos) + " in read " + bases() + " with start position " + QString::number(start()) + "!");
 }
 
-QList<QByteArray> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
+QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
 {
 	//init
-	QList<QByteArray> output;
+	QList<Sequence> output;
 	bool use_window = (indel_window!=0);
 	int window_start = pos - indel_window;
 	int window_end = pos + indel_window;

@@ -3,9 +3,10 @@
 	
 	Returns all sub-phenotype of a given phenotype.
 	
-	Optional parameters:
+	Mandatory parameters:
 	  -in <string> HPO phenotype identifier, e.g. HP:0002066.
-	               Default value: ''
+	
+	Optional parameters:
 	  -out <file>  Output TSV file with phenotypes identifiers (column 1) and names (column 2). If unset, writes to STDOUT.
 	               Default value: ''
 	  -test        Uses the test database instead of on the production database.

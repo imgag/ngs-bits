@@ -540,65 +540,6 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	al.setCigarData(new_CIGAR);
 }
 
-QByteArray NGSHelper::changeSeq(const QByteArray& seq, bool rev, bool comp)
-{
-	QByteArray output(seq);
-
-	if (rev)
-	{
-		std::reverse(output.begin(), output.end());
-	}
-
-	if (comp)
-	{
-		for (int i=0; i<output.count(); ++i)
-		{
-			switch(output.at(i))
-			{
-				case 'A':
-					output[i] = 'T';
-					break;
-				case 'C':
-					output[i] = 'G';
-					break;
-				case 'T':
-					output[i] = 'A';
-					break;
-				case 'G':
-					output[i] = 'C';
-					break;
-				case 'N':
-					output[i] = 'N';
-					break;
-				default:
-					THROW(ProgrammingException, "Could not convert base " + QString(output.at(i)) + " to complement!");
-			}
-		}
-	}
-
-	return output;
-}
-
-char NGSHelper::complement(char base)
-{
-	switch(base)
-	{
-		case 'A':
-			return 'T';
-		case 'C':
-			return 'G';
-		case 'T':
-			return 'A';
-		case 'G':
-			return 'C';
-		case 'N':
-			return 'N';
-		default:
-			THROW(ProgrammingException, "Could not convert base " + QString(base) + " to complement!");
-	}
-}
-
-
 bool SampleInfo::isAffected() const
 {
 	auto it = properties.cbegin();

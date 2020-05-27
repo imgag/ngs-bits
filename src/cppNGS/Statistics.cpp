@@ -977,7 +977,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	//plotting
 	QString tumor_id = QFileInfo(tumor_bam).baseName();
 	QString normal_id = QFileInfo(normal_bam).baseName();
-	QStringList nuc = QStringList{"A","C","G","T"};
+	QList<Sequence> nucleotides = QList<Sequence>{"A","C","G","T"};
 
 	if(!variants.sampleExists(tumor_id))	Log::error("Tumor sample " + tumor_id + " was not found in variant file " + somatic_vcf);
 	if(!variants.sampleExists(normal_id))	Log::error("Normal sample " + normal_id + " was not found in variant file " + somatic_vcf);
@@ -995,11 +995,11 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		{
 			int count_mut = 0;
 			int count_all = 0;
-			foreach(QString n, nuc)
+			foreach(const QByteArray& n, nucleotides)
 			{
-				int index_n = variants.annotationIndexByName((n+"U"), tumor_id);
+				int index_n = variants.annotationIndexByName(n+"U", tumor_id);
 				int tmp = variants[i].annotations()[index_n].split(',')[0].toInt();
-				if(n==variants[i].obs())	count_mut += tmp;
+				if(n==variants[i].obs()) count_mut += tmp;
 				count_all += tmp;
 			}
 			if(count_all>0)
@@ -1065,7 +1065,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		if(nuc_changes.contains(n))	contained = true;
 		else
 		{
-			n = NGSHelper::changeSeq(v.ref(),true,true) + ">" + NGSHelper::changeSeq(v.obs(),true,true);
+			n = v.ref().toReverseComplement() + ">" + v.obs().toReverseComplement();
 			if(nuc_changes.contains(n))	contained = true;
 		}
 
@@ -1113,7 +1113,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		{			
 			count_mut = 0;
 			count_all = 0;
-			foreach(QString n, nuc)
+			foreach(const QByteArray& n, nucleotides)
 			{
 				int index_n = variants.annotationIndexByName((n+"U"), tumor_id);
 				int tmp = variants[i].annotations()[index_n].split(',')[0].toInt();
@@ -1124,7 +1124,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 
 			count_mut = 0;
 			count_all = 0;
-			foreach(QString n, nuc)
+			foreach(const QByteArray& n, nucleotides)
 			{
 				int index_n = variants.annotationIndexByName((n+"U"), normal_id);
 				int tmp = variants[i].annotations()[index_n].split(',')[0].toInt();
@@ -1221,37 +1221,33 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	BarPlot plot2;
 	plot2.setXLabel("triplett");
 	plot2.setYLabel("count");
-	QString c,co,cod;
 	color_map = QMap<QString,QString>{{"C>A","b"},{"C>G","k"},{"C>T","r"},{"T>A","g"},{"T>G","c"},{"T>C","y"}};
 	foreach(QString color, color_map)
 	{
 		plot2.addColorLegend(color,color_map.key(color));
 	}
-	QList<QString> codons;
+	QList<Sequence> codons;
 	counts.clear();
 	QList<double> counts_normalized;
 	QList<double> frequencies;
 	QList<QString> labels;
 	colors = QList<QString>();
-	QStringList sig = QStringList{"C","T"};
-	foreach(QString r, sig)
+	QList<Sequence> sig = QList<Sequence>{"C","T"};
+	foreach(const QByteArray& r, sig)
 	{
-		c = r;
-		foreach(QString o, nuc)
+		foreach(const QByteArray& o, nucleotides)
 		{
-			if(c == o)	continue;
-			foreach(QString rr, nuc)
+			if(r == o)	continue;
+			foreach(const QByteArray& rr, nucleotides)
 			{
-				co = rr + c;
-				foreach(QString rrr, nuc)
+				foreach(const QByteArray& rrr, nucleotides)
 				{
-					cod = co + rrr + " - " + o;
-					codons.append(cod);
+					codons.append(rr + r + rrr + " - " + o);
 					counts.append(0);
 					counts_normalized.append(0);
 					frequencies.append(0);
 					colors.append(color_map[r+">"+o]);
-					labels.append(co + rrr);
+					labels.append(rr + r + rrr);
 				}
 			}
 		}
@@ -1263,19 +1259,20 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		if(!variants[i].filters().empty())	continue;	//skip non-somatic variants
 		if(!variants[i].isSNV())	continue;	//skip indels
 
-		Variant v = variants[i];
+		const Variant& v = variants[i];
 
-		bool contained = false;
-		QString c = reference.seq(v.chr(),v.start()-1,1,true) + v.ref().toUpper() + reference.seq(v.chr(),v.start()+1,1,true) + " - " + v.obs().toUpper();
-		if(codons.contains(c))	contained = true;
-		else
+		Sequence c = reference.seq(v.chr(),v.start()-1,1,true) + v.ref().toUpper() + reference.seq(v.chr(),v.start()+1,1,true) + " - " + v.obs().toUpper();
+		bool contained = codons.contains(c);
+		if(!contained)
 		{
-			c = NGSHelper::changeSeq(reference.seq(v.chr(),v.start()-1,1,true).toUpper() + v.ref().toUpper() + reference.seq(v.chr(),v.start()+1,1,true).toUpper(),true,true) + " - " + NGSHelper::changeSeq(v.obs().toUpper(),true,true);
-			if(codons.contains(c))	contained = true;
+			c = Sequence(reference.seq(v.chr(),v.start()-1,1,true).toUpper() + v.ref().toUpper() + reference.seq(v.chr(),v.start()+1,1,true).toUpper()).toReverseComplement() + " - " + v.obs().toReverseComplement().toUpper();
+			contained = codons.contains(c);
 		}
 
-		if(!contained)	continue;
-		++counts[codons.indexOf(c)];
+		if(contained)
+		{
+			++counts[codons.indexOf(c)];
+		}
 	}
 
 //	for(int i=0; i<codons.length();++i)
@@ -1285,7 +1282,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 
 	plot2.setYLabel("variant type percentage");
 	if(target_file.count() != 0)	plot2.setYLabel("normalized variant type percentage");
-	QHash < QString, int > count_codons_target({
+	QHash<Sequence, int> count_codons_target({
 	   {"ACA",0},{"ACC",0},{"ACG",0},{"ACT",0},{"CCA",0},{"CCC",0},{"CCG",0},{"CCT",0},
 	   {"GCA",0},{"GCC",0},{"GCG",0},{"GCT",0},{"TCA",0},{"TCC",0},{"TCG",0},{"TCT",0},
 	   {"ATA",0},{"ATC",0},{"ATG",0},{"ATT",0},{"CTA",0},{"CTC",0},{"CTG",0},{"CTT",0},
@@ -1313,10 +1310,10 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 				}
 				if((start+length-1)>chrom_length)	length = (chrom_length - start + 1);
 				Sequence seq = reference.seq(chr,start,length,true);
-				foreach(QString codon, count_codons_target.keys())
+				foreach(const Sequence& codon, count_codons_target.keys())
 				{
-					count_codons_target[codon] += seq.count(codon.toUpper().toLatin1());
-					count_codons_target[codon] += seq.count(NGSHelper::changeSeq(codon.toLatin1(),true,true));
+					count_codons_target[codon] += seq.count(codon);
+					count_codons_target[codon] += seq.count(codon.toReverseComplement());
 				}
 			}
 		}
@@ -1328,10 +1325,10 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		for(int i=0; i<target_file.count(); ++i)
 		{
 			Sequence seq = reference.seq(target_file[i].chr(),target_file[i].start(),target_file[i].length(),true);
-			foreach(QString codon, count_codons_target.keys())
+			foreach(const Sequence& codon, count_codons_target.keys())
 			{
-				count_codons_target[codon] += seq.count(codon.toLatin1());
-				count_codons_target[codon] += seq.count(NGSHelper::changeSeq(codon.toLatin1(),true,true));
+				count_codons_target[codon] += seq.count(codon);
+				count_codons_target[codon] += seq.count(codon.toReverseComplement());
 			}
 		}
 	}
@@ -1346,7 +1343,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	double sum = 0;
 	for(int i=0; i<codons.count(); ++i)
 	{
-		QString cod = codons[i].mid(0,3);
+		Sequence cod = codons[i].mid(0,3);
 		counts_normalized[i] = counts[i]/double(count_codons_target[cod]);
 		sum += counts_normalized[i];
 	}

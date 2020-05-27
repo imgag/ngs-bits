@@ -286,8 +286,8 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		//convert reference to correct strand
 		if(strand_==Transcript::MINUS)
 		{
-			ref = NGSHelper::changeSeq(ref, true, true);
-			obs = NGSHelper::changeSeq(obs, true, true);
+			ref.reverseComplement();
+			obs.reverseComplement();
 		}
 	}
 	//DUP e.g. "39-286dup" or "289-102_289-100dup"
@@ -394,7 +394,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		//convert reference to correct strand
 		if(strand_==Transcript::MINUS)
 		{
-			obs = NGSHelper::changeSeq(obs, true, true);
+			obs.reverseComplement();
 		}
 	}
 	//INS
@@ -428,7 +428,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		//convert reference to correct strand
 		if(strand_==Transcript::MINUS)
 		{
-			obs = NGSHelper::changeSeq(obs, true, true);
+			obs.reverseComplement();
 		}
 	}
 	else

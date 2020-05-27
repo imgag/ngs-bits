@@ -5,14 +5,31 @@
 #include <QByteArray>
 
 ///DNA or RNA sequence class
-typedef QByteArray Sequence;
+class Sequence
+	: public QByteArray
+{
+public:
 
-//**IMPORTANT**
-//Right now it is only a typedef.
-//Use it anyway - it might be replaced by a own class in the future!
+	//Constructors
+	Sequence();
+	Sequence(const char* rhs);
+	Sequence(const Sequence& rhs);
+	Sequence(const QByteArray& rhs);
 
-//Notes for the implementation:
-//- move NGSHelper::changeSeq to this class!
-//- add PERsim::addNoise
+	///Changes the sequence to reverse order.
+	void reverse();
+	///Changes the sequence to the complement.
+	void complement();
+	///Changes the sequence to the reverse complement.
+	void reverseComplement();
+
+	///Returns the reverse complement of the sequence.
+	Sequence toReverseComplement() const;
+
+	///Returns the complementary base of the given base.
+	static char complement(char base);
+};
+
+//TODO add PERsim::addNoise
 
 #endif // SEQUENCE_H

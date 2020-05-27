@@ -16,7 +16,8 @@ public:
 	{
 		setDescription("Returns all sub-phenotype of a given phenotype.");
 
-		addString("in", "HPO phenotype identifier, e.g. HP:0002066.", true);
+		addString("in", "HPO phenotype identifier, e.g. HP:0002066.", false);
+		//optional
 		addOutfile("out", "Output TSV file with phenotypes identifiers (column 1) and names (column 2). If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 
