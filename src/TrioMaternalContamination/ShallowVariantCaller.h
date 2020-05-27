@@ -1,6 +1,7 @@
 #pragma once
 
 #include "forward.h"
+#include "NGSHelper.h"
 
 void getVariantInformation(
 		VariantInfo& vInfo,

@@ -21,10 +21,13 @@ struct EnumHash
 struct VariantInfo
 {
 	VariantList variants;
+
+	QString in_file_name;
 	QString out_file_name;
 
-	VariantInfo(QString out_file_name_)
+	VariantInfo(QString in_file_name_, QString out_file_name_)
 	{
+		in_file_name = in_file_name_;
 		out_file_name = out_file_name_;
 	}
 

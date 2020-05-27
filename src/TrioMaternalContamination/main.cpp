@@ -49,9 +49,9 @@ public:
 		//get variants of family
 		std::unordered_map<Member, VariantInfo, EnumHash> trio;
 
-		trio.emplace(Member::MOTHER, VariantInfo(getOutfile("out_m")));
-		trio.emplace(Member::FATHER, VariantInfo(getOutfile("out_f")));
-		trio.emplace(Member::CHILD, VariantInfo(getOutfile("out_c")));
+		trio.emplace(Member::MOTHER, VariantInfo(bam_m, getOutfile("out_m")));
+		trio.emplace(Member::FATHER, VariantInfo(bam_f, getOutfile("out_f")));
+		trio.emplace(Member::CHILD, VariantInfo(bam_c, getOutfile("out_c")));
 
 		for(auto& trio_it : trio)
 		{
