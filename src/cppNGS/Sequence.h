@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include <QByteArray>
+#include <random>
 
 ///DNA or RNA sequence class
 class CPPNGSSHARED_EXPORT Sequence

@@ -183,13 +183,15 @@ void FastqFileStream::extractLine(QByteArray& line)
 FastqOutfileStream::FastqOutfileStream(QString filename, int level, int strategy)
 	: filename_(filename)
     , is_closed_(false)
+	, buffer_()
+	, buffer_size_(10000)
 {
     gzfile_ = gzopen(filename.toLatin1().data(),"wb");
     if (gzfile_ == NULL)
     {
         THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
-    }
-    gzsetparams(gzfile_, level, strategy);
+	}
+	gzsetparams(gzfile_, level, strategy);
 }
 
 FastqOutfileStream::~FastqOutfileStream()
@@ -199,23 +201,45 @@ FastqOutfileStream::~FastqOutfileStream()
 
 void FastqOutfileStream::write(const FastqEntry& entry)
 {
-	gzputs(gzfile_, entry.header.constData());
-	gzwrite(gzfile_, "\n", 1);
-	gzputs(gzfile_, entry.bases.constData());
-	gzwrite(gzfile_, "\n", 1);
-	gzputs(gzfile_, entry.header2.constData());
-	gzwrite(gzfile_, "\n", 1);
-	gzputs(gzfile_, entry.qualities.constData());
-	int written = gzwrite(gzfile_, "\n", 1);
-	if (written==0)
-    {
-        THROW(FileAccessException, "Could not write to file '" + filename_ + "'!");
-    }
+	//append entry to buffer
+	buffer_.append(entry.header);
+	buffer_.append('\n');
+	buffer_.append(entry.bases);
+	buffer_.append('\n');
+	buffer_.append(entry.header2);
+	buffer_.append('\n');
+	buffer_.append(entry.qualities);
+	buffer_.append('\n');
+
+	if (buffer_.size()>=buffer_size_)
+	{
+		int written = gzputs(gzfile_, buffer_.constData());
+		if (written==0)
+		{
+			THROW(FileAccessException, "Could not write to file '" + filename_ + "'!");
+		}
+
+		buffer_.clear();
+		buffer_.reserve(buffer_size_+1000);
+	}
 }
 
 void FastqOutfileStream::close()
 {
     if (is_closed_) return;
+
+
+	if (buffer_.size()>0)
+	{
+		int written = gzputs(gzfile_, buffer_.constData());
+		if (written==0)
+		{
+			THROW(FileAccessException, "Could not write to file '" + filename_ + "'!");
+		}
+
+		buffer_.clear();
+		buffer_.reserve(buffer_size_+1000);
+	}
 
     gzclose(gzfile_);
 	is_closed_ = true;

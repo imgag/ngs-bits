@@ -60,31 +60,8 @@ void Sequence::complement()
 
 void Sequence::reverseComplement()
 {
-	int i_left = 0;
-	int i_right = count()-1;
-
-	while(i_left<=i_right)
-	{
-		char base_left = operator[](i_left);
-		char base_right = operator[](i_right);
-
-		if (base_left=='A') operator[](i_right) = 'T';
-		else if (base_left=='C') operator[](i_right) = 'G';
-		else if (base_left=='T') operator[](i_right) = 'A';
-		else if (base_left=='G') operator[](i_right) = 'C';
-		else if (base_left=='N') operator[](i_right) = 'N';
-		else THROW(ProgrammingException, "Could not convert base '" + QString(base_left) + "' to complement!");
-
-		if (base_right=='A') operator[](i_left) = 'T';
-		else if (base_right=='C') operator[](i_left) = 'G';
-		else if (base_right=='T') operator[](i_left) = 'A';
-		else if (base_right=='G') operator[](i_left) = 'C';
-		else if (base_right=='N') operator[](i_left) = 'N';
-		else THROW(ProgrammingException, "Could not convert base '" + QString(base_right) + "' to complement!");
-
-		++i_left;
-		--i_right;
-	}
+	reverse();
+	complement();
 }
 
 Sequence Sequence::toReverseComplement() const
