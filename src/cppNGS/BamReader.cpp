@@ -102,7 +102,7 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 	return output;
 }
 
-QByteArray BamAlignment::bases() const
+Sequence BamAlignment::bases() const
 {
 	QByteArray output;
 	output.resize(aln_->core.l_qseq);
@@ -116,7 +116,7 @@ QByteArray BamAlignment::bases() const
 	return output;
 }
 
-void BamAlignment::setBases(const QByteArray& bases)
+void BamAlignment::setBases(const Sequence& bases)
 {
 	//check that length stays the same
 	if (aln_->core.l_qseq!=bases.count())

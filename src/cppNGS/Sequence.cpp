@@ -60,9 +60,22 @@ void Sequence::complement()
 
 void Sequence::reverseComplement()
 {
-	//TODO make this faster?!
-	reverse();
-	complement();
+	int from = 0;
+	int to = count()-1;
+
+	while(from<count())
+	{
+		char base = operator[](to);
+
+		if (base=='A') operator[](to) = 'T';
+		else if (base=='C') operator[](to) = 'G';
+		else if (base=='T') operator[](to) = 'A';
+		else if (base=='G') operator[](to) = 'C';
+		else if (base!='N') THROW(ProgrammingException, "Could not convert base '" + QString(base) + "' to complement!");
+
+		++from;
+		--to;
+	}
 }
 
 Sequence Sequence::toReverseComplement() const
@@ -75,19 +88,11 @@ Sequence Sequence::toReverseComplement() const
 
 char Sequence::complement(char base)
 {
-	switch(base)
-	{
-		case 'A':
-			return 'T';
-		case 'C':
-			return 'G';
-		case 'T':
-			return 'A';
-		case 'G':
-			return 'C';
-		case 'N':
-			return 'N';
-		default:
-			THROW(ProgrammingException, "Could not convert base " + QString(base) + " to complement!");
-	}
+	if (base=='A') return 'T';
+	else if (base=='C') return 'G';
+	else if (base=='T') return 'A';
+	else if (base=='G') return 'C';
+	else if (base=='N') return 'N';
+
+	THROW(ProgrammingException, "Could not convert base '" + QString(base) + "' to complement!");
 }

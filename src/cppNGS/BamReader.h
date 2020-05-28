@@ -168,9 +168,9 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		QByteArray cigarDataAsString(bool expand=false) const;
 
 		//Returns the sequence bases.
-		QByteArray bases() const;
+		Sequence bases() const;
 		//Sets the sequence bases.
-		void setBases(const QByteArray& bases);
+		void setBases(const Sequence& bases);
 		//Returns the the n-th base.
 		char base(int n) const
 		{
