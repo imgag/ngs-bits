@@ -44,37 +44,6 @@ public:
 		addFlag("v", "Enable verbose debug output.");
 	}
 
-	int addNoise(QByteArray& sequence, double error_probabilty, std::mt19937& gen)
-	{
-		int ec = 0;
-
-		//uniform distribution
-		std::uniform_real_distribution<double> error_dist(0, 1);
-
-		//bases vector
-		QByteArray bases = "ACGT";
-		for(int i=0; i<sequence.length(); ++i)
-		{
-			//base error?
-			bool error = error_dist(gen) < error_probabilty;
-
-			//replace base at random
-			if (error)
-			{
-				do
-				{
-					std::random_shuffle(bases.begin(), bases.end());
-				}
-				while (sequence[i]==bases[0]);
-				sequence[i] = bases[0];
-
-				++ec;
-			}
-		}
-
-		return ec;
-	}
-
 	virtual void main()
 	{
 		//init
@@ -166,8 +135,8 @@ public:
 				r2.bases.append(Helper::randomString(r_length, "AACGT"));
 
 				//add noise
-				int ec1 = addNoise(r1.bases, error, gen);
-				int ec2 = addNoise(r2.bases, error, gen);
+				int ec1 = r1.bases.addNoise(error, gen);
+				int ec2 = r2.bases.addNoise(error, gen);
 				if (verbose) out << "    Read 1: errors=" << ec1 << " seq=" << r1.bases << endl;
 				if (verbose) out << "    Read 2: errors=" << ec2 << " seq=" << r2.bases << endl;
 

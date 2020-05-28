@@ -60,21 +60,30 @@ void Sequence::complement()
 
 void Sequence::reverseComplement()
 {
-	int from = 0;
-	int to = count()-1;
+	int i_left = 0;
+	int i_right = count()-1;
 
-	while(from<count())
+	while(i_left<=i_right)
 	{
-		char base = operator[](to);
+		char base_left = operator[](i_left);
+		char base_right = operator[](i_right);
 
-		if (base=='A') operator[](to) = 'T';
-		else if (base=='C') operator[](to) = 'G';
-		else if (base=='T') operator[](to) = 'A';
-		else if (base=='G') operator[](to) = 'C';
-		else if (base!='N') THROW(ProgrammingException, "Could not convert base '" + QString(base) + "' to complement!");
+		if (base_left=='A') operator[](i_right) = 'T';
+		else if (base_left=='C') operator[](i_right) = 'G';
+		else if (base_left=='T') operator[](i_right) = 'A';
+		else if (base_left=='G') operator[](i_right) = 'C';
+		else if (base_left=='N') operator[](i_right) = 'N';
+		else THROW(ProgrammingException, "Could not convert base '" + QString(base_left) + "' to complement!");
 
-		++from;
-		--to;
+		if (base_right=='A') operator[](i_left) = 'T';
+		else if (base_right=='C') operator[](i_left) = 'G';
+		else if (base_right=='T') operator[](i_left) = 'A';
+		else if (base_right=='G') operator[](i_left) = 'C';
+		else if (base_right=='N') operator[](i_left) = 'N';
+		else THROW(ProgrammingException, "Could not convert base '" + QString(base_right) + "' to complement!");
+
+		++i_left;
+		--i_right;
 	}
 }
 
@@ -95,4 +104,35 @@ char Sequence::complement(char base)
 	else if (base=='N') return 'N';
 
 	THROW(ProgrammingException, "Could not convert base '" + QString(base) + "' to complement!");
+}
+
+int Sequence::addNoise(double error_probabilty, std::mt19937& gen)
+{
+	int ec = 0;
+
+	//uniform distribution
+	std::uniform_real_distribution<double> error_dist(0, 1);
+
+	//bases vector
+	QByteArray bases = "ACGT";
+	for(int i=0; i<count(); ++i)
+	{
+		//base error?
+		bool error = error_dist(gen) < error_probabilty;
+
+		//replace base at random
+		if (error)
+		{
+			do
+			{
+				std::random_shuffle(bases.begin(), bases.end());
+			}
+			while (at(i)==bases[0]);
+			operator[](i) = bases[0];
+
+			++ec;
+		}
+	}
+
+	return ec;
 }

@@ -31,6 +31,9 @@ public:
 
 	///Returns the complementary base of the given base.
 	static char complement(char base);
+
+	///Adds random noise to the sequence. Returns how many errors have been added.
+	int addNoise(double error_probabilty, std::mt19937& gen);
 };
 
 //TODO add PERsim::addNoise
