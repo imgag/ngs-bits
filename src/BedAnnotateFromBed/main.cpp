@@ -3,6 +3,7 @@
 #include "NGSHelper.h"
 #include "Settings.h"
 #include "VcfFile.h"
+#include "Exceptions.h"
 #include <QTextStream>
 #include <QFileInfo>
 
@@ -64,7 +65,7 @@ public:
 
 		// mode for TSV files (overwrite existing columns, modify header)
 		int col_idx = -1;
-		if (out.toLower().endsWith(".tsv"))
+		if (in.toLower().endsWith(".tsv"))
 		{
 			QVector<QByteArray> headers = file.headers();
 			for(int i=0; i<headers.count(); ++i)
@@ -83,6 +84,14 @@ public:
 						// new column name -> append to header
 						line += QByteArray("\t") + (overlap ? "overlap " : "") + name;
 					}
+
+					// check if column headers match column number of first bed line
+					if((file.count() > 0) && (file[0].annotations().size() != (column_headers.size() - 3)))
+					{
+						THROW(FileParseException, "BED/TSV file format error: Number of header columns does not match number of data columns!");
+					}
+
+					break;
 				}
 			}
 			file.setHeaders(headers);

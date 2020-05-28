@@ -10,6 +10,8 @@ MultiSampleDialog::MultiSampleDialog(QWidget *parent)
 {
 	ui_.setupUi(this);
 	SingleSampleAnalysisDialog::addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
+
+	connect(ui_.annotate_only, SIGNAL(stateChanged(int)), this, SLOT(annotate_only_state_changed()));
 }
 
 void MultiSampleDialog::setSamples(QList<AnalysisJobSample> samples)
@@ -61,6 +63,30 @@ void MultiSampleDialog::on_add_control_clicked(bool)
 void MultiSampleDialog::updateStartButton()
 {
 	ui_.start_button->setEnabled(samples_.count()>=2);
+}
+
+void MultiSampleDialog::annotate_only_state_changed()
+{
+	// get all step check boxes
+	QList<QCheckBox*> step_boxes = this->findChildren<QCheckBox*>(QRegExp("^step_"));
+
+	if(ui_.annotate_only->isChecked())
+	{
+		foreach (QCheckBox* step, step_boxes)
+		{
+			// deactivate mapping/db import  check box
+			if ((step->objectName() == "step_ma") || (step->objectName() == "step_db"))
+			{
+				step->setChecked(false);
+			}
+
+			// activate vc, cn and sv by default
+			if ((step->objectName() == "step_vc") || (step->objectName() == "step_cn") || (step->objectName() == "step_sv"))
+			{
+				step->setChecked(true);
+			}
+		}
+	}
 }
 
 

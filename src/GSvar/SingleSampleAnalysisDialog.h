@@ -51,6 +51,7 @@ private slots:
 	void on_add_batch_clicked(bool);
 	void on_clear_clicked(bool);
 	void updateStartButton();
+	void annotate_only_state_changed();
 
 private:
 	Ui::SingleSampleAnalysisDialog ui_;

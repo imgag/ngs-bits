@@ -86,11 +86,11 @@ public:
 
 		//check if gene annotation already exists:
 		QByteArrayList header = cnv_input_file.header();
-		int i_genes = header.indexOf("gene_names");
+		int i_genes = header.indexOf("genes");
 		int i_gene_info = header.indexOf("gene_info");
 
 		// modify header if neccessary
-		if ((i_genes < 0) && add_simple_gene_names_) header.append("gene_names");
+		if ((i_genes < 0) && add_simple_gene_names_) header.append("genes");
 		if (i_gene_info < 0) header.append("gene_info");
 		output_buffer << "#" + header.join("\t");
 

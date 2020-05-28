@@ -16,6 +16,8 @@ SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent)
 {
 	ui_.setupUi(this);
 	addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
+
+	connect(ui_.annotate_only, SIGNAL(stateChanged(int)), this, SLOT(annotate_only_state_changed()));
 }
 
 void SingleSampleAnalysisDialog::setSamples(QList<AnalysisJobSample> samples)
@@ -157,6 +159,8 @@ QStringList SingleSampleAnalysisDialog::arguments(const QWidget* widget)
 		output << custom->text();
 	}
 
+	if (widget->findChild<QCheckBox*>("annotate_only")->isChecked()) output << "-annotation_only";
+
 	QStringList steps;
 	QList<QCheckBox*> step_boxes = widget->findChildren<QCheckBox*>(QRegExp("^step_"));
 	if (step_boxes.count()>0)
@@ -213,6 +217,31 @@ void SingleSampleAnalysisDialog::on_clear_clicked(bool)
 void SingleSampleAnalysisDialog::updateStartButton()
 {
 	ui_.start_button->setEnabled(samples_.count()>=1);
+}
+
+void SingleSampleAnalysisDialog::annotate_only_state_changed()
+{
+	// get all step check boxes
+	QList<QCheckBox*> step_boxes = this->findChildren<QCheckBox*>(QRegExp("^step_"));
+
+	if(ui_.annotate_only->isChecked())
+	{
+		foreach (QCheckBox* step, step_boxes)
+		{
+			// deactivate mapping/db import  check box
+			if ((step->objectName() == "step_ma") || (step->objectName() == "step_db"))
+			{
+				step->setChecked(false);
+			}
+
+			// activate vc, cn and sv by default
+			if ((step->objectName() == "step_vc") || (step->objectName() == "step_cn") || (step->objectName() == "step_sv"))
+			{
+				step->setChecked(true);
+			}
+		}
+	}
+
 }
 
 void SingleSampleAnalysisDialog::addSample(QString status, QString sample)

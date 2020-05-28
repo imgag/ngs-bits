@@ -44,7 +44,13 @@ private slots:
 
 	void reannotate_tsv_file()
 	{
-		EXECUTE("BedAnnotateFromBed", "-in " + TESTDATA("data_out/BedAnnotateFromBed_out4.tsv") + " -in2 " + TESTDATA("data_in/BedAnnotateFromBed_db1.bed") + " -no_duplicates -name tsv_header -out out/BedAnnotateFromBed_out5.tsv");
-		COMPARE_FILES("out/BedAnnotateFromBed_out5.tsv", TESTDATA("data_out/BedAnnotateFromBed_out4.tsv"));
+		EXECUTE("BedAnnotateFromBed", "-in " + TESTDATA("data_out/BedAnnotateFromBed_out4.tsv") + " -in2 " + TESTDATA("data_in/BedAnnotateFromBed_db1.bed") + " -no_duplicates -name tsv_header -out out/BedAnnotateFromBed_out7.tsv");
+		COMPARE_FILES("out/BedAnnotateFromBed_out7.tsv", TESTDATA("data_out/BedAnnotateFromBed_out4.tsv"));
+	}
+
+	void reannotate_tsv_file_overlap()
+	{
+		EXECUTE("BedAnnotateFromBed", "-in " + TESTDATA("data_in/BedAnnotateFromBed_in8.tsv") + " -in2 " + TESTDATA("data_in/BedAnnotateFromBed_db1.bed") + " -overlap -no_duplicates -name tsv_header -out out/BedAnnotateFromBed_out8.tsv");
+		COMPARE_FILES("out/BedAnnotateFromBed_out8.tsv", TESTDATA("data_out/BedAnnotateFromBed_out8.tsv"));
 	}
 };

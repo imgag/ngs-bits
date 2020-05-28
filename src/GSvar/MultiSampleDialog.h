@@ -28,6 +28,7 @@ private slots:
 	void on_add_affected_clicked(bool);
 	void on_clear_clicked(bool);
 	void updateStartButton();
+	void annotate_only_state_changed();
 
 private:
 	Ui::MultiSampleDialog ui_;

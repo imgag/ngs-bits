@@ -26,6 +26,7 @@ public:
 private slots:
 	void on_add_samples_clicked(bool);
 	void updateStartButton();
+	void annotate_only_state_changed();
 
 private:
 	Ui::TrioDialog ui_;
