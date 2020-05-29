@@ -2,6 +2,8 @@
 #include "FastqFileStream.h"
 #include "NGSHelper.h"
 #include "Helper.h"
+#include <QThreadPool>
+#include "OutputWorker.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -23,14 +25,15 @@ public:
 		//optional
 		addString("reg", "Export only reads in the given region. Format: chr:start-end.", true);
 		addFlag("remove_duplicates", "Does not export duplicate reads into the FASTQ file.");
+		addInt("compression_level", "gzip compression level from 1 (fastest) to 9 (best compression).", true, 1);
+		addInt("write_buffer_size", "Output write buffer size (number of FASTQ entry pairs).", true, 100);
 
+		changeLog(2020,  5, 29, "Massive speed-up by writing in background. Added 'compression_level' parameter.");
 		changeLog(2020,  3, 21, "Added 'reg' parameter.");
 	}
 
-	void write(FastqOutfileStream& out, const QSharedPointer<BamAlignment>& al)
+	static void alignmentToFastq(const QSharedPointer<BamAlignment>& al, FastqEntry& e)
 	{
-		//create FASTQ entry
-		FastqEntry e;
 		e.header = "@" + al->name();
 		e.bases = al->bases();
 		e.header2 = "+";
@@ -41,8 +44,6 @@ public:
 			e.bases.reverseComplement();
 			std::reverse(e.qualities.begin(), e.qualities.end());
 		}
-
-		out.write(e);
 	}
 
 	virtual void main()
@@ -63,9 +64,17 @@ public:
 			reader.setRegion(region.chr(), region.start(), region.end());
 		}
 		bool remove_duplicates = getFlag("remove_duplicates");
+		int write_buffer_size = getInt("write_buffer_size");
 
-		FastqOutfileStream out1(getOutfile("out1"));
-		FastqOutfileStream out2(getOutfile("out2"));
+		int compression_level = getInt("compression_level");
+		if (compression_level<1 || compression_level>9) THROW(CommandLineParsingException, "Invalid compression level " + QString::number(compression_level) +"!");
+
+		//create background FASTQ writer
+		ReadPairPool pair_pool(write_buffer_size);
+		QThreadPool analysis_pool;
+		analysis_pool.setMaxThreadCount(1);
+		OutputWorker* output_worker = new OutputWorker(pair_pool, getOutfile("out1"), getOutfile("out2"), compression_level);
+		analysis_pool.start(output_worker);
 
 		long long c_unpaired = 0;
 		long long c_paired = 0;
@@ -105,16 +114,18 @@ public:
 				QSharedPointer<BamAlignment> mate = al_cache.take(name);
 				//out << name << " [AL] First: " << al.isRead1() << " Reverse: " << al.isReverseStrand() << " Seq: " << al.QueryBases.data() << endl;
 				//out << name << " [MA] First: " << mate.isRead1() << " Reverse: " << mate.isReverseStrand() << " Seq: " << mate.QueryBases.data() << endl;
+				ReadPair& pair = pair_pool.nextFreePair();
 				if (al->isRead1())
 				{
-					write(out1, al);
-					write(out2, mate);
+					alignmentToFastq(al, pair.e1);
+					alignmentToFastq(mate, pair.e2);
 				}
 				else
 				{
-					write(out1, mate);
-					write(out2, al);
+					alignmentToFastq(mate, pair.e1);
+					alignmentToFastq(al, pair.e2);
 				}
+				pair.status = ReadPair::TO_BE_WRITTEN;
 				++c_paired;
 			}
 			//cache read for later retrieval
@@ -126,8 +137,6 @@ public:
 
 			max_cached = std::max(max_cached, al_cache.size());
 		}
-		out1.close();
-		out2.close();
 
 		//write debug output
 		out << "Pair reads (written)            : " << c_paired << endl;
@@ -139,9 +148,15 @@ public:
 		}
 		out << endl;
 		out << "Maximum cached reads            : " << max_cached << endl;
-		out << "Time elapsed: " << Helper::elapsedTime(timer, true) << endl;
+		out << "Time elapsed                    : " << Helper::elapsedTime(timer, true) << endl;
+
+		//terminate FASTQ writer after all reads are written
+		pair_pool.waitAllWritten();
+		output_worker->terminate();
+		delete output_worker; //has to be deleted before the read pair list > no QScopedPointer is used!
 	}
 };
+
 #include "main.moc"
 
 int main(int argc, char *argv[])
