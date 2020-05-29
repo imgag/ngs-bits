@@ -44,7 +44,7 @@ public:
 		addFlag("ec", "Enable error-correction of adapter-trimmed reads (only those with insert match).");
 		addFlag("debug", "Enables debug output (use only with one thread).");
 		addInt("progress", "Enables progress output at the given interval in milliseconds (disabled by default).", true, -1);
-		addInt("compression_level", "gzip compression level from 1 (fastest) to 9 (best compression).", true, 1);
+		addInt("compression_level", "Output gzip compression level from 1 (fastest) to 9 (best compression).", true, 1);
 
 		//changelog
 		changeLog(2019, 3, 26, "Added 'compression_level' parameter.");

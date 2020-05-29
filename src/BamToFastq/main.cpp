@@ -25,7 +25,7 @@ public:
 		//optional
 		addString("reg", "Export only reads in the given region. Format: chr:start-end.", true);
 		addFlag("remove_duplicates", "Does not export duplicate reads into the FASTQ file.");
-		addInt("compression_level", "gzip compression level from 1 (fastest) to 9 (best compression).", true, 1);
+		addInt("compression_level", "Output gzip compression level from 1 (fastest) to 9 (best compression).", true, 1);
 		addInt("write_buffer_size", "Output write buffer size (number of FASTQ entry pairs).", true, 100);
 
 		changeLog(2020,  5, 29, "Massive speed-up by writing in background. Added 'compression_level' parameter.");

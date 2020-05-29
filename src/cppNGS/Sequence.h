@@ -5,7 +5,7 @@
 #include <QByteArray>
 #include <random>
 
-///DNA or RNA sequence class
+///DNA sequence class
 class CPPNGSSHARED_EXPORT Sequence
 	: public QByteArray
 {
@@ -36,7 +36,5 @@ public:
 	///Adds random noise to the sequence. Returns how many errors have been added.
 	int addNoise(double error_probabilty, std::mt19937& gen);
 };
-
-//TODO add PERsim::addNoise
 
 #endif // SEQUENCE_H
