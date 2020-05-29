@@ -4,6 +4,7 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <unordered_set>
 
 /*
 External documentation used for the implementation:
@@ -196,6 +197,52 @@ QByteArray BamAlignment::qualities() const
 	}
 
 	return output;
+}
+
+void BamAlignment::qualities(QBitArray& qualities, int min_baseq, int len) const
+{
+
+	qualities.fill(true, len);
+	uint8_t* q = bam_get_qual(aln_);
+
+	//position in the alignment (e.g. contains indels)
+	int alignment_index = 0;
+	//position in the genome (e.g. contains deletions)
+	int genome_position_index = 0;
+
+	const QList<CigarOp> cigar_data = cigarData();
+	foreach(const CigarOp& op, cigar_data)
+	{
+		if (op.Type==BAM_CMATCH)
+		{
+			for(int i=0; i < op.Length; ++i)
+			{
+				if(q[alignment_index] < min_baseq)
+				{
+					qualities.setBit(genome_position_index, false);
+				}
+				++alignment_index;
+				++genome_position_index;
+			}
+		}
+		else if (op.Type==BAM_CDEL)
+		{
+			genome_position_index += op.Length;
+		}
+		else if(op.Type==BAM_CINS)
+		{
+			alignment_index += op.Length;
+		}
+		else if(op.Type==BAM_CREF_SKIP)
+		{
+			genome_position_index += op.Length;
+		}
+		else if(op.Type==BAM_CSOFT_CLIP)
+		{
+			alignment_index += op.Length;
+		}
+
+	}
 }
 
 void BamAlignment::setQualities(const QByteArray& qualities)

@@ -8,7 +8,6 @@
 #include "BasicStatistics.h"
 #include <QVector>
 #include "Pileup.h"
-#include "NGSHelper.h"
 #include "FastqFileStream.h"
 #include "LinePlot.h"
 #include "ScatterPlot.h"
@@ -1576,7 +1575,70 @@ AncestryEstimates Statistics::ancestry(QString build, const VariantList& vl, int
 	return output;
 }
 
-BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq)
+void Statistics::countCoverageWithoutBaseQuality(
+		QVector<int>& roi_cov,
+		int ol_start,
+		int ol_end)
+{
+	for (int p=ol_start; p<=ol_end; ++p)
+	{
+		++roi_cov[p];
+	}
+}
+
+void Statistics::countCoverageWithBaseQuality(
+		int min_baseq,
+		QVector<int>& roi_cov,
+		int start,
+		int ol_start,
+		int ol_end,
+		QBitArray& baseQualities,
+		const BamAlignment& al)
+{
+	int quality_pos = std::max(start, al.start()) - al.start();
+	al.qualities(baseQualities, min_baseq, al.end() - al.start() + 1);
+	for (int p=ol_start; p<=ol_end; ++p)
+	{
+		if(baseQualities.testBit(quality_pos))
+		{
+			++roi_cov[p];
+		}
+		++quality_pos;
+	}
+}
+
+void Statistics::countCoverageWGSWithoutBaseQuality(
+		int start,
+		int end,
+		QVector<unsigned char>& cov)
+{
+	for (int p=start; p<end; ++p)
+	{
+		if (cov[p]<254) ++cov[p];
+	}
+}
+
+void Statistics::countCoverageWGSWithBaseQuality(
+		int min_baseq,
+		QVector<unsigned char>& cov,
+		int start,
+		int end,
+		QBitArray& baseQualities,
+		const BamAlignment& al)
+{
+	al.qualities(baseQualities, min_baseq, end - start);
+	int quality_pos = 0;
+	for (int p=start; p<end; ++p)
+	{
+		if(baseQualities.testBit(quality_pos))
+		{
+			if (cov[p]<254) ++cov[p];
+		}
+		++quality_pos;
+	}
+}
+
+BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq)
 {
 	BedFile output;
 
@@ -1594,7 +1656,6 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	{
 		const BedLine& bed_line = bed_file[i];
 		const int start = bed_line.start();
-		//qDebug() << bed_line.chr().str().constData() << ":" << bed_line.start() << "-" << bed_line.end();
 
 		//init coverage statistics
         QVector<int> roi_cov(bed_line.length(), 0);
@@ -1604,6 +1665,8 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 
 		//iterate through all alignments
 		BamAlignment al;
+		QBitArray baseQualities;
+
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isDuplicate()) continue;
@@ -1612,10 +1675,8 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 
 			const int ol_start = std::max(start, al.start()) - start;
 			const int ol_end = std::min(bed_line.end(), al.end()) - start;
-			for (int p=ol_start; p<=ol_end; ++p)
-			{
-				++roi_cov[p];
-			}
+			min_baseq ? countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) :
+						countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
 		}
 
         //create low-coverage regions file
@@ -1645,7 +1706,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	return output;
 }
 
-BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq)
+BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq)
 {
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
@@ -1669,17 +1730,17 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 
 		//iterate through all alignments
         BamAlignment al;
+		QBitArray baseQualities;
+
 		while (reader.getNextAlignment(al))
         {
 			if (al.isDuplicate()) continue;
 			if (al.isSecondaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			const int end = al.end();
-			for (int p=al.start()-1; p<end; ++p)
-            {
-				if (cov[p]<254) ++cov[p];
-            }
+			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
+						countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
+
         }
 
 		//create low-coverage regions file
@@ -1781,105 +1842,69 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 }
 
-BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq)
+BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq)
 {
 	BedFile output;
 
 	//check target region is merged/sorted and create index
 	if (!bed_file.isMergedAndSorted())
 	{
-		THROW(ArgumentException, "Merged and sorted BED file required for high-coverage statistics!");
-	}
-	if (cutoff > std::numeric_limits<int>::max())
-	{
-		THROW(ArgumentException, "Cutoff cannot be bigger than " + QString::number(std::numeric_limits<int>::max()) + "!");
-	}
-	else if (cutoff <= 0)
-	{
-		THROW(ArgumentException, "Cutoff cannot be smaller than 1!");
+		THROW(ArgumentException, "Merged and sorted BED file required for low-coverage statistics!");
 	}
 
 	//open BAM file
 	BamReader reader(bam_file);
-	int max_queue = 0;
 
 	//iterate trough all regions (i.e. exons in most cases)
-	for (int i = 0; i < bed_file.count(); ++i)
+	for (int i=0; i<bed_file.count(); ++i)
 	{
 		const BedLine& bed_line = bed_file[i];
-		const int bed_start = bed_line.start();
+		const int start = bed_line.start();
+
+		//init coverage statistics
+		QVector<int> roi_cov(bed_line.length(), 0);
 
 		//jump to region
-		reader.setRegion(bed_line.chr(), bed_start, bed_line.end());
+		reader.setRegion(bed_line.chr(), start, bed_line.end());
 
 		//iterate through all alignments
-		int coverage_count = 0;
-		int start = 0;
-		int max_end = 0;
-		bool high_coverage_zone = false;
-		QVector<int> end_queue;
 		BamAlignment al;
+		QBitArray baseQualities;
+
 		while (reader.getNextAlignment(al))
 		{
-			//skip unusable data
 			if (al.isDuplicate()) continue;
 			if (al.isSecondaryAlignment()) continue;
-			if (al.isUnmapped() || al.mappingQuality() < min_mapq) continue;
+			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			if(al.start() > max_end && !high_coverage_zone)
-			{
-				coverage_count = 0;
-				end_queue.clear();
-			}
+			const int ol_start = std::max(start, al.start()) - start;
+			const int ol_end = std::min(bed_line.end(), al.end()) - start;
+			min_baseq ? countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) :
+						countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
 
-			int end = -1;
-			//decrease coverage count for every encountered alignment end
-			while(!end_queue.empty() && end_queue.front() < al.start())
-			{
-				--coverage_count;
-				if(coverage_count + 1 == cutoff) end = end_queue.front();
-				end_queue.pop_front();
-			}
-
-			//if a high coverage zone is reached, save the found zone
-			if(high_coverage_zone && coverage_count < cutoff)
-			{
-				output.append(BedLine(bed_line.chr(), start, end, bed_line.annotations()));
-				high_coverage_zone = false;
-			}
-
-			//check for start of high coverage zone
-			++coverage_count;
-			if(coverage_count >= cutoff && !high_coverage_zone)
-			{
-				start = std::max(bed_start, al.start());
-				high_coverage_zone = true;
-			}
-
-			end_queue.push_back(al.end());
-			max_queue = std::max(max_queue, end_queue.size());
-			//sort the queue (since most alignment ends are already sorted
-			//we simply sort them from the back)
-			int pos = end_queue.size() - 1;
-			while(pos > 0 && end_queue[pos] < end_queue[pos-1])
-			{
-				std::swap(end_queue[pos], end_queue[pos-1]);
-				--pos;
-			}
-			max_end = std::max(max_end, al.end());
 		}
-		//if the end is a high coverage zone
-		if(high_coverage_zone)
+
+		//create high-coverage regions file
+		bool reg_open = false;
+		int reg_start = -1;
+		for (int p=0; p<roi_cov.count(); ++p)
 		{
-			while(coverage_count >= cutoff)
+			bool high_cov = roi_cov[p]>=cutoff;
+			if (reg_open && !high_cov)
 			{
-				--coverage_count;
-				if(coverage_count + 1 == cutoff)
-				{
-					output.append(BedLine(bed_line.chr(), start, std::min(bed_line.end(), end_queue.front()), bed_line.annotations()));
-				}
-				end_queue.pop_front();
+				output.append(BedLine(bed_line.chr(), reg_start+start, p+start-1, bed_line.annotations()));
+				reg_open = false;
+				reg_start = -1;
 			}
+			if (!reg_open && high_cov)
+			{
+				reg_open = true;
+				reg_start = p;
+			}
+		}
+		if (reg_open)
+		{
+			output.append(BedLine(bed_line.chr(), reg_start+start, bed_line.length()+start-1, bed_line.annotations()));
 		}
 	}
 
@@ -1887,102 +1912,67 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 	return output;
 }
 
-BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq)
+BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq)
 {
-	if (cutoff > std::numeric_limits<int>::max())
-	{
-		THROW(ArgumentException, "Cutoff cannot be bigger than " + QString::number(std::numeric_limits<int>::max()) + "!")
-	}
-	else if (cutoff <= 0)
-	{
-		THROW(ArgumentException, "Cutoff cannot be smaller than 1!");
-	}
+	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
 	BedFile output;
 
 	//open BAM file
 	BamReader reader(bam_file);
 
+	QVector<unsigned char> cov;
+
 	//iteratore through chromosomes
 	foreach(const Chromosome& chr, reader.chromosomes())
 	{
 		if (!chr.isNonSpecial()) continue;
 
-		const int chr_size = reader.chromosomeSize(chr);
+		int chr_size = reader.chromosomeSize(chr);
+		cov.fill(0, chr_size);
 
 		//jump to chromosome
 		reader.setRegion(chr, 0, chr_size);
 
 		//iterate through all alignments
-		int coverage_count = 0;
-		int start = 0;
-		int max_end = 0;
-		bool high_coverage_zone = false;
-		QVector<int> end_queue;
 		BamAlignment al;
+		QBitArray baseQualities;
 
 		while (reader.getNextAlignment(al))
 		{
-			//skip unusable data
 			if (al.isDuplicate()) continue;
 			if (al.isSecondaryAlignment()) continue;
-			if (al.isUnmapped() || al.mappingQuality() < min_mapq) continue;
+			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			if(al.start() > max_end && !high_coverage_zone)
-			{
-				coverage_count = 0;
-				end_queue.clear();
-			}
+			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
+						countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
 
-			int end = -1;
-			//decrease coverage count for every encountered alignment end
-			while(!end_queue.empty() && end_queue.front() < al.start())
-			{
-				--coverage_count;
-				if(coverage_count + 1 == cutoff)	end = end_queue.front();
-				end_queue.pop_front();
-			}
-
-			//if a high coverage zone is reached, save the found zone
-			if(high_coverage_zone && coverage_count < cutoff)
-			{
-				output.append(BedLine(chr, start, end));
-				high_coverage_zone = false;
-			}
-
-			//check for start of high coverage zone
-			++coverage_count;
-			if(coverage_count >= cutoff && !high_coverage_zone)
-			{
-				start = al.start();
-				high_coverage_zone = true;
-			}
-
-			end_queue.push_back(al.end());
-			//sort the queue (since most alignment ends are already sorted
-			//we simply sort them from the back)
-			int pos = end_queue.size() - 1;
-			while(pos > 0 && end_queue[pos] < end_queue[pos-1])
-			{
-				std::swap(end_queue[pos], end_queue[pos-1]);
-				--pos;
-			}
-			max_end = std::max(max_end, al.end());
 		}
-		//if the end is a high coverage zone
-		if(high_coverage_zone)
+
+		//create high-coverage regions file
+		bool reg_open = false;
+		int reg_start = -1;
+		for (int p=0; p<chr_size; ++p)
 		{
-			while(coverage_count >= cutoff)
+			bool high_cov = cov[p]>=cutoff;
+			if (reg_open && !high_cov)
 			{
-				--coverage_count;
-				if(coverage_count + 1 == cutoff)
-				{
-					output.append(BedLine(chr, start, end_queue.front()));
-				}
-				end_queue.pop_front();
+				output.append(BedLine(chr, reg_start+1, p));
+				reg_open = false;
+				reg_start = -1;
 			}
+			if (!reg_open && high_cov)
+			{
+				reg_open = true;
+				reg_start = p;
+			}
+		}
+		if (reg_open)
+		{
+			output.append(BedLine(chr, reg_start+1, chr_size));
 		}
 	}
+
 	output.merge();
 	return output;
 }

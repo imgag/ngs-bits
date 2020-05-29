@@ -26,7 +26,9 @@ public:
         addFlag("wgs", "WGS mode without target region. Genome information is taken from the BAM file.");
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
+		addInt("min_baseq", "Minimum base quality to consider a base.", true, 0);
 
+		changeLog(2020,  5,  26, "Added parameter 'min_baseq'.");
 		changeLog(2020,  5,  14, "First version.");
 	}
 
@@ -47,14 +49,14 @@ public:
 		BedFile output;
         if (wgs) //WGS
         {
-			output = Statistics::highCoverage(bam, getInt("cutoff"), getInt("min_mapq"));
+			output = Statistics::highCoverage(bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"));
         }
 		else //ROI
         {
             BedFile file;
             file.load(in);
 			file.merge(true, true);
-			output = Statistics::highCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"));
+			output = Statistics::highCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"));
         }
         output.store(getOutfile("out"));
 	}
