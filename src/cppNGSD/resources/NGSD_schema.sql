@@ -937,7 +937,7 @@ DEFAULT CHARACTER SET = utf8;
 -- Table `analysis_job`
 -- -----------------------------------------------------
 
-CREATE TABLE `analysis_job`
+CREATE TABLE IF NOT EXISTS `analysis_job`
 (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` enum('single sample','multi sample','trio','somatic') NOT NULL,
@@ -955,7 +955,7 @@ DEFAULT CHARSET=utf8;
 -- Table `analysis_job_sample`
 -- -----------------------------------------------------
 
-CREATE TABLE `analysis_job_sample`
+CREATE TABLE IF NOT EXISTS `analysis_job_sample`
 (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `analysis_job_id` int(11) NOT NULL,
@@ -981,7 +981,7 @@ DEFAULT CHARSET=utf8;
 -- Table `analysis_job_history`
 -- -----------------------------------------------------
 
-CREATE TABLE `analysis_job_history`
+CREATE TABLE IF NOT EXISTS `analysis_job_history`
 (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `analysis_job_id` int(11) NOT NULL,
@@ -1697,32 +1697,6 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
-
-
--- ----------------------------------------------------------------------------------------------------------
---                                                 INITIAL DATA
--- ----------------------------------------------------------------------------------------------------------
-
-
--- -----------------------------------------------------
--- Table `user`
--- -----------------------------------------------------
-INSERT INTO user VALUES (NULL, 'admin', 'dd94709528bb1c83d08f3088d4043f4742891f4f', 'admin', 'Admin','no_valid@email.de', CURDATE(), NULL, 1, NULL);
-INSERT INTO user VALUES (NULL, 'genlab_import', '', 'special', 'GenLab import','no_valid@email2.de', CURDATE(), NULL, 1, NULL);
-INSERT INTO user VALUES (NULL, 'unknown', '', 'special', 'Unknown user','no_valid@email3.de', CURDATE(), NULL, 1, NULL);
-
-
--- -----------------------------------------------------
--- Table `species`
--- -----------------------------------------------------
-INSERT INTO species VALUES (NULL, 'human');
-
-
--- -----------------------------------------------------
--- Table `genome`
--- -----------------------------------------------------
-INSERT INTO genome VALUES (NULL, 'GRCh37', 'Human genome GRCh37 (hg19)');
-INSERT INTO genome VALUES (NULL, 'GRCh38', 'Human genome GRCh38 (hg38)');
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

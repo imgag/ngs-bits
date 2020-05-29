@@ -103,7 +103,7 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 	return output;
 }
 
-QByteArray BamAlignment::bases() const
+Sequence BamAlignment::bases() const
 {
 	QByteArray output;
 	output.resize(aln_->core.l_qseq);
@@ -117,7 +117,7 @@ QByteArray BamAlignment::bases() const
 	return output;
 }
 
-void BamAlignment::setBases(const QByteArray& bases)
+void BamAlignment::setBases(const Sequence& bases)
 {
 	//check that length stays the same
 	if (aln_->core.l_qseq!=bases.count())
@@ -285,7 +285,7 @@ int BamAlignment::tagi(const QByteArray& tag) const
 
 void BamAlignment::addTag(const QByteArray& tag, char type, const QByteArray& value)
 {
-	if (bam_aux_append(aln_, tag, type, value.length()+1, reinterpret_cast<const unsigned char*>(value.data()))==-1)
+	if (bam_aux_append(aln_, tag, type, value.length()+1, reinterpret_cast<const unsigned char*>(value.constData()))==-1)
 	{
 		THROW(FileAccessException, "Could not add tag '" + tag + "'' with value " + value + " to alignment.");
 	}
@@ -349,10 +349,10 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 	THROW(Exception, "Could not find position  " + QString::number(pos) + " in read " + bases() + " with start position " + QString::number(start()) + "!");
 }
 
-QList<QByteArray> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
+QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
 {
 	//init
-	QList<QByteArray> output;
+	QList<Sequence> output;
 	bool use_window = (indel_window!=0);
 	int window_start = pos - indel_window;
 	int window_end = pos + indel_window;

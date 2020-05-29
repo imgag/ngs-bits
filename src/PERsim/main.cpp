@@ -7,7 +7,6 @@
 #include "Settings.h"
 #include "FastaFileIndex.h"
 #include <chrono>
-#include <random>
 
 class ConcreteTool
 		: public ToolBase
@@ -42,37 +41,6 @@ public:
 		addString("a2", "Reverse read sequencing adapter sequence (for read-through).", true, "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("v", "Enable verbose debug output.");
-	}
-
-	int addNoise(QByteArray& sequence, double error_probabilty, std::mt19937& gen)
-	{
-		int ec = 0;
-
-		//uniform distribution
-		std::uniform_real_distribution<double> error_dist(0, 1);
-
-		//bases vector
-		QByteArray bases = "ACGT";
-		for(int i=0; i<sequence.length(); ++i)
-		{
-			//base error?
-			bool error = error_dist(gen) < error_probabilty;
-
-			//replace base at random
-			if (error)
-			{
-				do
-				{
-					std::random_shuffle(bases.begin(), bases.end());
-				}
-				while (sequence[i]==bases[0]);
-				sequence[i] = bases[0];
-
-				++ec;
-			}
-		}
-
-		return ec;
 	}
 
 	virtual void main()
@@ -143,7 +111,7 @@ public:
 				FastqEntry r2;
 				r1.bases = seq.left(length);
 				r2.bases = seq.right(length);
-				r2.bases = NGSHelper::changeSeq(r2.bases, true, true);
+				r2.bases.reverseComplement();
 
 				//skip read pairs with too many N bases
 				if (r1.bases.count('N')>max_n || r2.bases.count('N')>max_n)
@@ -166,8 +134,8 @@ public:
 				r2.bases.append(Helper::randomString(r_length, "AACGT"));
 
 				//add noise
-				int ec1 = addNoise(r1.bases, error, gen);
-				int ec2 = addNoise(r2.bases, error, gen);
+				int ec1 = r1.bases.addNoise(error, gen);
+				int ec2 = r2.bases.addNoise(error, gen);
 				if (verbose) out << "    Read 1: errors=" << ec1 << " seq=" << r1.bases << endl;
 				if (verbose) out << "    Read 2: errors=" << ec2 << " seq=" << r2.bases << endl;
 

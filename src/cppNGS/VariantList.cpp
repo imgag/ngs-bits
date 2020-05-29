@@ -334,7 +334,7 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
 	}
 
 	//INV
-	if (obs==NGSHelper::changeSeq(ref, true, true))
+	if (obs==ref.toReverseComplement())
 	{
 		return prefix + QString::number(start) + '_' + QString::number(start + ref_len - 1) + "inv";
 	}

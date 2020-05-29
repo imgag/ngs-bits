@@ -3,16 +3,38 @@
 
 #include "cppNGS_global.h"
 #include <QByteArray>
+#include <random>
 
-///DNA or RNA sequence class
-typedef QByteArray Sequence;
+///DNA sequence class
+class CPPNGSSHARED_EXPORT Sequence
+	: public QByteArray
+{
+public:
 
-//**IMPORTANT**
-//Right now it is only a typedef.
-//Use it anyway - it might be replaced by a own class in the future!
+	//Constructors
+	Sequence();
+	Sequence(const char* rhs);
+	Sequence(const Sequence& rhs);
+	Sequence(const QByteArray& rhs);
 
-//Notes for the implementation:
-//- move NGSHelper::changeSeq to this class!
-//- add PERsim::addNoise
+	//Returns the left n bases of the sequence
+	Sequence left(int n) const;
+
+	///Changes the sequence to reverse order.
+	void reverse();
+	///Changes the sequence to the complement.
+	void complement();
+	///Changes the sequence to the reverse complement.
+	void reverseComplement();
+
+	///Returns the reverse complement of the sequence.
+	Sequence toReverseComplement() const;
+
+	///Returns the complementary base of the given base.
+	static char complement(char base);
+
+	///Adds random noise to the sequence. Returns how many errors have been added.
+	int addNoise(double error_probabilty, std::mt19937& gen);
+};
 
 #endif // SEQUENCE_H

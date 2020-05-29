@@ -46,16 +46,6 @@ private slots:
 		I_EQUAL(list.count(), 1548);
 	}
 
-	void changeSeq()
-	{
-		S_EQUAL(NGSHelper::changeSeq("", true, true), QByteArray(""));
-
-		S_EQUAL(NGSHelper::changeSeq("ACGT", false, false), QByteArray("ACGT"));
-		S_EQUAL(NGSHelper::changeSeq("ACGTN", true, false), QByteArray("NTGCA"));
-		S_EQUAL(NGSHelper::changeSeq("ACGTN", false, true), QByteArray("TGCAN"));
-		S_EQUAL(NGSHelper::changeSeq("ACGTN", true, true), QByteArray("NACGT"));
-	}
-
 	void softClipAlignment()
 	{
 		BamReader reader(TESTDATA("data_in/panel.bam"));
