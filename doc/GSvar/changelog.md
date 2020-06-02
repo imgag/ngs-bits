@@ -1,16 +1,12 @@
 # GSvar change log
 
 ### 2020_03-159 (02.06.20)
-- General: QC values shown in plots can now be exported as TSV.
-- General: Added cytoband to genomic coordinates conversion to the main menu under `NGSD > Regions`.
 - General: Removed step 'an' and added checkbox to to perform annotation only to analysis dialog (single-sample, multi-sample and trio analysis). Re-annotation now works for all variant calling steps (small variants, copy number variants, structural variants).
-
-### 2020_03-142 (23.05.20)
+- Report: SVs can now be added to report.
+- General: QC values shown in plots can now be exported as TSV.
 - Somatic report: now uses germline preferred transcripts for germline variants.
-- Report: SVs can now be added to report (beta version).
-- General: Added GSvar>VCF variant conversion.
-
-### 2020_03-120 (08.05.20)
+- General: Added GSvar to VCF variant conversion to the main menu under `Variants`.
+- General: Added cytoband to genomic coordinates conversion to the main menu under `NGSD > Regions`.
 - General: sample phenotypes can now be loaded from the filter panel in the CNV/SV window
 - General: added email dialog as workaround if there is no email client installed.
 
