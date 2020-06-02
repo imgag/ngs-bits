@@ -18,6 +18,7 @@ NGSD:
 
 GSvar:
 ***** GSvar log to user folder
+** Add mean coverage of chrMT to report
 * Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater

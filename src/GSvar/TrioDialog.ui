@@ -19,6 +19,9 @@
   <property name="windowTitle">
    <string>Start trio analysis</string>
   </property>
+  <property name="toolTip">
+   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Skips the variant calling part and perform only the annotation part of variant calling steps (small variants, CNVs, SVs).&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
     <number>3</number>
