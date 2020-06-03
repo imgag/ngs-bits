@@ -121,7 +121,7 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 	}
 
 	//load additional ROIs from settings
-	QStringList rois = Settings::stringList("target_regions");
+	QStringList rois = Settings::stringList("target_regions", true);
 	std::sort(rois.begin(), rois.end(), [](const QString& a, const QString& b){return QFileInfo(a).fileName().toUpper() < QFileInfo(b).fileName().toUpper();});
 	foreach(const QString& roi_file, rois)
 	{
@@ -276,7 +276,7 @@ const FilterCascade& FilterWidget::filters() const
 void FilterWidget::addRoi()
 {
 	//get file to open
-	QString path = Settings::path("path_regions");
+	QString path = Settings::path("path_regions", true);
 	QString filename = QFileDialog::getOpenFileName(this, "Select target region file", path, "BED files (*.bed);;All files (*.*)");
 	if (filename=="") return;
 
@@ -284,7 +284,7 @@ void FilterWidget::addRoi()
 	Settings::setPath("path_regions", filename);
 
 	//update settings
-	QStringList rois = Settings::stringList("target_regions");
+	QStringList rois = Settings::stringList("target_regions", true);
 	rois.append(filename);
 	rois.sort(Qt::CaseInsensitive);
 	rois.removeDuplicates();
@@ -297,7 +297,7 @@ void FilterWidget::addRoi()
 void FilterWidget::addRoiTemp()
 {
 	//get file to open
-	QString path = Settings::path("path_regions");
+	QString path = Settings::path("path_regions", true);
 	QString filename = QFileDialog::getOpenFileName(this, "Select target region file", path, "BED files (*.bed);;All files (*.*)");
 	if (filename=="") return;
 
@@ -311,7 +311,7 @@ void FilterWidget::removeRoi()
 	if (filename=="") return;
 
 	//update settings
-	QStringList rois = Settings::stringList("target_regions");
+	QStringList rois = Settings::stringList("target_regions", true);
 	rois.removeOne(filename);
 	Settings::setStringList("target_regions", rois);
 

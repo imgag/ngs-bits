@@ -595,33 +595,19 @@ void MainWindow::on_actionReanalyze_triggered()
 void MainWindow::delayedInitialization()
 {
 	//initialize LOG file
-	if (QFile::exists(Log::fileName()) && !Helper::isWritable(Log::fileName()))
-	{
-		QMessageBox::warning(this, "GSvar log file not writable", "The log file '" + Log::fileName() + "' is not writable.\nPlease inform your administrator!");
-		close();
-		return;
-	}
 	Log::setFileEnabled(true);
 	Log::appInfo();
 
 	//load from INI file (if a valid INI file - otherwise restore INI file)
-	if (Settings::string("igv_genome").trimmed().isEmpty())
+	if (!Settings::contains("igv_genome"))
 	{
-		Settings::restoreBackup();
-		if (Settings::string("igv_genome").trimmed().isEmpty())
-		{
-			QMessageBox::warning(this, "GSvar INI file empty", "The INI file '" + Settings::fileName() + "' is empty.\nPlease inform your administrator!");
-			close();
-			return;
-		}
-	}
-	else
-	{
-		Settings::createBackup();
+		QMessageBox::warning(this, "GSvar not configured", "GSvar is not configured correctly.\nThe settings key 'igv_genome' is not set.\nPlease inform your administrator!");
+		close();
+		return;
 	}
 
 	//check user is in NGSD
-	if (Settings::boolean("NGSD_enabled", true))
+	if (Settings::boolean("NGSD_enabled"))
 	{
 		LoginDialog dlg(this);
 		if (dlg.exec()==QDialog::Accepted)
@@ -839,7 +825,6 @@ void MainWindow::openCustomIgvTrack()
 		QStringList parts = entry.trimmed().split("\t");
 		if(parts[0]==name)
 		{
-			qDebug() << QDir::toNativeSeparators(parts[2]);
 			executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(parts[2]) + "\"");
 		}
 	}
@@ -1127,7 +1112,7 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 void MainWindow::on_actionOpen_triggered()
 {
 	//get file to open
-	QString path = Settings::path("path_variantlists");
+	QString path = Settings::path("path_variantlists", true);
 	QString filename = QFileDialog::getOpenFileName(this, "Open variant list", path, "GSvar files (*.GSvar);;All files (*.*)");
 	if (filename=="") return;
 
@@ -1643,7 +1628,7 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 	}
 
 	//Load somatic .GSvar file
-	QString path = Settings::path("path_variantlists");
+	QString path = Settings::path("path_variantlists", true);
 	QString filename = QFileDialog::getOpenFileName(this, "Select somatic variant list for annotation", path, "GSvar files (*.GSvar);;All files (*.*)");
 	if(filename == "")
 	{
@@ -4313,8 +4298,8 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 	{
 		//connect
 		QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
-		int igv_port = Settings::integer("igv_port", 60151);
-		QString igv_host = Settings::string("igv_host", "127.0.0.1");
+		int igv_port = Settings::integer("igv_port");
+		QString igv_host = Settings::string("igv_host");
 		socket.connectToHost(igv_host, igv_port);
 		if (!socket.waitForConnected(1000))
 		{
@@ -4882,7 +4867,7 @@ void MainWindow::resetAnnotationStatus()
 void MainWindow::addToRecentFiles(QString filename)
 {
 	//update settings
-	QStringList recent_files = Settings::stringList("recent_files");
+	QStringList recent_files = Settings::stringList("recent_files", true);
 	recent_files.removeAll(filename);
 	if (QFile::exists(filename))
 	{
@@ -4901,7 +4886,7 @@ void MainWindow::addToRecentFiles(QString filename)
 
 void MainWindow::updateRecentFilesMenu()
 {
-	QStringList recent_files = Settings::stringList("recent_files");
+	QStringList recent_files = Settings::stringList("recent_files", true);
 
 	QMenu* menu = new QMenu();
 	foreach(const QString& file, recent_files)

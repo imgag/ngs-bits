@@ -156,7 +156,7 @@ void ExternalToolDialog::browse()
 
 QString ExternalToolDialog::getFileName(QString title, QString filters)
 {
-	QString open_path = Settings::path("path_variantlists");
+	QString open_path = Settings::path("path_variantlists", true);
 	QString file_name = QFileDialog::getOpenFileName(this, title, open_path, filters + ";;All files(*.*)");
 	if (file_name!="")
 	{

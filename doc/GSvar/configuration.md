@@ -58,6 +58,14 @@ Lines that start with `#` define a filter name. All lines after that don't start
 
 Lines that contain  `#---` insert a separator. They are used to group filters.
 
+### GSvar\_filters\_sv.ini
+
+Default filters for SVs.  
+
+Lines that start with `#` define a filter name. All lines after that don't start with `#` contain filter steps.  
+
+Lines that contain  `#---` insert a separator. They are used to group filters.
+
 ## Other files
 
 ### GSvar\_preferred\_transcripts.tsv

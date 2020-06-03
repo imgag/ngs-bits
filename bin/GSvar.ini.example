@@ -1,9 +1,3 @@
-[General]
-path_regions=
-path_variantlists=
-recent_files=
-target_regions=@Invalid()
-
 #IGV settings
 igv_menu=@Invalid()
 igv_host=127.0.0.1
@@ -11,6 +5,7 @@ igv_port=60151
 igv_genome=1kg_v37
 
 #NGSD functionality
+NGSD_enabled=true
 email_run_finished=""
 email_run_analyzed=""
 

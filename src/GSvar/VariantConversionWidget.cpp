@@ -54,7 +54,7 @@ void VariantConversionWidget::loadInputFromFile()
 	//load
 	try
 	{
-		QString path = Settings::path("path_variantlists");
+		QString path = Settings::path("path_variantlists", true);
 		QString filename = QFileDialog::getOpenFileName(this, "Select target region file", path, "VCF files (*.vcf);;All files (*.*)");
 		if (filename=="") return;
 

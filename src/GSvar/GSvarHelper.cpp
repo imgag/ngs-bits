@@ -140,7 +140,7 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::transcriptMatches()
 
 QString GSvarHelper::applicationBaseName()
 {
-	return QCoreApplication::applicationDirPath() + "/" + QCoreApplication::applicationName().replace(".exe","");
+	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName();
 }
 
 void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
