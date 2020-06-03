@@ -9,7 +9,7 @@ private slots:
 	
 	void test_01()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		EXECUTE("VcfLeftNormalize", "-in " + TESTDATA("data_in/VcfLeftNormalize_in1.vcf") + " -out out/VcfLeftNormalize_out1.vcf -ref " + ref_file);

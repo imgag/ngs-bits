@@ -804,7 +804,7 @@ public:
 		if (gc_window>=0)
 		{
 			QString ref_file = getInfile("ref");
-			if (ref_file=="") ref_file = Settings::string("reference_genome");
+			if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 			if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 			if (ref_file!="")
 			{

@@ -18,7 +18,7 @@ private slots:
 
 	void leftAlign()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		VariantList vl;
@@ -31,7 +31,7 @@ private slots:
 
 	void leftAlign_nothing_to_do()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		VariantList vl;

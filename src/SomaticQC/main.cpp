@@ -99,7 +99,7 @@ public:
 		QString blacklist = getInfile("blacklist");
 		QString tsg_bed = getInfile("tsg_bed");
 		QString ref = getInfile("ref");
-		if(ref.isEmpty())	ref = Settings::string("reference_genome");
+		if(ref.isEmpty())	ref = Settings::string("reference_genome", true);
 		if (ref=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		QStringList links = getInfileList("links");
 		bool skip_plots = getFlag("skip_plots");

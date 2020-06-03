@@ -9,7 +9,7 @@ private slots:
 
 	void default_params()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		QString output;
@@ -22,7 +22,7 @@ private slots:
 
 	void with_info()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		QString output;

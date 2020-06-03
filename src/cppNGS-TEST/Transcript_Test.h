@@ -112,7 +112,7 @@ private slots:
 
 	void hgvsToVariant_plus_strand()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
@@ -220,7 +220,7 @@ private slots:
 
 	void hgvsToVariant_minus_strand()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 

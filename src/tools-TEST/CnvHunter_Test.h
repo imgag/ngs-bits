@@ -9,7 +9,7 @@ private slots:
 
 	void hpPDv3_annotate_seg_debug()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter1/"), "*.cov", false);
@@ -24,7 +24,7 @@ private slots:
 
 	void ssHAEv6_cnpfile()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		QStringList in = Helper::findFiles(TESTDATA("data_in/CnvHunter2/"), "*.cov", false);

@@ -154,7 +154,7 @@ QStringList SingleSampleAnalysisDialog::arguments(const QWidget* widget)
 	QStringList output;
 
 	QLineEdit* custom = widget->findChild<QLineEdit*>("custom_args");
-	if (!custom->text().isEmpty())
+	if (custom!=nullptr && !custom->text().isEmpty())
 	{
 		output << custom->text();
 	}

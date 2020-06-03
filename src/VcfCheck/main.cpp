@@ -47,7 +47,7 @@ public:
 		if (lines<=0) lines = std::numeric_limits<int>::max();
 
 		QString ref_file = getInfile("ref");
-		if (ref_file=="") ref_file = Settings::string("reference_genome");
+		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 
 		//check

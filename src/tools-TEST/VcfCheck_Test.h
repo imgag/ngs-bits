@@ -8,7 +8,7 @@ private slots:
 	
 	void no_warnings()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		EXECUTE("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in1.vcf") + " -out out/VcfCheck_out1.txt");
@@ -17,7 +17,7 @@ private slots:
 
 	void no_warnings_with_info_lines()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		EXECUTE("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in1.vcf") + " -out out/VcfCheck_out2.txt -info -lines 200");
@@ -26,7 +26,7 @@ private slots:
 
 	void with_warnings()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		EXECUTE("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in2.vcf") + " -out out/VcfCheck_out3.txt");
@@ -36,7 +36,7 @@ private slots:
 
 	void no_warnings_vcfgz()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		EXECUTE("VcfCheck", "-in " + TESTDATA("data_in/VcfCheck_in1.vcf.gz") + " -out out/VcfCheck_out4.txt");

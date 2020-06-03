@@ -51,7 +51,7 @@ private slots:
 
 	void seq_substr_large()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		FastaFileIndex index(ref_file);

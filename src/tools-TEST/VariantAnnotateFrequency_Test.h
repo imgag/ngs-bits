@@ -9,7 +9,7 @@ private slots:
 	//Test with name and depth arguments
 	void test_01()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		EXECUTE("VariantAnnotateFrequency", "-in " + TESTDATA("data_in/VariantAnnotateFrequency_in1.tsv") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/VariantAnnotateFrequency_out1.tsv -depth -name bla -ref " + ref_file);
@@ -20,7 +20,7 @@ private slots:
 	//Test without arguments
 	void test_02()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		EXECUTE("VariantAnnotateFrequency", "-in " + TESTDATA("data_in/VariantAnnotateFrequency_in1.tsv") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/VariantAnnotateFrequency_out2.tsv -ref " + ref_file);
@@ -30,7 +30,7 @@ private slots:
 	//Test with mapq0 argument
 	void test_03()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		EXECUTE("VariantAnnotateFrequency", "-in " + TESTDATA("data_in/VariantAnnotateFrequency_in2.tsv") + " -bam " + TESTDATA("../cppNGS-TEST/data_in/panel.bam") + " -out out/VariantAnnotateFrequency_out3.tsv -mapq0 -ref " + ref_file);

@@ -16,7 +16,7 @@ private slots:
 	void batch_test_HGVS2GSvar()
 	{
 		return; //TODO check wrong variants - is VEP wrong there?
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex idx(ref_file);
 

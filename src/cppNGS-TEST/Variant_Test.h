@@ -89,7 +89,7 @@ private slots:
 
 	void static_indelRegion()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex reference(ref_file);
 
@@ -302,7 +302,7 @@ private slots:
 
 	void toHGVS()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex genome_index(ref_file);
 
@@ -359,7 +359,7 @@ private slots:
 
 	void toVCF()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex genome_index(ref_file);
 
@@ -409,7 +409,7 @@ private slots:
 
 	void checkReferenceSequence()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		Variant v;
@@ -426,7 +426,7 @@ private slots:
 
 	void leftAlign()
 	{
-		QString ref_file = Settings::string("reference_genome");
+		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		Variant v;
