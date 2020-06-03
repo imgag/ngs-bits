@@ -20,7 +20,7 @@ lovd_user_auth_token=
 analysis_steps_single_sample=ma - mapping, vc - SNV/InDel calling + annotation, cn - CNV calling + annotation, sv - SV calling + annotation, db - database import
 analysis_steps_multi_sample=vc - SNV/InDel calling + annotation, cn - CNV calling + annotation
 analysis_steps_trio=vc - SNV/InDel calling + annotation, cn - CNV calling + annotation, db - database import
-analysis_steps_somatic=vc - variant calling, cn - copy number calling, an - annotation, ci - CGI annotation, msi - microsatellite instabilty, db - database import
+analysis_steps_somatic=vc - variant calling, vi - virus detection, cn - copy number calling, an - annotation, ci - CGI annotation, msi - microsatellite instabilty, an_rna - RNA annotation, db - database import
 
 #webservice URLs
 PrimerDesign = ""

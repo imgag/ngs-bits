@@ -159,7 +159,8 @@ QStringList SingleSampleAnalysisDialog::arguments(const QWidget* widget)
 		output << custom->text();
 	}
 
-	if (widget->findChild<QCheckBox*>("annotate_only")->isChecked()) output << "-annotation_only";
+	QCheckBox* anno_only = widget->findChild<QCheckBox*>("annotate_only");
+	if (anno_only!=nullptr && anno_only->isChecked()) output << "-annotation_only";
 
 	QStringList steps;
 	QList<QCheckBox*> step_boxes = widget->findChildren<QCheckBox*>(QRegExp("^step_"));
