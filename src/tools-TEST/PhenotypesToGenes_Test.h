@@ -10,7 +10,7 @@ private slots:
 	
 	void default_parameters()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init

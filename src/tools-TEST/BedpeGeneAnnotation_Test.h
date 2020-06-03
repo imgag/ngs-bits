@@ -9,7 +9,7 @@ private slots:
 
 	void std_params()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
@@ -25,7 +25,7 @@ private slots:
 
 	void add_gene_name_col()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
@@ -41,7 +41,7 @@ private slots:
 
 	void reannotate()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init

@@ -9,7 +9,7 @@ private slots:
 	
 	void ensembl_gene()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
@@ -24,7 +24,7 @@ private slots:
 
 	void ensembl_exon()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
@@ -39,7 +39,7 @@ private slots:
 
 	void ccds_gene_annotated()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
@@ -54,7 +54,7 @@ private slots:
 
 	void ccds_exon_annotated()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init

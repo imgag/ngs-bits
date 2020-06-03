@@ -20,7 +20,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex idx(ref_file);
 
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 		NGSD db;
 
@@ -92,7 +92,7 @@ private slots:
 	//Because initializing the database takes very long, all NGSD functionality is tested in one slot.
 	void main_tests()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		QCoreApplication::setApplicationVersion("0.1-cppNGSD-TEST-Version"); //application version (is written into somatic xml report)
@@ -1093,7 +1093,7 @@ private slots:
 	//Tests for SomaticReportConfiguration and specific somatic variants
 	inline void somatic_tests()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		QCoreApplication::setApplicationVersion("0.1-cppNGSD-TEST-Version"); //application version (is written into somatic xml report)
@@ -1383,7 +1383,7 @@ private slots:
 	/*
 	void debug()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 		NGSD db(true);
 

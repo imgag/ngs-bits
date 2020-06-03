@@ -10,7 +10,7 @@ private slots:
 	//CnvHunter cnvs
 	void test_panel()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
@@ -30,7 +30,7 @@ private slots:
 	//ClinCNV cnvs
 	void test_wes()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
@@ -45,7 +45,7 @@ private slots:
 
 	void sv_default_import()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
@@ -76,7 +76,7 @@ private slots:
 
 	void sv_failed_reimport()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
@@ -111,7 +111,7 @@ private slots:
 
 	void sv_forced_reimport()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
@@ -145,7 +145,7 @@ private slots:
 
 	void import_with_existing_report_config()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init

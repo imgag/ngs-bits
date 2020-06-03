@@ -9,7 +9,7 @@ private slots:
 
 	void artifical_svs_new_sample()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
@@ -25,7 +25,7 @@ private slots:
 
 	void artifical_svs_known_sample()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
@@ -41,7 +41,7 @@ private slots:
 
 	void artifical_svs_new_sample_ignore_ps()
 	{
-		QString host = Settings::string("ngsd_test_host");
+		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
 		//init
