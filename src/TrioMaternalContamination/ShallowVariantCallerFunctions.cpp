@@ -91,11 +91,4 @@ void countOccurencesOfVariants(
 	variantData.percentageOfInheritedCommonVariants = common_variants_in_child / variants_child.size();
 	variantData.percentageOfInheritedMotherVariants = variants_of_mother_in_child / variants_child.size();
 	variantData.percentageOfInheritedFatherVariants = variants_of_father_in_child / variants_child.size();
-
-	//Q_ASSERT(variants_child.size() == common_variants_in_child + new_variants + variants_of_mother_in_child + variants_of_father_in_child);
-	qDebug() << "DEBUG DATA: " << variants_child.size() << common_variants_in_child << new_variants << variants_of_mother_in_child << variants_of_father_in_child
-			 << "sizes: " << variants_child.size() << variants_father.size() << variants_mother.size() << total_common_variants;
-
-	qDebug() << "SCORES " << score_varaints_of_mother_in_child/score_varaints_of_father_in_child
-			 << variantData.percentOfMotherToChild/variantData.percentOfFatherToChild;
 }

@@ -68,9 +68,9 @@ public:
 			<< "Percentage of father variants passed to child: " << variantData.percentOfFatherToChild << "\n"
 			<< "Percentage of variants seen in both parents passed to child: " << variantData.percentOfBothToChild << "\n\n"
 
-			<< "Percentage of child variants from  mother: " << variantData.percentageOfInheritedMotherVariants << "\n"
-			<< "Percentage of child variants from  father: " << variantData.percentageOfInheritedFatherVariants << "\n"
-			<< "Percentage of child variants, which are in both parents: " << variantData.percentageOfInheritedCommonVariants << "\n"
+			<< "Percentage of child variants seen in mother: " << variantData.percentageOfInheritedMotherVariants << "\n"
+			<< "Percentage of child variants seen in father: " << variantData.percentageOfInheritedFatherVariants << "\n"
+			<< "Percentage of child variants seen in both parents: " << variantData.percentageOfInheritedCommonVariants << "\n"
 			<< "Percentage of child variants, which are new: " << variantData.percentageOfNewVariants;
 
 	}
