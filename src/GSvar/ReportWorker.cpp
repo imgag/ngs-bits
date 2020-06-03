@@ -948,10 +948,10 @@ void ReportWorker::writeHTML()
 	validateAndCopyReport(temp_filename, file_rep_, true, false);
 
 	//write XML file to transfer folder
-	QString gsvar_variant_transfer = Settings::string("gsvar_variant_transfer");
-	if (gsvar_variant_transfer!="")
+	QString gsvar_xml_folder = Settings::string("gsvar_xml_folder");
+	if (gsvar_xml_folder!="")
 	{
-		QString xml_file = gsvar_variant_transfer + "/" + QFileInfo(file_rep_).fileName().replace(".html", ".xml");
+		QString xml_file = gsvar_xml_folder + "/" + QFileInfo(file_rep_).fileName().replace(".html", ".xml");
 		writeXML(xml_file, file_rep_);
 	}
 }

@@ -3407,10 +3407,10 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 		QMessageBox::information(this, "Gap report", "Gap report was copied to clipboard.");
 
 		//write report file to transfer folder
-		QString gsvar_gap_transfer = Settings::string("gsvar_gap_transfer");
-		if (gsvar_gap_transfer!="")
+		QString gsvar_gap_folder = Settings::string("gsvar_gap_folder");
+		if (gsvar_gap_folder!="")
 		{
-			QString file_rep = gsvar_gap_transfer + "/" + QFileInfo(bam_file).baseName() + targetFileName() + "_gaps_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
+			QString file_rep = gsvar_gap_folder + "/" + QFileInfo(bam_file).baseName() + targetFileName() + "_gaps_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
 			Helper::storeTextFile(file_rep, report.split("\n"));
 		}
 	}

@@ -33,9 +33,9 @@ proxy_port =
 #special folders for GSvar
 gsvar_report_folder = ""
 gsvar_report_archive = ""
-gsvar_gap_transfer = ""
-gsvar_variant_transfer = ""
-gsvar_publication_transfer = ""
+gsvar_gap_folder = ""
+gsvar_xml_folder = ""
+gsvar_publication_folder = ""
 
 #debugging
 debug_mode_enabled=false
