@@ -2071,10 +2071,9 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sq
 
 void NGSD::init(QString password)
 {
-	//remove existing tables
-	SqlQuery query = getQuery();
-	query.exec("SHOW TABLES");
-	if (query.size()>0)
+	//remove existing tables (or clear if possible - that's faster)
+	QStringList tables = getValues("SHOW TABLES");
+	if (!tables.isEmpty())
 	{
 		//check password for re-init of production DB
 		if (!test_db_ && password!=Settings::string("ngsd_pass"))
@@ -2082,16 +2081,30 @@ void NGSD::init(QString password)
 			THROW(DatabaseException, "Password provided for re-initialization of production database is incorrect!");
 		}
 
-		//get table list
-		QStringList tables;
-		while(query.next())
+		bool clear_only = false;
+		if(test_db_)
 		{
-			tables << query.value(0).toString();
+			QVariant ngsd_init_date = getValue("SELECT created FROM user WHERE user_id='init_date'");
+			if (ngsd_init_date.toString()!="" && QFileInfo(":/resources/NGSD_schema.sql").lastModified()<ngsd_init_date.toDateTime())
+			{
+				clear_only = true;
+			}
 		}
 
-		//remove old tables
-		if (!tables.isEmpty())
+		if (clear_only)
 		{
+			SqlQuery query = getQuery();
+			query.exec("SET FOREIGN_KEY_CHECKS = 0;");
+			foreach(QString table, tables)
+			{
+				query.exec("DELETE FROM " + table);
+				query.exec("ALTER TABLE " + table  + " AUTO_INCREMENT = 1");
+			}
+			query.exec("SET FOREIGN_KEY_CHECKS = 1;");
+		}
+		else
+		{
+			SqlQuery query = getQuery();
 			query.exec("SET FOREIGN_KEY_CHECKS = 0;");
 			query.exec("DROP TABLE " + tables.join(","));
 			query.exec("SET FOREIGN_KEY_CHECKS = 1;");
@@ -2100,6 +2113,11 @@ void NGSD::init(QString password)
 
 	//initilize
 	executeQueriesFromFile(":/resources/NGSD_schema.sql");
+	executeQueriesFromFile(":/resources/NGSD_initial_data.sql");
+	if (test_db_)
+	{
+		getQuery().exec("INSERT INTO user VALUES (NULL, 'init_date', 'pass', 'user', 'some name','some_name@email.de', NOW(), NULL, 0, NULL)");
+	}
 }
 
 QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi, bool windows_paths)

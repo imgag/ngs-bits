@@ -168,5 +168,5 @@ const QChar* SampleSimilarity::strToPointer(const QString& str)
 		it = uniq.insert(str);
 	}
 
-	return it->data();
+	return it->constData();
 }

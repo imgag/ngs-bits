@@ -8,7 +8,7 @@ private slots:
 
 	void test_mandatory_parameter()
 	{
-		EXECUTE("BamToFastq", "-in " + TESTDATA("data_in/BamToFastq_in1.bam") + " -out1 out/BamToFastq_out1.fastq.gz -out2 out/BamToFastq_out2.fastq.gz");
+		EXECUTE("BamToFastq", "-in " + TESTDATA("data_in/BamToFastq_in1.bam") + " -out1 out/BamToFastq_out1.fastq.gz -out2 out/BamToFastq_out2.fastq.gz -write_buffer_size 1");
 		IS_TRUE(QFile::exists("out/BamToFastq_out1.fastq.gz"));
 		IS_TRUE(QFile::exists("out/BamToFastq_out2.fastq.gz"));
 		COMPARE_GZ_FILES("out/BamToFastq_out1.fastq.gz", TESTDATA("data_out/BamToFastq_out1.fastq.gz"));
@@ -17,7 +17,7 @@ private slots:
 
 	void test_remove_duplicates()
 	{
-		EXECUTE("BamToFastq", "-in " + TESTDATA("data_in/BamToFastq_in1.bam") + " -remove_duplicates -out1 out/BamToFastq_out3.fastq.gz -out2 out/BamToFastq_out4.fastq.gz");
+		EXECUTE("BamToFastq", "-in " + TESTDATA("data_in/BamToFastq_in1.bam") + " -remove_duplicates -out1 out/BamToFastq_out3.fastq.gz -out2 out/BamToFastq_out4.fastq.gz -write_buffer_size 1");
 		IS_TRUE(QFile::exists("out/BamToFastq_out3.fastq.gz"));
 		IS_TRUE(QFile::exists("out/BamToFastq_out4.fastq.gz"));
 		COMPARE_GZ_FILES("out/BamToFastq_out3.fastq.gz", TESTDATA("data_out/BamToFastq_out3.fastq.gz"));
@@ -26,7 +26,7 @@ private slots:
 
 	void test_reg()
 	{
-		EXECUTE("BamToFastq", "-in " + TESTDATA("data_in/BamToFastq_in1.bam") + " -reg chr17:7571319-7575084 -out1 out/BamToFastq_out5.fastq.gz -out2 out/BamToFastq_out6.fastq.gz");
+		EXECUTE("BamToFastq", "-in " + TESTDATA("data_in/BamToFastq_in1.bam") + " -reg chr17:7571319-7575084 -out1 out/BamToFastq_out5.fastq.gz -out2 out/BamToFastq_out6.fastq.gz -write_buffer_size 1");
 		IS_TRUE(QFile::exists("out/BamToFastq_out5.fastq.gz"));
 		IS_TRUE(QFile::exists("out/BamToFastq_out6.fastq.gz"));
 		COMPARE_GZ_FILES("out/BamToFastq_out5.fastq.gz", TESTDATA("data_out/BamToFastq_out5.fastq.gz"));

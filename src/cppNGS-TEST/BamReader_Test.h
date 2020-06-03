@@ -3,10 +3,10 @@
 #include "BasicStatistics.h"
 #include "Settings.h"
 
-int countSequencesContaining(QList<QByteArray> sequences, char c)
+int countSequencesContaining(QList<Sequence> sequences, char c)
 {
 	int output = 0;
-	foreach(const QByteArray& sequence, sequences)
+	foreach(const Sequence& sequence, sequences)
 	{
 		output += sequence.contains(c);
 	}

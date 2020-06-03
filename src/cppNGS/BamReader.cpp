@@ -4,6 +4,7 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <unordered_set>
 
 /*
 External documentation used for the implementation:
@@ -102,7 +103,7 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 	return output;
 }
 
-QByteArray BamAlignment::bases() const
+Sequence BamAlignment::bases() const
 {
 	QByteArray output;
 	output.resize(aln_->core.l_qseq);
@@ -116,7 +117,7 @@ QByteArray BamAlignment::bases() const
 	return output;
 }
 
-void BamAlignment::setBases(const QByteArray& bases)
+void BamAlignment::setBases(const Sequence& bases)
 {
 	//check that length stays the same
 	if (aln_->core.l_qseq!=bases.count())
@@ -198,6 +199,52 @@ QByteArray BamAlignment::qualities() const
 	return output;
 }
 
+void BamAlignment::qualities(QBitArray& qualities, int min_baseq, int len) const
+{
+
+	qualities.fill(true, len);
+	uint8_t* q = bam_get_qual(aln_);
+
+	//position in the alignment (e.g. contains indels)
+	int alignment_index = 0;
+	//position in the genome (e.g. contains deletions)
+	int genome_position_index = 0;
+
+	const QList<CigarOp> cigar_data = cigarData();
+	foreach(const CigarOp& op, cigar_data)
+	{
+		if (op.Type==BAM_CMATCH)
+		{
+			for(int i=0; i < op.Length; ++i)
+			{
+				if(q[alignment_index] < min_baseq)
+				{
+					qualities.setBit(genome_position_index, false);
+				}
+				++alignment_index;
+				++genome_position_index;
+			}
+		}
+		else if (op.Type==BAM_CDEL)
+		{
+			genome_position_index += op.Length;
+		}
+		else if(op.Type==BAM_CINS)
+		{
+			alignment_index += op.Length;
+		}
+		else if(op.Type==BAM_CREF_SKIP)
+		{
+			genome_position_index += op.Length;
+		}
+		else if(op.Type==BAM_CSOFT_CLIP)
+		{
+			alignment_index += op.Length;
+		}
+
+	}
+}
+
 void BamAlignment::setQualities(const QByteArray& qualities)
 {
 	//check that length stays the same
@@ -238,7 +285,7 @@ int BamAlignment::tagi(const QByteArray& tag) const
 
 void BamAlignment::addTag(const QByteArray& tag, char type, const QByteArray& value)
 {
-	if (bam_aux_append(aln_, tag, type, value.length()+1, reinterpret_cast<const unsigned char*>(value.data()))==-1)
+	if (bam_aux_append(aln_, tag, type, value.length()+1, reinterpret_cast<const unsigned char*>(value.constData()))==-1)
 	{
 		THROW(FileAccessException, "Could not add tag '" + tag + "'' with value " + value + " to alignment.");
 	}
@@ -302,10 +349,10 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 	THROW(Exception, "Could not find position  " + QString::number(pos) + " in read " + bases() + " with start position " + QString::number(start()) + "!");
 }
 
-QList<QByteArray> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
+QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
 {
 	//init
-	QList<QByteArray> output;
+	QList<Sequence> output;
 	bool use_window = (indel_window!=0);
 	int window_start = pos - indel_window;
 	int window_end = pos + indel_window;

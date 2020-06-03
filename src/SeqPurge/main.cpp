@@ -44,7 +44,7 @@ public:
 		addFlag("ec", "Enable error-correction of adapter-trimmed reads (only those with insert match).");
 		addFlag("debug", "Enables debug output (use only with one thread).");
 		addInt("progress", "Enables progress output at the given interval in milliseconds (disabled by default).", true, -1);
-		addInt("compression_level", "gzip compression level from 1 (fastest) to 9 (best compression).", true, 1);
+		addInt("compression_level", "Output gzip compression level from 1 (fastest) to 9 (best compression).", true, 1);
 
 		//changelog
 		changeLog(2019, 3, 26, "Added 'compression_level' parameter.");
@@ -106,7 +106,6 @@ public:
 		QThreadPool analysis_pool;
 		analysis_pool.setMaxThreadCount(getInt("threads")+1);
 		OutputWorker* output_worker = new OutputWorker(job_pool, getOutfile("out1"), getOutfile("out2"), getOutfile("out3"), params_, stats_);
-		output_worker->setAutoDelete(false);
 		analysis_pool.start(output_worker);
 
 		//process
@@ -199,7 +198,7 @@ public:
 		}
 		if (progress>0) out << Helper::dateTime() << " analysis finished" << endl;
 		output_worker->terminate();
-		delete output_worker;
+		delete output_worker; //has to be deleted before the job list > no QScopedPointer is used!
 
 		//print trimming statistics
 		if (progress>0) out << Helper::dateTime() << " writing statistics summary" << endl;

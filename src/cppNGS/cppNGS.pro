@@ -47,6 +47,7 @@ SOURCES += BedFile.cpp \
     VariantAnnotationDescription.cpp \
     QCCollection.cpp \
     StatisticsReads.cpp \
+    Sequence.cpp \
     BamReader.cpp \
     BamWriter.cpp \
     SampleSimilarity.cpp \

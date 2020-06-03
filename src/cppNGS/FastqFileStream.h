@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "Exceptions.h"
+#include "Sequence.h"
 #include <zlib.h>
 #include <QString>
 #include <QVector>
@@ -13,7 +14,7 @@ struct CPPNGSSHARED_EXPORT FastqEntry
 	///Main header line.
 	QByteArray header;
 	///Bases string.
-	QByteArray bases;
+	Sequence bases;
 	///Second header line.
 	QByteArray header2;
 	///Qualities string.
@@ -100,11 +101,21 @@ public:
 	{
 		return filename_;
 	}
+	int bufferSize() const
+	{
+		return buffer_size_;
+	}
+	void setBufferSize(int new_size)
+	{
+		buffer_size_ = new_size;
+	}
 
 protected:
     QString filename_;
     gzFile gzfile_;
 	bool is_closed_;
+	QByteArray buffer_;
+	int buffer_size_;
 
     //declared away methods
 	FastqOutfileStream(const FastqOutfileStream& ) = delete;
