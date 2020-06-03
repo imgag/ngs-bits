@@ -11,6 +11,6 @@ void getVariantInformation(
 		int min_alt_count);
 
 void countOccurencesOfVariants(
-		std::unordered_map<Member, VariantInfo, EnumHash> trio,
-		VariantHeritage& variantData
+		const std::unordered_map<Member, VariantInfo, EnumHash>& trio,
+		VariantInheritance& variantData
 		);

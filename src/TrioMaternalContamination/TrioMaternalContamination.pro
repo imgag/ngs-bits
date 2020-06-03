@@ -10,10 +10,10 @@ CONFIG   += console
 CONFIG   -= app_bundle
 
 SOURCES += main.cpp \
-    ShallowVariantCaller.cpp
+    ShallowVariantCallerFunctions.cpp
 
 include("../app_cli.pri")
 
 HEADERS += \
     forward.h \
-    ShallowVariantCaller.h
+    ShallowVariantCallerFunctions.h

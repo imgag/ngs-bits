@@ -4,7 +4,7 @@
 #include <QFileInfo>
 
 #include "forward.h"
-#include "ShallowVariantCaller.h"
+#include "ShallowVariantCallerFunctions.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -25,10 +25,6 @@ public:
 		addInfile("bam_c", "Input BAM file of child.", false);
 
 		//optional
-		addOutfile("out_m", "Output file of common variants in mother.", true);
-		addOutfile("out_f", "Output file of common variants in father.", true);
-		addOutfile("out_c", "Output file of common variants in child.", true);
-
 		addInt("min_depth", "Minimum depth to consider a base.", true, 3);
 		addInt("min_alt_count", "Minimum number of alterations to call a variant.", true, 1);
 
@@ -54,27 +50,28 @@ public:
 		//get variants of family
 		std::unordered_map<Member, VariantInfo, EnumHash> trio;
 
-		trio.emplace(Member::MOTHER, VariantInfo(bam_m, getOutfile("out_m")));
-		trio.emplace(Member::FATHER, VariantInfo(bam_f, getOutfile("out_f")));
-		trio.emplace(Member::CHILD, VariantInfo(bam_c, getOutfile("out_c")));
+		trio.emplace(Member::MOTHER, VariantInfo(bam_m));
+		trio.emplace(Member::FATHER, VariantInfo(bam_f));
+		trio.emplace(Member::CHILD, VariantInfo(bam_c));
 
 		VariantList variant_list = NGSHelper::getKnownVariants(build, true);
 
 		for(auto& trio_it : trio)
 		{
-			//find variants of family member
 			getVariantInformation(trio_it.second, variant_list, min_depth, min_alt_count);
-			//write an output file with the variants for family member
-			if(!trio_it.second.out_file_name.isEmpty())	trio_it.second.writeData();
 		}
 
-		VariantHeritage variantData;
+		VariantInheritance variantData;
 		countOccurencesOfVariants(trio, variantData);
 
-		out << "Common variants: " << variantData.commonVariants
-			<< "Father variants: " << variantData.exclusiveVariantsOfFather
-			<< "Mother variants: " << variantData.exclusiveVariantsOfMother
-			<< "New variants: " << variantData.newVariants;
+		out << "Percentage of mother variants passed to child: " << variantData.percentOfMotherToChild << "\n"
+			<< "Percentage of father variants passed to child: " << variantData.percentOfFatherToChild << "\n"
+			<< "Percentage of variants seen in both parents passed to child: " << variantData.percentOfBothToChild << "\n\n"
+
+			<< "Percentage of child variants from  mother: " << variantData.percentageOfInheritedMotherVariants << "\n"
+			<< "Percentage of child variants from  father: " << variantData.percentageOfInheritedFatherVariants << "\n"
+			<< "Percentage of child variants, which are in both parents: " << variantData.percentageOfInheritedCommonVariants << "\n"
+			<< "Percentage of child variants, which are new: " << variantData.percentageOfNewVariants;
 
 	}
 };

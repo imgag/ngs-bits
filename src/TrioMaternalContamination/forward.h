@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Statistics.h"
-#include "unordered_set"
 #include "unordered_map"
 #include <QFileInfo>
 
@@ -18,13 +17,6 @@ struct EnumHash
 	{
 		return static_cast<std::size_t>(t);
 	}
-};
-struct VariantHeritage
-{
-	int exclusiveVariantsOfMother = 0;
-	int exclusiveVariantsOfFather = 0;
-	int commonVariants = 0;
-	int newVariants = 0;
 };
 
 namespace std
@@ -43,18 +35,22 @@ namespace std
 struct VariantInfo
 {
 	QString in_file_name;
-	QString out_file_name;
 	std::unordered_map<const Variant, double> variants;
 
-	VariantInfo(QString in_file_name_, QString out_file_name_)
+	VariantInfo(QString in_file_name_)
 	{
 		in_file_name = in_file_name_;
-		out_file_name = out_file_name_;
-	}
-
-	void writeData()
-	{
-		//variants.store(out_file_name);
 	}
 };
 
+struct VariantInheritance
+{
+	double percentageOfInheritedMotherVariants = 0;
+	double percentageOfInheritedFatherVariants = 0;
+	double percentageOfInheritedCommonVariants = 0;
+	double percentageOfNewVariants = 0;
+
+	double percentOfBothToChild = 0;
+	double percentOfMotherToChild = 0;
+	double percentOfFatherToChild = 0;
+};
