@@ -2,7 +2,6 @@
 #include "ToolBase.h"
 #include "Exceptions.h"
 #include <QFileInfo>
-#include <unordered_map>
 
 #include "forward.h"
 #include "ShallowVariantCaller.h"
@@ -33,11 +32,15 @@ public:
 		addInt("min_depth", "Minimum depth to consider a base.", true, 3);
 		addInt("min_alt_count", "Minimum number of alterations to call a variant.", true, 1);
 
+		addEnum("build", "Genome build used to generate the input (needed for contamination only).", true, QStringList() << "hg19" << "hg38", "hg19");
+
 		changeLog(2020,  5,  13, "Initial version of the tool.");
 	}
 
 	virtual void main()
     {
+		QTextStream out(stdout);
+
         //init
 		QString bam_m = getInfile("bam_m");
 		QString bam_f = getInfile("bam_f");
@@ -46,6 +49,8 @@ public:
 		int min_depth = getInt("min_depth");
 		int min_alt_count = getInt("min_alt_count");
 
+		QString build = getEnum("build");
+
 		//get variants of family
 		std::unordered_map<Member, VariantInfo, EnumHash> trio;
 
@@ -53,14 +58,23 @@ public:
 		trio.emplace(Member::FATHER, VariantInfo(bam_f, getOutfile("out_f")));
 		trio.emplace(Member::CHILD, VariantInfo(bam_c, getOutfile("out_c")));
 
+		VariantList variant_list = NGSHelper::getKnownVariants(build, true);
+
 		for(auto& trio_it : trio)
 		{
 			//find variants of family member
-			getVariantInformation(trio_it.second, min_depth, min_alt_count);
+			getVariantInformation(trio_it.second, variant_list, min_depth, min_alt_count);
 			//write an output file with the variants for family member
-			trio_it.second.writeData();
+			if(!trio_it.second.out_file_name.isEmpty())	trio_it.second.writeData();
 		}
 
+		VariantHeritage variantData;
+		countOccurencesOfVariants(trio, variantData);
+
+		out << "Common variants: " << variantData.commonVariants
+			<< "Father variants: " << variantData.exclusiveVariantsOfFather
+			<< "Mother variants: " << variantData.exclusiveVariantsOfMother
+			<< "New variants: " << variantData.newVariants;
 
 	}
 };

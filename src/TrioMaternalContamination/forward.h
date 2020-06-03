@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Statistics.h"
+#include "unordered_set"
+#include "unordered_map"
 #include <QFileInfo>
 
 enum Member
@@ -17,13 +19,32 @@ struct EnumHash
 		return static_cast<std::size_t>(t);
 	}
 };
+struct VariantHeritage
+{
+	int exclusiveVariantsOfMother = 0;
+	int exclusiveVariantsOfFather = 0;
+	int commonVariants = 0;
+	int newVariants = 0;
+};
+
+namespace std
+{
+  template<>
+	struct hash<const Variant>
+	{
+	  size_t
+	  operator()(const Variant & obj) const
+	  {
+		return hash<string>()(obj.toString().toStdString());
+	  }
+	};
+}
 
 struct VariantInfo
 {
-	VariantList variants;
-
 	QString in_file_name;
 	QString out_file_name;
+	std::unordered_map<const Variant, double> variants;
 
 	VariantInfo(QString in_file_name_, QString out_file_name_)
 	{
@@ -33,7 +54,7 @@ struct VariantInfo
 
 	void writeData()
 	{
-		variants.store(out_file_name);
+		//variants.store(out_file_name);
 	}
 };
 
