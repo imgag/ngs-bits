@@ -52,7 +52,7 @@ public:
 		while(parts.count()>3)
 		{
 			int count = parts.count();
-			parts[count-2] += " " +parts[count];
+			parts[count-2] += " " +parts[count-1];
 			parts.removeLast();
 		}
 
@@ -99,6 +99,8 @@ public:
 			outstream->write(instream.header()[i]);
 			outstream->write(i==col_count-1 ? "\n" : "\t");
 		}
+
+		qDebug() << parts[0] << " " << op << " " << parts[2];
 
 		//write content
 		while(!instream.atEnd())
