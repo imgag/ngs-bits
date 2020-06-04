@@ -100,8 +100,6 @@ public:
 			outstream->write(i==col_count-1 ? "\n" : "\t");
 		}
 
-		qDebug() << parts[0] << " " << op << " " << parts[2];
-
 		//write content
 		while(!instream.atEnd())
 		{
