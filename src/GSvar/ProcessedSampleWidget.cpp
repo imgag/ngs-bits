@@ -157,7 +157,7 @@ void ProcessedSampleWidget::updateGUI()
 		else
 		{
 			QString value = QString::number(swap_prob, 'f', 4) + "%";
-			if (swap_prob>1.0) value = "<font color=red>"+value+"%</font>";
+			if (swap_prob>1.1) value = "<font color=red>"+value+"</font>";
 			ui_->kasp_swap->setText(value);
 		}
 	}

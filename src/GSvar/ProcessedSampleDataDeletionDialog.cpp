@@ -66,7 +66,7 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 	//check consistency of selection
 	if (!ui_.report_config->isChecked() && (ui_.var_small->isChecked() || ui_.var_cnv->isChecked() || ui_.var_sv->isChecked()))
 	{
-		QMessageBox::question(this, "Deleting variants from NGSD", "You cannot delete variants and keep the report configuration.\nPlease correct the selection and try again!");
+		QMessageBox::information(this, "Deleting variants from NGSD", "You cannot delete variants and keep the report configuration.\nPlease correct the selection and try again!");
 		return;
 	}
 

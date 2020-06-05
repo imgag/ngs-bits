@@ -18,6 +18,7 @@ NGSD:
 
 GSvar:
 ** Add mean coverage of chrMT to report
+** Add to CNV/SV OMIM filter option to FILTER or REMOVE.
 * Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater

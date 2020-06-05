@@ -31,12 +31,13 @@ The database backend of the NGSD is a MySQL database. To set it up, follow these
 In order to optimize the performance of MySQL for the NGSD, you can adapt/add the following settings in the `/etc/mysql/my.cnf` file:
 
 		[mysqld]
-		join_buffer_size = 1M
-		query_cache_limit = 16M
+		join_buffer_size = 16M
+		query_cache_limit = 64M
 		query_cache_size = 256M
 		tmp_table_size = 256M
 		max_heap_table_size = 256M
-		innodb_buffer_pool_size = 2G
+		innodb_buffer_pool_size = 32G
+		innodb_buffer_pool_instances = 2
 		innodb_flush_log_at_trx_commit = 2
 		innodb_lock_wait_timeout = 1000
 		bind_address = 0.0.0.0
@@ -44,7 +45,6 @@ In order to optimize the performance of MySQL for the NGSD, you can adapt/add th
 		max_allowed_packet = 64M
 		wait_timeout = 108000
 		max_connections = 300
-
 
 Restart the server:
 
