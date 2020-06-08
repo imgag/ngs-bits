@@ -354,7 +354,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 					Variant var = variant(id);
 					QString genotype = getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + id + "'").toString();
 					QString genes = getValue("SELECT gene FROM variant WHERE id='" + id + "'").toString();
-					text += ", causal variant: " + var.toString() + " (genotype:" + genotype + " genes:" + genes + ")";
+					QString var_class = getValue("SELECT class FROM variant_classification WHERE variant_id='" + id + "'").toString();
+					text += ", causal variant: " + var.toString() + " (genotype:" + genotype + " genes:" + genes;
+					if (var_class != "") text += " classification:" + var_class; // add classification, if exists
+					text += ")";
 				}
 
 				//find causal CNVs
@@ -363,7 +366,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 				{
 					CopyNumberVariant var = cnv(id.toInt());
 					QString cn = getValue("SELECT cn FROM cnv WHERE id='" + id + "'").toString();
-					text += ", causal CNV: " + var.toString() + " (cn:" + cn + ")";
+					QString cnv_class = getValue("SELECT class FROM report_configuration_cnv WHERE cnv_id='" + id + "'", false).toString();
+					text += ", causal CNV: " + var.toString() + " (cn:" + cn;
+					if (cnv_class != "") text += " classification:" + cnv_class; // add classification, if exists
+					text += ")";
 				}
 
 				//find causal SVs
@@ -376,9 +382,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 					foreach(QString id, causal_ids)
 					{
-
 						BedpeLine var = structural_variant(id.toInt(), sv_types.at(i), svs, true);
+						QString sv_class = getValue("SELECT class FROM report_configuration_sv WHERE " + sv_id_columns[i] + "='" + id + "'", false).toString();
 						text += ", causal SV: " + var.toString();
+						if (sv_class != "") text += " (classification:" + sv_class + ")"; // add classification, if exists
 					}
 				}
 			}

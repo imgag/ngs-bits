@@ -2861,6 +2861,8 @@ FilterCnvOMIM::FilterCnvOMIM()
 	name_ = "CNV OMIM genes";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for OMIM genes i.e. the 'OMIM' column is not empty.";
+	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
+	params_.last().constraints["valid"] = "REMOVE,FILTER";
 
 	checkIsRegistered();
 }
@@ -2875,14 +2877,29 @@ void FilterCnvOMIM::apply(const CnvList& cnvs, FilterResult& result) const
 	if (!enabled_) return;
 
 	int index = cnvs.annotationIndexByName("omim", true);
-
-	for(int i=0; i<cnvs.count(); ++i)
+	QString action = getString("action");
+	if (action=="FILTER")
 	{
-		if (!result.flags()[i]) continue;
-
-		if (cnvs[i].annotations()[index].trimmed().isEmpty())
+		for(int i=0; i<cnvs.count(); ++i)
 		{
-			result.flags()[i] = false;
+			if (!result.flags()[i]) continue;
+
+			if (cnvs[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+	else //REMOVE
+	{
+		for(int i=0; i<cnvs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (!cnvs[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = false;
+			}
 		}
 	}
 }
@@ -3728,7 +3745,8 @@ FilterSvOMIM::FilterSvOMIM()
 	name_ = "SV OMIM genes";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter for OMIM genes i.e. the 'OMIM' column is not empty.";
-
+	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
+	params_.last().constraints["valid"] = "REMOVE,FILTER";
 	checkIsRegistered();
 }
 
@@ -3742,14 +3760,29 @@ void FilterSvOMIM::apply(const BedpeFile& svs, FilterResult& result) const
 	if (!enabled_) return;
 
 	int index = svs.annotationIndexByName("OMIM", true);
-
-	for(int i=0; i<svs.count(); ++i)
+	QString action = getString("action");
+	if (action=="FILTER")
 	{
-		if (!result.flags()[i]) continue;
-
-		if (svs[i].annotations()[index].trimmed().isEmpty())
+		for(int i=0; i<svs.count(); ++i)
 		{
-			result.flags()[i] = false;
+			if (!result.flags()[i]) continue;
+
+			if (svs[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+	else
+	{
+		for(int i=0; i<svs.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (!svs[i].annotations()[index].trimmed().isEmpty())
+			{
+				result.flags()[i] = false;
+			}
 		}
 	}
 }

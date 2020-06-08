@@ -1498,11 +1498,6 @@ CREATE  TABLE IF NOT EXISTS `sv_deletion`
     REFERENCES `sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `chr` (`chr` ASC),
-  INDEX `start_min` (`start_min` ASC),
-  INDEX `start_max` (`start_max` ASC),
-  INDEX `end_min` (`end_min` ASC),
-  INDEX `end_max` (`end_max` ASC),
   INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
   INDEX `overlap_match` (`chr`, `start_min`, `end_max`)
 )
@@ -1529,11 +1524,6 @@ CREATE  TABLE IF NOT EXISTS `sv_duplication`
     REFERENCES `sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `chr` (`chr` ASC),
-  INDEX `start_min` (`start_min` ASC),
-  INDEX `start_max` (`start_max` ASC),
-  INDEX `end_min` (`end_min` ASC),
-  INDEX `end_max` (`end_max` ASC),
   INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
   INDEX `overlap_match` (`chr`, `start_min`, `end_max`)
 )
@@ -1562,12 +1552,7 @@ CREATE  TABLE IF NOT EXISTS `sv_insertion`
     REFERENCES `sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `chr` (`chr` ASC),
-  INDEX `pos` (`pos` ASC),
-  INDEX `ci_lower` (`ci_lower` ASC),
-  INDEX `ci_upper` (`ci_upper` ASC),
-  INDEX `exact_match` (`chr`, `pos`),
-  INDEX `overlap_match` (`chr`, `pos`, `ci_lower`, `ci_upper`)
+  INDEX `match` (`chr`, `pos`, `ci_upper`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
@@ -1592,11 +1577,6 @@ CREATE  TABLE IF NOT EXISTS `sv_inversion`
     REFERENCES `sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `chr` (`chr` ASC),
-  INDEX `start_min` (`start_min` ASC),
-  INDEX `start_max` (`start_max` ASC),
-  INDEX `end_min` (`end_min` ASC),
-  INDEX `end_max` (`end_max` ASC),
   INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
   INDEX `overlap_match` (`chr`, `start_min`, `end_max`)
 )
@@ -1624,12 +1604,6 @@ CREATE  TABLE IF NOT EXISTS `sv_translocation`
     REFERENCES `sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `chr1` (`chr1` ASC),
-  INDEX `start1` (`start1` ASC),
-  INDEX `end1` (`end1` ASC),
-  INDEX `chr2` (`chr2` ASC),
-  INDEX `start2` (`start2` ASC),
-  INDEX `end2` (`end2` ASC),
   INDEX `match` (`chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`)
 )
 ENGINE = InnoDB

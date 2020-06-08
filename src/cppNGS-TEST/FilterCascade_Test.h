@@ -1311,7 +1311,7 @@ private slots:
 		I_EQUAL(result.countPassing(), 33);
 	}
 
-	void FilterSvOMIM_apply()
+	void FilterSvOMIM_filter_apply()
 	{
 		BedpeFile svs;
 		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
@@ -1320,8 +1320,23 @@ private slots:
 
 		// default
 		FilterSvOMIM filter;
+		filter.setString("action", "FILTER");
 		filter.apply(svs, result);
 		I_EQUAL(result.countPassing(), 12);
+	}
+
+	void FilterSvOMIM_remove_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
+
+		FilterResult result(svs.count());
+
+		// default
+		FilterSvOMIM filter;
+		filter.setString("action", "REMOVE");
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 75);
 	}
 
 	void FilterSvCountNGSD_apply_default()
