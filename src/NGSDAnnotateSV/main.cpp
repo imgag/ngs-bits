@@ -98,22 +98,6 @@ public:
 			//BND
 			create_temp_table.exec("CREATE TEMPORARY TABLE temp_sv_translocation " + db_engine + "SELECT sv.id, sv.sv_callset_id, sv.chr1, sv.start1, sv.end1, sv.chr2, sv.start2, sv.end2 FROM sv_translocation sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
 
-//			if (debug)
-//			{
-//				//Debug output of table sizes:
-//				foreach (QByteArray table_name, table_names)
-//				{
-//					out << "Table size of table \"temp_" << table_name << "\" (without index): \t "
-//						<< db.getValue("SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) /1024/1024) AS `Size (MB)` FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"bioinf_ngsd\" AND TABLE_NAME = \"temp_" + table_name + "\"").toDouble() << "MB\n";
-//				}
-//				out << "Table size of table \"temp_sv_insertions\" (without index): \t "
-//					<< db.getValue("SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) /1024/1024) AS `Size (MB)` FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"bioinf_ngsd\" AND TABLE_NAME = \"temp_sv_insertions\"").toDouble() << "MB\n";
-//				out << "Table size of table \"temp_sv_translocation\" (without index): \t "
-//					<< db.getValue("SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) /1024/1024) AS `Size (MB)` FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"bioinf_ngsd\" AND TABLE_NAME = \"temp_sv_translocation\"").toDouble() << "MB\n";
-//			}
-
-
-
 			// create indices for exact and overlap matching
 			SqlQuery create_index = db.getQuery();			
 			foreach (QByteArray table_name, table_names)
@@ -126,20 +110,6 @@ public:
 			create_index.exec("CREATE INDEX `match` ON temp_sv_insertion(`chr`, `pos`, `ci_upper`)");
 			//BND
 			create_index.exec("CREATE INDEX `match` ON temp_sv_translocation(`chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`)");
-
-//			if (debug)
-//			{
-//				//Debug output of table sizes:
-//				foreach (QByteArray table_name, table_names)
-//				{
-//					out << "Table size of table \"temp_" << table_name << "\" (with index): \t "
-//						<< db.getValue("SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) /1024/1024) AS `Size (MB)` FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"bioinf_ngsd\" AND TABLE_NAME = \"temp_" + table_name + "\"").toDouble() << "MB\n";
-//				}
-//				out << "Table size of table \"temp_sv_insertions\" (with index): \t "
-//					<< db.getValue("SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) /1024/1024) AS `Size (MB)` FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"bioinf_ngsd\" AND TABLE_NAME = \"temp_sv_insertions\"").toDouble() << "MB\n";
-//				out << "Table size of table \"temp_sv_translocation\" (with index): \t "
-//					<< db.getValue("SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) /1024/1024) AS `Size (MB)` FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"bioinf_ngsd\" AND TABLE_NAME = \"temp_sv_translocation\"").toDouble() << "MB\n";
-//			}
 
 			// set prefix for temp tables
 			table_prefix = "temp_";
