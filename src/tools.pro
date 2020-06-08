@@ -5,7 +5,7 @@ CONFIG += console
 SUBDIRS = cppCORE\
         cppXML \
         cppNGS \
-        cppNGSD
+        cppNGSD 
 cppXML.depends = cppCORE
 cppNGS.depends = cppXML
 cppNGSD.depends = cppNGS
@@ -392,5 +392,10 @@ PhenotypeSubtree.depends = cppNGSD
 SUBDIRS += CnvFilterAnnotations
 tools-TEST.depends += CnvFilterAnnotations
 CnvFilterAnnotations.depends = cppNGS
+
+SUBDIRS += BedpeFilter
+tools-TEST.depends += BedpeFilter
+BedpeFilter.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt

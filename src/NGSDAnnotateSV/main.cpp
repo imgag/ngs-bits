@@ -26,6 +26,7 @@ public:
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("ignore_processing_system", "Use all SVs for annotation (otherwise only SVs from good samples of the same processing system are used)");
 		addFlag("debug", "Provide additional information in STDOUT (e.g. query runtime)");
+		addFlag("use_memory", "Creates the temporary tables in memory.");
 
 		setExtendedDescription(QStringList() << "NOTICE: the parameter '-ignore_processing_system' will also use SVs from low quality samples (bad samples).");
 
@@ -48,6 +49,9 @@ public:
 		int time_init=0, time_sum_del=0, time_sum_dup=0, time_sum_inv=0, time_sum_ins=0, time_sum_bnd=0;
 		int n_del=0, n_dup=0, n_inv=0, n_ins=0, n_bnd=0;
 		int sample_count = 0; // number of samples with the same processing system in the NGSD
+
+		QByteArray db_engine;
+		if (getFlag("use_memory")) db_engine = "ENGINE=MEMORY "; // create temp dbs in memory
 
 
 		if (debug) init_timer.start();
@@ -74,7 +78,7 @@ public:
 
 			// create a temp table with all valid ps ids ignoring bad/merged samples
 			SqlQuery temp_table = db.getQuery();
-			temp_table.exec("CREATE TEMPORARY TABLE temp_valid_sv_cs_ids SELECT sc.id FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id WHERE " + sql_exclude_prev_callset + "ps.processing_system_id = " + QByteArray::number(processing_system_id) + " AND ps.quality != 'bad' AND NOT EXISTS (SELECT 1 FROM merged_processed_samples mps WHERE mps.processed_sample_id = sc.processed_sample_id)");
+			temp_table.exec("CREATE TEMPORARY TABLE temp_valid_sv_cs_ids " + db_engine + "SELECT sc.id FROM sv_callset sc INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id WHERE " + sql_exclude_prev_callset + "ps.processing_system_id = " + QByteArray::number(processing_system_id) + " AND ps.quality != 'bad' AND NOT EXISTS (SELECT 1 FROM merged_processed_samples mps WHERE mps.processed_sample_id = sc.processed_sample_id)");
 
 			// get number of valid callset ids (= known samples)
 			sample_count = db.getValue("SELECT COUNT(*) FROM temp_valid_sv_cs_ids").toInt();
@@ -86,13 +90,29 @@ public:
 			foreach (QByteArray table_name, table_names)
 			{
 				// DEL, DUP, INV
-				create_temp_table.exec("CREATE TEMPORARY TABLE temp_" + table_name + " SELECT sv.id, sv.sv_callset_id, sv.chr, sv.start_min, sv.start_max, sv.end_min, sv.end_max, sv.quality_metrics FROM "
+				create_temp_table.exec("CREATE TEMPORARY TABLE temp_" + table_name + " " + db_engine + "SELECT sv.id, sv.sv_callset_id, sv.chr, sv.start_min, sv.start_max, sv.end_min, sv.end_max FROM "
 									   + table_name + " sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
 			}
 			//INS
-			create_temp_table.exec("CREATE TEMPORARY TABLE temp_sv_insertion SELECT sv.id, sv.sv_callset_id, sv.chr, sv.pos, sv.ci_upper, sv.quality_metrics FROM sv_insertion sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
+			create_temp_table.exec("CREATE TEMPORARY TABLE temp_sv_insertion " + db_engine + "SELECT sv.id, sv.sv_callset_id, sv.chr, sv.pos, sv.ci_upper FROM sv_insertion sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
 			//BND
-			create_temp_table.exec("CREATE TEMPORARY TABLE temp_sv_translocation SELECT sv.id, sv.sv_callset_id, sv.chr1, sv.start1, sv.end1, sv.chr2, sv.start2, sv.end2, sv.quality_metrics FROM sv_translocation sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
+			create_temp_table.exec("CREATE TEMPORARY TABLE temp_sv_translocation " + db_engine + "SELECT sv.id, sv.sv_callset_id, sv.chr1, sv.start1, sv.end1, sv.chr2, sv.start2, sv.end2 FROM sv_translocation sv INNER JOIN temp_valid_sv_cs_ids tt ON sv.sv_callset_id = tt.id");
+
+//			if (debug)
+//			{
+//				//Debug output of table sizes:
+//				foreach (QByteArray table_name, table_names)
+//				{
+//					out << "Table size of table \"temp_" << table_name << "\" (without index): \t "
+//						<< db.getValue("SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) /1024/1024) AS `Size (MB)` FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"bioinf_ngsd\" AND TABLE_NAME = \"temp_" + table_name + "\"").toDouble() << "MB\n";
+//				}
+//				out << "Table size of table \"temp_sv_insertions\" (without index): \t "
+//					<< db.getValue("SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) /1024/1024) AS `Size (MB)` FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"bioinf_ngsd\" AND TABLE_NAME = \"temp_sv_insertions\"").toDouble() << "MB\n";
+//				out << "Table size of table \"temp_sv_translocation\" (without index): \t "
+//					<< db.getValue("SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) /1024/1024) AS `Size (MB)` FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"bioinf_ngsd\" AND TABLE_NAME = \"temp_sv_translocation\"").toDouble() << "MB\n";
+//			}
+
+
 
 			// create indices for exact and overlap matching
 			SqlQuery create_index = db.getQuery();			
@@ -106,6 +126,20 @@ public:
 			create_index.exec("CREATE INDEX `match` ON temp_sv_insertion(`chr`, `pos`, `ci_upper`)");
 			//BND
 			create_index.exec("CREATE INDEX `match` ON temp_sv_translocation(`chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`)");
+
+//			if (debug)
+//			{
+//				//Debug output of table sizes:
+//				foreach (QByteArray table_name, table_names)
+//				{
+//					out << "Table size of table \"temp_" << table_name << "\" (with index): \t "
+//						<< db.getValue("SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) /1024/1024) AS `Size (MB)` FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"bioinf_ngsd\" AND TABLE_NAME = \"temp_" + table_name + "\"").toDouble() << "MB\n";
+//				}
+//				out << "Table size of table \"temp_sv_insertions\" (with index): \t "
+//					<< db.getValue("SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) /1024/1024) AS `Size (MB)` FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"bioinf_ngsd\" AND TABLE_NAME = \"temp_sv_insertions\"").toDouble() << "MB\n";
+//				out << "Table size of table \"temp_sv_translocation\" (with index): \t "
+//					<< db.getValue("SELECT ROUND((DATA_LENGTH + INDEX_LENGTH) /1024/1024) AS `Size (MB)` FROM information_schema.TABLES WHERE TABLE_SCHEMA = \"bioinf_ngsd\" AND TABLE_NAME = \"temp_sv_translocation\"").toDouble() << "MB\n";
+//			}
 
 			// set prefix for temp tables
 			table_prefix = "temp_";
