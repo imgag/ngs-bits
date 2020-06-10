@@ -2,14 +2,15 @@
 
 #include "Statistics.h"
 #include "unordered_map"
+#include "unordered_set"
 #include <QFileInfo>
 
 enum Member
-{
-	MOTHER,
+	{
 	FATHER,
+	MOTHER,
 	CHILD
-};
+	};
 struct EnumHash
 {
 	template <typename T>
@@ -21,15 +22,25 @@ struct EnumHash
 
 namespace std
 {
-  template<>
-	struct hash<const Variant>
+template<>
+struct hash<const Variant>
+{
+	size_t
+	operator()(const Variant & obj) const
 	{
-	  size_t
-	  operator()(const Variant & obj) const
-	  {
 		return hash<string>()(obj.toString().toStdString());
-	  }
-	};
+	}
+};
+
+template<>
+struct hash<Variant>
+{
+	size_t
+	operator()(const Variant & obj) const
+	{
+		return hash<string>()(obj.toString().toStdString());
+	}
+};
 }
 
 struct VariantInfo
@@ -45,12 +56,6 @@ struct VariantInfo
 
 struct VariantInheritance
 {
-	double percentageOfInheritedMotherVariants = 0;
-	double percentageOfInheritedFatherVariants = 0;
-	double percentageOfInheritedCommonVariants = 0;
-	double percentageOfNewVariants = 0;
-
-	double percentOfBothToChild = 0;
 	double percentOfMotherToChild = 0;
 	double percentOfFatherToChild = 0;
 };
