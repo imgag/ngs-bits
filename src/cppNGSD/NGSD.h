@@ -574,6 +574,9 @@ public:
 	///Returns the normal processed sample corresponding to a tumor processed sample, or "" if no normal samples is defined.
 	QString normalSample(const QString& processed_sample_id);
 
+	///Returns the corresponding same sample id(s) of a given type
+	QStringList sameSamples(QString sample_id, QString sample_type);
+
 	///Returns sample disease details from the database.
 	QList<SampleDiseaseInfo> getSampleDiseaseInfo(const QString& sample_id, QString only_type="");
 	///Sets the disease details of a sample.

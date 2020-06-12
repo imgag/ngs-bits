@@ -551,6 +551,39 @@ QString NGSD::normalSample(const QString& processed_sample_id)
 	return processedSampleName(value.toString());
 }
 
+QStringList NGSD::sameSamples(QString sample_id, QString sample_type)
+{
+	QStringList valid_sample_types = getEnum("sample", "sample_type");
+	if (!valid_sample_types.contains(sample_type))
+	{
+		THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
+	}
+	QStringList all_same_samples;
+	SqlQuery query = getQuery();
+	query.exec("SELECT sample2_id FROM sample_relations WHERE relation='same sample' AND sample1_id='" + sample_id + "'");
+	while (query.next())
+	{
+		all_same_samples.append(query.value(0).toString());
+	}
+	query.exec("SELECT sample1_id FROM sample_relations WHERE relation='same sample' AND sample2_id='" + sample_id + "'");
+	while (query.next())
+	{
+		all_same_samples.append(query.value(0).toString());
+	}
+
+	QStringList filtered_same_samples;
+	// filter same samples by type
+	foreach(const QString& same_sample_id, all_same_samples)
+	{
+		if (getSampleData(same_sample_id).type == sample_type)
+		{
+			filtered_same_samples.append(same_sample_id);
+		}
+	}
+
+	return filtered_same_samples;
+}
+
 void NGSD::setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status)
 {
 	getQuery().exec("UPDATE sample SET disease_group='" + disease_group + "', disease_status='" + disease_status + "' WHERE id='" + sample_id + "'");

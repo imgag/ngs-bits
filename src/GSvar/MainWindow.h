@@ -180,6 +180,8 @@ public slots:
 	void on_actionGeneSelector_triggered();
 	///Open Circos plot
 	void on_actionCircos_triggered();
+	///Open expression data Widget
+	void on_actionExpressionData_triggered();
 	///Open gene variant info check dialog.
 	void on_actionGeneVariantInfo_triggered();
 	///Open gene OMIM info dialog.
@@ -374,6 +376,8 @@ private:
 	ReportSettings report_settings_;
 	SomaticReportSettings somatic_report_settings_;
 	VariantList somatic_control_tissue_variants_;
+	QStringList rna_count_files_;
+
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;

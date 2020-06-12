@@ -529,6 +529,8 @@
    <addaction name="actionROH"/>
    <addaction name="actionCircos"/>
    <addaction name="actionDebug"/>
+   <addaction name="separator"/>
+   <addaction name="actionExpressionData"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -1099,6 +1101,11 @@
   <action name="actionCytobandsToRegions">
    <property name="text">
     <string>Cytoband &gt; Regions</string>
+   </property>
+  </action>
+  <action name="actionExpressionData">
+   <property name="text">
+    <string>Show Expression Data</string>
    </property>
   </action>
  </widget>
