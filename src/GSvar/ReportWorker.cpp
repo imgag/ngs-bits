@@ -1016,13 +1016,17 @@ QByteArray ReportWorker::inheritance(const QByteArray& gene_info)
 
 QString ReportWorker::trans(const QString& text) const
 {
-	if (settings_.language=="german")
+	//init translation tables (once)
+	static QHash<QString, QString> en2de;
+	if (en2de.isEmpty())
 	{
-		return text;
+		en2de["male"] = "m&auml;nnlich";
+		en2de["female"] = "weiblich";
 	}
-	else if (settings_.language=="english")
+
+	static QHash<QString, QString> de2en;
+	if (de2en.isEmpty())
 	{
-		QHash<QString, QString> de2en;
 		de2en["Technischer Report zur bioinformatischen Analyse"] = "Technical Report for Bioinformatic Analysis";
 		de2en["Probe"] = "Sample";
 		de2en["Prozessierungssystem"] = "Processing system";
@@ -1094,8 +1098,6 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Gene"] = "genes";
 		de2en["CNV"] = "CNV";
 		de2en["CN"] = "CN";
-		de2en["male"] = "m&auml;nnlich";
-		de2en["female"] = "weiblich";
 		de2en["n/a"] = "n/a";
 		de2en["SV"] = "SV";
 		de2en["Position"] = "Position";
@@ -1104,13 +1106,21 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Insertion"] = "insertion";
 		de2en["Inversion"] = "inversion";
 		de2en["Translokation"] = "translocation";
+	}
 
-		if (!de2en.contains(text))
-		{
-			Log::warn("Could not translate to " + settings_.language + ": '" + text + "'");
-		}
+	//translate
+	if (settings_.language=="german")
+	{
+		if (en2de.contains(text)) return en2de[text];
 
-		return de2en[text];
+		return text;
+	}
+	else if (settings_.language=="english")
+	{
+		if (de2en.contains(text)) return de2en[text];
+		else Log::warn("Could not translate '" + text + "' to " + settings_.language + "!");
+
+		return text;
 	}
 
 	THROW(ProgrammingException, "Unsupported language '" + settings_.language + "'!");
