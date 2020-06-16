@@ -18,7 +18,12 @@ NGSD:
 
 GSvar:
 ** Add mean coverage of chrMT to report
-** Add to CNV/SV OMIM filter option to FILTER or REMOVE.
+** Analysis jobs:
+    - Only the user or creator should be able to cancel jobs
+    - Only administrators should be able to delete jobs
+** QC plots:
+    - Show QC plots from run overview and highlight all samples of a run.
+    - Check if sample name can be shown as tooltip, or next to the point if only one datapoint is visible
 * Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
