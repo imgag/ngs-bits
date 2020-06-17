@@ -169,7 +169,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		std::sort(temp_rows.begin(), temp_rows.end(), [](const QPair<Variant,RtfTableRow>& a, const QPair<Variant,RtfTableRow>& b)
 		{
 			//germline variants
-			if(a.second[0].format().content().contains("#") && b.second[0].format().content().contains("#")) return true;
+			if(a.second[0].format().content().contains("#") && !b.second[0].format().content().contains("#")) return true;
 			if(!a.second[0].format().content().contains("#") && b.second[0].format().content().contains("#")) return false;
 
 			//inhouse classification
