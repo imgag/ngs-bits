@@ -15,12 +15,12 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* Added tools: NGSDAnnotateSV, BedpeToBed, BedHighCoverage, PhenotypesToGenes, PhenotypeSubtree, CnvFilterAnnotations
+* Added tools: NGSDAnnotateSV, BedpeToBed, BedHighCoverage, PhenotypesToGenes, PhenotypeSubtree, CnvFilterAnnotations, BedpeFilter
 * Removed tools: BamHighCoverage
 * NGSDImportHPO: Added support for new HPO annotation file format and optimized the NGSD hpo-gene relation table.
 * NGSDAddVariantsGermline: added import of structural variants
 * NGSD: Added SV report configuration
-* GSvar: Added support for SVs in report config/export
+* GSvar: Added support for SVs in report config/export, added search for SVs in the NGSD
 * BedAnnotateFromBed: Added support for reannotation of TSV files
 
 Changes in release 2020_03:
