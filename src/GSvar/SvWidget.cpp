@@ -18,6 +18,7 @@
 #include "GeneInfoDBs.h"
 #include "VariantTable.h"
 #include "ReportVariantDialog.h"
+#include "SvSearchWidget.h"
 #include <QDesktopServices>
 
 SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* variant_filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
@@ -759,6 +760,10 @@ void SvWidget::showContextMenu(QPoint pos)
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 	a_rep_del->setEnabled(ngsd_enabled_ && !is_somatic_ && report_config_->exists(VariantType::SVS, row));
 	menu.addSeparator();
+	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching SVs in NGSD");
+	a_ngsd_search->setEnabled(ngsd_enabled_);
+	menu.addSeparator();
+
 	QAction* igv_pos1 = menu.addAction("Open position A in IGV");
 	QAction* igv_pos2 = menu.addAction("Open position B in IGV");
 	QAction* igv_split = menu.addAction("Open position A/B in IGV split screen");
@@ -810,6 +815,15 @@ void SvWidget::showContextMenu(QPoint pos)
 			emit storeReportConfiguration();
 		}
 		updateReportConfigHeaderIcon(row);
+	}
+	else if (action==a_ngsd_search)
+	{
+		SvSearchWidget* widget = new SvSearchWidget();
+		widget->setProcessedSampleId(ps_id_);
+		widget->setCoordinates(sv);
+		auto dlg = GUIHelper::createDialog(widget, "SV search");
+
+		dlg->exec();
 	}
 	else if (action == igv_pos1)
 	{

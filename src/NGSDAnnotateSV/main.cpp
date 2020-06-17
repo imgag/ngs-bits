@@ -228,8 +228,8 @@ public:
 					//Insertion
 					if (debug) ins_timer.start();
 					//get min and max position
-					int min_pos = std::min(std::min(sv.start1(), sv.start2()), std::min(sv.end1(), sv.end2()));
-					int max_pos = std::max(std::max(sv.start1(), sv.start2()), std::max(sv.end1(), sv.end2()));
+					int min_pos = std::min(sv.start1(), sv.start2());
+					int max_pos = std::max(sv.end1(), sv.end2());
 					//get exact matches
 					// bind values
 					count_sv_insertion_m.bindValue(0, sv.chr1().strNormalized(true));

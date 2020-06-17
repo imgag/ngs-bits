@@ -82,7 +82,8 @@ SOURCES += main.cpp\
     PasswordDialog.cpp \
     CircosPlotWidget.cpp \
     EmailDialog.cpp \
-    CytobandToRegionsDialog.cpp
+    CytobandToRegionsDialog.cpp\
+    SvSearchWidget.cpp
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -158,7 +159,8 @@ HEADERS  += MainWindow.h \
     PasswordDialog.h \
     CircosPlotWidget.h \
     EmailDialog.h \
-    CytobandToRegionsDialog.h
+    CytobandToRegionsDialog.h\
+    SvSearchWidget.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -221,7 +223,8 @@ FORMS    += MainWindow.ui \
     PasswordDialog.ui \
     CircosPlotWidget.ui \
     EmailDialog.ui \
-    CytobandToRegionsDialog.ui
+    CytobandToRegionsDialog.ui \
+    SvSearchWidget.ui
 
 
 include("../app_gui.pri")
