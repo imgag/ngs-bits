@@ -61,7 +61,7 @@ public:
 		//find all variants
 		for(auto& trio_it : trio)
 		{
-			getVariantInformation(trio_it.second, trio_it.first, variant_list, min_depth, min_alt_count, homozygousVariants);
+			getVariantInformation(trio_it.second, variant_list, min_depth, min_alt_count, homozygousVariants);
 		}
 
 		//delete homozygous variants

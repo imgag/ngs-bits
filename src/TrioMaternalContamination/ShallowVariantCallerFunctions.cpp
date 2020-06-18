@@ -1,12 +1,7 @@
 #include "ShallowVariantCallerFunctions.h"
-#include "QDebug"
-
-#include "fstream"
-#include "iostream"
 
 void getVariantInformation(
 		VariantInfo& vInfo,
-		const Member mem,
 		const VariantList& variant_list,
 		int min_depth,
 		int min_alt_count,

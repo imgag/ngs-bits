@@ -1,12 +1,11 @@
 #pragma once
 
-#include "forward.h"
+#include "Auxilary.h"
 #include "NGSHelper.h"
 #include "VariantList.h"
 
 void getVariantInformation(
 		VariantInfo& vInfo,
-		const Member mem,
 		const VariantList& variant_list,
 		int min_depth,
 		int min_alt_count,

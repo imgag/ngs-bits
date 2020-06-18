@@ -15,5 +15,5 @@ SOURCES += main.cpp \
 include("../app_cli.pri")
 
 HEADERS += \
-    forward.h \
-    ShallowVariantCallerFunctions.h
+    ShallowVariantCallerFunctions.h \
+    Auxilary.h
