@@ -28,7 +28,7 @@ public:
 		addInt("min_depth", "Minimum depth to consider a base.", true, 3);
 		addInt("min_alt_count", "Minimum number of alterations to call a variant.", true, 1);
 
-		addEnum("build", "Genome build used to generate the input (needed for contamination only).", true, QStringList() << "hg19" << "hg38", "hg19");
+		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 
 		changeLog(2020,  5,  13, "Initial version of the tool.");
