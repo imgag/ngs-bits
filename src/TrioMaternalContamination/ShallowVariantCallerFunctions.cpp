@@ -58,7 +58,7 @@ void countOccurencesOfVariants(
 	double father_variants = 0;
 
 	//count mother variants
-	for(const std::pair<const Variant,double>& map_element : variants_mother)
+	for(const std::pair<const Variant, double>& map_element : variants_mother)
 	{
 		const Variant v = map_element.first;
 		if(variants_father.find(v) == variants_father.end())
@@ -73,7 +73,7 @@ void countOccurencesOfVariants(
 	variantData.percentOfMotherToChild = variants_of_mother_in_child / mother_variants;
 
 	//count father variants
-	for(const std::pair<const Variant,double>& map_element : variants_father)
+	for(const std::pair<const Variant, double>& map_element : variants_father)
 	{
 		const Variant v = map_element.first;
 		if(variants_mother.find(v) == variants_mother.end())

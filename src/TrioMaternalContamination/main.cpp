@@ -59,19 +59,19 @@ public:
 		std::unordered_set<Variant> homozygousVariants;
 
 		//find all variants
-		for(auto& trio_it : trio)
+		for(auto& member : trio)
 		{
-			getVariantInformation(trio_it.second, variant_list, min_depth, min_alt_count, homozygousVariants);
+			getVariantInformation(member.second, variant_list, min_depth, min_alt_count, homozygousVariants);
 		}
 
 		//delete homozygous variants
-		for(auto& trio_it : trio)
+		for(auto& member : trio)
 		{
-			for (auto variant_it = trio_it.second.variants.begin(); variant_it != trio_it.second.variants.end();)
+			for (auto variant_it = member.second.variants.begin(); variant_it != member.second.variants.end();)
 			{
 				if(homozygousVariants.find(variant_it->first)!=homozygousVariants.end())
 				{
-					trio_it.second.variants.erase(variant_it++);
+					member.second.variants.erase(variant_it++);
 				}
 				else
 				{
