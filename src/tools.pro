@@ -397,5 +397,9 @@ SUBDIRS += BedpeFilter
 tools-TEST.depends += BedpeFilter
 BedpeFilter.depends = cppNGS
 
+SUBDIRS += BedpeAnnotateCnvOverlap
+tools-TEST.depends += BedpeAnnotateCnvOverlap
+BedpeAnnotateCnvOverlap.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt
