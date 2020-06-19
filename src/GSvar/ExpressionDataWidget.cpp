@@ -7,6 +7,12 @@
 #include <QFile>
 #include <QMessageBox>
 
+NumericWidgetItem::NumericWidgetItem(QString text) :
+	QTableWidgetItem(text)
+{
+	this->setTextAlignment(Qt::AlignRight);
+}
+
 bool NumericWidgetItem::operator<(const QTableWidgetItem& other) const
 {
 	//convert text to double
@@ -25,6 +31,7 @@ ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, QWidget *parent
 
 	//connect signals and slots
 	connect(ui_->apply_filters, SIGNAL(clicked(bool)), this, SLOT(applyFilters()));
+	connect(ui_->expressionData->horizontalHeader(), SIGNAL(sectionClicked(int)), this, SLOT(applyFilters()));
 
 	loadExpressionData();
 }
@@ -99,8 +106,9 @@ void ExpressionDataWidget::applyFilters()
 		ui_->expressionData->setRowHidden(row, !filter_result.flags()[row]);
 	}
 
-	//Set number of filtered / total rows
+	//set number of filtered / total rows
 	ui_->filtered_rows->setText(QByteArray::number(filter_result.flags().count(true)) + " / " + QByteArray::number(row_count));
+
 }
 
 void ExpressionDataWidget::loadExpressionData()
@@ -170,7 +178,10 @@ void ExpressionDataWidget::loadExpressionData()
 			if(numeric_columns_.at(col_idx))
 			{
 				// add numeric QTableWidgetItem
-				ui_->expressionData->setItem(row_idx, col_idx, new NumericWidgetItem(row.at(column_indices.at(col_idx))));
+				QString rounded_number = QString::number(Helper::toDouble(row.at(column_indices.at(col_idx)),
+																		  "TSV column " + QString::number(col_idx),
+																		  QString::number(row_idx)), 'f', 2);
+				ui_->expressionData->setItem(row_idx, col_idx, new NumericWidgetItem(rounded_number));
 			}
 			else
 			{

@@ -12,7 +12,7 @@ class ExpressionDataWidget;
 class NumericWidgetItem: public QTableWidgetItem
 {
 public:
-	NumericWidgetItem(QString text):QTableWidgetItem(text){}
+	NumericWidgetItem(QString text);
 	bool operator< (const QTableWidgetItem &other) const;
 };
 
