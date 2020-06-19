@@ -19,19 +19,20 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Detects maternal contamination in a child employing shallow parental sequencing data.");
+		setDescription("Detects maternal contamination of a child using SNPs from parents.");
+		setExtendedDescription(QStringList() << "Determines the percentage of heterozygous SNPs passed on to the child from mother/father." << "This percentage should be similar for mother/father. If it is not, maternal contamination is likely.");
 		addInfile("bam_m", "Input BAM file of mother.", false);
 		addInfile("bam_f", "Input BAM file of father.", false);
 		addInfile("bam_c", "Input BAM file of child.", false);
 
 		//optional
-		addInt("min_depth", "Minimum depth to consider a base.", true, 3);
-		addInt("min_alt_count", "Minimum number of alterations to call a variant.", true, 1);
+		addInt("min_depth", "Minimum depth for calling SNPs.", true, 3);
+		addInt("min_alt_count", "Minimum number of alternate observations for calling a SNP.", true, 1);
 
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 
-		changeLog(2020,  5,  13, "Initial version of the tool.");
+		changeLog(2020,  6,  18, "Initial version of the tool.");
 	}
 
 	virtual void main()
@@ -87,8 +88,8 @@ public:
 		QSharedPointer<QFile> file = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream stream(file.data());
 
-		stream << "Percentage of mother variants passed to child: " << variantData.percentOfMotherToChild << "\n"
-			   << "Percentage of father variants passed to child: " << variantData.percentOfFatherToChild << "\n";
+		stream << "Percentage of variants from mother passed to child: " << variantData.percentOfMotherToChild << "\n"
+			   << "Percentage of variants from father passed to child: " << variantData.percentOfFatherToChild << "\n";
 
 
 	}

@@ -1,2 +1,2 @@
-Percentage of mother variants passed to child: 0
-Percentage of father variants passed to child: 0.5
+Percentage of variants from mother passed to child: 0
+Percentage of variants from father passed to child: 0.5

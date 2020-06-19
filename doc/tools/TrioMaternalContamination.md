@@ -1,5 +1,5 @@
 ### TrioMaternalContamination tool help
-	TrioMaternalContamination (2020_03-162-g3676755c)
+	TrioMaternalContamination (2020_03-164-gc1e7ad2f)
 	
 	Detects maternal contamination in a child employing shallow parental sequencing data.
 	
@@ -13,7 +13,7 @@
 	                       Default value: '3'
 	  -min_alt_count <int> Minimum number of alterations to call a variant.
 	                       Default value: '1'
-	  -build <enum>        Genome build used to generate the input (needed for contamination only).
+	  -build <enum>        Genome build used to generate the input.
 	                       Default value: 'hg19'
 	                       Valid: 'hg19,hg38'
 	  -out <file>          Output file. If unset, writes to STDOUT.
@@ -26,7 +26,7 @@
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### TrioMaternalContamination changelog
-	TrioMaternalContamination 2020_03-162-g3676755c
+	TrioMaternalContamination 2020_03-164-gc1e7ad2f
 	
 	2020-05-13 Initial version of the tool.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
