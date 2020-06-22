@@ -38,7 +38,7 @@
       <item row="0" column="0">
        <widget class="QLabel" name="label">
         <property name="text">
-         <string>Gene:</string>
+         <string>Gene(s):</string>
         </property>
        </widget>
       </item>
@@ -55,7 +55,7 @@
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>min Z-Score:</string>
+         <string>min. Z-score:</string>
         </property>
        </widget>
       </item>
@@ -75,7 +75,7 @@
       <item row="2" column="0">
        <widget class="QPushButton" name="apply_filters">
         <property name="text">
-         <string>apply Filters</string>
+         <string>apply filters</string>
         </property>
        </widget>
       </item>

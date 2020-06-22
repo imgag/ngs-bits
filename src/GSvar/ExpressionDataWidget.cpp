@@ -10,7 +10,7 @@
 NumericWidgetItem::NumericWidgetItem(QString text) :
 	QTableWidgetItem(text)
 {
-	this->setTextAlignment(Qt::AlignRight);
+	this->setTextAlignment(Qt::AlignRight + Qt::AlignVCenter);
 }
 
 bool NumericWidgetItem::operator<(const QTableWidgetItem& other) const
@@ -146,8 +146,8 @@ void ExpressionDataWidget::loadExpressionData()
 
 	//define columns
 
-	column_names_ << "raw" << "cpm" << "tpm" << "gene_name";
-	numeric_columns_  << true << true << true << false;
+	column_names_ << "gene_name" << "tpm" << "raw";
+	numeric_columns_  << false << true << true;
 	//determine col indices for table columns in tsv file
 	QVector<int> column_indices;
 	QStringList tsv_header = expression_data.headers();
