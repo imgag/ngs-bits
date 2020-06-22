@@ -15,7 +15,7 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* Added tools: NGSDAnnotateSV, BedpeToBed, BedHighCoverage, PhenotypesToGenes, PhenotypeSubtree, CnvFilterAnnotations, BedpeFilter
+* Added tools: NGSDAnnotateSV, BedpeToBed, BedHighCoverage, PhenotypesToGenes, PhenotypeSubtree, CnvFilterAnnotations, BedpeFilter, TrioMaternalContamination
 * Removed tools: BamHighCoverage
 * NGSDImportHPO: Added support for new HPO annotation file format and optimized the NGSD hpo-gene relation table.
 * NGSDAddVariantsGermline: added import of structural variants
@@ -81,6 +81,7 @@ The default output format of the quality control tools is [qcML](https://github.
 * [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file.
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
 * [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
+* [TrioMaternalContamination](doc/tools/TrioMaternalContamination.md) - Detects maternal contamination of a child using SNPs from parents.
 
 ### BAM tools
 
