@@ -45,6 +45,7 @@ public:
 		QTime timer;
 		timer.start();
 		bool debug = getFlag("debug");
+		bool ignore_processing_system = getFlag("ignore_processing_system");
 		QTime init_timer, del_timer, dup_timer, inv_timer, ins_timer, bnd_timer;
 		int time_init=0, time_sum_del=0, time_sum_dup=0, time_sum_inv=0, time_sum_ins=0, time_sum_bnd=0;
 		int n_del=0, n_dup=0, n_inv=0, n_ins=0, n_bnd=0;
@@ -57,21 +58,30 @@ public:
 		if (debug) init_timer.start();
 
 		// get processed sample id
-		int ps_id = Helper::toInt(db.processedSampleId(ps_name));
-		out << "Processed sample id: " << ps_id << endl;
-
-		// check if processed sample has already been imported
-		QByteArray previous_callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, QString::number(ps_id)).toString().toUtf8();
 		QByteArray sql_exclude_prev_callset;
-		if(previous_callset_id!="")
+		QString ps_id = db.processedSampleId(ps_name, false);
+		if (ps_id != "")
 		{
-			sql_exclude_prev_callset = "sc.id != " + previous_callset_id + " AND ";
-			out << "NOTE: Processed sample '" << ps_name << "' already imported. Ignoring SVs of this sample in the annotation." << endl;
+			out << "Processed sample id: " << ps_id << endl;
+
+			// check if processed sample has already been imported
+			QByteArray previous_callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_id).toByteArray();
+
+			if(previous_callset_id!="")
+			{
+				sql_exclude_prev_callset = "sc.id != " + previous_callset_id + " AND ";
+				out << "NOTE: Processed sample '" << ps_name << "' already imported. Ignoring SVs of this sample in the annotation." << endl;
+			}
+		}
+		else
+		{
+			out << "WARNING: Processed sample '" << ps_name << "' not found in NGSD. Processing system cannot be determined! Ignoring processing system for annotation" << endl;
+			ignore_processing_system = true;
 		}
 
 		// create temporary tables for each SV type filtered by the current processing system
 		QByteArray table_prefix;
-		if (!getFlag("ignore_processing_system"))
+		if (!ignore_processing_system)
 		{
 			// get processing system of current sample
 			int processing_system_id = db.processingSystemIdFromProcessedSample(ps_name);

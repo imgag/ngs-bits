@@ -55,6 +55,22 @@ private slots:
 
 	}
 
+	void artifical_svs_unknown_sample_name()
+	{
+		QString host = Settings::string("ngsd_test_host", true);
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAnnotateSV_init.sql"));
+
+		EXECUTE("NGSDAnnotateSV", "-test -debug -ps NA12878_invalid -in " + TESTDATA("data_in/NGSDAnnotateSV_in1.bedpe") + " -out out/NGSDAnnotateSV_out3.bedpe");
+
+		COMPARE_FILES("out/NGSDAnnotateSV_out3.bedpe", TESTDATA("data_out/NGSDAnnotateSV_out3.bedpe"))
+
+	}
+
 
 
 
