@@ -17,13 +17,17 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-** Add mean coverage of chrMT to report
-** Analysis jobs:
+*** Add mean coverage of chrMT to report
+*** Analysis jobs:
     - Only the user or creator should be able to cancel jobs
     - Only administrators should be able to delete jobs
-** QC plots:
+*** QC plots:
     - Show QC plots from run overview and highlight all samples of a run.
     - Check if sample name can be shown as tooltip, or next to the point if only one datapoint is visible
+*** Custom variant menu (custom_variant_menu=Custom Action|http://127.0.0.1/index.php?chr=[chr]&start=[start]&end=[end]&ref=[ref]&obs=[obs]&gene=[gene]\tCustom Action2|http://127.0.0.2/index.php?chr=[chr]&start=[start]
+** Implement sample sheet in NGSD and add it base64-encoded to XML report (Email Anne - Auwertebogen aus GsVar)
+* update ROH docu with ROH sum (ROHs >500k) for ssHAEv7 and WGS
+* Trio report: force disease_group/disease_status and outcome (import trio parents as unaffected with same disease group as child)
 * Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
