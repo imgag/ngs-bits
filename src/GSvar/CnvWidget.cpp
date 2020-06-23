@@ -165,7 +165,36 @@ void CnvWidget::addInfoLine(QString text)
 	label->setTextInteractionFlags(Qt::TextBrowserInteraction);
 	ui->info_messages->layout()->addWidget(label);
 
-	if (text.contains(":"))
+	if(text.contains("TrioMaternalContamination"))
+	{
+		double mother;
+		double father;
+		for (const QString& parent_string : text.split("|"))
+		{
+			for (const QString& sub_string : parent_string.split(" "))
+			{
+				bool isDouble(false);
+				double number = sub_string.toDouble(&isDouble);
+				if(number)
+				{
+					if(parent_string.contains("mother"))
+					{
+						mother = number;
+					}
+					else if(parent_string.contains("father"))
+					{
+						father = number;
+					}
+				}
+			}
+		}
+		double diff = mother - father;
+		if(diff > 10)
+		{
+			ui->label->setStyleSheet("QLabel { background-color : red;}");
+		}
+	}
+	else if (text.contains(":"))
 	{
 		QString metric = text.split(":")[0].trimmed();
 		while(metric.startsWith('#'))
