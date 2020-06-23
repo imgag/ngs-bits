@@ -189,9 +189,9 @@ void CnvWidget::addInfoLine(QString text)
 			}
 		}
 		double diff = mother - father;
-		if(diff > 10)
+		if(diff > 0.1)
 		{
-			ui->label->setStyleSheet("QLabel { background-color : red;}");
+			label->setStyleSheet("QLabel { color : red;}");
 		}
 	}
 	else if (text.contains(":"))
@@ -215,6 +215,7 @@ void CnvWidget::addInfoLine(QString text)
 			metrics_done_ << metric;
 		}
 	}
+
 }
 
 void CnvWidget::disableGUI()
