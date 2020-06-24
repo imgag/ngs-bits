@@ -217,6 +217,7 @@ void CnvList::load(QString filename)
 	while (!file.atEnd())
 	{
 		QByteArrayList parts = file.readLine();
+		if(parts.empty()) continue;
 
 		//regions
 		int region_count = 0;
