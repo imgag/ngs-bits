@@ -167,13 +167,28 @@ void CnvWidget::addInfoLine(QString text)
 
 	if(text.contains("TrioMaternalContamination"))
 	{
-		double mother = text.split("|")[0].split(":")[1].toDouble();
-		double father = text.split("|")[1].split(":")[1].toDouble();
-
-		double diff = std::abs(mother - father);
-		if(diff > 0.1)
+		QStringList information_list = text.split("|");
+		if(information_list.size() == 2)
 		{
-			label->setStyleSheet("QLabel { color : red;}");
+			QStringList mother_list = information_list.at(0).split(":");
+			QStringList father_list = information_list.at(1).split(":");
+			if(mother_list.size() == 2 && father_list.size() == 2)
+			{
+				bool is_double_mother(false);
+				bool is_double_father(false);
+
+				double mother = mother_list.at(1).toDouble(&is_double_mother);
+				double father = father_list.at(1).toDouble(&is_double_father);
+
+				if(is_double_mother && is_double_father)
+				{
+					double diff = std::abs(mother - father);
+					if(diff > 0.1)
+					{
+						label->setStyleSheet("QLabel { color : red;}");
+					}
+				}
+			}
 		}
 	}
 	else if (text.contains(":"))
