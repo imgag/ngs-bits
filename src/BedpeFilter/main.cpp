@@ -21,7 +21,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Filters a BEDPE file (e.g. by ROI)");
+		setDescription("Filters a BEDPE file by region.");
 
 		//optional
 		addInfile("in", "Input BEDPE file. If unset, reads from STDIN.", true);

@@ -1,5 +1,5 @@
 ### NGSDAnnotateSV tool help
-	NGSDAnnotateSV (2019_11)
+	NGSDAnnotateSV (2020_03-184-g27235379)
 	
 	Annotates the structural variants of a given BEDPE file by the NGSD counts.
 	
@@ -17,6 +17,8 @@
 	                             Default value: 'false'
 	  -debug                     Provide additional information in STDOUT (e.g. query runtime)
 	                             Default value: 'false'
+	  -use_memory                Creates the temporary tables in memory.
+	                             Default value: 'false'
 	
 	Special parameters:
 	  --help                     Shows this help and exits.
@@ -25,7 +27,7 @@
 	  --tdx                      Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDAnnotateSV changelog
-	NGSDAnnotateSV 2019_11
+	NGSDAnnotateSV 2020_03-184-g27235379
 	
 	2020-03-12 Bugfix in match computation for INS and BND
 	2020-03-11 Updated match computation for INS and BND

@@ -1,5 +1,5 @@
 ### NGSDImportHPO tool help
-	NGSDImportHPO (2019_11)
+	NGSDImportHPO (2020_03-184-g27235379)
 	
 	Imports HPO terms and gene-phenotype relations into the NGSD.
 	
@@ -26,7 +26,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportHPO changelog
-	NGSDImportHPO 2019_11
+	NGSDImportHPO 2020_03-184-g27235379
 	
 	2020-03-10 Removed support for old HPO annotation file.
 	2020-03-09 Added optimization for hpo-gene relations.

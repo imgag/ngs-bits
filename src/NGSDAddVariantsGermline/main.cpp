@@ -27,7 +27,7 @@ public:
 		addFlag("var_force", "Force import of small variants, even if already imported.");
 		addInfile("cnv", "CNV list in TSV format (as produced by megSAP).", true, true);
 		addFlag("cnv_force", "Force import of CNVs, even if already imported.");
-		addInfile("sv", "SV list in Bedpe format (as produced by megSAP).", true, true);
+                addInfile("sv", "SV list in BEDPE format (as produced by megSAP).", true, true);
 		addFlag("sv_force", "Force import of SVs, even if already imported.");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFloat("max_af", "Maximum allele frequency of small variants to import (1000g and gnomAD).", true, 0.05);

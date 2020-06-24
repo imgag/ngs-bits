@@ -19,9 +19,9 @@ public:
 
 	virtual void setup()
 	{
-        setDescription("Filter a structural variant list in Bedpe format based on variant annotations.");
-        addInfile("in", "Input structural variant list in Bedpe format.", false);
-        addOutfile("out", "Output structural variant list in Bedpe format.", false);
+        setDescription("Filter a structural variant list in BEDPE format based on variant annotations.");
+        addInfile("in", "Input structural variant list in BEDPE format.", false);
+        addOutfile("out", "Output structural variant list in BEDPE format.", false);
 		addInfile("filters", "Filter definition file.", false);
 
 		setExtendedDescription(extendedDescription());

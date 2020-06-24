@@ -1,5 +1,5 @@
 ### NGSDImportHGNC tool help
-	NGSDImportHGNC (2019_11)
+	NGSDImportHGNC (2020_03-184-g27235379)
 	
 	Imports genes from the HGNC flat file.
 	
@@ -19,6 +19,6 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportHGNC changelog
-	NGSDImportHGNC 2019_11
+	NGSDImportHGNC 2020_03-184-g27235379
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

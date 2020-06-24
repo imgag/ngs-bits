@@ -20,8 +20,8 @@ public:
 	virtual void setup()
 	{
 		setDescription("Filter a copy-number variant list in TSV format based on variant annotations.");
-        addInfile("in", "Input structural variant list in Bedpe format.", false);
-        addOutfile("out", "Output structural variant list in Bedpe format.", false);
+        addInfile("in", "Input structural variant list in BEDPE format.", false);
+        addOutfile("out", "Output structural variant list in BEDPE format.", false);
 		addInfile("filters", "Filter definition file.", false);
 
 		setExtendedDescription(extendedDescription());

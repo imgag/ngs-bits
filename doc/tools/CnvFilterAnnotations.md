@@ -1,5 +1,5 @@
 ### CnvFilterAnnotations tool help
-	CnvFilterAnnotations (2020_03-142-gee6a65cd)
+	CnvFilterAnnotations (2020_03-184-g27235379)
 	
 	Filter a copy-number variant list in TSV format based on variant annotations.
 	
@@ -15,6 +15,8 @@
 	
 	The following filters are supported:
 	CNV OMIM genes             Filter for OMIM genes i.e. the 'OMIM' column is not empty.
+	                           Parameters:
+	                             action - Action to perform [default=FILTER] [valid=REMOVE,FILTER]
 	CNV allele frequency       Filter for CNV allele frequency in the analyzed cohort.
 	                           Parameters:
 	                             max_af - Maximum allele frequency [default=0.05] [min=0.0] [max=1.0]
@@ -69,8 +71,8 @@
 	                             min_z - Minimum z-score [default=4] [min=0.0] [max=10.0]
 	
 	Mandatory parameters:
-	  -in <file>      Input structural variant list in Bedpe format.
-	  -out <file>     Output structural variant list in Bedpe format.
+	  -in <file>      Input structural variant list in BEDPE format.
+	  -out <file>     Output structural variant list in BEDPE format.
 	  -filters <file> Filter definition file.
 	
 	Special parameters:
@@ -80,7 +82,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvFilterAnnotations changelog
-	CnvFilterAnnotations 2020_03-142-gee6a65cd
+	CnvFilterAnnotations 2020_03-184-g27235379
 	
 	2020-05-25 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

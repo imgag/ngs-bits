@@ -1,5 +1,5 @@
 ### BedSort tool help
-	BedSort (2019_11)
+	BedSort (2020_03-184-g27235379)
 	
 	Sort the regions in a BED file.
 	
@@ -20,7 +20,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedSort changelog
-	BedSort 2019_11
+	BedSort 2020_03-184-g27235379
 	
 	2020-05-18 Added 'with_name' flag.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

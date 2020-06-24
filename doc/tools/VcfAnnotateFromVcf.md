@@ -1,5 +1,5 @@
 ### VcfAnnotateFromVcf tool help
-	VcfAnnotateFromVcf (2019_11)
+	VcfAnnotateFromVcf (2020_03-184-g27235379)
 	
 	Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided).
 	
@@ -32,7 +32,7 @@
 	  --tdx                   Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfAnnotateFromVcf changelog
-	VcfAnnotateFromVcf 2019_11
+	VcfAnnotateFromVcf 2020_03-184-g27235379
 	
 	2020-04-11 Added multithread support by Julian Fratte.
 	2019-08-19 Added support for multiple annotations files through config file.

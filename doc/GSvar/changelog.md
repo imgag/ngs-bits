@@ -1,7 +1,7 @@
 # GSvar change log
 
 ### 2020_03-188 (24.06.20)
-- CNVs: Added trio maternal contamination check for shallow WGS.
+- CNVs: Added trio maternal contamination check for shallow WGS trios.
 - CNVs: Fixed links to Decipher (chromosomes are now expected without 'chr' prefix). 
 - SVs: Added search for overlapping SVs in NGSD via context menu of SVs.
 - Report: Fixed language of gender field in report.
