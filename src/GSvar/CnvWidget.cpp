@@ -553,7 +553,9 @@ void CnvWidget::showContextMenu(QPoint p)
 	}
 	else if (action==a_deciphter)
 	{
-		QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + cnvs_[row].toString()));
+		QString region = cnvs_[row].toString();
+		region.remove("chr");
+		QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + region));
 	}
 	else if (action==a_rep_edit)
 	{
