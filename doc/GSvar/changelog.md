@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2020_03-188 (24.06.20)
+- CNVs: Added trio maternal contamination check for shallow WGS.
+- CNVs: Fixed links to Decipher (chromosomes are now expected without 'chr' prefix). 
+- SVs: Added search for overlapping SVs in NGSD via context menu of SVs.
+- Report: Fixed language of gender field in report.
+
 ### 2020_03-159 (02.06.20)
 - General: Removed step 'an' and added checkbox to to perform annotation only to analysis dialog (single-sample, multi-sample and trio analysis). Re-annotation now works for all variant calling steps (small variants, copy number variants, structural variants).
 - Report: SVs can now be added to report.

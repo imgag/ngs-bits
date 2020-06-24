@@ -17,7 +17,7 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-### Find out why opening SNV/SV window takes to long!
+### Find out why opening SNV/SV window takes so long!
 *** Sample search: Add ps comment (e.g. to search for contaminated samples)
 *** Add mean coverage of chrMT to report
 *** Analysis jobs:
