@@ -15,6 +15,10 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
+* none so far
+
+Changes in release 2020_06:
+
 * Added tools: NGSDAnnotateSV, BedpeToBed, BedHighCoverage, PhenotypesToGenes, PhenotypeSubtree, CnvFilterAnnotations, BedpeFilter, TrioMaternalContamination
 * Removed tools: BamHighCoverage
 * NGSDImportHPO: Added support for new HPO annotation file format and optimized the NGSD hpo-gene relation table.
@@ -22,14 +26,6 @@ Changes already implemented in GIT master for next release:
 * NGSD: Added SV report configuration
 * GSvar: Added support for SVs in report config/export, added search for SVs in the NGSD
 * BedAnnotateFromBed: Added support for reannotation of TSV files
-
-Changes in release 2020_03:
-
-* Added tools: BedpeGeneAnnotation, BedpeAnnotateFromBed, NGSDAnnotateCNV
-* NGSDImportORPHA: Added handling of outdated gene names.
-* NGSDExportSamples: Added report config output and a filter for analyzed runs only.
-* VcfCheck: added test for invalid characters in INFO column, added support for VCF.GZ files.
-* NGSDExportGenes: made HPO-annotation optional because it is slow.
 
 
 
