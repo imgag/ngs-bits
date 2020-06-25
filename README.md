@@ -17,7 +17,7 @@ Changes already implemented in GIT master for next release:
 
 * none so far
 
-Changes in release 2020_03:
+Changes in release 2020_06:
 
 * Added tools: NGSDAnnotateSV, BedpeToBed, BedHighCoverage, PhenotypesToGenes, PhenotypeSubtree, CnvFilterAnnotations, BedpeFilter, TrioMaternalContamination
 * Removed tools: BamHighCoverage
