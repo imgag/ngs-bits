@@ -172,7 +172,7 @@ class CPPNGSSHARED_EXPORT CnvList
 		void setHeaderDesciption(QByteArray name, QByteArray desciption);
 
 		///Returns the index of an annotation. -1 is returned if not present and -2 if present multiple times.
-		int annotationIndexByName(const QByteArray& name, bool throw_on_error) const;
+		int annotationIndexByName(const QByteArray& name, bool throw_on_error, bool contains = false) const;
 
 		///Returns the number of variants
 		int count() const

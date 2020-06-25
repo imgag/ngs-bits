@@ -24,8 +24,14 @@ public:
 	///Returns whether report type shall be DNA or RNA
 	report_type getReportType();
 
+	///Returns RNA id for RNA report (as selected by user)
+	QString getRNAid();
+
 	///enable option to choose between DNA or RNA report
 	void enableChoiceReportType(bool enabled);
+
+	///adds RNA ids to combo box
+	void setRNAids(const QStringList& rna_ids);
 
 private:
 	Ui::SomaticReportDialog ui_;
@@ -51,6 +57,9 @@ private slots:
 	///Deactivates all GUI elements (e.g. if user chooses RNA report)
 	void disableGUI();
 	void enableGUI();
+
+	///enables/disables combobox with RNA ids.
+	void rnaSampleSelection();
 
 	///Disable/Enable CIN tab and uncheck all chromosomes. Depends whether CNV burden is checked
 	void cinState();

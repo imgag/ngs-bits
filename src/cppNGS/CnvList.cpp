@@ -451,12 +451,16 @@ void CnvList::setHeaderDesciption(QByteArray name, QByteArray desciption)
 	annotation_header_desc_[name] = desciption;
 }
 
-int CnvList::annotationIndexByName(const QByteArray& name, bool throw_on_error) const
+int CnvList::annotationIndexByName(const QByteArray& name, bool throw_on_error, bool contains) const
 {
 	QList<int> matches;
 	for(int i=0; i<annotation_headers_.count(); ++i)
 	{
-		if (annotation_headers_[i] == name )
+		if (!contains && annotation_headers_[i] == name )
+		{
+			matches.append(i);
+		}
+		if(contains && annotation_headers_[i].contains(name))
 		{
 			matches.append(i);
 		}

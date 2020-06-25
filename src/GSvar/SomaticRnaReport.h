@@ -10,7 +10,7 @@
 class SomaticRnaReport
 {
 public:
-	SomaticRnaReport(const VariantList& snv_list, const FilterCascade& filters, const CnvList& cnv_list);
+	SomaticRnaReport(const VariantList& snv_list, const FilterCascade& filters, const CnvList& cnv_list, QString rna_ps_name);
 
 	///write RTF to file
 	void writeRtf(QByteArray out_file);
@@ -34,6 +34,11 @@ public:
 	static bool checkRequiredSNVAnnotations(const VariantList& variants);
 	///Checks whether all annotations neccessary for creating RNA CNV table are available
 	static bool checkRequiredCNVAnnotations(const CnvList& cnvs);
+
+	///Returns reference tissue, resolved from variant list variants
+	static QString refTissueType(const VariantList& variants);
+
+	void checkRefTissueTypeInNGSD(QString ref_type, QString tumor_dna_ps_id);
 
 private:
 	//processed sample name of RNA sample

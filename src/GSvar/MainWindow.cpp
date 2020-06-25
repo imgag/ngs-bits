@@ -2482,7 +2482,17 @@ void MainWindow::generateReportSomaticRTF()
 	}
 
 	SomaticReportDialog dlg(somatic_report_settings_, variants_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
-	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_)) dlg.enableChoiceReportType(true);
+	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_))
+	{
+		dlg.enableChoiceReportType(true);
+		//get RNA ids annotated to GSvar file
+		QStringList rna_ids;
+		for(const auto& an : variants_.annotations())
+		{
+			if(an.name().contains("_rna_tpm")) rna_ids << QString(an.name()).replace("_rna_tpm", "");
+		}
+		dlg.setRNAids(rna_ids);
+	}
 
 	if(!dlg.exec())
 	{
@@ -2502,17 +2512,7 @@ void MainWindow::generateReportSomaticRTF()
 	}
 	else
 	{
-		QString rna_id = "";
-		for(const auto& comment : variants_.comments()) //Determine RNA ID from GSvar file for file name proposal
-		{
-			if(comment.contains("RNA_PROCESSED_SAMPLE_ID="))
-			{
-				rna_id = comment.split("=")[1];
-				break;
-			}
-		}
-
-		destination_path = last_report_path_ + "/" + rna_id + "-" + QFileInfo(filename_).baseName() + "_RNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
+		destination_path = last_report_path_ + "/" + dlg.getRNAid() + "-" + QFileInfo(filename_).baseName() + "_RNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
 	}
 
 	//get RTF file name
@@ -2578,7 +2578,8 @@ void MainWindow::generateReportSomaticRTF()
 		try
 		{
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
-			SomaticRnaReport rna_report(variants_, ui_.filters->filters(), cnvs_);
+			SomaticRnaReport rna_report(variants_, ui_.filters->filters(), cnvs_, dlg.getRNAid());
+			rna_report.checkRefTissueTypeInNGSD(rna_report.refTissueType(variants_),somatic_report_settings_.tumor_ps);
 			rna_report.writeRtf(temp_filename);
 			ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
 			QApplication::restoreOverrideCursor();

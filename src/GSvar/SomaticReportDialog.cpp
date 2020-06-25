@@ -20,6 +20,10 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 
 	connect(ui_.report_type_rna, SIGNAL(clicked(bool)), this, SLOT(disableGUI()));
 	connect(ui_.report_type_dna, SIGNAL(clicked(bool)), this, SLOT(enableGUI()));
+
+	connect(ui_.report_type_rna, SIGNAL(clicked(bool)), this, SLOT(rnaSampleSelection()));
+	connect(ui_.report_type_dna, SIGNAL(clicked(bool)), this, SLOT(rnaSampleSelection()));
+
 	connect(ui_.include_cnv_burden, SIGNAL(stateChanged(int)), this, SLOT(cinState()));
 	connect(ui_.limitations_check, SIGNAL(stateChanged(int)), this, SLOT(limitationState()));
 
@@ -307,6 +311,12 @@ void SomaticReportDialog::enableGUI()
 	}
 }
 
+void SomaticReportDialog::rnaSampleSelection()
+{
+	if(ui_.report_type_rna->isChecked()) ui_.rna_ids_for_report->setEnabled(true);
+	else ui_.rna_ids_for_report->setEnabled(false);
+}
+
 void SomaticReportDialog::writeBackSettings()
 {
 	if(getReportType() == RNA) return; //No report configuration for RNA samples
@@ -384,6 +394,11 @@ SomaticReportDialog::report_type SomaticReportDialog::getReportType()
 	else return report_type::RNA;
 }
 
+QString SomaticReportDialog::getRNAid()
+{
+	return ui_.rna_ids_for_report->currentText();
+}
+
 void SomaticReportDialog::enableChoiceReportType(bool enabled)
 {
 	ui_.report_type_label->setEnabled(enabled);
@@ -413,6 +428,11 @@ void SomaticReportDialog::cinState()
 			checkbox->setChecked(false);
 		}
 	}
+}
+
+void SomaticReportDialog::setRNAids(const QStringList& rna_ids)
+{
+	ui_.rna_ids_for_report->addItems(rna_ids);
 }
 
 void SomaticReportDialog::limitationState()

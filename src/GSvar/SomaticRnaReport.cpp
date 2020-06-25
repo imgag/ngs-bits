@@ -4,7 +4,7 @@
 #include "SomaticReportHelper.h"
 #include "TSVFileStream.h"
 
-SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCascade& filters, const CnvList& cnv_list)
+SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCascade& filters, const CnvList& cnv_list, QString rna_ps_name)
 	: db_()
 	, dna_cnvs_(cnv_list)
 {
@@ -15,21 +15,13 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 		if(!som_filters_pass[i]) continue;
 		dna_snvs_.append(snv_list[i]);
 	}
-
+	rna_ps_name_ = rna_ps_name;
 
 	//Get RNA processed sample name and resolve path to RNA directory
 	QString rna_sample_dir ="";
-	for(QString comment: dna_snvs_.comments())
-	{
-		if(comment.contains("RNA_PROCESSED_SAMPLE_ID="))
-		{
-			rna_ps_name_ = comment.split('=')[1];
-		}
-		if(comment.contains("RNA_REF_TPM_TISSUE="))
-		{
-			ref_tissue_type_ = comment.split('=')[1];
-		}
-	}
+
+	ref_tissue_type_ = refTissueType(dna_snvs_);
+
 	rna_sample_dir = db_.processedSamplePath(db_.processedSampleId(rna_ps_name_), NGSD::PathType::SAMPLE_FOLDER);
 
 
@@ -76,22 +68,66 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 
 bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
 {
-	const QByteArrayList an_names = {"coding_and_splicing", "tumor_af", "CGI_driver_statement",  "rna_depth", "rna_af", "rna_tpm", "rna_ref_tpm"};
-	for(QByteArray an : an_names)
+	//neccessary DNA annotations (exact match)
+	const QByteArrayList an_names_dna = {"coding_and_splicing", "tumor_af", "CGI_driver_statement"};
+	for(QByteArray an : an_names_dna)
 	{
 		if(variants.annotationIndexByName(an, true, false) == -1) return false;
 	}
+	//neccessary RNA annotation (from RNA samples), (no exact match, because multiple RNA annotations possible)
+	const QByteArrayList an_names_rna = {"_rna_depth", "_rna_af", "_rna_tpm", "rna_ref_tpm"};
+	for(QByteArray an : an_names_rna)
+	{
+		if(variants.annotationIndexByName(an,false, false) == -1) return false;
+	}
+
 	return true;
 }
 
 bool SomaticRnaReport::checkRequiredCNVAnnotations(const CnvList &cnvs)
 {
-	QByteArrayList an_names = {"cnv_type", "CGI_genes", "CGI_driver_statement", "CGI_gene_role", "rna_tpm", "rna_ref_tpm"};
-	for(QByteArray an : an_names)
+	QByteArrayList an_names_dna = {"cnv_type", "CGI_genes", "CGI_driver_statement", "CGI_gene_role"};
+	for(QByteArray an : an_names_dna)
 	{
 		if(cnvs.annotationIndexByName(an, false) < 0) return false;
 	}
+
+	QByteArrayList an_names_rna = {"_rna_tpm", "rna_ref_tpm"};
+	for(QByteArray an : an_names_rna)
+	{
+		if(cnvs.annotationIndexByName(an, false, true) == -1) return false;
+	}
+
 	return true;
+}
+
+QString SomaticRnaReport::refTissueType(const VariantList &variants)
+{
+	QString ref_tissue_type = "";
+	for(QString comment: variants.comments())
+	{
+		if(comment.contains("RNA_REF_TPM_TISSUE="))
+		{
+			ref_tissue_type = comment.split('=')[1];
+			break;
+		}
+	}
+	return ref_tissue_type;
+}
+
+void SomaticRnaReport::checkRefTissueTypeInNGSD(QString ref_type, QString tumor_dna_ps_id)
+{
+	QString sample_id = db_.getValue("SELECT ps.sample_id FROM processed_sample as ps  WHERE ps.id = " + db_.processedSampleId(tumor_dna_ps_id) ).toString();
+	QList<SampleDiseaseInfo> disease_info = db_.getSampleDiseaseInfo(sample_id, "RNA reference tissue");
+
+	if(disease_info.count() != 1)
+	{
+		THROW(DatabaseException, "Found multiple or no RNA reference tissue for processed sample id " + tumor_dna_ps_id + " in NGSD.");
+	}
+	if(disease_info[0].disease_info != ref_type)
+	{
+		THROW(DatabaseException, "Found RNA reference tissue " + disease_info[0].disease_info + " in NGSD but " + ref_type + " in somatic GSVAR file.");
+	}
 }
 
 
@@ -123,8 +159,8 @@ RtfTable SomaticRnaReport::snvTable()
 	int i_tum_af = dna_snvs_.annotationIndexByName("tumor_af");
 	int i_cgi_statem = dna_snvs_.annotationIndexByName("CGI_driver_statement");
 
-	int i_rna_tpm = dna_snvs_.annotationIndexByName("rna_tpm");
-	int i_rna_af = dna_snvs_.annotationIndexByName("rna_af");
+	int i_rna_tpm = dna_snvs_.annotationIndexByName(rna_ps_name_ + "_rna_tpm");
+	int i_rna_af = dna_snvs_.annotationIndexByName(rna_ps_name_ + "_rna_af");
 
 	int i_rna_ref_tpm = dna_snvs_.annotationIndexByName("rna_ref_tpm");
 
@@ -190,7 +226,7 @@ RtfTable SomaticRnaReport::cnvTable()
 	int i_tum_clonality = dna_cnvs_.annotationIndexByName("tumor_clonality", true);
 	int i_size_desc = dna_cnvs_.annotationIndexByName("cnv_type", true);
 	//RNA annotations indices
-	int i_rna_tpm = dna_cnvs_.annotationIndexByName("rna_tpm", true);
+	int i_rna_tpm = dna_cnvs_.annotationIndexByName(rna_ps_name_.toUtf8() + "_rna_tpm", true);
 	int i_ref_rna_tpm = dna_cnvs_.annotationIndexByName("rna_ref_tpm", true);
 
 	RtfTable table;

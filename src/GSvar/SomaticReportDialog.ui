@@ -964,6 +964,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QComboBox" name="rna_ids_for_report">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QDialogButtonBox" name="ok_cancel_button">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
