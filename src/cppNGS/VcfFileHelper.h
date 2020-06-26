@@ -144,21 +144,17 @@ public:
 	void storeHeaderInformation(QTextStream& stream) const
 	{
 		foreach (VcfHeaderLineBasePtr header_line_ptr, header_line_order) {
-			qDebug() << header_line_ptr->line_key;
 			header_line_ptr->storeLine(stream);
 		}
 	}
 
 	void setFormat(QByteArray& line)
 	{
-		qDebug() << __LINE__;
 		file_format = std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformation(line, "fileformat"), "fileformat"));
 		header_line_order.push_back(file_format);
 	}
 	void setDate(QByteArray& line)
 	{
-		qDebug() << __LINE__;
-
 		file_date = std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformation(line, "fileDate"), "fileDate"));
 		header_line_order.push_back(file_date);
 	}
@@ -169,19 +165,13 @@ public:
 	}
 	void setReference(QByteArray& line)
 	{
-		file_reference =  std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformation(line, "reference"), "reference"));
+		file_reference = std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformation(line, "reference"), "reference"));
 		header_line_order.push_back(file_reference);
 	}
 	void setContig(QByteArray& line)
 	{
-		qDebug() << __LINE__;
-
-		qDebug() << "set contig";
-		file_contig.push_back( std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformationContig(line, "contig"), "contig")));
-		qDebug() << file_contig.size() << &file_contig.back() << file_contig.back()->line_key;
+		file_contig.push_back(std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformationContig(line, "contig"), "contig")));
 		header_line_order.push_back(file_contig.back());
-		qDebug() << header_line_order.back()->line_key;
-
 	}
 	void setPhasing(QByteArray& line)
 	{
@@ -224,9 +214,9 @@ private:
 		{
 			THROW(FileParseException, "Malformed " + information + " line " + line.trimmed());
 		}
-		for(int i = 0; i < splitted_line.size(); ++i)
+		for(int i = 2; i < splitted_line.size(); ++i)
 		{
-			splitted_line[1].append(splitted_line[i]);
+			splitted_line[1].append("=").append(splitted_line[i]);
 		}
 		return splitted_line[1];
 	}
@@ -246,6 +236,7 @@ private:
 		{
 			THROW(FileParseException, "Malformed " + type + " line: does not start with ID-field " + splitted_ID_entry[0] + "'");
 		}
+		ID_entry = ID_entry.split('=')[1];
 		info_format_line.id = ID_entry;
 		comma_splitted_line.pop_front();//pop ID-field
 
