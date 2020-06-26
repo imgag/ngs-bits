@@ -115,10 +115,10 @@ struct CPPNGSSHARED_EXPORT FilterLine : VcfHeaderLineBase
 
 enum InfoFormatType {INFO, FORMAT};
 
-
-using VcfHeaderLinePtr = std::unique_ptr<VcfHeaderLine>;
-using InfoFormatLinePtr = std::unique_ptr<InfoFormatLine>;
-using FilterLinePtr = std::unique_ptr<FilterLine>;
+using VcfHeaderLineBasePtr = std::shared_ptr<VcfHeaderLineBase>;
+using VcfHeaderLinePtr = std::shared_ptr<VcfHeaderLine>;
+using InfoFormatLinePtr = std::shared_ptr<InfoFormatLine>;
+using FilterLinePtr = std::shared_ptr<FilterLine>;
 
 ///struct representing a vcf header.
 /// most important information is stored in seperate variables, additional information
@@ -143,66 +143,70 @@ public:
 
 	void storeHeaderInformation(QTextStream& stream) const
 	{
-		foreach (VcfHeaderLineBase* header_line_ptr, header_line_order) {
-			qDebug() << "adress" << header_line_ptr;
-					 qDebug() << header_line_ptr->line_key;
+		foreach (VcfHeaderLineBasePtr header_line_ptr, header_line_order) {
+			qDebug() << header_line_ptr->line_key;
 			header_line_ptr->storeLine(stream);
 		}
 	}
 
 	void setFormat(QByteArray& line)
 	{
-		file_format = VcfHeaderLine(parseLineInformation(line, "fileformat"), "fileformat");
-		header_line_order.push_back(&file_format);
+		qDebug() << __LINE__;
+		file_format = std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformation(line, "fileformat"), "fileformat"));
+		header_line_order.push_back(file_format);
 	}
 	void setDate(QByteArray& line)
 	{
-		file_date = VcfHeaderLine(parseLineInformation(line, "fileDate"), "fileDate");
-		header_line_order.push_back(&file_date);
+		qDebug() << __LINE__;
+
+		file_date = std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformation(line, "fileDate"), "fileDate"));
+		header_line_order.push_back(file_date);
 	}
 	void setSource(QByteArray& line)
 	{
-		file_source = VcfHeaderLine(parseLineInformation(line, "source"), "source");
-		header_line_order.push_back(&file_source);
+		file_source = std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformation(line, "source"), "source"));
+		header_line_order.push_back(file_source);
 	}
 	void setReference(QByteArray& line)
 	{
-		file_reference = VcfHeaderLine(parseLineInformation(line, "reference"), "reference");
-		header_line_order.push_back(&file_reference);
+		file_reference =  std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformation(line, "reference"), "reference"));
+		header_line_order.push_back(file_reference);
 	}
 	void setContig(QByteArray& line)
 	{
+		qDebug() << __LINE__;
+
 		qDebug() << "set contig";
-		file_contig.push_back(VcfHeaderLine(parseLineInformationContig(line, "contig"), "contig"));
-		qDebug() << file_contig.size() << &file_contig.back() << file_contig.back().line_key;
-		header_line_order.push_back(&file_contig.back());
+		file_contig.push_back( std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformationContig(line, "contig"), "contig")));
+		qDebug() << file_contig.size() << &file_contig.back() << file_contig.back()->line_key;
+		header_line_order.push_back(file_contig.back());
 		qDebug() << header_line_order.back()->line_key;
 
 	}
 	void setPhasing(QByteArray& line)
 	{
-		file_phasing = VcfHeaderLine(parseLineInformation(line, "phasing"), "phasing");
-		header_line_order.push_back(&file_phasing);
+		file_phasing = std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformation(line, "phasing"), "phasing"));
+		header_line_order.push_back(file_phasing);
 	}
 	void setInfoFormatLine(QByteArray& line, InfoFormatType type)
 	{
 		if(type == INFO)
 		{
 			line=line.mid(8);//remove "##INFO=<"
-			file_info_style.push_back(parseInfoFormatLine(line, "INFO"));
-			header_line_order.push_back(&file_info_style.back());
+			file_info_style.push_back(std::make_shared<InfoFormatLine>(parseInfoFormatLine(line, "INFO")));
+			header_line_order.push_back(file_info_style.back());
 		}
 		else
 		{
 			line=line.mid(10);//remove "##FORMAT=<"
-			file_format_style.push_back(parseInfoFormatLine(line, "FORMAT"));
-			header_line_order.push_back(&file_format_style.back());
+			file_format_style.push_back(std::make_shared<InfoFormatLine>(parseInfoFormatLine(line, "FORMAT")));
+			header_line_order.push_back(file_format_style.back());
 		}
 	}
 
 private:
 	//Contaimner storing the order of header information
-	QVector<VcfHeaderLineBase*> header_line_order;
+	QVector<VcfHeaderLineBasePtr> header_line_order;
 
 	QByteArray parseLineInformation(QByteArray line, const QByteArray& information)
 	{
