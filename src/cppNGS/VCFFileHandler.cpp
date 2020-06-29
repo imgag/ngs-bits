@@ -5,7 +5,6 @@
 
 void VcfFileHandler::parseVcfHeader(const int line_number, QByteArray& line)
 {
-
 	if(line_number==1)
 	{
 		if(line.startsWith("##fileformat"))
@@ -57,6 +56,42 @@ void VcfFileHandler::parseVcfHeader(const int line_number, QByteArray& line)
 		VcfHeader_.setUnspecificLine(line, line_number);
 	}
 }
+void VcfFileHandler::parseHeaderFields(QByteArray& line)
+{
+	//header line
+	if (line.startsWith("#CHROM"))
+	{
+		QList<QByteArray> header_fields = line.mid(1).split('\t');
+
+		if (header_fields.count()<VCFHeaderType::MIN_COLS)//8 are mandatory
+		{
+			THROW(FileParseException, "VCF file header line with less than 8 fields found: '" + line.trimmed() + "'");
+		}
+		if ((header_fields[0]!="CHROM")||(header_fields[1]!="POS")||(header_fields[2]!="ID")||(header_fields[3]!="REF")||(header_fields[4]!="ALT")||(header_fields[5]!="QUAL")||(header_fields[6]!="FILTER")||(header_fields[7]!="INFO"))
+		{
+			THROW(FileParseException, "VCF file header line with at least one illegal named mandatory column: '" + line.trimmed() + "'");
+		}
+
+		for(const QByteArray column_header : header_fields)
+		{
+			VcfHeader_.columns.push_back(column_header);
+		}
+	}
+}
+void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line)
+{
+	QList<QByteArray> line_parts = line.split('\t');
+	if (line_parts.count()<VCFHeaderType::MIN_COLS)
+	{
+		THROW(FileParseException, "VCF data line needs at least 7 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
+	}
+	VCFLineType vcf_line;
+
+
+	VcfLineVector_.push_back(vcf_line);
+
+}
+
 
 void VcfFileHandler::processVcfLine(int& line_number, QByteArray line)
 {
@@ -72,80 +107,15 @@ void VcfFileHandler::processVcfLine(int& line_number, QByteArray line)
 	{
 		parseVcfHeader(line_number, line);
 	}
-
+	else if (line.startsWith("#CHROM"))
+	{
+		parseHeaderFields(line);
+	}
+	else
+	{
+		parseVcfEntry(line_number, line);
+	}
 /*
-	//header line
-	if (line.startsWith("#CHROM"))
-	{
-		header_fields = line.mid(1).split('\t');
-
-		if (header_fields.count()<VcfFile::MIN_COLS)//8 are mandatory
-		{
-			THROW(FileParseException, "VCF file header line with less than 8 fields found: '" + line.trimmed() + "'");
-		}
-		if ((header_fields[0]!="CHROM")||(header_fields[1]!="POS")||(header_fields[2]!="ID")||(header_fields[3]!="REF")||(header_fields[4]!="ALT")||(header_fields[5]!="QUAL")||(header_fields[6]!="FILTER")||(header_fields[7]!="INFO"))
-		{
-			THROW(FileParseException, "VCF file header line with at least one illegal named mandatory column: '" + line.trimmed() + "'");
-		}
-
-		// set annotation headers
-		annotations().append(VariantAnnotationHeader("ID"));
-		annotations().append(VariantAnnotationHeader("QUAL"));
-		annotations().append(VariantAnnotationHeader("FILTER"));
-		// (1) for all INFO fields (sample independent annotations)
-		for(int i=0; i<annotationDescriptions().count(); ++i)
-		{
-			if(annotationDescriptions()[i].name()=="ID" || annotationDescriptions()[i].name()=="QUAL" || annotationDescriptions()[i].name()=="FILTER")	continue;	//skip annotations that are already there
-			if(annotationDescriptions()[i].sampleSpecific())	continue;
-			annotations().append(VariantAnnotationHeader(annotationDescriptions()[i].name()));
-		}
-		// (2) for all samples and their FORMAT fields (sample dependent annotations)
-		for(int i=9; i<header_fields.count(); ++i)
-		{
-			QString sample_id = QString(header_fields[i]);
-			int sample_specific_count = 0;
-
-			for(int ii=0; ii<annotationDescriptions().count(); ++ii)
-			{
-				if(!annotationDescriptions()[ii].sampleSpecific()) continue;
-				++sample_specific_count;
-				annotations().append(VariantAnnotationHeader(annotationDescriptions()[ii].name(),sample_id));
-			}
-
-			if(sample_specific_count==0)
-			{
-				annotations().append(VariantAnnotationHeader(".",sample_id));
-				annotationDescriptions().append(VariantAnnotationDescription(".", "Default column description since no FORMAT fields were defined.", VariantAnnotationDescription::STRING, true, "1", false));//add dummy description
-			}
-		}
-
-		// (3) FORMAT column available
-		if(header_fields.count()<=9)
-		{
-			QString sample_id = "Sample";
-			int sample_specific_count = 0;
-			for(int i=0; i<annotationDescriptions().count(); ++i)
-			{
-				if(!annotationDescriptions()[i].sampleSpecific()) continue;
-				annotations().append(VariantAnnotationHeader(annotationDescriptions()[i].name(),sample_id));
-				++sample_specific_count;
-			}
-
-			if(sample_specific_count==0)
-			{
-				annotations().append(VariantAnnotationHeader(".", sample_id));
-				annotationDescriptions().append(VariantAnnotationDescription(".", "Default column description since no FORMAT fields were defined.", VariantAnnotationDescription::STRING, true, "1", false));//add dummy description
-			}
-		}
-		return;
-	}
-
-	//variant line
-	QList<QByteArray> line_parts = line.split('\t');
-	if (line_parts.count()<VcfFile::MIN_COLS)
-	{
-		THROW(FileParseException, "VCF data line needs at least 7 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
-	}
 
 	//Skip variants that are not in the target region (if given)
 	Chromosome chr = line_parts[0];
@@ -318,8 +288,14 @@ void VcfFileHandler::store(const QString& filename) const
 	QTextStream stream(file.data());
 
 	//write header information
-	//TODO: make a container that keeps information in order
 	VcfHeader_.storeHeaderInformation(stream);
+
+	//write header columns
+	stream << "#" << VcfHeader_.columns.at(0);
+	for(int i = 1; i < VcfHeader_.columns.count(); ++i)
+	{
+		stream << "\t" << VcfHeader_.columns.at(i);
+	}
 /*
 	//write annotations information (##INFO and ##FORMAT lines)
 	for (int j=3; j<annotationDescriptions().count(); ++j) //why 3: skip ID Quality Filter

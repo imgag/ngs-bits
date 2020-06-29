@@ -30,6 +30,8 @@ public:
 private:
 
 	void parseVcfHeader(const int line_number, QByteArray& line);
+	void parseHeaderFields(QByteArray& line);
+	void parseVcfEntry(const int line_number, QByteArray& line);
 	void processVcfLine(int& line_number, QByteArray line);
 	void loadFromVCF(const QString& filename);
 	void loadFromVCFGZ(const QString& filename);
