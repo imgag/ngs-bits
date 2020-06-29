@@ -3805,73 +3805,78 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 		output.set(var_conf);
 	}
 
-	//load SV data
-	query.exec("SELECT * FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(conf_id));
-	while(query.next())
+	// skip SVs if given SV file is empty (Trio)
+	if (svs.count() > 0)
 	{
-		ReportVariantConfiguration var_conf;
-		var_conf.variant_type = VariantType::SVS;
+		//load SV data
+		query.exec("SELECT * FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(conf_id));
+		while(query.next())
+		{
+			ReportVariantConfiguration var_conf;
+			var_conf.variant_type = VariantType::SVS;
 
-		//get SV id
-		int sv_id;
-		StructuralVariantType type;
+			//get SV id
+			int sv_id;
+			StructuralVariantType type;
 
-		//determine SV type and id
-		if(!query.value("sv_deletion_id").isNull())
-		{
-			type = StructuralVariantType::DEL;
-			sv_id = query.value("sv_deletion_id").toInt();
-		}
-		else if(!query.value("sv_duplication_id").isNull())
-		{
-			type = StructuralVariantType::DUP;
-			sv_id = query.value("sv_duplication_id").toInt();
-		}
-		else if(!query.value("sv_insertion_id").isNull())
-		{
-			type = StructuralVariantType::INS;
-			sv_id = query.value("sv_insertion_id").toInt();
-		}
-		else if(!query.value("sv_inversion_id").isNull())
-		{
-			type = StructuralVariantType::INV;
-			sv_id = query.value("sv_inversion_id").toInt();
-		}
-		else if(!query.value("sv_translocation_id").isNull())
-		{
-			type = StructuralVariantType::BND;
-			sv_id = query.value("sv_translocation_id").toInt();
-		}
-		else
-		{
-			THROW(DatabaseException, "Report config entry does not contain a SV id!");
+			//determine SV type and id
+			if(!query.value("sv_deletion_id").isNull())
+			{
+				type = StructuralVariantType::DEL;
+				sv_id = query.value("sv_deletion_id").toInt();
+			}
+			else if(!query.value("sv_duplication_id").isNull())
+			{
+				type = StructuralVariantType::DUP;
+				sv_id = query.value("sv_duplication_id").toInt();
+			}
+			else if(!query.value("sv_insertion_id").isNull())
+			{
+				type = StructuralVariantType::INS;
+				sv_id = query.value("sv_insertion_id").toInt();
+			}
+			else if(!query.value("sv_inversion_id").isNull())
+			{
+				type = StructuralVariantType::INV;
+				sv_id = query.value("sv_inversion_id").toInt();
+			}
+			else if(!query.value("sv_translocation_id").isNull())
+			{
+				type = StructuralVariantType::BND;
+				sv_id = query.value("sv_translocation_id").toInt();
+			}
+			else
+			{
+				THROW(DatabaseException, "Report config entry does not contain a SV id!");
+			}
+
+			BedpeLine sv = structural_variant(sv_id, type, svs);
+
+			var_conf.variant_index = svs.findMatch(sv, true, false);
+			if (var_conf.variant_index==-1)
+			{
+				messages << "Could not find SV '" + BedpeFile::typeToString(sv.type()) + " " + sv.positionRange() + "' in given variant list!";
+				continue;
+			}
+
+			var_conf.report_type = query.value("type").toString();
+			var_conf.causal = query.value("causal").toBool();
+			var_conf.classification = query.value("class").toString();
+			var_conf.inheritance = query.value("inheritance").toString();
+			var_conf.de_novo = query.value("de_novo").toBool();
+			var_conf.mosaic = query.value("mosaic").toBool();
+			var_conf.comp_het = query.value("compound_heterozygous").toBool();
+			var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
+			var_conf.exclude_frequency = query.value("exclude_frequency").toBool();
+			var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
+			var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
+			var_conf.exclude_other = query.value("exclude_other").toBool();
+			var_conf.comments = query.value("comments").toString();
+			var_conf.comments2 = query.value("comments2").toString();
+
+			output.set(var_conf);
 		}
 
-		BedpeLine sv = structural_variant(sv_id, type, svs);
-
-		var_conf.variant_index = svs.findMatch(sv, true, false);
-		if (var_conf.variant_index==-1)
-		{
-			messages << "Could not find CNV '" + BedpeFile::typeToString(sv.type()) + " " + sv.positionRange() + "' in given variant list!";
-			continue;
-		}
-
-		var_conf.report_type = query.value("type").toString();
-		var_conf.causal = query.value("causal").toBool();
-		var_conf.classification = query.value("class").toString();
-		var_conf.inheritance = query.value("inheritance").toString();
-		var_conf.de_novo = query.value("de_novo").toBool();
-		var_conf.mosaic = query.value("mosaic").toBool();
-		var_conf.comp_het = query.value("compound_heterozygous").toBool();
-		var_conf.exclude_artefact = query.value("exclude_artefact").toBool();
-		var_conf.exclude_frequency = query.value("exclude_frequency").toBool();
-		var_conf.exclude_phenotype = query.value("exclude_phenotype").toBool();
-		var_conf.exclude_mechanism = query.value("exclude_mechanism").toBool();
-		var_conf.exclude_other = query.value("exclude_other").toBool();
-		var_conf.comments = query.value("comments").toString();
-		var_conf.comments2 = query.value("comments2").toString();
-
-		output.set(var_conf);
 	}
 
 	return output;
