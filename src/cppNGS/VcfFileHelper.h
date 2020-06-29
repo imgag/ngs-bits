@@ -3,6 +3,7 @@
 #include "cppNGS_global.h"
 #include "KeyValuePair.h"
 #include "Exceptions.h"
+#include "Log.h"
 
 #include "ChromosomalIndex.h"
 #include "Sequence.h"
@@ -89,11 +90,10 @@ struct CPPNGSSHARED_EXPORT InfoFormatLine : VcfHeaderLineBase
 	QByteArray id;
 	QByteArray number;
 	QByteArray type;
-	QByteArray description;
+	QString description;
 
 	void storeLine(QTextStream& stream)
 	{
-		qDebug() << "writing info line the first";
 		stream << line_key << "=<ID=" << id << ",Number=" << number << ",Type=" << type << ",Description=" << description  << "\n";
 	}
 };
@@ -178,25 +178,41 @@ public:
 		file_phasing = std::make_shared<VcfHeaderLine>(VcfHeaderLine(parseLineInformation(line, "phasing"), "phasing"));
 		header_line_order.push_back(file_phasing);
 	}
-	void setInfoFormatLine(QByteArray& line, InfoFormatType type)
+	void setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number)
 	{
 		if(type == INFO)
 		{
 			line=line.mid(8);//remove "##INFO=<"
-			file_info_style.push_back(std::make_shared<InfoFormatLine>(parseInfoFormatLine(line, "INFO")));
-			header_line_order.push_back(file_info_style.back());
+			InfoFormatLinePtr info_line = parseInfoFormatLine(line, "INFO", line_number);
+			if(info_line)
+			{
+				file_info_style.push_back(info_line);
+				header_line_order.push_back(file_info_style.back());
+			}
 		}
 		else
 		{
 			line=line.mid(10);//remove "##FORMAT=<"
-			file_format_style.push_back(std::make_shared<InfoFormatLine>(parseInfoFormatLine(line, "FORMAT")));
-			header_line_order.push_back(file_format_style.back());
+			InfoFormatLinePtr format_line = parseInfoFormatLine(line, "FORMAT", line_number);
+			if(format_line)
+			{
+				file_format_style.push_back(format_line);
+				header_line_order.push_back(file_format_style.back());
+				//make sure the "GT" format field is always the first format field
+				if(format_line->id == "GT" && file_format_style.size() > 1)
+				{
+					header_line_order.move(header_line_order.count()-1, header_line_order.count() - file_format_style.count());
+				}
+			}
 		}
 	}
 
 private:
 	//Contaimner storing the order of header information
 	QVector<VcfHeaderLineBasePtr> header_line_order;
+
+	static const QByteArrayList InfoTypes;
+	static const QByteArrayList FormatTypes;
 
 	QByteArray parseLineInformation(QByteArray line, const QByteArray& information)
 	{
@@ -220,7 +236,7 @@ private:
 		}
 		return splitted_line[1];
 	}
-	InfoFormatLine parseInfoFormatLine(QByteArray& line, QByteArray type)
+	InfoFormatLinePtr parseInfoFormatLine(QByteArray& line, QByteArray type, const int line_number)
 	{
 		InfoFormatLine info_format_line = InfoFormatLine(type);
 		QList <QByteArray> comma_splitted_line=line.split(',');
@@ -234,13 +250,77 @@ private:
 		QList <QByteArray> splitted_ID_entry=ID_entry.split('=');
 		if (!(splitted_ID_entry[0].startsWith("ID")))
 		{
-			THROW(FileParseException, "Malformed " + type + " line: does not start with ID-field " + splitted_ID_entry[0] + "'");
+			THROW(FileParseException, "Malformed " + type + " line: does not start with ID-field " + splitted_ID_entry[0]);
 		}
 		ID_entry = ID_entry.split('=')[1];
 		info_format_line.id = ID_entry;
 		comma_splitted_line.pop_front();//pop ID-field
+		//parse number field
+		QByteArray number_entry=comma_splitted_line.first();
+		QList <QByteArray> splitted_number_entry=number_entry.split('=');
+		if (!(splitted_number_entry[0].trimmed().startsWith("Number")))
+		{
+			THROW(FileParseException, "Malformed " + type + " line: second field is not a number field " + splitted_number_entry[0]);
+		}
+		info_format_line.number = splitted_number_entry[1];
+		comma_splitted_line.pop_front();//pop number-field
+		//parse type field
+		QList <QByteArray> splitted_type_entry=comma_splitted_line.first().split('=');
+		if (splitted_type_entry[0].trimmed()!="Type")
+		{
+			THROW(FileParseException, "Malformed " + type + " line: third field is not a type field " + line.trimmed() + "'");
+		}
+		QByteArray s_type=splitted_type_entry[1];
+		if ( (type == "INFO" && !(InfoTypes.contains(s_type))) || (type == "FORMAT" &&  !(FormatTypes.contains(s_type))) )
+		{
+			THROW(FileParseException, "Malformed " + type +" line: undefined value for type " + line.trimmed() + "'");
+		}
+		info_format_line.type = s_type;
+		comma_splitted_line.pop_front();//pop type-field
+		//parse description field
+		QByteArray description_entry=comma_splitted_line.front();
+		QList <QByteArray> splitted_description_entry=description_entry.split('=');
+		if (splitted_description_entry[0].trimmed()!="Description")
+		{
+			THROW(FileParseException, "Malformed " + type + " line: fourth field is not a description field " + line.trimmed());
+		}
+		//ugly, but because the description may content commas, too...
+		comma_splitted_line.pop_front();//pop type-field
+		comma_splitted_line.push_front(splitted_description_entry[1]);//re-add description value between '=' and possible ","
+		QStringList description_value_parts;//convert to QStringList
+		for(int i=0; i<comma_splitted_line.size(); ++i)
+		{
+			description_value_parts.append(comma_splitted_line[i]);
+		}
+		QString description_value=description_value_parts.join(",");//join parts
+		description_value=description_value.mid(1);//remove '"'
+		description_value.chop(2);//remove '">'
+		info_format_line.description = description_value;
 
-		return info_format_line;
+		if(type == "INFO")
+		{
+			foreach(const InfoFormatLinePtr info_line, file_info_style)
+			{
+				if(info_line->id == info_format_line.id)
+				{
+					Log::warn("Duplicate metadata information for field named '" + info_format_line.id + "'. Skipping metadata line " + QString::number(line_number) + ".");
+					return nullptr;
+				}
+			}
+		}
+		else if(type == "FORMAT")
+		{
+			foreach(const InfoFormatLinePtr format_line, file_format_style)
+			{
+				if(format_line->id == info_format_line.id)
+				{
+					Log::warn("Duplicate metadata information for field named '" + info_format_line.id + "'. Skipping metadata line " + QString::number(line_number) + ".");
+					return nullptr;
+				}
+			}
+		}
+
+		return std::make_shared<InfoFormatLine>(info_format_line);
 	}
 };
 

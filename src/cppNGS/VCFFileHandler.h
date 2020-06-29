@@ -37,7 +37,4 @@ private:
 	QVector<VCFLineType> VcfLineVector_;
 	VCFHeaderType VcfHeader_;
 
-	static QList<QString> InfoTypes;
-	static QList<QString> FormatTypes;
-
 };

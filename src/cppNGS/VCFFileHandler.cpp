@@ -41,84 +41,15 @@ void VcfFileHandler::parseVcfHeader(const int line_number, QByteArray& line)
 	{
 		if (line.startsWith("##INFO"))
 		{
-			qDebug() << "parsn INFO";
-			VcfHeader_.setInfoFormatLine(line, INFO);
+			VcfHeader_.setInfoFormatLine(line, INFO, line_number);
 		}
 		else
 		{
-			qDebug() << "parsn FORMAT";
-			VcfHeader_.setInfoFormatLine(line, FORMAT);
+			VcfHeader_.setInfoFormatLine(line, FORMAT, line_number);
 		}
 	}
+
 /*
-	//##########################################################################
-	if (line.startsWith("##INFO") || line.startsWith("##FORMAT"))
-	{
-		bool sample_dependent_data;
-		QString info_or_format;
-		if (line.startsWith("##INFO"))
-		{
-			info_or_format="INFO";
-			sample_dependent_data = false;
-			line=line.mid(8);//remove "##INFO=<"
-		}
-		else
-		{
-			info_or_format="FORMAT";
-			sample_dependent_data = true;
-			line=line.mid(10);//remove "##FORMAT=<"
-
-		}
-
-		//parse sample-independent annotation
-		QList <QByteArray> comma_splitted_line=line.split(',');
-
-		if (comma_splitted_line.count()<4)
-		{
-			THROW(FileParseException, "Malformed "+info_or_format +" line: has less than 4 entries " + line.trimmed() + "'");
-		}
-		//##########################################################################  //missing: bool_sample_dependent_data
-
-		//parse ID field
-		QByteArray ID_entry=comma_splitted_line[0];
-		QList <QByteArray> splitted_ID_entry=ID_entry.split('=');
-		if (!(splitted_ID_entry[0].startsWith("ID")))
-		{
-			THROW(FileParseException, "Malformed "+info_or_format +" line: does not start with ID-field " + splitted_ID_entry[0] + "'");
-		}
-		VariantAnnotationDescription new_annotation_description(splitted_ID_entry[1], "", VariantAnnotationDescription::STRING, sample_dependent_data, ".");
-		comma_splitted_line.pop_front();//pop ID-field
-		//parse number field
-		QByteArray number_entry=comma_splitted_line.first();
-		QList <QByteArray> splitted_number_entry=number_entry.split('=');
-		if (!(splitted_number_entry[0].trimmed().startsWith("Number")))
-		{
-			THROW(FileParseException, "Malformed "+info_or_format +" line: second field is not a number field " + splitted_number_entry[0] + "'");
-		}
-		new_annotation_description.setNumber(splitted_number_entry[1]);
-		comma_splitted_line.pop_front();//pop number-field
-		//parse type field
-		QList <QByteArray> splitted_type_entry=comma_splitted_line.first().split('=');
-		if (splitted_type_entry[0].trimmed()!="Type")
-		{
-			THROW(FileParseException, "Malformed "+info_or_format +" line: third field is not a type field " + line.trimmed() + "'");
-		}
-		QHash <QByteArray, VariantAnnotationDescription::AnnotationType >convertor;
-		convertor["Integer"]=VariantAnnotationDescription::INTEGER;
-		convertor["Float"]=VariantAnnotationDescription::FLOAT;
-		convertor["Character"]=VariantAnnotationDescription::CHARACTER;
-		convertor["String"]=VariantAnnotationDescription::STRING;
-		if (!(sample_dependent_data))
-		{
-			convertor["Flag"]=VariantAnnotationDescription::FLAG;
-		}
-		QByteArray s_type=splitted_type_entry[1];
-		if (!(convertor.keys().contains(s_type)))
-		{
-			THROW(FileParseException, "Malformed "+info_or_format +" line: undefined value for type " + line.trimmed() + "'");
-		}
-		new_annotation_description.setType(convertor[s_type]);
-		comma_splitted_line.pop_front();//pop type-field
 		//parse description field
 		QByteArray description_entry=comma_splitted_line.front();
 		QList <QByteArray> splitted_description_entry=description_entry.split('=');
@@ -548,6 +479,3 @@ void VcfFileHandler::store(const QString& filename) const
 */
 }
 
-
-QList<QString> VcfFileHandler::InfoTypes = {"Integer", "Float", "Flag", "Character", "String"};
-QList<QString> VcfFileHandler::FormatTypes =  {"Integer", "Float", "Character", "String"};
