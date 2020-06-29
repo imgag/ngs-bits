@@ -48,6 +48,10 @@ void VcfFileHandler::parseVcfHeader(const int line_number, QByteArray& line)
 			VcfHeader_.setInfoFormatLine(line, FORMAT, line_number);
 		}
 	}
+	else if(line.startsWith("##FILTER=<ID="))
+	{
+		VcfHeader_.setFilterLine(line, line_number);
+	}
 
 /*
 		//parse description field

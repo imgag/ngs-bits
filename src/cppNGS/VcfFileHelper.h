@@ -94,7 +94,7 @@ struct CPPNGSSHARED_EXPORT InfoFormatLine : VcfHeaderLineBase
 
 	void storeLine(QTextStream& stream)
 	{
-		stream << line_key << "=<ID=" << id << ",Number=" << number << ",Type=" << type << ",Description=" << description  << "\n";
+		stream << line_key << "=<ID=" << id << ",Number=" << number << ",Type=" << type << ",Description=\"" << description << "\">" << "\n";
 	}
 };
 struct CPPNGSSHARED_EXPORT FilterLine : VcfHeaderLineBase
@@ -105,11 +105,11 @@ struct CPPNGSSHARED_EXPORT FilterLine : VcfHeaderLineBase
 		VcfHeaderLineBase(""){}
 
 	QByteArray id;
-	QByteArray description;
+	QString description;
 
 	void storeLine(QTextStream& stream)
 	{
-		stream << "##FILTER=<ID=" << id << ",Description=" << description  << "\n";
+		stream << "##FILTER=<ID=" << id << ",Description=\"" << description  << "\">" << "\n";
 	}
 };
 
@@ -205,6 +205,11 @@ public:
 				}
 			}
 		}
+	}
+	void setFilterLine(QByteArray& line, const int line_number)
+	{
+		file_filter_style.push_back(std::make_shared<FilterLine>(parseFilterLine(line, line_number)));
+		header_line_order.push_back(file_filter_style.back());
 	}
 
 private:
@@ -321,6 +326,24 @@ private:
 		}
 
 		return std::make_shared<InfoFormatLine>(info_format_line);
+	}
+	FilterLine parseFilterLine(QByteArray& line, const int line_number)
+	{
+			//split at '=' to get id and description part
+			QByteArrayList parts = line.mid(13, line.length()-15).split('=');
+			if(parts.count()!=2) THROW(FileParseException, "Malformed FILTER line " + QString::number(line_number) + " : conains more/less than two parts: " + line);
+
+			//remove 'Description' from first part
+			QByteArrayList first_part = parts[0].split(',');
+			if ( first_part.count()!=2 || first_part[1].trimmed()!="Description")
+			{
+				THROW(FileParseException, "Malformed FILTER line " + QString::number(line_number) + ": second field is not a description field " + line.trimmed());
+			}
+
+			FilterLine filter_line(line);
+			filter_line.id = first_part[0];
+			filter_line.description = QString(parts[1].mid(1)); //remove '\"'
+			return filter_line;
 	}
 };
 
