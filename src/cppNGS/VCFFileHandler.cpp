@@ -52,77 +52,10 @@ void VcfFileHandler::parseVcfHeader(const int line_number, QByteArray& line)
 	{
 		VcfHeader_.setFilterLine(line, line_number);
 	}
-
-/*
-		//parse description field
-		QByteArray description_entry=comma_splitted_line.front();
-		QList <QByteArray> splitted_description_entry=description_entry.split('=');
-		if (splitted_description_entry[0].trimmed()!="Description")
-		{
-			THROW(FileParseException, "Malformed "+info_or_format +" line: fourth field is not a description field " + line.trimmed() + "'");
-		}
-		//ugly, but because the description may content commas, too...
-		comma_splitted_line.pop_front();//pop type-field
-		comma_splitted_line.push_front(splitted_description_entry[1]);//re-add description value between '=' and possible ","
-		QStringList description_value_parts;//convert to QStringList
-		for(int i=0; i<comma_splitted_line.size(); ++i)
-		{
-			description_value_parts.append(comma_splitted_line[i]);
-		}
-		QString description_value=description_value_parts.join(",");//join parts
-		description_value=description_value.mid(1);//remove '"'
-		description_value.chop(2);//remove '">'
-		new_annotation_description.setDescription(description_value);
-
-		//check if annotation description is a possible duplicate
-		bool found = false;
-		foreach(const VariantAnnotationDescription& vad, annotationDescriptions())
-		{
-			if(vad.name()==new_annotation_description.name() && vad.sampleSpecific()==new_annotation_description.sampleSpecific())
-			{
-				Log::warn("Duplicate metadata information for field named '" + new_annotation_description.name() + "'. Skipping metadata line " + QString::number(line_number) + ".");
-				found = true;
-				break;
-			}
-		}
-		if(found) return;
-
-		annotationDescriptions().append(new_annotation_description);
-
-		//make sure the "GT" format field is always the first format field
-		if (new_annotation_description.name()=="GT" && new_annotation_description.sampleSpecific())
-		{
-			int first_format_index = -1;
-			for(int i=0; i<annotationDescriptions().count(); ++i)
-			{
-				if (!annotationDescriptions()[i].sampleSpecific()) continue; //skip INFO description
-
-				first_format_index = i;
-				break;
-			}
-
-			if (first_format_index<annotationDescriptions().count()-1)
-			{
-				annotationDescriptions().move(annotationDescriptions().count()-1, first_format_index);
-			}
-		}
-
-		return;
-	}
-	//filter lines
-	else if (line.startsWith("##FILTER=<ID="))
+	else if(line.startsWith("##"))
 	{
-		QStringList parts = QString(line.mid(13, line.length()-15)).split(",Description=\"");
-		if(parts.count()!=2) THROW(FileParseException, "Malformed FILTER line: conains more/less than two parts: " + line);
-		filters_[parts[0]] = parts[1];
-		return;
+		VcfHeader_.setUnspecificLine(line, line_number);
 	}
-	//other meta-information lines
-	else
-	{
-		addCommentLine(line);
-		return;
-	}*/
 }
 
 void VcfFileHandler::processVcfLine(int& line_number, QByteArray line)
