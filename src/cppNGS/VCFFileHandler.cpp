@@ -63,7 +63,7 @@ void VcfFileHandler::parseHeaderFields(QByteArray& line)
 	{
 		QList<QByteArray> header_fields = line.mid(1).split('\t');
 
-		if (header_fields.count()<VCFHeaderType::MIN_COLS)//8 are mandatory
+		if (header_fields.count()<VCFHeader::MIN_COLS)//8 are mandatory
 		{
 			THROW(FileParseException, "VCF file header line with less than 8 fields found: '" + line.trimmed() + "'");
 		}
@@ -81,12 +81,63 @@ void VcfFileHandler::parseHeaderFields(QByteArray& line)
 void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line)
 {
 	QList<QByteArray> line_parts = line.split('\t');
-	if (line_parts.count()<VCFHeaderType::MIN_COLS)
+	if (line_parts.count()<VCFHeader::MIN_COLS)
 	{
 		THROW(FileParseException, "VCF data line needs at least 7 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
 	}
-	VCFLineType vcf_line;
+	VCFLine vcf_line;
+	vcf_line.chr = line_parts[0];
+	vcf_line.pos = atoi(line_parts[1]);
+	vcf_line.ref = line_parts[3].toUpper();
 
+	QByteArrayList id_list = line_parts[2].split(';');
+	for(const QByteArray& id : id_list)
+	{
+		vcf_line.id.push_back(id);
+	}
+
+	QByteArrayList alt_list = line_parts[4].split(',');
+	for(const QByteArray& alt : alt_list)
+	{
+		vcf_line.alt.push_back(alt);
+	}
+
+	vcf_line.qual = atoi(line_parts[5]);
+
+	//FILTER
+	QByteArrayList filter_list = line_parts[6].split(';');
+	for(const QByteArray& filter : filter_list)
+	{
+		vcf_line.filter.push_back(strToPointer(filter));
+	}
+
+	//INFO
+	if(line_parts[7]!=".")
+	{
+		QByteArrayList info_list = line_parts[7].split(';');
+		for(const QByteArray& info : info_list)
+		{
+			QByteArrayList key_value_pair = info.split('=');
+			if(key_value_pair.size() == 1)
+			{
+				vcf_line.info.insert(strToPointer(key_value_pair[0]), "TRUE");
+			}
+			else
+			{
+				vcf_line.info.insert(strToPointer(key_value_pair[0]), key_value_pair[1]);
+			}
+		}
+
+	}
+	//FORMAT
+	if(line_parts.count() >= 9)
+	{
+		QByteArrayList format_list = line_parts[8].split(':');
+		for(const QByteArray& format : format_list)
+		{
+			vcf_line.format.push_back(strToPointer(format));
+		}
+	}
 
 	VcfLineVector_.push_back(vcf_line);
 
@@ -296,6 +347,33 @@ void VcfFileHandler::store(const QString& filename) const
 	{
 		stream << "\t" << VcfHeader_.columns.at(i);
 	}
+
+	for(VCFLine vcf_line : VcfLineVector_)
+	{
+		stream << "\n" << vcf_line.chr.str()  << "\t" << vcf_line.pos;
+
+		stream  << "\t"<< vcf_line.id.join(';');
+		stream  << "\t"<< vcf_line.ref;
+
+		stream << "\t" << vcf_line.alt.at(0);
+		for(int i = 1; i < vcf_line.alt.size(); ++i)
+		{
+			stream  << "," <<  vcf_line.alt.at(i);
+		}
+
+		stream  << "\t"<< vcf_line.qual;
+
+		stream  << "\t"<< vcf_line.filter.join(':');
+
+		stream  << "\t"<< *(vcf_line.info.at(0).first) << "=" << vcf_line.info.at(0).second;
+		for(int i = 1; i < vcf_line.info.size(); ++i)
+		{
+			QByteArray value = (vcf_line.info.at(i).second == "TRUE") ? "" : vcf_line.info.at(i).second;
+			stream  << ";"<< *(vcf_line.info.at(i).first) << "=" << value;
+		}
+
+	}
+
 /*
 	//write annotations information (##INFO and ##FORMAT lines)
 	for (int j=3; j<annotationDescriptions().count(); ++j) //why 3: skip ID Quality Filter

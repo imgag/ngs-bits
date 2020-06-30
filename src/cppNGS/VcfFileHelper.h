@@ -30,13 +30,15 @@ public:
 	}
 	ordered_keys_.push_back(key);
 	hash_.insert(key, value);
+
+	qDebug() << sizeof(ordered_keys_) << sizeof(hash_);
   }
 
   //access value by key
   V operator[](K key) const {
 	  auto iter = hash_.find(key);
 	  if (iter == hash_.end())
-		throw std::out_of_range("key not found");
+		THROW(ArgumentException, "Key" + key + "not found");
 	  return iter->second;
   }
 
@@ -45,9 +47,15 @@ public:
 	  return ordered_keys_.size();
   }
 
+  std::pair<K, V> at(int i)
+  {
+	  K key = ordered_keys_.at(i);
+	  return std::make_pair(key, hash_[key]);
+  }
+
 private:
 
-  QList<K> ordered_keys_;
+  QVector<K> ordered_keys_;
   QHash<K, V> hash_;
 
 };
@@ -55,8 +63,7 @@ private:
 //############################################# STRUCTS FOR INFO IN HEADER
 struct CPPNGSSHARED_EXPORT VcfHeaderLineBase
 {
-	VcfHeaderLineBase(QByteArray line):
-		line_key(line){}
+	VcfHeaderLineBase(QByteArray line);
 	VcfHeaderLineBase():
 		VcfHeaderLineBase(""){}
 
@@ -68,8 +75,7 @@ struct CPPNGSSHARED_EXPORT VcfHeaderLineBase
 };
 struct CPPNGSSHARED_EXPORT VcfHeaderLine : VcfHeaderLineBase
 {
-	VcfHeaderLine(QByteArray line, QByteArray name):
-		VcfHeaderLineBase(line), name_value(name){}
+	VcfHeaderLine(QByteArray line, QByteArray name);
 	VcfHeaderLine():
 		VcfHeaderLineBase(""){}
 
@@ -120,12 +126,15 @@ using VcfHeaderLinePtr = std::shared_ptr<VcfHeaderLine>;
 using InfoFormatLinePtr = std::shared_ptr<InfoFormatLine>;
 using FilterLinePtr = std::shared_ptr<FilterLine>;
 
+const QByteArray& strToPointer(const QByteArray& str);
+const QChar* strToPointer(const QString& str);
+
 ///struct representing a vcf header.
 /// most important information is stored in seperate variables, additional information
 /// is in in 'unspecific_header_lines'
 
 //##############################################   HEADER STRUCT
-class CPPNGSSHARED_EXPORT VCFHeaderType
+class CPPNGSSHARED_EXPORT VCFHeader
 {
 public:
 	VcfHeaderLinePtr file_format;
@@ -173,7 +182,7 @@ private:
 ///representation of a line of a vcf file
 //##############################################   VCFLINE STRUCT
 
-struct VCFLineType
+struct VCFLine
 {
 	Chromosome chr;
 	int pos;
@@ -186,7 +195,7 @@ struct VCFLineType
 	//BETTER: elements are of filter_type
 	QByteArrayList filter; //; seperated list of failed filters or "PASS"
 	//BETTER: key is info_type
-	OrderedHash<QString, QString> info;
+	OrderedHash<const char* , QByteArray> info;
 
 	//obligatory columns
 	//BETTER: elements are of format_type

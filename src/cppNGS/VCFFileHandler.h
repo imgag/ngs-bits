@@ -17,12 +17,12 @@ public:
 	void store(const QString& filename) const;
 
 	///return a QVector of VCFLines
-	QVector<VCFLineType> lineVector() const
+	QVector<VCFLine> lineVector() const
 	{
 		return VcfLineVector_;
 	}
 	///return a struct storing header information
-	VCFHeaderType header() const
+	VCFHeader header() const
 	{
 		return VcfHeader_;
 	}
@@ -36,7 +36,7 @@ private:
 	void loadFromVCF(const QString& filename);
 	void loadFromVCFGZ(const QString& filename);
 
-	QVector<VCFLineType> VcfLineVector_;
-	VCFHeaderType VcfHeader_;
+	QVector<VCFLine> VcfLineVector_;
+	VCFHeader VcfHeader_;
 
 };
