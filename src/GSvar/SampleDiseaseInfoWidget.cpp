@@ -203,6 +203,15 @@ void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
 		}
 	}
 
+	//anamnesis
+	QString anamnesis = genlab_db.anamnesis(name);
+	if (anamnesis!="")
+	{
+		tmp.disease_info = anamnesis;
+		tmp.type = "clinical phenotype (free text)";
+		disease_info_ << tmp;
+	}
+
 	//update GUI
 	updateDiseaseInfoTable();
 	QApplication::restoreOverrideCursor();

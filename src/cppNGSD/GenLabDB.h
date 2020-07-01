@@ -39,6 +39,9 @@ public:
 	///Returns the ICD10 diagnosis of a sample (try processed sample if not found - this is not consistent in GenLab)
 	QStringList diagnosis(QString sample_name);
 
+	///Returns the GenLab anamnese entry of a sample (try processed sample if not found - this is not consistent in GenLab)
+	QString anamnesis(QString sample_name);
+
 	///Returns tumor content of a sample (try processed sample if not found - this is not consistent in GenLab)
 	QStringList tumorFraction(QString sample_name);
 

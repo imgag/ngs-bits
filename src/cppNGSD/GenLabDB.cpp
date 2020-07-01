@@ -140,7 +140,7 @@ const TableInfo& GenLabDB::tableInfo(const QString& table) const
 bool GenLabDB::entriesExistForSample(QString sample_name)
 {
 	QStringList tables;
-	tables << "v_ngs_einsender" << "v_ngs_geschlecht" << "v_ngs_icd10" << "v_ngs_hpo"  << "v_ngs_tumoranteil" << "v_ngs_orpha";
+	tables << "v_ngs_anamnese" << "v_krankheitsgruppe_pattyp" << "v_ngs_einsender" << "v_ngs_geschlecht" << "v_ngs_hpo" << "v_ngs_icd10" << "v_ngs_orpha" << "v_ngs_sap" << "v_ngs_tumoranteil";
 	foreach(QString table, tables)
 	{
 		SqlQuery query = getQuery();
@@ -219,6 +219,21 @@ QStringList GenLabDB::diagnosis(QString sample_name)
 		output << diagnosis;
 	}
 	output.removeDuplicates();
+
+	return output;
+}
+
+QString GenLabDB::anamnesis(QString sample_name)
+{
+	QString output;
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT ANAMNESE FROM v_ngs_anamnese WHERE LABORNUMMER='" + sample_name + "' AND ANAMNESE IS NOT NULL AND ANAMNESE != 'leer'");
+
+	if(query.next())
+	{
+		return query.value(0).toString().trimmed();
+	}
 
 	return output;
 }
