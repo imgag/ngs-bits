@@ -12,7 +12,6 @@ GenLabDB::GenLabDB()
 {
 	//get settings
 	QString host = Settings::string("genlab_host");
-	int port = Settings::integer("genlab_port");
 	QString name = Settings::string("genlab_name");
 	QString user = Settings::string("genlab_user");
 	QString pass = Settings::string("genlab_pass");
@@ -22,6 +21,7 @@ GenLabDB::GenLabDB()
 		db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
 
 		db_->setHostName(host);
+		int port = Settings::integer("genlab_port");
 		db_->setPort(port);
 		db_->setDatabaseName(name);
 		db_->setUserName(user);
