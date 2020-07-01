@@ -22,16 +22,15 @@ class CPPNGSSHARED_EXPORT OrderedHash {
 
 public:
 
-  //insert into the ordered hash
-  void insert(K key, V value) {
+  //add key=value pair to the end of OrderedHash
+  void push_back(K key, V value) {
 	auto iter = hash_.find(key);
 	if (iter != hash_.end()) {
 	  return;
 	}
+
 	ordered_keys_.push_back(key);
 	hash_.insert(key, value);
-
-	qDebug() << sizeof(ordered_keys_) << sizeof(hash_);
   }
 
   //access value by key
@@ -42,15 +41,17 @@ public:
 	  return iter->second;
   }
 
-  int size() const
-  {
-	  return ordered_keys_.size();
-  }
-
+  //access value by order
   std::pair<K, V> at(int i)
   {
 	  K key = ordered_keys_.at(i);
 	  return std::make_pair(key, hash_[key]);
+  }
+
+  //get the number of inserted key=value pairs
+  int size() const
+  {
+	  return ordered_keys_.size();
   }
 
 private:
@@ -195,12 +196,12 @@ struct VCFLine
 	//BETTER: elements are of filter_type
 	QByteArrayList filter; //; seperated list of failed filters or "PASS"
 	//BETTER: key is info_type
-	OrderedHash<const char* , QByteArray> info;
+	OrderedHash<QByteArray , QByteArray> info;
 
 	//obligatory columns
 	//BETTER: elements are of format_type
 	QByteArrayList format; //: seperated list of ids for sample
-	OrderedHash<QByteArray, QByteArray> sample; // hash of format entries to values
+	QVector<OrderedHash<QByteArray, QByteArray>> sample; // hash of format entries to values
 
 	//Returns if the chromosome is valid
 	bool isValidGenomicPosition() const

@@ -3,6 +3,7 @@
 const QByteArrayList VCFHeader::InfoTypes = {"Integer", "Float", "Flag", "Character", "String"};
 const QByteArrayList VCFHeader::FormatTypes =  {"Integer", "Float", "Character", "String"};
 
+//minimum 192MB so far (instead of 233MB)
 	const QByteArray& strToPointer(const QByteArray& str)
 	{
 		static QSet<QByteArray> uniq_8;
@@ -12,7 +13,7 @@ const QByteArrayList VCFHeader::FormatTypes =  {"Integer", "Float", "Character",
 		{
 			it = uniq_8.insert(str);
 		}
-		//return str;
+
 		return *it;
 	}
 
@@ -41,6 +42,10 @@ void VCFHeader::storeHeaderInformation(QTextStream& stream) const
 	{
 		header_line_ptr->storeLine(stream);
 	}
+	//alternatively:
+		//store fileformat
+		//store comments
+		//store Info File Format
 }
 
 void VCFHeader::setFormat(QByteArray& line)
