@@ -61,7 +61,6 @@ private:
 
 };
 
-//############################################# STRUCTS FOR INFO IN HEADER
 struct CPPNGSSHARED_EXPORT VcfHeaderLineBase
 {
 	VcfHeaderLineBase(QByteArray line);
@@ -134,7 +133,6 @@ const QChar* strToPointer(const QString& str);
 /// most important information is stored in seperate variables, additional information
 /// is in in 'unspecific_header_lines'
 
-//##############################################   HEADER STRUCT
 class CPPNGSSHARED_EXPORT VCFHeader
 {
 public:
@@ -181,8 +179,6 @@ private:
 };
 
 ///representation of a line of a vcf file
-//##############################################   VCFLINE STRUCT
-
 struct VCFLine
 {
 	Chromosome chr;
@@ -193,13 +189,10 @@ struct VCFLine
 	QByteArrayList id; //; seperated list of id-strings
 	int qual;
 
-	//BETTER: elements are of filter_type
 	QByteArrayList filter; //; seperated list of failed filters or "PASS"
-	//BETTER: key is info_type
-	OrderedHash<QByteArray , QByteArray> info;
+	OrderedHash<QByteArray , QByteArray> info; //; seperated list of info key=value pairs
 
 	//obligatory columns
-	//BETTER: elements are of format_type
 	QByteArrayList format; //: seperated list of ids for sample
 	QVector<OrderedHash<QByteArray, QByteArray>> sample; // hash of format entries to values
 

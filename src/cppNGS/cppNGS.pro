@@ -63,8 +63,8 @@ SOURCES += BedFile.cpp \
     BedpeFile.cpp \
     MidCheck.cpp \
     ClinvarSubmissionGenerator.cpp \
-    VCFFileHandler.cpp \
-    VcfFileHelper.cpp
+    VcfFileHelper.cpp \
+    VcfFileHandler.cpp
 
 
 HEADERS += BedFile.h \
@@ -97,8 +97,8 @@ HEADERS += BedFile.h \
     VariantType.h \
     MidCheck.h \
     ClinvarSubmissionGenerator.h \
-    VCFFileHandler.h \
-    VcfFileHelper.h
+    VcfFileHelper.h \
+    VcfFileHandler.h
 
 
 RESOURCES += \
