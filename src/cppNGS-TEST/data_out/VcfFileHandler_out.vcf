@@ -1,0 +1,43 @@
+##fileformat=VCFv4.1
+##fileDate=20160811
+##source=strelka
+##source_version=2.0.17.strelka1
+##startTime=Thu Aug 11 11:01:30 2016
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|Gene|Feature_type|Feature|BIOTYPE|EXON|HGVSc|HGVSp|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons">
+##INFO=<ID=IC=2,Number=1,Type=String,Description="no description available">
+##INFO=<ID=IHP=5,Number=1,Type=String,Description="no description available">
+##INFO=<ID=NT=ref,Number=1,Type=String,Description="no description available">
+##INFO=<ID=QSI=68,Number=1,Type=String,Description="no description available">
+##INFO=<ID=QSI_NT=68,Number=1,Type=String,Description="no description available">
+##INFO=<ID=RC=1,Number=1,Type=String,Description="no description available">
+##INFO=<ID=RU=C,Number=1,Type=String,Description="no description available">
+##INFO=<ID=SGT=ref->het,Number=1,Type=String,Description="no description available">
+##INFO=<ID=TQSI=1,Number=1,Type=String,Description="no description available">
+##INFO=<ID=TQSI_NT=1,Number=1,Type=String,Description="no description available">
+##INFO=<ID=SOMATIC,Number=1,Type=String,Description="no description available">
+##INFO=<ID=NT=ref,Number=1,Type=String,Description="no description available">
+##INFO=<ID=QSS=86,Number=1,Type=String,Description="no description available">
+##INFO=<ID=QSS_NT=86,Number=1,Type=String,Description="no description available">
+##INFO=<ID=SGT=GG->AG,Number=1,Type=String,Description="no description available">
+##INFO=<ID=TQSS=1,Number=1,Type=String,Description="no description available">
+##INFO=<ID=TQSS_NT=1,Number=1,Type=String,Description="no description available">
+##FILTER=<ID=q10,Description="Quality below 10">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
+##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
+##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
+##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
+##FORMAT=<ID=TAR,Number=2,Type=Integer,Description="Reads strongly supporting alternate allele for tiers 1,2">
+##FORMAT=<ID=TIR,Number=2,Type=Integer,Description="Reads strongly supporting indel allele for tiers 1,2">
+##FORMAT=<ID=TOR,Number=2,Type=Integer,Description="Other reads (weak support or insufficient indel breakpoint overlap) for tiers 1,2">
+##FORMAT=<ID=DP,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=DP2,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=DP50,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=FDP50,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=SUBDP50,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=FDP,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=SDP,Number=1,Type=String,Description="no description available">
+##FORMAT=<ID=SUBDP,Number=1,Type=String,Description="no description available">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	normal	tumor
+chr17	26898195	.	G	GC	0	PASS	IC=2;IHP=5;NT=ref;QSI=68;QSI_NT=68;RC=1;RU=C;SGT=ref->het;TQSI=1;TQSI_NT=1;SOMATIC;CSQ=GC|frameshift_variant|HIGH|PIGS|PIGS|transcript|NM_033198.3|protein_coding|2/12|c.58dupG|p.Ala20fs|431/2873|58/1668|20/555||	GT:DP:DP2:DP50:FDP50:SUBDP50:TAR:TIR:TOR	1|0:52:52:59.58:0.02:0.00:51,51:0,0:0,0	1|0:52:52:56.41:0.07:0.00:27,27:17,17:7,7
+chr17	38645127	.	G	A	.	PASS	NT=ref;QSS=86;QSS_NT=86;SGT=GG->AG;TQSS=1;TQSS_NT=1;SOMATIC;CSQ=A|splice_region_variant&intron_variant|LOW|TNS4|TNS4|transcript|NM_032865.5|protein_coding|2/12|c.440-6C>T||||||	AU:CU:DP:FDP:GU:SDP:SUBDP:TU	0,0:0,0:90:1:89,91:0:0:0,0	20,21:0,0:70:2:48,50:0:0:0,0
