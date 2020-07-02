@@ -15,7 +15,7 @@ class SampleDiseaseInfoWidget
 	Q_OBJECT
 
 public:
-	SampleDiseaseInfoWidget(QString sample_name, QWidget* parent = 0);
+	SampleDiseaseInfoWidget(QString ps_name, QWidget* parent = 0);
 	~SampleDiseaseInfoWidget();
 
 	void setDiseaseInfo(const QList<SampleDiseaseInfo>& disease_info);
@@ -29,7 +29,7 @@ protected slots:
 
 private:
 	Ui::SampleDiseaseInfoWidget* ui_;
-	QString sample_name_;
+	QString ps_name_;
 	QList<SampleDiseaseInfo> disease_info_;
 	NGSD db_;
 };

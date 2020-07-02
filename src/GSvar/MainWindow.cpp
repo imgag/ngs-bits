@@ -196,36 +196,36 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	loadSomaticReportConfig();
-	SomaticXmlReportGeneratorData data(somatic_report_settings_, variants_, somatic_control_tissue_variants_, cnvs_);
-
-	SomaticXmlReportGenerator test;
-	NGSD db;
-
-	data.tumor_content_histology = 0.6;
-	data.tumor_content_clonality = 0.7;
-	data.tumor_mutation_burden = 17;
-	data.mantis_msi = 1.9;
-
-
-	QString out = test.generateXML(data, db);
-
-
-	QSharedPointer<QFile> outfile = Helper::openFileForWriting("D:\\test.xml");
-
-	QTextStream out_stream(outfile.data());
-
-	out_stream << out;
-
-
-	out_stream.flush();
-	outfile->close();
-
-
-	QApplication::clipboard()->setText("ENST00000294008:c.4409C>T\n"
-									   "NM_032444:c.4409C>T");
-
-	on_actionConvertHgvsToGSvar_triggered();
+	QString user = Helper::userName();
+	if (user=="ahsturm1")
+	{
+		GenLabDB genlab;
+		NGSD db;
+		ProcessedSampleSearchParameters params;
+		params.s_species = "human";
+		params.p_type = "diagnostic";
+		params.sys_type = "WES";
+		params.include_bad_quality_samples = false;
+		params.include_tumor_samples = false;
+		params.include_ffpe_samples = false;
+		params.include_merged_samples = false;
+		params.include_bad_quality_runs = false;
+		params.run_finished = true;
+		DBTable ps_table = db.processedSampleSearch(params);
+		QStringList ps_list = ps_table.extractColumn(0);
+		int i=0;
+		foreach(QString ps, ps_list)
+		{
+			qDebug() << (++i) << "/" << ps_list.size() << " - " << ps;
+			genlab.addMissingMetaDataToNGSD(ps, true);
+		}
+	}
+	else if (user=="ahschul1")
+	{
+	}
+	else if (user=="ahgscha1")
+	{
+	}
 }
 
 void MainWindow::on_actionConvertVcfToGSvar_triggered()

@@ -8,10 +8,10 @@
 #include <QMessageBox>
 #include "LoginManager.h"
 
-SampleDiseaseInfoWidget::SampleDiseaseInfoWidget(QString sample_name, QWidget *parent)
+SampleDiseaseInfoWidget::SampleDiseaseInfoWidget(QString ps_name, QWidget *parent)
 	: QWidget(parent)
 	, ui_(new Ui::SampleDiseaseInfoWidget)
-	, sample_name_(sample_name)
+	, ps_name_(ps_name)
 {
 	ui_->setupUi(this);
 	connect(ui_->remove_btn, SIGNAL(clicked(bool)), this, SLOT(removeDiseaseInfo()));
@@ -138,31 +138,13 @@ void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
 
 	GenLabDB genlab_db;
 
-	//find the correct sample name in GenLab
-	QString name = sample_name_;
-
-	bool entries_exist = genlab_db.entriesExistForSample(name);
-	while (!entries_exist && name.contains("_"))
-	{
-		QStringList parts = name.split("_");
-		parts = parts.mid(0, parts.count()-1);
-		name = parts.join("_");
-		entries_exist = genlab_db.entriesExistForSample(name);
-	}
-	if (!entries_exist)
-	{
-		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this, "GenLab import error", "Could not find sample '" + sample_name_ + "' in GenLab database!");
-		return;
-	}
-
 	//prepare disease info for import
 	SampleDiseaseInfo tmp;
 	tmp.user = "genlab_import";
 	tmp.date = QDateTime::currentDateTime();
 
 	//ICD10
-	QStringList icd10s = genlab_db.diagnosis(name);
+	QStringList icd10s = genlab_db.diagnosis(ps_name_);
 	foreach(const QString& icd10, icd10s)
 	{
 		tmp.disease_info = icd10;
@@ -171,7 +153,7 @@ void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
 	}
 
 	//HPO
-	QList<Phenotype> phenos = genlab_db.phenotypes(name);
+	QList<Phenotype> phenos = genlab_db.phenotypes(ps_name_);
 	foreach(const Phenotype& pheno, phenos)
 	{
 		tmp.disease_info = pheno.accession();
@@ -180,7 +162,7 @@ void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
 	}
 
 	//Orphanet
-	QStringList ids = genlab_db.orphanet(name);
+	QStringList ids = genlab_db.orphanet(ps_name_);
 	foreach(const QString& id, ids)
 	{
 		tmp.disease_info = id;
@@ -190,11 +172,10 @@ void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
 
 	//tumor fraction (only for tumor samples)
 	NGSD db;
-	QString sample_id = db.sampleId(sample_name_, false);
-	bool is_tumor = db.getSampleData(sample_id).is_tumor;
-	if (is_tumor)
+	QString sample_id = db.sampleId(ps_name_, false);
+	if (db.getSampleData(sample_id).is_tumor)
 	{
-		QStringList tumor_fractions = genlab_db.tumorFraction(name);
+		QStringList tumor_fractions = genlab_db.tumorFraction(ps_name_);
 		foreach(const QString& fraction, tumor_fractions)
 		{
 			tmp.disease_info = fraction;
@@ -204,8 +185,8 @@ void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
 	}
 
 	//anamnesis
-	QString anamnesis = genlab_db.anamnesis(name);
-	if (anamnesis!="")
+	QStringList anamnesises = genlab_db.anamnesis(ps_name_);
+	foreach(const QString& anamnesis, anamnesises)
 	{
 		tmp.disease_info = anamnesis;
 		tmp.type = "clinical phenotype (free text)";
@@ -214,5 +195,6 @@ void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
 
 	//update GUI
 	updateDiseaseInfoTable();
+
 	QApplication::restoreOverrideCursor();
 }

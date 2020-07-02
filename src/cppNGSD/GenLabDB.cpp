@@ -137,121 +137,128 @@ const TableInfo& GenLabDB::tableInfo(const QString& table) const
 	return infos_[table];
 }
 
-bool GenLabDB::entriesExistForSample(QString sample_name)
+QList<Phenotype> GenLabDB::phenotypes(QString ps_name)
 {
-	QStringList tables;
-	tables << "v_ngs_anamnese" << "v_krankheitsgruppe_pattyp" << "v_ngs_einsender" << "v_ngs_geschlecht" << "v_ngs_hpo" << "v_ngs_icd10" << "v_ngs_orpha" << "v_ngs_sap" << "v_ngs_tumoranteil";
-	foreach(QString table, tables)
-	{
-		SqlQuery query = getQuery();
-		query.exec("SELECT COUNT(*) FROM " + table + " WHERE labornummer='" + sample_name + "'");
-		query.next();
-		int count = query.value(0).toInt();
-		if (count>0) return true;
-	}
-
-	return false;
-}
-
-QList<Phenotype> GenLabDB::phenotypes(QString sample_name)
-{
-	NGSD ngsd;
 	QList<Phenotype> output;
 
-	SqlQuery query = getQuery();
-	query.exec("SELECT code FROM v_ngs_hpo WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
-	while(query.next())
-	{
-		if (query.value(0).toString().trimmed().isEmpty()) continue;
+	NGSD ngsd;
 
-		QByteArray pheno_id = query.value(0).toByteArray();
-		try
+	QString s_name = ps_name.append('_').split('_')[0];
+	foreach(QString name, QStringList() << ps_name << s_name)
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT code FROM v_ngs_hpo WHERE labornummer='" + name + "'");
+		while(query.next())
 		{
-			Phenotype pheno = ngsd.phenotypeByAccession(pheno_id, false);
-			if (!pheno.name().isEmpty() && !output.contains(pheno))
+			QByteArray hpo_id = query.value(0).toByteArray().trimmed();
+			if (hpo_id.isEmpty()) continue;
+
+			Phenotype pheno = ngsd.phenotypeByAccession(hpo_id, false);
+			if (pheno.name().isEmpty()) continue;
+			if (output.contains(pheno)) continue;
+
+			output << pheno;
+		}
+	}
+
+	return output;
+}
+
+QStringList GenLabDB::orphanet(QString ps_name)
+{
+	QStringList output;
+
+	QString s_name = ps_name.append('_').split('_')[0];
+	foreach(QString name, QStringList() << ps_name << s_name)
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT code FROM v_ngs_orpha WHERE labornummer='" + name + "'");
+		while(query.next())
+		{
+			QString orpha_num = query.value(0).toString().toUpper().trimmed();
+			if (orpha_num.isEmpty()) continue;
+
+			if (!orpha_num.startsWith("ORPHA:"))
 			{
-				output << pheno;
+				orpha_num.prepend("ORPHA:");
 			}
+
+			if (output.contains(orpha_num)) continue;
+
+			output << orpha_num;
 		}
-		catch(DatabaseException e)
+	}
+
+	return output;
+}
+
+QStringList GenLabDB::diagnosis(QString ps_name)
+{
+	QStringList output;
+
+	QString s_name = ps_name.append('_').split('_')[0];
+	foreach(QString name, QStringList() << ps_name << s_name)
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT code FROM v_ngs_icd10 WHERE labornummer='" + name + "'");
+		while(query.next())
 		{
-			Log::error("Invalid HPO term ID '" + pheno_id + "' found in GenLab: " + e.message());
+			QString diagnosis = query.value(0).toString().trimmed();
+			if (diagnosis.isEmpty()) continue;
+
+			if (output.contains(diagnosis)) continue;
+
+			output << diagnosis;
 		}
 	}
 
 	return output;
 }
 
-QStringList GenLabDB::orphanet(QString sample_name)
+QStringList GenLabDB::anamnesis(QString ps_name)
 {
-	SqlQuery query = getQuery();
-	query.exec("SELECT code FROM v_ngs_orpha WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
-
 	QStringList output;
-	while(query.next())
-	{
-		QString orpha_num = query.value(0).toString().trimmed().toUpper();
-		if (orpha_num.isEmpty()) continue;
 
-		if (!orpha_num.startsWith("ORPHA:"))
+	QString s_name = ps_name.append('_').split('_')[0];
+	foreach(QString name, QStringList() << ps_name << s_name)
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT ANAMNESE FROM v_ngs_anamnese WHERE LABORNUMMER='" + name + "' AND ANAMNESE != 'leer'");
+		if(query.next())
 		{
-			orpha_num.prepend("ORPHA:");
+			QString anamnesis = query.value(0).toString().trimmed();
+			if (anamnesis.isEmpty()) continue;
+
+			if (output.contains(anamnesis)) continue;
+
+			output << anamnesis;
 		}
-
-		output << orpha_num;
 	}
-	output.removeDuplicates();
 
 	return output;
 }
 
-QStringList GenLabDB::diagnosis(QString sample_name)
+QStringList GenLabDB::tumorFraction(QString ps_name)
 {
-	SqlQuery query = getQuery();
-	query.exec("SELECT code FROM v_ngs_icd10 WHERE labornummer='" + sample_name + "' AND code IS NOT NULL");
-
 	QStringList output;
-	while(query.next())
+
+	QString s_name = ps_name.append('_').split('_')[0];
+	foreach(QString name, QStringList() << ps_name << s_name)
 	{
-		QString diagnosis = query.value(0).toString().trimmed();
-		if (diagnosis.isEmpty()) continue;
+		SqlQuery query = getQuery();
+		query.exec("SELECT tumoranteil FROM v_ngs_tumoranteil WHERE labornummer='" + name + "' AND tumoranteil IS NOT NULL");
+		while(query.next())
+		{
+			qDebug() << query.value(0);
+			QString fraction = query.value(0).toString().trimmed();
+			if (fraction.isEmpty()) continue;
 
-		output << diagnosis;
+			if (output.contains(fraction)) continue;
+
+			qDebug() << fraction;
+			output << fraction;
+		}
 	}
-	output.removeDuplicates();
-
-	return output;
-}
-
-QString GenLabDB::anamnesis(QString sample_name)
-{
-	QString output;
-
-	SqlQuery query = getQuery();
-	query.exec("SELECT ANAMNESE FROM v_ngs_anamnese WHERE LABORNUMMER='" + sample_name + "' AND ANAMNESE IS NOT NULL AND ANAMNESE != 'leer'");
-
-	if(query.next())
-	{
-		return query.value(0).toString().trimmed();
-	}
-
-	return output;
-}
-
-QStringList GenLabDB::tumorFraction(QString sample_name)
-{
-	SqlQuery query = getQuery();
-	query.exec("SELECT TUMORANTEIL FROM v_ngs_tumoranteil WHERE labornummer='" + sample_name + "' AND TUMORANTEIL IS NOT NULL");
-
-	QStringList output;
-	while(query.next())
-	{
-		QString fraction = query.value(0).toString().trimmed();
-		if (fraction.isEmpty()) continue;
-
-		output << fraction;
-	}
-	output.removeDuplicates();
 
 	return output;
 }
@@ -261,61 +268,167 @@ QPair<QString, QString> GenLabDB::diseaseInfo(QString ps_name)
 	QString group = "n/a";
 	QString status = "n/a";
 
-	SqlQuery query = getQuery();
-	query.exec("SELECT krankheitsgruppe,patienttyp FROM v_krankheitsgruppe_pattyp WHERE labornummer='" + ps_name + "'");
-	while (query.next())
-	{
-		//group
-		if (!query.value(0).isNull())
-		{
-			QString tmp = query.value(0).toString().trimmed();
-			if (!tmp.isEmpty())
-			{
-				group = tmp;
-			}
-		}
-		//status
-		if (!query.value(1).isNull())
-		{
-			QString tmp = query.value(1).toString().trimmed();
-			if (tmp=="Index" || tmp=="Angehöriger betroffen")
-			{
-				status = "Affected";
-			}
-			if (tmp=="Angehöriger gesund")
-			{
-				status = "Unaffected";
-			}
-		}
-	}
+	QString s_name = ps_name.append('_').split('_')[0];
 
-	//fallback to sample (not consistent in GenLab)
-	if (group=="n/a" && status=="n/a" && ps_name.contains("_"))
+	foreach(QString name, QStringList() << ps_name << s_name)
 	{
-		QStringList parts = ps_name.split("_");
-		QString s_name = parts.mid(0, parts.count()-1).join("_");
-		return diseaseInfo(s_name);
+		SqlQuery query = getQuery();
+		query.exec("SELECT krankheitsgruppe, patienttyp FROM v_krankheitsgruppe_pattyp WHERE labornummer='" + name + "'");
+		while (query.next())
+		{
+			//group
+			if (!query.value(0).isNull())
+			{
+				QString tmp = query.value(0).toString().trimmed();
+				if (!tmp.isEmpty())
+				{
+					group = tmp;
+				}
+			}
+			//status
+			if (!query.value(1).isNull())
+			{
+				QString tmp = query.value(1).toString().trimmed();
+				if (tmp=="Index" || tmp=="Angehöriger betroffen")
+				{
+					status = "Affected";
+				}
+				if (tmp=="Angehöriger gesund")
+				{
+					status = "Unaffected";
+				}
+			}
+
+			if (group!="n/a" || status!="n/a") break;
+		}
 	}
 
 	return qMakePair(group, status);
 }
 
 
-QString GenLabDB::sapID(QString imgag_lab_id)
+QString GenLabDB::sapID(QString ps_name)
 {
-	SqlQuery query = getQuery();
+	QString output;
 
-	QString sample_name = imgag_lab_id.append('_').split('_')[0];
+	QString s_name = ps_name.append('_').split('_')[0];
+	foreach(QString name, QStringList() << ps_name << s_name)
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT identnr FROM v_ngs_sap WHERE labornummer='" + name + "'");
+		if(query.next())
+		{
+			QString id = query.value(0).toString().trimmed();
+			if (!id.isEmpty())
+			{
+				output = id;
+				break;
+			}
+		}
+	}
 
+	return output;
+}
 
-	query.exec("SELECT identnr, labornummer FROM v_ngs_sap WHERE labornummer='" + sample_name + "'");
+void GenLabDB::addMissingMetaDataToNGSD(QString ps_name, bool log)
+{
+	//init
+	NGSD db;
+	QString sample_id = db.sampleId(ps_name);
 
-	if(query.next()) return query.value(0).toString();
+	//sample disease group/status
+	SampleData sample_data = db.getSampleData(sample_id);
+	bool modified_group = false;
+	bool modified_status = false;
+	QPair<QString, QString> disease_info = diseaseInfo(ps_name);
+	if (disease_info.first!="n/a" && sample_data.disease_group=="n/a")
+	{
+		sample_data.disease_group = disease_info.first;
+		modified_group = true;
+	}
+	if (disease_info.second!="n/a" && sample_data.disease_status=="n/a")
+	{
+		sample_data.disease_status = disease_info.second;
+		modified_status = true;
+	}
+	if (modified_group || modified_status)
+	{
+		db.setSampleDiseaseData(sample_id, sample_data.disease_group, sample_data.disease_status);
+		if (log)
+		{
+			if (modified_group) Log::info(ps_name + ": Imported disease group from GenLab: " + sample_data.disease_group);
+			if (modified_status) Log::info(ps_name + ": Imported disease status from GenLab: " + sample_data.disease_status);
+		}
+	}
 
-	query.exec("SELECT identnr, labornummer FROM v_ngs_sap WHERE labornummer LIKE '"+ sample_name +"_[0-9][0-9]'" );
+	//sample disease details
+	QList<SampleDiseaseInfo> disease_details = db.getSampleDiseaseInfo(sample_id);
+	QDateTime date = QDateTime::currentDateTime();
+	QString user = "genlab_import";
+	bool modified_details = false;
+	foreach(QString anamnesis, anamnesis(ps_name))
+	{
+		if(addDiseaseInfoIfMissing("clinical phenotype (free text)", anamnesis, date, user, disease_details))
+		{
+			modified_details = true;
+			if (log) Log::info(ps_name + ": Imported anamnesis from GenLab: " + anamnesis);
+		}
+	}
+	foreach(Phenotype pheno, phenotypes(ps_name))
+	{
+		if(addDiseaseInfoIfMissing("HPO term id", pheno.accession(), date, user, disease_details))
+		{
+			modified_details = true;
+			if (log) Log::info(ps_name + ": Imported HPO id from GenLab: " + pheno.accession());
+		}
+	}
+	foreach(QString orpha, orphanet(ps_name))
+	{
+		if(addDiseaseInfoIfMissing("Orpha number", orpha, date, user, disease_details))
+		{
+			modified_details = true;
+			if (log) Log::info(ps_name + ": Imported Orpha code from GenLab: " + orpha);
+		}
+	}
+	foreach(QString icd10, diagnosis(ps_name))
+	{
+		if(addDiseaseInfoIfMissing("ICD10 code", icd10, date, user, disease_details))
+		{
+			modified_details = true;
+			if (log) Log::info(ps_name + ": Imported ICD10 from GenLab: " + icd10);
+		}
+	}
+	if (sample_data.is_tumor)
+	{
+		foreach(QString fraction, tumorFraction(ps_name))
+		{
+			if(addDiseaseInfoIfMissing("tumor fraction", fraction, date, user, disease_details))
+			{
+				modified_details = true;
+				if (log) Log::info(ps_name + ": Imported tumor fraction from GenLab: " + fraction);
+			}
+		}
+	}
+	if (modified_details)
+	{
+		db.setSampleDiseaseInfo(sample_id, disease_details);
+	}
+}
 
-	if(query.next()) return query.value(0).toString();
+bool GenLabDB::addDiseaseInfoIfMissing(QString type, QString value, QDateTime date, QString user, QList<SampleDiseaseInfo>& disease_details)
+{
+	foreach(const SampleDiseaseInfo& entry, disease_details)
+	{
+		if (entry.type==type && entry.disease_info==value) return false;
+	}
 
-	return "";
+	SampleDiseaseInfo new_entry;
+	new_entry.disease_info = value;
+	new_entry.type = type;
+	new_entry.user = user;
+	new_entry.date = date;
+	disease_details << new_entry;
+
+	return true;
 }
 
