@@ -61,55 +61,34 @@ private:
 
 };
 
-struct CPPNGSSHARED_EXPORT VcfHeaderLineBase
+enum InfoFormatType {INFO, FORMAT};
+
+struct CPPNGSSHARED_EXPORT VcfHeaderLine
 {
-	VcfHeaderLineBase(QByteArray line);
-	VcfHeaderLineBase():
-		VcfHeaderLineBase(""){}
 
-	//string following ## in the header line: e.g. fileformat for ##fileformat=VCFv4.2
-	QByteArray line_key;
-
-	virtual void storeLine(QTextStream& stream) = 0;
-
-};
-struct CPPNGSSHARED_EXPORT VcfHeaderLine : VcfHeaderLineBase
-{
-	VcfHeaderLine(QByteArray line, QByteArray name);
-	VcfHeaderLine():
-		VcfHeaderLineBase(""){}
-
-	QByteArray name_value;
+	QByteArray value;
+	QByteArray key;
 
 	void storeLine(QTextStream& stream)
 	{
-		stream << "##" << line_key << "=" << name_value << "\n";
+		stream << "##" << key << "=" << value << "\n";
 	}
 };
-struct CPPNGSSHARED_EXPORT InfoFormatLine : VcfHeaderLineBase
+struct CPPNGSSHARED_EXPORT InfoFormatLine
 {
-	InfoFormatLine(QByteArray line):
-		VcfHeaderLineBase(line){}
-	InfoFormatLine():
-		VcfHeaderLineBase(""){}
-
 	QByteArray id;
 	QByteArray number;
 	QByteArray type;
 	QString description;
 
-	void storeLine(QTextStream& stream)
+	void storeLine(QTextStream& stream, InfoFormatType line_type)
 	{
-		stream << line_key << "=<ID=" << id << ",Number=" << number << ",Type=" << type << ",Description=\"" << description << "\">" << "\n";
+		line_type==InfoFormatType::INFO ? stream << "##INFO" : stream << "##FORMAT";
+		stream << "=<ID=" << id << ",Number=" << number << ",Type=" << type << ",Description=\"" << description << "\">" << "\n";
 	}
 };
-struct CPPNGSSHARED_EXPORT FilterLine : VcfHeaderLineBase
+struct CPPNGSSHARED_EXPORT FilterLine
 {
-	FilterLine(QByteArray line):
-		VcfHeaderLineBase(line){}
-	FilterLine():
-		VcfHeaderLineBase(""){}
-
 	QByteArray id;
 	QString description;
 
@@ -118,13 +97,6 @@ struct CPPNGSSHARED_EXPORT FilterLine : VcfHeaderLineBase
 		stream << "##FILTER=<ID=" << id << ",Description=\"" << description  << "\">" << "\n";
 	}
 };
-
-enum InfoFormatType {INFO, FORMAT};
-
-using VcfHeaderLineBasePtr = std::shared_ptr<VcfHeaderLineBase>;
-using VcfHeaderLinePtr = std::shared_ptr<VcfHeaderLine>;
-using InfoFormatLinePtr = std::shared_ptr<InfoFormatLine>;
-using FilterLinePtr = std::shared_ptr<FilterLine>;
 
 const QByteArray& strToPointer(const QByteArray& str);
 const QChar* strToPointer(const QString& str);
@@ -136,46 +108,28 @@ const QChar* strToPointer(const QString& str);
 class CPPNGSSHARED_EXPORT VCFHeader
 {
 public:
-	VcfHeaderLinePtr file_format;
-	VcfHeaderLinePtr file_date;
-	VcfHeaderLinePtr file_source;
-	VcfHeaderLinePtr file_reference;
-	VcfHeaderLinePtr file_phasing;
-	QVector<VcfHeaderLinePtr> file_contig;
+	QByteArray fileformat;
+	QVector<VcfHeaderLine> file_comments;
 
-	QVector<VcfHeaderLinePtr> unspecific_header_lines;
-
-	QVector<InfoFormatLinePtr> file_info_style;
-	QVector<FilterLinePtr> file_filter_style;
-	QVector<InfoFormatLinePtr> file_format_style;
+	QVector<InfoFormatLine> info_lines;
+	QVector<FilterLine> filter_lines;
+	QVector<InfoFormatLine> format_lines;
 
 	static const int MIN_COLS = 8;
-	QVector<QByteArray> columns;
 
 	void storeHeaderInformation(QTextStream& stream) const;
 
 	void setFormat(QByteArray& line);
-	void setDate(QByteArray& line);
-	void setSource(QByteArray& line);
-	void setReference(QByteArray& line);
-	void setContig(QByteArray& line);
-	void setPhasing(QByteArray& line);
 	void setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number);
 	void setFilterLine(QByteArray& line, const int line_number);
-	void setUnspecificLine(QByteArray& line, const int line_number);
+	void setCommentLine(QByteArray& line, const int line_number);
 
 private:
-	//vector storing the order of header information
-	QVector<VcfHeaderLineBasePtr> header_line_order;
 
 	static const QByteArrayList InfoTypes;
 	static const QByteArrayList FormatTypes;
 
-	QByteArray parseLineInformation(QByteArray line, const QByteArray& information);
-	QByteArray parseLineInformationContig(QByteArray line, const QByteArray& information);
-	InfoFormatLinePtr parseInfoFormatLine(QByteArray& line, QByteArray type, const int line_number);
-	FilterLinePtr parseFilterLine(QByteArray& line, const int line_number);
-
+	bool parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number);
 };
 
 ///representation of a line of a vcf file

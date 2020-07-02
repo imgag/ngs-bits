@@ -30,88 +30,86 @@ const QByteArrayList VCFHeader::FormatTypes =  {"Integer", "Float", "Character",
 		return it->constData();
 	}
 
-VcfHeaderLineBase::VcfHeaderLineBase(QByteArray line):
-	line_key(line){}
-
-VcfHeaderLine::VcfHeaderLine(QByteArray line, QByteArray name):
-	VcfHeaderLineBase(line), name_value(name){}
 
 void VCFHeader::storeHeaderInformation(QTextStream& stream) const
 {
-	foreach (VcfHeaderLineBasePtr header_line_ptr, header_line_order)
+	//first line should always be the fileformat
+	stream << "##fileformat=" << fileformat << "\n";
+	//store all comment lines
+	for(VcfHeaderLine comment : file_comments)
 	{
-		header_line_ptr->storeLine(stream);
+		comment.storeLine(stream);
 	}
-	//alternatively:
-		//store fileformat
-		//store comments
-		//store Info File Format
+	//store info, filter, format
+	for(InfoFormatLine info : info_lines)
+	{
+		info.storeLine(stream, INFO);
+	}
+	for(FilterLine filter : filter_lines)
+	{
+		filter.storeLine(stream);
+	}
+	for(InfoFormatLine format : format_lines)
+	{
+		format.storeLine(stream, FORMAT);
+	}
 }
 
 void VCFHeader::setFormat(QByteArray& line)
 {
-	file_format = std::make_shared<VcfHeaderLine>(VcfHeaderLine("fileformat", parseLineInformation(line, "fileformat")));
-	header_line_order.push_back(file_format);
-}
-void VCFHeader::setDate(QByteArray& line)
-{
-	file_date = std::make_shared<VcfHeaderLine>(VcfHeaderLine("fileDate", parseLineInformation(line, "fileDate")));
-	header_line_order.push_back(file_date);
-}
-void VCFHeader::setSource(QByteArray& line)
-{
-	file_source = std::make_shared<VcfHeaderLine>(VcfHeaderLine("source", parseLineInformation(line, "source")));
-	header_line_order.push_back(file_source);
-}
-void VCFHeader::setReference(QByteArray& line)
-{
-	file_reference = std::make_shared<VcfHeaderLine>(VcfHeaderLine("reference", parseLineInformation(line, "reference")));
-	header_line_order.push_back(file_reference);
-}
-void VCFHeader::setContig(QByteArray& line)
-{
-	file_contig.push_back(std::make_shared<VcfHeaderLine>(VcfHeaderLine("contig", parseLineInformationContig(line, "contig"))));
-	header_line_order.push_back(file_contig.back());
-}
-void VCFHeader::setPhasing(QByteArray& line)
-{
-	file_phasing = std::make_shared<VcfHeaderLine>(VcfHeaderLine("phasing", parseLineInformation(line, "phasing")));
-	header_line_order.push_back(file_phasing);
+	QList<QByteArray> splitted_line=line.split('=');
+	if (splitted_line.count()<2)
+	{
+		THROW(FileParseException, "Malformed fileformat line " + line.trimmed());
+	}
+	fileformat =  splitted_line[1];
 }
 void VCFHeader::setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number)
 {
 	if(type == INFO)
 	{
 		line=line.mid(8);//remove "##INFO=<"
-		InfoFormatLinePtr info_line = parseInfoFormatLine(line, "INFO", line_number);
-		if(info_line)
+		InfoFormatLine info_line;
+		if(parseInfoFormatLine(line, info_line, "INFO", line_number))
 		{
-			file_info_style.push_back(info_line);
-			header_line_order.push_back(file_info_style.back());
+			info_lines.push_back(info_line);
 		}
 	}
 	else
 	{
 		line=line.mid(10);//remove "##FORMAT=<"
-		InfoFormatLinePtr format_line = parseInfoFormatLine(line, "FORMAT", line_number);
-		if(format_line)
+		InfoFormatLine format_line;
+		if(parseInfoFormatLine(line, format_line, "FORMAT", line_number))
 		{
-			file_format_style.push_back(format_line);
-			header_line_order.push_back(file_format_style.back());
+			format_lines.push_back(format_line);
 			//make sure the "GT" format field is always the first format field
-			if(QByteArray(format_line->id) == "GT" && file_format_style.size() > 1)
+			if(format_line.id == "GT" && format_lines.size() > 1)
 			{
-				header_line_order.move(header_line_order.count()-1, header_line_order.count() - file_format_style.count());
+				format_lines.move(format_lines.count()-1, 0);
 			}
 		}
 	}
 }
 void VCFHeader::setFilterLine(QByteArray& line, const int line_number)
 {
-	file_filter_style.push_back(parseFilterLine(line, line_number));
-	header_line_order.push_back(file_filter_style.back());
+	//split at '=' to get id and description part
+	QByteArrayList parts = line.mid(13, line.length()-15).split('=');
+	if(parts.count()!=2) THROW(FileParseException, "Malformed FILTER line " + QString::number(line_number) + " : conains more/less than two parts: " + line);
+
+	//remove 'Description' from first part
+	QByteArrayList first_part = parts[0].split(',');
+	if ( first_part.count()!=2 || first_part[1].trimmed()!="Description")
+	{
+		THROW(FileParseException, "Malformed FILTER line " + QString::number(line_number) + ": second field is not a description field " + line.trimmed());
+	}
+
+	FilterLine filter_line;
+	filter_line.id = strToPointer(first_part[0]);
+	filter_line.description = QString(parts[1].mid(1)); //remove '\"'
+
+	filter_lines.push_back(filter_line);
 }
-void VCFHeader::setUnspecificLine(QByteArray& line, const int line_number)
+void VCFHeader::setCommentLine(QByteArray& line, const int line_number)
 {
 	line=line.mid(2);//remove "##"
 	QByteArrayList splitted_line=line.split('=');
@@ -126,36 +124,15 @@ void VCFHeader::setUnspecificLine(QByteArray& line, const int line_number)
 			splitted_line[1].append('=').append(splitted_line[i]);
 		}
 	}
-	VcfHeaderLinePtr header_line_ptr = std::make_shared<VcfHeaderLine>(splitted_line[0], splitted_line[1]);
-	unspecific_header_lines.push_back(header_line_ptr);
-	header_line_order.push_back(unspecific_header_lines.back());
+	VcfHeaderLine header_line;
+	header_line.key = splitted_line[0];
+	header_line.value = splitted_line[1];
+
+	file_comments.push_back(header_line);
 }
 
-QByteArray VCFHeader::parseLineInformation(QByteArray line, const QByteArray& information)
+bool VCFHeader::parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number)
 {
-	QList<QByteArray> splitted_line=line.split('=');
-	if (splitted_line.count()<2)
-	{
-		THROW(FileParseException, "Malformed " + information + " line " + line.trimmed());
-	}
-	return splitted_line[1];
-}
-QByteArray VCFHeader::parseLineInformationContig(QByteArray line, const QByteArray& information)
-{
-	QList<QByteArray> splitted_line=line.split('=');
-	if (splitted_line.count()<2)
-	{
-		THROW(FileParseException, "Malformed " + information + " line " + line.trimmed());
-	}
-	for(int i = 2; i < splitted_line.size(); ++i)
-	{
-		splitted_line[1].append("=").append(splitted_line[i]);
-	}
-	return splitted_line[1];
-}
-InfoFormatLinePtr VCFHeader::parseInfoFormatLine(QByteArray& line, QByteArray type, const int line_number)
-{
-	InfoFormatLine info_format_line = InfoFormatLine(type);
 	QList <QByteArray> comma_splitted_line=line.split(',');
 	if (comma_splitted_line.count()<4)
 	{
@@ -216,45 +193,26 @@ InfoFormatLinePtr VCFHeader::parseInfoFormatLine(QByteArray& line, QByteArray ty
 
 	if(type == "INFO")
 	{
-		foreach(const InfoFormatLinePtr info_line, file_info_style)
+		foreach(const InfoFormatLine info_line, info_lines)
 		{
-			if(info_line->id == info_format_line.id)
+			if(info_line.id == info_format_line.id)
 			{
 				Log::warn("Duplicate metadata information for field named '" + QByteArray(info_format_line.id) + "'. Skipping metadata line " + QString::number(line_number) + ".");
-				return nullptr;
+				return false;
 			}
 		}
 	}
 	else if(type == "FORMAT")
 	{
-		foreach(const InfoFormatLinePtr format_line, file_format_style)
+		foreach(const InfoFormatLine format_line, format_lines)
 		{
-			if(format_line->id == info_format_line.id)
+			if(format_line.id == info_format_line.id)
 			{
 				Log::warn("Duplicate metadata information for field named '" + QByteArray(info_format_line.id) + "'. Skipping metadata line " + QString::number(line_number) + ".");
-				return nullptr;
+				return false;
 			}
 		}
 	}
 
-	return std::make_shared<InfoFormatLine>(info_format_line);
-}
-FilterLinePtr VCFHeader::parseFilterLine(QByteArray& line, const int line_number)
-{
-		//split at '=' to get id and description part
-		QByteArrayList parts = line.mid(13, line.length()-15).split('=');
-		if(parts.count()!=2) THROW(FileParseException, "Malformed FILTER line " + QString::number(line_number) + " : conains more/less than two parts: " + line);
-
-		//remove 'Description' from first part
-		QByteArrayList first_part = parts[0].split(',');
-		if ( first_part.count()!=2 || first_part[1].trimmed()!="Description")
-		{
-			THROW(FileParseException, "Malformed FILTER line " + QString::number(line_number) + ": second field is not a description field " + line.trimmed());
-		}
-
-		FilterLine filter_line(line);
-		filter_line.id = strToPointer(first_part[0]);
-		filter_line.description = QString(parts[1].mid(1)); //remove '\"'
-
-		return std::make_shared<FilterLine>(filter_line);
+	return true;
 }
