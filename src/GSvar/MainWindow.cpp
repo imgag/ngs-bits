@@ -199,6 +199,25 @@ void MainWindow::on_actionDebug_triggered()
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
+		/*
+		//fix null characters imported from GenLab
+		NGSD db;
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT id, disease_info FROM sample_disease_info");
+		while(query.next())
+		{
+			QString value = query.value(1).toString();
+			if (value.contains(QChar::Null))
+			{
+				value = value.replace(QChar::Null, ' ').trimmed();
+
+				qDebug() << query.value(0) << query.value(1);
+				db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + value + "' WHERE id=" + query.value(0).toString());
+			}
+		}
+		*/
+
+		//import sample meta data from GenLab
 		GenLabDB genlab;
 		NGSD db;
 		ProcessedSampleSearchParameters params;
@@ -213,10 +232,14 @@ void MainWindow::on_actionDebug_triggered()
 		params.run_finished = true;
 		DBTable ps_table = db.processedSampleSearch(params);
 		QStringList ps_list = ps_table.extractColumn(0);
+		int ps_start_index = -1;
 		int i=0;
 		foreach(QString ps, ps_list)
 		{
-			qDebug() << (++i) << "/" << ps_list.size() << " - " << ps;
+			++i;
+			if (i<ps_start_index) continue;
+
+			qDebug() << i << "/" << ps_list.size() << " - " << ps;
 			genlab.addMissingMetaDataToNGSD(ps, true);
 		}
 	}

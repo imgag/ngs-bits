@@ -136,62 +136,13 @@ void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
+	//import disease details to NGSD
 	GenLabDB genlab_db;
+	genlab_db.addMissingMetaDataToNGSD(ps_name_, false, false, true);
 
-	//prepare disease info for import
-	SampleDiseaseInfo tmp;
-	tmp.user = "genlab_import";
-	tmp.date = QDateTime::currentDateTime();
-
-	//ICD10
-	QStringList icd10s = genlab_db.diagnosis(ps_name_);
-	foreach(const QString& icd10, icd10s)
-	{
-		tmp.disease_info = icd10;
-		tmp.type = "ICD10 code";
-		disease_info_ << tmp;
-	}
-
-	//HPO
-	QList<Phenotype> phenos = genlab_db.phenotypes(ps_name_);
-	foreach(const Phenotype& pheno, phenos)
-	{
-		tmp.disease_info = pheno.accession();
-		tmp.type = "HPO term id";
-		disease_info_ << tmp;
-	}
-
-	//Orphanet
-	QStringList ids = genlab_db.orphanet(ps_name_);
-	foreach(const QString& id, ids)
-	{
-		tmp.disease_info = id;
-		tmp.type = "Orpha number";
-		disease_info_ << tmp;
-	}
-
-	//tumor fraction (only for tumor samples)
-	NGSD db;
-	QString sample_id = db.sampleId(ps_name_, false);
-	if (db.getSampleData(sample_id).is_tumor)
-	{
-		QStringList tumor_fractions = genlab_db.tumorFraction(ps_name_);
-		foreach(const QString& fraction, tumor_fractions)
-		{
-			tmp.disease_info = fraction;
-			tmp.type = "tumor fraction";
-			disease_info_ << tmp;
-		}
-	}
-
-	//anamnesis
-	QStringList anamnesises = genlab_db.anamnesis(ps_name_);
-	foreach(const QString& anamnesis, anamnesises)
-	{
-		tmp.disease_info = anamnesis;
-		tmp.type = "clinical phenotype (free text)";
-		disease_info_ << tmp;
-	}
+	//load them from NGSD into the local datastructure
+	QString sample_id = db_.sampleId(ps_name_);
+	disease_info_ = db_.getSampleDiseaseInfo(sample_id);
 
 	//update GUI
 	updateDiseaseInfoTable();

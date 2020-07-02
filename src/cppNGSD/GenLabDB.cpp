@@ -226,7 +226,8 @@ QStringList GenLabDB::anamnesis(QString ps_name)
 		query.exec("SELECT ANAMNESE FROM v_ngs_anamnese WHERE LABORNUMMER='" + name + "' AND ANAMNESE != 'leer'");
 		if(query.next())
 		{
-			QString anamnesis = query.value(0).toString().trimmed();
+			QString anamnesis = query.value(0).toString();
+			anamnesis = anamnesis.replace(QChar::Null, ' ').trimmed(); //somehow GenLab contains Null characters
 			if (anamnesis.isEmpty()) continue;
 
 			if (output.contains(anamnesis)) continue;
@@ -330,88 +331,94 @@ QString GenLabDB::sapID(QString ps_name)
 	return output;
 }
 
-void GenLabDB::addMissingMetaDataToNGSD(QString ps_name, bool log)
+void GenLabDB::addMissingMetaDataToNGSD(QString ps_name, bool log, bool add_disease_group_status, bool add_disease_details)
 {
 	//init
 	NGSD db;
 	QString sample_id = db.sampleId(ps_name);
+	SampleData sample_data = db.getSampleData(sample_id);
 
 	//sample disease group/status
-	SampleData sample_data = db.getSampleData(sample_id);
-	bool modified_group = false;
-	bool modified_status = false;
-	QPair<QString, QString> disease_info = diseaseInfo(ps_name);
-	if (disease_info.first!="n/a" && sample_data.disease_group=="n/a")
+	if (add_disease_group_status)
 	{
-		sample_data.disease_group = disease_info.first;
-		modified_group = true;
-	}
-	if (disease_info.second!="n/a" && sample_data.disease_status=="n/a")
-	{
-		sample_data.disease_status = disease_info.second;
-		modified_status = true;
-	}
-	if (modified_group || modified_status)
-	{
-		db.setSampleDiseaseData(sample_id, sample_data.disease_group, sample_data.disease_status);
-		if (log)
+		bool modified_group = false;
+		bool modified_status = false;
+		QPair<QString, QString> disease_info = diseaseInfo(ps_name);
+		if (disease_info.first!="n/a" && sample_data.disease_group=="n/a" && db.getEnum("sample", "disease_group").contains(disease_info.first))
 		{
-			if (modified_group) Log::info(ps_name + ": Imported disease group from GenLab: " + sample_data.disease_group);
-			if (modified_status) Log::info(ps_name + ": Imported disease status from GenLab: " + sample_data.disease_status);
+			sample_data.disease_group = disease_info.first;
+			modified_group = true;
+		}
+		if (disease_info.second!="n/a" && sample_data.disease_status=="n/a")
+		{
+			sample_data.disease_status = disease_info.second;
+			modified_status = true;
+		}
+		if (modified_group || modified_status)
+		{
+			db.setSampleDiseaseData(sample_id, sample_data.disease_group, sample_data.disease_status);
+			if (log)
+			{
+				if (modified_group) Log::info(ps_name + ": Imported disease group from GenLab: " + sample_data.disease_group);
+				if (modified_status) Log::info(ps_name + ": Imported disease status from GenLab: " + sample_data.disease_status);
+			}
 		}
 	}
 
 	//sample disease details
-	QList<SampleDiseaseInfo> disease_details = db.getSampleDiseaseInfo(sample_id);
-	QDateTime date = QDateTime::currentDateTime();
-	QString user = "genlab_import";
-	bool modified_details = false;
-	foreach(QString anamnesis, anamnesis(ps_name))
+	if (add_disease_details)
 	{
-		if(addDiseaseInfoIfMissing("clinical phenotype (free text)", anamnesis, date, user, disease_details))
+		QList<SampleDiseaseInfo> disease_details = db.getSampleDiseaseInfo(sample_id);
+		QDateTime date = QDateTime::currentDateTime();
+		QString user = "genlab_import";
+		bool modified_details = false;
+		foreach(QString text, anamnesis(ps_name))
 		{
-			modified_details = true;
-			if (log) Log::info(ps_name + ": Imported anamnesis from GenLab: " + anamnesis);
-		}
-	}
-	foreach(Phenotype pheno, phenotypes(ps_name))
-	{
-		if(addDiseaseInfoIfMissing("HPO term id", pheno.accession(), date, user, disease_details))
-		{
-			modified_details = true;
-			if (log) Log::info(ps_name + ": Imported HPO id from GenLab: " + pheno.accession());
-		}
-	}
-	foreach(QString orpha, orphanet(ps_name))
-	{
-		if(addDiseaseInfoIfMissing("Orpha number", orpha, date, user, disease_details))
-		{
-			modified_details = true;
-			if (log) Log::info(ps_name + ": Imported Orpha code from GenLab: " + orpha);
-		}
-	}
-	foreach(QString icd10, diagnosis(ps_name))
-	{
-		if(addDiseaseInfoIfMissing("ICD10 code", icd10, date, user, disease_details))
-		{
-			modified_details = true;
-			if (log) Log::info(ps_name + ": Imported ICD10 from GenLab: " + icd10);
-		}
-	}
-	if (sample_data.is_tumor)
-	{
-		foreach(QString fraction, tumorFraction(ps_name))
-		{
-			if(addDiseaseInfoIfMissing("tumor fraction", fraction, date, user, disease_details))
+			if(addDiseaseInfoIfMissing("clinical phenotype (free text)", text, date, user, disease_details))
 			{
 				modified_details = true;
-				if (log) Log::info(ps_name + ": Imported tumor fraction from GenLab: " + fraction);
+				if (log) Log::info(ps_name + ": Imported anamnesis from GenLab: " + text);
 			}
 		}
-	}
-	if (modified_details)
-	{
-		db.setSampleDiseaseInfo(sample_id, disease_details);
+		foreach(Phenotype pheno, phenotypes(ps_name))
+		{
+			if(addDiseaseInfoIfMissing("HPO term id", pheno.accession(), date, user, disease_details))
+			{
+				modified_details = true;
+				if (log) Log::info(ps_name + ": Imported HPO id from GenLab: " + pheno.accession());
+			}
+		}
+		foreach(QString orpha, orphanet(ps_name))
+		{
+			if(addDiseaseInfoIfMissing("Orpha number", orpha, date, user, disease_details))
+			{
+				modified_details = true;
+				if (log) Log::info(ps_name + ": Imported Orpha code from GenLab: " + orpha);
+			}
+		}
+		foreach(QString icd10, diagnosis(ps_name))
+		{
+			if(addDiseaseInfoIfMissing("ICD10 code", icd10, date, user, disease_details))
+			{
+				modified_details = true;
+				if (log) Log::info(ps_name + ": Imported ICD10 from GenLab: " + icd10);
+			}
+		}
+		if (sample_data.is_tumor)
+		{
+			foreach(QString fraction, tumorFraction(ps_name))
+			{
+				if(addDiseaseInfoIfMissing("tumor fraction", fraction, date, user, disease_details))
+				{
+					modified_details = true;
+					if (log) Log::info(ps_name + ": Imported tumor fraction from GenLab: " + fraction);
+				}
+			}
+		}
+		if (modified_details)
+		{
+			db.setSampleDiseaseInfo(sample_id, disease_details);
+		}
 	}
 }
 
