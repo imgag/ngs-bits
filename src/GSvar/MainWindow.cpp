@@ -248,6 +248,23 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
+		SomaticXmlReportGeneratorData test_data(somatic_report_settings_,variants_,somatic_control_tissue_variants_,cnvs_);
+		test_data.tumor_content_histology = 0.35;
+		test_data.tumor_content_snvs = 0.3;
+		test_data.tumor_content_clonality = 0.4;
+		test_data.tumor_mutation_burden = 9.2;
+		test_data.mantis_msi = 1.54;
+
+
+		NGSD db;
+		QString out;
+		out = SomaticXmlReportGenerator::generateXML(test_data,db, false);
+
+		QSharedPointer<QFile> out_file = Helper::openFileForWriting("D:\\test.xml");
+
+		out_file->write(out.toUtf8());
+
+		out_file->close();
 	}
 }
 

@@ -24,7 +24,7 @@
 #include <QCollator>
 #include <QXmlStreamWriter>
 
-RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes, bool sort_by_gene)
+RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes, bool sort_by_gene, bool drivers_bold)
 {
 	RtfTable table;
 
@@ -157,6 +157,9 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 		}
 
 		row.addCell(3138, gene_info);
+
+		if(drivers_bold && !gene_info.contains("unklar")) row[0].format().setBold(true);
+
 		temp_rows.append(QPair<Variant,RtfTableRow>(snv, row));
 	}
 
@@ -2161,7 +2164,7 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 	 *********************/
 	doc_.addPart(RtfParagraph("Alle nachgewiesenen somatischen Veränderungen:").setBold(true).setSpaceAfter(45).setFontSize(18).RtfCode());
 
-	doc_.addPart(somaticAlterationTable(snv_variants_, cnvs_, true).setUniqueBorder(1,"brdrhair",4).RtfCode());
+	doc_.addPart(somaticAlterationTable(snv_variants_, cnvs_, true, GeneSet(), false, true).setUniqueBorder(1,"brdrhair",4).RtfCode());
 
 	RtfSourceCode desc = "Diese Tabelle enthält sämtliche in der Tumorprobe nachgewiesenen SNVs und INDELs, unabhängig von der funktionellen Einschätzung und der abzurechnenden Zielregion. Sie enthält ferner alle Kopienzahlveränderungen in Genen, die als Treiber eingestuft wurden.";
 	if(settings_.report_config.countGermline() > 0) desc += "\\line\n" +RtfText("#:").setFontSize(14).setBold(true).RtfCode() + " Auch in der Normalprobe nachgewiesen.";

@@ -336,7 +336,7 @@ private:
 	QMap<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
 
 	///Writes Rtf table containing most relevant SNVs and CNVs
-	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet(), bool sort_by_gene = false);
+	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet(), bool sort_by_gene = false, bool drivers_bold = false);
 
 
 	//skipped amplifications in somaticalterationtable
