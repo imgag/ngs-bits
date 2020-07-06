@@ -150,7 +150,7 @@ struct VCFLine
 	QByteArrayList format; //: seperated list of ids for sample
 	QVector<OrderedHash<QByteArray, QByteArray>> sample; // hash of format entries to values
 
-	//Returns if the chromosome is valid
+	//returns if the chromosome is valid
 	bool isValidGenomicPosition() const
 	{
 		bool is_valid_ref_base = true;
@@ -164,6 +164,47 @@ struct VCFLine
 			}
 		}
 		return chr.isValid() && is_valid_ref_base && pos>=0 && ref.size()>=0 && !ref.isEmpty() && !alt.isEmpty();
+	}
+
+	//returns all not passed filters
+	QByteArrayList failedFilters()
+	{
+		QByteArrayList filters;
+		foreach(QByteArray tag, filter)
+		{
+			tag = tag.trimmed();
+
+			if (tag!="" && tag!="." && tag.toUpper()!="PASS" && tag.toUpper()!="PASSED")
+			{
+				filters.append(tag);
+			}
+		}
+		return filters;
+	}
+
+	void checkValid() const
+	{
+		if (!chr.isValid())
+		{
+			THROW(ArgumentException, "Invalid variant chromosome string in variant '" + chr.str() + " " + QString::number(pos));
+		}
+
+		if (pos < 1 || ref.length() < 1)
+		{
+			THROW(ArgumentException, "Invalid variant position range in variant '" +  chr.str() + " " + QString::number(pos));
+		}
+
+		if (ref!="-" && !QRegExp("[ACGTN]+").exactMatch(ref))
+		{
+			THROW(ArgumentException, "Invalid variant reference sequence in variant '" +  chr.str() + " " + QString::number(pos));
+		}
+		for(Sequence alt_seq : alt)
+		{
+			if (alt_seq!="-" && alt_seq!="." && !QRegExp("[ACGTN,]+").exactMatch(alt_seq))
+			{
+				THROW(ArgumentException, "Invalid variant alternative sequence in variant '" +  chr.str() + " " + QString::number(pos));
+			}
+		}
 	}
 
 };
