@@ -60,7 +60,7 @@ private slots:
 		I_EQUAL(vl.count(), 14);
 		//old test expected 3, now two bcs we seperately parse the fileformat
 		I_EQUAL(vl.vcfHeader().file_comments_.count(), 2);
-		S_EQUAL(vl.sampleIDs()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
+		S_EQUAL(vl.sampleIDs().at(0), QString("./Sample_GS120297A3/GS120297A3.bam"));
 		//old test checked for annotations().count()==27, with annotations consisting of all formats, informations, id, qual, and filter
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
@@ -125,7 +125,31 @@ private slots:
 		S_EQUAL(vl.sampleIDs()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
+	}
 
+	void loadFromVCF_withROI()
+	{
+		BedFile roi;
+		roi.append(BedLine("chr17", 72196820, 72196892));
+		roi.append(BedLine("chr18", 67904549, 67904670));
+
+		VcfFileHandler vl;
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"), &roi);
+		vl.checkValid();
+		I_EQUAL(vl.count(), 4);
+		I_EQUAL(vl.vcfHeader().file_comments_.count(), 2);
+		S_EQUAL(vl.sampleIDs().at(0), QString("./Sample_GS120297A3/GS120297A3.bam"));
+		I_EQUAL(vl.informationIDs().count(), 18);
+		I_EQUAL(vl.formatIDs().count(), 6);
+
+		X_EQUAL(vl.vcfLine(0).chr(), Chromosome("chr17"));
+		I_EQUAL(vl.vcfLine(0).pos(), 72196887);
+		X_EQUAL(vl.vcfLine(1).chr(), Chromosome("chr17"));
+		I_EQUAL(vl.vcfLine(1).pos(), 72196892);
+		X_EQUAL(vl.vcfLine(2).chr(), Chromosome("chr18"));
+		I_EQUAL(vl.vcfLine(2).pos(), 67904549);
+		X_EQUAL(vl.vcfLine(3).chr(), Chromosome("chr18"));
+		I_EQUAL(vl.vcfLine(3).pos(), 67904586);
 	}
 
 };

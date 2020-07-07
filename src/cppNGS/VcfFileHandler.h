@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VcfFileHelper.h"
+#include "BedFile.h"
 
 namespace VcfFormat
 {
@@ -12,7 +13,7 @@ class CPPNGSSHARED_EXPORT VcfFileHandler
 public:
 
 	///loads a vcf or vcf.gz file
-	void load(const QString& filename);
+	void load(const QString& filename, const BedFile* roi=nullptr);
 	///stores the data of VCFFileHandler in vcf file
 	void store(const QString& filename) const;
 
@@ -63,10 +64,10 @@ private:
 
 	void parseVcfHeader(const int line_number, QByteArray& line);
 	void parseHeaderFields(QByteArray& line);
-	void parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids);
-	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids);
-	void loadFromVCF(const QString& filename);
-	void loadFromVCFGZ(const QString& filename);
+	void parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx);
+	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx);
+	void loadFromVCF(const QString& filename, ChromosomalIndex<BedFile>* roi_idx=nullptr);
+	void loadFromVCFGZ(const QString& filename, ChromosomalIndex<BedFile>* roi_idx=nullptr);
 	void clear();
 
 	QVector<VCFLine> VcfLines_;

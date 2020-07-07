@@ -74,7 +74,7 @@ void VcfFileHandler::parseHeaderFields(QByteArray& line)
 		}
 	}
 }
-void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids)
+void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx)
 {
 	QList<QByteArray> line_parts = line.split('\t');
 	if (line_parts.count()<VCFHeader::MIN_COLS)
@@ -85,6 +85,17 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 	vcf_line.setChromosome(strToPointer(line_parts[0]));
 	vcf_line.setPos(atoi(line_parts[1]));
 	vcf_line.setRef(strToPointer(line_parts[3].toUpper()));
+
+	//Skip variants that are not in the target region (if given)
+	if (roi_idx!=nullptr)
+	{
+		int end =  vcf_line.pos() +  vcf_line.ref().length() - 1;
+		bool in_roi = roi_idx->matchingIndex(vcf_line.chr(), vcf_line.pos(), end) != -1;
+		if (!in_roi)
+		{
+			return;
+		}
+	}
 
 	vcf_line.setId(line_parts[2].split(';'));
 	vcf_line.setAlt(line_parts[4].split(','));
@@ -210,7 +221,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 }
 
 
-void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids)
+void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx)
 {
 
 	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
@@ -238,11 +249,11 @@ void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByt
 		{
 			info_ids.insert(info.id);
 		}
-		parseVcfEntry(line_number, line, info_ids, format_ids);
+		parseVcfEntry(line_number, line, info_ids, format_ids, roi_idx);
 	}
 }
 
-void VcfFileHandler::loadFromVCF(const QString& filename)
+void VcfFileHandler::loadFromVCF(const QString& filename, ChromosomalIndex<BedFile>* roi_idx)
 {
 	//clear content in case we load a second file
 	clear();
@@ -254,11 +265,11 @@ void VcfFileHandler::loadFromVCF(const QString& filename)
 	QSet<QByteArray> format_ids_in_header;
 	while(!file->atEnd())
 	{
-		processVcfLine(line_number, file->readLine(), info_ids_in_header, format_ids_in_header);
+		processVcfLine(line_number, file->readLine(), info_ids_in_header, format_ids_in_header, roi_idx);
 	}
 }
 
-void VcfFileHandler::loadFromVCFGZ(const QString& filename)
+void VcfFileHandler::loadFromVCFGZ(const QString& filename, ChromosomalIndex<BedFile>* roi_idx)
 {
 	//clear content in case we load a second file
 	clear();
@@ -290,23 +301,33 @@ void VcfFileHandler::loadFromVCFGZ(const QString& filename)
 		//Sets holding all INFO and FORMAT IDs defined in the header (might be extended if a vcf line contains new ones)
 		QSet<QByteArray> info_ids_in_header;
 		QSet<QByteArray> format_ids_in_header;
-		processVcfLine(line_number, QByteArray(read_line), info_ids_in_header, format_ids_in_header);
+		processVcfLine(line_number, QByteArray(read_line), info_ids_in_header, format_ids_in_header, roi_idx);
 	}
 	gzclose(file);
 	delete[] buffer;
 }
 
-void VcfFileHandler::load(const QString& filename)
+void VcfFileHandler::load(const QString& filename, const BedFile* roi)
 {
-	QString fn_lower = filename.toLower();
+	//create ROI index (if given)
+	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
+	if (roi!=nullptr)
+	{
+		if (!roi->isSorted())
+		{
+			THROW(ArgumentException, "Target region unsorted, but needs to be sorted (given for reading file " + filename + ")!");
+		}
+		roi_idx.reset(new ChromosomalIndex<BedFile>(*roi));
+	}
 
+	QString fn_lower = filename.toLower();
 	if (fn_lower.endsWith(".vcf"))
 	{
-		loadFromVCF(filename);
+		loadFromVCF(filename, roi_idx.data());
 	}
 	else if (fn_lower.endsWith(".vcf.gz"))
 	{
-		loadFromVCFGZ(filename);
+		loadFromVCFGZ(filename, roi_idx.data());
 	}
 	else
 	{
