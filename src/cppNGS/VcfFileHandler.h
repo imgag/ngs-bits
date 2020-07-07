@@ -23,10 +23,10 @@ public:
 	{
 		return VcfLines_.count();
 	}
-	QByteArrayList sampleNames() const;
-	QByteArrayList informations() const;
-	QByteArrayList filters() const;
-	QByteArrayList formats() const;
+	QByteArrayList sampleIDs() const;
+	QByteArrayList informationIDs() const;
+	QByteArrayList filterIDs() const;
+	QByteArrayList formatIDs() const;
 
 
 	///return a QVector of VCFLines

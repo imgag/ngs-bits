@@ -132,7 +132,7 @@ enum AnalysisType
 	SOMATIC_PAIR
 };
 
-using FormatToValueHash = OrderedHash<QByteArray, QByteArray>;
+using FormatIDToValueHash = OrderedHash<QByteArray, QByteArray>;
 
 ///struct representing a vcf header.
 /// most important information is stored in seperate variables, additional information
@@ -202,7 +202,7 @@ public:
 	{
 		return format_;
 	}
-	const OrderedHash<QByteArray , QByteArray>& info() const
+	const OrderedHash<QByteArray , QByteArray>& infos() const
 	{
 		return info_;
 	}
@@ -218,17 +218,19 @@ public:
 			return "";
 		}
 	}
-	//const OrderedHash<QByteArray, FormatToValueHash>& sample() const
-	//{
-	//	return sample_;
-	//}
-	//FormatToValueHash sample(const QByteArray& sample_name) const
-	//{
-	//	return sample_[sample_name];
-	//}
-	const QVector<FormatToValueHash>& sample() const
+	//returns a hash with(key = sample name, value = hash of format name to value)
+	const OrderedHash<QByteArray, FormatIDToValueHash>& samples() const
 	{
 		return sample_;
+	}
+	//returns a hash with(key = FORMAT entry, value)
+	FormatIDToValueHash sample(const QByteArray& sample_name) const
+	{
+		return sample_[sample_name];
+	}
+	QByteArray sample(const QByteArray& sample_name, const QByteArray& format_id)
+	{
+		return sample_[sample_name][format_id];
 	}
 
 	void setChromosome(const Chromosome& chr)
@@ -273,11 +275,7 @@ public:
 	{
 		format_ = format;
 	}
-	//void setSample(const OrderedHash<QByteArray, FormatToValueHash>& sample)
-	//{
-	//	sample_ = sample;
-	//}
-	void setSample(const QVector<FormatToValueHash>& sample)
+	void setSample(const OrderedHash<QByteArray, FormatIDToValueHash>& sample)
 	{
 		sample_ = sample;
 	}
@@ -302,8 +300,7 @@ private:
 
 	//obligatory columns
 	QByteArrayList format_; //: seperated list of formats for each sample
-	//OrderedHash<QByteArray, FormatToValueHash> sample_; // hash of a sample name to a hash of format entries to values
-	QVector<FormatToValueHash> sample_;
+	OrderedHash<QByteArray, FormatIDToValueHash> sample_; // hash of a sample name to a hash of format entries to values
 };
 
 ///Comparator helper class that used by sort().

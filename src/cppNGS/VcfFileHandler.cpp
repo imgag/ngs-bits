@@ -75,7 +75,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 		THROW(FileParseException, "VCF data line needs at least 7 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
 	}
 	VCFLine vcf_line;
-	vcf_line.setChromosome(line_parts[0]);
+	vcf_line.setChromosome(strToPointer(line_parts[0]));
 	vcf_line.setPos(atoi(line_parts[1]));
 	vcf_line.setRef(strToPointer(line_parts[3].toUpper()));
 
@@ -87,7 +87,6 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 
 	//FILTER
 	vcf_line.setFilter(line_parts[6].split(';'));
-
 
 	//INFO
 	if(line_parts[7]!=".")
@@ -111,17 +110,18 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 
 			if(key_value_pair.size() == 1)
 			{
-				info_entries.push_back(strToPointer(key_value_pair[0]), "TRUE");
+				info_entries.push_back(strToPointer(key_value_pair[0]), strToPointer(QByteArray("TRUE")));
 			}
 			else
 			{
-				info_entries.push_back(strToPointer(key_value_pair[0]), key_value_pair[1]);
+				info_entries.push_back(strToPointer(key_value_pair[0]), strToPointer(key_value_pair[1]));
 			}
 
 		}
 		vcf_line.setInfo(info_entries);
 
 	}
+
 	//FORMAT && SAMPLE
 	if(line_parts.count() >= 10)
 	{
@@ -155,17 +155,18 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 		vcf_line.setFormat(format_entries);
 
 		//SAMPLE
-		//OrderedHash<QByteArray, FormatToValueHash> sample_entries;
-		QVector<FormatToValueHash> sample_entries;
-		QByteArrayList sample_names = sampleNames();
+		OrderedHash<QByteArray, FormatIDToValueHash> sample_entries;
+		QByteArrayList sample_names = sampleIDs();
 		if(sample_names.count() != line_parts.count() - 9)
 		{
 			THROW(FileParseException, "Number of samples does not equal number of samples in header for line " + QString::number(line_number) + ": " + line);
 		}
 		for(int i = 9; i < line_parts.count(); ++i)
 		{
+
 			QByteArray sample_id = sample_names.at(i-9);
 			QByteArrayList sample_id_list = line_parts[i].split(':');
+
 			int format_entry_count = vcf_line.format().count();
 			int sample_entry_count = sample_id_list.count();
 			//SAMPLE columns can have missing trailing entries, but can not have more than specified in FORMAT
@@ -174,7 +175,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 				THROW(FileParseException, "Sample column has more entries than defined in Format for line " + QString::number(line_number) + ": " + line);
 			}
 
-			FormatToValueHash sample;
+			FormatIDToValueHash sample;
 			//parse all available entries
 			for(int sample_id = 0; sample_id < sample_entry_count; ++sample_id)
 			{
@@ -190,9 +191,10 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 					sample.push_back(vcf_line.format().at(trailing_sample_id), "");
 				}
 			}
-			//sample_entries.push_back(strToPointer(sample_id), sample);
-			sample_entries.push_back(sample);
+
+			sample_entries.push_back(strToPointer(sample_id), sample);
 		}
+
 		vcf_line.setSample(sample_entries);
 	}
 
@@ -346,18 +348,18 @@ void VcfFileHandler::store(const QString& filename) const
 
 		stream  << "\t"<< vcf_line.filter().join(':');
 
-		stream  << "\t"<< vcf_line.info().at(0).first << "=" << vcf_line.info().at(0).second;
-		if(vcf_line.info().size() > 1)
+		stream  << "\t"<< vcf_line.infos().at(0).first << "=" << vcf_line.infos().at(0).second;
+		if(vcf_line.infos().size() > 1)
 		{
-			for(int i = 1; i < vcf_line.info().size(); ++i)
+			for(int i = 1; i < vcf_line.infos().size(); ++i)
 			{
-				if(vcf_line.info().at(i).second == "TRUE")
+				if(vcf_line.infos().at(i).second == "TRUE")
 				{
-					stream  << ";"<< vcf_line.info().at(i).first;
+					stream  << ";"<< vcf_line.infos().at(i).first;
 				}
 				else
 				{
-					stream  << ";"<< vcf_line.info().at(i).first << "=" << vcf_line.info().at(i).second;;
+					stream  << ";"<< vcf_line.infos().at(i).first << "=" << vcf_line.infos().at(i).second;;
 				}
 			}
 		}
@@ -372,12 +374,9 @@ void VcfFileHandler::store(const QString& filename) const
 			}
 
 			//for every sample
-			//for(const QByteArray& name : sampleNames())
-			for(OrderedHash<QByteArray, QByteArray> sample_tmp : vcf_line.sample())
+			for(const QByteArray& name : sampleIDs())
 			{
-				//FormatToValueHash sample = vcf_line.sample(name);
-
-				FormatToValueHash sample = sample_tmp;
+				FormatIDToValueHash sample = vcf_line.sample(name);
 				stream << "\t" << sample.at(0).second;
 				//for all entries in the sample (e.g. 'GT':'DP':...)
 				for(int sample_entry_id = 1; sample_entry_id < sample.size(); ++sample_entry_id)
@@ -395,11 +394,11 @@ void VcfFileHandler::checkValid() const
 	{
 		vcf_line.checkValid();
 
-		if(vcf_line.sample().empty() && column_headers_.count() != VCFHeader::MIN_COLS)
+		if(vcf_line.samples().empty() && column_headers_.count() != VCFHeader::MIN_COLS)
 		{
 			THROW(ArgumentException, "Invalid variant annotation data: A VCF Line without samples should have " + QString::number(VCFHeader::MIN_COLS) + " columns.");
 		}
-		else if (vcf_line.sample().size() + 9 != column_headers_.count())
+		else if (vcf_line.samples().size() + 9 != column_headers_.count())
 		{
 			THROW(ArgumentException, "Invalid variant annotation data: Wrong number of columns.");
 		}
@@ -438,13 +437,13 @@ void VcfFileHandler::removeDuplicates(bool sort_by_quality)
 	VcfLines_.swap(output);
 }
 
-QByteArrayList VcfFileHandler::sampleNames() const
+QByteArrayList VcfFileHandler::sampleIDs() const
 {
 	QByteArrayList samples;
 	//samples are all columns after the 10th
 	if(column_headers_.count() >= 10)
 	{
-		for(int i = 9; i <= column_headers_.count(); ++i)
+		for(int i = 9; i < column_headers_.count(); ++i)
 		{
 			samples.append(column_headers_.at(i));
 		}
@@ -452,7 +451,7 @@ QByteArrayList VcfFileHandler::sampleNames() const
 	return samples;
 }
 
-QByteArrayList VcfFileHandler::informations() const
+QByteArrayList VcfFileHandler::informationIDs() const
 {
 	QByteArrayList informations;
 	for(const InfoFormatLine& info : vcfHeader().info_lines_)
@@ -461,7 +460,7 @@ QByteArrayList VcfFileHandler::informations() const
 	}
 	return informations;
 }
-QByteArrayList VcfFileHandler::filters() const
+QByteArrayList VcfFileHandler::filterIDs() const
 {
 	QByteArrayList filters;
 	for(const FilterLine& filter : vcfHeader().filter_lines_)
@@ -470,7 +469,7 @@ QByteArrayList VcfFileHandler::filters() const
 	}
 	return filters;
 }
-QByteArrayList VcfFileHandler::formats() const
+QByteArrayList VcfFileHandler::formatIDs() const
 {
 	QByteArrayList formats;
 	for(const InfoFormatLine& format : vcfHeader().format_lines_)
