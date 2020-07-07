@@ -222,8 +222,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 			{
 				FormatIDToValueHash sample;
 				sample.push_back(empty_format, "");
-				//since SAMPLE is empty, there MUST be only one sampleID
-				Q_ASSERT(sampleIDs().count()==1);
+				//since SAMPLE is empty, there MUST be only one sampleID (this is set in parseHeaderFields)
 				QByteArray sample_id = sampleIDs().at(0);
 				sample_entries.push_back(strToPointer(sample_id), sample);
 			}
