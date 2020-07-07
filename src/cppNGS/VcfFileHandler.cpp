@@ -141,7 +141,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 	}
 
 	//FORMAT && SAMPLE
-	if(line_parts.count() >= 10)
+	if(line_parts.count() >= 9)
 	{
 		//FORMAT
 		QByteArrayList format_list = line_parts[8].split(':');
@@ -174,45 +174,60 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 
 		//SAMPLE
 		OrderedHash<QByteArray, FormatIDToValueHash> sample_entries;
-		QByteArrayList sample_names = sampleIDs();
-		if(sample_names.count() != line_parts.count() - 9)
+		if(line_parts.count() >= 10)
 		{
-			THROW(FileParseException, "Number of samples does not equal number of samples in header for line " + QString::number(line_number) + ": " + line);
-		}
-		for(int i = 9; i < line_parts.count(); ++i)
-		{
-
-			QByteArray sample_id = sample_names.at(i-9);
-			QByteArrayList sample_id_list = line_parts[i].split(':');
-
-			int format_entry_count = vcf_line.format().count();
-			int sample_entry_count = sample_id_list.count();
-			//SAMPLE columns can have missing trailing entries, but can not have more than specified in FORMAT
-			if(sample_entry_count > format_entry_count)
+			QByteArrayList sample_names = sampleIDs();
+			if(sample_names.count() != line_parts.count() - 9)
 			{
-				THROW(FileParseException, "Sample column has more entries than defined in Format for line " + QString::number(line_number) + ": " + line);
+				THROW(FileParseException, "Number of samples does not equal number of samples in header for line " + QString::number(line_number) + ": " + line);
 			}
+			for(int i = 9; i < line_parts.count(); ++i)
+			{
 
-			FormatIDToValueHash sample;
-			//parse all available entries
-			for(int sample_id = 0; sample_id < sample_entry_count; ++sample_id)
-			{
-				QByteArray value = "";
-				if(sample_id_list.at(sample_id) != ".") value = sample_id_list.at(sample_id);
-				sample.push_back(vcf_line.format().at(sample_id), sample_id_list.at(sample_id));
-			}
-			//set missing trailing entries
-			if(sample_entry_count < format_entry_count)
-			{
-				for(int trailing_sample_id = (sample_entry_count - format_entry_count); trailing_sample_id < format_entry_count; trailing_sample_id++)
+				QByteArray sample_id = sample_names.at(i-9);
+				QByteArrayList sample_id_list = line_parts[i].split(':');
+
+				int format_entry_count = vcf_line.format().count();
+				int sample_entry_count = sample_id_list.count();
+				//SAMPLE columns can have missing trailing entries, but can not have more than specified in FORMAT
+				if(sample_entry_count > format_entry_count)
 				{
-					sample.push_back(vcf_line.format().at(trailing_sample_id), "");
+					THROW(FileParseException, "Sample column has more entries than defined in Format for line " + QString::number(line_number) + ": " + line);
 				}
+
+				FormatIDToValueHash sample;
+				//parse all available entries
+				for(int sample_id = 0; sample_id < sample_entry_count; ++sample_id)
+				{
+					QByteArray value = "";
+					if(sample_id_list.at(sample_id) != ".") value = sample_id_list.at(sample_id);
+					sample.push_back(vcf_line.format().at(sample_id), sample_id_list.at(sample_id));
+				}
+				//set missing trailing entries
+				if(sample_entry_count < format_entry_count)
+				{
+					for(int trailing_sample_id = (sample_entry_count - format_entry_count); trailing_sample_id < format_entry_count; trailing_sample_id++)
+					{
+						sample.push_back(vcf_line.format().at(trailing_sample_id), "");
+					}
+				}
+
+				sample_entries.push_back(strToPointer(sample_id), sample);
 			}
-
-			sample_entries.push_back(strToPointer(sample_id), sample);
 		}
-
+		else
+		{
+			//a FORMAT is given, however no SAMPLE data
+			for(const QByteArray empty_format : vcf_line.format())
+			{
+				FormatIDToValueHash sample;
+				sample.push_back(empty_format, "");
+				//since SAMPLE is empty, there MUST be only one sampleID
+				Q_ASSERT(sampleIDs().count()==1);
+				QByteArray sample_id = sampleIDs().at(0);
+				sample_entries.push_back(strToPointer(sample_id), sample);
+			}
+		}
 		vcf_line.setSample(sample_entries);
 	}
 
@@ -425,11 +440,13 @@ void VcfFileHandler::checkValid() const
 	{
 		vcf_line.checkValid();
 
+		//if there were no samples, only the minimum number of columns can exist (no format)
 		if(vcf_line.samples().empty() && column_headers_.count() != VCFHeader::MIN_COLS)
 		{
 			THROW(ArgumentException, "Invalid variant annotation data: A VCF Line without samples should have " + QString::number(VCFHeader::MIN_COLS) + " columns.");
 		}
-		else if (vcf_line.samples().size() + 9 != column_headers_.count())
+		//otherwise if FORMAT exists, the number of columns must be (MIN_COLS + FORMAT column + all sample columns)
+		else if (!vcf_line.format().empty() && vcf_line.samples().size() + 1 + VCFHeader::MIN_COLS != column_headers_.count())
 		{
 			THROW(ArgumentException, "Invalid variant annotation data: Wrong number of columns.");
 		}

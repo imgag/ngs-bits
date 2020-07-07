@@ -152,4 +152,27 @@ private slots:
 		I_EQUAL(vl.vcfLine(3).pos(), 67904586);
 	}
 
+	void loadFromVCF_noSampleOrFormatColumn()
+	{
+		VcfFileHandler vl;
+
+		vl.load(TESTDATA("data_in/VariantList_loadFromVCF_noSample.vcf"));
+		vl.checkValid();
+		I_EQUAL(vl.count(), 14);
+		I_EQUAL(vl.informationIDs().count(), 18);
+		I_EQUAL(vl.formatIDs().count(), 6);
+		I_EQUAL(vl.vcfHeader().file_comments_.count(), 1);
+		S_EQUAL(vl.vcfHeader().fileformat_, QByteArray("VCFv4.1"));
+		S_EQUAL(vl.sampleIDs().at(0), QString("Sample"));
+
+		vl.load(TESTDATA("data_in/VariantList_loadFromVCF_noFormatSample.vcf"));
+		vl.checkValid();
+		I_EQUAL(vl.count(), 14);
+		I_EQUAL(vl.informationIDs().count(), 18);
+		I_EQUAL(vl.formatIDs().count(), 6);
+		I_EQUAL(vl.vcfHeader().file_comments_.count(), 1);
+		S_EQUAL(vl.vcfHeader().fileformat_, QByteArray("VCFv4.1"));
+		I_EQUAL(vl.sampleIDs().count(), 0);
+	}
+
 };
