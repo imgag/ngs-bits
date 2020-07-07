@@ -2,6 +2,7 @@
 
 libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
+* The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
 
 NGSD:
 * Implement "closing gaps by sanger"
@@ -17,7 +18,6 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-### Find out why opening SNV/SV window takes so long!
 *** Sample search: Add ps comment (e.g. to search for contaminated samples), also add comment text search (s+ps)
 *** Add mean coverage of chrMT to report
 *** Analysis jobs:

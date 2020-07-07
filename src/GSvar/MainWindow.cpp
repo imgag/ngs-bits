@@ -199,8 +199,8 @@ void MainWindow::on_actionDebug_triggered()
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
-		/*
 		//fix null characters imported from GenLab
+		/*
 		NGSD db;
 		SqlQuery query = db.getQuery();
 		query.exec("SELECT id, disease_info FROM sample_disease_info");
@@ -218,6 +218,7 @@ void MainWindow::on_actionDebug_triggered()
 		*/
 
 		//import sample meta data from GenLab
+		/*
 		GenLabDB genlab;
 		NGSD db;
 		ProcessedSampleSearchParameters params;
@@ -242,6 +243,7 @@ void MainWindow::on_actionDebug_triggered()
 			qDebug() << i << "/" << ps_list.size() << " - " << ps;
 			genlab.addMissingMetaDataToNGSD(ps, true);
 		}
+		*/
 	}
 	else if (user=="ahschul1")
 	{

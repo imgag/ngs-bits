@@ -21,7 +21,7 @@
 #include "SvSearchWidget.h"
 #include <QDesktopServices>
 
-SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* variant_filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* variant_filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent, bool ini_gui)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
 	, sv_bedpe_file_(bedpe_file)
@@ -52,7 +52,7 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 	clearGUI();
 
 	//init GUI
-	initGUI();
+	if (ini_gui) initGUI();
 
 	//set SV list type
 	is_somatic_ = bedpe_file.isSomatic();
@@ -67,7 +67,7 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 }
 
 SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
-	: SvWidget(bedpe_file, ps_id, filter_widget, het_hit_genes, cache, parent)
+	: SvWidget(bedpe_file, ps_id, filter_widget, het_hit_genes, cache, parent, false)
 {
 	if(bedpe_file.format()!=BedpeFileFormat::BEDPE_GERMLINE_SINGLE)
 	{
