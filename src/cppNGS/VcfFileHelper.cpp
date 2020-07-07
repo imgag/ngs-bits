@@ -58,6 +58,63 @@ const QByteArrayList VCFHeader::FormatTypes =  {"Integer", "Float", "Character",
 		return it->constData();
 	}
 
+InfoFormatLine VCFHeader::lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found) const
+{
+	bool found_multiple = false;
+
+	int index = -1;
+	for(int i=0; i<lines.count(); ++i)
+	{
+		if(lines.at(i).id==id)
+		{
+			if(index!=-1)	found_multiple = true;
+			index = i;
+		}
+	}
+
+	if(error_not_found && index==-1)	THROW(ProgrammingException, "Could not find column description '" + id + "'.");
+	if(error_not_found && found_multiple)	THROW(ProgrammingException, "Description for '" + id + "' occurs more than once.");
+
+	if(!error_not_found && (found_multiple || index==-1))
+	{
+		return InfoFormatLine();
+	}
+	return lines.at(index);
+}
+
+InfoFormatLine VCFHeader::infoLineByID(const QByteArray& id, bool error_not_found) const
+{
+	return lineByID(id, infoLines(), error_not_found);
+}
+
+InfoFormatLine VCFHeader::formatLineByID(const QByteArray& id, bool error_not_found) const
+{
+	return lineByID(id, formatLines(), error_not_found);
+}
+FilterLine VCFHeader::filterLineByID(const QByteArray& id, bool error_not_found) const
+{
+	bool found_multiple = false;
+
+	int index = -1;
+	for(int i=0; i<filterLines().count(); ++i)
+	{
+		if(filterLines().at(i).id==id)
+		{
+			if(index!=-1)	found_multiple = true;
+			index = i;
+		}
+	}
+
+	if(error_not_found && index==-1)	THROW(ProgrammingException, "Could not find column description '" + id + "'.");
+	if(error_not_found && found_multiple)	THROW(ProgrammingException, "Description for '" + id + "' occurs more than once.");
+
+	if(!error_not_found && (found_multiple || index==-1))
+	{
+		return FilterLine();
+	}
+	return filterLines().at(index);
+}
+
 
 void VCFHeader::storeHeaderInformation(QTextStream& stream) const
 {

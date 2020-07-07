@@ -105,7 +105,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 				new_info_line.number = "1";
 				new_info_line.type = "String";
 				new_info_line.description = "no description available";
-				VcfHeader_.info_lines_.push_back(new_info_line);
+				VcfHeader_.addInfoLine(new_info_line);
 			}
 
 			if(key_value_pair.size() == 1)
@@ -143,11 +143,11 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 				new_format_line.number = "1";
 				new_format_line.type = "String";
 				new_format_line.description = "no description available";
-				VcfHeader_.format_lines_.push_back(new_format_line);
+				VcfHeader_.addFormatLine(new_format_line);
 
 				if(format == "GT")
 				{
-					VcfHeader_.format_lines_.move(VcfHeader_.format_lines_.count()-1, 0);
+					VcfHeader_.moveFormatLine(VcfHeader_.formatLines().count()-1, 0);
 				}
 			}
 			format_entries.push_back(strToPointer(format));
@@ -223,11 +223,11 @@ void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByt
 	}
 	else
 	{
-		for(InfoFormatLine format : VcfHeader_.format_lines_)
+		for(InfoFormatLine format : VcfHeader_.formatLines())
 		{
 			format_ids.insert(format.id);
 		}
-		for(InfoFormatLine info : VcfHeader_.info_lines_)
+		for(InfoFormatLine info : VcfHeader_.infoLines())
 		{
 			info_ids.insert(info.id);
 		}
@@ -454,7 +454,7 @@ QByteArrayList VcfFileHandler::sampleIDs() const
 QByteArrayList VcfFileHandler::informationIDs() const
 {
 	QByteArrayList informations;
-	for(const InfoFormatLine& info : vcfHeader().info_lines_)
+	for(const InfoFormatLine& info : vcfHeader().infoLines())
 	{
 		informations.append(info.id);
 	}
@@ -463,7 +463,7 @@ QByteArrayList VcfFileHandler::informationIDs() const
 QByteArrayList VcfFileHandler::filterIDs() const
 {
 	QByteArrayList filters;
-	for(const FilterLine& filter : vcfHeader().filter_lines_)
+	for(const FilterLine& filter : vcfHeader().filterLines())
 	{
 		filters.append(filter.id);
 	}
@@ -472,7 +472,7 @@ QByteArrayList VcfFileHandler::filterIDs() const
 QByteArrayList VcfFileHandler::formatIDs() const
 {
 	QByteArrayList formats;
-	for(const InfoFormatLine& format : vcfHeader().format_lines_)
+	for(const InfoFormatLine& format : vcfHeader().formatLines())
 	{
 		formats.append(format.id);
 	}

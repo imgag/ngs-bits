@@ -64,39 +64,30 @@ private slots:
 		//old test checked for annotations().count()==27, with annotations consisting of all formats, informations, id, qual, and filter
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
+
+		InfoFormatLine info_1 = vl.vcfHeader().infoLineByID("INDEL");
+		S_EQUAL(info_1.id, QString("INDEL"));
+		X_EQUAL(info_1.type, "Flag");
+		S_EQUAL(info_1.number, QString("0"));
+		S_EQUAL(info_1.description, QString("Indicates that the variant is an INDEL."));
+
+		InfoFormatLine info_2 = vl.vcfHeader().infoLineByID("DP4");
+		S_EQUAL(info_2.id, QString("DP4"));
+		X_EQUAL(info_2.type, "Integer");
+		S_EQUAL(info_2.number, QString("4"));
+		S_EQUAL(info_2.description, QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
+
+
+		InfoFormatLine format = vl.vcfHeader().formatLineByID("PL");
+		S_EQUAL(format.id, QString("PL"));
+		S_EQUAL(format.number, QString("G"));
+		S_EQUAL(format.description, QString("List of Phred-scaled genotype likelihoods"));
+		X_EQUAL(format.type, "Integer");
+
+		I_EQUAL(vl.filterIDs().count(), 2);
+		S_EQUAL(vl.vcfHeader().filterLineByID("q10").description, QString("Quality below 10"));
+		S_EQUAL(vl.vcfHeader().filterLineByID("s50").description, QString("Less than 50% of samples have data"));
 /*
-		VariantAnnotationDescription vad = vl.annotationDescriptionByName("ID");
-		S_EQUAL(vad.name(), QString("ID"));
-		X_EQUAL(vad.type(), VariantAnnotationDescription::STRING);
-		S_EQUAL(vad.number(), QString("1"));
-		S_EQUAL(vad.description(), QString("ID of the variant, often dbSNP rsnumber"));
-		IS_FALSE(vad.sampleSpecific());
-
-		vad = vl.annotationDescriptionByName("INDEL");
-		S_EQUAL(vad.name(), QString("INDEL"));
-		X_EQUAL(vad.type(), VariantAnnotationDescription::FLAG);
-		S_EQUAL(vad.number(), QString("0"));
-		S_EQUAL(vad.description(), QString("Indicates that the variant is an INDEL."));
-		IS_FALSE(vad.sampleSpecific());
-
-		vad = vl.annotationDescriptionByName("DP4");
-		S_EQUAL(vad.name(), QString("DP4"));
-		I_EQUAL(vad.type(), VariantAnnotationDescription::INTEGER);
-		S_EQUAL(vad.number(), QString("4"));
-		S_EQUAL(vad.description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
-		IS_FALSE(vad.sampleSpecific());
-
-		vad = vl.annotationDescriptionByName("PL",true);
-		S_EQUAL(vad.name(), QString("PL"));
-		S_EQUAL(vad.number(), QString("G"));
-		S_EQUAL(vad.description(), QString("List of Phred-scaled genotype likelihoods"));
-		IS_TRUE(vad.sampleSpecific());
-		I_EQUAL(vad.type(), VariantAnnotationDescription::INTEGER);
-
-		I_EQUAL(vl.filters().count(), 2);
-		S_EQUAL(vl.filters()["q10"], QString("Quality below 10"));
-		S_EQUAL(vl.filters()["s50"], QString("Less than 50% of samples have data"));
-
 		X_EQUAL(vl[0].chr(), Chromosome("chr17"));
 		I_EQUAL(vl[0].start(), 72196817);
 		I_EQUAL(vl[0].end(), 72196817);
@@ -127,7 +118,7 @@ private slots:
 		I_EQUAL(vl.annotations().count(), 27);
 		I_EQUAL(vl.comments().count(), 3);
 		S_EQUAL(vl.sampleNames()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
-		*/
+*/
 	}
 
 };

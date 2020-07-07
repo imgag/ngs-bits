@@ -143,6 +143,32 @@ public:
 	QByteArray fileformat_;
 	QVector<VcfHeaderLine> file_comments_;
 
+	const QVector<InfoFormatLine>& infoLines() const
+	{
+		return info_lines_;
+	}
+	const QVector<FilterLine>& filterLines() const
+	{
+		return filter_lines_;
+	}
+	const QVector<InfoFormatLine>& formatLines() const
+	{
+		return format_lines_;
+	}
+
+	void addInfoLine(const InfoFormatLine& info_line)
+	{
+		info_lines_.push_back(info_line);
+	}
+	void addFormatLine(const InfoFormatLine& format_line)
+	{
+		format_lines_.push_back(format_line);
+	}
+	void moveFormatLine(int from, int to)
+	{
+		format_lines_.move(from, to);
+	}
+
 	QVector<InfoFormatLine> info_lines_;
 	QVector<FilterLine> filter_lines_;
 	QVector<InfoFormatLine> format_lines_;
@@ -150,6 +176,10 @@ public:
 	static const int MIN_COLS = 8;
 
 	void storeHeaderInformation(QTextStream& stream) const;
+
+	InfoFormatLine infoLineByID(const QByteArray& id, bool error_not_found = true) const;
+	InfoFormatLine formatLineByID(const QByteArray& id, bool error_not_found = true) const;
+	FilterLine filterLineByID(const QByteArray& id, bool error_not_found = true) const;
 
 	void setFormat(QByteArray& line);
 	void setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number);
@@ -163,6 +193,8 @@ private:
 	static const QByteArrayList FormatTypes;
 
 	bool parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number);
+	InfoFormatLine lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found = true) const;
+
 };
 
 ///representation of a line of a vcf file
