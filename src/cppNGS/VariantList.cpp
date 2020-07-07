@@ -675,6 +675,7 @@ bool VariantList::sampleExists(const QString& sample) const
 
 VariantListFormat VariantList::load(QString filename, VariantListFormat format, const BedFile* roi, bool invert)
 {
+	//format=AUTO;
 	//determine format
 	if (format==AUTO)
 	{
@@ -945,6 +946,7 @@ void VariantList::loadFromVCF(QString filename, ChromosomalIndex<BedFile>* roi_i
 	{
 		processVcfLine(header_fields, line_number, file->readLine(), roi_idx, invert);
 	}
+
 }
 
 void VariantList::loadFromVCFGZ(QString filename, ChromosomalIndex<BedFile>* roi_idx, bool invert)
@@ -1126,6 +1128,7 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 		QStringList parts = QString(line.mid(13, line.length()-15)).split(",Description=\"");
 		if(parts.count()!=2) THROW(FileParseException, "Malformed FILTER line: conains more/less than two parts: " + line);
 		filters_[parts[0]] = parts[1];
+
 		return;
 	}
 
@@ -1133,6 +1136,7 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 	if (line.startsWith("##"))
 	{
 		addCommentLine(line);
+
 		return;
 	}
 
@@ -1152,6 +1156,7 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 
 		// set annotation headers
 		annotations().append(VariantAnnotationHeader("ID"));
+
 		annotations().append(VariantAnnotationHeader("QUAL"));
 		annotations().append(VariantAnnotationHeader("FILTER"));
 		// (1) for all INFO fields (sample independent annotations)
@@ -1161,6 +1166,7 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 			if(annotationDescriptions()[i].sampleSpecific())	continue;
 			annotations().append(VariantAnnotationHeader(annotationDescriptions()[i].name()));
 		}
+
 		// (2) for all samples and their FORMAT fields (sample dependent annotations)
 		for(int i=9; i<header_fields.count(); ++i)
 		{
@@ -1199,6 +1205,7 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 				annotationDescriptions().append(VariantAnnotationDescription(".", "Default column description since no FORMAT fields were defined.", VariantAnnotationDescription::STRING, true, "1", false));//add dummy description
 			}
 		}
+
 		return;
 	}
 
@@ -1307,6 +1314,7 @@ void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_num
 	}
 
 	append(Variant(chr, start, end, ref_bases, line_parts[4].toUpper(), annos, 2));
+
 }
 
 void VariantList::storeToVCF(QString filename) const
@@ -1540,7 +1548,6 @@ void VariantList::checkValid() const
 	foreach(const Variant& variant, variants_)
 	{
 		variant.checkValid();
-
 		if (variant.annotations().count()!=annotation_headers_.count())
 		{
 			THROW(ArgumentException, "Invalid variant annotation data: Expected " + QString::number(annotation_headers_.count()) + " values, but " + QString::number(variant.annotations().count()) + " values found");
