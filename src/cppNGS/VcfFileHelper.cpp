@@ -1,5 +1,33 @@
 #include "VcfFileHelper.h"
 
+namespace VcfFormat
+{
+
+LessComparator::LessComparator(bool use_quality)
+	: use_quality(use_quality)
+{
+}
+bool LessComparator::operator()(const VCFLine& a, const VCFLine& b) const
+{
+	if (a.chr()<b.chr()) return true;//compare chromsomes
+	else if (a.chr()>b.chr()) return false;
+	else if (a.pos()<b.pos()) return true;//compare start positions
+	else if (a.pos()>b.pos()) return false;
+	else if (a.ref().length()<b.ref().length()) return true;//compare end positions by comparing length of ref
+	else if (a.ref().length()>b.ref().length()) return false;
+	else if (a.ref()<b.ref()) return true;//compare reference seqs
+	else if (a.ref()>b.ref()) return false;
+	else if (a.alt()<b.alt()) return true;//compare alternative seqs
+	else if (a.alt()>b.alt()) return false;
+	else if (use_quality)
+	{
+		int q_a=a.qual();
+		int q_b=b.qual();
+		if(q_a<q_b) return true;
+	}
+	return false;
+}
+
 const QByteArrayList VCFHeader::InfoTypes = {"Integer", "Float", "Flag", "Character", "String"};
 const QByteArrayList VCFHeader::FormatTypes =  {"Integer", "Float", "Character", "String"};
 
@@ -34,22 +62,22 @@ const QByteArrayList VCFHeader::FormatTypes =  {"Integer", "Float", "Character",
 void VCFHeader::storeHeaderInformation(QTextStream& stream) const
 {
 	//first line should always be the fileformat
-	stream << "##fileformat=" << fileformat << "\n";
+	stream << "##fileformat=" << fileformat_ << "\n";
 	//store all comment lines
-	for(VcfHeaderLine comment : file_comments)
+	for(VcfHeaderLine comment : file_comments_)
 	{
 		comment.storeLine(stream);
 	}
 	//store info, filter, format
-	for(InfoFormatLine info : info_lines)
+	for(InfoFormatLine info : info_lines_)
 	{
 		info.storeLine(stream, INFO);
 	}
-	for(FilterLine filter : filter_lines)
+	for(FilterLine filter : filter_lines_)
 	{
 		filter.storeLine(stream);
 	}
-	for(InfoFormatLine format : format_lines)
+	for(InfoFormatLine format : format_lines_)
 	{
 		format.storeLine(stream, FORMAT);
 	}
@@ -62,7 +90,7 @@ void VCFHeader::setFormat(QByteArray& line)
 	{
 		THROW(FileParseException, "Malformed fileformat line " + line.trimmed());
 	}
-	fileformat =  splitted_line[1];
+	fileformat_ =  splitted_line[1];
 }
 void VCFHeader::setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number)
 {
@@ -72,7 +100,7 @@ void VCFHeader::setInfoFormatLine(QByteArray& line, InfoFormatType type, const i
 		InfoFormatLine info_line;
 		if(parseInfoFormatLine(line, info_line, "INFO", line_number))
 		{
-			info_lines.push_back(info_line);
+			info_lines_.push_back(info_line);
 		}
 	}
 	else
@@ -81,11 +109,11 @@ void VCFHeader::setInfoFormatLine(QByteArray& line, InfoFormatType type, const i
 		InfoFormatLine format_line;
 		if(parseInfoFormatLine(line, format_line, "FORMAT", line_number))
 		{
-			format_lines.push_back(format_line);
+			format_lines_.push_back(format_line);
 			//make sure the "GT" format field is always the first format field
-			if(format_line.id == "GT" && format_lines.size() > 1)
+			if(format_line.id == "GT" && format_lines_.size() > 1)
 			{
-				format_lines.move(format_lines.count()-1, 0);
+				format_lines_.move(format_lines_.count()-1, 0);
 			}
 		}
 	}
@@ -107,7 +135,7 @@ void VCFHeader::setFilterLine(QByteArray& line, const int line_number)
 	filter_line.id = strToPointer(first_part[0]);
 	filter_line.description = QString(parts[1].mid(1)); //remove '\"'
 
-	filter_lines.push_back(filter_line);
+	filter_lines_.push_back(filter_line);
 }
 void VCFHeader::setCommentLine(QByteArray& line, const int line_number)
 {
@@ -128,7 +156,7 @@ void VCFHeader::setCommentLine(QByteArray& line, const int line_number)
 	header_line.key = splitted_line[0];
 	header_line.value = splitted_line[1];
 
-	file_comments.push_back(header_line);
+	file_comments_.push_back(header_line);
 }
 
 bool VCFHeader::parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number)
@@ -193,7 +221,7 @@ bool VCFHeader::parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format
 
 	if(type == "INFO")
 	{
-		foreach(const InfoFormatLine info_line, info_lines)
+		foreach(const InfoFormatLine info_line, info_lines_)
 		{
 			if(info_line.id == info_format_line.id)
 			{
@@ -204,7 +232,7 @@ bool VCFHeader::parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format
 	}
 	else if(type == "FORMAT")
 	{
-		foreach(const InfoFormatLine format_line, format_lines)
+		foreach(const InfoFormatLine format_line, format_lines_)
 		{
 			if(format_line.id == info_format_line.id)
 			{
@@ -216,3 +244,89 @@ bool VCFHeader::parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format
 
 	return true;
 }
+
+AnalysisType VCFHeader::type(bool allow_fallback_germline_single_sample) const
+{
+	foreach(const VcfHeaderLine& line, file_comments_)
+	{
+		if (line.key == ("##ANALYSISTYPE="))
+		{
+			QString type = line.value;
+			if (type=="GERMLINE_SINGLESAMPLE") return GERMLINE_SINGLESAMPLE;
+			else if (type=="GERMLINE_TRIO") return GERMLINE_TRIO;
+			else if (type=="GERMLINE_MULTISAMPLE") return GERMLINE_MULTISAMPLE;
+			else if (type=="SOMATIC_SINGLESAMPLE") return SOMATIC_SINGLESAMPLE;
+			else if (type=="SOMATIC_PAIR") return SOMATIC_PAIR;
+			else THROW(FileParseException, "Invalid analysis type '" + type + "' found in variant list!");
+		}
+	}
+
+	if (allow_fallback_germline_single_sample)
+	{
+		return GERMLINE_SINGLESAMPLE; //fallback for old files without ANALYSISTYPE header
+	}
+	else
+	{
+		THROW(FileParseException, "No analysis type found in variant list!");
+	}
+}
+
+//returns if the chromosome is valid
+bool VCFLine::isValidGenomicPosition() const
+{
+	bool is_valid_ref_base = true;
+	for(int i = 0; i < this->ref_.size(); ++i)
+	{
+		if(ref_.at(i) != 'A' && ref_.at(i) != 'C' && ref_.at(i) != 'G' && ref_.at(i) != 'T' && ref_.at(i) != 'N' &&
+		   ref_.at(i) != 'a' && ref_.at(i) != 'c' && ref_.at(i) != 'g' && ref_.at(i) != 't' && ref_.at(i) != 'n')
+		{
+			is_valid_ref_base = false;
+			break;
+		}
+	}
+	return chr_.isValid() && is_valid_ref_base && pos_>=0 && ref_.size()>=0 && !ref_.isEmpty() && !alt_.isEmpty();
+}
+
+//returns all not passed filters
+QByteArrayList VCFLine::failedFilters()
+{
+	QByteArrayList filters;
+	foreach(QByteArray tag, filter_)
+	{
+		tag = tag.trimmed();
+
+		if (tag!="" && tag!="." && tag.toUpper()!="PASS" && tag.toUpper()!="PASSED")
+		{
+			filters.append(tag);
+		}
+	}
+	return filters;
+}
+
+void VCFLine::checkValid() const
+{
+	if (!chr_.isValid())
+	{
+		THROW(ArgumentException, "Invalid variant chromosome string in variant '" + chr_.str() + " " + QString::number(pos_));
+	}
+
+	if (pos_ < 1 || ref_.length() < 1)
+	{
+		THROW(ArgumentException, "Invalid variant position range in variant '" +  chr_.str() + " " + QString::number(pos_));
+	}
+
+	if (ref_!="-" && !QRegExp("[ACGTN]+").exactMatch(ref_))
+	{
+		THROW(ArgumentException, "Invalid variant reference sequence in variant '" +  chr_.str() + " " + QString::number(pos_));
+	}
+	for(Sequence alt_seq : alt_)
+	{
+		if (alt_seq!="-" && alt_seq!="." && !QRegExp("[ACGTN,]+").exactMatch(alt_seq))
+		{
+			THROW(ArgumentException, "Invalid variant alternative sequence in variant '" +  chr_.str() + " " + QString::number(pos_));
+		}
+	}
+}
+
+} //end namespace VcfFormat
+
