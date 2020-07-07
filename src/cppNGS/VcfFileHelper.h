@@ -298,6 +298,10 @@ public:
 	}
 	void setFilter(const QByteArrayList& filter_list)
 	{
+		if(filter_list.size() == 1 && filter_list.at(0) == ".")
+		{
+			return;
+		}
 		for(const QByteArray& filter : filter_list)
 		{
 			filter_.push_back(strToPointer(filter));

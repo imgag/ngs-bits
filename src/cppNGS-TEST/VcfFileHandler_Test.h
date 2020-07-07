@@ -87,16 +87,25 @@ private slots:
 		I_EQUAL(vl.filterIDs().count(), 2);
 		S_EQUAL(vl.vcfHeader().filterLineByID("q10").description, QString("Quality below 10"));
 		S_EQUAL(vl.vcfHeader().filterLineByID("s50").description, QString("Less than 50% of samples have data"));
+
+		X_EQUAL(vl.vcfLine(0).chr(), Chromosome("chr17"));
+		I_EQUAL(vl.vcfLine(0).pos(), 72196817);
+		I_EQUAL(vl.vcfLine(0).pos() + vl.vcfLine(0).ref().length() - 1, 72196817);
+		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
+		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("GA"));
+
+		S_EQUAL(vl.vcfLine(0).infos().at(0).second, QByteArray("TRUE"));
+		S_EQUAL(vl.vcfLine(0).infos().at(5).second, QByteArray("4,3,11,11"));
+		QByteArray first_sample_name = vl.sampleIDs().at(0);
+		QByteArray second_format_name = vl.vcfLine(0).format().at(1);
+		S_EQUAL(vl.vcfLine(0).samples()[first_sample_name][second_format_name], QByteArray("255,0,123"));
+		I_EQUAL(vl.vcfLine(0).filter().count(), 0);
+
+
+
+
 /*
-		X_EQUAL(vl[0].chr(), Chromosome("chr17"));
-		I_EQUAL(vl[0].start(), 72196817);
-		I_EQUAL(vl[0].end(), 72196817);
-		S_EQUAL(vl[0].ref(), Sequence("G"));
-		S_EQUAL(vl[0].obs(), Sequence("GA"));
-		S_EQUAL(vl[0].annotations().at(3), QByteArray("TRUE"));
-		S_EQUAL(vl[0].annotations().at(8), QByteArray("4,3,11,11"));
-		S_EQUAL(vl[0].annotations().at(26), QByteArray("255,0,123"));
-		I_EQUAL(vl[0].filters().count(), 0);
+
 
 		I_EQUAL(vl[11].filters().count(), 1);
 		S_EQUAL(vl[11].filters().at(0), QByteArray("low_DP"));
