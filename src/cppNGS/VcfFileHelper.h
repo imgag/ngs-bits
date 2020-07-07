@@ -186,6 +186,7 @@ public:
 	void setFilterLine(QByteArray& line, const int line_number);
 	void setCommentLine(QByteArray& line, const int line_number);
 	AnalysisType type(bool allow_fallback_germline_single_sample) const;
+	void clear();
 
 private:
 
@@ -194,7 +195,6 @@ private:
 
 	bool parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number);
 	InfoFormatLine lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found = true) const;
-
 };
 
 ///representation of a line of a vcf file

@@ -6,6 +6,13 @@
 namespace VcfFormat
 {
 
+void VcfFileHandler::clear()
+{
+	VcfLines_.clear();
+	column_headers_.clear();
+	VcfHeader_.clear();
+}
+
 void VcfFileHandler::parseVcfHeader(const int line_number, QByteArray& line)
 {
 	if(line_number==1)
@@ -237,6 +244,8 @@ void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByt
 
 void VcfFileHandler::loadFromVCF(const QString& filename)
 {
+	//clear content in case we load a second file
+	clear();
 	//parse from stream
 	int line_number = 0;
 	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
@@ -251,7 +260,8 @@ void VcfFileHandler::loadFromVCF(const QString& filename)
 
 void VcfFileHandler::loadFromVCFGZ(const QString& filename)
 {
-
+	//clear content in case we load a second file
+	clear();
 	//parse from stream
 	int line_number = 1;
 

@@ -67,6 +67,7 @@ private:
 	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids);
 	void loadFromVCF(const QString& filename);
 	void loadFromVCFGZ(const QString& filename);
+	void clear();
 
 	QVector<VCFLine> VcfLines_;
 	VCFHeader VcfHeader_;

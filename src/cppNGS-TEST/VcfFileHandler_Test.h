@@ -93,7 +93,6 @@ private slots:
 		I_EQUAL(vl.vcfLine(0).pos() + vl.vcfLine(0).ref().length() - 1, 72196817);
 		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("GA"));
-
 		S_EQUAL(vl.vcfLine(0).infos().at(0).second, QByteArray("TRUE"));
 		S_EQUAL(vl.vcfLine(0).infos().at(5).second, QByteArray("4,3,11,11"));
 		QByteArray first_sample_name = vl.sampleIDs().at(0);
@@ -101,33 +100,32 @@ private slots:
 		S_EQUAL(vl.vcfLine(0).samples()[first_sample_name][second_format_name], QByteArray("255,0,123"));
 		I_EQUAL(vl.vcfLine(0).filter().count(), 0);
 
+		I_EQUAL(vl.vcfLine(11).filter().count(), 1);
+		S_EQUAL(vl.vcfLine(11).filter().at(0), QByteArray("low_DP"));
 
-
-
-/*
-
-
-		I_EQUAL(vl[11].filters().count(), 1);
-		S_EQUAL(vl[11].filters().at(0), QByteArray("low_DP"));
-
-		X_EQUAL(vl[12].chr(), Chromosome("chr9"));
-		I_EQUAL(vl[12].start(), 130931421);
-		I_EQUAL(vl[12].end(), 130931421);
-		S_EQUAL(vl[12].ref(), Sequence("G"));
-		S_EQUAL(vl[12].obs(), Sequence("A"));
-		S_EQUAL(vl[12].annotations().at(3), QByteArray(""));
-		S_EQUAL(vl[12].annotations().at(8), QByteArray("457,473,752,757"));
-		S_EQUAL(vl[12].annotations().at(26), QByteArray("255,0,255"));
-		I_EQUAL(vl[12].filters().count(), 0);
+		X_EQUAL(vl.vcfLine(12).chr(), Chromosome("chr9"));
+		I_EQUAL(vl.vcfLine(12).pos(), 130931421);
+		I_EQUAL(vl.vcfLine(12).pos() + vl.vcfLine(0).ref().length() - 1, 130931421);
+		S_EQUAL(vl.vcfLine(12).ref(), Sequence("G"));
+		S_EQUAL(vl.vcfLine(12).alt(0), Sequence("A"));
+		S_EQUAL(vl.vcfLine(12).infos().at(0).second, QByteArray("2512"));
+		S_EQUAL(vl.vcfLine(12).info("INDEL"), QByteArray(""));
+		S_EQUAL(vl.vcfLine(12).infos().at(4).second, QByteArray("457,473,752,757"));
+		S_EQUAL(vl.vcfLine(12).info("DP4"), QByteArray("457,473,752,757"));
+		first_sample_name = vl.sampleIDs().at(0);
+		second_format_name = vl.vcfLine(12).format().at(1);
+		S_EQUAL(vl.vcfLine(12).samples()[first_sample_name][second_format_name], QByteArray("255,0,255"));
+		I_EQUAL(vl.vcfLine(12).filter().count(), 0);
 
 		//load a second time to check initialization
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
-		I_EQUAL(vl.annotations().count(), 27);
-		I_EQUAL(vl.comments().count(), 3);
-		S_EQUAL(vl.sampleNames()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
-*/
+		I_EQUAL(vl.vcfHeader().file_comments_.count(), 2);
+		S_EQUAL(vl.sampleIDs()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
+		I_EQUAL(vl.informationIDs().count(), 18);
+		I_EQUAL(vl.formatIDs().count(), 6);
+
 	}
 
 };

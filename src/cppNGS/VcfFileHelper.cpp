@@ -32,31 +32,41 @@ const QByteArrayList VCFHeader::InfoTypes = {"Integer", "Float", "Flag", "Charac
 const QByteArrayList VCFHeader::FormatTypes =  {"Integer", "Float", "Character", "String"};
 
 //minimum 192MB so far (instead of 233MB)
-	const QByteArray& strToPointer(const QByteArray& str)
+const QByteArray& strToPointer(const QByteArray& str)
+{
+	static QSet<QByteArray> uniq_8;
+
+	auto it = uniq_8.find(str);
+	if (it==uniq_8.cend())
 	{
-		static QSet<QByteArray> uniq_8;
-
-		auto it = uniq_8.find(str);
-		if (it==uniq_8.cend())
-		{
-			it = uniq_8.insert(str);
-		}
-
-		return *it;
+		it = uniq_8.insert(str);
 	}
 
-	const QChar* strToPointer(const QString& str)
+	return *it;
+}
+
+const QChar* strToPointer(const QString& str)
+{
+	static QSet<QString> uniq_16;
+
+	auto it = uniq_16.find(str);
+	if (it==uniq_16.cend())
 	{
-		static QSet<QString> uniq_16;
-
-		auto it = uniq_16.find(str);
-		if (it==uniq_16.cend())
-		{
-			it = uniq_16.insert(str);
-		}
-
-		return it->constData();
+		it = uniq_16.insert(str);
 	}
+
+	return it->constData();
+}
+
+void VCFHeader::clear()
+{
+	fileformat_.clear();
+	file_comments_.clear();
+
+	info_lines_.clear();
+	filter_lines_.clear();
+	format_lines_.clear();
+}
 
 InfoFormatLine VCFHeader::lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found) const
 {
