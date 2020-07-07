@@ -89,7 +89,8 @@ public:
 		QTextStream stream(file.data());
 
 		stream << "Percentage of variants from mother passed to child: " << variantData.percentOfMotherToChild << "\n"
-			   << "Percentage of variants from father passed to child: " << variantData.percentOfFatherToChild << "\n";
+			   << "Percentage of variants from father passed to child: " << variantData.percentOfFatherToChild << "\n"
+			   << "Ratio mother/father: " << QString::number(variantData.percentOfMotherToChild/variantData.percentOfFatherToChild, 'f', 2) << "\n";
 
 
 	}

@@ -77,7 +77,7 @@ The default output format of the quality control tools is [qcML](https://github.
 * [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file.
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
 * [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
-* [TrioMaternalContamination](doc/tools/TrioMaternalContamination.md) - Detects maternal contamination of a child using SNPs from parents.
+* [TrioMaternalContamination](doc/tools/TrioMaternalContamination/index.md) - Detects maternal contamination of a child using SNPs from parents.
 
 ### BAM tools
 
