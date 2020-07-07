@@ -11,34 +11,53 @@ class CPPNGSSHARED_EXPORT VcfFileHandler
 
 public:
 
-	//loads a vcf or vcf.gz file
+	///loads a vcf or vcf.gz file
 	void load(const QString& filename);
-	//stores the data of VCFFileHandler in vcf file
+	///stores the data of VCFFileHandler in vcf file
 	void store(const QString& filename) const;
 
 	void checkValid() const;
-	void sort(bool use_quality);
+	void sort(bool use_quality = false);
 	void removeDuplicates(bool sort_by_quality);
 	int count() const
 	{
 		return VcfLines_.count();
 	}
+	///Returns analysis type.
+	AnalysisType type(bool allow_fallback_germline_single_sample = true) const;
+
+
+
+	///returns a QList of all sample names
 	QByteArrayList sampleIDs() const;
+	///returns a QList of all information IDs in the vcf file
 	QByteArrayList informationIDs() const;
+	///returns a QList of all filter IDs in the vcf file
 	QByteArrayList filterIDs() const;
+	///returns a QList of all format IDs in the vcf file
 	QByteArrayList formatIDs() const;
 
-
-	///return a QVector of VCFLines
+	///returns a QVector of VCFLines
 	QVector<VCFLine> vcfLines() const
 	{
 		return VcfLines_;
 	}
-	///return a struct storing header information
+	///returns the VCFLine at pos
+	VCFLine vcfLine(int pos) const
+	{
+		return VcfLines_.at(pos);
+	}
+	///returns a struct storing header information
 	VCFHeader vcfHeader() const
 	{
 		return VcfHeader_;
 	}
+	///returns a QVector of all column headers for a vcfLine
+	QVector<QByteArray> vcfColumnHeader() const
+	{
+		return column_headers_;
+	}
+
 
 private:
 

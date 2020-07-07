@@ -186,6 +186,10 @@ public:
 	{
 		return alt_;
 	}
+	const Sequence& alt(int pos) const
+	{
+		return alt_.at(pos);
+	}
 	const QByteArrayList& id() const
 	{
 		return id_;
@@ -249,7 +253,7 @@ public:
 	{
 		for(const Sequence& seq : alt)
 		{
-			alt_.push_back(strToPointer(seq));
+			alt_.push_back(strToPointer(seq.toUpper()));
 		}
 	}
 	void setId(const QByteArrayList& id)

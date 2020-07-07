@@ -479,4 +479,10 @@ QByteArrayList VcfFileHandler::formatIDs() const
 	return formats;
 }
 
+AnalysisType VcfFileHandler::type(bool allow_fallback_germline_single_sample) const
+{
+	return vcfHeader().type(allow_fallback_germline_single_sample);
+}
+
+
 } //end namespace VcfFormat

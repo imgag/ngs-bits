@@ -249,7 +249,7 @@ AnalysisType VCFHeader::type(bool allow_fallback_germline_single_sample) const
 {
 	foreach(const VcfHeaderLine& line, file_comments_)
 	{
-		if (line.key == ("##ANALYSISTYPE="))
+		if (line.key == ("ANALYSISTYPE"))
 		{
 			QString type = line.value;
 			if (type=="GERMLINE_SINGLESAMPLE") return GERMLINE_SINGLESAMPLE;
@@ -323,6 +323,7 @@ void VCFLine::checkValid() const
 	{
 		if (alt_seq!="-" && alt_seq!="." && !QRegExp("[ACGTN,]+").exactMatch(alt_seq))
 		{
+			qDebug() << alt_seq;
 			THROW(ArgumentException, "Invalid variant alternative sequence in variant '" +  chr_.str() + " " + QString::number(pos_));
 		}
 	}
