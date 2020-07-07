@@ -57,24 +57,23 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 
 	tum_cont_max_clonality_ = SomaticReportHelper::getCnvMaxTumorClonality(cnvs);
 
-	//Load HPO term from database
-	QString hpo_ngsd;
+	//Load HPO terms from database
+	QStringList hpos_ngsd;
 	QList<SampleDiseaseInfo> details = db_.getSampleDiseaseInfo(db_.sampleId(settings_.tumor_ps));
 	for(const auto& info : details)
 	{
 		if(info.type == "HPO term id")
 		{
-			hpo_ngsd = info.disease_info;
+			hpos_ngsd << info.disease_info;
 		}
 	}
 
 	QList<tmb_info> hpo_tmbs = tmb_info::load("://Resources/hpoterms_tmb.tsv");
 
-
 	//Set Reference value proposals
 	for(const auto& hpo_tmb : hpo_tmbs)
 	{
-		if(hpo_tmb.hpoterm != hpo_ngsd) continue;
+		if( !hpos_ngsd.contains(hpo_tmb.hpoterm) ) continue;
 
 		QTableWidgetItem *disease = new QTableWidgetItem(QString(hpo_tmb.tumor_entity));
 		QTableWidgetItem *tmb_text = new QTableWidgetItem("Median: " + QString::number(hpo_tmb.tmb_median,'f', 2) + " Var/Mbp, Maximum: " + QString::number(hpo_tmb.tmb_max,'f',2) + " Var/Mbp");
