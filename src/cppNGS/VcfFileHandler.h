@@ -59,7 +59,6 @@ public:
 		return column_headers_;
 	}
 
-
 private:
 
 	void parseVcfHeader(const int line_number, QByteArray& line);

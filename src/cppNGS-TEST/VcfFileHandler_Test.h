@@ -204,4 +204,17 @@ private slots:
 		S_EQUAL(vl.vcfLine(1).sample(0, "TRIO2"), QByteArray("HET,9,0.56,WT,17,0.00,HOM,19,1.00"));
 	}
 
+	void loadFromVCF_emptyFormatAndInfo()
+	{
+		QString in = TESTDATA("data_in/VariantList_loadFromVCF_emptyInfoAndFormat.vcf");
+		QString out = "out/VariantList_loadFromVCF_emptyInfoAndFormat.vcf";
+
+		VcfFileHandler vl;
+		vl.load(in);
+		vl.checkValid();
+		vl.store(out);
+
+		COMPARE_FILES(in,out);
+	}
+
 };

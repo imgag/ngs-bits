@@ -226,7 +226,7 @@ public:
 	{
 		return id_;
 	}
-	const int& qual() const
+	const double& qual() const
 	{
 		return qual_;
 	}
@@ -324,7 +324,7 @@ public:
 	{
 		id_ = id;
 	}
-	void setQual(const int& qual)
+	void setQual(const double& qual)
 	{
 		qual_ = qual;
 	}
@@ -365,7 +365,7 @@ private:
 	QVector<Sequence> alt_; //comma seperated list of alternative sequences
 
 	QByteArrayList id_; //; seperated list of id-strings
-	int qual_;
+	double qual_;
 
 	QByteArrayList filter_; //; seperated list of failed filters or "PASS"
 	OrderedHash<QByteArray , QByteArray> info_; //; seperated list of info key=value pairs

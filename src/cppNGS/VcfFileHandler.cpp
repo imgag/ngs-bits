@@ -101,7 +101,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 	vcf_line.setAlt(line_parts[4].split(','));
 
 
-	line_parts[5]=="." ? vcf_line.setQual(-1) : vcf_line.setQual(atoi(line_parts[5]));
+	line_parts[5]=="." ? vcf_line.setQual(-1) : vcf_line.setQual(atof(line_parts[5]));
 
 	//FILTER
 	vcf_line.setFilter(line_parts[6].split(';'));
@@ -114,7 +114,6 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 		for(const QByteArray& info : info_list)
 		{
 			QByteArrayList key_value_pair = info.split('=');
-
 			//check if the info is known in header
 			if(!info_ids.contains(key_value_pair[0]))
 			{
@@ -141,7 +140,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 	}
 
 	//FORMAT && SAMPLE
-	if(line_parts.count() >= 9)
+	if(line_parts.count() >= 9 && line_parts[8] != ".")
 	{
 		//FORMAT
 		QByteArrayList format_list = line_parts[8].split(':');
@@ -367,11 +366,21 @@ void VcfFileHandler::store(const QString& filename) const
 
 	for(VCFLine vcf_line : VcfLines_)
 	{
+		//chr
 		stream << "\n" << vcf_line.chr().str()  << "\t" << vcf_line.pos();
 
-		stream  << "\t"<< vcf_line.id().join(';');
-		stream  << "\t"<< vcf_line.ref();
+		//if id exists
+		if(!vcf_line.id().empty())
+		{
+			stream  << "\t"<< vcf_line.id().join(';');
+		}
+		else
+		{
+			stream << "\t.";
+		}
 
+		//ref and alt
+		stream  << "\t"<< vcf_line.ref();
 		stream << "\t" << vcf_line.alt().at(0);
 		if(vcf_line.alt().count() > 1)
 		{
@@ -380,6 +389,8 @@ void VcfFileHandler::store(const QString& filename) const
 				stream  << "," <<  vcf_line.alt().at(i);
 			}
 		}
+
+		//quality
 		QByteArray quality;
 		if(vcf_line.qual() == -1)
 		{
@@ -391,25 +402,41 @@ void VcfFileHandler::store(const QString& filename) const
 		}
 		stream  << "\t"<< quality;
 
-		stream  << "\t"<< vcf_line.filter().join(':');
-
-		stream  << "\t"<< vcf_line.infos().at(0).first << "=" << vcf_line.infos().at(0).second;
-		if(vcf_line.infos().size() > 1)
+		//if filter exists
+		if(!vcf_line.filter().empty())
 		{
-			for(int i = 1; i < vcf_line.infos().size(); ++i)
+			stream  << "\t"<< vcf_line.filter().join(':');
+		}
+		else
+		{
+			stream << "\t.";
+		}
+
+		//if info exists
+		if(vcf_line.infos().empty())
+		{
+			stream << "\t.";
+		}
+		else
+		{
+			stream  << "\t"<< vcf_line.infos().at(0).first << "=" << vcf_line.infos().at(0).second;
+			if(vcf_line.infos().size() > 1)
 			{
-				if(vcf_line.infos().at(i).second == "TRUE")
+				for(int i = 1; i < vcf_line.infos().size(); ++i)
 				{
-					stream  << ";"<< vcf_line.infos().at(i).first;
-				}
-				else
-				{
-					stream  << ";"<< vcf_line.infos().at(i).first << "=" << vcf_line.infos().at(i).second;;
+					if(vcf_line.infos().at(i).second == "TRUE")
+					{
+						stream  << ";"<< vcf_line.infos().at(i).first;
+					}
+					else
+					{
+						stream  << ";"<< vcf_line.infos().at(i).first << "=" << vcf_line.infos().at(i).second;;
+					}
 				}
 			}
 		}
 
-		//if format exists there must also be at least one sample
+		//if format exists
 		if(!vcf_line.format().empty())
 		{
 			stream  << "\t"<< vcf_line.format().at(0);
@@ -417,7 +444,15 @@ void VcfFileHandler::store(const QString& filename) const
 			{
 				stream << ":" << vcf_line.format().at(format_entry_id);
 			}
+		}
+		else
+		{
+			stream << "\t.";
+		}
 
+		//if sample exists
+		if(!vcf_line.samples().empty())
+		{
 			//for every sample
 			for(const QByteArray& name : sampleIDs())
 			{
@@ -430,6 +465,10 @@ void VcfFileHandler::store(const QString& filename) const
 				}
 			}
 		}
+		else
+		{
+			stream << "\t.";
+		}
 	}
 }
 
@@ -439,13 +478,13 @@ void VcfFileHandler::checkValid() const
 	{
 		vcf_line.checkValid();
 
-		//if there were no samples, only the minimum number of columns can exist (no format)
-		if(vcf_line.samples().empty() && column_headers_.count() != VCFHeader::MIN_COLS)
+		//if FORMAT or SAMPLE exist, there must be more than MIN_COLS
+		if( (!vcf_line.samples().empty() || !vcf_line.format().empty()) && column_headers_.count() == VCFHeader::MIN_COLS )
 		{
-			THROW(ArgumentException, "Invalid variant annotation data: A VCF Line without samples should have " + QString::number(VCFHeader::MIN_COLS) + " columns.");
+			THROW(ArgumentException, "Invalid variant annotation data: Missing headers for VCF line with FORMAT and SAMPLES but only " + QString::number(VCFHeader::MIN_COLS) + " columns.");
 		}
-		//otherwise if FORMAT exists, the number of columns must be (MIN_COLS + FORMAT column + all sample columns)
-		else if (!vcf_line.format().empty() && vcf_line.samples().size() + 1 + VCFHeader::MIN_COLS != column_headers_.count())
+		//otherwise there can not be more samples than columns
+		else if(column_headers_.count() > VCFHeader::MIN_COLS && vcf_line.samples().size() + 1 + VCFHeader::MIN_COLS > column_headers_.count())
 		{
 			THROW(ArgumentException, "Invalid variant annotation data: Wrong number of columns.");
 		}

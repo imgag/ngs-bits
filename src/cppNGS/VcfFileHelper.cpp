@@ -21,8 +21,8 @@ bool LessComparator::operator()(const VCFLine& a, const VCFLine& b) const
 	else if (a.alt()>b.alt()) return false;
 	else if (use_quality)
 	{
-		int q_a=a.qual();
-		int q_b=b.qual();
+		double q_a=a.qual();
+		double q_b=b.qual();
 		if(q_a<q_b) return true;
 	}
 	return false;
