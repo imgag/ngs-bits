@@ -1,0 +1,21 @@
+#repeat_id	repeat_unit	max_normal	min_pathogenic	inheritance
+FXN	GAA	35	66	rezessive
+ATXN1	TGC	35	39	dominant
+ATXN2	GCT	31	33	dominant
+ATXN3	GCT	47	53	dominant
+CACNA1A	CTG	18	20	dominant
+ATXN7	GCA	19	36	dominant
+TBP	GCA	42	43	dominant
+HTT	CAG	26	39	dominant
+JPH3	CTG	28	41	dominant
+ATN1	CAG	35	48	dominant
+ATXN10	ATTCT	32	800	dominant
+ATXN8OS	CTG	50	80	dominant
+ATXN8OS_CTA	CTA	50	80	dominant
+PPP2R2B	GCT	32	66	dominant
+C9ORF72	GGCCCC	20	30	dominant
+FMR1	CGG	45	55	x-chromosomal
+RFC1	AARRG	13	400	rezessive
+NOP56	GGCCTG	0	650	dominant
+AR	GCA	34	35	x-chromosomal
+

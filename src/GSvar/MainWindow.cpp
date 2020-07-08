@@ -98,6 +98,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
 #include "CytobandToRegionsDialog.h"
+#include "RepeatExpansionWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -537,6 +538,27 @@ void MainWindow::on_actionCircos_triggered()
 	CircosPlotWidget* widget = new CircosPlotWidget(filename_);
 	auto dlg = GUIHelper::createDialog(widget, "Circos Plot");
 	addModelessDialog(dlg, false);
+}
+
+void MainWindow::on_actionRE_triggered()
+{
+	if (filename_=="") return;
+
+	// determine repeat expansion file name
+	QString re_file_name = QFileInfo(filename_).absolutePath() + "/" + processedSampleName() +  "_repeats_expansionhunter.vcf";
+
+	if (QFileInfo(re_file_name).exists())
+	{
+		//show dialog
+		RepeatExpansionWidget* widget = new RepeatExpansionWidget(re_file_name);
+		auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions");
+		addModelessDialog(dlg, false);
+	}
+	else
+	{
+		QMessageBox::warning(this, "Repeat expansion file missing", "The repeat expansion file does not exist:\n" + re_file_name);
+	}
+
 }
 
 void MainWindow::on_actionGeneVariantInfo_triggered()
@@ -1636,9 +1658,9 @@ void MainWindow::loadFile(QString filename)
 	//notify for variant validation
 	checkPendingVariantValidations();
 
+	QString path = QFileInfo(filename).absolutePath();
 
 	//activate Circos plot menu item if plot is available
-	QString path = QFileInfo(filename).absolutePath();
 	QStringList plot_files = Helper::findFiles(path, "*_circos.png", false);
 	if (plot_files.size() < 1)
 	{
@@ -1649,6 +1671,20 @@ void MainWindow::loadFile(QString filename)
 	{
 		//activate
 		ui_.actionCircos->setEnabled(true);
+	}
+
+	//activate Repeat Expansion menu item if RE calls are available
+	QStringList re_files = Helper::findFiles(path, processedSampleName() + "_repeats_expansionhunter.vcf", false);
+	if (re_files.size() < 1)
+	{
+		//deactivate
+		ui_.actionRE->setEnabled(false);
+	}
+	else
+	{
+		//activate
+		ui_.actionRE->setEnabled(true);
+
 	}
 }
 

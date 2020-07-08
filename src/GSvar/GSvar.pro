@@ -83,7 +83,8 @@ SOURCES += main.cpp\
     CircosPlotWidget.cpp \
     EmailDialog.cpp \
     CytobandToRegionsDialog.cpp\
-    SvSearchWidget.cpp
+    SvSearchWidget.cpp \
+    RepeatExpansionWidget.cpp
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -160,7 +161,8 @@ HEADERS  += MainWindow.h \
     CircosPlotWidget.h \
     EmailDialog.h \
     CytobandToRegionsDialog.h\
-    SvSearchWidget.h
+    SvSearchWidget.h \
+    RepeatExpansionWidget.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -224,7 +226,8 @@ FORMS    += MainWindow.ui \
     CircosPlotWidget.ui \
     EmailDialog.ui \
     CytobandToRegionsDialog.ui \
-    SvSearchWidget.ui
+    SvSearchWidget.ui \
+    RepeatExpansionWidget.ui
 
 
 include("../app_gui.pri")
@@ -235,5 +238,3 @@ LIBS += -L$$PWD/../bin -lcppNGSD
 
 RESOURCES += \
     GSvar.qrc
-
-DISTFILES +=

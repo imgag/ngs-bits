@@ -3817,7 +3817,7 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 		output.set(var_conf);
 	}
 
-	// skip SVs if given SV file is empty (Trio)
+	// Skip report import if empty sv file is provided (Trio)
 	if (svs.count() > 0)
 	{
 		//load SV data

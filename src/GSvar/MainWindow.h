@@ -180,6 +180,8 @@ public slots:
 	void on_actionGeneSelector_triggered();
 	///Open Circos plot
 	void on_actionCircos_triggered();
+	///Open RE dialog
+	void on_actionRE_triggered();
 	///Open gene variant info check dialog.
 	void on_actionGeneVariantInfo_triggered();
 	///Open gene OMIM info dialog.

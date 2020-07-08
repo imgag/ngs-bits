@@ -527,6 +527,7 @@
    <addaction name="actionCNV"/>
    <addaction name="actionSV"/>
    <addaction name="actionROH"/>
+   <addaction name="actionRE"/>
    <addaction name="actionCircos"/>
    <addaction name="actionDebug"/>
   </widget>
@@ -1099,6 +1100,18 @@
   <action name="actionCytobandsToRegions">
    <property name="text">
     <string>Cytoband &gt; Regions</string>
+   </property>
+  </action>
+  <action name="actionRE">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/RepeatExpansion.png</normaloff>:/Icons/RepeatExpansion.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Repeat Expansion</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::WidgetShortcut</enum>
    </property>
   </action>
  </widget>
