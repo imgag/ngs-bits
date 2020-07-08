@@ -72,6 +72,11 @@ void VcfFileHandler::parseHeaderFields(QByteArray& line)
 		{
 			column_headers_.push_back("Sample");
 		}
+		else if(header_fields.count()==8)
+		{
+			column_headers_.push_back("FORMAT");
+			column_headers_.push_back("Sample");
+		}
 	}
 }
 void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx)
@@ -493,10 +498,13 @@ void VcfFileHandler::checkValid() const
 
 void VcfFileHandler::sort(bool use_quality)
 {
-	if (vcfLines().count()==0)
-	{
-		std::sort(VcfLines_.begin(), VcfLines_.end(), LessComparator(use_quality));
-	}
+	if (vcfLines().count()==0) return;
+	std::sort(VcfLines_.begin(), VcfLines_.end(), LessComparator(use_quality));
+
+}
+void VcfFileHandler::sortByFile(QString filename)
+{
+	sortCustom(LessComparatorByFile(filename));
 }
 
 void VcfFileHandler::removeDuplicates(bool sort_by_quality)
@@ -569,6 +577,5 @@ AnalysisType VcfFileHandler::type(bool allow_fallback_germline_single_sample) co
 {
 	return vcfHeader().type(allow_fallback_germline_single_sample);
 }
-
 
 } //end namespace VcfFormat

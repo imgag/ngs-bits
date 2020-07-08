@@ -1,4 +1,5 @@
 #include "VcfFileHelper.h"
+#include "Helper.h"
 
 namespace VcfFormat
 {
@@ -25,6 +26,47 @@ bool LessComparator::operator()(const VCFLine& a, const VCFLine& b) const
 		double q_b=b.qual();
 		if(q_a<q_b) return true;
 	}
+	return false;
+}
+
+
+LessComparatorByFile::LessComparatorByFile(QString filename)
+	: filename_(filename)
+{
+	//build chromosome (as QString) to rank (as int) dictionary from file (rank=position in file)
+	QStringList lines=Helper::loadTextFile(filename_);
+	int rank=0;
+	foreach(const QString& line, lines)
+	{
+		rank++;
+		Chromosome chr(line.split('\t')[0]);
+		chrom_rank_[chr.num()]=rank;
+	}
+}
+
+bool LessComparatorByFile::operator()(const VCFLine& a, const VCFLine& b) const
+{
+	int a_chr_num = a.chr().num();
+	int b_chr_num = b.chr().num();
+	if (!chrom_rank_.contains(a_chr_num))
+	{
+		THROW(FileParseException, "Reference file for sorting does not contain chromosome '" + a.chr().str() + "'!");
+	}
+	if (!chrom_rank_.contains(b_chr_num))
+	{
+		THROW(FileParseException, "Reference file for sorting does not contain chromosome '" + b.chr().str() + "'!");
+	}
+
+	if (chrom_rank_[a_chr_num]<chrom_rank_[b_chr_num]) return true; //compare rank of chromosome
+	else if (chrom_rank_[a_chr_num]>chrom_rank_[b_chr_num]) return false;
+	else if (a.pos()<b.pos()) return true; //compare start position
+	else if (a.pos()>b.pos()) return false;
+	else if (a.ref().length()<b.ref().length()) return true; //compare end position
+	else if (a.ref().length()>b.ref().length()) return false;
+	else if (a.ref()<b.ref()) return true; //compare ref sequence
+	else if (a.ref()>b.ref()) return false;
+	else if (a.alt()<b.alt()) return true; //compare obs sequence
+	else if (a.alt()>b.alt()) return false;
 	return false;
 }
 
@@ -125,6 +167,31 @@ FilterLine VCFHeader::filterLineByID(const QByteArray& id, bool error_not_found)
 	return filterLines().at(index);
 }
 
+int VCFHeader::vepIndexByName(const QString& name, bool error_if_not_found) const
+{
+	InfoFormatLine csq_info = infoLineByID("CSQ", error_if_not_found);
+	if (csq_info.id.isEmpty())
+	{
+		if (error_if_not_found)
+		{
+			THROW(ArgumentException, "Info field 'CSQ' containing VEP annotation not found!");
+		}
+		else
+		{
+			return -1;
+		}
+	}
+
+	QStringList parts = csq_info.description.trimmed().split("|");
+	parts[0] = "Allele";
+	int i_field = parts.indexOf(name);
+	if (i_field==-1 && error_if_not_found)
+	{
+		THROW(ArgumentException, "Field '" + name + "' not found in VEP CSQ field!");
+	}
+
+	return i_field;
+}
 
 void VCFHeader::storeHeaderInformation(QTextStream& stream) const
 {

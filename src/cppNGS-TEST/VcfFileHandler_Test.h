@@ -173,7 +173,8 @@ private slots:
 		I_EQUAL(vl.formatIDs().count(), 6);
 		I_EQUAL(vl.vcfHeader().comments().count(), 1);
 		S_EQUAL(vl.vcfHeader().fileFormat(), QByteArray("VCFv4.1"));
-		I_EQUAL(vl.sampleIDs().count(), 0);
+		I_EQUAL(vl.sampleIDs().count(), 1);
+		S_EQUAL(vl.sampleIDs().at(0), QString("Sample"));
 	}
 
 	void loadFromVCF_undeclaredAnnotations()
@@ -335,7 +336,6 @@ private slots:
 		VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/VariantList_load_zipped.vcf.gz"));
 		vl.checkValid();
-		qDebug() << __LINE__;
 		I_EQUAL(vl.count(), 157);
 		I_EQUAL(vl.informationIDs().count(), 64);
 		I_EQUAL(vl.formatIDs().count(), 8);
@@ -364,5 +364,119 @@ private slots:
 		S_EQUAL(vl.vcfLine(156).info("NS"), "1");
 		S_EQUAL(vl.vcfLine(156).info("AC"), "2");
 		S_EQUAL(vl.vcfLine(156).info("EXAC_AF"), "0.516");
+	}
+
+	void vepIndexByName()
+	{
+		VcfFileHandler vl;
+		vl.load(TESTDATA("data_in/panel_vep.vcf"));
+		I_EQUAL(vl.vcfHeader().vepIndexByName("Allele", false), 0);
+		I_EQUAL(vl.vcfHeader().vepIndexByName("Consequence", false), 1);
+		I_EQUAL(vl.vcfHeader().vepIndexByName("IMPACT", false), 2);
+		I_EQUAL(vl.vcfHeader().vepIndexByName("HGMD_PHEN", false), 59);
+		I_EQUAL(vl.vcfHeader().vepIndexByName("Oranguta-Klaus", false), -1);
+	}
+
+	void sort()
+	{
+		VcfFileHandler vl;
+		vl.load(TESTDATA("data_in/sort_in.vcf"));
+		vl.checkValid();
+		vl.sort();
+		vl.store("out/sort_out.vcf");
+		COMPARE_FILES("out/sort_out.vcf",TESTDATA("data_out/sort_out.vcf"));
+		VCF_IS_VALID("out/sort_out.vcf")
+	}
+
+	//test sort function for VCF files (with quality)
+	void sort3()
+	{
+		VcfFileHandler vl;
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
+		vl.checkValid();
+		vl.sort(true);
+		//entries should be sorted numerically
+		X_EQUAL(vl.vcfLine(0).chr() ,Chromosome("chr1"));
+		I_EQUAL(vl.vcfLine(0).pos(),11676308);
+		I_EQUAL(vl.vcfLine(1).pos(),11676377);
+		X_EQUAL(vl.vcfLine(2).chr(), Chromosome("chr2"));
+		I_EQUAL(vl.vcfLine(2).pos(),139498511);
+		X_EQUAL(vl.vcfLine(3).chr(), Chromosome("chr4"));
+		I_EQUAL(vl.vcfLine(3).pos(),68247038);
+		I_EQUAL(vl.vcfLine(4).pos(),68247113);
+		X_EQUAL(vl.vcfLine(5).chr(), Chromosome("chr9"));
+		I_EQUAL(vl.vcfLine(5).pos(),130931421);
+		I_EQUAL(vl.vcfLine(6).pos(),130932396);
+		X_EQUAL(vl.vcfLine(7).chr(), Chromosome("chr17"));
+		I_EQUAL(vl.vcfLine(7).pos(),72196817);
+		I_EQUAL(vl.vcfLine(8).pos(),72196887);
+		I_EQUAL(vl.vcfLine(9).pos(),72196892);
+		X_EQUAL(vl.vcfLine(10).chr(), Chromosome("chr18"));
+		I_EQUAL(vl.vcfLine(10).pos(),67904549);
+		I_EQUAL(vl.vcfLine(11).pos(),67904586);
+		I_EQUAL(vl.vcfLine(12).pos(),67904672);
+		X_EQUAL(vl.vcfLine(13).chr(), Chromosome("chr19"));
+		I_EQUAL(vl.vcfLine(13).pos(),14466629);
+	}
+
+	//test sortByFile function for *.vcf-files
+	void sortByFile()
+	{
+		VcfFileHandler vl;
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
+		vl.checkValid();
+		vl.sortByFile(TESTDATA("data_in/variantList_sortbyFile.fai"));
+		vl.store("out/sortByFile.vcf");
+		//entries should be sorted by variantList_sortbyFile.fai, which is reverse-numeric concerning chromosomes
+		VCF_IS_VALID("out/sortByFile.vcf")
+		X_EQUAL(vl.vcfLine(0).chr(),Chromosome("chr19"));
+		I_EQUAL(vl.vcfLine(0).pos(),14466629);
+		X_EQUAL(vl.vcfLine(1).chr(),Chromosome("chr18"));
+		I_EQUAL(vl.vcfLine(1).pos(),67904549);
+		I_EQUAL(vl.vcfLine(2).pos(),67904586);
+		I_EQUAL(vl.vcfLine(3).pos(),67904672);
+		X_EQUAL(vl.vcfLine(4).chr(),Chromosome("chr17"));
+		I_EQUAL(vl.vcfLine(4).pos(),72196817);
+		I_EQUAL(vl.vcfLine(5).pos(),72196887);
+		I_EQUAL(vl.vcfLine(6).pos(),72196892);
+		X_EQUAL(vl.vcfLine(7).chr(),Chromosome("chr9"));
+		I_EQUAL(vl.vcfLine(7).pos(),130931421);
+		I_EQUAL(vl.vcfLine(8).pos(),130932396);
+		X_EQUAL(vl.vcfLine(9).chr(),Chromosome("chr4"));
+		I_EQUAL(vl.vcfLine(9).pos(),68247038);
+		I_EQUAL(vl.vcfLine(10).pos(),68247113);
+		X_EQUAL(vl.vcfLine(11).chr(),Chromosome("chr2"));
+		I_EQUAL(vl.vcfLine(11).pos(),139498511);
+		X_EQUAL(vl.vcfLine(12).chr() ,Chromosome("chr1"));
+		I_EQUAL(vl.vcfLine(12).pos(),11676308);
+		I_EQUAL(vl.vcfLine(13).pos(),11676377);
+	}
+
+
+	void sortCustom()
+	{
+		VcfFileHandler vl;
+		vl.checkValid();
+		vl.load(TESTDATA("data_in/sort_in.vcf"));
+		vl.sortCustom([](const VCFLine& a, const VCFLine& b) {return a.pos() < b.pos(); });
+
+		I_EQUAL(vl.count(), 2344);
+		X_EQUAL(vl.vcfLine(0).chr(),Chromosome("chr4"));
+		I_EQUAL(vl.vcfLine(0).pos(),85995);
+		X_EQUAL(vl.vcfLine(1).chr(),Chromosome("chr4"));
+		I_EQUAL(vl.vcfLine(1).pos(),85997);
+		X_EQUAL(vl.vcfLine(2).chr(),Chromosome("chr4"));
+		I_EQUAL(vl.vcfLine(2).pos(),86101);
+		X_EQUAL(vl.vcfLine(3).chr(),Chromosome("chr4"));
+		I_EQUAL(vl.vcfLine(3).pos(),86102);
+		X_EQUAL(vl.vcfLine(4).chr(),Chromosome("chr4"));
+		I_EQUAL(vl.vcfLine(4).pos(),87313);
+		X_EQUAL(vl.vcfLine(5).chr(),Chromosome("chr20"));
+		I_EQUAL(vl.vcfLine(5).pos(),126309);
+		X_EQUAL(vl.vcfLine(6).chr(),Chromosome("chr20"));
+		I_EQUAL(vl.vcfLine(6).pos(),126310);
+		//...
+		X_EQUAL(vl.vcfLine(2343).chr(),Chromosome("chr1"));
+		I_EQUAL(vl.vcfLine(2343).pos(),248802249);
 	}
 };

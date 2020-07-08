@@ -19,6 +19,14 @@ public:
 
 	void checkValid() const;
 	void sort(bool use_quality = false);
+	void sortByFile(QString filename);
+	///Costum sorting of variants.
+	template <typename T>
+	void sortCustom(const T& comparator)
+	{
+		std::sort(VcfLines_.begin(), VcfLines_.end(), comparator);
+	}
+
 	void removeDuplicates(bool sort_by_quality);
 	int count() const
 	{

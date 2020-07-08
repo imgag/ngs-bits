@@ -187,6 +187,7 @@ public:
 	InfoFormatLine infoLineByID(const QByteArray& id, bool error_not_found = true) const;
 	InfoFormatLine formatLineByID(const QByteArray& id, bool error_not_found = true) const;
 	FilterLine filterLineByID(const QByteArray& id, bool error_not_found = true) const;
+	int vepIndexByName(const QString& name, bool error_if_not_found) const;
 
 	void setFormat(QByteArray& line);
 	void setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number);
@@ -403,6 +404,18 @@ class LessComparator
 
 	private:
 		bool use_quality;
+};
+///Comparator helper class used by sortByFile.
+class LessComparatorByFile
+{
+	public:
+		///Constructor with FAI file, which determines the chromosome order.
+		LessComparatorByFile(QString filename);
+		bool operator()(const VCFLine& a, const VCFLine& b) const;
+
+	private:
+		QString filename_;
+		QHash<int, int> chrom_rank_;
 };
 
 } //end namespace VcfFormat
