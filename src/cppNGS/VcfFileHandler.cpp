@@ -119,7 +119,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 			if(!info_ids.contains(key_value_pair[0]))
 			{
 				InfoFormatLine new_info_line;
-				new_info_line.id = info;
+				new_info_line.id = key_value_pair[0];
 				new_info_line.number = "1";
 				new_info_line.type = "String";
 				new_info_line.description = "no description available";

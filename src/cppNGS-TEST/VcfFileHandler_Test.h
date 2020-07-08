@@ -175,4 +175,33 @@ private slots:
 		I_EQUAL(vl.sampleIDs().count(), 0);
 	}
 
+	void loadFromVCF_undeclaredAnnotations()
+	{
+		VcfFileHandler vl;
+
+		//check annotation list
+		vl.load(TESTDATA("data_in/VariantList_loadFromVCF_undeclaredAnnotations.vcf"));
+		vl.checkValid();
+		I_EQUAL(vl.count(), 2);
+		I_EQUAL(vl.informationIDs().count(), 5);
+		I_EQUAL(vl.formatIDs().count(), 10);
+		QStringList names;
+		foreach(QByteArray id, vl.informationIDs())
+		{
+			names << id;
+		}
+		foreach(QByteArray id, vl.formatIDs())
+		{
+			names << id;
+		}
+		S_EQUAL(names.join(","), QString("DP,AF,RO,AO,CIGAR,GT,GQ,GL,DP,RO,QR,AO,QA,TRIO,TRIO2"));
+
+		//check variants
+		S_EQUAL(vl.vcfLine(0).infos().at(4).second, QByteArray("1X"));
+		S_EQUAL(vl.vcfLine(0).info("CIGAR"), QByteArray("1X"));
+		S_EQUAL(vl.vcfLine(1).info("CIGAR"), QByteArray(""));
+		S_EQUAL(vl.vcfLine(0).sample(0, "TRIO2"), QByteArray(""));
+		S_EQUAL(vl.vcfLine(1).sample(0, "TRIO2"), QByteArray("HET,9,0.56,WT,17,0.00,HOM,19,1.00"));
+	}
+
 };

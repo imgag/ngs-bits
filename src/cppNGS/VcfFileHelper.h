@@ -42,7 +42,7 @@ public:
   {
 	  auto iter = hash_.find(key);
 	  if (iter == hash_.end())
-		THROW(ArgumentException, "Key" + key + "not found");
+		THROW(ArgumentException, "Key " + key + " not found");
 	  return iter.value();
   }
 
@@ -254,19 +254,51 @@ public:
 			return "";
 		}
 	}
-	//returns a hash with(key = sample name, value = hash of format name to value)
+
+	///returns samples as a hash of SAMPLE ID to a hash of FORMAT ID to value
 	const OrderedHash<QByteArray, FormatIDToValueHash>& samples() const
 	{
 		return sample_;
 	}
-	//returns a hash with(key = FORMAT entry, value)
+	///access the hash of FORMAT ID to value for a sample by SAMPLE ID
 	FormatIDToValueHash sample(const QByteArray& sample_name) const
 	{
 		return sample_[sample_name];
 	}
+	///access the hash of FORMAT ID to value for a sample by position
+	FormatIDToValueHash sample(int pos) const
+	{
+		if(pos >= samples().size()) THROW(ArgumentException, QString::number(pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
+		return sample_.at(pos).second;
+	}
+	///access the value for a SAMPLE and FORMAT ID
 	QByteArray sample(const QByteArray& sample_name, const QByteArray& format_id)
 	{
-		return sample_[sample_name][format_id];
+		FormatIDToValueHash hash = sample_[sample_name];
+		QByteArray value;
+		if(hash.hasKey(format_id, value))
+		{
+			return value;
+		}
+		else
+		{
+			return "";
+		}
+	}
+	///access the value for a SAMPLE position and FORMAT ID
+	QByteArray sample(int sample_pos, const QByteArray& format_id)
+	{
+		if(sample_pos >= samples().size()) THROW(ArgumentException, QString::number(sample_pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
+		FormatIDToValueHash hash = sample_.at(sample_pos).second;
+		QByteArray value;
+		if(hash.hasKey(format_id, value))
+		{
+			return value;
+		}
+		else
+		{
+			return "";
+		}
 	}
 
 	void setChromosome(const Chromosome& chr)
