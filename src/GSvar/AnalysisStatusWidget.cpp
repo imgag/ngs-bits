@@ -6,6 +6,7 @@
 #include "GUIHelper.h"
 #include "ScrollableTextDialog.h"
 #include "cmath"
+#include "LoginManager.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -407,7 +408,29 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	{
 		foreach(int id, job_ids)
 		{
-			NGSD().cancelAnalysis(id);
+			NGSD db;
+
+			//only the owner or admins can do this
+			try
+			{
+				bool is_owner = false;
+				AnalysisJob job = db.analysisInfo(id);
+				if (!job.history.isEmpty() && job.history.at(0).user==LoginManager::user())
+				{
+					is_owner = true;
+				}
+				if (!is_owner)
+				{
+					LoginManager::checkRoleIn(QStringList() << "admin");
+				}
+			}
+			catch (Exception& /*e*/)
+			{
+				QMessageBox::warning(this, "Permissions error", "Only the owner of the analysis job or admins can cancel the job!");
+				return;
+			}
+
+			db.cancelAnalysis(id);
 		}
 		refreshStatus();
 	}
@@ -429,6 +452,17 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	}
 	if (text=="Delete")
 	{
+		//only admins can do this
+		try
+		{
+			LoginManager::checkRoleIn(QStringList() << "admin");
+		}
+		catch (Exception& e)
+		{
+			QMessageBox::warning(this, "Permissions error", e.message());
+			return;
+		}
+
 		NGSD db;
 		foreach(int id, job_ids)
 		{
