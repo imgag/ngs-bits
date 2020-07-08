@@ -1,4 +1,5 @@
 #include "TestFramework.h"
+#include "TestFrameworkNGS.h"
 #include "VcfFileHandler.h"
 
 using namespace VcfFormat;
@@ -217,4 +218,76 @@ private slots:
 		COMPARE_FILES(in,out);
 	}
 
+	void storeToVCF()
+	{
+		//store loaded file
+		VcfFileHandler vl;
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
+		vl.checkValid();
+		vl.store("out/VariantList_store_01.vcf");
+		VCF_IS_VALID("out/VariantList_store_01.vcf")
+
+		//reload and check that everything stayed the same
+		vl.load("out/VariantList_store_01.vcf");
+		vl.checkValid();
+		I_EQUAL(vl.count(), 14);
+		//old test expected 3, now two bcs we seperately parse the fileformat
+		I_EQUAL(vl.vcfHeader().file_comments_.count(), 2);
+		S_EQUAL(vl.sampleIDs().at(0), QString("./Sample_GS120297A3/GS120297A3.bam"));
+		//old test checked for annotations().count()==27, with annotations consisting of all formats, informations, id, qual, and filter
+		I_EQUAL(vl.informationIDs().count(), 18);
+		I_EQUAL(vl.formatIDs().count(), 6);
+
+		InfoFormatLine info_1 = vl.vcfHeader().infoLineByID("INDEL");
+		S_EQUAL(info_1.id, QString("INDEL"));
+		X_EQUAL(info_1.type, "Flag");
+		S_EQUAL(info_1.number, QString("0"));
+		S_EQUAL(info_1.description, QString("Indicates that the variant is an INDEL."));
+
+		InfoFormatLine info_2 = vl.vcfHeader().infoLineByID("DP4");
+		S_EQUAL(info_2.id, QString("DP4"));
+		X_EQUAL(info_2.type, "Integer");
+		S_EQUAL(info_2.number, QString("4"));
+		S_EQUAL(info_2.description, QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
+
+
+		InfoFormatLine format = vl.vcfHeader().formatLineByID("PL");
+		S_EQUAL(format.id, QString("PL"));
+		S_EQUAL(format.number, QString("G"));
+		S_EQUAL(format.description, QString("List of Phred-scaled genotype likelihoods"));
+		X_EQUAL(format.type, "Integer");
+
+		I_EQUAL(vl.filterIDs().count(), 2);
+		S_EQUAL(vl.vcfHeader().filterLineByID("q10").description, QString("Quality below 10"));
+		S_EQUAL(vl.vcfHeader().filterLineByID("s50").description, QString("Less than 50% of samples have data"));
+
+		X_EQUAL(vl.vcfLine(0).chr(), Chromosome("chr17"));
+		I_EQUAL(vl.vcfLine(0).pos(), 72196817);
+		I_EQUAL(vl.vcfLine(0).pos() + vl.vcfLine(0).ref().length() - 1, 72196817);
+		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
+		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("GA"));
+		S_EQUAL(vl.vcfLine(0).infos().at(0).second, QByteArray("TRUE"));
+		S_EQUAL(vl.vcfLine(0).infos().at(5).second, QByteArray("4,3,11,11"));
+		QByteArray first_sample_name = vl.sampleIDs().at(0);
+		QByteArray second_format_name = vl.vcfLine(0).format().at(1);
+		S_EQUAL(vl.vcfLine(0).samples()[first_sample_name][second_format_name], QByteArray("255,0,123"));
+		I_EQUAL(vl.vcfLine(0).filter().count(), 0);
+
+		I_EQUAL(vl.vcfLine(11).filter().count(), 1);
+		S_EQUAL(vl.vcfLine(11).filter().at(0), QByteArray("low_DP"));
+
+		X_EQUAL(vl.vcfLine(12).chr(), Chromosome("chr9"));
+		I_EQUAL(vl.vcfLine(12).pos(), 130931421);
+		I_EQUAL(vl.vcfLine(12).pos() + vl.vcfLine(0).ref().length() - 1, 130931421);
+		S_EQUAL(vl.vcfLine(12).ref(), Sequence("G"));
+		S_EQUAL(vl.vcfLine(12).alt(0), Sequence("A"));
+		S_EQUAL(vl.vcfLine(12).infos().at(0).second, QByteArray("2512"));
+		S_EQUAL(vl.vcfLine(12).info("INDEL"), QByteArray(""));
+		S_EQUAL(vl.vcfLine(12).infos().at(4).second, QByteArray("457,473,752,757"));
+		S_EQUAL(vl.vcfLine(12).info("DP4"), QByteArray("457,473,752,757"));
+		first_sample_name = vl.sampleIDs().at(0);
+		second_format_name = vl.vcfLine(12).format().at(1);
+		S_EQUAL(vl.vcfLine(12).samples()[first_sample_name][second_format_name], QByteArray("255,0,255"));
+		I_EQUAL(vl.vcfLine(12).filter().count(), 0);
+	}
 };
