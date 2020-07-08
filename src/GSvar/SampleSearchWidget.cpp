@@ -64,6 +64,7 @@ void SampleSearchWidget::search()
 	ProcessedSampleSearchParameters params;
 	params.s_name = ui_.s_name->text();
 	params.s_name_ext = ui_.s_name_ext->isChecked();
+	params.s_name_comments = ui_.s_name_comments->isChecked();
 	params.s_species = ui_.s_species->text();
 	params.s_disease_group = ui_.s_disease_group->currentText();
 	params.s_disease_status = ui_.s_disease_status->currentText();
@@ -87,6 +88,7 @@ void SampleSearchWidget::search()
 	params.add_disease_details = ui_.add_disease_details->isChecked();
 	params.add_qc = ui_.add_qc->isChecked();
 	params.add_report_config = ui_.add_report_config->isChecked();
+	params.add_comments = ui_.add_comments->isChecked();
 
 	//execute query
 	try

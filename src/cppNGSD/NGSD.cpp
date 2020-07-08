@@ -161,14 +161,18 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	//add filters (sample)
 	if (p.s_name.trimmed()!="")
 	{
+		QStringList name_conditions;
+		name_conditions << "s.name LIKE '%" + escapeForSql(p.s_name) + "%'";
 		if (p.s_name_ext)
 		{
-			conditions << "(s.name LIKE '%" + escapeForSql(p.s_name) + "%' OR s.name_external LIKE '%" + escapeForSql(p.s_name) + "%')";
+			name_conditions << "s.name_external LIKE '%" + escapeForSql(p.s_name) + "%'";
 		}
-		else
+		if (p.s_name_comments)
 		{
-			conditions << "s.name LIKE '%" + escapeForSql(p.s_name) + "%'";
+			name_conditions << "s.comment LIKE '%" + escapeForSql(p.s_name) + "%'";
+			name_conditions << "ps.comment LIKE '%" + escapeForSql(p.s_name) + "%'";
 		}
+		conditions << "(" + name_conditions.join(" OR ") + ")";
 	}
 	if (p.s_species.trimmed()!="")
 	{
@@ -241,12 +245,20 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 				   << "d.name LIKE '%" + escapeForSql(p.r_device_name) + "%'";
 	}
 
+	//add comments
+	if (p.add_comments)
+	{
+		fields	<< "s.comment as comment_sample"
+				<< "ps.comment as comment_processed_sample";
+	}
+
 	//add outcome
 	if (p.add_outcome)
 	{
 		fields	<< "ds.outcome as outcome"
 				<< "ds.comment as outcome_comment";
 	}
+
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
 
 	//add path

@@ -825,6 +825,16 @@ private slots:
 		I_EQUAL(ps_table.columnCount(), 70);
 		S_EQUAL(ps_table.row(0).value(69), "");
 		S_EQUAL(ps_table.row(4).value(69), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1,LOC100507346), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
+		//add comments
+		params.add_comments = true;
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 9);
+		I_EQUAL(ps_table.columnCount(), 72);
+		S_EQUAL(ps_table.headers().at(18), "comment_sample");
+		S_EQUAL(ps_table.headers().at(19), "comment_processed_sample");
+		S_EQUAL(ps_table.row(0).value(18), "comment_s6");
+		S_EQUAL(ps_table.row(0).value(19), "comment_ps7");
+
 
 		//apply all search parameters
 		params.s_name = "NA12878";
@@ -842,7 +852,7 @@ private slots:
 		params.run_finished = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 70);
+		I_EQUAL(ps_table.columnCount(), 72);
 
 		//reportConfigId
 		QString ps_id = db.processedSampleId("NA12878_03");

@@ -339,7 +339,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `sample`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(15) NOT NULL,
+  `name` VARCHAR(20) NOT NULL,
   `name_external` VARCHAR(255) NULL DEFAULT NULL COMMENT 'External names.<br>If several, separate by comma!<br>Always enter full names, no short forms!',
   `received` DATE NULL DEFAULT NULL,
   `receiver_id` INT(11) NULL DEFAULT NULL,

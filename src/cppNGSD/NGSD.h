@@ -335,7 +335,8 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 {
 	//filters sample
 	QString s_name;
-	bool s_name_ext;
+	bool s_name_ext = false;
+	bool s_name_comments = false;
 	QString s_species;
 	QString s_disease_group;
 	QString s_disease_status;
@@ -364,6 +365,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_outcome = false;
 	bool add_qc = false;
 	bool add_report_config = false;
+	bool add_comments = false;
 };
 
 ///Meta data about report configuration creation and update

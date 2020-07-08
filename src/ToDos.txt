@@ -18,7 +18,6 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-*** Sample search: Add ps comment (e.g. to search for contaminated samples), also add comment text search (s+ps)
 *** Add mean coverage of chrMT to report
 *** Analysis jobs:
     - Only the user or creator should be able to cancel jobs

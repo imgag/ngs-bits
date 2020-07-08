@@ -33,6 +33,7 @@ public:
 		addFlag("add_disease_details", "If set, disease details columns are added to output.");
 		addFlag("add_path", "Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).");
 		addFlag("add_report_config", "Adds a column with report configuration information (exists/has_small_variants/has_cnvs).");
+		addFlag("add_comments", "Adds sample and processed sample comments columns.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2019, 12, 11, "Added 'run_finished' and 'add_report_config' flags.");
@@ -66,6 +67,7 @@ public:
 		params.add_disease_details = getFlag("add_disease_details");
 		params.add_path = getFlag("add_path");
 		params.add_report_config = getFlag("add_report_config");
+		params.add_comments = getFlag("add_comments");
 
 		//check parameters
 		if (params.p_name!="")

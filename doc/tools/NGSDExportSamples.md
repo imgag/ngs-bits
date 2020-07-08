@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2019_11-129-g4a5e7bf9)
+	NGSDExportSamples (2020_03-159-g5c8b2e82)
 	
 	Lists processed samples from the NGSD.
 	
@@ -40,6 +40,8 @@
 	                        Default value: 'false'
 	  -add_report_config    Adds a column with report configuration information (exists/has_small_variants/has_cnvs).
 	                        Default value: 'false'
+	  -add_comments         Adds sample and processed sample comments columns.
+	                        Default value: 'false'
 	  -test                 Uses the test database instead of on the production database.
 	                        Default value: 'false'
 	
@@ -50,7 +52,7 @@
 	  --tdx                 Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2019_11-129-g4a5e7bf9
+	NGSDExportSamples 2020_03-159-g5c8b2e82
 	
 	2019-12-11 Added 'run_finished' and 'add_report_config' flags.
 	2019-05-17 Added 'with_merged' flag.
