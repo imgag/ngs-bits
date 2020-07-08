@@ -145,9 +145,15 @@ using FormatIDToValueHash = OrderedHash<QByteArray, QByteArray>;
 class CPPNGSSHARED_EXPORT VCFHeader
 {
 public:
-	QByteArray fileformat_;
-	QVector<VcfHeaderLine> file_comments_;
 
+	const QByteArray& fileFormat() const
+	{
+		return fileformat_;
+	}
+	const QVector<VcfHeaderLine>& comments() const
+	{
+		return 	file_comments_;
+	}
 	const QVector<InfoFormatLine>& infoLines() const
 	{
 		return info_lines_;
@@ -174,10 +180,6 @@ public:
 		format_lines_.move(from, to);
 	}
 
-	QVector<InfoFormatLine> info_lines_;
-	QVector<FilterLine> filter_lines_;
-	QVector<InfoFormatLine> format_lines_;
-
 	static const int MIN_COLS = 8;
 
 	void storeHeaderInformation(QTextStream& stream) const;
@@ -197,6 +199,13 @@ private:
 
 	static const QByteArrayList InfoTypes;
 	static const QByteArrayList FormatTypes;
+
+	QByteArray fileformat_;
+	QVector<VcfHeaderLine> file_comments_;
+
+	QVector<InfoFormatLine> info_lines_;
+	QVector<FilterLine> filter_lines_;
+	QVector<InfoFormatLine> format_lines_;
 
 	bool parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number);
 	InfoFormatLine lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found = true) const;
@@ -277,6 +286,8 @@ public:
 		return sample_.at(pos).value();
 	}
 	///access the value for a SAMPLE and FORMAT ID
+	// by purpose does not return a reference because an empty QByteArray is returned for non-existing keys
+	//(this way every possible FORMAT ID present in the header can be used to get its value from a SAMPLE)
 	QByteArray sample(const QByteArray& sample_name, const QByteArray& format_id)
 	{
 		FormatIDToValueHash hash = sample_[sample_name];
@@ -291,6 +302,8 @@ public:
 		}
 	}
 	///access the value for a SAMPLE position and FORMAT ID
+	// by purpose does not return a reference because an empty QByteArray is returned for non-existing keys
+	//(this way every possible FORMAT ID present in the header can be used to get its value from a SAMPLE)
 	QByteArray sample(int sample_pos, const QByteArray& format_id)
 	{
 		if(sample_pos >= samples().size()) THROW(ArgumentException, QString::number(sample_pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");

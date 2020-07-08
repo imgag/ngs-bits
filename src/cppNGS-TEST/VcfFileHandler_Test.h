@@ -60,7 +60,7 @@ private slots:
 		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
 		//old test expected 3, now two bcs we seperately parse the fileformat
-		I_EQUAL(vl.vcfHeader().file_comments_.count(), 2);
+		I_EQUAL(vl.vcfHeader().comments().count(), 2);
 		S_EQUAL(vl.sampleIDs().at(0), QString("./Sample_GS120297A3/GS120297A3.bam"));
 		//old test checked for annotations().count()==27, with annotations consisting of all formats, informations, id, qual, and filter
 		I_EQUAL(vl.informationIDs().count(), 18);
@@ -122,7 +122,7 @@ private slots:
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
-		I_EQUAL(vl.vcfHeader().file_comments_.count(), 2);
+		I_EQUAL(vl.vcfHeader().comments().count(), 2);
 		S_EQUAL(vl.sampleIDs()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
@@ -138,7 +138,7 @@ private slots:
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"), &roi);
 		vl.checkValid();
 		I_EQUAL(vl.count(), 4);
-		I_EQUAL(vl.vcfHeader().file_comments_.count(), 2);
+		I_EQUAL(vl.vcfHeader().comments().count(), 2);
 		S_EQUAL(vl.sampleIDs().at(0), QString("./Sample_GS120297A3/GS120297A3.bam"));
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
@@ -162,8 +162,8 @@ private slots:
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
-		I_EQUAL(vl.vcfHeader().file_comments_.count(), 1);
-		S_EQUAL(vl.vcfHeader().fileformat_, QByteArray("VCFv4.1"));
+		I_EQUAL(vl.vcfHeader().comments().count(), 1);
+		S_EQUAL(vl.vcfHeader().fileFormat(), QByteArray("VCFv4.1"));
 		S_EQUAL(vl.sampleIDs().at(0), QString("Sample"));
 
 		vl.load(TESTDATA("data_in/VariantList_loadFromVCF_noFormatSample.vcf"));
@@ -171,8 +171,8 @@ private slots:
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
-		I_EQUAL(vl.vcfHeader().file_comments_.count(), 1);
-		S_EQUAL(vl.vcfHeader().fileformat_, QByteArray("VCFv4.1"));
+		I_EQUAL(vl.vcfHeader().comments().count(), 1);
+		S_EQUAL(vl.vcfHeader().fileFormat(), QByteArray("VCFv4.1"));
 		I_EQUAL(vl.sampleIDs().count(), 0);
 	}
 
@@ -232,7 +232,7 @@ private slots:
 		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
 		//old test expected 3, now two bcs we seperately parse the fileformat
-		I_EQUAL(vl.vcfHeader().file_comments_.count(), 2);
+		I_EQUAL(vl.vcfHeader().comments().count(), 2);
 		S_EQUAL(vl.sampleIDs().at(0), QString("./Sample_GS120297A3/GS120297A3.bam"));
 		//old test checked for annotations().count()==27, with annotations consisting of all formats, informations, id, qual, and filter
 		I_EQUAL(vl.informationIDs().count(), 18);
