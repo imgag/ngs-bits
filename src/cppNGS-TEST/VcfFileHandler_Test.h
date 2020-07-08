@@ -290,4 +290,43 @@ private slots:
 		S_EQUAL(vl.vcfLine(12).samples()[first_sample_name][second_format_name], QByteArray("255,0,255"));
 		I_EQUAL(vl.vcfLine(12).filter().count(), 0);
 	}
+
+	void checkThatEmptyVariantAnnotationsAreFilled()
+	{
+		//store loaded vcf file
+		VcfFileHandler vl;
+		vl.load(TESTDATA("data_in/VariantList_emptyDescriptions.vcf"));
+		vl.checkValid();
+		vl.store("out/VariantList_emptyDescriptions_fixed.vcf");
+		VCF_IS_VALID("out/VariantList_emptyDescriptions_fixed.vcf")
+
+		VcfFileHandler vl2;
+		vl2.load("out/VariantList_emptyDescriptions_fixed.vcf");
+		vl2.checkValid();
+		I_EQUAL(vl2.count(), 14);
+		I_EQUAL(vl.informationIDs().count(), 18);
+		I_EQUAL(vl.formatIDs().count(), 6);
+		foreach(InfoFormatLine info, vl2.vcfHeader().infoLines())
+		{
+			if (info.id=="MQ")
+			{
+				S_EQUAL(info.description, "no description available");
+			}
+			else
+			{
+				IS_FALSE(info.description=="no description available");
+			}
+		}
+		foreach(InfoFormatLine format, vl2.vcfHeader().formatLines())
+		{
+			if (format.id=="GQ")
+			{
+				S_EQUAL(format.description, "no description available");
+			}
+			else
+			{
+				IS_FALSE(format.description=="no description available");
+			}
+		}
+	}
 };
