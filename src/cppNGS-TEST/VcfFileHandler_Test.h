@@ -94,8 +94,8 @@ private slots:
 		I_EQUAL(vl.vcfLine(0).pos() + vl.vcfLine(0).ref().length() - 1, 72196817);
 		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("GA"));
-		S_EQUAL(vl.vcfLine(0).infos().at(0).second, QByteArray("TRUE"));
-		S_EQUAL(vl.vcfLine(0).infos().at(5).second, QByteArray("4,3,11,11"));
+		S_EQUAL(vl.vcfLine(0).infos().at(0).value(), QByteArray("TRUE"));
+		S_EQUAL(vl.vcfLine(0).infos().at(5).value(), QByteArray("4,3,11,11"));
 		QByteArray first_sample_name = vl.sampleIDs().at(0);
 		QByteArray second_format_name = vl.vcfLine(0).format().at(1);
 		S_EQUAL(vl.vcfLine(0).samples()[first_sample_name][second_format_name], QByteArray("255,0,123"));
@@ -109,9 +109,9 @@ private slots:
 		I_EQUAL(vl.vcfLine(12).pos() + vl.vcfLine(0).ref().length() - 1, 130931421);
 		S_EQUAL(vl.vcfLine(12).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(12).alt(0), Sequence("A"));
-		S_EQUAL(vl.vcfLine(12).infos().at(0).second, QByteArray("2512"));
+		S_EQUAL(vl.vcfLine(12).infos().at(0).value(), QByteArray("2512"));
 		S_EQUAL(vl.vcfLine(12).info("INDEL"), QByteArray(""));
-		S_EQUAL(vl.vcfLine(12).infos().at(4).second, QByteArray("457,473,752,757"));
+		S_EQUAL(vl.vcfLine(12).infos().at(4).value(), QByteArray("457,473,752,757"));
 		S_EQUAL(vl.vcfLine(12).info("DP4"), QByteArray("457,473,752,757"));
 		first_sample_name = vl.sampleIDs().at(0);
 		second_format_name = vl.vcfLine(12).format().at(1);
@@ -198,7 +198,7 @@ private slots:
 		S_EQUAL(names.join(","), QString("DP,AF,RO,AO,CIGAR,GT,GQ,GL,DP,RO,QR,AO,QA,TRIO,TRIO2"));
 
 		//check variants
-		S_EQUAL(vl.vcfLine(0).infos().at(4).second, QByteArray("1X"));
+		S_EQUAL(vl.vcfLine(0).infos().at(4).value(), QByteArray("1X"));
 		S_EQUAL(vl.vcfLine(0).info("CIGAR"), QByteArray("1X"));
 		S_EQUAL(vl.vcfLine(1).info("CIGAR"), QByteArray(""));
 		S_EQUAL(vl.vcfLine(0).sample(0, "TRIO2"), QByteArray(""));
@@ -266,8 +266,8 @@ private slots:
 		I_EQUAL(vl.vcfLine(0).pos() + vl.vcfLine(0).ref().length() - 1, 72196817);
 		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("GA"));
-		S_EQUAL(vl.vcfLine(0).infos().at(0).second, QByteArray("TRUE"));
-		S_EQUAL(vl.vcfLine(0).infos().at(5).second, QByteArray("4,3,11,11"));
+		S_EQUAL(vl.vcfLine(0).infos().at(0).value(), QByteArray("TRUE"));
+		S_EQUAL(vl.vcfLine(0).infos().at(5).value(), QByteArray("4,3,11,11"));
 		QByteArray first_sample_name = vl.sampleIDs().at(0);
 		QByteArray second_format_name = vl.vcfLine(0).format().at(1);
 		S_EQUAL(vl.vcfLine(0).samples()[first_sample_name][second_format_name], QByteArray("255,0,123"));
@@ -281,9 +281,9 @@ private slots:
 		I_EQUAL(vl.vcfLine(12).pos() + vl.vcfLine(0).ref().length() - 1, 130931421);
 		S_EQUAL(vl.vcfLine(12).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(12).alt(0), Sequence("A"));
-		S_EQUAL(vl.vcfLine(12).infos().at(0).second, QByteArray("2512"));
+		S_EQUAL(vl.vcfLine(12).infos().at(0).value(), QByteArray("2512"));
 		S_EQUAL(vl.vcfLine(12).info("INDEL"), QByteArray(""));
-		S_EQUAL(vl.vcfLine(12).infos().at(4).second, QByteArray("457,473,752,757"));
+		S_EQUAL(vl.vcfLine(12).infos().at(4).value(), QByteArray("457,473,752,757"));
 		S_EQUAL(vl.vcfLine(12).info("DP4"), QByteArray("457,473,752,757"));
 		first_sample_name = vl.sampleIDs().at(0);
 		second_format_name = vl.vcfLine(12).format().at(1);

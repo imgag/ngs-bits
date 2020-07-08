@@ -419,18 +419,18 @@ void VcfFileHandler::store(const QString& filename) const
 		}
 		else
 		{
-			stream  << "\t"<< vcf_line.infos().at(0).first << "=" << vcf_line.infos().at(0).second;
+			stream  << "\t"<< vcf_line.infos().at(0).key() << "=" << vcf_line.infos().at(0).value();
 			if(vcf_line.infos().size() > 1)
 			{
 				for(int i = 1; i < vcf_line.infos().size(); ++i)
 				{
-					if(vcf_line.infos().at(i).second == "TRUE")
+					if(vcf_line.infos().at(i).value() == "TRUE")
 					{
-						stream  << ";"<< vcf_line.infos().at(i).first;
+						stream  << ";"<< vcf_line.infos().at(i).key();
 					}
 					else
 					{
-						stream  << ";"<< vcf_line.infos().at(i).first << "=" << vcf_line.infos().at(i).second;;
+						stream  << ";"<< vcf_line.infos().at(i).key() << "=" << vcf_line.infos().at(i).value();;
 					}
 				}
 			}
@@ -457,11 +457,11 @@ void VcfFileHandler::store(const QString& filename) const
 			for(const QByteArray& name : sampleIDs())
 			{
 				FormatIDToValueHash sample = vcf_line.sample(name);
-				stream << "\t" << sample.at(0).second;
+				stream << "\t" << sample.at(0).value();
 				//for all entries in the sample (e.g. 'GT':'DP':...)
 				for(int sample_entry_id = 1; sample_entry_id < sample.size(); ++sample_entry_id)
 				{
-					stream << ":" << sample.at(sample_entry_id).second;
+					stream << ":" << sample.at(sample_entry_id).value();
 				}
 			}
 		}

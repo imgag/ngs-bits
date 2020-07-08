@@ -38,11 +38,13 @@ public:
   }
 
   //access value by key
-  V operator[](K key) const
+  const V& operator[](K key) const
   {
 	  auto iter = hash_.find(key);
 	  if (iter == hash_.end())
+	  {
 		THROW(ArgumentException, "Key " + key + " not found");
+	  }
 	  return iter.value();
   }
 
@@ -50,17 +52,20 @@ public:
   bool hasKey(K key, V& value) const
   {
 	  auto iter = hash_.find(key);
-	  if (iter == hash_.end())
-		return false;
+	  if (iter == hash_.end()) return false;
 	  value = iter.value();
 	  return true;
   }
 
   //access value by order
-  std::pair<K, V> at(int i) const
+  typename QHash<K, V>::const_iterator at(int i) const
   {
+	  if(i >= size())
+	  {
+		  THROW(ArgumentException, "Index " + QString::number(i) + " is out of range for OrderedHash of size " + size());
+	  }
 	  K key = ordered_keys_.at(i);
-	  return std::make_pair(key, hash_[key]);
+	  return hash_.find(key);
   }
 
   //get the number of inserted key=value pairs
@@ -261,15 +266,15 @@ public:
 		return sample_;
 	}
 	///access the hash of FORMAT ID to value for a sample by SAMPLE ID
-	FormatIDToValueHash sample(const QByteArray& sample_name) const
+	const FormatIDToValueHash& sample(const QByteArray& sample_name) const
 	{
 		return sample_[sample_name];
 	}
 	///access the hash of FORMAT ID to value for a sample by position
-	FormatIDToValueHash sample(int pos) const
+	const FormatIDToValueHash& sample(int pos) const
 	{
 		if(pos >= samples().size()) THROW(ArgumentException, QString::number(pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
-		return sample_.at(pos).second;
+		return sample_.at(pos).value();
 	}
 	///access the value for a SAMPLE and FORMAT ID
 	QByteArray sample(const QByteArray& sample_name, const QByteArray& format_id)
@@ -289,7 +294,7 @@ public:
 	QByteArray sample(int sample_pos, const QByteArray& format_id)
 	{
 		if(sample_pos >= samples().size()) THROW(ArgumentException, QString::number(sample_pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
-		FormatIDToValueHash hash = sample_.at(sample_pos).second;
+		FormatIDToValueHash hash = sample_.at(sample_pos).value();
 		QByteArray value;
 		if(hash.hasKey(format_id, value))
 		{
