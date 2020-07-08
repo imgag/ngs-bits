@@ -72,6 +72,16 @@ int DBTableWidget::columnIndex(const QString& column_header) const
 	THROW(ArgumentException, "Could not find column with header '" + column_header + "'");
 }
 
+QString DBTableWidget::columnHeader(int index) const
+{
+	if (index<0 || index>=columnCount())
+	{
+		THROW(ArgumentException, "Invalid column index " + QString::number(index) + ". The table has " + QString::number(columnCount()) + " columns!");
+	}
+
+	return horizontalHeaderItem(index)->text();
+}
+
 void DBTableWidget::setQualityIcons(const QString& column_header, const QStringList& quality_values)
 {
 	//init
@@ -179,6 +189,21 @@ QSet<int> DBTableWidget::selectedRows() const
 		for (int row=range.topRow(); row<=range.bottomRow(); ++row)
 		{
 			output << row;
+		}
+	}
+
+	return output;
+}
+
+QSet<int> DBTableWidget::selectedColumns() const
+{
+	QSet<int> output;
+
+	foreach(const QTableWidgetSelectionRange& range, selectedRanges())
+	{
+		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
+		{
+			output << col;
 		}
 	}
 

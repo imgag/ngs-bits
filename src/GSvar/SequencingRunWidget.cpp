@@ -8,6 +8,7 @@
 #include "MidCheck.h"
 #include "LoginManager.h"
 #include "EmailDialog.h"
+#include "DBQCWidget.h"
 #include <QMessageBox>
 #include <QInputDialog>
 
@@ -29,9 +30,16 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
 
+	//set quality
 	action = new QAction("Set quality", this);
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQuality()));
+
+	//QC plot
+	ui_->samples->setSelectionBehavior(QAbstractItemView::SelectItems);
+	action = new QAction("Plot", this);
+	ui_->samples->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(showPlot()));
 
 	updateGUI();
 }
@@ -238,6 +246,44 @@ void SequencingRunWidget::setQuality()
 	}
 
 	updateGUI();
+}
+
+void SequencingRunWidget::showPlot()
+{
+	NGSD db;
+
+	//check one QC cell is selected
+	QList<int> selected_cols = ui_->samples->selectedColumns().toList();
+	QList<int> selected_rows = ui_->samples->selectedRows().toList();
+	if (selected_cols.count()!=1 || selected_rows.count()!=1)
+	{
+		QMessageBox::information(this, "Plot error", "Please select <b>exactly one cell</b> containing a <b>quality metric</b> for plotting!");
+		return;
+	}
+	int col = selected_cols[0];
+	QString qc_term_id = db.getValue("SELECT id FROM qc_terms WHERE name='" + ui_->samples->columnHeader(col).replace("%", "percentage") + "'", true).toString();
+	if (qc_term_id.isEmpty())
+	{
+		QMessageBox::information(this, "Plot error", "Please select <b>exactly one cell</b> containing a <b>quality metric</b> for plotting!");
+		return;
+	}
+
+	//create widget
+	DBQCWidget* qc_widget = new DBQCWidget(this);
+	//highlight all samples on this run
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id=" + run_id_);
+	while (query.next())
+	{
+		qc_widget->addHighlightedProcessedSampleById(query.value(0).toString(), query.value(1).toString(), false);
+	}
+
+	//show widget
+	int row = selected_rows[0];
+	qc_widget->setSystemId(db.getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + ui_->samples->getId(row) + "'", true).toString());
+	qc_widget->setTermId(qc_term_id);
+	auto dlg = GUIHelper::createDialog(qc_widget, "QC plot");
+	dlg->exec();
 }
 
 void SequencingRunWidget::edit()

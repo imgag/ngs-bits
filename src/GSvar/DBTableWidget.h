@@ -20,6 +20,8 @@ public:
 	void setData(const DBTable& table);
 	//returns the column index, or throws ArgumentException if column is not present.
 	int columnIndex(const QString& column_header) const;
+	//returns the column name, or throws ArgumentException if column is not present.
+	QString columnHeader(int index) const;
 	//Converts quality values to icons
 	void setQualityIcons(const QString& column_header, const QStringList& quality_values);
 	//Set tooltips for a column
@@ -49,8 +51,10 @@ public:
 		}
 	}
 
-	//Returns selected row indices
+	//Returns selected row indices.
 	QSet<int> selectedRows() const;
+	//Returns selected column indices (use only, if you changed selection behaviour).
+	QSet<int> selectedColumns() const;
 	//Returns the database ID of row r
 	const QString& getId(int r) const;
 	//Returns the database table name

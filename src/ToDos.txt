@@ -2,7 +2,7 @@
 
 libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
-* The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
+- The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
 
 NGSD:
 * Implement "closing gaps by sanger"
@@ -10,7 +10,7 @@ NGSD:
     - make page where TA can select gaps (by gene/DX number)
         - also allow copying multiple gaps into clipboard (as table and for primer gap)
         - add link for PrimerDesign tool
-- implement validation of CNVs/SVs like for small variants
+* implement validation of CNVs/SVs like for small variants
 - Sample: allow several disease_groups per sample (requested by CS)
 - add multi-sample report-config
     - 1 affected > easy
@@ -19,9 +19,6 @@ NGSD:
 
 GSvar:
 *** Add mean coverage of chrMT to report
-*** QC plots:
-    - Show QC plots from run overview and highlight all samples of a run.
-    - Check if sample name can be shown as tooltip, or next to the point if only one datapoint is visible.
 *** Custom variant menu (custom_variant_menu=Custom Action|http://127.0.0.1/index.php?chr=[chr]&start=[start]&end=[end]&ref=[ref]&obs=[obs]&gene=[gene]\tCustom Action2|http://127.0.0.2/index.php?chr=[chr]&start=[start]
 ** Implement sample sheet in NGSD and add it to the XML report via the HTML report (Email Anne - Auwertebogen aus GsVar)
 * update ROH docu with ROH sum (ROHs >500k) for ssHAEv7 and WGS
