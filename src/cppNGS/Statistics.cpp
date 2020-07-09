@@ -1528,7 +1528,7 @@ AncestryEstimates Statistics::ancestry(QString build, const VcfFormat::VcfFileHa
 		af_afr << v2.info("AF_AFR").toDouble();
 		af_eur << v2.info("AF_EUR").toDouble();
 		af_sas << v2.info("AF_SAS").toDouble();
-		af_eas << v2.info("AF_SAS").toDouble();
+		af_eas << v2.info("AF_EAS").toDouble();
 	}
 
 	//not enough informative SNPs
