@@ -81,7 +81,7 @@ private slots:
 
 	void variantList_panel_filter()
 	{
-		VariantList vl;
+		VcfFormat::VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/panel_vep.vcf"));
 
 		QCCollection stats = Statistics::variantList(vl, true);
@@ -103,7 +103,7 @@ private slots:
 
 	void variantList_panel_nofilter()
 	{
-		VariantList vl;
+		VcfFormat::VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/panel_vep.vcf"));
 
 		QCCollection stats = Statistics::variantList(vl, false);
@@ -134,7 +134,7 @@ private slots:
 
     void variantList_empty()
 	{
-		VariantList vl;
+		VcfFormat::VcfFileHandler vl;
 
 		QCCollection stats = Statistics::variantList(vl, true);
         S_EQUAL(stats[0].name(), QString("variant count"));
@@ -526,7 +526,7 @@ private slots:
 	void ancestry()
 	{
 
-		VariantList vl;
+		VcfFormat::VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/ancestry.vcf.gz"));
 
 		//default
@@ -556,7 +556,7 @@ private slots:
 	void ancestry_hg38()
 	{
 
-		VariantList vl;
+		VcfFormat::VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/ancestry_hg38.vcf.gz"));
 
 		//default

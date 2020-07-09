@@ -8,9 +8,9 @@ namespace VcfFormat
 
 void VcfFileHandler::clear()
 {
-	VcfLines_.clear();
+	vcf_lines_.clear();
 	column_headers_.clear();
-	VcfHeader_.clear();
+	vcf_header_.clear();
 }
 
 void VcfFileHandler::parseVcfHeader(const int line_number, QByteArray& line)
@@ -19,7 +19,7 @@ void VcfFileHandler::parseVcfHeader(const int line_number, QByteArray& line)
 	{
 		if(line.startsWith("##fileformat"))
 		{
-			VcfHeader_.setFormat(line);
+			vcf_header_.setFormat(line);
 		}
 		else
 		{
@@ -30,20 +30,20 @@ void VcfFileHandler::parseVcfHeader(const int line_number, QByteArray& line)
 	{
 		if (line.startsWith("##INFO"))
 		{
-			VcfHeader_.setInfoFormatLine(line, INFO, line_number);
+			vcf_header_.setInfoFormatLine(line, INFO, line_number);
 		}
 		else
 		{
-			VcfHeader_.setInfoFormatLine(line, FORMAT, line_number);
+			vcf_header_.setInfoFormatLine(line, FORMAT, line_number);
 		}
 	}
 	else if(line.startsWith("##FILTER=<ID="))
 	{
-		VcfHeader_.setFilterLine(line, line_number);
+		vcf_header_.setFilterLine(line, line_number);
 	}
 	else if(line.startsWith("##"))
 	{
-		VcfHeader_.setCommentLine(line, line_number);
+		vcf_header_.setCommentLine(line, line_number);
 	}
 }
 void VcfFileHandler::parseHeaderFields(QByteArray& line)
@@ -127,7 +127,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 				new_info_line.number = "1";
 				new_info_line.type = "String";
 				new_info_line.description = "no description available";
-				VcfHeader_.addInfoLine(new_info_line);
+				vcf_header_.addInfoLine(new_info_line);
 			}
 
 			if(key_value_pair.size() == 1)
@@ -165,11 +165,11 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 				new_format_line.number = "1";
 				new_format_line.type = "String";
 				new_format_line.description = "no description available";
-				VcfHeader_.addFormatLine(new_format_line);
+				vcf_header_.addFormatLine(new_format_line);
 
 				if(format == "GT")
 				{
-					VcfHeader_.moveFormatLine(VcfHeader_.formatLines().count()-1, 0);
+					vcf_header_.moveFormatLine(vcf_header_.formatLines().count()-1, 0);
 				}
 			}
 			format_entries.push_back(strToPointer(format));
@@ -234,7 +234,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 		vcf_line.setSample(sample_entries);
 	}
 
-	VcfLines_.push_back(vcf_line);
+	vcf_lines_.push_back(vcf_line);
 
 }
 
@@ -259,11 +259,11 @@ void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByt
 	}
 	else
 	{
-		for(InfoFormatLine format : VcfHeader_.formatLines())
+		for(InfoFormatLine format : vcf_header_.formatLines())
 		{
 			format_ids.insert(format.id);
 		}
-		for(InfoFormatLine info : VcfHeader_.infoLines())
+		for(InfoFormatLine info : vcf_header_.infoLines())
 		{
 			info_ids.insert(info.id);
 		}
@@ -360,7 +360,7 @@ void VcfFileHandler::store(const QString& filename) const
 	QTextStream stream(file.data());
 
 	//write header information
-	VcfHeader_.storeHeaderInformation(stream);
+	vcf_header_.storeHeaderInformation(stream);
 
 	//write header columns
 	stream << "#" << column_headers_.at(0);
@@ -369,7 +369,7 @@ void VcfFileHandler::store(const QString& filename) const
 		stream << "\t" << column_headers_.at(i);
 	}
 
-	for(VCFLine vcf_line : VcfLines_)
+	for(VCFLine vcf_line : vcf_lines_)
 	{
 		//chr
 		stream << "\n" << vcf_line.chr().str()  << "\t" << vcf_line.pos();
@@ -479,7 +479,7 @@ void VcfFileHandler::store(const QString& filename) const
 
 void VcfFileHandler::checkValid() const
 {
-	foreach(VCFLine vcf_line, VcfLines_)
+	foreach(VCFLine vcf_line, vcf_lines_)
 	{
 		vcf_line.checkValid();
 
@@ -499,7 +499,7 @@ void VcfFileHandler::checkValid() const
 void VcfFileHandler::sort(bool use_quality)
 {
 	if (vcfLines().count()==0) return;
-	std::sort(VcfLines_.begin(), VcfLines_.end(), LessComparator(use_quality));
+	std::sort(vcf_lines_.begin(), vcf_lines_.end(), LessComparator(use_quality));
 
 }
 void VcfFileHandler::sortByFile(QString filename)
@@ -517,18 +517,18 @@ void VcfFileHandler::removeDuplicates(bool sort_by_quality)
 	for (int i=0; i<vcfLines().count()-1; ++i)
 	{
 		int j = i+1;
-		if (VcfLines_.at(i).chr() != VcfLines_.at(j).chr() || VcfLines_.at(i).pos() != VcfLines_.at(j).pos() || VcfLines_.at(i).ref() !=VcfLines_.at(j).ref() || !qEqual(VcfLines_.at(i).alt().begin(),  VcfLines_.at(i).alt().end(), VcfLines_.at(j).alt().begin()))
+		if (vcf_lines_.at(i).chr() != vcf_lines_.at(j).chr() || vcf_lines_.at(i).pos() != vcf_lines_.at(j).pos() || vcf_lines_.at(i).ref() !=vcf_lines_.at(j).ref() || !qEqual(vcf_lines_.at(i).alt().begin(),  vcf_lines_.at(i).alt().end(), vcf_lines_.at(j).alt().begin()))
 		{
-			output.append(VcfLines_.at(i));
+			output.append(vcf_lines_.at(i));
 		}
 	}
-	if (!VcfLines_.isEmpty())
+	if (!vcf_lines_.isEmpty())
 	{
-		output.append(VcfLines_.last());
+		output.append(vcf_lines_.last());
 	}
 
 	//swap the old and new vector
-	VcfLines_.swap(output);
+	vcf_lines_.swap(output);
 }
 
 QByteArrayList VcfFileHandler::sampleIDs() const
@@ -544,7 +544,6 @@ QByteArrayList VcfFileHandler::sampleIDs() const
 	}
 	return samples;
 }
-
 QByteArrayList VcfFileHandler::informationIDs() const
 {
 	QByteArrayList informations;
@@ -577,5 +576,21 @@ AnalysisType VcfFileHandler::type(bool allow_fallback_germline_single_sample) co
 {
 	return vcfHeader().type(allow_fallback_germline_single_sample);
 }
+
+const VCFLine& VcfFileHandler::addGSvarVariant(const Variant& var)
+{
+	//since we expect a variant frm GSvar we only set chr, start, ref and alt
+	VCFLine vcf_line;
+	vcf_line.setChromosome(var.chr());
+	vcf_line.setPos(var.start());
+	vcf_line.setRef(var.ref());
+	QByteArrayList alt_list;
+	alt_list.push_back(var.obs());
+	vcf_line.setAlt(alt_list);
+
+	vcf_lines_.push_back(vcf_line);
+	return vcf_lines_.last();
+}
+
 
 } //end namespace VcfFormat

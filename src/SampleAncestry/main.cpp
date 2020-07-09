@@ -51,7 +51,7 @@ public:
 		{
 
 			//load variant list
-			VariantList vl;
+			VcfFormat::VcfFileHandler vl;
 			vl.load(filename);
 
 			AncestryEstimates ancestry = Statistics::ancestry(build, vl, min_snps, pop_dist);

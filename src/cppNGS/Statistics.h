@@ -2,7 +2,7 @@
 #define STATISTICS_H
 
 #include "cppNGS_global.h"
-#include "VariantList.h"
+#include "VcfFileHandler.h"
 #include "BedFile.h"
 #include "QCCollection.h"
 #include "KeyValuePair.h"
@@ -35,7 +35,7 @@ class CPPNGSSHARED_EXPORT Statistics
 {
 public:
 	///Calculates QC metrics on a variant list (only for VCF).
-	static QCCollection variantList(VariantList variants, bool filter);
+	static QCCollection variantList(VcfFormat::VcfFileHandler variants, bool filter);
 	///Calculates mapping QC metrics for a target region from a BAM file. The input BED file must be merged!
 	static QCCollection mapping(const BedFile& bed_file, const QString& bam_file, int min_mapq=1);
     ///Calculates mapping QC metrics for RNA from a BAM file.
@@ -51,7 +51,7 @@ public:
 	///Calculates the percentage of common SNPs that lie outside the expected allele frequency range for diploid organisms.
 	static QCCollection contamination(QString build, QString bam, bool debug = false, int min_cov = 20, int min_snps = 50);
 	///Returns ancestry estimates for a variant list.
-	static AncestryEstimates ancestry(QString build, const VariantList& variants, int min_snp=100, double min_pop_dist = 0.15);
+	static AncestryEstimates ancestry(QString build, const VcfFormat::VcfFileHandler& variants, int min_snp=100, double min_pop_dist = 0.15);
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
 	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0);

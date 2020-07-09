@@ -19,7 +19,7 @@
 #include "Histogram.h"
 #include "FilterCascade.h"
 
-QCCollection Statistics::variantList(VariantList variants, bool filter)
+QCCollection Statistics::variantList(VcfFormat::VcfFileHandler variants, bool filter)
 {
     QCCollection output;
 
@@ -43,8 +43,8 @@ QCCollection Statistics::variantList(VariantList variants, bool filter)
 	}
 	else
 	{
-		int i_csq = variants.annotationIndexByName("CSQ", true, false);
-		if (i_csq==-1)
+		bool csq_entry_exists = variants.informationIDs().contains("CSQ");
+		if (!csq_entry_exists)
 		{
 			output.insert(QCValue("known variants percentage", "n/a (CSQ info field missing)", "Percentage of variants that are known polymorphisms in the dbSNP database.", "QC:2000014"));
 			output.insert(QCValue("high-impact variants percentage", "n/a (CSQ info field missing)", "Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants.", "QC:2000015"));
@@ -55,11 +55,11 @@ QCCollection Statistics::variantList(VariantList variants, bool filter)
 			double high_impact_count = 0;
 			for(int i=0; i<variants.count(); ++i)
 			{
-				if (variants[i].annotations().at(i_csq).contains("|rs")) //works without splitting by transcript
+				if (variants.vcfLine(i).info("CSQ").contains("|rs") ) //works without splitting by transcript
 				{
 					++dbsnp_count;
 				}
-				if (variants[i].annotations().at(i_csq).contains("|HIGH|")) //works without splitting by transcript
+				if (variants.vcfLine(i).info("CSQ").contains("|HIGH|")) //works without splitting by transcript
 				{
 					++high_impact_count;
 				}
@@ -70,13 +70,13 @@ QCCollection Statistics::variantList(VariantList variants, bool filter)
 	}
 
 	//homozygous variants
-    const int i_gt = variants.annotationIndexByName("GT", true, false);
-    if (variants.count()!=0 && i_gt!=-1)
+	bool gt_entry_exists = variants.formatIDs().contains("GT");
+	if (variants.count()!=0 && gt_entry_exists)
     {
         double hom_count = 0;
         for(int i=0; i<variants.count(); ++i)
         {
-			QByteArray geno = variants[i].annotations().at(i_gt);
+			QByteArray geno = variants.vcfLine(i).sample(0, "GT"); // 0 because we only process the firsts SAMPLE
 			if (geno=="1/1" || geno=="1|1")
             {
                 ++hom_count;
@@ -95,12 +95,12 @@ QCCollection Statistics::variantList(VariantList variants, bool filter)
     double tv_count = 0;
     for(int i=0; i<variants.count(); ++i)
     {
-        const Variant& var = variants[i];
-		if (var.ref().length()>1 || var.obs().length()>1)
+		const VcfFormat::VCFLine& var = variants.vcfLine(i);
+		if (var.ref().length()>1 || var.alt(0).length()>1)
         {
             ++indel_count;
         }
-        else if ((var.obs()=="A" && var.ref()=="G") || (var.obs()=="G" && var.ref()=="A") || (var.obs()=="T" && var.ref()=="C") || (var.obs()=="C" && var.ref()=="T"))
+		else if ((var.alt(0)=="A" && var.ref()=="G") || (var.alt(0)=="G" && var.ref()=="A") || (var.alt(0)=="T" && var.ref()=="C") || (var.alt(0)=="C" && var.ref()=="T"))
         {
             ++ti_count;
         }
@@ -783,21 +783,21 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString exons, QString t
 	if (target_file.count()==0) return undefined;
 
 	//Process variants
-	VariantList variants;
-	variants.load(somatic_vcf);
+	VcfFormat::VcfFileHandler vcf_file;
+	vcf_file.load(somatic_vcf);
 	int somatic_var_count = 0;
 	int somatic_count_in_tsg = 0;
-	for(int i=0;i<variants.count();++i)
+	for(int i=0;i<vcf_file.count();++i)
 	{
-		if(variants[i].filters().contains("freq-nor")) continue;
-		if(variants[i].filters().contains("freq-tum")) continue;
-		if(variants[i].filters().contains("depth-nor")) continue;
-		if(variants[i].filters().contains("depth-tum")) continue;
-		if(variants[i].filters().contains("lt-3-reads")) continue;
+		if(vcf_file.vcfLine(i).failedFilters().contains("freq-nor")) continue;
+		if(vcf_file.vcfLine(i).failedFilters().contains("freq-tum")) continue;
+		if(vcf_file.vcfLine(i).failedFilters().contains("depth-nor")) continue;
+		if(vcf_file.vcfLine(i).failedFilters().contains("depth-tum")) continue;
+		if(vcf_file.vcfLine(i).failedFilters().contains("lt-3-reads")) continue;
 
-		const Chromosome chr = variants[i].chr();
-		int start = variants[i].start();
-		int end = variants[i].end();
+		const Chromosome chr = vcf_file.vcfLine(i).chr();
+		int start = vcf_file.vcfLine(i).pos();
+		int end = vcf_file.vcfLine(i).end();
 
 		if(target_file.overlapsWith(chr, start, end))
 		{
@@ -1490,21 +1490,20 @@ QCCollection Statistics::contamination(QString build, QString bam, bool debug, i
 	return output;
 }
 
-AncestryEstimates Statistics::ancestry(QString build, const VariantList& vl, int min_snp, double min_pop_dist)
+AncestryEstimates Statistics::ancestry(QString build, const VcfFormat::VcfFileHandler& vl, int min_snp, double min_pop_dist)
 {
 	//determine required annotation indices
-	int i_gt = vl.annotationIndexByName("GT");
+	if(!vl.formatIDs().contains("GT"))
+	{
+		THROW(ArgumentException, "VCF file does not contain FORMAT GT.")
+	}
 
 	//load ancestry-informative SNP list
 	QString snp_file = ":/Resources/" + build + "_ancestry.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
-	VariantList af;
-	af.load(snp_file, VCF);
-	ChromosomalIndex<VariantList> af_idx(af);
-	int i2_afr = af.annotationIndexByName("AF_AFR");
-	int i2_eur = af.annotationIndexByName("AF_EUR");
-	int i2_sas = af.annotationIndexByName("AF_SAS");
-	int i2_eas = af.annotationIndexByName("AF_EAS");
+	VcfFormat::VcfFileHandler af;
+	af.load(snp_file);
+	ChromosomalIndex<VcfFormat::VcfFileHandler> af_idx(af);
 
 	//process variants
 	QVector<double> geno_sample;
@@ -1514,22 +1513,22 @@ AncestryEstimates Statistics::ancestry(QString build, const VariantList& vl, int
 	QVector<double> af_eas;
 	for(int i=0; i<vl.count(); ++i)
 	{
-		const Variant& v = vl[i];
+		const VcfFormat::VCFLine& v = vl.vcfLine(i);
 
 		//skip non-informative SNPs
-		int index = af_idx.matchingIndex(v.chr(), v.start(), v.end());
+		int index = af_idx.matchingIndex(v.chr(), v.pos(), v.end());
 		if (index==-1) continue;
-		const Variant& v2 = af[index];
-		if (v.ref()!=v2.ref() || v.obs()!=v2.obs()) continue;
+		const VcfFormat::VCFLine& v2 = af[index];
+		if (v.ref()!=v2.ref() || v.alt(0)!=v2.alt(0)) continue;
 
 		//genotype sample
-		geno_sample << vl[i].annotations().at(i_gt).count('1');
+		geno_sample << vl.vcfLine(i).sample(0, "GT").count('1');
 
 		//population AFs
-		af_afr << v2.annotations().at(i2_afr).toDouble();
-		af_eur << v2.annotations().at(i2_eur).toDouble();
-		af_sas << v2.annotations().at(i2_sas).toDouble();
-		af_eas << v2.annotations().at(i2_eas).toDouble();
+		af_afr << v2.info("AF_AFR").toDouble();
+		af_eur << v2.info("AF_EUR").toDouble();
+		af_sas << v2.info("AF_SAS").toDouble();
+		af_eas << v2.info("AF_SAS").toDouble();
 	}
 
 	//not enough informative SNPs

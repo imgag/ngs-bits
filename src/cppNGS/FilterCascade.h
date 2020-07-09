@@ -2,6 +2,7 @@
 #define FILTERCASCADE_H
 
 #include "VariantList.h"
+#include "VcfFileHandler.h"
 #include "CnvList.h"
 #include "GeneSet.h"
 #include "VariantType.h"
@@ -88,6 +89,7 @@ class CPPNGSSHARED_EXPORT FilterResult
 
 		///Remove variants that did not pass the filter (with 'false' flag).
 		void removeFlagged(VariantList& variants);
+		void removeFlagged(VcfFormat::VcfFileHandler& variants);
         void removeFlagged(CnvList& cnvs);
         void removeFlagged(BedpeFile& svs);
 
@@ -158,6 +160,8 @@ class CPPNGSSHARED_EXPORT FilterBase
 
 		//Applies the filter to a small variant list
 		virtual void apply(const VariantList& variant_list, FilterResult& result) const;
+		virtual void apply(const VcfFormat::VcfFileHandler& variants, FilterResult& result) const;
+
 		//Applies the filter to a CNV list
 		virtual void apply(const CnvList& variant_list, FilterResult& result) const;
 		//Applies the filter to a SV list
@@ -343,6 +347,7 @@ class CPPNGSSHARED_EXPORT FilterFilterColumnEmpty
 		FilterFilterColumnEmpty();
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
+		void apply(const VcfFormat::VcfFileHandler& variants, FilterResult& result) const override;
 };
 
 //Filter column filter

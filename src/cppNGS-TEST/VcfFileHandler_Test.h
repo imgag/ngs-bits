@@ -22,7 +22,7 @@ private slots:
 	{
 		VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		I_EQUAL(vl.type(false), GERMLINE_SINGLESAMPLE);
+		I_EQUAL(vl.type(false), VcfFormat::GERMLINE_SINGLESAMPLE);
 	}
 
 	void removeDuplicates_VCF()
@@ -91,7 +91,7 @@ private slots:
 
 		X_EQUAL(vl.vcfLine(0).chr(), Chromosome("chr17"));
 		I_EQUAL(vl.vcfLine(0).pos(), 72196817);
-		I_EQUAL(vl.vcfLine(0).pos() + vl.vcfLine(0).ref().length() - 1, 72196817);
+		I_EQUAL(vl.vcfLine(0).end(), 72196817);
 		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("GA"));
 		S_EQUAL(vl.vcfLine(0).infos().at(0).value(), QByteArray("TRUE"));
@@ -106,7 +106,7 @@ private slots:
 
 		X_EQUAL(vl.vcfLine(12).chr(), Chromosome("chr9"));
 		I_EQUAL(vl.vcfLine(12).pos(), 130931421);
-		I_EQUAL(vl.vcfLine(12).pos() + vl.vcfLine(0).ref().length() - 1, 130931421);
+		I_EQUAL(vl.vcfLine(12).end(), 130931421);
 		S_EQUAL(vl.vcfLine(12).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(12).alt(0), Sequence("A"));
 		S_EQUAL(vl.vcfLine(12).infos().at(0).value(), QByteArray("2512"));
@@ -264,7 +264,7 @@ private slots:
 
 		X_EQUAL(vl.vcfLine(0).chr(), Chromosome("chr17"));
 		I_EQUAL(vl.vcfLine(0).pos(), 72196817);
-		I_EQUAL(vl.vcfLine(0).pos() + vl.vcfLine(0).ref().length() - 1, 72196817);
+		I_EQUAL(vl.vcfLine(0).end(), 72196817);
 		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("GA"));
 		S_EQUAL(vl.vcfLine(0).infos().at(0).value(), QByteArray("TRUE"));
@@ -279,7 +279,7 @@ private slots:
 
 		X_EQUAL(vl.vcfLine(12).chr(), Chromosome("chr9"));
 		I_EQUAL(vl.vcfLine(12).pos(), 130931421);
-		I_EQUAL(vl.vcfLine(12).pos() + vl.vcfLine(0).ref().length() - 1, 130931421);
+		I_EQUAL(vl.vcfLine(12).end(), 130931421);
 		S_EQUAL(vl.vcfLine(12).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(12).alt(0), Sequence("A"));
 		S_EQUAL(vl.vcfLine(12).infos().at(0).value(), QByteArray("2512"));
@@ -344,7 +344,7 @@ private slots:
 
 		X_EQUAL(vl.vcfLine(0).chr().str(), "chr1");
 		I_EQUAL(vl.vcfLine(0).pos(), 27687466);
-		I_EQUAL(vl.vcfLine(0).pos() + vl.vcfLine(0).ref().length() - 1, 27687466);
+		I_EQUAL(vl.vcfLine(0).end(), 27687466);
 		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("T"));
 		S_EQUAL(vl.vcfLine(0).id().at(0), "rs35659744");
@@ -355,7 +355,7 @@ private slots:
 
 		X_EQUAL(vl.vcfLine(156).chr().str(), "chr20");
 		I_EQUAL(vl.vcfLine(156).pos(), 48301146);
-		I_EQUAL(vl.vcfLine(156).pos() + vl.vcfLine(156).ref().length() - 1, 48301146);
+		I_EQUAL(vl.vcfLine(156).end(), 48301146);
 		S_EQUAL(vl.vcfLine(156).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(156).alt(0), Sequence("A"));
 		S_EQUAL(vl.vcfLine(156).id().at(0), "rs6512586");

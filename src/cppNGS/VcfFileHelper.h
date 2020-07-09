@@ -7,6 +7,7 @@
 
 #include "ChromosomalIndex.h"
 #include "Sequence.h"
+#include "BedFile.h"
 
 #include <QIODevice>
 #include <QString>
@@ -87,7 +88,20 @@ private:
 
 };
 
+const QByteArray& strToPointer(const QByteArray& str);
+const QChar* strToPointer(const QString& str);
+
 enum InfoFormatType {INFO, FORMAT};
+using FormatIDToValueHash = OrderedHash<QByteArray, QByteArray>;
+///Supported analysis types
+enum AnalysisType
+{
+	GERMLINE_SINGLESAMPLE,
+	GERMLINE_TRIO,
+	GERMLINE_MULTISAMPLE,
+	SOMATIC_SINGLESAMPLE,
+	SOMATIC_PAIR
+};
 
 struct CPPNGSSHARED_EXPORT VcfHeaderLine
 {
@@ -123,21 +137,6 @@ struct CPPNGSSHARED_EXPORT FilterLine
 		stream << "##FILTER=<ID=" << id << ",Description=\"" << description  << "\">" << "\n";
 	}
 };
-
-const QByteArray& strToPointer(const QByteArray& str);
-const QChar* strToPointer(const QString& str);
-
-///Supported analysis types
-enum AnalysisType
-{
-	GERMLINE_SINGLESAMPLE,
-	GERMLINE_TRIO,
-	GERMLINE_MULTISAMPLE,
-	SOMATIC_SINGLESAMPLE,
-	SOMATIC_PAIR
-};
-
-using FormatIDToValueHash = OrderedHash<QByteArray, QByteArray>;
 
 ///struct representing a vcf header.
 /// most important information is stored in seperate variables, additional information
@@ -217,6 +216,7 @@ class CPPNGSSHARED_EXPORT  VCFLine
 {
 
 public:
+
 	const Chromosome& chr() const
 	{
 		return chr_;
@@ -225,9 +225,17 @@ public:
 	{
 		return pos_;
 	}
+	const int& start() const
+	{
+		return pos_;
+	}
 	const Sequence& ref() const
 	{
 		return ref_;
+	}
+	int end() const
+	{
+		return (pos() + ref().length() - 1);
 	}
 	const QVector<Sequence>& alt() const
 	{
@@ -257,16 +265,23 @@ public:
 	{
 		return info_;
 	}
-	QByteArray info(const QByteArray& key) const
+	QByteArray info(const QByteArray& key, bool error_if_key_absent = false) const
 	{
-		QByteArray value;
-		if(info_.hasKey(key, value))
+		if(error_if_key_absent)
 		{
-			return value;
+			return info_[key];
 		}
 		else
 		{
-			return "";
+			QByteArray value;
+			if(info_.hasKey(key, value))
+			{
+				return value;
+			}
+			else
+			{
+				return "";
+			}
 		}
 	}
 
@@ -287,36 +302,51 @@ public:
 		return sample_.at(pos).value();
 	}
 	///access the value for a SAMPLE and FORMAT ID
-	// by purpose does not return a reference because an empty QByteArray is returned for non-existing keys
-	//(this way every possible FORMAT ID present in the header can be used to get its value from a SAMPLE)
-	QByteArray sample(const QByteArray& sample_name, const QByteArray& format_id)
+	// by purpose does not return a reference because an empty QByteArray can be returned for non-existing keys
+	//(use case: a specific FORMAT key is absent in some vcf lines)
+	QByteArray sample(const QByteArray& sample_name, const QByteArray& format_key, bool error_if_format_key_absent = false) const
 	{
 		FormatIDToValueHash hash = sample_[sample_name];
-		QByteArray value;
-		if(hash.hasKey(format_id, value))
+		if(error_if_format_key_absent)
 		{
-			return value;
+			return hash[format_key];
 		}
 		else
 		{
-			return "";
+			QByteArray value;
+			if(hash.hasKey(format_key, value))
+			{
+				return value;
+			}
+			else
+			{
+				return "";
+			}
 		}
 	}
 	///access the value for a SAMPLE position and FORMAT ID
-	// by purpose does not return a reference because an empty QByteArray is returned for non-existing keys
-	//(this way every possible FORMAT ID present in the header can be used to get its value from a SAMPLE)
-	QByteArray sample(int sample_pos, const QByteArray& format_id)
+	// by purpose does not return a reference because an empty QByteArray can be returned for non-existing keys
+	//(use case: a specific FORMAT key is absent in some vcf lines)
+	QByteArray sample(int sample_pos, const QByteArray& format_key, bool error_if_format_key_absent = false) const
 	{
 		if(sample_pos >= samples().size()) THROW(ArgumentException, QString::number(sample_pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
 		FormatIDToValueHash hash = sample_.at(sample_pos).value();
-		QByteArray value;
-		if(hash.hasKey(format_id, value))
+
+		if(error_if_format_key_absent)
 		{
-			return value;
+			return hash[format_key];
 		}
 		else
 		{
-			return "";
+			QByteArray value;
+			if(hash.hasKey(format_key, value))
+			{
+				return value;
+			}
+			else
+			{
+				return "";
+			}
 		}
 	}
 
@@ -371,10 +401,26 @@ public:
 		sample_ = sample;
 	}
 
+	///Overlap check for chromosome and position range.
+	bool overlapsWith(const Chromosome& input_chr, int input_start, int input_end) const
+	{
+		return (chr_==input_chr && BasicStatistics::rangeOverlaps(pos(), end(), input_start, input_end));
+	}
+	///Overlap check for position range only.
+	bool overlapsWith(int input_start, int input_end) const
+	{
+		return BasicStatistics::rangeOverlaps(pos(), end(), input_start, input_end);
+	}
+	///Overlap check BED file line.
+	bool overlapsWith(const BedLine& line) const
+	{
+		return overlapsWith(line.chr(), line.start(), line.end());
+	}
+
 	//returns if the chromosome is valid
 	bool isValidGenomicPosition() const;
 	//returns all not passed filters
-	QByteArrayList failedFilters();
+	QByteArrayList failedFilters() const;
 	void checkValid() const;
 
 private:

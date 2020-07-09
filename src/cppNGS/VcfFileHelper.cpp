@@ -422,7 +422,7 @@ bool VCFLine::isValidGenomicPosition() const
 }
 
 //returns all not passed filters
-QByteArrayList VCFLine::failedFilters()
+QByteArrayList VCFLine::failedFilters() const
 {
 	QByteArrayList filters;
 	foreach(QByteArray tag, filter_)
