@@ -95,6 +95,7 @@ QCCollection Statistics::variantList(VcfFormat::VcfFileHandler variants, bool fi
     double tv_count = 0;
     for(int i=0; i<variants.count(); ++i)
     {
+		//only first variant is analyzed
 		const VcfFormat::VCFLine& var = variants.vcfLine(i);
 		if (var.ref().length()>1 || var.alt(0).length()>1)
         {
@@ -1519,7 +1520,7 @@ AncestryEstimates Statistics::ancestry(QString build, const VcfFormat::VcfFileHa
 		int index = af_idx.matchingIndex(v.chr(), v.pos(), v.end());
 		if (index==-1) continue;
 		const VcfFormat::VCFLine& v2 = af[index];
-		if (v.ref()!=v2.ref() || v.alt(0)!=v2.alt(0)) continue;
+		if (v.ref()!=v2.ref() || v.alt()!=v2.alt()) continue;
 
 		//genotype sample
 		geno_sample << vl.vcfLine(i).sample(0, "GT").count('1');

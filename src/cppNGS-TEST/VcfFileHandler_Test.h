@@ -94,6 +94,7 @@ private slots:
 		I_EQUAL(vl.vcfLine(0).end(), 72196817);
 		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("GA"));
+		I_EQUAL(vl.vcfLine(0).alt().count(), 1);
 		S_EQUAL(vl.vcfLine(0).infos().at(0).value(), QByteArray("TRUE"));
 		S_EQUAL(vl.vcfLine(0).infos().at(5).value(), QByteArray("4,3,11,11"));
 		QByteArray first_sample_name = vl.sampleIDs().at(0);
@@ -109,6 +110,7 @@ private slots:
 		I_EQUAL(vl.vcfLine(12).end(), 130931421);
 		S_EQUAL(vl.vcfLine(12).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(12).alt(0), Sequence("A"));
+		I_EQUAL(vl.vcfLine(12).alt().count(), 1);
 		S_EQUAL(vl.vcfLine(12).infos().at(0).value(), QByteArray("2512"));
 		S_EQUAL(vl.vcfLine(12).info("INDEL"), QByteArray(""));
 		S_EQUAL(vl.vcfLine(12).infos().at(4).value(), QByteArray("457,473,752,757"));
@@ -267,6 +269,7 @@ private slots:
 		I_EQUAL(vl.vcfLine(0).end(), 72196817);
 		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("GA"));
+		I_EQUAL(vl.vcfLine(0).alt().count(), 1);
 		S_EQUAL(vl.vcfLine(0).infos().at(0).value(), QByteArray("TRUE"));
 		S_EQUAL(vl.vcfLine(0).infos().at(5).value(), QByteArray("4,3,11,11"));
 		QByteArray first_sample_name = vl.sampleIDs().at(0);
@@ -282,6 +285,7 @@ private slots:
 		I_EQUAL(vl.vcfLine(12).end(), 130931421);
 		S_EQUAL(vl.vcfLine(12).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(12).alt(0), Sequence("A"));
+		I_EQUAL(vl.vcfLine(12).alt().count(), 1);
 		S_EQUAL(vl.vcfLine(12).infos().at(0).value(), QByteArray("2512"));
 		S_EQUAL(vl.vcfLine(12).info("INDEL"), QByteArray(""));
 		S_EQUAL(vl.vcfLine(12).infos().at(4).value(), QByteArray("457,473,752,757"));
@@ -347,6 +351,7 @@ private slots:
 		I_EQUAL(vl.vcfLine(0).end(), 27687466);
 		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("T"));
+		I_EQUAL(vl.vcfLine(0).alt().count(), 1);
 		S_EQUAL(vl.vcfLine(0).id().at(0), "rs35659744");
 		S_EQUAL(QString::number(vl.vcfLine(0).qual()), "11836.9");
 		IS_TRUE(vl.vcfLine(0).filter().empty());
@@ -358,6 +363,7 @@ private slots:
 		I_EQUAL(vl.vcfLine(156).end(), 48301146);
 		S_EQUAL(vl.vcfLine(156).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(156).alt(0), Sequence("A"));
+		I_EQUAL(vl.vcfLine(156).alt().count(), 1);
 		S_EQUAL(vl.vcfLine(156).id().at(0), "rs6512586");
 		S_EQUAL(QString::number(vl.vcfLine(156).qual()), "39504.2");
 		IS_TRUE(vl.vcfLine(156).filter().empty());

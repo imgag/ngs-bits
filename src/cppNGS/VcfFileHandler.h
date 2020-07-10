@@ -12,6 +12,7 @@
  *		=> now we only store key=value pairs for existing keys for every line seperately
  * - when accessing alternative base sequences we always have to index the first one (before only one was stored)
  * - when accessing SAMPLES we have to index the first one (before only one SAMPLE was stored)
+ * - the Statistics function 'static QCCollection variantList(VcfFormat::VcfFileHandler variants, bool filter)' considers ONLY first variant
  */
 namespace VcfFormat
 {
