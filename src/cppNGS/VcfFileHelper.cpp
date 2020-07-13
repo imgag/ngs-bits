@@ -193,6 +193,26 @@ int VCFHeader::vepIndexByName(const QString& name, bool error_if_not_found) cons
 	return i_field;
 }
 
+QByteArrayList VCFLine::vepAnnotations(int field_index) const
+{
+	QByteArrayList output;
+
+	QByteArray csq = info("CSQ").trimmed();
+
+	if (csq.count()>0)
+	{
+		QByteArrayList transcripts = csq.split(',');
+
+		foreach(const QByteArray& transcript, transcripts)
+		{
+			QByteArrayList csq_fields = transcript.split('|');
+			output << csq_fields[field_index];
+		}
+	}
+
+	return output;
+}
+
 void VCFHeader::storeHeaderInformation(QTextStream& stream) const
 {
 	//first line should always be the fileformat
@@ -461,6 +481,136 @@ void VCFLine::checkValid() const
 			THROW(ArgumentException, "Invalid variant alternative sequence in variant '" +  chr_.str() + " " + QString::number(pos_));
 		}
 	}
+}
+
+void VCFLine::storeLineInformation(QTextStream& stream) const
+{
+	//chr
+	stream << "\n" << chr().str()  << "\t" << pos();
+
+	//if id exists
+	if(!id().empty())
+	{
+		stream  << "\t"<< id().join(';');
+	}
+	else
+	{
+		stream << "\t.";
+	}
+
+	//ref and alt
+	stream  << "\t"<< ref();
+	stream << "\t" << alt().at(0);
+	if(alt().count() > 1)
+	{
+		for(int i = 1; i < alt().size(); ++i)
+		{
+			stream  << "," <<  alt().at(i);
+		}
+	}
+
+	//quality
+	QByteArray quality;
+	if(qual() == -1)
+	{
+		quality = ".";
+	}
+	else
+	{
+		quality.setNum(qual());
+	}
+	stream  << "\t"<< quality;
+
+	//if filter exists
+	if(!filter().empty())
+	{
+		stream  << "\t"<< filter().join(':');
+	}
+	else
+	{
+		stream << "\t.";
+	}
+
+	//if info exists
+	if(infos().empty())
+	{
+		stream << "\t.";
+	}
+	else
+	{
+		//if info is only TRUE, print key only
+		if(infos().at(0).value() == "TRUE")
+		{
+			stream  << "\t"<< infos().at(0).key();
+		}
+		else
+		{
+			stream  << "\t"<< infos().at(0).key() << "=" << infos().at(0).value();;
+		}
+		if(infos().size() > 1)
+		{
+			for(int i = 1; i < infos().size(); ++i)
+			{
+				if(infos().at(i).value() == "TRUE")
+				{
+					stream  << ";"<< infos().at(i).key();
+				}
+				else
+				{
+					stream  << ";"<< infos().at(i).key() << "=" << infos().at(i).value();;
+				}
+			}
+		}
+	}
+
+	//if format exists
+	if(!format().empty())
+	{
+		stream  << "\t"<< format().at(0);
+		for(int format_entry_id = 1; format_entry_id < format().count(); ++format_entry_id)
+		{
+			stream << ":" << format().at(format_entry_id);
+		}
+	}
+	else
+	{
+		stream << "\t.";
+	}
+
+	//if sample exists
+	if(!samples().empty())
+	{
+		//for every sample
+		for(int sample_idx = 0; sample_idx < samples().size(); ++sample_idx)
+		{
+			FormatIDToValueHash sample_entry = sample(sample_idx);
+			if(sample_entry.empty())
+			{
+				stream << "\t.";
+			}
+			else
+			{
+				stream << "\t" << sample_entry.at(0).value();
+				//for all entries in the sample (e.g. 'GT':'DP':...)
+				for(int sample_entry_id = 1; sample_entry_id < sample_entry.size(); ++sample_entry_id)
+				{
+					stream << ":" << sample_entry.at(sample_entry_id).value();
+				}
+			}
+		}
+	}
+	else
+	{
+		stream << "\t.";
+	}
+}
+
+QString VCFLine::toString() const
+{
+	QString line;
+	QTextStream stream(&line);
+	storeLineInformation(stream);
+	return line;
 }
 
 } //end namespace VcfFormat

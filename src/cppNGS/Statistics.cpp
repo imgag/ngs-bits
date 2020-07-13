@@ -94,7 +94,7 @@ QCCollection Statistics::variantList(VcfFormat::VcfFileHandler variants, bool fi
     double ti_count = 0;
     double tv_count = 0;
     for(int i=0; i<variants.count(); ++i)
-    {
+	{
 		//only first variant is analyzed
 		const VcfFormat::VCFLine& var = variants.vcfLine(i);
 		if (var.ref().length()>1 || var.alt(0).length()>1)
@@ -819,6 +819,7 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString exons, QString t
 
 QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file,bool skip_plots)
 {
+
 	QCCollection output;
 
 	//sample correlation

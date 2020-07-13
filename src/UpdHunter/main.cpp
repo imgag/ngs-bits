@@ -2,6 +2,7 @@
 #include "Helper.h"
 #include "Exceptions.h"
 #include "VariantList.h"
+#include "VcfFileHandler.h"
 #include "BasicStatistics.h"
 #include <QTextStream>
 #include <cmath>
@@ -188,9 +189,9 @@ public:
 	{
 		QList<VariantData> output;
 
-		QString c = getString("c");
-		QString f = getString("f");
-		QString m = getString("m");
+		QByteArray c = getString("c").toUtf8();
+		QByteArray f = getString("f").toUtf8();
+		QByteArray m = getString("m").toUtf8();
 		int var_min_dp = getInt("var_min_dp");
 		double var_min_q = getFloat("var_min_q");
 		bool var_use_indels = getFlag("var_use_indels");
@@ -204,16 +205,9 @@ public:
 		}
 		ChromosomalIndex<BedFile> exclude_idx(exclude_regions);
 
-		VariantList variants;
+		VcfFormat::VcfFileHandler variants;
 		variants.load(getInfile("in"));
 		variants.sort();
-		int i_qual = variants.annotationIndexByName("QUAL");
-		int i_dp_c = variants.annotationIndexByName("DP", c);
-		int i_dp_f = variants.annotationIndexByName("DP", f);
-		int i_dp_m = variants.annotationIndexByName("DP", m);
-		int i_gt_c = variants.annotationIndexByName("GT", c);
-		int i_gt_f = variants.annotationIndexByName("GT", f);
-		int i_gt_m = variants.annotationIndexByName("GT", m);
 		int skip_chr = 0;
 		int skip_qual = 0;
 		int skip_dp = 0;
@@ -221,7 +215,7 @@ public:
 		int c_excluded = 0;
 		for (int i=0; i<variants.count(); ++i)
 		{
-			const Variant& v = variants[i];
+			const VcfFormat::VCFLine& v = variants[i];
 
 			//only autosomes
 			if (!v.chr().isAutosome())
@@ -231,23 +225,22 @@ public:
 			}
 
 			//filter by quality
-			bool ok;
-			double qual = v.annotations()[i_qual].toDouble(&ok);
-			if (!ok) THROW(ArgumentException, "Quality '" + v.annotations()[i_qual] + "' is no float - variant " + v.toString());
-			if (qual<var_min_q)
+			if (v.qual() < 0) THROW(ArgumentException, "Quality '" + QString::number(v.qual()) + "' is not given in " + v.toString());
+			if (v.qual()<var_min_q)
 			{
 				++skip_qual;
 				continue;
 			}
 
 			//filter by depth
-			QByteArray tmp = v.annotations()[i_dp_c];
+			QByteArray tmp = v.sample("DP", c);
+			bool ok;
 			int dp1 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
 			if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of child '" + tmp + "' is no integer - variant " + v.toString());
-			tmp = v.annotations()[i_dp_f];
+			tmp = v.sample("DP", f);
 			int dp2 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
 			if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of father  '" + tmp + "' is no integer - variant " + v.toString());
-			tmp = v.annotations()[i_dp_m];
+			tmp = v.sample("DP", m);
 			int dp3 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
 			if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of mother  '" + tmp + "' is no integer - variant " + v.toString());
 			if (dp1<var_min_dp || dp2<var_min_dp || dp3<var_min_dp)
@@ -268,10 +261,10 @@ public:
 			entry.start = v.start();
 			entry.end = v.end();
 			entry.ref = v.ref();
-			entry.obs = v.obs();
-			entry.c = str2geno(v.annotations()[i_gt_c]);
-			entry.f = str2geno(v.annotations()[i_gt_f]);
-			entry.m = str2geno(v.annotations()[i_gt_m]);
+			entry.obs = v.altString();
+			entry.c = str2geno(v.sample("GT", c));
+			entry.f = str2geno(v.sample("GT", f));
+			entry.m = str2geno(v.sample("GT", m));
 
 			//filter by exclude regions
 			if (exclude_regions.count() && exclude_idx.matchingIndex(v.chr(), v.start(), v.end())!=-1)

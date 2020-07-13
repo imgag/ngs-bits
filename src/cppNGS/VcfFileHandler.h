@@ -13,6 +13,10 @@
  * - when accessing alternative base sequences we always have to index the first one (before only one was stored)
  * - when accessing SAMPLES we have to index the first one (before only one SAMPLE was stored)
  * - the Statistics function 'static QCCollection variantList(VcfFormat::VcfFileHandler variants, bool filter)' considers ONLY first variant
+ * - altString was then used
+ *
+ * #KLEINE TODOS:
+ *	- TEST Somatic angucken: vcf file has to be checked again (it was falsly genereated with storeToVcf and filterrs were copied
  */
 namespace VcfFormat
 {

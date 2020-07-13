@@ -12,7 +12,7 @@ private slots:
 	{
 		QString tumor_bam = TESTDATA("data_in/tumor.bam");
 		QString normal_bam = TESTDATA("data_in/normal.bam");
-		QString somatic_vcf = TESTDATA("data_in/Statistics_somatic_tmb.GSvar");
+		QString somatic_vcf = TESTDATA("data_in/Statistics_somatic_tmb.vcf");
 
 		BedFile target_test_file;
 		target_test_file.load(TESTDATA("data_in/Statistics_somatic_tmb_target.bed")); //exons of ssscv4, sorted and merged

@@ -105,8 +105,17 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 	vcf_line.setId(line_parts[2].split(';'));
 	vcf_line.setAlt(line_parts[4].split(','));
 
-
-	line_parts[5]=="." ? vcf_line.setQual(-1) : vcf_line.setQual(atof(line_parts[5]));
+	if(line_parts[5]==".")
+	{
+		 vcf_line.setQual(-1);
+	}
+	else
+	{
+		bool quality_ok;
+		double qual = line_parts[5].toDouble(&quality_ok);
+		if (!quality_ok) THROW(ArgumentException, "Quality '" + line_parts[5] + "' is no float - variant.");
+		vcf_line.setQual(qual);
+	}
 
 	//FILTER
 	vcf_line.setFilter(line_parts[6].split(';'));
@@ -371,109 +380,7 @@ void VcfFileHandler::store(const QString& filename) const
 
 	for(VCFLine vcf_line : vcf_lines_)
 	{
-		//chr
-		stream << "\n" << vcf_line.chr().str()  << "\t" << vcf_line.pos();
-
-		//if id exists
-		if(!vcf_line.id().empty())
-		{
-			stream  << "\t"<< vcf_line.id().join(';');
-		}
-		else
-		{
-			stream << "\t.";
-		}
-
-		//ref and alt
-		stream  << "\t"<< vcf_line.ref();
-		stream << "\t" << vcf_line.alt().at(0);
-		if(vcf_line.alt().count() > 1)
-		{
-			for(int i = 1; i < vcf_line.alt().size(); ++i)
-			{
-				stream  << "," <<  vcf_line.alt().at(i);
-			}
-		}
-
-		//quality
-		QByteArray quality;
-		if(vcf_line.qual() == -1)
-		{
-			quality = ".";
-		}
-		else
-		{
-			quality.setNum(vcf_line.qual());
-		}
-		stream  << "\t"<< quality;
-
-		//if filter exists
-		if(!vcf_line.filter().empty())
-		{
-			stream  << "\t"<< vcf_line.filter().join(':');
-		}
-		else
-		{
-			stream << "\t.";
-		}
-
-		//if info exists
-		if(vcf_line.infos().empty())
-		{
-			stream << "\t.";
-		}
-		else
-		{
-			stream  << "\t"<< vcf_line.infos().at(0).key() << "=" << vcf_line.infos().at(0).value();
-			if(vcf_line.infos().size() > 1)
-			{
-				for(int i = 1; i < vcf_line.infos().size(); ++i)
-				{
-					if(vcf_line.infos().at(i).value() == "TRUE")
-					{
-						stream  << ";"<< vcf_line.infos().at(i).key();
-					}
-					else
-					{
-						stream  << ";"<< vcf_line.infos().at(i).key() << "=" << vcf_line.infos().at(i).value();;
-					}
-				}
-			}
-		}
-
-		//if format exists
-		if(!vcf_line.format().empty())
-		{
-			stream  << "\t"<< vcf_line.format().at(0);
-			for(int format_entry_id = 1; format_entry_id < vcf_line.format().count(); ++format_entry_id)
-			{
-				stream << ":" << vcf_line.format().at(format_entry_id);
-			}
-		}
-		else
-		{
-			stream << "\t.";
-		}
-
-		//if sample exists
-		if(!vcf_line.samples().empty())
-		{
-			//for every sample
-			for(const QByteArray& name : sampleIDs())
-			{
-				FormatIDToValueHash sample = vcf_line.sample(name);
-				stream << "\t" << sample.at(0).value();
-				//for all entries in the sample (e.g. 'GT':'DP':...)
-				for(int sample_entry_id = 1; sample_entry_id < sample.size(); ++sample_entry_id)
-				{
-					stream << ":" << sample.at(sample_entry_id).value();
-				}
-			}
-		}
-		else
-		{
-			stream << "\t.";
-		}
+		vcf_line.storeLineInformation(stream);
 	}
 }
 

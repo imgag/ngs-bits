@@ -241,6 +241,10 @@ public:
 	{
 		return alt_;
 	}
+	const QByteArray& altString() const
+	{
+		return alt_string_;
+	}
 	const Sequence& alt(int pos) const
 	{
 		return alt_.at(pos);
@@ -364,6 +368,7 @@ public:
 	}
 	void setAlt(const QByteArrayList& alt)
 	{
+		alt_string_ = strToPointer(alt.join(","));
 		for(const Sequence& seq : alt)
 		{
 			alt_.push_back(strToPointer(seq.toUpper()));
@@ -422,12 +427,21 @@ public:
 	//returns all not passed filters
 	QByteArrayList failedFilters() const;
 	void checkValid() const;
+	void storeLineInformation(QTextStream& stream) const;
+	QString toString() const;
+	///Returns if the variant is a SNV
+	bool isSNV() const
+	{
+		return alt(0).length()==1 && ref_.length()==1 && alt(0)!="-" && ref_!="-";
+	}
+	QByteArrayList vepAnnotations(int field_index) const;
 
 private:
 	Chromosome chr_;
 	int pos_;
 	Sequence ref_;
 	QVector<Sequence> alt_; //comma seperated list of alternative sequences
+	QByteArray alt_string_;
 
 	QByteArrayList id_; //; seperated list of id-strings
 	double qual_;

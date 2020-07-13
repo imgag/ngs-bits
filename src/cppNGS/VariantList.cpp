@@ -675,7 +675,7 @@ bool VariantList::sampleExists(const QString& sample) const
 
 VariantListFormat VariantList::load(QString filename, VariantListFormat format, const BedFile* roi, bool invert)
 {
-	//format=AUTO;
+	format=AUTO;
 	//determine format
 	if (format==AUTO)
 	{
@@ -691,7 +691,7 @@ VariantListFormat VariantList::load(QString filename, VariantListFormat format, 
 		}
 		else if (fn_lower.endsWith(".vcf.gz"))
 		{
-			format = VCF_GZ;
+			//format = VCF_GZ;
 		}
 		else if (fn_lower.endsWith(".tsv") || fn_lower.contains(".gsvar"))
 		{
@@ -722,7 +722,7 @@ VariantListFormat VariantList::load(QString filename, VariantListFormat format, 
 	}
 	else if (format==VCF_GZ)
 	{
-		loadFromVCFGZ(filename, roi_idx.data(), invert);
+		//loadFromVCFGZ(filename, roi_idx.data(), invert);
 		return VCF_GZ;
 	}
 	else
