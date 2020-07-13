@@ -486,7 +486,7 @@ void VCFLine::checkValid() const
 void VCFLine::storeLineInformation(QTextStream& stream) const
 {
 	//chr
-	stream << "\n" << chr().str()  << "\t" << pos();
+	stream << chr().str()  << "\t" << pos();
 
 	//if id exists
 	if(!id().empty())

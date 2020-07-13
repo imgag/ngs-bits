@@ -17,6 +17,7 @@
  *
  * #KLEINE TODOS:
  *	- TEST Somatic angucken: vcf file has to be checked again (it was falsly genereated with storeToVcf and filterrs were copied
+ *  - all bases are processed to be UPPER CASE !!!
  */
 namespace VcfFormat
 {

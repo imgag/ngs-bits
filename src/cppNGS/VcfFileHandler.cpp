@@ -380,6 +380,7 @@ void VcfFileHandler::store(const QString& filename) const
 
 	for(VCFLine vcf_line : vcf_lines_)
 	{
+		stream << "\n";
 		vcf_line.storeLineInformation(stream);
 	}
 }

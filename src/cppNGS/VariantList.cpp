@@ -687,7 +687,7 @@ VariantListFormat VariantList::load(QString filename, VariantListFormat format, 
 
 		if (fn_lower.endsWith(".vcf"))
 		{
-			format = VCF;
+			//format = VCF;
 		}
 		else if (fn_lower.endsWith(".vcf.gz"))
 		{
@@ -717,7 +717,7 @@ VariantListFormat VariantList::load(QString filename, VariantListFormat format, 
 	//load variant list
 	if (format==VCF)
 	{
-		loadFromVCF(filename, roi_idx.data(), invert);
+		//loadFromVCF(filename, roi_idx.data(), invert);
 		return VCF;
 	}
 	else if (format==VCF_GZ)
