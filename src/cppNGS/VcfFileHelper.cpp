@@ -618,6 +618,24 @@ QString VCFLine::variantToString() const
 	return chr_.str() + ":" + QString::number(start()) + "-" + QString::number(end()) + " " + ref_ + ">" + altString();
 }
 
+bool VCFLine::operator==(const VCFLine& rhs) const
+{
+	return pos_==rhs.pos() && chr_==rhs.chr() && ref_==rhs.ref() && alt_string_==rhs.altString();
+}
+
+bool VCFLine::operator<(const VCFLine& rhs) const
+{
+	if (chr_<rhs.chr_) return true; //compare chromosome
+	else if (chr_>rhs.chr_) return false;
+	else if (pos_<rhs.pos()) return true; //compare start position
+	else if (pos_>rhs.pos()) return false;
+	else if (ref_<rhs.ref()) return true; //compare ref sequence
+	else if (ref_>rhs.ref()) return false;
+	else if (alt_string_<rhs.altString()) return true; //compare obs sequence
+	else if (alt_string_>rhs.altString()) return false;
+	return false;
+}
+
 
 } //end namespace VcfFormat
 

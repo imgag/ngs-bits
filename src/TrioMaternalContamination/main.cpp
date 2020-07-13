@@ -57,7 +57,7 @@ public:
 		trio.emplace(Member::CHILD, VariantInfo(bam_c));
 
 		VcfFormat::VcfFileHandler variant_list = NGSHelper::getKnownVariants(build, true);
-		std::unordered_set<Variant> homozygousVariants;
+		std::unordered_set<VcfFormat::VCFLine> homozygousVariants;
 
 		//find all variants
 		for(auto& member : trio)

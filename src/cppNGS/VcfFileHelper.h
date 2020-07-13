@@ -438,6 +438,11 @@ public:
 	}
 	QByteArrayList vepAnnotations(int field_index) const;
 
+	///Equality operator (only compares the variatn location itself, not further annotations).
+	bool operator==(const VCFLine& rhs) const;
+	///Less-than operator.
+	bool operator<(const VCFLine& rhs) const;
+
 private:
 	Chromosome chr_;
 	int pos_;

@@ -28,7 +28,7 @@ struct hash<const VcfFormat::VCFLine>
 	size_t
 	operator()(const VcfFormat::VCFLine & obj) const
 	{
-		return hash<string>()(obj.toString().toStdString());
+		return hash<string>()(obj.variantToString().toStdString());
 	}
 };
 
@@ -38,7 +38,7 @@ struct hash<VcfFormat::VCFLine>
 	size_t
 	operator()(const VcfFormat::VCFLine & obj) const
 	{
-		return hash<string>()(obj.toString().toStdString());
+		return hash<string>()(obj.variantToString().toStdString());
 	}
 };
 }
