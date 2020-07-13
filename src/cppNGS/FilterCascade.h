@@ -374,6 +374,7 @@ class CPPNGSSHARED_EXPORT FilterVariantIsSNP
 		FilterVariantIsSNP();
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
+		void apply(const VcfFormat::VcfFileHandler& variants, FilterResult& result) const override;
 };
 
 //Variant impact filter

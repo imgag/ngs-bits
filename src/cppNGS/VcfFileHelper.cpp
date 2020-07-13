@@ -605,13 +605,19 @@ void VCFLine::storeLineInformation(QTextStream& stream) const
 	}
 }
 
-QString VCFLine::toString() const
+QString VCFLine::lineToString() const
 {
 	QString line;
 	QTextStream stream(&line);
 	storeLineInformation(stream);
 	return line;
 }
+
+QString VCFLine::variantToString() const
+{
+	return chr_.str() + ":" + QString::number(start()) + "-" + QString::number(end()) + " " + ref_ + ">" + altString();
+}
+
 
 } //end namespace VcfFormat
 

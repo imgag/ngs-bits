@@ -47,7 +47,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile* roi)
 {
 	//get known SNP list
-	VariantList snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, roi);
+	VcfFormat::VcfFileHandler snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, roi);
 
 	//open BAM
 	BamReader reader(filename);
@@ -64,7 +64,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString bu
 		if (pileup.depth(false)<min_cov) continue;
 
 		QChar ref = snps[i].ref()[0];
-		QChar obs = snps[i].obs()[0];
+		QChar obs = snps[i].altString()[0];
 		double frequency = pileup.frequency(ref, obs);
 
 		//skip non-informative snps

@@ -1017,6 +1017,17 @@ void FilterVariantIsSNP::apply(const VariantList& variants, FilterResult& result
 		result.flags()[i] = variants[i].isSNV();
 	}
 }
+void FilterVariantIsSNP::apply(const VcfFormat::VcfFileHandler& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		result.flags()[i] = variants[i].isSNV();
+	}
+}
 
 FilterSubpopulationAlleleFrequency::FilterSubpopulationAlleleFrequency()
 {

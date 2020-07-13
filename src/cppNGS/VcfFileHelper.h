@@ -241,7 +241,7 @@ public:
 	{
 		return alt_;
 	}
-	const QByteArray& altString() const
+	const Sequence& altString() const
 	{
 		return alt_string_;
 	}
@@ -428,7 +428,9 @@ public:
 	QByteArrayList failedFilters() const;
 	void checkValid() const;
 	void storeLineInformation(QTextStream& stream) const;
-	QString toString() const;
+	QString lineToString() const;
+	QString variantToString() const;
+
 	///Returns if the variant is a SNV
 	bool isSNV() const
 	{
@@ -441,7 +443,7 @@ private:
 	int pos_;
 	Sequence ref_;
 	QVector<Sequence> alt_; //comma seperated list of alternative sequences
-	QByteArray alt_string_;
+	Sequence alt_string_;
 
 	QByteArrayList id_; //; seperated list of id-strings
 	double qual_;

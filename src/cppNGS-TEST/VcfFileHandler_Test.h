@@ -491,9 +491,9 @@ private slots:
 		VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 
-		QString first_line = vl[0].toString();
+		QString first_line = vl[0].lineToString();
 		S_EQUAL(first_line, "chr17	72196817	.	G	GA	217	.	INDEL;DP=31;VDB=0.0000;AF1=0.5;AC1=1;DP4=4,3,11,11;MQ=42;FQ=88.5;PV4=1,1,0.17,0.28	GT:PL:GQ	0/1:255,0,123:99");
-		QString seventh_line = vl[6].toString();
+		QString seventh_line = vl[6].lineToString();
 		S_EQUAL(seventh_line, "chr19	14466629	.	a	aA	70.4	.	INDEL;DP=4;VDB=0.0001;AF1=1;AC1=2;DP4=0,0,1,2;MQ=50;FQ=-43.5	GT:PL:GQ	1/1:110,9,0:16");
 	}
 };

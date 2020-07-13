@@ -10,7 +10,7 @@ private slots:
 
 	void getKnownVariants()
 	{
-		VariantList list = NGSHelper::getKnownVariants("hg19", false);
+		VcfFormat::VcfFileHandler list = NGSHelper::getKnownVariants("hg19", false);
 		I_EQUAL(list.count(), 102467);
 
 		//only SNPs
@@ -37,7 +37,7 @@ private slots:
 
 	void getKnownVariants_hg38()
 	{
-		VariantList list = NGSHelper::getKnownVariants("hg38", false);
+		VcfFormat::VcfFileHandler list = NGSHelper::getKnownVariants("hg38", false);
 		I_EQUAL(list.count(), 100779);
 
 		//only SNPs, AF<50% on chrX

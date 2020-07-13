@@ -3,7 +3,6 @@
 #include "Helper.h"
 #include "BasicStatistics.h"
 #include "BamReader.h"
-#include "FilterCascade.h"
 #include "GeneSet.h"
 
 #include <QTextStream>
@@ -12,14 +11,14 @@
 #include <cmath>
 #include <vector>
 
-VariantList NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
+VcfFormat::VcfFileHandler NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
 {
-	VariantList output;
+	VcfFormat::VcfFileHandler output;
 
 	//load variant list
 	QString snp_file = ":/Resources/" + build + "_snps.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
-	output.load(snp_file, VCF, roi);
+	output.load(snp_file, roi);
 
 	//filter by AF
 	FilterResult filter_result(output.count());
@@ -35,12 +34,11 @@ VariantList NGSHelper::getKnownVariants(QString build, bool only_snvs, double mi
 	bool max_set = max_af<1.0;
 	if (min_set || max_set)
 	{
-		int i_af = output.annotationIndexByName("AF");
 		for (int i=0; i<output.count(); ++i)
 		{
 			if (!filter_result.passing(i)) continue;
 
-			double af = output[i].annotations()[i_af].toDouble();
+			double af = output[i].info("AF").toDouble();
 			filter_result.flags()[i] = (!min_set || af>min_af) && (!max_set || af<max_af);
 		}
 	}

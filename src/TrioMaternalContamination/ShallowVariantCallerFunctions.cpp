@@ -2,15 +2,15 @@
 
 void getVariantInformation(
 		VariantInfo& vInfo,
-		const VariantList& variant_list,
+		const VcfFormat::VcfFileHandler& variant_list,
 		int min_depth,
 		int min_alt_count,
-		std::unordered_set<Variant>& homozygousVariants)
+		std::unordered_set<VcfFormat::VCFLine>& homozygousVariants)
 {
 	BamReader reader(vInfo.in_file_name);
 	for (int i=0; i<variant_list.count(); ++i)
 	{
-		const Variant& v = variant_list[i];
+		const VcfFormat::VCFLine& v = variant_list[i];
 		if (!v.isSNV()) continue;
 		if (!v.chr().isAutosome()) continue;
 
@@ -19,8 +19,8 @@ void getVariantInformation(
 		//keep only variants of minimum depth
 		if (pileup_tu.depth(true) < min_depth) continue;
 
-		long long count = pileup_tu.countOf(v.obs()[0]);
-		double frequency = pileup_tu.frequency(v.ref()[0], v.obs()[0]);
+		long long count = pileup_tu.countOf(v.altString()[0]);
+		double frequency = pileup_tu.frequency(v.ref()[0], v.altString()[0]);
 
 		//do not keep homozygous variants
 		if(frequency==1)
