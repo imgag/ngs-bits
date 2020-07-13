@@ -6,23 +6,10 @@
 
 SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi)
 {
-	VariantList variants;
-	VariantListFormat format = variants.load(filename, AUTO, roi);
+	VcfFormat::VcfFileHandler variants;
+	variants.load(filename, roi);
 
-	int geno_col = -1;
-	if (format==TSV)
-	{
-		QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
-		if (affected_cols.count()==1)
-		{
-			geno_col = affected_cols[0];
-		}
-	}
-	else //VCF or VCF.GZ
-	{
-		geno_col = variants.annotationIndexByName("GT", true, false);
-	}
-	if (geno_col==-1)
+	if (!variants.formatIDs().contains("GT"))
 	{
 		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);
 	}
@@ -30,15 +17,15 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 	VariantGenotypes output;
 	for (int i=0; i<variants.count(); ++i)
 	{
-		Variant& variant = variants[i];
+		VcfFormat::VCFLine& variant = variants[i];
 
 		//skip variants not on autosomes
 		if(!variant.chr().isAutosome() && !include_gonosomes) continue;
 
 		//skip multi-allelic variants
-		if (skip_multi && format!=TSV && variant.obs().contains(',')) continue;
+		if (skip_multi && variant.altString().contains(',')) continue;
 
-		output[strToPointer(variant.toString())] = genoToDouble(variant.annotations()[geno_col]);
+		output[strToPointer(variant.variantToString())] = genoToDouble(variant.sample(0, "GT"));
 	}
 
 	return output;

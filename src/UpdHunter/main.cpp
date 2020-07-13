@@ -233,20 +233,23 @@ public:
 			}
 
 			//filter by depth
-			QByteArray tmp = v.sample("DP", c);
-			bool ok;
-			int dp1 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
-			if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of child '" + tmp + "' is no integer - variant " + v.lineToString());
-			tmp = v.sample("DP", f);
-			int dp2 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
-			if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of father  '" + tmp + "' is no integer - variant " + v.lineToString());
-			tmp = v.sample("DP", m);
-			int dp3 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
-			if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of mother  '" + tmp + "' is no integer - variant " + v.lineToString());
-			if (dp1<var_min_dp || dp2<var_min_dp || dp3<var_min_dp)
+			if(variants.formatIDs().contains("DP"))
 			{
-				++skip_dp;
-				continue;
+				QByteArray tmp = v.sample(c, "DP");
+				bool ok;
+				int dp1 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
+				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of child '" + tmp + "' is no integer - variant " + v.lineToString());
+				tmp = v.sample(f, "DP");
+				int dp2 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
+				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of father  '" + tmp + "' is no integer - variant " + v.lineToString());
+				tmp = v.sample(m, "DP");
+				int dp3 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
+				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of mother  '" + tmp + "' is no integer - variant " + v.lineToString());
+				if (dp1<var_min_dp || dp2<var_min_dp || dp3<var_min_dp)
+				{
+					++skip_dp;
+					continue;
+				}
 			}
 
 			//filter indels
@@ -262,9 +265,12 @@ public:
 			entry.end = v.end();
 			entry.ref = v.ref();
 			entry.obs = v.altString();
-			entry.c = str2geno(v.sample("GT", c));
-			entry.f = str2geno(v.sample("GT", f));
-			entry.m = str2geno(v.sample("GT", m));
+			if((variants.formatIDs().contains("GT")))
+			{
+				entry.c = str2geno(v.sample(c, "GT"));
+				entry.f = str2geno(v.sample(f, "GT"));
+				entry.m = str2geno(v.sample(m, "GT"));
+			}
 
 			//filter by exclude regions
 			if (exclude_regions.count() && exclude_idx.matchingIndex(v.chr(), v.start(), v.end())!=-1)
