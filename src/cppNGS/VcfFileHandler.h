@@ -14,10 +14,16 @@
  * - when accessing SAMPLES we have to index the first one (before only one SAMPLE was stored)
  * - the Statistics function 'static QCCollection variantList(VcfFormat::VcfFileHandler variants, bool filter)' considers ONLY first variant
  * - altString was then used
+ * - addFilter does not add the filter also to the header/ also while going over the variants filters are not added to header
+ *
+ * - output of storeVcf is in order of info/filter/format tags as they were in the origional line (before according to header order)
  *
  * #KLEINE TODOS:
  *	- TEST Somatic angucken: vcf file has to be checked again (it was falsly genereated with storeToVcf and filterrs were copied
- *  - all bases are processed to be UPPER CASE !!!
+ *  - all bases are processed to be UPPER CASE !!! : angestry()
+ *  - toUTF8() for some variables (internally QByteArray in VCFFileHandler)
+ *
+ *  - functions taking both: SampleSimilarity / VariantFilterRegions
  */
 namespace VcfFormat
 {
@@ -29,7 +35,7 @@ class CPPNGSSHARED_EXPORT VcfFileHandler
 public:
 
 	///loads a vcf or vcf.gz file
-	void load(const QString& filename, const BedFile* roi=nullptr);
+	void load(const QString& filename, const BedFile* roi=nullptr, bool invert=false);
 	///stores the data of VCFFileHandler in a vcf file
 	void store(const QString& filename) const;
 
@@ -93,6 +99,11 @@ public:
 	{
 		return vcf_header_;
 	}
+	///Read-Write access to the vcf header
+	VCFHeader& vcfHeader()
+	{
+		return vcf_header_;
+	}
 	///returns a QVector of all column headers for a vcfLine
 	const QVector<QByteArray>& vcfColumnHeader() const
 	{
@@ -109,10 +120,10 @@ private:
 
 	void parseVcfHeader(const int line_number, QByteArray& line);
 	void parseHeaderFields(QByteArray& line);
-	void parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx);
-	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx);
-	void loadFromVCF(const QString& filename, ChromosomalIndex<BedFile>* roi_idx=nullptr);
-	void loadFromVCFGZ(const QString& filename, ChromosomalIndex<BedFile>* roi_idx=nullptr);
+	void parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
+	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
+	void loadFromVCF(const QString& filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
+	void loadFromVCFGZ(const QString& filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
 	void clear();
 
 	QVector<VCFLine> vcf_lines_;

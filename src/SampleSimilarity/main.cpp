@@ -26,7 +26,7 @@ public:
 		addInfileList("in", "Input variant lists in VCF format (two or more). If only one file is given, each line in this file is interpreted as an input file path.", false, true);
 		//optional
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
-		addEnum("mode", "Mode (input format).", true, QStringList() << "vcf" << "bam", "vcf");
+		addEnum("mode", "Mode (input format).", true, QStringList() << "vcf" << "gsvar" << "bam", "vcf");
 		addInfile("roi", "Restrict similarity calculation to variants in target region.", true);
 		addFlag("include_gonosomes", "Includes gonosomes into calculation (by default only variants on autosomes are considered).");
 		addFlag("skip_multi", "Skip multi-allelic variants instead of throwing an error (VCF mode).");
@@ -62,7 +62,7 @@ public:
 		bool skip_multi = getFlag("skip_multi");
 
 		//write header
-		if (mode=="vcf")
+		if (mode=="vcf" || mode=="gsvar")
 		{
 			out << "#file1\tfile2\toverlap_percent\tcorrelation\tibs2_percent\tcount1\tcount2\tcomments" << endl;
 		}
@@ -86,6 +86,10 @@ public:
 			{
 				genotype_data << SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi, use_roi ? &roi_reg : nullptr);
 			}
+			else if(mode=="gsvar")
+			{
+				genotype_data << SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes, skip_multi, use_roi ? &roi_reg : nullptr);
+			}
 			else
 			{
 				genotype_data << SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, use_roi ? &roi_reg : nullptr);
@@ -101,7 +105,7 @@ public:
 				QStringList cols;
 				cols << QFileInfo(in[i]).fileName();
 				cols << QFileInfo(in[j]).fileName();
-				if (mode=="vcf")
+				if (mode=="vcf" || mode=="gsvar")
 				{
 					sc.calculateSimilarity(genotype_data[i], genotype_data[j]);
 

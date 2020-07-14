@@ -16,6 +16,7 @@ public:
 
 	//Extract genotypes from VCF/GSvar file (no WT genotype).
 	static VariantGenotypes genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi = nullptr);
+	static VariantGenotypes genotypesFromGSvar(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi);
 
 	//Extract genotypes from BAM
 	static VariantGenotypes genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile* roi = nullptr);

@@ -312,6 +312,14 @@ void VCFHeader::setCommentLine(QByteArray& line, const int line_number)
 
 	file_comments_.push_back(header_line);
 }
+void VCFHeader::addFilter(const QByteArray& filter_id, const QString& description)
+{
+	FilterLine line;
+	line.id = filter_id;
+	line.description = description;
+
+	filter_lines_.push_back(line);
+}
 
 bool VCFHeader::parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number)
 {

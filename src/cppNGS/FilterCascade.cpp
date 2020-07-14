@@ -172,6 +172,25 @@ void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArr
 	}
 }
 
+void FilterResult::tagNonPassing(VcfFormat::VcfFileHandler& variants, QByteArray tag, QString description)
+{
+
+	//add tag description (if missing)
+	if (!variants.filterIDs().contains(tag))
+	{
+		variants.vcfHeader().addFilter(tag, description);
+	}
+
+	//tag variants that did not pass
+	for (int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i])
+		{
+			variants[i].addFilter(tag);
+		}
+	}
+}
+
 /*************************************************** FilterBase ***************************************************/
 
 FilterBase::FilterBase()
@@ -950,6 +969,38 @@ void FilterRegions::apply(const VariantList& variants, const BedFile& regions, F
 		if (!result.flags()[i]) continue;
 
 		const Variant& v = variants[i];
+		int index = regions_idx.matchingIndex(v.chr(), v.start(), v.end());
+		result.flags()[i] = (index!=-1);
+	}
+}
+
+void FilterRegions::apply(const VcfFormat::VcfFileHandler& variants, const BedFile& regions, FilterResult& result)
+{
+	//check regions
+	if(!regions.isMergedAndSorted())
+	{
+		THROW(ArgumentException, "Cannot filter variant list by regions that are not merged/sorted!");
+	}
+
+	//special case when only one region is contained
+	if (regions.count()==1)
+	{
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			result.flags()[i] = variants[i].overlapsWith(regions[0]);
+		}
+		return;
+	}
+
+	//general case with many regions
+	ChromosomalIndex<BedFile> regions_idx(regions);
+	for (int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		const VcfFormat::VCFLine& v = variants[i];
 		int index = regions_idx.matchingIndex(v.chr(), v.start(), v.end());
 		result.flags()[i] = (index!=-1);
 	}

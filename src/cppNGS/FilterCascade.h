@@ -95,6 +95,7 @@ class CPPNGSSHARED_EXPORT FilterResult
 
 		///Tag variants that did not pass the filter using the 'filter' column.
 		void tagNonPassing(VariantList& variants, QByteArray tag, QByteArray description);
+		void tagNonPassing(VcfFormat::VcfFileHandler& variants, QByteArray tag, QString description);
 
 	private:
 		QBitArray pass;
@@ -285,6 +286,7 @@ class CPPNGSSHARED_EXPORT FilterRegions
 {
 	public:
 		static void apply(const VariantList& variants, const BedFile& regions, FilterResult& result);
+		static void apply(const VcfFormat::VcfFileHandler& variants, const BedFile& regions, FilterResult& result);
 
 	protected:
 		FilterRegions() = delete;

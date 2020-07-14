@@ -79,7 +79,7 @@ void VcfFileHandler::parseHeaderFields(QByteArray& line)
 		}
 	}
 }
-void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx)
+void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 	QList<QByteArray> line_parts = line.split('\t');
 	if (line_parts.count()<VCFHeader::MIN_COLS)
@@ -96,7 +96,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 	{
 		int end =  vcf_line.pos() +  vcf_line.ref().length() - 1;
 		bool in_roi = roi_idx->matchingIndex(vcf_line.chr(), vcf_line.pos(), end) != -1;
-		if (!in_roi)
+		if ((!in_roi && !invert) || (in_roi && invert))
 		{
 			return;
 		}
@@ -248,7 +248,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 }
 
 
-void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx)
+void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 
 	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
@@ -276,11 +276,11 @@ void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByt
 		{
 			info_ids.insert(info.id);
 		}
-		parseVcfEntry(line_number, line, info_ids, format_ids, roi_idx);
+		parseVcfEntry(line_number, line, info_ids, format_ids, roi_idx, invert);
 	}
 }
 
-void VcfFileHandler::loadFromVCF(const QString& filename, ChromosomalIndex<BedFile>* roi_idx)
+void VcfFileHandler::loadFromVCF(const QString& filename, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 	//clear content in case we load a second file
 	clear();
@@ -292,11 +292,11 @@ void VcfFileHandler::loadFromVCF(const QString& filename, ChromosomalIndex<BedFi
 	QSet<QByteArray> format_ids_in_header;
 	while(!file->atEnd())
 	{
-		processVcfLine(line_number, file->readLine(), info_ids_in_header, format_ids_in_header, roi_idx);
+		processVcfLine(line_number, file->readLine(), info_ids_in_header, format_ids_in_header, roi_idx, invert);
 	}
 }
 
-void VcfFileHandler::loadFromVCFGZ(const QString& filename, ChromosomalIndex<BedFile>* roi_idx)
+void VcfFileHandler::loadFromVCFGZ(const QString& filename, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 	//clear content in case we load a second file
 	clear();
@@ -328,13 +328,13 @@ void VcfFileHandler::loadFromVCFGZ(const QString& filename, ChromosomalIndex<Bed
 		//Sets holding all INFO and FORMAT IDs defined in the header (might be extended if a vcf line contains new ones)
 		QSet<QByteArray> info_ids_in_header;
 		QSet<QByteArray> format_ids_in_header;
-		processVcfLine(line_number, QByteArray(read_line), info_ids_in_header, format_ids_in_header, roi_idx);
+		processVcfLine(line_number, QByteArray(read_line), info_ids_in_header, format_ids_in_header, roi_idx, invert);
 	}
 	gzclose(file);
 	delete[] buffer;
 }
 
-void VcfFileHandler::load(const QString& filename, const BedFile* roi)
+void VcfFileHandler::load(const QString& filename, const BedFile* roi, bool invert)
 {
 	//create ROI index (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
@@ -350,11 +350,11 @@ void VcfFileHandler::load(const QString& filename, const BedFile* roi)
 	QString fn_lower = filename.toLower();
 	if (fn_lower.endsWith(".vcf"))
 	{
-		loadFromVCF(filename, roi_idx.data());
+		loadFromVCF(filename, roi_idx.data(), invert);
 	}
 	else if (fn_lower.endsWith(".vcf.gz"))
 	{
-		loadFromVCFGZ(filename, roi_idx.data());
+		loadFromVCFGZ(filename, roi_idx.data(), invert);
 	}
 	else
 	{

@@ -192,6 +192,7 @@ public:
 	void setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number);
 	void setFilterLine(QByteArray& line, const int line_number);
 	void setCommentLine(QByteArray& line, const int line_number);
+	void addFilter(const QByteArray& filter, const QString& description = "no description available");
 	AnalysisType type(bool allow_fallback_germline_single_sample) const;
 	void clear();
 
@@ -392,6 +393,11 @@ public:
 		{
 			filter_.push_back(strToPointer(filter));
 		}
+	}
+	void addFilter(QByteArray& tag)
+	{
+		tag = tag.trimmed();
+		filter_.push_back(strToPointer(tag));
 	}
 	void setInfo(const OrderedHash<QByteArray , QByteArray>& info)
 	{
