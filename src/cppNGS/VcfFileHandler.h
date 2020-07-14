@@ -116,6 +116,9 @@ public:
 		vcf_lines_.resize(size);
 	}
 
+	void storeLineInformation(QTextStream& stream, VCFLine line) const;
+	QString lineToString(int pos) const;
+
 private:
 
 	void parseVcfHeader(const int line_number, QByteArray& line);

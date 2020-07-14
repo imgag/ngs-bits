@@ -225,7 +225,7 @@ public:
 			}
 
 			//filter by quality
-			if (v.qual() < 0) THROW(ArgumentException, "Quality '" + QString::number(v.qual()) + "' is not given in " + v.lineToString());
+			if (v.qual() < 0) THROW(ArgumentException, "Quality '" + QString::number(v.qual()) + "' is not given in " + variants.lineToString(i));
 			if (v.qual()<var_min_q)
 			{
 				++skip_qual;
@@ -238,13 +238,13 @@ public:
 				QByteArray tmp = v.sample(c, "DP");
 				bool ok;
 				int dp1 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
-				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of child '" + tmp + "' is no integer - variant " + v.lineToString());
+				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of child '" + tmp + "' is no integer - variant " + variants.lineToString(i));
 				tmp = v.sample(f, "DP");
 				int dp2 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
-				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of father  '" + tmp + "' is no integer - variant " + v.lineToString());
+				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of father  '" + tmp + "' is no integer - variant " + variants.lineToString(i));
 				tmp = v.sample(m, "DP");
 				int dp3 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
-				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of mother  '" + tmp + "' is no integer - variant " + v.lineToString());
+				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of mother  '" + tmp + "' is no integer - variant " + variants.lineToString(i));
 				if (dp1<var_min_dp || dp2<var_min_dp || dp3<var_min_dp)
 				{
 					++skip_dp;

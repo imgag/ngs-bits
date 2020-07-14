@@ -433,8 +433,6 @@ public:
 	//returns all not passed filters
 	QByteArrayList failedFilters() const;
 	void checkValid() const;
-	void storeLineInformation(QTextStream& stream) const;
-	QString lineToString() const;
 	QString variantToString() const;
 
 	///Returns if the variant is a SNV

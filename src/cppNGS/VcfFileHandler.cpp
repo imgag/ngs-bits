@@ -378,10 +378,10 @@ void VcfFileHandler::store(const QString& filename) const
 		stream << "\t" << column_headers_.at(i);
 	}
 
-	for(VCFLine vcf_line : vcf_lines_)
+	for(int i = 0; i < vcf_lines_.count(); ++i)
 	{
 		stream << "\n";
-		vcf_line.storeLineInformation(stream);
+		storeLineInformation(stream, vcfLine(i));
 	}
 }
 
@@ -498,6 +498,141 @@ const VCFLine& VcfFileHandler::addGSvarVariant(const Variant& var)
 
 	vcf_lines_.push_back(vcf_line);
 	return vcf_lines_.last();
+}
+
+void VcfFileHandler::storeLineInformation(QTextStream& stream, VCFLine line) const
+{
+	//chr
+	stream << line.chr().str()  << "\t" << line.pos();
+
+	//if id exists
+	if(!line.id().empty())
+	{
+		stream  << "\t"<< line.id().join(';');
+	}
+	else
+	{
+		stream << "\t.";
+	}
+
+	//ref and alt
+	stream  << "\t"<< line.ref();
+	stream << "\t" << line.alt().at(0);
+	if(line.alt().count() > 1)
+	{
+		for(int i = 1; i < line.alt().size(); ++i)
+		{
+			stream  << "," <<  line.alt().at(i);
+		}
+	}
+
+	//quality
+	QByteArray quality;
+	if(line.qual() == -1)
+	{
+		quality = ".";
+	}
+	else
+	{
+		quality.setNum(line.qual());
+		if(quality=="0") quality = "0.0";
+	}
+	stream  << "\t"<< quality;
+
+	//if filter exists
+	if(!line.filter().empty())
+	{
+		stream  << "\t"<< line.filter().join(';');
+	}
+	else
+	{
+		stream << "\t.";
+	}
+
+	//if info exists
+	if(line.infos().empty())
+	{
+		stream << "\t.";
+	}
+	else
+	{
+		//if info is only TRUE, print key only
+		QByteArray info_line_value = line.infos().at(0).value();
+		QByteArray info_line_key = line.infos().at(0).key();
+		if(info_line_value == "TRUE" && vcfHeader().infoLineByID(info_line_key, false).type == "Flag")
+		{
+			stream  << "\t"<< line.infos().at(0).key();
+		}
+		else
+		{
+			stream  << "\t"<< line.infos().at(0).key() << "=" << line.infos().at(0).value();;
+		}
+		if(line.infos().size() > 1)
+		{
+			for(int i = 1; i < line.infos().size(); ++i)
+			{
+				QByteArray info_line_value = line.infos().at(i).value();
+				QByteArray info_line_key = line.infos().at(i).key();
+				if(info_line_value == "TRUE" && vcfHeader().infoLineByID(info_line_key).type == "Flag")
+				{
+					stream  << ";"<< line.infos().at(i).key();
+				}
+				else
+				{
+					stream  << ";"<< line.infos().at(i).key() << "=" << line.infos().at(i).value();;
+				}
+			}
+		}
+	}
+
+	//if format exists
+	if(!line.format().empty())
+	{
+		stream  << "\t"<< line.format().at(0);
+		for(int format_entry_id = 1; format_entry_id < line.format().count(); ++format_entry_id)
+		{
+			stream << ":" << line.format().at(format_entry_id);
+		}
+	}
+	else
+	{
+		stream << "\t.";
+	}
+
+	//if sample exists
+	if(!line.samples().empty())
+	{
+		//for every sample
+		for(int sample_idx = 0; sample_idx < line.samples().size(); ++sample_idx)
+		{
+			FormatIDToValueHash sample_entry = line.sample(sample_idx);
+			if(sample_entry.empty())
+			{
+				stream << "\t.";
+			}
+			else
+			{
+				stream << "\t" << sample_entry.at(0).value();
+				//for all entries in the sample (e.g. 'GT':'DP':...)
+				for(int sample_entry_id = 1; sample_entry_id < sample_entry.size(); ++sample_entry_id)
+				{
+					stream << ":" << sample_entry.at(sample_entry_id).value();
+				}
+			}
+		}
+	}
+	else
+	{
+		stream << "\t.";
+	}
+}
+
+QString VcfFileHandler::lineToString(int pos) const
+{
+	QString line;
+	QTextStream stream(&line);
+	storeLineInformation(stream, vcfLine(pos));
+	return line;
 }
 
 

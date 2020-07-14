@@ -201,14 +201,6 @@
 ##INFO=<ID=U5,Number=0,Type=Flag,Description="In 5' UTR Location is in an untranslated region (UTR). FxnCod">
 ##INFO=<ID=VLD,Number=0,Type=Flag,Description="Is Validated.  This bit is set if the variant has 2+ minor allele count based on frequency or genotype data.">
 ##INFO=<ID=WTD,Number=0,Type=Flag,Description="Is Withdrawn by submitter If one member ss is withdrawn by submitter, then this bit is set.  If all member ss' are withdrawn, then the rs is deleted to SNPHistory">
-##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth for tier1 (used+filtered)">
-##FORMAT=<ID=FDP,Number=1,Type=Integer,Description="Number of basecalls filtered from original read depth for tier1">
-##FORMAT=<ID=SDP,Number=1,Type=Integer,Description="Number of reads with deletions spanning this site at tier1">
-##FORMAT=<ID=SUBDP,Number=1,Type=Integer,Description="Number of reads below tier1 mapping quality threshold aligned across this site">
-##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
-##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
-##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
-##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
 ##FILTER=<ID=fv.not_cod_spli,Description="Not a coding or splicing variant (filter_vcf).">
 ##FILTER=<ID=fv.off_target,Description="Variant is off target (filter_vcf).">
 ##FILTER=<ID=fv.som_all_freq,Description="Difference in allele frequencies too low (filter_vcf).">
@@ -219,6 +211,14 @@
 ##FILTER=<ID=fv.som_lt_3_reads,Description="Less than 3 supporting tumor reads (filter_vcf).">
 ##FILTER=<ID=fv.som_tum_loh,Description="Loss of heterozygosity within tumor tissue (filter_vcf).">
 ##FILTER=<ID=fv.syn_var,Description="Synonymous variant (filter_vcf).">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth for tier1 (used+filtered)">
+##FORMAT=<ID=FDP,Number=1,Type=Integer,Description="Number of basecalls filtered from original read depth for tier1">
+##FORMAT=<ID=SDP,Number=1,Type=Integer,Description="Number of reads with deletions spanning this site at tier1">
+##FORMAT=<ID=SUBDP,Number=1,Type=Integer,Description="Number of reads below tier1 mapping quality threshold aligned across this site">
+##FORMAT=<ID=AU,Number=2,Type=Integer,Description="Number of 'A' alleles used in tiers 1,2">
+##FORMAT=<ID=CU,Number=2,Type=Integer,Description="Number of 'C' alleles used in tiers 1,2">
+##FORMAT=<ID=GU,Number=2,Type=Integer,Description="Number of 'G' alleles used in tiers 1,2">
+##FORMAT=<ID=TU,Number=2,Type=Integer,Description="Number of 'T' alleles used in tiers 1,2">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1	sample2
 chr1	242383340	.	G	A	0.0	PASS	NT=ref;QSS=242;QSS_NT=110;SGT=GG->AG;TQSS=1;TQSS_NT=1;SOMATIC;ANN=A|stop_gained|HIGH|PLD5|PLD5|transcript|NM_152666.2|protein_coding|6/11|c.685C>T|p.Gln229*|912/3305|685/1611|229/536||,A|stop_gained|HIGH|PLD5|PLD5|transcript|NM_001195811.1|protein_coding|5/10|c.499C>T|p.Gln167*|625/3018|499/1425|167/474||,A|stop_gained|HIGH|PLD5|PLD5|transcript|NM_001195812.1|protein_coding|4/9|c.61C>T|p.Gln21*|463/2856|61/987|21/328||;LOF=(PLD5|PLD5|3|1.00);NMD=(PLD5|PLD5|3|1.00);dbNSFP_phyloP100way_vertebrate=3.728000	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	88:0:0:0:0,0:0,0:88,89:0,0	117:0:0:0:75,75:0,0:42,42:0,0
 chr3	32181683	.	C	T	0.0	fv.not_cod_spli;fv.off_target	NT=ref;OMIM=611778_[GPD1L_(provisional)_Brugada_syndrome_2];QSS=17;QSS_NT=17;SGT=CC->CT;TQSS=1;TQSS_NT=1;SOMATIC;ANN=T|intron_variant|MODIFIER|GPD1L|GPD1L|transcript|NM_015141.3|protein_coding|3/7|c.367-37C>T||||||;EXAC_AF=1.647e-05	DP:FDP:SDP:SUBDP:AU:CU:GU:TU	36:0:0:0:0,0:36,36:0,0:0,0	34:1:0:0:0,0:16,16:0,0:17,17
