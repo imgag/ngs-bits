@@ -22,9 +22,13 @@ public:
 	{
 		setDescription("Cuts bases from the beginning of reads and stores them in an additional fastq.");
 		addInfile("in", "input fastq file1.", false);
-		addInt("cut", "number of bases from the beginning of reads to use as barcodes.", true, 0);
 		addString("out_main","output filename for main fastq.", false);
 		addString("out_index","output filename for index fastq.", true, "index.fastq.gz");
+		//optional
+		addInt("cut", "number of bases from the beginning of reads to use as barcodes.", true, 0);
+		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
+
+		changeLog(2020, 7, 15, "Added 'compression_level' parameter.");
 	}
 
 	virtual void main()
@@ -36,8 +40,10 @@ public:
 		int cut = getInt("cut");
 		FastqFileStream input_stream(in, false);
 
-		FastqOutfileStream outstream_main(out_main);
-		FastqOutfileStream outsrtream_index(out_index);
+
+		int compression_level = getInt("compression_level");
+		FastqOutfileStream outstream_main(out_main, compression_level);
+		FastqOutfileStream outsrtream_index(out_index, compression_level);
 
 		while (!input_stream.atEnd())//foreach input read
 		{

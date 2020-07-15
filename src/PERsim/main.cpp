@@ -41,14 +41,18 @@ public:
 		addString("a2", "Reverse read sequencing adapter sequence (for read-through).", true, "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("v", "Enable verbose debug output.");
+		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
+
+		changeLog(2020, 7, 15, "Added 'compression_level' parameter.");
 	}
 
 	virtual void main()
 	{
 		//init
 		QTextStream out(stdout);
-		FastqOutfileStream out1(getOutfile("out1"));
-		FastqOutfileStream out2(getOutfile("out2"));
+		int compression_level = getInt("compression_level");
+		FastqOutfileStream out1(getOutfile("out1"), compression_level);
+		FastqOutfileStream out2(getOutfile("out2"), compression_level);
 		BedFile roi;
 		roi.load(getInfile("roi"));
 		long count = getInt("count");

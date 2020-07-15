@@ -405,5 +405,9 @@ SUBDIRS += TrioMaternalContamination
 tools-TEST.depends += TrioMaternalContamination
 TrioMaternalContamination.depends = cppNGS
 
+SUBDIRS += FastqDownsample
+tools-TEST.depends += FastqDownsample
+FastqDownsample.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt

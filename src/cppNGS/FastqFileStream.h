@@ -87,7 +87,7 @@ class CPPNGSSHARED_EXPORT FastqOutfileStream
 {
 public:
     ///Constructor.
-	FastqOutfileStream(QString filename, int level = Z_BEST_SPEED, int strategy = Z_DEFAULT_STRATEGY);
+	FastqOutfileStream(QString filename, int compression_level = Z_BEST_SPEED, int compression_strategy = Z_DEFAULT_STRATEGY);
     ///Destructor - closes the stream if not already done.
     ~FastqOutfileStream();
 

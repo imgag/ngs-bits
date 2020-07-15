@@ -1,5 +1,5 @@
-### BamDownsample tool help
-	BamDownsample (2020_03-159-g5c8b2e82)
+### FastqDownsample tool help
+	FastqDownsample (2020_03-159-g5c8b2e82)
 	
 	Downsamples paired-end FASTQ files.
 	
@@ -22,8 +22,8 @@
 	  --changelog              Prints changeloge and exits.
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
-### BamDownsample changelog
-	BamDownsample 2020_03-159-g5c8b2e82
+### FastqDownsample changelog
+	FastqDownsample 2020_03-159-g5c8b2e82
 	
 	2020-07-15 Initial version of this tool.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

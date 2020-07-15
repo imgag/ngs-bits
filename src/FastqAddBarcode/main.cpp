@@ -22,6 +22,10 @@ public:
 		addInfileList("in_barcode", "Input barcode file.", false);
 		addOutfile("out1", "Output filename for read 1 FASTQ.", false);
 		addOutfile("out2", "Output filename for read 2 FASTQ.", false);
+		//optional
+		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
+
+		changeLog(2020, 7, 15, "Added 'compression_level' parameter.");
 	}
 
 	virtual void main()
@@ -29,8 +33,9 @@ public:
 		//output files
 		QString out1 = getOutfile("out1");
 		QString out2 = getOutfile("out2");
-		FastqOutfileStream outstream1(out1);
-		FastqOutfileStream outstream2(out2);
+		int compression_level = getInt("compression_level");
+		FastqOutfileStream outstream1(out1, compression_level);
+		FastqOutfileStream outstream2(out2, compression_level);
 
 		//input files
 		QStringList in1 = getInfileList("in1");

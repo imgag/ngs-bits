@@ -180,18 +180,21 @@ void FastqFileStream::extractLine(QByteArray& line)
 }
 
 
-FastqOutfileStream::FastqOutfileStream(QString filename, int level, int strategy)
+FastqOutfileStream::FastqOutfileStream(QString filename, int compression_level, int compression_strategy)
 	: filename_(filename)
     , is_closed_(false)
 	, buffer_()
 	, buffer_size_(10000)
 {
-    gzfile_ = gzopen(filename.toLatin1().data(),"wb");
+	gzfile_ = gzopen(filename.toLatin1().data(), "wb");
     if (gzfile_ == NULL)
     {
         THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
 	}
-	gzsetparams(gzfile_, level, strategy);
+
+	if (compression_level<-1 || compression_level>9) THROW(ArgumentException, "Invalid gzip compression level '" + QString::number(compression_level) +"' given for FASTQ file '" + filename + "'!");
+
+	gzsetparams(gzfile_, compression_level, compression_strategy);
 }
 
 FastqOutfileStream::~FastqOutfileStream()

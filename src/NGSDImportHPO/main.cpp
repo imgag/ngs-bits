@@ -23,11 +23,12 @@ public:
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
 		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2020/clinvar_20200506.vcf.gz'.", true);
-		addInfile("hgmd", "HGMD phenobase file (hgmd_phenbase-2020.2.dump)", true);
+		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2020.2.dump').", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 		addFlag("debug", "Enables debug output");
 
+		changeLog(2020, 7, 7, "Added support of HGMD gene-phenotype relations.");
 		changeLog(2020, 3, 5, "Added support for new HPO annotation file.");
 		changeLog(2020, 3, 9, "Added optimization for hpo-gene relations.");
 		changeLog(2020, 3, 10, "Removed support for old HPO annotation file.");
@@ -599,7 +600,7 @@ public:
 
 		out << "Overall imported term-gene relations: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
 
-		out << "Optimize term-gene relations...\n";
+		out << "Optimizing term-gene relations...\n";
 		out << "(removing all genes which are already present in leaf nodes)" << endl;
 
 		Phenotype root = Phenotype("HP:0000001", "All");
@@ -661,7 +662,7 @@ public:
 			// get phenotype id
 			int pt_id = pt2id.value(root.accession());
 
-			// remove all duplicate genes
+			// remove all duplicate genes from parent node
 			SqlQuery remove_gene_query = db.getQuery();
 			remove_gene_query.prepare("DELETE FROM hpo_genes WHERE hpo_term_id=" + QByteArray::number(pt_id) + " AND gene=:0");
 			foreach (const QByteArray& gene, genes_to_remove)

@@ -20,7 +20,7 @@ public:
 	{
 		setDescription("Downsamples a BAM file to the given percentage of reads.");
 		addInfile("in", "Input BAM file.", false, true);
-		addInt("percentage", "Percentage of reads to keep.", false);
+		addFloat("percentage", "Percentage of reads to keep.", false);
 		addOutfile("out", "Output BAM file.", false, true);
 		//optional
 		addFlag("test", "Test mode: fix random number generator seed and write kept read names to STDOUT.");
@@ -32,7 +32,8 @@ public:
 		QTextStream out(stdout);
 		bool test = getFlag("test");
 		srand(test ? 1 : QTime::currentTime().msec());
-		double percentage = BasicStatistics::bound(getInt("percentage"), 0, 100);
+		double percentage = getFloat("percentage");
+		if (percentage<=0 || percentage>=100) THROW(CommandLineParsingException, "Invalid percentage " + QString::number(percentage) +"!");
 
 		BamReader reader(getInfile("in"));
 

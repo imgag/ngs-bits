@@ -1,5 +1,5 @@
 ### BamToFastq tool help
-	BamToFastq (2020_03-142-gee6a65cd)
+	BamToFastq (2020_03-159-g5c8b2e82)
 	
 	Converts a coordinate-sorted BAM file to FASTQ files (paired-end only).
 	
@@ -13,7 +13,7 @@
 	                           Default value: ''
 	  -remove_duplicates       Does not export duplicate reads into the FASTQ file.
 	                           Default value: 'false'
-	  -compression_level <int> Output gzip compression level from 1 (fastest) to 9 (best compression).
+	  -compression_level <int> Output FASTQ compression level from 1 (fastest) to 9 (best compression).
 	                           Default value: '1'
 	  -write_buffer_size <int> Output write buffer size (number of FASTQ entry pairs).
 	                           Default value: '100'
@@ -25,7 +25,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamToFastq changelog
-	BamToFastq 2020_03-142-gee6a65cd
+	BamToFastq 2020_03-159-g5c8b2e82
 	
 	2020-05-29 Massive speed-up by writing in background. Added 'compression_level' parameter.
 	2020-03-21 Added 'reg' parameter.
