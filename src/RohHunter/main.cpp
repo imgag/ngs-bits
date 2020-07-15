@@ -1,5 +1,5 @@
 #include "ToolBase.h"
-#include "VariantList.h"
+#include "VcfFileHandler.h"
 #include "Helper.h"
 
 #include <QTextStream>
@@ -22,7 +22,7 @@ public:
 		setDescription("ROH detection based on a variant list.");
 		setExtendedDescription(QStringList() << "Runs of homozygosity (ROH) are detected based on the genotype annotations in the VCF file."
 												"Based on the allele frequency of the contained variants, each ROH is assigned an estimated likelyhood to be observed by chance (Q score).");
-		addInfile("in", "Input variant list in VCF or GSvar format.", false);
+		addInfile("in", "Input variant list in VCF format.", false);
 		addOutfile("out", "Output TSV file with ROH regions.", false);
 		//optional
 		addInfileList("annotate", "List of BED files used for annotation. Each file adds a column to the output file. The base filename is used as colum name and 4th column of the BED file is used as annotation value.", true);
@@ -188,44 +188,23 @@ public:
 		bool inc_chrx = getFlag("inc_chrx");
 
 		//load variant list
-		VariantList vl;
+		VcfFormat::VcfFileHandler vl;
 		vl.load(getInfile("in"));
 
 		out << "=== Loading input data ===" << endl;
 		out << "Variants in VCF: " << vl.count() << endl;
 
 		//determine quality indices
-		int idx_qual = vl.annotationIndexByName("QUAL");
-		int idx_dp = -1;
-		for(int i=0; i<vl.annotations().count(); ++i)
-		{
-			if(!vl.annotations()[i].sampleID().isEmpty() && vl.annotations()[i].name()=="DP")
-			{
-				idx_dp = i;
-			}
-		}
-		if (idx_dp==-1) THROW(ArgumentException, "Could not find 'DP' annotation in variant list!");
-
-		//determine AF indices
-		QVector<int> info_af_indices;
-		QByteArray tmp = getString("var_af_keys").toLatin1().trimmed();
-		if (!tmp.isEmpty())
-		{
-			QByteArrayList var_af_keys = tmp.split(',');
-			foreach(const QByteArray& key, var_af_keys)
-			{
-				info_af_indices << vl.annotationIndexByName(key);
-			}
-		}
+		if (!vl.formatIDs().contains("DP")) THROW(ArgumentException, "Could not find 'DP' annotation in vcf header!");
 
 		QVector<int> csq_af_indices;
-		tmp = getString("var_af_keys_vep").toLatin1().trimmed();
+		QByteArray tmp = getString("var_af_keys_vep").toLatin1().trimmed();
 		if (!tmp.isEmpty())
 		{
 			QByteArrayList var_af_keys_vep =tmp.split(',');
 			foreach(const QByteArray& key, var_af_keys_vep)
 			{
-				csq_af_indices << vl.vepIndexByName(key);
+				csq_af_indices << vl.vcfHeader().vepIndexByName(key);
 			}
 		}
 
@@ -234,12 +213,10 @@ public:
 		float var_min_q = getFloat("var_min_q");
 		int vars_hom = 0;
 		int vars_known = 0;
-		int i_csq = csq_af_indices.isEmpty() ? -1 : vl.annotationIndexByName("CSQ");
-		int i_gt = vl.annotationIndexByName("GT");
 		QList<VariantInfo> var_info;
 		for(int i=0; i<vl.count(); ++i)
 		{
-			const Variant& v = vl[i];
+			const VcfFormat::VCFLine& v = vl[i];
 
 			//skip gonosomes
 			if (!v.chr().isAutosome() && !(inc_chrx && v.chr().isX()))
@@ -249,15 +226,14 @@ public:
 
 			//skip low quality variants
 			bool ok = true;
-			int dp_value = v.annotations().at(idx_dp).toInt(&ok);
-			if (!ok) THROW(ArgumentException, "Could not convert 'DP' value of variant " + v.toString() + " to integer.");
+			int dp_value = v.sample(0, "DP").toInt(&ok);
+			if (!ok) THROW(ArgumentException, "Could not convert 'DP' value of variant " + v.variantToString() + " to integer.");
 			if (dp_value < var_min_dp) continue;
-			int qual_value = v.annotations().at(idx_qual).toDouble(&ok);
-			if (!ok) THROW(ArgumentException, "Could not convert 'QUAL' value of variant " + v.toString() + " to double.");
+			int qual_value = v.qual();
 			if (qual_value < var_min_q) continue;
 
 			//determine if homozygous
-			QByteArray genotype = v.annotations().at(i_gt);
+			QByteArray genotype = v.sample(0, "GT");
 			bool geno_hom = (genotype=="1/1" || genotype=="1|1");
 			if (geno_hom) ++vars_hom;
 
@@ -265,10 +241,12 @@ public:
 			bool var_known = false;
 			float af = 0.01;
 
-			foreach(int index, info_af_indices)
+			tmp = getString("var_af_keys").toLatin1().trimmed();
+			QByteArrayList var_af_keys = tmp.split(',');
+			foreach(const QByteArray& var, var_af_keys)
 			{
 				bool ok = false;
-				float af_new = v.annotations().at(index).toFloat(&ok);
+				float af_new = v.info(var).toFloat(&ok);
 				if (!ok) continue;
 				if (af_new>0.0) var_known = true;
 				af = std::max(af, af_new);
@@ -276,7 +254,7 @@ public:
 
 			foreach(int index, csq_af_indices)
 			{
-				QByteArrayList annos = v.vepAnnotations(i_csq, index);
+				QByteArrayList annos = v.vepAnnotations(index);
 				foreach(const QByteArray& anno, annos)
 				{
 					float af_new = anno.toFloat();

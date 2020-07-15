@@ -186,7 +186,7 @@ public:
 	InfoFormatLine infoLineByID(const QByteArray& id, bool error_not_found = true) const;
 	InfoFormatLine formatLineByID(const QByteArray& id, bool error_not_found = true) const;
 	FilterLine filterLineByID(const QByteArray& id, bool error_not_found = true) const;
-	int vepIndexByName(const QString& name, bool error_if_not_found) const;
+	int vepIndexByName(const QString& name, bool error_if_not_found = true) const;
 
 	void setFormat(QByteArray& line);
 	void setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number);
