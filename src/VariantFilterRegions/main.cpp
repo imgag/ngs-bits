@@ -89,7 +89,7 @@ public:
 			}
 			else
 			{
-				variants.load(getInfile("in"), AUTO, &roi, inv);
+				variants.load(getInfile("in"), &roi, inv);
 			}
 			variants.store(getOutfile("out"));
 		}

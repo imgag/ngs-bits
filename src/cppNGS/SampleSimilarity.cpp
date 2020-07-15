@@ -34,21 +34,17 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi)
 {
 	VariantList variants;
-	VariantListFormat format = variants.load(filename, AUTO, roi);
+	variants.load(filename, roi);
 
 	int geno_col = -1;
-	if (format==TSV)
+
+	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
+	if (affected_cols.count()==1)
 	{
-		QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
-		if (affected_cols.count()==1)
-		{
-			geno_col = affected_cols[0];
-		}
+		geno_col = affected_cols[0];
 	}
-	else //VCF or VCF.GZ
-	{
-		THROW(ArgumentException, "File " + filename + " is not in GSvar format.");
-	}
+
+
 	if (geno_col==-1)
 	{
 		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);

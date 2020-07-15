@@ -673,34 +673,18 @@ bool VariantList::sampleExists(const QString& sample) const
 	return false;
 }
 
-VariantListFormat VariantList::load(QString filename, VariantListFormat format, const BedFile* roi, bool invert)
+void VariantList::load(QString filename, const BedFile* roi, bool invert)
 {
-	format=AUTO;
-	//determine format
-	if (format==AUTO)
+	//verify format
+	QString fn_lower = filename.toLower();
+	if(fn_lower.indexOf(':')>1 && fn_lower.count(':')==1)
 	{
-		QString fn_lower = filename.toLower();
-		if(fn_lower.indexOf(':')>1 && fn_lower.count(':')==1)
-		{
-			fn_lower = fn_lower.left(fn_lower.indexOf(':'));
-		}
+		fn_lower = fn_lower.left(fn_lower.indexOf(':'));
+	}
 
-		if (fn_lower.endsWith(".vcf"))
-		{
-			//format = VCF;
-		}
-		else if (fn_lower.endsWith(".vcf.gz"))
-		{
-			//format = VCF_GZ;
-		}
-		else if (fn_lower.endsWith(".tsv") || fn_lower.contains(".gsvar"))
-		{
-			format = TSV;
-		}
-		else
-		{
-			THROW(ArgumentException, "Could not determine format of file '" + fn_lower + "' from file extension. Valid extensions are 'vcf', 'vcf:SampleID', tsv' and 'GSvar'.")
-		}
+	if ( !fn_lower.endsWith(".tsv") && !fn_lower.contains(".gsvar"))
+	{
+		THROW(ArgumentException, "Could not determine format of file '" + fn_lower + "' from file extension. Valid extensions are tsv' and 'GSvar'.")
 	}
 
 	//create ROI index (if given)
@@ -715,21 +699,7 @@ VariantListFormat VariantList::load(QString filename, VariantListFormat format, 
 	}
 
 	//load variant list
-	if (format==VCF)
-	{
-		//loadFromVCF(filename, roi_idx.data(), invert);
-		return VCF;
-	}
-	else if (format==VCF_GZ)
-	{
-		//loadFromVCFGZ(filename, roi_idx.data(), invert);
-		return VCF_GZ;
-	}
-	else
-	{
-		loadFromTSV(filename, roi_idx.data(), invert);
-		return TSV;
-	}
+	loadFromTSV(filename, roi_idx.data(), invert);
 }
 
 void VariantList::store(QString filename, VariantListFormat format) const
@@ -926,70 +896,6 @@ void VariantList::storeToTSV(QString filename) const
 		}
 		stream << "\n";
 	}
-}
-
-void VariantList::loadFromVCF(QString filename, ChromosomalIndex<BedFile>* roi_idx, bool invert)
-{
-	//remove old data
-	clear();
-
-	//model the mandatory VCF fields "ID","QUAL" and "FILTER" as sample independent annotations
-	annotationDescriptions().append(VariantAnnotationDescription("ID", "ID of the variant, often dbSNP rsnumber"));
-	annotationDescriptions().append(VariantAnnotationDescription("QUAL", "Phred-scaled quality score", VariantAnnotationDescription::FLOAT));
-	annotationDescriptions().append(VariantAnnotationDescription("FILTER", "Filter status"));
-
-	//parse from stream
-	int line_number = 0;
-	QList<QByteArray> header_fields;
-	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
-	while(!file->atEnd())
-	{
-		processVcfLine(header_fields, line_number, file->readLine(), roi_idx, invert);
-	}
-
-}
-
-void VariantList::loadFromVCFGZ(QString filename, ChromosomalIndex<BedFile>* roi_idx, bool invert)
-{
-	//remove old data
-	clear();
-
-	//model the mandatory VCF fields "ID","QUAL" and "FILTER" as sample independent annotations
-	annotationDescriptions().append(VariantAnnotationDescription("ID", "ID of the variant, often dbSNP rsnumber"));
-	annotationDescriptions().append(VariantAnnotationDescription("QUAL", "Phred-scaled quality score", VariantAnnotationDescription::FLOAT));
-	annotationDescriptions().append(VariantAnnotationDescription("FILTER", "Filter status"));
-
-	//parse from stream
-	int line_number = 0;
-	QList<QByteArray> header_fields;
-
-	gzFile file = gzopen(filename.toLatin1().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
-	if (file==NULL)
-	{
-		THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-	}
-
-	char* buffer = new char[1048576]; //1MB buffer
-	while(!gzeof(file))
-	{
-
-		char* read_line = gzgets(file, buffer, 1048576);
-
-		//handle errors like truncated GZ file
-		if (read_line==nullptr)
-		{
-			int error_no = Z_OK;
-			QByteArray error_message = gzerror(file, &error_no);
-			if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-			{
-				THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
-			}
-		}
-
-		processVcfLine(header_fields, line_number, QByteArray(read_line), roi_idx, invert);
-	}
-	gzclose(file);
-	delete[] buffer;
 }
 
 void VariantList::processVcfLine(QList<QByteArray>& header_fields, int& line_number, QByteArray line, ChromosomalIndex<BedFile>* roi_idx, bool invert)

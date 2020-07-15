@@ -113,7 +113,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 	foreach(QString filename, in)
 	{
 		VariantList vl;
-		vl.load(filename, TSV);
+		vl.load(filename);
 
 		//check the all required fields are present in the input file
 		QVector<int> anno_indices;

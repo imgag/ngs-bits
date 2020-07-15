@@ -25,6 +25,7 @@
  *  - no good test for storeToTSV ( no test with filter
  *  - normalize function might be wrong
  *
+ *  - store function in VariantList supports VCF: however might not work ideally...
  *  - functions taking both: SampleSimilarity / VariantFilterRegions / VcfStore
  */
 namespace VcfFormat

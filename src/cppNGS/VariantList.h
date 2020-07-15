@@ -370,7 +370,7 @@ public:
     ///Loads a single-sample variant list from a file. Returns the format of the file.
 	///If @p roi is given, only variants that fall into the target regions are loaded.
 	///If @p invert is given, only variants that fall outside the target regions are loaded.
-	VariantListFormat load(QString filename, VariantListFormat format=AUTO, const BedFile* roi=nullptr, bool invert=false);
+	void load(QString filename, const BedFile* roi=nullptr, bool invert=false);
     ///Stores the variant list to a file.
 	void store(QString filename, VariantListFormat format=AUTO) const;
 
