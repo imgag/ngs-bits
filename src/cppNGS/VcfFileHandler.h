@@ -5,28 +5,33 @@
 #include "VariantList.h"
 
 
-//####################### CHANGE LOG ######################
+//####################### CHANGES ######################
 /*
- * - does not convert from VCf to TSV
- * - VariantList creates a seperate column for every INFO and FORMAT key ever observed in ANY VCF line
- *		=> now we only store key=value pairs for existing keys for every line seperately
+ *
+ *  TO DOS:
+ *
  * - when accessing alternative base sequences we always have to index the first one (before only one was stored)
+ *  =>  z.B. in ancestry() ???
  * - when accessing SAMPLES we have to index the first one (before only one SAMPLE was stored)
- * - the Statistics function 'static QCCollection variantList(VcfFormat::VcfFileHandler variants, bool filter)' considers ONLY first variant
- * - altString was then used
- * - addFilter does not add the filter also to the header/ also while going over the variants filters are not added to header
  *
- * - output of storeVcf is in order of info/filter/format tags as they were in the origional line (before according to header order)
- * - modified storeVcfToTsv to also handle multiple sample entries: before every formatID was combined with "_ss"
- * #KLEINE TODOS:
- *	- TEST Somatic angucken: vcf file has to be checked again (it was falsly genereated with storeToVcf and filterrs were copied
- *  - all bases are processed to be UPPER CASE !!! : angestry()
+ *
+ *  - modified storeVcfToTsv to also handle multiple sample entries: before every formatID was combined with "_ss" ???
+ *  - all bases are processed to be UPPER CASE !!!
  *  - toUTF8() for some variables (internally QByteArray in VCFFileHandler)
- *  - no good test for storeToTSV ( no test with filter
- *  - normalize function might be wrong
+ *  - normalize function does pos += 1 only for bool=to_gsvar
  *
- *  - store function in VariantList supports VCF: however might not work ideally...
- *  - functions taking both: SampleSimilarity / VariantFilterRegions / VcfStore
+ *  - output of storeVcf is in order of info/filter/format tags as they were in the origional line (before according to header order)
+ *  - store function in VariantList supports VCF: however might not work ideally... (accessing of ID QUAL and FILTER)
+ *
+ *  - tools taking both: SampleSimilarity / VariantFilterRegions / VcfStore
+ *
+ * #KLEINE TODOS:
+ *
+ *  - remove namespace/ order functions alphabetically
+ *  - add filter into header when it first appears in a vcf line
+ *  - tests for VCFLine and VCFHeader
+ *  - TEST Somatic angucken: vcf file has to be checked again (it was 'falsly' genereated with storeToVcf and filters were copied)
+ *
  */
 namespace VcfFormat
 {

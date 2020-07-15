@@ -126,7 +126,7 @@ private slots:
 		roi.append(BedLine("chr19", 17379550, 17382510));
 
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel_vep.GSvar"), TSV, &roi);
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"), &roi);
 		I_EQUAL(vl.count(), 4);
 		I_EQUAL(vl.annotations().count(), 30);
 		S_EQUAL(vl.annotations()[0].name(), QString("NA12878_03"));
@@ -191,50 +191,6 @@ private slots:
 		I_EQUAL(vl.count(), 329);
 		I_EQUAL(vl.annotations().count(), 30);
 	}
-
-	/*void convertVCFtoTSV()
-	{
-		//store loaded vcf file
-		VariantList vl;
-		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		vl.checkValid();
-		vl.store("out/VariantList_convertVCFtoTSV.tsv");
-		vl.clear();
-
-		//reload and check that no information became incorrect (vcf-specific things like annotation dimensions and types are still lost)
-		vl.load("out/VariantList_convertVCFtoTSV.tsv");
-		vl.checkValid();
-		I_EQUAL(vl.count(), 14);
-		I_EQUAL(vl.annotations().count(), 27);
-		I_EQUAL(vl.comments().count(), 2);
-		S_EQUAL(vl.annotations()[0].name(), QString("ID"));
-		S_EQUAL(vl.annotationDescriptionByName("ID").description(), QString("ID of the variant, often dbSNP rsnumber"));
-		S_EQUAL(vl.annotationDescriptionByName("INDEL").name(), QString("INDEL"));
-		S_EQUAL(vl.annotationDescriptionByName("INDEL").description(), QString("Indicates that the variant is an INDEL."));
-		S_EQUAL(vl.annotationDescriptionByName("DP4").name(), QString("DP4"));
-		S_EQUAL(vl.annotationDescriptionByName("DP4").description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
-		S_EQUAL(vl.annotationDescriptionByName("PL_ss").name(), QString("PL_ss"));
-		S_EQUAL(vl.annotationDescriptionByName("PL_ss").description(), QString("List of Phred-scaled genotype likelihoods"));
-
-
-		X_EQUAL(vl[0].chr(), Chromosome("chr17"));
-		I_EQUAL(vl[0].start(), 72196817);
-		I_EQUAL(vl[0].end(), 72196817);
-		S_EQUAL(vl[0].ref(), Sequence("G"));
-		S_EQUAL(vl[0].obs(), Sequence("GA"));
-		S_EQUAL(vl[0].annotations().at(3), QByteArray("TRUE"));
-		S_EQUAL(vl[0].annotations().at(8), QByteArray("4,3,11,11"));
-		S_EQUAL(vl[0].annotations().at(26), QByteArray("255,0,123"));
-
-		X_EQUAL(vl[12].chr(), Chromosome("chr9"));
-		I_EQUAL(vl[12].start(), 130931421);
-		I_EQUAL(vl[12].end(), 130931421);
-		S_EQUAL(vl[12].ref(), Sequence("G"));
-		S_EQUAL(vl[12].obs(), Sequence("A"));
-		S_EQUAL(vl[12].annotations().at(3), QByteArray(""));
-		S_EQUAL(vl[12].annotations().at(8), QByteArray("457,473,752,757"));
-		S_EQUAL(vl[12].annotations().at(26), QByteArray("255,0,255"));
-	}*/
 
 	void annotationIndexByName()
 	{

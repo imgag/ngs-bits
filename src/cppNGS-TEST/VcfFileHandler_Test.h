@@ -496,4 +496,48 @@ private slots:
 		QString seventh_line = vl.lineToString(6);
 		S_EQUAL(seventh_line, "chr19	14466629	.	A	AA	70.4	.	INDEL;DP=4;VDB=0.0001;AF1=1;AC1=2;DP4=0,0,1,2;MQ=50;FQ=-43.5	GT:PL:GQ	1/1:110,9,0:16");
 	}
+
+	void convertVCFtoTSV()
+	{
+		//store loaded vcf file
+		VcfFormat::VcfFileHandler vl_vcf;
+		vl_vcf.load(TESTDATA("data_in/panel_snpeff.vcf"));
+		vl_vcf.checkValid();
+		vl_vcf.store("out/VariantList_convertVCFtoTSV.tsv", TSV);
+
+		//reload and check that no information became incorrect (vcf-specific things like annotation dimensions and types are still lost)
+		VariantList vl_tsv;
+		vl_tsv.load("out/VariantList_convertVCFtoTSV.tsv");
+		vl_tsv.checkValid();
+		I_EQUAL(vl_tsv.count(), 14);
+		I_EQUAL(vl_tsv.annotations().count(), 27);
+		I_EQUAL(vl_tsv.comments().count(), 2);
+		S_EQUAL(vl_tsv.annotations()[0].name(), QString("ID"));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("ID").description(), QString("ID of the variant, often dbSNP rsnumber"));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("INDEL").name(), QString("INDEL"));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("INDEL").description(), QString("Indicates that the variant is an INDEL."));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("DP4").name(), QString("DP4"));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("DP4").description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("PL_ss").name(), QString("PL_ss"));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("PL_ss").description(), QString("List of Phred-scaled genotype likelihoods"));
+
+
+		X_EQUAL(vl_tsv[0].chr(), Chromosome("chr17"));
+		I_EQUAL(vl_tsv[0].start(), 72196817);
+		I_EQUAL(vl_tsv[0].end(), 72196817);
+		S_EQUAL(vl_tsv[0].ref(), Sequence("G"));
+		S_EQUAL(vl_tsv[0].obs(), Sequence("GA"));
+		S_EQUAL(vl_tsv[0].annotations().at(3), QByteArray("TRUE"));
+		S_EQUAL(vl_tsv[0].annotations().at(8), QByteArray("4,3,11,11"));
+		S_EQUAL(vl_tsv[0].annotations().at(26), QByteArray("255,0,123"));
+
+		X_EQUAL(vl_tsv[12].chr(), Chromosome("chr9"));
+		I_EQUAL(vl_tsv[12].start(), 130931421);
+		I_EQUAL(vl_tsv[12].end(), 130931421);
+		S_EQUAL(vl_tsv[12].ref(), Sequence("G"));
+		S_EQUAL(vl_tsv[12].obs(), Sequence("A"));
+		S_EQUAL(vl_tsv[12].annotations().at(3), QByteArray(""));
+		S_EQUAL(vl_tsv[12].annotations().at(8), QByteArray("457,473,752,757"));
+		S_EQUAL(vl_tsv[12].annotations().at(26), QByteArray("255,0,255"));
+	}
 };
