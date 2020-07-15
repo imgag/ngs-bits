@@ -205,7 +205,7 @@ public:
 		}
 		ChromosomalIndex<BedFile> exclude_idx(exclude_regions);
 
-		VcfFormat::VcfFileHandler variants;
+		 VcfFileHandler variants;
 		variants.load(getInfile("in"));
 		variants.sort();
 		int skip_chr = 0;
@@ -215,7 +215,7 @@ public:
 		int c_excluded = 0;
 		for (int i=0; i<variants.count(); ++i)
 		{
-			const VcfFormat::VCFLine& v = variants[i];
+			const  VCFLine& v = variants[i];
 
 			//only autosomes
 			if (!v.chr().isAutosome())

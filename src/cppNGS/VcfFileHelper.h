@@ -8,6 +8,7 @@
 #include "ChromosomalIndex.h"
 #include "Sequence.h"
 #include "BedFile.h"
+#include "VariantList.h"
 
 #include <QIODevice>
 #include <QString>
@@ -17,9 +18,6 @@
 #include <QList>
 
 #include <memory>
-
-namespace VcfFormat
-{
 
 template<typename K, typename V>
 class CPPNGSSHARED_EXPORT OrderedHash {
@@ -93,15 +91,6 @@ const QChar* strToPointer(const QString& str);
 
 enum InfoFormatType {INFO, FORMAT};
 using FormatIDToValueHash = OrderedHash<QByteArray, QByteArray>;
-///Supported analysis types
-enum AnalysisType
-{
-	GERMLINE_SINGLESAMPLE,
-	GERMLINE_TRIO,
-	GERMLINE_MULTISAMPLE,
-	SOMATIC_SINGLESAMPLE,
-	SOMATIC_PAIR
-};
 
 struct CPPNGSSHARED_EXPORT VcfHeaderLine
 {
@@ -442,6 +431,7 @@ public:
 	}
 	QByteArrayList vepAnnotations(int field_index) const;
 	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=false);
+	void leftNormalize(const Sequence& empty_seq="", bool to_gsvar_format=false);
 
 	///Equality operator (only compares the variatn location itself, not further annotations).
 	bool operator==(const VCFLine& rhs) const;
@@ -466,6 +456,8 @@ private:
 	OrderedHash<QByteArray, FormatIDToValueHash> sample_; // hash of a sample name to a hash of format entries to values
 };
 
+namespace VcfFormat
+{
 ///Comparator helper class that used by sort().
 class LessComparator
 {

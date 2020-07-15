@@ -83,7 +83,7 @@ void FilterResult::removeFlagged(VariantList& variants)
 	pass = QBitArray(variants.count(), true);
 }
 
-void FilterResult::removeFlagged(VcfFormat::VcfFileHandler& variants)
+void FilterResult::removeFlagged( VcfFileHandler& variants)
 {
 	//skip if all variants pass
 	if (countPassing()==variants.count()) return;
@@ -172,7 +172,7 @@ void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArr
 	}
 }
 
-void FilterResult::tagNonPassing(VcfFormat::VcfFileHandler& variants, QByteArray tag, QString description)
+void FilterResult::tagNonPassing( VcfFileHandler& variants, QByteArray tag, QString description)
 {
 
 	//add tag description (if missing)
@@ -322,7 +322,7 @@ void FilterBase::apply(const VariantList& /*variant_list*/, FilterResult& /*resu
 	THROW(NotImplementedException, "Method apply on VariantList not implemented for filter '" + name() + "'!");
 }
 
-void FilterBase::apply(const VcfFormat::VcfFileHandler& /*variants*/, FilterResult& /*result*/) const
+void FilterBase::apply(const  VcfFileHandler& /*variants*/, FilterResult& /*result*/) const
 {
 	THROW(NotImplementedException, "Method apply on VcfFileHandler not implemented for filter '" + name() + "'!");
 }
@@ -974,7 +974,7 @@ void FilterRegions::apply(const VariantList& variants, const BedFile& regions, F
 	}
 }
 
-void FilterRegions::apply(const VcfFormat::VcfFileHandler& variants, const BedFile& regions, FilterResult& result)
+void FilterRegions::apply(const  VcfFileHandler& variants, const BedFile& regions, FilterResult& result)
 {
 	//check regions
 	if(!regions.isMergedAndSorted())
@@ -1000,7 +1000,7 @@ void FilterRegions::apply(const VcfFormat::VcfFileHandler& variants, const BedFi
 	{
 		if (!result.flags()[i]) continue;
 
-		const VcfFormat::VCFLine& v = variants[i];
+		const  VCFLine& v = variants[i];
 		int index = regions_idx.matchingIndex(v.chr(), v.start(), v.end());
 		result.flags()[i] = (index!=-1);
 	}
@@ -1032,7 +1032,7 @@ void FilterFilterColumnEmpty::apply(const VariantList& variants, FilterResult& r
 	}
 }
 
-void FilterFilterColumnEmpty::apply(const VcfFormat::VcfFileHandler& variants, FilterResult& result) const
+void FilterFilterColumnEmpty::apply(const  VcfFileHandler& variants, FilterResult& result) const
 {
 	if (!enabled_) return;
 
@@ -1068,7 +1068,7 @@ void FilterVariantIsSNP::apply(const VariantList& variants, FilterResult& result
 		result.flags()[i] = variants[i].isSNV();
 	}
 }
-void FilterVariantIsSNP::apply(const VcfFormat::VcfFileHandler& variants, FilterResult& result) const
+void FilterVariantIsSNP::apply(const  VcfFileHandler& variants, FilterResult& result) const
 {
 	if (!enabled_) return;
 

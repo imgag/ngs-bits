@@ -2,8 +2,6 @@
 #include "TestFrameworkNGS.h"
 #include "VcfFileHandler.h"
 
-using namespace VcfFormat;
-
 TEST_CLASS(VcfFileHandler_Test)
 {
 Q_OBJECT
@@ -15,6 +13,9 @@ private slots:
 		vcfH.load(TESTDATA("data_in/VcfFileHandler_in.vcf"));
 		vcfH.store("out/VcfFileHandler_out.vcf");
 
+		vcfH.store("out/VcfFileHandler_out.vcf.gz", true, 9);
+
+
 		COMPARE_FILES("out/VcfFileHandler_out.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
 	}
 
@@ -22,7 +23,7 @@ private slots:
 	{
 		VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		I_EQUAL(vl.type(false), VcfFormat::GERMLINE_SINGLESAMPLE);
+		I_EQUAL(vl.type(false),  GERMLINE_SINGLESAMPLE);
 	}
 
 	void removeDuplicates_VCF()
@@ -137,7 +138,7 @@ private slots:
 		roi.append(BedLine("chr18", 67904549, 67904670));
 
 		VcfFileHandler vl;
-		vl.load(TESTDATA("data_in/panel_snpeff.vcf"), &roi);
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"), false, &roi);
 		vl.checkValid();
 		I_EQUAL(vl.count(), 4);
 		I_EQUAL(vl.vcfHeader().comments().count(), 2);
@@ -500,10 +501,10 @@ private slots:
 	void convertVCFtoTSV()
 	{
 		//store loaded vcf file
-		VcfFormat::VcfFileHandler vl_vcf;
+		VcfFileHandler vl_vcf;
 		vl_vcf.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl_vcf.checkValid();
-		vl_vcf.store("out/VariantList_convertVCFtoTSV.tsv", TSV);
+		vl_vcf.storeAsTsv("out/VariantList_convertVCFtoTSV.tsv");
 
 		//reload and check that no information became incorrect (vcf-specific things like annotation dimensions and types are still lost)
 		VariantList vl_tsv;

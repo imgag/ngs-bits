@@ -29,18 +29,18 @@ public:
 	virtual void main()
 	{
 		//load
-		VcfFormat::VcfFileHandler vl;
+		 VcfFileHandler vl;
 		vl.load(getInfile("in"));
 
 		//change start/end/ref/obs as needed in TSV
 		for (int i=0; i<vl.count(); ++i)
 		{
-			VcfFormat::VCFLine& v = vl[i];
+			VCFLine& v = vl[i];
 			v.normalize("-", true);
 		}
 
 		//store
-		vl.store(getOutfile("out"), TSV);
+		vl.storeAsTsv(getOutfile("out"));
     }
 };
 

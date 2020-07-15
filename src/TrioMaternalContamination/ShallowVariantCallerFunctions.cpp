@@ -2,15 +2,15 @@
 
 void getVariantInformation(
 		VariantInfo& vInfo,
-		const VcfFormat::VcfFileHandler& variant_list,
+		const  VcfFileHandler& variant_list,
 		int min_depth,
 		int min_alt_count,
-		std::unordered_set<VcfFormat::VCFLine>& homozygousVariants)
+		std::unordered_set< VCFLine>& homozygousVariants)
 {
 	BamReader reader(vInfo.in_file_name);
 	for (int i=0; i<variant_list.count(); ++i)
 	{
-		const VcfFormat::VCFLine& v = variant_list[i];
+		const  VCFLine& v = variant_list[i];
 		if (!v.isSNV()) continue;
 		if (!v.chr().isAutosome()) continue;
 
@@ -47,9 +47,9 @@ void countOccurencesOfVariants(
 		VariantInheritance& variantData
 		)
 {
-	const std::unordered_map<const VcfFormat::VCFLine, double>& variants_mother = trio.at(Member::MOTHER).variants;
-	const std::unordered_map<const VcfFormat::VCFLine, double>& variants_father = trio.at(Member::FATHER).variants;
-	const std::unordered_map<const VcfFormat::VCFLine, double>& variants_child = trio.at(Member::CHILD).variants;
+	const std::unordered_map<const  VCFLine, double>& variants_mother = trio.at(Member::MOTHER).variants;
+	const std::unordered_map<const  VCFLine, double>& variants_father = trio.at(Member::FATHER).variants;
+	const std::unordered_map<const  VCFLine, double>& variants_child = trio.at(Member::CHILD).variants;
 
 	double variants_of_mother_in_child = 0;
 	double variants_of_father_in_child = 0;
@@ -58,9 +58,9 @@ void countOccurencesOfVariants(
 	double father_variants = 0;
 
 	//count mother variants
-	for(const std::pair<const VcfFormat::VCFLine, double>& map_element : variants_mother)
+	for(const std::pair<const  VCFLine, double>& map_element : variants_mother)
 	{
-		const VcfFormat::VCFLine v = map_element.first;
+		const  VCFLine v = map_element.first;
 		if(variants_father.find(v) == variants_father.end())
 		{
 			if(variants_child.find(v) != variants_child.end())
@@ -73,9 +73,9 @@ void countOccurencesOfVariants(
 	variantData.percentOfMotherToChild = variants_of_mother_in_child / mother_variants;
 
 	//count father variants
-	for(const std::pair<const VcfFormat::VCFLine, double>& map_element : variants_father)
+	for(const std::pair<const  VCFLine, double>& map_element : variants_father)
 	{
-		const VcfFormat::VCFLine v = map_element.first;
+		const  VCFLine v = map_element.first;
 		if(variants_mother.find(v) == variants_mother.end())
 		{
 			if(variants_child.find(v) != variants_child.end())

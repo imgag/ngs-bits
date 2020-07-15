@@ -6,8 +6,8 @@
 
 SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi)
 {
-	VcfFormat::VcfFileHandler variants;
-	variants.load(filename, roi);
+	 VcfFileHandler variants;
+	variants.load(filename, false, roi);
 
 	if (!variants.formatIDs().contains("GT"))
 	{
@@ -17,7 +17,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 	VariantGenotypes output;
 	for (int i=0; i<variants.count(); ++i)
 	{
-		VcfFormat::VCFLine& variant = variants[i];
+		 VCFLine& variant = variants[i];
 
 		//skip variants not on autosomes
 		if(!variant.chr().isAutosome() && !include_gonosomes) continue;
@@ -70,7 +70,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString 
 SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile* roi)
 {
 	//get known SNP list
-	VcfFormat::VcfFileHandler snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, roi);
+	 VcfFileHandler snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, roi);
 
 	//open BAM
 	BamReader reader(filename);

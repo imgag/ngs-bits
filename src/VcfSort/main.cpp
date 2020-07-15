@@ -29,7 +29,7 @@ public:
 		bool qual = getFlag("qual");
 
 		//sort
-		VcfFormat::VcfFileHandler vl;
+		 VcfFileHandler vl;
 		vl.load(getInfile("in"));
 		if (fai=="")
 		{

@@ -1,14 +1,11 @@
 #include "VcfFileHelper.h"
 #include "Helper.h"
 
-namespace VcfFormat
-{
-
-LessComparator::LessComparator(bool use_quality)
+VcfFormat::LessComparator::LessComparator(bool use_quality)
 	: use_quality(use_quality)
 {
 }
-bool LessComparator::operator()(const VCFLine& a, const VCFLine& b) const
+bool VcfFormat::LessComparator::operator()(const VCFLine& a, const VCFLine& b) const
 {
 	if (a.chr()<b.chr()) return true;//compare chromsomes
 	else if (a.chr()>b.chr()) return false;
@@ -29,8 +26,7 @@ bool LessComparator::operator()(const VCFLine& a, const VCFLine& b) const
 	return false;
 }
 
-
-LessComparatorByFile::LessComparatorByFile(QString filename)
+VcfFormat::LessComparatorByFile::LessComparatorByFile(QString filename)
 	: filename_(filename)
 {
 	//build chromosome (as QString) to rank (as int) dictionary from file (rank=position in file)
@@ -44,7 +40,7 @@ LessComparatorByFile::LessComparatorByFile(QString filename)
 	}
 }
 
-bool LessComparatorByFile::operator()(const VCFLine& a, const VCFLine& b) const
+bool VcfFormat::LessComparatorByFile::operator()(const VCFLine& a, const VCFLine& b) const
 {
 	int a_chr_num = a.chr().num();
 	int b_chr_num = b.chr().num();
@@ -553,7 +549,3 @@ void VCFLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 		pos_ -= 1;
 	}
 }
-
-
-} //end namespace VcfFormat
-

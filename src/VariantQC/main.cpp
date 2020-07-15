@@ -30,7 +30,7 @@ public:
 	virtual void main()
 	{
 		//load variant list
-		VcfFormat::VcfFileHandler vl;
+		 VcfFileHandler vl;
 		QString filename = getInfile("in");
 		vl.load(filename);
 

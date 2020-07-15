@@ -10,7 +10,7 @@ class CPPNGSSHARED_EXPORT NGSHelper
 {
 public:
 	///Returns known SNPs and indels from gnomAD (AF>=1%, AN>=5000).
-	static VcfFormat::VcfFileHandler getKnownVariants(QString build, bool only_snvs, double min_af=0.0, double max_af=1.0, const BedFile* roi=nullptr);
+	static  VcfFileHandler getKnownVariants(QString build, bool only_snvs, double min_af=0.0, double max_af=1.0, const BedFile* roi=nullptr);
 
 	///Soft-clip alignment from the beginning or end (positions are 1-based)
 	static void softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos);

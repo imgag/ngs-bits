@@ -188,7 +188,7 @@ public:
 		bool inc_chrx = getFlag("inc_chrx");
 
 		//load variant list
-		VcfFormat::VcfFileHandler vl;
+		 VcfFileHandler vl;
 		vl.load(getInfile("in"));
 
 		out << "=== Loading input data ===" << endl;
@@ -216,7 +216,7 @@ public:
 		QList<VariantInfo> var_info;
 		for(int i=0; i<vl.count(); ++i)
 		{
-			const VcfFormat::VCFLine& v = vl[i];
+			const  VCFLine& v = vl[i];
 
 			//skip gonosomes
 			if (!v.chr().isAutosome() && !(inc_chrx && v.chr().isX()))

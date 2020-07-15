@@ -11,14 +11,14 @@
 #include <cmath>
 #include <vector>
 
-VcfFormat::VcfFileHandler NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
+ VcfFileHandler NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
 {
-	VcfFormat::VcfFileHandler output;
+	 VcfFileHandler output;
 
 	//load variant list
 	QString snp_file = ":/Resources/" + build + "_snps.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
-	output.load(snp_file, roi);
+	output.load(snp_file, false, roi);
 
 	//filter by AF
 	FilterResult filter_result(output.count());

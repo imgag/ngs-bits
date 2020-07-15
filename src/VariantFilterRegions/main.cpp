@@ -61,7 +61,7 @@ public:
 		//apply filter
 		if(mode=="vcf")
 		{
-			VcfFormat::VcfFileHandler variants;
+			 VcfFileHandler variants;
 			if (mark!="")
 			{
 				variants.load(getInfile("in"));
@@ -72,7 +72,7 @@ public:
 			}
 			else
 			{
-				variants.load(getInfile("in"), &roi, inv);
+				variants.load(getInfile("in"), false, &roi, inv);
 			}
 			variants.store(getOutfile("out"));
 		}

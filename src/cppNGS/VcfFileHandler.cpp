@@ -3,9 +3,6 @@
 #include "Helper.h"
 #include <zlib.h>
 
-namespace VcfFormat
-{
-
 void VcfFileHandler::clear()
 {
 	vcf_lines_.clear();
@@ -334,7 +331,7 @@ void VcfFileHandler::loadFromVCFGZ(const QString& filename, ChromosomalIndex<Bed
 	delete[] buffer;
 }
 
-void VcfFileHandler::load(const QString& filename, const BedFile* roi, bool invert)
+void VcfFileHandler::load(const QString& filename, bool allow_multi_sample, const BedFile* roi, bool invert)
 {
 	//create ROI index (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
@@ -362,7 +359,7 @@ void VcfFileHandler::load(const QString& filename, const BedFile* roi, bool inve
 	}
 }
 
-void VcfFileHandler::storeToTsv(const QString& filename) const
+void VcfFileHandler::storeAsTsv(const QString& filename) const
 {
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
@@ -443,11 +440,12 @@ void VcfFileHandler::storeToTsv(const QString& filename) const
 	}
 }
 
-void VcfFileHandler::storeToVcf(const QString& filename) const
+void VcfFileHandler::store(const QString& filename, bool compress, int compression_level) const
 {
+
 	//open stream
-	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
-	QTextStream stream(file.data());
+	QString vcf_file;
+	QTextStream stream(&vcf_file);
 
 	//write header information
 	vcf_header_.storeHeaderInformation(stream);
@@ -464,35 +462,30 @@ void VcfFileHandler::storeToVcf(const QString& filename) const
 		stream << "\n";
 		storeLineInformation(stream, vcfLine(i));
 	}
-}
 
-void VcfFileHandler::store(const QString& filename, VariantListFormat format) const
-{
-	//determine format
-	if (format==AUTO)
+	if(compress)
 	{
-		QString fn_lower = filename.toLower();
-		if (fn_lower.endsWith(".vcf"))
+		gzFile gz_file = gzopen(filename.toLatin1().data(),"wb");
+		if (gz_file == NULL)
 		{
-			format = VCF;
+			THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
 		}
-		else if (fn_lower.endsWith(".tsv") || fn_lower.contains(".gsvar"))
-		{
-			format = TSV;
-		}
-		else
-		{
-			THROW(ArgumentException, "Could not determine format of file '" + filename + "' from file extension. Valid extensions are 'vcf', 'tsv' and 'GSvar'.")
-		}
-	}
+		gzsetparams(gz_file, compression_level, Z_DEFAULT_STRATEGY);
 
-	if (format==VCF)
-	{
-		storeToVcf(filename);
+		int written = gzputs(gz_file, vcf_file.toLocal8Bit().data());
+		if (written==0)
+		{
+			THROW(FileAccessException, "Could not write to file '" + filename + "'!");
+		}
+		gzclose(gz_file);
 	}
 	else
 	{
-		storeToTsv(filename);
+		//open stream
+		QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+		QTextStream stream(file.data());
+
+		stream << vcf_file;
 	}
 }
 
@@ -518,12 +511,12 @@ void VcfFileHandler::checkValid() const
 void VcfFileHandler::sort(bool use_quality)
 {
 	if (vcfLines().count()==0) return;
-	std::sort(vcf_lines_.begin(), vcf_lines_.end(), LessComparator(use_quality));
+	std::sort(vcf_lines_.begin(), vcf_lines_.end(), VcfFormat::LessComparator(use_quality));
 
 }
 void VcfFileHandler::sortByFile(QString filename)
 {
-	sortCustom(LessComparatorByFile(filename));
+	sortCustom(VcfFormat::LessComparatorByFile(filename));
 }
 
 void VcfFileHandler::removeDuplicates(bool sort_by_quality)
@@ -745,5 +738,3 @@ QString VcfFileHandler::lineToString(int pos) const
 	storeLineInformation(stream, vcfLine(pos));
 	return line;
 }
-
-} //end namespace VcfFormat

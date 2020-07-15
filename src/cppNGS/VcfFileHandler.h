@@ -2,8 +2,7 @@
 
 #include "VcfFileHelper.h"
 #include "BedFile.h"
-#include "VariantList.h"
-
+#include <zlib.h>
 
 //####################### CHANGES ######################
 /*
@@ -31,10 +30,15 @@
  *  - add filter into header when it first appears in a vcf line
  *  - tests for VCFLine and VCFHeader
  *  - TEST Somatic angucken: vcf file has to be checked again (it was 'falsly' genereated with storeToVcf and filters were copied)
+ *  - VcfFile mit VcfHandler mergen
+ *
+ * ENDE:
+ * - streaming tools use VcfLine
+ * - VcfCheck
+ * - use check at the end of store (one time for all tests)
+ * - simplify VariantList (GSvar only, no sample-specific columns, ...)
  *
  */
-namespace VcfFormat
-{
 
 ///class handling vcf and vcf.gz files
 class CPPNGSSHARED_EXPORT VcfFileHandler
@@ -43,9 +47,10 @@ class CPPNGSSHARED_EXPORT VcfFileHandler
 public:
 
 	///loads a vcf or vcf.gz file
-	void load(const QString& filename, const BedFile* roi=nullptr, bool invert=false);
+	void load(const QString& filename, bool allow_multi_sample=false, const BedFile* roi=nullptr, bool invert=false);
 	///stores the data of VCFFileHandler in a vcf file
-	void store(const QString& filename, VariantListFormat format=VCF) const;
+	void store(const QString& filename, bool compress=false, int compression_level = 1) const;
+	void storeAsTsv(const QString& filename) const;
 
 	void checkValid() const;
 	void sort(bool use_quality = false);
@@ -135,8 +140,6 @@ private:
 	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
 	void loadFromVCF(const QString& filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
 	void loadFromVCFGZ(const QString& filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
-	void storeToVcf(const QString& filename) const;
-	void storeToTsv(const QString& filename) const;
 
 	void clear();
 
@@ -145,5 +148,3 @@ private:
 	QVector<QByteArray> column_headers_;
 
 };
-
-} //end namespace VcfFormat
