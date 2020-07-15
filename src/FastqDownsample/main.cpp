@@ -34,7 +34,7 @@ public:
 		QString in1 = getInfile("in1");
 		QString in2 = getInfile("in2");
 		QString out1 = getOutfile("out1");
-		QString out2 = getOutfile("out1");
+		QString out2 = getOutfile("out2");
 		double percentage = getFloat("percentage");
 		if (percentage<=0 || percentage>=100) THROW(CommandLineParsingException, "Invalid percentage " + QString::number(percentage) +"!");
 		bool test = getFlag("test");
