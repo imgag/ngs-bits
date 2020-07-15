@@ -109,7 +109,7 @@ struct CPPNGSSHARED_EXPORT VcfHeaderLine
 	QByteArray value;
 	QByteArray key;
 
-	void storeLine(QTextStream& stream)
+	void storeLine(QTextStream& stream) const
 	{
 		stream << "##" << key << "=" << value << "\n";
 	}
@@ -121,7 +121,7 @@ struct CPPNGSSHARED_EXPORT InfoFormatLine
 	QByteArray type;
 	QString description;
 
-	void storeLine(QTextStream& stream, InfoFormatType line_type)
+	void storeLine(QTextStream& stream, InfoFormatType line_type) const
 	{
 		line_type==InfoFormatType::INFO ? stream << "##INFO" : stream << "##FORMAT";
 		stream << "=<ID=" << id << ",Number=" << number << ",Type=" << type << ",Description=\"" << description << "\">" << "\n";
@@ -132,7 +132,7 @@ struct CPPNGSSHARED_EXPORT FilterLine
 	QByteArray id;
 	QString description;
 
-	void storeLine(QTextStream& stream)
+	void storeLine(QTextStream& stream) const
 	{
 		stream << "##FILTER=<ID=" << id << ",Description=\"" << description  << "\">" << "\n";
 	}
@@ -369,7 +369,7 @@ public:
 	}
 	void setAlt(const QByteArrayList& alt)
 	{
-		alt_string_ = strToPointer(alt.join(","));
+		alt_string_ = strToPointer(alt.join(",").toUpper());
 		for(const Sequence& seq : alt)
 		{
 			alt_.push_back(strToPointer(seq.toUpper()));
@@ -441,6 +441,7 @@ public:
 		return alt(0).length()==1 && ref_.length()==1 && alt(0)!="-" && ref_!="-";
 	}
 	QByteArrayList vepAnnotations(int field_index) const;
+	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=false);
 
 	///Equality operator (only compares the variatn location itself, not further annotations).
 	bool operator==(const VCFLine& rhs) const;

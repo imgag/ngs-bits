@@ -514,6 +514,46 @@ bool VCFLine::operator<(const VCFLine& rhs) const
 	return false;
 }
 
+void VCFLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
+{
+	//remove common first base
+	if((ref_.length()!=1 || alt_string_.length()!=1) && ref_.length()!=0 && alt_string_.length()!=0 && ref_[0]==alt_string_[0])
+	{
+		ref_ = ref_.mid(1);
+		alt_string_ = alt_string_.mid(1);
+		pos_ += 1;
+	}
+
+	//remove common suffix
+	while((ref_.length()!=1 || alt_string_.length()!=1) && ref_.length()!=0 && alt_string_.length()!=0 && ref_.right(1)==alt_string_.right(1))
+	{
+		ref_.resize(ref_.length()-1);
+		alt_string_.resize(alt_string_.length()-1);
+	}
+
+	//remove common prefix
+	while((ref_.length()!=1 || alt_string_.length()!=1) && ref_.length()!=0 && alt_string_.length()!=0 && ref_[0]==alt_string_[0])
+	{
+		ref_ = ref_.mid(1);
+		alt_string_ = alt_string_.mid(1);
+		pos_ += 1;
+	}
+
+	if (ref_.isEmpty())
+	{
+		ref_ = empty_seq;
+	}
+	if (alt_string_.isEmpty())
+	{
+		alt_string_ = empty_seq;
+	}
+
+	if (to_gsvar_format && ref_==empty_seq)
+	{
+		pos_ -= 1;
+	}
+}
+
 
 } //end namespace VcfFormat
 

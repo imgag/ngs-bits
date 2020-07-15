@@ -17,13 +17,15 @@
  * - addFilter does not add the filter also to the header/ also while going over the variants filters are not added to header
  *
  * - output of storeVcf is in order of info/filter/format tags as they were in the origional line (before according to header order)
- *
+ * - modified storeVcfToTsv to also handle multiple sample entries: before every formatID was combined with "_ss"
  * #KLEINE TODOS:
  *	- TEST Somatic angucken: vcf file has to be checked again (it was falsly genereated with storeToVcf and filterrs were copied
  *  - all bases are processed to be UPPER CASE !!! : angestry()
  *  - toUTF8() for some variables (internally QByteArray in VCFFileHandler)
+ *  - no good test for storeToTSV ( no test with filter
+ *  - normalize function might be wrong
  *
- *  - functions taking both: SampleSimilarity / VariantFilterRegions
+ *  - functions taking both: SampleSimilarity / VariantFilterRegions / VcfStore
  */
 namespace VcfFormat
 {
@@ -37,7 +39,7 @@ public:
 	///loads a vcf or vcf.gz file
 	void load(const QString& filename, const BedFile* roi=nullptr, bool invert=false);
 	///stores the data of VCFFileHandler in a vcf file
-	void store(const QString& filename) const;
+	void store(const QString& filename, VariantListFormat format=VCF) const;
 
 	void checkValid() const;
 	void sort(bool use_quality = false);
@@ -127,6 +129,9 @@ private:
 	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
 	void loadFromVCF(const QString& filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
 	void loadFromVCFGZ(const QString& filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
+	void storeToVcf(const QString& filename) const;
+	void storeToTsv(const QString& filename) const;
+
 	void clear();
 
 	QVector<VCFLine> vcf_lines_;

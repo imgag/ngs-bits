@@ -362,7 +362,88 @@ void VcfFileHandler::load(const QString& filename, const BedFile* roi, bool inve
 	}
 }
 
-void VcfFileHandler::store(const QString& filename) const
+void VcfFileHandler::storeToTsv(const QString& filename) const
+{
+	//open stream
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+	QTextStream stream(file.data());
+
+	for(const VcfHeaderLine& comment : vcfHeader().comments())
+	{
+		comment.storeLine(stream);
+	}
+	//write all DESCRIPTIONS
+	//ID, QUAL and FILTER
+	stream << "##DESCRIPTION=ID=ID of the variant, often dbSNP rsnumber\n";
+	stream << "##DESCRIPTION=QUAL=Phred-scaled quality score\n";
+	stream << "##DESCRIPTION=FILTER=Filter status\n";
+
+	//in tsv format every info entry is a column, and every combination of format and sample
+	for(InfoFormatLine info_line : vcfHeader().infoLines())
+	{
+		if(info_line.id=="." || info_line.description=="") continue;
+		stream << "##DESCRIPTION=" + info_line.id + "=" + info_line.description << "\n";
+	}
+	for(InfoFormatLine format_line : vcfHeader().formatLines())
+	{
+		if(format_line.id=="." || format_line.description=="") continue;
+		stream << "##DESCRIPTION=" + format_line.id + "_ss=" + format_line.description << "\n";
+	}
+
+	//filter are added seperately
+	for(const FilterLine& filter_line : vcfHeader().filterLines())
+	{
+		stream << "##FILTER=" << filter_line.id << "=" << filter_line.description << "\n";
+	}
+
+	//header
+	stream << "#chr\tstart\tend\tref\tobs\tID\tQUAL\tFILTER";
+	for(const InfoFormatLine& info_line : vcfHeader().infoLines())
+	{
+		if(info_line.id==".") continue;
+		stream << "\t" << info_line.id;
+	}
+	int i = 0;
+	while(i < sampleIDs().count())
+	{
+		for(const InfoFormatLine& format_line : vcfHeader().formatLines())
+		{
+			if(format_line.id==".") continue;
+			stream << "\t" << format_line.id << "_ss";
+		}
+		++i;
+	}
+
+	//vcf lines
+	for(const VCFLine& v : vcfLines())
+	{
+		stream << "\n";
+		stream << v.chr().str() << "\t" << QByteArray::number(v.start()) << "\t" << QByteArray::number(v.end()) << "\t" << v.ref()
+			   << "\t" << v.altString() << "\t" << v.id().join(';') << "\t" << QByteArray::number(v.qual());
+		if(v.filter().empty())
+		{
+			stream << "\t.";
+		}
+		else
+		{
+			stream << "\t" << v.filter().join(';');
+		}
+
+		for(const QByteArray& info_key : informationIDs())
+		{
+			stream << "\t" << v.info(info_key);
+		}
+		for(const QByteArray& sample_id : sampleIDs())
+		{
+			for(const QByteArray& format_key : formatIDs())
+			{
+				stream << "\t" << v.sample(sample_id, format_key);
+			}
+		}
+	}
+}
+
+void VcfFileHandler::storeToVcf(const QString& filename) const
 {
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
@@ -382,6 +463,36 @@ void VcfFileHandler::store(const QString& filename) const
 	{
 		stream << "\n";
 		storeLineInformation(stream, vcfLine(i));
+	}
+}
+
+void VcfFileHandler::store(const QString& filename, VariantListFormat format) const
+{
+	//determine format
+	if (format==AUTO)
+	{
+		QString fn_lower = filename.toLower();
+		if (fn_lower.endsWith(".vcf"))
+		{
+			format = VCF;
+		}
+		else if (fn_lower.endsWith(".tsv") || fn_lower.contains(".gsvar"))
+		{
+			format = TSV;
+		}
+		else
+		{
+			THROW(ArgumentException, "Could not determine format of file '" + filename + "' from file extension. Valid extensions are 'vcf', 'tsv' and 'GSvar'.")
+		}
+	}
+
+	if (format==VCF)
+	{
+		storeToVcf(filename);
+	}
+	else
+	{
+		storeToTsv(filename);
 	}
 }
 
@@ -634,6 +745,5 @@ QString VcfFileHandler::lineToString(int pos) const
 	storeLineInformation(stream, vcfLine(pos));
 	return line;
 }
-
 
 } //end namespace VcfFormat

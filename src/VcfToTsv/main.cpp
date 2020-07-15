@@ -1,7 +1,7 @@
 #include "ToolBase.h"
 #include "Helper.h"
 #include "Exceptions.h"
-#include "VariantList.h"
+#include "VcfFileHandler.h"
 #include <QFile>
 #include <QTextStream>
 #include <QList>
@@ -29,13 +29,13 @@ public:
 	virtual void main()
 	{
 		//load
-		VariantList vl;
-		vl.load(getInfile("in"), VCF);
+		VcfFormat::VcfFileHandler vl;
+		vl.load(getInfile("in"));
 
 		//change start/end/ref/obs as needed in TSV
 		for (int i=0; i<vl.count(); ++i)
 		{
-			Variant& v = vl[i];
+			VcfFormat::VCFLine& v = vl[i];
 			v.normalize("-", true);
 		}
 
