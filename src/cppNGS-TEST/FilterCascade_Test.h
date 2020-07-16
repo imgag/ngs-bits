@@ -693,6 +693,8 @@ private slots:
 		filter.setInteger("qual", 200);
 		filter.setInteger("depth", 0);
 		filter.setInteger("mapq", 0);
+		filter.setInteger("sb", -1);
+		filter.setInteger("ab", -1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 138);
 
@@ -701,6 +703,8 @@ private slots:
 		filter.setInteger("qual", 0);
 		filter.setInteger("depth", 20);
 		filter.setInteger("mapq", 0);
+		filter.setInteger("sb", -1);
+		filter.setInteger("ab", -1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 136);
 
@@ -709,16 +713,41 @@ private slots:
 		filter.setInteger("qual", 0);
 		filter.setInteger("depth", 0);
 		filter.setInteger("mapq", 55);
+		filter.setInteger("sb", -1);
+		filter.setInteger("ab", -1);
+
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 131);
+
+		//strand bias
+		result.reset();
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("mapq", 0);
+		filter.setInteger("sb", 20);
+		filter.setInteger("ab", -1);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 142);
+
+		//allele bias
+		result.reset();
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("mapq", 0);
+		filter.setInteger("sb", -1);
+		filter.setInteger("ab", 20);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 142);
 
 		//combined
 		result.reset();
 		filter.setInteger("qual", 500);
 		filter.setInteger("depth", 20);
 		filter.setInteger("mapq", 55);
+		filter.setInteger("sb", 20);
+		filter.setInteger("ab", 20);
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 115);
+		I_EQUAL(result.countPassing(), 113);
 	}
 
 	void FilterVariantQC_apply_multiSample()

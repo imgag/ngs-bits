@@ -1958,17 +1958,21 @@ FilterVariantQC::FilterVariantQC()
 	description_ = QStringList() << "Filter for variant quality";
 	params_ << FilterParameter("qual", INT, 30, "Minimum variant quality score (Phred)");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("depth", INT, 20, "Minimum depth");
+	params_ << FilterParameter("depth", INT, 15, "Minimum depth");
 	params_.last().constraints["min"] = "0";
 	params_ << FilterParameter("mapq", INT, 55, "Minimum mapping quality of alternate allele (Phred)");
 	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("strand_bias", INT, 25, "Maximum strand bias Phred score of alternate allele (set -1 to disable)");
+	params_.last().constraints["min"] = "-1";
+	params_ << FilterParameter("allele_balance", INT, 25, "Maximum allele balance Phred score (set -1 to disable)");
+	params_.last().constraints["min"] = "-1";
 
 	checkIsRegistered();
 }
 
 QString FilterVariantQC::toText() const
 {
-	return name() + " qual&ge;" + QString::number(getInt("qual", false)) + " depth&ge;" + QString::number(getInt("depth", false)) + " mapq&ge;" + QString::number(getInt("mapq", false));
+	return name() + " qual&ge;" + QString::number(getInt("qual", false)) + " depth&ge;" + QString::number(getInt("depth", false)) + " mapq&ge;" + QString::number(getInt("mapq", false)) + " strand_bias&le;" + QString::number(getInt("strand_bias", false)) + " allele_balance&le;" + QString::number(getInt("allele_balance", false));
 }
 
 void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) const
@@ -1979,6 +1983,8 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 	int qual = getInt("qual");
 	int depth = getInt("depth");
 	int mapq = getInt("mapq");
+	int sb = getInt("strand_bias");
+	int ab = getInt("allele_balance");
 
 	for(int i=0; i<variants.count(); ++i)
 	{
@@ -2017,6 +2023,20 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 			else if (part.startsWith("MQM="))
 			{
 				if (part.mid(4).toInt()<mapq)
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else if (sb>=0 && part.startsWith("SAP="))
+			{
+				if (part.mid(4).toInt()>sb)
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else if (ab>=0 && part.startsWith("ABP="))
+			{
+				if (part.mid(4).toInt()>ab)
 				{
 					result.flags()[i] = false;
 				}

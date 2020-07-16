@@ -601,7 +601,7 @@ public:
 		out << "Overall imported term-gene relations: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
 
 		out << "Optimizing term-gene relations...\n";
-		out << "(removing all genes which are already present in leaf nodes)" << endl;
+		out << "(removing genes which are present in leaf nodes from parent node)" << endl;
 
 		Phenotype root = Phenotype("HP:0000001", "All");
 		int removed_genes = 0;
