@@ -10,23 +10,17 @@
  *  TO DOS:
  *
  *  make libs handle multiallelic =>  z.B. in ancestry() ???
- * - overload fucntion for sample(0, formatKEy) => sample(formatKey)
  *
  * make VariantList ONLY store TSV, remove unnecessary annotations etc (function store to TSV)
  * function to Variant for VCFLine (or to VariantList)
  *
- *  - all bases are processed to be UPPER CASE !!!
- *  - toUTF8() for some variables (internally QByteArray in VCFFileHandler)
- *  - normalize function does pos += 1 only for bool=to_gsvar
  *
- *  - output of storeVcf is in order of info/filter/format tags as they were in the origional line (before according to header order)
  *  - store function in VariantList supports VCF: however might not work ideally... (accessing of ID QUAL and FILTER)
- *
- *  - tools taking both: SampleSimilarity / VariantFilterRegions / VcfStore
  *
  * #KLEINE TODOS:
  *
- *  - remove namespace/ order functions alphabetically
+ *  - allow_multisample in load function machen
+ *  - order functions alphabetically
  *  - add filter into header when it first appears in a vcf line
  *  - tests for VCFLine and VCFHeader
  *  - TEST Somatic angucken: vcf file has to be checked again (it was 'falsly' genereated with storeToVcf and filters were copied)
@@ -50,11 +44,11 @@ public:
 	///loads a vcf or vcf.gz file
 	void load(const QString& filename, bool allow_multi_sample=false, const BedFile* roi=nullptr, bool invert=false);
 	///stores the data of VCFFileHandler in a vcf file
-	void store(const QString& filename, bool compress=false, int compression_level = 1) const;
+	void store(const QString& filename, bool stdout_if_file_empty = false, bool compress=false, int compression_level = 1) const;
 	void storeAsTsv(const QString& filename) const;
 
 	void checkValid() const;
-	void leftNormalize(QString reference_genome, const Sequence& empty_seq="", bool to_gsvar_format=false);
+	void leftNormalize(QString reference_genome);
 
 	void sort(bool use_quality = false);
 	void sortByFile(QString filename);

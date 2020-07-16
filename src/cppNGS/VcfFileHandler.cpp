@@ -440,7 +440,7 @@ void VcfFileHandler::storeAsTsv(const QString& filename) const
 	}
 }
 
-void VcfFileHandler::store(const QString& filename, bool compress, int compression_level) const
+void VcfFileHandler::store(const QString& filename,  bool stdout_if_file_empty, bool compress, int compression_level) const
 {
 
 	//open stream
@@ -482,7 +482,7 @@ void VcfFileHandler::store(const QString& filename, bool compress, int compressi
 	else
 	{
 		//open stream
-		QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+		QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_file_empty);
 		QTextStream stream(file.data());
 
 		stream << vcf_file;
@@ -508,11 +508,11 @@ void VcfFileHandler::checkValid() const
 	}
 }
 
-void VcfFileHandler::leftNormalize(QString reference_genome, const Sequence& empty_seq, bool to_gsvar_format)
+void VcfFileHandler::leftNormalize(QString reference_genome)
 {
 	for(VCFLine& variant_line : vcfLines())
 	{
-		variant_line.leftNormalize(reference_genome, empty_seq, to_gsvar_format);
+		variant_line.leftNormalize(reference_genome);
 	}
 }
 

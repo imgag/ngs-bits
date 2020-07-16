@@ -447,7 +447,7 @@ public:
 	///Auxilary function: Removes common prefix and suffix bases from indels and adapts the start position accordingly.
 	static void normalize(int& start, Sequence& ref, Sequence& alt);
 
-	void leftNormalize(QString reference_genome, const Sequence& empty_seq="", bool to_gsvar_format=false);
+	void leftNormalize(QString reference_genome);
 
 	///Equality operator (only compares the variatn location itself, not further annotations).
 	bool operator==(const VCFLine& rhs) const;

@@ -558,7 +558,7 @@ void VCFLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 	}
 }
 
-void VCFLine::leftNormalize(QString reference_genome, const Sequence& empty_seq, bool to_gsvar_format)
+void VCFLine::leftNormalize(QString reference_genome)
 {
 	FastaFileIndex reference(reference_genome);
 
@@ -569,7 +569,7 @@ void VCFLine::leftNormalize(QString reference_genome, const Sequence& empty_seq,
 	}
 
 	//write out SNVs unchanged
-	if (ref_.length()==1 && alt_.length()==1)
+	if (ref_.length()==1 && alt_[0].length()==1)
 	{
 		return;
 	}
@@ -582,6 +582,7 @@ void VCFLine::leftNormalize(QString reference_genome, const Sequence& empty_seq,
 
 	//skip SNVs disguised as indels (e.g. ACGT => AXGT)
 	VCFLine::normalize(pos_, ref_, alt_[0]);
+
 	if (ref_.length()==1 && alt(0).length()==1)
 	{
 		return;
@@ -599,7 +600,7 @@ void VCFLine::leftNormalize(QString reference_genome, const Sequence& empty_seq,
 		//shift block to the left
 		Sequence block = Variant::minBlock(alt(0));
 		pos_ -= block.length();
-		while(pos_>0 && reference.seq(chr_, pos_, block.length())==block)
+		while(pos_ > 0 && reference.seq(chr_, pos_, block.length())==block)
 		{
 			pos_ -= block.length();
 		}
