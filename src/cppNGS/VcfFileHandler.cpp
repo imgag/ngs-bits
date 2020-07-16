@@ -434,7 +434,7 @@ void VcfFileHandler::storeAsTsv(const QString& filename) const
 		{
 			for(const QByteArray& format_key : formatIDs())
 			{
-				stream << "\t" << v.sample(sample_id, format_key);
+				stream << "\t" << v.formatValueFromSample(format_key, sample_id);
 			}
 		}
 	}
@@ -505,6 +505,14 @@ void VcfFileHandler::checkValid() const
 		{
 			THROW(ArgumentException, "Invalid variant annotation data: Wrong number of columns.");
 		}
+	}
+}
+
+void VcfFileHandler::leftNormalize(QString reference_genome, const Sequence& empty_seq, bool to_gsvar_format)
+{
+	for(VCFLine& variant_line : vcfLines())
+	{
+		variant_line.leftNormalize(reference_genome, empty_seq, to_gsvar_format);
 	}
 }
 

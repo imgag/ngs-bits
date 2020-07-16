@@ -298,7 +298,7 @@ public:
 	///access the value for a SAMPLE and FORMAT ID
 	// by purpose does not return a reference because an empty QByteArray can be returned for non-existing keys
 	//(use case: a specific FORMAT key is absent in some vcf lines)
-	QByteArray sample(const QByteArray& sample_name, const QByteArray& format_key, bool error_if_format_key_absent = false) const
+	QByteArray formatValueFromSample(const QByteArray& format_key, const QByteArray& sample_name, bool error_if_format_key_absent = false) const
 	{
 		FormatIDToValueHash hash = sample_[sample_name];
 		if(error_if_format_key_absent)
@@ -321,7 +321,7 @@ public:
 	///access the value for a SAMPLE position and FORMAT ID
 	// by purpose does not return a reference because an empty QByteArray can be returned for non-existing keys
 	//(use case: a specific FORMAT key is absent in some vcf lines)
-	QByteArray sample(int sample_pos, const QByteArray& format_key, bool error_if_format_key_absent = false) const
+	QByteArray formatValueFromSample(const QByteArray& format_key, int sample_pos = 0, bool error_if_format_key_absent = false) const
 	{
 		if(sample_pos >= samples().size()) THROW(ArgumentException, QString::number(sample_pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
 		FormatIDToValueHash hash = sample_.at(sample_pos).value();
@@ -362,6 +362,17 @@ public:
 		for(const Sequence& seq : alt)
 		{
 			alt_.push_back(strToPointer(seq.toUpper()));
+		}
+	}
+	void setSingleAlt(const Sequence& seq)
+	{
+		if(alt_.empty())
+		{
+			alt_.push_back(seq);
+		}
+		else
+		{
+			alt_[0] = seq;
 		}
 	}
 	void setId(const QByteArrayList& id)
@@ -430,8 +441,13 @@ public:
 		return alt(0).length()==1 && ref_.length()==1 && alt(0)!="-" && ref_!="-";
 	}
 	QByteArrayList vepAnnotations(int field_index) const;
-	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=false);
-	void leftNormalize(const Sequence& empty_seq="", bool to_gsvar_format=false);
+
+	/// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
+	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=true);
+	///Auxilary function: Removes common prefix and suffix bases from indels and adapts the start position accordingly.
+	static void normalize(int& start, Sequence& ref, Sequence& alt);
+
+	void leftNormalize(QString reference_genome, const Sequence& empty_seq="", bool to_gsvar_format=false);
 
 	///Equality operator (only compares the variatn location itself, not further annotations).
 	bool operator==(const VCFLine& rhs) const;

@@ -21,7 +21,7 @@ public:
 	{
 		setDescription("Converts a VCF file to a tab-separated text file.");
 		setExtendedDescription(QStringList() << "Multi-allelic variants are not supported. Use VcfBreakMulti to split multi-allelic variants into several lines."
-											 << "Multi-sample VCFs are not supported. Use VcfExtractSamples to split them to one VCF per sample.");
+							   << "Multi-sample VCFs are not supported. Use VcfExtractSamples to split them to one VCF per sample.");
 		addInfile("in", "Input variant list in VCF format.", false, true);
 		addOutfile("out", "Output variant list in TSV format.", false, true);
 	}
@@ -29,7 +29,7 @@ public:
 	virtual void main()
 	{
 		//load
-		 VcfFileHandler vl;
+		VcfFileHandler vl;
 		vl.load(getInfile("in"));
 
 		//change start/end/ref/obs as needed in TSV
@@ -41,7 +41,7 @@ public:
 
 		//store
 		vl.storeAsTsv(getOutfile("out"));
-    }
+	}
 };
 
 #include "main.moc"

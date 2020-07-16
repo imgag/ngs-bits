@@ -76,7 +76,7 @@ QCCollection Statistics::variantList( VcfFileHandler variants, bool filter)
         double hom_count = 0;
         for(int i=0; i<variants.count(); ++i)
         {
-			QByteArray geno = variants.vcfLine(i).sample(0, "GT"); // 0 because we only process the firsts SAMPLE
+			QByteArray geno = variants.vcfLine(i).formatValueFromSample("GT"); // 0 because we only process the firsts SAMPLE
 			if (geno=="1/1" || geno=="1|1")
             {
                 ++hom_count;
@@ -989,13 +989,13 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		if(!variants[i].isSNV())	continue;	//skip indels
 
 		//strelka SNV tumor and normal
-		if( variants.formatIDs().contains("AU") && !variants[i].sample(tumor_id.toUtf8(), "AU").isEmpty() )
+		if( variants.formatIDs().contains("AU") && !variants[i].formatValueFromSample("AU", tumor_id.toUtf8()).isEmpty() )
 		{
 			int count_mut = 0;
 			int count_all = 0;
 			foreach(const QByteArray& n, nucleotides)
 			{
-				int tmp = variants[i].sample(tumor_id.toUtf8(), n+"U").split(',')[0].toInt();
+				int tmp = variants[i].formatValueFromSample(n+"U", tumor_id.toUtf8()).split(',')[0].toInt();
 				if(n==variants[i].altString()) count_mut += tmp;
 				count_all += tmp;
 			}
@@ -1010,8 +1010,8 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		//##FORMAT=<ID=AO,RONumber=A,Type=Integer,Description="Alternate allele observation count">
 		else if(variants.formatIDs().contains("AO"))
 		{
-			int count_mut = variants[i].sample(tumor_id.toUtf8(), "AO").toInt();
-			int count_all = count_mut + variants[i].sample(tumor_id.toUtf8(), "RO").toInt();
+			int count_mut = variants[i].formatValueFromSample("AO", tumor_id.toUtf8()).toInt();
+			int count_all = count_mut + variants[i].formatValueFromSample( "RO", tumor_id.toUtf8()).toInt();
 			if(count_all>0)
 			{
 				hist_all.inc((double)count_mut/count_all);
@@ -1022,8 +1022,8 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		//##FORMAT=<ID=FA,Number=A,Type=Float,Description="Allele fraction of the alternate allele with regard to reference">
 		else if(variants.formatIDs().contains("FA"))
 		{
-			hist_all.inc(variants[i].sample(tumor_id.toUtf8(), "FA").toDouble());;
-			if(variants[i].failedFilters().empty())	hist_filtered.inc(variants[i].sample(tumor_id.toUtf8(), "FA").toDouble());
+			hist_all.inc(variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble());;
+			if(variants[i].failedFilters().empty())	hist_filtered.inc(variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble());
 		}
 		// else: strelka indel
 	}
@@ -1101,13 +1101,13 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		int count_all = 0;
 
 		//strelka SNV tumor and normal
-		if( variants.formatIDs().contains("TIR") && !variants[i].sample(tumor_id.toUtf8(), "AU").isEmpty() )
+		if( variants.formatIDs().contains("TIR") && !variants[i].formatValueFromSample("AU", tumor_id.toUtf8()).isEmpty() )
 		{			
 			count_mut = 0;
 			count_all = 0;
 			foreach(const QByteArray& n, nucleotides)
 			{
-				int tmp = variants[i].sample(tumor_id.toUtf8(), n+"U").split(',')[0].toInt();
+				int tmp = variants[i].formatValueFromSample(n+"U", tumor_id.toUtf8()).split(',')[0].toInt();
 				if(n==variants[i].altString())	count_mut += tmp;
 				count_all += tmp;
 			}
@@ -1117,26 +1117,26 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 			count_all = 0;
 			foreach(const QByteArray& n, nucleotides)
 			{
-				int tmp = variants[i].sample(normal_id.toUtf8(), (n+"U")).split(',')[0].toInt();
+				int tmp = variants[i].formatValueFromSample(n+"U", normal_id.toUtf8()).split(',')[0].toInt();
 				if(n==variants[i].altString())	count_mut += tmp;
 				count_all += tmp;
 			}
 			if(count_all>0)	af_normal = (double)count_mut/count_all;
 		}
-		else if( variants.formatIDs().contains("TIR") && !variants[i].sample(tumor_id.toUtf8(), "TIR").isEmpty() )	//indels strelka
+		else if( variants.formatIDs().contains("TIR") && !variants[i].formatValueFromSample("TIR", tumor_id.toUtf8()).isEmpty() )	//indels strelka
 		{
 			//TIR + TAR tumor
 			count_mut = 0;
 			count_all = 0;
-			count_mut = variants[i].sample(tumor_id.toUtf8(), "TIR").split(',')[0].toInt();
-			count_all = variants[i].sample(tumor_id.toUtf8(), "TAR").split(',')[0].toInt() + count_mut;
+			count_mut = variants[i].formatValueFromSample("TIR", tumor_id.toUtf8()).split(',')[0].toInt();
+			count_all = variants[i].formatValueFromSample("TAR", tumor_id.toUtf8()).split(',')[0].toInt() + count_mut;
 			if(count_all>0)	af_tumor = (double)count_mut/count_all;
 
 			//TIR + TAR normal
 			count_mut = 0;
 			count_all = 0;
-			count_mut = variants[i].sample(tumor_id.toUtf8(), "TIR").split(',')[0].toInt();
-			count_all = variants[i].sample(tumor_id.toUtf8(), "TAR").split(',')[0].toInt() + count_mut;
+			count_mut = variants[i].formatValueFromSample("TIR", tumor_id.toUtf8()).split(',')[0].toInt();
+			count_all = variants[i].formatValueFromSample("TAR", tumor_id.toUtf8()).split(',')[0].toInt() + count_mut;
 			if(count_all>0)	af_normal = (double)count_mut/count_all;
 		}
 		//freebayes tumor and normal
@@ -1144,20 +1144,20 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		//##FORMAT=<ID=AO,RONumber=A,Type=Integer,Description="Alternate allele observation count">
 		else if(variants.formatIDs().contains("AO"))
 		{
-			count_mut = variants[i].sample(tumor_id.toUtf8(), "AO").toInt();
-			count_all = count_mut + variants[i].sample(tumor_id.toUtf8(), "RO").toInt();
+			count_mut = variants[i].formatValueFromSample("AO", tumor_id.toUtf8()).toInt();
+			count_all = count_mut + variants[i].formatValueFromSample("RO", tumor_id.toUtf8()).toInt();
 			if(count_all>0)	af_tumor = (double)count_mut/count_all;
 
-			count_mut = variants[i].sample(normal_id.toUtf8(), "AO").toInt();
-			count_all = count_mut + variants[i].sample(normal_id.toUtf8(), "RO").toInt();
+			count_mut = variants[i].formatValueFromSample("AO", normal_id.toUtf8()).toInt();
+			count_all = count_mut + variants[i].formatValueFromSample("RO", normal_id.toUtf8()).toInt();
 			if(count_all>0)	af_normal = (double)count_mut/count_all;
 		}
 		//mutect
 		//##FORMAT=<ID=FA,Number=A,Type=Float,Description="Allele fraction of the alternate allele with regard to reference">
 		else if(variants.formatIDs().contains("FA"))
 		{
-			af_tumor = variants[i].sample(tumor_id.toUtf8(), "FA").toDouble();
-			af_normal = variants[i].sample(normal_id.toUtf8(), "FA").toDouble();
+			af_tumor = variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble();
+			af_normal = variants[i].formatValueFromSample("FA", normal_id.toUtf8()).toDouble();
 		}
 		else
 		{
@@ -1503,7 +1503,9 @@ AncestryEstimates Statistics::ancestry(QString build, const  VcfFileHandler& vl,
 		if (v.ref()!=v2.ref() || v.alt()!=v2.alt()) continue;
 
 		//genotype sample
-		geno_sample << vl.vcfLine(i).sample(0, "GT").count('1');
+		qDebug() << __LINE__;
+		geno_sample << vl.vcfLine(i).formatValueFromSample("GT").count('1');
+		qDebug() << __LINE__;
 
 		//population AFs
 		af_afr << v2.info("AF_AFR").toDouble();

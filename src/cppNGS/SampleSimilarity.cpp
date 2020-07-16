@@ -25,7 +25,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 		//skip multi-allelic variants
 		if (skip_multi && variant.altString().contains(',')) continue;
 
-		output[strToPointer(variant.variantToString())] = genoToDouble(variant.sample(0, "GT"));
+		output[strToPointer(variant.variantToString())] = genoToDouble(variant.formatValueFromSample("GT"));
 	}
 
 	return output;

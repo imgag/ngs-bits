@@ -8,18 +8,18 @@
 #include <cmath>
 
 class ConcreteTool
-        : public ToolBase
+		: public ToolBase
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    ConcreteTool(int& argc, char *argv[])
-        : ToolBase(argc, argv)
-    {
-    }
+	ConcreteTool(int& argc, char *argv[])
+		: ToolBase(argc, argv)
+	{
+	}
 
-    virtual void setup()
-    {
+	virtual void setup()
+	{
 		setDescription("UPD detection from trio variant data.");
 		addInfile("in", "Input VCF file of trio.", false, true);
 		addString("c", "Header name of child.", false);
@@ -42,27 +42,27 @@ public:
 	}
 
 	enum Genotype
-	{
+		{
 		HOM,
 		HET,
 		WT
-	};
+		};
 
 	enum UpdType
-	{
+		{
 		EXCLUDED,
 		BIPARENTAL,
 		UNINFORMATIVE,
 		ISO,
 		ISO_OR_HET
-	};
+		};
 
 	enum UpdSource
-	{
+		{
 		NONE,
 		FATHER,
 		MOTHER
-	};
+		};
 
 	struct VariantData
 	{
@@ -127,8 +127,8 @@ public:
 			int c_het = 0;
 			for (auto it=start; it<end; ++it)
 			{
-					bool het = it->c==HET;
-					c_het += het;
+				bool het = it->c==HET;
+				c_het += het;
 			}
 			return 100.0 * c_het / sizeMarkers();
 		}
@@ -205,7 +205,7 @@ public:
 		}
 		ChromosomalIndex<BedFile> exclude_idx(exclude_regions);
 
-		 VcfFileHandler variants;
+		VcfFileHandler variants;
 		variants.load(getInfile("in"));
 		variants.sort();
 		int skip_chr = 0;
@@ -213,6 +213,8 @@ public:
 		int skip_dp = 0;
 		int skip_indel = 0;
 		int c_excluded = 0;
+		qDebug() << __LINE__;
+
 		for (int i=0; i<variants.count(); ++i)
 		{
 			const  VCFLine& v = variants[i];
@@ -223,6 +225,7 @@ public:
 				++skip_chr;
 				continue;
 			}
+			qDebug() << __LINE__;
 
 			//filter by quality
 			if (v.qual() < 0) THROW(ArgumentException, "Quality '" + QString::number(v.qual()) + "' is not given in " + variants.lineToString(i));
@@ -235,14 +238,17 @@ public:
 			//filter by depth
 			if(variants.formatIDs().contains("DP"))
 			{
-				QByteArray tmp = v.sample(c, "DP");
+				qDebug() << __LINE__;
+				QByteArray tmp = v.formatValueFromSample("DP", c);
+				qDebug() << __LINE__;
+
 				bool ok;
 				int dp1 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
 				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of child '" + tmp + "' is no integer - variant " + variants.lineToString(i));
-				tmp = v.sample(f, "DP");
+				tmp = v.formatValueFromSample("DP", f);
 				int dp2 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
 				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of father  '" + tmp + "' is no integer - variant " + variants.lineToString(i));
-				tmp = v.sample(m, "DP");
+				tmp = v.formatValueFromSample("DP", m);
 				int dp3 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);
 				if (!ok && !tmp.isEmpty()) THROW(ArgumentException, "Depth of mother  '" + tmp + "' is no integer - variant " + variants.lineToString(i));
 				if (dp1<var_min_dp || dp2<var_min_dp || dp3<var_min_dp)
@@ -267,9 +273,9 @@ public:
 			entry.obs = v.altString();
 			if((variants.formatIDs().contains("GT")))
 			{
-				entry.c = str2geno(v.sample(c, "GT"));
-				entry.f = str2geno(v.sample(f, "GT"));
-				entry.m = str2geno(v.sample(m, "GT"));
+				entry.c = str2geno(v.formatValueFromSample("GT", c));
+				entry.f = str2geno(v.formatValueFromSample("GT", f));
+				entry.m = str2geno(v.formatValueFromSample("GT", m));
 			}
 
 			//filter by exclude regions
@@ -457,8 +463,8 @@ public:
 		stream << "Written " << c_passing << " ranges that pass the filters" << endl;
 	}
 
-    virtual void main()
-    {
+	virtual void main()
+	{
 		//init
 		BasicStatistics::precalculateFactorials();
 		QTextStream stream(stdout);
@@ -534,7 +540,7 @@ public:
 
 int main(int argc, char *argv[])
 {
-    ConcreteTool tool(argc, argv);
-    return tool.execute();
+	ConcreteTool tool(argc, argv);
+	return tool.execute();
 }
 

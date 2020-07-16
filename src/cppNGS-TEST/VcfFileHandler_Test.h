@@ -205,8 +205,8 @@ private slots:
 		S_EQUAL(vl.vcfLine(0).infos().at(4).value(), QByteArray("1X"));
 		S_EQUAL(vl.vcfLine(0).info("CIGAR"), QByteArray("1X"));
 		S_EQUAL(vl.vcfLine(1).info("CIGAR"), QByteArray(""));
-		S_EQUAL(vl.vcfLine(0).sample(0, "TRIO2"), QByteArray(""));
-		S_EQUAL(vl.vcfLine(1).sample(0, "TRIO2"), QByteArray("HET,9,0.56,WT,17,0.00,HOM,19,1.00"));
+		S_EQUAL(vl.vcfLine(0).formatValueFromSample("TRIO2"), QByteArray(""));
+		S_EQUAL(vl.vcfLine(1).formatValueFromSample("TRIO2"), QByteArray("HET,9,0.56,WT,17,0.00,HOM,19,1.00"));
 	}
 
 	void loadFromVCF_emptyFormatAndInfo()

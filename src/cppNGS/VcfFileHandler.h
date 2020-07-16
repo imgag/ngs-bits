@@ -9,12 +9,12 @@
  *
  *  TO DOS:
  *
- * - when accessing alternative base sequences we always have to index the first one (before only one was stored)
- *  =>  z.B. in ancestry() ???
- * - when accessing SAMPLES we have to index the first one (before only one SAMPLE was stored)
+ *  make libs handle multiallelic =>  z.B. in ancestry() ???
+ * - overload fucntion for sample(0, formatKEy) => sample(formatKey)
  *
+ * make VariantList ONLY store TSV, remove unnecessary annotations etc (function store to TSV)
+ * function to Variant for VCFLine (or to VariantList)
  *
- *  - modified storeVcfToTsv to also handle multiple sample entries: before every formatID was combined with "_ss" ???
  *  - all bases are processed to be UPPER CASE !!!
  *  - toUTF8() for some variables (internally QByteArray in VCFFileHandler)
  *  - normalize function does pos += 1 only for bool=to_gsvar
@@ -32,6 +32,7 @@
  *  - TEST Somatic angucken: vcf file has to be checked again (it was 'falsly' genereated with storeToVcf and filters were copied)
  *  - VcfFile mit VcfHandler mergen
  *
+ * - error handling in load function (all functionalities of VCFCheck)
  * ENDE:
  * - streaming tools use VcfLine
  * - VcfCheck
@@ -53,6 +54,8 @@ public:
 	void storeAsTsv(const QString& filename) const;
 
 	void checkValid() const;
+	void leftNormalize(QString reference_genome, const Sequence& empty_seq="", bool to_gsvar_format=false);
+
 	void sort(bool use_quality = false);
 	void sortByFile(QString filename);
 	///Costum sorting of variants.
@@ -81,8 +84,13 @@ public:
 	///returns a QList of all format IDs in the vcf file
 	QByteArrayList formatIDs() const;
 
-	///returns a QVector of VCFLines
+	///returns a QVector of vcf_lines_
 	const QVector<VCFLine>& vcfLines() const
+	{
+		return vcf_lines_;
+	}
+	///Read-Write access to a vcf_lines_
+	QVector<VCFLine>& vcfLines()
 	{
 		return vcf_lines_;
 	}

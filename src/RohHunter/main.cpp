@@ -226,14 +226,14 @@ public:
 
 			//skip low quality variants
 			bool ok = true;
-			int dp_value = v.sample(0, "DP").toInt(&ok);
+			int dp_value = v.formatValueFromSample("DP").toInt(&ok);
 			if (!ok) THROW(ArgumentException, "Could not convert 'DP' value of variant " + v.variantToString() + " to integer.");
 			if (dp_value < var_min_dp) continue;
 			int qual_value = v.qual();
 			if (qual_value < var_min_q) continue;
 
 			//determine if homozygous
-			QByteArray genotype = v.sample(0, "GT");
+			QByteArray genotype = v.formatValueFromSample("GT");
 			bool geno_hom = (genotype=="1/1" || genotype=="1|1");
 			if (geno_hom) ++vars_hom;
 

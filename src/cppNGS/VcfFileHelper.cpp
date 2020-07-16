@@ -510,30 +510,38 @@ bool VCFLine::operator<(const VCFLine& rhs) const
 	return false;
 }
 
-void VCFLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
+void VCFLine::normalize(int& start, Sequence& ref, Sequence& alt)
 {
 	//remove common first base
-	if((ref_.length()!=1 || alt_string_.length()!=1) && ref_.length()!=0 && alt_string_.length()!=0 && ref_[0]==alt_string_[0])
+	if((ref.length()!=1 || alt.length()!=1) && ref.length()!=0 && alt.length()!=0 && ref[0]==alt[0])
 	{
-		ref_ = ref_.mid(1);
-		alt_string_ = alt_string_.mid(1);
-		pos_ += 1;
+		ref = ref.mid(1);
+		alt = alt.mid(1);
+		start += 1;
 	}
 
 	//remove common suffix
-	while((ref_.length()!=1 || alt_string_.length()!=1) && ref_.length()!=0 && alt_string_.length()!=0 && ref_.right(1)==alt_string_.right(1))
+	while((ref.length()!=1 || alt.length()!=1) && ref.length()!=0 && alt.length()!=0 && ref.right(1)==alt.right(1))
 	{
-		ref_.resize(ref_.length()-1);
-		alt_string_.resize(alt_string_.length()-1);
+		ref.resize(ref.length()-1);
+		alt.resize(alt.length()-1);
 	}
 
 	//remove common prefix
-	while((ref_.length()!=1 || alt_string_.length()!=1) && ref_.length()!=0 && alt_string_.length()!=0 && ref_[0]==alt_string_[0])
+	while((ref.length()!=1 || alt.length()!=1) && ref.length()!=0 && alt.length()!=0 && ref[0]==alt[0])
 	{
-		ref_ = ref_.mid(1);
-		alt_string_ = alt_string_.mid(1);
-		pos_ += 1;
+		ref = ref.mid(1);
+		alt = alt.mid(1);
+		start += 1;
 	}
+}
+
+void VCFLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
+{
+	//skip multi-allelic variants
+	if(alt().count() > 1 || alt().empty())	return;
+
+	normalize(pos_, ref_, alt_[0]);
 
 	if (ref_.isEmpty())
 	{
@@ -549,3 +557,92 @@ void VCFLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 		pos_ -= 1;
 	}
 }
+
+void VCFLine::leftNormalize(QString reference_genome, const Sequence& empty_seq, bool to_gsvar_format)
+{
+	FastaFileIndex reference(reference_genome);
+
+	//leave multi-allelic variants unchanged
+	if (alt_.count() > 1)
+	{
+		return;
+	}
+
+	//write out SNVs unchanged
+	if (ref_.length()==1 && alt_.length()==1)
+	{
+		return;
+	}
+
+	//skip all variants starting at first base of chromosome
+	if (pos_==1)
+	{
+		return;
+	}
+
+	//skip SNVs disguised as indels (e.g. ACGT => AXGT)
+	VCFLine::normalize(pos_, ref_, alt_[0]);
+	if (ref_.length()==1 && alt(0).length()==1)
+	{
+		return;
+	}
+
+	//skip complex indels (e.g. ACGT => CA)
+	if (ref_.length()!=0 && alt(0).length()!=0)
+	{
+		return;
+	}
+
+	//left-align INSERTION
+	if (ref_.length()==0)
+	{
+		//shift block to the left
+		Sequence block = Variant::minBlock(alt(0));
+		pos_ -= block.length();
+		while(pos_>0 && reference.seq(chr_, pos_, block.length())==block)
+		{
+			pos_ -= block.length();
+		}
+		pos_ += block.length();
+
+		//prepend prefix base
+		pos_ -= 1;
+		ref_ = reference.seq(chr_, pos_, 1);
+		setSingleAlt(ref_ + alt(0));
+
+		//shift single-base to the left
+		while(ref_[0]==alt(0)[alt(0).count()-1])
+		{
+			pos_ -= 1;
+			ref_ = reference.seq(chr_, pos_, 1);
+			setSingleAlt(ref_ + alt(0).left(alt(0).length()-1));
+		}
+	}
+
+	//left-align DELETION
+	else
+	{
+		//shift block to the left
+		Sequence block = Variant::minBlock(ref_);
+		while(pos_ >= 1 && reference.seq(chr_, pos_, block.length())==block)
+		{
+			pos_ -= block.length();
+		}
+		pos_ += block.length();
+
+		//prepend prefix base
+		pos_ -= 1;
+		setSingleAlt(reference.seq(chr_, pos_, 1));
+		ref_ = alt(0) + ref_;
+
+		//shift single-base to the left
+		while(ref_[ref_.count()-1]==alt(0)[0])
+		{
+			pos_ -= 1;
+			setSingleAlt(reference.seq(chr_, pos_, 1));
+			ref_ = alt(0) + ref_.left(ref_.length()-1);
+		}
+	}
+
+}
+
