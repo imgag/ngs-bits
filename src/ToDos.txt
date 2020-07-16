@@ -19,12 +19,12 @@ NGSD:
 
 GSvar:
 #### Variant quality filter: re-analyze duo at W:\projects\diagnostic\Genome_Diagnostik\Multi_DX200757_02_DX200756_02, see if the de-novo variants disappear
-#### Load phenotype from NGSD for trio/multi crashes SNV/CNV/SV > FIX
 #### Preferred transcript: not writable > error not crash AND preferred transcript as plain text widget!
 *** Add mean coverage of chrMT to report
 *** Custom variant menu (custom_variant_menu=Custom Action|http://127.0.0.1/index.php?chr=[chr]&start=[start]&end=[end]&ref=[ref]&obs=[obs]&gene=[gene]\tCustom Action2|http://127.0.0.2/index.php?chr=[chr]&start=[start]
 *** Implement sample sheet in NGSD and add it to the XML report via the HTML report (Email Anne - Auwertebogen aus GsVar)
 ** Show OMIM entries in ROH dialog like in CNV/SV dialog.
+** Filter widgets (small variants, CNVs, SVs): Add option to hide variants with report config
 * update ROH docu with ROH sum (ROHs >500k) for ssHAEv7 and WGS
 * Trio report: force disease_group/disease_status and outcome (import trio parents as unaffected with same disease group as child)
 * Allow ClinVar upload

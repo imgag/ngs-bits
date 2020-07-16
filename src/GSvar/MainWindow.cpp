@@ -822,10 +822,7 @@ void MainWindow::openInIGV(QString region)
 				dlg.addFile("amplicons track (of processing system)", "BED", amplicons, true);
 			}
 		}
-		catch(...)
-		{
-			//nothing to do here
-		}
+		catch(...) {} //Nothing to do here
 
 		//custom tracks
 		QList<QAction*> igv_actions = ui_.menuTrackDefaults->findChildren<QAction*>();
@@ -1117,10 +1114,18 @@ QString MainWindow::processedSampleName()
 	{
 		return filename.split("-")[0];
 	}
-	else if (variants_.type()==GERMLINE_TRIO)
+	else if (variants_.type()==GERMLINE_TRIO) //return index (child)
 	{
-
 		return variants_.getSampleHeader().infoByStatus(true).column_name;
+	}
+	else if (variants_.type()==GERMLINE_MULTISAMPLE) //return affected if there is exactly one affected
+	{
+		try
+		{
+			SampleInfo info = variants_.getSampleHeader().infoByStatus(true);
+			return info.column_name;
+		}
+		catch(...) {} //Nothing to do here
 	}
 
 	return filename;
@@ -1162,11 +1167,19 @@ void MainWindow::cleanUpModelessDialogs()
 
 void MainWindow::importPhenotypesFromNGSD()
 {
-	NGSD db;
-	QString sample_id = db.sampleId(processedSampleName());
-	QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
+	QString ps_name = processedSampleName();
+	try
+	{
+		NGSD db;
+		QString sample_id = db.sampleId(ps_name);
+		QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
 
-	ui_.filters->setPhenotypes(phenotypes);
+		ui_.filters->setPhenotypes(phenotypes);
+	}
+	catch(Exception& /*e*/)
+	{
+		QMessageBox::warning(this, "Error loading phenotypes", "Cannot load phenotypes from NGSD for processed sample '" + ps_name + "'!");
+	}
 }
 
 void MainWindow::createSubPanelFromPhenotypeFilter()
@@ -1928,7 +1941,7 @@ void MainWindow::loadSomaticReportConfig()
 		dir.cd("Sample_" + normalSampleName());
 		somatic_control_tissue_variants_.load( Helper::canonicalPath(dir.absolutePath() + "/" +normalSampleName() + ".GSvar" ) );
 	}
-	catch(...) {}; //Nothing to do here
+	catch(...) {} //Nothing to do here
 
 
 

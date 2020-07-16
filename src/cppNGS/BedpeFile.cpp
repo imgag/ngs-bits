@@ -451,10 +451,7 @@ bool BedpeFile::isSomatic() const
 		BedpeFileFormat f = format();
 		if (f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL || f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY) return true;
 	}
-	catch (Exception& /*e*/)
-	{
-		//nothing to do here
-	}
+	catch(...) {} //Nothing to do here
 
 	return false;
 }

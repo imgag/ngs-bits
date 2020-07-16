@@ -47,10 +47,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 			{
 				tum_cont_histological_ = Helper::toDouble(entry.disease_info);
 			}
-			catch(ArgumentException)
-			{
-				;//Nothing to do here
-			}
+			catch(ArgumentException) {} //Nothing to do here
 			break;
 		}
 	}

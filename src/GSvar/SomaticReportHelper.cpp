@@ -984,10 +984,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 			validated_viruses_ << tmp;
 		}
 	}
-	catch(...)
-	{
-		;//nothing to do here
-	}
+	catch(...) {} //Nothing to do here
 
 	//load obo terms for filtering coding/splicing variants
 	OntologyTermCollection obo_terms("://Resources/so-xp_3_0_0.obo",true);

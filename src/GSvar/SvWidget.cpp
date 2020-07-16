@@ -587,6 +587,12 @@ QByteArray SvWidget::getFormatEntryByKey(const QByteArray& key, const QByteArray
 
 void SvWidget::importPhenotypesFromNGSD()
 {
+	if (ps_id_=="")
+	{
+		QMessageBox::warning(this, "Error loading phenotypes", "Cannot load phenotypes because no processed sample ID is set!");
+		return;
+	}
+
 	NGSD db;
 	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_id_).toString();
 	QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
