@@ -231,9 +231,14 @@ public:
 	{
 		return alt_;
 	}
-	const Sequence& altString() const
+	const Sequence altString() const
 	{
-		return alt_string_;
+		QByteArrayList alt_sequences;
+		for(const Sequence& seq : alt())
+		{
+			alt_sequences.push_back(seq);
+		}
+		return alt_sequences.join(',');
 	}
 	const Sequence& alt(int pos) const
 	{
@@ -358,7 +363,6 @@ public:
 	}
 	void setAlt(const QByteArrayList& alt)
 	{
-		alt_string_ = strToPointer(alt.join(",").toUpper());
 		for(const Sequence& seq : alt)
 		{
 			alt_.push_back(strToPointer(seq.toUpper()));
@@ -432,7 +436,6 @@ public:
 	bool isValidGenomicPosition() const;
 	//returns all not passed filters
 	QByteArrayList failedFilters() const;
-	void checkValid() const;
 	QString variantToString() const;
 
 	///Returns if the variant is a SNV

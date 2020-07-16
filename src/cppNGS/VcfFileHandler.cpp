@@ -85,8 +85,20 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 	}
 	VCFLine vcf_line;
 	vcf_line.setChromosome(strToPointer(line_parts[0]));
+	if(!vcf_line.chr().isValid())
+	{
+		THROW(ArgumentException, "Invalid variant chromosome string in line " + QString::number(line_number) + ": " + vcf_line.chr().str() + ".");
+	}
 	vcf_line.setPos(atoi(line_parts[1]));
+	if(vcf_line.pos() < 1)
+	{
+		THROW(ArgumentException, "Invalid variant position range in line " + QString::number(line_number) + ": " + QString::number(vcf_line.pos()) + ".");
+	}
 	vcf_line.setRef(strToPointer(line_parts[3].toUpper()));
+	if (vcf_line.ref()!="-" && !QRegExp("[ACGTN]+").exactMatch(vcf_line.ref()))
+	{
+		THROW(ArgumentException, "Invalid variant reference sequence in line " + QString::number(line_number) + ": " + vcf_line.ref() + ".");
+	}
 
 	//Skip variants that are not in the target region (if given)
 	if (roi_idx!=nullptr)
@@ -101,6 +113,13 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 
 	vcf_line.setId(line_parts[2].split(';'));
 	vcf_line.setAlt(line_parts[4].split(','));
+	for(Sequence alt_seq : vcf_line.alt())
+	{
+		if (alt_seq!="-" && alt_seq!="." && !QRegExp("[ACGTN,]+").exactMatch(alt_seq))
+		{
+			THROW(ArgumentException, "Invalid variant alternative sequence in line " + QString::number(line_number) + ": " + alt_seq + ".");
+		}
+	}
 
 	if(line_parts[5]==".")
 	{
@@ -486,25 +505,6 @@ void VcfFileHandler::store(const QString& filename,  bool stdout_if_file_empty, 
 		QTextStream stream(file.data());
 
 		stream << vcf_file;
-	}
-}
-
-void VcfFileHandler::checkValid() const
-{
-	foreach(VCFLine vcf_line, vcf_lines_)
-	{
-		vcf_line.checkValid();
-
-		//if FORMAT or SAMPLE exist, there must be more than MIN_COLS
-		if( (!vcf_line.samples().empty() || !vcf_line.format().empty()) && column_headers_.count() == VCFHeader::MIN_COLS )
-		{
-			THROW(ArgumentException, "Invalid variant annotation data: Missing headers for VCF line with FORMAT and SAMPLES but only " + QString::number(VCFHeader::MIN_COLS) + " columns.");
-		}
-		//otherwise there can not be more samples than columns
-		else if(column_headers_.count() > VCFHeader::MIN_COLS && vcf_line.samples().size() + 1 + VCFHeader::MIN_COLS > column_headers_.count())
-		{
-			THROW(ArgumentException, "Invalid variant annotation data: Wrong number of columns.");
-		}
 	}
 }
 

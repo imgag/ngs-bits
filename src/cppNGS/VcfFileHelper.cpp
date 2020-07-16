@@ -461,32 +461,6 @@ QByteArrayList VCFLine::failedFilters() const
 	return filters;
 }
 
-void VCFLine::checkValid() const
-{
-	if (!chr_.isValid())
-	{
-		THROW(ArgumentException, "Invalid variant chromosome string in variant '" + chr_.str() + " " + QString::number(pos_));
-	}
-
-	if (pos_ < 1 || ref_.length() < 1)
-	{
-		THROW(ArgumentException, "Invalid variant position range in variant '" +  chr_.str() + " " + QString::number(pos_));
-	}
-
-	if (ref_!="-" && !QRegExp("[ACGTN]+").exactMatch(ref_))
-	{
-		THROW(ArgumentException, "Invalid variant reference sequence in variant '" +  chr_.str() + " " + QString::number(pos_));
-	}
-	for(Sequence alt_seq : alt_)
-	{
-		if (alt_seq!="-" && alt_seq!="." && !QRegExp("[ACGTN,]+").exactMatch(alt_seq))
-		{
-			qDebug() << alt_seq;
-			THROW(ArgumentException, "Invalid variant alternative sequence in variant '" +  chr_.str() + " " + QString::number(pos_));
-		}
-	}
-}
-
 QString VCFLine::variantToString() const
 {
 	return chr_.str() + ":" + QString::number(start()) + "-" + QString::number(end()) + " " + ref_ + ">" + altString();
@@ -494,7 +468,7 @@ QString VCFLine::variantToString() const
 
 bool VCFLine::operator==(const VCFLine& rhs) const
 {
-	return pos_==rhs.pos() && chr_==rhs.chr() && ref_==rhs.ref() && alt_string_==rhs.altString();
+	return pos_==rhs.pos() && chr_==rhs.chr() && ref_==rhs.ref() && altString()==rhs.altString();
 }
 
 bool VCFLine::operator<(const VCFLine& rhs) const
@@ -505,8 +479,8 @@ bool VCFLine::operator<(const VCFLine& rhs) const
 	else if (pos_>rhs.pos()) return false;
 	else if (ref_<rhs.ref()) return true; //compare ref sequence
 	else if (ref_>rhs.ref()) return false;
-	else if (alt_string_<rhs.altString()) return true; //compare obs sequence
-	else if (alt_string_>rhs.altString()) return false;
+	else if (altString()<rhs.altString()) return true; //compare obs sequence
+	else if (altString()>rhs.altString()) return false;
 	return false;
 }
 
@@ -547,15 +521,16 @@ void VCFLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 	{
 		ref_ = empty_seq;
 	}
-	if (alt_string_.isEmpty())
+	if (altString().isEmpty())
 	{
-		alt_string_ = empty_seq;
+		alt_[0] = empty_seq;
 	}
 
 	if (to_gsvar_format && ref_==empty_seq)
 	{
 		pos_ -= 1;
 	}
+
 }
 
 void VCFLine::leftNormalize(QString reference_genome)

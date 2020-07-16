@@ -6,7 +6,6 @@
 
 //####################### CHANGES ######################
 /*
- *
  *  TO DOS:
  *
  *  make libs handle multiallelic =>  z.B. in ancestry() ???
@@ -47,7 +46,6 @@ public:
 	void store(const QString& filename, bool stdout_if_file_empty = false, bool compress=false, int compression_level = 1) const;
 	void storeAsTsv(const QString& filename) const;
 
-	void checkValid() const;
 	void leftNormalize(QString reference_genome);
 
 	void sort(bool use_quality = false);

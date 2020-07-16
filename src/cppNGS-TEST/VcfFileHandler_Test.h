@@ -30,10 +30,8 @@ private slots:
 	{
 		VcfFileHandler vl,vl2;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		vl.checkValid();
 		vl.sort();
 		vl2.load(TESTDATA("data_in/variantList_removeDuplicates.vcf"));
-		vl2.checkValid();
 		vl2.removeDuplicates(true);
 		//after removal of duplicates (and numerical sorting of vl), vl and vl2 should be the same
 		I_EQUAL(vl.count(),vl2.count());
@@ -58,7 +56,6 @@ private slots:
 	{
 		VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
 		//old test expected 3, now two bcs we seperately parse the fileformat
 		I_EQUAL(vl.vcfHeader().comments().count(), 2);
@@ -123,7 +120,6 @@ private slots:
 
 		//load a second time to check initialization
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.vcfHeader().comments().count(), 2);
 		S_EQUAL(vl.sampleIDs()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
@@ -139,7 +135,6 @@ private slots:
 
 		VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"), false, &roi);
-		vl.checkValid();
 		I_EQUAL(vl.count(), 4);
 		I_EQUAL(vl.vcfHeader().comments().count(), 2);
 		S_EQUAL(vl.sampleIDs().at(0), QString("./Sample_GS120297A3/GS120297A3.bam"));
@@ -161,7 +156,6 @@ private slots:
 		VcfFileHandler vl;
 
 		vl.load(TESTDATA("data_in/VariantList_loadFromVCF_noSample.vcf"));
-		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
@@ -170,7 +164,6 @@ private slots:
 		S_EQUAL(vl.sampleIDs().at(0), QString("Sample"));
 
 		vl.load(TESTDATA("data_in/VariantList_loadFromVCF_noFormatSample.vcf"));
-		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
@@ -186,7 +179,6 @@ private slots:
 
 		//check annotation list
 		vl.load(TESTDATA("data_in/VariantList_loadFromVCF_undeclaredAnnotations.vcf"));
-		vl.checkValid();
 		I_EQUAL(vl.count(), 2);
 		I_EQUAL(vl.informationIDs().count(), 5);
 		I_EQUAL(vl.formatIDs().count(), 10);
@@ -216,7 +208,6 @@ private slots:
 
 		VcfFileHandler vl;
 		vl.load(in);
-		vl.checkValid();
 		vl.store(out);
 
 		COMPARE_FILES(in,out);
@@ -227,13 +218,11 @@ private slots:
 		//store loaded file
 		VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		vl.checkValid();
 		vl.store("out/VariantList_store_01.vcf");
 		VCF_IS_VALID("out/VariantList_store_01.vcf")
 
 		//reload and check that everything stayed the same
 		vl.load("out/VariantList_store_01.vcf");
-		vl.checkValid();
 		I_EQUAL(vl.count(), 14);
 		//old test expected 3, now two bcs we seperately parse the fileformat
 		I_EQUAL(vl.vcfHeader().comments().count(), 2);
@@ -302,13 +291,11 @@ private slots:
 		//store loaded vcf file
 		VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/VariantList_emptyDescriptions.vcf"));
-		vl.checkValid();
 		vl.store("out/VariantList_emptyDescriptions_fixed.vcf");
 		VCF_IS_VALID("out/VariantList_emptyDescriptions_fixed.vcf")
 
 		VcfFileHandler vl2;
 		vl2.load("out/VariantList_emptyDescriptions_fixed.vcf");
-		vl2.checkValid();
 		I_EQUAL(vl2.count(), 14);
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
@@ -340,7 +327,6 @@ private slots:
 	{
 		VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/VariantList_load_zipped.vcf.gz"));
-		vl.checkValid();
 		I_EQUAL(vl.count(), 157);
 		I_EQUAL(vl.informationIDs().count(), 64);
 		I_EQUAL(vl.formatIDs().count(), 8);
@@ -388,7 +374,6 @@ private slots:
 	{
 		VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/sort_in.vcf"));
-		vl.checkValid();
 		vl.sort();
 		vl.store("out/sort_out.vcf");
 		COMPARE_FILES("out/sort_out.vcf",TESTDATA("data_out/sort_out.vcf"));
@@ -400,7 +385,6 @@ private slots:
 	{
 		VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		vl.checkValid();
 		vl.sort(true);
 		//entries should be sorted numerically
 		X_EQUAL(vl.vcfLine(0).chr() ,Chromosome("chr1"));
@@ -431,7 +415,6 @@ private slots:
 	{
 		VcfFileHandler vl;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		vl.checkValid();
 		vl.sortByFile(TESTDATA("data_in/variantList_sortbyFile.fai"));
 		vl.store("out/sortByFile.vcf");
 		//entries should be sorted by variantList_sortbyFile.fai, which is reverse-numeric concerning chromosomes
@@ -463,7 +446,6 @@ private slots:
 	void sortCustom()
 	{
 		VcfFileHandler vl;
-		vl.checkValid();
 		vl.load(TESTDATA("data_in/sort_in.vcf"));
 		vl.sortCustom([](const VCFLine& a, const VCFLine& b) {return a.pos() < b.pos(); });
 
@@ -503,13 +485,11 @@ private slots:
 		//store loaded vcf file
 		VcfFileHandler vl_vcf;
 		vl_vcf.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		vl_vcf.checkValid();
 		vl_vcf.storeAsTsv("out/VariantList_convertVCFtoTSV.tsv");
 
 		//reload and check that no information became incorrect (vcf-specific things like annotation dimensions and types are still lost)
 		VariantList vl_tsv;
 		vl_tsv.load("out/VariantList_convertVCFtoTSV.tsv");
-		vl_tsv.checkValid();
 		I_EQUAL(vl_tsv.count(), 14);
 		I_EQUAL(vl_tsv.annotations().count(), 27);
 		I_EQUAL(vl_tsv.comments().count(), 2);
