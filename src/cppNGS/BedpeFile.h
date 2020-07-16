@@ -170,10 +170,17 @@ enum BedpeFileFormat
 class CPPNGSSHARED_EXPORT BedpeFile
 {
 public:
+	///Default constructor (of an invalid file).
 	BedpeFile();
 
-	///load bedpe file
+	///Loads the file
 	void load(const QString& file_name);
+
+	///Returns if the file is valid. It is invalid e.g. after default-construction or calling clear().
+	bool isValid() const;
+
+	///Returns if the file contains somatic structural variants.
+	bool isSomatic() const;
 
 	void clear()
 	{
@@ -233,8 +240,6 @@ public:
 
 	///Returns bedpe type according entry in file comments ##fileformat=
 	BedpeFileFormat format() const;
-
-	bool isSomatic() const;
 
 	///Converts type string to enum
 	static StructuralVariantType stringToType(const QByteArray& str);

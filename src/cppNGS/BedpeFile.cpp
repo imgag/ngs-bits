@@ -261,6 +261,20 @@ void BedpeFile::load(const QString& file_name)
 	}
 }
 
+bool BedpeFile::isValid() const
+{
+	try
+	{
+		format();
+	}
+	catch (Exception& e)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 int BedpeFile::annotationIndexByName(const QByteArray& name, bool error_on_mismatch) const
 {
 	QList<int> matches;
@@ -432,7 +446,16 @@ BedpeFileFormat BedpeFile::format() const
 
 bool BedpeFile::isSomatic() const
 {
-	if(format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL || format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY) return true;
+	try
+	{
+		BedpeFileFormat f = format();
+		if (f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL || f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY) return true;
+	}
+	catch (Exception& /*e*/)
+	{
+		//nothing to do here
+	}
+
 	return false;
 }
 

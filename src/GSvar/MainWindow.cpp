@@ -321,6 +321,12 @@ void MainWindow::on_actionSV_triggered()
 {
 	if(filename_ == "") return;
 
+	if (!svs_.isValid())
+	{
+		QMessageBox::information(this, "SV file missing", "No structural variant file is present in the analysis folder!");
+		return;
+	}
+
 	//create list of genes with heterozygous variant hits
 	GeneSet het_hit_genes;
 	int i_genes = variants_.annotationIndexByName("gene", true, false);
@@ -395,6 +401,12 @@ void MainWindow::on_actionSV_triggered()
 void MainWindow::on_actionCNV_triggered()
 {
 	if (filename_=="") return;
+
+	if (!cnvs_.isValid())
+	{
+		QMessageBox::information(this, "CNV file missing", "No copy-number file is present in the analysis folder!");
+		return;
+	}
 
 	//create list of genes with heterozygous variant hits
 	GeneSet het_hit_genes;
@@ -4326,7 +4338,7 @@ QString MainWindow::svFile(QString gsvar_file)
 
 	QString sv_file = base + "_manta_var_structural.bedpe"; //germline file naming convention
 
-	if(!QFile::exists(sv_file)) //fallback to somatic TODO: Remove when rename in somatic megSAP pipeline
+	if(!QFile::exists(sv_file)) //fallback to somatic //TODO: Remove when rename in somatic megSAP pipeline
 	{
 		sv_file = base + "_var_structural.bedpe";
 	}

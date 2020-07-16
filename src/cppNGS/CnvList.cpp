@@ -87,6 +87,11 @@ CnvList::CnvList()
 {
 }
 
+bool CnvList::isValid() const
+{
+	return type_!=CnvListType::INVALID;
+}
+
 void CnvList::clear()
 {
 	type_ = CnvListType::INVALID;
