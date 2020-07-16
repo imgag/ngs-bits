@@ -1983,8 +1983,8 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 	int qual = getInt("qual");
 	int depth = getInt("depth");
 	int mapq = getInt("mapq");
-	int sb = getInt("strand_bias");
-	int ab = getInt("allele_balance");
+	int strand_bias = getInt("strand_bias");
+	int allele_balance = getInt("allele_balance");
 
 	for(int i=0; i<variants.count(); ++i)
 	{
@@ -2027,16 +2027,16 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 					result.flags()[i] = false;
 				}
 			}
-			else if (sb>=0 && part.startsWith("SAP="))
+			else if (strand_bias>=0 && part.startsWith("SAP="))
 			{
-				if (part.mid(4).toInt()>sb)
+				if (part.mid(4).toInt()>strand_bias)
 				{
 					result.flags()[i] = false;
 				}
 			}
-			else if (ab>=0 && part.startsWith("ABP="))
+			else if (allele_balance>=0 && part.startsWith("ABP="))
 			{
-				if (part.mid(4).toInt()>ab)
+				if (part.mid(4).toInt()>allele_balance)
 				{
 					result.flags()[i] = false;
 				}
