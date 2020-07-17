@@ -206,14 +206,13 @@ public:
 		ChromosomalIndex<BedFile> exclude_idx(exclude_regions);
 
 		VcfFileHandler variants;
-		variants.load(getInfile("in"));
+		variants.load(getInfile("in"), true);
 		variants.sort();
 		int skip_chr = 0;
 		int skip_qual = 0;
 		int skip_dp = 0;
 		int skip_indel = 0;
 		int c_excluded = 0;
-		qDebug() << __LINE__;
 
 		for (int i=0; i<variants.count(); ++i)
 		{
@@ -225,7 +224,6 @@ public:
 				++skip_chr;
 				continue;
 			}
-			qDebug() << __LINE__;
 
 			//filter by quality
 			if (v.qual() < 0) THROW(ArgumentException, "Quality '" + QString::number(v.qual()) + "' is not given in " + variants.lineToString(i));
@@ -238,9 +236,7 @@ public:
 			//filter by depth
 			if(variants.formatIDs().contains("DP"))
 			{
-				qDebug() << __LINE__;
 				QByteArray tmp = v.formatValueFromSample("DP", c);
-				qDebug() << __LINE__;
 
 				bool ok;
 				int dp1 = (tmp.isEmpty()) ? 0 : tmp.toInt(&ok);

@@ -2,31 +2,31 @@
 ##DESCRIPTION=ID=ID of the variant, often dbSNP rsnumber
 ##DESCRIPTION=QUAL=Phred-scaled quality score
 ##DESCRIPTION=FILTER=Filter status
-##DESCRIPTION=INDEL=Indicates that the variant is an INDEL.
-##DESCRIPTION=DP=Raw read depth
-##DESCRIPTION=VDB=Variant Distance Bias
-##DESCRIPTION=AF1=Max-likelihood estimate of the first ALT allele frequency (assuming HWE)
-##DESCRIPTION=AC1=Max-likelihood estimate of the first ALT allele count (no HWE assumption)
-##DESCRIPTION=DP4=# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases
-##DESCRIPTION=MQ=Root-mean-square mapping quality of covering reads
-##DESCRIPTION=FQ=Phred probability of all samples being the same
-##DESCRIPTION=PV4=P-values for strand bias, baseQ bias, mapQ bias and tail distance bias
-##DESCRIPTION=G3=ML estimate of genotype frequencies
-##DESCRIPTION=HWE=Chi^2 based HWE test P-value based on G3
-##DESCRIPTION=CLR=Log ratio of genotype likelihoods with and without the constraint
-##DESCRIPTION=UGT=The most probable unconstrained genotype configuration in the trio
-##DESCRIPTION=CGT=The most probable constrained genotype configuration in the trio
-##DESCRIPTION=PC2=Phred probability of the nonRef allele frequency in group1 samples being larger (,smaller) than in group2.
-##DESCRIPTION=PCHI2=Posterior weighted chi^2 P-value for testing the association between group1 and group2 samples.
-##DESCRIPTION=QCHI2=Phred scaled PCHI2.
-##DESCRIPTION=PR=# permutations yielding a smaller PCHI2.
-##DESCRIPTION=GT_ss=Genotype
-##DESCRIPTION=GQ_ss=Genotype Quality
-##DESCRIPTION=GL_ss=Likelihoods for RR,RA,AA genotypes (R=ref,A=alt)
-##DESCRIPTION=DP_ss=# high-quality bases
-##DESCRIPTION=SP_ss=Phred-scaled strand bias P-value
-##DESCRIPTION=PL_ss=List of Phred-scaled genotype likelihoods
-#chr	start	end	ref	obs	ID	QUAL	FILTER	INDEL	DP	VDB	AF1	AC1	DP4	MQ	FQ	PV4	G3	HWE	CLR	UGT	CGT	PC2	PCHI2	QCHI2	PR	GT_ss	GQ_ss	GL_ss	DP_ss	SP_ss	PL_ss
+##DESCRIPTION=INDEL_info=Indicates that the variant is an INDEL.
+##DESCRIPTION=DP_info=Raw read depth
+##DESCRIPTION=VDB_info=Variant Distance Bias
+##DESCRIPTION=AF1_info=Max-likelihood estimate of the first ALT allele frequency (assuming HWE)
+##DESCRIPTION=AC1_info=Max-likelihood estimate of the first ALT allele count (no HWE assumption)
+##DESCRIPTION=DP4_info=# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases
+##DESCRIPTION=MQ_info=Root-mean-square mapping quality of covering reads
+##DESCRIPTION=FQ_info=Phred probability of all samples being the same
+##DESCRIPTION=PV4_info=P-values for strand bias, baseQ bias, mapQ bias and tail distance bias
+##DESCRIPTION=G3_info=ML estimate of genotype frequencies
+##DESCRIPTION=HWE_info=Chi^2 based HWE test P-value based on G3
+##DESCRIPTION=CLR_info=Log ratio of genotype likelihoods with and without the constraint
+##DESCRIPTION=UGT_info=The most probable unconstrained genotype configuration in the trio
+##DESCRIPTION=CGT_info=The most probable constrained genotype configuration in the trio
+##DESCRIPTION=PC2_info=Phred probability of the nonRef allele frequency in group1 samples being larger (,smaller) than in group2.
+##DESCRIPTION=PCHI2_info=Posterior weighted chi^2 P-value for testing the association between group1 and group2 samples.
+##DESCRIPTION=QCHI2_info=Phred scaled PCHI2.
+##DESCRIPTION=PR_info=# permutations yielding a smaller PCHI2.
+##DESCRIPTION=GT_format=Genotype
+##DESCRIPTION=GQ_format=Genotype Quality
+##DESCRIPTION=GL_format=Likelihoods for RR,RA,AA genotypes (R=ref,A=alt)
+##DESCRIPTION=DP_format=# high-quality bases
+##DESCRIPTION=SP_format=Phred-scaled strand bias P-value
+##DESCRIPTION=PL_format=List of Phred-scaled genotype likelihoods
+#chr	start	end	ref	obs	ID	QUAL	FILTER	INDEL_info	DP_info	VDB_info	AF1_info	AC1_info	DP4_info	MQ_info	FQ_info	PV4_info	G3_info	HWE_info	CLR_info	UGT_info	CGT_info	PC2_info	PCHI2_info	QCHI2_info	PR_info	GT_format_./Sample_GS120297A3/GS120297A3.bam	GQ_format_./Sample_GS120297A3/GS120297A3.bam	GL_format_./Sample_GS120297A3/GS120297A3.bam	DP_format_./Sample_GS120297A3/GS120297A3.bam	SP_format_./Sample_GS120297A3/GS120297A3.bam	PL_format_./Sample_GS120297A3/GS120297A3.bam
 chr1	11676308	11676308	-	ACCC	.	215	.	TRUE	6	0.0000	1	2	0,0,3,3	60	-52.5											1/1	33				255,18,0
 chr1	11676377	11676377	G	A	.	158	.		6	0.0000	1	2	0,0,3,3	60	-45											1/1	33				191,18,0
 chr4	68247038	68247038	-	ATATCT	.	190	.	TRUE	6	0.0000	1	2	0,0,3,3	46	-52.5											1/1	33				230,18,0

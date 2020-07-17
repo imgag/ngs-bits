@@ -18,6 +18,7 @@
 	//load variant list
 	QString snp_file = ":/Resources/" + build + "_snps.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
+
 	output.load(snp_file, false, roi);
 
 	//filter by AF
@@ -281,7 +282,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 		}
 	}
 
-	vl_merged.store(out, TSV);
+	vl_merged.store(out);
 }
 
 QByteArray NGSHelper::expandAminoAcidAbbreviation(QChar amino_acid_change_in)

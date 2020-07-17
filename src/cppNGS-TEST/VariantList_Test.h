@@ -296,7 +296,7 @@ private slots:
 
 		I_EQUAL(index, 0);
 		I_EQUAL(vl.annotations().count(), 1);
-		S_EQUAL(vl.annotationDescriptionByName("name", false, true).description(), "desc");
+		S_EQUAL(vl.annotationDescriptionByName("name", true).description(), "desc");
 		I_EQUAL(vl[0].annotations().count(), 1);
 		S_EQUAL(vl[0].annotations()[index], "default");
 		I_EQUAL(vl[1].annotations().count(), 1);

@@ -8,7 +8,7 @@
   <runQuality ID="rq0001">
     <metaDataParameter ID="md0004" name="source file" value="SomaticQC_in1_tum.bam (tumor)" cvRef="QC" accession="QC:1000005"/>
     <metaDataParameter ID="md0005" name="source file" value="SomaticQC_in1_nor.bam (normal)" cvRef="QC" accession="QC:1000005"/>
-    <metaDataParameter ID="md0006" name="source file" value="SomaticQC_in1.GSvar" cvRef="QC" accession="QC:1000005"/>
+    <metaDataParameter ID="md0006" name="source file" value="SomaticQC_in1.vcf" cvRef="QC" accession="QC:1000005"/>
     <metaDataParameter ID="md0007" name="experiment" value="ILLUMINA, unknown_device, unknown_enrichment (tumor)" cvRef="QC" accession="QC:?"/>
     <metaDataParameter ID="md0008" name="experiment" value="ILLUMINA, unknown_device, unknown_enrichment (normal)" cvRef="QC" accession="QC:?"/>
     <metaDataParameter ID="md0009" name="linked file" value="SomaticQC_in4.qcML" uri="../../src/tools-TEST/data_in/SomaticQC_in4.qcML" cvRef="QC" accession="QC:1000006" />

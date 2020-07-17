@@ -43,7 +43,7 @@ void VcfFileHandler::parseVcfHeader(const int line_number, QByteArray& line)
 		vcf_header_.setCommentLine(line, line_number);
 	}
 }
-void VcfFileHandler::parseHeaderFields(QByteArray& line)
+void VcfFileHandler::parseHeaderFields(QByteArray& line, bool allow_multi_sample)
 {
 	//header line
 	if (line.startsWith("#CHROM"))
@@ -56,12 +56,19 @@ void VcfFileHandler::parseHeaderFields(QByteArray& line)
 		}
 		if ((header_fields[0]!="CHROM")||(header_fields[1]!="POS")||(header_fields[2]!="ID")||(header_fields[3]!="REF")||(header_fields[4]!="ALT")||(header_fields[5]!="QUAL")||(header_fields[6]!="FILTER")||(header_fields[7]!="INFO"))
 		{
-			THROW(FileParseException, "VCF file header line with at least one illegal named mandatory column: '" + line.trimmed() + "'");
+			THROW(FileParseException, "VCF file header line with at least one inaccurately named mandatory column: '" + line.trimmed() + "'");
+		}
+		if(header_fields.count() >= 9 && header_fields[8] != "FORMAT")
+		{
+			THROW(FileParseException, "VCF file header line with an inaccurately named FORMAT column: '" + line.trimmed() + "'");
 		}
 
-		for(const QByteArray column_header : header_fields)
+		int header_count;
+		allow_multi_sample ? header_count=header_fields.count() : header_count=std::min(10, header_fields.count());
+
+		for(int i = 0; i < header_count; ++i)
 		{			
-			column_headers_.push_back(column_header);
+			column_headers_.push_back(header_fields.at(i));
 		}
 
 		//if we have a FORMAT column with no sample
@@ -76,8 +83,9 @@ void VcfFileHandler::parseHeaderFields(QByteArray& line)
 		}
 	}
 }
-void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx, bool invert)
+void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
+
 	QList<QByteArray> line_parts = line.split('\t');
 	if (line_parts.count()<VCFHeader::MIN_COLS)
 	{
@@ -206,11 +214,15 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 		if(line_parts.count() >= 10)
 		{
 			QByteArrayList sample_names = sampleIDs();
-			if(sample_names.count() != line_parts.count() - 9)
+			int last_column_to_parse;
+			allow_multi_sample ? last_column_to_parse=line_parts.count() : last_column_to_parse=10;
+
+			if(allow_multi_sample && sample_names.count() != line_parts.count() - 9)
 			{
 				THROW(FileParseException, "Number of samples does not equal number of samples in header for line " + QString::number(line_number) + ": " + line);
 			}
-			for(int i = 9; i < line_parts.count(); ++i)
+
+			for(int i = 9; i < last_column_to_parse; ++i)
 			{
 
 				QByteArray sample_id = sample_names.at(i-9);
@@ -256,6 +268,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 				sample_entries.push_back(strToPointer(sample_id), sample);
 			}
 		}
+
 		vcf_line.setSample(sample_entries);
 	}
 
@@ -264,7 +277,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 }
 
 
-void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx, bool invert)
+void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 
 	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
@@ -280,7 +293,7 @@ void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByt
 	}
 	else if (line.startsWith("#CHROM"))
 	{
-		parseHeaderFields(line);
+		parseHeaderFields(line, allow_multi_sample);
 	}
 	else
 	{
@@ -292,27 +305,28 @@ void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByt
 		{
 			info_ids.insert(info.id);
 		}
-		parseVcfEntry(line_number, line, info_ids, format_ids, roi_idx, invert);
+		parseVcfEntry(line_number, line, info_ids, format_ids, allow_multi_sample, roi_idx, invert);
 	}
 }
 
-void VcfFileHandler::loadFromVCF(const QString& filename, ChromosomalIndex<BedFile>* roi_idx, bool invert)
+void VcfFileHandler::loadFromVCF(const QString& filename, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 	//clear content in case we load a second file
 	clear();
 	//parse from stream
 	int line_number = 0;
 	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
+
 	//Sets holding all INFO and FORMAT IDs defined in the header (might be extended if a vcf line contains new ones)
 	QSet<QByteArray> info_ids_in_header;
 	QSet<QByteArray> format_ids_in_header;
 	while(!file->atEnd())
 	{
-		processVcfLine(line_number, file->readLine(), info_ids_in_header, format_ids_in_header, roi_idx, invert);
+		processVcfLine(line_number, file->readLine(), info_ids_in_header, format_ids_in_header, allow_multi_sample, roi_idx, invert);
 	}
 }
 
-void VcfFileHandler::loadFromVCFGZ(const QString& filename, ChromosomalIndex<BedFile>* roi_idx, bool invert)
+void VcfFileHandler::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 	//clear content in case we load a second file
 	clear();
@@ -344,7 +358,7 @@ void VcfFileHandler::loadFromVCFGZ(const QString& filename, ChromosomalIndex<Bed
 		//Sets holding all INFO and FORMAT IDs defined in the header (might be extended if a vcf line contains new ones)
 		QSet<QByteArray> info_ids_in_header;
 		QSet<QByteArray> format_ids_in_header;
-		processVcfLine(line_number, QByteArray(read_line), info_ids_in_header, format_ids_in_header, roi_idx, invert);
+		processVcfLine(line_number, QByteArray(read_line), info_ids_in_header, format_ids_in_header, allow_multi_sample, roi_idx, invert);
 	}
 	gzclose(file);
 	delete[] buffer;
@@ -366,11 +380,11 @@ void VcfFileHandler::load(const QString& filename, bool allow_multi_sample, cons
 	QString fn_lower = filename.toLower();
 	if (fn_lower.endsWith(".vcf"))
 	{
-		loadFromVCF(filename, roi_idx.data(), invert);
+		loadFromVCF(filename, allow_multi_sample, roi_idx.data(), invert);
 	}
 	else if (fn_lower.endsWith(".vcf.gz"))
 	{
-		loadFromVCFGZ(filename, roi_idx.data(), invert);
+		loadFromVCFGZ(filename, allow_multi_sample, roi_idx.data(), invert);
 	}
 	else
 	{
@@ -398,12 +412,12 @@ void VcfFileHandler::storeAsTsv(const QString& filename) const
 	for(InfoFormatLine info_line : vcfHeader().infoLines())
 	{
 		if(info_line.id=="." || info_line.description=="") continue;
-		stream << "##DESCRIPTION=" + info_line.id + "=" + info_line.description << "\n";
+		stream << "##DESCRIPTION=" + info_line.id + "_info=" + info_line.description << "\n";
 	}
 	for(InfoFormatLine format_line : vcfHeader().formatLines())
 	{
 		if(format_line.id=="." || format_line.description=="") continue;
-		stream << "##DESCRIPTION=" + format_line.id + "_ss=" + format_line.description << "\n";
+		stream << "##DESCRIPTION=" + format_line.id + "_format=" + format_line.description << "\n";
 	}
 
 	//filter are added seperately
@@ -414,20 +428,20 @@ void VcfFileHandler::storeAsTsv(const QString& filename) const
 
 	//header
 	stream << "#chr\tstart\tend\tref\tobs\tID\tQUAL\tFILTER";
+	//one column for every INFO field
 	for(const InfoFormatLine& info_line : vcfHeader().infoLines())
 	{
 		if(info_line.id==".") continue;
-		stream << "\t" << info_line.id;
+		stream << "\t" << info_line.id << "_info";
 	}
-	int i = 0;
-	while(i < sampleIDs().count())
+	//one column for every combination of a FORMAT field and a SAMPLE
+	for(const QByteArray& sample_id : sampleIDs())
 	{
 		for(const InfoFormatLine& format_line : vcfHeader().formatLines())
 		{
 			if(format_line.id==".") continue;
-			stream << "\t" << format_line.id << "_ss";
+			stream << "\t" << format_line.id << "_format_" << sample_id;
 		}
-		++i;
 	}
 
 	//vcf lines

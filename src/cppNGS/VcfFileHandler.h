@@ -10,28 +10,22 @@
  *
  *  make libs handle multiallelic =>  z.B. in ancestry() ???
  *
- * make VariantList ONLY store TSV, remove unnecessary annotations etc (function store to TSV)
- * function to Variant for VCFLine (or to VariantList)
- *
- *
- *  - store function in VariantList supports VCF: however might not work ideally... (accessing of ID QUAL and FILTER)
- *
  * #KLEINE TODOS:
  *
- *  - allow_multisample in load function machen
  *  - order functions alphabetically
  *  - add filter into header when it first appears in a vcf line
  *  - tests for VCFLine and VCFHeader
  *  - TEST Somatic angucken: vcf file has to be checked again (it was 'falsly' genereated with storeToVcf and filters were copied)
  *  - VcfFile mit VcfHandler mergen
  *
- * - error handling in load function (all functionalities of VCFCheck)
  * ENDE:
  * - streaming tools use VcfLine
  * - VcfCheck
  * - use check at the end of store (one time for all tests)
- * - simplify VariantList (GSvar only, no sample-specific columns, ...)
  *
+ *
+ * INFO:
+ * MULTI SAMPLE: VCFSORT SOMATICQC, UPDHUTNER
  */
 
 ///class handling vcf and vcf.gz files
@@ -44,6 +38,15 @@ public:
 	void load(const QString& filename, bool allow_multi_sample=false, const BedFile* roi=nullptr, bool invert=false);
 	///stores the data of VCFFileHandler in a vcf file
 	void store(const QString& filename, bool stdout_if_file_empty = false, bool compress=false, int compression_level = 1) const;
+	///stores a VCFFile as tsv file, INFO and FORMAT fields are differentiated by "_info" and "_format" attached to the name in ##Description lines,
+	///in the header line each FORMAT column has additionally the sample name attached:
+	/// ##VCF:
+	/// #INFO	FORMAT	SAMPLE_1	SAMPLE_2
+	/// uniqInfo=1;TWICE=2	GT:TWICE	1|1:z	0|1:z
+	///
+	/// ##TSV:
+	/// #uniqInfo_info	TWICE_info	GT_format_SAMPLE_1	TWICE_format_SAMPLE_1	GT_format_SAMPLE_2	TWICE_format_SAMPLE_2
+	///	1	2	1|1	z	0|1	z
 	void storeAsTsv(const QString& filename) const;
 
 	void leftNormalize(QString reference_genome);
@@ -135,11 +138,11 @@ public:
 private:
 
 	void parseVcfHeader(const int line_number, QByteArray& line);
-	void parseHeaderFields(QByteArray& line);
-	void parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
-	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
-	void loadFromVCF(const QString& filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
-	void loadFromVCFGZ(const QString& filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
+	void parseHeaderFields(QByteArray& line, bool allow_multi_sample);
+	void parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
+	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
+	void loadFromVCF(const QString& filename, bool allow_multi_sample=false, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
+	void loadFromVCFGZ(const QString& filename, bool allow_multi_sample=false, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
 
 	void clear();
 

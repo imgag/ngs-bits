@@ -42,7 +42,7 @@ public:
 	  auto iter = hash_.find(key);
 	  if (iter == hash_.end())
 	  {
-		THROW(ArgumentException, "Key " + key + " not found");
+		THROW(ArgumentException, "Key " + key + " does not exist in OrderedHash.");
 	  }
 	  return iter.value();
   }
@@ -61,7 +61,7 @@ public:
   {
 	  if(i >= size())
 	  {
-		  THROW(ArgumentException, "Index " + QString::number(i) + " is out of range for OrderedHash of size " + size());
+		  THROW(ArgumentException, "Index " + QString::number(i) + " is out of range for OrderedHash of size " + size() + ".");
 	  }
 	  K key = ordered_keys_.at(i);
 	  return hash_.find(key);
@@ -225,6 +225,7 @@ public:
 	}
 	int end() const
 	{
+		if(ref().length() <= 0) THROW(ArgumentException, "Reference can not have length zero in a VCF File.")
 		return (pos() + ref().length() - 1);
 	}
 	const QVector<Sequence>& alt() const
@@ -284,23 +285,23 @@ public:
 		}
 	}
 
-	///returns samples as a hash of SAMPLE ID to a hash of FORMAT ID to value
+	///returns all SAMPLES as a hash of (SAMPLE ID to a hash of (FORMAT ID to value))
 	const OrderedHash<QByteArray, FormatIDToValueHash>& samples() const
 	{
 		return sample_;
 	}
-	///access the hash of FORMAT ID to value for a sample by SAMPLE ID
+	///access the hash of (FORMAT ID to value) for a SAMPLE by SAMPLE ID
 	const FormatIDToValueHash& sample(const QByteArray& sample_name) const
 	{
 		return sample_[sample_name];
 	}
-	///access the hash of FORMAT ID to value for a sample by position
+	///access the hash of (FORMAT ID to value) for a SAMPLE by position
 	const FormatIDToValueHash& sample(int pos) const
 	{
 		if(pos >= samples().size()) THROW(ArgumentException, QString::number(pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
 		return sample_.at(pos).value();
 	}
-	///access the value for a SAMPLE and FORMAT ID
+	///access the value for a FORMAT and SAMPLE ID
 	// by purpose does not return a reference because an empty QByteArray can be returned for non-existing keys
 	//(use case: a specific FORMAT key is absent in some vcf lines)
 	QByteArray formatValueFromSample(const QByteArray& format_key, const QByteArray& sample_name, bool error_if_format_key_absent = false) const
@@ -323,7 +324,7 @@ public:
 			}
 		}
 	}
-	///access the value for a SAMPLE position and FORMAT ID
+	///access the value for a FORMAT ID and SAMPLE position (default is first SAMPLE)
 	// by purpose does not return a reference because an empty QByteArray can be returned for non-existing keys
 	//(use case: a specific FORMAT key is absent in some vcf lines)
 	QByteArray formatValueFromSample(const QByteArray& format_key, int sample_pos = 0, bool error_if_format_key_absent = false) const
@@ -471,8 +472,8 @@ private:
 	OrderedHash<QByteArray , QByteArray> info_; //; seperated list of info key=value pairs
 
 	//obligatory columns
-	QByteArrayList format_; //: seperated list of formats for each sample
-	OrderedHash<QByteArray, FormatIDToValueHash> sample_; // hash of a sample name to a hash of format entries to values
+	QByteArrayList format_; //: seperated list of FORMATS for each sample
+	OrderedHash<QByteArray, FormatIDToValueHash> sample_; // hash of a SAMPLE ID to a hash of FORMAT entries to values
 };
 
 namespace VcfFormat

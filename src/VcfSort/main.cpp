@@ -30,7 +30,7 @@ public:
 
 		//sort
 		 VcfFileHandler vl;
-		vl.load(getInfile("in"));
+		vl.load(getInfile("in"), true);
 		if (fai=="")
 		{
 			vl.sort(qual);

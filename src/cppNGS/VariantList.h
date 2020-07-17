@@ -239,8 +239,6 @@ enum VariantListFormat
 {
 	VCF,    ///< VCF file. Note: only single-sample files are currently supported.
 	VCF_GZ, ///< gzipped VCF file. Note: only single-sample files are currently supported.
-	TSV,    ///< Tab-separated file that contains at least the following columns: chr, start (1-based), end (1-based), ref, obs.
-	AUTO    ///< Format is automatically determined from the file name extension.
 };
 
 ///Supported analysis types
@@ -333,16 +331,10 @@ public:
 	}
 
 	///get annotation header by name
-	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name, bool sample_specific = false, bool error_not_found = true) const;
-
-	///Get names of samples in this variant list
-	QStringList sampleNames() const;
-	///Check if the sample exists in the variant list
-	bool sampleExists(const QString& sample) const;
+	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name, bool error_not_found = true) const;
 
 	///Looks up annotation header index by name. If no or several annotations match, -1 is returned (or an error is thrown if @p error_on_mismatch is set).
 	int annotationIndexByName(const QString& name, bool exact_match = true, bool error_on_mismatch = true) const;
-	int annotationIndexByName(const QString& name, QString sample_id, bool exact_match = true, bool error_on_mismatch = true) const;
 	///Looks up the index of an annotation in the VEP header (CSQ info field). Keep in mind the that CSQ field of variants conains comma-sparated entries for each transcript!
 	int vepIndexByName(const QString& name, bool error_if_not_found = true) const;
 
@@ -372,7 +364,9 @@ public:
 	///If @p invert is given, only variants that fall outside the target regions are loaded.
 	void load(QString filename, const BedFile* roi=nullptr, bool invert=false);
     ///Stores the variant list to a file.
-	void store(QString filename, VariantListFormat format=AUTO) const;
+	void store(QString filename) const;
+	///Stores the variant list as a VCF file (all columns are stored in INFO)
+	void storeAsVCF(QString filename) const;
 
 	///Default sorting of variants. The order is chromosome (numeric), position, ref, obs, quality (if desired - only for VCF).
 	void sort(bool use_quality = false);
@@ -455,18 +449,6 @@ protected:
 			int quality_index_;
     };
 
-    ///Loads the variant list from a TSV file.
-	void loadFromTSV(QString filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
-    ///Stores the variant list as a TSV file.
-	void storeToTSV(QString filename) const;
-	///Loads the variant list from a VCF file.
-	void loadFromVCF(QString filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
-	///Loads the variant list from a VCF.GZ file.
-	void loadFromVCFGZ(QString filename, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
-	///Processes a VCF line (both for VCF and VCF.GZ).
-	void processVcfLine(QList<QByteArray>& header_fields, int& line_number, QByteArray line, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
-    ///Stores the variant list as a VCF file.
-	void storeToVCF(QString filename) const;
 	///Converts an annotation type to a string (for VCF only)
 	static QString annotationTypeToString(VariantAnnotationDescription::AnnotationType type);
 };
