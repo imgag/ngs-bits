@@ -9,23 +9,25 @@
  *  TO DOS:
  *
  *  make libs handle multiallelic =>  z.B. in ancestry() ???
- *
- * #KLEINE TODOS:
- *
+ *		-> tests anpassen
  *  - order functions alphabetically
  *  - add filter into header when it first appears in a vcf line
+ *		tests anpassen
  *  - tests for VCFLine and VCFHeader
- *  - TEST Somatic angucken: vcf file has to be checked again (it was 'falsly' genereated with storeToVcf and filters were copied)
+ *
+ *  - TEST Somatic for LIB and SomaticQC as TOOL (both have two new vcf, must be generated new with new fucntion)
  *  - VcfFile mit VcfHandler mergen
+ *  - fucntion VariantList::storeAsVcf: genotype in sample/format leftAlign reverse with RefSequ
+ *		test: 10 insert, del, Snp, complexSubst
  *
  * ENDE:
  * - streaming tools use VcfLine
- * - VcfCheck
+ *
  * - use check at the end of store (one time for all tests)
  *
  *
  * INFO:
- * MULTI SAMPLE: VCFSORT SOMATICQC, UPDHUTNER
+ * MULTI SAMPLE: VCFSORT SOMATICQC, UPDHUTNER, VCFFilter
  */
 
 ///class handling vcf and vcf.gz files
