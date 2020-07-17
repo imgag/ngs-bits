@@ -64,7 +64,7 @@ public:
 			 VcfFileHandler variants;
 			if (mark!="")
 			{
-				variants.load(getInfile("in"));
+				variants.load(getInfile("in"), true);
 				FilterResult filter_result(variants.count());
 				FilterRegions::apply(variants, roi, filter_result);
 				if (inv) filter_result.invert();
@@ -81,7 +81,7 @@ public:
 			VariantList variants;
 			if (mark!="")
 			{
-				variants.load(getInfile("in"), true);
+				variants.load(getInfile("in"));
 				FilterResult filter_result(variants.count());
 				FilterRegions::apply(variants, roi, filter_result);
 				if (inv) filter_result.invert();
