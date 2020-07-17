@@ -18,7 +18,6 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-#### Variant quality filter: re-analyze duo at W:\projects\diagnostic\Genome_Diagnostik\Multi_DX200757_02_DX200756_02, see if the de-novo variants disappear
 #### Preferred transcript: not writable > error not crash AND preferred transcript as plain text widget!
 *** Add mean coverage of chrMT to report
 *** Custom variant menu (custom_variant_menu=Custom Action|http://127.0.0.1/index.php?chr=[chr]&start=[start]&end=[end]&ref=[ref]&obs=[obs]&gene=[gene]\tCustom Action2|http://127.0.0.2/index.php?chr=[chr]&start=[start]

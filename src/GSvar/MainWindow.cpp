@@ -99,7 +99,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticReportSettings.h"
 #include "CytobandToRegionsDialog.h"
 #include "RepeatExpansionWidget.h"
-#include "PRSWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1256,7 +1255,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		//check for germline trio/multi analyses
 		else if (search_multi)
 		{
-			QStringList trio_folders = Helper::findFolders(project_folder, "Trio_"+processed_sample_name+"_*", false);
+			QStringList trio_folders = Helper::findFolders(project_folder, "Trio_*"+processed_sample_name+"*", false);
 			foreach(QString trio_folder, trio_folders)
 			{
 				QString filename = trio_folder + "/trio.GSvar";
@@ -1266,7 +1265,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 				}
 			}
 
-			QStringList multi_folders = Helper::findFolders(project_folder, "Multi_"+processed_sample_name+"_*", false);
+			QStringList multi_folders = Helper::findFolders(project_folder, "Multi_*"+processed_sample_name+"*", false);
 			foreach(QString multi_folder, multi_folders)
 			{
 				QString filename = multi_folder + "/multi.GSvar";
@@ -1718,20 +1717,6 @@ void MainWindow::loadFile(QString filename)
 	{
 		//activate
 		ui_.actionRE->setEnabled(true);
-
-	}
-
-	//activate PRS menu item if PRS are available
-	QStringList prs_files = Helper::findFiles(path, processedSampleName() + "_prs.tsv", false);
-	if (prs_files.size() < 1)
-	{
-		//deactivate
-		ui_.actionPRS->setEnabled(false);
-	}
-	else
-	{
-		//activate
-		ui_.actionPRS->setEnabled(true);
 
 	}
 }
