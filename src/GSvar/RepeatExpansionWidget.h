@@ -9,13 +9,15 @@ class RepeatExpansionWidget;
 }
 
 // helper struct to store repeat cutoff values
-struct RepeatCutoff
+struct RepeatCutoffInfo
 {
 	QByteArray repeat_id;
 	QByteArray repeat_unit;
 	int max_normal;
 	int min_pathogenic;
 	QByteArray inheritance;
+	bool reliable_in_exomes;
+	QByteArrayList additional_info;
 };
 
 
@@ -32,14 +34,14 @@ class RepeatExpansionWidget : public QWidget
 	Q_OBJECT
 
 public:
-	RepeatExpansionWidget(QString vcf_filename, QWidget *parent = 0);
+	RepeatExpansionWidget(QString vcf_filename, bool is_exome=false, QWidget *parent = 0);
 	~RepeatExpansionWidget();
 
 
 private:
 	void loadRepeatExpansionData();
-	void colorRepeatCell(QTableWidgetItem* cell, const QMap<QPair<QByteArray,QByteArray>, QPair<int,int>>& cutoffs);
 	QString vcf_filename_;
+	bool is_exome_;
 	Ui::RepeatExpansionWidget *ui_;
 };
 

@@ -14,7 +14,7 @@ The Repeat Expansion view is a table containing 35 Repeat Expansion which are ca
 
 The table consists of 11 columns: 
 * *chr*, *start*, *end*: chromosomal position of the repeat.
-* *repeat_id*: name of the repeat, often gene name (and repeat sequence).
+* *repeat_id*: name of the repeat, often gene name (and repeat sequence). Repeats which can not be called reliably on exome samples are marked in red (only in exome samples).
 * *repeat_unit*: repetitive sequence of the repeat.
 * *repeats*: number of repeats for each allele.  
 If additional information is available the entries are colored:
@@ -22,7 +22,7 @@ If additional information is available the entries are colored:
 	* ![alt text](yellow.png): repeat count is above normal, but below pathodgenic.
 	* ![alt text](red.png): repeat count is pathogenic.  
 	
-	Additionally each cell contains a tool tip which shows the thresholds and inheritance mode:
+	Additionally each cell contains a tool tip which shows the thresholds, inheritance mode and additional info:
 ![alt text](repeat_expansion_tooltip.png)
 * *wt_repeat*: repeat count of the reference (*wild type*).
 * *repeat_ci*: confidence interval of the reported repeat count (for each allele)

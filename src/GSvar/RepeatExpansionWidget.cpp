@@ -21,9 +21,10 @@ bool NumericWidgetItem::operator<(const QTableWidgetItem& other) const
 	return (this_value < other_value);
 }
 
-RepeatExpansionWidget::RepeatExpansionWidget(QString vcf_filename, QWidget* parent):
+RepeatExpansionWidget::RepeatExpansionWidget(QString vcf_filename, bool is_exome, QWidget* parent):
 	QWidget(parent),
 	vcf_filename_(vcf_filename),
+	is_exome_(is_exome),
 	ui_(new Ui::RepeatExpansionWidget)
 {
 	ui_->setupUi(this);
@@ -42,25 +43,40 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 	repeat_expansions.load(vcf_filename_);
 
 	//load filter file
-	QMap<QPair<QByteArray,QByteArray>, RepeatCutoff> filters;
-	QStringList filter_content = Helper::loadTextFile(":/Resources/repeat_expansion_cutoffs.tsv", true);
+	QMap<QPair<QByteArray,QByteArray>, RepeatCutoffInfo> cutoff_info_map;
+	QStringList cutoff_file_content = Helper::loadTextFile(":/Resources/repeat_expansion_cutoffs.tsv", false);
 
-	foreach (const QString& line, filter_content)
+	foreach(const QString& line, cutoff_file_content)
 	{
 		// skip empty lines and comments
 		if((line=="") || (line.startsWith("#"))) continue;
 
-		// parse line
+		//parse line
 		QStringList split_line = line.split('\t');
-		if (split_line.size() < 5) THROW(FileParseException, "Error parsing repeat expansion file: file has to contain 4 tab-separated columns!");
-		RepeatCutoff repeat_cutoff;
+		if (split_line.size() < 7) THROW(FileParseException, "Error parsing repeat expansion file: file has to contain 7 tab-separated columns!");
+		RepeatCutoffInfo repeat_cutoff;
 
 		repeat_cutoff.repeat_id = split_line.at(0).trimmed().toUtf8();
 		repeat_cutoff.repeat_unit = split_line.at(1).trimmed().toUtf8();
-		repeat_cutoff.max_normal = Helper::toInt(split_line.at(2));
-		repeat_cutoff.min_pathogenic = Helper::toInt(split_line.at(3));
+		if(split_line.at(2).trimmed() == "") repeat_cutoff.max_normal = -1;
+		else repeat_cutoff.max_normal = Helper::toInt(split_line.at(2));
+		if(split_line.at(3).trimmed() == "") repeat_cutoff.min_pathogenic = -1;
+		else repeat_cutoff.min_pathogenic = Helper::toInt(split_line.at(3));
 		repeat_cutoff.inheritance = split_line.at(4).trimmed().toUtf8();
-		filters.insert(QPair<QByteArray,QByteArray>(repeat_cutoff.repeat_id, repeat_cutoff.repeat_unit), repeat_cutoff);
+
+
+		//parse exome reliability
+		QByteArray reliable_in_exomes = split_line.at(5).trimmed().toUtf8();
+		if(reliable_in_exomes == "0") repeat_cutoff.reliable_in_exomes = false;
+		else repeat_cutoff.reliable_in_exomes = true;
+		//parse additional info
+		QByteArrayList additional_info = split_line.at(6).trimmed().toUtf8().split(';');
+		foreach(const QByteArray& info, additional_info)
+		{
+			if(info.trimmed() != "") repeat_cutoff.additional_info.append(info.trimmed());
+		}
+
+		cutoff_info_map.insert(QPair<QByteArray,QByteArray>(repeat_cutoff.repeat_id, repeat_cutoff.repeat_unit), repeat_cutoff);
 	}
 
 	//create table
@@ -127,10 +143,25 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 	ui_->repeat_expansions->setRowCount(repeat_expansions.count());
 	for(int row_idx=0; row_idx<repeat_expansions.count(); ++row_idx)
 	{
-		// add vertical header item
-		ui_->repeat_expansions->setVerticalHeaderItem(row_idx, new QTableWidgetItem(QString::number(row_idx+1)));
 		Variant re = repeat_expansions[row_idx];
 		int col_idx = 0;
+
+		// get cutoff/reliability info from cutoff file
+		QPair<QByteArray, QByteArray> key = QPair<QByteArray, QByteArray>(re.annotations()[repeat_id_idx].trimmed(), re.annotations()[repeat_unit_idx].trimmed());
+		if(!cutoff_info_map.contains(key))
+		{
+			THROW(FileParseException, "Repeat '" + re.annotations()[repeat_id_idx].trimmed() + ", " + re.annotations()[repeat_unit_idx].trimmed() + "' not fout in cutoff file!");
+		}
+		RepeatCutoffInfo cutoff_info = cutoff_info_map.value(key);
+
+		//create repeat tool tip:
+		QStringList repeat_tool_tip_text;
+		if(cutoff_info.max_normal != -1) repeat_tool_tip_text.append("normal: \t≤ " + QString::number(cutoff_info.max_normal));
+		else repeat_tool_tip_text.append("normal: \t unkown ");
+		if(cutoff_info.min_pathogenic != -1) repeat_tool_tip_text.append("pathogenic: \t> " + QString::number(cutoff_info.min_pathogenic));
+		else repeat_tool_tip_text.append("pathogenic: \t unkown ");
+		if(cutoff_info.inheritance != "" ) repeat_tool_tip_text.append("inheritance: \t" + cutoff_info.inheritance);
+		if(cutoff_info.additional_info.size() > 0) repeat_tool_tip_text.append("info: \t\t" + cutoff_info.additional_info.join("\n\t\t"));
 
 		//add position
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.chr().strNormalized(true))));
@@ -138,67 +169,63 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString(re.annotations()[end_idx])));
 
 		//add repeat
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[repeat_id_idx])));
+		QTableWidgetItem* repeat_id_cell = new QTableWidgetItem(QString(re.annotations()[repeat_id_idx]));
+		if (is_exome_ && !cutoff_info.reliable_in_exomes )
+		{
+			repeat_id_cell->setBackgroundColor(bg_red);
+			repeat_id_cell->setToolTip("Repeat calling of this repeat is not reliable in Exomes!");
+		}
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, repeat_id_cell);
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[repeat_unit_idx])));
 
 		//add allele/ref copy number
-		QTableWidgetItem* repeat_cell = new QTableWidgetItem(QString(re.annotations()[allele_repeats_idx]));
+		//replace "." with "-"
+		QString repeat_text = re.annotations()[allele_repeats_idx];
+		if (repeat_text.trimmed() == ".") repeat_text = "-";
+		if (repeat_text.trimmed() == "./.") repeat_text = "-/-";
+		QTableWidgetItem* repeat_cell = new QTableWidgetItem(repeat_text);
 
 		//color table acording to cutoff table
-		QPair<QByteArray, QByteArray> key = QPair<QByteArray, QByteArray>(re.annotations()[repeat_id_idx].trimmed(), re.annotations()[repeat_unit_idx].trimmed());
-		QString tool_tip_text = "No repeat information available.";
-		if (filters.contains(key))
+		QByteArrayList repeats = re.annotations()[allele_repeats_idx].split('/');
+		int repeats_allele1, repeats_allele2;
+		if ((repeats.size() < 1) || (repeats.size() > 2)) THROW(FileParseException, "Invalid allele count in repeat entries!");
+
+		// skip coloring if no repeat information is available:
+		if (repeats.at(0).trimmed() != ".")
 		{
-			RepeatCutoff cutoff = filters.value(key);
-			tool_tip_text = "normal: \t ≤ " + QString::number(cutoff.max_normal)
-					+ "\npathogenic: \t > " + QString::number(cutoff.min_pathogenic)
-					+ "\ninheritance: \t " + cutoff.inheritance;
+			repeats_allele1 = Helper::toInt(repeats.at(0), "Repeat allele 1", QString::number(row_idx));
 
-			QByteArrayList repeats = re.annotations()[allele_repeats_idx].split('/');
-			int repeats_allele1, repeats_allele2;
-			if ((repeats.size() < 1) || (repeats.size() > 2)) THROW(FileParseException, "Invalid allele count in repeat entries!");
+			if (repeats.size() == 1) repeats_allele2 = 0; // special case for male samples on chrX
+			else repeats_allele2 = Helper::toInt(repeats.at(1), "Repeat allele 2", QString::number(row_idx));
 
-			// skip coloring if no repeat information is available:
-			if (repeats.at(0).trimmed() != ".")
+			//check if pathogenic
+			if ((cutoff_info.min_pathogenic != -1) &&
+				((repeats_allele1 >= cutoff_info.min_pathogenic) || (repeats_allele2 >= cutoff_info.min_pathogenic)))
 			{
-				repeats_allele1 = Helper::toInt(repeats.at(0), "Repeat allele 1", QString::number(row_idx));
-
-				if (repeats.size() == 1) repeats_allele2 = 0; // special case for male samples on chrX
-				else repeats_allele2 = Helper::toInt(repeats.at(1), "Repeat allele 2", QString::number(row_idx));
-
-				if ((repeats_allele1 > cutoff.min_pathogenic) || (repeats_allele2 > cutoff.min_pathogenic))
-				{
-					// at least one allele has a pathogenic repeat count
-					ui_->repeat_expansions->verticalHeaderItem(row_idx)->setTextColor(Qt::red);
-					repeat_cell->setBackgroundColor(bg_red);
-				}
-				else if ((repeats_allele1 <= cutoff.max_normal) && (repeats_allele2 <= cutoff.max_normal))
-				{
-					// repeat count in both alleles is in normal range
-					ui_->repeat_expansions->verticalHeaderItem(row_idx)->setTextColor(Qt::darkGreen);
-					repeat_cell->setBackgroundColor(bg_green);
-				}
-				else
-				{
-					// at least one allele is above normal range, but not in pathogenic range
-					ui_->repeat_expansions->verticalHeaderItem(row_idx)->setTextColor(QColor(255, 135, 60)); //orange
-					repeat_cell->setBackgroundColor(bg_orange);
-				}
+				//pathogenic
+				repeat_cell->setBackgroundColor(bg_red);
+			}
+			else if ((cutoff_info.max_normal != -1) &&
+					 ((repeats_allele1 > cutoff_info.max_normal) || (repeats_allele2 > cutoff_info.max_normal)))
+			{
+				//above normal
+				repeat_cell->setBackgroundColor(bg_orange);
+			}
+			else if (cutoff_info.max_normal != -1)
+			{
+				//normal
+				repeat_cell->setBackgroundColor(bg_green);
 			}
 		}
-		else
-		{
-			// no information available --> color black
-			ui_->repeat_expansions->verticalHeaderItem(row_idx)->setTextColor(Qt::black);
-		}
 
-		repeat_cell->setToolTip(tool_tip_text);
+
+		repeat_cell->setToolTip(repeat_tool_tip_text.join('\n'));
 
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, repeat_cell);
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString(re.annotations()[ref_repeats_idx])));
 
 		//add additional info
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[repeat_ci_idx])));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[repeat_ci_idx].replace("./.", "-/-").replace(".", "-"))));
 
 		//add filter column and color background if not 'PASS'
 		QTableWidgetItem* filter_cell = new QTableWidgetItem(QString(re.annotations()[filter_idx]));
@@ -210,11 +237,14 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(coverage, 'f', 2)));
 
 		//add read counts
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[fl_reads_idx])));
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[ir_reads_idx])));
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[sp_reads_idx])));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[fl_reads_idx].replace("./.", "-/-").replace(".", "-"))));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[ir_reads_idx].replace("./.", "-/-").replace(".", "-"))));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[sp_reads_idx].replace("./.", "-/-").replace(".", "-"))));
 
 	}
+
+	// optimize column width
+	GUIHelper::resizeTableCells(ui_->repeat_expansions);
 
 	// display vertical header
 	ui_->repeat_expansions->verticalHeader()->setVisible(true);

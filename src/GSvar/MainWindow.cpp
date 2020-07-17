@@ -99,6 +99,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticReportSettings.h"
 #include "CytobandToRegionsDialog.h"
 #include "RepeatExpansionWidget.h"
+#include "PRSWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -561,8 +562,16 @@ void MainWindow::on_actionRE_triggered()
 
 	if (QFileInfo(re_file_name).exists())
 	{
+		//get sample type
+		bool is_exome = false;
+		if (LoginManager::active())
+		{
+			QString ps_id = NGSD().processedSampleId(filename_, false);
+			if (ps_id != "") is_exome = (NGSD().getProcessedSampleData(ps_id).processing_system_type == "WES");
+		}
+
 		//show dialog
-		RepeatExpansionWidget* widget = new RepeatExpansionWidget(re_file_name);
+		RepeatExpansionWidget* widget = new RepeatExpansionWidget(re_file_name, is_exome);
 		auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions");
 		addModelessDialog(dlg, false);
 	}
@@ -570,8 +579,8 @@ void MainWindow::on_actionRE_triggered()
 	{
 		QMessageBox::warning(this, "Repeat expansion file missing", "The repeat expansion file does not exist:\n" + re_file_name);
 	}
-
 }
+
 
 void MainWindow::on_actionGeneVariantInfo_triggered()
 {
@@ -1709,6 +1718,20 @@ void MainWindow::loadFile(QString filename)
 	{
 		//activate
 		ui_.actionRE->setEnabled(true);
+
+	}
+
+	//activate PRS menu item if PRS are available
+	QStringList prs_files = Helper::findFiles(path, processedSampleName() + "_prs.tsv", false);
+	if (prs_files.size() < 1)
+	{
+		//deactivate
+		ui_.actionPRS->setEnabled(false);
+	}
+	else
+	{
+		//activate
+		ui_.actionPRS->setEnabled(true);
 
 	}
 }
