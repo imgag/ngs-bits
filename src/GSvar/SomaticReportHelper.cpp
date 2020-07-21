@@ -768,7 +768,13 @@ void CGIDrugTable::load(const QString &file_name)
 		row.alteration_type_ = parsed_sample_alterations[0];
 		if(parsed_sample_alterations.count()>1)
 		{
-			for(int i=1;i<parsed_sample_alterations.count();++i) row.alteration_type_.append(","+parsed_sample_alterations[i]);
+			for(int i=1;i<parsed_sample_alterations.count();++i)
+			{
+				if(!row.alteration_type_.contains(parsed_sample_alterations[i])) //same alteration can be returned multiple times
+				{
+					row.alteration_type_.append(","+parsed_sample_alterations[i]);
+				}
+			}
 		}
 		//Read in remaining line fields
 		row.drug_ = line.at(i_drug).trimmed();
