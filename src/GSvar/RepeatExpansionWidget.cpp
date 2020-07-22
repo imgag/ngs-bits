@@ -11,6 +11,8 @@ NumericWidgetItem::NumericWidgetItem(QString text):
 	QTableWidgetItem(text)
 {
 	this->setTextAlignment(Qt::AlignRight + Qt::AlignVCenter);
+	// make cell readonly
+	this->setFlags(this->flags()& (~Qt::ItemIsEditable));
 }
 
 bool NumericWidgetItem::operator<(const QTableWidgetItem& other) const
@@ -164,26 +166,26 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		if(cutoff_info.additional_info.size() > 0) repeat_tool_tip_text.append("info: \t\t" + cutoff_info.additional_info.join("\n\t\t"));
 
 		//add position
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.chr().strNormalized(true))));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.chr().strNormalized(true))));
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(re.start())));
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString(re.annotations()[end_idx])));
 
 		//add repeat
-		QTableWidgetItem* repeat_id_cell = new QTableWidgetItem(QString(re.annotations()[repeat_id_idx]));
+		QTableWidgetItem* repeat_id_cell = GUIHelper::createTableItem(QString(re.annotations()[repeat_id_idx]));
 		if (is_exome_ && !cutoff_info.reliable_in_exomes )
 		{
 			repeat_id_cell->setBackgroundColor(bg_red);
 			repeat_id_cell->setToolTip("Repeat calling of this repeat is not reliable in Exomes!");
 		}
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, repeat_id_cell);
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[repeat_unit_idx])));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.annotations()[repeat_unit_idx])));
 
 		//add allele/ref copy number
 		//replace "." with "-"
 		QString repeat_text = re.annotations()[allele_repeats_idx];
 		if (repeat_text.trimmed() == ".") repeat_text = "-";
 		if (repeat_text.trimmed() == "./.") repeat_text = "-/-";
-		QTableWidgetItem* repeat_cell = new QTableWidgetItem(repeat_text);
+		QTableWidgetItem* repeat_cell = GUIHelper::createTableItem(repeat_text);
 
 		//color table acording to cutoff table
 		QByteArrayList repeats = re.annotations()[allele_repeats_idx].split('/');
@@ -225,10 +227,10 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString(re.annotations()[ref_repeats_idx])));
 
 		//add additional info
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[repeat_ci_idx].replace("./.", "-/-").replace(".", "-"))));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.annotations()[repeat_ci_idx].replace("./.", "-/-").replace(".", "-"))));
 
 		//add filter column and color background if not 'PASS'
-		QTableWidgetItem* filter_cell = new QTableWidgetItem(QString(re.annotations()[filter_idx]));
+		QTableWidgetItem* filter_cell = GUIHelper::createTableItem(QString(re.annotations()[filter_idx]));
 		if(filter_cell->text().trimmed() != "PASS") filter_cell->setBackgroundColor(bg_orange);
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, filter_cell);
 
@@ -237,9 +239,9 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(coverage, 'f', 2)));
 
 		//add read counts
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[fl_reads_idx].replace("./.", "-/-").replace(".", "-"))));
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[ir_reads_idx].replace("./.", "-/-").replace(".", "-"))));
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new QTableWidgetItem(QString(re.annotations()[sp_reads_idx].replace("./.", "-/-").replace(".", "-"))));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.annotations()[fl_reads_idx].replace("./.", "-/-").replace(".", "-"))));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.annotations()[ir_reads_idx].replace("./.", "-/-").replace(".", "-"))));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.annotations()[sp_reads_idx].replace("./.", "-/-").replace(".", "-"))));
 
 	}
 

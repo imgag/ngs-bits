@@ -122,7 +122,8 @@ HEADERS += NGSDAddVariantsSomatic_Test.h \
     BedpeFilter_Test.h \
     BedpeAnnotateCnvOverlap_Test.h \
     TrioMaternalContamination_Test.h \
-	FastqDownsample_Test.h
+	FastqDownsample_Test.h \
+    VcfCalculatePRS_Test.h
 
 SOURCES += \
     main.cpp

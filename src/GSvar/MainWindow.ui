@@ -529,6 +529,7 @@
    <addaction name="actionROH"/>
    <addaction name="actionRE"/>
    <addaction name="actionCircos"/>
+   <addaction name="actionPRS"/>
    <addaction name="actionDebug"/>
   </widget>
   <action name="actionOpen">
@@ -1112,6 +1113,15 @@
    </property>
    <property name="shortcutContext">
     <enum>Qt::WidgetShortcut</enum>
+   </property>
+  </action>
+  <action name="actionPRS">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/PolygenicRiskScores.png</normaloff>:/Icons/PolygenicRiskScores.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Polygenic Risk Scores</string>
    </property>
   </action>
  </widget>

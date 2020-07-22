@@ -409,5 +409,9 @@ SUBDIRS += FastqDownsample
 tools-TEST.depends += FastqDownsample
 FastqDownsample.depends = cppNGS
 
+SUBDIRS += VcfCalculatePRS
+tools-TEST.depends += VcfCalculatePRS
+VcfCalculatePRS.depends = cppNGS
+
 #other stuff
 OTHER_FILES += ToDos.txt

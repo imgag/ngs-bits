@@ -84,7 +84,8 @@ SOURCES += main.cpp\
     EmailDialog.cpp \
     CytobandToRegionsDialog.cpp\
     SvSearchWidget.cpp \
-    RepeatExpansionWidget.cpp
+    RepeatExpansionWidget.cpp \
+    PRSWidget.cpp
 HEADERS  += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -162,7 +163,8 @@ HEADERS  += MainWindow.h \
     EmailDialog.h \
     CytobandToRegionsDialog.h\
     SvSearchWidget.h \
-    RepeatExpansionWidget.h
+    RepeatExpansionWidget.h \
+    PRSWidget.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -227,7 +229,8 @@ FORMS    += MainWindow.ui \
     EmailDialog.ui \
     CytobandToRegionsDialog.ui \
     SvSearchWidget.ui \
-    RepeatExpansionWidget.ui
+    RepeatExpansionWidget.ui \
+    PRSWidget.ui
 
 
 include("../app_gui.pri")

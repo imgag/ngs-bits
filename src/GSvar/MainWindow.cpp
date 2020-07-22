@@ -99,6 +99,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticReportSettings.h"
 #include "CytobandToRegionsDialog.h"
 #include "RepeatExpansionWidget.h"
+#include "PRSWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -580,6 +581,25 @@ void MainWindow::on_actionRE_triggered()
 	}
 }
 
+void MainWindow::on_actionPRS_triggered()
+{
+	if (filename_=="") return;
+
+	// determine PRS file name
+	QString prs_file_name = QFileInfo(filename_).absolutePath() + "/" + processedSampleName() +  "_prs.tsv";
+
+	if (QFileInfo(prs_file_name).exists())
+	{
+		//show dialog
+		PRSWidget* widget = new PRSWidget(prs_file_name);
+		auto dlg = GUIHelper::createDialog(widget, "Polygenic Risk Scores");
+		addModelessDialog(dlg, false);
+	}
+	else
+	{
+		QMessageBox::warning(this, "PRS file missing", "The PRS file does not exist:\n" + prs_file_name);
+	}
+}
 
 void MainWindow::on_actionGeneVariantInfo_triggered()
 {
