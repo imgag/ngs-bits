@@ -18,6 +18,7 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+#### Report configuration info: Add small variants, CNV, SV counts and causal counts.
 #### Preferred transcript: not writable > error not crash AND preferred transcript as plain text widget!
 *** Add mean coverage of chrMT to report
 *** Custom variant menu (custom_variant_menu=Custom Action|http://127.0.0.1/index.php?chr=[chr]&start=[start]&end=[end]&ref=[ref]&obs=[obs]&gene=[gene]\tCustom Action2|http://127.0.0.2/index.php?chr=[chr]&start=[start]

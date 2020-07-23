@@ -162,7 +162,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system`
   `name_manufacturer` VARCHAR(100) NOT NULL,
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
-  `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq') NOT NULL,
+  `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)') NOT NULL,
   `shotgun` TINYINT(1) NOT NULL,
   `umi_type` ENUM('n/a','HaloPlex HS','SureSelect HS','ThruPLEX','Safe-SeqS','MIPs','QIAseq','IDT-UDI-UMI','IDT-xGen-Prism') NOT NULL DEFAULT 'n/a',
   `target_file` VARCHAR(255) NULL DEFAULT NULL,
