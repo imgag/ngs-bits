@@ -21,9 +21,10 @@ GSvar:
 #### Report configuration info: Add small variants, CNV, SV counts and causal counts.
 #### Preferred transcript: not writable > error not crash AND preferred transcript as plain text widget!
 *** Add mean coverage of chrMT to report
-*** Custom variant menu (custom_variant_menu=Custom Action|http://127.0.0.1/index.php?chr=[chr]&start=[start]&end=[end]&ref=[ref]&obs=[obs]&gene=[gene]\tCustom Action2|http://127.0.0.2/index.php?chr=[chr]&start=[start]
+*** Custom variant menu (custom_variant_menu=Custom Action|http://127.0.0.1/index.php?chr=[chr]&start=[start]&end=[end]&ref=[ref]&obs=[obs]&gene=[gene]\tCustom Action2|http://127.0.0.2/index.php?chr=[chr]&start=[start] (Genetikum).
 *** Implement sample sheet in NGSD and add it to the XML report via the HTML report (Email Anne - Auwertebogen aus GsVar)
-*** Allow finalizing report config => don't allow new report config modification, show report config entries as read-only.
+*** Allow finalizing report config => don't allow new report config modification, show report config entries as read-only (Genetikum).
+*** Allow storing of filtered GSvar files to backup folder (defined in GSvar.ini) with file name "[ps]_[user]_[datum].GSvar" (Genetikum).
 ** Show OMIM entries in ROH dialog like in CNV/SV dialog.
 ** Filter widgets (small variants, CNVs, SVs): Add option to hide variants with report config
 * update ROH docu with ROH sum (ROHs >500k) for ssHAEv7 and WGS
