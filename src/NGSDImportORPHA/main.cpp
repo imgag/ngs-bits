@@ -50,7 +50,7 @@ public:
 						QString number;
 						while (xml.readNextStartElement())
 						{
-							if (xml.name()=="OrphaNumber")
+							if (xml.name()=="OrphaCode")
 							{
 								number = "ORPHA:" + xml.readElementText();
 							}
@@ -162,7 +162,7 @@ public:
 							bool skip = false;
 							while (xml.readNextStartElement())
 							{
-								if (xml.name()=="OrphaNumber")
+								if (xml.name()=="OrphaCode")
 								{
 									number = "ORPHA:" + xml.readElementText();
 								}

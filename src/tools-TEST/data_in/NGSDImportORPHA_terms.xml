@@ -1,43 +1,44 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<JDBOR date="2019-09-01 04:54:51" version="1.2.11 / 4.1.6 [2018-04-12] (orientdb version)" copyright="Orphanet (c) 2019">
+<JDBOR date="2020-07-01 04:13:58" version="1.3.6 / 4.1.7 [2020-04-17] (orientdb version)" copyright="Orphanet (c) 2020" dbserver="jdbc:sybase:Tds:canard.orpha.net:2020">
   <Availability> 
-	<Licence>
-	  <FullName lang="en">Creative Commons Attribution 4.0 International</FullName>
-	  <ShortIdentifier>CC-BY-4.0</ShortIdentifier>
-	  <LegalCode>https://creativecommons.org/licenses/by/4.0/legalcode</LegalCode>
-	</Licence>
+    <Licence>
+      <FullName lang="en">Creative Commons Attribution 4.0 International</FullName>
+      <ShortIdentifier>CC-BY-4.0</ShortIdentifier>
+      <LegalCode>https://creativecommons.org/licenses/by/4.0/legalcode</LegalCode>
+    </Licence>
   </Availability>
   <DisorderList count="5">
+
     <Disorder id="17601">
-      <OrphaNumber>166024</OrphaNumber>
+      <OrphaCode>166024</OrphaCode>
       <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=166024</ExpertLink>
       <Name lang="en">Multiple epiphyseal dysplasia, Al-Gazali type</Name>
       <DisorderFlagList count="1">
         <DisorderFlag id="475">
-          <Label>on-line</Label>
+          <Value>1</Value>
+          <Label></Label>
         </DisorderFlag>
       </DisorderFlagList>
       <SynonymList count="1">
         <Synonym lang="en">Multiple epiphyseal dysplasia-macrocephaly-distinctive facies syndrome</Synonym>
       </SynonymList>
       <DisorderType id="21394">
-        <OrphaNumber>377788</OrphaNumber>
         <Name lang="en">Disease</Name>
       </DisorderType>
+      <DisorderGroup id="36547">
+        <Name lang="en">Disorder</Name>
+      </DisorderGroup>
       <ExternalReferenceList count="3">
         <ExternalReference id="120419">
           <Source>ICD-10</Source>
           <Reference>Q77.3</Reference>
           <DisorderMappingRelation id="21534">
-            <OrphaNumber>377808</OrphaNumber>
-            <Name lang="en">NTBT (narrower term maps to a broader term)</Name>
+            <Name lang="en">NTBT (ORPHA code's Narrower Term maps to a Broader Term)</Name>
           </DisorderMappingRelation>
           <DisorderMappingICDRelation id="21604">
-            <OrphaNumber>377818</OrphaNumber>
-            <Name lang="en">Attributed</Name>
+            <Name lang="en">Attributed (The ICD10 code is attributed by Orphanet)</Name>
           </DisorderMappingICDRelation>
           <DisorderMappingValidationStatus id="21611">
-            <OrphaNumber>377819</OrphaNumber>
             <Name lang="en">Validated</Name>
           </DisorderMappingValidationStatus>
         </ExternalReference>
@@ -45,12 +46,10 @@
           <Source>OMIM</Source>
           <Reference>607131</Reference>
           <DisorderMappingRelation id="21527">
-            <OrphaNumber>377807</OrphaNumber>
-            <Name lang="en">E (exact mapping (the terms and the concepts are equivalent))</Name>
+            <Name lang="en">E (Exact mapping: the two concepts are equivalent)</Name>
           </DisorderMappingRelation>
           <DisorderMappingICDRelation/>
           <DisorderMappingValidationStatus id="21611">
-            <OrphaNumber>377819</OrphaNumber>
             <Name lang="en">Validated</Name>
           </DisorderMappingValidationStatus>
         </ExternalReference>
@@ -58,20 +57,18 @@
           <Source>UMLS</Source>
           <Reference>C1846722</Reference>
           <DisorderMappingRelation id="21527">
-            <OrphaNumber>377807</OrphaNumber>
-            <Name lang="en">E (exact mapping (the terms and the concepts are equivalent))</Name>
+            <Name lang="en">E (Exact mapping: the two concepts are equivalent)</Name>
           </DisorderMappingRelation>
           <DisorderMappingICDRelation/>
           <DisorderMappingValidationStatus id="21611">
-            <OrphaNumber>377819</OrphaNumber>
             <Name lang="en">Validated</Name>
           </DisorderMappingValidationStatus>
         </ExternalReference>
       </ExternalReferenceList>
       <DisorderDisorderAssociationList count="0">
       </DisorderDisorderAssociationList>
-      <TextualInformationList count="1">
-        <TextualInformation id="63385" lang="en">
+      <SummaryInformationList count="1">
+        <SummaryInformation id="63385" lang="en">
           <TextSectionList count="1">
             <TextSection id="83697" lang="en">
               <TextSectionType id="16907">
@@ -80,142 +77,177 @@
               <Contents>Multiple epiphyseal dysplasia, Al-Gazali type is a skeletal dysplasia characterized by multiple epiphyseal dysplasia (see this term), macrocephaly and facial dysmorphism.</Contents>
             </TextSection>
           </TextSectionList>
-        </TextualInformation>
-      </TextualInformationList>
+        </SummaryInformation>
+      </SummaryInformationList>
     </Disorder>
 	
-	<Disorder id="17648">
-      <OrphaNumber>166457</OrphaNumber>
+    <Disorder id="17648">
+      <OrphaCode>166457</OrphaCode>
       <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=166457</ExpertLink>
       <Name lang="en">OBSOLETE: Other forms of non-paraneoplastic limbic encephalitis</Name>
       <DisorderFlagList count="1">
         <DisorderFlag id="455">
+          <Value>16</Value>
           <Label>Obsolete entity</Label>
         </DisorderFlag>
       </DisorderFlagList>
       <SynonymList count="0">
       </SynonymList>
       <DisorderType id="21436">
-        <OrphaNumber>377794</OrphaNumber>
         <Name lang="en">Clinical group</Name>
       </DisorderType>
+      <DisorderGroup id="36540">
+        <Name lang="en">Group of disorders</Name>
+      </DisorderGroup>
       <ExternalReferenceList count="0">
       </ExternalReferenceList>
       <DisorderDisorderAssociationList count="1">
         <DisorderDisorderAssociation>
-          <Disorder1 id="17545">
-            <OrphaNumber>163918</OrphaNumber>
+          <TargetDisorder id="17545">
+            <OrphaCode>163918</OrphaCode>
             <Name lang="en">Non-paraneoplastic limbic encephalitis</Name>
-          </Disorder1>
-          <Disorder2 id="17648" cycle="true"/>
+          </TargetDisorder>
+          <RootDisorder id="17648" cycle="true"/>
           <DisorderDisorderAssociationType id="27341">
             <Name lang="en">Referred to</Name>
           </DisorderDisorderAssociationType>
         </DisorderDisorderAssociation>
       </DisorderDisorderAssociationList>
-      <TextualInformationList count="0">
-      </TextualInformationList>
-      <TextAuto>
-        <Info lang="en">This term does not characterize a disease but a group of diseases. To learn about the diseases included under this term, you can consult the classifications.</Info>
-      </TextAuto>
+      <SummaryInformationList count="1">
+        <SummaryInformation id="-1" lang="en">
+          <TextSectionList count="0">
+          </TextSectionList>
+          <TextAuto>
+            <Info lang="en">This term does not characterize a disease but a group of diseases. To learn about the diseases included under this term, you can consult the classifications.</Info>
+          </TextAuto>
+        </SummaryInformation>
+      </SummaryInformationList>
     </Disorder>
-	
-	<Disorder id="18358">
-      <OrphaNumber>184051</OrphaNumber>
-      <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=184051</ExpertLink>
-      <Name lang="en">Non-rare developmental anomalies during embryogenesis</Name>
-      <DisorderFlagList count="1">
-        <DisorderFlag id="490">
-          <Label>offline</Label>
-        </DisorderFlag>
-      </DisorderFlagList>
-      <SynonymList count="0">
-      </SynonymList>
-      <DisorderType id="36561">
-        <OrphaNumber>557495</OrphaNumber>
-        <Name lang="en">Category</Name>
-      </DisorderType>
-      <ExternalReferenceList count="0">
-      </ExternalReferenceList>
-      <DisorderDisorderAssociationList count="0">
-      </DisorderDisorderAssociationList>
-      <TextualInformationList count="0">
-      </TextualInformationList>
-    </Disorder>
-	
+
     <Disorder id="17543">
-      <OrphaNumber>163908</OrphaNumber>
+      <OrphaCode>163908</OrphaCode>
       <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=163908</ExpertLink>
       <Name lang="en">Limbic encephalitis with LGI1 antibodies</Name>
-      <DisorderFlagList count="1">
-        <DisorderFlag id="475">
-          <Label>on-line</Label>
-        </DisorderFlag>
-      </DisorderFlagList>
-      <SynonymList count="1">
-        <Synonym lang="en">Limbic encephalitis with leucine-rich glioma-inactivated 1 antibodies</Synonym>
-      </SynonymList>
       <DisorderType id="21394">
-        <OrphaNumber>377788</OrphaNumber>
         <Name lang="en">Disease</Name>
       </DisorderType>
-      <ExternalReferenceList count="2">
-        <ExternalReference id="120376">
-          <Source>ICD-10</Source>
-          <Reference>G04.8</Reference>
-          <DisorderMappingRelation id="21534">
-            <OrphaNumber>377808</OrphaNumber>
-            <Name lang="en">NTBT (narrower term maps to a broader term)</Name>
-          </DisorderMappingRelation>
-          <DisorderMappingICDRelation id="21604">
-            <OrphaNumber>377818</OrphaNumber>
-            <Name lang="en">Attributed</Name>
-          </DisorderMappingICDRelation>
-          <DisorderMappingValidationStatus id="21618">
-            <OrphaNumber>377820</OrphaNumber>
-            <Name lang="en">Not yet validated</Name>
-          </DisorderMappingValidationStatus>
-        </ExternalReference>
-        <ExternalReference id="120375">
-          <Source>ICD-10</Source>
-          <Reference>G13.1</Reference>
-          <DisorderMappingRelation id="21534">
-            <OrphaNumber>377808</OrphaNumber>
-            <Name lang="en">NTBT (narrower term maps to a broader term)</Name>
-          </DisorderMappingRelation>
-          <DisorderMappingICDRelation id="21604">
-            <OrphaNumber>377818</OrphaNumber>
-            <Name lang="en">Attributed</Name>
-          </DisorderMappingICDRelation>
-          <DisorderMappingValidationStatus id="21611">
-            <OrphaNumber>377819</OrphaNumber>
-            <Name lang="en">Validated</Name>
-          </DisorderMappingValidationStatus>
-        </ExternalReference>
-      </ExternalReferenceList>
-      <DisorderDisorderAssociationList count="0">
-      </DisorderDisorderAssociationList>
-      <TextualInformationList count="1">
-        <TextualInformation id="99441" lang="en">
-          <TextSectionList count="1">
-            <TextSection id="122369" lang="en">
-              <TextSectionType id="16907">
-                <Name lang="en">Definition</Name>
-              </TextSectionType>
-              <Contents>Limbic encephalitis with LGI1 antibodies is a rare neuroimmunological disorder characterized by the onset of cognitive decline, psychiatric disturbances and seizures (distinctively faciobrachial dystonic seizures) in association with detection of LGI1 antibodies in serum or cerebrospinal fluid. Patients may present with confusion, hallucinations, vocalization, paranoia, tangentiality, aggressive outbursts and/or spatial disorientation, as well as obstinate hyponatremia. It is most often non-paraneoplastic, however comorbid tumors, such as small cell lung cancer and thymoma, have been reported.</Contents>
-            </TextSection>
-          </TextSectionList>
-        </TextualInformation>
-      </TextualInformationList>
+      <DisorderGroup id="36547">
+        <Name lang="en">Disorder</Name>
+      </DisorderGroup>
+      <DisorderGeneAssociationList count="2">
+        <DisorderGeneAssociation>
+          <SourceOfValidation>28026029_28026046[PMID]</SourceOfValidation>
+          <Gene id="16202">
+            <Name lang="en">major histocompatibility complex, class II, DR beta 1</Name>
+            <Symbol>HLA-DRB1</Symbol>
+            <SynonymList count="0">
+            </SynonymList>
+            <GeneType id="25993">
+              <Name lang="en">gene with protein product</Name>
+            </GeneType>
+            <ExternalReferenceList count="6">
+              <ExternalReference id="56818">
+                <Source>Ensembl</Source>
+                <Reference>ENSG00000196126</Reference>
+              </ExternalReference>
+              <ExternalReference id="37478">
+                <Source>Genatlas</Source>
+                <Reference>HLA-DRB1</Reference>
+              </ExternalReference>
+              <ExternalReference id="30196">
+                <Source>HGNC</Source>
+                <Reference>4948</Reference>
+              </ExternalReference>
+              <ExternalReference id="30195">
+                <Source>OMIM</Source>
+                <Reference>142857</Reference>
+              </ExternalReference>
+              <ExternalReference id="56819">
+                <Source>Reactome</Source>
+                <Reference>P04229</Reference>
+              </ExternalReference>
+              <ExternalReference id="33220">
+                <Source>SwissProt</Source>
+                <Reference>P04229</Reference>
+              </ExternalReference>
+            </ExternalReferenceList>
+            <LocusList count="1">
+              <Locus id="22701">
+                <GeneLocus>6p21.32</GeneLocus>
+                <LocusKey>1</LocusKey>
+              </Locus>
+            </LocusList>
+          </Gene>
+          <DisorderGeneAssociationType id="17961">
+            <Name lang="en">Major susceptibility factor in</Name>
+          </DisorderGeneAssociationType>
+          <DisorderGeneAssociationStatus id="17991">
+            <Name lang="en">Assessed</Name>
+          </DisorderGeneAssociationStatus>
+        </DisorderGeneAssociation>
+        <DisorderGeneAssociation>
+          <SourceOfValidation>28026029_28026046[PMID]</SourceOfValidation>
+          <Gene id="18703">
+            <Name lang="en">major histocompatibility complex, class II, DQ beta 1</Name>
+            <Symbol>HLA-DQB1</Symbol>
+            <SynonymList count="2">
+              <Synonym lang="en">CELIAC1</Synonym>
+              <Synonym lang="en">IDDM1</Synonym>
+            </SynonymList>
+            <GeneType id="25993">
+              <Name lang="en">gene with protein product</Name>
+            </GeneType>
+            <ExternalReferenceList count="6">
+              <ExternalReference id="56816">
+                <Source>Ensembl</Source>
+                <Reference>ENSG00000179344</Reference>
+              </ExternalReference>
+              <ExternalReference id="43209">
+                <Source>Genatlas</Source>
+                <Reference>HLA-DQB1</Reference>
+              </ExternalReference>
+              <ExternalReference id="43210">
+                <Source>HGNC</Source>
+                <Reference>4944</Reference>
+              </ExternalReference>
+              <ExternalReference id="43211">
+                <Source>OMIM</Source>
+                <Reference>604305</Reference>
+              </ExternalReference>
+              <ExternalReference id="82670">
+                <Source>Reactome</Source>
+                <Reference>P01920</Reference>
+              </ExternalReference>
+              <ExternalReference id="82625">
+                <Source>SwissProt</Source>
+                <Reference>P01920</Reference>
+              </ExternalReference>
+            </ExternalReferenceList>
+            <LocusList count="1">
+              <Locus id="24817">
+                <GeneLocus>6p21.32</GeneLocus>
+                <LocusKey>1</LocusKey>
+              </Locus>
+            </LocusList>
+          </Gene>
+          <DisorderGeneAssociationType id="17961">
+            <Name lang="en">Major susceptibility factor in</Name>
+          </DisorderGeneAssociationType>
+          <DisorderGeneAssociationStatus id="17991">
+            <Name lang="en">Assessed</Name>
+          </DisorderGeneAssociationStatus>
+        </DisorderGeneAssociation>
+      </DisorderGeneAssociationList>
     </Disorder>
-	
+
     <Disorder id="16916">
-      <OrphaNumber>139536</OrphaNumber>
+      <OrphaCode>139536</OrphaCode>
       <ExpertLink lang="en">http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng=en&amp;Expert=139536</ExpertLink>
       <Name lang="en">Distal hereditary motor neuropathy type 5</Name>
       <DisorderFlagList count="1">
         <DisorderFlag id="475">
-          <Label>on-line</Label>
+          <Value>1</Value>
+          <Label></Label>
         </DisorderFlag>
       </DisorderFlagList>
       <SynonymList count="4">
@@ -225,20 +257,20 @@
         <Synonym lang="en">dHMN5</Synonym>
       </SynonymList>
       <DisorderType id="21394">
-        <OrphaNumber>377788</OrphaNumber>
         <Name lang="en">Disease</Name>
       </DisorderType>
+      <DisorderGroup id="36547">
+        <Name lang="en">Disorder</Name>
+      </DisorderGroup>
       <ExternalReferenceList count="4">
         <ExternalReference id="139444">
           <Source>UMLS</Source>
           <Reference>C1833308</Reference>
           <DisorderMappingRelation id="21527">
-            <OrphaNumber>377807</OrphaNumber>
-            <Name lang="en">E (exact mapping (the terms and the concepts are equivalent))</Name>
+            <Name lang="en">E (Exact mapping: the two concepts are equivalent)</Name>
           </DisorderMappingRelation>
           <DisorderMappingICDRelation/>
           <DisorderMappingValidationStatus id="21611">
-            <OrphaNumber>377819</OrphaNumber>
             <Name lang="en">Validated</Name>
           </DisorderMappingValidationStatus>
         </ExternalReference>
@@ -246,15 +278,12 @@
           <Source>ICD-10</Source>
           <Reference>G12.2</Reference>
           <DisorderMappingRelation id="21534">
-            <OrphaNumber>377808</OrphaNumber>
-            <Name lang="en">NTBT (narrower term maps to a broader term)</Name>
+            <Name lang="en">NTBT (ORPHA code's Narrower Term maps to a Broader Term)</Name>
           </DisorderMappingRelation>
           <DisorderMappingICDRelation id="21604">
-            <OrphaNumber>377818</OrphaNumber>
-            <Name lang="en">Attributed</Name>
+            <Name lang="en">Attributed (The ICD10 code is attributed by Orphanet)</Name>
           </DisorderMappingICDRelation>
           <DisorderMappingValidationStatus id="21611">
-            <OrphaNumber>377819</OrphaNumber>
             <Name lang="en">Validated</Name>
           </DisorderMappingValidationStatus>
         </ExternalReference>
@@ -262,12 +291,10 @@
           <Source>OMIM</Source>
           <Reference>600794</Reference>
           <DisorderMappingRelation id="21541">
-            <OrphaNumber>377809</OrphaNumber>
-            <Name lang="en">BTNT (broader term maps to a narrower term)</Name>
+            <Name lang="en">BTNT (ORPHA code's Broader Term maps to a Narrower Term)</Name>
           </DisorderMappingRelation>
           <DisorderMappingICDRelation/>
           <DisorderMappingValidationStatus id="21611">
-            <OrphaNumber>377819</OrphaNumber>
             <Name lang="en">Validated</Name>
           </DisorderMappingValidationStatus>
         </ExternalReference>
@@ -275,29 +302,19 @@
           <Source>OMIM</Source>
           <Reference>614751</Reference>
           <DisorderMappingRelation id="21541">
-            <OrphaNumber>377809</OrphaNumber>
-            <Name lang="en">BTNT (broader term maps to a narrower term)</Name>
+            <Name lang="en">BTNT (ORPHA code's Broader Term maps to a Narrower Term)</Name>
           </DisorderMappingRelation>
           <DisorderMappingICDRelation/>
           <DisorderMappingValidationStatus id="21611">
-            <OrphaNumber>377819</OrphaNumber>
             <Name lang="en">Validated</Name>
           </DisorderMappingValidationStatus>
         </ExternalReference>
       </ExternalReferenceList>
       <DisorderDisorderAssociationList count="0">
       </DisorderDisorderAssociationList>
-      <TextualInformationList count="2">
-        <TextualInformation id="76563" lang="en">
-          <TextSectionList count="0">
-          </TextSectionList>
-        </TextualInformation>
-        <TextualInformation id="68078" lang="en">
-          <TextSectionList count="0">
-          </TextSectionList>
-        </TextualInformation>
-      </TextualInformationList>
+      <SummaryInformationList count="0">
+      </SummaryInformationList>
     </Disorder>
-	
+
   </DisorderList>
 </JDBOR>
