@@ -1604,7 +1604,7 @@ QString NGSD::svTableName(StructuralVariantType type)
 		case StructuralVariantType::INS:
 			return "sv_insertion";
 		case StructuralVariantType::INV:
-			return "sv_invertion";
+			return "sv_inversion";
 		case StructuralVariantType::BND:
 			return "sv_translocation";
 		default:

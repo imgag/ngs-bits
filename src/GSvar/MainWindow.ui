@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -528,8 +531,8 @@
    <addaction name="actionSV"/>
    <addaction name="actionROH"/>
    <addaction name="actionRE"/>
-   <addaction name="actionCircos"/>
    <addaction name="actionPRS"/>
+   <addaction name="actionCircos"/>
    <addaction name="actionDebug"/>
   </widget>
   <action name="actionOpen">
@@ -1116,6 +1119,9 @@
    </property>
   </action>
   <action name="actionPRS">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="GSvar.qrc">
      <normaloff>:/Icons/PolygenicRiskScores.png</normaloff>:/Icons/PolygenicRiskScores.png</iconset>

@@ -27,7 +27,6 @@ PRSWidget::~PRSWidget()
 
 void PRSWidget::showContextMenu(QPoint pos)
 {
-	qDebug() << "create ContextMenu";
 	int row = ui_->prs->itemAt(pos)->row();
 
 	//create context menu

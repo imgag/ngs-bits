@@ -1739,6 +1739,20 @@ void MainWindow::loadFile(QString filename)
 		ui_.actionRE->setEnabled(true);
 
 	}
+
+	//activate PRS menu item if PRS are available
+	QStringList prs_files = Helper::findFiles(path, processedSampleName() + "_prs.tsv", false);
+	if (prs_files.size() < 1)
+	{
+		//deactivate
+		ui_.actionPRS->setEnabled(false);
+	}
+	else
+	{
+		//activate
+		ui_.actionPRS->setEnabled(true);
+
+	}
 }
 
 void MainWindow::on_actionAbout_triggered()

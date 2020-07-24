@@ -1098,6 +1098,16 @@ private slots:
 		S_EQUAL(omim_info[1].gene_symbol, "SHOX");
 		S_EQUAL(omim_info[1].mim, "400020");
 		I_EQUAL(omim_info[1].phenotypes.count(), 3);
+
+		//check SV table names
+		QList<StructuralVariantType> sv_types;
+		sv_types << StructuralVariantType::DEL << StructuralVariantType::DUP << StructuralVariantType::INV << StructuralVariantType::INS << StructuralVariantType::BND;
+		foreach (StructuralVariantType sv_type, sv_types)
+		{
+			QString table_name = db.svTableName(sv_type);
+			db.getValue("SELECT count(*) FROM " + table_name, false);
+		}
+
 	}
 
 	//Tests for SomaticReportConfiguration and specific somatic variants
