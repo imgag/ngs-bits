@@ -420,7 +420,7 @@ CREATE  TABLE IF NOT EXISTS `sample_relations`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `sample1_id` INT(11) NOT NULL,
-  `relation` ENUM('parent-child', 'tumor-normal', 'siblings', 'same sample') NOT NULL,
+  `relation` ENUM('parent-child', 'tumor-normal', 'siblings', 'same sample', 'tumor-cfDNA') NOT NULL,
   `sample2_id` INT(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `relation_unique` (`sample1_id` ASC, `relation` ASC, `sample2_id` ASC),
