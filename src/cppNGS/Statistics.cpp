@@ -268,7 +268,6 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	if (avg_depth>1000)
 	{
 		hist_max += 1000;
-		hist_step += 5;
 	}
 	Histogram depth_dist(0, hist_max, hist_step);
 	QHashIterator<int, QMap<int, int> > it(roi_cov);
