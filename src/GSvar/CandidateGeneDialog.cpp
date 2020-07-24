@@ -186,15 +186,18 @@ void CandidateGeneDialog::updateVariants()
 
 				//get candidate genes from report config
 				GeneSet genes_candidate;
-				SqlQuery query4 = db.getQuery();
-				query4.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='candidate variant' AND rc.processed_sample_id=" + processed_sample_id);
-				while(query4.next())
+				query3.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='candidate variant' AND rc.processed_sample_id=" + processed_sample_id);
+				while(query3.next())
 				{
-					genes_candidate << query4.value(0).toByteArray().split(',');
+					genes_candidate << query3.value(0).toByteArray().split(',');
 				}
 
+				//get de-novo variants from report config
+				query3.exec("SELECT rcv.id FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.de_novo=1 AND rc.processed_sample_id=" + processed_sample_id + " AND v.id=" + var_id);
+				QString denovo = query3.size()==0 ? "" : " (de-novo)";
+
 				//add variant line to output
-				var_data.append(QStringList() << gene << var << QString::number(ngsd_counts.first) << QString::number(ngsd_counts.second) << gnomad << tg << type << coding << query2.value(0).toString() << query2.value(5).toString()  << query2.value(1).toString() << query2.value(2).toString() << query2.value(3).toString() << hpo_terms.join("; ") << query2.value(4).toString() << query2.value(6).toString() << query2.value(7).toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(','));
+				var_data.append(QStringList() << gene << var << QString::number(ngsd_counts.first) << QString::number(ngsd_counts.second) << gnomad << tg << type << coding << query2.value(0).toString() << query2.value(5).toString()  << query2.value(1).toString() + denovo << query2.value(2).toString() << query2.value(3).toString() << hpo_terms.join("; ") << query2.value(4).toString() << query2.value(6).toString() << query2.value(7).toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(','));
 			}
 		}
 		QString comment = gene + " - variants: " + QString::number(var_data.count());
@@ -220,6 +223,16 @@ void CandidateGeneDialog::updateVariants()
 			var_data.erase(std::remove_if(var_data.begin(), var_data.end(), [het_hits, i_ps, i_geno](const QStringList& line){return !(line[i_geno]=="hom" || het_hits[line[i_ps]]>=2);}), var_data.end());
 
 			comment += " - recessive hits: " + QString::number(var_data.count());
+		}
+
+		//only samples that fit recessive inheritance mode
+		if (ui_.filter_denovo->isChecked())
+		{
+			int i_geno = 10;
+
+			var_data.erase(std::remove_if(var_data.begin(), var_data.end(), [i_geno](const QStringList& line){return !line[i_geno].contains("(de-novo)");}), var_data.end());
+
+			comment += " - de-novo hits: " + QString::number(var_data.count());
 		}
 
 		//diagnostic status information
