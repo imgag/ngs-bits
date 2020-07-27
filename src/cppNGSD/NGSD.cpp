@@ -2446,8 +2446,19 @@ QString NGSD::analysisJobFolder(int job_id)
 	}
 	else if (job.type=="somatic")
 	{
-		output += "Somatic_";
-		sample_sep = "-";
+		if(job.samples.count() == 2) //Tumor-normal pair
+		{
+			output += "Somatic_";
+			sample_sep = "-";
+		}
+		else if(job.samples.count() == 1) //Tumor only
+		{
+			output += "Sample_";
+		}
+		else
+		{
+			THROW(ProgrammingException, "Somatic analysis type with " + QByteArray::number( job.samples.count() ) + " samples!");
+		}
 	}
 	else
 	{
@@ -2492,7 +2503,9 @@ QString NGSD::analysisJobGSvarFile(int job_id)
 	}
 	else if (job.type=="somatic")
 	{
-		output += job.samples[0].name + "-" + job.samples[1].name + ".GSvar";
+		if(job.samples.count() == 2) output += job.samples[0].name + "-" + job.samples[1].name + ".GSvar"; //tumor-normal pair
+		else if(job.samples.count() == 1) output += job.samples[0].name + ".GSvar"; //tumor only;
+		else THROW(ProgrammingException, "Somatic analysis type with " + QByteArray::number( job.samples.count() ) + " samples!");
 	}
 	else
 	{
