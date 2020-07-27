@@ -95,10 +95,10 @@ QT_CHARTS_USE_NAMESPACE
 #include "VariantConversionWidget.h"
 #include "PasswordDialog.h"
 #include "CircosPlotWidget.h"
-#include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
 #include "CytobandToRegionsDialog.h"
 #include "RepeatExpansionWidget.h"
+#include "SomaticDataTransferWidget.h"
 #include "PRSWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -170,6 +170,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate variant sheet", this, SLOT(generateVariantSheet()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Somatic Data Transfer", this, SLOT(transferSomaticData()) );
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Show report configuration info", this, SLOT(showReportConfigInfo()));
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
@@ -252,23 +253,6 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
-		SomaticXmlReportGeneratorData test_data(somatic_report_settings_,variants_,somatic_control_tissue_variants_,cnvs_);
-		test_data.tumor_content_histology = 0.35;
-		test_data.tumor_content_snvs = 0.3;
-		test_data.tumor_content_clonality = 0.4;
-		test_data.tumor_mutation_burden = 9.2;
-		test_data.mantis_msi = 1.54;
-
-
-		NGSD db;
-		QString out;
-		out = SomaticXmlReportGenerator::generateXML(test_data,db, false);
-
-		QSharedPointer<QFile> out_file = Helper::openFileForWriting("D:\\test.xml");
-
-		out_file->write(out.toUtf8());
-
-		out_file->close();
 	}
 }
 
@@ -2340,6 +2324,17 @@ void MainWindow::generateVariantSheet()
 	}
 }
 
+void MainWindow::transferSomaticData()
+{
+	if(variants_.type() != AnalysisType::SOMATIC_PAIR) return;
+
+	QString xml_path = Settings::string("gsvar_somatic_xml_folder") + "\\" + somatic_report_settings_.tumor_ps + "-" + somatic_report_settings_.normal_ps + ".xml";
+	QString genlab_rtf_report_path = Settings::string("genlab_somatic_report_folder") +"\\" + somatic_report_settings_.tumor_ps + "-" + somatic_report_settings_.normal_ps + ".rtf";
+
+	SomaticDataTransferWidget* data_transfer = new SomaticDataTransferWidget(Settings::string("mtb_xml_upload_url"), xml_path, genlab_rtf_report_path, this);
+	data_transfer->exec();
+}
+
 void MainWindow::showReportConfigInfo()
 {
 	//check if applicable
@@ -2646,9 +2641,12 @@ void MainWindow::generateReportSomaticRTF()
 
 	dlg.writeBackSettings();
 
-	//store somatic report config in NGSD
-	db.setSomaticReportConfig(db.processedSampleId(processedSampleName()), db.processedSampleId(normalSampleName()), somatic_report_settings_.report_config, variants_, cnvs_, somatic_control_tissue_variants_, Helper::userName());
 
+	//store somatic report config in NGSD
+	if(!dlg.skipNGSD())
+	{
+		db.setSomaticReportConfig(db.processedSampleId(processedSampleName()), db.processedSampleId(normalSampleName()), somatic_report_settings_.report_config, variants_, cnvs_, somatic_control_tissue_variants_, Helper::userName());
+	}
 
 	QString destination_path; //path to rtf file
 	if(dlg.getReportType() == SomaticReportDialog::report_type::DNA)
@@ -2681,10 +2679,17 @@ void MainWindow::generateReportSomaticRTF()
 
 			SomaticReportHelper report(variants_, cnvs_, somatic_control_tissue_variants_, somatic_report_settings_);
 
+			//Store XML file with the same somatic report configuration settings
+			QString gsvar_xml_folder = Settings::string("gsvar_somatic_xml_folder");
+			if(gsvar_xml_folder != "")
+			{
+				report.storeXML(gsvar_xml_folder + "\\" + somatic_report_settings_.tumor_ps + "-" + somatic_report_settings_.normal_ps + ".xml");
+			}
+
 			//Generate RTF
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 
-			report.writeRtf(temp_filename);
+			report.storeRtf(temp_filename);
 
 			ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
 

@@ -53,6 +53,9 @@ public slots:
 	///writes settings into "settings" passed to constructur
 	void writeBackSettings();
 
+	///for debugging purposes: returns whether report config shall be stored to NGSD
+	bool skipNGSD();
+
 private slots:
 	///Deactivates all GUI elements (e.g. if user chooses RNA report)
 	void disableGUI();

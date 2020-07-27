@@ -217,6 +217,8 @@ public slots:
 	void storeSomaticReportConfig();
 	///Prints a variant sheet based on the report configuration
 	void generateVariantSheet();
+	///Trigger somatic data transfer to MTB
+	void transferSomaticData();
 	///Shows information about the report config
 	void showReportConfigInfo();
 	///Helper function for printVariantSheet()

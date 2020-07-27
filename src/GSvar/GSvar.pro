@@ -85,8 +85,9 @@ SOURCES += main.cpp\
     CytobandToRegionsDialog.cpp\
     SvSearchWidget.cpp \
     RepeatExpansionWidget.cpp \
-    PRSWidget.cpp
-HEADERS  += MainWindow.h \
+    PRSWidget.cpp \
+    SomaticDataTransferWidget.cpp
+HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
     ReportWorker.h \
@@ -164,7 +165,8 @@ HEADERS  += MainWindow.h \
     CytobandToRegionsDialog.h\
     SvSearchWidget.h \
     RepeatExpansionWidget.h \
-    PRSWidget.h
+    PRSWidget.h \
+    SomaticDataTransferWidget.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -230,8 +232,8 @@ FORMS    += MainWindow.ui \
     CytobandToRegionsDialog.ui \
     SvSearchWidget.ui \
     RepeatExpansionWidget.ui \
-    PRSWidget.ui
-
+    PRSWidget.ui \
+    SomaticDataTransferWidget.ui
 
 include("../app_gui.pri")
 
