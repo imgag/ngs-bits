@@ -446,3 +446,8 @@ QList<QString> SomaticReportDialog::resolveCIN()
 	}
 	return out;
 }
+
+bool SomaticReportDialog::skipNGSD()
+{
+	return ui_.no_ngsd->isChecked();
+}

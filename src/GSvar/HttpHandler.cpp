@@ -1,6 +1,7 @@
 #include "HttpHandler.h"
 #include "Exceptions.h"
 #include "Settings.h"
+#include "Helper.h"
 
 #include <QNetworkRequest>
 #include <QNetworkReply>
@@ -9,6 +10,8 @@
 #include <QInputDialog>
 #include <QApplication>
 #include <QAuthenticator>
+#include <QFile>
+#include <QPointer>
 
 HttpHandler::HttpHandler(ProxyType proxy_type, QObject* parent)
 	: QObject(parent)
@@ -98,4 +101,36 @@ void HttpHandler::handleProxyAuthentification(const QNetworkProxy& proxy, QAuthe
 	auth->setUser(proxy_user);
 	QString proxy_pass = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password for " + proxy.hostName(), QLineEdit::Password);
 	auth->setPassword(proxy_pass);
+}
+
+QString HttpHandler::sendXmlFile(QString url, QString path)
+{
+	QPointer<QFile> file = new QFile(path, this);
+	if(!file->open(QIODevice::ReadOnly))
+	{
+		THROW(FileParseException, "Could not open XML file " +path+ " for upload to MTB.");
+	}
+
+	QNetworkRequest request;
+	request.setUrl(url);
+	request.setRawHeader("User-Agent", "GSvar");
+	request.setRawHeader("X-Custom-User-Agent", "GSvar");
+	request.setRawHeader("Content-Type", "application/xml");
+
+	//query
+	QNetworkReply* reply = nmgr_.post(request, file);
+
+	//make the loop process the reply immediately
+	QEventLoop loop;
+	connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+	loop.exec();
+
+	//output
+	QString output = reply->readAll();
+	if (reply->error()!=QNetworkReply::NoError)
+	{
+		THROW(Exception, "Network error " + QString::number(reply->error()) + "\nError message: " + reply->errorString() + "\nReply: " + output);
+	}
+	reply->deleteLater();
+	return output;
 }

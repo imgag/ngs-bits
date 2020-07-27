@@ -27,6 +27,8 @@ public:
 	QString getHttpReply(QString url);
 	///Handles request (POST)
 	QString getHttpReply(QString url, QByteArray data);
+	///Sends XML file path to url
+	QString sendXmlFile(QString url, QString path);
 
 private slots:
 	///Handles SSL errors (by ignoring them)

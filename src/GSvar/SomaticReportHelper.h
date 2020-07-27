@@ -293,7 +293,10 @@ public:
 	SomaticReportHelper(const VariantList& variants, const CnvList &cnvs, const VariantList& germline_variants, const SomaticReportSettings& settings);
 
 	///write Rtf File
-	void writeRtf(const QByteArray& out_file);
+	void storeRtf(const QByteArray& out_file);
+
+	///write XML file
+	void storeXML(QString file_name);
 
 	///methods that create files for QBIC
 	void somaticSnvForQbic();

@@ -12,6 +12,7 @@
 #include "XmlHelper.h"
 #include "GenLabDB.h"
 #include "GSvarHelper.h"
+#include "SomaticXmlReportGenerator.h"
 
 #include <cmath>
 #include <QFileInfo>
@@ -1938,7 +1939,7 @@ RtfTable SomaticReportHelper::pharamacogeneticsTable()
 }
 
 
-void SomaticReportHelper::writeRtf(const QByteArray& out_file)
+void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 {
 	/**********************************
 	 * MUTATION BURDEN AND MSI STATUS *
@@ -2295,6 +2296,21 @@ void SomaticReportHelper::writeRtf(const QByteArray& out_file)
 		doc_.addPart(createGapStatisticsTable({1550,8087}).RtfCode());
 	}
 	doc_.save(out_file);
+}
+
+void::SomaticReportHelper::storeXML(QString file_name)
+{
+	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(snv_germline_, settings_);
+	SomaticXmlReportGeneratorData data(settings_, snv_variants_, som_var_in_normal, cnvs_);
+	data.tumor_content_histology = histol_tumor_fraction_ / 100.; //is stored as double between 0 and 1, NGSD contains percentages
+	data.tumor_content_snvs = getTumorContentBySNVs();
+	data.tumor_content_clonality = getCnvMaxTumorClonality(cnvs_) ;
+	data.tumor_mutation_burden = mutation_burden_;
+	data.mantis_msi = mantis_msi_swd_value_;
+
+	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
+	out_file->write(SomaticXmlReportGenerator::generateXML(data, db_, false).toUtf8());
+	out_file->close();
 }
 
 
