@@ -10,6 +10,7 @@ struct GeneDB
 	QString name;
 	QString url; //URL with [gene] as placeholder for gene symbol
 	QIcon icon;
+	bool somatic;
 };
 
 ///Gene-centered database list

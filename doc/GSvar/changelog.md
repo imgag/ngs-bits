@@ -1,5 +1,14 @@
 # GSvar change log
 
+### 2020_06-40 (24.07.20)
+- General: Anamnesis from GenLab can now be imported to NSGD.
+- General: Added polygenic risk scores dialog (button in main tool bar) for WGS.
+- General: Added repeat expansion dialog (button in main tool bar) WGS/WES.
+- CNVs: Added trio maternal contamination check for shallow WGS trios.
+- CNVs: Fixed links to Decipher (chromosomes are now expected without 'chr' prefix). 
+- SVs: Added search for overlapping SVs in NGSD via context menu of SVs.
+- Report: Fixed language of gender field in report.
+
 ### 2020_03-188 (24.06.20)
 - CNVs: Added trio maternal contamination check for shallow WGS trios.
 - CNVs: Fixed links to Decipher (chromosomes are now expected without 'chr' prefix). 

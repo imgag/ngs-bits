@@ -23,12 +23,13 @@ QList<GeneDB>& GeneInfoDBs::all()
 
 	if (dbs_.isEmpty())
 	{
-		dbs_ << GeneDB{"ClinGen", "https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=[gene]", QIcon("://Icons/ClinGen.png")};
-		dbs_ << GeneDB{"GeneCards", "http://www.genecards.org/cgi-bin/carddisp.pl?gene=[gene]", QIcon("://Icons/GeneCards.png")};
-		dbs_ << GeneDB{"gnomAD", "https://gnomad.broadinstitute.org/gene/[gene]", QIcon("://Icons/gnomAD.png")};
-		dbs_ << GeneDB{"HGMD", "https://portal.biobase-international.com/hgmd/pro/gene.php?gene=[gene]", QIcon("://Icons/HGMD.png")};
-		dbs_ << GeneDB{"OMIM", "https://omim.org/search/?search=[gene]", QIcon("://Icons/OMIM.png")};
-		dbs_ << GeneDB{"SysID", "https://sysid.cmbi.umcn.nl/search?search=[gene]", QIcon("://Icons/SysID.png")};
+		dbs_ << GeneDB{"ClinGen", "https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=[gene]", QIcon("://Icons/ClinGen.png"), false};
+		dbs_ << GeneDB{"GeneCards", "http://www.genecards.org/cgi-bin/carddisp.pl?gene=[gene]", QIcon("://Icons/GeneCards.png"), false};
+		dbs_ << GeneDB{"gnomAD", "https://gnomad.broadinstitute.org/gene/[gene]", QIcon("://Icons/gnomAD.png"), false};
+		dbs_ << GeneDB{"HGMD", "https://portal.biobase-international.com/hgmd/pro/gene.php?gene=[gene]", QIcon("://Icons/HGMD.png"), false};
+		dbs_ << GeneDB{"OMIM", "https://omim.org/search/?search=[gene]", QIcon("://Icons/OMIM.png"), false};
+		dbs_ << GeneDB{"SysID", "https://sysid.cmbi.umcn.nl/search?search=[gene]", QIcon("://Icons/SysID.png"), false};
+		dbs_ << GeneDB{"cBioPortal", "https://www.cbioportal.org/ln?q=[gene]:MUT", QIcon("://Icons/cbioportal.png"), true};
 	}
 
 	return dbs_;
