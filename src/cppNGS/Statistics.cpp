@@ -1507,9 +1507,7 @@ AncestryEstimates Statistics::ancestry(QString build, const  VcfFileHandler& vl,
 		if (v.ref()!=v2.ref() || v.alt()!=v2.alt()) continue;
 
 		//genotype sample
-		qDebug() << __LINE__;
 		geno_sample << vl.vcfLine(i).formatValueFromSample("GT").count('1');
-		qDebug() << __LINE__;
 
 		//population AFs
 		af_afr << v2.info("AF_AFR").toDouble();

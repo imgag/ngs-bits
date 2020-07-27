@@ -19,12 +19,17 @@
  *  - VcfFile mit VcfHandler mergen
  *  - fucntion VariantList::storeAsVcf: genotype in sample/format leftAlign reverse with RefSequ
  *		test: 10 insert, del, Snp, complexSubst
+ * - test TsvToVcf for single Sample, and wt hom het
+ *
+ *  - check URL encoding..
+ *  - remove qDebug()
+ *
  *
  * ENDE:
  * - streaming tools use VcfLine
  *
  * - use check at the end of store (one time for all tests)
- *
+ * - call check tool once on all vcf files
  *
  * INFO:
  * MULTI SAMPLE: VCFSORT SOMATICQC, UPDHUTNER, VCFFilter

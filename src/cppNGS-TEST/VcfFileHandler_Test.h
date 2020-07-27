@@ -10,13 +10,15 @@ private slots:
 	void loadVCF()
 	{
 		VcfFileHandler vcfH;
-		vcfH.load(TESTDATA("data_in/VcfFileHandler_in.vcf"));
+		vcfH.load(TESTDATA("data_in/VcfFileHandler_in.vcf"), true);
 		vcfH.store("out/VcfFileHandler_out.vcf");
-
-		vcfH.store("out/VcfFileHandler_out.vcf.gz", true, 9);
-
+		vcfH.store("out/VcfFileHandler_out.vcf.gz", false, true, 9);
 
 		COMPARE_FILES("out/VcfFileHandler_out.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
+
+		vcfH.load("out/VcfFileHandler_out.vcf.gz", true);
+		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped.vcf");
+		COMPARE_FILES("out/VcfFileHandler_out_loaded_from_gzipped.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
 	}
 
 	void type()
@@ -495,12 +497,12 @@ private slots:
 		I_EQUAL(vl_tsv.comments().count(), 2);
 		S_EQUAL(vl_tsv.annotations()[0].name(), QString("ID"));
 		S_EQUAL(vl_tsv.annotationDescriptionByName("ID").description(), QString("ID of the variant, often dbSNP rsnumber"));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("INDEL").name(), QString("INDEL"));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("INDEL").description(), QString("Indicates that the variant is an INDEL."));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("DP4").name(), QString("DP4"));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("DP4").description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("PL_ss").name(), QString("PL_ss"));
-		S_EQUAL(vl_tsv.annotationDescriptionByName("PL_ss").description(), QString("List of Phred-scaled genotype likelihoods"));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("INDEL_info").name(), QString("INDEL_info"));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("INDEL_info").description(), QString("Indicates that the variant is an INDEL."));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("DP4_info").name(), QString("DP4_info"));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("DP4_info").description(), QString("# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases"));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("PL_format").name(), QString("PL_format"));
+		S_EQUAL(vl_tsv.annotationDescriptionByName("PL_format").description(), QString("List of Phred-scaled genotype likelihoods"));
 
 
 		X_EQUAL(vl_tsv[0].chr(), Chromosome("chr17"));

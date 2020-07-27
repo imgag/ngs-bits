@@ -331,7 +331,7 @@ void VcfFileHandler::loadFromVCFGZ(const QString& filename, bool allow_multi_sam
 	//clear content in case we load a second file
 	clear();
 	//parse from stream
-	int line_number = 1;
+	int line_number = 0;
 
 	gzFile file = gzopen(filename.toLatin1().data(), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
 	if (file==NULL)

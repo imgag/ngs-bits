@@ -852,7 +852,21 @@ void VariantList::storeAsVCF(QString filename) const
 
 	//write header line for compulsory columns
 	//(FORMAT and SAMPLE are skipped) everything is stored in INFO
-	stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
+	stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT";
+
+	//search for genotype on annotations
+	SampleHeaderInfo genotype_columns = getSampleHeader(false);
+	if(genotype_columns.empty())
+	{
+		stream << "\tSample\n";
+	}
+	else
+	{
+		for(const SampleInfo& genotype : genotype_columns)
+		{
+			stream << "\t" << genotype.column_name;
+		}
+	}
 
 	//write variants
 	foreach(const Variant& v, variants_)
@@ -864,7 +878,6 @@ void VariantList::storeAsVCF(QString filename) const
 
 		for (int i=0; i<v.annotations().count(); ++i)
 		{
-			qDebug() << annotations().at(i).name();
 			const VariantAnnotationHeader& anno_header = annotations()[i];
 			const VariantAnnotationDescription& anno_desc = annotationDescriptionByName(anno_header.name(), false);
 			QByteArray anno_val = v.annotations()[i];
@@ -884,8 +897,48 @@ void VariantList::storeAsVCF(QString filename) const
 
 		stream << v.chr().str() << "\t" << v.start() << "\t" << ID << "\t" << v.ref() << "\t"  << v.obs() << "\t" << quality << "\t" << filter;
 		stream << "\t" << (info_entries.isEmpty() ? "." : info_entries.join(";"));
+
+		//write genotype
+		if(!genotype_columns.empty())
+		{
+			stream << "GT\t";
+
+			for(const SampleInfo& genotype : genotype_columns)
+			{
+				int genotype_index = annotationIndexByName(genotype.column_name);
+
+				if(v.annotations().at(genotype_index).isEmpty() || v.annotations().at(genotype_index) == ".")
+				{
+					stream << ".";
+				}
+				else if(v.annotations().at(genotype_index) == "wt")
+				{
+					stream << "0:0";
+				}
+				else if(v.annotations().at(genotype_index) == "hom")
+				{
+					stream << "1:1";
+				}
+				else if(v.annotations().at(genotype_index) == "het")
+				{
+					stream << "1:0";
+				}
+				else
+				{
+					THROW(ArgumentException, "genotype column in TSV file does not contain a valid entry.");
+				}
+			}
+		}
+		else
+		{
+			stream << ".\t.";
+		}
+
 		stream << "\n";
 	}
+
+
+
 }
 
 QString VariantList::annotationTypeToString(VariantAnnotationDescription::AnnotationType type)
