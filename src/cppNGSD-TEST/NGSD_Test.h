@@ -1384,7 +1384,13 @@ private slots:
 		settings.normal_ps = "DX184263_01";
 
 
-		SomaticXmlReportGeneratorData xml_data(settings, vl, vl_germl, cnvs);
+		//Test somatic XML report
+
+		VariantList vl_filtered = SomaticReportSettings::filterVariants(vl, settings);
+		VariantList vl_germl_filtered =  SomaticReportSettings::filterGermlineVariants(vl_germl, settings);
+		CnvList cnvs_filtered = SomaticReportSettings::filterCnvs(cnvs,settings);
+
+		SomaticXmlReportGeneratorData xml_data(settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
 
 		IS_THROWN(ArgumentException, xml_data.check());
 
@@ -1394,7 +1400,9 @@ private slots:
 		xml_data.tumor_content_clonality = 0.8;
 		xml_data.tumor_content_snvs = 0.73;
 
+
 		QString out = SomaticXmlReportGenerator::generateXML(xml_data, db, true);
+
 		Helper::storeTextFile("out/somatic_report.xml", out.split("\n"));
 		COMPARE_FILES("out/somatic_report.xml", TESTDATA("data_out/somatic_report.xml"));
 	}
