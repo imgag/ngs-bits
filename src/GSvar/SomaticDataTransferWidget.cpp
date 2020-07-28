@@ -6,6 +6,7 @@
 #include "SomaticDataTransferWidget.h"
 #include "Settings.h"
 #include "Exceptions.h"
+#include "Helper.h"
 
 #include "ui_SomaticDataTransferWidget.h"
 
@@ -64,7 +65,10 @@ void SomaticDataTransferWidget::uploadXML()
 		{
 			HttpHeaders add_headers;
 			add_headers.insert("Content-Type", "application/xml");
-			res =  http_handler_->post(url_ + "/mtb_imgag", QFile(xml_path_).readAll(), add_headers);
+
+			QSharedPointer<QFile> file = Helper::openFileForReading(xml_path_);
+			res =  http_handler_->post(url_ + "/mtb_imgag", file->readAll(), add_headers);
+			file->close();
 		}
 		catch(Exception& e)
 		{
