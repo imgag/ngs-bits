@@ -62,9 +62,11 @@ void SomaticDataTransferWidget::uploadXML()
 		QString res = "";
 		try
 		{
-			res =  http_handler_->sendXmlFile(url_ + "/mtb_imgag", xml_path_);
+			HttpHeaders add_headers;
+			add_headers.insert("Content-Type", "application/xml");
+			res =  http_handler_->post(url_ + "/mtb_imgag", QFile(xml_path_).readAll(), add_headers);
 		}
-		catch(Exception e)
+		catch(Exception& e)
 		{
 			res = e.message();
 		}
@@ -110,7 +112,7 @@ void SomaticDataTransferWidget::checkConnectionRequired()
 	try
 	{
 		addRow(">GET " + url_ + "/condition");
-		service_condition = http_handler_->getHttpReply(url_ + "/condition");
+		service_condition = http_handler_->get(url_ + "/condition");
 	}
 	catch(Exception e ) //connection to server failed
 	{

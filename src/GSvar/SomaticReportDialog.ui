@@ -22,14 +22,8 @@
     <height>542</height>
    </size>
   </property>
-  <property name="maximumSize">
-   <size>
-    <width>1500</width>
-    <height>650</height>
-   </size>
-  </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Report configuration (somatic)</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">

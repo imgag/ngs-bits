@@ -4122,6 +4122,62 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	//varsome
 	QAction* a_varsome =  menu.addAction(QIcon("://Icons/VarSome.png"), "VarSome");
 
+	//PubMed
+	sub_menu = menu.addMenu(QIcon("://Icons/PubMed.png"), "PubMed");
+	if (ngsd_user_logged_in)
+	{
+		NGSD db;
+		QString sample_id = db.sampleId(processedSampleName(), false);
+		if (sample_id!="")
+		{
+			//get disease list (HPO and CGI cancer type)
+			QByteArrayList diseases;
+			QList<SampleDiseaseInfo> infos = db.getSampleDiseaseInfo(sample_id);
+			foreach(const SampleDiseaseInfo& info, infos)
+			{
+				if (info.type=="HPO term id")
+				{
+					QByteArray disease = db.phenotypeByAccession(info.disease_info.toLatin1(), false).name().trimmed();
+					if (!diseases.contains(disease) && !disease.isEmpty())
+					{
+						diseases << disease;
+					}
+				}
+				else if (info.type=="CGI cancer type")
+				{
+					TSVFileStream stream("://Resources/cancer_types.tsv");
+					int idx_id = stream.colIndex("ID",true);
+					int idx_name = stream.colIndex("NAME",true);
+					while(!stream.atEnd())
+					{
+						QByteArrayList line = stream.readLine();
+						if (line.at(idx_id)==info.disease_info)
+						{
+							QByteArray disease = line.at(idx_name).trimmed();
+							if (!diseases.contains(disease) && !disease.isEmpty())
+							{
+								diseases << disease;
+							}
+						}
+					}
+				}
+			}
+
+			//create links for each gene/disease
+			foreach(const QByteArray& g, genes)
+			{
+				foreach(const QByteArray& d, diseases)
+				{
+					sub_menu->addAction(g + " AND \"" + d + "\"");
+				}
+			}
+		}
+	}
+	else
+	{
+		sub_menu->setEnabled(ngsd_user_logged_in);
+	}
+
 	//add gene databases
 	if (!genes.isEmpty())
 	{
@@ -4210,7 +4266,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 
 			try
 			{
-				HttpHandler(HttpHandler::NONE).getHttpReply(Settings::string("Alamut")+"/show?request="+value);
+				HttpHandler(HttpHandler::NONE).get(Settings::string("Alamut")+"/show?request="+value);
 			}
 			catch (Exception& e)
 			{
@@ -4267,6 +4323,10 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		}
 
 		updateReportConfigHeaderIcon(index);
+	}
+	else if (parent_menu && parent_menu->title()=="PubMed")
+	{
+		QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/?term=" + text));
 	}
 	else if (parent_menu) //gene menus
 	{
@@ -4398,7 +4458,7 @@ QString MainWindow::svFile(QString gsvar_file)
 
 	QString sv_file = base + "_manta_var_structural.bedpe"; //germline file naming convention
 
-	if(!QFile::exists(sv_file)) //fallback to somatic //TODO: Remove when rename in somatic megSAP pipeline
+	if(!QFile::exists(sv_file)) //fallback to somatic //TODO: Remove when renaming of old cases is done > AXEL
 	{
 		sv_file = base + "_var_structural.bedpe";
 	}

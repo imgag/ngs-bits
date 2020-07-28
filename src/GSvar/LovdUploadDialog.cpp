@@ -144,7 +144,13 @@ void LovdUploadDialog::upload()
 	static HttpHandler http_handler(HttpHandler::INI); //static to allow caching of credentials
 	try
 	{
-		QString reply = http_handler.getHttpReply("https://databases.lovd.nl/shared/api/submissions", upload_file);
+		//add headers
+		HttpHeaders add_headers;
+		add_headers.insert("Content-Type", "application/json");
+		add_headers.insert("Content-Length", QByteArray::number(upload_file.count()));
+
+		//post request
+		QString reply = http_handler.post("https://databases.lovd.nl/shared/api/submissions", upload_file, add_headers);
 		ui_.comment_upload->setText(reply);
 
 		//parse JSON result

@@ -101,5 +101,7 @@
         <file>Icons/PGSCatalog.png</file>
         <file>Icons/PolygenicRiskScores.png</file>
         <file>Icons/cbioportal.png</file>
+        <file>Icons/ckb.png</file>
+        <file>Icons/PubMed.png</file>
     </qresource>
 </RCC>

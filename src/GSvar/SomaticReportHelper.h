@@ -174,7 +174,7 @@ private:
 };
 
 
-struct cgi_info
+struct cgi_info //TODO coding convention! > AXEL
 {
 	QByteArray acronym;
 	QByteArray parent;
@@ -210,7 +210,7 @@ struct cgi_info
 };
 
 
-struct somatic_virus
+struct somatic_virus //TODO coding convention! > AXEL
 {
 	QByteArray chr_;
 	int start_;
@@ -246,7 +246,7 @@ struct somatic_virus
 };
 
 //struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
-struct tmb_info
+struct tmb_info //TODO coding convention! > AXEL
 {
 	QByteArray hpoterm;
 	int cohort_count;

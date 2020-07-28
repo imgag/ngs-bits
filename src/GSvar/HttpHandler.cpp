@@ -16,7 +16,13 @@
 HttpHandler::HttpHandler(ProxyType proxy_type, QObject* parent)
 	: QObject(parent)
 	, nmgr_()
+	, headers_()
 {
+	//default headers
+	setHeader("User-Agent", "GSvar");
+	setHeader("X-Custom-User-Agent", "GSvar");
+
+	//proxy
 	if (proxy_type==SYSTEM)
 	{
 		QNetworkProxyFactory::setUseSystemConfiguration(true);
@@ -34,14 +40,37 @@ HttpHandler::HttpHandler(ProxyType proxy_type, QObject* parent)
 		nmgr_.setProxy(QNetworkProxy(QNetworkProxy::NoProxy));
 	}
 
+	//signals+slots
 	connect(&nmgr_, SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError> &)), this, SLOT(handleSslErrors(QNetworkReply*, const QList<QSslError>&)));
 	connect(&nmgr_, SIGNAL(proxyAuthenticationRequired(const QNetworkProxy& , QAuthenticator*)), this, SLOT(handleProxyAuthentification(const QNetworkProxy& , QAuthenticator*)));
 }
 
-QString HttpHandler::getHttpReply(QString url)
+const HttpHeaders& HttpHandler::headers() const
 {
+	return headers_;
+}
+
+void HttpHandler::setHeader(const QByteArray& key, const QByteArray& value)
+{
+	headers_.insert(key, value);
+}
+
+QString HttpHandler::get(QString url, const HttpHeaders& add_headers)
+{
+	//request
+	QNetworkRequest request;
+	request.setUrl(url);
+	for(auto it=headers_.begin(); it!=headers_.end(); ++it)
+	{
+		request.setRawHeader(it.key(), it.value());
+	}
+	for(auto it=add_headers.begin(); it!=add_headers.end(); ++it)
+	{
+		request.setRawHeader(it.key(), it.value());
+	}
+
 	//query
-	QNetworkReply* reply = nmgr_.get(QNetworkRequest(QUrl(url)));
+	QNetworkReply* reply = nmgr_.get(request);
 
 	//make the loop process the reply immediately
 	QEventLoop loop;
@@ -58,15 +87,19 @@ QString HttpHandler::getHttpReply(QString url)
 	return output;
 }
 
-QString HttpHandler::getHttpReply(QString url, QByteArray data)
+QString HttpHandler::post(QString url, const QByteArray& data, const HttpHeaders& add_headers)
 {
 	//request
 	QNetworkRequest request;
 	request.setUrl(url);
-	request.setRawHeader("User-Agent", "GSvar");
-	request.setRawHeader("X-Custom-User-Agent", "GSvar");
-	request.setRawHeader("Content-Type", "application/json");
-	request.setRawHeader("Content-Length", QByteArray::number(data.count()));
+	for(auto it=headers_.begin(); it!=headers_.end(); ++it)
+	{
+		request.setRawHeader(it.key(), it.value());
+	}
+	for(auto it=add_headers.begin(); it!=add_headers.end(); ++it)
+	{
+		request.setRawHeader(it.key(), it.value());
+	}
 
 	//query
 	QNetworkReply* reply = nmgr_.post(request, data);
@@ -103,34 +136,3 @@ void HttpHandler::handleProxyAuthentification(const QNetworkProxy& proxy, QAuthe
 	auth->setPassword(proxy_pass);
 }
 
-QString HttpHandler::sendXmlFile(QString url, QString path)
-{
-	QPointer<QFile> file = new QFile(path, this);
-	if(!file->open(QIODevice::ReadOnly))
-	{
-		THROW(FileParseException, "Could not open XML file " +path+ " for upload to MTB.");
-	}
-
-	QNetworkRequest request;
-	request.setUrl(url);
-	request.setRawHeader("User-Agent", "GSvar");
-	request.setRawHeader("X-Custom-User-Agent", "GSvar");
-	request.setRawHeader("Content-Type", "application/xml");
-
-	//query
-	QNetworkReply* reply = nmgr_.post(request, file);
-
-	//make the loop process the reply immediately
-	QEventLoop loop;
-	connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-	loop.exec();
-
-	//output
-	QString output = reply->readAll();
-	if (reply->error()!=QNetworkReply::NoError)
-	{
-		THROW(Exception, "Network error " + QString::number(reply->error()) + "\nError message: " + reply->errorString() + "\nReply: " + output);
-	}
-	reply->deleteLater();
-	return output;
-}
