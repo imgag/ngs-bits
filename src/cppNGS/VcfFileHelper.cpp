@@ -1,6 +1,21 @@
 #include "VcfFileHelper.h"
 #include "Helper.h"
 
+VCFLine::VCFLine()
+	: chr_()
+	, pos_(-1)
+	, ref_()
+	, alt_()
+	, alt_string_()
+	, id_()
+	, qual_(-1)
+	, filter_()
+	, info_()
+	, format_()
+	, sample_()
+{
+}
+
 VcfFormat::LessComparator::LessComparator(bool use_quality)
 	: use_quality(use_quality)
 {
@@ -600,6 +615,7 @@ void VCFLine::leftNormalize(QString reference_genome)
 	{
 		//shift block to the left
 		Sequence block = Variant::minBlock(ref_);
+
 		while(pos_ >= 1 && reference.seq(chr_, pos_, block.length())==block)
 		{
 			pos_ -= block.length();

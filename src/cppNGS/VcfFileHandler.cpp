@@ -120,7 +120,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 	}
 
 	vcf_line.setId(line_parts[2].split(';'));
-	vcf_line.setAlt(line_parts[4].split(','));
+	vcf_line.addAlt(line_parts[4].split(','));
 	for(Sequence alt_seq : vcf_line.alt())
 	{
 		if (alt_seq!="-" && alt_seq!="." && !QRegExp("[ACGTN,]+").exactMatch(alt_seq))
@@ -516,9 +516,9 @@ void VcfFileHandler::store(const QString& filename,  bool stdout_if_file_empty, 
 	{
 		//open stream
 		QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_file_empty);
-		QTextStream stream(file.data());
+		QTextStream file_stream(file.data());
 
-		stream << vcf_file;
+		file_stream << vcf_file;
 	}
 }
 
@@ -620,7 +620,7 @@ const VCFLine& VcfFileHandler::addGSvarVariant(const Variant& var)
 	vcf_line.setRef(var.ref());
 	QByteArrayList alt_list;
 	alt_list.push_back(var.obs());
-	vcf_line.setAlt(alt_list);
+	vcf_line.addAlt(alt_list);
 
 	vcf_lines_.push_back(vcf_line);
 	return vcf_lines_.last();
@@ -666,7 +666,7 @@ void VcfFileHandler::storeLineInformation(QTextStream& stream, VCFLine line) con
 	stream  << "\t"<< quality;
 
 	//if filter exists
-	if(!line.filter().empty())
+	if(!line.filter().empty() && !(line.filter().count() == 1 && line.filter().first() == ""))
 	{
 		stream  << "\t"<< line.filter().join(';');
 	}
@@ -759,4 +759,273 @@ QString VcfFileHandler::lineToString(int pos) const
 	QTextStream stream(&line);
 	storeLineInformation(stream, vcfLine(pos));
 	return line;
+}
+
+VcfFileHandler VcfFileHandler::convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome)
+{
+	VcfFileHandler vcf_file;
+
+	//store comments
+	int line=0;
+	foreach(const QString& comment, variant_list.comments())
+	{
+		QByteArray utf8_comment = comment.toUtf8();
+		if(utf8_comment.startsWith("##fileformat"))
+		{
+			vcf_file.vcf_header_.setFormat(utf8_comment);
+		}
+		else
+		{
+			vcf_file.vcf_header_.setCommentLine(utf8_comment, line);
+		}
+	}
+	//fileformat must always be set in vcf
+	if(vcf_file.vcf_header_.fileFormat().isEmpty())
+	{
+		QByteArray format = "##fileformat=unavailable";
+		vcf_file.vcf_header_.setFormat(format);
+	}
+
+	//store all columns as INFO
+	for (int j = 0; j < variant_list.annotationDescriptions().count(); ++j)
+	{
+		const VariantAnnotationDescription& anno_description = variant_list.annotationDescriptions()[j];
+
+		InfoFormatLine info_line;
+
+		info_line.id = anno_description.name().toUtf8();
+		info_line.number = ".";
+
+		QByteArray utf8_type;
+		switch (anno_description.type()) {
+			case VariantAnnotationDescription::INTEGER:
+				utf8_type =  "Integer";
+				break;
+			case VariantAnnotationDescription::FLOAT:
+				utf8_type =  "Float";
+				break;
+			case VariantAnnotationDescription::FLAG:
+				utf8_type =  "Flag";
+				break;
+			case VariantAnnotationDescription::CHARACTER:
+				utf8_type =  "Character";
+				break;
+			case VariantAnnotationDescription::STRING:
+				utf8_type =  "String";
+				break;
+			default:
+				THROW(ProgrammingException, "Unknown AnnotationType '" + QString::number(anno_description.type()) + "'!");
+		}
+		info_line.type = utf8_type;
+
+		QString desc = anno_description.description();
+		info_line.description = (desc!="" ? desc : "no description available");
+
+		vcf_file.vcf_header_.addInfoLine(info_line);
+	}
+
+	//write filter headers
+	auto it = variant_list.filters().cbegin();
+	while(it != variant_list.filters().cend())
+	{
+		FilterLine filter_line;
+		filter_line.id = it.key().toUtf8();
+		filter_line.description = it.value();
+		vcf_file.vcf_header_.addFilterLine(filter_line);
+		++it;
+	}
+
+	//add header fields
+	vcf_file.column_headers_ << "CHROM" << "POS" << "ID" << "REF" << "ALT" << "QUAL" << "FILTER" << "INFO" << "FORMAT";
+	//search for genotype on annotations
+	SampleHeaderInfo genotype_columns = variant_list.getSampleHeader(false);
+	if(genotype_columns.empty() || (genotype_columns.size() == 1 && genotype_columns.first().column_name == "genotype") )
+	{
+		vcf_file.column_headers_ << "Sample";
+	}
+	else
+	{
+		for(const SampleInfo& genotype : genotype_columns)
+		{
+			vcf_file.column_headers_ << genotype.column_name.toUtf8();
+		}
+	}
+
+	//write genotype Format into header
+	if(!genotype_columns.empty())
+	{
+		InfoFormatLine format_line;
+		format_line.id = "GT";
+		format_line.number = "1";
+		format_line.type = "String";
+		format_line.description = "Genotype";
+
+		vcf_file.vcf_header_.addFormatLine(format_line);
+	}
+
+	int qual_index = variant_list.annotationIndexByName("QUAL", true, false);
+	int filter_index = variant_list.annotationIndexByName("FILTER", true, false);
+	QSet<int> indices_to_skip;
+	indices_to_skip.insert(qual_index);
+	indices_to_skip.insert(filter_index);
+	for(const SampleInfo& genotype : genotype_columns)
+	{
+		indices_to_skip.insert(genotype.column_index);
+	}
+
+	//add variant lines
+	for(int i = 0; i < variant_list.count(); ++i)
+	{
+		Variant v = variant_list[i];
+		VCFLine vcf_line;
+
+		QByteArrayList id_list;
+		id_list.push_back(".");
+		vcf_line.setId(id_list);
+		if(qual_index >= 0)
+		{
+			vcf_line.setQual(v.annotations().at(qual_index).toDouble());
+		}
+		else
+		{
+			int quality_index = variant_list.annotationIndexByName("quality", true, false);
+			if(quality_index >= 0)
+			{
+				QByteArrayList quality_list = v.annotations().at(quality_index).split(';');
+				for(const QByteArray& element : quality_list)
+				{
+					if(element.startsWith("QUAL"))
+					{
+						QByteArrayList quality = element.split('=');
+						//could not parse QUAL from quality column
+						if(quality.count() < 2) continue;
+						bool quality_ok;
+						double qual = quality.at(1).toDouble(&quality_ok);
+						//could not parse number from quality column
+						if (!quality_ok) continue;
+						vcf_line.setQual(qual);
+						QByteArrayList annotations = v.annotations();
+						//remove the QUAL entry from quality column(element length plus ;)
+						annotations[quality_index].remove(0, element.length() + 1);
+						v.setAnnotations(annotations);
+					}
+				}
+			}
+
+		}
+		if(filter_index >= 0)
+		{
+			vcf_line.setFilter(v.annotations().at(filter_index).split(';'));
+		}
+		vcf_line.setChromosome(v.chr());
+		vcf_line.setPos(v.start());
+		vcf_line.setRef(v.ref());
+		QByteArrayList alt_list;
+		alt_list.push_back(v.obs());
+		vcf_line.addAlt(alt_list);
+
+		//add all columns into info
+		OrderedHash<QByteArray , QByteArray> info;
+		for (int i=0; i<v.annotations().count(); ++i)
+		{
+
+			if(indices_to_skip.contains(i)) continue;
+			const VariantAnnotationHeader& anno_header = variant_list.annotations()[i];
+			const VariantAnnotationDescription& anno_desc = variant_list.annotationDescriptionByName(anno_header.name(), false);
+			QByteArray anno_val = v.annotations()[i];
+
+			if (anno_val!="")
+			{
+
+				if (anno_desc.type()==VariantAnnotationDescription::FLAG) //Flags should not have values in VCF
+				{
+					info.push_back(anno_header.name().toUtf8(), "TRUE");
+				}
+				else //everything else is just added to info
+				{
+					info.push_back(anno_header.name().toUtf8(), anno_val);
+				}
+			}
+		}
+		vcf_line.setInfo(info);
+
+		//write genotype
+		if(!genotype_columns.empty())
+		{
+
+			QByteArrayList format_list;
+			format_list.push_back("GT");
+			vcf_line.setFormat(format_list);
+
+			OrderedHash<QByteArray, FormatIDToValueHash> all_samples;
+
+			for(const SampleInfo& genotype : genotype_columns)
+			{
+				FormatIDToValueHash format_to_value;
+				int genotype_index = variant_list.annotationIndexByName(genotype.column_name);
+
+				if(v.annotations().at(genotype_index).isEmpty() || v.annotations().at(genotype_index) == ".")
+				{
+					continue;
+				}
+				else if(v.annotations().at(genotype_index) == "wt")
+				{
+					format_to_value.push_back("GT", "0:0");
+				}
+				else if(v.annotations().at(genotype_index) == "hom")
+				{
+					format_to_value.push_back("GT", "1:1");
+				}
+				else if(v.annotations().at(genotype_index) == "het")
+				{
+					format_to_value.push_back("GT", "1:0");
+				}
+				else
+				{
+					THROW(ArgumentException, "genotype column in TSV file does not contain a valid entry.");
+				}
+				all_samples.push_back(genotype.column_name.toUtf8(), format_to_value);
+			}
+			vcf_line.setSample(all_samples);
+		}
+
+		vcf_file.vcf_lines_.push_back(vcf_line);
+	}
+
+	for(VCFLine& v_line : vcf_file.vcfLines())
+	{
+		//add base for INSERTION
+		QByteArray ref = v_line.ref().toUpper();
+		if (ref.size() == 1 && !(ref=="N" || ref=="A" || ref=="C" || ref=="G" || ref=="T")) //empty seq symbol in ref
+		{
+			FastaFileIndex reference(reference_genome);
+			QByteArray base = reference.seq(v_line.chr(), v_line.pos() - 1, 1);
+
+			QByteArrayList alt_seq;
+			//for GSvar there is only one alternative sequence (alt(0) stores VariantList.obs(0))
+			QByteArray new_alt = base + v_line.alt(0);
+			alt_seq.push_back(new_alt);
+			v_line.setAlt(alt_seq);
+			v_line.setRef(base);
+		}
+
+		//add base for DELETION
+		QByteArray alt = v_line.alt(0).toUpper();
+		if (alt.size() == 1 && !(alt=="N" || alt=="A" || alt=="C" || alt=="G" || alt=="T")) //empty seq symbol in alt
+		{
+			FastaFileIndex reference(reference_genome);
+			QByteArray base = reference.seq(v_line.chr(), v_line.pos() - 1, 1);
+			QByteArray new_ref = base + v_line.ref();
+			v_line.setSingleAlt(base);
+			v_line.setRef(new_ref);
+			v_line.setPos(v_line.pos() - 1);
+		}
+
+
+	}
+
+	vcf_file.leftNormalize(reference_genome);
+
+	return vcf_file;
+
 }

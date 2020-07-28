@@ -815,13 +815,9 @@ void VariantList::store(QString filename) const
 	}
 }
 
-void VariantList::storeAsVCF(QString filename) const
+void VariantList::storeAsVCF(QString filename, const QString& reference_genome) const
 {
-
-	//open stream
-	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
-	QTextStream stream(file.data());
-
+	/*
 	//write ##fileformat and other metainformation
 	foreach(const QString& comment, comments())
 	{
@@ -936,33 +932,12 @@ void VariantList::storeAsVCF(QString filename) const
 
 		stream << "\n";
 	}
+*/
 
+	VcfFileHandler vcf_file;
+	vcf_file = VcfFileHandler::convertGSvarToVcf(*this, reference_genome);
+	vcf_file.store(filename);
 
-
-}
-
-QString VariantList::annotationTypeToString(VariantAnnotationDescription::AnnotationType type)
-{
-	static QHash<VariantAnnotationDescription::AnnotationType,QString> hash;
-
-	//initialize hash
-	if (hash.isEmpty())
-	{
-		hash[VariantAnnotationDescription::INTEGER] = "Integer";
-		hash[VariantAnnotationDescription::FLOAT] = "Float";
-		hash[VariantAnnotationDescription::FLAG] = "Flag";
-		hash[VariantAnnotationDescription::CHARACTER] = "Character";
-		hash[VariantAnnotationDescription::STRING] = "String";
-	}
-
-	//get output
-	QString output = hash.value(type, "");
-	if(output=="")
-	{
-		THROW(ProgrammingException, "Unknown AnnotationType '" + QString::number(type) + "'!");
-	}
-
-	return output;
 }
 
 void VariantList::sort(bool use_quality)

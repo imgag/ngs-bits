@@ -19,7 +19,7 @@
  *  - VcfFile mit VcfHandler mergen
  *  - fucntion VariantList::storeAsVcf: genotype in sample/format leftAlign reverse with RefSequ
  *		test: 10 insert, del, Snp, complexSubst
- * - test TsvToVcf for single Sample, and wt hom het
+ * - test TsvToVcf for single Sample, and wt hom het // with info=TRUE und INFO_x,
  *
  *  - check URL encoding..
  *  - remove qDebug()
@@ -141,6 +141,8 @@ public:
 
 	void storeLineInformation(QTextStream& stream, VCFLine line) const;
 	QString lineToString(int pos) const;
+
+	static VcfFileHandler convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome);
 
 private:
 

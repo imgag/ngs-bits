@@ -159,9 +159,17 @@ public:
 	{
 		info_lines_.push_back(info_line);
 	}
+	void removeInfoLine(int pos)
+	{
+		info_lines_.removeAt(pos);
+	}
 	void addFormatLine(const InfoFormatLine& format_line)
 	{
 		format_lines_.push_back(format_line);
+	}
+	void addFilterLine(const FilterLine& filter_line)
+	{
+		filter_lines_.push_back(filter_line);
 	}
 	void moveFormatLine(int from, int to)
 	{
@@ -206,6 +214,9 @@ class CPPNGSSHARED_EXPORT  VCFLine
 {
 
 public:
+
+	///Default constructor.
+	VCFLine();
 
 	const Chromosome& chr() const
 	{
@@ -362,11 +373,19 @@ public:
 	{
 		ref_ = ref;
 	}
-	void setAlt(const QByteArrayList& alt)
+	void addAlt(const QByteArrayList& alt)
 	{
 		for(const Sequence& seq : alt)
 		{
 			alt_.push_back(strToPointer(seq.toUpper()));
+		}
+	}
+	void setAlt(const QByteArrayList& alt)
+	{
+		alt_.clear();
+		for(const QByteArray alt_element : alt)
+		{
+			alt_.push_back(alt_element);
 		}
 	}
 	void setSingleAlt(const Sequence& seq)

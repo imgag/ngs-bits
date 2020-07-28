@@ -523,4 +523,18 @@ private slots:
 		S_EQUAL(vl_tsv[12].annotations().at(8), QByteArray("457,473,752,757"));
 		S_EQUAL(vl_tsv[12].annotations().at(26), QByteArray("255,0,255"));
 	}
+
+	void convertTSVtoVCF()
+	{
+		VariantList variant_list;
+		variant_list.load(TESTDATA("data_in/GSvarToVcf.GSvar"));
+
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		//tests multisample and leftNormalize from GSvar format to VCF for insertion, deletion, SNP
+		VcfFileHandler vcf_file = VcfFileHandler::convertGSvarToVcf(variant_list, ref_file);
+		vcf_file.store("out/GSvarToVcf.vcf");
+
+		COMPARE_FILES("out/GSvarToVcf.vcf", TESTDATA("data_out/GSvarToVcf.vcf"));
+	}
 };

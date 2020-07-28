@@ -72,7 +72,7 @@ public:
 			}
 			else
 			{
-				variants.load(getInfile("in"), false, &roi, inv);
+				variants.load(getInfile("in"), true, &roi, inv);
 			}
 			variants.store(getOutfile("out"));
 		}
