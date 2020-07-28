@@ -65,7 +65,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 		}
 	}
 
-	QList<tmb_info> hpo_tmbs = tmb_info::load("://Resources/hpoterms_tmb.tsv");
+	QList<tmbInfo> hpo_tmbs = tmbInfo::load("://Resources/hpoterms_tmb.tsv");
 
 	//Set Reference value proposals
 	for(const auto& hpo_tmb : hpo_tmbs)

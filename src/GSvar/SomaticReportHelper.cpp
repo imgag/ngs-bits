@@ -975,7 +975,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 			QByteArrayList parts = file.readLine();
 			if(parts.isEmpty()) continue;
 
-			somatic_virus tmp;
+			somaticVirus tmp;
 			tmp.chr_ = parts[0];
 			tmp.start_ = parts[1].toInt();
 			tmp.end_ = parts[2].toInt();
@@ -1086,7 +1086,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	}
 
 	//load list with CGI acronyms, CGI explanation and TMB
-	cgi_dictionary_ = cgi_info::load("://Resources/cancer_types.tsv");
+	cgi_dictionary_ = cgiInfo::load("://Resources/cancer_types.tsv");
 
 	//Set up RTF file specifications
 	doc_.setMargins(1134,1134,1134,1134);
@@ -2246,7 +2246,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	RtfTable cgi_acronyms_table;
 
 	QByteArrayList cgi_acronym_explanation;
-	for(const cgi_info& data : cgi_dictionary_)
+	for(const cgiInfo& data : cgi_dictionary_)
 	{
 		if(cgi_acronyms_.contains(data.acronym)) cgi_acronym_explanation << data.acronym + ": " + data.def_german;
 	}
