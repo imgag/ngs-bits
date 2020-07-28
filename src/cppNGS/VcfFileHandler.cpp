@@ -83,7 +83,7 @@ void VcfFileHandler::parseHeaderFields(QByteArray& line, bool allow_multi_sample
 		}
 	}
 }
-void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
+void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, QSet<QByteArray> filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 
 	QList<QByteArray> line_parts = line.split('\t');
@@ -143,6 +143,17 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 
 	//FILTER
 	vcf_line.setFilter(line_parts[6].split(';'));
+	for(const QByteArray& filter : vcf_line.filter())
+	{
+		if(filter == "PASS" || filter == "pass" || filter == "." || filter.isEmpty()) continue;
+		if(!filter_ids.contains(filter))
+		{
+			FilterLine new_filter_line;
+			new_filter_line.id = filter;
+			new_filter_line.description = "no description available";
+			vcf_header_.addFilterLine(new_filter_line);
+		}
+	}
 
 	//INFO
 	if(line_parts[7]!=".")
@@ -277,7 +288,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 }
 
 
-void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
+void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, QSet<QByteArray> filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 
 	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
@@ -305,7 +316,11 @@ void VcfFileHandler::processVcfLine(int& line_number, QByteArray line, QSet<QByt
 		{
 			info_ids.insert(info.id);
 		}
-		parseVcfEntry(line_number, line, info_ids, format_ids, allow_multi_sample, roi_idx, invert);
+		for(FilterLine filter : vcf_header_.filterLines())
+		{
+			filter_ids.insert(filter.id);
+		}
+		parseVcfEntry(line_number, line, info_ids, format_ids, filter_ids, allow_multi_sample, roi_idx, invert);
 	}
 }
 
@@ -320,9 +335,10 @@ void VcfFileHandler::loadFromVCF(const QString& filename, bool allow_multi_sampl
 	//Sets holding all INFO and FORMAT IDs defined in the header (might be extended if a vcf line contains new ones)
 	QSet<QByteArray> info_ids_in_header;
 	QSet<QByteArray> format_ids_in_header;
+	QSet<QByteArray> filter_ids_in_header;
 	while(!file->atEnd())
 	{
-		processVcfLine(line_number, file->readLine(), info_ids_in_header, format_ids_in_header, allow_multi_sample, roi_idx, invert);
+		processVcfLine(line_number, file->readLine(), info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
 	}
 }
 
@@ -358,7 +374,8 @@ void VcfFileHandler::loadFromVCFGZ(const QString& filename, bool allow_multi_sam
 		//Sets holding all INFO and FORMAT IDs defined in the header (might be extended if a vcf line contains new ones)
 		QSet<QByteArray> info_ids_in_header;
 		QSet<QByteArray> format_ids_in_header;
-		processVcfLine(line_number, QByteArray(read_line), info_ids_in_header, format_ids_in_header, allow_multi_sample, roi_idx, invert);
+		QSet<QByteArray> filter_ids_in_header;
+		processVcfLine(line_number, QByteArray(read_line), info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
 	}
 	gzclose(file);
 	delete[] buffer;
@@ -609,21 +626,6 @@ QByteArrayList VcfFileHandler::formatIDs() const
 AnalysisType VcfFileHandler::type(bool allow_fallback_germline_single_sample) const
 {
 	return vcfHeader().type(allow_fallback_germline_single_sample);
-}
-
-const VCFLine& VcfFileHandler::addGSvarVariant(const Variant& var)
-{
-	//since we expect a variant frm GSvar we only set chr, start, ref and alt
-	VCFLine vcf_line;
-	vcf_line.setChromosome(var.chr());
-	vcf_line.setPos(var.start());
-	vcf_line.setRef(var.ref());
-	QByteArrayList alt_list;
-	alt_list.push_back(var.obs());
-	vcf_line.addAlt(alt_list);
-
-	vcf_lines_.push_back(vcf_line);
-	return vcf_lines_.last();
 }
 
 void VcfFileHandler::storeLineInformation(QTextStream& stream, VCFLine line) const

@@ -134,6 +134,9 @@ class CPPNGSSHARED_EXPORT VCFHeader
 {
 public:
 
+	static const int MIN_COLS = 8;
+	void clear();
+
 	const QByteArray& fileFormat() const
 	{
 		return fileformat_;
@@ -167,31 +170,26 @@ public:
 	{
 		format_lines_.push_back(format_line);
 	}
-	void addFilterLine(const FilterLine& filter_line)
-	{
-		filter_lines_.push_back(filter_line);
-	}
 	void moveFormatLine(int from, int to)
 	{
 		format_lines_.move(from, to);
 	}
-
-	static const int MIN_COLS = 8;
-
+	void addFilter(const QByteArray& filter, const QString& description = "no description available");
+	void addFilterLine(const FilterLine& filter_line)
+	{
+		filter_lines_.push_back(filter_line);
+	}
+	void setCommentLine(QByteArray& line, const int line_number);
+	void setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number);
+	void setFilterLine(QByteArray& line, const int line_number);
+	void setFormat(QByteArray& line);
 	void storeHeaderInformation(QTextStream& stream) const;
 
 	InfoFormatLine infoLineByID(const QByteArray& id, bool error_not_found = true) const;
 	InfoFormatLine formatLineByID(const QByteArray& id, bool error_not_found = true) const;
 	FilterLine filterLineByID(const QByteArray& id, bool error_not_found = true) const;
-	int vepIndexByName(const QString& name, bool error_if_not_found = true) const;
-
-	void setFormat(QByteArray& line);
-	void setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number);
-	void setFilterLine(QByteArray& line, const int line_number);
-	void setCommentLine(QByteArray& line, const int line_number);
-	void addFilter(const QByteArray& filter, const QString& description = "no description available");
 	AnalysisType type(bool allow_fallback_germline_single_sample) const;
-	void clear();
+	int vepIndexByName(const QString& name, bool error_if_not_found = true) const;
 
 private:
 
@@ -452,25 +450,36 @@ public:
 		return overlapsWith(line.chr(), line.start(), line.end());
 	}
 
+	///Returns if the variant is a SNV
+	/// allow_several_alternatives=TRUE if all alternatives in the vector shall be considered
+	bool isSNV(bool allow_several_alternatives = false) const
+	{
+		if(allow_several_alternatives)
+		{
+			for(const QByteArray alt : alt())
+			{
+				if(alt.length() != 1) return false;
+			}
+		}
+		else if(alt(0).length() != 1)
+		{
+			return false;
+		}
+
+		return ref_.length()==1 && alt(0)!="-" && ref_!="-";
+	}
 	//returns if the chromosome is valid
 	bool isValidGenomicPosition() const;
 	//returns all not passed filters
 	QByteArrayList failedFilters() const;
 	QString variantToString() const;
-
-	///Returns if the variant is a SNV
-	bool isSNV() const
-	{
-		return alt(0).length()==1 && ref_.length()==1 && alt(0)!="-" && ref_!="-";
-	}
 	QByteArrayList vepAnnotations(int field_index) const;
 
+	void leftNormalize(QString reference_genome);
 	/// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
 	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=true);
 	///Auxilary function: Removes common prefix and suffix bases from indels and adapts the start position accordingly.
 	static void normalize(int& start, Sequence& ref, Sequence& alt);
-
-	void leftNormalize(QString reference_genome);
 
 	///Equality operator (only compares the variatn location itself, not further annotations).
 	bool operator==(const VCFLine& rhs) const;

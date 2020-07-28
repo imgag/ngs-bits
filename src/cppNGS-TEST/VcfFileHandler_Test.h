@@ -7,20 +7,6 @@ TEST_CLASS(VcfFileHandler_Test)
 Q_OBJECT
 private slots:
 
-	void loadVCF()
-	{
-		VcfFileHandler vcfH;
-		vcfH.load(TESTDATA("data_in/VcfFileHandler_in.vcf"), true);
-		vcfH.store("out/VcfFileHandler_out.vcf");
-		vcfH.store("out/VcfFileHandler_out.vcf.gz", false, true, 9);
-
-		COMPARE_FILES("out/VcfFileHandler_out.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
-
-		vcfH.load("out/VcfFileHandler_out.vcf.gz", true);
-		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped.vcf");
-		COMPARE_FILES("out/VcfFileHandler_out_loaded_from_gzipped.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
-	}
-
 	void type()
 	{
 		VcfFileHandler vl;
@@ -85,7 +71,7 @@ private slots:
 		S_EQUAL(format.description, QString("List of Phred-scaled genotype likelihoods"));
 		X_EQUAL(format.type, "Integer");
 
-		I_EQUAL(vl.filterIDs().count(), 2);
+		I_EQUAL(vl.filterIDs().count(), 3);
 		S_EQUAL(vl.vcfHeader().filterLineByID("q10").description, QString("Quality below 10"));
 		S_EQUAL(vl.vcfHeader().filterLineByID("s50").description, QString("Less than 50% of samples have data"));
 
@@ -127,6 +113,20 @@ private slots:
 		S_EQUAL(vl.sampleIDs()[0], QString("./Sample_GS120297A3/GS120297A3.bam"));
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
+	}
+
+	void loadVCFWithNewFilter()
+	{
+		VcfFileHandler vcfH;
+		vcfH.load(TESTDATA("data_in/VcfFileHandler_in.vcf"), true);
+		vcfH.store("out/VcfFileHandler_out.vcf");
+		vcfH.store("out/VcfFileHandler_out.vcf.gz", false, true, 9);
+
+		COMPARE_FILES("out/VcfFileHandler_out.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
+
+		vcfH.load("out/VcfFileHandler_out.vcf.gz", true);
+		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped.vcf");
+		COMPARE_FILES("out/VcfFileHandler_out_loaded_from_gzipped.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
 	}
 
 	void loadFromVCF_withROI()
@@ -252,7 +252,7 @@ private slots:
 		S_EQUAL(format.description, QString("List of Phred-scaled genotype likelihoods"));
 		X_EQUAL(format.type, "Integer");
 
-		I_EQUAL(vl.filterIDs().count(), 2);
+		I_EQUAL(vl.filterIDs().count(), 3);
 		S_EQUAL(vl.vcfHeader().filterLineByID("q10").description, QString("Quality below 10"));
 		S_EQUAL(vl.vcfHeader().filterLineByID("s50").description, QString("Less than 50% of samples have data"));
 

@@ -11,7 +11,7 @@ void getVariantInformation(
 	for (int i=0; i<variant_list.count(); ++i)
 	{
 		const  VCFLine& v = variant_list[i];
-		if (!v.isSNV()) continue;
+		if (!v.isSNV(true)) continue;
 		if (!v.chr().isAutosome()) continue;
 
 		Pileup pileup_tu = reader.getPileup(v.chr(), v.start());
@@ -19,24 +19,27 @@ void getVariantInformation(
 		//keep only variants of minimum depth
 		if (pileup_tu.depth(true) < min_depth) continue;
 
-		long long count = pileup_tu.countOf(v.altString()[0]);
-		double frequency = pileup_tu.frequency(v.ref()[0], v.altString()[0]);
+		for(const QByteArray alt : v.alt())
+		{
+			long long count = pileup_tu.countOf(alt[0]);
+			double frequency = pileup_tu.frequency(v.ref()[0], alt[0]);
 
-		//do not keep homozygous variants
-		if(frequency==1)
-		{
-			homozygousVariants.insert(v);
-			continue;
-		}
-		if(homozygousVariants.find(v)!=homozygousVariants.end())
-		{
-			continue;
-		}
+			//do not keep homozygous variants
+			if(frequency==1)
+			{
+				homozygousVariants.insert(v);
+				continue;
+			}
+			if(homozygousVariants.find(v)!=homozygousVariants.end())
+			{
+				continue;
+			}
 
-		//only keep variants with a minimum base count
-		if(count >= min_alt_count)
-		{
-			vInfo.variants[v] = frequency;
+			//only keep variants with a minimum base count
+			if(count >= min_alt_count)
+			{
+				vInfo.variants[v] = frequency;
+			}
 		}
 	}
 }

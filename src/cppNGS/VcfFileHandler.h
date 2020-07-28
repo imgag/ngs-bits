@@ -8,22 +8,14 @@
 /*
  *  TO DOS:
  *
- *  make libs handle multiallelic =>  z.B. in ancestry() ???
- *		-> tests anpassen
  *  - order functions alphabetically
- *  - add filter into header when it first appears in a vcf line
- *		tests anpassen
  *  - tests for VCFLine and VCFHeader
+ *  - tests anpassen falls Filter neu dazu
  *
  *  - TEST Somatic for LIB and SomaticQC as TOOL (both have two new vcf, must be generated new with new fucntion)
  *  - VcfFile mit VcfHandler mergen
- *  - fucntion VariantList::storeAsVcf: genotype in sample/format leftAlign reverse with RefSequ
- *		test: 10 insert, del, Snp, complexSubst
- * - test TsvToVcf for single Sample, and wt hom het // with info=TRUE und INFO_x,
  *
  *  - check URL encoding..
- *  - remove qDebug()
- *
  *
  * ENDE:
  * - streaming tools use VcfLine
@@ -41,8 +33,26 @@ class CPPNGSSHARED_EXPORT VcfFileHandler
 
 public:
 
+	int count() const
+	{
+		return vcf_lines_.count();
+	}
+	///returns a QList of all filter IDs in the vcf file
+	QByteArrayList filterIDs() const;
+	///returns a QList of all format IDs in the vcf file
+	QByteArrayList formatIDs() const;
+	///returns a QList of all information IDs in the vcf file
+	QByteArrayList informationIDs() const;
+	///save a variant line as string
+	QString lineToString(int pos) const;
+
+	void leftNormalize(QString reference_genome);
 	///loads a vcf or vcf.gz file
 	void load(const QString& filename, bool allow_multi_sample=false, const BedFile* roi=nullptr, bool invert=false);
+	///removes duplicate variants
+	void removeDuplicates(bool sort_by_quality);
+	///returns a QList of all sample names
+	QByteArrayList sampleIDs() const;
 	///stores the data of VCFFileHandler in a vcf file
 	void store(const QString& filename, bool stdout_if_file_empty = false, bool compress=false, int compression_level = 1) const;
 	///stores a VCFFile as tsv file, INFO and FORMAT fields are differentiated by "_info" and "_format" attached to the name in ##Description lines,
@@ -55,9 +65,6 @@ public:
 	/// #uniqInfo_info	TWICE_info	GT_format_SAMPLE_1	TWICE_format_SAMPLE_1	GT_format_SAMPLE_2	TWICE_format_SAMPLE_2
 	///	1	2	1|1	z	0|1	z
 	void storeAsTsv(const QString& filename) const;
-
-	void leftNormalize(QString reference_genome);
-
 	void sort(bool use_quality = false);
 	void sortByFile(QString filename);
 	///Costum sorting of variants.
@@ -67,24 +74,8 @@ public:
 		std::sort(vcf_lines_.begin(), vcf_lines_.end(), comparator);
 	}
 
-	void removeDuplicates(bool sort_by_quality);
-	int count() const
-	{
-		return vcf_lines_.count();
-	}
 	///Returns analysis type.
 	AnalysisType type(bool allow_fallback_germline_single_sample = true) const;
-	///creates a VCFLine for a Variant, adds it to the vcf_lines_ and returns it
-	const VCFLine& addGSvarVariant(const Variant& var);
-
-	///returns a QList of all sample names
-	QByteArrayList sampleIDs() const;
-	///returns a QList of all information IDs in the vcf file
-	QByteArrayList informationIDs() const;
-	///returns a QList of all filter IDs in the vcf file
-	QByteArrayList filterIDs() const;
-	///returns a QList of all format IDs in the vcf file
-	QByteArrayList formatIDs() const;
 
 	///returns a QVector of vcf_lines_
 	const QVector<VCFLine>& vcfLines() const
@@ -139,21 +130,18 @@ public:
 		vcf_lines_.resize(size);
 	}
 
-	void storeLineInformation(QTextStream& stream, VCFLine line) const;
-	QString lineToString(int pos) const;
-
 	static VcfFileHandler convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome);
 
 private:
 
-	void parseVcfHeader(const int line_number, QByteArray& line);
-	void parseHeaderFields(QByteArray& line, bool allow_multi_sample);
-	void parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
-	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
+	void clear();
 	void loadFromVCF(const QString& filename, bool allow_multi_sample=false, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
 	void loadFromVCFGZ(const QString& filename, bool allow_multi_sample=false, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
-
-	void clear();
+	void parseHeaderFields(QByteArray& line, bool allow_multi_sample);
+	void parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, QSet<QByteArray> filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
+	void parseVcfHeader(const int line_number, QByteArray& line);
+	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, QSet<QByteArray> filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
+	void storeLineInformation(QTextStream& stream, VCFLine line) const;
 
 	QVector<VCFLine> vcf_lines_;
 	VCFHeader vcf_header_;
