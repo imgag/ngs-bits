@@ -2328,11 +2328,19 @@ void MainWindow::transferSomaticData()
 {
 	if(variants_.type() != AnalysisType::SOMATIC_PAIR) return;
 
-	QString xml_path = Settings::string("gsvar_somatic_xml_folder") + "\\" + somatic_report_settings_.tumor_ps + "-" + somatic_report_settings_.normal_ps + ".xml";
-	QString genlab_rtf_report_path = Settings::string("genlab_somatic_report_folder") +"\\" + somatic_report_settings_.tumor_ps + "-" + somatic_report_settings_.normal_ps + ".rtf";
 
-	SomaticDataTransferWidget* data_transfer = new SomaticDataTransferWidget(Settings::string("mtb_xml_upload_url"), xml_path, genlab_rtf_report_path, this);
-	data_transfer->exec();
+	SomaticDataTransferWidget* data_transfer;
+
+	try
+	{
+		data_transfer = new SomaticDataTransferWidget(somatic_report_settings_.tumor_ps, somatic_report_settings_.normal_ps, this);
+		data_transfer->exec();
+	}
+	catch(DatabaseException e)
+	{
+		QMessageBox::warning(this, "Database error", e.message());
+	}
+
 }
 
 void MainWindow::showReportConfigInfo()
@@ -2681,10 +2689,16 @@ void MainWindow::generateReportSomaticRTF()
 
 			//Store XML file with the same somatic report configuration settings
 			QString gsvar_xml_folder = Settings::string("gsvar_somatic_xml_folder");
-			if(gsvar_xml_folder != "")
+
+			try
 			{
 				report.storeXML(gsvar_xml_folder + "\\" + somatic_report_settings_.tumor_ps + "-" + somatic_report_settings_.normal_ps + ".xml");
 			}
+			catch(Exception e)
+			{
+				QMessageBox::warning(this, "creation of XML file failed", e.message());
+			}
+
 
 			//Generate RTF
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();

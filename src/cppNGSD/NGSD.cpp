@@ -4134,7 +4134,7 @@ void NGSD::deleteReportConfig(int id)
 SomaticReportConfigurationData NGSD::somaticReportConfigData(int id)
 {
 	SqlQuery query = getQuery();
-	query.exec("SELECT created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date, target_file FROM somatic_report_configuration WHERE id=" + QString::number(id));
+	query.exec("SELECT created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date, mtb_xml_upload_date, mtb_rtf_upload_date, target_file FROM somatic_report_configuration WHERE id=" + QString::number(id));
 	query.next();
 
 	SomaticReportConfigurationData output;
@@ -4147,6 +4147,12 @@ SomaticReportConfigurationData NGSD::somaticReportConfigData(int id)
 
 	if(!query.value("target_file").isNull()) output.target_file = query.value("target_file").toString();
 	else output.target_file = "";
+
+	if( !query.value("mtb_xml_upload_date" ).isNull()) output.mtb_xml_upload_date = query.value("mtb_xml_upload_date").toDateTime().toString("dd.MM.yyyy hh:mm:ss");
+	else output.mtb_xml_upload_date = "";
+
+	if( !query.value("mtb_rtf_upload_date").isNull() ) output.mtb_rtf_upload_date = query.value("mtb_rtf_upload_date").toDateTime().toString("dd.MM.yyyy hh:mm:ss");
+	else output.mtb_rtf_upload_date = "";
 
 	return output;
 }
@@ -4517,6 +4523,22 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 	}
 
 	return output;
+}
+
+void NGSD::setSomaticMtbXmlUpload(int report_id)
+{
+	SqlQuery query = getQuery();
+	query.prepare("UPDATE `somatic_report_configuration` SET `mtb_xml_upload_date`= CURRENT_TIMESTAMP WHERE id=:0");
+	query.bindValue(0, report_id );
+	query.exec();
+}
+
+void NGSD::setSomaticMtbRtfUpload(int report_id)
+{
+	SqlQuery query = getQuery();
+	query.prepare("UPDATE `somatic_report_configuration` SET `mtb_rtf_upload_date`= CURRENT_TIMESTAMP WHERE id=:0");
+	query.bindValue(0, report_id);
+	query.exec();
 }
 
 void NGSD::setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality)

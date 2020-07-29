@@ -451,8 +451,7 @@ void SomaticXmlReportGenerator::validateXml(const QString &xml)
 
 	if(xml_error!= "")
 	{
-		qDebug() << xml_error;
-		//THROW(ProgrammingException, "SomaticXmlReportGenerator::generateXML produced an invalid XML file: " + xml_error);
+		THROW(ProgrammingException, "SomaticXmlReportGenerator::generateXML produced an invalid XML file: " + xml_error);
 	}
 
 }

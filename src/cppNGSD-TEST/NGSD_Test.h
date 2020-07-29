@@ -1166,6 +1166,8 @@ private slots:
 		S_EQUAL(config_data.created_date, "05.01.2019 14:06:12");
 		S_EQUAL(config_data.last_edit_by, "Sarah Kerrigan");
 		S_EQUAL(config_data.last_edit_date, "07.12.2019 17:06:10");
+		S_EQUAL(config_data.mtb_xml_upload_date, "27.07.2020 09:20:10");
+		S_EQUAL(config_data.mtb_rtf_upload_date, "27.07.2020 09:40:11");
 		S_EQUAL(config_data.target_file, "nowhere.bed");
 
 		//set somatic report configuration in test NGSD, using 2 SNVs
@@ -1228,6 +1230,8 @@ private slots:
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");
 		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
+
+
 
 		QStringList messages = {};
 
@@ -1293,6 +1297,15 @@ private slots:
 		S_EQUAL(config_data_1.created_by, "Max Mustermann");
 		S_EQUAL(config_data_1.last_edit_by, "Max Mustermann");
 		S_EQUAL(config_data_1.target_file, "somewhere.bed");
+		S_EQUAL(config_data_1.mtb_xml_upload_date, "");
+		S_EQUAL(config_data_1.mtb_rtf_upload_date, "");
+
+		//set
+		db.setSomaticMtbXmlUpload(config_id);
+		db.setSomaticMtbRtfUpload(config_id);
+
+		IS_TRUE(db.somaticReportConfigData(config_id).mtb_xml_upload_date != "");
+		IS_TRUE(db.somaticReportConfigData(config_id).mtb_rtf_upload_date != "");
 
 
 		//Update somatic report configuration (by other user), should update target_file and last_edits

@@ -2,37 +2,32 @@
 #include <QDebug>
 #include <QPushButton>
 #include <QTimer>
+#include <QMessageBox>
 
 #include "SomaticDataTransferWidget.h"
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "NGSD.h"
+#include "Settings.h"
 
 #include "ui_SomaticDataTransferWidget.h"
 
 
-SomaticDataTransferWidget::SomaticDataTransferWidget(QString url, QString xml_path, QString rtf_path, QWidget *parent) :
+SomaticDataTransferWidget::SomaticDataTransferWidget(QString t_ps_id, QString n_ps_id, QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::SomaticDataTransferWidget),
-	url_(url),
-	xml_path_(xml_path),
-	rtf_path_(rtf_path)
+	db_(),
+	t_ps_id_(t_ps_id),
+	n_ps_id_(n_ps_id)
 {
+	url_ = Settings::string("mtb_xml_upload_url");
+	xml_path_ = Settings::string("gsvar_somatic_xml_folder") + "/" + t_ps_id + "-" + n_ps_id + ".xml";
+	rtf_path_ = Settings::string("genlab_somatic_report_folder") + "/" + t_ps_id + "-" + n_ps_id + ".rtf";
+
+
 	ui->setupUi(this);
-
-	ui->xml_select->setText(xml_path_);
-	if(!QFileInfo(xml_path_).isFile())
-	{
-		ui->xml_select->setText(ui->xml_select->text() + " (not found)");
-		ui->xml_select->setEnabled(false);
-	}
-
-	ui->rtf_select->setText(rtf_path_);
-	if(!QFileInfo(rtf_path_).isFile())
-	{
-		ui->rtf_select->setText(ui->rtf_select->text() + " (not found)");
-		ui->rtf_select->setEnabled(false);
-	}
+	ui->status_display->setReadOnly(true);
 
 	connect( ui->xml_select, SIGNAL(stateChanged(int)), this, SLOT(enableUpload()) );
 	connect( ui->rtf_select, SIGNAL(stateChanged(int)), this, SLOT(enableUpload()) );
@@ -40,12 +35,19 @@ SomaticDataTransferWidget::SomaticDataTransferWidget(QString url, QString xml_pa
 	connect( ui->upload_button, SIGNAL(clicked()), this, SLOT(uploadRTF()) );
 	connect( ui->reconnect_button, SIGNAL(clicked()), this, SLOT(checkConnectionRequired()) );
 
-	ui->status_display->setReadOnly(true);
-
 	http_handler_ = new HttpHandler(HttpHandler::ProxyType::NONE, this);
 
+
+	//Check whether there is somatic report configuration
+	if( db_.somaticReportConfigId( db_.processedSampleId(t_ps_id_), db_.processedSampleId(n_ps_id_) ) == -1)
+	{
+		THROW(DatabaseException, "Could not find a somatic report configuration for " + t_ps_id_ + "-" +n_ps_id_ +". Please create somatic report configuration before MTB upload.");
+	}
+
+	//set up GUI
+	updateGUI();
 	//Check connection (just after termination of constructor)
-	QTimer::singleShot( 0,this,SLOT(checkConnectionRequired()) );
+	QTimer::singleShot( 0,this, SLOT(checkConnectionRequired()) );
 }
 
 SomaticDataTransferWidget::~SomaticDataTransferWidget()
@@ -79,6 +81,7 @@ void SomaticDataTransferWidget::uploadXML()
 		{
 			addRow(res);
 			addRow("#Upload of XML file successful.","", true);
+			db_.setSomaticMtbXmlUpload( db_.somaticReportConfigId( db_.processedSampleId(t_ps_id_), db_.processedSampleId(n_ps_id_) ) );
 		}
 		else
 		{
@@ -86,6 +89,8 @@ void SomaticDataTransferWidget::uploadXML()
 			addRow("#Upload of XML failed.","red", true);
 		}
 	}
+
+	updateGUI();
 }
 
 void SomaticDataTransferWidget::uploadRTF()
@@ -135,6 +140,36 @@ void SomaticDataTransferWidget::checkConnectionRequired()
 		addRow(service_condition, "red");
 	}
 	enableUpload();
+}
+
+void SomaticDataTransferWidget::updateGUI()
+{
+	ui->xml_select->setText(xml_path_);
+
+	if(!QFileInfo(xml_path_).isFile())
+	{
+		ui->xml_select->setText(ui->xml_select->text() + " (not found)");
+		ui->xml_select->setEnabled(false);
+	}
+
+	ui->rtf_select->setText(rtf_path_);
+	if(!QFileInfo(rtf_path_).isFile())
+	{
+		ui->rtf_select->setText(ui->rtf_select->text() + " (not found)");
+		ui->rtf_select->setEnabled(false);
+	}
+
+
+	int config_id = db_.somaticReportConfigId( db_.processedSampleId(t_ps_id_), db_.processedSampleId(n_ps_id_) );
+	SomaticReportConfigurationData conf_data = db_.somaticReportConfigData(config_id);
+	if(conf_data.mtb_xml_upload_date != "")
+	{
+		ui->xml_select->setText(ui->xml_select->text() + " (uploaded: " + conf_data.mtb_xml_upload_date + ")");
+	}
+	if(conf_data.mtb_rtf_upload_date != "")
+	{
+		ui->rtf_select->setText(ui->rtf_select->text() + " (uploaded: " + conf_data.mtb_rtf_upload_date + ")");
+	}
 }
 
 

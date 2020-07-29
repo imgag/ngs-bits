@@ -2045,7 +2045,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	}
 
 
-	general_info_table.addRow(RtfTableRow({"HRD-Score:", QByteArray::number(settings_.report_config.hrdScore()) + RtfText("\\line Score \\u8805;3 ist ein Verdacht auf HRD.").setFontSize(14).RtfCode()}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+	general_info_table.addRow(RtfTableRow({"HRD-Score:", QByteArray::number(settings_.report_config.hrdScore()) + RtfText("\\line Score \\u8805;3 weist auf HRD hin.").setFontSize(14).RtfCode()}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
 
 	if(settings_.report_config.quality() != "no abnormalities")
 	{
@@ -2308,8 +2308,10 @@ void::SomaticReportHelper::storeXML(QString file_name)
 	data.tumor_mutation_burden = mutation_burden_;
 	data.mantis_msi = mantis_msi_swd_value_;
 
+
+	QByteArray xml_data = SomaticXmlReportGenerator::generateXML(data, db_, false).toUtf8();
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
-	out_file->write(SomaticXmlReportGenerator::generateXML(data, db_, false).toUtf8());
+	out_file->write(xml_data);
 	out_file->close();
 }
 
