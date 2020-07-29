@@ -89,7 +89,7 @@ void VcfFileHandler::parseVcfEntry(const int line_number, QByteArray& line, QSet
 	QList<QByteArray> line_parts = line.split('\t');
 	if (line_parts.count()<VCFHeader::MIN_COLS)
 	{
-		THROW(FileParseException, "VCF data line needs at least 7 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
+		THROW(FileParseException, "VCF data line needs at least 8 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
 	}
 	VCFLine vcf_line;
 	vcf_line.setChromosome(strToPointer(line_parts[0]));
@@ -409,7 +409,7 @@ void VcfFileHandler::load(const QString& filename, bool allow_multi_sample, cons
 	}
 }
 
-void VcfFileHandler::storeAsTsv(const QString& filename) const
+void VcfFileHandler::storeAsTsv(const QString& filename)
 {
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
@@ -462,8 +462,9 @@ void VcfFileHandler::storeAsTsv(const QString& filename) const
 	}
 
 	//vcf lines
-	for(const VCFLine& v : vcfLines())
+	for(VCFLine& v : vcfLines())
 	{
+		v.normalize("-", true);
 		stream << "\n";
 		stream << v.chr().str() << "\t" << QByteArray::number(v.start()) << "\t" << QByteArray::number(v.end()) << "\t" << v.ref()
 			   << "\t" << v.altString() << "\t" << v.id().join(';') << "\t" << QByteArray::number(v.qual());
@@ -972,15 +973,15 @@ VcfFileHandler VcfFileHandler::convertGSvarToVcf(const VariantList& variant_list
 				}
 				else if(v.annotations().at(genotype_index) == "wt")
 				{
-					format_to_value.push_back("GT", "0:0");
+					format_to_value.push_back("GT", "0/0");
 				}
 				else if(v.annotations().at(genotype_index) == "hom")
 				{
-					format_to_value.push_back("GT", "1:1");
+					format_to_value.push_back("GT", "1/1");
 				}
 				else if(v.annotations().at(genotype_index) == "het")
 				{
-					format_to_value.push_back("GT", "1:0");
+					format_to_value.push_back("GT", "1/0");
 				}
 				else
 				{
@@ -1023,9 +1024,7 @@ VcfFileHandler VcfFileHandler::convertGSvarToVcf(const VariantList& variant_list
 			v_line.setPos(v_line.pos() - 1);
 		}
 
-
 	}
-
 	vcf_file.leftNormalize(reference_genome);
 
 	return vcf_file;

@@ -8,12 +8,13 @@
 /*
  *  TO DOS:
  *
- *  - order functions alphabetically
  *  - tests for VCFLine and VCFHeader
- *  - tests anpassen falls Filter neu dazu
  *
  *  - TEST Somatic for LIB and SomaticQC as TOOL (both have two new vcf, must be generated new with new fucntion)
+ *
  *  - VcfFile mit VcfHandler mergen
+ *
+ *  - VcfToTSV Test aendern, sodass - mit eingebaut wird
  *
  *  - check URL encoding..
  *
@@ -43,6 +44,8 @@ public:
 	QByteArrayList formatIDs() const;
 	///returns a QList of all information IDs in the vcf file
 	QByteArrayList informationIDs() const;
+	///returns a QList of all sample names
+	QByteArrayList sampleIDs() const;
 	///save a variant line as string
 	QString lineToString(int pos) const;
 
@@ -51,8 +54,6 @@ public:
 	void load(const QString& filename, bool allow_multi_sample=false, const BedFile* roi=nullptr, bool invert=false);
 	///removes duplicate variants
 	void removeDuplicates(bool sort_by_quality);
-	///returns a QList of all sample names
-	QByteArrayList sampleIDs() const;
 	///stores the data of VCFFileHandler in a vcf file
 	void store(const QString& filename, bool stdout_if_file_empty = false, bool compress=false, int compression_level = 1) const;
 	///stores a VCFFile as tsv file, INFO and FORMAT fields are differentiated by "_info" and "_format" attached to the name in ##Description lines,
@@ -64,7 +65,7 @@ public:
 	/// ##TSV:
 	/// #uniqInfo_info	TWICE_info	GT_format_SAMPLE_1	TWICE_format_SAMPLE_1	GT_format_SAMPLE_2	TWICE_format_SAMPLE_2
 	///	1	2	1|1	z	0|1	z
-	void storeAsTsv(const QString& filename) const;
+	void storeAsTsv(const QString& filename);
 	void sort(bool use_quality = false);
 	void sortByFile(QString filename);
 	///Costum sorting of variants.
@@ -147,4 +148,5 @@ private:
 	VCFHeader vcf_header_;
 	QVector<QByteArray> column_headers_;
 
+	friend class VcfLine_Test;
 };

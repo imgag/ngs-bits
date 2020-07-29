@@ -478,8 +478,6 @@ public:
 	void leftNormalize(QString reference_genome);
 	/// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
 	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=true);
-	///Auxilary function: Removes common prefix and suffix bases from indels and adapts the start position accordingly.
-	static void normalize(int& start, Sequence& ref, Sequence& alt);
 
 	///Equality operator (only compares the variatn location itself, not further annotations).
 	bool operator==(const VCFLine& rhs) const;

@@ -499,38 +499,12 @@ bool VCFLine::operator<(const VCFLine& rhs) const
 	return false;
 }
 
-void VCFLine::normalize(int& start, Sequence& ref, Sequence& alt)
-{
-	//remove common first base
-	if((ref.length()!=1 || alt.length()!=1) && ref.length()!=0 && alt.length()!=0 && ref[0]==alt[0])
-	{
-		ref = ref.mid(1);
-		alt = alt.mid(1);
-		start += 1;
-	}
-
-	//remove common suffix
-	while((ref.length()!=1 || alt.length()!=1) && ref.length()!=0 && alt.length()!=0 && ref.right(1)==alt.right(1))
-	{
-		ref.resize(ref.length()-1);
-		alt.resize(alt.length()-1);
-	}
-
-	//remove common prefix
-	while((ref.length()!=1 || alt.length()!=1) && ref.length()!=0 && alt.length()!=0 && ref[0]==alt[0])
-	{
-		ref = ref.mid(1);
-		alt = alt.mid(1);
-		start += 1;
-	}
-}
-
 void VCFLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 {
 	//skip multi-allelic variants
 	if(alt().count() > 1 || alt().empty())	return;
 
-	normalize(pos_, ref_, alt_[0]);
+	Variant::normalize(pos_, ref_, alt_[0]);
 
 	if (ref_.isEmpty())
 	{
@@ -571,7 +545,7 @@ void VCFLine::leftNormalize(QString reference_genome)
 	}
 
 	//skip SNVs disguised as indels (e.g. ACGT => AXGT)
-	VCFLine::normalize(pos_, ref_, alt_[0]);
+	Variant::normalize(pos_, ref_, alt_[0]);
 
 	if (ref_.length()==1 && alt(0).length()==1)
 	{
@@ -615,13 +589,11 @@ void VCFLine::leftNormalize(QString reference_genome)
 	{
 		//shift block to the left
 		Sequence block = Variant::minBlock(ref_);
-
 		while(pos_ >= 1 && reference.seq(chr_, pos_, block.length())==block)
 		{
 			pos_ -= block.length();
 		}
 		pos_ += block.length();
-
 		//prepend prefix base
 		pos_ -= 1;
 		setSingleAlt(reference.seq(chr_, pos_, 1));

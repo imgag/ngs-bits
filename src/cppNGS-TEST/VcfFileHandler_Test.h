@@ -34,6 +34,7 @@ private slots:
 		}
 	}
 
+	//check that it works with empty variant lists
 	void removeDuplicates_Empty()
 	{
 		VcfFileHandler vl;
@@ -504,16 +505,27 @@ private slots:
 		S_EQUAL(vl_tsv.annotationDescriptionByName("PL_format").name(), QString("PL_format"));
 		S_EQUAL(vl_tsv.annotationDescriptionByName("PL_format").description(), QString("List of Phred-scaled genotype likelihoods"));
 
-
+		//Insertion
 		X_EQUAL(vl_tsv[0].chr(), Chromosome("chr17"));
 		I_EQUAL(vl_tsv[0].start(), 72196817);
 		I_EQUAL(vl_tsv[0].end(), 72196817);
-		S_EQUAL(vl_tsv[0].ref(), Sequence("G"));
-		S_EQUAL(vl_tsv[0].obs(), Sequence("GA"));
+		S_EQUAL(vl_tsv[0].ref(), Sequence("-"));
+		S_EQUAL(vl_tsv[0].obs(), Sequence("A"));
 		S_EQUAL(vl_tsv[0].annotations().at(3), QByteArray("TRUE"));
 		S_EQUAL(vl_tsv[0].annotations().at(8), QByteArray("4,3,11,11"));
 		S_EQUAL(vl_tsv[0].annotations().at(26), QByteArray("255,0,123"));
 
+		//Deletion
+		X_EQUAL(vl_tsv[13].chr(), Chromosome("chr9"));
+		I_EQUAL(vl_tsv[13].start(), 130932397);
+		I_EQUAL(vl_tsv[13].end(), 130932398);
+		S_EQUAL(vl_tsv[13].ref(), Sequence("AC"));
+		S_EQUAL(vl_tsv[13].obs(), Sequence("-"));
+		S_EQUAL(vl_tsv[13].annotations().at(3), QByteArray("TRUE"));
+		S_EQUAL(vl_tsv[13].annotations().at(8), QByteArray("5,6,1169,2016"));
+		S_EQUAL(vl_tsv[13].annotations().at(26), QByteArray("255,255,0"));
+
+		//SNP
 		X_EQUAL(vl_tsv[12].chr(), Chromosome("chr9"));
 		I_EQUAL(vl_tsv[12].start(), 130931421);
 		I_EQUAL(vl_tsv[12].end(), 130931421);
@@ -536,5 +548,57 @@ private slots:
 		vcf_file.store("out/GSvarToVcf.vcf");
 
 		COMPARE_FILES("out/GSvarToVcf.vcf", TESTDATA("data_out/GSvarToVcf.vcf"));
+	}
+
+	void getSampleIds()
+	{
+		VcfFileHandler vcf_file;
+
+		//load multisample
+		vcf_file.load(TESTDATA("data_in/VcfFileHandler_in.vcf"), true);
+		QByteArrayList sample_ids = vcf_file.sampleIDs();
+		I_EQUAL(sample_ids.count(), 2);
+		S_EQUAL(sample_ids.at(0), "normal");
+		S_EQUAL(sample_ids.at(1), "tumor");
+
+		//load single sample
+		vcf_file.load(TESTDATA("data_in/VcfFileHandler_in.vcf"), false);
+		sample_ids = vcf_file.sampleIDs();
+		I_EQUAL(sample_ids.count(), 1);
+		S_EQUAL(sample_ids.at(0), "normal");
+	}
+
+	void getInfoIds()
+	{
+		VcfFileHandler vcf_file;
+		vcf_file.load(TESTDATA("data_in/VcfFileHandler_in.vcf"));
+
+		QByteArrayList info_ids = vcf_file.informationIDs();
+		I_EQUAL(info_ids.count(), 17);
+		S_EQUAL(info_ids.at(0), "CSQ"); //the first INFO ID that was already in the header
+		S_EQUAL(info_ids.at(2), "IC"); //the first INFO ID not mentioned in header and parsed from VCFLine
+		S_EQUAL(info_ids.at(16), "TQSS_NT"); //the last INFO ID not mentioned in header and parsed from VCFLine
+	}
+
+	void getFormatIds()
+	{
+		VcfFileHandler vcf_file;
+		vcf_file.load(TESTDATA("data_in/VcfFileHandler_in.vcf"));
+
+		QByteArrayList format_ids = vcf_file.formatIDs();
+		I_EQUAL(format_ids.count(), 16);
+		S_EQUAL(format_ids.at(0), "GT"); //first one must always be GT if mentioned
+		S_EQUAL(format_ids.at(15), "SUBDP");
+	}
+
+	void getFilterIds()
+	{
+		VcfFileHandler vcf_file;
+		vcf_file.load(TESTDATA("data_in/VcfFileHandler_in.vcf"));
+
+		QByteArrayList filter_ids = vcf_file.filterIDs();
+		I_EQUAL(filter_ids.count(), 2);
+		S_EQUAL(filter_ids.at(0), "q10");
+		S_EQUAL(filter_ids.at(1), "new_filter");
 	}
 };
