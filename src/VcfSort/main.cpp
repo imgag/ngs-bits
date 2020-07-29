@@ -1,5 +1,5 @@
 #include "ToolBase.h"
-#include "VcfFileHandler.h"
+#include "VcfFile.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -29,7 +29,7 @@ public:
 		bool qual = getFlag("qual");
 
 		//sort
-		 VcfFileHandler vl;
+		 VcfFile vl;
 		vl.load(getInfile("in"), true);
 		if (fai=="")
 		{

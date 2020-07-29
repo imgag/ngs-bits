@@ -2,7 +2,7 @@
 #include "Helper.h"
 #include "Exceptions.h"
 #include "VariantList.h"
-#include "VcfFileHandler.h"
+#include "VcfFile.h"
 #include "BasicStatistics.h"
 #include <QTextStream>
 #include <cmath>
@@ -205,7 +205,7 @@ public:
 		}
 		ChromosomalIndex<BedFile> exclude_idx(exclude_regions);
 
-		VcfFileHandler variants;
+		VcfFile variants;
 		variants.load(getInfile("in"), true);
 		variants.sort();
 		int skip_chr = 0;

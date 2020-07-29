@@ -1,7 +1,7 @@
 #include "ToolBase.h"
 #include "Helper.h"
 #include "Exceptions.h"
-#include "VcfFileHandler.h"
+#include "VcfFile.h"
 #include "Settings.h"
 #include <QFile>
 #include <QTextStream>
@@ -44,7 +44,7 @@ public:
 			THROW(ArgumentException, "Input and output files must be different when streaming!");
 		}
 
-		VcfFileHandler vcf_file;
+		VcfFile vcf_file;
 		vcf_file.load(in);
 		vcf_file.leftNormalize(ref_file);
 

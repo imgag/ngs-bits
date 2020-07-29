@@ -3,7 +3,7 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "OntologyTermCollection.h"
-#include "VcfFile.h"
+#include "VcfFileCheck.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -51,7 +51,7 @@ public:
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 
 		//check
-		if (!VcfFile::isValid(in, ref_file, out_stream, info, lines))
+		if (!VcfFileCheck::isValid(in, ref_file, out_stream, info, lines))
 		{
 			THROW(ToolFailedException, "VCF check failed - see 'out' file for details!");
 		}

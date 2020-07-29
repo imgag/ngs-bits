@@ -2,7 +2,7 @@
 #include "ToolBase.h"
 #include "NGSHelper.h"
 #include "Settings.h"
-#include "VcfFile.h"
+#include "VcfFileCheck.h"
 #include "BedpeFile.h"
 #include <QTextStream>
 #include <QFileInfo>
@@ -109,7 +109,7 @@ public:
 
 			if (url_decode)
 			{
-				additional_annotation_string = VcfFile::decodeInfoValue(additional_annotation_string).toUtf8();
+				additional_annotation_string = VcfFileCheck::decodeInfoValue(additional_annotation_string).toUtf8();
 			}
 
 			if (replace_underscore)

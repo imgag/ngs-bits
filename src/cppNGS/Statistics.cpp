@@ -19,7 +19,7 @@
 #include "Histogram.h"
 #include "FilterCascade.h"
 
-QCCollection Statistics::variantList( VcfFileHandler variants, bool filter)
+QCCollection Statistics::variantList( VcfFile variants, bool filter)
 {
 	QCCollection output;
 
@@ -784,7 +784,7 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString exons, QString t
 	if (target_file.count()==0) return undefined;
 
 	//Process variants
-	VcfFileHandler vcf_file;
+	VcfFile vcf_file;
 	vcf_file.load(somatic_vcf);
 	int somatic_var_count = 0;
 	int somatic_count_in_tsg = 0;
@@ -832,7 +832,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	output.insert(QCValue("sample correlation", ( sc.olCount()<100 ? "n/a (too few variants)" : QString::number(sc.sampleCorrelation(),'f',2) ), "SNP-based sample correlation of tumor / normal.", "QC:2000040"));
 
 	//variants
-	VcfFileHandler variants;
+	VcfFile variants;
 
 	variants.load(somatic_vcf, true);
 
@@ -1436,7 +1436,7 @@ QCCollection Statistics::contamination(QString build, QString bam, bool debug, i
 	Histogram hist(0, 1, 0.05);
 	int passed = 0;
 	double passed_depth_sum = 0.0;
-	VcfFileHandler snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
+	VcfFile snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
 	for(int i=0; i<snps.count(); ++i)
 	{
 		Pileup pileup = reader.getPileup(snps[i].chr(), snps[i].start());
@@ -1475,7 +1475,7 @@ QCCollection Statistics::contamination(QString build, QString bam, bool debug, i
 	return output;
 }
 
-AncestryEstimates Statistics::ancestry(QString build, const  VcfFileHandler& vl, int min_snp, double min_pop_dist)
+AncestryEstimates Statistics::ancestry(QString build, const  VcfFile& vl, int min_snp, double min_pop_dist)
 {
 	//determine required annotation indices
 	if(!vl.formatIDs().contains("GT"))
@@ -1486,9 +1486,9 @@ AncestryEstimates Statistics::ancestry(QString build, const  VcfFileHandler& vl,
 	//load ancestry-informative SNP list
 	QString snp_file = ":/Resources/" + build + "_ancestry.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
-	VcfFileHandler af;
+	VcfFile af;
 	af.load(snp_file);
-	ChromosomalIndex< VcfFileHandler> af_idx(af);
+	ChromosomalIndex< VcfFile> af_idx(af);
 
 	//process variants
 	QVector<double> geno_sample;
@@ -2010,7 +2010,7 @@ GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double ma
 
 	//load SNPs on chrX
 	BedFile roi_chrx("chrX", 1, chrx_end_pos);
-	VcfFileHandler snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, &roi_chrx);
+	VcfFile snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, &roi_chrx);
 	QVector<Pileup> counts;
 	counts.fill(Pileup(), snps.count());
 

@@ -1,5 +1,5 @@
 #include "ToolBase.h"
-#include "VcfFileHandler.h"
+#include "VcfFile.h"
 #include "Helper.h"
 
 #include <QTextStream>
@@ -188,7 +188,7 @@ public:
 		bool inc_chrx = getFlag("inc_chrx");
 
 		//load variant list
-		 VcfFileHandler vl;
+		 VcfFile vl;
 		vl.load(getInfile("in"));
 
 		out << "=== Loading input data ===" << endl;

@@ -11,9 +11,9 @@
 #include <cmath>
 #include <vector>
 
- VcfFileHandler NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
+ VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
 {
-	 VcfFileHandler output;
+	 VcfFile output;
 
 	//load variant list
 	QString snp_file = ":/Resources/" + build + "_snps.vcf";

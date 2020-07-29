@@ -1,7 +1,7 @@
 #include "ToolBase.h"
 #include "Helper.h"
 #include "Exceptions.h"
-#include "VcfFileHandler.h"
+#include "VcfFile.h"
 #include <QFile>
 #include <QTextStream>
 #include <QList>
@@ -29,15 +29,8 @@ public:
 	virtual void main()
 	{
 		//load
-		VcfFileHandler vl;
+		VcfFile vl;
 		vl.load(getInfile("in"));
-
-		//change start/end/ref/obs as needed in TSV
-		for (int i=0; i<vl.count(); ++i)
-		{
-			VCFLine& v = vl[i];
-			v.normalize("-", true);
-		}
 
 		//store
 		vl.storeAsTsv(getOutfile("out"));

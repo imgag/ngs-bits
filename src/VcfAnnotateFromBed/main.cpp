@@ -3,7 +3,7 @@
 #include "Helper.h"
 #include "BedFile.h"
 #include "ChromosomalIndex.h"
-#include "VcfFile.h"
+#include "VcfFileCheck.h"
 #include <QFile>
 #include <QSharedPointer>
 
@@ -22,7 +22,7 @@ public:
 	{
 		// generate string with from mapping
 		QByteArray mapping_string;
-		foreach (KeyValuePair replacement, VcfFile::INFO_URL_MAPPING)
+		foreach (KeyValuePair replacement, VcfFileCheck::INFO_URL_MAPPING)
 		{
 			mapping_string += replacement.key + " -> " + replacement.value + "; ";
 		}
@@ -92,7 +92,7 @@ public:
 
 			//split line and extract variant infos
 			QList<QByteArray> parts = line.split('\t');
-			if (parts.count()<VcfFile::MIN_COLS) THROW(FileParseException, "VCF line with too few columns: " + line);
+			if (parts.count()<VcfFileCheck::MIN_COLS) THROW(FileParseException, "VCF line with too few columns: " + line);
 			Chromosome chr = parts[0];
 			bool ok = false;
 			int start = parts[1].toInt(&ok);
@@ -124,7 +124,7 @@ public:
 						{
 							out_p->write(parts[7] + ";");
 						}
-						out_p->write(name + "=" + VcfFile::encodeInfoValue(anno).toUtf8());
+						out_p->write(name + "=" + VcfFileCheck::encodeInfoValue(anno).toUtf8());
 					}
 					else
 					{

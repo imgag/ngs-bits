@@ -56,7 +56,6 @@ HEADERS += \
         GeneSet_Test.h \
         OntologyTermCollection_Test.h \
         BamReader_Test.h \
-        VcfFile_Test.h \
     CnvList_Test.h \
     StructuralVariantType_Test.h \
     Transcript_Test.h \
@@ -64,7 +63,9 @@ HEADERS += \
     BedpeLine_Test.h \
     BedpeFile_Test.h \
     Sequence_Test.h \
-    VcfFileHandler_Test.h
+    VCFLine_Test.h \
+    VcfFileCheck_Test.h \
+    VcfFile_Test.h
 
 SOURCES += \
         main.cpp

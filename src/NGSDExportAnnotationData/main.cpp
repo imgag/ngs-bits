@@ -6,7 +6,7 @@
 #include "NGSD.h"
 #include "Log.h"
 #include "Settings.h"
-#include "VcfFile.h"
+#include "VcfFileCheck.h"
 #include <QElapsedTimer>
 
 class ConcreteTool
@@ -319,7 +319,7 @@ private:
 					for(auto it=project_map.cbegin(); it!=project_map.cend(); ++it)
 					{
 						somatic_count += it.value();
-						somatic_projects << VcfFile::encodeInfoValue(it.key()).toUtf8();
+						somatic_projects << VcfFileCheck::encodeInfoValue(it.key()).toUtf8();
 					}
 
 					// add counts to info column
@@ -757,7 +757,7 @@ private:
 					{
 						query.first();
 						QByteArray classification = query.value(0).toByteArray().trimmed().replace("n/a", "");
-						QByteArray clas_comment = VcfFile::encodeInfoValue(query.value(1).toByteArray()).toUtf8();
+						QByteArray clas_comment = VcfFileCheck::encodeInfoValue(query.value(1).toByteArray()).toUtf8();
 						if (classification != "") info_column.append("CLAS=" + classification);
 						if (clas_comment != "") info_column.append("CLAS_COM=\"" + clas_comment + "\"");
 					}
@@ -765,7 +765,7 @@ private:
 					// get comment
 					if(comment != "")
 					{
-						info_column.append("COM=\"" + VcfFile::encodeInfoValue(comment).toUtf8() + "\"");
+						info_column.append("COM=\"" + VcfFileCheck::encodeInfoValue(comment).toUtf8() + "\"");
 					}
 
 					// concat all info entries

@@ -5,7 +5,7 @@
 #include "Log.h"
 #include "ChromosomalIndex.h"
 #include "NGSHelper.h"
-#include "VcfFile.h"
+#include "VcfFileCheck.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -934,8 +934,8 @@ void VariantList::storeAsVCF(QString filename, const QString& reference_genome) 
 	}
 */
 
-	VcfFileHandler vcf_file;
-	vcf_file = VcfFileHandler::convertGSvarToVcf(*this, reference_genome);
+	VcfFile vcf_file;
+	vcf_file = VcfFile::convertGSvarToVcf(*this, reference_genome);
 	vcf_file.store(filename);
 
 }

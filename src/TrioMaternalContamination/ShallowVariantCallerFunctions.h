@@ -6,7 +6,7 @@
 
 void getVariantInformation(
 		VariantInfo& vInfo,
-		const  VcfFileHandler& variant_list,
+		const  VcfFile& variant_list,
 		int min_depth,
 		int min_alt_count,
 		std::unordered_set< VCFLine>& homozygousVariants);

@@ -7,7 +7,7 @@
 #include "GeneSet.h"
 #include "TSVFileStream.h"
 #include "Settings.h"
-#include "VcfFile.h"
+#include "VcfFileCheck.h"
 
 #include <QVector>
 #include <QFileInfo>
@@ -539,7 +539,7 @@ public:
 				{
 					foreach(const QByteArray& anno, results[j].exon->annotations[i])
 					{
-						set << VcfFile::decodeInfoValue(anno.trimmed()).toUtf8();
+						set << VcfFileCheck::decodeInfoValue(anno.trimmed()).toUtf8();
 					}
 				}
 

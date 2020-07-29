@@ -61,7 +61,7 @@ public:
 		//apply filter
 		if(mode=="vcf")
 		{
-			 VcfFileHandler variants;
+			 VcfFile variants;
 			if (mark!="")
 			{
 				variants.load(getInfile("in"), true);
