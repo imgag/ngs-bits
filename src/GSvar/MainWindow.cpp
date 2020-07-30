@@ -4472,11 +4472,6 @@ QString MainWindow::svFile(QString gsvar_file)
 
 	QString sv_file = base + "_manta_var_structural.bedpe"; //germline file naming convention
 
-	if(!QFile::exists(sv_file)) //fallback to somatic //TODO: Remove when renaming of old cases is done > AXEL
-	{
-		sv_file = base + "_var_structural.bedpe";
-	}
-
 	if (QFile::exists(sv_file))
 	{
 		return sv_file;
