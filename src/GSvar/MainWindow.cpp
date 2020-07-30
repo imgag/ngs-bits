@@ -2092,7 +2092,7 @@ void MainWindow::generateVariantSheet()
 
 	//get filename
 	QString base_name = processedSampleName();
-	QString folder = Settings::string("gsvar_report_archive");
+	QString folder = Settings::string("gsvar_variantsheet_folder");
 	QString filename = QFileDialog::getSaveFileName(this, "Store variant sheet",  folder + "/" + base_name + "_variant_sheet_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (filename.isEmpty()) return;
 

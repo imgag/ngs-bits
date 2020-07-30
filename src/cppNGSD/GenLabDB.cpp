@@ -143,7 +143,7 @@ QList<Phenotype> GenLabDB::phenotypes(QString ps_name)
 
 	NGSD ngsd;
 
-	QString s_name = ps_name.append('_').split('_')[0];
+	QString s_name = (ps_name + "_").split('_')[0];
 	foreach(QString name, QStringList() << ps_name << s_name)
 	{
 		SqlQuery query = getQuery();
@@ -168,7 +168,7 @@ QStringList GenLabDB::orphanet(QString ps_name)
 {
 	QStringList output;
 
-	QString s_name = ps_name.append('_').split('_')[0];
+	QString s_name = (ps_name + "_").split('_')[0];
 	foreach(QString name, QStringList() << ps_name << s_name)
 	{
 		SqlQuery query = getQuery();
@@ -196,7 +196,7 @@ QStringList GenLabDB::diagnosis(QString ps_name)
 {
 	QStringList output;
 
-	QString s_name = ps_name.append('_').split('_')[0];
+	QString s_name = (ps_name + "_").split('_')[0];
 	foreach(QString name, QStringList() << ps_name << s_name)
 	{
 		SqlQuery query = getQuery();
@@ -219,7 +219,7 @@ QStringList GenLabDB::anamnesis(QString ps_name)
 {
 	QStringList output;
 
-	QString s_name = ps_name.append('_').split('_')[0];
+	QString s_name = (ps_name + "_").split('_')[0];
 	foreach(QString name, QStringList() << ps_name << s_name)
 	{
 		SqlQuery query = getQuery();
@@ -243,7 +243,7 @@ QStringList GenLabDB::tumorFraction(QString ps_name)
 {
 	QStringList output;
 
-	QString s_name = ps_name.append('_').split('_')[0];
+	QString s_name = (ps_name + "_").split('_')[0];
 	foreach(QString name, QStringList() << ps_name << s_name)
 	{
 		SqlQuery query = getQuery();
@@ -269,8 +269,7 @@ QPair<QString, QString> GenLabDB::diseaseInfo(QString ps_name)
 	QString group = "n/a";
 	QString status = "n/a";
 
-	QString s_name = ps_name.append('_').split('_')[0];
-
+	QString s_name = (ps_name + "_").split('_')[0];
 	foreach(QString name, QStringList() << ps_name << s_name)
 	{
 		SqlQuery query = getQuery();
@@ -312,7 +311,7 @@ QString GenLabDB::sapID(QString ps_name)
 {
 	QString output;
 
-	QString s_name = ps_name.append('_').split('_')[0];
+	QString s_name = (ps_name + "_").split('_')[0];
 	foreach(QString name, QStringList() << ps_name << s_name)
 	{
 		SqlQuery query = getQuery();
