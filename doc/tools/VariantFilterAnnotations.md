@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2020_03-159-g5c8b2e82)
+	VariantFilterAnnotations (2020_06-40-g7bb4fdf2)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -95,11 +95,11 @@
 	                                     gender_child - Gender of the child - if 'n/a', the gender from the GSvar file header is taken [default=n/a] [valid=male,female,n/a]
 	Variant quality                    Filter for variant quality
 	                                   Parameters:
-	                                     qual - Minimum variant quality score (Phred) [default=30] [min=0]
-	                                     depth - Minimum depth [default=15] [min=0]
-	                                     mapq - Minimum mapping quality of alternate allele (Phred) [default=55] [min=0]
-	                                     strand_bias - Maximum strand bias Phred score of alternate allele (set -1 to disable) [default=25] [min=-1]
-	                                     allele_balance - Maximum allele balance Phred score (set -1 to disable) [default=25] [min=-1]
+	                                     qual - Minimum variant quality score (Phred) [default=250] [min=0]
+	                                     depth - Minimum depth [default=0] [min=0]
+	                                     mapq - Minimum mapping quality of alternate allele (Phred) [default=40] [min=0]
+	                                     strand_bias - Maximum strand bias Phred score of alternate allele (set -1 to disable) [default=20] [min=-1]
+	                                     allele_balance - Maximum allele balance Phred score (set -1 to disable) [default=40] [min=-1]
 	Variant type                       Filter for variant types as defined by sequence ontology.
 	                                   For details see http://www.sequenceontology.org/browser/obob.cgi
 	                                   Parameters:
@@ -120,7 +120,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2020_03-159-g5c8b2e82
+	VariantFilterAnnotations 2020_06-40-g7bb4fdf2
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

@@ -1956,15 +1956,15 @@ FilterVariantQC::FilterVariantQC()
 {
 	name_ = "Variant quality";
 	description_ = QStringList() << "Filter for variant quality";
-	params_ << FilterParameter("qual", INT, 30, "Minimum variant quality score (Phred)");
+	params_ << FilterParameter("qual", INT, 250, "Minimum variant quality score (Phred)");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("depth", INT, 15, "Minimum depth");
+	params_ << FilterParameter("depth", INT, 0, "Minimum depth");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("mapq", INT, 55, "Minimum mapping quality of alternate allele (Phred)");
+	params_ << FilterParameter("mapq", INT, 40, "Minimum mapping quality of alternate allele (Phred)");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("strand_bias", INT, 25, "Maximum strand bias Phred score of alternate allele (set -1 to disable)");
+	params_ << FilterParameter("strand_bias", INT, 20, "Maximum strand bias Phred score of alternate allele (set -1 to disable)");
 	params_.last().constraints["min"] = "-1";
-	params_ << FilterParameter("allele_balance", INT, 25, "Maximum allele balance Phred score (set -1 to disable)");
+	params_ << FilterParameter("allele_balance", INT, 40, "Maximum allele balance Phred score (set -1 to disable)");
 	params_.last().constraints["min"] = "-1";
 
 	checkIsRegistered();

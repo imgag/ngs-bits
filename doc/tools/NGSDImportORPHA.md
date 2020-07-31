@@ -1,11 +1,11 @@
 ### NGSDImportORPHA tool help
-	NGSDImportORPHA (2019_09-10-g5f65b37)
+	NGSDImportORPHA (2020_06-40-g7bb4fdf2)
 	
 	Imports ORPHA diseases/genes into the NGSD.
 	
 	Mandatory parameters:
-	  -terms <file> Terms XML file from 'https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20cross%20referenced%20with%20other%20nomenclatures'.
-	  -genes <file> Terms<>genes XML file from 'https://github.com/Orphanet/Orphadata.org/tree/master/Disorders%20with%20their%20associated%20genes'.
+	  -terms <file> Terms XML file from 'http://www.orphadata.org/data/xml/en_product1.xml'.
+	  -genes <file> Terms<>genes XML file from 'http://www.orphadata.org/data/xml/en_product6.xml'.
 	
 	Optional parameters:
 	  -test         Uses the test database instead of on the production database.
@@ -20,7 +20,7 @@
 	  --tdx         Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportORPHA changelog
-	NGSDImportORPHA 2019_09-10-g5f65b37
+	NGSDImportORPHA 2020_06-40-g7bb4fdf2
 	
 	2019-09-30 Initial version
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
