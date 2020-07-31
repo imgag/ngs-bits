@@ -35,25 +35,29 @@ VCFLine::VCFLine(const Chromosome& chr, int pos, const Sequence& ref, const QVec
 	{
 		THROW(ArgumentException, "number of samples must equal the number of QByteArrayLists in list_of_format_values.")
 	}
+	if(sample_ids.size() > UCHAR_MAX || format_ids.size() > UCHAR_MAX)
+	{
+		THROW(ArgumentException, "Number of format or sample entries exceeds the maximum of " + UCHAR_MAX);
+	}
 	//generate Hash for Format entries
-	FormatIDToIdxPtr format_id_to_idx_entry = FormatIDToIdxPtr(new QHash<QByteArray, int>);
+	FormatIDToIdxPtr format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
 	for(int i=0; i < format_ids.size(); ++i)
 	{
 		if(list_of_format_values.at(i).size() != format_ids.size())
 		{
 			THROW(ArgumentException, "number of formats must equal the number of QByteArray elements in each list of list_of_format_values.")
 		}
-		format_id_to_idx_entry->insert(format_ids.at(i), i);
+		format_id_to_idx_entry->push_back(format_ids.at(i), strToPointer(static_cast<unsigned char>(i)));
 		//add to format list
 		format_.push_back(format_ids.at(i));
 	}
 	formatIdxOf_ = format_id_to_idx_entry;
 
 	//generate Hash for smaple entries
-	SampleIDToIdxPtr sample_id_to_idx_entry = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
+	SampleIDToIdxPtr sample_id_to_idx_entry = SampleIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
 	for(int i=0; i < sample_ids.size(); ++i)
 	{
-		sample_id_to_idx_entry->push_back(sample_ids.at(i), i);
+		sample_id_to_idx_entry->push_back(sample_ids.at(i), strToPointer(static_cast<unsigned char>(i)));
 	}
 	sampleIdxOf_ = sample_id_to_idx_entry;
 }
@@ -135,6 +139,19 @@ const QByteArray& strToPointer(const QByteArray& str)
 	if (it==uniq_8.cend())
 	{
 		it = uniq_8.insert(str);
+	}
+
+	return *it;
+}
+
+const unsigned char& strToPointer(const unsigned char& str)
+{
+	static QSet<unsigned char> uniq_4;
+
+	auto it = uniq_4.find(str);
+	if (it==uniq_4.cend())
+	{
+		it = uniq_4.insert(str);
 	}
 
 	return *it;

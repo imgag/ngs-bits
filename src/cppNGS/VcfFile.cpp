@@ -72,24 +72,28 @@ void VcfFile::parseHeaderFields(QByteArray& line, bool allow_multi_sample)
 		}
 
 		//samples are all columns after the 10th
-		sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
+		sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
 		if(column_headers_.count() >= 10)
 		{
+			if( column_headers_.count() - 9 > UCHAR_MAX)
+			{
+				THROW(ArgumentException, "Number of sample entries exceeds the maximum of " + UCHAR_MAX);
+			}
 			for(int i = 9; i < column_headers_.count(); ++i)
 			{
-				sample_id_to_idx->push_back(column_headers_.at(i), i-9);
+				sample_id_to_idx->push_back(column_headers_.at(i), static_cast<char>(i-9));
 			}
 		}
 		else if(header_fields.count()==9) //if we have a FORMAT column with no sample
 		{
 			column_headers_.push_back("Sample");
-			sample_id_to_idx->push_back("Sample", 0);
+			sample_id_to_idx->push_back("Sample", static_cast<char>(0));
 		}
 		else if(header_fields.count()==8)
 		{
 			column_headers_.push_back("FORMAT");
 			column_headers_.push_back("Sample");
-			sample_id_to_idx->push_back("Sample", 0);
+			sample_id_to_idx->push_back("Sample", static_cast<char>(0));
 		}
 	}
 }
@@ -242,10 +246,10 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 		}
 		else
 		{
-			FormatIDToIdxPtr new_format_id_to_idx_entry = FormatIDToIdxPtr(new QHash<QByteArray, int>);
+			FormatIDToIdxPtr new_format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
 			for(int i = 0; i < format_entries.count(); ++i)
 			{
-				new_format_id_to_idx_entry->insert(format_entries.at(i), i);
+				new_format_id_to_idx_entry->push_back(format_entries.at(i), static_cast<char>(i));
 			}
 			format_id_to_idx_list.insert(format_ids_string, new_format_id_to_idx_entry);
 			vcf_line.setFormatIdToIdxPtr(new_format_id_to_idx_entry);
@@ -904,8 +908,8 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 	}
 
 	//sample order is set for all lines
-	SampleIDToIdxPtr sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
-	sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
+	SampleIDToIdxPtr sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+	sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
 
 	for(int i = 0; i < genotype_columns.size(); ++i)
 	{
@@ -917,8 +921,8 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 	QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list;
 	ListOfFormatIds list_storing_genotype_only;
 	list_storing_genotype_only.push_back("GT");
-	FormatIDToIdxPtr gt_to_first_position = FormatIDToIdxPtr(new QHash<QByteArray, int>);
-	gt_to_first_position->insert("GT", 1);
+	FormatIDToIdxPtr gt_to_first_position = FormatIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+	gt_to_first_position->push_back("GT", 1);
 	format_id_to_idx_list.insert(list_storing_genotype_only, gt_to_first_position);
 
 	//add variant lines

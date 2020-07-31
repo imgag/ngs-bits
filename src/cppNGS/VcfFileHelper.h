@@ -93,12 +93,12 @@ private:
 };
 
 const QByteArray& strToPointer(const QByteArray& str);
-//const QChar* strToPointer(const QString& str);
+const unsigned char& strToPointer(const unsigned char& str);
 
 enum InfoFormatType {INFO, FORMAT};
 using FormatIDToValueHash = OrderedHash<QByteArray, QByteArray>;
-using SampleIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>;
-using FormatIDToIdxPtr = QSharedPointer<QHash<QByteArray, int>>;
+using SampleIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, unsigned char>>;
+using FormatIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, unsigned char>>;
 using ListOfFormatIds = QByteArray; //an array of all ordered FORMAT ids to use as hash key
 
 struct CPPNGSSHARED_EXPORT VcfHeaderLine
@@ -328,11 +328,6 @@ public:
 	{
 		if(error_if_format_key_absent)
 		{
-			//we only have to check if format key is valid, sample key is checked automatically in OrderedHash (see OrderedHash::operator[])
-			if(!formatIdxOf_->contains(format_key))
-			{
-				THROW(ArgumentException, format_key + " is not a valid format entry.");
-			}
 			int s_idx = (*sampleIdxOf_)[sample_name];
 			int f_idx = (*formatIdxOf_)[format_key];
 
@@ -340,10 +335,11 @@ public:
 		}
 		else
 		{
-			int sample_pos;
-			if(sampleIdxOf_->hasKey(sample_name, sample_pos) && formatIdxOf_->contains(format_key))
+			unsigned char sample_pos;
+			unsigned char format_pos;
+			if(sampleIdxOf_->hasKey(sample_name, sample_pos) && formatIdxOf_->hasKey(format_key, format_pos))
 			{
-				return sample_values_.at(sample_pos).at((*formatIdxOf_)[format_key]);;
+				return sample_values_.at(sample_pos).at(format_pos);;
 			}
 			else
 			{
@@ -363,18 +359,15 @@ public:
 
 		if(error_if_format_key_absent)
 		{
-			if(!formatIdxOf_->contains(format_key))
-			{
-				THROW(ArgumentException, format_key + " is not a valid format entry.");
-			}
 			int f_idx = (*formatIdxOf_)[format_key];
 			return sample_values_.at(sample_pos).at(f_idx);
 		}
 		else
 		{
-			if(formatIdxOf_->contains(format_key))
+			unsigned char format_pos;
+			if(formatIdxOf_->hasKey(format_key, format_pos))
 			{
-				return format_values.at((*formatIdxOf_)[format_key]);;
+				return format_values.at(format_pos);;
 			}
 			else
 			{
@@ -451,6 +444,10 @@ public:
 	}
 	void setFormat(const QByteArrayList& format)
 	{
+		if(format.size() > UCHAR_MAX)
+		{
+			THROW(ArgumentException, "Number of format entries exceeds the maximum of " + UCHAR_MAX);
+		}
 		format_ = format;
 	}
 	void setSampleNew(const QList<QByteArrayList>& sample)
