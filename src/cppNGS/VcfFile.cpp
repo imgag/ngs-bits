@@ -255,7 +255,6 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 		vcf_line.setSampleIdToIdxPtr(sample_id_to_idx);
 
 		//SAMPLE
-		OrderedHash<QByteArray, FormatIDToValueHash> sample_entries;
 		if(line_parts.count() >= 10)
 		{
 
@@ -267,11 +266,8 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 				THROW(FileParseException, "Number of samples does not equal number of samples in header for line " + QString::number(line_number) + ": " + line);
 			}
 
-			QByteArrayList sample_names = sampleIDs();
 			for(int i = 9; i < last_column_to_parse; ++i)
 			{
-
-				QByteArray sample_id = sample_names.at(i-9);
 				QByteArrayList sample_id_list = line_parts[i].split(':');
 
 				int format_entry_count = vcf_line.format().count();
@@ -282,56 +278,39 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 					THROW(FileParseException, "Sample column has more entries than defined in Format for line " + QString::number(line_number) + ": " + line);
 				}
 
-				FormatIDToValueHash sample;
 				QByteArrayList format_values_for_sample;
 				//parse all available entries
 				for(int sample_id = 0; sample_id < sample_entry_count; ++sample_id)
 				{
-					QByteArray value = "";
-					if(sample_id_list.at(sample_id) != ".") value = sample_id_list.at(sample_id);
-					sample.push_back(vcf_line.format().at(sample_id), strToPointer(value));
-
+					QByteArray value = sample_id_list.at(sample_id);
 					format_values_for_sample.append(strToPointer(value));
-
-					//qDebug()<< vcf_line.format().at(sample_id).constData() << static_cast<const void *>(strToPointer(vcf_line.format().at(sample_id).constData())) << static_cast<const void *>(vcf_line.format().at(sample_id).constData()) << static_cast<const void *>(sample.at(sample.size() - 1).key().constData());
 				}
 				//set missing trailing entries
 				if(sample_entry_count < format_entry_count)
 				{
 					for(int trailing_sample_id = (sample_entry_count - format_entry_count); trailing_sample_id < format_entry_count; trailing_sample_id++)
 					{
-						sample.push_back(vcf_line.format().at(trailing_sample_id), strToPointer(""));
-
 						format_values_for_sample.append(strToPointer(""));
-
 					}
 				}
-
-				sample_entries.push_back(sample_id, sample);
 				vcf_line.addFormatValues(format_values_for_sample);
-				//qDebug()<< sample_entries.at(sample_entries.size() - 1).value().at(0).key() << static_cast<const void *>(sample_entries.at(sample_entries.size() - 1).value().at(0).key());
-
 			}
 		}
 		else
 		{
 
 			//a FORMAT is given, however no SAMPLE data
-			for(const QByteArray& empty_format : vcf_line.format())
+			int format_count = 0;
+			while(format_count < vcf_line.format().count())
 			{
-				FormatIDToValueHash sample;
 				QByteArrayList format_values_for_sample;
-				sample.push_back(empty_format, strToPointer(""));
 				format_values_for_sample.append(strToPointer(""));
 				//since SAMPLE is empty, there MUST be only one sampleID (this is set in parseHeaderFields)
-				const QByteArray& sample_id = sampleIDs().at(0);
-				sample_entries.push_back(sample_id, sample);
 				vcf_line.addFormatValues(format_values_for_sample);
+
+				++format_count;
 			}
-
 		}
-
-		vcf_line.setSample(sample_entries);
 	}
 
 	vcf_lines_.push_back(vcf_line);
@@ -1026,12 +1005,10 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 			format_list.push_back("GT");
 			vcf_line.setFormat(format_list);
 
-			OrderedHash<QByteArray, FormatIDToValueHash> all_samples;
 			QList<QByteArrayList> all_samples_new;
 
 			for(const SampleInfo& genotype : genotype_columns)
 			{
-				FormatIDToValueHash format_to_value;
 				QByteArrayList formats_new;
 
 				int genotype_index = variant_list.annotationIndexByName(genotype.column_name);
@@ -1042,27 +1019,22 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 				}
 				else if(v.annotations().at(genotype_index) == "wt")
 				{
-					format_to_value.push_back("GT", "0/0");
 					formats_new.push_back("0/0");
 				}
 				else if(v.annotations().at(genotype_index) == "hom")
 				{
-					format_to_value.push_back("GT", "1/1");
 					formats_new.push_back("1/1");
 				}
 				else if(v.annotations().at(genotype_index) == "het")
 				{
-					format_to_value.push_back("GT", "1/0");
 					formats_new.push_back("1/0");
 				}
 				else
 				{
 					THROW(ArgumentException, "genotype column in TSV file does not contain a valid entry.");
 				}
-				all_samples.push_back(genotype.column_name.toUtf8(), format_to_value);
 				all_samples_new.push_back(formats_new);
 			}
-			vcf_line.setSample(all_samples);
 			vcf_line.setSampleNew(all_samples_new);
 		}
 

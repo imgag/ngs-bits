@@ -306,29 +306,16 @@ public:
 	}
 
 	///returns all SAMPLES as a hash of (SAMPLE ID to a hash of (FORMAT ID to value))
-	//const OrderedHash<QByteArray, FormatIDToValueHash>& samples() const
-	//{
-	//	return sample_;
-	//}
 	const QList<QByteArrayList>& samples() const
 	{
 		return sample_values_;
 	}
 	///access the hash of (FORMAT ID to value) for a SAMPLE by SAMPLE ID
-	//const FormatIDToValueHash& sample(const QByteArray& sample_name) const
-	//{
-	//	return sample_[sample_name];
-	//}
 	const QByteArrayList& sample(const QByteArray& sample_name) const
 	{
 		return sample_values_.at((*sampleIdxOf_)[sample_name]);
 	}
 	///access the hash of (FORMAT ID to value) for a SAMPLE by position
-	//const FormatIDToValueHash& sample(int pos) const
-	//{
-	//	if(pos >= samples().size()) THROW(ArgumentException, QString::number(pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
-	//	return sample_.at(pos).value();
-	//}
 	const QByteArrayList& sample(int pos) const
 	{
 		if(pos >= sample_values_.count()) THROW(ArgumentException, QString::number(pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
@@ -363,25 +350,6 @@ public:
 				return "";
 			}
 		}
-
-
-	/*	FormatIDToValueHash hash = sample_[sample_name];
-		if(error_if_format_key_absent)
-		{
-			return hash[format_key];
-		}
-		else
-		{
-			QByteArray value;
-			if(hash.hasKey(format_key, value))
-			{
-				return value;
-			}
-			else
-			{
-				return "";
-			}
-		}*/
 	}
 	///access the value for a FORMAT ID and SAMPLE position (default is first SAMPLE)
 	// by purpose does not return a reference because an empty QByteArray can be returned for non-existing keys
@@ -413,26 +381,6 @@ public:
 				return "";
 			}
 		}
-
-	/*	if(sample_pos >= samples().size()) THROW(ArgumentException, QString::number(sample_pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
-		FormatIDToValueHash hash = sample_.at(sample_pos).value();
-
-		if(error_if_format_key_absent)
-		{
-			return hash[format_key];
-		}
-		else
-		{
-			QByteArray value;
-			if(hash.hasKey(format_key, value))
-			{
-				return value;
-			}
-			else
-			{
-				return "";
-			}
-		}*/
 	}
 
 	void setChromosome(const Chromosome& chr)
@@ -504,10 +452,6 @@ public:
 	void setFormat(const QByteArrayList& format)
 	{
 		format_ = format;
-	}
-	void setSample(const OrderedHash<QByteArray, FormatIDToValueHash>& sample)
-	{
-		sample_ = sample;
 	}
 	void setSampleNew(const QList<QByteArrayList>& sample)
 	{
@@ -590,7 +534,6 @@ private:
 
 	//obligatory columns
 	QByteArrayList format_; //: seperated list of FORMATS for each sample
-	OrderedHash<QByteArray, FormatIDToValueHash> sample_; // hash of a SAMPLE ID to a hash of FORMAT entries to values
 
 	SampleIDToIdxPtr sampleIdxOf_;
 	FormatIDToIdxPtr formatIdxOf_;
