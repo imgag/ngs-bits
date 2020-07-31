@@ -236,7 +236,6 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 			}
 			format_entries.push_back(strToPointer(format));
 		}
-		vcf_line.setFormat(format_entries);
 
 		//set format indices
 		ListOfFormatIds format_ids_string = format_entries.join();
@@ -930,6 +929,8 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 	{
 		Variant v = variant_list[i];
 		VCFLine vcf_line;
+		vcf_line.setFormatIdToIdxPtr(gt_to_first_position);
+		vcf_line.setSampleIdToIdxPtr(sample_id_to_idx);
 
 		QByteArrayList id_list;
 		id_list.push_back(".");
@@ -1004,10 +1005,6 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		//write genotype
 		if(!genotype_columns.empty())
 		{
-
-			QByteArrayList format_list;
-			format_list.push_back("GT");
-			vcf_line.setFormat(format_list);
 
 			QList<QByteArrayList> all_samples_new;
 

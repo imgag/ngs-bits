@@ -80,7 +80,7 @@ public:
   }
 
   //returns keys in order
-  QList<K> keys()
+  const QList<K>& keys()
   {
 	  return ordered_keys_;
   }
@@ -277,9 +277,18 @@ public:
 	{
 		return filter_;
 	}
-	const QByteArrayList& format() const
+	QByteArrayList format() const
 	{
-		return format_;
+		if(!formatIdxOf_)
+		{
+			QByteArrayList empty_list;
+			empty_list.push_back(".");
+			return empty_list;
+		}
+		else
+		{
+			return formatIdxOf_->keys();
+		}
 	}
 	const OrderedHash<QByteArray , QByteArray>& infos() const
 	{
@@ -442,14 +451,6 @@ public:
 	{
 		info_ = info;
 	}
-	void setFormat(const QByteArrayList& format)
-	{
-		if(format.size() > UCHAR_MAX)
-		{
-			THROW(ArgumentException, "Number of format entries exceeds the maximum of " + UCHAR_MAX);
-		}
-		format_ = format;
-	}
 	void setSampleNew(const QList<QByteArrayList>& sample)
 	{
 		sample_values_ = sample;
@@ -464,6 +465,10 @@ public:
 	}
 	void setFormatIdToIdxPtr(const FormatIDToIdxPtr& ptr)
 	{
+		if(ptr->size() > UCHAR_MAX)
+		{
+			THROW(ArgumentException, "Number of format entries exceeds the maximum of " + UCHAR_MAX);
+		}
 		formatIdxOf_ = ptr;
 	}
 
