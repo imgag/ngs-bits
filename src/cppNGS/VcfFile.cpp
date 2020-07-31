@@ -81,19 +81,19 @@ void VcfFile::parseHeaderFields(QByteArray& line, bool allow_multi_sample)
 			}
 			for(int i = 9; i < column_headers_.count(); ++i)
 			{
-				sample_id_to_idx->push_back(column_headers_.at(i), static_cast<char>(i-9));
+				sample_id_to_idx->push_back(column_headers_.at(i), strToPointer(static_cast<char>(i-9)));
 			}
 		}
 		else if(header_fields.count()==9) //if we have a FORMAT column with no sample
 		{
 			column_headers_.push_back("Sample");
-			sample_id_to_idx->push_back("Sample", static_cast<char>(0));
+			sample_id_to_idx->push_back("Sample", strToPointer(static_cast<char>(0)));
 		}
 		else if(header_fields.count()==8)
 		{
 			column_headers_.push_back("FORMAT");
 			column_headers_.push_back("Sample");
-			sample_id_to_idx->push_back("Sample", static_cast<char>(0));
+			sample_id_to_idx->push_back("Sample", strToPointer(static_cast<char>(0)));
 		}
 	}
 }
@@ -248,7 +248,7 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 			FormatIDToIdxPtr new_format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
 			for(int i = 0; i < format_entries.count(); ++i)
 			{
-				new_format_id_to_idx_entry->push_back(format_entries.at(i), static_cast<char>(i));
+				new_format_id_to_idx_entry->push_back(format_entries.at(i), strToPointer(static_cast<char>(i)));
 			}
 			format_id_to_idx_list.insert(format_ids_string, new_format_id_to_idx_entry);
 			vcf_line.setFormatIdToIdxPtr(new_format_id_to_idx_entry);
