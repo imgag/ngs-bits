@@ -98,7 +98,7 @@ const QByteArray& strToPointer(const QByteArray& str)
 	return *it;
 }
 
-const QChar* strToPointer(const QString& str)
+/*const QChar* strToPointer(const QString& str)
 {
 	static QSet<QString> uniq_16;
 
@@ -109,7 +109,7 @@ const QChar* strToPointer(const QString& str)
 	}
 
 	return it->constData();
-}
+}*/
 
 void VCFHeader::clear()
 {

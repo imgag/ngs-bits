@@ -25,7 +25,7 @@ class CPPNGSSHARED_EXPORT OrderedHash {
 public:
 
   //add key=value pair to the end of OrderedHash
-  void push_back(K key, V value)
+  void push_back(const K& key,const V& value)
   {
 	auto iter = hash_.find(key);
 	if (iter != hash_.end()) {
@@ -37,7 +37,7 @@ public:
   }
 
   //access value by key
-  const V& operator[](K key) const
+  const V& operator[](const K& key) const
   {
 	  auto iter = hash_.find(key);
 	  if (iter == hash_.end())
@@ -48,7 +48,7 @@ public:
   }
 
   //check if key exists
-  bool hasKey(K key, V& value) const
+  bool hasKey(const K& key, V& value) const
   {
 	  auto iter = hash_.find(key);
 	  if (iter == hash_.end()) return false;
@@ -79,18 +79,27 @@ public:
 	  return (ordered_keys_.empty());
   }
 
+  //returns keys in order
+  QList<K> keys()
+  {
+	  return ordered_keys_;
+  }
+
 private:
 
-  QVector<K> ordered_keys_;
+  QList<K> ordered_keys_;
   QHash<K, V> hash_;
 
 };
 
 const QByteArray& strToPointer(const QByteArray& str);
-const QChar* strToPointer(const QString& str);
+//const QChar* strToPointer(const QString& str);
 
 enum InfoFormatType {INFO, FORMAT};
 using FormatIDToValueHash = OrderedHash<QByteArray, QByteArray>;
+using SampleIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>;
+using FormatIDToIdxPtr = QSharedPointer<QHash<QByteArray, int>>;
+using ListOfFormatIds = QByteArray; //an array of all ordered FORMAT ids to use as hash key
 
 struct CPPNGSSHARED_EXPORT VcfHeaderLine
 {
@@ -266,7 +275,7 @@ public:
 	{
 		return filter_;
 	}
-	const QByteArrayList format() const
+	const QByteArrayList& format() const
 	{
 		return format_;
 	}
@@ -295,20 +304,33 @@ public:
 	}
 
 	///returns all SAMPLES as a hash of (SAMPLE ID to a hash of (FORMAT ID to value))
-	const OrderedHash<QByteArray, FormatIDToValueHash>& samples() const
+	//const OrderedHash<QByteArray, FormatIDToValueHash>& samples() const
+	//{
+	//	return sample_;
+	//}
+	const QList<QByteArrayList>& samples() const
 	{
-		return sample_;
+		return sample_values_;
 	}
 	///access the hash of (FORMAT ID to value) for a SAMPLE by SAMPLE ID
-	const FormatIDToValueHash& sample(const QByteArray& sample_name) const
+	//const FormatIDToValueHash& sample(const QByteArray& sample_name) const
+	//{
+	//	return sample_[sample_name];
+	//}
+	const QByteArrayList& sample(const QByteArray& sample_name) const
 	{
-		return sample_[sample_name];
+		return sample_values_.at((*sampleIdxOf_)[sample_name]);
 	}
 	///access the hash of (FORMAT ID to value) for a SAMPLE by position
-	const FormatIDToValueHash& sample(int pos) const
+	//const FormatIDToValueHash& sample(int pos) const
+	//{
+	//	if(pos >= samples().size()) THROW(ArgumentException, QString::number(pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
+	//	return sample_.at(pos).value();
+	//}
+	const QByteArrayList& sample(int pos) const
 	{
-		if(pos >= samples().size()) THROW(ArgumentException, QString::number(pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
-		return sample_.at(pos).value();
+		if(pos >= sample_values_.count()) THROW(ArgumentException, QString::number(pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
+		return sample_values_.at(pos);
 	}
 	///access the value for a FORMAT and SAMPLE ID
 	// by purpose does not return a reference because an empty QByteArray can be returned for non-existing keys
@@ -433,6 +455,22 @@ public:
 	{
 		sample_ = sample;
 	}
+	void setSampleNew(const QList<QByteArrayList>& sample)
+	{
+		sample_values_ = sample;
+	}
+	void addFormatValues(const QByteArrayList& format_value_list)
+	{
+		sample_values_.push_back(format_value_list);
+	}
+	void setSampleIdToIdxPtr(const SampleIDToIdxPtr& ptr)
+	{
+		sampleIdxOf_ = ptr;
+	}
+	void setFormatIdToIdxPtr(const FormatIDToIdxPtr& ptr)
+	{
+		formatIdxOf_ = ptr;
+	}
 
 	///Overlap check for chromosome and position range.
 	bool overlapsWith(const Chromosome& input_chr, int input_start, int input_end) const
@@ -500,6 +538,10 @@ private:
 	//obligatory columns
 	QByteArrayList format_; //: seperated list of FORMATS for each sample
 	OrderedHash<QByteArray, FormatIDToValueHash> sample_; // hash of a SAMPLE ID to a hash of FORMAT entries to values
+
+	SampleIDToIdxPtr sampleIdxOf_;
+	FormatIDToIdxPtr formatIdxOf_;
+	QList<QByteArrayList> sample_values_;
 };
 
 namespace VcfFormat

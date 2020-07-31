@@ -81,18 +81,23 @@ private slots:
                 QByteArray vcf_line = "chr17	72196817	.	G	GA	.	.	.	GT:PL:GQ	0/1:255,0,123:99	1/1:255,84,0:33";
                 QSet<QByteArray> empty_set;
                 VcfFile vcf_file;
-                vcf_file.column_headers_ << "CHROM" << "POS" << "ID" << "REF" << "ALT" << "QUAL" << "FILTER" << "INFO" << "FORMAT" << "sample_1" << "sample_2";
-                vcf_file.parseVcfEntry(1, vcf_line, empty_set, empty_set, empty_set, true, nullptr);
+                QByteArray header_line = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample_1\tsample_2";
+                vcf_file.parseHeaderFields(header_line, true);
+
+                qDebug() << vcf_file.sampleIDs();
+                vcf_file.parseVcfEntry(1, vcf_line, empty_set, empty_set, empty_set, vcf_file.sampleIDs(), true, nullptr);
                 I_EQUAL(vcf_file.count(), 1);
 
-                OrderedHash<QByteArray, FormatIDToValueHash> all_samples = vcf_file[0].samples();
+                QList<QByteArrayList> all_samples = vcf_file[0].samples();
                 I_EQUAL(all_samples.size(), 2);
-                FormatIDToValueHash single_sample = vcf_file[0].sample("sample_1");
+                //FormatIDToValueHash single_sample = vcf_file[0].sample("sample_1");
+                QByteArrayList single_sample = vcf_file[0].sample("sample_1");
                 I_EQUAL(single_sample.size(), 3);
-                S_EQUAL(single_sample["GT"], "0/1")
+                qDebug() << vcf_file[0].formatValueFromSample("GT", "sample_1") << vcf_file[0].formatValueFromSample("GT", "sample_2");
+                S_EQUAL(vcf_file[0].formatValueFromSample("GT", "sample_1"), "0/1");
                 single_sample = vcf_file[0].sample(1);
                 I_EQUAL(single_sample.size(), 3);
-                S_EQUAL(single_sample["GQ"], "33")
+                S_EQUAL(vcf_file[0].formatValueFromSample("GQ", "sample_2"), "33");
 
                 QByteArray format_value = vcf_file[0].formatValueFromSample("GT", "sample_1");
                 S_EQUAL(format_value, "0/1");
