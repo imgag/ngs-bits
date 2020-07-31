@@ -84,8 +84,7 @@ private slots:
                 QByteArray header_line = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample_1\tsample_2";
                 vcf_file.parseHeaderFields(header_line, true);
 
-                qDebug() << vcf_file.sampleIDs();
-                vcf_file.parseVcfEntry(1, vcf_line, empty_set, empty_set, empty_set, vcf_file.sampleIDs(), true, nullptr);
+                vcf_file.parseVcfEntry(1, vcf_line, empty_set, empty_set, empty_set, true, nullptr);
                 I_EQUAL(vcf_file.count(), 1);
 
                 QList<QByteArrayList> all_samples = vcf_file[0].samples();
@@ -93,7 +92,6 @@ private slots:
                 //FormatIDToValueHash single_sample = vcf_file[0].sample("sample_1");
                 QByteArrayList single_sample = vcf_file[0].sample("sample_1");
                 I_EQUAL(single_sample.size(), 3);
-                qDebug() << vcf_file[0].formatValueFromSample("GT", "sample_1") << vcf_file[0].formatValueFromSample("GT", "sample_2");
                 S_EQUAL(vcf_file[0].formatValueFromSample("GT", "sample_1"), "0/1");
                 single_sample = vcf_file[0].sample(1);
                 I_EQUAL(single_sample.size(), 3);

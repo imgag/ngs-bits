@@ -93,7 +93,7 @@ void VcfFile::parseHeaderFields(QByteArray& line, bool allow_multi_sample)
 		}
 	}
 }
-void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, QSet<QByteArray> filter_ids, const QByteArrayList& sample_names, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
+void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, QSet<QByteArray> filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 
 	QList<QByteArray> line_parts = line.split('\t');
@@ -262,11 +262,12 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 			int last_column_to_parse;
 			allow_multi_sample ? last_column_to_parse=line_parts.count() : last_column_to_parse=10;
 
-			if(allow_multi_sample && sample_names.count() != line_parts.count() - 9)
+			if(allow_multi_sample && sampleIDs().count() != line_parts.count() - 9)
 			{
 				THROW(FileParseException, "Number of samples does not equal number of samples in header for line " + QString::number(line_number) + ": " + line);
 			}
 
+			QByteArrayList sample_names = sampleIDs();
 			for(int i = 9; i < last_column_to_parse; ++i)
 			{
 
@@ -370,7 +371,7 @@ void VcfFile::processVcfLine(int& line_number, QByteArray line, QSet<QByteArray>
 		{
 			filter_ids.insert(filter.id);
 		}
-		parseVcfEntry(line_number, line, info_ids, format_ids, filter_ids, sampleIDs(), allow_multi_sample, roi_idx, invert);
+		parseVcfEntry(line_number, line, info_ids, format_ids, filter_ids, allow_multi_sample, roi_idx, invert);
 	}
 }
 
@@ -639,7 +640,6 @@ QByteArrayList VcfFile::sampleIDs() const
 	{
 		THROW(ArgumentException, "Sample IDS are not set.");
 	}
-
 	return sample_id_to_idx->keys();
 }
 QByteArrayList VcfFile::informationIDs() const
