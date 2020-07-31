@@ -224,6 +224,8 @@ public:
 
 	///Default constructor.
 	VCFLine();
+	///Constructor with basic entries
+	VCFLine(const Chromosome& chr, int pos, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids = QByteArrayList(), QByteArrayList sample_ids = QByteArrayList(), QList<QByteArrayList> list_of_format_values = QList<QByteArrayList>());
 
 	const Chromosome& chr() const
 	{
@@ -337,7 +339,33 @@ public:
 	//(use case: a specific FORMAT key is absent in some vcf lines)
 	QByteArray formatValueFromSample(const QByteArray& format_key, const QByteArray& sample_name, bool error_if_format_key_absent = false) const
 	{
-		FormatIDToValueHash hash = sample_[sample_name];
+		if(error_if_format_key_absent)
+		{
+			//we only have to check if format key is valid, sample key is checked automatically in OrderedHash (see OrderedHash::operator[])
+			if(!formatIdxOf_->contains(format_key))
+			{
+				THROW(ArgumentException, format_key + " is not a valid format entry.");
+			}
+			int s_idx = (*sampleIdxOf_)[sample_name];
+			int f_idx = (*formatIdxOf_)[format_key];
+
+			return sample_values_.at(s_idx).at(f_idx);
+		}
+		else
+		{
+			int sample_pos;
+			if(sampleIdxOf_->hasKey(sample_name, sample_pos) && formatIdxOf_->contains(format_key))
+			{
+				return sample_values_.at(sample_pos).at((*formatIdxOf_)[format_key]);;
+			}
+			else
+			{
+				return "";
+			}
+		}
+
+
+	/*	FormatIDToValueHash hash = sample_[sample_name];
 		if(error_if_format_key_absent)
 		{
 			return hash[format_key];
@@ -353,14 +381,40 @@ public:
 			{
 				return "";
 			}
-		}
+		}*/
 	}
 	///access the value for a FORMAT ID and SAMPLE position (default is first SAMPLE)
 	// by purpose does not return a reference because an empty QByteArray can be returned for non-existing keys
 	//(use case: a specific FORMAT key is absent in some vcf lines)
 	QByteArray formatValueFromSample(const QByteArray& format_key, int sample_pos = 0, bool error_if_format_key_absent = false) const
 	{
+
 		if(sample_pos >= samples().size()) THROW(ArgumentException, QString::number(sample_pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
+
+		QByteArrayList format_values = sample_values_.at(sample_pos);
+
+		if(error_if_format_key_absent)
+		{
+			if(!formatIdxOf_->contains(format_key))
+			{
+				THROW(ArgumentException, format_key + " is not a valid format entry.");
+			}
+			int f_idx = (*formatIdxOf_)[format_key];
+			return sample_values_.at(sample_pos).at(f_idx);
+		}
+		else
+		{
+			if(formatIdxOf_->contains(format_key))
+			{
+				return format_values.at((*formatIdxOf_)[format_key]);;
+			}
+			else
+			{
+				return "";
+			}
+		}
+
+	/*	if(sample_pos >= samples().size()) THROW(ArgumentException, QString::number(sample_pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
 		FormatIDToValueHash hash = sample_.at(sample_pos).value();
 
 		if(error_if_format_key_absent)
@@ -378,7 +432,7 @@ public:
 			{
 				return "";
 			}
-		}
+		}*/
 	}
 
 	void setChromosome(const Chromosome& chr)
@@ -527,7 +581,6 @@ private:
 	int pos_;
 	Sequence ref_;
 	QVector<Sequence> alt_; //comma seperated list of alternative sequences
-	Sequence alt_string_;
 
 	QByteArrayList id_; //; seperated list of id-strings
 	double qual_;

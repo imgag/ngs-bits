@@ -6,14 +6,58 @@ VCFLine::VCFLine()
 	, pos_(-1)
 	, ref_()
 	, alt_()
-	, alt_string_()
 	, id_()
 	, qual_(-1)
 	, filter_()
 	, info_()
 	, format_()
 	, sample_()
+	, sampleIdxOf_()
+	, formatIdxOf_()
+	, sample_values_()
 {
+}
+
+VCFLine::VCFLine(const Chromosome& chr, int pos, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids, QByteArrayList sample_ids, QList<QByteArrayList> list_of_format_values)
+	: chr_(chr)
+	, pos_(pos)
+	, ref_(ref)
+	, alt_(alt)
+	, id_()
+	, qual_(-1)
+	, filter_()
+	, info_()
+	, format_()
+	, sample_()
+	, sampleIdxOf_()
+	, formatIdxOf_()
+	, sample_values_(list_of_format_values)
+{
+	if(list_of_format_values.size() != sample_ids.size())
+	{
+		THROW(ArgumentException, "number of samples must equal the number of QByteArrayLists in list_of_format_values.")
+	}
+	//generate Hash for Format entries
+	FormatIDToIdxPtr format_id_to_idx_entry = FormatIDToIdxPtr(new QHash<QByteArray, int>);
+	for(int i=0; i < format_ids.size(); ++i)
+	{
+		if(list_of_format_values.at(i).size() != format_ids.size())
+		{
+			THROW(ArgumentException, "number of formats must equal the number of QByteArray elements in each list of list_of_format_values.")
+		}
+		format_id_to_idx_entry->insert(format_ids.at(i), i);
+		//add to format list
+		format_.push_back(format_ids.at(i));
+	}
+	formatIdxOf_ = format_id_to_idx_entry;
+
+	//generate Hash for smaple entries
+	SampleIDToIdxPtr sample_id_to_idx_entry = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
+	for(int i=0; i < sample_ids.size(); ++i)
+	{
+		sample_id_to_idx_entry->push_back(sample_ids.at(i), i);
+	}
+	sampleIdxOf_ = sample_id_to_idx_entry;
 }
 
 VcfFormat::LessComparator::LessComparator(bool use_quality)
