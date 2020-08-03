@@ -3,6 +3,7 @@
 #include "DBEditor.h"
 #include "GUIHelper.h"
 #include <QMessageBox>
+#include  <QAction>
 
 SequencingRunOverview::SequencingRunOverview(QWidget *parent)
 	: QWidget(parent)

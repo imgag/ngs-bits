@@ -7,6 +7,7 @@
 #include "LoginManager.h"
 #include <QMessageBox>
 #include <QDesktopServices>
+#include <QAction>
 
 VariantValidationWidget::VariantValidationWidget(QWidget *parent)
 	: QWidget(parent)

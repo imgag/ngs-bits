@@ -4,6 +4,7 @@
 #include "GUIHelper.h"
 #include <QDialog>
 #include <QMessageBox>
+#include <QAction>
 
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	: QWidget(parent)

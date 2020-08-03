@@ -5,6 +5,7 @@
 #include "LoginManager.h"
 #include "EmailDialog.h"
 #include <QMessageBox>
+#include <QAction>
 
 DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	: QWidget(parent)
