@@ -95,7 +95,7 @@ private:
 const QByteArray& strToPointer(const QByteArray& str);
 const unsigned char& strToPointer(const unsigned char& str);
 
-enum InfoFormatType {INFO, FORMAT};
+enum InfoFormatType {INFO_DESCRIPTION, FORMAT_DESCRIPTION};
 using FormatIDToValueHash = OrderedHash<QByteArray, QByteArray>;
 using SampleIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, unsigned char>>;
 using FormatIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, unsigned char>>;
@@ -121,7 +121,7 @@ struct CPPNGSSHARED_EXPORT InfoFormatLine
 
 	void storeLine(QTextStream& stream, InfoFormatType line_type) const
 	{
-		line_type==InfoFormatType::INFO ? stream << "##INFO" : stream << "##FORMAT";
+        line_type==InfoFormatType::INFO_DESCRIPTION ? stream << "##INFO" : stream << "##FORMAT";
 		stream << "=<ID=" << id << ",Number=" << number << ",Type=" << type << ",Description=\"" << description << "\">" << "\n";
 	}
 };
@@ -143,7 +143,6 @@ class CPPNGSSHARED_EXPORT VCFHeader
 {
 public:
 
-	static const int MIN_COLS = 8;
 	void clear();
 
 	const QByteArray& fileFormat() const
@@ -494,9 +493,9 @@ public:
 	{
 		if(allow_several_alternatives)
 		{
-			for(const QByteArray alt : alt())
+            for(const QByteArray alt_seq : alt())
 			{
-				if(alt.length() != 1) return false;
+                if(alt_seq.length() != 1) return false;
 			}
 		}
 		else if(alt(0).length() != 1)

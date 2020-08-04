@@ -35,9 +35,9 @@ VCFLine::VCFLine(const Chromosome& chr, int pos, const Sequence& ref, const QVec
 	{
 		THROW(ArgumentException, "number of samples must equal the number of QByteArrayLists in list_of_format_values.")
 	}
-	if(sample_ids.size() > UCHAR_MAX || format_ids.size() > UCHAR_MAX)
+    if(sample_ids.size() > std::numeric_limits<unsigned char>::max() || format_ids.size() > std::numeric_limits<unsigned char>::max())
 	{
-		THROW(ArgumentException, "Number of format or sample entries exceeds the maximum of " + UCHAR_MAX);
+        THROW(ArgumentException, "Number of format or sample entries exceeds the maximum of " + std::numeric_limits<unsigned char>::max());
 	}
 	//generate Hash for Format entries
 	FormatIDToIdxPtr format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
@@ -295,7 +295,7 @@ void VCFHeader::storeHeaderInformation(QTextStream& stream) const
 	//store info, filter, format
 	for(InfoFormatLine info : info_lines_)
 	{
-		info.storeLine(stream, INFO);
+        info.storeLine(stream, INFO_DESCRIPTION);
 	}
 	for(FilterLine filter : filter_lines_)
 	{
@@ -303,7 +303,7 @@ void VCFHeader::storeHeaderInformation(QTextStream& stream) const
 	}
 	for(InfoFormatLine format : format_lines_)
 	{
-		format.storeLine(stream, FORMAT);
+        format.storeLine(stream, FORMAT_DESCRIPTION);
 	}
 }
 
@@ -318,7 +318,7 @@ void VCFHeader::setFormat(QByteArray& line)
 }
 void VCFHeader::setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number)
 {
-	if(type == INFO)
+    if(type == INFO_DESCRIPTION)
 	{
 		line=line.mid(8);//remove "##INFO=<"
 		InfoFormatLine info_line;

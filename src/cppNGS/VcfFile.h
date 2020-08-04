@@ -1,7 +1,10 @@
 #pragma once
 
-#include "VcfFileHelper.h"
 #include "BedFile.h"
+//#include "Helper.h"
+//#include "NGSHelper.h"
+#include "VcfFileHelper.h"
+
 #include <zlib.h>
 
 //####################### CHANGES ######################
@@ -33,6 +36,17 @@ class CPPNGSSHARED_EXPORT VcfFile
 {
 
 public:
+
+    static const int MIN_COLS = 8;
+    static const int CHROM = 0;
+    static const int POS = 1;
+    static const int ID = 2;
+    static const int REF = 3;
+    static const int ALT = 4;
+    static const int QUAL = 5;
+    static const int FILTER = 6;
+    static const int INFO = 7;
+    static const int FORMAT = 8;
 
 	int count() const
 	{
@@ -131,7 +145,25 @@ public:
 		vcf_lines_.resize(size);
 	}
 
+    ///Converts a Variant list (e.g. from a GSvar file) to a VcfFile
 	static VcfFile convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome);
+
+    // definition of all characters which have to be escaped in the INFO values
+    // (using URL-Encoding (https://en.wikipedia.org/wiki/Percent-encoding, RFC 3986))
+    // values defined in VcfFile.cpp
+    static const QList<KeyValuePair> INFO_URL_MAPPING;
+
+    ///Validates VCF file from file path
+    static bool isValid(QString vcf_file_path, QString ref_file, QTextStream& out_stream, bool print_general_information = false, int max_lines = std::numeric_limits<int>::max());
+
+    ///Returns the content of a column by index (tab-separated line) from a QByteArray line
+    static QByteArray getPartByColumn(const QByteArray& line, int index);
+
+    ///Returns string where all forbidden char of an info column value are URL encoded
+    static QString encodeInfoValue(QString info_value);
+
+    ///Returns string where all URL encoded chars of an info column value are decoded
+    static QString decodeInfoValue(QString encoded_info_value);
 
 private:
 
@@ -151,5 +183,51 @@ private:
 	SampleIDToIdxPtr sample_id_to_idx;
 	QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list;
 
+    //for using the parse functions in testing
 	friend class VcfLine_Test;
+
+    //INFO/FORMAT definition line
+    struct DefinitionLine
+    {
+        QByteArray id;
+        QByteArray description;
+        QByteArray type;
+        QByteArray number;
+        int used = 0;
+
+        QByteArray toString() const
+        {
+            QByteArray output;
+            output += "ID="+id + " ("+QByteArray::number(used)+"x used)";
+            if (!type.isEmpty()) output += " Type="+type;
+            if (!number.isEmpty()) output += " Number="+number;
+            output += " Description="+description;
+
+            return output;
+        }
+    };
+
+    //print information line
+    static void printInfo(QTextStream& out, QByteArray message)
+    {
+        out << message.trimmed() << "\n";
+    }
+
+    //print warning line
+    static void printWarning(QTextStream& out, QByteArray message, int l, const QByteArray& line)
+    {
+        out << "WARNING: " << message.trimmed() <<  " - in line " << QByteArray::number(l+1) << ":\n" << line << "\n";
+    }
+
+    //print error line
+    static void printError(QTextStream& out, QByteArray message, int l, const QByteArray& line)
+    {
+        out << "ERROR: " << message.trimmed() << " - in line " << QByteArray::number(l+1) << ":\n" << line << "\n";
+    }
+
+    //parse definition line
+    static DefinitionLine parseDefinitionLine(QTextStream& out, int l, QByteArray line);
+
+    //check number of values of a FORMAT/INFO entry
+    static void checkValues(const DefinitionLine& def, const QByteArrayList& values, int alt_count, const QByteArray& sample, QTextStream& out, int l, const QByteArray& line);
 };
