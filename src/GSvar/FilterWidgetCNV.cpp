@@ -358,8 +358,6 @@ void FilterWidgetCNV::checkForGeneFileNGSD()
 {
 	// checks if gene file for target region is available and connection to the NGSD exists
 	QString gene_file_path = targetRegion().left(targetRegion().size() - 4) + "_genes.txt";
-	qDebug() << "gene file: " << QFile::exists(gene_file_path);
-	qDebug() << "NGSD: " << LoginManager::active();
 	ui_.calculate_gene_overlap->setEnabled(QFile::exists(gene_file_path) && LoginManager::active());
 }
 

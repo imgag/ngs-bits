@@ -582,9 +582,6 @@ void SvWidget::loadGeneFile()
 	}
 	roi_gene_index_.createIndex();
 
-	qDebug() << "Gene file creation took " << Helper::elapsedTime(timer);
-
-
 	// update gene tooltips
 	timer.start();
 	// get gene column index
@@ -597,7 +594,6 @@ void SvWidget::loadGeneFile()
 			break;
 		}
 	}
-	qDebug() << "Gene index: " << gene_idx;
 	if (gene_idx >= 0)
 	{
 		// iterate over sv table
@@ -623,7 +619,6 @@ void SvWidget::loadGeneFile()
 															 + genes.toStringList().join(", ") + "</div>");
 		}
 	}
-	qDebug() << "Tooltip update took " << Helper::elapsedTime(timer);
 	QApplication::restoreOverrideCursor();
 }
 
