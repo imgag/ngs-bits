@@ -64,7 +64,6 @@ HEADERS += \
     BedpeFile_Test.h \
     Sequence_Test.h \
     VCFLine_Test.h \
-    VcfFileCheck_Test.h \
     VcfFile_Test.h
 
 SOURCES += \

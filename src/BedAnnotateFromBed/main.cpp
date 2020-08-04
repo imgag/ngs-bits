@@ -2,7 +2,7 @@
 #include "ToolBase.h"
 #include "NGSHelper.h"
 #include "Settings.h"
-#include "VcfFileCheck.h"
+#include "VcfFile.h"
 #include "Exceptions.h"
 #include <QTextStream>
 #include <QFileInfo>
@@ -154,7 +154,7 @@ public:
 
 			if (url_decode)
 			{
-				anno = VcfFileCheck::decodeInfoValue(anno).toUtf8();
+				anno = VcfFile::decodeInfoValue(anno).toUtf8();
 			}
 			if (col_idx < 0)
 			{

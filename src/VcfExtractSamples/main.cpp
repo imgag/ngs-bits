@@ -1,6 +1,6 @@
 #include "Exceptions.h"
 #include "ToolBase.h"
-#include "VcfFileCheck.h"
+#include "VcfFile.h"
 #include "Helper.h"
 
 class ConcreteTool
@@ -41,7 +41,7 @@ public:
 
 		//always extract up to the FORMAT column
 		QList<int> column_indices;
-		for (int i=0; i<=VcfFileCheck::FORMAT; ++i)
+		for (int i=0; i<=VcfFile::FORMAT; ++i)
 		{
 			column_indices << i;
 		}
@@ -65,10 +65,10 @@ public:
 					//check given sample names and extract column indices
 					foreach(const QByteArray& sample, samples)
 					{
-						int index = parts.indexOf(sample, VcfFileCheck::FORMAT+1);
+						int index = parts.indexOf(sample, VcfFile::FORMAT+1);
 						if (index==-1)
 						{
-							THROW(ArgumentException, "Cannot find sample '" + sample + "' in VCF header. Valid sample names are: '" + parts.mid(VcfFileCheck::FORMAT+1).join("', '") + "'");
+							THROW(ArgumentException, "Cannot find sample '" + sample + "' in VCF header. Valid sample names are: '" + parts.mid(VcfFile::FORMAT+1).join("', '") + "'");
 						}
 						column_indices << index;
 					}

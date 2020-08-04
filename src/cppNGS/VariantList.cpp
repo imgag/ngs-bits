@@ -5,7 +5,7 @@
 #include "Log.h"
 #include "ChromosomalIndex.h"
 #include "NGSHelper.h"
-#include "VcfFileCheck.h"
+#include "VcfFile.h"
 
 #include <QFile>
 #include <QTextStream>

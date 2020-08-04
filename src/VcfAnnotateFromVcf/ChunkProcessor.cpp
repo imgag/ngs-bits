@@ -1,10 +1,10 @@
 #include "ChunkProcessor.h"
-#include "VcfFileCheck.h"
+#include "VcfFile.h"
 #include "ToolBase.h"
 #include <zlib.h>
 #include <QFileInfo>
 #include "Helper.h"
-#include "VcfFileCheck.h"
+#include "VcfFile.h"
 #include "VariantList.h"
 #include <QMutex>
 
@@ -249,25 +249,25 @@ QByteArray extendVcfDataLine(const QByteArray &vcf_line,
 
     //split line and extract variant infos
     QList<QByteArray> vcf_column = vcf_line.trimmed().split('\t');
-    if (vcf_column.count()<VcfFileCheck::MIN_COLS)
+    if (vcf_column.count()<VcfFile::MIN_COLS)
     {
         THROW(FileParseException, "VCF line with too few columns in input file: \n" + vcf_line);
     }
 
     // parse position
-    Chromosome chr = vcf_column[VcfFileCheck::CHROM];
+    Chromosome chr = vcf_column[VcfFile::CHROM];
     bool ok = false;
-    int start = vcf_column[VcfFileCheck::POS].toInt(&ok);
+    int start = vcf_column[VcfFile::POS].toInt(&ok);
     if (!ok)
     {
         THROW(FileParseException, "Could not convert VCF variant position '"
               + vcf_column[1] + "' to integer!");
     }
-    int end = start + vcf_column[VcfFileCheck::REF].length() - 1; //length of ref
+    int end = start + vcf_column[VcfFile::REF].length() - 1; //length of ref
 
     // parse sequences
-    QByteArray ref = vcf_column[VcfFileCheck::REF];
-    QByteArray obs = vcf_column[VcfFileCheck::ALT];
+    QByteArray ref = vcf_column[VcfFile::REF];
+    QByteArray obs = vcf_column[VcfFile::ALT];
 
     QByteArrayList additional_annotation;
     // iterate over all annotation files
@@ -286,16 +286,16 @@ QByteArray extendVcfDataLine(const QByteArray &vcf_line,
 
             // parse vcf line
             QByteArrayList parts = match.trimmed().split('\t');
-            if (parts.count()<VcfFileCheck::MIN_COLS)
+            if (parts.count()<VcfFile::MIN_COLS)
             {
                 THROW(FileParseException,
                       "VCF line with too few columns in annotation file: \n" + match);
             }
 
             // check if same variant
-            if (parts[VcfFileCheck::REF] != ref || parts[VcfFileCheck::ALT] != obs) continue;
+            if (parts[VcfFile::REF] != ref || parts[VcfFile::ALT] != obs) continue;
             bool ok;
-            int pos = parts[VcfFileCheck::POS].toInt(&ok);
+            int pos = parts[VcfFile::POS].toInt(&ok);
             if (!ok)
             {
                 THROW(FileParseException,
@@ -311,7 +311,7 @@ QByteArray extendVcfDataLine(const QByteArray &vcf_line,
 
 
             // parse INFO column
-            QByteArrayList info_column = parts[VcfFileCheck::INFO].split(';');
+            QByteArrayList info_column = parts[VcfFile::INFO].split(';');
 
             //get annotation
             for (int j = 0; j < info_ids[ann_file_idx].size(); j++)
@@ -369,7 +369,7 @@ QByteArray extendVcfDataLine(const QByteArray &vcf_line,
     {
 
         // extend info column
-        vcf_column[VcfFileCheck::INFO] += ";" + additional_annotation.join(';');
+        vcf_column[VcfFile::INFO] += ";" + additional_annotation.join(';');
         extended_lines_++;
         // concat vcf line:
         return vcf_column.join('\t') + "\n";

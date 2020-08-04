@@ -3,7 +3,7 @@
 #include "Exceptions.h"
 #include "VariantList.h"
 #include "Settings.h"
-#include "VcfFileCheck.h"
+#include "VcfFile.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -103,7 +103,7 @@ public:
 			}
 
 			QByteArrayList parts = line.split('\t');
-			if (parts.count()<VcfFileCheck::MIN_COLS)
+			if (parts.count()<VcfFile::MIN_COLS)
 			{
 				THROW(FileParseException, "VCF line with less than 8 fields found: '" + line.trimmed() + "'");
 			}

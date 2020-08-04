@@ -183,10 +183,7 @@ private:
 	SampleIDToIdxPtr sample_id_to_idx;
 	QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list;
 
-    //for using the parse functions in testing
-	friend class VcfLine_Test;
-
-    //INFO/FORMAT definition line
+    //INFO/FORMAT/FILTER definition line
     struct DefinitionLine
     {
         QByteArray id;
@@ -230,4 +227,7 @@ private:
 
     //check number of values of a FORMAT/INFO entry
     static void checkValues(const DefinitionLine& def, const QByteArrayList& values, int alt_count, const QByteArray& sample, QTextStream& out, int l, const QByteArray& line);
+
+    //for using the parse functions in testing
+    friend class VcfLine_Test;
 };

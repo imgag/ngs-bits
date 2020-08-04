@@ -1,7 +1,7 @@
 #include "ToolBase.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "VcfFileCheck.h"
+#include "VcfFile.h"
 #include <QFile>
 
 class ConcreteTool: public ToolBase
@@ -103,7 +103,7 @@ public:
             }
 
 			//single-allele variant > write out unchanged
-			if (!includesSeperator(line, ',', VcfFileCheck::ALT))
+			if (!includesSeperator(line, ',', VcfFile::ALT))
 			{
                 out_p->write(line);
 				continue;
@@ -111,13 +111,13 @@ public:
 
 			//split line and extract variant infos
 			QByteArrayList parts = line.trimmed().split('\t');
-			if (parts.length() < VcfFileCheck::MIN_COLS) THROW(FileParseException, "VCF with too few columns: " + line);
+			if (parts.length() < VcfFile::MIN_COLS) THROW(FileParseException, "VCF with too few columns: " + line);
 
-			QByteArrayList alt = parts[VcfFileCheck::ALT].split(',');
-			QByteArrayList info = parts[VcfFileCheck::INFO].split(';');
-			bool has_samples = parts.count()> VcfFileCheck::MIN_COLS;
+			QByteArrayList alt = parts[VcfFile::ALT].split(',');
+			QByteArrayList info = parts[VcfFile::INFO].split(';');
+			bool has_samples = parts.count()> VcfFile::MIN_COLS;
 			QByteArrayList format;
-			if (has_samples) format = parts[VcfFileCheck::FORMAT].split(':');
+			if (has_samples) format = parts[VcfFile::FORMAT].split(':');
 
 			// For each allele construct a separate info block
 			QVector<QByteArray> new_infos_per_allele(alt.length());
@@ -194,7 +194,7 @@ public:
 				}
 
 				// For each sample, construct a new sample according to the format for every allele
-				int samples_count = parts.length() - VcfFileCheck::FORMAT - 1;
+				int samples_count = parts.length() - VcfFile::FORMAT - 1;
 				for (int i = 0; i < alt.length(); ++i)
 				{
 					new_samples_per_allele.push_back(QVector<QByteArray>(samples_count));
@@ -204,7 +204,7 @@ public:
 				// then append to new_samples_per_allele[ALLEL][SAMPLE_INDEX]
 				for (int i = 0; i < samples_count; ++i)
 				{
-					int sample_column = VcfFileCheck::FORMAT + i + 1;
+					int sample_column = VcfFile::FORMAT + i + 1;
                     if (parts[sample_column] == ".") {
                         continue; // Skip MISSING sample
                     }
@@ -303,13 +303,13 @@ public:
 			// Then join to a QByteArray and write
 			for (int a = 0; a < alt.size(); ++a)
 			{
-				parts[VcfFileCheck::ALT] = alt[a];
-				parts[VcfFileCheck::INFO] = new_infos_per_allele[a];
+				parts[VcfFile::ALT] = alt[a];
+				parts[VcfFile::INFO] = new_infos_per_allele[a];
 				if (has_samples)
 				{
 					for (int i = 0; i < new_samples_per_allele[a].size(); ++i)
 					{
-						int part_index = VcfFileCheck::FORMAT + 1 + i;
+						int part_index = VcfFile::FORMAT + 1 + i;
 						parts[part_index] = new_samples_per_allele[a][i];
 					}
 				}

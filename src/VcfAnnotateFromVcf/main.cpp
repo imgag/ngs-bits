@@ -2,7 +2,7 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "TabixIndexedFile.h"
-#include "VcfFileCheck.h"
+#include "VcfFile.h"
 #include "VariantList.h"
 #include <QFile>
 #include <QSharedPointer>

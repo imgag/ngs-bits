@@ -124,6 +124,7 @@ struct CPPNGSSHARED_EXPORT InfoFormatLine
         line_type==InfoFormatType::INFO_DESCRIPTION ? stream << "##INFO" : stream << "##FORMAT";
 		stream << "=<ID=" << id << ",Number=" << number << ",Type=" << type << ",Description=\"" << description << "\">" << "\n";
 	}
+
 };
 struct CPPNGSSHARED_EXPORT FilterLine
 {
@@ -133,7 +134,7 @@ struct CPPNGSSHARED_EXPORT FilterLine
 	void storeLine(QTextStream& stream) const
 	{
 		stream << "##FILTER=<ID=" << id << ",Description=\"" << description  << "\">" << "\n";
-	}
+    }
 };
 
 ///struct representing a vcf header.
