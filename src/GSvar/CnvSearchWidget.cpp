@@ -7,6 +7,7 @@
 #include <QJsonObject>
 #include <QMessageBox>
 #include <QClipboard>
+#include <QAction>
 
 CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 	: QWidget(parent)

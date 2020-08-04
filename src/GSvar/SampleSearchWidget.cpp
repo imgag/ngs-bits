@@ -3,6 +3,7 @@
 #include "ProcessedSampleDataDeletionDialog.h"
 #include "SingleSampleAnalysisDialog.h"
 #include <QMessageBox>
+#include <QAction>
 
 SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	: QWidget(parent)
