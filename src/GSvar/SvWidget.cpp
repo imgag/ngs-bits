@@ -30,6 +30,7 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
 	, ngsd_enabled_(LoginManager::active())
+	, roi_gene_index_(roi_genes_)
 {
 	ui->setupUi(this);
 	ui->svs->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -44,6 +45,8 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 	connect(ui->svs,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
 	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
+	connect(ui->filter_widget, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
+	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(loadGeneFile()));
 	connect(ui->svs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(svHeaderDoubleClicked(int)));
 	ui->svs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->svs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(svHeaderContextMenu(QPoint)));
@@ -540,6 +543,109 @@ void SvWidget::editGermlineReportConfiguration(int row)
 	report_config_->set(var_config);
 	updateReportConfigHeaderIcon(row);
 	emit storeReportConfiguration();
+}
+
+void SvWidget::loadGeneFile()
+{
+	QTime timer;
+	timer.start();
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+	// skip if no connection to the NGSD
+	if(!LoginManager::active())
+	{
+		// clear old files
+		roi_genes_.clear();
+		roi_gene_index_.createIndex();
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "DB connection failed", "No connection to the NGSD.\nConnection is required to calculate gene-region relation.");
+		return;
+	}
+	// check for gene list file:
+	QString gene_file_path = roi_filename_.left(roi_filename_.size() - 4) + "_genes.txt";
+	if (QFile::exists(gene_file_path))
+	{
+		// load genes:
+		GeneSet target_genes = GeneSet::createFromFile(gene_file_path);
+		// create bed file
+		roi_genes_ = NGSD().genesToRegions(target_genes, Transcript::ENSEMBL, "gene");
+		roi_genes_.extend(5000);
+	}
+	else
+	{
+		// clear old files
+		roi_genes_.clear();
+		roi_gene_index_.createIndex();
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "Gene file not found!", "No gene file found at \"" + gene_file_path
+							 + "\". Cannot annotate SV with genes of the current target region." );
+		return;
+	}
+	roi_gene_index_.createIndex();
+
+	qDebug() << "Gene file creation took " << Helper::elapsedTime(timer);
+
+
+	// update gene tooltips
+	timer.start();
+	// get gene column index
+	int gene_idx = -1;
+	for (int col_idx = 0; col_idx < ui->svs->columnCount(); ++col_idx)
+	{
+		if(ui->svs->horizontalHeaderItem(col_idx)->text().trimmed() == "GENES")
+		{
+			gene_idx = col_idx;
+			break;
+		}
+	}
+	qDebug() << "Gene index: " << gene_idx;
+	if (gene_idx >= 0)
+	{
+		// iterate over sv table
+		for (int row_idx = 0; row_idx < ui->svs->rowCount(); ++row_idx)
+		{
+				// get all matching lines in gene bed file
+				BedFile sv_regions = sv_bedpe_file_[row_idx].affectedRegion();
+				QVector<int> matching_indices;
+				for (int i = 0; i < sv_regions.count(); ++i)
+				{
+					matching_indices += roi_gene_index_.matchingIndices(sv_regions[i].chr(), sv_regions[i].start(), sv_regions[i].end());
+				}
+
+				// extract gene names
+				GeneSet genes;
+				foreach (int idx, matching_indices)
+				{
+					genes.insert(roi_genes_[idx].annotations().at(0));
+				}
+
+				// update tooltip
+				ui->svs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> "
+															 + genes.toStringList().join(", ") + "</div>");
+		}
+	}
+	qDebug() << "Tooltip update took " << Helper::elapsedTime(timer);
+	QApplication::restoreOverrideCursor();
+}
+
+void SvWidget::clearTooltips()
+{
+	int gene_idx = -1;
+	for (int col_idx = 0; col_idx < ui->svs->columnCount(); ++col_idx)
+	{
+		if(ui->svs->horizontalHeaderItem(col_idx)->text().trimmed() == "GENES")
+		{
+			gene_idx = col_idx;
+			break;
+		}
+	}
+	if (gene_idx >= 0)
+	{
+		for (int row_idx = 0; row_idx < ui->svs->rowCount(); ++row_idx)
+		{
+			// remove tool tip
+			ui->svs->item(row_idx, gene_idx)->setToolTip("");
+		}
+	}
 }
 
 void SvWidget::copyToClipboard()

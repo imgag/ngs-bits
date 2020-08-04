@@ -61,12 +61,14 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
 	, ngsd_enabled_(LoginManager::active())
+	, roi_gene_index_(roi_genes_)
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
 	connect(ui->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
+	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(loadGeneFile()));
 	connect(ui->cnvs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(cnvHeaderDoubleClicked(int)));
 	ui->cnvs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
@@ -955,6 +957,105 @@ void CnvWidget::importPhenotypesFromNGSD()
 	QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
 
 	ui->filter_widget->setPhenotypes(phenotypes);
+}
+
+void CnvWidget::loadGeneFile()
+{
+	QTime timer;
+	timer.start();
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+	// skip if no connection to the NGSD
+	if(!LoginManager::active())
+	{
+		// clear old files
+		roi_genes_.clear();
+		roi_gene_index_.createIndex();
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "DB connection failed", "No connection to the NGSD.\nConnection is required to calculate gene-region relation.");
+		return;
+	}
+	// check for gene list file:
+	QString roi_filename = ui->filter_widget->targetRegion();
+	QString gene_file_path = roi_filename.left(roi_filename.size() - 4) + "_genes.txt";
+	if (QFile::exists(gene_file_path))
+	{
+		// load genes:
+		GeneSet target_genes = GeneSet::createFromFile(gene_file_path);
+		// create bed file
+		roi_genes_ = NGSD().genesToRegions(target_genes, Transcript::ENSEMBL, "gene");
+		roi_genes_.extend(5000);
+	}
+	else
+	{
+		// clear old files
+		roi_genes_.clear();
+		roi_gene_index_.createIndex();
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "Gene file not found!", "No gene file found at \"" + gene_file_path
+							 + "\". Cannot annotate SV with genes of the current target region." );
+		return;
+	}
+	roi_gene_index_.createIndex();
+
+	qDebug() << "Gene file creation took " << Helper::elapsedTime(timer);
+
+
+	// update gene tooltips
+	timer.start();
+	// get gene column index
+	int gene_idx = -1;
+	for (int col_idx = 0; col_idx < ui->cnvs->columnCount(); ++col_idx)
+	{
+		if(ui->cnvs->horizontalHeaderItem(col_idx)->text().trimmed() == "genes")
+		{
+			gene_idx = col_idx;
+			break;
+		}
+	}
+	qDebug() << "Gene index: " << gene_idx;
+	if (gene_idx >= 0)
+	{
+		// iterate over sv table
+		for (int row_idx = 0; row_idx < ui->cnvs->rowCount(); ++row_idx)
+		{
+				// get all matching lines in gene bed file
+				QVector<int> matching_indices = roi_gene_index_.matchingIndices(cnvs_[row_idx].chr(), cnvs_[row_idx].start(), cnvs_[row_idx].end());
+
+				// extract gene names
+				GeneSet genes;
+				foreach (int idx, matching_indices)
+				{
+					genes.insert(roi_genes_[idx].annotations().at(0));
+				}
+
+				// update tooltip
+				ui->cnvs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> "
+															 + genes.toStringList().join(", ") + "</div>");
+		}
+	}
+	qDebug() << "Tooltip update took " << Helper::elapsedTime(timer);
+	QApplication::restoreOverrideCursor();
+}
+
+void CnvWidget::clearTooltips()
+{
+	int gene_idx = -1;
+	for (int col_idx = 0; col_idx < ui->cnvs->columnCount(); ++col_idx)
+	{
+		if(ui->cnvs->horizontalHeaderItem(col_idx)->text().trimmed() == "genes")
+		{
+			gene_idx = col_idx;
+			break;
+		}
+	}
+	if (gene_idx >= 0)
+	{
+		for (int row_idx = 0; row_idx < ui->cnvs->rowCount(); ++row_idx)
+		{
+			// remove tool tip
+			ui->cnvs->item(row_idx, gene_idx)->setToolTip("");
+		}
+	}
 }
 
 void CnvWidget::editGermlineReportConfiguration(int row)

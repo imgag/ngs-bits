@@ -27,6 +27,7 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	ui_.lab_modified->setHidden(true);
 
 	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
+	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(checkForGeneFileNGSD()));
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
@@ -38,6 +39,7 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	connect(ui_.gene_import, SIGNAL(clicked(bool)), this, SLOT(importGene()));
 	connect(ui_.text_import, SIGNAL(clicked(bool)), this, SLOT(importText()));
 	connect(ui_.report_config, SIGNAL(clicked(bool)), this, SLOT(regionChanged()));
+    connect(ui_.calculate_gene_overlap, SIGNAL(clicked(bool)), this, SLOT(calculateGeneOverlap()));
 
 	QAction* action = new QAction("clear", this);
 	connect(action, &QAction::triggered, this, &FilterWidgetCNV::clearTargetRegion);
@@ -345,6 +347,20 @@ void FilterWidgetCNV::setFilter(int index)
 void FilterWidgetCNV::clearTargetRegion()
 {
 	ui_.roi->setCurrentText("none");
+}
+
+void FilterWidgetCNV::calculateGeneOverlap()
+{
+	emit calculateGeneTargetRegionOverlap();
+}
+
+void FilterWidgetCNV::checkForGeneFileNGSD()
+{
+	// checks if gene file for target region is available and connection to the NGSD exists
+	QString gene_file_path = targetRegion().left(targetRegion().size() - 4) + "_genes.txt";
+	qDebug() << "gene file: " << QFile::exists(gene_file_path);
+	qDebug() << "NGSD: " << LoginManager::active();
+	ui_.calculate_gene_overlap->setEnabled(QFile::exists(gene_file_path) && LoginManager::active());
 }
 
 void FilterWidgetCNV::loadFilters()

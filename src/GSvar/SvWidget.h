@@ -63,6 +63,11 @@ private slots:
 	void updateReportConfigHeaderIcon(int row);
 	void editReportConfiguration(int row);
 
+	///Loads the gene file to a given target region BED file
+	void loadGeneFile();
+	///Removes the calculated gene overlap tooltips
+	void clearTooltips();
+
 private:
 	///load bedpe data file and set display
 	void initGUI();
@@ -104,6 +109,8 @@ private:
 
 	BedFile roi_;
 	QString roi_filename_;
+	BedFile roi_genes_;
+	ChromosomalIndex<BedFile> roi_gene_index_;
 	bool is_somatic_;
 	bool loading_svs_ = false;
 

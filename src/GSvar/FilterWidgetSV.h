@@ -61,6 +61,8 @@ signals:
 	void targetRegionChanged();
 	/// Signal that loading phenotype data from NGSD was requested (this cannot be done inside the widget, because it knows nothing about the sample)
 	void phenotypeImportNGSDRequested();
+	/// Signal that requests the creation of gene overlap ToolTips
+	void calculateGeneTargetRegionOverlap();
 
 protected slots:
 	void roiSelectionChanged(int index);
@@ -78,6 +80,8 @@ protected slots:
 	void updateFilterName();
 	void setFilter(int index);
 	void clearTargetRegion();
+	void calculateGeneOverlap();
+	void checkForGeneFileNGSD();
 
 private:
 	////Loads filters

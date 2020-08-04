@@ -27,6 +27,7 @@ FilterWidgetSV::FilterWidgetSV(QWidget *parent)
 	ui_.lab_modified->setHidden(true);
 
 	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
+	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(checkForGeneFileNGSD()));
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
@@ -38,6 +39,7 @@ FilterWidgetSV::FilterWidgetSV(QWidget *parent)
 	connect(ui_.gene_import, SIGNAL(clicked(bool)), this, SLOT(importGene()));
 	connect(ui_.text_import, SIGNAL(clicked(bool)), this, SLOT(importText()));
 	connect(ui_.report_config, SIGNAL(clicked(bool)), this, SLOT(regionChanged()));
+	connect(ui_.calculate_gene_overlap, SIGNAL(clicked(bool)), this, SLOT(calculateGeneOverlap()));
 
 	QAction* action = new QAction("clear", this);
 	connect(action, &QAction::triggered, this, &FilterWidgetSV::clearTargetRegion);
@@ -193,8 +195,9 @@ void FilterWidgetSV::roiSelectionChanged(int index)
 		ui_.roi->setEditable(false);
 	}
 
+	QString bed_file_name = ui_.roi->itemData(index).toString().trimmed();
+	ui_.roi->setToolTip(bed_file_name);
 
-	ui_.roi->setToolTip(ui_.roi->itemData(index).toString());
 
 	if(index!=0)
 	{
@@ -351,6 +354,20 @@ void FilterWidgetSV::setFilter(int index)
 void FilterWidgetSV::clearTargetRegion()
 {
 	ui_.roi->setCurrentText("none");
+}
+
+void FilterWidgetSV::calculateGeneOverlap()
+{
+	emit calculateGeneTargetRegionOverlap();
+}
+
+void FilterWidgetSV::checkForGeneFileNGSD()
+{
+	// checks if gene file for target region is available and connection to the NGSD exists
+	QString gene_file_path = targetRegion().left(targetRegion().size() - 4) + "_genes.txt";
+	qDebug() << "gene file: " << QFile::exists(gene_file_path);
+	qDebug() << "NGSD: " << LoginManager::active();
+	ui_.calculate_gene_overlap->setEnabled(QFile::exists(gene_file_path) && LoginManager::active());
 }
 
 void FilterWidgetSV::loadFilters()
