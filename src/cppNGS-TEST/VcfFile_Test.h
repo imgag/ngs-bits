@@ -451,7 +451,7 @@ private slots:
 	{
 		VcfFile vl;
 		vl.load(TESTDATA("data_in/sort_in.vcf"));
-		vl.sortCustom([](const VCFLine& a, const VCFLine& b) {return a.pos() < b.pos(); });
+        vl.sortCustom([](const VCFLinePtr& a, const VCFLinePtr& b) {return a->pos() < b->pos(); });
 
 		I_EQUAL(vl.count(), 2344);
 		X_EQUAL(vl.vcfLine(0).chr(),Chromosome("chr4"));
