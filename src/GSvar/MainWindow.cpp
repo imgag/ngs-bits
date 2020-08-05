@@ -3690,11 +3690,18 @@ void MainWindow::exportGSvar()
 
 void MainWindow::on_actionPreferredTranscripts_triggered()
 {
-	//show dialog
+	//check if preferred transcripts file can be modified
 	QString filename = GSvarHelper::applicationBaseName() + "_preferred_transcripts.tsv";
+	if (!Helper::isWritable(filename))
+	{
+		QMessageBox::warning(this, "Preferred transcripts not editable", "Preferred transcripts file is read-only for you.\nPlease ask the administrator to add preferred transcripts for you!");
+		return;
+	}
+
+	//show dialog
 	QDateTime file_last_mod = QFileInfo(filename).lastModified();
 	QString text = "<pre>" + Helper::loadTextFile(filename).join("\n") + "</pre>";
-	QTextEdit* edit = new QTextEdit(text);
+	QPlainTextEdit* edit = new QPlainTextEdit(text);
 	edit->setMinimumHeight(600);
 	edit->setMinimumWidth(500);
 	QSharedPointer<QDialog> dlg = GUIHelper::createDialog(edit, "Preferred transcripts list", "", true);
@@ -3746,7 +3753,7 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 	//prevent overwriting changes done by others since opening the dialog
 	if (file_last_mod < QFileInfo(filename).lastModified())
 	{
-		QMessageBox::warning(this, "Cannot write preferred transcripts", "Perferred transcripts were changed by another GSvar instance.\nPlease re-do your changes!");
+		QMessageBox::warning(this, "Cannot write preferred transcripts", "Preferred transcripts were changed by another GSvar instance.\nPlease re-do your changes!");
 		return;
 	}
 

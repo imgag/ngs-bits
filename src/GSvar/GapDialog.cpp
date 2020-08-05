@@ -84,7 +84,7 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 			}
 		}
 
-		//check if overlapping with perferred transcript
+		//check if overlapping with preferred transcript
 		BedFile pt_exon_regions;
 		foreach(QByteArray gene, info.genes)
 		{
