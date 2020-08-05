@@ -74,8 +74,8 @@ bool VcfFormat::LessComparator::operator()(const VCFLine& a, const VCFLine& b) c
 	else if (a.ref().length()>b.ref().length()) return false;
 	else if (a.ref()<b.ref()) return true;//compare reference seqs
 	else if (a.ref()>b.ref()) return false;
-	else if (a.alt()<b.alt()) return true;//compare alternative seqs
-	else if (a.alt()>b.alt()) return false;
+    else if (a.alt(0)<b.alt(0)) return true;//compare alternative seqs
+    else if (a.alt(0)>b.alt(0)) return false;
 	else if (use_quality)
 	{
 		double q_a=a.qual();
@@ -120,8 +120,8 @@ bool VcfFormat::LessComparatorByFile::operator()(const VCFLine& a, const VCFLine
 	else if (a.ref().length()>b.ref().length()) return false;
 	else if (a.ref()<b.ref()) return true; //compare ref sequence
 	else if (a.ref()>b.ref()) return false;
-	else if (a.alt()<b.alt()) return true; //compare obs sequence
-	else if (a.alt()>b.alt()) return false;
+    else if (a.alt(0)<b.alt(0)) return true; //compare obs sequence
+    else if (a.alt(0)>b.alt(0)) return false;
 	return false;
 }
 
@@ -302,32 +302,30 @@ void VCFHeader::setFormat(QByteArray& line)
 	}
 	fileformat_ =  splitted_line[1];
 }
-void VCFHeader::setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number)
+void VCFHeader::setInfoLine(QByteArray& line, const int line_number)
 {
-    if(type == INFO_DESCRIPTION)
-	{
-		line=line.mid(8);//remove "##INFO=<"
-		InfoFormatLine info_line;
-		if(parseInfoFormatLine(line, info_line, "INFO", line_number))
-		{
-			info_lines_.push_back(info_line);
-		}
-	}
-	else
-	{
-		line=line.mid(10);//remove "##FORMAT=<"
-		InfoFormatLine format_line;
-		if(parseInfoFormatLine(line, format_line, "FORMAT", line_number))
-		{
-			format_lines_.push_back(format_line);
-			//make sure the "GT" format field is always the first format field
-			if(format_line.id == "GT" && format_lines_.size() > 1)
-			{
-				format_lines_.move(format_lines_.count()-1, 0);
-			}
-		}
-	}
+    line=line.mid(8);//remove "##INFO=<"
+    InfoFormatLine info_line;
+    if(parseInfoFormatLine(line, info_line, "INFO", line_number))
+    {
+        info_lines_.push_back(info_line);
+    }
 }
+void VCFHeader::setFormatLine(QByteArray& line, const int line_number)
+{
+    line=line.mid(10);//remove "##FORMAT=<"
+    InfoFormatLine format_line;
+    if(parseInfoFormatLine(line, format_line, "FORMAT", line_number))
+    {
+        format_lines_.push_back(format_line);
+        //make sure the "GT" format field is always the first format field
+        if(format_line.id == "GT" && format_lines_.size() > 1)
+        {
+            format_lines_.move(format_lines_.count()-1, 0);
+        }
+    }
+}
+
 void VCFHeader::setFilterLine(QByteArray& line, const int line_number)
 {
 	//split at '=' to get id and description part

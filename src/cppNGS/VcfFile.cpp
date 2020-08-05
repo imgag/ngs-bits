@@ -23,17 +23,14 @@ void VcfFile::parseVcfHeader(const int line_number, QByteArray& line)
 			THROW(FileParseException, "Malformed first line for the fileformat: " + line.trimmed());
 		}
 	}
-	else if(line.startsWith("##INFO") || line.startsWith("##FORMAT"))
-	{
-		if (line.startsWith("##INFO"))
-		{
-            vcf_header_.setInfoFormatLine(line, INFO_DESCRIPTION, line_number);
-		}
-		else
-		{
-            vcf_header_.setInfoFormatLine(line, FORMAT_DESCRIPTION, line_number);
-		}
-	}
+    else if (line.startsWith("##INFO"))
+    {
+        vcf_header_.setInfoLine(line, line_number);
+    }
+    else if(line.startsWith("##FORMAT"))
+    {
+        vcf_header_.setFormatLine(line, line_number);
+    }
 	else if(line.startsWith("##FILTER=<ID="))
 	{
 		vcf_header_.setFilterLine(line, line_number);
@@ -97,7 +94,7 @@ void VcfFile::parseHeaderFields(QByteArray& line, bool allow_multi_sample)
 		}
 	}
 }
-void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, QSet<QByteArray> filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
+void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 
 	QList<QByteArray> line_parts = line.split('\t');
@@ -170,6 +167,7 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 			new_filter_line.id = strToPointer(filter);
 			new_filter_line.description = strToPointer("no description available");
 			vcf_header_.addFilterLine(new_filter_line);
+            filter_ids.insert(strToPointer(filter));
 		}
 	}
 
@@ -192,20 +190,18 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 				new_info_line.type = strToPointer("String");
 				new_info_line.description = strToPointer("no description available");
 				vcf_header_.addInfoLine(new_info_line);
+                info_ids.insert(strToPointer(key_value_pair[0]));
 			}
 
 			if(key_value_pair.size() == 1)
 			{
-                //info_entries.push_back(strToPointer(key_value_pair[0]), strToPointer(QByteArray("TRUE")));
                 info_values.push_back(strToPointer(QByteArray("TRUE")));
                 info_ids_string_list.push_back(strToPointer(key_value_pair[0]));
 			}
 			else
 			{
-                //info_entries.push_back(strToPointer(key_value_pair[0]), strToPointer(key_value_pair[1]));
                 info_values.push_back(strToPointer(key_value_pair[1]));
                 info_ids_string_list.push_back(strToPointer(key_value_pair[0]));
-                //qDebug() << key_value_pair[1] << static_cast<const void *>(strToPointer(key_value_pair[1]).constData());
 			}
 
 		}
@@ -228,14 +224,13 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
         }
        vcf_line.setInfo(info_values);
 
-	}
+    }
 
 	//FORMAT && SAMPLE
     if(line_parts.count() >= 9 && line_parts[FORMAT] != ".")
 	{
 		//FORMAT
         QByteArrayList format_list = line_parts[FORMAT].split(':');
-		QByteArrayList format_entries;
 		//check if the format is known in header
 		for(const QByteArray& format : format_list)
 		{
@@ -252,39 +247,38 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 				new_format_line.type = strToPointer("String");
 				new_format_line.description = strToPointer("no description available");
 				vcf_header_.addFormatLine(new_format_line);
+                format_ids.insert(strToPointer(format));
 
 				if(format == "GT")
 				{
 					vcf_header_.moveFormatLine(vcf_header_.formatLines().count()-1, 0);
 				}
 			}
-			format_entries.push_back(strToPointer(format));
 		}
 
 		//set format indices
-		ListOfFormatIds format_ids_string = format_entries.join();
+        ListOfFormatIds format_ids_string = format_list.join();
 		if(format_id_to_idx_list.contains(format_ids_string))
 		{
-			vcf_line.setFormatIdToIdxPtr(format_id_to_idx_list[format_ids_string]);
+            vcf_line.setFormatIdToIdxPtr(format_id_to_idx_list[format_ids_string]);
 		}
 		else
 		{
 			FormatIDToIdxPtr new_format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
-			for(int i = 0; i < format_entries.count(); ++i)
+            for(int i = 0; i < format_list.count(); ++i)
 			{
-                new_format_id_to_idx_entry->push_back(format_entries.at(i), strToPointer(static_cast<unsigned char>(i)));
+                new_format_id_to_idx_entry->push_back(strToPointer(format_list.at(i)), strToPointer(static_cast<unsigned char>(i)));
 			}
 			format_id_to_idx_list.insert(format_ids_string, new_format_id_to_idx_entry);
-			vcf_line.setFormatIdToIdxPtr(new_format_id_to_idx_entry);
+            vcf_line.setFormatIdToIdxPtr(new_format_id_to_idx_entry);
 		}
 
 		//set samples idices
-		vcf_line.setSampleIdToIdxPtr(sample_id_to_idx);
+        vcf_line.setSampleIdToIdxPtr(sample_id_to_idx);
 
 		//SAMPLE
-		if(line_parts.count() >= 10)
+        if(line_parts.count() >= 10)
 		{
-
 			int last_column_to_parse;
 			allow_multi_sample ? last_column_to_parse=line_parts.count() : last_column_to_parse=10;
 
@@ -325,7 +319,6 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 		}
 		else
 		{
-
 			//a FORMAT is given, however no SAMPLE data
 			int format_count = 0;
 			while(format_count < vcf_line.format().count())
@@ -337,15 +330,15 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 
 				++format_count;
 			}
-		}
-	}
+        }
+    }
 
 	vcf_lines_.push_back(vcf_line);
 
 }
 
 
-void VcfFile::processVcfLine(int& line_number, QByteArray line, QSet<QByteArray> info_ids, QSet<QByteArray> format_ids, QSet<QByteArray> filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
+void VcfFile::processVcfLine(int& line_number, QByteArray line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 
 	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
@@ -357,27 +350,28 @@ void VcfFile::processVcfLine(int& line_number, QByteArray line, QSet<QByteArray>
 	//parse header
 	if (line.startsWith("##"))
 	{
-		parseVcfHeader(line_number, line);
+        parseVcfHeader(line_number, line);
 	}
 	else if (line.startsWith("#CHROM"))
 	{
-		parseHeaderFields(line, allow_multi_sample);
+        parseHeaderFields(line, allow_multi_sample);
+        //all header lines hsould be read at this point
+        for(const InfoFormatLine& format : vcf_header_.formatLines())
+        {
+            format_ids.insert(format.id);
+        }
+        for(const InfoFormatLine& info : vcf_header_.infoLines())
+        {
+            info_ids.insert(info.id);
+        }
+        for(const FilterLine& filter : vcf_header_.filterLines())
+        {
+            filter_ids.insert(filter.id);
+        }
 	}
 	else
 	{
-		for(InfoFormatLine format : vcf_header_.formatLines())
-		{
-			format_ids.insert(format.id);
-		}
-		for(InfoFormatLine info : vcf_header_.infoLines())
-		{
-			info_ids.insert(info.id);
-		}
-		for(FilterLine filter : vcf_header_.filterLines())
-		{
-			filter_ids.insert(filter.id);
-		}
-		parseVcfEntry(line_number, line, info_ids, format_ids, filter_ids, allow_multi_sample, roi_idx, invert);
+       parseVcfEntry(line_number, line, info_ids, format_ids, filter_ids, allow_multi_sample, roi_idx, invert);
 	}
 }
 
@@ -413,6 +407,10 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 	}
 
 	char* buffer = new char[1048576]; //1MB buffer
+    //Sets holding all INFO and FORMAT IDs defined in the header (might be extended if a vcf line contains new ones)
+    QSet<QByteArray> info_ids_in_header;
+    QSet<QByteArray> format_ids_in_header;
+    QSet<QByteArray> filter_ids_in_header;
 	while(!gzeof(file))
 	{
 
@@ -428,10 +426,6 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 				THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
 			}
 		}
-		//Sets holding all INFO and FORMAT IDs defined in the header (might be extended if a vcf line contains new ones)
-		QSet<QByteArray> info_ids_in_header;
-		QSet<QByteArray> format_ids_in_header;
-		QSet<QByteArray> filter_ids_in_header;
 		processVcfLine(line_number, QByteArray(read_line), info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
 	}
 	gzclose(file);

@@ -191,7 +191,9 @@ public:
 		filter_lines_.push_back(filter_line);
 	}
 	void setCommentLine(QByteArray& line, const int line_number);
-	void setInfoFormatLine(QByteArray& line, InfoFormatType type, const int line_number);
+    void setInfoLine(QByteArray& line, const int line_number);
+    void setFormatLine(QByteArray& line, const int line_number);
+
 	void setFilterLine(QByteArray& line, const int line_number);
 	void setFormat(QByteArray& line);
 	void storeHeaderInformation(QTextStream& stream) const;
@@ -317,8 +319,8 @@ public:
         }
     }
 	QByteArray info(const QByteArray& key, bool error_if_key_absent = false) const
-	{
-		if(error_if_key_absent)
+    {
+        if(error_if_key_absent)
 		{
             int i_idx = (*infoIdxOf_)[key];
             return info_.at(i_idx);
@@ -334,7 +336,7 @@ public:
 			{
 				return "";
 			}
-		}
+        }
 	}
 
 	///returns all SAMPLES as a hash of (SAMPLE ID to a hash of (FORMAT ID to value))
@@ -482,11 +484,11 @@ public:
 	{
 		sample_values_.push_back(format_value_list);
 	}
-	void setSampleIdToIdxPtr(const SampleIDToIdxPtr& ptr)
+    void setSampleIdToIdxPtr(const SampleIDToIdxPtr& ptr)
 	{
 		sampleIdxOf_ = ptr;
 	}
-	void setFormatIdToIdxPtr(const FormatIDToIdxPtr& ptr)
+    void setFormatIdToIdxPtr(const FormatIDToIdxPtr& ptr)
 	{
         if(ptr->size() > std::numeric_limits<unsigned char>::max())
 		{
@@ -563,13 +565,12 @@ private:
 	double qual_;
 
 	QByteArrayList filter_; //; seperated list of failed filters or "PASS"
-    //OrderedHash<QByteArray , QByteArray> info_; //; seperated list of info key=value pairs
 
     InfoIDToIdxPtr infoIdxOf_;
     QByteArrayList info_;
 
-	SampleIDToIdxPtr sampleIdxOf_;
-	FormatIDToIdxPtr formatIdxOf_;
+    SampleIDToIdxPtr sampleIdxOf_;
+    FormatIDToIdxPtr formatIdxOf_;
 	QList<QByteArrayList> sample_values_;
 };
 
