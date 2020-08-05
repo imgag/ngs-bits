@@ -112,11 +112,12 @@ TEST_CLASS(VcfLine_Test)
         variant.setInfo(info);
         variant.setInfoIdToIdxPtr(info_ptr);
         S_EQUAL(variant.info("key of 3"), "value of 3");
-        I_EQUAL(variant.infos().size(), 10);
+        I_EQUAL(variant.infoKeys().size(), 10);
+        I_EQUAL(variant.infoValues().size(), 10);
 
-        OrderedHash<QByteArray , QByteArray> received_info = variant.infos();
-        S_EQUAL(received_info.at(4).value(), "value of 4");
-        S_EQUAL(received_info["key of 4"], "value of 4");
+        QByteArrayList received_info_values = variant.infoValues();
+        S_EQUAL(received_info_values.at(4), "value of 4");
+        S_EQUAL(variant.info("key of 4"), "value of 4");
     }
 
     void formatEntryForSampleId()

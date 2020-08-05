@@ -177,7 +177,7 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
     if(line_parts[INFO]!=".")
 	{
         QByteArrayList info_list = line_parts[INFO].split(';');
-        QVector<QByteArray> info_values;
+        QByteArrayList info_values;
         QList<ListOfInfoIds> info_ids_string_list;
 
 		for(const QByteArray& info : info_list)
@@ -548,7 +548,7 @@ void VcfFile::storeAsTsv(const QString& filename)
 	}
 }
 
-void VcfFile::store(const QString& filename,  bool stdout_if_file_empty, bool compress, int compression_level) const
+/*void VcfFile::store(const QString& filename,  bool stdout_if_file_empty, bool compress, int compression_level) const
 {
 
 	//open stream
@@ -595,6 +595,79 @@ void VcfFile::store(const QString& filename,  bool stdout_if_file_empty, bool co
 
 		file_stream << vcf_file;
 	}
+}*/
+
+void writeZipped(gzFile& gz_file, QString& vcf_file_data, const QString& filename)
+{
+    int written = gzputs(gz_file, vcf_file_data.toLocal8Bit().data());
+    if (written==0)
+    {
+        THROW(FileAccessException, "Could not write to file '" + filename + "'!");
+    }
+    vcf_file_data.clear();
+}
+
+void VcfFile::store(const QString& filename,  bool stdout_if_file_empty, bool compress, int compression_level) const
+{
+
+    if(compress)
+    {
+        gzFile gz_file = gzopen(filename.toLatin1().data(),"wb");
+        if (gz_file == NULL)
+        {
+            THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
+        }
+        gzsetparams(gz_file, compression_level, Z_DEFAULT_STRATEGY);
+
+        //write gzipped informations
+        //open stream
+        QString vcf_file;
+        QTextStream stream(&vcf_file);
+        //write header information
+        vcf_header_.storeHeaderInformation(stream);
+        writeZipped(gz_file, vcf_file, filename);
+
+        //write header columns
+        stream << "#" << column_headers_.at(0);
+        writeZipped(gz_file, vcf_file, filename);
+
+        for(int i = 1; i < column_headers_.count(); ++i)
+        {
+            stream << "\t" << column_headers_.at(i);
+            writeZipped(gz_file, vcf_file, filename);
+        }
+
+        for(int i = 0; i < vcf_lines_.count(); ++i)
+        {
+            stream << "\n";
+            storeLineInformation(stream, vcfLine(i));
+            writeZipped(gz_file, vcf_file, filename);
+        }
+
+        gzclose(gz_file);
+    }
+    else
+    {
+        //open stream
+        QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_file_empty);
+        QTextStream file_stream(file.data());
+
+        //write header information
+        vcf_header_.storeHeaderInformation(file_stream);
+
+        //write header columns
+        file_stream << "#" << column_headers_.at(0);
+        for(int i = 1; i < column_headers_.count(); ++i)
+        {
+            file_stream << "\t" << column_headers_.at(i);
+        }
+
+        for(int i = 0; i < vcf_lines_.count(); ++i)
+        {
+            file_stream << "\n";
+            storeLineInformation(file_stream, vcfLine(i));
+        }
+    }
 }
 
 void VcfFile::leftNormalize(QString reference_genome)
@@ -731,36 +804,36 @@ void VcfFile::storeLineInformation(QTextStream& stream, VCFLine line) const
 	}
 
 	//if info exists
-	if(line.infos().empty())
+    if(line.infoKeys().empty())
 	{
 		stream << "\t.";
 	}
 	else
 	{
 		//if info is only TRUE, print key only
-		QByteArray info_line_value = line.infos().at(0).value();
-		QByteArray info_line_key = line.infos().at(0).key();
+        QByteArray info_line_value = line.infoValues().at(0);
+        QByteArray info_line_key = line.infoKeys().at(0);
 		if(info_line_value == "TRUE" && vcfHeader().infoLineByID(info_line_key, false).type == "Flag")
 		{
-			stream  << "\t"<< line.infos().at(0).key();
+            stream  << "\t"<< line.infoKeys().at(0);
 		}
 		else
 		{
-			stream  << "\t"<< line.infos().at(0).key() << "=" << line.infos().at(0).value();;
+            stream  << "\t"<< line.infoKeys().at(0) << "=" << line.infoValues().at(0);;
 		}
-		if(line.infos().size() > 1)
+        if(line.infoKeys().size() > 1)
 		{
-			for(int i = 1; i < line.infos().size(); ++i)
+            for(int i = 1; i < line.infoKeys().size(); ++i)
 			{
-				QByteArray info_line_value = line.infos().at(i).value();
-				QByteArray info_line_key = line.infos().at(i).key();
+                QByteArray info_line_value = line.infoValues().at(i);
+                QByteArray info_line_key = line.infoKeys().at(i);
 				if(info_line_value == "TRUE" && vcfHeader().infoLineByID(info_line_key).type == "Flag")
 				{
-					stream  << ";"<< line.infos().at(i).key();
+                    stream  << ";"<< line.infoKeys().at(i);
 				}
 				else
 				{
-					stream  << ";"<< line.infos().at(i).key() << "=" << line.infos().at(i).value();;
+                    stream  << ";"<< line.infoKeys().at(i) << "=" << line.infoValues().at(i);;
 				}
 			}
 		}
@@ -1004,7 +1077,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		vcf_line.addAlt(alt_list);
 
 		//add all columns into info
-        QVector<QByteArray> info;
+        QByteArrayList info;
         QByteArrayList all_info_keys;
         QList<int> all_positions;
 

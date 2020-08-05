@@ -292,25 +292,28 @@ public:
 			return formatIdxOf_->keys();
 		}
 	}
-    OrderedHash<QByteArray , QByteArray> infos() const
-	{
-        OrderedHash<QByteArray, QByteArray> info_key_value_hash;
-
+    QByteArrayList infoKeys()
+    {
         if(!infoIdxOf_)
         {
-            return info_key_value_hash;
+            QByteArrayList list;
+            return list;
         }
         else
         {
-            for(int i = 0; i < infoIdxOf_->size(); ++i)
-            {
-                QByteArray key = infoIdxOf_->keys().at(i);
-                unsigned char value_num = (*infoIdxOf_)[key];
-                QByteArray value = info_.at(value_num);
-
-                info_key_value_hash.push_back(key, value);
-            }
-            return info_key_value_hash;
+            return infoIdxOf_->keys();
+        }
+    }
+    QByteArrayList infoValues()
+    {
+        if(!infoIdxOf_)
+        {
+            QByteArrayList list;
+            return list;
+        }
+        else
+        {
+            return info_;
         }
     }
 	QByteArray info(const QByteArray& key, bool error_if_key_absent = false) const
@@ -467,7 +470,7 @@ public:
 		tag = tag.trimmed();
 		filter_.push_back(strToPointer(tag));
 	}
-    void setInfo(const QVector<QByteArray>& info_values)
+    void setInfo(const QByteArrayList& info_values)
 	{
         info_ = info_values;
 	}
@@ -563,7 +566,7 @@ private:
     //OrderedHash<QByteArray , QByteArray> info_; //; seperated list of info key=value pairs
 
     InfoIDToIdxPtr infoIdxOf_;
-    QVector<QByteArray> info_;
+    QByteArrayList info_;
 
 	SampleIDToIdxPtr sampleIdxOf_;
 	FormatIDToIdxPtr formatIdxOf_;
