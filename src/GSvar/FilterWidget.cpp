@@ -168,16 +168,18 @@ QString FilterWidget::filterFileName()
 	return GSvarHelper::applicationBaseName() + "_filters.ini";
 }
 
-void FilterWidget::setFilter(QString name)
+bool FilterWidget::setFilter(QString name)
 {
 	for (int i=0; i<ui_.filters->count(); ++i)
 	{
 		if (ui_.filters->itemText(i)==name)
 		{
 			ui_.filters->setCurrentIndex(i);
-			return;
+			return true;
 		}
 	}
+
+	return false;
 }
 
 QString FilterWidget::filterName() const
@@ -208,6 +210,23 @@ QString FilterWidget::targetRegion() const
 QString FilterWidget::targetRegionName() const
 {
 	return ui_.roi->currentText();
+}
+
+bool FilterWidget::setTargetRegionName(QString name)
+{
+	QString system = "Processing system: " + name;
+	QString subpanel ="Sub-panel: " + name;
+
+	for (int i=0; i<ui_.roi->count(); ++i)
+	{
+		if (ui_.roi->itemText(i)==system || ui_.roi->itemText(i)==subpanel)
+		{
+			ui_.roi->setCurrentIndex(i);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void FilterWidget::setTargetRegion(QString roi_file)

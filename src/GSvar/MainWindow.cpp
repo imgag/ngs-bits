@@ -729,12 +729,29 @@ void MainWindow::delayedInitialization()
 				}
 			}
 		}
-		else if (arg.startsWith("filter:")) //target region (by name)
+		else if (arg.startsWith("filter:")) //filter (by name)
 		{
 			int sep_pos = arg.indexOf(':');
 			QString filter_name = arg.mid(sep_pos+1).trimmed();
 
-			ui_.filters->setFilter(filter_name);
+			if (!ui_.filters->setFilter(filter_name))
+			{
+				qDebug() << "Filter name " << arg << " not found. Ignoring it!";
+			}
+		}
+		else if (arg.startsWith("roi:")) //target region (by name)
+		{
+			int sep_pos = arg.indexOf(':');
+			QString roi_name = arg.mid(sep_pos+1).trimmed();
+
+			if (!ui_.filters->setTargetRegionName(roi_name))
+			{
+				qDebug() << "Target region name " << arg << " not found. Ignoring it!";
+			}
+		}
+		else
+		{
+			qDebug() << "Unprocessed argument: " << arg;
 		}
 	}
 }

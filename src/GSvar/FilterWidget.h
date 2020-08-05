@@ -30,10 +30,12 @@ public:
 
 	///Returns the target region BED file or an empty string if unset.
 	QString targetRegion() const;
-	///Returns the target region display name or an empty string if unset.
-	QString targetRegionName() const;
 	///Sets the target region BED file.
 	void setTargetRegion(QString roi_file);
+	///Returns the target region display name or an empty string if unset.
+	QString targetRegionName() const;
+	///Sets the target region by name file. Returns if the target region name was found and set.
+	bool setTargetRegionName(QString name);
 
 	/// Returns the gene names filter.
 	GeneSet genes() const;
@@ -60,8 +62,8 @@ public:
 
 	///Returns the filter INI file name
 	static QString filterFileName();
-	///Sets the filter (for small variants)
-	void setFilter(QString name);
+	///Sets the filter by name. Returns if the filter name was found and set.
+	bool setFilter(QString name);
 
 	///Returns current filter name
 	QString filterName() const;

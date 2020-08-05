@@ -127,6 +127,10 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 	}
 	stream << "<p><b>" << trans("Abdeckungsstatistik") << "</b>" << endl;
 	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << avg_cov << endl;
+	BedFile mito_bed;
+	mito_bed.append(BedLine("chrMT", 1, 16569));
+	Statistics::avgCoverage(mito_bed, bam_file, 1, false, true);
+	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe (chrMT)") << ": " << mito_bed[0].annotations()[0] << endl;
 	stream << "</p>" << endl;
 
 	if (gene_and_gap_details)
@@ -1079,6 +1083,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Tool"] = "Tool";
 		de2en["Abdeckungsstatistik"] = "Coverage statistics";
 		de2en["Durchschnittliche Sequenziertiefe"] = "Average sequencing depth";
+		de2en["Durchschnittliche Sequenziertiefe (chrMT)"] = "Average sequencing depth (chrMT)";
 		de2en["Komplett abgedeckte Gene"] = "Genes without gaps";
 		de2en["Anteil Regionen mit Tiefe &lt;"] = "Percentage of regions with depth &lt;";
 		de2en["Fehlende Basen in nicht komplett abgedeckten Genen"] = "Number of missing bases for genes with gaps";
