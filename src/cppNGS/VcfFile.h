@@ -49,7 +49,7 @@ public:
 
 	int count() const
 	{
-		return vcf_lines_.count();
+        return vcf_lines_.count();
 	}
 	///returns a QList of all filter IDs in the vcf file
 	QByteArrayList filterIDs() const;
@@ -92,34 +92,34 @@ public:
 	AnalysisType type(bool allow_fallback_germline_single_sample = true) const;
 
 	///returns a QVector of vcf_lines_
-	const QVector<VCFLine>& vcfLines() const
+    const QVector<VCFLinePtr>& vcfLines() const
 	{
 		return vcf_lines_;
 	}
 	///Read-Write access to a vcf_lines_
-	QVector<VCFLine>& vcfLines()
+    QVector<VCFLinePtr>& vcfLines()
 	{
 		return vcf_lines_;
 	}
 	///returns the VCFLine at pos
 	const VCFLine& vcfLine(int pos) const
 	{
-		return vcf_lines_.at(pos);
+        return *(vcf_lines_.at(pos));
 	}
 	///Read-Write access to a vcf_line
 	VCFLine& vcfLine(int pos)
 	{
-		return vcf_lines_[pos];
+        return *(vcf_lines_[pos]);
 	}
 	///returns the VCFLine at pos
 	const VCFLine& operator[](int pos) const
 	{
-		return vcf_lines_.at(pos);
+        return *(vcf_lines_.at(pos));
 	}
 	///Read-Write access to a vcf_line by operator[]
 	VCFLine& operator[](int pos)
 	{
-		return vcf_lines_[pos];
+        return *(vcf_lines_[pos]);
 	}
 
 	///returns a struct storing header information
@@ -175,7 +175,7 @@ private:
     void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
 	void storeLineInformation(QTextStream& stream, VCFLine line) const;
 
-	QVector<VCFLine> vcf_lines_;
+    QVector<VCFLinePtr> vcf_lines_;
 	VCFHeader vcf_header_;
 	QVector<QByteArray> column_headers_;
 

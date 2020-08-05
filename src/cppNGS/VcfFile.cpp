@@ -102,28 +102,30 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 	{
 		THROW(FileParseException, "VCF data line needs at least 8 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
 	}
-	VCFLine vcf_line;
-    vcf_line.setChromosome(strToPointer(line_parts[CHROM]));
-	if(!vcf_line.chr().isValid())
+
+    VCFLinePtr vcf_line = VCFLinePtr(new VCFLine);
+
+    vcf_line->setChromosome(strToPointer(line_parts[CHROM]));
+    if(!vcf_line->chr().isValid())
 	{
-		THROW(ArgumentException, "Invalid variant chromosome string in line " + QString::number(line_number) + ": " + vcf_line.chr().str() + ".");
+        THROW(ArgumentException, "Invalid variant chromosome string in line " + QString::number(line_number) + ": " + vcf_line->chr().str() + ".");
 	}
-    vcf_line.setPos(atoi(line_parts[POS]));
-	if(vcf_line.pos() < 1)
+    vcf_line->setPos(atoi(line_parts[POS]));
+    if(vcf_line->pos() < 1)
 	{
-		THROW(ArgumentException, "Invalid variant position range in line " + QString::number(line_number) + ": " + QString::number(vcf_line.pos()) + ".");
+        THROW(ArgumentException, "Invalid variant position range in line " + QString::number(line_number) + ": " + QString::number(vcf_line->pos()) + ".");
 	}
-    vcf_line.setRef(strToPointer(line_parts[REF].toUpper()));
-	if (vcf_line.ref()!="-" && !QRegExp("[ACGTN]+").exactMatch(vcf_line.ref()))
+    vcf_line->setRef(strToPointer(line_parts[REF].toUpper()));
+    if (vcf_line->ref()!="-" && !QRegExp("[ACGTN]+").exactMatch(vcf_line->ref()))
 	{
-		THROW(ArgumentException, "Invalid variant reference sequence in line " + QString::number(line_number) + ": " + vcf_line.ref() + ".");
+        THROW(ArgumentException, "Invalid variant reference sequence in line " + QString::number(line_number) + ": " + vcf_line->ref() + ".");
 	}
 
 	//Skip variants that are not in the target region (if given)
 	if (roi_idx!=nullptr)
 	{
-		int end =  vcf_line.pos() +  vcf_line.ref().length() - 1;
-		bool in_roi = roi_idx->matchingIndex(vcf_line.chr(), vcf_line.pos(), end) != -1;
+        int end =  vcf_line->pos() +  vcf_line->ref().length() - 1;
+        bool in_roi = roi_idx->matchingIndex(vcf_line->chr(), vcf_line->pos(), end) != -1;
 		if ((!in_roi && !invert) || (in_roi && invert))
 		{
 			return;
@@ -134,9 +136,9 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 	{
 		single_id = strToPointer(single_id);
 	}
-	vcf_line.setId(id_list);
-    vcf_line.addAlt(line_parts[ALT].split(','));
-	for(Sequence alt_seq : vcf_line.alt())
+    vcf_line->setId(id_list);
+    vcf_line->addAlt(line_parts[ALT].split(','));
+    for(Sequence alt_seq : vcf_line->alt())
 	{
 		if (alt_seq!="-" && alt_seq!="." && !QRegExp("[ACGTN,]+").exactMatch(alt_seq))
 		{
@@ -146,19 +148,19 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 
     if(line_parts[QUAL]==".")
 	{
-		 vcf_line.setQual(-1);
+         vcf_line->setQual(-1);
 	}
 	else
 	{
 		bool quality_ok;
         double qual = line_parts[QUAL].toDouble(&quality_ok);
         if (!quality_ok) THROW(ArgumentException, "Quality '" + line_parts[QUAL] + "' is no float - variant.");
-		vcf_line.setQual(qual);
+        vcf_line->setQual(qual);
 	}
 
 	//FILTER
-    vcf_line.setFilter(line_parts[FILTER].split(';'));
-	for(const QByteArray& filter : vcf_line.filter())
+    vcf_line->setFilter(line_parts[FILTER].split(';'));
+    for(const QByteArray& filter : vcf_line->filter())
 	{
 		if(filter == "PASS" || filter == "pass" || filter == "." || filter.isEmpty()) continue;
 		if(!filter_ids.contains(filter))
@@ -210,7 +212,7 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
         ListOfInfoIds info_ids_string = info_ids_string_list.join();
         if(info_id_to_idx_list.contains(info_ids_string))
         {
-           vcf_line.setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
+           vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
         }
         else
         {
@@ -220,9 +222,9 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
                new_info_id_to_idx_entry->push_back(info_ids_string_list.at(i), strToPointer(static_cast<unsigned char>(i)));
             }
            info_id_to_idx_list.insert(info_ids_string, new_info_id_to_idx_entry);
-           vcf_line.setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
+           vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
         }
-       vcf_line.setInfo(info_values);
+       vcf_line->setInfo(info_values);
 
     }
 
@@ -260,7 +262,7 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
         ListOfFormatIds format_ids_string = format_list.join();
 		if(format_id_to_idx_list.contains(format_ids_string))
 		{
-            vcf_line.setFormatIdToIdxPtr(format_id_to_idx_list[format_ids_string]);
+            vcf_line->setFormatIdToIdxPtr(format_id_to_idx_list[format_ids_string]);
 		}
 		else
 		{
@@ -270,11 +272,11 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
                 new_format_id_to_idx_entry->push_back(strToPointer(format_list.at(i)), strToPointer(static_cast<unsigned char>(i)));
 			}
 			format_id_to_idx_list.insert(format_ids_string, new_format_id_to_idx_entry);
-            vcf_line.setFormatIdToIdxPtr(new_format_id_to_idx_entry);
+            vcf_line->setFormatIdToIdxPtr(new_format_id_to_idx_entry);
 		}
 
 		//set samples idices
-        vcf_line.setSampleIdToIdxPtr(sample_id_to_idx);
+        vcf_line->setSampleIdToIdxPtr(sample_id_to_idx);
 
 		//SAMPLE
         if(line_parts.count() >= 10)
@@ -291,7 +293,7 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 			{
 				QByteArrayList sample_id_list = line_parts[i].split(':');
 
-				int format_entry_count = vcf_line.format().count();
+                int format_entry_count = vcf_line->format().count();
 				int sample_entry_count = sample_id_list.count();
 				//SAMPLE columns can have missing trailing entries, but can not have more than specified in FORMAT
 				if(sample_entry_count > format_entry_count)
@@ -314,19 +316,19 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 						format_values_for_sample.append(strToPointer(""));
 					}
 				}
-				vcf_line.addFormatValues(format_values_for_sample);
+                vcf_line->addFormatValues(format_values_for_sample);
 			}
 		}
 		else
 		{
 			//a FORMAT is given, however no SAMPLE data
 			int format_count = 0;
-			while(format_count < vcf_line.format().count())
+            while(format_count < vcf_line->format().count())
 			{
 				QByteArrayList format_values_for_sample;
 				format_values_for_sample.append(strToPointer(""));
 				//since SAMPLE is empty, there MUST be only one sampleID (this is set in parseHeaderFields)
-				vcf_line.addFormatValues(format_values_for_sample);
+                vcf_line->addFormatValues(format_values_for_sample);
 
 				++format_count;
 			}
@@ -513,30 +515,30 @@ void VcfFile::storeAsTsv(const QString& filename)
 	}
 
 	//vcf lines
-	for(VCFLine& v : vcfLines())
+    for(VCFLinePtr& v : vcfLines())
 	{
-		v.normalize("-", true);
+        v->normalize("-", true);
 		stream << "\n";
-		stream << v.chr().str() << "\t" << QByteArray::number(v.start()) << "\t" << QByteArray::number(v.end()) << "\t" << v.ref()
-			   << "\t" << v.altString() << "\t" << v.id().join(';') << "\t" << QByteArray::number(v.qual());
-		if(v.filter().empty())
+        stream << v->chr().str() << "\t" << QByteArray::number(v->start()) << "\t" << QByteArray::number(v->end()) << "\t" << v->ref()
+               << "\t" << v->altString() << "\t" << v->id().join(';') << "\t" << QByteArray::number(v->qual());
+        if(v->filter().empty())
 		{
 			stream << "\t.";
 		}
 		else
 		{
-			stream << "\t" << v.filter().join(';');
+            stream << "\t" << v->filter().join(';');
 		}
 
 		for(const QByteArray& info_key : informationIDs())
 		{
-			stream << "\t" << v.info(info_key);
+            stream << "\t" << v->info(info_key);
 		}
 		for(const QByteArray& sample_id : sampleIDs())
 		{
 			for(const QByteArray& format_key : formatIDs())
 			{
-				stream << "\t" << v.formatValueFromSample(format_key, sample_id);
+                stream << "\t" << v->formatValueFromSample(format_key, sample_id);
 			}
 		}
 	}
@@ -666,9 +668,9 @@ void VcfFile::store(const QString& filename,  bool stdout_if_file_empty, bool co
 
 void VcfFile::leftNormalize(QString reference_genome)
 {
-	for(VCFLine& variant_line : vcfLines())
+    for(VCFLinePtr& variant_line : vcfLines())
 	{
-		variant_line.leftNormalize(reference_genome);
+        variant_line->leftNormalize(reference_genome);
 	}
 }
 
@@ -688,12 +690,12 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 	sort(sort_by_quality);
 
 	//remove duplicates (same chr, start, obs, ref) - avoid linear time remove() calls by copying the data to a new vector.
-	QVector<VCFLine> output;
+    QVector<VCFLinePtr> output;
 	output.reserve(vcfLines().count());
 	for (int i=0; i<vcfLines().count()-1; ++i)
 	{
 		int j = i+1;
-		if (vcf_lines_.at(i).chr() != vcf_lines_.at(j).chr() || vcf_lines_.at(i).pos() != vcf_lines_.at(j).pos() || vcf_lines_.at(i).ref() !=vcf_lines_.at(j).ref() || !qEqual(vcf_lines_.at(i).alt().begin(),  vcf_lines_.at(i).alt().end(), vcf_lines_.at(j).alt().begin()))
+        if (vcf_lines_.at(i)->chr() != vcf_lines_.at(j)->chr() || vcf_lines_.at(i)->pos() != vcf_lines_.at(j)->pos() || vcf_lines_.at(i)->ref() !=vcf_lines_.at(j)->ref() || !qEqual(vcf_lines_.at(i)->alt().begin(),  vcf_lines_.at(i)->alt().end(), vcf_lines_.at(j)->alt().begin()))
 		{
 			output.append(vcf_lines_.at(i));
 		}
@@ -1021,16 +1023,16 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 	for(int i = 0; i < variant_list.count(); ++i)
 	{
 		Variant v = variant_list[i];
-		VCFLine vcf_line;
-		vcf_line.setFormatIdToIdxPtr(gt_to_first_position);
-		vcf_line.setSampleIdToIdxPtr(sample_id_to_idx);
+        VCFLinePtr vcf_line = VCFLinePtr(new VCFLine);
+        vcf_line->setFormatIdToIdxPtr(gt_to_first_position);
+        vcf_line->setSampleIdToIdxPtr(sample_id_to_idx);
 
 		QByteArrayList id_list;
 		id_list.push_back(".");
-		vcf_line.setId(id_list);
+        vcf_line->setId(id_list);
 		if(qual_index >= 0)
 		{
-			vcf_line.setQual(v.annotations().at(qual_index).toDouble());
+            vcf_line->setQual(v.annotations().at(qual_index).toDouble());
 		}
 		else
 		{
@@ -1049,7 +1051,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 						double qual = quality.at(1).toDouble(&quality_ok);
 						//could not parse number from quality column
 						if (!quality_ok) continue;
-						vcf_line.setQual(qual);
+                        vcf_line->setQual(qual);
 						QByteArrayList annotations = v.annotations();
 						//remove the QUAL entry from quality column(element length plus ;)
 						annotations[quality_index].remove(0, element.length() + 1);
@@ -1061,14 +1063,14 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		}
 		if(filter_index >= 0)
 		{
-			vcf_line.setFilter(v.annotations().at(filter_index).split(';'));
+            vcf_line->setFilter(v.annotations().at(filter_index).split(';'));
 		}
-		vcf_line.setChromosome(v.chr());
-		vcf_line.setPos(v.start());
-		vcf_line.setRef(v.ref());
+        vcf_line->setChromosome(v.chr());
+        vcf_line->setPos(v.start());
+        vcf_line->setRef(v.ref());
 		QByteArrayList alt_list;
 		alt_list.push_back(v.obs());
-		vcf_line.addAlt(alt_list);
+        vcf_line->addAlt(alt_list);
 
 		//add all columns into info
         QByteArrayList info;
@@ -1103,7 +1105,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
         ListOfInfoIds info_ids_string = all_info_keys.join();
         if(info_id_to_idx_list.contains(info_ids_string))
         {
-            vcf_line.setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
+            vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
         }
         else
         {
@@ -1113,9 +1115,9 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
                 new_info_id_to_idx_entry->push_back(all_info_keys.at(i), strToPointer(static_cast<unsigned char>(all_positions.at(i))));
             }
             info_id_to_idx_list.insert(info_ids_string, new_info_id_to_idx_entry);
-            vcf_line.setInfoIdToIdxPtr(new_info_id_to_idx_entry);
+            vcf_line->setInfoIdToIdxPtr(new_info_id_to_idx_entry);
         }
-		vcf_line.setInfo(info);
+        vcf_line->setInfo(info);
 
 		//write genotype
 		if(!genotype_columns.empty())
@@ -1151,39 +1153,39 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 				}
 				all_samples_new.push_back(formats_new);
 			}
-			vcf_line.setSampleNew(all_samples_new);
+            vcf_line->setSampleNew(all_samples_new);
 		}
 
 		vcf_file.vcf_lines_.push_back(vcf_line);
 	}
 
-	for(VCFLine& v_line : vcf_file.vcfLines())
+    for(VCFLinePtr& v_line : vcf_file.vcfLines())
 	{
 		//add base for INSERTION
-		QByteArray ref = v_line.ref().toUpper();
+        QByteArray ref = v_line->ref().toUpper();
 		if (ref.size() == 1 && !(ref=="N" || ref=="A" || ref=="C" || ref=="G" || ref=="T")) //empty seq symbol in ref
 		{
 			FastaFileIndex reference(reference_genome);
-			QByteArray base = reference.seq(v_line.chr(), v_line.pos() - 1, 1);
+            QByteArray base = reference.seq(v_line->chr(), v_line->pos() - 1, 1);
 
 			QByteArrayList alt_seq;
 			//for GSvar there is only one alternative sequence (alt(0) stores VariantList.obs(0))
-			QByteArray new_alt = base + v_line.alt(0);
+            QByteArray new_alt = base + v_line->alt(0);
 			alt_seq.push_back(new_alt);
-			v_line.setAlt(alt_seq);
-			v_line.setRef(base);
+            v_line->setAlt(alt_seq);
+            v_line->setRef(base);
 		}
 
 		//add base for DELETION
-		QByteArray alt = v_line.alt(0).toUpper();
+        QByteArray alt = v_line->alt(0).toUpper();
 		if (alt.size() == 1 && !(alt=="N" || alt=="A" || alt=="C" || alt=="G" || alt=="T")) //empty seq symbol in alt
 		{
 			FastaFileIndex reference(reference_genome);
-			QByteArray base = reference.seq(v_line.chr(), v_line.pos() - 1, 1);
-			QByteArray new_ref = base + v_line.ref();
-			v_line.setSingleAlt(base);
-			v_line.setRef(new_ref);
-			v_line.setPos(v_line.pos() - 1);
+            QByteArray base = reference.seq(v_line->chr(), v_line->pos() - 1, 1);
+            QByteArray new_ref = base + v_line->ref();
+            v_line->setSingleAlt(base);
+            v_line->setRef(new_ref);
+            v_line->setPos(v_line->pos() - 1);
 		}
 
 	}

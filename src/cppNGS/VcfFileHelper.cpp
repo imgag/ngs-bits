@@ -64,22 +64,22 @@ VcfFormat::LessComparator::LessComparator(bool use_quality)
 	: use_quality(use_quality)
 {
 }
-bool VcfFormat::LessComparator::operator()(const VCFLine& a, const VCFLine& b) const
+bool VcfFormat::LessComparator::operator()(const VCFLinePtr& a, const VCFLinePtr& b) const
 {
-	if (a.chr()<b.chr()) return true;//compare chromsomes
-	else if (a.chr()>b.chr()) return false;
-	else if (a.pos()<b.pos()) return true;//compare start positions
-	else if (a.pos()>b.pos()) return false;
-	else if (a.ref().length()<b.ref().length()) return true;//compare end positions by comparing length of ref
-	else if (a.ref().length()>b.ref().length()) return false;
-	else if (a.ref()<b.ref()) return true;//compare reference seqs
-	else if (a.ref()>b.ref()) return false;
-    else if (a.alt(0)<b.alt(0)) return true;//compare alternative seqs
-    else if (a.alt(0)>b.alt(0)) return false;
+    if (a->chr()<b->chr()) return true;//compare chromsomes
+    else if (a->chr()>b->chr()) return false;
+    else if (a->pos()<b->pos()) return true;//compare start positions
+    else if (a->pos()>b->pos()) return false;
+    else if (a->ref().length()<b->ref().length()) return true;//compare end positions by comparing length of ref
+    else if (a->ref().length()>b->ref().length()) return false;
+    else if (a->ref()<b->ref()) return true;//compare reference seqs
+    else if (a->ref()>b->ref()) return false;
+    else if (a->alt(0)<b->alt(0)) return true;//compare alternative seqs
+    else if (a->alt(0)>b->alt(0)) return false;
 	else if (use_quality)
 	{
-		double q_a=a.qual();
-		double q_b=b.qual();
+        double q_a=a->qual();
+        double q_b=b->qual();
 		if(q_a<q_b) return true;
 	}
 	return false;
@@ -99,29 +99,29 @@ VcfFormat::LessComparatorByFile::LessComparatorByFile(QString filename)
 	}
 }
 
-bool VcfFormat::LessComparatorByFile::operator()(const VCFLine& a, const VCFLine& b) const
+bool VcfFormat::LessComparatorByFile::operator()(const VCFLinePtr& a, const VCFLinePtr& b) const
 {
-	int a_chr_num = a.chr().num();
-	int b_chr_num = b.chr().num();
+    int a_chr_num = a->chr().num();
+    int b_chr_num = b->chr().num();
 	if (!chrom_rank_.contains(a_chr_num))
 	{
-		THROW(FileParseException, "Reference file for sorting does not contain chromosome '" + a.chr().str() + "'!");
+        THROW(FileParseException, "Reference file for sorting does not contain chromosome '" + a->chr().str() + "'!");
 	}
 	if (!chrom_rank_.contains(b_chr_num))
 	{
-		THROW(FileParseException, "Reference file for sorting does not contain chromosome '" + b.chr().str() + "'!");
+        THROW(FileParseException, "Reference file for sorting does not contain chromosome '" + b->chr().str() + "'!");
 	}
 
 	if (chrom_rank_[a_chr_num]<chrom_rank_[b_chr_num]) return true; //compare rank of chromosome
 	else if (chrom_rank_[a_chr_num]>chrom_rank_[b_chr_num]) return false;
-	else if (a.pos()<b.pos()) return true; //compare start position
-	else if (a.pos()>b.pos()) return false;
-	else if (a.ref().length()<b.ref().length()) return true; //compare end position
-	else if (a.ref().length()>b.ref().length()) return false;
-	else if (a.ref()<b.ref()) return true; //compare ref sequence
-	else if (a.ref()>b.ref()) return false;
-    else if (a.alt(0)<b.alt(0)) return true; //compare obs sequence
-    else if (a.alt(0)>b.alt(0)) return false;
+    else if (a->pos()<b->pos()) return true; //compare start position
+    else if (a->pos()>b->pos()) return false;
+    else if (a->ref().length()<b->ref().length()) return true; //compare end position
+    else if (a->ref().length()>b->ref().length()) return false;
+    else if (a->ref()<b->ref()) return true; //compare ref sequence
+    else if (a->ref()>b->ref()) return false;
+    else if (a->alt(0)<b->alt(0)) return true; //compare obs sequence
+    else if (a->alt(0)>b->alt(0)) return false;
 	return false;
 }
 

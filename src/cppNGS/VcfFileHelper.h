@@ -573,6 +573,7 @@ private:
     FormatIDToIdxPtr formatIdxOf_;
 	QList<QByteArrayList> sample_values_;
 };
+using VCFLinePtr = QSharedPointer<VCFLine>;
 
 namespace VcfFormat
 {
@@ -582,7 +583,7 @@ class LessComparator
 	public:
 		///Constructor.
 		LessComparator(bool use_quality);
-		bool operator()(const VCFLine& a, const VCFLine& b) const;
+        bool operator()(const VCFLinePtr& a, const VCFLinePtr& b) const;
 
 	private:
 		bool use_quality;
@@ -593,7 +594,7 @@ class LessComparatorByFile
 	public:
 		///Constructor with FAI file, which determines the chromosome order.
 		LessComparatorByFile(QString filename);
-		bool operator()(const VCFLine& a, const VCFLine& b) const;
+        bool operator()(const VCFLinePtr& a, const VCFLinePtr& b) const;
 
 	private:
 		QString filename_;
