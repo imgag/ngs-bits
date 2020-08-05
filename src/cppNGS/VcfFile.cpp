@@ -81,19 +81,19 @@ void VcfFile::parseHeaderFields(QByteArray& line, bool allow_multi_sample)
 			}
 			for(int i = 9; i < column_headers_.count(); ++i)
 			{
-				sample_id_to_idx->push_back(column_headers_.at(i), strToPointer(static_cast<char>(i-9)));
+                sample_id_to_idx->push_back(column_headers_.at(i), strToPointer(static_cast<unsigned char>(i-9)));
 			}
 		}
 		else if(header_fields.count()==9) //if we have a FORMAT column with no sample
 		{
 			column_headers_.push_back("Sample");
-			sample_id_to_idx->push_back("Sample", strToPointer(static_cast<char>(0)));
+            sample_id_to_idx->push_back("Sample", strToPointer(static_cast<unsigned char>(0)));
 		}
 		else if(header_fields.count()==8)
 		{
 			column_headers_.push_back("FORMAT");
 			column_headers_.push_back("Sample");
-			sample_id_to_idx->push_back("Sample", strToPointer(static_cast<char>(0)));
+            sample_id_to_idx->push_back("Sample", strToPointer(static_cast<unsigned char>(0)));
 		}
 	}
 }
@@ -177,7 +177,9 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
     if(line_parts[INFO]!=".")
 	{
         QByteArrayList info_list = line_parts[INFO].split(';');
-		OrderedHash<QByteArray , QByteArray> info_entries;
+        QVector<QByteArray> info_values;
+        QList<ListOfInfoIds> info_ids_string_list;
+
 		for(const QByteArray& info : info_list)
 		{
 			QByteArrayList key_value_pair = info.split('=');
@@ -194,15 +196,37 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 
 			if(key_value_pair.size() == 1)
 			{
-				info_entries.push_back(strToPointer(key_value_pair[0]), strToPointer(QByteArray("TRUE")));
+                //info_entries.push_back(strToPointer(key_value_pair[0]), strToPointer(QByteArray("TRUE")));
+                info_values.push_back(strToPointer(QByteArray("TRUE")));
+                info_ids_string_list.push_back(strToPointer(key_value_pair[0]));
 			}
 			else
 			{
-				info_entries.push_back(strToPointer(key_value_pair[0]), strToPointer(key_value_pair[1]));
+                //info_entries.push_back(strToPointer(key_value_pair[0]), strToPointer(key_value_pair[1]));
+                info_values.push_back(strToPointer(key_value_pair[1]));
+                info_ids_string_list.push_back(strToPointer(key_value_pair[0]));
+                //qDebug() << key_value_pair[1] << static_cast<const void *>(strToPointer(key_value_pair[1]).constData());
 			}
 
 		}
-		vcf_line.setInfo(info_entries);
+
+        //save info order
+        ListOfInfoIds info_ids_string = info_ids_string_list.join();
+        if(info_id_to_idx_list.contains(info_ids_string))
+        {
+           vcf_line.setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
+        }
+        else
+        {
+            InfoIDToIdxPtr new_info_id_to_idx_entry = InfoIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+            for(int i = 0; i < info_ids_string_list.count(); ++i)
+            {
+               new_info_id_to_idx_entry->push_back(info_ids_string_list.at(i), strToPointer(static_cast<unsigned char>(i)));
+            }
+           info_id_to_idx_list.insert(info_ids_string, new_info_id_to_idx_entry);
+           vcf_line.setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
+        }
+       vcf_line.setInfo(info_values);
 
 	}
 
@@ -248,7 +272,7 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 			FormatIDToIdxPtr new_format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
 			for(int i = 0; i < format_entries.count(); ++i)
 			{
-				new_format_id_to_idx_entry->push_back(format_entries.at(i), strToPointer(static_cast<char>(i)));
+                new_format_id_to_idx_entry->push_back(format_entries.at(i), strToPointer(static_cast<unsigned char>(i)));
 			}
 			format_id_to_idx_list.insert(format_ids_string, new_format_id_to_idx_entry);
 			vcf_line.setFormatIdToIdxPtr(new_format_id_to_idx_entry);
@@ -922,7 +946,9 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 	list_storing_genotype_only.push_back("GT");
 	FormatIDToIdxPtr gt_to_first_position = FormatIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
 	gt_to_first_position->push_back("GT", 1);
-	format_id_to_idx_list.insert(list_storing_genotype_only, gt_to_first_position);
+	format_id_to_idx_list.insert(list_storing_genotype_only, gt_to_first_position);    
+
+    QHash<ListOfInfoIds, InfoIDToIdxPtr> info_id_to_idx_list;
 
 	//add variant lines
 	for(int i = 0; i < variant_list.count(); ++i)
@@ -978,10 +1004,12 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		vcf_line.addAlt(alt_list);
 
 		//add all columns into info
-		OrderedHash<QByteArray , QByteArray> info;
+        QVector<QByteArray> info;
+        QByteArrayList all_info_keys;
+        QList<int> all_positions;
+
 		for (int i=0; i<v.annotations().count(); ++i)
 		{
-
 			if(indices_to_skip.contains(i)) continue;
 			const VariantAnnotationHeader& anno_header = variant_list.annotations()[i];
 			const VariantAnnotationDescription& anno_desc = variant_list.annotationDescriptionByName(anno_header.name(), false);
@@ -992,14 +1020,34 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 
 				if (anno_desc.type()==VariantAnnotationDescription::FLAG) //Flags should not have values in VCF
 				{
-					info.push_back(anno_header.name().toUtf8(), "TRUE");
+                    info.push_back(strToPointer("TRUE"));
 				}
 				else //everything else is just added to info
 				{
-					info.push_back(anno_header.name().toUtf8(), anno_val);
+                    info.push_back(strToPointer(anno_val));
 				}
+
+                all_info_keys.push_back(anno_header.name().toUtf8());
+                all_positions.push_back(i);
 			}
 		}
+
+        //save info order
+        ListOfInfoIds info_ids_string = all_info_keys.join();
+        if(info_id_to_idx_list.contains(info_ids_string))
+        {
+            vcf_line.setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
+        }
+        else
+        {
+            InfoIDToIdxPtr new_info_id_to_idx_entry = InfoIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+            for(int i = 0; i < all_info_keys.count(); ++i)
+            {
+                new_info_id_to_idx_entry->push_back(all_info_keys.at(i), strToPointer(static_cast<unsigned char>(all_positions.at(i))));
+            }
+            info_id_to_idx_list.insert(info_ids_string, new_info_id_to_idx_entry);
+            vcf_line.setInfoIdToIdxPtr(new_info_id_to_idx_entry);
+        }
 		vcf_line.setInfo(info);
 
 		//write genotype

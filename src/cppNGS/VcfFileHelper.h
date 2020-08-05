@@ -99,7 +99,9 @@ enum InfoFormatType {INFO_DESCRIPTION, FORMAT_DESCRIPTION};
 using FormatIDToValueHash = OrderedHash<QByteArray, QByteArray>;
 using SampleIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, unsigned char>>;
 using FormatIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, unsigned char>>;
+using InfoIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, unsigned char>>;
 using ListOfFormatIds = QByteArray; //an array of all ordered FORMAT ids to use as hash key
+using ListOfInfoIds = QByteArray; //an array of all ordered INFO ids to use as hash key
 
 struct CPPNGSSHARED_EXPORT VcfHeaderLine
 {
@@ -290,22 +292,40 @@ public:
 			return formatIdxOf_->keys();
 		}
 	}
-	const OrderedHash<QByteArray , QByteArray>& infos() const
+    OrderedHash<QByteArray , QByteArray> infos() const
 	{
-		return info_;
-	}
+        OrderedHash<QByteArray, QByteArray> info_key_value_hash;
+
+        if(!infoIdxOf_)
+        {
+            return info_key_value_hash;
+        }
+        else
+        {
+            for(int i = 0; i < infoIdxOf_->size(); ++i)
+            {
+                QByteArray key = infoIdxOf_->keys().at(i);
+                unsigned char value_num = (*infoIdxOf_)[key];
+                QByteArray value = info_.at(value_num);
+
+                info_key_value_hash.push_back(key, value);
+            }
+            return info_key_value_hash;
+        }
+    }
 	QByteArray info(const QByteArray& key, bool error_if_key_absent = false) const
 	{
 		if(error_if_key_absent)
 		{
-			return info_[key];
+            int i_idx = (*infoIdxOf_)[key];
+            return info_.at(i_idx);
 		}
 		else
 		{
-			QByteArray value;
-			if(info_.hasKey(key, value))
+            unsigned char info_pos;
+            if(infoIdxOf_->hasKey(key, info_pos))
 			{
-				return value;
+                return info_.at(info_pos);
 			}
 			else
 			{
@@ -447,9 +467,9 @@ public:
 		tag = tag.trimmed();
 		filter_.push_back(strToPointer(tag));
 	}
-	void setInfo(const OrderedHash<QByteArray , QByteArray>& info)
+    void setInfo(const QVector<QByteArray>& info_values)
 	{
-		info_ = info;
+        info_ = info_values;
 	}
 	void setSampleNew(const QList<QByteArrayList>& sample)
 	{
@@ -465,12 +485,20 @@ public:
 	}
 	void setFormatIdToIdxPtr(const FormatIDToIdxPtr& ptr)
 	{
-		if(ptr->size() > UCHAR_MAX)
+        if(ptr->size() > std::numeric_limits<unsigned char>::max())
 		{
-			THROW(ArgumentException, "Number of format entries exceeds the maximum of " + UCHAR_MAX);
+            THROW(ArgumentException, "Number of format entries exceeds the maximum of " + std::numeric_limits<unsigned char>::max());
 		}
 		formatIdxOf_ = ptr;
 	}
+    void setInfoIdToIdxPtr(const InfoIDToIdxPtr& ptr)
+    {
+        if(ptr->size() > std::numeric_limits<unsigned char>::max())
+        {
+            THROW(ArgumentException, "Number of info entries exceeds the maximum of " + std::numeric_limits<unsigned char>::max());
+        }
+        infoIdxOf_ = ptr;
+    }
 
 	///Overlap check for chromosome and position range.
 	bool overlapsWith(const Chromosome& input_chr, int input_start, int input_end) const
@@ -532,10 +560,10 @@ private:
 	double qual_;
 
 	QByteArrayList filter_; //; seperated list of failed filters or "PASS"
-	OrderedHash<QByteArray , QByteArray> info_; //; seperated list of info key=value pairs
+    //OrderedHash<QByteArray , QByteArray> info_; //; seperated list of info key=value pairs
 
-	//obligatory columns
-	QByteArrayList format_; //: seperated list of FORMATS for each sample
+    InfoIDToIdxPtr infoIdxOf_;
+    QVector<QByteArray> info_;
 
 	SampleIDToIdxPtr sampleIdxOf_;
 	FormatIDToIdxPtr formatIdxOf_;

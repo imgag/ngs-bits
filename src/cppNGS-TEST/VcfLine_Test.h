@@ -100,14 +100,17 @@ TEST_CLASS(VcfLine_Test)
     void infoFromInfoId()
     {
         VCFLine variant;
-        OrderedHash<QByteArray , QByteArray> info;
+        QByteArrayList info;
+        InfoIDToIdxPtr info_ptr = InfoIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
         for(int i = 0; i < 10; ++i)
         {
             QByteArray key = "key of " + QByteArray::number(i);
             QByteArray value = "value of " + QByteArray::number(i);
-            info.push_back(key, value);
+            info.push_back(value);
+            info_ptr->push_back(key, static_cast<unsigned char>(i));
         }
         variant.setInfo(info);
+        variant.setInfoIdToIdxPtr(info_ptr);
         S_EQUAL(variant.info("key of 3"), "value of 3");
         I_EQUAL(variant.infos().size(), 10);
 

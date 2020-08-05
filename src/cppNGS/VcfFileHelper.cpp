@@ -10,7 +10,6 @@ VCFLine::VCFLine()
 	, qual_(-1)
 	, filter_()
 	, info_()
-	, format_()
 	, sampleIdxOf_()
 	, formatIdxOf_()
 	, sample_values_()
@@ -26,7 +25,6 @@ VCFLine::VCFLine(const Chromosome& chr, int pos, const Sequence& ref, const QVec
 	, qual_(-1)
 	, filter_()
 	, info_()
-	, format_()
 	, sampleIdxOf_()
 	, formatIdxOf_()
 	, sample_values_(list_of_format_values)
@@ -48,8 +46,6 @@ VCFLine::VCFLine(const Chromosome& chr, int pos, const Sequence& ref, const QVec
 			THROW(ArgumentException, "number of formats must equal the number of QByteArray elements in each list of list_of_format_values.")
 		}
 		format_id_to_idx_entry->push_back(format_ids.at(i), strToPointer(static_cast<unsigned char>(i)));
-		//add to format list
-		format_.push_back(format_ids.at(i));
 	}
 	formatIdxOf_ = format_id_to_idx_entry;
 
@@ -144,6 +140,7 @@ const QByteArray& strToPointer(const QByteArray& str)
 	return *it;
 }
 
+
 const unsigned char& strToPointer(const unsigned char& str)
 {
 	static QSet<unsigned char> uniq_4;
@@ -156,19 +153,6 @@ const unsigned char& strToPointer(const unsigned char& str)
 
 	return *it;
 }
-
-/*const QChar* strToPointer(const QString& str)
-{
-	static QSet<QString> uniq_16;
-
-	auto it = uniq_16.find(str);
-	if (it==uniq_16.cend())
-	{
-		it = uniq_16.insert(str);
-	}
-
-	return it->constData();
-}*/
 
 void VCFHeader::clear()
 {

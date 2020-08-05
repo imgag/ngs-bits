@@ -11,8 +11,7 @@
 /*
  *  TO DOS:
  *
- *  - tests for VCFLine and VCFHeader
- *
+ * - ALLES DURCHGEHEN UND KOMMENTARE, ALTER VERSIONEN LOESCHEN
  *  - TEST Somatic for LIB and SomaticQC as TOOL (both have two new vcf, must be generated new with new fucntion)
  *
  *  - VcfFile mit VcfHandler mergen
@@ -182,6 +181,7 @@ private:
 
 	SampleIDToIdxPtr sample_id_to_idx;
 	QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list;
+    QHash<ListOfInfoIds, FormatIDToIdxPtr> info_id_to_idx_list;
 
     //INFO/FORMAT/FILTER definition line
     struct DefinitionLine
