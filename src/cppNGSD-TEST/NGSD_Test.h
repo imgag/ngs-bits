@@ -481,9 +481,9 @@ private slots:
 		S_EQUAL(ginfo.oe_lof, "n/a");
 		ginfo.inheritance = "AD";
 		ginfo.comments = "comment";
-		ginfo.oe_syn = 0.11;
-		ginfo.oe_mis = 0.22;
-		ginfo.oe_lof = 0.33;
+		ginfo.oe_syn = "0.11";
+		ginfo.oe_mis = "0.22";
+		ginfo.oe_lof = "0.33";
 		db.setGeneInfo(ginfo);
 		ginfo = db.geneInfo("NIPA1");
 		S_EQUAL(ginfo.symbol, "NIPA1");

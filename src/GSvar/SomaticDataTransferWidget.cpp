@@ -97,7 +97,7 @@ void SomaticDataTransferWidget::uploadRTF()
 {
 	if( ui->rtf_select->isChecked() )
 	{
-		;//TODO: implement on both sides
+		;//TODO: implement on both sides > AXEL
 	}
 }
 

@@ -16,9 +16,7 @@ ChunkProcessor::ChunkProcessor(AnalysisJob &job,
                                const QByteArrayList &id_column_name_list,
                                const QByteArrayList &out_id_column_name_list,
                                const QVector<bool> &allow_missing_header_list,
-                               QByteArrayList &annotation_file_list,
-                               const QString &outpath,
-                               const QString &input_path)
+							   QByteArrayList &annotation_file_list)
 
     :QRunnable()
     , terminate_(false)
@@ -30,9 +28,7 @@ ChunkProcessor::ChunkProcessor(AnalysisJob &job,
     , out_id_column_name_list(out_id_column_name_list)
     , id_column_name_list(id_column_name_list)
     , allow_missing_header_list(allow_missing_header_list)
-    , annotation_file_list(annotation_file_list)
-    , outpath(outpath)
-    , input_path(input_path)
+	, annotation_file_list(annotation_file_list)
 {
 }
 

@@ -327,9 +327,7 @@ public:
 												   id_column_name_list,
 												   out_id_column_name_list,
 												   allow_missing_header_list,
-												   annotation_file_list,
-												   output_path,
-												   input_path));
+												   annotation_file_list));
 		}
         // close files
         if (format == VariantListFormat::VCF)

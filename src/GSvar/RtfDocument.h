@@ -416,7 +416,7 @@ public:
 
 	RtfTableRow& setPadding(int cell_padding)
 	{
-		cell_padding = cell_padding;
+		padding_ = cell_padding;
 		return *this;
 	}
 
