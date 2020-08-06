@@ -20,7 +20,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Filter a variant list based on a target region.");
-		addInfile("in", "Input variant list.", false);
+        addInfile("in", "Input variant list. In vcf (default) or gsvar format.", false);
 		addOutfile("out", "Output variant list.", false);
 		//optional
 		addInfile("reg", "Input target region in BED format.", true);
@@ -64,7 +64,7 @@ public:
 			 VcfFile variants;
 			if (mark!="")
 			{
-				variants.load(getInfile("in"), true);
+                variants.load(getInfile("in"), true);
 				FilterResult filter_result(variants.count());
 				FilterRegions::apply(variants, roi, filter_result);
 				if (inv) filter_result.invert();
@@ -72,7 +72,7 @@ public:
 			}
 			else
 			{
-				variants.load(getInfile("in"), true, &roi, inv);
+                variants.load(getInfile("in"), true, &roi, inv);
 			}
 			variants.store(getOutfile("out"));
 		}

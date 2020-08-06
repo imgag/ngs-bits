@@ -21,6 +21,13 @@
 
 QCCollection Statistics::variantList( VcfFile variants, bool filter)
 {
+    //support only single sample vcf files
+    if(variants.sampleIDs().count() > 1)
+    {
+        THROW(FileParseException, "Can not generate QCCollection for a vcf file with multiple samples.");
+    }
+
+
 	QCCollection output;
 
 	//filter variants
@@ -76,7 +83,7 @@ QCCollection Statistics::variantList( VcfFile variants, bool filter)
 		double hom_count = 0;
 		for(int i=0; i<variants.count(); ++i)
 		{
-			QByteArray geno = variants.vcfLine(i).formatValueFromSample("GT"); // 0 because we only process the firsts SAMPLE
+            QByteArray geno = variants.vcfLine(i).formatValueFromSample("GT");
 			if (geno=="1/1" || geno=="1|1")
 			{
 				++hom_count;
@@ -97,7 +104,7 @@ QCCollection Statistics::variantList( VcfFile variants, bool filter)
 	{
 		//only first variant is analyzed
 		const  VCFLine& var = variants.vcfLine(i);
-		if (var.ref().length()>1 || var.alt(0).length()>1)
+        if (var.isInDel())
 		{
 			++indel_count;
 		}
@@ -898,11 +905,11 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		if (!variants[i].failedFilters().empty())	continue;
 
 		const  VCFLine& var = variants[i];
-		if (var.ref().length()>1 || var.altString().length()>1)
+        if (var.isInDel())
 		{
 			++indel_count;
 		}
-		else if ((var.altString()=="A" && var.ref()=="G") || (var.altString()=="G" && var.ref()=="A") || (var.altString()=="T" && var.ref()=="C") || (var.altString()=="C" && var.ref()=="T"))
+        else if ((var.alt(0)=="A" && var.ref()=="G") || (var.alt(0)=="G" && var.ref()=="A") || (var.alt(0)=="T" && var.ref()=="C") || (var.alt(0)=="C" && var.ref()=="T"))
 		{
 			++ti_count;
 		}
@@ -950,10 +957,10 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		Pileup pileup_no = reader_normal.getPileup(v.chr(), v.start());
 		if (pileup_no.depth(true) < min_depth) continue;
 
-		double no_freq = pileup_no.frequency(v.ref()[0], v.altString()[0]);
+        double no_freq = pileup_no.frequency(v.ref()[0], v.alt(0)[0]);
 		if (!BasicStatistics::isValidFloat(no_freq) || no_freq >= max_somatic) continue;
 
-		double tu_freq = pileup_tu.frequency(v.ref()[0], v.altString()[0]);
+        double tu_freq = pileup_tu.frequency(v.ref()[0], v.alt(0)[0]);
 		if (!BasicStatistics::isValidFloat(tu_freq) || tu_freq > 0.6) continue;
 
 		freqs.append(tu_freq);
@@ -1000,7 +1007,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 			foreach(const QByteArray& n, nucleotides)
 			{
 				int tmp = variants[i].formatValueFromSample(n+"U", tumor_id.toUtf8()).split(',')[0].toInt();
-				if(n==variants[i].altString()) count_mut += tmp;
+                if(n==variants[i].alt(0)) count_mut += tmp;
 				count_all += tmp;
 			}
 			if(count_all>0)
@@ -1058,12 +1065,12 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		if(!variants[i].isSNV())	continue;	//skip indels
 
 		VCFLine v = variants[i];
-		QString n = v.ref()+">"+v.altString();
+        QString n = v.ref()+">"+v.alt(0);
 		bool contained = false;
 		if(nuc_changes.contains(n))	contained = true;
 		else
 		{
-			n = v.ref().toReverseComplement() + ">" + v.altString().toReverseComplement();
+            n = v.ref().toReverseComplement() + ">" + v.alt(0).toReverseComplement();
 			if(nuc_changes.contains(n))	contained = true;
 		}
 
@@ -1112,7 +1119,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 			foreach(const QByteArray& n, nucleotides)
 			{
 				int tmp = variants[i].formatValueFromSample(n+"U", tumor_id.toUtf8()).split(',')[0].toInt();
-				if(n==variants[i].altString())	count_mut += tmp;
+                if(n==variants[i].alt(0))	count_mut += tmp;
 				count_all += tmp;
 			}
 			if(count_all>0)	af_tumor = (double)count_mut/count_all;
@@ -1122,7 +1129,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 			foreach(const QByteArray& n, nucleotides)
 			{
 				int tmp = variants[i].formatValueFromSample(n+"U", normal_id.toUtf8()).split(',')[0].toInt();
-				if(n==variants[i].altString())	count_mut += tmp;
+                if(n==variants[i].alt(0))	count_mut += tmp;
 				count_all += tmp;
 			}
 			if(count_all>0)	af_normal = (double)count_mut/count_all;
@@ -1443,7 +1450,7 @@ QCCollection Statistics::contamination(QString build, QString bam, bool debug, i
 		int depth = pileup.depth(false);
 		if (depth<min_cov) continue;
 
-		double freq = pileup.frequency(snps[i].ref()[0], snps[i].altString()[0]);
+        double freq = pileup.frequency(snps[i].ref()[0], snps[i].alt(0)[0]);
 
 		//skip non-informative snps
 		if (!BasicStatistics::isValidFloat(freq)) continue;
@@ -1477,6 +1484,12 @@ QCCollection Statistics::contamination(QString build, QString bam, bool debug, i
 
 AncestryEstimates Statistics::ancestry(QString build, const  VcfFile& vl, int min_snp, double min_pop_dist)
 {
+    //multi sample is not supported
+    if(vl.sampleIDs().count())
+    {
+        THROW(ArgumentException, "Multi sample vcf files are not supported for ancestry estimates.");
+    }
+
 	//determine required annotation indices
 	if(!vl.formatIDs().contains("GT"))
 	{

@@ -69,7 +69,7 @@ void VcfFile::parseHeaderFields(QByteArray& line, bool allow_multi_sample)
 		}
 
 		//samples are all columns after the 10th
-		sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+        sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
 		if(column_headers_.count() >= 10)
 		{
             if( column_headers_.count() - 9 > std::numeric_limits<unsigned char>::max())
@@ -98,6 +98,7 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 {
 
 	QList<QByteArray> line_parts = line.split('\t');
+
     if (line_parts.count()< MIN_COLS)
 	{
 		THROW(FileParseException, "VCF data line needs at least 8 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
@@ -216,10 +217,10 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
         }
         else
         {
-            InfoIDToIdxPtr new_info_id_to_idx_entry = InfoIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+            InfoIDToIdxPtr new_info_id_to_idx_entry = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
             for(int i = 0; i < info_ids_string_list.count(); ++i)
             {
-               new_info_id_to_idx_entry->push_back(info_ids_string_list.at(i), strToPointer(static_cast<unsigned char>(i)));
+               new_info_id_to_idx_entry->push_back(info_ids_string_list.at(i), i);
             }
            info_id_to_idx_list.insert(info_ids_string, new_info_id_to_idx_entry);
            vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
@@ -266,10 +267,10 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 		}
 		else
 		{
-			FormatIDToIdxPtr new_format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+            FormatIDToIdxPtr new_format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, int>);
             for(int i = 0; i < format_list.count(); ++i)
 			{
-                new_format_id_to_idx_entry->push_back(strToPointer(format_list.at(i)), strToPointer(static_cast<unsigned char>(i)));
+                new_format_id_to_idx_entry->push_back(strToPointer(format_list.at(i)), i);
 			}
 			format_id_to_idx_list.insert(format_ids_string, new_format_id_to_idx_entry);
             vcf_line->setFormatIdToIdxPtr(new_format_id_to_idx_entry);
@@ -391,7 +392,7 @@ void VcfFile::loadFromVCF(const QString& filename, bool allow_multi_sample, Chro
 	QSet<QByteArray> filter_ids_in_header;
 	while(!file->atEnd())
 	{
-		processVcfLine(line_number, file->readLine(), info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
+        processVcfLine(line_number, file->readLine(), info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
 	}
 }
 
@@ -428,7 +429,7 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 				THROW(FileParseException, "Error while reading file '" + filename + "': " + error_message);
 			}
 		}
-		processVcfLine(line_number, QByteArray(read_line), info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
+        processVcfLine(line_number, QByteArray(read_line), info_ids_in_header, format_ids_in_header, filter_ids_in_header, allow_multi_sample, roi_idx, invert);
 	}
 	gzclose(file);
 	delete[] buffer;
@@ -450,11 +451,11 @@ void VcfFile::load(const QString& filename, bool allow_multi_sample, const BedFi
 	QString fn_lower = filename.toLower();
 	if (fn_lower.endsWith(".vcf"))
 	{
-		loadFromVCF(filename, allow_multi_sample, roi_idx.data(), invert);
+        loadFromVCF(filename, allow_multi_sample, roi_idx.data(), invert);
 	}
 	else if (fn_lower.endsWith(".vcf.gz"))
 	{
-		loadFromVCFGZ(filename, allow_multi_sample, roi_idx.data(), invert);
+        loadFromVCFGZ(filename, allow_multi_sample, roi_idx.data(), invert);
 	}
 	else
 	{
@@ -543,55 +544,6 @@ void VcfFile::storeAsTsv(const QString& filename)
 		}
 	}
 }
-
-/*void VcfFile::store(const QString& filename,  bool stdout_if_file_empty, bool compress, int compression_level) const
-{
-
-	//open stream
-	QString vcf_file;
-	QTextStream stream(&vcf_file);
-
-	//write header information
-	vcf_header_.storeHeaderInformation(stream);
-
-	//write header columns
-	stream << "#" << column_headers_.at(0);
-	for(int i = 1; i < column_headers_.count(); ++i)
-	{
-		stream << "\t" << column_headers_.at(i);
-	}
-
-	for(int i = 0; i < vcf_lines_.count(); ++i)
-	{
-		stream << "\n";
-		storeLineInformation(stream, vcfLine(i));
-	}
-
-	if(compress)
-	{
-		gzFile gz_file = gzopen(filename.toLatin1().data(),"wb");
-		if (gz_file == NULL)
-		{
-			THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
-		}
-		gzsetparams(gz_file, compression_level, Z_DEFAULT_STRATEGY);
-
-		int written = gzputs(gz_file, vcf_file.toLocal8Bit().data());
-		if (written==0)
-		{
-			THROW(FileAccessException, "Could not write to file '" + filename + "'!");
-		}
-		gzclose(gz_file);
-	}
-	else
-	{
-		//open stream
-		QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_file_empty);
-		QTextStream file_stream(file.data());
-
-		file_stream << vcf_file;
-	}
-}*/
 
 void writeZipped(gzFile& gz_file, QString& vcf_file_data, const QString& filename)
 {
@@ -1000,8 +952,8 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 	}
 
 	//sample order is set for all lines
-	SampleIDToIdxPtr sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
-	sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+    SampleIDToIdxPtr sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
+    sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
 
 	for(int i = 0; i < genotype_columns.size(); ++i)
 	{
@@ -1013,7 +965,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 	QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list;
 	ListOfFormatIds list_storing_genotype_only;
 	list_storing_genotype_only.push_back("GT");
-	FormatIDToIdxPtr gt_to_first_position = FormatIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+    FormatIDToIdxPtr gt_to_first_position = FormatIDToIdxPtr(new OrderedHash<QByteArray, int>);
 	gt_to_first_position->push_back("GT", 1);
 	format_id_to_idx_list.insert(list_storing_genotype_only, gt_to_first_position);    
 
@@ -1109,7 +1061,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
         }
         else
         {
-            InfoIDToIdxPtr new_info_id_to_idx_entry = InfoIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+            InfoIDToIdxPtr new_info_id_to_idx_entry = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
             for(int i = 0; i < all_info_keys.count(); ++i)
             {
                 new_info_id_to_idx_entry->push_back(all_info_keys.at(i), strToPointer(static_cast<unsigned char>(all_positions.at(i))));
@@ -1124,13 +1076,18 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		{
 
 			QList<QByteArrayList> all_samples_new;
+            bool all_samples_empty = true;
 
 			for(const SampleInfo& genotype : genotype_columns)
 			{
 				QByteArrayList formats_new;
 
-				int genotype_index = variant_list.annotationIndexByName(genotype.column_name);
-
+                int genotype_index = variant_list.annotationIndexByName(genotype.column_name, true, false);
+                if(genotype_index == -1)
+                {
+                    all_samples_new.push_back(formats_new);
+                    continue;
+                }
 				if(v.annotations().at(genotype_index).isEmpty() || v.annotations().at(genotype_index) == ".")
 				{
 					continue;
@@ -1151,9 +1108,13 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 				{
 					THROW(ArgumentException, "genotype column in TSV file does not contain a valid entry.");
 				}
+                all_samples_empty = false;
 				all_samples_new.push_back(formats_new);
 			}
-            vcf_line->setSampleNew(all_samples_new);
+            vcf_line->setSample(all_samples_new);
+            //we store only the genotype in the sample columns, however if it is not present
+            //format information has to be reset as well
+            if(all_samples_empty) vcf_line->setFormatIdToIdxPtr(nullptr);
 		}
 
 		vcf_file.vcf_lines_.push_back(vcf_line);

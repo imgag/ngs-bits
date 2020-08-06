@@ -14,11 +14,7 @@
  * - ALLES DURCHGEHEN UND KOMMENTARE, ALTER VERSIONEN LOESCHEN
  *  - TEST Somatic for LIB and SomaticQC as TOOL (both have two new vcf, must be generated new with new fucntion)
  *
- *  - VcfFile mit VcfHandler mergen
- *
  *  - VcfToTSV Test aendern, sodass - mit eingebaut wird
- *
- *  - check URL encoding..
  *
  * ENDE:
  * - streaming tools use VcfLine
@@ -26,8 +22,6 @@
  * - use check at the end of store (one time for all tests)
  * - call check tool once on all vcf files
  *
- * INFO:
- * MULTI SAMPLE: VCFSORT SOMATICQC, UPDHUTNER, VCFFilter
  */
 
 ///class handling vcf and vcf.gz files
@@ -47,6 +41,11 @@ public:
     static const int INFO = 7;
     static const int FORMAT = 8;
 
+    // definition of all characters which have to be escaped in the INFO values
+    // (using URL-Encoding (https://en.wikipedia.org/wiki/Percent-encoding, RFC 3986))
+    // values defined in VcfFile.cpp
+    static const QList<KeyValuePair> INFO_URL_MAPPING;
+
 	int count() const
 	{
         return vcf_lines_.count();
@@ -64,7 +63,7 @@ public:
 
 	void leftNormalize(QString reference_genome);
 	///loads a vcf or vcf.gz file
-	void load(const QString& filename, bool allow_multi_sample=false, const BedFile* roi=nullptr, bool invert=false);
+    void load(const QString& filename, bool allow_multi_sample=true, const BedFile* roi=nullptr, bool invert=false);
 	///removes duplicate variants
 	void removeDuplicates(bool sort_by_quality);
 	///stores the data of VCFFileHandler in a vcf file
@@ -147,11 +146,6 @@ public:
     ///Converts a Variant list (e.g. from a GSvar file) to a VcfFile
 	static VcfFile convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome);
 
-    // definition of all characters which have to be escaped in the INFO values
-    // (using URL-Encoding (https://en.wikipedia.org/wiki/Percent-encoding, RFC 3986))
-    // values defined in VcfFile.cpp
-    static const QList<KeyValuePair> INFO_URL_MAPPING;
-
     ///Validates VCF file from file path
     static bool isValid(QString vcf_file_path, QString ref_file, QTextStream& out_stream, bool print_general_information = false, int max_lines = std::numeric_limits<int>::max());
 
@@ -167,23 +161,23 @@ public:
 private:
 
 	void clear();
-	void loadFromVCF(const QString& filename, bool allow_multi_sample=false, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
-	void loadFromVCFGZ(const QString& filename, bool allow_multi_sample=false, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
+    void loadFromVCF(const QString& filename, bool allow_multi_sample=false, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
+    void loadFromVCFGZ(const QString& filename, bool allow_multi_sample=false, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
 	void parseHeaderFields(QByteArray& line, bool allow_multi_sample);
     void parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
 	void parseVcfHeader(const int line_number, QByteArray& line);
     void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
 	void storeLineInformation(QTextStream& stream, VCFLine line) const;
 
-    QVector<VCFLinePtr> vcf_lines_;
-	VCFHeader vcf_header_;
-	QVector<QByteArray> column_headers_;
+    QVector<VCFLinePtr> vcf_lines_; //variant lines
+    VCFHeader vcf_header_; //all informations from header
+    QVector<QByteArray> column_headers_; //heading of variant lines
 
-	SampleIDToIdxPtr sample_id_to_idx;
-	QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list;
+    SampleIDToIdxPtr sample_id_to_idx; //Hash of SampleID to its position
+    QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list; //
     QHash<ListOfInfoIds, FormatIDToIdxPtr> info_id_to_idx_list;
 
-    //INFO/FORMAT/FILTER definition line
+    //INFO/FORMAT/FILTER definition line for VCFCHECK only
     struct DefinitionLine
     {
         QByteArray id;

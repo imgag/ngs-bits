@@ -6,8 +6,14 @@
 
 SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi)
 {
-	 VcfFile variants;
-	variants.load(filename, false, roi);
+    VcfFile variants;
+    variants.load(filename, false, roi);
+
+    //vcf file must have only one sample to parse the correct genotype
+    if(variants.sampleIDs().count() > 1)
+    {
+        THROW(FileParseException, "The genotype can not be determined correctly for a VCF line with multiple samples. File name:  " + filename + " .");
+    }
 
 	if (!variants.formatIDs().contains("GT"))
 	{
@@ -23,7 +29,14 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 		if(!variant.chr().isAutosome() && !include_gonosomes) continue;
 
 		//skip multi-allelic variants
-		if (skip_multi && variant.altString().contains(',')) continue;
+        if (variant.isMultiAllelic() && skip_multi)
+        {
+            continue;
+        }
+        else if(variant.isMultiAllelic())
+        {
+            THROW(ArgumentException, "Can not handle multiallelic variants.");
+        }
 
 		output[strToPointer(variant.variantToString())] = genoToDouble(variant.formatValueFromSample("GT"));
 	}
@@ -87,7 +100,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString bu
 		if (pileup.depth(false)<min_cov) continue;
 
 		QChar ref = snps[i].ref()[0];
-		QChar obs = snps[i].altString()[0];
+        QChar obs = snps[i].alt(0)[0];
 		double frequency = pileup.frequency(ref, obs);
 
 		//skip non-informative snps

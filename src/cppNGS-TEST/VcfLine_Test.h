@@ -101,7 +101,7 @@ TEST_CLASS(VcfLine_Test)
     {
         VCFLine variant;
         QByteArrayList info;
-        InfoIDToIdxPtr info_ptr = InfoIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+        InfoIDToIdxPtr info_ptr = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
         for(int i = 0; i < 10; ++i)
         {
             QByteArray key = "key of " + QByteArray::number(i);
@@ -147,6 +147,22 @@ TEST_CLASS(VcfLine_Test)
         S_EQUAL(format_value, "255,0,123");
         format_value = vcf_file[0].formatValueFromSample("PL", 1);
         S_EQUAL(format_value, "255,84,0");
+    }
+
+    void isMultiAllelicOrInDEl()
+    {
+        VcfFile file;
+        file.load(TESTDATA("data_in/variantList_removeDuplicates.vcf"));
+
+        VCFLine line = file.vcfLine(5);
+        IS_TRUE(line.isMultiAllelic());
+        line = file.vcfLine(6);
+        IS_FALSE(line.isMultiAllelic());
+
+        line = file.vcfLine(0);
+        IS_TRUE(line.isInDel());
+        line = file.vcfLine(1);
+        IS_FALSE(line.isInDel());
     }
 
     //test same variants as in Variant::leftAlign()

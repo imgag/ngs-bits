@@ -817,127 +817,9 @@ void VariantList::store(QString filename) const
 
 void VariantList::storeAsVCF(QString filename, const QString& reference_genome) const
 {
-	/*
-	//write ##fileformat and other metainformation
-	foreach(const QString& comment, comments())
-	{
-		stream << comment << "\n";
-	}
-
-	//all columns are stored as INFO
-	for (int j=0; j<annotationDescriptions().count(); ++j)
-	{
-		const VariantAnnotationDescription& anno_description = annotationDescriptions()[j];
-
-		stream << "##INFO=";
-		stream << "<ID=" << anno_description.name();
-		stream << ",Number=.";
-		stream << ",Type=" << annotationTypeToString(anno_description.type());
-		QString desc = anno_description.description();
-		stream << ",Description=\"" << (desc!="" ? desc : "no description available") << "\"";
-		stream << ">\n";
-	}
-
-	//write filter headers
-	auto it = filters().cbegin();
-	while(it != filters().cend())
-	{
-		stream << "##FILTER=<ID=" << it.key() << ",Description=\"" << it.value() << "\">\n";
-		++it;
-	}
-
-	//write header line for compulsory columns
-	//(FORMAT and SAMPLE are skipped) everything is stored in INFO
-	stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT";
-
-	//search for genotype on annotations
-	SampleHeaderInfo genotype_columns = getSampleHeader(false);
-	if(genotype_columns.empty())
-	{
-		stream << "\tSample\n";
-	}
-	else
-	{
-		for(const SampleInfo& genotype : genotype_columns)
-		{
-			stream << "\t" << genotype.column_name;
-		}
-	}
-
-	//write variants
-	foreach(const Variant& v, variants_)
-	{
-		QString ID = ".";
-		QString quality = ".";
-		QString filter = ".";
-		QStringList info_entries;
-
-		for (int i=0; i<v.annotations().count(); ++i)
-		{
-			const VariantAnnotationHeader& anno_header = annotations()[i];
-			const VariantAnnotationDescription& anno_desc = annotationDescriptionByName(anno_header.name(), false);
-			QByteArray anno_val = v.annotations()[i];
-
-			if (anno_val!="")
-			{
-				if (anno_desc.type()==VariantAnnotationDescription::FLAG) //Flags should not have values in VCF
-				{
-					info_entries << anno_header.name();
-				}
-				else
-				{
-					info_entries << anno_header.name() + "=" + anno_val;
-				}
-			}
-		}
-
-		stream << v.chr().str() << "\t" << v.start() << "\t" << ID << "\t" << v.ref() << "\t"  << v.obs() << "\t" << quality << "\t" << filter;
-		stream << "\t" << (info_entries.isEmpty() ? "." : info_entries.join(";"));
-
-		//write genotype
-		if(!genotype_columns.empty())
-		{
-			stream << "GT\t";
-
-			for(const SampleInfo& genotype : genotype_columns)
-			{
-				int genotype_index = annotationIndexByName(genotype.column_name);
-
-				if(v.annotations().at(genotype_index).isEmpty() || v.annotations().at(genotype_index) == ".")
-				{
-					stream << ".";
-				}
-				else if(v.annotations().at(genotype_index) == "wt")
-				{
-					stream << "0:0";
-				}
-				else if(v.annotations().at(genotype_index) == "hom")
-				{
-					stream << "1:1";
-				}
-				else if(v.annotations().at(genotype_index) == "het")
-				{
-					stream << "1:0";
-				}
-				else
-				{
-					THROW(ArgumentException, "genotype column in TSV file does not contain a valid entry.");
-				}
-			}
-		}
-		else
-		{
-			stream << ".\t.";
-		}
-
-		stream << "\n";
-	}
-*/
-
 	VcfFile vcf_file;
 	vcf_file = VcfFile::convertGSvarToVcf(*this, reference_genome);
 	vcf_file.store(filename);
-
 }
 
 void VariantList::sort(bool use_quality)
@@ -1213,7 +1095,6 @@ QPair<int, int> Variant::indelRegion(const Chromosome& chr, int start, int end, 
 	//determine start/end
 	Sequence block = minBlock(ref + obs);
 	int block_length = block.length();
-	//qDebug() << "BLOCK: " << block;
 
 	//insertion (start and end are before the insertion position)
 	bool is_repeat = false;

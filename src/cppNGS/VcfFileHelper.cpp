@@ -35,27 +35,27 @@ VCFLine::VCFLine(const Chromosome& chr, int pos, const Sequence& ref, const QVec
 	{
 		THROW(ArgumentException, "number of samples must equal the number of QByteArrayLists in list_of_format_values.")
 	}
-    if(sample_ids.size() > std::numeric_limits<unsigned char>::max() || format_ids.size() > std::numeric_limits<unsigned char>::max())
+    if(sample_ids.size() > std::numeric_limits<int>::max() || format_ids.size() > std::numeric_limits<int>::max())
 	{
-        THROW(ArgumentException, "Number of format or sample entries exceeds the maximum of " + std::numeric_limits<unsigned char>::max());
+        THROW(ArgumentException, "Number of format or sample entries exceeds the maximum of " + std::numeric_limits<int>::max());
 	}
 	//generate Hash for Format entries
-	FormatIDToIdxPtr format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+    FormatIDToIdxPtr format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, int>);
 	for(int i=0; i < format_ids.size(); ++i)
 	{
 		if(list_of_format_values.at(i).size() != format_ids.size())
 		{
 			THROW(ArgumentException, "number of formats must equal the number of QByteArray elements in each list of list_of_format_values.")
 		}
-		format_id_to_idx_entry->push_back(format_ids.at(i), strToPointer(static_cast<unsigned char>(i)));
+        format_id_to_idx_entry->push_back(format_ids.at(i), i);
 	}
 	formatIdxOf_ = format_id_to_idx_entry;
 
 	//generate Hash for smaple entries
-	SampleIDToIdxPtr sample_id_to_idx_entry = SampleIDToIdxPtr(new OrderedHash<QByteArray, unsigned char>);
+    SampleIDToIdxPtr sample_id_to_idx_entry = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
 	for(int i=0; i < sample_ids.size(); ++i)
 	{
-		sample_id_to_idx_entry->push_back(sample_ids.at(i), strToPointer(static_cast<unsigned char>(i)));
+        sample_id_to_idx_entry->push_back(sample_ids.at(i), i);
 	}
 	sampleIdxOf_ = sample_id_to_idx_entry;
 }
@@ -503,6 +503,29 @@ bool VCFLine::isValidGenomicPosition() const
 	return chr_.isValid() && is_valid_ref_base && pos_>=0 && ref_.size()>=0 && !ref_.isEmpty() && !alt_.isEmpty();
 }
 
+bool VCFLine::isMultiAllelic() const
+{
+    if(alt().count() > 1)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool VCFLine::isInDel() const
+{
+    if(alt().count() > 1)
+    {
+        THROW(NotImplementedException, "Can not determine if multi allelic variant is InDEl.")
+    }
+
+    if(alt(0).length() > 1 || ref().length() > 1)
+    {
+        return true;
+    }
+    return false;
+}
+
 //returns all not passed filters
 QByteArrayList VCFLine::failedFilters() const
 {
@@ -553,7 +576,7 @@ void VCFLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 	{
 		ref_ = empty_seq;
 	}
-	if (altString().isEmpty())
+    if (alt(0).isEmpty())
 	{
 		alt_[0] = empty_seq;
 	}
@@ -562,15 +585,15 @@ void VCFLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 	{
 		pos_ -= 1;
 	}
-
 }
 
 void VCFLine::leftNormalize(QString reference_genome)
 {
+
 	FastaFileIndex reference(reference_genome);
 
 	//leave multi-allelic variants unchanged
-	if (alt_.count() > 1)
+    if (isMultiAllelic())
 	{
 		return;
 	}

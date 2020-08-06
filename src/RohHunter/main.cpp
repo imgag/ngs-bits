@@ -191,6 +191,12 @@ public:
 		 VcfFile vl;
 		vl.load(getInfile("in"));
 
+        //check that we have only one sample
+        if(vl.sampleIDs().count() > 1)
+        {
+            THROW(FileParseException, "Multi sample is not supported.");
+        }
+
 		out << "=== Loading input data ===" << endl;
 		out << "Variants in VCF: " << vl.count() << endl;
 

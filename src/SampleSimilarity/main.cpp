@@ -23,7 +23,7 @@ public:
 		setExtendedDescription(QStringList() << "In VCF mode, multi-allelic variants are not supported. Use 'skip_multi' to ignore them, or VcfBreakMulti to split multi-allelic variants into several lines."
 											 << "Multi-sample VCFs are not supported. Use VcfExtractSamples to split them to one VCF per sample."
 											 << "In VCF mode, it is assumed that variant lists are left-normalized, e.g. with VcfLeftNormalize.");
-		addInfileList("in", "Input variant lists in VCF format (two or more). If only one file is given, each line in this file is interpreted as an input file path.", false, true);
+        addInfileList("in", "Input variant lists in VCF format (two or more). If only one file is given, each line in this file is interpreted as an input file path.", false, true);
 		//optional
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addEnum("mode", "Mode (input format).", true, QStringList() << "vcf" << "gsvar" << "bam", "vcf");

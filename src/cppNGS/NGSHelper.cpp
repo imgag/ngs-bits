@@ -19,7 +19,7 @@
 	QString snp_file = ":/Resources/" + build + "_snps.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
 
-	output.load(snp_file, false, roi);
+    output.load(snp_file, false, roi);
 
 	//filter by AF
 	FilterResult filter_result(output.count());

@@ -97,9 +97,9 @@ const unsigned char& strToPointer(const unsigned char& str);
 
 enum InfoFormatType {INFO_DESCRIPTION, FORMAT_DESCRIPTION};
 using FormatIDToValueHash = OrderedHash<QByteArray, QByteArray>;
-using SampleIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, unsigned char>>;
-using FormatIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, unsigned char>>;
-using InfoIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, unsigned char>>;
+using SampleIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>;
+using FormatIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>;
+using InfoIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>;
 using ListOfFormatIds = QByteArray; //an array of all ordered FORMAT ids to use as hash key
 using ListOfInfoIds = QByteArray; //an array of all ordered INFO ids to use as hash key
 
@@ -327,7 +327,7 @@ public:
 		}
 		else
 		{
-            unsigned char info_pos;
+            int info_pos;
             if(infoIdxOf_->hasKey(key, info_pos))
 			{
                 return info_.at(info_pos);
@@ -356,8 +356,6 @@ public:
 		return sample_values_.at(pos);
 	}
 	///access the value for a FORMAT and SAMPLE ID
-	// by purpose does not return a reference because an empty QByteArray can be returned for non-existing keys
-	//(use case: a specific FORMAT key is absent in some vcf lines)
 	QByteArray formatValueFromSample(const QByteArray& format_key, const QByteArray& sample_name, bool error_if_format_key_absent = false) const
 	{
 		if(error_if_format_key_absent)
@@ -369,8 +367,8 @@ public:
 		}
 		else
 		{
-			unsigned char sample_pos;
-			unsigned char format_pos;
+            int sample_pos;
+            int format_pos;
 			if(sampleIdxOf_->hasKey(sample_name, sample_pos) && formatIdxOf_->hasKey(format_key, format_pos))
 			{
 				return sample_values_.at(sample_pos).at(format_pos);;
@@ -382,8 +380,6 @@ public:
 		}
 	}
 	///access the value for a FORMAT ID and SAMPLE position (default is first SAMPLE)
-	// by purpose does not return a reference because an empty QByteArray can be returned for non-existing keys
-	//(use case: a specific FORMAT key is absent in some vcf lines)
 	QByteArray formatValueFromSample(const QByteArray& format_key, int sample_pos = 0, bool error_if_format_key_absent = false) const
 	{
 
@@ -398,7 +394,7 @@ public:
 		}
 		else
 		{
-			unsigned char format_pos;
+            int format_pos;
 			if(formatIdxOf_->hasKey(format_key, format_pos))
 			{
 				return format_values.at(format_pos);;
@@ -422,12 +418,12 @@ public:
 	{
 		ref_ = ref;
 	}
-	void addAlt(const QByteArrayList& alt)
+    void addAlt(const QByteArrayList& alt)
 	{
-		for(const Sequence& seq : alt)
-		{
-			alt_.push_back(strToPointer(seq.toUpper()));
-		}
+        for(const Sequence& seq : alt)
+        {
+            alt_.push_back(strToPointer(seq.toUpper()));
+        }
 	}
 	void setAlt(const QByteArrayList& alt)
 	{
@@ -476,7 +472,7 @@ public:
 	{
         info_ = info_values;
 	}
-	void setSampleNew(const QList<QByteArrayList>& sample)
+    void setSample(const QList<QByteArrayList>& sample)
 	{
 		sample_values_ = sample;
 	}
@@ -490,17 +486,17 @@ public:
 	}
     void setFormatIdToIdxPtr(const FormatIDToIdxPtr& ptr)
 	{
-        if(ptr->size() > std::numeric_limits<unsigned char>::max())
+        if(ptr && ptr->size() > std::numeric_limits<int>::max())
 		{
-            THROW(ArgumentException, "Number of format entries exceeds the maximum of " + std::numeric_limits<unsigned char>::max());
+            THROW(ArgumentException, "Number of format entries exceeds the maximum of " + std::numeric_limits<int>::max());
 		}
 		formatIdxOf_ = ptr;
 	}
     void setInfoIdToIdxPtr(const InfoIDToIdxPtr& ptr)
     {
-        if(ptr->size() > std::numeric_limits<unsigned char>::max())
+        if(ptr && ptr->size() > std::numeric_limits<int>::max())
         {
-            THROW(ArgumentException, "Number of info entries exceeds the maximum of " + std::numeric_limits<unsigned char>::max());
+            THROW(ArgumentException, "Number of info entries exceeds the maximum of " + std::numeric_limits<int>::max());
         }
         infoIdxOf_ = ptr;
     }
@@ -539,6 +535,10 @@ public:
 
 		return ref_.length()==1 && alt(0)!="-" && ref_!="-";
 	}
+    ///returns if any VCFLine in the file is multiallelic
+    bool isMultiAllelic() const;
+    ///returns if the variant is an InDel, can only be called on single allelic variants
+    bool isInDel() const;
 	//returns if the chromosome is valid
 	bool isValidGenomicPosition() const;
 	//returns all not passed filters

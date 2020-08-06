@@ -206,7 +206,7 @@ public:
 		ChromosomalIndex<BedFile> exclude_idx(exclude_regions);
 
 		VcfFile variants;
-		variants.load(getInfile("in"), true);
+        variants.load(getInfile("in"), true);
 		variants.sort();
 		int skip_chr = 0;
 		int skip_qual = 0;
