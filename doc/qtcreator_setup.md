@@ -13,5 +13,6 @@ There are a few things we have to set in the QtCreator options just once:
 For each project file we have to set the following:
 	
  * `Projects -> Code Style -> Current Settings: MedGen`
+ * `Projects -> Build & Run -> Build -> Make arguments: -j5`
 
 

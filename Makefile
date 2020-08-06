@@ -18,7 +18,7 @@ build_libs_debug_noclean:
 	mkdir -p build-libs-Linux-Debug;
 	cd build-libs-Linux-Debug; \
 		qmake ../src/libs.pro "CONFIG+=debug" "CONFIG-=release"; \
-		make;
+		make -j5;
 
 clean_libs_debug:
 	rm -rf build-libs-Linux-Debug;
@@ -29,7 +29,7 @@ build_tools_debug_noclean:
 	mkdir -p build-tools-Linux-Debug;
 	cd build-tools-Linux-Debug; \
 		qmake ../src/tools.pro "CONFIG+=debug" "CONFIG-=release"; \
-		make;
+		make -j5;
 
 clean_tools_debug:
 	rm -rf build-tools-Linux-Debug;
@@ -43,34 +43,34 @@ build_libs_release:
 	mkdir -p build-libs-Linux-Release;
 	cd build-libs-Linux-Release; \
 		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make;
+		make -j5;
 
 build_tools_release:
 	rm -rf build-tools-Linux-Release;
 	mkdir -p build-tools-Linux-Release;
 	cd build-tools-Linux-Release; \
 		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make;
+		make -j5;
 
 build_gui_release:
 	rm -rf build-tools_gui-Linux-Release;
 	mkdir -p build-tools_gui-Linux-Release;
 	cd build-tools_gui-Linux-Release; \
 		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make;
+		make -j5;
 
 build_release_noclean:
 	cd build-libs-Linux-Release; \
 		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make;
+		make -j5;
 	cd ..
 	cd build-tools-Linux-Release; \
 		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make;
+		make -j5;
 	cd ..
 	cd build-tools_gui-Linux-Release; \
 		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make;
+		make -j5;
 	
 #################################### other targets ##################################
 
