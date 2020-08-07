@@ -38,6 +38,7 @@ public:
 		addFloat("reg_min_q", "Mimimum Q-score required for a UPD region.",  true, 20.0);
 		addFlag("debug", "Enable verbose debug output.");
 
+        changeLog(2020,  8, 07, "VCF files only as input format for variant list.");
 		changeLog(2018,  6,  11, "First working version.");
 	}
 

@@ -72,25 +72,21 @@ void VcfFile::parseHeaderFields(QByteArray& line, bool allow_multi_sample)
         sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
 		if(column_headers_.count() >= 10)
 		{
-            if( column_headers_.count() - 9 > std::numeric_limits<unsigned char>::max())
-			{
-                THROW(ArgumentException, "Number of sample entries exceeds the maximum of " + std::numeric_limits<unsigned char>::max());
-			}
 			for(int i = 9; i < column_headers_.count(); ++i)
 			{
-                sample_id_to_idx->push_back(column_headers_.at(i), strToPointer(static_cast<unsigned char>(i-9)));
+                sample_id_to_idx->push_back(column_headers_.at(i), i-9);
 			}
 		}
 		else if(header_fields.count()==9) //if we have a FORMAT column with no sample
 		{
 			column_headers_.push_back("Sample");
-            sample_id_to_idx->push_back("Sample", strToPointer(static_cast<unsigned char>(0)));
+            sample_id_to_idx->push_back("Sample", 0);
 		}
 		else if(header_fields.count()==8)
 		{
 			column_headers_.push_back("FORMAT");
 			column_headers_.push_back("Sample");
-            sample_id_to_idx->push_back("Sample", strToPointer(static_cast<unsigned char>(0)));
+            sample_id_to_idx->push_back("Sample", 0);
 		}
 	}
 }
@@ -511,13 +507,14 @@ void VcfFile::storeAsTsv(const QString& filename)
 		for(const InfoFormatLine& format_line : vcfHeader().formatLines())
 		{
 			if(format_line.id==".") continue;
-			stream << "\t" << format_line.id << "_format_" << sample_id;
+            stream << "\t" << sample_id << "_" << format_line.id << "_format";
 		}
 	}
 
 	//vcf lines
     for(VCFLinePtr& v : vcfLines())
 	{
+        //normalize variants and set symbol for empty sequence
         v->normalize("-", true);
 		stream << "\n";
         stream << v->chr().str() << "\t" << QByteArray::number(v->start()) << "\t" << QByteArray::number(v->end()) << "\t" << v->ref()
@@ -1228,9 +1225,11 @@ bool VcfFile::isValid(QString vcf_file_path, QString ref_file, QTextStream& out_
     int expected_parts = 8;
     bool in_header = true;
     int c_data = 0;
-    int l = 1;
+    int l = 0;
     while(!eof && l<max_lines)
     {
+        ++l;
+
         // get next line
         QByteArray line;
         if (format == VariantListFormat::VCF)
@@ -1259,8 +1258,6 @@ bool VcfFile::isValid(QString vcf_file_path, QString ref_file, QTextStream& out_
             // check for eof:
             eof = gzeof(input_vcf_gz);
         }
-
-
 
         //skip empty lines
         if (line.isEmpty()) continue;
@@ -1606,8 +1603,6 @@ bool VcfFile::isValid(QString vcf_file_path, QString ref_file, QTextStream& out_
                 }
             }
         }
-
-        ++l;
     }
 
 

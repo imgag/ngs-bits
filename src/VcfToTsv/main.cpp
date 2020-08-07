@@ -20,10 +20,12 @@ public:
 	virtual void setup()
 	{
 		setDescription("Converts a VCF file to a tab-separated text file.");
-		setExtendedDescription(QStringList() << "Multi-allelic variants are not supported. Use VcfBreakMulti to split multi-allelic variants into several lines."
-							   << "Multi-sample VCFs are not supported. Use VcfExtractSamples to split them to one VCF per sample.");
+        setExtendedDescription(QStringList() << "Multi-allelic variants are supported. All alternative sequences are stored as a comma-seperated list."
+                                             << "Multi-sample VCFs are supported. For every combination of FORMAT and SAMPLE a seperate column is generated and named in the following way: <SAMPLEID>_<FORMATID>_<format>.");
 		addInfile("in", "Input variant list in VCF format.", false, true);
 		addOutfile("out", "Output variant list in TSV format.", false, true);
+
+        changeLog(2020,  8, 07, "Multi-allelic and Multi-sample VCFs are supported.");
 	}
 
 	virtual void main()

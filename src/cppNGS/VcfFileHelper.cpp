@@ -35,10 +35,6 @@ VCFLine::VCFLine(const Chromosome& chr, int pos, const Sequence& ref, const QVec
 	{
 		THROW(ArgumentException, "number of samples must equal the number of QByteArrayLists in list_of_format_values.")
 	}
-    if(sample_ids.size() > std::numeric_limits<int>::max() || format_ids.size() > std::numeric_limits<int>::max())
-	{
-        THROW(ArgumentException, "Number of format or sample entries exceeds the maximum of " + std::numeric_limits<int>::max());
-	}
 	//generate Hash for Format entries
     FormatIDToIdxPtr format_id_to_idx_entry = FormatIDToIdxPtr(new OrderedHash<QByteArray, int>);
 	for(int i=0; i < format_ids.size(); ++i)

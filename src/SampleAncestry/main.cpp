@@ -30,6 +30,7 @@ public:
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
 
 		//changelog
+        changeLog(2020,  8, 07, "VCF files only as input format for variant list.");
 		changeLog(2018, 12, 10, "Fixed bug in handling of 'pop_dist' parameter.");
 		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
 		changeLog(2018,  7, 03, "First version.");

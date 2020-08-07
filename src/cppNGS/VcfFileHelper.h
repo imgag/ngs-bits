@@ -486,18 +486,10 @@ public:
 	}
     void setFormatIdToIdxPtr(const FormatIDToIdxPtr& ptr)
 	{
-        if(ptr && ptr->size() > std::numeric_limits<int>::max())
-		{
-            THROW(ArgumentException, "Number of format entries exceeds the maximum of " + std::numeric_limits<int>::max());
-		}
 		formatIdxOf_ = ptr;
 	}
     void setInfoIdToIdxPtr(const InfoIDToIdxPtr& ptr)
     {
-        if(ptr && ptr->size() > std::numeric_limits<int>::max())
-        {
-            THROW(ArgumentException, "Number of info entries exceeds the maximum of " + std::numeric_limits<int>::max());
-        }
         infoIdxOf_ = ptr;
     }
 

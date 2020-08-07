@@ -37,12 +37,13 @@ public:
 		addFloat("ext_size_perc", "Percentage of ROH size that can be spanned when merging ROH regions.", true, 50.0);
 		addFlag("inc_chrx", "Include chrX into the analysis. Excluded by default.");
 
+        changeLog(2020,  8, 07, "VCF files only as input format for variant list.");
 		changeLog(2019, 11, 21, "Added support for parsing AF data from any VCF info field (removed 'af_source' parameter).");
 		changeLog(2019,  3, 12, "Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.");
 		changeLog(2018,  9, 12, "Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).");
 		changeLog(2017, 12, 07, "Added generic annotation feature.");
 		changeLog(2017, 11, 29, "Added 'inc_chrx' flag.");
-		changeLog(2017, 11, 21, "First version.");
+		changeLog(2017, 11, 21, "First version.");        
 	}
 
 	//Input data struct of the algorithm

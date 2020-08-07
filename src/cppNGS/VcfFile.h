@@ -1,28 +1,9 @@
 #pragma once
 
 #include "BedFile.h"
-//#include "Helper.h"
-//#include "NGSHelper.h"
 #include "VcfFileHelper.h"
 
 #include <zlib.h>
-
-//####################### CHANGES ######################
-/*
- *  TO DOS:
- *
- * - ALLES DURCHGEHEN UND KOMMENTARE, ALTER VERSIONEN LOESCHEN
- *  - TEST Somatic for LIB and SomaticQC as TOOL (both have two new vcf, must be generated new with new fucntion)
- *
- *  - VcfToTSV Test aendern, sodass - mit eingebaut wird
- *
- * ENDE:
- * - streaming tools use VcfLine
- *
- * - use check at the end of store (one time for all tests)
- * - call check tool once on all vcf files
- *
- */
 
 ///class handling vcf and vcf.gz files
 class CPPNGSSHARED_EXPORT VcfFile
@@ -69,13 +50,13 @@ public:
 	///stores the data of VCFFileHandler in a vcf file
 	void store(const QString& filename, bool stdout_if_file_empty = false, bool compress=false, int compression_level = 1) const;
 	///stores a VCFFile as tsv file, INFO and FORMAT fields are differentiated by "_info" and "_format" attached to the name in ##Description lines,
-	///in the header line each FORMAT column has additionally the sample name attached:
+    ///in the header line each FORMAT column is additionally prefixed with the sample name:
 	/// ##VCF:
 	/// #INFO	FORMAT	SAMPLE_1	SAMPLE_2
 	/// uniqInfo=1;TWICE=2	GT:TWICE	1|1:z	0|1:z
 	///
 	/// ##TSV:
-	/// #uniqInfo_info	TWICE_info	GT_format_SAMPLE_1	TWICE_format_SAMPLE_1	GT_format_SAMPLE_2	TWICE_format_SAMPLE_2
+    /// #uniqInfo_info	TWICE_info	SAMPLE_1_GT_format	SAMPLE_1_TWICE_format	SAMPLE_2_GT_format	SAMPLE_2_TWICE_format
 	///	1	2	1|1	z	0|1	z
 	void storeAsTsv(const QString& filename);
 	void sort(bool use_quality = false);
@@ -207,13 +188,13 @@ private:
     //print warning line
     static void printWarning(QTextStream& out, QByteArray message, int l, const QByteArray& line)
     {
-        out << "WARNING: " << message.trimmed() <<  " - in line " << QByteArray::number(l+1) << ":\n" << line << "\n";
+        out << "WARNING: " << message.trimmed() <<  " - in line " << QByteArray::number(l) << ":\n" << line << "\n";
     }
 
     //print error line
     static void printError(QTextStream& out, QByteArray message, int l, const QByteArray& line)
     {
-        out << "ERROR: " << message.trimmed() << " - in line " << QByteArray::number(l+1) << ":\n" << line << "\n";
+        out << "ERROR: " << message.trimmed() << " - in line " << QByteArray::number(l) << ":\n" << line << "\n";
     }
 
     //parse definition line

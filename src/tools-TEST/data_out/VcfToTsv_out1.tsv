@@ -26,7 +26,7 @@
 ##DESCRIPTION=DP_format=# high-quality bases
 ##DESCRIPTION=SP_format=Phred-scaled strand bias P-value
 ##DESCRIPTION=PL_format=List of Phred-scaled genotype likelihoods
-#chr	start	end	ref	obs	ID	QUAL	FILTER	INDEL_info	DP_info	VDB_info	AF1_info	AC1_info	DP4_info	MQ_info	FQ_info	PV4_info	G3_info	HWE_info	CLR_info	UGT_info	CGT_info	PC2_info	PCHI2_info	QCHI2_info	PR_info	GT_format_./Sample_GS120297A3/GS120297A3.bam	GQ_format_./Sample_GS120297A3/GS120297A3.bam	GL_format_./Sample_GS120297A3/GS120297A3.bam	DP_format_./Sample_GS120297A3/GS120297A3.bam	SP_format_./Sample_GS120297A3/GS120297A3.bam	PL_format_./Sample_GS120297A3/GS120297A3.bam
+#chr	start	end	ref	obs	ID	QUAL	FILTER	INDEL_info	DP_info	VDB_info	AF1_info	AC1_info	DP4_info	MQ_info	FQ_info	PV4_info	G3_info	HWE_info	CLR_info	UGT_info	CGT_info	PC2_info	PCHI2_info	QCHI2_info	PR_info	./Sample_GS120297A3/GS120297A3.bam_GT_format	./Sample_GS120297A3/GS120297A3.bam_GQ_format	./Sample_GS120297A3/GS120297A3.bam_GL_format	./Sample_GS120297A3/GS120297A3.bam_DP_format	./Sample_GS120297A3/GS120297A3.bam_SP_format	./Sample_GS120297A3/GS120297A3.bam_PL_format
 chr1	11676308	11676308	-	ACCC	.	215	.	TRUE	6	0.0000	1	2	0,0,3,3	60	-52.5											1/1	33				255,18,0
 chr1	11676377	11676377	G	A	.	158	.		6	0.0000	1	2	0,0,3,3	60	-45											1/1	33				191,18,0
 chr4	68247038	68247038	-	ATATCT	.	190	.	TRUE	6	0.0000	1	2	0,0,3,3	46	-52.5											1/1	33				230,18,0

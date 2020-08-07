@@ -15,7 +15,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Sorts variant lists according to chromosomal position.");
-		addInfile("in", "Input variant list.", false, true);
+        addInfile("in", "Input variant list in VCF format.", false, true);
 		addOutfile("out", "Output variant list.", false, true);
 		//optional
 		addFlag("qual", "Also sort according to variant quality. Ignored if 'fai' file is given.");
@@ -29,7 +29,7 @@ public:
 		bool qual = getFlag("qual");
 
 		//sort
-		 VcfFile vl;
+        VcfFile vl;
         vl.load(getInfile("in"), true);
 		if (fai=="")
 		{
