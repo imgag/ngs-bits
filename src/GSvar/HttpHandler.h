@@ -5,6 +5,7 @@
 #include <QString>
 #include <QSslError>
 #include <QNetworkAccessManager>
+#include <QHttpMultiPart>
 
 using HttpHeaders = QMap<QByteArray, QByteArray>;
 
@@ -35,6 +36,8 @@ public:
 	QString get(QString url, const HttpHeaders& add_headers = HttpHeaders());
 	///Performs POST request
 	QString post(QString url, const QByteArray& data, const HttpHeaders& add_headers = HttpHeaders());
+	///Performs POST request for content type multipart
+	QString post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers = HttpHeaders() );
 
 private slots:
 	///Handles SSL errors (by ignoring them)

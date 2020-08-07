@@ -385,7 +385,7 @@ struct CPPNGSDSHARED_EXPORT SomaticReportConfigurationData : public ReportConfig
 {
 	QString target_file;
 	QString mtb_xml_upload_date;
-	QString mtb_rtf_upload_date;
+    QString mtb_pdf_upload_date;
 };
 
 /// NGSD accessor.
@@ -649,8 +649,8 @@ public:
 	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const VariantList& germline_snvs, QStringList& messages);
 	///set upload time of somatic XML report to current timestamp
 	void setSomaticMtbXmlUpload(int report_id);
-	///set upload time of somatic RTF report to current timestamp
-	void setSomaticMtbRtfUpload(int report_id);
+	///set upload time of somatic PDF report to current timestamp
+	void setSomaticMtbPdfUpload(int report_id);
 
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality);

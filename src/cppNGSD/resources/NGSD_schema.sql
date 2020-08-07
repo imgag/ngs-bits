@@ -1071,7 +1071,7 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `last_edit_by` int(11) DEFAULT NULL,
   `last_edit_date` timestamp NULL DEFAULT NULL,
   `mtb_xml_upload_date` timestamp NULL DEFAULT NULL,
-  `mtb_rtf_upload_date` timestamp NULL DEFAULT NULL,
+  `mtb_pdf_upload_date` timestamp NULL DEFAULT NULL,
   `target_file` VARCHAR(255) NULL DEFAULT NULL COMMENT 'filename of sub-panel BED file without preceding path. Path must be resolved using target_file_folder in ngs-bits settings.ini',
   `tum_content_max_af` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include tumor content calculated by median value maximum allele frequency',
   `tum_content_max_clonality` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include tumor content calculated by maximum CNV clonality',

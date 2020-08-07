@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>771</width>
+    <width>833</width>
     <height>442</height>
    </rect>
   </property>
@@ -20,6 +20,9 @@
    <string>Data Transfer MTB</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="2" column="0" colspan="4">
+    <widget class="QTextEdit" name="status_display"/>
+   </item>
    <item row="3" column="3">
     <widget class="QPushButton" name="reconnect_button">
      <property name="sizePolicy">
@@ -32,9 +35,6 @@
       <string>Reconnect</string>
      </property>
     </widget>
-   </item>
-   <item row="2" column="0" colspan="4">
-    <widget class="QTextEdit" name="status_display"/>
    </item>
    <item row="0" column="1" colspan="3">
     <widget class="QCheckBox" name="xml_select">
@@ -68,21 +68,24 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0" colspan="2">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+   <item row="3" column="2">
+    <widget class="QPushButton" name="upload_button">
+     <property name="enabled">
+      <bool>false</bool>
      </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>40</width>
-       <height>20</height>
-      </size>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
      </property>
-    </spacer>
+     <property name="text">
+      <string>Upload</string>
+     </property>
+    </widget>
    </item>
    <item row="1" column="1" colspan="3">
-    <widget class="QCheckBox" name="rtf_select">
+    <widget class="QCheckBox" name="pdf_select">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -100,22 +103,6 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="2">
-    <widget class="QPushButton" name="upload_button">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Upload</string>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0">
     <widget class="QLabel" name="label_2">
      <property name="sizePolicy">
@@ -125,9 +112,22 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>RTF</string>
+      <string>PDF</string>
      </property>
     </widget>
+   </item>
+   <item row="3" column="0" colspan="2">
+    <spacer name="horizontalSpacer">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>40</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>
