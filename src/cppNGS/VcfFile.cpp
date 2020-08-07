@@ -660,9 +660,10 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 
 QByteArrayList VcfFile::sampleIDs() const
 {
-	if(sample_id_to_idx->empty())
+	if(!sample_id_to_idx || sample_id_to_idx->empty())
 	{
-		THROW(ArgumentException, "Sample IDS are not set.");
+		QByteArrayList empty_list;
+		return empty_list;
 	}
 	return sample_id_to_idx->keys();
 }
@@ -1466,7 +1467,6 @@ bool VcfFile::isValid(QString vcf_file_path, QString ref_file, QTextStream& out_
 				QByteArray name = has_value ? entry.left(sep) : entry;
 				QByteArray value = has_value ? entry.mid(sep+1).trimmed() : "";
 
-				qDebug() << "line contains " << l;
 				bool is_defined = defined_infos.contains(name);
 				if (is_defined)
 				{
