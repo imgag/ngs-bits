@@ -1064,7 +1064,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 			InfoIDToIdxPtr new_info_id_to_idx_entry = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
 			for(int i = 0; i < all_info_keys.count(); ++i)
 			{
-				new_info_id_to_idx_entry->push_back(all_info_keys.at(i), strToPointer(static_cast<unsigned char>(all_positions.at(i))));
+				new_info_id_to_idx_entry->push_back(all_info_keys.at(i), all_positions.at(i));
 			}
 			info_id_to_idx_list.insert(info_ids_string, new_info_id_to_idx_entry);
 			vcf_line->setInfoIdToIdxPtr(new_info_id_to_idx_entry);
@@ -1466,6 +1466,7 @@ bool VcfFile::isValid(QString vcf_file_path, QString ref_file, QTextStream& out_
 				QByteArray name = has_value ? entry.left(sep) : entry;
 				QByteArray value = has_value ? entry.mid(sep+1).trimmed() : "";
 
+				qDebug() << "line contains " << l;
 				bool is_defined = defined_infos.contains(name);
 				if (is_defined)
 				{
