@@ -1485,7 +1485,7 @@ QCCollection Statistics::contamination(QString build, QString bam, bool debug, i
 AncestryEstimates Statistics::ancestry(QString build, const  VcfFile& vl, int min_snp, double min_pop_dist)
 {
     //multi sample is not supported
-    if(vl.sampleIDs().count())
+    if(vl.sampleIDs().count() > 1)
     {
         THROW(ArgumentException, "Multi sample vcf files are not supported for ancestry estimates.");
     }
