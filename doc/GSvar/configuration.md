@@ -36,7 +36,7 @@ The most important settings are:
 	- track name
 	- checked by default (0 or 1)
 	- path to track file
-- *email\_run\_...*: semicolon-separated list of additional email adresses that are used when the email button on the run tab is pressed.
+- *email\_run\_...*: semicolon-separated list of additional email addresses that are used when the email button on the run tab is pressed.
 
 ## Filters
 
