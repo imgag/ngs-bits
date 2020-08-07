@@ -24,76 +24,75 @@ class CPPNGSSHARED_EXPORT OrderedHash {
 
 public:
 
-  //add key=value pair to the end of OrderedHash
-  void push_back(const K& key,const V& value)
-  {
-	auto iter = hash_.find(key);
-	if (iter != hash_.end()) {
-	  return;
+	//add key=value pair to the end of OrderedHash
+	void push_back(const K& key,const V& value)
+	{
+		auto iter = hash_.find(key);
+		if (iter != hash_.end()) {
+			return;
+		}
+
+		ordered_keys_.push_back(key);
+		hash_.insert(key, value);
 	}
 
-	ordered_keys_.push_back(key);
-	hash_.insert(key, value);
-  }
+	//access value by key
+	const V& operator[](const K& key) const
+	{
+		auto iter = hash_.find(key);
+		if (iter == hash_.end())
+		{
+			THROW(ArgumentException, "Key " + key + " does not exist in OrderedHash.");
+		}
+		return iter.value();
+	}
 
-  //access value by key
-  const V& operator[](const K& key) const
-  {
-	  auto iter = hash_.find(key);
-	  if (iter == hash_.end())
-	  {
-		THROW(ArgumentException, "Key " + key + " does not exist in OrderedHash.");
-	  }
-	  return iter.value();
-  }
+	//check if key exists
+	bool hasKey(const K& key, V& value) const
+	{
+		auto iter = hash_.find(key);
+		if (iter == hash_.end()) return false;
+		value = iter.value();
+		return true;
+	}
 
-  //check if key exists
-  bool hasKey(const K& key, V& value) const
-  {
-	  auto iter = hash_.find(key);
-	  if (iter == hash_.end()) return false;
-	  value = iter.value();
-	  return true;
-  }
+	//access value by order
+	typename QHash<K, V>::const_iterator at(int i) const
+	{
+		if(i >= size())
+		{
+			THROW(ArgumentException, "Index " + QString::number(i) + " is out of range for OrderedHash of size " + size() + ".");
+		}
+		K key = ordered_keys_.at(i);
+		return hash_.find(key);
+	}
 
-  //access value by order
-  typename QHash<K, V>::const_iterator at(int i) const
-  {
-	  if(i >= size())
-	  {
-		  THROW(ArgumentException, "Index " + QString::number(i) + " is out of range for OrderedHash of size " + size() + ".");
-	  }
-	  K key = ordered_keys_.at(i);
-	  return hash_.find(key);
-  }
+	//get the number of inserted key=value pairs
+	int size() const
+	{
+		return ordered_keys_.size();
+	}
 
-  //get the number of inserted key=value pairs
-  int size() const
-  {
-	  return ordered_keys_.size();
-  }
+	//check if the OrderedHash is empty
+	bool empty() const
+	{
+		return (ordered_keys_.empty());
+	}
 
-  //check if the OrderedHash is empty
-  bool empty() const
-  {
-	  return (ordered_keys_.empty());
-  }
-
-  //returns keys in order
-  const QList<K>& keys()
-  {
-	  return ordered_keys_;
-  }
+	//returns keys in order
+	const QList<K>& keys()
+	{
+		return ordered_keys_;
+	}
 
 private:
 
-  QList<K> ordered_keys_;
-  QHash<K, V> hash_;
+	QList<K> ordered_keys_;
+	QHash<K, V> hash_;
 
 };
 
 const QByteArray& strToPointer(const QByteArray& str);
-const unsigned char& strToPointer(const unsigned char& str);
 
 enum InfoFormatType {INFO_DESCRIPTION, FORMAT_DESCRIPTION};
 using FormatIDToValueHash = OrderedHash<QByteArray, QByteArray>;
@@ -114,6 +113,7 @@ struct CPPNGSSHARED_EXPORT VcfHeaderLine
 		stream << "##" << key << "=" << value << "\n";
 	}
 };
+
 struct CPPNGSSHARED_EXPORT InfoFormatLine
 {
 	QByteArray id;
@@ -123,11 +123,12 @@ struct CPPNGSSHARED_EXPORT InfoFormatLine
 
 	void storeLine(QTextStream& stream, InfoFormatType line_type) const
 	{
-        line_type==InfoFormatType::INFO_DESCRIPTION ? stream << "##INFO" : stream << "##FORMAT";
+		line_type==InfoFormatType::INFO_DESCRIPTION ? stream << "##INFO" : stream << "##FORMAT";
 		stream << "=<ID=" << id << ",Number=" << number << ",Type=" << type << ",Description=\"" << description << "\">" << "\n";
 	}
 
 };
+
 struct CPPNGSSHARED_EXPORT FilterLine
 {
 	QByteArray id;
@@ -136,12 +137,10 @@ struct CPPNGSSHARED_EXPORT FilterLine
 	void storeLine(QTextStream& stream) const
 	{
 		stream << "##FILTER=<ID=" << id << ",Description=\"" << description  << "\">" << "\n";
-    }
+	}
 };
 
 ///struct representing a vcf header.
-/// most important information is stored in seperate variables, additional information
-/// is in in 'unspecific_header_lines'
 class CPPNGSSHARED_EXPORT VCFHeader
 {
 public:
@@ -191,9 +190,8 @@ public:
 		filter_lines_.push_back(filter_line);
 	}
 	void setCommentLine(QByteArray& line, const int line_number);
-    void setInfoLine(QByteArray& line, const int line_number);
-    void setFormatLine(QByteArray& line, const int line_number);
-
+	void setInfoLine(QByteArray& line, const int line_number);
+	void setFormatLine(QByteArray& line, const int line_number);
 	void setFilterLine(QByteArray& line, const int line_number);
 	void setFormat(QByteArray& line);
 	void storeHeaderInformation(QTextStream& stream) const;
@@ -250,7 +248,7 @@ public:
 	int end() const
 	{
 		if(ref().length() <= 0) THROW(ArgumentException, "Reference can not have length zero in a VCF File.")
-		return (pos() + ref().length() - 1);
+				return (pos() + ref().length() - 1);
 	}
 	const QVector<Sequence>& alt() const
 	{
@@ -294,49 +292,49 @@ public:
 			return formatIdxOf_->keys();
 		}
 	}
-    QByteArrayList infoKeys()
-    {
-        if(!infoIdxOf_)
-        {
-            QByteArrayList list;
-            return list;
-        }
-        else
-        {
-            return infoIdxOf_->keys();
-        }
-    }
-    QByteArrayList infoValues()
-    {
-        if(!infoIdxOf_)
-        {
-            QByteArrayList list;
-            return list;
-        }
-        else
-        {
-            return info_;
-        }
-    }
-	QByteArray info(const QByteArray& key, bool error_if_key_absent = false) const
-    {
-        if(error_if_key_absent)
+	QByteArrayList infoKeys()
+	{
+		if(!infoIdxOf_)
 		{
-            int i_idx = (*infoIdxOf_)[key];
-            return info_.at(i_idx);
+			QByteArrayList list;
+			return list;
 		}
 		else
 		{
-            int info_pos;
-            if(infoIdxOf_->hasKey(key, info_pos))
+			return infoIdxOf_->keys();
+		}
+	}
+	QByteArrayList infoValues()
+	{
+		if(!infoIdxOf_)
+		{
+			QByteArrayList list;
+			return list;
+		}
+		else
+		{
+			return info_;
+		}
+	}
+	QByteArray info(const QByteArray& key, bool error_if_key_absent = false) const
+	{
+		if(error_if_key_absent)
+		{
+			int i_idx = (*infoIdxOf_)[key];
+			return info_.at(i_idx);
+		}
+		else
+		{
+			int info_pos;
+			if(infoIdxOf_->hasKey(key, info_pos))
 			{
-                return info_.at(info_pos);
+				return info_.at(info_pos);
 			}
 			else
 			{
 				return "";
 			}
-        }
+		}
 	}
 
 	///returns all SAMPLES as a hash of (SAMPLE ID to a hash of (FORMAT ID to value))
@@ -367,8 +365,8 @@ public:
 		}
 		else
 		{
-            int sample_pos;
-            int format_pos;
+			int sample_pos;
+			int format_pos;
 			if(sampleIdxOf_->hasKey(sample_name, sample_pos) && formatIdxOf_->hasKey(format_key, format_pos))
 			{
 				return sample_values_.at(sample_pos).at(format_pos);;
@@ -394,7 +392,7 @@ public:
 		}
 		else
 		{
-            int format_pos;
+			int format_pos;
 			if(formatIdxOf_->hasKey(format_key, format_pos))
 			{
 				return format_values.at(format_pos);;
@@ -418,12 +416,12 @@ public:
 	{
 		ref_ = ref;
 	}
-    void addAlt(const QByteArrayList& alt)
+	void addAlt(const QByteArrayList& alt)
 	{
-        for(const Sequence& seq : alt)
-        {
-            alt_.push_back(strToPointer(seq.toUpper()));
-        }
+		for(const Sequence& seq : alt)
+		{
+			alt_.push_back(strToPointer(seq.toUpper()));
+		}
 	}
 	void setAlt(const QByteArrayList& alt)
 	{
@@ -468,11 +466,11 @@ public:
 		tag = tag.trimmed();
 		filter_.push_back(strToPointer(tag));
 	}
-    void setInfo(const QByteArrayList& info_values)
+	void setInfo(const QByteArrayList& info_values)
 	{
-        info_ = info_values;
+		info_ = info_values;
 	}
-    void setSample(const QList<QByteArrayList>& sample)
+	void setSample(const QList<QByteArrayList>& sample)
 	{
 		sample_values_ = sample;
 	}
@@ -480,18 +478,18 @@ public:
 	{
 		sample_values_.push_back(format_value_list);
 	}
-    void setSampleIdToIdxPtr(const SampleIDToIdxPtr& ptr)
+	void setSampleIdToIdxPtr(const SampleIDToIdxPtr& ptr)
 	{
 		sampleIdxOf_ = ptr;
 	}
-    void setFormatIdToIdxPtr(const FormatIDToIdxPtr& ptr)
+	void setFormatIdToIdxPtr(const FormatIDToIdxPtr& ptr)
 	{
 		formatIdxOf_ = ptr;
 	}
-    void setInfoIdToIdxPtr(const InfoIDToIdxPtr& ptr)
-    {
-        infoIdxOf_ = ptr;
-    }
+	void setInfoIdToIdxPtr(const InfoIDToIdxPtr& ptr)
+	{
+		infoIdxOf_ = ptr;
+	}
 
 	///Overlap check for chromosome and position range.
 	bool overlapsWith(const Chromosome& input_chr, int input_start, int input_end) const
@@ -515,9 +513,9 @@ public:
 	{
 		if(allow_several_alternatives)
 		{
-            for(const QByteArray alt_seq : alt())
+			for(const QByteArray alt_seq : alt())
 			{
-                if(alt_seq.length() != 1) return false;
+				if(alt_seq.length() != 1) return false;
 			}
 		}
 		else if(alt(0).length() != 1)
@@ -527,13 +525,13 @@ public:
 
 		return ref_.length()==1 && alt(0)!="-" && ref_!="-";
 	}
-    ///returns if any VCFLine in the file is multiallelic
-    bool isMultiAllelic() const;
-    ///returns if the variant is an InDel, can only be called on single allelic variants
-    bool isInDel() const;
-	//returns if the chromosome is valid
+	///returns if any VCFLine in the file is multiallelic
+	bool isMultiAllelic() const;
+	///returns if the variant is an InDel, can only be called on single allelic variants
+	bool isInDel() const;
+	///returns if the chromosome is valid
 	bool isValidGenomicPosition() const;
-	//returns all not passed filters
+	///returns all not passed filters
 	QByteArrayList failedFilters() const;
 	QString variantToString() const;
 	QByteArrayList vepAnnotations(int field_index) const;
@@ -558,11 +556,11 @@ private:
 
 	QByteArrayList filter_; //; seperated list of failed filters or "PASS"
 
-    InfoIDToIdxPtr infoIdxOf_;
-    QByteArrayList info_;
+	InfoIDToIdxPtr infoIdxOf_;
+	QByteArrayList info_;
 
-    SampleIDToIdxPtr sampleIdxOf_;
-    FormatIDToIdxPtr formatIdxOf_;
+	SampleIDToIdxPtr sampleIdxOf_;
+	FormatIDToIdxPtr formatIdxOf_;
 	QList<QByteArrayList> sample_values_;
 };
 using VCFLinePtr = QSharedPointer<VCFLine>;
@@ -572,25 +570,25 @@ namespace VcfFormat
 ///Comparator helper class that used by sort().
 class LessComparator
 {
-	public:
-		///Constructor.
-		LessComparator(bool use_quality);
-        bool operator()(const VCFLinePtr& a, const VCFLinePtr& b) const;
+public:
+	///Constructor.
+	LessComparator(bool use_quality);
+	bool operator()(const VCFLinePtr& a, const VCFLinePtr& b) const;
 
-	private:
-		bool use_quality;
+private:
+	bool use_quality;
 };
 ///Comparator helper class used by sortByFile.
 class LessComparatorByFile
 {
-	public:
-		///Constructor with FAI file, which determines the chromosome order.
-		LessComparatorByFile(QString filename);
-        bool operator()(const VCFLinePtr& a, const VCFLinePtr& b) const;
+public:
+	///Constructor with FAI file, which determines the chromosome order.
+	LessComparatorByFile(QString filename);
+	bool operator()(const VCFLinePtr& a, const VCFLinePtr& b) const;
 
-	private:
-		QString filename_;
-		QHash<int, int> chrom_rank_;
+private:
+	QString filename_;
+	QHash<int, int> chrom_rank_;
 };
 
 } //end namespace VcfFormat

@@ -11,15 +11,15 @@
 #include <cmath>
 #include <vector>
 
- VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
+VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
 {
-	 VcfFile output;
+	VcfFile output;
 
 	//load variant list
 	QString snp_file = ":/Resources/" + build + "_snps.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
 
-    output.load(snp_file, false, roi);
+	output.load(snp_file, false, roi);
 
 	//filter by AF
 	FilterResult filter_result(output.count());
@@ -184,7 +184,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 	}
 
 	//remove duplicates from variant list
-    vl_merged.removeDuplicates(false);
+	vl_merged.removeDuplicates(false);
 
 	//append sample columns
 	for (int i=0; i<vls.count(); ++i)
@@ -288,8 +288,8 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 QByteArray NGSHelper::expandAminoAcidAbbreviation(QChar amino_acid_change_in)
 {
 	const static QHash<QChar,QByteArray> dictionary = {{'A',"Ala"},{'R',"Arg"},{'N',"Asn"},{'D',"Asp"},{'C',"Cys"},{'E',"Glu"},
-		{'Q',"Gln"},{'G',"Gly"},{'H',"His"},{'I',"Ile"},{'L',"Leu"},{'K',"Lys"},{'M',"Met"},{'F',"Phe"},{'P',"Pro"},{'S',"Ser"},
-		{'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"*"}};
+													   {'Q',"Gln"},{'G',"Gly"},{'H',"His"},{'I',"Ile"},{'L',"Leu"},{'K',"Lys"},{'M',"Met"},{'F',"Phe"},{'P',"Pro"},{'S',"Ser"},
+													   {'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"*"}};
 
 	QByteArray amino_acid_change_out;
 	if(dictionary.keys().contains(amino_acid_change_in))

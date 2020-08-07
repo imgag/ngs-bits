@@ -19,7 +19,7 @@
 #include "Histogram.h"
 #include "FilterCascade.h"
 
-QCCollection Statistics::variantList( VcfFile variants, bool filter)
+QCCollection Statistics::variantList(VcfFile variants, bool filter)
 {
     //support only single sample vcf files
     if(variants.sampleIDs().count() > 1)
@@ -1482,7 +1482,7 @@ QCCollection Statistics::contamination(QString build, QString bam, bool debug, i
 	return output;
 }
 
-AncestryEstimates Statistics::ancestry(QString build, const  VcfFile& vl, int min_snp, double min_pop_dist)
+AncestryEstimates Statistics::ancestry(QString build, const VcfFile& vl, int min_snp, double min_pop_dist)
 {
     //multi sample is not supported
     if(vl.sampleIDs().count() > 1)

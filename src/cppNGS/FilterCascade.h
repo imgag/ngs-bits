@@ -89,13 +89,13 @@ class CPPNGSSHARED_EXPORT FilterResult
 
 		///Remove variants that did not pass the filter (with 'false' flag).
 		void removeFlagged(VariantList& variants);
-		void removeFlagged( VcfFile& variants);
+		void removeFlagged(VcfFile& variants);
         void removeFlagged(CnvList& cnvs);
         void removeFlagged(BedpeFile& svs);
 
 		///Tag variants that did not pass the filter using the 'filter' column.
 		void tagNonPassing(VariantList& variants, QByteArray tag, QByteArray description);
-		void tagNonPassing( VcfFile& variants, QByteArray tag, QString description);
+		void tagNonPassing(VcfFile& variants, QByteArray tag, QString description);
 
 	private:
 		QBitArray pass;
@@ -161,7 +161,7 @@ class CPPNGSSHARED_EXPORT FilterBase
 
 		//Applies the filter to a small variant list
 		virtual void apply(const VariantList& variant_list, FilterResult& result) const;
-		virtual void apply(const  VcfFile& variants, FilterResult& result) const;
+		virtual void apply(const VcfFile& variants, FilterResult& result) const;
 
 		//Applies the filter to a CNV list
 		virtual void apply(const CnvList& variant_list, FilterResult& result) const;
@@ -286,7 +286,7 @@ class CPPNGSSHARED_EXPORT FilterRegions
 {
 	public:
 		static void apply(const VariantList& variants, const BedFile& regions, FilterResult& result);
-		static void apply(const  VcfFile& variants, const BedFile& regions, FilterResult& result);
+		static void apply(const VcfFile& variants, const BedFile& regions, FilterResult& result);
 
 	protected:
 		FilterRegions() = delete;
@@ -349,7 +349,7 @@ class CPPNGSSHARED_EXPORT FilterFilterColumnEmpty
 		FilterFilterColumnEmpty();
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
-		void apply(const  VcfFile& variants, FilterResult& result) const override;
+		void apply(const VcfFile& variants, FilterResult& result) const override;
 };
 
 //Filter column filter
@@ -376,7 +376,7 @@ class CPPNGSSHARED_EXPORT FilterVariantIsSNP
 		FilterVariantIsSNP();
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
-		void apply(const  VcfFile& variants, FilterResult& result) const override;
+		void apply(const VcfFile& variants, FilterResult& result) const override;
 };
 
 //Variant impact filter
