@@ -2706,7 +2706,7 @@ void MainWindow::generateReportSomaticRTF()
 			SomaticReportHelper report(variants_, cnvs_, somatic_control_tissue_variants_, somatic_report_settings_);
 
 			//Store XML file with the same somatic report configuration settings
-			QString gsvar_xml_folder = Settings::string("gsvar_somatic_xml_folder");
+			QString gsvar_xml_folder = Settings::string("gsvar_xml_folder");
 
 			try
 			{

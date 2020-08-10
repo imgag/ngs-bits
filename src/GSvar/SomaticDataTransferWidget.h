@@ -24,7 +24,7 @@ private:
 
 	NGSD db_;
 
-	HttpHandler* http_handler_;
+	HttpHandler http_handler_;
 
     bool xml_service_condition_ok_;
     bool pdf_service_condition_ok_;

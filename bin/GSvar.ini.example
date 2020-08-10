@@ -40,3 +40,10 @@ gsvar_variantsheet_folder = ""
 
 #debugging
 debug_mode_enabled=false
+
+#somatic data transfer to MTB
+mtb_xml_upload_url = ""
+mtb_pdf_upload_url = ""
+mtb_pdf_upload_user = ""
+mtb_pdf_upload_pass = "" 
+genlab_somatic_report_folder = ""

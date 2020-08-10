@@ -22,6 +22,7 @@ SomaticDataTransferWidget::SomaticDataTransferWidget(QString t_ps_id, QString n_
 	QDialog(parent),
 	ui(new Ui::SomaticDataTransferWidget),
 	db_(),
+	http_handler_(HttpHandler::ProxyType::NONE, this),
     xml_service_condition_ok_(false),
     pdf_service_condition_ok_(false),
 	t_ps_id_(t_ps_id),
@@ -29,7 +30,7 @@ SomaticDataTransferWidget::SomaticDataTransferWidget(QString t_ps_id, QString n_
 {
     xml_url_ = Settings::string("mtb_xml_upload_url");
     pdf_url_ = Settings::string("mtb_pdf_upload_url");
-	xml_path_ = Settings::string("gsvar_somatic_xml_folder") + "/" + t_ps_id + "-" + n_ps_id + ".xml";
+	xml_path_ = Settings::string("gsvar_xml_folder") + "/" + t_ps_id + "-" + n_ps_id + ".xml";
 
 
     pdf_path_ = Settings::string("genlab_somatic_report_folder") + "/" + t_ps_id + "-" + n_ps_id + ".pdf";
@@ -43,9 +44,6 @@ SomaticDataTransferWidget::SomaticDataTransferWidget(QString t_ps_id, QString n_
 	connect( ui->upload_button, SIGNAL(clicked()), this, SLOT(uploadXML()) );
 	connect( ui->upload_button, SIGNAL(clicked()), this, SLOT(uploadPDF()) );
 	connect( ui->reconnect_button, SIGNAL(clicked()), this, SLOT(checkConnectionRequired()) );
-
-    http_handler_ = new HttpHandler(HttpHandler::ProxyType::NONE, this);
-
 
 	//Check whether there is somatic report configuration
 	if( db_.somaticReportConfigId( db_.processedSampleId(t_ps_id_), db_.processedSampleId(n_ps_id_) ) == -1)
@@ -78,7 +76,7 @@ void SomaticDataTransferWidget::uploadXML()
 			add_headers.insert("Content-Type", "application/xml");
 
 			QSharedPointer<QFile> file = Helper::openFileForReading(xml_path_);
-            res =  http_handler_->post(xml_url_ + "/mtb_imgag", file->readAll(), add_headers);
+			res =  http_handler_.post(xml_url_ + "/mtb_imgag", file->readAll(), add_headers);
 			file->close();
 		}
 		catch(Exception& e)
@@ -112,8 +110,8 @@ void SomaticDataTransferWidget::uploadPDF()
 		QString res = "";
 		try
 		{
-			QHttpMultiPart *parts = new QHttpMultiPart(this);
-			parts->setContentType(QHttpMultiPart::FormDataType);
+			QHttpMultiPart parts(this);
+			parts.setContentType(QHttpMultiPart::FormDataType);
 
 			QHttpPart file_part;
 			//filename must contain SAP id as prefix to be recognized @MTB API
@@ -122,15 +120,16 @@ void SomaticDataTransferWidget::uploadPDF()
 			file_part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"data\"; filename=\"" + file_name_for_api + "\""));
 			file_part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/pdf") );
 
-			QPointer<QFile> file = new  QFile(pdf_path_, this);
-			file->open(QIODevice::ReadOnly);
-			file_part.setBodyDevice(file);
-			parts->append(file_part);
+			QFile file(pdf_path_, this);
+			file.open(QIODevice::ReadOnly);
+
+			file_part.setBodyDevice(&file);
+			parts.append(file_part);
 
 			HttpHeaders add_headers;
 			add_headers.insert("Authorization", "Basic " +QString(Settings::string("mtb_pdf_upload_user") + ":" +Settings::string("mtb_pdf_upload_pass") ).toUtf8().toBase64());
 
-			res = http_handler_->post( pdf_url_ + "/ZPM_rest/mtb_imgag_doc", parts, add_headers);
+			res = http_handler_.post( pdf_url_ + "/ZPM_rest/mtb_imgag_doc", &parts, add_headers);
 		}
 		catch(Exception& e)
 		{
@@ -142,6 +141,12 @@ void SomaticDataTransferWidget::uploadPDF()
 			addRow(res);
 			addRow("#Upload of PDF file successful.","", true);
 			db_.setSomaticMtbPdfUpload( db_.somaticReportConfigId( db_.processedSampleId(t_ps_id_), db_.processedSampleId(n_ps_id_) ) );
+
+			if(QMessageBox::question(this, "Delete file", "Upload of PDF report successful. Delete PDF report " + pdf_path_ + "?") == QMessageBox::Yes)
+			{
+				QFile(pdf_path_).remove();
+			}
+
 		}
 		else
 		{
@@ -174,7 +179,7 @@ void SomaticDataTransferWidget::checkConnectionRequired()
     try
     {
         addRow("<GET " + pdf_url_ + "/ZPM_rest");
-        pdf_service_condition = http_handler_->get(pdf_url_ + "/ZPM_rest");
+		pdf_service_condition = http_handler_.get(pdf_url_ + "/ZPM_rest");
     }
     catch(Exception e ) //connection to server failed
     {
@@ -198,7 +203,7 @@ void SomaticDataTransferWidget::checkConnectionRequired()
 	try
 	{
         addRow(">GET " + xml_url_ + "/condition");
-        xml_service_condition = http_handler_->get(xml_url_ + "/condition");
+		xml_service_condition = http_handler_.get(xml_url_ + "/condition");
 	}
 	catch(Exception e ) //connection to server failed
 	{
