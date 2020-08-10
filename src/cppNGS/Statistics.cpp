@@ -103,7 +103,7 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	for(int i=0; i<variants.count(); ++i)
 	{
 		//only first variant is analyzed
-		const  VCFLine& var = variants.vcfLine(i);
+		const  VcfLine& var = variants.vcfLine(i);
         if (var.isInDel())
 		{
 			++indel_count;
@@ -904,7 +904,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	{
 		if (!variants[i].failedFilters().empty())	continue;
 
-		const  VCFLine& var = variants[i];
+		const  VcfLine& var = variants[i];
         if (var.isInDel())
 		{
 			++indel_count;
@@ -946,7 +946,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	BamReader reader_normal(normal_bam);
 	for (int i=0; i<variants.count(); ++i)
 	{
-		const  VCFLine& v = variants[i];
+		const  VcfLine& v = variants[i];
 
 		if (!v.isSNV()) continue;
 		if (!v.chr().isAutosome()) continue;
@@ -1064,7 +1064,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		if(!variants[i].failedFilters().empty())	continue;	//skip non-somatic variants
 		if(!variants[i].isSNV())	continue;	//skip indels
 
-		VCFLine v = variants[i];
+		VcfLine v = variants[i];
         QString n = v.ref()+">"+v.alt(0);
 		bool contained = false;
 		if(nuc_changes.contains(n))	contained = true;
@@ -1249,7 +1249,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		if(!variants[i].failedFilters().empty())	continue;	//skip non-somatic variants
 		if(!variants[i].isSNV())	continue;	//skip indels
 
-		const  VCFLine& v = variants[i];
+		const  VcfLine& v = variants[i];
 
 		Sequence c = reference.seq(v.chr(),v.start()-1,1,true) + v.ref().toUpper() + reference.seq(v.chr(),v.start()+1,1,true) + " - " + v.altString().toUpper();
 		bool contained = codons.contains(c);
@@ -1511,12 +1511,12 @@ AncestryEstimates Statistics::ancestry(QString build, const VcfFile& vl, int min
 	QVector<double> af_eas;
 	for(int i=0; i<vl.count(); ++i)
 	{
-		const  VCFLine& v = vl.vcfLine(i);
+		const  VcfLine& v = vl.vcfLine(i);
 
 		//skip non-informative SNPs
 		int index = af_idx.matchingIndex(v.chr(), v.pos(), v.end());
 		if (index==-1) continue;
-		const  VCFLine& v2 = af[index];
+		const  VcfLine& v2 = af[index];
 		if (v.ref()!=v2.ref() || v.alt()!=v2.alt()) continue;
 
 		//genotype sample

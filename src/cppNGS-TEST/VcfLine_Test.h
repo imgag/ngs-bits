@@ -30,7 +30,7 @@ TEST_CLASS(VcfLine_Test)
         list.push_back("B");
         list_of_format_values.push_back(list);
 
-        VCFLine variant(Chromosome("chr4"), 777, "A", alt, format_ids, sample_ids, list_of_format_values);
+        VcfLine variant(Chromosome("chr4"), 777, "A", alt, format_ids, sample_ids, list_of_format_values);
         X_EQUAL(variant.chr(), Chromosome("chr4"));
         I_EQUAL(variant.pos(), 777);
         S_EQUAL(variant.ref(), "A");
@@ -49,7 +49,7 @@ TEST_CLASS(VcfLine_Test)
 
     void infoLinefromHeader()
     {
-        VCFHeader header;
+        VcfHeader header;
         InfoFormatLine added_info;
         for(int i = 0; i < 10; ++i)
         {
@@ -69,7 +69,7 @@ TEST_CLASS(VcfLine_Test)
 
     void formatLineFromHeader()
     {
-        VCFHeader header;
+        VcfHeader header;
         InfoFormatLine added_format;
         for(int i = 0; i < 10; ++i)
         {
@@ -84,7 +84,7 @@ TEST_CLASS(VcfLine_Test)
 
     void filterLineFromHeader()
     {
-        VCFHeader header;
+        VcfHeader header;
         FilterLine added_filter;
         for(int i = 0; i < 10; ++i)
         {
@@ -99,7 +99,7 @@ TEST_CLASS(VcfLine_Test)
 
     void infoFromInfoId()
     {
-        VCFLine variant;
+        VcfLine variant;
         QByteArrayList info;
         InfoIDToIdxPtr info_ptr = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
         for(int i = 0; i < 10; ++i)
@@ -154,7 +154,7 @@ TEST_CLASS(VcfLine_Test)
         VcfFile file;
         file.load(TESTDATA("data_in/variantList_removeDuplicates.vcf"));
 
-        VCFLine line = file.vcfLine(5);
+        VcfLine line = file.vcfLine(5);
         IS_TRUE(line.isMultiAllelic());
         line = file.vcfLine(6);
         IS_FALSE(line.isMultiAllelic());
@@ -180,7 +180,7 @@ TEST_CLASS(VcfLine_Test)
         v_list.append(v);
         VcfFile vcf_file = VcfFile::convertGSvarToVcf(v_list, ref_file);
         I_EQUAL(vcf_file.count(), 1);
-        VCFLine v_line = vcf_file[0];
+        VcfLine v_line = vcf_file[0];
         I_EQUAL(v_line.start(), 41246534);
         I_EQUAL(v_line.end(), 41246534);
         S_EQUAL(v_line.ref(), "T");
@@ -296,7 +296,7 @@ TEST_CLASS(VcfLine_Test)
 
     void overlapsWithComplete()
     {
-        VCFLine variant;
+        VcfLine variant;
         variant.setChromosome("chr1");
         variant.setPos(5);
         variant.setRef("NNNNNN");
@@ -313,7 +313,7 @@ TEST_CLASS(VcfLine_Test)
 
     void overlapsWithPosition()
     {
-        VCFLine variant;
+        VcfLine variant;
         variant.setChromosome("chr1");
         variant.setPos(5);
         variant.setRef("NNNNNN");
@@ -331,7 +331,7 @@ TEST_CLASS(VcfLine_Test)
 
     void overlapsWithBedLine()
     {
-        VCFLine variant;
+        VcfLine variant;
         variant.setChromosome("chr1");
         variant.setPos(5);
         variant.setRef("NNNNNN");
@@ -347,25 +347,25 @@ TEST_CLASS(VcfLine_Test)
 
     void operator_lessthan()
     {
-        VCFLine variant_1;
+        VcfLine variant_1;
         variant_1.setChromosome("chr1");
         variant_1.setPos(1);
         variant_1.setRef("NNNNN");
         variant_1.setSingleAlt("NNNNN");
 
-        VCFLine variant_2;
+        VcfLine variant_2;
         variant_2.setChromosome("chr1");
         variant_2.setPos(5);
         variant_2.setRef("NNNNN");
         variant_2.setSingleAlt("NNNNN");
 
-        VCFLine variant_3;
+        VcfLine variant_3;
         variant_3.setChromosome("chr2");
         variant_3.setPos(1);
         variant_3.setRef("NNNNN");
         variant_3.setSingleAlt("NNNNN");
 
-        VCFLine variant_4;
+        VcfLine variant_4;
         variant_4.setChromosome("chr2");
         variant_4.setPos(5);
         variant_4.setRef("NNNNN");

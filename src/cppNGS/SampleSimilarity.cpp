@@ -23,7 +23,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 	VariantGenotypes output;
 	for (int i=0; i<variants.count(); ++i)
 	{
-		VCFLine& variant = variants[i];
+		VcfLine& variant = variants[i];
 
 		//skip variants not on autosomes
 		if(!variant.chr().isAutosome() && !include_gonosomes) continue;

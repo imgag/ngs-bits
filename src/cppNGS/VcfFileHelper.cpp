@@ -1,7 +1,7 @@
 #include "VcfFileHelper.h"
 #include "Helper.h"
 
-VCFLine::VCFLine()
+VcfLine::VcfLine()
 	: chr_()
 	, pos_(-1)
 	, ref_()
@@ -17,7 +17,7 @@ VCFLine::VCFLine()
 {
 }
 
-VCFLine::VCFLine(const Chromosome& chr, int pos, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids, QByteArrayList sample_ids, QList<QByteArrayList> list_of_format_values)
+VcfLine::VcfLine(const Chromosome& chr, int pos, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids, QByteArrayList sample_ids, QList<QByteArrayList> list_of_format_values)
 	: chr_(chr)
 	, pos_(pos)
 	, ref_(ref)
@@ -60,7 +60,7 @@ VcfFormat::LessComparator::LessComparator(bool use_quality)
 	: use_quality(use_quality)
 {
 }
-bool VcfFormat::LessComparator::operator()(const VCFLinePtr& a, const VCFLinePtr& b) const
+bool VcfFormat::LessComparator::operator()(const VcfLinePtr& a, const VcfLinePtr& b) const
 {
 	if (a->chr()<b->chr()) return true;//compare chromsomes
 	else if (a->chr()>b->chr()) return false;
@@ -95,7 +95,7 @@ VcfFormat::LessComparatorByFile::LessComparatorByFile(QString filename)
 	}
 }
 
-bool VcfFormat::LessComparatorByFile::operator()(const VCFLinePtr& a, const VCFLinePtr& b) const
+bool VcfFormat::LessComparatorByFile::operator()(const VcfLinePtr& a, const VcfLinePtr& b) const
 {
 	int a_chr_num = a->chr().num();
 	int b_chr_num = b->chr().num();
@@ -121,8 +121,8 @@ bool VcfFormat::LessComparatorByFile::operator()(const VCFLinePtr& a, const VCFL
 	return false;
 }
 
-const QByteArrayList VCFHeader::InfoTypes = {"Integer", "Float", "Flag", "Character", "String"};
-const QByteArrayList VCFHeader::FormatTypes =  {"Integer", "Float", "Character", "String"};
+const QByteArrayList VcfHeader::InfoTypes = {"Integer", "Float", "Flag", "Character", "String"};
+const QByteArrayList VcfHeader::FormatTypes =  {"Integer", "Float", "Character", "String"};
 
 const QByteArray& strToPointer(const QByteArray& str)
 {
@@ -137,7 +137,7 @@ const QByteArray& strToPointer(const QByteArray& str)
 	return *it;
 }
 
-void VCFHeader::clear()
+void VcfHeader::clear()
 {
 	fileformat_.clear();
 	file_comments_.clear();
@@ -147,7 +147,7 @@ void VCFHeader::clear()
 	format_lines_.clear();
 }
 
-InfoFormatLine VCFHeader::lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found) const
+InfoFormatLine VcfHeader::lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found) const
 {
 	bool found_multiple = false;
 
@@ -171,17 +171,17 @@ InfoFormatLine VCFHeader::lineByID(const QByteArray& id, const QVector<InfoForma
 	return lines.at(index);
 }
 
-InfoFormatLine VCFHeader::infoLineByID(const QByteArray& id, bool error_not_found) const
+InfoFormatLine VcfHeader::infoLineByID(const QByteArray& id, bool error_not_found) const
 {
 	return lineByID(id, infoLines(), error_not_found);
 }
 
-InfoFormatLine VCFHeader::formatLineByID(const QByteArray& id, bool error_not_found) const
+InfoFormatLine VcfHeader::formatLineByID(const QByteArray& id, bool error_not_found) const
 {
 	return lineByID(id, formatLines(), error_not_found);
 }
 
-FilterLine VCFHeader::filterLineByID(const QByteArray& id, bool error_not_found) const
+FilterLine VcfHeader::filterLineByID(const QByteArray& id, bool error_not_found) const
 {
 	bool found_multiple = false;
 
@@ -205,7 +205,7 @@ FilterLine VCFHeader::filterLineByID(const QByteArray& id, bool error_not_found)
 	return filterLines().at(index);
 }
 
-int VCFHeader::vepIndexByName(const QString& name, bool error_if_not_found) const
+int VcfHeader::vepIndexByName(const QString& name, bool error_if_not_found) const
 {
 	InfoFormatLine csq_info = infoLineByID("CSQ", error_if_not_found);
 	if (csq_info.id.isEmpty())
@@ -231,7 +231,7 @@ int VCFHeader::vepIndexByName(const QString& name, bool error_if_not_found) cons
 	return i_field;
 }
 
-QByteArrayList VCFLine::vepAnnotations(int field_index) const
+QByteArrayList VcfLine::vepAnnotations(int field_index) const
 {
 	QByteArrayList output;
 
@@ -251,7 +251,7 @@ QByteArrayList VCFLine::vepAnnotations(int field_index) const
 	return output;
 }
 
-void VCFHeader::storeHeaderInformation(QTextStream& stream) const
+void VcfHeader::storeHeaderInformation(QTextStream& stream) const
 {
 	//first line should always be the fileformat
 	stream << "##fileformat=" << fileformat_ << "\n";
@@ -275,7 +275,7 @@ void VCFHeader::storeHeaderInformation(QTextStream& stream) const
 	}
 }
 
-void VCFHeader::setFormat(QByteArray& line)
+void VcfHeader::setFormat(QByteArray& line)
 {
 	QList<QByteArray> splitted_line=line.split('=');
 	if (splitted_line.count()<2)
@@ -285,7 +285,7 @@ void VCFHeader::setFormat(QByteArray& line)
 	fileformat_ =  splitted_line[1];
 }
 
-void VCFHeader::setInfoLine(QByteArray& line, const int line_number)
+void VcfHeader::setInfoLine(QByteArray& line, const int line_number)
 {
 	line=line.mid(8);//remove "##INFO=<"
 	InfoFormatLine info_line;
@@ -295,7 +295,7 @@ void VCFHeader::setInfoLine(QByteArray& line, const int line_number)
 	}
 }
 
-void VCFHeader::setFormatLine(QByteArray& line, const int line_number)
+void VcfHeader::setFormatLine(QByteArray& line, const int line_number)
 {
 	line=line.mid(10);//remove "##FORMAT=<"
 	InfoFormatLine format_line;
@@ -310,7 +310,7 @@ void VCFHeader::setFormatLine(QByteArray& line, const int line_number)
 	}
 }
 
-void VCFHeader::setFilterLine(QByteArray& line, const int line_number)
+void VcfHeader::setFilterLine(QByteArray& line, const int line_number)
 {
 	//split at '=' to get id and description part
 	QByteArrayList parts = line.mid(13, line.length()-15).split('=');
@@ -330,7 +330,7 @@ void VCFHeader::setFilterLine(QByteArray& line, const int line_number)
 	filter_lines_.push_back(filter_line);
 }
 
-void VCFHeader::setCommentLine(QByteArray& line, const int line_number)
+void VcfHeader::setCommentLine(QByteArray& line, const int line_number)
 {
 	line=line.mid(2);//remove "##"
 	QByteArrayList splitted_line=line.split('=');
@@ -352,7 +352,7 @@ void VCFHeader::setCommentLine(QByteArray& line, const int line_number)
 	file_comments_.push_back(header_line);
 }
 
-void VCFHeader::addFilter(const QByteArray& filter_id, const QString& description)
+void VcfHeader::addFilter(const QByteArray& filter_id, const QString& description)
 {
 	FilterLine line;
 	line.id = filter_id;
@@ -361,7 +361,7 @@ void VCFHeader::addFilter(const QByteArray& filter_id, const QString& descriptio
 	filter_lines_.push_back(line);
 }
 
-bool VCFHeader::parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number)
+bool VcfHeader::parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number)
 {
 	QList <QByteArray> comma_splitted_line=line.split(',');
 	if (comma_splitted_line.count()<4)
@@ -447,7 +447,7 @@ bool VCFHeader::parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format
 	return true;
 }
 
-AnalysisType VCFHeader::type(bool allow_fallback_germline_single_sample) const
+AnalysisType VcfHeader::type(bool allow_fallback_germline_single_sample) const
 {
 	foreach(const VcfHeaderLine& line, file_comments_)
 	{
@@ -474,7 +474,7 @@ AnalysisType VCFHeader::type(bool allow_fallback_germline_single_sample) const
 }
 
 //returns if the chromosome is valid
-bool VCFLine::isValidGenomicPosition() const
+bool VcfLine::isValidGenomicPosition() const
 {
 	bool is_valid_ref_base = true;
 	for(int i = 0; i < this->ref_.size(); ++i)
@@ -489,7 +489,7 @@ bool VCFLine::isValidGenomicPosition() const
 	return chr_.isValid() && is_valid_ref_base && pos_>=0 && ref_.size()>=0 && !ref_.isEmpty() && !alt_.isEmpty();
 }
 
-bool VCFLine::isMultiAllelic() const
+bool VcfLine::isMultiAllelic() const
 {
 	if(alt().count() > 1)
 	{
@@ -498,7 +498,7 @@ bool VCFLine::isMultiAllelic() const
 	return false;
 }
 
-bool VCFLine::isInDel() const
+bool VcfLine::isInDel() const
 {
 	if(alt().count() > 1)
 	{
@@ -513,7 +513,7 @@ bool VCFLine::isInDel() const
 }
 
 //returns all not passed filters
-QByteArrayList VCFLine::failedFilters() const
+QByteArrayList VcfLine::failedFilters() const
 {
 	QByteArrayList filters;
 	foreach(QByteArray tag, filter_)
@@ -528,17 +528,17 @@ QByteArrayList VCFLine::failedFilters() const
 	return filters;
 }
 
-QString VCFLine::variantToString() const
+QString VcfLine::variantToString() const
 {
 	return chr_.str() + ":" + QString::number(start()) + "-" + QString::number(end()) + " " + ref_ + ">" + altString();
 }
 
-bool VCFLine::operator==(const VCFLine& rhs) const
+bool VcfLine::operator==(const VcfLine& rhs) const
 {
 	return pos_==rhs.pos() && chr_==rhs.chr() && ref_==rhs.ref() && altString()==rhs.altString();
 }
 
-bool VCFLine::operator<(const VCFLine& rhs) const
+bool VcfLine::operator<(const VcfLine& rhs) const
 {
 	if (chr_<rhs.chr_) return true; //compare chromosome
 	else if (chr_>rhs.chr_) return false;
@@ -551,7 +551,7 @@ bool VCFLine::operator<(const VCFLine& rhs) const
 	return false;
 }
 
-void VCFLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
+void VcfLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 {
 	//skip multi-allelic variants
 	if(alt().count() > 1 || alt().empty())	return;
@@ -573,7 +573,7 @@ void VCFLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 	}
 }
 
-void VCFLine::leftNormalize(QString reference_genome)
+void VcfLine::leftNormalize(QString reference_genome)
 {
 
 	FastaFileIndex reference(reference_genome);

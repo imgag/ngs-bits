@@ -141,7 +141,7 @@ struct CPPNGSSHARED_EXPORT FilterLine
 };
 
 ///struct representing a vcf header.
-class CPPNGSSHARED_EXPORT VCFHeader
+class CPPNGSSHARED_EXPORT VcfHeader
 {
 public:
 
@@ -219,15 +219,15 @@ private:
 };
 
 ///representation of a line of a vcf file
-class CPPNGSSHARED_EXPORT  VCFLine
+class CPPNGSSHARED_EXPORT  VcfLine
 {
 
 public:
 
 	///Default constructor.
-	VCFLine();
+	VcfLine();
 	///Constructor with basic entries
-	VCFLine(const Chromosome& chr, int pos, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids = QByteArrayList(), QByteArrayList sample_ids = QByteArrayList(), QList<QByteArrayList> list_of_format_values = QList<QByteArrayList>());
+	VcfLine(const Chromosome& chr, int pos, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids = QByteArrayList(), QByteArrayList sample_ids = QByteArrayList(), QList<QByteArrayList> list_of_format_values = QList<QByteArrayList>());
 
 	const Chromosome& chr() const
 	{
@@ -525,7 +525,7 @@ public:
 
 		return ref_.length()==1 && alt(0)!="-" && ref_!="-";
 	}
-	///returns if any VCFLine in the file is multiallelic
+	///returns if any VcfLine in the file is multiallelic
 	bool isMultiAllelic() const;
 	///returns if the variant is an InDel, can only be called on single allelic variants
 	bool isInDel() const;
@@ -539,7 +539,7 @@ public:
 	void leftNormalize(QString reference_genome);
 	/// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
 	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=true);
-	/// copy coordinates of the VCFLine into a variant (only single alternative bases)
+	/// copy coordinates of the VcfLine into a variant (only single alternative bases)
 	void copyCoordinatesIntoVariant(Variant& variant)
 	{
 		variant.setChr(chr());
@@ -550,9 +550,9 @@ public:
 	}
 
 	///Equality operator (only compares the variatn location itself, not further annotations).
-	bool operator==(const VCFLine& rhs) const;
+	bool operator==(const VcfLine& rhs) const;
 	///Less-than operator.
-	bool operator<(const VCFLine& rhs) const;
+	bool operator<(const VcfLine& rhs) const;
 
 private:
 	Chromosome chr_;
@@ -572,7 +572,7 @@ private:
 	FormatIDToIdxPtr formatIdxOf_;
 	QList<QByteArrayList> sample_values_;
 };
-using VCFLinePtr = QSharedPointer<VCFLine>;
+using VcfLinePtr = QSharedPointer<VcfLine>;
 
 namespace VcfFormat
 {
@@ -582,7 +582,7 @@ class LessComparator
 public:
 	///Constructor.
 	LessComparator(bool use_quality);
-	bool operator()(const VCFLinePtr& a, const VCFLinePtr& b) const;
+	bool operator()(const VcfLinePtr& a, const VcfLinePtr& b) const;
 
 private:
 	bool use_quality;
@@ -593,7 +593,7 @@ class LessComparatorByFile
 public:
 	///Constructor with FAI file, which determines the chromosome order.
 	LessComparatorByFile(QString filename);
-	bool operator()(const VCFLinePtr& a, const VCFLinePtr& b) const;
+	bool operator()(const VcfLinePtr& a, const VcfLinePtr& b) const;
 
 private:
 	QString filename_;

@@ -3632,7 +3632,7 @@ void MainWindow::exportVCF()
 		QVector<int> matches = orig_idx.matchingIndices(v.chr(), v.start()-10, v.end()+10);
 		foreach(int index, matches)
 		{
-			const VCFLinePtr& v2 = orig_vcf.getVariantPtr(index);
+			const VcfLinePtr& v2 = orig_vcf.getVariantPtr(index);
 			if(v2->isMultiAllelic()) continue;
 
 			if (v.isSNV()) //SNV

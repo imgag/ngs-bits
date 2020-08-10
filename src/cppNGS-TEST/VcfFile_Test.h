@@ -451,7 +451,7 @@ private slots:
 	{
 		VcfFile vl;
 		vl.load(TESTDATA("data_in/sort_in.vcf"));
-        vl.sortCustom([](const VCFLinePtr& a, const VCFLinePtr& b) {return a->pos() < b->pos(); });
+		vl.sortCustom([](const VcfLinePtr& a, const VcfLinePtr& b) {return a->pos() < b->pos(); });
 
 		I_EQUAL(vl.count(), 2344);
 		X_EQUAL(vl.vcfLine(0).chr(),Chromosome("chr4"));
@@ -577,8 +577,8 @@ private slots:
 		QByteArrayList info_ids = vcf_file.informationIDs();
 		I_EQUAL(info_ids.count(), 17);
 		S_EQUAL(info_ids.at(0), "CSQ"); //the first INFO ID that was already in the header
-		S_EQUAL(info_ids.at(2), "IC"); //the first INFO ID not mentioned in header and parsed from VCFLine
-		S_EQUAL(info_ids.at(16), "TQSS_NT"); //the last INFO ID not mentioned in header and parsed from VCFLine
+		S_EQUAL(info_ids.at(2), "IC"); //the first INFO ID not mentioned in header and parsed from VcfLine
+		S_EQUAL(info_ids.at(16), "TQSS_NT"); //the last INFO ID not mentioned in header and parsed from VcfLine
 	}
 
 	void getFormatIds()
@@ -665,7 +665,7 @@ private slots:
 
 		QVector<Sequence> alt_bases;
 		alt_bases.push_back("C");
-		VCFLinePtr vcf_line = VCFLinePtr(new VCFLine(Chromosome("chr1"), 1, "A", alt_bases));
+		VcfLinePtr vcf_line = VcfLinePtr(new VcfLine(Chromosome("chr1"), 1, "A", alt_bases));
 		vl.vcfLines().push_back(vcf_line);
 
 		//copy meta data

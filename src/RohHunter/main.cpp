@@ -223,7 +223,7 @@ public:
 		QList<VariantInfo> var_info;
 		for(int i=0; i<vl.count(); ++i)
 		{
-			const  VCFLine& v = vl[i];
+			const  VcfLine& v = vl[i];
 
 			//skip gonosomes
 			if (!v.chr().isAutosome() && !(inc_chrx && v.chr().isX()))
@@ -262,6 +262,7 @@ public:
 			foreach(int index, csq_af_indices)
 			{
 				QByteArrayList annos = v.vepAnnotations(index);
+
 				foreach(const QByteArray& anno, annos)
 				{
 					float af_new = anno.toFloat();

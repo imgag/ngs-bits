@@ -75,46 +75,46 @@ public:
 	AnalysisType type(bool allow_fallback_germline_single_sample = true) const;
 
 	///returns a QVector of vcf_lines_
-	const QVector<VCFLinePtr>& vcfLines() const
+	const QVector<VcfLinePtr>& vcfLines() const
 	{
 		return vcf_lines_;
 	}
 	///Read-Write access to a vcf_lines_
-	QVector<VCFLinePtr>& vcfLines()
+	QVector<VcfLinePtr>& vcfLines()
 	{
 		return vcf_lines_;
 	}
-	///returns the VCFLine at pos
-	const VCFLine& vcfLine(int pos) const
+	///returns the VcfLine at pos
+	const VcfLine& vcfLine(int pos) const
 	{
 		return *(vcf_lines_.at(pos));
 	}
 	///Read-Write access to a vcf_line
-	VCFLine& vcfLine(int pos)
+	VcfLine& vcfLine(int pos)
 	{
 		return *(vcf_lines_[pos]);
 	}
-	///returns the VCFLine at pos
-	const VCFLine& operator[](int pos) const
+	///returns the VcfLine at pos
+	const VcfLine& operator[](int pos) const
 	{
 		return *(vcf_lines_.at(pos));
 	}
 	///Read-Write access to a vcf_line by operator[]
-	VCFLine& operator[](int pos)
+	VcfLine& operator[](int pos)
 	{
 		return *(vcf_lines_[pos]);
 	}
-	const VCFLinePtr& getVariantPtr(int pos)
+	const VcfLinePtr& getVariantPtr(int pos)
 	{
 		return vcf_lines_[pos];
 	}
 	///returns a struct storing header information
-	const VCFHeader& vcfHeader() const
+	const VcfHeader& vcfHeader() const
 	{
 		return vcf_header_;
 	}
 	///Read-Write access to the vcf header
-	VCFHeader& vcfHeader()
+	VcfHeader& vcfHeader()
 	{
 		return vcf_header_;
 	}
@@ -176,10 +176,10 @@ private:
 	void parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
 	void parseVcfHeader(const int line_number, QByteArray& line);
 	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
-	void storeLineInformation(QTextStream& stream, VCFLine line) const;
+	void storeLineInformation(QTextStream& stream, VcfLine line) const;
 
-	QVector<VCFLinePtr> vcf_lines_; //variant lines
-	VCFHeader vcf_header_; //all informations from header
+	QVector<VcfLinePtr> vcf_lines_; //variant lines
+	VcfHeader vcf_header_; //all informations from header
 	QVector<QByteArray> column_headers_; //heading of variant lines
 
 	SampleIDToIdxPtr sample_id_to_idx_; //Hash of SampleID to its position

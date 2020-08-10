@@ -213,7 +213,7 @@ private slots:
 			{
 				QVector<Sequence> alt_bases;
 				alt_bases.push_back("AG");
-				VCFLinePtr variant = VCFLinePtr(new VCFLine(Chromosome("chr" + QString::number(c)), p, "AAAAAAAAAAA", alt_bases));
+				VcfLinePtr variant = VcfLinePtr(new VcfLine(Chromosome("chr" + QString::number(c)), p, "AAAAAAAAAAA", alt_bases));
 				var_list.vcfLines().push_back(variant);
 			}
 		}
@@ -266,7 +266,7 @@ private slots:
 			{
 				QVector<Sequence> alt_bases;
 				alt_bases.push_back("AG");
-				VCFLinePtr variant = VCFLinePtr(new VCFLine(Chromosome("chr" + QString::number(c)), p, "AAAAAAAAAAA", alt_bases));
+				VcfLinePtr variant = VcfLinePtr(new VcfLine(Chromosome("chr" + QString::number(c)), p, "AAAAAAAAAAA", alt_bases));
 				var_list.vcfLines().push_back(variant);
 			}
 		}

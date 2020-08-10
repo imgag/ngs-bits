@@ -217,7 +217,7 @@ public:
 
 		for (int i=0; i<variants.count(); ++i)
 		{
-			const  VCFLine& v = variants[i];
+			const  VcfLine& v = variants[i];
 
 			//only autosomes
 			if (!v.chr().isAutosome())

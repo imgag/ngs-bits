@@ -115,7 +115,7 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 		THROW(FileParseException, "VCF data line needs at least 8 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
 	}
 
-	VCFLinePtr vcf_line = VCFLinePtr(new VCFLine);
+	VcfLinePtr vcf_line = VcfLinePtr(new VcfLine);
 
 	vcf_line->setChromosome(strToPointer(line_parts[CHROM]));
 	if(!vcf_line->chr().isValid())
@@ -553,7 +553,7 @@ void VcfFile::storeAsTsv(const QString& filename)
 	}
 
 	//vcf lines
-	for(VCFLinePtr& v : vcfLines())
+	for(VcfLinePtr& v : vcfLines())
 	{
 		//normalize variants and set symbol for empty sequence
 		v->normalize("-", true);
@@ -658,7 +658,7 @@ void VcfFile::store(const QString& filename,  bool stdout_if_file_empty, bool co
 
 void VcfFile::leftNormalize(QString reference_genome)
 {
-	for(VCFLinePtr& variant_line : vcfLines())
+	for(VcfLinePtr& variant_line : vcfLines())
 	{
 		variant_line->leftNormalize(reference_genome);
 	}
@@ -681,7 +681,7 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 	sort(sort_by_quality);
 
 	//remove duplicates (same chr, start, obs, ref) - avoid linear time remove() calls by copying the data to a new vector.
-	QVector<VCFLinePtr> output;
+	QVector<VcfLinePtr> output;
 	output.reserve(vcfLines().count());
 	for (int i=0; i<vcfLines().count()-1; ++i)
 	{
@@ -745,7 +745,7 @@ AnalysisType VcfFile::type(bool allow_fallback_germline_single_sample) const
 	return vcfHeader().type(allow_fallback_germline_single_sample);
 }
 
-void VcfFile::storeLineInformation(QTextStream& stream, VCFLine line) const
+void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 {
 	//chr
 	stream << line.chr().str()  << "\t" << line.pos();
@@ -1034,7 +1034,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 	for(int i = 0; i < variant_list.count(); ++i)
 	{
 		Variant v = variant_list[i];
-		VCFLinePtr vcf_line = VCFLinePtr(new VCFLine);
+		VcfLinePtr vcf_line = VcfLinePtr(new VcfLine);
 		vcf_line->setFormatIdToIdxPtr(gt_to_first_position);
 		vcf_line->setSampleIdToIdxPtr(sample_id_to_idx);
 
@@ -1179,7 +1179,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		vcf_file.vcf_lines_.push_back(vcf_line);
 	}
 
-	for(VCFLinePtr& v_line : vcf_file.vcfLines())
+	for(VcfLinePtr& v_line : vcf_file.vcfLines())
 	{
 		//add base for INSERTION
 		QByteArray ref = v_line->ref().toUpper();

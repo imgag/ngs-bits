@@ -105,7 +105,7 @@ public:
 			//iterate over all varaints in PRS
 			for(int i = 0; i < prs_variant_list.count(); ++i)
 			{	
-				const VCFLine& prs_variant = prs_variant_list[i];
+				const VcfLine& prs_variant = prs_variant_list[i];
 
 				//does not support multi-allelic variants
 				if(prs_variant.isMultiAllelic())

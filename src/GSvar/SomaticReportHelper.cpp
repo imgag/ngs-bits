@@ -1706,7 +1706,7 @@ VariantList SomaticReportHelper::gsvarToVcf(const VariantList& gsvar_list, const
 
 		foreach(int index, matches)
 		{
-			VCFLine v2 = orig_vcf[index];
+			VcfLine v2 = orig_vcf[index];
 			Variant vcf_coordinate_variant;
 
 			if(v2.isMultiAllelic()) continue;

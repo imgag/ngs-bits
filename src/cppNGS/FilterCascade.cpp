@@ -1000,7 +1000,7 @@ void FilterRegions::apply(const VcfFile& variants, const BedFile& regions, Filte
 	{
 		if (!result.flags()[i]) continue;
 
-		const  VCFLine& v = variants[i];
+		const  VcfLine& v = variants[i];
 		int index = regions_idx.matchingIndex(v.chr(), v.start(), v.end());
 		result.flags()[i] = (index!=-1);
 	}
