@@ -1,7 +1,7 @@
 #include "TestFramework.h"
 #include "ChromosomalIndex.h"
 #include "BedFile.h"
-#include "VariantList.h"
+#include "VcfFile.h"
 #include "Log.h"
 
 TEST_CLASS(ChromosomalIndex_Test)
@@ -178,6 +178,99 @@ private slots:
 			}
 		}
 		ChromosomalIndex<VariantList> var_index(var_list);
+
+		//chromosome not found
+		int index = var_index.matchingIndex("chrX", 5, 15);
+		I_EQUAL(index, -1);
+
+		//whole chr1
+		index = var_index.matchingIndex("chr1", 0, 100000);
+		I_EQUAL(index, 0);
+
+		//7 elements
+		index = var_index.matchingIndex("chr1", 5, 7);
+		I_EQUAL(index, 0);
+
+		//1 element
+		index = var_index.matchingIndex("chr1", 1, 1);
+		I_EQUAL(index, 0);
+
+		//whole chr2
+		index = var_index.matchingIndex("chr2", 0, 100000);
+		I_EQUAL(index, 100);
+
+		//no overlap
+		index = var_index.matchingIndex("chr2", 500, 505);
+		I_EQUAL(index, -1);
+	}
+
+	void matchingIndices_VcfFile()
+	{
+		VcfFile var_list;
+		for (int c=1; c<=5; ++c)
+		{
+			for (int p=1; p<=100*c; ++p)
+			{
+				QVector<Sequence> alt_bases;
+				alt_bases.push_back("AG");
+				VCFLinePtr variant = VCFLinePtr(new VCFLine(Chromosome("chr" + QString::number(c)), p, "AAAAAAAAAAA", alt_bases));
+				var_list.vcfLines().push_back(variant);
+			}
+		}
+		ChromosomalIndex<VcfFile> var_index(var_list);
+
+		//chromosome not found
+		QVector<int> elements = var_index.matchingIndices("chrX", 5, 15);
+		I_EQUAL(elements.count(), 0);
+
+		//whole chr1
+		elements = var_index.matchingIndices("chr1", 0, 100000);
+		I_EQUAL(elements.count(), 100);
+
+		//7 elements
+		elements = var_index.matchingIndices("chr1", 5, 7);
+		I_EQUAL(elements.count(), 7);
+
+		//1 element
+		elements = var_index.matchingIndices("chr1", 1, 1);
+		I_EQUAL(elements.count(), 1);
+
+		//whole chr2
+		elements = var_index.matchingIndices("chr2", 0, 100000);
+		I_EQUAL(elements.count(), 200);
+
+		//5 elements
+		elements = var_index.matchingIndices("chr2", 1, 5);
+		I_EQUAL(elements.count(), 5);
+
+		//overlap with beginning
+		elements = var_index.matchingIndices("chr2", -10, 5);
+		I_EQUAL(elements.count(), 5);
+
+		//overlap with end
+		elements = var_index.matchingIndices("chr2", 200, 205);
+		I_EQUAL(elements.count(), 11);
+
+		//not overlap
+		elements = var_index.matchingIndices("chr2", 500, 505);
+		I_EQUAL(elements.count(), 0);
+
+	}
+
+	void matchingIndex_VcfFile()
+	{
+		VcfFile var_list;
+		for (int c=1; c<=5; ++c)
+		{
+			for (int p=1; p<=100*c; ++p)
+			{
+				QVector<Sequence> alt_bases;
+				alt_bases.push_back("AG");
+				VCFLinePtr variant = VCFLinePtr(new VCFLine(Chromosome("chr" + QString::number(c)), p, "AAAAAAAAAAA", alt_bases));
+				var_list.vcfLines().push_back(variant);
+			}
+		}
+		ChromosomalIndex<VcfFile> var_index(var_list);
 
 		//chromosome not found
 		int index = var_index.matchingIndex("chrX", 5, 15);

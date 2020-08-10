@@ -247,8 +247,8 @@ public:
 	}
 	int end() const
 	{
-		if(ref().length() <= 0) THROW(ArgumentException, "Reference can not have length zero in a VCF File.")
-				return (pos() + ref().length() - 1);
+		if(ref().length() <= 0) THROW(ArgumentException, "Reference can not have length zero in a VCF File.");
+		return (pos() + ref().length() - 1);
 	}
 	const QVector<Sequence>& alt() const
 	{
@@ -539,6 +539,15 @@ public:
 	void leftNormalize(QString reference_genome);
 	/// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
 	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=true);
+	/// copy coordinates of the VCFLine into a variant (only single alternative bases)
+	void copyCoordinatesIntoVariant(Variant& variant)
+	{
+		variant.setChr(chr());
+		variant.setStart(start());
+		variant.setEnd(end());
+		variant.setRef(ref());
+		variant.setObs(alt(0));
+	}
 
 	///Equality operator (only compares the variatn location itself, not further annotations).
 	bool operator==(const VCFLine& rhs) const;

@@ -2,11 +2,25 @@
 #include "Helper.h"
 #include <zlib.h>
 
+VcfFile::VcfFile()
+	: vcf_lines_()
+	, vcf_header_()
+	, column_headers_()
+	, sample_id_to_idx_()
+	, format_id_to_idx_list_()
+	, info_id_to_idx_list_()
+{
+}
+
 void VcfFile::clear()
 {
 	vcf_lines_.clear();
 	column_headers_.clear();
 	vcf_header_.clear();
+
+	sample_id_to_idx_.clear();
+	format_id_to_idx_list_.clear();
+	info_id_to_idx_list_.clear();
 }
 
 void VcfFile::parseVcfHeader(const int line_number, QByteArray& line)
@@ -69,24 +83,24 @@ void VcfFile::parseHeaderFields(QByteArray& line, bool allow_multi_sample)
 		}
 
 		//samples are all columns after the 10th
-		sample_id_to_idx = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
+		sample_id_to_idx_ = SampleIDToIdxPtr(new OrderedHash<QByteArray, int>);
 		if(column_headers_.count() >= 10)
 		{
 			for(int i = 9; i < column_headers_.count(); ++i)
 			{
-				sample_id_to_idx->push_back(column_headers_.at(i), i-9);
+				sample_id_to_idx_->push_back(column_headers_.at(i), i-9);
 			}
 		}
 		else if(header_fields.count()==9) //if we have a FORMAT column with no sample
 		{
 			column_headers_.push_back("Sample");
-			sample_id_to_idx->push_back("Sample", 0);
+			sample_id_to_idx_->push_back("Sample", 0);
 		}
 		else if(header_fields.count()==8)
 		{
 			column_headers_.push_back("FORMAT");
 			column_headers_.push_back("Sample");
-			sample_id_to_idx->push_back("Sample", 0);
+			sample_id_to_idx_->push_back("Sample", 0);
 		}
 	}
 }
@@ -208,9 +222,9 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 
 		//save info order
 		ListOfInfoIds info_ids_string = info_ids_string_list.join();
-		if(info_id_to_idx_list.contains(info_ids_string))
+		if(info_id_to_idx_list_.contains(info_ids_string))
 		{
-			vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
+			vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list_[info_ids_string]);
 		}
 		else
 		{
@@ -219,8 +233,8 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 			{
 				new_info_id_to_idx_entry->push_back(info_ids_string_list.at(i), i);
 			}
-			info_id_to_idx_list.insert(info_ids_string, new_info_id_to_idx_entry);
-			vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list[info_ids_string]);
+			info_id_to_idx_list_.insert(info_ids_string, new_info_id_to_idx_entry);
+			vcf_line->setInfoIdToIdxPtr(info_id_to_idx_list_[info_ids_string]);
 		}
 		vcf_line->setInfo(info_values);
 
@@ -258,9 +272,9 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 
 		//set format indices
 		ListOfFormatIds format_ids_string = format_list.join();
-		if(format_id_to_idx_list.contains(format_ids_string))
+		if(format_id_to_idx_list_.contains(format_ids_string))
 		{
-			vcf_line->setFormatIdToIdxPtr(format_id_to_idx_list[format_ids_string]);
+			vcf_line->setFormatIdToIdxPtr(format_id_to_idx_list_[format_ids_string]);
 		}
 		else
 		{
@@ -269,12 +283,12 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 			{
 				new_format_id_to_idx_entry->push_back(strToPointer(format_list.at(i)), i);
 			}
-			format_id_to_idx_list.insert(format_ids_string, new_format_id_to_idx_entry);
+			format_id_to_idx_list_.insert(format_ids_string, new_format_id_to_idx_entry);
 			vcf_line->setFormatIdToIdxPtr(new_format_id_to_idx_entry);
 		}
 
 		//set samples idices
-		vcf_line->setSampleIdToIdxPtr(sample_id_to_idx);
+		vcf_line->setSampleIdToIdxPtr(sample_id_to_idx_);
 
 		//SAMPLE
 		if(line_parts.count() >= 10)
@@ -451,6 +465,34 @@ void VcfFile::load(const QString& filename, bool allow_multi_sample, const BedFi
 	else if (fn_lower.endsWith(".vcf.gz"))
 	{
 		loadFromVCFGZ(filename, allow_multi_sample, roi_idx.data(), invert);
+	}
+	else
+	{
+		THROW(ArgumentException, "Could not determine format of file '" + fn_lower + "' from file extension. Valid extensions are 'vcf' and 'vcf.gz'.");
+	}
+}
+
+void VcfFile::load(const QString& filename, const BedFile* roi, bool invert)
+{
+	//create ROI index (if given)
+	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
+	if (roi!=nullptr)
+	{
+		if (!roi->isSorted())
+		{
+			THROW(ArgumentException, "Target region unsorted, but needs to be sorted (given for reading file " + filename + ")!");
+		}
+		roi_idx.reset(new ChromosomalIndex<BedFile>(*roi));
+	}
+
+	QString fn_lower = filename.toLower();
+	if (fn_lower.endsWith(".vcf"))
+	{
+		loadFromVCF(filename, true, roi_idx.data(), invert);
+	}
+	else if (fn_lower.endsWith(".vcf.gz"))
+	{
+		loadFromVCFGZ(filename, true, roi_idx.data(), invert);
 	}
 	else
 	{
@@ -660,12 +702,12 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 
 QByteArrayList VcfFile::sampleIDs() const
 {
-	if(!sample_id_to_idx || sample_id_to_idx->empty())
+	if(!sample_id_to_idx_ || sample_id_to_idx_->empty())
 	{
 		QByteArrayList empty_list;
 		return empty_list;
 	}
-	return sample_id_to_idx->keys();
+	return sample_id_to_idx_->keys();
 }
 
 QByteArrayList VcfFile::informationIDs() const
@@ -838,6 +880,22 @@ QString VcfFile::lineToString(int pos) const
 	QTextStream stream(&line);
 	storeLineInformation(stream, vcfLine(pos));
 	return line;
+}
+
+void VcfFile::copyMetaDataForSubsetting(const VcfFile& rhs)
+{
+	//copy header information
+	vcf_header_ = rhs.vcfHeader();
+
+	for(const QByteArray& header : rhs.vcfColumnHeader())
+	{
+		column_headers_.push_back(header);
+	}
+
+	//copy information about samples and possible info/ format lines
+	sample_id_to_idx_ = rhs.sampleIDToIdx();
+	format_id_to_idx_list_ = rhs.formatIDToIdxList();
+	info_id_to_idx_list_ = rhs.infoIDToIdxList();
 }
 
 VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome)

@@ -644,4 +644,67 @@ private slots:
         QString output_string = VcfFile::decodeInfoValue(input_string);
         S_EQUAL(output_string, "Test-String= blabla%, \t; \r\n; \r");
     }
+
+	void copyMetaData()
+	{
+		VcfFile vl;
+
+		FilterLine filter_line;
+		filter_line.id = "FILTERID";
+		filter_line.description = "FILTERDESCRIPTION";
+
+		InfoFormatLine info_line;
+		info_line.id = "INFOID";
+		info_line.description = "INFODESCRIPTION";
+		info_line.number = ".";
+
+		vl.vcfHeader().addFilterLine(filter_line);
+		vl.vcfHeader().addInfoLine(info_line);
+		QByteArray comment = "##CommentKey=CommentValue";
+		vl.vcfHeader().setCommentLine(comment, 0);
+
+		QVector<Sequence> alt_bases;
+		alt_bases.push_back("C");
+		VCFLinePtr vcf_line = VCFLinePtr(new VCFLine(Chromosome("chr1"), 1, "A", alt_bases));
+		vl.vcfLines().push_back(vcf_line);
+
+		//copy meta data
+		VcfFile vl2;
+		vl2.copyMetaDataForSubsetting(vl);
+
+		//check meta data
+		QByteArrayList filterIDs = vl2.filterIDs();
+		I_EQUAL(filterIDs.count(), 1);
+		S_EQUAL(filterIDs.at(0), QString("FILTERID"));
+		QByteArrayList infoIDs = vl2.informationIDs();
+		I_EQUAL(infoIDs.count(), 1);
+		S_EQUAL(infoIDs.at(0), QString("INFOID"));
+
+		I_EQUAL(vl2.vcfHeader().filterLines().count(), 1);
+		I_EQUAL(vl2.vcfHeader().infoLines().count(), 1);
+		I_EQUAL(vl2.vcfHeader().formatLines().count(), 0);
+		I_EQUAL(vl2.vcfHeader().comments().count(), 1);
+		S_EQUAL(vl2.vcfHeader().comments().at(0).key, QString("CommentKey"));
+
+		//check pointer to samples is not set
+		X_EQUAL(vl2.sampleIDToIdx(), nullptr);
+		IS_TRUE(vl2.infoIDToIdxList().empty());
+		IS_TRUE(vl2.formatIDToIdxList().empty());
+
+		//check no variants
+		I_EQUAL(vl2.count(), 0);
+	}
+
+	void copyMetaData_check_sampleInfoFormatPtrs()
+	{
+		VcfFile vcf_file;
+		vcf_file.load(TESTDATA("data_in/panel_snpeff.vcf"));
+
+		SampleIDToIdxPtr s_ptr = vcf_file.sampleIDToIdx();
+		S_EQUAL(s_ptr->keys().at(0), QString("./Sample_GS120297A3/GS120297A3.bam"));
+		I_EQUAL(s_ptr->keys().count(), 1);
+
+		I_EQUAL(vcf_file.formatIDToIdxList().keys().count(), 1);
+		I_EQUAL(vcf_file.infoIDToIdxList().keys().count(), 4);
+	}
 };

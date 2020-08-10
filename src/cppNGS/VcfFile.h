@@ -27,6 +27,8 @@ public:
 	// values defined in VcfFile.cpp
 	static const QList<KeyValuePair> INFO_URL_MAPPING;
 
+	VcfFile();
+
 	int count() const
 	{
 		return vcf_lines_.count();
@@ -44,7 +46,8 @@ public:
 
 	void leftNormalize(QString reference_genome);
 	///loads a vcf or vcf.gz file
-	void load(const QString& filename, bool allow_multi_sample=true, const BedFile* roi=nullptr, bool invert=false);
+	void load(const QString& filename, bool allow_multi_sample, const BedFile* roi=nullptr, bool invert=false);
+	void load(const QString& filename, const BedFile* roi=nullptr, bool invert=false);
 	///removes duplicate variants
 	void removeDuplicates(bool sort_by_quality);
 	///stores the data of VCFFileHandler in a vcf file
@@ -101,6 +104,10 @@ public:
 	{
 		return *(vcf_lines_[pos]);
 	}
+	const VCFLinePtr& getVariantPtr(int pos)
+	{
+		return vcf_lines_[pos];
+	}
 	///returns a struct storing header information
 	const VCFHeader& vcfHeader() const
 	{
@@ -116,12 +123,34 @@ public:
 	{
 		return column_headers_;
 	}
+	///Read-Write access to column headers for a vcfLine
+	QVector<QByteArray>& vcfColumnHeader()
+	{
+		return column_headers_;
+	}
+	const SampleIDToIdxPtr& sampleIDToIdx() const
+	{
+		return sample_id_to_idx_;
+	}
+	const QHash<ListOfFormatIds, FormatIDToIdxPtr>& formatIDToIdxList() const
+	{
+		return format_id_to_idx_list_;
+	}
+	const QHash<ListOfInfoIds, FormatIDToIdxPtr>& infoIDToIdxList() const
+	{
+		return info_id_to_idx_list_;
+	}
 
 	///Resize vector of vcf lines.
 	void resize(int size)
 	{
 		vcf_lines_.resize(size);
 	}
+
+	///Copies meta data from a VcfFile (comment, header, column headers), but not the variants.
+	///(copies pointers for sampleIDs, format and info line order as well. Therefore should only
+	/// be used to subset a VcfFile and copy the meta data, not to add entirely new variants)
+	void copyMetaDataForSubsetting(const VcfFile& rhs);
 
 	///Converts a Variant list (e.g. from a GSvar file) to a VcfFile
 	static VcfFile convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome);
@@ -153,9 +182,9 @@ private:
 	VCFHeader vcf_header_; //all informations from header
 	QVector<QByteArray> column_headers_; //heading of variant lines
 
-	SampleIDToIdxPtr sample_id_to_idx; //Hash of SampleID to its position
-	QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list; //
-	QHash<ListOfInfoIds, FormatIDToIdxPtr> info_id_to_idx_list;
+	SampleIDToIdxPtr sample_id_to_idx_; //Hash of SampleID to its position
+	QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list_; //
+	QHash<ListOfInfoIds, FormatIDToIdxPtr> info_id_to_idx_list_;
 
 	//INFO/FORMAT/FILTER definition line for VCFCHECK only
 	struct DefinitionLine

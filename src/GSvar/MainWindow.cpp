@@ -3616,13 +3616,13 @@ void MainWindow::exportVCF()
 		GUIHelper::showMessage("VCF export error", "Could not find original VCF file '" + orig_name + "'!");
 		return;
 	}
-	VariantList orig_vcf;
-	orig_vcf.load(orig_name, VCF_GZ, &roi);
-	ChromosomalIndex<VariantList> orig_idx(orig_vcf);
+	VcfFile orig_vcf;
+	orig_vcf.load(orig_name, &roi);
+	ChromosomalIndex<VcfFile> orig_idx(orig_vcf);
 
 	//create new VCF
-	VariantList output;
-	output.copyMetaData(orig_vcf);
+	VcfFile output;
+	output.copyMetaDataForSubsetting(orig_vcf);
 	for(int i=0; i<variants_.count(); ++i)
 	{
 		if (!filter_result_.passing(i)) continue;
@@ -3632,36 +3632,38 @@ void MainWindow::exportVCF()
 		QVector<int> matches = orig_idx.matchingIndices(v.chr(), v.start()-10, v.end()+10);
 		foreach(int index, matches)
 		{
-			const Variant& v2 = orig_vcf[index];
+			const VCFLinePtr& v2 = orig_vcf.getVariantPtr(index);
+			if(v2->isMultiAllelic()) continue;
+
 			if (v.isSNV()) //SNV
 			{
-				if (v.start()==v2.start() && v.obs()==v2.obs())
+				if (v.start()==v2->start() && v.obs()==v2->alt(0))
 				{
-					output.append(v2);
+					output.vcfLines().push_back(v2);
 					++hit_count;
 				}
 			}
 			else if (v.ref()=="-") //insertion
 			{
-				if (v.start()==v2.start() && v2.ref().count()==1 && v2.obs().mid(1)==v.obs())
+				if (v.start()==v2->start() && v2->ref().count()==1 && v2->alt(0).mid(1)==v.obs())
 				{
-					output.append(v2);
+					output.vcfLines().push_back(v2);
 					++hit_count;
 				}
 			}
 			else if (v.obs()=="-") //deletion
 			{
-				if (v.start()-1==v2.start() && v2.obs().count()==1 && v2.ref().mid(1)==v.ref())
+				if (v.start()-1==v2->start() && v2->alt(0).count()==1 && v2->ref().mid(1)==v.ref())
 				{
-					output.append(v2);
+					output.vcfLines().push_back(v2);
 					++hit_count;
 				}
 			}
 			else //complex
 			{
-				if (v.start()==v2.start() && v2.obs()==v.obs() && v2.ref()==v.ref())
+				if (v.start()==v2->start() && v2->alt(0)==v.obs() && v2->ref()==v.ref())
 				{
-					output.append(v2);
+					output.vcfLines().push_back(v2);
 					++hit_count;
 				}
 			}
@@ -3678,7 +3680,7 @@ void MainWindow::exportVCF()
 	file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf);;All files (*.*)");
 	if (file_name!="")
 	{
-		output.store(file_name, VCF);
+		output.store(file_name);
 	}
 }
 
@@ -3701,7 +3703,7 @@ void MainWindow::exportGSvar()
 	file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "GSvar (*.gsvar);;All files (*.*)");
 	if (file_name!="")
 	{
-		output.store(file_name, TSV);
+		output.store(file_name);
 	}
 }
 
@@ -4700,7 +4702,7 @@ void MainWindow::storeCurrentVariantList()
 	{
 		//store to temporary file
 		QString tmp = filename_ + ".tmp";
-		variants_.store(tmp, VariantListFormat::TSV);
+		variants_.store(tmp);
 
 		//copy temp
 		QFile::remove(filename_);
