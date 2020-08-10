@@ -445,7 +445,6 @@ public:
 
 
 	/*** transactions ***/
-	///Start transaction
 	bool transaction() { return db_->transaction(); }
 	bool commit() { return db_->commit(); }
 	bool rollback() { return db_->rollback(); }
