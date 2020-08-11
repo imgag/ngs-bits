@@ -19,6 +19,7 @@
 
 #include <memory>
 
+///Data structure containing a vector of keys (to retrieve its order) and a hash of the key to value
 template<typename K, typename V>
 class CPPNGSSHARED_EXPORT OrderedHash {
 
@@ -92,19 +93,20 @@ private:
 
 };
 
+//storing all QByteArrays in a list of unique QByteArrays
 const QByteArray& strToPointer(const QByteArray& str);
 
 enum InfoFormatType {INFO_DESCRIPTION, FORMAT_DESCRIPTION};
-using FormatIDToValueHash = OrderedHash<QByteArray, QByteArray>;
-using SampleIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>;
-using FormatIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>;
-using InfoIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>;
+
+using SampleIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>; //Hashing sample ID to position in value list
+using FormatIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>; //Hashing format ID to position in value list
+using InfoIDToIdxPtr = QSharedPointer<OrderedHash<QByteArray, int>>; //Hashing info ID to position in value list
 using ListOfFormatIds = QByteArray; //an array of all ordered FORMAT ids to use as hash key
 using ListOfInfoIds = QByteArray; //an array of all ordered INFO ids to use as hash key
 
+//basic header line storing comments (every comment must be a key=value pair)
 struct CPPNGSSHARED_EXPORT VcfHeaderLine
 {
-
 	QByteArray value;
 	QByteArray key;
 
@@ -114,6 +116,7 @@ struct CPPNGSSHARED_EXPORT VcfHeaderLine
 	}
 };
 
+//storing header informations for an INFO or FORMAT line
 struct CPPNGSSHARED_EXPORT InfoFormatLine
 {
 	QByteArray id;
@@ -129,6 +132,7 @@ struct CPPNGSSHARED_EXPORT InfoFormatLine
 
 };
 
+//storing header informations for a FILTER line
 struct CPPNGSSHARED_EXPORT FilterLine
 {
 	QByteArray id;
@@ -140,7 +144,8 @@ struct CPPNGSSHARED_EXPORT FilterLine
 	}
 };
 
-///struct representing a vcf header.
+///Struct representing a vcf header.
+///It contains the fileformat, comments, information lines, format lines and filter lines.
 class CPPNGSSHARED_EXPORT VcfHeader
 {
 public:
@@ -168,6 +173,7 @@ public:
 		return format_lines_;
 	}
 
+	//functions to add or move content of the vcf header
 	void addInfoLine(const InfoFormatLine& info_line)
 	{
 		info_lines_.push_back(info_line);
@@ -189,6 +195,8 @@ public:
 	{
 		filter_lines_.push_back(filter_line);
 	}
+
+	//functions setting header content from a whole vcf line as QByteArray
 	void setCommentLine(QByteArray& line, const int line_number);
 	void setInfoLine(QByteArray& line, const int line_number);
 	void setFormatLine(QByteArray& line, const int line_number);
@@ -196,10 +204,14 @@ public:
 	void setFormat(QByteArray& line);
 	void storeHeaderInformation(QTextStream& stream) const;
 
+	//functions returning single info, format, filter lines by its ID
 	InfoFormatLine infoLineByID(const QByteArray& id, bool error_not_found = true) const;
 	InfoFormatLine formatLineByID(const QByteArray& id, bool error_not_found = true) const;
 	FilterLine filterLineByID(const QByteArray& id, bool error_not_found = true) const;
+
+	//returning type of the analysis (e.g. somatic single sample)
 	AnalysisType type(bool allow_fallback_germline_single_sample) const;
+	//looks up the position of name in the list of VEP annotations from the info line in the header (CSQ line)
 	int vepIndexByName(const QString& name, bool error_if_not_found = true) const;
 
 private:
@@ -218,7 +230,7 @@ private:
 	InfoFormatLine lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found = true) const;
 };
 
-///representation of a line of a vcf file
+///Representation of a line of a vcf file
 class CPPNGSSHARED_EXPORT  VcfLine
 {
 
@@ -227,6 +239,7 @@ public:
 	///Default constructor.
 	VcfLine();
 	///Constructor with basic entries
+	/// (chromosome, start position, reference base(s), List of alternative base(s), List of FormatIDs, List of sampleIDs, List containing for every sample a list of values for every format)
 	VcfLine(const Chromosome& chr, int pos, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids = QByteArrayList(), QByteArrayList sample_ids = QByteArrayList(), QList<QByteArrayList> list_of_format_values = QList<QByteArrayList>());
 
 	const Chromosome& chr() const
@@ -254,6 +267,7 @@ public:
 	{
 		return alt_;
 	}
+	//Concatenates all alternatives bases to a comma seperated string
 	const Sequence altString() const
 	{
 		QByteArrayList alt_sequences;
@@ -279,12 +293,12 @@ public:
 	{
 		return filter_;
 	}
-	QByteArrayList format() const
+	//Returns a list of all format IDs
+	QByteArrayList formatKeys() const
 	{
 		if(!formatIdxOf_)
 		{
 			QByteArrayList empty_list;
-			empty_list.push_back(".");
 			return empty_list;
 		}
 		else
@@ -292,7 +306,8 @@ public:
 			return formatIdxOf_->keys();
 		}
 	}
-	QByteArrayList infoKeys()
+	//Returns a list of all info IDs
+	QByteArrayList infoKeys() const
 	{
 		if(!infoIdxOf_)
 		{
@@ -304,6 +319,7 @@ public:
 			return infoIdxOf_->keys();
 		}
 	}
+	//Returns a list of all info values in order of the info IDs
 	QByteArrayList infoValues()
 	{
 		if(!infoIdxOf_)
@@ -316,6 +332,7 @@ public:
 			return info_;
 		}
 	}
+	//Returns the value for an info ID as key
 	QByteArray info(const QByteArray& key, bool error_if_key_absent = false) const
 	{
 		if(error_if_key_absent)
@@ -337,23 +354,23 @@ public:
 		}
 	}
 
-	///returns all SAMPLES as a hash of (SAMPLE ID to a hash of (FORMAT ID to value))
+	///Returns a list, which stores for every sample a list of the values for every format ID
 	const QList<QByteArrayList>& samples() const
 	{
 		return sample_values_;
 	}
-	///access the hash of (FORMAT ID to value) for a SAMPLE by SAMPLE ID
+	///Returns a list of all values for every format ID for the sample sample_name
 	const QByteArrayList& sample(const QByteArray& sample_name) const
 	{
 		return sample_values_.at((*sampleIdxOf_)[sample_name]);
 	}
-	///access the hash of (FORMAT ID to value) for a SAMPLE by position
+	///Returns a list of all values for every format ID for the sample at position pos
 	const QByteArrayList& sample(int pos) const
 	{
 		if(pos >= sample_values_.count()) THROW(ArgumentException, QString::number(pos) + " is out of range for SAMPLES. The VCF file provides " + QString::number(samples().size()) + " SAMPLES");
 		return sample_values_.at(pos);
 	}
-	///access the value for a FORMAT and SAMPLE ID
+	///Returns the value for a format and sample ID
 	QByteArray formatValueFromSample(const QByteArray& format_key, const QByteArray& sample_name, bool error_if_format_key_absent = false) const
 	{
 		if(error_if_format_key_absent)
@@ -377,7 +394,7 @@ public:
 			}
 		}
 	}
-	///access the value for a FORMAT ID and SAMPLE position (default is first SAMPLE)
+	///Returns the value for a format ID and sample position (default is first sample)
 	QByteArray formatValueFromSample(const QByteArray& format_key, int sample_pos = 0, bool error_if_format_key_absent = false) const
 	{
 
@@ -423,7 +440,8 @@ public:
 			alt_.push_back(strToPointer(seq.toUpper()));
 		}
 	}
-	void setAlt(const QByteArrayList& alt)
+	//set the alternative bases with a list of sequences
+	void setAlt(const QList<Sequence>& alt)
 	{
 		alt_.clear();
 		for(const QByteArray alt_element : alt)
@@ -431,6 +449,7 @@ public:
 			alt_.push_back(alt_element);
 		}
 	}
+	//set the alternative base(s) with only one alternative Sequence
 	void setSingleAlt(const Sequence& seq)
 	{
 		if(alt_.empty())
@@ -466,10 +485,12 @@ public:
 		tag = tag.trimmed();
 		filter_.push_back(strToPointer(tag));
 	}
+	//Set the list storing all info values
 	void setInfo(const QByteArrayList& info_values)
 	{
 		info_ = info_values;
 	}
+	//Set the list, which stores for every sample a list of all format values
 	void setSample(const QList<QByteArrayList>& sample)
 	{
 		sample_values_ = sample;
@@ -478,37 +499,41 @@ public:
 	{
 		sample_values_.push_back(format_value_list);
 	}
+	//Set the pointer storing the ordered list of sample IDs
 	void setSampleIdToIdxPtr(const SampleIDToIdxPtr& ptr)
 	{
 		sampleIdxOf_ = ptr;
 	}
+	//Set the pointer storing the ordered list of format IDs
 	void setFormatIdToIdxPtr(const FormatIDToIdxPtr& ptr)
 	{
 		formatIdxOf_ = ptr;
 	}
+	//Set the pointer storing the ordered list of info IDs
 	void setInfoIdToIdxPtr(const InfoIDToIdxPtr& ptr)
 	{
 		infoIdxOf_ = ptr;
 	}
 
-	///Overlap check for chromosome and position range.
+	//Overlap check for chromosome and position range.
 	bool overlapsWith(const Chromosome& input_chr, int input_start, int input_end) const
 	{
 		return (chr_==input_chr && BasicStatistics::rangeOverlaps(pos(), end(), input_start, input_end));
 	}
-	///Overlap check for position range only.
+	//Overlap check for position range only.
 	bool overlapsWith(int input_start, int input_end) const
 	{
 		return BasicStatistics::rangeOverlaps(pos(), end(), input_start, input_end);
 	}
-	///Overlap check BED file line.
+	//Overlap check BED file line.
 	bool overlapsWith(const BedLine& line) const
 	{
 		return overlapsWith(line.chr(), line.start(), line.end());
 	}
 
-	///Returns if the variant is a SNV
-	/// allow_several_alternatives=TRUE if all alternatives in the vector shall be considered
+	//Returns if the variant is a SNV
+	//allow_several_alternatives=TRUE if all alternatives in the vector shall be considered,
+	//otherwise only the first variant is checked
 	bool isSNV(bool allow_several_alternatives = false) const
 	{
 		if(allow_several_alternatives)
@@ -525,21 +550,22 @@ public:
 
 		return ref_.length()==1 && alt(0)!="-" && ref_!="-";
 	}
-	///returns if any VcfLine in the file is multiallelic
+	//Returns if any VcfLine in the file is multiallelic
 	bool isMultiAllelic() const;
-	///returns if the variant is an InDel, can only be called on single allelic variants
+	//Returns if the variant is an InDel, can only be called on single allelic variants
 	bool isInDel() const;
-	///returns if the chromosome is valid
+	//Returns if the chromosome is valid
 	bool isValidGenomicPosition() const;
-	///returns all not passed filters
+	//Returns all not passed filters
 	QByteArrayList failedFilters() const;
+	//Return a string of the variant coordinates and reference, alternative base(s)
 	QString variantToString() const;
 	QByteArrayList vepAnnotations(int field_index) const;
 
 	void leftNormalize(QString reference_genome);
-	/// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
+	// Removes the common prefix/suffix from indels, adapts the start/end position and replaces empty sequences with a custom string.
 	void normalize(const Sequence& empty_seq="", bool to_gsvar_format=true);
-	/// copy coordinates of the VcfLine into a variant (only single alternative bases)
+	// copy coordinates of the vcf line into a variant (only single alternative bases)
 	void copyCoordinatesIntoVariant(Variant& variant)
 	{
 		variant.setChr(chr());
@@ -549,9 +575,9 @@ public:
 		variant.setObs(alt(0));
 	}
 
-	///Equality operator (only compares the variatn location itself, not further annotations).
+	//Equality operator (only compares the variant location itself, not further annotations).
 	bool operator==(const VcfLine& rhs) const;
-	///Less-than operator.
+	//Less-than operator.
 	bool operator<(const VcfLine& rhs) const;
 
 private:
@@ -576,7 +602,7 @@ using VcfLinePtr = QSharedPointer<VcfLine>;
 
 namespace VcfFormat
 {
-///Comparator helper class that used by sort().
+//Comparator helper class that used by sort().
 class LessComparator
 {
 public:
@@ -587,11 +613,11 @@ public:
 private:
 	bool use_quality;
 };
-///Comparator helper class used by sortByFile.
+//Comparator helper class used by sortByFile.
 class LessComparatorByFile
 {
 public:
-	///Constructor with FAI file, which determines the chromosome order.
+	//Constructor with FAI file, which determines the chromosome order.
 	LessComparatorByFile(QString filename);
 	bool operator()(const VcfLinePtr& a, const VcfLinePtr& b) const;
 

@@ -553,8 +553,8 @@ bool VcfLine::operator<(const VcfLine& rhs) const
 
 void VcfLine::normalize(const Sequence& empty_seq, bool to_gsvar_format)
 {
-	//skip multi-allelic variants
-	if(alt().count() > 1 || alt().empty())	return;
+	//skip multi-allelic and empty variants
+	if(isMultiAllelic() || alt().empty())	return;
 
 	Variant::normalize(pos_, ref_, alt_[0]);
 

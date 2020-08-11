@@ -305,7 +305,7 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 			{
 				QByteArrayList sample_id_list = line_parts[i].split(':');
 
-				int format_entry_count = vcf_line->format().count();
+				int format_entry_count = vcf_line->formatKeys().count();
 				int sample_entry_count = sample_id_list.count();
 				//SAMPLE columns can have missing trailing entries, but can not have more than specified in FORMAT
 				if(sample_entry_count > format_entry_count)
@@ -335,7 +335,7 @@ void VcfFile::parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteA
 		{
 			//a FORMAT is given, however no SAMPLE data
 			int format_count = 0;
-			while(format_count < vcf_line->format().count())
+			while(format_count < vcf_line->formatKeys().count())
 			{
 				QByteArrayList format_values_for_sample;
 				format_values_for_sample.append(strToPointer(""));
@@ -831,12 +831,12 @@ void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 	}
 
 	//if format exists
-	if(!line.format().empty())
+	if(!line.formatKeys().empty())
 	{
-		stream  << "\t"<< line.format().at(0);
-		for(int format_entry_id = 1; format_entry_id < line.format().count(); ++format_entry_id)
+		stream  << "\t"<< line.formatKeys().at(0);
+		for(int format_entry_id = 1; format_entry_id < line.formatKeys().count(); ++format_entry_id)
 		{
-			stream << ":" << line.format().at(format_entry_id);
+			stream << ":" << line.formatKeys().at(format_entry_id);
 		}
 	}
 	else
@@ -1188,9 +1188,9 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 			FastaFileIndex reference(reference_genome);
 			QByteArray base = reference.seq(v_line->chr(), v_line->pos() - 1, 1);
 
-			QByteArrayList alt_seq;
+			QList<Sequence> alt_seq;
 			//for GSvar there is only one alternative sequence (alt(0) stores VariantList.obs(0))
-			QByteArray new_alt = base + v_line->alt(0);
+			Sequence new_alt = base + v_line->alt(0);
 			alt_seq.push_back(new_alt);
 			v_line->setAlt(alt_seq);
 			v_line->setRef(base);

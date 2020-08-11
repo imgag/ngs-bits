@@ -86,7 +86,7 @@ private slots:
         S_EQUAL(vl.vcfLine(0).infoValues().at(0), QByteArray("TRUE"));
         S_EQUAL(vl.vcfLine(0).infoValues().at(5), QByteArray("4,3,11,11"));
 		QByteArray first_sample_name = vl.sampleIDs().at(0);
-		QByteArray second_format_name = vl.vcfLine(0).format().at(1);
+		QByteArray second_format_name = vl.vcfLine(0).formatKeys().at(1);
 		S_EQUAL(vl.vcfLine(0).formatValueFromSample(second_format_name, first_sample_name), QByteArray("255,0,123"));
 		I_EQUAL(vl.vcfLine(0).filter().count(), 0);
 
@@ -104,7 +104,7 @@ private slots:
         S_EQUAL(vl.vcfLine(12).infoValues().at(4), QByteArray("457,473,752,757"));
 		S_EQUAL(vl.vcfLine(12).info("DP4"), QByteArray("457,473,752,757"));
 		first_sample_name = vl.sampleIDs().at(0);
-		second_format_name = vl.vcfLine(12).format().at(1);
+		second_format_name = vl.vcfLine(12).formatKeys().at(1);
 		S_EQUAL(vl.vcfLine(12).formatValueFromSample(second_format_name, first_sample_name), QByteArray("255,0,255"));
 		I_EQUAL(vl.vcfLine(12).filter().count(), 0);
 
@@ -267,7 +267,7 @@ private slots:
         S_EQUAL(vl.vcfLine(0).infoValues().at(0), QByteArray("TRUE"));
         S_EQUAL(vl.vcfLine(0).infoValues().at(5), QByteArray("4,3,11,11"));
 		QByteArray first_sample_name = vl.sampleIDs().at(0);
-		QByteArray second_format_name = vl.vcfLine(0).format().at(1);
+		QByteArray second_format_name = vl.vcfLine(0).formatKeys().at(1);
 		S_EQUAL(vl.vcfLine(0).formatValueFromSample(second_format_name, first_sample_name), QByteArray("255,0,123"));
 		I_EQUAL(vl.vcfLine(0).filter().count(), 0);
 
@@ -285,7 +285,7 @@ private slots:
         S_EQUAL(vl.vcfLine(12).infoValues().at(4), QByteArray("457,473,752,757"));
 		S_EQUAL(vl.vcfLine(12).info("DP4"), QByteArray("457,473,752,757"));
 		first_sample_name = vl.sampleIDs().at(0);
-		second_format_name = vl.vcfLine(12).format().at(1);
+		second_format_name = vl.vcfLine(12).formatKeys().at(1);
 		S_EQUAL(vl.vcfLine(12).formatValueFromSample(second_format_name, first_sample_name), QByteArray("255,0,255"));
 		I_EQUAL(vl.vcfLine(12).filter().count(), 0);
 	}

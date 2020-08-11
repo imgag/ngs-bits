@@ -27,6 +27,7 @@ public:
 	// values defined in VcfFile.cpp
 	static const QList<KeyValuePair> INFO_URL_MAPPING;
 
+	///Default constructor
 	VcfFile();
 
 	int count() const
@@ -44,6 +45,7 @@ public:
 	///save a variant line as string
 	QString lineToString(int pos) const;
 
+	///Leftnormalize every vcf line in the vcf file according to a reference genome
 	void leftNormalize(QString reference_genome);
 	///loads a vcf or vcf.gz file
 	void load(const QString& filename, bool allow_multi_sample, const BedFile* roi=nullptr, bool invert=false);
@@ -74,41 +76,42 @@ public:
 	///Returns analysis type.
 	AnalysisType type(bool allow_fallback_germline_single_sample = true) const;
 
-	///returns a QVector of vcf_lines_
+	///Returns a QVector of all vcf lines
 	const QVector<VcfLinePtr>& vcfLines() const
 	{
 		return vcf_lines_;
 	}
-	///Read-Write access to a vcf_lines_
+	///Read-Write access to all vcf lines
 	QVector<VcfLinePtr>& vcfLines()
 	{
 		return vcf_lines_;
 	}
-	///returns the VcfLine at pos
+	///Returns the Vcf line at pos
 	const VcfLine& vcfLine(int pos) const
 	{
 		return *(vcf_lines_.at(pos));
 	}
-	///Read-Write access to a vcf_line
+	///Read-Write access to a vcf line at pos
 	VcfLine& vcfLine(int pos)
 	{
 		return *(vcf_lines_[pos]);
 	}
-	///returns the VcfLine at pos
+	///Returns the vcf line at pos
 	const VcfLine& operator[](int pos) const
 	{
 		return *(vcf_lines_.at(pos));
 	}
-	///Read-Write access to a vcf_line by operator[]
+	///Read-Write access to a vcf line at pos
 	VcfLine& operator[](int pos)
 	{
 		return *(vcf_lines_[pos]);
 	}
+	///Returns the pointer to a vcf line at pos
 	const VcfLinePtr& getVariantPtr(int pos)
 	{
 		return vcf_lines_[pos];
 	}
-	///returns a struct storing header information
+	///Returns the vcf header
 	const VcfHeader& vcfHeader() const
 	{
 		return vcf_header_;
@@ -118,24 +121,27 @@ public:
 	{
 		return vcf_header_;
 	}
-	///returns a QVector of all column headers for a vcfLine
+	///Returns a QVector of all column headers for a vcf line
 	const QVector<QByteArray>& vcfColumnHeader() const
 	{
 		return column_headers_;
 	}
-	///Read-Write access to column headers for a vcfLine
+	///Read-Write access to column headers for a vcf line
 	QVector<QByteArray>& vcfColumnHeader()
 	{
 		return column_headers_;
 	}
+	///Returns the pointer hashing each sample ID to its position in the sample list
 	const SampleIDToIdxPtr& sampleIDToIdx() const
 	{
 		return sample_id_to_idx_;
 	}
+	///Returns the hash storing all possible format ID orders in the vcf file
 	const QHash<ListOfFormatIds, FormatIDToIdxPtr>& formatIDToIdxList() const
 	{
 		return format_id_to_idx_list_;
 	}
+	///Returns the hash storing all possible info ID orders in the vcf file
 	const QHash<ListOfInfoIds, FormatIDToIdxPtr>& infoIDToIdxList() const
 	{
 		return info_id_to_idx_list_;
@@ -183,8 +189,8 @@ private:
 	QVector<QByteArray> column_headers_; //heading of variant lines
 
 	SampleIDToIdxPtr sample_id_to_idx_; //Hash of SampleID to its position
-	QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list_; //
-	QHash<ListOfInfoIds, FormatIDToIdxPtr> info_id_to_idx_list_;
+	QHash<ListOfFormatIds, FormatIDToIdxPtr> format_id_to_idx_list_; //Hash storing all possible format orders
+	QHash<ListOfInfoIds, FormatIDToIdxPtr> info_id_to_idx_list_; //Hash storing all possible info orders
 
 	//INFO/FORMAT/FILTER definition line for VCFCHECK only
 	struct DefinitionLine

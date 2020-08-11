@@ -35,7 +35,7 @@ TEST_CLASS(VcfLine_Test)
         I_EQUAL(variant.pos(), 777);
         S_EQUAL(variant.ref(), "A");
         S_EQUAL(variant.altString(), "T");
-        QByteArrayList format = variant.format();
+        QByteArrayList format = variant.formatKeys();
         S_EQUAL(format.at(0), "GT");
         S_EQUAL(format.at(1), "X");
         S_EQUAL(format.size(), 2);
