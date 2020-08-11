@@ -275,7 +275,7 @@ void VcfHeader::storeHeaderInformation(QTextStream& stream) const
 	}
 }
 
-void VcfHeader::setFormat(QByteArray& line)
+void VcfHeader::setFormat(const QByteArray& line)
 {
 	QList<QByteArray> splitted_line=line.split('=');
 	if (splitted_line.count()<2)
@@ -285,21 +285,21 @@ void VcfHeader::setFormat(QByteArray& line)
 	fileformat_ =  splitted_line[1];
 }
 
-void VcfHeader::setInfoLine(QByteArray& line, const int line_number)
+void VcfHeader::setInfoLine(const QByteArray& line, const int line_number)
 {
-	line=line.mid(8);//remove "##INFO=<"
+	QByteArray tmp = line.mid(8);//remove "##INFO=<"
 	InfoFormatLine info_line;
-	if(parseInfoFormatLine(line, info_line, "INFO", line_number))
+	if(parseInfoFormatLine(tmp, info_line, "INFO", line_number))
 	{
 		info_lines_.push_back(info_line);
 	}
 }
 
-void VcfHeader::setFormatLine(QByteArray& line, const int line_number)
+void VcfHeader::setFormatLine(const QByteArray& line, const int line_number)
 {
-	line=line.mid(10);//remove "##FORMAT=<"
+	QByteArray tmp = line.mid(10);//remove "##FORMAT=<"
 	InfoFormatLine format_line;
-	if(parseInfoFormatLine(line, format_line, "FORMAT", line_number))
+	if(parseInfoFormatLine(tmp, format_line, "FORMAT", line_number))
 	{
 		format_lines_.push_back(format_line);
 		//make sure the "GT" format field is always the first format field
@@ -310,7 +310,7 @@ void VcfHeader::setFormatLine(QByteArray& line, const int line_number)
 	}
 }
 
-void VcfHeader::setFilterLine(QByteArray& line, const int line_number)
+void VcfHeader::setFilterLine(const QByteArray& line, const int line_number)
 {
 	//split at '=' to get id and description part
 	QByteArrayList parts = line.mid(13, line.length()-15).split('=');
@@ -330,10 +330,9 @@ void VcfHeader::setFilterLine(QByteArray& line, const int line_number)
 	filter_lines_.push_back(filter_line);
 }
 
-void VcfHeader::setCommentLine(QByteArray& line, const int line_number)
+void VcfHeader::setCommentLine(const QByteArray& line, const int line_number)
 {
-	line=line.mid(2);//remove "##"
-	QByteArrayList splitted_line=line.split('=');
+	QByteArrayList splitted_line = line.mid(2).split('=');
 	if(splitted_line.count()<2)
 	{
 		THROW(FileParseException, "Malformed header line " + QString::number(line_number) + " is not a key=value pair: " + line.trimmed());
@@ -361,7 +360,7 @@ void VcfHeader::addFilter(const QByteArray& filter_id, const QString& descriptio
 	filter_lines_.push_back(line);
 }
 
-bool VcfHeader::parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number)
+bool VcfHeader::parseInfoFormatLine(const QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number)
 {
 	QList <QByteArray> comma_splitted_line=line.split(',');
 	if (comma_splitted_line.count()<4)

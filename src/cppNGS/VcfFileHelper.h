@@ -197,11 +197,11 @@ public:
 	}
 
 	//functions setting header content from a whole vcf line as QByteArray
-	void setCommentLine(QByteArray& line, const int line_number);
-	void setInfoLine(QByteArray& line, const int line_number);
-	void setFormatLine(QByteArray& line, const int line_number);
-	void setFilterLine(QByteArray& line, const int line_number);
-	void setFormat(QByteArray& line);
+	void setCommentLine(const QByteArray& line, const int line_number);
+	void setInfoLine(const QByteArray& line, const int line_number);
+	void setFormatLine(const QByteArray& line, const int line_number);
+	void setFilterLine(const QByteArray& line, const int line_number);
+	void setFormat(const QByteArray& line);
 	void storeHeaderInformation(QTextStream& stream) const;
 
 	//functions returning single info, format, filter lines by its ID
@@ -226,7 +226,7 @@ private:
 	QVector<FilterLine> filter_lines_;
 	QVector<InfoFormatLine> format_lines_;
 
-	bool parseInfoFormatLine(QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number);
+	bool parseInfoFormatLine(const QByteArray& line,InfoFormatLine& info_format_line, QByteArray type, const int line_number);
 	InfoFormatLine lineByID(const QByteArray& id, const QVector<InfoFormatLine>& lines, bool error_not_found = true) const;
 };
 

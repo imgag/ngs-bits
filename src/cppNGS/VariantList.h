@@ -233,14 +233,6 @@ protected:
 ///Debug output operator for Variant.
 QDebug operator<<(QDebug d, const Variant& v);
 
-
-///Supported file formats.
-enum VariantListFormat
-{
-	VCF,    ///< VCF file. Note: only single-sample files are currently supported.
-	VCF_GZ, ///< gzipped VCF file. Note: only single-sample files are currently supported.
-};
-
 ///Supported analysis types
 enum AnalysisType
 {

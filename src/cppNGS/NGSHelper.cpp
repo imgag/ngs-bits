@@ -13,13 +13,17 @@
 
 VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
 {
-	VcfFile output;
-
-	//load variant list
+	//check variant list exists
 	QString snp_file = ":/Resources/" + build + "_snps.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
-
-	output.load(snp_file, false, roi);
+	
+	//copy from resource file (gzopen cannot access Qt resources)
+	QString tmp = Helper::tempFileName(".vcf");
+	QFile::copy(snp_file, tmp);
+	
+	//load
+	VcfFile output;
+	output.load(tmp, false, roi);
 
 	//filter by AF
 	FilterResult filter_result(output.count());

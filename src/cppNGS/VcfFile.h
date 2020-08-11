@@ -48,12 +48,12 @@ public:
 	///Leftnormalize every vcf line in the vcf file according to a reference genome
 	void leftNormalize(QString reference_genome);
 	///loads a vcf or vcf.gz file
-	void load(const QString& filename, bool allow_multi_sample, const BedFile* roi=nullptr, bool invert=false);
-	void load(const QString& filename, const BedFile* roi=nullptr, bool invert=false);
+	void load(const QString& filename, bool allow_multi_sample, const BedFile* roi=nullptr, bool invert=false); //TODO load(const QString& filename, bool allow_multi_sample, bool invert) > TIM
+	void load(const QString& filename, const BedFile* roi=nullptr, bool invert=false); //TODO load(const QString& filename, const BedFile& roi, bool allow_multi_sample, bool invert) > TIM
 	///removes duplicate variants
 	void removeDuplicates(bool sort_by_quality);
 	///stores the data of VCFFileHandler in a vcf file
-	void store(const QString& filename, bool stdout_if_file_empty = false, bool compress=false, int compression_level = 1) const;
+	void store(const QString& filename, bool stdout_if_file_empty = false, bool compress=false, int compression_level = Z_BEST_SPEED, int compression_strategy = Z_DEFAULT_STRATEGY) const; //TODO remove 'compress' and use compression level instead, add "compression_level" parameter to tools that write VCF/VCF.GZ > TIM
 	///stores a VCFFile as tsv file, INFO and FORMAT fields are differentiated by "_info" and "_format" attached to the name in ##Description lines,
 	///in the header line each FORMAT column is additionally prefixed with the sample name:
 	/// ##VCF:
@@ -162,7 +162,7 @@ public:
 	static VcfFile convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome);
 
 	///Validates VCF file from file path
-	static bool isValid(QString vcf_file_path, QString ref_file, QTextStream& out_stream, bool print_general_information = false, int max_lines = std::numeric_limits<int>::max());
+	static bool isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information = false, int max_lines = std::numeric_limits<int>::max());
 
 	///Returns the content of a column by index (tab-separated line) from a QByteArray line
 	static QByteArray getPartByColumn(const QByteArray& line, int index);
@@ -176,12 +176,11 @@ public:
 private:
 
 	void clear();
-	void loadFromVCF(const QString& filename, bool allow_multi_sample=false, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
 	void loadFromVCFGZ(const QString& filename, bool allow_multi_sample=false, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
-	void parseHeaderFields(QByteArray& line, bool allow_multi_sample);
-	void parseVcfEntry(const int line_number, QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
-	void parseVcfHeader(const int line_number, QByteArray& line);
-	void processVcfLine(int& line_number, QByteArray line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
+	void parseHeaderFields(const QByteArray& line, bool allow_multi_sample);
+	void parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
+	void parseVcfHeader(int line_number, const QByteArray& line);
+	void processVcfLine(int& line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
 	void storeLineInformation(QTextStream& stream, VcfLine line) const;
 
 	QVector<VcfLinePtr> vcf_lines_; //variant lines

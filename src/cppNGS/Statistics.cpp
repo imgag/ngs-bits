@@ -1496,11 +1496,17 @@ AncestryEstimates Statistics::ancestry(QString build, const VcfFile& vl, int min
 		THROW(ArgumentException, "VCF file does not contain FORMAT GT.")
 	}
 
-	//load ancestry-informative SNP list
+	//determine ancestry-informative SNP list
 	QString snp_file = ":/Resources/" + build + "_ancestry.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
+	
+	//copy from resource file (gzopen cannot access Qt resources)
+	QString tmp = Helper::tempFileName(".vcf");
+	QFile::copy(snp_file, tmp);
+	
+	//load 
 	VcfFile af;
-	af.load(snp_file);
+	af.load(tmp);
 	ChromosomalIndex< VcfFile> af_idx(af);
 
 	//process variants

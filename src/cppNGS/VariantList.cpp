@@ -637,18 +637,6 @@ void VariantList::removeAnnotationByName(QString name, bool exact_match, bool er
 
 void VariantList::load(QString filename, const BedFile* roi, bool invert)
 {
-	//verify format
-	QString fn_lower = filename.toLower();
-	if(fn_lower.indexOf(':')>1 && fn_lower.count(':')==1)
-	{
-		fn_lower = fn_lower.left(fn_lower.indexOf(':'));
-	}
-
-	if ( !fn_lower.endsWith(".tsv") && !fn_lower.contains(".gsvar"))
-	{
-		THROW(ArgumentException, "Could not determine format of file '" + fn_lower + "' from file extension. Valid extensions are tsv' and 'GSvar'.")
-	}
-
 	//create ROI index (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
 	if (roi!=nullptr)
@@ -742,13 +730,6 @@ void VariantList::load(QString filename, const BedFile* roi, bool invert)
 
 void VariantList::store(QString filename) const
 {
-	//verify format
-	QString fn_lower = filename.toLower();
-	if (!fn_lower.endsWith(".tsv") && !fn_lower.contains(".gsvar"))
-	{
-		THROW(ArgumentException, "Could not determine format of file '" + filename + "' from file extension. Valid extensions are 'tsv' and 'GSvar'.")
-	}
-
 	//open stream
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
 	QTextStream stream(file.data());
