@@ -100,6 +100,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "RepeatExpansionWidget.h"
 #include "SomaticDataTransferWidget.h"
 #include "PRSWidget.h"
+#include "EvaluationSheetEditDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -171,7 +172,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
 	ui_.report_btn->menu()->addAction("Show report configuration info", this, SLOT(showReportConfigInfo()));
 	ui_.report_btn->menu()->addSeparator();
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate variant sheet", this, SLOT(generateVariantSheet()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate evaluation sheet", this, SLOT(generateEvaluationSheet()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
@@ -2097,9 +2098,10 @@ void MainWindow::storeReportConfig()
 	}
 }
 
-void MainWindow::generateVariantSheet()
+void MainWindow::generateEvaluationSheet()
 {
 	if (filename_=="") return;
+	QString base_name = processedSampleName();
 
 	//check if applicable
 	if (!germlineReportSupported())
@@ -2107,12 +2109,6 @@ void MainWindow::generateVariantSheet()
 		QMessageBox::information(this, "Variant sheet error", "Variant sheet not supported for this type of analysis!");
 		return;
 	}
-
-	//get filename
-	QString base_name = processedSampleName();
-	QString folder = Settings::string("gsvar_variantsheet_folder");
-	QString filename = QFileDialog::getSaveFileName(this, "Store variant sheet",  folder + "/" + base_name + "_variant_sheet_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
-	if (filename.isEmpty()) return;
 
 	//make sure free-text phenotype infos are available
 	NGSD db;
@@ -2127,6 +2123,34 @@ void MainWindow::generateVariantSheet()
 
 		db.setSampleDiseaseInfo(sample_id, widget->diseaseInfo());
 	}
+
+	//try to get VariantListInfo from the NGSD
+	EvaluationSheetData evaluation_sheet_data = db.evaluationSheetData(db.processedSampleId(filename_), false);
+	if (evaluation_sheet_data.ps_id == "")
+	{
+		//No db entry found -> set default values
+		evaluation_sheet_data = EvaluationSheetData();
+		evaluation_sheet_data.ps_id = db.processedSampleId(filename_);
+		evaluation_sheet_data.dna_rna = db.getSampleData(sample_id).name_external;
+		evaluation_sheet_data.reviewer1 = report_settings_.report_config.createdBy();
+		evaluation_sheet_data.review_date1 = report_settings_.report_config.createdAt().date();
+		evaluation_sheet_data.reviewer2 = db.userName();
+		evaluation_sheet_data.review_date2 = QDate::currentDate();
+	}
+
+
+	//Show VaraintSheetEditDialog
+	EvaluationSheetEditDialog* edit_dialog = new EvaluationSheetEditDialog(this);
+	edit_dialog->importEvaluationSheetData(evaluation_sheet_data);
+	if (edit_dialog->exec() != QDialog::Accepted) return;
+
+	//Store updated info in the NGSD
+	db.storeEvaluationSheetData(evaluation_sheet_data, true);
+
+	//get filename
+	QString folder = Settings::string("gsvar_variantsheet_folder");
+	QString filename = QFileDialog::getSaveFileName(this, "Store variant sheet",  folder + "/" + base_name + "_variant_sheet_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	if (filename.isEmpty()) return;
 
 	//open file
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
@@ -2162,47 +2186,42 @@ void MainWindow::generateVariantSheet()
 	stream << "      }" << endl;
 	stream << "    </style>" << endl;
 	stream << "  </head>" << endl;
-
 	stream << "  <body>" << endl;
-
 	stream << "    <table class='noborder' width='100%'>" << endl;
 	stream << "      <tr>" << endl;
 	stream << "        <td class='noborder' valign='top'>" << endl;
 	stream << "           <h3>Probe: " << base_name << "</h3>" << endl;
 	stream << "        </td>" << endl;
-	stream << "        <td class='noborder' valign='top' style='width: 1%; white-space: nowrap;'>" << endl;
-	stream << "          <img width='100' height='100' style='margin: 10px;' src='data:image/png;base64," << QrCodeFactory::generateText("G8006X" + base_name.toLatin1(), 100) << "' />" << endl;
-	stream << "          </img>" << endl;
-	stream << "        </td>" << endl;
 	stream << "      </tr>" << endl;
 	stream << "    </table>" << endl;
-
 	stream << "    <table class='noborder' width='100%'>" << endl;
 	stream << "      <tr>" << endl;
 	stream << "        <td class='noborder' valign='top'>" << endl;
-	stream << "          <p>DNA/RNA#: <span class='line'></span></p>" << endl;
-	stream << "          <p> Pat. Name, Vorname: <span class='line'></span></p>" << endl;
-	stream << "          <p>Geburtsdatum: <span class='line'></span></p>" << endl;
+	stream << "          <p>DNA/RNA#: <span class='line'>" << evaluation_sheet_data.dna_rna << "</span></p>" << endl;
 	stream << "          <br>" << endl;
-	stream << "          <p>1. Auswerter: <span class='line'>" << report_settings_.report_config.createdBy() << "</span> Datum: <span class='line'>" << report_settings_.report_config.createdAt().toString("dd.MM.yyyy") << "</span></p>" << endl;
-	stream << "          <p><nobr>2. Auswerter: <span class='line'></span> Datum: <span class='line'></span></nobr></p>" << endl;
-	stream << "        </td>" << endl;
-	stream << "        <td class='noborder' valign='top'>" << endl;
-	stream << "          <p>Auswerteumfang: <span class='line'></span></p>" << endl;
-	stream << "          <p><nobr>Abrechungsumfang: <span class='line'></span></nobr></p>" << endl;
+	stream << "          <p>1. Auswerter: <span class='line'>" << evaluation_sheet_data.reviewer1 << "</span> Datum: <span class='line'>" << evaluation_sheet_data.review_date1.toString("dd.MM.yyyy") << "</span></p>" << endl;
+	stream << "          <p><nobr>2. Auswerter: <span class='line'>" << evaluation_sheet_data.reviewer2 << "</span> Datum: <span class='line'>" << evaluation_sheet_data.review_date2.toString("dd.MM.yyyy") << "</span></nobr></p>" << endl;
 	stream << "          <br>" << endl;
-	stream << "          <p>ACMG angefordert: &nbsp;&nbsp; &#9633; ja &nbsp;&nbsp; &#9633; nein</p>" << endl;
-	stream << "          <p>ACMG auff&auml;llig: &nbsp;&nbsp; &#9633; ja &nbsp;&nbsp; &#9633; nein</p>" << endl;
+	stream << "          <p>Auswerteumfang: <span class='line'>" << evaluation_sheet_data.analysis_scope << "</span></p>" << endl;
+	stream << "          <p><nobr>Abrechungsumfang: <span class='line'>" << evaluation_sheet_data.settlement_volume << "</span></nobr></p>" << endl;
 	stream << "        </td>" << endl;
 	stream << "        <td class='noborder' valign='top' style='width: 1%; white-space: nowrap;'>" << endl;
 	stream << "          <table border='0'>" << endl;
 	stream << "            <tr> <td colspan=2><b>Filterung erfolgt</b></td> </tr>" << endl;
-	stream << "            <tr> <td nowrap>Freq.-basiert dominant&nbsp;&nbsp;</td> <td>&#9633;</td> </tr>" << endl;
-	stream << "            <tr> <td>Freq.-basiert rezessiv</td> <td>&#9633;</td> </tr>" << endl;
-	stream << "            <tr> <td>CNV</td> <td>&#9633;</td> </tr>" << endl;
-	stream << "            <tr> <td>Mitochondrial</td> <td>&#9633;</td> </tr>" << endl;
-	stream << "            <tr> <td>X-chromosomal</td> <td>&#9633;</td> </tr>" << endl;
-	stream << "            <tr> <td>Ph&auml;notyp-basiert</td> <td>&#9633;</td> </tr>" << endl;
+	stream << "            <tr> <td nowrap>Freq.-basiert dominant&nbsp;&nbsp;</td> <td>"<< ((evaluation_sheet_data.filtered_by_freq_based_dominant)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Freq.-basiert rezessiv</td> <td>"<< ((evaluation_sheet_data.filtered_by_freq_based_recessive)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>CNV</td> <td>"<< ((evaluation_sheet_data.filtered_by_cnv)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Mitochondrial</td> <td>"<< ((evaluation_sheet_data.filtered_by_mito)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>X-chromosomal</td> <td>"<< ((evaluation_sheet_data.filtered_by_x_chr)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Ph&auml;notyp-basiert</td> <td>"<< ((evaluation_sheet_data.filtered_by_phenotype)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Multi-Sample-Auswertung</td> <td>"<< ((evaluation_sheet_data.filtered_by_multisample)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "          </table>" << endl;
+	stream << "          <br>" << endl;
+	stream << "          <table border='0'>" << endl;
+	stream << "            <tr> <td colspan=2><b>ACMG</b></td> </tr>" << endl;
+	stream << "            <tr> <td>angefordert: &nbsp;&nbsp; </td> <td>"<< ((evaluation_sheet_data.acmg_requested)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>analysiert: &nbsp;&nbsp; </td> <td>"<< ((evaluation_sheet_data.acmg_analyzed)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>auff&auml;llig: &nbsp;&nbsp; </td> <td>"<< ((evaluation_sheet_data.acmg_noticeable)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
 	stream << "          </table>" << endl;
 	stream << "        </td>" << endl;
 	stream << "      </tr>" << endl;

@@ -1674,6 +1674,52 @@ CREATE TABLE IF NOT EXISTS `report_configuration_sv`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `evaluation_sheet_data`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `evaluation_sheet_data`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `processed_sample_id` INT(11) NOT NULL, 
+  `dna_rna_id` TEXT CHARACTER SET 'utf8' DEFAULT NULL,
+  `reviewer1` INT NOT NULL,
+  `review_date1` DATE NOT NULL,
+  `reviewer2` INT NOT NULL,
+  `review_date2` DATE NOT NULL,
+  `analysis_scope` TEXT CHARACTER SET 'utf8' DEFAULT NULL,
+  `settlement_volume` TEXT CHARACTER SET 'utf8' DEFAULT NULL,
+  `acmg_requested` BOOLEAN DEFAULT FALSE,
+  `acmg_analyzed` BOOLEAN DEFAULT FALSE,
+  `acmg_noticeable` BOOLEAN DEFAULT FALSE,
+  `filtered_by_freq_based_dominant` BOOLEAN DEFAULT FALSE,
+  `filtered_by_freq_based_recessive` BOOLEAN DEFAULT FALSE,
+  `filtered_by_cnv` BOOLEAN DEFAULT FALSE,
+  `filtered_by_mito` BOOLEAN DEFAULT FALSE,
+  `filtered_by_x_chr` BOOLEAN DEFAULT FALSE,
+  `filtered_by_phenotype` BOOLEAN DEFAULT FALSE,
+  `filtered_by_multisample` BOOLEAN DEFAULT FALSE,
+  PRIMARY KEY (`id`),
+  INDEX `processed_sample_id` (`processed_sample_id` ASC),
+  UNIQUE KEY `evaluation_sheet_data_references_processed_sample` (`processed_sample_id`),
+  CONSTRAINT `evaluation_sheet_data_references_processed_sample`
+    FOREIGN KEY (`processed_sample_id`)
+    REFERENCES `processed_sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `evaluation_sheet_data_references_user1`
+    FOREIGN KEY (`reviewer1`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `evaluation_sheet_data_references_user2`
+    FOREIGN KEY (`reviewer2`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

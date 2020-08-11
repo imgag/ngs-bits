@@ -39,8 +39,15 @@ NGSD::NGSD(bool test_db)
 	}
 }
 
-int NGSD::userId(QString user_name, bool only_active)
+int NGSD::userId(QString user_name, bool only_active, bool throw_if_fails)
 {
+	// don't fail if user name is empty
+	if (user_name == "")
+	{
+		if (throw_if_fails) THROW(DatabaseException, "Could not determine NGSD user ID for empty user name!")
+		else return -1;
+	}
+
 	//check user exists
 	bool ok = true;
 	int user_id = getValue("SELECT id FROM user WHERE user_id=:0", true, user_name).toInt(&ok);
@@ -50,13 +57,15 @@ int NGSD::userId(QString user_name, bool only_active)
 	}
 	if (!ok)
 	{
-		THROW(DatabaseException, "Could not determine NGSD user ID for user name '" + user_name + "!");
+		if (throw_if_fails) THROW(DatabaseException, "Could not determine NGSD user ID for user name '" + user_name + "!")
+		else user_id = -1;
 	}
 
 	//check user is active
 	if (only_active && !getValue("SELECT active FROM user WHERE id=" + QString::number(user_id), false).toBool())
 	{
-		THROW(DatabaseException, "User with user name '" + user_name + " is no longer active!");
+		if (throw_if_fails) THROW(DatabaseException, "User with user name '" + user_name + " is no longer active!")
+		else user_id = -1;
 	}
 
 	return user_id;
@@ -4138,6 +4147,95 @@ void NGSD::deleteReportConfig(int id)
 	query.exec("DELETE FROM `report_configuration_variant` WHERE `report_configuration_id`=" + rc_id);
 	query.exec("DELETE FROM `report_configuration_sv` WHERE `report_configuration_id`=" + rc_id);
 	query.exec("DELETE FROM `report_configuration` WHERE `id`=" + rc_id);
+}
+
+EvaluationSheetData NGSD::evaluationSheetData(const QString& processed_sample_id, bool throw_if_fails)
+{
+	EvaluationSheetData evaluation_sheet_data;
+	SqlQuery query = getQuery();
+	query.exec(QString("SELECT processed_sample_id, dna_rna_id, reviewer1, review_date1, reviewer2, review_date2, ")
+			   + "analysis_scope, settlement_volume, acmg_requested, acmg_noticeable, acmg_analyzed, "
+			   + "filtered_by_freq_based_dominant, filtered_by_freq_based_recessive, filtered_by_cnv, filtered_by_mito, filtered_by_x_chr, filtered_by_phenotype, filtered_by_multisample "
+			   + "FROM evaluation_sheet_data WHERE processed_sample_id=" + processed_sample_id);
+	if (query.next())
+	{
+		// parse result
+		evaluation_sheet_data.ps_id = query.value("processed_sample_id").toString();
+		evaluation_sheet_data.dna_rna = query.value("dna_rna_id").toString();
+		evaluation_sheet_data.reviewer1 = userName(query.value("reviewer1").toInt());
+		evaluation_sheet_data.review_date1 = query.value("review_date1").toDate();
+		evaluation_sheet_data.reviewer2 = userName(query.value("reviewer2").toInt());
+		evaluation_sheet_data.review_date2 = query.value("review_date2").toDate();
+
+		evaluation_sheet_data.analysis_scope = query.value("analysis_scope").toString();
+		evaluation_sheet_data.settlement_volume = query.value("settlement_volume").toString();
+		evaluation_sheet_data.acmg_requested = query.value("acmg_requested").toBool();
+		evaluation_sheet_data.acmg_noticeable = query.value("acmg_noticeable").toBool();
+		evaluation_sheet_data.acmg_analyzed = query.value("acmg_analyzed").toBool();
+
+		evaluation_sheet_data.filtered_by_freq_based_dominant = query.value("filtered_by_freq_based_dominant").toBool();
+		evaluation_sheet_data.filtered_by_freq_based_recessive = query.value("filtered_by_freq_based_recessive").toBool();
+		evaluation_sheet_data.filtered_by_cnv = query.value("filtered_by_cnv").toBool();
+		evaluation_sheet_data.filtered_by_mito = query.value("filtered_by_mito").toBool();
+		evaluation_sheet_data.filtered_by_x_chr = query.value("filtered_by_x_chr").toBool();
+		evaluation_sheet_data.filtered_by_phenotype = query.value("filtered_by_phenotype").toBool();
+		evaluation_sheet_data.filtered_by_multisample = query.value("filtered_by_multisample").toBool();
+	}
+	else
+	{
+		// error handling
+		if (throw_if_fails)
+		{
+			THROW(DatabaseException, "No entry found in table 'evaluation_sheet_data' for processed sample id '" + processed_sample_id +"'!");
+		}
+		else
+		{
+			evaluation_sheet_data.ps_id = "";
+		}
+	}
+	return evaluation_sheet_data;
+}
+
+int NGSD::storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_data, bool overwrite_existing_data)
+{
+	QVariant id = getValue("SELECT id FROM evaluation_sheet_data WHERE processed_sample_id=:0", true, evaluation_sheet_data.ps_id);
+	if (!id.isNull() && (!overwrite_existing_data)) THROW(DatabaseException, "Evaluation sheet data for processed sample id '" + evaluation_sheet_data.ps_id + "' already exists in NGSD table!");
+
+	// generate query
+	QString query_string = QString("REPLACE INTO evaluation_sheet_data (processed_sample_id, dna_rna_id, reviewer1, review_date1, reviewer2, review_date2, ")
+			+ "analysis_scope, settlement_volume, acmg_requested, acmg_noticeable, acmg_analyzed, "
+			+ "filtered_by_freq_based_dominant, filtered_by_freq_based_recessive, filtered_by_cnv, filtered_by_mito, filtered_by_x_chr, filtered_by_phenotype, filtered_by_multisample) "
+			+ "VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17)";
+
+	// prepare query
+	SqlQuery query = getQuery();
+	query.prepare(query_string);
+
+	// bind values
+	query.bindValue(0, evaluation_sheet_data.ps_id);
+	query.bindValue(1, evaluation_sheet_data.dna_rna);
+	query.bindValue(2, userId(evaluation_sheet_data.reviewer1));
+	query.bindValue(3, evaluation_sheet_data.review_date1);
+	query.bindValue(4, userId(evaluation_sheet_data.reviewer2));
+	query.bindValue(5, evaluation_sheet_data.review_date2);
+	query.bindValue(6, evaluation_sheet_data.analysis_scope);
+	query.bindValue(7, evaluation_sheet_data.settlement_volume);
+	query.bindValue(8, evaluation_sheet_data.acmg_requested);
+	query.bindValue(9, evaluation_sheet_data.acmg_noticeable);
+	query.bindValue(10, evaluation_sheet_data.acmg_analyzed);
+	query.bindValue(11, evaluation_sheet_data.filtered_by_freq_based_dominant);
+	query.bindValue(12, evaluation_sheet_data.filtered_by_freq_based_recessive);
+	query.bindValue(13, evaluation_sheet_data.filtered_by_cnv);
+	query.bindValue(14, evaluation_sheet_data.filtered_by_mito);
+	query.bindValue(15, evaluation_sheet_data.filtered_by_x_chr);
+	query.bindValue(16, evaluation_sheet_data.filtered_by_phenotype);
+	query.bindValue(17, evaluation_sheet_data.filtered_by_multisample);
+
+	// insert into NGSD
+	query.exec();
+
+	// return id
+	return query.lastInsertId().toInt();
 }
 
 SomaticReportConfigurationData NGSD::somaticReportConfigData(int id)
