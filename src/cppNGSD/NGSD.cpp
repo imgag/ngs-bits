@@ -308,7 +308,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 				{
 					if (disease_query.value(0).toString()!=type) continue;
 
-					QString entry = disease_query.value(1).toString();
+					QString entry = disease_query.value(1).toString().replace('\r', ' ').replace('\n', ' ');
 					if (type=="HPO term id")
 					{
 						tmp << entry + " - " + getValue("SELECT name FROM hpo_term WHERE hpo_id=:0", true, entry).toString();
