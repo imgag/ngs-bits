@@ -2770,7 +2770,7 @@ void MainWindow::generateReportSomaticRTF()
 		//open report
 		if (QMessageBox::question(this, "DNA report", "DNA report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
 		{
-			QDesktopServices::openUrl(file_rep);
+			QDesktopServices::openUrl(QUrl::fromLocalFile(file_rep) );
 		}
 	}
 	else //RNA report

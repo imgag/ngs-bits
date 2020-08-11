@@ -4,7 +4,6 @@
 #include <QTimer>
 #include <QMessageBox>
 #include <QHttpMultiPart>
-#include <QPointer>
 #include <QNetworkReply>
 
 #include "SomaticDataTransferWidget.h"
