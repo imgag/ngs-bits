@@ -153,6 +153,9 @@ public:
 		vcf_lines_.resize(size);
 	}
 
+	///Write all column headers to a QTextStream
+	void storeHeaderColumns(QTextStream& stream) const;
+
 	///Copies meta data from a VcfFile (comment, header, column headers), but not the variants.
 	///(copies pointers for sampleIDs, format and info line order as well. Therefore should only
 	/// be used to subset a VcfFile and copy the meta data, not to add entirely new variants)

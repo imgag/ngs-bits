@@ -469,15 +469,20 @@ public:
 	{
 		qual_ = qual;
 	}
-	void setFilter(const QByteArrayList& filter_list)
+	void setFilter(QByteArrayList filter_list)
 	{
 		if(filter_list.size() == 1 && filter_list.at(0) == ".")
 		{
 			return;
 		}
-		for(const QByteArray& filter : filter_list)
+		for(QByteArray& filter : filter_list)
 		{
-			filter_.push_back(strToPointer(filter));
+			filter = filter.trimmed();
+
+			if (filter_list.count() == 1 || (filter!="" && filter!="." && filter.toUpper()!="PASS" && filter.toUpper()!="PASSED"))
+			{
+				filter_.push_back(strToPointer(filter));
+			}
 		}
 	}
 	void addFilter(QByteArray& tag)

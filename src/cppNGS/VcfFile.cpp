@@ -564,15 +564,11 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 		vcf_header_.storeHeaderInformation(file_stream);
 
 		//write header columns
-		file_stream << "#" << column_headers_.at(0);
-		for(int i = 1; i < column_headers_.count(); ++i)
-		{
-			file_stream << "\t" << column_headers_.at(i);
-		}
+		storeHeaderColumns(file_stream);
 
+		//write vcf lines
 		for(int i = 0; i < vcf_lines_.count(); ++i)
 		{
-			file_stream << "\n";
 			storeLineInformation(file_stream, vcfLine(i));
 		}
 	}
@@ -604,21 +600,12 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 		writeZipped(file, vcf_file, filename);
 
 		//write header columns
-		if(column_headers_.size() >= 1)
-		{
-			stream << "#" << column_headers_.at(0);
-			writeZipped(file, vcf_file, filename);
-		}
+		storeHeaderColumns(stream);
+		writeZipped(file, vcf_file, filename);
 
-		for(int i = 1; i < column_headers_.count(); ++i)
-		{
-			stream << "\t" << column_headers_.at(i);
-			writeZipped(file, vcf_file, filename);
-		}
-
+		//write vcf lines
 		for(int i = 0; i < vcf_lines_.count(); ++i)
 		{
-			stream << "\n";
 			storeLineInformation(stream, vcfLine(i));
 			writeZipped(file, vcf_file, filename);
 		}
@@ -844,6 +831,7 @@ void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 	{
 		stream << "\t.";
 	}
+	stream << "\n";
 }
 
 QString VcfFile::lineToString(int pos) const
@@ -852,6 +840,21 @@ QString VcfFile::lineToString(int pos) const
 	QTextStream stream(&line);
 	storeLineInformation(stream, vcfLine(pos));
 	return line;
+}
+
+void VcfFile::storeHeaderColumns(QTextStream &stream) const
+{
+	if(vcfColumnHeader().count() < MIN_COLS)
+	{
+		THROW(ArgumentException, "Number of column headers is less than the minimum number of expected columns: " + QString(MIN_COLS) + ".");
+	}
+
+	stream << "#";
+	for(int i = 0; i < column_headers_.count() - 1; ++i)
+	{
+		stream << column_headers_.at(i) << "\t";
+	}
+	stream << column_headers_.at(column_headers_.count() - 1) << "\n";
 }
 
 void VcfFile::copyMetaDataForSubsetting(const VcfFile& rhs)
