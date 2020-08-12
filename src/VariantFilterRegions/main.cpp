@@ -28,7 +28,9 @@ public:
 		addString("mark", "If set, instead of removing variants, they are marked with the given flag in the 'filter' column.", true);
 		addFlag("inv", "Inverts the filter, i.e. variants inside the region are removed/marked.");
 		addEnum("mode", "Mode (input format).", true, QStringList() << "vcf" << "gsvar", "vcf");
+		addInt("comp", "Compression level for the output vcf file)", true, Z_BEST_SPEED);
 
+		changeLog(2020, 8, 12, "Added parameter '-comp' for compression level of output vcf files.");
 		changeLog(2018, 1, 23, "Added parameter '-inv' and made parameter '-mark' a string parameter to allow custom annotations names.");
 		changeLog(2017, 1,  4, "Added parameter '-mark' for flagging variants instead of filtering them out.");
 		changeLog(2016, 6, 10, "Added single target region parameter '-r'.");
@@ -61,7 +63,7 @@ public:
 		//apply filter
 		if(mode=="vcf")
 		{
-			 VcfFile variants;
+			VcfFile variants;
 			if (mark!="")
 			{
                 variants.load(getInfile("in"), true);
@@ -74,7 +76,8 @@ public:
 			{
                 variants.load(getInfile("in"), true, &roi, inv);
 			}
-			variants.store(getOutfile("out"));
+			int compression_level = getInt("comp");
+			variants.store(getOutfile("out"), false, compression_level);
 		}
 		else if(mode=="gsvar")
 		{

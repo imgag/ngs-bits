@@ -53,7 +53,7 @@ public:
 	///removes duplicate variants
 	void removeDuplicates(bool sort_by_quality);
 	///stores the data of VCFFileHandler in a vcf file
-	void store(const QString& filename, bool stdout_if_file_empty = false, bool compress=false, int compression_level = Z_BEST_SPEED, int compression_strategy = Z_DEFAULT_STRATEGY) const; //TODO remove 'compress' and use compression level instead, add "compression_level" parameter to tools that write VCF/VCF.GZ > TIM
+	void store(const QString& filename, bool stdout_if_file_empty = false, int compression_level = Z_BEST_SPEED, int compression_strategy = Z_DEFAULT_STRATEGY) const;
 	///stores a VCFFile as tsv file, INFO and FORMAT fields are differentiated by "_info" and "_format" attached to the name in ##Description lines,
 	///in the header line each FORMAT column is additionally prefixed with the sample name:
 	/// ##VCF:

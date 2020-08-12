@@ -800,7 +800,7 @@ void VariantList::storeAsVCF(QString filename, const QString& reference_genome) 
 {
 	VcfFile vcf_file;
 	vcf_file = VcfFile::convertGSvarToVcf(*this, reference_genome);
-	vcf_file.store(filename);
+	vcf_file.store(filename, true);
 }
 
 void VariantList::sort(bool use_quality)

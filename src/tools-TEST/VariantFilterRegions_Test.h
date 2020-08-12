@@ -14,7 +14,7 @@ private slots:
 
 	void byBED_VCF()
 	{
-		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in2.vcf") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out2.vcf");
+		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in2.vcf") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out2.vcf -comp 0");
 		COMPARE_FILES("out/VariantFilterRegions_out2.vcf", TESTDATA("data_out/VariantFilterRegions_out2.vcf"));
 		VCF_IS_VALID("out/VariantFilterRegions_out2.vcf")
 	}
@@ -39,7 +39,7 @@ private slots:
 
 	void byBED_VCF_mark()
 	{
-		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in2.vcf") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out6.vcf -mark off-target");
+		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in2.vcf") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out6.vcf -mark off-target -comp 0");
 		COMPARE_FILES("out/VariantFilterRegions_out6.vcf", TESTDATA("data_out/VariantFilterRegions_out6.vcf"));
 		VCF_IS_VALID("out/VariantFilterRegions_out6.vcf")
 	}
@@ -52,7 +52,7 @@ private slots:
 
 	void byString_VCF_multisample()
 	{
-		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in3.vcf") + " -r chr1:156341000-156351795 -out out/VariantFilterRegions_out8.vcf");
+		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in3.vcf") + " -r chr1:156341000-156351795 -out out/VariantFilterRegions_out8.vcf -comp 0");
 		COMPARE_FILES("out/VariantFilterRegions_out8.vcf", TESTDATA("data_out/VariantFilterRegions_out8.vcf"));
 		VCF_IS_VALID("out/VariantFilterRegions_out8.vcf")
 	}

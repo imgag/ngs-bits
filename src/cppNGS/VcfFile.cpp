@@ -562,50 +562,10 @@ void writeZipped(gzFile& gz_file, QString& vcf_file_data, const QString& filenam
 	vcf_file_data.clear();
 }
 
-void VcfFile::store(const QString& filename,  bool stdout_if_file_empty, bool compress, int compression_level, int compression_strategy) const
+void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int compression_level, int compression_strategy) const
 {
 
-	if(compress)
-	{
-		gzFile gz_file = gzopen(filename.toLatin1().data(),"wb");
-		if (gz_file == NULL)
-		{
-			THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
-		}
-		
-		if (compression_level<0 || compression_level>9) THROW(ArgumentException, "Invalid gzip compression level '" + QString::number(compression_level) +"' given for VCF file '" + filename + "'!");
-		if (compression_strategy<0 || compression_strategy>4) THROW(ArgumentException, "Invalid gzip compression strategy '" + QString::number(compression_strategy) +"' given for VCF file '" + filename + "'!");
-		gzsetparams(gz_file, compression_level, compression_strategy);
-
-
-		//write gzipped informations
-		//open stream
-		QString vcf_file;
-		QTextStream stream(&vcf_file);
-		//write header information
-		vcf_header_.storeHeaderInformation(stream);
-		writeZipped(gz_file, vcf_file, filename);
-
-		//write header columns
-		stream << "#" << column_headers_.at(0);
-		writeZipped(gz_file, vcf_file, filename);
-
-		for(int i = 1; i < column_headers_.count(); ++i)
-		{
-			stream << "\t" << column_headers_.at(i);
-			writeZipped(gz_file, vcf_file, filename);
-		}
-
-		for(int i = 0; i < vcf_lines_.count(); ++i)
-		{
-			stream << "\n";
-			storeLineInformation(stream, vcfLine(i));
-			writeZipped(gz_file, vcf_file, filename);
-		}
-
-		gzclose(gz_file);
-	}
-	else
+	if(compression_level == 0)
 	{
 		//open stream
 		QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_file_empty);
@@ -627,6 +587,56 @@ void VcfFile::store(const QString& filename,  bool stdout_if_file_empty, bool co
 			storeLineInformation(file_stream, vcfLine(i));
 		}
 	}
+	else
+	{
+		if(filename.isEmpty())
+		{
+			THROW(ArgumentException, "Conflicting parameters for empty filename and compression level > 0");
+		}
+
+		FILE* instream = fopen(filename.toLatin1().data(), "w");
+		gzFile file = gzdopen(fileno(instream), "wb"); //read binary: always open in binary mode because windows and mac open in text mode
+
+		if (file==NULL)
+		{
+			THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
+		}
+
+		if (compression_level<0 || compression_level>9) THROW(ArgumentException, "Invalid gzip compression level '" + QString::number(compression_level) +"' given for VCF file '" + filename + "'!");
+		if (compression_strategy<0 || compression_strategy>4) THROW(ArgumentException, "Invalid gzip compression strategy '" + QString::number(compression_strategy) +"' given for VCF file '" + filename + "'!");
+		gzsetparams(file, compression_level, compression_strategy);
+
+		//write gzipped informations
+		//open stream
+		QString vcf_file;
+		QTextStream stream(&vcf_file);
+		//write header information
+		vcf_header_.storeHeaderInformation(stream);
+		writeZipped(file, vcf_file, filename);
+
+		//write header columns
+		if(column_headers_.size() >= 1)
+		{
+			stream << "#" << column_headers_.at(0);
+			writeZipped(file, vcf_file, filename);
+		}
+
+		for(int i = 1; i < column_headers_.count(); ++i)
+		{
+			stream << "\t" << column_headers_.at(i);
+			writeZipped(file, vcf_file, filename);
+		}
+
+		for(int i = 0; i < vcf_lines_.count(); ++i)
+		{
+			stream << "\n";
+			storeLineInformation(stream, vcfLine(i));
+			writeZipped(file, vcf_file, filename);
+		}
+
+		gzclose(file);
+	}
+
 }
 
 void VcfFile::leftNormalize(QString reference_genome)

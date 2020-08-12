@@ -20,6 +20,9 @@ public:
 		//optional
 		addFlag("qual", "Also sort according to variant quality. Ignored if 'fai' file is given.");
 		addInfile("fai", "FAI file defining different chromosome order.", true, true);
+		addInt("comp", "Compression level for the output vcf file)", true, Z_BEST_SPEED);
+
+		changeLog(2020, 8, 12, "Added parameter '-comp' for compression level of output vcf files.");
 	}
 
 	virtual void main()
@@ -39,7 +42,9 @@ public:
 		{
 			vl.sortByFile(fai);
 		}
-		vl.store(getOutfile("out"));
+
+		int compression_level = getInt("comp");
+		vl.store(getOutfile("out"), false, compression_level);
     }
 };
 
