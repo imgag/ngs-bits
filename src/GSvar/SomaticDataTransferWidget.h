@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "HttpHandler.h"
 #include "NGSD.h"
+#include "DelayedInitializationTimer.h"
 
 namespace Ui {
 class SomaticDataTransferWidget;
@@ -12,22 +13,23 @@ class SomaticDataTransferWidget;
 
 #include "ui_SomaticDataTransferWidget.h"
 
-class SomaticDataTransferWidget : public QDialog
+class SomaticDataTransferWidget
+	: public QDialog
 {
 	Q_OBJECT
 
 public:
-	explicit SomaticDataTransferWidget(QString t_ps_id, QString n_ps_id, QWidget *parent = 0);
+	SomaticDataTransferWidget(QString t_ps_id, QString n_ps_id, QWidget* parent = 0);
 	~SomaticDataTransferWidget();
+
 private:
 	Ui::SomaticDataTransferWidget *ui;
+
+	DelayedInitializationTimer init_timer_;
 
 	NGSD db_;
 
 	HttpHandler http_handler_;
-
-    bool xml_service_condition_ok_;
-    bool pdf_service_condition_ok_;
 
 	//tumor processed sample id
 	QString t_ps_id_;
@@ -46,7 +48,7 @@ private:
     QString pdf_path_;
 
 	///Adds line to status widget.
-	void addRow(QString row, QString color ="", bool bold = false);
+	void addStatusRow(QString row, QString color ="", bool bold = false);
 
 public slots:
 	///Uploads XML file (from xml_path_) to MTB
@@ -56,14 +58,20 @@ public slots:
     void uploadPDF();
 
 private slots:
+	///Loads the command line input file.
+	void delayedInitialization();
+
 	///Checks all requirements and enables/disables upload button
 	void enableUpload();
 
 	///Checks whether MTB server gives service status 200 ok
-	void checkConnectionRequired();
+	void checkApiConnection();
+
+	///Checks if the PDF/XML file is present
+	void checkUploadFiles();
 
 	///refresh GUI
-	void updateGUI();
+	void updateUploadStatus();
 };
 
 #endif // SOMATICDATATRANSFERWIDGET_H

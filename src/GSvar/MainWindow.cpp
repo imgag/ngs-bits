@@ -2369,21 +2369,20 @@ void MainWindow::generateEvaluationSheet()
 
 void MainWindow::transferSomaticData()
 {
-	if(variants_.type() != AnalysisType::SOMATIC_PAIR) return;
-
-
-	SomaticDataTransferWidget* data_transfer;
-
 	try
 	{
-		data_transfer = new SomaticDataTransferWidget(somatic_report_settings_.tumor_ps, somatic_report_settings_.normal_ps, this);
-		data_transfer->exec();
+		if(variants_.type()!=AnalysisType::SOMATIC_PAIR)
+		{
+			THROW(Exception, "Error: only possible for tumor-normal pair!");
+		}
+
+		SomaticDataTransferWidget data_transfer(somatic_report_settings_.tumor_ps, somatic_report_settings_.normal_ps, this);
+		data_transfer.exec();
 	}
 	catch(DatabaseException e)
 	{
-		QMessageBox::warning(this, "Database error", e.message());
+		QMessageBox::warning(this, "Transfer somatic data to MTB", e.message());
 	}
-
 }
 
 void MainWindow::showReportConfigInfo()
