@@ -478,16 +478,17 @@ public:
 		for(QByteArray& filter : filter_list)
 		{
 			filter = filter.trimmed();
-
-			if (filter_list.count() == 1 || (filter!="" && filter!="." && filter.toUpper()!="PASS" && filter.toUpper()!="PASSED"))
-			{
-				filter_.push_back(strToPointer(filter));
-			}
+			filter_.push_back(strToPointer(filter));
 		}
 	}
 	void addFilter(QByteArray& tag)
 	{
 		tag = tag.trimmed();
+		//if all filters are passed, only the first index is set
+		if(filter_.count() == 1 && (filter_.at(0) == "" || filter_.at(0) == "." || filter_.at(0) == "PASS" || filter_.at(0) == "PASSED"))
+		{
+			filter_.removeFirst();
+		}
 		filter_.push_back(strToPointer(tag));
 	}
 	//Set the list storing all info values
