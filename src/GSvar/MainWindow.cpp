@@ -165,8 +165,8 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
 	connect(ui_.vars_resize_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(adaptColumnWidthsCustom()));
 	ui_.vars_export_btn->setMenu(new QMenu());
-	ui_.vars_export_btn->menu()->addAction("Export VCF", this, SLOT(exportVCF()));
-	ui_.vars_export_btn->menu()->addAction("Export GSvar", this, SLOT(exportGSvar()));
+	ui_.vars_export_btn->menu()->addAction("Export GSvar (filtered)", this, SLOT(exportGSvar()));
+	ui_.vars_export_btn->menu()->addAction("Export VCF (filtered)", this, SLOT(exportVCF()));
 	ui_.report_btn->setMenu(new QMenu());
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
@@ -3626,108 +3626,141 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 
 void MainWindow::exportVCF()
 {
-	//create BED file with 15 flanking bases around variants
-	BedFile roi;
-	for(int i=0; i<variants_.count(); ++i)
+	try
 	{
-		roi.append(BedLine(variants_[i].chr(), variants_[i].start()-15, variants_[i].end()+15));
-	}
-	roi.merge();
+		QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	//load original VCF
-	QString orig_name = filename_;
-	orig_name.replace(".GSvar", "_var_annotated.vcf.gz");
-	if (!QFile::exists(orig_name))
-	{
-		GUIHelper::showMessage("VCF export error", "Could not find original VCF file '" + orig_name + "'!");
-		return;
-	}
-	VariantList orig_vcf;
-	orig_vcf.load(orig_name, VCF_GZ, &roi);
-	ChromosomalIndex<VariantList> orig_idx(orig_vcf);
-
-	//create new VCF
-	VariantList output;
-	output.copyMetaData(orig_vcf);
-	for(int i=0; i<variants_.count(); ++i)
-	{
-		if (!filter_result_.passing(i)) continue;
-
-		int hit_count = 0;
-		const Variant& v = variants_[i];
-		QVector<int> matches = orig_idx.matchingIndices(v.chr(), v.start()-10, v.end()+10);
-		foreach(int index, matches)
+		//create BED file with 15 flanking bases around variants
+		BedFile roi;
+		for(int i=0; i<variants_.count(); ++i)
 		{
-			const Variant& v2 = orig_vcf[index];
-			if (v.isSNV()) //SNV
+			if (!filter_result_.passing(i)) continue;
+
+			roi.append(BedLine(variants_[i].chr(), variants_[i].start()-15, variants_[i].end()+15));
+		}
+		roi.merge();
+
+		//load variants in ROI from original VCF
+		QString orig_name = filename_;
+		orig_name.replace(".GSvar", "_var_annotated.vcf.gz");
+		if (!QFile::exists(orig_name)) THROW(FileAccessException, "Could not find original VCF: " + orig_name);
+
+		VariantList orig_vcf;
+		orig_vcf.load(orig_name, VCF_GZ, &roi);
+		ChromosomalIndex<VariantList> orig_idx(orig_vcf);
+
+		//create new VCF
+		VariantList output;
+		output.copyMetaData(orig_vcf);
+		for(int i=0; i<variants_.count(); ++i)
+		{
+			if (!filter_result_.passing(i)) continue;
+
+			int hit_count = 0;
+			const Variant& v = variants_[i];
+			QVector<int> matches = orig_idx.matchingIndices(v.chr(), v.start()-15, v.end()+15);
+			foreach(int index, matches)
 			{
-				if (v.start()==v2.start() && v.obs()==v2.obs())
+				const Variant& v2 = orig_vcf[index];
+				if (v.isSNV()) //SNV
 				{
-					output.append(v2);
-					++hit_count;
+					if (v.start()==v2.start() && v.obs()==v2.obs())
+					{
+						output.append(v2);
+						++hit_count;
+					}
+				}
+				else if (v.ref()=="-") //insertion
+				{
+					if (v.start()==v2.start() && v2.ref().count()==1 && v2.obs().mid(1)==v.obs())
+					{
+						output.append(v2);
+						++hit_count;
+					}
+				}
+				else if (v.obs()=="-") //deletion
+				{
+					if (v.start()-1==v2.start() && v2.obs().count()==1 && v2.ref().mid(1)==v.ref())
+					{
+						output.append(v2);
+						++hit_count;
+					}
+				}
+				else //complex
+				{
+					if (v.start()==v2.start() && v2.obs()==v.obs() && v2.ref()==v.ref())
+					{
+						output.append(v2);
+						++hit_count;
+					}
 				}
 			}
-			else if (v.ref()=="-") //insertion
+			if (hit_count!=1)
 			{
-				if (v.start()==v2.start() && v2.ref().count()==1 && v2.obs().mid(1)==v.obs())
-				{
-					output.append(v2);
-					++hit_count;
-				}
-			}
-			else if (v.obs()=="-") //deletion
-			{
-				if (v.start()-1==v2.start() && v2.obs().count()==1 && v2.ref().mid(1)==v.ref())
-				{
-					output.append(v2);
-					++hit_count;
-				}
-			}
-			else //complex
-			{
-				if (v.start()==v2.start() && v2.obs()==v.obs() && v2.ref()==v.ref())
-				{
-					output.append(v2);
-					++hit_count;
-				}
+				THROW(ProgrammingException, "Found " + QString::number(hit_count) + " matching variants for " + v.toString() + " in VCF file. Exactly one expected!");
 			}
 		}
-		if (hit_count!=1)
-		{
-			THROW(ProgrammingException, "Found " + QString::number(hit_count) + " matching variants for " + v.toString() + " in VCF file. Exactly one expected!");
-		}
-	}
 
-	//store to VCF file
-	QString file_name = filename_;
-	file_name.replace(".GSvar", "_var_export.vcf");
-	file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf);;All files (*.*)");
-	if (file_name!="")
+		//store
+		QFileInfo filename_info(filename_);
+		QString folder = Settings::string("gsvar_variant_export_folder").trimmed();
+		if (folder.isEmpty()) folder = filename_info.absolutePath();
+		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf";
+		file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf);;All files (*.*)");
+		if (file_name!="")
+		{
+			output.store(file_name, VCF);
+		}
+
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::information(this, "VCF export", "Exported VCF file with " + QString::number(output.count()) + " variants.");
+	}
+	catch(Exception& e)
 	{
-		output.store(file_name, VCF);
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::warning(this, "VCF export error", e.message());
 	}
 }
 
 void MainWindow::exportGSvar()
 {
-	//create new VCF
-	VariantList output;
-	output.copyMetaData(variants_);
-	for(int i=0; i<variants_.count(); ++i)
+	try
 	{
-		if (filter_result_.passing(i))
-		{
-			output.append(variants_[i]);
-		}
-	}
+		QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	//store to GSvar file
-	QString file_name = filename_;
-	file_name.replace(".GSvar", "_export.GSvar");
-	file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "GSvar (*.gsvar);;All files (*.*)");
-	if (file_name!="")
+		//create new GSvar file with passing variants
+		VariantList output;
+		output.copyMetaData(variants_);
+		for(int i=0; i<variants_.count(); ++i)
+		{
+			if (filter_result_.passing(i))
+			{
+				output.append(variants_[i]);
+			}
+		}
+
+		//store
+		QFileInfo filename_info(filename_);
+		QString folder = Settings::string("gsvar_variant_export_folder").trimmed();
+		if (folder.isEmpty()) folder = filename_info.absolutePath();
+		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".GSvar";
+		file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "GSvar (*.gsvar);;All files (*.*)");
+		if (file_name!="")
+		{
+			output.store(file_name, TSV);
+		}
+
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::information(this, "GSvar export", "Exported GSvar file with " + QString::number(output.count()) + " variants.");
+	}
+	catch(Exception& e)
 	{
-		output.store(file_name, TSV);
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::warning(this, "GSvar export error", e.message());
 	}
 }
 
