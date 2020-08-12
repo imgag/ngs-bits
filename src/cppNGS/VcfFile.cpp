@@ -127,10 +127,6 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		THROW(ArgumentException, "Invalid variant position range in line " + QString::number(line_number) + ": " + QString::number(vcf_line->pos()) + ".");
 	}
 	vcf_line->setRef(strToPointer(line_parts[REF].toUpper()));
-	if (vcf_line->ref()!="-" && !QRegExp("[ACGTN]+").exactMatch(vcf_line->ref()))
-	{
-		THROW(ArgumentException, "Invalid variant reference sequence in line " + QString::number(line_number) + ": " + vcf_line->ref() + ".");
-	}
 
 	//Skip variants that are not in the target region (if given)
 	if (roi_idx!=nullptr)
@@ -149,13 +145,6 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	}
 	vcf_line->setId(id_list);
 	vcf_line->addAlt(line_parts[ALT].split(','));
-	for(Sequence alt_seq : vcf_line->alt())
-	{
-		if (alt_seq!="-" && alt_seq!="." && !QRegExp("[ACGTN,]+").exactMatch(alt_seq))
-		{
-			THROW(ArgumentException, "Invalid variant alternative sequence in line " + QString::number(line_number) + ": " + alt_seq + ".");
-		}
-	}
 
 	if(line_parts[QUAL]==".")
 	{
