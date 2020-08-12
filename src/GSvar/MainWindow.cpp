@@ -2363,7 +2363,7 @@ void MainWindow::generateEvaluationSheet()
 
 	if (QMessageBox::question(this, "Variant sheet", "Variant sheet generated successfully!\nDo you want to open it in your browser?")==QMessageBox::Yes)
 	{
-		QDesktopServices::openUrl(filename);
+		QDesktopServices::openUrl(QUrl::fromLocalFile(filename));
 	}
 }
 
@@ -2806,7 +2806,7 @@ void MainWindow::generateReportSomaticRTF()
 
 		if (QMessageBox::question(this, "RNA report", "RNA report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
 		{
-			QDesktopServices::openUrl(file_rep);
+			QDesktopServices::openUrl(QUrl::fromLocalFile(file_rep));
 		}
 	}
 }
@@ -2899,7 +2899,7 @@ void MainWindow::reportGenerationFinished(bool success)
 	{
 		if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your browser?")==QMessageBox::Yes)
 		{
-			QDesktopServices::openUrl(worker->getReportFile());
+			QDesktopServices::openUrl(QUrl::fromLocalFile(worker->getReportFile()));
 		}
 	}
 	else
