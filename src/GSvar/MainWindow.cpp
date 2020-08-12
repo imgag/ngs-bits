@@ -2100,6 +2100,11 @@ void MainWindow::storeReportConfig()
 
 void MainWindow::generateEvaluationSheet()
 {
+	if (!LoginManager::active())
+	{
+		QMessageBox::warning(this, "Evaluation Sheet creation", "Error: No connection to the NGSD.\nYou need access to the NGSD to create an evaluation sheet:\n\n");
+		return;
+	}
 	if (filename_=="") return;
 	QString base_name = processedSampleName();
 
@@ -2132,7 +2137,8 @@ void MainWindow::generateEvaluationSheet()
 		evaluation_sheet_data = EvaluationSheetData();
 		evaluation_sheet_data.ps_id = db.processedSampleId(filename_);
 		evaluation_sheet_data.dna_rna = db.getSampleData(sample_id).name_external;
-		evaluation_sheet_data.reviewer1 = report_settings_.report_config.createdBy();
+		// make sure reviewer 1 contains name not user id
+		evaluation_sheet_data.reviewer1 = db.userName(db.userId(report_settings_.report_config.createdBy()));
 		evaluation_sheet_data.review_date1 = report_settings_.report_config.createdAt().date();
 		evaluation_sheet_data.reviewer2 = db.userName();
 		evaluation_sheet_data.review_date2 = QDate::currentDate();
