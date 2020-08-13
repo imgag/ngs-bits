@@ -84,11 +84,11 @@ public:
 		{
 			if (mode=="vcf")
 			{
-				genotype_data << SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi, use_roi, roi_reg);
+				genotype_data << SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi, roi_reg);
 			}
 			else if(mode=="gsvar")
 			{
-				genotype_data << SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes, skip_multi, roi_reg);
+				genotype_data << SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes, skip_multi, &roi_reg);
 			}
 			else
 			{
