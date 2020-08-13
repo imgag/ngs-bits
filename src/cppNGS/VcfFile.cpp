@@ -305,7 +305,8 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 				//parse all available entries
 				for(int sample_id = 0; sample_id < sample_entry_count; ++sample_id)
 				{
-					QByteArray value = sample_id_list.at(sample_id);
+					QByteArray value = "";
+					if(sample_id_list.at(sample_id) != ".") value = sample_id_list.at(sample_id);
 					format_values_for_sample.append(strToPointer(value));
 				}
 				//set missing trailing entries
@@ -495,13 +496,13 @@ void VcfFile::storeAsTsv(const QString& filename)
 			stream << "\t" << sample_id << "_" << format_line.id << "_format";
 		}
 	}
+	stream << "\n";
 
 	//vcf lines
 	for(VcfLinePtr& v : vcfLines())
 	{
 		//normalize variants and set symbol for empty sequence
 		v->normalize("-", true);
-		stream << "\n";
 		stream << v->chr().str() << "\t" << QByteArray::number(v->start()) << "\t" << QByteArray::number(v->end()) << "\t" << v->ref()
 			   << "\t" << v->altString() << "\t" << v->id().join(';') << "\t" << QByteArray::number(v->qual());
 		if(v->filter().empty())
@@ -524,6 +525,7 @@ void VcfFile::storeAsTsv(const QString& filename)
 				stream << "\t" << v->formatValueFromSample(format_key, sample_id);
 			}
 		}
+		stream << "\n";
 	}
 }
 
@@ -808,7 +810,9 @@ void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 				for(int sample_entry_id = 1; sample_entry_id < sample_entry.size(); ++sample_entry_id)
 				{
 					//stream << ":" << sample_entry.at(sample_entry_id).value();
-					stream << ":" << sample_entry.at(sample_entry_id);
+					QByteArray value = ".";
+					if(sample_entry.at(sample_entry_id) != "") value = sample_entry.at(sample_entry_id);
+					stream << ":" << value;
 				}
 			}
 		}

@@ -84,15 +84,15 @@ public:
 		{
 			if (mode=="vcf")
 			{
-				genotype_data << SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi, roi_reg);
+				genotype_data << (use_roi ? SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi, roi_reg) : SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi));
 			}
 			else if(mode=="gsvar")
 			{
-				genotype_data << SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes, skip_multi, &roi_reg);
+				genotype_data << SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes, skip_multi, use_roi ? &roi_reg : nullptr);
 			}
 			else
 			{
-				genotype_data << SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg);
+				genotype_data << (use_roi ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg) : SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes));
 			}
 		}
 

@@ -3,7 +3,7 @@
 #include "BasicStatistics.h"
 #include "NGSHelper.h"
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesVcf(const VcfFile& variants, QString filename, bool include_gonosomes, bool skip_multi)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesVcf(const VcfFile& variants, const QString& filename, bool include_gonosomes, bool skip_multi)
 {
 	//vcf file must have only one sample to parse the correct genotype
 	if(variants.sampleIDs().count() > 1)
