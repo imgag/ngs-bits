@@ -780,11 +780,8 @@ void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 	//if format exists
 	if(!line.formatKeys().empty())
 	{
-		stream  << "\t"<< line.formatKeys().at(0);
-		for(int format_entry_id = 1; format_entry_id < line.formatKeys().count(); ++format_entry_id)
-		{
-			stream << ":" << line.formatKeys().at(format_entry_id);
-		}
+		QString all_format_keys = line.formatKeys().join(":");
+		stream << "\t" << all_format_keys;
 	}
 	else
 	{
@@ -804,16 +801,15 @@ void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 			}
 			else
 			{
-				//stream << "\t" << sample_entry.at(0).value();
-				stream << "\t" << sample_entry.at(0);
 				//for all entries in the sample (e.g. 'GT':'DP':...)
-				for(int sample_entry_id = 1; sample_entry_id < sample_entry.size(); ++sample_entry_id)
+				QByteArrayList values;
+				for(int sample_entry_id = 0; sample_entry_id < sample_entry.size(); ++sample_entry_id)
 				{
-					//stream << ":" << sample_entry.at(sample_entry_id).value();
 					QByteArray value = ".";
 					if(sample_entry.at(sample_entry_id) != "") value = sample_entry.at(sample_entry_id);
-					stream << ":" << value;
+					values.append(value);
 				}
+				stream << "\t" << values.join(":");
 			}
 		}
 	}
