@@ -3617,7 +3617,7 @@ void MainWindow::exportVCF()
 		return;
 	}
 	VcfFile orig_vcf;
-	orig_vcf.load(orig_name, &roi);
+	orig_vcf.load(orig_name, roi);
 	ChromosomalIndex<VcfFile> orig_idx(orig_vcf);
 
 	//create new VCF

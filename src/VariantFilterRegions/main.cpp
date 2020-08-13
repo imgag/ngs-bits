@@ -74,7 +74,7 @@ public:
 			}
 			else
 			{
-                variants.load(getInfile("in"), true, &roi, inv);
+				variants.load(getInfile("in"), roi, true, inv);
 			}
 			int compression_level = getInt("comp");
 			variants.store(getOutfile("out"), false, compression_level);

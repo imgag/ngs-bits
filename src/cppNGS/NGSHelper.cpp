@@ -11,52 +11,84 @@
 #include <cmath>
 #include <vector>
 
-VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
+namespace {
+
+	QString copyFromResource(const QString& build)
+	{
+		//check variant list exists
+		QString snp_file = ":/Resources/" + build + "_snps.vcf";
+		if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
+
+		//copy from resource file (gzopen cannot access Qt resources)
+		QString tmp = Helper::tempFileName(".vcf");
+		QFile::copy(snp_file, tmp);
+
+		return tmp;
+	}
+
+	void filterVcfFile(VcfFile& output, bool only_snvs, double min_af, double max_af)
+	{
+		//filter by AF
+		FilterResult filter_result(output.count());
+		if (min_af<0.0 || min_af>1.0)
+		{
+			THROW(ArgumentException, "Minumum allele frequency out of range (0.0-1.0): " + QByteArray::number(min_af));
+		}
+		if (max_af<0.0 || max_af>1.0)
+		{
+			THROW(ArgumentException, "Maximum allele frequency out of range (0.0-1.0): " + QByteArray::number(max_af));
+		}
+		bool min_set = min_af>0.0;
+		bool max_set = max_af<1.0;
+		if (min_set || max_set)
+		{
+			for (int i=0; i<output.count(); ++i)
+			{
+				if (!filter_result.passing(i)) continue;
+
+				double af = output[i].info("AF").toDouble();
+				filter_result.flags()[i] = (!min_set || af>min_af) && (!max_set || af<max_af);
+			}
+		}
+
+		//filter only SNVs
+		if (only_snvs)
+		{
+			FilterVariantIsSNP filter;
+			filter.apply(output, filter_result);
+		}
+
+		//apply filters
+		filter_result.removeFlagged(output);
+	}
+} // end anonymous namespace
+
+VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, const BedFile& roi, double min_af, double max_af)
 {
 	//check variant list exists
-	QString snp_file = ":/Resources/" + build + "_snps.vcf";
-	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
-	
-	//copy from resource file (gzopen cannot access Qt resources)
-	QString tmp = Helper::tempFileName(".vcf");
-	QFile::copy(snp_file, tmp);
+	QString tmp = copyFromResource(build);
 	
 	//load
 	VcfFile output;
-	output.load(tmp, false, roi);
+	output.load(tmp, roi, false);
 
-	//filter by AF
-	FilterResult filter_result(output.count());
-	if (min_af<0.0 || min_af>1.0)
-	{
-		THROW(ArgumentException, "Minumum allele frequency out of range (0.0-1.0): " + QByteArray::number(min_af));
-	}
-	if (max_af<0.0 || max_af>1.0)
-	{
-		THROW(ArgumentException, "Maximum allele frequency out of range (0.0-1.0): " + QByteArray::number(max_af));
-	}
-	bool min_set = min_af>0.0;
-	bool max_set = max_af<1.0;
-	if (min_set || max_set)
-	{
-		for (int i=0; i<output.count(); ++i)
-		{
-			if (!filter_result.passing(i)) continue;
+	//filter variants
+	filterVcfFile(output, only_snvs, min_af, max_af);
 
-			double af = output[i].info("AF").toDouble();
-			filter_result.flags()[i] = (!min_set || af>min_af) && (!max_set || af<max_af);
-		}
-	}
+	return output;
+}
 
-	//filter only SNVs
-	if (only_snvs)
-	{
-		FilterVariantIsSNP filter;
-		filter.apply(output, filter_result);
-	}
+VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af)
+{
+	//check variant list exists
+	QString tmp = copyFromResource(build);
 
-	//apply filters
-	filter_result.removeFlagged(output);
+	//load
+	VcfFile output;
+	output.load(tmp, false);
+
+	//filter variants
+	filterVcfFile(output, only_snvs, min_af, max_af);
 
 	return output;
 }

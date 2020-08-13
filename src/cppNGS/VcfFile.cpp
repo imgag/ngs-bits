@@ -426,36 +426,22 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 	delete[] buffer;
 }
 
-void VcfFile::load(const QString& filename, bool allow_multi_sample, const BedFile* roi, bool invert)
+void VcfFile::load(const QString& filename, bool allow_multi_sample)
 {
-	//create ROI index (if given)
-	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
-	if (roi!=nullptr)
-	{
-		if (!roi->isSorted())
-		{
-			THROW(ArgumentException, "Target region unsorted, but needs to be sorted (given for reading file " + filename + ")!");
-		}
-		roi_idx.reset(new ChromosomalIndex<BedFile>(*roi));
-	}
-
-	loadFromVCFGZ(filename, allow_multi_sample, roi_idx.data(), invert);
+	loadFromVCFGZ(filename, allow_multi_sample);
 }
 
-void VcfFile::load(const QString& filename, const BedFile* roi, bool invert)
+void VcfFile::load(const QString& filename, const BedFile& roi, bool allow_multi_sample, bool invert)
 {
 	//create ROI index (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
-	if (roi!=nullptr)
+	if (!roi.isSorted())
 	{
-		if (!roi->isSorted())
-		{
-			THROW(ArgumentException, "Target region unsorted, but needs to be sorted (given for reading file " + filename + ")!");
-		}
-		roi_idx.reset(new ChromosomalIndex<BedFile>(*roi));
+		THROW(ArgumentException, "Target region unsorted, but needs to be sorted (given for reading file " + filename + ")!");
 	}
+	roi_idx.reset(new ChromosomalIndex<BedFile>(roi));
 
-	loadFromVCFGZ(filename, true, roi_idx.data(), invert);
+	loadFromVCFGZ(filename, allow_multi_sample, roi_idx.data(), invert);
 }
 
 void VcfFile::storeAsTsv(const QString& filename)

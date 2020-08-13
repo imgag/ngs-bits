@@ -48,8 +48,8 @@ public:
 	///Leftnormalize every vcf line in the vcf file according to a reference genome
 	void leftNormalize(QString reference_genome);
 	///loads a vcf or vcf.gz file
-	void load(const QString& filename, bool allow_multi_sample, const BedFile* roi=nullptr, bool invert=false); //TODO load(const QString& filename, bool allow_multi_sample, bool invert) > TIM
-	void load(const QString& filename, const BedFile* roi=nullptr, bool invert=false); //TODO load(const QString& filename, const BedFile& roi, bool allow_multi_sample, bool invert) > TIM
+	void load(const QString& filename, bool allow_multi_sample = true);
+	void load(const QString& filename, const BedFile& roi,  bool allow_multi_sample = true, bool invert = false);
 	///removes duplicate variants
 	void removeDuplicates(bool sort_by_quality);
 	///stores the data of VCFFileHandler in a vcf file
@@ -179,7 +179,7 @@ public:
 private:
 
 	void clear();
-	void loadFromVCFGZ(const QString& filename, bool allow_multi_sample=false, ChromosomalIndex<BedFile>* roi_idx=nullptr, bool invert=false);
+	void loadFromVCFGZ(const QString& filename, bool allow_multi_sample = true, ChromosomalIndex<BedFile>* roi_idx = nullptr, bool invert = false);
 	void parseHeaderFields(const QByteArray& line, bool allow_multi_sample);
 	void parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert=false);
 	void parseVcfHeader(int line_number, const QByteArray& line);

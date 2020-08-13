@@ -31,7 +31,7 @@ private slots:
 
 		//only SNPs on chrX
 		BedFile roi_chrx("chrX", 1, 155270560);
-		list = NGSHelper::getKnownVariants("hg19", true, 0.0, 1.0, &roi_chrx);
+		list = NGSHelper::getKnownVariants("hg19", true, roi_chrx, 0.0, 1.0);
 		I_EQUAL(list.count(), 1948);
 	}
 
@@ -42,7 +42,7 @@ private slots:
 
 		//only SNPs, AF<50% on chrX
 		BedFile roi_chrx("chrX", 1, 155270560);
-		list = NGSHelper::getKnownVariants("hg38", true,  0.0, 0.5, &roi_chrx);
+		list = NGSHelper::getKnownVariants("hg38", true, roi_chrx, 0.0, 0.5);
 		I_EQUAL(list.count(), 1548);
 	}
 

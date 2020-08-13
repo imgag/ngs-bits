@@ -1690,7 +1690,7 @@ VariantList SomaticReportHelper::gsvarToVcf(const VariantList& gsvar_list, const
 	}
 
 	VcfFile orig_vcf;
-	orig_vcf.load(orig_name, &roi);
+	orig_vcf.load(orig_name, roi);
 
 	ChromosomalIndex<VcfFile> orig_idx(orig_vcf);
 

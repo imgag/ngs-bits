@@ -829,9 +829,9 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	QCCollection output;
 
 	//sample correlation
-	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, &target_file);
+	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, target_file);
 
-	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, normal_bam, 30, 500, true, &target_file);
+	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, normal_bam, 30, 500, true, target_file);
 	SampleSimilarity sc;
 
 	sc.calculateSimilarity(tumor_genotypes, normal_genotypes);
@@ -2029,7 +2029,7 @@ GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double ma
 
 	//load SNPs on chrX
 	BedFile roi_chrx("chrX", 1, chrx_end_pos);
-	VcfFile snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, &roi_chrx);
+	VcfFile snps = NGSHelper::getKnownVariants(build, true, roi_chrx, 0.2, 0.8);
 	QVector<Pileup> counts;
 	counts.fill(Pileup(), snps.count());
 

@@ -138,9 +138,10 @@ private slots:
 		roi.append(BedLine("chr18", 67904549, 67904670));
 
 		VcfFile vl;
-		vl.load(TESTDATA("data_in/panel_snpeff.vcf"), false, &roi);
+		vl.load(TESTDATA("data_in/panel_snpeff.vcf"), roi, false);
 		I_EQUAL(vl.count(), 4);
 		I_EQUAL(vl.vcfHeader().comments().count(), 2);
+		I_EQUAL(vl.sampleIDs().count(), 1);
 		S_EQUAL(vl.sampleIDs().at(0), QString("./Sample_GS120297A3/GS120297A3.bam"));
 		I_EQUAL(vl.informationIDs().count(), 18);
 		I_EQUAL(vl.formatIDs().count(), 6);
@@ -479,9 +480,9 @@ private slots:
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 
 		QString first_line = vl.lineToString(0);
-		S_EQUAL(first_line, "chr17	72196817	.	G	GA	217	.	INDEL;DP=31;VDB=0.0000;AF1=0.5;AC1=1;DP4=4,3,11,11;MQ=42;FQ=88.5;PV4=1,1,0.17,0.28	GT:PL:GQ	0/1:255,0,123:99");
+		S_EQUAL(first_line, QString("chr17	72196817	.	G	GA	217	.	INDEL;DP=31;VDB=0.0000;AF1=0.5;AC1=1;DP4=4,3,11,11;MQ=42;FQ=88.5;PV4=1,1,0.17,0.28	GT:PL:GQ	0/1:255,0,123:99\n"));
 		QString seventh_line = vl.lineToString(6);
-		S_EQUAL(seventh_line, "chr19	14466629	.	A	AA	70.4	.	INDEL;DP=4;VDB=0.0001;AF1=1;AC1=2;DP4=0,0,1,2;MQ=50;FQ=-43.5	GT:PL:GQ	1/1:110,9,0:16");
+		S_EQUAL(seventh_line, QString("chr19	14466629	.	A	AA	70.4	.	INDEL;DP=4;VDB=0.0001;AF1=1;AC1=2;DP4=0,0,1,2;MQ=50;FQ=-43.5	GT:PL:GQ	1/1:110,9,0:16\n"));
 	}
 
 	void convertVCFtoTSV()
