@@ -727,7 +727,6 @@ void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 	else
 	{
 		quality.setNum(line.qual());
-		if(quality=="0") quality = "0.0";
 	}
 	stream  << "\t"<< quality;
 
