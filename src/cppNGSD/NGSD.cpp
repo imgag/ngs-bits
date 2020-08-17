@@ -39,8 +39,15 @@ NGSD::NGSD(bool test_db)
 	}
 }
 
-int NGSD::userId(QString user_name, bool only_active)
+int NGSD::userId(QString user_name, bool only_active, bool throw_if_fails)
 {
+	// don't fail if user name is empty
+	if (user_name == "")
+	{
+		if (throw_if_fails) THROW(DatabaseException, "Could not determine NGSD user ID for empty user name!")
+		else return -1;
+	}
+
 	//check user exists
 	bool ok = true;
 	int user_id = getValue("SELECT id FROM user WHERE user_id=:0", true, user_name).toInt(&ok);
@@ -50,13 +57,15 @@ int NGSD::userId(QString user_name, bool only_active)
 	}
 	if (!ok)
 	{
-		THROW(DatabaseException, "Could not determine NGSD user ID for user name '" + user_name + "!");
+		if (throw_if_fails) THROW(DatabaseException, "Could not determine NGSD user ID for user name '" + user_name + "!")
+		else user_id = -1;
 	}
 
 	//check user is active
 	if (only_active && !getValue("SELECT active FROM user WHERE id=" + QString::number(user_id), false).toBool())
 	{
-		THROW(DatabaseException, "User with user name '" + user_name + " is no longer active!");
+		if (throw_if_fails) THROW(DatabaseException, "User with user name '" + user_name + " is no longer active!")
+		else user_id = -1;
 	}
 
 	return user_id;
@@ -299,7 +308,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 				{
 					if (disease_query.value(0).toString()!=type) continue;
 
-					QString entry = disease_query.value(1).toString();
+					QString entry = disease_query.value(1).toString().replace('\r', ' ').replace('\n', ' ');
 					if (type=="HPO term id")
 					{
 						tmp << entry + " - " + getValue("SELECT name FROM hpo_term WHERE hpo_id=:0", true, entry).toString();
@@ -3909,204 +3918,213 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 
 int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs)
 {
-	//create report config (if missing)
 	int id = reportConfigId(processed_sample_id);
-	if (id!=-1)
-	{
-		//delete report config variants if it already exists
-		SqlQuery query = getQuery();
-		query.exec("DELETE FROM `report_configuration_variant` WHERE report_configuration_id=" + QString::number(id));
-		query.exec("DELETE FROM `report_configuration_cnv` WHERE report_configuration_id=" + QString::number(id));
-		query.exec("DELETE FROM `report_configuration_sv` WHERE report_configuration_id=" + QString::number(id));
 
-		//update report config
-		query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + LoginManager::userIdAsString() + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" + QString::number(id));
+	try
+	{
+		transaction();
+
+		if (id!=-1) //clear old report config
+		{
+			//delete report config variants if it already exists
+			SqlQuery query = getQuery();
+			query.exec("DELETE FROM `report_configuration_variant` WHERE report_configuration_id=" + QString::number(id));
+			query.exec("DELETE FROM `report_configuration_cnv` WHERE report_configuration_id=" + QString::number(id));
+			query.exec("DELETE FROM `report_configuration_sv` WHERE report_configuration_id=" + QString::number(id));
+
+			//update report config
+			query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + LoginManager::userIdAsString() + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" + QString::number(id));
+		}
+		else //create report config (if missing)
+		{
+			//insert new report config
+			int user_id = userId(config.createdBy());
+
+			SqlQuery query = getQuery();
+			query.prepare("INSERT INTO `report_configuration`(`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (:0, :1, :2, :3, CURRENT_TIMESTAMP)");
+			query.bindValue(0, processed_sample_id);
+			query.bindValue(1, user_id);
+			query.bindValue(2, config.createdAt());
+			query.bindValue(3, user_id);
+			query.exec();
+			id = query.lastInsertId().toInt();
+		}
+
+		//store variant data
+		SqlQuery query_var = getQuery();
+		query_var.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14)");
+		SqlQuery query_cnv = getQuery();
+		query_cnv.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15)");
+		SqlQuery query_sv = getQuery();
+		query_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19)");
+		foreach(const ReportVariantConfiguration& var_conf, config.variantConfig())
+		{
+			if (var_conf.variant_type==VariantType::SNVS_INDELS)
+			{
+				//check variant index exists in variant list
+				if (var_conf.variant_index<0 || var_conf.variant_index>=variants.count())
+				{
+					THROW(ProgrammingException, "Variant list does not contain variant with index '" + QString::number(var_conf.variant_index) + "' in NGSD::setReportConfig!");
+				}
+
+				//check that classification is not set (only used for CNVs)
+				if (var_conf.classification!="n/a" && var_conf.classification!="")
+				{
+					THROW(ProgrammingException, "Report configuration for small variant '" + variants[var_conf.variant_index].toString() + "' set, but not supported!");
+				}
+
+				//get variant id (add variant if not in DB)
+				const Variant& variant = variants[var_conf.variant_index];
+				QString variant_id = variantId(variant, false);
+				if (variant_id=="")
+				{
+					variant_id = addVariant(variant, variants);
+				}
+
+				query_var.bindValue(0, id);
+				query_var.bindValue(1, variant_id);
+				query_var.bindValue(2, var_conf.report_type);
+				query_var.bindValue(3, var_conf.causal);
+				query_var.bindValue(4, var_conf.inheritance);
+				query_var.bindValue(5, var_conf.de_novo);
+				query_var.bindValue(6, var_conf.mosaic);
+				query_var.bindValue(7, var_conf.comp_het);
+				query_var.bindValue(8, var_conf.exclude_artefact);
+				query_var.bindValue(9, var_conf.exclude_frequency);
+				query_var.bindValue(10, var_conf.exclude_phenotype);
+				query_var.bindValue(11, var_conf.exclude_mechanism);
+				query_var.bindValue(12, var_conf.exclude_other);
+				query_var.bindValue(13, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+				query_var.bindValue(14, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+
+				query_var.exec();
+			}
+			else if (var_conf.variant_type==VariantType::CNVS)
+			{
+				//check CNV index exists in CNV list
+				if (var_conf.variant_index<0 || var_conf.variant_index>=cnvs.count())
+				{
+					THROW(ProgrammingException, "CNV list does not contain CNV with index '" + QString::number(var_conf.variant_index) + "' in NGSD::setReportConfig!");
+				}
+
+				//check that report CNV callset exists
+				QVariant callset_id = getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + processed_sample_id, true);
+				if (!callset_id.isValid())
+				{
+					THROW(ProgrammingException, "No CNV callset defined for processed sample with ID '" + processed_sample_id + "' in NGSD::setReportConfig!");
+				}
+
+				//get CNV id (add CNV if not in DB)
+				const CopyNumberVariant& cnv = cnvs[var_conf.variant_index];
+				QString cnv_id = cnvId(cnv, callset_id.toInt(), false);
+				if (cnv_id=="")
+				{
+					cnv_id = addCnv(callset_id.toInt(), cnv, cnvs);
+				}
+
+				query_cnv.bindValue(0, id);
+				query_cnv.bindValue(1, cnv_id);
+				query_cnv.bindValue(2, var_conf.report_type);
+				query_cnv.bindValue(3, var_conf.causal);
+				query_cnv.bindValue(4, var_conf.classification); //only for CNVs
+				query_cnv.bindValue(5, var_conf.inheritance);
+				query_cnv.bindValue(6, var_conf.de_novo);
+				query_cnv.bindValue(7, var_conf.mosaic);
+				query_cnv.bindValue(8, var_conf.comp_het);
+				query_cnv.bindValue(9, var_conf.exclude_artefact);
+				query_cnv.bindValue(10, var_conf.exclude_frequency);
+				query_cnv.bindValue(11, var_conf.exclude_phenotype);
+				query_cnv.bindValue(12, var_conf.exclude_mechanism);
+				query_cnv.bindValue(13, var_conf.exclude_other);
+				query_cnv.bindValue(14, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+				query_cnv.bindValue(15, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+
+				query_cnv.exec();
+
+			}
+			else if (var_conf.variant_type==VariantType::SVS)
+			{
+				//check SV index exists in SV list
+				if (var_conf.variant_index<0 || var_conf.variant_index>=svs.count())
+				{
+					THROW(ProgrammingException, "SV list does not contain SV with index '" + QString::number(var_conf.variant_index) + "' in NGSD::setReportConfig!");
+				}
+
+				//check that report SV callset exists
+				QVariant callset_id = getValue("SELECT id FROM sv_callset WHERE processed_sample_id=" + processed_sample_id, true);
+				if (!callset_id.isValid())
+				{
+					THROW(ProgrammingException, "No SV callset defined for processed sample with ID '" + processed_sample_id + "' in NGSD::setReportConfig!");
+				}
+
+				//get SV id and table (add SV if not in DB)
+				const BedpeLine& sv = svs[var_conf.variant_index];
+				QString sv_id = svId(sv, callset_id.toInt(), svs, false);
+				if (sv_id == "")
+				{
+					sv_id = QByteArray::number(addSv(callset_id.toInt(), sv, svs));
+				}
+
+				//define SQL query
+				query_sv.bindValue(0, id);
+				query_sv.bindValue(1, QVariant(QVariant::String));
+				query_sv.bindValue(2, QVariant(QVariant::String));
+				query_sv.bindValue(3, QVariant(QVariant::String));
+				query_sv.bindValue(4, QVariant(QVariant::String));
+				query_sv.bindValue(5, QVariant(QVariant::String));
+				query_sv.bindValue(6, var_conf.report_type);
+				query_sv.bindValue(7, var_conf.causal);
+				query_sv.bindValue(8, var_conf.classification);
+				query_sv.bindValue(9, var_conf.inheritance);
+				query_sv.bindValue(10, var_conf.de_novo);
+				query_sv.bindValue(11, var_conf.mosaic);
+				query_sv.bindValue(12, var_conf.comp_het);
+				query_sv.bindValue(13, var_conf.exclude_artefact);
+				query_sv.bindValue(14, var_conf.exclude_frequency);
+				query_sv.bindValue(15, var_conf.exclude_phenotype);
+				query_sv.bindValue(16, var_conf.exclude_mechanism);
+				query_sv.bindValue(17, var_conf.exclude_other);
+				query_sv.bindValue(18, var_conf.comments.isEmpty() ? "" : var_conf.comments);
+				query_sv.bindValue(19, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
+
+				// set SV id
+				switch (sv.type())
+				{
+					case StructuralVariantType::DEL:
+						query_sv.bindValue(1, sv_id);
+						break;
+					case StructuralVariantType::DUP:
+						query_sv.bindValue(2, sv_id);
+						break;
+					case StructuralVariantType::INS:
+						query_sv.bindValue(3, sv_id);
+						break;
+					case StructuralVariantType::INV:
+						query_sv.bindValue(4, sv_id);
+						break;
+					case StructuralVariantType::BND:
+						query_sv.bindValue(5, sv_id);
+						break;
+					default:
+						THROW(ArgumentException, "Invalid structural variant type!")
+						break;
+				}
+
+				query_sv.exec();
+
+			}
+			else
+			{
+				THROW(NotImplementedException, "Storing of report config variants with type '" + QString::number((int)var_conf.variant_type) + "' not implemented!");
+			}
+		}
+
+		commit();
 	}
-	else
+	catch(...)
 	{
-		//insert new report config
-		int user_id = userId(config.createdBy());
-
-		SqlQuery query = getQuery();
-		query.prepare("INSERT INTO `report_configuration`(`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (:0, :1, :2, :3, CURRENT_TIMESTAMP)");
-		query.bindValue(0, processed_sample_id);
-		query.bindValue(1, user_id);
-		query.bindValue(2, config.createdAt());
-		query.bindValue(3, user_id);
-		query.exec();
-		id = query.lastInsertId().toInt();
-	}
-
-	//store variant data
-	SqlQuery query_var = getQuery();
-	query_var.prepare("INSERT INTO `report_configuration_variant`(`report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14)");
-	SqlQuery query_cnv = getQuery();
-	query_cnv.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15)");
-	SqlQuery query_sv = getQuery();
-	query_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19)");
-	foreach(const ReportVariantConfiguration& var_conf, config.variantConfig())
-	{
-		if (var_conf.variant_type==VariantType::SNVS_INDELS)
-		{
-			//check variant index exists in variant list
-			if (var_conf.variant_index<0 || var_conf.variant_index>=variants.count())
-			{
-				THROW(ProgrammingException, "Variant list does not contain variant with index '" + QString::number(var_conf.variant_index) + "' in NGSD::setReportConfig!");
-			}
-
-			//check that classification is not set (only used for CNVs)
-			if (var_conf.classification!="n/a" && var_conf.classification!="")
-			{
-				THROW(ProgrammingException, "Report configuration for small variant '" + variants[var_conf.variant_index].toString() + "' set, but not supported!");
-			}
-
-			//get variant id (add variant if not in DB)
-			const Variant& variant = variants[var_conf.variant_index];
-			QString variant_id = variantId(variant, false);
-			if (variant_id=="")
-			{
-				variant_id = addVariant(variant, variants);
-			}
-
-			query_var.bindValue(0, id);
-			query_var.bindValue(1, variant_id);
-			query_var.bindValue(2, var_conf.report_type);
-			query_var.bindValue(3, var_conf.causal);
-			query_var.bindValue(4, var_conf.inheritance);
-			query_var.bindValue(5, var_conf.de_novo);
-			query_var.bindValue(6, var_conf.mosaic);
-			query_var.bindValue(7, var_conf.comp_het);
-			query_var.bindValue(8, var_conf.exclude_artefact);
-			query_var.bindValue(9, var_conf.exclude_frequency);
-			query_var.bindValue(10, var_conf.exclude_phenotype);
-			query_var.bindValue(11, var_conf.exclude_mechanism);
-			query_var.bindValue(12, var_conf.exclude_other);
-			query_var.bindValue(13, var_conf.comments.isEmpty() ? "" : var_conf.comments);
-			query_var.bindValue(14, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
-
-			query_var.exec();
-		}
-		else if (var_conf.variant_type==VariantType::CNVS)
-		{
-			//check CNV index exists in CNV list
-			if (var_conf.variant_index<0 || var_conf.variant_index>=cnvs.count())
-			{
-				THROW(ProgrammingException, "CNV list does not contain CNV with index '" + QString::number(var_conf.variant_index) + "' in NGSD::setReportConfig!");
-			}
-
-			//check that report CNV callset exists
-			QVariant callset_id = getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + processed_sample_id, true);
-			if (!callset_id.isValid())
-			{
-				THROW(ProgrammingException, "No CNV callset defined for processed sample with ID '" + processed_sample_id + "' in NGSD::setReportConfig!");
-			}
-
-			//get CNV id (add CNV if not in DB)
-			const CopyNumberVariant& cnv = cnvs[var_conf.variant_index];
-			QString cnv_id = cnvId(cnv, callset_id.toInt(), false);
-			if (cnv_id=="")
-			{
-				cnv_id = addCnv(callset_id.toInt(), cnv, cnvs);
-			}
-
-			query_cnv.bindValue(0, id);
-			query_cnv.bindValue(1, cnv_id);
-			query_cnv.bindValue(2, var_conf.report_type);
-			query_cnv.bindValue(3, var_conf.causal);
-			query_cnv.bindValue(4, var_conf.classification); //only for CNVs
-			query_cnv.bindValue(5, var_conf.inheritance);
-			query_cnv.bindValue(6, var_conf.de_novo);
-			query_cnv.bindValue(7, var_conf.mosaic);
-			query_cnv.bindValue(8, var_conf.comp_het);
-			query_cnv.bindValue(9, var_conf.exclude_artefact);
-			query_cnv.bindValue(10, var_conf.exclude_frequency);
-			query_cnv.bindValue(11, var_conf.exclude_phenotype);
-			query_cnv.bindValue(12, var_conf.exclude_mechanism);
-			query_cnv.bindValue(13, var_conf.exclude_other);
-			query_cnv.bindValue(14, var_conf.comments.isEmpty() ? "" : var_conf.comments);
-			query_cnv.bindValue(15, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
-
-			query_cnv.exec();
-
-		}
-		else if (var_conf.variant_type==VariantType::SVS)
-		{
-			//check SV index exists in SV list
-			if (var_conf.variant_index<0 || var_conf.variant_index>=svs.count())
-			{
-				THROW(ProgrammingException, "SV list does not contain SV with index '" + QString::number(var_conf.variant_index) + "' in NGSD::setReportConfig!");
-			}
-
-			//check that report SV callset exists
-			QVariant callset_id = getValue("SELECT id FROM sv_callset WHERE processed_sample_id=" + processed_sample_id, true);
-			if (!callset_id.isValid())
-			{
-				THROW(ProgrammingException, "No SV callset defined for processed sample with ID '" + processed_sample_id + "' in NGSD::setReportConfig!");
-			}
-
-			//get SV id and table (add SV if not in DB)
-			const BedpeLine& sv = svs[var_conf.variant_index];
-			QString sv_id = svId(sv, callset_id.toInt(), svs, false);
-			if (sv_id == "")
-			{
-				sv_id = QByteArray::number(addSv(callset_id.toInt(), sv, svs));
-			}
-
-
-
-			//define SQL query
-			query_sv.bindValue(0, id);
-			query_sv.bindValue(1, QVariant(QVariant::String));
-			query_sv.bindValue(2, QVariant(QVariant::String));
-			query_sv.bindValue(3, QVariant(QVariant::String));
-			query_sv.bindValue(4, QVariant(QVariant::String));
-			query_sv.bindValue(5, QVariant(QVariant::String));
-			query_sv.bindValue(6, var_conf.report_type);
-			query_sv.bindValue(7, var_conf.causal);
-			query_sv.bindValue(8, var_conf.classification);
-			query_sv.bindValue(9, var_conf.inheritance);
-			query_sv.bindValue(10, var_conf.de_novo);
-			query_sv.bindValue(11, var_conf.mosaic);
-			query_sv.bindValue(12, var_conf.comp_het);
-			query_sv.bindValue(13, var_conf.exclude_artefact);
-			query_sv.bindValue(14, var_conf.exclude_frequency);
-			query_sv.bindValue(15, var_conf.exclude_phenotype);
-			query_sv.bindValue(16, var_conf.exclude_mechanism);
-			query_sv.bindValue(17, var_conf.exclude_other);
-			query_sv.bindValue(18, var_conf.comments.isEmpty() ? "" : var_conf.comments);
-			query_sv.bindValue(19, var_conf.comments2.isEmpty() ? "" : var_conf.comments2);
-
-			// set SV id
-			switch (sv.type())
-			{
-				case StructuralVariantType::DEL:
-					query_sv.bindValue(1, sv_id);
-					break;
-				case StructuralVariantType::DUP:
-					query_sv.bindValue(2, sv_id);
-					break;
-				case StructuralVariantType::INS:
-					query_sv.bindValue(3, sv_id);
-					break;
-				case StructuralVariantType::INV:
-					query_sv.bindValue(4, sv_id);
-					break;
-				case StructuralVariantType::BND:
-					query_sv.bindValue(5, sv_id);
-					break;
-				default:
-					THROW(ArgumentException, "Invalid structural variant type!")
-					break;
-			}
-
-			query_sv.exec();
-
-		}
-		else
-		{
-			THROW(NotImplementedException, "Storing of report config variants with type '" + QString::number((int)var_conf.variant_type) + "' not implemented!");
-		}
-
+		rollback();
+		throw;
 	}
 
 	return id;
@@ -4131,10 +4149,99 @@ void NGSD::deleteReportConfig(int id)
 	query.exec("DELETE FROM `report_configuration` WHERE `id`=" + rc_id);
 }
 
+EvaluationSheetData NGSD::evaluationSheetData(const QString& processed_sample_id, bool throw_if_fails)
+{
+	EvaluationSheetData evaluation_sheet_data;
+	SqlQuery query = getQuery();
+	query.exec(QString("SELECT processed_sample_id, dna_rna_id, reviewer1, review_date1, reviewer2, review_date2, ")
+			   + "analysis_scope, settlement_volume, acmg_requested, acmg_noticeable, acmg_analyzed, "
+			   + "filtered_by_freq_based_dominant, filtered_by_freq_based_recessive, filtered_by_cnv, filtered_by_mito, filtered_by_x_chr, filtered_by_phenotype, filtered_by_multisample "
+			   + "FROM evaluation_sheet_data WHERE processed_sample_id=" + processed_sample_id);
+	if (query.next())
+	{
+		// parse result
+		evaluation_sheet_data.ps_id = query.value("processed_sample_id").toString();
+		evaluation_sheet_data.dna_rna = query.value("dna_rna_id").toString();
+		evaluation_sheet_data.reviewer1 = userName(query.value("reviewer1").toInt());
+		evaluation_sheet_data.review_date1 = query.value("review_date1").toDate();
+		evaluation_sheet_data.reviewer2 = userName(query.value("reviewer2").toInt());
+		evaluation_sheet_data.review_date2 = query.value("review_date2").toDate();
+
+		evaluation_sheet_data.analysis_scope = query.value("analysis_scope").toString();
+		evaluation_sheet_data.settlement_volume = query.value("settlement_volume").toString();
+		evaluation_sheet_data.acmg_requested = query.value("acmg_requested").toBool();
+		evaluation_sheet_data.acmg_noticeable = query.value("acmg_noticeable").toBool();
+		evaluation_sheet_data.acmg_analyzed = query.value("acmg_analyzed").toBool();
+
+		evaluation_sheet_data.filtered_by_freq_based_dominant = query.value("filtered_by_freq_based_dominant").toBool();
+		evaluation_sheet_data.filtered_by_freq_based_recessive = query.value("filtered_by_freq_based_recessive").toBool();
+		evaluation_sheet_data.filtered_by_cnv = query.value("filtered_by_cnv").toBool();
+		evaluation_sheet_data.filtered_by_mito = query.value("filtered_by_mito").toBool();
+		evaluation_sheet_data.filtered_by_x_chr = query.value("filtered_by_x_chr").toBool();
+		evaluation_sheet_data.filtered_by_phenotype = query.value("filtered_by_phenotype").toBool();
+		evaluation_sheet_data.filtered_by_multisample = query.value("filtered_by_multisample").toBool();
+	}
+	else
+	{
+		// error handling
+		if (throw_if_fails)
+		{
+			THROW(DatabaseException, "No entry found in table 'evaluation_sheet_data' for processed sample id '" + processed_sample_id +"'!");
+		}
+		else
+		{
+			evaluation_sheet_data.ps_id = "";
+		}
+	}
+	return evaluation_sheet_data;
+}
+
+int NGSD::storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_data, bool overwrite_existing_data)
+{
+	QVariant id = getValue("SELECT id FROM evaluation_sheet_data WHERE processed_sample_id=:0", true, evaluation_sheet_data.ps_id);
+	if (!id.isNull() && (!overwrite_existing_data)) THROW(DatabaseException, "Evaluation sheet data for processed sample id '" + evaluation_sheet_data.ps_id + "' already exists in NGSD table!");
+
+	// generate query
+	QString query_string = QString("REPLACE INTO evaluation_sheet_data (processed_sample_id, dna_rna_id, reviewer1, review_date1, reviewer2, review_date2, ")
+			+ "analysis_scope, settlement_volume, acmg_requested, acmg_noticeable, acmg_analyzed, "
+			+ "filtered_by_freq_based_dominant, filtered_by_freq_based_recessive, filtered_by_cnv, filtered_by_mito, filtered_by_x_chr, filtered_by_phenotype, filtered_by_multisample) "
+			+ "VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17)";
+
+	// prepare query
+	SqlQuery query = getQuery();
+	query.prepare(query_string);
+
+	// bind values
+	query.bindValue(0, evaluation_sheet_data.ps_id);
+	query.bindValue(1, evaluation_sheet_data.dna_rna);
+	query.bindValue(2, userId(evaluation_sheet_data.reviewer1));
+	query.bindValue(3, evaluation_sheet_data.review_date1);
+	query.bindValue(4, userId(evaluation_sheet_data.reviewer2));
+	query.bindValue(5, evaluation_sheet_data.review_date2);
+	query.bindValue(6, evaluation_sheet_data.analysis_scope);
+	query.bindValue(7, evaluation_sheet_data.settlement_volume);
+	query.bindValue(8, evaluation_sheet_data.acmg_requested);
+	query.bindValue(9, evaluation_sheet_data.acmg_noticeable);
+	query.bindValue(10, evaluation_sheet_data.acmg_analyzed);
+	query.bindValue(11, evaluation_sheet_data.filtered_by_freq_based_dominant);
+	query.bindValue(12, evaluation_sheet_data.filtered_by_freq_based_recessive);
+	query.bindValue(13, evaluation_sheet_data.filtered_by_cnv);
+	query.bindValue(14, evaluation_sheet_data.filtered_by_mito);
+	query.bindValue(15, evaluation_sheet_data.filtered_by_x_chr);
+	query.bindValue(16, evaluation_sheet_data.filtered_by_phenotype);
+	query.bindValue(17, evaluation_sheet_data.filtered_by_multisample);
+
+	// insert into NGSD
+	query.exec();
+
+	// return id
+	return query.lastInsertId().toInt();
+}
+
 SomaticReportConfigurationData NGSD::somaticReportConfigData(int id)
 {
 	SqlQuery query = getQuery();
-	query.exec("SELECT created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date, mtb_xml_upload_date, mtb_rtf_upload_date, target_file FROM somatic_report_configuration WHERE id=" + QString::number(id));
+	query.exec("SELECT created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date, mtb_xml_upload_date, mtb_pdf_upload_date, target_file FROM somatic_report_configuration WHERE id=" + QString::number(id));
 	query.next();
 
 	SomaticReportConfigurationData output;
@@ -4151,8 +4258,8 @@ SomaticReportConfigurationData NGSD::somaticReportConfigData(int id)
 	if( !query.value("mtb_xml_upload_date" ).isNull()) output.mtb_xml_upload_date = query.value("mtb_xml_upload_date").toDateTime().toString("dd.MM.yyyy hh:mm:ss");
 	else output.mtb_xml_upload_date = "";
 
-	if( !query.value("mtb_rtf_upload_date").isNull() ) output.mtb_rtf_upload_date = query.value("mtb_rtf_upload_date").toDateTime().toString("dd.MM.yyyy hh:mm:ss");
-	else output.mtb_rtf_upload_date = "";
+	if( !query.value("mtb_pdf_upload_date").isNull() ) output.mtb_pdf_upload_date = query.value("mtb_pdf_upload_date").toDateTime().toString("dd.MM.yyyy hh:mm:ss");
+    else output.mtb_pdf_upload_date = "";
 
 	return output;
 }
@@ -4533,10 +4640,10 @@ void NGSD::setSomaticMtbXmlUpload(int report_id)
 	query.exec();
 }
 
-void NGSD::setSomaticMtbRtfUpload(int report_id)
+void NGSD::setSomaticMtbPdfUpload(int report_id)
 {
 	SqlQuery query = getQuery();
-	query.prepare("UPDATE `somatic_report_configuration` SET `mtb_rtf_upload_date`= CURRENT_TIMESTAMP WHERE id=:0");
+	query.prepare("UPDATE `somatic_report_configuration` SET `mtb_pdf_upload_date`= CURRENT_TIMESTAMP WHERE id=:0");
 	query.bindValue(0, report_id);
 	query.exec();
 }

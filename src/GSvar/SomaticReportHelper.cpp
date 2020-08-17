@@ -2309,7 +2309,7 @@ void::SomaticReportHelper::storeXML(QString file_name)
 	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(snv_germline_, settings_);
 	SomaticXmlReportGeneratorData data(settings_, snv_variants_, som_var_in_normal, cnvs_);
 	data.tumor_content_histology = histol_tumor_fraction_ / 100.; //is stored as double between 0 and 1, NGSD contains percentages
-	data.tumor_content_snvs = getTumorContentBySNVs();
+	data.tumor_content_snvs = getTumorContentBySNVs() / 100; //is stored as a double between 0 and 1, QCML file contains percentages
 	data.tumor_content_clonality = getCnvMaxTumorClonality(cnvs_) ;
 	data.tumor_mutation_burden = mutation_burden_;
 	data.mantis_msi = mantis_msi_swd_value_;

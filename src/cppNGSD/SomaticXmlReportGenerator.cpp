@@ -34,7 +34,7 @@ void SomaticXmlReportGeneratorData::check() const
 	if( settings.report_config.tumContentByClonality() && !BasicStatistics::isValidFloat(tumor_content_clonality) ) valid = false;
 
 	if( !BasicStatistics::isValidFloat(tumor_mutation_burden)) valid = false;
-	if( !BasicStatistics::isValidFloat(mantis_msi)) valid = false;
+	if( settings.report_config.msiStatus() && !BasicStatistics::isValidFloat(mantis_msi)) valid = false;
 
 	if(!valid)
 	{

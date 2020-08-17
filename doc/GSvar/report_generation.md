@@ -30,11 +30,16 @@ Additionally, this information is stored:
 The report configuration of a sample is automatically stored in the NGSD whenever it is modified.
 It is loaded automatically loaded the next time the sample is opened.
 
-### Generating a report or variant sheet
+### Generating a report or evaluation sheet
 
 Through the report menu, a report for the sample can be generated:
 
-![report_config_results.png](report_config_results.png)
+![evaluation_sheet_menu.png](evaluation_sheet_menu.png)
 
-Additionally, a *sample sheet* can be stored as documentation of the variant analysis of the sample.  
-It contains all variant that have a *report configuration* including comments.  
+Additionally, a *evaluation sheet* can be stored as documentation of the variant analysis of the sample. 
+It opens a dialog which has to be filled with details of the analysis and creates a HTML document which contains all variant that have a *report configuration* including comments.
+
+![evaluation_sheet_edit_dialog.png](evaluation_sheet_edit_dialog.png)
+
+
+

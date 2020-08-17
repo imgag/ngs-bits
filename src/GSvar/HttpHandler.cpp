@@ -12,6 +12,7 @@
 #include <QAuthenticator>
 #include <QFile>
 #include <QPointer>
+#include <QHttpMultiPart>
 
 HttpHandler::HttpHandler(ProxyType proxy_type, QObject* parent)
 	: QObject(parent)
@@ -103,6 +104,38 @@ QString HttpHandler::post(QString url, const QByteArray& data, const HttpHeaders
 
 	//query
 	QNetworkReply* reply = nmgr_.post(request, data);
+
+	//make the loop process the reply immediately
+	QEventLoop loop;
+	connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+	loop.exec();
+
+	//output
+	QString output = reply->readAll();
+	if (reply->error()!=QNetworkReply::NoError)
+	{
+		THROW(Exception, "Network error " + QString::number(reply->error()) + "\nError message: " + reply->errorString() + "\nReply: " + output);
+	}
+	reply->deleteLater();
+	return output;
+}
+
+QString HttpHandler::post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers)
+{
+	//request
+	QNetworkRequest request;
+	request.setUrl(url);
+	for(auto it=headers_.begin(); it!=headers_.end(); ++it)
+	{
+		request.setRawHeader(it.key(), it.value());
+	}
+	for(auto it=add_headers.begin(); it!=add_headers.end(); ++it)
+	{
+		request.setRawHeader(it.key(), it.value());
+	}
+
+	//query
+	QNetworkReply* reply = nmgr_.post(request, parts);
 
 	//make the loop process the reply immediately
 	QEventLoop loop;

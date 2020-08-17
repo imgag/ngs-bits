@@ -385,7 +385,46 @@ struct CPPNGSDSHARED_EXPORT SomaticReportConfigurationData : public ReportConfig
 {
 	QString target_file;
 	QString mtb_xml_upload_date;
-	QString mtb_rtf_upload_date;
+    QString mtb_pdf_upload_date;
+};
+
+///Header data of the Evaluation Sheet
+struct CPPNGSDSHARED_EXPORT EvaluationSheetData
+{
+	//set default values on construction
+	EvaluationSheetData() :
+		acmg_requested(false),
+		acmg_noticeable(false),
+		acmg_analyzed(false),
+		filtered_by_freq_based_dominant(false),
+		filtered_by_freq_based_recessive(false),
+		filtered_by_cnv(false),
+		filtered_by_mito(false),
+		filtered_by_x_chr(false),
+		filtered_by_phenotype(false),
+		filtered_by_multisample(false)
+	{}
+
+	QString ps_id;
+	QString dna_rna;
+	QString reviewer1;
+	QDate review_date1;
+	QString reviewer2;
+	QDate review_date2;
+
+	QString analysis_scope;
+	QString settlement_volume;
+	bool acmg_requested;
+	bool acmg_noticeable;
+	bool acmg_analyzed;
+
+	bool filtered_by_freq_based_dominant;
+	bool filtered_by_freq_based_recessive;
+	bool filtered_by_cnv;
+	bool filtered_by_mito;
+	bool filtered_by_x_chr;
+	bool filtered_by_phenotype;
+	bool filtered_by_multisample;
 };
 
 /// NGSD accessor.
@@ -445,7 +484,6 @@ public:
 
 
 	/*** transactions ***/
-	///Start transaction
 	bool transaction() { return db_->transaction(); }
 	bool commit() { return db_->commit(); }
 	bool rollback() { return db_->rollback(); }
@@ -556,7 +594,8 @@ public:
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
-	int userId(QString user_name, bool only_active=false);
+	///If throw_if_false == false it returns -1 if user is not found
+	int userId(QString user_name, bool only_active=false, bool throw_if_fails = true);
 	///Returns the user name corresponding the given ID. If no ID is given, the current users ID is used (see userId()).
 	QString userName(int user_id=-1);
 	///Returns the user email corresponding the given ID. If no ID is given, the current user ID is used (see userId()).
@@ -635,6 +674,11 @@ public:
 	///Deletes a report configuration.
 	void deleteReportConfig(int id);
 
+	///Returns the varint evaluation sheet data for a given processed sample id
+	EvaluationSheetData evaluationSheetData(const QString& processed_sample_id, bool throw_if_fails = true);
+	///Stores a given EvaluationSheetData in the NGSD (return table id)
+	int storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_data, bool overwrite_existing_data = false);
+
 	///Returns the report config creation data (user/date) for somatic reports
 	SomaticReportConfigurationData somaticReportConfigData(int id);
 
@@ -649,8 +693,8 @@ public:
 	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const VariantList& germline_snvs, QStringList& messages);
 	///set upload time of somatic XML report to current timestamp
 	void setSomaticMtbXmlUpload(int report_id);
-	///set upload time of somatic RTF report to current timestamp
-	void setSomaticMtbRtfUpload(int report_id);
+	///set upload time of somatic PDF report to current timestamp
+	void setSomaticMtbPdfUpload(int report_id);
 
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality);

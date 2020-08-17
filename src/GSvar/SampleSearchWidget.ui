@@ -193,8 +193,11 @@
         </item>
         <item row="2" column="1">
          <widget class="QCheckBox" name="s_name_comments">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Matches comments of both sample and processed sample.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
           <property name="text">
-           <string>also match comments (sample and processed sample)</string>
+           <string>also match comments</string>
           </property>
          </widget>
         </item>

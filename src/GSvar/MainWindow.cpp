@@ -100,6 +100,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "RepeatExpansionWidget.h"
 #include "SomaticDataTransferWidget.h"
 #include "PRSWidget.h"
+#include "EvaluationSheetEditDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -164,15 +165,16 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
 	connect(ui_.vars_resize_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(adaptColumnWidthsCustom()));
 	ui_.vars_export_btn->setMenu(new QMenu());
-	ui_.vars_export_btn->menu()->addAction("Export VCF", this, SLOT(exportVCF()));
-	ui_.vars_export_btn->menu()->addAction("Export GSvar", this, SLOT(exportGSvar()));
+	ui_.vars_export_btn->menu()->addAction("Export GSvar (filtered)", this, SLOT(exportGSvar()));
+	ui_.vars_export_btn->menu()->addAction("Export VCF (filtered)", this, SLOT(exportVCF()));
 	ui_.report_btn->setMenu(new QMenu());
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate variant sheet", this, SLOT(generateVariantSheet()));
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Somatic Data Transfer", this, SLOT(transferSomaticData()) );
-	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Show report configuration info", this, SLOT(showReportConfigInfo()));
+	ui_.report_btn->menu()->addSeparator();
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate evaluation sheet", this, SLOT(generateEvaluationSheet()));
+	ui_.report_btn->menu()->addSeparator();
+	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
 	ui_.vars_af_hist->setMenu(new QMenu());
 	ui_.vars_af_hist->menu()->addAction("Show histogram (all variants)", this, SLOT(showAfHistogram_all()));
@@ -2096,9 +2098,15 @@ void MainWindow::storeReportConfig()
 	}
 }
 
-void MainWindow::generateVariantSheet()
+void MainWindow::generateEvaluationSheet()
 {
+	if (!LoginManager::active())
+	{
+		QMessageBox::warning(this, "Evaluation Sheet creation", "Error: No connection to the NGSD.\nYou need access to the NGSD to create an evaluation sheet:\n\n");
+		return;
+	}
 	if (filename_=="") return;
+	QString base_name = processedSampleName();
 
 	//check if applicable
 	if (!germlineReportSupported())
@@ -2106,12 +2114,6 @@ void MainWindow::generateVariantSheet()
 		QMessageBox::information(this, "Variant sheet error", "Variant sheet not supported for this type of analysis!");
 		return;
 	}
-
-	//get filename
-	QString base_name = processedSampleName();
-	QString folder = Settings::string("gsvar_variantsheet_folder");
-	QString filename = QFileDialog::getSaveFileName(this, "Store variant sheet",  folder + "/" + base_name + "_variant_sheet_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
-	if (filename.isEmpty()) return;
 
 	//make sure free-text phenotype infos are available
 	NGSD db;
@@ -2126,6 +2128,35 @@ void MainWindow::generateVariantSheet()
 
 		db.setSampleDiseaseInfo(sample_id, widget->diseaseInfo());
 	}
+
+	//try to get VariantListInfo from the NGSD
+	EvaluationSheetData evaluation_sheet_data = db.evaluationSheetData(db.processedSampleId(filename_), false);
+	if (evaluation_sheet_data.ps_id == "")
+	{
+		//No db entry found -> set default values
+		evaluation_sheet_data = EvaluationSheetData();
+		evaluation_sheet_data.ps_id = db.processedSampleId(filename_);
+		evaluation_sheet_data.dna_rna = db.getSampleData(sample_id).name_external;
+		// make sure reviewer 1 contains name not user id
+		evaluation_sheet_data.reviewer1 = db.userName(db.userId(report_settings_.report_config.createdBy()));
+		evaluation_sheet_data.review_date1 = report_settings_.report_config.createdAt().date();
+		evaluation_sheet_data.reviewer2 = db.userName();
+		evaluation_sheet_data.review_date2 = QDate::currentDate();
+	}
+
+
+	//Show VaraintSheetEditDialog
+	EvaluationSheetEditDialog* edit_dialog = new EvaluationSheetEditDialog(this);
+	edit_dialog->importEvaluationSheetData(evaluation_sheet_data);
+	if (edit_dialog->exec() != QDialog::Accepted) return;
+
+	//Store updated info in the NGSD
+	db.storeEvaluationSheetData(evaluation_sheet_data, true);
+
+	//get filename
+	QString folder = Settings::string("gsvar_variantsheet_folder");
+	QString filename = QFileDialog::getSaveFileName(this, "Store variant sheet",  folder + "/" + base_name + "_variant_sheet_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	if (filename.isEmpty()) return;
 
 	//open file
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
@@ -2161,47 +2192,42 @@ void MainWindow::generateVariantSheet()
 	stream << "      }" << endl;
 	stream << "    </style>" << endl;
 	stream << "  </head>" << endl;
-
 	stream << "  <body>" << endl;
-
 	stream << "    <table class='noborder' width='100%'>" << endl;
 	stream << "      <tr>" << endl;
 	stream << "        <td class='noborder' valign='top'>" << endl;
 	stream << "           <h3>Probe: " << base_name << "</h3>" << endl;
 	stream << "        </td>" << endl;
-	stream << "        <td class='noborder' valign='top' style='width: 1%; white-space: nowrap;'>" << endl;
-	stream << "          <img width='100' height='100' style='margin: 10px;' src='data:image/png;base64," << QrCodeFactory::generateText("G8006X" + base_name.toLatin1(), 100) << "' />" << endl;
-	stream << "          </img>" << endl;
-	stream << "        </td>" << endl;
 	stream << "      </tr>" << endl;
 	stream << "    </table>" << endl;
-
 	stream << "    <table class='noborder' width='100%'>" << endl;
 	stream << "      <tr>" << endl;
 	stream << "        <td class='noborder' valign='top'>" << endl;
-	stream << "          <p>DNA/RNA#: <span class='line'></span></p>" << endl;
-	stream << "          <p> Pat. Name, Vorname: <span class='line'></span></p>" << endl;
-	stream << "          <p>Geburtsdatum: <span class='line'></span></p>" << endl;
+	stream << "          <p>DNA/RNA#: <span class='line'>" << evaluation_sheet_data.dna_rna << "</span></p>" << endl;
 	stream << "          <br>" << endl;
-	stream << "          <p>1. Auswerter: <span class='line'>" << report_settings_.report_config.createdBy() << "</span> Datum: <span class='line'>" << report_settings_.report_config.createdAt().toString("dd.MM.yyyy") << "</span></p>" << endl;
-	stream << "          <p><nobr>2. Auswerter: <span class='line'></span> Datum: <span class='line'></span></nobr></p>" << endl;
-	stream << "        </td>" << endl;
-	stream << "        <td class='noborder' valign='top'>" << endl;
-	stream << "          <p>Auswerteumfang: <span class='line'></span></p>" << endl;
-	stream << "          <p><nobr>Abrechungsumfang: <span class='line'></span></nobr></p>" << endl;
+	stream << "          <p>1. Auswerter: <span class='line'>" << evaluation_sheet_data.reviewer1 << "</span> Datum: <span class='line'>" << evaluation_sheet_data.review_date1.toString("dd.MM.yyyy") << "</span></p>" << endl;
+	stream << "          <p><nobr>2. Auswerter: <span class='line'>" << evaluation_sheet_data.reviewer2 << "</span> Datum: <span class='line'>" << evaluation_sheet_data.review_date2.toString("dd.MM.yyyy") << "</span></nobr></p>" << endl;
 	stream << "          <br>" << endl;
-	stream << "          <p>ACMG angefordert: &nbsp;&nbsp; &#9633; ja &nbsp;&nbsp; &#9633; nein</p>" << endl;
-	stream << "          <p>ACMG auff&auml;llig: &nbsp;&nbsp; &#9633; ja &nbsp;&nbsp; &#9633; nein</p>" << endl;
+	stream << "          <p>Auswerteumfang: <span class='line'>" << evaluation_sheet_data.analysis_scope << "</span></p>" << endl;
+	stream << "          <p><nobr>Abrechungsumfang: <span class='line'>" << evaluation_sheet_data.settlement_volume << "</span></nobr></p>" << endl;
 	stream << "        </td>" << endl;
 	stream << "        <td class='noborder' valign='top' style='width: 1%; white-space: nowrap;'>" << endl;
 	stream << "          <table border='0'>" << endl;
 	stream << "            <tr> <td colspan=2><b>Filterung erfolgt</b></td> </tr>" << endl;
-	stream << "            <tr> <td nowrap>Freq.-basiert dominant&nbsp;&nbsp;</td> <td>&#9633;</td> </tr>" << endl;
-	stream << "            <tr> <td>Freq.-basiert rezessiv</td> <td>&#9633;</td> </tr>" << endl;
-	stream << "            <tr> <td>CNV</td> <td>&#9633;</td> </tr>" << endl;
-	stream << "            <tr> <td>Mitochondrial</td> <td>&#9633;</td> </tr>" << endl;
-	stream << "            <tr> <td>X-chromosomal</td> <td>&#9633;</td> </tr>" << endl;
-	stream << "            <tr> <td>Ph&auml;notyp-basiert</td> <td>&#9633;</td> </tr>" << endl;
+	stream << "            <tr> <td nowrap>Freq.-basiert dominant&nbsp;&nbsp;</td> <td>"<< ((evaluation_sheet_data.filtered_by_freq_based_dominant)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Freq.-basiert rezessiv</td> <td>"<< ((evaluation_sheet_data.filtered_by_freq_based_recessive)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>CNV</td> <td>"<< ((evaluation_sheet_data.filtered_by_cnv)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Mitochondrial</td> <td>"<< ((evaluation_sheet_data.filtered_by_mito)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>X-chromosomal</td> <td>"<< ((evaluation_sheet_data.filtered_by_x_chr)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Ph&auml;notyp-basiert</td> <td>"<< ((evaluation_sheet_data.filtered_by_phenotype)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Multi-Sample-Auswertung</td> <td>"<< ((evaluation_sheet_data.filtered_by_multisample)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "          </table>" << endl;
+	stream << "          <br>" << endl;
+	stream << "          <table border='0'>" << endl;
+	stream << "            <tr> <td colspan=2><b>ACMG</b></td> </tr>" << endl;
+	stream << "            <tr> <td>angefordert: &nbsp;&nbsp; </td> <td>"<< ((evaluation_sheet_data.acmg_requested)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>analysiert: &nbsp;&nbsp; </td> <td>"<< ((evaluation_sheet_data.acmg_analyzed)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>auff&auml;llig: &nbsp;&nbsp; </td> <td>"<< ((evaluation_sheet_data.acmg_noticeable)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
 	stream << "          </table>" << endl;
 	stream << "        </td>" << endl;
 	stream << "      </tr>" << endl;
@@ -2337,27 +2363,26 @@ void MainWindow::generateVariantSheet()
 
 	if (QMessageBox::question(this, "Variant sheet", "Variant sheet generated successfully!\nDo you want to open it in your browser?")==QMessageBox::Yes)
 	{
-		QDesktopServices::openUrl(filename);
+		QDesktopServices::openUrl(QUrl::fromLocalFile(filename));
 	}
 }
 
 void MainWindow::transferSomaticData()
 {
-	if(variants_.type() != AnalysisType::SOMATIC_PAIR) return;
-
-
-	SomaticDataTransferWidget* data_transfer;
-
 	try
 	{
-		data_transfer = new SomaticDataTransferWidget(somatic_report_settings_.tumor_ps, somatic_report_settings_.normal_ps, this);
-		data_transfer->exec();
+		if(variants_.type()!=AnalysisType::SOMATIC_PAIR)
+		{
+			THROW(Exception, "Error: only possible for tumor-normal pair!");
+		}
+
+		SomaticDataTransferWidget data_transfer(somatic_report_settings_.tumor_ps, somatic_report_settings_.normal_ps, this);
+		data_transfer.exec();
 	}
 	catch(DatabaseException e)
 	{
-		QMessageBox::warning(this, "Database error", e.message());
+		QMessageBox::warning(this, "Transfer somatic data to MTB", e.message());
 	}
-
 }
 
 void MainWindow::showReportConfigInfo()
@@ -2705,7 +2730,7 @@ void MainWindow::generateReportSomaticRTF()
 			SomaticReportHelper report(variants_, cnvs_, somatic_control_tissue_variants_, somatic_report_settings_);
 
 			//Store XML file with the same somatic report configuration settings
-			QString gsvar_xml_folder = Settings::string("gsvar_somatic_xml_folder");
+			QString gsvar_xml_folder = Settings::string("gsvar_xml_folder");
 
 			try
 			{
@@ -2750,7 +2775,7 @@ void MainWindow::generateReportSomaticRTF()
 		//open report
 		if (QMessageBox::question(this, "DNA report", "DNA report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
 		{
-			QDesktopServices::openUrl(file_rep);
+			QDesktopServices::openUrl(QUrl::fromLocalFile(file_rep) );
 		}
 	}
 	else //RNA report
@@ -2780,7 +2805,7 @@ void MainWindow::generateReportSomaticRTF()
 
 		if (QMessageBox::question(this, "RNA report", "RNA report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
 		{
-			QDesktopServices::openUrl(file_rep);
+			QDesktopServices::openUrl(QUrl::fromLocalFile(file_rep));
 		}
 	}
 }
@@ -2873,7 +2898,7 @@ void MainWindow::reportGenerationFinished(bool success)
 	{
 		if (QMessageBox::question(this, "Report", "Report generated successfully!\nDo you want to open the report in your browser?")==QMessageBox::Yes)
 		{
-			QDesktopServices::openUrl(worker->getReportFile());
+			QDesktopServices::openUrl(QUrl::fromLocalFile(worker->getReportFile()));
 		}
 	}
 	else
@@ -3600,110 +3625,142 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 
 void MainWindow::exportVCF()
 {
-	//create BED file with 15 flanking bases around variants
-	BedFile roi;
-	for(int i=0; i<variants_.count(); ++i)
+	try
 	{
-		roi.append(BedLine(variants_[i].chr(), variants_[i].start()-15, variants_[i].end()+15));
-	}
-	roi.merge();
+		QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	//load original VCF
-	QString orig_name = filename_;
-	orig_name.replace(".GSvar", "_var_annotated.vcf.gz");
-	if (!QFile::exists(orig_name))
-	{
-		GUIHelper::showMessage("VCF export error", "Could not find original VCF file '" + orig_name + "'!");
-		return;
-	}
-	VcfFile orig_vcf;
-	orig_vcf.load(orig_name, roi);
-	ChromosomalIndex<VcfFile> orig_idx(orig_vcf);
-
-	//create new VCF
-	VcfFile output;
-	output.copyMetaDataForSubsetting(orig_vcf);
-	for(int i=0; i<variants_.count(); ++i)
-	{
-		if (!filter_result_.passing(i)) continue;
-
-		int hit_count = 0;
-		const Variant& v = variants_[i];
-		QVector<int> matches = orig_idx.matchingIndices(v.chr(), v.start()-10, v.end()+10);
-		foreach(int index, matches)
+		//create BED file with 15 flanking bases around variants
+		BedFile roi;
+		for(int i=0; i<variants_.count(); ++i)
 		{
-			const VcfLinePtr& v2 = orig_vcf.getVariantPtr(index);
-			if(v2->isMultiAllelic()) continue;
+			if (!filter_result_.passing(i)) continue;
 
-			if (v.isSNV()) //SNV
+			roi.append(BedLine(variants_[i].chr(), variants_[i].start()-15, variants_[i].end()+15));
+		}
+		roi.merge();
+
+		//load variants in ROI from original VCF
+		QString orig_name = filename_;
+		orig_name.replace(".GSvar", "_var_annotated.vcf.gz");
+		if (!QFile::exists(orig_name)) THROW(FileAccessException, "Could not find original VCF: " + orig_name);
+
+		VcfFile orig_vcf;
+		orig_vcf.load(orig_name, roi);
+		ChromosomalIndex<VcfFile> orig_idx(orig_vcf);
+
+		//create new VCF
+		VcfFile output;
+		output.copyMetaDataForSubsetting(orig_vcf);
+		for(int i=0; i<variants_.count(); ++i)
+		{
+			if (!filter_result_.passing(i)) continue;
+
+			int hit_count = 0;
+			const Variant& v = variants_[i];
+			QVector<int> matches = orig_idx.matchingIndices(v.chr(), v.start()-15, v.end()+15);
+			foreach(int index, matches)
 			{
-				if (v.start()==v2->start() && v.obs()==v2->alt(0))
+				const VcfLinePtr& v2 = orig_vcf.getVariantPtr(index);
+				if(v2->isMultiAllelic()) continue;
+				if (v.isSNV()) //SNV
 				{
-					output.vcfLines().push_back(v2);
-					++hit_count;
+					if (v.start()==v2->start() && v.obs()==v2->alt(0))
+					{
+						output.vcfLines().push_back(v2);
+						++hit_count;
+					}
+				}
+				else if (v.ref()=="-") //insertion
+				{
+					if (v.start()==v2->start() && v2->ref().count()==1 && v2->alt(0).mid(1)==v.obs())
+					{
+						output.vcfLines().push_back(v2);
+						++hit_count;
+					}
+				}
+				else if (v.obs()=="-") //deletion
+				{
+					if (v.start()-1==v2->start() && v2->alt(0).count()==1 && v2->ref().mid(1)==v.ref())
+					{
+						output.vcfLines().push_back(v2);
+						++hit_count;
+					}
+				}
+				else //complex
+				{
+					if (v.start()==v2->start() && v2->alt(0)==v.obs() && v2->ref()==v.ref())
+					{
+						output.vcfLines().push_back(v2);
+						++hit_count;
+					}
 				}
 			}
-			else if (v.ref()=="-") //insertion
+			if (hit_count!=1)
 			{
-				if (v.start()==v2->start() && v2->ref().count()==1 && v2->alt(0).mid(1)==v.obs())
-				{
-					output.vcfLines().push_back(v2);
-					++hit_count;
-				}
-			}
-			else if (v.obs()=="-") //deletion
-			{
-				if (v.start()-1==v2->start() && v2->alt(0).count()==1 && v2->ref().mid(1)==v.ref())
-				{
-					output.vcfLines().push_back(v2);
-					++hit_count;
-				}
-			}
-			else //complex
-			{
-				if (v.start()==v2->start() && v2->alt(0)==v.obs() && v2->ref()==v.ref())
-				{
-					output.vcfLines().push_back(v2);
-					++hit_count;
-				}
+				THROW(ProgrammingException, "Found " + QString::number(hit_count) + " matching variants for " + v.toString() + " in VCF file. Exactly one expected!");
 			}
 		}
-		if (hit_count!=1)
-		{
-			THROW(ProgrammingException, "Found " + QString::number(hit_count) + " matching variants for " + v.toString() + " in VCF file. Exactly one expected!");
-		}
-	}
 
-	//store to VCF file
-	QString file_name = filename_;
-	file_name.replace(".GSvar", "_var_export.vcf");
-	file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf);;All files (*.*)");
-	if (file_name!="")
+		//store
+		QFileInfo filename_info(filename_);
+		QString folder = Settings::string("gsvar_variant_export_folder").trimmed();
+		if (folder.isEmpty()) folder = filename_info.absolutePath();
+		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf";
+		file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf);;All files (*.*)");
+		if (file_name!="")
+		{
+			output.store(file_name);
+		}
+
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::information(this, "VCF export", "Exported VCF file with " + QString::number(output.count()) + " variants.");
+	}
+	catch(Exception& e)
 	{
-		output.store(file_name);
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::warning(this, "VCF export error", e.message());
 	}
 }
 
 void MainWindow::exportGSvar()
 {
-	//create new VCF
-	VariantList output;
-	output.copyMetaData(variants_);
-	for(int i=0; i<variants_.count(); ++i)
+	try
 	{
-		if (filter_result_.passing(i))
-		{
-			output.append(variants_[i]);
-		}
-	}
+		QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	//store to GSvar file
-	QString file_name = filename_;
-	file_name.replace(".GSvar", "_export.GSvar");
-	file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "GSvar (*.gsvar);;All files (*.*)");
-	if (file_name!="")
+		//create new GSvar file with passing variants
+		VariantList output;
+		output.copyMetaData(variants_);
+		for(int i=0; i<variants_.count(); ++i)
+		{
+			if (filter_result_.passing(i))
+			{
+				output.append(variants_[i]);
+			}
+		}
+
+		//store
+		QFileInfo filename_info(filename_);
+		QString folder = Settings::string("gsvar_variant_export_folder").trimmed();
+		if (folder.isEmpty()) folder = filename_info.absolutePath();
+		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".GSvar";
+		file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "GSvar (*.gsvar);;All files (*.*)");
+		if (file_name!="")
+		{
+			output.store(file_name);
+		}
+
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::information(this, "GSvar export", "Exported GSvar file with " + QString::number(output.count()) + " variants.");
+	}
+	catch(Exception& e)
 	{
-		output.store(file_name);
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::warning(this, "GSvar export error", e.message());
 	}
 }
 

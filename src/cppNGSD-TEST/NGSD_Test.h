@@ -1108,6 +1108,70 @@ private slots:
 			db.getValue("SELECT count(*) FROM " + table_name, false);
 		}
 
+
+		//Test Evaluation Sheet Data table
+		EvaluationSheetData esd_test_input;
+		esd_test_input.ps_id = "4001";
+		esd_test_input.dna_rna = "DNA_12345";
+		esd_test_input.reviewer1 = "Max Mustermann";
+		esd_test_input.review_date1 = QDate(2020, 2, 20);
+		esd_test_input.reviewer2 = "Sarah Kerrigan";
+		esd_test_input.review_date2 = QDate(2033, 3, 30);
+		esd_test_input.analysis_scope = "Analyseumfang";
+		esd_test_input.settlement_volume = "Abrechnungsumfang";
+		esd_test_input.acmg_requested = true;
+		esd_test_input.acmg_noticeable = false;
+		esd_test_input.acmg_analyzed = true;
+		esd_test_input.filtered_by_freq_based_dominant = false;
+		esd_test_input.filtered_by_freq_based_recessive = true;
+		esd_test_input.filtered_by_cnv = false;
+		esd_test_input.filtered_by_mito = true;
+		esd_test_input.filtered_by_x_chr = false;
+		esd_test_input.filtered_by_phenotype = true;
+		esd_test_input.filtered_by_multisample = false;
+
+		db.storeEvaluationSheetData(esd_test_input);
+
+		EvaluationSheetData esd_db_export = db.evaluationSheetData("4001");
+		IS_TRUE(esd_test_input.ps_id == esd_db_export.ps_id);
+		IS_TRUE(esd_test_input.dna_rna == esd_db_export.dna_rna);
+		IS_TRUE(esd_test_input.reviewer1 == esd_db_export.reviewer1);
+		IS_TRUE(esd_test_input.review_date1 == esd_db_export.review_date1);
+		IS_TRUE(esd_test_input.reviewer2 == esd_db_export.reviewer2);
+		IS_TRUE(esd_test_input.review_date2 == esd_db_export.review_date2);
+		IS_TRUE(esd_test_input.analysis_scope == esd_db_export.analysis_scope);
+		IS_TRUE(esd_test_input.settlement_volume == esd_db_export.settlement_volume);
+		IS_TRUE(esd_test_input.acmg_requested == esd_db_export.acmg_requested);
+		IS_TRUE(esd_test_input.acmg_noticeable == esd_db_export.acmg_noticeable);
+		IS_TRUE(esd_test_input.acmg_analyzed == esd_db_export.acmg_analyzed);
+		IS_TRUE(esd_test_input.filtered_by_freq_based_dominant == esd_db_export.filtered_by_freq_based_dominant);
+		IS_TRUE(esd_test_input.filtered_by_freq_based_recessive == esd_db_export.filtered_by_freq_based_recessive);
+		IS_TRUE(esd_test_input.filtered_by_cnv == esd_db_export.filtered_by_cnv);
+		IS_TRUE(esd_test_input.filtered_by_mito == esd_db_export.filtered_by_mito);
+		IS_TRUE(esd_test_input.filtered_by_x_chr == esd_db_export.filtered_by_x_chr);
+		IS_TRUE(esd_test_input.filtered_by_phenotype == esd_db_export.filtered_by_phenotype);
+		IS_TRUE(esd_test_input.filtered_by_multisample == esd_db_export.filtered_by_multisample);
+
+		//change input
+		esd_test_input.dna_rna = "DNA_67890";
+
+		// test import with no overwrite
+		IS_THROWN(DatabaseException, db.storeEvaluationSheetData(esd_test_input));
+
+		// test with overwrite
+		db.storeEvaluationSheetData(esd_test_input, true);
+		esd_db_export = db.evaluationSheetData("4001");
+
+		// check value change
+		S_EQUAL(esd_db_export.dna_rna, "DNA_67890");
+
+		// test failed import
+		esd_test_input.ps_id = "invalid_id";
+		IS_THROWN(DatabaseException, db.storeEvaluationSheetData(esd_test_input));
+
+		// test failed export
+		IS_THROWN(DatabaseException, db.evaluationSheetData("-4"));
+		S_EQUAL(db.evaluationSheetData("-4", false).ps_id, "");
 	}
 
 	//Tests for SomaticReportConfiguration and specific somatic variants
@@ -1167,7 +1231,7 @@ private slots:
 		S_EQUAL(config_data.last_edit_by, "Sarah Kerrigan");
 		S_EQUAL(config_data.last_edit_date, "07.12.2019 17:06:10");
 		S_EQUAL(config_data.mtb_xml_upload_date, "27.07.2020 09:20:10");
-		S_EQUAL(config_data.mtb_rtf_upload_date, "27.07.2020 09:40:11");
+		S_EQUAL(config_data.mtb_pdf_upload_date, "27.07.2020 09:40:11");
 		S_EQUAL(config_data.target_file, "nowhere.bed");
 
 		//set somatic report configuration in test NGSD, using 2 SNVs
@@ -1298,14 +1362,14 @@ private slots:
 		S_EQUAL(config_data_1.last_edit_by, "Max Mustermann");
 		S_EQUAL(config_data_1.target_file, "somewhere.bed");
 		S_EQUAL(config_data_1.mtb_xml_upload_date, "");
-		S_EQUAL(config_data_1.mtb_rtf_upload_date, "");
+		S_EQUAL(config_data_1.mtb_pdf_upload_date, "");
 
 		//set
 		db.setSomaticMtbXmlUpload(config_id);
-		db.setSomaticMtbRtfUpload(config_id);
+		db.setSomaticMtbPdfUpload(config_id);
 
 		IS_TRUE(db.somaticReportConfigData(config_id).mtb_xml_upload_date != "");
-		IS_TRUE(db.somaticReportConfigData(config_id).mtb_rtf_upload_date != "");
+		IS_TRUE(db.somaticReportConfigData(config_id).mtb_pdf_upload_date != "");
 
 
 		//Update somatic report configuration (by other user), should update target_file and last_edits

@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2020_06-61 (06.08.20)
+- General: Added links for variants to cBioPortal, CKB and PubMed.
+- Report: Added average coverage of chrMT to germline report.
+- CNVs/SVs: Added button to show target region genes overlapping with CNV/SV.
+- NGSD: Added sample relation 'same patient'.
+
 ### 2020_06-40 (24.07.20)
 - General: Anamnesis from GenLab can now be imported to NSGD.
 - General: Added polygenic risk scores dialog (button in main tool bar) for WGS.
