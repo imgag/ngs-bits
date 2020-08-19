@@ -19,6 +19,7 @@ public:
 protected slots:
 	void search();
 	void delayedInitialization();
+	void changeSearchType();
 
 private:
 	Ui::SvSearchWidget ui_;

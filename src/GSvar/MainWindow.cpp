@@ -101,6 +101,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticDataTransferWidget.h"
 #include "PRSWidget.h"
 #include "EvaluationSheetEditDialog.h"
+#include "SvSearchWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -287,6 +288,43 @@ void MainWindow::on_actionCytobandsToRegions_triggered()
 	CytobandToRegionsDialog dlg(this);
 
 	dlg.exec();
+}
+
+void MainWindow::on_actionSearchSNVs_triggered()
+{
+	//get user input
+	bool ok;
+	QString text = QInputDialog::getText(this, "Enter variant", "genomic coordinates (GSvar format):", QLineEdit::Normal, "", &ok);
+	if (!ok) return;
+
+	//parse variant
+	Variant v;
+	try
+	{
+		 v = Variant::fromString(text);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Invalid variant text", e.message());
+		return;
+	}
+
+	//show sample overview for variant
+	openVariantTab(v);
+}
+
+void MainWindow::on_actionSearchCNVs_triggered()
+{
+	CnvSearchWidget* widget = new CnvSearchWidget();
+	auto dlg = GUIHelper::createDialog(widget, "CNV search");
+	dlg->exec();
+}
+
+void MainWindow::on_actionSearchSVs_triggered()
+{
+	SvSearchWidget* widget = new SvSearchWidget();
+	auto dlg = GUIHelper::createDialog(widget, "SV search");
+	dlg->exec();
 }
 
 void MainWindow::on_actionClose_triggered()

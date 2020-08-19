@@ -24,6 +24,8 @@ CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
 	QAction* action = new QAction("Copy coordinates");
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyCoodinatesToClipboard()));
+	connect(ui_.rb_chr_pos, SIGNAL(clicked(bool)), this, SLOT(changeSearchType()));
+	connect(ui_.rb_genes, SIGNAL(clicked(bool)), this, SLOT(changeSearchType()));
 	ui_.table->addAction(action);
 }
 
@@ -36,32 +38,76 @@ void CnvSearchWidget::search()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
+	// clear table
+	ui_.table->clear();
+	ui_.table->setColumnCount(0);
+
 	try
 	{
-		//(0) parse input
-		QString coords = ui_.coordinates->text().replace("-", " ").replace(":", " ").replace(",", "");
-		QStringList parts = coords.split(QRegularExpression("\\W+"), QString::SkipEmptyParts);
-		if (parts.count()!=3) THROW(ArgumentException, "Could not split coordinates in three parts! " + QString::number(parts.count()) + " parts found.");
-
-		Chromosome chr(parts[0]);
-		if (!chr.isValid()) THROW(ArgumentException, "Invalid chromosome given: " + parts[0]);
-		int start = Helper::toInt(parts[1], "Start cooridinate");
-		int end = Helper::toInt(parts[2], "End cooridinate");
-
-		//(1) search matching CNVs
+		//prepared SQL query
 		QString query_str = "SELECT c.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, s.disease_group, s.disease_status, cs.caller, cs.quality as quality_callset, cs.quality_metrics as callset_metrics, c.chr, c.start, c.end, c.cn, (c.end-c.start)/1000.0 as size_kb, c.quality_metrics as cnv_metrics, rc.class "
 							"FROM cnv_callset cs, processed_sample ps, processing_system sys, sample s, cnv c LEFT JOIN report_configuration_cnv rc ON rc.cnv_id=c.id "
 							"WHERE s.id=ps.sample_id AND sys.id=ps.processing_system_id AND c.cnv_callset_id=cs.id AND ps.id=cs.processed_sample_id ";
-		QString operation = ui_.operation->currentText();
-		if (operation=="overlaps")
+
+		//(0) parse input and prepare query
+
+		if (ui_.rb_chr_pos->isChecked())
 		{
-			query_str += " AND chr='" + chr.strNormalized(true) + "' AND " + QString::number(start) + "<=end AND " + QString::number(end) + ">=start";
+			// parse position
+			QString coords = ui_.coordinates->text().replace("-", " ").replace(":", " ").replace(",", "");
+			QStringList parts = coords.split(QRegularExpression("\\W+"), QString::SkipEmptyParts);
+			if (parts.count()!=3) THROW(ArgumentException, "Could not split coordinates in three parts! " + QString::number(parts.count()) + " parts found.");
+
+			Chromosome chr(parts[0]);
+			if (!chr.isValid()) THROW(ArgumentException, "Invalid chromosome given: " + parts[0]);
+			int start = Helper::toInt(parts[1], "Start cooridinate");
+			int end = Helper::toInt(parts[2], "End cooridinate");
+
+			QString operation = ui_.operation->currentText();
+			if (operation=="overlaps")
+			{
+				query_str += " AND chr='" + chr.strNormalized(true) + "' AND " + QString::number(start) + "<=end AND " + QString::number(end) + ">=start";
+			}
+			else if (operation=="contains")
+			{
+				query_str += " AND chr='" + chr.strNormalized(true) + "' AND start<=" + QString::number(start) + " AND end>=" + QString::number(end);
+			}
+			else THROW(ProgrammingException, "Invalid operation: " + operation);
 		}
-		else if (operation=="contains")
+		else
 		{
-			query_str += " AND chr='" + chr.strNormalized(true) + "' AND start<=" + QString::number(start) + " AND end>=" + QString::number(end);
+			// parse genes
+			GeneSet genes;
+			foreach (const QString& gene, ui_.le_genes->text().replace(";", " ").replace(",", "").split(QRegularExpression("\\W+"), QString::SkipEmptyParts))
+			{
+				QByteArray approved_gene_name = db_.geneToApproved(gene.toUtf8());
+				if (approved_gene_name == "") THROW(ArgumentException, "Invalid gene name '" + gene + "' given!");
+				genes.insert(approved_gene_name);
+			}
+			if (genes.count() == 0) THROW(ArgumentException, "No valid gene names provided!");
+
+			// convert GeneSet to region
+			BedFile region = db_.genesToRegions(genes, Transcript::ENSEMBL, "gene");
+			region.extend(5000);
+			region.sort();
+			region.merge();
+
+			QByteArrayList query_pos_overlap;
+			for (int i = 0; i < region.count(); ++i)
+			{
+				QByteArray query_single_region;
+				query_single_region += "(c.chr = \"" + region[i].chr().strNormalized(true) + "\" AND c.start <= " + QByteArray::number(region[i].end()) + " AND ";
+				query_single_region += QByteArray::number(region[i].start()) + " <= c.end) ";
+				query_pos_overlap.append(query_single_region);
+			}
+
+			//concatinate single pos querie
+			query_str += " AND (" + query_pos_overlap.join("OR ") + ") ";
 		}
-		else THROW(ProgrammingException, "Invalid operation: " + operation);
+
+
+
+		// parse copy number
 		if (ui_.cn_0->isChecked() || ui_.cn_1->isChecked() || ui_.cn_2->isChecked() || ui_.cn_3->isChecked() || ui_.cn_4_plus->isChecked())
 		{
 			QStringList tmp;
@@ -100,6 +146,8 @@ void CnvSearchWidget::search()
 		}
 		query_str += " ORDER BY ps.id";
 
+
+		//(1) search matching CNVs
 		DBTable table = db_.createTable("cnv", query_str);
 
 		//(2) process cnv callset metrics
@@ -202,6 +250,7 @@ void CnvSearchWidget::search()
 	}
 	catch(Exception& e)
 	{
+		ui_.message->setText("Error: Search could not be performed:\t" + e.message());
 		QMessageBox::warning(this, "CNV search", "Error: Search could not be performed:\n" + e.message());
 	}
 
@@ -229,4 +278,11 @@ void CnvSearchWidget::copyCoodinatesToClipboard()
 	}
 
 	QApplication::clipboard()->setText(coords.join("\n"));
+}
+
+void CnvSearchWidget::changeSearchType()
+{
+	ui_.operation->setEnabled(ui_.rb_chr_pos->isChecked());
+	ui_.coordinates->setEnabled(ui_.rb_chr_pos->isChecked());
+	ui_.le_genes->setEnabled(ui_.rb_genes->isChecked());
 }

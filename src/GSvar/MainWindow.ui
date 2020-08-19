@@ -482,6 +482,19 @@
      </property>
      <addaction name="actionCytobandsToRegions"/>
     </widget>
+    <widget class="QMenu" name="menuVariant_search">
+     <property name="title">
+      <string>Variant search</string>
+     </property>
+     <property name="icon">
+      <iconset resource="GSvar.qrc">
+       <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
+     </property>
+     <addaction name="actionSearchSNVs"/>
+     <addaction name="actionSearchCNVs"/>
+     <addaction name="actionSearchSVs"/>
+    </widget>
+    <addaction name="menuVariant_search"/>
     <addaction name="menuGenes_2"/>
     <addaction name="menuPhenotypes_2"/>
     <addaction name="menuRegions"/>
@@ -1128,6 +1141,30 @@
    </property>
    <property name="text">
     <string>Show Polygenic Risk Scores</string>
+   </property>
+  </action>
+  <action name="actionSearchSNVs">
+   <property name="text">
+    <string>small variants</string>
+   </property>
+   <property name="toolTip">
+    <string>Search for small variants in the NGSD.</string>
+   </property>
+  </action>
+  <action name="actionSearchCNVs">
+   <property name="text">
+    <string>CNVs</string>
+   </property>
+   <property name="toolTip">
+    <string>Search for CNVs in the NGSD.</string>
+   </property>
+  </action>
+  <action name="actionSearchSVs">
+   <property name="text">
+    <string>SVs</string>
+   </property>
+   <property name="toolTip">
+    <string>Search for SVs in the NGSD.</string>
    </property>
   </action>
  </widget>

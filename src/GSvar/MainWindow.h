@@ -206,6 +206,12 @@ public slots:
 	void on_actionConvertGSvarToVcf_triggered();
 	///Action for region conversion (Cytoband > BED)
 	void on_actionCytobandsToRegions_triggered();
+	///Open SNV search dialog
+	void on_actionSearchSNVs_triggered();
+	///Open CNV search dialog
+	void on_actionSearchCNVs_triggered();
+	///Open SV search dialog
+	void on_actionSearchSVs_triggered();
 
 	///Load report configuration
 	void loadReportConfig();
@@ -349,7 +355,6 @@ protected:
 	void closeEvent(QCloseEvent* event);
 	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
 	QString normalSampleName();
-
 
 private:
 	//GUI
