@@ -7,13 +7,172 @@
     <x>0</x>
     <y>0</y>
     <width>525</width>
-    <height>303</height>
+    <height>270</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Evaluation Sheet</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
+   <item row="0" column="0">
+    <widget class="QGroupBox" name="groupBox_2">
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="1" column="1">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>1. Auswerter:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>DNA/RNA#:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLineEdit" name="le_dna_rna"/>
+      </item>
+      <item row="3" column="2">
+       <widget class="DBSelector" name="ds_reviewer2"/>
+      </item>
+      <item row="5" column="1" colspan="2">
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2">
+       <widget class="DBSelector" name="ds_reviewer1">
+        <property name="autoFillBackground">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>2. Auswerter:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Auswerteumfang:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Datum:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDateEdit" name="de_review1">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="4" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Datum:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDateEdit" name="de_review2">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="8" column="1">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>ACMG:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="1" colspan="2">
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="2">
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QCheckBox" name="cb_acmg_requested">
+          <property name="text">
+           <string>angefordert</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cb_acmg_analyzed">
+          <property name="text">
+           <string>analysiert</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cb_acmg_suspicious">
+          <property name="text">
+           <string>auffällig</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="6" column="2">
+       <widget class="QComboBox" name="cb_analysis_scope">
+        <item>
+         <property name="text">
+          <string>voll (Single)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>voll (Trio + Single)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>voll (Multi + Single)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>besschränkt auf Zielregion</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="0" column="1">
     <layout class="QVBoxLayout" name="verticalLayout_6">
      <item>
@@ -86,48 +245,17 @@
           </property>
          </widget>
         </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QGroupBox" name="groupBox_9">
-       <property name="title">
-        <string>ACMG</string>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout_7">
-        <property name="spacing">
-         <number>3</number>
-        </property>
-        <property name="leftMargin">
-         <number>3</number>
-        </property>
-        <property name="topMargin">
-         <number>3</number>
-        </property>
-        <property name="rightMargin">
-         <number>3</number>
-        </property>
-        <property name="bottomMargin">
-         <number>3</number>
-        </property>
         <item>
-         <widget class="QCheckBox" name="cb_acmg_requested">
+         <widget class="QCheckBox" name="cb_filter_trio_stringent">
           <property name="text">
-           <string>angefordert</string>
+           <string>Trio stringent</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="cb_acmg_analyzed">
+         <widget class="QCheckBox" name="cb_filter_trio_relaxed">
           <property name="text">
-           <string>analysiert</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="cb_acmg_suspicious">
-          <property name="text">
-           <string>auffällig</string>
+           <string>Trio relaxed</string>
           </property>
          </widget>
         </item>
@@ -159,115 +287,6 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="0">
-    <widget class="QGroupBox" name="groupBox_2">
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="7" column="1">
-       <widget class="QLabel" name="label_9">
-        <property name="text">
-         <string>Abrechnungsumfang:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>1. Auswerter:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>DNA/RNA#:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="2">
-       <widget class="DBSelector" name="ds_reviewer1">
-        <property name="autoFillBackground">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="2">
-       <widget class="DBSelector" name="ds_reviewer2"/>
-      </item>
-      <item row="5" column="1" colspan="2">
-       <widget class="Line" name="line">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QLineEdit" name="le_dna_rna"/>
-      </item>
-      <item row="6" column="2">
-       <widget class="QLineEdit" name="le_analysis_scope"/>
-      </item>
-      <item row="6" column="1">
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>Auswerteumfang:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>2. Auswerter:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="7" column="2">
-       <widget class="QLineEdit" name="le_settlement_volume"/>
-      </item>
-      <item row="4" column="2">
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
-        <item>
-         <widget class="QLabel" name="label_3">
-          <property name="text">
-           <string>Datum:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QDateEdit" name="de_review2">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item row="2" column="2">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QLabel" name="label_2">
-          <property name="text">
-           <string>Datum:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QDateEdit" name="de_review1">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
    <item row="1" column="0">
     <spacer name="verticalSpacer_7">
      <property name="orientation">
@@ -296,8 +315,6 @@
   <tabstop>de_review1</tabstop>
   <tabstop>ds_reviewer2</tabstop>
   <tabstop>de_review2</tabstop>
-  <tabstop>le_analysis_scope</tabstop>
-  <tabstop>le_settlement_volume</tabstop>
   <tabstop>cb_filter_freq_dom</tabstop>
   <tabstop>cb_filter_rec</tabstop>
   <tabstop>cb_filter_cnv</tabstop>
@@ -305,9 +322,6 @@
   <tabstop>cb_filter_x_chr</tabstop>
   <tabstop>cb_filter_phen</tabstop>
   <tabstop>cb_filter_multi</tabstop>
-  <tabstop>cb_acmg_requested</tabstop>
-  <tabstop>cb_acmg_analyzed</tabstop>
-  <tabstop>cb_acmg_suspicious</tabstop>
  </tabstops>
  <resources/>
  <connections>

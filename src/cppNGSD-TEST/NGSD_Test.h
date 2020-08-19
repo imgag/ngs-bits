@@ -1118,7 +1118,6 @@ private slots:
 		esd_test_input.reviewer2 = "Sarah Kerrigan";
 		esd_test_input.review_date2 = QDate(2033, 3, 30);
 		esd_test_input.analysis_scope = "Analyseumfang";
-		esd_test_input.settlement_volume = "Abrechnungsumfang";
 		esd_test_input.acmg_requested = true;
 		esd_test_input.acmg_noticeable = false;
 		esd_test_input.acmg_analyzed = true;
@@ -1129,6 +1128,8 @@ private slots:
 		esd_test_input.filtered_by_x_chr = false;
 		esd_test_input.filtered_by_phenotype = true;
 		esd_test_input.filtered_by_multisample = false;
+		esd_test_input.filtered_by_trio_stringent = true;
+		esd_test_input.filtered_by_trio_relaxed = false;
 
 		db.storeEvaluationSheetData(esd_test_input);
 
@@ -1140,7 +1141,6 @@ private slots:
 		IS_TRUE(esd_test_input.reviewer2 == esd_db_export.reviewer2);
 		IS_TRUE(esd_test_input.review_date2 == esd_db_export.review_date2);
 		IS_TRUE(esd_test_input.analysis_scope == esd_db_export.analysis_scope);
-		IS_TRUE(esd_test_input.settlement_volume == esd_db_export.settlement_volume);
 		IS_TRUE(esd_test_input.acmg_requested == esd_db_export.acmg_requested);
 		IS_TRUE(esd_test_input.acmg_noticeable == esd_db_export.acmg_noticeable);
 		IS_TRUE(esd_test_input.acmg_analyzed == esd_db_export.acmg_analyzed);
@@ -1151,6 +1151,9 @@ private slots:
 		IS_TRUE(esd_test_input.filtered_by_x_chr == esd_db_export.filtered_by_x_chr);
 		IS_TRUE(esd_test_input.filtered_by_phenotype == esd_db_export.filtered_by_phenotype);
 		IS_TRUE(esd_test_input.filtered_by_multisample == esd_db_export.filtered_by_multisample);
+		IS_TRUE(esd_test_input.filtered_by_trio_stringent == esd_db_export.filtered_by_trio_stringent);
+		IS_TRUE(esd_test_input.filtered_by_trio_relaxed == esd_db_export.filtered_by_trio_relaxed);
+
 
 		//change input
 		esd_test_input.dna_rna = "DNA_67890";

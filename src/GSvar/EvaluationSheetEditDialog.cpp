@@ -12,8 +12,6 @@ EvaluationSheetEditDialog::EvaluationSheetEditDialog(QWidget *parent) :
 	connect(ui_->ds_reviewer1, SIGNAL(textChanged(QString)), this, SLOT(checkReviewer()));
 	connect(ui_->ds_reviewer2, SIGNAL(textChanged(QString)), this, SLOT(checkReviewer()));
 	connect(ui_->le_dna_rna, SIGNAL(textChanged(QString)), this, SLOT(checkNonEmpty()));
-	connect(ui_->le_analysis_scope, SIGNAL(textChanged(QString)), this, SLOT(checkNonEmpty()));
-	connect(ui_->le_settlement_volume, SIGNAL(textChanged(QString)), this, SLOT(checkNonEmpty()));
 	connect(this, SIGNAL(EvaluationSheetDataUpdated()), this, SLOT(accept()));
 	initReviewerNames();
 
@@ -35,8 +33,7 @@ void EvaluationSheetEditDialog::importEvaluationSheetData(EvaluationSheetData& e
 	if (db_.userId(evaluation_sheet_data_->reviewer2, false, false) != -1) ui_->ds_reviewer2->setText(evaluation_sheet_data_->reviewer2);
 	ui_->de_review2->setDate(evaluation_sheet_data_->review_date2);
 
-	ui_->le_analysis_scope->setText(evaluation_sheet_data_->analysis_scope);
-	ui_->le_settlement_volume->setText(evaluation_sheet_data_->settlement_volume);
+	ui_->cb_analysis_scope->setCurrentText(evaluation_sheet_data_->analysis_scope);
 	ui_->cb_acmg_requested->setChecked(evaluation_sheet_data_->acmg_requested);
 	ui_->cb_acmg_analyzed->setChecked(evaluation_sheet_data_->acmg_analyzed);
 	ui_->cb_acmg_suspicious->setChecked(evaluation_sheet_data_->acmg_noticeable);
@@ -49,6 +46,8 @@ void EvaluationSheetEditDialog::importEvaluationSheetData(EvaluationSheetData& e
 	ui_->cb_filter_x_chr->setChecked(evaluation_sheet_data_->filtered_by_x_chr);
 	ui_->cb_filter_phen->setChecked(evaluation_sheet_data_->filtered_by_phenotype);
 	ui_->cb_filter_multi->setChecked(evaluation_sheet_data_->filtered_by_multisample);
+	ui_->cb_filter_trio_stringent->setChecked(evaluation_sheet_data_->filtered_by_trio_stringent);
+	ui_->cb_filter_trio_relaxed->setChecked(evaluation_sheet_data_->filtered_by_trio_relaxed);
 }
 
 void EvaluationSheetEditDialog::updateEvaluationSheetData()
@@ -59,8 +58,7 @@ void EvaluationSheetEditDialog::updateEvaluationSheetData()
 	if (!ui_->ds_reviewer2->isValidSelection()) error_messages.append("Ungültiger Name für Auswerter 2!");
 	// check QLineEdit fields for empty text
 	if (ui_->le_dna_rna->text().trimmed() == "") error_messages.append("Ungültige DNA/RNA-Nummer!");
-	if (ui_->le_analysis_scope->text().trimmed() == "") error_messages.append("Ungültiger Auswerteumfang!");
-	if (ui_->le_settlement_volume->text().trimmed() == "") error_messages.append("Ungültiger Abrechnungsumfang!");
+	if (ui_->cb_analysis_scope->currentText().trimmed() == "") error_messages.append("Ungültiger Auswerteumfang!");
 
 	if (error_messages.size() != 0)
 	{
@@ -74,8 +72,7 @@ void EvaluationSheetEditDialog::updateEvaluationSheetData()
 	evaluation_sheet_data_->reviewer2 = ui_->ds_reviewer2->text();
 	evaluation_sheet_data_->review_date2 = ui_->de_review2->date();
 
-	evaluation_sheet_data_->analysis_scope = ui_->le_analysis_scope->text();
-	evaluation_sheet_data_->settlement_volume = ui_->le_settlement_volume->text();
+	evaluation_sheet_data_->analysis_scope = ui_->cb_analysis_scope->currentText();
 	evaluation_sheet_data_->acmg_requested = ui_->cb_acmg_requested->isChecked();
 	evaluation_sheet_data_->acmg_analyzed = ui_->cb_acmg_analyzed->isChecked();
 	evaluation_sheet_data_->acmg_noticeable = ui_->cb_acmg_suspicious->isChecked();
@@ -88,6 +85,8 @@ void EvaluationSheetEditDialog::updateEvaluationSheetData()
 	evaluation_sheet_data_->filtered_by_x_chr = ui_->cb_filter_x_chr->isChecked();
 	evaluation_sheet_data_->filtered_by_phenotype = ui_->cb_filter_phen->isChecked();
 	evaluation_sheet_data_->filtered_by_multisample = ui_->cb_filter_multi->isChecked();
+	evaluation_sheet_data_->filtered_by_trio_stringent = ui_->cb_filter_trio_stringent->isChecked();
+	evaluation_sheet_data_->filtered_by_trio_relaxed = ui_->cb_filter_trio_relaxed->isChecked();
 
 	emit EvaluationSheetDataUpdated();
 

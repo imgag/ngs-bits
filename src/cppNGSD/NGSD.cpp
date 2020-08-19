@@ -4154,8 +4154,9 @@ EvaluationSheetData NGSD::evaluationSheetData(const QString& processed_sample_id
 	EvaluationSheetData evaluation_sheet_data;
 	SqlQuery query = getQuery();
 	query.exec(QString("SELECT processed_sample_id, dna_rna_id, reviewer1, review_date1, reviewer2, review_date2, ")
-			   + "analysis_scope, settlement_volume, acmg_requested, acmg_noticeable, acmg_analyzed, "
-			   + "filtered_by_freq_based_dominant, filtered_by_freq_based_recessive, filtered_by_cnv, filtered_by_mito, filtered_by_x_chr, filtered_by_phenotype, filtered_by_multisample "
+			   + "analysis_scope, acmg_requested, acmg_noticeable, acmg_analyzed, "
+			   + "filtered_by_freq_based_dominant, filtered_by_freq_based_recessive, filtered_by_cnv, filtered_by_mito, "
+			   + "filtered_by_x_chr, filtered_by_phenotype, filtered_by_multisample, filtered_by_trio_stringent, filtered_by_trio_relaxed "
 			   + "FROM evaluation_sheet_data WHERE processed_sample_id=" + processed_sample_id);
 	if (query.next())
 	{
@@ -4168,7 +4169,6 @@ EvaluationSheetData NGSD::evaluationSheetData(const QString& processed_sample_id
 		evaluation_sheet_data.review_date2 = query.value("review_date2").toDate();
 
 		evaluation_sheet_data.analysis_scope = query.value("analysis_scope").toString();
-		evaluation_sheet_data.settlement_volume = query.value("settlement_volume").toString();
 		evaluation_sheet_data.acmg_requested = query.value("acmg_requested").toBool();
 		evaluation_sheet_data.acmg_noticeable = query.value("acmg_noticeable").toBool();
 		evaluation_sheet_data.acmg_analyzed = query.value("acmg_analyzed").toBool();
@@ -4180,6 +4180,8 @@ EvaluationSheetData NGSD::evaluationSheetData(const QString& processed_sample_id
 		evaluation_sheet_data.filtered_by_x_chr = query.value("filtered_by_x_chr").toBool();
 		evaluation_sheet_data.filtered_by_phenotype = query.value("filtered_by_phenotype").toBool();
 		evaluation_sheet_data.filtered_by_multisample = query.value("filtered_by_multisample").toBool();
+		evaluation_sheet_data.filtered_by_trio_stringent = query.value("filtered_by_trio_stringent").toBool();
+		evaluation_sheet_data.filtered_by_trio_relaxed = query.value("filtered_by_trio_relaxed").toBool();
 	}
 	else
 	{
@@ -4203,9 +4205,10 @@ int NGSD::storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_d
 
 	// generate query
 	QString query_string = QString("REPLACE INTO evaluation_sheet_data (processed_sample_id, dna_rna_id, reviewer1, review_date1, reviewer2, review_date2, ")
-			+ "analysis_scope, settlement_volume, acmg_requested, acmg_noticeable, acmg_analyzed, "
-			+ "filtered_by_freq_based_dominant, filtered_by_freq_based_recessive, filtered_by_cnv, filtered_by_mito, filtered_by_x_chr, filtered_by_phenotype, filtered_by_multisample) "
-			+ "VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17)";
+			+ "analysis_scope, acmg_requested, acmg_noticeable, acmg_analyzed, "
+			+ "filtered_by_freq_based_dominant, filtered_by_freq_based_recessive, filtered_by_cnv, filtered_by_mito, filtered_by_x_chr, filtered_by_phenotype, filtered_by_multisample, "
+			+ "filtered_by_trio_stringent, filtered_by_trio_relaxed) "
+			+ "VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18)";
 
 	// prepare query
 	SqlQuery query = getQuery();
@@ -4219,17 +4222,18 @@ int NGSD::storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_d
 	query.bindValue(4, userId(evaluation_sheet_data.reviewer2));
 	query.bindValue(5, evaluation_sheet_data.review_date2);
 	query.bindValue(6, evaluation_sheet_data.analysis_scope);
-	query.bindValue(7, evaluation_sheet_data.settlement_volume);
-	query.bindValue(8, evaluation_sheet_data.acmg_requested);
-	query.bindValue(9, evaluation_sheet_data.acmg_noticeable);
-	query.bindValue(10, evaluation_sheet_data.acmg_analyzed);
-	query.bindValue(11, evaluation_sheet_data.filtered_by_freq_based_dominant);
-	query.bindValue(12, evaluation_sheet_data.filtered_by_freq_based_recessive);
-	query.bindValue(13, evaluation_sheet_data.filtered_by_cnv);
-	query.bindValue(14, evaluation_sheet_data.filtered_by_mito);
-	query.bindValue(15, evaluation_sheet_data.filtered_by_x_chr);
-	query.bindValue(16, evaluation_sheet_data.filtered_by_phenotype);
-	query.bindValue(17, evaluation_sheet_data.filtered_by_multisample);
+	query.bindValue(7, evaluation_sheet_data.acmg_requested);
+	query.bindValue(8, evaluation_sheet_data.acmg_noticeable);
+	query.bindValue(9, evaluation_sheet_data.acmg_analyzed);
+	query.bindValue(10, evaluation_sheet_data.filtered_by_freq_based_dominant);
+	query.bindValue(11, evaluation_sheet_data.filtered_by_freq_based_recessive);
+	query.bindValue(12, evaluation_sheet_data.filtered_by_cnv);
+	query.bindValue(13, evaluation_sheet_data.filtered_by_mito);
+	query.bindValue(14, evaluation_sheet_data.filtered_by_x_chr);
+	query.bindValue(15, evaluation_sheet_data.filtered_by_phenotype);
+	query.bindValue(16, evaluation_sheet_data.filtered_by_multisample);
+	query.bindValue(17, evaluation_sheet_data.filtered_by_trio_stringent);
+	query.bindValue(18, evaluation_sheet_data.filtered_by_trio_relaxed);
 
 	// insert into NGSD
 	query.exec();
