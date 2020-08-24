@@ -10,7 +10,7 @@ private slots:
 
 	void getKnownVariants()
 	{
-		VariantList list = NGSHelper::getKnownVariants("hg19", false);
+		VcfFile list = NGSHelper::getKnownVariants("hg19", false);
 		I_EQUAL(list.count(), 102467);
 
 		//only SNPs
@@ -31,18 +31,18 @@ private slots:
 
 		//only SNPs on chrX
 		BedFile roi_chrx("chrX", 1, 155270560);
-		list = NGSHelper::getKnownVariants("hg19", true, 0.0, 1.0, &roi_chrx);
+		list = NGSHelper::getKnownVariants("hg19", true, roi_chrx, 0.0, 1.0);
 		I_EQUAL(list.count(), 1948);
 	}
 
 	void getKnownVariants_hg38()
 	{
-		VariantList list = NGSHelper::getKnownVariants("hg38", false);
+		VcfFile list = NGSHelper::getKnownVariants("hg38", false);
 		I_EQUAL(list.count(), 100779);
 
 		//only SNPs, AF<50% on chrX
 		BedFile roi_chrx("chrX", 1, 155270560);
-		list = NGSHelper::getKnownVariants("hg38", true,  0.0, 0.5, &roi_chrx);
+		list = NGSHelper::getKnownVariants("hg38", true, roi_chrx, 0.0, 0.5);
 		I_EQUAL(list.count(), 1548);
 	}
 

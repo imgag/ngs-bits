@@ -213,106 +213,54 @@ public:
         QThreadPool analysis_pool;
         analysis_pool.setMaxThreadCount(getInt("threads"));
 
-        // determine file type:
-        VariantListFormat format;
-        if (input_path.toLower().endsWith(".vcf") || input_path == "")
-        {
-            // plain vcf
-            format = VariantListFormat::VCF;
-        }
-        else if (input_path.toLower().endsWith(".vcf.gz"))
-        {
-            //zipped vcf
-            format = VariantListFormat::VCF_GZ;
-        }
-        else
-        {
-            // invalid/unknown file type
-            THROW(FileParseException, "File type of file \"" + input_path
-                  + "\" is invalid/unknown!");
-        }
+		//open input file
+		FILE* instream = input_path.isEmpty() ? stdin : fopen(input_path.toLatin1().data(), "r"); 
+		gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
+		if (file==NULL)
+		{
+			THROW(FileAccessException, "Could not open file '" + input_path + "' for reading!");
+		}
 
-        // open input file:
-        QSharedPointer<QFile> input_vcf;
-        gzFile input_vcf_gz = gzFile();
-        char* buffer = new char[1048576];//1MB buffer
-        bool eof = true;
-        if (format == VariantListFormat::VCF)
-        {
-            input_vcf = Helper::openFileForReading(input_path, true);
-            // check for eof:
-            eof = input_vcf->atEnd();
-        }
-        else
-        {
-            //read binary: always open in binary mode because windows and mac open in text mode
-            input_vcf_gz = gzopen(input_path.toUtf8(), "rb");
-            if (input_vcf_gz==NULL)
-            {
-                THROW(FileAccessException, "Could not open file '" + input_path + "' for reading!");
-            }
-            // check for eof:
-            eof = gzeof(input_vcf_gz);
-
-        }
+		const int buffer_size = 1048576; //1MB buffer
+		char* buffer = new char[buffer_size];
 
         //QByteArrayList data;
         int current_chunk = 0;
         int vcf_line_idx = 0;
 
-
 		// iterate over the vcf file line by line and create job pool
 		QList<AnalysisJob> job_pool;
-        while(!eof)
+        while(!gzeof(file))
         {
 			AnalysisJob job = AnalysisJob();
 
             job.chunk_id = current_chunk;
             job.status = TO_BE_PROCESSED;
 
-            while(vcf_line_idx < block_size && !eof)
+            while(vcf_line_idx < block_size && !gzeof(file))
             {
                 // get next line
-                QByteArray line;
-                if (format == VariantListFormat::VCF)
-                {
-                    line = input_vcf -> readLine();
-                    job.current_chunk.append(line);
+				char* char_array = gzgets(file, buffer, buffer_size);
 
-                    // check for eof:
-                    eof = input_vcf->atEnd();
-                }
+				//handle errors like truncated GZ file
+				if (char_array==nullptr)
+				{
+					int error_no = Z_OK;
+					QByteArray error_message = gzerror(file, &error_no);
+					if (error_no!=Z_OK && error_no!=Z_STREAM_END)
+					{
+						THROW(FileParseException, "Error while reading file '" + input_path + "': " + error_message);
+					}
+				}
 
-                else
-                {
-                    char* char_array = gzgets(input_vcf_gz, buffer, 1048576);
-
-                    //handle errors like truncated GZ file
-                    if (char_array==nullptr)
-                    {
-                        int error_no = Z_OK;
-                        QByteArray error_message = gzerror(input_vcf_gz, &error_no);
-                        if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-                        {
-                            THROW(FileParseException, "Error while reading file '" + input_path
-                                  + "': " + error_message);
-                        }
-                    }
-
-                    line = QByteArray(char_array);
-                    job.current_chunk.append(line);
-
-                    // check for eof:
-                    eof = gzeof(input_vcf_gz);
-                }
+				job.current_chunk.append(QByteArray(char_array));
 
                 vcf_line_idx++;
-
             }
 
-
-            vcf_line_idx=0;
+            vcf_line_idx = 0;
             ++current_chunk;
+			
 			job_pool << job;
         }
 
@@ -329,16 +277,9 @@ public:
 												   allow_missing_header_list,
 												   annotation_file_list));
 		}
-        // close files
-        if (format == VariantListFormat::VCF)
-        {
-            input_vcf -> close();
-        }
-        else
-        {
-            gzclose(input_vcf_gz);
-            delete[] buffer;
-        }
+        // close file
+		gzclose(file);
+		delete[] buffer;
 
         QSharedPointer<QFile> output_vcf = Helper::openFileForWriting(output_path, true);
 

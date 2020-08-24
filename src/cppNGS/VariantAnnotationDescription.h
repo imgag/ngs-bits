@@ -16,12 +16,12 @@ public:
 
 	///Constructor.
 	VariantAnnotationDescription();
-	VariantAnnotationDescription(const QString& name, const QString& description, AnnotationType type=STRING, bool sample_specific=false, QString number="1", bool print=true);
+	VariantAnnotationDescription(const QString& name, const QString& description, AnnotationType type=STRING);
 
 	///==Operator (two different INFO or FORMAT annotation can't have same ID in vcf)
 	bool operator==(VariantAnnotationDescription b)
 	{
-		return ((this->name_==b.name_)&&(this->sample_specific_==b.sample_specific_));
+		return (this->name_==b.name_);
 	}
 	///Returns the name of the annotation.
 	const QString& name() const
@@ -54,32 +54,6 @@ public:
 	{
 		type_ = type;
 	}
-	///Returns if the annotion is sample-specific (for VCF).
-	bool sampleSpecific() const
-	{
-		return sample_specific_;
-	}
-	///Sets if the annotion is sample-specific (for VCF).
-	void setSampleSpecific(bool sample_specific)
-	{
-		sample_specific_ = sample_specific;
-	}
-	///Returns the number of values of the annotation (for VCF).
-	const QString& number() const
-	{
-		return number_;
-	}
-	///Sets number of values of the annotation (for VCF).
-	void setNumber(const QString& number)
-	{
-		number_=number;
-	}
-
-	///Returns the print value of the annotation description (for VCF).
-	bool print() const
-	{
-		return print_;
-	}
 
 protected:
 	///Name of the annotation (nearly unique, sample-specific and -independent annotations may have the same name).
@@ -88,34 +62,17 @@ protected:
 	QString description_;
 	///The annotation type (see above)
 	AnnotationType type_;
-	///Information whether the annotation value is sample specific (e.g. read depth) or not (e.g. hapmap2 membership).
-	bool sample_specific_;
-	///The number of values the annotation consists of, may be positive int (including "0"), ".", "A" or "G".
-	QString number_;
-	///Print this description to output
-	bool print_;
 };
 
 class CPPNGSSHARED_EXPORT VariantAnnotationHeader
 {
 public:
 	VariantAnnotationHeader(const QString& name);
-	VariantAnnotationHeader(const QString& name, const QString& sample_id);
 
 	///==Operator (two different INFO or FORMAT annotation can't have same ID in vcf)
 	bool operator==(VariantAnnotationHeader b)
 	{
-		return ((this->name_==b.name_)&&(this->sample_id_==b.sample_id_));
-	}
-
-	const QString& sampleID() const
-	{
-		return sample_id_;
-	}
-
-	void setSampleID(const QString& sample_id)
-	{
-		sample_id_ = sample_id;
+		return (this->name_==b.name_);
 	}
 
 	const QString& name() const
@@ -140,7 +97,6 @@ public:
 
 protected:
 	QString name_;
-	QString sample_id_;
 	QSharedPointer<VariantAnnotationDescription> description_;
 
 };

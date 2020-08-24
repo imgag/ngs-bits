@@ -1,10 +1,10 @@
 ### VcfSort tool help
-	VcfSort (0.1-420-g3536bb0)
+	VcfSort (2020_03-260-ge35d12de)
 	
 	Sorts variant lists according to chromosomal position.
 	
 	Mandatory parameters:
-	  -in <file>   Input variant list.
+	  -in <file>   Input variant list in VCF format.
 	  -out <file>  Output variant list.
 	
 	Optional parameters:
@@ -20,6 +20,6 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfSort changelog
-	VcfSort 0.1-420-g3536bb0
+	VcfSort 2020_03-260-ge35d12de
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

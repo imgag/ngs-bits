@@ -7,7 +7,7 @@ private slots:
 	
 	void test_gsvar_multisample()
 	{
-		EXECUTE("SampleSimilarity", "-in " + TESTDATA("data_in/SampleSimilarity_in1.GSvar") + " " + TESTDATA("data_in/SampleSimilarity_in2.GSvar") + " " + TESTDATA("data_in/SampleSimilarity_in3.GSvar") + " -out out/SampleSimilarity_out1.tsv -include_gonosomes");
+		EXECUTE("SampleSimilarity", "-in " + TESTDATA("data_in/SampleSimilarity_in1.GSvar") + " " + TESTDATA("data_in/SampleSimilarity_in2.GSvar") + " " + TESTDATA("data_in/SampleSimilarity_in3.GSvar") + " -out out/SampleSimilarity_out1.tsv -include_gonosomes -mode gsvar");
 		COMPARE_FILES("out/SampleSimilarity_out1.tsv", TESTDATA("data_out/SampleSimilarity_out1.tsv"));
 	}
 
