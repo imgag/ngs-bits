@@ -3,6 +3,7 @@
 
 LoginManager::LoginManager()
 	: user_()
+	, user_name_()
 	, user_id_(-1)
 	, role_()
 {
@@ -19,16 +20,25 @@ QString LoginManager::user()
 	return instance().user_;
 }
 
+QString LoginManager::userName()
+{
+	return instance().user_name_;
+}
+
 int LoginManager::userId()
 {
 	int id = instance().user_id_;
 	if (id==-1) THROW(ProgrammingException, "Cannot use LoginManager::userId() if no user is logged in!");
+
 	return id;
 }
 
 QString LoginManager::userIdAsString()
 {
-	return QString::number(userId());
+	int id = instance().user_id_;
+	if (id==-1) THROW(ProgrammingException, "Cannot use LoginManager::userIdAsString() if no user is logged in!");
+
+	return QString::number(id);
 }
 
 QString LoginManager::role()
@@ -44,16 +54,18 @@ bool LoginManager::active()
 void LoginManager::login(QString user, bool test_db)
 {
 	NGSD db(test_db);
-	QString user_id = QString::number(db.userId(user, true));
+
+	//login
+	LoginManager& manager = instance();
+	manager.user_id_ = db.userId(user, true);
+	manager.user_ = user;
+	manager.user_name_ = db.userName(manager.user_id_);
 
 	//determine role
-	LoginManager& manager = instance();
-	manager.user_ = user;
-	manager.user_id_ = user_id.toInt();
-	manager.role_ = db.getValue("SELECT user_role FROM user WHERE id='" + user_id + "'").toString();
+	manager.role_ = db.getValue("SELECT user_role FROM user WHERE id='" + QString::number(manager.user_id_) + "'").toString();
 
 	//update last login
-	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + user_id + "'");
+	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(manager.user_id_) + "'");
 }
 
 void LoginManager::logout()

@@ -19,14 +19,14 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+#### Variant publication table with search options
+#### AF probability calculator
+#### CN historgram für region
+#### GSvar arg1=sample => search processed sample and open it, show selection to user if several non-merged, non-bad are available.
 *** Custom variant menu (custom_variant_menu=Custom Action|http://127.0.0.1/index.php?chr=[chr]&start=[start]&end=[end]&ref=[ref]&obs=[obs]&gene=[gene]\tCustom Action2|http://127.0.0.2/index.php?chr=[chr]&start=[start] (Genetikum).
-*** Allow finalizing report config (log date and user) => don't allow new report config modification, show report config entries as read-only (Genetikum).
-    - update report configuration info: Add small variants, CNV, SV counts and causal counts, Add finalization date/user
-*** Allow storing of filtered GSvar files to backup folder (defined in GSvar.ini) with file name "[ps]_[user]_[datum].GSvar" (Genetikum).
-** Move variant search to separate sub-menu "NGSD" -> "variant search" -> "small variants, "CNVs", "SVs" (allow search via genes or search via chromosomal ranges in all dialogs)
-** Show OMIM entries in ROH dialog like in CNV/SV dialog.
-** Filter widgets (small variants, CNVs, SVs): Add option to hide variants with report config
+** Show OMIM entries in ROH dialog like in CNV/SV dialog. Also genes?
 * update ROH docu with ROH sum (ROHs >500k) for ssHAEv7 and WGS
+** Filter widgets (small variants, CNVs, SVs): Add option to hide variants with report config
 * Trio report: force disease_group/disease_status and outcome (import trio parents as unaffected with same disease group as child)
 * Allow ClinVar upload
     - small variants and CNVs

@@ -296,6 +296,9 @@
                </attribute>
               </widget>
              </item>
+             <item>
+              <widget class="QDateTimeEdit" name="dateTimeEdit"/>
+             </item>
             </layout>
            </widget>
            <widget class="FilterWidget" name="filters" native="true">
@@ -427,7 +430,6 @@
      <property name="title">
       <string>Genes</string>
      </property>
-     <addaction name="actionGeneVariantInfo"/>
      <addaction name="actionGeneOmimInfo"/>
      <addaction name="actionConvertHgnc"/>
      <addaction name="actionGenesToRegions"/>
@@ -485,10 +487,6 @@
     <widget class="QMenu" name="menuVariant_search">
      <property name="title">
       <string>Variant search</string>
-     </property>
-     <property name="icon">
-      <iconset resource="GSvar.qrc">
-       <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
      </property>
      <addaction name="actionSearchSNVs"/>
      <addaction name="actionSearchCNVs"/>

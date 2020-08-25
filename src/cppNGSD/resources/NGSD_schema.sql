@@ -1274,6 +1274,8 @@ CREATE TABLE IF NOT EXISTS `report_configuration`
   `created_date` DATETIME NOT NULL,
   `last_edit_by` int(11) DEFAULT NULL,
   `last_edit_date` TIMESTAMP NULL DEFAULT NULL,
+  `finalized_by` int(11) DEFAULT NULL,
+  `finalized_date` TIMESTAMP NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `processed_sample_id_unique` (`processed_sample_id`),
   CONSTRAINT `fk_processed_sample_id2`
@@ -1288,6 +1290,11 @@ CREATE TABLE IF NOT EXISTS `report_configuration`
     ON UPDATE NO ACTION,
   CONSTRAINT `report_configuration_last_edit_by`
     FOREIGN KEY (`last_edit_by`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `report_configuration_finalized_by`
+    FOREIGN KEY (`finalized_by`)
     REFERENCES `user` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION

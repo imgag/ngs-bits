@@ -10,9 +10,11 @@ class CPPNGSDSHARED_EXPORT LoginManager
 public:
 	//Returns user login from NGSD
 	static QString user();
-	//Returns user identifier from NGSD
+	//Returns the full user name from NGSD
+	static QString userName();
+	//Returns user ID from NGSD
 	static int userId();
-	//Returns user identifier from NGSD (as string)
+	//Returns user ID from NGSD (as string)
 	static QString userIdAsString();
 
 	//Returns user role from NGSD
@@ -33,6 +35,7 @@ private:
 	static LoginManager& instance();
 
 	QString user_;
+	QString user_name_;
 	int user_id_;
 	QString role_;
 };

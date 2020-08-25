@@ -56,6 +56,10 @@ ReportConfiguration::ReportConfiguration()
 	: variant_config_()
 	, created_by_(LoginManager::user())
 	, created_at_(QDateTime::currentDateTime())
+	, last_updated_by_()
+	, last_updated_at_(QDateTime())
+	, finalized_by_()
+	, finalized_at_(QDateTime())
 {
 }
 
@@ -102,25 +106,30 @@ const ReportVariantConfiguration& ReportConfiguration::get(VariantType type, int
 	THROW(ArgumentException, "Report configuration not found for variant with index '" + QString::number(index) + "'!");
 }
 
-bool ReportConfiguration::set(const ReportVariantConfiguration& config)
+void ReportConfiguration::set(const ReportVariantConfiguration& config)
 {
-	//set variant config
+	bool updated_existing = false;
 	for (int i=0; i<variant_config_.count(); ++i)
 	{
 		const ReportVariantConfiguration& var_conf = variant_config_[i];
 		if (var_conf.variant_index==config.variant_index && var_conf.variant_type==config.variant_type)
 		{
 			variant_config_[i] = config;
-			return true;
+			updated_existing = true;
+			break;
 		}
 	}
-	variant_config_ << config;
-	sortByPosition();
 
-	return false;
+	if (!updated_existing)
+	{
+		variant_config_ << config;
+		sortByPosition();
+	}
+
+	emit variantsChanged();
 }
 
-bool ReportConfiguration::remove(VariantType type, int index)
+void ReportConfiguration::remove(VariantType type, int index)
 {
 	for (int i=0; i<variant_config_.count(); ++i)
 	{
@@ -128,11 +137,11 @@ bool ReportConfiguration::remove(VariantType type, int index)
 		if (var_conf.variant_index==index && var_conf.variant_type==type)
 		{
 			variant_config_.removeAt(i);
-			return true;
+			break;
 		}
 	}
 
-	return false;
+	emit variantsChanged();
 }
 
 QString ReportConfiguration::createdBy() const
@@ -153,6 +162,81 @@ QDateTime ReportConfiguration::createdAt() const
 void ReportConfiguration::setCreatedAt(QDateTime time)
 {
 	created_at_ = time;
+}
+
+QString ReportConfiguration::lastUpdatedBy() const
+{
+	return last_updated_by_;
+}
+
+QDateTime ReportConfiguration::lastUpdatedAt() const
+{
+	return last_updated_at_;
+}
+
+QString ReportConfiguration::finalizedBy() const
+{
+	return finalized_by_;
+}
+
+QDateTime ReportConfiguration::finalizedAt() const
+{
+	return finalized_at_;
+}
+
+bool ReportConfiguration::isFinalized() const
+{
+	return !finalized_by_.isEmpty();
+}
+
+QString ReportConfiguration::history() const
+{
+	QStringList output;
+
+	output << "The report configuration was created by " + created_by_ + " on " + created_at_.toString("dd.MM.yyyy") + " at " + created_at_.toString("hh:mm:ss") + ".";
+	if (last_updated_by_!="") output << "It was last updated by " + last_updated_by_ + " on " +  last_updated_at_.toString("dd.MM.yyyy") + " at " + last_updated_at_.toString("hh:mm:ss") + ".";
+	if (finalized_by_!="") output << "It was finalized by " + finalized_by_ + " on " +  finalized_at_.toString("dd.MM.yyyy") + " at " + finalized_at_.toString("hh:mm:ss") + ".";
+
+	return output.join("\n");
+}
+
+QString ReportConfiguration::variantSummary() const
+{
+	//count by type and causal
+	int c_small = 0;
+	int c_small_causal = 0;
+	int c_cnv = 0;
+	int c_cnv_causal = 0;
+	int c_sv = 0;
+	int c_sv_causal = 0;
+	foreach(const ReportVariantConfiguration& entry, variant_config_)
+	{
+		if (entry.variant_type==VariantType::SNVS_INDELS)
+		{
+			++c_small;
+			if (entry.causal) ++c_small_causal;
+		}
+		else if (entry.variant_type==VariantType::CNVS)
+		{
+			++c_cnv;
+			if (entry.causal) ++c_cnv_causal;
+		}
+		else if (entry.variant_type==VariantType::SVS)
+		{
+			++c_sv;
+			if (entry.causal) ++c_sv_causal;
+		}
+	}
+
+	QStringList output;
+	output << ("small variants: " + QString::number(c_small));
+	if (c_small_causal>0) output.last().append(" (" + QString::number(c_small_causal) + " causal)");
+	output << ("CNVs: " + QString::number(c_cnv));
+	if (c_cnv_causal>0) output.last().append(" (" + QString::number(c_cnv_causal) + " causal)");
+	output << ("SVs: " + QString::number(c_sv));
+	if (c_sv_causal>0) output.last().append(" (" + QString::number(c_sv_causal) + " causal)");
+
+	return output.join("\n");
 }
 
 void ReportConfiguration::sortByPosition()

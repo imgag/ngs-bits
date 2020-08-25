@@ -864,8 +864,8 @@ private slots:
 		BedpeFile svs;
 		svs.load(TESTDATA("data_in/sv_manta.bedpe"));
 
-		ReportConfiguration report_conf;
-		report_conf.setCreatedBy("ahmustm1");
+		QSharedPointer<ReportConfiguration> report_conf = QSharedPointer<ReportConfiguration>(new ReportConfiguration);
+		report_conf->setCreatedBy("ahmustm1");
 		ReportVariantConfiguration report_var_conf;
 		report_var_conf.variant_type = VariantType::SNVS_INDELS;
 		report_var_conf.variant_index = 47;
@@ -875,54 +875,59 @@ private slots:
 		report_var_conf.exclude_artefact = true;
 		report_var_conf.comments = "com1";
 		report_var_conf.comments2 = "com2";
-		report_conf.set(report_var_conf);
+		report_conf->set(report_var_conf);
 		ReportVariantConfiguration report_var_conf2;
 		report_var_conf2.variant_type = VariantType::CNVS;
 		report_var_conf2.variant_index = 4;
 		report_var_conf2.causal = false;
 		report_var_conf2.classification = "4";
 		report_var_conf2.report_type = "diagnostic variant";
-		report_conf.set(report_var_conf2);
+		report_conf->set(report_var_conf2);
 		ReportVariantConfiguration report_var_conf3;
 		report_var_conf3.variant_type = VariantType::SVS;
 		report_var_conf3.variant_index = 81;
 		report_var_conf3.causal = true;
 		report_var_conf3.classification = "5";
 		report_var_conf3.report_type = "diagnostic variant";
-		report_conf.set(report_var_conf3);
+		report_conf->set(report_var_conf3);
 		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
-
 
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
 		IS_TRUE(conf_id!=-1);
 
-		//reportConfigCreationData
-		ReportConfigurationCreationData rc_creation_data = db.reportConfigCreationData(conf_id);
-		S_EQUAL(rc_creation_data.created_by, "Max Mustermann");
-		S_EQUAL(rc_creation_data.last_edit_by, "Max Mustermann");
-		IS_TRUE(rc_creation_data.last_edit_date!="");
+		//check data
+		QStringList messages2;
+		QSharedPointer<ReportConfiguration> report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
+		IS_TRUE(report_conf2->createdAt().isValid());
+		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
+		IS_TRUE(report_conf2->lastUpdatedAt().isValid());
+		S_EQUAL(report_conf2->finalizedBy(), "");
+		IS_FALSE(report_conf2->finalizedAt().isValid());
+
 		//update
-		QThread::sleep(1);
+		QThread::sleep(2);
 		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
 		IS_TRUE(conf_id1==conf_id2);
 		//check that no double entries are inserted after second execution of setReportConfig
 		I_EQUAL(db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=1 AND chr='chr2' AND start=89246800 AND end=89545067 AND cn=1").toInt(), 1);
 
-		ReportConfigurationCreationData rc_creation_data2 = db.reportConfigCreationData(conf_id);
-		S_EQUAL(rc_creation_data2.created_by, "Max Mustermann");
-		S_EQUAL(rc_creation_data2.last_edit_by,  "Max Mustermann");
-		IS_TRUE(rc_creation_data.created_date==rc_creation_data2.created_date);
-		IS_TRUE(rc_creation_data2.last_edit_date!="");
+		//check data
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
+		IS_TRUE(report_conf2->createdAt().isValid());
+		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
+		IS_TRUE(report_conf2->lastUpdatedAt().isValid());
+		IS_TRUE(report_conf2->createdAt()!=report_conf2->lastUpdatedAt());
+		S_EQUAL(report_conf2->finalizedBy(), "");
+		IS_FALSE(report_conf2->finalizedAt().isValid());
 
-		//reportConfig
-		QStringList messages2;
-		ReportConfiguration report_conf2 = db.reportConfig(ps_id, vl, cnvs, svs, messages2);
 		I_EQUAL(messages2.count(), 0);
-		S_EQUAL(report_conf2.createdBy(), "Max Mustermann");
-		IS_TRUE(report_conf2.createdAt().date()==QDate::currentDate());
-		I_EQUAL(report_conf2.variantConfig().count(), 3);
-		ReportVariantConfiguration var_conf = report_conf2.variantConfig()[1]; //order changed because they are sorted by index
+		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
+		IS_TRUE(report_conf2->createdAt().date()==QDate::currentDate());
+		I_EQUAL(report_conf2->variantConfig().count(), 3);
+		ReportVariantConfiguration var_conf = report_conf2->variantConfig()[1]; //order changed because they are sorted by index
 		I_EQUAL(var_conf.variant_index, 47);
 		IS_TRUE(var_conf.causal);
 		S_EQUAL(var_conf.classification, "n/a");
@@ -937,7 +942,7 @@ private slots:
 		IS_FALSE(var_conf.exclude_mechanism);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
-		var_conf = report_conf2.variantConfig()[0]; //order changed because they are sorted by index
+		var_conf = report_conf2->variantConfig()[0]; //order changed because they are sorted by index
 		I_EQUAL(var_conf.variant_index, 4);
 		IS_FALSE(var_conf.causal);
 		S_EQUAL(var_conf.classification, "4");
@@ -952,7 +957,7 @@ private slots:
 		IS_FALSE(var_conf.exclude_mechanism);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
-		var_conf = report_conf2.variantConfig()[2];
+		var_conf = report_conf2->variantConfig()[2];
 		I_EQUAL(var_conf.variant_index, 81);
 		IS_TRUE(var_conf.causal);
 		S_EQUAL(var_conf.classification, "5");
@@ -969,14 +974,28 @@ private slots:
 		IS_FALSE(var_conf.exclude_phenotype);
 		IS_TRUE(var_conf.variant_type == VariantType::SVS);
 
+		//finalizeReportConfig
+		conf_id = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
+		IS_FALSE(db.reportConfigIsFinalized(conf_id));
+		db.finalizeReportConfig(conf_id, db.userId("ahmustm1"));
+		IS_TRUE(db.reportConfigIsFinalized(conf_id));
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		S_EQUAL(report_conf2->finalizedBy(), "Max Mustermann");
+		IS_TRUE(report_conf2->finalizedAt().isValid());
+		//check finalized report config cannot be modified or deleted
+		IS_THROWN(ProgrammingException, db.setReportConfig(ps_id, report_conf, vl, cnvs, svs));
+		IS_THROWN(ProgrammingException, db.deleteReportConfig(conf_id));
+
+		//check messages if variant is missing
 		vl.clear();
-		report_conf2 = db.reportConfig(ps_id, vl, cnvs, svs, messages2);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
 		I_EQUAL(messages2.count(), 1);
 		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list!");
-		I_EQUAL(report_conf2.variantConfig().count(), 2);
-		X_EQUAL(report_conf2.variantConfig()[0].variant_type, VariantType::CNVS);
+		I_EQUAL(report_conf2->variantConfig().count(), 2);
+		X_EQUAL(report_conf2->variantConfig()[0].variant_type, VariantType::CNVS);
 
 		//deleteReportConfig
+		db.getQuery().exec("UPDATE report_configuration SET finalized_by=NULL, finalized_date=NULL WHERE id="+QString::number(conf_id));
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 2); //result is 2 because there is one report config already in test NGSD after init
 		db.deleteReportConfig(conf_id);
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);

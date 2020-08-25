@@ -73,15 +73,16 @@ int NGSD::userId(QString user_name, bool only_active, bool throw_if_fails)
 
 QString NGSD::userName(int user_id)
 {
-	if (user_id==-1) user_id = LoginManager::userId();
-
 	return getValue("SELECT name FROM user WHERE id=:0", false, QString::number(user_id)).toString();
+}
+
+QString NGSD::userLogin(int user_id)
+{
+	return getValue("SELECT user_id FROM user WHERE id=:0", false, QString::number(user_id)).toString();
 }
 
 QString NGSD::userEmail(int user_id)
 {
-	if (user_id==-1) user_id = LoginManager::userId();
-
 	return getValue("SELECT email FROM user WHERE id=:0", false,  QString::number(user_id)).toString();
 }
 
@@ -3730,36 +3731,25 @@ int NGSD::reportConfigId(const QString& processed_sample_id)
 	return id.isValid() ? id.toInt() : -1;
 }
 
-ReportConfigurationCreationData NGSD::reportConfigCreationData(int id)
+bool NGSD::reportConfigIsFinalized(int id)
 {
-	SqlQuery query = getQuery();
-	query.exec("SELECT created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date FROM report_configuration WHERE id=" + QString::number(id));
-	query.next();
-
-	ReportConfigurationCreationData output;
-	output.created_by = userName(query.value("created_by").toInt());
-	QDateTime created_date = query.value("created_date").toDateTime();
-	output.created_date = created_date.isNull() ? "" : created_date.toString("dd.MM.yyyy hh:mm:ss");
-	output.last_edit_by = query.value("last_edit_by").toString();
-	QDateTime last_edit_date = query.value("last_edit_date").toDateTime();
-	output.last_edit_date = last_edit_date.isNull() ? "" : last_edit_date.toString("dd.MM.yyyy hh:mm:ss");
-
-	return output;
+	return getValue("SELECT id FROM `report_configuration` WHERE `id`=" + QString::number(id) + " AND finalized_by IS NOT NULL").isValid();
 }
 
-ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QStringList& messages)
+QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QStringList& messages)
 {
-	ReportConfiguration output;
-
-	int conf_id = reportConfigId(processed_sample_id);
-	if (conf_id==-1) THROW(DatabaseException, "Report configuration for processed sample with database id '" + processed_sample_id + "' does not exist!");
+	QSharedPointer<ReportConfiguration> output = QSharedPointer<ReportConfiguration>(new ReportConfiguration());
 
 	//load main object
 	SqlQuery query = getQuery();
-	query.exec("SELECT u.name, rc.created_date FROM report_configuration rc, user u WHERE rc.id=" + QString::number(conf_id) + " AND u.id=rc.created_by");
+	query.exec("SELECT (SELECT name FROM user WHERE id=created_by) as created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date, (SELECT name FROM user WHERE id=finalized_by) as finalized_by, finalized_date FROM report_configuration WHERE id=" + QString::number(conf_id));
 	query.next();
-	output.setCreatedBy(query.value("name").toString());
-	output.setCreatedAt(query.value("created_date").toDateTime());
+	output->setCreatedBy(query.value("created_by").toString());
+	output->setCreatedAt(query.value("created_date").toDateTime());
+	output->last_updated_by_ = query.value("last_edit_by").toString();
+	output->last_updated_at_ = query.value("last_edit_date").toDateTime();
+	output->finalized_by_ = query.value("finalized_by").toString();
+	output->finalized_at_ = query.value("finalized_date").toDateTime();
 
 	//load variant data
 	query.exec("SELECT * FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(conf_id));
@@ -3796,7 +3786,7 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 		var_conf.comments = query.value("comments").toString();
 		var_conf.comments2 = query.value("comments2").toString();
 
-		output.set(var_conf);
+		output->set(var_conf);
 	}
 
 	//load CNV data
@@ -3836,7 +3826,7 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 		var_conf.comments = query.value("comments").toString();
 		var_conf.comments2 = query.value("comments2").toString();
 
-		output.set(var_conf);
+		output->set(var_conf);
 	}
 
 	// Skip report import if empty sv file is provided (Trio)
@@ -3908,7 +3898,7 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 			var_conf.comments = query.value("comments").toString();
 			var_conf.comments2 = query.value("comments2").toString();
 
-			output.set(var_conf);
+			output->set(var_conf);
 		}
 
 	}
@@ -3916,9 +3906,19 @@ ReportConfiguration NGSD::reportConfig(const QString& processed_sample_id, const
 	return output;
 }
 
-int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs)
+int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<ReportConfiguration> config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs)
 {
 	int id = reportConfigId(processed_sample_id);
+	QString id_str = QString::number(id);
+
+	//check that it is not finalized
+	if (id!=-1)
+	{
+		if (reportConfigIsFinalized(id))
+		{
+			THROW (ProgrammingException, "Cannot update report configuration with id=" + id_str + ", because it is finalized!");
+		}
+	}
 
 	try
 	{
@@ -3928,23 +3928,23 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 		{
 			//delete report config variants if it already exists
 			SqlQuery query = getQuery();
-			query.exec("DELETE FROM `report_configuration_variant` WHERE report_configuration_id=" + QString::number(id));
-			query.exec("DELETE FROM `report_configuration_cnv` WHERE report_configuration_id=" + QString::number(id));
-			query.exec("DELETE FROM `report_configuration_sv` WHERE report_configuration_id=" + QString::number(id));
+			query.exec("DELETE FROM `report_configuration_variant` WHERE report_configuration_id=" + id_str);
+			query.exec("DELETE FROM `report_configuration_cnv` WHERE report_configuration_id=" + id_str);
+			query.exec("DELETE FROM `report_configuration_sv` WHERE report_configuration_id=" + id_str);
 
 			//update report config
-			query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + LoginManager::userIdAsString() + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" + QString::number(id));
+			query.exec("UPDATE `report_configuration` SET `last_edit_by`='" + LoginManager::userIdAsString() + "', `last_edit_date`=CURRENT_TIMESTAMP WHERE id=" + id_str);
 		}
 		else //create report config (if missing)
 		{
 			//insert new report config
-			int user_id = userId(config.createdBy());
+			int user_id = userId(config->createdBy());
 
 			SqlQuery query = getQuery();
 			query.prepare("INSERT INTO `report_configuration`(`processed_sample_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES (:0, :1, :2, :3, CURRENT_TIMESTAMP)");
 			query.bindValue(0, processed_sample_id);
 			query.bindValue(1, user_id);
-			query.bindValue(2, config.createdAt());
+			query.bindValue(2, config->createdAt());
 			query.bindValue(3, user_id);
 			query.exec();
 			id = query.lastInsertId().toInt();
@@ -3957,7 +3957,7 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 		query_cnv.prepare("INSERT INTO `report_configuration_cnv`(`report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15)");
 		SqlQuery query_sv = getQuery();
 		query_sv.prepare("INSERT INTO `report_configuration_sv`(`report_configuration_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, :18, :19)");
-		foreach(const ReportVariantConfiguration& var_conf, config.variantConfig())
+		foreach(const ReportVariantConfiguration& var_conf, config->variantConfig())
 		{
 			if (var_conf.variant_type==VariantType::SNVS_INDELS)
 			{
@@ -4130,6 +4130,28 @@ int NGSD::setReportConfig(const QString& processed_sample_id, const ReportConfig
 	return id;
 }
 
+void NGSD::finalizeReportConfig(int id, int user_id)
+{
+	QString rc_id = QString::number(id);
+
+	//check that report config exists
+	bool rc_exists = getValue("SELECT id FROM `report_configuration` WHERE `id`=" + rc_id).isValid();
+	if (!rc_exists)
+	{
+		THROW (ProgrammingException, "Cannot finalize report configuration with id=" + rc_id + ", because it does not exist!");
+	}
+
+	//check that report config is not finalized
+	if (reportConfigIsFinalized(id))
+	{
+		THROW (ProgrammingException, "Cannot finalize report configuration with id=" + QString::number(id) + ", because it is finalized!");
+	}
+
+	//finalize it
+	SqlQuery query = getQuery();
+	query.exec("UPDATE `report_configuration` SET finalized_by='" + QString::number(user_id) + "', finalized_date=NOW() WHERE `id`=" + rc_id);
+}
+
 void NGSD::deleteReportConfig(int id)
 {
 	QString rc_id = QString::number(id);
@@ -4139,6 +4161,12 @@ void NGSD::deleteReportConfig(int id)
 	if (!rc_exists)
 	{
 		THROW (ProgrammingException, "Cannot delete report configuration with id=" + rc_id + ", because it does not exist!");
+	}
+
+	//check that it is not finalized
+	if (reportConfigIsFinalized(id))
+	{
+		THROW (ProgrammingException, "Cannot delete report configuration with id=" + rc_id + ", because it is finalized!");
 	}
 
 	//delete
@@ -4749,11 +4777,11 @@ QString AnalysisJob::runTimeAsString() const
 	return parts.join(" ");
 }
 
-QString ReportConfigurationCreationData::toText() const
+QString SomaticReportConfigurationData::history() const
 {
 	QStringList output;
-	output << "The NGSD contains a report configuration created by " + created_by + " at " + created_date + ".";
-	if (last_edit_by!="") output << "It was last updated by " + last_edit_by + " at " + last_edit_date + ".";
+	output << "The report configuration was created by " + created_by + " on " + created_date + ".";
+	if (last_edit_by!="") output << "The report configuration was last updated by " + last_edit_by + " on " + last_edit_date + ".";
 	return output.join("\n");
 }
 

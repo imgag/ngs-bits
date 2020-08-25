@@ -14,7 +14,7 @@ public:
 
 	DiagnosticStatusData diag_status; //diagnostic status
 
-	ReportConfiguration report_config; //report configuration
+	QSharedPointer<ReportConfiguration> report_config; //report configuration
 	QString report_type;
 
 	bool show_coverage_details; //slow low-coverage details

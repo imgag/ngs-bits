@@ -186,6 +186,9 @@
      </item>
      <item row="2" column="2">
       <widget class="QLineEdit" name="le_region">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="placeholderText">
         <string>chr:start-end</string>
        </property>
@@ -193,6 +196,12 @@
      </item>
      <item row="3" column="2">
       <widget class="QLineEdit" name="le_genes">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Uses the gene locus extended by 5000 bases as region.</string>
+       </property>
        <property name="placeholderText">
         <string>Gene names</string>
        </property>

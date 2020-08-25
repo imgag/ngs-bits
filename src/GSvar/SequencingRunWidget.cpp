@@ -339,6 +339,7 @@ void SequencingRunWidget::sendStatusEmail()
 			body << "  Analyse: " + query.value("analysis").toString();
 
 			operator_ids.removeDuplicates();
+			operator_ids.removeAll("");
 			foreach(QString operator_id, operator_ids)
 			{
 				to << db.userEmail(operator_id.toInt());
@@ -358,7 +359,7 @@ void SequencingRunWidget::sendStatusEmail()
 
 	body << "";
 	body << "Viele Gruesse, ";
-	body << "  " + db.userName(LoginManager::userId());
+	body << "  " + LoginManager::userName();
 
 	//send
 	EmailDialog dlg(this, to, subject, body);

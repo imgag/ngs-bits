@@ -67,14 +67,14 @@
         <item row="1" column="0">
          <widget class="QRadioButton" name="rb_genes">
           <property name="text">
-           <string>Genes:</string>
+           <string>Search by genes:</string>
           </property>
          </widget>
         </item>
         <item row="0" column="0">
          <widget class="QRadioButton" name="rb_chr_pos">
           <property name="text">
-           <string>Chromosomal position: </string>
+           <string>Search by region:</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -85,6 +85,9 @@
          <widget class="QLineEdit" name="le_genes">
           <property name="enabled">
            <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Uses the gene locus extended by 5000 bases as region.</string>
           </property>
           <property name="placeholderText">
            <string>Genes</string>
@@ -118,6 +121,9 @@
             <width>300</width>
             <height>16777215</height>
            </size>
+          </property>
+          <property name="toolTip">
+           <string>17:41,195,646-41,279,500</string>
           </property>
           <property name="placeholderText">
            <string>chr:start-end</string>

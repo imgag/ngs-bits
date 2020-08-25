@@ -394,6 +394,21 @@ BedLine NGSHelper::cytoBandToRange(QByteArray cytoband)
 	}
 }
 
+void NGSHelper::parseRegion(const QString& text, Chromosome& chr, int& start, int& end)
+{
+	QString simplyfied = text;
+	simplyfied.replace("-", " ");
+	simplyfied.replace(":", " ");
+	simplyfied.replace(",", "");
+	QStringList parts = simplyfied.split(QRegularExpression("\\W+"), QString::SkipEmptyParts);
+	if (parts.count()!=3) THROW(ArgumentException, "Could not split chromosomal range '" + text + "' in three parts: " + QString::number(parts.count()) + " parts found.");
+
+	chr = Chromosome(parts[0]);
+	if (!chr.isValid()) THROW(ArgumentException, "Invalid chromosome given in chromosomal range '" + text + "': " + parts[0]);
+	start = Helper::toInt(parts[1], "Start coordinate", text);
+	end = Helper::toInt(parts[2], "End coordinate", text);
+}
+
 void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos)
 {
 	QList<CigarOp> old_CIGAR = al.cigarData();

@@ -26,7 +26,7 @@ public:
 	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 
 	//Constructor for germline samples
-	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
+	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 	//Constructor for tumor-normal pairs
 	CnvWidget(const CnvList& cnvs, QString t_ps_id, FilterWidget* filter_widget, SomaticReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 
@@ -38,7 +38,6 @@ protected:
 signals:
 	void openRegionInIGV(QString region);
 	void openGeneTab(QString region);
-	void storeReportConfiguration();
 	void storeSomaticReportConfiguration();
 
 private slots:
@@ -79,8 +78,8 @@ private:
 	QString callset_id_; //CNV callset database ID. '' if unknown of if NGSD is disabled.
 	const CnvList& cnvs_;
 	QStringList special_cols_;
-	ReportConfiguration* report_config_ = nullptr;
-	SomaticReportConfiguration* somatic_report_config_ = nullptr;
+	QSharedPointer<ReportConfiguration> report_config_;
+	SomaticReportConfiguration* somatic_report_config_;
 	bool is_somatic_ = false;
 
 	GeneSet var_het_genes_;

@@ -1,6 +1,6 @@
 #include "GeneWidget.h"
 #include "Helper.h"
-#include "CandidateGeneDialog.h"
+#include "SmallVariantSearchDialog.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
 #include "GeneInfoDBs.h"
@@ -148,7 +148,7 @@ void GeneWidget::editComment()
 
 void GeneWidget::showGeneVariationDialog()
 {
-	CandidateGeneDialog dlg(this);
+	SmallVariantSearchDialog dlg(this);
 	dlg.setGene(symbol_);
 	dlg.exec();
 }

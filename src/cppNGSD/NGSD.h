@@ -368,24 +368,20 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_comments = false;
 };
 
-///Meta data about report configuration creation and update
-struct CPPNGSDSHARED_EXPORT ReportConfigurationCreationData
+///Meta data about somatic report configuration (e.g. creation/update, target bed file)
+struct CPPNGSDSHARED_EXPORT SomaticReportConfigurationData
 {
 	QString created_by;
 	QString created_date;
 	QString last_edit_by;
 	QString last_edit_date;
 
-	///Returns a text representation of the creation and update. Can contain newline!
-	QString toText() const;
-};
-
-///Meta data about somatic report configuration (e.g. creation/update, target bed file)
-struct CPPNGSDSHARED_EXPORT SomaticReportConfigurationData : public ReportConfigurationCreationData
-{
 	QString target_file;
 	QString mtb_xml_upload_date;
-    QString mtb_pdf_upload_date;
+	QString mtb_pdf_upload_date;
+
+	///Returns a text representation of the creation and update. Can contain newline!
+	QString history() const;
 };
 
 ///Header data of the Evaluation Sheet
@@ -599,9 +595,11 @@ public:
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
 	///If throw_if_false == false it returns -1 if user is not found
 	int userId(QString user_name, bool only_active=false, bool throw_if_fails = true);
-	///Returns the user name corresponding the given ID. If no ID is given, the current users ID is used (see userId()).
+	///Returns the user login corresponding the given ID.
+	QString userLogin(int user_id=-1);
+	///Returns the user name corresponding the given ID.
 	QString userName(int user_id=-1);
-	///Returns the user email corresponding the given ID. If no ID is given, the current user ID is used (see userId()).
+	///Returns the user email corresponding the given ID.
 	QString userEmail(int user_id=-1);
 	///Replacement for passwords when they are shown in the GUI.
 	static const QString& passwordReplacement();
@@ -668,12 +666,14 @@ public:
 	void setDiagnosticStatus(const QString& processed_sample_id, DiagnosticStatusData status);
 	///Returns if the report configuration database ID, or -1 if not present.
 	int reportConfigId(const QString& processed_sample_id);
-	///Returns the report config creation data (user/date).
-	ReportConfigurationCreationData reportConfigCreationData(int id);
+	///Returns if the report configuration is finalized.
+	bool reportConfigIsFinalized(int id);
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.
-	ReportConfiguration reportConfig(const QString& processed_sample_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QStringList& messages);
+	QSharedPointer<ReportConfiguration> reportConfig(int id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QStringList& messages);
 	///Sets/overwrites the report configuration for a processed sample. Returns its database primary key. The variant list is needed to determine the annotation column indices.
-	int setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs);
+	int setReportConfig(const QString& processed_sample_id, QSharedPointer<ReportConfiguration> config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs);
+	///Finalizes the report configuration. It cannot be modified afterwards!
+	void finalizeReportConfig(int id, int user_id);
 	///Deletes a report configuration.
 	void deleteReportConfig(int id);
 
@@ -684,7 +684,6 @@ public:
 
 	///Returns the report config creation data (user/date) for somatic reports
 	SomaticReportConfigurationData somaticReportConfigData(int id);
-
 
 	///Returns database ID of somatic report configuration, -1 if not present
 	int somaticReportConfigId(QString t_ps_id, QString n_ps_id);

@@ -563,7 +563,7 @@ void ReportWorker::writeHTML()
 	}
 	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
 	int selected_var_count = 0;
-	foreach(int index, settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type))
+	foreach(int index, settings_.report_config->variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type))
 	{
 		const Variant & variant = variants_[index];
 		if (file_roi_=="" || roi_.overlapsWith(variant.chr(), variant.start(), variant.end()))
@@ -573,7 +573,7 @@ void ReportWorker::writeHTML()
 	}
 	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << selected_var_count << endl;
 	int selected_cnv_count = 0;
-	foreach(int index, settings_.report_config.variantIndices(VariantType::CNVS, true, settings_.report_type))
+	foreach(int index, settings_.report_config->variantIndices(VariantType::CNVS, true, settings_.report_type))
 	{
 		const CopyNumberVariant& cnv = cnvs_[index];
 		if (file_roi_=="" || roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end()))
@@ -584,7 +584,7 @@ void ReportWorker::writeHTML()
 	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnv_count << endl;
 
 	int selected_sv_count = 0;
-	foreach(int index, settings_.report_config.variantIndices(VariantType::SVS, true, settings_.report_type))
+	foreach(int index, settings_.report_config->variantIndices(VariantType::SVS, true, settings_.report_type))
 	{
 		const BedpeLine& sv = svs_[index];
 		BedFile affected_region = sv.affectedRegion();
@@ -624,7 +624,7 @@ void ReportWorker::writeHTML()
 	}
 	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
 
-	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
@@ -699,7 +699,7 @@ void ReportWorker::writeHTML()
 	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>"
 		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></tr>" << endl;
 
-	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::CNVS) continue;
 		if (!var_conf.showInReport()) continue;
@@ -730,7 +730,7 @@ void ReportWorker::writeHTML()
 	stream << "<tr><td><b>" << trans("SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>"
 		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></tr>" << endl;
 
-	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SVS) continue;
 		if (!var_conf.showInReport()) continue;
@@ -1204,7 +1204,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 
 	//element Variant
 	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
-	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
@@ -1355,7 +1355,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 		w.writeAttribute("number_of_hq_cnvs", qc_metrics["high-quality cnvs"]);
 	}
 
-	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::CNVS) continue;
 		if (!var_conf.showInReport()) continue;

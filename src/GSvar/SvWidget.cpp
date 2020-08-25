@@ -30,6 +30,7 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
 	, ngsd_enabled_(LoginManager::active())
+	, report_config_(nullptr)
 	, roi_gene_index_(roi_genes_)
 {
 	ui->setupUi(this);
@@ -69,14 +70,14 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 	}
 }
 
-SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: SvWidget(bedpe_file, ps_id, filter_widget, het_hit_genes, cache, parent, false)
 {
 	if(bedpe_file.format()!=BedpeFileFormat::BEDPE_GERMLINE_SINGLE)
 	{
 		THROW(ProgrammingException, "Constructor in SvWidget has to be used using germline SV data.");
 	}
-	report_config_ = &rep_conf;
+	report_config_ = rep_conf;
 	initGUI();
 }
 
@@ -511,8 +512,7 @@ void SvWidget::editGermlineReportConfiguration(int row)
 
 	//init/get config
 	ReportVariantConfiguration var_config;
-	bool report_settings_exist = report_config_->exists(VariantType::SVS, row);
-	if (report_settings_exist)
+	if (report_config_->exists(VariantType::SVS, row))
 	{
 		var_config = report_config_->get(VariantType::SVS, row);
 	}
@@ -536,13 +536,13 @@ void SvWidget::editGermlineReportConfiguration(int row)
 	}
 
 	//exec dialog
-	ReportVariantDialog* dlg = new ReportVariantDialog(sv_bedpe_file_[row].toString(), inheritance_by_gene, var_config, this);
-	if (dlg->exec()!=QDialog::Accepted) return;
+	ReportVariantDialog dlg(sv_bedpe_file_[row].toString(), inheritance_by_gene, var_config, this);
+	dlg.setEnabled(!report_config_->isFinalized());
+	if (dlg.exec()!=QDialog::Accepted) return;
 
 	//update config, GUI and NGSD
 	report_config_->set(var_config);
 	updateReportConfigHeaderIcon(row);
-	emit storeReportConfiguration();
 }
 
 void SvWidget::loadGeneFile()
@@ -721,8 +721,7 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 	QMenu menu(ui->svs->verticalHeader());
 	QAction* a_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	QAction* a_delete = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	if(!is_somatic_) a_delete->setEnabled(report_config_->exists(VariantType::SVS, row));
-
+	a_delete->setEnabled(!is_somatic_ && !report_config_->isFinalized() && report_config_->exists(VariantType::SVS, row));
 
 	//exec menu
 	pos = ui->svs->verticalHeader()->viewport()->mapToGlobal(pos);
@@ -742,7 +741,6 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 		{
 			report_config_->remove(VariantType::SVS, row);
 			updateReportConfigHeaderIcon(row);
-			emit storeReportConfiguration();
 		}
 	}
 }
@@ -865,7 +863,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	QAction* a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	a_rep_edit->setEnabled(ngsd_enabled_ && !is_somatic_);
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	a_rep_del->setEnabled(ngsd_enabled_ && !is_somatic_ && report_config_->exists(VariantType::SVS, row));
+	a_rep_del->setEnabled(ngsd_enabled_ && !is_somatic_ && report_config_->exists(VariantType::SVS, row) && !report_config_->isFinalized());
 	menu.addSeparator();
 	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching SVs in NGSD");
 	a_ngsd_search->setEnabled(ngsd_enabled_);
@@ -919,7 +917,6 @@ void SvWidget::showContextMenu(QPoint pos)
 		if(!is_somatic_)
 		{
 			report_config_->remove(VariantType::SVS, row);
-			emit storeReportConfiguration();
 		}
 		updateReportConfigHeaderIcon(row);
 	}

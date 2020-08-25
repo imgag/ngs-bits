@@ -103,5 +103,6 @@
         <file>Icons/cbioportal.png</file>
         <file>Icons/ckb.png</file>
         <file>Icons/PubMed.png</file>
+        <file>Icons/Report_finalize.png</file>
     </qresource>
 </RCC>

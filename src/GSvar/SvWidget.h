@@ -24,12 +24,11 @@ public:
 	SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0, bool init_gui=true);
 
 	//constructor with report config for germline
-	SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
+	SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
 
 signals:
 	void openInIGV(QString coords);
 	void openGeneTab(QString symbol);
-	void storeReportConfiguration();
 
 protected slots:
 	///copy filtered SV table to clipboard
@@ -102,7 +101,7 @@ private:
 	QHash<QByteArray, BedFile>& gene2region_cache_;
 	bool ngsd_enabled_;
 
-	ReportConfiguration* report_config_ = nullptr;
+	QSharedPointer<ReportConfiguration> report_config_;
 
 	///List of annotations which are shown in the widget
 	QByteArrayList annotations_to_show_;

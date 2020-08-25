@@ -51,7 +51,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "QCCollection.h"
 #include "NGSDReannotationDialog.h"
 #include "DiseaseInfoWidget.h"
-#include "CandidateGeneDialog.h"
+#include "SmallVariantSearchDialog.h"
 #include "TSVFileStream.h"
 #include "LovdUploadDialog.h"
 #include "OntologyTermCollection.h"
@@ -171,9 +171,10 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->setMenu(new QMenu());
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate report", this, SLOT(generateReport()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate evaluation sheet", this, SLOT(generateEvaluationSheet()));
 	ui_.report_btn->menu()->addAction("Show report configuration info", this, SLOT(showReportConfigInfo()));
 	ui_.report_btn->menu()->addSeparator();
-	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report.png"), "Generate evaluation sheet", this, SLOT(generateEvaluationSheet()));
+	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_finalize.png"), "Finalize report configuration", this, SLOT(finalizeReportConfig()));
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
@@ -292,25 +293,8 @@ void MainWindow::on_actionCytobandsToRegions_triggered()
 
 void MainWindow::on_actionSearchSNVs_triggered()
 {
-	//get user input
-	bool ok;
-	QString text = QInputDialog::getText(this, "Enter variant", "genomic coordinates (GSvar format):", QLineEdit::Normal, "", &ok);
-	if (!ok) return;
-
-	//parse variant
-	Variant v;
-	try
-	{
-		 v = Variant::fromString(text);
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::warning(this, "Invalid variant text", e.message());
-		return;
-	}
-
-	//show sample overview for variant
-	openVariantTab(v);
+	SmallVariantSearchDialog dlg(this);
+	dlg.exec();
 }
 
 void MainWindow::on_actionSearchCNVs_triggered()
@@ -410,7 +394,6 @@ void MainWindow::on_actionSV_triggered()
 		auto dlg = GUIHelper::createDialog(list, "Structural variants");
 		connect(list,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
 		connect(list,SIGNAL(openGeneTab(QString)),this,SLOT(openGeneTab(QString)));
-		connect(list, SIGNAL(storeReportConfiguration()), this, SLOT(storeReportConfig()));
 		addModelessDialog(dlg);
 	}
 	catch(FileParseException error)
@@ -488,7 +471,6 @@ void MainWindow::on_actionCNV_triggered()
 
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	connect(list, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
-	connect(list, SIGNAL(storeReportConfiguration()), this, SLOT(storeReportConfig()));
 	connect(list, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
 	addModelessDialog(dlg, true);
@@ -623,12 +605,6 @@ void MainWindow::on_actionPRS_triggered()
 	{
 		QMessageBox::warning(this, "PRS file missing", "The PRS file does not exist:\n" + prs_file_name);
 	}
-}
-
-void MainWindow::on_actionGeneVariantInfo_triggered()
-{
-	CandidateGeneDialog dlg(this);
-	dlg.exec();
 }
 
 void MainWindow::on_actionGeneOmimInfo_triggered()
@@ -1725,16 +1701,7 @@ void MainWindow::loadFile(QString filename)
 	//load report config
 	if (LoginManager::active() && germlineReportSupported())
 	{
-		NGSD db;
-		QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
-		if (processed_sample_id!="")
-		{
-			int conf_id = db.reportConfigId(processed_sample_id);
-			if (conf_id!=-1)
-			{
-				loadReportConfig();
-			}
-		}
+		loadReportConfig();
 	}
 	else if(LoginManager::active() && somaticReportSupported())
 	{
@@ -1983,11 +1950,16 @@ void MainWindow::loadReportConfig()
 	if (filename_=="") return;
 	if (!germlineReportSupported()) return;
 
-	//load
+	//check if report config exists
 	NGSD db;
 	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
+	int rc_id = db.reportConfigId(processed_sample_id);
+	if (rc_id==-1) return;
+
+	//load
 	QStringList messages;
-	report_settings_.report_config = db.reportConfig(processed_sample_id, variants_, cnvs_, svs_, messages);
+	report_settings_.report_config = db.reportConfig(rc_id, variants_, cnvs_, svs_, messages);
+	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
 	if (!messages.isEmpty())
 	{
 		QMessageBox::warning(this, "Report configuration", "The following problems were encountered while loading the report configuration:\n" + messages.join("\n"));
@@ -2077,12 +2049,14 @@ void MainWindow::storeSomaticReportConfig()
 
 	if (conf_id!=-1)
 	{
-		ReportConfigurationCreationData conf_creation = db.somaticReportConfigData(conf_id);
-		QString current_user_name = db.getValue("SELECT name FROM user WHERE user_id='" + Helper::userName() + "'").toString();
-		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=current_user_name)
-		if (QMessageBox::question(this, "Storing report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
+		QStringList messages;
+		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+		if (report_config->lastUpdatedBy()!="" && report_config->lastUpdatedBy()!=LoginManager::userName())
 		{
-			return;
+			if (QMessageBox::question(this, "Storing report configuration", report_config->history() + "\n\nDo you want to override it?")==QMessageBox::No)
+			{
+				return;
+			}
 		}
 	}
 
@@ -2117,11 +2091,14 @@ void MainWindow::storeReportConfig()
 	int conf_id = db.reportConfigId(processed_sample_id);
 	if (conf_id!=-1)
 	{
-		ReportConfigurationCreationData conf_creation = db.reportConfigCreationData(conf_id);
-		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=db.userName(LoginManager::userId()))
-		if (QMessageBox::question(this, "Storing report configuration", conf_creation.toText() + "\n\nDo you want to override it?")==QMessageBox::No)
+		QStringList messages;
+		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+		if (report_config->lastUpdatedBy()!="" && report_config->lastUpdatedBy()!=LoginManager::userName())
 		{
-			return;
+			if (QMessageBox::question(this, "Storing report configuration", report_config->history() + "\n\nDo you want to override it?")==QMessageBox::No)
+			{
+				return;
+			}
 		}
 	}
 
@@ -2176,9 +2153,9 @@ void MainWindow::generateEvaluationSheet()
 		evaluation_sheet_data.ps_id = db.processedSampleId(filename_);
 		evaluation_sheet_data.dna_rna = db.getSampleData(sample_id).name_external;
 		// make sure reviewer 1 contains name not user id
-		evaluation_sheet_data.reviewer1 = db.userName(db.userId(report_settings_.report_config.createdBy()));
-		evaluation_sheet_data.review_date1 = report_settings_.report_config.createdAt().date();
-		evaluation_sheet_data.reviewer2 = db.userName();
+		evaluation_sheet_data.reviewer1 = db.userName(db.userId(report_settings_.report_config->createdBy()));
+		evaluation_sheet_data.review_date1 = report_settings_.report_config->createdAt().date();
+		evaluation_sheet_data.reviewer2 = LoginManager::userName();
 		evaluation_sheet_data.review_date2 = QDate::currentDate();
 	}
 
@@ -2314,7 +2291,7 @@ void MainWindow::generateEvaluationSheet()
 	stream << "    <p><b>Kausale Varianten:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeader(stream, true);
-	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (conf.causal)
@@ -2328,7 +2305,7 @@ void MainWindow::generateEvaluationSheet()
 	stream << "    <p><b>Sonstige Varianten:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeader(stream, false);
-	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!conf.causal)
@@ -2343,7 +2320,7 @@ void MainWindow::generateEvaluationSheet()
 	stream << "    <p><b>Kausale CNVs:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeaderCnv(stream, true);
-	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::CNVS) continue;
 		if (conf.causal)
@@ -2357,7 +2334,7 @@ void MainWindow::generateEvaluationSheet()
 	stream << "    <p><b>Sonstige CNVs:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeaderCnv(stream, false);
-	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::CNVS) continue;
 		if (!conf.causal)
@@ -2372,7 +2349,7 @@ void MainWindow::generateEvaluationSheet()
 	stream << "    <p><b>Kausale SVs:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeaderSv(stream, true);
-	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::SVS) continue;
 		if (conf.causal)
@@ -2386,7 +2363,7 @@ void MainWindow::generateEvaluationSheet()
 	stream << "    <p><b>Sonstige SVs:</b>" << endl;
 	stream << "      <table border='1'>" << endl;
 	printVariantSheetRowHeaderSv(stream, false);
-	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& conf, report_settings_.report_config->variantConfig())
 	{
 		if (conf.variant_type!=VariantType::SVS) continue;
 		if (!conf.causal)
@@ -2427,15 +2404,19 @@ void MainWindow::transferSomaticData()
 
 void MainWindow::showReportConfigInfo()
 {
+	QString title = "Report configuration information";
+
+
 	//check if applicable
 	if (filename_=="") return;
+	if (!LoginManager::active()) return;
 
 	//check sample exists
 	NGSD db;
 	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
 	if (processed_sample_id=="")
 	{
-		QMessageBox::information(this, "Report configuration information", "Sample was not found in the NGSD!");
+		QMessageBox::warning(this, title, "Sample was not found in the NGSD!");
 		return;
 	}
 
@@ -2445,10 +2426,15 @@ void MainWindow::showReportConfigInfo()
 		int conf_id = db.reportConfigId(processed_sample_id);
 		if (conf_id==-1)
 		{
-			QMessageBox::information(this, "Report configuration information", "No report configuration found in the NGSD!");
+			QMessageBox::warning(this, title , "No germline report configuration found in the NGSD!");
 			return;
 		}
-		QMessageBox::information(this, "Report configuration information", db.reportConfigCreationData(conf_id).toText());
+
+
+		QStringList messages;
+		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+
+		QMessageBox::information(this, title, report_config->history() + "\n\n" + report_config->variantSummary());
 	}
 	else if(somaticReportSupported())
 	{
@@ -2456,11 +2442,64 @@ void MainWindow::showReportConfigInfo()
 		int conf_id = db.somaticReportConfigId(processed_sample_id, ps_normal_id);
 		if(conf_id==-1)
 		{
-			QMessageBox::information(this, "Somatic report configuration information", "No somatic report configuration found in the NGSD!");
+			QMessageBox::warning(this, title, "No somatic report configuration found in the NGSD!");
 			return;
 		}
-		QMessageBox::information(this, "Somatic report configuration information", db.somaticReportConfigData(conf_id).toText());
+		QMessageBox::information(this, title, db.somaticReportConfigData(conf_id).history());
 	}
+}
+
+void MainWindow::finalizeReportConfig()
+{
+	QString dialog_title = "Finalize report configuration";
+
+	//check if applicable
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+
+	//check sample exists
+	NGSD db;
+	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
+	if (processed_sample_id=="")
+	{
+		QMessageBox::warning(this, dialog_title, "Sample was not found in the NGSD!");
+		return;
+	}
+
+	//only implemented for germline so far
+	if(!germlineReportSupported())
+	{
+		QMessageBox::warning(this, dialog_title, "Unsupported variant list type!");
+		return;
+	}
+
+	//check config exists
+	int conf_id = db.reportConfigId(processed_sample_id);
+	if (conf_id==-1)
+	{
+		QMessageBox::warning(this, dialog_title, "No report configuration for this sample found in the NGSD!");
+		return;
+	}
+
+	//make sure the user knows what he does
+	int button = QMessageBox::question(this, dialog_title, "Do you really want to finalize the report configuration?\nIt cannot be modified or deleted when finalized!");
+	if (button!=QMessageBox::Yes) return;
+
+	//finalize
+	try
+	{
+		db.finalizeReportConfig(conf_id, LoginManager::userId());
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, dialog_title, "Finalizing report config failed:\"n" + e.message());
+		return;
+	}
+
+	//update report settings data structure
+	QStringList messages;
+	report_settings_.report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
+	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
 }
 
 void MainWindow::printVariantSheetRowHeader(QTextStream& stream, bool causal)
@@ -3815,8 +3854,8 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 
 	//show dialog
 	QDateTime file_last_mod = QFileInfo(filename).lastModified();
-	QString text = "<pre>" + Helper::loadTextFile(filename).join("\n") + "</pre>";
-	QPlainTextEdit* edit = new QPlainTextEdit(text);
+	QPlainTextEdit* edit = new QPlainTextEdit();
+	edit->setPlainText(Helper::loadTextFile(filename).join("\n"));
 	edit->setMinimumHeight(600);
 	edit->setMinimumWidth(500);
 	QSharedPointer<QDialog> dlg = GUIHelper::createDialog(edit, "Preferred transcripts list", "", true);
@@ -4117,7 +4156,7 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 
 	if(germlineReportSupported())
 	{
-		a_delete->setEnabled(report_settings_.report_config.exists(VariantType::SNVS_INDELS, index));
+		a_delete->setEnabled(!report_settings_.report_config->isFinalized() && report_settings_.report_config->exists(VariantType::SNVS_INDELS, index));
 	}
 	else if(somaticReportSupported())
 	{
@@ -4142,7 +4181,7 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	{
 		if(germlineReportSupported())
 		{
-			report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
+			report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
 		}
 		else
 		{
@@ -4171,8 +4210,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QAction* a_report_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	a_report_edit->setEnabled(ngsd_user_logged_in);
 	QAction* a_report_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-
-	a_report_del->setEnabled(ngsd_user_logged_in && (report_settings_.report_config.exists(VariantType::SNVS_INDELS, index) || somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index)));
+	a_report_del->setEnabled(ngsd_user_logged_in && ((!report_settings_.report_config->isFinalized() && report_settings_.report_config->exists(VariantType::SNVS_INDELS, index)) || somatic_report_settings_.report_config.exists(VariantType::SNVS_INDELS, index)));
 	menu.addSeparator();
 
 	//NGSD variant options
@@ -4449,8 +4487,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	{
 		if(germlineReportSupported())
 		{
-			report_settings_.report_config.remove(VariantType::SNVS_INDELS, index);
-			storeReportConfig();
+			report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
 		}
 		else if(somaticReportSupported())
 		{
@@ -4688,10 +4725,10 @@ void MainWindow::editVariantReportConfiguration(int index)
 	{
 		//init/get config
 		ReportVariantConfiguration var_config;
-		bool report_settings_exist = report_settings_.report_config.exists(VariantType::SNVS_INDELS, index);
+		bool report_settings_exist = report_settings_.report_config->exists(VariantType::SNVS_INDELS, index);
 		if (report_settings_exist)
 		{
-			var_config = report_settings_.report_config.get(VariantType::SNVS_INDELS, index);
+			var_config = report_settings_.report_config->get(VariantType::SNVS_INDELS, index);
 		}
 		else
 		{
@@ -4714,13 +4751,13 @@ void MainWindow::editVariantReportConfiguration(int index)
 		}
 
 		//exec dialog
-		ReportVariantDialog* dlg = new ReportVariantDialog(variant.toString(), inheritance_by_gene, var_config, this);
-		if (dlg->exec()!=QDialog::Accepted) return;
+		ReportVariantDialog dlg(variant.toString(), inheritance_by_gene, var_config, this);
+		dlg.setEnabled(!report_settings_.report_config->isFinalized());
+		if (dlg.exec()!=QDialog::Accepted) return;
 
 		//update config, GUI and NGSD
-		report_settings_.report_config.set(var_config);
+		report_settings_.report_config->set(var_config);
 		updateReportConfigHeaderIcon(index);
-		storeReportConfig();
 
 		//force classification of causal variants
 		if(var_config.causal)
@@ -5171,7 +5208,7 @@ void MainWindow::applyFilters(bool debug_time)
 		//report configuration filter (show only variants with report configuration)
 		if (germlineReportSupported() && ui_.filters->reportConfigurationVariantsOnly())
 		{
-			QSet<int> report_variant_indices = report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
+			QSet<int> report_variant_indices = report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false).toSet();
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!filter_result_.flags()[i]) continue;

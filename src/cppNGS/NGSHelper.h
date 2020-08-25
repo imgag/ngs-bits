@@ -29,6 +29,9 @@ public:
 	///Returns the chromosomal range of a cytoband or cytoband range.
 	static BedLine cytoBandToRange(QByteArray cytoband);
 
+	///Parses a chromosomal region from the given text. Throws an error, if the region is not valid.
+	static void parseRegion(const QString& text, Chromosome& chr, int& start, int& end);
+
 private:
 	///Constructor declared away
 	NGSHelper() = delete;

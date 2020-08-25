@@ -5,6 +5,7 @@
 #include "VariantType.h"
 #include <QStringList>
 #include <QDateTime>
+#include <QObject>
 
 ///Variant meta data for report.
 struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
@@ -43,7 +44,10 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 
 ///Report configuration
 class CPPNGSDSHARED_EXPORT ReportConfiguration
+	: public QObject
 {
+	Q_OBJECT
+
 public:
 	ReportConfiguration();
 
@@ -57,19 +61,26 @@ public:
 	///Returns the matching report configuration (throws an error if not found).
 	const ReportVariantConfiguration& get(VariantType type, int index) const;
 	///Sets the report configuration for the variant. Returns if it already existed.
-	bool set(const ReportVariantConfiguration& config);
+	void set(const ReportVariantConfiguration& config);
 	///Removes the matching configuration. Returns if a configuration was removed.
-	bool remove(VariantType type, int index);
+	void remove(VariantType type, int index);
 
-	///Returns by who the database entry was created (or last modified).
+	///Returns by who the report config was created.
 	QString createdBy() const;
 	///Sets the creator name.
 	void setCreatedBy(QString user_name);
 
-	///Returns when the database entry was created (or last modified).
+	///Returns when the report config was created.
 	QDateTime createdAt() const;
 	///Sets the creation time
 	void setCreatedAt(QDateTime time);
+
+	QString lastUpdatedBy() const;
+	QDateTime lastUpdatedAt() const;
+
+	QString finalizedBy() const;
+	QDateTime finalizedAt() const;
+	bool isFinalized() const;
 
 	///Returns the number of report config entries (all types).
 	int count() const
@@ -77,13 +88,32 @@ public:
 		return variant_config_.count();
 	}
 
+	///Returns a creation/modification/finalization history description test.
+	QString history() const;
+
+	///Returns a variant summary description test.
+	QString variantSummary() const;
+
+signals:
+	///Signal that is emitted when the report configuration was changed.
+	void variantsChanged();
+
 private:
 	QList<ReportVariantConfiguration> variant_config_;
+
 	QString created_by_;
 	QDateTime created_at_;
 
+	QString last_updated_by_;
+	QDateTime last_updated_at_;
+
+	QString finalized_by_;
+	QDateTime finalized_at_;
+
 	//sort by variant index
 	void sortByPosition();
+
+	friend class NGSD;
 };
 
 #endif // REPORTCONFIGURATION_H

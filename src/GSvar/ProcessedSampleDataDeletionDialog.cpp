@@ -84,6 +84,25 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 	NGSD db;
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
+	//check if report config if finalized
+	if (ui_.report_config->isChecked())
+	{
+		QStringList finalized_ps;
+		foreach(const QString& ps_id, ps_ids_)
+		{
+			int conf_id = db.reportConfigId(ps_id);
+			if (conf_id!=-1 && db.reportConfigIsFinalized(conf_id))
+			{
+				finalized_ps << db.processedSampleName(ps_id);
+			}
+		}
+		if (!finalized_ps.isEmpty())
+		{
+			QMessageBox::warning(this, "Deleting report configuration", "The report configuration of the following processed samples is finalized and cannot be deleted:\n" + finalized_ps.join("\n"));
+			return;
+		}
+	}
+
 	//report config first (it references variants)
 	if (ui_.report_config->isChecked())
 	{

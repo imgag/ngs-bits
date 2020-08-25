@@ -26,14 +26,14 @@
 #include <QChartView>
 QT_CHARTS_USE_NAMESPACE
 
-CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: CnvWidget(cnvs, ps_id, filter_widget, het_hit_genes, cache, parent)
 {
 	if(cnvs.type()!=CnvListType::CLINCNV_GERMLINE_MULTI && cnvs.type()!=CnvListType::CLINCNV_GERMLINE_SINGLE && cnvs.type()!=CnvListType::CNVHUNTER_GERMLINE_SINGLE && cnvs.type()!=CnvListType::CNVHUNTER_GERMLINE_MULTI)
 	{
 		THROW(ProgrammingException, "Constructor in CnvWidget has to be used using germline CNV data.");
 	}
-	report_config_ = &rep_conf;
+	report_config_ = rep_conf;
 	initGUI();
 }
 
@@ -58,6 +58,8 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	, callset_id_("")
 	, cnvs_(cnvs)
 	, special_cols_()
+	, report_config_(nullptr)
+	, somatic_report_config_(nullptr)
 	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
 	, ngsd_enabled_(LoginManager::active())
@@ -532,7 +534,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	QAction* a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	a_rep_edit->setEnabled(ngsd_enabled_);
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	if(!is_somatic_) a_rep_del->setEnabled(ngsd_enabled_ && report_config_->exists(VariantType::CNVS, row));
+	if(!is_somatic_) a_rep_del->setEnabled(ngsd_enabled_ && report_config_->exists(VariantType::CNVS, row) && !report_config_->isFinalized());
 	else a_rep_del->setEnabled(ngsd_enabled_ && somatic_report_config_->exists(VariantType::CNVS, row));
 	menu.addSeparator();
 	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching CNVs in NGSD");
@@ -596,7 +598,6 @@ void CnvWidget::showContextMenu(QPoint p)
 		if(!is_somatic_)
 		{
 			report_config_->remove(VariantType::CNVS, row);
-			emit storeReportConfiguration();
 		}
 		else
 		{
@@ -802,7 +803,7 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 	QMenu menu(ui->cnvs->verticalHeader());
 	QAction* a_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	QAction* a_delete = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	if(!is_somatic_) a_delete->setEnabled(report_config_->exists(VariantType::CNVS, row));
+	if(!is_somatic_) a_delete->setEnabled(report_config_->exists(VariantType::CNVS, row) && !report_config_->isFinalized());
 	else a_delete->setEnabled(somatic_report_config_->exists(VariantType::CNVS, row));
 
 	//exec menu
@@ -833,10 +834,9 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 				somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
 				updateReportConfigHeaderIcon(selected_row.row());
 			}
-		}
 
-		if(!is_somatic_) emit storeReportConfiguration();
-		else emit storeSomaticReportConfiguration();
+			emit storeSomaticReportConfiguration();
+		}
 	}
 }
 
@@ -922,7 +922,6 @@ void CnvWidget::editReportConfiguration(int row)
 {
 	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
 	{
-
 		//Handle som variant configuration for more than one variant
 		QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
 		if(selectedRows.count() > 1)
@@ -1065,8 +1064,7 @@ void CnvWidget::editGermlineReportConfiguration(int row)
 
 	//init/get config
 	ReportVariantConfiguration var_config;
-	bool report_settings_exist = report_config_->exists(VariantType::CNVS, row);
-	if (report_settings_exist)
+	if (report_config_->exists(VariantType::CNVS, row))
 	{
 		var_config = report_config_->get(VariantType::CNVS, row);
 	}
@@ -1090,13 +1088,13 @@ void CnvWidget::editGermlineReportConfiguration(int row)
 	}
 
 	//exec dialog
-	ReportVariantDialog* dlg = new ReportVariantDialog(cnvs_[row].toStringWithMetaData(), inheritance_by_gene, var_config, this);
-	if (dlg->exec()!=QDialog::Accepted) return;
+	ReportVariantDialog dlg(cnvs_[row].toStringWithMetaData(), inheritance_by_gene, var_config, this);
+	dlg.setEnabled(!report_config_->isFinalized());
+	if (dlg.exec()!=QDialog::Accepted) return;
 
 	//update config, GUI and NGSD
 	report_config_->set(var_config);
 	updateReportConfigHeaderIcon(row);
-	emit storeReportConfiguration();
 }
 
 void CnvWidget::editSomaticReportConfiguration(int row)

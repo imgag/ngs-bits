@@ -3,6 +3,7 @@
 #include "Chromosome.h"
 #include "Helper.h"
 #include "FilterCascade.h"
+#include "NGSHelper.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -69,27 +70,18 @@ void SvSearchWidget::search()
 		if (ui_.rb_single_sv->isChecked())
 		{
 			//(0) parse input
-			QStringList coords1 = ui_.coordinates1->text().replace("-", " ").replace(":", " ").replace(",", "").split(QRegularExpression("\\W+"), QString::SkipEmptyParts);
-			if (coords1.count()!=3) THROW(ArgumentException, "Could not split first coordinates in three parts! " + QString::number(coords1.count()) + " parts found.");
-			QStringList coords2 = ui_.coordinates2->text().replace("-", " ").replace(":", " ").replace(",", "").split(QRegularExpression("\\W+"), QString::SkipEmptyParts);
-			if (coords2.count()!=3) THROW(ArgumentException, "Could not split second coordinates in three parts! " + QString::number(coords2.count()) + " parts found.");
 
-			Chromosome chr1(coords1[0]);
-			if (!chr1.isValid()) THROW(ArgumentException, "Invalid first chromosome given: " + coords1[0]);
-			int start1 = Helper::toInt(coords1[1], "First start cooridinate");
-			int end1 = Helper::toInt(coords1[2], "First end cooridinate");
+			Chromosome chr1;
+			int start1, end1;
+			NGSHelper::parseRegion(ui_.coordinates1->text(), chr1, start1, end1);
 
-			Chromosome chr2(coords2[0]);
-			if (!chr2.isValid()) THROW(ArgumentException, "Invalid second chromosome given: " + coords2[0]);
-			int start2 = Helper::toInt(coords2[1], "Second start cooridinate");
-			int end2 = Helper::toInt(coords2[2], "Second end cooridinate");
-
-			bool perform_exact_match = (ui_.operation->currentText() == "exact match");
-
+			Chromosome chr2;
+			int start2, end2;
+			NGSHelper::parseRegion(ui_.coordinates2->text(), chr2, start2, end2);
 
 			//(1) validate input
-			if (!chr1.isValid()) THROW(ArgumentException, "Invalid first chromosome given: " + coords1[0]);
-			if (!chr2.isValid()) THROW(ArgumentException, "Invalid second chromosome given: " + coords2[0]);
+			if (!chr1.isValid()) THROW(ArgumentException, "Invalid first chromosome given in: " + ui_.coordinates1->text());
+			if (!chr2.isValid()) THROW(ArgumentException, "Invalid second chromosome given in: " + ui_.coordinates2->text());
 			if(type!=StructuralVariantType::BND && (chr1 != chr2))
 			{
 				THROW(ArgumentException, "Invalid SV position: " + BedpeFile::typeToString(type) + " " + ui_.coordinates1->text() + " " + ui_.coordinates2->text());
@@ -118,6 +110,7 @@ void SvSearchWidget::search()
 			else
 			{
 				//DEL, DUP or INV
+				bool perform_exact_match = (ui_.operation->currentText() == "exact match");
 				if(perform_exact_match)
 				{
 					query_same_position += "sv.chr = \"" + chr1.strNormalized(true) + "\" AND sv.start_min <= " + QByteArray::number(end1) + " AND ";
@@ -135,21 +128,12 @@ void SvSearchWidget::search()
 		else if (ui_.rb_region->isChecked())
 		{
 			// (0) parse input
-			QStringList coords = ui_.le_region->text().replace("-", " ").replace(":", " ").replace(",", "").split(QRegularExpression("\\W+"), QString::SkipEmptyParts);
-			if (coords.count()!=3) THROW(ArgumentException, "Could not split region coordinates in three parts! " + QString::number(coords.count()) + " parts found.");
+			Chromosome chr;
+			int start, end;
+			NGSHelper::parseRegion(ui_.le_region->text(), chr, start, end);
+			if(!chr.isNonSpecial())	THROW(ArgumentException, "SVs on special chromosomes are not supported by the NGSD!");
 
-			Chromosome chr(coords[0]);
-			if (!chr.isValid()) THROW(ArgumentException, "Invalid chromosome given: " + coords[0]);
-			int start = Helper::toInt(coords[1], "Region start cooridinate");
-			int end = Helper::toInt(coords[2], "Region end cooridinate");
-
-
-			//(1) validate input
-			if (!chr.isValid()) THROW(ArgumentException, "Invalid chromosome given: " + coords[0]);
-			if(!chr.isNonSpecial())	THROW(ArgumentException,"SVs on special chromosomes are not supported by the NGSD!" );
-
-
-			//(2) define SQL query for position
+			//(1) define SQL query for position
 			if(type==StructuralVariantType::BND)
 			{
 				query_same_position += "(( sv.chr1 = \"" + chr.strNormalized(true) + "\" AND sv.start1 <= " + QByteArray::number(end) + " AND ";

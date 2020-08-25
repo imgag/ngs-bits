@@ -2,6 +2,7 @@
 #include "Exceptions.h"
 #include "Chromosome.h"
 #include "Helper.h"
+#include "NGSHelper.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -54,14 +55,9 @@ void CnvSearchWidget::search()
 		if (ui_.rb_chr_pos->isChecked())
 		{
 			// parse position
-			QString coords = ui_.coordinates->text().replace("-", " ").replace(":", " ").replace(",", "");
-			QStringList parts = coords.split(QRegularExpression("\\W+"), QString::SkipEmptyParts);
-			if (parts.count()!=3) THROW(ArgumentException, "Could not split coordinates in three parts! " + QString::number(parts.count()) + " parts found.");
-
-			Chromosome chr(parts[0]);
-			if (!chr.isValid()) THROW(ArgumentException, "Invalid chromosome given: " + parts[0]);
-			int start = Helper::toInt(parts[1], "Start cooridinate");
-			int end = Helper::toInt(parts[2], "End cooridinate");
+			Chromosome chr;
+			int start, end;
+			NGSHelper::parseRegion(ui_.coordinates->text(), chr, start, end);
 
 			QString operation = ui_.operation->currentText();
 			if (operation=="overlaps")

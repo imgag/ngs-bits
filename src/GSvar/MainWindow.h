@@ -184,8 +184,6 @@ public slots:
 	void on_actionRE_triggered();
 	///Open PRS dialog
 	void on_actionPRS_triggered();
-	///Open gene variant info check dialog.
-	void on_actionGeneVariantInfo_triggered();
 	///Open gene OMIM info dialog.
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
@@ -227,6 +225,8 @@ public slots:
 	void transferSomaticData();
 	///Shows information about the report config
 	void showReportConfigInfo();
+	///Finalize report configuration
+	void finalizeReportConfig();
 	///Helper function for printVariantSheet()
 	void printVariantSheetRowHeader(QTextStream& stream, bool causal);
 	///Helper function for printVariantSheet()
