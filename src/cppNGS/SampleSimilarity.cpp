@@ -1,27 +1,129 @@
 #include "SampleSimilarity.h"
 #include "Exceptions.h"
-#include "Statistics.h"
 #include "BasicStatistics.h"
 #include "NGSHelper.h"
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesVcf(const VcfFile& variants, const QString& filename, bool include_gonosomes, bool skip_multi)
+{
+	//vcf file must have only one sample to parse the correct genotype
+	if(variants.sampleIDs().count() > 1)
+	{
+		THROW(FileParseException, "The genotype can not be determined correctly for a VCF line with multiple samples. File name:  " + filename + " .");
+	}
+
+	if (!variants.formatIDs().contains("GT"))
+	{
+		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);
+	}
+
+	VariantGenotypes output;
+	for (int i=0; i<variants.count(); ++i)
+	{
+		const VcfLine& variant = variants[i];
+
+		//skip variants not on autosomes
+		if(!variant.chr().isAutosome() && !include_gonosomes) continue;
+
+		//skip multi-allelic variants
+		if (variant.isMultiAllelic() && skip_multi)
+		{
+			continue;
+		}
+		else if(variant.isMultiAllelic())
+		{
+			THROW(ArgumentException, "Can not handle multiallelic variants.");
+		}
+
+		output[strToPointer(variant.variantToString())] = genoToDouble(variant.formatValueFromSample("GT"));
+	}
+
+	return output;
+}
+
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesBam(const VcfFile& snps, BamReader& reader, int min_cov, int max_snps, bool include_gonosomes)
+{
+	VariantGenotypes output;
+	for(int i=0; i<snps.count(); ++i)
+	{
+		const Chromosome& chr = snps[i].chr();
+		int pos = snps[i].start();
+
+		if (!chr.isAutosome() && !include_gonosomes) continue;
+
+		Pileup pileup = reader.getPileup(chr, pos);
+		if (pileup.depth(false)<min_cov) continue;
+
+		QChar ref = snps[i].ref()[0];
+		QChar obs = snps[i].alt(0)[0];
+		double frequency = pileup.frequency(ref, obs);
+
+		//skip non-informative snps
+		if (!BasicStatistics::isValidFloat(frequency)) continue;
+
+		output[strToPointer(chr.strNormalized(false) + ":" + QString::number(pos) + " " + ref + ">" + obs)] = frequency;
+
+		if (output.count()>=max_snps) break;
+	}
+
+	return output;
+}
+
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile& roi)
+{
+	VcfFile variants;
+	variants.load(filename, roi, false);
+
+	//vcf file must have only one sample to parse the correct genotype
+	if(variants.sampleIDs().count() > 1)
+	{
+		THROW(FileParseException, "The genotype can not be determined correctly for a VCF line with multiple samples. File name:  " + filename + " .");
+	}
+
+	if (!variants.formatIDs().contains("GT"))
+	{
+		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);
+	}
+
+	VariantGenotypes output = genotypesVcf(variants, filename, include_gonosomes, skip_multi);
+
+	return output;
+}
+
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi)
+{
+	VcfFile variants;
+	variants.load(filename, false);
+
+	//vcf file must have only one sample to parse the correct genotype
+	if(variants.sampleIDs().count() > 1)
+	{
+		THROW(FileParseException, "The genotype can not be determined correctly for a VCF line with multiple samples. File name:  " + filename + " .");
+	}
+
+	if (!variants.formatIDs().contains("GT"))
+	{
+		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);
+	}
+
+	VariantGenotypes output = genotypesVcf(variants, filename, include_gonosomes, skip_multi);
+
+	return output;
+}
+
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi)
 {
 	VariantList variants;
-	VariantListFormat format = variants.load(filename, AUTO, roi);
+	variants.load(filename, roi);
 
 	int geno_col = -1;
-	if (format==TSV)
+
+	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
+	if (affected_cols.count()==1)
 	{
-		QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
-		if (affected_cols.count()==1)
-		{
-			geno_col = affected_cols[0];
-		}
+		geno_col = affected_cols[0];
 	}
-	else //VCF or VCF.GZ
-	{
-		geno_col = variants.annotationIndexByName("GT", true, false);
-	}
+
+
 	if (geno_col==-1)
 	{
 		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);
@@ -36,7 +138,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 		if(!variant.chr().isAutosome() && !include_gonosomes) continue;
 
 		//skip multi-allelic variants
-		if (skip_multi && format!=TSV && variant.obs().contains(',')) continue;
+		if (skip_multi && variant.obs().contains(',')) continue;
 
 		output[strToPointer(variant.toString())] = genoToDouble(variant.annotations()[geno_col]);
 	}
@@ -44,36 +146,32 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile* roi)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi)
 {
 	//get known SNP list
-	VariantList snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8, roi);
+	VcfFile snps;
+	snps = NGSHelper::getKnownVariants(build, true, roi, 0.2, 0.8);
 
 	//open BAM
 	BamReader reader(filename);
 
-	VariantGenotypes output;
-	for(int i=0; i<snps.count(); ++i)
-	{
-		const Chromosome& chr = snps[i].chr();
-		int pos = snps[i].start();
+	//get VariantGenotypes
+	VariantGenotypes output = genotypesBam(snps, reader, min_cov, max_snps, include_gonosomes);
 
-		if (!chr.isAutosome() && !include_gonosomes) continue;
+	return output;
+}
 
-		Pileup pileup = reader.getPileup(chr, pos);
-		if (pileup.depth(false)<min_cov) continue;
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes)
+{
+	//get known SNP list
+	VcfFile snps;
+	snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
 
-		QChar ref = snps[i].ref()[0];
-		QChar obs = snps[i].obs()[0];
-		double frequency = pileup.frequency(ref, obs);
+	//open BAM
+	BamReader reader(filename);
 
-		//skip non-informative snps
-		if (!BasicStatistics::isValidFloat(frequency)) continue;
-
-		output[strToPointer(chr.strNormalized(false) + ":" + QString::number(pos) + " " + ref + ">" + obs)] = frequency;
-
-		if (output.count()>=max_snps) break;
-	}
+	//get VariantGenotypes
+	VariantGenotypes output = genotypesBam(snps, reader, min_cov, max_snps, include_gonosomes);
 
 	return output;
 }

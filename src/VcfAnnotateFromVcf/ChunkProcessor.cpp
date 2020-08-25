@@ -127,8 +127,7 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
         gzFile vcfgz_file = gzopen(vcf_file_path, "rb");
         if (vcfgz_file==NULL)
         {
-            THROW(FileAccessException, "Could not open file '" + vcf_file_path
-                  + "' for reading!");
+            THROW(FileAccessException, "Could not open file '" + vcf_file_path + "' for reading!");
         }
 
         char* buffer = new char[1048576]; //1MB buffer
@@ -193,8 +192,7 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
     else
     {
         // invalid/unknown file type:
-        THROW(FileParseException, "File type of file \"" + vcf_file_path
-              + "\" is invalid/unknown!");
+        THROW(FileParseException, "File type of file \"" + vcf_file_path + "\" is invalid/unknown!");
     }
 
     if (info_ids.size() > 0)

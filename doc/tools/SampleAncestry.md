@@ -1,5 +1,5 @@
 ### SampleAncestry tool help
-	SampleAncestry (2018_11-55-g768b41c)
+	SampleAncestry (2020_03-260-ge35d12de)
 	
 	Estimates the ancestry of a sample based on variants.
 	
@@ -24,8 +24,9 @@
 	  --tdx             Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleAncestry changelog
-	SampleAncestry 2018_11-55-g768b41c
+	SampleAncestry 2020_03-260-ge35d12de
 	
+	2020-08-07 VCF files only as input format for variant list.
 	2018-12-10 Fixed bug in handling of 'pop_dist' parameter.
 	2018-07-11 Added build switch for hg38 support.
 	2018-07-03 First version.
