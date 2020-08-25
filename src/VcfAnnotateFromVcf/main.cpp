@@ -214,7 +214,7 @@ public:
         analysis_pool.setMaxThreadCount(getInt("threads"));
 
 		//open input file
-		FILE* instream = input_path.isEmpty() ? stdin : fopen(input_path.toLatin1().data(), "r"); 
+		FILE* instream = input_path.isEmpty() ? stdin : fopen(input_path.toLatin1().data(), "rb");
 		gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
 		if (file==NULL)
 		{

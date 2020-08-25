@@ -380,7 +380,7 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 	clear();
 	
 	//open stream
-	FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toLatin1().data(), "r");
+	FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toLatin1().data(), "rb");
 	gzFile file = gzdopen(fileno(instream), "rb"); //read binary: always open in binary mode because windows and mac open in text mode
 	if (file==NULL)
 	{
@@ -398,7 +398,6 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 	while(!gzeof(file))
 	{
 		char* char_array = gzgets(file, buffer, buffer_size);
-
 		//handle errors like truncated GZ file
 		if (char_array==nullptr)
 		{
@@ -567,7 +566,7 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 			THROW(ArgumentException, "Conflicting parameters for empty filename and compression level > 0");
 		}
 
-		FILE* instream = fopen(filename.toLatin1().data(), "w");
+		FILE* instream = fopen(filename.toLatin1().data(), "wb");
 		gzFile file = gzdopen(fileno(instream), "wb"); //read binary: always open in binary mode because windows and mac open in text mode
 
 		if (file==NULL)
@@ -1177,7 +1176,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_stream, bool print_general_information, int max_lines)
 {
 	//open input file
-	FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toLatin1().data(), "r"); 
+	FILE* instream = filename.isEmpty() ? stdin : fopen(filename.toLatin1().data(), "rb");
 	gzFile file = gzdopen(fileno(instream), "rb"); //always open in binary mode because windows and mac open in text mode
 	if (file==NULL)
 	{
