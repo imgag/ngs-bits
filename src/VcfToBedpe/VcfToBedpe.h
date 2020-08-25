@@ -14,13 +14,12 @@ class VcfToBedpe
 	friend class VcfToBedpe_Test;
 public:
 	///Constructor, expects path of vcf.gz file as input parameter
-	VcfToBedpe(const QByteArray& filename);
+	VcfToBedpe(const QByteArray& in_file);
 
 	///Writes bedpe file to "out_file"
 	void convert(QString out_file);
 
 private:
-	QByteArray filename_;
 	gzFile file_;
 	QList<QByteArray> out_headers_;
 	QList<QByteArray> samples_;

@@ -77,7 +77,7 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 			}
 		}
 
-		QString header_desc = variants.annotationDescriptionByName(anno, false).description();
+		QString header_desc = variants.annotationDescriptionByName(anno, false, false).description();
 		header->setToolTip(header_desc + add_desc);
 		setHorizontalHeaderItem(i+5, header);
 	}

@@ -62,8 +62,8 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	//DBs
 	ui->label_dbsnp->setToolTip(vl.annotationDescriptionByName("dbSNP").description());
 	ui->label_clinvar->setToolTip(vl.annotationDescriptionByName("ClinVar").description());
-	ui->label_hgmd->setToolTip(vl.annotationDescriptionByName("HGMD", false).description()); //optional
-	ui->label_omim->setToolTip(vl.annotationDescriptionByName("OMIM", false).description()); //optional
+	ui->label_hgmd->setToolTip(vl.annotationDescriptionByName("HGMD", false, false).description()); //optional
+	ui->label_omim->setToolTip(vl.annotationDescriptionByName("OMIM", false, false).description()); //optional
 	ui->label_cosmic->setToolTip(vl.annotationDescriptionByName("COSMIC").description());
 
 	//AFs
@@ -84,14 +84,14 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
 	ui->label_genesplicer->setToolTip(vl.annotationDescriptionByName("GeneSplicer").description());
 	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
-	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false).description());
+	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false, false).description());
 
 	//NGSD (all optional)
-	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false).description());
+	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false, false).description());
 	ui->label_ngsd_count->setToolTip("Homozygous / heterozygous variant count in NGSD.");
-	ui->label_ngsd_group->setToolTip(vl.annotationDescriptionByName("NGSD_group", false).description());
-	ui->label_ngsd_comment->setToolTip(vl.annotationDescriptionByName("comment", false).description());
-	ui->label_ngsd_validation->setToolTip(vl.annotationDescriptionByName("validation", false).description());
+	ui->label_ngsd_group->setToolTip(vl.annotationDescriptionByName("NGSD_group", false, false).description());
+	ui->label_ngsd_comment->setToolTip(vl.annotationDescriptionByName("comment", false, false).description());
+	ui->label_ngsd_validation->setToolTip(vl.annotationDescriptionByName("validation", false, false).description());
 }
 
 void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)

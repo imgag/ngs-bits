@@ -132,7 +132,7 @@ void ExternalToolDialog::browse()
 
 		//process
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		VcfFile vl;
+		VariantList vl;
 		vl.load(filename);
 		AncestryEstimates ancestry = Statistics::ancestry("hg19", vl);
 

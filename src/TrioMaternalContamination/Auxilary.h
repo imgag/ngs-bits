@@ -23,22 +23,22 @@ struct EnumHash
 namespace std
 {
 template<>
-struct hash<const  VcfLine>
+struct hash<const Variant>
 {
 	size_t
-	operator()(const  VcfLine & obj) const
+	operator()(const Variant & obj) const
 	{
-		return hash<string>()(obj.variantToString().toStdString());
+		return hash<string>()(obj.toString().toStdString());
 	}
 };
 
 template<>
-struct hash< VcfLine>
+struct hash<Variant>
 {
 	size_t
-	operator()(const  VcfLine & obj) const
+	operator()(const Variant & obj) const
 	{
-		return hash<string>()(obj.variantToString().toStdString());
+		return hash<string>()(obj.toString().toStdString());
 	}
 };
 }
@@ -46,7 +46,7 @@ struct hash< VcfLine>
 struct VariantInfo
 {
 	QString in_file_name;
-	std::unordered_map<const  VcfLine, double> variants;
+	std::unordered_map<const Variant, double> variants;
 
 	VariantInfo(QString in_file_name_)
 	{

@@ -1,7 +1,7 @@
 #include "ToolBase.h"
 #include "Helper.h"
 #include "Exceptions.h"
-#include "VcfFile.h"
+#include "VariantList.h"
 #include <QFile>
 #include <QTextStream>
 #include <QList>
@@ -20,23 +20,28 @@ public:
 	virtual void setup()
 	{
 		setDescription("Converts a VCF file to a tab-separated text file.");
-        setExtendedDescription(QStringList() << "Multi-allelic variants are supported. All alternative sequences are stored as a comma-seperated list."
-                                             << "Multi-sample VCFs are supported. For every combination of FORMAT and SAMPLE a seperate column is generated and named in the following way: <SAMPLEID>_<FORMATID>_<format>.");
+		setExtendedDescription(QStringList() << "Multi-allelic variants are not supported. Use VcfBreakMulti to split multi-allelic variants into several lines."
+											 << "Multi-sample VCFs are not supported. Use VcfExtractSamples to split them to one VCF per sample.");
 		addInfile("in", "Input variant list in VCF format.", false, true);
 		addOutfile("out", "Output variant list in TSV format.", false, true);
-
-        changeLog(2020,  8, 07, "Multi-allelic and Multi-sample VCFs are supported.");
 	}
 
 	virtual void main()
 	{
 		//load
-		VcfFile vl;
-		vl.load(getInfile("in"));
+		VariantList vl;
+		vl.load(getInfile("in"), VCF);
+
+		//change start/end/ref/obs as needed in TSV
+		for (int i=0; i<vl.count(); ++i)
+		{
+			Variant& v = vl[i];
+			v.normalize("-", true);
+		}
 
 		//store
-		vl.storeAsTsv(getOutfile("out"));
-	}
+		vl.store(getOutfile("out"), TSV);
+    }
 };
 
 #include "main.moc"

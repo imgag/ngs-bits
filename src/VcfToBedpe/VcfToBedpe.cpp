@@ -149,27 +149,12 @@ struct VcfToBedpe::bedpe_line
 
 QByteArray VcfToBedpe::getLine()
 {
-	char* char_array = gzgets(file_,buffer_,buffer_size_);
-	
-	//handle errors like truncated GZ file
-	if (char_array==nullptr)
-	{
-		int error_no = Z_OK;
-		QByteArray error_message = gzerror(file_, &error_no);
-		if (error_no!=Z_OK && error_no!=Z_STREAM_END)
-		{
-			THROW(FileParseException, "Error while reading file '" + filename_ + "': " + error_message);
-		}
-		
-		return QByteArray();
-	}
-	
+	gzgets(file_,buffer_,buffer_size_);
 	int i=0;
-	while(i<buffer_size_ && buffer_[i]!='\0' && buffer_[i]!='\n' && buffer_[i]!='\r')
+	while(i<buffer_size_-1 && buffer_[i]!='\n' && buffer_[i]!='\0' && buffer_[i]!='\n' && buffer_[i]!='\r')
 	{
 		++i;
 	}
-	
 	return QByteArray(buffer_, i);
 }
 
@@ -186,17 +171,16 @@ void VcfToBedpe::addHeaderInfoFieldAfter(const QByteArray& before, const QByteAr
 	}
 }
 
-VcfToBedpe::VcfToBedpe(const QByteArray& filename)
+VcfToBedpe::VcfToBedpe(const QByteArray &in_file)
 {
 	//set buffer size for gz file line
-	filename_ = filename;
-	buffer_size_ = 1048576; //1MB buffer
+	buffer_size_ = 8192;
 	buffer_ = new char[buffer_size_];
 
-	file_ = gzopen(filename.data(),"rb");
+	file_ = gzopen(in_file.data(),"rb");
 	if (file_ == NULL)
 	{
-		THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
+		THROW(FileAccessException, "Could not open file '" + in_file + "' for reading!");
 	}
 	
 	//Parse headers

@@ -1,5 +1,5 @@
 ### SampleSimilarity tool help
-	SampleSimilarity (2020_03-260-ge35d12de)
+	SampleSimilarity (2018_11-127-gbd77909)
 	
 	Calculates pairwise sample similarity metrics from VCF/BAM files.
 	
@@ -15,7 +15,7 @@
 	                      Default value: ''
 	  -mode <enum>        Mode (input format).
 	                      Default value: 'vcf'
-	                      Valid: 'vcf,gsvar,bam'
+	                      Valid: 'vcf,bam'
 	  -roi <file>         Restrict similarity calculation to variants in target region.
 	                      Default value: ''
 	  -include_gonosomes  Includes gonosomes into calculation (by default only variants on autosomes are considered).
@@ -37,7 +37,7 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleSimilarity changelog
-	SampleSimilarity 2020_03-260-ge35d12de
+	SampleSimilarity 2018_11-127-gbd77909
 	
 	2019-02-08 Massive speed-up by caching of variants/genotypes instead of loading them again for each comparison.
 	2018-11-26 Add flag 'skip_multi' to ignore multi-allelic sites.

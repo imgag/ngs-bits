@@ -83,32 +83,6 @@ void FilterResult::removeFlagged(VariantList& variants)
 	pass = QBitArray(variants.count(), true);
 }
 
-void FilterResult::removeFlagged(VcfFile& variants)
-{
-	//skip if all variants pass
-	if (countPassing()==variants.count()) return;
-
-	//move passing variant to the front of the variant list
-	int to_index = 0;
-	for (int i=0; i<variants.count(); ++i)
-	{
-		if (pass[i])
-		{
-			if (to_index!=i)
-			{
-				variants.vcfLine(to_index) = variants.vcfLine(i);
-			}
-			++to_index;
-		}
-	}
-
-	//resize to new size
-	variants.resize(to_index);
-
-	//update flags
-	pass = QBitArray(variants.count(), true);
-}
-
 void FilterResult::removeFlagged(CnvList& cnvs)
 {
     //skip if all variants pass
@@ -168,25 +142,6 @@ void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArr
 		if (!pass[i])
 		{
 			variants[i].addFilter(tag, index);
-		}
-	}
-}
-
-void FilterResult::tagNonPassing(VcfFile& variants, QByteArray tag, QString description)
-{
-
-	//add tag description (if missing)
-	if (!variants.filterIDs().contains(tag))
-	{
-		variants.vcfHeader().addFilter(tag, description);
-	}
-
-	//tag variants that did not pass
-	for (int i=0; i<variants.count(); ++i)
-	{
-		if (!pass[i])
-		{
-			variants[i].addFilter(tag);
 		}
 	}
 }
@@ -321,12 +276,6 @@ void FilterBase::apply(const VariantList& /*variant_list*/, FilterResult& /*resu
 {
 	THROW(NotImplementedException, "Method apply on VariantList not implemented for filter '" + name() + "'!");
 }
-
-void FilterBase::apply(const VcfFile& /*variants*/, FilterResult& /*result*/) const
-{
-	THROW(NotImplementedException, "Method apply on VcfFileHandler not implemented for filter '" + name() + "'!");
-}
-
 
 void FilterBase::apply(const CnvList& /*variant_list*/, FilterResult& /*result*/) const
 {
@@ -974,38 +923,6 @@ void FilterRegions::apply(const VariantList& variants, const BedFile& regions, F
 	}
 }
 
-void FilterRegions::apply(const VcfFile& variants, const BedFile& regions, FilterResult& result)
-{
-	//check regions
-	if(!regions.isMergedAndSorted())
-	{
-		THROW(ArgumentException, "Cannot filter variant list by regions that are not merged/sorted!");
-	}
-
-	//special case when only one region is contained
-	if (regions.count()==1)
-	{
-		for(int i=0; i<variants.count(); ++i)
-		{
-			if (!result.flags()[i]) continue;
-
-			result.flags()[i] = variants[i].overlapsWith(regions[0]);
-		}
-		return;
-	}
-
-	//general case with many regions
-	ChromosomalIndex<BedFile> regions_idx(regions);
-	for (int i=0; i<variants.count(); ++i)
-	{
-		if (!result.flags()[i]) continue;
-
-		const  VcfLine& v = variants[i];
-		int index = regions_idx.matchingIndex(v.chr(), v.start(), v.end());
-		result.flags()[i] = (index!=-1);
-	}
-}
-
 
 FilterFilterColumnEmpty::FilterFilterColumnEmpty()
 {
@@ -1032,18 +949,6 @@ void FilterFilterColumnEmpty::apply(const VariantList& variants, FilterResult& r
 	}
 }
 
-void FilterFilterColumnEmpty::apply(const VcfFile& variants, FilterResult& result) const
-{
-	if (!enabled_) return;
-
-	for(int i=0; i<variants.count(); ++i)
-	{
-		if (!result.flags()[i]) continue;
-
-		result.flags()[i] = variants.vcfLine(i).failedFilters().isEmpty();
-	}
-}
-
 FilterVariantIsSNP::FilterVariantIsSNP()
 {
 	name_ = "SNPs only";
@@ -1058,17 +963,6 @@ QString FilterVariantIsSNP::toText() const
 }
 
 void FilterVariantIsSNP::apply(const VariantList& variants, FilterResult& result) const
-{
-	if (!enabled_) return;
-
-	for(int i=0; i<variants.count(); ++i)
-	{
-		if (!result.flags()[i]) continue;
-
-		result.flags()[i] = variants[i].isSNV();
-	}
-}
-void FilterVariantIsSNP::apply(const VcfFile& variants, FilterResult& result) const
 {
 	if (!enabled_) return;
 
