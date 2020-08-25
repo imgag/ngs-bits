@@ -1393,7 +1393,6 @@ void SomaticReportHelper::somaticSnvForQbic()
 	stream << "gene" << "\t" << "base_change" << "\t" << "aa_change" << "\t";
 	stream << "transcript" << "\t" << "functional_class" << "\t" << "effect" << endl;
 
-
 	int i_tumor_af = variants.annotationIndexByName("tumor_af",true,true);
 	int i_tumor_depth = variants.annotationIndexByName("tumor_dp",true,true);
 
@@ -1690,10 +1689,10 @@ VariantList SomaticReportHelper::gsvarToVcf(const VariantList& gsvar_list, const
 		return output;
 	}
 
-	VariantList orig_vcf;
-	orig_vcf.load(orig_name,VCF_GZ, &roi);
+	VcfFile orig_vcf;
+	orig_vcf.load(orig_name, roi);
 
-	ChromosomalIndex<VariantList> orig_idx(orig_vcf);
+	ChromosomalIndex<VcfFile> orig_idx(orig_vcf);
 
 	for(int i=0;i<gsvar_list.count();++i)
 	{
@@ -1707,41 +1706,48 @@ VariantList SomaticReportHelper::gsvarToVcf(const VariantList& gsvar_list, const
 
 		foreach(int index, matches)
 		{
-			Variant v2 = orig_vcf[index];
+			VcfLine v2 = orig_vcf[index];
+			Variant vcf_coordinate_variant;
+
+			if(v2.isMultiAllelic()) continue;
 
 			if (v.isSNV()) //SNV
 			{
-				if (v.start()==v2.start() && v.obs()==v2.obs())
+				if (v.start()==v2.start() && v.obs()==v2.alt(0))
 				{
-					v2.setAnnotations(annotations);
-					output.append(v2);
+					v2.copyCoordinatesIntoVariant(vcf_coordinate_variant);
+					vcf_coordinate_variant.setAnnotations(annotations);
+					output.append(vcf_coordinate_variant);
 					++hit_count;
 				}
 			}
 			else if (v.ref()=="-") //insertion
 			{
-				if (v.start()==v2.start() && v2.ref().count()==1 && v2.obs().mid(1)==v.obs())
+				if (v.start()==v2.start() && v2.ref().count()==1 && v2.alt(0).mid(1)==v.obs())
 				{
-					v2.setAnnotations(annotations);
-					output.append(v2);
+					v2.copyCoordinatesIntoVariant(vcf_coordinate_variant);
+					vcf_coordinate_variant.setAnnotations(annotations);
+					output.append(vcf_coordinate_variant);
 					++hit_count;
 				}
 			}
 			else if (v.obs()=="-") //deletion
 			{
-				if (v.start()-1==v2.start() && v2.obs().count()==1 && v2.ref().mid(1)==v.ref())
+				if (v.start()-1==v2.start() && v2.alt(0).count()==1 && v2.ref().mid(1)==v.ref())
 				{
-					v2.setAnnotations(annotations);
-					output.append(v2);
+					v2.copyCoordinatesIntoVariant(vcf_coordinate_variant);
+					vcf_coordinate_variant.setAnnotations(annotations);
+					output.append(vcf_coordinate_variant);
 					++hit_count;
 				}
 			}
 			else //complex
 			{
-				if (v.start()==v2.start() && v2.obs()==v.obs() && v2.ref()==v.ref())
+				if (v.start()==v2.start() && v2.alt(0)==v.obs() && v2.ref()==v.ref())
 				{
-					v2.setAnnotations(annotations);
-					output.append(v2);
+					v2.copyCoordinatesIntoVariant(vcf_coordinate_variant);
+					vcf_coordinate_variant.setAnnotations(annotations);
+					output.append(vcf_coordinate_variant);
 					++hit_count;
 				}
 			}

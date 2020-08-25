@@ -3,7 +3,6 @@
 #include "Helper.h"
 #include "BasicStatistics.h"
 #include "BamReader.h"
-#include "FilterCascade.h"
 #include "GeneSet.h"
 
 #include <QTextStream>
@@ -12,48 +11,84 @@
 #include <cmath>
 #include <vector>
 
-VariantList NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af, const BedFile* roi)
-{
-	VariantList output;
+namespace {
 
-	//load variant list
-	QString snp_file = ":/Resources/" + build + "_snps.vcf";
-	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
-	output.load(snp_file, VCF, roi);
+	QString copyFromResource(const QString& build)
+	{
+		//check variant list exists
+		QString snp_file = ":/Resources/" + build + "_snps.vcf";
+		if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
 
-	//filter by AF
-	FilterResult filter_result(output.count());
-	if (min_af<0.0 || min_af>1.0)
-	{
-		THROW(ArgumentException, "Minumum allele frequency out of range (0.0-1.0): " + QByteArray::number(min_af));
+		//copy from resource file (gzopen cannot access Qt resources)
+		QString tmp = Helper::tempFileName(".vcf");
+		QFile::copy(snp_file, tmp);
+
+		return tmp;
 	}
-	if (max_af<0.0 || max_af>1.0)
+
+	void filterVcfFile(VcfFile& output, bool only_snvs, double min_af, double max_af)
 	{
-		THROW(ArgumentException, "Maximum allele frequency out of range (0.0-1.0): " + QByteArray::number(max_af));
-	}
-	bool min_set = min_af>0.0;
-	bool max_set = max_af<1.0;
-	if (min_set || max_set)
-	{
-		int i_af = output.annotationIndexByName("AF");
-		for (int i=0; i<output.count(); ++i)
+		//filter by AF
+		FilterResult filter_result(output.count());
+		if (min_af<0.0 || min_af>1.0)
 		{
-			if (!filter_result.passing(i)) continue;
-
-			double af = output[i].annotations()[i_af].toDouble();
-			filter_result.flags()[i] = (!min_set || af>min_af) && (!max_set || af<max_af);
+			THROW(ArgumentException, "Minumum allele frequency out of range (0.0-1.0): " + QByteArray::number(min_af));
 		}
-	}
+		if (max_af<0.0 || max_af>1.0)
+		{
+			THROW(ArgumentException, "Maximum allele frequency out of range (0.0-1.0): " + QByteArray::number(max_af));
+		}
+		bool min_set = min_af>0.0;
+		bool max_set = max_af<1.0;
+		if (min_set || max_set)
+		{
+			for (int i=0; i<output.count(); ++i)
+			{
+				if (!filter_result.passing(i)) continue;
 
-	//filter only SNVs
-	if (only_snvs)
-	{
-		FilterVariantIsSNP filter;
-		filter.apply(output, filter_result);
-	}
+				double af = output[i].info("AF").toDouble();
+				filter_result.flags()[i] = (!min_set || af>min_af) && (!max_set || af<max_af);
+			}
+		}
 
-	//apply filters
-	filter_result.removeFlagged(output);
+		//filter only SNVs
+		if (only_snvs)
+		{
+			FilterVariantIsSNP filter;
+			filter.apply(output, filter_result);
+		}
+
+		//apply filters
+		filter_result.removeFlagged(output);
+	}
+} // end anonymous namespace
+
+VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, const BedFile& roi, double min_af, double max_af)
+{
+	//check variant list exists
+	QString tmp = copyFromResource(build);
+	
+	//load
+	VcfFile output;
+	output.load(tmp, roi, false);
+
+	//filter variants
+	filterVcfFile(output, only_snvs, min_af, max_af);
+
+	return output;
+}
+
+VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af)
+{
+	//check variant list exists
+	QString tmp = copyFromResource(build);
+
+	//load
+	VcfFile output;
+	output.load(tmp, false);
+
+	//filter variants
+	filterVcfFile(output, only_snvs, min_af, max_af);
 
 	return output;
 }
@@ -115,7 +150,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 	foreach(QString filename, in)
 	{
 		VariantList vl;
-		vl.load(filename, TSV);
+		vl.load(filename);
 
 		//check the all required fields are present in the input file
 		QVector<int> anno_indices;
@@ -185,7 +220,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 	}
 
 	//remove duplicates from variant list
-    vl_merged.removeDuplicates(false);
+	vl_merged.removeDuplicates(false);
 
 	//append sample columns
 	for (int i=0; i<vls.count(); ++i)
@@ -283,14 +318,14 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 		}
 	}
 
-	vl_merged.store(out, TSV);
+	vl_merged.store(out);
 }
 
 QByteArray NGSHelper::expandAminoAcidAbbreviation(QChar amino_acid_change_in)
 {
 	const static QHash<QChar,QByteArray> dictionary = {{'A',"Ala"},{'R',"Arg"},{'N',"Asn"},{'D',"Asp"},{'C',"Cys"},{'E',"Glu"},
-		{'Q',"Gln"},{'G',"Gly"},{'H',"His"},{'I',"Ile"},{'L',"Leu"},{'K',"Lys"},{'M',"Met"},{'F',"Phe"},{'P',"Pro"},{'S',"Ser"},
-		{'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"*"}};
+													   {'Q',"Gln"},{'G',"Gly"},{'H',"His"},{'I',"Ile"},{'L',"Leu"},{'K',"Lys"},{'M',"Met"},{'F',"Phe"},{'P',"Pro"},{'S',"Ser"},
+													   {'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"*"}};
 
 	QByteArray amino_acid_change_out;
 	if(dictionary.keys().contains(amino_acid_change_in))

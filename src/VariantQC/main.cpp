@@ -23,6 +23,7 @@ public:
 		addFlag("txt", "Writes TXT format instead of qcML.");
 
 		//changelog
+        changeLog(2020,  8, 07, "VCF files only as input format for variant list.");
 		changeLog(2018,  9, 12, "Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).");
 		changeLog(2017,  1,  5, "Added 'ignore_filter' flag.");
 	}
@@ -30,7 +31,7 @@ public:
 	virtual void main()
 	{
 		//load variant list
-		VariantList vl;
+        VcfFile vl;
 		QString filename = getInfile("in");
 		vl.load(filename);
 

@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include "BedFile.h"
+#include "Statistics.h"
 #include <QStringList>
 #include <QHash>
 
@@ -15,10 +16,14 @@ public:
 	typedef QHash<const QChar*, double> VariantGenotypes;
 
 	//Extract genotypes from VCF/GSvar file (no WT genotype).
-	static VariantGenotypes genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi = nullptr);
+	static VariantGenotypes genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile& roi);
+	static VariantGenotypes genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi);
+
+	static VariantGenotypes genotypesFromGSvar(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi);
 
 	//Extract genotypes from BAM
-	static VariantGenotypes genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile* roi = nullptr);
+	static VariantGenotypes genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi);
+	static VariantGenotypes genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes);
 
 	//Calculation of similarity
 	void calculateSimilarity(const VariantGenotypes& in1, const VariantGenotypes& in2);
@@ -76,6 +81,10 @@ public:
 
 private:
 	static double genoToDouble(const QString& geno);
+
+	static VariantGenotypes genotypesVcf(const VcfFile& variants, const QString& filename, bool include_gonosomes, bool skip_multi);
+	static VariantGenotypes genotypesBam(const VcfFile& snps, BamReader& reader, int min_cov, int max_snps, bool include_gonosomes);
+
 	//Returns a string pointer, which can be stored/compared instead of the string. Reduces memory and run-time.
 	//Beanchmark with 38 GSvar files with 66k variants: memory-consumption 430>118MB, comparison time 20>5s
 	static const QChar* strToPointer(const QString& str);
