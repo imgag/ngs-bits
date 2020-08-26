@@ -19,7 +19,8 @@ public:
 	static VariantGenotypes genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile& roi);
 	static VariantGenotypes genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi);
 
-	static VariantGenotypes genotypesFromGSvar(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi);
+	static VariantGenotypes genotypesFromGSvar(QString filename, bool include_gonosomes, bool skip_multi, const BedFile& roi);
+	static VariantGenotypes genotypesFromGSvar(QString filename, bool include_gonosomes, bool skip_multi);
 
 	//Extract genotypes from BAM
 	static VariantGenotypes genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi);
@@ -83,6 +84,7 @@ private:
 	static double genoToDouble(const QString& geno);
 
 	static VariantGenotypes genotypesVcf(const VcfFile& variants, const QString& filename, bool include_gonosomes, bool skip_multi);
+	static VariantGenotypes genotypesGSvar(VariantList variants, QString filename, bool include_gonosomes, bool skip_multi);
 	static VariantGenotypes genotypesBam(const VcfFile& snps, BamReader& reader, int min_cov, int max_snps, bool include_gonosomes);
 
 	//Returns a string pointer, which can be stored/compared instead of the string. Reduces memory and run-time.

@@ -88,7 +88,7 @@ public:
 			}
 			else if(mode=="gsvar")
 			{
-				genotype_data << SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes, skip_multi, use_roi ? &roi_reg : nullptr);
+				genotype_data << (use_roi ? SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes, skip_multi, roi_reg) : SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes, skip_multi));
 			}
 			else
 			{
