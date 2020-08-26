@@ -210,6 +210,8 @@ public slots:
 	void on_actionSearchCNVs_triggered();
 	///Open SV search dialog
 	void on_actionSearchSVs_triggered();
+	///Shows published variants dialog
+	void on_actionShowPublishedVariants_triggered();
 
 	///Load report configuration
 	void loadReportConfig();

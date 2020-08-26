@@ -1906,6 +1906,17 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 							info.fk_name_sql = "CONCAT(name, ' (', sequence, ')')";
 						}
 					}
+					else if (table=="variant_publication")
+					{
+						if (info.name=="sample_id")
+						{
+							info.fk_name_sql = "name";
+						}
+						else if (info.name=="user_id")
+						{
+							info.fk_name_sql = "name";
+						}
+					}
 				}
 			}
 
@@ -1935,6 +1946,8 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 			if (table=="processed_sample" && info.name=="mid1_i7") info.label = "mid1 i7";
 			if (table=="processed_sample" && info.name=="mid2_i5") info.label = "mid2 i5";
 			if (table=="processed_sample" && info.name=="sample_id") info.label = "sample";
+			if (table=="variant_publication" && info.name=="sample_id") info.label = "sample";
+			if (table=="variant_publication" && info.name=="user_id") info.label = "published_by";
 
 			//read-only
 			if (
@@ -2032,26 +2045,11 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sq
 		//FK - use name instead of id
 		if(field_info.type==TableFieldInfo::FK)
 		{
-			QHash<QString, QString> cache; //check query result to reduce the number of SQL queries (they are slow)
-			QStringList column = output.extractColumn(c);
-			for(int r=0; r<column.count(); ++r)
+			if  (field_info.fk_name_sql.isEmpty())
 			{
-				QString value = column[r];
-				if (value!="")
-				{
-					if (cache.contains(value))
-					{
-						column[r] = cache.value(value);
-					}
-					else
-					{
-						QString fk_value = getValue("SELECT " + field_info.fk_name_sql + " FROM " + field_info.fk_table + " WHERE id=" + value).toString();
-						column[r] = fk_value;
-						cache[value] = fk_value;
-					}
-				}
+				THROW(ProgrammingException, "Cannot create overview table for '" + table + "': Foreign key name SQL not defined for table '" + field_info.fk_table + "'");
 			}
-			output.setColumn(c, column);
+			replaceForeignKeyColumn(output, c, field_info.fk_table, field_info.fk_name_sql);
 		}
 
 		//BOOL - replace number by yes/no
@@ -2096,6 +2094,32 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sq
 	}
 
 	return output;
+}
+
+void NGSD::replaceForeignKeyColumn(DBTable& table, int c, QString fk_table, QString fk_name_sql)
+{
+	QHash<QString, QString> cache; //check query result to reduce the number of SQL queries (they are slow)
+
+	QStringList column = table.extractColumn(c);
+	for(int r=0; r<column.count(); ++r)
+	{
+		QString value = column[r];
+		if (value!="")
+		{
+			if (cache.contains(value))
+			{
+				column[r] = cache.value(value);
+			}
+			else
+			{
+				QString fk_value = getValue("SELECT " + fk_name_sql + " FROM " + fk_table + " WHERE id=" + value).toString();
+				column[r] = fk_value;
+				cache[value] = fk_value;
+			}
+		}
+	}
+
+	table.setColumn(c, column);
 }
 
 void NGSD::init(QString password)

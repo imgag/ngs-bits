@@ -21,6 +21,7 @@ private slots:
 	void convertGenesToRegions();
 	void copyRegionsToClipboard();
 	void storeRegionsAsBED();
+	void setExpandByMode();
 
 private:
 	Ui::GenesToRegionsDialog *ui;

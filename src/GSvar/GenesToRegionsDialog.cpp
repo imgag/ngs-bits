@@ -15,6 +15,7 @@ GenesToRegionsDialog::GenesToRegionsDialog(QWidget *parent) :
 	connect(ui->convert_btn, SIGNAL(pressed()), this, SLOT(convertGenesToRegions()));
 	connect(ui->clip_btn, SIGNAL(pressed()), this, SLOT(copyRegionsToClipboard()));
 	connect(ui->store_btn, SIGNAL(pressed()), this, SLOT(storeRegionsAsBED()));
+	connect(ui->mode, SIGNAL(currentIndexChanged(int)), this, SLOT(setExpandByMode()));
 }
 
 GenesToRegionsDialog::~GenesToRegionsDialog()
@@ -49,6 +50,12 @@ void GenesToRegionsDialog::convertGenesToRegions()
 		regions.extend(ui->expand->value());
 	}
 
+	//merge
+	if (mode=="gene")
+	{
+		regions.merge(true, true, true);
+	}
+
 	//set output
 	ui->regions->setPlainText(messages);
 	ui->regions->appendPlainText(regions.toText());
@@ -69,4 +76,17 @@ void GenesToRegionsDialog::storeRegionsAsBED()
 	if (filename.isEmpty()) return;
 
 	regions.store(filename);
+}
+
+void GenesToRegionsDialog::setExpandByMode()
+{
+	QString mode = ui->mode->currentText();
+	if(mode=="gene")
+	{
+		ui->expand->setValue(5000);
+	}
+	else if(mode=="exon")
+	{
+		ui->expand->setValue(20);
+	}
 }

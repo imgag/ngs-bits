@@ -99,8 +99,7 @@ void EvaluationSheetEditDialog::checkReviewer()
 	if (db_selector == NULL) return;
 
 	// check if reviewer name is valid
-	if (db_selector->isValidSelection()) db_selector->setStyleSheet("");
-	else db_selector->setStyleSheet("QLineEdit { background: rgba(255, 0, 0, 64); }");
+	db_selector->showVisuallyIfValid(true);
 }
 
 void EvaluationSheetEditDialog::checkNonEmpty()
@@ -110,8 +109,7 @@ void EvaluationSheetEditDialog::checkNonEmpty()
 	if (line_edit == NULL) return;
 
 	// set background to red if text is empty
-	if (line_edit->text().trimmed() == "") line_edit->setStyleSheet("QLineEdit { background: rgba(255, 0, 0, 64); }");
-	else line_edit->setStyleSheet("");
+	line_edit->setStyleSheet(line_edit->text().trimmed().isEmpty() ? "QLineEdit {border: 2px solid red;}": "");
 }
 
 void EvaluationSheetEditDialog::initReviewerNames()

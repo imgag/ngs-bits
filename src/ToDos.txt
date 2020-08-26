@@ -19,7 +19,6 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-#### Variant publication table with search options
 #### AF probability calculator
 #### CN historgram für region
 #### GSvar arg1=sample => search processed sample and open it, show selection to user if several non-merged, non-bad are available.

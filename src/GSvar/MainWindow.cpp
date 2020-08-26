@@ -102,6 +102,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "PRSWidget.h"
 #include "EvaluationSheetEditDialog.h"
 #include "SvSearchWidget.h"
+#include "PublishedVariantsWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -308,6 +309,14 @@ void MainWindow::on_actionSearchSVs_triggered()
 {
 	SvSearchWidget* widget = new SvSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "SV search");
+	dlg->exec();
+}
+
+void MainWindow::on_actionShowPublishedVariants_triggered()
+{
+	PublishedVariantsWidget* widget = new PublishedVariantsWidget();
+
+	auto dlg = GUIHelper::createDialog(widget, "Published variants");
 	dlg->exec();
 }
 

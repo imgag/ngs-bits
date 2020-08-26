@@ -414,13 +414,13 @@
    </widget>
    <widget class="QMenu" name="menuVariants">
     <property name="title">
-     <string>Variants</string>
+     <string>Conversion</string>
     </property>
     <addaction name="actionConvertVcfToGSvar"/>
     <addaction name="actionConvertHgvsToGSvar"/>
     <addaction name="actionConvertGSvarToVcf"/>
     <addaction name="separator"/>
-    <addaction name="actionPublishVariantInLOVD"/>
+    <addaction name="actionCytobandsToRegions"/>
    </widget>
    <widget class="QMenu" name="menuNGSD">
     <property name="title">
@@ -478,24 +478,20 @@
      <addaction name="actionImportSamples"/>
      <addaction name="actionImportProcessedSamples"/>
     </widget>
-    <widget class="QMenu" name="menuRegions">
-     <property name="title">
-      <string>Regions</string>
-     </property>
-     <addaction name="actionCytobandsToRegions"/>
-    </widget>
     <widget class="QMenu" name="menuVariant_search">
      <property name="title">
-      <string>Variant search</string>
+      <string>Variants</string>
      </property>
      <addaction name="actionSearchSNVs"/>
      <addaction name="actionSearchCNVs"/>
      <addaction name="actionSearchSVs"/>
+     <addaction name="separator"/>
+     <addaction name="actionPublishVariantInLOVD"/>
+     <addaction name="actionShowPublishedVariants"/>
     </widget>
     <addaction name="menuVariant_search"/>
     <addaction name="menuGenes_2"/>
     <addaction name="menuPhenotypes_2"/>
-    <addaction name="menuRegions"/>
     <addaction name="menuSub_panels"/>
     <addaction name="separator"/>
     <addaction name="menuAdmin"/>
@@ -1143,7 +1139,7 @@
   </action>
   <action name="actionSearchSNVs">
    <property name="text">
-    <string>small variants</string>
+    <string>Search small variants</string>
    </property>
    <property name="toolTip">
     <string>Search for small variants in the NGSD.</string>
@@ -1151,7 +1147,7 @@
   </action>
   <action name="actionSearchCNVs">
    <property name="text">
-    <string>CNVs</string>
+    <string>Search CNVs</string>
    </property>
    <property name="toolTip">
     <string>Search for CNVs in the NGSD.</string>
@@ -1159,10 +1155,15 @@
   </action>
   <action name="actionSearchSVs">
    <property name="text">
-    <string>SVs</string>
+    <string>Search SVs</string>
    </property>
    <property name="toolTip">
     <string>Search for SVs in the NGSD.</string>
+   </property>
+  </action>
+  <action name="actionShowPublishedVariants">
+   <property name="text">
+    <string>Show published variants</string>
    </property>
   </action>
  </widget>

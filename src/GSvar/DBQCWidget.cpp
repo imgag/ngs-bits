@@ -190,7 +190,7 @@ void DBQCWidget::checkHighlightedSamples()
 
 	if(invalid.count()>0)
 	{
-		ui_.highlight->setStyleSheet("QLineEdit {background-color: rgba(255, 100, 0, 128);}");
+		ui_.highlight->setStyleSheet("QLineEdit {border: 2px solid red;}");
 		ui_.highlight->setToolTip("Invalid processed sample names:\n" + invalid.join("\n"));
 	}
 	else

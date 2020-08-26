@@ -87,7 +87,8 @@ SOURCES += main.cpp\
     RepeatExpansionWidget.cpp \
     PRSWidget.cpp \
     SomaticDataTransferWidget.cpp \
-    EvaluationSheetEditDialog.cpp
+    EvaluationSheetEditDialog.cpp \
+    PublishedVariantsWidget.cpp
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -168,7 +169,8 @@ HEADERS += MainWindow.h \
     RepeatExpansionWidget.h \
     PRSWidget.h \
     SomaticDataTransferWidget.h \
-    EvaluationSheetEditDialog.h
+    EvaluationSheetEditDialog.h \
+    PublishedVariantsWidget.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -236,7 +238,8 @@ FORMS    += MainWindow.ui \
     RepeatExpansionWidget.ui \
     PRSWidget.ui \
     SomaticDataTransferWidget.ui \
-    EvaluationSheetEditDialog.ui
+    EvaluationSheetEditDialog.ui \
+    PublishedVariantsWidget.ui
 
 include("../app_gui.pri")
 

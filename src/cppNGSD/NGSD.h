@@ -451,6 +451,8 @@ public:
 	DBTable createTable(QString table, QString query, int pk_col_index=0);
 	///Creates a DBTable with all rows of a table.
 	DBTable createOverviewTable(QString table, QString text_filter = QString(), QString sql_order="id DESC", int pk_col_index=0);
+	///Replace table column with foreign key IDs by names
+	void replaceForeignKeyColumn(DBTable& table, int column, QString fk_table, QString fk_name_sql);
 
 	///Creates database tables and imports initial data (password is required for production database if it is not empty)
 	void init(QString password="");
