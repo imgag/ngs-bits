@@ -801,7 +801,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 	q_update.prepare("UPDATE variant SET 1000g=:1, gnomad=:2, gene=:3, variant_type=:4, coding=:5 WHERE id=:6");
 
 	SqlQuery q_insert = getQuery(); //use binding (user input)
-	q_insert.prepare("INSERT INTO variant (chr, start, end, ref, obs, 1000g, gnomad, gene, variant_type, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9)");
+	q_insert.prepare("INSERT IGNORE INTO variant (chr, start, end, ref, obs, 1000g, gnomad, gene, variant_type, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9)");
 
 	//get annotated column indices
 	int i_tg = variant_list.annotationIndexByName("1000g");
@@ -876,7 +876,15 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			q_insert.bindValue(9, variant.annotations()[i_co_sp]);
 			q_insert.exec();
 			++c_add;
-			output << q_insert.lastInsertId().toInt();
+			QVariant last_insert_id = q_insert.lastInsertId();
+			if (last_insert_id.isValid())
+			{
+				output << last_insert_id.toInt();
+			}
+			else //the variant was inserted by another query between checking and inserting here. Thus the insert statement was ignored. In this case "lastInsertId()" does not return the actual ID > we need to get the variant id manually
+			{
+				output << variantId(variant).toInt();
+			}
 		}
 	}
 

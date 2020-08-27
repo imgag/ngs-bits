@@ -56,26 +56,13 @@ public:
 		out << "### importing small variants for " << ps_name << " ###\n";
 		out << "filename: " << filename << "\n";
 
-		//prevent import if report config contains small variants
-		QString ps_id = db.processedSampleId(ps_name);
-		int report_conf_id = db.reportConfigId(ps_id);
-		if (report_conf_id!=-1)
-		{
-			SqlQuery query = db.getQuery();
-			query.exec("SELECT * FROM report_configuration_variant WHERE report_configuration_id=" + QString::number(report_conf_id));
-			if (query.size()>0)
-			{
-				out << "Skipped import of small variants for sample " + ps_name + ": a report configuration with small variants exists for this sample!\n";
-				return;
-			}
-		}
-
 		QTime timer;
 		timer.start();
 		QTime sub_timer;
 		QStringList sub_times;
 
 		//check if variants were already imported for this PID
+		QString ps_id = db.processedSampleId(ps_name);
 		int count_old = db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id=:0", true, ps_id).toInt();
 		out << "Found " << count_old  << " variants already imported into NGSD!\n";
 		if(count_old>0 && !var_force)
