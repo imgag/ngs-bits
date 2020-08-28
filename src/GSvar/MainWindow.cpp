@@ -180,8 +180,11 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
 	ui_.vars_af_hist->setMenu(new QMenu());
-	ui_.vars_af_hist->menu()->addAction("Show histogram (all variants)", this, SLOT(showAfHistogram_all()));
-	ui_.vars_af_hist->menu()->addAction("Show histogram (variants after filter)", this, SLOT(showAfHistogram_filtered()));
+	ui_.vars_af_hist->menu()->addAction("Show AF histogram (all small variants)", this, SLOT(showAfHistogram_all()));
+	ui_.vars_af_hist->menu()->addAction("Show AF histogram (small variants after filter)", this, SLOT(showAfHistogram_filtered()));
+	ui_.vars_af_hist->menu()->addSeparator();
+	ui_.vars_af_hist->menu()->addAction("Show CN histogram (CNVs in given region)", this, SLOT(showCnHistogram()));
+
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentSample()));
 
 	//misc initialization
@@ -1066,6 +1069,85 @@ void MainWindow::showAfHistogram_all()
 void MainWindow::showAfHistogram_filtered()
 {
 	showAfHistogram(true);
+}
+
+void MainWindow::showCnHistogram()
+{
+	QString title = "Copy-number histogram";
+
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO)
+	{
+		QMessageBox::information(this, title, "This functionality is only available for germline single sample and germline trio analysis.");
+		return;
+	}
+
+	//check SEG file exists
+	QList<IgvFile> seg_files = getSegFilesCnv();
+	if (seg_files.isEmpty() || !seg_files[0].filename.endsWith( "_cnvs_clincnv.seg"))
+	{
+		QMessageBox::warning(this, title, "Could not find a SEG file produced from ClinCNV. Aborting!");
+		return;
+	}
+	QString seg_file = seg_files[0].filename;
+
+	try
+	{
+		//get region
+		Chromosome chr;
+		int start, end;
+		QString region_text = QInputDialog::getText(this, title, "genomic region");
+		if (region_text=="") return;
+
+		NGSHelper::parseRegion(region_text, chr, start, end);
+
+		//determine CN values
+		QVector<double> cn_values;
+		QSharedPointer<QFile> file = Helper::openFileForReading(seg_file);
+		QTextStream stream(file.data());
+		while (!stream.atEnd())
+		{
+			QString line = stream.readLine();
+			QStringList parts = line.split("\t");
+			if (parts.count()<6) continue;
+
+			//check if range overlaps input interval
+			Chromosome chr2(parts[1]);
+			if (chr!=chr2) continue;
+
+			int start2 = Helper::toInt(parts[2], "Start coordinate");
+			int end2 = Helper::toInt(parts[3], "End coordinate");
+			if (!BasicStatistics::rangeOverlaps(start, end, start2, end2)) continue;
+
+			//skip invalid copy-numbers
+			QString cn_str = parts[5];
+			if (cn_str.toLower()=="nan") continue;
+			double cn = Helper::toDouble(parts[5], "Copy-number");
+			if (cn<0) continue;
+
+			cn_values << cn;
+		}
+
+		//create histogram
+		std::sort(cn_values.begin(), cn_values.end());
+		double median = BasicStatistics::median(cn_values,false);
+		double max = ceil(median*2+0.0001);
+		Histogram hist(0.0, max, max/40);
+		foreach(double cn, cn_values)
+		{
+			hist.inc(cn, true);
+		}
+
+		//show chart
+		QChartView* view = GUIHelper::histogramChart(hist, "Copy-number");
+		auto dlg = GUIHelper::createDialog(view, QString("Copy-number in region ") + region_text);
+		dlg->exec();
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, title, "Error:\n" + e.message());
+		return;
+	}
 }
 
 void MainWindow::showAfHistogram(bool filtered)

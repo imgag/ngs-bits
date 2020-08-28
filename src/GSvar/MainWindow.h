@@ -285,6 +285,8 @@ public slots:
 	void showAfHistogram_all();
 	///Show allele frequency histogram (after filter)
 	void showAfHistogram_filtered();
+	///Shows a CN histogram
+	void showCnHistogram();
 	///Shows an allele frequency histogram
 	void showAfHistogram(bool filtered);
 	///Show encryption helper
