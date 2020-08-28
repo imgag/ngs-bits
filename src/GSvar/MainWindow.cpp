@@ -3093,6 +3093,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 		db.transaction();
 
 		int imported = 0;
+		QStringList duplicate_samples;
 		QStringList lines = edit->toPlainText().split("\n");
 		foreach(QString line, lines)
 		{
@@ -3103,9 +3104,21 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 			//special handling of processed sample: add 'process_id'
 			if (table=="processed_sample")
 			{
-				QString sample_name = parts[0];
+				QString sample_name = parts[0].trimmed();
 				QVariant next_ps_number = db.getValue("SELECT MAX(ps.process_id)+1 FROM sample as s, processed_sample as ps WHERE s.id=ps.sample_id AND s.name=:0", true, sample_name);
 				parts.append(next_ps_number.isNull() ? "1" : next_ps_number.toString());
+			}
+
+			//special handling of sample duplicates
+			if (table=="sample")
+			{
+				QString sample_name = parts[0].trimmed();
+				QString sample_id = db.sampleId(sample_name, false);
+				if (sample_id!="")
+				{
+					duplicate_samples << sample_name;
+					continue;
+				}
 			}
 
 			//check tab-separated parts count
@@ -3162,9 +3175,22 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 			++imported;
 		}
 
+		//handle duplicate samples
+		if (duplicate_samples.count()>0)
+		{
+			int button = QMessageBox::question(this, title, QString::number(duplicate_samples.count()) +" samples are already present in the NGSD:\n" + duplicate_samples.join(" ") + "\n\n Do you want to skip these samples and continue?", QMessageBox::Ok, QMessageBox::Abort);
+			if (button==QMessageBox::Abort)
+			{
+				db.rollback();
+				return;
+			}
+		}
+
 		db.commit();
 
-		QMessageBox::information(this, title, "Imported " + QString::number(imported) + " table rows.");
+		QString message = "Imported " + QString::number(imported) + " table rows.";
+		if (duplicate_samples.count()>0) message += "\n\nSkipped " + QString::number(duplicate_samples.count()) + " table rows";
+		QMessageBox::information(this, title,  message);
 	}
 	catch (Exception& e)
 	{

@@ -1,7 +1,6 @@
 === TODO ===
 
 libs:
-- Variantlist::load: use overloading for target region and pass it as "const BedFile&" instead of pointer
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 - The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
 
@@ -11,7 +10,6 @@ NGSD:
     - make page where TA can select gaps (by gene/DX number)
         - also allow copying multiple gaps into clipboard (as table and for primer gap)
         - add link for PrimerDesign tool
-* implement validation of CNVs/SVs like for small variants
 - Sample: allow several disease_groups per sample (requested by CS)
 - add multi-sample report-config
     - 1 affected > easy
