@@ -126,7 +126,7 @@ private slots:
 		roi.append(BedLine("chr19", 17379550, 17382510));
 
 		VariantList vl;
-		vl.load(TESTDATA("data_in/panel_vep.GSvar"), &roi);
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"), roi);
 		I_EQUAL(vl.count(), 4);
 		I_EQUAL(vl.annotations().count(), 30);
 		S_EQUAL(vl.annotations()[0].name(), QString("NA12878_03"));

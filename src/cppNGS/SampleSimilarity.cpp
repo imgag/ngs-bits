@@ -40,6 +40,39 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesVcf(const VcfFile&
 	return output;
 }
 
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(VariantList variants, QString filename, bool include_gonosomes, bool skip_multi)
+{
+	int geno_col = -1;
+
+	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
+	if (affected_cols.count()==1)
+	{
+		geno_col = affected_cols[0];
+	}
+
+
+	if (geno_col==-1)
+	{
+		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);
+	}
+
+	VariantGenotypes output;
+	for (int i=0; i<variants.count(); ++i)
+	{
+		Variant& variant = variants[i];
+
+		//skip variants not on autosomes
+		if(!variant.chr().isAutosome() && !include_gonosomes) continue;
+
+		//skip multi-allelic variants
+		if (skip_multi && variant.obs().contains(',')) continue;
+
+		output[strToPointer(variant.toString())] = genoToDouble(variant.annotations()[geno_col]);
+	}
+
+	return output;
+}
+
 SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesBam(const VcfFile& snps, BamReader& reader, int min_cov, int max_snps, bool include_gonosomes)
 {
 	VariantGenotypes output;
@@ -110,38 +143,22 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString filename, bool include_gonosomes, bool skip_multi, const BedFile* roi)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString filename, bool include_gonosomes, bool skip_multi, const BedFile& roi)
 {
 	VariantList variants;
 	variants.load(filename, roi);
 
-	int geno_col = -1;
+	VariantGenotypes output = genotypesGSvar(variants, filename, include_gonosomes, skip_multi);
 
-	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
-	if (affected_cols.count()==1)
-	{
-		geno_col = affected_cols[0];
-	}
+	return output;
+}
 
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString filename, bool include_gonosomes, bool skip_multi)
+{
+	VariantList variants;
+	variants.load(filename);
 
-	if (geno_col==-1)
-	{
-		THROW(FileParseException, "Could not determine genotype column for variant list " + filename);
-	}
-
-	VariantGenotypes output;
-	for (int i=0; i<variants.count(); ++i)
-	{
-		Variant& variant = variants[i];
-
-		//skip variants not on autosomes
-		if(!variant.chr().isAutosome() && !include_gonosomes) continue;
-
-		//skip multi-allelic variants
-		if (skip_multi && variant.obs().contains(',')) continue;
-
-		output[strToPointer(variant.toString())] = genoToDouble(variant.annotations()[geno_col]);
-	}
+	VariantGenotypes output = genotypesGSvar(variants, filename, include_gonosomes, skip_multi);
 
 	return output;
 }

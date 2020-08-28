@@ -635,7 +635,18 @@ void VariantList::removeAnnotationByName(QString name, bool exact_match, bool er
 	}
 }
 
-void VariantList::load(QString filename, const BedFile* roi, bool invert)
+void VariantList::load(QString filename, const BedFile& roi, bool invert)
+{
+	loadInternal(filename, &roi, invert);
+}
+
+void VariantList::load(QString filename)
+{
+	loadInternal(filename);
+}
+
+
+void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert)
 {
 	//create ROI index (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;

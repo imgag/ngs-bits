@@ -354,7 +354,8 @@ public:
     ///Loads a single-sample variant list from a file. Returns the format of the file.
 	///If @p roi is given, only variants that fall into the target regions are loaded.
 	///If @p invert is given, only variants that fall outside the target regions are loaded.
-	void load(QString filename, const BedFile* roi=nullptr, bool invert=false);
+	void load(QString filename, const BedFile& roi, bool invert=false);
+	void load(QString filename);
     ///Stores the variant list to a file.
 	void store(QString filename) const;
 	///Stores the variant list as a VCF file (all columns are stored in INFO)
@@ -403,6 +404,8 @@ protected:
 	QList<VariantAnnotationHeader> annotation_headers_;
 	QMap<QString, QString> filters_;
     QVector<Variant> variants_;
+
+	void loadInternal(QString filename, const BedFile* roi = nullptr, bool invert=false);
 
 	///Comparator helper class used by sortByAnnotation
 	class LessComparatorByAnnotation
