@@ -17,8 +17,6 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-#### AF probability calculator
-#### GSvar arg1=sample => search processed sample and open it, show selection to user if several non-merged, non-bad are available.
 *** Custom variant menu (custom_variant_menu=Custom Action|http://127.0.0.1/index.php?chr=[chr]&start=[start]&end=[end]&ref=[ref]&obs=[obs]&gene=[gene]\tCustom Action2|http://127.0.0.2/index.php?chr=[chr]&start=[start] (Genetikum).
 ** Show OMIM entries in ROH dialog like in CNV/SV dialog. Also genes?
 * update ROH docu with ROH sum (ROHs >500k) for ssHAEv7 and WGS

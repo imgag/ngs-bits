@@ -755,6 +755,10 @@ void MainWindow::delayedInitialization()
 				{
 					openProcessedSampleFromNGSD(arg, false);
 				}
+				else if (db.sampleId(arg, false)!="")
+				{
+					openSampleFromNGSD(arg);
+				}
 			}
 		}
 		else if (arg.startsWith("filter:")) //filter (by name)
@@ -1430,6 +1434,36 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 	catch (Exception& e)
 	{
 		QMessageBox::warning(this, "Error opening processed sample from NGSD", e.message());
+	}
+}
+
+void MainWindow::openSampleFromNGSD(QString sample_name)
+{
+	try
+	{
+		NGSD db;
+		QStringList processed_samples = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.quality!='bad' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) AND s.name=:0", sample_name);
+		if (processed_samples.isEmpty())
+		{
+			THROW(ArgumentException, "No high-quality processed sample found for sample name '" + sample_name + "'");
+		}
+
+		if (processed_samples.count()==1)
+		{
+			openProcessedSampleFromNGSD(processed_samples[0], false);
+		}
+		else
+		{
+			bool ok = false;
+			QString ps = QInputDialog::getItem(this, "Several processed samples found for sample '" + sample_name + "'", "select processed sample:", processed_samples, 0, false, &ok);
+			if (!ok) return;
+
+			openProcessedSampleFromNGSD(ps, false);
+		}
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Error opening sample from NGSD", e.message());
 	}
 }
 

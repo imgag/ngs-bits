@@ -309,8 +309,10 @@ public slots:
 	///Create sub-panel from phenotype
 	void createSubPanelFromPhenotypeFilter();
 
+	///Opens a sample based on the processed sample name
+	void openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi=true);
 	///Opens a sample based on the sample name
-	void openProcessedSampleFromNGSD(QString processed_sample_name, bool searh_multi=true);
+	void openSampleFromNGSD(QString sample_name);
 
 	///Check mendelian error rate of trio.
 	void checkMendelianErrorRate(double cutoff_perc=5.0);
