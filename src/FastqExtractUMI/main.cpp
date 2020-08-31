@@ -24,7 +24,7 @@ public:
 		//optional
 		addInt("cut1", "Number of bases from the head of read 1 to use as UMI.", true, 0);
 		addInt("cut2", "Number of bases from the head of read 2 to use as UMI.", true, 0);
-		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
+		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
 
 		changeLog(2020, 7, 15, "Added 'compression_level' parameter.");
 	}

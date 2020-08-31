@@ -2121,7 +2121,7 @@ void MainWindow::loadSomaticReportConfig()
 		dir.cd("Sample_" + normalSampleName());
 		somatic_control_tissue_variants_.load( Helper::canonicalPath(dir.absolutePath() + "/" +normalSampleName() + ".GSvar" ) );
 	}
-	catch(...) {} //Nothing to do here
+	catch(...) {} //Nothing to do here //TODO If this fails, no report can be generated. So this should trigger an error! > AXEL
 
 
 

@@ -20,17 +20,17 @@ public:
 	virtual void setup()
 	{
 		setDescription("Filter a variant list based on a target region.");
-        addInfile("in", "Input variant list. In vcf (default) or gsvar format.", false);
-		addOutfile("out", "Output variant list.", false);
+		addInfile("in", "Input variant list. In VCF (default) or GSvar format.", false);
+		addOutfile("out", "Output variant list (same format as 'in').", false);
 		//optional
 		addInfile("reg", "Input target region in BED format.", true);
 		addString("r", "Single target region in the format chr17:41194312-41279500.", true);
 		addString("mark", "If set, instead of removing variants, they are marked with the given flag in the 'filter' column.", true);
 		addFlag("inv", "Inverts the filter, i.e. variants inside the region are removed/marked.");
 		addEnum("mode", "Mode (input format).", true, QStringList() << "vcf" << "gsvar", "vcf");
-		addInt("comp", "Compression level for the output vcf file)", true, Z_BEST_SPEED);
+		addInt("compression_level", "Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.", true, Z_NO_COMPRESSION);
 
-		changeLog(2020, 8, 12, "Added parameter '-comp' for compression level of output vcf files.");
+		changeLog(2020, 8, 12, "Added parameter '-compression_level' for compression level of output vcf files.");
 		changeLog(2018, 1, 23, "Added parameter '-inv' and made parameter '-mark' a string parameter to allow custom annotations names.");
 		changeLog(2017, 1,  4, "Added parameter '-mark' for flagging variants instead of filtering them out.");
 		changeLog(2016, 6, 10, "Added single target region parameter '-r'.");
@@ -76,7 +76,7 @@ public:
 			{
 				variants.load(getInfile("in"), roi, true, inv);
 			}
-			int compression_level = getInt("comp");
+			int compression_level = getInt("compression_level");
 			variants.store(getOutfile("out"), false, compression_level);
 		}
 		else if(mode=="gsvar")

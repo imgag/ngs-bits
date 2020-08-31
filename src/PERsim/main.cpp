@@ -41,7 +41,7 @@ public:
 		addString("a2", "Reverse read sequencing adapter sequence (for read-through).", true, "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTC");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("v", "Enable verbose debug output.");
-		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
+		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
 
 		changeLog(2020, 7, 15, "Added 'compression_level' parameter.");
 	}
