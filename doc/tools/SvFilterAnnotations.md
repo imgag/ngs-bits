@@ -53,9 +53,9 @@
 	SV genotype              Filter structural variants based on their genotype.
 	                         Parameters:
 	                           Genotype - Structural variant genotype [valid=het,hom] [non-empty]
-	SV paired read AF        Show only SVs with a certain Paired Read Allele Frequency ± 10%
+	SV paired read AF        Show only SVs with a certain Paired Read Allele Frequency +/- 10%
 	                         Parameters:
-	                           Paired Read AF - Paired Read Allele Frequency ± 10% [default=0] [min=0.0] [max=1.0]
+	                           Paired Read AF - Paired Read Allele Frequency +/- 10% [default=0] [min=0.0] [max=1.0]
 	SV quality               Filter structural variants based on their quality.
 	                         Parameters:
 	                           quality - Minimum quality score [default=0] [min=0]
@@ -66,9 +66,9 @@
 	                         Parameters:
 	                           min_size - Minimum SV size (absolute size). [default=0] [min=0]
 	                           max_size - Maximum SV size (absolute size). Select 0 for infinity. [default=0] [min=0]
-	SV split read AF         Show only SVs with a certain Split Read Allele Frequency ± 10%
+	SV split read AF         Show only SVs with a certain Split Read Allele Frequency +/- 10%
 	                         Parameters:
-	                           Split Read AF - Split Read Allele Frequency ± 10% [default=0] [min=0.0] [max=1.0]
+	                           Split Read AF - Split Read Allele Frequency +/- 10% [default=0] [min=0.0] [max=1.0]
 	SV type                  Filter based on SV types.
 	                         Parameters:
 	                           Structural variant type - Structural variant type [valid=DEL,DUP,INS,INV,BND] [non-empty]

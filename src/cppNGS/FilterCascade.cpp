@@ -3466,8 +3466,8 @@ FilterSvPairedReadAF::FilterSvPairedReadAF()
 {
 	name_ = "SV paired read AF";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Show only SVs with a certain Paired Read Allele Frequency ± 10%";
-	params_ << FilterParameter("Paired Read AF", DOUBLE, 0.0, "Paired Read Allele Frequency ± 10%");
+	description_ = QStringList() << "Show only SVs with a certain Paired Read Allele Frequency +/- 10%";
+	params_ << FilterParameter("Paired Read AF", DOUBLE, 0.0, "Paired Read Allele Frequency +/- 10%");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -3477,7 +3477,7 @@ FilterSvPairedReadAF::FilterSvPairedReadAF()
 
 QString FilterSvPairedReadAF::toText() const
 {
-	return name() + " = " + QByteArray::number(getDouble("Paired Read AF", false), 'f', 2) + "  ± 10%";
+	return name() + " = " + QByteArray::number(getDouble("Paired Read AF", false), 'f', 2) + " &plusmn; 10%";
 }
 
 void FilterSvPairedReadAF::apply(const BedpeFile& svs, FilterResult& result) const
@@ -3525,8 +3525,8 @@ FilterSvSplitReadAF::FilterSvSplitReadAF()
 {
 	name_ = "SV split read AF";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Show only SVs with a certain Split Read Allele Frequency ± 10%";
-	params_ << FilterParameter("Split Read AF", DOUBLE, 0.0, "Split Read Allele Frequency ± 10%");
+	description_ = QStringList() << "Show only SVs with a certain Split Read Allele Frequency +/- 10%";
+	params_ << FilterParameter("Split Read AF", DOUBLE, 0.0, "Split Read Allele Frequency +/- 10%");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -3536,7 +3536,7 @@ FilterSvSplitReadAF::FilterSvSplitReadAF()
 
 QString FilterSvSplitReadAF::toText() const
 {
-	return name() + " = " + QByteArray::number(getDouble("Split Read AF", false), 'f', 2) + "  ± 10%";
+	return name() + " = " + QByteArray::number(getDouble("Split Read AF", false), 'f', 2) + " &plusmn; 10%";
 }
 
 void FilterSvSplitReadAF::apply(const BedpeFile& svs, FilterResult& result) const
