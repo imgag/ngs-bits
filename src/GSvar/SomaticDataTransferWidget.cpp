@@ -138,7 +138,10 @@ void SomaticDataTransferWidget::uploadPDF()
 
 			if(QMessageBox::question(this, "Delete file", "Upload of PDF report successful. Delete PDF report " + pdf_path_ + "?") == QMessageBox::Yes)
 			{
-				QFile(pdf_path_).remove();//TODO check if deleted => show message if not > AXEL
+				if(!QFile(pdf_path_).remove())
+				{
+					QMessageBox::warning(this, "Delete file", "Could not remove PDF report " + pdf_path_ + ".");
+				}
 			}
 		}
 		else
