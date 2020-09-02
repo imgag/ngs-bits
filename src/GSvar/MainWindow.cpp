@@ -2521,7 +2521,7 @@ void MainWindow::transferSomaticData()
 		SomaticDataTransferWidget data_transfer(somatic_report_settings_.tumor_ps, somatic_report_settings_.normal_ps, this);
 		data_transfer.exec();
 	}
-	catch(DatabaseException e)
+	catch(Exception e)
 	{
 		QMessageBox::warning(this, "Transfer somatic data to MTB", e.message());
 	}
