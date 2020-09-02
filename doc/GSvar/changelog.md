@@ -1,5 +1,15 @@
 # GSvar change log
 
+
+### 2020_06-90 (02.09.20)
+- General: searching variants in the NGSD (small variants, CNVs, SVs) is now also possible from main menu (NGSD > Variants > Search...)
+- General: Added dialog to search for variants published in LOVD (NGSD > Variants > Show published variants).
+- General: Added copy-number histogram for regions (in menu of AF histogram).
+- Report: Variant sheet was renamed to evalutation sheet and data is stored in the NGSD now.
+- Report: Report configuration info now also shows the number of variants with report configuration and the number of causal variants.
+- Report: Germline report configuration can now be finalized (i.e. it can no longer be changed by anyone).
+- Batch import: batch import of samples can now skip samples already present in the NGSD.
+
 ### 2020_06-61 (06.08.20)
 - General: Added links for variants to cBioPortal, CKB and PubMed.
 - Report: Added average coverage of chrMT to germline report.
