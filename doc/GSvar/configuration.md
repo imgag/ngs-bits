@@ -37,6 +37,7 @@ The most important settings are:
 	- checked by default (0 or 1)
 	- path to track file
 - *email\_run\_...*: semicolon-separated list of additional email addresses that are used when the email button on the run tab is pressed.
+- *custom\_menu\_small\_variants*: tab-separated list of custom context menu entries. Each entry constists of `name|URL`. The name is shown in the context menu. The URL is opened and the following strings are replaced by values from the variant: `[chr]`, `[start]`, `[end]`, `[ref]`, `[obs]`.
 
 ## Filters
 

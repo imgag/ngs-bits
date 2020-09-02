@@ -48,3 +48,6 @@ mtb_pdf_upload_url = ""
 mtb_pdf_upload_user = ""
 mtb_pdf_upload_pass = "" 
 genlab_somatic_report_folder = ""
+
+#misc settings
+custom_menu_small_variants = ""

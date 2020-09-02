@@ -130,7 +130,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.variant_details, SIGNAL(openVariantTab(Variant)), this, SLOT(openVariantTab(Variant)));
 	connect(ui_.variant_details, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
-	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled"));
+	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled", true));
 
 	//NGSD search button
 	auto ngsd_btn = new QToolButton();
@@ -191,7 +191,7 @@ MainWindow::MainWindow(QWidget *parent)
 	filewatcher_.setDelayInSeconds(10);
 
 	//if at home, use Patientenserver
-	QString gsvar_report_folder = Settings::string("gsvar_report_folder");
+	QString gsvar_report_folder = Settings::string("gsvar_report_folder", true);
 	if (gsvar_report_folder!="" && QDir(gsvar_report_folder).exists())
 	{
 		last_report_path_ = gsvar_report_folder;
@@ -4520,6 +4520,22 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		}
 	}
 
+	//add custom entries
+	QString custom_menu_small_variants = Settings::string("custom_menu_small_variants", true).trimmed();
+	if (!custom_menu_small_variants.isEmpty())
+	{
+		sub_menu = menu.addMenu("Custom");
+		QStringList custom_entries = custom_menu_small_variants.split("\t");
+		foreach(QString custom_entry, custom_entries)
+		{
+			QStringList parts = custom_entry.split("|");
+			if (parts.count()==2)
+			{
+				sub_menu->addAction(parts[0]);
+			}
+		}
+	}
+
 	//execute menu
 	QAction* action = menu.exec(pos);
 	if (!action) return;
@@ -4652,6 +4668,24 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	else if (parent_menu && parent_menu->title()=="PubMed")
 	{
 		QDesktopServices::openUrl(QUrl("https://pubmed.ncbi.nlm.nih.gov/?term=" + text));
+	}
+	else if (parent_menu && parent_menu->title()=="Custom")
+	{
+		QStringList custom_entries = Settings::string("custom_menu_small_variants", true).trimmed().split("\t");
+		foreach(QString custom_entry, custom_entries)
+		{
+			QStringList parts = custom_entry.split("|");
+			if (parts.count()==2 && parts[0]==text)
+			{
+				QString url = parts[1];
+				url.replace("[chr]", variant.chr().strNormalized(true));
+				url.replace("[start]", QString::number(variant.start()));
+				url.replace("[end]", QString::number(variant.end()));
+				url.replace("[ref]", variant.ref());
+				url.replace("[obs]", variant.obs());
+				QDesktopServices::openUrl(QUrl(url));
+			}
+		}
 	}
 	else if (parent_menu) //gene menus
 	{
