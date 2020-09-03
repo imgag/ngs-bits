@@ -5408,7 +5408,7 @@ void MainWindow::applyFilters(bool debug_time)
 		{
 			for(int index : somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false))
 			{
-				filter_result_.flags()[index] = filter_result_.flags()[index] || somatic_report_settings_.report_config.variantConfig(index).showInReport();
+				filter_result_.flags()[index] = filter_result_.flags()[index] || somatic_report_settings_.report_config.variantConfig(index, VariantType::SNVS_INDELS).showInReport();
 			}
 		}
 

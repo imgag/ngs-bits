@@ -54,11 +54,11 @@ const QList<SomaticReportVariantConfiguration>& SomaticReportConfiguration::vari
 	return variant_config_;
 }
 
-const SomaticReportVariantConfiguration& SomaticReportConfiguration::variantConfig(int variant_index) const
+const SomaticReportVariantConfiguration& SomaticReportConfiguration::variantConfig(int variant_index, VariantType type) const
 {
 	for(const auto& conf : variant_config_)
 	{
-		if(conf.variant_index == variant_index) return conf;
+		if(conf.variant_index == variant_index && conf.variant_type == type) return conf;
 	}
 
 	THROW(ArgumentException, "Could not find somatic variant configuration for index " + QString::number(variant_index));

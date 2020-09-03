@@ -1313,6 +1313,27 @@ private slots:
 		som_rep_conf.setGermline(var1_germl);
 		som_rep_conf.setGermline(var2_germl);
 
+
+		//Check resolving single variant config from report configuration
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).include_variant_alteration, "c.-124A>C");
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).include_variant_description, "Testtreiber (bekannt)");
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).comment, "known test driver was not included in any db yet.");
+		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).variant_index, 2);
+		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).variant_type, VariantType::SNVS_INDELS);
+
+		IS_TRUE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_artefact);
+		IS_TRUE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_other_reason);
+		IS_FALSE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_high_baf_deviation);
+		IS_FALSE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_low_copy_number);
+		IS_FALSE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_low_tumor_content);
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).include_variant_alteration, "");
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).include_variant_description, "");
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).comment, "This test somatic cnv shall be excluded.");
+		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).variant_index, 2);
+		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).variant_type, VariantType::CNVS);
+
+
+
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");
 		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
