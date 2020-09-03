@@ -1711,6 +1711,7 @@ void MainWindow::loadFile(QString filename)
 	igv_initialized_ = false;
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
+	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
 
 	somatic_report_settings_ = SomaticReportSettings();
 
