@@ -268,6 +268,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	//Preselect remaining options
 	ui_.include_msi_status->setChecked(settings_.report_config.msiStatus());
 	ui_.fusions_detected->setChecked(settings_.report_config.fusionsDetected());
+	if(Settings::boolean("debug_mode_enabled")) ui_.no_ngsd->setChecked(true);
 
 	//index of hrd_score is equal to actual score value
 	ui_.hrd_score->setCurrentIndex(settings_.report_config.hrdScore());

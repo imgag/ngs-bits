@@ -1947,6 +1947,9 @@ RtfTable SomaticReportHelper::pharamacogeneticsTable()
 
 void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 {
+	doc_.addPart(RtfText( tumor_ps_.toUtf8() + "-" + normal_ps_.toUtf8() + ".pdf" ).RtfCode()); //line is important for user for naming genlab pdfs
+	doc_.addPart(RtfParagraph("").RtfCode());
+
 	/**********************************
 	 * MUTATION BURDEN AND MSI STATUS *
 	 **********************************/
