@@ -5,20 +5,20 @@
 #include "Helper.h"
 #include "GUIHelper.h"
 #include "TsvFile.h"
-#include "VariantList.h"
+#include "VcfFile.h"
 
 NumericWidgetItem::NumericWidgetItem(QString text):
 	QTableWidgetItem(text)
 {
-	this->setTextAlignment(Qt::AlignRight + Qt::AlignVCenter);
+	setTextAlignment(Qt::AlignRight);
 	// make cell readonly
-	this->setFlags(this->flags()& (~Qt::ItemIsEditable));
+	setFlags(flags() & (~Qt::ItemIsEditable));
 }
 
 bool NumericWidgetItem::operator<(const QTableWidgetItem& other) const
 {
 	//convert text to double
-	double this_value = Helper::toDouble(this->text());
+	double this_value = Helper::toDouble(text());
 	double other_value = Helper::toDouble(other.text());
 	return (this_value < other_value);
 }
@@ -41,7 +41,7 @@ RepeatExpansionWidget::~RepeatExpansionWidget()
 void RepeatExpansionWidget::loadRepeatExpansionData()
 {
 	//load VCF file
-	VariantList repeat_expansions;
+	VcfFile repeat_expansions;
 	repeat_expansions.load(vcf_filename_);
 
 	//load filter file
@@ -119,18 +119,12 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		}
 	}
 
-	// get indices for required columns in the VCF file
-	int end_idx = repeat_expansions.annotationIndexByName("END");
-	int repeat_id_idx = repeat_expansions.annotationIndexByName("REPID");
-	int repeat_unit_idx = repeat_expansions.annotationIndexByName("RU");
-	int allele_repeats_idx = repeat_expansions.annotationIndexByName("REPCN");
-	int ref_repeats_idx = repeat_expansions.annotationIndexByName("REF");
-	int repeat_ci_idx = repeat_expansions.annotationIndexByName("REPCI");
-	int filter_idx = repeat_expansions.annotationIndexByName("FILTER");
-	int coverage_idx = repeat_expansions.annotationIndexByName("LC");
-	int fl_reads_idx = repeat_expansions.annotationIndexByName("ADFL");
-	int ir_reads_idx = repeat_expansions.annotationIndexByName("ADIR");
-	int sp_reads_idx = repeat_expansions.annotationIndexByName("ADSP");
+	// check that there is exactly one sample
+	QByteArrayList samples = repeat_expansions.sampleIDs();
+	if (samples.count()!=1)
+	{
+		THROW(ArgumentException, "Repeat expansion VCF file '" + vcf_filename_ + "' does not contain exactly one sample!");
+	}
 
 	// define table backround colors
 	QColor bg_red = Qt::red;
@@ -145,14 +139,27 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 	ui_->repeat_expansions->setRowCount(repeat_expansions.count());
 	for(int row_idx=0; row_idx<repeat_expansions.count(); ++row_idx)
 	{
-		Variant re = repeat_expansions[row_idx];
+		const VcfLine& re = repeat_expansions[row_idx];
 		int col_idx = 0;
 
+		//extract info/format values
+		QByteArray info_repid = re.info("REPID").trimmed();
+		QByteArray info_ru = re.info("RU").trimmed();
+		QByteArray info_end = re.info("END").trimmed();
+		QByteArray info_ref = re.info("REF").trimmed();
+
+		QByteArray format_repcn = re.formatValueFromSample("REPCN").trimmed();
+		QByteArray format_repci = re.formatValueFromSample("REPCI").trimmed();
+		QByteArray format_lc = re.formatValueFromSample("LC").trimmed();
+		QByteArray format_adfl = re.formatValueFromSample("ADFL").trimmed();
+		QByteArray format_adir = re.formatValueFromSample("ADIR").trimmed();
+		QByteArray format_adsp = re.formatValueFromSample("ADSP").trimmed();
+
 		// get cutoff/reliability info from cutoff file
-		QPair<QByteArray, QByteArray> key = QPair<QByteArray, QByteArray>(re.annotations()[repeat_id_idx].trimmed(), re.annotations()[repeat_unit_idx].trimmed());
+		QPair<QByteArray, QByteArray> key = QPair<QByteArray, QByteArray>(info_repid, info_ru);
 		if(!cutoff_info_map.contains(key))
 		{
-			THROW(FileParseException, "Repeat '" + re.annotations()[repeat_id_idx].trimmed() + ", " + re.annotations()[repeat_unit_idx].trimmed() + "' not fout in cutoff file!");
+			THROW(FileParseException, "Repeat '" + info_repid + ", " + info_ru + "' not fout in cutoff file!");
 		}
 		RepeatCutoffInfo cutoff_info = cutoff_info_map.value(key);
 
@@ -168,27 +175,27 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		//add position
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.chr().strNormalized(true))));
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(re.start())));
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString(re.annotations()[end_idx])));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(info_end));
 
 		//add repeat
-		QTableWidgetItem* repeat_id_cell = GUIHelper::createTableItem(QString(re.annotations()[repeat_id_idx]));
+		QTableWidgetItem* repeat_id_cell = GUIHelper::createTableItem(info_repid);
 		if (is_exome_ && !cutoff_info.reliable_in_exomes )
 		{
 			repeat_id_cell->setBackgroundColor(bg_red);
 			repeat_id_cell->setToolTip("Repeat calling of this repeat is not reliable in Exomes!");
 		}
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, repeat_id_cell);
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.annotations()[repeat_unit_idx])));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(info_ru));
 
 		//add allele/ref copy number
 		//replace "." with "-"
-		QString repeat_text = re.annotations()[allele_repeats_idx];
-		if (repeat_text.trimmed() == ".") repeat_text = "-";
-		if (repeat_text.trimmed() == "./.") repeat_text = "-/-";
+		QString repeat_text = format_repcn;
+		if (repeat_text == ".") repeat_text = "-";
+		if (repeat_text == "./.") repeat_text = "-/-";
 		QTableWidgetItem* repeat_cell = GUIHelper::createTableItem(repeat_text);
 
 		//color table acording to cutoff table
-		QByteArrayList repeats = re.annotations()[allele_repeats_idx].split('/');
+		QByteArrayList repeats = format_repcn.split('/');
 		int repeats_allele1, repeats_allele2;
 		if ((repeats.size() < 1) || (repeats.size() > 2)) THROW(FileParseException, "Invalid allele count in repeat entries!");
 
@@ -224,24 +231,24 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		repeat_cell->setToolTip(repeat_tool_tip_text.join('\n'));
 
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, repeat_cell);
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString(re.annotations()[ref_repeats_idx])));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(info_ref));
 
 		//add additional info
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.annotations()[repeat_ci_idx].replace("./.", "-/-").replace(".", "-"))));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_repci.replace(".", "-")));
 
 		//add filter column and color background if not 'PASS'
-		QTableWidgetItem* filter_cell = GUIHelper::createTableItem(QString(re.annotations()[filter_idx]));
+		QTableWidgetItem* filter_cell = GUIHelper::createTableItem(re.filter().join(","));
 		if(filter_cell->text().trimmed() != "PASS") filter_cell->setBackgroundColor(bg_orange);
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, filter_cell);
 
 		//round local coverage
-		double coverage = Helper::toDouble(re.annotations()[coverage_idx]);
+		double coverage = Helper::toDouble(format_lc);
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(coverage, 'f', 2)));
 
 		//add read counts
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.annotations()[fl_reads_idx].replace("./.", "-/-").replace(".", "-"))));
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.annotations()[ir_reads_idx].replace("./.", "-/-").replace(".", "-"))));
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.annotations()[sp_reads_idx].replace("./.", "-/-").replace(".", "-"))));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adfl.replace(".", "-")));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adir.replace(".", "-")));
+		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adsp.replace(".", "-")));
 
 	}
 
@@ -250,8 +257,6 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 
 	// display vertical header
 	ui_->repeat_expansions->verticalHeader()->setVisible(true);
-
-
 }
 
 
