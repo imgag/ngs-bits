@@ -15,8 +15,7 @@ SmallVariantSearchDialog::SmallVariantSearchDialog(QWidget *parent)
 	ui_.setupUi(this);
 	connect(&init_timer_, SIGNAL(triggerInitialization()), this, SLOT(updateVariants()));
 
-	connect(ui_.radio_region, SIGNAL(clicked(bool)), this, SLOT(changeSearchType()));
-	connect(ui_.radio_genes, SIGNAL(clicked(bool)), this, SLOT(changeSearchType()));
+	connect(ui_.radio_region->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
 
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateVariants()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
@@ -25,6 +24,8 @@ SmallVariantSearchDialog::SmallVariantSearchDialog(QWidget *parent)
 void SmallVariantSearchDialog::setGene(const QString& gene)
 {
 	ui_.genes->setText(gene);
+
+	ui_.radio_genes->setChecked(true);
 }
 
 void SmallVariantSearchDialog::changeSearchType()
@@ -39,79 +40,90 @@ void SmallVariantSearchDialog::updateVariants()
 	ui_.variants->clearContents();
 
 	//check if applicable
-	QByteArray genes_text = ui_.genes->text().toLatin1().trimmed();
-	if (genes_text.isEmpty()) return;
+	if (ui_.radio_genes->isChecked() && ui_.genes->text().isEmpty()) return;
+	if (ui_.radio_region->isChecked() && ui_.region->text().isEmpty()) return;
 
-	QApplication::setOverrideCursor(Qt::BusyCursor);
-
-	//process genes/region
-	QStringList comments;
-	QList<QStringList> output;
-	if (ui_.radio_genes->isChecked())
+	//perform search
+	try
 	{
-		GeneSet genes = GeneSet::createFromText(genes_text.replace(' ', ','), ',');
-		foreach(QByteArray gene, genes)
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		//process genes/region
+		QStringList comments;
+		QList<QStringList> output;
+		if (ui_.radio_genes->isChecked())
 		{
-			//check gene name
-			NGSD db;
-			int gene_id = db.geneToApprovedID(gene);
-			if (gene_id==-1)
+			QByteArray text = ui_.genes->text().toLatin1().trimmed().replace(' ', ',');
+			GeneSet genes = GeneSet::createFromText(text, ',');
+			foreach(QByteArray gene, genes)
 			{
-				comments.append("Error: Gene name '" + gene + "' is not a HGNC-approved symbol => Skipping it!");
-				continue;
+				//check gene name
+				NGSD db;
+				int gene_id = db.geneToApprovedID(gene);
+				if (gene_id==-1)
+				{
+					comments.append("Error: Gene name '" + gene + "' is not a HGNC-approved symbol => Skipping it!");
+					continue;
+				}
+				gene = db.geneSymbol(gene_id);
+
+				//get chromosomal range
+				SqlQuery query = db.getQuery();
+				query.exec("SELECT DISTINCT gt.chromosome, min(ge.start), max(ge.end) FROM gene_exon ge, gene_transcript gt WHERE gt.gene_id='" + QString::number(gene_id) + "' AND ge.transcript_id=gt.id GROUP BY gt.chromosome");
+				if (query.size()!=1)
+				{
+					comments.append("Error: Could not determine chromosomal coordinates for gene '" + gene + "' => Skipping it!");
+					continue;
+				}
+				query.next();
+				Chromosome chr = query.value(0).toString();
+				int start = query.value(1).toInt()-5000;
+				int end = query.value(2).toInt()+5000;
+
+				//get alternate gene symbols
+				GeneSet gene_symbols;
+				gene_symbols.insert(gene);
+				gene_symbols.insert(db.synonymousSymbols(gene_id));
+				gene_symbols.insert(db.previousSymbols(gene_id));
+
+				getVariantsForRegion(chr, start, end, gene, gene_symbols, output, comments);
 			}
-			gene = db.geneSymbol(gene_id);
-
-			//get chromosomal range
-			SqlQuery query = db.getQuery();
-			query.exec("SELECT DISTINCT gt.chromosome, min(ge.start), max(ge.end) FROM gene_exon ge, gene_transcript gt WHERE gt.gene_id='" + QString::number(gene_id) + "' AND ge.transcript_id=gt.id GROUP BY gt.chromosome");
-			if (query.size()!=1)
-			{
-				comments.append("Error: Could not determine chromosomal coordinates for gene '" + gene + "' => Skipping it!");
-				continue;
-			}
-			query.next();
-			Chromosome chr = query.value(0).toString();
-			int start = query.value(1).toInt()-5000;
-			int end = query.value(2).toInt()+5000;
-
-			//get alternate gene symbols
-			GeneSet gene_symbols;
-			gene_symbols.insert(gene);
-			gene_symbols.insert(db.synonymousSymbols(gene_id));
-			gene_symbols.insert(db.previousSymbols(gene_id));
-
-			getVariantsForRegion(chr, start, end, gene, gene_symbols, output, comments);
 		}
-	}
-	else
-	{
-		Chromosome chr;
-		int start, end;
-		NGSHelper::parseRegion(ui_.region->text(), chr, start, end);
-
-		getVariantsForRegion(chr, start, end, "<region>", GeneSet(), output, comments);
-	}
-
-	//show output
-	ui_.variants->setRowCount(output.count());
-	for (int r=0; r<output.count(); ++r)
-	{
-		const QStringList& line = output[r];
-		for (int c=0; c<line.count(); ++c)
+		else
 		{
-			ui_.variants->setItem(r, c, new QTableWidgetItem(line[c]));
+			Chromosome chr;
+			int start, end;
+			NGSHelper::parseRegion(ui_.region->text(), chr, start, end);
+
+			getVariantsForRegion(chr, start, end, "<region>", GeneSet(), output, comments);
 		}
+
+		//show output
+		ui_.variants->setRowCount(output.count());
+		for (int r=0; r<output.count(); ++r)
+		{
+			const QStringList& line = output[r];
+			for (int c=0; c<line.count(); ++c)
+			{
+				ui_.variants->setItem(r, c, new QTableWidgetItem(line[c]));
+			}
+		}
+
+		//resize cols
+		GUIHelper::resizeTableCells(ui_.variants, 600);
+
+		//reset cursor
+		QApplication::restoreOverrideCursor();
+
+		//show comments
+		QMessageBox::information(this, "Gene/variant statistics", comments.join("\n"));
 	}
+	catch(Exception& e)
+	{
+		QApplication::restoreOverrideCursor();
 
-	//resize cols
-	GUIHelper::resizeTableCells(ui_.variants, 600);
-
-	//reset cursor
-	QApplication::restoreOverrideCursor();
-
-	//show comments
-	QMessageBox::information(this, "Gene/variant statistics", comments.join("\n"));
+		QMessageBox::critical(this, "Error", e.message());
+	}
 }
 
 void SmallVariantSearchDialog::copyToClipboard()

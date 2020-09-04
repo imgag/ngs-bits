@@ -19,9 +19,7 @@ SvSearchWidget::SvSearchWidget(QWidget* parent)
 	ui_.setupUi(this);
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
 
-	connect(ui_.rb_single_sv, SIGNAL(clicked(bool)), this, SLOT(changeSearchType()));
-	connect(ui_.rb_region, SIGNAL(clicked(bool)), this, SLOT(changeSearchType()));
-	connect(ui_.rb_genes, SIGNAL(clicked(bool)), this, SLOT(changeSearchType()));
+	connect(ui_.rb_single_sv->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
 }
 
 void SvSearchWidget::setCoordinates(const BedpeLine& sv_coordinates)
@@ -29,6 +27,8 @@ void SvSearchWidget::setCoordinates(const BedpeLine& sv_coordinates)
 	ui_.coordinates1->setText(sv_coordinates.chr1().strNormalized(true) + ":" + QString::number(sv_coordinates.start1()) + "-" + QString::number(sv_coordinates.end1()));
 	ui_.coordinates2->setText(sv_coordinates.chr2().strNormalized(true) + ":" + QString::number(sv_coordinates.start2()) + "-" + QString::number(sv_coordinates.end2()));
 	ui_.svType->setCurrentText(BedpeFile::typeToString(sv_coordinates.type()));
+
+	ui_.rb_single_sv->setChecked(true);
 }
 
 void SvSearchWidget::setProcessedSampleId(QString ps_id)

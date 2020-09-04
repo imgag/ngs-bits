@@ -25,14 +25,15 @@ CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
 	QAction* action = new QAction("Copy coordinates");
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyCoodinatesToClipboard()));
-	connect(ui_.rb_chr_pos, SIGNAL(clicked(bool)), this, SLOT(changeSearchType()));
-	connect(ui_.rb_genes, SIGNAL(clicked(bool)), this, SLOT(changeSearchType()));
+	connect(ui_.rb_chr_pos->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
 	ui_.table->addAction(action);
 }
 
 void CnvSearchWidget::setCoordinates(Chromosome chr, int start, int end)
 {
 	ui_.coordinates->setText(chr.strNormalized(true) + ":" + QString::number(start) + "-" + QString::number(end));
+
+	ui_.rb_chr_pos->setChecked(true);
 }
 
 void CnvSearchWidget::search()
