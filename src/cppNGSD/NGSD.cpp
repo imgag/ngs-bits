@@ -1925,6 +1925,13 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 							info.fk_name_sql = "name";
 						}
 					}
+					else if (table=="preferred_transcripts")
+					{
+						if (info.name=="added_by")
+						{
+							info.fk_name_sql = "name";
+						}
+					}
 				}
 			}
 
@@ -1955,7 +1962,8 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 			if (table=="processed_sample" && info.name=="mid2_i5") info.label = "mid2 i5";
 			if (table=="processed_sample" && info.name=="sample_id") info.label = "sample";
 			if (table=="variant_publication" && info.name=="sample_id") info.label = "sample";
-			if (table=="variant_publication" && info.name=="user_id") info.label = "published_by";
+			if (table=="variant_publication" && info.name=="user_id") info.label = "published by";
+			if (table=="preferred_transcripts" && info.name=="added_by") info.label = "added by";
 
 			//read-only
 			if (
@@ -3373,6 +3381,44 @@ const GeneSet& NGSD::approvedGeneNames()
 	}
 
 	return output;
+}
+
+QMap<QByteArray, QByteArrayList> NGSD::getPreferredTranscripts()
+{
+	QMap<QByteArray, QByteArrayList> output;
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT g.symbol, pt.name FROM gene g, gene_transcript gt, preferred_transcripts pt WHERE g.id=gt.gene_id AND gt.name=pt.name");
+	while(query.next())
+	{
+		QByteArray gene = query.value(0).toByteArray().trimmed();
+		QByteArray transcript = query.value(1).toByteArray().trimmed();
+		output[gene].append(transcript);
+	}
+
+	return output;
+}
+
+bool NGSD::addPreferredTranscript(QByteArray transcript_name)
+{
+	transcript_name = transcript_name.trimmed();
+
+	//check if already present
+	QVariant pt_id = getValue("SELECT id FROM preferred_transcripts WHERE name=:0", true, transcript_name);
+	if (pt_id.isValid()) return false;
+
+	//check if valid transcript name.
+	QVariant gt_id = getValue("SELECT id FROM gene_transcript WHERE name=:0 AND source='ensembl'", true, transcript_name);
+	if (!gt_id.isValid()) THROW(DatabaseException, "Invalid Ensembl transcript name '" + transcript_name + "' given in NGSD::addPreferredTranscript!");
+
+	//insert
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO `preferred_transcripts`(`name`, `added_by`, `added_date`) VALUES (:0,:1,NOW())");
+	query.bindValue(0, transcript_name);
+	query.bindValue(1, LoginManager::userIdAsString());
+	query.exec();
+
+	return true;
 }
 
 
@@ -5096,6 +5142,15 @@ QStringList NGSD::checkValue(const QString& table, const QString& field, const Q
 	}
 
 	return errors;
+}
+
+QString NGSD::escapeText(QString text)
+{
+	QSqlField f;
+	f.setType(QVariant::String);
+	f.setValue(text);
+
+	return db_->driver()->formatValue(f);
 }
 
 QStringList SampleData::phenotypesAsStrings() const

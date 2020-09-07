@@ -17,7 +17,6 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-*** Preferred transcripts: Store in NGSD (transcript name - not id, who added it when)
 ** Show OMIM entries in ROH dialog like in CNV/SV dialog. Also genes?
 * update ROH docu with ROH sum (ROHs >500k) for ssHAEv7 and WGS
 ** Filter widgets (small variants, CNVs, SVs): Add option to hide variants with report config

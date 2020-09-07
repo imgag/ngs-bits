@@ -1728,6 +1728,26 @@ CREATE TABLE IF NOT EXISTS `evaluation_sheet_data`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `preferred_transcripts`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `preferred_transcripts`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(40) NOT NULL,
+  `added_by` INT(11) NOT NULL,
+  `added_date` timestamp NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `combo_som_rep_conf_ids` (`name` ASC),
+  CONSTRAINT `preferred_transcriptsg_created_by_user`
+    FOREIGN KEY (`added_by`)
+    REFERENCES `user` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

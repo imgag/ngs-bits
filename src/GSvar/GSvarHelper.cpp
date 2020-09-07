@@ -1,5 +1,6 @@
 #include "GSvarHelper.h"
-#include "Helper.h"
+#include "LoginManager.h"
+#include "NGSD.h"
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -58,28 +59,20 @@ const GeneSet& GSvarHelper::hi0Genes()
 
 const QMap<QByteArray, QByteArrayList>& GSvarHelper::preferredTranscripts(bool reload)
 {
+	qDebug() << "GSvarHelper::preferredTranscripts" << reload;
+
     static bool initialized = false;
 
     if (!initialized || reload)
     {
-        preferred_transcripts_.clear();
+		if (LoginManager::active())
+		{
+			NGSD db;
+			preferred_transcripts_ = db.getPreferredTranscripts();
 
-        QString filename = GSvarHelper::applicationBaseName() + "_preferred_transcripts.tsv";
-        QStringList lines = Helper::loadTextFile(filename, true, '#', true);
-        foreach(const QString& line, lines)
-        {
-			QByteArrayList parts = line.toLatin1().replace(',', '\t').split('\t');
-            if (parts.count()>=2)
-            {
-                QByteArray gene = parts[0].trimmed();
-                for (int i=1; i<parts.count(); ++i)
-                {
-                    preferred_transcripts_[gene] << parts[i].trimmed();
-                }
-            }
-        }
+			initialized = true;
+		}
 
-        initialized = true;
     }
 
     return preferred_transcripts_;

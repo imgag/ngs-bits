@@ -88,7 +88,8 @@ SOURCES += main.cpp\
     PRSWidget.cpp \
     SomaticDataTransferWidget.cpp \
     EvaluationSheetEditDialog.cpp \
-    PublishedVariantsWidget.cpp
+    PublishedVariantsWidget.cpp \
+    PreferredTranscriptsWidget.cpp
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -170,7 +171,8 @@ HEADERS += MainWindow.h \
     PRSWidget.h \
     SomaticDataTransferWidget.h \
     EvaluationSheetEditDialog.h \
-    PublishedVariantsWidget.h
+    PublishedVariantsWidget.h \
+    PreferredTranscriptsWidget.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -239,7 +241,8 @@ FORMS    += MainWindow.ui \
     PRSWidget.ui \
     SomaticDataTransferWidget.ui \
     EvaluationSheetEditDialog.ui \
-    PublishedVariantsWidget.ui
+    PublishedVariantsWidget.ui \
+    PreferredTranscriptsWidget.ui
 
 include("../app_gui.pri")
 

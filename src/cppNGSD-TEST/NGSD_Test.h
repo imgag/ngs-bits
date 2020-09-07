@@ -105,6 +105,9 @@ private slots:
 		//log in user
 		LoginManager::login("ahmustm1", true);
 
+		//escapeText
+		S_EQUAL(db.escapeText("; '"), "'; '''");
+
 		//getEnum
 		QStringList enum_values = db.getEnum("sample", "disease_group");
 		I_EQUAL(enum_values.count(), 18);
@@ -1194,6 +1197,30 @@ private slots:
 		// test failed export
 		IS_THROWN(DatabaseException, db.evaluationSheetData("-4"));
 		S_EQUAL(db.evaluationSheetData("-4", false).ps_id, "");
+
+		//addPreferredTranscript
+		bool added = db.addPreferredTranscript("NIPA1_TR1");
+		IS_TRUE(added);
+		added = db.addPreferredTranscript("NIPA1_TR1");
+		IS_FALSE(added);
+		added = db.addPreferredTranscript("NIPA1_TR2");
+		IS_TRUE(added);
+		added = db.addPreferredTranscript("NIPA1_TR2");
+		IS_FALSE(added);
+		added = db.addPreferredTranscript("NON-CODING_TR1");
+		IS_TRUE(added);
+		IS_THROWN(DatabaseException, db.addPreferredTranscript("INVALID_TRANSCRIPT_NAME"));
+
+		//getPreferredTranscripts
+		QMap<QByteArray, QByteArrayList> pt = db.getPreferredTranscripts();
+		I_EQUAL(pt.count(), 2);
+		IS_TRUE(pt.contains("NIPA1"));
+		IS_TRUE(pt.contains("NON-CODING"));
+		I_EQUAL(pt["NIPA1"].count(), 2);
+		IS_TRUE(pt["NIPA1"].contains("NIPA1_TR1"));
+		IS_TRUE(pt["NIPA1"].contains("NIPA1_TR2"));
+		I_EQUAL(pt["NON-CODING"].count(), 1);
+		IS_TRUE(pt["NON-CODING"].contains("NON-CODING_TR1"));
 	}
 
 	//Tests for SomaticReportConfiguration and specific somatic variants

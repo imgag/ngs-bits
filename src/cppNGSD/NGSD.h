@@ -446,6 +446,8 @@ public:
 	const TableInfo& tableInfo(const QString& table) const;
 	///Checks if the value is valid for the table/field when used in an SQL query. Returns a non-empty error list in case it is not. 'check_unique' must not be used for existing entries.
 	QStringList checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const;
+	///Escapes SQL special characters in a text
+	QString escapeText(QString text);
 
 	///Creates a DBTable with data from an SQL query.
 	DBTable createTable(QString table, QString query, int pk_col_index=0);
@@ -524,6 +526,10 @@ public:
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_alt_source_nocoding=false);
 	///Returns the list of all approved gene names
 	const GeneSet& approvedGeneNames();
+	///Returns the map of gene to preferred transcripts
+	QMap<QByteArray, QByteArrayList> getPreferredTranscripts();
+	///Adds a preferred transcript. Returns if it was added, i.e. it was not already present. Throws an exception, if the transcript name is not valid.
+	bool addPreferredTranscript(QByteArray transcript_name);
 
 	/*** phenotype handling (HPO, OMIM) ***/
 	///Returns the phenotype for a given HPO accession.
