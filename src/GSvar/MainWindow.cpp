@@ -1249,7 +1249,6 @@ QString MainWindow::processedSampleName()
 {
 	QString filename = QFileInfo(filename_).baseName();
 
-
 	if (variants_.type()==SOMATIC_PAIR)
 	{
 		return filename.split("-")[0];
@@ -2247,7 +2246,7 @@ void MainWindow::generateEvaluationSheet()
 		return;
 	}
 	if (filename_=="") return;
-	QString base_name = processedSampleName();
+	QString base_name = processedSampleName().trimmed();
 
 	//check if applicable
 	if (!germlineReportSupported())
@@ -2262,7 +2261,7 @@ void MainWindow::generateEvaluationSheet()
 	QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(sample_id, "clinical phenotype (free text)");
 	if (disease_infos.isEmpty() && QMessageBox::question(this, "Variant sheet", "No clinical phenotype (free text) is set for the sample!\nIt will be shown on the variant sheet!\n\nDo you want to set it?")==QMessageBox::Yes)
 	{
-		SampleDiseaseInfoWidget* widget = new SampleDiseaseInfoWidget(processedSampleName(), this);
+		SampleDiseaseInfoWidget* widget = new SampleDiseaseInfoWidget(base_name, this);
 		widget->setDiseaseInfo(db.getSampleDiseaseInfo(sample_id));
 		auto dlg = GUIHelper::createDialog(widget, "Sample disease details", "", true);
 		if (dlg->exec() != QDialog::Accepted) return;
@@ -2271,12 +2270,12 @@ void MainWindow::generateEvaluationSheet()
 	}
 
 	//try to get VariantListInfo from the NGSD
-	EvaluationSheetData evaluation_sheet_data = db.evaluationSheetData(db.processedSampleId(filename_), false);
+	EvaluationSheetData evaluation_sheet_data = db.evaluationSheetData(sample_id, false);
 	if (evaluation_sheet_data.ps_id == "")
 	{
 		//No db entry found -> set default values
 		evaluation_sheet_data = EvaluationSheetData();
-		evaluation_sheet_data.ps_id = db.processedSampleId(filename_);
+		evaluation_sheet_data.ps_id = db.processedSampleId(base_name);
 		evaluation_sheet_data.dna_rna = db.getSampleData(sample_id).name_external;
 		// make sure reviewer 1 contains name not user id
 		evaluation_sheet_data.reviewer1 = db.userName(db.userId(report_settings_.report_config->createdBy()));
