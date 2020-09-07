@@ -62,7 +62,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 
 	QList<QPair<Variant, RtfTableRow>> temp_rows; //combined list of germline/somatic snvs
-	QMap<QByteArray, QByteArrayList> preferred_transcripts = GSvarHelper::preferredTranscripts(true);
+	QMap<QByteArray, QByteArrayList> preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 	for(int i=0; i< som_var_in_normal.count(); ++i) //insert next to gene that is already included
 	{

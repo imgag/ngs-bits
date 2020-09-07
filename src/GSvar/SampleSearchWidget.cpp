@@ -49,6 +49,10 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	ui_.r_device_name->fill(db_.createTable("device", "SELECT id, name FROM device"), true);
 
 	//signals/slots
+	connect(ui_.s_name, SIGNAL(returnPressed()), this, SLOT(search()));
+	connect(ui_.p_name, SIGNAL(returnPressed()), this, SLOT(search()));
+	connect(ui_.sys_name, SIGNAL(returnPressed()), this, SLOT(search()));
+	connect(ui_.r_name, SIGNAL(returnPressed()), this, SLOT(search()));
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
 }
 

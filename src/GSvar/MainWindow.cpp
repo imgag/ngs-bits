@@ -103,6 +103,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "EvaluationSheetEditDialog.h"
 #include "SvSearchWidget.h"
 #include "PublishedVariantsWidget.h"
+#include "PreferredTranscriptsWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -210,20 +211,31 @@ void MainWindow::on_actionDebug_triggered()
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
-		//fix null characters imported from GenLab
+		//import preferred transcripts
 		/*
 		NGSD db;
-		SqlQuery query = db.getQuery();
-		query.exec("SELECT id, disease_info FROM sample_disease_info");
-		while(query.next())
+		QString filename = GSvarHelper::applicationBaseName() + "_preferred_transcripts.tsv";
+		QStringList lines = Helper::loadTextFile(filename, true, '#', true);
+		foreach(const QString& line, lines)
 		{
-			QString value = query.value(1).toString();
-			if (value.contains(QChar::Null))
+			QByteArrayList parts = line.toLatin1().replace(',', '\t').split('\t');
+			if (parts.count()>=2)
 			{
-				value = value.replace(QChar::Null, ' ').trimmed();
+				QByteArray gene = parts[0].trimmed();
+				for (int i=1; i<parts.count(); ++i)
+				{
+					QByteArray transcript = parts[i].trimmed();
+					qDebug() << gene << transcript;
+					try
+					{
+						qDebug() << "  success: " << db.addPreferredTranscript(transcript);
+					}
+					catch(Exception& e)
+					{
 
-				qDebug() << query.value(0) << query.value(1);
-				db.getQuery().exec("UPDATE sample_disease_info SET disease_info='" + value + "' WHERE id=" + query.value(0).toString());
+						qDebug() << "  failed: " << e.message();
+					}
+				}
 			}
 		}
 		*/
@@ -3997,83 +4009,11 @@ void MainWindow::exportGSvar()
 
 void MainWindow::on_actionPreferredTranscripts_triggered()
 {
-	//check if preferred transcripts file can be modified
-	QString filename = GSvarHelper::applicationBaseName() + "_preferred_transcripts.tsv";
-	if (!Helper::isWritable(filename))
-	{
-		QMessageBox::warning(this, "Preferred transcripts not editable", "Preferred transcripts file is read-only for you.\nPlease ask the administrator to add preferred transcripts for you!");
-		return;
-	}
+	PreferredTranscriptsWidget* widget = new PreferredTranscriptsWidget();
+	auto dlg = GUIHelper::createDialog(widget, "Preferred transcripts");
+	dlg->exec();
 
-	//show dialog
-	QDateTime file_last_mod = QFileInfo(filename).lastModified();
-	QPlainTextEdit* edit = new QPlainTextEdit();
-	edit->setPlainText(Helper::loadTextFile(filename).join("\n"));
-	edit->setMinimumHeight(600);
-	edit->setMinimumWidth(500);
-	QSharedPointer<QDialog> dlg = GUIHelper::createDialog(edit, "Preferred transcripts list", "", true);
-
-	//abort on cancel
-	if (dlg->exec()!=QDialog::Accepted) return;
-
-	//check editor content
-	NGSD db;
-	QMap<QByteArray, QByteArrayList> preferred_transcripts_new;
-	QStringList lines = edit->toPlainText().split("\n");
-	foreach(QString line, lines)
-	{
-		line = line.trimmed();
-		if (line.isEmpty() || line.startsWith("#")) continue;
-
-		QByteArrayList parts = line.trimmed().toLatin1().split('\t');
-		if (parts.count()!=2)
-		{
-			QMessageBox::warning(this, "Invalid preferred transcript line", "Found line that does not contain two tab-separated colmnns:\n" + line + "\n\nAborting!");
-			return;
-		}
-
-		//check gene
-		QByteArray gene = parts[0].trimmed();
-		QPair<QString, QString> approved = db.geneToApprovedWithMessage(gene);
-		if (approved.second.startsWith("ERROR:"))
-		{
-			QMessageBox::warning(this, "Invalid preferred transcript line", "Gene name '" + gene + "' is not a HGNC-approved name!\n\nAborting!");
-			return;
-		}
-		gene = approved.first.toLatin1();
-
-		//remove version number if present (NM_000543.3 => NM_000543.)
-		QByteArrayList transcripts = parts[1].split(',');
-		foreach(QByteArray transcript, transcripts)
-		{
-			transcript = transcript.trimmed();
-			if (transcript.isEmpty()) continue;
-			if (transcript.contains("."))
-			{
-				transcript = transcript.left(transcript.lastIndexOf('.'));
-			}
-
-			preferred_transcripts_new[gene].append(transcript);
-		}
-	}
-
-	//prevent overwriting changes done by others since opening the dialog
-	if (file_last_mod < QFileInfo(filename).lastModified())
-	{
-		QMessageBox::warning(this, "Cannot write preferred transcripts", "Preferred transcripts were changed by another GSvar instance.\nPlease re-do your changes!");
-		return;
-	}
-
-	//store
-	auto file = Helper::openFileForWriting(filename);
-	QTextStream stream(file.data());
-	for(auto it = preferred_transcripts_new.begin(); it!=preferred_transcripts_new.end(); ++it)
-	{
-		stream << it.key() << "\t" << it.value().join(", ") << "\n";
-	}
-	file->close();
-
-	//re-load preferred transcripts
+	//re-load preferred transcripts from NGSD
 	GSvarHelper::preferredTranscripts(true);
 }
 

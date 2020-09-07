@@ -11,7 +11,7 @@ SequencingRunOverview::SequencingRunOverview(QWidget *parent)
 	, init_timer_(this, true)
 {
 	ui_.setupUi(this);
-	connect(ui_.text_filter, SIGNAL(editingFinished()), this, SLOT(updateTable()));
+	connect(ui_.text_filter, SIGNAL(returnPressed()), this, SLOT(updateTable()));
 	connect(ui_.text_filter_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
 	connect(ui_.add_btn, SIGNAL(clicked(bool)), this, SLOT(addRun()));
 	connect(ui_.table, SIGNAL(rowDoubleClicked(int)), this, SLOT(openRunTab(int)));
