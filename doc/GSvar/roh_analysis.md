@@ -23,6 +23,11 @@ The cummulative ROH size is plotted against the degree of relatedness:
 
 ![alt text](roh_consanguinity.png)
 
+The following histograms show the size sum distribution of **class B/C ROHs (i.e. &le; 500Kb)** for WGS (Illumina TruSeq DNA PCR-Free) and WES (Agilent SureSelect Human All Exon v7):
+
+![alt text](roh_distribution.png)
+
+In both assays, a size sum of class B/C ROHs &ge; 70 Mb is a good indicator of consanguinity (unless there are other sources of ROHs like large deletions).
 
 ### ROH viewing and filtering
 
@@ -60,24 +65,3 @@ The screenshot below shows a 6Mb heterozygous deletion, indicated by the selecti
 --
 
 [back to main page](index.md)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
