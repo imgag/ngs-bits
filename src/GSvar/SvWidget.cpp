@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QCompleter>
+#include <QDesktopServices>
 #include "SvWidget.h"
 #include "ui_SvWidget.h"
 #include "Helper.h"
@@ -19,7 +20,7 @@
 #include "VariantTable.h"
 #include "ReportVariantDialog.h"
 #include "SvSearchWidget.h"
-#include <QDesktopServices>
+#include "VariantDetailsDockWidget.h"
 
 SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* variant_filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent, bool ini_gui)
 	: QWidget(parent)
@@ -115,7 +116,13 @@ void SvWidget::initGUI()
 		if(!annotations_to_show_.contains(header)) continue;
 
 		ui->svs->setColumnCount(ui->svs->columnCount() + 1 );
-		ui->svs->setHorizontalHeaderItem(ui->svs->columnCount() - 1, new QTableWidgetItem(QString(header)));
+		QTableWidgetItem* item = new QTableWidgetItem(QString(header));
+		if (header=="OMIM")
+		{
+			item->setIcon(QIcon("://Icons/Table.png"));
+			item->setToolTip("Double click table cell to open table view of annotations");
+		}
+		ui->svs->setHorizontalHeaderItem(ui->svs->columnCount() - 1, item);
 		annotation_indices << i;
 	}
 
@@ -653,10 +660,25 @@ void SvWidget::SvDoubleClicked(QTableWidgetItem *item)
 {
 	if (item==nullptr) return;
 
+	int col = item->column();
 	int row = item->row();
-	QString coords = sv_bedpe_file_[row].positionRange();
 
-	emit openInIGV(coords);
+	QString col_name = item->tableWidget()->horizontalHeaderItem(col)->text();
+	if (col_name=="OMIM")
+	{
+		int omim_index = sv_bedpe_file_.annotationHeaders().indexOf("OMIM");
+
+		QString text = sv_bedpe_file_[row].annotations()[omim_index].trimmed();
+		if (text.trimmed()!="")
+		{
+			VariantDetailsDockWidget::showOverviewTable("OMIM entries of ROH " +  sv_bedpe_file_[row].toString(), text, ';', "https://www.omim.org/entry/");
+		}
+	}
+	else
+	{
+		QString coords = sv_bedpe_file_[row].positionRange();
+		emit openInIGV(coords);
+	}
 }
 
 void SvWidget::disableGUI(const QString& message)

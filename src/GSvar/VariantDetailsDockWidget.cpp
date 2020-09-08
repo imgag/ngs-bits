@@ -14,6 +14,7 @@
 #include "HttpHandler.h"
 #include "GSvarHelper.h"
 #include "LoginManager.h"
+#include "GUIHelper.h"
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	: QWidget(parent)
@@ -262,7 +263,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="ClinVar")
 		{
-			foreach(const DBEntry& entry, parseDB(anno))
+			foreach(const DBEntry& entry, parseDB(anno, ';'))
 			{
 				//determine color
 				Color color = NONE;
@@ -278,7 +279,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="HGMD")
 		{
-			foreach(const DBEntry& entry, parseDB(anno))
+			foreach(const DBEntry& entry, parseDB(anno, ';'))
 			{
 				//determine color
 				Color color = NONE;
@@ -817,4 +818,77 @@ QList<KeyValuePair> VariantDetailsDockWidget::DBEntry::splitByName() const
 	}
 
 	return output;
+}
+
+void VariantDetailsDockWidget::showOverviewTable(QString title, QString text, char sep, QByteArray url_prefix)
+{
+	//determine headers
+	QList<DBEntry> entries = parseDB(text, sep);
+	QStringList headers;
+	headers << "ID";
+	foreach(const DBEntry& entry, entries)
+	{
+		QList<KeyValuePair> parts = entry.splitByName();
+		foreach(const KeyValuePair& pair, parts)
+		{
+			if (!headers.contains(pair.key))
+			{
+				headers << pair.key;
+			}
+		}
+	}
+
+	//set up table widget
+	QTableWidget* table = new QTableWidget();
+	table->setRowCount(entries.count());
+	table->setColumnCount(headers.count());
+	table->setHorizontalHeaderLabels(headers);
+	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	table->setAlternatingRowColors(true);
+	table->setWordWrap(false);
+	table->setSelectionMode(QAbstractItemView::SingleSelection);
+	table->setSelectionBehavior(QAbstractItemView::SelectItems);
+	table->verticalHeader()->setVisible(false);
+	int row = 0;
+	foreach(const DBEntry& entry, entries)
+	{
+		QString id = entry.id.trimmed();
+		if (!url_prefix.isEmpty()) //URL
+		{
+			QLabel* label = GUIHelper::createLinkLabel("<a href='" + url_prefix + id + "'>" + id + "</a>");
+			table->setCellWidget(row, 0, label);
+		}
+		else
+		{
+			table->setItem(row, 0, new QTableWidgetItem(id));
+		}
+
+		QList<KeyValuePair> parts = entry.splitByName();
+		foreach(const KeyValuePair& pair, parts)
+		{
+			int col = headers.indexOf(pair.key);
+
+			QString text = pair.value.trimmed();
+			if (text.startsWith("http://") || text.startsWith("https://")) //URL
+			{
+				QLabel* label = GUIHelper::createLinkLabel("<a href='" + text + "'>" + text + "</a>");
+				table->setCellWidget(row, col, label);
+			}
+			else
+			{
+				table->setItem(row, col, new QTableWidgetItem(text));
+			}
+		}
+
+		++row;
+	}
+
+	//show table
+	auto dlg = GUIHelper::createDialog(table, title);
+	dlg->setMinimumSize(1200, 800);
+	GUIHelper::resizeTableCells(table);
+	dlg->exec();
+
+	//delete
+	delete table;
 }

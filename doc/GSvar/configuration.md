@@ -69,14 +69,6 @@ Lines that contain  `#---` insert a separator. They are used to group filters.
 
 ## Other files
 
-### GSvar\_preferred\_transcripts.tsv
-
-This file contains [preferred transcripts](preferred_transcripts.md).
-
-Each line starts the a gene name followed by one or more ENST transcripts without version number.
-
-*Note:* The separator used is tab, also between transcripts!
-
 ### GSvar\_special\_regions.tsv
 
 This file contains special regions for sub-panel design.

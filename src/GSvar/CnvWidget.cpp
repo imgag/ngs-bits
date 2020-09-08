@@ -138,24 +138,24 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 
 		if (col_name=="cn_pathogenic")
 		{
-			showSpecialTable(title, text, "");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',');
 		}
 		if (col_name=="dosage_sensitive_disease_genes")
 		{
-			showSpecialTable(title, text, "https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=");
 		}
 		if (col_name=="clinvar_cnvs")
 		{
-			showSpecialTable(title, text, "https://www.ncbi.nlm.nih.gov/clinvar/variation/");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://www.ncbi.nlm.nih.gov/clinvar/variation/");
 		}
 		if (col_name=="hgmd_cnvs")
 		{
-			showSpecialTable(title, text, "https://portal.biobase-international.com/hgmd/pro/mut.php?acc=");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://portal.biobase-international.com/hgmd/pro/mut.php?acc=");
 		}
 		if (col_name=="omim")
 		{
 			text = text.replace('_', ' ');
-			showSpecialTable(title, text, "https://www.omim.org/entry/");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://www.omim.org/entry/");
 		}
 	}
 	else
@@ -647,19 +647,6 @@ void CnvWidget::showContextMenu(QPoint p)
 	}
 }
 
-void CnvWidget::openLink(int row, int col)
-{
-	auto table = qobject_cast<QTableWidget*>(sender());
-	if (table==nullptr) return;
-	auto item = table->item(row, col);
-	if (item==nullptr) return;
-
-	QString url = item->data(Qt::UserRole).toString();
-	if (url.isEmpty()) return;
-
-	QDesktopServices::openUrl(QUrl(url));
-}
-
 void CnvWidget::proposeQualityIfUnset()
 {
 	if (callset_id_=="") return;
@@ -840,78 +827,6 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 	}
 }
 
-void CnvWidget::showSpecialTable(QString col, QString text, QByteArray url_prefix)
-{
-	//determine headers
-	auto entries = VariantDetailsDockWidget::parseDB(text, ',');
-	QStringList headers;
-	headers << "ID";
-	foreach(const VariantDetailsDockWidget::DBEntry& entry, entries)
-	{
-		QList<KeyValuePair> parts = entry.splitByName();
-		foreach(const KeyValuePair& pair, parts)
-		{
-			if (!headers.contains(pair.key))
-			{
-				headers << pair.key;
-			}
-		}
-	}
-
-	//set up table widget
-	QTableWidget* table = new QTableWidget();
-	table->setRowCount(entries.count());
-	table->setColumnCount(headers.count());
-	for(int col=0; col<headers.count(); ++col)
-	{
-		auto item = new QTableWidgetItem(headers[col]);
-		if (col==0 && !url_prefix.isEmpty())
-		{
-			item->setIcon(QIcon(":/Icons/Link.png"));
-			item->setToolTip("Double click cell to open external link for the entry");
-		}
-		table->setHorizontalHeaderItem(col, item);
-	}
-	if (!url_prefix.isEmpty())
-	{
-		connect(table, SIGNAL(cellDoubleClicked(int,int)), this, SLOT(openLink(int,int)));
-	}
-	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	table->setAlternatingRowColors(true);
-	table->setWordWrap(false);
-	table->setSelectionMode(QAbstractItemView::SingleSelection);
-	table->setSelectionBehavior(QAbstractItemView::SelectItems);
-	table->verticalHeader()->setVisible(false);
-	int row = 0;
-	foreach(VariantDetailsDockWidget::DBEntry entry, entries)
-	{
-		QString id = entry.id.trimmed();
-		auto item = new QTableWidgetItem(id);
-		if (!url_prefix.isEmpty())
-		{
-			item->setData(Qt::UserRole, url_prefix + id);
-		}
-		table->setItem(row, 0, item);
-
-		QList<KeyValuePair> parts = entry.splitByName();
-		foreach(const KeyValuePair& pair, parts)
-		{
-			int col = headers.indexOf(pair.key);
-			table->setItem(row, col, new QTableWidgetItem(pair.value));
-		}
-
-		++row;
-	}
-
-	//show table
-	auto dlg = GUIHelper::createDialog(table, col);
-	dlg->setMinimumSize(1200, 800);
-	GUIHelper::resizeTableCells(table);
-	dlg->exec();
-
-	//delete
-	delete table;
-}
 void CnvWidget::updateStatus(int shown)
 {
 	QString text = QString::number(shown) + "/" + QString::number(cnvs_.count()) + " passing filter(s)";

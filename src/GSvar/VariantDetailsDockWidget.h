@@ -39,7 +39,10 @@ public:
 		QList<KeyValuePair> splitByName() const;
 	};
 	//Parse database entries (OMIM, ClinVar, HGMD, ...) to a map (ID=>details).
-	static QList<DBEntry> parseDB(QString anno, char sep=';');
+	static QList<DBEntry> parseDB(QString anno, char sep);
+
+	//Opens a overview table with details and link (is url_prefix is set)
+	static void showOverviewTable(QString title, QString text, char sep, QByteArray url_prefix = "");
 
 signals:
 	void jumbToRegion(QString region);
