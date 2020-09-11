@@ -145,7 +145,7 @@ void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, i
 	//get variants in chromosomal range
 	QList<QStringList> var_data;
 	QString af = QString::number(ui_.filter_af->value()/100.0);
-	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<'" + QString::number(end) + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start";
+	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start";
 	SqlQuery query = db.getQuery();
 	query.exec(query_text);
 	while(query.next())
