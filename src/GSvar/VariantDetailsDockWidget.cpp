@@ -85,6 +85,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
 	ui->label_genesplicer->setToolTip(vl.annotationDescriptionByName("GeneSplicer").description());
 	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
+	ui->label_mmsplice->setToolTip(vl.annotationDescriptionByName("MMSplice").description());
 	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false).description());
 
 	//NGSD (all optional)
@@ -167,6 +168,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->maxentscan, vl, index, "MaxEntScan");
 	setAnnotation(ui->genesplicer, vl, index, "GeneSplicer");
 	setAnnotation(ui->dbscsnv, vl, index, "dbscSNV");
+	setAnnotation(ui->mmsplice, vl, index, "MMSplice");
 	setAnnotation(ui->regulatory, vl, index, "regulatory");
 
 	//NGSD
