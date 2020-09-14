@@ -259,16 +259,37 @@ void SvWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by report config
-		if (ui->filter_widget->reportConfigurationOnly())
+		ReportConfigFilter rc_filter = ui->filter_widget->reportConfigurationFilter();
+		if (rc_filter!=ReportConfigFilter::NONE)
 		{
 			for(int row=0; row<row_count; ++row)
 			{
 				if (!filter_result.flags()[row]) continue;
-				if(!is_somatic_) filter_result.flags()[row] = report_config_->exists(VariantType::SVS, row);
+
+				if (rc_filter==ReportConfigFilter::HAS_RC)
+				{
+					if(is_somatic_)
+					{
+						//TODO > AXEL
+					}
+					else
+					{
+						filter_result.flags()[row] = report_config_->exists(VariantType::SVS, row);
+					}
+				}
+				else if (rc_filter==ReportConfigFilter::NO_RC)
+				{
+					if(is_somatic_)
+					{
+						//TODO > AXEL
+					}
+					else
+					{
+						filter_result.flags()[row] = !report_config_->exists(VariantType::SVS, row);
+					}
+				}
 			}
 		}
-
-
 
 		//filter by ROI
 		QString roi = ui->filter_widget->targetRegion();
@@ -770,7 +791,7 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 void SvWidget::updateReportConfigHeaderIcon(int row)
 {
 	//report config-based filter is on => update whole variant list
-	if (ui->filter_widget->reportConfigurationOnly())
+	if (ui->filter_widget->reportConfigurationFilter()!=ReportConfigFilter::NONE)
 	{
 		applyFilters();
 	}

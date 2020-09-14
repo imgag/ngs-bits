@@ -48,7 +48,7 @@ public:
 	void setPhenotypes(const QList<Phenotype>& phenotypes);
 
 	//Returns if only CNVs with report config should be shown
-	bool reportConfigurationOnly() const;
+	ReportConfigFilter reportConfigurationFilter() const;
 
 signals:
 	//Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)

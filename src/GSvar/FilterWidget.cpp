@@ -37,7 +37,7 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
-	connect(ui_.report_config, SIGNAL(stateChanged(int)), this, SLOT(reportConfigFilterChanged()));
+	connect(ui_.report_config, SIGNAL(currentIndexChanged(int)), this, SLOT(reportConfigFilterChanged()));
 
 	QAction* action = new QAction("clear", this);
 	connect(action, &QAction::triggered, this, &FilterWidget::clearTargetRegion);
@@ -151,12 +151,12 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 		ui_.gene_warning->setHidden(true);
 	}
 
-    //gene
+	//gene
     last_genes_.clear();
     ui_.gene->clear();
 	ui_.text->clear();
 	ui_.region->clear();
-	ui_.report_config->setCheckState(Qt::Unchecked);
+	ui_.report_config->setCurrentIndex(0);
 
 	//phenotype
 	phenotypes_.clear();
@@ -265,14 +265,23 @@ void FilterWidget::setRegion(QString region)
 	regionChanged();
 }
 
-bool FilterWidget::reportConfigurationVariantsOnly() const
+ReportConfigFilter FilterWidget::reportConfigurationFilter() const
 {
-	return ui_.report_config->isChecked();
+	if (ui_.report_config->currentIndex()==1)
+	{
+		return ReportConfigFilter::HAS_RC;
+	}
+	else if (ui_.report_config->currentIndex()==2)
+	{
+		return ReportConfigFilter::NO_RC;
+	}
+
+	return ReportConfigFilter::NONE;
 }
 
-void FilterWidget::disableReportConfigurationVariantsOnly() const
+void FilterWidget::disableReportConfigurationFilter() const
 {
-	ui_.report_config->setChecked(false);
+	ui_.report_config->setCurrentIndex(0);
 	ui_.report_config->setEnabled(false);
 }
 

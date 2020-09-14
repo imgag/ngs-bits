@@ -38,7 +38,7 @@ FilterWidgetSV::FilterWidgetSV(QWidget *parent)
 	connect(ui_.region_import, SIGNAL(clicked(bool)), this, SLOT(importRegion()));
 	connect(ui_.gene_import, SIGNAL(clicked(bool)), this, SLOT(importGene()));
 	connect(ui_.text_import, SIGNAL(clicked(bool)), this, SLOT(importText()));
-	connect(ui_.report_config, SIGNAL(clicked(bool)), this, SLOT(regionChanged()));
+	connect(ui_.report_config, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
 	connect(ui_.calculate_gene_overlap, SIGNAL(clicked(bool)), this, SLOT(calculateGeneOverlap()));
 
 	QAction* action = new QAction("clear", this);
@@ -163,9 +163,18 @@ void FilterWidgetSV::setPhenotypes(const QList<Phenotype>& phenotypes)
 	phenotypesChanged();
 }
 
-bool FilterWidgetSV::reportConfigurationOnly() const
+ReportConfigFilter FilterWidgetSV::reportConfigurationFilter() const
 {
-	return ui_.report_config->isChecked();
+	if (ui_.report_config->currentIndex()==1)
+	{
+		return ReportConfigFilter::HAS_RC;
+	}
+	else if (ui_.report_config->currentIndex()==2)
+	{
+		return ReportConfigFilter::NO_RC;
+	}
+
+	return ReportConfigFilter::NONE;
 }
 
 

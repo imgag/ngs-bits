@@ -361,14 +361,35 @@ void CnvWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by report config
-		if (ui->filter_widget->reportConfigurationOnly())
+		ReportConfigFilter rc_filter = ui->filter_widget->reportConfigurationFilter();
+		if (rc_filter!=ReportConfigFilter::NONE)
 		{
 			for(int r=0; r<rows; ++r)
 			{
 				if (!filter_result.flags()[r]) continue;
 
-				if(!is_somatic_) filter_result.flags()[r] = report_config_->exists(VariantType::CNVS, r);
-				else filter_result.flags()[r] = somatic_report_config_->exists(VariantType::CNVS, r);
+				if (rc_filter==ReportConfigFilter::HAS_RC)
+				{
+					if(is_somatic_)
+					{
+						filter_result.flags()[r] = somatic_report_config_->exists(VariantType::CNVS, r);
+					}
+					else
+					{
+						filter_result.flags()[r] = report_config_->exists(VariantType::CNVS, r);
+					}
+				}
+				else if (rc_filter==ReportConfigFilter::NO_RC)
+				{
+					if(is_somatic_)
+					{
+						filter_result.flags()[r] = !somatic_report_config_->exists(VariantType::CNVS, r);
+					}
+					else
+					{
+						filter_result.flags()[r] = !report_config_->exists(VariantType::CNVS, r);
+					}
+				}
 			}
 		}
 
@@ -753,7 +774,7 @@ void CnvWidget::showQcMetricHistogram()
 void CnvWidget::updateReportConfigHeaderIcon(int row)
 {
 	//report config-based filter is on => update whole variant list
-	if (ui->filter_widget->reportConfigurationOnly())
+	if (ui->filter_widget->reportConfigurationFilter()!=ReportConfigFilter::NONE)
 	{
 		applyFilters();
 	}

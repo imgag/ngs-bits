@@ -8,6 +8,14 @@
 #include "Phenotype.h"
 #include "FilterCascade.h"
 
+//Filter settings for report configuration
+enum class ReportConfigFilter
+{
+	NONE,
+	NO_RC,
+	HAS_RC
+};
+
 //Filter manager dock widget
 class FilterWidget
 	: public QWidget
@@ -46,9 +54,9 @@ public:
 	/// Sets the single target region filter, or an empty string if unset.
 	void setRegion(QString region);
 	/// Returns the state of the report configuration
-	bool reportConfigurationVariantsOnly() const;
+	ReportConfigFilter reportConfigurationFilter() const;
 	/// Disables checkbox for option of reportConfigurationVariantsOnly
-	void disableReportConfigurationVariantsOnly() const;
+	void disableReportConfigurationFilter() const;
 
 	///Returns selected phenotype terms.
 	const QList<Phenotype>& phenotypes() const;
