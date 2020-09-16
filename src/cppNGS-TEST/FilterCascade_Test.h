@@ -1465,6 +1465,26 @@ private slots:
 	}
 
 
+	/********************************************* store/load all filters *********************************************/
 
+	void store_and_load()
+	{
+		QString tmp_file = Helper::tempFileName(".txt");
+		QStringList names = FilterFactory::filterNames();
+		foreach(QString name, names)
+		{
+			//store
+			FilterCascade filter_cascade;
+			filter_cascade.add(FilterFactory::create(name));
+			filter_cascade.store(tmp_file);
+
+			//load
+			FilterCascade filter_cascade2;
+			filter_cascade2.load(tmp_file);
+
+			//compare
+			IS_TRUE(filter_cascade==filter_cascade2);
+		}
+	}
 
 };

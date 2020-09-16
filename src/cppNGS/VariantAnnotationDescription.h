@@ -19,7 +19,7 @@ public:
 	VariantAnnotationDescription(const QString& name, const QString& description, AnnotationType type=STRING);
 
 	///==Operator (two different INFO or FORMAT annotation can't have same ID in vcf)
-	bool operator==(VariantAnnotationDescription b)
+	bool operator==(VariantAnnotationDescription b) const
 	{
 		return (this->name_==b.name_);
 	}
@@ -70,7 +70,7 @@ public:
 	VariantAnnotationHeader(const QString& name);
 
 	///==Operator (two different INFO or FORMAT annotation can't have same ID in vcf)
-	bool operator==(VariantAnnotationHeader b)
+	bool operator==(VariantAnnotationHeader b) const
 	{
 		return (this->name_==b.name_);
 	}

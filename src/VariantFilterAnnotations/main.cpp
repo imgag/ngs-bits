@@ -86,13 +86,7 @@ public:
 
 		//create filter cascade
 		FilterCascade filter_cascade;
-		QStringList filters_file = Helper::loadTextFile(getInfile("filters"), true, '#', true);
-		foreach(QString filter_line, filters_file)
-		{
-			QStringList parts = filter_line.split("\t");
-			QString name = parts[0];
-			filter_cascade.add(FilterFactory::create(name, parts.mid(1)));
-		}
+		filter_cascade.load(getInfile("filters"));
 
 		//apply filters
 		FilterResult result = filter_cascade.apply(variants);

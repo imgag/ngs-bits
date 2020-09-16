@@ -158,7 +158,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJobSample
 	QString name;
 	QString info;
 
-	bool operator==(const AnalysisJobSample& rhs)
+	bool operator==(const AnalysisJobSample& rhs) const
 	{
 		return name==rhs.name && info==rhs.info;
 	}

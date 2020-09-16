@@ -16,6 +16,25 @@ FilterParameter::FilterParameter(QString n, FilterParameterType t, QVariant v, Q
 {
 }
 
+QString FilterParameter::valueAsString() const
+{
+	if (type==INT || type==DOUBLE || type==STRING)
+	{
+		return value.toString();
+	}
+	else if (type==BOOL)
+	{
+		return value.toBool() ? "yes" : "no";
+	}
+	else if (type==STRINGLIST)
+	{
+		return value.toStringList().join(",");
+	}
+	else
+	{
+		THROW(ProgrammingException, "Missing type in FilterParameter::typeAsString!");
+	}
+}
 
 QString FilterParameter::typeAsString(FilterParameterType type)
 {
@@ -43,6 +62,16 @@ QString FilterParameter::typeAsString(FilterParameterType type)
 	{
 		THROW(ProgrammingException, "Missing type in FilterParameter::typeAsString!");
 	}
+}
+
+bool FilterParameter::operator==(const FilterParameter& rhs) const
+{
+	if (name!=rhs.name) return false;
+	if (type!=rhs.type) return false;
+	if (value.type()!=rhs.value.type()) return false;
+	if (valueAsString()!=rhs.valueAsString()) return false;
+
+	return true;
 }
 
 
@@ -686,6 +715,75 @@ QStringList FilterCascade::errors(int index) const
 	return errors_[index];
 }
 
+void FilterCascade::load(QString filename)
+{
+	//clear contents
+	clear();
+
+	//load filters from file
+	QStringList lines = Helper::loadTextFile(filename, true, QChar::Null, true);
+	this->operator=(fromText(lines));
+}
+
+void FilterCascade::store(QString filename)
+{
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+	foreach(QSharedPointer<FilterBase> filter, filters_)
+	{
+		QStringList params;
+		foreach(const FilterParameter& param, filter->parameters())
+		{
+			params << param.name + "=" + param.valueAsString();
+		}
+		if (!filter->enabled()) params << "disabled";
+
+		QString line = filter->name() + "\t" + params.join("\t") + "\n";
+
+		file->write(line.toLatin1());
+	}
+	file->close();
+}
+
+FilterCascade FilterCascade::fromText(const QStringList& lines)
+{
+	FilterCascade output;
+
+	foreach(QString line, lines)
+	{
+		line = line.trimmed();
+		if (line.isEmpty()) continue;
+
+		QStringList parts = line.split("\t");
+		QString name = parts[0];
+		output.add(FilterFactory::create(name, parts.mid(1)));
+	}
+
+	return output;
+}
+
+bool FilterCascade::operator==(const FilterCascade& rhs) const
+{
+	if (filters_.count()!=rhs.filters_.count()) return false;
+	for (int i=0; i<filters_.count(); ++i)
+	{
+		QSharedPointer<FilterBase> f1 = filters_[i];
+		QSharedPointer<FilterBase> f2 = rhs.filters_[i];
+
+		//comare name/type
+		if (f1->name()!=f2->name()) return false;
+		if (f1->type()!=f2->type()) return false;
+
+		//compare parameters
+		if (f1->parameters().count()!=f2->parameters().count()) return false;
+		for (int j=0; j<f1->parameters().count(); ++j)
+		{
+			if (f1->parameters()[j]!=f2->parameters()[j]) return false;
+		}
+	}
+
+	return true;
+}
+
 /*************************************************** FilterCascadeFile ***************************************************/
 
 QStringList FilterCascadeFile::names(QString filename)
@@ -705,12 +803,12 @@ QStringList FilterCascadeFile::names(QString filename)
 
 FilterCascade FilterCascadeFile::load(QString filename, QString filter)
 {
-	FilterCascade output;
-
 	QStringList filter_file = Helper::loadTextFile(filename, true, QChar::Null, true);
 
+	//extract text of filter
+	QStringList filter_text;
 	bool in_filter = false;
-	foreach(QString line, filter_file)
+	foreach(const QString& line, filter_file)
 	{
 		if (line.startsWith("#"))
 		{
@@ -718,13 +816,11 @@ FilterCascade FilterCascadeFile::load(QString filename, QString filter)
 		}
 		else if (in_filter)
 		{
-			QStringList parts = line.trimmed().split('\t');
-			QString name = parts[0];
-			output.add(FilterFactory::create(name, parts.mid(1)));
+			filter_text << line;
 		}
 	}
 
-	return output;
+	return FilterCascade::fromText(filter_text);
 }
 
 

@@ -75,13 +75,13 @@ class CPPNGSSHARED_EXPORT GeneSet
 		}
 
 		///Equality check
-		bool operator==(const GeneSet& rhs)
+		bool operator==(const GeneSet& rhs) const
 		{
 			return QList<QByteArray>::operator ==(rhs);
 		}
 
 		///Inequality check
-		bool operator!=(const GeneSet& rhs)
+		bool operator!=(const GeneSet& rhs) const
 		{
 			return QList<QByteArray>::operator!=(rhs);
 		}
