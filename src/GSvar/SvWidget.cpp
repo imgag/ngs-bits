@@ -21,6 +21,7 @@
 #include "ReportVariantDialog.h"
 #include "SvSearchWidget.h"
 #include "VariantDetailsDockWidget.h"
+#include "ValidationDialog.h"
 
 SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* variant_filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent, bool ini_gui)
 	: QWidget(parent)
@@ -523,6 +524,55 @@ double SvWidget::alleleFrequency(int row,const QByteArray& read_type)
 	else return 0;
 }
 
+void SvWidget::editSvValidation(int row)
+{
+	BedpeLine& sv = sv_bedpe_file_[row];
+
+	try
+	{
+		NGSD db;
+
+		//get SV ID
+		QString callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_id_).toString();
+		if (callset_id == "") THROW(DatabaseException, "No callset found for processed sample id " + ps_id_ + "!");
+		QString sv_id = db.svId(sv, Helper::toInt(callset_id, "callset_id"), sv_bedpe_file_);
+		if (sv_id == "") THROW(DatabaseException, "SV not found in the NGSD! ");
+
+
+		//get sample ID
+		QString sample_id = db.sampleId(db.processedSampleName(ps_id_));
+
+		//get variant validation ID - add if missing
+		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE "+ db.svTableName(sv.type()) + "_id='" + sv_id + "' AND sample_id='" + sample_id + "'", true);
+		if (!val_id.isValid())
+		{
+			//insert
+			SqlQuery query = db.getQuery();
+			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_type, " + db.svTableName(sv.type()) + "_id, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','SV','" + sv_id + "','n/a')");
+			val_id = query.lastInsertId();
+		}
+
+		ValidationDialog dlg(this, val_id.toInt());
+
+		if (dlg.exec())
+		{
+			//update DB
+			dlg.store();
+		}
+		else
+		{
+			// remove created but empty validation if ValidationDialog is aborted
+			SqlQuery query = db.getQuery();
+			query.exec("DELETE FROM variant_validation WHERE id=" + val_id.toString());
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+		return;
+	}
+}
+
 void SvWidget::editGermlineReportConfiguration(int row)
 {
 	if(report_config_ == nullptr)
@@ -908,6 +958,8 @@ void SvWidget::showContextMenu(QPoint pos)
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
 	a_rep_del->setEnabled(ngsd_enabled_ && !is_somatic_ && report_config_->exists(VariantType::SVS, row) && !report_config_->isFinalized());
 	menu.addSeparator();
+	QAction* a_sv_val = menu.addAction("Perform structural variant validation");
+	menu.addSeparator();
 	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching SVs in NGSD");
 	a_ngsd_search->setEnabled(ngsd_enabled_);
 	menu.addSeparator();
@@ -962,6 +1014,10 @@ void SvWidget::showContextMenu(QPoint pos)
 			report_config_->remove(VariantType::SVS, row);
 		}
 		updateReportConfigHeaderIcon(row);
+	}
+	else if (action==a_sv_val)
+	{
+		editSvValidation(row);
 	}
 	else if (action==a_ngsd_search)
 	{

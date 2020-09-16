@@ -14,6 +14,7 @@
 #include "CnvSearchWidget.h"
 #include "LoginManager.h"
 #include "GeneInfoDBs.h"
+#include "ValidationDialog.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -558,6 +559,8 @@ void CnvWidget::showContextMenu(QPoint p)
 	if(!is_somatic_) a_rep_del->setEnabled(ngsd_enabled_ && report_config_->exists(VariantType::CNVS, row) && !report_config_->isFinalized());
 	else a_rep_del->setEnabled(ngsd_enabled_ && somatic_report_config_->exists(VariantType::CNVS, row));
 	menu.addSeparator();
+	QAction* a_cnv_val = menu.addAction("Perform copy-number variant validation");
+	menu.addSeparator();
 	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching CNVs in NGSD");
 	a_ngsd_search->setEnabled(ngsd_enabled_);
 	menu.addSeparator();
@@ -632,6 +635,10 @@ void CnvWidget::showContextMenu(QPoint p)
 			emit storeSomaticReportConfiguration();
 		}
 		updateReportConfigHeaderIcon(row);
+	}
+	else if (action==a_cnv_val)
+	{
+		editCnvValidation(row);
 	}
 	else if (action==a_ngsd_search)
 	{
@@ -1059,6 +1066,59 @@ void CnvWidget::editSomaticReportConfiguration(int row)
 	somatic_report_config_->set(var_config);
 	updateReportConfigHeaderIcon(row);
 	emit storeSomaticReportConfiguration();
+}
+
+void CnvWidget::editCnvValidation(int row)
+{
+	const CopyNumberVariant& cnv = cnvs_[row];
+
+	try
+	{
+		NGSD db;
+
+		//get CNV ID
+		QString callset_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", true, ps_id_).toString();
+		if (callset_id == "") THROW(DatabaseException, "No CNV callset found for processed sample id " + ps_id_ + "!");
+		QString cnv_id = db.cnvId(cnv, Helper::toInt(callset_id, "callset_id"), false);
+		if (cnv_id == "")
+		{
+			// import CNV into NGSD
+			cnv_id = db.addCnv(Helper::toInt(callset_id, "callset_id"), cnv, cnvs_);
+		}
+
+
+		//get sample ID
+		QString sample_id = db.sampleId(db.processedSampleName(ps_id_));
+
+		//get variant validation ID - add if missing
+		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE cnv_id='" + cnv_id + "' AND sample_id='" + sample_id + "'", true);
+		if (!val_id.isValid())
+		{
+			//insert
+			SqlQuery query = db.getQuery();
+			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_type, cnv_id, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','CNV','" + cnv_id + "','n/a')");
+			val_id = query.lastInsertId();
+		}
+
+		ValidationDialog dlg(this, val_id.toInt());
+
+		if (dlg.exec())
+		{
+			//update DB
+			dlg.store();
+		}
+		else
+		{
+			// remove created but empty validation if ValidationDialog is aborted
+			SqlQuery query = db.getQuery();
+			query.exec("DELETE FROM variant_validation WHERE id=" + val_id.toString());
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+		return;
+	}
 }
 
 void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)

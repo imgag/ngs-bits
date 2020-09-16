@@ -992,7 +992,7 @@ void MainWindow::editVariantValidation(int index)
 		}
 
 		//get sample ID
-		QString sample_id = db.sampleId(filename_);
+		QString sample_id = db.sampleId(processedSampleName());
 
 		//get variant validation ID - add if missing
 		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE variant_id='" + variant_id + "' AND sample_id='" + sample_id + "'", true);
@@ -1004,7 +1004,7 @@ void MainWindow::editVariantValidation(int index)
 
 			//insert
 			SqlQuery query = db.getQuery();
-			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_id, genotype, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','" + variant_id + "','" + genotype + "','n/a')");
+			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_type, variant_id, genotype, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','SNV_INDEL','" + variant_id + "','" + genotype + "','n/a')");
 			val_id = query.lastInsertId();
 		}
 
@@ -1028,6 +1028,12 @@ void MainWindow::editVariantValidation(int index)
 
 			//mark variant list as changed
 			markVariantListChanged();
+		}
+		else
+		{
+			// remove created but empty validation if ValidationDialog is aborted
+			SqlQuery query = db.getQuery();
+			query.exec("DELETE FROM variant_validation WHERE id=" + val_id.toString());
 		}
 	}
 	catch (DatabaseException& e)

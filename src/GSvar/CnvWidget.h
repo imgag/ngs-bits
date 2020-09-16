@@ -69,6 +69,8 @@ private:
 	void updateStatus(int shown);
 	void editGermlineReportConfiguration(int row);
 	void editSomaticReportConfiguration(int row);
+	///Edit validation status of current cnv
+	void editCnvValidation(int row);
 	///Handles somatic report configuration if multiple rows are selected;
 	void editSomaticReportConfiguration(const QList<int>& rows);
 	Ui::CnvWidget* ui;

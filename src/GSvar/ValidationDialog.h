@@ -30,6 +30,8 @@ private:
 	Ui::ValidationDialog ui_;
 	NGSD db_;
 	QString val_id_;
+	QString variant_type_;
+	StructuralVariantType sv_type_;
 };
 
 #endif // VALIDATIONDIALOG_H
