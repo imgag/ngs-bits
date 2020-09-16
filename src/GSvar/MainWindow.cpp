@@ -1848,7 +1848,7 @@ void MainWindow::loadFile(QString filename)
 	}
 	else if(LoginManager::active() && somaticReportSupported())
 	{
-		ui_.filters->disableReportConfigurationFilter(); //TODO enabled and working for CNVs - why not for small variants > AXEL
+
 
 		loadSomaticReportConfig();
 	}
@@ -5356,16 +5356,32 @@ void MainWindow::applyFilters(bool debug_time)
 				}
 			}
 		}
+		else if( somaticReportSupported() && rc_filter != ReportConfigFilter::NONE) //somatic report configuration filter (show only variants with report configuration)
+		{
+			QSet<int> report_variant_indices = somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
+			for(int i=0; i<variants_.count(); ++i)
+			{
+				if ( !filter_result_.flags()[i] ) continue;
 
-		//somatic report configuration filter (include also variants that are marked as such in report config)
-		if(somaticReportSupported())
+				if (rc_filter==ReportConfigFilter::HAS_RC)
+				{
+					filter_result_.flags()[i] = report_variant_indices.contains(i);
+				}
+				else if (rc_filter==ReportConfigFilter::NO_RC)
+				{
+					filter_result_.flags()[i] = !report_variant_indices.contains(i);
+				}
+			}
+		}
+
+		//keep somatic variants that are marked with "include" in report settings (overrides possible filtering for that variant)
+		if( somaticReportSupported() && rc_filter != ReportConfigFilter::NO_RC)
 		{
 			for(int index : somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false))
 			{
 				filter_result_.flags()[index] = filter_result_.flags()[index] || somatic_report_settings_.report_config.variantConfig(index, VariantType::SNVS_INDELS).showInReport();
 			}
 		}
-
 	}
 	catch(Exception& e)
 	{
