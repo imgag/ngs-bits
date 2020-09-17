@@ -88,6 +88,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_mmsplice_deltaLogitPsi->setToolTip(vl.annotationDescriptionByName("MMSplice_DeltaLogitPSI").description());
 	ui->label_mmsplice_pathogenicity->setToolTip(vl.annotationDescriptionByName("MMSplice_pathogenicity").description());
 	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false).description());
+	ui->label_mmsplice->setToolTip("MMSplice prediction of splice-site variations.");
 
 	//NGSD (all optional)
 	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false).description());
