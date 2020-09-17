@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2020_06-111 (16.09.20)
+- Filters: Added loading/storing filters from/to file.
+- Filters: Added option to show variants without report configuration only.
+- ROHs/SVs: Added table view of OMIM column.
 
 ### 2020_06-90 (02.09.20)
 - General: searching variants in the NGSD (small variants, CNVs, SVs) is now also possible from main menu (NGSD > Variants > Search...)

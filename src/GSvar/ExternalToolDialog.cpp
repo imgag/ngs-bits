@@ -90,8 +90,13 @@ void ExternalToolDialog::browse()
 	}
 	else if (tool_name_ == "Sample similarity")
 	{
-		QString header = (mode_=="bam") ? "Select BAM file" : "Select variant list";
-		QString filter = (mode_=="bam") ? "BAM files (*.bam)" : "GSvar files (*.GSvar);;VCF files (*.VCF *.VCF.GZ)";
+		//get file names
+		QString header = "Select GSvar file";
+		if (mode_=="vcf") header = "Select VCF file";
+		if (mode_=="bam") header = "Select BAM file";
+		QString filter = "GSvar files (*.GSvar)";
+		if (mode_=="vcf") filter = "VCF files (*.vcf *.vcf.gz)";
+		if (mode_=="bam") filter = "BAM files (*.bam)";
 		QString filename1 = getFileName(header , filter);
 		if (filename1=="") return;
 		QString filename2 = getFileName(header , filter);
@@ -101,8 +106,8 @@ void ExternalToolDialog::browse()
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 		if (mode_=="bam")
 		{
-			auto geno1 = SampleSimilarity::genotypesFromBam("hg19", filename1, 30, 500, false);
-			auto geno2 = SampleSimilarity::genotypesFromBam("hg19", filename2, 30, 500, false);
+			SampleSimilarity::VariantGenotypes geno1 = SampleSimilarity::genotypesFromBam("hg19", filename1, 30, 500, false);
+			SampleSimilarity::VariantGenotypes geno2 = SampleSimilarity::genotypesFromBam("hg19", filename2, 30, 500, false);
 
 			SampleSimilarity sc;
 			sc.calculateSimilarity(geno1, geno2);
@@ -110,17 +115,28 @@ void ExternalToolDialog::browse()
 			stream << "Variants overlapping: " << QString::number(sc.olCount()) << endl;
 			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
 		}
-		else
+		else //VCF/GSvar
 		{
-			auto geno1 = SampleSimilarity::genotypesFromVcf(filename1, false, true);
-			auto geno2 = SampleSimilarity::genotypesFromVcf(filename2, false, true);
+			SampleSimilarity::VariantGenotypes geno1;
+			SampleSimilarity::VariantGenotypes geno2;
+			if (mode_=="vcf")
+			{
+				geno1 = SampleSimilarity::genotypesFromVcf(filename1, false, true);
+				geno2 = SampleSimilarity::genotypesFromVcf(filename2, false, true);
+			}
+			else
+			{
+				geno1 = SampleSimilarity::genotypesFromGSvar(filename1, false);
+				geno2 = SampleSimilarity::genotypesFromGSvar(filename2, false);
+			}
 
 			SampleSimilarity sc;
 			sc.calculateSimilarity(geno1, geno2);
 
 			stream << "Variants file1: " << QString::number(sc.noVariants1()) << endl;
 			stream << "Variants file2: " << QString::number(sc.noVariants2()) << endl;
-			stream << "Variants overlapping: " << QString::number(sc.olCount()) << endl;
+			double percentage = 100.0 * sc.olCount() / std::min(sc.noVariants1(), sc.noVariants2());
+			stream << "Variants overlapping: " << QString::number(sc.olCount()) << " (" << QString::number(percentage, 'f', 2) << "%)" << endl;
 			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
 		}
 		QApplication::restoreOverrideCursor();

@@ -3662,9 +3662,15 @@ void MainWindow::on_actionStatisticsBED_triggered()
 	dialog.exec();
 }
 
-void MainWindow::on_actionSampleSimilarityTSV_triggered()
+void MainWindow::on_actionSampleSimilarityGSvar_triggered()
 {
-	ExternalToolDialog dialog("Sample similarity", "variant list", this);
+	ExternalToolDialog dialog("Sample similarity", "gsvar", this);
+	dialog.exec();
+}
+
+void MainWindow::on_actionSampleSimilarityVCF_triggered()
+{
+	ExternalToolDialog dialog("Sample similarity", "vcf", this);
 	dialog.exec();
 }
 
