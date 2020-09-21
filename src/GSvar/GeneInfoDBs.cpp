@@ -58,6 +58,7 @@ QList<GeneDB>& GeneInfoDBs::all()
 	if (dbs_.isEmpty())
 	{
 		dbs_ << GeneDB{"ClinGen", "https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=[gene]", QIcon("://Icons/ClinGen.png"), false};
+		dbs_ << GeneDB{"ClinVar", "https://www.ncbi.nlm.nih.gov/clinvar/?term=[gene]%5Bgene%5D", QIcon("://Icons/ClinGen.png"), false};
 		dbs_ << GeneDB{"GeneCards", "http://www.genecards.org/cgi-bin/carddisp.pl?gene=[gene]", QIcon("://Icons/GeneCards.png"), false};
 		dbs_ << GeneDB{"gnomAD", "https://gnomad.broadinstitute.org/gene/[gene]", QIcon("://Icons/gnomAD.png"), false};
 		dbs_ << GeneDB{"HGMD", "https://portal.biobase-international.com/hgmd/pro/gene.php?gene=[gene]", QIcon("://Icons/HGMD.png"), false};

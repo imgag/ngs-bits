@@ -17,6 +17,11 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+## Allow adding variant outside of target region to report
+    - add checkboxes to variants in report dialog
+    - checkboxes for variants in ROI are checked and disabled
+    - checkboxes for variants ouside or ROI are unchecked and enabled
+    - only variants which are checked are added to the report config
 * Trio report: force disease_group/disease_status and outcome (import trio parents as unaffected with same disease group as child)
 * Allow ClinVar upload
     - small variants and CNVs

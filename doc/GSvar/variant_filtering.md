@@ -1,8 +1,11 @@
 ## Variant filtering
 
-GSvar provides default filters, for the most common filter operations.  
-These filters can be further modified according to user needs.
+The data format for small variants (SNVs and InDels) is the `GSvar format`.  
+It contains the variants, annotations of the variants and meta data.  
+Detailled documentation of the format can be found [here](gsvar_format.md).  
 
+The GSvar application provides default filters, for the most common filter operations.  
+These filters can be further modified according to user needs.  
 Additionally, powerful custom filters can be created by combining several filter steps.  
 A documentation of available filter steps and their parameters can be found [here](https://github.com/imgag/ngs-bits/blob/master/doc/tools/VariantFilterAnnotations.md).
 
@@ -49,17 +52,3 @@ This has both technical and biological reasons (low coverage in one sample, redu
 --
 
 [back to main page](index.md)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
