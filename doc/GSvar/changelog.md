@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2020_06-115 (16.09.20)
+- General: Validation of CNVs/SVs can can now be requested from GSvar.
+- BugFix: Fixed crash in sample similarity calculation.
+
 ### 2020_06-111 (16.09.20)
 - Filters: Added loading/storing filters from/to file.
 - Filters: Added option to show variants without report configuration only.
