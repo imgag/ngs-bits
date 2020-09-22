@@ -2,6 +2,7 @@
 
 #include "NGSD.h"
 #include "GUIHelper.h"
+#include "DBTableWidget.h"
 #include <QDialog>
 #include <QMessageBox>
 #include <QAction>
@@ -72,7 +73,8 @@ void VariantWidget::updateGUI()
 			SampleData s_data = db.getSampleData(db.getValue("SELECT sample_id FROM processed_sample WHERE id=" + ps_id).toString());
 			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
 			DiagnosticStatusData diag_data = db.getDiagnosticStatus(ps_id);
-			addItem(row, 0,  ps_data.name);
+			QTableWidgetItem* item = addItem(row, 0,  ps_data.name);
+			DBTableWidget::styleQuality(item, ps_data.quality);
 			addItem(row, 1,  s_data.name_external);
 			addItem(row, 2,  s_data.quality + " / " + ps_data.quality);
 			addItem(row, 3,  query.value(1).toString());
@@ -89,6 +91,7 @@ void VariantWidget::updateGUI()
 			addItem(row, 9, diag_data.dagnostic_status);
 			addItem(row, 10, diag_data.user);
 			addItem(row, 11, s_data.comments);
+			addItem(row, 12, ps_data.comments);
 
 			//get causal genes from report config
 			GeneSet genes_causal;
@@ -98,7 +101,7 @@ void VariantWidget::updateGUI()
 			{
 				genes_causal << query3.value(0).toByteArray().split(',');
 			}
-			addItem(row, 12, genes_causal.join(','));
+			addItem(row, 13, genes_causal.join(','));
 
 			//get candidate genes from report config
 			GeneSet genes_candidate;
@@ -108,7 +111,7 @@ void VariantWidget::updateGUI()
 			{
 				genes_candidate << query4.value(0).toByteArray().split(',');
 			}
-			addItem(row, 13, genes_candidate.join(','));
+			addItem(row, 14, genes_candidate.join(','));
 
 			++row;
 		}
@@ -129,10 +132,11 @@ void VariantWidget::delayedInitialization()
 }
 
 
-void VariantWidget::addItem(int r, int c, QString text)
+QTableWidgetItem* VariantWidget::addItem(int r, int c, QString text)
 {
 	QTableWidgetItem* item = new QTableWidgetItem(text);
 	ui_.table->setItem(r, c, item);
+	return item;
 }
 
 void VariantWidget::copyToClipboard()
