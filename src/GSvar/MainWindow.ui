@@ -296,9 +296,6 @@
                </attribute>
               </widget>
              </item>
-             <item>
-              <widget class="QDateTimeEdit" name="dateTimeEdit"/>
-             </item>
             </layout>
            </widget>
            <widget class="FilterWidget" name="filters" native="true">

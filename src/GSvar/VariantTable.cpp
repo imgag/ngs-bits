@@ -30,15 +30,15 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 
 	//header
 	setHorizontalHeaderItem(0, createTableItem("chr"));
-	horizontalHeaderItem(0)->setToolTip("Chromosome of variant");
+	horizontalHeaderItem(0)->setToolTip("Chromosome the variant is located on.");
 	setHorizontalHeaderItem(1, createTableItem("start"));
-	horizontalHeaderItem(1)->setToolTip("Genomic start position of variant");
+	horizontalHeaderItem(1)->setToolTip("Start position of the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
 	setHorizontalHeaderItem(2, createTableItem("end"));
-	horizontalHeaderItem(2)->setToolTip("Genomic end position of variant");
+	horizontalHeaderItem(2)->setToolTip("End position of the the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
 	setHorizontalHeaderItem(3, createTableItem("ref"));
-	horizontalHeaderItem(3)->setToolTip("Reference genome sequence");
+	horizontalHeaderItem(3)->setToolTip("Reference bases in the reference genome at the variant position.\n`-` in case of an insertion.");
 	setHorizontalHeaderItem(4, createTableItem("obs"));
-	horizontalHeaderItem(4)->setToolTip("Sequence observed in the sample");
+	horizontalHeaderItem(4)->setToolTip("Alternate bases observed in the sample.\n`-` in case of an deletion.");
 	for (int i=0; i<variants.annotations().count(); ++i)
 	{
 		QString anno = variants.annotations()[i].name();
