@@ -196,9 +196,9 @@ private:
 		ngsd_count_query.prepare(QString() +"SELECT s.id, dsv.processed_sample_id_tumor, p.name "
 								 + "FROM detected_somatic_variant as dsv, variant as v, "
 								 + "processed_sample ps, sample as s, project as p "
-								 + "WHERE ps.project_id=p.id "
+								 + "WHERE ps.project_id=p.id AND ps.quality!='bad' "
 								 + "AND dsv.processed_sample_id_tumor=ps.id "
-								 + "AND dsv.variant_id=v.id AND  ps.sample_id=s.id  "
+								 + "AND dsv.variant_id=v.id AND ps.sample_id=s.id  "
 								 + "AND s.tumor='1' AND v.chr=:0 AND v.start=:1 AND v.end=:2 "
 								 + "AND v.ref=:3 AND v.obs=:4");
 		db_query_sum += db_queries.elapsed();
@@ -525,7 +525,7 @@ private:
 		SqlQuery ngsd_count_query = db.getQuery();
 		ngsd_count_query.prepare(QString() + "SELECT s.id, s.disease_status, s.disease_group, dv.genotype "
 								 + "FROM detected_variant dv, processed_sample ps, sample s "
-								 + "WHERE dv.variant_id=:0 AND ps.sample_id=s.id "
+								 + "WHERE dv.variant_id=:0 AND ps.sample_id=s.id AND ps.quality!='bad'"
 								 + "AND dv.processed_sample_id=ps.id");
 		db_query_sum += db_queries.elapsed();
 
