@@ -3957,18 +3957,20 @@ void MainWindow::exportVCF()
 
 		//store
 		QFileInfo filename_info(filename_);
-		QString folder = Settings::string("gsvar_variant_export_folder").trimmed();
+		QString folder = Settings::string("gsvar_variant_export_folder", true).trimmed();
 		if (folder.isEmpty()) folder = filename_info.absolutePath();
-		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf";
-		file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf);;All files (*.*)");
+		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf.gz";
+		file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf.gz);;All files (*.*)");
 		if (file_name!="")
 		{
 			output.store(file_name);
+			QApplication::restoreOverrideCursor();
+			QMessageBox::information(this, "VCF export", "Exported VCF file with " + QString::number(output.count()) + " variants.");
 		}
-
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::information(this, "VCF export", "Exported VCF file with " + QString::number(output.count()) + " variants.");
+		else
+		{
+			QApplication::restoreOverrideCursor();
+		}
 	}
 	catch(Exception& e)
 	{
@@ -3997,18 +3999,21 @@ void MainWindow::exportGSvar()
 
 		//store
 		QFileInfo filename_info(filename_);
-		QString folder = Settings::string("gsvar_variant_export_folder").trimmed();
+		QString folder = Settings::string("gsvar_variant_export_folder", true).trimmed();
 		if (folder.isEmpty()) folder = filename_info.absolutePath();
 		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".GSvar";
 		file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "GSvar (*.gsvar);;All files (*.*)");
 		if (file_name!="")
 		{
 			output.store(file_name);
+			QApplication::restoreOverrideCursor();
+			QMessageBox::information(this, "GSvar export", "Exported GSvar file with " + QString::number(output.count()) + " variants.");
+		}
+		else
+		{
+			QApplication::restoreOverrideCursor();
 		}
 
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::information(this, "GSvar export", "Exported GSvar file with " + QString::number(output.count()) + " variants.");
 	}
 	catch(Exception& e)
 	{
