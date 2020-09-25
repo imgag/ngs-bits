@@ -82,21 +82,21 @@ void SequencingRunOverview::updateTable()
 void SequencingRunOverview::openRunTab()
 {
 	//determine name column
-	int name_col = ui_.table->columnIndex("name");
+	int col = ui_.table->columnIndex("name");
 
 	//open tabs
 	QSet<int> rows = ui_.table->selectedRows();
 	foreach (int row, rows)
 	{
-		emit openRun(ui_.table->item(row, name_col)->text());
+		emit openRun(ui_.table->item(row, col)->text());
 	}
 }
 
 void SequencingRunOverview::openRunTab(int row)
 {
-	int name_col = ui_.table->columnIndex("name");
+	int col = ui_.table->columnIndex("name");
 
-	emit openRun(ui_.table->item(row, name_col)->text());
+	emit openRun(ui_.table->item(row, col)->text());
 }
 
 void SequencingRunOverview::editRun()
@@ -111,11 +111,11 @@ void SequencingRunOverview::editRun()
 	int row = rows.toList().first();
 
 	//determine name column
-	int name_col = ui_.table->columnIndex("name");
+	int col = ui_.table->columnIndex("name");
 
 	//edit
 	DBEditor* widget = new DBEditor(this, "sequencing_run", ui_.table->getId(row).toInt());
-	auto dlg = GUIHelper::createDialog(widget, "Edit sequencing run " + ui_.table->item(row, name_col)->text() ,"", true);
+	auto dlg = GUIHelper::createDialog(widget, "Edit sequencing run " + ui_.table->item(row, col)->text() ,"", true);
 	if (dlg->exec()==QDialog::Accepted)
 	{
 		widget->store();

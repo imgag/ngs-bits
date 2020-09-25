@@ -17,7 +17,6 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-## LOVD dialog: link from variants to LOVD search
 ## Filter somatic AF (tumor-normal and tumor-only)
 ## Allow adding variant outside of target region to report
     - add checkboxes to variants in report dialog

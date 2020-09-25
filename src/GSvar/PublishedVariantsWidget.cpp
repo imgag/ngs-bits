@@ -1,3 +1,5 @@
+#include <QDesktopServices>
+#include <QMessageBox>
 #include "PublishedVariantsWidget.h"
 #include "ui_PublishedVariantsWidget.h"
 #include "NGSD.h"
@@ -14,6 +16,11 @@ PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	NGSD db;
 	ui_->f_sample->fill(db.createTable("sample", "SELECT id, name FROM sample"));
 	ui_->f_published->fill(db.createTable("user", "SELECT id, name FROM user"));
+
+	//link to LOVD
+	QAction* action = new QAction(QIcon(":/Icons/LOVD.png"), "Find in LOVD", this);
+	ui_->table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(searchForVariantInLOVD()));
 }
 
 PublishedVariantsWidget::~PublishedVariantsWidget()
@@ -84,4 +91,27 @@ void PublishedVariantsWidget::updateTable()
 	//show data
 	ui_->table->setData(table);
 	QApplication::restoreOverrideCursor();
+}
+
+void PublishedVariantsWidget::searchForVariantInLOVD()
+{
+	try
+	{
+		int col = ui_->table->columnIndex("variant");
+
+		QSet<int> rows = ui_->table->selectedRows();
+		foreach (int row, rows)
+		{
+			QString variant_text = ui_->table->item(row, col)->text();
+			Variant variant = Variant::fromString(variant_text);
+
+			int pos = variant.start();
+			if (variant.ref()=="-") pos += 1;
+			QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false) + "&search_VariantOnGenome/DNA=g." + QString::number(pos)));
+		}
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::critical(this, "LOVD search error", e.message());
+	}
 }
