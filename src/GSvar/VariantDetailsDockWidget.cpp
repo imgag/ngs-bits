@@ -85,7 +85,10 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
 	ui->label_genesplicer->setToolTip(vl.annotationDescriptionByName("GeneSplicer").description());
 	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
+	ui->label_mmsplice_deltaLogitPsi->setToolTip(vl.annotationDescriptionByName("MMSplice_DeltaLogitPSI", false).description());
+	ui->label_mmsplice_pathogenicity->setToolTip(vl.annotationDescriptionByName("MMSplice_pathogenicity", false).description());
 	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false).description());
+	ui->label_mmsplice->setToolTip("MMSplice prediction of splice-site variations.");
 
 	//NGSD (all optional)
 	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false).description());
@@ -167,6 +170,8 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->maxentscan, vl, index, "MaxEntScan");
 	setAnnotation(ui->genesplicer, vl, index, "GeneSplicer");
 	setAnnotation(ui->dbscsnv, vl, index, "dbscSNV");
+	setAnnotation(ui->mmsplice_deltaLogitPsi, vl, index, "MMSplice_DeltaLogitPSI");
+	setAnnotation(ui->mmsplice_pathogenicity, vl, index, "MMSplice_pathogenicity");
 	setAnnotation(ui->regulatory, vl, index, "regulatory");
 
 	//NGSD
