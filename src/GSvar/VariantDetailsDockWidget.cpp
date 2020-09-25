@@ -85,8 +85,8 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
 	ui->label_genesplicer->setToolTip(vl.annotationDescriptionByName("GeneSplicer").description());
 	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
-	ui->label_mmsplice_deltaLogitPsi->setToolTip(vl.annotationDescriptionByName("MMSplice_DeltaLogitPSI").description());
-	ui->label_mmsplice_pathogenicity->setToolTip(vl.annotationDescriptionByName("MMSplice_pathogenicity").description());
+	ui->label_mmsplice_deltaLogitPsi->setToolTip(vl.annotationDescriptionByName("MMSplice_DeltaLogitPSI", false).description());
+	ui->label_mmsplice_pathogenicity->setToolTip(vl.annotationDescriptionByName("MMSplice_pathogenicity", false).description());
 	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false).description());
 	ui->label_mmsplice->setToolTip("MMSplice prediction of splice-site variations.");
 
