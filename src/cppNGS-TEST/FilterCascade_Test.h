@@ -855,6 +855,49 @@ private slots:
 		I_EQUAL(result.countPassing(), 2);
 	}
 
+	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
+
+	void FilterSomaticAlleleFrequency_apply_tumor_only()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_somatic_tumor_only.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterSomaticAlleleFrequency filter;
+		filter.setDouble("min_af_tum", 50.0);
+		filter.setDouble("max_af_nor", 100.0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 6);
+
+		//error if normal cutoff is set
+		filter.setDouble("max_af_nor", 5.0);
+		IS_THROWN(ArgumentException, filter.apply(vl, result));
+	}
+
+	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
+
+	void FilterSomaticAlleleFrequency_apply_tumor_normal()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_somatic_tumor_normal.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//tumor
+		FilterSomaticAlleleFrequency filter;
+		filter.setDouble("min_af_tum", 15.0);
+		filter.setDouble("max_af_nor", 100.0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 5);
+
+		//error if normal cutoff is set
+		filter.setDouble("max_af_nor", 2.0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 4);
+	}
+
 	/********************************************* Filters for CNVs *********************************************/
 
 	void FilterCnvSize_apply()

@@ -166,7 +166,6 @@ void VariantWidget::calculateSimilarity()
 	QTableWidget* table = new QTableWidget(this);
 	table->setMinimumSize(700, 550);
 	table->setEditTriggers(QTableWidget::NoEditTriggers);
-	table->setSortingEnabled(true);
 	table->setColumnCount(6);
 	table->setHorizontalHeaderLabels(QStringList() << "s1" << "#variants s1" << "s2" << "#variants s2" << "variant overlap" << "variant overlap %");
 	int row = 0;

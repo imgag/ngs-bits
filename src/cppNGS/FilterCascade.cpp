@@ -909,6 +909,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["OMIM genes"] = &createInstance<FilterOMIM>;
 		output["Conservedness"] = &createInstance<FilterConservedness>;
 		output["Regulatory"] = &createInstance<FilterRegulatory>;
+		output["Somatic allele frequency"] = &createInstance<FilterSomaticAlleleFrequency>;
 		output["CNV size"] = &createInstance<FilterCnvSize>;
 		output["CNV regions"] = &createInstance<FilterCnvRegions>;
 		output["CNV copy-number"] = &createInstance<FilterCnvCopyNumber>;
@@ -4184,11 +4185,73 @@ void FilterSvAfNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 
 		result.flags()[i] = Helper::toDouble(svs[i].annotations()[ngsd_col_index].split('(')[1].split(')')[0], "NGSD count column", QString::number(i)) <= max_af;
 	}
-
 }
 
+FilterSomaticAlleleFrequency::FilterSomaticAlleleFrequency()
+{
+	name_ = "Somatic allele frequency";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele frequency of variants in tumor/normal samples.";
+	params_ << FilterParameter("min_af_tum", DOUBLE, 5.0, "Minimum allele frequency in tumor sample [%]");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "100.0";
+	params_ << FilterParameter("max_af_nor", DOUBLE, 1.0, "Maximum allele frequency in normal sample [%]");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "100.0";
 
+	checkIsRegistered();
+}
 
+QString FilterSomaticAlleleFrequency::toText() const
+{
+	QString text = name();
 
+	double min_af_tum = getDouble("min_af_tum", false);
+	if (min_af_tum>0.0)
+	{
+		text += " min_af_tum&ge;" + QString::number(min_af_tum) + "%";
+	}
 
+	double max_af_nor = getDouble("max_af_nor", false);
+	if (max_af_nor<1.0)
+	{
+		text += " max_af_nor&le;" + QString::number(max_af_nor) + "%";
+	}
 
+	return text;
+}
+
+void FilterSomaticAlleleFrequency::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_af_tum = getDouble("min_af_tum")/100.0;
+	if (min_af_tum>0.0)
+	{
+		int i_af = annotationColumn(variants, "tumor_af");
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (variants[i].annotations()[i_af].toDouble()<min_af_tum)
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+
+	double max_af_nor = getDouble("max_af_nor")/100.0;
+	if (max_af_nor<1.0)
+	{
+		int i_af = annotationColumn(variants, "normal_af");
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (variants[i].annotations()[i_af].toDouble()>max_af_nor)
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+}
