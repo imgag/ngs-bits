@@ -190,6 +190,12 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		conditions	<< "sp.id=s.species_id"
 					<< "sp.name='" + escapeForSql(p.s_species) + "'";
 	}
+	if (p.s_sender.trimmed()!="")
+	{
+		tables	<< "sender se";
+		conditions	<< "se.id=s.sender_id"
+					<< "se.name='" + escapeForSql(p.s_sender) + "'";
+	}
 	if (p.s_disease_group.trimmed()!="")
 	{
 		conditions << "s.disease_group='" + escapeForSql(p.s_disease_group) + "'";

@@ -16,6 +16,8 @@ NGSD:
         - study_id: INT not null
         - study_sample_idendifier: TEXT not null
         - comment: TEXT
+? Add family table linking samples in one family with "father", "mother", "child"... OR import samples relations from GenLab?? > LUCIA/TOBIAS
+? Add liquid handler robot to processed sample talbe > FLORIAN/LAB/TOBIAS
 * Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)
@@ -33,7 +35,6 @@ GSvar:
     - checkboxes for variants in ROI are checked and disabled
     - checkboxes for variants ouside or ROI are unchecked and enabled
     - only variants which are checked are added to the report config
-* NGSD: add family table linking samples in one family with "father", "mother", "child"... OR import samples relations from GenLab?? > LUCIA/TOBIAS
 * Trio report: force disease_group/disease_status and outcome (import trio parents as unaffected with same disease group as child)
 * Allow ClinVar upload
     - small variants and CNVs
