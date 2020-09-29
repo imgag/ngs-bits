@@ -807,11 +807,11 @@ void VariantList::store(QString filename) const
 	}
 }
 
-void VariantList::storeAsVCF(QString filename, const QString& reference_genome) const
+void VariantList::storeAsVCF(QString filename, const QString& reference_genome, int compression_level) const
 {
 	VcfFile vcf_file;
 	vcf_file = VcfFile::convertGSvarToVcf(*this, reference_genome);
-	vcf_file.store(filename, true);
+	vcf_file.store(filename, true, compression_level);
 }
 
 void VariantList::sort(bool use_quality)

@@ -4352,6 +4352,48 @@ int NGSD::storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_d
 	return query.lastInsertId().toInt();
 }
 
+QStringList NGSD::relatedSamples(const QString& sample_id, const QString& relation)
+{
+	// check if relation is valid
+	QString q_relation_type;
+	if (relation != "")
+	{
+		QStringList allowed_relation = getEnum("sample_relations", "relation");
+		if (!allowed_relation.contains(relation))
+		{
+			THROW(ArgumentException, "Invalid relation type '" + relation + "' given!");
+		}
+		q_relation_type = " AND relation='" + relation + "'";
+	}
+
+	QStringList related_sample_ids;
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE (sample1_id=" + sample_id + " OR sample2_id=" + sample_id + ")" + q_relation_type);
+
+	while(query.next())
+	{
+		QString id1 = query.value("sample1_id").toString();
+		QString id2 = query.value("sample2_id").toString();
+
+		if ((id1 == sample_id) && (id2 != sample_id))
+		{
+			// related sample is index 2
+			related_sample_ids << id2;
+			continue;
+		}
+		if ((id1 != sample_id) && (id2 == sample_id))
+		{
+			// related sample is index 1
+			related_sample_ids << id1;
+			continue;
+		}
+		THROW(ProgrammingException, "Sample relation does not fit query!");
+	}
+
+	return related_sample_ids;
+}
+
 SomaticReportConfigurationData NGSD::somaticReportConfigData(int id)
 {
 	SqlQuery query = getQuery();

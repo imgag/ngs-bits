@@ -540,6 +540,8 @@
    <addaction name="actionPRS"/>
    <addaction name="actionCircos"/>
    <addaction name="actionDebug"/>
+   <addaction name="actionDesignCfDNAPanel"/>
+   <addaction name="actionCfDNADiseaseCourse"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -1168,6 +1170,19 @@
   <action name="actionSampleSimilarityVCF">
    <property name="text">
     <string>based on VCF files</string>
+   </property>
+  </action>
+  <action name="actionDesignCfDNAPanel">
+   <property name="text">
+    <string>design cfDNA panel</string>
+   </property>
+   <property name="toolTip">
+    <string>design cfDNA panel</string>
+   </property>
+  </action>
+  <action name="actionCfDNADiseaseCourse">
+   <property name="text">
+    <string>course of the disease (personalized cfDNA)</string>
    </property>
   </action>
  </widget>

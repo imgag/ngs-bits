@@ -359,7 +359,7 @@ public:
     ///Stores the variant list to a file.
 	void store(QString filename) const;
 	///Stores the variant list as a VCF file (all columns are stored in INFO)
-	void storeAsVCF(QString filename, const QString& reference_genome) const;
+	void storeAsVCF(QString filename, const QString& reference_genome, int compression_level = 1) const;
 
 	///Default sorting of variants. The order is chromosome (numeric), position, ref, obs, quality (if desired - only for VCF).
 	void sort(bool use_quality = false);

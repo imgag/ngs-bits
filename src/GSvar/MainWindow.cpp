@@ -104,6 +104,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "SvSearchWidget.h"
 #include "PublishedVariantsWidget.h"
 #include "PreferredTranscriptsWidget.h"
+#include "CfDNAPanelDesignDialog.h"
+#include "DiseaseCourseWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -629,6 +631,29 @@ void MainWindow::on_actionPRS_triggered()
 	{
 		QMessageBox::warning(this, "PRS file missing", "The PRS file does not exist:\n" + prs_file_name);
 	}
+}
+
+void MainWindow::on_actionDesignCfDNAPanel_triggered()
+{
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+	if (!somaticReportSupported()) return;
+
+	int processing_system_id = NGSD().processingSystemIdFromProcessedSample(processedSampleName());
+	QString processing_system = NGSD().getProcessingSystemData(processing_system_id, true).name_short;
+
+	CfDNAPanelDesignDialog* dialog = new CfDNAPanelDesignDialog(variants_, somatic_report_settings_.report_config, processedSampleName(), processing_system, this);
+	dialog->exec();
+}
+
+void MainWindow::on_actionCfDNADiseaseCourse_triggered()
+{
+	if (filename_=="") return;
+	if (!somaticReportSupported()) return;
+
+	DiseaseCourseWidget* widget = new DiseaseCourseWidget(processedSampleName());
+	auto dlg = GUIHelper::createDialog(widget, "Course of the disease (personalized cfDNA)");
+	addModelessDialog(dlg, false);
 }
 
 void MainWindow::on_actionGeneOmimInfo_triggered()
@@ -1904,6 +1929,46 @@ void MainWindow::loadFile(QString filename)
 		ui_.actionPRS->setEnabled(true);
 
 	}
+
+
+	//activate cfDNA menu entries and get all available cfDNA samples
+	cf_dna_available = false;
+	ui_.actionDesignCfDNAPanel->setVisible(false);
+	ui_.actionCfDNADiseaseCourse->setVisible(false);
+	ui_.actionDesignCfDNAPanel->setEnabled(false);
+	ui_.actionCfDNADiseaseCourse->setEnabled(false);
+	if (somaticReportSupported())
+	{
+		ui_.actionDesignCfDNAPanel->setVisible(true);
+		ui_.actionCfDNADiseaseCourse->setVisible(true);
+
+		if (LoginManager::active())
+		{
+			ui_.actionDesignCfDNAPanel->setEnabled(true);
+			NGSD db;
+			QString sample_id;
+			QStringList same_sample_ids;
+			QStringList cf_dna_sample_ids;			
+
+			// get all same samples
+			sample_id = db.sampleId(sampleName());
+			same_sample_ids = db.relatedSamples(sample_id, "same sample");
+			same_sample_ids << sample_id; // add current sample id
+
+			// get all related cfDNA
+			foreach (QString cur_sample_id, same_sample_ids)
+			{
+				cf_dna_sample_ids.append(db.relatedSamples(cur_sample_id, "tumor-cfDNA"));
+			}
+
+			if (cf_dna_sample_ids.size() > 0)
+			{
+				ui_.actionCfDNADiseaseCourse->setEnabled(true);
+				cf_dna_available = true;
+			}
+		}
+	}
+
 }
 
 void MainWindow::on_actionAbout_triggered()

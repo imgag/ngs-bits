@@ -186,6 +186,10 @@ public slots:
 	void on_actionRE_triggered();
 	///Open PRS dialog
 	void on_actionPRS_triggered();
+	///Open cfDNA panel design dialog
+	void on_actionDesignCfDNAPanel_triggered();
+	///Open disease course dialog (cfDNA)
+	void on_actionCfDNADiseaseCourse_triggered();
 	///Open gene OMIM info dialog.
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
@@ -393,6 +397,7 @@ private:
 	ReportSettings report_settings_;
 	SomaticReportSettings somatic_report_settings_;
 	VariantList somatic_control_tissue_variants_;
+	bool cf_dna_available;
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;
