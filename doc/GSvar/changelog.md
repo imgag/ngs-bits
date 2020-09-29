@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2020_06-128 (29.09.20)
+- Sample search: Added sender field.
+- Filters: Added filter 'somatic allele frequency'.
+- General: Added support for MMSplice predictions.
+
 ### 2020_06-115 (16.09.20)
 - General: Validation of CNVs/SVs can can now be requested from GSvar.
 - BugFix: Fixed crash in sample similarity calculation.
