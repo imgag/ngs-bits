@@ -15,19 +15,17 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* Added tools: FastqDownsample
+* None so far.
 
-Changes in release 2020_06:
+Changes in release 2020_09:
 
-* Added tools: NGSDAnnotateSV, BedpeToBed, BedHighCoverage, PhenotypesToGenes, PhenotypeSubtree, CnvFilterAnnotations, BedpeFilter, TrioMaternalContamination
-* Removed tools: BamHighCoverage
-* NGSDImportHPO: Added support for new HPO annotation file format and optimized the NGSD hpo-gene relation table.
-* NGSDAddVariantsGermline: added import of structural variants
-* NGSD: Added SV report configuration
-* GSvar: Added support for SVs in report config/export, added search for SVs in the NGSD
-* BedAnnotateFromBed: Added support for reannotation of TSV files
-
-
+* Added tools: FastqDownsample, BedpeAnnotateCnvOverlap, BedpeFilter, VcfCalculatePRS
+* FastqAddBarcode/FastqConvert/FastqExtract/FastqTrim/PERsim/VariantFilterRegions/VcfLeftNormalize/VcfSort: Added output compression level parameter.
+* VariantFilterAnnotations/GSvar: Added filter 'somatic allele frequency'.
+* NGSD:
+	* Added preferred transcripts information
+	* Added sample relations 'tumor-cfDNA' and 'same patient'
+	* Added variant validation for CNVs/SVs (before only for small variants)
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
