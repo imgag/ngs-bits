@@ -64,8 +64,9 @@ SOURCES += BedFile.cpp \
     ClinvarSubmissionGenerator.cpp \
     VcfFileHelper.cpp \
     VcfFile.cpp \
+    FileLocationProvider.cpp \
+    FileLocationProviderFileSystem.cpp \
     PhenotypeList.cpp
-
 
 HEADERS += BedFile.h \
     Chromosome.h \
@@ -98,8 +99,9 @@ HEADERS += BedFile.h \
     ClinvarSubmissionGenerator.h \
     VcfFileHelper.h \
     VcfFile.h \
+    FileLocationProvider.h \
+    FileLocationProviderFileSystem.h \
     PhenotypeList.h
-
 
 RESOURCES += \
     cppNGS.qrc

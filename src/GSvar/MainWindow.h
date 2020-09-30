@@ -12,6 +12,11 @@
 #include "ReportSettings.h"
 #include "DelayedInitializationTimer.h"
 #include "SomaticReportSettings.h"
+
+
+#include "FileLocationProviderFileSystem.h"
+#include "FileLocationProviderNGSD.h"
+
 struct IgvFile
 {
 	QString id; //sample identifier/name (for visualization)

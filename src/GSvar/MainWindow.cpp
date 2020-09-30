@@ -109,6 +109,8 @@ QT_CHARTS_USE_NAMESPACE
 
 #include "ClinvarSubmissionGenerator.h"
 
+
+
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -5255,6 +5257,7 @@ QStringList MainWindow::getLogFiles()
 
 QList<IgvFile> MainWindow::getBamFiles()
 {
+
 	QList<IgvFile> output;
 
 	QString sample_folder = QFileInfo(filename_).absolutePath();
