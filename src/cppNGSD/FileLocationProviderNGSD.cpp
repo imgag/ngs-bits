@@ -3,6 +3,5 @@
 
 void FileLocationProviderNGSD::doSomethingElse()
 {
-//	getFilename();
-	//	std::cout << theOnlyInstance->getVariants();
+	std::cout << theOnlyInstance->getVariants();
 }

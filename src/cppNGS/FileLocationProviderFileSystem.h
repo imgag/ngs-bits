@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "FileLocationProvider.h"
 
-class FileLocationProviderFileSystem : public FileLocationProvider
+class CPPNGSSHARED_EXPORT FileLocationProviderFileSystem : public FileLocationProvider
 {
 public:
 	static void doSomething();
