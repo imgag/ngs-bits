@@ -1,6 +1,6 @@
 <?php
 
-include("/mnt/users/all/megSAP/src/Common/all.php");
+include("/mnt/users/bioinf/megSAP/src/Common/all.php");
 
 
 function add_times(&$data, $filename)

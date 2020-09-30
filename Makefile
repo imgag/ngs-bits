@@ -143,7 +143,14 @@ doc_find_missing_tools:
 
 find_text:
 	find src/ doc/ tools/ -name "*.md" -or -name "*.cpp" -or -name "*.h" -or -name "*.sql" -or -name "*.pro" -or -name "*.pri" | xargs -l100000 grep $(T) 
-	
+
+
+check_tool_ngsd_dependencies:
+	find src/ -name "*.pro" | xargs grep lcppNGSD | cut -f2 -d/ | egrep -v "GSvar|cppNGSD-TEST" | sort > cppNGSD_should
+	grep ".depends" src/tools.pro  | grep cppNGSD | cut -f1 -d'.' | egrep -v "cppNGS" | sort > cppNGSD_is
+	diff cppNGSD_is cppNGSD_should
+	rm -rf cppNGSD_is cppNGSD_should
+
 dummy:
 
 #################################### 3rd party  ##################################
