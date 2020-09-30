@@ -189,9 +189,9 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	selected_variants_.copyMetaData(variants_);
 
 	// get all selected variants
-	for (int r = 0; r < ui_->genes->rowCount(); ++r)
+	for (int r = 0; r < ui_->vars->rowCount(); ++r)
 	{
-		if (ui_->genes->item(r, 0)->checkState() == Qt::Checked)
+		if (ui_->vars->item(r, 0)->checkState() == Qt::Checked)
 		{
 			// get variant index
 			bool ok;

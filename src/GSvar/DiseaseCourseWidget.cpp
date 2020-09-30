@@ -73,7 +73,7 @@ void DiseaseCourseWidget::loadVariantLists()
 		cfDnaColumn cf_dna_column;
 		cf_dna_column.name = db_.processedSampleName(ps_id);
 		cf_dna_column.date = QDate::fromString(db_.getSampleData(db_.sampleId(cf_dna_column.name)).received, "dd.MM.yyyy");
-		QString cf_dna_vcf_path = db_.processedSamplePath(ps_id, NGSD::SAMPLE_FOLDER) + "/" + cf_dna_column.name + "_var_cfdna.vcf";
+		QString cf_dna_vcf_path = db_.processedSamplePath(ps_id, NGSD::SAMPLE_FOLDER) + "/" + cf_dna_column.name + "_var.vcf";
 		if (!QFile::exists(cf_dna_vcf_path))
 		{
 			QMessageBox::warning(this, "File not found", "Could not find cfDNA VCF for processed Sample " + cf_dna_column.name + "! ");
@@ -82,6 +82,14 @@ void DiseaseCourseWidget::loadVariantLists()
 		{
 			// load variant list
 			cf_dna_column.variants.load(cf_dna_vcf_path);
+
+			// create lookup table for each variant
+			cf_dna_column.lookup_table.clear();
+			for (int i=0; i<cf_dna_column.variants.count(); ++i)
+			{
+				const VcfLine& vcf_line = cf_dna_column.variants[i];
+				cf_dna_column.lookup_table.insert(vcf_line.variantToString().toUtf8(), &vcf_line);
+			}
 
 			// add to list
 			cf_dna_columns_.append(cf_dna_column);
@@ -110,8 +118,15 @@ void DiseaseCourseWidget::createTableView()
 	ui_->vars->setHorizontalHeaderItem(3, GUIHelper::createTableItem("obs"));
 	ui_->vars->horizontalHeaderItem(3)->setToolTip("Alternate bases observed in the sample.\n`-` in case of an deletion.");
 
+	int col_idx = 4;
 	// set header for sample
-	ui_->vars-> setHorizontalHeaderItem(4, GUIHelper::createTableItem(ref_column_.name + "\n(" + ref_column_.date.toString("dd.MM.yyyy") + ")"));
+	ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(ref_column_.name + "\n(" + ref_column_.date.toString("dd.MM.yyyy") + ")"));
+
+	// set cfDNA header
+	foreach (const cfDnaColumn& cf_dna_column, cf_dna_columns_)
+	{
+		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(cf_dna_column.name + "\n(" + cf_dna_column.date.toString("dd.MM.yyyy") + ")"));
+	}
 
 	for (int i=0; i<ref_column_.variants.count(); ++i)
 	{
@@ -123,7 +138,28 @@ void DiseaseCourseWidget::createTableView()
 		ui_->vars->setItem(i, 3, GUIHelper::createTableItem(variant.alt(0)));
 
 		// calculate tumor af
-		ui_->vars->setItem(i, 4, GUIHelper::createTableItem(variant.info("tumor_af")));
+		int col_idx = 4;
+		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.info("tumor_af")));
+
+		// get tumor af for each cfDNA sample
+		QByteArray key = variant.variantToString().toUtf8();
+		foreach (const cfDnaColumn& cf_dna_column, cf_dna_columns_)
+		{
+			// get variant
+			if (cf_dna_column.lookup_table.contains(key))
+			{
+				const VcfLine* cf_dna_variant = cf_dna_column.lookup_table.value(key);
+				double alt_count = Helper::toDouble(cf_dna_variant->formatValueFromSample("Alt_Count"), "Alt_Count", QString::number(i));
+				double depth = Helper::toDouble(cf_dna_variant->formatValueFromSample("DP"), "DP", QString::number(i));
+				double cf_dna_af = (depth != 0)? alt_count/depth : 0.0;
+				ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(QString::number(cf_dna_af)));
+			}
+			else
+			{
+				ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem("not detected"));
+			}
+		}
+
 	}
 
 

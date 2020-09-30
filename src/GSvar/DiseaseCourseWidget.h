@@ -11,6 +11,7 @@ struct cfDnaColumn
 	QString name;
 	QDate date;
 	VcfFile variants;
+	QMap<QByteArray, const VcfLine*> lookup_table;
 };
 
 namespace Ui {
