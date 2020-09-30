@@ -47,7 +47,8 @@ SOURCES += \
     SomaticReportConfiguration.cpp \
     LoginManager.cpp \
     SomaticXmlReportGenerator.cpp \
-    SomaticReportSettings.cpp
+    SomaticReportSettings.cpp \
+    FileLocationProviderNGSD.cpp
 
 HEADERS += \
     SqlQuery.h \
@@ -58,7 +59,8 @@ HEADERS += \
     SomaticReportConfiguration.h \
     LoginManager.h \
     SomaticXmlReportGenerator.h \
-    SomaticReportSettings.h
+    SomaticReportSettings.h \
+    FileLocationProviderNGSD.h
 
 RESOURCES += \
     cppNGSD.qrc
