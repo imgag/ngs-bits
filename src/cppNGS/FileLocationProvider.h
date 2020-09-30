@@ -1,7 +1,10 @@
 #ifndef FILELOCATIONPROVIDER_H
 #define FILELOCATIONPROVIDER_H
 
-class FileLocationProvider
+
+#include "cppNGS_global.h"
+
+class CPPNGSSHARED_EXPORT FileLocationProvider
 {
 public:
 	static void create(int,int);
