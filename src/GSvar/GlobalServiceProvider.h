@@ -4,17 +4,18 @@
 #include "FileLocationProviderFileSystem.h"
 #include "FileLocationProviderNGSD.h"
 
+
 class GlobalServiceProvider : public FileLocationProviderFileSystem, public FileLocationProviderNGSD
 {
 public:
 	static GlobalServiceProvider* getInstance();
 	static bool exists();
 
-	int getVariants();
-	void setVariants(int _in);
+	VariantList getVariants();
+	void setVariants(VariantList v);
 
-	int getFilename();
-	void setFilename(int _in);
+	QString getFilename();
+	void setFilename(QString f);
 
 
 protected:
@@ -22,8 +23,8 @@ protected:
 private:
 	GlobalServiceProvider();
 	~GlobalServiceProvider(){}
-	int variants;
-	int filename;
+	VariantList variants;
+	QString filename;
 };
 
 #endif // GLOBALSERVICEPROVIDER_H

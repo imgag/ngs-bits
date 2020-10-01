@@ -7,7 +7,7 @@
 class CPPNGSSHARED_EXPORT FileLocationProviderFileSystem : virtual public FileLocationProvider
 {
 public:
-	int getBamFilesInFileSystem();
+	QList<IgvFile> getBamFilesInFileSystem();
 protected:
 	virtual ~FileLocationProviderFileSystem() {}
 };

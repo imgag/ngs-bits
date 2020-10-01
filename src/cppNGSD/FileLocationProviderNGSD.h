@@ -10,7 +10,7 @@
 class CPPNGSDSHARED_EXPORT FileLocationProviderNGSD : virtual public FileLocationProvider
 {
 public:
-	int getBamFilesInNGSD();
+	QList<IgvFile> getBamFilesInNGSD();
 protected:
 	virtual ~FileLocationProviderNGSD() {}
 };
