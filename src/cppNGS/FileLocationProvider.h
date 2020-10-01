@@ -7,23 +7,14 @@
 class CPPNGSSHARED_EXPORT FileLocationProvider
 {
 public:
-	static void create(int,int);
+	virtual ~FileLocationProvider(){}
 
-	static FileLocationProvider* getInstance();
-	static bool exists();
+	virtual int getVariants() = 0;
+	virtual void setVariants(int _in) = 0;
 
-	inline int getVariants(){ return variants; };
-	inline void setVariants(int _in){ variants = _in; };
+	virtual int getFilename() = 0;
+	virtual void setFilename(int _in) = 0;
 
-	inline int getFilename(){ return filename; };
-	inline void setFilename(int _in){ filename = _in; };
-
-//	static void doSomething();
-//	static void doSomethingElse();
-protected:
-	FileLocationProvider(int, int);
-	virtual ~FileLocationProvider(){};
-	static FileLocationProvider* theOnlyInstance;
 private:
 	int variants;
 	int filename;

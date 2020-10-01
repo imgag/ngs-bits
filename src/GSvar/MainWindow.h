@@ -13,9 +13,7 @@
 #include "DelayedInitializationTimer.h"
 #include "SomaticReportSettings.h"
 
-
-#include "FileLocationProviderFileSystem.h"
-#include "FileLocationProviderNGSD.h"
+#include "GlobalServiceProvider.h"
 
 struct IgvFile
 {

@@ -1,7 +1,6 @@
 #include "FileLocationProviderNGSD.h"
-#include <iostream>
 
-void FileLocationProviderNGSD::doSomethingElse()
+int FileLocationProviderNGSD::getBamFilesInNGSD(int p)
 {
-	std::cout << theOnlyInstance->getVariants();
+	return getFilename();
 }

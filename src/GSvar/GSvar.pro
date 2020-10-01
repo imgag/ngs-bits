@@ -90,8 +90,10 @@ SOURCES += main.cpp\
     EvaluationSheetEditDialog.cpp \
     PublishedVariantsWidget.cpp \
     PreferredTranscriptsWidget.cpp \
+    GlobalServiceProvider.cpp \
     TumorOnlyReportWorker.cpp \
     TumorOnlyReportDialog.cpp
+
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -175,8 +177,10 @@ HEADERS += MainWindow.h \
     EvaluationSheetEditDialog.h \
     PublishedVariantsWidget.h \
     PreferredTranscriptsWidget.h \
+    GlobalServiceProvider.h \
     TumorOnlyReportWorker.h \
     TumorOnlyReportDialog.h
+
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
