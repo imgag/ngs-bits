@@ -8,7 +8,7 @@ QList<IgvFile> FileLocationProviderNGSD::getBamFilesInNGSD()
 
 	if (getVariants().count() == 0)
 	{
-//		throw out_of_range("Variant list is empty");
+		THROW(Exception, "Variant list is empty");
 		return output;
 	}
 
@@ -35,7 +35,7 @@ QList<IgvFile> FileLocationProviderNGSD::getBamFilesInNGSD()
 
 		if (!found)
 		{
-//			throw exception("Could not find BAM file at the default location:"+bam_file);
+			THROW(Exception, "Could not find BAM file at the default location:"+bam_file);
 			output.clear();
 			return output;
 		}
