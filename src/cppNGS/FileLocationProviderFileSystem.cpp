@@ -1,6 +1,6 @@
 #include "FileLocationProviderFileSystem.h"
 
-int FileLocationProviderFileSystem::getBamFilesInFileSystem(int p)
+int FileLocationProviderFileSystem::getBamFilesInFileSystem()
 {
 	return getFilename();
 }

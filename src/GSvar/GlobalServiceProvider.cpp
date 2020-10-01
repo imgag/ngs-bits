@@ -4,19 +4,11 @@
 #include "GlobalServiceProvider.h"
 
 
-//int filename {};
-//int variants {};
-
-
-
-
-
 GlobalServiceProvider* GlobalServiceProvider::theOnlyInstance = 0;
 
-GlobalServiceProvider::GlobalServiceProvider() {
-
+GlobalServiceProvider::GlobalServiceProvider()
+{
 }
-
 
 int GlobalServiceProvider::getVariants()
 {
@@ -37,18 +29,10 @@ void GlobalServiceProvider::setFilename(int _in)
 	filename = _in;
 }
 
-
-
-//GlobalServiceProvider::GlobalServiceProvider(int _initialValueX, int _initialValueY)
-//{
-//	filename = getFilename();
-//	variants = getVariants();
-//}
-
-//bool GlobalServiceProvider::exists()
-//{
-//   return (theOnlyInstance != NULL);
-//}
+bool GlobalServiceProvider::exists()
+{
+   return (theOnlyInstance != NULL);
+}
 
 GlobalServiceProvider* GlobalServiceProvider::getInstance()
 {
@@ -61,13 +45,3 @@ GlobalServiceProvider* GlobalServiceProvider::getInstance()
 
    return theOnlyInstance;
 }
-
-
-
-//void GlobalServiceProvider::create(int _initialValueX, int _initialValueY)
-//{
-//   if(theOnlyInstance)
-//	  std::cout << "Singleton has already been created" << std::endl;
-//   else
-//	  theOnlyInstance = new FileLocationProvider(_initialValueX, _initialValueY);
-//}

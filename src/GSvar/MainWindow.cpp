@@ -219,11 +219,11 @@ void MainWindow::on_actionDebug_triggered()
 	g->setFilename(1);
 	qDebug() << g->getFilename();
 
-//	g->getBamFilesInNGSD(5);
 	g->setFilename(25);
 	qDebug() << g->getFilename();
-//	qDebug() << g->getBamFilesInFileSystem(1);
-	qDebug() << g->getBamFilesInNGSD(2);
+	qDebug() << g->getBamFilesInFileSystem();
+	g->setFilename(33);
+	qDebug() << g->getBamFilesInNGSD();
 
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
