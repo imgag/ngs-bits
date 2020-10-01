@@ -89,7 +89,8 @@ SOURCES += main.cpp\
     SomaticDataTransferWidget.cpp \
     EvaluationSheetEditDialog.cpp \
     PublishedVariantsWidget.cpp \
-    PreferredTranscriptsWidget.cpp
+    PreferredTranscriptsWidget.cpp \
+    GlobalServiceProvider.cpp
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -172,7 +173,8 @@ HEADERS += MainWindow.h \
     SomaticDataTransferWidget.h \
     EvaluationSheetEditDialog.h \
     PublishedVariantsWidget.h \
-    PreferredTranscriptsWidget.h
+    PreferredTranscriptsWidget.h \
+    GlobalServiceProvider.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \

@@ -1,16 +1,15 @@
 #ifndef FILELOCATIONPROVIDERFILESYSTEM_H
 #define FILELOCATIONPROVIDERFILESYSTEM_H
 
-#include <stdio.h>
+#include "cppNGS_global.h"
 #include "FileLocationProvider.h"
 
-class CPPNGSSHARED_EXPORT FileLocationProviderFileSystem : public FileLocationProvider
+class CPPNGSSHARED_EXPORT FileLocationProviderFileSystem : virtual public FileLocationProvider
 {
 public:
-	static void doSomething();
+	int getBamFilesInFileSystem(int p);
 protected:
-   FileLocationProviderFileSystem(int,int);
-   virtual ~FileLocationProviderFileSystem() {};
+	virtual ~FileLocationProviderFileSystem() {}
 };
 
 

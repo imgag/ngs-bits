@@ -1,7 +1,6 @@
 #include "FileLocationProviderFileSystem.h"
-#include <iostream>
 
-void FileLocationProviderFileSystem::doSomething()
+int FileLocationProviderFileSystem::getBamFilesInFileSystem(int p)
 {
-	std::cout << theOnlyInstance->getFilename();
+	return getFilename();
 }

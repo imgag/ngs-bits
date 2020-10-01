@@ -1,16 +1,18 @@
 #ifndef FILELOCATIONPROVIDERNGSD_H
 #define FILELOCATIONPROVIDERNGSD_H
 
-#include <stdio.h>
+
+#include "cppNGSD_global.h"
 #include "FileLocationProvider.h"
 
-class CPPNGSSHARED_EXPORT FileLocationProviderNGSD : public FileLocationProvider
+
+
+class CPPNGSDSHARED_EXPORT FileLocationProviderNGSD : virtual public FileLocationProvider
 {
 public:
-	static void doSomethingElse();
+	int getBamFilesInNGSD(int p);
 protected:
-   FileLocationProviderNGSD(int,int);
-   virtual ~FileLocationProviderNGSD() {};
+	virtual ~FileLocationProviderNGSD() {}
 };
 
 
