@@ -6,13 +6,13 @@ QList<IgvFile> FileLocationProviderFileSystem::getBamFilesInFileSystem()
 
 	if (getFilename().length() == 0)
 	{
-//		throw exception("File name list is empty");
+		THROW(Exception, "File name list is empty")
 		return output;
 	}
 
 	if (getVariants().count() == 0)
 	{
-//		throw exception("Variant list is empty");
+		THROW(Exception, "Variant list is empty");
 		return output;
 	}
 
@@ -39,7 +39,7 @@ QList<IgvFile> FileLocationProviderFileSystem::getBamFilesInFileSystem()
 
 		if (!found)
 		{
-//			throw exception("Could not find BAM file at one of the default locations:"+bam_from_sample+", "+bam_from_project);
+			THROW(Exception, "Could not find BAM file at one of the default locations:"+bam_from_sample+", "+bam_from_project);
 			output.clear();
 			return output;
 		}
