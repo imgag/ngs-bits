@@ -342,7 +342,7 @@ void SequencingRunWidget::sendStatusEmail()
 			body << "";
 			body << "Projekt: " + query.value("name").toString();
 			body << "  Koordinator: " + db.userName(coordinator_id);
-			QStringList operator_ids = db.getValues("SELECT operator_id FROM processed_sample WHERE sequencing_run_id='" + run_id_ + "' AND project_id='" + query.value("id").toString() + "'");
+			QStringList operator_ids = db.getValues("SELECT operator_id FROM processed_sample WHERE sequencing_run_id='" + run_id_ + "' AND project_id='" + query.value("id").toString() + "' AND operator_id IS NOT NULL");
 			body << "  Proben: " + QString::number(operator_ids.count());
 			body << "  Analyse: " + query.value("analysis").toString();
 
