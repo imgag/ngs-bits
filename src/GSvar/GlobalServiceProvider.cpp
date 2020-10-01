@@ -10,23 +10,23 @@ GlobalServiceProvider::GlobalServiceProvider()
 {
 }
 
-int GlobalServiceProvider::getVariants()
+VariantList GlobalServiceProvider::getVariants()
 {
 	return variants;
 }
 
-void GlobalServiceProvider::setVariants(int _in)
+void GlobalServiceProvider::setVariants(VariantList v)
 {
-	variants = _in;
+	variants = v;
 }
 
-int GlobalServiceProvider::getFilename()
+QString GlobalServiceProvider::getFilename()
 {
 	return filename;
 }
-void GlobalServiceProvider::setFilename(int _in)
+void GlobalServiceProvider::setFilename(QString f)
 {
-	filename = _in;
+	filename = f;
 }
 
 bool GlobalServiceProvider::exists()

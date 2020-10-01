@@ -212,14 +212,13 @@ void MainWindow::on_actionDebug_triggered()
 {
 
 	GlobalServiceProvider* g = GlobalServiceProvider::getInstance();
-	g->setFilename(1);
+	g->setFilename(filename_);
 	qDebug() << g->getFilename();
+	g->setVariants(variants_);
+//	qDebug() << g->getVariants();
 
-	g->setFilename(25);
-	qDebug() << g->getFilename();
-	qDebug() << g->getBamFilesInFileSystem();
-	g->setFilename(33);
-	qDebug() << g->getBamFilesInNGSD();
+	g->getBamFilesInFileSystem();
+	g->getBamFilesInNGSD();
 
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
@@ -5049,48 +5048,48 @@ QList<IgvFile> MainWindow::getBamFiles()
 
 	QList<IgvFile> output;
 
-	QString sample_folder = QFileInfo(filename_).absolutePath();
-	QString project_folder = QFileInfo(sample_folder).absolutePath();
+//	QString sample_folder = QFileInfo(filename_).absolutePath();
+//	QString project_folder = QFileInfo(sample_folder).absolutePath();
 
-	SampleHeaderInfo data = variants_.getSampleHeader();
-	foreach(const SampleInfo& info, data)
-	{
-		bool found = false;
-		QString bam1 = sample_folder + "/" + info.id + ".bam";
-		QString bam2 = project_folder + "/Sample_" + info.id + "/" + info.id + ".bam";
-		QString bam3 = "";
-		if (QFile::exists(bam1))
-		{
-			found = true;
-			output << IgvFile{info.id, "BAM" , bam1};
-		}
-		else if (QFile::exists(bam2))
-		{
-			found = true;
-			output << IgvFile{info.id, "BAM" , bam2};
-		}
-		else if (LoginManager::active())
-		{
-			NGSD db;
-			QString ps_id = db.processedSampleId(info.id, false);
-			if (ps_id!="")
-			{
-				bam3 = db.processedSamplePath(ps_id, NGSD::BAM);
-				if (QFile::exists(bam3))
-				{
-					found = true;
-					output << IgvFile{info.id, "BAM" , bam3};
-				}
-			}
-		}
+//	SampleHeaderInfo data = variants_.getSampleHeader();
+//	foreach(const SampleInfo& info, data)
+//	{
+//		bool found = false;
+//		QString bam1 = sample_folder + "/" + info.id + ".bam";
+//		QString bam2 = project_folder + "/Sample_" + info.id + "/" + info.id + ".bam";
+//		QString bam3 = "";
+//		if (QFile::exists(bam1))
+//		{
+//			found = true;
+//			output << IgvFile{info.id, "BAM" , bam1};
+//		}
+//		else if (QFile::exists(bam2))
+//		{
+//			found = true;
+//			output << IgvFile{info.id, "BAM" , bam2};
+//		}
+//		else if (LoginManager::active())
+//		{
+//			NGSD db;
+//			QString ps_id = db.processedSampleId(info.id, false);
+//			if (ps_id!="")
+//			{
+//				bam3 = db.processedSamplePath(ps_id, NGSD::BAM);
+//				if (QFile::exists(bam3))
+//				{
+//					found = true;
+//					output << IgvFile{info.id, "BAM" , bam3};
+//				}
+//			}
+//		}
 
-		if (!found)
-		{
-			QMessageBox::warning(this, "Missing BAM file!", "Could not find BAM file at one of the default locations:\n" + bam1 + "\n" + bam2 + "\n" + bam3);
-			output.clear();
-			return output;
-		}
-	}
+//		if (!found)
+//		{
+//			QMessageBox::warning(this, "Missing BAM file!", "Could not find BAM file at one of the default locations:\n" + bam1 + "\n" + bam2 + "\n" + bam3);
+//			output.clear();
+//			return output;
+//		}
+//	}
 
 	return output;
 }

@@ -15,12 +15,7 @@
 
 #include "GlobalServiceProvider.h"
 
-struct IgvFile
-{
-	QString id; //sample identifier/name (for visualization)
-	QString type; //file type (for grouping)
-	QString filename; //file name
-};
+
 
 ///Main window class
 class MainWindow
