@@ -1,6 +1,6 @@
 #include "FileLocationProviderNGSD.h"
 
-int FileLocationProviderNGSD::getBamFilesInNGSD(int p)
+int FileLocationProviderNGSD::getBamFilesInNGSD()
 {
 	return getFilename();
 }
