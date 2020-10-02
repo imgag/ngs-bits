@@ -741,7 +741,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	if (type==PathType::BAM) output += ps_name + ".bam";
 	else if (type==PathType::GSVAR) output += ps_name + ".GSvar";
 	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
-	else if (type!=PathType::SAMPLE_FOLDER && type!=PathType::PROJECT_FOLDER) THROW(ProgrammingException, "Unknown PathType '" + NGSHelper::enumToString(type) + "'!");
+	else if (type!=PathType::SAMPLE_FOLDER && type!=PathType::PROJECT_FOLDER) THROW(ProgrammingException, "Unknown PathType '" + Helper::enumToString(type) + "'!");
 
 	//convert to canonical path
 	output = QFileInfo(output).absoluteFilePath();

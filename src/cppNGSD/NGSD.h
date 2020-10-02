@@ -21,7 +21,7 @@
 #include "SomaticReportConfiguration.h"
 #include "CnvList.h"
 #include "BedpeFile.h"
-#include "NGSHelper.h"
+//#include "NGSHelper.h"
 
 ///OMIM information datastructure
 struct OmimInfo

@@ -17,7 +17,7 @@ void IgvDialog::addFile(QString label, PathType type, QString filename, bool che
 	QTreeWidgetItem* group = nullptr;
 	for(int i=0; i<ui_.tree->topLevelItemCount(); ++i)
 	{
-		if (ui_.tree->topLevelItem(i)->text(0)==NGSHelper::enumToString(type))
+		if (ui_.tree->topLevelItem(i)->text(0)==Helper::enumToString(type))
 		{
 			group = ui_.tree->topLevelItem(i);
 		}
@@ -26,7 +26,7 @@ void IgvDialog::addFile(QString label, PathType type, QString filename, bool che
 	//add group if missing
 	if (group==nullptr)
 	{
-		group = new QTreeWidgetItem(QStringList() << NGSHelper::enumToString(type));
+		group = new QTreeWidgetItem(QStringList() << Helper::enumToString(type));
 		group->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
 		if (type==PathType::VCF) group->setToolTip(0, "Variant list(s)");
 		if (type==PathType::BAM) group->setToolTip(0, "Sequencing read file(s)");
