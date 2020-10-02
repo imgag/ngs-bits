@@ -5034,22 +5034,6 @@ QStringList MainWindow::getLogFiles()
 QList<IgvFile> MainWindow::getBamFiles()
 {
 	QList<IgvFile> output;
-	GlobalServiceProvider* g = GlobalServiceProvider::getInstance();
-	g->setFilename(filename_);
-	g->setVariants(variants_);
-
-	try
-	{
-		g->getBamFilesInFileSystem();
-		g->getBamFilesInNGSD();
-	}
-	catch (Exception& e)
-	{
-		QMessageBox::warning(this, "Missing BAM file!", e.message());
-	}
-
-
-
 
 //	QString sample_folder = QFileInfo(filename_).absolutePath();
 //	QString project_folder = QFileInfo(sample_folder).absolutePath();

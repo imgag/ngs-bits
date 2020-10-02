@@ -5,14 +5,18 @@
 #include "cppNGSD_global.h"
 #include "FileLocationProvider.h"
 
-
-
-class CPPNGSDSHARED_EXPORT FileLocationProviderNGSD : virtual public FileLocationProvider
+class CPPNGSDSHARED_EXPORT FileLocationProviderNGSD
+	: public FileLocationProvider
 {
 public:
-	QList<IgvFile> getBamFilesInNGSD();
-protected:
+	FileLocationProviderNGSD(QString procssed_sample_id);
+
 	virtual ~FileLocationProviderNGSD() {}
+
+	QList<FileLocation> getBamFiles() override;
+
+protected:
+	QString procssed_sample_id_;
 };
 
 

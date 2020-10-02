@@ -1,7 +1,15 @@
 #include "FileLocationProviderFileSystem.h"
 
-QList<IgvFile> FileLocationProviderFileSystem::getBamFilesInFileSystem()
+FileLocationProviderFileSystem::FileLocationProviderFileSystem(QString gsvar_file, AnalysisType type)
+  : gsvar_file_(gsvar_file)
+  , type_(type)
 {
+}
+
+QList<FileLocation> FileLocationProviderFileSystem::getBamFiles()
+{
+	QList<FileLocation> output;
+/*
 	QList<IgvFile> output;
 
 	if (getFilename().length() == 0)
@@ -45,5 +53,6 @@ QList<IgvFile> FileLocationProviderFileSystem::getBamFilesInFileSystem()
 		}
 	}
 
+*/
 	return output;
 }

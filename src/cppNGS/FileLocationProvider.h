@@ -5,11 +5,12 @@
 #include "cppNGS_global.h"
 #include "VariantList.h"
 #include "qfileinfo.h"
+#include "NGSHelper.h"
 
-struct IgvFile
+struct FileLocation
 {
-	QString id; //sample identifier/name (for visualization)
-	QString type; //file type (for grouping)
+	QString id; //sample identifier/name
+	PathType type; //file type
 	QString filename; //file name
 };
 
@@ -18,11 +19,8 @@ class CPPNGSSHARED_EXPORT FileLocationProvider
 public:
 	virtual ~FileLocationProvider(){}
 
-	virtual VariantList getVariants() = 0;
-	virtual void setVariants(VariantList v) = 0;
-
-	virtual QString getFilename() = 0;
-	virtual void setFilename(QString f) = 0;
+	//Returns a map of sample identifier to filename
+	virtual QList<FileLocation> getBamFiles() = 0;
 
 private:
 	VariantList variants;
