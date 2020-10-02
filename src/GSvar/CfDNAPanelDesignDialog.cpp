@@ -4,6 +4,7 @@
 #include <GUIHelper.h>
 #include <QDir>
 
+
 CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const QString& system_name, QWidget *parent) :
 	QDialog(parent),
 	ui_(new Ui::CfDNAPanelDesignDialog),
@@ -227,12 +228,14 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		}
 	}
 
+	// generate output VCF
+	QString ref_genome = Settings::string("reference_genome", false);
+	VcfFile vcf_file = VcfFile::convertGSvarToVcf(selected_variants_, ref_genome);
 
 	// generate bed file
-	for (int i=0; i<selected_variants_.count(); i++)
+	for (int i=0; i<vcf_file.count(); i++)
 	{
-		BedLine bed_line = BedLine(selected_variants_[i].chr(), selected_variants_[i].start(), selected_variants_[i].end(), QByteArrayList() << "SNP_INDEL" << selected_variants_[i].ref() + ">" + selected_variants_[i].obs());
-		roi.append(bed_line);
+		roi.append(BedLine(vcf_file[i].chr(), vcf_file[i].start(), vcf_file[i].end(), QByteArrayList() << "SNP_INDEL" << vcf_file[i].ref() + ">" + vcf_file[i].altString()));
 	}
 
 	QString output_path = Settings::string("patient_specific_panel_folder", false);
@@ -249,13 +252,12 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 										   QMessageBox::Yes, QMessageBox::Cancel);
 		if (btn!=QMessageBox::Yes)
 		{
-			emit reject();
 			return;
 		}
 	}
+
 	// store variant list
-	QString ref_genome = Settings::string("reference_genome", false);
-	selected_variants_.storeAsVCF(output_path + processed_sample_name_ + ".vcf", ref_genome, 0);
+	vcf_file.store(output_path + processed_sample_name_ + ".vcf");
 	roi.sort();
 	roi.store(output_path + processed_sample_name_ + ".bed");
 

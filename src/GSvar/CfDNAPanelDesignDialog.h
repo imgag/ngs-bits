@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "SomaticReportConfiguration.h"
 #include "VariantList.h"
+#include "VcfFile.h"
 #include "Settings.h"
 #include "Exceptions.h"
 

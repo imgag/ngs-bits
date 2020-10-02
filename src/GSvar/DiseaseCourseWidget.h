@@ -12,6 +12,10 @@ struct cfDnaColumn
 	QDate date;
 	VcfFile variants;
 	QMap<QByteArray, const VcfLine*> lookup_table;
+
+	bool operator<(const cfDnaColumn& other) const {
+		return date < other.date; // sort by date
+	}
 };
 
 namespace Ui {

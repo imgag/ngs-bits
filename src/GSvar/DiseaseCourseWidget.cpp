@@ -49,7 +49,6 @@ void DiseaseCourseWidget::getCfDNASampleIds()
 			cf_dna_ps_ids_ << query.value(0).toString();
 		}
 	}
-
 }
 
 void DiseaseCourseWidget::loadVariantLists()
@@ -94,8 +93,10 @@ void DiseaseCourseWidget::loadVariantLists()
 			// add to list
 			cf_dna_columns_.append(cf_dna_column);
 		}
-
 	}
+
+	// sort vector by date
+	std::sort(cf_dna_columns_.begin(), cf_dna_columns_.end());
 
 }
 
@@ -161,6 +162,9 @@ void DiseaseCourseWidget::createTableView()
 		}
 
 	}
+
+	// optimize cell sizes
+	GUIHelper::resizeTableCells(ui_->vars);
 
 
 }
