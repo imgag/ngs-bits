@@ -20,7 +20,7 @@ Changes already implemented in GIT master for next release:
 Changes in release 2020_09:
 
 * Added tools: FastqDownsample, BedpeAnnotateCnvOverlap, BedpeFilter, VcfCalculatePRS
-* FastqAddBarcode/FastqConvert/FastqExtract/FastqTrim/PERsim/VariantFilterRegions/VcfLeftNormalize/VcfSort: Added output compression level parameter.
+* Added output compression level parameter to: FastqAddBarcode/FastqConvert/FastqExtract/FastqTrim/PERsim/VariantFilterRegions/VcfLeftNormalize/VcfSort.
 * VariantFilterAnnotations/GSvar: Added filter 'somatic allele frequency'.
 * NGSD:
 	* Added preferred transcripts information

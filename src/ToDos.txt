@@ -16,8 +16,6 @@ NGSD:
         - study_id: INT not null
         - study_sample_idendifier: TEXT not null
         - comment: TEXT
-? Add family table linking samples in one family with "father", "mother", "child"... OR import samples relations from GenLab?? > LUCIA/TOBIAS
-? Add liquid handler robot to processed sample talbe > FLORIAN/LAB/TOBIAS
 * Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)
@@ -30,6 +28,9 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+## Prferred transcripts: allow deleting
+## ACMG filter: +LOW +HGMD +likely_pathogenic
+## Tabs: do not close tabs when opening a new GSvar file. Open a tab only once - focus and update if opened again.
 ## Allow adding variant outside of target region to report
     - add checkboxes to variants in report dialog
     - checkboxes for variants in ROI are checked and disabled
@@ -56,3 +57,11 @@ RohHunter:
 - test input of high-cov ROI to augment the input data with WT SNPs with AF>1-5%
 - test if sub-population AF improves result
 - benchmarks: chrX of males, add errors up to 2 percent, overlap WGS/WES
+
+
+Features to dicuss:
+- Add family table linking samples in one family with "father", "mother", "child", "aunte", "cousin", ... OR import samples relations from GenLab?? > FLORIAN/LUCIA/TOBIAS
+- Add liquid handler robot to processed sample talbe > FLORIAN/LAB/TOBIAS
+- Correctly import sample sender data from GenLab > TOBIAS/STEPHAN O.
+- CAVE functionality for Genes (use e.g. for imprinting), model reasons? > SWAL
+
