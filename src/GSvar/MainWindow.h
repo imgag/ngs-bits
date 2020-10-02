@@ -31,13 +31,13 @@ public:
 	///Returns the LOG files corresponding to the variant list.
 	QStringList getLogFiles();
 	///Returns the BAM files for the analysis.
-	QList<IgvFile> getBamFiles();
+	QList<FileLocation> getBamFiles();
 	///Returns CNV SEG files for the analysis.
-	QList<IgvFile> getSegFilesCnv();
+	QList<FileLocation> getSegFilesCnv();
 	///Returns BAF SEG files for the analysis.
-	QList<IgvFile> getIgvFilesBaf();
+	QList<FileLocation> getIgvFilesBaf();
 	///Returns Manta evidence BAM files for the analysis.
-	QList<IgvFile> getMantaEvidenceFiles();
+	QList<FileLocation> getMantaEvidenceFiles();
 	///Adds a file to the recent file list
 	void addToRecentFiles(QString filename);
 	///Updates recent files menu

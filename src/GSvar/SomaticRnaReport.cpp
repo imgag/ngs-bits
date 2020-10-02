@@ -22,7 +22,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 
 	ref_tissue_type_ = refTissueType(dna_snvs_);
 
-	rna_sample_dir = db_.processedSamplePath(db_.processedSampleId(rna_ps_name_), NGSD::PathType::SAMPLE_FOLDER);
+	rna_sample_dir = db_.processedSamplePath(db_.processedSampleId(rna_ps_name_),PathType::SAMPLE_FOLDER);
 
 
 	QStringList fusion_files = Helper::findFiles(rna_sample_dir, "*_var_fusions.tsv", false);

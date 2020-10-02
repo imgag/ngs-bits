@@ -972,36 +972,36 @@ void MainWindow::openInIGV(QString region)
 		if (files.count()==1)
 		{
 			QString name = QFileInfo(files[0]).baseName().replace("_var_annotated", "");
-			dlg.addFile(name, "VCF", files[0], ui_.actionIgvSample->isChecked());
+			dlg.addFile(name, PathType::VCF, files[0], ui_.actionIgvSample->isChecked());
 
 		}
 
 		//sample BAM file(s)
-		QList<IgvFile> bams = getBamFiles();
+		QList<FileLocation> bams = getBamFiles();
 		if (bams.empty()) return;
-		foreach(const IgvFile& file, bams)
+		foreach(const FileLocation& file, bams)
 		{
 			dlg.addFile(file.id, file.type, file.filename, true);	
 		}
 
 		//sample Manta evidence file(s)
-		QList<IgvFile> evidence_files = getMantaEvidenceFiles();
-		foreach(const IgvFile& file, evidence_files)
+		QList<FileLocation> evidence_files = getMantaEvidenceFiles();
+		foreach(const FileLocation& file, evidence_files)
 		{
 			dlg.addFile(file.id, file.type, file.filename, false);
 		}
 
 
 		//sample CNV file(s)
-		QList<IgvFile> segs = getSegFilesCnv();
-		foreach(const IgvFile& file, segs)
+		QList<FileLocation> segs = getSegFilesCnv();
+		foreach(const FileLocation& file, segs)
 		{
 			dlg.addFile(file.id, file.type, file.filename, true);
 		}
 
 		//sample BAF file(s)
-		QList<IgvFile> bafs = getIgvFilesBaf();
-		foreach(const IgvFile& file, bafs)
+		QList<FileLocation> bafs = getIgvFilesBaf();
+		foreach(const FileLocation& file, bafs)
 		{
 			dlg.addFile(file.id, file.type, file.filename, true);
 		}
@@ -1010,7 +1010,7 @@ void MainWindow::openInIGV(QString region)
 		QString roi = ui_.filters->targetRegion();
 		if (roi!="")
 		{
-			dlg.addFile("target region track", "BED", roi, true);
+			dlg.addFile("target region track", PathType::BED, roi, true);
 		}
 
 		//sample low-coverage
@@ -1018,7 +1018,7 @@ void MainWindow::openInIGV(QString region)
 
 		if (files.count()==1)
 		{
-			dlg.addFile("low-coverage regions track", "BED", files[0], ui_.actionIgvLowcov->isChecked());
+			dlg.addFile("low-coverage regions track", PathType::BED, files[0], ui_.actionIgvLowcov->isChecked());
 		}
 
 		//amplicon file (of processing system)
@@ -1029,7 +1029,7 @@ void MainWindow::openInIGV(QString region)
 			QString amplicons = system_data.target_file.left(system_data.target_file.length()-4) + "_amplicons.bed";
 			if (QFile::exists(amplicons))
 			{
-				dlg.addFile("amplicons track (of processing system)", "BED", amplicons, true);
+				dlg.addFile("amplicons track (of processing system)", PathType::BED, amplicons, true);
 			}
 		}
 		catch(...) {} //Nothing to do here
@@ -1040,7 +1040,7 @@ void MainWindow::openInIGV(QString region)
 		{
 			QString text = action->text();
 			if (!text.startsWith("custom track:")) continue;
-			dlg.addFile(text, "custom track", action->toolTip().replace("custom track:", "").trimmed(), action->isChecked());
+			dlg.addFile(text, PathType::CUSTOM_TRACK, action->toolTip().replace("custom track:", "").trimmed(), action->isChecked());
 		}
 
 		//execute dialog
@@ -1244,7 +1244,7 @@ void MainWindow::showCnHistogram()
 	}
 
 	//check SEG file exists
-	QList<IgvFile> seg_files = getSegFilesCnv();
+	QList<FileLocation> seg_files = getSegFilesCnv();
 	if (seg_files.isEmpty() || !seg_files[0].filename.endsWith( "_cnvs_clincnv.seg"))
 	{
 		QMessageBox::warning(this, title, "Could not find a SEG file produced from ClinCNV. Aborting!");
@@ -1525,8 +1525,8 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		//convert name to file
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
-		QString project_folder = db.processedSamplePath(processed_sample_id, NGSD::PROJECT_FOLDER);
-		QString file = db.processedSamplePath(processed_sample_id, NGSD::GSVAR);
+		QString project_folder = db.processedSamplePath(processed_sample_id, PathType::PROJECT_FOLDER);
+		QString file = db.processedSamplePath(processed_sample_id, PathType::GSVAR);
 
 		//determine all analyses of the sample
 		QStringList analyses;
@@ -3286,7 +3286,7 @@ void MainWindow::generateReportGermline()
 
 	//get BAM file name if necessary
 	QString bam_file = "";
-	QList<IgvFile> bams = getBamFiles();
+	QList<FileLocation> bams = getBamFiles();
 	if (bams.empty()) return;
 	bam_file = bams.first().filename;
 
@@ -4009,7 +4009,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	if (filename_=="") return;
 
 	//check for BAM file
-	QList<IgvFile> bams = getBamFiles();
+	QList<FileLocation> bams = getBamFiles();
 	if (bams.empty()) return;
 	QString bam_file = bams.first().filename;
 
@@ -4768,7 +4768,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			QString value = parts[0];
 			if (value=="BAM")
 			{
-				QList<IgvFile> bams = getBamFiles();
+				QList<FileLocation> bams = getBamFiles();
 				if (bams.empty()) return;
 				value = "BAM<" + bams.first().filename;
 			}
@@ -5255,9 +5255,9 @@ QStringList MainWindow::getLogFiles()
 	return Helper::findFiles(path, "*_log?_*.log", false);
 }
 
-QList<IgvFile> MainWindow::getBamFiles()
+QList<FileLocation> MainWindow::getBamFiles()
 {
-	QList<IgvFile> output;
+	QList<FileLocation> output;
 
 //	QString sample_folder = QFileInfo(filename_).absolutePath();
 //	QString project_folder = QFileInfo(sample_folder).absolutePath();
@@ -5305,19 +5305,19 @@ QList<IgvFile> MainWindow::getBamFiles()
 	return output;
 }
 
-QList<IgvFile> MainWindow::getSegFilesCnv()
+QList<FileLocation> MainWindow::getSegFilesCnv()
 {
-	QList<IgvFile> output;
+	QList<FileLocation> output;
 
 	if (variants_.type()==SOMATIC_PAIR)
 	{
 		//tumor-normal SEG file
 		QString segfile = filename_.left(filename_.length()-6) + "_cnvs.seg";
 		QString pair = QFileInfo(filename_).baseName();
-		output << IgvFile{pair + " (copy number)", "CNV" , segfile};
+		output << FileLocation{pair + " (copy number)", PathType::CNV , segfile};
 
 		QString covfile = filename_.left(filename_.length()-6) + "_cov.seg";
-		output << IgvFile{pair + " (coverage)","CNV",covfile};
+		output << FileLocation{pair + " (coverage)", PathType::CNV,covfile};
 
 		//germline SEG file
 		QString basename = QFileInfo(filename_).baseName().left(filename_.length()-6);
@@ -5327,26 +5327,26 @@ QList<IgvFile> MainWindow::getSegFilesCnv()
 			QString pair_folder = QFileInfo(filename_).absolutePath();
 			QString project_folder = QFileInfo(pair_folder).absolutePath();
 			segfile = project_folder + "/Sample_" + tumor_ps_name + "/" + tumor_ps_name + "_cnvs.seg";
-			output << IgvFile{tumor_ps_name, "CNV" , segfile};
+			output << FileLocation{tumor_ps_name, PathType::CNV , segfile};
 		}
 	}
 	else
 	{
-		QList<IgvFile> tmp = getBamFiles();
-		foreach(const IgvFile& file, tmp)
+		QList<FileLocation> tmp = getBamFiles();
+		foreach(const FileLocation& file, tmp)
 		{
 			QString base_name = file.filename.left(file.filename.length()-4);
 			QString segfile = base_name + "_cnvs_clincnv.seg";
 			if (QFile::exists(segfile))
 			{
-				output << IgvFile{file.id, "CNV" , segfile};
+				output << FileLocation{file.id, PathType::CNV , segfile};
 			}
 			else
 			{
 				segfile = base_name + "_cnvs.seg";
 				if (QFile::exists(segfile))
 				{
-					output << IgvFile{file.id, "CNV" , segfile};
+					output << FileLocation{file.id, PathType::CNV , segfile};
 				}
 			}
 		}
@@ -5355,25 +5355,25 @@ QList<IgvFile> MainWindow::getSegFilesCnv()
 	return output;
 }
 
-QList<IgvFile> MainWindow::getIgvFilesBaf()
+QList<FileLocation> MainWindow::getIgvFilesBaf()
 {
-	QList<IgvFile> output;
+	QList<FileLocation> output;
 
 	if (variants_.type()==SOMATIC_PAIR)
 	{
 		QString segfile = filename_.left(filename_.length()-6) + "_bafs.igv";
 		QString pair = QFileInfo(filename_).baseName();
-		output << IgvFile{pair, "BAF" , segfile};
+		output << FileLocation{pair, PathType::BAF , segfile};
 	}
 	else
 	{
-		QList<IgvFile> tmp = getBamFiles();
-		foreach(const IgvFile& file, tmp)
+		QList<FileLocation> tmp = getBamFiles();
+		foreach(const FileLocation& file, tmp)
 		{
 			QString segfile = file.filename.left(file.filename.length()-4) + "_bafs.igv";
 			if (QFile::exists(segfile))
 			{
-				output << IgvFile{file.id, "BAF" , segfile};
+				output << FileLocation{file.id, PathType::BAF , segfile};
 			}
 		}
 	}
@@ -5381,22 +5381,22 @@ QList<IgvFile> MainWindow::getIgvFilesBaf()
 	return output;
 }
 
-QList<IgvFile> MainWindow::getMantaEvidenceFiles()
+QList<FileLocation> MainWindow::getMantaEvidenceFiles()
 {
-	QList<IgvFile> evidence_files;
+	QList<FileLocation> evidence_files;
 
 	// search at location of all available BAM files
-	QList<IgvFile> bam_files = getBamFiles();
-	foreach (IgvFile bam_file, bam_files)
+	QList<FileLocation> bam_files = getBamFiles();
+	foreach (FileLocation bam_file, bam_files)
 	{
 		QString evidence_bam_file = GSvarHelper::getEvidenceFile(bam_file.filename);
 
 		// check if evidence file exists
 		if (!QFile::exists(evidence_bam_file)) continue;
 
-		IgvFile	evidence_file;
+		FileLocation evidence_file;
 		evidence_file.filename = evidence_bam_file;
-		evidence_file.type = "BAM";
+		evidence_file.type = PathType::BAM;
 		evidence_file.id = QFileInfo(evidence_bam_file).baseName();
 		evidence_files.append(evidence_file);
 	}
