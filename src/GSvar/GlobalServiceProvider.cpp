@@ -4,44 +4,33 @@
 #include "GlobalServiceProvider.h"
 
 
-GlobalServiceProvider* GlobalServiceProvider::theOnlyInstance = 0;
-
 GlobalServiceProvider::GlobalServiceProvider()
+  :  file_location_provider_()
 {
 }
 
-VariantList GlobalServiceProvider::getVariants()
+GlobalServiceProvider::~GlobalServiceProvider()
 {
-	return variants;
 }
 
-void GlobalServiceProvider::setVariants(VariantList v)
+GlobalServiceProvider& GlobalServiceProvider::instance()
 {
-	variants = v;
+	static GlobalServiceProvider instance;
+
+	return instance;
 }
 
-QString GlobalServiceProvider::getFilename()
+void GlobalServiceProvider::setfileLocationsProvider(QSharedPointer<FileLocationProvider> file_location_provider)
 {
-	return filename;
-}
-void GlobalServiceProvider::setFilename(QString f)
-{
-	filename = f;
+	instance().file_location_provider_ = file_location_provider;
 }
 
-bool GlobalServiceProvider::exists()
+const FileLocationProvider& GlobalServiceProvider::fileLocationsProvider()
 {
-   return (theOnlyInstance != NULL);
-}
+	if (instance().file_location_provider_.isNull())
+	{
+		THROW(ProgrammingException, "File location provider requested but not set!");
+	}
 
-GlobalServiceProvider* GlobalServiceProvider::getInstance()
-{
-	if(theOnlyInstance)
-		std::cout << "Singleton has already been created" << std::endl;
-	else
-		theOnlyInstance = new GlobalServiceProvider();
-
-	if(theOnlyInstance == 0) std::cout << "Class has not been created" << std::endl;
-
-   return theOnlyInstance;
+	return *(instance().file_location_provider_.data());
 }

@@ -1,30 +1,24 @@
 #ifndef GLOBALSERVICEPROVIDER_H
 #define GLOBALSERVICEPROVIDER_H
 
-#include "FileLocationProviderFileSystem.h"
-#include "FileLocationProviderNGSD.h"
+#include<QSharedPointer>
+#include "FileLocationProvider.h"
 
 
-class GlobalServiceProvider : public FileLocationProviderFileSystem, public FileLocationProviderNGSD
+class GlobalServiceProvider
 {
 public:
-	static GlobalServiceProvider* getInstance();
-	static bool exists();
+	static GlobalServiceProvider& instance();
 
-	VariantList getVariants();
-	void setVariants(VariantList v);
-
-	QString getFilename();
-	void setFilename(QString f);
-
+	static void setfileLocationsProvider(QSharedPointer<FileLocationProvider> file_location_provider);
+	static const FileLocationProvider& fileLocationsProvider();
 
 protected:
-	static GlobalServiceProvider* theOnlyInstance;
-private:
 	GlobalServiceProvider();
-	~GlobalServiceProvider(){}
-	VariantList variants;
-	QString filename;
+	~GlobalServiceProvider();
+
+private:
+	QSharedPointer<FileLocationProvider> file_location_provider_;
 };
 
 #endif // GLOBALSERVICEPROVIDER_H

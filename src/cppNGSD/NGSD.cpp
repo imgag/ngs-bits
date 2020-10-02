@@ -755,7 +755,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	output += p_type;
 	QString p_name = query.value(2).toString();
 	output += "/" + p_name + "/";
-	if (type!=PROJECT_FOLDER)
+	if (type!=PathType::PROJECT_FOLDER)
 	{
 		output += "Sample_" + ps_name + "/";
 	}

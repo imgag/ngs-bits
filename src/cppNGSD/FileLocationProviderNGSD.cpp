@@ -2,6 +2,14 @@
 #include "LoginManager.h"
 #include "NGSD.h"
 
+FileLocationProviderNGSD::FileLocationProviderNGSD(QString procssed_sample_id)
+{
+	procssed_sample_id_ = procssed_sample_id;
+}
+
+QList<FileLocation> FileLocationProviderNGSD::getBamFiles()
+{
+/*
 QList<IgvFile> FileLocationProviderNGSD::getBamFilesInNGSD()
 {
 	QList<IgvFile> output;
@@ -42,4 +50,7 @@ QList<IgvFile> FileLocationProviderNGSD::getBamFilesInNGSD()
 	}
 
 	return output;
+}
+
+*/
 }

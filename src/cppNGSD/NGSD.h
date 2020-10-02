@@ -21,6 +21,7 @@
 #include "SomaticReportConfiguration.h"
 #include "CnvList.h"
 #include "BedpeFile.h"
+#include "NGSHelper.h"
 
 ///OMIM information datastructure
 struct OmimInfo
@@ -554,7 +555,6 @@ public:
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the default folder for a processed sample from file name or processed sample name. Throws an exception if it could not be determined.
-	enum PathType {PROJECT_FOLDER, SAMPLE_FOLDER, BAM, GSVAR, VCF};
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
 
 	///Adds a variant to the NGSD. Returns the variant ID.
