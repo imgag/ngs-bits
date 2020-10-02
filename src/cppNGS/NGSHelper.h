@@ -5,18 +5,18 @@
 #include "BamReader.h"
 #include "FilterCascade.h"
 
-enum class PathType
-{
-	PROJECT_FOLDER, //
-	SAMPLE_FOLDER, //
-	BAM, //
-	GSVAR, //
-	VCF, //
-	BAF, //
-	BED, //
-	CNV, // segfile
-	CUSTOM_TRACK //
-};
+//enum class PathType
+//{
+//	PROJECT_FOLDER, //
+//	SAMPLE_FOLDER, //
+//	BAM, //
+//	GSVAR, //
+//	VCF, //
+//	BAF, //
+//	BED, //
+//	CNV, // segfile
+//	CUSTOM_TRACK //
+//};
 
 ///Helper class for NGS-specific stuff.
 class CPPNGSSHARED_EXPORT NGSHelper
@@ -46,8 +46,8 @@ public:
 	///Parses a chromosomal region from the given text. Throws an error, if the region is not valid.
 	static void parseRegion(const QString& text, Chromosome& chr, int& start, int& end);
 
-	///Returns a string representation for PathType
-	static QString enumToString(PathType type);
+//	///Returns a string representation for PathType
+//	static QString enumToString(PathType type);
 
 private:
 	///Constructor declared away
