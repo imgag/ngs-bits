@@ -2197,7 +2197,11 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 		{
 			if (part.startsWith("QUAL="))
 			{
-				if (part.mid(5).toInt()<qual)
+				//also handle floats (should not be necessary, but floats were used due to a bug in the somatic single-sample pipeline)
+				QByteArray qual_str = part.mid(5);
+				if (qual_str.contains('.')) qual_str = qual_str.left(qual_str.indexOf('.'));
+
+				if (qual_str.toInt()<qual)
 				{
 					result.flags()[i] = false;
 				}
