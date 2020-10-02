@@ -11,7 +11,11 @@ enum class PathType
 	SAMPLE_FOLDER, //
 	BAM, //
 	GSVAR, //
-	VCF //
+	VCF, //
+	BAF, //
+	BED, //
+	CNV, // segfile
+	CUSTOM_TRACK //
 };
 
 ///Helper class for NGS-specific stuff.
@@ -41,6 +45,9 @@ public:
 
 	///Parses a chromosomal region from the given text. Throws an error, if the region is not valid.
 	static void parseRegion(const QString& text, Chromosome& chr, int& start, int& end);
+
+	///Returns a string representation for PathType
+	static QString enumToString(PathType type);
 
 private:
 	///Constructor declared away

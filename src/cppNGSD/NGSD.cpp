@@ -738,10 +738,10 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	}
 
 	//append file name if requested
-	if (type==BAM) output += ps_name + ".bam";
-	else if (type==GSVAR) output += ps_name + ".GSvar";
-	else if (type==VCF) output += ps_name + "_var_annotated.vcf.gz";
-	else if (type!=SAMPLE_FOLDER && type!=PROJECT_FOLDER) THROW(ProgrammingException, "Unknown PathType '" + QString::number(type) + "'!");
+	if (type==PathType::BAM) output += ps_name + ".bam";
+	else if (type==PathType::GSVAR) output += ps_name + ".GSvar";
+	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
+	else if (type!=PathType::SAMPLE_FOLDER && type!=PathType::PROJECT_FOLDER) THROW(ProgrammingException, "Unknown PathType '" + NGSHelper::enumToString(type) + "'!");
 
 	//convert to canonical path
 	output = QFileInfo(output).absoluteFilePath();
@@ -2480,7 +2480,7 @@ QString NGSD::analysisJobFolder(int job_id)
 	AnalysisJob job = analysisInfo(job_id, true);
 
 	//project path
-	QString output = processedSamplePath(processedSampleId(job.samples[0].name), NGSD::PROJECT_FOLDER);
+	QString output = processedSamplePath(processedSampleId(job.samples[0].name), PathType::PROJECT_FOLDER);
 
 	//type
 	QString sample_sep;

@@ -9,6 +9,7 @@ FileLocationProviderNGSD::FileLocationProviderNGSD(QString procssed_sample_id)
 
 QList<FileLocation> FileLocationProviderNGSD::getBamFiles()
 {
+	QList<FileLocation> output;
 /*
 QList<IgvFile> FileLocationProviderNGSD::getBamFilesInNGSD()
 {
@@ -53,4 +54,5 @@ QList<IgvFile> FileLocationProviderNGSD::getBamFilesInNGSD()
 }
 
 */
+	return output;
 }

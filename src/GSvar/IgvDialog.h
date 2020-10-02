@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QTreeWidgetItem>
 #include "ui_IgvDialog.h"
+#include "NGSHelper.h"
 
 class IgvDialog
 		: public QDialog
@@ -15,7 +16,7 @@ public:
 	IgvDialog(QWidget* parent = 0);
 
 	//Add a file
-	void addFile(QString label, QString type, QString filename, bool checked);
+	void addFile(QString label, PathType type, QString filename, bool checked);
 
 	enum InitAction
 	{

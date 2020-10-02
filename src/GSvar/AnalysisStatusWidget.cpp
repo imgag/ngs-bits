@@ -375,7 +375,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		NGSD db;
 		foreach(const AnalysisJobSample& sample, samples)
 		{
-			QDesktopServices::openUrl(db.processedSamplePath(db.processedSampleId(sample.name), NGSD::SAMPLE_FOLDER));
+			QDesktopServices::openUrl(db.processedSamplePath(db.processedSampleId(sample.name), PathType::SAMPLE_FOLDER));
 		}
 	}
 	if (text=="Open log file")

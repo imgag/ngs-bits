@@ -11,13 +11,13 @@ IgvDialog::IgvDialog(QWidget *parent)
 	connect(ui_.tree, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(treeItemChanged(QTreeWidgetItem*)));
 }
 
-void IgvDialog::addFile(QString label, QString type, QString filename, bool checked)
+void IgvDialog::addFile(QString label, PathType type, QString filename, bool checked)
 {
 	//determine group
 	QTreeWidgetItem* group = nullptr;
 	for(int i=0; i<ui_.tree->topLevelItemCount(); ++i)
 	{
-		if (ui_.tree->topLevelItem(i)->text(0)==type)
+		if (ui_.tree->topLevelItem(i)->text(0)==NGSHelper::enumToString(type))
 		{
 			group = ui_.tree->topLevelItem(i);
 		}
@@ -26,13 +26,13 @@ void IgvDialog::addFile(QString label, QString type, QString filename, bool chec
 	//add group if missing
 	if (group==nullptr)
 	{
-		group = new QTreeWidgetItem(QStringList() << type);
+		group = new QTreeWidgetItem(QStringList() << NGSHelper::enumToString(type));
 		group->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-		if (type=="VCF") group->setToolTip(0, "Variant list(s)");
-		if (type=="BAM") group->setToolTip(0, "Sequencing read file(s)");
-		if (type=="BAF") group->setToolTip(0, "b-allele frequency file(s)");
-		if (type=="BED") group->setToolTip(0, "regions file(s)");
-		if (type=="custom track") group->setToolTip(0, "Custom tracks");
+		if (type==PathType::VCF) group->setToolTip(0, "Variant list(s)");
+		if (type==PathType::BAM) group->setToolTip(0, "Sequencing read file(s)");
+		if (type==PathType::BAF) group->setToolTip(0, "b-allele frequency file(s)");
+		if (type==PathType::BED) group->setToolTip(0, "regions file(s)");
+		if (type==PathType::CUSTOM_TRACK) group->setToolTip(0, "Custom tracks");
 		ui_.tree->addTopLevelItem(group);
 	}
 
