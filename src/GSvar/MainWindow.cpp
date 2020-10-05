@@ -1010,7 +1010,7 @@ void MainWindow::openInIGV(QString region)
 		QString roi = ui_.filters->targetRegion();
 		if (roi!="")
 		{
-			dlg.addFile("target region track", PathType::BED, roi, true);
+			dlg.addFile("target region track", PathType::CNV_CALLS, roi, true);
 		}
 
 		//sample low-coverage
@@ -1018,7 +1018,7 @@ void MainWindow::openInIGV(QString region)
 
 		if (files.count()==1)
 		{
-			dlg.addFile("low-coverage regions track", PathType::BED, files[0], ui_.actionIgvLowcov->isChecked());
+			dlg.addFile("low-coverage regions track", PathType::CNV_CALLS, files[0], ui_.actionIgvLowcov->isChecked());
 		}
 
 		//amplicon file (of processing system)
@@ -1029,7 +1029,7 @@ void MainWindow::openInIGV(QString region)
 			QString amplicons = system_data.target_file.left(system_data.target_file.length()-4) + "_amplicons.bed";
 			if (QFile::exists(amplicons))
 			{
-				dlg.addFile("amplicons track (of processing system)", PathType::BED, amplicons, true);
+				dlg.addFile("amplicons track (of processing system)", PathType::CNV_CALLS, amplicons, true);
 			}
 		}
 		catch(...) {} //Nothing to do here
@@ -1040,7 +1040,7 @@ void MainWindow::openInIGV(QString region)
 		{
 			QString text = action->text();
 			if (!text.startsWith("custom track:")) continue;
-			dlg.addFile(text, PathType::CUSTOM_TRACK, action->toolTip().replace("custom track:", "").trimmed(), action->isChecked());
+			dlg.addFile(text, PathType::OTHER, action->toolTip().replace("custom track:", "").trimmed(), action->isChecked());
 		}
 
 		//execute dialog
@@ -5314,10 +5314,10 @@ QList<FileLocation> MainWindow::getSegFilesCnv()
 		//tumor-normal SEG file
 		QString segfile = filename_.left(filename_.length()-6) + "_cnvs.seg";
 		QString pair = QFileInfo(filename_).baseName();
-		output << FileLocation{pair + " (copy number)", PathType::CNV , segfile};
+		output << FileLocation{pair + " (copy number)", PathType::CNV_ESTIMATES , segfile};
 
 		QString covfile = filename_.left(filename_.length()-6) + "_cov.seg";
-		output << FileLocation{pair + " (coverage)", PathType::CNV,covfile};
+		output << FileLocation{pair + " (coverage)", PathType::CNV_ESTIMATES,covfile};
 
 		//germline SEG file
 		QString basename = QFileInfo(filename_).baseName().left(filename_.length()-6);
@@ -5327,7 +5327,7 @@ QList<FileLocation> MainWindow::getSegFilesCnv()
 			QString pair_folder = QFileInfo(filename_).absolutePath();
 			QString project_folder = QFileInfo(pair_folder).absolutePath();
 			segfile = project_folder + "/Sample_" + tumor_ps_name + "/" + tumor_ps_name + "_cnvs.seg";
-			output << FileLocation{tumor_ps_name, PathType::CNV , segfile};
+			output << FileLocation{tumor_ps_name, PathType::CNV_ESTIMATES , segfile};
 		}
 	}
 	else
@@ -5339,14 +5339,14 @@ QList<FileLocation> MainWindow::getSegFilesCnv()
 			QString segfile = base_name + "_cnvs_clincnv.seg";
 			if (QFile::exists(segfile))
 			{
-				output << FileLocation{file.id, PathType::CNV , segfile};
+				output << FileLocation{file.id, PathType::CNV_ESTIMATES , segfile};
 			}
 			else
 			{
 				segfile = base_name + "_cnvs.seg";
 				if (QFile::exists(segfile))
 				{
-					output << FileLocation{file.id, PathType::CNV , segfile};
+					output << FileLocation{file.id, PathType::CNV_ESTIMATES , segfile};
 				}
 			}
 		}
