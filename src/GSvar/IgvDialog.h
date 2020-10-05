@@ -4,7 +4,8 @@
 #include <QDialog>
 #include <QTreeWidgetItem>
 #include "ui_IgvDialog.h"
-#include "NGSHelper.h"
+//#include "NGSHelper.h"
+#include "FileLocationHelper.h"
 
 class IgvDialog
 		: public QDialog

@@ -64,7 +64,8 @@ SOURCES += BedFile.cpp \
     ClinvarSubmissionGenerator.cpp \
     VcfFileHelper.cpp \
     VcfFile.cpp \
-    FileLocationProviderFileSystem.cpp
+    FileLocationProviderFileSystem.cpp \
+    FileLocationHelper.cpp
 
 
 HEADERS += BedFile.h \
@@ -99,7 +100,8 @@ HEADERS += BedFile.h \
     VcfFileHelper.h \
     VcfFile.h \
     FileLocationProvider.h \
-    FileLocationProviderFileSystem.h
+    FileLocationProviderFileSystem.h \
+    FileLocationHelper.h
 
 
 RESOURCES += \

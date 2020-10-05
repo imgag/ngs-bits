@@ -5,19 +5,6 @@
 #include "BamReader.h"
 #include "FilterCascade.h"
 
-//enum class PathType
-//{
-//	PROJECT_FOLDER, //
-//	SAMPLE_FOLDER, //
-//	BAM, //
-//	GSVAR, //
-//	VCF, //
-//	BAF, //
-//	BED, //
-//	CNV, // segfile
-//	CUSTOM_TRACK //
-//};
-
 ///Helper class for NGS-specific stuff.
 class CPPNGSSHARED_EXPORT NGSHelper
 {

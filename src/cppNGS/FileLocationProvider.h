@@ -5,7 +5,7 @@
 #include "cppNGS_global.h"
 #include "VariantList.h"
 #include "qfileinfo.h"
-#include "NGSHelper.h"
+#include "FileLocationHelper.h"
 
 struct FileLocation
 {

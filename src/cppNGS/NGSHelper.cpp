@@ -590,31 +590,6 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	al.setCigarData(new_CIGAR);
 }
 
-//QString NGSHelper::enumToString(PathType type)
-//{
-//	switch(type) {
-//		case PathType::PROJECT_FOLDER:
-//			return "PROJECT_FOLDER";
-//		case PathType::SAMPLE_FOLDER:
-//			return "SAMPLE_FOLDER";
-//		case PathType::BAM:
-//			return "BAM";
-//		case PathType::GSVAR:
-//			return "GSVAR";
-//		case PathType::VCF:
-//			return "VCF";
-//		case PathType::BAF:
-//			return "BAF";
-//		case PathType::BED:
-//			return "BED";
-//		case PathType::CUSTOM_TRACK:
-//			return "custom track";
-//	  default:
-//		 return "Invalid PathType";
-//   }
-//}
-
-
 bool SampleInfo::isAffected() const
 {
 	auto it = properties.cbegin();
