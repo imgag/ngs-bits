@@ -7,13 +7,13 @@
 class CPPNGSSHARED_EXPORT FileLocationProviderFileSystem : virtual public FileLocationProvider
 {
 public:
-	FileLocationProviderFileSystem(QString gsvar_file, AnalysisType type);
+	FileLocationProviderFileSystem(QString gsvar_file, SampleHeaderInfo header_info);
 	virtual ~FileLocationProviderFileSystem() {}
 
 	QList<FileLocation> getBamFiles() override;
 protected:
 	QString gsvar_file_;
-	AnalysisType type_;
+	SampleHeaderInfo header_info_;
 };
 
 
