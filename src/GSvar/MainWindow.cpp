@@ -484,7 +484,7 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	CnvWidget *list;
-	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR || cnvs_.type() == CnvListType::CLINCNV_TUMOR_ONLY)
 	{
 		list = new CnvWidget(cnvs_, ps_id, ui_.filters, somatic_report_settings_.report_config, het_hit_genes, gene2region_cache_);
 	}

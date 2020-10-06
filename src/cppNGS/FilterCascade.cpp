@@ -2781,7 +2781,7 @@ void FilterCnvLoglikelihood::apply(const CnvList& cnvs, FilterResult& result) co
 	double min_ll = getDouble("min_ll");
 	bool scale_by_regions = getBool("scale_by_regions");
 	int i_ll = cnvs.annotationIndexByName("loglikelihood", true);
-	if (cnvs.type()==CnvListType::CLINCNV_GERMLINE_SINGLE || cnvs.type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	if (cnvs.type()==CnvListType::CLINCNV_GERMLINE_SINGLE || cnvs.type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR || cnvs.type()==CnvListType::CLINCNV_TUMOR_ONLY)
 	{
 		for(int i=0; i<cnvs.count(); ++i)
 		{
@@ -2867,7 +2867,7 @@ void FilterCnvQvalue::apply(const CnvList& cnvs, FilterResult& result) const
 	double max_q = getDouble("max_q");
 	int i_q = cnvs.annotationIndexByName("qvalue", true);
 
-	if (cnvs.type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
+	if (cnvs.type()==CnvListType::CLINCNV_GERMLINE_SINGLE || cnvs.type()==CnvListType::CLINCNV_TUMOR_ONLY)
 	{
 		for(int i=0; i<cnvs.count(); ++i)
 		{
