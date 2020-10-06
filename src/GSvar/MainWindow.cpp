@@ -5273,12 +5273,6 @@ QList<FileLocation> MainWindow::getBamFiles()
 
 	output += ffs->getBamFiles();
 
-	if (output.count() == 0)
-	{
-		QMessageBox::warning(this, "Missing BAM file!", "Could not find BAM file at one of the default locations");
-		output.clear();
-	}
-
 	return output;
 }
 
