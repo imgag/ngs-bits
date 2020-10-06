@@ -5,12 +5,11 @@
 #include <QDir>
 
 
-CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const QString& system_name, QWidget *parent) :
+CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
 	QDialog(parent),
 	ui_(new Ui::CfDNAPanelDesignDialog),
 	variants_(variants),
 	processed_sample_name_(processed_sample_name),
-	system_name_(system_name),
 	somatic_report_configuration_(somatic_report_configuration)
 {
 	// remove '?' entry
@@ -21,6 +20,9 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 	// connect signals and slots
 	connect(ui_->buttonBox, SIGNAL(accepted()), this, SLOT(createOutputFiles()));
 
+
+	// fill processing system ComboBox
+	ui_->cb_processing_system->fill(processing_systems);
 
 	loadVariants();
 	loadGenes();
@@ -35,28 +37,32 @@ void CfDNAPanelDesignDialog::loadVariants()
 {
 	// set dimensions
 	ui_->vars->setRowCount(variants_.count());
-	ui_->vars->setColumnCount(9);
+	ui_->vars->setColumnCount(10);
 
 	//create header
-	ui_->vars->setHorizontalHeaderItem(0, GUIHelper::createTableItem("chr"));
-	ui_->vars->horizontalHeaderItem(0)->setToolTip("Chromosome the variant is located on.");
-	ui_->vars->setHorizontalHeaderItem(1, GUIHelper::createTableItem("start"));
-	ui_->vars->horizontalHeaderItem(1)->setToolTip("Start position of the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
-	ui_->vars->setHorizontalHeaderItem(2, GUIHelper::createTableItem("end"));
-	ui_->vars->horizontalHeaderItem(2)->setToolTip("End position of the the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
-	ui_->vars->setHorizontalHeaderItem(3, GUIHelper::createTableItem("ref"));
-	ui_->vars->horizontalHeaderItem(3)->setToolTip("Reference bases in the reference genome at the variant position.\n`-` in case of an insertion.");
-	ui_->vars->setHorizontalHeaderItem(4, GUIHelper::createTableItem("obs"));
-	ui_->vars->horizontalHeaderItem(4)->setToolTip("Alternate bases observed in the sample.\n`-` in case of an deletion.");
+	int col_idx = 0;
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("select"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Check all variants which should be added to the cfDNA panel.");
 
-	ui_->vars->setHorizontalHeaderItem(5, GUIHelper::createTableItem("tumor_af"));
-	ui_->vars->horizontalHeaderItem(5)->setToolTip("Mutant allele frequency in tumor.");
-	ui_->vars->setHorizontalHeaderItem(6, GUIHelper::createTableItem("tumor_dp"));
-	ui_->vars->horizontalHeaderItem(6)->setToolTip("Tumor Depth.");
-	ui_->vars->setHorizontalHeaderItem(7, GUIHelper::createTableItem("normal_af"));
-	ui_->vars->horizontalHeaderItem(7)->setToolTip("Mutant allele frequency in normal.");
-	ui_->vars->setHorizontalHeaderItem(8, GUIHelper::createTableItem("normal_dp"));
-	ui_->vars->horizontalHeaderItem(8)->setToolTip("Normal depth.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("chr"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Chromosome the variant is located on.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("start"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Start position of the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("end"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("End position of the the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("ref"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Reference bases in the reference genome at the variant position.\n`-` in case of an insertion.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("obs"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Alternate bases observed in the sample.\n`-` in case of an deletion.");
+
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("tumor_af"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Mutant allele frequency in tumor.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("tumor_dp"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Tumor Depth.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("normal_af"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Mutant allele frequency in normal.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("normal_dp"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Normal depth.");
 
 	// get indices of report config
 	QList<int> report_config_indices = somatic_report_configuration_.variantIndices(VariantType::SNVS_INDELS, false);
@@ -69,10 +75,11 @@ void CfDNAPanelDesignDialog::loadVariants()
 
 
 	// load filtered variant list
-	int r = 0;
+	int row_idx = 0;
 	for (int i=0; i<variants_.count(); ++i)
 	{
 		const Variant& variant = variants_[i];
+		int col_idx = 0;
 
 		// filter variants by filter column
 		if (variant.filters().length() != 0) continue;
@@ -86,20 +93,22 @@ void CfDNAPanelDesignDialog::loadVariants()
 		}
 
 
-		QTableWidgetItem* chr_item = GUIHelper::createTableItem(variant.chr().str());
-		chr_item->setFlags(chr_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
-		chr_item->setCheckState(Qt::Unchecked);
+		QTableWidgetItem* select_item = GUIHelper::createTableItem("");
+		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
+		select_item->setCheckState(Qt::Unchecked);
 
-		ui_->vars->setItem(r, 0, chr_item);
-		ui_->vars->setItem(r, 1, GUIHelper::createTableItem(QByteArray::number(variant.start())));
-		ui_->vars->setItem(r, 2, GUIHelper::createTableItem(QByteArray::number(variant.end())));
-		ui_->vars->setItem(r, 3, GUIHelper::createTableItem(variant.ref()));
-		ui_->vars->setItem(r, 4, GUIHelper::createTableItem(variant.obs()));
+		ui_->vars->setItem(row_idx, col_idx++, select_item);
 
-		ui_->vars->setItem(r, 5, GUIHelper::createTableItem(variant.annotations()[tumor_af_idx]));
-		ui_->vars->setItem(r, 6, GUIHelper::createTableItem(variant.annotations()[tumor_dp_idx]));
-		ui_->vars->setItem(r, 7, GUIHelper::createTableItem(variant.annotations()[normal_af_idx]));
-		ui_->vars->setItem(r, 8, GUIHelper::createTableItem(variant.annotations()[normal_dp_idx]));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.start())));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.end())));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.obs()));
+
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[tumor_af_idx]));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[tumor_dp_idx]));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_af_idx]));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_dp_idx]));
 
 		// vertical header
 		QTableWidgetItem* item = GUIHelper::createTableItem(QByteArray::number(i+1));
@@ -108,14 +117,17 @@ void CfDNAPanelDesignDialog::loadVariants()
 		{
 			item->setIcon(QIcon(var_conf.showInReport() ? QPixmap(":/Icons/Report_add.png") : QPixmap(":/Icons/Report exclude.png")));
 		}
-		ui_->vars->setVerticalHeaderItem(r, item);
+		ui_->vars->setVerticalHeaderItem(row_idx, item);
 
 		// increase row index
-		r++;
+		row_idx++;
 	}
 
 	// resize after filling the table:
-	ui_->vars->setRowCount(r);
+	ui_->vars->setRowCount(row_idx);
+
+	// optimize cell sizes
+	GUIHelper::resizeTableCells(ui_->vars, 150);
 
 }
 
@@ -156,27 +168,32 @@ void CfDNAPanelDesignDialog::loadGenes()
 
 	// set dimensions
 	ui_->genes->setRowCount(genes_.length());
-	ui_->genes->setColumnCount(3);
+	ui_->genes->setColumnCount(4);
 
-	// create header
-	ui_->genes->setHorizontalHeaderItem(0, GUIHelper::createTableItem("gene"));
-	ui_->genes->setHorizontalHeaderItem(1, GUIHelper::createTableItem("region"));
-	ui_->genes->setHorizontalHeaderItem(2, GUIHelper::createTableItem("file date"));
+	//create header
+	int col_idx = 0;
+	ui_->genes->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("select"));
+	ui_->genes->horizontalHeaderItem(col_idx++)->setToolTip("Check all genes which should be added to the cfDNA panel.");
+
+	ui_->genes->setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("gene"));
+	ui_->genes->setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("region"));
+	ui_->genes->setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("file date"));
 
 	// fill table
 	int r = 0;
 	foreach (const GeneEntry& entry, genes_)
 	{
-		QTableWidgetItem* gene_item = GUIHelper::createTableItem(entry.gene_name);
-		gene_item->setFlags(gene_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
-		gene_item->setCheckState(Qt::Unchecked);
+		QTableWidgetItem* select_item = GUIHelper::createTableItem("");
+		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
+		select_item->setCheckState(Qt::Unchecked);
 
 		// store file path in first cell
-		gene_item->setData(Qt::UserRole, entry.file_path);
+		select_item->setData(Qt::UserRole, entry.file_path);
 
-		ui_->genes->setItem(r, 0, gene_item);
-		ui_->genes->setItem(r, 1, GUIHelper::createTableItem(BedLine(entry.chr, entry.start, entry.end).toString(true)));
-		ui_->genes->setItem(r, 2, GUIHelper::createTableItem(entry.date.toString("dd.MM.yyyy")));
+		ui_->genes->setItem(r, 0, select_item);
+		ui_->genes->setItem(r, 1, GUIHelper::createTableItem(entry.gene_name));
+		ui_->genes->setItem(r, 2, GUIHelper::createTableItem(BedLine(entry.chr, entry.start, entry.end).toString(true)));
+		ui_->genes->setItem(r, 3, GUIHelper::createTableItem(entry.date.toString("dd.MM.yyyy")));
 		r++;
 	}
 }
@@ -184,10 +201,10 @@ void CfDNAPanelDesignDialog::loadGenes()
 void CfDNAPanelDesignDialog::createOutputFiles()
 {
 
-	selected_variants_.clear();
+	VariantList selected_variants;
 
 	// copy header
-	selected_variants_.copyMetaData(variants_);
+	selected_variants.copyMetaData(variants_);
 
 	// get all selected variants
 	for (int r = 0; r < ui_->vars->rowCount(); ++r)
@@ -199,7 +216,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 			int var_idx = ui_->vars->verticalHeaderItem(r)->data(Qt::UserRole).toInt(&ok);
 			if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + ui_->vars->verticalHeaderItem(r)->data(Qt::UserRole).toString() + "' is not an integer!");
 
-			selected_variants_.append(variants_[var_idx]);
+			selected_variants.append(variants_[var_idx]);
 		}
 	}
 
@@ -220,7 +237,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 
 			// add to overall gene list
 			QByteArrayList annotations;
-			annotations << "GENE" << gene_name.toUtf8();
+			annotations.append("GENE:" + gene_name.toUtf8());
 			for (int i = 0; i < gene.count(); ++i)
 			{
 				roi.append(BedLine(gene[i].chr(), gene[i].start(), gene[i].end(), annotations));
@@ -228,18 +245,33 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		}
 	}
 
+	// get KASP variants
+	if (ui_->cb_sample_identifier->isChecked())
+	{
+		BedFile kasp_variants;
+		kasp_variants.load("://Resources/KASP_set2_pad5.bed");
+		kasp_variants.clearAnnotations();
+		for (int i=0; i<kasp_variants.count(); i++)
+		{
+			BedLine& kasp_variant = kasp_variants[i];
+			kasp_variant.annotations().append("Sample_Identifier:KASP_set2");
+			roi.append(kasp_variant);
+		}
+	}
+
+
 	// generate output VCF
 	QString ref_genome = Settings::string("reference_genome", false);
-	VcfFile vcf_file = VcfFile::convertGSvarToVcf(selected_variants_, ref_genome);
+	VcfFile vcf_file = VcfFile::convertGSvarToVcf(selected_variants, ref_genome);
 
 	// generate bed file
 	for (int i=0; i<vcf_file.count(); i++)
 	{
-		roi.append(BedLine(vcf_file[i].chr(), vcf_file[i].start(), vcf_file[i].end(), QByteArrayList() << "SNP_INDEL" << vcf_file[i].ref() + ">" + vcf_file[i].altString()));
+		roi.append(BedLine(vcf_file[i].chr(), vcf_file[i].start(), vcf_file[i].end(), QByteArrayList() << "SNP_INDEL:" + vcf_file[i].ref() + ">" + vcf_file[i].altString()));
 	}
 
 	QString output_path = Settings::string("patient_specific_panel_folder", false);
-	output_path += system_name_ + "/";
+	output_path += ui_->cb_processing_system->currentText() + "/";
 
 	// create output folder if it not exists
 	if (!QDir(output_path).exists()) QDir().mkdir(output_path);

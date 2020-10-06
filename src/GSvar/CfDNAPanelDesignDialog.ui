@@ -35,6 +35,43 @@
     <widget class="QTableWidget" name="genes"/>
    </item>
    <item>
+    <widget class="QCheckBox" name="cb_sample_identifier">
+     <property name="text">
+      <string>Add Sample identifier (KASP_set2)</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Processing system of the cfDNA Panel:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="DBComboBox" name="cb_processing_system"/>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -46,6 +83,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DBComboBox</class>
+   <extends>QComboBox</extends>
+   <header>DBComboBox.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

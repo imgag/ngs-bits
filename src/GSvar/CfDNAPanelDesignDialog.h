@@ -7,6 +7,7 @@
 #include "VcfFile.h"
 #include "Settings.h"
 #include "Exceptions.h"
+#include "DBComboBox.h"
 
 struct GeneEntry
 {
@@ -27,7 +28,7 @@ class CfDNAPanelDesignDialog : public QDialog
 	Q_OBJECT
 
 public:
-	explicit CfDNAPanelDesignDialog(const VariantList& variants, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const QString& system_name, QWidget *parent = 0);
+	explicit CfDNAPanelDesignDialog(const VariantList& variants, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent = 0);
 	~CfDNAPanelDesignDialog();
 
 private slots:
@@ -38,9 +39,7 @@ private:
 	void loadVariants();
 	void loadGenes();
 	const VariantList& variants_;
-	VariantList selected_variants_;
 	QString processed_sample_name_;
-	QString system_name_;
 	const SomaticReportConfiguration& somatic_report_configuration_;
 	QList<GeneEntry> genes_;
 };

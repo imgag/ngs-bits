@@ -104,5 +104,6 @@
         <file>Icons/ckb.png</file>
         <file>Icons/PubMed.png</file>
         <file>Icons/Report_finalize.png</file>
+        <file>Resources/KASP_set2_pad5.bed</file>
     </qresource>
 </RCC>

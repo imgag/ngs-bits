@@ -540,8 +540,6 @@
    <addaction name="actionPRS"/>
    <addaction name="actionCircos"/>
    <addaction name="actionDebug"/>
-   <addaction name="actionDesignCfDNAPanel"/>
-   <addaction name="actionCfDNADiseaseCourse"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -1183,6 +1181,11 @@
   <action name="actionCfDNADiseaseCourse">
    <property name="text">
     <string>course of the disease (personalized cfDNA)</string>
+   </property>
+  </action>
+  <action name="actionShowCfDNAPanel">
+   <property name="text">
+    <string>Show cfDNA Panel</string>
    </property>
   </action>
  </widget>

@@ -150,6 +150,21 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
 
+	// add cfdna menu
+	cfdna_menu_btn_ = new QToolButton();
+	cfdna_menu_btn_->setObjectName("cfdna_btn");
+	cfdna_menu_btn_->setIcon(QIcon(":/Icons/Arrow_down.png"));
+	cfdna_menu_btn_->setToolTip("Open cfDNA menu entries");
+	cfdna_menu_btn_->setMenu(new QMenu());
+	cfdna_menu_btn_->menu()->addAction(ui_.actionDesignCfDNAPanel);
+	cfdna_menu_btn_->menu()->addAction(ui_.actionShowCfDNAPanel);
+	cfdna_menu_btn_->menu()->addAction(ui_.actionCfDNADiseaseCourse);
+	cfdna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
+	ui_.tools->addWidget(cfdna_menu_btn_);
+	// deaktivate on default (only available in somatic)
+	cfdna_menu_btn_->setVisible(false);
+	cfdna_menu_btn_->setEnabled(false);
+
 	//signals and slots
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varsContextMenu(QPoint)));
@@ -639,11 +654,61 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 	if (!LoginManager::active()) return;
 	if (!somaticReportSupported()) return;
 
-	int processing_system_id = NGSD().processingSystemIdFromProcessedSample(processedSampleName());
-	QString processing_system = NGSD().getProcessingSystemData(processing_system_id, true).name_short;
+	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
-	CfDNAPanelDesignDialog* dialog = new CfDNAPanelDesignDialog(variants_, somatic_report_settings_.report_config, processedSampleName(), processing_system, this);
+	CfDNAPanelDesignDialog* dialog = new CfDNAPanelDesignDialog(variants_, somatic_report_settings_.report_config, processedSampleName(), cfdna_processing_systems, this);
 	dialog->exec();
+}
+
+void MainWindow::on_actionShowCfDNAPanel_triggered()
+{
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+	if (!somaticReportSupported()) return;
+
+	qDebug() << "Function entered!";
+
+
+	// get files
+	QStringList processing_systems = NGSD().getValues("SELECT name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
+	QString folder = Settings::string("patient_specific_panel_folder", false);
+	QStringList bed_files;
+	foreach (const QString& system, processing_systems)
+	{
+		QString file_path = folder + "/" + system + "/" + processedSampleName() + ".bed";
+
+		qDebug() << file_path;
+
+		if (QFileInfo(file_path).exists()) bed_files << file_path;
+	}
+
+	BedFile cfdna_panel;
+	if (bed_files.empty())
+	{
+		// show message
+		GUIHelper::showMessage("No cfDNA panel found!", "No cfDNA sample were found for the given tumor sample!");
+
+	}
+	else
+	{
+		// TODO: implement fallback if multiple files are found
+		// for now choose first
+		cfdna_panel.load(bed_files.at(0));
+	}
+
+	// create table view
+	QTableWidget* table = new QTableWidget(cfdna_panel.count(), 5);
+	for (int i=0; i < cfdna_panel.count(); i++)
+	{
+		const BedLine& line = cfdna_panel[i];
+		table->setItem(i, 0, GUIHelper::createTableItem(line.chr().strNormalized(true)));
+		table->setItem(i, 1, GUIHelper::createTableItem(QByteArray::number(line.start())));
+		table->setItem(i, 2, GUIHelper::createTableItem(QByteArray::number(line.end())));
+		table->setItem(i, 3, GUIHelper::createTableItem(line.annotations()[0].split(':')[0]));
+		table->setItem(i, 4, GUIHelper::createTableItem(line.annotations()[0].split(':')[1]));
+	}
+	auto dlg = GUIHelper::createDialog(table, "cfDNA Panel for Tumor " + processedSampleName());
+	dlg->exec();
 }
 
 void MainWindow::on_actionCfDNADiseaseCourse_triggered()
@@ -1937,14 +2002,18 @@ void MainWindow::loadFile(QString filename)
 	ui_.actionCfDNADiseaseCourse->setVisible(false);
 	ui_.actionDesignCfDNAPanel->setEnabled(false);
 	ui_.actionCfDNADiseaseCourse->setEnabled(false);
+	cfdna_menu_btn_->setVisible(false);
+	cfdna_menu_btn_->setEnabled(false);
 	if (somaticReportSupported())
 	{
 		ui_.actionDesignCfDNAPanel->setVisible(true);
 		ui_.actionCfDNADiseaseCourse->setVisible(true);
+		cfdna_menu_btn_->setVisible(true);
 
 		if (LoginManager::active())
 		{
 			ui_.actionDesignCfDNAPanel->setEnabled(true);
+			cfdna_menu_btn_->setEnabled(true);
 			NGSD db;
 			QString sample_id;
 			QStringList same_sample_ids;
@@ -1966,7 +2035,9 @@ void MainWindow::loadFile(QString filename)
 				ui_.actionCfDNADiseaseCourse->setEnabled(true);
 				cf_dna_available = true;
 			}
+
 		}
+
 	}
 
 }
@@ -3718,7 +3789,7 @@ void MainWindow::on_actionImportMids_triggered()
 void MainWindow::on_actionImportSamples_triggered()
 {
 	importBatch("Import samples",
-				"Batch import of samples. Must contain the following tab-separated fields:<br><b>name</b>, name external, <b>sender</b>, received, received by, <b>sample type</b>, <b>tumor</b>, <b>ffpe</b>, <b>species</b>, concentration [ng/ul], volume, 260/280, 260/230, RIN/DIN, <b>gender</b>, <b>quality</b>, comment",
+				"Batch import of samples. Must contain the following tab-separated fields:<br><b>name</b>, name external, <b>sender</b>, received, received by, <b>sample type</b>, <b>tumor</b>, <b>ffpe</b>, <b>species</b>, concentration [ng/ul], volume, 260/280, 260/230, RIN/DIN, <b>gender</b>, <b>quality</b>, comment <br> (For cfDNA Samples a additional column which defines the corresponding tumor sample can be given.) ",
 				"sample",
 				QStringList() << "name" << "name_external" << "sender_id" << "received" << "receiver_id" << "sample_type" << "tumor" << "ffpe" << "species_id" << "concentration" << "volume" << "od_260_280" << "od_260_230" << "integrity_number" << "gender" << "quality" << "comment"
 				);
