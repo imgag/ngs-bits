@@ -1,6 +1,6 @@
 #include "FileLocationProviderFileSystem.h"
 
-FileLocationProviderFileSystem::FileLocationProviderFileSystem(QString gsvar_file, SampleHeaderInfo header_info)
+FileLocationProviderFileSystem::FileLocationProviderFileSystem(QString gsvar_file, const SampleHeaderInfo header_info)
   : gsvar_file_(gsvar_file)
   , header_info_(header_info)
 {
