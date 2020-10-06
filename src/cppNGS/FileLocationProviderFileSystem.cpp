@@ -1,34 +1,32 @@
 #include "FileLocationProviderFileSystem.h"
 
-FileLocationProviderFileSystem::FileLocationProviderFileSystem(QString gsvar_file, AnalysisType type)
+FileLocationProviderFileSystem::FileLocationProviderFileSystem(QString gsvar_file, SampleHeaderInfo header_info)
   : gsvar_file_(gsvar_file)
-  , type_(type)
+  , header_info_(header_info)
 {
 }
 
 QList<FileLocation> FileLocationProviderFileSystem::getBamFiles()
 {
+	qDebug("FileLocationProviderFileSystem.getBamFiles() has been invoked");
 	QList<FileLocation> output;
-/*
-	QList<IgvFile> output;
 
-	if (getFilename().length() == 0)
+	if (gsvar_file_ == nullptr)
 	{
-		THROW(Exception, "File name list is empty")
+		THROW(Exception, "File name has not been specified")
 		return output;
 	}
 
-	if (getVariants().count() == 0)
+	if (header_info_.empty())
 	{
-		THROW(Exception, "Variant list is empty");
+		THROW(Exception, "Header information has not been specified");
 		return output;
 	}
 
-	QString sample_folder = QFileInfo(getFilename()).absolutePath();
+	QString sample_folder = QFileInfo(gsvar_file_).absolutePath();
 	QString project_folder = QFileInfo(sample_folder).absolutePath();
 
-	SampleHeaderInfo data = getVariants().getSampleHeader();
-	foreach(const SampleInfo& info, data)
+	foreach(const SampleInfo& info, header_info_)
 	{
 		bool found = false;
 		QString bam_from_sample = sample_folder + "/" + info.id + ".bam";
@@ -37,12 +35,12 @@ QList<FileLocation> FileLocationProviderFileSystem::getBamFiles()
 		if (QFile::exists(bam_from_sample))
 		{
 			found = true;
-			output << IgvFile{info.id, "BAM" , bam_from_sample};
+			output << FileLocation{info.id, PathType::BAM, bam_from_sample};
 		}
 		else if (QFile::exists(bam_from_project))
 		{
 			found = true;
-			output << IgvFile{info.id, "BAM" , bam_from_project};
+			output << FileLocation{info.id, PathType::BAM, bam_from_project};
 		}
 
 		if (!found)
@@ -53,6 +51,5 @@ QList<FileLocation> FileLocationProviderFileSystem::getBamFiles()
 		}
 	}
 
-*/
 	return output;
 }
