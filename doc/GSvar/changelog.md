@@ -1,5 +1,18 @@
 # GSvar change log
 
+### 2020_06-128 (29.09.20)
+- Sample search: Added sender field.
+- Filters: Added filter 'somatic allele frequency'.
+- General: Added support for MMSplice predictions.
+
+### 2020_06-115 (16.09.20)
+- General: Validation of CNVs/SVs can can now be requested from GSvar.
+- BugFix: Fixed crash in sample similarity calculation.
+
+### 2020_06-111 (16.09.20)
+- Filters: Added loading/storing filters from/to file.
+- Filters: Added option to show variants without report configuration only.
+- ROHs/SVs: Added table view of OMIM column.
 
 ### 2020_06-90 (02.09.20)
 - General: searching variants in the NGSD (small variants, CNVs, SVs) is now also possible from main menu (NGSD > Variants > Search...)
@@ -20,10 +33,6 @@
 - General: Anamnesis from GenLab can now be imported to NSGD.
 - General: Added polygenic risk scores dialog (button in main tool bar) for WGS.
 - General: Added repeat expansion dialog (button in main tool bar) WGS/WES.
-- CNVs: Added trio maternal contamination check for shallow WGS trios.
-- CNVs: Fixed links to Decipher (chromosomes are now expected without 'chr' prefix). 
-- SVs: Added search for overlapping SVs in NGSD via context menu of SVs.
-- Report: Fixed language of gender field in report.
 
 ### 2020_03-188 (24.06.20)
 - CNVs: Added trio maternal contamination check for shallow WGS trios.

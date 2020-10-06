@@ -51,6 +51,8 @@ Lines that start with `#` define a filter name. All lines after that don't start
 
 Lines that contain  `#---` insert a separator. They are used to group filters.
 
+Filter names and parameters are described [here](../tools/VariantFilterAnnotations.md).
+
 ### GSvar\_filters\_cnv.ini
 
 Default filters for CNVs.  
@@ -59,6 +61,8 @@ Lines that start with `#` define a filter name. All lines after that don't start
 
 Lines that contain  `#---` insert a separator. They are used to group filters.
 
+Filter names and parameters are described [here](../tools/CnvFilterAnnotations.md).
+
 ### GSvar\_filters\_sv.ini
 
 Default filters for SVs.  
@@ -66,6 +70,8 @@ Default filters for SVs.
 Lines that start with `#` define a filter name. All lines after that don't start with `#` contain filter steps.  
 
 Lines that contain  `#---` insert a separator. They are used to group filters.
+
+Filter names and parameters are described [here](../tools/SvFilterAnnotations.md).
 
 ## Other files
 

@@ -150,7 +150,7 @@ void LovdUploadDialog::upload()
 		add_headers.insert("Content-Length", QByteArray::number(upload_file.count()));
 
 		//post request
-		QString reply = http_handler.post("https://databases.lovd.nl/shared/api/submissions", upload_file, add_headers);
+		QString reply = http_handler.post("https://databases.lovd.nl/shared/api/v1/submissions", upload_file, add_headers);
 		ui_.comment_upload->setText(reply);
 
 		//parse JSON result

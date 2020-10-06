@@ -190,6 +190,12 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		conditions	<< "sp.id=s.species_id"
 					<< "sp.name='" + escapeForSql(p.s_species) + "'";
 	}
+	if (p.s_sender.trimmed()!="")
+	{
+		tables	<< "sender se";
+		conditions	<< "se.id=s.sender_id"
+					<< "se.name='" + escapeForSql(p.s_sender) + "'";
+	}
 	if (p.s_disease_group.trimmed()!="")
 	{
 		conditions << "s.disease_group='" + escapeForSql(p.s_disease_group) + "'";
@@ -1420,6 +1426,12 @@ QString NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bo
 			}
 		}
 
+		// determine filter for sequence
+		QStringList sequence_filter;
+		sequence_filter << ((inserted_sequence == "")? "AND `inserted_sequence` IS NULL": "AND `inserted_sequence`='" + inserted_sequence + "'");
+		sequence_filter << ((known_left == "")? "AND `known_left` IS NULL": "AND `known_left`='" + known_left + "'");
+		sequence_filter << ((known_right == "")? "AND `known_right` IS NULL": "AND `known_right`='" + known_right + "'");
+
 		// determine position and upper CI:
 		int pos = std::min(std::min(sv.start1(), sv.start2()), std::min(sv.end1(), sv.end2()));
 		int ci_upper = std::max(std::max(sv.start1(), sv.start2()), std::max(sv.end1(), sv.end2())) - pos;
@@ -1427,11 +1439,9 @@ QString NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bo
 		// get SV from NGSD
 		query.exec("SELECT id FROM `" + db_table_name + "` WHERE `sv_callset_id`=" + QString::number(callset_id)
 				   + " AND `chr`=\"" + sv.chr1().strNormalized(true) + "\""
-				   + " AND `pos`=" + QString::number(pos)
+				   + " AND (`pos` - `ci_lower`) =" + QString::number(pos)
 				   + " AND `ci_upper`=" + QString::number(ci_upper)
-				   + " AND `inserted_sequence`=\"" + inserted_sequence + "\""
-				   + " AND `known_left`=\"" + known_left + "\""
-				   + " AND `known_right`=\"" + known_right + "\"");
+				   + " " + sequence_filter.join(" "));
 	}
 	else if (sv.type() == StructuralVariantType::BND)
 	{

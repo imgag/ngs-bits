@@ -42,6 +42,7 @@ VariantValidationWidget::VariantValidationWidget(QWidget *parent)
 	//signals&slots
 	connect(ui_.status, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTable()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(updateTable()));
+	connect(ui_.cb_var_type, SIGNAL(currentTextChanged(QString)), this, SLOT(updateTable()));
 }
 
 void VariantValidationWidget::delayedInitialization()
@@ -59,7 +60,20 @@ void VariantValidationWidget::updateTable()
 	cols << "(SELECT user.name FROM user WHERE user.id=vv.user_id) as requested_by";
 	cols << "(SELECT CONCAT(sample.name, ' (', sample.name_external, ')') FROM sample WHERE sample.id=vv.sample_id) as sample";
 	//cols << "(SELECT u.name FROM user u, processed_sample ps, sample s WHERE u.id=ps.operator_id AND ps.sample_id=s.id AND s.id=vv.sample_id ORDER BY ps.id DESC LIMIT 1) as operator";
-	cols << "(SELECT CONCAT(v.chr, ':', v.start, '-', v.end, ' ', v.ref, '>', v.obs, ' (', v.gene, ')') FROM variant v WHERE v.id=vv.variant_id) as variant";
+	cols << "vv.variant_type as 'variant type'";
+	cols << QString() + "(CASE "
+			+ "WHEN vv.variant_type = 'SNV_INDEL' THEN (SELECT CONCAT(v.chr, ':', v.start, '-', v.end, ' ', v.ref, '>', v.obs, ' (', v.gene, ')') FROM variant v WHERE vv.variant_id = v.id) "
+			+ "WHEN vv.variant_type = 'CNV' THEN (SELECT CONCAT(c.chr, ':', c.start, '-', c.end, ' (CN: ', c.cn, ')') FROM cnv c WHERE vv.cnv_id = c.id) "
+			+ "WHEN vv.variant_type = 'SV' THEN CASE "
+												+ "WHEN vv.sv_deletion_id IS NOT NULL THEN (SELECT CONCAT('DEL at ', sv_del.chr, ':', sv_del.start_min, '-', sv_del.end_max) FROM sv_deletion sv_del WHERE vv.sv_deletion_id = sv_del.id) "
+												+ "WHEN vv.sv_duplication_id IS NOT NULL THEN (SELECT CONCAT('DUP at ', sv_dup.chr, ':', sv_dup.start_min, '-', sv_dup.end_max) FROM sv_duplication sv_dup WHERE vv.sv_duplication_id = sv_dup.id) "
+												+ "WHEN vv.sv_inversion_id IS NOT NULL THEN (SELECT CONCAT('INV at ', sv_inv.chr, ':', sv_inv.start_min, '-', sv_inv.end_max) FROM sv_inversion sv_inv WHERE vv.sv_inversion_id = sv_inv.id) "
+												+ "WHEN vv.sv_insertion_id IS NOT NULL THEN (SELECT CONCAT('INS at ', sv_ins.chr, ':', (sv_ins.pos - sv_ins.ci_lower), '-', (sv_ins.pos + sv_ins.ci_upper)) FROM sv_insertion sv_ins WHERE vv.sv_insertion_id = sv_ins.id) "
+												+ "WHEN vv.sv_translocation_id IS NOT NULL THEN (SELECT CONCAT('BND from ', sv_bnd.chr1, ':', sv_bnd.start1, '-', sv_bnd.end1, ' to ', sv_bnd.chr2, ':', sv_bnd.start2, '-', sv_bnd.end2) FROM sv_translocation sv_bnd WHERE vv.sv_translocation_id = sv_bnd.id) "
+												+ "ELSE 'invalid SV' "
+											+ "END "
+			+ "ELSE 'invalid variant type' "
+		+ "END) as variant";
 	cols << "vv.genotype";
 	cols << "vv.status";
 	cols << "vv.comment";
@@ -76,6 +90,7 @@ void VariantValidationWidget::updateTable()
 
 	//apply filters not possible during query
 	table.filterRows(ui_.text->text());
+	table.filterRowsByColumn(table.columnIndex("variant type"), ui_.cb_var_type->currentText());
 
 	ui_.table->setData(table);
 	GUIHelper::resizeTableCells(ui_.table, -1, false);

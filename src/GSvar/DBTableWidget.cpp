@@ -84,12 +84,6 @@ QString DBTableWidget::columnHeader(int index) const
 
 void DBTableWidget::setQualityIcons(const QString& column_header, const QStringList& quality_values)
 {
-	//init
-	static QIcon i_good = QIcon(":/Icons/quality_good.png");
-	static QIcon i_medium = QIcon(":/Icons/quality_medium.png");
-	static QIcon i_bad = QIcon(":/Icons/quality_bad.png");
-	static QIcon i_na = QIcon(":/Icons/quality_unset.png");
-
 	//check
 	if (quality_values.count()!=rowCount())
 	{
@@ -104,26 +98,7 @@ void DBTableWidget::setQualityIcons(const QString& column_header, const QStringL
 
 		const QString& quality = quality_values[r];
 
-		if (quality=="good")
-		{
-			table_item->setIcon(i_good);
-		}
-		else if (quality=="medium")
-		{
-			table_item->setIcon(i_medium);
-		}
-		else if (quality=="bad")
-		{
-			table_item->setIcon(i_bad);
-		}
-		else if (quality=="n/a" || quality=="")
-		{
-			table_item->setIcon(i_na);
-		}
-		else
-		{
-			THROW(ArgumentException, "Invalid quality value '" + quality_values[r] + "' in DBTableWidget::setQualityIcons!");
-		}
+		styleQuality(table_item, quality);
 	}
 
 	setColumnWidth(c, columnWidth(c) + 25);
@@ -223,6 +198,24 @@ const QString& DBTableWidget::getId(int r) const
 const QString& DBTableWidget::tableName() const
 {
 	return table_;
+}
+
+void DBTableWidget::styleQuality(QTableWidgetItem* item, const QString& quality)
+{
+	//init
+	static QIcon i_good = QIcon(":/Icons/quality_good.png");
+	static QIcon i_medium = QIcon(":/Icons/quality_medium.png");
+	static QIcon i_bad = QIcon(":/Icons/quality_bad.png");
+	static QIcon i_na = QIcon(":/Icons/quality_unset.png");
+
+	//icon
+	if (quality=="good") item->setIcon(i_good);
+	else if (quality=="medium") item->setIcon(i_medium);
+	else if (quality=="bad") item->setIcon(i_bad);
+	else item->setIcon(i_na);
+
+	//tooltip
+	item->setToolTip(quality);
 }
 
 void DBTableWidget::keyPressEvent(QKeyEvent* event)

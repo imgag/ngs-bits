@@ -31,8 +31,19 @@ struct CPPNGSSHARED_EXPORT FilterParameter
 {
 	//Convenience constructor
 	FilterParameter(QString n, FilterParameterType t, QVariant v, QString d);
+
+	//Returns the string representation of the value.
+	QString valueAsString() const;
 	//Returns the string representation of a parameter type.
 	static QString typeAsString(FilterParameterType type);
+
+	//Equality operator (compares name/type/value only)
+	bool operator==(const FilterParameter& rhs) const;
+	//Inequality operator
+	bool operator!=(const FilterParameter& rhs) const
+	{
+		return !operator==(rhs);
+	}
 
 	QString name;
 	FilterParameterType type;
@@ -261,6 +272,21 @@ class CPPNGSSHARED_EXPORT FilterCascade
 
 		//Returns errors occured during filter application.
 		QStringList errors(int index) const;
+
+		//Loads a filter cascade from file.
+		void load(QString filename);
+		//Stores a filter cascade to file.
+		void store(QString filename);
+		//Creates a filter cascade from a tab-separated text (one filter with parameters per line).
+		static FilterCascade fromText(const QStringList& lines);
+
+		//Equality operator (compares name/type/parameters only)
+		bool operator==(const FilterCascade& rhs) const;
+		//Inequality operator
+		bool operator!=(const FilterCascade& rhs) const
+		{
+			return !operator==(rhs);
+		}
 
 	private:
 		QList<QSharedPointer<FilterBase>> filters_;
@@ -606,6 +632,16 @@ class CPPNGSSHARED_EXPORT FilterRegulatory
 {
 	public:
 		FilterRegulatory();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter for tumor/normal allele frequency
+class CPPNGSSHARED_EXPORT FilterSomaticAlleleFrequency
+	: public FilterBase
+{
+	public:
+		FilterSomaticAlleleFrequency();
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };

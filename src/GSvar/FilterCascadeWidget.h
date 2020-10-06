@@ -39,6 +39,8 @@ protected:
 	/// Returns the row index of the currently selected filter, or -1 if none is selected;
 	int currentFilterIndex() const;
 
+	static QString filtersPath(VariantType type);
+
 protected slots:
 	void updateGUI();
 	void updateButtons();
@@ -48,6 +50,8 @@ protected slots:
 	void moveUpSelectedFilter();
 	void moveDownSelectedFilter();
 	void toggleSelectedFilter(QListWidgetItem* item);
+	void loadFilter();
+	void storeFilter();
 
 private:
 	Ui::FilterCascadeWidget ui_;

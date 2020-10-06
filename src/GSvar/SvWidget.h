@@ -91,6 +91,9 @@ private:
 	///calculate AF of SV, either by paired end reads ("PR") or split reads ("SR");
 	double alleleFrequency(int row, const QByteArray& read_type = "PR");
 
+	///Edit validation status of current sv
+	void editSvValidation(int row);
+
 	void editGermlineReportConfiguration(int row);
 
 	Ui::SvWidget* ui;

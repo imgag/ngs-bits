@@ -40,7 +40,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesVcf(const VcfFile&
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(VariantList variants, QString filename, bool include_gonosomes, bool skip_multi)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(VariantList variants, QString filename, bool include_gonosomes)
 {
 	int geno_col = -1;
 
@@ -63,9 +63,6 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(VariantList 
 
 		//skip variants not on autosomes
 		if(!variant.chr().isAutosome() && !include_gonosomes) continue;
-
-		//skip multi-allelic variants
-		if (skip_multi && variant.obs().contains(',')) continue;
 
 		output[strToPointer(variant.toString())] = genoToDouble(variant.annotations()[geno_col]);
 	}
@@ -143,22 +140,22 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromVcf(QString fi
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString filename, bool include_gonosomes, bool skip_multi, const BedFile& roi)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString filename, bool include_gonosomes, const BedFile& roi)
 {
 	VariantList variants;
 	variants.load(filename, roi);
 
-	VariantGenotypes output = genotypesGSvar(variants, filename, include_gonosomes, skip_multi);
+	VariantGenotypes output = genotypesGSvar(variants, filename, include_gonosomes);
 
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString filename, bool include_gonosomes, bool skip_multi)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString filename, bool include_gonosomes)
 {
 	VariantList variants;
 	variants.load(filename);
 
-	VariantGenotypes output = genotypesGSvar(variants, filename, include_gonosomes, skip_multi);
+	VariantGenotypes output = genotypesGSvar(variants, filename, include_gonosomes);
 
 	return output;
 }

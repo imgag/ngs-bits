@@ -158,7 +158,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJobSample
 	QString name;
 	QString info;
 
-	bool operator==(const AnalysisJobSample& rhs)
+	bool operator==(const AnalysisJobSample& rhs) const
 	{
 		return name==rhs.name && info==rhs.info;
 	}
@@ -338,6 +338,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool s_name_ext = false;
 	bool s_name_comments = false;
 	QString s_species;
+	QString s_sender;
 	QString s_disease_group;
 	QString s_disease_status;
 	bool include_bad_quality_samples = true;

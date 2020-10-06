@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2020_06-40-g7bb4fdf2)
+	VariantFilterAnnotations (2020_06-115-g597ef477)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -84,6 +84,10 @@
 	                                   Parameters:
 	                                     action - Action to perform [default=FILTER] [valid=REMOVE,FILTER]
 	SNPs only                          Filter that preserves SNPs and removes all other variant types.
+	Somatic allele frequency           Filter based on the allele frequency of variants in tumor/normal samples.
+	                                   Parameters:
+	                                     min_af_tum - Minimum allele frequency in tumor sample [%] [default=5] [min=0.0] [max=100.0]
+	                                     max_af_nor - Maximum allele frequency in normal sample [%] [default=1] [min=0.0] [max=100.0]
 	Text search                        Filter for text match in variant annotations.
 	                                   The text comparison ignores the case.
 	                                   Parameters:
@@ -120,7 +124,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2020_06-40-g7bb4fdf2
+	VariantFilterAnnotations 2020_06-115-g597ef477
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

@@ -992,7 +992,7 @@ void MainWindow::editVariantValidation(int index)
 		}
 
 		//get sample ID
-		QString sample_id = db.sampleId(filename_);
+		QString sample_id = db.sampleId(processedSampleName());
 
 		//get variant validation ID - add if missing
 		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE variant_id='" + variant_id + "' AND sample_id='" + sample_id + "'", true);
@@ -1004,7 +1004,7 @@ void MainWindow::editVariantValidation(int index)
 
 			//insert
 			SqlQuery query = db.getQuery();
-			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_id, genotype, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','" + variant_id + "','" + genotype + "','n/a')");
+			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_type, variant_id, genotype, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','SNV_INDEL','" + variant_id + "','" + genotype + "','n/a')");
 			val_id = query.lastInsertId();
 		}
 
@@ -1028,6 +1028,12 @@ void MainWindow::editVariantValidation(int index)
 
 			//mark variant list as changed
 			markVariantListChanged();
+		}
+		else
+		{
+			// remove created but empty validation if ValidationDialog is aborted
+			SqlQuery query = db.getQuery();
+			query.exec("DELETE FROM variant_validation WHERE id=" + val_id.toString());
 		}
 	}
 	catch (DatabaseException& e)
@@ -1842,7 +1848,7 @@ void MainWindow::loadFile(QString filename)
 	}
 	else if(LoginManager::active() && somaticReportSupported())
 	{
-		ui_.filters->disableReportConfigurationFilter(); //TODO enabled and working for CNVs - why not for small variants > AXEL
+
 
 		loadSomaticReportConfig();
 	}
@@ -3593,7 +3599,7 @@ void MainWindow::on_actionImportMids_triggered()
 void MainWindow::on_actionImportSamples_triggered()
 {
 	importBatch("Import samples",
-				"Batch import of samples. Must contain the following tab-separated fields:<br><b>name</b>, name external, <b>sender</b>, received, received by, <b>sample type</b>, <b>tumor</b>, <b>ffpe</b>, <b>species</b>, concentration [ng/ul], volume, 260/280, 260/230, RIN/DIN, <br>gender</b>, <b>quality</b>, comment",
+				"Batch import of samples. Must contain the following tab-separated fields:<br><b>name</b>, name external, <b>sender</b>, received, received by, <b>sample type</b>, <b>tumor</b>, <b>ffpe</b>, <b>species</b>, concentration [ng/ul], volume, 260/280, 260/230, RIN/DIN, <b>gender</b>, <b>quality</b>, comment",
 				"sample",
 				QStringList() << "name" << "name_external" << "sender_id" << "received" << "receiver_id" << "sample_type" << "tumor" << "ffpe" << "species_id" << "concentration" << "volume" << "od_260_280" << "od_260_230" << "integrity_number" << "gender" << "quality" << "comment"
 				);
@@ -3656,9 +3662,15 @@ void MainWindow::on_actionStatisticsBED_triggered()
 	dialog.exec();
 }
 
-void MainWindow::on_actionSampleSimilarityTSV_triggered()
+void MainWindow::on_actionSampleSimilarityGSvar_triggered()
 {
-	ExternalToolDialog dialog("Sample similarity", "variant list", this);
+	ExternalToolDialog dialog("Sample similarity", "gsvar", this);
+	dialog.exec();
+}
+
+void MainWindow::on_actionSampleSimilarityVCF_triggered()
+{
+	ExternalToolDialog dialog("Sample similarity", "vcf", this);
 	dialog.exec();
 }
 
@@ -3945,18 +3957,20 @@ void MainWindow::exportVCF()
 
 		//store
 		QFileInfo filename_info(filename_);
-		QString folder = Settings::string("gsvar_variant_export_folder").trimmed();
+		QString folder = Settings::string("gsvar_variant_export_folder", true).trimmed();
 		if (folder.isEmpty()) folder = filename_info.absolutePath();
-		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf";
-		file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf);;All files (*.*)");
+		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf.gz";
+		file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf.gz);;All files (*.*)");
 		if (file_name!="")
 		{
 			output.store(file_name);
+			QApplication::restoreOverrideCursor();
+			QMessageBox::information(this, "VCF export", "Exported VCF file with " + QString::number(output.count()) + " variants.");
 		}
-
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::information(this, "VCF export", "Exported VCF file with " + QString::number(output.count()) + " variants.");
+		else
+		{
+			QApplication::restoreOverrideCursor();
+		}
 	}
 	catch(Exception& e)
 	{
@@ -3985,18 +3999,21 @@ void MainWindow::exportGSvar()
 
 		//store
 		QFileInfo filename_info(filename_);
-		QString folder = Settings::string("gsvar_variant_export_folder").trimmed();
+		QString folder = Settings::string("gsvar_variant_export_folder", true).trimmed();
 		if (folder.isEmpty()) folder = filename_info.absolutePath();
 		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".GSvar";
 		file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "GSvar (*.gsvar);;All files (*.*)");
 		if (file_name!="")
 		{
 			output.store(file_name);
+			QApplication::restoreOverrideCursor();
+			QMessageBox::information(this, "GSvar export", "Exported GSvar file with " + QString::number(output.count()) + " variants.");
+		}
+		else
+		{
+			QApplication::restoreOverrideCursor();
 		}
 
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::information(this, "GSvar export", "Exported GSvar file with " + QString::number(output.count()) + " variants.");
 	}
 	catch(Exception& e)
 	{
@@ -4511,7 +4528,9 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	}
 	else if (action==a_lovd_find)
 	{
-		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false)+"&search_VariantOnGenome/DNA=g." + QString::number(variant.start())));
+		int pos = variant.start();
+		if (variant.ref()=="-") pos += 1;
+		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false)+"&search_VariantOnGenome/DNA=g." + QString::number(pos)));
 	}
 	else if (action==a_mitomap)
 	{
@@ -5350,16 +5369,32 @@ void MainWindow::applyFilters(bool debug_time)
 				}
 			}
 		}
+		else if( somaticReportSupported() && rc_filter != ReportConfigFilter::NONE) //somatic report configuration filter (show only variants with report configuration)
+		{
+			QSet<int> report_variant_indices = somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false).toSet();
+			for(int i=0; i<variants_.count(); ++i)
+			{
+				if ( !filter_result_.flags()[i] ) continue;
 
-		//somatic report configuration filter (include also variants that are marked as such in report config)
-		if(somaticReportSupported())
+				if (rc_filter==ReportConfigFilter::HAS_RC)
+				{
+					filter_result_.flags()[i] = report_variant_indices.contains(i);
+				}
+				else if (rc_filter==ReportConfigFilter::NO_RC)
+				{
+					filter_result_.flags()[i] = !report_variant_indices.contains(i);
+				}
+			}
+		}
+
+		//keep somatic variants that are marked with "include" in report settings (overrides possible filtering for that variant)
+		if( somaticReportSupported() && rc_filter != ReportConfigFilter::NO_RC)
 		{
 			for(int index : somatic_report_settings_.report_config.variantIndices(VariantType::SNVS_INDELS, false))
 			{
 				filter_result_.flags()[index] = filter_result_.flags()[index] || somatic_report_settings_.report_config.variantConfig(index, VariantType::SNVS_INDELS).showInReport();
 			}
 		}
-
 	}
 	catch(Exception& e)
 	{

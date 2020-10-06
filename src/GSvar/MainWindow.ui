@@ -296,9 +296,6 @@
                </attribute>
               </widget>
              </item>
-             <item>
-              <widget class="QDateTimeEdit" name="dateTimeEdit"/>
-             </item>
             </layout>
            </widget>
            <widget class="FilterWidget" name="filters" native="true">
@@ -380,7 +377,9 @@
      <property name="title">
       <string>Sample similarity</string>
      </property>
-     <addaction name="actionSampleSimilarityTSV"/>
+     <addaction name="actionSampleSimilarityGSvar"/>
+     <addaction name="separator"/>
+     <addaction name="actionSampleSimilarityVCF"/>
      <addaction name="actionSampleSimilarityBAM"/>
     </widget>
     <addaction name="menuFileInfo"/>
@@ -598,9 +597,9 @@
     <string>Sample difference</string>
    </property>
   </action>
-  <action name="actionSampleSimilarityTSV">
+  <action name="actionSampleSimilarityGSvar">
    <property name="text">
-    <string>based on variant lists</string>
+    <string>based on GSvar files (recommended)</string>
    </property>
   </action>
   <action name="actionSampleSimilarityBAM">
@@ -1164,6 +1163,11 @@
   <action name="actionShowPublishedVariants">
    <property name="text">
     <string>Show published variants</string>
+   </property>
+  </action>
+  <action name="actionSampleSimilarityVCF">
+   <property name="text">
+    <string>based on VCF files</string>
    </property>
   </action>
  </widget>

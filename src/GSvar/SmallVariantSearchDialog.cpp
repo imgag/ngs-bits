@@ -99,6 +99,7 @@ void SmallVariantSearchDialog::updateVariants()
 		}
 
 		//show output
+		ui_.variants->setSortingEnabled(false);
 		ui_.variants->setRowCount(output.count());
 		for (int r=0; r<output.count(); ++r)
 		{
@@ -108,6 +109,7 @@ void SmallVariantSearchDialog::updateVariants()
 				ui_.variants->setItem(r, c, new QTableWidgetItem(line[c]));
 			}
 		}
+		ui_.variants->setSortingEnabled(true);
 
 		//resize cols
 		GUIHelper::resizeTableCells(ui_.variants, 600);
@@ -195,15 +197,14 @@ void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, i
 		QString coding = parts_match.join(", ");
 
 		//add sample info
-		QString var_id = query.value(0).toString();
 		SqlQuery query2 = db.getQuery();
-		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), dv.genotype, p.name, s.disease_group, vc.class, s.name_external, ds.outcome, ds.comment, s.id, ps.id FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + var_id);
+		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, dv.genotype, p.name as p_name, s.disease_group, vc.class, s.name_external, ds.outcome, ds.comment, s.id as s_id, ps.id as ps_id FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id);
 		while(query2.next())
 		{
 			//get HPO info
 			QStringList hpo_terms;
-			QString sample_id = query2.value(8).toString();
-			QString processed_sample_id = query2.value(9).toString();
+			QString sample_id = query2.value("s_id").toString();
+			QString processed_sample_id = query2.value("ps_id").toString();
 			QStringList hpo_ids = db.getValues("SELECT disease_info FROM sample_disease_info WHERE type='HPO term id' AND sample_id=" + sample_id);
 			foreach(QString hpo_id, hpo_ids)
 			{
@@ -232,11 +233,11 @@ void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, i
 			}
 
 			//get de-novo variants from report config
-			query3.exec("SELECT rcv.id FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.de_novo=1 AND rc.processed_sample_id=" + processed_sample_id + " AND v.id=" + var_id);
+			query3.exec("SELECT rcv.id FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.de_novo=1 AND rc.processed_sample_id=" + processed_sample_id + " AND v.id=" + variant_id);
 			QString denovo = query3.size()==0 ? "" : " (de-novo)";
 
 			//add variant line to output
-			var_data.append(QStringList() << gene << var << QString::number(ngsd_counts.first) << QString::number(ngsd_counts.second) << gnomad << tg << type << coding << query2.value(0).toString() << query2.value(5).toString()  << query2.value(1).toString() + denovo << query2.value(2).toString() << query2.value(3).toString() << hpo_terms.join("; ") << query2.value(4).toString() << query2.value(6).toString() << query2.value(7).toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(','));
+			var_data.append(QStringList() << gene << var << QString::number(ngsd_counts.first) << QString::number(ngsd_counts.second) << gnomad << tg << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("p_name").toString() << query2.value("disease_group").toString() << hpo_terms.join("; ") << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(','));
 		}
 	}
 	QString comment = gene + " - variants: " + QString::number(var_data.count());

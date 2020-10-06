@@ -75,12 +75,17 @@ ProcessedSampleWidget::~ProcessedSampleWidget()
 
 void ProcessedSampleWidget::styleQualityLabel(QLabel* label, const QString& quality)
 {
+	//init
+	static QPixmap i_good = QPixmap(":/Icons/quality_good.png");
+	static QPixmap i_medium = QPixmap(":/Icons/quality_medium.png");
+	static QPixmap i_bad = QPixmap(":/Icons/quality_bad.png");
+	static QPixmap i_na = QPixmap(":/Icons/quality_unset.png");
+
 	//icon
-	QString filename = ":/Icons/quality_unset.png";
-	if (quality=="good") filename = ":/Icons/quality_good.png";
-	else if (quality=="medium") filename = ":/Icons/quality_medium.png";
-	else if (quality=="bad") filename = ":/Icons/quality_bad.png";
-	label->setPixmap(QPixmap(filename));
+	if (quality=="good") label->setPixmap(i_good);
+	else if (quality=="medium") label->setPixmap(i_medium);
+	else if (quality=="bad") label->setPixmap(i_bad);
+	else label->setPixmap(i_na);
 
 	//tooltip
 	label->setToolTip(quality);

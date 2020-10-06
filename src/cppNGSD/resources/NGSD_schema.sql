@@ -186,7 +186,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `device`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000','MGI-2000','SequelII') NOT NULL,
+  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000','MGI-2000','SequelII','PromethION') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -204,7 +204,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `fcid` VARCHAR(45) NULL DEFAULT NULL,
-  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','n/a') NOT NULL DEFAULT 'n/a',
+  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','PromethION FLO-PRO002','n/a') NOT NULL DEFAULT 'n/a',
   `start_date` DATE NULL DEFAULT NULL,
   `end_date` DATE NULL DEFAULT NULL,
   `device_id` INT(11) NOT NULL,
@@ -568,42 +568,6 @@ CREATE  TABLE IF NOT EXISTS `variant`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
-
--- -----------------------------------------------------
--- Table `variant_validation`
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `variant_validation`
-(
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `user_id` INT(11) NOT NULL,
-  `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `sample_id` INT(11) NOT NULL,
-  `variant_id` INT(11) NOT NULL,
-  `genotype` ENUM('hom','het') NOT NULL,
-  `status` ENUM('n/a','to validate','to segregate','for reporting','true positive','false positive','wrong genotype') NOT NULL DEFAULT 'n/a',
-  `comment` TEXT NULL DEFAULT NULL,
-PRIMARY KEY (`id`),
-INDEX `fk_user_id` (`user_id` ASC),
-CONSTRAINT `vv_user`
-  FOREIGN KEY (`user_id`)
-  REFERENCES `user` (`id`)
-  ON DELETE NO ACTION
-  ON UPDATE NO ACTION,
-CONSTRAINT `fk_variant_validation_has_sample`
-    FOREIGN KEY (`sample_id`)
-    REFERENCES `sample` (`id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-CONSTRAINT `fk_variant_validation_has_variant`
-  FOREIGN KEY (`variant_id`)
-  REFERENCES `variant` (`id`)
-  ON DELETE NO ACTION
-  ON UPDATE NO ACTION,
-UNIQUE INDEX `variant_validation_unique` (`sample_id`, `variant_id`),
-INDEX `status` (`status` ASC)
-)
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `variant_publication`
@@ -1694,18 +1658,18 @@ CREATE TABLE IF NOT EXISTS `evaluation_sheet_data`
   `reviewer2` INT NOT NULL,
   `review_date2` DATE NOT NULL,
   `analysis_scope` TEXT CHARACTER SET 'utf8' DEFAULT NULL,
-  `acmg_requested` BOOLEAN DEFAULT FALSE,
-  `acmg_analyzed` BOOLEAN DEFAULT FALSE,
-  `acmg_noticeable` BOOLEAN DEFAULT FALSE,
-  `filtered_by_freq_based_dominant` BOOLEAN DEFAULT FALSE,
-  `filtered_by_freq_based_recessive` BOOLEAN DEFAULT FALSE,
-  `filtered_by_cnv` BOOLEAN DEFAULT FALSE,
-  `filtered_by_mito` BOOLEAN DEFAULT FALSE,
-  `filtered_by_x_chr` BOOLEAN DEFAULT FALSE,
-  `filtered_by_phenotype` BOOLEAN DEFAULT FALSE,
-  `filtered_by_multisample` BOOLEAN DEFAULT FALSE,
-  `filtered_by_trio_stringent` BOOLEAN DEFAULT FALSE,
-  `filtered_by_trio_relaxed` BOOLEAN DEFAULT FALSE,
+  `acmg_requested` BOOLEAN DEFAULT FALSE NOT NULL,
+  `acmg_analyzed` BOOLEAN DEFAULT FALSE NOT NULL,
+  `acmg_noticeable` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_freq_based_dominant` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_freq_based_recessive` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_cnv` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_mito` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_x_chr` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_phenotype` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_multisample` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_trio_stringent` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_trio_relaxed` BOOLEAN DEFAULT FALSE NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `processed_sample_id` (`processed_sample_id` ASC),
   UNIQUE KEY `evaluation_sheet_data_references_processed_sample` (`processed_sample_id`),
@@ -1751,3 +1715,77 @@ DEFAULT CHARACTER SET = utf8;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- -----------------------------------------------------
+-- Table `variant_validation`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `variant_validation`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL,
+  `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `sample_id` INT(11) NOT NULL,
+  `variant_type` ENUM('SNV_INDEL', 'CNV', 'SV') NOT NULL,
+  `variant_id` INT(11) DEFAULT NULL,
+  `cnv_id` INT(11) UNSIGNED DEFAULT NULL,
+  `sv_deletion_id` INT(11) UNSIGNED DEFAULT NULL,
+  `sv_duplication_id` INT(11) UNSIGNED DEFAULT NULL,
+  `sv_insertion_id` INT(11) UNSIGNED DEFAULT NULL,
+  `sv_inversion_id` INT(11) UNSIGNED DEFAULT NULL,
+  `sv_translocation_id` INT(11) UNSIGNED DEFAULT NULL,
+  `genotype` ENUM('hom','het') DEFAULT NULL,
+  `status` ENUM('n/a','to validate','to segregate','for reporting','true positive','false positive','wrong genotype') NOT NULL DEFAULT 'n/a',
+  `comment` TEXT NULL DEFAULT NULL,
+PRIMARY KEY (`id`),
+INDEX `fk_user_id` (`user_id` ASC),
+CONSTRAINT `vv_user`
+  FOREIGN KEY (`user_id`)
+  REFERENCES `user` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `fk_variant_validation_has_sample`
+    FOREIGN KEY (`sample_id`)
+    REFERENCES `sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+CONSTRAINT `fk_variant_validation_has_variant`
+  FOREIGN KEY (`variant_id`)
+  REFERENCES `variant` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `fk_variant_validation_has_cnv`
+  FOREIGN KEY (`cnv_id`)
+  REFERENCES `cnv` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `fk_variant_validation_has_sv_deletion`
+  FOREIGN KEY (`sv_deletion_id`)
+  REFERENCES `sv_deletion` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `fk_variant_validation_has_sv_duplication`
+  FOREIGN KEY (`sv_duplication_id`)
+  REFERENCES `sv_duplication` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `fk_variant_validation_has_sv_insertion`
+  FOREIGN KEY (`sv_insertion_id`)
+  REFERENCES `sv_insertion` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `fk_variant_validation_has_sv_inversion`
+  FOREIGN KEY (`sv_inversion_id`)
+  REFERENCES `sv_inversion` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `fk_variant_validation_has_sv_translocation`
+  FOREIGN KEY (`sv_translocation_id`)
+  REFERENCES `sv_translocation` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+UNIQUE INDEX `variant_validation_unique_var` (`sample_id`, `variant_id`, `cnv_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`),
+INDEX `status` (`status` ASC),
+INDEX `variant_type` (`variant_type` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;

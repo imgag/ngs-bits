@@ -138,8 +138,10 @@ public slots:
 	void on_actionStatisticsBED_triggered();
 	///Sample correlation BAM
 	void on_actionSampleSimilarityBAM_triggered();
-	///Sample correlation TSV
-	void on_actionSampleSimilarityTSV_triggered();
+	///Sample correlation VCF
+	void on_actionSampleSimilarityVCF_triggered();
+	///Sample correlation GSvar
+	void on_actionSampleSimilarityGSvar_triggered();
 	///Sample ancestry
 	void on_actionSampleAncestry_triggered();
 	///Sample analysis status
