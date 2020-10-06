@@ -210,7 +210,6 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::on_actionDebug_triggered()
 {
-	getBamFiles();
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
