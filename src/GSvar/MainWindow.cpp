@@ -2042,7 +2042,7 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//set file location provider for the file system
-	commonFileLocationProvider_ = QSharedPointer<FileLocationProviderFileSystem>(new FileLocationProviderFileSystem(filename_, variants_.getSampleHeader()));
+	commonFileLocationProvider_ = QSharedPointer<FileLocationProviderFileSystem>(new FileLocationProviderFileSystem(filename_, variants_.getSampleHeader(), variants_.type()));
 	GlobalServiceProvider::instance().setfileLocationsProvider(commonFileLocationProvider_);
 	qDebug() << "Setting file location provider for the file system";
 }
@@ -5268,52 +5268,7 @@ QList<FileLocation> MainWindow::getBamFiles()
 
 QList<FileLocation> MainWindow::getSegFilesCnv()
 {
-	QList<FileLocation> output;
-
-	if (variants_.type()==SOMATIC_PAIR)
-	{
-		//tumor-normal SEG file
-		QString segfile = filename_.left(filename_.length()-6) + "_cnvs.seg";
-		QString pair = QFileInfo(filename_).baseName();
-		output << FileLocation{pair + " (copy number)", PathType::CNV_ESTIMATES , segfile};
-
-		QString covfile = filename_.left(filename_.length()-6) + "_cov.seg";
-		output << FileLocation{pair + " (coverage)", PathType::CNV_ESTIMATES,covfile};
-
-		//germline SEG file
-		QString basename = QFileInfo(filename_).baseName().left(filename_.length()-6);
-		if (basename.contains("-"))
-		{
-			QString tumor_ps_name = basename.split("-")[1];
-			QString pair_folder = QFileInfo(filename_).absolutePath();
-			QString project_folder = QFileInfo(pair_folder).absolutePath();
-			segfile = project_folder + "/Sample_" + tumor_ps_name + "/" + tumor_ps_name + "_cnvs.seg";
-			output << FileLocation{tumor_ps_name, PathType::CNV_ESTIMATES , segfile};
-		}
-	}
-	else
-	{
-		QList<FileLocation> tmp = getBamFiles();
-		foreach(const FileLocation& file, tmp)
-		{
-			QString base_name = file.filename.left(file.filename.length()-4);
-			QString segfile = base_name + "_cnvs_clincnv.seg";
-			if (QFile::exists(segfile))
-			{
-				output << FileLocation{file.id, PathType::CNV_ESTIMATES , segfile};
-			}
-			else
-			{
-				segfile = base_name + "_cnvs.seg";
-				if (QFile::exists(segfile))
-				{
-					output << FileLocation{file.id, PathType::CNV_ESTIMATES , segfile};
-				}
-			}
-		}
-	}
-
-	return output;
+	return commonFileLocationProvider_->getSegFilesCnv();
 }
 
 QList<FileLocation> MainWindow::getIgvFilesBaf()
