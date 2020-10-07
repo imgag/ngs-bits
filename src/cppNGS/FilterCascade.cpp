@@ -2714,7 +2714,7 @@ void FilterCnvCopyNumber::apply(const CnvList& cnvs, FilterResult& result) const
 	bool cn_exp_4plus = cn_exp=="4+";
 	if (cn_exp=="n/a") return;
 
-	if (cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE || cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
+	if (cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE || cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_MULTI)
 	{
 		int i_cns = cnvs.annotationIndexByName("region_copy_numbers", true);
 		for(int i=0; i<cnvs.count(); ++i)
