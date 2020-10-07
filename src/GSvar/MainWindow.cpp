@@ -5040,14 +5040,16 @@ QList<FileLocation> MainWindow::getBamFiles()
 		processed_sample_id = variants_.getSampleHeader()[0].id;
 	}
 
-	QSharedPointer<FileLocationProvider> fdb = QSharedPointer<FileLocationProviderNGSD>(new FileLocationProviderNGSD(processed_sample_id));
-	GlobalServiceProvider::instance().setfileLocationsProvider(fdb);
-	output = fdb->getBamFiles();
-
 	QSharedPointer<FileLocationProvider> ffs = QSharedPointer<FileLocationProviderFileSystem>(new FileLocationProviderFileSystem(filename_, variants_.getSampleHeader()));
 	GlobalServiceProvider::instance().setfileLocationsProvider(ffs);
+	output = ffs->getBamFiles();
 
-	output += ffs->getBamFiles();
+	if (output.length() == 0)
+	{
+		QSharedPointer<FileLocationProvider> fdb = QSharedPointer<FileLocationProviderNGSD>(new FileLocationProviderNGSD(processed_sample_id));
+		GlobalServiceProvider::instance().setfileLocationsProvider(fdb);
+		output = fdb->getBamFiles();
+	}
 
 	return output;
 }
