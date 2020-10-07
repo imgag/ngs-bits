@@ -153,7 +153,7 @@ void DiseaseCourseWidget::createTableView()
 				double alt_count = Helper::toDouble(cf_dna_variant->formatValueFromSample("Alt_Count"), "Alt_Count", QString::number(i));
 				double depth = Helper::toDouble(cf_dna_variant->formatValueFromSample("DP"), "DP", QString::number(i));
 				double cf_dna_af = (depth != 0)? alt_count/depth : 0.0;
-				ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(QString::number(cf_dna_af)));
+				ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(QString::number(cf_dna_af, 'f', 5)));
 			}
 			else
 			{

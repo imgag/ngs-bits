@@ -666,9 +666,6 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 	if (!LoginManager::active()) return;
 	if (!somaticReportSupported()) return;
 
-	qDebug() << "Function entered!";
-
-
 	// get files
 	QStringList processing_systems = NGSD().getValues("SELECT name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 	QString folder = Settings::string("patient_specific_panel_folder", false);
@@ -676,8 +673,6 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 	foreach (const QString& system, processing_systems)
 	{
 		QString file_path = folder + "/" + system + "/" + processedSampleName() + ".bed";
-
-		qDebug() << file_path;
 
 		if (QFileInfo(file_path).exists()) bed_files << file_path;
 	}
@@ -698,6 +693,12 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 
 	// create table view
 	QTableWidget* table = new QTableWidget(cfdna_panel.count(), 5);
+	table->setHorizontalHeaderItem(0, GUIHelper::createTableItem("chr"));
+	table->setHorizontalHeaderItem(1, GUIHelper::createTableItem("start"));
+	table->setHorizontalHeaderItem(2, GUIHelper::createTableItem("end"));
+	table->setHorizontalHeaderItem(3, GUIHelper::createTableItem("type"));
+	table->setHorizontalHeaderItem(4, GUIHelper::createTableItem("details"));
+
 	for (int i=0; i < cfdna_panel.count(); i++)
 	{
 		const BedLine& line = cfdna_panel[i];

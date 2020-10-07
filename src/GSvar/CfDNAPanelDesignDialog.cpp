@@ -1,7 +1,8 @@
 #include "CfDNAPanelDesignDialog.h"
 #include "ui_CfDNAPanelDesignDialog.h"
+#include "GUIHelper.h"
 #include <QMessageBox>
-#include <GUIHelper.h>
+#include <QMenu>
 #include <QDir>
 
 
@@ -9,8 +10,8 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 	QDialog(parent),
 	ui_(new Ui::CfDNAPanelDesignDialog),
 	variants_(variants),
-	processed_sample_name_(processed_sample_name),
-	somatic_report_configuration_(somatic_report_configuration)
+	somatic_report_configuration_(somatic_report_configuration),
+	processed_sample_name_(processed_sample_name)
 {
 	// remove '?' entry
 	setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
@@ -19,10 +20,15 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 
 	// connect signals and slots
 	connect(ui_->buttonBox, SIGNAL(accepted()), this, SLOT(createOutputFiles()));
+	connect(ui_->vars,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showVariantContextMenu(QPoint)));
+	connect(ui_->genes,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showGeneContextMenu(QPoint)));
 
+	// set context menus for tables
+	ui_->vars->setContextMenuPolicy(Qt::CustomContextMenu);
+	ui_->genes->setContextMenuPolicy(Qt::CustomContextMenu);
 
 	// fill processing system ComboBox
-	ui_->cb_processing_system->fill(processing_systems);
+	ui_->cb_processing_system->fill(processing_systems, false);
 
 	loadVariants();
 	loadGenes();
@@ -42,7 +48,7 @@ void CfDNAPanelDesignDialog::loadVariants()
 	//create header
 	int col_idx = 0;
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("select"));
-	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Check all variants which should be added to the cfDNA panel.");
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Select all variants which should be added to the cfDNA panel.");
 
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("chr"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Chromosome the variant is located on.");
@@ -198,6 +204,22 @@ void CfDNAPanelDesignDialog::loadGenes()
 	}
 }
 
+void CfDNAPanelDesignDialog::selectAllVariants(bool deselect)
+{
+	for (int r = 0; r < ui_->vars->rowCount(); ++r)
+	{
+		ui_->vars->item(r, 0)->setCheckState((!deselect) ? Qt::Checked : Qt::Unchecked);
+	}
+}
+
+void CfDNAPanelDesignDialog::selectAllGenes(bool deselect)
+{
+	for (int r = 0; r < ui_->genes->rowCount(); ++r)
+	{
+		ui_->genes->item(r, 0)->setCheckState((!deselect) ? Qt::Checked : Qt::Unchecked);
+	}
+}
+
 void CfDNAPanelDesignDialog::createOutputFiles()
 {
 
@@ -228,7 +250,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		if (ui_->genes->item(r, 0)->checkState() == Qt::Checked)
 		{
 			QString file_path = ui_->genes->item(r, 0)->data(Qt::UserRole).toString();
-			QString gene_name = ui_->genes->item(r, 0)->text();
+			QString gene_name = ui_->genes->item(r, 1)->text();
 
 			// load single gene bed file
 			BedFile gene;
@@ -294,4 +316,52 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	roi.store(output_path + processed_sample_name_ + ".bed");
 
 	emit accept();
+}
+
+void CfDNAPanelDesignDialog::showVariantContextMenu(QPoint pos)
+{
+	// create menu
+	QMenu menu(ui_->vars);
+	QAction* a_select_all = menu.addAction("Select all variants");
+	QAction* a_deselect_all = menu.addAction("Deselect all variants");
+	// execute menu
+	QAction* action = menu.exec(ui_->vars->viewport()->mapToGlobal(pos));
+	if (action == nullptr) return;
+	// react
+	if (action == a_select_all)
+	{
+		selectAllVariants(false);
+	}
+	else if (action == a_deselect_all)
+	{
+		selectAllVariants(true);
+	}
+	else
+	{
+		THROW(ProgrammingException, "Invalid menu action in context menu selected!")
+	}
+}
+
+void CfDNAPanelDesignDialog::showGeneContextMenu(QPoint pos)
+{
+	// create menu
+	QMenu menu(ui_->genes);
+	QAction* a_select_all = menu.addAction("Select all genes");
+	QAction* a_deselect_all = menu.addAction("Deselect all genes");
+	// execute menu
+	QAction* action = menu.exec(ui_->genes->viewport()->mapToGlobal(pos));
+	if (action == nullptr) return;
+	// react
+	if (action == a_select_all)
+	{
+		selectAllGenes(false);
+	}
+	else if (action == a_deselect_all)
+	{
+		selectAllGenes(true);
+	}
+	else
+	{
+		THROW(ProgrammingException, "Invalid menu action in context menu selected!")
+	}
 }

@@ -31,16 +31,22 @@ public:
 	explicit CfDNAPanelDesignDialog(const VariantList& variants, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent = 0);
 	~CfDNAPanelDesignDialog();
 
+protected slots:
+	void showVariantContextMenu(QPoint pos);
+	void showGeneContextMenu(QPoint pos);
+
 private slots:
 	void createOutputFiles();
+	void selectAllVariants(bool deselect=false);
+	void selectAllGenes(bool deselect=false);
 
 private:
-	Ui::CfDNAPanelDesignDialog *ui_;
 	void loadVariants();
 	void loadGenes();
+	Ui::CfDNAPanelDesignDialog *ui_;
 	const VariantList& variants_;
-	QString processed_sample_name_;
 	const SomaticReportConfiguration& somatic_report_configuration_;
+	QString processed_sample_name_;
 	QList<GeneEntry> genes_;
 };
 
