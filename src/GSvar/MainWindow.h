@@ -391,6 +391,7 @@ private:
 	ReportSettings report_settings_;
 	SomaticReportSettings somatic_report_settings_;
 	VariantList somatic_control_tissue_variants_;
+	QSharedPointer<FileLocationProvider> commonFileLocationProvider_;
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;

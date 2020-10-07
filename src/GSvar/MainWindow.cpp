@@ -1366,6 +1366,7 @@ void MainWindow::on_actionOpen_triggered()
 
 	//update data
 	loadFile(filename);
+
 }
 
 void MainWindow::on_actionOpenByName_triggered()
@@ -1457,7 +1458,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 }
 
 void MainWindow::openSampleFromNGSD(QString sample_name)
-{
+{	
 	try
 	{
 		NGSD db;
@@ -1906,6 +1907,11 @@ void MainWindow::loadFile(QString filename)
 		ui_.actionPRS->setEnabled(true);
 
 	}
+
+	//set file location provider for the file system
+	commonFileLocationProvider_ = QSharedPointer<FileLocationProviderFileSystem>(new FileLocationProviderFileSystem(filename_, variants_.getSampleHeader()));
+	GlobalServiceProvider::instance().setfileLocationsProvider(commonFileLocationProvider_);
+	qDebug() << "Setting file location provider for the file system";
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -5033,25 +5039,7 @@ QStringList MainWindow::getLogFiles()
 
 QList<FileLocation> MainWindow::getBamFiles()
 {
-	QList<FileLocation> output {};
-	QString processed_sample_id {};
-	if (variants_.getSampleHeader().count()>0)
-	{
-		processed_sample_id = variants_.getSampleHeader()[0].id;
-	}
-
-	QSharedPointer<FileLocationProvider> ffs = QSharedPointer<FileLocationProviderFileSystem>(new FileLocationProviderFileSystem(filename_, variants_.getSampleHeader()));
-	GlobalServiceProvider::instance().setfileLocationsProvider(ffs);
-	output = ffs->getBamFiles();
-
-	if (output.length() == 0)
-	{
-		QSharedPointer<FileLocationProvider> fdb = QSharedPointer<FileLocationProviderNGSD>(new FileLocationProviderNGSD(processed_sample_id));
-		GlobalServiceProvider::instance().setfileLocationsProvider(fdb);
-		output = fdb->getBamFiles();
-	}
-
-	return output;
+	return commonFileLocationProvider_->getBamFiles();
 }
 
 QList<FileLocation> MainWindow::getSegFilesCnv()
