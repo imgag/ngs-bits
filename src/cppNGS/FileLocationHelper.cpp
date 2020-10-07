@@ -1,5 +1,7 @@
 #include "FileLocationHelper.h"
 #include "QString"
+#include <QDir>
+#include <QFileInfo>
 
 QString FileLocationHelper::pathTypeToString(PathType type)
 {
@@ -25,4 +27,17 @@ QString FileLocationHelper::pathTypeToString(PathType type)
 	  default:
 		 return "Invalid PathType";
    }
+}
+
+
+QString FileLocationHelper::getEvidenceFile(const QString& bam_file)
+{
+	if (!bam_file.endsWith(".bam", Qt::CaseInsensitive))
+	{
+		THROW(ArgumentException, "Invalid BAM file path \"" + bam_file + "\"!");
+	}
+	QFileInfo bam_file_info(bam_file);
+	QDir evidence_dir(bam_file_info.absolutePath() + "/manta_evid/");
+	QString ps_name = bam_file_info.fileName().left(bam_file_info.fileName().length() - 4);
+	return evidence_dir.absoluteFilePath(ps_name + "_manta_evidence.bam");
 }

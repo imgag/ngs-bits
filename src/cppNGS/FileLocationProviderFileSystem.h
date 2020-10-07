@@ -12,6 +12,9 @@ public:
 
 	QList<FileLocation> getBamFiles() override;
 	QList<FileLocation> getSegFilesCnv() override;
+	QList<FileLocation> getIgvFilesBaf() override;
+	QList<FileLocation> getMantaEvidenceFiles() override;
+
 protected:
 	QString gsvar_file_;
 	SampleHeaderInfo header_info_;

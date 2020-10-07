@@ -22,7 +22,8 @@ public:
 	//Returns a map of sample identifier to filename
 	virtual QList<FileLocation> getBamFiles() = 0;
 	virtual QList<FileLocation> getSegFilesCnv() = 0;
-
+	virtual QList<FileLocation> getIgvFilesBaf() = 0;
+	virtual QList<FileLocation> getMantaEvidenceFiles() = 0;
 private:
 	VariantList variants;
 	QString filename;

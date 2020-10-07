@@ -5273,50 +5273,12 @@ QList<FileLocation> MainWindow::getSegFilesCnv()
 
 QList<FileLocation> MainWindow::getIgvFilesBaf()
 {
-	QList<FileLocation> output;
-
-	if (variants_.type()==SOMATIC_PAIR)
-	{
-		QString segfile = filename_.left(filename_.length()-6) + "_bafs.igv";
-		QString pair = QFileInfo(filename_).baseName();
-		output << FileLocation{pair, PathType::BAF , segfile};
-	}
-	else
-	{
-		QList<FileLocation> tmp = getBamFiles();
-		foreach(const FileLocation& file, tmp)
-		{
-			QString segfile = file.filename.left(file.filename.length()-4) + "_bafs.igv";
-			if (QFile::exists(segfile))
-			{
-				output << FileLocation{file.id, PathType::BAF , segfile};
-			}
-		}
-	}
-
-	return output;
+	return commonFileLocationProvider_->getIgvFilesBaf();
 }
 
 QList<FileLocation> MainWindow::getMantaEvidenceFiles()
 {
-	QList<FileLocation> evidence_files;
-
-	// search at location of all available BAM files
-	QList<FileLocation> bam_files = getBamFiles();
-	foreach (FileLocation bam_file, bam_files)
-	{
-		QString evidence_bam_file = GSvarHelper::getEvidenceFile(bam_file.filename);
-
-		// check if evidence file exists
-		if (!QFile::exists(evidence_bam_file)) continue;
-
-		FileLocation evidence_file;
-		evidence_file.filename = evidence_bam_file;
-		evidence_file.type = PathType::BAM;
-		evidence_file.id = QFileInfo(evidence_bam_file).baseName();
-		evidence_files.append(evidence_file);
-	}
-	return evidence_files;
+	return commonFileLocationProvider_->getMantaEvidenceFiles();
 }
 
 void MainWindow::applyFilters(bool debug_time)

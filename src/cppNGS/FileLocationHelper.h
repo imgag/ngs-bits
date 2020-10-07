@@ -2,6 +2,7 @@
 #define FILELOCATIONHELPER_H
 
 #include "cppNGS_global.h"
+#include "Exceptions.h"
 
 enum class PathType
 {
@@ -21,6 +22,10 @@ class CPPNGSSHARED_EXPORT FileLocationHelper
 public:
 	///Returns a string representation for PathType
 	static QString pathTypeToString(PathType type);
+
+	//Returns the file path to the Manta evididence file for a given BAM file.
+	static QString getEvidenceFile(const QString& bam_file);
+
 };
 
 #endif // FILELOCATIONHELPER_H

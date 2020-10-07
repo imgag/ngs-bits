@@ -26,10 +26,6 @@ public:
 	//colors imprinting and non-haploinsufficiency genes.
 	static void colorGeneItem(QTableWidgetItem* item, const GeneSet& genes);
 
-	//Returns the file path to the Manta evididence file for a given BAM file.
-	static QString getEvidenceFile(const QString& bam_file);
-
-
 protected:
 	GSvarHelper() = delete;
 

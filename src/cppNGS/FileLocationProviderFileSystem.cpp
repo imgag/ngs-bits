@@ -102,7 +102,53 @@ QList<FileLocation> FileLocationProviderFileSystem::getSegFilesCnv()
 		}
 	}
 
+	return output;
+}
 
+QList<FileLocation> FileLocationProviderFileSystem::getIgvFilesBaf()
+{
+	QList<FileLocation> output;
+
+	if (analysis_type_==SOMATIC_PAIR)
+	{
+		QString segfile = gsvar_file_.left(gsvar_file_.length()-6) + "_bafs.igv";
+		QString pair = QFileInfo(gsvar_file_).baseName();
+		output << FileLocation{pair, PathType::BAF , segfile};
+	}
+	else
+	{
+		QList<FileLocation> tmp = getBamFiles();
+		foreach(const FileLocation& file, tmp)
+		{
+			QString segfile = file.filename.left(file.filename.length()-4) + "_bafs.igv";
+			if (QFile::exists(segfile))
+			{
+				output << FileLocation{file.id, PathType::BAF , segfile};
+			}
+		}
+	}
 
 	return output;
+}
+
+QList<FileLocation> FileLocationProviderFileSystem::getMantaEvidenceFiles()
+{
+	QList<FileLocation> evidence_files;
+
+	// search at location of all available BAM files
+	QList<FileLocation> bam_files = getBamFiles();
+	foreach (FileLocation bam_file, bam_files)
+	{
+		QString evidence_bam_file = FileLocationHelper::getEvidenceFile(bam_file.filename);
+
+		// check if evidence file exists
+		if (!QFile::exists(evidence_bam_file)) continue;
+
+		FileLocation evidence_file;
+		evidence_file.filename = evidence_bam_file;
+		evidence_file.type = PathType::BAM;
+		evidence_file.id = QFileInfo(evidence_bam_file).baseName();
+		evidence_files.append(evidence_file);
+	}
+	return evidence_files;
 }
