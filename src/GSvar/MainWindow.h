@@ -14,7 +14,6 @@
 #include "SomaticReportSettings.h"
 
 #include "GlobalServiceProvider.h"
-#include "FileLocationProviderNGSD.h"
 #include "FileLocationProviderFileSystem.h"
 
 
