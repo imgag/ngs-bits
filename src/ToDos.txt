@@ -8,7 +8,7 @@ NGSD:
 ** Allow adding study details:
     - table study:
         - id: INT, autoincrement
-        - name: TEXT not null, unique //GenomeFirst, Solve-RD, Neuromics, GMed
+        - name: TEXT not null, unique //GenomeFirst, Solve-RD, Neuromics, GMed, T-Namse
         - description: TEXT
    - table study_sample:
         - id: INT not null, autoincrement
@@ -28,20 +28,19 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-## Prferred transcripts: allow deleting
-## ACMG filter: +LOW +HGMD +likely_pathogenic
+## Variant validation: add validation method and allow filtering by validation method (methods: PCR, breakpoint PRC, qPRC, MLPA, other) > check with Lab > Email to all people in diagnostics
+## Preferred transcripts: allow deleting
 ## Tabs: do not close tabs when opening a new GSvar file. Open a tab only once - focus and update if opened again.
 ## Allow adding variant outside of target region to report
     - add checkboxes to variants in report dialog
     - checkboxes for variants in ROI are checked and disabled
     - checkboxes for variants ouside or ROI are unchecked and enabled
     - only variants which are checked are added to the report config
-* Trio report: force disease_group/disease_status and outcome (import trio parents as unaffected with same disease group as child)
+## Trio report: force disease_group/disease_status and outcome (import trio parents as unaffected with same disease group as child)
 * Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
     - use XML format: https://www.ncbi.nlm.nih.gov/projects/clinvar/ClinVarDataDictionary.pdf (see also email 'Programm für AG Genom-Informatik')
-** allow creating somatic report and XML-export for tumor-only - after tumor-normal is done (AG)
 
 Tools:
 - UPDHunter: also support chrX?
@@ -60,8 +59,9 @@ RohHunter:
 
 
 Features to dicuss:
-- Add family table linking samples in one family with "father", "mother", "child", "aunte", "cousin", ... OR import samples relations from GenLab?? > FLORIAN/LUCIA/TOBIAS
-- Add liquid handler robot to processed sample talbe > FLORIAN/LAB/TOBIAS
-- Correctly import sample sender data from GenLab > TOBIAS/STEPHAN O.
+- Add family table linking samples in one family with "father", "mother", "child", "aunte", "cousin", ... OR import samples relations from GenLab?? > FH/LUCIA/TOH
+- Add liquid handler robot to processed sample talbe > FH/LAB/TOH
+- Correctly import sample sender data from GenLab > TOH/STEPHAN O.
 - CAVE functionality for Genes (use e.g. for imprinting), model reasons? > SWAL
+- Sample: source tissue (for RNA) > TOH
 

@@ -182,7 +182,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		if (is_exome_ && !cutoff_info.reliable_in_exomes )
 		{
 			repeat_id_cell->setBackgroundColor(bg_red);
-			repeat_id_cell->setToolTip("Repeat calling of this repeat is not reliable in Exomes!");
+			repeat_id_cell->setToolTip("Repeat calling of this repeat is not reliable in exomes!");
 		}
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, repeat_id_cell);
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(info_ru));
