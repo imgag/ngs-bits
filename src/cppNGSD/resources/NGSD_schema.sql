@@ -1789,3 +1789,43 @@ INDEX `variant_type` (`variant_type` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `study`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `study`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(50) NOT NULL,
+  `description` TEXT NOT NULL,
+PRIMARY KEY (`id`),
+UNIQUE INDEX `name_UNIQUE` (`name` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `study_sample`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `study_sample`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `study_id` INT(11) NOT NULL,
+  `processed_sample_id` INT(11) NOT NULL,
+  `study_sample_idendifier` VARCHAR(50) DEFAULT NULL,
+PRIMARY KEY (`id`),
+CONSTRAINT `fk_study_sample_has_study`
+  FOREIGN KEY (`study_id`)
+  REFERENCES `study` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `fk_study_sample_has_ps`
+  FOREIGN KEY (`processed_sample_id`)
+  REFERENCES `processed_sample` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+  UNIQUE INDEX `unique_sample_ps` (`processed_sample_id`, `study_sample_idendifier`),
+INDEX `i_study_sample_idendifier` (`study_sample_idendifier` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;

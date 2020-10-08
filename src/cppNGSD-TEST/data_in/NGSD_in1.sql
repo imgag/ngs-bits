@@ -531,3 +531,18 @@ INSERT INTO `sv_translocation` (`id`, `sv_callset_id`, `chr1`, `start1`, `end1`,
 (1, 1, 'chr1', 9101000, 9101020, 'chr5', 4112000, 4113000, ''),
 (2, 1, 'chr1', 9101000, 9101020, 'chr5', 4120000, 4120000, ''),
 (3, 1, 'chr1', 9100005, 9100050, 'chr5', 4112000, 4113000, '');
+
+--study
+INSERT INTO `study`(`id`, `name`, `description`) VALUES
+(1, "SomeStudy","");
+
+INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES
+(1, 3999),
+(1, 4000),
+(1, 4001),
+(1, 4002),
+(1, 4003),
+(1, 5),
+(1, 6),
+(1, 7),
+(1, 8);

@@ -267,6 +267,23 @@ void MainWindow::on_actionDebug_triggered()
 			genlab.addMissingMetaDataToNGSD(ps, true);
 		}
 		*/
+
+		//batch import of study
+		/*
+		QString text = QInputDialog::getMultiLineText(this, "Import study", "1. list study name, all other lines processed samples:").trimmed();
+		if (text=="") return;
+		QStringList lines = text.split("\n");
+		NGSD db;
+		QString study_id = db.getValue("SELECT id FROM study WHERE name='" + lines[0] + "'").toString();
+		for(int i=1; i<lines.count(); ++i)
+		{
+			QString line = lines[i].trimmed();
+			if (line.isEmpty()) continue;
+
+			QString ps_id = db.processedSampleId(line);
+			db.getQuery().exec("INSERT into study_sample (study_id, processed_sample_id, study_sample_idendifier) VALUES ("+study_id+","+ps_id+",'')");
+		}
+		*/
 	}
 	else if (user=="ahschul1")
 	{
@@ -3636,6 +3653,13 @@ void MainWindow::on_actionChangePassword_triggered()
 		NGSD db;
 		db.setPassword(LoginManager::userId(), dlg.password());
 	}
+}
+
+void MainWindow::on_actionStudy_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("study");
+	auto dlg = GUIHelper::createDialog(widget, "Study administration");
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionGenderXY_triggered()

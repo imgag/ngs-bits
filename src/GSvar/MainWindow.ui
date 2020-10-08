@@ -461,6 +461,7 @@
      <addaction name="actionSampleGroup"/>
      <addaction name="actionSender"/>
      <addaction name="actionSpecies"/>
+     <addaction name="actionStudy"/>
      <addaction name="separator"/>
      <addaction name="actionUsers"/>
      <addaction name="actionChangePassword"/>
@@ -1168,6 +1169,11 @@
   <action name="actionSampleSimilarityVCF">
    <property name="text">
     <string>based on VCF files</string>
+   </property>
+  </action>
+  <action name="actionStudy">
+   <property name="text">
+    <string>Study</string>
    </property>
   </action>
  </widget>

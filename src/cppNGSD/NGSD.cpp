@@ -196,6 +196,14 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		conditions	<< "se.id=s.sender_id"
 					<< "se.name='" + escapeForSql(p.s_sender) + "'";
 	}
+	if (p.s_study.trimmed()!="")
+	{
+		tables	<< "study st";
+		tables	<< "study_sample sts";
+		conditions	<< "st.id=sts.study_id"
+					<< "sts.processed_sample_id=ps.id"
+					<< "st.name='" + escapeForSql(p.s_study) + "'";
+	}
 	if (p.s_disease_group.trimmed()!="")
 	{
 		conditions << "s.disease_group='" + escapeForSql(p.s_disease_group) + "'";
@@ -1817,7 +1825,8 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 				if (table=="processing_system" && info.name=="adapter1_p5") info.type_constraints.regexp = QRegularExpression("^[ACGTN]*$");
 				if (table=="processing_system" && info.name=="adapter2_p7") info.type_constraints.regexp = QRegularExpression("^[ACGTN]*$");
 				if (table=="processed_sample" && info.name=="lane") info.type_constraints.regexp = QRegularExpression("^[1-8](,[1-8])*$");
-				if (table=="user" && info.name=="user_id") info.type_constraints.regexp = QRegularExpression("^[a-z0-9_]+$");
+				if (table=="user" && info.name=="user_id") info.type_constraints.regexp = QRegularExpression("^[A-Za-z0-9_]+$");
+				if (table=="study" && info.name=="name") info.type_constraints.regexp = QRegularExpression("^[A-Za-z0-9_ -]+$");
 			}
 			else
 			{

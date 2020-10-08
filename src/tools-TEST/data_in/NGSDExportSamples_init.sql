@@ -14,7 +14,7 @@ INSERT INTO user (id, user_id, password, user_role, name, email, created, active
 
 -- sender
 INSERT INTO sender (id, name) VALUES 
-(1, 'sender');
+(1, 'Klaus-Erhard');
 
 -- project
 INSERT INTO project (id, name, type, internal_coordinator_id, analysis) VALUES 
@@ -106,3 +106,12 @@ INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`, `quality
 
 INSERT INTO `report_configuration_cnv` (`id`, `report_configuration_id`, `cnv_id`, `type`, `causal`, `class`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES
 (1, 2, 1, 'diagnostic variant', 0, 'n/a', 'AD', 0, 0, 0, 0, 0, 1, 0, 0, '', '');
+
+--study
+INSERT INTO `study`(`id`, `name`, `description`) VALUES
+(1, "SomeStudy","");
+
+INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES
+(1, 2);
+
+

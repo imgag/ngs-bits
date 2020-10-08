@@ -339,6 +339,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool s_name_comments = false;
 	QString s_species;
 	QString s_sender;
+	QString s_study;
 	QString s_disease_group;
 	QString s_disease_status;
 	bool include_bad_quality_samples = true;

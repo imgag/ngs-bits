@@ -5,17 +5,6 @@ libs:
 - The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
 
 NGSD:
-** Allow adding study details:
-    - table study:
-        - id: INT, autoincrement
-        - name: TEXT not null, unique //GenomeFirst, Solve-RD, Neuromics, GMed, T-Namse
-        - description: TEXT
-   - table study_sample:
-        - id: INT not null, autoincrement
-        - processed_sample_id: INT not null
-        - study_id: INT not null
-        - study_sample_idendifier: TEXT not null
-        - comment: TEXT
 * Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)
@@ -37,6 +26,10 @@ GSvar:
     - checkboxes for variants ouside or ROI are unchecked and enabled
     - only variants which are checked are added to the report config
 ## Trio report: force disease_group/disease_status and outcome (import trio parents as unaffected with same disease group as child)
+## HGVS>GSvar:
+    - Strip transcript version numbers before conversion, e.g. 'NM_000059.3:c.3G>A'
+    - Handle 'NM_007294:c.4185+2_4185+22delinsA' without error
+## Variant tab open dialog: allow variant format 'chr13:32900288-32900288 G>T'
 * Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
