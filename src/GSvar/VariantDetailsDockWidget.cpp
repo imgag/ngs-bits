@@ -15,6 +15,7 @@
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
+#include <QHeaderView>
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	: QWidget(parent)
