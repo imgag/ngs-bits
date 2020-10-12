@@ -31,8 +31,6 @@ public:
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
 	QStringList getLogFiles();
-	///Returns the BAM files for the analysis.
-	QList<FileLocation> getBamFiles();
 	///Returns CNV SEG files for the analysis.
 	QList<FileLocation> getSegFilesCnv();
 	///Returns BAF SEG files for the analysis.
