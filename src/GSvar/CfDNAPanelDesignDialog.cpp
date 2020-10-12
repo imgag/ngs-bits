@@ -22,6 +22,7 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 	connect(ui_->buttonBox, SIGNAL(accepted()), this, SLOT(createOutputFiles()));
 	connect(ui_->vars,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showVariantContextMenu(QPoint)));
 	connect(ui_->genes,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showGeneContextMenu(QPoint)));
+	connect(ui_->cb_hotspot_regions, SIGNAL(stateChanged(int)), this, SLOT(showHotspotRegions(int)));
 
 	// set context menus for tables
 	ui_->vars->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -31,6 +32,7 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 	ui_->cb_processing_system->fill(processing_systems, false);
 
 	loadVariants();
+	loadHotspotRegions();
 	loadGenes();
 }
 
@@ -135,6 +137,67 @@ void CfDNAPanelDesignDialog::loadVariants()
 	// optimize cell sizes
 	GUIHelper::resizeTableCells(ui_->vars, 150);
 
+	// connect checkBoxes to update method
+	connect(ui_->vars, SIGNAL(cellChanged(int,int)), this, SLOT(updateSelectedVariantCount()));
+
+	// init selection label
+	updateSelectedVariantCount();
+
+
+}
+
+void CfDNAPanelDesignDialog::loadHotspotRegions()
+{
+	// open BED file
+	BedFile hotspot_regions;
+	hotspot_regions.load("://Resources/cfDNA_hotspot_regions.bed");
+
+	// fill table
+
+	// set dimensions
+	ui_->hotspot_regions->setRowCount(hotspot_regions.count());
+	ui_->hotspot_regions->setColumnCount(5);
+
+	//create header
+	int col_idx = 0;
+	ui_->hotspot_regions->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("select"));
+	ui_->hotspot_regions->horizontalHeaderItem(col_idx++)->setToolTip("Select all hotspot regions which should be added to the cfDNA panel.");
+
+	ui_->hotspot_regions->setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("chr"));
+	ui_->hotspot_regions->setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("start"));
+	ui_->hotspot_regions->setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("end"));
+	ui_->hotspot_regions->setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("gene"));
+
+	// fill table
+	for (int i = 0; i < hotspot_regions.count(); ++i)
+	{
+		int col_idx = 0;
+		const BedLine& line = hotspot_regions[i];
+
+		QTableWidgetItem* select_item = GUIHelper::createTableItem("");
+		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
+		select_item->setCheckState(Qt::Unchecked);
+
+		// store file path in first cell
+		select_item->setData(Qt::UserRole, i);
+
+		ui_->hotspot_regions->setItem(i, col_idx++, select_item);
+
+		ui_->hotspot_regions->setItem(i, col_idx++, GUIHelper::createTableItem(line.chr().strNormalized(true)));
+		ui_->hotspot_regions->setItem(i, col_idx++, GUIHelper::createTableItem(QString::number(line.start())));
+		ui_->hotspot_regions->setItem(i, col_idx++, GUIHelper::createTableItem(QString::number(line.end())));
+		if (line.annotations().size() > 0) ui_->hotspot_regions->setItem(i, col_idx++, GUIHelper::createTableItem(line.annotations().at(0)));
+	}
+
+	// optimize cell sizes
+	GUIHelper::resizeTableCells(ui_->hotspot_regions, 250);
+
+	// connect checkBoxes to update method
+	connect(ui_->hotspot_regions, SIGNAL(cellChanged(int,int)), this, SLOT(updateSelectedHotspotCount()));
+
+	// init selection label
+	showHotspotRegions(ui_->cb_hotspot_regions->checkState());
+	updateSelectedHotspotCount();
 }
 
 void CfDNAPanelDesignDialog::loadGenes()
@@ -202,13 +265,25 @@ void CfDNAPanelDesignDialog::loadGenes()
 		ui_->genes->setItem(r, 3, GUIHelper::createTableItem(entry.date.toString("dd.MM.yyyy")));
 		r++;
 	}
+
+	// optimize cell sizes
+	GUIHelper::resizeTableCells(ui_->genes, 150);
 }
+
 
 void CfDNAPanelDesignDialog::selectAllVariants(bool deselect)
 {
 	for (int r = 0; r < ui_->vars->rowCount(); ++r)
 	{
 		ui_->vars->item(r, 0)->setCheckState((!deselect) ? Qt::Checked : Qt::Unchecked);
+	}
+}
+
+void CfDNAPanelDesignDialog::selectAllHotspotRegions(bool deselect)
+{
+	for (int r = 0; r < ui_->hotspot_regions->rowCount(); ++r)
+	{
+		ui_->hotspot_regions->item(r, 0)->setCheckState((!deselect) ? Qt::Checked : Qt::Unchecked);
 	}
 }
 
@@ -220,10 +295,41 @@ void CfDNAPanelDesignDialog::selectAllGenes(bool deselect)
 	}
 }
 
+void CfDNAPanelDesignDialog::updateSelectedVariantCount()
+{
+	int selected_variant_count = 0;
+	// get all selected variants
+	for (int r = 0; r < ui_->vars->rowCount(); ++r)
+	{
+		if (ui_->vars->item(r, 0)->checkState() == Qt::Checked)
+		{
+			selected_variant_count++;
+		}
+	}
+
+	ui_->l_count_variables->setText(QString::number(selected_variant_count) + " / " + QString::number(ui_->vars->rowCount()));
+}
+
+void CfDNAPanelDesignDialog::updateSelectedHotspotCount()
+{
+	int selected_hotspot_count = 0;
+	// get all selected hotspots
+	for (int r = 0; r < ui_->hotspot_regions->rowCount(); ++r)
+	{
+		if (ui_->hotspot_regions->item(r, 0)->checkState() == Qt::Checked)
+		{
+			selected_hotspot_count++;
+		}
+	}
+
+	ui_->l_count_hotspot_regions->setText(QString::number(selected_hotspot_count) + " / " + QString::number(ui_->hotspot_regions->rowCount()));
+}
+
 void CfDNAPanelDesignDialog::createOutputFiles()
 {
 
 	VariantList selected_variants;
+	int variant_count = 0;
 
 	// copy header
 	selected_variants.copyMetaData(variants_);
@@ -239,12 +345,31 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 			if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + ui_->vars->verticalHeaderItem(r)->data(Qt::UserRole).toString() + "' is not an integer!");
 
 			selected_variants.append(variants_[var_idx]);
+			variant_count++;
 		}
 	}
 
+	// get all selected hotspot regions
+	BedFile roi;
+	if (ui_->cb_hotspot_regions->checkState() == Qt::Checked)
+	{
+		for (int r = 0; r < ui_->hotspot_regions->rowCount(); ++r)
+		{
+			if (ui_->hotspot_regions->item(r, 0)->checkState() == Qt::Checked)
+			{
+				// parse entry
+				Chromosome chr = Chromosome(ui_->hotspot_regions->item(r, 1)->text());
+				int start  = Helper::toInt(ui_->hotspot_regions->item(r, 2)->text(), "start", QString::number(r));
+				int end = Helper::toInt(ui_->hotspot_regions->item(r, 3)->text(), "end", QString::number(r));
+				QByteArrayList annotations;
+				annotations << "HOTSPOT:" + ui_->hotspot_regions->item(r, 4)->text().toUtf8();
+				roi.append(BedLine(chr, start, end, annotations));
+				variant_count++;
+			}
+		}
+	}
 
 	// get all selected genes
-	BedFile roi;
 	for (int r = 0; r < ui_->genes->rowCount(); ++r)
 	{
 		if (ui_->genes->item(r, 0)->checkState() == Qt::Checked)
@@ -281,7 +406,6 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		}
 	}
 
-
 	// generate output VCF
 	QString ref_genome = Settings::string("reference_genome", false);
 	VcfFile vcf_file = VcfFile::convertGSvarToVcf(selected_variants, ref_genome);
@@ -290,6 +414,18 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	for (int i=0; i<vcf_file.count(); i++)
 	{
 		roi.append(BedLine(vcf_file[i].chr(), vcf_file[i].start(), vcf_file[i].end(), QByteArrayList() << "SNP_INDEL:" + vcf_file[i].ref() + ">" + vcf_file[i].altString()));
+	}
+
+	// check number of selected variants
+	if (variant_count < 25)
+	{
+		int btn = QMessageBox::information(this, "Too few variants selected", "Only " + QByteArray::number(variant_count)
+										   + " variants selected. A cfDNA panel should contain at least 25 variants. \nDo you want to continue?",
+										   QMessageBox::Yes, QMessageBox::Cancel);
+		if (btn!=QMessageBox::Yes)
+		{
+			return;
+		}
 	}
 
 	QString output_path = Settings::string("patient_specific_panel_folder", false);
@@ -311,7 +447,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	}
 
 	// store variant list
-	vcf_file.store(output_path + processed_sample_name_ + ".vcf");
+	vcf_file.store(output_path + processed_sample_name_ + ".vcf", false, 0);
 	roi.sort();
 	roi.store(output_path + processed_sample_name_ + ".bed");
 
@@ -342,6 +478,30 @@ void CfDNAPanelDesignDialog::showVariantContextMenu(QPoint pos)
 	}
 }
 
+void CfDNAPanelDesignDialog::showHotspotContextMenu(QPoint pos)
+{
+	// create menu
+	QMenu menu(ui_->hotspot_regions);
+	QAction* a_select_all = menu.addAction("Select all hotspot regions");
+	QAction* a_deselect_all = menu.addAction("Deselect all hotspot regions");
+	// execute menu
+	QAction* action = menu.exec(ui_->hotspot_regions->viewport()->mapToGlobal(pos));
+	if (action == nullptr) return;
+	// react
+	if (action == a_select_all)
+	{
+		selectAllHotspotRegions(false);
+	}
+	else if (action == a_deselect_all)
+	{
+		selectAllHotspotRegions(true);
+	}
+	else
+	{
+		THROW(ProgrammingException, "Invalid menu action in context menu selected!")
+	}
+}
+
 void CfDNAPanelDesignDialog::showGeneContextMenu(QPoint pos)
 {
 	// create menu
@@ -365,3 +525,10 @@ void CfDNAPanelDesignDialog::showGeneContextMenu(QPoint pos)
 		THROW(ProgrammingException, "Invalid menu action in context menu selected!")
 	}
 }
+
+void CfDNAPanelDesignDialog::showHotspotRegions(int state)
+{
+	ui_->hotspot_regions->setVisible(state == Qt::Checked);
+	ui_->l_count_hotspot_regions->setVisible(state == Qt::Checked);
+}
+

@@ -107,19 +107,24 @@ void DiseaseCourseWidget::createTableView()
 
 
 	// set dimensions
-	ui_->vars->setColumnCount(5 + cf_dna_columns_.length());
+	ui_->vars->setColumnCount(7 + cf_dna_columns_.length());
 	ui_->vars->setRowCount(ref_column_.variants.count());
 
-	ui_->vars->setHorizontalHeaderItem(0, GUIHelper::createTableItem("chr"));
-	ui_->vars->horizontalHeaderItem(0)->setToolTip("Chromosome the variant is located on.");
-	ui_->vars->setHorizontalHeaderItem(1, GUIHelper::createTableItem("pos"));
-	ui_->vars->horizontalHeaderItem(1)->setToolTip("Position of the variant on the chromosome.");
-	ui_->vars->setHorizontalHeaderItem(2, GUIHelper::createTableItem("ref"));
-	ui_->vars->horizontalHeaderItem(2)->setToolTip("Reference bases in the reference genome at the variant position.\n`-` in case of an insertion.");
-	ui_->vars->setHorizontalHeaderItem(3, GUIHelper::createTableItem("obs"));
-	ui_->vars->horizontalHeaderItem(3)->setToolTip("Alternate bases observed in the sample.\n`-` in case of an deletion.");
+	int col_idx = 0;
 
-	int col_idx = 4;
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("chr"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Chromosome the variant is located on.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("pos"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Position of the variant on the chromosome.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("ref"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Reference bases in the reference genome at the variant position.\n`-` in case of an insertion.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("obs"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Alternate bases observed in the sample.\n`-` in case of an deletion.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("gene"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Affected gene list (comma-separated).");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("coding and splicing"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).");
+
 	// set header for sample
 	ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(ref_column_.name + "\n(" + ref_column_.date.toString("dd.MM.yyyy") + ")"));
 
@@ -129,17 +134,22 @@ void DiseaseCourseWidget::createTableView()
 		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(cf_dna_column.name + "\n(" + cf_dna_column.date.toString("dd.MM.yyyy") + ")"));
 	}
 
+
 	for (int i=0; i<ref_column_.variants.count(); ++i)
 	{
 		const VcfLine& variant = ref_column_.variants[i];
+		col_idx = 0;
 
-		ui_->vars->setItem(i, 0, GUIHelper::createTableItem(variant.chr().str()));
-		ui_->vars->setItem(i, 1, GUIHelper::createTableItem(QByteArray::number(variant.start())));
-		ui_->vars->setItem(i, 2, GUIHelper::createTableItem(variant.ref()));
-		ui_->vars->setItem(i, 3, GUIHelper::createTableItem(variant.alt(0)));
+		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
+		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.start())));
+		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.ref()));
+		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.alt(0)));
+		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.info("gene", false)));
+		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.info("coding_and_splicing", false)));
 
-		// calculate tumor af
-		int col_idx = 4;
+
+
+		// show tumor af of ref
 		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.info("tumor_af")));
 
 		// get tumor af for each cfDNA sample
@@ -153,7 +163,12 @@ void DiseaseCourseWidget::createTableView()
 				double alt_count = Helper::toDouble(cf_dna_variant->formatValueFromSample("Alt_Count"), "Alt_Count", QString::number(i));
 				double depth = Helper::toDouble(cf_dna_variant->formatValueFromSample("DP"), "DP", QString::number(i));
 				double cf_dna_af = (depth != 0)? alt_count/depth : 0.0;
-				ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(QString::number(cf_dna_af, 'f', 5)));
+
+				// generate table item with tool tip
+				QTableWidgetItem* cfdna_item = GUIHelper::createTableItem(QString::number(cf_dna_af, 'f', 5));
+				cfdna_item->setToolTip("Alt. count:" + QString::number(alt_count, 'f', 0).rightJustified(6, ' ')
+									+ "\nDepth:     " + QString::number(depth, 'f', 0).rightJustified(6, ' '));
+				ui_->vars->setItem(i, col_idx++, cfdna_item);
 			}
 			else
 			{
@@ -164,7 +179,7 @@ void DiseaseCourseWidget::createTableView()
 	}
 
 	// optimize cell sizes
-	GUIHelper::resizeTableCells(ui_->vars);
+	GUIHelper::resizeTableCells(ui_->vars, 150, false);
 
 
 }
