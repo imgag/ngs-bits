@@ -8,10 +8,10 @@ enum class PathType
 {
 	PROJECT_FOLDER, // project root folder
 	SAMPLE_FOLDER, // folder with samples
-	BAM, //
-	GSVAR, //
-	VCF, //
-	BAF, //
+	BAM, // binary alignment map with sequence alignment data
+	GSVAR, // GSVar tool sample data
+	VCF, // variant call format file storing gene sequence variations
+	BAF, // b-allele frequency file
 	CNV_CALLS, // BED files
 	CNV_ESTIMATES, // SEG file with copy
 	OTHER // everything else

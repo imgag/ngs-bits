@@ -64,7 +64,8 @@ HEADERS += \
     BedpeFile_Test.h \
     Sequence_Test.h \
     VCFLine_Test.h \
-    VcfFile_Test.h
+    VcfFile_Test.h \
+    FileLocationHelper_Test.h
 
 SOURCES += \
         main.cpp

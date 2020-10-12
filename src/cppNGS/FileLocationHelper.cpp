@@ -23,7 +23,7 @@ QString FileLocationHelper::pathTypeToString(PathType type)
 		case PathType::CNV_ESTIMATES:
 			return "CNV_ESTIMATES";
 		case PathType::OTHER:
-			return "other";
+			return "OTHER";
 	  default:
 		 return "Invalid PathType";
    }
