@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>950</width>
-    <height>943</height>
+    <height>950</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>950</width>
-    <height>800</height>
+    <height>950</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -44,7 +44,7 @@
       <bool>false</bool>
      </property>
      <widget class="QWidget" name="layoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,0,0,0,0,0,0,0">
+      <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,0,0,0,0,0,0,0,0">
        <property name="spacing">
         <number>3</number>
        </property>
@@ -1043,6 +1043,9 @@
             <property name="frameShape">
              <enum>QFrame::Box</enum>
             </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
            </widget>
           </item>
           <item>
@@ -1067,7 +1070,7 @@
             <item>
              <widget class="QToolButton" name="relation_delete_btn">
               <property name="toolTip">
-               <string>Remove selected sample relation(s).</string>
+               <string>Remove selected sample relation.</string>
               </property>
               <property name="text">
                <string>...</string>
@@ -1080,6 +1083,113 @@
             </item>
             <item>
              <widget class="QWidget" name="widget_3" native="true"/>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_6">
+         <property name="title">
+          <string>Studies</string>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_11">
+          <property name="spacing">
+           <number>3</number>
+          </property>
+          <property name="leftMargin">
+           <number>3</number>
+          </property>
+          <property name="topMargin">
+           <number>3</number>
+          </property>
+          <property name="rightMargin">
+           <number>3</number>
+          </property>
+          <property name="bottomMargin">
+           <number>3</number>
+          </property>
+          <item>
+           <widget class="DBTableWidget" name="studies">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>450</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::Box</enum>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::SingleSelection</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_8" stretch="0,0,0,0">
+            <property name="spacing">
+             <number>3</number>
+            </property>
+            <item>
+             <widget class="QToolButton" name="study_edit_btn">
+              <property name="toolTip">
+               <string>Edit selected study.</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="GSvar.qrc">
+                <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="study_add_btn">
+              <property name="toolTip">
+               <string>Add study.</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="GSvar.qrc">
+                <normaloff>:/Icons/Add.png</normaloff>:/Icons/Add.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="study_delete_btn">
+              <property name="toolTip">
+               <string>Remove selected study.</string>
+              </property>
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset resource="GSvar.qrc">
+                <normaloff>:/Icons/Remove.png</normaloff>:/Icons/Remove.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QWidget" name="widget_6" native="true"/>
             </item>
            </layout>
           </item>

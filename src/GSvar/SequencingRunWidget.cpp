@@ -95,12 +95,18 @@ void SequencingRunWidget::updateGUI()
 
 void SequencingRunWidget::updateRunSampleTable()
 {
+	//get data from NGSD
+	QStringList headers;
+	headers << "lane" << "quality" << "sample" << "name external" << "is_tumor" << "is_ffpe" << "project" << "MID i7" << "MID i5" << "species" << "processing system" << "input [ng]" << "operator" << "comments";
+
 	NGSD db;
-	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), (SELECT name FROM user WHERE id=ps.operator_id), ps.comment "
+	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), ps.processing_input, (SELECT name FROM user WHERE id=ps.operator_id), ps.comment "
 														  " FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' "
 														  " ORDER BY ps.lane ASC, s.name ASC, ps.process_id");
-	QStringList headers;
-	headers << "lane" << "quality" << "sample" << "project" << "MID i7" << "MID i5" << "species" << "processing system" << "operator" << "comments";
+
+	//format columns
+	samples.formatBooleanColumn(samples.columnIndex("tumor"));
+	samples.formatBooleanColumn(samples.columnIndex("ffpe"));
 
 	//add QC data
 	QStringList accessions;
@@ -214,6 +220,8 @@ void SequencingRunWidget::updateRunSampleTable()
 			}
 		}
 	}
+	ui_->samples->setBackgroundColorIfEqual("is_tumor", orange, "yes");
+	ui_->samples->setBackgroundColorIfEqual("is_ffpe", orange, "yes");
 
 	//#### sample summary ####
 	QStringList imported_qc = db.getValues("SELECT ps.id FROM processed_sample ps WHERE ps.sequencing_run_id='" + run_id_ + "' AND EXISTS(SELECT id FROM processed_sample_qc WHERE processed_sample_id=ps.id)");
@@ -334,7 +342,7 @@ void SequencingRunWidget::sendStatusEmail()
 			body << "";
 			body << "Projekt: " + query.value("name").toString();
 			body << "  Koordinator: " + db.userName(coordinator_id);
-			QStringList operator_ids = db.getValues("SELECT operator_id FROM processed_sample WHERE sequencing_run_id='" + run_id_ + "' AND project_id='" + query.value("id").toString() + "'");
+			QStringList operator_ids = db.getValues("SELECT operator_id FROM processed_sample WHERE sequencing_run_id='" + run_id_ + "' AND project_id='" + query.value("id").toString() + "' AND operator_id IS NOT NULL");
 			body << "  Proben: " + QString::number(operator_ids.count());
 			body << "  Analyse: " + query.value("analysis").toString();
 

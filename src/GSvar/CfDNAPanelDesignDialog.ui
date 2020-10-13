@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>cfDNA Panel Design Dialog</string>
+   <string>cfDNA panel design</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -115,7 +115,7 @@
      <item>
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>Processing system of the cfDNA Panel:</string>
+        <string>Processing system of the cfDNA panel:</string>
        </property>
       </widget>
      </item>

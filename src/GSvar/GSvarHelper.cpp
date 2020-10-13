@@ -59,8 +59,6 @@ const GeneSet& GSvarHelper::hi0Genes()
 
 const QMap<QByteArray, QByteArrayList>& GSvarHelper::preferredTranscripts(bool reload)
 {
-	qDebug() << "GSvarHelper::preferredTranscripts" << reload;
-
     static bool initialized = false;
 
     if (!initialized || reload)

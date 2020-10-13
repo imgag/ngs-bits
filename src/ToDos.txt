@@ -17,17 +17,23 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
+## Variant validation: add validation method and allow filtering by validation method (methods: PCR, breakpoint PRC, qPRC, MLPA, other) > check with Lab > Email to all people in diagnostics
+## Preferred transcripts: allow deleting
+## Tabs: do not close tabs when opening a new GSvar file. Open a tab only once - focus and update if opened again.
 ## Allow adding variant outside of target region to report
     - add checkboxes to variants in report dialog
     - checkboxes for variants in ROI are checked and disabled
     - checkboxes for variants ouside or ROI are unchecked and enabled
     - only variants which are checked are added to the report config
-* Trio report: force disease_group/disease_status and outcome (import trio parents as unaffected with same disease group as child)
+## Trio report: force disease_group/disease_status and outcome (import trio parents as unaffected with same disease group as child)
+## HGVS>GSvar:
+    - Strip transcript version numbers before conversion, e.g. 'NM_000059.3:c.3G>A'
+    - Handle 'NM_007294:c.4185+2_4185+22delinsA' without error
+## Variant tab open dialog: allow variant format 'chr13:32900288-32900288 G>T'
 * Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
     - use XML format: https://www.ncbi.nlm.nih.gov/projects/clinvar/ClinVarDataDictionary.pdf (see also email 'Programm für AG Genom-Informatik')
-** allow creating somatic report and XML-export for tumor-only - after tumor-normal is done (AG)
 
 Tools:
 - UPDHunter: also support chrX?
@@ -43,3 +49,12 @@ RohHunter:
 - test input of high-cov ROI to augment the input data with WT SNPs with AF>1-5%
 - test if sub-population AF improves result
 - benchmarks: chrX of males, add errors up to 2 percent, overlap WGS/WES
+
+
+Features to dicuss:
+- Add family table linking samples in one family with "father", "mother", "child", "aunte", "cousin", ... OR import samples relations from GenLab?? > FH/LUCIA/TOH
+- Add liquid handler robot to processed sample talbe > FH/LAB/TOH
+- Correctly import sample sender data from GenLab > TOH/STEPHAN O.
+- CAVE functionality for Genes (use e.g. for imprinting), model reasons? > SWAL
+- Sample: source tissue (for RNA) > TOH
+

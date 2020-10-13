@@ -362,7 +362,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 				int start  = Helper::toInt(ui_->hotspot_regions->item(r, 2)->text(), "start", QString::number(r));
 				int end = Helper::toInt(ui_->hotspot_regions->item(r, 3)->text(), "end", QString::number(r));
 				QByteArrayList annotations;
-				annotations << "HOTSPOT:" + ui_->hotspot_regions->item(r, 4)->text().toUtf8();
+				annotations << "hotspot_region:" + ui_->hotspot_regions->item(r, 4)->text().toUtf8();
 				roi.append(BedLine(chr, start, end, annotations));
 				variant_count++;
 			}
@@ -384,7 +384,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 
 			// add to overall gene list
 			QByteArrayList annotations;
-			annotations.append("GENE:" + gene_name.toUtf8());
+			annotations.append("gene:" + gene_name.toUtf8());
 			for (int i = 0; i < gene.count(); ++i)
 			{
 				roi.append(BedLine(gene[i].chr(), gene[i].start(), gene[i].end(), annotations));
@@ -401,7 +401,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		for (int i=0; i<kasp_variants.count(); i++)
 		{
 			BedLine& kasp_variant = kasp_variants[i];
-			kasp_variant.annotations().append("Sample_Identifier:KASP_set2");
+			kasp_variant.annotations().append("SNP_for_sample_identification:KASP_set2");
 			roi.append(kasp_variant);
 		}
 	}
@@ -413,7 +413,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	// generate bed file
 	for (int i=0; i<vcf_file.count(); i++)
 	{
-		roi.append(BedLine(vcf_file[i].chr(), vcf_file[i].start(), vcf_file[i].end(), QByteArrayList() << "SNP_INDEL:" + vcf_file[i].ref() + ">" + vcf_file[i].altString()));
+		roi.append(BedLine(vcf_file[i].chr(), vcf_file[i].start(), vcf_file[i].end(), QByteArrayList() << "patient_specific_somatic_variant:" + vcf_file[i].ref() + ">" + vcf_file[i].altString()));
 	}
 
 	// check number of selected variants

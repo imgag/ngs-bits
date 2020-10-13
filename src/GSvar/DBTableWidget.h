@@ -60,6 +60,9 @@ public:
 	//Returns the database table name
 	const QString& tableName() const;
 
+	//Style cell by quality
+	static void styleQuality(QTableWidgetItem* item, const QString& quality);
+
 signals:
 	//Emitted if a row is double-clicked
 	void rowDoubleClicked(int row);

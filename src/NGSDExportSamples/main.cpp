@@ -23,6 +23,8 @@ public:
 		addFlag("match_external_names", "If set, also samples for which the external name matches 'sample' are exported.");
 		addFlag("with_merged", "If set, processed samples that were merged into another sample are included.");
 		addString("species", "Species filter.", true, "");
+		addString("sender", "Sample sender filter.", true, "");
+		addString("study", "Processed sample study filter.", true, "");
 		addString("project", "Project name filter.", true, "");
 		addString("system", "Processing system name filter (short name).", true, "");
 		addString("run", "Sequencing run name filter.", true, "");
@@ -37,6 +39,7 @@ public:
 		addFlag("add_comments", "Adds sample and processed sample comments columns.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2020, 10,  8, "Added parameters 'sender' and 'study'.");
 		changeLog(2020,  7, 20, "Added 'match_external_names' flag.");
 		changeLog(2019, 12, 11, "Added 'run_finished' and 'add_report_config' flags.");
 		changeLog(2019,  5, 17, "Added 'with_merged' flag.");
@@ -55,6 +58,8 @@ public:
 		params.s_name = getString("sample");
 		params.s_name_ext = getFlag("match_external_names");
 		params.s_species = getString("species");
+		params.s_sender = getString("sender");
+		params.s_study = getString("study");
 		params.include_bad_quality_samples = !getFlag("no_bad_samples");
 		params.include_tumor_samples = !getFlag("no_tumor");
 		params.include_ffpe_samples = !getFlag("no_ffpe");
@@ -120,6 +125,26 @@ public:
 			if (tmp.isNull())
 			{
 				THROW(DatabaseException, "Invalid species name '"+params.s_species+".\nValid names are: " + db.getValues("SELECT name FROM species ORDER BY name ASC").join(", "));
+			}
+		}
+
+		if (params.s_sender!="")
+		{
+			//check that name is valid
+			QString tmp = db.getValue("SELECT id FROM sender WHERE name=:0", true, params.s_sender).toString();
+			if (tmp.isNull())
+			{
+				THROW(DatabaseException, "Invalid sender name '"+params.s_sender+".\nValid names are: " + db.getValues("SELECT name FROM sender ORDER BY name ASC").join(", "));
+			}
+		}
+
+		if (params.s_study!="")
+		{
+			//check that name is valid
+			QString tmp = db.getValue("SELECT id FROM study WHERE name=:0", true, params.s_study).toString();
+			if (tmp.isNull())
+			{
+				THROW(DatabaseException, "Invalid study name '"+params.s_study+".\nValid names are: " + db.getValues("SELECT name FROM study ORDER BY name ASC").join(", "));
 			}
 		}
 

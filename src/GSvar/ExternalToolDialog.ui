@@ -55,9 +55,24 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="browse_ngsd">
+       <property name="text">
+        <string>select file(s) from NGSD</string>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/NGSD.png</normaloff>:/Icons/NGSD.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="browse">
        <property name="text">
-        <string>select sampe file(s)</string>
+        <string>select file(s)</string>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/Folder.png</normaloff>:/Icons/Folder.png</iconset>
        </property>
       </widget>
      </item>
@@ -75,6 +90,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
  <connections/>
 </ui>

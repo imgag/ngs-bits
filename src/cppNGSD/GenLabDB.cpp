@@ -250,13 +250,11 @@ QStringList GenLabDB::tumorFraction(QString ps_name)
 		query.exec("SELECT tumoranteil FROM v_ngs_tumoranteil WHERE labornummer='" + name + "' AND tumoranteil IS NOT NULL");
 		while(query.next())
 		{
-			qDebug() << query.value(0);
 			QString fraction = query.value(0).toString().trimmed();
 			if (fraction.isEmpty()) continue;
 
 			if (output.contains(fraction)) continue;
 
-			qDebug() << fraction;
 			output << fraction;
 		}
 	}

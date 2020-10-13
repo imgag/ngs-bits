@@ -842,6 +842,8 @@ private slots:
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
+		params.s_sender = "Coriell";
+		params.s_study = "SomeStudy";
 		params.include_bad_quality_samples = false;
 		params.include_tumor_samples = false;
 		params.include_ffpe_samples = false;

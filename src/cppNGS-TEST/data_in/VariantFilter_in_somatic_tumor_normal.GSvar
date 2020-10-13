@@ -1,0 +1,82 @@
+##ANALYSISTYPE=SOMATIC_PAIR
+##PIPELINE=megSAP 0.2-100-g5300c44
+##SAMPLE=<ID=TUMOR,IsTumor=yes,IsFFPE=no>
+##SAMPLE=<ID=NORMAL,IsTumor=no,IsFFPE=no>
+##DESCRIPTION=filter=Annotations for filtering and ranking variants.
+##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM).
+##DESCRIPTION=gene=Affected gene list (comma-separated).
+##DESCRIPTION=variant_type=Variant type.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
+##DESCRIPTION=coding_and_splicing_refseq=Coding and splicing details based on RefSeq (Gene, RefSeq id, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
+##DESCRIPTION=regulatory=Regulatory consequence details.
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.
+##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).
+##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.
+##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.
+##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
+##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).
+##DESCRIPTION=GeneSplicer=GeneSplicer splicing prediction (state/type/coordinates/confidence/score).
+##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+##DESCRIPTION=NGSD_som_c=Somatic variant count in the NGSD.
+##DESCRIPTION=NGSD_som_p=Project names of project containing this somatic variant in the NGSD.
+##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.
+##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.
+##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group (Neoplasms).
+##DESCRIPTION=classification=Classification from the NGSD.
+##DESCRIPTION=classification_comment=Classification comment from the NGSD.
+##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!
+##DESCRIPTION=comment=Variant comments from the NGSD.
+##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
+##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample TUMOR).
+##DESCRIPTION=tumor_dp=Tumor Depth (Sample TUMOR).
+##DESCRIPTION=normal_af=Mutant allele frequency in normal (Sample NORMAL).
+##DESCRIPTION=normal_dp=Normal depth (Sample NORMAL).
+##DESCRIPTION=somatic_classification_comment=Somatic classification comment from the NGSD.
+##DESCRIPTION=somatic_classification=Somatic classification from the NGSD.
+##DESCRIPTION=rna_tum_freq=Variant frequency.
+##DESCRIPTION=rna_tum_depth=Sequencing depth at the variant position.
+##FILTER=LowDepth=Tumor or normal sample read depth at this locus is below 2
+##FILTER=LowEVS=Somatic Empirical Variant Score (SomaticEVS) is below threshold
+##FILTER=all-unknown=Allele unknown
+##FILTER=depth-nor=Sequencing depth in normal is too low (< 20)
+##FILTER=depth-tum=Sequencing depth in tumor is too low (< 20)
+##FILTER=freq-nor=Allele frequency in normal > 0.17 * allele frequency in tumor
+##FILTER=freq-tum=Allele frequency in tumor < 0.05
+##FILTER=lt-3-reads=Less than 3 supporting tumor reads
+##FILTER=off-target=Variant marked as 'off-target'.
+##FILTER=special-chromosome=Special chromosome
+##CGI_CANCER_TYPE=CANCER
+##DESCRIPTION=CGI_id=Identifier for CGI statements
+##DESCRIPTION=CGI_driver_statement=CancerGenomeInterpreter.org oncogenic classification
+##DESCRIPTION=CGI_gene_role=CancerGenomeInterpreter.org gene role. LoF: Loss of Function, Act: Activating
+##DESCRIPTION=CGI_transcript=CancerGenomeInterpreter.org CGI Ensembl transcript ID
+##DESCRIPTION=CGI_gene=Gene symbol returned by CancerGenomeInterpreter.org
+##DESCRIPTION=CGI_consequence=Consequence of the mutation assessed by CancerGenomeInterpreter.org
+##DESCRIPTION=ncg_oncogene=1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
+##DESCRIPTION=ncg_tsg=1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
+##DESCRIPTION=rna_depth=Depth in RNA BAM file /mnt/SRV018/users/ahgscha1/megSAP/test/data_somatic/Sample_RX000001_01/RX000001_01.bam
+##DESCRIPTION=rna_af=Allele frequency in RNA BAM file /mnt/SRV018/users/ahgscha1/megSAP/test/data_somatic/Sample_RX000001_01/RX000001_01.bam
+##DESCRIPTION=rna_tpm=Transcript count as annotated per gene from /mnt/SRV018/users/ahgscha1/megSAP/test/data_somatic/Sample_RX000001_01/RX000001_01_counts.tsv
+##RNA_PROCESSED_SAMPLE_ID=RX000001_01
+##RNA_TRANSCRIPT_COUNT_FILE=/mnt/SRV018/users/ahgscha1/megSAP/test/data_somatic/Sample_RX000001_01/RX000001_01_counts.tsv
+##RNA_BAM_FILE=/mnt/SRV018/users/ahgscha1/megSAP/test/data_somatic/Sample_RX000001_01/RX000001_01.bam
+##RNA_REF_TPM_TISSUE=gallbladder
+##DESCRIPTION=rna_ref_tpm=RNA reference data in transcripts per million for tissue gallbladder from proteinatlas.org.
+#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	quality	gene	variant_type	coding_and_splicing	coding_and_splicing_refseq	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	GeneSplicer	dbscSNV	COSMIC	NGSD_som_c	NGSD_som_p	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	somatic_classification	somatic_classification_comment	validation	comment	gene_info	rna_tum_freq	rna_tum_depth	CGI_id	CGI_driver_statement	CGI_gene_role	CGI_transcript	CGI_gene	CGI_consequence	ncg_oncogene	ncg_tsg	rna_depth	rna_af	rna_tpm	rna_ref_tpm
+chr21	10971453	10971453	T	C	0.3333	18	0.0000	10	depth-tum;depth-nor;off-target	QUAL=18	TPTE	intron	TPTE:ENST00000298232:intron_variant:MODIFIER:exon4/22:c.12-108A>G::,TPTE:ENST00000342420:intron_variant:MODIFIER:exon4/21:c.12-108A>G::,TPTE:ENST00000361285:intron_variant:MODIFIER:exon4/23:c.12-108A>G::	TPTE:NM_001290224.1:intron_variant:MODIFIER:intron3/18:c.-182+13592A>G::,TPTE:NM_199259.2:intron_variant:MODIFIER:intron4/22:c.12-108A>G::,TPTE:NM_199259.3:intron_variant:MODIFIER:intron4/22:c.12-108A>G::,TPTE:NM_199260.2:intron_variant:MODIFIER:intron4/21:c.12-108A>G::,TPTE:NM_199260.3:intron_variant:MODIFIER:intron4/21:c.12-108A>G::,TPTE:NM_199261.2:intron_variant:MODIFIER:intron4/23:c.12-108A>G::,TPTE:NM_199261.3:intron_variant:MODIFIER:intron4/23:c.12-108A>G::						rs1739180		0.3091	0,.		-0.2030			0.00,0.08	3.37						2	I17R006,eMed-HCC	n/a (AF>5%)	n/a (AF>5%)	n/a (AF>5%)							TPTE (inh=n/a oe_syn=1.04 oe_mis=1.24 oe_lof=1.09)	n/a	0	chr21_10971453_T_C	not protein-affecting	.	ENST00000361285	TPTE	IntronicSNV	na	na	.	.	0.07	0.0
+chr21	11039394	11039394	C	T	0.1739	46	0.0286	35	off-target	QUAL=44	BAGE2	non_coding_transcript_exon	BAGE2:ENST00000470054:non_coding_transcript_exon_variant:MODIFIER:exon6/10:n.810G>A::	BAGE2:NM_182482.2:3_prime_UTR_variant:MODIFIER:exon6/10:c.*272G>A::,:XM_005269267.1:missense_variant:MODERATE:exon3/9:c.43G>A:p.Ala15Thr:						rs2698623					-1.2040			0.03,0.54	8.81						0		0	705	0 / 8							BAGE2 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	n/a	0							na	na	1	0.00	0.06	.
+chr21	31744239	31744239	C	A	0.4340	106	0.0000	104		QUAL=216	KRTAP13-2	missense	KRTAP13-2:ENST00000399889:missense_variant:MODERATE:exon1/1:c.293G>T:p.Gly98Val:PF05287 [PMG protein]	KRTAP13-2:NM_181621.3:missense_variant:MODERATE:exon1/1:c.293G>T:p.Gly98Val:											0.3750	T(0.06)	B(0.30)	0.06,0.19	15.24	0.14					1	Leuk	0	0	0 / 0							KRTAP13-2 (inh=n/a oe_syn=1.28 oe_mis=1.23 oe_lof=1.71), MIR4327 (inh=n/a oe_syn=n/a oe_mis=n/a oe_lof=n/a)	0.0000	1	chr21_31744239_C_A	predicted passenger	.	ENST00000399889	KRTAP13-2	Missense	na	na	1	0.00	0.05	0.0
+chr21	33974094	33974094	-	T	1.0000	3	0.0000	9	depth-tum;depth-nor;off-target	QUAL=4	CFAP298,AP000275.65	3'UTR,intron	CFAP298:ENST00000290155:3_prime_UTR_variant:MODIFIER:exon7/7:c.*78dup::,CFAP298:ENST00000382549:3_prime_UTR_variant:MODIFIER:exon5/5:c.*1304dup::,AP000275.65:ENST00000553001:intron_variant:MODIFIER:exon5/6:c.666+1376dup::	C21orf59:NM_021254.2:3_prime_UTR_variant:MODIFIER:exon7/7:c.*78dup::,C21orf59:NR_036552.1:non_coding_transcript_exon_variant:MODIFIER:exon6/6:n.1243dup::,C21orf59:XM_005261007.1:3_prime_UTR_variant:MODIFIER:exon6/6:c.*78dup::		615494 [GENE=CFAP298 PHENOS=Ciliary dyskinesia,primary,26,615500,Autosomal recessive];				rs763462577		0.0030	0,.						0.83						1	eMed-HCC	0	2	0 / 0							CFAP298 (inh=AR oe_syn=1.16 oe_mis=0.92 oe_lof=0.65)	0.0714	70							na,na	na,na	68	0.00	0.00	.
+chr21	47737850	47737850	G	T	0.7857	14	0.0000	6	depth-tum;depth-nor;off-target	QUAL=18	C21orf58	intron	C21orf58:ENST00000291691:intron_variant:MODIFIER:exon2/7:c.309+76C>A::,C21orf58:ENST00000397679:intron_variant:MODIFIER:exon1/6:c.-259+76C>A::,C21orf58:ENST00000397680:intron_variant:MODIFIER:exon2/7:c.-179+76C>A::,C21orf58:ENST00000397682:intron_variant:MODIFIER:exon2/8:c.-259+76C>A::,C21orf58:ENST00000397683:intron_variant:MODIFIER:exon2/8:c.-259+76C>A::,C21orf58:ENST00000397685:intron_variant:MODIFIER:exon3/5:c.60+76C>A::	C21orf58:NM_001286462.1:intron_variant:MODIFIER:intron2/8:c.-259+76C>A::,C21orf58:NM_001286463.1:intron_variant:MODIFIER:intron1/6:c.-259+76C>A::,C21orf58:NM_001286476.1:intron_variant:MODIFIER:intron2/8:c.-260+76C>A::,C21orf58:NM_001286477.1:intron_variant:MODIFIER:intron2/7:c.-179+76C>A::,C21orf58:NM_058180.3:intron_variant:MODIFIER:intron2/7:c.309+76C>A::,C21orf58:NM_058180.4:intron_variant:MODIFIER:intron2/7:c.308+76C>A::,C21orf58:XM_005261148.1:intron_variant:MODIFIER:intron2/8:c.309+76C>A::,C21orf58:XM_005261149.1:intron_variant:MODIFIER:intron2/7:c.309+76C>A::,C21orf58:XM_005261150.1:intron_variant:MODIFIER:intron2/7:c.228+76C>A::,C21orf58:XM_005261151.1:intron_variant:MODIFIER:intron1/6:c.-259+76C>A::,C21orf58:XM_005261152.1:intron_variant:MODIFIER:intron1/7:c.-259+76C>A::,C21orf58:XR_244317.1:intron_variant&non_coding_transcript_variant:MODIFIER:intron2/7:n.1470+76C>A::											-0.0850			0.18,0.28	13.34						0		0	0	0 / 0							C21ORF58 (inh=n/a oe_syn=1.23 oe_mis=0.92 oe_lof=1.15)	0.0000	14	chr21_47737850_G_C	not protein-affecting	.	ENST00000291691	C21orf58	IntronicSNV	na	na	.	.	4.68	1.6
+chr21	47737850	47737850	G	C	0.0714	14	0.0000	6	lt-3-reads;depth-tum;depth-nor;off-target	QUAL=18	C21orf58	intron	C21orf58:ENST00000291691:intron_variant:MODIFIER:exon2/7:c.309+76C>G::,C21orf58:ENST00000397679:intron_variant:MODIFIER:exon1/6:c.-259+76C>G::,C21orf58:ENST00000397680:intron_variant:MODIFIER:exon2/7:c.-179+76C>G::,C21orf58:ENST00000397682:intron_variant:MODIFIER:exon2/8:c.-259+76C>G::,C21orf58:ENST00000397683:intron_variant:MODIFIER:exon2/8:c.-259+76C>G::,C21orf58:ENST00000397685:intron_variant:MODIFIER:exon3/5:c.60+76C>G::	C21orf58:NM_001286462.1:intron_variant:MODIFIER:intron2/8:c.-259+76C>G::,C21orf58:NM_001286463.1:intron_variant:MODIFIER:intron1/6:c.-259+76C>G::,C21orf58:NM_001286476.1:intron_variant:MODIFIER:intron2/8:c.-260+76C>G::,C21orf58:NM_001286477.1:intron_variant:MODIFIER:intron2/7:c.-179+76C>G::,C21orf58:NM_058180.3:intron_variant:MODIFIER:intron2/7:c.309+76C>G::,C21orf58:NM_058180.4:intron_variant:MODIFIER:intron2/7:c.308+76C>G::,C21orf58:XM_005261148.1:intron_variant:MODIFIER:intron2/8:c.309+76C>G::,C21orf58:XM_005261149.1:intron_variant:MODIFIER:intron2/7:c.309+76C>G::,C21orf58:XM_005261150.1:intron_variant:MODIFIER:intron2/7:c.228+76C>G::,C21orf58:XM_005261151.1:intron_variant:MODIFIER:intron1/6:c.-259+76C>G::,C21orf58:XM_005261152.1:intron_variant:MODIFIER:intron1/7:c.-259+76C>G::,C21orf58:XR_244317.1:intron_variant&non_coding_transcript_variant:MODIFIER:intron2/7:n.1470+76C>G::											-0.0850			0.18,0.28	13.28						0		0	0	0 / 0							C21ORF58 (inh=n/a oe_syn=1.23 oe_mis=0.92 oe_lof=1.15)	0.0000	14	chr21_47737850_G_C	not protein-affecting	.	ENST00000291691	C21orf58	IntronicSNV	na	na	.	.	4.68	1.6

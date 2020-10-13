@@ -284,6 +284,23 @@ void MainWindow::on_actionDebug_triggered()
 			genlab.addMissingMetaDataToNGSD(ps, true);
 		}
 		*/
+
+		//batch import of study
+		/*
+		QString text = QInputDialog::getMultiLineText(this, "Import study", "1. list study name, all other lines processed samples:").trimmed();
+		if (text=="") return;
+		QStringList lines = text.split("\n");
+		NGSD db;
+		QString study_id = db.getValue("SELECT id FROM study WHERE name='" + lines[0] + "'").toString();
+		for(int i=1; i<lines.count(); ++i)
+		{
+			QString line = lines[i].trimmed();
+			if (line.isEmpty()) continue;
+
+			QString ps_id = db.processedSampleId(line);
+			db.getQuery().exec("INSERT into study_sample (study_id, processed_sample_id, study_sample_idendifier) VALUES ("+study_id+","+ps_id+",'')");
+		}
+		*/
 	}
 	else if (user=="ahschul1")
 	{
@@ -670,6 +687,10 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 	QStringList processing_systems = NGSD().getValues("SELECT name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 	QString folder = Settings::string("patient_specific_panel_folder", false);
 	QStringList bed_files;
+
+	// create label for widget
+	QLabel* l_file_name = new QLabel();
+
 	foreach (const QString& system, processing_systems)
 	{
 		QString file_path = folder + "/" + system + "/" + processedSampleName() + ".bed";
@@ -682,14 +703,32 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 	{
 		// show message
 		GUIHelper::showMessage("No cfDNA panel found!", "No cfDNA sample were found for the given tumor sample!");
+		return;
+	}
+	else if (bed_files.size() > 1)
+	{
+		QComboBox* bed_file_selector = new QComboBox(this);
+		bed_file_selector->addItems(bed_files);
 
+		// create dlg
+		auto dlg = GUIHelper::createDialog(bed_file_selector, "Select cfDNA panel", "", true);
+		int btn = dlg->exec();
+		if (btn!=1)
+		{
+			return;
+		}
+		// load selected file
+		cfdna_panel.load(bed_file_selector->currentText());
+		l_file_name = new QLabel(bed_file_selector->currentText());
 	}
 	else
 	{
-		// TODO: implement fallback if multiple files are found
-		// for now choose first
+		// 1 file found
 		cfdna_panel.load(bed_files.at(0));
+		l_file_name = new QLabel(bed_files.at(0));
 	}
+
+
 
 	// create table view
 	QTableWidget* table = new QTableWidget(cfdna_panel.count(), 5);
@@ -708,7 +747,11 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 		table->setItem(i, 3, GUIHelper::createTableItem(line.annotations()[0].split(':')[0]));
 		table->setItem(i, 4, GUIHelper::createTableItem(line.annotations()[0].split(':')[1]));
 	}
-	auto dlg = GUIHelper::createDialog(table, "cfDNA Panel for Tumor " + processedSampleName());
+	table->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContentsOnFirstShow);
+
+	// create export for IDT order
+	QPushButton* export_bed = new QPushButton("Export patient specific regions", this);
+	auto dlg = GUIHelper::createDialog(table, "cfDNA panel for tumor " + processedSampleName());
 	dlg->exec();
 }
 
@@ -3829,6 +3872,13 @@ void MainWindow::on_actionChangePassword_triggered()
 	}
 }
 
+void MainWindow::on_actionStudy_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("study");
+	auto dlg = GUIHelper::createDialog(widget, "Study administration");
+	addModelessDialog(dlg);
+}
+
 void MainWindow::on_actionGenderXY_triggered()
 {
 	ExternalToolDialog dialog("Determine gender", "xy", this);
@@ -4148,18 +4198,20 @@ void MainWindow::exportVCF()
 
 		//store
 		QFileInfo filename_info(filename_);
-		QString folder = Settings::string("gsvar_variant_export_folder").trimmed();
+		QString folder = Settings::string("gsvar_variant_export_folder", true).trimmed();
 		if (folder.isEmpty()) folder = filename_info.absolutePath();
-		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf";
-		file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf);;All files (*.*)");
+		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf.gz";
+		file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf.gz);;All files (*.*)");
 		if (file_name!="")
 		{
 			output.store(file_name);
+			QApplication::restoreOverrideCursor();
+			QMessageBox::information(this, "VCF export", "Exported VCF file with " + QString::number(output.count()) + " variants.");
 		}
-
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::information(this, "VCF export", "Exported VCF file with " + QString::number(output.count()) + " variants.");
+		else
+		{
+			QApplication::restoreOverrideCursor();
+		}
 	}
 	catch(Exception& e)
 	{
@@ -4188,18 +4240,21 @@ void MainWindow::exportGSvar()
 
 		//store
 		QFileInfo filename_info(filename_);
-		QString folder = Settings::string("gsvar_variant_export_folder").trimmed();
+		QString folder = Settings::string("gsvar_variant_export_folder", true).trimmed();
 		if (folder.isEmpty()) folder = filename_info.absolutePath();
 		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".GSvar";
 		file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "GSvar (*.gsvar);;All files (*.*)");
 		if (file_name!="")
 		{
 			output.store(file_name);
+			QApplication::restoreOverrideCursor();
+			QMessageBox::information(this, "GSvar export", "Exported GSvar file with " + QString::number(output.count()) + " variants.");
+		}
+		else
+		{
+			QApplication::restoreOverrideCursor();
 		}
 
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::information(this, "GSvar export", "Exported GSvar file with " + QString::number(output.count()) + " variants.");
 	}
 	catch(Exception& e)
 	{
@@ -4714,7 +4769,9 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	}
 	else if (action==a_lovd_find)
 	{
-		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false)+"&search_VariantOnGenome/DNA=g." + QString::number(variant.start())));
+		int pos = variant.start();
+		if (variant.ref()=="-") pos += 1;
+		QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false)+"&search_VariantOnGenome/DNA=g." + QString::number(pos)));
 	}
 	else if (action==a_mitomap)
 	{

@@ -2,7 +2,13 @@
 
 1. Update documentation: `make build_release_noclean doc_update`
 1. Update check documentation: `make doc_check_urls doc_find_missing_tools`
+1. Update the tool documentation: `cd doc/toots/ && php update.php`
 1. Update the changelog in `ngs-bits/README.md`.
+
+	> git diff [last-tag] master src/cppNGSD/resources/NGSD_schema.sql  
+	> git diff [last-tag] master doc/tools/
+ 
+
 1. Update the download version in `ngs-bits/doc/install_*.md`.
 1. Commit and push the changes.
 1. Create a new release on GitHub.

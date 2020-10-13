@@ -636,6 +636,16 @@ class CPPNGSSHARED_EXPORT FilterRegulatory
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
+//Filter for tumor/normal allele frequency
+class CPPNGSSHARED_EXPORT FilterSomaticAlleleFrequency
+	: public FilterBase
+{
+	public:
+		FilterSomaticAlleleFrequency();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
 /*************************************************** filters for CNVs ***************************************************/
 //Filter CNV size
 class CPPNGSSHARED_EXPORT FilterCnvSize

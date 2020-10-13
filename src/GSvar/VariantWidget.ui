@@ -409,7 +409,12 @@
         </column>
         <column>
          <property name="text">
-          <string>sample_comment</string>
+          <string>comment_sample</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>comment_processed_sample</string>
          </property>
         </column>
         <column>

@@ -1,3 +1,4 @@
+#include <QMessageBox>
 #include "ExternalToolDialog.h"
 #include "Exceptions.h"
 #include "Settings.h"
@@ -7,8 +8,10 @@
 #include "QFileDialog"
 #include "Statistics.h"
 #include "SampleSimilarity.h"
+#include "LoginManager.h"
+#include "ProcessedSampleSelector.h"
 
-ExternalToolDialog::ExternalToolDialog(QString tool_name, QString mode, QWidget *parent)
+ExternalToolDialog::ExternalToolDialog(QString tool_name, QString mode, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
 	, tool_name_(tool_name)
@@ -22,19 +25,22 @@ ExternalToolDialog::ExternalToolDialog(QString tool_name, QString mode, QWidget 
 	}
 
 	connect(ui_.browse, SIGNAL(clicked()), this, SLOT(browse()));
+	connect(ui_.browse_ngsd, SIGNAL(clicked()), this, SLOT(browse()));
+
+	ui_.browse_ngsd->setEnabled(LoginManager::active());
 }
 
 void ExternalToolDialog::browse()
 {
 	ui_.output->clear();
 
-
 	QString output;
 	QTextStream stream(&output);
+	bool ngsd_instead_of_filesystem = sender()==ui_.browse_ngsd;
 
 	if (tool_name_ == "BED file information")
 	{
-		QString filename = getFileName("Select BED file", "BED files (*.bed)");
+		QString filename = getFileName(BED, ngsd_instead_of_filesystem);
 		if (filename=="") return;
 
 		//process
@@ -59,7 +65,7 @@ void ExternalToolDialog::browse()
 	}
 	else if (tool_name_ == "Determine gender")
 	{
-		QString filename = getFileName("Select BAM file", "BAM files (*.bam)");
+		QString filename = getFileName(BAM, ngsd_instead_of_filesystem);
 		if (filename=="") return;
 
 		//process
@@ -91,15 +97,12 @@ void ExternalToolDialog::browse()
 	else if (tool_name_ == "Sample similarity")
 	{
 		//get file names
-		QString header = "Select GSvar file";
-		if (mode_=="vcf") header = "Select VCF file";
-		if (mode_=="bam") header = "Select BAM file";
-		QString filter = "GSvar files (*.GSvar)";
-		if (mode_=="vcf") filter = "VCF files (*.vcf *.vcf.gz)";
-		if (mode_=="bam") filter = "BAM files (*.bam)";
-		QString filename1 = getFileName(header , filter);
+		FileType type = GSVAR;
+		if (mode_=="vcf") type = VCF;
+		if (mode_=="bam") type = BAM;
+		QString filename1 = getFileName(type, ngsd_instead_of_filesystem);
 		if (filename1=="") return;
-		QString filename2 = getFileName(header , filter);
+		QString filename2 = getFileName(type, ngsd_instead_of_filesystem);
 		if (filename2=="") return;
 
 		//process
@@ -143,7 +146,7 @@ void ExternalToolDialog::browse()
 	}
 	else if (tool_name_ == "Sample ancestry")
 	{
-		QString filename = getFileName("Select VCF file" , "VCF files (*.VCF *.VCF.GZ)");
+		QString filename = getFileName(VCF, ngsd_instead_of_filesystem);
 		if (filename=="") return;
 
 		//process
@@ -170,17 +173,50 @@ void ExternalToolDialog::browse()
 	ui_.output->setPlainText(output);
 }
 
-QString ExternalToolDialog::getFileName(QString title, QString filters)
+QString ExternalToolDialog::getFileName(FileType type, bool ngsd_instead_of_filesystem)
 {
-	QString open_path = Settings::path("path_variantlists", true);
-	QString file_name = QFileDialog::getOpenFileName(this, title, open_path, filters + ";;All files(*.*)");
-	if (file_name!="")
+	//prepare title
+	QString title = "";
+	if (type==BAM) title = "Select BAM file";
+	if (type==GSVAR) title = "Select single-sample GSvar file";
+	if (type==VCF) title = "Select single-sample VCF file";
+	if (type==BED) title = "Select BED file";
+
+	if (ngsd_instead_of_filesystem && type==BED) //BED not supported from NGSD
 	{
-		Settings::setPath("path_variantlists", file_name);
+		QMessageBox::information(this, title, "Please select BED file from file system!");
 	}
-	else
+	else if (ngsd_instead_of_filesystem) //from NGSD
 	{
-		ui_.output->setPlainText("canceled...");
+		ProcessedSampleSelector dlg(this, false);
+		if (dlg.exec()==QDialog::Accepted && dlg.isValidSelection())
+		{
+			QString ps_id = dlg.processedSampleId();
+			NGSD db;
+
+			if (type==BAM) return db.processedSamplePath(ps_id, NGSD::PathType::BAM);
+			if (type==GSVAR) return db.processedSamplePath(ps_id, NGSD::PathType::GSVAR);
+			if (type==VCF) return db.processedSamplePath(ps_id, NGSD::PathType::VCF);
+		}
 	}
-	return file_name;
+	else //from filesystem
+	{
+		//prepare filters
+		QStringList filters;
+		if (type==BAM) filters << "BAM files (*.bam)";
+		if (type==GSVAR) filters << "GSvar files (*.GSvar)";
+		if (type==VCF) filters << "VCF files (*.vcf *.vcf.gz)";
+		if (type==BED) filters << "BED files (*.bed)";
+		filters << "All files(*.*)";
+
+		QString open_path = Settings::path("path_variantlists", true);
+		QString file_name = QFileDialog::getOpenFileName(this, title, open_path, filters.join(";;"));
+		if (file_name!="")
+		{
+			Settings::setPath("path_variantlists", file_name);
+			return file_name;
+		}
+	}
+
+	return "";
 }

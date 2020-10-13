@@ -461,6 +461,7 @@
      <addaction name="actionSampleGroup"/>
      <addaction name="actionSender"/>
      <addaction name="actionSpecies"/>
+     <addaction name="actionStudy"/>
      <addaction name="separator"/>
      <addaction name="actionUsers"/>
      <addaction name="actionChangePassword"/>
@@ -1170,12 +1171,17 @@
     <string>based on VCF files</string>
    </property>
   </action>
+  <action name="actionStudy">
+   <property name="text">
+    <string>Study</string>
+   </property>
+  </action>
   <action name="actionDesignCfDNAPanel">
    <property name="text">
-    <string>Design cfDNA-Panel</string>
+    <string>Design cfDNA panel</string>
    </property>
    <property name="toolTip">
-    <string>Design cfDNA-Panel</string>
+    <string>Design cfDNA panel</string>
    </property>
   </action>
   <action name="actionCfDNADiseaseCourse">
@@ -1188,7 +1194,7 @@
   </action>
   <action name="actionShowCfDNAPanel">
    <property name="text">
-    <string>Show cfDNA Panel</string>
+    <string>Show cfDNA panel</string>
    </property>
   </action>
  </widget>

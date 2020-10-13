@@ -145,7 +145,8 @@ void DiseaseCourseWidget::createTableView()
 		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.ref()));
 		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.alt(0)));
 		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.info("gene", false)));
-		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.info("coding_and_splicing", false)));
+		ui_->vars->setItem(i, col_idx, GUIHelper::createTableItem(variant.info("coding_and_splicing", false)));
+		ui_->vars->item(i, col_idx++)->setToolTip(variant.info("coding_and_splicing", false).replace(",", "\n"));
 
 
 
@@ -166,7 +167,7 @@ void DiseaseCourseWidget::createTableView()
 
 				// generate table item with tool tip
 				QTableWidgetItem* cfdna_item = GUIHelper::createTableItem(QString::number(cf_dna_af, 'f', 5));
-				cfdna_item->setToolTip("Alt. count:" + QString::number(alt_count, 'f', 0).rightJustified(6, ' ')
+				cfdna_item->setToolTip("Alt. count:" + QString::number(alt_count, 'f', 0).rightJustified(7, ' ')
 									+ "\nDepth:     " + QString::number(depth, 'f', 0).rightJustified(6, ' '));
 				ui_->vars->setItem(i, col_idx++, cfdna_item);
 			}
@@ -179,7 +180,7 @@ void DiseaseCourseWidget::createTableView()
 	}
 
 	// optimize cell sizes
-	GUIHelper::resizeTableCells(ui_->vars, 150, false);
+	GUIHelper::resizeTableCells(ui_->vars, 150);
 
 
 }

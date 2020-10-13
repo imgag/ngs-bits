@@ -802,6 +802,8 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString exons, QString t
 		if(vcf_file.vcfLine(i).failedFilters().contains("depth-nor")) continue;
 		if(vcf_file.vcfLine(i).failedFilters().contains("depth-tum")) continue;
 		if(vcf_file.vcfLine(i).failedFilters().contains("lt-3-reads")) continue;
+		if(vcf_file.vcfLine(i).failedFilters().contains("LowEVS")) continue; //Skip strelka2 low quality variants
+		if(vcf_file.vcfLine(i).failedFilters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
 
 		const Chromosome chr = vcf_file.vcfLine(i).chr();
 		int start = vcf_file.vcfLine(i).pos();

@@ -34,6 +34,9 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->delete_btn, SIGNAL(clicked(bool)), this, SLOT(deleteSampleData()));
 	connect(ui_->relation_add_btn, SIGNAL(clicked(bool)), this, SLOT(addRelation()));
 	connect(ui_->relation_delete_btn, SIGNAL(clicked(bool)), this, SLOT(removeRelation()));
+	connect(ui_->study_edit_btn, SIGNAL(clicked(bool)), this, SLOT(editStudy()));
+	connect(ui_->study_add_btn, SIGNAL(clicked(bool)), this, SLOT(addStudy()));
+	connect(ui_->study_delete_btn, SIGNAL(clicked(bool)), this, SLOT(removeStudy()));
 	connect(ui_->merged, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
 	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
 	connect(ui_->reanalyze_btn, SIGNAL(clicked(bool)), this, SLOT(queueSampleAnalysis()));
@@ -75,12 +78,17 @@ ProcessedSampleWidget::~ProcessedSampleWidget()
 
 void ProcessedSampleWidget::styleQualityLabel(QLabel* label, const QString& quality)
 {
+	//init
+	static QPixmap i_good = QPixmap(":/Icons/quality_good.png");
+	static QPixmap i_medium = QPixmap(":/Icons/quality_medium.png");
+	static QPixmap i_bad = QPixmap(":/Icons/quality_bad.png");
+	static QPixmap i_na = QPixmap(":/Icons/quality_unset.png");
+
 	//icon
-	QString filename = ":/Icons/quality_unset.png";
-	if (quality=="good") filename = ":/Icons/quality_good.png";
-	else if (quality=="medium") filename = ":/Icons/quality_medium.png";
-	else if (quality=="bad") filename = ":/Icons/quality_bad.png";
-	label->setPixmap(QPixmap(filename));
+	if (quality=="good") label->setPixmap(i_good);
+	else if (quality=="medium") label->setPixmap(i_medium);
+	else if (quality=="bad") label->setPixmap(i_bad);
+	else label->setPixmap(i_na);
 
 	//tooltip
 	label->setToolTip(quality);
@@ -187,6 +195,11 @@ void ProcessedSampleWidget::updateGUI()
 	DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id) FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
 	rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "relation" << "sample 2" << "type 2");
 	ui_->sample_relations->setData(rel_table);
+
+	//#### studies ####
+	DBTable study_table = db.createTable("study_sample", "SELECT id, (SELECT name FROM study WHERE id=study_id), study_sample_idendifier FROM study_sample WHERE processed_sample_id='" + ps_id_ + "'");
+	study_table.setHeaders(QStringList() << "study" << "study sample identifier");
+	ui_->studies->setData(study_table);
 
 	//#### QC ####
 	updateQCMetrics();
@@ -424,21 +437,94 @@ void ProcessedSampleWidget::removeRelation()
 	QList<int> selected_rows = ui_->sample_relations->selectedRows().toList();
 	if (selected_rows.isEmpty())
 	{
-		QMessageBox::warning(this, "Sample relation - deletion", "Please select at least one relation!");
+		QMessageBox::warning(this, "Sample relation", "Please select a relation!");
 		return;
 	}
 
 	//make sure the user did not click accidentally on the button
-	QMessageBox::StandardButton reply = QMessageBox::question(this, "Deleting sample relations", "Are you sure you want to delete the selected relation(s)?", QMessageBox::Yes|QMessageBox::No);
+	QMessageBox::StandardButton reply = QMessageBox::question(this, "Deleting sample relations", "Are you sure you want to delete the selected relation?", QMessageBox::Yes|QMessageBox::No);
 	if (reply==QMessageBox::No) return;
 
 	//delete relations
 	NGSD db;
-	foreach(int row, selected_rows)
+	QString id = ui_->sample_relations->getId(selected_rows[0]);
+	db.getQuery().exec("DELETE FROM sample_relations WHERE id='" + id + "'");
+
+	//update GUI
+	updateGUI();
+}
+
+void ProcessedSampleWidget::editStudy()
+{
+	//check that a study
+	QList<int> selected_rows = ui_->studies->selectedRows().toList();
+	if (selected_rows.isEmpty())
 	{
-		QString rel_id = ui_->sample_relations->getId(row);
-		db.getQuery().exec("DELETE FROM sample_relations WHERE id='" + rel_id + "'");
+		QMessageBox::warning(this, "Study", "Please select a study!");
+		return;
 	}
+
+	//get new sample id
+	NGSD db;
+	QString id = ui_->studies->getId(selected_rows[0]);
+	QString study_sample_idendifier = db.getValue("SELECT study_sample_idendifier FROM study_sample WHERE id=" + id).toString();
+	QString study_sample_idendifier_new = QInputDialog::getText(this, "Study", "sample identifier in the study (optional):", QLineEdit::Normal, study_sample_idendifier);
+
+	//update study
+	SqlQuery query = db.getQuery();
+	query.prepare("UPDATE study_sample SET study_sample_idendifier=:0 WHERE id=" + id);
+	query.bindValue(0, study_sample_idendifier_new);
+	query.exec();
+
+	//update GUI
+	updateGUI();
+}
+
+void ProcessedSampleWidget::addStudy()
+{
+	NGSD db;
+
+	//select study
+	DBComboBox* widget = new DBComboBox(this);
+	widget->fill(db.createTable("study", "SELECT id, name FROM study ORDER BY name ASC"), false);
+	auto dlg = GUIHelper::createDialog(widget, "Study", "select study:", true);
+	dlg->exec();
+	QString study_id = widget->getCurrentId();
+	if (study_id.isEmpty()) return;
+
+	//set study sample identifier
+	QString sample_identifier = QInputDialog::getText(this, "Study", "sample identifier in the study (optional):");
+
+	//add study
+	SqlQuery query = db.getQuery();
+	query.prepare("INSERT INTO `study_sample`(`study_id`, `processed_sample_id`, `study_sample_idendifier`) VALUES (:0,:1,:2)");
+	query.bindValue(0, study_id);
+	query.bindValue(1, ps_id_);
+	query.bindValue(2, sample_identifier);
+	query.exec();
+
+	//update GUI
+	updateGUI();
+}
+
+void ProcessedSampleWidget::removeStudy()
+{
+	//check that a study
+	QList<int> selected_rows = ui_->studies->selectedRows().toList();
+	if (selected_rows.isEmpty())
+	{
+		QMessageBox::warning(this, "Study deletion", "Please select a study!");
+		return;
+	}
+
+	//make sure the user did not click accidentally on the button
+	QMessageBox::StandardButton reply = QMessageBox::question(this, "Deleting study", "Are you sure you want to delete the selected study?", QMessageBox::Yes|QMessageBox::No);
+	if (reply==QMessageBox::No) return;
+
+	//delete study
+	NGSD db;
+	QString id = ui_->studies->getId(selected_rows[0]);
+	db.getQuery().exec("DELETE FROM study_sample WHERE id='" + id + "'");
 
 	//update GUI
 	updateGUI();
