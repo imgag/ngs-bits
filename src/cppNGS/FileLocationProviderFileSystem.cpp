@@ -14,13 +14,13 @@ QList<FileLocation> FileLocationProviderFileSystem::getBamFiles()
 
 	if (gsvar_file_ == nullptr)
 	{
-		THROW(Exception, "File name has not been specified")
+		THROW(ArgumentException, "File name has not been specified")
 		return output;
 	}
 
 	if (header_info_.empty())
 	{
-		THROW(Exception, "Header information has not been specified");
+		THROW(ArgumentException, "Header information has not been specified");
 		return output;
 	}
 
