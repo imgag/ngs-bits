@@ -33,9 +33,6 @@ public:
 	///Parses a chromosomal region from the given text. Throws an error, if the region is not valid.
 	static void parseRegion(const QString& text, Chromosome& chr, int& start, int& end);
 
-//	///Returns a string representation for PathType
-//	static QString enumToString(PathType type);
-
 private:
 	///Constructor declared away
 	NGSHelper() = delete;
