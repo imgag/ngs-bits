@@ -92,6 +92,7 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 	int i_ihdb_het = variants.annotationIndexByName("NGSD_het", true, false);
 	int i_clinvar = variants.annotationIndexByName("ClinVar", true, false);
 	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
+	int i_mmsplice = variants.annotationIndexByName("MMSplice_DeltaLogitPSI", true, false);
 	int r = -1;
 	for (int i=0; i<variants.count(); ++i)
 	{
@@ -145,12 +146,22 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
+			else if (j==i_mmsplice && anno.toDouble() <= -2)
+			{
+				item->setBackgroundColor(Qt::red);
+				is_warning_line = true;
+			}
+
 
 			//non-pathogenic
 			if (j==i_classification && (anno=="0" || anno=="1" || anno=="2"))
 			{
 				item->setBackgroundColor(Qt::green);
 				is_ok_line = true;
+			}
+			else if (j==i_mmsplice && anno.toDouble() >= 2)
+			{
+				item->setBackgroundColor(Qt::green);
 			}
 
 			//highlighed

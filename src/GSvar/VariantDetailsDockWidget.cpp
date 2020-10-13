@@ -86,10 +86,8 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
 	ui->label_genesplicer->setToolTip(vl.annotationDescriptionByName("GeneSplicer").description());
 	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
-	ui->label_mmsplice_deltaLogitPsi->setToolTip(vl.annotationDescriptionByName("MMSplice_DeltaLogitPSI", false).description());
-	ui->label_mmsplice_pathogenicity->setToolTip(vl.annotationDescriptionByName("MMSplice_pathogenicity", false).description());
 	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false).description());
-	ui->label_mmsplice->setToolTip("MMSplice prediction of splice-site variations.");
+	ui->label_mmsplice->setToolTip("MMSplice prediction of splice-site variations;\nMaximum absolute values for the highest scored exon are shown in following format:\n[DeltaLogitPSI score as effect on exon inclusion (values below -2 stand for higher exclusion, values above 2 for higher inclusion) / Pathogenicity score]");
 
 	//NGSD (all optional)
 	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false).description());
@@ -171,8 +169,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->maxentscan, vl, index, "MaxEntScan");
 	setAnnotation(ui->genesplicer, vl, index, "GeneSplicer");
 	setAnnotation(ui->dbscsnv, vl, index, "dbscSNV");
-	setAnnotation(ui->mmsplice_deltaLogitPsi, vl, index, "MMSplice_DeltaLogitPSI");
-	setAnnotation(ui->mmsplice_pathogenicity, vl, index, "MMSplice_pathogenicity");
+	setAnnotation(ui->mmsplice, vl, index, "MMSplice_DeltaLogitPSI");
 	setAnnotation(ui->regulatory, vl, index, "regulatory");
 
 	//NGSD
@@ -508,6 +505,35 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		{
 			if(anno.contains("1")) text = formatText(anno, RED);
 			else text = anno;
+		}
+		else if(name=="MMSplice_DeltaLogitPSI")
+		{
+			//add pathogenicity score
+			int pathogenicity_index = vl.annotationIndexByName("MMSplice_pathogenicity", true, false);
+			QString anno_p;
+			if(pathogenicity_index!=-1)
+			{
+				anno_p = vl[index].annotations()[pathogenicity_index];
+			}
+
+			//if one score is present save the score
+			if(anno!="" || anno_p!="")
+			{
+				//deltaLogitPSI score with an absolute value beyond 2 are supposed to be strong
+				if(anno.toDouble() >= 2)
+				{
+					text = formatText(anno + " / " + anno_p, GREEN);
+				}
+				else if(anno.toDouble() <= -2)
+				{
+					text = formatText(anno + " / " + anno_p, RED);
+				}
+				else
+				{
+					text = anno + " / " + anno_p;
+				}
+			}
+
 		}
 		else //fallback: use complete annotations string
 		{
