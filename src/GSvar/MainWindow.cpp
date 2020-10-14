@@ -977,7 +977,7 @@ void MainWindow::openInIGV(QString region)
 		}
 
 		//sample BAM file(s)
-		QList<FileLocation> bams = commonFileLocationProvider_->getBamFiles();
+		QList<FileLocation> bams = GlobalServiceProvider::instance().fileLocationsProvider()->getBamFiles();
 		if (bams.empty()) return;
 		foreach(const FileLocation& file, bams)
 		{
@@ -2042,9 +2042,7 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//set file location provider for the file system
-	commonFileLocationProvider_ = QSharedPointer<FileLocationProviderFileSystem>(new FileLocationProviderFileSystem(filename_, variants_.getSampleHeader(), variants_.type()));
-	GlobalServiceProvider::instance().setfileLocationsProvider(commonFileLocationProvider_);
-	qDebug() << "Setting file location provider for the file system";
+	GlobalServiceProvider::instance().setfileLocationsProvider(QSharedPointer<FileLocationProviderFileSystem>(new FileLocationProviderFileSystem(filename_, variants_.getSampleHeader(), variants_.type())));
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -3292,7 +3290,7 @@ void MainWindow::generateReportGermline()
 
 	//get BAM file name if necessary
 	QString bam_file = "";
-	QList<FileLocation> bams = commonFileLocationProvider_->getBamFiles();
+	QList<FileLocation> bams =GlobalServiceProvider::instance().fileLocationsProvider()->getBamFiles();
 	if (bams.empty()) return;
 	bam_file = bams.first().filename;
 
@@ -4015,7 +4013,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	if (filename_=="") return;
 
 	//check for BAM file
-	QList<FileLocation> bams = commonFileLocationProvider_->getBamFiles();
+	QList<FileLocation> bams =GlobalServiceProvider::instance().fileLocationsProvider()->getBamFiles();
 	if (bams.empty()) return;
 	QString bam_file = bams.first().filename;
 
@@ -4774,7 +4772,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			QString value = parts[0];
 			if (value=="BAM")
 			{
-				QList<FileLocation> bams = commonFileLocationProvider_->getBamFiles();
+				QList<FileLocation> bams = GlobalServiceProvider::instance().fileLocationsProvider()->getBamFiles();
 				if (bams.empty()) return;
 				value = "BAM<" + bams.first().filename;
 			}
@@ -5263,17 +5261,17 @@ QStringList MainWindow::getLogFiles()
 
 QList<FileLocation> MainWindow::getSegFilesCnv()
 {
-	return commonFileLocationProvider_->getSegFilesCnv();
+	return GlobalServiceProvider::instance().fileLocationsProvider()->getSegFilesCnv();
 }
 
 QList<FileLocation> MainWindow::getIgvFilesBaf()
 {
-	return commonFileLocationProvider_->getIgvFilesBaf();
+	return GlobalServiceProvider::instance().fileLocationsProvider()->getIgvFilesBaf();
 }
 
 QList<FileLocation> MainWindow::getMantaEvidenceFiles()
 {
-	return commonFileLocationProvider_->getMantaEvidenceFiles();
+	return GlobalServiceProvider::instance().fileLocationsProvider()->getMantaEvidenceFiles();
 }
 
 void MainWindow::applyFilters(bool debug_time)

@@ -9,9 +9,8 @@ class GlobalServiceProvider
 {
 public:
 	static GlobalServiceProvider& instance();
-
 	static void setfileLocationsProvider(QSharedPointer<FileLocationProvider> file_location_provider);
-	static const FileLocationProvider& fileLocationsProvider();
+	static const QSharedPointer<FileLocationProvider> fileLocationsProvider();
 
 protected:
 	GlobalServiceProvider();
