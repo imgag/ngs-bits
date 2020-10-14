@@ -2054,7 +2054,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	}
 
 
-	general_info_table.addRow(RtfTableRow({"HRD-Score:", QByteArray::number(settings_.report_config.hrdScore()) + RtfText("\\line Score \\u8805;3 weist auf HRD hin.").setFontSize(14).RtfCode()}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+	general_info_table.addRow(RtfTableRow({"HRD-Score:", QByteArray::number(settings_.report_config.hrdScore()) + RtfText("\\line Ein Wert \\u8805;3 weist auf eine HRD hin.").setFontSize(14).RtfCode()}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
 
 	if(settings_.report_config.quality() != "no abnormalities")
 	{
@@ -2137,7 +2137,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 
 	if(settings_.report_config.fusionsDetected())
 	{
-		snv_expl = "Es gibt Hinweise auf eine Deletion/Fusion/Translokation/Strukturvariante, die zu einer Fusion/Deletion/... führen könnte. Eine Bestätigung dieser Beobachtung sollte mit einer unabhängigen Methode erfolgen.";
+		snv_expl = "Es gibt Hinweise auf eine Deletion/Fusion/Translokation/Strukturvariante, die zu einer Fusion/Deletion/... führen könnte. Wir empfehlen dies mit einer zweiten unabhängigen Methode zu bestätigen.";
 		doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setBold(true).highlight(3).RtfCode());
 		doc_.addPart(RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode());
 	}
@@ -2163,7 +2163,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	snv_expl += "\\line\\line Die Varianten- und Gendosisanalysen der Gene " + RtfText("BRCA1").setItalic(true).setFontSize(18).RtfCode() + " und " + RtfText("BRCA2").setItalic(true).setFontSize(18).RtfCode();
 	snv_expl += " in der Normalprobe waren unauffällig.";
 
-	snv_expl += "\\line\\line Über die Analyse des Transkriptoms bei dieser Tumorprobe wird nachträglich berichtet.";
+	snv_expl += "\\line\\line Die Analyse des Transkriptoms wird getrennt berichtet.";
 	snv_expl += "\\line\\line Über die somatische Analyse einer zusätzlichen Tumorprobe wird nachträglich berichtet.";
 
 	doc_.addPart(RtfParagraph(snv_expl).highlight(3).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
