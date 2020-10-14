@@ -910,6 +910,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["Conservedness"] = &createInstance<FilterConservedness>;
 		output["Regulatory"] = &createInstance<FilterRegulatory>;
 		output["Somatic allele frequency"] = &createInstance<FilterSomaticAlleleFrequency>;
+		output["tumor zygosity"] = &createInstance<FilterTumorOnlyHomHet>;
 		output["CNV size"] = &createInstance<FilterCnvSize>;
 		output["CNV regions"] = &createInstance<FilterCnvRegions>;
 		output["CNV copy-number"] = &createInstance<FilterCnvCopyNumber>;
@@ -4253,6 +4254,76 @@ void FilterSomaticAlleleFrequency::apply(const VariantList& variants, FilterResu
 			if (!result.flags()[i]) continue;
 
 			if (variants[i].annotations()[i_af].toDouble()>max_af_nor)
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+}
+
+FilterTumorOnlyHomHet::FilterTumorOnlyHomHet()
+{
+	name_ = "tumor zygosity";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the zygosity of tumor-only samples. Filters out het/hom calls.";
+	params_ << FilterParameter("het_af_range", DOUBLE, 0.0, "Consider allele frequencies of 50% &plusmn; het_af_range as heterozygous and thus as germline.");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "49.9";
+	params_ << FilterParameter("hom_af_range", DOUBLE, 0.0, "Consider allele frequencies of 100% &plusmn; hom_af_range as homozygous and thus as germline.");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "99.9";
+
+	checkIsRegistered();
+}
+
+QString FilterTumorOnlyHomHet::toText() const
+{
+	QString text = name();
+
+	double het_af_range = getDouble("het_af_range", false);
+	if(het_af_range != 0.0)
+	{
+		text += ", het=50%&plusmn;" + QString::number(het_af_range) + "%";
+	}
+
+	double hom_af_range = getDouble("hom_af_range", false);
+	if(hom_af_range != 0.0)
+	{
+		text += ", hom=100%&plusmn;" + QString::number(hom_af_range) + "%";
+	}
+
+	return text;
+}
+
+void FilterTumorOnlyHomHet::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double het_af_range = getDouble("het_af_range")/100.0;
+
+	if(het_af_range != 0.0)
+	{
+		int i_af = annotationColumn(variants, "tumor_af");
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if(!result.flags()[i]) continue;
+
+			if(variants[i].annotations()[i_af].toDouble() < (0.5+het_af_range) && variants[i].annotations()[i_af].toDouble() > (0.5-het_af_range) )
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+
+	double hom_af_range = getDouble("hom_af_range")/100.0;
+	if (hom_af_range != 0.0)
+	{
+		int i_af = annotationColumn(variants, "tumor_af");
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (variants[i].annotations()[i_af].toDouble()> (1.-hom_af_range) )
 			{
 				result.flags()[i] = false;
 			}

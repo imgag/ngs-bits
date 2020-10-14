@@ -507,6 +507,16 @@ public:
 		return rows_[index];
 	}
 
+	const RtfTableRow& first() const
+	{
+		return rows_.first();
+	}
+
+	RtfTableRow& first()
+	{
+		return rows_.first();
+	}
+
 	const RtfTableRow& last() const
 	{
 		return rows_.last();
