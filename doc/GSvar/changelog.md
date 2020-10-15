@@ -1,5 +1,12 @@
 # GSvar change log
 
+### 2020_09-9 (08.10.20)
+- Added support for studies
+	- Studies can be created in NGSD > Admin > Study.
+	- Processes samples can be added to studies in the processed sample tab.
+	- Studies can be used as search criterion in the sample search.
+- Tools: now support selecting samples from NGSD instead of the file system.
+
 ### 2020_06-128 (29.09.20)
 - Sample search: Added sender field.
 - Filters: Added filter 'somatic allele frequency'.

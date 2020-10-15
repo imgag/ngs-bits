@@ -57,4 +57,5 @@ Features to dicuss:
 - Correctly import sample sender data from GenLab > TOH/STEPHAN O.
 - CAVE functionality for Genes (use e.g. for imprinting), model reasons? > SWAL
 - Sample: source tissue (for RNA) > TOH
+- Evaluation sheet: Add comment text, e.g. bad CNV quality > FH
 
