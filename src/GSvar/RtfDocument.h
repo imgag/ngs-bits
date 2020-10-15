@@ -539,6 +539,9 @@ public:
 
 	void sortByCol(int i_col);
 
+	//swap position of two rows with indices i_row_a and i_row_b
+	void swapRows(int i_row_a, int i_row_b);
+
 	///sets border for all table cells
 	RtfTable& setUniqueBorder(int border,const QByteArray& border_type = "brdrs", int border_color = 0);
 

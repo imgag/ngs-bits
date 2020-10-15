@@ -176,17 +176,9 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			if(a.second[0].format().content().contains("#") && !b.second[0].format().content().contains("#")) return true;
 			if(!a.second[0].format().content().contains("#") && b.second[0].format().content().contains("#")) return false;
 
-			//inhouse classification
-			if(a.second[4].format().content().contains("aktivierend") && !b.second[4].format().content().contains("aktivierend") ) return true;
-			if(!a.second[4].format().content().contains("aktivierend") && b.second[4].format().content().contains("aktivierend") ) return false;
-
-			//CGI known driver
-			if(a.second[4].format().content().contains("bekannt") && !b.second[4].format().content().contains("bekannt") ) return true;
-			if(!a.second[4].format().content().contains("bekannt") && b.second[4].format().content().contains("bekannt") ) return false;
-
-			//CGI predicted driver
-			if(a.second[4].format().content().contains("vorhergesagt") && !b.second[4].format().content().contains("vorhergesagt") ) return true;
-			if(!a.second[4].format().content().contains("vorhergesagt") && b.second[4].format().content().contains("vorhergesagt") ) return false;
+			//variants with classification
+			if( hasClassification(a.second[4].format().content()) && !hasClassification(b.second[4].format().content()) ) return true;
+			if( !hasClassification(a.second[4].format().content()) && hasClassification(b.second[4].format().content()) ) return false;
 
 			//gene symbol
 			if(a.second[0].format().content() < b.second[0].format().content()) return true;
@@ -219,6 +211,9 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 			double tum_cn_change = cnv.annotations().at(cnv_index_tumor_cn_change_).toDouble();
 			QByteArray gene = row[0].format().content(); //access cell with gene name
+
+			if( genes_in_first_part.contains(gene) ) continue; //skip genes that were already parsed
+
 			genes_in_first_part << gene;
 
 			RtfTableRow temp_cnv_row;
@@ -290,10 +285,22 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 				temp_cnv_row.addCell(3138,"unklare Bedeutung");
 			}
 
-
 			//set first cell of corresponding cnv (contains gene name) as end of cell over multiple rows
 			table.addRow(temp_cnv_row);
 
+		}
+	}
+
+	//Move overlapping CNVs to the end of variants of the same gene
+	for(int i=2; i<table.count(); ++i)
+	{
+		if( !table[i][1].format().content().contains("AMP") && !table[i][1].format().content().contains("DEL") ) continue;
+		if(i<table.count()-1)
+		{
+			if(table[i][0].format().content() == table[i+1][0].format().content()) //next row has the same gene symbol
+			{
+				table.swapRows(i, i+1);
+			}
 		}
 	}
 
@@ -1821,6 +1828,16 @@ QByteArray SomaticReportHelper::cytoband(const CopyNumberVariant &cnv)
 		else if(parts.count() > 1) out = parts.first() + parts.last(); //ISCN 2016 nomenclature
 	}
 	return out;
+}
+
+bool SomaticReportHelper::hasClassification(QByteArray statement)
+{
+
+	if (statement.contains("aktivierend")) return true;
+	if (statement.contains("bekannt")) return true;
+	if (statement.contains("vorhergesagt")) return true;
+
+	return false;
 }
 
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)
