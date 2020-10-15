@@ -15,8 +15,6 @@ public:
 	QList<FileLocation> getIgvFilesBaf() override;
 	QList<FileLocation> getMantaEvidenceFiles() override;
 
-private:
-	void appendIfUnique(QList<FileLocation>& list, FileLocation item);
 protected:
 	QString gsvar_file_;
 	SampleHeaderInfo header_info_;
