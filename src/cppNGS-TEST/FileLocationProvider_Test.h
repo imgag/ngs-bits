@@ -31,9 +31,8 @@ private slots:
 		S_EQUAL(bam_files[0].filename, sample_folder+"/NA12878_03.bam");
 
 		QList<FileLocation> cnv_files = fp.getSegFilesCnv();
-		I_EQUAL(cnv_files.length(), 2);
-		S_EQUAL(cnv_files[0].filename, sample_folder+"/NA12878_03_cnvs_clincnv.seg");
-		S_EQUAL(cnv_files[1].filename, sample_folder+"/NA12878_03_cnvs.seg");
+		I_EQUAL(cnv_files.length(), 1);
+		S_EQUAL(cnv_files[0].filename, sample_folder+"/NA12878_03_cnvs.seg");
 
 		QList<FileLocation> igv_files = fp.getIgvFilesBaf();
 		I_EQUAL(igv_files.length(), 1);
@@ -57,15 +56,11 @@ private slots:
 		S_EQUAL(bam_files[3].filename, project_folder+"/Sample_Control2/Control2.bam");
 
 		cnv_files = fp.getSegFilesCnv();
-		I_EQUAL(cnv_files.length(), 8);
-		S_EQUAL(cnv_files[0].filename, project_folder+"/Sample_Affected1/Affected1_cnvs_clincnv.seg");
-		S_EQUAL(cnv_files[1].filename, project_folder+"/Sample_Affected1/Affected1_cnvs.seg");
-		S_EQUAL(cnv_files[2].filename, project_folder+"/Sample_Affected2/Affected2_cnvs_clincnv.seg");
-		S_EQUAL(cnv_files[3].filename, project_folder+"/Sample_Affected2/Affected2_cnvs.seg");
-		S_EQUAL(cnv_files[4].filename, project_folder+"/Sample_Control1/Control1_cnvs_clincnv.seg");
-		S_EQUAL(cnv_files[5].filename, project_folder+"/Sample_Control1/Control1_cnvs.seg");
-		S_EQUAL(cnv_files[6].filename, project_folder+"/Sample_Control2/Control2_cnvs_clincnv.seg");
-		S_EQUAL(cnv_files[7].filename, project_folder+"/Sample_Control2/Control2_cnvs.seg");
+		I_EQUAL(cnv_files.length(), 4);
+		S_EQUAL(cnv_files[0].filename, project_folder+"/Sample_Affected1/Affected1_cnvs.seg");
+		S_EQUAL(cnv_files[1].filename, project_folder+"/Sample_Affected2/Affected2_cnvs.seg");
+		S_EQUAL(cnv_files[2].filename, project_folder+"/Sample_Control1/Control1_cnvs.seg");
+		S_EQUAL(cnv_files[3].filename, project_folder+"/Sample_Control2/Control2_cnvs.seg");
 
 		igv_files = fp.getIgvFilesBaf();
 		I_EQUAL(igv_files.length(), 4);

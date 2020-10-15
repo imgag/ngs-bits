@@ -88,11 +88,16 @@ QList<FileLocation> FileLocationProviderFileSystem::getSegFilesCnv()
 			QString base_name = file.filename.left(file.filename.length()-4);
 			FileLocation cnvs_clincnv_seg = FileLocation{file.id, PathType::CNV_ESTIMATES, base_name + "_cnvs_clincnv.seg", false};
 			setIsFoundFlag(cnvs_clincnv_seg);
-			output << cnvs_clincnv_seg;
-
-			FileLocation cnvs_seg = FileLocation{file.id, PathType::CNV_ESTIMATES, base_name + "_cnvs.seg", false};
-			setIsFoundFlag(cnvs_seg);
-			output << cnvs_seg;
+			if (cnvs_clincnv_seg.is_found)
+			{
+				output << cnvs_clincnv_seg;
+			}
+			else
+			{
+				FileLocation cnvs_seg = FileLocation{file.id, PathType::CNV_ESTIMATES, base_name + "_cnvs.seg", false};
+				setIsFoundFlag(cnvs_seg);
+				output << cnvs_seg;
+			}
 		}
 	}
 
