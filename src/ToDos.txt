@@ -3,6 +3,7 @@
 libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 - The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
+- support CRAM in addition to BAM: use htslib functions with hts_ prefix instead of cram_ index
 
 NGSD:
 * Implement "closing gaps by sanger"
@@ -17,7 +18,6 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-## Variant validation: add validation method and allow filtering by validation method (methods: PCR, breakpoint PRC, qPRC, MLPA, other) > check with Lab > Email to all people in diagnostics
 ## Preferred transcripts: allow deleting
 ## Tabs: do not close tabs when opening a new GSvar file. Open a tab only once - focus and update if opened again.
 ## Allow adding variant outside of target region to report
