@@ -646,6 +646,16 @@ class CPPNGSSHARED_EXPORT FilterSomaticAlleleFrequency
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
+//Filter for tumor-only allele frequency around heterozygous/homozygous calls (these can be considered as germline)
+class CPPNGSSHARED_EXPORT FilterTumorOnlyHomHet
+		: public FilterBase
+{
+public:
+	FilterTumorOnlyHomHet();
+	QString toText() const override;
+	void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
 /*************************************************** filters for CNVs ***************************************************/
 //Filter CNV size
 class CPPNGSSHARED_EXPORT FilterCnvSize

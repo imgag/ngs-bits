@@ -77,6 +77,8 @@ public:
 	///Returns if somatic report is supported for current variant list.
 	bool somaticReportSupported();
 
+	bool tumoronlyReportSupported();
+
 	///Lets the user select a gene. If the user aborts, "" is returned.
 	static QString selectGene();
 
@@ -248,8 +250,10 @@ public slots:
 	static QString exclusionCriteria(const ReportVariantConfiguration& conf);
 	///Generate report
 	void generateReport();
-	///Generates a report (somatic) in .rtf format
+	///Generates a report (somatic pair) in .rtf format
 	void generateReportSomaticRTF();
+	///Generates a report (tumor only!) in .rtf format
+	void generateReportTumorOnly();
 	///Generates a report (germline)
 	void generateReportGermline();
 	///Finished the report generation (germline)

@@ -89,7 +89,9 @@ SOURCES += main.cpp\
     SomaticDataTransferWidget.cpp \
     EvaluationSheetEditDialog.cpp \
     PublishedVariantsWidget.cpp \
-    PreferredTranscriptsWidget.cpp
+    PreferredTranscriptsWidget.cpp \
+    TumorOnlyReportWorker.cpp \
+    TumorOnlyReportDialog.cpp
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -172,7 +174,9 @@ HEADERS += MainWindow.h \
     SomaticDataTransferWidget.h \
     EvaluationSheetEditDialog.h \
     PublishedVariantsWidget.h \
-    PreferredTranscriptsWidget.h
+    PreferredTranscriptsWidget.h \
+    TumorOnlyReportWorker.h \
+    TumorOnlyReportDialog.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -242,7 +246,8 @@ FORMS    += MainWindow.ui \
     SomaticDataTransferWidget.ui \
     EvaluationSheetEditDialog.ui \
     PublishedVariantsWidget.ui \
-    PreferredTranscriptsWidget.ui
+    PreferredTranscriptsWidget.ui \
+    TumorOnlyReportDialog.ui
 
 include("../app_gui.pri")
 

@@ -104,6 +104,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "SvSearchWidget.h"
 #include "PublishedVariantsWidget.h"
 #include "PreferredTranscriptsWidget.h"
+#include "TumorOnlyReportWorker.h"
+#include "TumorOnlyReportDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -2875,6 +2877,10 @@ void MainWindow::generateReport()
 	{
 		generateReportSomaticRTF();
 	}
+	else if (tumoronlyReportSupported())
+	{
+		generateReportTumorOnly();
+	}
 	else if (germlineReportSupported())
 	{
 		generateReportGermline();
@@ -2884,6 +2890,60 @@ void MainWindow::generateReport()
 		QMessageBox::information(this, "Report error", "Report not supported for this type of analysis!");
 	}
 }
+
+
+void MainWindow::generateReportTumorOnly()
+{
+	try
+	{
+		TumorOnlyReportWorker::checkAnnotation(variants_);
+	}
+	catch(FileParseException e)
+	{
+		QMessageBox::warning(this, "Invalid tumor only file" + filename_, "Could not find all neccessary annotations in tumor-only variant list. Aborting creation of report. " + e.message());
+		return;
+	}
+
+	//get report settings
+	TumorOnlyReportWorkerConfig config;
+	config.mapping_stat_qcml_file = QFileInfo(filename_).absolutePath() + "/" + QFileInfo(filename_).baseName() + "_stats_map.qcML";
+	config.target_file = ui_.filters->targetRegion();
+	config.low_coverage_file = QFileInfo(filename_).absolutePath() + "/" + QFileInfo(filename_).baseName() + "_stat_lowcov.bed";
+	config.bam_file = QFileInfo(filename_).absolutePath() + "/" + QFileInfo(filename_).baseName() + ".bam";
+	config.filter_result = filter_result_;
+
+	TumorOnlyReportDialog dlg(variants_, config, this);
+	if(!dlg.exec()) return;
+
+	//get RTF file name
+	QString destination_path = last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_DNA_tumor_only_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
+	QString file_rep = QFileDialog::getSaveFileName(this, "Store report file", destination_path, "RTF files (*.rtf);;All files(*.*)");
+	if (file_rep=="") return;
+
+	//Generate RTF
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+	try
+	{
+		TumorOnlyReportWorker worker(variants_, config);
+		QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
+		worker.writeRtf(temp_filename);
+
+		ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
+	}
+	catch(Exception e)
+	{
+		QMessageBox::warning(this, "Could not create tumor only report", "Could not write tumor-only report. Error message: " + e.message());
+	}
+
+	QApplication::restoreOverrideCursor();
+
+	//open report
+	if (QMessageBox::question(this, "DNA tumor-only report", "report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
+	{
+		QDesktopServices::openUrl(QUrl::fromLocalFile(file_rep) );
+	}
+}
+
 
 void MainWindow::generateReportSomaticRTF()
 {
@@ -4819,6 +4879,11 @@ bool MainWindow::germlineReportSupported()
 bool MainWindow::somaticReportSupported()
 {
 	return variants_.type()==SOMATIC_PAIR;
+}
+
+bool MainWindow::tumoronlyReportSupported()
+{
+	return variants_.type()==SOMATIC_SINGLESAMPLE;
 }
 
 void MainWindow::updateVariantDetails()
