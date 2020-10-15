@@ -18,7 +18,6 @@ NGSD:
     - no report needed - is created from individual samples
 
 GSvar:
-## Preferred transcripts: allow deleting
 ## Tabs: do not close tabs when opening a new GSvar file. Open a tab only once - focus and update if opened again.
 ## Allow adding variant outside of target region to report
     - add checkboxes to variants in report dialog
