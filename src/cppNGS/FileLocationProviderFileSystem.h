@@ -14,7 +14,8 @@ public:
 	QList<FileLocation> getSegFilesCnv() override;
 	QList<FileLocation> getIgvFilesBaf() override;
 	QList<FileLocation> getMantaEvidenceFiles() override;
-
+private:
+	void setIsFoundFlag(FileLocation& file);
 protected:
 	QString gsvar_file_;
 	SampleHeaderInfo header_info_;

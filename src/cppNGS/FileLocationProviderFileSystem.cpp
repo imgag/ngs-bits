@@ -7,6 +7,15 @@ FileLocationProviderFileSystem::FileLocationProviderFileSystem(QString gsvar_fil
 {
 }
 
+void FileLocationProviderFileSystem::setIsFoundFlag(FileLocation& file)
+{
+	file.is_found = false;
+	if (QFile::exists(file.filename))
+	{
+		file.is_found = true;
+	}
+}
+
 QList<FileLocation> FileLocationProviderFileSystem::getBamFiles()
 {
 	QList<FileLocation> output;
@@ -30,17 +39,16 @@ QList<FileLocation> FileLocationProviderFileSystem::getBamFiles()
 	{
 		if (analysis_type_ == GERMLINE_SINGLESAMPLE)
 		{
-			output << FileLocation{info.id, PathType::BAM, sample_folder + "/" + info.id + ".bam", false};
+			FileLocation single_bam = FileLocation{info.id, PathType::BAM, sample_folder + "/" + info.id + ".bam", false};
+			setIsFoundFlag(single_bam);
+			output << single_bam;
 		}
 		else
 		{
-			output << FileLocation{info.id, PathType::BAM, project_folder + "/Sample_" + info.id + "/" + info.id + ".bam", false};
+			FileLocation multi_bam = FileLocation{info.id, PathType::BAM, project_folder + "/Sample_" + info.id + "/" + info.id + ".bam", false};
+			setIsFoundFlag(multi_bam);
+			output << multi_bam;
 		}
-	}
-
-	if (output.length() == 0)
-	{
-		THROW(Exception, "Could not find BAM file at one of the default locations:"+sample_folder+", "+project_folder);
 	}
 	return output;
 }
@@ -53,8 +61,14 @@ QList<FileLocation> FileLocationProviderFileSystem::getSegFilesCnv()
 	{
 		//tumor-normal SEG file
 		QString pair = QFileInfo(gsvar_file_).baseName();
-		output << FileLocation{pair + " (copy number)", PathType::CNV_ESTIMATES, gsvar_file_.left(gsvar_file_.length()-6) + "_cnvs.seg", false};
-		output << FileLocation{pair + " (coverage)", PathType::CNV_ESTIMATES, gsvar_file_.left(gsvar_file_.length()-6) + "_cov.seg", false};
+
+		FileLocation cnvs_seg = FileLocation{pair + " (copy number)", PathType::CNV_ESTIMATES, gsvar_file_.left(gsvar_file_.length()-6) + "_cnvs.seg", false};
+		setIsFoundFlag(cnvs_seg);
+		output << cnvs_seg;
+
+		FileLocation con_seg = FileLocation{pair + " (coverage)", PathType::CNV_ESTIMATES, gsvar_file_.left(gsvar_file_.length()-6) + "_cov.seg", false};
+		setIsFoundFlag(con_seg);
+		output << con_seg;
 
 		//germline SEG file
 		QString basename = QFileInfo(gsvar_file_).baseName().left(gsvar_file_.length()-6);
@@ -72,8 +86,13 @@ QList<FileLocation> FileLocationProviderFileSystem::getSegFilesCnv()
 		foreach(const FileLocation& file, tmp)
 		{
 			QString base_name = file.filename.left(file.filename.length()-4);
-			output << FileLocation{file.id, PathType::CNV_ESTIMATES, base_name + "_cnvs_clincnv.seg", false};
-			output << FileLocation{file.id, PathType::CNV_ESTIMATES, base_name + "_cnvs.seg", false};
+			FileLocation cnvs_clincnv_seg = FileLocation{file.id, PathType::CNV_ESTIMATES, base_name + "_cnvs_clincnv.seg", false};
+			setIsFoundFlag(cnvs_clincnv_seg);
+			output << cnvs_clincnv_seg;
+
+			FileLocation cnvs_seg = FileLocation{file.id, PathType::CNV_ESTIMATES, base_name + "_cnvs.seg", false};
+			setIsFoundFlag(cnvs_seg);
+			output << cnvs_seg;
 		}
 	}
 
@@ -85,14 +104,18 @@ QList<FileLocation> FileLocationProviderFileSystem::getIgvFilesBaf()
 	QList<FileLocation> output;
 	if (analysis_type_==SOMATIC_PAIR)
 	{
-		output << FileLocation{QFileInfo(gsvar_file_).baseName(), PathType::BAF, gsvar_file_.left(gsvar_file_.length()-6) + "_bafs.igv", false};
+		FileLocation bafs_igv = FileLocation{QFileInfo(gsvar_file_).baseName(), PathType::BAF, gsvar_file_.left(gsvar_file_.length()-6) + "_bafs.igv", false};
+		setIsFoundFlag(bafs_igv);
+		output << bafs_igv;
 	}
 	else
 	{
 		QList<FileLocation> tmp = getBamFiles();
 		foreach(const FileLocation& file, tmp)
 		{
-			output << FileLocation{file.id, PathType::BAF, file.filename.left(file.filename.length()-4) + "_bafs.igv", false};
+			FileLocation bafs_igv = FileLocation{file.id, PathType::BAF, file.filename.left(file.filename.length()-4) + "_bafs.igv", false};
+			setIsFoundFlag(bafs_igv);
+			output << bafs_igv;
 		}
 	}
 
@@ -107,7 +130,9 @@ QList<FileLocation> FileLocationProviderFileSystem::getMantaEvidenceFiles()
 	foreach (FileLocation bam_file, bam_files)
 	{
 		QString evidence_bam_file = FileLocationHelper::getEvidenceFile(bam_file.filename);
-		evidence_files << FileLocation{QFileInfo(evidence_bam_file).baseName(), PathType::BAM, evidence_bam_file, false};
+		FileLocation evidence_bam = FileLocation{QFileInfo(evidence_bam_file).baseName(), PathType::BAM, evidence_bam_file, false};
+		setIsFoundFlag(evidence_bam);
+		evidence_files << evidence_bam;
 	}
 	return evidence_files;
 }

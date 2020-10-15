@@ -981,21 +981,24 @@ void MainWindow::openInIGV(QString region)
 
 		//sample BAM file(s)
 		QList<FileLocation> bams = GlobalServiceProvider::instance().fileLocationsProvider()->getBamFiles();
-		if (bams.empty()) return;
+		if (bams.empty())
+		{
+			QString sample_folder = QFileInfo(filename_).absolutePath();
+			QString project_folder = QFileInfo(sample_folder).absolutePath();
+			THROW(Exception, "Could not find BAM file at one of the default locations:"+sample_folder+", "+project_folder);
+			return;
+		}
+
 		foreach(const FileLocation& file, bams)
 		{
-			bool is_found = false;
-			if (QFile::exists(file.filename)) is_found = true;
-			dlg.addFile(FileLocation{file.id, file.type, file.filename, is_found}, true);
+			dlg.addFile(file, true);
 		}
 
 		//sample Manta evidence file(s)
 		QList<FileLocation> evidence_files = getMantaEvidenceFiles();
 		foreach(const FileLocation& file, evidence_files)
 		{
-			bool is_found = false;
-			if (QFile::exists(file.filename)) is_found = true;
-			dlg.addFile(FileLocation{file.id, file.type, file.filename, is_found}, false);
+			dlg.addFile(file, false);
 		}
 
 
@@ -1003,18 +1006,14 @@ void MainWindow::openInIGV(QString region)
 		QList<FileLocation> segs = getSegFilesCnv();
 		foreach(const FileLocation& file, segs)
 		{
-			bool is_found = false;
-			if (QFile::exists(file.filename)) is_found = true;
-			dlg.addFile(FileLocation{file.id, file.type, file.filename, is_found}, true);
+			dlg.addFile(file, true);
 		}
 
 		//sample BAF file(s)
 		QList<FileLocation> bafs = getIgvFilesBaf();
 		foreach(const FileLocation& file, bafs)
 		{
-			bool is_found = false;
-			if (QFile::exists(file.filename)) is_found = true;
-			dlg.addFile(FileLocation{file.id, file.type, file.filename, is_found}, true);
+			dlg.addFile(file, true);
 		}
 
 		//target region
