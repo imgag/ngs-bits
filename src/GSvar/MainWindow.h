@@ -169,8 +169,10 @@ public slots:
 	void on_actionGenesToRegions_triggered();
 	///Subpanel archive dialog
 	void on_actionArchiveSubpanel_triggered();
-	///Close current file
+	///Close current variant list
 	void on_actionClose_triggered();
+	///Close all meta data tabs
+	void on_actionCloseMetaDataTabs_triggered();
 	///Force IGV initializazion
 	void on_actionIgvInit_triggered();
 	///Clear IGV

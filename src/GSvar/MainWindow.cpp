@@ -359,6 +359,14 @@ void MainWindow::on_actionClose_triggered()
 	loadFile();
 }
 
+void MainWindow::on_actionCloseMetaDataTabs_triggered()
+{
+	for (int t=ui_.tabs->count()-1; t>0; --t)
+	{
+		closeTab(t);
+	}
+}
+
 void MainWindow::on_actionIgvInit_triggered()
 {
 	igv_initialized_ = false;
@@ -1114,6 +1122,8 @@ void MainWindow::showAfHistogram_filtered()
 
 void MainWindow::showCnHistogram()
 {
+	if (filename_=="") return;
+
 	QString title = "Copy-number histogram";
 
 	AnalysisType type = variants_.type();
@@ -1193,6 +1203,8 @@ void MainWindow::showCnHistogram()
 
 void MainWindow::showAfHistogram(bool filtered)
 {
+	if (filename_=="") return;
+
 	AnalysisType type = variants_.type();
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO)
 	{
@@ -1751,13 +1763,7 @@ void MainWindow::loadFile(QString filename)
 
 	somatic_report_settings_ = SomaticReportSettings();
 
-
 	ui_.tabs->setCurrentIndex(0);
-	for (int t=ui_.tabs->count()-1; t>0; --t)
-	{
-		if (ui_.tabs->tabText(t)=="Analysis status") continue;
-		closeTab(t);
-	}
 
 	Log::perf("Clearing variant table took ", timer);
 
