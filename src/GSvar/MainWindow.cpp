@@ -971,8 +971,11 @@ void MainWindow::openInIGV(QString region)
 
 		if (files.count()==1)
 		{
+			bool is_found = false;
+			if (QFile::exists(files[0])) is_found = true;
+
 			QString name = QFileInfo(files[0]).baseName().replace("_var_annotated", "");
-			dlg.addFile(name, PathType::VCF, files[0], ui_.actionIgvSample->isChecked());
+			dlg.addFile(FileLocation{name, PathType::VCF, files[0], is_found}, ui_.actionIgvSample->isChecked());
 
 		}
 
@@ -981,14 +984,18 @@ void MainWindow::openInIGV(QString region)
 		if (bams.empty()) return;
 		foreach(const FileLocation& file, bams)
 		{
-			dlg.addFile(file.id, file.type, file.filename, true);	
+			bool is_found = false;
+			if (QFile::exists(file.filename)) is_found = true;
+			dlg.addFile(FileLocation{file.id, file.type, file.filename, is_found}, true);
 		}
 
 		//sample Manta evidence file(s)
 		QList<FileLocation> evidence_files = getMantaEvidenceFiles();
 		foreach(const FileLocation& file, evidence_files)
 		{
-			dlg.addFile(file.id, file.type, file.filename, false);
+			bool is_found = false;
+			if (QFile::exists(file.filename)) is_found = true;
+			dlg.addFile(FileLocation{file.id, file.type, file.filename, is_found}, false);
 		}
 
 
@@ -996,21 +1003,27 @@ void MainWindow::openInIGV(QString region)
 		QList<FileLocation> segs = getSegFilesCnv();
 		foreach(const FileLocation& file, segs)
 		{
-			dlg.addFile(file.id, file.type, file.filename, true);
+			bool is_found = false;
+			if (QFile::exists(file.filename)) is_found = true;
+			dlg.addFile(FileLocation{file.id, file.type, file.filename, is_found}, true);
 		}
 
 		//sample BAF file(s)
 		QList<FileLocation> bafs = getIgvFilesBaf();
 		foreach(const FileLocation& file, bafs)
 		{
-			dlg.addFile(file.id, file.type, file.filename, true);
+			bool is_found = false;
+			if (QFile::exists(file.filename)) is_found = true;
+			dlg.addFile(FileLocation{file.id, file.type, file.filename, is_found}, true);
 		}
 
 		//target region
 		QString roi = ui_.filters->targetRegion();
 		if (roi!="")
 		{
-			dlg.addFile("target region track", PathType::CNV_CALLS, roi, true);
+			bool is_found = false;
+			if (QFile::exists(roi)) is_found = true;
+			dlg.addFile(FileLocation{"target region track", PathType::CNV_CALLS, roi, is_found}, true);
 		}
 
 		//sample low-coverage
@@ -1018,7 +1031,9 @@ void MainWindow::openInIGV(QString region)
 
 		if (files.count()==1)
 		{
-			dlg.addFile("low-coverage regions track", PathType::CNV_CALLS, files[0], ui_.actionIgvLowcov->isChecked());
+			bool is_found = false;
+			if (QFile::exists(files[0])) is_found = true;
+			dlg.addFile(FileLocation{"low-coverage regions track", PathType::CNV_CALLS, files[0], is_found}, ui_.actionIgvLowcov->isChecked());
 		}
 
 		//amplicon file (of processing system)
@@ -1029,7 +1044,7 @@ void MainWindow::openInIGV(QString region)
 			QString amplicons = system_data.target_file.left(system_data.target_file.length()-4) + "_amplicons.bed";
 			if (QFile::exists(amplicons))
 			{
-				dlg.addFile("amplicons track (of processing system)", PathType::CNV_CALLS, amplicons, true);
+				dlg.addFile(FileLocation{"amplicons track (of processing system)", PathType::CNV_CALLS, amplicons, true}, true);
 			}
 		}
 		catch(...) {} //Nothing to do here
@@ -1040,7 +1055,11 @@ void MainWindow::openInIGV(QString region)
 		{
 			QString text = action->text();
 			if (!text.startsWith("custom track:")) continue;
-			dlg.addFile(text, PathType::OTHER, action->toolTip().replace("custom track:", "").trimmed(), action->isChecked());
+			bool is_found = false;
+			QString filename = action->toolTip().replace("custom track:", "").trimmed();
+			if (QFile::exists(filename)) is_found = true;
+
+			dlg.addFile(FileLocation{text, PathType::OTHER, filename, is_found}, action->isChecked());
 		}
 
 		//execute dialog

@@ -11,13 +11,13 @@ IgvDialog::IgvDialog(QWidget *parent)
 	connect(ui_.tree, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(treeItemChanged(QTreeWidgetItem*)));
 }
 
-void IgvDialog::addFile(QString label, PathType type, QString filename, bool checked)
+void IgvDialog::addFile(const FileLocation file, bool checked)
 {
 	//determine group
 	QTreeWidgetItem* group = nullptr;
 	for(int i=0; i<ui_.tree->topLevelItemCount(); ++i)
 	{
-		if (ui_.tree->topLevelItem(i)->text(0)==FileLocationHelper::pathTypeToString(type))
+		if (ui_.tree->topLevelItem(i)->text(0)==FileLocationHelper::pathTypeToString(file.type))
 		{
 			group = ui_.tree->topLevelItem(i);
 		}
@@ -26,27 +26,27 @@ void IgvDialog::addFile(QString label, PathType type, QString filename, bool che
 	//add group if missing
 	if (group==nullptr)
 	{
-		group = new QTreeWidgetItem(QStringList() << FileLocationHelper::pathTypeToString(type));
+		group = new QTreeWidgetItem(QStringList() << FileLocationHelper::pathTypeToString(file.type));
 		group->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-		if (type==PathType::VCF) group->setToolTip(0, "Variant list(s)");
-		if (type==PathType::BAM) group->setToolTip(0, "Sequencing read file(s)");
-		if (type==PathType::BAF) group->setToolTip(0, "b-allele frequency file(s)");
-		if (type==PathType::CNV_CALLS) group->setToolTip(0, "regions file(s)");
-		if (type==PathType::OTHER) group->setToolTip(0, "Custom tracks");
+		if (file.type==PathType::VCF) group->setToolTip(0, "Variant list(s)");
+		if (file.type==PathType::BAM) group->setToolTip(0, "Sequencing read file(s)");
+		if (file.type==PathType::BAF) group->setToolTip(0, "b-allele frequency file(s)");
+		if (file.type==PathType::CNV_CALLS) group->setToolTip(0, "regions file(s)");
+		if (file.type==PathType::OTHER) group->setToolTip(0, "Custom tracks");
 		ui_.tree->addTopLevelItem(group);
 	}
 
 	//add file
-	QTreeWidgetItem* item = new QTreeWidgetItem(QStringList() << label);
-	item->setToolTip(0, filename);
-	if (QFile::exists(filename))
+	QTreeWidgetItem* item = new QTreeWidgetItem(QStringList() << file.id);
+	item->setToolTip(0, file.filename);
+	if (file.is_found)
 	{
 		item->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
 		item->setCheckState(0, checked ? Qt::Checked : Qt::Unchecked);
 	}
 	else
 	{
-		item->setText(0, label + " (missing)");
+		item->setText(0, file.id + " (missing)");
 		item->setFlags(Qt::ItemIsUserCheckable);
 		item->setCheckState(0, Qt::Unchecked);
 	}
