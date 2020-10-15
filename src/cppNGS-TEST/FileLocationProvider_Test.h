@@ -8,7 +8,8 @@ Q_OBJECT
 private slots:
 	void get_files()
 	{
-		QString filename = "../src/cppNGS-TEST/data_in/VariantFilter_in.GSvar";
+		// Single
+		QString filename = "data_in/VariantFilter_in.GSvar";
 
 		VariantList vl;
 		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
@@ -18,32 +19,67 @@ private slots:
 		FileLocationProviderFileSystem fp = FileLocationProviderFileSystem("", vl.getSampleHeader(), vl.type());
 		IS_THROWN(ArgumentException, fp.getBamFiles());
 
-		fp = FileLocationProviderFileSystem("theWrongPath", vl.getSampleHeader(), vl.type());
-		IS_THROWN(Exception, fp.getBamFiles());
-
 		fp = FileLocationProviderFileSystem(filename, emptyHeader, vl.type());
 		IS_THROWN(ArgumentException, fp.getBamFiles());
 
 		fp = FileLocationProviderFileSystem(filename, vl.getSampleHeader(), vl.type());
+		QString sample_folder = QFileInfo(filename).absolutePath();
+		QString project_folder = QFileInfo(sample_folder).absolutePath();
+
 		QList<FileLocation> bam_files = fp.getBamFiles();
 		I_EQUAL(bam_files.length(), 1);
-		IS_TRUE(bam_files[0].filename.endsWith("NA12878_03.bam"));
+		S_EQUAL(bam_files[0].filename, sample_folder+"/NA12878_03.bam");
 
 		QList<FileLocation> cnv_files = fp.getSegFilesCnv();
-		I_EQUAL(cnv_files.length(), 1);
+		I_EQUAL(cnv_files.length(), 2);
+		S_EQUAL(cnv_files[0].filename, sample_folder+"/NA12878_03_cnvs_clincnv.seg");
+		S_EQUAL(cnv_files[1].filename, sample_folder+"/NA12878_03_cnvs.seg");
 
 		QList<FileLocation> igv_files = fp.getIgvFilesBaf();
 		I_EQUAL(igv_files.length(), 1);
+		S_EQUAL(igv_files[0].filename, sample_folder+"/NA12878_03_bafs.igv");
 
 		QList<FileLocation> manta_files = fp.getMantaEvidenceFiles();
 		I_EQUAL(manta_files.length(), 1);
+		S_EQUAL(manta_files[0].filename, sample_folder+"/manta_evid/NA12878_03_manta_evidence.bam");
 
-		fp = FileLocationProviderFileSystem(filename, emptyHeader, AnalysisType::SOMATIC_PAIR);
+
+		// Multi
+		filename = "data_in/VariantFilter_in_multi.GSvar";
+		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
+		fp = FileLocationProviderFileSystem(filename, vl.getSampleHeader(), vl.type());
+
+		bam_files = fp.getBamFiles();
+		I_EQUAL(bam_files.length(), 4);
+		S_EQUAL(bam_files[0].filename, project_folder+"/Sample_Affected1/Affected1.bam");
+		S_EQUAL(bam_files[1].filename, project_folder+"/Sample_Affected2/Affected2.bam");
+		S_EQUAL(bam_files[2].filename, project_folder+"/Sample_Control1/Control1.bam");
+		S_EQUAL(bam_files[3].filename, project_folder+"/Sample_Control2/Control2.bam");
 
 		cnv_files = fp.getSegFilesCnv();
-		I_EQUAL(cnv_files.length(), 2);
+		I_EQUAL(cnv_files.length(), 8);
+		S_EQUAL(cnv_files[0].filename, project_folder+"/Sample_Affected1/Affected1_cnvs_clincnv.seg");
+		S_EQUAL(cnv_files[1].filename, project_folder+"/Sample_Affected1/Affected1_cnvs.seg");
+		S_EQUAL(cnv_files[2].filename, project_folder+"/Sample_Affected2/Affected2_cnvs_clincnv.seg");
+		S_EQUAL(cnv_files[3].filename, project_folder+"/Sample_Affected2/Affected2_cnvs.seg");
+		S_EQUAL(cnv_files[4].filename, project_folder+"/Sample_Control1/Control1_cnvs_clincnv.seg");
+		S_EQUAL(cnv_files[5].filename, project_folder+"/Sample_Control1/Control1_cnvs.seg");
+		S_EQUAL(cnv_files[6].filename, project_folder+"/Sample_Control2/Control2_cnvs_clincnv.seg");
+		S_EQUAL(cnv_files[7].filename, project_folder+"/Sample_Control2/Control2_cnvs.seg");
 
 		igv_files = fp.getIgvFilesBaf();
-		I_EQUAL(igv_files.length(), 1);
+		I_EQUAL(igv_files.length(), 4);
+		S_EQUAL(igv_files[0].filename, project_folder+"/Sample_Affected1/Affected1_bafs.igv");
+		S_EQUAL(igv_files[1].filename, project_folder+"/Sample_Affected2/Affected2_bafs.igv");
+		S_EQUAL(igv_files[2].filename, project_folder+"/Sample_Control1/Control1_bafs.igv");
+		S_EQUAL(igv_files[3].filename, project_folder+"/Sample_Control2/Control2_bafs.igv");
+
+
+		manta_files = fp.getMantaEvidenceFiles();
+		I_EQUAL(manta_files.length(), 4);
+		S_EQUAL(manta_files[0].filename, project_folder+"/Sample_Affected1/manta_evid/Affected1_manta_evidence.bam");
+		S_EQUAL(manta_files[1].filename, project_folder+"/Sample_Affected2/manta_evid/Affected2_manta_evidence.bam");
+		S_EQUAL(manta_files[2].filename, project_folder+"/Sample_Control1/manta_evid/Control1_manta_evidence.bam");
+		S_EQUAL(manta_files[3].filename, project_folder+"/Sample_Control2/manta_evid/Control2_manta_evidence.bam");
 	}
 };

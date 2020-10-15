@@ -12,6 +12,12 @@ struct FileLocation
 	QString id; //sample identifier/name
 	PathType type; //file type
 	QString filename; //file name
+	bool is_found; // indicates if a file exists or not
+
+	bool operator == (const FileLocation& x) const
+	{
+	  return (id == x.id && type == x.type && filename == x.filename);
+	}
 };
 
 class CPPNGSSHARED_EXPORT FileLocationProvider
