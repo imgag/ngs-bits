@@ -3698,7 +3698,11 @@ BedFile NGSD::genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QS
 
 int NGSD::transcriptId(QString name, bool throw_on_error)
 {
-	QVariant value = getValue("SELECT id FROM gene_transcript WHERE name=:0", !throw_on_error, name);
+	QVariant value = getValue("SELECT id FROM gene_transcript WHERE name=:0", true, name);
+	if (!value.isValid() && name[name.length()-2]=='.') //if not found, try without version number (if present)
+	{
+		value = getValue("SELECT id FROM gene_transcript WHERE name=:0", true, name.mid(0, name.length()-2));
+	}
 	if (!value.isValid())
 	{
 		if (!throw_on_error) return -1;

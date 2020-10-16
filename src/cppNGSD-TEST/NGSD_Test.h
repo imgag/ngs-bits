@@ -372,6 +372,7 @@ private slots:
 		//transcriptId
 		I_EQUAL(db.transcriptId("NIPA1_TR2"), 4);
 		I_EQUAL(db.transcriptId("NIPA1_TR2_FAIL", false), -1);
+		I_EQUAL(db.transcriptId("NIPA1_TR2.3", false), 4);
 
 		//transcript
 		Transcript transcript = db.transcript(4);
