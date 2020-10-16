@@ -406,3 +406,8 @@ void RtfTable::sortByCol(int i_col)
 	}
 	rows_ = sorted_table;
 }
+
+void RtfTable::swapRows(int i_row_a, int i_row_b)
+{
+	rows_.swap(i_row_a, i_row_b);
+}

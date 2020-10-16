@@ -1,6 +1,6 @@
 #include <QFileDialog>
 #include "CfDNAPanelWidget.h"
-#include "ui_cfDNAPanelWidget.h"
+#include "ui_CfDNAPanelWidget.h"
 #include "GUIHelper.h"
 
 CfDNAPanelWidget::CfDNAPanelWidget(const QString& bed_file_path, const QString& tumor_sample_name, QWidget *parent) :

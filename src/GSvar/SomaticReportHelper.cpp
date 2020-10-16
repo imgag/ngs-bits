@@ -176,17 +176,9 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 			if(a.second[0].format().content().contains("#") && !b.second[0].format().content().contains("#")) return true;
 			if(!a.second[0].format().content().contains("#") && b.second[0].format().content().contains("#")) return false;
 
-			//inhouse classification
-			if(a.second[4].format().content().contains("aktivierend") && !b.second[4].format().content().contains("aktivierend") ) return true;
-			if(!a.second[4].format().content().contains("aktivierend") && b.second[4].format().content().contains("aktivierend") ) return false;
-
-			//CGI known driver
-			if(a.second[4].format().content().contains("bekannt") && !b.second[4].format().content().contains("bekannt") ) return true;
-			if(!a.second[4].format().content().contains("bekannt") && b.second[4].format().content().contains("bekannt") ) return false;
-
-			//CGI predicted driver
-			if(a.second[4].format().content().contains("vorhergesagt") && !b.second[4].format().content().contains("vorhergesagt") ) return true;
-			if(!a.second[4].format().content().contains("vorhergesagt") && b.second[4].format().content().contains("vorhergesagt") ) return false;
+			//variants with classification
+			if( hasClassification(a.second[4].format().content()) && !hasClassification(b.second[4].format().content()) ) return true;
+			if( !hasClassification(a.second[4].format().content()) && hasClassification(b.second[4].format().content()) ) return false;
 
 			//gene symbol
 			if(a.second[0].format().content() < b.second[0].format().content()) return true;
@@ -219,6 +211,9 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 			double tum_cn_change = cnv.annotations().at(cnv_index_tumor_cn_change_).toDouble();
 			QByteArray gene = row[0].format().content(); //access cell with gene name
+
+			if( genes_in_first_part.contains(gene) ) continue; //skip genes that were already parsed
+
 			genes_in_first_part << gene;
 
 			RtfTableRow temp_cnv_row;
@@ -290,10 +285,22 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 				temp_cnv_row.addCell(3138,"unklare Bedeutung");
 			}
 
-
 			//set first cell of corresponding cnv (contains gene name) as end of cell over multiple rows
 			table.addRow(temp_cnv_row);
 
+		}
+	}
+
+	//Move overlapping CNVs to the end of variants of the same gene
+	for(int i=2; i<table.count(); ++i)
+	{
+		if( !table[i][1].format().content().contains("AMP") && !table[i][1].format().content().contains("DEL") ) continue;
+		if(i<table.count()-1)
+		{
+			if(table[i][0].format().content() == table[i+1][0].format().content()) //next row has the same gene symbol
+			{
+				table.swapRows(i, i+1);
+			}
 		}
 	}
 
@@ -1823,6 +1830,16 @@ QByteArray SomaticReportHelper::cytoband(const CopyNumberVariant &cnv)
 	return out;
 }
 
+bool SomaticReportHelper::hasClassification(QByteArray statement)
+{
+
+	if (statement.contains("aktivierend")) return true;
+	if (statement.contains("bekannt")) return true;
+	if (statement.contains("vorhergesagt")) return true;
+
+	return false;
+}
+
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)
 {
 	int i_cnv_tum_clonality = cnvs.annotationIndexByName("tumor_clonality", false);
@@ -2054,7 +2071,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	}
 
 
-	general_info_table.addRow(RtfTableRow({"HRD-Score:", QByteArray::number(settings_.report_config.hrdScore()) + RtfText("\\line Score \\u8805;3 weist auf HRD hin.").setFontSize(14).RtfCode()}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+	general_info_table.addRow(RtfTableRow({"HRD-Score:", QByteArray::number(settings_.report_config.hrdScore()) + RtfText("\\line Ein Wert \\u8805;3 weist auf eine HRD hin.").setFontSize(14).RtfCode()}, {2500,7137},  RtfParagraph()).setBorders(1, "brdrhair", 4));
 
 	if(settings_.report_config.quality() != "no abnormalities")
 	{
@@ -2137,7 +2154,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 
 	if(settings_.report_config.fusionsDetected())
 	{
-		snv_expl = "Es gibt Hinweise auf eine Deletion/Fusion/Translokation/Strukturvariante, die zu einer Fusion/Deletion/... führen könnte. Eine Bestätigung dieser Beobachtung sollte mit einer unabhängigen Methode erfolgen.";
+		snv_expl = "Es gibt Hinweise auf eine Deletion/Fusion/Translokation/Strukturvariante, die zu einer Fusion/Deletion/... führen könnte. Wir empfehlen dies mit einer zweiten unabhängigen Methode zu bestätigen.";
 		doc_.addPart(RtfParagraph(snv_expl).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setBold(true).highlight(3).RtfCode());
 		doc_.addPart(RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode());
 	}
@@ -2163,7 +2180,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	snv_expl += "\\line\\line Die Varianten- und Gendosisanalysen der Gene " + RtfText("BRCA1").setItalic(true).setFontSize(18).RtfCode() + " und " + RtfText("BRCA2").setItalic(true).setFontSize(18).RtfCode();
 	snv_expl += " in der Normalprobe waren unauffällig.";
 
-	snv_expl += "\\line\\line Über die Analyse des Transkriptoms bei dieser Tumorprobe wird nachträglich berichtet.";
+	snv_expl += "\\line\\line Die Analyse des Transkriptoms wird getrennt berichtet.";
 	snv_expl += "\\line\\line Über die somatische Analyse einer zusätzlichen Tumorprobe wird nachträglich berichtet.";
 
 	doc_.addPart(RtfParagraph(snv_expl).highlight(3).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());

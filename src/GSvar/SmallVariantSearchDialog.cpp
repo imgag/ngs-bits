@@ -13,6 +13,7 @@ SmallVariantSearchDialog::SmallVariantSearchDialog(QWidget *parent)
 	, init_timer_(this, false)
 {
 	ui_.setupUi(this);
+	setWindowFlags(Qt::Window);
 	connect(&init_timer_, SIGNAL(triggerInitialization()), this, SLOT(updateVariants()));
 
 	connect(ui_.radio_region->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
@@ -145,6 +146,7 @@ void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, i
 	if (ui_.filter_impact_modifier->isChecked()) impacts << "MODIFIER";
 
 	//get variants in chromosomal range
+	int c_variants_distinct = 0;
 	QList<QStringList> var_data;
 	QString af = QString::number(ui_.filter_af->value()/100.0);
 	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start";
@@ -197,6 +199,7 @@ void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, i
 		QString coding = parts_match.join(", ");
 
 		//add sample info
+		++c_variants_distinct;
 		SqlQuery query2 = db.getQuery();
 		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, dv.genotype, p.name as p_name, s.disease_group, vc.class, s.name_external, ds.outcome, ds.comment, s.id as s_id, ps.id as ps_id FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id);
 		while(query2.next())
@@ -240,7 +243,7 @@ void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, i
 			var_data.append(QStringList() << gene << var << QString::number(ngsd_counts.first) << QString::number(ngsd_counts.second) << gnomad << tg << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("p_name").toString() << query2.value("disease_group").toString() << hpo_terms.join("; ") << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(','));
 		}
 	}
-	QString comment = gene + " - variants: " + QString::number(var_data.count());
+	QString comment = gene + " - " + QString::number(c_variants_distinct) + " distinct variants in " + QString::number(var_data.count()) + " hits";
 
 	//only variants that fit recessive inheritance mode
 	if (ui_.filter_recessive->isChecked())

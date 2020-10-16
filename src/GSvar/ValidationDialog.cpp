@@ -14,6 +14,11 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 	ui_.setupUi(this);
 
 	//set up UI
+	QStringList methods = db_.getEnum("variant_validation", "validation_method");
+	foreach(QString m, methods)
+	{
+		ui_.method->addItem(m);
+	}
 	connect(ui_.status, SIGNAL(currentTextChanged(QString)), this, SLOT(statusChanged()));
 	QStringList status = db_.getEnum("variant_validation", "status");
 	foreach(QString s, status)
@@ -89,6 +94,7 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 
 	ui_.requested_by->setText(db_.getValue("SELECT name FROM user WHERE id=" + query.value("user_id").toString()).toString());
 
+	ui_.method->setCurrentText(query.value("validation_method").toString());
 	ui_.status->setCurrentText(query.value("status").toString());
 
 	ui_.comment->setPlainText(query.value("comment").toString());
@@ -97,9 +103,10 @@ ValidationDialog::ValidationDialog(QWidget* parent, int id)
 void ValidationDialog::store()
 {
 	SqlQuery query = db_.getQuery(); //use binding (user input)
-	query.prepare("UPDATE variant_validation SET status=:0, comment=:1 WHERE id='" + val_id_ + "'");
-	query.bindValue(0, ui_.status->currentText());
-	query.bindValue(1, ui_.comment->toPlainText().trimmed());
+	query.prepare("UPDATE variant_validation SET validation_method=:0, status=:1, comment=:2 WHERE id='" + val_id_ + "'");
+	query.bindValue(0, ui_.method->currentText());
+	query.bindValue(1, ui_.status->currentText());
+	query.bindValue(2, ui_.comment->toPlainText().trimmed());
 	query.exec();
 }
 

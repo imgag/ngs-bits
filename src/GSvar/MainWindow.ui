@@ -339,8 +339,9 @@
     <addaction name="actionOpen"/>
     <addaction name="actionOpenByName"/>
     <addaction name="actionRecent"/>
-    <addaction name="separator"/>
     <addaction name="actionClose"/>
+    <addaction name="separator"/>
+    <addaction name="actionCloseMetaDataTabs"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -1175,8 +1176,11 @@
    <property name="text">
     <string>Study</string>
    </property>
-  </action>
-  <action name="actionDesignCfDNAPanel">
+  </action>  <action name="actionCloseMetaDataTabs">
+   <property name="text">
+    <string>Close meta data tabs</string>
+   </property>
+  </action>  <action name="actionDesignCfDNAPanel">
    <property name="text">
     <string>Design cfDNA panel</string>
    </property>
@@ -1196,8 +1200,7 @@
    <property name="text">
     <string>Show cfDNA panel</string>
    </property>
-  </action>
- </widget>
+  </action> </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>

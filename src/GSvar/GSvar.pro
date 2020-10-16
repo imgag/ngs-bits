@@ -89,10 +89,13 @@ SOURCES += main.cpp\
     SomaticDataTransferWidget.cpp \
     EvaluationSheetEditDialog.cpp \
     PublishedVariantsWidget.cpp \
-    PreferredTranscriptsWidget.cpp \
+    PreferredTranscriptsWidget.cpp\
+    TumorOnlyReportWorker.cpp \
+    TumorOnlyReportDialog.cpp \
     CfDNAPanelDesignDialog.cpp \
     DiseaseCourseWidget.cpp \
     CfDNAPanelWidget.cpp
+
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -176,9 +179,12 @@ HEADERS += MainWindow.h \
     EvaluationSheetEditDialog.h \
     PublishedVariantsWidget.h \
     PreferredTranscriptsWidget.h \
+    TumorOnlyReportWorker.h \
+    TumorOnlyReportDialog.h \
     CfDNAPanelDesignDialog.h \
     DiseaseCourseWidget.h \
     CfDNAPanelWidget.h
+
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -249,10 +255,11 @@ FORMS    += MainWindow.ui \
     EvaluationSheetEditDialog.ui \
     PublishedVariantsWidget.ui \
     PreferredTranscriptsWidget.ui \
+    TumorOnlyReportDialog.ui \
+    PreferredTranscriptsWidget.ui \
     CfDNAPanelDesignDialog.ui \
     DiseaseCourseWidget.ui \
     CfDNAPanelWidget.ui
-
 include("../app_gui.pri")
 
 #include NGSD library
