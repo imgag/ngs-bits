@@ -106,6 +106,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "PreferredTranscriptsWidget.h"
 #include "CfDNAPanelDesignDialog.h"
 #include "DiseaseCourseWidget.h"
+#include "CfDNAPanelWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -687,9 +688,7 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 	QStringList processing_systems = NGSD().getValues("SELECT name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 	QString folder = Settings::string("patient_specific_panel_folder", false);
 	QStringList bed_files;
-
-	// create label for widget
-	QLabel* l_file_name = new QLabel();
+	QString selected_bed_file;
 
 	foreach (const QString& system, processing_systems)
 	{
@@ -698,7 +697,6 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 		if (QFileInfo(file_path).exists()) bed_files << file_path;
 	}
 
-	BedFile cfdna_panel;
 	if (bed_files.empty())
 	{
 		// show message
@@ -717,42 +715,18 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 		{
 			return;
 		}
-		// load selected file
-		cfdna_panel.load(bed_file_selector->currentText());
-		l_file_name = new QLabel(bed_file_selector->currentText());
+		selected_bed_file = bed_file_selector->currentText();
 	}
 	else
 	{
 		// 1 file found
-		cfdna_panel.load(bed_files.at(0));
-		l_file_name = new QLabel(bed_files.at(0));
+		selected_bed_file = bed_files.at(0);
 	}
 
-
-
-	// create table view
-	QTableWidget* table = new QTableWidget(cfdna_panel.count(), 5);
-	table->setHorizontalHeaderItem(0, GUIHelper::createTableItem("chr"));
-	table->setHorizontalHeaderItem(1, GUIHelper::createTableItem("start"));
-	table->setHorizontalHeaderItem(2, GUIHelper::createTableItem("end"));
-	table->setHorizontalHeaderItem(3, GUIHelper::createTableItem("type"));
-	table->setHorizontalHeaderItem(4, GUIHelper::createTableItem("details"));
-
-	for (int i=0; i < cfdna_panel.count(); i++)
-	{
-		const BedLine& line = cfdna_panel[i];
-		table->setItem(i, 0, GUIHelper::createTableItem(line.chr().strNormalized(true)));
-		table->setItem(i, 1, GUIHelper::createTableItem(QByteArray::number(line.start())));
-		table->setItem(i, 2, GUIHelper::createTableItem(QByteArray::number(line.end())));
-		table->setItem(i, 3, GUIHelper::createTableItem(line.annotations()[0].split(':')[0]));
-		table->setItem(i, 4, GUIHelper::createTableItem(line.annotations()[0].split(':')[1]));
-	}
-	table->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContentsOnFirstShow);
-
-	// create export for IDT order
-	QPushButton* export_bed = new QPushButton("Export patient specific regions", this);
-	auto dlg = GUIHelper::createDialog(table, "cfDNA panel for tumor " + processedSampleName());
-	dlg->exec();
+	//show dialog
+	CfDNAPanelWidget* widget = new CfDNAPanelWidget(selected_bed_file, processedSampleName());
+	auto dlg = GUIHelper::createDialog(widget, "cfDNA panel for tumor " + processedSampleName());
+	addModelessDialog(dlg, false);
 }
 
 void MainWindow::on_actionCfDNADiseaseCourse_triggered()

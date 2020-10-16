@@ -53,8 +53,16 @@ void DiseaseCourseWidget::getCfDNASampleIds()
 
 void DiseaseCourseWidget::loadVariantLists()
 {
+	// get processing systems from cfDNA samples
+	QSet<QString> processing_systems;
+	foreach (const QString& cf_dna_ps_id, cf_dna_ps_ids_)
+	{
+		processing_systems.insert(db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(db_.processedSampleName(cf_dna_ps_id)), true).name_short);
+	}
+	if (processing_systems.size() > 1) THROW(ArgumentException, "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
+	QString system_name = processing_systems.toList().at(0);
+
 	// load ref tumor variants
-	QString system_name = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_sample_name_), true).name_short;
 	QString panel_folder = Settings::string("patient_specific_panel_folder", false);
 	QString vcf_file_path = panel_folder + system_name + "/" + tumor_sample_name_ + ".vcf";
 
@@ -163,12 +171,14 @@ void DiseaseCourseWidget::createTableView()
 				const VcfLine* cf_dna_variant = cf_dna_column.lookup_table.value(key);
 				double alt_count = Helper::toDouble(cf_dna_variant->formatValueFromSample("Alt_Count"), "Alt_Count", QString::number(i));
 				double depth = Helper::toDouble(cf_dna_variant->formatValueFromSample("DP"), "DP", QString::number(i));
+				double p_value = Helper::toDouble(cf_dna_variant->info("PValue"), "PValue", QString::number(i));
 				double cf_dna_af = (depth != 0)? alt_count/depth : 0.0;
 
 				// generate table item with tool tip
 				QTableWidgetItem* cfdna_item = GUIHelper::createTableItem(QString::number(cf_dna_af, 'f', 5));
-				cfdna_item->setToolTip("Alt. count:" + QString::number(alt_count, 'f', 0).rightJustified(7, ' ')
-									+ "\nDepth:     " + QString::number(depth, 'f', 0).rightJustified(6, ' '));
+				cfdna_item->setToolTip("Alt. count:\t" + QString::number(alt_count, 'f', 0).rightJustified(9, ' ')
+									+ "\nDepth:     \t" + QString::number(depth, 'f', 0).rightJustified(7, ' ')
+									+ "\np-value:   \t" + QString::number(p_value, 'f', 4).rightJustified(6, ' '));
 				ui_->vars->setItem(i, col_idx++, cfdna_item);
 			}
 			else

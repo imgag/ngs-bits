@@ -91,7 +91,8 @@ SOURCES += main.cpp\
     PublishedVariantsWidget.cpp \
     PreferredTranscriptsWidget.cpp \
     CfDNAPanelDesignDialog.cpp \
-    DiseaseCourseWidget.cpp
+    DiseaseCourseWidget.cpp \
+    CfDNAPanelWidget.cpp
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -176,7 +177,8 @@ HEADERS += MainWindow.h \
     PublishedVariantsWidget.h \
     PreferredTranscriptsWidget.h \
     CfDNAPanelDesignDialog.h \
-    DiseaseCourseWidget.h
+    DiseaseCourseWidget.h \
+    CfDNAPanelWidget.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -248,7 +250,8 @@ FORMS    += MainWindow.ui \
     PublishedVariantsWidget.ui \
     PreferredTranscriptsWidget.ui \
     CfDNAPanelDesignDialog.ui \
-    DiseaseCourseWidget.ui
+    DiseaseCourseWidget.ui \
+    CfDNAPanelWidget.ui
 
 include("../app_gui.pri")
 
