@@ -123,6 +123,12 @@ void SvWidget::initGUI()
 			item->setIcon(QIcon("://Icons/Table.png"));
 			item->setToolTip("Double click table cell to open table view of annotations");
 		}
+
+		if(sv_bedpe_file_.annotationDescriptionByName(header) != "")
+		{
+			item->setToolTip(sv_bedpe_file_.annotationDescriptionByName(header));
+		}
+
 		ui->svs->setHorizontalHeaderItem(ui->svs->columnCount() - 1, item);
 		annotation_indices << i;
 	}
@@ -167,7 +173,7 @@ void SvWidget::initGUI()
 
 	//set entries for SV filter columns filter
 	QStringList valid_filter_entries;
-	foreach (const QByteArray& entry, sv_bedpe_file_.annotationDescriptionByID("FILTER").keys())
+	foreach (const QByteArray& entry, sv_bedpe_file_.metaInfoDescriptionByID("FILTER").keys())
 	{
 		valid_filter_entries.append(entry);
 	}
@@ -885,7 +891,7 @@ void SvWidget::SvSelectionChanged()
 	ui->sv_details->setRowCount(format.count());
 
 	//Map with description of format field, e.g. GT <-> GENOTYPE
-	QMap<QByteArray,QByteArray> format_description = sv_bedpe_file_.annotationDescriptionByID("FORMAT");
+	QMap<QByteArray,QByteArray> format_description = sv_bedpe_file_.metaInfoDescriptionByID("FORMAT");
 
 	for(int i=0;i<ui->sv_details->rowCount();++i)
 	{
@@ -927,7 +933,7 @@ void SvWidget::setInfoWidgets(const QByteArray &name, int row, QTableWidget* wid
 	else if(raw_data.count() == 1 && (raw_data[0] == "." || raw_data[0] == "MISSING")) widget->setRowCount(0);
 	else widget->setRowCount(raw_data.count());
 
-	QMap<QByteArray,QByteArray> descriptions = sv_bedpe_file_.annotationDescriptionByID("INFO");
+	QMap<QByteArray,QByteArray> descriptions = sv_bedpe_file_.metaInfoDescriptionByID("INFO");
 
 	for(int i=0;i<raw_data.count();++i)
 	{
