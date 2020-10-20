@@ -3679,6 +3679,14 @@ void MainWindow::on_actionImportMids_triggered()
 				);
 }
 
+void MainWindow::on_actionImportStudy_triggered()
+{
+	importBatch("Import study",
+				"Batch import of stamples to studies. Please enter study, processed sample and study-specific name of sample:<br>Example:<br><br>SomeStudy → NA12345_01 → NameOfSampleInStudy",
+				 "study_sample",
+				QStringList() << "study_id" << "processed_sample_id" << "study_sample_idendifier"
+				);
+}
 void MainWindow::on_actionImportSamples_triggered()
 {
 	importBatch("Import samples",

@@ -124,6 +124,7 @@ public slots:
 	void on_actionSpecies_triggered();
 	void on_actionUsers_triggered();
 	void on_actionImportMids_triggered();
+	void on_actionImportStudy_triggered();
 	void on_actionImportSamples_triggered();
 	void on_actionImportProcessedSamples_triggered();
 	void on_actionMidClashDetection_triggered();
