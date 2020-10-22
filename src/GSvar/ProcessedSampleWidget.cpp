@@ -277,6 +277,11 @@ void ProcessedSampleWidget::updateQCMetrics()
 					if (value>3) color = orange;
 					if (value>6) color = red;
 				}
+				else if(accession=="QC:2000045") //known somatic variants percentage
+				{
+					if (value>4) color = orange;
+					if (value>5) color = red;
+				}
 			}
 
 			colors << color;
