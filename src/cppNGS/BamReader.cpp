@@ -422,7 +422,7 @@ BamReader::BamReader(const QString& bam_file)
 	}
 
 	//read header
-	header_ = bam_hdr_read(fp_->fp.bgzf);
+	header_ = sam_hdr_read(fp_);
 	if (header_==nullptr)
 	{
 		THROW(FileAccessException, "Could not read header from BAM file " + bam_file);
@@ -493,7 +493,7 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 
 bool BamReader::getNextAlignment(BamAlignment& al)
 {
-	int res = (iter_!=nullptr) ? bam_itr_next(fp_, iter_, al.aln_) : bam_read1(fp_->fp.bgzf, al.aln_);
+	int res = (iter_!=nullptr) ? sam_itr_next(fp_, iter_, al.aln_) : sam_read1(fp_, header_,al.aln_);
 
 	if (res<-1)
 	{
