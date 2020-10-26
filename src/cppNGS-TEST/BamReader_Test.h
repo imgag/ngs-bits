@@ -19,7 +19,7 @@ Q_OBJECT
 private slots:
 
 	/************************************************************* BamAlignment *************************************************************/
-
+/*
 	void BamAlignment_getter_tests()
 	{
 		BamReader reader(TESTDATA("data_in/panel.bam"));
@@ -163,7 +163,7 @@ private slots:
 
 
 /************************************************************* BamReader *************************************************************/
-
+/*
 	void BamReader_cigarDataAsString()
 	{
 		BamReader reader(TESTDATA("data_in/panel.bam"));
@@ -327,6 +327,59 @@ private slots:
 		I_EQUAL(indels.count(), 14);
 		I_EQUAL(indels.count("-AG"), 14);
 		F_EQUAL2(mapq0_frac, 0.0, 0.001);
+	}*/
+
+/************************************************************* BamReader *************************************************************/
+	void BamAlignment_getter_tests()
+	{
+		BamReader reader(TESTDATA("data_in/test.cram"));
+		BamAlignment al;
+		do
+		{
+			reader.getNextAlignment(al);
+			qDebug() << al.chromosomeID();
+		}
+		while(al.isUnmapped());
+
+		/*
+		//check name
+		S_EQUAL(al.name(), "PC0226:55:000000000-A5CV9:1:2101:8066:18464");
+
+		//check bases
+		QByteArray bases = al.bases();
+		S_EQUAL(bases, "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGACGACGCTCTTCCGATCT");
+		for (int i=0; i<bases.count(); ++i)
+		{
+			S_EQUAL(bases.data()[i], al.base(i));
+		}
+
+		//check qualities
+		QByteArray qualities = al.qualities();
+		S_EQUAL(qualities, "@@?@@@=@@@?@@@?@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@?@@@@@@@@@@@@@@@@@@@@@@@@@=@99----;--99-?@99@;G@@AA-@A-?C@B<///>/>//////0000A0GGGGGGFFAAAAAAAAAA");
+		for (int i=0; i<qualities.count(); ++i)
+		{
+			S_EQUAL(qualities.data()[i], (char)(al.quality(i)+33));
+		}
+
+		//check CIGAR
+		S_EQUAL(al.cigarDataAsString(), "133M13I5M");
+		QByteArray cigar_exp = al.cigarDataAsString(true);
+		S_EQUAL(cigar_exp, "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMIIIIIIIIIIIIIMMMMM");
+		QList<CigarOp> cigar_data = al.cigarData();
+		int i = 0;
+		foreach(const CigarOp& op, cigar_data)
+		{
+			for(int j=0; j<op.Length; ++j)
+			{
+				S_EQUAL(cigar_exp.data()[i], op.typeAsChar());
+				++i;
+			}
+		}
+
+		//tag
+		S_EQUAL(al.tag("RG"), "ZGS130639_01.000000000-A5CV9.1");
+		S_EQUAL(al.tag("XX"), "");
+		*/
 	}
 
 
