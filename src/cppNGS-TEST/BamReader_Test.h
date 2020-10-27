@@ -19,7 +19,7 @@ Q_OBJECT
 private slots:
 
 	/************************************************************* BamAlignment *************************************************************/
-/*
+
 	void BamAlignment_getter_tests()
 	{
 		BamReader reader(TESTDATA("data_in/panel.bam"));
@@ -163,7 +163,7 @@ private slots:
 
 
 /************************************************************* BamReader *************************************************************/
-/*
+
 	void BamReader_cigarDataAsString()
 	{
 		BamReader reader(TESTDATA("data_in/panel.bam"));
@@ -327,17 +327,16 @@ private slots:
 		I_EQUAL(indels.count(), 14);
 		I_EQUAL(indels.count("-AG"), 14);
 		F_EQUAL2(mapq0_frac, 0.0, 0.001);
-	}*/
+	}
 
-/************************************************************* BamReader *************************************************************/
-	void BamAlignment_getter_tests()
+/************************************************************* Cram Support *************************************************************/
+	void CramSupport_tests()
 	{
 		BamReader reader(TESTDATA("data_in/test.cram"));
 		BamAlignment al;
 		do
 		{
 			reader.getNextAlignment(al);
-			qDebug() << al.chromosomeID();
 		}
 		while(al.isUnmapped());
 

@@ -1,6 +1,7 @@
 #include "BamReader.h"
 #include "Exceptions.h"
 #include "NGSHelper.h"
+#include "Settings.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -413,7 +414,7 @@ QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
 
 BamReader::BamReader(const QString& bam_file)
 	: bam_file_(QFileInfo(bam_file).absoluteFilePath())
-	, fp_(hts_open(bam_file.toLatin1().constData(), "r"))
+	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
 {
 	//open file
 	if (fp_==nullptr)
@@ -426,6 +427,17 @@ BamReader::BamReader(const QString& bam_file)
 	if (header_==nullptr)
 	{
 		THROW(FileAccessException, "Could not read header from BAM file " + bam_file);
+	}
+
+	//set reference for CRAM files
+	if(fp_->is_cram)
+	{
+		QString ref_file =  Settings::string("reference_genome", true);
+		if (ref_file=="")
+		{
+			THROW(FileAccessException, "reference genome could not be read, needed for reading cram file!");
+		}
+		hts_set_fai_filename(fp_, ref_file.toLatin1().constData());
 	}
 
 	//parse chromosome names and sizes
@@ -493,11 +505,12 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 
 bool BamReader::getNextAlignment(BamAlignment& al)
 {
-	int res = (iter_!=nullptr) ? sam_itr_next(fp_, iter_, al.aln_) : sam_read1(fp_, header_,al.aln_);
+
+	int res = (iter_!=nullptr) ? sam_itr_next(fp_, iter_, al.aln_) : sam_read1(fp_, header_, al.aln_);
 
 	if (res<-1)
 	{
-		THROW(FileAccessException, "Could not read next alignment in BAM file " + bam_file_);
+		THROW(FileAccessException, "Could not read next alignment in BAM/CRAM file " + bam_file_);
 	}
 
 	return res>=0;
