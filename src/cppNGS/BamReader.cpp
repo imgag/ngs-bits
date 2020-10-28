@@ -437,7 +437,11 @@ BamReader::BamReader(const QString& bam_file)
 		{
 			THROW(FileAccessException, "reference genome could not be read, needed for reading cram file!");
 		}
-		hts_set_fai_filename(fp_, ref_file.toLatin1().constData());
+		int fai = hts_set_fai_filename(fp_, ref_file.toLatin1().constData());
+		if(fai < 0)
+		{
+			THROW(FileAccessException, "Error while setting reference genome for cram file!");
+		}
 	}
 
 	//parse chromosome names and sizes
@@ -475,7 +479,7 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 	//load index if not done already
 	if (index_==nullptr)
 	{
-		index_ = bam_index_load(bam_file_.toLatin1().data());
+		index_ = sam_index_load(fp_, bam_file_.toLatin1().data());
 		if (index_==nullptr)
 		{
 			THROW(FileAccessException, "Could not load index of BAM file " + bam_file_);
@@ -490,7 +494,7 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 	}
 
 	//create iterator for region
-	iter_ = bam_itr_queryi(index_, chr_index, start-1, end);
+	iter_ = sam_itr_queryi(index_, chr_index, start-1, end);
 	if (iter_==nullptr)
 	{
 		QByteArray region_str = chrs_[chr_index].str() + ":" + QByteArray::number(start) + "-" + QByteArray::number(end);
@@ -507,7 +511,7 @@ bool BamReader::getNextAlignment(BamAlignment& al)
 {
 
 	int res = (iter_!=nullptr) ? sam_itr_next(fp_, iter_, al.aln_) : sam_read1(fp_, header_, al.aln_);
-
+	//qDebug() << al.isUnmapped() <<al.chromosomeID() <<al.start() << al.end()<< al.cigarDataAsString();
 	if (res<-1)
 	{
 		THROW(FileAccessException, "Could not read next alignment in BAM/CRAM file " + bam_file_);
@@ -569,6 +573,7 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 	BamAlignment al;
 	while (getNextAlignment(al))
 	{
+		qDebug() << al.isUnmapped() <<al.chromosomeID() <<al.start() << al.end()<< al.cigarDataAsString();
 		if (!al.isProperPair() && anom==false) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isDuplicate()) continue;
