@@ -24,6 +24,7 @@ private slots:
 	void copyToClipboard();
 	void calculateSimilarity();
 	void openProcessedSampleTab();
+	void editClassification();
 
 private:
 	Ui::VariantWidget ui_;
