@@ -48,7 +48,6 @@ signals:
 	void jumbToRegion(QString region);
 	void openVariantTab(Variant variant);
 	void openGeneTab(QString gene);
-	void checkSomDetailsArrows();
 
 private slots:
 	void nextTanscript();

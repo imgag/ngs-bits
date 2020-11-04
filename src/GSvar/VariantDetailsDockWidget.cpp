@@ -32,7 +32,6 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
 	connect(ui->som_details_prev, SIGNAL(clicked(bool)), this, SLOT(previousSomDetails()));
 	connect(ui->som_details_next, SIGNAL(clicked(bool)), this, SLOT(nextSomDetails()) );
-	connect(this, SIGNAL(checkSomDetailsArrows()), this, SLOT(enableSomDetailsArrows()) );
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
@@ -864,13 +863,13 @@ void VariantDetailsDockWidget::variantButtonClicked()
 void VariantDetailsDockWidget::nextSomDetails()
 {
 	ui->somaticDetailsWidget->setCurrentIndex(ui->somaticDetailsWidget->currentIndex()+1);
-	emit enableSomDetailsArrows();
+	enableSomDetailsArrows();
 }
 
 void VariantDetailsDockWidget::previousSomDetails()
 {
 	ui->somaticDetailsWidget->setCurrentIndex(ui->somaticDetailsWidget->currentIndex()-1);
-	emit enableSomDetailsArrows();
+	enableSomDetailsArrows();
 }
 
 void VariantDetailsDockWidget::enableSomDetailsArrows()
