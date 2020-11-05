@@ -795,7 +795,7 @@ void SvWidget::importPhenotypesFromNGSD()
 
 	NGSD db;
 	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_id_).toString();
-	QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
+	PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
 
 	ui->filter_widget->setPhenotypes(phenotypes);
 }

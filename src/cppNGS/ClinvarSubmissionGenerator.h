@@ -2,7 +2,7 @@
 #define CLINVARSUBMISSIONGENERATOR_H
 
 #include "cppNGS_global.h"
-#include "Phenotype.h"
+#include "PhenotypeList.h"
 #include "VariantList.h"
 #include <QDate>
 
@@ -27,7 +27,7 @@ struct CPPNGSSHARED_EXPORT ClinvarSubmissionData
 	QString sample_name;
 	QString sample_gender; //optional
 	QString sample_disease; //optional - optimally contains OMIM disease e.g. "MIM:614381", but may also contains any other disease name
-	QList<Phenotype> sample_phenotypes; //optional
+	PhenotypeList sample_phenotypes; //optional
 
 	///Checks the data for errors. Throws an exception if it is not valid.
 	void check() const;

@@ -285,12 +285,12 @@ void FilterWidget::disableReportConfigurationFilter() const
 	ui_.report_config->setEnabled(false);
 }
 
-const QList<Phenotype>& FilterWidget::phenotypes() const
+const PhenotypeList& FilterWidget::phenotypes() const
 {
 	return phenotypes_;
 }
 
-void FilterWidget::setPhenotypes(const QList<Phenotype>& phenotypes)
+void FilterWidget::setPhenotypes(const PhenotypeList& phenotypes)
 {
 	phenotypes_ = phenotypes;
 	phenotypesChanged();

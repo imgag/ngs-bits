@@ -395,7 +395,7 @@ private:
 	QString last_roi_filename_;
 	BedFile last_roi_;
 	QString last_report_path_;
-	QList<Phenotype> last_phenos_;
+	PhenotypeList last_phenos_;
 	BedFile last_phenos_roi_;
     QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;

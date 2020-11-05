@@ -1468,7 +1468,7 @@ void MainWindow::importPhenotypesFromNGSD()
 	{
 		NGSD db;
 		QString sample_id = db.sampleId(ps_name);
-		QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
+		PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
 
 		ui_.filters->setPhenotypes(phenotypes);
 	}
@@ -5513,7 +5513,7 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 
 		//phenotype selection changed => update ROI
-		const QList<Phenotype>& phenos = ui_.filters->phenotypes();
+		const PhenotypeList& phenos = ui_.filters->phenotypes();
 		if (phenos!=last_phenos_)
 		{
 			last_phenos_ = phenos;

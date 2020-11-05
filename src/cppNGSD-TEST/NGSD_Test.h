@@ -516,7 +516,7 @@ private slots:
 		I_EQUAL(approved.count(), 14);
 
 		//phenotypes
-		QList<Phenotype> phenos = db.phenotypes(QStringList() << "aBNOrmality");
+		PhenotypeList phenos = db.phenotypes(QStringList() << "aBNOrmality");
 		I_EQUAL(phenos.count(), 1);
 		IS_TRUE(phenos.contains(Phenotype("HP:0000118","Phenotypic abnormality")));
 		//synonyms

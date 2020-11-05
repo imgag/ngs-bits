@@ -15,7 +15,7 @@ struct LovdUploadData
 	QString gender;
 
 	//phenotype data
-	QList<Phenotype> phenos;
+	PhenotypeList phenos;
 
 	//variant data
 	Variant variant;

@@ -5,7 +5,7 @@
 #include <QSqlDatabase>
 #include <QSharedPointer>
 #include "cppNGSD_global.h"
-#include <Phenotype.h>
+#include "PhenotypeList.h"
 #include "NGSD.h"
 
 /// GenLabDB accessor
@@ -28,7 +28,7 @@ public:
 	const TableInfo& tableInfo(const QString& table) const;
 
 	///Returns HPO phenotypes of a sample
-	QList<Phenotype> phenotypes(QString ps_name);
+	PhenotypeList phenotypes(QString ps_name);
 
 	///Returns Oprhanet identifiers of a sample
 	QStringList orphanet(QString ps_name);

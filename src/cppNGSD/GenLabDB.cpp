@@ -137,9 +137,9 @@ const TableInfo& GenLabDB::tableInfo(const QString& table) const
 	return infos_[table];
 }
 
-QList<Phenotype> GenLabDB::phenotypes(QString ps_name)
+PhenotypeList GenLabDB::phenotypes(QString ps_name)
 {
-	QList<Phenotype> output;
+	PhenotypeList output;
 
 	NGSD ngsd;
 

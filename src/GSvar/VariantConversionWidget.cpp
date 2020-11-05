@@ -134,9 +134,9 @@ void VariantConversionWidget::convert()
 				if (trans_id==-1) //not found > try to match CCDS/RefSeq toEnsembl
 				{
 					//remove version number (if present)
-					if (transcript_name[transcript_name.length()-2]=='.')
+					if (transcript_name.contains("."))
 					{
-						transcript_name = transcript_name.left(transcript_name.length()-2);
+						transcript_name = transcript_name.left(transcript_name.indexOf('.'));
 					}
 
 					QString transcript_name2 = "";
