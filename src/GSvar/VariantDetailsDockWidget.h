@@ -56,6 +56,9 @@ private slots:
 	void gnomadClicked(QString link);
 	void transcriptClicked(QString link);
 	void variantButtonClicked();
+	void nextSomDetails();
+	void previousSomDetails();
+	void enableSomDetailsArrows();
 
 private:
 	enum Color
