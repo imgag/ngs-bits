@@ -310,7 +310,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				else if (entry.details.contains("CLASS=DM")) color = RED;
 				else if (entry.details.contains("CLASS=DP") || entry.details.contains("CLASS=DFP")) color = ORANGE;
 
-				text += formatLink(entry.id, "https://portal.biobase-international.com/hgmd/pro/mut.php?acc=" + entry.id, color) + " ";
+				text += formatLink(entry.id, "https://my.qiagendigitalinsights.com/bbp/view/hgmd/pro/mut.php?acc=" + entry.id, color) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
 			}
 		}

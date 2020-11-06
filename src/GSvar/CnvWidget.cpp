@@ -151,7 +151,7 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 		}
 		if (col_name=="hgmd_cnvs")
 		{
-			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://portal.biobase-international.com/hgmd/pro/mut.php?acc=");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://my.qiagendigitalinsights.com/bbp/view/hgmd/pro/mut.php?acc=");
 		}
 		if (col_name=="omim")
 		{
