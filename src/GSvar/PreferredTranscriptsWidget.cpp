@@ -1,6 +1,7 @@
 #include "PreferredTranscriptsWidget.h"
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QAction>
 #include "NGSD.h"
 
 PreferredTranscriptsWidget::PreferredTranscriptsWidget(QWidget* parent)

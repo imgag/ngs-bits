@@ -110,6 +110,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "DiseaseCourseWidget.h"
 #include "CfDNAPanelWidget.h"
 
+#include "ClinvarSubmissionGenerator.h"
+
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -310,6 +312,112 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
+	}
+	else if (user=="ahstoht1")
+	{
+
+		NGSD db;
+		//import all interesting variants
+		QString filename = QCoreApplication::applicationDirPath() + "/AHSTOHT1_FILES/variant_ids.txt";
+		QStringList lines = Helper::loadTextFile(filename, true, '#', true);
+		int count = 0;
+		foreach(const QString& line, lines)
+		{
+
+			try
+			{
+				QByteArrayList parts = line.toLatin1().split('\t');
+				if (parts.count()==6)
+				{
+					QByteArray processed_sample_id = parts[0].trimmed();
+					QByteArray variant_id = parts[1].trimmed();
+					QByteArray inheritance = parts[2].trimmed();
+					QByteArray class_num = parts[3].trimmed();
+
+					QString variant_inheritance;
+					QString variant_classification;
+					//Variant
+					Variant variant = db.variant(QString(variant_id));
+					//convert variant to VCF
+					QString ref_file = Settings::string("reference_genome", true);
+					if (ref_file=="")
+					{
+						qDebug("Test needs the reference genome!");
+						exit(EXIT_FAILURE);
+					}
+					FastaFileIndex genome_index(ref_file);
+
+					int old_pos = variant.start();
+					QString new_values = variant.toVCF(genome_index);
+					QStringList new_values_list = new_values.split('\t');
+
+					variant.setStart(new_values_list[1].toInt());
+					if( (old_pos -1 ) == new_values_list[1].toInt())
+					{
+						variant.setEnd(variant.end()-1);
+					}
+					else if( old_pos != new_values_list[1].toInt())
+					{
+						qDebug("WRONG START POSITION!");
+						exit(EXIT_FAILURE);
+					}
+					Sequence ref = Sequence(new_values_list[3].toUtf8());
+					variant.setRef(ref);
+					Sequence obs = Sequence(new_values_list[4].toUtf8());
+					variant.setObs(obs);
+
+					//Variant inheritance
+					variant_inheritance = ClinvarSubmissionGenerator::translateInheritance(QString(inheritance));
+					if(variant_inheritance == "")
+					{
+						if(inheritance == "AR+AD")
+						{
+							variant_inheritance = "Autosomal unknown";
+						}
+						else if(inheritance == "XLR+XLD")
+						{
+							variant_inheritance = "X-linked inheritance";
+						}
+						else if(inheritance == "n/a")
+						{
+							variant_inheritance = "Unknown mechanism";
+						}
+					}
+					//Variant classification
+					variant_classification = ClinvarSubmissionGenerator::translateClassification(QString(class_num));
+					//sample name
+					QString sample_name = processed_sample_id;
+					SampleData sample_data = db.getSampleData(parts[5].trimmed());
+
+					//General Data
+					ClinvarSubmissionData data;
+					data.date = QDate::fromString("2020-10-23", Qt::ISODate);
+					data.local_key = "report_configuration_variant_id:" + parts[4].trimmed();
+
+					data.submission_id = "123456";
+					data.submitter_id = "78325";
+					data.organization_id = "506385";
+
+					data.variant = variant;
+					data.variant_classification = variant_classification;
+					data.variant_inheritance = variant_inheritance;
+
+					data.sample_name = sample_data.name;
+
+					//Generate xml
+					QString xml = ClinvarSubmissionGenerator::generateXML(data);
+					QString name = sample_name + "_" + variant_id;
+					Helper::storeTextFile(QCoreApplication::applicationDirPath() + "/ClinVarVariants/" + name + ".xml", xml.split("\n"));
+				}
+				qDebug() << "  success line: " << count;
+
+			}
+			catch(Exception& e)
+			{
+				qDebug() << line << " " << count << " failed: " << e.message();
+			}
+			count++;
+		}
 	}
 }
 
@@ -1451,7 +1559,7 @@ void MainWindow::importPhenotypesFromNGSD()
 	{
 		NGSD db;
 		QString sample_id = db.sampleId(ps_name);
-		QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
+		PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
 
 		ui_.filters->setPhenotypes(phenotypes);
 	}
@@ -3870,6 +3978,14 @@ void MainWindow::on_actionImportMids_triggered()
 				);
 }
 
+void MainWindow::on_actionImportStudy_triggered()
+{
+	importBatch("Import study",
+				"Batch import of stamples to studies. Please enter study, processed sample and study-specific name of sample:<br>Example:<br><br>SomeStudy → NA12345_01 → NameOfSampleInStudy",
+				 "study_sample",
+				QStringList() << "study_id" << "processed_sample_id" << "study_sample_idendifier"
+				);
+}
 void MainWindow::on_actionImportSamples_triggered()
 {
 	importBatch("Import samples",
@@ -5588,7 +5704,7 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 
 		//phenotype selection changed => update ROI
-		const QList<Phenotype>& phenos = ui_.filters->phenotypes();
+		const PhenotypeList& phenos = ui_.filters->phenotypes();
 		if (phenos!=last_phenos_)
 		{
 			last_phenos_ = phenos;

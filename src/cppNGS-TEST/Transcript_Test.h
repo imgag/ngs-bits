@@ -215,6 +215,13 @@ private slots:
 		I_EQUAL(variant.end(), 195959298);
 		S_EQUAL(variant.ref(), "CTC");
 		S_EQUAL(variant.obs(), "AAAA");
+
+		variant = t.hgvsToVariant("c.787_789delinsAAAA", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 195959296);
+		I_EQUAL(variant.end(), 195959298);
+		S_EQUAL(variant.ref(), "CTC");
+		S_EQUAL(variant.obs(), "AAAA");
 	}
 
 
@@ -317,6 +324,12 @@ private slots:
 		S_EQUAL(variant.ref(), "GGGG");
 		S_EQUAL(variant.obs(), "TT");
 
+		variant = t.hgvsToVariant("c.123+2_123+6delinsC", reference);
+		S_EQUAL(variant.chr().str(), "chr3");
+		I_EQUAL(variant.start(), 195306204);
+		I_EQUAL(variant.end(), 195306208);
+		S_EQUAL(variant.ref(), "TTTTA");
+		S_EQUAL(variant.obs(), "G");
 
 		variant = t.hgvsToVariant("c.-34delinsACACACA", reference);
 		S_EQUAL(variant.chr().str(), "chr3");

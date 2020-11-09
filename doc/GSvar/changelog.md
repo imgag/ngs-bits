@@ -1,5 +1,15 @@
 # GSvar change log
 
+### 2020_09-30 (05.11.20)
+
+- NGSD: Added disease info (group, status, HPO) and outcome to all variant search dialogs.
+- NGSD: Variant classification can now be changed from the variant tab.
+- NGSD: Deleting preferred transcripts is now possible.
+- NGSD: Added used method to variant validation.
+- NGSD: Moving processed samples between runs is now possible via context menu of the run overview.
+- Studies: Added batch import for study data.
+- General: Meta data tabs are no longer closed when loading a new sample.
+
 ### 2020_09-9 (08.10.20)
 - Added support for studies
 	- Studies can be created in NGSD > Admin > Study.

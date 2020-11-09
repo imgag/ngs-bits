@@ -372,6 +372,7 @@ private slots:
 		//transcriptId
 		I_EQUAL(db.transcriptId("NIPA1_TR2"), 4);
 		I_EQUAL(db.transcriptId("NIPA1_TR2_FAIL", false), -1);
+		I_EQUAL(db.transcriptId("NIPA1_TR2.3", false), 4);
 
 		//transcript
 		Transcript transcript = db.transcript(4);
@@ -515,7 +516,7 @@ private slots:
 		I_EQUAL(approved.count(), 14);
 
 		//phenotypes
-		QList<Phenotype> phenos = db.phenotypes(QStringList() << "aBNOrmality");
+		PhenotypeList phenos = db.phenotypes(QStringList() << "aBNOrmality");
 		I_EQUAL(phenos.count(), 1);
 		IS_TRUE(phenos.contains(Phenotype("HP:0000118","Phenotypic abnormality")));
 		//synonyms

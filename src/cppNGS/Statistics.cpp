@@ -659,7 +659,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
 	}
 	output.insert(QCValue("bases usable (MB)", (double)bases_usable / 1000000.0, "Bases sequenced that are usable for variant calling (in megabases).", "QC:2000050"));
-	output.insert(QCValue("target region read depth", (double) bases_usable / reader.genomeSize(true), "Average sequencing depth in target region.", "QC:2000025"));
+	output.insert(QCValue("target region read depth", (double) bases_usable / reader.genomeSize(false), "Average sequencing depth in target region.", "QC:2000025"));
 
 	//add insert size distribution plot
 	if (paired_end)

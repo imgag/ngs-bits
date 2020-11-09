@@ -157,7 +157,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>19</number>
+      <number>20</number>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -225,6 +225,11 @@
      <column>
       <property name="text">
        <string>disease_group</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>disease_status</string>
       </property>
      </column>
      <column>

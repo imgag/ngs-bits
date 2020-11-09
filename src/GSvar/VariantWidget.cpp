@@ -1,5 +1,5 @@
 #include "VariantWidget.h"
-
+#include "ClassificationDialog.h"
 #include "NGSD.h"
 #include "GUIHelper.h"
 #include "DBTableWidget.h"
@@ -17,6 +17,7 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.similarity, SIGNAL(clicked(bool)), this, SLOT(calculateSimilarity()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
+	connect(ui_.class_btn, SIGNAL(clicked(bool)), this, SLOT(editClassification()));
 	connect(ui_.transcripts, SIGNAL(linkActivated(QString)), this, SIGNAL(openGeneTab(QString)));
 
 	//add sample table context menu entries
@@ -219,6 +220,27 @@ void VariantWidget::openProcessedSampleTab()
 	{
 		QString ps = ui_.table->item(row, 0)->text();
 		emit openProcessedSampleTab(ps);
+	}
+}
+
+void VariantWidget::editClassification()
+{
+	try
+	{
+		//execute dialog
+		ClassificationDialog dlg(this, variant_);
+		if (dlg.exec()!=QDialog::Accepted) return;
+
+		//update NGSD
+		NGSD db;
+		db.setClassification(variant_, VariantList(), dlg.classificationInfo());
+
+		updateGUI();
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+		return;
 	}
 }
 

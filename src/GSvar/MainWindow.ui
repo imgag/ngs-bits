@@ -475,9 +475,11 @@
       <iconset resource="GSvar.qrc">
        <normaloff>:/Icons/Add_batch.png</normaloff>:/Icons/Add_batch.png</iconset>
      </property>
-     <addaction name="actionImportMids"/>
      <addaction name="actionImportSamples"/>
      <addaction name="actionImportProcessedSamples"/>
+     <addaction name="separator"/>
+     <addaction name="actionImportMids"/>
+     <addaction name="actionImportStudy"/>
     </widget>
     <widget class="QMenu" name="menuVariant_search">
      <property name="title">
@@ -1176,11 +1178,20 @@
    <property name="text">
     <string>Study</string>
    </property>
-  </action>  <action name="actionCloseMetaDataTabs">
+  </action>
+  <action name="actionCloseMetaDataTabs">
    <property name="text">
     <string>Close meta data tabs</string>
    </property>
-  </action>  <action name="actionDesignCfDNAPanel">
+  </action>
+ </widget>
+  <action name="actionImportStudy">
+   <property name="text">
+    <string>Study</string>
+   </property>
+  </action>
+ </widget>
+<action name="actionDesignCfDNAPanel">
    <property name="text">
     <string>Design cfDNA panel</string>
    </property>
@@ -1188,6 +1199,7 @@
     <string>Design cfDNA panel</string>
    </property>
   </action>
+ </widget>
   <action name="actionCfDNADiseaseCourse">
    <property name="text">
     <string>Show course of the disease (personalized cfDNA)</string>
@@ -1200,8 +1212,7 @@
    <property name="text">
     <string>Show cfDNA panel</string>
    </property>
-  </action> </widget>
- <layoutdefault spacing="6" margin="11"/>
+  </action> </widget> <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
    <class>VariantDetailsDockWidget</class>

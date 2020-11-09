@@ -289,7 +289,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		int chromosomeSize(const Chromosome& chr) const;
 
 		//Returns the size sum of all chromosomes stored in the BAM header.
-		double genomeSize(bool nonspecial_only) const;
+		double genomeSize(bool include_special_chromosomes) const;
 
 		/**
 		  @brief Returns the pileup at the given chromosomal position (1-based).

@@ -201,22 +201,13 @@ void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, i
 		//add sample info
 		++c_variants_distinct;
 		SqlQuery query2 = db.getQuery();
-		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, dv.genotype, p.name as p_name, s.disease_group, vc.class, s.name_external, ds.outcome, ds.comment, s.id as s_id, ps.id as ps_id FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id);
+		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, dv.genotype, p.name as p_name, s.disease_group, s.disease_status, vc.class, s.name_external, ds.outcome, ds.comment, s.id as s_id, ps.id as ps_id FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id);
 		while(query2.next())
 		{
 			//get HPO info
-			QStringList hpo_terms;
 			QString sample_id = query2.value("s_id").toString();
 			QString processed_sample_id = query2.value("ps_id").toString();
-			QStringList hpo_ids = db.getValues("SELECT disease_info FROM sample_disease_info WHERE type='HPO term id' AND sample_id=" + sample_id);
-			foreach(QString hpo_id, hpo_ids)
-			{
-				Phenotype pheno = db.phenotypeByAccession(hpo_id.toLatin1(), false);
-				if (!pheno.name().isEmpty())
-				{
-					hpo_terms << pheno.toString();
-				}
-			}
+			PhenotypeList phenotypes = db.samplePhenotypes(sample_id);
 
 			//get causal genes from report config
 			GeneSet genes_causal;
@@ -240,7 +231,7 @@ void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, i
 			QString denovo = query3.size()==0 ? "" : " (de-novo)";
 
 			//add variant line to output
-			var_data.append(QStringList() << gene << var << QString::number(ngsd_counts.first) << QString::number(ngsd_counts.second) << gnomad << tg << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("p_name").toString() << query2.value("disease_group").toString() << hpo_terms.join("; ") << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(','));
+			var_data.append(QStringList() << gene << var << QString::number(ngsd_counts.first) << QString::number(ngsd_counts.second) << gnomad << tg << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("p_name").toString() << query2.value("disease_group").toString() << query2.value("disease_status").toString() << phenotypes.toString() << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(','));
 		}
 	}
 	QString comment = gene + " - " + QString::number(c_variants_distinct) + " distinct variants in " + QString::number(var_data.count()) + " hits";

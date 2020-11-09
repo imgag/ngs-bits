@@ -88,7 +88,8 @@ test_tools:
 test_single_tool:
 	cd bin && ./tools-TEST -s $(T)
 
-DEP_PATH=/mnt/share/opt/ngs-bits-$(shell  bin/SeqPurge --version | cut -d' ' -f2)/
+NGSBITS_VER = $(shell  bin/SeqPurge --version | cut -d' ' -f2)/
+DEP_PATH=/mnt/share/opt/ngs-bits-$(NGSBITS_VER)
 deploy_nobuild:
 	@echo "#Clean up source"
 	rm -rf bin/out bin/*-TEST
@@ -103,7 +104,7 @@ deploy_nobuild:
 	@echo ""
 	@echo "#Activating"
 	@echo "You can active the new build using the command:"
-	@echo "rm /mnt/share/opt/ngs-bits-current && ln -s $(DEP_PATH) /mnt/share/opt/ngs-bits-current"
+	@echo "cd /mnt/share/opt/ && rm ngs-bits-current && ln -s ngs-bits-$(NGSBITS_VER) ngs-bits-current"
 	@echo ""
 	@echo "#Deploy settings"
 	cp /mnt/share/opt/ngs-bits-settings/settings.ini $(DEP_PATH)settings.ini

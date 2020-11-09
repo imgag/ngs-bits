@@ -152,12 +152,12 @@ void FilterWidgetSV::setRegion(QString region)
 	regionChanged();
 }
 
-const QList<Phenotype>& FilterWidgetSV::phenotypes() const
+const PhenotypeList& FilterWidgetSV::phenotypes() const
 {
 	return phenotypes_;
 }
 
-void FilterWidgetSV::setPhenotypes(const QList<Phenotype>& phenotypes)
+void FilterWidgetSV::setPhenotypes(const PhenotypeList& phenotypes)
 {
 	phenotypes_ = phenotypes;
 	phenotypesChanged();

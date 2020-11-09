@@ -38,7 +38,7 @@
    <item>
     <widget class="QLabel" name="label_7">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to start a somatic tumor-normal pair analysis. &lt;/p&gt;&lt;p&gt;If not all samples are processed with the same processing system, the processing system of the tumor sample is used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to start a somatic tumor-normal pair analysis or a tumor-only analysis. &lt;/p&gt;&lt;p&gt;If not all samples are processed with the same processing system, the processing system of the tumor sample is used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
