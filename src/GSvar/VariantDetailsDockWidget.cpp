@@ -84,7 +84,6 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 
 	//splicing/regulatory
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
-	ui->label_genesplicer->setToolTip(vl.annotationDescriptionByName("GeneSplicer").description());
 	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
 	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false).description());
 	ui->label_mmsplice->setToolTip("MMSplice prediction of splice-site variations;\nMaximum absolute values for the highest scored exon are shown in following format:\n[DeltaLogitPSI score as effect on exon inclusion (values below -2 stand for higher exclusion, values above 2 for higher inclusion) / Pathogenicity score]");
@@ -167,7 +166,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 	//splicing/regulatory
 	setAnnotation(ui->maxentscan, vl, index, "MaxEntScan");
-	setAnnotation(ui->genesplicer, vl, index, "GeneSplicer");
 	setAnnotation(ui->dbscsnv, vl, index, "dbscSNV");
 	setAnnotation(ui->mmsplice, vl, index, "MMSplice_DeltaLogitPSI");
 	setAnnotation(ui->regulatory, vl, index, "regulatory");
