@@ -262,7 +262,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	}
 	else
 	{
-		THROW(ProgrammingException, "Unhandles HGVS.c prefix '" + hgvs_c.left(2) + "'!");
+		THROW(ProgrammingException, "Invalid HGVS.c prefix '" + hgvs_c.left(2) + "'. Must be 'c.' or 'n.'!");
 	}
 
 	int length = hgvs_c.length();

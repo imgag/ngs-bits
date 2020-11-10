@@ -32,6 +32,8 @@ public:
 signals:
 	///Signal that is emitted when the filter cascade has changed.
 	void filterCascadeChanged();
+	///Signal that is emitted when the filter cascade was loaded from file.
+	void customFilterLoaded();
 
 protected:
 	///Sets the focus to the given indes (and handles border cases)

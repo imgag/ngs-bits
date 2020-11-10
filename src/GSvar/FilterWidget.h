@@ -100,6 +100,7 @@ protected slots:
 	void reportConfigFilterChanged();
 	void phenotypesChanged();
 	void updateFilterName();
+	void customFilterLoaded();
 	void showTargetRegionDetails();
 	void updateGeneWarning();
 	void editPhenotypes();

@@ -23,6 +23,7 @@ FilterWidgetSV::FilterWidgetSV(QWidget *parent)
 	ui_.cascade_widget->setSubject(VariantType::SVS);
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SIGNAL(filtersChanged()));
+	connect(ui_.cascade_widget, SIGNAL(customFilterLoaded()), this, SLOT(customFilterLoaded()));
 	connect(ui_.filters, SIGNAL(currentIndexChanged(int)), this, SLOT(setFilter(int)));
 	ui_.lab_modified->setHidden(true);
 
@@ -336,6 +337,17 @@ void FilterWidgetSV::updateFilterName()
 	if (ui_.filters->currentText()=="[none]") return;
 
 	ui_.lab_modified->setHidden(false);
+}
+
+void FilterWidgetSV::customFilterLoaded()
+{
+	ui_.filters->blockSignals(true);
+	ui_.filters->setCurrentIndex(0);
+	ui_.filters->blockSignals(false);
+
+	ui_.lab_modified->setHidden(false);
+
+	emit filtersChanged();
 }
 
 void FilterWidgetSV::setFilter(int index)
