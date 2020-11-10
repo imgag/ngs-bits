@@ -792,8 +792,9 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 
 	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
-	CfDNAPanelDesignDialog* dialog = new CfDNAPanelDesignDialog(variants_, somatic_report_settings_.report_config, processedSampleName(), cfdna_processing_systems, this);
-	dialog->exec();
+	QSharedPointer<CfDNAPanelDesignDialog> dialog = QSharedPointer<CfDNAPanelDesignDialog>(new CfDNAPanelDesignDialog(variants_, somatic_report_settings_.report_config, processedSampleName(), cfdna_processing_systems, this));
+	dialog->setWindowFlags(Qt::Window);
+	addModelessDialog(dialog, false);
 }
 
 void MainWindow::on_actionShowCfDNAPanel_triggered()
@@ -3541,11 +3542,16 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 		QStringList parts = line.split("\t");
 		table_content.append(parts);
 	}
+	NGSD db;
 
-	//special handling of processed sample: add 'process_id'
+	//special handling of processed sample: add 'process_id' and get the list of all cfDNA processing systems
+	QStringList cfdna_processing_systems;
 	if (table=="processed_sample")
 	{
 		fields.append("process_id");
+
+		// get all cfDNA processing system
+		cfdna_processing_systems = db.getValues("SELECT name_manufacturer FROM processing_system WHERE type='cfDNA (patient-specific)'");
 	}
 
 	// special handling of sample: extract last column containing the corresponding tumor sample id for a cfDNA sample
@@ -3580,7 +3586,6 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 	}
 	query_str += ")";
 
-	NGSD db;
 	SqlQuery q_insert = db.getQuery();
 	q_insert.prepare(query_str);
 
@@ -3591,12 +3596,14 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 
 		int imported = 0;
 		QStringList duplicate_samples;
+		QStringList missing_cfDNA_relation;
 		for (int i = 0; i < table_content.size(); ++i)
 		{
 			QStringList& row = table_content[i];
-			//special handling of processed sample: add 'process_id'
+			//special handling of processed sample: add 'process_id' and check tumor relation for cfDNA samples
 			if (table=="processed_sample")
 			{
+				// process id
 				QString sample_name = row[0].trimmed();
 				QVariant next_ps_number = db.getValue("SELECT MAX(ps.process_id)+1 FROM sample as s, processed_sample as ps WHERE s.id=ps.sample_id AND s.name=:0", true, sample_name);
 				row.append(next_ps_number.isNull() ? "1" : next_ps_number.toString());
@@ -3621,8 +3628,23 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 			{
 				QString value = row[i].trimmed();
 
+				//check for cfDNA samples if a corresponding tumor sample exists
+				if ((table=="processed_sample") && (fields[i] == "processing_system_id") && (cfdna_processing_systems.contains(value)))
+				{
+					// get tumor relation
+					QString sample_id = db.sampleId(row[0].trimmed());
+					QStringList tumor_samples = db.relatedSamples(sample_id, "tumor-cfDNA");
+
+					if (tumor_samples.size() < 1)
+					{
+						//No corresponding tumor found!
+						missing_cfDNA_relation.append(row[0].trimmed());
+					}
+				}
+
 				//qDebug() << table << fields[i] << value;
 				const TableFieldInfo& field_info = db.tableInfo(table).fieldInfo(fields[i]);
+
 
 				//FK: name to id
 				if (field_info.type==TableFieldInfo::FK && !value.isEmpty())
@@ -3662,6 +3684,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 				q_insert.bindValue(i, value.isEmpty() && field_info.is_nullable ? QVariant() : value);
 			}
 
+			// abort if cfDNA
 			//insert
 			q_insert.exec();
 			++imported;
@@ -3680,27 +3703,31 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 
 		//import tumor-cfDNA relations
 		int imported_relations = 0;
-		if (cfdna_tumor_relation.length() > 0)
+		for (int i = 0; i < cfdna_tumor_relation.size(); ++i)
 		{
-			for (int i = 0; i < cfdna_tumor_relation.size(); ++i)
+			const QPair<QString, QString>& relation = cfdna_tumor_relation.at(i);
+			// check for valid input
+			QString tumor_sample_id = db.sampleId(relation.first);
+			QString cfdna_sample_id = db.sampleId(relation.second);
+			if (db.getSampleData(tumor_sample_id).is_tumor)
 			{
-				const QPair<QString, QString>& relation = cfdna_tumor_relation.at(i);
-				// check for valid input
-				QString tumor_sample_id = db.sampleId(relation.first);
-				QString cfdna_sample_id = db.sampleId(relation.second);
-				if (db.getSampleData(tumor_sample_id).is_tumor)
-				{
-					// add relation
-					SqlQuery query = db.getQuery();
-					query.exec("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES (" + tumor_sample_id + ",'tumor-cfDNA'," + cfdna_sample_id + ")");
-					imported_relations++;
-				}
-				else
-				{
-					THROW(DatabaseException, "Sample " + relation.first + " is not a tumor! Can't import relation.");
-				}
+				// add relation
+				SqlQuery query = db.getQuery();
+				query.exec("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES (" + tumor_sample_id + ",'tumor-cfDNA'," + cfdna_sample_id + ")");
+				imported_relations++;
+			}
+			else
+			{
+				THROW(DatabaseException, "Sample " + relation.first + " is not a tumor! Can't import relation.");
 			}
 		}
+
+		// abort if cfDNA-tumor relations are missing
+		if (missing_cfDNA_relation.size() > 0)
+		{
+			THROW(ArgumentException, "The NGSD does not contain a cfDNA-tumor relation for the following cfDNA samples:\n" + missing_cfDNA_relation.join(", ") + "\nAborting import.");
+		}
+
 		db.commit();
 
 		QString message = "Imported " + QString::number(imported) + " table rows.";

@@ -115,7 +115,7 @@ private slots:
 
 		//getProcessingSystems
 		QMap<QString, QString> systems = db.getProcessingSystems(false, false);
-		I_EQUAL(systems.size(), 3);
+		I_EQUAL(systems.size(), 4);
 		IS_TRUE(systems.contains("HaloPlex HBOC v5"))
 		IS_TRUE(systems.contains("HaloPlex HBOC v6"))
 

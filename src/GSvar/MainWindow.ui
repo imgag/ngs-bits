@@ -1184,14 +1184,7 @@
     <string>Close meta data tabs</string>
    </property>
   </action>
- </widget>
-  <action name="actionImportStudy">
-   <property name="text">
-    <string>Study</string>
-   </property>
-  </action>
- </widget>
-<action name="actionDesignCfDNAPanel">
+    <action name="actionDesignCfDNAPanel">
    <property name="text">
     <string>Design cfDNA panel</string>
    </property>
@@ -1199,8 +1192,12 @@
     <string>Design cfDNA panel</string>
    </property>
   </action>
- </widget>
-  <action name="actionCfDNADiseaseCourse">
+  <action name="actionImportStudy">
+   <property name="text">
+    <string>Study</string>
+   </property>
+  </action>
+    <action name="actionCfDNADiseaseCourse">
    <property name="text">
     <string>Show course of the disease (personalized cfDNA)</string>
    </property>
@@ -1212,7 +1209,9 @@
    <property name="text">
     <string>Show cfDNA panel</string>
    </property>
-  </action> </widget> <layoutdefault spacing="6" margin="11"/>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
    <class>VariantDetailsDockWidget</class>

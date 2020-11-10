@@ -398,6 +398,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		BedFile kasp_variants;
 		kasp_variants.load("://Resources/KASP_set2_pad5.bed");
 		kasp_variants.clearAnnotations();
+		variant_count += kasp_variants.count();
 		for (int i=0; i<kasp_variants.count(); i++)
 		{
 			BedLine& kasp_variant = kasp_variants[i];
