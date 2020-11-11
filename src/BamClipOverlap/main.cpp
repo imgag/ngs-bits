@@ -71,7 +71,7 @@ public:
 			bool skip_al = false;
 
 			//check preconditions and if unmet save read to out and continue
-			if(!al.isPaired() || al.isSecondaryAlignment())
+			if(!al.isPaired() || al.isSecondaryAlignment() || al.isSupplementaryAlignment())
 			{
 				writer.writeAlignment(al);
 				++reads_saved;

@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2020_09-37 (10.11.20)
+- General: removed support for GeneSplicer (replaced by MMSplice).
+- Sub-panels: added file name filter to archive/restore dialog.
+
 ### 2020_09-30 (05.11.20)
 
 - NGSD: Added disease info (group, status, HPO) and outcome to all variant search dialogs.
