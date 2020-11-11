@@ -7,6 +7,8 @@ PhenotypeList::PhenotypeList()
 PhenotypeList& PhenotypeList::operator<<(const Phenotype& pheno)
 {
 	append(pheno);
+
+    return *this;
 }
 
 PhenotypeList& PhenotypeList::operator<<(const QSet<Phenotype>& set)
