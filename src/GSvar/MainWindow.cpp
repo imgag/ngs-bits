@@ -158,7 +158,7 @@ MainWindow::MainWindow(QWidget *parent)
 	// add cfdna menu
 	cfdna_menu_btn_ = new QToolButton();
 	cfdna_menu_btn_->setObjectName("cfdna_btn");
-	cfdna_menu_btn_->setIcon(QIcon(":/Icons/Arrow_down.png"));
+    cfdna_menu_btn_->setIcon(QIcon(":/Icons/cfDNA.png"));
 	cfdna_menu_btn_->setToolTip("Open cfDNA menu entries");
 	cfdna_menu_btn_->setMenu(new QMenu());
 	cfdna_menu_btn_->menu()->addAction(ui_.actionDesignCfDNAPanel);

@@ -106,5 +106,6 @@
         <file>Icons/Report_finalize.png</file>
         <file>Resources/KASP_set2_pad5.bed</file>
         <file>Resources/cfDNA_hotspot_regions.bed</file>
+        <file>Icons/cfDNA.png</file>
     </qresource>
 </RCC>
