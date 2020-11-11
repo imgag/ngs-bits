@@ -64,7 +64,6 @@ SOURCES += BedFile.cpp \
     ClinvarSubmissionGenerator.cpp \
     VcfFileHelper.cpp \
     VcfFile.cpp \
-    FileLocationProvider.cpp \
     FileLocationProviderFileSystem.cpp \
     FileLocationHelper.cpp \
     PhenotypeList.cpp

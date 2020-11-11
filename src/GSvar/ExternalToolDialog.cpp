@@ -194,9 +194,9 @@ QString ExternalToolDialog::getFileName(FileType type, bool ngsd_instead_of_file
 			QString ps_id = dlg.processedSampleId();
 			NGSD db;
 
-			if (type==BAM) return db.processedSamplePath(ps_id, NGSD::PathType::BAM);
-			if (type==GSVAR) return db.processedSamplePath(ps_id, NGSD::PathType::GSVAR);
-			if (type==VCF) return db.processedSamplePath(ps_id, NGSD::PathType::VCF);
+			if (type==BAM) return db.processedSamplePath(ps_id, PathType::BAM);
+			if (type==GSVAR) return db.processedSamplePath(ps_id, PathType::GSVAR);
+			if (type==VCF) return db.processedSamplePath(ps_id, PathType::VCF);
 		}
 	}
 	else //from filesystem
