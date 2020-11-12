@@ -2763,7 +2763,7 @@ void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, Q
 
 QString NGSD::escapeForSql(const QString& text)
 {
-	return text.trimmed().replace("\"", "").replace("'", "").replace(";", "").replace("\n", "");
+	return text.trimmed().replace("\"", "").replace("'", "''").replace(";", "").replace("\n", "");
 }
 
 double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)

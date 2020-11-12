@@ -124,6 +124,12 @@ class CPPNGSSHARED_EXPORT BamAlignment
 			}
 		}
 
+		//Returns if the read is a supplementary alignment, i.e. the read is a supplementary part of the an alignment that could only be perfored when splitting the read in several separate pieces.
+		bool isSupplementaryAlignment() const
+		{
+			return aln_->core.flag & BAM_FSUPPLEMENTARY;
+		}
+
 		//Returns if the read is unmapped, i.e. it is usually ignored.
 		bool isUnmapped() const
 		{

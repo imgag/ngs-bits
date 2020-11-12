@@ -77,6 +77,7 @@ protected slots:
 	void importGene();
 	void importText();
 	void updateFilterName();
+	void customFilterLoaded();
 	void setFilter(int index);
 	void clearTargetRegion();
 	void calculateGeneOverlap();

@@ -49,7 +49,7 @@ public:
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isUnmapped()) continue;
-			if (al.isSecondaryAlignment()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			QVector<int> indices = bed_idx.matchingIndices(reader.chromosome(al.chromosomeID()), al.start(), al.end());

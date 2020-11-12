@@ -77,7 +77,7 @@ public:
 		QHash<QByteArray, bool> cache_pass; //tracks pass status of alignments until mate is seen
 		while (reader.getNextAlignment(al))
 		{
-			if(al.isSecondaryAlignment()) continue; //skip secondary alignments
+			if(al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue; //skip secondary/supplementary alignments
 
 			QByteArray name = al.name();
 

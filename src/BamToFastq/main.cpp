@@ -90,7 +90,7 @@ public:
 			//out << al.name() << " PAIRED=" << al.isPaired() << " SEC=" << al.isSecondaryAlignment() << " PROP=" << al.isProperPair() << endl;
 			
 			//skip secondary alinments
-			if(al->isSecondaryAlignment()) continue;
+			if(al->isSecondaryAlignment() || al->isSupplementaryAlignment()) continue;
 
 			//skip duplicates
 			if (remove_duplicates && al->isDuplicate())
