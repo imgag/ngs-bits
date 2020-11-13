@@ -1,20 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SmallVariantSearchDialog</class>
- <widget class="QDialog" name="SmallVariantSearchDialog">
-  <property name="windowModality">
-   <enum>Qt::NonModal</enum>
-  </property>
+ <class>SmallVariantSearchWidget</class>
+ <widget class="QWidget" name="SmallVariantSearchWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>2127</width>
-    <height>680</height>
+    <width>1556</width>
+    <height>515</height>
    </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Small variant search</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">
@@ -50,7 +44,7 @@
      <item>
       <widget class="QPushButton" name="copy_btn">
        <property name="toolTip">
-        <string>Copy to clipboard.</string>
+        <string>Copy entire table to clipboard.</string>
        </property>
        <property name="text">
         <string/>
@@ -60,7 +54,7 @@
          <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
        </property>
        <property name="shortcut">
-        <string>Ctrl+C</string>
+        <string>Ctrl+S</string>
        </property>
       </widget>
      </item>
@@ -138,6 +132,9 @@
    </item>
    <item row="8" column="0" colspan="2">
     <widget class="QTableWidget" name="variants">
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
      </property>

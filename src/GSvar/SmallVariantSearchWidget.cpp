@@ -1,4 +1,4 @@
-#include "SmallVariantSearchDialog.h"
+#include "SmallVariantSearchWidget.h"
 #include "NGSD.h"
 #include "GUIHelper.h"
 #include "NGSHelper.h"
@@ -6,36 +6,36 @@
 #include <QClipboard>
 #include <QMessageBox>
 #include <QKeyEvent>
+#include <QMenu>
 
-SmallVariantSearchDialog::SmallVariantSearchDialog(QWidget *parent)
-	: QDialog(parent)
+SmallVariantSearchWidget::SmallVariantSearchWidget(QWidget *parent)
+	: QWidget(parent)
 	, ui_()
 	, init_timer_(this, false)
 {
 	ui_.setupUi(this);
 	setWindowFlags(Qt::Window);
 	connect(&init_timer_, SIGNAL(triggerInitialization()), this, SLOT(updateVariants()));
-
 	connect(ui_.radio_region->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
-
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateVariants()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
+	connect(ui_.variants, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(variantContextMenu(QPoint)));
 }
 
-void SmallVariantSearchDialog::setGene(const QString& gene)
+void SmallVariantSearchWidget::setGene(const QString& gene)
 {
 	ui_.genes->setText(gene);
 
 	ui_.radio_genes->setChecked(true);
 }
 
-void SmallVariantSearchDialog::changeSearchType()
+void SmallVariantSearchWidget::changeSearchType()
 {
 	ui_.region->setEnabled(ui_.radio_region->isChecked());
 	ui_.genes->setEnabled(ui_.radio_genes->isChecked());
 }
 
-void SmallVariantSearchDialog::updateVariants()
+void SmallVariantSearchWidget::updateVariants()
 {
 	//clear old results
 	ui_.variants->clearContents();
@@ -129,12 +129,41 @@ void SmallVariantSearchDialog::updateVariants()
 	}
 }
 
-void SmallVariantSearchDialog::copyToClipboard()
+void SmallVariantSearchWidget::copyToClipboard()
 {
 	GUIHelper::copyToClipboard(ui_.variants);
 }
 
-void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, int end, QByteArray gene, const GeneSet& gene_symbols, QList<QStringList>& output, QStringList& messages)
+void SmallVariantSearchWidget::variantContextMenu(QPoint pos)
+{
+	//get variant index
+	QTableWidgetItem* item = ui_.variants->itemAt(pos);
+	if (!item) return;
+
+	QMenu menu(ui_.variants);
+	QAction* action_var_tab = menu.addAction(QIcon(":/Icons/NGSD_variant.png"), "Open variant tab");
+	menu.addSeparator();
+	QAction* action_var_gsvar = menu.addAction("Copy variant (GSvar format)");
+
+	//execute context menu
+	QAction* action = menu.exec(ui_.variants->viewport()->mapToGlobal(pos));
+	if (!action_var_gsvar) return;
+
+	if (action==action_var_tab)
+	{
+		QString variant_string = ui_.variants->item(item->row(), 1)->text();
+		Variant v = Variant::fromString(variant_string);
+		emit openVariantTab(v);
+	}
+	if (action==action_var_gsvar)
+	{
+		QString variant_string = ui_.variants->item(item->row(), 1)->text();
+		Variant v = Variant::fromString(variant_string);
+		QApplication::clipboard()->setText(v.toString());
+	}
+}
+
+void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, int end, QByteArray gene, const GeneSet& gene_symbols, QList<QStringList>& output, QStringList& messages)
 {
 	NGSD db;
 

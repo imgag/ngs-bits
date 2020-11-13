@@ -24,6 +24,10 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSampleTab()));
+
+	action = new QAction(QIcon(":/Icons/Icon.png"), "Open variant list", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openGSvarFile()));
 }
 
 void VariantWidget::updateGUI()
@@ -221,6 +225,21 @@ void VariantWidget::openProcessedSampleTab()
 		QString ps = ui_.table->item(row, 0)->text();
 		emit openProcessedSampleTab(ps);
 	}
+}
+
+void VariantWidget::openGSvarFile()
+{
+	QList<int> rows = selectedRows();
+
+	//check that ony
+	if (rows.count()!=1)
+	{
+		QMessageBox::warning(this,  "Open variant list", "Please select exactly one sampe to open!");
+		return;
+	}
+
+	QString ps = ui_.table->item(rows[0], 0)->text();
+	emit openProcessedSampleFromNGSD(ps);
 }
 
 void VariantWidget::editClassification()
