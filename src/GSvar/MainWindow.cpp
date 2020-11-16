@@ -106,7 +106,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "PreferredTranscriptsWidget.h"
 #include "TumorOnlyReportWorker.h"
 #include "TumorOnlyReportDialog.h"
-
+#include "VariantScores.h"
 #include "ClinvarSubmissionGenerator.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -184,6 +184,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
+	connect(ui_.vars_ranking, SIGNAL(clicked(bool)), this, SLOT(variantRanking()));
 	ui_.vars_af_hist->setMenu(new QMenu());
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (all small variants)", this, SLOT(showAfHistogram_all()));
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (small variants after filter)", this, SLOT(showAfHistogram_filtered()));
@@ -5238,6 +5239,66 @@ void MainWindow::showNotification(QString text)
 	QToolTip::showText(pos, text);
 }
 
+void MainWindow::variantRanking()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	QString ps_name = processedSampleName();
+	try
+	{
+		NGSD db;
+
+		//create phenotype list
+		QHash<Phenotype, BedFile> phenotype_rois;
+		QString sample_id = db.sampleId(ps_name);
+		PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
+		foreach(Phenotype pheno, phenotypes)
+		{
+			//pheno > genes
+			GeneSet genes = db.phenotypeToGenes(pheno, true);
+
+			//genes > roi
+			BedFile roi;
+			foreach(const QByteArray& gene, genes)
+			{
+				if (!gene2region_cache_.contains(gene))
+				{
+					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+					tmp.clearAnnotations();
+					tmp.extend(5000);
+					tmp.merge();
+					gene2region_cache_[gene] = tmp;
+				}
+				roi.add(gene2region_cache_[gene]);
+			}
+			roi.merge();
+
+			phenotype_rois[pheno] = roi;
+		}
+
+		//score
+		VariantScores::Result result = VariantScores::score("GSvar_v1", variants_, phenotype_rois);
+
+		//update variant list
+		VariantScores::annotate(variants_, result);
+		ui_.filters->reset(true);
+		ui_.filters->setFilter("GSvar score/rank");
+
+		QApplication::restoreOverrideCursor();
+
+		//show warnings
+		if (result.warnings.count()>0)
+		{
+			QMessageBox::warning(this, "Variant ranking", "Please note the following warnings:\n" + result.warnings.join("\n"));
+		}
+	}
+	catch(Exception& e)
+	{
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "Ranking variants", "An error occurred:\n" + e.message());
+	}
+}
+
 void MainWindow::clearSomaticReportSettings(QString ps_id_in_other_widget)
 {
 	if(!LoginManager::active()) return;
@@ -5713,6 +5774,7 @@ void MainWindow::updateNGSDSupport()
 	//other actions
 	ui_.actionOpenByName->setEnabled(ngsd_user_logged_in);
 	ui_.ps_details->setEnabled(ngsd_user_logged_in);
+	ui_.vars_ranking->setEnabled(ngsd_user_logged_in);
 
 	ui_.filters->updateNGSDSupport();
 }

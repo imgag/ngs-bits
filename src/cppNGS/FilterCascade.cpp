@@ -911,6 +911,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["Regulatory"] = &createInstance<FilterRegulatory>;
 		output["Somatic allele frequency"] = &createInstance<FilterSomaticAlleleFrequency>;
 		output["tumor zygosity"] = &createInstance<FilterTumorOnlyHomHet>;
+		output["GSvar score/rank"] = &createInstance<FilterGSvarScoreAndRank>;
 		output["CNV size"] = &createInstance<FilterCnvSize>;
 		output["CNV regions"] = &createInstance<FilterCnvRegions>;
 		output["CNV copy-number"] = &createInstance<FilterCnvCopyNumber>;
@@ -4327,6 +4328,43 @@ void FilterTumorOnlyHomHet::apply(const VariantList& variants, FilterResult& res
 			{
 				result.flags()[i] = false;
 			}
+		}
+	}
+}
+
+FilterGSvarScoreAndRank::FilterGSvarScoreAndRank()
+{
+	name_ = "GSvar score/rank";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based GSvar score/rank.";
+	params_ << FilterParameter("top", INT, 10, "Show top X rankging variants only.");
+	params_.last().constraints["min"] = "1";
+
+	checkIsRegistered();
+}
+
+QString FilterGSvarScoreAndRank::toText() const
+{
+	QString text = name();
+
+	int top = getInt("top", false);
+	text += " top=" + QString::number(top);
+
+	return text;
+}
+
+void FilterGSvarScoreAndRank::apply(const VariantList& variants, FilterResult& result) const
+{
+	int top = getInt("top", true);
+	int i_rank = annotationColumn(variants, "GSvar_rank");
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if(!result.flags()[i]) continue;
+
+		const QByteArray& rank = variants[i].annotations()[i_rank];
+		if(rank.isEmpty() || rank.toInt()>top)
+		{
+			result.flags()[i] = false;
 		}
 	}
 }

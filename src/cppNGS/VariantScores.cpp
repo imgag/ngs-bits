@@ -5,20 +5,23 @@
 #include "FilterCascade.h"
 
 VariantScores::VariantScores()
-	: algorithms_()
 {
-	algorithms_ << "GSvar_v1";
-	algorithms_ << "GSvar_v1_noNGSD";
 }
 
 QStringList VariantScores::algorithms()
 {
-	return algorithms_;
+	static QStringList algorithms;
+	if (algorithms.isEmpty())
+	{
+		algorithms << "GSvar_v1";
+		algorithms << "GSvar_v1_noNGSD";
+	}
+	return algorithms;
 }
 
-QString VariantScores::description(QString algorithm) const
+QString VariantScores::description(QString algorithm)
 {
-	if (!algorithms_.contains(algorithm))
+	if (!algorithms().contains(algorithm))
 	{
 		THROW(ArgumentException, "VariantScores::description: Unregistered algorithm name '" + algorithm + "'!");
 	}
@@ -35,26 +38,86 @@ QString VariantScores::description(QString algorithm) const
 	THROW(ArgumentException, "VariantScores::description: Not implemented algorithm '" + algorithm + "'!");
 }
 
-VariantScores::Result VariantScores::score(QString algorithm, const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois) const
+VariantScores::Result VariantScores::score(QString algorithm, const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois)
 {
-	if (!algorithms_.contains(algorithm))
+	if (!algorithms().contains(algorithm))
 	{
 		THROW(ArgumentException, "VariantScores: Unregistered algorithm name '" + algorithm + "'!");
 	}
 
+	//score
+	VariantScores::Result result;
 	if (algorithm=="GSvar_v1")
 	{
-		return score_GSvar_V1(variants, phenotype_rois);
+		 result = score_GSvar_V1(variants, phenotype_rois);
 	}
-	if (algorithm=="GSvar_v1_noNGSD")
+	else if (algorithm=="GSvar_v1_noNGSD")
 	{
-		return score_GSvar_V1_noNGSD(variants, phenotype_rois);
+		result = score_GSvar_V1_noNGSD(variants, phenotype_rois);
+	}
+	else
+	{
+		THROW(ArgumentException, "VariantScores: Not implemented algorithm '" + algorithm + "'!");
 	}
 
-	THROW(ArgumentException, "VariantScores: Not implemented algorithm '" + algorithm + "'!");
+	//calculate ranks
+	struct IndexScorePair
+	{
+		int index;
+		double score;
+	};
+	QList<IndexScorePair> tmp;
+	for(int i=0; i<result.scores.count(); ++i)
+	{
+		tmp << IndexScorePair{i, result.scores[i]};
+		result.ranks << -1;
+	}
+	std::stable_sort(tmp.begin(), tmp.end(), [](const IndexScorePair& a, const IndexScorePair& b){ return a.score > b.score; });
+	for(int i=0; i<tmp.count(); ++i)
+	{
+		if (tmp[i].score>=0)
+		{
+			result.ranks[tmp[i].index] = i+1;
+		}
+	}
+
+	result.algorithm = algorithm;
+	return result;
 }
 
-VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois) const
+void VariantScores::annotate(VariantList& variants, const VariantScores::Result& result)
+{
+	//check input
+	if (variants.count()!=result.scores.count()) THROW(ProgrammingException, "Variant list and scoring result differ in count!");
+
+	//add columns if missing
+	if (variants.annotationIndexByName("GSvar_score", true, false)==-1)
+	{
+		variants.prependAnnotation("GSvar_score", result.algorithm + " score (" + VariantScores::description(result.algorithm)+  ")");
+	}
+	if (variants.annotationIndexByName("GSvar_rank", true, false)==-1)
+	{
+		variants.prependAnnotation("GSvar_rank", result.algorithm + " rank (" + VariantScores::description(result.algorithm)+  ")");
+	}
+	int i_rank = variants.annotationIndexByName("GSvar_rank");
+	int i_score = variants.annotationIndexByName("GSvar_score");
+
+	//annotate
+	for (int i=0; i<variants.count(); ++i)
+	{
+		QByteArray score_str;
+		QByteArray rank_str;
+		if (result.scores[i] >= 0)
+		{
+			score_str = QByteArray::number(result.scores[i], 'f', 2);
+			rank_str = QByteArray::number(result.ranks[i]);
+		}
+		variants[i].annotations()[i_score] = score_str;
+		variants[i].annotations()[i_rank] = rank_str;
+	}
+}
+
+VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois)
 {
 	Result output;
 
@@ -100,7 +163,7 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 		//skip pre-filtered variants
 		if(!cascade_result.passing(i))
 		{
-			output.scores << 0.0;
+			output.scores << -1.0;
 			continue;
 		}
 
@@ -257,7 +320,7 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 	return output;
 }
 
-VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois) const
+VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois)
 {
 	Result output;
 
@@ -301,7 +364,7 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 		//skip pre-filtered variants
 		if(!cascade_result.passing(i))
 		{
-			output.scores << 0.0;
+			output.scores << -1.0;
 			continue;
 		}
 

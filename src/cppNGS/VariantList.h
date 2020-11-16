@@ -335,6 +335,9 @@ public:
 	///Adds an annotation column if it does not exist and returns the index of the new/old column.
 	int addAnnotationIfMissing(QString name, QString description, QByteArray default_value="");
 
+	///Prepends an annotation column and returns the index of the new column.
+	int prependAnnotation(QString name, QString description, QByteArray default_value="");
+
 	///Removes an annotation column by index.
 	void removeAnnotation(int index);
 	///Removes an annotation column by name.
