@@ -51,7 +51,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "QCCollection.h"
 #include "NGSDReannotationDialog.h"
 #include "DiseaseInfoWidget.h"
-#include "SmallVariantSearchDialog.h"
+#include "SmallVariantSearchWidget.h"
 #include "TSVFileStream.h"
 #include "LovdUploadDialog.h"
 #include "OntologyTermCollection.h"
@@ -454,22 +454,24 @@ void MainWindow::on_actionCytobandsToRegions_triggered()
 
 void MainWindow::on_actionSearchSNVs_triggered()
 {
-	SmallVariantSearchDialog dlg(this);
-	dlg.exec();
+	SmallVariantSearchWidget* widget = new SmallVariantSearchWidget();
+	connect(widget, SIGNAL(openVariantTab(Variant)), this, SLOT(openVariantTab(Variant)));
+	auto dlg = GUIHelper::createDialog(widget, "Small variants search");
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSearchCNVs_triggered()
 {
 	CnvSearchWidget* widget = new CnvSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "CNV search");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSearchSVs_triggered()
 {
 	SvSearchWidget* widget = new SvSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "SV search");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionShowPublishedVariants_triggered()
@@ -1850,6 +1852,7 @@ void MainWindow::openVariantTab(Variant variant)
 	//open tab
 	VariantWidget* widget = new VariantWidget(variant, this);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	connect(widget, SIGNAL(openProcessedSampleFromNGSD(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 	connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	int index = openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(), widget);
 	if (Settings::boolean("debug_mode_enabled"))
