@@ -362,6 +362,9 @@ public slots:
 	///Shows a notification.
 	void showNotification(QString text);
 
+	///Rank variants by GSvar score.
+	void variantRanking();
+
 	///Clears somatic report settings
 	void clearSomaticReportSettings(QString ps_id_in_other_widget);
 
