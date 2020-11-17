@@ -231,7 +231,8 @@ void MainWindow::on_actionDebug_triggered()
 		int c_top10 = 0;
 		NGSD db;
 		TsvFile file;
-		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\details_samples_pediatric.tsv"); //TODO query from DB: good sample with outcome 'significant findings' and causal small variant (diagnostic and on genosome/autosome)
+		db.
+		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\details_samples_pediatric.tsv"); //TODO query from DB: SELECT CONCAT(s.name, "_0", ps.process_id) FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv WHERE ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.type='diagnostic variant' AND s.disease_status='Affected'
 		QString algorithm = "GSvar_v1";
 		foreach(QString ps, file.extractColumn(0))
 		{
@@ -287,7 +288,7 @@ void MainWindow::on_actionDebug_triggered()
 				QSharedPointer<ReportConfiguration> rc_ptr = db.reportConfig(rc_id, variants, cnvs, svs, messages);
 				foreach(const ReportVariantConfiguration& var_conf, rc_ptr->variantConfig())
 				{
-					if (var_conf.causal && var_conf.variant_type==VariantType::SNVS_INDELS)
+					if (var_conf.causal && var_conf.variant_type==VariantType::SNVS_INDELS && var_conf.report_type=="diagnostic variant")
 					{
 						int var_index = var_conf.variant_index;
 						if (var_index>=0)
@@ -315,6 +316,25 @@ void MainWindow::on_actionDebug_triggered()
 		output.addComment("##Top5 : " + QString::number(c_top5) + " (" + QString::number(100.0*c_top5/output.rowCount(), 'f', 2) + "%)");
 		output.addComment("##Top10: " + QString::number(c_top10) + " (" + QString::number(100.0*c_top10/output.rowCount(), 'f', 2) + "%)");
 		output.store("C:\\Marc\\ranking_" + algorithm +".tsv");
+
+		//Export GenLab dates for reanalysis of unsolved samples
+		/*
+		TsvFile output;
+		output.addHeader("ps");
+		output.addHeader("yearOfBirth");
+		output.addHeader("yearOfOrderEntry");
+		GenLabDB db;
+		TsvFile file;
+		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\samples.tsv");
+		int i=0;
+		QStringList ps_names = file.extractColumn(1);
+		foreach(QString ps, ps_names)
+		{
+			qDebug() << ++i << "/" << ps_names.count() << ps;
+			output.addRow(QStringList() << ps << db.yearOfBirth(ps) << db.yearOfOrderEntry(ps));
+		}
+		output.store("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\+documentation\\genlab_export_dates_" + QDate::currentDate().toString("yyyy_MM_dd")+".tsv");
+		*/
 
 		//import preferred transcripts
 		/*
