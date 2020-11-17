@@ -139,7 +139,6 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 
 	//prepare ROI for fast lookup
 	//Possible improvement: Count each phenotype ROI hit separatly
-	//TODO: test gene names instead of genomic regions for speed-up
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
 	BedFile roi;
 	foreach(const BedFile& pheno_roi, phenotype_rois)

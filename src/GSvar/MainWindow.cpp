@@ -231,9 +231,9 @@ void MainWindow::on_actionDebug_triggered()
 		int c_top10 = 0;
 		NGSD db;
 		TsvFile file;
-		db.
 		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\details_samples_pediatric.tsv"); //TODO query from DB: SELECT CONCAT(s.name, "_0", ps.process_id) FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv WHERE ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.type='diagnostic variant' AND s.disease_status='Affected'
 		QString algorithm = "GSvar_v1";
+		QString special = "";
 		foreach(QString ps, file.extractColumn(0))
 		{
 			QString ps_id = db.processedSampleId(ps);
@@ -315,7 +315,7 @@ void MainWindow::on_actionDebug_triggered()
 		output.addComment("##Rank1: " + QString::number(c_top1) + " (" + QString::number(100.0*c_top1/output.rowCount(), 'f', 2) + "%)");
 		output.addComment("##Top5 : " + QString::number(c_top5) + " (" + QString::number(100.0*c_top5/output.rowCount(), 'f', 2) + "%)");
 		output.addComment("##Top10: " + QString::number(c_top10) + " (" + QString::number(100.0*c_top10/output.rowCount(), 'f', 2) + "%)");
-		output.store("C:\\Marc\\ranking_" + algorithm +".tsv");
+		output.store("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + special + ".tsv");
 
 		//Export GenLab dates for reanalysis of unsolved samples
 		/*

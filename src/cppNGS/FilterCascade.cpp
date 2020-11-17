@@ -4355,6 +4355,8 @@ QString FilterGSvarScoreAndRank::toText() const
 
 void FilterGSvarScoreAndRank::apply(const VariantList& variants, FilterResult& result) const
 {
+	if (!enabled_) return;
+
 	int top = getInt("top", true);
 	int i_rank = annotationColumn(variants, "GSvar_rank");
 	for(int i=0; i<variants.count(); ++i)
