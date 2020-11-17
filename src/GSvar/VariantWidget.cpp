@@ -81,22 +81,23 @@ void VariantWidget::updateGUI()
 			QTableWidgetItem* item = addItem(row, 0,  ps_data.name);
 			DBTableWidget::styleQuality(item, ps_data.quality);
 			addItem(row, 1,  s_data.name_external);
-			addItem(row, 2,  s_data.quality + " / " + ps_data.quality);
-			addItem(row, 3,  query.value(1).toString());
-			addItem(row, 4, ps_data.processing_system);
-			addItem(row, 5, ps_data.project_name);
-			addItem(row, 6, s_data.disease_group);
-			addItem(row, 7, s_data.disease_status);
+			addItem(row, 2,  s_data.gender);
+			addItem(row, 3,  s_data.quality + " / " + ps_data.quality);
+			addItem(row, 4,  query.value(1).toString());
+			addItem(row, 5, ps_data.processing_system);
+			addItem(row, 6, ps_data.project_name);
+			addItem(row, 7, s_data.disease_group);
+			addItem(row, 8, s_data.disease_status);
 			QStringList pho_list;
 			foreach(const Phenotype& pheno, s_data.phenotypes)
 			{
 				pho_list << pheno.toString();
 			}
-			addItem(row, 8, pho_list.join("; "));
-			addItem(row, 9, diag_data.dagnostic_status);
-			addItem(row, 10, diag_data.user);
-			addItem(row, 11, s_data.comments);
-			addItem(row, 12, ps_data.comments);
+			addItem(row, 9, pho_list.join("; "));
+			addItem(row, 10, diag_data.dagnostic_status);
+			addItem(row, 11, diag_data.user);
+			addItem(row, 12, s_data.comments);
+			addItem(row, 13, ps_data.comments);
 
 			//get causal genes from report config
 			GeneSet genes_causal;
@@ -106,7 +107,7 @@ void VariantWidget::updateGUI()
 			{
 				genes_causal << query3.value(0).toByteArray().split(',');
 			}
-			addItem(row, 13, genes_causal.join(','));
+			addItem(row, 14, genes_causal.join(','));
 
 			//get candidate genes from report config
 			GeneSet genes_candidate;
@@ -116,7 +117,7 @@ void VariantWidget::updateGUI()
 			{
 				genes_candidate << query4.value(0).toByteArray().split(',');
 			}
-			addItem(row, 14, genes_candidate.join(','));
+			addItem(row, 15, genes_candidate.join(','));
 
 			++row;
 		}

@@ -62,7 +62,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset resource="GSvar.qrc">
+        <iconset>
          <normaloff>:/Icons/Refresh.png</normaloff>:/Icons/Refresh.png</iconset>
        </property>
        <property name="shortcut">
@@ -276,7 +276,7 @@
          <string>...</string>
         </property>
         <property name="icon">
-         <iconset resource="GSvar.qrc">
+         <iconset>
           <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
         </property>
        </widget>
@@ -368,6 +368,11 @@
         <column>
          <property name="text">
           <string>external sample name</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>gender</string>
          </property>
         </column>
         <column>
@@ -471,7 +476,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset resource="GSvar.qrc">
+           <iconset>
             <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
           </property>
           <property name="shortcut">
@@ -486,8 +491,6 @@
    </item>
   </layout>
  </widget>
- <resources>
-  <include location="GSvar.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

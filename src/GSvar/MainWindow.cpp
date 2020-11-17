@@ -232,7 +232,7 @@ void MainWindow::on_actionDebug_triggered()
 		NGSD db;
 		TsvFile file;
 		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\details_samples_pediatric.tsv"); //TODO query from DB: SELECT CONCAT(s.name, "_0", ps.process_id) FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv WHERE ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.type='diagnostic variant' AND s.disease_status='Affected'
-		QString algorithm = "GSvar_v1";
+		QString algorithm = "GSvar_v1_noNGSD";
 		QString special = "";
 		foreach(QString ps, file.extractColumn(0))
 		{
