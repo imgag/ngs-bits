@@ -216,6 +216,106 @@ void MainWindow::on_actionDebug_triggered()
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
+		QTime timer;
+		timer.start();
+
+		//evaluation GSvar score/rank
+		TsvFile output;
+		output.addHeader("ps");
+		output.addHeader("variants_causal");
+		output.addHeader("variants_scored");
+		output.addHeader("score");
+		output.addHeader("rank");
+		int c_top1 = 0;
+		int c_top5 = 0;
+		int c_top10 = 0;
+		NGSD db;
+		TsvFile file;
+		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\details_samples_pediatric.tsv"); //TODO query from DB: good sample with outcome 'significant findings' and causal small variant (diagnostic and on genosome/autosome)
+		QString algorithm = "GSvar_v1";
+		foreach(QString ps, file.extractColumn(0))
+		{
+			QString ps_id = db.processedSampleId(ps);
+			if (db.getDiagnosticStatus(ps_id).outcome!="significant findings") continue;
+			qDebug() << output.rowCount() << ps;
+
+			//create phenotype list
+			QHash<Phenotype, BedFile> phenotype_rois;
+			QString sample_id = db.sampleId(ps);
+			PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
+			foreach(Phenotype pheno, phenotypes)
+			{
+				//pheno > genes
+				GeneSet genes = db.phenotypeToGenes(pheno, true);
+
+				//genes > roi
+				BedFile roi;
+				foreach(const QByteArray& gene, genes)
+				{
+					if (!gene2region_cache_.contains(gene))
+					{
+						BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+						tmp.clearAnnotations();
+						tmp.extend(5000);
+						tmp.merge();
+						gene2region_cache_[gene] = tmp;
+					}
+					roi.add(gene2region_cache_[gene]);
+				}
+				roi.merge();
+
+				phenotype_rois[pheno] = roi;
+			}
+
+			//load variants
+			VariantList variants;
+			variants.load(db.processedSamplePath(ps_id, NGSD::GSVAR));
+
+			//score
+			VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois);
+			int c_scored = VariantScores::annotate(variants, result);
+			int i_rank = variants.annotationIndexByName("GSvar_rank");
+			int i_score = variants.annotationIndexByName("GSvar_score");
+
+			//check rank of causal variant
+			int rc_id = db.reportConfigId(ps_id);
+			if (rc_id!=-1)
+			{
+				CnvList cnvs;
+				BedpeFile svs;
+				QStringList messages;
+				QSharedPointer<ReportConfiguration> rc_ptr = db.reportConfig(rc_id, variants, cnvs, svs, messages);
+				foreach(const ReportVariantConfiguration& var_conf, rc_ptr->variantConfig())
+				{
+					if (var_conf.causal && var_conf.variant_type==VariantType::SNVS_INDELS)
+					{
+						int var_index = var_conf.variant_index;
+						if (var_index>=0)
+						{
+							const Variant& var = variants[var_index];
+							if (var.chr().isAutosome() || var.chr().isGonosome())
+							{
+								output.addRow(QStringList() << ps << var.toString() << QString::number(c_scored) << var.annotations()[i_score] << var.annotations()[i_rank]);
+
+								try
+								{
+									int rank = Helper::toInt(var.annotations()[i_rank]);
+									if (rank==1) ++c_top1;
+									if (rank<=5) ++c_top5;
+									if (rank<=10) ++c_top10;
+								}
+								catch(...) {} //nothing to do here
+							}
+						}
+					}
+				}
+			}
+		}
+		output.addComment("##Rank1: " + QString::number(c_top1) + " (" + QString::number(100.0*c_top1/output.rowCount(), 'f', 2) + "%)");
+		output.addComment("##Top5 : " + QString::number(c_top5) + " (" + QString::number(100.0*c_top5/output.rowCount(), 'f', 2) + "%)");
+		output.addComment("##Top10: " + QString::number(c_top10) + " (" + QString::number(100.0*c_top10/output.rowCount(), 'f', 2) + "%)");
+		output.store("C:\\Marc\\ranking_" + algorithm +".tsv");
+
 		//import preferred transcripts
 		/*
 		NGSD db;
@@ -272,23 +372,7 @@ void MainWindow::on_actionDebug_triggered()
 			genlab.addMissingMetaDataToNGSD(ps, true);
 		}
 		*/
-
-		//batch import of study
-		/*
-		QString text = QInputDialog::getMultiLineText(this, "Import study", "1. list study name, all other lines processed samples:").trimmed();
-		if (text=="") return;
-		QStringList lines = text.split("\n");
-		NGSD db;
-		QString study_id = db.getValue("SELECT id FROM study WHERE name='" + lines[0] + "'").toString();
-		for(int i=1; i<lines.count(); ++i)
-		{
-			QString line = lines[i].trimmed();
-			if (line.isEmpty()) continue;
-
-			QString ps_id = db.processedSampleId(line);
-			db.getQuery().exec("INSERT into study_sample (study_id, processed_sample_id, study_sample_idendifier) VALUES ("+study_id+","+ps_id+",'')");
-		}
-		*/
+		qDebug() << Helper::elapsedTime(timer, true);
 	}
 	else if (user=="ahschul1")
 	{

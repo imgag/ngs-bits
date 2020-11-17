@@ -191,7 +191,7 @@
                 <item>
                  <widget class="QToolButton" name="vars_ranking">
                   <property name="toolTip">
-                   <string>Rank variants.</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Scores and ranks variants.&lt;br/&gt;Applies a rank-based filter afterwards.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>...</string>

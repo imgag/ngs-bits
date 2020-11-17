@@ -35,8 +35,8 @@ public:
 	//Returns a variant scores. Throws an error if the input is invalid.
 	static Result score(QString algorithm, const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois);
 
-	//Annotates a variant list with the scoring result.
-	static void annotate(VariantList& variants, const Result& result);
+	//Annotates a variant list with the scoring result. Returns the number of variants that were scored.
+	static int annotate(VariantList& variants, const Result& result);
 
 private:
 	static Result score_GSvar_V1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois);

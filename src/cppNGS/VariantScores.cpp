@@ -85,7 +85,7 @@ VariantScores::Result VariantScores::score(QString algorithm, const VariantList&
 	return result;
 }
 
-void VariantScores::annotate(VariantList& variants, const VariantScores::Result& result)
+int VariantScores::annotate(VariantList& variants, const VariantScores::Result& result)
 {
 	//check input
 	if (variants.count()!=result.scores.count()) THROW(ProgrammingException, "Variant list and scoring result differ in count!");
@@ -103,6 +103,7 @@ void VariantScores::annotate(VariantList& variants, const VariantScores::Result&
 	int i_score = variants.annotationIndexByName("GSvar_score");
 
 	//annotate
+	int c_scored = 0;
 	for (int i=0; i<variants.count(); ++i)
 	{
 		QByteArray score_str;
@@ -111,10 +112,13 @@ void VariantScores::annotate(VariantList& variants, const VariantScores::Result&
 		{
 			score_str = QByteArray::number(result.scores[i], 'f', 2);
 			rank_str = QByteArray::number(result.ranks[i]);
+			++c_scored;
 		}
 		variants[i].annotations()[i_score] = score_str;
 		variants[i].annotations()[i_rank] = rank_str;
 	}
+
+	return c_scored;
 }
 
 VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois)
@@ -134,7 +138,8 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 	int i_genotye = affected_cols[0];
 
 	//prepare ROI for fast lookup
-	//Possible imrovement: Count each phenotype ROI hit separatly?!
+	//Possible improvement: Count each phenotype ROI hit separatly
+	//TODO: test gene names instead of genomic regions for speed-up
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
 	BedFile roi;
 	foreach(const BedFile& pheno_roi, phenotype_rois)
