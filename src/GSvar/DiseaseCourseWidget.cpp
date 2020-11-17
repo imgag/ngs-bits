@@ -64,7 +64,7 @@ void DiseaseCourseWidget::loadVariantLists()
 
 	// load ref tumor variants
 	QString panel_folder = Settings::string("patient_specific_panel_folder", false);
-	QString vcf_file_path = panel_folder + system_name + "/" + tumor_sample_name_ + ".vcf";
+	QString vcf_file_path = panel_folder + "/" + system_name + "/" + tumor_sample_name_ + ".vcf";
 
 	if (!QFile::exists(vcf_file_path)) THROW(FileAccessException, "Could not find reference tumor VCF in '" + vcf_file_path + "'! ");
 

@@ -42,6 +42,12 @@ public:
 	///Returns tumor content of a sample (tries sample name if processed sample name is not found)
 	QStringList tumorFraction(QString ps_name);
 
+	///Returns the GenLab year of birth for a sample (tries sample name if processed sample name is not found)
+	QString yearOfBirth(QString ps_name);
+
+	///Returns the GenLab year of order entry for a sample (tries sample name if processed sample name is not found)
+	QString yearOfOrderEntry(QString ps_name);
+
 	///Returns disease group and disease status of a processed sample (tries sample name if processed sample name is not found)
 	QPair<QString, QString> diseaseInfo(QString ps_name);
 

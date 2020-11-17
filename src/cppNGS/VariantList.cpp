@@ -604,6 +604,19 @@ int VariantList::addAnnotationIfMissing(QString name, QString description, QByte
 	return index;
 }
 
+int VariantList::prependAnnotation(QString name, QString description, QByteArray default_value)
+{
+	annotations().prepend(VariantAnnotationHeader(name));
+	for (int i=0; i<variants_.count(); ++i)
+	{
+		variants_[i].annotations().prepend(default_value);
+	}
+
+	annotationDescriptions().prepend(VariantAnnotationDescription(name, description));
+
+	return 0;
+}
+
 void VariantList::removeAnnotation(int index)
 {
 	if (index < 0 || index>=annotation_headers_.count())

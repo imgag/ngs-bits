@@ -106,10 +106,9 @@ QT_CHARTS_USE_NAMESPACE
 #include "PreferredTranscriptsWidget.h"
 #include "TumorOnlyReportWorker.h"
 #include "TumorOnlyReportDialog.h"
-#include "CfDNAPanelDesignDialog.h"
+#include "VariantScores.h"#include "CfDNAPanelDesignDialog.h"
 #include "DiseaseCourseWidget.h"
 #include "CfDNAPanelWidget.h"
-
 #include "ClinvarSubmissionGenerator.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -202,6 +201,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
+	connect(ui_.vars_ranking, SIGNAL(clicked(bool)), this, SLOT(variantRanking()));
 	ui_.vars_af_hist->setMenu(new QMenu());
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (all small variants)", this, SLOT(showAfHistogram_all()));
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (small variants after filter)", this, SLOT(showAfHistogram_filtered()));
@@ -233,6 +233,126 @@ void MainWindow::on_actionDebug_triggered()
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
+		QTime timer;
+		timer.start();
+
+		//evaluation GSvar score/rank
+		TsvFile output;
+		output.addHeader("ps");
+		output.addHeader("variants_causal");
+		output.addHeader("variants_scored");
+		output.addHeader("score");
+		output.addHeader("rank");
+		int c_top1 = 0;
+		int c_top5 = 0;
+		int c_top10 = 0;
+		NGSD db;
+		TsvFile file;
+		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\details_samples_pediatric.tsv"); //TODO query from DB: SELECT CONCAT(s.name, "_0", ps.process_id) FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv WHERE ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.type='diagnostic variant' AND s.disease_status='Affected'
+		QString algorithm = "GSvar_v1";
+		QString special = "";
+		foreach(QString ps, file.extractColumn(0))
+		{
+			QString ps_id = db.processedSampleId(ps);
+			if (db.getDiagnosticStatus(ps_id).outcome!="significant findings") continue;
+			qDebug() << output.rowCount() << ps;
+
+			//create phenotype list
+			QHash<Phenotype, BedFile> phenotype_rois;
+			QString sample_id = db.sampleId(ps);
+			PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
+			foreach(Phenotype pheno, phenotypes)
+			{
+				//pheno > genes
+				GeneSet genes = db.phenotypeToGenes(pheno, true);
+
+				//genes > roi
+				BedFile roi;
+				foreach(const QByteArray& gene, genes)
+				{
+					if (!gene2region_cache_.contains(gene))
+					{
+						BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+						tmp.clearAnnotations();
+						tmp.extend(5000);
+						tmp.merge();
+						gene2region_cache_[gene] = tmp;
+					}
+					roi.add(gene2region_cache_[gene]);
+				}
+				roi.merge();
+
+				phenotype_rois[pheno] = roi;
+			}
+
+			//load variants
+			VariantList variants;
+			variants.load(db.processedSamplePath(ps_id, NGSD::GSVAR));
+
+			//score
+			VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois);
+			int c_scored = VariantScores::annotate(variants, result);
+			int i_rank = variants.annotationIndexByName("GSvar_rank");
+			int i_score = variants.annotationIndexByName("GSvar_score");
+
+			//check rank of causal variant
+			int rc_id = db.reportConfigId(ps_id);
+			if (rc_id!=-1)
+			{
+				CnvList cnvs;
+				BedpeFile svs;
+				QStringList messages;
+				QSharedPointer<ReportConfiguration> rc_ptr = db.reportConfig(rc_id, variants, cnvs, svs, messages);
+				foreach(const ReportVariantConfiguration& var_conf, rc_ptr->variantConfig())
+				{
+					if (var_conf.causal && var_conf.variant_type==VariantType::SNVS_INDELS && var_conf.report_type=="diagnostic variant")
+					{
+						int var_index = var_conf.variant_index;
+						if (var_index>=0)
+						{
+							const Variant& var = variants[var_index];
+							if (var.chr().isAutosome() || var.chr().isGonosome())
+							{
+								output.addRow(QStringList() << ps << var.toString() << QString::number(c_scored) << var.annotations()[i_score] << var.annotations()[i_rank]);
+
+								try
+								{
+									int rank = Helper::toInt(var.annotations()[i_rank]);
+									if (rank==1) ++c_top1;
+									if (rank<=5) ++c_top5;
+									if (rank<=10) ++c_top10;
+								}
+								catch(...) {} //nothing to do here
+							}
+						}
+					}
+				}
+			}
+		}
+		output.addComment("##Rank1: " + QString::number(c_top1) + " (" + QString::number(100.0*c_top1/output.rowCount(), 'f', 2) + "%)");
+		output.addComment("##Top5 : " + QString::number(c_top5) + " (" + QString::number(100.0*c_top5/output.rowCount(), 'f', 2) + "%)");
+		output.addComment("##Top10: " + QString::number(c_top10) + " (" + QString::number(100.0*c_top10/output.rowCount(), 'f', 2) + "%)");
+		output.store("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + special + ".tsv");
+
+		//Export GenLab dates for reanalysis of unsolved samples
+		/*
+		TsvFile output;
+		output.addHeader("ps");
+		output.addHeader("yearOfBirth");
+		output.addHeader("yearOfOrderEntry");
+		GenLabDB db;
+		TsvFile file;
+		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\samples.tsv");
+		int i=0;
+		QStringList ps_names = file.extractColumn(1);
+		foreach(QString ps, ps_names)
+		{
+			qDebug() << ++i << "/" << ps_names.count() << ps;
+			output.addRow(QStringList() << ps << db.yearOfBirth(ps) << db.yearOfOrderEntry(ps));
+		}
+		output.store("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\+documentation\\genlab_export_dates_" + QDate::currentDate().toString("yyyy_MM_dd")+".tsv");
+		*/
+
 		//import preferred transcripts
 		/*
 		NGSD db;
@@ -289,23 +409,7 @@ void MainWindow::on_actionDebug_triggered()
 			genlab.addMissingMetaDataToNGSD(ps, true);
 		}
 		*/
-
-		//batch import of study
-		/*
-		QString text = QInputDialog::getMultiLineText(this, "Import study", "1. list study name, all other lines processed samples:").trimmed();
-		if (text=="") return;
-		QStringList lines = text.split("\n");
-		NGSD db;
-		QString study_id = db.getValue("SELECT id FROM study WHERE name='" + lines[0] + "'").toString();
-		for(int i=1; i<lines.count(); ++i)
-		{
-			QString line = lines[i].trimmed();
-			if (line.isEmpty()) continue;
-
-			QString ps_id = db.processedSampleId(line);
-			db.getQuery().exec("INSERT into study_sample (study_id, processed_sample_id, study_sample_idendifier) VALUES ("+study_id+","+ps_id+",'')");
-		}
-		*/
+		qDebug() << Helper::elapsedTime(timer, true);
 	}
 	else if (user=="ahschul1")
 	{
@@ -5456,6 +5560,66 @@ void MainWindow::showNotification(QString text)
 	QToolTip::showText(pos, text);
 }
 
+void MainWindow::variantRanking()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	QString ps_name = processedSampleName();
+	try
+	{
+		NGSD db;
+
+		//create phenotype list
+		QHash<Phenotype, BedFile> phenotype_rois;
+		QString sample_id = db.sampleId(ps_name);
+		PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
+		foreach(Phenotype pheno, phenotypes)
+		{
+			//pheno > genes
+			GeneSet genes = db.phenotypeToGenes(pheno, true);
+
+			//genes > roi
+			BedFile roi;
+			foreach(const QByteArray& gene, genes)
+			{
+				if (!gene2region_cache_.contains(gene))
+				{
+					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+					tmp.clearAnnotations();
+					tmp.extend(5000);
+					tmp.merge();
+					gene2region_cache_[gene] = tmp;
+				}
+				roi.add(gene2region_cache_[gene]);
+			}
+			roi.merge();
+
+			phenotype_rois[pheno] = roi;
+		}
+
+		//score
+		VariantScores::Result result = VariantScores::score("GSvar_v1", variants_, phenotype_rois);
+
+		//update variant list
+		VariantScores::annotate(variants_, result);
+		ui_.filters->reset(true);
+		ui_.filters->setFilter("GSvar score/rank");
+
+		QApplication::restoreOverrideCursor();
+
+		//show warnings
+		if (result.warnings.count()>0)
+		{
+			QMessageBox::warning(this, "Variant ranking", "Please note the following warnings:\n" + result.warnings.join("\n"));
+		}
+	}
+	catch(Exception& e)
+	{
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "Ranking variants", "An error occurred:\n" + e.message());
+	}
+}
+
 void MainWindow::clearSomaticReportSettings(QString ps_id_in_other_widget)
 {
 	if(!LoginManager::active()) return;
@@ -5931,6 +6095,7 @@ void MainWindow::updateNGSDSupport()
 	//other actions
 	ui_.actionOpenByName->setEnabled(ngsd_user_logged_in);
 	ui_.ps_details->setEnabled(ngsd_user_logged_in);
+	ui_.vars_ranking->setEnabled(ngsd_user_logged_in);
 
 	ui_.filters->updateNGSDSupport();
 }
