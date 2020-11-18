@@ -1,11 +1,10 @@
-.TH tabix 1 "26 January 2018" "htslib-1.7" "Bioinformatics tools"
+.TH tabix 1 "22 September 2020" "htslib-1.11" "Bioinformatics tools"
 .SH NAME
-.PP
-bgzip \- Block compression/decompression utility
 .PP
 tabix \- Generic indexer for TAB-delimited genome position files
 .\"
 .\" Copyright (C) 2009-2011 Broad Institute.
+.\" Copyright (C) 2014, 2016, 2018, 2020 Genome Research Ltd.
 .\"
 .\" Author: Heng Li <lh3@sanger.ac.uk>
 .\"
@@ -29,14 +28,6 @@ tabix \- Generic indexer for TAB-delimited genome position files
 .\"
 .SH SYNOPSIS
 .PP
-.B bgzip
-.RB [ -cdhB ]
-.RB [ -b
-.IR virtualOffset ]
-.RB [ -s
-.IR size ]
-.RI [ file ]
-.PP
 .B tabix
 .RB [ -0lf ]
 .RB [ -p
@@ -58,11 +49,11 @@ gff|bed|sam|vcf]
 .PP
 Tabix indexes a TAB-delimited genome position file
 .I in.tab.bgz
-and creates an index file (
-.I in.tab.bgz.tbi
+and creates an index file
+.RI ( in.tab.bgz.tbi
 or 
-.I in.tab.bgz.csi
-) when
+.IR in.tab.bgz.csi )
+when
 .I region
 is absent from the command-line. The input data file must be position
 sorted and compressed by
@@ -79,6 +70,13 @@ specified in the format "chr:beginPos-endPos".
 Fast data retrieval also
 works over network if URI is given as a file name and in this case the
 index file will be downloaded if it is not present locally.
+
+The tabix
+.RI ( .tbi )
+and BAI index formats can handle individual chromosomes up to 512 Mbp
+(2^29 bases) in length.
+If your input file might contain data lines with begin or end positions
+greater than that, you will need to use a CSI index.
 
 .SH INDEXING OPTIONS
 .TP 10
@@ -131,20 +129,44 @@ Print only the header/meta lines.
 .B "-l, --list-chroms "
 List the sequence names stored in the index file.
 .TP
-.B "-r, --reheader " FILE
+.BI "-r, --reheader " FILE
 Replace the header with the content of FILE
 .TP
-.B "-R, --regions " FILE
+.BI "-R, --regions " FILE
 Restrict to regions listed in the FILE. The FILE can be BED file (requires .bed, .bed.gz, .bed.bgz 
 file name extension) or a TAB-delimited file with CHROM, POS, and,  optionally,
 POS_TO columns, where positions are 1-based and inclusive.  When this option is in use, the input
 file may not be sorted. 
-regions.
 .TP
-.B "-T, --targets" FILE
+.BI "-T, --targets " FILE
 Similar to 
 .B -R
 but the entire input will be read sequentially and regions not listed in FILE will be skipped.
+.TP
+.BI "-D "
+Do not download the index file before opening it. Valid for remote files only.
+.TP
+.BI "--cache " INT
+Set the BGZF block cache size to INT megabytes. [10]
+
+This is of most benefit when the
+.B -R
+option is used, which can cause blocks to be read more than once.
+Setting the size to 0 will disable the cache.
+.TP
+.B --separate-regions
+This option can be used when multiple regions are supplied in the command line
+and the user needs to quickly see which file records belong to which region.
+For this, a line with the name of the region, preceded by the file specific
+comment symbol, is inserted in the output before its corresponding group of
+records.
+.TP
+.BI "--verbosity " INT
+Set verbosity of logging messages printed to stderr.
+The default is 3, which turns on error and warning messages;
+2 reduces warning messages;
+1 prints only error messages and 0 is mostly silent.
+Values higher than 3 produce additional informational and debugging messages.
 .PP
 .SH EXAMPLE
 (grep ^"#" in.gff; grep -v ^"#" in.gff | sort -k1,1 -k4,4n) | bgzip > sorted.gff.gz;
@@ -178,4 +200,5 @@ access and in-memory caching.
 
 .SH SEE ALSO
 .PP
+.BR bgzip (1),
 .BR samtools (1)

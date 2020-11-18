@@ -1,6 +1,6 @@
 /*  hts_defs.h -- Miscellaneous definitions.
 
-    Copyright (C) 2013-2015,2017 Genome Research Ltd.
+    Copyright (C) 2013-2015,2017, 2019-2020 Genome Research Ltd.
 
     Author: John Marshall <jm18@sanger.ac.uk>
 
@@ -25,6 +25,10 @@ DEALINGS IN THE SOFTWARE.  */
 #ifndef HTSLIB_HTS_DEFS_H
 #define HTSLIB_HTS_DEFS_H
 
+#if defined __MINGW32__
+#include <stdio.h>     // For __MINGW_PRINTF_FORMAT macro
+#endif
+
 #ifdef __clang__
 #ifdef __has_attribute
 #define HTS_COMPILER_HAS(attribute) __has_attribute(attribute)
@@ -40,6 +44,12 @@ DEALINGS IN THE SOFTWARE.  */
 #endif
 #ifndef HTS_GCC_AT_LEAST
 #define HTS_GCC_AT_LEAST(major, minor) 0
+#endif
+
+#if HTS_COMPILER_HAS(__nonstring__) || HTS_GCC_AT_LEAST(8,1)
+#define HTS_NONSTRING __attribute__ ((__nonstring__))
+#else
+#define HTS_NONSTRING
 #endif
 
 #if HTS_COMPILER_HAS(__noreturn__) || HTS_GCC_AT_LEAST(3,0)
@@ -91,6 +101,20 @@ DEALINGS IN THE SOFTWARE.  */
 #define HTS_FORMAT(type, idx, first) __attribute__((__format__ (type, idx, first)))
 #else
 #define HTS_FORMAT(type, idx, first)
+#endif
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+#if defined(HTS_BUILDING_LIBRARY)
+#define HTSLIB_EXPORT __declspec(dllexport)
+#else
+#define HTSLIB_EXPORT
+#endif
+#elif HTS_COMPILER_HAS(__visibility__) || HTS_GCC_AT_LEAST(4,0)
+#define HTSLIB_EXPORT __attribute__((__visibility__("default")))
+#elif defined(__SUNPRO_C) && __SUNPRO_C >= 0x550
+#define HTSLIB_EXPORT __global
+#else
+#define HTSLIB_EXPORT
 #endif
 
 #endif

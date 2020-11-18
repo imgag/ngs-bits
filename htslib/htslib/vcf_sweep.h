@@ -1,7 +1,7 @@
 /// @file htslib/vcf_sweep.h
 /// Forward/reverse sweep API.
 /*
-    Copyright (C) 2013 Genome Research Ltd.
+    Copyright (C) 2013-2015, 2019 Genome Research Ltd.
 
     Author: Petr Danecek <pd3@sanger.ac.uk>
 
@@ -33,12 +33,21 @@ DEALINGS IN THE SOFTWARE.  */
 extern "C" {
 #endif
 
-typedef struct _bcf_sweep_t bcf_sweep_t;
+typedef struct bcf_sweep_t bcf_sweep_t;
 
+HTSLIB_EXPORT
 bcf_sweep_t *bcf_sweep_init(const char *fname);
+
+HTSLIB_EXPORT
 void bcf_sweep_destroy(bcf_sweep_t *sw);
+
+HTSLIB_EXPORT
 bcf_hdr_t *bcf_sweep_hdr(bcf_sweep_t *sw);
+
+HTSLIB_EXPORT
 bcf1_t *bcf_sweep_fwd(bcf_sweep_t *sw);
+
+HTSLIB_EXPORT
 bcf1_t *bcf_sweep_bwd(bcf_sweep_t *sw);
 
 #ifdef __cplusplus
