@@ -412,36 +412,43 @@ QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
 	return output;
 }
 
-BamReader::BamReader(const QString& bam_file)
-	: bam_file_(QFileInfo(bam_file).absoluteFilePath())
-	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
+void BamReader::init(const QString& bam_file, const QString& ref_genome)
 {
 	//open file
 	if (fp_==nullptr)
 	{
-		THROW(FileAccessException, "Could not open BAM file " + bam_file_);
+		THROW(FileAccessException, "Could not open BAM/CRAM file " + bam_file_);
 	}
 
 	//read header
 	header_ = sam_hdr_read(fp_);
 	if (header_==nullptr)
 	{
-		THROW(FileAccessException, "Could not read header from BAM file " + bam_file);
+		THROW(FileAccessException, "Could not read header from BAM/CRAM file " + bam_file);
 	}
 
 	//set reference for CRAM files
 	if(fp_->is_cram)
 	{
-		QString ref_file =  Settings::string("reference_genome", true);
-		if (ref_file=="")
+		if(ref_genome.isNull())
 		{
-			THROW(FileAccessException, "reference genome could not be read, needed for reading cram file!");
+			//get reference from header of cram
+			int fai = cram_set_header(fp_->fp.cram, header_);
+			if(fai < 0)
+			{
+				THROW(FileAccessException, "Reference genome could not be read from cram header, needed for reading cram file!");
+			}
 		}
-		int fai = hts_set_fai_filename(fp_, ref_file.toLatin1().constData());
-		if(fai < 0)
+		else
 		{
-			THROW(FileAccessException, "Error while setting reference genome for cram file!");
+			//use custom reference genome			
+			int fai = hts_set_fai_filename(fp_, ref_genome.toLatin1().constData());
+			if(fai < 0)
+			{
+				THROW(FileAccessException, "Error while setting reference genome for cram file!");
+			}
 		}
+
 	}
 
 	//parse chromosome names and sizes
@@ -451,13 +458,29 @@ BamReader::BamReader(const QString& bam_file)
 		chrs_ << chr;
 		chrs_sizes_[chr] = header_->target_len[i];
 	}
+
+	//parse reference file chromosome sizes
+}
+
+BamReader::BamReader(const QString& bam_file)
+	: bam_file_(QFileInfo(bam_file).absoluteFilePath())
+	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
+{
+	init(bam_file);
+}
+
+BamReader::BamReader(const QString& bam_file, const QString& ref_genome)
+	: bam_file_(QFileInfo(bam_file).absoluteFilePath())
+	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
+{
+	init(bam_file, ref_genome);
 }
 
 BamReader::~BamReader()
 {
 	clearIterator();
 	hts_idx_destroy(index_);
-	bam_hdr_destroy(header_);
+	sam_hdr_destroy(header_);
 	hts_close(fp_);
 }
 

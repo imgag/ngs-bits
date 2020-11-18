@@ -11,6 +11,7 @@
 #include "QHash"
 
 #include "htslib/sam.h"
+#include "htslib/cram.h"
 
 //Representation of a CIGAR operation
 struct CPPNGSSHARED_EXPORT CigarOp
@@ -273,6 +274,9 @@ class CPPNGSSHARED_EXPORT BamReader
 	public:
 		//Default constructor
 		BamReader(const QString& bam_file);
+		//Cram Constructor with explicit reference genome
+		BamReader(const QString& bam_file, const QString& ref_genome);
+
 		//Destructor
 		~BamReader();
 
@@ -317,12 +321,13 @@ class CPPNGSSHARED_EXPORT BamReader
 		QList<Chromosome> chrs_;
 		QHash<Chromosome, int> chrs_sizes_;
 		samFile* fp_ = nullptr;
-		bam_hdr_t* header_ = nullptr;
+		sam_hdr_t* header_ = nullptr;
 		hts_idx_t* index_ = nullptr;
 		hts_itr_t* iter_  = nullptr;
 
 		//Releases resources held by the iterator (index is not cleared)
 		void clearIterator();
+		void init(const QString& bam_file, const QString& ref_genome = QString::null);
 
 		//"declared away" methods
 		BamReader(const BamReader&) = delete;

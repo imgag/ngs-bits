@@ -19,7 +19,7 @@ Q_OBJECT
 private slots:
 
 	/************************************************************* BamAlignment *************************************************************/
-/*
+
 	void BamAlignment_getter_tests()
 	{
 		BamReader reader(TESTDATA("data_in/panel.bam"));
@@ -161,9 +161,9 @@ private slots:
 		S_EQUAL(al.tag("XX"), "ZBLA1234");
 	}
 
-*/
+
 /************************************************************* BamReader *************************************************************/
-/*
+
 	void BamReader_cigarDataAsString()
 	{
 		BamReader reader(TESTDATA("data_in/panel.bam"));
@@ -328,10 +328,10 @@ private slots:
 		I_EQUAL(indels.count("-AG"), 14);
 		F_EQUAL2(mapq0_frac, 0.0, 0.001);
 	}
-*/
+
 /************************************************************* Cram Support *************************************************************/
 //test cram file >2GB (there was a bug fix for htsliv version > 1.7
-/*
+
 	void CramSupport_getter_tests()
 	{
 		BamReader reader(TESTDATA("data_in/cramTest.cram"));
@@ -381,10 +381,10 @@ private slots:
 		S_EQUAL(al.tag("MC"), "Z130M");
 		S_EQUAL(al.tag("RG"), "ZNA12878_03");
 	}
-*/
+
 	void  CramSupport_cigarDataAsString()
 	{
-		BamReader reader(TESTDATA("data_in/new_cram.cram"));
+		BamReader reader(TESTDATA("data_in/cramTest.cram"));
 		BamAlignment al;
 
 		do
@@ -412,7 +412,7 @@ private slots:
 		S_EQUAL(al.cigarDataAsString(), "");
 
 	}
-/*
+
 	void CramSupport_getPileup()
 	{
 		BamReader reader(TESTDATA("data_in/cramTest.cram"));
@@ -463,7 +463,7 @@ private slots:
 		I_EQUAL(pileup.a(), 16);
 		I_EQUAL(pileup.indels().count(), 6);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 6);
-	}*/
+	}
 
 
 	void BamReader_genomeSize()
