@@ -37,6 +37,7 @@ private slots:
 		VariantScores::Result result = VariantScores::score("GSvar_v1", variants, pheno_rois);
 		S_EQUAL(result.algorithm, "GSvar_v1");
 		I_EQUAL(variants.count(), result.scores.count());
+		I_EQUAL(variants.count(), result.score_explainations.count());
 		I_EQUAL(variants.count(), result.ranks.count());
 		I_EQUAL(result.warnings.count(), 0);
 		for(int i=0; i<variants.count(); ++i)
@@ -89,6 +90,23 @@ private slots:
 				F_EQUAL(result.scores[i], 1.0);
 			}
 		}
+
+		//check that score explainations sum matches score
+		for(int i=0; i<result.scores.count(); ++i)
+		{
+			if (result.scores[i]>=0)
+			{
+				double score_sum = 0.0;
+				QStringList explainations = result.score_explainations[i];
+				foreach(QString explaination, explainations)
+				{
+					QStringList tmp = (explaination+":").split(":");
+					score_sum += Helper::toDouble(tmp[1], explaination, variants[i].toString());
+				}
+
+				F_EQUAL(score_sum, result.scores[i]);
+			}
+		}
 	}
 
 	void rank_GSvar_v1_noNGSD()
@@ -107,6 +125,7 @@ private slots:
 		//rank
 		VariantScores::Result result = VariantScores::score("GSvar_v1_noNGSD", variants, pheno_rois);
 		I_EQUAL(variants.count(), result.scores.count());
+		I_EQUAL(variants.count(), result.score_explainations.count());
 		I_EQUAL(variants.count(), result.ranks.count());
 		I_EQUAL(result.warnings.count(), 0);
 		for(int i=0; i<variants.count(); ++i)
@@ -160,6 +179,23 @@ private slots:
 			{
 				F_EQUAL(result.scores[i], -1.0);
 				I_EQUAL(result.ranks[i], -1);
+			}
+		}
+
+		//check that score explainations sum matches score
+		for(int i=0; i<result.scores.count(); ++i)
+		{
+			if (result.scores[i]>=0)
+			{
+				double score_sum = 0.0;
+				QStringList explainations = result.score_explainations[i];
+				foreach(QString explaination, explainations)
+				{
+					QStringList tmp = (explaination+":").split(":");
+					score_sum += Helper::toDouble(tmp[1], explaination, variants[i].toString());
+				}
+
+				F_EQUAL(score_sum, result.scores[i]);
 			}
 		}
 	}
