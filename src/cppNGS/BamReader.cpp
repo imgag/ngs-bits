@@ -430,7 +430,7 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 	//set reference for CRAM files
 	if(fp_->is_cram)
 	{
-		if(ref_genome.isNull())
+		if(ref_genome.isNull() || ref_genome == "")
 		{
 			//get reference from header of cram
 			int fai = cram_set_header(fp_->fp.cram, header_);
