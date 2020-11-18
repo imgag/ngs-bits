@@ -1198,9 +1198,30 @@
     <string>Close meta data tabs</string>
    </property>
   </action>
+    <action name="actionDesignCfDNAPanel">
+   <property name="text">
+    <string>Design cfDNA panel</string>
+   </property>
+   <property name="toolTip">
+    <string>Design cfDNA panel</string>
+   </property>
+  </action>
   <action name="actionImportStudy">
    <property name="text">
     <string>Study</string>
+   </property>
+  </action>
+    <action name="actionCfDNADiseaseCourse">
+   <property name="text">
+    <string>Show course of the disease (personalized cfDNA)</string>
+   </property>
+   <property name="toolTip">
+    <string>Show course of the disease (personalized cfDNA)</string>
+   </property>
+  </action>
+  <action name="actionShowCfDNAPanel">
+   <property name="text">
+    <string>Show cfDNA panel</string>
    </property>
   </action>
  </widget>

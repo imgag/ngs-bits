@@ -51,3 +51,6 @@ genlab_somatic_report_folder = ""
 
 #misc settings
 custom_menu_small_variants = ""
+
+#cfDNA
+patient_specific_panel_folder = ""

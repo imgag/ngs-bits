@@ -691,6 +691,9 @@ public:
 	///Stores a given EvaluationSheetData in the NGSD (return table id)
 	int storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_data, bool overwrite_existing_data = false);
 
+	///Return a list of sample ids which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
+	QStringList relatedSamples(const QString& sample_id, const QString& relation="");
+
 	///Returns the report config creation data (user/date) for somatic reports
 	SomaticReportConfigurationData somaticReportConfigData(int id);
 
