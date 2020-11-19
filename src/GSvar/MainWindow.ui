@@ -118,7 +118,7 @@
                 <item>
                  <widget class="QToolButton" name="vars_copy_btn">
                   <property name="toolTip">
-                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copy selection to clipboard.&lt;br/&gt;&lt;br/&gt;Use CTRL+SHIFT+C to split the quality values to separate columns.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Copy selection to clipboard.&lt;br/&gt;&lt;br/&gt;Use CTRL+SHIFT+C to split the quality values to separate columns.&lt;/p&gt;&lt;p&gt;Use CTRL+ALT+C to copy a single variant including the header.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="text">
                    <string>...</string>

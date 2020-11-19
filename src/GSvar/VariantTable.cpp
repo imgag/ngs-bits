@@ -490,7 +490,7 @@ void VariantTable::adaptColumnWidthsCustom()
 	if (index!=-1) setColumnWidth(index, size_med);
 }
 
-void VariantTable::copyToClipboard(bool split_quality)
+void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_row)
 {
 	// Data to be copied is not selected en bloc
 	if (selectedRanges().count()!=1 && !split_quality)
@@ -581,7 +581,7 @@ void VariantTable::copyToClipboard(bool split_quality)
 
 	//copy header
 	QString selected_text = "";
-	if (range.rowCount()!=1)
+	if (range.rowCount()!=1 || include_header_one_row)
 	{
 		selected_text += "#";
 		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
@@ -657,6 +657,10 @@ void VariantTable::keyPressEvent(QKeyEvent* event)
 	else if(event->key()==Qt::Key_C && event->modifiers() == (Qt::ShiftModifier|Qt::ControlModifier))
 	{
 		copyToClipboard(true);
+	}
+	else if(event->key()==Qt::Key_C && event->modifiers() == (Qt::AltModifier|Qt::ControlModifier))
+	{
+		copyToClipboard(false, true);
 	}
 	else //default key-press event
 	{
