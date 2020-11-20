@@ -370,6 +370,10 @@ QString Variant::toVCF(const FastaFileIndex& genome_index) const
 			pos -= 1;
 			obs = "";
 		}
+		else if(ref.size() > 1 || obs.size() > 1)
+		{
+			pos -= 1;
+		}
 		Sequence prefix_base = genome_index.seq(chr_, pos, 1);
 		ref = prefix_base + ref;
 		obs = prefix_base + obs;

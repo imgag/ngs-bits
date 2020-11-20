@@ -423,7 +423,7 @@ void MainWindow::on_actionDebug_triggered()
 
 		NGSD db;
 		//import all interesting variants
-		QString filename = QCoreApplication::applicationDirPath() + "/AHSTOHT1_FILES/variant_ids.txt";
+				QString filename = QCoreApplication::applicationDirPath() + "/AHSTOHT1_FILES/causal_variants.tsv";
 		QStringList lines = Helper::loadTextFile(filename, true, '#', true);
 		int count = 0;
 		foreach(const QString& line, lines)
@@ -432,7 +432,7 @@ void MainWindow::on_actionDebug_triggered()
 			try
 			{
 				QByteArrayList parts = line.toLatin1().split('\t');
-				if (parts.count()==6)
+				if (parts.count()==7)
 				{
 					QByteArray processed_sample_id = parts[0].trimmed();
 					QByteArray variant_id = parts[1].trimmed();
@@ -452,20 +452,29 @@ void MainWindow::on_actionDebug_triggered()
 					}
 					FastaFileIndex genome_index(ref_file);
 
-					int old_pos = variant.start();
 					QString new_values = variant.toVCF(genome_index);
 					QStringList new_values_list = new_values.split('\t');
 
-					variant.setStart(new_values_list[1].toInt());
-					if( (old_pos -1 ) == new_values_list[1].toInt())
+					//set new vcf values
+					//for insertions add +1 to end (Clinvar format)
+					if(variant.ref() == "-")
 					{
-						variant.setEnd(variant.end()-1);
+						variant.setEnd(variant.end()+1);
 					}
-					else if( old_pos != new_values_list[1].toInt())
+					//small additional check for end or variant position (end is not calculated in toVCF - however should only be affected for insertions due to ClinVar format
+					int end_check = variant.start() + variant.ref().length() - 1;
+					if(variant.ref() == "-")
 					{
-						qDebug("WRONG START POSITION!");
+						end_check +=1;
+					}
+					//check that start plus length of variant -1 equals old end position
+					if(variant.end() != end_check)
+					{
+						qDebug() << "Error in end of variant" << variant.ref() << variant.obs() << variant.start() << variant.end() << end_check;
 						exit(EXIT_FAILURE);
 					}
+
+					variant.setStart(new_values_list[1].toInt());
 					Sequence ref = Sequence(new_values_list[3].toUtf8());
 					variant.setRef(ref);
 					Sequence obs = Sequence(new_values_list[4].toUtf8());
@@ -492,7 +501,8 @@ void MainWindow::on_actionDebug_triggered()
 					variant_classification = ClinvarSubmissionGenerator::translateClassification(QString(class_num));
 					//sample name
 					QString sample_name = processed_sample_id;
-					SampleData sample_data = db.getSampleData(parts[5].trimmed());
+					QString sample_id = parts[5].trimmed();
+					SampleData sample_data = db.getSampleData(sample_id);
 
 					//General Data
 					ClinvarSubmissionData data;
@@ -508,6 +518,12 @@ void MainWindow::on_actionDebug_triggered()
 					data.variant_inheritance = variant_inheritance;
 
 					data.sample_name = sample_data.name;
+					data.sample_phenotypes = db.getSampleData(sample_id).phenotypes;
+					QString gender = parts[6].trimmed();
+					if(gender != "n/a")
+					{
+						data.sample_gender = gender;
+					}
 
 					//Generate xml
 					QString xml = ClinvarSubmissionGenerator::generateXML(data);

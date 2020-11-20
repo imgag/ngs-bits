@@ -372,6 +372,18 @@ private slots:
 
 		v = Variant("chr1", 47181921, 47181921, "A", "-");
 		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCA\tC\t30\tPASS\t.");
+
+		v = Variant("chr1", 47181921, 47181922, "AA", "GC");
+		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCAA\tCGC\t30\tPASS\t.");
+
+		v = Variant("chr1", 47181921, 47181921, "A", "TGC");
+		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCA\tCTGC\t30\tPASS\t.");
+
+		v = Variant("chr1", 47181921, 47181925, "AAAAA", "GCT");
+		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCAAAAA\tCGCT\t30\tPASS\t.");
+
+		v = Variant("chr1", 47181921, 47181925, "AAAAA", "GCTGCTGCT");
+		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCAAAAA\tCGCTGCTGCT\t30\tPASS\t.");
 	}
 
 	void addFilter()
