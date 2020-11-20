@@ -1,6 +1,7 @@
 #include "ToolBase.h"
 #include "VariantScores.h"
 #include "NGSD.h"
+#include "Log.h"
 
 class ConcreteTool
 	: public ToolBase
@@ -46,9 +47,19 @@ public:
 		{
 			hpo_id = hpo_id.trimmed();
 			if (hpo_id.isEmpty()) continue;
-
-			Phenotype pheno = db.phenotypeByAccession(hpo_id.toLatin1());
-
+			
+			//determine phenotype
+			Phenotype pheno;
+			try
+			{
+				pheno = db.phenotypeByAccession(hpo_id.toLatin1());
+			}
+			catch(Exception& e)
+			{
+				Log::warn(e.message());
+				continue;
+			}
+			
 			//pheno > genes > roi
 			BedFile roi;
 			GeneSet genes = db.phenotypeToGenes(pheno, true);
