@@ -309,11 +309,17 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 			explainations << "NGSD class:1.0";
 		}
 
+		//genotype
+		QByteArray genotype = v.annotations()[i_genotye].trimmed();
+		if (genotype=="hom")
+		{
+			score += 1.0;
+			explainations << "homozygous:1.0";
+		}
 
 		//gene-specific infos (gnomAD o/e lof, inheritance)
 		bool inh_match = false;
 		double min_oe = 1;
-		QByteArray genotype = v.annotations()[i_genotye].trimmed();
 		QByteArrayList gene_infos = v.annotations()[i_gene_info].trimmed().split(',');
 
 		foreach(const QByteArray& gene, genes)
@@ -531,10 +537,17 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 			explainations << "ClinVar:" + QString::number(clinvar_score, 'f', 1);
 		}
 
+		//genotype
+		QByteArray genotype = v.annotations()[i_genotye].trimmed();
+		if (genotype=="hom")
+		{
+			score += 1.0;
+			explainations << "homozygous:1.0";
+		}
+
 		//gene-specific infos (gnomAD o/e lof, inheritance)
 		bool inh_match = false;
 		double min_oe = 1;
-		QByteArray genotype = v.annotations()[i_genotye].trimmed();
 		QByteArrayList gene_infos = v.annotations()[i_gene_info].trimmed().split(',');
 
 		foreach(const QByteArray& gene, genes)
