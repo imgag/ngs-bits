@@ -134,18 +134,18 @@ void SomaticRnaReport::checkRefTissueTypeInNGSD(QString ref_type, QString tumor_
 RtfTable SomaticRnaReport::fusions()
 {
 	RtfTable fusion_table;
-	fusion_table.addRow(RtfTableRow("Fusionen", 9636, RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1));
+	fusion_table.addRow(RtfTableRow("Fusionen", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1));
 
-	fusion_table.addRow(RtfTableRow({"Fusion", "Transkript links", "Aminosäure linkes Gen", "Transkript rechts", "Aminosäure rechtes Gen", "Fusionstyp"},{2000,1800,1200,1800,1200,1636}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
+	fusion_table.addRow(RtfTableRow({"Fusion", "Transkript links", "Aminosäure linkes Gen", "Transkript rechts", "Aminosäure rechtes Gen", "Fusionstyp"},{2000,1800,1200,1800,1200,1921}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
 	for(const fusion& fus : fusions_)
 	{
 		//fus.genes is parsed because nomenclature for fusions contains only one dash instead of 2 dashes
-		fusion_table.addRow(RtfTableRow({fus.genes, fus.transcipt_id_left, fus.aa_left, fus.transcipt_id_right, fus.aa_right, fus.type},{2000,1800,1200,1800,1200,1636}, RtfParagraph().setFontSize(16)));
+		fusion_table.addRow(RtfTableRow({fus.genes, fus.transcipt_id_left, fus.aa_left, fus.transcipt_id_right, fus.aa_right, fus.type},{2000,1800,1200,1800,1200,1921}, RtfParagraph().setFontSize(16)));
 	}
 
 	fusion_table.setUniqueBorder(1,"brdrhair",2);
 
-	fusion_table.addRow(RtfTableRow("Fusionen vom Typ Frameshift führen wahrscheinlich zu einem nicht-funktionellen Fusionsprotein.",9636, RtfParagraph().setFontSize(14)));
+	fusion_table.addRow(RtfTableRow("Fusionen vom Typ Frameshift führen wahrscheinlich zu einem nicht-funktionellen Fusionsprotein.",doc_.maxWidth(), RtfParagraph().setFontSize(14)));
 
 	return fusion_table;
 }
@@ -193,16 +193,16 @@ RtfTable SomaticRnaReport::snvTable()
 		ok = false;
 		QByteArray ref_tpm_formatted = QByteArray::number(var.annotations()[i_rna_ref_tpm].toDouble(&ok), 'f', 1);
 		if(!ok) ref_tpm_formatted = ".";
-		row.addCell(936, ref_tpm_formatted, RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
+		row.addCell(1221, ref_tpm_formatted, RtfParagraph().setHorizontalAlignment("c").setFontSize(16));
 
 		table.addRow(row);
 	}
 	table.sortByCol(0);
 
 
-	table.prependRow(RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Beschreibung", "Anteil", "TPM", "MW TPM*"},{1000,2750,1150,750,1750,675,625,936}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2) );
-	table.prependRow(RtfTableRow({"DNA", "RNA"}, {7400, 2236}, RtfParagraph().setFontSize(16).setHorizontalAlignment("c").setBold(true)).setBorders(1, "brdrhair", 2) );
-	table.prependRow(RtfTableRow("Punktmutationen (SNVs) und kleine Insertionen/Deletionen (INDELs)", 9636, RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.prependRow(RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Beschreibung", "Anteil", "TPM", "MW TPM*"},{1000,2750,1150,750,1750,675,625,1221}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2) );
+	table.prependRow(RtfTableRow({"DNA", "RNA"}, {7400, 2521}, RtfParagraph().setFontSize(16).setHorizontalAlignment("c").setBold(true)).setBorders(1, "brdrhair", 2) );
+	table.prependRow(RtfTableRow("Punktmutationen (SNVs) und kleine Insertionen/Deletionen (INDELs)", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	table.setUniqueBorder(1, "brdrhair", 2);
 
@@ -212,7 +212,7 @@ RtfTable SomaticRnaReport::snvTable()
 	desc += RtfText("Beschreibung:").setBold(true).setFontSize(14).RtfCode() + " " + "Klassifikation der Varianten und ggf. Bewertung der Genfunktion als Onkogen bzw. Tumorsuppressorgen (TSG). ";
 	desc += RtfText("*MW TPM:").setBold(true).setFontSize(14).RtfCode() + " " + "Mittelwerte in Transcripts per Million (TPM) von Vergleichsproben aus " + trans(ref_tissue_type_) + " (The Human Protein Atlas). ";
 	desc += RtfText("Erweiterte Legende und Abkürzungen siehe Anlage 1.").setFontSize(14).RtfCode();
-	table.addRow(RtfTableRow(desc, 9636, RtfParagraph().setFontSize(14)));
+	table.addRow(RtfTableRow(desc, 9921, RtfParagraph().setFontSize(14)));
 
 	return table;
 }
@@ -259,7 +259,7 @@ RtfTable SomaticRnaReport::cnvTable()
 				temp.addCell(1986, CgiDriverDescription(statements[j]), RtfParagraph().setFontSize(16));
 
 				temp.addCell(900, QByteArray::number(getTpm(genes[j], cnv.annotations().at(i_rna_tpm)), 'f', 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
-				temp.addCell(900, QByteArray::number(getTpm(genes[j], cnv.annotations().at(i_ref_rna_tpm)), 'f', 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+				temp.addCell(1185, QByteArray::number(getTpm(genes[j], cnv.annotations().at(i_ref_rna_tpm)), 'f', 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
 
 				table.addRow(temp);
 			}
@@ -268,8 +268,8 @@ RtfTable SomaticRnaReport::cnvTable()
 
 	table.sortByCol(0);
 
-	table.prependRow(RtfTableRow({"Gen", "Position", "CNV", "CN", "Anteil","Beschreibung","TPM RNA", "MW TPM*"},{1000,2300,1300,500,750,1986,900,900}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader());
-	table.prependRow(RtfTableRow("Kopienzahlveränderungen (CNVs)", 9636, RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.prependRow(RtfTableRow({"Gen", "Position", "CNV", "CN", "Anteil","Beschreibung","TPM RNA", "MW TPM*"},{1000,2300,1300,500,750,1986,900,1185}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader());
+	table.prependRow(RtfTableRow("Kopienzahlveränderungen (CNVs)", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	table.setUniqueBorder(1, "brdrhair", 2);
 
@@ -357,11 +357,11 @@ RtfSourceCode SomaticRnaReport::trans(QString orig_entry) const
 
 void SomaticRnaReport::writeRtf(QByteArray out_file)
 {
-	doc_.setMargins(1134,1134,1134,1134);
+	doc_.setMargins( RtfDocument::cm2twip(2.3) , 1134 , RtfDocument::cm2twip(1.2) , 1134 );
 	doc_.setDefaultFontSize(16);
 
 
-	doc_.addColor(217,217,217);
+	doc_.addColor(191,191,191);
 	doc_.addColor(161,161,161);
 	doc_.addColor(255,255,0);
 
