@@ -58,7 +58,7 @@
             <MeasureSetType val_type="name">Variant</MeasureSetType>
             <Measure>
                 <MeasureType val_type="name">Variation</MeasureType>
-                <SequenceLocation Assembly="GRCh37" Chr="7" alternateAllele="T" referenceAllele="A" start="140453136" stop="140453136"/>
+                <SequenceLocation Assembly="GRCh37" Chr="7" referenceAllele="T" alternateAllele="A" start="140453136" stop="140453136"/>
             </Measure>
         </MeasureSet>
         <TraitSet>
