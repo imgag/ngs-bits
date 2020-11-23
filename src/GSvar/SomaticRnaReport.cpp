@@ -357,14 +357,16 @@ RtfTable SomaticRnaReport::cnvTable()
 	}
 
 	table.prependRow(RtfTableRow({"Gen", "Position", "CNV", "CN", "Anteil","Beschreibung","TPM RNA", "MW TPM*", "Rang"},{1000,2100,1300,500,750,1886,900,900,585}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader());
+	table.prependRow(RtfTableRow({"DNA", "RNA"},{7536,2385}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader() );
 	table.prependRow(RtfTableRow("Kopienzahlveränderungen (CNVs)", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	table.setUniqueBorder(1, "brdrhair", 2);
 
 	RtfSourceCode desc = "";
 	desc += RtfText("*MW TPM:").setBold(true).setFontSize(14).RtfCode() + " " + "Mittelwerte von Vergleichsproben aus " + trans(ref_tissue_type_) + " (The Human Protein Atlas). ";
-	desc += RtfText("Rang 1:").setBold(true).setFontSize(14).RtfCode() + " Die Expression eines Onkogens ist in der Probe erhöht oder die Expression eines Tumor-Suppresor-Gens ist in der Probe reduziert. ";
-	desc += RtfText("Rang 2:").setBold(true).setFontSize(14).RtfCode() + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig.";
+	desc += RtfText("Rang 1:").setBold(true).setFontSize(14).RtfCode() + " Die Expression eines Gens mit beschriebenem Funktionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert. ";
+	desc += RtfText("Rang 2:").setBold(true).setFontSize(14).RtfCode() + " Die Expression ist in der Probe und in der Kontrolle ähnlich oder die Rolle des Gens in der Onkogenese ist nicht eindeutig. ";
+	desc += RtfText("NA:").setBold(true).setFontSize(14).RtfCode() + " Keine abschließende Bewertung als Tumor Suppressor Gen (TSG) oder als Onkogen (NCG6.0).";
 	table.addRow(RtfTableRow(desc, 9921, RtfParagraph().setFontSize(14)));
 
 	return table;
