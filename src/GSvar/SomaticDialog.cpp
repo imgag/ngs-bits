@@ -9,6 +9,7 @@ SomaticDialog::SomaticDialog(QWidget* parent)
 	, steps_(SingleSampleAnalysisDialog::loadSteps("analysis_steps_somatic"))
 {
 	ui_.setupUi(this);
+	SingleSampleAnalysisDialog::initTable(ui_.samples_table);
 	SingleSampleAnalysisDialog::addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
 }
 

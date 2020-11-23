@@ -6,8 +6,6 @@ libs:
 - support CRAM in addition to BAM: use htslib functions with hts_ prefix instead of bam_ prefix
 
 GSvar:
-### Analysis dialogs: add disease group and status
-### Add GSvar score functionality: calculation, warning if no HPOs are set, ranking/filter by rank
 ## Allow adding variant outside of target region to report
     - add checkboxes to variants in report dialog
     - checkboxes for variants in ROI are checked and disabled
@@ -18,6 +16,7 @@ GSvar:
     - HPO for index and all related affected
     - diagnostic status for index
     - causal diagnostic variant(s) for "solved cases"
+    - classification / inheritance for causal diagnostic variants
     - Trio: set trio parents as unaffected with same disease group as child?!
 ## Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
