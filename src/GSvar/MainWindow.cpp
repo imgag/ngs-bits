@@ -5589,7 +5589,11 @@ void MainWindow::variantRanking()
 		//create phenotype list
 		QHash<Phenotype, BedFile> phenotype_rois;
 		QString sample_id = db.sampleId(ps_name);
-		PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
+		PhenotypeList phenotypes = ui_.filters->phenotypes();
+		if (phenotypes.isEmpty())
+		{
+			phenotypes = db.getSampleData(sample_id).phenotypes;
+		}
 		foreach(Phenotype pheno, phenotypes)
 		{
 			//pheno > genes

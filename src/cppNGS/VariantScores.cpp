@@ -151,7 +151,6 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 	int i_genotye = affected_cols[0];
 
 	//prepare ROI for fast lookup
-	//Possible improvement: Count each phenotype ROI hit separatly
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
 	BedFile roi;
 	foreach(const BedFile& pheno_roi, phenotype_rois)
@@ -202,7 +201,7 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 		int index = roi_index.matchingIndex(v.chr(), v.start(), v.end());
 		if (index!=-1)
 		{
-			score += 2.0; //TODO: test +4?
+			score += 2.0;
 			explainations << "HPO:2.0";
 		}
 
@@ -225,7 +224,7 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 		}
 		if (impact_score>0)
 		{
-			score += impact_score; //TODO: test count impact for hom variants twice
+			score += impact_score;
 			explainations << "impact:" + QString::number(impact_score, 'f', 1);
 		}
 
@@ -368,8 +367,6 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 			explainations << "gene_oe:0.5";
 		}
 
-		//TODO: gene AR + 2xtop20 > +1 score
-
 		output.scores << score;
 		output.score_explainations << explainations;
 	}
@@ -393,7 +390,7 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 	int i_genotye = affected_cols[0];
 
 	//prepare ROI for fast lookup
-	//Possible imrovement: Count each phenotype ROI hit separatly?!
+	//TODO: test counting each phenotype ROI hit separatly
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
 	BedFile roi;
 	foreach(const BedFile& pheno_roi, phenotype_rois)

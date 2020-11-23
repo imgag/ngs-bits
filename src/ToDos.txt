@@ -6,6 +6,7 @@ libs:
 - support CRAM in addition to BAM: use htslib functions with hts_ prefix instead of bam_ prefix
 
 GSvar:
+### Analysis dialogs: add disease group and status
 ### Add GSvar score functionality: calculation, warning if no HPOs are set, ranking/filter by rank
 ## Allow adding variant outside of target region to report
     - add checkboxes to variants in report dialog
