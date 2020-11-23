@@ -264,7 +264,6 @@ void ClinvarSubmissionGenerator::generateXML(const ClinvarSubmissionData& data, 
 			w.writeAttribute("referenceAllele", data.variant.ref());
 			w.writeAttribute("alternateAllele", data.variant.obs());
 			w.writeAttribute("start", QString::number(data.variant.start()));
-			w.writeAttribute("stop", QString::number(data.variant.end()));
 			w.writeEndElement();
 			w.writeEndElement();
 
