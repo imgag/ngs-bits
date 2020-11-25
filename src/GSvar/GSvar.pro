@@ -256,7 +256,6 @@ FORMS    += MainWindow.ui \
     PublishedVariantsWidget.ui \
     PreferredTranscriptsWidget.ui \
     TumorOnlyReportDialog.ui \
-    PreferredTranscriptsWidget.ui \
     CfDNAPanelDesignDialog.ui \
     DiseaseCourseWidget.ui \
     CfDNAPanelWidget.ui

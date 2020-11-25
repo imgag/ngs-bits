@@ -193,7 +193,7 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 			{
 				if (grouped.contains(gene))
 				{
-					incomplete_genes << gene + " <span style=\"font-size: 80%;\">" + QString::number(grouped[gene].baseCount()) + "</span> ";
+					incomplete_genes << gene + " <span style=\"font-size: 8pt;\">" + QString::number(grouped[gene].baseCount()) + "</span> ";
 				}
 			}
 			stream << "<br />" << trans("Fehlende Basen in nicht komplett abgedeckten Genen") << ": " << incomplete_genes.join(", ") << endl;
@@ -317,7 +317,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 			}
 			else
 			{
-				genes_incomplete << it.key() + " <span style=\"font-size: 80%;\">" + QByteArray::number(it.value()) + "</span> ";
+				genes_incomplete << it.key() + " <span style=\"font-size: 8pt;\">" + QByteArray::number(it.value()) + "</span> ";
 			}
 		}
 		stream << "<p>";
@@ -430,8 +430,13 @@ void ReportWorker::writeHtmlHeader(QTextStream& stream, QString sample_name)
 	stream << "		<!--" << endl;
 	stream << "body" << endl;
 	stream << "{" << endl;
-	stream << "	font-family: sans-serif;" << endl;
-	stream << "	font-size: 70%;" << endl;
+	stream << "	font-family: Calibri, sans-serif;" << endl;
+	stream << "	font-size: 8pt;" << endl;
+	stream << "}" << endl;
+	stream << "h4" << endl;
+	stream << "{" << endl;
+	stream << "	font-family: Calibri, sans-serif;" << endl;
+	stream << "	font-size: 10pt;" << endl;
 	stream << "}" << endl;
 	stream << "table" << endl;
 	stream << "{" << endl;
@@ -442,7 +447,7 @@ void ReportWorker::writeHtmlHeader(QTextStream& stream, QString sample_name)
 	stream << "th, td" << endl;
 	stream << "{" << endl;
 	stream << "	border: 1px solid black;" << endl;
-	stream << "	font-size: 100%;" << endl;
+	stream << "	font-size: 8pt;" << endl;
 	stream << "	text-align: left;" << endl;
 	stream << "}" << endl;
 	stream << "p" << endl;
@@ -536,7 +541,7 @@ void ReportWorker::writeHTML()
 	if (file_roi_!="")
 	{
 		stream << "<p><b>" << trans("Zielregion") << "</b>" << endl;
-		stream << "<br /><span style=\"font-size: 80%;\">" << trans("Die Zielregion umfasst mindestens die CCDS (\"consensus coding sequence\") unten genannter Gene &plusmn;20 Basen flankierender intronischer Sequenz, kann aber auch zus&auml;tzliche Exons und/oder flankierende Basen beinhalten.") << endl;
+		stream << "<br /><span style=\"font-size: 8pt;\">" << trans("Die Zielregion umfasst mindestens die CCDS (\"consensus coding sequence\") unten genannter Gene &plusmn;20 Basen flankierender intronischer Sequenz, kann aber auch zus&auml;tzliche Exons und/oder flankierende Basen beinhalten.") << endl;
 		stream << "<br />" << trans("Name") << ": " << QFileInfo(file_roi_).fileName().replace(".bed", "") << endl;
 		if (!genes_.isEmpty())
 		{
@@ -614,6 +619,7 @@ void ReportWorker::writeHTML()
 
 	//output: selected variants
 	stream << "<p><b>" << trans("Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
+	stream << "<br>" << trans("In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden.") << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td>";
@@ -1111,6 +1117,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Insertion"] = "insertion";
 		de2en["Inversion"] = "inversion";
 		de2en["Translokation"] = "translocation";
+		de2en["In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden."] = "In addition to likely pathogenic variants (class 4) and pathogenic variants (class 5), the following table contains only those variants of uncertain significance (class 3), for which a contribution to the clinical symptoms of the patient is conceivable and for which a further evaluation of the clinical relevance by follow-up examinations may be useful.  A list of all detected variants can be provided on request.";
 	}
 
 	//translate

@@ -216,6 +216,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 		//determine NGSD hom/het counts
 		QString variant_id = query.value("id").toString();
 		QPair<int, int> ngsd_counts = db.variantCounts(variant_id);
+		if (ngsd_counts.first + ngsd_counts.second ==0) continue; //skip somatic-only variants
 
 		//format transcript info
 		QSet<QString> types;

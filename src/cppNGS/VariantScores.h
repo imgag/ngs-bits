@@ -17,6 +17,8 @@ public:
 		QString algorithm;
 		//Scores per variant. Scores below 0 indicate that no score was calculated for the variant.
 		QList<double> scores;
+		//Score explainations per variant.
+		QList<QStringList> score_explainations;
 		//Ranks per variant. Ranks below 0 indicate that no rank was calculated for the variant.
 		QList<int> ranks;
 		//General warnings.
@@ -36,7 +38,7 @@ public:
 	static Result score(QString algorithm, const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois);
 
 	//Annotates a variant list with the scoring result. Returns the number of variants that were scored.
-	static int annotate(VariantList& variants, const Result& result);
+	static int annotate(VariantList& variants, const Result& result, bool add_explainations = false);
 
 private:
 	static Result score_GSvar_V1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois);

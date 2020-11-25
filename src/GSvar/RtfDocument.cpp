@@ -57,7 +57,7 @@ RtfDocument::RtfDocument()
 	, margin_bottom_(1134)
 	, margin_left_(1134)
 	, margin_right_(1134)
-	, fonts_({"Arial"})
+	, fonts_({"Calibri"})
 	, default_font_size_(18)
 {
 }
