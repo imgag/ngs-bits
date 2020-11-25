@@ -430,25 +430,28 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 	//set reference for CRAM files
 	if(fp_->is_cram)
 	{
-		if(ref_genome.isNull() || ref_genome == "")
-		{
-			//get reference from header of cram
-			int fai = cram_set_header(fp_->fp.cram, header_);
-			if(fai < 0)
+		#ifdef _WIN32
+			THROW(FileAccessException, "No Cram support for Windows yet!");
+		#else
+			if(ref_genome.isNull() || ref_genome == "")
 			{
-				THROW(FileAccessException, "Reference genome could not be read from cram header, needed for reading cram file!");
+				//get reference from header of cram
+				int fai = cram_set_header(fp_->fp.cram, header_);
+				if(fai < 0)
+				{
+					THROW(FileAccessException, "Reference genome could not be read from cram header, needed for reading cram file!");
+				}
 			}
-		}
-		else
-		{
-			//use custom reference genome			
-			int fai = hts_set_fai_filename(fp_, ref_genome.toLatin1().constData());
-			if(fai < 0)
+			else
 			{
-				THROW(FileAccessException, "Error while setting reference genome for cram file!");
+				//use custom reference genome
+				int fai = hts_set_fai_filename(fp_, ref_genome.toLatin1().constData());
+				if(fai < 0)
+				{
+					THROW(FileAccessException, "Error while setting reference genome for cram file!");
+				}
 			}
-		}
-
+		#endif
 	}
 
 	//parse chromosome names and sizes
@@ -534,7 +537,6 @@ bool BamReader::getNextAlignment(BamAlignment& al)
 {
 
 	int res = (iter_!=nullptr) ? sam_itr_next(fp_, iter_, al.aln_) : sam_read1(fp_, header_, al.aln_);
-	//qDebug() << al.isUnmapped() <<al.chromosomeID() <<al.start() << al.end()<< al.cigarDataAsString();
 	if (res<-1)
 	{
 		THROW(FileAccessException, "Could not read next alignment in BAM/CRAM file " + bam_file_);
@@ -596,7 +598,6 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 	BamAlignment al;
 	while (getNextAlignment(al))
 	{
-		qDebug() << al.isUnmapped() <<al.chromosomeID() <<al.start() << al.end()<< al.cigarDataAsString();
 		if (!al.isProperPair() && anom==false) continue;
 		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isDuplicate()) continue;

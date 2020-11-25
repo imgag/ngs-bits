@@ -329,8 +329,17 @@ private slots:
 		F_EQUAL2(mapq0_frac, 0.0, 0.001);
 	}
 
+	void BamReader_genomeSize()
+	{
+		BamReader reader(TESTDATA("data_in/panel.bam"));
+		double size_without_special = reader.genomeSize(false);
+		double size_with_special = reader.genomeSize(true);
+		IS_TRUE(size_without_special < size_with_special);
+	}
+
 /************************************************************* Cram Support *************************************************************/
-//test cram file >2GB (there was a bug fix for htsliv version > 1.7
+
+#ifndef _WIN32
 
 	void CramSupport_getter_tests()
 	{
@@ -393,22 +402,22 @@ private slots:
 		}
 		while(al.isUnmapped());
 
-		//S_EQUAL(al.cigarDataAsString(), "130M");
-		//S_EQUAL(al.cigarDataAsString(true), "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
+		S_EQUAL(al.cigarDataAsString(), "130M");
+		S_EQUAL(al.cigarDataAsString(true), "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
 
 		reader.getNextAlignment(al);
 		while(al.isUnmapped())
 		{
 			reader.getNextAlignment(al);
 		}
-		//S_EQUAL(al.cigarDataAsString(), "130M");
-		//S_EQUAL(al.cigarDataAsString(true), "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
+		S_EQUAL(al.cigarDataAsString(), "130M");
+		S_EQUAL(al.cigarDataAsString(true), "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
 
 		while(reader.getNextAlignment(al))
 		{
-				qDebug() << al.chromosomeID() << al.start() << al.end();
+				//qDebug() << al.chromosomeID() << al.start() << al.end();
 		}
-		qDebug() << "done";
+		//qDebug() << "done";
 		S_EQUAL(al.cigarDataAsString(), "");
 
 	}
@@ -465,13 +474,6 @@ private slots:
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 6);
 	}
 
-
-	void BamReader_genomeSize()
-	{
-		BamReader reader(TESTDATA("data_in/panel.bam"));
-		double size_without_special = reader.genomeSize(false);
-		double size_with_special = reader.genomeSize(true);
-		IS_TRUE(size_without_special < size_with_special);
-	}
+#endif
 
 };
