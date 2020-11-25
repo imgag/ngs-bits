@@ -141,8 +141,8 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 	//get indices of annotations we need
 	int i_coding = variants.annotationIndexByName("coding_and_splicing");
 	int i_gnomad = variants.annotationIndexByName("gnomAD");
-	int i_omim = variants.annotationIndexByName("OMIM");
-	int i_hgmd = variants.annotationIndexByName("HGMD");
+	int i_omim = variants.annotationIndexByName("OMIM", true, false);
+	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
 	int i_clinvar = variants.annotationIndexByName("ClinVar");
 	int i_gene_info = variants.annotationIndexByName("gene_info");
 	int i_classification = variants.annotationIndexByName("classification");
@@ -246,32 +246,38 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 		}
 
 		//OMIM gene
-		QByteArray omim = v.annotations()[i_omim].trimmed();
-		if (!omim.isEmpty())
+		if (i_omim!=-1) //optinal because of license
 		{
-			score += 1.0;
-			explainations << "OMIM:1.0";
+			QByteArray omim = v.annotations()[i_omim].trimmed();
+			if (!omim.isEmpty())
+			{
+				score += 1.0;
+				explainations << "OMIM:1.0";
+			}
 		}
 
 		//HGMD
-		double hgmd_score = 0.0;
-		QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');
-		foreach(const QByteArray& entry, hgmd)
+		if (i_hgmd!=-1) //optinal because of license
 		{
-			if (entry.contains("DM?"))
+			double hgmd_score = 0.0;
+			QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');
+			foreach(const QByteArray& entry, hgmd)
 			{
-				hgmd_score = std::max(hgmd_score, 0.3);
-			}
-			else if (entry.contains("DM"))
-			{
-				hgmd_score = std::max(hgmd_score, 0.5);
-			}
+				if (entry.contains("DM?"))
+				{
+					hgmd_score = std::max(hgmd_score, 0.3);
+				}
+				else if (entry.contains("DM"))
+				{
+					hgmd_score = std::max(hgmd_score, 0.5);
+				}
 
-		}
-		if (hgmd_score>0)
-		{
-			score += hgmd_score;
-			explainations << "HGMD:" + QString::number(hgmd_score, 'f', 1);
+			}
+			if (hgmd_score>0)
+			{
+				score += hgmd_score;
+				explainations << "HGMD:" + QString::number(hgmd_score, 'f', 1);
+			}
 		}
 
 		//ClinVar
@@ -381,8 +387,8 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 	//get indices of annotations we need
 	int i_coding = variants.annotationIndexByName("coding_and_splicing");
 	int i_gnomad = variants.annotationIndexByName("gnomAD");
-	int i_omim = variants.annotationIndexByName("OMIM");
-	int i_hgmd = variants.annotationIndexByName("HGMD");
+	int i_omim = variants.annotationIndexByName("OMIM", true, false);
+	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
 	int i_clinvar = variants.annotationIndexByName("ClinVar");
 	int i_gene_info = variants.annotationIndexByName("gene_info");
 	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
@@ -485,32 +491,38 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 		}
 
 		//OMIM gene
-		QByteArray omim = v.annotations()[i_omim].trimmed();
-		if (!omim.isEmpty())
+		if (i_omim!=-1) //optinal because of license
 		{
-			score += 1.0;
-			explainations << "OMIM:1.0";
+			QByteArray omim = v.annotations()[i_omim].trimmed();
+			if (!omim.isEmpty())
+			{
+				score += 1.0;
+				explainations << "OMIM:1.0";
+			}
 		}
 
 		//HGMD
-		double hgmd_score = 0.0;
-		QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');
-		foreach(const QByteArray& entry, hgmd)
+		if (i_hgmd!=-1) //optinal because of license
 		{
-			if (entry.contains("DM?"))
+			double hgmd_score = 0.0;
+			QByteArrayList hgmd = v.annotations()[i_hgmd].trimmed().split(';');
+			foreach(const QByteArray& entry, hgmd)
 			{
-				hgmd_score = std::max(hgmd_score, 0.3);
-			}
-			else if (entry.contains("DM"))
-			{
-				hgmd_score = std::max(hgmd_score, 0.5);
-			}
+				if (entry.contains("DM?"))
+				{
+					hgmd_score = std::max(hgmd_score, 0.3);
+				}
+				else if (entry.contains("DM"))
+				{
+					hgmd_score = std::max(hgmd_score, 0.5);
+				}
 
-		}
-		if (hgmd_score>0)
-		{
-			score += hgmd_score;
-			explainations << "HGMD:" + QString::number(hgmd_score, 'f', 1);
+			}
+			if (hgmd_score>0)
+			{
+				score += hgmd_score;
+				explainations << "HGMD:" + QString::number(hgmd_score, 'f', 1);
+			}
 		}
 
 		//ClinVar
