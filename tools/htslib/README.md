@@ -42,9 +42,11 @@ This is the updated version for *htslib 1.7*:
 			> pacman -S mingw-w64-x86_64-toolchain
 			> cd [ngs-bits]/htslib/
 			> autoreconf -i
-			> ./configure --disable-lzma --disable-bz2
+			> ./configure --disable-lzma --disable-bz2 --disable-libcurl
 
-4. Set fixed version for `PACKAGE_VERSION` and `NUMERIC_VERSION` in `Makefile`.
+4. 		> Set fixed version for `PACKAGE_VERSION` and `NUMERIC_VERSION` in `Makefile`.
+		> be careful to check that 'echo' does not output quotes as e.g. for 'version.h' in line 124 of the Makefile
+			(escape quotes or remove them if possible)
 
 5. Open a CMD shell in `[ngs-bits]/htslib/` and execute
 
