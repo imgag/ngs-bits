@@ -420,11 +420,11 @@
      </property>
     </widget>
     <addaction name="actionIgvClear"/>
-    <addaction name="separator"/>
     <addaction name="actionIgvInit"/>
+    <addaction name="menuOpenCustomTrack"/>
     <addaction name="separator"/>
     <addaction name="menuTrackDefaults"/>
-    <addaction name="menuOpenCustomTrack"/>
+    <addaction name="actionIgvPort"/>
    </widget>
    <widget class="QMenu" name="menuVariants">
     <property name="title">
@@ -1198,7 +1198,7 @@
     <string>Close meta data tabs</string>
    </property>
   </action>
-    <action name="actionDesignCfDNAPanel">
+  <action name="actionDesignCfDNAPanel">
    <property name="text">
     <string>Design cfDNA panel</string>
    </property>
@@ -1211,7 +1211,7 @@
     <string>Study</string>
    </property>
   </action>
-    <action name="actionCfDNADiseaseCourse">
+  <action name="actionCfDNADiseaseCourse">
    <property name="text">
     <string>Show course of the disease (personalized cfDNA)</string>
    </property>
@@ -1222,6 +1222,11 @@
   <action name="actionShowCfDNAPanel">
    <property name="text">
     <string>Show cfDNA panel</string>
+   </property>
+  </action>
+  <action name="actionIgvPort">
+   <property name="text">
+    <string>Change port</string>
    </property>
   </action>
  </widget>

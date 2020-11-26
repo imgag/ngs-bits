@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2020_09-69 (26.11.20)
+- IGV: Added option to change port (see documentation).
+- General: Analysis start dialogs now show disease group and status.
+- General: Added support for tracking the course of tumor progression via patient-specific cfDNA panels. 
+
 ### 2020_09-44 (17.11.20)
 - Ranking: Added first version of GSvar score/rank.
 - Subpanels: Added file name filter to sub-panel archive/restore dialog.

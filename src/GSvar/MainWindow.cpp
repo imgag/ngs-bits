@@ -248,11 +248,16 @@ void MainWindow::on_actionDebug_triggered()
 		int c_top5 = 0;
 		int c_top10 = 0;
 		NGSD db;
-		TsvFile file;
-		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\+old_2020_11_18\\details_samples_pediatric.tsv"); //TODO query from DB: SELECT CONCAT(s.name, "_0", ps.process_id) FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv WHERE ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.type='diagnostic variant' AND s.disease_status='Affected'
+		QStringList ps_names = db.getValues("SELECT CONCAT(s.name, '_0', ps.process_id) FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND (sys.type='WGS' OR sys.type='WES') AND ps.project_id=p.id AND p.type='diagnostic' AND ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.type='diagnostic variant' AND s.disease_status='Affected'");
+		qDebug() << "Processed sample to check:" << ps_names.count();
 		QString algorithm = "GSvar_v1_noNGSD";
 		QString special = "";
-		foreach(QString ps, file.extractColumn(0))
+		/*
+		TsvFile file;
+		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\+old_2020_11_18\\details_samples_pediatric.tsv");
+		foreach(QString ps, file.extractColumn(0)
+		*/
+		foreach(QString ps, ps_names)
 		{
 			QString ps_id = db.processedSampleId(ps);
 			if (db.getDiagnosticStatus(ps_id).outcome!="significant findings") continue;
@@ -286,48 +291,57 @@ void MainWindow::on_actionDebug_triggered()
 				phenotype_rois[pheno] = roi;
 			}
 
-			//load variants
-			VariantList variants;
-			variants.load(db.processedSamplePath(ps_id, NGSD::GSVAR));
-
-			//score
-			VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois);
-			int c_scored = VariantScores::annotate(variants, result);
-			int i_rank = variants.annotationIndexByName("GSvar_rank");
-			int i_score = variants.annotationIndexByName("GSvar_score");
-
-			//check rank of causal variant
-			int rc_id = db.reportConfigId(ps_id);
-			if (rc_id!=-1)
+			try
 			{
-				CnvList cnvs;
-				BedpeFile svs;
-				QStringList messages;
-				QSharedPointer<ReportConfiguration> rc_ptr = db.reportConfig(rc_id, variants, cnvs, svs, messages);
-				foreach(const ReportVariantConfiguration& var_conf, rc_ptr->variantConfig())
-				{
-					if (var_conf.causal && var_conf.variant_type==VariantType::SNVS_INDELS && var_conf.report_type=="diagnostic variant")
-					{
-						int var_index = var_conf.variant_index;
-						if (var_index>=0)
-						{
-							const Variant& var = variants[var_index];
-							if (var.chr().isAutosome() || var.chr().isGonosome())
-							{
-								output.addRow(QStringList() << ps << var.toString() << QString::number(c_scored) << var.annotations()[i_score] << var.annotations()[i_rank]);
+				//load variants
+				VariantList variants;
+				variants.load(db.processedSamplePath(ps_id, NGSD::GSVAR));
+				//AIdiva: variants.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\aidiva_results\\" + ps + "_full_aidiva.GSvar");
 
-								try
+				//score
+				VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois);
+				int c_scored = VariantScores::annotate(variants, result);
+				int i_rank = variants.annotationIndexByName("GSvar_rank");
+				int i_score = variants.annotationIndexByName("GSvar_score");
+
+				//check rank of causal variant
+				int rc_id = db.reportConfigId(ps_id);
+				if (rc_id!=-1)
+				{
+					CnvList cnvs;
+					BedpeFile svs;
+					QStringList messages;
+					QSharedPointer<ReportConfiguration> rc_ptr = db.reportConfig(rc_id, variants, cnvs, svs, messages);
+					foreach(const ReportVariantConfiguration& var_conf, rc_ptr->variantConfig())
+					{
+						if (var_conf.causal && var_conf.variant_type==VariantType::SNVS_INDELS && var_conf.report_type=="diagnostic variant")
+						{
+							int var_index = var_conf.variant_index;
+							if (var_index>=0)
+							{
+								const Variant& var = variants[var_index];
+								if (var.chr().isAutosome() || var.chr().isGonosome())
 								{
-									int rank = Helper::toInt(var.annotations()[i_rank]);
-									if (rank==1) ++c_top1;
-									if (rank<=5) ++c_top5;
-									if (rank<=10) ++c_top10;
+									output.addRow(QStringList() << ps << var.toString() << QString::number(c_scored) << var.annotations()[i_score] << var.annotations()[i_rank]);
+
+									try
+									{
+										int rank = Helper::toInt(var.annotations()[i_rank]);
+										if (rank==1) ++c_top1;
+										if (rank<=5) ++c_top5;
+										if (rank<=10) ++c_top10;
+									}
+									catch(...) {} //nothing to do here
 								}
-								catch(...) {} //nothing to do here
 							}
 						}
 					}
 				}
+			}
+			catch(Exception& e)
+			{
+				qDebug() << "  Error processing GSvar:" << e.message();
+				continue;
 			}
 		}
 		output.addComment("##Rank1: " + QString::number(c_top1) + " (" + QString::number(100.0*c_top1/output.rowCount(), 'f', 2) + "%)");
@@ -624,6 +638,16 @@ void MainWindow::on_actionIgvInit_triggered()
 void MainWindow::on_actionIgvClear_triggered()
 {
 	executeIGVCommands(QStringList() << "new");
+}
+
+void MainWindow::on_actionIgvPort_triggered()
+{
+	bool ok = false;
+	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", igvPort(), 0, 900000, 1, &ok);
+	if (ok)
+	{
+		igv_port_manual = igv_port_new;
+	}
 }
 
 void MainWindow::on_actionSV_triggered()
@@ -3866,6 +3890,13 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 	}
 }
 
+int MainWindow::igvPort() const
+{
+	int port = Settings::integer("igv_port");
+	if (igv_port_manual>0) port = igv_port_manual;
+	return port;
+}
+
 void MainWindow::on_actionOpenGeneTabByName_triggered()
 {
 	QString symbol = selectGene();
@@ -5375,7 +5406,7 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 	{
 		//connect
 		QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
-		int igv_port = Settings::integer("igv_port");
+		int igv_port = igvPort();
 		QString igv_host = Settings::string("igv_host");
 		socket.connectToHost(igv_host, igv_port);
 		if (!socket.waitForConnected(1000))
