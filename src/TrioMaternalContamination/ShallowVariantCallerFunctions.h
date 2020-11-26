@@ -9,7 +9,9 @@ void getVariantInformation(
 		const  VcfFile& variant_list,
 		int min_depth,
 		int min_alt_count,
-		std::unordered_set< VcfLine>& homozygousVariants);
+		std::unordered_set< VcfLine>& homozygousVariants,
+		const QString& ref_file
+		);
 
 void countOccurencesOfVariants(
 		const std::unordered_map<Member, VariantInfo, EnumHash>& trio,

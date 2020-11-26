@@ -160,14 +160,14 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString 
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi, const QString& ref_file)
 {
 	//get known SNP list
 	VcfFile snps;
 	snps = NGSHelper::getKnownVariants(build, true, roi, 0.2, 0.8);
 
 	//open BAM
-	BamReader reader(filename);
+	BamReader reader(filename, ref_file);
 
 	//get VariantGenotypes
 	VariantGenotypes output = genotypesBam(snps, reader, min_cov, max_snps, include_gonosomes);
@@ -175,14 +175,14 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString bu
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const QString& ref_file)
 {
 	//get known SNP list
 	VcfFile snps;
 	snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
 
 	//open BAM
-	BamReader reader(filename);
+	BamReader reader(filename, ref_file);
 
 	//get VariantGenotypes
 	VariantGenotypes output = genotypesBam(snps, reader, min_cov, max_snps, include_gonosomes);

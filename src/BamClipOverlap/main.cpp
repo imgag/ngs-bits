@@ -30,8 +30,8 @@ public:
 													"There are several parameters available for handling of mismatches in overlapping reads. " \
 													"Within the overlap the higher base quality will be kept for each basepair."
 							   );
-		addInfile("in", "Input bam file. Needs to be sorted by name.", false);
-		addOutfile("out", "Output bam file.", false);
+		addInfile("in", "Input BAM/CRAM file. Needs to be sorted by name.", false);
+		addOutfile("out", "Output BAM file.", false);
 		//optional
 		addFlag("overlap_mismatch_mapq", "Set mapping quality of pair to 0 if mismatch is found in overlapping reads.");
 		addFlag("overlap_mismatch_remove", "Remove pair if mismatch is found in overlapping reads.");
@@ -39,8 +39,11 @@ public:
 		addFlag("overlap_mismatch_basen", "Set base to N if mismatch is found in overlapping reads.");
 		addFlag("ignore_indels","Turn off indel detection in overlap.");
 		addFlag("v", "Verbose mode.");
+		addString("ref", "Reference genome for CRAM compression (reads from CRAM header if unset).", true);
+		addFlag("write_cram", "Writes a CRAM file as output.");
 
 		//changelog
+		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2018,01,11,"Updated base quality handling within overlap.");
 		changeLog(2017,01,16,"Added overlap mismatch filter.");
 	}
@@ -57,7 +60,7 @@ public:
 		QTextStream out(stderr);
 		bool verbose = getFlag("v");
 		bool ignore_indels = getFlag("ignore_indels");
-		BamReader reader(getInfile("in"));
+		BamReader reader(getInfile("in"), getString("ref"));
 		BamWriter writer(getOutfile("out"));
 		writer.writeHeader(reader);
 

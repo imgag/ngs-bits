@@ -17,10 +17,14 @@ public:
 	virtual void setup()
 	{
 		setDescription("BAM cleaning for Haloplex.");
-		addInfile("in", "Input bam file.", false);
-		addOutfile("out", "Output bam file.", false);
+		addInfile("in", "Input BAM/CRAM file.", false);
+		addOutfile("out", "Output BAM/CRAM file.", false);
 		//optional
 		addInt("min_match", "Minimum number of CIGAR matches (M).", true, 30);
+		addString("ref", "Reference genome for CRAM compression (reads from CRAM header if unset).", true);
+		addFlag("write_cram", "Writes a CRAM file as output.");
+
+		changeLog(2020,  11, 27, "Added CRAM support.");
 	}
 
 	virtual void main()
@@ -31,7 +35,7 @@ public:
 		int c_reads_mapped = 0;
 		int c_reads_failed = 0;
 
-		BamReader reader(getInfile("in"));
+		BamReader reader(getInfile("in"), getString("ref"));
 		BamWriter writer(getOutfile("out"));
 		writer.writeHeader(reader);
 

@@ -17,17 +17,19 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Detects high-coverage regions from a BAM file.");
+		setDescription("Detects high-coverage regions from a BAM/CRAM file.");
 		setExtendedDescription(QStringList() << "Note that only read start/end are used. Thus, deletions in the CIGAR string are treated as covered.");
-		addInfile("bam", "Input BAM file.", false);
+		addInfile("bam", "Input BAM/CRAM file.", false);
 		addInt("cutoff", "Minimum depth to consider a base 'high coverage'.", false);
 		//optional
 		addInfile("in", "Input BED file containing the regions of interest. If unset, reads from STDIN.", true);
-        addFlag("wgs", "WGS mode without target region. Genome information is taken from the BAM file.");
+		addFlag("wgs", "WGS mode without target region. Genome information is taken from the BAM/CRAM file.");
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
 		addInt("min_baseq", "Minimum base quality to consider a base.", true, 0);
+		addString("ref", "Reference genome for CRAM compression (reads from CRAM header if unset).", true);
 
+		changeLog(2020,  11, 27, "Added Cram support.");
 		changeLog(2020,  5,  26, "Added parameter 'min_baseq'.");
 		changeLog(2020,  5,  14, "First version.");
 	}
@@ -49,14 +51,14 @@ public:
 		BedFile output;
         if (wgs) //WGS
         {
-			output = Statistics::highCoverage(bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"));
+			output = Statistics::highCoverage(bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getString("ref"));
         }
 		else //ROI
         {
             BedFile file;
             file.load(in);
 			file.merge(true, true);
-			output = Statistics::highCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"));
+			output = Statistics::highCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getString("ref"));
         }
         output.store(getOutfile("out"));
 	}

@@ -23,8 +23,8 @@ public:
 	static VariantGenotypes genotypesFromGSvar(QString filename, bool include_gonosomes);
 
 	//Extract genotypes from BAM
-	static VariantGenotypes genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi);
-	static VariantGenotypes genotypesFromBam(QString build, QString filename, int min_cov, int max_snps, bool include_gonosomes);
+	static VariantGenotypes genotypesFromBam(QString build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi, const QString& ref_file);
+	static VariantGenotypes genotypesFromBam(QString build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const QString& ref_file);
 
 	//Calculation of similarity
 	void calculateSimilarity(const VariantGenotypes& in1, const VariantGenotypes& in2);

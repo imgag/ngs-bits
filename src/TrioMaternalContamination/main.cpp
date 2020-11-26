@@ -21,17 +21,18 @@ public:
 	{
 		setDescription("Detects maternal contamination of a child using SNPs from parents.");
 		setExtendedDescription(QStringList() << "Determines the percentage of heterozygous SNPs passed on to the child from mother/father." << "This percentage should be similar for mother/father. If it is not, maternal contamination is likely.");
-		addInfile("bam_m", "Input BAM file of mother.", false);
-		addInfile("bam_f", "Input BAM file of father.", false);
-		addInfile("bam_c", "Input BAM file of child.", false);
+		addInfile("bam_m", "Input BAM/CRAM file of mother.", false);
+		addInfile("bam_f", "Input BAM/CRAM file of father.", false);
+		addInfile("bam_c", "Input BAM/CRAM file of child.", false);
 
 		//optional
 		addInt("min_depth", "Minimum depth for calling SNPs.", true, 3);
 		addInt("min_alt_count", "Minimum number of alternate observations for calling a SNP.", true, 1);
-
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
+		addString("ref", "Reference genome for CRAM compression (reads from CRAM header if unset).", true);
 
+		changeLog(2020,  11, 27, "Added Cram support.");
 		changeLog(2020,  6,  18, "Initial version of the tool.");
 	}
 
@@ -43,6 +44,7 @@ public:
 		QString bam_m = getInfile("bam_m");
 		QString bam_f = getInfile("bam_f");
 		QString bam_c = getInfile("bam_c");
+		const QString ref_file = getString("ref");
 
 		int min_depth = getInt("min_depth");
 		int min_alt_count = getInt("min_alt_count");
@@ -62,7 +64,7 @@ public:
 		//find all variants
 		for(auto& member : trio)
 		{
-			getVariantInformation(member.second, variant_list, min_depth, min_alt_count, homozygousVariants);
+			getVariantInformation(member.second, variant_list, min_depth, min_alt_count, homozygousVariants, ref_file);
 		}
 
 		//delete homozygous variants
