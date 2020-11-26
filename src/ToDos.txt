@@ -53,7 +53,6 @@ External:
 ######################################################################################################################################################################
 GSVar features to dicuss:
 # Causal variants: force 'mode of inheritance' - not 'n/a', not 'AD+AR', not 'XLR+XLD' > remove from schema!
-# Validation method: 'PCR' > 'Sanger sequencing'
 - Add family table linking samples in one family with "father", "mother", "child", "aunte", "cousin", ... OR import samples relations from GenLab?? > FH/LUCIA/TOH
 - Add liquid handler robot to processed sample talbe > FH/LAB/TOH
 - Correctly import sample sender data from GenLab > TOH/STEPHAN O.
