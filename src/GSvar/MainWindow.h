@@ -85,6 +85,9 @@ public:
 	///Performs batch import of table rows
 	void importBatch(QString title, QString text, QString table, QStringList fields);
 
+	///Returns the IGV port to use
+	int igvPort() const;
+
 public slots:
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="");
@@ -178,6 +181,8 @@ public slots:
 	void on_actionIgvInit_triggered();
 	///Clear IGV
 	void on_actionIgvClear_triggered();
+	///Override IGV prot
+	void on_actionIgvPort_triggered();
 	///Open CNV dialog
 	void on_actionCNV_triggered();
 	///Open ROH dialog
@@ -412,7 +417,7 @@ private:
 	VariantList somatic_control_tissue_variants_;
 	bool cf_dna_available;
 	QToolButton* cfdna_menu_btn_;
-
+	int igv_port_manual = -1;
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;
 };

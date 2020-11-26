@@ -391,6 +391,7 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
 	int i_clinvar = variants.annotationIndexByName("ClinVar");
 	int i_gene_info = variants.annotationIndexByName("gene_info");
+	int i_aidiva = variants.annotationIndexByName("AIDIVA", true, false);
 	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
 	if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_V1' can only be applied to variant lists with exactly one affected patient!");
 	int i_genotye = affected_cols[0];
@@ -544,6 +545,29 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 		{
 			score += clinvar_score;
 			explainations << "ClinVar:" + QString::number(clinvar_score, 'f', 1);
+		}
+
+		//AIdiva
+		if (i_aidiva!=-1)
+		{
+			if (impact_score<3) //AIdiva only for MODERATE, LOW and MODIFIER
+			{
+				QByteArray aidiva = v.annotations()[i_aidiva].trimmed();
+				if (!aidiva.isEmpty())
+				{
+					double aidiva_score = Helper::toDouble(aidiva, "AIdiva score");
+					if (aidiva_score>=0.8)
+					{
+						score += 1.0;
+						explainations << "AIdiva:1.0";
+					}
+					else if (aidiva_score>=0.5)
+					{
+						score += 0.5;
+						explainations << "AIdiva:0.5";
+					}
+				}
+			}
 		}
 
 		//genotype

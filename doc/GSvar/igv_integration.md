@@ -39,7 +39,7 @@ In order to force initialization, select `IGV > Reset initialization status` fro
 
 ## FAQ
 
-### Why are reads colored sometimes
+### Why are reads colored sometimes?
 
 Colored reads normally mean that the insert size of the read lies outside the expected insert size interval.  
 More information can be found at in the [IGV documentation](https://software.broadinstitute.org/software/igv/interpreting_insert_size).
@@ -74,6 +74,18 @@ In that case, you have to set the proxy like shown here:
 ![alt text](igv_proxy.png)
 
 Finally, you have to restart IGV.
+
+### How can I change the port through which IGV and GSvar communicate?
+GSvar sends command to IGV through a port. The default port is 60151.  
+When several IGV instances run on the same computer, e.g. on two user accounts, only the IGV started first can access port 60151.  
+
+The second user needs to use a different port:
+
+- Change the port in IGV: `View > Preferences... > Advanced > Port number`.
+- Restat IGV.
+- Change the port in GSvar: `IGV > Change port`
+
+Note: The GSvar port is not changed permanently, but only for the currently running instance of GSvar.
 
 --
 
