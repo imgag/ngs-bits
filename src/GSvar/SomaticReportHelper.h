@@ -317,6 +317,8 @@ public:
 	///Returns true if all required annotation (CGI, NCG) are available
 	static bool checkRequiredSNVAnnotations(const VariantList& snvs);
 
+	static bool checkGermlineSNVFile(const VariantList& germline_variants);
+
 	///Returns maximum tumor clonailty in cnv file
 	static double getCnvMaxTumorClonality(const CnvList& cnvs);
 

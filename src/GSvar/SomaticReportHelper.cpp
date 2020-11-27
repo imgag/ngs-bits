@@ -445,6 +445,16 @@ bool SomaticReportHelper::checkRequiredSNVAnnotations(const VariantList &snvs)
 	return true;
 }
 
+bool SomaticReportHelper::checkGermlineSNVFile(const VariantList &germline_variants)
+{
+	if(germline_variants.count() == 0) return false;
+
+	int i_germl_class = germline_variants.annotationIndexByName("classification", true, false);
+	if(i_germl_class < 0) return false;
+
+	return true;
+}
+
 
 RtfTable SomaticReportHelper::createCnvTable()
 {
@@ -2131,14 +2141,20 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 		 target_genes = db_.genesToApproved(target_genes,true);
 	}
 
-	doc_.addPart(somaticAlterationTable(snvs_to_be_printed, cnvs_, true, target_genes, true).setUniqueBorder(1,"brdrhair",4).RtfCode());
+	RtfTable alt_table = somaticAlterationTable(snvs_to_be_printed, cnvs_, true, target_genes, true);
+	alt_table.setUniqueBorder(1,"brdrhair",4);
+
+
 
 	RtfSourceCode snv_expl  = RtfText("Anteil:").setBold(true).setFontSize(14).RtfCode() + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil der Zellen mit der entsprechenden Kopienzahlvariante (CNV) in der untersuchten Probe. ";
 	snv_expl += RtfText("Beschreibung:").setFontSize(14).setBold(true).RtfCode() + " SNV: Einschätzung der Varianten und ggf. Bewertung der Genfunktion als Onkogen bzw. Tumorsuppressorgen (TSG). CNV: Deletionen, fokale Amplifikationen und Amplifikationen mit mehr als 4 Kopien. ";
 	snv_expl += "Erweiterte Legende und Abkürzungen siehe unten.";
 	if(settings_.report_config.countGermline() > 0) snv_expl += "\\line\n" +RtfText("#:").setFontSize(14).setBold(true).RtfCode() + " Auch in der Normalprobe nachgewiesen.";
 
-	doc_.addPart( RtfParagraph(snv_expl).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(276).RtfCode() );
+	alt_table.addRow(RtfTableRow(snv_expl, doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("j").setFontSize(14).setLineSpacing(276)).setBorders(0));
+
+	doc_.addPart(alt_table.RtfCode() );
+
 	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setLineSpacing(276).setFontSize(18).RtfCode());
 
 	if(skipped_amp_.count() > 0)
@@ -2198,12 +2214,16 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	 *********************/
 	doc_.addPart(RtfParagraph("Alle nachgewiesenen somatischen Veränderungen:").setBold(true).setSpaceAfter(45).setFontSize(18).RtfCode());
 
-	doc_.addPart(somaticAlterationTable(snv_variants_, cnvs_, true, GeneSet(), false, true).setUniqueBorder(1,"brdrhair",4).RtfCode());
+
+	alt_table = somaticAlterationTable(snv_variants_, cnvs_, true, GeneSet(), false, true);
+	alt_table.setUniqueBorder(1,"brdrhair",4);
 
 	RtfSourceCode desc = "Diese Tabelle enthält sämtliche in der Tumorprobe nachgewiesenen SNVs und INDELs, unabhängig von der funktionellen Einschätzung und der abzurechnenden Zielregion. Sie enthält ferner alle Kopienzahlveränderungen in Genen, die als Treiber eingestuft wurden.";
 	if(settings_.report_config.countGermline() > 0) desc += "\\line\n" +RtfText("#:").setFontSize(14).setBold(true).RtfCode() + " Auch in der Normalprobe nachgewiesen.";
 
-	doc_.addPart(RtfParagraph(desc).setFontSize(14).setIndent(0,0,0).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
+	alt_table.addRow( RtfTableRow(desc, doc_.maxWidth(), RtfParagraph().setFontSize(14).setHorizontalAlignment("j").setLineSpacing(276).setIndent(0,0,0)) );
+
+	doc_.addPart(alt_table.RtfCode());
 
 	doc_.addPart(RtfParagraph(" ").RtfCode());
 

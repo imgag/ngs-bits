@@ -2558,7 +2558,10 @@ void MainWindow::loadSomaticReportConfig()
 		dir.cd("Sample_" + normalSampleName());
 		somatic_control_tissue_variants_.load( Helper::canonicalPath(dir.absolutePath() + "/" +normalSampleName() + ".GSvar" ) );
 	}
-	catch(...) {} //Nothing to do here //TODO If this fails, no report can be generated. So this should trigger an error! > AXEL
+	catch(Exception e)
+	{
+		QMessageBox::warning(this, "Could not load germline GSvar file", "Could not load germline GSvar file. No germline variants will be parsed for somatic report generation. Message: " + e.message());
+	}
 
 
 
@@ -3423,6 +3426,13 @@ void MainWindow::generateReportSomaticRTF()
 			{
 				QApplication::restoreOverrideCursor();
 				QMessageBox::warning(this,"Somatic report", "DNA report cannot be created because GSVar-file does not contain NCG, CGI or somatic_classification annotation columns.");
+				return;
+			}
+
+			if(!SomaticReportHelper::checkGermlineSNVFile(somatic_control_tissue_variants_))
+			{
+				QApplication::restoreOverrideCursor();
+				QMessageBox::warning(this, "Somatic report", "DNA report cannot be created because germline GSVar-file is invalid. Please check control tissue variant file.");
 				return;
 			}
 
