@@ -341,9 +341,71 @@ private slots:
 
 #ifndef _WIN32
 
-	void CramSupport_getter_tests()
+	//the cram file contains a valid path to reference genome in the header
+	//and should therefore load without an explicit reference parameter
+	void CramSupport_referenceInHeader_tests()
 	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
 		BamReader reader(TESTDATA("data_in/cramTest.cram"));
+
+		BamAlignment al;
+		do
+		{
+			reader.getNextAlignment(al);
+		}
+		while(al.isUnmapped());
+
+
+		//check name
+		S_EQUAL(al.name(), "PC0226:121:000000000-AB2J9:1:2101:19474:26718");
+
+		//check bases
+		QByteArray bases = al.bases();
+		S_EQUAL(bases, "TGCTGGGATTACAGGTGTGAGCCACCGCGCCCGGCGTTTTGTTTCATTTTTATTTTTGAGACACGGTCTTGCTCTGTCGCCCAGGCTGGAGTGCAGTGTCGCAATCTCGGCTCACTGCATCCTCCGCCTC");
+		for (int i=0; i<bases.count(); ++i)
+		{
+			S_EQUAL(bases.data()[i], al.base(i));
+		}
+
+		//check qualities
+		QByteArray qualities = al.qualities();
+		S_EQUAL(qualities, "3>AABF@FFFFFGGGGGGGGGFHHHFGGGCGGGGEEGGGGHCGHHHHHHHHGHHHGHGFGHHHHGGGGGGHHHHHHHHGFGGGGGHHFEHFHGHHHHHHHGHGGGHHGGFGGGHHHFHHHHHHHHGGFGG");
+		for (int i=0; i<qualities.count(); ++i)
+		{
+			S_EQUAL(qualities.data()[i], (char)(al.quality(i)+33));
+		}
+
+		//check CIGAR
+		S_EQUAL(al.cigarDataAsString(), "130M");
+		QByteArray cigar_exp = al.cigarDataAsString(true);
+		S_EQUAL(cigar_exp, "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
+		QList<CigarOp> cigar_data = al.cigarData();
+		int i = 0;
+		foreach(const CigarOp& op, cigar_data)
+		{
+			for(int j=0; j<op.Length; ++j)
+			{
+				S_EQUAL(cigar_exp.data()[i], op.typeAsChar());
+				++i;
+			}
+		}
+
+		//tag
+		S_EQUAL(al.tag("MC"), "Z130M");
+		S_EQUAL(al.tag("RG"), "ZNA12878_03");
+	}
+
+	//the cram file has an invalid reference genome set in @SQ (M5 as well as UR, libcurl disabled in htslib)
+	//therefore the cram is only readable if the reference genome parameter is successfully read
+	void CramSupport_referenceAsParameter_tests()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		BamReader reader(TESTDATA("data_in/cramTestNoReference.cram"), ref_file);
+
 		BamAlignment al;
 		do
 		{
@@ -393,6 +455,11 @@ private slots:
 
 	void  CramSupport_cigarDataAsString()
 	{
+		samFile* fp = sam_open(TESTDATA("data_in/cramTest.cram"), "r");
+		sam_hdr_t* header = sam_hdr_read(fp);
+		int fai = cram_set_header(fp->fp.cram, header);
+		if(fai < 0) SKIP("Test needs the reference genome!");
+
 		BamReader reader(TESTDATA("data_in/cramTest.cram"));
 		BamAlignment al;
 
@@ -424,6 +491,11 @@ private slots:
 
 	void CramSupport_getPileup()
 	{
+		samFile* fp = sam_open(TESTDATA("data_in/cramTest.cram"), "r");
+		sam_hdr_t* header = sam_hdr_read(fp);
+		int fai = cram_set_header(fp->fp.cram, header);
+		if(fai < 0) SKIP("Test needs the reference genome!");
+
 		BamReader reader(TESTDATA("data_in/cramTest.cram"));
 		Pileup pileup;
 		//SNP

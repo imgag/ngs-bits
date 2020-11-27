@@ -414,6 +414,7 @@ QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
 
 void BamReader::init(const QString& bam_file, const QString& ref_genome)
 {
+
 	//open file
 	if (fp_==nullptr)
 	{
@@ -433,16 +434,8 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 		#ifdef _WIN32
 			THROW(FileAccessException, "No Cram support for Windows yet!");
 		#else
-			if(ref_genome.isNull() || ref_genome == "")
-			{
-				//get reference from header of cram
-				int fai = cram_set_header(fp_->fp.cram, header_);
-				if(fai < 0)
-				{
-					THROW(FileAccessException, "Reference genome could not be read from cram header, needed for reading cram file!");
-				}
-			}
-			else
+			//load reference file for cram
+			if(!(ref_genome.isNull() || ref_genome == ""))
 			{
 				//use custom reference genome
 				int fai = hts_set_fai_filename(fp_, ref_genome.toLatin1().constData());
@@ -451,6 +444,8 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 					THROW(FileAccessException, "Error while setting reference genome for cram file!");
 				}
 			}
+
+			//check chromosomes are of same length
 		#endif
 	}
 
