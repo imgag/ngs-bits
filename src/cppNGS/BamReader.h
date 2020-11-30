@@ -338,6 +338,7 @@ class CPPNGSSHARED_EXPORT BamReader
 
 		//friends
 		friend class BamWriter;
+		friend class BamWriter_Test;
 };
 
 #endif // BAMREADER_H

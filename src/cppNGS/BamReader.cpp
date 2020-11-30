@@ -423,7 +423,7 @@ void BamReader::verify_chromosome_length(const QString& ref_genome)
 		uint32_t length_chromosome = header_->target_len[i];
 
 		const Chromosome chr(name_chromosome);
-		int length_reference_chromosome = reference.lengthOf(chr);
+		uint32_t length_reference_chromosome = (uint32_t)reference.lengthOf(chr);
 
 		if(length_chromosome != length_reference_chromosome)
 		{
