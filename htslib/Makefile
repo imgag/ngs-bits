@@ -108,14 +108,14 @@ include htslib_vars.mk
 
 # If not using GNU make, you need to copy the version number from version.sh
 # into here.
-PACKAGE_VERSION := $(shell ./version.sh)
+PACKAGE_VERSION := 1.11
 
 LIBHTS_SOVERSION = 3
 MACH_O_COMPATIBILITY_VERSION = $(LIBHTS_SOVERSION)
 
 # $(NUMERIC_VERSION) is for items that must have a numeric X.Y.Z string
 # even if this is a dirty or untagged Git working tree.
-NUMERIC_VERSION := $(shell ./version.sh numeric)
+NUMERIC_VERSION := 1.11
 
 # Force version.h to be remade if $(PACKAGE_VERSION) has changed.
 version.h: $(if $(wildcard version.h),$(if $(findstring "$(PACKAGE_VERSION)",$(shell cat version.h)),,force))
