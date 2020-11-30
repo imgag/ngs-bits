@@ -274,7 +274,8 @@ class CPPNGSSHARED_EXPORT BamReader
 	public:
 		//Default constructor
 		BamReader(const QString& bam_file);
-		//Cram Constructor with explicit reference genome
+		//CRAM Constructor with explicit reference genome
+		//reference genome is compulsory for CRAM support
 		BamReader(const QString& bam_file, const QString& ref_genome);
 
 		//Destructor
@@ -316,6 +317,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		*/
 		void getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac);
 
+
 	protected:
 		QString bam_file_;
 		QList<Chromosome> chrs_;
@@ -327,6 +329,7 @@ class CPPNGSSHARED_EXPORT BamReader
 
 		//Releases resources held by the iterator (index is not cleared)
 		void clearIterator();
+		void verify_chromosome_length(const QString& ref_genome);
 		void init(const QString& bam_file, const QString& ref_genome = QString::null);
 
 		//"declared away" methods

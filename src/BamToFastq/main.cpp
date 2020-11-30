@@ -27,7 +27,7 @@ public:
 		addFlag("remove_duplicates", "Does not export duplicate reads into the FASTQ file.");
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
 		addInt("write_buffer_size", "Output write buffer size (number of FASTQ entry pairs).", true, 100);
-		addString("ref", "Reference genome for CRAM compression (reads from CRAM header if unset).", true);
+		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
 
 		changeLog(2020,  11, 27, "Added Cram support.");
 		changeLog(2020,  5, 29, "Massive speed-up by writing in background. Added 'compression_level' parameter.");

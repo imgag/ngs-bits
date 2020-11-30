@@ -30,7 +30,7 @@ public:
 		addFlag("no_cont", "Disables sample contamination calculation, e.g. for tumor or non-human samples.");
 		addFlag("debug", "Enables verbose debug outout.");
 		addEnum("build", "Genome build used to generate the input (needed for contamination only).", true, QStringList() << "hg19" << "hg38", "hg19");
-		addString("ref", "Reference genome for CRAM compression (reads from CRAM header if unset).", true);
+		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
 
 		//changelog
 		changeLog(2020,  11, 27, "Added Cram support.");

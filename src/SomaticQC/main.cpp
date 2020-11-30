@@ -79,7 +79,7 @@ public:
 		addFlag("skip_plots", "Skip plots (intended to increase speed of automated tests).");
 		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs." << "All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
-		addString("ref_cram", "Reference genome for CRAM compression (reads from CRAM header if unset). If set it is used for tumor and normal file.", true);
+		addString("ref_cram", "Reference genome for CRAM compression (compulsory for CRAM support). If set it is used for tumor and normal file.", true);
 
 		//changelog
 		changeLog(2020,  11, 27, "Added CRAM support.");

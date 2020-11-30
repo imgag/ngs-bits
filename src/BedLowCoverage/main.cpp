@@ -27,7 +27,7 @@ public:
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
 		addInt("min_baseq", "Minimum base quality to consider a base.", true, 0);
-		addString("ref", "Reference genome for CRAM compression (reads from CRAM header if unset).", true);
+		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
 
 		changeLog(2020,  11, 27, "Added Cram support.");
 		changeLog(2020,  5,  26, "Added parameter 'min_baseq'.");

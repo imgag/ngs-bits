@@ -25,7 +25,7 @@ public:
 		addEnum("mode", "Mode to optimize run time. Use 'panel' mode if only a small part of the data in the BAM file is accessed, e.g. a sub-panel of an exome.", true, QStringList() << "default" << "panel", "default");
 		addInt("decimals", "Number of decimals used in output.", true, 2);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
-		addString("ref", "Reference genome for CRAM compression (reads from CRAM header if unset).", true);
+		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
 
 		changeLog(2020,  11, 27, "Added Cram support.");
 		changeLog(2017,  6,  2, "Added 'dup' parameter.");

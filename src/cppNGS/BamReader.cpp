@@ -412,6 +412,26 @@ QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
 	return output;
 }
 
+void BamReader::verify_chromosome_length(const QString& ref_genome)
+{
+	FastaFileIndex reference(ref_genome);
+
+	int32_t number_chromosomes = header_->n_targets;
+	for(int32_t i = 0; i < number_chromosomes; ++i)
+	{
+		char* name_chromosome = header_->target_name[i];
+		uint32_t length_chromosome = header_->target_len[i];
+
+		const Chromosome chr(name_chromosome);
+		int length_reference_chromosome = reference.lengthOf(chr);
+
+		if(length_chromosome != length_reference_chromosome)
+		{
+			THROW(FileAccessException, "Chromosome lengths of reference genome (" + ref_genome + ") and CRAM file (" + bam_file_ + ") do not match for Chromosome: " + name_chromosome + "!");
+		}
+	}
+}
+
 void BamReader::init(const QString& bam_file, const QString& ref_genome)
 {
 
@@ -437,15 +457,20 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 			//load reference file for cram
 			if(!(ref_genome.isNull() || ref_genome == ""))
 			{
-				//use custom reference genome
+				//load custom reference genome
 				int fai = hts_set_fai_filename(fp_, ref_genome.toLatin1().constData());
 				if(fai < 0)
 				{
 					THROW(FileAccessException, "Error while setting reference genome for cram file!");
 				}
-			}
 
-			//check chromosomes are of same length
+				//check chromosomes are of same length
+				verify_chromosome_length(ref_genome);
+			}
+			else
+			{
+				THROW(FileAccessException, "Reference genome necessary for opening Cram file " + bam_file + ".");
+			}
 		#endif
 	}
 

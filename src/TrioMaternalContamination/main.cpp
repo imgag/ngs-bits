@@ -30,7 +30,7 @@ public:
 		addInt("min_alt_count", "Minimum number of alternate observations for calling a SNP.", true, 1);
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
-		addString("ref", "Reference genome for CRAM compression (reads from CRAM header if unset).", true);
+		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
 
 		changeLog(2020,  11, 27, "Added Cram support.");
 		changeLog(2020,  6,  18, "Initial version of the tool.");

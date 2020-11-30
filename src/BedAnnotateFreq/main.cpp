@@ -26,7 +26,7 @@ public:
 		//optional
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
-		addString("ref", "Reference genome for CRAM compression (reads from CRAM header if unset).", true);
+		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
 
 		changeLog(2020,  11, 27, "Added CRAM support.");
 	}
