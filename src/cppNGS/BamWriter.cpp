@@ -6,13 +6,24 @@ BamWriter::BamWriter(const QString& bam_file, const QString& ref_file)
 	: bam_file_(QFileInfo(bam_file).absoluteFilePath())
 {
 	//open file pointer
-	if(ref_file == "" || ref_file == QString::null)
+	if(bam_file.endsWith(".bam"))
 	{
 		fp_ = sam_open(bam_file.toLatin1().constData(), "wb");
 	}
+	else if(bam_file.endsWith(".cram"))
+	{
+		if(ref_file != "" && ref_file != QString::null)
+		{
+			fp_ = sam_open(bam_file.toLatin1().constData(), "wc");
+		}
+		else
+		{
+			THROW(FileAccessException, "No reference genome used in BamWriter for file: " + bam_file_ + ".");
+		}
+	}
 	else
 	{
-		fp_ = sam_open(bam_file.toLatin1().constData(), "wc");
+		THROW(FileAccessException, "Could not write file: " + bam_file_ + ". For writing BAM files use the file extension \'.bam\'; for writing CRAM files use the extension \'.cram\' with a reference genome.");
 	}
 
 	if (fp_==nullptr)
