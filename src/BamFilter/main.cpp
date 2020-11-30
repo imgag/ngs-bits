@@ -72,7 +72,7 @@ public:
 		minDup = getInt("minDup");
 
 		BamReader reader(getInfile("in"), getString("ref"));
-		BamWriter writer(getOutfile("out"));
+		BamWriter writer(getOutfile("out"), getString("ref"));
 		writer.writeHeader(reader);
 
 		//process alignments

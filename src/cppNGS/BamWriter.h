@@ -10,8 +10,8 @@ class CPPNGSSHARED_EXPORT BamWriter
 {
 	public:
 		//Default constructor
-		//writes CRAM file if a reference genome is given and bam_file ends with 'cram'
-		//writes BAM file if bam_file ends with bam
+		//writes CRAM file if a reference genome is given and file ends with '.cram'
+		//writes BAM file if file ends with '.bam'
 		BamWriter(const QString& bam_file, const QString& ref_file = QString::null);
 		//Destructor
 		~BamWriter();

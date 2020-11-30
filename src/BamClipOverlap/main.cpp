@@ -61,7 +61,7 @@ public:
 		bool verbose = getFlag("v");
 		bool ignore_indels = getFlag("ignore_indels");
 		BamReader reader(getInfile("in"), getString("ref"));
-		BamWriter writer(getOutfile("out"));
+		BamWriter writer(getOutfile("out"), getString("ref"));
 		writer.writeHeader(reader);
 
 		//step 2: get alignments and softclip if necessary

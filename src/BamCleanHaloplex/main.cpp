@@ -36,7 +36,7 @@ public:
 		int c_reads_failed = 0;
 
 		BamReader reader(getInfile("in"), getString("ref"));
-		BamWriter writer(getOutfile("out"));
+		BamWriter writer(getOutfile("out"), getString("ref"));
 		writer.writeHeader(reader);
 
 		//process reads
