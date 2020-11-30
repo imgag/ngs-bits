@@ -1,15 +1,17 @@
 ### BedAnnotateFreq tool help
-	BedAnnotateFreq (0.1-420-g3536bb0)
+	BedAnnotateFreq (2020_09-90-g55257954)
 	
-	Extracts base frequencies for given regions from BAMs files.
+	Extracts base frequencies for given regions from BAM/CRAM files.
 	
 	Mandatory parameters:
-	  -bam <filelist> Input BAM file(s).
+	  -bam <filelist> Input BAM/CRAM file(s).
 	
 	Optional parameters:
 	  -in <file>      Input BED file. If unset, reads from STDIN.
 	                  Default value: ''
 	  -out <file>     Output TSV file. If unset, writes to STDOUT.
+	                  Default value: ''
+	  -ref <string>   Reference genome for CRAM compression (compulsory for CRAM support).
 	                  Default value: ''
 	
 	Special parameters:
@@ -19,6 +21,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedAnnotateFreq changelog
-	BedAnnotateFreq 0.1-420-g3536bb0
+	BedAnnotateFreq 2020_09-90-g55257954
 	
+	2020-11-27 Added CRAM support.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

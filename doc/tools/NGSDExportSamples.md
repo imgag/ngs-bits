@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2020_06-20-g5d4da24b)
+	NGSDExportSamples (2020_09-90-g55257954)
 	
 	Lists processed samples from the NGSD.
 	
@@ -19,6 +19,10 @@
 	  -with_merged           If set, processed samples that were merged into another sample are included.
 	                         Default value: 'false'
 	  -species <string>      Species filter.
+	                         Default value: ''
+	  -sender <string>       Sample sender filter.
+	                         Default value: ''
+	  -study <string>        Processed sample study filter.
 	                         Default value: ''
 	  -project <string>      Project name filter.
 	                         Default value: ''
@@ -54,8 +58,9 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2020_06-20-g5d4da24b
+	NGSDExportSamples 2020_09-90-g55257954
 	
+	2020-10-08 Added parameters 'sender' and 'study'.
 	2020-07-20 Added 'match_external_names' flag.
 	2019-12-11 Added 'run_finished' and 'add_report_config' flags.
 	2019-05-17 Added 'with_merged' flag.

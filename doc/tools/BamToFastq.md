@@ -1,10 +1,10 @@
 ### BamToFastq tool help
-	BamToFastq (2020_03-159-g5c8b2e82)
+	BamToFastq (2020_09-90-g55257954)
 	
 	Converts a coordinate-sorted BAM file to FASTQ files (paired-end only).
 	
 	Mandatory parameters:
-	  -in <file>               Input BAM file.
+	  -in <file>               Input BAM/CRAM file.
 	  -out1 <file>             Read 1 output FASTQ.GZ file.
 	  -out2 <file>             Read 2 output FASTQ.GZ file.
 	
@@ -17,6 +17,8 @@
 	                           Default value: '1'
 	  -write_buffer_size <int> Output write buffer size (number of FASTQ entry pairs).
 	                           Default value: '100'
+	  -ref <string>            Reference genome for CRAM compression (compulsory for CRAM support).
+	                           Default value: ''
 	
 	Special parameters:
 	  --help                   Shows this help and exits.
@@ -25,8 +27,9 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamToFastq changelog
-	BamToFastq 2020_03-159-g5c8b2e82
+	BamToFastq 2020_09-90-g55257954
 	
+	2020-11-27 Added Cram support.
 	2020-05-29 Massive speed-up by writing in background. Added 'compression_level' parameter.
 	2020-03-21 Added 'reg' parameter.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

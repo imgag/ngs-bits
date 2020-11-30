@@ -1,15 +1,19 @@
 ### BamDownsample tool help
-	BamDownsample (2020_03-159-g5c8b2e82)
+	BamDownsample (2020_09-90-g55257954)
 	
 	Downsamples a BAM file to the given percentage of reads.
 	
 	Mandatory parameters:
-	  -in <file>          Input BAM file.
+	  -in <file>          Input BAM/CRAM file.
 	  -percentage <float> Percentage of reads to keep.
-	  -out <file>         Output BAM file.
+	  -out <file>         Output BAM/CRAM file.
 	
 	Optional parameters:
 	  -test               Test mode: fix random number generator seed and write kept read names to STDOUT.
+	                      Default value: 'false'
+	  -ref <string>       Reference genome for CRAM compression (compulsory for CRAM support).
+	                      Default value: ''
+	  -write_cram         Writes a CRAM file as output.
 	                      Default value: 'false'
 	
 	Special parameters:
@@ -19,6 +23,7 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamDownsample changelog
-	BamDownsample 2020_03-159-g5c8b2e82
+	BamDownsample 2020_09-90-g55257954
 	
+	2020-11-27 Added CRAM support.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
