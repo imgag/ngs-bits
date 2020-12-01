@@ -42,6 +42,7 @@ Then you have to adapt your ~/.gitconfig file like that:
 Just execute the following make commands:
 
     > make build_3rdparty
+	> make build_libs_release
 	> make build_tools_release
 
 ## Executing

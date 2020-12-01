@@ -124,6 +124,12 @@ class CPPNGSSHARED_EXPORT BamAlignment
 			}
 		}
 
+		//Returns if the read is a supplementary alignment, i.e. the read is a supplementary part of the an alignment that could only be perfored when splitting the read in several separate pieces.
+		bool isSupplementaryAlignment() const
+		{
+			return aln_->core.flag & BAM_FSUPPLEMENTARY;
+		}
+
 		//Returns if the read is unmapped, i.e. it is usually ignored.
 		bool isUnmapped() const
 		{
@@ -289,7 +295,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		int chromosomeSize(const Chromosome& chr) const;
 
 		//Returns the size sum of all chromosomes stored in the BAM header.
-		double genomeSize(bool nonspecial_only) const;
+		double genomeSize(bool include_special_chromosomes) const;
 
 		/**
 		  @brief Returns the pileup at the given chromosomal position (1-based).

@@ -115,7 +115,7 @@ private slots:
 
 		//getProcessingSystems
 		QMap<QString, QString> systems = db.getProcessingSystems(false, false);
-		I_EQUAL(systems.size(), 3);
+		I_EQUAL(systems.size(), 4);
 		IS_TRUE(systems.contains("HaloPlex HBOC v5"))
 		IS_TRUE(systems.contains("HaloPlex HBOC v6"))
 
@@ -372,6 +372,7 @@ private slots:
 		//transcriptId
 		I_EQUAL(db.transcriptId("NIPA1_TR2"), 4);
 		I_EQUAL(db.transcriptId("NIPA1_TR2_FAIL", false), -1);
+		I_EQUAL(db.transcriptId("NIPA1_TR2.3", false), 4);
 
 		//transcript
 		Transcript transcript = db.transcript(4);
@@ -515,7 +516,7 @@ private slots:
 		I_EQUAL(approved.count(), 14);
 
 		//phenotypes
-		QList<Phenotype> phenos = db.phenotypes(QStringList() << "aBNOrmality");
+		PhenotypeList phenos = db.phenotypes(QStringList() << "aBNOrmality");
 		I_EQUAL(phenos.count(), 1);
 		IS_TRUE(phenos.contains(Phenotype("HP:0000118","Phenotypic abnormality")));
 		//synonyms
@@ -842,6 +843,8 @@ private slots:
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
+		params.s_sender = "Coriell";
+		params.s_study = "SomeStudy";
 		params.include_bad_quality_samples = false;
 		params.include_tumor_samples = false;
 		params.include_ffpe_samples = false;

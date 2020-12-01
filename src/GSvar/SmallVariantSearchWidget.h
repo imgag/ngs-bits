@@ -1,32 +1,37 @@
-#ifndef SMALLVARIANTSEARCHDIALOG_H
-#define SMALLVARIANTSEARCHDIALOG_H
+#ifndef SmallVariantSearchWidget_H
+#define SmallVariantSearchWidget_H
 
-#include <QDialog>
-#include "ui_SmallVariantSearchDialog.h"
+#include <QWidget>
+#include "ui_SmallVariantSearchWidget.h"
 #include "DelayedInitializationTimer.h"
 #include "Chromosome.h"
 #include "GeneSet.h"
+#include "VariantList.h"
 
-class SmallVariantSearchDialog
-	: public QDialog
+class SmallVariantSearchWidget
+	: public QWidget
 {
 	Q_OBJECT
 
 public:
-	SmallVariantSearchDialog(QWidget* parent = 0);
+	SmallVariantSearchWidget(QWidget* parent = 0);
 	void setGene(const QString& gene);
+
+signals:
+	void openVariantTab(Variant);
 
 private slots:
 	void changeSearchType();
 	void updateVariants();
 	void copyToClipboard();
+	void variantContextMenu(QPoint pos);
 
 private:
-	Ui::SmallVariantSearchDialog ui_;
+	Ui::SmallVariantSearchWidget ui_;
 	DelayedInitializationTimer init_timer_;
 
 	void getVariantsForRegion(Chromosome chr, int start, int end, QByteArray gene, const GeneSet& gene_symbols, QList<QStringList>& output, QStringList& messages);
 
 };
 
-#endif // SMALLVARIANTSEARCHDIALOG_H
+#endif // SmallVariantSearchWidget_H

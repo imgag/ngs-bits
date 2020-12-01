@@ -507,6 +507,16 @@ public:
 		return rows_[index];
 	}
 
+	const RtfTableRow& first() const
+	{
+		return rows_.first();
+	}
+
+	RtfTableRow& first()
+	{
+		return rows_.first();
+	}
+
 	const RtfTableRow& last() const
 	{
 		return rows_.last();
@@ -528,6 +538,9 @@ public:
 	}
 
 	void sortByCol(int i_col);
+
+	//swap position of two rows with indices i_row_a and i_row_b
+	void swapRows(int i_row_a, int i_row_b);
 
 	///sets border for all table cells
 	RtfTable& setUniqueBorder(int border,const QByteArray& border_type = "brdrs", int border_color = 0);

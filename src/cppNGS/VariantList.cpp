@@ -370,6 +370,10 @@ QString Variant::toVCF(const FastaFileIndex& genome_index) const
 			pos -= 1;
 			obs = "";
 		}
+		else if(ref.size() > 1 || obs.size() > 1)
+		{
+			pos -= 1;
+		}
 		Sequence prefix_base = genome_index.seq(chr_, pos, 1);
 		ref = prefix_base + ref;
 		obs = prefix_base + obs;
@@ -604,6 +608,19 @@ int VariantList::addAnnotationIfMissing(QString name, QString description, QByte
 	return index;
 }
 
+int VariantList::prependAnnotation(QString name, QString description, QByteArray default_value)
+{
+	annotations().prepend(VariantAnnotationHeader(name));
+	for (int i=0; i<variants_.count(); ++i)
+	{
+		variants_[i].annotations().prepend(default_value);
+	}
+
+	annotationDescriptions().prepend(VariantAnnotationDescription(name, description));
+
+	return 0;
+}
+
 void VariantList::removeAnnotation(int index)
 {
 	if (index < 0 || index>=annotation_headers_.count())
@@ -807,11 +824,11 @@ void VariantList::store(QString filename) const
 	}
 }
 
-void VariantList::storeAsVCF(QString filename, const QString& reference_genome) const
+void VariantList::storeAsVCF(QString filename, const QString& reference_genome, int compression_level) const
 {
 	VcfFile vcf_file;
 	vcf_file = VcfFile::convertGSvarToVcf(*this, reference_genome);
-	vcf_file.store(filename, true);
+	vcf_file.store(filename, true, compression_level);
 }
 
 void VariantList::sort(bool use_quality)

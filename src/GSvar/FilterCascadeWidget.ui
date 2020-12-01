@@ -191,6 +191,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="store_btn">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="toolTip">
         <string>Sture current filter to file.</string>
        </property>
@@ -205,6 +208,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="load_btn">
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
        <property name="toolTip">
         <string>Load filter from file.</string>
        </property>

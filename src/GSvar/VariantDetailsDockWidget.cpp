@@ -15,6 +15,7 @@
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
+#include <QHeaderView>
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	: QWidget(parent)
@@ -29,10 +30,17 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
 	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SLOT(variantButtonClicked()));
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
+	connect(ui->som_details_prev, SIGNAL(clicked(bool)), this, SLOT(previousSomDetails()));
+	connect(ui->som_details_next, SIGNAL(clicked(bool)), this, SLOT(nextSomDetails()) );
 
 	//set up transcript buttons
 	ui->trans_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
 	ui->trans_next->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
+
+	//set up somatic detail buttons
+	ui->som_details_prev->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
+	ui->som_details_next->setStyleSheet("QPushButton {border: none; margin: 0px;padding: 0px;}");
+	enableSomDetailsArrows();
 
 	//set up content label properties
 	QList<QLabel*> labels = findChildren<QLabel*>();
@@ -83,12 +91,9 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 
 	//splicing/regulatory
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
-	ui->label_genesplicer->setToolTip(vl.annotationDescriptionByName("GeneSplicer").description());
 	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
-	ui->label_mmsplice_deltaLogitPsi->setToolTip(vl.annotationDescriptionByName("MMSplice_DeltaLogitPSI", false).description());
-	ui->label_mmsplice_pathogenicity->setToolTip(vl.annotationDescriptionByName("MMSplice_pathogenicity", false).description());
 	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false).description());
-	ui->label_mmsplice->setToolTip("MMSplice prediction of splice-site variations.");
+	ui->label_mmsplice->setToolTip("MMSplice prediction of splice-site variations;\nMaximum absolute values for the highest scored exon are shown in following format:\n[DeltaLogitPSI score as effect on exon inclusion (values below -2 stand for higher exclusion, values above 2 for higher inclusion) / Pathogenicity score]");
 
 	//NGSD (all optional)
 	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false).description());
@@ -96,6 +101,16 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_ngsd_group->setToolTip(vl.annotationDescriptionByName("NGSD_group", false).description());
 	ui->label_ngsd_comment->setToolTip(vl.annotationDescriptionByName("comment", false).description());
 	ui->label_ngsd_validation->setToolTip(vl.annotationDescriptionByName("validation", false).description());
+
+	//somatic details
+	ui->label_somcgi_driver_status->setToolTip( vl.annotationDescriptionByName("CGI_driver_statement", false).description() );
+	ui->label_cgi_gene_role->setToolTip( vl.annotationDescriptionByName("CGI_gene_role", false).description() );
+	ui->label_som_class->setToolTip( vl.annotationDescriptionByName("somatic_classification", false).description() );
+	ui->label_somatic_count->setToolTip( vl.annotationDescriptionByName("NGSD_som_c", false).description() );
+	ui->label_somatic_oncogene->setToolTip(vl.annotationDescriptionByName("ncg_oncogene", false).description() );
+	ui->label_somatic_tsg->setToolTip( vl.annotationDescriptionByName("ncg_tsg", false).description() );
+	ui->label_somatic_cancerhotspots->setToolTip( vl.annotationDescriptionByName("CANCERHOTSPOTS_ALT_COUNT", false).description() );
+	ui->label_somatic_cmc_class->setToolTip( vl.annotationDescriptionByName("CMC_mutation_significance", false).description() );
 }
 
 void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
@@ -168,10 +183,8 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 	//splicing/regulatory
 	setAnnotation(ui->maxentscan, vl, index, "MaxEntScan");
-	setAnnotation(ui->genesplicer, vl, index, "GeneSplicer");
 	setAnnotation(ui->dbscsnv, vl, index, "dbscSNV");
-	setAnnotation(ui->mmsplice_deltaLogitPsi, vl, index, "MMSplice_DeltaLogitPSI");
-	setAnnotation(ui->mmsplice_pathogenicity, vl, index, "MMSplice_pathogenicity");
+	setAnnotation(ui->mmsplice, vl, index, "MMSplice_DeltaLogitPSI");
 	setAnnotation(ui->regulatory, vl, index, "regulatory");
 
 	//NGSD
@@ -204,6 +217,9 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->somatic_count, vl, index, "NGSD_som_c");
 	setAnnotation(ui->somatic_oncogene, vl, index, "ncg_oncogene");
 	setAnnotation(ui->somatic_tsg, vl, index, "ncg_tsg");
+
+	setAnnotation(ui->somatic_cancerhotspots, vl, index, "CANCERHOTSPOTS_AA_CHANGE");
+	setAnnotation(ui->somatic_cmc_class, vl, index, "CMC_mutation_significance");
 
 	//update NGSD button
 	ui->var_btn->setEnabled(LoginManager::active());
@@ -292,7 +308,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				else if (entry.details.contains("CLASS=DM")) color = RED;
 				else if (entry.details.contains("CLASS=DP") || entry.details.contains("CLASS=DFP")) color = ORANGE;
 
-				text += formatLink(entry.id, "https://portal.biobase-international.com/hgmd/pro/mut.php?acc=" + entry.id, color) + " ";
+				text += formatLink(entry.id, "https://my.qiagendigitalinsights.com/bbp/view/hgmd/pro/mut.php?acc=" + entry.id, color) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
 			}
 		}
@@ -507,6 +523,49 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		{
 			if(anno.contains("1")) text = formatText(anno, RED);
 			else text = anno;
+		}
+		else if(name=="CANCERHOTSPOTS_AA_CHANGE")
+		{
+			int i_total_mut_cout = vl.annotationIndexByName("CANCERHOTSPOTS_TOTAL_MUT", true, false);
+			int i_alt_count = vl.annotationIndexByName("CANCERHOTSPOTS_ALT_COUNT", true, false);
+			if(i_total_mut_cout >= 0 && i_alt_count >=0 && !anno.isEmpty())
+			{
+				text = anno.append(":").split(":")[1] + " (" + vl[index].annotations()[i_alt_count] + "/" + vl[index].annotations()[i_total_mut_cout] + ")";
+			}
+		}
+		else if(name=="CMC_mutation_significance")
+		{
+			if(anno == "1" || anno == "2" || anno == "3") text = formatText(anno, RED);
+			else text = anno;
+		}
+		else if(name=="MMSplice_DeltaLogitPSI")
+		{
+			//add pathogenicity score
+			int pathogenicity_index = vl.annotationIndexByName("MMSplice_pathogenicity", true, false);
+			QString anno_p;
+			if(pathogenicity_index!=-1)
+			{
+				anno_p = vl[index].annotations()[pathogenicity_index];
+			}
+
+			//if one score is present save the score
+			if(anno!="" || anno_p!="")
+			{
+				//deltaLogitPSI score with an absolute value beyond 2 are supposed to be strong
+				if(anno.toDouble() >= 2)
+				{
+					text = formatText(anno + " / " + anno_p, GREEN);
+				}
+				else if(anno.toDouble() <= -2)
+				{
+					text = formatText(anno + " / " + anno_p, RED);
+				}
+				else
+				{
+					text = anno + " / " + anno_p;
+				}
+			}
+
 		}
 		else //fallback: use complete annotations string
 		{
@@ -797,6 +856,24 @@ void VariantDetailsDockWidget::variantButtonClicked()
 	if (variant_str.isEmpty()) return;
 
 	emit openVariantTab(Variant::fromString(variant_str));
+}
+
+void VariantDetailsDockWidget::nextSomDetails()
+{
+	ui->somaticDetailsWidget->setCurrentIndex(ui->somaticDetailsWidget->currentIndex()+1);
+	enableSomDetailsArrows();
+}
+
+void VariantDetailsDockWidget::previousSomDetails()
+{
+	ui->somaticDetailsWidget->setCurrentIndex(ui->somaticDetailsWidget->currentIndex()-1);
+	enableSomDetailsArrows();
+}
+
+void VariantDetailsDockWidget::enableSomDetailsArrows()
+{
+	ui->som_details_prev->setEnabled(ui->somaticDetailsWidget->widget(ui->somaticDetailsWidget->currentIndex()-1) != nullptr);
+	ui->som_details_next->setEnabled(ui->somaticDetailsWidget->widget(ui->somaticDetailsWidget->currentIndex()+1) != nullptr);
 }
 
 QList<KeyValuePair> VariantDetailsDockWidget::DBEntry::splitByName() const

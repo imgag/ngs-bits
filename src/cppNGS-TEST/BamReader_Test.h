@@ -329,4 +329,13 @@ private slots:
 		F_EQUAL2(mapq0_frac, 0.0, 0.001);
 	}
 
+
+	void BamReader_genomeSize()
+	{
+		BamReader reader(TESTDATA("data_in/panel.bam"));
+		double size_without_special = reader.genomeSize(false);
+		double size_with_special = reader.genomeSize(true);
+		IS_TRUE(size_without_special < size_with_special);
+	}
+
 };

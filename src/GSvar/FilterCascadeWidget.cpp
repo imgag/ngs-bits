@@ -311,7 +311,7 @@ void FilterCascadeWidget::loadFilter()
 
 		//GUI
 		updateGUI();
-		emit filterCascadeChanged();
+		emit customFilterLoaded();
 	}
 	catch(Exception& e)
 	{

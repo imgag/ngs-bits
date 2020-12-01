@@ -77,11 +77,16 @@ public:
 	///Returns if somatic report is supported for current variant list.
 	bool somaticReportSupported();
 
+	bool tumoronlyReportSupported();
+
 	///Lets the user select a gene. If the user aborts, "" is returned.
 	static QString selectGene();
 
 	///Performs batch import of table rows
 	void importBatch(QString title, QString text, QString table, QStringList fields);
+
+	///Returns the IGV port to use
+	int igvPort() const;
 
 public slots:
 	///Loads a variant list. Unloads the variant list if no file name is given
@@ -122,11 +127,13 @@ public slots:
 	void on_actionSpecies_triggered();
 	void on_actionUsers_triggered();
 	void on_actionImportMids_triggered();
+	void on_actionImportStudy_triggered();
 	void on_actionImportSamples_triggered();
 	void on_actionImportProcessedSamples_triggered();
 	void on_actionMidClashDetection_triggered();
 	void on_actionVariantValidation_triggered();
 	void on_actionChangePassword_triggered();
+	void on_actionStudy_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();
@@ -166,12 +173,16 @@ public slots:
 	void on_actionGenesToRegions_triggered();
 	///Subpanel archive dialog
 	void on_actionArchiveSubpanel_triggered();
-	///Close current file
+	///Close current variant list
 	void on_actionClose_triggered();
+	///Close all meta data tabs
+	void on_actionCloseMetaDataTabs_triggered();
 	///Force IGV initializazion
 	void on_actionIgvInit_triggered();
 	///Clear IGV
 	void on_actionIgvClear_triggered();
+	///Override IGV prot
+	void on_actionIgvPort_triggered();
 	///Open CNV dialog
 	void on_actionCNV_triggered();
 	///Open ROH dialog
@@ -186,6 +197,12 @@ public slots:
 	void on_actionRE_triggered();
 	///Open PRS dialog
 	void on_actionPRS_triggered();
+	///Open cfDNA panel design dialog
+	void on_actionDesignCfDNAPanel_triggered();
+	/// Open the generated cfDNA BED file
+	void on_actionShowCfDNAPanel_triggered();
+	///Open disease course dialog (cfDNA)
+	void on_actionCfDNADiseaseCourse_triggered();
 	///Open gene OMIM info dialog.
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
@@ -247,8 +264,10 @@ public slots:
 	static QString exclusionCriteria(const ReportVariantConfiguration& conf);
 	///Generate report
 	void generateReport();
-	///Generates a report (somatic) in .rtf format
+	///Generates a report (somatic pair) in .rtf format
 	void generateReportSomaticRTF();
+	///Generates a report (tumor only!) in .rtf format
+	void generateReportTumorOnly();
 	///Generates a report (germline)
 	void generateReportGermline();
 	///Finished the report generation (germline)
@@ -354,6 +373,9 @@ public slots:
 	///Shows a notification.
 	void showNotification(QString text);
 
+	///Rank variants by GSvar score.
+	void variantRanking();
+
 	///Clears somatic report settings
 	void clearSomaticReportSettings(QString ps_id_in_other_widget);
 
@@ -387,13 +409,15 @@ private:
 	QString last_roi_filename_;
 	BedFile last_roi_;
 	QString last_report_path_;
-	QList<Phenotype> last_phenos_;
+	PhenotypeList last_phenos_;
 	BedFile last_phenos_roi_;
     QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
 	SomaticReportSettings somatic_report_settings_;
 	VariantList somatic_control_tissue_variants_;
-
+	bool cf_dna_available;
+	QToolButton* cfdna_menu_btn_;
+	int igv_port_manual = -1;
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;
 };

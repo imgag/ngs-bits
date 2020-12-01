@@ -1,4 +1,4 @@
-#include "SmallVariantSearchDialog.h"
+#include "SmallVariantSearchWidget.h"
 #include "NGSD.h"
 #include "GUIHelper.h"
 #include "NGSHelper.h"
@@ -6,35 +6,36 @@
 #include <QClipboard>
 #include <QMessageBox>
 #include <QKeyEvent>
+#include <QMenu>
 
-SmallVariantSearchDialog::SmallVariantSearchDialog(QWidget *parent)
-	: QDialog(parent)
+SmallVariantSearchWidget::SmallVariantSearchWidget(QWidget *parent)
+	: QWidget(parent)
 	, ui_()
 	, init_timer_(this, false)
 {
 	ui_.setupUi(this);
+	setWindowFlags(Qt::Window);
 	connect(&init_timer_, SIGNAL(triggerInitialization()), this, SLOT(updateVariants()));
-
 	connect(ui_.radio_region->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
-
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateVariants()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
+	connect(ui_.variants, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(variantContextMenu(QPoint)));
 }
 
-void SmallVariantSearchDialog::setGene(const QString& gene)
+void SmallVariantSearchWidget::setGene(const QString& gene)
 {
 	ui_.genes->setText(gene);
 
 	ui_.radio_genes->setChecked(true);
 }
 
-void SmallVariantSearchDialog::changeSearchType()
+void SmallVariantSearchWidget::changeSearchType()
 {
 	ui_.region->setEnabled(ui_.radio_region->isChecked());
 	ui_.genes->setEnabled(ui_.radio_genes->isChecked());
 }
 
-void SmallVariantSearchDialog::updateVariants()
+void SmallVariantSearchWidget::updateVariants()
 {
 	//clear old results
 	ui_.variants->clearContents();
@@ -128,12 +129,41 @@ void SmallVariantSearchDialog::updateVariants()
 	}
 }
 
-void SmallVariantSearchDialog::copyToClipboard()
+void SmallVariantSearchWidget::copyToClipboard()
 {
 	GUIHelper::copyToClipboard(ui_.variants);
 }
 
-void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, int end, QByteArray gene, const GeneSet& gene_symbols, QList<QStringList>& output, QStringList& messages)
+void SmallVariantSearchWidget::variantContextMenu(QPoint pos)
+{
+	//get variant index
+	QTableWidgetItem* item = ui_.variants->itemAt(pos);
+	if (!item) return;
+
+	QMenu menu(ui_.variants);
+	QAction* action_var_tab = menu.addAction(QIcon(":/Icons/NGSD_variant.png"), "Open variant tab");
+	menu.addSeparator();
+	QAction* action_var_gsvar = menu.addAction("Copy variant (GSvar format)");
+
+	//execute context menu
+	QAction* action = menu.exec(ui_.variants->viewport()->mapToGlobal(pos));
+	if (!action_var_gsvar) return;
+
+	if (action==action_var_tab)
+	{
+		QString variant_string = ui_.variants->item(item->row(), 1)->text();
+		Variant v = Variant::fromString(variant_string);
+		emit openVariantTab(v);
+	}
+	if (action==action_var_gsvar)
+	{
+		QString variant_string = ui_.variants->item(item->row(), 1)->text();
+		Variant v = Variant::fromString(variant_string);
+		QApplication::clipboard()->setText(v.toString());
+	}
+}
+
+void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, int end, QByteArray gene, const GeneSet& gene_symbols, QList<QStringList>& output, QStringList& messages)
 {
 	NGSD db;
 
@@ -145,6 +175,7 @@ void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, i
 	if (ui_.filter_impact_modifier->isChecked()) impacts << "MODIFIER";
 
 	//get variants in chromosomal range
+	int c_variants_distinct = 0;
 	QList<QStringList> var_data;
 	QString af = QString::number(ui_.filter_af->value()/100.0);
 	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start";
@@ -185,6 +216,7 @@ void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, i
 		//determine NGSD hom/het counts
 		QString variant_id = query.value("id").toString();
 		QPair<int, int> ngsd_counts = db.variantCounts(variant_id);
+		if (ngsd_counts.first + ngsd_counts.second ==0) continue; //skip somatic-only variants
 
 		//format transcript info
 		QSet<QString> types;
@@ -197,23 +229,15 @@ void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, i
 		QString coding = parts_match.join(", ");
 
 		//add sample info
+		++c_variants_distinct;
 		SqlQuery query2 = db.getQuery();
-		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, dv.genotype, p.name as p_name, s.disease_group, vc.class, s.name_external, ds.outcome, ds.comment, s.id as s_id, ps.id as ps_id FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id);
+		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, dv.genotype, p.name as p_name, s.disease_group, s.disease_status, vc.class, s.name_external, ds.outcome, ds.comment, s.id as s_id, ps.id as ps_id FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id WHERE dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id);
 		while(query2.next())
 		{
 			//get HPO info
-			QStringList hpo_terms;
 			QString sample_id = query2.value("s_id").toString();
 			QString processed_sample_id = query2.value("ps_id").toString();
-			QStringList hpo_ids = db.getValues("SELECT disease_info FROM sample_disease_info WHERE type='HPO term id' AND sample_id=" + sample_id);
-			foreach(QString hpo_id, hpo_ids)
-			{
-				Phenotype pheno = db.phenotypeByAccession(hpo_id.toLatin1(), false);
-				if (!pheno.name().isEmpty())
-				{
-					hpo_terms << pheno.toString();
-				}
-			}
+			PhenotypeList phenotypes = db.samplePhenotypes(sample_id);
 
 			//get causal genes from report config
 			GeneSet genes_causal;
@@ -237,10 +261,10 @@ void SmallVariantSearchDialog::getVariantsForRegion(Chromosome chr, int start, i
 			QString denovo = query3.size()==0 ? "" : " (de-novo)";
 
 			//add variant line to output
-			var_data.append(QStringList() << gene << var << QString::number(ngsd_counts.first) << QString::number(ngsd_counts.second) << gnomad << tg << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("p_name").toString() << query2.value("disease_group").toString() << hpo_terms.join("; ") << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(','));
+			var_data.append(QStringList() << gene << var << QString::number(ngsd_counts.first) << QString::number(ngsd_counts.second) << gnomad << tg << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("p_name").toString() << query2.value("disease_group").toString() << query2.value("disease_status").toString() << phenotypes.toString() << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(','));
 		}
 	}
-	QString comment = gene + " - variants: " + QString::number(var_data.count());
+	QString comment = gene + " - " + QString::number(c_variants_distinct) + " distinct variants in " + QString::number(var_data.count()) + " hits";
 
 	//only variants that fit recessive inheritance mode
 	if (ui_.filter_recessive->isChecked())

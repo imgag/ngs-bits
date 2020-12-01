@@ -522,12 +522,12 @@ int BamReader::chromosomeSize(const Chromosome& chr) const
 	return chrs_sizes_[chr];
 }
 
-double BamReader::genomeSize(bool nonspecial_only) const
+double BamReader::genomeSize(bool include_special_chromosomes) const
 {
 	double sum = 0.0;
 	foreach(const Chromosome& c, chrs_)
 	{
-		if (!nonspecial_only || c.isNonSpecial())
+		if (c.isNonSpecial() || include_special_chromosomes)
 		{
 			sum += chromosomeSize(c);
 		}
@@ -557,7 +557,7 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 	while (getNextAlignment(al))
 	{
 		if (!al.isProperPair() && anom==false) continue;
-		if (al.isSecondaryAlignment()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isDuplicate()) continue;
 		if (al.isUnmapped()) continue;
 
@@ -663,7 +663,7 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 		//skip low-quality reads
 		if (al.isDuplicate()) continue;
 		if (!al.isProperPair()) continue;
-		if (al.isSecondaryAlignment()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isUnmapped()) continue;
 
 		reads_mapped += 1;

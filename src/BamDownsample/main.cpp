@@ -50,8 +50,8 @@ public:
 		QHash<QByteArray, BamAlignment> al_cache;
 		while (reader.getNextAlignment(al))
 		{
-			//skip secondary alinments
-			if(al.isSecondaryAlignment()) continue;
+			//skip secondary and supplementary alignments
+			if(al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 			if(!al.isPaired()) //single-end reads
 			{

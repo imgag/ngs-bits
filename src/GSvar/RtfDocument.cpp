@@ -57,7 +57,7 @@ RtfDocument::RtfDocument()
 	, margin_bottom_(1134)
 	, margin_left_(1134)
 	, margin_right_(1134)
-	, fonts_({"Arial"})
+	, fonts_({"Calibri"})
 	, default_font_size_(18)
 {
 }
@@ -405,4 +405,9 @@ void RtfTable::sortByCol(int i_col)
 		}
 	}
 	rows_ = sorted_table;
+}
+
+void RtfTable::swapRows(int i_row_a, int i_row_b)
+{
+	rows_.swap(i_row_a, i_row_b);
 }

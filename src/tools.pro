@@ -413,5 +413,9 @@ SUBDIRS += VcfCalculatePRS
 tools-TEST.depends += VcfCalculatePRS
 VcfCalculatePRS.depends = cppNGS
 
+SUBDIRS += VariantRanking
+tools-TEST.depends += VariantRanking
+VariantRanking.depends = cppNGSD
+
 #other stuff
 OTHER_FILES += ToDos.txt

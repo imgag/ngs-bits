@@ -137,9 +137,9 @@ const TableInfo& GenLabDB::tableInfo(const QString& table) const
 	return infos_[table];
 }
 
-QList<Phenotype> GenLabDB::phenotypes(QString ps_name)
+PhenotypeList GenLabDB::phenotypes(QString ps_name)
 {
-	QList<Phenotype> output;
+	PhenotypeList output;
 
 	NGSD ngsd;
 
@@ -260,6 +260,38 @@ QStringList GenLabDB::tumorFraction(QString ps_name)
 	}
 
 	return output;
+}
+
+QString GenLabDB::yearOfBirth(QString ps_name)
+{
+	QString s_name = (ps_name + "_").split('_')[0];
+	foreach(QString name, QStringList() << ps_name << s_name)
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT Geburtsjahr FROM v_ngs_dates WHERE LABORNUMMER='" + name + "' AND Geburtsjahr IS NOT NULL");
+		while(query.next())
+		{
+			return query.value(0).toString();
+		}
+	}
+
+	return "";
+}
+
+QString GenLabDB::yearOfOrderEntry(QString ps_name)
+{
+	QString s_name = (ps_name + "_").split('_')[0];
+	foreach(QString name, QStringList() << ps_name << s_name)
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT Datum_Auftragseingang FROM v_ngs_dates WHERE LABORNUMMER='" + name + "' AND Datum_Auftragseingang IS NOT NULL");
+		while(query.next())
+		{
+			return query.value(0).toDateTime().toString("yyyy");
+		}
+	}
+
+	return "";
 }
 
 QPair<QString, QString> GenLabDB::diseaseInfo(QString ps_name)

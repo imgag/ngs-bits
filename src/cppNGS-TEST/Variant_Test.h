@@ -372,6 +372,18 @@ private slots:
 
 		v = Variant("chr1", 47181921, 47181921, "A", "-");
 		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCA\tC\t30\tPASS\t.");
+
+		v = Variant("chr1", 47181921, 47181922, "AA", "GC");
+		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCAA\tCGC\t30\tPASS\t.");
+
+		v = Variant("chr1", 47181921, 47181921, "A", "TGC");
+		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCA\tCTGC\t30\tPASS\t.");
+
+		v = Variant("chr1", 47181921, 47181925, "AAAAA", "GCT");
+		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCAAAAA\tCGCT\t30\tPASS\t.");
+
+		v = Variant("chr1", 47181921, 47181925, "AAAAA", "GCTGCTGCT");
+		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCAAAAA\tCGCTGCTGCT\t30\tPASS\t.");
 	}
 
 	void addFilter()
@@ -394,17 +406,21 @@ private slots:
 
 	void fromString()
 	{
-		//SNPs
+		//GSvar format (with tabs)
 		Variant v1 = Variant::fromString("chr1	1423281	1423281	G	A");
 		S_EQUAL(v1.toString(), "chr1:1423281-1423281 G>A");
-
-		//Insertion
 		Variant v2 = Variant::fromString("chr14	23371255	23371255	-	GGC");
 		S_EQUAL(v2.toString(), "chr14:23371255-23371255 ->GGC");
-
-		//Deletion
 		Variant v3 = Variant::fromString("chr11	111742146	111742146	G	-");
 		S_EQUAL(v3.toString(), "chr11:111742146-111742146 G>-");
+
+		//GSvar format (human readable)
+		Variant v4 = Variant::fromString("chr17:41258507-41258507 G > A");
+		S_EQUAL(v4.toString(), "chr17:41258507-41258507 G>A");
+		Variant v5 = Variant::fromString("chr17:41251845-41251846 AG > -");
+		S_EQUAL(v5.toString(), "chr17:41251845-41251846 AG>-");
+		Variant v6 = Variant::fromString("chr17:41256250-41256250 - > T");
+		S_EQUAL(v6.toString(), "chr17:41256250-41256250 ->T");
 	}
 
 	void checkReferenceSequence()

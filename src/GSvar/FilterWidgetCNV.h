@@ -43,9 +43,9 @@ public:
 	void setRegion(QString region);
 
 	//Returns selected phenotype terms.
-	const QList<Phenotype>& phenotypes() const;
+	const PhenotypeList& phenotypes() const;
 	//Sets selected phenotype terms.
-	void setPhenotypes(const QList<Phenotype>& phenotypes);
+	void setPhenotypes(const PhenotypeList& phenotypes);
 
 	//Returns if only CNVs with report config should be shown
 	ReportConfigFilter reportConfigurationFilter() const;
@@ -74,6 +74,7 @@ protected slots:
 	void importGene();
 	void importText();
 	void updateFilterName();
+	void customFilterLoaded();
 	void setFilter(int index);
 	void clearTargetRegion();
 	void calculateGeneOverlap();
@@ -91,7 +92,7 @@ private:
 
 	Ui::FilterWidgetCNV ui_;
 	GeneSet last_genes_;
-	QList<Phenotype> phenotypes_;
+	PhenotypeList phenotypes_;
 	FilterWidget* filter_widget_;
 };
 

@@ -40,7 +40,7 @@ public:
 		while (reader.getNextAlignment(al))
 		{
 			++c_reads;
-			if (!al.isUnmapped() && !al.isSecondaryAlignment() && !al.isDuplicate())
+			if (!al.isUnmapped() && !al.isSecondaryAlignment() && !al.isSupplementaryAlignment() && !al.isDuplicate())
 			{
 				++c_reads_mapped;
 				int sum_m = 0;

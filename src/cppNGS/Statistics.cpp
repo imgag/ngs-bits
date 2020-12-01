@@ -190,7 +190,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	while (reader.getNextAlignment(al))
 	{
 		//skip secondary alignments
-		if (al.isSecondaryAlignment()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		++al_total;
 		max_length = std::max(max_length, al.length());
@@ -386,7 +386,7 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
 	while (reader.getNextAlignment(al))
 	{
 		//skip secondary alignments
-		if (al.isSecondaryAlignment()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		//empty hash if new reference sequence (chromosome) started
 		if (al.chromosomeID() != last_chr_id)
@@ -576,7 +576,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 	while (reader.getNextAlignment(al))
 	{
 		//skip secondary alignments
-		if (al.isSecondaryAlignment()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		++al_total;
 		max_length = std::max(max_length, al.length());
@@ -659,7 +659,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
 	}
 	output.insert(QCValue("bases usable (MB)", (double)bases_usable / 1000000.0, "Bases sequenced that are usable for variant calling (in megabases).", "QC:2000050"));
-	output.insert(QCValue("target region read depth", (double) bases_usable / reader.genomeSize(true), "Average sequencing depth in target region.", "QC:2000025"));
+	output.insert(QCValue("target region read depth", (double) bases_usable / reader.genomeSize(false), "Average sequencing depth in target region.", "QC:2000025"));
 
 	//add insert size distribution plot
 	if (paired_end)
@@ -1671,7 +1671,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			const int ol_start = std::max(start, al.start()) - start;
@@ -1736,7 +1736,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
@@ -1798,7 +1798,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			while (reader.getNextAlignment(al))
 			{
 				if (!include_duplicates && al.isDuplicate()) continue;
-				if (al.isSecondaryAlignment()) continue;
+				if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 				if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 				const int ol_start = std::max(bed_line.start(), al.start());
@@ -1823,7 +1823,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 		while (reader.getNextAlignment(al))
 		{
 			if (!include_duplicates && al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			const Chromosome& chr = reader.chromosome(al.chromosomeID());
@@ -1875,7 +1875,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			const int ol_start = std::max(start, al.start()) - start;
@@ -1942,7 +1942,7 @@ BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_ma
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :

@@ -4,6 +4,7 @@
 #include "ui_PublishedVariantsWidget.h"
 #include "NGSD.h"
 #include "NGSHelper.h"
+#include <QAction>
 
 PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	: QWidget(parent)

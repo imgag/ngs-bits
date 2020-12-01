@@ -1,6 +1,7 @@
 #include "PreferredTranscriptsWidget.h"
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QAction>
 #include "NGSD.h"
 
 PreferredTranscriptsWidget::PreferredTranscriptsWidget(QWidget* parent)
@@ -12,6 +13,10 @@ PreferredTranscriptsWidget::PreferredTranscriptsWidget(QWidget* parent)
 	connect(ui_.add_btn, SIGNAL(clicked(bool)), this, SLOT(addPreferredTranscript()));
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
 	connect(ui_.f_gene, SIGNAL(returnPressed()), this, SLOT(updateTable()));
+
+	QAction* action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(remove()));
 }
 
 void PreferredTranscriptsWidget::delayedInitialization()
@@ -81,4 +86,37 @@ void PreferredTranscriptsWidget::addPreferredTranscript()
 	{
 		QMessageBox::critical(this, title, "Transcript '" + transcript_name + "' could not be added:\n" + e.message());
 	}
+}
+
+void PreferredTranscriptsWidget::remove()
+{
+	QString title = "Delete preferred transcript(s)";
+	//check
+	QSet<int> rows = ui_.table->selectedRows();
+	if (rows.count()==0)
+	{
+		QMessageBox::information(this, title, "Please select at least one preferred transcript!");
+		return;
+	}
+
+	//confirm
+	int btn = QMessageBox::information(this, title, "You have selected " + QString::number(rows.count()) + " preferred transcripts.\nDo you really want to delete them?", QMessageBox::Yes, QMessageBox::Cancel);
+	if (btn!=QMessageBox::Yes) return;
+
+	//delete
+	NGSD db;
+	SqlQuery query = db.getQuery();
+	try
+	{
+		foreach(int row, rows)
+		{
+			 query.exec("DELETE FROM preferred_transcripts WHERE id=" + ui_.table->getId(row));
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		QMessageBox::warning(this, title, "Could not delete an item!\nDatabase error:\n" + e.message());
+	}
+
+	updateTable();
 }

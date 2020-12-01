@@ -182,7 +182,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		if (is_exome_ && !cutoff_info.reliable_in_exomes )
 		{
 			repeat_id_cell->setBackgroundColor(bg_red);
-			repeat_id_cell->setToolTip("Repeat calling of this repeat is not reliable in Exomes!");
+			repeat_id_cell->setToolTip("Repeat calling of this repeat is not reliable in exomes!");
 		}
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, repeat_id_cell);
 		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(info_ru));
@@ -190,7 +190,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		//add allele/ref copy number
 		//replace "." with "-"
 		QString repeat_text = format_repcn;
-		if (repeat_text == ".") repeat_text = "-";
+		if ((repeat_text == ".") || (repeat_text == "")) repeat_text = "-";
 		if (repeat_text == "./.") repeat_text = "-/-";
 		QTableWidgetItem* repeat_cell = GUIHelper::createTableItem(repeat_text);
 
@@ -200,7 +200,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		if ((repeats.size() < 1) || (repeats.size() > 2)) THROW(FileParseException, "Invalid allele count in repeat entries!");
 
 		// skip coloring if no repeat information is available:
-		if (repeats.at(0).trimmed() != ".")
+		if ((repeats.at(0).trimmed() != ".") && (repeats.at(0).trimmed() != ""))
 		{
 			repeats_allele1 = Helper::toInt(repeats.at(0), "Repeat allele 1", QString::number(row_idx));
 

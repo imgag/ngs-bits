@@ -30,7 +30,7 @@ SOURCES += main.cpp\
     GeneSelectorDialog.cpp \
     MultiSampleDialog.cpp \
     NGSDReannotationDialog.cpp \
-    SmallVariantSearchDialog.cpp \
+    SmallVariantSearchWidget.cpp \
     PhenotypeSelectionWidget.cpp \
     LovdUploadDialog.cpp \
     RohWidget.cpp \
@@ -89,7 +89,13 @@ SOURCES += main.cpp\
     SomaticDataTransferWidget.cpp \
     EvaluationSheetEditDialog.cpp \
     PublishedVariantsWidget.cpp \
-    PreferredTranscriptsWidget.cpp
+    PreferredTranscriptsWidget.cpp\
+    TumorOnlyReportWorker.cpp \
+    TumorOnlyReportDialog.cpp \
+    CfDNAPanelDesignDialog.cpp \
+    DiseaseCourseWidget.cpp \
+    CfDNAPanelWidget.cpp
+
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -113,7 +119,7 @@ HEADERS += MainWindow.h \
     GeneSelectorDialog.h \
     MultiSampleDialog.h \
     NGSDReannotationDialog.h \
-    SmallVariantSearchDialog.h \
+    SmallVariantSearchWidget.h \
     PhenotypeSelectionWidget.h \
     LovdUploadDialog.h \
     RohWidget.h \
@@ -172,7 +178,13 @@ HEADERS += MainWindow.h \
     SomaticDataTransferWidget.h \
     EvaluationSheetEditDialog.h \
     PublishedVariantsWidget.h \
-    PreferredTranscriptsWidget.h
+    PreferredTranscriptsWidget.h \
+    TumorOnlyReportWorker.h \
+    TumorOnlyReportDialog.h \
+    CfDNAPanelDesignDialog.h \
+    DiseaseCourseWidget.h \
+    CfDNAPanelWidget.h
+
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -194,7 +206,7 @@ FORMS    += MainWindow.ui \
     GeneSelectorDialog.ui \
     MultiSampleDialog.ui \
     NGSDReannotationDialog.ui \
-    SmallVariantSearchDialog.ui \
+    SmallVariantSearchWidget.ui \
     PhenotypeSelectionWidget.ui \
     LovdUploadDialog.ui \
     RohWidget.ui \
@@ -242,8 +254,11 @@ FORMS    += MainWindow.ui \
     SomaticDataTransferWidget.ui \
     EvaluationSheetEditDialog.ui \
     PublishedVariantsWidget.ui \
-    PreferredTranscriptsWidget.ui
-
+    PreferredTranscriptsWidget.ui \
+    TumorOnlyReportDialog.ui \
+    CfDNAPanelDesignDialog.ui \
+    DiseaseCourseWidget.ui \
+    CfDNAPanelWidget.ui
 include("../app_gui.pri")
 
 #include NGSD library

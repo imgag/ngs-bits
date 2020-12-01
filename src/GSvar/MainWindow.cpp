@@ -51,7 +51,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "QCCollection.h"
 #include "NGSDReannotationDialog.h"
 #include "DiseaseInfoWidget.h"
-#include "SmallVariantSearchDialog.h"
+#include "SmallVariantSearchWidget.h"
 #include "TSVFileStream.h"
 #include "LovdUploadDialog.h"
 #include "OntologyTermCollection.h"
@@ -104,6 +104,13 @@ QT_CHARTS_USE_NAMESPACE
 #include "SvSearchWidget.h"
 #include "PublishedVariantsWidget.h"
 #include "PreferredTranscriptsWidget.h"
+#include "TumorOnlyReportWorker.h"
+#include "TumorOnlyReportDialog.h"
+#include "VariantScores.h"
+#include "CfDNAPanelDesignDialog.h"
+#include "DiseaseCourseWidget.h"
+#include "CfDNAPanelWidget.h"
+#include "ClinvarSubmissionGenerator.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -148,6 +155,21 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
 
+	// add cfdna menu
+	cfdna_menu_btn_ = new QToolButton();
+	cfdna_menu_btn_->setObjectName("cfdna_btn");
+    cfdna_menu_btn_->setIcon(QIcon(":/Icons/cfDNA.png"));
+	cfdna_menu_btn_->setToolTip("Open cfDNA menu entries");
+	cfdna_menu_btn_->setMenu(new QMenu());
+	cfdna_menu_btn_->menu()->addAction(ui_.actionDesignCfDNAPanel);
+	cfdna_menu_btn_->menu()->addAction(ui_.actionShowCfDNAPanel);
+	cfdna_menu_btn_->menu()->addAction(ui_.actionCfDNADiseaseCourse);
+	cfdna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
+	ui_.tools->addWidget(cfdna_menu_btn_);
+	// deaktivate on default (only available in somatic)
+	cfdna_menu_btn_->setVisible(false);
+	cfdna_menu_btn_->setEnabled(false);
+
 	//signals and slots
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varsContextMenu(QPoint)));
@@ -180,6 +202,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
+	connect(ui_.vars_ranking, SIGNAL(clicked(bool)), this, SLOT(variantRanking()));
 	ui_.vars_af_hist->setMenu(new QMenu());
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (all small variants)", this, SLOT(showAfHistogram_all()));
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (small variants after filter)", this, SLOT(showAfHistogram_filtered()));
@@ -211,6 +234,140 @@ void MainWindow::on_actionDebug_triggered()
 	QString user = Helper::userName();
 	if (user=="ahsturm1")
 	{
+		QTime timer;
+		timer.start();
+
+		//evaluation GSvar score/rank
+		TsvFile output;
+		output.addHeader("ps");
+		output.addHeader("variants_causal");
+		output.addHeader("variants_scored");
+		output.addHeader("score");
+		output.addHeader("rank");
+		int c_top1 = 0;
+		int c_top5 = 0;
+		int c_top10 = 0;
+		NGSD db;
+		QStringList ps_names = db.getValues("SELECT CONCAT(s.name, '_0', ps.process_id) FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND (sys.type='WGS' OR sys.type='WES') AND ps.project_id=p.id AND p.type='diagnostic' AND ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.type='diagnostic variant' AND s.disease_status='Affected'");
+		qDebug() << "Processed sample to check:" << ps_names.count();
+		QString algorithm = "GSvar_v1_noNGSD";
+		QString special = "";
+		/*
+		TsvFile file;
+		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\+old_2020_11_18\\details_samples_pediatric.tsv");
+		foreach(QString ps, file.extractColumn(0)
+		*/
+		foreach(QString ps, ps_names)
+		{
+			QString ps_id = db.processedSampleId(ps);
+			if (db.getDiagnosticStatus(ps_id).outcome!="significant findings") continue;
+			qDebug() << output.rowCount() << ps;
+
+			//create phenotype list
+			QHash<Phenotype, BedFile> phenotype_rois;
+			QString sample_id = db.sampleId(ps);
+			PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
+			foreach(Phenotype pheno, phenotypes)
+			{
+				//pheno > genes
+				GeneSet genes = db.phenotypeToGenes(pheno, true);
+
+				//genes > roi
+				BedFile roi;
+				foreach(const QByteArray& gene, genes)
+				{
+					if (!gene2region_cache_.contains(gene))
+					{
+						BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+						tmp.clearAnnotations();
+						tmp.extend(5000);
+						tmp.merge();
+						gene2region_cache_[gene] = tmp;
+					}
+					roi.add(gene2region_cache_[gene]);
+				}
+				roi.merge();
+
+				phenotype_rois[pheno] = roi;
+			}
+
+			try
+			{
+				//load variants
+				VariantList variants;
+				variants.load(db.processedSamplePath(ps_id, NGSD::GSVAR));
+				//AIdiva: variants.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\aidiva_results\\" + ps + "_full_aidiva.GSvar");
+
+				//score
+				VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois);
+				int c_scored = VariantScores::annotate(variants, result);
+				int i_rank = variants.annotationIndexByName("GSvar_rank");
+				int i_score = variants.annotationIndexByName("GSvar_score");
+
+				//check rank of causal variant
+				int rc_id = db.reportConfigId(ps_id);
+				if (rc_id!=-1)
+				{
+					CnvList cnvs;
+					BedpeFile svs;
+					QStringList messages;
+					QSharedPointer<ReportConfiguration> rc_ptr = db.reportConfig(rc_id, variants, cnvs, svs, messages);
+					foreach(const ReportVariantConfiguration& var_conf, rc_ptr->variantConfig())
+					{
+						if (var_conf.causal && var_conf.variant_type==VariantType::SNVS_INDELS && var_conf.report_type=="diagnostic variant")
+						{
+							int var_index = var_conf.variant_index;
+							if (var_index>=0)
+							{
+								const Variant& var = variants[var_index];
+								if (var.chr().isAutosome() || var.chr().isGonosome())
+								{
+									output.addRow(QStringList() << ps << var.toString() << QString::number(c_scored) << var.annotations()[i_score] << var.annotations()[i_rank]);
+
+									try
+									{
+										int rank = Helper::toInt(var.annotations()[i_rank]);
+										if (rank==1) ++c_top1;
+										if (rank<=5) ++c_top5;
+										if (rank<=10) ++c_top10;
+									}
+									catch(...) {} //nothing to do here
+								}
+							}
+						}
+					}
+				}
+			}
+			catch(Exception& e)
+			{
+				qDebug() << "  Error processing GSvar:" << e.message();
+				continue;
+			}
+		}
+		output.addComment("##Rank1: " + QString::number(c_top1) + " (" + QString::number(100.0*c_top1/output.rowCount(), 'f', 2) + "%)");
+		output.addComment("##Top5 : " + QString::number(c_top5) + " (" + QString::number(100.0*c_top5/output.rowCount(), 'f', 2) + "%)");
+		output.addComment("##Top10: " + QString::number(c_top10) + " (" + QString::number(100.0*c_top10/output.rowCount(), 'f', 2) + "%)");
+		output.store("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + special + ".tsv");
+
+		//Export GenLab dates for reanalysis of unsolved samples
+		/*
+		TsvFile output;
+		output.addHeader("ps");
+		output.addHeader("yearOfBirth");
+		output.addHeader("yearOfOrderEntry");
+		GenLabDB db;
+		TsvFile file;
+		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\samples.tsv");
+		int i=0;
+		QStringList ps_names = file.extractColumn(1);
+		foreach(QString ps, ps_names)
+		{
+			qDebug() << ++i << "/" << ps_names.count() << ps;
+			output.addRow(QStringList() << ps << db.yearOfBirth(ps) << db.yearOfOrderEntry(ps));
+		}
+		output.store("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\+documentation\\genlab_export_dates_" + QDate::currentDate().toString("yyyy_MM_dd")+".tsv");
+		*/
+
 		//import preferred transcripts
 		/*
 		NGSD db;
@@ -267,12 +424,135 @@ void MainWindow::on_actionDebug_triggered()
 			genlab.addMissingMetaDataToNGSD(ps, true);
 		}
 		*/
+		qDebug() << Helper::elapsedTime(timer, true);
 	}
 	else if (user=="ahschul1")
 	{
 	}
 	else if (user=="ahgscha1")
 	{
+	}
+	else if (user=="ahstoht1")
+	{
+
+		NGSD db;
+		//import all interesting variants
+				QString filename = QCoreApplication::applicationDirPath() + "/AHSTOHT1_FILES/causal_variants.tsv";
+		QStringList lines = Helper::loadTextFile(filename, true, '#', true);
+		int count = 0;
+		foreach(const QString& line, lines)
+		{
+
+			try
+			{
+				QByteArrayList parts = line.toLatin1().split('\t');
+				if (parts.count()==7)
+				{
+					QByteArray processed_sample_id = parts[0].trimmed();
+					QByteArray variant_id = parts[1].trimmed();
+					QByteArray inheritance = parts[2].trimmed();
+					QByteArray class_num = parts[3].trimmed();
+
+					QString variant_inheritance;
+					QString variant_classification;
+					//Variant
+					Variant variant = db.variant(QString(variant_id));
+					//convert variant to VCF
+					QString ref_file = Settings::string("reference_genome", true);
+					if (ref_file=="")
+					{
+						qDebug("Test needs the reference genome!");
+						exit(EXIT_FAILURE);
+					}
+					FastaFileIndex genome_index(ref_file);
+
+					QString new_values = variant.toVCF(genome_index);
+					QStringList new_values_list = new_values.split('\t');
+
+					//set new vcf values
+					//for insertions add +1 to end (Clinvar format)
+					if(variant.ref() == "-")
+					{
+						variant.setEnd(variant.end()+1);
+					}
+					//small additional check for end or variant position (end is not calculated in toVCF - however should only be affected for insertions due to ClinVar format
+					int end_check = variant.start() + variant.ref().length() - 1;
+					if(variant.ref() == "-")
+					{
+						end_check +=1;
+					}
+					//check that start plus length of variant -1 equals old end position
+					if(variant.end() != end_check)
+					{
+						qDebug() << "Error in end of variant" << variant.ref() << variant.obs() << variant.start() << variant.end() << end_check;
+						exit(EXIT_FAILURE);
+					}
+
+					variant.setStart(new_values_list[1].toInt());
+					Sequence ref = Sequence(new_values_list[3].toUtf8());
+					variant.setRef(ref);
+					Sequence obs = Sequence(new_values_list[4].toUtf8());
+					variant.setObs(obs);
+
+					//Variant inheritance
+					variant_inheritance = ClinvarSubmissionGenerator::translateInheritance(QString(inheritance));
+					if(variant_inheritance == "")
+					{
+						if(inheritance == "AR+AD")
+						{
+							variant_inheritance = "Autosomal unknown";
+						}
+						else if(inheritance == "XLR+XLD")
+						{
+							variant_inheritance = "X-linked inheritance";
+						}
+						else if(inheritance == "n/a")
+						{
+							variant_inheritance = "Unknown mechanism";
+						}
+					}
+					//Variant classification
+					variant_classification = ClinvarSubmissionGenerator::translateClassification(QString(class_num));
+					//sample name
+					QString sample_name = processed_sample_id;
+					QString sample_id = parts[5].trimmed();
+					SampleData sample_data = db.getSampleData(sample_id);
+
+					//General Data
+					ClinvarSubmissionData data;
+					data.date = QDate::fromString("2020-10-23", Qt::ISODate);
+					data.local_key = "report_configuration_variant_id:" + parts[4].trimmed();
+
+					data.submission_id = "123456";
+					data.submitter_id = "78325";
+					data.organization_id = "506385";
+
+					data.variant = variant;
+					data.variant_classification = variant_classification;
+					data.variant_inheritance = variant_inheritance;
+
+					data.sample_name = sample_data.name;
+					data.sample_phenotypes = db.getSampleData(sample_id).phenotypes;
+					QString gender = parts[6].trimmed();
+					if(gender != "n/a")
+					{
+						data.sample_gender = gender;
+					}
+
+					//Generate xml
+					QString xml = ClinvarSubmissionGenerator::generateXML(data);
+					QString name = sample_name + "_" + variant_id;
+					Helper::storeTextFile(QCoreApplication::applicationDirPath() + "/ClinVarVariants/" + name + ".xml", xml.split("\n"));
+				}
+				qDebug() << "  success line: " << count;
+
+			}
+			catch(Exception& e)
+			{
+				qDebug() << line << " " << count << " failed: " << e.message();
+			}
+			count++;
+		}
 	}
 }
 
@@ -309,22 +589,24 @@ void MainWindow::on_actionCytobandsToRegions_triggered()
 
 void MainWindow::on_actionSearchSNVs_triggered()
 {
-	SmallVariantSearchDialog dlg(this);
-	dlg.exec();
+	SmallVariantSearchWidget* widget = new SmallVariantSearchWidget();
+	connect(widget, SIGNAL(openVariantTab(Variant)), this, SLOT(openVariantTab(Variant)));
+	auto dlg = GUIHelper::createDialog(widget, "Small variants search");
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSearchCNVs_triggered()
 {
 	CnvSearchWidget* widget = new CnvSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "CNV search");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSearchSVs_triggered()
 {
 	SvSearchWidget* widget = new SvSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "SV search");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionShowPublishedVariants_triggered()
@@ -340,6 +622,14 @@ void MainWindow::on_actionClose_triggered()
 	loadFile();
 }
 
+void MainWindow::on_actionCloseMetaDataTabs_triggered()
+{
+	for (int t=ui_.tabs->count()-1; t>0; --t)
+	{
+		closeTab(t);
+	}
+}
+
 void MainWindow::on_actionIgvInit_triggered()
 {
 	igv_initialized_ = false;
@@ -348,6 +638,16 @@ void MainWindow::on_actionIgvInit_triggered()
 void MainWindow::on_actionIgvClear_triggered()
 {
 	executeIGVCommands(QStringList() << "new");
+}
+
+void MainWindow::on_actionIgvPort_triggered()
+{
+	bool ok = false;
+	int igv_port_new = QInputDialog::getInt(this, "Change IGV port", "Set IGV port for this GSvar session:", igvPort(), 0, 900000, 1, &ok);
+	if (ok)
+	{
+		igv_port_manual = igv_port_new;
+	}
 }
 
 void MainWindow::on_actionSV_triggered()
@@ -629,6 +929,80 @@ void MainWindow::on_actionPRS_triggered()
 	{
 		QMessageBox::warning(this, "PRS file missing", "The PRS file does not exist:\n" + prs_file_name);
 	}
+}
+
+void MainWindow::on_actionDesignCfDNAPanel_triggered()
+{
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+	if (!somaticReportSupported()) return;
+
+	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
+
+	QSharedPointer<CfDNAPanelDesignDialog> dialog = QSharedPointer<CfDNAPanelDesignDialog>(new CfDNAPanelDesignDialog(variants_, somatic_report_settings_.report_config, processedSampleName(), cfdna_processing_systems, this));
+	dialog->setWindowFlags(Qt::Window);
+	addModelessDialog(dialog, false);
+}
+
+void MainWindow::on_actionShowCfDNAPanel_triggered()
+{
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+	if (!somaticReportSupported()) return;
+
+	// get files
+	QStringList processing_systems = NGSD().getValues("SELECT name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
+	QString folder = Settings::string("patient_specific_panel_folder", false);
+	QStringList bed_files;
+	QString selected_bed_file;
+
+	foreach (const QString& system, processing_systems)
+	{
+		QString file_path = folder + "/" + system + "/" + processedSampleName() + ".bed";
+
+		if (QFileInfo(file_path).exists()) bed_files << file_path;
+	}
+
+	if (bed_files.empty())
+	{
+		// show message
+		GUIHelper::showMessage("No cfDNA panel found!", "No cfDNA sample were found for the given tumor sample!");
+		return;
+	}
+	else if (bed_files.size() > 1)
+	{
+		QComboBox* bed_file_selector = new QComboBox(this);
+		bed_file_selector->addItems(bed_files);
+
+		// create dlg
+		auto dlg = GUIHelper::createDialog(bed_file_selector, "Select cfDNA panel", "", true);
+		int btn = dlg->exec();
+		if (btn!=1)
+		{
+			return;
+		}
+		selected_bed_file = bed_file_selector->currentText();
+	}
+	else
+	{
+		// 1 file found
+		selected_bed_file = bed_files.at(0);
+	}
+
+	//show dialog
+	CfDNAPanelWidget* widget = new CfDNAPanelWidget(selected_bed_file, processedSampleName());
+	auto dlg = GUIHelper::createDialog(widget, "cfDNA panel for tumor " + processedSampleName());
+	addModelessDialog(dlg, false);
+}
+
+void MainWindow::on_actionCfDNADiseaseCourse_triggered()
+{
+	if (filename_=="") return;
+	if (!somaticReportSupported()) return;
+
+	DiseaseCourseWidget* widget = new DiseaseCourseWidget(processedSampleName());
+	auto dlg = GUIHelper::createDialog(widget, "Course of the disease (personalized cfDNA)");
+	addModelessDialog(dlg, false);
 }
 
 void MainWindow::on_actionGeneOmimInfo_triggered()
@@ -1095,6 +1469,8 @@ void MainWindow::showAfHistogram_filtered()
 
 void MainWindow::showCnHistogram()
 {
+	if (filename_=="") return;
+
 	QString title = "Copy-number histogram";
 
 	AnalysisType type = variants_.type();
@@ -1174,6 +1550,8 @@ void MainWindow::showCnHistogram()
 
 void MainWindow::showAfHistogram(bool filtered)
 {
+	if (filename_=="") return;
+
 	AnalysisType type = variants_.type();
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO)
 	{
@@ -1329,7 +1707,7 @@ void MainWindow::importPhenotypesFromNGSD()
 	{
 		NGSD db;
 		QString sample_id = db.sampleId(ps_name);
-		QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
+		PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
 
 		ui_.filters->setPhenotypes(phenotypes);
 	}
@@ -1619,6 +1997,7 @@ void MainWindow::openVariantTab(Variant variant)
 	//open tab
 	VariantWidget* widget = new VariantWidget(variant, this);
 	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	connect(widget, SIGNAL(openProcessedSampleFromNGSD(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 	connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	int index = openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(), widget);
 	if (Settings::boolean("debug_mode_enabled"))
@@ -1732,13 +2111,7 @@ void MainWindow::loadFile(QString filename)
 
 	somatic_report_settings_ = SomaticReportSettings();
 
-
 	ui_.tabs->setCurrentIndex(0);
-	for (int t=ui_.tabs->count()-1; t>0; --t)
-	{
-		if (ui_.tabs->tabText(t)=="Analysis status") continue;
-		closeTab(t);
-	}
 
 	Log::perf("Clearing variant table took ", timer);
 
@@ -1904,6 +2277,52 @@ void MainWindow::loadFile(QString filename)
 		ui_.actionPRS->setEnabled(true);
 
 	}
+
+
+	//activate cfDNA menu entries and get all available cfDNA samples
+	cf_dna_available = false;
+	ui_.actionDesignCfDNAPanel->setVisible(false);
+	ui_.actionCfDNADiseaseCourse->setVisible(false);
+	ui_.actionDesignCfDNAPanel->setEnabled(false);
+	ui_.actionCfDNADiseaseCourse->setEnabled(false);
+	cfdna_menu_btn_->setVisible(false);
+	cfdna_menu_btn_->setEnabled(false);
+	if (somaticReportSupported())
+	{
+		ui_.actionDesignCfDNAPanel->setVisible(true);
+		ui_.actionCfDNADiseaseCourse->setVisible(true);
+		cfdna_menu_btn_->setVisible(true);
+
+		if (LoginManager::active())
+		{
+			ui_.actionDesignCfDNAPanel->setEnabled(true);
+			cfdna_menu_btn_->setEnabled(true);
+			NGSD db;
+			QString sample_id;
+			QStringList same_sample_ids;
+			QStringList cf_dna_sample_ids;			
+
+			// get all same samples
+			sample_id = db.sampleId(sampleName());
+			same_sample_ids = db.relatedSamples(sample_id, "same sample");
+			same_sample_ids << sample_id; // add current sample id
+
+			// get all related cfDNA
+			foreach (QString cur_sample_id, same_sample_ids)
+			{
+				cf_dna_sample_ids.append(db.relatedSamples(cur_sample_id, "tumor-cfDNA"));
+			}
+
+			if (cf_dna_sample_ids.size() > 0)
+			{
+				ui_.actionCfDNADiseaseCourse->setEnabled(true);
+				cf_dna_available = true;
+			}
+
+		}
+
+	}
+
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -2139,7 +2558,10 @@ void MainWindow::loadSomaticReportConfig()
 		dir.cd("Sample_" + normalSampleName());
 		somatic_control_tissue_variants_.load( Helper::canonicalPath(dir.absolutePath() + "/" +normalSampleName() + ".GSvar" ) );
 	}
-	catch(...) {} //Nothing to do here //TODO If this fails, no report can be generated. So this should trigger an error! > AXEL
+	catch(Exception e)
+	{
+		QMessageBox::warning(this, "Could not load germline GSvar file", "Could not load germline GSvar file. No germline variants will be parsed for somatic report generation. Message: " + e.message());
+	}
 
 
 
@@ -2858,6 +3280,10 @@ void MainWindow::generateReport()
 	{
 		generateReportSomaticRTF();
 	}
+	else if (tumoronlyReportSupported())
+	{
+		generateReportTumorOnly();
+	}
 	else if (germlineReportSupported())
 	{
 		generateReportGermline();
@@ -2867,6 +3293,60 @@ void MainWindow::generateReport()
 		QMessageBox::information(this, "Report error", "Report not supported for this type of analysis!");
 	}
 }
+
+
+void MainWindow::generateReportTumorOnly()
+{
+	try
+	{
+		TumorOnlyReportWorker::checkAnnotation(variants_);
+	}
+	catch(FileParseException e)
+	{
+		QMessageBox::warning(this, "Invalid tumor only file" + filename_, "Could not find all neccessary annotations in tumor-only variant list. Aborting creation of report. " + e.message());
+		return;
+	}
+
+	//get report settings
+	TumorOnlyReportWorkerConfig config;
+	config.mapping_stat_qcml_file = QFileInfo(filename_).absolutePath() + "/" + QFileInfo(filename_).baseName() + "_stats_map.qcML";
+	config.target_file = ui_.filters->targetRegion();
+	config.low_coverage_file = QFileInfo(filename_).absolutePath() + "/" + QFileInfo(filename_).baseName() + "_stat_lowcov.bed";
+	config.bam_file = QFileInfo(filename_).absolutePath() + "/" + QFileInfo(filename_).baseName() + ".bam";
+	config.filter_result = filter_result_;
+
+	TumorOnlyReportDialog dlg(variants_, config, this);
+	if(!dlg.exec()) return;
+
+	//get RTF file name
+	QString destination_path = last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_DNA_tumor_only_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
+	QString file_rep = QFileDialog::getSaveFileName(this, "Store report file", destination_path, "RTF files (*.rtf);;All files(*.*)");
+	if (file_rep=="") return;
+
+	//Generate RTF
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+	try
+	{
+		TumorOnlyReportWorker worker(variants_, config);
+		QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
+		worker.writeRtf(temp_filename);
+
+		ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
+	}
+	catch(Exception e)
+	{
+		QMessageBox::warning(this, "Could not create tumor only report", "Could not write tumor-only report. Error message: " + e.message());
+	}
+
+	QApplication::restoreOverrideCursor();
+
+	//open report
+	if (QMessageBox::question(this, "DNA tumor-only report", "report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
+	{
+		QDesktopServices::openUrl(QUrl::fromLocalFile(file_rep) );
+	}
+}
+
 
 void MainWindow::generateReportSomaticRTF()
 {
@@ -2946,6 +3426,13 @@ void MainWindow::generateReportSomaticRTF()
 			{
 				QApplication::restoreOverrideCursor();
 				QMessageBox::warning(this,"Somatic report", "DNA report cannot be created because GSVar-file does not contain NCG, CGI or somatic_classification annotation columns.");
+				return;
+			}
+
+			if(!SomaticReportHelper::checkGermlineSNVFile(somatic_control_tissue_variants_))
+			{
+				QApplication::restoreOverrideCursor();
+				QMessageBox::warning(this, "Somatic report", "DNA report cannot be created because germline GSVar-file is invalid. Please check control tissue variant file.");
 				return;
 			}
 
@@ -3202,10 +3689,50 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 	auto dlg = GUIHelper::createDialog(edit, title, text, true);
 	if (dlg->exec()!=QDialog::Accepted) return;
 
-	//special handling of processed sample: add 'process_id'
+	// load input text as table
+	QList<QStringList> table_content;
+	QStringList lines = edit->toPlainText().split("\n");
+	foreach(QString line, lines)
+	{
+		// skip comments and empty lines
+		if (line.trimmed().isEmpty() || line[0]=='#') continue;
+
+		QStringList parts = line.split("\t");
+		table_content.append(parts);
+	}
+	NGSD db;
+
+	//special handling of processed sample: add 'process_id' and get the list of all cfDNA processing systems
+	QStringList cfdna_processing_systems;
 	if (table=="processed_sample")
 	{
 		fields.append("process_id");
+
+		// get all cfDNA processing system
+		cfdna_processing_systems = db.getValues("SELECT name_manufacturer FROM processing_system WHERE type='cfDNA (patient-specific)'");
+	}
+
+	// special handling of sample: extract last column containing the corresponding tumor sample id for a cfDNA sample
+	QList<QPair<QString,QString>> cfdna_tumor_relation;
+	if (table=="sample")
+	{
+		int name_idx = fields.indexOf("name");
+		for (int i = 0; i < table_content.size(); ++i)
+		{
+			QStringList& row = table_content[i];
+			if (row.length() == (fields.length() + 1))
+			{
+				//store tumor-cfDNA relation
+				QString tumor_sample = row.last();
+				QString cfdna_sample = row.at(name_idx).trimmed();
+				// only import if not empty
+				if (!tumor_sample.isEmpty()) cfdna_tumor_relation.append(QPair<QString,QString>(tumor_sample, cfdna_sample));
+
+				// remove last element
+				row.removeLast();
+			}
+		}
+
 	}
 
 	//prepare query
@@ -3217,7 +3744,6 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 	}
 	query_str += ")";
 
-	NGSD db;
 	SqlQuery q_insert = db.getQuery();
 	q_insert.prepare(query_str);
 
@@ -3228,25 +3754,23 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 
 		int imported = 0;
 		QStringList duplicate_samples;
-		QStringList lines = edit->toPlainText().split("\n");
-		foreach(QString line, lines)
+		QStringList missing_cfDNA_relation;
+		for (int i = 0; i < table_content.size(); ++i)
 		{
-			if (line.trimmed().isEmpty() || line[0]=='#') continue;
-
-			QStringList parts = line.split("\t");
-
-			//special handling of processed sample: add 'process_id'
+			QStringList& row = table_content[i];
+			//special handling of processed sample: add 'process_id' and check tumor relation for cfDNA samples
 			if (table=="processed_sample")
 			{
-				QString sample_name = parts[0].trimmed();
+				// process id
+				QString sample_name = row[0].trimmed();
 				QVariant next_ps_number = db.getValue("SELECT MAX(ps.process_id)+1 FROM sample as s, processed_sample as ps WHERE s.id=ps.sample_id AND s.name=:0", true, sample_name);
-				parts.append(next_ps_number.isNull() ? "1" : next_ps_number.toString());
+				row.append(next_ps_number.isNull() ? "1" : next_ps_number.toString());
 			}
 
 			//special handling of sample duplicates
 			if (table=="sample")
 			{
-				QString sample_name = parts[0].trimmed();
+				QString sample_name = row[0].trimmed();
 				QString sample_id = db.sampleId(sample_name, false);
 				if (sample_id!="")
 				{
@@ -3256,15 +3780,29 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 			}
 
 			//check tab-separated parts count
-			if (parts.count()!=fields.count()) THROW(ArgumentException, "Error: line with more/less than " + QString::number(fields.count()) + " tab-separated parts.\n\nLine:\n" + line);
-
+			if (row.count()!=fields.count()) THROW(ArgumentException, "Error: line with more/less than " + QString::number(fields.count()) + " tab-separated parts.\n\nLine:\n" + row.join("\n"));
 			//check and bind
 			for(int i=0; i<fields.count(); ++i)
 			{
-				QString value = parts[i].trimmed();
+				QString value = row[i].trimmed();
+
+				//check for cfDNA samples if a corresponding tumor sample exists
+				if ((table=="processed_sample") && (fields[i] == "processing_system_id") && (cfdna_processing_systems.contains(value)))
+				{
+					// get tumor relation
+					QString sample_id = db.sampleId(row[0].trimmed());
+					QStringList tumor_samples = db.relatedSamples(sample_id, "tumor-cfDNA");
+
+					if (tumor_samples.size() < 1)
+					{
+						//No corresponding tumor found!
+						missing_cfDNA_relation.append(row[0].trimmed());
+					}
+				}
 
 				//qDebug() << table << fields[i] << value;
 				const TableFieldInfo& field_info = db.tableInfo(table).fieldInfo(fields[i]);
+
 
 				//FK: name to id
 				if (field_info.type==TableFieldInfo::FK && !value.isEmpty())
@@ -3298,12 +3836,13 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 				QStringList errors = db.checkValue(table, fields[i], value, true);
 				if (errors.count()>0)
 				{
-					THROW(ArgumentException, "Error: Invalid value '" + value + "' for field '" + fields[i] + "':\n" + errors.join("\n") + "\n\nLine:\n" + line);
+					THROW(ArgumentException, "Error: Invalid value '" + value + "' for field '" + fields[i] + "':\n" + errors.join("\n") + "\n\nLine:\n" + row.join("\n"));
 				}
 
 				q_insert.bindValue(i, value.isEmpty() && field_info.is_nullable ? QVariant() : value);
 			}
 
+			// abort if cfDNA
 			//insert
 			q_insert.exec();
 			++imported;
@@ -3320,10 +3859,38 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 			}
 		}
 
+		//import tumor-cfDNA relations
+		int imported_relations = 0;
+		for (int i = 0; i < cfdna_tumor_relation.size(); ++i)
+		{
+			const QPair<QString, QString>& relation = cfdna_tumor_relation.at(i);
+			// check for valid input
+			QString tumor_sample_id = db.sampleId(relation.first);
+			QString cfdna_sample_id = db.sampleId(relation.second);
+			if (db.getSampleData(tumor_sample_id).is_tumor)
+			{
+				// add relation
+				SqlQuery query = db.getQuery();
+				query.exec("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES (" + tumor_sample_id + ",'tumor-cfDNA'," + cfdna_sample_id + ")");
+				imported_relations++;
+			}
+			else
+			{
+				THROW(DatabaseException, "Sample " + relation.first + " is not a tumor! Can't import relation.");
+			}
+		}
+
+		// abort if cfDNA-tumor relations are missing
+		if (missing_cfDNA_relation.size() > 0)
+		{
+			THROW(ArgumentException, "The NGSD does not contain a cfDNA-tumor relation for the following cfDNA samples:\n" + missing_cfDNA_relation.join(", ") + "\nAborting import.");
+		}
+
 		db.commit();
 
 		QString message = "Imported " + QString::number(imported) + " table rows.";
-		if (duplicate_samples.count()>0) message += "\n\nSkipped " + QString::number(duplicate_samples.count()) + " table rows";
+		if (duplicate_samples.count()>0) message += "\n\nSkipped " + QString::number(duplicate_samples.count()) + " table rows.";
+		if (imported_relations > 0) message += "\n\nImported " + QString::number(imported_relations) + " tumor-cfDNA relations.";
 		QMessageBox::information(this, title,  message);
 	}
 	catch (Exception& e)
@@ -3331,6 +3898,13 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 		db.rollback();
 		QMessageBox::warning(this, title + " - failed", "Message:\n" + e.message());
 	}
+}
+
+int MainWindow::igvPort() const
+{
+	int port = Settings::integer("igv_port");
+	if (igv_port_manual>0) port = igv_port_manual;
+	return port;
 }
 
 void MainWindow::on_actionOpenGeneTabByName_triggered()
@@ -3596,10 +4170,18 @@ void MainWindow::on_actionImportMids_triggered()
 				);
 }
 
+void MainWindow::on_actionImportStudy_triggered()
+{
+	importBatch("Import study",
+				"Batch import of stamples to studies. Please enter study, processed sample and study-specific name of sample:<br>Example:<br><br>SomeStudy → NA12345_01 → NameOfSampleInStudy",
+				 "study_sample",
+				QStringList() << "study_id" << "processed_sample_id" << "study_sample_idendifier"
+				);
+}
 void MainWindow::on_actionImportSamples_triggered()
 {
 	importBatch("Import samples",
-				"Batch import of samples. Must contain the following tab-separated fields:<br><b>name</b>, name external, <b>sender</b>, received, received by, <b>sample type</b>, <b>tumor</b>, <b>ffpe</b>, <b>species</b>, concentration [ng/ul], volume, 260/280, 260/230, RIN/DIN, <b>gender</b>, <b>quality</b>, comment",
+				"Batch import of samples. Must contain the following tab-separated fields:<br><b>name</b>, name external, <b>sender</b>, received, received by, <b>sample type</b>, <b>tumor</b>, <b>ffpe</b>, <b>species</b>, concentration [ng/ul], volume, 260/280, 260/230, RIN/DIN, <b>gender</b>, <b>quality</b>, comment <br> (For cfDNA Samples a additional column which defines the corresponding tumor sample can be given.) ",
 				"sample",
 				QStringList() << "name" << "name_external" << "sender_id" << "received" << "receiver_id" << "sample_type" << "tumor" << "ffpe" << "species_id" << "concentration" << "volume" << "od_260_280" << "od_260_230" << "integrity_number" << "gender" << "quality" << "comment"
 				);
@@ -3636,6 +4218,13 @@ void MainWindow::on_actionChangePassword_triggered()
 		NGSD db;
 		db.setPassword(LoginManager::userId(), dlg.password());
 	}
+}
+
+void MainWindow::on_actionStudy_triggered()
+{
+	DBTableAdministration* widget = new DBTableAdministration("study");
+	auto dlg = GUIHelper::createDialog(widget, "Study administration");
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionGenderXY_triggered()
@@ -4797,6 +5386,11 @@ bool MainWindow::somaticReportSupported()
 	return variants_.type()==SOMATIC_PAIR;
 }
 
+bool MainWindow::tumoronlyReportSupported()
+{
+	return variants_.type()==SOMATIC_SINGLESAMPLE;
+}
+
 void MainWindow::updateVariantDetails()
 {
 	int var_current = ui_.vars->selectedVariantIndex();
@@ -4822,7 +5416,7 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 	{
 		//connect
 		QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
-		int igv_port = Settings::integer("igv_port");
+		int igv_port = igvPort();
 		QString igv_host = Settings::string("igv_host");
 		socket.connectToHost(igv_host, igv_port);
 		if (!socket.waitForConnected(1000))
@@ -5022,6 +5616,70 @@ void MainWindow::showNotification(QString text)
 	notification_label_->show();
 	QPoint pos = ui_.statusBar->mapToGlobal(notification_label_->pos()) + QPoint(8,8);
 	QToolTip::showText(pos, text);
+}
+
+void MainWindow::variantRanking()
+{
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
+	QString ps_name = processedSampleName();
+	try
+	{
+		NGSD db;
+
+		//create phenotype list
+		QHash<Phenotype, BedFile> phenotype_rois;
+		QString sample_id = db.sampleId(ps_name);
+		PhenotypeList phenotypes = ui_.filters->phenotypes();
+		if (phenotypes.isEmpty())
+		{
+			phenotypes = db.getSampleData(sample_id).phenotypes;
+		}
+		foreach(Phenotype pheno, phenotypes)
+		{
+			//pheno > genes
+			GeneSet genes = db.phenotypeToGenes(pheno, true);
+
+			//genes > roi
+			BedFile roi;
+			foreach(const QByteArray& gene, genes)
+			{
+				if (!gene2region_cache_.contains(gene))
+				{
+					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+					tmp.clearAnnotations();
+					tmp.extend(5000);
+					tmp.merge();
+					gene2region_cache_[gene] = tmp;
+				}
+				roi.add(gene2region_cache_[gene]);
+			}
+			roi.merge();
+
+			phenotype_rois[pheno] = roi;
+		}
+
+		//score
+		VariantScores::Result result = VariantScores::score("GSvar_v1", variants_, phenotype_rois);
+
+		//update variant list
+		VariantScores::annotate(variants_, result, true);
+		ui_.filters->reset(true);
+		ui_.filters->setFilter("GSvar score/rank");
+
+		QApplication::restoreOverrideCursor();
+
+		//show warnings
+		if (result.warnings.count()>0)
+		{
+			QMessageBox::warning(this, "Variant ranking", "Please note the following warnings:\n" + result.warnings.join("\n"));
+		}
+	}
+	catch(Exception& e)
+	{
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "Ranking variants", "An error occurred:\n" + e.message());
+	}
 }
 
 void MainWindow::clearSomaticReportSettings(QString ps_id_in_other_widget)
@@ -5302,7 +5960,7 @@ void MainWindow::applyFilters(bool debug_time)
 		}
 
 		//phenotype selection changed => update ROI
-		const QList<Phenotype>& phenos = ui_.filters->phenotypes();
+		const PhenotypeList& phenos = ui_.filters->phenotypes();
 		if (phenos!=last_phenos_)
 		{
 			last_phenos_ = phenos;
@@ -5499,6 +6157,7 @@ void MainWindow::updateNGSDSupport()
 	//other actions
 	ui_.actionOpenByName->setEnabled(ngsd_user_logged_in);
 	ui_.ps_details->setEnabled(ngsd_user_logged_in);
+	ui_.vars_ranking->setEnabled(ngsd_user_logged_in);
 
 	ui_.filters->updateNGSDSupport();
 }

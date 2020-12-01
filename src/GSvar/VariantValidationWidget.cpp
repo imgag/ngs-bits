@@ -75,6 +75,7 @@ void VariantValidationWidget::updateTable()
 			+ "ELSE 'invalid variant type' "
 		+ "END) as variant";
 	cols << "vv.genotype";
+	cols << "vv.validation_method as 'validation method'";
 	cols << "vv.status";
 	cols << "vv.comment";
 	QString query_str = "SELECT " + cols.join(", ") + " FROM variant_validation vv WHERE 1";

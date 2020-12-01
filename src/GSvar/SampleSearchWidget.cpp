@@ -32,6 +32,7 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	ui_.s_name->fill(db_.createTable("sample", "SELECT id, name FROM sample"), true);
 	ui_.s_species->fill(db_.createTable("species", "SELECT id, name FROM species"), true);
 	ui_.s_sender->fill(db_.createTable("sender", "SELECT id, name FROM sender"), true);
+	ui_.s_study->fill(db_.createTable("study", "SELECT id, name FROM study"), true);
 	ui_.s_disease_group->addItem("");
 	ui_.s_disease_group->addItems(db_.getEnum("sample", "disease_group"));
 	ui_.s_disease_status->addItem("");
@@ -73,6 +74,7 @@ void SampleSearchWidget::search()
 	params.s_name_comments = ui_.s_name_comments->isChecked();
 	params.s_species = ui_.s_species->text();
 	params.s_sender = ui_.s_sender->text();
+	params.s_study = ui_.s_study->text();
 	params.s_disease_group = ui_.s_disease_group->currentText();
 	params.s_disease_status = ui_.s_disease_status->currentText();
 	params.include_bad_quality_samples = ui_.s_bad_quality->isChecked();

@@ -5,7 +5,7 @@
 #include "ui_FilterWidget.h"
 #include "BedFile.h"
 #include "GeneSet.h"
-#include "Phenotype.h"
+#include "PhenotypeList.h"
 #include "FilterCascade.h"
 
 //Filter settings for report configuration
@@ -59,9 +59,9 @@ public:
 	void disableReportConfigurationFilter() const;
 
 	///Returns selected phenotype terms.
-	const QList<Phenotype>& phenotypes() const;
+	const PhenotypeList& phenotypes() const;
 	///Sets selected phenotype terms.
-	void setPhenotypes(const QList<Phenotype>& phenotypes);
+	void setPhenotypes(const PhenotypeList& phenotypes);
 
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
@@ -100,6 +100,7 @@ protected slots:
 	void reportConfigFilterChanged();
 	void phenotypesChanged();
 	void updateFilterName();
+	void customFilterLoaded();
 	void showTargetRegionDetails();
 	void updateGeneWarning();
 	void editPhenotypes();
@@ -118,7 +119,7 @@ private:
 
 	Ui::FilterWidget ui_;
 	GeneSet last_genes_;
-	QList<Phenotype> phenotypes_;
+	PhenotypeList phenotypes_;
 };
 
 #endif // FILTERWIDGET_H

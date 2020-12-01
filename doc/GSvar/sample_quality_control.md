@@ -87,7 +87,7 @@ Example data for exome data (Agilent SureSelect Human All Exon V6) are shown her
 
 ![alt text](qc_sample_correlation_ssHAEv6.png)
 
-
+More information on sample similarity and plots for additional processing systems can be found [here](https://github.com/imgag/ngs-bits/blob/master/doc/tools/SampleSimilarity/index.md).
 
 
 

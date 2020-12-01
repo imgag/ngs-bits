@@ -20,7 +20,9 @@ public:
 		addString("in", "Input file, containing one HPO term identifier per line, e.g. HP:0002066. Text after the identifier is ignored. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output TSV file with genes (column 1) and matched phenotypes (column 2). If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
+		addFlag("ignore_invalid", "Ignores invalid HPO identifiers instead of throwing an error.");
 
+		changeLog(2020, 11, 23, "Added parameter 'ignore_invalid'.");
 		changeLog(2020,  5, 24, "First version.");
 	}
 
@@ -31,6 +33,7 @@ public:
 		NGSD db(getFlag("test"));
 		QString in = getString("in");
 		QString out = getOutfile("out");
+		bool ignore_invalid = getFlag("ignore_invalid");
 
 		//get HPO IDs
 		QStringList hpo_ids;
@@ -48,7 +51,18 @@ public:
 		QMap<QByteArray, QList<Phenotype>> genes2phenotypes;
 		foreach(const QString& hpo_id, hpo_ids)
 		{
-			Phenotype pheno = db.phenotypeByAccession(hpo_id.toLatin1());
+			Phenotype pheno = db.phenotypeByAccession(hpo_id.toLatin1(), false);
+			if (pheno.name().isEmpty())
+			{
+				if (ignore_invalid)
+				{
+					continue;
+				}
+				else
+				{
+					THROW(ArgumentException, "Cannot find HPO phenotype with accession '" + hpo_id + "' in NGSD!");
+				}
+			}
 			GeneSet genes = db.phenotypeToGenes(pheno, true);
 			foreach(const QByteArray& gene, genes)
 			{
