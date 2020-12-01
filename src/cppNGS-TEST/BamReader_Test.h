@@ -341,15 +341,13 @@ private slots:
 
 #ifndef _WIN32
 
-	//the cram file has an invalid reference genome set in @SQ (M5 as well as UR, libcurl disabled in htslib)
-	//therefore the cram is only readable if the reference genome parameter is successfully read
 	void CramSupport_referenceAsParameter_tests()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
 
-		BamReader reader(TESTDATA("data_in/cramTestNoReference.cram"), ref_file);
+		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 
 		BamAlignment al;
 		do

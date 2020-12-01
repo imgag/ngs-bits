@@ -8,10 +8,10 @@
 const QString write_bam_file()
 {
 	//read origional BAM file
-	BamReader reader(TESTDATA("data_in/bamTest.bam"));
+	BamReader reader(TESTDATA("data_in/bamWriterTest.bam"));
 
 	//write first line of origional file into new file
-	BamWriter writer("out/BamWriter_Test.bam");
+	BamWriter writer("out/bamWriterTest.bam");
 	writer.writeHeader(reader);
 	BamAlignment al;
 	reader.getNextAlignment(al);
@@ -23,10 +23,10 @@ const QString write_bam_file()
 const QString write_cram_file(QString ref_file)
 {
 	//read origional BAM file
-	BamReader reader(TESTDATA("data_in/bamTest.bam"), ref_file);
+	BamReader reader(TESTDATA("data_in/bamWriterTest.bam"), ref_file);
 
 	//write first line of origional file into new file
-	BamWriter writer("out/BamWriter_Test.cram", ref_file);
+	BamWriter writer("out/bamWriterTest.cram", ref_file);
 	writer.writeHeader(reader);
 	BamAlignment al;
 	reader.getNextAlignment(al);
@@ -47,7 +47,7 @@ private slots:
 		const QString al_string = write_bam_file();
 
 		//read new BAM file
-		BamReader new_reader("out/BamWriter_Test.bam");
+		BamReader new_reader("out/bamWriterTest.bam");
 		BamAlignment new_al;
 		new_reader.getNextAlignment(new_al);
 
@@ -66,7 +66,7 @@ private slots:
 		const QString al_string = write_cram_file(ref_file);
 
 		//read new BAM file
-		BamReader new_reader("out/BamWriter_Test.cram", ref_file);
+		BamReader new_reader("out/bamWriterTest.cram", ref_file);
 		BamAlignment new_al;
 		new_reader.getNextAlignment(new_al);
 
