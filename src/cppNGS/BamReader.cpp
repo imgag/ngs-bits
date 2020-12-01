@@ -152,7 +152,7 @@ void BamAlignment::setBases(const Sequence& bases)
 		int base_index = char_to_base_index[(int)(bases[i])];
 		if (base_index==-1)
 		{
-			THROW(ProgrammingException, QByteArray("Cannot store character '") + bases[i] + "' in BAM file. Only A,C,G,T,N are allowed!");
+			THROW(ProgrammingException, QByteArray("Cannot store character '") + bases[i] + "' in BAM/CRAM file. Only A,C,G,T,N are allowed!");
 		}
 
 		//std::cout << "  base=" << bases[i] << " base_index=" << "(" << std::bitset<8>(base_index)  << ")" << std::endl;
@@ -528,7 +528,7 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 		index_ = sam_index_load(fp_, bam_file_.toLatin1().data());
 		if (index_==nullptr)
 		{
-			THROW(FileAccessException, "Could not load index of BAM file " + bam_file_);
+			THROW(FileAccessException, "Could not load index of BAM/CRAM file " + bam_file_);
 		}
 	}
 
@@ -536,7 +536,7 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 	int chr_index = chrs_.indexOf(chr);
 	if (chr_index==-1)
 	{
-		THROW(FileAccessException, "Could not find chromosome '" + chr.str() + "' in BAM file " + bam_file_);
+		THROW(FileAccessException, "Could not find chromosome '" + chr.str() + "' in BAM/CRAM file " + bam_file_);
 	}
 
 	//create iterator for region
@@ -549,7 +549,7 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 		{
 			extra += chr.str();
 		}
-		THROW(FileAccessException, "Could not create iterator for region query " + region_str + " in BAM file " + bam_file_ + extra);
+		THROW(FileAccessException, "Could not create iterator for region query " + region_str + " in BAM/CRAM file " + bam_file_ + extra);
 	}
 }
 
@@ -572,14 +572,14 @@ const QList<Chromosome>& BamReader::chromosomes() const
 
 const Chromosome& BamReader::chromosome(int chr_id) const
 {
-	if (chr_id>=chrs_.size()) THROW(ArgumentException, "Chromosome ID '" + QString::number(chr_id) + "' out of bounds in BAM file " + bam_file_);
+	if (chr_id>=chrs_.size()) THROW(ArgumentException, "Chromosome ID '" + QString::number(chr_id) + "' out of bounds in BAM/CRAM file " + bam_file_);
 
 	return chrs_[chr_id];
 }
 
 int BamReader::chromosomeSize(const Chromosome& chr) const
 {
-	if (!chrs_sizes_.contains(chr)) THROW(ArgumentException, "Chromosome '" + chr.str() + "' not known in BAM file " + bam_file_);
+	if (!chrs_sizes_.contains(chr)) THROW(ArgumentException, "Chromosome '" + chr.str() + "' not known in BAM/CRAM file " + bam_file_);
 
 	return chrs_sizes_[chr];
 }
