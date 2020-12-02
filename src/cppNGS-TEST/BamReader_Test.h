@@ -427,7 +427,7 @@ private slots:
 				//qDebug() << al.chromosomeID() << al.start() << al.end();
 		}
 		//qDebug() << "done";
-		S_EQUAL(al.cigarDataAsString(), "");
+		S_EQUAL(al.cigarDataAsString(), "17S141M");
 
 	}
 
