@@ -386,26 +386,24 @@ RtfTable& RtfTable::setUniqueFontSize(int font_size)
 
 void RtfTable::sortByCol(int i_col)
 {
-	QMultiMap<QByteArray,RtfTableRow> cell_row;
-	foreach(RtfTableRow row,rows_)
-	{
-		cell_row.insert(row[i_col].format().content(),row);
-	}
-
-	QList<QByteArray> keys_sorted = cell_row.uniqueKeys();
-	std::sort(keys_sorted.begin(),keys_sorted.end());
-
-	QList<RtfTableRow> sorted_table;
-	foreach(const QByteArray& key, keys_sorted)
-	{
-		QList<RtfTableRow> values = cell_row.values(key);
-		for(int i=0;i<values.size();++i)
-		{
-			sorted_table << values.at(i);
-		}
-	}
-	rows_ = sorted_table;
+	sortbyCols(QList<int>() << i_col);
 }
+
+void RtfTable::sortbyCols(const QList<int> &indices)
+{
+	auto sortRule = [&indices](const RtfTableRow& lhs, const RtfTableRow& rhs)->bool
+	{
+		for(int index : indices)
+		{
+			if(lhs[index].format().content() < rhs[index].format().content()) return true;
+			if(lhs[index].format().content() > rhs[index].format().content()) return false;
+		}
+		return false;
+	};
+
+	std::sort(rows_.begin(), rows_.end(), sortRule);
+}
+
 
 void RtfTable::swapRows(int i_row_a, int i_row_b)
 {

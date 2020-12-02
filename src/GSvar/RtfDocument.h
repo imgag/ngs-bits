@@ -537,9 +537,13 @@ public:
 		return false;
 	}
 
+	///sort table ascending by column index i_col
 	void sortByCol(int i_col);
 
-	//swap position of two rows with indices i_row_a and i_row_b
+	///sorts table ascending by columns, starting with first column index in indices
+	void sortbyCols(const QList<int>& indices);
+
+	///swaps position of two rows with indices i_row_a and i_row_b
 	void swapRows(int i_row_a, int i_row_b);
 
 	///sets border for all table cells
