@@ -21,9 +21,6 @@ TumorOnlyReportDialog::TumorOnlyReportDialog(const VariantList& variants, TumorO
 	{
 		ui->include_cov_per_gap->setEnabled(true);
 		ui->include_cov_per_gap->setChecked(true);
-
-		ui->include_exon_number->setEnabled(true);
-		ui->include_exon_number->setChecked(true);
 	}
 
 	ui->label_cgi->setText(SomaticReportHelper::cgiCancerTypeFromVariantList(variants));
@@ -83,7 +80,6 @@ TumorOnlyReportDialog::~TumorOnlyReportDialog()
 void TumorOnlyReportDialog::writeBackSettings()
 {
 	config_.include_coverage_per_gap = ui->include_cov_per_gap->isChecked();
-	config_.include_exon_number_per_gap = ui->include_exon_number->isChecked();
 
 	for(int i=0; i<ui->snvs->rowCount(); ++i)
 	{
