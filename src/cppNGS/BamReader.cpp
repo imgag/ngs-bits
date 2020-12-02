@@ -451,6 +451,7 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 	//set reference for CRAM files
 	if(fp_->is_cram)
 	{
+		Q_UNUSED(ref_genome);
 		#ifdef _WIN32
 			THROW(FileAccessException, "No Cram support for Windows yet!");
 		#else
