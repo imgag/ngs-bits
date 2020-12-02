@@ -117,13 +117,15 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	//load control tissue snps (NGSD class 4/5 only) into widget
 	int i_class = germl_variants.annotationIndexByName("classification", true, false);
 	int i_co_sp = germl_variants.annotationIndexByName("coding_and_splicing", true, false);
+	int i_gene = germl_variants.annotationIndexByName("gene", true, false);
+	int i_var_type = germl_variants.annotationIndexByName("variant_type", true, false);
 
 	BamReader bam_reader(db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), NGSD::PathType::BAM));
 	FastaFileIndex fasta_idx(Settings::string("reference_genome"));
 
 	QList<int> germl_indices_in_report = settings_.report_config.variantIndicesGermline();
 
-	if(i_class != -1 && i_co_sp != -1)
+	if(i_class != -1 && i_co_sp != -1 && i_gene != -1 && i_var_type != -1)
 	{
 		for(int i=0; i<germl_variants_.count(); ++i)
 		{
@@ -169,7 +171,10 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 			ui_.germline_variants->setItem( row, 8, new QTableWidgetItem( QString(snv.annotations()[i_class])) );
 			ui_.germline_variants->item( row, 8)->setBackground(Qt::red);
 
-			ui_.germline_variants->setItem( row, 9, new QTableWidgetItem( QString(snv.annotations()[i_co_sp])) );
+			ui_.germline_variants->setItem( row, 9, new QTableWidgetItem( QString(snv.annotations()[i_gene])) );
+			ui_.germline_variants->setItem( row, 10, new QTableWidgetItem( QString(snv.annotations()[i_var_type])) );
+
+			ui_.germline_variants->setItem( row, 11, new QTableWidgetItem( QString(snv.annotations()[i_co_sp])) );
 		}
 
 		ui_.germline_variants->setRowCount(ui_.germline_variants->rowCount());

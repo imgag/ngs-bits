@@ -17,6 +17,8 @@ struct TumorOnlyReportWorkerConfig
 	FilterResult filter_result;
 
 	bool include_coverage_per_gap = false;
+
+	bool include_exon_number_per_gap = false;
 };
 
 ///Helper class for tumor-only report generation
@@ -35,6 +37,8 @@ private:
 	const VariantList& variants_;
 	const FilterResult& filter_result_;
 
+	const QMap<QByteArray, QByteArrayList>& preferred_transcripts_;
+
 	RtfDocument doc_;
 
 	//input files
@@ -44,6 +48,7 @@ private:
 	QString bam_file_;
 
 	bool include_coverage_per_gap_;
+	bool include_exons_per_gap_;
 
 	//variant annotation indices
 	int i_co_sp_;
@@ -59,6 +64,9 @@ private:
 
 	///translates somatic variant classification to German language
 	QByteArray trans(QByteArray english);
+
+	///Get exon number according preferred transcript from NGSD and returns parsed string
+	QByteArray exonNumber(QByteArray gene, int start, int end);
 };
 
 #endif // TUMORONLYREPORTWORKER_H
