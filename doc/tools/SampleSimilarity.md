@@ -1,5 +1,5 @@
 ### SampleSimilarity tool help
-	SampleSimilarity (2020_09-90-g55257954)
+	SampleSimilarity (2020_09-79-gc6314b21)
 	
 	Calculates pairwise sample similarity metrics from VCF/BAM/CRAM files.
 	
@@ -30,7 +30,7 @@
 	  -build <enum>       Genome build used to generate the input (BAM mode).
 	                      Default value: 'hg19'
 	                      Valid: 'hg19,hg38'
-	  -ref <string>       Reference genome for CRAM compression (compulsory for CRAM support).
+	  -ref <string>       Reference genome for CRAM support (mandatory if CRAM is used).
 	                      Default value: ''
 	
 	Special parameters:
@@ -40,9 +40,9 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleSimilarity changelog
-	SampleSimilarity 2020_09-90-g55257954
+	SampleSimilarity 2020_09-79-gc6314b21
 	
-	2020-11-27 Added Cram support.
+	2020-11-27 Added CRAM support.
 	2019-02-08 Massive speed-up by caching of variants/genotypes instead of loading them again for each comparison.
 	2018-11-26 Add flag 'skip_multi' to ignore multi-allelic sites.
 	2018-07-11 Added build switch for hg38 support.

@@ -24,7 +24,7 @@ public:
 		addOutfile("out", "Output BAM/CRAM file.", false, true);
 		//optional
 		addFlag("test", "Test mode: fix random number generator seed and write kept read names to STDOUT.");
-		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
+		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("write_cram", "Writes a CRAM file as output.");
 
 		changeLog(2020,  11, 27, "Added CRAM support.");

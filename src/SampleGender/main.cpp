@@ -32,10 +32,10 @@ public:
 		addFloat("max_male", "Maximum heterocygous SNP fraction for male (method hetx).", true, 0.15);
 		addFloat("sry_cov", "Minimum average coverage of SRY gene for males (method sry).", true, 20.0);
 		addEnum("build", "Genome build used to generate the input (methods hetx and sry).", true, QStringList() << "hg19" << "hg38", "hg19");
-		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
+		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
 		//changelog
-		changeLog(2020,  11, 27, "Added Cram support.");
+		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2018,  7, 13, "Change of output to TSV format for batch support.");
 		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
 	}

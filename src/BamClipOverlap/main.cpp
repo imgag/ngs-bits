@@ -39,7 +39,7 @@ public:
 		addFlag("overlap_mismatch_basen", "Set base to N if mismatch is found in overlapping reads.");
 		addFlag("ignore_indels","Turn off indel detection in overlap.");
 		addFlag("v", "Verbose mode.");
-		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
+		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("write_cram", "Writes a CRAM file as output.");
 
 		//changelog

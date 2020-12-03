@@ -22,7 +22,7 @@ public:
 		addInt("maxMM", "Maximum number of mismatches in aligned read, -1 to disable.", true, 4);
 		addInt("maxGap", "Maximum number of gaps (indels) in aligned read, -1 to disable.", true, 1);
 		addInt("minDup", "Minimum number of duplicates.", true, 0);
-		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
+		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("write_cram", "Writes a CRAM file as output.");
 
 		changeLog(2020,  11, 27, "Added CRAM support.");

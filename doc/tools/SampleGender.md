@@ -1,5 +1,5 @@
 ### SampleGender tool help
-	SampleGender (2020_09-90-g55257954)
+	SampleGender (2020_09-79-gc6314b21)
 	
 	Determines the gender of a sample from the BAM/CRAM file.
 	
@@ -24,7 +24,7 @@
 	  -build <enum>       Genome build used to generate the input (methods hetx and sry).
 	                      Default value: 'hg19'
 	                      Valid: 'hg19,hg38'
-	  -ref <string>       Reference genome for CRAM compression (compulsory for CRAM support).
+	  -ref <string>       Reference genome for CRAM support (mandatory if CRAM is used).
 	                      Default value: ''
 	
 	Special parameters:
@@ -34,9 +34,9 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleGender changelog
-	SampleGender 2020_09-90-g55257954
+	SampleGender 2020_09-79-gc6314b21
 	
-	2020-11-27 Added Cram support.
+	2020-11-27 Added CRAM support.
 	2018-07-13 Change of output to TSV format for batch support.
 	2018-07-11 Added build switch for hg38 support.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
