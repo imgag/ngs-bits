@@ -7,7 +7,6 @@ libs:
 
 GSvar:
 ### Variant publication: support ClinVar (link, remove LOVD icon, ...)
-### NGSD: Causal variants: force 'mode of inheritance' - not 'n/a', not 'AD+AR', not 'XLR+XLD' > remove from schema!
 ## Allow adding variant outside of target region to report
     - add checkboxes to variants in report dialog
     - checkboxes for variants in ROI are checked and disabled
