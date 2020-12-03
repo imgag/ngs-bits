@@ -95,24 +95,37 @@ QByteArray TumorOnlyReportWorker::trans(QByteArray english)
 QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end)
 {
 	if(!LoginManager::active()) return "";
-	if(preferred_transcripts_.value(gene).isEmpty()) return "";
 
 	NGSD db;
 
-	//get transcript id of preferred transcript
-	int trans_id = db.transcriptId(preferred_transcripts_.value(gene).first(), false);
-
-	if(trans_id == -1) return "";
-
 	Transcript trans;
-	try
+	if(!preferred_transcripts_.value(gene).isEmpty()) //prefered transcript
 	{
-		 trans = db.transcript(trans_id);
+		try
+		{
+			trans = db.transcript( db.transcriptId(preferred_transcripts_.value(gene).first()) );
+		}
+		catch(Exception)
+		{
+			return "";
+		}
 	}
-	catch(Exception)
+	else //fallback to longest coding transcript
 	{
-		return "";
+		try
+		{
+			trans = db.longestCodingTranscript(db.geneToApprovedID(gene), Transcript::SOURCE::ENSEMBL, false, true);
+		}
+		catch(Exception)
+		{
+			return "";
+		}
 	}
+
+
+	//get transcript id of transcript
+	int trans_id = db.transcriptId(trans.name() , false);
+	if(trans_id == -1) return "";
 
 	//Create table with all exons
 	DBTable res = db.createTable("exons", "SELECT ge.transcript_id, ge.start, ge.end FROM gene_exon as ge WHERE ge.transcript_id=" + QByteArray::number(trans_id) );
@@ -132,7 +145,7 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 
 	if(exon_number != -1)
 	{
-		return preferred_transcripts_.value(gene).first() + " (exon " + QByteArray::number(exon_number) + "/" + QByteArray::number(res.rowCount()) + ")";
+		return trans.name() + " (exon " + QByteArray::number(exon_number) + "/" + QByteArray::number(res.rowCount()) + ")";
 	}
 
 	return "";
