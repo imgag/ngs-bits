@@ -1,6 +1,6 @@
 # Configure script for htslib, a C library for high-throughput sequencing data.
 #
-#    Copyright (C) 2015-2017 Genome Research Ltd.
+#    Copyright (C) 2015-2019 Genome Research Ltd.
 #
 #    Author: John Marshall <jm18@sanger.ac.uk>
 #
@@ -30,9 +30,11 @@ AC_CONFIG_SRCDIR(hts.c)
 AC_CONFIG_HEADERS(config.h)
 
 m4_include([m4/hts_prog_cc_warnings.m4])
+m4_include([m4/hts_hide_dynamic_syms.m4])
+m4_include([m4/pkg.m4])
 
 dnl Copyright notice to be copied into the generated configure script
-AC_COPYRIGHT([Portions copyright (C) 2016 Genome Research Ltd.
+AC_COPYRIGHT([Portions copyright (C) 2018 Genome Research Ltd.
 
 This configure script is free software: you are free to change and
 redistribute it.  There is NO WARRANTY, to the extent permitted by law.])
@@ -47,6 +49,16 @@ AH_TOP([/* If you use configure, this file provides @%:@defines reflecting your
    are immaterial, as we assume standard ISO C headers and facilities;
    the PACKAGE_* defines are unused and are overridden by the more
    accurate PACKAGE_VERSION as computed by the Makefile.  */])
+
+dnl Variant of AC_MSG_ERROR that ensures subsequent make(1) invocations fail
+dnl until the configuration error is resolved and configure is run again.
+AC_DEFUN([MSG_ERROR],
+  [cat > config.mk <<'EOF'
+ifneq ($(MAKECMDGOALS),distclean)
+$(error Resolve configure error first)
+endif
+EOF
+   AC_MSG_ERROR([$1], [$2])])
 
 AC_PROG_CC
 AC_PROG_RANLIB
@@ -64,9 +76,9 @@ m4_ifdef([PKG_PROG_PKG_CONFIG], [PKG_PROG_PKG_CONFIG], [PKG_CONFIG=""])
 
 need_crypto=no
 pc_requires=
-static_LDFLAGS=
-static_LIBS='-lz -lm'
-private_LIBS=
+static_LDFLAGS=$LDFLAGS
+static_LIBS='-lpthread -lz -lm'
+private_LIBS=$LDFLAGS
 
 AC_ARG_ENABLE([bz2],
   [AS_HELP_STRING([--disable-bz2],
@@ -79,7 +91,6 @@ AC_ARG_ENABLE([gcs],
   [], [enable_gcs=check])
 
 AC_SYS_LARGEFILE
-AC_FUNC_FSEEKO
 
 AC_ARG_ENABLE([libcurl],
   [AS_HELP_STRING([--enable-libcurl],
@@ -97,11 +108,16 @@ AC_ARG_ENABLE([plugins],
   [], [enable_plugins=no])
 AC_SUBST(enable_plugins)
 
+AC_ARG_WITH([libdeflate],
+  [AS_HELP_STRING([--with-libdeflate],
+                  [use libdeflate for faster crc and deflate algorithms])],
+  [], [with_libdeflate=check])
+
 AC_ARG_WITH([plugin-dir],
   [AS_HELP_STRING([--with-plugin-dir=DIR],
                   [plugin installation location [LIBEXECDIR/htslib]])],
   [case $withval in
-     yes|no) AC_MSG_ERROR([no directory specified for --with-plugin-dir]) ;;
+     yes|no) MSG_ERROR([no directory specified for --with-plugin-dir]) ;;
    esac],
    [with_plugin_dir='$(libexecdir)/htslib'])
 AC_SUBST([plugindir], $with_plugin_dir)
@@ -110,7 +126,7 @@ AC_ARG_WITH([plugin-path],
   [AS_HELP_STRING([--with-plugin-path=PATH],
                   [default HTS_PATH plugin search path [PLUGINDIR]])],
   [case $withval in
-     yes) AC_MSG_ERROR([no path specified for --with-plugin-path]) ;;
+     yes) MSG_ERROR([no path specified for --with-plugin-path]) ;;
      no)  with_plugin_path= ;;
    esac],
   [with_plugin_path=$with_plugin_dir])
@@ -152,24 +168,31 @@ esac
 AC_MSG_RESULT([$host_result])
 AC_SUBST([PLATFORM])
 
+dnl Try to get more control over which symbols are exported in the shared
+dnl library.
+HTS_HIDE_DYNAMIC_SYMBOLS
+
 dnl FIXME This pulls in dozens of standard header checks
 AC_FUNC_MMAP
-AC_CHECK_FUNCS([gmtime_r fsync drand48])
+AC_CHECK_FUNCS([gmtime_r fsync drand48 srand48_deterministic])
 
 # Darwin has a dubious fdatasync() symbol, but no declaration in <unistd.h>
 AC_CHECK_DECL([fdatasync(int)], [AC_CHECK_FUNCS(fdatasync)])
 
 if test $enable_plugins != no; then
-  AC_SEARCH_LIBS([dlopen], [dl], [],
-    [AC_MSG_ERROR([dlopen() not found
+  AC_SEARCH_LIBS([dlsym], [dl], [],
+    [MSG_ERROR([dlsym() not found
 
 Plugin support requires dynamic linking facilities from the operating system.
 Either configure with --disable-plugins or resolve this error to build HTSlib.])])
+  # Check if the compiler understands -rdynamic 
   # TODO Test whether this is required and/or needs tweaking per-platform
-  LDFLAGS="$LDFLAGS -rdynamic"
-  static_LDFLAGS="$static_LDFLAGS -rdynamic"
-  case "$ac_cv_search_dlopen" in
-    -l*) static_LIBS="$static_LIBS $ac_cv_search_dlopen" ;;
+  HTS_TEST_CC_C_LD_FLAG([-rdynamic],[rdynamic_flag])
+  AS_IF([test x"$rdynamic_flag" != "xno"],
+    [LDFLAGS="$LDFLAGS $rdynamic_flag"
+     static_LDFLAGS="$static_LDFLAGS $rdynamic_flag"])
+  case "$ac_cv_search_dlsym" in
+    -l*) static_LIBS="$static_LIBS $ac_cv_search_dlsym" ;;
   esac
   AC_DEFINE([ENABLE_PLUGINS], 1, [Define if HTSlib should enable plugins.])
   AC_SUBST([PLUGIN_EXT])
@@ -178,7 +201,7 @@ Either configure with --disable-plugins or resolve this error to build HTSlib.])
 fi
 
 AC_SEARCH_LIBS([log], [m], [],
-  [AC_MSG_ERROR([log() not found
+  [MSG_ERROR([log() not found
 
 HTSLIB requires a working floating-point math library.
 FAILED.  This error must be resolved in order to build HTSlib successfully.])])
@@ -189,7 +212,7 @@ AC_CHECK_HEADER([zlib.h], [], [zlib_devel=missing], [;])
 AC_CHECK_LIB(z, inflate,  [], [zlib_devel=missing])
 
 if test $zlib_devel != ok; then
-  AC_MSG_ERROR([zlib development files not found
+  MSG_ERROR([zlib development files not found
 
 HTSlib uses compression routines from the zlib library <http://zlib.net>.
 Building HTSlib requires zlib development files to be installed on the build
@@ -205,14 +228,14 @@ AC_SEARCH_LIBS([recv], [socket ws2_32], [
 if test "$ac_cv_search_recv" != "none required"
 then
   static_LIBS="$static_LIBS $ac_cv_search_recv"
-fi], [AC_MSG_ERROR([unable to find the recv() function])])
+fi], [MSG_ERROR([unable to find the recv() function])])
 
 if test "$enable_bz2" != no; then
   bz2_devel=ok
   AC_CHECK_HEADER([bzlib.h], [], [bz2_devel=missing], [;])
   AC_CHECK_LIB([bz2], [BZ2_bzBuffToBuffCompress], [], [bz2_devel=missing])
   if test $bz2_devel != ok; then
-    AC_MSG_ERROR([libbzip2 development files not found
+    MSG_ERROR([libbzip2 development files not found
 
 The CRAM format may use bzip2 compression, which is implemented in HTSlib
 by using compression routines from libbzip2 <http://www.bzip.org/>.
@@ -231,7 +254,7 @@ dnl Redhat/Fedora has it; Debian/Ubuntu does not.
      pc_requires="$pc_requires bzip2"
   else
      private_LIBS="$private_LIBS -lbz2"
-  fi  
+  fi
   static_LIBS="$static_LIBS -lbz2"
 fi
 
@@ -240,7 +263,7 @@ if test "$enable_lzma" != no; then
   AC_CHECK_HEADERS([lzma.h], [], [lzma_devel=header-missing], [;])
   AC_CHECK_LIB([lzma], [lzma_easy_buffer_encode], [], [lzma_devel=missing])
   if test $lzma_devel = missing; then
-    AC_MSG_ERROR([liblzma development files not found
+    MSG_ERROR([liblzma development files not found
 
 The CRAM format may use LZMA2 compression, which is implemented in HTSlib
 by using compression routines from liblzma <http://tukaani.org/xz/>.
@@ -257,6 +280,27 @@ produced elsewhere unreadable) or resolve this error to build HTSlib.])
   static_LIBS="$static_LIBS -llzma"
 fi
 
+AS_IF([test "x$with_libdeflate" != "xno"],
+  [libdeflate=ok
+   AC_CHECK_HEADER([libdeflate.h],[],[libdeflate='missing header'],[;])
+   AC_CHECK_LIB([deflate], [libdeflate_deflate_compress],[:],[libdeflate='missing library'])
+   AS_IF([test "$libdeflate" = "ok"],
+    [AC_DEFINE([HAVE_LIBDEFLATE], 1, [Define if libdeflate is available.])
+     LIBS="-ldeflate $LIBS"
+     private_LIBS="$private_LIBS -ldeflate"
+     static_LIBS="$static_LIBS -ldeflate"],
+    [AS_IF([test "x$with_libdeflate" != "xcheck"],
+       [MSG_ERROR([libdeflate development files not found: $libdeflate
+
+You requested libdeflate, but do not have the required header / library
+files.  The source for libdeflate is available from
+<https://github.com/ebiggers/libdeflate>.  You may have to adjust
+search paths in CPPFLAGS and/or LDFLAGS if the header and library
+are not currently on them.
+
+Either configure with --without-libdeflate or resolve this error to build
+HTSlib.])])])])
+
 libcurl=disabled
 if test "$enable_libcurl" != no; then
   AC_CHECK_LIB([curl], [curl_easy_pause],
@@ -267,7 +311,7 @@ if test "$enable_libcurl" != no; then
        [message="library not found"])
      case "$enable_libcurl" in
        check) AC_MSG_WARN([libcurl not enabled: $message]) ;;
-       *) AC_MSG_ERROR([libcurl $message
+       *) MSG_ERROR([libcurl $message
 
 Support for HTTPS and other SSL-based URLs requires routines from the libcurl
 library <http://curl.haxx.se/libcurl/>.  Building HTSlib with libcurl enabled
@@ -296,7 +340,7 @@ if test "$enable_gcs" != no; then
   else
     case "$enable_gcs" in
       check) AC_MSG_WARN([GCS support not enabled: requires libcurl support]) ;;
-      *) AC_MSG_ERROR([GCS support not enabled
+      *) MSG_ERROR([GCS support not enabled
 
 Support for Google Cloud Storage URLs requires libcurl support to be enabled
 in HTSlib.  Configure with --enable-libcurl in order to use GCS URLs.])
@@ -314,7 +358,7 @@ if test "$enable_s3" != no; then
   else
     case "$enable_s3" in
       check) AC_MSG_WARN([S3 support not enabled: requires libcurl support]) ;;
-      *) AC_MSG_ERROR([S3 support not enabled
+      *) MSG_ERROR([S3 support not enabled
 
 Support for Amazon AWS S3 URLs requires libcurl support to be enabled
 in HTSlib.  Configure with --enable-libcurl in order to use S3 URLs.])
@@ -337,7 +381,7 @@ if test $need_crypto != no; then
      [case "$need_crypto" in
      check) AC_MSG_WARN([S3 support not enabled: requires SSL development files])
          s3=disabled ;;
-     *) AC_MSG_ERROR([SSL development files not found
+     *) MSG_ERROR([SSL development files not found
 
 Support for AWS S3 URLs requires routines from an SSL library.  Building
 HTSlib with libcurl enabled requires SSL development files to be installed

@@ -1,6 +1,6 @@
 /*  synced_bcf_reader.c -- stream through multiple VCF files.
 
-    Copyright (C) 2012-2014 Genome Research Ltd.
+    Copyright (C) 2012-2020 Genome Research Ltd.
 
     Author: Petr Danecek <pd3@sanger.ac.uk>
 
@@ -22,13 +22,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.  */
 
+#define HTS_BUILDING_LIBRARY // Enables HTSLIB_EXPORT, see htslib/hts_defs.h
 #include <config.h>
 
+#include <assert.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <strings.h>
 #include <limits.h>
+#include <inttypes.h>
 #include <errno.h>
 #include <sys/stat.h>
 #include "htslib/synced_bcf_reader.h"
@@ -38,18 +41,25 @@ DEALINGS IN THE SOFTWARE.  */
 #include "htslib/thread_pool.h"
 #include "bcf_sr_sort.h"
 
-#define MAX_CSI_COOR 0x7fffffff     // maximum indexable coordinate of .csi
+#define REQUIRE_IDX_      1
+#define ALLOW_NO_IDX_     2
+
+// Maximum indexable coordinate of .csi, for default min_shift of 14.
+// This comes out to about 17 Tbp.  Limiting factor is the bin number,
+// which is a uint32_t in CSI.  The highest number of levels compatible
+// with this is 10 (needs 31 bits).
+#define MAX_CSI_COOR ((1LL << (14 + 30)) - 1)
 
 typedef struct
 {
-    uint32_t start, end;
+    hts_pos_t start, end;   // records are marked for skipping have start>end
 }
 region1_t;
 
-typedef struct _region_t
+typedef struct bcf_sr_region_t
 {
-    region1_t *regs;
-    int nregs, mregs, creg;
+    region1_t *regs;            // regions will sorted and merged, redundant records marked for skipping have start>end
+    int nregs, mregs, creg;     // creg: the current active region
 }
 region_t;
 
@@ -60,34 +70,37 @@ typedef struct
 }
 aux_t;
 
-static void _regions_add(bcf_sr_regions_t *reg, const char *chr, int start, int end);
+static int _regions_add(bcf_sr_regions_t *reg, const char *chr, hts_pos_t start, hts_pos_t end);
 static bcf_sr_regions_t *_regions_init_string(const char *str);
 static int _regions_match_alleles(bcf_sr_regions_t *reg, int als_idx, bcf1_t *rec);
+static void _regions_sort_and_merge(bcf_sr_regions_t *reg);
 
 char *bcf_sr_strerror(int errnum)
 {
     switch (errnum)
     {
         case open_failed:
-            return strerror(errno); break;
+            return strerror(errno);
         case not_bgzf:
-            return "not compressed with bgzip"; break;
+            return "not compressed with bgzip";
         case idx_load_failed:
-            return "could not load index"; break;
+            return "could not load index";
         case file_type_error:
-            return "unknown file type"; break;
+            return "unknown file type";
         case api_usage_error:
-            return "API usage error"; break;
+            return "API usage error";
         case header_error:
-            return "could not parse header"; break;
+            return "could not parse header";
         case no_eof:
-            return "no BGZF EOF marker; file may be truncated"; break;
+            return "no BGZF EOF marker; file may be truncated";
         case no_memory:
-            return "Out of memory"; break;
+            return "Out of memory";
         case vcf_parse_error:
-            return "VCF parse error"; break;
+            return "VCF parse error";
         case bcf_read_error:
-            return "BCF read error"; break;
+            return "BCF read error";
+        case noidx_error:
+            return "merge of unindexed files failed";
         default: return "";
     }
 }
@@ -98,7 +111,11 @@ int bcf_sr_set_opt(bcf_srs_t *readers, bcf_sr_opt_t opt, ...)
     switch (opt)
     {
         case BCF_SR_REQUIRE_IDX:
-            readers->require_index = 1;
+            readers->require_index = REQUIRE_IDX_;
+            return 0;
+
+        case BCF_SR_ALLOW_NO_IDX:
+            readers->require_index = ALLOW_NO_IDX_;
             return 0;
 
         case BCF_SR_PAIR_LOGIC:
@@ -121,7 +138,10 @@ static int *init_filters(bcf_hdr_t *hdr, const char *filters, int *nfilters)
     {
         if ( *tmp==',' || !*tmp )
         {
-            out = (int*) realloc(out, (nout+1)*sizeof(int));
+            int *otmp = (int*) realloc(out, (nout+1)*sizeof(int));
+            if (!otmp)
+                goto err;
+            out = otmp;
             if ( tmp-prev==1 && *prev=='.' )
             {
                 out[nout] = -1;
@@ -142,6 +162,11 @@ static int *init_filters(bcf_hdr_t *hdr, const char *filters, int *nfilters)
     if ( str.m ) free(str.s);
     *nfilters = nout;
     return out;
+
+ err:
+    if (str.m) free(str.s);
+    free(out);
+    return NULL;
 }
 
 int bcf_sr_set_regions(bcf_srs_t *readers, const char *regions, int is_file)
@@ -155,7 +180,7 @@ int bcf_sr_set_regions(bcf_srs_t *readers, const char *regions, int is_file)
     readers->regions = bcf_sr_regions_init(regions,is_file,0,1,-2);
     if ( !readers->regions ) return -1;
     readers->explicit_regs = 1;
-    readers->require_index = 1;
+    readers->require_index = REQUIRE_IDX_;
     return 0;
 }
 int bcf_sr_set_targets(bcf_srs_t *readers, const char *targets, int is_file, int alleles)
@@ -199,7 +224,10 @@ void bcf_sr_destroy_threads(bcf_srs_t *files) {
 
 int bcf_sr_add_reader(bcf_srs_t *files, const char *fname)
 {
-    htsFile* file_ptr = hts_open(fname, "r");
+    char fmode[5];
+    strcpy(fmode, "r");
+    vcf_open_mode(fmode+1, fname, NULL);
+    htsFile* file_ptr = hts_open(fname, fmode);
     if ( ! file_ptr ) {
         files->errnum = open_failed;
         return 0;
@@ -226,7 +254,7 @@ int bcf_sr_add_reader(bcf_srs_t *files, const char *fname)
             bgzf_thread_pool(bgzf, files->p->pool, files->p->qsize);
     }
 
-    if ( files->require_index )
+    if ( files->require_index==REQUIRE_IDX_ )
     {
         if ( reader->file->format.format==vcf )
         {
@@ -283,9 +311,18 @@ int bcf_sr_add_reader(bcf_srs_t *files, const char *fname)
     }
     if ( files->streaming && files->nreaders>1 )
     {
-        files->errnum = api_usage_error;
-        hts_log_error("Must set require_index when the number of readers is greater than one");
-        return 0;
+        static int no_index_warned = 0;
+        if ( files->require_index==ALLOW_NO_IDX_ && !no_index_warned )
+        {
+            hts_log_warning("Using multiple unindexed files may produce errors, make sure chromosomes are in the same order!");
+            no_index_warned = 1;
+        }
+        if ( files->require_index!=ALLOW_NO_IDX_ )
+        {
+            files->errnum = api_usage_error;
+            hts_log_error("Must set require_index when the number of readers is greater than one");
+            return 0;
+        }
     }
     if ( files->streaming && files->regions )
     {
@@ -306,7 +343,7 @@ int bcf_sr_add_reader(bcf_srs_t *files, const char *fname)
     // Update list of chromosomes
     if ( !files->explicit_regs && !files->streaming )
     {
-        int n,i;
+        int n = 0, i;
         const char **names = reader->tbx_idx ? tbx_seqnames(reader->tbx_idx, &n) : bcf_hdr_seqnames(reader->header, &n);
         for (i=0; i<n; i++)
         {
@@ -316,6 +353,29 @@ int bcf_sr_add_reader(bcf_srs_t *files, const char *fname)
                 _regions_add(files->regions, names[i], -1, -1);
         }
         free(names);
+        _regions_sort_and_merge(files->regions);
+    }
+
+    if ( files->require_index==ALLOW_NO_IDX_ && files->nreaders > 1 )
+    {
+        bcf_hdr_t *hdr0 = files->readers[0].header;
+        bcf_hdr_t *hdr1 = reader->header;
+        if ( hdr0->n[BCF_DT_CTG]!=hdr1->n[BCF_DT_CTG] )
+        {
+            files->errnum = noidx_error;
+            hts_log_error("Different number of sequences in the header, refusing to stream multiple unindexed files");
+            return 0;
+        }
+        int i;
+        for (i=0; i<hdr0->n[BCF_DT_CTG]; i++)
+        {
+            if ( strcmp(bcf_hdr_id2name(hdr0,i),bcf_hdr_id2name(hdr1,i)) )
+            {
+                files->errnum = noidx_error;
+                hts_log_error("Sequences in the header appear in different order, refusing to stream multiple unindexed files");
+                return 0;
+            }
+        }
     }
 
     return 1;
@@ -376,14 +436,14 @@ void bcf_sr_remove_reader(bcf_srs_t *files, int i)
     files->nreaders--;
 }
 
-
+#if DEBUG_SYNCED_READER
 void debug_buffer(FILE *fp, bcf_sr_t *reader)
 {
     int j;
     for (j=0; j<=reader->nbuffer; j++)
     {
         bcf1_t *line = reader->buffer[j];
-        fprintf(fp,"\t%p\t%s%s\t%s:%d\t%s ", (void*)line,reader->fname,j==0?"*":" ",reader->header->id[BCF_DT_CTG][line->rid].key,line->pos+1,line->n_allele?line->d.allele[0]:"");
+        fprintf(fp,"\t%p\t%s%s\t%s:%"PRIhts_pos"\t%s ", (void*)line,reader->fname,j==0?"*":" ",reader->header->id[BCF_DT_CTG][line->rid].key,line->pos+1,line->n_allele?line->d.allele[0]:"");
         int k;
         for (k=1; k<line->n_allele; k++) fprintf(fp," %s", line->d.allele[k]);
         fprintf(fp,"\n");
@@ -400,6 +460,7 @@ void debug_buffers(FILE *fp, bcf_srs_t *files)
     }
     fprintf(fp,"\n");
 }
+#endif
 
 static inline int has_filter(bcf_sr_t *reader, bcf1_t *line)
 {
@@ -418,11 +479,11 @@ static inline int has_filter(bcf_sr_t *reader, bcf1_t *line)
     return 0;
 }
 
-static int _reader_seek(bcf_sr_t *reader, const char *seq, int start, int end)
+static int _reader_seek(bcf_sr_t *reader, const char *seq, hts_pos_t start, hts_pos_t end)
 {
     if ( end>=MAX_CSI_COOR )
     {
-        hts_log_error("The coordinate is out of csi index limit: %d", end+1);
+        hts_log_error("The coordinate is out of csi index limit: %"PRIhts_pos, end+1);
         exit(1);
     }
     if ( reader->itr )
@@ -444,7 +505,7 @@ static int _reader_seek(bcf_sr_t *reader, const char *seq, int start, int end)
         reader->itr = bcf_itr_queryi(reader->bcf_idx,tid,start,end+1);
     }
     if (!reader->itr) {
-        hts_log_error("Could not seek: %s:%d-%d", seq, start + 1, end + 1);
+        hts_log_error("Could not seek: %s:%"PRIhts_pos"-%"PRIhts_pos, seq, start + 1, end + 1);
         assert(0);
     }
     return 0;
@@ -467,8 +528,11 @@ static int _readers_next_region(bcf_srs_t *files)
         return 0;
     }
 
-    // No lines in the buffer, need to open new region or quit
+    // No lines in the buffer, need to open new region or quit.
+    int prev_iseq = files->regions->iseq;
+    hts_pos_t prev_end = files->regions->end;
     if ( bcf_sr_regions_next(files->regions)<0 ) return -1;
+    files->regions->prev_end = prev_iseq==files->regions->iseq ? prev_end : -1;
 
     for (i=0; i<files->nreaders; i++)
         _reader_seek(&files->readers[i],files->regions->seq_names[files->regions->iseq],files->regions->start,files->regions->end);
@@ -479,13 +543,13 @@ static int _readers_next_region(bcf_srs_t *files)
 /*
  *  _reader_fill_buffer() - buffers all records with the same coordinate
  */
-static void _reader_fill_buffer(bcf_srs_t *files, bcf_sr_t *reader)
+static int _reader_fill_buffer(bcf_srs_t *files, bcf_sr_t *reader)
 {
     // Return if the buffer is full: the coordinate of the last buffered record differs
-    if ( reader->nbuffer && reader->buffer[reader->nbuffer]->pos != reader->buffer[1]->pos ) return;
+    if ( reader->nbuffer && reader->buffer[reader->nbuffer]->pos != reader->buffer[1]->pos ) return 0;
 
     // No iterator (sequence not present in this file) and not streaming
-    if ( !reader->itr && !files->streaming ) return;
+    if ( !reader->itr && !files->streaming ) return 0;
 
     // Fill the buffer with records starting at the same position
     int i, ret = 0;
@@ -537,6 +601,9 @@ static void _reader_fill_buffer(bcf_srs_t *files, bcf_sr_t *reader)
             bcf_subset_format(reader->header,reader->buffer[reader->nbuffer+1]);
         }
 
+        // prevent creation of duplicates from records overlapping multiple regions
+        if ( files->regions && reader->buffer[reader->nbuffer+1]->pos <= files->regions->prev_end ) continue;
+
         // apply filter
         if ( !reader->nfilter_ids )
             bcf_unpack(reader->buffer[reader->nbuffer+1], BCF_UN_STR);
@@ -547,6 +614,7 @@ static void _reader_fill_buffer(bcf_srs_t *files, bcf_sr_t *reader)
         }
         reader->nbuffer++;
 
+        if ( files->require_index==ALLOW_NO_IDX_ && reader->buffer[reader->nbuffer]->rid != reader->buffer[1]->rid ) break;
         if ( reader->buffer[reader->nbuffer]->pos != reader->buffer[1]->pos ) break;    // the buffer is full
     }
     if ( ret<0 )
@@ -555,6 +623,12 @@ static void _reader_fill_buffer(bcf_srs_t *files, bcf_sr_t *reader)
         tbx_itr_destroy(reader->itr);
         reader->itr = NULL;
     }
+    if ( files->require_index==ALLOW_NO_IDX_ && reader->buffer[reader->nbuffer]->rid < reader->buffer[1]->rid )
+    {
+         hts_log_error("Sequences out of order, cannot stream multiple unindexed files: %s", reader->fname);
+         exit(1);
+    }
+    return 0; // FIXME: Check for more errs in this function
 }
 
 /*
@@ -576,10 +650,10 @@ static void _reader_shift_buffer(bcf_sr_t *reader)
         reader->nbuffer = 0;    // no other line
 }
 
-int _reader_next_line(bcf_srs_t *files)
+static int next_line(bcf_srs_t *files)
 {
-    int i, min_pos = INT_MAX;
     const char *chr = NULL;
+    hts_pos_t min_pos = HTS_POS_MAX;
 
     // Loop until next suitable line is found or all readers have finished
     while ( 1 )
@@ -587,23 +661,35 @@ int _reader_next_line(bcf_srs_t *files)
         // Get all readers ready for the next region.
         if ( files->regions && _readers_next_region(files)<0 ) break;
 
-        // Fill buffers
+        // Fill buffers and find the minimum chromosome
+        int i, min_rid = INT32_MAX;
         for (i=0; i<files->nreaders; i++)
         {
             _reader_fill_buffer(files, &files->readers[i]);
+            if ( files->require_index==ALLOW_NO_IDX_ )
+            {
+                if ( !files->readers[i].nbuffer ) continue;
+                if ( min_rid > files->readers[i].buffer[1]->rid ) min_rid = files->readers[i].buffer[1]->rid;
+            }
+        }
+
+        for (i=0; i<files->nreaders; i++)
+        {
+            if ( !files->readers[i].nbuffer ) continue;
+            if ( files->require_index==ALLOW_NO_IDX_ && min_rid != files->readers[i].buffer[1]->rid ) continue;
 
             // Update the minimum coordinate
-            if ( !files->readers[i].nbuffer ) continue;
             if ( min_pos > files->readers[i].buffer[1]->pos )
             {
                 min_pos = files->readers[i].buffer[1]->pos;
                 chr = bcf_seqname(files->readers[i].header, files->readers[i].buffer[1]);
+                assert(chr);
                 bcf_sr_sort_set_active(&BCF_SR_AUX(files)->sort, i);
             }
             else if ( min_pos==files->readers[i].buffer[1]->pos )
                 bcf_sr_sort_add_active(&BCF_SR_AUX(files)->sort, i);
         }
-        if ( min_pos==INT_MAX )
+        if ( min_pos==HTS_POS_MAX )
         {
             if ( !files->regions ) break;
             continue;
@@ -619,7 +705,7 @@ int _reader_next_line(bcf_srs_t *files)
                 for (i=0; i<files->nreaders; i++)
                     if ( files->readers[i].nbuffer && files->readers[i].buffer[1]->pos==min_pos )
                         _reader_shift_buffer(&files->readers[i]);
-                min_pos = INT_MAX;
+                min_pos = HTS_POS_MAX;
                 chr = NULL;
                 continue;
             }
@@ -635,11 +721,11 @@ int _reader_next_line(bcf_srs_t *files)
 int bcf_sr_next_line(bcf_srs_t *files)
 {
     if ( !files->targets_als )
-        return _reader_next_line(files);
+        return next_line(files);
 
     while (1)
     {
-        int i, ret = _reader_next_line(files);
+        int i, ret = next_line(files);
         if ( !ret ) return ret;
 
         for (i=0; i<files->nreaders; i++)
@@ -669,9 +755,10 @@ static void bcf_sr_seek_start(bcf_srs_t *readers)
 }
 
 
-int bcf_sr_seek(bcf_srs_t *readers, const char *seq, int pos)
+int bcf_sr_seek(bcf_srs_t *readers, const char *seq, hts_pos_t pos)
 {
     if ( !readers->regions ) return 0;
+    bcf_sr_sort_reset(&BCF_SR_AUX(readers)->sort);
     if ( !seq && !pos )
     {
         // seek to start
@@ -761,9 +848,9 @@ int bcf_sr_set_samples(bcf_srs_t *files, const char *fname, int is_file)
     return 1;
 }
 
-// Add a new region into a list sorted by start,end. On input the coordinates
-// are 1-based, stored 0-based, inclusive.
-static void _regions_add(bcf_sr_regions_t *reg, const char *chr, int start, int end)
+// Add a new region into a list. On input the coordinates are 1-based, inclusive, then stored 0-based,
+// inclusive. Sorting and merging step needed afterwards: qsort(..,cmp_regions) and merge_regions().
+static int _regions_add(bcf_sr_regions_t *reg, const char *chr, hts_pos_t start, hts_pos_t end)
 {
     if ( start==-1 && end==-1 )
     {
@@ -791,25 +878,48 @@ static void _regions_add(bcf_sr_regions_t *reg, const char *chr, int start, int 
     }
 
     region_t *creg = &reg->regs[iseq];
+    hts_expand(region1_t,creg->nregs+1,creg->mregs,creg->regs);
+    creg->regs[creg->nregs].start = start;
+    creg->regs[creg->nregs].end   = end;
+    creg->nregs++;
 
-    // the regions may not be sorted on input: binary search
-    int i, min = 0, max = creg->nregs - 1;
-    while ( min<=max )
+    return 0; // FIXME: check for errs in this function
+}
+
+static int regions_cmp(const void *aptr, const void *bptr)
+{
+    region1_t *a = (region1_t*)aptr;
+    region1_t *b = (region1_t*)bptr;
+    if ( a->start < b->start ) return -1;
+    if ( a->start > b->start ) return 1;
+    if ( a->end < b->end ) return -1;
+    if ( a->end > b->end ) return 1;
+    return 0;
+}
+static void regions_merge(region_t *reg)
+{
+    int i = 0, j;
+    while ( i<reg->nregs )
     {
-        i = (max+min)/2;
-        if ( start < creg->regs[i].start ) max = i - 1;
-        else if ( start > creg->regs[i].start ) min = i + 1;
-        else break;
+        j = i + 1;
+        while ( j<reg->nregs && reg->regs[i].end >= reg->regs[j].start )
+        {
+            if ( reg->regs[i].end < reg->regs[j].end ) reg->regs[i].end = reg->regs[j].end;
+            reg->regs[j].start = 1;  reg->regs[j].end = 0;  // if beg>end, this region marked for skipping
+            j++;
+        }
+        i = j;
     }
-    if ( min>max || creg->regs[i].start!=start || creg->regs[i].end!=end )
+}
+void _regions_sort_and_merge(bcf_sr_regions_t *reg)
+{
+    if ( !reg ) return;
+
+    int i;
+    for (i=0; i<reg->nseqs; i++)
     {
-        // no such region, insert a new one just after max
-        hts_expand(region1_t,creg->nregs+1,creg->mregs,creg->regs);
-        if ( ++max < creg->nregs )
-            memmove(&creg->regs[max+1],&creg->regs[max],(creg->nregs - max)*sizeof(region1_t));
-        creg->regs[max].start = start;
-        creg->regs[max].end   = end;
-        creg->nregs++;
+        qsort(reg->regs[i].regs, reg->regs[i].nregs, sizeof(*reg->regs[i].regs), regions_cmp);
+        regions_merge(&reg->regs[i]);
     }
 }
 
@@ -818,11 +928,11 @@ static bcf_sr_regions_t *_regions_init_string(const char *str)
 {
     bcf_sr_regions_t *reg = (bcf_sr_regions_t *) calloc(1, sizeof(bcf_sr_regions_t));
     reg->start = reg->end = -1;
-    reg->prev_start = reg->prev_seq = -1;
+    reg->prev_start = reg->prev_end = reg->prev_seq = -1;
 
     kstring_t tmp = {0,0,0};
     const char *sp = str, *ep = str;
-    int from, to;
+    hts_pos_t from, to;
     while ( 1 )
     {
         while ( *ep && *ep!=',' && *ep!=':' ) ep++;
@@ -874,8 +984,9 @@ static bcf_sr_regions_t *_regions_init_string(const char *str)
 
 // ichr,ifrom,ito are 0-based;
 // returns -1 on error, 0 if the line is a comment line, 1 on success
-static int _regions_parse_line(char *line, int ichr,int ifrom,int ito, char **chr,char **chr_end,int *from,int *to)
+static int _regions_parse_line(char *line, int ichr, int ifrom, int ito, char **chr, char **chr_end, hts_pos_t *from, hts_pos_t *to)
 {
+    if (ifrom < 0 || ito < 0) return -1;
     *chr_end = NULL;
 
     if ( line[0]=='#' ) return 0;
@@ -936,11 +1047,16 @@ static int _regions_parse_line(char *line, int ichr,int ifrom,int ito, char **ch
 bcf_sr_regions_t *bcf_sr_regions_init(const char *regions, int is_file, int ichr, int ifrom, int ito)
 {
     bcf_sr_regions_t *reg;
-    if ( !is_file ) return _regions_init_string(regions);
+    if ( !is_file )
+    {
+        reg = _regions_init_string(regions);
+        _regions_sort_and_merge(reg);
+        return reg;
+    }
 
     reg = (bcf_sr_regions_t *) calloc(1, sizeof(bcf_sr_regions_t));
     reg->start = reg->end = -1;
-    reg->prev_start = reg->prev_seq = -1;
+    reg->prev_start = reg->prev_end = reg->prev_seq = -1;
 
     reg->file = hts_open(regions, "rb");
     if ( !reg->file )
@@ -950,9 +1066,10 @@ bcf_sr_regions_t *bcf_sr_regions_init(const char *regions, int is_file, int ichr
         return NULL;
     }
 
-    reg->tbx = tbx_index_load(regions);
+    reg->tbx = tbx_index_load3(regions, NULL, HTS_IDX_SAVE_REMOTE|HTS_IDX_SILENT_FAIL);
     if ( !reg->tbx )
     {
+        size_t iline = 0;
         int len = strlen(regions);
         int is_bed  = strcasecmp(".bed",regions+len-4) ? 0 : 1;
         if ( !is_bed && !strcasecmp(".bed.gz",regions+len-7) ) is_bed = 1;
@@ -962,8 +1079,10 @@ bcf_sr_regions_t *bcf_sr_regions_init(const char *regions, int is_file, int ichr
         // read the whole file, tabix index is not present
         while ( hts_getline(reg->file, KS_SEP_LINE, &reg->line) > 0 )
         {
+            iline++;
             char *chr, *chr_end;
-            int from, to, ret;
+            hts_pos_t from, to;
+            int ret;
             ret = _regions_parse_line(reg->line.s, ichr,ifrom,abs(ito), &chr,&chr_end,&from,&to);
             if ( ret < 0 )
             {
@@ -971,8 +1090,8 @@ bcf_sr_regions_t *bcf_sr_regions_init(const char *regions, int is_file, int ichr
                     ret = _regions_parse_line(reg->line.s, ichr,ifrom,ifrom, &chr,&chr_end,&from,&to);
                 if ( ret<0 )
                 {
-                    hts_log_error("Could not parse the file %s, using the columns %d,%d[,%d]",
-                        regions,ichr+1,ifrom+1,ito+1);
+                    hts_log_error("Could not parse %zu-th line of file %s, using the columns %d,%d[,%d]",
+                        iline, regions,ichr+1,ifrom+1,ito+1);
                     hts_close(reg->file); reg->file = NULL; free(reg);
                     return NULL;
                 }
@@ -985,6 +1104,7 @@ bcf_sr_regions_t *bcf_sr_regions_init(const char *regions, int is_file, int ichr
         }
         hts_close(reg->file); reg->file = NULL;
         if ( !reg->nseqs ) { free(reg); return NULL; }
+        _regions_sort_and_merge(reg);
         return reg;
     }
 
@@ -1046,6 +1166,16 @@ int bcf_sr_regions_seek(bcf_sr_regions_t *reg, const char *seq)
     return -1;
 }
 
+// Returns 0 on success, -1 when done
+static int advance_creg(region_t *reg)
+{
+    int i = reg->creg + 1;
+    while ( i<reg->nregs && reg->regs[i].start > reg->regs[i].end ) i++;    // regions with start>end are marked to skip by merge_regions()
+    reg->creg = i;
+    if ( i>=reg->nregs ) return -1;
+    return 0;
+}
+
 int bcf_sr_regions_next(bcf_sr_regions_t *reg)
 {
     if ( reg->iseq<0 ) return -1;
@@ -1057,8 +1187,7 @@ int bcf_sr_regions_next(bcf_sr_regions_t *reg)
     {
         while ( reg->iseq < reg->nseqs )
         {
-            reg->regs[reg->iseq].creg++;
-            if ( reg->regs[reg->iseq].creg < reg->regs[reg->iseq].nregs ) break;
+            if ( advance_creg(&reg->regs[reg->iseq])==0 ) break;    // a valid record was found
             reg->iseq++;
         }
         if ( reg->iseq >= reg->nseqs ) { reg->iseq = -1; return -1; } // no more regions left
@@ -1070,7 +1199,8 @@ int bcf_sr_regions_next(bcf_sr_regions_t *reg)
 
     // reading from tabix
     char *chr, *chr_end;
-    int ichr = 0, ifrom = 1, ito = 2, is_bed = 0, from, to;
+    int ichr = 0, ifrom = 1, ito = 2, is_bed = 0;
+    hts_pos_t from, to;
     if ( reg->tbx )
     {
         ichr   = reg->tbx->conf.sc-1;
@@ -1189,7 +1319,7 @@ static int _regions_match_alleles(bcf_sr_regions_t *reg, int als_idx, bcf1_t *re
     return !(type & VCF_INDEL) ? 1 : 0;
 }
 
-int bcf_sr_regions_overlap(bcf_sr_regions_t *reg, const char *seq, int start, int end)
+int bcf_sr_regions_overlap(bcf_sr_regions_t *reg, const char *seq, hts_pos_t start, hts_pos_t end)
 {
     int iseq;
     if ( khash_str2int_get(reg->seq_hash, seq, &iseq)<0 ) return -1;    // no such sequence
@@ -1217,10 +1347,10 @@ int bcf_sr_regions_overlap(bcf_sr_regions_t *reg, const char *seq, int start, in
     return -1;  // no overlap
 }
 
-void bcf_sr_regions_flush(bcf_sr_regions_t *reg)
+int bcf_sr_regions_flush(bcf_sr_regions_t *reg)
 {
-    if ( !reg->missed_reg_handler || reg->prev_seq==-1 ) return;
+    if ( !reg->missed_reg_handler || reg->prev_seq==-1 ) return 0;
     while ( !bcf_sr_regions_next(reg) ) reg->missed_reg_handler(reg, reg->missed_reg_data);
-    return;
+    return 0; // FIXME: check for errs in this function
 }
 

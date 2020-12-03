@@ -21,12 +21,14 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Extracts base frequencies for given regions from BAMs files.");
-		addInfileList("bam", "Input BAM file(s).", false);
+		setDescription("Extracts base frequencies for given regions from BAM/CRAM files.");
+		addInfileList("bam", "Input BAM/CRAM file(s).", false);
 		//optional
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
+		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
 
+		changeLog(2020,  11, 27, "Added CRAM support.");
 	}
 
 	virtual void main()
@@ -42,9 +44,10 @@ public:
 
 		//open BAM files
 		QList<QSharedPointer<BamReader>> bams_open;
+		const QString ref_string = getString("ref");
 		foreach(QString bam, bams)
 		{
-			bams_open.append(QSharedPointer<BamReader>(new BamReader(bam)));
+			bams_open.append(QSharedPointer<BamReader>(new BamReader(bam, ref_string)));
 		}
 
 		//extract base counts from BAMs

@@ -11,6 +11,7 @@
 #include "QHash"
 
 #include "htslib/sam.h"
+#include "htslib/cram.h"
 
 //Representation of a CIGAR operation
 struct CPPNGSSHARED_EXPORT CigarOp
@@ -273,6 +274,10 @@ class CPPNGSSHARED_EXPORT BamReader
 	public:
 		//Default constructor
 		BamReader(const QString& bam_file);
+		//CRAM Constructor with explicit reference genome
+		//reference genome is compulsory for CRAM support
+		BamReader(const QString& bam_file, const QString& ref_genome);
+
 		//Destructor
 		~BamReader();
 
@@ -312,17 +317,20 @@ class CPPNGSSHARED_EXPORT BamReader
 		*/
 		void getIndels(const FastaFileIndex& reference, const Chromosome& chr, int start, int end, QVector<Sequence>& indels, int& depth, double& mapq0_frac);
 
+
 	protected:
 		QString bam_file_;
 		QList<Chromosome> chrs_;
 		QHash<Chromosome, int> chrs_sizes_;
 		samFile* fp_ = nullptr;
-		bam_hdr_t* header_ = nullptr;
+		sam_hdr_t* header_ = nullptr;
 		hts_idx_t* index_ = nullptr;
 		hts_itr_t* iter_  = nullptr;
 
 		//Releases resources held by the iterator (index is not cleared)
 		void clearIterator();
+		void verify_chromosome_length(const QString& ref_genome);
+		void init(const QString& bam_file, const QString& ref_genome = QString::null);
 
 		//"declared away" methods
 		BamReader(const BamReader&) = delete;
@@ -330,6 +338,7 @@ class CPPNGSSHARED_EXPORT BamReader
 
 		//friends
 		friend class BamWriter;
+		friend class BamWriter_Test;
 };
 
 #endif // BAMREADER_H

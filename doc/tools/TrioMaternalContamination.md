@@ -1,5 +1,5 @@
 ### TrioMaternalContamination tool help
-	TrioMaternalContamination (2020_03-184-g27235379)
+	TrioMaternalContamination (2020_09-90-g55257954)
 	
 	Detects maternal contamination of a child using SNPs from parents.
 	
@@ -7,9 +7,9 @@
 	This percentage should be similar for mother/father. If it is not, maternal contamination is likely.
 	
 	Mandatory parameters:
-	  -bam_m <file>        Input BAM file of mother.
-	  -bam_f <file>        Input BAM file of father.
-	  -bam_c <file>        Input BAM file of child.
+	  -bam_m <file>        Input BAM/CRAM file of mother.
+	  -bam_f <file>        Input BAM/CRAM file of father.
+	  -bam_c <file>        Input BAM/CRAM file of child.
 	
 	Optional parameters:
 	  -min_depth <int>     Minimum depth for calling SNPs.
@@ -21,6 +21,8 @@
 	                       Valid: 'hg19,hg38'
 	  -out <file>          Output file. If unset, writes to STDOUT.
 	                       Default value: ''
+	  -ref <string>        Reference genome for CRAM compression (compulsory for CRAM support).
+	                       Default value: ''
 	
 	Special parameters:
 	  --help               Shows this help and exits.
@@ -29,7 +31,8 @@
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### TrioMaternalContamination changelog
-	TrioMaternalContamination 2020_03-184-g27235379
+	TrioMaternalContamination 2020_09-90-g55257954
 	
+	2020-11-27 Added Cram support.
 	2020-06-18 Initial version of the tool.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

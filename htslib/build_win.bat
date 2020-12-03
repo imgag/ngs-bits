@@ -15,6 +15,6 @@ REM build
 %QT%mingw32-make.exe lib-shared
 
 REM move files to 'lib' folder
-move hts-2.dll lib\hts-2.dll
+move hts-3.dll lib\hts-3.dll
 move hts.dll.a lib\hts.dll.a
 
