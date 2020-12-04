@@ -745,6 +745,9 @@ public:
 	///Parses OBO file and updates QC term data
 	void updateQC(QString obo_file, bool debug=false);
 
+	///Checks for missing or inconsistent meta data of a sample.
+	QHash<QString, QStringList> checkMetaData(const QString& ps_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs);
+
 	///Checks for errors/inconsistencies and fixes them if @p fix_errors is set.
 	void maintain(QTextStream* messages, bool fix_errors);
 

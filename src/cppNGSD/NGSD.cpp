@@ -2738,6 +2738,119 @@ void NGSD::updateQC(QString obo_file, bool debug)
 	commit();
 }
 
+QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs)
+{
+	QHash<QString, QStringList> output;
+
+	QString s_id = getValue("SELECT s.id FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND ps.id='" + ps_id + "'").toString();
+
+	//check current sample
+	{
+		SampleData sample_data = getSampleData(s_id);
+		QString s_name = sample_data.name;
+
+		if (sample_data.disease_group=="n/a") output[s_name] << "disease group unset!";
+		if (sample_data.disease_status=="n/a") output[s_name] << "disease status unset!";
+
+		if (sample_data.disease_status=="Affected")
+		{
+			//HPO terms
+			QList<SampleDiseaseInfo> disease_info = getSampleDiseaseInfo(s_id, "HPO term id");
+			if (disease_info.isEmpty()) output[s_name] << "no HPO phenotype(s) set!";
+
+			//diagnostic status
+			DiagnosticStatusData diag_status = getDiagnosticStatus(ps_id);
+			if (diag_status.outcome=="n/a") output[s_name] << "diagnostic status outcome unset!";
+
+			if (diag_status.outcome=="significant findings")
+			{
+				int rc_id = reportConfigId(ps_id);
+				if (rc_id==-1)
+				{
+					output[s_name]<< "outcome 'significant findings', but report configuration missing!";
+				}
+				else
+				{
+					QStringList report_config_messages;
+					QSharedPointer<ReportConfiguration> report_config = reportConfig(rc_id, variants, cnvs, svs, report_config_messages);
+					bool causal_diagnostic_variant_present = false;
+					foreach(const ReportVariantConfiguration& var_conf, report_config->variantConfig())
+					{
+						if (var_conf.causal)
+						{
+							if (var_conf.report_type=="diagnostic variant")
+							{
+								causal_diagnostic_variant_present = true;
+
+								//check classification
+								if (var_conf.variant_type==VariantType::SNVS_INDELS)
+								{
+									if (var_conf.variant_index!=-1)
+									{
+										const Variant& var = variants[var_conf.variant_index];
+										ClassificationInfo class_info = getClassification(var);
+										if (class_info.classification=="" || class_info.classification=="n/a")
+										{
+											output[s_name] << "causal diagnostic " + variantTypeToString(var_conf.variant_type) + " has no classification!";
+										}
+									}
+								}
+								else if (var_conf.variant_type==VariantType::CNVS || var_conf.variant_type==VariantType::SVS)
+								{
+									if (var_conf.classification=="" || var_conf.classification=="n/a")
+									{
+										output[s_name] << "causal diagnostic " + variantTypeToString(var_conf.variant_type) + " has no classification!";
+									}
+								}
+								else
+								{
+									THROW(ProgrammingException, "checkMetaData: Unhandled variant type!")
+								}
+
+								//check inheritance
+								if (var_conf.inheritance=="" || var_conf.inheritance=="n/a")
+								{
+									output[s_name] << "causal diagnostic " + variantTypeToString(var_conf.variant_type) + " has no inheritance!";
+								}
+							}
+							else
+							{
+								//TODO: Causal non-diagnostic variants possible? > PostDoc
+							}
+						}
+					}
+					if (!causal_diagnostic_variant_present)
+					{
+						output[s_name] << "outcome 'significant findings', but no causal diagnostic variant in the report configuration!";
+					}
+				}
+			}
+			else
+			{
+				//TODO: check that no causal variants are present > PostDoc
+			}
+		}
+	}
+
+	//related samples
+	QStringList related_sample_ids = relatedSamples(s_id, "parent-child");
+	related_sample_ids << relatedSamples(s_id, "siblings");
+	foreach(QString related_sample_id, related_sample_ids)
+	{
+		SampleData sample_data = getSampleData(related_sample_id);
+		if (sample_data.disease_group=="n/a") output[sample_data.name] << "disease group unset!";
+		if (sample_data.disease_status=="n/a") output[sample_data.name] << "disease status unset!";
+		if (sample_data.disease_status=="Affected")
+		{
+			//HPO terms
+			QList<SampleDiseaseInfo> disease_info = getSampleDiseaseInfo(related_sample_id, "HPO term id");
+			if (disease_info.isEmpty()) output[sample_data.name] << "no HPO phenotype(s) set! ";
+		}
+	}
+
+	return output;
+}
+
 void NGSD::fixGeneNames(QTextStream* messages, bool fix_errors, QString table, QString column)
 {
 	SqlQuery query = getQuery();

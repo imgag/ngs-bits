@@ -12,13 +12,6 @@ GSvar:
     - checkboxes for variants in ROI are checked and disabled
     - checkboxes for variants ouside or ROI are unchecked and enabled
     - only variants which are checked are added to the report config
-## Force the following settings before report generation:
-    - disease group/status (for index and related samples)
-    - HPO for index and all related affected
-    - diagnostic status for index
-    - causal diagnostic variant(s) for "solved cases"
-    - classification / inheritance for causal diagnostic variants
-    - Trio: set trio parents as unaffected with same disease group as child?!
 ## Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)

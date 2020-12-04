@@ -5,9 +5,10 @@
 #include <QMenu>
 
 
-ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QString target_region, QWidget* parent)
+ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QString target_region, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
+	, ps_(ps)
 	, settings_(settings)
 	, variants_(variants)
 	, cnvs_(cnvs)
@@ -21,8 +22,8 @@ ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants
 	//variant types
 	connect(ui_.report_type, SIGNAL(currentTextChanged(QString)), this, SLOT(updateGUI()));
 
-	//disable ok button when no outcome is set
-	connect(ui_.diag_status, SIGNAL(outcomeChanged(QString)), this, SLOT(activateOkButtonIfValid()));
+	//disable ok button if there is a problem
+	connect(ui_.meta_data_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMetaData()));
 	connect(ui_.report_type, SIGNAL(currentTextChanged(QString)), this, SLOT(activateOkButtonIfValid()));
 
 	//enable/disable low-coverage settings
@@ -40,15 +41,48 @@ ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants
 	updateGUI();
 }
 
+void ReportDialog::checkMetaData()
+{
+	//clear
+	ui_.meta_data_check_output->clear();
+	ui_.meta_data_edit_btn->setEnabled(false);
+
+	//check
+	QString ps_id = db_.processedSampleId(ps_);
+	QHash<QString, QStringList> errors = db_.checkMetaData(ps_id, variants_, cnvs_, svs_);
+	QStringList sample_names = errors.keys();
+
+	//show messages
+	QStringList display_messages;
+	foreach(QString sample_name, sample_names)
+	{
+		QStringList sample_messages = errors[sample_name];
+		foreach(QString sample_message, sample_messages)
+		{
+			display_messages << sample_name + ": " + sample_message;
+		}
+	}
+	ui_.meta_data_check_output->setText("<font color='red'>" + display_messages.join("<br>") + "</font>");
+
+	//add edit menu entries
+	QMenu* menu = new QMenu();
+	foreach(QString sample_name, sample_names)
+	{
+		menu->addAction(sample_name); //TODO
+	}
+	ui_.meta_data_edit_btn->setMenu(menu);
+	ui_.meta_data_edit_btn->setEnabled(!menu->isEmpty());
+
+	//update button box
+	activateOkButtonIfValid();
+}
+
 
 void ReportDialog::initGUI()
 {
 	//report types
 	ui_.report_type->addItem("");
 	ui_.report_type->addItems(ReportVariantConfiguration::getTypeOptions());
-
-	//diagnostic status
-	ui_.diag_status->setStatus(settings_.diag_status);
 
 	//settings
 	ui_.details_cov->setChecked(settings_.show_coverage_details);
@@ -82,6 +116,8 @@ void ReportDialog::initGUI()
 
 void ReportDialog::updateGUI()
 {
+	checkMetaData();
+
 	//init
 	ui_.vars->setRowCount(0);
 	int row = 0;
@@ -121,7 +157,7 @@ void ReportDialog::updateGUI()
 		++row;
 	}
 
-	//add Svs
+	//add SVs
 	foreach(int i, settings_.report_config->variantIndices(VariantType::SVS, true, type()))
 	{
 		const BedpeLine& sv = svs_[i];
@@ -174,10 +210,6 @@ void ReportDialog::updateGUI()
 
 void ReportDialog::writeBackSettings()
 {
-	//diag status
-	settings_.diag_status = ui_.diag_status->status();
-
-	//settings
 	settings_.show_coverage_details = ui_.details_cov->isChecked();
 	settings_.min_depth = ui_.min_cov->value();
 	settings_.roi_low_cov = ui_.details_cov_roi->isChecked();
@@ -192,8 +224,8 @@ void ReportDialog::activateOkButtonIfValid()
 {
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 
-	if (ui_.diag_status->status().outcome=="n/a") return;
 	if (ui_.report_type->currentIndex()==0) return;
+	if (!ui_.meta_data_check_output->text().isEmpty()) return;
 
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }

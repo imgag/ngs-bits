@@ -12,8 +12,6 @@ public:
 	///Default constructor
 	ReportSettings();
 
-	DiagnosticStatusData diag_status; //diagnostic status
-
 	QSharedPointer<ReportConfiguration> report_config; //report configuration
 	QString report_type;
 
