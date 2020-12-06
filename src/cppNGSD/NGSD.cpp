@@ -2762,9 +2762,9 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 			DiagnosticStatusData diag_status = getDiagnosticStatus(ps_id);
 			if (diag_status.outcome=="n/a") output[s_name] << "diagnostic status outcome unset!";
 
+			int rc_id = reportConfigId(ps_id);
 			if (diag_status.outcome=="significant findings")
 			{
-				int rc_id = reportConfigId(ps_id);
 				if (rc_id==-1)
 				{
 					output[s_name]<< "outcome 'significant findings', but report configuration missing!";
@@ -2815,7 +2815,7 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 							}
 							else
 							{
-								//TODO: Causal non-diagnostic variants possible? > PostDoc
+								output[s_name] << "causal variant " + variantTypeToString(var_conf.variant_type) + ", but report type is not 'diagnostic variant'!";
 							}
 						}
 					}
@@ -2825,9 +2825,17 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 					}
 				}
 			}
-			else
+			else if (rc_id!=-1) //no significant findings, but report config > check there is no causal variant!
 			{
-				//TODO: check that no causal variants are present > PostDoc
+				QStringList report_config_messages;
+				QSharedPointer<ReportConfiguration> report_config = reportConfig(rc_id, variants, cnvs, svs, report_config_messages);
+				foreach(const ReportVariantConfiguration& var_conf, report_config->variantConfig())
+				{
+					if (var_conf.causal)
+					{
+						output[s_name] << "outcome not 'significant findings', but causal variant in the report configuration!";
+					}
+				}
 			}
 		}
 	}

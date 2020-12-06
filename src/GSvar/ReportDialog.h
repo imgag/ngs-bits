@@ -31,6 +31,9 @@ protected slots:
 	void initGUI();
 	void updateGUI();
 
+	void editDiseaseGroupStatus();
+	void editDiseaseDetails();
+
 protected:
 	Ui::ReportDialog ui_;
 	QString ps_;

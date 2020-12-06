@@ -1,7 +1,8 @@
 #include "ReportDialog.h"
 #include "GUIHelper.h"
+#include "DiseaseInfoWidget.h"
+#include "SampleDiseaseInfoWidget.h"
 #include <QTableWidgetItem>
-#include <QPushButton>
 #include <QMenu>
 
 
@@ -65,10 +66,16 @@ void ReportDialog::checkMetaData()
 	ui_.meta_data_check_output->setText("<font color='red'>" + display_messages.join("<br>") + "</font>");
 
 	//add edit menu entries
-	QMenu* menu = new QMenu();
+	QMenu* menu = new QMenu(this);
 	foreach(QString sample_name, sample_names)
 	{
-		menu->addAction(sample_name); //TODO
+		QAction* action = menu->addAction(sample_name + ": disease group/status");
+		action->setData(sample_name);
+		connect(action, SIGNAL(toggled(bool)), this, SLOT(editDiseaseGroupStatus()));
+
+		action = menu->addAction(sample_name + ": disease details (HPO, OMIM, Optha, ...)");
+		action->setData(sample_name);
+		connect(action, SIGNAL(toggled(bool)), this, SLOT(editDiseaseDetails()));
 	}
 	ui_.meta_data_edit_btn->setMenu(menu);
 	ui_.meta_data_edit_btn->setEnabled(!menu->isEmpty());
@@ -206,6 +213,39 @@ void ReportDialog::updateGUI()
 
 	//buttons
 	activateOkButtonIfValid();
+}
+
+void ReportDialog::editDiseaseGroupStatus()
+{
+	QAction* action = qobject_cast<QAction*>(sender());
+	QString sample = action->data().toString();
+	QString sample_id = db_.sampleId(sample);
+
+	//get disease group/status
+	DiseaseInfoWidget* widget = new DiseaseInfoWidget(sample, sample_id, this);
+	auto dlg = GUIHelper::createDialog(widget, "Disease information of '" + sample + "'", "", true);
+	if (dlg->exec() != QDialog::Accepted) return;
+
+	//update
+	db_.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
+	checkMetaData();
+}
+
+void ReportDialog::editDiseaseDetails()
+{
+	QAction* action = qobject_cast<QAction*>(sender());
+	QString sample = action->data().toString();
+	QString sample_id = db_.sampleId(sample);
+
+	//get disease details
+	SampleDiseaseInfoWidget* widget = new SampleDiseaseInfoWidget(sample, this);
+	widget->setDiseaseInfo(db_.getSampleDiseaseInfo(sample_id));
+	auto dlg = GUIHelper::createDialog(widget, "Sample disease details", "", true);
+	if (dlg->exec() != QDialog::Accepted) return;
+
+	//update
+	db_.setSampleDiseaseInfo(sample_id, widget->diseaseInfo());
+	checkMetaData();
 }
 
 void ReportDialog::writeBackSettings()
