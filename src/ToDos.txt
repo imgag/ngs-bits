@@ -6,7 +6,6 @@ libs:
 - support CRAM in addition to BAM: use htslib functions with hts_ prefix instead of bam_ prefix
 
 GSvar:
-### Variant publication: support ClinVar (link, remove LOVD icon, filter for DB)
 ## Allow adding variant outside of target region to report
     - add checkboxes to variants in report dialog
     - checkboxes for variants in ROI are checked and disabled
@@ -18,7 +17,6 @@ GSvar:
         - also allow copying multiple gaps into clipboard (as table and for primer gap)
         - add link for PrimerDesign tool
 # Layout/documentation of SomaticReportDialog > AXEL
-# Filter somatic ranges > AXEL
 # Binomial distribution calculator for AF/DP.
 # add multi-sample report-config
     - 1 affected > easy
