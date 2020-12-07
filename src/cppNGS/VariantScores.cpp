@@ -168,9 +168,9 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 		"Count NGSD	max_count=10	ignore_genotype=false" <<
 		"Impact	impact=HIGH,MODERATE,LOW" <<
 		"Annotated pathogenic	action=KEEP	sources=HGMD,ClinVar	also_likely_pathogenic=false" <<
+		"Classification NGSD	action=KEEP	classes=4,5" <<
 		"Allele frequency	max_af=1.0" <<
-		"Classification NGSD	action=REMOVE	classes=1,2" <<
-		"Classification NGSD	action=KEEP	classes=4,5");
+		"Classification NGSD	action=REMOVE	classes=1,2");
 
 	FilterResult cascade_result = cascade.apply(variants);
 
