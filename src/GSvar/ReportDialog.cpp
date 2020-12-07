@@ -2,6 +2,7 @@
 #include "GUIHelper.h"
 #include "DiseaseInfoWidget.h"
 #include "SampleDiseaseInfoWidget.h"
+#include "DiagnosticStatusWidget.h"
 #include <QTableWidgetItem>
 #include <QMenu>
 
@@ -46,12 +47,17 @@ void ReportDialog::checkMetaData()
 {
 	//clear
 	ui_.meta_data_check_output->clear();
-	ui_.meta_data_edit_btn->setEnabled(false);
 
 	//check
 	QString ps_id = db_.processedSampleId(ps_);
 	QHash<QString, QStringList> errors = db_.checkMetaData(ps_id, variants_, cnvs_, svs_);
+
+	//sort sample names and make current sample the first one
 	QStringList sample_names = errors.keys();
+	sample_names.sort();
+	QString sample = db_.getSampleData(db_.sampleId(ps_)).name;
+	sample_names.removeAll(sample);
+	sample_names.prepend(sample);
 
 	//show messages
 	QStringList display_messages;
@@ -63,22 +69,35 @@ void ReportDialog::checkMetaData()
 			display_messages << sample_name + ": " + sample_message;
 		}
 	}
-	ui_.meta_data_check_output->setText("<font color='red'>" + display_messages.join("<br>") + "</font>");
+	if (display_messages.count()>0)
+	{
+		ui_.meta_data_check_output->setText("<font color='red'>" + display_messages.join("<br>") + "</font>");
+	}
 
 	//add edit menu entries
 	QMenu* menu = new QMenu(this);
-	foreach(QString sample_name, sample_names)
+	for(int i=0; i<sample_names.count(); ++i)
 	{
+		QString sample_name = sample_names[i];
+
+		if (i>0) menu->addSeparator();
+
 		QAction* action = menu->addAction(sample_name + ": disease group/status");
 		action->setData(sample_name);
-		connect(action, SIGNAL(toggled(bool)), this, SLOT(editDiseaseGroupStatus()));
+		connect(action, SIGNAL(triggered(bool)), this, SLOT(editDiseaseGroupStatus()));
 
 		action = menu->addAction(sample_name + ": disease details (HPO, OMIM, Optha, ...)");
 		action->setData(sample_name);
-		connect(action, SIGNAL(toggled(bool)), this, SLOT(editDiseaseDetails()));
+		connect(action, SIGNAL(triggered(bool)), this, SLOT(editDiseaseDetails()));
+
+		if (ps_.startsWith(sample_name)) //only for current sample, because processed sample is needed
+		{
+			action = menu->addAction(sample_name + ": diagnostic status");
+			action->setData(sample_name);
+			connect(action, SIGNAL(triggered(bool)), this, SLOT(editDiagnosticStatus()));
+		}
 	}
 	ui_.meta_data_edit_btn->setMenu(menu);
-	ui_.meta_data_edit_btn->setEnabled(!menu->isEmpty());
 
 	//update button box
 	activateOkButtonIfValid();
@@ -240,11 +259,23 @@ void ReportDialog::editDiseaseDetails()
 	//get disease details
 	SampleDiseaseInfoWidget* widget = new SampleDiseaseInfoWidget(sample, this);
 	widget->setDiseaseInfo(db_.getSampleDiseaseInfo(sample_id));
-	auto dlg = GUIHelper::createDialog(widget, "Sample disease details", "", true);
+	auto dlg = GUIHelper::createDialog(widget, "Sample disease detail sof '" + sample + "'", "", true);
 	if (dlg->exec() != QDialog::Accepted) return;
 
 	//update
 	db_.setSampleDiseaseInfo(sample_id, widget->diseaseInfo());
+	checkMetaData();
+}
+
+void ReportDialog::editDiagnosticStatus()
+{
+	QString ps_id = db_.processedSampleId(ps_);
+	DiagnosticStatusWidget* widget = new DiagnosticStatusWidget(this);
+	widget->setStatus(db_.getDiagnosticStatus(ps_id));
+	auto dlg = GUIHelper::createDialog(widget, "Diagnostic status of '" + ps_, "'", true);
+	if (dlg->exec()!=QDialog::Accepted) return;
+
+	db_.setDiagnosticStatus(ps_id, widget->status());
 	checkMetaData();
 }
 
@@ -262,10 +293,23 @@ void ReportDialog::writeBackSettings()
 
 void ReportDialog::activateOkButtonIfValid()
 {
-	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-
-	if (ui_.report_type->currentIndex()==0) return;
-	if (!ui_.meta_data_check_output->text().isEmpty()) return;
-
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+	ui_.buttonBox->setToolTip("");
+
+	//report type set?
+	if (ui_.report_type->currentIndex()==0)
+	{
+		ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		ui_.buttonBox->setToolTip("Select report type to continue!");
+		return;
+	}
+
+	//meta data ok?
+	if (!ui_.meta_data_check_output->text().trimmed().isEmpty())
+	{
+		ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		ui_.buttonBox->setToolTip("Correct meta data errors to continue!");
+		return;
+	}
+
 }

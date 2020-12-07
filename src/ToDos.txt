@@ -6,7 +6,7 @@ libs:
 - support CRAM in addition to BAM: use htslib functions with hts_ prefix instead of bam_ prefix
 
 GSvar:
-### Variant publication: support ClinVar (link, remove LOVD icon, ...)
+### Variant publication: support ClinVar (link, remove LOVD icon, filter for DB)
 ## Allow adding variant outside of target region to report
     - add checkboxes to variants in report dialog
     - checkboxes for variants in ROI are checked and disabled
@@ -25,9 +25,8 @@ GSvar:
     - >1 affected > user has to set one affected as index > only report config of index is edited
     - no report needed - is created from individual samples
 * Allow ClinVar upload
-    - small variants and CNVs
-    - only flag variants and perform manual upload at the end of each quater
-    - use XML format: https://www.ncbi.nlm.nih.gov/projects/clinvar/ClinVarDataDictionary.pdf (see also email 'Programm für AG Genom-Informatik')
+    - perform manual upload at the end of each quater
+    - also support CNVs/SVs?
 
 Tools:
 - UPDHunter: also support chrX?
