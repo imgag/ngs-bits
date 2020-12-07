@@ -1156,7 +1156,8 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 	w.writeAttribute("date", QDate::currentDate().toString("yyyy-MM-dd"));
 	w.writeAttribute("user_name", LoginManager::user());
 	w.writeAttribute("software", QCoreApplication::applicationName() + " " + QCoreApplication::applicationVersion());
-	w.writeAttribute("outcome", settings_.diag_status.outcome);
+	QString ps_id = db_.processedSampleId(sample_name_);
+	w.writeAttribute("outcome", db_.getDiagnosticStatus(ps_id).outcome);
 	w.writeEndElement();
 
 	//element Sample
@@ -1165,7 +1166,6 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 
 	SampleData sample_data = db_.getSampleData(db_.sampleId(sample_name_));
 	w.writeAttribute("name_external", sample_data.name_external);
-	QString ps_id = db_.processedSampleId(sample_name_);
 	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(ps_id);
 	w.writeAttribute("processing_system", processed_sample_data.processing_system);
 	w.writeAttribute("processing_system_type", processed_sample_data.processing_system_type);

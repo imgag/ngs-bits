@@ -3542,7 +3542,7 @@ void MainWindow::generateReportGermline()
 		}
 	}
 
-	//check that sample in in NGSD
+	//check that sample is in NGSD
 	NGSD db;
 	QString ps_name = processedSampleName();
 	QString sample_id = db.sampleId(ps_name, false);
@@ -3553,19 +3553,8 @@ void MainWindow::generateReportGermline()
 		return;
 	}
 
-	//check disease information
-	DiseaseInfoWidget* widget = new DiseaseInfoWidget(ps_name, sample_id, this);
-	auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
-	if (widget->diseaseInformationMissing() && dlg->exec()==QDialog::Accepted)
-	{
-		db.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
-	}
-
-	//set diagnostic status
-	report_settings_.diag_status = db.getDiagnosticStatus(processed_sample_id);
-
 	//show report dialog
-	ReportDialog dialog(report_settings_, variants_, cnvs_, svs_, ui_.filters->targetRegion(),this);
+	ReportDialog dialog(ps_name, report_settings_, variants_, cnvs_, svs_, ui_.filters->targetRegion(),this);
 	if (!dialog.exec()) return;
 
 	//set report type
@@ -3583,9 +3572,6 @@ void MainWindow::generateReportGermline()
 	QList<IgvFile> bams = getBamFiles();
 	if (bams.empty()) return;
 	bam_file = bams.first().filename;
-
-	//update diagnostic status
-	db.setDiagnosticStatus(processed_sample_id, report_settings_.diag_status);
 
 	//show busy dialog
 	busy_dialog_ = new BusyDialog("Report", this);
