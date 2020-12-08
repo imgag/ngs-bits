@@ -5,8 +5,16 @@
 #include "ui_FilterWidget.h"
 #include "BedFile.h"
 #include "GeneSet.h"
-#include "Phenotype.h"
+#include "PhenotypeList.h"
 #include "FilterCascade.h"
+
+//Filter settings for report configuration
+enum class ReportConfigFilter
+{
+	NONE,
+	NO_RC,
+	HAS_RC
+};
 
 //Filter manager dock widget
 class FilterWidget
@@ -30,10 +38,12 @@ public:
 
 	///Returns the target region BED file or an empty string if unset.
 	QString targetRegion() const;
-	///Returns the target region display name or an empty string if unset.
-	QString targetRegionName() const;
 	///Sets the target region BED file.
 	void setTargetRegion(QString roi_file);
+	///Returns the target region display name or an empty string if unset.
+	QString targetRegionName() const;
+	///Sets the target region by name file. Returns if the target region name was found and set.
+	bool setTargetRegionName(QString name);
 
 	/// Returns the gene names filter.
 	GeneSet genes() const;
@@ -44,14 +54,14 @@ public:
 	/// Sets the single target region filter, or an empty string if unset.
 	void setRegion(QString region);
 	/// Returns the state of the report configuration
-	bool reportConfigurationVariantsOnly() const;
+	ReportConfigFilter reportConfigurationFilter() const;
 	/// Disables checkbox for option of reportConfigurationVariantsOnly
-	void disableReportConfigurationVariantsOnly() const;
+	void disableReportConfigurationFilter() const;
 
 	///Returns selected phenotype terms.
-	const QList<Phenotype>& phenotypes() const;
+	const PhenotypeList& phenotypes() const;
 	///Sets selected phenotype terms.
-	void setPhenotypes(const QList<Phenotype>& phenotypes);
+	void setPhenotypes(const PhenotypeList& phenotypes);
 
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
@@ -60,8 +70,8 @@ public:
 
 	///Returns the filter INI file name
 	static QString filterFileName();
-	///Sets the filter (for small variants)
-	void setFilter(QString name);
+	///Sets the filter by name. Returns if the filter name was found and set.
+	bool setFilter(QString name);
 
 	///Returns current filter name
 	QString filterName() const;
@@ -90,6 +100,7 @@ protected slots:
 	void reportConfigFilterChanged();
 	void phenotypesChanged();
 	void updateFilterName();
+	void customFilterLoaded();
 	void showTargetRegionDetails();
 	void updateGeneWarning();
 	void editPhenotypes();
@@ -108,7 +119,7 @@ private:
 
 	Ui::FilterWidget ui_;
 	GeneSet last_genes_;
-	QList<Phenotype> phenotypes_;
+	PhenotypeList phenotypes_;
 };
 
 #endif // FILTERWIDGET_H

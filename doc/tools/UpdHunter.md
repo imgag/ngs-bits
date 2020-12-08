@@ -1,5 +1,5 @@
 ### UpdHunter tool help
-	UpdHunter (2018_04-66-g063753d)
+	UpdHunter (2020_03-260-ge35d12de)
 	
 	UPD detection from trio variant data.
 	
@@ -39,7 +39,8 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### UpdHunter changelog
-	UpdHunter 2018_04-66-g063753d
+	UpdHunter 2020_03-260-ge35d12de
 	
+	2020-08-07 VCF files only as input format for variant list.
 	2018-06-11 First working version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

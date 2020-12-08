@@ -53,6 +53,17 @@ QString DBSelector::getId() const
 	return text2id_[text()];
 }
 
+void DBSelector::showVisuallyIfValid(bool empty_is_valid)
+{
+	//check if text is ok
+	bool ok = true;
+	if (text().isEmpty() && !empty_is_valid) ok = false;
+	if (!text().isEmpty() && !text2id_.contains(text())) ok = false;
+
+	//show result
+	setStyleSheet(ok ? "" : "QLineEdit {border: 2px solid red;}");
+}
+
 void DBSelector::keyPressEvent(QKeyEvent* e)
 {
 	if (e->matches(QKeySequence::Paste))

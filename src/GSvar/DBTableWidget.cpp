@@ -72,14 +72,18 @@ int DBTableWidget::columnIndex(const QString& column_header) const
 	THROW(ArgumentException, "Could not find column with header '" + column_header + "'");
 }
 
+QString DBTableWidget::columnHeader(int index) const
+{
+	if (index<0 || index>=columnCount())
+	{
+		THROW(ArgumentException, "Invalid column index " + QString::number(index) + ". The table has " + QString::number(columnCount()) + " columns!");
+	}
+
+	return horizontalHeaderItem(index)->text();
+}
+
 void DBTableWidget::setQualityIcons(const QString& column_header, const QStringList& quality_values)
 {
-	//init
-	static QIcon i_good = QIcon(":/Icons/quality_good.png");
-	static QIcon i_medium = QIcon(":/Icons/quality_medium.png");
-	static QIcon i_bad = QIcon(":/Icons/quality_bad.png");
-	static QIcon i_na = QIcon(":/Icons/quality_unset.png");
-
 	//check
 	if (quality_values.count()!=rowCount())
 	{
@@ -94,26 +98,7 @@ void DBTableWidget::setQualityIcons(const QString& column_header, const QStringL
 
 		const QString& quality = quality_values[r];
 
-		if (quality=="good")
-		{
-			table_item->setIcon(i_good);
-		}
-		else if (quality=="medium")
-		{
-			table_item->setIcon(i_medium);
-		}
-		else if (quality=="bad")
-		{
-			table_item->setIcon(i_bad);
-		}
-		else if (quality=="n/a" || quality=="")
-		{
-			table_item->setIcon(i_na);
-		}
-		else
-		{
-			THROW(ArgumentException, "Invalid quality value '" + quality_values[r] + "' in DBTableWidget::setQualityIcons!");
-		}
+		styleQuality(table_item, quality);
 	}
 
 	setColumnWidth(c, columnWidth(c) + 25);
@@ -155,6 +140,11 @@ void DBTableWidget::setColumnColors(const QString& column_header, const QList<QC
 	}
 }
 
+void DBTableWidget::setBackgroundColorIfContains(const QString& column_header, const QColor& color, const QString& substring)
+{
+	setBackgroundColorIf(column_header, color, [substring](const QString& str) { return str.contains(substring); });
+}
+
 void DBTableWidget::setBackgroundColorIfEqual(const QString& column_header, const QColor& color, const QString& text)
 {
 	setBackgroundColorIf(column_header, color, [text](const QString& str) { return str==text; });
@@ -185,6 +175,21 @@ QSet<int> DBTableWidget::selectedRows() const
 	return output;
 }
 
+QSet<int> DBTableWidget::selectedColumns() const
+{
+	QSet<int> output;
+
+	foreach(const QTableWidgetSelectionRange& range, selectedRanges())
+	{
+		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
+		{
+			output << col;
+		}
+	}
+
+	return output;
+}
+
 const QString& DBTableWidget::getId(int r) const
 {
 	if (r<0 || r>=rowCount())
@@ -198,6 +203,24 @@ const QString& DBTableWidget::getId(int r) const
 const QString& DBTableWidget::tableName() const
 {
 	return table_;
+}
+
+void DBTableWidget::styleQuality(QTableWidgetItem* item, const QString& quality)
+{
+	//init
+	static QIcon i_good = QIcon(":/Icons/quality_good.png");
+	static QIcon i_medium = QIcon(":/Icons/quality_medium.png");
+	static QIcon i_bad = QIcon(":/Icons/quality_bad.png");
+	static QIcon i_na = QIcon(":/Icons/quality_unset.png");
+
+	//icon
+	if (quality=="good") item->setIcon(i_good);
+	else if (quality=="medium") item->setIcon(i_medium);
+	else if (quality=="bad") item->setIcon(i_bad);
+	else item->setIcon(i_na);
+
+	//tooltip
+	item->setToolTip(quality);
 }
 
 void DBTableWidget::keyPressEvent(QKeyEvent* event)

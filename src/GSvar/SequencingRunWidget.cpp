@@ -8,6 +8,7 @@
 #include "MidCheck.h"
 #include "LoginManager.h"
 #include "EmailDialog.h"
+#include "DBQCWidget.h"
 #include <QMessageBox>
 #include <QInputDialog>
 
@@ -29,9 +30,16 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
 
+	//set quality
 	action = new QAction("Set quality", this);
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQuality()));
+
+	//QC plot
+	ui_->samples->setSelectionBehavior(QAbstractItemView::SelectItems);
+	action = new QAction("Plot", this);
+	ui_->samples->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(showPlot()));
 
 	updateGUI();
 }
@@ -87,12 +95,18 @@ void SequencingRunWidget::updateGUI()
 
 void SequencingRunWidget::updateRunSampleTable()
 {
+	//get data from NGSD
+	QStringList headers;
+	headers << "lane" << "quality" << "sample" << "name external" << "is_tumor" << "is_ffpe" << "project" << "MID i7" << "MID i5" << "species" << "processing system" << "input [ng]" << "operator" << "comments";
+
 	NGSD db;
-	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), (SELECT name FROM user WHERE id=ps.operator_id), ps.comment "
+	DBTable samples = db.createTable("processed_sample", "SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, (SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), (SELECT name FROM species WHERE id=s.species_id), (SELECT name_manufacturer FROM processing_system WHERE id=ps.processing_system_id), ps.processing_input, (SELECT name FROM user WHERE id=ps.operator_id), ps.comment "
 														  " FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id='" + run_id_ + "' "
 														  " ORDER BY ps.lane ASC, s.name ASC, ps.process_id");
-	QStringList headers;
-	headers << "lane" << "quality" << "sample" << "project" << "MID i7" << "MID i5" << "species" << "processing system" << "operator" << "comments";
+
+	//format columns
+	samples.formatBooleanColumn(samples.columnIndex("tumor"));
+	samples.formatBooleanColumn(samples.columnIndex("ffpe"));
 
 	//add QC data
 	QStringList accessions;
@@ -206,6 +220,8 @@ void SequencingRunWidget::updateRunSampleTable()
 			}
 		}
 	}
+	ui_->samples->setBackgroundColorIfEqual("is_tumor", orange, "yes");
+	ui_->samples->setBackgroundColorIfEqual("is_ffpe", orange, "yes");
 
 	//#### sample summary ####
 	QStringList imported_qc = db.getValues("SELECT ps.id FROM processed_sample ps WHERE ps.sequencing_run_id='" + run_id_ + "' AND EXISTS(SELECT id FROM processed_sample_qc WHERE processed_sample_id=ps.id)");
@@ -238,6 +254,44 @@ void SequencingRunWidget::setQuality()
 	}
 
 	updateGUI();
+}
+
+void SequencingRunWidget::showPlot()
+{
+	NGSD db;
+
+	//check one QC cell is selected
+	QList<int> selected_cols = ui_->samples->selectedColumns().toList();
+	QList<int> selected_rows = ui_->samples->selectedRows().toList();
+	if (selected_cols.count()!=1 || selected_rows.count()!=1)
+	{
+		QMessageBox::information(this, "Plot error", "Please select <b>exactly one cell</b> containing a <b>quality metric</b> for plotting!");
+		return;
+	}
+	int col = selected_cols[0];
+	QString qc_term_id = db.getValue("SELECT id FROM qc_terms WHERE name='" + ui_->samples->columnHeader(col).replace("%", "percentage") + "'", true).toString();
+	if (qc_term_id.isEmpty())
+	{
+		QMessageBox::information(this, "Plot error", "Please select <b>exactly one cell</b> containing a <b>quality metric</b> for plotting!");
+		return;
+	}
+
+	//create widget
+	DBQCWidget* qc_widget = new DBQCWidget(this);
+	//highlight all samples on this run
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id=" + run_id_);
+	while (query.next())
+	{
+		qc_widget->addHighlightedProcessedSampleById(query.value(0).toString(), query.value(1).toString(), false);
+	}
+
+	//show widget
+	int row = selected_rows[0];
+	qc_widget->setSystemId(db.getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + ui_->samples->getId(row) + "'", true).toString());
+	qc_widget->setTermId(qc_term_id);
+	auto dlg = GUIHelper::createDialog(qc_widget, "QC plot");
+	dlg->exec();
 }
 
 void SequencingRunWidget::edit()
@@ -288,11 +342,14 @@ void SequencingRunWidget::sendStatusEmail()
 			body << "";
 			body << "Projekt: " + query.value("name").toString();
 			body << "  Koordinator: " + db.userName(coordinator_id);
-			QStringList operator_ids = db.getValues("SELECT operator_id FROM processed_sample WHERE sequencing_run_id='" + run_id_ + "' AND project_id='" + query.value("id").toString() + "'");
-			body << "  Proben: " + QString::number(operator_ids.count());
+
+			int ps_count = db.getValue("SELECT count(id) FROM processed_sample WHERE sequencing_run_id='" + run_id_ + "' AND project_id='" + query.value("id").toString() +"'").toInt();
+			body << "  Proben: " + QString::number(ps_count);
 			body << "  Analyse: " + query.value("analysis").toString();
 
+			QStringList operator_ids = db.getValues("SELECT operator_id FROM processed_sample WHERE sequencing_run_id='" + run_id_ + "' AND project_id='" + query.value("id").toString() + "' AND operator_id IS NOT NULL");
 			operator_ids.removeDuplicates();
+			operator_ids.removeAll("");
 			foreach(QString operator_id, operator_ids)
 			{
 				to << db.userEmail(operator_id.toInt());
@@ -312,7 +369,7 @@ void SequencingRunWidget::sendStatusEmail()
 
 	body << "";
 	body << "Viele Gruesse, ";
-	body << "  " + db.userName(LoginManager::userId());
+	body << "  " + LoginManager::userName();
 
 	//send
 	EmailDialog dlg(this, to, subject, body);

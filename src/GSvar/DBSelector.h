@@ -24,6 +24,9 @@ public:
 	///Returns the database ID as a string ("" if no entry or an invalid entry is selected)
 	QString getId() const;
 
+	///Visually show if the selection is valid
+	void showVisuallyIfValid(bool empty_is_valid);
+
 protected:
 	///Override to paste text trimmed.
 	void keyPressEvent(QKeyEvent* e) override;

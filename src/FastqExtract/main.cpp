@@ -23,6 +23,9 @@ public:
 		addOutfile("out", "Output FASTQ file.", false);
 		//optional
 		addFlag("v", "Invert match: keep non-matching reads.");
+		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
+
+		changeLog(2020, 7, 15, "Added 'compression_level' parameter.");
 	}
 
 	virtual void main()
@@ -47,7 +50,8 @@ public:
 		}
 
 		//open output stream
-		FastqOutfileStream outfile(getOutfile("out"));
+		int compression_level = getInt("compression_level");
+		FastqOutfileStream outfile(getOutfile("out"), compression_level);
 
 		//parse input and write output
 		FastqFileStream stream(getInfile("in"));

@@ -14,7 +14,7 @@
 #include "QCCollection.h"
 #include "SqlQuery.h"
 #include "GeneSet.h"
-#include "Phenotype.h"
+#include "PhenotypeList.h"
 #include "Helper.h"
 #include "DBTable.h"
 #include "ReportConfiguration.h"
@@ -28,7 +28,7 @@ struct OmimInfo
 	QByteArray gene_symbol;
 	QByteArray mim;
 
-	QList<Phenotype> phenotypes;
+	PhenotypeList phenotypes;
 };
 
 ///Type constraints class for database fields
@@ -158,7 +158,7 @@ struct CPPNGSDSHARED_EXPORT AnalysisJobSample
 	QString name;
 	QString info;
 
-	bool operator==(const AnalysisJobSample& rhs)
+	bool operator==(const AnalysisJobSample& rhs) const
 	{
 		return name==rhs.name && info==rhs.info;
 	}
@@ -224,7 +224,7 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString comments;
 	QString disease_group;
 	QString disease_status;
-	QList<Phenotype> phenotypes;
+	PhenotypeList phenotypes;
 	bool is_tumor;
 	bool is_ffpe;
 	QString sender;
@@ -232,9 +232,6 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString received;
 	QString received_by;
 	QList<SampleGroup> sample_groups;
-
-	//Returns the phenotype names
-	QStringList phenotypesAsStrings() const;
 };
 
 ///Sample disease information.
@@ -335,8 +332,11 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 {
 	//filters sample
 	QString s_name;
-	bool s_name_ext;
+	bool s_name_ext = false;
+	bool s_name_comments = false;
 	QString s_species;
+	QString s_sender;
+	QString s_study;
 	QString s_disease_group;
 	QString s_disease_status;
 	bool include_bad_quality_samples = true;
@@ -364,24 +364,65 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_outcome = false;
 	bool add_qc = false;
 	bool add_report_config = false;
+	bool add_comments = false;
 };
 
-///Meta data about report configuration creation and update
-struct CPPNGSDSHARED_EXPORT ReportConfigurationCreationData
+///Meta data about somatic report configuration (e.g. creation/update, target bed file)
+struct CPPNGSDSHARED_EXPORT SomaticReportConfigurationData
 {
 	QString created_by;
 	QString created_date;
 	QString last_edit_by;
 	QString last_edit_date;
 
+	QString target_file;
+	QString mtb_xml_upload_date;
+	QString mtb_pdf_upload_date;
+
 	///Returns a text representation of the creation and update. Can contain newline!
-	QString toText() const;
+	QString history() const;
 };
 
-///Meta data about somatic report configuration (e.g. creation/update, target bed file)
-struct CPPNGSDSHARED_EXPORT SomaticReportConfigurationData : public ReportConfigurationCreationData
+///Header data of the Evaluation Sheet
+struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 {
-	QString target_file;
+	//set default values on construction
+	EvaluationSheetData() :
+		acmg_requested(false),
+		acmg_noticeable(false),
+		acmg_analyzed(false),
+		filtered_by_freq_based_dominant(false),
+		filtered_by_freq_based_recessive(false),
+		filtered_by_cnv(false),
+		filtered_by_mito(false),
+		filtered_by_x_chr(false),
+		filtered_by_phenotype(false),
+		filtered_by_multisample(false),
+		filtered_by_trio_stringent(false),
+		filtered_by_trio_relaxed(false)
+	{}
+
+	QString ps_id;
+	QString dna_rna;
+	QString reviewer1;
+	QDate review_date1;
+	QString reviewer2;
+	QDate review_date2;
+
+	QString analysis_scope;
+	bool acmg_requested;
+	bool acmg_noticeable;
+	bool acmg_analyzed;
+
+	bool filtered_by_freq_based_dominant;
+	bool filtered_by_freq_based_recessive;
+	bool filtered_by_cnv;
+	bool filtered_by_mito;
+	bool filtered_by_x_chr;
+	bool filtered_by_phenotype;
+	bool filtered_by_multisample;
+	bool filtered_by_trio_stringent;
+	bool filtered_by_trio_relaxed;
 };
 
 /// NGSD accessor.
@@ -404,11 +445,15 @@ public:
 	const TableInfo& tableInfo(const QString& table) const;
 	///Checks if the value is valid for the table/field when used in an SQL query. Returns a non-empty error list in case it is not. 'check_unique' must not be used for existing entries.
 	QStringList checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const;
+	///Escapes SQL special characters in a text
+	QString escapeText(QString text);
 
 	///Creates a DBTable with data from an SQL query.
 	DBTable createTable(QString table, QString query, int pk_col_index=0);
 	///Creates a DBTable with all rows of a table.
 	DBTable createOverviewTable(QString table, QString text_filter = QString(), QString sql_order="id DESC", int pk_col_index=0);
+	///Replace table column with foreign key IDs by names
+	void replaceForeignKeyColumn(DBTable& table, int column, QString fk_table, QString fk_name_sql);
 
 	///Creates database tables and imports initial data (password is required for production database if it is not empty)
 	void init(QString password="");
@@ -441,7 +486,6 @@ public:
 
 
 	/*** transactions ***/
-	///Start transaction
 	bool transaction() { return db_->transaction(); }
 	bool commit() { return db_->commit(); }
 	bool rollback() { return db_->rollback(); }
@@ -481,20 +525,24 @@ public:
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_alt_source_nocoding=false);
 	///Returns the list of all approved gene names
 	const GeneSet& approvedGeneNames();
+	///Returns the map of gene to preferred transcripts
+	QMap<QByteArray, QByteArrayList> getPreferredTranscripts();
+	///Adds a preferred transcript. Returns if it was added, i.e. it was not already present. Throws an exception, if the transcript name is not valid.
+	bool addPreferredTranscript(QByteArray transcript_name);
 
 	/*** phenotype handling (HPO, OMIM) ***/
 	///Returns the phenotype for a given HPO accession.
 	Phenotype phenotypeByName(const QByteArray& name, bool throw_on_error=true);
-	///Returns the phenotype for a given HPO accession.
+	///Returns the phenotype for a given HPO accession. If the accession is invalid, a phenotype with empty name is returned, or an error is thrown.
 	Phenotype phenotypeByAccession(const QByteArray& accession, bool throw_on_error=true);
 	///Returns the phenotypes of a gene
-	QList<Phenotype> phenotypes(const QByteArray& symbol);
+	PhenotypeList phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
-	QList<Phenotype> phenotypes(QStringList search_terms);
+	PhenotypeList phenotypes(QStringList search_terms);
 	///Returns all genes associated to a phenotype
 	GeneSet phenotypeToGenes(const Phenotype& phenotype, bool recursive);
 	///Returns all child terms of the given phenotype
-	QList<Phenotype> phenotypeChildTerms(const Phenotype& phenotype, bool recursive);
+	PhenotypeList phenotypeChildTerms(const Phenotype& phenotype, bool recursive);
 	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.
 	QList<OmimInfo> omimInfo(const QByteArray& symbol);
 
@@ -552,10 +600,13 @@ public:
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
-	int userId(QString user_name, bool only_active=false);
-	///Returns the user name corresponding the given ID. If no ID is given, the current users ID is used (see userId()).
+	///If throw_if_false == false it returns -1 if user is not found
+	int userId(QString user_name, bool only_active=false, bool throw_if_fails = true);
+	///Returns the user login corresponding the given ID.
+	QString userLogin(int user_id=-1);
+	///Returns the user name corresponding the given ID.
 	QString userName(int user_id=-1);
-	///Returns the user email corresponding the given ID. If no ID is given, the current user ID is used (see userId()).
+	///Returns the user email corresponding the given ID.
 	QString userEmail(int user_id=-1);
 	///Replacement for passwords when they are shown in the GUI.
 	static const QString& passwordReplacement();
@@ -583,6 +634,8 @@ public:
 	void setSampleDiseaseInfo(const QString& sample_id, const QList<SampleDiseaseInfo>& disease_info);
 	///Sets the disease group/status of a sample.
 	void setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status);
+	///Returns all phenotypes associated to the given sample
+	PhenotypeList samplePhenotypes(const QString& sample_id, bool throw_on_error=false);
 
 	///Returns the processing system ID from the name (tests short and long name). Returns -1 or throws a DatabaseException if not found.
 	int processingSystemId(QString name, bool throw_if_fails = true);
@@ -625,18 +678,27 @@ public:
 	void setDiagnosticStatus(const QString& processed_sample_id, DiagnosticStatusData status);
 	///Returns if the report configuration database ID, or -1 if not present.
 	int reportConfigId(const QString& processed_sample_id);
-	///Returns the report config creation data (user/date).
-	ReportConfigurationCreationData reportConfigCreationData(int id);
+	///Returns if the report configuration is finalized.
+	bool reportConfigIsFinalized(int id);
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.
-	ReportConfiguration reportConfig(const QString& processed_sample_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QStringList& messages);
+	QSharedPointer<ReportConfiguration> reportConfig(int id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QStringList& messages);
 	///Sets/overwrites the report configuration for a processed sample. Returns its database primary key. The variant list is needed to determine the annotation column indices.
-	int setReportConfig(const QString& processed_sample_id, const ReportConfiguration& config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs);
+	int setReportConfig(const QString& processed_sample_id, QSharedPointer<ReportConfiguration> config, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs);
+	///Finalizes the report configuration. It cannot be modified afterwards!
+	void finalizeReportConfig(int id, int user_id);
 	///Deletes a report configuration.
 	void deleteReportConfig(int id);
 
+	///Returns the varint evaluation sheet data for a given processed sample id
+	EvaluationSheetData evaluationSheetData(const QString& processed_sample_id, bool throw_if_fails = true);
+	///Stores a given EvaluationSheetData in the NGSD (return table id)
+	int storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_data, bool overwrite_existing_data = false);
+
+	///Return a list of sample ids which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
+	QStringList relatedSamples(const QString& sample_id, const QString& relation="");
+
 	///Returns the report config creation data (user/date) for somatic reports
 	SomaticReportConfigurationData somaticReportConfigData(int id);
-
 
 	///Returns database ID of somatic report configuration, -1 if not present
 	int somaticReportConfigId(QString t_ps_id, QString n_ps_id);
@@ -646,6 +708,10 @@ public:
 	void deleteSomaticReportConfig(int id);
 	///Retrieve somatic report configuration using tumor and normal processed sample ids
 	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const VariantList& germline_snvs, QStringList& messages);
+	///set upload time of somatic XML report to current timestamp
+	void setSomaticMtbXmlUpload(int report_id);
+	///set upload time of somatic PDF report to current timestamp
+	void setSomaticMtbPdfUpload(int report_id);
 
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality);

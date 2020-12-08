@@ -34,7 +34,7 @@ class OutputWorker
 	: public QRunnable
 {
 public:
-	OutputWorker(ReadPairPool& pair_pool, QString out1, QString out2, int compression_level = Z_BEST_SPEED);
+	OutputWorker(ReadPairPool& pair_pool, QString out1, QString out2, int compression_level);
 	void run();
 	void terminate()
 	{

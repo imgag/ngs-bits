@@ -14,10 +14,10 @@ public:
 	PhenotypeSelectionWidget(QWidget *parent = 0);
 
 	//Sets an initial list of phenotypes
-	void setPhenotypes(const QList<Phenotype>& phenos);
+	void setPhenotypes(const PhenotypeList& phenos);
 
 	//Returns the selected phenotypes
-	const QList<Phenotype>& selectedPhenotypes() const;
+	const PhenotypeList& selectedPhenotypes() const;
 
 signals:
 	void phenotypeSelectionChanged();
@@ -29,7 +29,7 @@ private slots:
 
 private:
 	Ui::PhenotypeSelectionWidget ui_;
-	QList<Phenotype> phenos_;
+	PhenotypeList phenos_;
 };
 
 #endif // PHENOTYPESELECTIONWIDGET_H

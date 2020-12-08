@@ -1,5 +1,75 @@
 # GSvar change log
 
+### 2020_09-69 (26.11.20)
+- IGV: Added option to change port (see documentation).
+- General: Analysis start dialogs now show disease group and status.
+- General: Added support for tracking the course of tumor progression via patient-specific cfDNA panels. 
+
+### 2020_09-44 (17.11.20)
+- Ranking: Added first version of GSvar score/rank.
+- Subpanels: Added file name filter to sub-panel archive/restore dialog.
+
+### 2020_09-37 (10.11.20)
+- General: removed support for GeneSplicer (replaced by MMSplice).
+- Sub-panels: added file name filter to archive/restore dialog.
+
+### 2020_09-30 (05.11.20)
+
+- NGSD: Added disease info (group, status, HPO) and outcome to all variant search dialogs.
+- NGSD: Variant classification can now be changed from the variant tab.
+- NGSD: Deleting preferred transcripts is now possible.
+- NGSD: Added used method to variant validation.
+- NGSD: Moving processed samples between runs is now possible via context menu of the run overview.
+- Studies: Added batch import for study data.
+- General: Meta data tabs are no longer closed when loading a new sample.
+
+### 2020_09-9 (08.10.20)
+- Added support for studies
+	- Studies can be created in NGSD > Admin > Study.
+	- Processes samples can be added to studies in the processed sample tab.
+	- Studies can be used as search criterion in the sample search.
+- Tools: now support selecting samples from NGSD instead of the file system.
+
+### 2020_06-128 (29.09.20)
+- Sample search: Added sender field.
+- Filters: Added filter 'somatic allele frequency'.
+- General: Added support for MMSplice predictions.
+
+### 2020_06-115 (16.09.20)
+- General: Validation of CNVs/SVs can can now be requested from GSvar.
+- BugFix: Fixed crash in sample similarity calculation.
+
+### 2020_06-111 (16.09.20)
+- Filters: Added loading/storing filters from/to file.
+- Filters: Added option to show variants without report configuration only.
+- ROHs/SVs: Added table view of OMIM column.
+
+### 2020_06-90 (02.09.20)
+- General: searching variants in the NGSD (small variants, CNVs, SVs) is now also possible from main menu (NGSD > Variants > Search...)
+- General: Added dialog to search for variants published in LOVD (NGSD > Variants > Show published variants).
+- General: Added copy-number histogram for regions (in menu of AF histogram).
+- Report: Variant sheet was renamed to evalutation sheet and data is stored in the NGSD now.
+- Report: Report configuration info now also shows the number of variants with report configuration and the number of causal variants.
+- Report: Germline report configuration can now be finalized (i.e. it can no longer be changed by anyone).
+- Batch import: batch import of samples can now skip samples already present in the NGSD.
+
+### 2020_06-61 (06.08.20)
+- General: Added links for variants to cBioPortal, CKB and PubMed.
+- Report: Added average coverage of chrMT to germline report.
+- CNVs/SVs: Added button to show target region genes overlapping with CNV/SV.
+- NGSD: Added sample relation 'same patient'.
+
+### 2020_06-40 (24.07.20)
+- General: Anamnesis from GenLab can now be imported to NSGD.
+- General: Added polygenic risk scores dialog (button in main tool bar) for WGS.
+- General: Added repeat expansion dialog (button in main tool bar) WGS/WES.
+
+### 2020_03-188 (24.06.20)
+- CNVs: Added trio maternal contamination check for shallow WGS trios.
+- CNVs: Fixed links to Decipher (chromosomes are now expected without 'chr' prefix). 
+- SVs: Added search for overlapping SVs in NGSD via context menu of SVs.
+- Report: Fixed language of gender field in report.
+
 ### 2020_03-159 (02.06.20)
 - General: Removed step 'an' and added checkbox to to perform annotation only to analysis dialog (single-sample, multi-sample and trio analysis). Re-annotation now works for all variant calling steps (small variants, copy number variants, structural variants).
 - Report: SVs can now be added to report.

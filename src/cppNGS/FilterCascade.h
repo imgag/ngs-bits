@@ -2,6 +2,7 @@
 #define FILTERCASCADE_H
 
 #include "VariantList.h"
+#include "VcfFile.h"
 #include "CnvList.h"
 #include "GeneSet.h"
 #include "VariantType.h"
@@ -30,8 +31,19 @@ struct CPPNGSSHARED_EXPORT FilterParameter
 {
 	//Convenience constructor
 	FilterParameter(QString n, FilterParameterType t, QVariant v, QString d);
+
+	//Returns the string representation of the value.
+	QString valueAsString() const;
 	//Returns the string representation of a parameter type.
 	static QString typeAsString(FilterParameterType type);
+
+	//Equality operator (compares name/type/value only)
+	bool operator==(const FilterParameter& rhs) const;
+	//Inequality operator
+	bool operator!=(const FilterParameter& rhs) const
+	{
+		return !operator==(rhs);
+	}
 
 	QString name;
 	FilterParameterType type;
@@ -88,11 +100,13 @@ class CPPNGSSHARED_EXPORT FilterResult
 
 		///Remove variants that did not pass the filter (with 'false' flag).
 		void removeFlagged(VariantList& variants);
+		void removeFlagged(VcfFile& variants);
         void removeFlagged(CnvList& cnvs);
         void removeFlagged(BedpeFile& svs);
 
 		///Tag variants that did not pass the filter using the 'filter' column.
 		void tagNonPassing(VariantList& variants, QByteArray tag, QByteArray description);
+		void tagNonPassing(VcfFile& variants, QByteArray tag, QString description);
 
 	private:
 		QBitArray pass;
@@ -158,6 +172,8 @@ class CPPNGSSHARED_EXPORT FilterBase
 
 		//Applies the filter to a small variant list
 		virtual void apply(const VariantList& variant_list, FilterResult& result) const;
+		virtual void apply(const VcfFile& variants, FilterResult& result) const;
+
 		//Applies the filter to a CNV list
 		virtual void apply(const CnvList& variant_list, FilterResult& result) const;
 		//Applies the filter to a SV list
@@ -257,6 +273,21 @@ class CPPNGSSHARED_EXPORT FilterCascade
 		//Returns errors occured during filter application.
 		QStringList errors(int index) const;
 
+		//Loads a filter cascade from file.
+		void load(QString filename);
+		//Stores a filter cascade to file.
+		void store(QString filename);
+		//Creates a filter cascade from a tab-separated text (one filter with parameters per line).
+		static FilterCascade fromText(const QStringList& lines);
+
+		//Equality operator (compares name/type/parameters only)
+		bool operator==(const FilterCascade& rhs) const;
+		//Inequality operator
+		bool operator!=(const FilterCascade& rhs) const
+		{
+			return !operator==(rhs);
+		}
+
 	private:
 		QList<QSharedPointer<FilterBase>> filters_;
 		mutable QVector<QStringList> errors_;
@@ -281,6 +312,7 @@ class CPPNGSSHARED_EXPORT FilterRegions
 {
 	public:
 		static void apply(const VariantList& variants, const BedFile& regions, FilterResult& result);
+		static void apply(const VcfFile& variants, const BedFile& regions, FilterResult& result);
 
 	protected:
 		FilterRegions() = delete;
@@ -343,6 +375,7 @@ class CPPNGSSHARED_EXPORT FilterFilterColumnEmpty
 		FilterFilterColumnEmpty();
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
+		void apply(const VcfFile& variants, FilterResult& result) const override;
 };
 
 //Filter column filter
@@ -369,6 +402,7 @@ class CPPNGSSHARED_EXPORT FilterVariantIsSNP
 		FilterVariantIsSNP();
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
+		void apply(const VcfFile& variants, FilterResult& result) const override;
 };
 
 //Variant impact filter
@@ -600,6 +634,36 @@ class CPPNGSSHARED_EXPORT FilterRegulatory
 		FilterRegulatory();
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter for top variants in GSvar ranking.
+class CPPNGSSHARED_EXPORT FilterGSvarScoreAndRank
+	: public FilterBase
+{
+	public:
+		FilterGSvarScoreAndRank();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter for tumor/normal allele frequency
+class CPPNGSSHARED_EXPORT FilterSomaticAlleleFrequency
+	: public FilterBase
+{
+	public:
+		FilterSomaticAlleleFrequency();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter for tumor-only allele frequency around heterozygous/homozygous calls (these can be considered as germline)
+class CPPNGSSHARED_EXPORT FilterTumorOnlyHomHet
+		: public FilterBase
+{
+public:
+	FilterTumorOnlyHomHet();
+	QString toText() const override;
+	void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
 /*************************************************** filters for CNVs ***************************************************/

@@ -1,12 +1,12 @@
 ### RohHunter tool help
-	RohHunter (2019_09-86-g7f86039a)
+	RohHunter (2020_03-260-ge35d12de)
 	
 	ROH detection based on a variant list.
 	
 	Runs of homozygosity (ROH) are detected based on the genotype annotations in the VCF file.Based on the allele frequency of the contained variants, each ROH is assigned an estimated likelyhood to be observed by chance (Q score).
 	
 	Mandatory parameters:
-	  -in <file>                Input variant list in VCF or GSvar format.
+	  -in <file>                Input variant list in VCF format.
 	  -out <file>               Output TSV file with ROH regions.
 	
 	Optional parameters:
@@ -40,8 +40,9 @@
 	  --tdx                     Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### RohHunter changelog
-	RohHunter 2019_09-86-g7f86039a
+	RohHunter 2020_03-260-ge35d12de
 	
+	2020-08-07 VCF files only as input format for variant list.
 	2019-11-21 Added support for parsing AF data from any VCF info field (removed 'af_source' parameter).
 	2019-03-12 Added support for input variant lists that are not annotated with VEP. See 'af_source' parameter.
 	2018-09-12 Now supports VEP CSQ annotations (no longer support SnpEff ANN annotations).

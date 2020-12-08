@@ -30,15 +30,15 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 
 	//header
 	setHorizontalHeaderItem(0, createTableItem("chr"));
-	horizontalHeaderItem(0)->setToolTip("Chromosome of variant");
+	horizontalHeaderItem(0)->setToolTip("Chromosome the variant is located on.");
 	setHorizontalHeaderItem(1, createTableItem("start"));
-	horizontalHeaderItem(1)->setToolTip("Genomic start position of variant");
+	horizontalHeaderItem(1)->setToolTip("Start position of the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
 	setHorizontalHeaderItem(2, createTableItem("end"));
-	horizontalHeaderItem(2)->setToolTip("Genomic end position of variant");
+	horizontalHeaderItem(2)->setToolTip("End position of the the variant on the chromosome.\nFor insertions, the position of the base before the insertion is shown.");
 	setHorizontalHeaderItem(3, createTableItem("ref"));
-	horizontalHeaderItem(3)->setToolTip("Reference genome sequence");
+	horizontalHeaderItem(3)->setToolTip("Reference bases in the reference genome at the variant position.\n`-` in case of an insertion.");
 	setHorizontalHeaderItem(4, createTableItem("obs"));
-	horizontalHeaderItem(4)->setToolTip("Sequence observed in the sample");
+	horizontalHeaderItem(4)->setToolTip("Alternate bases observed in the sample.\n`-` in case of an deletion.");
 	for (int i=0; i<variants.annotations().count(); ++i)
 	{
 		QString anno = variants.annotations()[i].name();
@@ -77,7 +77,7 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 			}
 		}
 
-		QString header_desc = variants.annotationDescriptionByName(anno, false, false).description();
+		QString header_desc = variants.annotationDescriptionByName(anno, false).description();
 		header->setToolTip(header_desc + add_desc);
 		setHorizontalHeaderItem(i+5, header);
 	}
@@ -92,6 +92,7 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 	int i_ihdb_het = variants.annotationIndexByName("NGSD_het", true, false);
 	int i_clinvar = variants.annotationIndexByName("ClinVar", true, false);
 	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
+	int i_mmsplice = variants.annotationIndexByName("MMSplice_DeltaLogitPSI", true, false);
 	int r = -1;
 	for (int i=0; i<variants.count(); ++i)
 	{
@@ -145,12 +146,22 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
+			else if (j==i_mmsplice && anno.toDouble() <= -2)
+			{
+				item->setBackgroundColor(Qt::red);
+				is_warning_line = true;
+			}
+
 
 			//non-pathogenic
 			if (j==i_classification && (anno=="0" || anno=="1" || anno=="2"))
 			{
 				item->setBackgroundColor(Qt::green);
 				is_ok_line = true;
+			}
+			else if (j==i_mmsplice && anno.toDouble() >= 2)
+			{
+				item->setBackgroundColor(Qt::green);
 			}
 
 			//highlighed
@@ -212,9 +223,9 @@ void VariantTable::update(const VariantList& variants, const FilterResult& filte
 {
 	//init
 	QMap<int, bool> index_show_report_icon;
-	for(int index : report_settings.report_config.variantIndices(VariantType::SNVS_INDELS, false))
+	for(int index : report_settings.report_config->variantIndices(VariantType::SNVS_INDELS, false))
 	{
-		index_show_report_icon[index] = report_settings.report_config.get(VariantType::SNVS_INDELS, index).showInReport();
+		index_show_report_icon[index] = report_settings.report_config->get(VariantType::SNVS_INDELS, index).showInReport();
 	}
 
 	updateTable(variants, filter_result, index_show_report_icon, max_variants);
@@ -237,9 +248,9 @@ void VariantTable::updateVariantHeaderIcon(const ReportSettings& report_settings
 	int row = variantIndexToRow(variant_index);
 
 	QIcon report_icon;
-	if (report_settings.report_config.exists(VariantType::SNVS_INDELS, variant_index))
+	if (report_settings.report_config->exists(VariantType::SNVS_INDELS, variant_index))
 	{
-		report_icon = reportIcon(report_settings.report_config.get(VariantType::SNVS_INDELS, variant_index).showInReport());
+		report_icon = reportIcon(report_settings.report_config->get(VariantType::SNVS_INDELS, variant_index).showInReport());
 	}
 	verticalHeaderItem(row)->setIcon(report_icon);
 }
@@ -479,7 +490,7 @@ void VariantTable::adaptColumnWidthsCustom()
 	if (index!=-1) setColumnWidth(index, size_med);
 }
 
-void VariantTable::copyToClipboard(bool split_quality)
+void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_row)
 {
 	// Data to be copied is not selected en bloc
 	if (selectedRanges().count()!=1 && !split_quality)
@@ -570,7 +581,7 @@ void VariantTable::copyToClipboard(bool split_quality)
 
 	//copy header
 	QString selected_text = "";
-	if (range.rowCount()!=1)
+	if (range.rowCount()!=1 || include_header_one_row)
 	{
 		selected_text += "#";
 		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
@@ -646,6 +657,10 @@ void VariantTable::keyPressEvent(QKeyEvent* event)
 	else if(event->key()==Qt::Key_C && event->modifiers() == (Qt::ShiftModifier|Qt::ControlModifier))
 	{
 		copyToClipboard(true);
+	}
+	else if(event->key()==Qt::Key_C && event->modifiers() == (Qt::AltModifier|Qt::ControlModifier))
+	{
+		copyToClipboard(false, true);
 	}
 	else //default key-press event
 	{

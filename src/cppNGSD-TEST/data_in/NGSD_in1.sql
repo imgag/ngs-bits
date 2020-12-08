@@ -27,7 +27,8 @@ INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv5.bed', 1),
 (2, 'hpHBOCv6', 'HaloPlex HBOC v6', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv6.bed', 1),
-(3, 'ssSC_vTEST', 'SureSelect Somatic vTEST', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel', 1, '/mnt/share/data/enrichment/ssSC_test.bed', 1);
+(3, 'ssSC_vTEST', 'SureSelect Somatic vTEST', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel', 1, '/mnt/share/data/enrichment/ssSC_test.bed', 1),
+(4, 'IDT_xGenPrism', 'IDT xGen Human ID + IDT xGen Prism DNA', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCA', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'cfDNA (patient-specific)', 1, 'idt_HumanID.bed', 1);
 
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`) VALUES
 (3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
@@ -474,9 +475,9 @@ INSERT INTO `somatic_cnv` (`id`, `somatic_cnv_callset_id`, `chr`, `start`, `end`
 (4, 5, 'chr7', 87000, 350000, 3.14, 4, 0.8);
 
 -- somatic_report_configuration
-INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_score`, `tmb_ref_text`, `quality`, `filter`) VALUES 
-(3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10', NULL, false, false, false, false, false, 0, NULL, 'tumor cell content too low', 'somatic'),
-(51,5,4000,99,'2019-01-05 14:06:12', 101, '2019-12-07 17:06:10', 'nowhere.bed' , true, true, true, true, true, 1, "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp", NULL, NULL);
+INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `mtb_xml_upload_date`, `mtb_pdf_upload_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_score`, `tmb_ref_text`, `quality`, `filter`) VALUES 
+(3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10', '2020-07-29 09:06:10', '2020-07-29 09:36:10', NULL, false, false, false, false, false, 0, NULL, 'tumor cell content too low', 'somatic'),
+(51,5,4000,99,'2019-01-05 14:06:12', 101, '2019-12-07 17:06:10', '2020-07-27 09:20:10', '2020-07-27 09:40:11', 'nowhere.bed' , true, true, true, true, true, 1, "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp", NULL, NULL);
 
 --somatic_report_configuration_cnv
 INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id`, `somatic_cnv_id`, `exclude_artefact`, `exclude_low_tumor_content` , `exclude_low_copy_number`,
@@ -531,3 +532,18 @@ INSERT INTO `sv_translocation` (`id`, `sv_callset_id`, `chr1`, `start1`, `end1`,
 (1, 1, 'chr1', 9101000, 9101020, 'chr5', 4112000, 4113000, ''),
 (2, 1, 'chr1', 9101000, 9101020, 'chr5', 4120000, 4120000, ''),
 (3, 1, 'chr1', 9100005, 9100050, 'chr5', 4112000, 4113000, '');
+
+--study
+INSERT INTO `study`(`id`, `name`, `description`) VALUES
+(1, "SomeStudy","");
+
+INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES
+(1, 3999),
+(1, 4000),
+(1, 4001),
+(1, 4002),
+(1, 4003),
+(1, 5),
+(1, 6),
+(1, 7),
+(1, 8);

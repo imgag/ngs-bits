@@ -14,8 +14,11 @@ public:
 	//Constructors
 	Sequence();
 	Sequence(const char* rhs);
-	Sequence(const Sequence& rhs);
-	Sequence(const QByteArray& rhs);
+    Sequence(const Sequence& rhs);
+    Sequence(const QByteArray& rhs);
+
+    //Declare assignment operator as explicitly defaulted (implicit generation is not allowed because of explicit copy constructor)
+    Sequence& operator=(const Sequence& rhs) = default;
 
 	//Returns the left n bases of the sequence
 	Sequence left(int n) const;

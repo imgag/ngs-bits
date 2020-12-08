@@ -28,6 +28,7 @@ protected slots:
 	void updateReadQualityTable();
 	void updateRunSampleTable();
 	void setQuality();
+	void showPlot();
 	void edit();
 	void sendStatusEmail();
 	void checkMids();

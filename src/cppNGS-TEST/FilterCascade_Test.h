@@ -693,6 +693,8 @@ private slots:
 		filter.setInteger("qual", 200);
 		filter.setInteger("depth", 0);
 		filter.setInteger("mapq", 0);
+		filter.setInteger("strand_bias", -1);
+		filter.setInteger("allele_balance", -1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 138);
 
@@ -701,6 +703,8 @@ private slots:
 		filter.setInteger("qual", 0);
 		filter.setInteger("depth", 20);
 		filter.setInteger("mapq", 0);
+		filter.setInteger("strand_bias", -1);
+		filter.setInteger("allele_balance", -1);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 136);
 
@@ -709,16 +713,41 @@ private slots:
 		filter.setInteger("qual", 0);
 		filter.setInteger("depth", 0);
 		filter.setInteger("mapq", 55);
+		filter.setInteger("strand_bias", -1);
+		filter.setInteger("allele_balance", -1);
+
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 131);
+
+		//strand bias
+		result.reset();
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("mapq", 0);
+		filter.setInteger("strand_bias", 20);
+		filter.setInteger("allele_balance", -1);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 142);
+
+		//allele bias
+		result.reset();
+		filter.setInteger("qual", 0);
+		filter.setInteger("depth", 0);
+		filter.setInteger("mapq", 0);
+		filter.setInteger("strand_bias", -1);
+		filter.setInteger("allele_balance", 20);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 142);
 
 		//combined
 		result.reset();
 		filter.setInteger("qual", 500);
 		filter.setInteger("depth", 20);
 		filter.setInteger("mapq", 55);
+		filter.setInteger("strand_bias", 20);
+		filter.setInteger("allele_balance", 20);
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 115);
+		I_EQUAL(result.countPassing(), 113);
 	}
 
 	void FilterVariantQC_apply_multiSample()
@@ -824,6 +853,49 @@ private slots:
 		filter.setString("action", "FILTER");
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 2);
+	}
+
+	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
+
+	void FilterSomaticAlleleFrequency_apply_tumor_only()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_somatic_tumor_only.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//default
+		FilterSomaticAlleleFrequency filter;
+		filter.setDouble("min_af_tum", 50.0);
+		filter.setDouble("max_af_nor", 100.0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 6);
+
+		//error if normal cutoff is set
+		filter.setDouble("max_af_nor", 5.0);
+		IS_THROWN(ArgumentException, filter.apply(vl, result));
+	}
+
+	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
+
+	void FilterSomaticAlleleFrequency_apply_tumor_normal()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_somatic_tumor_normal.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//tumor
+		FilterSomaticAlleleFrequency filter;
+		filter.setDouble("min_af_tum", 15.0);
+		filter.setDouble("max_af_nor", 100.0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 5);
+
+		//error if normal cutoff is set
+		filter.setDouble("max_af_nor", 2.0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 4);
 	}
 
 	/********************************************* Filters for CNVs *********************************************/
@@ -1436,6 +1508,26 @@ private slots:
 	}
 
 
+	/********************************************* store/load all filters *********************************************/
 
+	void store_and_load()
+	{
+		QString tmp_file = Helper::tempFileName(".txt");
+		QStringList names = FilterFactory::filterNames();
+		foreach(QString name, names)
+		{
+			//store
+			FilterCascade filter_cascade;
+			filter_cascade.add(FilterFactory::create(name));
+			filter_cascade.store(tmp_file);
+
+			//load
+			FilterCascade filter_cascade2;
+			filter_cascade2.load(tmp_file);
+
+			//compare
+			IS_TRUE(filter_cascade==filter_cascade2);
+		}
+	}
 
 };

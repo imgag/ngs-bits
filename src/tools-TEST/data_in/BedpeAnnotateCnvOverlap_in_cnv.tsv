@@ -1,0 +1,19 @@
+##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE
+##ClinCNV version: v1.16.2
+##Analysis finished on: 2019-11-13 11:22:33
+##high-quality cnvs: 49
+##gender of sample: F
+##number of iterations: 1
+##quality used at final iteration: 20
+##was it outlier after clustering: FALSE
+##fraction of outliers: 0.039
+#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	qvalue	overlap cnps_genomes_imgag	overlap cnps_700genomes_pcawg
+chr1	66200	66300	1	42	2	1.017	0.05	PERM1	0.00167	0	0.000
+chr1	774822	774851	0	55	1	0.247	0.1	AGRN	0.00039	0	1.000 (0.15)
+chr1	869444	869471	3	22	1	0.394	0.055	AGRN	0.00158	0	0.000
+chr1	3021000	3022000	3	75	1	0.121	0.09	TTLL10	0.00158	0	0.000
+chr1	3092620	3092736	3	25	1	1.03	0.085	B3GALT6	0.00042	0	0.000
+chr1	3092739	3092849	3	21	2	0.57	0.05	SCNN1D	0.00075	0	1.000 (0.99)
+chr1	3097600	3098400	1	20	1	0.249	0.05	ACAP3	0.00285	0	0.000
+chr1	3097600	3098400	4	19	1	0.249	0.05	ACAP3	0.00285	0	0.000
+chr2	3387427	3387479	3	22	1	0.823	0.055	TAS1R3	0.00032	0	0.000

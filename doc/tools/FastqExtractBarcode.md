@@ -1,25 +1,28 @@
 ### FastqExtractBarcode tool help
-	FastqExtractBarcode (0.1-420-g3536bb0)
+	FastqExtractBarcode (2020_03-159-g5c8b2e82)
 	
 	Cuts bases from the beginning of reads and stores them in an additional fastq.
 	
 	Mandatory parameters:
-	  -in <file>          input fastq file1.
-	  -out_main <string>  output filename for main fastq.
+	  -in <file>               input fastq file1.
+	  -out_main <string>       output filename for main fastq.
 	
 	Optional parameters:
-	  -cut <int>          number of bases from the beginning of reads to use as barcodes.
-	                      Default value: '0'
-	  -out_index <string> output filename for index fastq.
-	                      Default value: 'index.fastq.gz'
+	  -out_index <string>      output filename for index fastq.
+	                           Default value: 'index.fastq.gz'
+	  -cut <int>               number of bases from the beginning of reads to use as barcodes.
+	                           Default value: '0'
+	  -compression_level <int> Output FASTQ compression level from 1 (fastest) to 9 (best compression).
+	                           Default value: '1'
 	
 	Special parameters:
-	  --help              Shows this help and exits.
-	  --version           Prints version and exits.
-	  --changelog         Prints changeloge and exits.
-	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
+	  --help                   Shows this help and exits.
+	  --version                Prints version and exits.
+	  --changelog              Prints changeloge and exits.
+	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### FastqExtractBarcode changelog
-	FastqExtractBarcode 0.1-420-g3536bb0
+	FastqExtractBarcode 2020_03-159-g5c8b2e82
 	
+	2020-07-15 Added 'compression_level' parameter.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

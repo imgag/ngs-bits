@@ -86,5 +86,32 @@ private slots:
 		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Autosomal dominant inheritance"), false).contains("PTEN"))
 	}
 
+	void with_hgmd()
+	{
+		QString host = Settings::string("ngsd_test_host", true);
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHPO_init.sql"));
+
+		//test
+		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -hgmd " + TESTDATA("data_in/NGSDImportHPO_hgmd.dump") + " -debug");
+
+		//check
+		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
+		I_EQUAL(count, 14)
+		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
+		I_EQUAL(count, 11)
+		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
+		I_EQUAL(count, 147)
+		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA1"))
+		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA2"))
+		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Autosomal dominant inheritance"), false).contains("PTEN"))
+		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BARD1"))
+		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Fibroadenoma of the breast"), false).contains("WRN"))
+	}
+
 };
 

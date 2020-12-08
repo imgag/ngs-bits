@@ -19,7 +19,7 @@ foreach($file as $line)
 if (PHP_OS=="WINNT")
 {
 	$dlls = array(
-				"{$dir}/../../htslib/lib/hts-2.dll",
+				"{$dir}/../../htslib/lib/hts-3.dll",
 				"{$dir}/../../htslib/lib/hts.dll.a",
 				"C:/Qt/Qt5.9.5/5.9.5/mingw53_32/bin/Qt5Core.dll",
 				"C:/Qt/Qt5.9.5/5.9.5/mingw53_32/bin/Qt5XmlPatterns.dll",

@@ -30,8 +30,8 @@ public:
 													"There are several parameters available for handling of mismatches in overlapping reads. " \
 													"Within the overlap the higher base quality will be kept for each basepair."
 							   );
-		addInfile("in", "Input bam file. Needs to be sorted by name.", false);
-		addOutfile("out", "Output bam file.", false);
+		addInfile("in", "Input BAM/CRAM file. Needs to be sorted by name.", false);
+		addOutfile("out", "Output BAM file.", false);
 		//optional
 		addFlag("overlap_mismatch_mapq", "Set mapping quality of pair to 0 if mismatch is found in overlapping reads.");
 		addFlag("overlap_mismatch_remove", "Remove pair if mismatch is found in overlapping reads.");
@@ -39,8 +39,11 @@ public:
 		addFlag("overlap_mismatch_basen", "Set base to N if mismatch is found in overlapping reads.");
 		addFlag("ignore_indels","Turn off indel detection in overlap.");
 		addFlag("v", "Verbose mode.");
+		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addFlag("write_cram", "Writes a CRAM file as output.");
 
 		//changelog
+		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2018,01,11,"Updated base quality handling within overlap.");
 		changeLog(2017,01,16,"Added overlap mismatch filter.");
 	}
@@ -57,8 +60,8 @@ public:
 		QTextStream out(stderr);
 		bool verbose = getFlag("v");
 		bool ignore_indels = getFlag("ignore_indels");
-		BamReader reader(getInfile("in"));
-		BamWriter writer(getOutfile("out"));
+		BamReader reader(getInfile("in"), getString("ref"));
+		BamWriter writer(getOutfile("out"), getString("ref"));
 		writer.writeHeader(reader);
 
 		//step 2: get alignments and softclip if necessary
@@ -71,7 +74,7 @@ public:
 			bool skip_al = false;
 
 			//check preconditions and if unmet save read to out and continue
-			if(!al.isPaired() || al.isSecondaryAlignment())
+			if(!al.isPaired() || al.isSecondaryAlignment() || al.isSupplementaryAlignment())
 			{
 				writer.writeAlignment(al);
 				++reads_saved;
@@ -500,13 +503,30 @@ public:
 					if(clip_reverse_read>0)	NGSHelper::softClipAlignment(reverse_read,reverse_read.start(),(reverse_read.start()-1+clip_reverse_read));
 
 					//set new insert size and mate position
-					forward_read.setInsertSize(reverse_read.end()-forward_read.start()+1);	//positive value
+					int forward_end = forward_read.end();
+					int reverse_end = reverse_read.end();
+
+					if(reverse_read.start() == reverse_read.end())
+					{
+						reverse_end -= 1;
+					}
+					if(forward_read.start() == forward_read.end())
+					{
+						forward_end -= 1;
+					}
+
+					int forward_insert_size = reverse_end-forward_read.start()+1;
+					int reverse_insert_size = forward_read.start()-reverse_end-1;
+
+					//qDebug() << "START ENDS: " << forward_read.start() <<  forward_read.end() << reverse_read.start() << reverse_read.end() << "\n";
+
+					forward_read.setInsertSize(forward_insert_size);	//positive value
 					forward_read.setMateStart(reverse_read.start());
-					reverse_read.setInsertSize(forward_read.start()-reverse_read.end()-1);	//negative value
+					reverse_read.setInsertSize(reverse_insert_size);	//negative value
 					reverse_read.setMateStart(forward_read.start());
 
-					if(verbose)	out << "  clipped forward read: name - " << forward_read.name() << ", region - " << reader.chromosome(forward_read.chromosomeID()).str() << ":" << (forward_read.start()-1) << "-" << forward_read.end() << ", insert size: "  << forward_read.insertSize() << " bp; mate: " << forward_read.mateStart() << ", CIGAR " << forward_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << endl;
-					if(verbose)	out << "  clipped reverse read: name - " << reverse_read.name() << ", region - " << reader.chromosome(reverse_read.chromosomeID()).str()  << ":" << (reverse_read.start()-1) << "-" << reverse_read.end() << ", insert size: "  << reverse_read.insertSize() << " bp; mate: " << reverse_read.mateStart() << ", CIGAR " << reverse_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << endl;
+					if(verbose)	out << "  clipped forward read: name - " << forward_read.name() << ", region - " << reader.chromosome(forward_read.chromosomeID()).str() << ":" << (forward_read.start()-1) << "-" << forward_end << ", insert size: "  << forward_read.insertSize() << " bp; mate: " << forward_read.mateStart() << ", CIGAR " << forward_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << endl;
+					if(verbose)	out << "  clipped reverse read: name - " << reverse_read.name() << ", region - " << reader.chromosome(reverse_read.chromosomeID()).str()  << ":" << (reverse_read.start()-1) << "-" << reverse_end << ", insert size: "  << reverse_read.insertSize() << " bp; mate: " << reverse_read.mateStart() << ", CIGAR " << reverse_read.cigarDataAsString() << ", overlap: " << overlap << " bp" << endl;
 					if(verbose)	out << endl;
 
 					//return reads

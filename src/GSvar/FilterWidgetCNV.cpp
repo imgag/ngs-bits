@@ -23,10 +23,12 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	ui_.cascade_widget->setSubject(VariantType::CNVS);
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SIGNAL(filtersChanged()));
+	connect(ui_.cascade_widget, SIGNAL(customFilterLoaded()), this, SLOT(customFilterLoaded()));
 	connect(ui_.filters, SIGNAL(currentIndexChanged(int)), this, SLOT(setFilter(int)));
 	ui_.lab_modified->setHidden(true);
 
 	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
+	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(checkForGeneFileNGSD()));
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
@@ -37,7 +39,8 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	connect(ui_.region_import, SIGNAL(clicked(bool)), this, SLOT(importRegion()));
 	connect(ui_.gene_import, SIGNAL(clicked(bool)), this, SLOT(importGene()));
 	connect(ui_.text_import, SIGNAL(clicked(bool)), this, SLOT(importText()));
-	connect(ui_.report_config, SIGNAL(clicked(bool)), this, SLOT(regionChanged()));
+	connect(ui_.report_config, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
+    connect(ui_.calculate_gene_overlap, SIGNAL(clicked(bool)), this, SLOT(calculateGeneOverlap()));
 
 	QAction* action = new QAction("clear", this);
 	connect(action, &QAction::triggered, this, &FilterWidgetCNV::clearTargetRegion);
@@ -145,20 +148,29 @@ void FilterWidgetCNV::setRegion(QString region)
 	regionChanged();
 }
 
-const QList<Phenotype>& FilterWidgetCNV::phenotypes() const
+const PhenotypeList& FilterWidgetCNV::phenotypes() const
 {
 	return phenotypes_;
 }
 
-void FilterWidgetCNV::setPhenotypes(const QList<Phenotype>& phenotypes)
+void FilterWidgetCNV::setPhenotypes(const PhenotypeList& phenotypes)
 {
 	phenotypes_ = phenotypes;
 	phenotypesChanged();
 }
 
-bool FilterWidgetCNV::reportConfigurationOnly() const
+ReportConfigFilter FilterWidgetCNV::reportConfigurationFilter() const
 {
-	return ui_.report_config->isChecked();
+	if (ui_.report_config->currentIndex()==1)
+	{
+		return ReportConfigFilter::HAS_RC;
+	}
+	else if (ui_.report_config->currentIndex()==2)
+	{
+		return ReportConfigFilter::NO_RC;
+	}
+
+	return ReportConfigFilter::NONE;
 }
 
 void FilterWidgetCNV::roiSelectionChanged(int index)
@@ -320,6 +332,17 @@ void FilterWidgetCNV::updateFilterName()
 	ui_.lab_modified->setHidden(false);
 }
 
+void FilterWidgetCNV::customFilterLoaded()
+{
+	ui_.filters->blockSignals(true);
+	ui_.filters->setCurrentIndex(0);
+	ui_.filters->blockSignals(false);
+
+	ui_.lab_modified->setHidden(false);
+
+	emit filtersChanged();
+}
+
 void FilterWidgetCNV::setFilter(int index)
 {
 	if (index==0)
@@ -345,6 +368,18 @@ void FilterWidgetCNV::setFilter(int index)
 void FilterWidgetCNV::clearTargetRegion()
 {
 	ui_.roi->setCurrentText("none");
+}
+
+void FilterWidgetCNV::calculateGeneOverlap()
+{
+	emit calculateGeneTargetRegionOverlap();
+}
+
+void FilterWidgetCNV::checkForGeneFileNGSD()
+{
+	// checks if gene file for target region is available and connection to the NGSD exists
+	QString gene_file_path = targetRegion().left(targetRegion().size() - 4) + "_genes.txt";
+	ui_.calculate_gene_overlap->setEnabled(QFile::exists(gene_file_path) && LoginManager::active());
 }
 
 void FilterWidgetCNV::loadFilters()

@@ -131,8 +131,14 @@ void VariantConversionWidget::convert()
 				QString hgvs_c = line.mid(sep_pos+1);
 
 				int trans_id = db.transcriptId(transcript_name, false);
-				if (trans_id==-1) //try to match CCDS/RefSeq toEnsembl
+				if (trans_id==-1) //not found > try to match CCDS/RefSeq toEnsembl
 				{
+					//remove version number (if present)
+					if (transcript_name.contains("."))
+					{
+						transcript_name = transcript_name.left(transcript_name.indexOf('.'));
+					}
+
 					QString transcript_name2 = "";
 					const QMap<QByteArray, QByteArrayList>& matches = GSvarHelper::transcriptMatches();
 					for (auto it=matches.begin(); it!=matches.end(); ++it)

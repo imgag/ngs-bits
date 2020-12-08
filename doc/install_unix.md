@@ -20,7 +20,7 @@ Use git to clone the most recent release (the source code package of GitHub does
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-        > git checkout 2020_03
+	> git checkout 2020_09
 	> git submodule update --recursive --init
 
 ### Resolving proxy issues with git
@@ -42,6 +42,7 @@ Then you have to adapt your ~/.gitconfig file like that:
 Just execute the following make commands:
 
     > make build_3rdparty
+	> make build_libs_release
 	> make build_tools_release
 
 ## Executing

@@ -22,6 +22,7 @@ protected slots:
 	void openRunTab();
 	void openRunTab(int row);
 	void editRun();
+	void moveSamples();
 	void addRun();
 
 private:

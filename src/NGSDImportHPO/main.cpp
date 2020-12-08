@@ -23,13 +23,16 @@ public:
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
 		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2020/clinvar_20200506.vcf.gz'.", true);
+		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2020.2.dump').", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 		addFlag("debug", "Enables debug output");
 
+		changeLog(2020, 7, 7, "Added support of HGMD gene-phenotype relations.");
 		changeLog(2020, 3, 5, "Added support for new HPO annotation file.");
 		changeLog(2020, 3, 9, "Added optimization for hpo-gene relations.");
 		changeLog(2020, 3, 10, "Removed support for old HPO annotation file.");
+		changeLog(2020, 7, 6, "Added support for HGMD phenobase file.");
 	}
 
 	int importTermGeneRelations(SqlQuery& qi_gene, const QHash<int, QSet<QByteArray> >& term2diseases, const QHash<QByteArray, GeneSet>& disease2genes)
@@ -393,17 +396,212 @@ public:
 						qi_gene.bindValue(0, term_db_id);
 						qi_gene.bindValue(1, gene);
 						qi_gene.exec();
-						++c_imported;
+						if(qi_gene.numRowsAffected() > 0) ++c_imported;
 					}
 				}
 			}
 			out << "Imported " << c_imported << " additional term-gene relations (direct) from ClinVar." << endl;
 		}
 
+
+		// parse hpo-gene relations from HGMD (Phenobase dbdump file):
+		QString hgmd_file = getInfile("hgmd");
+		if(hgmd_file != "")
+		{
+			if (debug) out << "Parsing HGMD Phenobase dump file...\n" << endl;
+			// define look-up tables
+			QMultiMap<int, QByteArray> phenid2gene_mapping = QMap<int, QByteArray>();
+			QMultiMap<QByteArray,int> cui2phenid_mapping = QMap<QByteArray,int>();
+			QMultiMap<QByteArray,QByteArray> hpo2cui_mapping = QMap<QByteArray,QByteArray>();
+			QHash<QByteArray, GeneSet> hpo2genes;
+
+			QSharedPointer<QFile> fp = Helper::openFileForReading(hgmd_file);
+			int line_number = 0;
+			while(!fp->atEnd())
+			{
+				line_number++;
+				// show progress
+				if(debug && line_number%100 == 0) out << "\tparsed " << line_number << " lines..." << endl;
+				QByteArray line = fp->readLine().trimmed();
+				if (line.isEmpty()) continue;
+
+				// parse concept table
+				if(line.startsWith("INSERT INTO `concept` VALUES "))
+				{
+				   // parse insert line
+				   QString value_string = line.mid(31);
+				   value_string.chop(3);
+				   QStringList tuples = value_string.split("'),('");
+
+				   // parse tuples
+				   foreach(const QString& tuple, tuples)
+				   {
+					   QStringList tuple_entries = tuple.split("','");
+
+					   // check if tuple size is correct
+					   if(tuple_entries.size() != 10)
+					   {
+						   THROW(FileParseException, "Invalid number of columns in INSERT Statement in line " + QString::number(line_number) + "\n" + tuple);
+					   }
+
+					   // ignore all non HPO entries:
+					   if(tuple_entries.at(2).trimmed() != "HPO") continue;
+
+					   QByteArray cui = tuple_entries.at(0).toUtf8();
+					   QByteArray hpo = tuple_entries.at(3).toUtf8();
+
+					   // skip already stored realations (due to old/different description/synonyms)
+					   if(hpo2cui_mapping.contains(hpo, cui)) continue;
+
+					   hpo2cui_mapping.insert(hpo, cui);
+				   }
+				}
+				else if(line.startsWith("INSERT INTO `hgmd_mutation` VALUES "))
+				{
+					// parse insert line
+					QString value_string = line.mid(36);
+					value_string.chop(2);
+					QStringList tuples = value_string.split("),(");
+
+					// parse tuples
+					foreach(const QString& tuple, tuples)
+					{
+						QStringList tuple_entries = tuple.split(",");
+
+						// check if tuple size is correct
+						if(tuple_entries.size() != 3)
+						{
+							THROW(FileParseException, "Invalid number of columns in INSERT Statement in line " + QString::number(line_number) + "\n" + tuple);
+						}
+
+						//parse gene name
+						QByteArray gene_name = tuple_entries.at(1).toUtf8();
+						int phen_id = Helper::toInt(tuple_entries.at(2).toUtf8(), "phen_id", QString::number(line_number));
+						//remove quotes
+						gene_name.remove(0, 1);
+						gene_name.remove((gene_name.size() - 1), 1);
+
+						// skip already stored mappings to save memory
+						if(phenid2gene_mapping.contains(phen_id, gene_name)) continue;
+
+						phenid2gene_mapping.insert(phen_id, gene_name);
+					}
+				}
+				else if(line.startsWith("INSERT INTO `phenotype_concept` VALUES "))
+				{
+					// parse insert line
+					QString value_string = line.mid(40);
+					value_string.chop(2);
+					QStringList tuples = value_string.split("),(");
+
+					// parse tuples
+					foreach(const QString& tuple, tuples)
+					{
+						QStringList tuple_entries = tuple.split(",");
+
+						// check if tuple size is correct
+						if(tuple_entries.size() != 3)
+						{
+							THROW(FileParseException, "Invalid number of columns in INSERT Statement in line " + QString::number(line_number) + "\n" + tuple);
+						}
+
+						//parse cui
+						QByteArray cui = tuple_entries.at(2).toUtf8();
+						int phen_id = Helper::toInt(tuple_entries.at(0).toUtf8(), "phen_id", QString::number(line_number));
+						//remove quotes
+						cui.remove(0, 1);
+						cui.remove((cui.size() - 1), 1);
+
+						// skip already stored mappings to save memory
+						if(cui2phenid_mapping.contains(cui, phen_id)) continue;
+
+						cui2phenid_mapping.insert(cui, phen_id);
+					}
+				}
+			}
+
+
+			// create hpo-gene relation
+			if (debug) out << "Creating HPO-gene relation from HGMD file..." << endl;
+
+			int hgmd_skipped_invalid_gene = 0;
+			int hgmd_genes_added = 0;
+			int i = 0;
+			foreach (const QByteArray& hpo, hpo2cui_mapping.keys())
+			{
+				i++;
+
+				// get the corresponding cui for each hpo term:
+				foreach(const QByteArray& cui, hpo2cui_mapping.values(hpo))
+				{
+					// get all phenotype ids for given cui
+					if(!cui2phenid_mapping.contains(cui))
+					{
+					   if (debug) out << "No phenotype id found for CUI '" << cui << "' (HGMD file)!" << endl;
+					   continue;
+					}
+					foreach(int phen_id, cui2phenid_mapping.values(cui))
+					{
+						// get all genes for a given phenotype id
+						if(!phenid2gene_mapping.contains(phen_id))
+						{
+							if (debug) out << "No gene found for phenotype id " << QByteArray::number(phen_id) << " (HGMD file)!" << endl;
+							continue;
+						}
+						foreach(const QByteArray& gene, phenid2gene_mapping.values(phen_id))
+						{
+							//make sure the gene symbol is approved by HGNC
+							int approved_id = db.geneToApprovedID(gene);
+							if (approved_id==-1)
+							{
+									if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol (HGMD file)!" << endl;
+									++hgmd_skipped_invalid_gene;
+									continue;
+							}
+							QByteArray gene_approved = db.geneSymbol(approved_id);
+
+							// add gene to hpo list:
+							if (debug) out << "HPO-GENE (HGMD): " << hpo << " - " << gene_approved << endl;
+							hgmd_genes_added++;
+							hpo2genes[hpo].insert(gene_approved);
+						}
+					}
+				}
+
+				// show progress
+				if(debug && (i%1000 == 0))
+				{
+					out << "\t" << i << " of " << hpo2cui_mapping.keys().size() << "hpo terms parsed \n";
+				}
+			}
+
+			if (debug) out << "Importing HPO-gene relation from HGMD into the NGSD..." << endl;
+
+			int hgmd_imported = 0;
+			for(auto it = hpo2genes.begin(); it!=hpo2genes.end(); ++it)
+			{
+				int term_db_id = id2ngsd.value(it.key(), -1);
+				if (term_db_id!=-1)
+				{
+					const GeneSet& genes = it.value();
+					foreach(const QByteArray& gene, genes)
+					{
+						qi_gene.bindValue(0, term_db_id);
+						qi_gene.bindValue(1, gene);
+						qi_gene.exec();
+						if(qi_gene.numRowsAffected() > 0) ++hgmd_imported;
+					}
+				}
+			}
+			out << "Imported " << hgmd_imported << " additional term-gene relations from HGMD." << endl;
+			out << "  Skipped " << hgmd_skipped_invalid_gene << " genes (no HGNC-approved gene name)." << endl;
+		}
+
+
 		out << "Overall imported term-gene relations: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
 
-		out << "Optimize term-gene relations...\n";
-		out << "(removing all genes which are already present in leaf nodes)" << endl;
+		out << "Optimizing term-gene relations...\n";
+		out << "(removing genes which are present in leaf nodes from parent node)" << endl;
 
 		Phenotype root = Phenotype("HP:0000001", "All");
 		int removed_genes = 0;
@@ -464,7 +662,7 @@ public:
 			// get phenotype id
 			int pt_id = pt2id.value(root.accession());
 
-			// remove all duplicate genes
+			// remove all duplicate genes from parent node
 			SqlQuery remove_gene_query = db.getQuery();
 			remove_gene_query.prepare("DELETE FROM hpo_genes WHERE hpo_term_id=" + QByteArray::number(pt_id) + " AND gene=:0");
 			foreach (const QByteArray& gene, genes_to_remove)

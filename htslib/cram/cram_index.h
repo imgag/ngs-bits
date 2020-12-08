@@ -1,24 +1,24 @@
 /*
-Copyright (c) 2013 Genome Research Ltd.
+Copyright (c) 2013, 2018 Genome Research Ltd.
 Author: James Bonfield <jkb@sanger.ac.uk>
 
-Redistribution and use in source and binary forms, with or without 
+Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
-   1. Redistributions of source code must retain the above copyright notice, 
+   1. Redistributions of source code must retain the above copyright notice,
 this list of conditions and the following disclaimer.
 
-   2. Redistributions in binary form must reproduce the above copyright notice, 
-this list of conditions and the following disclaimer in the documentation 
+   2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
 and/or other materials provided with the distribution.
 
    3. Neither the names Genome Research Ltd and Wellcome Trust Sanger
 Institute nor the names of its contributors may be used to endorse or promote
 products derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY GENOME RESEARCH LTD AND CONTRIBUTORS "AS IS" AND 
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+THIS SOFTWARE IS PROVIDED BY GENOME RESEARCH LTD AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 DISCLAIMED. IN NO EVENT SHALL GENOME RESEARCH LTD OR CONTRIBUTORS BE LIABLE
 FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
@@ -28,8 +28,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef _CRAM_INDEX_H_
-#define _CRAM_INDEX_H_
+#ifndef CRAM_INDEX_H
+#define CRAM_INDEX_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,11 +48,12 @@ void cram_index_free(cram_fd *fd);
  * Searches the index for the first slice overlapping a reference ID
  * and position.
  *
- * Returns the cram_index pointer on sucess
+ * Returns the cram_index pointer on success
  *         NULL on failure
  */
-cram_index *cram_index_query(cram_fd *fd, int refid, int pos, cram_index *frm);
+cram_index *cram_index_query(cram_fd *fd, int refid, hts_pos_t pos, cram_index *frm);
 cram_index *cram_index_last(cram_fd *fd, int refid, cram_index *from);
+cram_index *cram_index_query_last(cram_fd *fd, int refid, hts_pos_t end);
 
 /*
  * Skips to a container overlapping the start coordinate listed in
@@ -92,6 +93,20 @@ int cram_seek_to_refpos(cram_fd *fd, cram_range *r);
  *         negative on failure (-1 for read failure, -4 for write failure)
  */
 int cram_index_build(cram_fd *fd, const char *fn_base, const char *fn_idx);
+
+/*
+ * Adds a single slice to the index.
+ *
+ * Returns 0 on success,
+ *        -1 on failure
+ */
+int cram_index_slice(cram_fd *fd,
+                     cram_container *c,
+                     cram_slice *s,
+                     BGZF *fp,
+                     off_t cpos,
+                     off_t spos, // relative to cpos
+                     off_t sz);
 
 #ifdef __cplusplus
 }

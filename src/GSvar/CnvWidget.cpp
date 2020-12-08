@@ -14,6 +14,7 @@
 #include "CnvSearchWidget.h"
 #include "LoginManager.h"
 #include "GeneInfoDBs.h"
+#include "ValidationDialog.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -26,14 +27,14 @@
 #include <QChartView>
 QT_CHARTS_USE_NAMESPACE
 
-CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: CnvWidget(cnvs, ps_id, filter_widget, het_hit_genes, cache, parent)
 {
 	if(cnvs.type()!=CnvListType::CLINCNV_GERMLINE_MULTI && cnvs.type()!=CnvListType::CLINCNV_GERMLINE_SINGLE && cnvs.type()!=CnvListType::CNVHUNTER_GERMLINE_SINGLE && cnvs.type()!=CnvListType::CNVHUNTER_GERMLINE_MULTI)
 	{
 		THROW(ProgrammingException, "Constructor in CnvWidget has to be used using germline CNV data.");
 	}
-	report_config_ = &rep_conf;
+	report_config_ = rep_conf;
 	initGUI();
 }
 
@@ -58,15 +59,20 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	, callset_id_("")
 	, cnvs_(cnvs)
 	, special_cols_()
+	, report_config_(nullptr)
+	, somatic_report_config_(nullptr)
 	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
 	, ngsd_enabled_(LoginManager::active())
+	, roi_gene_index_(roi_genes_)
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
 	connect(ui->cnvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
+	connect(ui->filter_widget, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
+	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(loadGeneFile()));
 	connect(ui->cnvs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(cnvHeaderDoubleClicked(int)));
 	ui->cnvs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
@@ -133,24 +139,24 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 
 		if (col_name=="cn_pathogenic")
 		{
-			showSpecialTable(title, text, "");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',');
 		}
 		if (col_name=="dosage_sensitive_disease_genes")
 		{
-			showSpecialTable(title, text, "https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=");
 		}
 		if (col_name=="clinvar_cnvs")
 		{
-			showSpecialTable(title, text, "https://www.ncbi.nlm.nih.gov/clinvar/variation/");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://www.ncbi.nlm.nih.gov/clinvar/variation/");
 		}
 		if (col_name=="hgmd_cnvs")
 		{
-			showSpecialTable(title, text, "https://portal.biobase-international.com/hgmd/pro/mut.php?acc=");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://my.qiagendigitalinsights.com/bbp/view/hgmd/pro/mut.php?acc=");
 		}
 		if (col_name=="omim")
 		{
 			text = text.replace('_', ' ');
-			showSpecialTable(title, text, "https://www.omim.org/entry/");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://www.omim.org/entry/");
 		}
 	}
 	else
@@ -165,7 +171,33 @@ void CnvWidget::addInfoLine(QString text)
 	label->setTextInteractionFlags(Qt::TextBrowserInteraction);
 	ui->info_messages->layout()->addWidget(label);
 
-	if (text.contains(":"))
+	if(text.contains("TrioMaternalContamination"))
+	{
+		QStringList information_list = text.split("|");
+		if(information_list.size() == 2)
+		{
+			QStringList mother_list = information_list.at(0).split(":");
+			QStringList father_list = information_list.at(1).split(":");
+			if(mother_list.size() == 2 && father_list.size() == 2)
+			{
+				bool is_double_mother(false);
+				bool is_double_father(false);
+
+				double mother = mother_list.at(1).toDouble(&is_double_mother);
+				double father = father_list.at(1).toDouble(&is_double_father);
+
+				if(is_double_mother && is_double_father)
+				{
+					double diff = std::abs(mother - father);
+					if(diff > 0.1)
+					{
+						label->setStyleSheet("QLabel { color : red;}");
+					}
+				}
+			}
+		}
+	}
+	else if (text.contains(":"))
 	{
 		QString metric = text.split(":")[0].trimmed();
 		while(metric.startsWith('#'))
@@ -186,6 +218,7 @@ void CnvWidget::addInfoLine(QString text)
 			metrics_done_ << metric;
 		}
 	}
+
 }
 
 void CnvWidget::disableGUI()
@@ -329,14 +362,35 @@ void CnvWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by report config
-		if (ui->filter_widget->reportConfigurationOnly())
+		ReportConfigFilter rc_filter = ui->filter_widget->reportConfigurationFilter();
+		if (rc_filter!=ReportConfigFilter::NONE)
 		{
 			for(int r=0; r<rows; ++r)
 			{
 				if (!filter_result.flags()[r]) continue;
 
-				if(!is_somatic_) filter_result.flags()[r] = report_config_->exists(VariantType::CNVS, r);
-				else filter_result.flags()[r] = somatic_report_config_->exists(VariantType::CNVS, r);
+				if (rc_filter==ReportConfigFilter::HAS_RC)
+				{
+					if(is_somatic_)
+					{
+						filter_result.flags()[r] = somatic_report_config_->exists(VariantType::CNVS, r);
+					}
+					else
+					{
+						filter_result.flags()[r] = report_config_->exists(VariantType::CNVS, r);
+					}
+				}
+				else if (rc_filter==ReportConfigFilter::NO_RC)
+				{
+					if(is_somatic_)
+					{
+						filter_result.flags()[r] = !somatic_report_config_->exists(VariantType::CNVS, r);
+					}
+					else
+					{
+						filter_result.flags()[r] = !report_config_->exists(VariantType::CNVS, r);
+					}
+				}
 			}
 		}
 
@@ -502,8 +556,10 @@ void CnvWidget::showContextMenu(QPoint p)
 	QAction* a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	a_rep_edit->setEnabled(ngsd_enabled_);
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	if(!is_somatic_) a_rep_del->setEnabled(ngsd_enabled_ && report_config_->exists(VariantType::CNVS, row));
+	if(!is_somatic_) a_rep_del->setEnabled(ngsd_enabled_ && report_config_->exists(VariantType::CNVS, row) && !report_config_->isFinalized());
 	else a_rep_del->setEnabled(ngsd_enabled_ && somatic_report_config_->exists(VariantType::CNVS, row));
+	menu.addSeparator();
+	QAction* a_cnv_val = menu.addAction("Perform copy-number variant validation");
 	menu.addSeparator();
 	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching CNVs in NGSD");
 	a_ngsd_search->setEnabled(ngsd_enabled_);
@@ -553,7 +609,9 @@ void CnvWidget::showContextMenu(QPoint p)
 	}
 	else if (action==a_deciphter)
 	{
-		QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + cnvs_[row].toString()));
+		QString region = cnvs_[row].toString();
+		region.remove("chr");
+		QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + region));
 	}
 	else if (action==a_rep_edit)
 	{
@@ -564,7 +622,6 @@ void CnvWidget::showContextMenu(QPoint p)
 		if(!is_somatic_)
 		{
 			report_config_->remove(VariantType::CNVS, row);
-			emit storeReportConfiguration();
 		}
 		else
 		{
@@ -578,6 +635,10 @@ void CnvWidget::showContextMenu(QPoint p)
 			emit storeSomaticReportConfiguration();
 		}
 		updateReportConfigHeaderIcon(row);
+	}
+	else if (action==a_cnv_val)
+	{
+		editCnvValidation(row);
 	}
 	else if (action==a_ngsd_search)
 	{
@@ -612,19 +673,6 @@ void CnvWidget::showContextMenu(QPoint p)
 			GeneInfoDBs::openUrl(db_name, gene);
 		}
 	}
-}
-
-void CnvWidget::openLink(int row, int col)
-{
-	auto table = qobject_cast<QTableWidget*>(sender());
-	if (table==nullptr) return;
-	auto item = table->item(row, col);
-	if (item==nullptr) return;
-
-	QString url = item->data(Qt::UserRole).toString();
-	if (url.isEmpty()) return;
-
-	QDesktopServices::openUrl(QUrl(url));
 }
 
 void CnvWidget::proposeQualityIfUnset()
@@ -733,7 +781,7 @@ void CnvWidget::showQcMetricHistogram()
 void CnvWidget::updateReportConfigHeaderIcon(int row)
 {
 	//report config-based filter is on => update whole variant list
-	if (ui->filter_widget->reportConfigurationOnly())
+	if (ui->filter_widget->reportConfigurationFilter()!=ReportConfigFilter::NONE)
 	{
 		applyFilters();
 	}
@@ -770,7 +818,7 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 	QMenu menu(ui->cnvs->verticalHeader());
 	QAction* a_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	QAction* a_delete = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	if(!is_somatic_) a_delete->setEnabled(report_config_->exists(VariantType::CNVS, row));
+	if(!is_somatic_) a_delete->setEnabled(report_config_->exists(VariantType::CNVS, row) && !report_config_->isFinalized());
 	else a_delete->setEnabled(somatic_report_config_->exists(VariantType::CNVS, row));
 
 	//exec menu
@@ -801,85 +849,12 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 				somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
 				updateReportConfigHeaderIcon(selected_row.row());
 			}
-		}
 
-		if(!is_somatic_) emit storeReportConfiguration();
-		else emit storeSomaticReportConfiguration();
+			emit storeSomaticReportConfiguration();
+		}
 	}
 }
 
-void CnvWidget::showSpecialTable(QString col, QString text, QByteArray url_prefix)
-{
-	//determine headers
-	auto entries = VariantDetailsDockWidget::parseDB(text, ',');
-	QStringList headers;
-	headers << "ID";
-	foreach(const VariantDetailsDockWidget::DBEntry& entry, entries)
-	{
-		QList<KeyValuePair> parts = entry.splitByName();
-		foreach(const KeyValuePair& pair, parts)
-		{
-			if (!headers.contains(pair.key))
-			{
-				headers << pair.key;
-			}
-		}
-	}
-
-	//set up table widget
-	QTableWidget* table = new QTableWidget();
-	table->setRowCount(entries.count());
-	table->setColumnCount(headers.count());
-	for(int col=0; col<headers.count(); ++col)
-	{
-		auto item = new QTableWidgetItem(headers[col]);
-		if (col==0 && !url_prefix.isEmpty())
-		{
-			item->setIcon(QIcon(":/Icons/Link.png"));
-			item->setToolTip("Double click cell to open external link for the entry");
-		}
-		table->setHorizontalHeaderItem(col, item);
-	}
-	if (!url_prefix.isEmpty())
-	{
-		connect(table, SIGNAL(cellDoubleClicked(int,int)), this, SLOT(openLink(int,int)));
-	}
-	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	table->setAlternatingRowColors(true);
-	table->setWordWrap(false);
-	table->setSelectionMode(QAbstractItemView::SingleSelection);
-	table->setSelectionBehavior(QAbstractItemView::SelectItems);
-	table->verticalHeader()->setVisible(false);
-	int row = 0;
-	foreach(VariantDetailsDockWidget::DBEntry entry, entries)
-	{
-		QString id = entry.id.trimmed();
-		auto item = new QTableWidgetItem(id);
-		if (!url_prefix.isEmpty())
-		{
-			item->setData(Qt::UserRole, url_prefix + id);
-		}
-		table->setItem(row, 0, item);
-
-		QList<KeyValuePair> parts = entry.splitByName();
-		foreach(const KeyValuePair& pair, parts)
-		{
-			int col = headers.indexOf(pair.key);
-			table->setItem(row, col, new QTableWidgetItem(pair.value));
-		}
-
-		++row;
-	}
-
-	//show table
-	auto dlg = GUIHelper::createDialog(table, col);
-	dlg->setMinimumSize(1200, 800);
-	GUIHelper::resizeTableCells(table);
-	dlg->exec();
-
-	//delete
-	delete table;
-}
 void CnvWidget::updateStatus(int shown)
 {
 	QString text = QString::number(shown) + "/" + QString::number(cnvs_.count()) + " passing filter(s)";
@@ -890,7 +865,6 @@ void CnvWidget::editReportConfiguration(int row)
 {
 	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
 	{
-
 		//Handle som variant configuration for more than one variant
 		QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
 		if(selectedRows.count() > 1)
@@ -915,11 +889,111 @@ void CnvWidget::editReportConfiguration(int row)
 
 void CnvWidget::importPhenotypesFromNGSD()
 {
+	if (ps_id_=="")
+	{
+		QMessageBox::warning(this, "Error loading phenotypes", "Cannot load phenotypes because no processed sample ID is set!");
+		return;
+	}
+
 	NGSD db;
 	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_id_).toString();
-	QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
+	PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
 
 	ui->filter_widget->setPhenotypes(phenotypes);
+}
+
+void CnvWidget::loadGeneFile()
+{
+	QTime timer;
+	timer.start();
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+	// skip if no connection to the NGSD
+	if(!LoginManager::active())
+	{
+		// clear old files
+		roi_genes_.clear();
+		roi_gene_index_.createIndex();
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "DB connection failed", "No connection to the NGSD.\nConnection is required to calculate gene-region relation.");
+		return;
+	}
+	// check for gene list file:
+	QString roi_filename = ui->filter_widget->targetRegion();
+	QString gene_file_path = roi_filename.left(roi_filename.size() - 4) + "_genes.txt";
+	if (QFile::exists(gene_file_path))
+	{
+		// load genes:
+		GeneSet target_genes = GeneSet::createFromFile(gene_file_path);
+		// create bed file
+		roi_genes_ = NGSD().genesToRegions(target_genes, Transcript::ENSEMBL, "gene");
+		roi_genes_.extend(5000);
+	}
+	else
+	{
+		// clear old files
+		roi_genes_.clear();
+		roi_gene_index_.createIndex();
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "Gene file not found!", "No gene file found at \"" + gene_file_path
+							 + "\". Cannot annotate SV with genes of the current target region." );
+		return;
+	}
+	roi_gene_index_.createIndex();
+
+	// update gene tooltips
+	timer.start();
+	// get gene column index
+	int gene_idx = -1;
+	for (int col_idx = 0; col_idx < ui->cnvs->columnCount(); ++col_idx)
+	{
+		if(ui->cnvs->horizontalHeaderItem(col_idx)->text().trimmed() == "genes")
+		{
+			gene_idx = col_idx;
+			break;
+		}
+	}
+	if (gene_idx >= 0)
+	{
+		// iterate over sv table
+		for (int row_idx = 0; row_idx < ui->cnvs->rowCount(); ++row_idx)
+		{
+				// get all matching lines in gene bed file
+				QVector<int> matching_indices = roi_gene_index_.matchingIndices(cnvs_[row_idx].chr(), cnvs_[row_idx].start(), cnvs_[row_idx].end());
+
+				// extract gene names
+				GeneSet genes;
+				foreach (int idx, matching_indices)
+				{
+					genes.insert(roi_genes_[idx].annotations().at(0));
+				}
+
+				// update tooltip
+				ui->cnvs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> "
+															 + genes.toStringList().join(", ") + "</div>");
+		}
+	}
+	QApplication::restoreOverrideCursor();
+}
+
+void CnvWidget::clearTooltips()
+{
+	int gene_idx = -1;
+	for (int col_idx = 0; col_idx < ui->cnvs->columnCount(); ++col_idx)
+	{
+		if(ui->cnvs->horizontalHeaderItem(col_idx)->text().trimmed() == "genes")
+		{
+			gene_idx = col_idx;
+			break;
+		}
+	}
+	if (gene_idx >= 0)
+	{
+		for (int row_idx = 0; row_idx < ui->cnvs->rowCount(); ++row_idx)
+		{
+			// remove tool tip
+			ui->cnvs->item(row_idx, gene_idx)->setToolTip("");
+		}
+	}
 }
 
 void CnvWidget::editGermlineReportConfiguration(int row)
@@ -933,8 +1007,7 @@ void CnvWidget::editGermlineReportConfiguration(int row)
 
 	//init/get config
 	ReportVariantConfiguration var_config;
-	bool report_settings_exist = report_config_->exists(VariantType::CNVS, row);
-	if (report_settings_exist)
+	if (report_config_->exists(VariantType::CNVS, row))
 	{
 		var_config = report_config_->get(VariantType::CNVS, row);
 	}
@@ -958,13 +1031,13 @@ void CnvWidget::editGermlineReportConfiguration(int row)
 	}
 
 	//exec dialog
-	ReportVariantDialog* dlg = new ReportVariantDialog(cnvs_[row].toStringWithMetaData(), inheritance_by_gene, var_config, this);
-	if (dlg->exec()!=QDialog::Accepted) return;
+	ReportVariantDialog dlg(cnvs_[row].toStringWithMetaData(), inheritance_by_gene, var_config, this);
+	dlg.setEnabled(!report_config_->isFinalized());
+	if (dlg.exec()!=QDialog::Accepted) return;
 
 	//update config, GUI and NGSD
 	report_config_->set(var_config);
 	updateReportConfigHeaderIcon(row);
-	emit storeReportConfiguration();
 }
 
 void CnvWidget::editSomaticReportConfiguration(int row)
@@ -993,6 +1066,59 @@ void CnvWidget::editSomaticReportConfiguration(int row)
 	somatic_report_config_->set(var_config);
 	updateReportConfigHeaderIcon(row);
 	emit storeSomaticReportConfiguration();
+}
+
+void CnvWidget::editCnvValidation(int row)
+{
+	const CopyNumberVariant& cnv = cnvs_[row];
+
+	try
+	{
+		NGSD db;
+
+		//get CNV ID
+		QString callset_id = db.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=:0", true, ps_id_).toString();
+		if (callset_id == "") THROW(DatabaseException, "No CNV callset found for processed sample id " + ps_id_ + "!");
+		QString cnv_id = db.cnvId(cnv, Helper::toInt(callset_id, "callset_id"), false);
+		if (cnv_id == "")
+		{
+			// import CNV into NGSD
+			cnv_id = db.addCnv(Helper::toInt(callset_id, "callset_id"), cnv, cnvs_);
+		}
+
+
+		//get sample ID
+		QString sample_id = db.sampleId(db.processedSampleName(ps_id_));
+
+		//get variant validation ID - add if missing
+		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE cnv_id='" + cnv_id + "' AND sample_id='" + sample_id + "'", true);
+		if (!val_id.isValid())
+		{
+			//insert
+			SqlQuery query = db.getQuery();
+			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_type, cnv_id, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','CNV','" + cnv_id + "','n/a')");
+			val_id = query.lastInsertId();
+		}
+
+		ValidationDialog dlg(this, val_id.toInt());
+
+		if (dlg.exec())
+		{
+			//update DB
+			dlg.store();
+		}
+		else
+		{
+			// remove created but empty validation if ValidationDialog is aborted
+			SqlQuery query = db.getQuery();
+			query.exec("DELETE FROM variant_validation WHERE id=" + val_id.toString());
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+		return;
+	}
 }
 
 void CnvWidget::editSomaticReportConfiguration(const QList<int> &rows)

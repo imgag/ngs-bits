@@ -5,6 +5,7 @@
 #include "LoginManager.h"
 #include "EmailDialog.h"
 #include <QMessageBox>
+#include <QAction>
 
 DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 	: QWidget(parent)
@@ -213,7 +214,7 @@ void DBTableAdministration::resetUserPassword()
 	body << "You can change the password in the GSvar main menu (NGSD > Admin > Change password).";
 	body << "";
 	body << "Best regards, ";
-	body << "  " + db.userName(LoginManager::userId());
+	body << "  " + LoginManager::userName();
 
 	//send
 	EmailDialog dlg(this, QStringList() << to, subject, body);

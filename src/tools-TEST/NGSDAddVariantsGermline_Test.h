@@ -155,7 +155,6 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_report_config.sql"));
 
 		//try to import variants
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -var_force -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar"));
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -cnv_force -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -sv_force -sv " + TESTDATA("data_in/NGSDAddVariantsGermline_in3.bedpe"));
 
@@ -178,8 +177,6 @@ private slots:
 		//check log
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line158.log", TESTDATA("data_out/NGSDAddVariantsGermline_out158.log"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line159.log", TESTDATA("data_out/NGSDAddVariantsGermline_out159.log"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line160.log", TESTDATA("data_out/NGSDAddVariantsGermline_out160.log"));
-
 	}
 };
 

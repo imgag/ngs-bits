@@ -1,11 +1,11 @@
 ### BamFilter tool help
-	BamFilter (2018_06-21-g04d1d5e)
+	BamFilter (2020_09-79-gc6314b21)
 	
-	Filter alignments in BAM file (no input sorting required).
+	Filter alignments in BAM/CRAM file (no input sorting required).
 	
 	Mandatory parameters:
-	  -in <file>    Input BAM file.
-	  -out <file>   Output BAM file.
+	  -in <file>    Input BAM/CRAM file.
+	  -out <file>   Output BAM/CRAM file.
 	
 	Optional parameters:
 	  -minMQ <int>  Minimum mapping quality.
@@ -16,6 +16,10 @@
 	                Default value: '1'
 	  -minDup <int> Minimum number of duplicates.
 	                Default value: '0'
+	  -ref <string> Reference genome for CRAM support (mandatory if CRAM is used).
+	                Default value: ''
+	  -write_cram   Writes a CRAM file as output.
+	                Default value: 'false'
 	
 	Special parameters:
 	  --help        Shows this help and exits.
@@ -24,6 +28,7 @@
 	  --tdx         Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamFilter changelog
-	BamFilter 2018_06-21-g04d1d5e
+	BamFilter 2020_09-79-gc6314b21
 	
+	2020-11-27 Added CRAM support.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

@@ -12,6 +12,8 @@ struct SampleDetails
 	QString status;
 	QString quality;
 	QString gender;
+	QString disease_group;
+	QString disease_status;
 };
 
 struct AnalysisStep
@@ -39,7 +41,8 @@ public:
 	bool highPriority() const;
 
 	//Adds a sample and returns the processed sample ID (or empty string if canelled)
-	static QString addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString sample="", bool throw_if_bam_missing=true, bool force_showing_dialog=false);
+	static QString addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString ps_name="", bool throw_if_bam_missing=true, bool force_showing_dialog=false);
+	static void initTable(QTableWidget* samples_table);
 	static void updateSampleTable(const QList<SampleDetails>& samples, QTableWidget* samples_table);
 	static QList<AnalysisJobSample> samples(const QList<SampleDetails>& samples);
 	static QList<AnalysisStep> loadSteps(QString ini_name);

@@ -24,6 +24,7 @@ FilterWidget::FilterWidget(QWidget *parent)
 
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SIGNAL(filtersChanged()));
+	connect(ui_.cascade_widget, SIGNAL(customFilterLoaded()), this, SLOT(customFilterLoaded()));
 	connect(ui_.filters, SIGNAL(currentIndexChanged(int)), this, SLOT(setFilter(int)));
 	ui_.lab_modified->setHidden(true);
 
@@ -37,7 +38,7 @@ FilterWidget::FilterWidget(QWidget *parent)
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
-	connect(ui_.report_config, SIGNAL(stateChanged(int)), this, SLOT(reportConfigFilterChanged()));
+	connect(ui_.report_config, SIGNAL(currentIndexChanged(int)), this, SLOT(reportConfigFilterChanged()));
 
 	QAction* action = new QAction("clear", this);
 	connect(action, &QAction::triggered, this, &FilterWidget::clearTargetRegion);
@@ -151,12 +152,12 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 		ui_.gene_warning->setHidden(true);
 	}
 
-    //gene
+	//gene
     last_genes_.clear();
     ui_.gene->clear();
 	ui_.text->clear();
 	ui_.region->clear();
-	ui_.report_config->setCheckState(Qt::Unchecked);
+	ui_.report_config->setCurrentIndex(0);
 
 	//phenotype
 	phenotypes_.clear();
@@ -168,16 +169,18 @@ QString FilterWidget::filterFileName()
 	return GSvarHelper::applicationBaseName() + "_filters.ini";
 }
 
-void FilterWidget::setFilter(QString name)
+bool FilterWidget::setFilter(QString name)
 {
 	for (int i=0; i<ui_.filters->count(); ++i)
 	{
 		if (ui_.filters->itemText(i)==name)
 		{
 			ui_.filters->setCurrentIndex(i);
-			return;
+			return true;
 		}
 	}
+
+	return false;
 }
 
 QString FilterWidget::filterName() const
@@ -208,6 +211,23 @@ QString FilterWidget::targetRegion() const
 QString FilterWidget::targetRegionName() const
 {
 	return ui_.roi->currentText();
+}
+
+bool FilterWidget::setTargetRegionName(QString name)
+{
+	QString system = "Processing system: " + name;
+	QString subpanel ="Sub-panel: " + name;
+
+	for (int i=0; i<ui_.roi->count(); ++i)
+	{
+		if (ui_.roi->itemText(i)==system || ui_.roi->itemText(i)==subpanel)
+		{
+			ui_.roi->setCurrentIndex(i);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void FilterWidget::setTargetRegion(QString roi_file)
@@ -246,23 +266,32 @@ void FilterWidget::setRegion(QString region)
 	regionChanged();
 }
 
-bool FilterWidget::reportConfigurationVariantsOnly() const
+ReportConfigFilter FilterWidget::reportConfigurationFilter() const
 {
-	return ui_.report_config->isChecked();
+	if (ui_.report_config->currentIndex()==1)
+	{
+		return ReportConfigFilter::HAS_RC;
+	}
+	else if (ui_.report_config->currentIndex()==2)
+	{
+		return ReportConfigFilter::NO_RC;
+	}
+
+	return ReportConfigFilter::NONE;
 }
 
-void FilterWidget::disableReportConfigurationVariantsOnly() const
+void FilterWidget::disableReportConfigurationFilter() const
 {
-	ui_.report_config->setChecked(false);
+	ui_.report_config->setCurrentIndex(0);
 	ui_.report_config->setEnabled(false);
 }
 
-const QList<Phenotype>& FilterWidget::phenotypes() const
+const PhenotypeList& FilterWidget::phenotypes() const
 {
 	return phenotypes_;
 }
 
-void FilterWidget::setPhenotypes(const QList<Phenotype>& phenotypes)
+void FilterWidget::setPhenotypes(const PhenotypeList& phenotypes)
 {
 	phenotypes_ = phenotypes;
 	phenotypesChanged();
@@ -410,6 +439,17 @@ void FilterWidget::updateFilterName()
 	if (ui_.filters->currentText()=="[none]") return;
 
 	ui_.lab_modified->setHidden(false);
+}
+
+void FilterWidget::customFilterLoaded()
+{
+	ui_.filters->blockSignals(true);
+	ui_.filters->setCurrentIndex(0);
+	ui_.filters->blockSignals(false);
+
+	ui_.lab_modified->setHidden(false);
+
+	emit filtersChanged();
 }
 
 void FilterWidget::showTargetRegionDetails()

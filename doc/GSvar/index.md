@@ -8,6 +8,7 @@
 - [Variant filtering](variant_filtering.md)
 - [CNV analysis](cnv_analysis.md)
 - [SV analysis](sv_analysis.md)
+- [Repeat Expansions](repeat_expansion_view.md)
 - [ROH analysis](roh_analysis.md)
 - [Report generation](report_generation.md)
 

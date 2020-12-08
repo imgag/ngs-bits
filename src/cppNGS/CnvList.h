@@ -129,16 +129,17 @@ class CPPNGSSHARED_EXPORT CnvList
 	public:
 		///Default constructor.
 		CnvList();
+
+		///Returns if the file is valid. It is invalid e.g. after default-construction or calling clear().
+		bool isValid() const;
+
 		///Clears content.
 		void clear();
+
 		///Loads CNV text file (TSV format).
 		void load(QString filename);
-
 		///Stores CNV text file (TSV format).
-		///
-		/// not completeted implementation, final export of CNVs is not implemented yet
 		void store(QString filename);
-
 
 		///Returns the CNV list type
 		CnvListType type() const
@@ -172,7 +173,7 @@ class CPPNGSSHARED_EXPORT CnvList
 		void setHeaderDesciption(QByteArray name, QByteArray desciption);
 
 		///Returns the index of an annotation. -1 is returned if not present and -2 if present multiple times.
-		int annotationIndexByName(const QByteArray& name, bool throw_on_error) const;
+		int annotationIndexByName(const QByteArray& name, bool throw_on_error, bool contains = false) const;
 
 		///Returns the number of variants
 		int count() const

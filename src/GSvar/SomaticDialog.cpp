@@ -9,6 +9,7 @@ SomaticDialog::SomaticDialog(QWidget* parent)
 	, steps_(SingleSampleAnalysisDialog::loadSteps("analysis_steps_somatic"))
 {
 	ui_.setupUi(this);
+	SingleSampleAnalysisDialog::initTable(ui_.samples_table);
 	SingleSampleAnalysisDialog::addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
 }
 
@@ -58,7 +59,10 @@ void SomaticDialog::on_add_samples_clicked(bool)
 	}
 	catch(const AbortByUserException& e)
 	{
-		samples_.clear();
+		if(!( samples_.count() == 1 && samples_[0].status == "tumor" )) //user shall be able to queue tumor only
+		{
+			samples_.clear();
+		}
 	}
 	catch(const Exception& e)
 	{
@@ -73,7 +77,11 @@ void SomaticDialog::on_add_samples_clicked(bool)
 
 void SomaticDialog::updateStartButton()
 {
+	//tumor normal analysis
 	ui_.start_button->setEnabled(samples_.count()==2);
+
+	//tumor only analysis
+	if(samples_.count() == 1 && samples_[0].status == "tumor") ui_.start_button->setEnabled(true);
 }
 
 

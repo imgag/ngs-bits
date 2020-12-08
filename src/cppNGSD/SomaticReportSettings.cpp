@@ -23,7 +23,7 @@ VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const
 	//Adapt filter results to results from report settings
 	for(int index : variant_indices)
 	{
-		filter_res.flags()[index] = sett.report_config.variantConfig(index).showInReport();
+		filter_res.flags()[index] = sett.report_config.variantConfig(index, VariantType::SNVS_INDELS).showInReport();
 	}
 
 
@@ -36,10 +36,10 @@ VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const
 		result.append(snvs[i]);
 
 		//add additional report config info into new empty annotation columns
-		if(variant_indices.contains(i) && sett.report_config.variantConfig(i).showInReport())
+		if(variant_indices.contains(i) && sett.report_config.variantConfig(i, VariantType::SNVS_INDELS).showInReport())
 		{
-			result[result.count()-1].annotations().append(sett.report_config.variantConfig(i).include_variant_alteration.toUtf8());
-			result[result.count()-1].annotations().append(sett.report_config.variantConfig(i).include_variant_description.toUtf8());
+			result[result.count()-1].annotations().append(sett.report_config.variantConfig(i, VariantType::SNVS_INDELS).include_variant_alteration.toUtf8());
+			result[result.count()-1].annotations().append(sett.report_config.variantConfig(i, VariantType::SNVS_INDELS).include_variant_description.toUtf8());
 		}
 		else
 		{
@@ -87,7 +87,7 @@ CnvList SomaticReportSettings::filterCnvs(const CnvList &cnvs, const SomaticRepo
 
 	for(int index : cnv_indices)
 	{
-		cnv_flags[index] = sett.report_config.variantConfig(index).showInReport();
+		cnv_flags[index] = sett.report_config.variantConfig(index, VariantType::CNVS).showInReport();
 	}
 
 	for(int i=0; i<cnvs.count(); ++i)

@@ -25,7 +25,7 @@ Open a *Git CMD* and clone the most recent release (the source code package of G
 
     git clone --recursive https://github.com/imgag/ngs-bits.git
 	cd ngs-bits
-        git checkout 2020_03
+        git checkout 2020_09
 	git submodule update --recursive --init
 
 ## Build
@@ -33,8 +33,8 @@ Open a *Git CMD* and clone the most recent release (the source code package of G
 We can now build ngs-bits:
 
 * Unzip the [htslib](https://github.com/samtools/htslib) headers and DLL from `ngs-bits\htslib\htslib_win.zip`.
-* Build the ngs-bits tools using the QtCreator project file `src\tools.pro`.  
-* Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`.
+* Build the ngs-bits tools using the QtCreator project file `src\tools.pro`. Make sure to build in release mode!  
+* Then, build GSvar and other GUI tools using the *QtCreator* project file `src\tools_gui.pro`. Make sure to build in release mode!  
 
 
 Now the executables can be found in the `bin` folder and can be executed from *QtCreator*.  
@@ -55,7 +55,7 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.9.5\5.9.5\mingw53_32\bin\</td>
-		<td>Qt5Core.dll, Qt5XmlPatterns.dll, Qt5PrintSupport.dll, Qt5Network.dll, Qt5Sql.dll, Qt5Xml.dll, Qt5Gui.dll, Qt5Widgets.dll, Qt5Charts.dll, libgcc_s_dw2-1.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
+		<td>Qt5Charts.dll, Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5PrintSupport.dll, Qt5Sql.dll, Qt5Widgets.dll, Qt5Xml.dll, Qt5XmlPatterns.dll, libgcc_s_dw2-1.dll, libwinpthread-1.dll, libstdc++-6.dll</td>
 	</tr>
 	<tr>
 		<td>C:\Qt\Qt5.9.5\5.9.5\mingw53_32\plugins\</td>

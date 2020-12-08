@@ -9,6 +9,7 @@ TrioDialog::TrioDialog(QWidget* parent)
 	, steps_(SingleSampleAnalysisDialog::loadSteps("analysis_steps_trio"))
 {
 	ui_.setupUi(this);
+	SingleSampleAnalysisDialog::initTable(ui_.samples_table);
 	SingleSampleAnalysisDialog::addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
 
 	connect(ui_.annotate_only, SIGNAL(stateChanged(int)), this, SLOT(annotate_only_state_changed()));
@@ -123,7 +124,7 @@ void TrioDialog::annotate_only_state_changed()
 
 QString TrioDialog::addSample(QString status, QString sample, bool force_showing_dialog)
 {
-	QString ps_id = SingleSampleAnalysisDialog::addSample(db_, status, samples_, sample, true, force_showing_dialog);
+	QString ps_id = SingleSampleAnalysisDialog::addSample(db_, status, samples_, sample, false, force_showing_dialog);
 	if (ps_id.isEmpty()) THROW(AbortByUserException, "");
 	return ps_id;
 }

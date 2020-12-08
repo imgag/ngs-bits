@@ -18,7 +18,7 @@ build_libs_debug_noclean:
 	mkdir -p build-libs-Linux-Debug;
 	cd build-libs-Linux-Debug; \
 		qmake ../src/libs.pro "CONFIG+=debug" "CONFIG-=release"; \
-		make;
+		make -j5;
 
 clean_libs_debug:
 	rm -rf build-libs-Linux-Debug;
@@ -29,7 +29,7 @@ build_tools_debug_noclean:
 	mkdir -p build-tools-Linux-Debug;
 	cd build-tools-Linux-Debug; \
 		qmake ../src/tools.pro "CONFIG+=debug" "CONFIG-=release"; \
-		make;
+		make -j5;
 
 clean_tools_debug:
 	rm -rf build-tools-Linux-Debug;
@@ -43,34 +43,34 @@ build_libs_release:
 	mkdir -p build-libs-Linux-Release;
 	cd build-libs-Linux-Release; \
 		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make;
+		make -j5;
 
 build_tools_release:
 	rm -rf build-tools-Linux-Release;
 	mkdir -p build-tools-Linux-Release;
 	cd build-tools-Linux-Release; \
 		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make;
+		make -j5;
 
 build_gui_release:
 	rm -rf build-tools_gui-Linux-Release;
 	mkdir -p build-tools_gui-Linux-Release;
 	cd build-tools_gui-Linux-Release; \
 		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make;
+		make -j5;
 
 build_release_noclean:
 	cd build-libs-Linux-Release; \
 		qmake ../src/libs.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make;
+		make -j5;
 	cd ..
 	cd build-tools-Linux-Release; \
 		qmake ../src/tools.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make;
+		make -j5;
 	cd ..
 	cd build-tools_gui-Linux-Release; \
 		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
-		make;
+		make -j5;
 	
 #################################### other targets ##################################
 
@@ -88,7 +88,8 @@ test_tools:
 test_single_tool:
 	cd bin && ./tools-TEST -s $(T)
 
-DEP_PATH=/mnt/share/opt/ngs-bits-$(shell  bin/SeqPurge --version | cut -d' ' -f2)/
+NGSBITS_VER = $(shell  bin/SeqPurge --version | cut -d' ' -f2)/
+DEP_PATH=/mnt/share/opt/ngs-bits-$(NGSBITS_VER)
 deploy_nobuild:
 	@echo "#Clean up source"
 	rm -rf bin/out bin/*-TEST
@@ -103,7 +104,7 @@ deploy_nobuild:
 	@echo ""
 	@echo "#Activating"
 	@echo "You can active the new build using the command:"
-	@echo "rm /mnt/share/opt/ngs-bits-current && ln -s $(DEP_PATH) /mnt/share/opt/ngs-bits-current"
+	@echo "cd /mnt/share/opt/ && rm ngs-bits-current && ln -s ngs-bits-$(NGSBITS_VER) ngs-bits-current"
 	@echo ""
 	@echo "#Deploy settings"
 	cp /mnt/share/opt/ngs-bits-settings/settings.ini $(DEP_PATH)settings.ini
@@ -139,11 +140,18 @@ doc_check_urls:
 doc_find_missing_tools:
 	ls doc/tools/ | grep .md | cut -f1 -d. | sort > /tmp/tools.txt
 	grep "doc/tools/" README.md | tr "]" "[" | cut -f2 -d[ | sort > /tmp/tools_linked.txt
-	diff /tmp/tools.txt /tmp/tools_linked.txt | grep "<" | cut -f2 -d' '
+	diff /tmp/tools.txt /tmp/tools_linked.txt | grep "<" | cut -f2 -d' ' | egrep -v "^Tsv|^NGSDImport|^NGSDExport|^NGSDAddVariants|NGSDInit|NGSDMaintain|BamCleanHaloplex"
 
 find_text:
 	find src/ doc/ tools/ -name "*.md" -or -name "*.cpp" -or -name "*.h" -or -name "*.sql" -or -name "*.pro" -or -name "*.pri" | xargs -l100000 grep $(T) 
-	
+
+
+check_tool_ngsd_dependencies:
+	find src/ -name "*.pro" | xargs grep lcppNGSD | cut -f2 -d/ | egrep -v "GSvar|cppNGSD-TEST" | sort > cppNGSD_should
+	grep ".depends" src/tools.pro  | grep cppNGSD | cut -f1 -d'.' | egrep -v "cppNGS" | sort > cppNGSD_is
+	diff cppNGSD_is cppNGSD_should
+	rm -rf cppNGSD_is cppNGSD_should
+
 dummy:
 
 #################################### 3rd party  ##################################

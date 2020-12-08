@@ -20,12 +20,16 @@ public:
 	void setData(const DBTable& table);
 	//returns the column index, or throws ArgumentException if column is not present.
 	int columnIndex(const QString& column_header) const;
+	//returns the column name, or throws ArgumentException if column is not present.
+	QString columnHeader(int index) const;
 	//Converts quality values to icons
 	void setQualityIcons(const QString& column_header, const QStringList& quality_values);
 	//Set tooltips for a column
 	void setColumnTooltips(const QString& column_header, const QStringList& tooltips);
 	//Set background color for a column
 	void setColumnColors(const QString& column_header, const QList<QColor>& colors);
+	//Set background color for a column if text matches
+	void setBackgroundColorIfContains(const QString& column_header, const QColor& color, const QString& substring);
 	//Set background color for a column if text matches
 	void setBackgroundColorIfEqual(const QString& column_header, const QColor& color, const QString& text);
 	//Set background color for a column if the cell contains a number and if lower than the cutoff.
@@ -49,12 +53,17 @@ public:
 		}
 	}
 
-	//Returns selected row indices
+	//Returns selected row indices.
 	QSet<int> selectedRows() const;
+	//Returns selected column indices (use only, if you changed selection behaviour).
+	QSet<int> selectedColumns() const;
 	//Returns the database ID of row r
 	const QString& getId(int r) const;
 	//Returns the database table name
 	const QString& tableName() const;
+
+	//Style cell by quality
+	static void styleQuality(QTableWidgetItem* item, const QString& quality);
 
 signals:
 	//Emitted if a row is double-clicked

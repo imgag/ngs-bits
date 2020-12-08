@@ -1,6 +1,6 @@
 /*  hfile.c -- buffered low-level input/output streams.
 
-    Copyright (C) 2013-2016 Genome Research Ltd.
+    Copyright (C) 2013-2020 Genome Research Ltd.
 
     Author: John Marshall <jm18@sanger.ac.uk>
 
@@ -22,6 +22,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.  */
 
+#define HTS_BUILDING_LIBRARY // Enables HTSLIB_EXPORT, see htslib/hts_defs.h
 #include <config.h>
 
 #include <stdio.h>
@@ -33,8 +34,16 @@ DEALINGS IN THE SOFTWARE.  */
 
 #include <pthread.h>
 
+#ifdef ENABLE_PLUGINS
+#if defined(_WIN32) || defined(__CYGWIN__) || defined(__MSYS__)
+#define USING_WINDOWS_PLUGIN_DLLS
+#include <dlfcn.h>
+#endif
+#endif
+
 #include "htslib/hfile.h"
 #include "hfile_internal.h"
+#include "htslib/kstring.h"
 
 #ifndef ENOTSUP
 #define ENOTSUP EINVAL
@@ -92,7 +101,7 @@ for seek():
    abcdefghijkLMNOPQRSTUVWXYZ------
    ^buffer    ^begin         ^end  ^limit
 */
-
+HTSLIB_EXPORT
 hFILE *hfile_init(size_t struct_size, const char *mode, size_t capacity)
 {
     hFILE *fp = (hFILE *) malloc(struct_size);
@@ -140,6 +149,7 @@ hFILE *hfile_init_fixed(size_t struct_size, const char *mode,
 
 static const struct hFILE_backend mem_backend;
 
+HTSLIB_EXPORT
 void hfile_destroy(hFILE *fp)
 {
     int save = errno;
@@ -189,6 +199,7 @@ static ssize_t refill_buffer(hFILE *fp)
  * Returns 0 on success;
  *        -1 on failure.
  */
+HTSLIB_EXPORT
 int hfile_set_blksize(hFILE *fp, size_t bufsiz) {
     char *buffer;
     ptrdiff_t curr_used;
@@ -211,6 +222,7 @@ int hfile_set_blksize(hFILE *fp, size_t bufsiz) {
 }
 
 /* Called only from hgetc(), when our buffer is empty.  */
+HTSLIB_EXPORT
 int hgetc2(hFILE *fp)
 {
     return (refill_buffer(fp) > 0)? (unsigned char) *(fp->begin++) : EOF;
@@ -292,6 +304,7 @@ ssize_t hpeek(hFILE *fp, void *buffer, size_t nbytes)
 
 /* Called only from hread(); when called, our buffer is empty and nread bytes
    have already been placed in the destination buffer.  */
+HTSLIB_EXPORT
 ssize_t hread2(hFILE *fp, void *destv, size_t nbytes, size_t nread)
 {
     const size_t capacity = fp->limit - fp->buffer;
@@ -361,6 +374,7 @@ int hflush(hFILE *fp)
 }
 
 /* Called only from hputc(), when our buffer is already full.  */
+HTSLIB_EXPORT
 int hputc2(int c, hFILE *fp)
 {
     if (flush_buffer(fp) < 0) return EOF;
@@ -368,8 +382,11 @@ int hputc2(int c, hFILE *fp)
     return c;
 }
 
-/* Called only from hwrite() and hputs2(); when called, our buffer is full and
-   ncopied bytes from the source have already been copied to our buffer.  */
+/* Called only from hwrite() and hputs2(); when called, our buffer is either
+   full and ncopied bytes from the source have already been copied to our
+   buffer; or completely empty, ncopied is zero and totalbytes is greater than
+   the buffer size.  */
+HTSLIB_EXPORT
 ssize_t hwrite2(hFILE *fp, const void *srcv, size_t totalbytes, size_t ncopied)
 {
     const char *src = (const char *) srcv;
@@ -397,6 +414,7 @@ ssize_t hwrite2(hFILE *fp, const void *srcv, size_t totalbytes, size_t ncopied)
 }
 
 /* Called only from hputs(), when our buffer is already full.  */
+HTSLIB_EXPORT
 int hputs2(const char *text, size_t totalbytes, size_t ncopied, hFILE *fp)
 {
     return (hwrite2(fp, text, totalbytes, ncopied) >= 0)? 0 : EOF;
@@ -684,9 +702,9 @@ static hFILE *hopen_fd_fileuri(const char *url, const char *mode)
     else if (strncmp(url, "file:///", 8) == 0) url += 7;
     else { errno = EPROTONOSUPPORT; return NULL; }
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__MSYS__)
     // For cases like C:/foo
-    if (url[0] == '/' && url[2] == ':' && url[3] == '/') url++;
+    if (url[0] == '/' && url[1] && url[2] == ':' && url[3] == '/') url++;
 #endif
 
     return hopen_fd(url, mode);
@@ -701,6 +719,7 @@ static hFILE *hopen_fd_stdinout(const char *mode)
     return hdopen(fd, mode);
 }
 
+HTSLIB_EXPORT
 int hfile_oflags(const char *mode)
 {
     int rdwr = 0, flags = 0;
@@ -806,7 +825,7 @@ static hFILE *hopen_mem(const char *url, const char *mode)
     return hf;
 }
 
-hFILE *hopenv_mem(const char *filename, const char *mode, va_list args)
+static hFILE *hopenv_mem(const char *filename, const char *mode, va_list args)
 {
     char* buffer = va_arg(args, char*);
     size_t sz = va_arg(args, size_t);
@@ -851,6 +870,41 @@ int hfile_plugin_init_mem(struct hFILE_plugin *self)
     return 0;
 }
 
+/**********************************************************************
+ * Dummy crypt4gh plug-in.  Does nothing apart from advise how to get *
+ * the real one.  It will be overridden by the actual plug-in.        *
+ **********************************************************************/
+
+static hFILE *crypt4gh_needed(const char *url, const char *mode)
+{
+    const char *u = strncmp(url, "crypt4gh:", 9) == 0 ? url + 9 : url;
+#if defined(ENABLE_PLUGINS)
+    const char *enable_plugins = "";
+#else
+    const char *enable_plugins = "You also need to rebuild HTSlib with plug-ins enabled.\n";
+#endif
+
+    hts_log_error("Accessing \"%s\" needs the crypt4gh plug-in.\n"
+                  "It can be found at "
+                  "https://github.com/samtools/htslib-crypt4gh\n"
+                  "%s"
+                  "If you have the plug-in, please ensure it can be "
+                  "found on your HTS_PATH.",
+                  u, enable_plugins);
+
+    errno = EPROTONOSUPPORT;
+    return NULL;
+}
+
+int hfile_plugin_init_crypt4gh_needed(struct hFILE_plugin *self)
+{
+    static const struct hFILE_scheme_handler handler =
+        { crypt4gh_needed, NULL, "crypt4gh-needed", 0, NULL };
+    self->name = "crypt4gh-needed";
+    hfile_add_scheme_handler("crypt4gh", &handler);
+    return 0;
+}
+
 
 /*****************************************
  * Plugin and hopen() backend dispatcher *
@@ -869,23 +923,31 @@ struct hFILE_plugin_list {
 static struct hFILE_plugin_list *plugins = NULL;
 static pthread_mutex_t plugins_lock = PTHREAD_MUTEX_INITIALIZER;
 
-static void hfile_exit()
+void hfile_shutdown(int do_close_plugin)
 {
     pthread_mutex_lock(&plugins_lock);
 
-    kh_destroy(scheme_string, schemes);
+    if (schemes) {
+        kh_destroy(scheme_string, schemes);
+        schemes = NULL;
+    }
 
     while (plugins != NULL) {
         struct hFILE_plugin_list *p = plugins;
         if (p->plugin.destroy) p->plugin.destroy();
 #ifdef ENABLE_PLUGINS
-        if (p->plugin.obj) close_plugin(p->plugin.obj);
+        if (p->plugin.obj && do_close_plugin) close_plugin(p->plugin.obj);
 #endif
         plugins = p->next;
         free(p);
     }
 
     pthread_mutex_unlock(&plugins_lock);
+}
+
+static void hfile_exit()
+{
+    hfile_shutdown(0);
     pthread_mutex_destroy(&plugins_lock);
 }
 
@@ -894,11 +956,60 @@ static inline int priority(const struct hFILE_scheme_handler *handler)
     return handler->priority % 1000;
 }
 
+#ifdef USING_WINDOWS_PLUGIN_DLLS
+/*
+ * Work-around for Windows plug-in dlls where the plug-in could be
+ * using a different HTSlib library to the executable (for example
+ * because the latter was build against a static libhts.a).  When this
+ * happens, the plug-in can call the wrong copy of hfile_add_scheme_handler().
+ * If this is detected, it calls this function which attempts to fix the
+ * problem by redirecting to the hfile_add_scheme_handler() in the main
+ * executable.
+ */
+static int try_exe_add_scheme_handler(const char *scheme,
+                                      const struct hFILE_scheme_handler *handler)
+{
+    static void (*add_scheme_handler)(const char *scheme,
+                                      const struct hFILE_scheme_handler *handler);
+    if (!add_scheme_handler) {
+        // dlopen the main executable and resolve hfile_add_scheme_handler
+        void *exe_handle = dlopen(NULL, RTLD_LAZY);
+        if (!exe_handle) return -1;
+        *(void **) (&add_scheme_handler) = dlsym(exe_handle, "hfile_add_scheme_handler");
+        dlclose(exe_handle);
+    }
+    // Check that the symbol was obtained and isn't the one in this copy
+    // of the library (to avoid infinite recursion)
+    if (!add_scheme_handler || add_scheme_handler == hfile_add_scheme_handler)
+        return -1;
+    add_scheme_handler(scheme, handler);
+    return 0;
+}
+#else
+static int try_exe_add_scheme_handler(const char *scheme,
+                                      const struct hFILE_scheme_handler *handler)
+{
+    return -1;
+}
+#endif
+
+HTSLIB_EXPORT
 void hfile_add_scheme_handler(const char *scheme,
                               const struct hFILE_scheme_handler *handler)
 {
     int absent;
+    if (!schemes) {
+        if (try_exe_add_scheme_handler(scheme, handler) != 0) {
+            hts_log_warning("Couldn't register scheme handler for %s", scheme);
+        }
+        return;
+    }
     khint_t k = kh_put(scheme_string, schemes, scheme, &absent);
+    if (absent < 0) {
+        hts_log_warning("Couldn't register scheme handler for %s : %s",
+                        scheme, strerror(errno));
+        return;
+    }
     if (absent || priority(handler) > priority(kh_value(schemes, k))) {
         kh_value(schemes, k) = handler;
     }
@@ -908,7 +1019,10 @@ static int init_add_plugin(void *obj, int (*init)(struct hFILE_plugin *),
                            const char *pluginname)
 {
     struct hFILE_plugin_list *p = malloc (sizeof (struct hFILE_plugin_list));
-    if (p == NULL) abort();
+    if (p == NULL) {
+        hts_log_debug("Failed to allocate memory for plugin \"%s\"", pluginname);
+        return -1;
+    }
 
     p->plugin.api_version = 1;
     p->plugin.obj = obj;
@@ -929,7 +1043,11 @@ static int init_add_plugin(void *obj, int (*init)(struct hFILE_plugin *),
     return 0;
 }
 
-static void load_hfile_plugins()
+/*
+ * Returns 0 on success,
+ *        <0 on failure
+ */
+static int load_hfile_plugins()
 {
     static const struct hFILE_scheme_handler
         data = { hopen_mem, hfile_always_local, "built-in", 80 },
@@ -937,13 +1055,15 @@ static void load_hfile_plugins()
         preload = { hopen_preload, is_preload_url_remote, "built-in", 80 };
 
     schemes = kh_init(scheme_string);
-    if (schemes == NULL) abort();
+    if (schemes == NULL)
+        return -1;
 
     hfile_add_scheme_handler("data", &data);
     hfile_add_scheme_handler("file", &file);
     hfile_add_scheme_handler("preload", &preload);
     init_add_plugin(NULL, hfile_plugin_init_net, "knetfile");
     init_add_plugin(NULL, hfile_plugin_init_mem, "mem");
+    init_add_plugin(NULL, hfile_plugin_init_crypt4gh_needed, "crypt4gh-needed");
 
 #ifdef ENABLE_PLUGINS
     struct hts_path_itr path;
@@ -969,6 +1089,7 @@ static void load_hfile_plugins()
 #endif
 #ifdef ENABLE_S3
     init_add_plugin(NULL, hfile_plugin_init_s3, "s3");
+    init_add_plugin(NULL, hfile_plugin_init_s3_write, "s3w");
 #endif
 
 #endif
@@ -977,6 +1098,8 @@ static void load_hfile_plugins()
     // carry on; then eventually when the program exits, we'll merely close
     // down the plugins uncleanly, as if we had aborted.
     (void) atexit(hfile_exit);
+
+    return 0;
 }
 
 /* A filename like "foo:bar" in which we don't recognise the scheme is
@@ -1010,7 +1133,10 @@ static const struct hFILE_scheme_handler *find_scheme_handler(const char *s)
     scheme[i] = '\0';
 
     pthread_mutex_lock(&plugins_lock);
-    if (! schemes) load_hfile_plugins();
+    if (!schemes && load_hfile_plugins() < 0) {
+        pthread_mutex_unlock(&plugins_lock);
+        return NULL;
+    }
     pthread_mutex_unlock(&plugins_lock);
 
     khint_t k = kh_get(scheme_string, schemes, scheme);
@@ -1039,11 +1165,51 @@ hFILE *hopen(const char *fname, const char *mode, ...)
     else return hopen_fd(fname, mode);
 }
 
+HTSLIB_EXPORT
 int hfile_always_local (const char *fname) { return 0; }
+
+HTSLIB_EXPORT
 int hfile_always_remote(const char *fname) { return 1; }
 
 int hisremote(const char *fname)
 {
     const struct hFILE_scheme_handler *handler = find_scheme_handler(fname);
     return handler? handler->isremote(fname) : 0;
+}
+
+// Remove an extension, if any, from the basename part of [start,limit).
+// Note: Doesn't notice percent-encoded '.' and '/' characters. Don't do that.
+static const char *strip_extension(const char *start, const char *limit)
+{
+    const char *s = limit;
+    while (s > start) {
+        --s;
+        if (*s == '.') return s;
+        else if (*s == '/') break;
+    }
+    return limit;
+}
+
+char *haddextension(struct kstring_t *buffer, const char *filename,
+                    int replace, const char *new_extension)
+{
+    const char *trailing, *end;
+
+    if (find_scheme_handler(filename)) {
+        // URL, so alter extensions before any trailing query or fragment parts
+        // Allow # symbols in s3 URLs
+        trailing = filename + ((strncmp(filename, "s3://", 5) && strncmp(filename, "s3+http://", 10) && strncmp(filename, "s3+https://", 11))  ? strcspn(filename, "?#") : strcspn(filename, "?"));
+    }
+    else {
+        // Local path, so alter extensions at the end of the filename
+        trailing = strchr(filename, '\0');
+    }
+
+    end = replace? strip_extension(filename, trailing) : trailing;
+
+    buffer->l = 0;
+    if (kputsn(filename, end - filename, buffer) >= 0 &&
+        kputs(new_extension, buffer) >= 0 &&
+        kputs(trailing, buffer) >= 0) return buffer->s;
+    else return NULL;
 }

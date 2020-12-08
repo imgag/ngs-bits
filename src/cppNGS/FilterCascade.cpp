@@ -16,6 +16,25 @@ FilterParameter::FilterParameter(QString n, FilterParameterType t, QVariant v, Q
 {
 }
 
+QString FilterParameter::valueAsString() const
+{
+	if (type==INT || type==DOUBLE || type==STRING)
+	{
+		return value.toString();
+	}
+	else if (type==BOOL)
+	{
+		return value.toBool() ? "yes" : "no";
+	}
+	else if (type==STRINGLIST)
+	{
+		return value.toStringList().join(",");
+	}
+	else
+	{
+		THROW(ProgrammingException, "Missing type in FilterParameter::typeAsString!");
+	}
+}
 
 QString FilterParameter::typeAsString(FilterParameterType type)
 {
@@ -45,6 +64,16 @@ QString FilterParameter::typeAsString(FilterParameterType type)
 	}
 }
 
+bool FilterParameter::operator==(const FilterParameter& rhs) const
+{
+	if (name!=rhs.name) return false;
+	if (type!=rhs.type) return false;
+	if (value.type()!=rhs.value.type()) return false;
+	if (valueAsString()!=rhs.valueAsString()) return false;
+
+	return true;
+}
+
 
 /*************************************************** FilterResult ***************************************************/
 
@@ -71,6 +100,32 @@ void FilterResult::removeFlagged(VariantList& variants)
 			if (to_index!=i)
 			{
 				variants[to_index] = variants[i];
+			}
+			++to_index;
+		}
+	}
+
+	//resize to new size
+	variants.resize(to_index);
+
+	//update flags
+	pass = QBitArray(variants.count(), true);
+}
+
+void FilterResult::removeFlagged(VcfFile& variants)
+{
+	//skip if all variants pass
+	if (countPassing()==variants.count()) return;
+
+	//move passing variant to the front of the variant list
+	int to_index = 0;
+	for (int i=0; i<variants.count(); ++i)
+	{
+		if (pass[i])
+		{
+			if (to_index!=i)
+			{
+				variants.vcfLine(to_index) = variants.vcfLine(i);
 			}
 			++to_index;
 		}
@@ -142,6 +197,25 @@ void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArr
 		if (!pass[i])
 		{
 			variants[i].addFilter(tag, index);
+		}
+	}
+}
+
+void FilterResult::tagNonPassing(VcfFile& variants, QByteArray tag, QString description)
+{
+
+	//add tag description (if missing)
+	if (!variants.filterIDs().contains(tag))
+	{
+		variants.vcfHeader().addFilter(tag, description);
+	}
+
+	//tag variants that did not pass
+	for (int i=0; i<variants.count(); ++i)
+	{
+		if (!pass[i])
+		{
+			variants[i].addFilter(tag);
 		}
 	}
 }
@@ -276,6 +350,12 @@ void FilterBase::apply(const VariantList& /*variant_list*/, FilterResult& /*resu
 {
 	THROW(NotImplementedException, "Method apply on VariantList not implemented for filter '" + name() + "'!");
 }
+
+void FilterBase::apply(const VcfFile& /*variants*/, FilterResult& /*result*/) const
+{
+	THROW(NotImplementedException, "Method apply on VcfFileHandler not implemented for filter '" + name() + "'!");
+}
+
 
 void FilterBase::apply(const CnvList& /*variant_list*/, FilterResult& /*result*/) const
 {
@@ -635,6 +715,75 @@ QStringList FilterCascade::errors(int index) const
 	return errors_[index];
 }
 
+void FilterCascade::load(QString filename)
+{
+	//clear contents
+	clear();
+
+	//load filters from file
+	QStringList lines = Helper::loadTextFile(filename, true, QChar::Null, true);
+	this->operator=(fromText(lines));
+}
+
+void FilterCascade::store(QString filename)
+{
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+	foreach(QSharedPointer<FilterBase> filter, filters_)
+	{
+		QStringList params;
+		foreach(const FilterParameter& param, filter->parameters())
+		{
+			params << param.name + "=" + param.valueAsString();
+		}
+		if (!filter->enabled()) params << "disabled";
+
+		QString line = filter->name() + "\t" + params.join("\t") + "\n";
+
+		file->write(line.toLatin1());
+	}
+	file->close();
+}
+
+FilterCascade FilterCascade::fromText(const QStringList& lines)
+{
+	FilterCascade output;
+
+	foreach(QString line, lines)
+	{
+		line = line.trimmed();
+		if (line.isEmpty()) continue;
+
+		QStringList parts = line.split("\t");
+		QString name = parts[0];
+		output.add(FilterFactory::create(name, parts.mid(1)));
+	}
+
+	return output;
+}
+
+bool FilterCascade::operator==(const FilterCascade& rhs) const
+{
+	if (filters_.count()!=rhs.filters_.count()) return false;
+	for (int i=0; i<filters_.count(); ++i)
+	{
+		QSharedPointer<FilterBase> f1 = filters_[i];
+		QSharedPointer<FilterBase> f2 = rhs.filters_[i];
+
+		//comare name/type
+		if (f1->name()!=f2->name()) return false;
+		if (f1->type()!=f2->type()) return false;
+
+		//compare parameters
+		if (f1->parameters().count()!=f2->parameters().count()) return false;
+		for (int j=0; j<f1->parameters().count(); ++j)
+		{
+			if (f1->parameters()[j]!=f2->parameters()[j]) return false;
+		}
+	}
+
+	return true;
+}
+
 /*************************************************** FilterCascadeFile ***************************************************/
 
 QStringList FilterCascadeFile::names(QString filename)
@@ -654,12 +803,12 @@ QStringList FilterCascadeFile::names(QString filename)
 
 FilterCascade FilterCascadeFile::load(QString filename, QString filter)
 {
-	FilterCascade output;
-
 	QStringList filter_file = Helper::loadTextFile(filename, true, QChar::Null, true);
 
+	//extract text of filter
+	QStringList filter_text;
 	bool in_filter = false;
-	foreach(QString line, filter_file)
+	foreach(const QString& line, filter_file)
 	{
 		if (line.startsWith("#"))
 		{
@@ -667,13 +816,11 @@ FilterCascade FilterCascadeFile::load(QString filename, QString filter)
 		}
 		else if (in_filter)
 		{
-			QStringList parts = line.trimmed().split('\t');
-			QString name = parts[0];
-			output.add(FilterFactory::create(name, parts.mid(1)));
+			filter_text << line;
 		}
 	}
 
-	return output;
+	return FilterCascade::fromText(filter_text);
 }
 
 
@@ -762,6 +909,9 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["OMIM genes"] = &createInstance<FilterOMIM>;
 		output["Conservedness"] = &createInstance<FilterConservedness>;
 		output["Regulatory"] = &createInstance<FilterRegulatory>;
+		output["Somatic allele frequency"] = &createInstance<FilterSomaticAlleleFrequency>;
+		output["tumor zygosity"] = &createInstance<FilterTumorOnlyHomHet>;
+		output["GSvar score/rank"] = &createInstance<FilterGSvarScoreAndRank>;
 		output["CNV size"] = &createInstance<FilterCnvSize>;
 		output["CNV regions"] = &createInstance<FilterCnvRegions>;
 		output["CNV copy-number"] = &createInstance<FilterCnvCopyNumber>;
@@ -923,6 +1073,38 @@ void FilterRegions::apply(const VariantList& variants, const BedFile& regions, F
 	}
 }
 
+void FilterRegions::apply(const VcfFile& variants, const BedFile& regions, FilterResult& result)
+{
+	//check regions
+	if(!regions.isMergedAndSorted())
+	{
+		THROW(ArgumentException, "Cannot filter variant list by regions that are not merged/sorted!");
+	}
+
+	//special case when only one region is contained
+	if (regions.count()==1)
+	{
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			result.flags()[i] = variants[i].overlapsWith(regions[0]);
+		}
+		return;
+	}
+
+	//general case with many regions
+	ChromosomalIndex<BedFile> regions_idx(regions);
+	for (int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		const  VcfLine& v = variants[i];
+		int index = regions_idx.matchingIndex(v.chr(), v.start(), v.end());
+		result.flags()[i] = (index!=-1);
+	}
+}
+
 
 FilterFilterColumnEmpty::FilterFilterColumnEmpty()
 {
@@ -949,6 +1131,18 @@ void FilterFilterColumnEmpty::apply(const VariantList& variants, FilterResult& r
 	}
 }
 
+void FilterFilterColumnEmpty::apply(const VcfFile& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		result.flags()[i] = variants.vcfLine(i).failedFilters().isEmpty();
+	}
+}
+
 FilterVariantIsSNP::FilterVariantIsSNP()
 {
 	name_ = "SNPs only";
@@ -963,6 +1157,17 @@ QString FilterVariantIsSNP::toText() const
 }
 
 void FilterVariantIsSNP::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		result.flags()[i] = variants[i].isSNV();
+	}
+}
+void FilterVariantIsSNP::apply(const VcfFile& variants, FilterResult& result) const
 {
 	if (!enabled_) return;
 
@@ -1956,19 +2161,23 @@ FilterVariantQC::FilterVariantQC()
 {
 	name_ = "Variant quality";
 	description_ = QStringList() << "Filter for variant quality";
-	params_ << FilterParameter("qual", INT, 30, "Minimum variant quality score (Phred)");
+	params_ << FilterParameter("qual", INT, 250, "Minimum variant quality score (Phred)");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("depth", INT, 20, "Minimum depth");
+	params_ << FilterParameter("depth", INT, 0, "Minimum depth");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("mapq", INT, 55, "Minimum mapping quality of alternate allele (Phred)");
+	params_ << FilterParameter("mapq", INT, 40, "Minimum mapping quality of alternate allele (Phred)");
 	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("strand_bias", INT, 20, "Maximum strand bias Phred score of alternate allele (set -1 to disable)");
+	params_.last().constraints["min"] = "-1";
+	params_ << FilterParameter("allele_balance", INT, 40, "Maximum allele balance Phred score (set -1 to disable)");
+	params_.last().constraints["min"] = "-1";
 
 	checkIsRegistered();
 }
 
 QString FilterVariantQC::toText() const
 {
-	return name() + " qual&ge;" + QString::number(getInt("qual", false)) + " depth&ge;" + QString::number(getInt("depth", false)) + " mapq&ge;" + QString::number(getInt("mapq", false));
+	return name() + " qual&ge;" + QString::number(getInt("qual", false)) + " depth&ge;" + QString::number(getInt("depth", false)) + " mapq&ge;" + QString::number(getInt("mapq", false)) + " strand_bias&le;" + QString::number(getInt("strand_bias", false)) + " allele_balance&le;" + QString::number(getInt("allele_balance", false));
 }
 
 void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) const
@@ -1979,6 +2188,8 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 	int qual = getInt("qual");
 	int depth = getInt("depth");
 	int mapq = getInt("mapq");
+	int strand_bias = getInt("strand_bias");
+	int allele_balance = getInt("allele_balance");
 
 	for(int i=0; i<variants.count(); ++i)
 	{
@@ -1988,7 +2199,11 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 		{
 			if (part.startsWith("QUAL="))
 			{
-				if (part.mid(5).toInt()<qual)
+				//also handle floats (should not be necessary, but floats were used due to a bug in the somatic single-sample pipeline)
+				QByteArray qual_str = part.mid(5);
+				if (qual_str.contains('.')) qual_str = qual_str.left(qual_str.indexOf('.'));
+
+				if (qual_str.toInt()<qual)
 				{
 					result.flags()[i] = false;
 				}
@@ -2017,6 +2232,20 @@ void FilterVariantQC::apply(const VariantList& variants, FilterResult& result) c
 			else if (part.startsWith("MQM="))
 			{
 				if (part.mid(4).toInt()<mapq)
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else if (strand_bias>=0 && part.startsWith("SAP="))
+			{
+				if (part.mid(4).toInt()>strand_bias)
+				{
+					result.flags()[i] = false;
+				}
+			}
+			else if (allele_balance>=0 && part.startsWith("ABP="))
+			{
+				if (part.mid(4).toInt()>allele_balance)
 				{
 					result.flags()[i] = false;
 				}
@@ -3340,8 +3569,8 @@ FilterSvPairedReadAF::FilterSvPairedReadAF()
 {
 	name_ = "SV paired read AF";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Show only SVs with a certain Paired Read Allele Frequency ± 10%";
-	params_ << FilterParameter("Paired Read AF", DOUBLE, 0.0, "Paired Read Allele Frequency ± 10%");
+	description_ = QStringList() << "Show only SVs with a certain Paired Read Allele Frequency +/- 10%";
+	params_ << FilterParameter("Paired Read AF", DOUBLE, 0.0, "Paired Read Allele Frequency +/- 10%");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -3351,7 +3580,7 @@ FilterSvPairedReadAF::FilterSvPairedReadAF()
 
 QString FilterSvPairedReadAF::toText() const
 {
-	return name() + " = " + QByteArray::number(getDouble("Paired Read AF", false), 'f', 2) + "  ± 10%";
+	return name() + " = " + QByteArray::number(getDouble("Paired Read AF", false), 'f', 2) + " &plusmn; 10%";
 }
 
 void FilterSvPairedReadAF::apply(const BedpeFile& svs, FilterResult& result) const
@@ -3399,8 +3628,8 @@ FilterSvSplitReadAF::FilterSvSplitReadAF()
 {
 	name_ = "SV split read AF";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Show only SVs with a certain Split Read Allele Frequency ± 10%";
-	params_ << FilterParameter("Split Read AF", DOUBLE, 0.0, "Split Read Allele Frequency ± 10%");
+	description_ = QStringList() << "Show only SVs with a certain Split Read Allele Frequency +/- 10%";
+	params_ << FilterParameter("Split Read AF", DOUBLE, 0.0, "Split Read Allele Frequency +/- 10%");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -3410,7 +3639,7 @@ FilterSvSplitReadAF::FilterSvSplitReadAF()
 
 QString FilterSvSplitReadAF::toText() const
 {
-	return name() + " = " + QByteArray::number(getDouble("Split Read AF", false), 'f', 2) + "  ± 10%";
+	return name() + " = " + QByteArray::number(getDouble("Split Read AF", false), 'f', 2) + " &plusmn; 10%";
 }
 
 void FilterSvSplitReadAF::apply(const BedpeFile& svs, FilterResult& result) const
@@ -3962,11 +4191,182 @@ void FilterSvAfNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 
 		result.flags()[i] = Helper::toDouble(svs[i].annotations()[ngsd_col_index].split('(')[1].split(')')[0], "NGSD count column", QString::number(i)) <= max_af;
 	}
-
 }
 
+FilterSomaticAlleleFrequency::FilterSomaticAlleleFrequency()
+{
+	name_ = "Somatic allele frequency";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the allele frequency of variants in tumor/normal samples.";
+	params_ << FilterParameter("min_af_tum", DOUBLE, 5.0, "Minimum allele frequency in tumor sample [%]");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "100.0";
+	params_ << FilterParameter("max_af_nor", DOUBLE, 1.0, "Maximum allele frequency in normal sample [%]");
+	params_.last().constraints["min"] = "0.0";
+	params_.last().constraints["max"] = "100.0";
 
+	checkIsRegistered();
+}
 
+QString FilterSomaticAlleleFrequency::toText() const
+{
+	QString text = name();
 
+	double min_af_tum = getDouble("min_af_tum", false);
+	if (min_af_tum>0.0)
+	{
+		text += " min_af_tum&ge;" + QString::number(min_af_tum) + "%";
+	}
 
+	double max_af_nor = getDouble("max_af_nor", false);
+	if (max_af_nor<1.0)
+	{
+		text += " max_af_nor&le;" + QString::number(max_af_nor) + "%";
+	}
 
+	return text;
+}
+
+void FilterSomaticAlleleFrequency::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double min_af_tum = getDouble("min_af_tum")/100.0;
+	if (min_af_tum>0.0)
+	{
+		int i_af = annotationColumn(variants, "tumor_af");
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (variants[i].annotations()[i_af].toDouble()<min_af_tum)
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+
+	double max_af_nor = getDouble("max_af_nor")/100.0;
+	if (max_af_nor<1.0)
+	{
+		int i_af = annotationColumn(variants, "normal_af");
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (variants[i].annotations()[i_af].toDouble()>max_af_nor)
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+}
+
+FilterTumorOnlyHomHet::FilterTumorOnlyHomHet()
+{
+	name_ = "tumor zygosity";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the zygosity of tumor-only samples. Filters out het/hom calls.";
+	params_ << FilterParameter("het_af_range", DOUBLE, 0.0, "Consider allele frequencies of 50% &plusmn; het_af_range as heterozygous and thus as germline.");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "49.9";
+	params_ << FilterParameter("hom_af_range", DOUBLE, 0.0, "Consider allele frequencies of 100% &plusmn; hom_af_range as homozygous and thus as germline.");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "99.9";
+
+	checkIsRegistered();
+}
+
+QString FilterTumorOnlyHomHet::toText() const
+{
+	QString text = name();
+
+	double het_af_range = getDouble("het_af_range", false);
+	if(het_af_range != 0.0)
+	{
+		text += ", het=50%&plusmn;" + QString::number(het_af_range) + "%";
+	}
+
+	double hom_af_range = getDouble("hom_af_range", false);
+	if(hom_af_range != 0.0)
+	{
+		text += ", hom=100%&plusmn;" + QString::number(hom_af_range) + "%";
+	}
+
+	return text;
+}
+
+void FilterTumorOnlyHomHet::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	double het_af_range = getDouble("het_af_range")/100.0;
+
+	if(het_af_range != 0.0)
+	{
+		int i_af = annotationColumn(variants, "tumor_af");
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if(!result.flags()[i]) continue;
+
+			if(variants[i].annotations()[i_af].toDouble() < (0.5+het_af_range) && variants[i].annotations()[i_af].toDouble() > (0.5-het_af_range) )
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+
+	double hom_af_range = getDouble("hom_af_range")/100.0;
+	if (hom_af_range != 0.0)
+	{
+		int i_af = annotationColumn(variants, "tumor_af");
+		for(int i=0; i<variants.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			if (variants[i].annotations()[i_af].toDouble()> (1.-hom_af_range) )
+			{
+				result.flags()[i] = false;
+			}
+		}
+	}
+}
+
+FilterGSvarScoreAndRank::FilterGSvarScoreAndRank()
+{
+	name_ = "GSvar score/rank";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based GSvar score/rank.";
+	params_ << FilterParameter("top", INT, 10, "Show top X rankging variants only.");
+	params_.last().constraints["min"] = "1";
+
+	checkIsRegistered();
+}
+
+QString FilterGSvarScoreAndRank::toText() const
+{
+	QString text = name();
+
+	int top = getInt("top", false);
+	text += " top=" + QString::number(top);
+
+	return text;
+}
+
+void FilterGSvarScoreAndRank::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int top = getInt("top", true);
+	int i_rank = annotationColumn(variants, "GSvar_rank");
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if(!result.flags()[i]) continue;
+
+		const QByteArray& rank = variants[i].annotations()[i_rank];
+		if(rank.isEmpty() || rank.toInt()>top)
+		{
+			result.flags()[i] = false;
+		}
+	}
+}

@@ -34,7 +34,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportSamples_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportSamples", "-test -add_disease_details -add_outcome -add_qc -add_report_config -out out/NGSDExportSamples_out2.tsv");
+		EXECUTE("NGSDExportSamples", "-test -add_disease_details -add_outcome -add_qc -add_report_config -add_comments -out out/NGSDExportSamples_out2.tsv");
 		COMPARE_FILES("out/NGSDExportSamples_out2.tsv", TESTDATA("data_out/NGSDExportSamples_out2.tsv"));
 	}
 
@@ -49,7 +49,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportSamples_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportSamples", "-test -sample NA12878 -species human -no_bad_samples -no_tumor -no_ffpe -project Second_project -system ssHAEv5 -run run2 -no_bad_runs -run_device Morpheus -out out/NGSDExportSamples_out3.tsv");
+		EXECUTE("NGSDExportSamples", "-test -sample NA12878 -species human -no_bad_samples -no_tumor -no_ffpe -project Second_project -system ssHAEv5 -run run2 -no_bad_runs -run_device Morpheus -out out/NGSDExportSamples_out3.tsv -sender Klaus-Erhard -study SomeStudy");
 		COMPARE_FILES("out/NGSDExportSamples_out3.tsv", TESTDATA("data_out/NGSDExportSamples_out3.tsv"));
 	}
 };

@@ -201,6 +201,17 @@ void DBTable::filterRows(QString text, Qt::CaseSensitivity cs)
 
 }
 
+void DBTable::filterRowsByColumn(int col_idx, QString text, Qt::CaseSensitivity cs)
+{
+	for(int r=rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
+	{
+		if (!rows_[r].value(col_idx).contains(text, cs))
+		{
+			rows_.removeAt(r);
+		}
+	}
+}
+
 void DBTable::checkRowIndex(int r) const
 {
 	if (r<0 || r>=rows_.count())

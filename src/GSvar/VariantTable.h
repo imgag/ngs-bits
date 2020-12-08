@@ -76,7 +76,7 @@ public slots:
 	void adaptColumnWidthsCustom();
 
 	///Copy table to clipboard
-	void copyToClipboard(bool split_quality=false);
+	void copyToClipboard(bool split_quality=false, bool include_header_one_row=false);
 
 protected:
 

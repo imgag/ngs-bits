@@ -16,6 +16,7 @@ public:
 
 signals:
 	void openProcessedSampleTab(QString);
+	void openProcessedSampleFromNGSD(QString);
 	void openGeneTab(QString);
 
 private slots:
@@ -24,13 +25,15 @@ private slots:
 	void copyToClipboard();
 	void calculateSimilarity();
 	void openProcessedSampleTab();
+	void openGSvarFile();
+	void editClassification();
 
 private:
 	Ui::VariantWidget ui_;
 	DelayedInitializationTimer init_timer_;
 	Variant variant_;
 
-	void addItem(int r, int c, QString text);
+	QTableWidgetItem* addItem(int r, int c, QString text);
 	QList<int> selectedRows() const;
 };
 

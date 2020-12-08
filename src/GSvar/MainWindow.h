@@ -77,11 +77,16 @@ public:
 	///Returns if somatic report is supported for current variant list.
 	bool somaticReportSupported();
 
+	bool tumoronlyReportSupported();
+
 	///Lets the user select a gene. If the user aborts, "" is returned.
 	static QString selectGene();
 
 	///Performs batch import of table rows
 	void importBatch(QString title, QString text, QString table, QStringList fields);
+
+	///Returns the IGV port to use
+	int igvPort() const;
 
 public slots:
 	///Loads a variant list. Unloads the variant list if no file name is given
@@ -122,11 +127,13 @@ public slots:
 	void on_actionSpecies_triggered();
 	void on_actionUsers_triggered();
 	void on_actionImportMids_triggered();
+	void on_actionImportStudy_triggered();
 	void on_actionImportSamples_triggered();
 	void on_actionImportProcessedSamples_triggered();
 	void on_actionMidClashDetection_triggered();
 	void on_actionVariantValidation_triggered();
 	void on_actionChangePassword_triggered();
+	void on_actionStudy_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();
@@ -138,8 +145,10 @@ public slots:
 	void on_actionStatisticsBED_triggered();
 	///Sample correlation BAM
 	void on_actionSampleSimilarityBAM_triggered();
-	///Sample correlation TSV
-	void on_actionSampleSimilarityTSV_triggered();
+	///Sample correlation VCF
+	void on_actionSampleSimilarityVCF_triggered();
+	///Sample correlation GSvar
+	void on_actionSampleSimilarityGSvar_triggered();
 	///Sample ancestry
 	void on_actionSampleAncestry_triggered();
 	///Sample analysis status
@@ -164,12 +173,16 @@ public slots:
 	void on_actionGenesToRegions_triggered();
 	///Subpanel archive dialog
 	void on_actionArchiveSubpanel_triggered();
-	///Close current file
+	///Close current variant list
 	void on_actionClose_triggered();
+	///Close all meta data tabs
+	void on_actionCloseMetaDataTabs_triggered();
 	///Force IGV initializazion
 	void on_actionIgvInit_triggered();
 	///Clear IGV
 	void on_actionIgvClear_triggered();
+	///Override IGV prot
+	void on_actionIgvPort_triggered();
 	///Open CNV dialog
 	void on_actionCNV_triggered();
 	///Open ROH dialog
@@ -180,6 +193,16 @@ public slots:
 	void on_actionGeneSelector_triggered();
 	///Open Circos plot
 	void on_actionCircos_triggered();
+	///Open RE dialog
+	void on_actionRE_triggered();
+	///Open PRS dialog
+	void on_actionPRS_triggered();
+	///Open cfDNA panel design dialog
+	void on_actionDesignCfDNAPanel_triggered();
+	/// Open the generated cfDNA BED file
+	void on_actionShowCfDNAPanel_triggered();
+	///Open disease course dialog (cfDNA)
+	void on_actionCfDNADiseaseCourse_triggered();
 	///Open expression data Widget
 	void on_actionExpressionData_triggered();
 	///Open gene variant info check dialog.
@@ -204,6 +227,14 @@ public slots:
 	void on_actionConvertGSvarToVcf_triggered();
 	///Action for region conversion (Cytoband > BED)
 	void on_actionCytobandsToRegions_triggered();
+	///Open SNV search dialog
+	void on_actionSearchSNVs_triggered();
+	///Open CNV search dialog
+	void on_actionSearchCNVs_triggered();
+	///Open SV search dialog
+	void on_actionSearchSVs_triggered();
+	///Shows published variants dialog
+	void on_actionShowPublishedVariants_triggered();
 
 	///Load report configuration
 	void loadReportConfig();
@@ -214,9 +245,13 @@ public slots:
 	///Store somatic report configuration
 	void storeSomaticReportConfig();
 	///Prints a variant sheet based on the report configuration
-	void generateVariantSheet();
+	void generateEvaluationSheet();
+	///Trigger somatic data transfer to MTB
+	void transferSomaticData();
 	///Shows information about the report config
 	void showReportConfigInfo();
+	///Finalize report configuration
+	void finalizeReportConfig();
 	///Helper function for printVariantSheet()
 	void printVariantSheetRowHeader(QTextStream& stream, bool causal);
 	///Helper function for printVariantSheet()
@@ -233,8 +268,10 @@ public slots:
 	static QString exclusionCriteria(const ReportVariantConfiguration& conf);
 	///Generate report
 	void generateReport();
-	///Generates a report (somatic) in .rtf format
+	///Generates a report (somatic pair) in .rtf format
 	void generateReportSomaticRTF();
+	///Generates a report (tumor only!) in .rtf format
+	void generateReportTumorOnly();
 	///Generates a report (germline)
 	void generateReportGermline();
 	///Finished the report generation (germline)
@@ -273,6 +310,8 @@ public slots:
 	void showAfHistogram_all();
 	///Show allele frequency histogram (after filter)
 	void showAfHistogram_filtered();
+	///Shows a CN histogram
+	void showCnHistogram();
 	///Shows an allele frequency histogram
 	void showAfHistogram(bool filtered);
 	///Show encryption helper
@@ -295,8 +334,10 @@ public slots:
 	///Create sub-panel from phenotype
 	void createSubPanelFromPhenotypeFilter();
 
+	///Opens a sample based on the processed sample name
+	void openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi=true);
 	///Opens a sample based on the sample name
-	void openProcessedSampleFromNGSD(QString processed_sample_name, bool searh_multi=true);
+	void openSampleFromNGSD(QString sample_name);
 
 	///Check mendelian error rate of trio.
 	void checkMendelianErrorRate(double cutoff_perc=5.0);
@@ -336,6 +377,9 @@ public slots:
 	///Shows a notification.
 	void showNotification(QString text);
 
+	///Rank variants by GSvar score.
+	void variantRanking();
+
 	///Clears somatic report settings
 	void clearSomaticReportSettings(QString ps_id_in_other_widget);
 
@@ -345,7 +389,6 @@ protected:
 	void closeEvent(QCloseEvent* event);
 	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
 	QString normalSampleName();
-
 
 private:
 	//GUI
@@ -370,14 +413,18 @@ private:
 	QString last_roi_filename_;
 	BedFile last_roi_;
 	QString last_report_path_;
-	QList<Phenotype> last_phenos_;
+	PhenotypeList last_phenos_;
 	BedFile last_phenos_roi_;
     QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
 	SomaticReportSettings somatic_report_settings_;
 	VariantList somatic_control_tissue_variants_;
-	QStringList rna_count_files_;
 
+	bool cf_dna_available;
+	QToolButton* cfdna_menu_btn_;
+	int igv_port_manual = -1;
+
+	QStringList rna_count_files_;
 
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;

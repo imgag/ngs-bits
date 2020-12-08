@@ -20,6 +20,10 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 
 	connect(ui_.report_type_rna, SIGNAL(clicked(bool)), this, SLOT(disableGUI()));
 	connect(ui_.report_type_dna, SIGNAL(clicked(bool)), this, SLOT(enableGUI()));
+
+	connect(ui_.report_type_rna, SIGNAL(clicked(bool)), this, SLOT(rnaSampleSelection()));
+	connect(ui_.report_type_dna, SIGNAL(clicked(bool)), this, SLOT(rnaSampleSelection()));
+
 	connect(ui_.include_cnv_burden, SIGNAL(stateChanged(int)), this, SLOT(cinState()));
 	connect(ui_.limitations_check, SIGNAL(stateChanged(int)), this, SLOT(limitationState()));
 
@@ -43,34 +47,30 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 			{
 				tum_cont_histological_ = Helper::toDouble(entry.disease_info);
 			}
-			catch(ArgumentException)
-			{
-				;//Nothing to do here
-			}
+			catch(ArgumentException) {} //Nothing to do here
 			break;
 		}
 	}
 
 	tum_cont_max_clonality_ = SomaticReportHelper::getCnvMaxTumorClonality(cnvs);
 
-	//Load HPO term from database
-	QString hpo_ngsd;
+	//Load HPO terms from database
+	QStringList hpos_ngsd;
 	QList<SampleDiseaseInfo> details = db_.getSampleDiseaseInfo(db_.sampleId(settings_.tumor_ps));
 	for(const auto& info : details)
 	{
 		if(info.type == "HPO term id")
 		{
-			hpo_ngsd = info.disease_info;
+			hpos_ngsd << info.disease_info;
 		}
 	}
 
-	QList<tmb_info> hpo_tmbs = tmb_info::load("://Resources/hpoterms_tmb.tsv");
-
+	QList<tmbInfo> hpo_tmbs = tmbInfo::load("://Resources/hpoterms_tmb.tsv");
 
 	//Set Reference value proposals
 	for(const auto& hpo_tmb : hpo_tmbs)
 	{
-		if(hpo_tmb.hpoterm != hpo_ngsd) continue;
+		if( !hpos_ngsd.contains(hpo_tmb.hpoterm) ) continue;
 
 		QTableWidgetItem *disease = new QTableWidgetItem(QString(hpo_tmb.tumor_entity));
 		QTableWidgetItem *tmb_text = new QTableWidgetItem("Median: " + QString::number(hpo_tmb.tmb_median,'f', 2) + " Var/Mbp, Maximum: " + QString::number(hpo_tmb.tmb_max,'f',2) + " Var/Mbp");
@@ -268,6 +268,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	//Preselect remaining options
 	ui_.include_msi_status->setChecked(settings_.report_config.msiStatus());
 	ui_.fusions_detected->setChecked(settings_.report_config.fusionsDetected());
+	if(Settings::boolean("debug_mode_enabled")) ui_.no_ngsd->setChecked(true);
 
 	//index of hrd_score is equal to actual score value
 	ui_.hrd_score->setCurrentIndex(settings_.report_config.hrdScore());
@@ -305,6 +306,12 @@ void SomaticReportDialog::enableGUI()
 	{
 		ui_.tabs->setTabEnabled(i, true);
 	}
+}
+
+void SomaticReportDialog::rnaSampleSelection()
+{
+	if(ui_.report_type_rna->isChecked()) ui_.rna_ids_for_report->setEnabled(true);
+	else ui_.rna_ids_for_report->setEnabled(false);
 }
 
 void SomaticReportDialog::writeBackSettings()
@@ -384,6 +391,11 @@ SomaticReportDialog::report_type SomaticReportDialog::getReportType()
 	else return report_type::RNA;
 }
 
+QString SomaticReportDialog::getRNAid()
+{
+	return ui_.rna_ids_for_report->currentText();
+}
+
 void SomaticReportDialog::enableChoiceReportType(bool enabled)
 {
 	ui_.report_type_label->setEnabled(enabled);
@@ -415,6 +427,11 @@ void SomaticReportDialog::cinState()
 	}
 }
 
+void SomaticReportDialog::setRNAids(const QStringList& rna_ids)
+{
+	ui_.rna_ids_for_report->addItems(rna_ids);
+}
+
 void SomaticReportDialog::limitationState()
 {
 	if(ui_.limitations_check->isChecked()) ui_.limitations_text->setEnabled(true);
@@ -429,4 +446,9 @@ QList<QString> SomaticReportDialog::resolveCIN()
 		if(checkbox->isChecked()) out << checkbox->text();
 	}
 	return out;
+}
+
+bool SomaticReportDialog::skipNGSD()
+{
+	return ui_.no_ngsd->isChecked();
 }

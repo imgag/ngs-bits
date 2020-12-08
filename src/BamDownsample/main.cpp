@@ -19,11 +19,15 @@ public:
 	virtual void setup()
 	{
 		setDescription("Downsamples a BAM file to the given percentage of reads.");
-		addInfile("in", "Input BAM file.", false, true);
-		addInt("percentage", "Percentage of reads to keep.", false);
-		addOutfile("out", "Output BAM file.", false, true);
+		addInfile("in", "Input BAM/CRAM file.", false, true);
+		addFloat("percentage", "Percentage of reads to keep.", false);
+		addOutfile("out", "Output BAM/CRAM file.", false, true);
 		//optional
 		addFlag("test", "Test mode: fix random number generator seed and write kept read names to STDOUT.");
+		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addFlag("write_cram", "Writes a CRAM file as output.");
+
+		changeLog(2020,  11, 27, "Added CRAM support.");
 	}
 
 	virtual void main()
@@ -32,11 +36,12 @@ public:
 		QTextStream out(stdout);
 		bool test = getFlag("test");
 		srand(test ? 1 : QTime::currentTime().msec());
-		double percentage = BasicStatistics::bound(getInt("percentage"), 0, 100);
+		double percentage = getFloat("percentage");
+		if (percentage<=0 || percentage>=100) THROW(CommandLineParsingException, "Invalid percentage " + QString::number(percentage) +"!");
 
-		BamReader reader(getInfile("in"));
+		BamReader reader(getInfile("in"), getString("ref"));
 
-		BamWriter writer(getOutfile("out"));
+		BamWriter writer(getOutfile("out"), getString("ref"));
 		writer.writeHeader(reader);
 
 		//process alignments
@@ -49,8 +54,8 @@ public:
 		QHash<QByteArray, BamAlignment> al_cache;
 		while (reader.getNextAlignment(al))
 		{
-			//skip secondary alinments
-			if(al.isSecondaryAlignment()) continue;
+			//skip secondary and supplementary alignments
+			if(al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 			if(!al.isPaired()) //single-end reads
 			{

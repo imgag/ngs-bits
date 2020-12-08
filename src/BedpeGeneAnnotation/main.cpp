@@ -230,15 +230,15 @@ public:
 
 		out << "Writing output file..." << endl;
 		// open output file and write annotated SVs to file
-		QSharedPointer<QFile> cnv_output_file = Helper::openFileForWriting(getOutfile("out"), true);
-		QTextStream output_stream(cnv_output_file.data());
+		QSharedPointer<QFile> sv_output_file = Helper::openFileForWriting(getOutfile("out"), true);
+		QTextStream output_stream(sv_output_file.data());
 
 		foreach (QByteArray line, output_buffer)
 		{
 			output_stream << line << "\n";
 		}
 		output_stream.flush();
-		cnv_output_file->close();
+		sv_output_file->close();
 
 
 		out << "annotation complete (runtime: " << Helper::elapsedTime(timer) << ")." << endl;

@@ -251,11 +251,11 @@ NGSDImportORPHA.depends = cppNGSD
 
 SUBDIRS += FastqExtractBarcode
 tools-TEST.depends += FastqExtractBarcode
-FastqExtractBarcode.depends = cppNGSD
+FastqExtractBarcode.depends = cppNGS
 
 SUBDIRS += PERsim
 tools-TEST.depends += PERsim
-PERsim.depends = cppNGSD
+PERsim.depends = cppNGS
 
 SUBDIRS += VariantFilterAnnotations
 tools-TEST.depends += VariantFilterAnnotations
@@ -283,7 +283,7 @@ NGSDMaintain.depends = cppNGSD
 
 SUBDIRS += TsvMerge
 tools-TEST.depends += TsvMerge
-TsvMerge.depends = cppNGSD
+TsvMerge.depends = cppNGS
 
 SUBDIRS += BedAnnotateFromBed
 tools-TEST.depends += BedAnnotateFromBed
@@ -331,15 +331,15 @@ VcfToBedpe.depends = cppNGS
 
 SUBDIRS += NGSDAddVariantsGermline
 tools-TEST.depends += NGSDAddVariantsGermline
-NGSDAddVariantsGermline.depends = cppNGS
+NGSDAddVariantsGermline.depends = cppNGSD
 
 SUBDIRS += NGSDAddVariantsSomatic
 tools-TEST.depends += NGSDAddVariantsSomatic
-NGSDAddVariantSomatic.depends = cppNGS
+NGSDAddVariantsSomatic.depends = cppNGSD
 
 SUBDIRS += NGSDExportAnnotationData
 tools-TEST.depends += NGSDExportAnnotationData
-NGSDExportAnnotationData.depends = cppNGS
+NGSDExportAnnotationData.depends = cppNGSD
 
 SUBDIRS += VcfAnnotateFromVcf
 tools-TEST.depends += VcfAnnotateFromVcf
@@ -347,15 +347,15 @@ VcfAnnotateFromVcf.depends = cppNGS
 
 SUBDIRS += NGSDExportCnvTrack
 tools-TEST.depends += NGSDExportCnvTrack
-NGSDExportCnvTrack.depends = cppNGS
+NGSDExportCnvTrack.depends = cppNGSD
 
 SUBDIRS += CnvGeneAnnotation
 tools-TEST.depends += CnvGeneAnnotation
-CnvGeneAnnotation.depends = cppNGS
+CnvGeneAnnotation.depends = cppNGSD
 
 SUBDIRS += BedpeGeneAnnotation
 tools-TEST.depends += BedpeGeneAnnotation
-BedpeGeneAnnotation.depends = cppNGS
+BedpeGeneAnnotation.depends = cppNGSD
 
 SUBDIRS += BedpeAnnotateFromBed
 tools-TEST.depends += BedpeAnnotateFromBed
@@ -363,11 +363,11 @@ BedpeAnnotateFromBed.depends = cppNGS
 
 SUBDIRS += NGSDAnnotateCNV
 tools-TEST.depends += NGSDAnnotateCNV
-NGSDAnnotateCNV.depends = cppNGS
+NGSDAnnotateCNV.depends = cppNGSD
 
 SUBDIRS += NGSDAnnotateSV
 tools-TEST.depends += NGSDAnnotateSV
-NGSDAnnotateSV.depends = cppNGS
+NGSDAnnotateSV.depends = cppNGSD
 
 SUBDIRS += SvFilterAnnotations
 tools-TEST.depends += SvFilterAnnotations
@@ -396,6 +396,26 @@ CnvFilterAnnotations.depends = cppNGS
 SUBDIRS += BedpeFilter
 tools-TEST.depends += BedpeFilter
 BedpeFilter.depends = cppNGS
+
+SUBDIRS += BedpeAnnotateCnvOverlap
+tools-TEST.depends += BedpeAnnotateCnvOverlap
+BedpeAnnotateCnvOverlap.depends = cppNGS
+
+SUBDIRS += TrioMaternalContamination
+tools-TEST.depends += TrioMaternalContamination
+TrioMaternalContamination.depends = cppNGS
+
+SUBDIRS += FastqDownsample
+tools-TEST.depends += FastqDownsample
+FastqDownsample.depends = cppNGS
+
+SUBDIRS += VcfCalculatePRS
+tools-TEST.depends += VcfCalculatePRS
+VcfCalculatePRS.depends = cppNGS
+
+SUBDIRS += VariantRanking
+tools-TEST.depends += VariantRanking
+VariantRanking.depends = cppNGSD
 
 #other stuff
 OTHER_FILES += ToDos.txt

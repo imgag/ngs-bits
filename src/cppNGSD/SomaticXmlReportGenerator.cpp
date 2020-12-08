@@ -34,7 +34,7 @@ void SomaticXmlReportGeneratorData::check() const
 	if( settings.report_config.tumContentByClonality() && !BasicStatistics::isValidFloat(tumor_content_clonality) ) valid = false;
 
 	if( !BasicStatistics::isValidFloat(tumor_mutation_burden)) valid = false;
-	if( !BasicStatistics::isValidFloat(mantis_msi)) valid = false;
+	if( settings.report_config.msiStatus() && !BasicStatistics::isValidFloat(mantis_msi)) valid = false;
 
 	if(!valid)
 	{
@@ -149,9 +149,8 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeAttribute("name", "megSAP");
 
 
-	VariantList tumor_snvs = SomaticReportSettings::filterVariants(data.tumor_snvs, data.settings);
 
-	w.writeAttribute("version", tumor_snvs.getPipeline().replace("megSAP","").trimmed());
+	w.writeAttribute("version", data.tumor_snvs.getPipeline().replace("megSAP","").trimmed());
 
 	w.writeAttribute("url", "https://github.com/imgag/megSAP");
 	w.writeAttribute("comment", "Mapping: bwa mem, Indel Realignment: Abra2, Variant Caller: Strelka2, CNV Caller: ClinCNV");
@@ -202,23 +201,23 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeStartElement("VariantList");
 
 
-		int i_tumor_af = tumor_snvs.annotationIndexByName("tumor_af",true,true);
-		int i_tumor_depth = tumor_snvs.annotationIndexByName("tumor_dp",true,true);
+		int i_tumor_af = data.tumor_snvs.annotationIndexByName("tumor_af",true,true);
+		int i_tumor_depth = data.tumor_snvs.annotationIndexByName("tumor_dp",true,true);
 
-		int i_normal_af = tumor_snvs.annotationIndexByName("normal_af", true,true);
-		int i_normal_depth = tumor_snvs.annotationIndexByName("normal_dp", true, true);
+		int i_normal_af = data.tumor_snvs.annotationIndexByName("normal_af", true,true);
+		int i_normal_depth = data.tumor_snvs.annotationIndexByName("normal_dp", true, true);
 
-		int i_genes = tumor_snvs.annotationIndexByName("gene");
+		int i_genes = data.tumor_snvs.annotationIndexByName("gene");
 
-		int i_som_class = tumor_snvs.annotationIndexByName("somatic_classification");
+		int i_som_class = data.tumor_snvs.annotationIndexByName("somatic_classification");
 
-		int i_ncg_oncogene = tumor_snvs.annotationIndexByName("ncg_oncogene");
-		int i_ncg_tsg = tumor_snvs.annotationIndexByName("ncg_tsg");
-		int i_co_sp = tumor_snvs.annotationIndexByName("coding_and_splicing");
+		int i_ncg_oncogene = data.tumor_snvs.annotationIndexByName("ncg_oncogene");
+		int i_ncg_tsg = data.tumor_snvs.annotationIndexByName("ncg_tsg");
+		int i_co_sp = data.tumor_snvs.annotationIndexByName("coding_and_splicing");
 
-		for(int i=0; i<tumor_snvs.count(); ++i) //variants only in tumor
+		for(int i=0; i<data.tumor_snvs.count(); ++i) //variants only in tumor
 		{
-			const Variant& snv = tumor_snvs[i];
+			const Variant& snv = data.tumor_snvs[i];
 
 			w.writeStartElement("Variant");
 
@@ -296,15 +295,15 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			w.writeEndElement();
 		}
 
-		VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(data.germline_snvs, data.settings);
-		int i_germl_freq_in_tum = som_var_in_normal.annotationIndexByName("freq_in_tum");
-		int i_germl_depth_in_tum = som_var_in_normal.annotationIndexByName("depth_in_tum");
-		int i_germl_hom_het = som_var_in_normal.annotationIndexByName(data.settings.normal_ps);
-		int i_germl_co_sp = som_var_in_normal.annotationIndexByName("coding_and_splicing");
 
-		for(int i=0; i<som_var_in_normal.count(); ++i)
+		int i_germl_freq_in_tum = data.germline_snvs.annotationIndexByName("freq_in_tum");
+		int i_germl_depth_in_tum = data.germline_snvs.annotationIndexByName("depth_in_tum");
+		int i_germl_hom_het = data.germline_snvs.annotationIndexByName(data.settings.normal_ps);
+		int i_germl_co_sp = data.germline_snvs.annotationIndexByName("coding_and_splicing");
+
+		for(int i=0; i<data.germline_snvs.count(); ++i)
 		{
-			const Variant& snv = som_var_in_normal[i];
+			const Variant& snv = data.germline_snvs[i];
 
 			w.writeStartElement("Variant");
 
@@ -355,25 +354,25 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 		//Elements CNV
 
-		CnvList tumor_cnvs = SomaticReportSettings::filterCnvs(data.tumor_cnvs, data.settings);
-		int i_clonality = tumor_cnvs.annotationIndexByName("tumor_clonality", true);
-		int i_state = tumor_cnvs.annotationIndexByName("state", true); //AMP/DEL/LOH
-		int i_type = tumor_cnvs.annotationIndexByName("cnv_type", true); //p-arm/q-arm/focal/chromosome
-		int i_tumor_cn_change = tumor_cnvs.annotationIndexByName("tumor_CN_change", true);
 
-		int i_cn_minor = tumor_cnvs.annotationIndexByName("minor_CN_allele", true);
-		int i_cn_major = tumor_cnvs.annotationIndexByName("major_CN_allele", true);
+		int i_clonality = data.tumor_cnvs.annotationIndexByName("tumor_clonality", true);
+		int i_state = data.tumor_cnvs.annotationIndexByName("state", true); //AMP/DEL/LOH
+		int i_type = data.tumor_cnvs.annotationIndexByName("cnv_type", true); //p-arm/q-arm/focal/chromosome
+		int i_tumor_cn_change = data.tumor_cnvs.annotationIndexByName("tumor_CN_change", true);
 
-		int i_cgi_genes =tumor_cnvs.annotationIndexByName("CGI_genes", true);
-		int i_tsg = tumor_cnvs.annotationIndexByName("ncg_tsg", true);
-		int i_oncogene = tumor_cnvs.annotationIndexByName("ncg_oncogene", true);
+		int i_cn_minor = data.tumor_cnvs.annotationIndexByName("minor_CN_allele", true);
+		int i_cn_major = data.tumor_cnvs.annotationIndexByName("major_CN_allele", true);
 
-		int i_cytoband = tumor_cnvs.annotationIndexByName("cytoband", true);
+		int i_cgi_genes =data.tumor_cnvs.annotationIndexByName("CGI_genes", true);
+		int i_tsg = data.tumor_cnvs.annotationIndexByName("ncg_tsg", true);
+		int i_oncogene = data.tumor_cnvs.annotationIndexByName("ncg_oncogene", true);
+
+		int i_cytoband = data.tumor_cnvs.annotationIndexByName("cytoband", true);
 
 
-		for(int i=0; i<tumor_cnvs.count(); ++i)
+		for(int i=0; i<data.tumor_cnvs.count(); ++i)
 		{
-			const CopyNumberVariant& cnv = tumor_cnvs[i];
+			const CopyNumberVariant& cnv = data.tumor_cnvs[i];
 
 			w.writeStartElement("Cnv");
 
@@ -452,8 +451,7 @@ void SomaticXmlReportGenerator::validateXml(const QString &xml)
 
 	if(xml_error!= "")
 	{
-		qDebug() << xml_error;
-		//THROW(ProgrammingException, "SomaticXmlReportGenerator::generateXML produced an invalid XML file: " + xml_error);
+		THROW(ProgrammingException, "SomaticXmlReportGenerator::generateXML produced an invalid XML file: " + xml_error);
 	}
 
 }

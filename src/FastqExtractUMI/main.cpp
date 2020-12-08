@@ -19,10 +19,14 @@ public:
 		setDescription("Cuts UMI bases from the beginning of reads and adds them to read headers.");
 		addInfile("in1", "Input FASTQ file 1.", false);
 		addInfile("in2", "Input FASTQ file 2.", false);
-		addInt("cut1", "Number of bases from the head of read 1 to use as UMI.", true, 0);
-		addInt("cut2", "Number of bases from the head of read 2 to use as UMI.", true, 0);
 		addOutfile("out1", "Output filename for read 1 FASTQ.", false);
 		addOutfile("out2", "Output filename for read 2 FASTQ.", false);
+		//optional
+		addInt("cut1", "Number of bases from the head of read 1 to use as UMI.", true, 0);
+		addInt("cut2", "Number of bases from the head of read 2 to use as UMI.", true, 0);
+		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, Z_BEST_SPEED);
+
+		changeLog(2020, 7, 15, "Added 'compression_level' parameter.");
 	}
 
 	virtual void main()
@@ -38,8 +42,9 @@ public:
 		FastqFileStream input_stream1(in1, false);
 		FastqFileStream input_stream2(in2, false);
 
-		FastqOutfileStream outstream1(out1);
-		FastqOutfileStream outstream2(out2);
+		int compression_level = getInt("compression_level");
+		FastqOutfileStream outstream1(out1, compression_level);
+		FastqOutfileStream outstream2(out2, compression_level);
 
 		while (!input_stream1.atEnd() && !input_stream2.atEnd())
 		{

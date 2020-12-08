@@ -21,13 +21,12 @@ public:
 		setDescription("Concatinates several FASTQ files into one output FASTQ file.");
 		addInfileList("in", "Input (gzipped) FASTQ files.", false);
 		addOutfile("out", "Output gzipped FASTQ file.", false);
-
 		//optional
-		addInt("compression_level", "gzip compression level from 1 (fastest) to 9 (best compression).", true, 1);
+		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
 
 		//changelog
+		changeLog(2020, 7, 15, "Added 'compression_level' parameter.");
 		changeLog(2019, 4, 8, "Initial version of this tool");
-
 	}
 
 	virtual void main()
@@ -36,7 +35,6 @@ public:
 		QStringList in_files = getInfileList("in");
 
 		int compression_level = getInt("compression_level");
-		if (compression_level<1 || compression_level>9) THROW(CommandLineParsingException, "Invalid compression level " + QString::number(compression_level) +"!");
 		FastqOutfileStream output_stream(getOutfile("out"), compression_level);
 
 		FastqEntry entry;

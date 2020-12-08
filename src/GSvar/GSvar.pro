@@ -30,7 +30,7 @@ SOURCES += main.cpp\
     GeneSelectorDialog.cpp \
     MultiSampleDialog.cpp \
     NGSDReannotationDialog.cpp \
-    CandidateGeneDialog.cpp \
+    SmallVariantSearchWidget.cpp \
     PhenotypeSelectionWidget.cpp \
     LovdUploadDialog.cpp \
     RohWidget.cpp \
@@ -83,8 +83,21 @@ SOURCES += main.cpp\
     CircosPlotWidget.cpp \
     EmailDialog.cpp \
     CytobandToRegionsDialog.cpp \
+    SvSearchWidget.cpp \
+    RepeatExpansionWidget.cpp \
+    PRSWidget.cpp \
+    SomaticDataTransferWidget.cpp \
+    EvaluationSheetEditDialog.cpp \
+    PublishedVariantsWidget.cpp \
+    PreferredTranscriptsWidget.cpp\
+    TumorOnlyReportWorker.cpp \
+    TumorOnlyReportDialog.cpp \
+    CfDNAPanelDesignDialog.cpp \
+    DiseaseCourseWidget.cpp \
+    CfDNAPanelWidget.cpp \
     ExpressionDataWidget.cpp
-HEADERS  += MainWindow.h \
+
+HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
     ReportWorker.h \
@@ -107,7 +120,7 @@ HEADERS  += MainWindow.h \
     GeneSelectorDialog.h \
     MultiSampleDialog.h \
     NGSDReannotationDialog.h \
-    CandidateGeneDialog.h \
+    SmallVariantSearchWidget.h \
     PhenotypeSelectionWidget.h \
     LovdUploadDialog.h \
     RohWidget.h \
@@ -159,8 +172,21 @@ HEADERS  += MainWindow.h \
     PasswordDialog.h \
     CircosPlotWidget.h \
     EmailDialog.h \
-    CytobandToRegionsDialog.h \
+    CytobandToRegionsDialog.h\
+    SvSearchWidget.h \
+    RepeatExpansionWidget.h \
+    PRSWidget.h \
+    SomaticDataTransferWidget.h \
+    EvaluationSheetEditDialog.h \
+    PublishedVariantsWidget.h \
+    PreferredTranscriptsWidget.h \
+    TumorOnlyReportWorker.h \
+    TumorOnlyReportDialog.h \
+    CfDNAPanelDesignDialog.h \
+    DiseaseCourseWidget.h \
+    CfDNAPanelWidget.h \
     ExpressionDataWidget.h
+
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -182,7 +208,7 @@ FORMS    += MainWindow.ui \
     GeneSelectorDialog.ui \
     MultiSampleDialog.ui \
     NGSDReannotationDialog.ui \
-    CandidateGeneDialog.ui \
+    SmallVariantSearchWidget.ui \
     PhenotypeSelectionWidget.ui \
     LovdUploadDialog.ui \
     RohWidget.ui \
@@ -224,8 +250,18 @@ FORMS    += MainWindow.ui \
     CircosPlotWidget.ui \
     EmailDialog.ui \
     CytobandToRegionsDialog.ui \
+    SvSearchWidget.ui \
+    RepeatExpansionWidget.ui \
+    PRSWidget.ui \
+    SomaticDataTransferWidget.ui \
+    EvaluationSheetEditDialog.ui \
+    PublishedVariantsWidget.ui \
+    PreferredTranscriptsWidget.ui \
+    TumorOnlyReportDialog.ui \
+    CfDNAPanelDesignDialog.ui \
+    DiseaseCourseWidget.ui \
+    CfDNAPanelWidget.ui \
     ExpressionDataWidget.ui
-
 
 include("../app_gui.pri")
 
@@ -235,5 +271,3 @@ LIBS += -L$$PWD/../bin -lcppNGSD
 
 RESOURCES += \
     GSvar.qrc
-
-DISTFILES +=

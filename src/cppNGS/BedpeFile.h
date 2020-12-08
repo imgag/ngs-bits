@@ -166,14 +166,20 @@ enum BedpeFileFormat
 	BEDPE_SOMATIC_TUMOR_NORMAL
 };
 
-
 class CPPNGSSHARED_EXPORT BedpeFile
 {
 public:
+	///Default constructor (of an invalid file).
 	BedpeFile();
 
-	///load bedpe file
+	///Loads the file
 	void load(const QString& file_name);
+
+	///Returns if the file is valid. It is invalid e.g. after default-construction or calling clear().
+	bool isValid() const;
+
+	///Returns if the file contains somatic structural variants.
+	bool isSomatic() const;
 
 	void clear()
 	{
@@ -222,8 +228,14 @@ public:
 		annotation_headers_ = annotation_headers;
 	}
 
-	///Get description of annotations as written in vcf comments, e.g. FORMAT
-	QMap<QByteArray,QByteArray> annotationDescriptionByID(const QByteArray& name);
+
+	QByteArray annotationDescriptionByName(QByteArray name)
+	{
+		return annotation_descriptions_.value(name, "");
+	}
+
+	///Get description of INFO columns by ID, e.g. INFO,FILTER,FORMAT
+	QMap<QByteArray,QByteArray> metaInfoDescriptionByID(const QByteArray& name);
 
 	///Sorts Bedpe file (by columns chr1, start1, chr2, start2)
 	void sort();
@@ -233,8 +245,6 @@ public:
 
 	///Returns bedpe type according entry in file comments ##fileformat=
 	BedpeFileFormat format() const;
-
-	bool isSomatic() const;
 
 	///Converts type string to enum
 	static StructuralVariantType stringToType(const QByteArray& str);
@@ -253,6 +263,8 @@ public:
 
 private:
 	QList<QByteArray> annotation_headers_;
+	//annotation description in file header: ##DESCRIPTION=KEY=VALUE
+	QMap<QByteArray, QByteArray> annotation_descriptions_;
 	QList<QByteArray> comments_;
 	QList<BedpeLine> lines_;
 

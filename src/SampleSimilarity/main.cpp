@@ -19,22 +19,26 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Calculates pairwise sample similarity metrics from VCF/BAM files.");
+		setDescription("Calculates pairwise sample similarity metrics from VCF/BAM/CRAM files.");
 		setExtendedDescription(QStringList() << "In VCF mode, multi-allelic variants are not supported. Use 'skip_multi' to ignore them, or VcfBreakMulti to split multi-allelic variants into several lines."
 											 << "Multi-sample VCFs are not supported. Use VcfExtractSamples to split them to one VCF per sample."
-											 << "In VCF mode, it is assumed that variant lists are left-normalized, e.g. with VcfLeftNormalize.");
-		addInfileList("in", "Input variant lists in VCF format (two or more). If only one file is given, each line in this file is interpreted as an input file path.", false, true);
+											 << "In VCF mode, it is assumed that variant lists are left-normalized, e.g. with VcfLeftNormalize."
+											 << "BAM mode supports BAM as well as CRAM files.");
+
+        addInfileList("in", "Input variant lists in VCF format (two or more). If only one file is given, each line in this file is interpreted as an input file path.", false, true);
 		//optional
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
-		addEnum("mode", "Mode (input format).", true, QStringList() << "vcf" << "bam", "vcf");
+		addEnum("mode", "Mode (input format).", true, QStringList() << "vcf" << "gsvar" << "bam", "vcf");
 		addInfile("roi", "Restrict similarity calculation to variants in target region.", true);
 		addFlag("include_gonosomes", "Includes gonosomes into calculation (by default only variants on autosomes are considered).");
 		addFlag("skip_multi", "Skip multi-allelic variants instead of throwing an error (VCF mode).");
 		addInt("min_cov",  "Minimum coverage to consider a SNP for the analysis (BAM mode).",  true,  30);
-		addInt("max_snps",  "The maximum number of high-coverage SNPs to extract from BAM. 0 means unlimited (BAM mode).",  true, 2000);
+		addInt("max_snps",  "The maximum number of high-coverage SNPs to extract from BAM/CRAM. 0 means unlimited (BAM mode).",  true, 2000);
 		addEnum("build", "Genome build used to generate the input (BAM mode).", true, QStringList() << "hg19" << "hg38", "hg19");
+		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
 		//changelog
+		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2019,  2,  8, "Massive speed-up by caching of variants/genotypes instead of loading them again for each comparison.");
 		changeLog(2018, 11, 26, "Add flag 'skip_multi' to ignore multi-allelic sites.");
 		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
@@ -62,7 +66,7 @@ public:
 		bool skip_multi = getFlag("skip_multi");
 
 		//write header
-		if (mode=="vcf")
+		if (mode=="vcf" || mode=="gsvar")
 		{
 			out << "#file1\tfile2\toverlap_percent\tcorrelation\tibs2_percent\tcount1\tcount2\tcomments" << endl;
 		}
@@ -84,11 +88,15 @@ public:
 		{
 			if (mode=="vcf")
 			{
-				genotype_data << SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi, use_roi ? &roi_reg : nullptr);
+				genotype_data << (use_roi ? SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi, roi_reg) : SampleSimilarity::genotypesFromVcf(filename, include_gonosomes, skip_multi));
+			}
+			else if(mode=="gsvar")
+			{
+				genotype_data << (use_roi ? SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes, roi_reg) : SampleSimilarity::genotypesFromGSvar(filename, include_gonosomes));
 			}
 			else
 			{
-				genotype_data << SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, use_roi ? &roi_reg : nullptr);
+				genotype_data << (use_roi ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg, getString("ref")) : SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, getString("ref")));
 			}
 		}
 
@@ -101,7 +109,7 @@ public:
 				QStringList cols;
 				cols << QFileInfo(in[i]).fileName();
 				cols << QFileInfo(in[j]).fileName();
-				if (mode=="vcf")
+				if (mode=="vcf" || mode=="gsvar")
 				{
 					sc.calculateSimilarity(genotype_data[i], genotype_data[j]);
 

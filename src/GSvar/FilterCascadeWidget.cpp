@@ -1,12 +1,18 @@
 #include "FilterCascadeWidget.h"
 #include "FilterEditDialog.h"
+#include "Settings.h"
 #include <QTextDocument>
 #include <QMenu>
+#include <QDir>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QStandardPaths>
 
 
 FilterCascadeWidget::FilterCascadeWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_()
+	, subject_(VariantType::INVALID)
 {
 	ui_.setupUi(this);
 
@@ -18,6 +24,8 @@ FilterCascadeWidget::FilterCascadeWidget(QWidget* parent)
 	connect(ui_.filter_add, SIGNAL(pressed()), this, SLOT(addFilter()));
 	connect(ui_.filter_up, SIGNAL(pressed()), this, SLOT(moveUpSelectedFilter()));
 	connect(ui_.filter_down, SIGNAL(pressed()), this, SLOT(moveDownSelectedFilter()));
+	connect(ui_.load_btn, SIGNAL(pressed()), this, SLOT(loadFilter()));
+	connect(ui_.store_btn, SIGNAL(pressed()), this, SLOT(storeFilter()));
 }
 
 void FilterCascadeWidget::setSubject(VariantType subject)
@@ -255,5 +263,76 @@ void FilterCascadeWidget::toggleSelectedFilter(QListWidgetItem* item)
 		filters_[index]->toggleEnabled();
 
 		emit filterCascadeChanged();
+	}
+}
+
+QString FilterCascadeWidget::filtersPath(VariantType type)
+{
+	QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
+	if(default_paths.isEmpty()) THROW(Exception, "No local application data path was found!");
+
+	QString path = default_paths[0] + QDir::separator() + "filters" + QDir::separator();
+	if (type==VariantType::SNVS_INDELS)
+	{
+		path += "SNVS_INDELS";
+	}
+	else if (type==VariantType::CNVS)
+	{
+		path += "CNVS";
+	}
+	else if (type==VariantType::SVS)
+	{
+		path += "SVS";
+	}
+	else
+	{
+		THROW(ProgrammingException, "Unhandled variant type in FilterCascadeWidget::filtersPath()!");
+	}
+
+	if(!QFile::exists(path) && !QDir().mkpath(path))
+	{
+		THROW(ProgrammingException, "Could not create application filter path '" + path + "'!");
+	}
+
+	return path;
+}
+
+void FilterCascadeWidget::loadFilter()
+{
+	try
+	{
+		//get filename
+		QString path = filtersPath(subject_);
+		QString filename = QFileDialog::getOpenFileName(this, "Load filter", path, "*.txt");
+		if (filename.isEmpty()) return;
+
+		//load
+		filters_.load(filename);
+
+		//GUI
+		updateGUI();
+		emit customFilterLoaded();
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::critical(this, "Load filter", "Could not load filter:\n" + e.message());
+	}
+}
+
+void FilterCascadeWidget::storeFilter()
+{
+	try
+	{
+		//get filename
+		QString path = filtersPath(subject_);
+		QString filename = QFileDialog::getSaveFileName(this, "Store filter", path, "*.txt");
+		if (filename.isEmpty()) return;
+
+		//store
+		filters_.store(filename);
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::critical(this, "Store filter", "Could not store filter:\n" + e.message());
 	}
 }

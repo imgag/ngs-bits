@@ -53,7 +53,7 @@ A set of default filters can be loaded by selecting a set of filters in the drop
 * *exome stringent*
 * *exome relaxed*
 
-The relaxed fiter sets contain the following default filters:
+The relaxed filter sets contain the following default filters:
 
 * *SV remove chr type* (enabled by default): This filter removes all structural variants which are located on non-standard chromosomes.
 * *SV allele frequency NGSD ≤ 1%* (enabled by default, only WGS): This filter removes all structural variants which have a allele frequency of more than 1% in the NGSD.
@@ -76,7 +76,7 @@ On exome samples the reads are not distributed uniformly over the target region,
 
 Other useful filters:
 
-* *SV count NGSD*: This filter has a additional option to also consider overlaping SVs of the same type from the NGSD (`NGSD overlap` column). Since frequent SVs are sometimes not called at the exact same position, this filter can be useful to reduce the number of remaining SVs.
+* *SV count NGSD*: This filter has a additional option to also consider overlapping SVs of the same type from the NGSD (`NGSD overlap` column). Since frequent SVs are sometimes not called at the exact same position, this filter can be useful to reduce the number of remaining SVs.
 
 
 A list of all available filters can be found here: [SvFilterAnnotation](https://github.com/imgag/ngs-bits/blob/master/doc/tools/SvFilterAnnotations.md)
@@ -98,7 +98,7 @@ The following view settings are recommended and can be selected by right clickin
 * *View as pairs* connects each read with its mats by a line and shows them together.
 * *Color Alignments by* -> *insert size and pair orientation* colors with high insert size or wrong read orientation.
 * *Collapsed*/*Squished* reduces the height for each read which allows to display more reads. This can be useful depending on sample depth and display resolution.
-* *Group alignments by* -> *chromosomes of mate* can be usful to visualize translocations.
+* *Group alignments by* -> *chromosomes of mate* can be useful to visualize translocations.
 
 ![SV IGV context menu](sv_igv_contextMenu.png)
 
@@ -111,6 +111,13 @@ The following view settings are recommended and can be selected by right clickin
 The SV (re-)analysis can be started by clicking on the `analysis status` button of the GSvar toolbar. In the dialog, the `structural variant calling` step has to be selected. (For samples which has been mapped with an older megSAP version the `mapping` step has to repeated too.)
 ![SV reanalysis](sv_reanalysis.png)
 
+### How do I get the genes of a SV which overlaps the selected target region
+
+Requirements: To calculate the overlap between the SVs and the selected target region you need to have access to the NGSD and a gene file containing all genes of the target region (named `..._genes.txt`) at the same location as the target region file. 
+
+After a target region is selected and a gene file is available you can click on the button right next to the drop-down menu of the target region (1). Since the computation can take some time (depending on the size of the target region) this has to be done manually every time the target region is changed. As soon as the computation is finished you can hover over the "`GENES`" column to see the genes of the target region in a tool tip (2).
+
+![alt text](sv_target-gene_overlap.png)
 
 --
 

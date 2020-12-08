@@ -1,15 +1,19 @@
 ### BamCleanHaloplex tool help
-	BamCleanHaloplex (0.1-420-g3536bb0)
+	BamCleanHaloplex (2020_09-79-gc6314b21)
 	
 	BAM cleaning for Haloplex.
 	
 	Mandatory parameters:
-	  -in <file>       Input bam file.
-	  -out <file>      Output bam file.
+	  -in <file>       Input BAM/CRAM file.
+	  -out <file>      Output BAM/CRAM file.
 	
 	Optional parameters:
 	  -min_match <int> Minimum number of CIGAR matches (M).
 	                   Default value: '30'
+	  -ref <string>    Reference genome for CRAM support (mandatory if CRAM is used).
+	                   Default value: ''
+	  -write_cram      Writes a CRAM file as output.
+	                   Default value: 'false'
 	
 	Special parameters:
 	  --help           Shows this help and exits.
@@ -18,6 +22,7 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamCleanHaloplex changelog
-	BamCleanHaloplex 0.1-420-g3536bb0
+	BamCleanHaloplex 2020_09-79-gc6314b21
 	
+	2020-11-27 Added CRAM support.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

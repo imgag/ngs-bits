@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QCompleter>
+#include <QDesktopServices>
 #include "SvWidget.h"
 #include "ui_SvWidget.h"
 #include "Helper.h"
@@ -18,9 +19,11 @@
 #include "GeneInfoDBs.h"
 #include "VariantTable.h"
 #include "ReportVariantDialog.h"
-#include <QDesktopServices>
+#include "SvSearchWidget.h"
+#include "VariantDetailsDockWidget.h"
+#include "ValidationDialog.h"
 
-SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* variant_filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* variant_filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent, bool ini_gui)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
 	, sv_bedpe_file_(bedpe_file)
@@ -29,6 +32,8 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
 	, ngsd_enabled_(LoginManager::active())
+	, report_config_(nullptr)
+	, roi_gene_index_(roi_genes_)
 {
 	ui->setupUi(this);
 	ui->svs->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -43,6 +48,8 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 	connect(ui->svs,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
 	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
+	connect(ui->filter_widget, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
+	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(loadGeneFile()));
 	connect(ui->svs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(svHeaderDoubleClicked(int)));
 	ui->svs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->svs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(svHeaderContextMenu(QPoint)));
@@ -51,7 +58,7 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 	clearGUI();
 
 	//init GUI
-	initGUI();
+	if (ini_gui) initGUI();
 
 	//set SV list type
 	is_somatic_ = bedpe_file.isSomatic();
@@ -65,14 +72,14 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 	}
 }
 
-SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
-	: SvWidget(bedpe_file, ps_id, filter_widget, het_hit_genes, cache, parent)
+SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+	: SvWidget(bedpe_file, ps_id, filter_widget, het_hit_genes, cache, parent, false)
 {
 	if(bedpe_file.format()!=BedpeFileFormat::BEDPE_GERMLINE_SINGLE)
 	{
 		THROW(ProgrammingException, "Constructor in SvWidget has to be used using germline SV data.");
 	}
-	report_config_ = &rep_conf;
+	report_config_ = rep_conf;
 	initGUI();
 }
 
@@ -110,7 +117,19 @@ void SvWidget::initGUI()
 		if(!annotations_to_show_.contains(header)) continue;
 
 		ui->svs->setColumnCount(ui->svs->columnCount() + 1 );
-		ui->svs->setHorizontalHeaderItem(ui->svs->columnCount() - 1, new QTableWidgetItem(QString(header)));
+		QTableWidgetItem* item = new QTableWidgetItem(QString(header));
+		if (header=="OMIM")
+		{
+			item->setIcon(QIcon("://Icons/Table.png"));
+			item->setToolTip("Double click table cell to open table view of annotations");
+		}
+
+		if(sv_bedpe_file_.annotationDescriptionByName(header) != "")
+		{
+			item->setToolTip(sv_bedpe_file_.annotationDescriptionByName(header));
+		}
+
+		ui->svs->setHorizontalHeaderItem(ui->svs->columnCount() - 1, item);
 		annotation_indices << i;
 	}
 
@@ -154,7 +173,7 @@ void SvWidget::initGUI()
 
 	//set entries for SV filter columns filter
 	QStringList valid_filter_entries;
-	foreach (const QByteArray& entry, sv_bedpe_file_.annotationDescriptionByID("FILTER").keys())
+	foreach (const QByteArray& entry, sv_bedpe_file_.metaInfoDescriptionByID("FILTER").keys())
 	{
 		valid_filter_entries.append(entry);
 	}
@@ -247,16 +266,37 @@ void SvWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by report config
-		if (ui->filter_widget->reportConfigurationOnly())
+		ReportConfigFilter rc_filter = ui->filter_widget->reportConfigurationFilter();
+		if (rc_filter!=ReportConfigFilter::NONE)
 		{
 			for(int row=0; row<row_count; ++row)
 			{
 				if (!filter_result.flags()[row]) continue;
-				if(!is_somatic_) filter_result.flags()[row] = report_config_->exists(VariantType::SVS, row);
+
+				if (rc_filter==ReportConfigFilter::HAS_RC)
+				{
+					if(is_somatic_)
+					{
+						//TODO > AXEL
+					}
+					else
+					{
+						filter_result.flags()[row] = report_config_->exists(VariantType::SVS, row);
+					}
+				}
+				else if (rc_filter==ReportConfigFilter::NO_RC)
+				{
+					if(is_somatic_)
+					{
+						//TODO > AXEL
+					}
+					else
+					{
+						filter_result.flags()[row] = !report_config_->exists(VariantType::SVS, row);
+					}
+				}
 			}
 		}
-
-
 
 		//filter by ROI
 		QString roi = ui->filter_widget->targetRegion();
@@ -490,6 +530,55 @@ double SvWidget::alleleFrequency(int row,const QByteArray& read_type)
 	else return 0;
 }
 
+void SvWidget::editSvValidation(int row)
+{
+	BedpeLine& sv = sv_bedpe_file_[row];
+
+	try
+	{
+		NGSD db;
+
+		//get SV ID
+		QString callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_id_).toString();
+		if (callset_id == "") THROW(DatabaseException, "No callset found for processed sample id " + ps_id_ + "!");
+		QString sv_id = db.svId(sv, Helper::toInt(callset_id, "callset_id"), sv_bedpe_file_);
+		if (sv_id == "") THROW(DatabaseException, "SV not found in the NGSD! ");
+
+
+		//get sample ID
+		QString sample_id = db.sampleId(db.processedSampleName(ps_id_));
+
+		//get variant validation ID - add if missing
+		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE "+ db.svTableName(sv.type()) + "_id='" + sv_id + "' AND sample_id='" + sample_id + "'", true);
+		if (!val_id.isValid())
+		{
+			//insert
+			SqlQuery query = db.getQuery();
+			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_type, " + db.svTableName(sv.type()) + "_id, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','SV','" + sv_id + "','n/a')");
+			val_id = query.lastInsertId();
+		}
+
+		ValidationDialog dlg(this, val_id.toInt());
+
+		if (dlg.exec())
+		{
+			//update DB
+			dlg.store();
+		}
+		else
+		{
+			// remove created but empty validation if ValidationDialog is aborted
+			SqlQuery query = db.getQuery();
+			query.exec("DELETE FROM variant_validation WHERE id=" + val_id.toString());
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+		return;
+	}
+}
+
 void SvWidget::editGermlineReportConfiguration(int row)
 {
 	if(report_config_ == nullptr)
@@ -507,8 +596,7 @@ void SvWidget::editGermlineReportConfiguration(int row)
 
 	//init/get config
 	ReportVariantConfiguration var_config;
-	bool report_settings_exist = report_config_->exists(VariantType::SVS, row);
-	if (report_settings_exist)
+	if (report_config_->exists(VariantType::SVS, row))
 	{
 		var_config = report_config_->get(VariantType::SVS, row);
 	}
@@ -532,13 +620,111 @@ void SvWidget::editGermlineReportConfiguration(int row)
 	}
 
 	//exec dialog
-	ReportVariantDialog* dlg = new ReportVariantDialog(sv_bedpe_file_[row].toString(), inheritance_by_gene, var_config, this);
-	if (dlg->exec()!=QDialog::Accepted) return;
+	ReportVariantDialog dlg(sv_bedpe_file_[row].toString(), inheritance_by_gene, var_config, this);
+	dlg.setEnabled(!report_config_->isFinalized());
+	if (dlg.exec()!=QDialog::Accepted) return;
 
 	//update config, GUI and NGSD
 	report_config_->set(var_config);
 	updateReportConfigHeaderIcon(row);
-	emit storeReportConfiguration();
+}
+
+void SvWidget::loadGeneFile()
+{
+	QTime timer;
+	timer.start();
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+	// skip if no connection to the NGSD
+	if(!LoginManager::active())
+	{
+		// clear old files
+		roi_genes_.clear();
+		roi_gene_index_.createIndex();
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "DB connection failed", "No connection to the NGSD.\nConnection is required to calculate gene-region relation.");
+		return;
+	}
+	// check for gene list file:
+	QString gene_file_path = roi_filename_.left(roi_filename_.size() - 4) + "_genes.txt";
+	if (QFile::exists(gene_file_path))
+	{
+		// load genes:
+		GeneSet target_genes = GeneSet::createFromFile(gene_file_path);
+		// create bed file
+		roi_genes_ = NGSD().genesToRegions(target_genes, Transcript::ENSEMBL, "gene");
+		roi_genes_.extend(5000);
+	}
+	else
+	{
+		// clear old files
+		roi_genes_.clear();
+		roi_gene_index_.createIndex();
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "Gene file not found!", "No gene file found at \"" + gene_file_path
+							 + "\". Cannot annotate SV with genes of the current target region." );
+		return;
+	}
+	roi_gene_index_.createIndex();
+
+	// update gene tooltips
+	timer.start();
+	// get gene column index
+	int gene_idx = -1;
+	for (int col_idx = 0; col_idx < ui->svs->columnCount(); ++col_idx)
+	{
+		if(ui->svs->horizontalHeaderItem(col_idx)->text().trimmed() == "GENES")
+		{
+			gene_idx = col_idx;
+			break;
+		}
+	}
+	if (gene_idx >= 0)
+	{
+		// iterate over sv table
+		for (int row_idx = 0; row_idx < ui->svs->rowCount(); ++row_idx)
+		{
+				// get all matching lines in gene bed file
+				BedFile sv_regions = sv_bedpe_file_[row_idx].affectedRegion();
+				QVector<int> matching_indices;
+				for (int i = 0; i < sv_regions.count(); ++i)
+				{
+					matching_indices += roi_gene_index_.matchingIndices(sv_regions[i].chr(), sv_regions[i].start(), sv_regions[i].end());
+				}
+
+				// extract gene names
+				GeneSet genes;
+				foreach (int idx, matching_indices)
+				{
+					genes.insert(roi_genes_[idx].annotations().at(0));
+				}
+
+				// update tooltip
+				ui->svs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> "
+															 + genes.toStringList().join(", ") + "</div>");
+		}
+	}
+	QApplication::restoreOverrideCursor();
+}
+
+void SvWidget::clearTooltips()
+{
+	int gene_idx = -1;
+	for (int col_idx = 0; col_idx < ui->svs->columnCount(); ++col_idx)
+	{
+		if(ui->svs->horizontalHeaderItem(col_idx)->text().trimmed() == "GENES")
+		{
+			gene_idx = col_idx;
+			break;
+		}
+	}
+	if (gene_idx >= 0)
+	{
+		for (int row_idx = 0; row_idx < ui->svs->rowCount(); ++row_idx)
+		{
+			// remove tool tip
+			ui->svs->item(row_idx, gene_idx)->setToolTip("");
+		}
+	}
 }
 
 void SvWidget::copyToClipboard()
@@ -551,10 +737,25 @@ void SvWidget::SvDoubleClicked(QTableWidgetItem *item)
 {
 	if (item==nullptr) return;
 
+	int col = item->column();
 	int row = item->row();
-	QString coords = sv_bedpe_file_[row].positionRange();
 
-	emit openInIGV(coords);
+	QString col_name = item->tableWidget()->horizontalHeaderItem(col)->text();
+	if (col_name=="OMIM")
+	{
+		int omim_index = sv_bedpe_file_.annotationHeaders().indexOf("OMIM");
+
+		QString text = sv_bedpe_file_[row].annotations()[omim_index].trimmed();
+		if (text.trimmed()!="")
+		{
+			VariantDetailsDockWidget::showOverviewTable("OMIM entries of ROH " +  sv_bedpe_file_[row].toString(), text, ';', "https://www.omim.org/entry/");
+		}
+	}
+	else
+	{
+		QString coords = sv_bedpe_file_[row].positionRange();
+		emit openInIGV(coords);
+	}
 }
 
 void SvWidget::disableGUI(const QString& message)
@@ -586,9 +787,15 @@ QByteArray SvWidget::getFormatEntryByKey(const QByteArray& key, const QByteArray
 
 void SvWidget::importPhenotypesFromNGSD()
 {
+	if (ps_id_=="")
+	{
+		QMessageBox::warning(this, "Error loading phenotypes", "Cannot load phenotypes because no processed sample ID is set!");
+		return;
+	}
+
 	NGSD db;
 	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_id_).toString();
-	QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
+	PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
 
 	ui->filter_widget->setPhenotypes(phenotypes);
 }
@@ -613,8 +820,7 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 	QMenu menu(ui->svs->verticalHeader());
 	QAction* a_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	QAction* a_delete = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	if(!is_somatic_) a_delete->setEnabled(report_config_->exists(VariantType::SVS, row));
-
+	a_delete->setEnabled(!is_somatic_ && !report_config_->isFinalized() && report_config_->exists(VariantType::SVS, row));
 
 	//exec menu
 	pos = ui->svs->verticalHeader()->viewport()->mapToGlobal(pos);
@@ -634,7 +840,6 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 		{
 			report_config_->remove(VariantType::SVS, row);
 			updateReportConfigHeaderIcon(row);
-			emit storeReportConfiguration();
 		}
 	}
 }
@@ -642,7 +847,7 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 void SvWidget::updateReportConfigHeaderIcon(int row)
 {
 	//report config-based filter is on => update whole variant list
-	if (ui->filter_widget->reportConfigurationOnly())
+	if (ui->filter_widget->reportConfigurationFilter()!=ReportConfigFilter::NONE)
 	{
 		applyFilters();
 	}
@@ -686,7 +891,7 @@ void SvWidget::SvSelectionChanged()
 	ui->sv_details->setRowCount(format.count());
 
 	//Map with description of format field, e.g. GT <-> GENOTYPE
-	QMap<QByteArray,QByteArray> format_description = sv_bedpe_file_.annotationDescriptionByID("FORMAT");
+	QMap<QByteArray,QByteArray> format_description = sv_bedpe_file_.metaInfoDescriptionByID("FORMAT");
 
 	for(int i=0;i<ui->sv_details->rowCount();++i)
 	{
@@ -728,7 +933,7 @@ void SvWidget::setInfoWidgets(const QByteArray &name, int row, QTableWidget* wid
 	else if(raw_data.count() == 1 && (raw_data[0] == "." || raw_data[0] == "MISSING")) widget->setRowCount(0);
 	else widget->setRowCount(raw_data.count());
 
-	QMap<QByteArray,QByteArray> descriptions = sv_bedpe_file_.annotationDescriptionByID("INFO");
+	QMap<QByteArray,QByteArray> descriptions = sv_bedpe_file_.metaInfoDescriptionByID("INFO");
 
 	for(int i=0;i<raw_data.count();++i)
 	{
@@ -757,8 +962,14 @@ void SvWidget::showContextMenu(QPoint pos)
 	QAction* a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
 	a_rep_edit->setEnabled(ngsd_enabled_ && !is_somatic_);
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	a_rep_del->setEnabled(ngsd_enabled_ && !is_somatic_ && report_config_->exists(VariantType::SVS, row));
+	a_rep_del->setEnabled(ngsd_enabled_ && !is_somatic_ && report_config_->exists(VariantType::SVS, row) && !report_config_->isFinalized());
 	menu.addSeparator();
+	QAction* a_sv_val = menu.addAction("Perform structural variant validation");
+	menu.addSeparator();
+	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching SVs in NGSD");
+	a_ngsd_search->setEnabled(ngsd_enabled_);
+	menu.addSeparator();
+
 	QAction* igv_pos1 = menu.addAction("Open position A in IGV");
 	QAction* igv_pos2 = menu.addAction("Open position B in IGV");
 	QAction* igv_split = menu.addAction("Open position A/B in IGV split screen");
@@ -807,9 +1018,21 @@ void SvWidget::showContextMenu(QPoint pos)
 		if(!is_somatic_)
 		{
 			report_config_->remove(VariantType::SVS, row);
-			emit storeReportConfiguration();
 		}
 		updateReportConfigHeaderIcon(row);
+	}
+	else if (action==a_sv_val)
+	{
+		editSvValidation(row);
+	}
+	else if (action==a_ngsd_search)
+	{
+		SvSearchWidget* widget = new SvSearchWidget();
+		widget->setProcessedSampleId(ps_id_);
+		widget->setCoordinates(sv);
+		auto dlg = GUIHelper::createDialog(widget, "SV search");
+
+		dlg->exec();
 	}
 	else if (action == igv_pos1)
 	{

@@ -174,7 +174,7 @@ private:
 };
 
 
-struct cgi_info
+struct cgiInfo
 {
 	QByteArray acronym;
 	QByteArray parent;
@@ -182,19 +182,19 @@ struct cgi_info
 	QByteArray def_german;
 
 	//create whole list from file
-	static QList<cgi_info> load(const QByteArray& file_name)
+	static QList<cgiInfo> load(const QByteArray& file_name)
 	{
 		TSVFileStream acronym_translations(file_name);
 		int i_cgi_acronym = acronym_translations.colIndex("ID",true);
 		int i_def_english = acronym_translations.colIndex("NAME",true);
 		int i_def_german = acronym_translations.colIndex("NAME_GERMAN",true);
 
-		QList<cgi_info> out;
+		QList<cgiInfo> out;
 
 		while(!acronym_translations.atEnd())
 		{
 			QByteArrayList current_line = acronym_translations.readLine();
-			cgi_info temp;
+			cgiInfo temp;
 			temp.acronym = current_line.at(i_cgi_acronym);
 			temp.def_english = current_line.at(i_def_english);
 			temp.def_german = current_line.at(i_def_german);
@@ -202,7 +202,7 @@ struct cgi_info
 		}
 		return out;
 	}
-	bool operator==(const cgi_info& rhs) const
+	bool operator==(const cgiInfo& rhs) const
 	{
 		if(this->acronym != rhs.acronym) return false;
 		return true;
@@ -210,7 +210,7 @@ struct cgi_info
 };
 
 
-struct somatic_virus
+struct somaticVirus
 {
 	QByteArray chr_;
 	int start_;
@@ -246,7 +246,7 @@ struct somatic_virus
 };
 
 //struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
-struct tmb_info
+struct tmbInfo
 {
 	QByteArray hpoterm;
 	int cohort_count;
@@ -254,7 +254,7 @@ struct tmb_info
 	double tmb_max;
 	QByteArray tumor_entity;
 
-	static QList<tmb_info> load(const QByteArray& file_name)
+	static QList<tmbInfo> load(const QByteArray& file_name)
 	{
 		TSVFileStream in(file_name);
 
@@ -264,11 +264,11 @@ struct tmb_info
 		int i_tmb_max = in.colIndex("TMB_MAXIMUM",true);
 		int i_tumor_entity = in.colIndex("TUMOR_ENTITY",true);
 
-		QList<tmb_info> out;
+		QList<tmbInfo> out;
 		while(!in.atEnd())
 		{
 			QByteArrayList current_line = in.readLine();
-			tmb_info tmp;
+			tmbInfo tmp;
 			tmp.hpoterm = current_line.at(i_hpoterms);
 			tmp.cohort_count = current_line.at(i_count).toInt();
 			tmp.tmb_median = current_line.at(i_tmb_median).toDouble();
@@ -278,7 +278,7 @@ struct tmb_info
 		}
 		return out;
 	}
-	bool operator==(const tmb_info& rhs) const
+	bool operator==(const tmbInfo& rhs) const
 	{
 		if(this->hpoterm == rhs.hpoterm) return true;
 		return true;
@@ -293,7 +293,10 @@ public:
 	SomaticReportHelper(const VariantList& variants, const CnvList &cnvs, const VariantList& germline_variants, const SomaticReportSettings& settings);
 
 	///write Rtf File
-	void writeRtf(const QByteArray& out_file);
+	void storeRtf(const QByteArray& out_file);
+
+	///write XML file
+	void storeXML(QString file_name);
 
 	///methods that create files for QBIC
 	void somaticSnvForQbic();
@@ -313,6 +316,8 @@ public:
 
 	///Returns true if all required annotation (CGI, NCG) are available
 	static bool checkRequiredSNVAnnotations(const VariantList& snvs);
+
+	static bool checkGermlineSNVFile(const VariantList& germline_variants);
 
 	///Returns maximum tumor clonailty in cnv file
 	static double getCnvMaxTumorClonality(const CnvList& cnvs);
@@ -336,7 +341,7 @@ private:
 	QMap<QByteArray, BedFile> gapStatistics(const BedFile& region_of_interest);
 
 	///Writes Rtf table containing most relevant SNVs and CNVs
-	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet(), bool sort_by_gene = false);
+	RtfTable somaticAlterationTable(const VariantList& snvs, const CnvList& cnvs, bool include_cnvs, const GeneSet& target_genes = GeneSet(), bool sort_by_gene = false, bool drivers_bold = false);
 
 
 	//skipped amplifications in somaticalterationtable
@@ -377,6 +382,9 @@ private:
 	///Parses annotated cytobands to text, "" if not annotation available
 	QByteArray cytoband(const CopyNumberVariant& cnv);
 
+	///returns whether a statement in table is a classification
+	static bool hasClassification(QByteArray statement);
+
 
 	const SomaticReportSettings& settings_;
 
@@ -412,7 +420,7 @@ private:
 	CnvList cnvs_;
 
 	///Somatic viruses (original file usually in tumor dir)
-	QList<somatic_virus> validated_viruses_;
+	QList<somaticVirus> validated_viruses_;
 
 	NGSD db_;
 
@@ -425,7 +433,7 @@ private:
 	QString cgi_cancer_type_;
 
 	///List containing cgi acronyms, full text (english and german) and tumor mutation burden for several cancer types (source: doi:10.1186/s13073-017-0424-2)
-	QList<cgi_info> cgi_dictionary_;
+	QList<cgiInfo> cgi_dictionary_;
 
 	///ICD10 text diagnosis tumor
 	QString icd10_diagnosis_code_;

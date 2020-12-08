@@ -22,14 +22,8 @@
     <height>542</height>
    </size>
   </property>
-  <property name="maximumSize">
-   <size>
-    <width>1500</width>
-    <height>650</height>
-   </size>
-  </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Report configuration (somatic)</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
@@ -903,6 +897,13 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
+       <widget class="QCheckBox" name="no_ngsd">
+        <property name="text">
+         <string>No NGSD</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer_5">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -960,6 +961,13 @@
         </property>
         <property name="text">
          <string>RNA</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="rna_ids_for_report">
+        <property name="enabled">
+         <bool>false</bool>
         </property>
        </widget>
       </item>

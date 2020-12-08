@@ -1,5 +1,5 @@
 ### SeqPurge tool help
-	SeqPurge (2020_03-142-gee6a65cd)
+	SeqPurge (2020_03-159-g5c8b2e82)
 	
 	Removes adapter sequences from paired-end sequencing data.
 	
@@ -44,7 +44,7 @@
 	                           Default value: 'false'
 	  -progress <int>          Enables progress output at the given interval in milliseconds (disabled by default).
 	                           Default value: '-1'
-	  -compression_level <int> Output gzip compression level from 1 (fastest) to 9 (best compression).
+	  -compression_level <int> Output FASTQ compression level from 1 (fastest) to 9 (best compression).
 	                           Default value: '1'
 	
 	Special parameters:
@@ -54,7 +54,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SeqPurge changelog
-	SeqPurge 2020_03-142-gee6a65cd
+	SeqPurge 2020_03-159-g5c8b2e82
 	
 	2019-03-26 Added 'compression_level' parameter.
 	2019-02-11 Added writer thread to make SeqPurge scale better when using many threads.

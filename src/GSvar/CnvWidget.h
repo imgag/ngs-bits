@@ -26,7 +26,7 @@ public:
 	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 
 	//Constructor for germline samples
-	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, ReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
+	CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 	//Constructor for tumor-normal pairs
 	CnvWidget(const CnvList& cnvs, QString t_ps_id, FilterWidget* filter_widget, SomaticReportConfiguration& rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent = 0);
 
@@ -38,7 +38,6 @@ protected:
 signals:
 	void openRegionInIGV(QString region);
 	void openGeneTab(QString region);
-	void storeReportConfiguration();
 	void storeSomaticReportConfiguration();
 
 private slots:
@@ -46,7 +45,6 @@ private slots:
 	void applyFilters(bool debug_time=false);
 	void copyToClipboard();
 	void showContextMenu(QPoint p);
-	void openLink(int row, int col);
 	void proposeQualityIfUnset();
 	void updateQuality();
 	void editQuality();
@@ -58,15 +56,21 @@ private slots:
 	void editReportConfiguration(int row);	
 	void importPhenotypesFromNGSD();
 
+	///Loads the gene file to a given target region BED file
+	void loadGeneFile();
+	///Removes the calculated gene overlap tooltips
+	void clearTooltips();
+
 private:
 	void initGUI();
 	void updateGUI();
 	void disableGUI();
 	void addInfoLine(QString text);
 	void updateStatus(int shown);
-	void showSpecialTable(QString col, QString text, QByteArray url_prefix);
 	void editGermlineReportConfiguration(int row);
 	void editSomaticReportConfiguration(int row);
+	///Edit validation status of current cnv
+	void editCnvValidation(int row);
 	///Handles somatic report configuration if multiple rows are selected;
 	void editSomaticReportConfiguration(const QList<int>& rows);
 	Ui::CnvWidget* ui;
@@ -74,14 +78,17 @@ private:
 	QString callset_id_; //CNV callset database ID. '' if unknown of if NGSD is disabled.
 	const CnvList& cnvs_;
 	QStringList special_cols_;
-	ReportConfiguration* report_config_ = nullptr;
-	SomaticReportConfiguration* somatic_report_config_ = nullptr;
+	QSharedPointer<ReportConfiguration> report_config_;
+	SomaticReportConfiguration* somatic_report_config_;
 	bool is_somatic_ = false;
 
 	GeneSet var_het_genes_;
 	QHash<QByteArray, BedFile>& gene2region_cache_;
-	bool ngsd_enabled_;
 	QSet<QString> metrics_done_;
+	bool ngsd_enabled_;
+
+	BedFile roi_genes_;
+	ChromosomalIndex<BedFile> roi_gene_index_;
 };
 
 #endif // CNVWIDGET_H

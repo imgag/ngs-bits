@@ -90,11 +90,11 @@ void ReportDialog::updateGUI()
 	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
 	int gene_idx = variants_.annotationIndexByName("gene");
 	int class_idx = variants_.annotationIndexByName("classification");
-	foreach(int i, settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, type()))
+	foreach(int i, settings_.report_config->variantIndices(VariantType::SNVS_INDELS, true, type()))
 	{
 		const Variant& variant = variants_[i];
 		if (roi_file_!="" && !roi_.overlapsWith(variant.chr(), variant.start(), variant.end())) continue;
-		const ReportVariantConfiguration& var_conf = settings_.report_config.get(VariantType::SNVS_INDELS,i);
+		const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::SNVS_INDELS,i);
 
 		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
 		ui_.vars->setItem(row, 0, new QTableWidgetItem(var_conf.report_type + (var_conf.causal ? " (causal)" : "")));
@@ -107,11 +107,11 @@ void ReportDialog::updateGUI()
 
 
 	//add CNVs
-	foreach(int i, settings_.report_config.variantIndices(VariantType::CNVS, true, type()))
+	foreach(int i, settings_.report_config->variantIndices(VariantType::CNVS, true, type()))
 	{
 		const CopyNumberVariant& cnv = cnvs_[i];
 		if (roi_file_!="" && !roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end())) continue;
-		const ReportVariantConfiguration& var_conf = settings_.report_config.get(VariantType::CNVS,i);
+		const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::CNVS,i);
 
 		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
 		ui_.vars->setItem(row, 0, new QTableWidgetItem(var_conf.report_type + (var_conf.causal ? " (causal)" : "")));
@@ -122,7 +122,7 @@ void ReportDialog::updateGUI()
 	}
 
 	//add Svs
-	foreach(int i, settings_.report_config.variantIndices(VariantType::SVS, true, type()))
+	foreach(int i, settings_.report_config->variantIndices(VariantType::SVS, true, type()))
 	{
 		const BedpeLine& sv = svs_[i];
 		BedFile affected_region = sv.affectedRegion();
@@ -138,7 +138,7 @@ void ReportDialog::updateGUI()
 					&& !roi_.overlapsWith(affected_region[1].chr(), affected_region[1].start(), affected_region[1].end())) continue;
 			}
 		}
-		const ReportVariantConfiguration& var_conf = settings_.report_config.get(VariantType::SVS,i);
+		const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::SVS,i);
 
 		QString sv_string = "SV " + affected_region[0].toString(true);
 		if (sv.type()==StructuralVariantType::BND) sv_string += " <-> " + affected_region[1].toString(true);

@@ -105,6 +105,9 @@ private slots:
 		//log in user
 		LoginManager::login("ahmustm1", true);
 
+		//escapeText
+		S_EQUAL(db.escapeText("; '"), "'; '''");
+
 		//getEnum
 		QStringList enum_values = db.getEnum("sample", "disease_group");
 		I_EQUAL(enum_values.count(), 18);
@@ -112,7 +115,7 @@ private slots:
 
 		//getProcessingSystems
 		QMap<QString, QString> systems = db.getProcessingSystems(false, false);
-		I_EQUAL(systems.size(), 3);
+		I_EQUAL(systems.size(), 4);
 		IS_TRUE(systems.contains("HaloPlex HBOC v5"))
 		IS_TRUE(systems.contains("HaloPlex HBOC v6"))
 
@@ -369,6 +372,7 @@ private slots:
 		//transcriptId
 		I_EQUAL(db.transcriptId("NIPA1_TR2"), 4);
 		I_EQUAL(db.transcriptId("NIPA1_TR2_FAIL", false), -1);
+		I_EQUAL(db.transcriptId("NIPA1_TR2.3", false), 4);
 
 		//transcript
 		Transcript transcript = db.transcript(4);
@@ -481,9 +485,9 @@ private slots:
 		S_EQUAL(ginfo.oe_lof, "n/a");
 		ginfo.inheritance = "AD";
 		ginfo.comments = "comment";
-		ginfo.oe_syn = 0.11;
-		ginfo.oe_mis = 0.22;
-		ginfo.oe_lof = 0.33;
+		ginfo.oe_syn = "0.11";
+		ginfo.oe_mis = "0.22";
+		ginfo.oe_lof = "0.33";
 		db.setGeneInfo(ginfo);
 		ginfo = db.geneInfo("NIPA1");
 		S_EQUAL(ginfo.symbol, "NIPA1");
@@ -512,7 +516,7 @@ private slots:
 		I_EQUAL(approved.count(), 14);
 
 		//phenotypes
-		QList<Phenotype> phenos = db.phenotypes(QStringList() << "aBNOrmality");
+		PhenotypeList phenos = db.phenotypes(QStringList() << "aBNOrmality");
 		I_EQUAL(phenos.count(), 1);
 		IS_TRUE(phenos.contains(Phenotype("HP:0000118","Phenotypic abnormality")));
 		//synonyms
@@ -825,10 +829,22 @@ private slots:
 		I_EQUAL(ps_table.columnCount(), 70);
 		S_EQUAL(ps_table.row(0).value(69), "");
 		S_EQUAL(ps_table.row(4).value(69), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1,LOC100507346), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
+		//add comments
+		params.add_comments = true;
+		ps_table = db.processedSampleSearch(params);
+		I_EQUAL(ps_table.rowCount(), 9);
+		I_EQUAL(ps_table.columnCount(), 72);
+		S_EQUAL(ps_table.headers().at(18), "comment_sample");
+		S_EQUAL(ps_table.headers().at(19), "comment_processed_sample");
+		S_EQUAL(ps_table.row(0).value(18), "comment_s6");
+		S_EQUAL(ps_table.row(0).value(19), "comment_ps7");
+
 
 		//apply all search parameters
 		params.s_name = "NA12878";
 		params.s_species = "human";
+		params.s_sender = "Coriell";
+		params.s_study = "SomeStudy";
 		params.include_bad_quality_samples = false;
 		params.include_tumor_samples = false;
 		params.include_ffpe_samples = false;
@@ -842,7 +858,7 @@ private slots:
 		params.run_finished = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 70);
+		I_EQUAL(ps_table.columnCount(), 72);
 
 		//reportConfigId
 		QString ps_id = db.processedSampleId("NA12878_03");
@@ -854,8 +870,8 @@ private slots:
 		BedpeFile svs;
 		svs.load(TESTDATA("data_in/sv_manta.bedpe"));
 
-		ReportConfiguration report_conf;
-		report_conf.setCreatedBy("ahmustm1");
+		QSharedPointer<ReportConfiguration> report_conf = QSharedPointer<ReportConfiguration>(new ReportConfiguration);
+		report_conf->setCreatedBy("ahmustm1");
 		ReportVariantConfiguration report_var_conf;
 		report_var_conf.variant_type = VariantType::SNVS_INDELS;
 		report_var_conf.variant_index = 47;
@@ -865,54 +881,59 @@ private slots:
 		report_var_conf.exclude_artefact = true;
 		report_var_conf.comments = "com1";
 		report_var_conf.comments2 = "com2";
-		report_conf.set(report_var_conf);
+		report_conf->set(report_var_conf);
 		ReportVariantConfiguration report_var_conf2;
 		report_var_conf2.variant_type = VariantType::CNVS;
 		report_var_conf2.variant_index = 4;
 		report_var_conf2.causal = false;
 		report_var_conf2.classification = "4";
 		report_var_conf2.report_type = "diagnostic variant";
-		report_conf.set(report_var_conf2);
+		report_conf->set(report_var_conf2);
 		ReportVariantConfiguration report_var_conf3;
 		report_var_conf3.variant_type = VariantType::SVS;
 		report_var_conf3.variant_index = 81;
 		report_var_conf3.causal = true;
 		report_var_conf3.classification = "5";
 		report_var_conf3.report_type = "diagnostic variant";
-		report_conf.set(report_var_conf3);
+		report_conf->set(report_var_conf3);
 		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
-
 
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
 		IS_TRUE(conf_id!=-1);
 
-		//reportConfigCreationData
-		ReportConfigurationCreationData rc_creation_data = db.reportConfigCreationData(conf_id);
-		S_EQUAL(rc_creation_data.created_by, "Max Mustermann");
-		S_EQUAL(rc_creation_data.last_edit_by, "Max Mustermann");
-		IS_TRUE(rc_creation_data.last_edit_date!="");
+		//check data
+		QStringList messages2;
+		QSharedPointer<ReportConfiguration> report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
+		IS_TRUE(report_conf2->createdAt().isValid());
+		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
+		IS_TRUE(report_conf2->lastUpdatedAt().isValid());
+		S_EQUAL(report_conf2->finalizedBy(), "");
+		IS_FALSE(report_conf2->finalizedAt().isValid());
+
 		//update
-		QThread::sleep(1);
+		QThread::sleep(2);
 		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
 		IS_TRUE(conf_id1==conf_id2);
 		//check that no double entries are inserted after second execution of setReportConfig
 		I_EQUAL(db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=1 AND chr='chr2' AND start=89246800 AND end=89545067 AND cn=1").toInt(), 1);
 
-		ReportConfigurationCreationData rc_creation_data2 = db.reportConfigCreationData(conf_id);
-		S_EQUAL(rc_creation_data2.created_by, "Max Mustermann");
-		S_EQUAL(rc_creation_data2.last_edit_by,  "Max Mustermann");
-		IS_TRUE(rc_creation_data.created_date==rc_creation_data2.created_date);
-		IS_TRUE(rc_creation_data2.last_edit_date!="");
+		//check data
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
+		IS_TRUE(report_conf2->createdAt().isValid());
+		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
+		IS_TRUE(report_conf2->lastUpdatedAt().isValid());
+		IS_TRUE(report_conf2->createdAt()!=report_conf2->lastUpdatedAt());
+		S_EQUAL(report_conf2->finalizedBy(), "");
+		IS_FALSE(report_conf2->finalizedAt().isValid());
 
-		//reportConfig
-		QStringList messages2;
-		ReportConfiguration report_conf2 = db.reportConfig(ps_id, vl, cnvs, svs, messages2);
 		I_EQUAL(messages2.count(), 0);
-		S_EQUAL(report_conf2.createdBy(), "Max Mustermann");
-		IS_TRUE(report_conf2.createdAt().date()==QDate::currentDate());
-		I_EQUAL(report_conf2.variantConfig().count(), 3);
-		ReportVariantConfiguration var_conf = report_conf2.variantConfig()[1]; //order changed because they are sorted by index
+		S_EQUAL(report_conf2->createdBy(), "Max Mustermann");
+		IS_TRUE(report_conf2->createdAt().date()==QDate::currentDate());
+		I_EQUAL(report_conf2->variantConfig().count(), 3);
+		ReportVariantConfiguration var_conf = report_conf2->variantConfig()[1]; //order changed because they are sorted by index
 		I_EQUAL(var_conf.variant_index, 47);
 		IS_TRUE(var_conf.causal);
 		S_EQUAL(var_conf.classification, "n/a");
@@ -927,7 +948,7 @@ private slots:
 		IS_FALSE(var_conf.exclude_mechanism);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
-		var_conf = report_conf2.variantConfig()[0]; //order changed because they are sorted by index
+		var_conf = report_conf2->variantConfig()[0]; //order changed because they are sorted by index
 		I_EQUAL(var_conf.variant_index, 4);
 		IS_FALSE(var_conf.causal);
 		S_EQUAL(var_conf.classification, "4");
@@ -942,7 +963,7 @@ private slots:
 		IS_FALSE(var_conf.exclude_mechanism);
 		IS_FALSE(var_conf.exclude_other);
 		IS_FALSE(var_conf.exclude_phenotype);
-		var_conf = report_conf2.variantConfig()[2];
+		var_conf = report_conf2->variantConfig()[2];
 		I_EQUAL(var_conf.variant_index, 81);
 		IS_TRUE(var_conf.causal);
 		S_EQUAL(var_conf.classification, "5");
@@ -959,14 +980,28 @@ private slots:
 		IS_FALSE(var_conf.exclude_phenotype);
 		IS_TRUE(var_conf.variant_type == VariantType::SVS);
 
+		//finalizeReportConfig
+		conf_id = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
+		IS_FALSE(db.reportConfigIsFinalized(conf_id));
+		db.finalizeReportConfig(conf_id, db.userId("ahmustm1"));
+		IS_TRUE(db.reportConfigIsFinalized(conf_id));
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
+		S_EQUAL(report_conf2->finalizedBy(), "Max Mustermann");
+		IS_TRUE(report_conf2->finalizedAt().isValid());
+		//check finalized report config cannot be modified or deleted
+		IS_THROWN(ProgrammingException, db.setReportConfig(ps_id, report_conf, vl, cnvs, svs));
+		IS_THROWN(ProgrammingException, db.deleteReportConfig(conf_id));
+
+		//check messages if variant is missing
 		vl.clear();
-		report_conf2 = db.reportConfig(ps_id, vl, cnvs, svs, messages2);
+		report_conf2 = db.reportConfig(conf_id, vl, cnvs, svs, messages2);
 		I_EQUAL(messages2.count(), 1);
 		S_EQUAL(messages2[0], "Could not find variant 'chr2:47635523-47635523 ->T' in given variant list!");
-		I_EQUAL(report_conf2.variantConfig().count(), 2);
-		X_EQUAL(report_conf2.variantConfig()[0].variant_type, VariantType::CNVS);
+		I_EQUAL(report_conf2->variantConfig().count(), 2);
+		X_EQUAL(report_conf2->variantConfig()[0].variant_type, VariantType::CNVS);
 
 		//deleteReportConfig
+		db.getQuery().exec("UPDATE report_configuration SET finalized_by=NULL, finalized_date=NULL WHERE id="+QString::number(conf_id));
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 2); //result is 2 because there is one report config already in test NGSD after init
 		db.deleteReportConfig(conf_id);
 		I_EQUAL(db.getValue("SELECT count(*) FROM report_configuration").toInt(), 1);
@@ -1088,6 +1123,107 @@ private slots:
 		S_EQUAL(omim_info[1].gene_symbol, "SHOX");
 		S_EQUAL(omim_info[1].mim, "400020");
 		I_EQUAL(omim_info[1].phenotypes.count(), 3);
+
+		//check SV table names
+		QList<StructuralVariantType> sv_types;
+		sv_types << StructuralVariantType::DEL << StructuralVariantType::DUP << StructuralVariantType::INV << StructuralVariantType::INS << StructuralVariantType::BND;
+		foreach (StructuralVariantType sv_type, sv_types)
+		{
+			QString table_name = db.svTableName(sv_type);
+			db.getValue("SELECT count(*) FROM " + table_name, false);
+		}
+
+
+		//Test Evaluation Sheet Data table
+		EvaluationSheetData esd_test_input;
+		esd_test_input.ps_id = "4001";
+		esd_test_input.dna_rna = "DNA_12345";
+		esd_test_input.reviewer1 = "Max Mustermann";
+		esd_test_input.review_date1 = QDate(2020, 2, 20);
+		esd_test_input.reviewer2 = "Sarah Kerrigan";
+		esd_test_input.review_date2 = QDate(2033, 3, 30);
+		esd_test_input.analysis_scope = "Analyseumfang";
+		esd_test_input.acmg_requested = true;
+		esd_test_input.acmg_noticeable = false;
+		esd_test_input.acmg_analyzed = true;
+		esd_test_input.filtered_by_freq_based_dominant = false;
+		esd_test_input.filtered_by_freq_based_recessive = true;
+		esd_test_input.filtered_by_cnv = false;
+		esd_test_input.filtered_by_mito = true;
+		esd_test_input.filtered_by_x_chr = false;
+		esd_test_input.filtered_by_phenotype = true;
+		esd_test_input.filtered_by_multisample = false;
+		esd_test_input.filtered_by_trio_stringent = true;
+		esd_test_input.filtered_by_trio_relaxed = false;
+
+		db.storeEvaluationSheetData(esd_test_input);
+
+		EvaluationSheetData esd_db_export = db.evaluationSheetData("4001");
+		IS_TRUE(esd_test_input.ps_id == esd_db_export.ps_id);
+		IS_TRUE(esd_test_input.dna_rna == esd_db_export.dna_rna);
+		IS_TRUE(esd_test_input.reviewer1 == esd_db_export.reviewer1);
+		IS_TRUE(esd_test_input.review_date1 == esd_db_export.review_date1);
+		IS_TRUE(esd_test_input.reviewer2 == esd_db_export.reviewer2);
+		IS_TRUE(esd_test_input.review_date2 == esd_db_export.review_date2);
+		IS_TRUE(esd_test_input.analysis_scope == esd_db_export.analysis_scope);
+		IS_TRUE(esd_test_input.acmg_requested == esd_db_export.acmg_requested);
+		IS_TRUE(esd_test_input.acmg_noticeable == esd_db_export.acmg_noticeable);
+		IS_TRUE(esd_test_input.acmg_analyzed == esd_db_export.acmg_analyzed);
+		IS_TRUE(esd_test_input.filtered_by_freq_based_dominant == esd_db_export.filtered_by_freq_based_dominant);
+		IS_TRUE(esd_test_input.filtered_by_freq_based_recessive == esd_db_export.filtered_by_freq_based_recessive);
+		IS_TRUE(esd_test_input.filtered_by_cnv == esd_db_export.filtered_by_cnv);
+		IS_TRUE(esd_test_input.filtered_by_mito == esd_db_export.filtered_by_mito);
+		IS_TRUE(esd_test_input.filtered_by_x_chr == esd_db_export.filtered_by_x_chr);
+		IS_TRUE(esd_test_input.filtered_by_phenotype == esd_db_export.filtered_by_phenotype);
+		IS_TRUE(esd_test_input.filtered_by_multisample == esd_db_export.filtered_by_multisample);
+		IS_TRUE(esd_test_input.filtered_by_trio_stringent == esd_db_export.filtered_by_trio_stringent);
+		IS_TRUE(esd_test_input.filtered_by_trio_relaxed == esd_db_export.filtered_by_trio_relaxed);
+
+
+		//change input
+		esd_test_input.dna_rna = "DNA_67890";
+
+		// test import with no overwrite
+		IS_THROWN(DatabaseException, db.storeEvaluationSheetData(esd_test_input));
+
+		// test with overwrite
+		db.storeEvaluationSheetData(esd_test_input, true);
+		esd_db_export = db.evaluationSheetData("4001");
+
+		// check value change
+		S_EQUAL(esd_db_export.dna_rna, "DNA_67890");
+
+		// test failed import
+		esd_test_input.ps_id = "invalid_id";
+		IS_THROWN(DatabaseException, db.storeEvaluationSheetData(esd_test_input));
+
+		// test failed export
+		IS_THROWN(DatabaseException, db.evaluationSheetData("-4"));
+		S_EQUAL(db.evaluationSheetData("-4", false).ps_id, "");
+
+		//addPreferredTranscript
+		bool added = db.addPreferredTranscript("NIPA1_TR1");
+		IS_TRUE(added);
+		added = db.addPreferredTranscript("NIPA1_TR1");
+		IS_FALSE(added);
+		added = db.addPreferredTranscript("NIPA1_TR2");
+		IS_TRUE(added);
+		added = db.addPreferredTranscript("NIPA1_TR2");
+		IS_FALSE(added);
+		added = db.addPreferredTranscript("NON-CODING_TR1");
+		IS_TRUE(added);
+		IS_THROWN(DatabaseException, db.addPreferredTranscript("INVALID_TRANSCRIPT_NAME"));
+
+		//getPreferredTranscripts
+		QMap<QByteArray, QByteArrayList> pt = db.getPreferredTranscripts();
+		I_EQUAL(pt.count(), 2);
+		IS_TRUE(pt.contains("NIPA1"));
+		IS_TRUE(pt.contains("NON-CODING"));
+		I_EQUAL(pt["NIPA1"].count(), 2);
+		IS_TRUE(pt["NIPA1"].contains("NIPA1_TR1"));
+		IS_TRUE(pt["NIPA1"].contains("NIPA1_TR2"));
+		I_EQUAL(pt["NON-CODING"].count(), 1);
+		IS_TRUE(pt["NON-CODING"].contains("NON-CODING_TR1"));
 	}
 
 	//Tests for SomaticReportConfiguration and specific somatic variants
@@ -1146,6 +1282,8 @@ private slots:
 		S_EQUAL(config_data.created_date, "05.01.2019 14:06:12");
 		S_EQUAL(config_data.last_edit_by, "Sarah Kerrigan");
 		S_EQUAL(config_data.last_edit_date, "07.12.2019 17:06:10");
+		S_EQUAL(config_data.mtb_xml_upload_date, "27.07.2020 09:20:10");
+		S_EQUAL(config_data.mtb_pdf_upload_date, "27.07.2020 09:40:11");
 		S_EQUAL(config_data.target_file, "nowhere.bed");
 
 		//set somatic report configuration in test NGSD, using 2 SNVs
@@ -1205,9 +1343,32 @@ private slots:
 		som_rep_conf.setGermline(var1_germl);
 		som_rep_conf.setGermline(var2_germl);
 
+
+		//Check resolving single variant config from report configuration
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).include_variant_alteration, "c.-124A>C");
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).include_variant_description, "Testtreiber (bekannt)");
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).comment, "known test driver was not included in any db yet.");
+		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).variant_index, 2);
+		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::SNVS_INDELS).variant_type, VariantType::SNVS_INDELS);
+
+		IS_TRUE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_artefact);
+		IS_TRUE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_other_reason);
+		IS_FALSE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_high_baf_deviation);
+		IS_FALSE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_low_copy_number);
+		IS_FALSE(som_rep_conf.variantConfig(2, VariantType::CNVS).exclude_low_tumor_content);
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).include_variant_alteration, "");
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).include_variant_description, "");
+		S_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).comment, "This test somatic cnv shall be excluded.");
+		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).variant_index, 2);
+		I_EQUAL(som_rep_conf.variantConfig(2, VariantType::CNVS).variant_type, VariantType::CNVS);
+
+
+
 		QString t_ps_id = db.processedSampleId("NA12345_01");
 		QString n_ps_id = db.processedSampleId("NA12123_04");
 		int config_id = db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahmustm1"); //id will be 52 in test NGSD
+
+
 
 		QStringList messages = {};
 
@@ -1273,6 +1434,15 @@ private slots:
 		S_EQUAL(config_data_1.created_by, "Max Mustermann");
 		S_EQUAL(config_data_1.last_edit_by, "Max Mustermann");
 		S_EQUAL(config_data_1.target_file, "somewhere.bed");
+		S_EQUAL(config_data_1.mtb_xml_upload_date, "");
+		S_EQUAL(config_data_1.mtb_pdf_upload_date, "");
+
+		//set
+		db.setSomaticMtbXmlUpload(config_id);
+		db.setSomaticMtbPdfUpload(config_id);
+
+		IS_TRUE(db.somaticReportConfigData(config_id).mtb_xml_upload_date != "");
+		IS_TRUE(db.somaticReportConfigData(config_id).mtb_pdf_upload_date != "");
 
 
 		//Update somatic report configuration (by other user), should update target_file and last_edits
@@ -1364,7 +1534,13 @@ private slots:
 		settings.normal_ps = "DX184263_01";
 
 
-		SomaticXmlReportGeneratorData xml_data(settings, vl, vl_germl, cnvs);
+		//Test somatic XML report
+
+		VariantList vl_filtered = SomaticReportSettings::filterVariants(vl, settings);
+		VariantList vl_germl_filtered =  SomaticReportSettings::filterGermlineVariants(vl_germl, settings);
+		CnvList cnvs_filtered = SomaticReportSettings::filterCnvs(cnvs,settings);
+
+		SomaticXmlReportGeneratorData xml_data(settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
 
 		IS_THROWN(ArgumentException, xml_data.check());
 
@@ -1374,7 +1550,9 @@ private slots:
 		xml_data.tumor_content_clonality = 0.8;
 		xml_data.tumor_content_snvs = 0.73;
 
+
 		QString out = SomaticXmlReportGenerator::generateXML(xml_data, db, true);
+
 		Helper::storeTextFile("out/somatic_report.xml", out.split("\n"));
 		COMPARE_FILES("out/somatic_report.xml", TESTDATA("data_out/somatic_report.xml"));
 	}

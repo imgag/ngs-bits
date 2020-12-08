@@ -71,7 +71,26 @@ void RohWidget::rohDoubleClicked(QTableWidgetItem* item)
 {
 	if (item==nullptr) return;
 
-	emit openRegionInIGV(rohs[item->row()].toString());
+	int col = item->column();
+	int row = item->row();
+
+	QString col_name = item->tableWidget()->horizontalHeaderItem(col)->text();
+	if (col_name=="omim")
+	{
+		int omim_index = rohs.annotationHeaders().indexOf("omim");
+
+		QString text = rohs[row].annotations()[omim_index].trimmed();
+		if (text.trimmed()!="")
+		{
+			text = text.replace('_', ' ');
+			text = text.replace("%3D", "=");
+			VariantDetailsDockWidget::showOverviewTable("OMIM entries of ROH " +  rohs[row].toString(), text, ',', "https://www.omim.org/entry/");
+		}
+	}
+	else
+	{
+		emit openRegionInIGV(rohs[item->row()].toString());
+	}
 }
 
 void RohWidget::addInfoLine(QString text)
@@ -99,10 +118,19 @@ void RohWidget::loadROHs(QString filename)
 	for(int i=0; i<rohs.annotationHeaders().count(); ++i)
 	{
 		QByteArray header = rohs.annotationHeaders()[i];
+
 		if (header=="size" || header=="region_count") continue;
 
+		QTableWidgetItem* item = new QTableWidgetItem(QString(header));
+
+		if (header=="omim")
+		{
+			item->setIcon(QIcon("://Icons/Table.png"));
+			item->setToolTip("Double click table cell to open table view of annotations");
+		}
+
 		ui->rohs->setColumnCount(ui->rohs->columnCount() + 1);
-		ui->rohs->setHorizontalHeaderItem(ui->rohs->columnCount() -1, new QTableWidgetItem(QString(header)));
+		ui->rohs->setHorizontalHeaderItem(ui->rohs->columnCount() -1, item);
 		annotation_indices.append(i);
 	}
 
@@ -134,7 +162,10 @@ void RohWidget::loadROHs(QString filename)
 			//special handling for OMIM
 			if (rohs.annotationHeaders()[index]=="omim")
 			{
-				item->setText(item->text().replace("_", " "));
+				QString text = item->text();
+				text = text.replace('_', ' ');
+				text = text.replace("%3D", "=");
+				item->setText(text);
 			}
 			item->setToolTip(item->text());
 			ui->rohs->setItem(r, c++, item);
@@ -301,21 +332,14 @@ void RohWidget::showContextMenu(QPoint p)
 	int row = ui->rohs->indexAt(p).row();
 	if (row==-1) return;
 
-
 	//create menu
 	QMenu menu;
 	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
 	menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser (override tracks)");
-
-	QAction* action = menu.addAction("Open OMIM entries");
-	int omim_index = rohs.annotationHeaders().indexOf("omim");
-	QString omim_text = rohs[row].annotations()[omim_index].trimmed();
-	action->setEnabled(!omim_text.isEmpty());
-
 	menu.addAction("Use as variant filter region");
 
 	//exec menu
-	action = menu.exec(ui->rohs->viewport()->mapToGlobal(p));
+	QAction* action = menu.exec(ui->rohs->viewport()->mapToGlobal(p));
 	if (action==nullptr) return;
 	QString text = action->text();
 
@@ -327,16 +351,6 @@ void RohWidget::showContextMenu(QPoint p)
 	else if (text=="Open in UCSC browser (override tracks)")
 	{
 		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&ignoreCookie=1&hideTracks=1&cytoBand=pack&refSeqComposite=dense&ensGene=dense&omimGene2=pack&geneReviews=pack&dgvPlus=squish&genomicSuperDups=squish&position=" + rohs[row].toString()));
-	}
-
-	//OMIM
-	if (text=="Open OMIM entries")
-	{
-		auto entries = VariantDetailsDockWidget::parseDB(omim_text, ',');
-		foreach(VariantDetailsDockWidget::DBEntry entry, entries)
-		{
-			QDesktopServices::openUrl(QUrl("http://omim.org/entry/" + entry.id));
-		}
 	}
 
 	//Region filter

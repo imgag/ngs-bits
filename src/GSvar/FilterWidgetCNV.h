@@ -43,12 +43,12 @@ public:
 	void setRegion(QString region);
 
 	//Returns selected phenotype terms.
-	const QList<Phenotype>& phenotypes() const;
+	const PhenotypeList& phenotypes() const;
 	//Sets selected phenotype terms.
-	void setPhenotypes(const QList<Phenotype>& phenotypes);
+	void setPhenotypes(const PhenotypeList& phenotypes);
 
 	//Returns if only CNVs with report config should be shown
-	bool reportConfigurationOnly() const;
+	ReportConfigFilter reportConfigurationFilter() const;
 
 signals:
 	//Signal that is emitted when a filter changes (filter cascade, gene, text, region, phenotype)
@@ -57,6 +57,8 @@ signals:
 	void targetRegionChanged();
 	/// Signal that loading phenotype data from NGSD was requested (this cannot be done inside the widget, because it knows nothing about the sample)
 	void phenotypeImportNGSDRequested();
+	/// Signal that requests the creation of gene overlap ToolTips
+	void calculateGeneTargetRegionOverlap();
 
 protected slots:
 	void roiSelectionChanged(int index);
@@ -72,8 +74,11 @@ protected slots:
 	void importGene();
 	void importText();
 	void updateFilterName();
+	void customFilterLoaded();
 	void setFilter(int index);
 	void clearTargetRegion();
+	void calculateGeneOverlap();
+	void checkForGeneFileNGSD();
 
 private:
 	//Loads filters
@@ -87,7 +92,7 @@ private:
 
 	Ui::FilterWidgetCNV ui_;
 	GeneSet last_genes_;
-	QList<Phenotype> phenotypes_;
+	PhenotypeList phenotypes_;
 	FilterWidget* filter_widget_;
 };
 

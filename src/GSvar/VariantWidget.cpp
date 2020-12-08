@@ -1,9 +1,11 @@
 #include "VariantWidget.h"
-
+#include "ClassificationDialog.h"
 #include "NGSD.h"
 #include "GUIHelper.h"
+#include "DBTableWidget.h"
 #include <QDialog>
 #include <QMessageBox>
+#include <QAction>
 
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	: QWidget(parent)
@@ -15,12 +17,17 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.similarity, SIGNAL(clicked(bool)), this, SLOT(calculateSimilarity()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
+	connect(ui_.class_btn, SIGNAL(clicked(bool)), this, SLOT(editClassification()));
 	connect(ui_.transcripts, SIGNAL(linkActivated(QString)), this, SIGNAL(openGeneTab(QString)));
 
 	//add sample table context menu entries
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSampleTab()));
+
+	action = new QAction(QIcon(":/Icons/Icon.png"), "Open variant list", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openGSvarFile()));
 }
 
 void VariantWidget::updateGUI()
@@ -71,23 +78,26 @@ void VariantWidget::updateGUI()
 			SampleData s_data = db.getSampleData(db.getValue("SELECT sample_id FROM processed_sample WHERE id=" + ps_id).toString());
 			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
 			DiagnosticStatusData diag_data = db.getDiagnosticStatus(ps_id);
-			addItem(row, 0,  ps_data.name);
+			QTableWidgetItem* item = addItem(row, 0,  ps_data.name);
+			DBTableWidget::styleQuality(item, ps_data.quality);
 			addItem(row, 1,  s_data.name_external);
-			addItem(row, 2,  s_data.quality + " / " + ps_data.quality);
-			addItem(row, 3,  query.value(1).toString());
-			addItem(row, 4, ps_data.processing_system);
-			addItem(row, 5, ps_data.project_name);
-			addItem(row, 6, s_data.disease_group);
-			addItem(row, 7, s_data.disease_status);
+			addItem(row, 2,  s_data.gender);
+			addItem(row, 3,  s_data.quality + " / " + ps_data.quality);
+			addItem(row, 4,  query.value(1).toString());
+			addItem(row, 5, ps_data.processing_system);
+			addItem(row, 6, ps_data.project_name);
+			addItem(row, 7, s_data.disease_group);
+			addItem(row, 8, s_data.disease_status);
 			QStringList pho_list;
 			foreach(const Phenotype& pheno, s_data.phenotypes)
 			{
 				pho_list << pheno.toString();
 			}
-			addItem(row, 8, pho_list.join("; "));
-			addItem(row, 9, diag_data.dagnostic_status);
-			addItem(row, 10, diag_data.user);
-			addItem(row, 11, s_data.comments);
+			addItem(row, 9, pho_list.join("; "));
+			addItem(row, 10, diag_data.dagnostic_status);
+			addItem(row, 11, diag_data.user);
+			addItem(row, 12, s_data.comments);
+			addItem(row, 13, ps_data.comments);
 
 			//get causal genes from report config
 			GeneSet genes_causal;
@@ -97,7 +107,7 @@ void VariantWidget::updateGUI()
 			{
 				genes_causal << query3.value(0).toByteArray().split(',');
 			}
-			addItem(row, 12, genes_causal.join(','));
+			addItem(row, 14, genes_causal.join(','));
 
 			//get candidate genes from report config
 			GeneSet genes_candidate;
@@ -107,7 +117,7 @@ void VariantWidget::updateGUI()
 			{
 				genes_candidate << query4.value(0).toByteArray().split(',');
 			}
-			addItem(row, 13, genes_candidate.join(','));
+			addItem(row, 15, genes_candidate.join(','));
 
 			++row;
 		}
@@ -128,10 +138,11 @@ void VariantWidget::delayedInitialization()
 }
 
 
-void VariantWidget::addItem(int r, int c, QString text)
+QTableWidgetItem* VariantWidget::addItem(int r, int c, QString text)
 {
 	QTableWidgetItem* item = new QTableWidgetItem(text);
 	ui_.table->setItem(r, c, item);
+	return item;
 }
 
 void VariantWidget::copyToClipboard()
@@ -161,7 +172,6 @@ void VariantWidget::calculateSimilarity()
 	QTableWidget* table = new QTableWidget(this);
 	table->setMinimumSize(700, 550);
 	table->setEditTriggers(QTableWidget::NoEditTriggers);
-	table->setSortingEnabled(true);
 	table->setColumnCount(6);
 	table->setHorizontalHeaderLabels(QStringList() << "s1" << "#variants s1" << "s2" << "#variants s2" << "variant overlap" << "variant overlap %");
 	int row = 0;
@@ -215,6 +225,42 @@ void VariantWidget::openProcessedSampleTab()
 	{
 		QString ps = ui_.table->item(row, 0)->text();
 		emit openProcessedSampleTab(ps);
+	}
+}
+
+void VariantWidget::openGSvarFile()
+{
+	QList<int> rows = selectedRows();
+
+	//check that ony
+	if (rows.count()!=1)
+	{
+		QMessageBox::warning(this,  "Open variant list", "Please select exactly one sampe to open!");
+		return;
+	}
+
+	QString ps = ui_.table->item(rows[0], 0)->text();
+	emit openProcessedSampleFromNGSD(ps);
+}
+
+void VariantWidget::editClassification()
+{
+	try
+	{
+		//execute dialog
+		ClassificationDialog dlg(this, variant_);
+		if (dlg.exec()!=QDialog::Accepted) return;
+
+		//update NGSD
+		NGSD db;
+		db.setClassification(variant_, VariantList(), dlg.classificationInfo());
+
+		updateGUI();
+	}
+	catch (DatabaseException& e)
+	{
+		GUIHelper::showMessage("NGSD error", e.message());
+		return;
 	}
 }
 

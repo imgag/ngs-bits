@@ -117,6 +117,9 @@ class CPPNGSDSHARED_EXPORT DBTable
 		///Removes rows that don't contain the given text.
 		void filterRows(QString text, Qt::CaseSensitivity cs = Qt::CaseInsensitive);
 
+		///Removes rows that don't contain the given text in the given column.
+		void filterRowsByColumn(int col_idx, QString text, Qt::CaseSensitivity cs = Qt::CaseInsensitive);
+
 		///Writes contents to a stream (TSV representation)
 		void write(QTextStream& stream) const;
 

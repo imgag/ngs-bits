@@ -8,7 +8,7 @@ private slots:
 	
 	void byBED_TSV()
 	{
-		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in.tsv") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out1.tsv");
+		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in.tsv") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out1.tsv -mode gsvar");
 		COMPARE_FILES("out/VariantFilterRegions_out1.tsv", TESTDATA("data_out/VariantFilterRegions_out1.tsv"));
 	}
 
@@ -21,19 +21,19 @@ private slots:
 
 	void byBED_TSV_invert()
 	{
-		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in.tsv") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out3.tsv -inv");
+		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in.tsv") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out3.tsv -inv -mode gsvar");
 		COMPARE_FILES("out/VariantFilterRegions_out3.tsv", TESTDATA("data_out/VariantFilterRegions_out3.tsv"));
 	}
 
 	void byString_TSV()
 	{
-		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in.tsv") + " -r chr2:70,000,000-120,000,000 -out out/VariantFilterRegions_out4.tsv");
+		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in.tsv") + " -r chr2:70,000,000-120,000,000 -out out/VariantFilterRegions_out4.tsv -mode gsvar");
 		COMPARE_FILES("out/VariantFilterRegions_out4.tsv", TESTDATA("data_out/VariantFilterRegions_out4.tsv"));
 	}
 
 	void byBED_TSV_mark()
 	{
-		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in.tsv") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out5.tsv -mark off-target");
+		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in.tsv") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out5.tsv -mark off-target -mode gsvar");
 		COMPARE_FILES("out/VariantFilterRegions_out5.tsv", TESTDATA("data_out/VariantFilterRegions_out5.tsv"));
 	}
 
@@ -46,7 +46,7 @@ private slots:
 
 	void byBED_TSV_mark_invert()
 	{
-		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in.tsv") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out7.tsv -mark off-target -inv");
+		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in.tsv") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out7.tsv -mark off-target -inv -mode gsvar");
 		COMPARE_FILES("out/VariantFilterRegions_out7.tsv", TESTDATA("data_out/VariantFilterRegions_out7.tsv"));
 	}
 

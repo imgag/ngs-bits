@@ -194,7 +194,7 @@ public:
 	void removeDuplicates();
 
 	///Merges overlapping regions (by default also merges back-to-back/bookshelf regions).
-	void merge(bool merge_back_to_back = true, bool merge_names = false);
+	void merge(bool merge_back_to_back = true, bool merge_names = false, bool merged_names_unique = false);
     ///Extends the regions by @p n bases in both directions.
     void extend(int n);
     ///Shrinks the regions by @p n bases in both direactions.

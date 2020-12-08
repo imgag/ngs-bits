@@ -105,9 +105,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QTextEdit" name="input">
+        <widget class="QPlainTextEdit" name="input">
          <property name="lineWrapMode">
-          <enum>QTextEdit::NoWrap</enum>
+          <enum>QPlainTextEdit::NoWrap</enum>
          </property>
         </widget>
        </item>
@@ -126,9 +126,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QTextEdit" name="output">
+        <widget class="QPlainTextEdit" name="output">
          <property name="lineWrapMode">
-          <enum>QTextEdit::NoWrap</enum>
+          <enum>QPlainTextEdit::NoWrap</enum>
          </property>
         </widget>
        </item>

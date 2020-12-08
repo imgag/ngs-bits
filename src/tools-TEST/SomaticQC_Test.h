@@ -33,7 +33,7 @@ private slots:
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
-		EXECUTE("SomaticQC", "-tumor_bam " + TESTDATA("data_in/SomaticQC_in1_tum.bam") + " -normal_bam " + TESTDATA("data_in/SomaticQC_in1_nor.bam") + " -somatic_vcf " + TESTDATA("data_in/SomaticQC_in1.GSvar") + " -links " + TESTDATA("data_in/SomaticQC_in4.qcML") + " -skip_plots -out out/SomaticQC_out3.qcML");
+		EXECUTE("SomaticQC", "-tumor_bam " + TESTDATA("data_in/SomaticQC_in1_tum.bam") + " -normal_bam " + TESTDATA("data_in/SomaticQC_in1_nor.bam") + " -somatic_vcf " + TESTDATA("data_in/SomaticQC_in1.vcf") + " -links " + TESTDATA("data_in/SomaticQC_in4.qcML") + " -skip_plots -out out/SomaticQC_out3.qcML");
 		REMOVE_LINES("out/SomaticQC_out3.qcML", QRegExp("creation "));
 		REMOVE_LINES("out/SomaticQC_out3.qcML", QRegExp("<binary>"));
 		COMPARE_FILES("out/SomaticQC_out3.qcML", TESTDATA("data_out/SomaticQC_out3.qcML"));

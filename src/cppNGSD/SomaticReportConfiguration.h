@@ -47,7 +47,7 @@ public:
 	///Returns list containing all report variant configurations
 	const QList<SomaticReportVariantConfiguration>& variantConfig() const;
 	///Returns variant configuration for variant_index (index referes to index of main variant list!)
-	const SomaticReportVariantConfiguration& variantConfig(int variant_index) const;
+	const SomaticReportVariantConfiguration& variantConfig(int variant_index, VariantType type) const;
 	///Returns all variant configurations for all (germline!) report variant configurations
 	const QList<SomaticReportGermlineVariantConfiguration>& variantConfigGermline() const;
 	///Returns variant configuration for (germline!) variant_index (index referes to index of germline variant list!)

@@ -87,6 +87,11 @@ CnvList::CnvList()
 {
 }
 
+bool CnvList::isValid() const
+{
+	return type_!=CnvListType::INVALID;
+}
+
 void CnvList::clear()
 {
 	type_ = CnvListType::INVALID;
@@ -217,6 +222,7 @@ void CnvList::load(QString filename)
 	while (!file.atEnd())
 	{
 		QByteArrayList parts = file.readLine();
+		if(parts.empty()) continue;
 
 		//regions
 		int region_count = 0;
@@ -450,12 +456,16 @@ void CnvList::setHeaderDesciption(QByteArray name, QByteArray desciption)
 	annotation_header_desc_[name] = desciption;
 }
 
-int CnvList::annotationIndexByName(const QByteArray& name, bool throw_on_error) const
+int CnvList::annotationIndexByName(const QByteArray& name, bool throw_on_error, bool contains) const
 {
 	QList<int> matches;
 	for(int i=0; i<annotation_headers_.count(); ++i)
 	{
-		if (annotation_headers_[i] == name )
+		if (!contains && annotation_headers_[i] == name )
+		{
+			matches.append(i);
+		}
+		if(contains && annotation_headers_[i].contains(name))
 		{
 			matches.append(i);
 		}

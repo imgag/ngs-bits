@@ -127,6 +127,10 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 	}
 	stream << "<p><b>" << trans("Abdeckungsstatistik") << "</b>" << endl;
 	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << avg_cov << endl;
+	BedFile mito_bed;
+	mito_bed.append(BedLine("chrMT", 1, 16569));
+	Statistics::avgCoverage(mito_bed, bam_file, 1, false, true);
+	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe (chrMT)") << ": " << mito_bed[0].annotations()[0] << endl;
 	stream << "</p>" << endl;
 
 	if (gene_and_gap_details)
@@ -189,7 +193,7 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 			{
 				if (grouped.contains(gene))
 				{
-					incomplete_genes << gene + " <span style=\"font-size: 80%;\">" + QString::number(grouped[gene].baseCount()) + "</span> ";
+					incomplete_genes << gene + " <span style=\"font-size: 8pt;\">" + QString::number(grouped[gene].baseCount()) + "</span> ";
 				}
 			}
 			stream << "<br />" << trans("Fehlende Basen in nicht komplett abgedeckten Genen") << ": " << incomplete_genes.join(", ") << endl;
@@ -313,7 +317,7 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 			}
 			else
 			{
-				genes_incomplete << it.key() + " <span style=\"font-size: 80%;\">" + QByteArray::number(it.value()) + "</span> ";
+				genes_incomplete << it.key() + " <span style=\"font-size: 8pt;\">" + QByteArray::number(it.value()) + "</span> ";
 			}
 		}
 		stream << "<p>";
@@ -426,8 +430,13 @@ void ReportWorker::writeHtmlHeader(QTextStream& stream, QString sample_name)
 	stream << "		<!--" << endl;
 	stream << "body" << endl;
 	stream << "{" << endl;
-	stream << "	font-family: sans-serif;" << endl;
-	stream << "	font-size: 70%;" << endl;
+	stream << "	font-family: Calibri, sans-serif;" << endl;
+	stream << "	font-size: 8pt;" << endl;
+	stream << "}" << endl;
+	stream << "h4" << endl;
+	stream << "{" << endl;
+	stream << "	font-family: Calibri, sans-serif;" << endl;
+	stream << "	font-size: 10pt;" << endl;
 	stream << "}" << endl;
 	stream << "table" << endl;
 	stream << "{" << endl;
@@ -438,7 +447,7 @@ void ReportWorker::writeHtmlHeader(QTextStream& stream, QString sample_name)
 	stream << "th, td" << endl;
 	stream << "{" << endl;
 	stream << "	border: 1px solid black;" << endl;
-	stream << "	font-size: 100%;" << endl;
+	stream << "	font-size: 8pt;" << endl;
 	stream << "	text-align: left;" << endl;
 	stream << "}" << endl;
 	stream << "p" << endl;
@@ -532,7 +541,7 @@ void ReportWorker::writeHTML()
 	if (file_roi_!="")
 	{
 		stream << "<p><b>" << trans("Zielregion") << "</b>" << endl;
-		stream << "<br /><span style=\"font-size: 80%;\">" << trans("Die Zielregion umfasst mindestens die CCDS (\"consensus coding sequence\") unten genannter Gene &plusmn;20 Basen flankierender intronischer Sequenz, kann aber auch zus&auml;tzliche Exons und/oder flankierende Basen beinhalten.") << endl;
+		stream << "<br /><span style=\"font-size: 8pt;\">" << trans("Die Zielregion umfasst mindestens die CCDS (\"consensus coding sequence\") unten genannter Gene &plusmn;20 Basen flankierender intronischer Sequenz, kann aber auch zus&auml;tzliche Exons und/oder flankierende Basen beinhalten.") << endl;
 		stream << "<br />" << trans("Name") << ": " << QFileInfo(file_roi_).fileName().replace(".bed", "") << endl;
 		if (!genes_.isEmpty())
 		{
@@ -559,7 +568,7 @@ void ReportWorker::writeHTML()
 	}
 	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
 	int selected_var_count = 0;
-	foreach(int index, settings_.report_config.variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type))
+	foreach(int index, settings_.report_config->variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type))
 	{
 		const Variant & variant = variants_[index];
 		if (file_roi_=="" || roi_.overlapsWith(variant.chr(), variant.start(), variant.end()))
@@ -569,7 +578,7 @@ void ReportWorker::writeHTML()
 	}
 	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << selected_var_count << endl;
 	int selected_cnv_count = 0;
-	foreach(int index, settings_.report_config.variantIndices(VariantType::CNVS, true, settings_.report_type))
+	foreach(int index, settings_.report_config->variantIndices(VariantType::CNVS, true, settings_.report_type))
 	{
 		const CopyNumberVariant& cnv = cnvs_[index];
 		if (file_roi_=="" || roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end()))
@@ -580,7 +589,7 @@ void ReportWorker::writeHTML()
 	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnv_count << endl;
 
 	int selected_sv_count = 0;
-	foreach(int index, settings_.report_config.variantIndices(VariantType::SVS, true, settings_.report_type))
+	foreach(int index, settings_.report_config->variantIndices(VariantType::SVS, true, settings_.report_type))
 	{
 		const BedpeLine& sv = svs_[index];
 		BedFile affected_region = sv.affectedRegion();
@@ -610,6 +619,7 @@ void ReportWorker::writeHTML()
 
 	//output: selected variants
 	stream << "<p><b>" << trans("Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
+	stream << "<br>" << trans("In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden.") << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td>";
@@ -620,7 +630,7 @@ void ReportWorker::writeHTML()
 	}
 	stream << "<td><b>" << trans("Gen(e)") << "</b></td><td><b>" << trans("Details") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td><td><b>1000g</b></td><td><b>gnomAD</b></td></tr>" << endl;
 
-	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
@@ -695,7 +705,7 @@ void ReportWorker::writeHTML()
 	stream << "<tr><td><b>" << trans("CNV") << "</b></td><td><b>" << trans("Regionen") << "</b></td><td><b>" << trans("CN") << "</b></td><td><b>"
 		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></tr>" << endl;
 
-	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::CNVS) continue;
 		if (!var_conf.showInReport()) continue;
@@ -726,7 +736,7 @@ void ReportWorker::writeHTML()
 	stream << "<tr><td><b>" << trans("SV") << "</b></td><td><b>" << trans("Position") << "</b></td><td><b>" << trans("Genotyp") << "</b></td><td><b>"
 		   << trans("Gen(e)") << "</b></td><td><b>" << trans("Klasse") << "</b></td><td><b>" << trans("Vererbung") << "</b></td></tr>" << endl;
 
-	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SVS) continue;
 		if (!var_conf.showInReport()) continue;
@@ -815,7 +825,7 @@ void ReportWorker::writeHTML()
 	stream << "<p>" << trans("F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen.") << endl;
 	stream << "</p>" << endl;
 
-	stream << "<p>" << trans("Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung ist eine humangenetische Mitbeurteilung erforderlich, zur Beurteilung ob erweiterte genetische Untersuchungen zielf&uuml;hrend w&auml;ren.") << endl;
+	stream << "<p>" << trans("Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung k&ouml;nnen ggf. weiterf&uuml;hrende genetische Untersuchungen indiziert sein.") << endl;
 	stream << "</p>" << endl;
 
 	///classification explaination
@@ -1016,13 +1026,17 @@ QByteArray ReportWorker::inheritance(const QByteArray& gene_info)
 
 QString ReportWorker::trans(const QString& text) const
 {
-	if (settings_.language=="german")
+	//init translation tables (once)
+	static QHash<QString, QString> en2de;
+	if (en2de.isEmpty())
 	{
-		return text;
+		en2de["male"] = "m&auml;nnlich";
+		en2de["female"] = "weiblich";
 	}
-	else if (settings_.language=="english")
+
+	static QHash<QString, QString> de2en;
+	if (de2en.isEmpty())
 	{
-		QHash<QString, QString> de2en;
 		de2en["Technischer Report zur bioinformatischen Analyse"] = "Technical Report for Bioinformatic Analysis";
 		de2en["Probe"] = "Sample";
 		de2en["Prozessierungssystem"] = "Processing system";
@@ -1047,7 +1061,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Variante"] = "Variant";
 		de2en["Gen"] = "Gene";
 		de2en["F&uuml;r Informationen zur Klassifizierung von Varianten, siehe allgemeine Zusatzinformationen."] = "For further information regarding the classification see Additional Information.";
-		de2en["Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung ist eine humangenetische Mitbeurteilung erforderlich, zur Beurteilung ob erweiterte genetische Untersuchungen zielf&uuml;hrend w&auml;ren."] = "Depending on the type of genetic alteration, family history and clinical features of the patient further investigations might change the classification of variants of unknown significance (class 3). In case of a suspected clinical diagnosis genetic counseling is necessary to evaluate the indication/possibility of further genetic studies.";
+		de2en["Teilweise k&ouml;nnen bei Varianten unklarer Signifikanz (Klasse 3) -  in Abh&auml;ngigkeit von der Art der genetischen Ver&auml;nderung, der Familienanamnese und der Klinik des/der Patienten - weiterf&uuml;hrende Untersuchungen eine &Auml;nderung der Klassifizierung bewirken. Bei konkreten differentialdiagnostischen Hinweisen auf eine entsprechende Erkrankung k&ouml;nnen ggf. weiterf&uuml;hrende genetische Untersuchungen indiziert sein."] = "Depending on the type of genetic alteration, family history and clinical features of the patient further investigations might change the classification of variants of unknown significance (class 3). In case of a suspected clinical diagnosis genetic counseling is necessary to evaluate the indication/possibility of further genetic studies.";
 		de2en["Klassifikation von Varianten"] = "Classification of variants";
 		de2en["Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)"] = "Classification and interpretation of variants: The classification of variants is based on the criteria of Plon et al. (PMID: 18951446). A short description of each class can be found in the following";
 		de2en["Klasse 5: Eindeutig pathogene Ver&auml;nderung / Mutation"] = "Class 5, pathogenic variant";
@@ -1075,6 +1089,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Tool"] = "Tool";
 		de2en["Abdeckungsstatistik"] = "Coverage statistics";
 		de2en["Durchschnittliche Sequenziertiefe"] = "Average sequencing depth";
+		de2en["Durchschnittliche Sequenziertiefe (chrMT)"] = "Average sequencing depth (chrMT)";
 		de2en["Komplett abgedeckte Gene"] = "Genes without gaps";
 		de2en["Anteil Regionen mit Tiefe &lt;"] = "Percentage of regions with depth &lt;";
 		de2en["Fehlende Basen in nicht komplett abgedeckten Genen"] = "Number of missing bases for genes with gaps";
@@ -1094,8 +1109,6 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Gene"] = "genes";
 		de2en["CNV"] = "CNV";
 		de2en["CN"] = "CN";
-		de2en["male"] = "m&auml;nnlich";
-		de2en["female"] = "weiblich";
 		de2en["n/a"] = "n/a";
 		de2en["SV"] = "SV";
 		de2en["Position"] = "Position";
@@ -1104,13 +1117,22 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Insertion"] = "insertion";
 		de2en["Inversion"] = "inversion";
 		de2en["Translokation"] = "translocation";
+		de2en["In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden."] = "In addition to likely pathogenic variants (class 4) and pathogenic variants (class 5), the following table contains only those variants of uncertain significance (class 3), for which a contribution to the clinical symptoms of the patient is conceivable and for which a further evaluation of the clinical relevance by follow-up examinations may be useful.  A list of all detected variants can be provided on request.";
+	}
 
-		if (!de2en.contains(text))
-		{
-			Log::warn("Could not translate to " + settings_.language + ": '" + text + "'");
-		}
+	//translate
+	if (settings_.language=="german")
+	{
+		if (en2de.contains(text)) return en2de[text];
 
-		return de2en[text];
+		return text;
+	}
+	else if (settings_.language=="english")
+	{
+		if (de2en.contains(text)) return de2en[text];
+		else Log::warn("Could not translate '" + text + "' to " + settings_.language + "!");
+
+		return text;
 	}
 
 	THROW(ProgrammingException, "Unsupported language '" + settings_.language + "'!");
@@ -1189,7 +1211,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 
 	//element Variant
 	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
-	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
@@ -1340,7 +1362,7 @@ void ReportWorker::writeXML(QString outfile_name, QString report_document)
 		w.writeAttribute("number_of_hq_cnvs", qc_metrics["high-quality cnvs"]);
 	}
 
-	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config.variantConfig())
+	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::CNVS) continue;
 		if (!var_conf.showInReport()) continue;

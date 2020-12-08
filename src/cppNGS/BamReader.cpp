@@ -1,6 +1,7 @@
 #include "BamReader.h"
 #include "Exceptions.h"
 #include "NGSHelper.h"
+#include "Settings.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -151,7 +152,7 @@ void BamAlignment::setBases(const Sequence& bases)
 		int base_index = char_to_base_index[(int)(bases[i])];
 		if (base_index==-1)
 		{
-			THROW(ProgrammingException, QByteArray("Cannot store character '") + bases[i] + "' in BAM file. Only A,C,G,T,N are allowed!");
+			THROW(ProgrammingException, QByteArray("Cannot store character '") + bases[i] + "' in BAM/CRAM file. Only A,C,G,T,N are allowed!");
 		}
 
 		//std::cout << "  base=" << bases[i] << " base_index=" << "(" << std::bitset<8>(base_index)  << ")" << std::endl;
@@ -411,21 +412,67 @@ QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
 	return output;
 }
 
-BamReader::BamReader(const QString& bam_file)
-	: bam_file_(QFileInfo(bam_file).absoluteFilePath())
-	, fp_(hts_open(bam_file.toLatin1().constData(), "r"))
+void BamReader::verify_chromosome_length(const QString& ref_genome)
 {
+	FastaFileIndex reference(ref_genome);
+
+	int32_t number_chromosomes = header_->n_targets;
+	for(int32_t i = 0; i < number_chromosomes; ++i)
+	{
+		char* name_chromosome = header_->target_name[i];
+		uint32_t length_chromosome = header_->target_len[i];
+
+		const Chromosome chr(name_chromosome);
+		uint32_t length_reference_chromosome = (uint32_t)reference.lengthOf(chr);
+
+		if(length_chromosome != length_reference_chromosome)
+		{
+			THROW(FileAccessException, "Chromosome lengths of reference genome (" + ref_genome + ") and CRAM file (" + bam_file_ + ") do not match for Chromosome: " + name_chromosome + "!");
+		}
+	}
+}
+
+void BamReader::init(const QString& bam_file, const QString& ref_genome)
+{
+
 	//open file
 	if (fp_==nullptr)
 	{
-		THROW(FileAccessException, "Could not open BAM file " + bam_file_);
+		THROW(FileAccessException, "Could not open BAM/CRAM file " + bam_file_);
 	}
 
 	//read header
-	header_ = bam_hdr_read(fp_->fp.bgzf);
+	header_ = sam_hdr_read(fp_);
 	if (header_==nullptr)
 	{
-		THROW(FileAccessException, "Could not read header from BAM file " + bam_file);
+		THROW(FileAccessException, "Could not read header from BAM/CRAM file " + bam_file);
+	}
+
+	//set reference for CRAM files
+	if(fp_->is_cram)
+	{
+		Q_UNUSED(ref_genome);
+		#ifdef _WIN32
+			THROW(FileAccessException, "No CRAM support for Windows yet!");
+		#else
+			//load reference file for cram
+			if(!(ref_genome.isNull() || ref_genome == ""))
+			{
+				//load custom reference genome
+				int fai = hts_set_fai_filename(fp_, ref_genome.toLatin1().constData());
+				if(fai < 0)
+				{
+					THROW(FileAccessException, "Error while setting reference genome for cram file!");
+				}
+
+				//check chromosomes are of same length
+				verify_chromosome_length(ref_genome);
+			}
+			else
+			{
+				THROW(FileAccessException, "Reference genome necessary for opening CRAM file " + bam_file + ".");
+			}
+		#endif
 	}
 
 	//parse chromosome names and sizes
@@ -435,13 +482,29 @@ BamReader::BamReader(const QString& bam_file)
 		chrs_ << chr;
 		chrs_sizes_[chr] = header_->target_len[i];
 	}
+
+	//parse reference file chromosome sizes
+}
+
+BamReader::BamReader(const QString& bam_file)
+	: bam_file_(QFileInfo(bam_file).absoluteFilePath())
+	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
+{
+	init(bam_file);
+}
+
+BamReader::BamReader(const QString& bam_file, const QString& ref_genome)
+	: bam_file_(QFileInfo(bam_file).absoluteFilePath())
+	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
+{
+	init(bam_file, ref_genome);
 }
 
 BamReader::~BamReader()
 {
 	clearIterator();
 	hts_idx_destroy(index_);
-	bam_hdr_destroy(header_);
+	sam_hdr_destroy(header_);
 	hts_close(fp_);
 }
 
@@ -463,10 +526,10 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 	//load index if not done already
 	if (index_==nullptr)
 	{
-		index_ = bam_index_load(bam_file_.toLatin1().data());
+		index_ = sam_index_load(fp_, bam_file_.toLatin1().data());
 		if (index_==nullptr)
 		{
-			THROW(FileAccessException, "Could not load index of BAM file " + bam_file_);
+			THROW(FileAccessException, "Could not load index of BAM/CRAM file " + bam_file_);
 		}
 	}
 
@@ -474,11 +537,11 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 	int chr_index = chrs_.indexOf(chr);
 	if (chr_index==-1)
 	{
-		THROW(FileAccessException, "Could not find chromosome '" + chr.str() + "' in BAM file " + bam_file_);
+		THROW(FileAccessException, "Could not find chromosome '" + chr.str() + "' in BAM/CRAM file " + bam_file_);
 	}
 
 	//create iterator for region
-	iter_ = bam_itr_queryi(index_, chr_index, start-1, end);
+	iter_ = sam_itr_queryi(index_, chr_index, start-1, end);
 	if (iter_==nullptr)
 	{
 		QByteArray region_str = chrs_[chr_index].str() + ":" + QByteArray::number(start) + "-" + QByteArray::number(end);
@@ -487,17 +550,17 @@ void BamReader::setRegion(const Chromosome& chr, int start, int end)
 		{
 			extra += chr.str();
 		}
-		THROW(FileAccessException, "Could not create iterator for region query " + region_str + " in BAM file " + bam_file_ + extra);
+		THROW(FileAccessException, "Could not create iterator for region query " + region_str + " in BAM/CRAM file " + bam_file_ + extra);
 	}
 }
 
 bool BamReader::getNextAlignment(BamAlignment& al)
 {
-	int res = (iter_!=nullptr) ? bam_itr_next(fp_, iter_, al.aln_) : bam_read1(fp_->fp.bgzf, al.aln_);
 
+	int res = (iter_!=nullptr) ? sam_itr_next(fp_, iter_, al.aln_) : sam_read1(fp_, header_, al.aln_);
 	if (res<-1)
 	{
-		THROW(FileAccessException, "Could not read next alignment in BAM file " + bam_file_);
+		THROW(FileAccessException, "Could not read next alignment in BAM/CRAM file " + bam_file_);
 	}
 
 	return res>=0;
@@ -510,24 +573,24 @@ const QList<Chromosome>& BamReader::chromosomes() const
 
 const Chromosome& BamReader::chromosome(int chr_id) const
 {
-	if (chr_id>=chrs_.size()) THROW(ArgumentException, "Chromosome ID '" + QString::number(chr_id) + "' out of bounds in BAM file " + bam_file_);
+	if (chr_id>=chrs_.size()) THROW(ArgumentException, "Chromosome ID '" + QString::number(chr_id) + "' out of bounds in BAM/CRAM file " + bam_file_);
 
 	return chrs_[chr_id];
 }
 
 int BamReader::chromosomeSize(const Chromosome& chr) const
 {
-	if (!chrs_sizes_.contains(chr)) THROW(ArgumentException, "Chromosome '" + chr.str() + "' not known in BAM file " + bam_file_);
+	if (!chrs_sizes_.contains(chr)) THROW(ArgumentException, "Chromosome '" + chr.str() + "' not known in BAM/CRAM file " + bam_file_);
 
 	return chrs_sizes_[chr];
 }
 
-double BamReader::genomeSize(bool nonspecial_only) const
+double BamReader::genomeSize(bool include_special_chromosomes) const
 {
 	double sum = 0.0;
 	foreach(const Chromosome& c, chrs_)
 	{
-		if (!nonspecial_only || c.isNonSpecial())
+		if (c.isNonSpecial() || include_special_chromosomes)
 		{
 			sum += chromosomeSize(c);
 		}
@@ -557,7 +620,7 @@ Pileup BamReader::getPileup(const Chromosome& chr, int pos, int indel_window, in
 	while (getNextAlignment(al))
 	{
 		if (!al.isProperPair() && anom==false) continue;
-		if (al.isSecondaryAlignment()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isDuplicate()) continue;
 		if (al.isUnmapped()) continue;
 
@@ -663,7 +726,7 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 		//skip low-quality reads
 		if (al.isDuplicate()) continue;
 		if (!al.isProperPair()) continue;
-		if (al.isSecondaryAlignment()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		if (al.isUnmapped()) continue;
 
 		reads_mapped += 1;

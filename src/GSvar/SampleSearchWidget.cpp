@@ -3,6 +3,7 @@
 #include "ProcessedSampleDataDeletionDialog.h"
 #include "SingleSampleAnalysisDialog.h"
 #include <QMessageBox>
+#include <QAction>
 
 SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	: QWidget(parent)
@@ -30,6 +31,8 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	//sample
 	ui_.s_name->fill(db_.createTable("sample", "SELECT id, name FROM sample"), true);
 	ui_.s_species->fill(db_.createTable("species", "SELECT id, name FROM species"), true);
+	ui_.s_sender->fill(db_.createTable("sender", "SELECT id, name FROM sender"), true);
+	ui_.s_study->fill(db_.createTable("study", "SELECT id, name FROM study"), true);
 	ui_.s_disease_group->addItem("");
 	ui_.s_disease_group->addItems(db_.getEnum("sample", "disease_group"));
 	ui_.s_disease_status->addItem("");
@@ -48,6 +51,10 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	ui_.r_device_name->fill(db_.createTable("device", "SELECT id, name FROM device"), true);
 
 	//signals/slots
+	connect(ui_.s_name, SIGNAL(returnPressed()), this, SLOT(search()));
+	connect(ui_.p_name, SIGNAL(returnPressed()), this, SLOT(search()));
+	connect(ui_.sys_name, SIGNAL(returnPressed()), this, SLOT(search()));
+	connect(ui_.r_name, SIGNAL(returnPressed()), this, SLOT(search()));
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
 }
 
@@ -64,7 +71,10 @@ void SampleSearchWidget::search()
 	ProcessedSampleSearchParameters params;
 	params.s_name = ui_.s_name->text();
 	params.s_name_ext = ui_.s_name_ext->isChecked();
+	params.s_name_comments = ui_.s_name_comments->isChecked();
 	params.s_species = ui_.s_species->text();
+	params.s_sender = ui_.s_sender->text();
+	params.s_study = ui_.s_study->text();
 	params.s_disease_group = ui_.s_disease_group->currentText();
 	params.s_disease_status = ui_.s_disease_status->currentText();
 	params.include_bad_quality_samples = ui_.s_bad_quality->isChecked();
@@ -87,6 +97,7 @@ void SampleSearchWidget::search()
 	params.add_disease_details = ui_.add_disease_details->isChecked();
 	params.add_qc = ui_.add_qc->isChecked();
 	params.add_report_config = ui_.add_report_config->isChecked();
+	params.add_comments = ui_.add_comments->isChecked();
 
 	//execute query
 	try

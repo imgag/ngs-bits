@@ -19,15 +19,17 @@ public:
 	virtual void setup()
 	{
 		setDescription("Converts a coordinate-sorted BAM file to FASTQ files (paired-end only).");
-		addInfile("in", "Input BAM file.", false, true);
+		addInfile("in", "Input BAM/CRAM file.", false, true);
 		addOutfile("out1", "Read 1 output FASTQ.GZ file.", false);
 		addOutfile("out2", "Read 2 output FASTQ.GZ file.", false);
 		//optional
 		addString("reg", "Export only reads in the given region. Format: chr:start-end.", true);
 		addFlag("remove_duplicates", "Does not export duplicate reads into the FASTQ file.");
-		addInt("compression_level", "Output gzip compression level from 1 (fastest) to 9 (best compression).", true, 1);
+		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
 		addInt("write_buffer_size", "Output write buffer size (number of FASTQ entry pairs).", true, 100);
+		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
+		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2020,  5, 29, "Massive speed-up by writing in background. Added 'compression_level' parameter.");
 		changeLog(2020,  3, 21, "Added 'reg' parameter.");
 	}
@@ -52,7 +54,7 @@ public:
 		QTime timer;
 		timer.start();
 		QTextStream out(stdout);
-		BamReader reader(getInfile("in"));
+		BamReader reader(getInfile("in"), getString("ref"));
 		QString reg = getString("reg");
 		if (reg!="")
 		{
@@ -67,7 +69,6 @@ public:
 		int write_buffer_size = getInt("write_buffer_size");
 
 		int compression_level = getInt("compression_level");
-		if (compression_level<1 || compression_level>9) THROW(CommandLineParsingException, "Invalid compression level " + QString::number(compression_level) +"!");
 
 		//create background FASTQ writer
 		ReadPairPool pair_pool(write_buffer_size);
@@ -91,7 +92,7 @@ public:
 			//out << al.name() << " PAIRED=" << al.isPaired() << " SEC=" << al.isSecondaryAlignment() << " PROP=" << al.isProperPair() << endl;
 			
 			//skip secondary alinments
-			if(al->isSecondaryAlignment()) continue;
+			if(al->isSecondaryAlignment() || al->isSupplementaryAlignment()) continue;
 
 			//skip duplicates
 			if (remove_duplicates && al->isDuplicate())

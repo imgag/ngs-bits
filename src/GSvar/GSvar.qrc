@@ -96,5 +96,16 @@
         <file>Icons/Add_batch.png</file>
         <file>Icons/gnomAD.png</file>
         <file>Icons/Circos.png</file>
-    </qresource>
+        <file>Resources/repeat_expansion_cutoffs.tsv</file>
+        <file>Icons/RepeatExpansion.png</file>
+        <file>Icons/PGSCatalog.png</file>
+        <file>Icons/PolygenicRiskScores.png</file>
+        <file>Icons/cbioportal.png</file>
+        <file>Icons/ckb.png</file>
+        <file>Icons/PubMed.png</file>
+        <file>Icons/Report_finalize.png</file>
+        <file>Icons/ranking.png</file>
+        <file>Resources/KASP_set2_pad5.bed</file>
+        <file>Resources/cfDNA_hotspot_regions.bed</file>
+        <file>Icons/cfDNA.png</file>    </qresource>
 </RCC>

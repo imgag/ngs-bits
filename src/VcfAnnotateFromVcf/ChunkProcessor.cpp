@@ -16,9 +16,7 @@ ChunkProcessor::ChunkProcessor(AnalysisJob &job,
                                const QByteArrayList &id_column_name_list,
                                const QByteArrayList &out_id_column_name_list,
                                const QVector<bool> &allow_missing_header_list,
-                               QByteArrayList &annotation_file_list,
-                               const QString &outpath,
-                               const QString &input_path)
+							   QByteArrayList &annotation_file_list)
 
     :QRunnable()
     , terminate_(false)
@@ -30,9 +28,7 @@ ChunkProcessor::ChunkProcessor(AnalysisJob &job,
     , out_id_column_name_list(out_id_column_name_list)
     , id_column_name_list(id_column_name_list)
     , allow_missing_header_list(allow_missing_header_list)
-    , annotation_file_list(annotation_file_list)
-    , outpath(outpath)
-    , input_path(input_path)
+	, annotation_file_list(annotation_file_list)
 {
 }
 
@@ -131,8 +127,7 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
         gzFile vcfgz_file = gzopen(vcf_file_path, "rb");
         if (vcfgz_file==NULL)
         {
-            THROW(FileAccessException, "Could not open file '" + vcf_file_path
-                  + "' for reading!");
+            THROW(FileAccessException, "Could not open file '" + vcf_file_path + "' for reading!");
         }
 
         char* buffer = new char[1048576]; //1MB buffer
@@ -197,8 +192,7 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
     else
     {
         // invalid/unknown file type:
-        THROW(FileParseException, "File type of file \"" + vcf_file_path
-              + "\" is invalid/unknown!");
+        THROW(FileParseException, "File type of file \"" + vcf_file_path + "\" is invalid/unknown!");
     }
 
     if (info_ids.size() > 0)

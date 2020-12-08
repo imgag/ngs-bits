@@ -15,23 +15,17 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* Added tools: NGSDAnnotateSV, BedpeToBed, BedHighCoverage, PhenotypesToGenes, PhenotypeSubtree, CnvFilterAnnotations
-* Removed tools: BamHighCoverage
-* NGSDImportHPO: Added support for new HPO annotation file format and optimized the NGSD hpo-gene relation table.
-* NGSDAddVariantsGermline: added import of structural variants
-* NGSD: Added SV report configuration
-* GSvar: Added support for SVs in report config/export
-* BedAnnotateFromBed: Added support for reannotation of TSV files
+* Added CRAM support.
 
-Changes in release 2020_03:
+Changes in release 2020_09:
 
-* Added tools: BedpeGeneAnnotation, BedpeAnnotateFromBed, NGSDAnnotateCNV
-* NGSDImportORPHA: Added handling of outdated gene names.
-* NGSDExportSamples: Added report config output and a filter for analyzed runs only.
-* VcfCheck: added test for invalid characters in INFO column, added support for VCF.GZ files.
-* NGSDExportGenes: made HPO-annotation optional because it is slow.
-
-
+* Added tools: FastqDownsample, BedpeAnnotateCnvOverlap, BedpeFilter, VcfCalculatePRS
+* Added output compression level parameter to: FastqAddBarcode/FastqConvert/FastqExtract/FastqTrim/PERsim/VariantFilterRegions/VcfLeftNormalize/VcfSort.
+* VariantFilterAnnotations/GSvar: Added filter 'somatic allele frequency'.
+* NGSD:
+	* Added preferred transcripts information
+	* Added sample relations 'tumor-cfDNA' and 'same patient'
+	* Added variant validation for CNVs/SVs (before only for small variants)
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
@@ -81,6 +75,7 @@ The default output format of the quality control tools is [qcML](https://github.
 * [MappingQC](doc/tools/MappingQC.md) - Quality control tool for a BAM file.
 * [VariantQC](doc/tools/VariantQC.md) - Quality control tool for a VCF file.
 * [SomaticQC](doc/tools/SomaticQC.md) - Quality control tool for tumor-normal pairs ([paper](https://www.ncbi.nlm.nih.gov/pubmed/28130233) and [example output data](doc/data/somatic_qc.zip?raw=true)).
+* [TrioMaternalContamination](doc/tools/TrioMaternalContamination/index.md) - Detects maternal contamination of a child using SNPs from parents.
 
 ### BAM tools
 
@@ -100,6 +95,7 @@ The default output format of the quality control tools is [qcML](https://github.
 * [BedCoverage](doc/tools/BedCoverage.md) - Annotates the regions in a BED file with the average coverage in one or several BAM files.
 * [BedExtend](doc/tools/BedExtend.md) - Extends the regions in a BED file by _n_ bases.
 * [BedGeneOverlap](doc/tools/BedGeneOverlap.md) - Calculates how much of each overlapping gene is covered (needs [NGSD](doc/install_ngsd.md)).
+* [BedHighCoverage](doc/tools/BedHighCoverage.md) - Detects high-coverage regions from a BAM file.
 * [BedInfo](doc/tools/BedInfo.md) - Prints summary information about a BED file.
 * [BedIntersect](doc/tools/BedIntersect.md) - Intersects two BED files.
 * [BedLowCoverage](doc/tools/BedLowCoverage.md) - Calcualtes regions of low coverage based on a input BED and BAM file.
@@ -115,6 +111,7 @@ The default output format of the quality control tools is [qcML](https://github.
 * [FastqAddBarcode](doc/tools/FastqAddBarcode.md) - Adds sequences from separate FASTQ as barcodes to read IDs.
 * [FastqConvert](doc/tools/FastqConvert.md) - Converts the quality scores from Illumina 1.5 offset to Sanger/Illumina 1.8 offset. 
 * [FastqConcat](doc/tools/FastqConcat.md) - Concatinates several FASTQ files into one output FASTQ file. 
+* [FastqDownsample](doc/tools/FastqDownsample.md) - Downsamples paired-end FASTQ files.
 * [FastqExtract](doc/tools/FastqExtract.md) - Extracts reads from a FASTQ file according to an ID list.
 * [FastqExtractBarcode](doc/tools/FastqExtractBarcode.md) - Moves molecular barcodes of reads to a separate file.
 * [FastqExtractUMI](doc/tools/FastqExtractUMI.md) - Moves unique moleculare identifier from read sequence to read ID.
@@ -138,17 +135,17 @@ The default output format of the quality control tools is [qcML](https://github.
 * [VcfToBedpe](doc/tools/VcfToBedpe.md) - Converts a VCF file containing structural variants to BEDPE format.
 * [VcfToTsv](doc/tools/VcfToTsv.md) - Converts a VCF file to a tab-separated text file.
 
-
 ### BEDPE tools (structural variants)
 
 * [BedpeAnnotateFromBed](doc/tools/BedpeAnnotateFromBed.md) - Annotates a BEDPE file with information from a BED file.
+* [BedpeFilter](doc/tools/BedpeFilter.md) - Filters a BEDPE file by region.
 * [BedpeGeneAnnotation](doc/tools/BedpeGeneAnnotation.md) - Annotates a BEDPE file with gene information from the NGSD (needs [NGSD](doc/install_ngsd.md)).
-* [NGSDAnnotateSV](doc/tools/NGSDAnnotateSV.md) - Annotates the structural variants of a given BEDPE file by the NGSD counts (needs [NGSD](doc/install_ngsd.md)).
 * [BedpeToBed](doc/tools/BedpeToBed.md) - Converts a BEDPE file into BED file.
+* [NGSDAnnotateSV](doc/tools/NGSDAnnotateSV.md) - Annotates the structural variants of a given BEDPE file by the NGSD counts (needs [NGSD](doc/install_ngsd.md)).
+* [SvFilterAnnotations](doc/tools/SvFilterAnnotations.md) - Filter a structural variant list in BEDPE format based on variant annotations.
 
 ### Gene handling tools
 
-* [CnvGeneAnnotation](doc/tools/CnvGeneAnnotation.md) - Annotates TSV file containing CNVs with gene information from NGSD (needs [NGSD](doc/install_ngsd.md)).
 * [GenesToApproved](doc/tools/GenesToApproved.md) - Replaces gene symbols by approved symbols using the HGNC database (needs [NGSD](doc/install_ngsd.md)).
 * [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file (needs [NGSD](doc/install_ngsd.md)).
 * [NGSDExportGenes](doc/tools/NGSDExportGenes.md) - Lists genes from NGSD (needs [NGSD](doc/install_ngsd.md)).
@@ -156,14 +153,9 @@ The default output format of the quality control tools is [qcML](https://github.
 ### Phenotype handling tools
 
 * [PhenotypesToGenes](doc/tools/PhenotypesToGenes.md) - Converts a phenotype list to a list of matching genes (needs [NGSD](doc/install_ngsd.md)).
-* [PhenotypesToGenes](doc/tools/PhenotypeSubtree.md) - Returns all sub-phenotype of a given phenotype (needs [NGSD](doc/install_ngsd.md)).
+* [PhenotypeSubtree](doc/tools/PhenotypeSubtree.md) - Returns all sub-phenotype of a given phenotype (needs [NGSD](doc/install_ngsd.md)).
 
 ### Misc tools
 
 * [PERsim](doc/tools/PERsim.md) - Paired-end read simulator for Illumina reads.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file.
-* [NGSDAnnotateCNV](doc/tools/NGSDAnnotateCNV.md) - Annotates a CNV file with overlaping pathogenic CNVs from NGSD (needs [NGSD](doc/install_ngsd.md)).
-* [NGSDExportAnnotationData](doc/tools/NGSDExportAnnotationData.md) - Generates a VCF file with all variants and annotations from the NGSD and a BED file containing the gene information of the NGSD (needs [NGSD](doc/install_ngsd.md)).
-* [NGSDExportCnvTrack](doc/tools/NGSDExportCnvTrack.md) - Exports a IGV-conform CNV track for a processing system (needs [NGSD](doc/install_ngsd.md)).
-* [NGSDExportSamples](doc/tools/NGSDExportSamples.md) - Lists processed samples from the NGSD (needs [NGSD](doc/install_ngsd.md)).
-

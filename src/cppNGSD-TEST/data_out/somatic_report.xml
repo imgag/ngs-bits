@@ -81,12 +81,6 @@
                 <IsTumorSuppressor source="Network of Cancer Genes" source_version="6.0"/>
             </Gene>
         </Cnv>
-        <Cnv chr="chr9" start="129905875" end="130616939" start_band="q33.3" end_band="q34.11" af="0.75" alteration="AMP" type="cluster" cn="3" cn_a="1" cn_b="2">
-            <Gene name="FOXP1" id="HGNC:3823"/>
-            <Gene name="DAZ1" id="HGNC:2682">
-                <IsOncoGene source="Network of Cancer Genes" source_version="6.0"/>
-            </Gene>
-        </Cnv>
         <Cnv chr="chr11" start="26582421" end="27694430" start_band="p14.1" end_band="p14.2" af="0.775" alteration="AMP" type="cluster" cn="3" cn_a="1" cn_b="2">
             <Gene name="SPEN" id="HGNC:17575"/>
             <Gene name="MTHFR" id="HGNC:7436"/>

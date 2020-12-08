@@ -1,8 +1,11 @@
 ## Variant filtering
 
-GSvar provides default filters, for the most common filter operations.  
-These filters can be further modified according to user needs.
+The data format for small variants (SNVs and InDels) is the `GSvar format`.  
+It contains the variants, annotations of the variants and meta data.  
+Detailled documentation of the format can be found [here](gsvar_format.md).  
 
+The GSvar application provides default filters, for the most common filter operations.  
+These filters can be further modified according to user needs.  
 Additionally, powerful custom filters can be created by combining several filter steps.  
 A documentation of available filter steps and their parameters can be found [here](https://github.com/imgag/ngs-bits/blob/master/doc/tools/VariantFilterAnnotations.md).
 
@@ -28,7 +31,7 @@ Open the GSvar variant list from the trio folder.
 **Note:**  
 Before performing a trio analysis, always have a look at the index case as a single sample.  
 It is possible to miss the causal variant if performing multi-sample analysis only.  
-This has both technical and biological reasons (low coverage in one sample, reduced penetrance, ...).
+This has both technical and biological reasons (low coverage in one sample, reduced penetrance, mosaic variants,...).
 
 
 ### Multi-sample analysis
@@ -44,22 +47,8 @@ Open the GSvar variant list from the trio folder.
 **Note:**  
 Before performing a multi-sample analysis, always have a look at the index cases as single samples.  
 It is possible to miss the causal variant if performing multi-sample analysis only.  
-This has both technical and biological reasons (low coverage in one sample, reduced penetrance, ...).
+This has both technical and biological reasons (low coverage in one sample, reduced penetrance, mosaic variants, ...).
 
 --
 
 [back to main page](index.md)
-
-
-
-
-
-
-
-
-
-
-
-
-
-

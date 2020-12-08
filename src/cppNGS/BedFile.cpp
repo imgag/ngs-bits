@@ -209,7 +209,7 @@ void BedFile::removeDuplicates()
 	lines_.erase(std::unique(lines_.begin(), lines_.end()), lines_.end());
 }
 
-void BedFile::merge(bool merge_back_to_back, bool merge_names)
+void BedFile::merge(bool merge_back_to_back, bool merge_names, bool merged_names_unique)
 {
 	//in the following code, we assume that at least one line is present...
 	if (lines_.count()==0) return;
@@ -219,7 +219,7 @@ void BedFile::merge(bool merge_back_to_back, bool merge_names)
 	{
 		if (merge_names)
 		{
-			QByteArray name = lines_[i].annotations().count() ? lines_[i].annotations()[0] : "";
+			QByteArray name = lines_[i].annotations().isEmpty() ? "" : lines_[i].annotations()[0];
 			lines_[i].annotations().clear();
 			lines_[i].annotations().append(name);
 		}
@@ -247,15 +247,26 @@ void BedFile::merge(bool merge_back_to_back, bool merge_names)
 			if (line.end()>next_output_line.end())
 			{
 				next_output_line.setEnd(line.end());
-				if (merge_names)
+			}
+			if (merge_names)
+			{
+				const QByteArray& anno = line.annotations()[0];
+				if (!merged_names_unique || !next_output_line.annotations().contains(anno))
 				{
-					next_output_line.annotations()[0] += "," + line.annotations()[0];
+					next_output_line.annotations() << anno;
 				}
 			}
 		}
 		else
 		{
 			lines_[next_output_index] = next_output_line;
+			if (merge_names)
+			{
+				QByteArray annos_merged = next_output_line.annotations().join(",");
+				lines_[next_output_index].annotations().clear();
+				lines_[next_output_index].annotations().append(annos_merged);
+			}
+
 			++next_output_index;
 			next_output_line = line;
 		}
@@ -263,6 +274,12 @@ void BedFile::merge(bool merge_back_to_back, bool merge_names)
 
 	//add last line
 	lines_[next_output_index] = next_output_line;
+	if (merge_names)
+	{
+		QByteArray annos_merged = next_output_line.annotations().join(",");
+		lines_[next_output_index].annotations().clear();
+		lines_[next_output_index].annotations().append(annos_merged);
+	}
 
 	//remove excess lines
 	lines_.resize(next_output_index+1);

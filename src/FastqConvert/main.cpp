@@ -18,12 +18,17 @@ public:
 		setDescription("Converts the quality scores from Illumina 1.5 offset to Sanger/Illumina 1.8 offset.");
 		addInfile("in", "Input gzipped FASTQ file.", false);
 		addOutfile("out", "Output gzipped FASTQ file.", false);
+		//optional
+		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
+
+		changeLog(2020, 7, 15, "Added 'compression_level' parameter.");
 	}
 
 	virtual void main()
 	{
 		//process
-		FastqOutfileStream outstream(getOutfile("out"));
+		int compression_level = getInt("compression_level");
+		FastqOutfileStream outstream(getOutfile("out"), compression_level);
 		FastqFileStream stream( getInfile("in"), false);
 		FastqEntry entry;
 		while (!stream.atEnd())

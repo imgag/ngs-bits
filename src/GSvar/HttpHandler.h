@@ -5,6 +5,9 @@
 #include <QString>
 #include <QSslError>
 #include <QNetworkAccessManager>
+#include <QHttpMultiPart>
+
+using HttpHeaders = QMap<QByteArray, QByteArray>;
 
 ///Helper class for HTTP(S) communication with webserver
 class HttpHandler
@@ -23,10 +26,18 @@ public:
 
 	///Constructor
 	HttpHandler(ProxyType proxy_type, QObject* parent=0);
-	///Handles request (GET)
-	QString getHttpReply(QString url);
-	///Handles request (POST)
-	QString getHttpReply(QString url, QByteArray data);
+
+	///Returns basic headers used for all get/post requests. Additional headers that are only used for one request can be given in the get/post methods.
+	const HttpHeaders& headers() const;
+	///Adds/overrides a basic header.
+	void setHeader(const QByteArray& key, const QByteArray& value);
+
+	///Performs GET request
+	QString get(QString url, const HttpHeaders& add_headers = HttpHeaders());
+	///Performs POST request
+	QString post(QString url, const QByteArray& data, const HttpHeaders& add_headers = HttpHeaders());
+	///Performs POST request for content type multipart
+	QString post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers = HttpHeaders() );
 
 private slots:
 	///Handles SSL errors (by ignoring them)
@@ -36,7 +47,7 @@ private slots:
 
 private:
 	QNetworkAccessManager nmgr_;
-
+	HttpHeaders headers_;
 	//declared away
 	HttpHandler() = delete;
 };

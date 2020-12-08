@@ -28,7 +28,7 @@ protected slots:
 	void restore(QListWidgetItem* item);
 
 private:
-	void updateSubpanelList(QListWidget* list, QString path, const GeneSet& genes);
+	void updateSubpanelList(QListWidget* list, QString path, const GeneSet& f_genes, QString f_filename);
 	void move(QString name, QString from, QString to);
 
 	Ui::SubpanelArchiveDialog *ui;

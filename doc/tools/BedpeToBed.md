@@ -1,5 +1,5 @@
 ### BedpeToBed tool help
-	BedpeToBed (2019_11)
+	BedpeToBed (2020_03-184-g27235379)
 	
 	Converts a BEDPE file into BED file.
 	
@@ -18,7 +18,7 @@
 	  --tdx        Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedpeToBed changelog
-	BedpeToBed 2019_11
+	BedpeToBed 2020_03-184-g27235379
 	
 	2020-04-27 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

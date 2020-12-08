@@ -1,5 +1,5 @@
 ### NGSDAddVariantsGermline tool help
-	NGSDAddVariantsGermline (2019_09-51-g84b6c695)
+	NGSDAddVariantsGermline (2020_03-184-g27235379)
 	
 	Imports variants of a processed sample into the NGSD.
 	
@@ -15,7 +15,7 @@
 	                  Default value: ''
 	  -cnv_force      Force import of CNVs, even if already imported.
 	                  Default value: 'false'
-	  -sv <file>      SV list in Bedpe format (as produced by megSAP).
+	  -sv <file>      SV list in BEDPE format (as produced by megSAP).
 	                  Default value: ''
 	  -sv_force       Force import of SVs, even if already imported.
 	                  Default value: 'false'
@@ -37,6 +37,6 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDAddVariantsGermline changelog
-	NGSDAddVariantsGermline 2019_09-51-g84b6c695
+	NGSDAddVariantsGermline 2020_03-184-g27235379
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

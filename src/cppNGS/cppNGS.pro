@@ -58,11 +58,14 @@ SOURCES += BedFile.cpp \
     RohList.cpp \
     OntologyTermCollection.cpp \
     FilterCascade.cpp \
-    VcfFile.cpp \
     TabixIndexedFile.cpp \
     BedpeFile.cpp \
     MidCheck.cpp \
-    ClinvarSubmissionGenerator.cpp
+    ClinvarSubmissionGenerator.cpp \
+    VcfFileHelper.cpp \
+    VcfFile.cpp \
+    PhenotypeList.cpp \
+    VariantScores.cpp
 
 
 HEADERS += BedFile.h \
@@ -88,13 +91,16 @@ HEADERS += BedFile.h \
     RohList.h \
     OntologyTermCollection.h \
     FilterCascade.h \
-    VcfFile.h \
     TabixIndexedFile.h \
     BedpeFile.h \
     KeyValuePair.h \
     VariantType.h \
     MidCheck.h \
-    ClinvarSubmissionGenerator.h
+    ClinvarSubmissionGenerator.h \
+    VcfFileHelper.h \
+    VcfFile.h \
+    PhenotypeList.h \
+    VariantScores.h
 
 
 RESOURCES += \

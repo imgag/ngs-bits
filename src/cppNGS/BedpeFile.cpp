@@ -234,6 +234,15 @@ void BedpeFile::load(const QString& file_name)
 
 	//comments
 	comments_ = file.comments();
+	for(const auto& comment : comments_)
+	{
+		if(comment.startsWith("##DESCRIPTION="))
+		{
+			QList<QByteArray> parts = comment.split('=');
+			if(parts.count() < 3) continue;
+			annotation_descriptions_.insert(parts[1], parts[2]);
+		}
+	}
 
 	//header (first 6 fields are fixed)
 	const int fixed_cols = 6;
@@ -259,6 +268,20 @@ void BedpeFile::load(const QString& file_name)
 		//Add line
 		lines_.append(BedpeLine(fields[0], parsePosIn(fields[1]), parsePosIn(fields[2]), fields[3], parsePosIn(fields[4]), parsePosIn(fields[5]), stringToType(fields[fixed_cols + i_type]), fields.mid(fixed_cols)));
 	}
+}
+
+bool BedpeFile::isValid() const
+{
+	try
+	{
+		format();
+	}
+	catch (Exception& e)
+	{
+		return false;
+	}
+
+	return true;
 }
 
 int BedpeFile::annotationIndexByName(const QByteArray& name, bool error_on_mismatch) const
@@ -382,7 +405,7 @@ QList< QMap<QByteArray,QByteArray> > BedpeFile::getInfos(QByteArray name)
 	return result;
 }
 
-QMap <QByteArray,QByteArray> BedpeFile::annotationDescriptionByID(const QByteArray &name)
+QMap <QByteArray,QByteArray> BedpeFile::metaInfoDescriptionByID(const QByteArray &name)
 {
 	QList< QMap<QByteArray, QByteArray> > list = getInfos(name);
 	QMap <QByteArray,QByteArray> out = {};
@@ -432,7 +455,13 @@ BedpeFileFormat BedpeFile::format() const
 
 bool BedpeFile::isSomatic() const
 {
-	if(format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL || format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY) return true;
+	try
+	{
+		BedpeFileFormat f = format();
+		if (f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL || f==BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY) return true;
+	}
+	catch(...) {} //Nothing to do here
+
 	return false;
 }
 
