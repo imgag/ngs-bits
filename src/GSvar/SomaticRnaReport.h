@@ -30,6 +30,14 @@ public:
 		QByteArray type;
 	};
 
+	enum GeneRole
+	{
+		AMBIGOUS,
+		LOF,
+		ACTIVATING,
+		INACTIVATING
+	};
+
 	///Checks whether all annotations neccessary for creating an RNA report are available
 	static bool checkRequiredSNVAnnotations(const VariantList& variants);
 	///Checks whether all annotations neccessary for creating RNA CNV table are available
@@ -38,7 +46,11 @@ public:
 	///Returns reference tissue, resolved from variant list variants
 	static QString refTissueType(const VariantList& variants);
 
+	///Checks whether reference tissue is unique in NGSD and is same as in GSVar file
 	void checkRefTissueTypeInNGSD(QString ref_type, QString tumor_dna_ps_id);
+
+	///Calculates a rank for CNVs (=1 high or =2 low) depending on gene expression and gene role
+	static int rankCnv(double tpm, double mean_tpm, GeneRole gene_role, bool oncogene, bool tsg);
 
 private:
 	//processed sample name of RNA sample
@@ -68,18 +80,6 @@ private:
 	RtfSourceCode trans(QString orig_entry) const;
 
 	RtfDocument doc_;
-
-	QByteArray CgiDriverDescription(QByteArray raw_cgi_input)
-	{
-		QByteArray out = raw_cgi_input;
-
-		if(raw_cgi_input.contains("predicted driver")) out = "Treiber (vorhergesagt)";
-		else if(raw_cgi_input.contains("known in")) out = "Treiber (bekannt)";
-		else out = "Unklare Bedeutung";
-
-		return out;
-	}
-
 };
 
 #endif // SOMATICRNAREPORT_H

@@ -636,6 +636,16 @@ class CPPNGSSHARED_EXPORT FilterRegulatory
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
+//Filter for top variants in GSvar ranking.
+class CPPNGSSHARED_EXPORT FilterGSvarScoreAndRank
+	: public FilterBase
+{
+	public:
+		FilterGSvarScoreAndRank();
+		QString toText() const override;
+		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
 //Filter for tumor/normal allele frequency
 class CPPNGSSHARED_EXPORT FilterSomaticAlleleFrequency
 	: public FilterBase
@@ -644,6 +654,16 @@ class CPPNGSSHARED_EXPORT FilterSomaticAlleleFrequency
 		FilterSomaticAlleleFrequency();
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter for tumor-only allele frequency around heterozygous/homozygous calls (these can be considered as germline)
+class CPPNGSSHARED_EXPORT FilterTumorOnlyHomHet
+		: public FilterBase
+{
+public:
+	FilterTumorOnlyHomHet();
+	QString toText() const override;
+	void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
 /*************************************************** filters for CNVs ***************************************************/

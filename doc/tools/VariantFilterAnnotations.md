@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2020_06-115-g597ef477)
+	VariantFilterAnnotations (2020_09-90-g55257954)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -47,6 +47,9 @@
 	                                   Parameters:
 	                                     entries - Filter column entries [non-empty]
 	                                     action - Action to perform [default=REMOVE] [valid=KEEP,REMOVE,FILTER]
+	GSvar score/rank                   Filter based GSvar score/rank.
+	                                   Parameters:
+	                                     top - Show top X rankging variants only. [default=10] [min=1]
 	Gene constraint                    Filter based on gene constraint (gnomAD o/e score for LOF variants).
 	                                   Note that gene constraint is most helpful for early-onset severe diseases.
 	                                   For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/
@@ -111,6 +114,10 @@
 	                                     MODERATE - Moderate impact variant types [default=inframe_deletion,inframe_insertion,missense_variant] [valid=inframe_deletion,inframe_insertion,missense_variant]
 	                                     LOW - Low impact variant types [default=splice_region_variant] [valid=splice_region_variant,stop_retained_variant,synonymous_variant]
 	                                     MODIFIER - Lowest impact variant types [valid=3_prime_UTR_variant,5_prime_UTR_variant,NMD_transcript_variant,downstream_gene_variant,intergenic_variant,intron_variant,mature_miRNA_variant,non_coding_transcript_exon_variant,non_coding_transcript_variant,upstream_gene_variant]
+	tumor zygosity                     Filter based on the zygosity of tumor-only samples. Filters out het/hom calls.
+	                                   Parameters:
+	                                     het_af_range - Consider allele frequencies of 50% &plusmn; het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
+	                                     hom_af_range - Consider allele frequencies of 100% &plusmn; hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
 	
 	Mandatory parameters:
 	  -in <file>      Input variant list in GSvar format.
@@ -124,7 +131,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2020_06-115-g597ef477
+	VariantFilterAnnotations 2020_09-90-g55257954
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

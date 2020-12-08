@@ -6,40 +6,55 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>667</width>
-    <height>340</height>
+    <width>932</width>
+    <height>704</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Sub-panel archive/restore</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_4">
-   <item>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>3</number>
+   </property>
+   <property name="topMargin">
+    <number>3</number>
+   </property>
+   <property name="rightMargin">
+    <number>3</number>
+   </property>
+   <property name="bottomMargin">
+    <number>3</number>
+   </property>
+   <property name="spacing">
+    <number>3</number>
+   </property>
+   <item row="0" column="0" colspan="2">
     <widget class="QLabel" name="label">
      <property name="text">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to archive and restore sub-panels.Archived sub-panels are not shown in the target region list.&lt;br/&gt;Double-click a sub-panel to archive/restore it.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
+   <item row="1" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>3</number>
+     </property>
      <item>
-      <widget class="QLabel" name="label_4">
-       <property name="toolTip">
-        <string>Comma-separated list of genes.</string>
-       </property>
+      <widget class="QLabel" name="label_5">
        <property name="text">
-        <string>Gene filter:</string>
+        <string>File name filter:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="genes"/>
-     </item>
-     <item>
-      <widget class="QPushButton" name="genes_apply">
-       <property name="text">
-        <string>apply</string>
+      <widget class="QLineEdit" name="f_filename">
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>16777215</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -58,48 +73,101 @@
      </item>
     </layout>
    </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+   <item row="2" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
      <property name="spacing">
       <number>3</number>
      </property>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <property name="spacing">
-        <number>3</number>
+      <widget class="QLabel" name="label_4">
+       <property name="toolTip">
+        <string>Comma-separated list of genes.</string>
        </property>
-       <item>
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Active sub-panels:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QListWidget" name="list_subpanel"/>
-       </item>
-      </layout>
+       <property name="text">
+        <string>Gene filter (slow):</string>
+       </property>
+      </widget>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <property name="spacing">
-        <number>3</number>
+      <widget class="QLineEdit" name="f_genes">
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>16777215</height>
+        </size>
        </property>
-       <item>
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Archived sub-panels:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QListWidget" name="list_archive"/>
-       </item>
-      </layout>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of genes.&lt;br/&gt;All listed genes have to be contained in the sub-panel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </item>
-   <item>
+   <item row="3" column="0" colspan="2">
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <property name="spacing">
+      <number>3</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="update_btn">
+       <property name="text">
+        <string>update</string>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/Refresh.png</normaloff>:/Icons/Refresh.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>1288</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>Active sub-panels:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Archived sub-panels:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QListWidget" name="list_subpanel"/>
+   </item>
+   <item row="5" column="1">
+    <widget class="QListWidget" name="list_archive"/>
+   </item>
+   <item row="6" column="0" colspan="2">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <property name="spacing">
       <number>3</number>
@@ -122,12 +190,18 @@
        <property name="text">
         <string>Open subpanel folder</string>
        </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/Folder.png</normaloff>:/Icons/Folder.png</iconset>
+       </property>
       </widget>
      </item>
     </layout>
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
  <connections/>
 </ui>

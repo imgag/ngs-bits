@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
+    <width>750</width>
     <height>500</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>600</width>
+    <width>750</width>
     <height>500</height>
    </size>
   </property>
@@ -50,31 +50,6 @@
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>
      </property>
-     <column>
-      <property name="text">
-       <string>Sample</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>System</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Status</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Quality</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Gender</string>
-      </property>
-     </column>
     </widget>
    </item>
    <item>

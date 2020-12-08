@@ -63,7 +63,9 @@ SOURCES += BedFile.cpp \
     MidCheck.cpp \
     ClinvarSubmissionGenerator.cpp \
     VcfFileHelper.cpp \
-    VcfFile.cpp
+    VcfFile.cpp \
+    PhenotypeList.cpp \
+    VariantScores.cpp
 
 
 HEADERS += BedFile.h \
@@ -96,7 +98,9 @@ HEADERS += BedFile.h \
     MidCheck.h \
     ClinvarSubmissionGenerator.h \
     VcfFileHelper.h \
-    VcfFile.h
+    VcfFile.h \
+    PhenotypeList.h \
+    VariantScores.h
 
 
 RESOURCES += \

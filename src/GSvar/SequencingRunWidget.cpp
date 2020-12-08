@@ -342,10 +342,12 @@ void SequencingRunWidget::sendStatusEmail()
 			body << "";
 			body << "Projekt: " + query.value("name").toString();
 			body << "  Koordinator: " + db.userName(coordinator_id);
-			QStringList operator_ids = db.getValues("SELECT operator_id FROM processed_sample WHERE sequencing_run_id='" + run_id_ + "' AND project_id='" + query.value("id").toString() + "' AND operator_id IS NOT NULL");
-			body << "  Proben: " + QString::number(operator_ids.count());
+
+			int ps_count = db.getValue("SELECT count(id) FROM processed_sample WHERE sequencing_run_id='" + run_id_ + "' AND project_id='" + query.value("id").toString() +"'").toInt();
+			body << "  Proben: " + QString::number(ps_count);
 			body << "  Analyse: " + query.value("analysis").toString();
 
+			QStringList operator_ids = db.getValues("SELECT operator_id FROM processed_sample WHERE sequencing_run_id='" + run_id_ + "' AND project_id='" + query.value("id").toString() + "' AND operator_id IS NOT NULL");
 			operator_ids.removeDuplicates();
 			operator_ids.removeAll("");
 			foreach(QString operator_id, operator_ids)

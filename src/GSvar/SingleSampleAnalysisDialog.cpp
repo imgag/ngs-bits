@@ -15,6 +15,7 @@ SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent)
 	, steps_(loadSteps("analysis_steps_single_sample"))
 {
 	ui_.setupUi(this);
+	initTable(ui_.samples_table);
 	addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
 
 	connect(ui_.annotate_only, SIGNAL(stateChanged(int)), this, SLOT(annotate_only_state_changed()));
@@ -45,25 +46,25 @@ bool SingleSampleAnalysisDialog::highPriority() const
 	return ui_.high_priority->isChecked();
 }
 
-QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString sample, bool throw_if_bam_missing, bool force_showing_dialog)
+QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString ps_name, bool throw_if_bam_missing, bool force_showing_dialog)
 {
 	status = status.trimmed();
 
 	//get sample name if unset
-	if (force_showing_dialog || sample.isEmpty())
+	if (force_showing_dialog || ps_name.isEmpty())
 	{
 		ProcessedSampleSelector dlg(QApplication::activeWindow(), false);
 		dlg.setLabel(status.isEmpty() ? "Processed sample:" : status + ":");
-		dlg.setSelection(sample);
+		dlg.setSelection(ps_name);
 		if (dlg.exec())
 		{
-			sample = dlg.processedSampleName();
+			ps_name = dlg.processedSampleName();
 		}
 	}
-	if (sample.isEmpty()) return "";
+	if (ps_name.isEmpty()) return "";
 
 	//check NGSD data
-	QString ps_id = db.processedSampleId(sample);
+	QString ps_id = db.processedSampleId(ps_name);
 
 	//check BAM file exists
 	if (throw_if_bam_missing)
@@ -77,9 +78,24 @@ QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sa
 
 	//add sample
 	ProcessedSampleData processed_sample_data = db.getProcessedSampleData(ps_id);
-	samples.append(SampleDetails {sample, processed_sample_data.processing_system, status, processed_sample_data.quality, processed_sample_data.gender});
+	QString s_id = db.sampleId(ps_name);
+	SampleData sample_data = db.getSampleData(s_id);
+	samples.append(SampleDetails {ps_name, processed_sample_data.processing_system, status, processed_sample_data.quality, processed_sample_data.gender, sample_data.disease_group, sample_data.disease_status});
 
 	return ps_id;
+}
+
+void SingleSampleAnalysisDialog::initTable(QTableWidget* samples_table)
+{
+	samples_table->clear();
+	samples_table->setColumnCount(7);
+	samples_table->setHorizontalHeaderItem(0, new QTableWidgetItem("processed sample"));
+	samples_table->setHorizontalHeaderItem(1, new QTableWidgetItem("status"));
+	samples_table->setHorizontalHeaderItem(2, new QTableWidgetItem("quality"));
+	samples_table->setHorizontalHeaderItem(3, new QTableWidgetItem("processing system"));
+	samples_table->setHorizontalHeaderItem(4, new QTableWidgetItem("gender"));
+	samples_table->setHorizontalHeaderItem(5, new QTableWidgetItem("disease group"));
+	samples_table->setHorizontalHeaderItem(6, new QTableWidgetItem("disease status"));
 }
 
 void SingleSampleAnalysisDialog::updateSampleTable(const QList<SampleDetails>& samples, QTableWidget* samples_table)
@@ -89,14 +105,16 @@ void SingleSampleAnalysisDialog::updateSampleTable(const QList<SampleDetails>& s
 	for (int i=0; i<samples.count(); ++i)
 	{
 		samples_table->setItem(i, 0, new QTableWidgetItem(samples[i].name));
-		samples_table->setItem(i, 1, new QTableWidgetItem(samples[i].system));
-		samples_table->setItem(i, 2, new QTableWidgetItem(samples[i].status));
+		samples_table->setItem(i, 1, new QTableWidgetItem(samples[i].status));
 		QLabel* quality_label = new QLabel();
 		quality_label->setAlignment(Qt::AlignLeft|Qt::AlignVCenter);
 		quality_label->setMargin(1);
 		ProcessedSampleWidget::styleQualityLabel(quality_label, samples[i].quality);
-		samples_table->setCellWidget(i, 3, quality_label);
+		samples_table->setCellWidget(i, 2, quality_label);
+		samples_table->setItem(i, 3, new QTableWidgetItem(samples[i].system));
 		samples_table->setItem(i, 4, new QTableWidgetItem(samples[i].gender));
+		samples_table->setItem(i, 5, new QTableWidgetItem(samples[i].disease_group));
+		samples_table->setItem(i, 6, new QTableWidgetItem(samples[i].disease_status));
 	}
 
 	GUIHelper::resizeTableCells(samples_table);

@@ -14,7 +14,7 @@
 #include "QCCollection.h"
 #include "SqlQuery.h"
 #include "GeneSet.h"
-#include "Phenotype.h"
+#include "PhenotypeList.h"
 #include "Helper.h"
 #include "DBTable.h"
 #include "ReportConfiguration.h"
@@ -28,7 +28,7 @@ struct OmimInfo
 	QByteArray gene_symbol;
 	QByteArray mim;
 
-	QList<Phenotype> phenotypes;
+	PhenotypeList phenotypes;
 };
 
 ///Type constraints class for database fields
@@ -224,7 +224,7 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString comments;
 	QString disease_group;
 	QString disease_status;
-	QList<Phenotype> phenotypes;
+	PhenotypeList phenotypes;
 	bool is_tumor;
 	bool is_ffpe;
 	QString sender;
@@ -232,9 +232,6 @@ struct CPPNGSDSHARED_EXPORT SampleData
 	QString received;
 	QString received_by;
 	QList<SampleGroup> sample_groups;
-
-	//Returns the phenotype names
-	QStringList phenotypesAsStrings() const;
 };
 
 ///Sample disease information.
@@ -339,6 +336,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool s_name_comments = false;
 	QString s_species;
 	QString s_sender;
+	QString s_study;
 	QString s_disease_group;
 	QString s_disease_status;
 	bool include_bad_quality_samples = true;
@@ -535,16 +533,16 @@ public:
 	/*** phenotype handling (HPO, OMIM) ***/
 	///Returns the phenotype for a given HPO accession.
 	Phenotype phenotypeByName(const QByteArray& name, bool throw_on_error=true);
-	///Returns the phenotype for a given HPO accession.
+	///Returns the phenotype for a given HPO accession. If the accession is invalid, a phenotype with empty name is returned, or an error is thrown.
 	Phenotype phenotypeByAccession(const QByteArray& accession, bool throw_on_error=true);
 	///Returns the phenotypes of a gene
-	QList<Phenotype> phenotypes(const QByteArray& symbol);
+	PhenotypeList phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
-	QList<Phenotype> phenotypes(QStringList search_terms);
+	PhenotypeList phenotypes(QStringList search_terms);
 	///Returns all genes associated to a phenotype
 	GeneSet phenotypeToGenes(const Phenotype& phenotype, bool recursive);
 	///Returns all child terms of the given phenotype
-	QList<Phenotype> phenotypeChildTerms(const Phenotype& phenotype, bool recursive);
+	PhenotypeList phenotypeChildTerms(const Phenotype& phenotype, bool recursive);
 	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.
 	QList<OmimInfo> omimInfo(const QByteArray& symbol);
 
@@ -633,6 +631,8 @@ public:
 	void setSampleDiseaseInfo(const QString& sample_id, const QList<SampleDiseaseInfo>& disease_info);
 	///Sets the disease group/status of a sample.
 	void setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status);
+	///Returns all phenotypes associated to the given sample
+	PhenotypeList samplePhenotypes(const QString& sample_id, bool throw_on_error=false);
 
 	///Returns the processing system ID from the name (tests short and long name). Returns -1 or throws a DatabaseException if not found.
 	int processingSystemId(QString name, bool throw_if_fails = true);
@@ -690,6 +690,9 @@ public:
 	EvaluationSheetData evaluationSheetData(const QString& processed_sample_id, bool throw_if_fails = true);
 	///Stores a given EvaluationSheetData in the NGSD (return table id)
 	int storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_data, bool overwrite_existing_data = false);
+
+	///Return a list of sample ids which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
+	QStringList relatedSamples(const QString& sample_id, const QString& relation="");
 
 	///Returns the report config creation data (user/date) for somatic reports
 	SomaticReportConfigurationData somaticReportConfigData(int id);

@@ -317,6 +317,8 @@ public:
 	///Returns true if all required annotation (CGI, NCG) are available
 	static bool checkRequiredSNVAnnotations(const VariantList& snvs);
 
+	static bool checkGermlineSNVFile(const VariantList& germline_variants);
+
 	///Returns maximum tumor clonailty in cnv file
 	static double getCnvMaxTumorClonality(const CnvList& cnvs);
 
@@ -379,6 +381,9 @@ private:
 
 	///Parses annotated cytobands to text, "" if not annotation available
 	QByteArray cytoband(const CopyNumberVariant& cnv);
+
+	///returns whether a statement in table is a classification
+	static bool hasClassification(QByteArray statement);
 
 
 	const SomaticReportSettings& settings_;

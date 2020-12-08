@@ -92,6 +92,7 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 	int i_ihdb_het = variants.annotationIndexByName("NGSD_het", true, false);
 	int i_clinvar = variants.annotationIndexByName("ClinVar", true, false);
 	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
+	int i_mmsplice = variants.annotationIndexByName("MMSplice_DeltaLogitPSI", true, false);
 	int r = -1;
 	for (int i=0; i<variants.count(); ++i)
 	{
@@ -145,12 +146,22 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
+			else if (j==i_mmsplice && anno.toDouble() <= -2)
+			{
+				item->setBackgroundColor(Qt::red);
+				is_warning_line = true;
+			}
+
 
 			//non-pathogenic
 			if (j==i_classification && (anno=="0" || anno=="1" || anno=="2"))
 			{
 				item->setBackgroundColor(Qt::green);
 				is_ok_line = true;
+			}
+			else if (j==i_mmsplice && anno.toDouble() >= 2)
+			{
+				item->setBackgroundColor(Qt::green);
 			}
 
 			//highlighed
@@ -479,7 +490,7 @@ void VariantTable::adaptColumnWidthsCustom()
 	if (index!=-1) setColumnWidth(index, size_med);
 }
 
-void VariantTable::copyToClipboard(bool split_quality)
+void VariantTable::copyToClipboard(bool split_quality, bool include_header_one_row)
 {
 	// Data to be copied is not selected en bloc
 	if (selectedRanges().count()!=1 && !split_quality)
@@ -570,7 +581,7 @@ void VariantTable::copyToClipboard(bool split_quality)
 
 	//copy header
 	QString selected_text = "";
-	if (range.rowCount()!=1)
+	if (range.rowCount()!=1 || include_header_one_row)
 	{
 		selected_text += "#";
 		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
@@ -646,6 +657,10 @@ void VariantTable::keyPressEvent(QKeyEvent* event)
 	else if(event->key()==Qt::Key_C && event->modifiers() == (Qt::ShiftModifier|Qt::ControlModifier))
 	{
 		copyToClipboard(true);
+	}
+	else if(event->key()==Qt::Key_C && event->modifiers() == (Qt::AltModifier|Qt::ControlModifier))
+	{
+		copyToClipboard(false, true);
 	}
 	else //default key-press event
 	{

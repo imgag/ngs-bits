@@ -1,6 +1,6 @@
 #include "GeneWidget.h"
 #include "Helper.h"
-#include "SmallVariantSearchDialog.h"
+#include "SmallVariantSearchWidget.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
 #include "GeneInfoDBs.h"
@@ -148,9 +148,10 @@ void GeneWidget::editComment()
 
 void GeneWidget::showGeneVariationDialog()
 {
-	SmallVariantSearchDialog dlg(this);
-	dlg.setGene(symbol_);
-	dlg.exec();
+	SmallVariantSearchWidget* widget = new SmallVariantSearchWidget();
+	widget->setGene(symbol_);
+	QSharedPointer<QDialog> dlg = GUIHelper::createDialog(widget, "Small variants for " + symbol_);
+	dlg->exec();
 }
 
 void GeneWidget::openGeneDatabase()

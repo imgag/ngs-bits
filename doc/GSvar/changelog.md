@@ -1,5 +1,35 @@
 # GSvar change log
 
+### 2020_09-69 (26.11.20)
+- IGV: Added option to change port (see documentation).
+- General: Analysis start dialogs now show disease group and status.
+- General: Added support for tracking the course of tumor progression via patient-specific cfDNA panels. 
+
+### 2020_09-44 (17.11.20)
+- Ranking: Added first version of GSvar score/rank.
+- Subpanels: Added file name filter to sub-panel archive/restore dialog.
+
+### 2020_09-37 (10.11.20)
+- General: removed support for GeneSplicer (replaced by MMSplice).
+- Sub-panels: added file name filter to archive/restore dialog.
+
+### 2020_09-30 (05.11.20)
+
+- NGSD: Added disease info (group, status, HPO) and outcome to all variant search dialogs.
+- NGSD: Variant classification can now be changed from the variant tab.
+- NGSD: Deleting preferred transcripts is now possible.
+- NGSD: Added used method to variant validation.
+- NGSD: Moving processed samples between runs is now possible via context menu of the run overview.
+- Studies: Added batch import for study data.
+- General: Meta data tabs are no longer closed when loading a new sample.
+
+### 2020_09-9 (08.10.20)
+- Added support for studies
+	- Studies can be created in NGSD > Admin > Study.
+	- Processes samples can be added to studies in the processed sample tab.
+	- Studies can be used as search criterion in the sample search.
+- Tools: now support selecting samples from NGSD instead of the file system.
+
 ### 2020_06-128 (29.09.20)
 - Sample search: Added sender field.
 - Filters: Added filter 'somatic allele frequency'.

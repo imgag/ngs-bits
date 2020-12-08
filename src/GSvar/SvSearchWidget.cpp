@@ -55,7 +55,7 @@ void SvSearchWidget::search()
 		// define table columns
 		QByteArrayList selected_columns;
 		selected_columns << "sv.id" << "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample" << "ps.quality as quality_sample "
-						 << "sys.name_manufacturer as system" << "s.disease_group" << "s.disease_status"  << "sc.caller" << "sc.caller_version"
+						 << "sys.name_manufacturer as system" << "s.disease_group" << "s.disease_status" << "s.id as 'HPO terms'" << "ds.outcome" << "sc.caller" << "sc.caller_version"
 						 << "\"" + BedpeFile::typeToString(type) + "\" AS type";
 
 		// define type specific table columns
@@ -253,13 +253,23 @@ void SvSearchWidget::search()
 				+ "INNER JOIN sample s ON ps.sample_id = s.id "
 				+ "INNER JOIN processing_system sys ON ps.processing_system_id = sys.id "
 				+ "LEFT JOIN report_configuration_sv rpc ON sv.id = rpc." + sv_table.split(" ")[0] +"_id "
+				+ "LEFT JOIN diag_status ds ON sc.processed_sample_id=ds.processed_sample_id "
 				+ "WHERE " + conditions.join(" AND ")
 				+ "ORDER BY ps.id ";
 
 		DBTable table = db_.createTable("sv", query_join);
 
+		//(5) determine HPO terms
+		int hpo_col_index = table.columnIndex("HPO terms");
+		QStringList sample_ids = table.extractColumn(hpo_col_index);
+		QStringList hpo_terms;
+		foreach(const QString& sample_id, sample_ids)
+		{
+			hpo_terms << db_.samplePhenotypes(sample_id).toString();
+		}
+		table.setColumn(hpo_col_index, hpo_terms);
 
-		//(5) show samples with SVs in table
+		//(6) show samples with SVs in table
 		ui_.table->setData(table);
 		ui_.message->setText("Found " + QString::number(ui_.table->rowCount()) + " matching SVs in NGSD.");
 

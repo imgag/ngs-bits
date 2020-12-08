@@ -262,7 +262,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 	}
 	else
 	{
-		THROW(ProgrammingException, "Unhandles HGVS.c prefix '" + hgvs_c.left(2) + "'!");
+		THROW(ProgrammingException, "Invalid HGVS.c prefix '" + hgvs_c.left(2) + "'. Must be 'c.' or 'n.'!");
 	}
 
 	int length = hgvs_c.length();
@@ -378,6 +378,13 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 			int offset2 = 0;
 			hgvsParsePosition(position.mid(pos_underscore+1), non_coding, end, offset2);
 			end += (strand_==Transcript::PLUS ? offset2 : -1 * offset2);
+
+			if (start>end)
+			{
+				int tmp = start;
+				start = end;
+				end = tmp;
+			}
 		}
 		else
 		{
@@ -411,6 +418,7 @@ Variant Transcript::hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_i
 		int offset2 = 0;
 		hgvsParsePosition(position.mid(pos_underscore+1), non_coding, end, offset2);
 		end += (strand_==Transcript::PLUS ? offset2 : -1 * offset2);
+
 		if (start>end)
 		{
 			int tmp = start;

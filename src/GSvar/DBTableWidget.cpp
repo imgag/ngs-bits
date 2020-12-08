@@ -140,6 +140,11 @@ void DBTableWidget::setColumnColors(const QString& column_header, const QList<QC
 	}
 }
 
+void DBTableWidget::setBackgroundColorIfContains(const QString& column_header, const QColor& color, const QString& substring)
+{
+	setBackgroundColorIf(column_header, color, [substring](const QString& str) { return str.contains(substring); });
+}
+
 void DBTableWidget::setBackgroundColorIfEqual(const QString& column_header, const QColor& color, const QString& text)
 {
 	setBackgroundColorIf(column_header, color, [text](const QString& str) { return str==text; });

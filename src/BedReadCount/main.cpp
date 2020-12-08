@@ -20,15 +20,18 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annotates the regions in a BED file with the read count from a BAM file.");
-		addInfile("bam", "Input BAM file.", false);
+		setDescription("Annotates the regions in a BED file with the read count from a BAM/CRAM file.");
+		addInfile("bam", "Input BAM/CRAM file.", false);
 		addInt("min_mapq", "Minimum mapping quality.", true, 1);
 		//optional
 		addInfile("in", "Input BED file (note that overlapping regions will be merged before processing). If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
+		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
+
+		changeLog(2020,  11, 27, "Added CRAM support.");
 	}
 
-	void readCount(BedFile& bed_file, const QString& bam_file, int min_mapq)
+	void readCount(BedFile& bed_file, const QString& bam_file, int min_mapq, const QString& ref_file)
 	{
 		//check target region is merged/sorted and create index
 		if (!bed_file.isMergedAndSorted())
@@ -37,7 +40,7 @@ public:
 		}
 
 		//open BAM file
-		BamReader reader(bam_file);
+		BamReader reader(bam_file, ref_file);
 
 		//init coverage statistics data structure
 		QVector<qlonglong> read_count;
@@ -49,7 +52,7 @@ public:
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isUnmapped()) continue;
-			if (al.isSecondaryAlignment()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			QVector<int> indices = bed_idx.matchingIndices(reader.chromosome(al.chromosomeID()), al.start(), al.end());
@@ -75,7 +78,7 @@ public:
 
 		//get coverage info for bam files
 		QString bam = getInfile("bam");
-		readCount(file, bam, getInt("min_mapq"));
+		readCount(file, bam, getInt("min_mapq"), getString("ref"));
 
 		//store
 		file.clearHeaders();

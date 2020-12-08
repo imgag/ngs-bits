@@ -139,7 +139,7 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	return output;
 }
 
-QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_file, int min_mapq)
+QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_file, int min_mapq, const QString& ref_file)
 {
 	//check target region is merged/sorted and create index
 	if (!bed_file.isMergedAndSorted())
@@ -149,7 +149,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	ChromosomalIndex<BedFile> roi_index(bed_file);
 
 	//open BAM file
-	BamReader reader(bam_file);
+	BamReader reader(bam_file, ref_file);
 
 	//create coverage statistics data structure
 	long long roi_bases = 0;
@@ -190,7 +190,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	while (reader.getNextAlignment(al))
 	{
 		//skip secondary alignments
-		if (al.isSecondaryAlignment()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		++al_total;
 		max_length = std::max(max_length, al.length());
@@ -357,10 +357,10 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	return output;
 }
 
-QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
+QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq, const QString& ref_file)
 {
 	//open BAM file
-	BamReader reader(bam_file);
+	BamReader reader(bam_file, ref_file);
 
 	//init counts
 	int al_total = 0;
@@ -386,7 +386,7 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
 	while (reader.getNextAlignment(al))
 	{
 		//skip secondary alignments
-		if (al.isSecondaryAlignment()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		//empty hash if new reference sequence (chromosome) started
 		if (al.chromosomeID() != last_chr_id)
@@ -551,10 +551,10 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq)
 	return output;
 }
 
-QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
+QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QString& ref_file)
 {
 	//open BAM file
-	BamReader reader(bam_file);
+	BamReader reader(bam_file, ref_file);
 
 	//init counts
 	long long al_total = 0;
@@ -576,7 +576,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 	while (reader.getNextAlignment(al))
 	{
 		//skip secondary alignments
-		if (al.isSecondaryAlignment()) continue;
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		++al_total;
 		max_length = std::max(max_length, al.length());
@@ -659,7 +659,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq)
 		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
 	}
 	output.insert(QCValue("bases usable (MB)", (double)bases_usable / 1000000.0, "Bases sequenced that are usable for variant calling (in megabases).", "QC:2000050"));
-	output.insert(QCValue("target region read depth", (double) bases_usable / reader.genomeSize(true), "Average sequencing depth in target region.", "QC:2000025"));
+	output.insert(QCValue("target region read depth", (double) bases_usable / reader.genomeSize(false), "Average sequencing depth in target region.", "QC:2000025"));
 
 	//add insert size distribution plot
 	if (paired_end)
@@ -826,14 +826,14 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString exons, QString t
 	return QCValue(qcml_name, QString::number(mutation_burden, 'f', 2), qcml_desc, qcml_id);
 }
 
-QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file,bool skip_plots)
+QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file,bool skip_plots, const QString& ref_file_cram)
 {
 	QCCollection output;
 
 	//sample correlation
-	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, target_file);
+	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, target_file, ref_file_cram);
 
-	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, normal_bam, 30, 500, true, target_file);
+	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, normal_bam, 30, 500, true, target_file, ref_file_cram);
 	SampleSimilarity sc;
 
 	sc.calculateSimilarity(tumor_genotypes, normal_genotypes);
@@ -944,8 +944,8 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	int n = 10;
 	//process variants
 	QVector<double> freqs;
-	BamReader reader_tumor(tumor_bam);
-	BamReader reader_normal(normal_bam);
+	BamReader reader_tumor(tumor_bam, ref_file_cram);
+	BamReader reader_normal(normal_bam, ref_file_cram);
 	for (int i=0; i<variants.count(); ++i)
 	{
 		const  VcfLine& v = variants[i];
@@ -1436,10 +1436,10 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	return output;
 }
 
-QCCollection Statistics::contamination(QString build, QString bam, bool debug, int min_cov, int min_snps)
+QCCollection Statistics::contamination(QString build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps)
 {
 	//open BAM
-	BamReader reader(bam);
+	BamReader reader(bam, ref_file);
 
 	//calcualate frequency histogram
 	Histogram hist(0, 1, 0.05);
@@ -1639,7 +1639,7 @@ void Statistics::countCoverageWGSWithBaseQuality(
 	}
 }
 
-BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq)
+BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
 	BedFile output;
 
@@ -1650,7 +1650,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	}
 
 	//open BAM file
-	BamReader reader(bam_file);
+	BamReader reader(bam_file, ref_file);
 
 	//iterate trough all regions (i.e. exons in most cases)
 	for (int i=0; i<bed_file.count(); ++i)
@@ -1671,7 +1671,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			const int ol_start = std::max(start, al.start()) - start;
@@ -1707,14 +1707,14 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	return output;
 }
 
-BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq)
+BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
 	BedFile output;
 
 	//open BAM file
-	BamReader reader(bam_file);
+	BamReader reader(bam_file, ref_file);
 
 	QVector<unsigned char> cov;
 
@@ -1736,7 +1736,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
@@ -1772,7 +1772,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 	return output;
 }
 
-void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool include_duplicates, bool panel_mode, int decimals)
+void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool include_duplicates, bool panel_mode, int decimals, const QString& ref_file)
 {
 	//check target region is merged/sorted and create index
 	if (!bed_file.isMergedAndSorted())
@@ -1781,7 +1781,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 
 	//open BAM file
-	BamReader reader(bam_file);
+	BamReader reader(bam_file, ref_file);
 
 	if (panel_mode) //panel mode
 	{
@@ -1798,7 +1798,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			while (reader.getNextAlignment(al))
 			{
 				if (!include_duplicates && al.isDuplicate()) continue;
-				if (al.isSecondaryAlignment()) continue;
+				if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 				if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 				const int ol_start = std::max(bed_line.start(), al.start());
@@ -1823,7 +1823,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 		while (reader.getNextAlignment(al))
 		{
 			if (!include_duplicates && al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			const Chromosome& chr = reader.chromosome(al.chromosomeID());
@@ -1843,7 +1843,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 }
 
-BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq)
+BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
 	BedFile output;
 
@@ -1854,7 +1854,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 	}
 
 	//open BAM file
-	BamReader reader(bam_file);
+	BamReader reader(bam_file, ref_file);
 
 	//iterate trough all regions (i.e. exons in most cases)
 	for (int i=0; i<bed_file.count(); ++i)
@@ -1875,7 +1875,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			const int ol_start = std::max(start, al.start()) - start;
@@ -1913,14 +1913,14 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 	return output;
 }
 
-BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq)
+BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
 	BedFile output;
 
 	//open BAM file
-	BamReader reader(bam_file);
+	BamReader reader(bam_file, ref_file);
 
 	QVector<unsigned char> cov;
 
@@ -1942,7 +1942,7 @@ BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_ma
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
 			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
@@ -1978,10 +1978,10 @@ BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_ma
 	return output;
 }
 
-GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double min_male)
+GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double min_male, const QString& ref_file)
 {
 	//open BAM file
-	BamReader reader(bam_file);
+	BamReader reader(bam_file, ref_file);
 
 	//get RefID of X and Y chromosome
 
@@ -2019,10 +2019,10 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	return output;
 }
 
-GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double max_male, double min_female)
+GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double max_male, double min_female, const QString& ref_file)
 {
 	//open BAM file
-	BamReader reader(bam_file);
+	BamReader reader(bam_file, ref_file);
 
 	//restrict to X chromosome
 	Chromosome chrx("chrX");
@@ -2091,10 +2091,10 @@ GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double ma
 	return output;
 }
 
-GenderEstimate Statistics::genderSRY(QString bam_file, QString build, double min_cov)
+GenderEstimate Statistics::genderSRY(QString bam_file, QString build, double min_cov, const QString& ref_file)
 {
 	//open BAM file
-	BamReader reader(bam_file);
+	BamReader reader(bam_file, ref_file);
 
 	//restrict to SRY gene
 	int start = 2655031;

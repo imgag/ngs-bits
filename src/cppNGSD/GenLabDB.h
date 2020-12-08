@@ -5,7 +5,7 @@
 #include <QSqlDatabase>
 #include <QSharedPointer>
 #include "cppNGSD_global.h"
-#include <Phenotype.h>
+#include "PhenotypeList.h"
 #include "NGSD.h"
 
 /// GenLabDB accessor
@@ -28,7 +28,7 @@ public:
 	const TableInfo& tableInfo(const QString& table) const;
 
 	///Returns HPO phenotypes of a sample
-	QList<Phenotype> phenotypes(QString ps_name);
+	PhenotypeList phenotypes(QString ps_name);
 
 	///Returns Oprhanet identifiers of a sample
 	QStringList orphanet(QString ps_name);
@@ -41,6 +41,12 @@ public:
 
 	///Returns tumor content of a sample (tries sample name if processed sample name is not found)
 	QStringList tumorFraction(QString ps_name);
+
+	///Returns the GenLab year of birth for a sample (tries sample name if processed sample name is not found)
+	QString yearOfBirth(QString ps_name);
+
+	///Returns the GenLab year of order entry for a sample (tries sample name if processed sample name is not found)
+	QString yearOfOrderEntry(QString ps_name);
 
 	///Returns disease group and disease status of a processed sample (tries sample name if processed sample name is not found)
 	QPair<QString, QString> diseaseInfo(QString ps_name);

@@ -151,7 +151,7 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 		}
 		if (col_name=="hgmd_cnvs")
 		{
-			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://portal.biobase-international.com/hgmd/pro/mut.php?acc=");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://my.qiagendigitalinsights.com/bbp/view/hgmd/pro/mut.php?acc=");
 		}
 		if (col_name=="omim")
 		{
@@ -901,7 +901,7 @@ void CnvWidget::importPhenotypesFromNGSD()
 
 	NGSD db;
 	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_id_).toString();
-	QList<Phenotype> phenotypes = db.getSampleData(sample_id).phenotypes;
+	PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
 
 	ui->filter_widget->setPhenotypes(phenotypes);
 }

@@ -166,7 +166,6 @@ enum BedpeFileFormat
 	BEDPE_SOMATIC_TUMOR_NORMAL
 };
 
-
 class CPPNGSSHARED_EXPORT BedpeFile
 {
 public:
@@ -229,8 +228,14 @@ public:
 		annotation_headers_ = annotation_headers;
 	}
 
-	///Get description of annotations as written in vcf comments, e.g. FORMAT
-	QMap<QByteArray,QByteArray> annotationDescriptionByID(const QByteArray& name);
+
+	QByteArray annotationDescriptionByName(QByteArray name)
+	{
+		return annotation_descriptions_.value(name, "");
+	}
+
+	///Get description of INFO columns by ID, e.g. INFO,FILTER,FORMAT
+	QMap<QByteArray,QByteArray> metaInfoDescriptionByID(const QByteArray& name);
 
 	///Sorts Bedpe file (by columns chr1, start1, chr2, start2)
 	void sort();
@@ -258,6 +263,8 @@ public:
 
 private:
 	QList<QByteArray> annotation_headers_;
+	//annotation description in file header: ##DESCRIPTION=KEY=VALUE
+	QMap<QByteArray, QByteArray> annotation_descriptions_;
 	QList<QByteArray> comments_;
 	QList<BedpeLine> lines_;
 

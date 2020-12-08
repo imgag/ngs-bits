@@ -18,7 +18,7 @@ SubpanelArchiveDialog::SubpanelArchiveDialog(QWidget *parent)
 	connect(ui->open_folder, SIGNAL(clicked(bool)), this, SLOT(openSubpanelFolder()));
 	connect(ui->list_subpanel, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(archive(QListWidgetItem*)));
 	connect(ui->list_archive, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(restore(QListWidgetItem*)));
-	connect(ui->genes_apply, SIGNAL(clicked(bool)), this, SLOT(updateSubpanelLists()));
+	connect(ui->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateSubpanelLists()));
 
 	path_subpanel = Helper::canonicalPath(NGSD::getTargetFilePath(true));
 	path_archive = Helper::canonicalPath(path_subpanel + "/archive/");
@@ -43,13 +43,14 @@ void SubpanelArchiveDialog::openSubpanelFolder()
 void SubpanelArchiveDialog::updateSubpanelLists()
 {
 	//create gene set for filter
-	GeneSet genes = GeneSet::createFromText(ui->genes->text().toLatin1(), ',');
+	GeneSet genes = GeneSet::createFromText(ui->f_genes->text().toLatin1().trimmed(), ',');
+	QString filename = ui->f_filename->text().trimmed();
 
-	updateSubpanelList(ui->list_subpanel, path_subpanel, genes);
-	updateSubpanelList(ui->list_archive, path_archive, genes);
+	updateSubpanelList(ui->list_subpanel, path_subpanel, genes, filename);
+	updateSubpanelList(ui->list_archive, path_archive, genes, filename);
 }
 
-void SubpanelArchiveDialog::updateSubpanelList(QListWidget* list, QString path, const GeneSet& genes)
+void SubpanelArchiveDialog::updateSubpanelList(QListWidget* list, QString path, const GeneSet& f_genes, QString f_filename)
 {
 	list->clear();
 
@@ -58,19 +59,21 @@ void SubpanelArchiveDialog::updateSubpanelList(QListWidget* list, QString path, 
 	{
 		if (file.endsWith("_amplicons.bed")) continue;
 
-		QString name = QFileInfo(file).fileName().replace(".bed", "");
+		//filter by filename
+		if (!f_filename.isEmpty() && !file.contains(f_filename))  continue;
 
-		//apply gene filter
-		if (genes.count())
+		//filter by genes
+		if (!f_genes.isEmpty())
 		{
 			//no gene file => skip
-			QString genes_file = file.replace(".bed", "_genes.txt");
+			QString genes_file = QString(file).replace(".bed", "_genes.txt");
 			if (!QFile::exists(genes_file)) continue;
 
 			//not all genes contained => skip
-			if (!GeneSet::createFromFile(genes_file).containsAll(genes)) continue;
+			if (!GeneSet::createFromFile(genes_file).containsAll(f_genes)) continue;
 		}
 
+		QString name = QFileInfo(file).fileName().replace(".bed", "");
 		list->addItem(name);
 	}
 }

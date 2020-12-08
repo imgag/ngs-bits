@@ -14,14 +14,18 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Filter alignments in BAM file (no input sorting required).");
-		addInfile("in", "Input BAM file.", false);
-		addOutfile("out", "Output BAM file.", false);
+		setDescription("Filter alignments in BAM/CRAM file (no input sorting required).");
+		addInfile("in", "Input BAM/CRAM file.", false);
+		addOutfile("out", "Output BAM/CRAM file.", false);
 
 		addInt("minMQ", "Minimum mapping quality.", true, 30);
 		addInt("maxMM", "Maximum number of mismatches in aligned read, -1 to disable.", true, 4);
 		addInt("maxGap", "Maximum number of gaps (indels) in aligned read, -1 to disable.", true, 1);
 		addInt("minDup", "Minimum number of duplicates.", true, 0);
+		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
+		addFlag("write_cram", "Writes a CRAM file as output.");
+
+		changeLog(2020,  11, 27, "Added CRAM support.");
 	}
 
 	bool alignment_pass(BamAlignment& al) const
@@ -67,8 +71,8 @@ public:
 		maxGap = getInt("maxGap");
 		minDup = getInt("minDup");
 
-		BamReader reader(getInfile("in"));
-		BamWriter writer(getOutfile("out"));
+		BamReader reader(getInfile("in"), getString("ref"));
+		BamWriter writer(getOutfile("out"), getString("ref"));
 		writer.writeHeader(reader);
 
 		//process alignments
@@ -77,7 +81,7 @@ public:
 		QHash<QByteArray, bool> cache_pass; //tracks pass status of alignments until mate is seen
 		while (reader.getNextAlignment(al))
 		{
-			if(al.isSecondaryAlignment()) continue; //skip secondary alignments
+			if(al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue; //skip secondary/supplementary alignments
 
 			QByteArray name = al.name();
 

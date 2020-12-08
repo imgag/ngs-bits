@@ -27,7 +27,8 @@ INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHBOCv5', 'HaloPlex HBOC v5', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv5.bed', 1),
 (2, 'hpHBOCv6', 'HaloPlex HBOC v6', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, 'hpHBOCv6.bed', 1),
-(3, 'ssSC_vTEST', 'SureSelect Somatic vTEST', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel', 1, '/mnt/share/data/enrichment/ssSC_test.bed', 1);
+(3, 'ssSC_vTEST', 'SureSelect Somatic vTEST', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel', 1, '/mnt/share/data/enrichment/ssSC_test.bed', 1),
+(4, 'IDT_xGenPrism', 'IDT xGen Human ID + IDT xGen Prism DNA', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCA', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'cfDNA (patient-specific)', 1, 'idt_HumanID.bed', 1);
 
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`) VALUES
 (3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
@@ -531,3 +532,18 @@ INSERT INTO `sv_translocation` (`id`, `sv_callset_id`, `chr1`, `start1`, `end1`,
 (1, 1, 'chr1', 9101000, 9101020, 'chr5', 4112000, 4113000, ''),
 (2, 1, 'chr1', 9101000, 9101020, 'chr5', 4120000, 4120000, ''),
 (3, 1, 'chr1', 9100005, 9100050, 'chr5', 4112000, 4113000, '');
+
+--study
+INSERT INTO `study`(`id`, `name`, `description`) VALUES
+(1, "SomeStudy","");
+
+INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES
+(1, 3999),
+(1, 4000),
+(1, 4001),
+(1, 4002),
+(1, 4003),
+(1, 5),
+(1, 6),
+(1, 7),
+(1, 8);

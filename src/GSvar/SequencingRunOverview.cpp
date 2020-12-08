@@ -2,8 +2,9 @@
 #include "NGSD.h"
 #include "DBEditor.h"
 #include "GUIHelper.h"
+#include "DBComboBox.h"
 #include <QMessageBox>
-#include  <QAction>
+#include <QAction>
 
 SequencingRunOverview::SequencingRunOverview(QWidget *parent)
 	: QWidget(parent)
@@ -20,9 +21,14 @@ SequencingRunOverview::SequencingRunOverview(QWidget *parent)
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run tab");
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openRunTab()));
+
 	action = new QAction(QIcon(":/Icons/Edit.png"), "Edit sequencing run");
 	ui_.table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(editRun()));
+
+	action = new QAction(QIcon(":/Icons/Exchange.png"), "Move processed samples to other run");
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(moveSamples()));
 }
 
 void SequencingRunOverview::delayedInitialization()
@@ -71,6 +77,8 @@ void SequencingRunOverview::updateTable()
 	ui_.table->setQualityIcons("name", quality_values);
 
 	//color
+	QColor yellow = QColor(255,255,0,125);
+	ui_.table->setBackgroundColorIfContains("status", yellow, "...");
 	QColor red = QColor(255,0,0,125);
 	ui_.table->setBackgroundColorIfEqual("status", red, "analysis_not_possible");
 	ui_.table->setBackgroundColorIfEqual("status", red, "run_aborted");
@@ -105,7 +113,7 @@ void SequencingRunOverview::editRun()
 	QSet<int> rows = ui_.table->selectedRows();
 	if (rows.count()!=1)
 	{
-		QMessageBox::information(this, "Selection error", "Please select exactly one item to edit!");
+		QMessageBox::critical(this, "Edit run", "Please select exactly one run!");
 		return;
 	}
 	int row = rows.toList().first();
@@ -121,6 +129,41 @@ void SequencingRunOverview::editRun()
 		widget->store();
 		updateTable();
 	}
+}
+
+void SequencingRunOverview::moveSamples()
+{
+	//check one run is selected
+	QSet<int> rows = ui_.table->selectedRows();
+	if (rows.count()!=1)
+	{
+		QMessageBox::critical(this, "Moving samples", "Please select exactly one run!");
+		return;
+	}
+	int row = rows.toList().first();
+
+	//check run status
+	int status_col = ui_.table->columnIndex("status");
+	QString status = ui_.table->item(row, status_col)->text();
+	if (status!="run_aborted" || status=="analysis_not_possible")
+	{
+		QMessageBox::critical(this, "Moving samples", "Please select a run with status 'run_aborted' or 'analysis_not_possible'!");
+		return;
+	}
+
+	//select target run
+	NGSD db;
+	DBComboBox* box = new DBComboBox(this);
+	box->fill(db.createTable("sequencing_run", "SELECT id, name FROM sequencing_run ORDER BY id DESC"));
+	auto dlg = GUIHelper::createDialog(box, "Select target run", "target run:", true);
+	if (dlg->exec()!=QDialog::Accepted) return;
+	QString target_run_id = box->getCurrentId();
+	if (target_run_id=="") return;
+
+	//move samples
+	QString souce_run_id = ui_.table->getId(row);
+	db.getQuery().exec("UPDATE processed_sample SET sequencing_run_id='" + target_run_id + "' WHERE sequencing_run_id='" + souce_run_id + "'");
+	updateTable();
 }
 
 void SequencingRunOverview::addRun()

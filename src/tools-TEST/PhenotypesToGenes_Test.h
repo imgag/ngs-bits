@@ -19,7 +19,7 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/PhenotypesToGenes_init.sql"));
 
 		//test
-		EXECUTE("PhenotypesToGenes", "-test -in " + TESTDATA("data_in/PhenotypesToGenes_in1.txt") + " -out out/PhenotypesToGenes_out1.txt");
+		EXECUTE("PhenotypesToGenes", "-test -in " + TESTDATA("data_in/PhenotypesToGenes_in1.txt") + " -ignore_invalid -out out/PhenotypesToGenes_out1.txt");
 		COMPARE_FILES("out/PhenotypesToGenes_out1.txt", TESTDATA("data_out/PhenotypesToGenes_out1.txt"));
 	}
 };

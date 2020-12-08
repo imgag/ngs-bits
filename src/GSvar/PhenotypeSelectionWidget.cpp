@@ -12,7 +12,7 @@ PhenotypeSelectionWidget::PhenotypeSelectionWidget(QWidget *parent)
 	connect(ui_.pheno_list, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(deletePhenotype(QListWidgetItem*)));
 }
 
-void PhenotypeSelectionWidget::setPhenotypes(const QList<Phenotype>& phenos)
+void PhenotypeSelectionWidget::setPhenotypes(const PhenotypeList& phenos)
 {
 	phenos_ = phenos;
 
@@ -50,7 +50,7 @@ void PhenotypeSelectionWidget::updateSelectedPhenotypeList()
 	emit phenotypeSelectionChanged();
 }
 
-const QList<Phenotype>& PhenotypeSelectionWidget::selectedPhenotypes() const
+const PhenotypeList& PhenotypeSelectionWidget::selectedPhenotypes() const
 {
 	return phenos_;
 }

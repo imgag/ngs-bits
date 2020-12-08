@@ -3,65 +3,61 @@
 libs:
 * FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
 - The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
-
-NGSD:
-** Allow adding study details:
-    - table study:
-        - id: INT, autoincrement
-        - name: TEXT not null, unique //GenomeFirst, Solve-RD, Neuromics, GMed
-        - description: TEXT
-   - table study_sample:
-        - id: INT not null, autoincrement
-        - processed_sample_id: INT not null
-        - study_id: INT not null
-        - study_sample_idendifier: TEXT not null
-        - comment: TEXT
-* Implement "closing gaps by sanger"
-    - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
-    - make page where TA can select gaps (by gene/DX number)
-        - also allow copying multiple gaps into clipboard (as table and for primer gap)
-        - add link for PrimerDesign tool
-- Sample: allow several disease_groups per sample (requested by CS)
-- add multi-sample report-config
-    - 1 affected > easy
-    - >1 affected > how? edit all or ask which to edit?
-    - no report needed - is created from individual samples
+- support CRAM in addition to BAM: use htslib functions with hts_ prefix instead of bam_ prefix
 
 GSvar:
-## Prferred transcripts: allow deleting
-## ACMG filter: +LOW +HGMD +likely_pathogenic
-## Tabs: do not close tabs when opening a new GSvar file. Open a tab only once - focus and update if opened again.
+### Variant publication: support ClinVar (link, remove LOVD icon, ...)
+### NGSD: Causal variants: force 'mode of inheritance' - not 'n/a', not 'AD+AR', not 'XLR+XLD' > remove from schema!
 ## Allow adding variant outside of target region to report
     - add checkboxes to variants in report dialog
     - checkboxes for variants in ROI are checked and disabled
     - checkboxes for variants ouside or ROI are unchecked and enabled
     - only variants which are checked are added to the report config
-* Trio report: force disease_group/disease_status and outcome (import trio parents as unaffected with same disease group as child)
+## Force the following settings before report generation:
+    - disease group/status (for index and related samples)
+    - HPO for index and all related affected
+    - diagnostic status for index
+    - causal diagnostic variant(s) for "solved cases"
+    - classification / inheritance for causal diagnostic variants
+    - Trio: set trio parents as unaffected with same disease group as child?!
+## Implement "closing gaps by sanger"
+    - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
+    - make page where TA can select gaps (by gene/DX number)
+        - also allow copying multiple gaps into clipboard (as table and for primer gap)
+        - add link for PrimerDesign tool
+# Layout/documentation of SomaticReportDialog > AXEL
+# Filter somatic ranges > AXEL
+# Binomial distribution calculator for AF/DP.
+# add multi-sample report-config
+    - 1 affected > easy
+    - >1 affected > user has to set one affected as index > only report config of index is edited
+    - no report needed - is created from individual samples
 * Allow ClinVar upload
     - small variants and CNVs
     - only flag variants and perform manual upload at the end of each quater
     - use XML format: https://www.ncbi.nlm.nih.gov/projects/clinvar/ClinVarDataDictionary.pdf (see also email 'Programm für AG Genom-Informatik')
-** allow creating somatic report and XML-export for tumor-only - after tumor-normal is done (AG)
 
 Tools:
 - UPDHunter: also support chrX?
 - SomaticQC: replace 'QC:?' by real qcML identifier - add to https://github.com/HUPO-PSI/mzQC (CS)
+- RohHunter:
+    - exclude CNP regions?
+    - optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)
+    - test splitting regions when dist is too high, e.g. > 100Kb => Q-score cutoff removes random parts?!
+    - test input of high-cov ROI to augment the input data with WT SNPs with AF>1-5%
+    - test if sub-population AF improves result
+    - benchmarks: chrX of males, add errors up to 2 percent, overlap WGS/WES
 
 External:
-#### implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM): /mnt/SRV018/users/ahmattj1/dev/MultiQC/venv3/bin/multiqc -m readqc -m mappingqc -m variantqc .
-
-RohHunter:
-- exclude CNP regions?
-- optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)
-- test splitting regions when dist is too high, e.g. > 100Kb => Q-score cutoff removes random parts?!
-- test input of high-cov ROI to augment the input data with WT SNPs with AF>1-5%
-- test if sub-population AF improves result
-- benchmarks: chrX of males, add errors up to 2 percent, overlap WGS/WES
+- implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM)
 
 
-Features to dicuss:
-- Add family table linking samples in one family with "father", "mother", "child", "aunte", "cousin", ... OR import samples relations from GenLab?? > FLORIAN/LUCIA/TOBIAS
-- Add liquid handler robot to processed sample talbe > FLORIAN/LAB/TOBIAS
-- Correctly import sample sender data from GenLab > TOBIAS/STEPHAN O.
+######################################################################################################################################################################
+GSVar features to dicuss:
+- Add family table linking samples in one family with "father", "mother", "child", "aunte", "cousin", ... OR import samples relations from GenLab?? > FH/LUCIA/TOH
+- Add liquid handler robot to processed sample talbe > FH/LAB/TOH
+- Correctly import sample sender data from GenLab > TOH/STEPHAN O.
 - CAVE functionality for Genes (use e.g. for imprinting), model reasons? > SWAL
-
+- Sample: source tissue (for RNA) > TOH
+- Evaluation sheet: Add comment text, e.g. bad CNV quality > FH
+- Sample: allow several disease_groups per sample > CS

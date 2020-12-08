@@ -40,6 +40,9 @@ protected slots:
 	void openExternalDiseaseDatabase();
 	void addRelation();
 	void removeRelation();
+	void editStudy();
+	void addStudy();
+	void removeStudy();
 	void deleteSampleData();
 	void loadVariantList();
 	void queueSampleAnalysis();

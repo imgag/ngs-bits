@@ -1,6 +1,6 @@
 /*  hfile_internal.h -- internal parts of low-level input/output streams.
 
-    Copyright (C) 2013-2016 Genome Research Ltd.
+    Copyright (C) 2013-2016, 2019 Genome Research Ltd.
 
     Author: John Marshall <jm18@sanger.ac.uk>
 
@@ -27,6 +27,7 @@ DEALINGS IN THE SOFTWARE.  */
 
 #include <stdarg.h>
 
+#include "htslib/hts_defs.h"
 #include "htslib/hfile.h"
 
 #include "textutils_internal.h"
@@ -55,6 +56,11 @@ struct BGZF;
   @abstract Return the hFILE connected to a BGZF
  */
 struct hFILE *bgzf_hfile(struct BGZF *fp);
+
+/*!
+  @abstract Closes all hFILE plugins that have been loaded
+*/
+void hfile_shutdown(int do_close_plugin);
 
 struct hFILE_backend {
     /* As per read(2), returning the number of bytes read (possibly 0) or
@@ -157,6 +163,7 @@ struct hFILE_plugin {
 #define PLUGIN_GLOBAL(identifier,suffix) identifier
 
 /* Plugins must define an entry point with this signature.  */
+HTSLIB_EXPORT
 extern int hfile_plugin_init(struct hFILE_plugin *self);
 
 #else
@@ -169,6 +176,7 @@ extern int hfile_plugin_init(struct hFILE_plugin *self);
 extern int hfile_plugin_init_gcs(struct hFILE_plugin *self);
 extern int hfile_plugin_init_libcurl(struct hFILE_plugin *self);
 extern int hfile_plugin_init_s3(struct hFILE_plugin *self);
+extern int hfile_plugin_init_s3_write(struct hFILE_plugin *self);
 #endif
 
 /* This one is never built as a separate plugin.  */
@@ -178,6 +186,18 @@ extern int hfile_plugin_init_net(struct hFILE_plugin *self);
 // to allow s3 to renew tokens when seeking.  Kept internal for now,
 // although we may consider exposing it in the API later.
 typedef int (* hts_httphdr_callback) (void *cb_data, char ***hdrs);
+
+/** Callback for handling 3xx redirect responses from http connections.
+
+    @param data       is passed to the callback
+    @param response   http response code (e.g. 301)
+    @param headers    http response headers
+    @param new_url    the callback should write the url to switch to in here
+
+    Currently used by s3 to handle switching region endpoints.
+*/
+typedef int (*redirect_callback) (void *data, long response,
+                                  kstring_t *headers, kstring_t *new_url);
 
 #ifdef __cplusplus
 }

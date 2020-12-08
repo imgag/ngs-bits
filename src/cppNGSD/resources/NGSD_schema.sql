@@ -204,7 +204,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `fcid` VARCHAR(45) NULL DEFAULT NULL,
-  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','PromethION FLO-PRO002','n/a') NOT NULL DEFAULT 'n/a',
+  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','PromethION FLO-PRO002','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
   `start_date` DATE NULL DEFAULT NULL,
   `end_date` DATE NULL DEFAULT NULL,
   `device_id` INT(11) NOT NULL,
@@ -1734,6 +1734,7 @@ CREATE  TABLE IF NOT EXISTS `variant_validation`
   `sv_inversion_id` INT(11) UNSIGNED DEFAULT NULL,
   `sv_translocation_id` INT(11) UNSIGNED DEFAULT NULL,
   `genotype` ENUM('hom','het') DEFAULT NULL,
+  `validation_method` ENUM('Sanger sequencing', 'breakpoint PCR', 'qPCR', 'MLPA', 'n/a') NOT NULL DEFAULT 'n/a',
   `status` ENUM('n/a','to validate','to segregate','for reporting','true positive','false positive','wrong genotype') NOT NULL DEFAULT 'n/a',
   `comment` TEXT NULL DEFAULT NULL,
 PRIMARY KEY (`id`),
@@ -1786,6 +1787,46 @@ CONSTRAINT `fk_variant_validation_has_sv_translocation`
 UNIQUE INDEX `variant_validation_unique_var` (`sample_id`, `variant_id`, `cnv_id`, `sv_deletion_id`, `sv_duplication_id`, `sv_insertion_id`, `sv_inversion_id`, `sv_translocation_id`),
 INDEX `status` (`status` ASC),
 INDEX `variant_type` (`variant_type` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `study`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `study`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(50) NOT NULL,
+  `description` TEXT NOT NULL,
+PRIMARY KEY (`id`),
+UNIQUE INDEX `name_UNIQUE` (`name` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `study_sample`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `study_sample`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `study_id` INT(11) NOT NULL,
+  `processed_sample_id` INT(11) NOT NULL,
+  `study_sample_idendifier` VARCHAR(50) DEFAULT NULL,
+PRIMARY KEY (`id`),
+CONSTRAINT `fk_study_sample_has_study`
+  FOREIGN KEY (`study_id`)
+  REFERENCES `study` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `fk_study_sample_has_ps`
+  FOREIGN KEY (`processed_sample_id`)
+  REFERENCES `processed_sample` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+  UNIQUE INDEX `unique_sample_ps` (`processed_sample_id`, `study_sample_idendifier`),
+INDEX `i_study_sample_idendifier` (`study_sample_idendifier` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;

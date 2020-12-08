@@ -272,9 +272,9 @@ public:
                 QByteArray start = VcfFile::getPartByColumn(line, VcfFile::POS);
                 QByteArray ref = VcfFile::getPartByColumn(line, VcfFile::REF);
 
-				if (roi_index.matchingIndex(chr, start.toInt(), start.toInt() + ref.length())==-1)
+				if (roi_index.matchingIndex(chr, start.toInt(), start.toInt() + ref.length()-1)==-1)
                 {
-                    continue;
+					continue;
                 }
             }
 
