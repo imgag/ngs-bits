@@ -20,6 +20,7 @@ public:
 private slots:
 	void updateTable();
 	void searchForVariantInLOVD();
+	void searchForVariantInClinVar();
 
 private:
 	Ui::PublishedVariantsWidget* ui_;

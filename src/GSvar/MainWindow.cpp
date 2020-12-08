@@ -27,6 +27,7 @@
 #include <QChartView>
 #include <GenLabDB.h>
 #include <QToolTip>
+#include <QProcess>
 QT_CHARTS_USE_NAMESPACE
 #include "ReportWorker.h"
 #include "ScrollableTextDialog.h"
@@ -3542,7 +3543,7 @@ void MainWindow::generateReportGermline()
 		}
 	}
 
-	//check that sample in in NGSD
+	//check that sample is in NGSD
 	NGSD db;
 	QString ps_name = processedSampleName();
 	QString sample_id = db.sampleId(ps_name, false);
@@ -3553,19 +3554,8 @@ void MainWindow::generateReportGermline()
 		return;
 	}
 
-	//check disease information
-	DiseaseInfoWidget* widget = new DiseaseInfoWidget(ps_name, sample_id, this);
-	auto dlg = GUIHelper::createDialog(widget, "Disease information", "", true);
-	if (widget->diseaseInformationMissing() && dlg->exec()==QDialog::Accepted)
-	{
-		db.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
-	}
-
-	//set diagnostic status
-	report_settings_.diag_status = db.getDiagnosticStatus(processed_sample_id);
-
 	//show report dialog
-	ReportDialog dialog(report_settings_, variants_, cnvs_, svs_, ui_.filters->targetRegion(),this);
+	ReportDialog dialog(ps_name, report_settings_, variants_, cnvs_, svs_, ui_.filters->targetRegion(),this);
 	if (!dialog.exec()) return;
 
 	//set report type
@@ -3583,9 +3573,6 @@ void MainWindow::generateReportGermline()
 	QList<IgvFile> bams = getBamFiles();
 	if (bams.empty()) return;
 	bam_file = bams.first().filename;
-
-	//update diagnostic status
-	db.setDiagnosticStatus(processed_sample_id, report_settings_.diag_status);
 
 	//show busy dialog
 	busy_dialog_ = new BusyDialog("Report", this);
@@ -3903,7 +3890,16 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 int MainWindow::igvPort() const
 {
 	int port = Settings::integer("igv_port");
+
+	//if NGSD is enabled, add the user ID (like that, several users can work on one server)
+	if (LoginManager::active())
+	{
+		port += LoginManager::userId();
+	}
+
+	//if manual override is set, use it
 	if (igv_port_manual>0) port = igv_port_manual;
+
 	return port;
 }
 
@@ -5416,17 +5412,54 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 	{
 		//connect
 		QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
-		int igv_port = igvPort();
 		QString igv_host = Settings::string("igv_host");
+		int igv_port = igvPort();
+		//qDebug() << QDateTime::currentDateTime() << "CONNECTING:" << igv_host << igv_port;
 		socket.connectToHost(igv_host, igv_port);
 		if (!socket.waitForConnected(1000))
 		{
-			THROW(Exception, "Could not connect to IGV at host " + igv_host + " and port " + QString::number(igv_port) + ".\nPlease make sure  IGV is started and the remote control port is enabled:\nView => Preferences => Advanced => Enable port");
+			//qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";
+
+			//try to start IGV
+			QString igv_app = Settings::string("igv_app").trimmed();
+			if (igv_app.isEmpty())
+			{
+				THROW(Exception, "Could not start IGV: No settings entry for 'igv_app' found!");
+			}
+			if (!QFile::exists(igv_app))
+			{
+				THROW(Exception, "Could not start IGV: IGV application '" + igv_app + "' does not exist!");
+			}
+			bool started = QProcess::startDetached(igv_app + " --port " + QString::number(igv_port));
+			if (!started)
+			{
+				THROW(Exception, "Could not start IGV: IGV application '" + igv_app + "' did not start!");
+			}
+			//qDebug() << QDateTime::currentDateTime() << "STARTED - WAITING UNTIL IT RESPONDS";
+
+			//wait for IGV to respond after start
+			bool connected = false;
+			QDateTime max_wait = QDateTime::currentDateTime().addSecs(20);
+			while (QDateTime::currentDateTime() < max_wait)
+			{
+				socket.connectToHost(igv_host, igv_port);
+				if (socket.waitForConnected(1000))
+				{
+					//qDebug() << QDateTime::currentDateTime() << "IGV IS RESPONDING";
+					connected = true;
+					break;
+				}
+			}
+			if (!connected)
+			{
+				THROW(Exception, "Could not start IGV: IGV application '" + igv_app + "' started, but does not respond!");
+			}
 		}
 
 		//execute commands
 		foreach(QString command, commands)
 		{
+			//qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
 			socket.write((command + "\n").toLatin1());
 			socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
 			QString answer = socket.readAll().trimmed();
@@ -5434,6 +5467,7 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 			{
 				THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer);
 			}
+			//qDebug() << QDateTime::currentDateTime() << "DONE";
 		}
 
 		//disconnect

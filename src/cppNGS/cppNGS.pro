@@ -68,7 +68,6 @@ SOURCES += BedFile.cpp \
     VariantScores.cpp \
     SomaticVariantInterpreter.cpp
 
-
 HEADERS += BedFile.h \
     Chromosome.h \
     VariantList.h \

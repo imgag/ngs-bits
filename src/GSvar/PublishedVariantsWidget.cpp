@@ -17,11 +17,18 @@ PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	NGSD db;
 	ui_->f_sample->fill(db.createTable("sample", "SELECT id, name FROM sample"));
 	ui_->f_published->fill(db.createTable("user", "SELECT id, name FROM user"));
+	ui_->f_db->addItem("n/a");
+	ui_->f_db->addItems(db.getEnum("variant_publication", "db"));
 
 	//link to LOVD
 	QAction* action = new QAction(QIcon(":/Icons/LOVD.png"), "Find in LOVD", this);
 	ui_->table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(searchForVariantInLOVD()));
+
+	//link to ClinVar
+	action = new QAction(QIcon(":/Icons/ClinGen.png"), "Find in ClinVar", this);
+	ui_->table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(searchForVariantInClinVar()));
 }
 
 PublishedVariantsWidget::~PublishedVariantsWidget()
@@ -58,6 +65,12 @@ void PublishedVariantsWidget::updateTable()
 	catch (...)
 	{
 		ui_->f_region->setStyleSheet("QLineEdit {border: 2px solid red;}");
+	}
+
+	//filter "DB"
+	if (ui_->f_db->currentText()!="n/a")
+	{
+		constraints << ("db='" + ui_->f_db->currentText() + "'");
 	}
 
 	//filter "sample"
@@ -109,6 +122,30 @@ void PublishedVariantsWidget::searchForVariantInLOVD()
 			int pos = variant.start();
 			if (variant.ref()=="-") pos += 1;
 			QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false) + "&search_VariantOnGenome/DNA=g." + QString::number(pos)));
+		}
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::critical(this, "LOVD search error", e.message());
+	}
+}
+
+void PublishedVariantsWidget::searchForVariantInClinVar()
+{
+	try
+	{
+		int col = ui_->table->columnIndex("variant");
+
+		QSet<int> rows = ui_->table->selectedRows();
+		foreach (int row, rows)
+		{
+			QString variant_text = ui_->table->item(row, col)->text();
+			Variant variant = Variant::fromString(variant_text);
+
+			int start = variant.start();
+			int end = variant.end();
+
+			QDesktopServices::openUrl(QUrl("http://www.ncbi.nlm.nih.gov/clinvar/?term=" + variant.chr().strNormalized(false) + "[chr]+AND+" + QString::number(start) + ":" + QString::number(end) + "[chrpos37]"));
 		}
 	}
 	catch(Exception& e)

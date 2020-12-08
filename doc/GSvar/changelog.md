@@ -1,5 +1,11 @@
 # GSvar change log
 
+### 2020_09-85 (08.12.20)
+- IGV: IGV is now started automatically from GSvar (with a user-specific port if NGSD is enabled)
+- Report: Added meta data check before a report can be created.
+- General: Added support searching variants published in ClinVar
+- General: Small variant search now has an option to search of WGS/WES variants only.
+
 ### 2020_09-69 (26.11.20)
 - IGV: Added option to change port (see documentation).
 - General: Analysis start dialogs now show disease group and status.
