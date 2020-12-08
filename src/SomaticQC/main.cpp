@@ -23,13 +23,13 @@ public:
 	{
 	}
 
-	QList<QString> extractExperimentInfo(QString bam, QString tag)
+	QList<QString> extractExperimentInfo(QString bam, QString tag, const QString& ref_file)
 	{
 		QStringList platforms;
 		QStringList devices;
 		QStringList enrichments;
 
-		BamReader reader(bam);
+		BamReader reader(bam, ref_file);
 		foreach(QByteArray line, reader.headerLines())
 		{
 			if(line.startsWith("@RG"))
@@ -65,8 +65,8 @@ public:
 	virtual void setup()
 	{
 		setDescription("Calculates QC metrics based on tumor-normal pairs.");
-		addInfile("tumor_bam", "Input tumor BAM file.", false, true);
-		addInfile("normal_bam", "Input normal BAM file.", false, true);
+		addInfile("tumor_bam", "Input tumor BAM/CRAM file.", false, true);
+		addInfile("normal_bam", "Input normal BAM/CRAM file.", false, true);
 		addInfile("somatic_vcf", "Input somatic VCF file.", false, true);
 		//optional
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true, true);
@@ -79,8 +79,10 @@ public:
 		addFlag("skip_plots", "Skip plots (intended to increase speed of automated tests).");
 		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs." << "All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
+		addString("ref_cram", "Reference genome for CRAM compression (compulsory for CRAM support). If set it is used for tumor and normal file.", true);
 
 		//changelog
+		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
 		changeLog(2017,  7, 28, "Added somatic allele frequency histogram and tumor estimate.");
 		changeLog(2017,  1, 16, "Increased speed for mutation profile, removed genome build switch.");
@@ -107,11 +109,12 @@ public:
 
 		// metadata
 		QList<QList<QString>> metadata;
+		const QString ref_file_cram = getString("ref_cram");
 		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(tumor_bam).fileName() + " (tumor)"});
 		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(normal_bam).fileName() + " (normal)"});
 		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(somatic_vcf).fileName()});
-		metadata += extractExperimentInfo(tumor_bam, "tumor");
-		metadata += extractExperimentInfo(normal_bam, "normal");
+		metadata += extractExperimentInfo(tumor_bam, "tumor", ref_file_cram);
+		metadata += extractExperimentInfo(normal_bam, "normal", ref_file_cram);
 
 		// metadata - add linked files as relative paths
 		QDir out_dir = QFileInfo(out).absoluteDir();
@@ -137,7 +140,7 @@ public:
 		}
 
 		QCCollection metrics;
-		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref, target_bed_file, skip_plots);
+		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref, target_bed_file, skip_plots, getString("ref_cram"));
 		QCValue tmb = Statistics::mutationBurden(somatic_vcf, target_exons, target_bed, tsg_bed, blacklist);
 		metrics.insert(tmb);
 

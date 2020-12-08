@@ -329,7 +329,6 @@ private slots:
 		F_EQUAL2(mapq0_frac, 0.0, 0.001);
 	}
 
-
 	void BamReader_genomeSize()
 	{
 		BamReader reader(TESTDATA("data_in/panel.bam"));
@@ -337,5 +336,158 @@ private slots:
 		double size_with_special = reader.genomeSize(true);
 		IS_TRUE(size_without_special < size_with_special);
 	}
+
+/************************************************************* Cram Support *************************************************************/
+
+#ifndef _WIN32
+
+	void CramSupport_referenceAsParameter_tests()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+
+		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
+
+		BamAlignment al;
+		do
+		{
+			reader.getNextAlignment(al);
+		}
+		while(al.isUnmapped());
+
+
+		//check name
+		S_EQUAL(al.name(), "PC0226:121:000000000-AB2J9:1:2101:19474:26718");
+
+		//check bases
+		QByteArray bases = al.bases();
+		S_EQUAL(bases, "TGCTGGGATTACAGGTGTGAGCCACCGCGCCCGGCGTTTTGTTTCATTTTTATTTTTGAGACACGGTCTTGCTCTGTCGCCCAGGCTGGAGTGCAGTGTCGCAATCTCGGCTCACTGCATCCTCCGCCTC");
+		for (int i=0; i<bases.count(); ++i)
+		{
+			S_EQUAL(bases.data()[i], al.base(i));
+		}
+
+		//check qualities
+		QByteArray qualities = al.qualities();
+		S_EQUAL(qualities, "3>AABF@FFFFFGGGGGGGGGFHHHFGGGCGGGGEEGGGGHCGHHHHHHHHGHHHGHGFGHHHHGGGGGGHHHHHHHHGFGGGGGHHFEHFHGHHHHHHHGHGGGHHGGFGGGHHHFHHHHHHHHGGFGG");
+		for (int i=0; i<qualities.count(); ++i)
+		{
+			S_EQUAL(qualities.data()[i], (char)(al.quality(i)+33));
+		}
+
+		//check CIGAR
+		S_EQUAL(al.cigarDataAsString(), "130M");
+		QByteArray cigar_exp = al.cigarDataAsString(true);
+		S_EQUAL(cigar_exp, "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
+		QList<CigarOp> cigar_data = al.cigarData();
+		int i = 0;
+		foreach(const CigarOp& op, cigar_data)
+		{
+			for(int j=0; j<op.Length; ++j)
+			{
+				S_EQUAL(cigar_exp.data()[i], op.typeAsChar());
+				++i;
+			}
+		}
+
+		//tag
+		S_EQUAL(al.tag("MC"), "Z130M");
+		S_EQUAL(al.tag("RG"), "ZNA12878_03");
+	}
+
+	void  CramSupport_cigarDataAsString()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+
+		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
+		BamAlignment al;
+
+		do
+		{
+			reader.getNextAlignment(al);
+		}
+		while(al.isUnmapped());
+
+		S_EQUAL(al.cigarDataAsString(), "130M");
+		S_EQUAL(al.cigarDataAsString(true), "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
+
+		reader.getNextAlignment(al);
+		while(al.isUnmapped())
+		{
+			reader.getNextAlignment(al);
+		}
+		S_EQUAL(al.cigarDataAsString(), "130M");
+		S_EQUAL(al.cigarDataAsString(true), "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
+
+		while(reader.getNextAlignment(al))
+		{
+				//qDebug() << al.chromosomeID() << al.start() << al.end();
+		}
+		//qDebug() << "done";
+		S_EQUAL(al.cigarDataAsString(), "17S141M");
+
+	}
+
+	void CramSupport_getPileup()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+
+		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
+
+		Pileup pileup;
+		//SNP
+		pileup = reader.getPileup("chr1", 27682481, 1);
+		I_EQUAL(pileup.depth(false), 169);
+		F_EQUAL2(pileup.frequency('G', 'A'), 0.508876, 0.491124);
+		I_EQUAL(pileup.indels().count(), 0);
+		//SNP
+		pileup = reader.getPileup("chr1", 27686063, 1);
+		I_EQUAL(pileup.depth(false), 198);
+		F_EQUAL2(pileup.frequency('G', 'C'), 1, 0);
+		I_EQUAL(pileup.indels().count(), 0);
+		//SNP
+		pileup = reader.getPileup("1", 27687466, 1);
+		I_EQUAL(pileup.depth(false), 736);
+		F_EQUAL2(pileup.frequency('G', 'T'), 0.516304, 0.483696);
+		I_EQUAL(pileup.indels().count(), 0);
+		//SNP
+		pileup = reader.getPileup("1", 27690359, 1);
+		I_EQUAL(pileup.depth(false), 111);
+		IS_TRUE(!BasicStatistics::isValidFloat(pileup.frequency('A', 'G')));
+		I_EQUAL(pileup.indels().count(), 0);
+		//INSERTATION
+		pileup = reader.getPileup("chr3", 10094206, 1);
+		I_EQUAL(pileup.depth(false), 25);
+		I_EQUAL(pileup.t(), 0);
+		I_EQUAL(pileup.indels().count(), 14);
+		I_EQUAL(countSequencesContaining(pileup.indels(), '+'), 10);
+		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 4);
+		//DELATION
+		pileup = reader.getPileup("chr2", 48033890, 1);
+		I_EQUAL(pileup.depth(false), 38);
+		I_EQUAL(pileup.a(), 0);
+		I_EQUAL(pileup.indels().count(), 30);
+		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 18);
+		//INSERTATION -  with window
+		pileup = reader.getPileup("chr6", 131148891, 3);
+		I_EQUAL(pileup.depth(false), 704);
+		I_EQUAL(pileup.t(), 0);
+		I_EQUAL(pileup.indels().count(), 331);
+		I_EQUAL(countSequencesContaining(pileup.indels(), '+'), 304);
+		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 27);
+		//DELETION -  with window
+		pileup = reader.getPileup("chr5", 80160596, 4);
+		I_EQUAL(pileup.depth(false), 16);
+		I_EQUAL(pileup.a(), 16);
+		I_EQUAL(pileup.indels().count(), 6);
+		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 6);
+	}
+
+#endif
 
 };

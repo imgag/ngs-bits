@@ -43,7 +43,7 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString t_ps_id, FilterWidget* filter_
 {
 	if(cnvs.type() != CnvListType::CLINCNV_TUMOR_NORMAL_PAIR && cnvs.type() != CnvListType::CLINCNV_TUMOR_ONLY)
 	{
-		THROW(ProgrammingException, "Constructor in CnvWidget has to be used using tumor-normal pair data.");
+		THROW(ProgrammingException, "Constructor in CnvWidget has to be used using tumor-normal pair or tumor-only data.");
 	}
 	somatic_report_config_ = &som_rep_conf;
 	is_somatic_ = true;

@@ -1,24 +1,24 @@
 /*
-Copyright (c) 2012-2014 Genome Research Ltd.
+Copyright (c) 2012-2020 Genome Research Ltd.
 Author: James Bonfield <jkb@sanger.ac.uk>
 
-Redistribution and use in source and binary forms, with or without 
+Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
-   1. Redistributions of source code must retain the above copyright notice, 
+   1. Redistributions of source code must retain the above copyright notice,
 this list of conditions and the following disclaimer.
 
-   2. Redistributions in binary form must reproduce the above copyright notice, 
-this list of conditions and the following disclaimer in the documentation 
+   2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation
 and/or other materials provided with the distribution.
 
    3. Neither the names Genome Research Ltd and Wellcome Trust Sanger
 Institute nor the names of its contributors may be used to endorse or promote
 products derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY GENOME RESEARCH LTD AND CONTRIBUTORS "AS IS" AND 
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+THIS SOFTWARE IS PROVIDED BY GENOME RESEARCH LTD AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
 DISCLAIMED. IN NO EVENT SHALL GENOME RESEARCH LTD OR CONTRIBUTORS BE LIABLE
 FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
@@ -39,11 +39,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * maps, bitwise I/O, etc.
  */
 
-#ifndef _CRAM_IO_H_
-#define _CRAM_IO_H_
+#ifndef CRAM_IO_H
+#define CRAM_IO_H
 
 #include <stdint.h>
-#include <cram/misc.h>
+
+#include "misc.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,7 +57,7 @@ extern "C" {
  */
 
 /*! INTERNAL: Converts two characters into an integer for use in switch{} */
-#define CRAM_KEY(a,b) (((a)<<8)|((b)))
+#define CRAM_KEY(a,b) ((((unsigned char) a)<<8)|(((unsigned char) b)))
 
 /*! Reads an integer in ITF-8 encoding from 'fd' and stores it in
  * *val.
@@ -69,22 +70,22 @@ int itf8_decode(cram_fd *fd, int32_t *val);
 
 static inline int itf8_get(char *cp, int32_t *val_p) {
     unsigned char *up = (unsigned char *)cp;
-    
+
     if (up[0] < 0x80) {
-	*val_p =   up[0];
-	return 1;
+        *val_p =   up[0];
+        return 1;
     } else if (up[0] < 0xc0) {
-	*val_p = ((up[0] <<8) |  up[1])                           & 0x3fff;
-	return 2;
+        *val_p = ((up[0] <<8) |  up[1])                           & 0x3fff;
+        return 2;
     } else if (up[0] < 0xe0) {
-	*val_p = ((up[0]<<16) | (up[1]<< 8) |  up[2])             & 0x1fffff;
-	return 3;
+        *val_p = ((up[0]<<16) | (up[1]<< 8) |  up[2])             & 0x1fffff;
+        return 3;
     } else if (up[0] < 0xf0) {
-	*val_p = ((up[0]<<24) | (up[1]<<16) | (up[2]<<8) | up[3]) & 0x0fffffff;
-	return 4;
+        *val_p = ((up[0]<<24) | (up[1]<<16) | (up[2]<<8) | up[3]) & 0x0fffffff;
+        return 4;
     } else {
-	*val_p = ((up[0] & 0x0f)<<28) | (up[1]<<20) | (up[2]<<12) | (up[3]<<4) | (up[4] & 0x0f);
-	return 5;
+        *val_p = ((up[0] & 0x0f)<<28) | (up[1]<<20) | (up[2]<<12) | (up[3]<<4) | (up[4] & 0x0f);
+        return 5;
     }
 }
 
@@ -97,30 +98,30 @@ static inline int itf8_get(char *cp, int32_t *val_p) {
 static inline int itf8_put(char *cp, int32_t val) {
     unsigned char *up = (unsigned char *)cp;
     if        (!(val & ~0x00000007f)) { // 1 byte
-	*up = val;
-	return 1;
+        *up = val;
+        return 1;
     } else if (!(val & ~0x00003fff)) { // 2 byte
-	*up++ = (val >> 8 ) | 0x80;
-	*up   = val & 0xff;
-	return 2;
+        *up++ = (val >> 8 ) | 0x80;
+        *up   = val & 0xff;
+        return 2;
     } else if (!(val & ~0x01fffff)) { // 3 byte
-	*up++ = (val >> 16) | 0xc0;
-	*up++ = (val >> 8 ) & 0xff;
-	*up   = val & 0xff;
-	return 3;
+        *up++ = (val >> 16) | 0xc0;
+        *up++ = (val >> 8 ) & 0xff;
+        *up   = val & 0xff;
+        return 3;
     } else if (!(val & ~0x0fffffff)) { // 4 byte
-	*up++ = (val >> 24) | 0xe0;
-	*up++ = (val >> 16) & 0xff;
-	*up++ = (val >> 8 ) & 0xff;
-	*up   = val & 0xff;
-	return 4;
+        *up++ = (val >> 24) | 0xe0;
+        *up++ = (val >> 16) & 0xff;
+        *up++ = (val >> 8 ) & 0xff;
+        *up   = val & 0xff;
+        return 4;
     } else {                           // 5 byte
-	*up++ = 0xf0 | ((val>>28) & 0xff);
-	*up++ = (val >> 20) & 0xff;
-	*up++ = (val >> 12) & 0xff;
-	*up++ = (val >> 4 ) & 0xff;
-	*up = val & 0x0f;
-	return 5;
+        *up++ = 0xf0 | ((val>>28) & 0xff);
+        *up++ = (val >> 20) & 0xff;
+        *up++ = (val >> 12) & 0xff;
+        *up++ = (val >> 4 ) & 0xff;
+        *up = val & 0x0f;
+        return 5;
     }
 }
 
@@ -129,135 +130,135 @@ static inline int itf8_put(char *cp, int32_t val) {
 static inline int ltf8_put(char *cp, int64_t val) {
     unsigned char *up = (unsigned char *)cp;
     if        (!(val & ~((1LL<<7)-1))) {
-	*up = val;
-	return 1;
+        *up = val;
+        return 1;
     } else if (!(val & ~((1LL<<(6+8))-1))) {
-	*up++ = (val >> 8 ) | 0x80;
-	*up   = val & 0xff;
-	return 2;
+        *up++ = (val >> 8 ) | 0x80;
+        *up   = val & 0xff;
+        return 2;
     } else if (!(val & ~((1LL<<(5+2*8))-1))) {
-	*up++ = (val >> 16) | 0xc0;
-	*up++ = (val >> 8 ) & 0xff;
-	*up   = val & 0xff;
-	return 3;
+        *up++ = (val >> 16) | 0xc0;
+        *up++ = (val >> 8 ) & 0xff;
+        *up   = val & 0xff;
+        return 3;
     } else if (!(val & ~((1LL<<(4+3*8))-1))) {
-	*up++ = (val >> 24) | 0xe0;
-	*up++ = (val >> 16) & 0xff;
-	*up++ = (val >> 8 ) & 0xff;
-	*up   = val & 0xff;
-	return 4;
+        *up++ = (val >> 24) | 0xe0;
+        *up++ = (val >> 16) & 0xff;
+        *up++ = (val >> 8 ) & 0xff;
+        *up   = val & 0xff;
+        return 4;
     } else if (!(val & ~((1LL<<(3+4*8))-1))) {
-	*up++ = (val >> 32) | 0xf0;
-	*up++ = (val >> 24) & 0xff;
-	*up++ = (val >> 16) & 0xff;
-	*up++ = (val >> 8 ) & 0xff;
-	*up   = val & 0xff;
-	return 5;
+        *up++ = (val >> 32) | 0xf0;
+        *up++ = (val >> 24) & 0xff;
+        *up++ = (val >> 16) & 0xff;
+        *up++ = (val >> 8 ) & 0xff;
+        *up   = val & 0xff;
+        return 5;
     } else if (!(val & ~((1LL<<(2+5*8))-1))) {
-	*up++ = (val >> 40) | 0xf8;
-	*up++ = (val >> 32) & 0xff;
-	*up++ = (val >> 24) & 0xff;
-	*up++ = (val >> 16) & 0xff;
-	*up++ = (val >> 8 ) & 0xff;
-	*up   = val & 0xff;
-	return 6;
+        *up++ = (val >> 40) | 0xf8;
+        *up++ = (val >> 32) & 0xff;
+        *up++ = (val >> 24) & 0xff;
+        *up++ = (val >> 16) & 0xff;
+        *up++ = (val >> 8 ) & 0xff;
+        *up   = val & 0xff;
+        return 6;
     } else if (!(val & ~((1LL<<(1+6*8))-1))) {
-	*up++ = (val >> 48) | 0xfc;
-	*up++ = (val >> 40) & 0xff;
-	*up++ = (val >> 32) & 0xff;
-	*up++ = (val >> 24) & 0xff;
-	*up++ = (val >> 16) & 0xff;
-	*up++ = (val >> 8 ) & 0xff;
-	*up   = val & 0xff;
-	return 7;
+        *up++ = (val >> 48) | 0xfc;
+        *up++ = (val >> 40) & 0xff;
+        *up++ = (val >> 32) & 0xff;
+        *up++ = (val >> 24) & 0xff;
+        *up++ = (val >> 16) & 0xff;
+        *up++ = (val >> 8 ) & 0xff;
+        *up   = val & 0xff;
+        return 7;
     } else if (!(val & ~((1LL<<(7*8))-1))) {
-	*up++ = (val >> 56) | 0xfe;
-	*up++ = (val >> 48) & 0xff;
-	*up++ = (val >> 40) & 0xff;
-	*up++ = (val >> 32) & 0xff;
-	*up++ = (val >> 24) & 0xff;
-	*up++ = (val >> 16) & 0xff;
-	*up++ = (val >> 8 ) & 0xff;
-	*up   = val & 0xff;
-	return 8;
+        *up++ = (val >> 56) | 0xfe;
+        *up++ = (val >> 48) & 0xff;
+        *up++ = (val >> 40) & 0xff;
+        *up++ = (val >> 32) & 0xff;
+        *up++ = (val >> 24) & 0xff;
+        *up++ = (val >> 16) & 0xff;
+        *up++ = (val >> 8 ) & 0xff;
+        *up   = val & 0xff;
+        return 8;
     } else {
-	*up++ = 0xff;
-	*up++ = (val >> 56) & 0xff;
-	*up++ = (val >> 48) & 0xff;
-	*up++ = (val >> 40) & 0xff;
-	*up++ = (val >> 32) & 0xff;
-	*up++ = (val >> 24) & 0xff;
-	*up++ = (val >> 16) & 0xff;
-	*up++ = (val >> 8 ) & 0xff;
-	*up   = val & 0xff;
-	return 9;
+        *up++ = 0xff;
+        *up++ = (val >> 56) & 0xff;
+        *up++ = (val >> 48) & 0xff;
+        *up++ = (val >> 40) & 0xff;
+        *up++ = (val >> 32) & 0xff;
+        *up++ = (val >> 24) & 0xff;
+        *up++ = (val >> 16) & 0xff;
+        *up++ = (val >> 8 ) & 0xff;
+        *up   = val & 0xff;
+        return 9;
     }
 }
 
 static inline int ltf8_get(char *cp, int64_t *val_p) {
     unsigned char *up = (unsigned char *)cp;
-    
+
     if (up[0] < 0x80) {
-	*val_p =   up[0];
-	return 1;
+        *val_p =   up[0];
+        return 1;
     } else if (up[0] < 0xc0) {
-	*val_p = (((uint64_t)up[0]<< 8) |
-		   (uint64_t)up[1]) & (((1LL<<(6+8)))-1);
-	return 2;
+        *val_p = (((uint64_t)up[0]<< 8) |
+                   (uint64_t)up[1]) & (((1LL<<(6+8)))-1);
+        return 2;
     } else if (up[0] < 0xe0) {
-	*val_p = (((uint64_t)up[0]<<16) |
-		  ((uint64_t)up[1]<< 8) |
-		   (uint64_t)up[2]) & ((1LL<<(5+2*8))-1);
-	return 3;
+        *val_p = (((uint64_t)up[0]<<16) |
+                  ((uint64_t)up[1]<< 8) |
+                   (uint64_t)up[2]) & ((1LL<<(5+2*8))-1);
+        return 3;
     } else if (up[0] < 0xf0) {
-	*val_p = (((uint64_t)up[0]<<24) |
-		  ((uint64_t)up[1]<<16) |
-		  ((uint64_t)up[2]<< 8) |
-		   (uint64_t)up[3]) & ((1LL<<(4+3*8))-1);
-	return 4;
+        *val_p = (((uint64_t)up[0]<<24) |
+                  ((uint64_t)up[1]<<16) |
+                  ((uint64_t)up[2]<< 8) |
+                   (uint64_t)up[3]) & ((1LL<<(4+3*8))-1);
+        return 4;
     } else if (up[0] < 0xf8) {
-	*val_p = (((uint64_t)up[0]<<32) |
-		  ((uint64_t)up[1]<<24) |
-		  ((uint64_t)up[2]<<16) |
-		  ((uint64_t)up[3]<< 8) |
-		   (uint64_t)up[4]) & ((1LL<<(3+4*8))-1);
-	return 5;
+        *val_p = (((uint64_t)up[0]<<32) |
+                  ((uint64_t)up[1]<<24) |
+                  ((uint64_t)up[2]<<16) |
+                  ((uint64_t)up[3]<< 8) |
+                   (uint64_t)up[4]) & ((1LL<<(3+4*8))-1);
+        return 5;
     } else if (up[0] < 0xfc) {
-	*val_p = (((uint64_t)up[0]<<40) |
-		  ((uint64_t)up[1]<<32) |
-		  ((uint64_t)up[2]<<24) |
-		  ((uint64_t)up[3]<<16) |
-		  ((uint64_t)up[4]<< 8) |
-		   (uint64_t)up[5]) & ((1LL<<(2+5*8))-1);
-	return 6;
+        *val_p = (((uint64_t)up[0]<<40) |
+                  ((uint64_t)up[1]<<32) |
+                  ((uint64_t)up[2]<<24) |
+                  ((uint64_t)up[3]<<16) |
+                  ((uint64_t)up[4]<< 8) |
+                   (uint64_t)up[5]) & ((1LL<<(2+5*8))-1);
+        return 6;
     } else if (up[0] < 0xfe) {
-	*val_p = (((uint64_t)up[0]<<48) |
-		  ((uint64_t)up[1]<<40) |
-		  ((uint64_t)up[2]<<32) |
-		  ((uint64_t)up[3]<<24) |
-		  ((uint64_t)up[4]<<16) |
-		  ((uint64_t)up[5]<< 8) |
-		   (uint64_t)up[6]) & ((1LL<<(1+6*8))-1);
-	return 7;
+        *val_p = (((uint64_t)up[0]<<48) |
+                  ((uint64_t)up[1]<<40) |
+                  ((uint64_t)up[2]<<32) |
+                  ((uint64_t)up[3]<<24) |
+                  ((uint64_t)up[4]<<16) |
+                  ((uint64_t)up[5]<< 8) |
+                   (uint64_t)up[6]) & ((1LL<<(1+6*8))-1);
+        return 7;
     } else if (up[0] < 0xff) {
-	*val_p = (((uint64_t)up[1]<<48) |
-		  ((uint64_t)up[2]<<40) |
-		  ((uint64_t)up[3]<<32) |
-		  ((uint64_t)up[4]<<24) |
-		  ((uint64_t)up[5]<<16) |
-		  ((uint64_t)up[6]<< 8) |
-		   (uint64_t)up[7]) & ((1LL<<(7*8))-1);
-	return 8;
+        *val_p = (((uint64_t)up[1]<<48) |
+                  ((uint64_t)up[2]<<40) |
+                  ((uint64_t)up[3]<<32) |
+                  ((uint64_t)up[4]<<24) |
+                  ((uint64_t)up[5]<<16) |
+                  ((uint64_t)up[6]<< 8) |
+                   (uint64_t)up[7]) & ((1LL<<(7*8))-1);
+        return 8;
     } else {
-	*val_p = (((uint64_t)up[1]<<56) |
-		  ((uint64_t)up[2]<<48) |
-		  ((uint64_t)up[3]<<40) |
-		  ((uint64_t)up[4]<<32) |
-		  ((uint64_t)up[5]<<24) |
-		  ((uint64_t)up[6]<<16) |
-		  ((uint64_t)up[7]<< 8) |
-		   (uint64_t)up[8]);
-	return 9;
+        *val_p = (((uint64_t)up[1]<<56) |
+                  ((uint64_t)up[2]<<48) |
+                  ((uint64_t)up[3]<<40) |
+                  ((uint64_t)up[4]<<32) |
+                  ((uint64_t)up[5]<<24) |
+                  ((uint64_t)up[6]<<16) |
+                  ((uint64_t)up[7]<< 8) |
+                   (uint64_t)up[8]);
+        return 9;
     }
 }
 
@@ -293,7 +294,7 @@ static inline int safe_itf8_get(const char *cp, const char *endp,
         return 4;
     } else {
         uint32_t uv = (((uint32_t)up[0] & 0x0f)<<28) | (up[1]<<20) | (up[2]<<12) | (up[3]<<4) | (up[4] & 0x0f);
-        *val_p = uv < 0x80000000UL ? uv : -((int32_t) (0xffffffffUL - uv)) - 1;
+        *val_p = uv < 0x80000000UL ? (int32_t) uv : -((int32_t) (0xffffffffUL - uv)) - 1;
         return 5;
     }
 }
@@ -303,69 +304,69 @@ static inline int safe_ltf8_get(const char *cp, const char *endp,
     unsigned char *up = (unsigned char *)cp;
 
     if (endp - cp < 9 &&
-	(cp >= endp || endp - cp < ltf8_bytes[up[0]])) return 0;
+        (cp >= endp || endp - cp < ltf8_bytes[up[0]])) return 0;
 
     if (up[0] < 0x80) {
-	*val_p =   up[0];
-	return 1;
+        *val_p =   up[0];
+        return 1;
     } else if (up[0] < 0xc0) {
-	*val_p = (((uint64_t)up[0]<< 8) |
-		   (uint64_t)up[1]) & (((1LL<<(6+8)))-1);
-	return 2;
+        *val_p = (((uint64_t)up[0]<< 8) |
+                   (uint64_t)up[1]) & (((1LL<<(6+8)))-1);
+        return 2;
     } else if (up[0] < 0xe0) {
-	*val_p = (((uint64_t)up[0]<<16) |
-		  ((uint64_t)up[1]<< 8) |
-		   (uint64_t)up[2]) & ((1LL<<(5+2*8))-1);
-	return 3;
+        *val_p = (((uint64_t)up[0]<<16) |
+                  ((uint64_t)up[1]<< 8) |
+                   (uint64_t)up[2]) & ((1LL<<(5+2*8))-1);
+        return 3;
     } else if (up[0] < 0xf0) {
-	*val_p = (((uint64_t)up[0]<<24) |
-		  ((uint64_t)up[1]<<16) |
-		  ((uint64_t)up[2]<< 8) |
-		   (uint64_t)up[3]) & ((1LL<<(4+3*8))-1);
-	return 4;
+        *val_p = (((uint64_t)up[0]<<24) |
+                  ((uint64_t)up[1]<<16) |
+                  ((uint64_t)up[2]<< 8) |
+                   (uint64_t)up[3]) & ((1LL<<(4+3*8))-1);
+        return 4;
     } else if (up[0] < 0xf8) {
-	*val_p = (((uint64_t)up[0]<<32) |
-		  ((uint64_t)up[1]<<24) |
-		  ((uint64_t)up[2]<<16) |
-		  ((uint64_t)up[3]<< 8) |
-		   (uint64_t)up[4]) & ((1LL<<(3+4*8))-1);
-	return 5;
+        *val_p = (((uint64_t)up[0]<<32) |
+                  ((uint64_t)up[1]<<24) |
+                  ((uint64_t)up[2]<<16) |
+                  ((uint64_t)up[3]<< 8) |
+                   (uint64_t)up[4]) & ((1LL<<(3+4*8))-1);
+        return 5;
     } else if (up[0] < 0xfc) {
-	*val_p = (((uint64_t)up[0]<<40) |
-		  ((uint64_t)up[1]<<32) |
-		  ((uint64_t)up[2]<<24) |
-		  ((uint64_t)up[3]<<16) |
-		  ((uint64_t)up[4]<< 8) |
-		   (uint64_t)up[5]) & ((1LL<<(2+5*8))-1);
-	return 6;
+        *val_p = (((uint64_t)up[0]<<40) |
+                  ((uint64_t)up[1]<<32) |
+                  ((uint64_t)up[2]<<24) |
+                  ((uint64_t)up[3]<<16) |
+                  ((uint64_t)up[4]<< 8) |
+                   (uint64_t)up[5]) & ((1LL<<(2+5*8))-1);
+        return 6;
     } else if (up[0] < 0xfe) {
-	*val_p = (((uint64_t)up[0]<<48) |
-		  ((uint64_t)up[1]<<40) |
-		  ((uint64_t)up[2]<<32) |
-		  ((uint64_t)up[3]<<24) |
-		  ((uint64_t)up[4]<<16) |
-		  ((uint64_t)up[5]<< 8) |
-		   (uint64_t)up[6]) & ((1LL<<(1+6*8))-1);
-	return 7;
+        *val_p = (((uint64_t)up[0]<<48) |
+                  ((uint64_t)up[1]<<40) |
+                  ((uint64_t)up[2]<<32) |
+                  ((uint64_t)up[3]<<24) |
+                  ((uint64_t)up[4]<<16) |
+                  ((uint64_t)up[5]<< 8) |
+                   (uint64_t)up[6]) & ((1LL<<(1+6*8))-1);
+        return 7;
     } else if (up[0] < 0xff) {
-	*val_p = (((uint64_t)up[1]<<48) |
-		  ((uint64_t)up[2]<<40) |
-		  ((uint64_t)up[3]<<32) |
-		  ((uint64_t)up[4]<<24) |
-		  ((uint64_t)up[5]<<16) |
-		  ((uint64_t)up[6]<< 8) |
-		   (uint64_t)up[7]) & ((1LL<<(7*8))-1);
-	return 8;
+        *val_p = (((uint64_t)up[1]<<48) |
+                  ((uint64_t)up[2]<<40) |
+                  ((uint64_t)up[3]<<32) |
+                  ((uint64_t)up[4]<<24) |
+                  ((uint64_t)up[5]<<16) |
+                  ((uint64_t)up[6]<< 8) |
+                   (uint64_t)up[7]) & ((1LL<<(7*8))-1);
+        return 8;
     } else {
-	*val_p = (((uint64_t)up[1]<<56) |
-		  ((uint64_t)up[2]<<48) |
-		  ((uint64_t)up[3]<<40) |
-		  ((uint64_t)up[4]<<32) |
-		  ((uint64_t)up[5]<<24) |
-		  ((uint64_t)up[6]<<16) |
-		  ((uint64_t)up[7]<< 8) |
-		   (uint64_t)up[8]);
-	return 9;
+        *val_p = (((uint64_t)up[1]<<56) |
+                  ((uint64_t)up[2]<<48) |
+                  ((uint64_t)up[3]<<40) |
+                  ((uint64_t)up[4]<<32) |
+                  ((uint64_t)up[5]<<24) |
+                  ((uint64_t)up[6]<<16) |
+                  ((uint64_t)up[7]<< 8) |
+                   (uint64_t)up[8]);
+        return 9;
     }
 }
 
@@ -377,7 +378,8 @@ static inline int safe_ltf8_get(const char *cp, const char *endp,
  * @return
  * Returns the number of bytes written
  */
-int itf8_put_blk(cram_block *blk, int val);
+int itf8_put_blk(cram_block *blk, int32_t val);
+int ltf8_put_blk(cram_block *blk, int64_t val);
 
 /*! Pulls a literal 32-bit value from a block.
  *
@@ -412,7 +414,7 @@ int int32_put_blk(cram_block *blk, int32_t val);
  *         NULL on failure
  */
 cram_block *cram_new_block(enum cram_content_type content_type,
-			   int content_id);
+                           int content_id);
 
 /*! Reads a block from a cram file.
  *
@@ -464,7 +466,7 @@ int cram_uncompress_block(cram_block *b);
  *        -1 on failure
  */
 int cram_compress_block(cram_fd *fd, cram_block *b, cram_metrics *metrics,
-			int method, int level);
+                        int method, int level);
 
 cram_metrics *cram_new_metrics(void);
 char *cram_block_method2str(enum cram_block_method m);
@@ -475,15 +477,24 @@ char *cram_content_type2str(enum cram_content_type t);
  */
 
 static inline cram_block *cram_get_block_by_id(cram_slice *slice, int id) {
-    if (slice->block_by_id && id >= 0 && id < 1024) {
-        return slice->block_by_id[id];
+  //fprintf(stderr, "%d\t%p\n", id, slice->block_by_id);
+    uint32_t v = id;
+    if (slice->block_by_id && v < 256) {
+        return slice->block_by_id[v];
     } else {
+        v = 256 + v % 251;
+        if (slice->block_by_id &&
+            slice->block_by_id[v] &&
+            slice->block_by_id[v]->content_id == id)
+            return slice->block_by_id[v];
+
+        // Otherwise a linear search in case of collision
         int i;
         for (i = 0; i < slice->hdr->num_blocks; i++) {
-	    cram_block *b = slice->block[i];
-	    if (b && b->content_type == EXTERNAL && b->content_id == id)
-	        return b;
-	}
+            cram_block *b = slice->block[i];
+            if (b && b->content_type == EXTERNAL && b->content_id == id)
+                return b;
+        }
     }
     return NULL;
 }
@@ -497,55 +508,79 @@ static inline cram_block *cram_get_block_by_id(cram_slice *slice, int id) {
 /* Returns the address one past the end of the block */
 #define BLOCK_END(b) (&(b)->data[(b)->byte])
 
-/* Request block to be at least 'l' bytes long */
-#define BLOCK_RESIZE(b,l)					\
-    do {							\
-	while((b)->alloc <= (l)) {				\
-	    (b)->alloc = (b)->alloc ? (b)->alloc*1.5 : 1024;	\
-	    (b)->data = realloc((b)->data, (b)->alloc);		\
-	}							\
-     } while(0)
-
 /* Make block exactly 'l' bytes long */
-#define BLOCK_RESIZE_EXACT(b,l)					\
-    do {							\
-        (b)->alloc = (l);                                       \
-        (b)->data = realloc((b)->data, (b)->alloc);		\
-     } while(0)
+static inline int block_resize_exact(cram_block *b, size_t len) {
+    unsigned char *tmp = realloc(b->data, len);
+    if (!tmp)
+        return -1;
+    b->alloc = len;
+    b->data = tmp;
+    return 0;
+}
+
+/* Request block to be at least 'l' bytes long */
+static inline int block_resize(cram_block *b, size_t len) {
+    if (b->alloc > len)
+        return 0;
+
+    size_t alloc = b->alloc;
+    while (alloc <= len)
+        alloc = alloc ? alloc*1.5 : 1024;
+
+    return block_resize_exact(b, alloc);
+}
+
 
 /* Ensure the block can hold at least another 'l' bytes */
-#define BLOCK_GROW(b,l) BLOCK_RESIZE((b), BLOCK_SIZE((b)) + (l))
+static inline int block_grow(cram_block *b, size_t len) {
+    return block_resize(b, BLOCK_SIZE(b) + len);
+}
 
-/* Append string 's' of length 'l' */
-#define BLOCK_APPEND(b,s,l)		  \
-    do {				  \
-        BLOCK_GROW((b),(l));		  \
-        memcpy(BLOCK_END((b)), (s), (l)); \
-	BLOCK_SIZE((b)) += (l);		  \
-    } while (0)
+/* Append string 's' of length 'l'. */
+static inline int block_append(cram_block *b, const void *s, size_t len) {
+    if (block_grow(b, len) < 0)
+        return -1;
+
+    memcpy(BLOCK_END(b), s, len);
+    BLOCK_SIZE(b) += len;
+
+    return 0;
+}
 
 /* Append as single character 'c' */
-#define BLOCK_APPEND_CHAR(b,c)		  \
-    do {				  \
-        BLOCK_GROW((b),1);		  \
-	(b)->data[(b)->byte++] = (c);	  \
-    } while (0)
+static inline int block_append_char(cram_block *b, char c) {
+    if (block_grow(b, 1) < 0)
+        return -1;
+
+    b->data[b->byte++] = c;
+    return 0;
+}
 
 /* Append a single unsigned integer */
-#define BLOCK_APPEND_UINT(b,i)		             \
-    do {					     \
-        unsigned char *cp;			     \
-        BLOCK_GROW((b),11);			     \
-	cp = &(b)->data[(b)->byte];		     \
-        (b)->byte += append_uint32(cp, (i)) - cp;	\
-    } while (0)
+static inline unsigned char *append_uint32(unsigned char *cp, uint32_t i);
+static inline int block_append_uint(cram_block *b, unsigned int i) {
+    if (block_grow(b, 11) < 0)
+        return -1;
+
+    unsigned char *cp = &b->data[b->byte];
+    b->byte += append_uint32(cp, i) - cp;
+    return 0;
+}
+
+// Versions of above with built in goto block_err calls.
+#define BLOCK_RESIZE_EXACT(b,l) if (block_resize_exact((b),(l))<0) goto block_err
+#define BLOCK_RESIZE(b,l)       if (block_resize((b),(l))      <0) goto block_err
+#define BLOCK_GROW(b,l)         if (block_grow((b),(l))        <0) goto block_err
+#define BLOCK_APPEND(b,s,l)     if (block_append((b),(s),(l))  <0) goto block_err
+#define BLOCK_APPEND_CHAR(b,c)  if (block_append_char((b),(c)) <0) goto block_err
+#define BLOCK_APPEND_UINT(b,i)  if (block_append_uint((b),(i)) <0) goto block_err
 
 static inline unsigned char *append_uint32(unsigned char *cp, uint32_t i) {
     uint32_t j;
 
     if (i == 0) {
-	*cp++ = '0';
-	return cp;
+        *cp++ = '0';
+        return cp;
     }
 
     if (i < 100)        goto b1;
@@ -596,14 +631,14 @@ static inline unsigned char *append_uint64(unsigned char *cp, uint64_t i) {
     uint64_t j;
 
     if (i <= 0xffffffff)
-	return append_uint32(cp, i);
+        return append_uint32(cp, i);
 
     if ((j = i/1000000000) > 1000000000) {
-	cp = append_uint32(cp, j/1000000000);
-	j %= 1000000000;
-	cp = append_sub32(cp, j);
+        cp = append_uint32(cp, j/1000000000);
+        j %= 1000000000;
+        cp = append_sub32(cp, j);
     } else {
-	cp = append_uint32(cp, i / 1000000000);
+        cp = append_uint32(cp, i / 1000000000);
     }
     cp = append_sub32(cp, i % 1000000000);
 
@@ -626,7 +661,7 @@ static inline unsigned char *append_uint64(unsigned char *cp, uint64_t i) {
  */
 int cram_load_reference(cram_fd *fd, char *fn);
 
-/*! Generates a lookup table in refs based on the SQ headers in SAM_hdr.
+/*! Generates a lookup table in refs based on the SQ headers in sam_hdr_t.
  *
  * Indexes references by the order they appear in a BAM file. This may not
  * necessarily be the same order they appear in the fasta reference file.
@@ -635,7 +670,7 @@ int cram_load_reference(cram_fd *fd, char *fn);
  * Returns 0 on success;
  *        -1 on failure
  */
-int refs2id(refs_t *r, SAM_hdr *bfd);
+int refs2id(refs_t *r, sam_hdr_t *hdr);
 
 void refs_free(refs_t *r);
 
@@ -792,7 +827,7 @@ void cram_free_file_def(cram_file_def *def);
  * Returns SAM hdr ptr on success;
  *         NULL on failure
  */
-SAM_hdr *cram_read_SAM_hdr(cram_fd *fd);
+sam_hdr_t *cram_read_SAM_hdr(cram_fd *fd);
 
 /*! Writes a CRAM SAM header.
  *
@@ -800,7 +835,7 @@ SAM_hdr *cram_read_SAM_hdr(cram_fd *fd);
  * Returns 0 on success;
  *        -1 on failure
  */
-int cram_write_SAM_hdr(cram_fd *fd, SAM_hdr *hdr);
+int cram_write_SAM_hdr(cram_fd *fd, sam_hdr_t *hdr);
 
 
 /**@}*/
@@ -841,8 +876,6 @@ int cram_close(cram_fd *fd);
  *        -1 on failure
  */
 int cram_seek(cram_fd *fd, off_t offset, int whence);
-
-int64_t cram_tell(cram_fd *fd);
 
 /*
  * Flushes a CRAM file.
@@ -888,14 +921,14 @@ int cram_set_voption(cram_fd *fd, enum hts_fmt_option opt, va_list args);
  * Attaches a header to a cram_fd.
  *
  * This should be used when creating a new cram_fd for writing where
- * we have an SAM_hdr already constructed (eg from a file we've read
+ * we have an sam_hdr_t already constructed (eg from a file we've read
  * in).
  *
  * @return
  * Returns 0 on success;
  *        -1 on failure
  */
-int cram_set_header(cram_fd *fd, SAM_hdr *hdr);
+int cram_set_header2(cram_fd *fd, const sam_hdr_t *hdr);
 
 /*!
  * Returns the hFILE connected to a cram_fd.
@@ -908,4 +941,4 @@ static inline struct hFILE *cram_hfile(cram_fd *fd) {
 }
 #endif
 
-#endif /* _CRAM_IO_H_ */
+#endif /* CRAM_IO_H */

@@ -77,6 +77,8 @@ void SequencingRunOverview::updateTable()
 	ui_.table->setQualityIcons("name", quality_values);
 
 	//color
+	QColor yellow = QColor(255,255,0,125);
+	ui_.table->setBackgroundColorIfContains("status", yellow, "...");
 	QColor red = QColor(255,0,0,125);
 	ui_.table->setBackgroundColorIfEqual("status", red, "analysis_not_possible");
 	ui_.table->setBackgroundColorIfEqual("status", red, "run_aborted");

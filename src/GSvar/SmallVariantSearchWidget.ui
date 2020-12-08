@@ -26,7 +26,7 @@
    <property name="spacing">
     <number>3</number>
    </property>
-   <item row="9" column="0" colspan="2">
+   <item row="10" column="0" colspan="2">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <spacer name="horizontalSpacer_3">
@@ -60,8 +60,34 @@
      </item>
     </layout>
    </item>
+   <item row="2" column="1">
+    <widget class="QLineEdit" name="genes">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="toolTip">
+      <string>Uses the gene locus extended by 5000 bases as region.</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="placeholderText">
+      <string>Gene names</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="1">
+    <widget class="QCheckBox" name="filter_denovo">
+     <property name="text">
+      <string>de-novo (from report config)</string>
+     </property>
+    </widget>
+   </item>
    <item row="3" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>3</number>
+     </property>
      <item>
       <widget class="QDoubleSpinBox" name="filter_af">
        <property name="suffix">
@@ -86,40 +112,17 @@
        <property name="sizeHint" stdset="0">
         <size>
          <width>658</width>
-         <height>20</height>
+         <height>5</height>
         </size>
        </property>
       </spacer>
      </item>
     </layout>
    </item>
-   <item row="7" column="0">
+   <item row="8" column="0">
     <widget class="QPushButton" name="update_btn">
      <property name="text">
       <string>search</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="1">
-    <widget class="QCheckBox" name="filter_denovo">
-     <property name="text">
-      <string>de-novo (from report config)</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="genes">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <property name="toolTip">
-      <string>Uses the gene locus extended by 5000 bases as region.</string>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
-     <property name="placeholderText">
-      <string>Gene names</string>
      </property>
     </widget>
    </item>
@@ -130,7 +133,7 @@
      </property>
     </widget>
    </item>
-   <item row="8" column="0" colspan="2">
+   <item row="9" column="0" colspan="2">
     <widget class="QTableWidget" name="variants">
      <property name="contextMenuPolicy">
       <enum>Qt::CustomContextMenu</enum>
@@ -154,7 +157,7 @@
       <bool>false</bool>
      </property>
      <property name="columnCount">
-      <number>20</number>
+      <number>22</number>
      </property>
      <attribute name="verticalHeaderVisible">
       <bool>false</bool>
@@ -216,6 +219,11 @@
      </column>
      <column>
       <property name="text">
+       <string>processing system</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>project</string>
       </property>
      </column>
@@ -259,9 +267,14 @@
        <string>candiate genes</string>
       </property>
      </column>
+     <column>
+      <property name="text">
+       <string>related samples</string>
+      </property>
+     </column>
     </widget>
    </item>
-   <item row="5" column="1">
+   <item row="6" column="1">
     <widget class="QCheckBox" name="filter_recessive">
      <property name="text">
       <string>recessive (only hom/compound-het variants)</string>
@@ -271,7 +284,7 @@
    <item row="4" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <property name="spacing">
-      <number>10</number>
+      <number>3</number>
      </property>
      <item>
       <widget class="QCheckBox" name="filter_impact_high">
@@ -312,22 +325,12 @@
        <property name="sizeHint" stdset="0">
         <size>
          <width>40</width>
-         <height>20</height>
+         <height>5</height>
         </size>
        </property>
       </spacer>
      </item>
     </layout>
-   </item>
-   <item row="4" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="toolTip">
-      <string>Variant impact on protein.</string>
-     </property>
-     <property name="text">
-      <string>Impact:</string>
-     </property>
-    </widget>
    </item>
    <item row="3" column="0">
     <widget class="QLabel" name="label_3">
@@ -339,20 +342,20 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="label_5">
+   <item row="4" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="toolTip">
+      <string>Variant impact on protein.</string>
+     </property>
      <property name="text">
-      <string>Inheritance:</string>
+      <string>Impact:</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="region">
+   <item row="6" column="0">
+    <widget class="QLabel" name="label_5">
      <property name="text">
-      <string/>
-     </property>
-     <property name="placeholderText">
-      <string>chr:start-end</string>
+      <string>Inheritance:</string>
      </property>
     </widget>
    </item>
@@ -384,6 +387,82 @@
       <string notr="true">buttonGroup</string>
      </attribute>
     </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="region">
+     <property name="text">
+      <string/>
+     </property>
+     <property name="placeholderText">
+      <string>chr:start-end</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Processing system type:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <property name="spacing">
+      <number>3</number>
+     </property>
+     <item>
+      <widget class="QCheckBox" name="filter_sys_wgs">
+       <property name="toolTip">
+        <string>Whole genome sequencing.</string>
+       </property>
+       <property name="text">
+        <string>genomes</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="filter_sys_wes">
+       <property name="toolTip">
+        <string>Whole exome sequencing.</string>
+       </property>
+       <property name="text">
+        <string>exomes</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="filter_sys_other">
+       <property name="toolTip">
+        <string>Panels, cfDNA, etc.</string>
+       </property>
+       <property name="text">
+        <string>others</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>5</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

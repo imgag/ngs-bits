@@ -5,9 +5,10 @@ void getVariantInformation(
 		const  VcfFile& variant_list,
 		int min_depth,
 		int min_alt_count,
-		std::unordered_set< VcfLine>& homozygousVariants)
+		std::unordered_set< VcfLine>& homozygousVariants,
+		const QString& ref_file)
 {
-	BamReader reader(vInfo.in_file_name);
+	BamReader reader(vInfo.in_file_name, ref_file);
 	for (int i=0; i<variant_list.count(); ++i)
 	{
 		const  VcfLine& v = variant_list[i];

@@ -1,5 +1,5 @@
 ### SomaticQC tool help
-	SomaticQC (2019_07-8-g5a9c094)
+	SomaticQC (2020_09-90-g55257954)
 	
 	Calculates QC metrics based on tumor-normal pairs.
 	
@@ -7,8 +7,8 @@
 	All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.
 	
 	Mandatory parameters:
-	  -tumor_bam <file>    Input tumor BAM file.
-	  -normal_bam <file>   Input normal BAM file.
+	  -tumor_bam <file>    Input tumor BAM/CRAM file.
+	  -normal_bam <file>   Input normal BAM/CRAM file.
 	  -somatic_vcf <file>  Input somatic VCF file.
 	
 	Optional parameters:
@@ -31,6 +31,8 @@
 	  -build <enum>        Genome build used to generate the input.
 	                       Default value: 'hg19'
 	                       Valid: 'hg19,hg38'
+	  -ref_cram <string>   Reference genome for CRAM compression (compulsory for CRAM support). If set it is used for tumor and normal file.
+	                       Default value: ''
 	
 	Special parameters:
 	  --help               Shows this help and exits.
@@ -39,8 +41,9 @@
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SomaticQC changelog
-	SomaticQC 2019_07-8-g5a9c094
+	SomaticQC 2020_09-90-g55257954
 	
+	2020-11-27 Added CRAM support.
 	2018-07-11 Added build switch for hg38 support.
 	2017-07-28 Added somatic allele frequency histogram and tumor estimate.
 	2017-01-16 Increased speed for mutation profile, removed genome build switch.

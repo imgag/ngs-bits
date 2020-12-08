@@ -29,6 +29,8 @@ public:
 	//Set background color for a column
 	void setColumnColors(const QString& column_header, const QList<QColor>& colors);
 	//Set background color for a column if text matches
+	void setBackgroundColorIfContains(const QString& column_header, const QColor& color, const QString& substring);
+	//Set background color for a column if text matches
 	void setBackgroundColorIfEqual(const QString& column_header, const QColor& color, const QString& text);
 	//Set background color for a column if the cell contains a number and if lower than the cutoff.
 	void setBackgroundColorIfLt(const QString& column_header, const QColor& color, double cutoff);

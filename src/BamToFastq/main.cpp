@@ -19,7 +19,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Converts a coordinate-sorted BAM file to FASTQ files (paired-end only).");
-		addInfile("in", "Input BAM file.", false, true);
+		addInfile("in", "Input BAM/CRAM file.", false, true);
 		addOutfile("out1", "Read 1 output FASTQ.GZ file.", false);
 		addOutfile("out2", "Read 2 output FASTQ.GZ file.", false);
 		//optional
@@ -27,7 +27,9 @@ public:
 		addFlag("remove_duplicates", "Does not export duplicate reads into the FASTQ file.");
 		addInt("compression_level", "Output FASTQ compression level from 1 (fastest) to 9 (best compression).", true, 1);
 		addInt("write_buffer_size", "Output write buffer size (number of FASTQ entry pairs).", true, 100);
+		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
 
+		changeLog(2020,  11, 27, "Added Cram support.");
 		changeLog(2020,  5, 29, "Massive speed-up by writing in background. Added 'compression_level' parameter.");
 		changeLog(2020,  3, 21, "Added 'reg' parameter.");
 	}
@@ -52,7 +54,7 @@ public:
 		QTime timer;
 		timer.start();
 		QTextStream out(stdout);
-		BamReader reader(getInfile("in"));
+		BamReader reader(getInfile("in"), getString("ref"));
 		QString reg = getString("reg");
 		if (reg!="")
 		{
