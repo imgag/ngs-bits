@@ -174,6 +174,20 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	if (ui_.filter_impact_low->isChecked()) impacts << "LOW";
 	if (ui_.filter_impact_modifier->isChecked()) impacts << "MODIFIER";
 
+	//processed sample quality
+	QStringList ps_qualities;
+	if (ui_.q_ps_good->isChecked()) ps_qualities << "good";
+	if (ui_.q_ps_medium->isChecked()) ps_qualities << "medium";
+	if (ui_.q_ps_bad->isChecked()) ps_qualities << "bad";
+	if (ui_.q_ps_na->isChecked()) ps_qualities << "n/a";
+
+	//project types
+	QStringList project_types;
+	if (ui_.p_diagnostic->isChecked()) project_types << "diagnostic";
+	if (ui_.p_research->isChecked()) project_types << "research";
+	if (ui_.p_external->isChecked()) project_types << "external";
+	if (ui_.p_test->isChecked()) project_types << "test";
+
 	//processing system types
 	QStringList sys_types;
 	if (ui_.filter_sys_wgs->isChecked()) sys_types << "WGS";
@@ -242,12 +256,21 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 
 		//add sample info
 		SqlQuery query2 = db.getQuery();
-		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, dv.genotype, p.name as p_name, s.disease_group, s.disease_status, vc.class, s.name_external, ds.outcome, ds.comment, s.id as s_id, ps.id as ps_id, sys.type as sys_type, sys.name_manufacturer as sys_name FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id, processing_system sys WHERE ps.processing_system_id=sys.id AND dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id);
+		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, dv.genotype, p.name as p_name, s.disease_group, s.disease_status, vc.class, s.name_external, ds.outcome, ds.comment, s.id as s_id, ps.id as ps_id, sys.type as sys_type, sys.name_manufacturer as sys_name, p.type as p_type, ps.quality as ps_quality FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id, processing_system sys WHERE ps.processing_system_id=sys.id AND dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id);
 		while(query2.next())
 		{
+
+			//filter by processed sample quality
+			QString ps_quality = query2.value("ps_quality").toString();
+			if (!ps_qualities.contains(ps_quality)) continue;
+
 			//filter by processing system type
 			QString sys_type = query2.value("sys_type").toString();
 			if (!sys_types.contains(sys_type)) continue;
+
+			//filter by project type
+			QString p_type = query2.value("p_type").toString();
+			if (!project_types.contains(p_type)) continue;
 
 			//get HPO info
 			QString sample_id = query2.value("s_id").toString();

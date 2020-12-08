@@ -212,39 +212,38 @@ void SvSearchWidget::search()
 
 
 		//(3) define SQL queries for filters
+		QStringList conditions;
 
 		// filter by processing system
-		QString query_same_ps;
 		// get processing system id
 		if (ps_id_ != "" && ui_.same_processing_system_only->isChecked())
 		{
 			int processing_system_id = db_.processingSystemIdFromProcessedSample(db_.processedSampleName(ps_id_));
-			query_same_ps = "ps.processing_system_id = " + QByteArray::number(processing_system_id) + " ";
+			conditions << "ps.processing_system_id = " + QByteArray::number(processing_system_id) + " ";
 		}
 
-		// filter by quality
+		// filter by processed sample quality
 		QStringList allowed_qualities;
 		if(ui_.q_ps_bad->isChecked()) allowed_qualities << "\"bad\"";
 		if(ui_.q_ps_medium->isChecked()) allowed_qualities << "\"medium\"";
 		if(ui_.q_ps_good->isChecked()) allowed_qualities << "\"good\"";
 		if(ui_.q_ps_na->isChecked()) allowed_qualities << "\"n/a\"";
-
-		//skip db query if no quality is selected
-		if(allowed_qualities.size() == 0)
+		if(allowed_qualities.size() != 4)
 		{
-			THROW(ArgumentException,"No quality selected!" );
+			conditions << "ps.quality IN (" + allowed_qualities.join(", ") + ") ";
 		}
 
-		QString query_ps_quality;
-		// add filter if not all check boxes are selected
-		if(allowed_qualities.size() != 4) query_ps_quality = "ps.quality IN (" + allowed_qualities.join(", ") + ") ";
 
-		// combine all conditions
-		QStringList conditions;
-		if(!query_same_ps.isEmpty()) conditions << query_same_ps;
-		if(!query_ps_quality.isEmpty()) conditions << query_ps_quality;
-		conditions << query_same_position;
-
+		// filter by project type
+		QStringList project_types;
+		if(ui_.p_diagnostic->isChecked()) project_types << "\"diagnostic\"";
+		if(ui_.p_research->isChecked()) project_types << "\"research\"";
+		if(ui_.p_external->isChecked()) project_types << "\"external\"";
+		if(ui_.p_test->isChecked()) project_types << "\"test\"";
+		if(project_types.size() != 4)
+		{
+			conditions << "p.type IN (" + project_types.join(", ") + ") ";
+		}
 
 		//(4) create SQL table
 		QString query_join = "SELECT " + selected_columns.join(", ") + " FROM " + sv_table
