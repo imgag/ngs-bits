@@ -112,6 +112,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "DiseaseCourseWidget.h"
 #include "CfDNAPanelWidget.h"
 #include "ClinvarSubmissionGenerator.h"
+#include "AlleleBalanceCalculator.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -615,6 +616,13 @@ void MainWindow::on_actionShowPublishedVariants_triggered()
 	PublishedVariantsWidget* widget = new PublishedVariantsWidget();
 
 	auto dlg = GUIHelper::createDialog(widget, "Published variants");
+	dlg->exec();
+}
+
+void MainWindow::on_actionAlleleBalance_triggered()
+{
+	AlleleBalanceCalculator* widget = new AlleleBalanceCalculator();
+	auto dlg = GUIHelper::createDialog(widget, "Allele balance of heterzygous variants");
 	dlg->exec();
 }
 
@@ -1183,8 +1191,8 @@ void MainWindow::handleInputFileChange()
 
 void MainWindow::variantCellDoubleClicked(int row, int /*col*/)
 {
-	int var_index = ui_.vars->rowToVariantIndex(row);
-	openInIGV(variants_[var_index].toString());
+	const Variant& v = variants_[ui_.vars->rowToVariantIndex(row)];
+	openInIGV(v.chr().str() + ":" + QString::number(v.start()) + "-" + QString::number(v.end()));
 }
 
 void MainWindow::variantHeaderDoubleClicked(int row)
@@ -5404,6 +5412,7 @@ void MainWindow::updateVariantDetails()
 
 bool MainWindow::executeIGVCommands(QStringList commands)
 {
+	bool debug = false;
 	bool success = true;
 
 	QApplication::setOverrideCursor(Qt::BusyCursor);
@@ -5414,11 +5423,11 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 		QAbstractSocket socket(QAbstractSocket::UnknownSocketType, this);
 		QString igv_host = Settings::string("igv_host");
 		int igv_port = igvPort();
-		//qDebug() << QDateTime::currentDateTime() << "CONNECTING:" << igv_host << igv_port;
+		if (debug) qDebug() << QDateTime::currentDateTime() << "CONNECTING:" << igv_host << igv_port;
 		socket.connectToHost(igv_host, igv_port);
 		if (!socket.waitForConnected(1000))
 		{
-			//qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";
+			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";
 
 			//try to start IGV
 			QString igv_app = Settings::string("igv_app").trimmed();
@@ -5435,7 +5444,7 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 			{
 				THROW(Exception, "Could not start IGV: IGV application '" + igv_app + "' did not start!");
 			}
-			//qDebug() << QDateTime::currentDateTime() << "STARTED - WAITING UNTIL IT RESPONDS";
+			if (debug) qDebug() << QDateTime::currentDateTime() << "STARTED IGV - WAITING UNTIL CONNECTING TO THE PORT WORKS";
 
 			//wait for IGV to respond after start
 			bool connected = false;
@@ -5445,7 +5454,7 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 				socket.connectToHost(igv_host, igv_port);
 				if (socket.waitForConnected(1000))
 				{
-					//qDebug() << QDateTime::currentDateTime() << "IGV IS RESPONDING";
+					if (debug) qDebug() << QDateTime::currentDateTime() << "CONNECTING TO THE PORT WORKS";
 					connected = true;
 					break;
 				}
@@ -5459,15 +5468,19 @@ bool MainWindow::executeIGVCommands(QStringList commands)
 		//execute commands
 		foreach(QString command, commands)
 		{
-			//qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
+			if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
 			socket.write((command + "\n").toLatin1());
-			socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
+			bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
 			QString answer = socket.readAll().trimmed();
-			if (answer!="OK")
+			if (!ok || answer!="OK")
 			{
-				THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer);
+				if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED: answer:" << answer << " socket error:" << socket.errorString();
+				THROW(Exception, "Could not execute IGV command '" + command + "'.\nAnswer: " + answer + "\nSocket error:" + socket.errorString());
 			}
-			//qDebug() << QDateTime::currentDateTime() << "DONE";
+			else
+			{
+				if (debug) qDebug() << QDateTime::currentDateTime() << "DONE";
+			}
 		}
 
 		//disconnect

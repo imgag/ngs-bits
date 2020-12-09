@@ -231,6 +231,8 @@ public slots:
 	void on_actionSearchSVs_triggered();
 	///Shows published variants dialog
 	void on_actionShowPublishedVariants_triggered();
+	///Shows allele ballance calculation
+	void on_actionAlleleBalance_triggered();
 
 	///Load report configuration
 	void loadReportConfig();

@@ -401,6 +401,8 @@
     <addaction name="menuDetermine_gender"/>
     <addaction name="menuSample_correlation"/>
     <addaction name="actionSampleAncestry"/>
+    <addaction name="separator"/>
+    <addaction name="actionAlleleBalance"/>
    </widget>
    <widget class="QMenu" name="menuIGV">
     <property name="title">
@@ -1227,6 +1229,11 @@
   <action name="actionIgvPort">
    <property name="text">
     <string>Change port</string>
+   </property>
+  </action>
+  <action name="actionAlleleBalance">
+   <property name="text">
+    <string>Allele balance</string>
    </property>
   </action>
  </widget>
