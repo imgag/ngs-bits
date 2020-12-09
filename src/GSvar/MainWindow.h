@@ -205,8 +205,6 @@ public slots:
 	void on_actionCfDNADiseaseCourse_triggered();
 	///Open expression data Widget
 	void on_actionExpressionData_triggered();
-	///Open gene variant info check dialog.
-	void on_actionGeneVariantInfo_triggered();
 	///Open gene OMIM info dialog.
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.

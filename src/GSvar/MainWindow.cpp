@@ -898,7 +898,7 @@ void MainWindow::on_actionExpressionData_triggered()
 	else
 	{
 		bool ok;
-		tsv_filename = QInputDialog::getItem(this, "Select tsv file", "counts:", rna_count_files_, 0, false, &ok);
+		tsv_filename = QInputDialog::getItem(this, "Select TSV file with RNA counts", "Multiple files with RNA counts found.\nPlease select the requested TSV file:", rna_count_files_, 0, false, &ok);
 		if (!ok)
 		{
 			return;
@@ -910,6 +910,7 @@ void MainWindow::on_actionExpressionData_triggered()
 	addModelessDialog(dlg, false);
 }
 
+void MainWindow::on_actionRE_triggered()
 {
 	if (filename_=="") return;
 
@@ -2377,6 +2378,9 @@ void MainWindow::loadFile(QString filename)
 				// check if exists
 				if (QFileInfo(rna_counts_file_path).exists()) rna_count_files_ << rna_counts_file_path;
 			}
+
+			// remove duplicate files
+			rna_count_files_ = QStringList(rna_count_files_.toSet().toList());
 
 			// (de)activate expression button
 			ui_.actionExpressionData->setEnabled(rna_count_files_.size() > 0);

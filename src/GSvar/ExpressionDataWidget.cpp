@@ -6,20 +6,21 @@
 #include "FilterCascade.h"
 #include <QFile>
 #include <QMessageBox>
+#include "RepeatExpansionWidget.h"
 
-NumericWidgetItem::NumericWidgetItem(QString text) :
-	QTableWidgetItem(text)
-{
-	this->setTextAlignment(Qt::AlignRight + Qt::AlignVCenter);
-}
+//NumericWidgetItem::NumericWidgetItem(QString text) :
+//	QTableWidgetItem(text)
+//{
+//	this->setTextAlignment(Qt::AlignRight + Qt::AlignVCenter);
+//}
 
-bool NumericWidgetItem::operator<(const QTableWidgetItem& other) const
-{
-	//convert text to double
-	double this_value = Helper::toDouble(this->text());
-	double other_value = Helper::toDouble(other.text());
-	return (this_value < other_value);
-}
+//bool NumericWidgetItem::operator<(const QTableWidgetItem& other) const
+//{
+//	//convert text to double
+//	double this_value = Helper::toDouble(this->text());
+//	double other_value = Helper::toDouble(other.text());
+//	return (this_value < other_value);
+//}
 
 ExpressionDataWidget::ExpressionDataWidget(QString tsv_filename, QWidget *parent) :
 	QWidget(parent),
