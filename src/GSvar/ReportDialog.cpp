@@ -1,13 +1,16 @@
 #include "ReportDialog.h"
 #include "GUIHelper.h"
+#include "DiseaseInfoWidget.h"
+#include "SampleDiseaseInfoWidget.h"
+#include "DiagnosticStatusWidget.h"
 #include <QTableWidgetItem>
-#include <QPushButton>
 #include <QMenu>
 
 
-ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QString target_region, QWidget* parent)
+ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QString target_region, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
+	, ps_(ps)
 	, settings_(settings)
 	, variants_(variants)
 	, cnvs_(cnvs)
@@ -21,8 +24,8 @@ ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants
 	//variant types
 	connect(ui_.report_type, SIGNAL(currentTextChanged(QString)), this, SLOT(updateGUI()));
 
-	//disable ok button when no outcome is set
-	connect(ui_.diag_status, SIGNAL(outcomeChanged(QString)), this, SLOT(activateOkButtonIfValid()));
+	//disable ok button if there is a problem
+	connect(ui_.meta_data_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMetaData()));
 	connect(ui_.report_type, SIGNAL(currentTextChanged(QString)), this, SLOT(activateOkButtonIfValid()));
 
 	//enable/disable low-coverage settings
@@ -40,15 +43,72 @@ ReportDialog::ReportDialog(ReportSettings& settings, const VariantList& variants
 	updateGUI();
 }
 
+void ReportDialog::checkMetaData()
+{
+	//clear
+	ui_.meta_data_check_output->clear();
+
+	//check
+	QString ps_id = db_.processedSampleId(ps_);
+	QHash<QString, QStringList> errors = db_.checkMetaData(ps_id, variants_, cnvs_, svs_);
+
+	//sort sample names and make current sample the first one
+	QStringList sample_names = errors.keys();
+	sample_names.sort();
+	QString sample = db_.getSampleData(db_.sampleId(ps_)).name;
+	sample_names.removeAll(sample);
+	sample_names.prepend(sample);
+
+	//show messages
+	QStringList display_messages;
+	foreach(QString sample_name, sample_names)
+	{
+		QStringList sample_messages = errors[sample_name];
+		foreach(QString sample_message, sample_messages)
+		{
+			display_messages << sample_name + ": " + sample_message;
+		}
+	}
+	if (display_messages.count()>0)
+	{
+		ui_.meta_data_check_output->setText("<font color='red'>" + display_messages.join("<br>") + "</font>");
+	}
+
+	//add edit menu entries
+	QMenu* menu = new QMenu(this);
+	for(int i=0; i<sample_names.count(); ++i)
+	{
+		QString sample_name = sample_names[i];
+
+		if (i>0) menu->addSeparator();
+
+		QAction* action = menu->addAction(sample_name + ": disease group/status");
+		action->setData(sample_name);
+		connect(action, SIGNAL(triggered(bool)), this, SLOT(editDiseaseGroupStatus()));
+
+		action = menu->addAction(sample_name + ": disease details (HPO, OMIM, Optha, ...)");
+		action->setData(sample_name);
+		connect(action, SIGNAL(triggered(bool)), this, SLOT(editDiseaseDetails()));
+
+		if (ps_.startsWith(sample_name)) //only for current sample, because processed sample is needed
+		{
+			action = menu->addAction(sample_name + ": diagnostic status");
+			action->setData(sample_name);
+			connect(action, SIGNAL(triggered(bool)), this, SLOT(editDiagnosticStatus()));
+		}
+	}
+	ui_.meta_data_edit_btn->setMenu(menu);
+
+	//update button box
+	activateOkButtonIfValid();
+}
+
 
 void ReportDialog::initGUI()
 {
 	//report types
 	ui_.report_type->addItem("");
 	ui_.report_type->addItems(ReportVariantConfiguration::getTypeOptions());
-
-	//diagnostic status
-	ui_.diag_status->setStatus(settings_.diag_status);
 
 	//settings
 	ui_.details_cov->setChecked(settings_.show_coverage_details);
@@ -82,6 +142,8 @@ void ReportDialog::initGUI()
 
 void ReportDialog::updateGUI()
 {
+	checkMetaData();
+
 	//init
 	ui_.vars->setRowCount(0);
 	int row = 0;
@@ -121,7 +183,7 @@ void ReportDialog::updateGUI()
 		++row;
 	}
 
-	//add Svs
+	//add SVs
 	foreach(int i, settings_.report_config->variantIndices(VariantType::SVS, true, type()))
 	{
 		const BedpeLine& sv = svs_[i];
@@ -172,12 +234,53 @@ void ReportDialog::updateGUI()
 	activateOkButtonIfValid();
 }
 
+void ReportDialog::editDiseaseGroupStatus()
+{
+	QAction* action = qobject_cast<QAction*>(sender());
+	QString sample = action->data().toString();
+	QString sample_id = db_.sampleId(sample);
+
+	//get disease group/status
+	DiseaseInfoWidget* widget = new DiseaseInfoWidget(sample, sample_id, this);
+	auto dlg = GUIHelper::createDialog(widget, "Disease information of '" + sample + "'", "", true);
+	if (dlg->exec() != QDialog::Accepted) return;
+
+	//update
+	db_.setSampleDiseaseData(sample_id, widget->diseaseGroup(), widget->diseaseStatus());
+	checkMetaData();
+}
+
+void ReportDialog::editDiseaseDetails()
+{
+	QAction* action = qobject_cast<QAction*>(sender());
+	QString sample = action->data().toString();
+	QString sample_id = db_.sampleId(sample);
+
+	//get disease details
+	SampleDiseaseInfoWidget* widget = new SampleDiseaseInfoWidget(sample, this);
+	widget->setDiseaseInfo(db_.getSampleDiseaseInfo(sample_id));
+	auto dlg = GUIHelper::createDialog(widget, "Sample disease detail sof '" + sample + "'", "", true);
+	if (dlg->exec() != QDialog::Accepted) return;
+
+	//update
+	db_.setSampleDiseaseInfo(sample_id, widget->diseaseInfo());
+	checkMetaData();
+}
+
+void ReportDialog::editDiagnosticStatus()
+{
+	QString ps_id = db_.processedSampleId(ps_);
+	DiagnosticStatusWidget* widget = new DiagnosticStatusWidget(this);
+	widget->setStatus(db_.getDiagnosticStatus(ps_id));
+	auto dlg = GUIHelper::createDialog(widget, "Diagnostic status of '" + ps_, "'", true);
+	if (dlg->exec()!=QDialog::Accepted) return;
+
+	db_.setDiagnosticStatus(ps_id, widget->status());
+	checkMetaData();
+}
+
 void ReportDialog::writeBackSettings()
 {
-	//diag status
-	settings_.diag_status = ui_.diag_status->status();
-
-	//settings
 	settings_.show_coverage_details = ui_.details_cov->isChecked();
 	settings_.min_depth = ui_.min_cov->value();
 	settings_.roi_low_cov = ui_.details_cov_roi->isChecked();
@@ -190,10 +293,23 @@ void ReportDialog::writeBackSettings()
 
 void ReportDialog::activateOkButtonIfValid()
 {
-	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-
-	if (ui_.diag_status->status().outcome=="n/a") return;
-	if (ui_.report_type->currentIndex()==0) return;
-
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+	ui_.buttonBox->setToolTip("");
+
+	//report type set?
+	if (ui_.report_type->currentIndex()==0)
+	{
+		ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		ui_.buttonBox->setToolTip("Select report type to continue!");
+		return;
+	}
+
+	//meta data ok?
+	if (!ui_.meta_data_check_output->text().trimmed().isEmpty())
+	{
+		ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
+		ui_.buttonBox->setToolTip("Correct meta data errors to continue!");
+		return;
+	}
+
 }

@@ -1,4 +1,5 @@
 #IGV settings
+igv_app=
 igv_menu=@Invalid()
 igv_host=127.0.0.1
 igv_port=60151

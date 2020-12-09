@@ -87,7 +87,7 @@ private slots:
 			}
 			if (var_str=="chr1:866511-866511 ->CCCT")
 			{
-				F_EQUAL(result.scores[i], 2.0);
+				F_EQUAL(result.scores[i], -1.0);
 			}
 		}
 

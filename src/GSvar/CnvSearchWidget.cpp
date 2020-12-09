@@ -48,8 +48,8 @@ void CnvSearchWidget::search()
 	{
 		//prepared SQL query
 		QString query_str = "SELECT c.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, s.disease_group, s.disease_status, s.id as 'HPO terms', ds.outcome, cs.caller, cs.quality as quality_callset, cs.quality_metrics as callset_metrics, c.chr, c.start, c.end, c.cn, (c.end-c.start)/1000.0 as size_kb, c.quality_metrics as cnv_metrics, rc.class "
-							"FROM cnv_callset cs, processed_sample ps LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id, processing_system sys, sample s, cnv c LEFT JOIN report_configuration_cnv rc ON rc.cnv_id=c.id "
-							"WHERE s.id=ps.sample_id AND sys.id=ps.processing_system_id AND c.cnv_callset_id=cs.id AND ps.id=cs.processed_sample_id ";
+							"FROM cnv_callset cs, processed_sample ps LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id, processing_system sys, sample s, cnv c LEFT JOIN report_configuration_cnv rc ON rc.cnv_id=c.id, project p "
+							"WHERE s.id=ps.sample_id AND sys.id=ps.processing_system_id AND c.cnv_callset_id=cs.id AND ps.id=cs.processed_sample_id AND ps.project_id=p.id ";
 
 		//(0) parse input and prepare query
 
@@ -102,8 +102,6 @@ void CnvSearchWidget::search()
 			query_str += " AND (" + query_pos_overlap.join("OR ") + ") ";
 		}
 
-
-
 		// parse copy number
 		if (ui_.cn_0->isChecked() || ui_.cn_1->isChecked() || ui_.cn_2->isChecked() || ui_.cn_3->isChecked() || ui_.cn_4_plus->isChecked())
 		{
@@ -122,6 +120,15 @@ void CnvSearchWidget::search()
 			if (ui_.q_ps_medium->isChecked()) tmp << "ps.quality='medium'";
 			if (ui_.q_ps_bad->isChecked()) tmp << "ps.quality='bad'";
 			if (ui_.q_ps_na->isChecked()) tmp << "ps.quality='n/a'";
+			query_str += " AND (" + tmp.join(" OR ") + ")";
+		}
+		if (ui_.p_diagnostic->isChecked() || ui_.p_research->isChecked() || ui_.p_external->isChecked() || ui_.p_test->isChecked())
+		{
+			QStringList tmp;
+			if (ui_.p_diagnostic->isChecked()) tmp << "p.type='diagnostic'";
+			if (ui_.p_research->isChecked()) tmp << "p.type='research'";
+			if (ui_.p_external->isChecked()) tmp << "p.type='external'";
+			if (ui_.p_test->isChecked()) tmp << "p.type='test'";
 			query_str += " AND (" + tmp.join(" OR ") + ")";
 		}
 		if (ui_.q_cs_good->isChecked() || ui_.q_cs_medium->isChecked() || ui_.q_cs_bad->isChecked() || ui_.q_cs_na->isChecked())
