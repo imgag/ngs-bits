@@ -26,7 +26,7 @@
    <string>Report configuration (somatic)</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <item row="0" column="0">
+   <item row="0" column="0" alignment="Qt::AlignVCenter">
     <widget class="QGroupBox" name="groupBox">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -49,25 +49,21 @@
      <property name="title">
       <string>Diagnostic status</string>
      </property>
-     <widget class="QLabel" name="target_bed_path">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>40</y>
-        <width>1001</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QLabel" name="target_bed_path">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item row="1" column="0">
@@ -94,7 +90,7 @@
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="basic_settings_tab">
       <attribute name="title">
@@ -115,6 +111,9 @@
            <height>120</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string>Choose tumor content calculation method to appear in report.</string>
+         </property>
          <property name="title">
           <string>Tumor content calculation method</string>
          </property>
@@ -130,6 +129,9 @@
           </property>
           <item row="0" column="0">
            <widget class="QCheckBox" name="include_max_tum_freq">
+            <property name="toolTip">
+             <string>Display median of maximum allele frequency as tumor content in report</string>
+            </property>
             <property name="text">
              <string>max. allele frequency</string>
             </property>
@@ -137,6 +139,9 @@
           </item>
           <item row="1" column="0">
            <widget class="QCheckBox" name="include_max_clonality">
+            <property name="toolTip">
+             <string>Display maximum value of tumor clonality in CNV file as tumor content in report</string>
+            </property>
             <property name="text">
              <string>max. CNV clonality</string>
             </property>
@@ -144,6 +149,9 @@
           </item>
           <item row="2" column="0">
            <widget class="QCheckBox" name="include_tum_content_histological">
+            <property name="toolTip">
+             <string>Display histological tumor content from NGSD in report</string>
+            </property>
             <property name="text">
              <string>histological tumor content</string>
             </property>
@@ -199,7 +207,7 @@
           <bool>false</bool>
          </property>
          <attribute name="horizontalHeaderStretchLastSection">
-          <bool>false</bool>
+          <bool>true</bool>
          </attribute>
          <attribute name="verticalHeaderVisible">
           <bool>false</bool>
@@ -257,6 +265,9 @@
            <height>0</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string>Display text and table for structural variants in report.</string>
+         </property>
          <property name="text">
           <string>Fusions detected</string>
          </property>
@@ -282,6 +293,9 @@
            <height>16777215</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string>Select quality restrictions to be displayed in report</string>
+         </property>
         </widget>
        </item>
        <item row="2" column="0" colspan="2">
@@ -291,6 +305,9 @@
            <width>300</width>
            <height>0</height>
           </size>
+         </property>
+         <property name="toolTip">
+          <string>Display CNV burden in report</string>
          </property>
          <property name="text">
           <string>Include CNV burden</string>
@@ -304,6 +321,9 @@
            <width>300</width>
            <height>0</height>
           </size>
+         </property>
+         <property name="toolTip">
+          <string>Display result metric of MANTIS microsatellite detection in report.</string>
          </property>
          <property name="text">
           <string>Include microsatellite status</string>
@@ -355,6 +375,9 @@
            <width>200</width>
            <height>16777215</height>
           </size>
+         </property>
+         <property name="toolTip">
+          <string>Select HRD score</string>
          </property>
          <item>
           <property name="text">
@@ -408,7 +431,7 @@
        <string>germline variants</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="0" column="0">
+       <item row="1" column="0">
         <widget class="QTableWidget" name="germline_variants">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -422,6 +445,9 @@
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectRows</enum>
          </property>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>true</bool>
+         </attribute>
          <column>
           <property name="text">
            <string/>
@@ -469,9 +495,26 @@
          </column>
          <column>
           <property name="text">
+           <string>gene</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>type</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
            <string>coding/splicing</string>
           </property>
          </column>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Select class 4 and class 5 germline variants to be included in somatic report</string>
+         </property>
         </widget>
        </item>
       </layout>
@@ -490,7 +533,7 @@
           </size>
          </property>
          <property name="title">
-          <string>GroupBox</string>
+          <string/>
          </property>
          <layout class="QGridLayout" name="gridLayout_7">
           <item row="0" column="0">
@@ -834,6 +877,19 @@
          </property>
         </spacer>
        </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Select chromosomes bearing chromosomal instabilities</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="limits">
@@ -898,6 +954,9 @@
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QCheckBox" name="no_ngsd">
+        <property name="toolTip">
+         <string>Do not store report settings to NGSD, just create files.</string>
+        </property>
         <property name="text">
          <string>No NGSD</string>
         </property>
@@ -946,6 +1005,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>create DNA report</string>
+        </property>
         <property name="text">
          <string>DNA</string>
         </property>
@@ -958,6 +1020,9 @@
        <widget class="QRadioButton" name="report_type_rna">
         <property name="enabled">
          <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>create RNA report, option is only available if GSvar file is annotated using RNA data</string>
         </property>
         <property name="text">
          <string>RNA</string>

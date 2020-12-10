@@ -316,7 +316,7 @@ public:
 
 	///Returns true if all required annotation (CGI, NCG) are available
 	static bool checkRequiredSNVAnnotations(const VariantList& snvs);
-
+	///Returns true if germline variant file is valid (annotations and at least one germline variant)
 	static bool checkGermlineSNVFile(const VariantList& germline_variants);
 
 	///Returns maximum tumor clonailty in cnv file
@@ -329,6 +329,7 @@ public:
 	{
 		return cnvs.totalCnvSize() / 3101788170. * 100;
 	}
+
 
 private:
 	///transforms GSVar coordinates of Variants to VCF INDEL-standard
