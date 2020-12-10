@@ -2,12 +2,11 @@
 #include "SomaticReportHelper.h"
 #include <QMessageBox>
 
-SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const VariantList &variants, const CnvList &cnvs, const VariantList& germl_variants, QWidget *parent)
+SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const CnvList &cnvs, const VariantList& germl_variants, QWidget *parent)
 	: QDialog(parent)
 	, ui_()
 	, db_()
 	, settings_(settings)
-	, variants_(variants)
 	, cnvs_(cnvs)
 	, germl_variants_(germl_variants)
 	, target_region_(settings.report_config.targetFile())
@@ -16,6 +15,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	, tum_cont_histological_(std::numeric_limits<double>::quiet_NaN())
 	, limitations_()
 {
+
 	ui_.setupUi(this);
 
 	connect(ui_.report_type_rna, SIGNAL(clicked(bool)), this, SLOT(disableGUI()));

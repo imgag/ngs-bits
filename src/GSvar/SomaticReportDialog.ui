@@ -500,16 +500,6 @@
          </column>
          <column>
           <property name="text">
-           <string>gene</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>type</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
            <string>coding/splicing</string>
           </property>
          </column>

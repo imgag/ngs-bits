@@ -14,7 +14,7 @@ class SomaticReportDialog
 
 public:
 	///constructor
-	SomaticReportDialog(SomaticReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const VariantList& germl_variants, QWidget* parent = 0);
+	SomaticReportDialog(SomaticReportSettings& settings, const CnvList& cnvs, const VariantList& germl_variants, QWidget* parent = 0);
 
 	enum report_type
 	{
@@ -38,7 +38,6 @@ private:
 	Ui::SomaticReportDialog ui_;
 	NGSD db_;
 	SomaticReportSettings& settings_;
-	const VariantList& variants_;
 	const CnvList& cnvs_;
 	const VariantList& germl_variants_;
 	QString target_region_;
