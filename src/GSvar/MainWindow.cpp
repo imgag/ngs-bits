@@ -3402,7 +3402,8 @@ void MainWindow::generateReportSomaticRTF()
 		somatic_report_settings_.report_config.setHrdScore(0);
 	}
 
-	SomaticReportDialog dlg(somatic_report_settings_, variants_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
+	SomaticReportDialog dlg(somatic_report_settings_, cnvs_, somatic_control_tissue_variants_, this); //widget for settings
+
 	if(SomaticRnaReport::checkRequiredSNVAnnotations(variants_))
 	{
 		dlg.enableChoiceReportType(true);
