@@ -6,24 +6,19 @@ libs:
 - support CRAM in addition to BAM: use htslib functions with hts_ prefix instead of bam_ prefix
 
 GSvar:
-## Allow adding variant outside of target region to report
-    - add checkboxes to variants in report dialog
-    - checkboxes for variants in ROI are checked and disabled
-    - checkboxes for variants ouside or ROI are unchecked and enabled
-    - only variants which are checked are added to the report config
+### Store successfull trio/multi analyses in NGSD (type, samples, sample infos) > do not search in the file system but in NGSD.
 ## Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)
         - also allow copying multiple gaps into clipboard (as table and for primer gap)
         - add link for PrimerDesign tool
 # Layout/documentation of SomaticReportDialog > AXEL
-# Binomial distribution calculator for AF/DP.
 # add multi-sample report-config
     - 1 affected > easy
     - >1 affected > user has to set one affected as index > only report config of index is edited
     - no report needed - is created from individual samples
-* Allow ClinVar upload
-    - perform manual upload at the end of each quater
+- Allow ClinVar upload as soon as the API is available
+    - until then: perform manual upload at the end of each quater
     - also support CNVs/SVs?
 
 Tools:

@@ -31,8 +31,6 @@ When using the IGV integration for the first time, an initialization dialog is s
 IGV initialization can be perfomed (`Ok`), skipped once (`Skip`), or skipped for the whole session (`Skip (session)`).  
 When IGV initialization was perfomed or when was skipped for the session, the initialization dialog will not be shown for any subsequent clicks to a variant/region.
 
-In order to force initialization, select `IGV > Reset initialization status` from the main menu, or re-load the sample.
-
 
 **Note:** Custom tracks can be added by your administrator through the GSvar INI file (see [configuration](configuration.md)).
 
@@ -78,14 +76,18 @@ Finally, you have to restart IGV.
 ### How can I change the port through which IGV and GSvar communicate?
 GSvar sends commands to IGV through a port. The default port is 60151.  
 When several IGV instances run on the same computer, e.g. on two user accounts, only the IGV started first can access port 60151.  
+The second user needs to use a different port.  
 
-The second user needs to use a different port:
+The GSvar with NGSD support a user-specific port is used.  
+Thus, there should be no problems and nothing needs to be done.
+
+If GSvar us used without NGSD, you can change the port like that:
 
 - Change the port in IGV: `View > Preferences... > Advanced > Port number`.
 - Restart IGV.
 - Change the port in GSvar: `IGV > Change port`
 
-Note: The GSvar port is not changed permanently, but only for the currently running instance of GSvar.
+Note: The GSvar port is not changed permanently! It affects only the currently running instance of GSvar.
 
 --
 

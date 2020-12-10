@@ -94,7 +94,8 @@ SOURCES += main.cpp\
     TumorOnlyReportDialog.cpp \
     CfDNAPanelDesignDialog.cpp \
     DiseaseCourseWidget.cpp \
-    CfDNAPanelWidget.cpp
+    CfDNAPanelWidget.cpp \
+    AlleleBalanceCalculator.cpp
 
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
@@ -183,7 +184,8 @@ HEADERS += MainWindow.h \
     TumorOnlyReportDialog.h \
     CfDNAPanelDesignDialog.h \
     DiseaseCourseWidget.h \
-    CfDNAPanelWidget.h
+    CfDNAPanelWidget.h \
+    AlleleBalanceCalculator.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
@@ -258,7 +260,8 @@ FORMS    += MainWindow.ui \
     TumorOnlyReportDialog.ui \
     CfDNAPanelDesignDialog.ui \
     DiseaseCourseWidget.ui \
-    CfDNAPanelWidget.ui
+    CfDNAPanelWidget.ui \
+    AlleleBalanceCalculator.ui
 include("../app_gui.pri")
 
 #include NGSD library

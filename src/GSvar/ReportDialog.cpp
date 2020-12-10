@@ -19,19 +19,10 @@ ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantLi
 	, roi_()
 {
 	ui_.setupUi(this);
-	initGUI();
-
-	//variant types
-	connect(ui_.report_type, SIGNAL(currentTextChanged(QString)), this, SLOT(updateGUI()));
-
-	//disable ok button if there is a problem
-	connect(ui_.meta_data_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMetaData()));
+	connect(ui_.report_type, SIGNAL(currentTextChanged(QString)), this, SLOT(updateVariantTable()));
 	connect(ui_.report_type, SIGNAL(currentTextChanged(QString)), this, SLOT(activateOkButtonIfValid()));
-
-	//enable/disable low-coverage settings
-	connect(ui_.details_cov, SIGNAL(stateChanged(int)), this, SLOT(updateGUI()));
-
-	//write settings if accepted
+	connect(ui_.meta_data_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMetaData()));
+	connect(ui_.details_cov, SIGNAL(stateChanged(int)), this, SLOT(updateCoverageCheckboxStatus()));
 	connect(this, SIGNAL(accepted()), this, SLOT(writeBackSettings()));
 
 	//handle ROI
@@ -40,7 +31,7 @@ ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantLi
 		roi_.load(roi_file_);
 	}
 
-	updateGUI();
+	initGUI();
 }
 
 void ReportDialog::checkMetaData()
@@ -103,12 +94,11 @@ void ReportDialog::checkMetaData()
 	activateOkButtonIfValid();
 }
 
-
 void ReportDialog::initGUI()
 {
 	//report types
-	ui_.report_type->addItem("");
 	ui_.report_type->addItems(ReportVariantConfiguration::getTypeOptions());
+	ui_.report_type->setCurrentIndex(0);
 
 	//settings
 	ui_.details_cov->setChecked(settings_.show_coverage_details);
@@ -138,12 +128,16 @@ void ReportDialog::initGUI()
 		ui_.omim_table->setChecked(false);
 		ui_.omim_table->setEnabled(false);
 	}
+
+	//check box status
+	updateCoverageCheckboxStatus();
+
+	//meta data
+	checkMetaData();
 }
 
-void ReportDialog::updateGUI()
+void ReportDialog::updateVariantTable()
 {
-	checkMetaData();
-
 	//init
 	ui_.vars->setRowCount(0);
 	int row = 0;
@@ -155,15 +149,18 @@ void ReportDialog::updateGUI()
 	foreach(int i, settings_.report_config->variantIndices(VariantType::SNVS_INDELS, true, type()))
 	{
 		const Variant& variant = variants_[i];
-		if (roi_file_!="" && !roi_.overlapsWith(variant.chr(), variant.start(), variant.end())) continue;
-		const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::SNVS_INDELS,i);
+		const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::SNVS_INDELS, i);
+
+		bool in_roi = true;
+		if (roi_file_!="" && !roi_.overlapsWith(variant.chr(), variant.start(), variant.end())) in_roi = false;
 
 		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
-		ui_.vars->setItem(row, 0, new QTableWidgetItem(var_conf.report_type + (var_conf.causal ? " (causal)" : "")));
-		QString tmp = variant.toString(false, 30) + " (" + variant.annotations().at(geno_idx) + ")";
-		ui_.vars->setItem(row, 1, new QTableWidgetItem(tmp));
-		ui_.vars->setItem(row, 2, new QTableWidgetItem(variant.annotations().at(gene_idx), QTableWidgetItem::Type));
-		ui_.vars->setItem(row, 3, new QTableWidgetItem(variant.annotations().at(class_idx), QTableWidgetItem::Type));
+		addTableItem(row, 0, "", true, in_roi)->setData(Qt::UserRole, i);
+		addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
+		addTableItem(row, 2, variantTypeToString(VariantType::SNVS_INDELS));
+		addTableItem(row, 3, variant.toString(false, 30) + " (" + variant.annotations().at(geno_idx) + ")");
+		addTableItem(row, 4, variant.annotations().at(gene_idx));
+		addTableItem(row, 5, variant.annotations().at(class_idx));
 		++row;
 	}
 
@@ -172,14 +169,18 @@ void ReportDialog::updateGUI()
 	foreach(int i, settings_.report_config->variantIndices(VariantType::CNVS, true, type()))
 	{
 		const CopyNumberVariant& cnv = cnvs_[i];
-		if (roi_file_!="" && !roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end())) continue;
 		const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::CNVS,i);
 
+		bool in_roi = true;
+		if (roi_file_!="" && !roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end())) in_roi = false;
+
 		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
-		ui_.vars->setItem(row, 0, new QTableWidgetItem(var_conf.report_type + (var_conf.causal ? " (causal)" : "")));
-		ui_.vars->setItem(row, 1, new QTableWidgetItem("CNV " + cnv.toStringWithMetaData() + " cn=" + QString::number(cnv.copyNumber(cnvs_.annotationHeaders()))));
-		ui_.vars->setItem(row, 2, new QTableWidgetItem(cnv.genes().join(", "), QTableWidgetItem::Type));
-		ui_.vars->setItem(row, 3, new QTableWidgetItem(var_conf.classification));
+		addTableItem(row, 0, "", true, in_roi)->setData(Qt::UserRole, i);
+		addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
+		addTableItem(row, 2, variantTypeToString(VariantType::CNVS));
+		addTableItem(row, 3, cnv.toStringWithMetaData() + " cn=" + QString::number(cnv.copyNumber(cnvs_.annotationHeaders())));
+		addTableItem(row, 4, cnv.genes().join(", "));
+		addTableItem(row, 5, var_conf.classification);
 		++row;
 	}
 
@@ -187,37 +188,39 @@ void ReportDialog::updateGUI()
 	foreach(int i, settings_.report_config->variantIndices(VariantType::SVS, true, type()))
 	{
 		const BedpeLine& sv = svs_[i];
+		const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::SVS,i);
+
+		bool in_roi = true;
 		BedFile affected_region = sv.affectedRegion();
 		if (roi_file_!="")
 		{
 			if (sv.type() != StructuralVariantType::BND)
 			{
-				if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())) continue;
+				if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())) in_roi = false;
 			}
 			else
 			{
 				if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())
-					&& !roi_.overlapsWith(affected_region[1].chr(), affected_region[1].start(), affected_region[1].end())) continue;
+					&& !roi_.overlapsWith(affected_region[1].chr(), affected_region[1].start(), affected_region[1].end())) in_roi = false;
 			}
 		}
-		const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::SVS,i);
-
-		QString sv_string = "SV " + affected_region[0].toString(true);
-		if (sv.type()==StructuralVariantType::BND) sv_string += " <-> " + affected_region[1].toString(true);
-		sv_string += " type=" + BedpeFile::typeToString(sv.type());
 
 		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
-		ui_.vars->setItem(row, 0, new QTableWidgetItem(var_conf.report_type + (var_conf.causal ? " (causal)" : "")));
-		ui_.vars->setItem(row, 1, new QTableWidgetItem(sv_string));
-		ui_.vars->setItem(row, 2, new QTableWidgetItem(sv.genes(svs_.annotationHeaders()).join(", "), QTableWidgetItem::Type));
-		ui_.vars->setItem(row, 3, new QTableWidgetItem(var_conf.classification));
+		addTableItem(row, 0, "", true, in_roi)->setData(Qt::UserRole, i);
+		addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
+		addTableItem(row, 2, variantTypeToString(VariantType::SVS));
+		addTableItem(row, 3, affected_region[0].toString(true) + (sv.type()==StructuralVariantType::BND ? (" <-> " + affected_region[1].toString(true)) : "") + " type=" + BedpeFile::typeToString(sv.type()));
+		addTableItem(row, 4, sv.genes(svs_.annotationHeaders()).join(", "));
+		addTableItem(row, 5, var_conf.classification);
 		++row;
 	}
 
-
 	//resize table cells
 	GUIHelper::resizeTableCells(ui_.vars);
+}
 
+void ReportDialog::updateCoverageCheckboxStatus()
+{
 	//enable coverage detail settings only if necessary
 	if (roi_file_!="")
 	{
@@ -230,8 +233,6 @@ void ReportDialog::updateGUI()
 		if (!add_cov_details) ui_.details_cov_roi->setChecked(false);
 	}
 
-	//buttons
-	activateOkButtonIfValid();
 }
 
 void ReportDialog::editDiseaseGroupStatus()
@@ -259,7 +260,7 @@ void ReportDialog::editDiseaseDetails()
 	//get disease details
 	SampleDiseaseInfoWidget* widget = new SampleDiseaseInfoWidget(sample, this);
 	widget->setDiseaseInfo(db_.getSampleDiseaseInfo(sample_id));
-	auto dlg = GUIHelper::createDialog(widget, "Sample disease detail sof '" + sample + "'", "", true);
+	auto dlg = GUIHelper::createDialog(widget, "Sample disease details of '" + sample + "'", "", true);
 	if (dlg->exec() != QDialog::Accepted) return;
 
 	//update
@@ -279,8 +280,47 @@ void ReportDialog::editDiagnosticStatus()
 	checkMetaData();
 }
 
+QTableWidgetItem* ReportDialog::addTableItem(int row, int col, QString text, bool checkable, bool checked_and_not_editable)
+{
+	//create item
+	QTableWidgetItem* item = new QTableWidgetItem();
+	if (checkable)
+	{
+		if (checked_and_not_editable)
+		{
+			item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsUserCheckable);
+			item->setCheckState(Qt::Checked);
+			item->setToolTip("Variants inside the target region cannot be unselected.");
+		}
+		else
+		{
+			item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled|Qt::ItemIsUserCheckable);
+			item->setCheckState(Qt::Unchecked);
+		}
+	}
+	else
+	{
+		item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+		item->setText(text);
+	}
+
+	ui_.vars->setItem(row, col, item);
+
+	return item;
+}
+
 void ReportDialog::writeBackSettings()
 {
+	settings_.selected_variants.clear();
+	for (int r=0; r<ui_.vars->rowCount(); ++r)
+	{
+		if (ui_.vars->item(r, 0)->checkState()!=Qt::Checked) continue;
+
+		VariantType type = stringToVariantType(ui_.vars->item(r, 2)->text());
+		int index = ui_.vars->item(r, 0)->data(Qt::UserRole).toInt();
+		settings_.selected_variants << qMakePair(type, index);
+	}
+
 	settings_.show_coverage_details = ui_.details_cov->isChecked();
 	settings_.min_depth = ui_.min_cov->value();
 	settings_.roi_low_cov = ui_.details_cov_roi->isChecked();

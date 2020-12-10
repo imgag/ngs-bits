@@ -224,7 +224,17 @@
         </attribute>
         <column>
          <property name="text">
+          <string/>
+         </property>
+        </column>
+        <column>
+         <property name="text">
           <string>report info</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>variant_type</string>
          </property>
         </column>
         <column>

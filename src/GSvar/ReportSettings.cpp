@@ -2,6 +2,7 @@
 
 ReportSettings::ReportSettings()
 	: report_config(new ReportConfiguration())
+	, selected_variants()
 	, show_coverage_details(true)
 	, min_depth(20)
 	, roi_low_cov(false)
