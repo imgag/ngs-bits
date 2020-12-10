@@ -65,7 +65,8 @@ SOURCES += BedFile.cpp \
     VcfFileHelper.cpp \
     VcfFile.cpp \
     PhenotypeList.cpp \
-    VariantScores.cpp
+    VariantScores.cpp \
+    VariantType.cpp
 
 
 HEADERS += BedFile.h \

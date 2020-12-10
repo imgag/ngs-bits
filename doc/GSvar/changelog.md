@@ -1,5 +1,15 @@
 # GSvar change log
 
+### 2020_09-90 (10.12.20)
+- IGV: IGV is now started automatically from GSvar (with a user-specific port if NGSD is enabled).
+- Report: Added meta data check before a report can be created.
+- Report: Variants outside the target region can now be added to the report.
+- Report configuration: Inheritance is no longer set automatically (but gene inheritance is still shown).
+- General: Added support for searching variants published in ClinVar.
+- General: Small variant search now has an option to search for WGS/WES variants only.
+- General: Variant search now has an option to search for variants of a certain project type only (small variants, CNVs, SVs).
+- General: Added calculator for allele balance likelihood (Tools > Allele balance).
+
 ### 2020_09-69 (26.11.20)
 - IGV: Added option to change port (see documentation).
 - General: Analysis start dialogs now show disease group and status.

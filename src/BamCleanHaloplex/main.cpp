@@ -21,7 +21,7 @@ public:
 		addOutfile("out", "Output BAM/CRAM file.", false);
 		//optional
 		addInt("min_match", "Minimum number of CIGAR matches (M).", true, 30);
-		addString("ref", "Reference genome for CRAM compression (compulsory for CRAM support).", true);
+		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("write_cram", "Writes a CRAM file as output.");
 
 		changeLog(2020,  11, 27, "Added CRAM support.");

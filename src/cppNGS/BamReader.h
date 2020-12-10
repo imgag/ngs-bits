@@ -275,7 +275,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		//Default constructor
 		BamReader(const QString& bam_file);
 		//CRAM Constructor with explicit reference genome
-		//reference genome is compulsory for CRAM support
+		//reference genome is mandatory for CRAM support
 		BamReader(const QString& bam_file, const QString& ref_genome);
 
 		//Destructor

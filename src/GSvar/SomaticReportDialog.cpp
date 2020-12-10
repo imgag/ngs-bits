@@ -2,12 +2,11 @@
 #include "SomaticReportHelper.h"
 #include <QMessageBox>
 
-SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const VariantList &variants, const CnvList &cnvs, const VariantList& germl_variants, QWidget *parent)
+SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const CnvList &cnvs, const VariantList& germl_variants, QWidget *parent)
 	: QDialog(parent)
 	, ui_()
 	, db_()
 	, settings_(settings)
-	, variants_(variants)
 	, cnvs_(cnvs)
 	, germl_variants_(germl_variants)
 	, target_region_(settings.report_config.targetFile())
@@ -16,6 +15,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	, tum_cont_histological_(std::numeric_limits<double>::quiet_NaN())
 	, limitations_()
 {
+
 	ui_.setupUi(this);
 
 	connect(ui_.report_type_rna, SIGNAL(clicked(bool)), this, SLOT(disableGUI()));
@@ -245,11 +245,11 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 
 	if(target_region_ != "")
 	{
-		ui_.target_bed_path->setText("Target region: " + target_region_);
+		ui_.target_bed_path->setText(target_region_);
 	}
 	else
 	{
-		ui_.target_bed_path->setText("Target region: not set");
+		ui_.target_bed_path->setText("not set");
 	}
 
 	if(SomaticReportHelper::cnvBurden(cnvs_) > 0.01)
@@ -411,7 +411,7 @@ void SomaticReportDialog::cinState()
 		//preselect CIN chromosomes
 		for(const auto& chr : settings_.report_config.cinChromosomes())
 		{
-			ui_.cinbox->findChild<QCheckBox*>(chr)->setChecked(true);
+			ui_.cin->findChild<QCheckBox*>(chr)->setChecked(true);
 		}
 	}
 	else
@@ -420,7 +420,7 @@ void SomaticReportDialog::cinState()
 		ui_.tabs->setTabEnabled(2, false); //CIN tab
 
 
-		for(const auto& checkbox : ui_.cinbox->findChildren<QCheckBox*>())
+		for(const auto& checkbox : ui_.cin->findChildren<QCheckBox*>())
 		{
 			checkbox->setChecked(false);
 		}
@@ -441,7 +441,7 @@ void SomaticReportDialog::limitationState()
 QList<QString> SomaticReportDialog::resolveCIN()
 {
 	QList<QString> out = {};
-	for(const auto& checkbox : ui_.cinbox->findChildren<QCheckBox*>())
+	for(const auto& checkbox : ui_.cin->findChildren<QCheckBox*>())
 	{
 		if(checkbox->isChecked()) out << checkbox->text();
 	}

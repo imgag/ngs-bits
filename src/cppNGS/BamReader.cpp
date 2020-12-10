@@ -453,7 +453,7 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 	{
 		Q_UNUSED(ref_genome);
 		#ifdef _WIN32
-			THROW(FileAccessException, "No Cram support for Windows yet!");
+			THROW(FileAccessException, "No CRAM support for Windows yet!");
 		#else
 			//load reference file for cram
 			if(!(ref_genome.isNull() || ref_genome == ""))
@@ -470,7 +470,7 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 			}
 			else
 			{
-				THROW(FileAccessException, "Reference genome necessary for opening Cram file " + bam_file + ".");
+				THROW(FileAccessException, "Reference genome necessary for opening CRAM file " + bam_file + ".");
 			}
 		#endif
 	}

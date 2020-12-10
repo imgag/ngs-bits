@@ -1,5 +1,5 @@
 ### MappingQC tool help
-	MappingQC (2020_09-90-g55257954)
+	MappingQC (2020_09-79-gc6314b21)
 	
 	Calculates QC metrics based on mapped NGS reads.
 	
@@ -26,7 +26,7 @@
 	  -build <enum>   Genome build used to generate the input (needed for contamination only).
 	                  Default value: 'hg19'
 	                  Valid: 'hg19,hg38'
-	  -ref <string>   Reference genome for CRAM compression (compulsory for CRAM support).
+	  -ref <string>   Reference genome for CRAM support (mandatory if CRAM is used).
 	                  Default value: ''
 	
 	Special parameters:
@@ -36,9 +36,9 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### MappingQC changelog
-	MappingQC 2020_09-90-g55257954
+	MappingQC 2020_09-79-gc6314b21
 	
-	2020-11-27 Added Cram support.
+	2020-11-27 Added CRAM support.
 	2018-07-11 Added build switch for hg38 support.
 	2018-03-29 Removed '3exons' flag.
 	2016-12-20 Added support for spliced RNA reads (relevant e.g. for insert size)

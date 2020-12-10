@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
-    <height>1000</height>
+    <height>800</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>1200</width>
-    <height>1000</height>
+    <height>800</height>
    </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0,0,0">
    <property name="spacing">
     <number>3</number>
    </property>
@@ -36,235 +36,14 @@
     <number>3</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_6">
-     <property name="spacing">
-      <number>3</number>
-     </property>
-     <item>
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>SV type: </string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="svType">
-       <property name="maximumSize">
-        <size>
-         <width>50</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <item>
-        <property name="text">
-         <string>DEL</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>DUP</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>INS</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>INV</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>BND</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_6">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QGridLayout" name="gridLayout">
-     <item row="2" column="3">
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <property name="spacing">
-        <number>3</number>
-       </property>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::MinimumExpanding</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>30</width>
-           <height>10</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </item>
-     <item row="0" column="3">
-      <layout class="QHBoxLayout" name="horizontalLayout_7"/>
-     </item>
-     <item row="1" column="2">
-      <layout class="QHBoxLayout" name="hl_single_sv">
-       <property name="spacing">
-        <number>3</number>
-       </property>
-       <item>
-        <widget class="QComboBox" name="operation">
-         <property name="minimumSize">
-          <size>
-           <width>100</width>
-           <height>0</height>
-          </size>
-         </property>
-         <item>
-          <property name="text">
-           <string>exact match</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>overlaps</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="coordinates1">
-         <property name="minimumSize">
-          <size>
-           <width>200</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>300</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="placeholderText">
-          <string>Pos1: chr:start-end</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="coordinates2">
-         <property name="minimumSize">
-          <size>
-           <width>200</width>
-           <height>0</height>
-          </size>
-         </property>
-         <property name="placeholderText">
-          <string>Pos2: chr:start-end</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="2" column="2">
-      <widget class="QLineEdit" name="le_region">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="placeholderText">
-        <string>chr:start-end</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="2">
-      <widget class="QLineEdit" name="le_genes">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="toolTip">
-        <string>Uses the gene locus extended by 5000 bases as region.</string>
-       </property>
-       <property name="placeholderText">
-        <string>Gene names</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QRadioButton" name="rb_genes">
-       <property name="text">
-        <string>Search by genes: </string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QRadioButton" name="rb_single_sv">
-       <property name="text">
-        <string>Search by single SV:</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QRadioButton" name="rb_region">
-       <property name="text">
-        <string>Search by region: </string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="3" column="3">
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
-       <property name="spacing">
-        <number>3</number>
-       </property>
-      </layout>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="Line" name="line">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_3">
+    <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Processed sample</string>
+      <string>Structural variant</string>
      </property>
      <property name="flat">
       <bool>true</bool>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout_3">
       <property name="spacing">
        <number>3</number>
       </property>
@@ -281,31 +60,250 @@
        <number>3</number>
       </property>
       <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <property name="spacing">
+         <number>3</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="text">
+           <string>type: </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="svType">
+          <property name="maximumSize">
+           <size>
+            <width>50</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <item>
+           <property name="text">
+            <string>DEL</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>DUP</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>INS</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>INV</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>BND</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridLayout_2" columnstretch="1,3,3,3,7">
+        <property name="spacing">
+         <number>3</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QRadioButton" name="rb_single_sv">
+          <property name="text">
+           <string>search by coordinates:</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup</string>
+          </attribute>
+         </widget>
+        </item>
+        <item row="2" column="0">
+         <widget class="QRadioButton" name="rb_genes">
+          <property name="text">
+           <string>search by genes: </string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup</string>
+          </attribute>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QRadioButton" name="rb_region">
+          <property name="text">
+           <string>search by region: </string>
+          </property>
+          <attribute name="buttonGroup">
+           <string notr="true">buttonGroup</string>
+          </attribute>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="operation">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <item>
+           <property name="text">
+            <string>exact match</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>overlaps</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="0" column="2">
+         <widget class="QLineEdit" name="coordinates1">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>300</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="placeholderText">
+           <string>Pos1: chr:start-end</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="3">
+         <widget class="QLineEdit" name="coordinates2">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="placeholderText">
+           <string>Pos2: chr:start-end</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="4">
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::MinimumExpanding</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>30</width>
+            <height>10</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="1" column="1" colspan="3">
+         <widget class="QLineEdit" name="le_region">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="placeholderText">
+           <string>chr:start-end</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1" colspan="3">
+         <widget class="QLineEdit" name="le_genes">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Uses the gene locus extended by 5000 bases as region.</string>
+          </property>
+          <property name="placeholderText">
+           <string>Gene names</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="title">
+      <string>Processed sample</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
+       <number>3</number>
+      </property>
+      <property name="spacing">
+       <number>3</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>quality:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <property name="spacing">
          <number>3</number>
         </property>
         <item>
-         <widget class="QLabel" name="label_3">
+         <widget class="QCheckBox" name="q_ps_good">
           <property name="text">
-           <string>quality:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="q_ps_na">
-          <property name="text">
-           <string>n/a</string>
+           <string>good</string>
           </property>
           <property name="checked">
            <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="q_ps_bad">
-          <property name="text">
-           <string>bad</string>
           </property>
          </widget>
         </item>
@@ -320,9 +318,16 @@
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="q_ps_good">
+         <widget class="QCheckBox" name="q_ps_bad">
           <property name="text">
-           <string>good</string>
+           <string>bad</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="q_ps_na">
+          <property name="text">
+           <string>n/a</string>
           </property>
           <property name="checked">
            <bool>true</bool>
@@ -344,7 +349,71 @@
         </item>
        </layout>
       </item>
-      <item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>project type:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <property name="spacing">
+         <number>3</number>
+        </property>
+        <item>
+         <widget class="QCheckBox" name="p_diagnostic">
+          <property name="text">
+           <string>diagnostic</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="p_research">
+          <property name="text">
+           <string>research</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="p_external">
+          <property name="text">
+           <string>external</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="p_test">
+          <property name="text">
+           <string>test</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_9">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item row="2" column="0" colspan="2">
        <widget class="QCheckBox" name="same_processing_system_only">
         <property name="enabled">
          <bool>false</bool>
