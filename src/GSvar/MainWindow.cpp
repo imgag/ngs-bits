@@ -2719,8 +2719,9 @@ void MainWindow::generateEvaluationSheet()
 	}
 
 	//try to get VariantListInfo from the NGSD
-	EvaluationSheetData evaluation_sheet_data = db.evaluationSheetData(sample_id, false);
-	if (evaluation_sheet_data.ps_id == "")
+	QString ps_id = db.processedSampleId(base_name);
+	EvaluationSheetData evaluation_sheet_data = db.evaluationSheetData(ps_id, false);
+	if (evaluation_sheet_data.ps_id == "") //TODO how can that happen? > LEON
 	{
 		//No db entry found -> set default values
 		evaluation_sheet_data = EvaluationSheetData();
@@ -2732,7 +2733,6 @@ void MainWindow::generateEvaluationSheet()
 		evaluation_sheet_data.reviewer2 = LoginManager::userName();
 		evaluation_sheet_data.review_date2 = QDate::currentDate();
 	}
-
 
 	//Show VaraintSheetEditDialog
 	EvaluationSheetEditDialog* edit_dialog = new EvaluationSheetEditDialog(this);
