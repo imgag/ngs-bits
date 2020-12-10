@@ -559,9 +559,9 @@
    <addaction name="actionRE"/>
    <addaction name="actionPRS"/>
    <addaction name="actionCircos"/>
-   <addaction name="actionDebug"/>
-   <addaction name="separator"/>
    <addaction name="actionExpressionData"/>
+   <addaction name="separator"/>
+   <addaction name="actionDebug"/>
   </widget>
   <action name="actionOpen">
    <property name="text">
@@ -1239,10 +1239,15 @@
    </property>
   </action>
   <action name="actionExpressionData">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>
+   </property>
    <property name="text">
     <string>Show Expression Data</string>
    </property>
-  </action> </widget>
+  </action>
+ </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
