@@ -4467,10 +4467,6 @@ EvaluationSheetData NGSD::evaluationSheetData(const QString& processed_sample_id
 		{
 			THROW(DatabaseException, "No entry found in table 'evaluation_sheet_data' for processed sample id '" + processed_sample_id +"'!");
 		}
-		else
-		{
-			evaluation_sheet_data.ps_id = "";
-		}
 	}
 	return evaluation_sheet_data;
 }

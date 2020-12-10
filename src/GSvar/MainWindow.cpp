@@ -2742,10 +2742,9 @@ void MainWindow::generateEvaluationSheet()
 	//try to get VariantListInfo from the NGSD
 	QString ps_id = db.processedSampleId(base_name);
 	EvaluationSheetData evaluation_sheet_data = db.evaluationSheetData(ps_id, false);
-	if (evaluation_sheet_data.ps_id == "") //TODO how can that happen? > LEON
+	if (evaluation_sheet_data.ps_id == "") //No db entry found > init
 	{
-		//No db entry found -> set default values
-		evaluation_sheet_data = EvaluationSheetData();
+
 		evaluation_sheet_data.ps_id = db.processedSampleId(base_name);
 		evaluation_sheet_data.dna_rna = db.getSampleData(sample_id).name_external;
 		// make sure reviewer 1 contains name not user id
@@ -5573,6 +5572,7 @@ void MainWindow::editVariantReportConfiguration(int index)
 		ReportVariantDialog dlg(variant.toString(), inheritance_by_gene, var_config, this);
 		dlg.setEnabled(!report_settings_.report_config->isFinalized());
 		if (dlg.exec()!=QDialog::Accepted) return;
+
 
 		//update config, GUI and NGSD
 		report_settings_.report_config->set(var_config);

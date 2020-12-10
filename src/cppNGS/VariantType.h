@@ -16,5 +16,6 @@ enum class VariantType
 
 //Type to string conversion
 QString CPPNGSSHARED_EXPORT variantTypeToString(VariantType type);
+VariantType CPPNGSSHARED_EXPORT stringToVariantType(QString str);
 
 #endif // VARIANTTYPE_H

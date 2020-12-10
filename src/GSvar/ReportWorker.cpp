@@ -567,54 +567,21 @@ void ReportWorker::writeHTML()
 		stream << "<br />&nbsp;&nbsp;&nbsp;&nbsp;- " << filters_[i]->toText() << endl;
 	}
 	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count_ << endl;
-	int selected_var_count = 0;
-	foreach(int index, settings_.report_config->variantIndices(VariantType::SNVS_INDELS, true, settings_.report_type))
+	QSet<int> selected_small;
+	QSet<int> selected_cnvs;
+	QSet<int> selected_svs;
+	auto it = settings_.selected_variants.cbegin();
+	while (it!=settings_.selected_variants.cend())
 	{
-		const Variant & variant = variants_[index];
-		if (file_roi_=="" || roi_.overlapsWith(variant.chr(), variant.start(), variant.end()))
-		{
-			++selected_var_count;
-		}
-	}
-	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << selected_var_count << endl;
-	int selected_cnv_count = 0;
-	foreach(int index, settings_.report_config->variantIndices(VariantType::CNVS, true, settings_.report_type))
-	{
-		const CopyNumberVariant& cnv = cnvs_[index];
-		if (file_roi_=="" || roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end()))
-		{
-			++selected_cnv_count;
-		}
-	}
-	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnv_count << endl;
+		if (it->first==VariantType::SNVS_INDELS) selected_small << it->second;
+		if (it->first==VariantType::CNVS) selected_cnvs << it->second;
+		if (it->first==VariantType::SVS) selected_svs << it->second;
 
-	int selected_sv_count = 0;
-	foreach(int index, settings_.report_config->variantIndices(VariantType::SVS, true, settings_.report_type))
-	{
-		const BedpeLine& sv = svs_[index];
-		BedFile affected_region = sv.affectedRegion();
-		if (file_roi_!="")
-		{
-			if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end()))
-			{
-				if (sv.type() == StructuralVariantType::BND)
-				{
-					if (!roi_.overlapsWith(affected_region[1].chr(), affected_region[1].start(), affected_region[1].end()))
-					{
-						// both positions outside of the target region
-						continue;
-					}
-				}
-				else
-				{
-					// SV outside of the target region
-					continue;
-				}
-			}
-		}
-		selected_sv_count++;
+		++it;
 	}
-	stream << "<br />" << trans("Anzahl SVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_sv_count << endl;
+	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << selected_small.count() << endl;
+	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnvs.count() << endl;
+	stream << "<br />" << trans("Anzahl SVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_svs.count() << endl;
 	stream << "</p>" << endl;
 
 	//output: selected variants
@@ -633,10 +600,9 @@ void ReportWorker::writeHTML()
 	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
-		if (!var_conf.showInReport()) continue;
-		if (var_conf.report_type!=settings_.report_type) continue;
+		if (!selected_small.contains(var_conf.variant_index)) continue;
+
 		const Variant& variant = variants_[var_conf.variant_index];
-		if (file_roi_!="" && !roi_.overlapsWith(variant.chr(), variant.start(), variant.end())) continue;
 
 		stream << "<tr>" << endl;
 		stream << "<td>" << endl;
@@ -707,11 +673,10 @@ void ReportWorker::writeHTML()
 
 	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
-		if (var_conf.variant_type!=VariantType::CNVS) continue;
-		if (!var_conf.showInReport()) continue;
-		if (var_conf.report_type!=settings_.report_type) continue;
+		if (var_conf.variant_type!=VariantType::CNVS) continue;		
+		if (!selected_cnvs.contains(var_conf.variant_index)) continue;
+
 		const CopyNumberVariant& cnv = cnvs_[var_conf.variant_index];
-		if (file_roi_!="" && !roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end())) continue;
 
 		stream << "<tr>" << endl;
 		stream << "<td>" << cnv.toString() << "</td>" << endl;
@@ -739,25 +704,9 @@ void ReportWorker::writeHTML()
 	foreach(const ReportVariantConfiguration& var_conf, settings_.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SVS) continue;
-		if (!var_conf.showInReport()) continue;
-		if (var_conf.report_type!=settings_.report_type) continue;
+		if (!selected_svs.contains(var_conf.variant_index)) continue;
+
 		const BedpeLine& sv = svs_[var_conf.variant_index];
-		BedFile affected_region = sv.affectedRegion();
-		if (file_roi_!="")
-		{
-			if ( sv.type() != StructuralVariantType::BND && (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())))  continue;
-			if (sv.type() == StructuralVariantType::BND)
-			{
-				// check both positions and skip only if both are outside of the target region
-				if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())
-					&& !roi_.overlapsWith(affected_region[1].chr(), affected_region[1].start(), affected_region[1].end())) continue;
-			}
-			else
-			{
-				// skip if SV is outside of the target region
-				if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end()))  continue;
-			}
-		}
 
 		stream << "<tr>" << endl;
 		//type
@@ -786,6 +735,7 @@ void ReportWorker::writeHTML()
 		}
 
 		//pos
+		BedFile affected_region = sv.affectedRegion();
 		stream << "<td>" << affected_region[0].toString(true);
 		if (sv.type() == StructuralVariantType::BND) stream << " &lt;-&gt; " << affected_region[1].toString(true);
 		stream << "</td>" << endl;
