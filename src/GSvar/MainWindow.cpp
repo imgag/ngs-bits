@@ -5863,17 +5863,18 @@ QList<IgvFile> MainWindow::getSegFilesCnv()
 		{
 			QString base_name = file.filename.left(file.filename.length()-4);
 			QString segfile = base_name + "_cnvs_clincnv.seg";
-			if (QFile::exists(segfile))
+			if (!QFile::exists(segfile)) //fallback to somatic
 			{
-				output << IgvFile{file.id, "CNV" , segfile};
+				segfile = base_name + "_clincnv.seg";
 			}
-			else
+			if (!QFile::exists(segfile)) //fallback to CnvHunter
 			{
 				segfile = base_name + "_cnvs.seg";
-				if (QFile::exists(segfile))
-				{
-					output << IgvFile{file.id, "CNV" , segfile};
-				}
+			}
+
+			if (QFile::exists(segfile))
+			{
+				output << IgvFile{file.id, "CNV" , segfile};				
 			}
 		}
 	}
