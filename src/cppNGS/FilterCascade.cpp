@@ -910,7 +910,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["Conservedness"] = &createInstance<FilterConservedness>;
 		output["Regulatory"] = &createInstance<FilterRegulatory>;
 		output["Somatic allele frequency"] = &createInstance<FilterSomaticAlleleFrequency>;
-		output["tumor zygosity"] = &createInstance<FilterTumorOnlyHomHet>;
+		output["Tumor zygosity"] = &createInstance<FilterTumorOnlyHomHet>;
 		output["GSvar score/rank"] = &createInstance<FilterGSvarScoreAndRank>;
 		output["CNV size"] = &createInstance<FilterCnvSize>;
 		output["CNV regions"] = &createInstance<FilterCnvRegions>;
@@ -4264,7 +4264,7 @@ void FilterSomaticAlleleFrequency::apply(const VariantList& variants, FilterResu
 
 FilterTumorOnlyHomHet::FilterTumorOnlyHomHet()
 {
-	name_ = "tumor zygosity";
+	name_ = "Tumor zygosity";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the zygosity of tumor-only samples. Filters out germline het/hom calls.";
 	params_ << FilterParameter("het_af_range", DOUBLE, 0.0, "Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline.");
