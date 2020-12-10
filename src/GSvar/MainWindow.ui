@@ -422,7 +422,6 @@
      </property>
     </widget>
     <addaction name="actionIgvClear"/>
-    <addaction name="actionIgvInit"/>
     <addaction name="menuOpenCustomTrack"/>
     <addaction name="separator"/>
     <addaction name="menuTrackDefaults"/>
@@ -740,14 +739,6 @@
    </property>
    <property name="toolTip">
     <string>Close file</string>
-   </property>
-  </action>
-  <action name="actionIgvInit">
-   <property name="text">
-    <string>Reset initialization status</string>
-   </property>
-   <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Force initialization of IGV next time it is used.&lt;br/&gt;This feature is used e.g. when IGV has crashed.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionCNV">

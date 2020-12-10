@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QAbstractSocket>
 #include "ui_MainWindow.h"
 #include "VariantList.h"
 #include "BedFile.h"
@@ -177,8 +178,6 @@ public slots:
 	void on_actionClose_triggered();
 	///Close all meta data tabs
 	void on_actionCloseMetaDataTabs_triggered();
-	///Force IGV initializazion
-	void on_actionIgvInit_triggered();
 	///Clear IGV
 	void on_actionIgvClear_triggered();
 	///Override IGV prot
@@ -295,6 +294,8 @@ public slots:
 	void variantCellDoubleClicked(int row, int col);
 	///A variant header has beed double-clicked > edit report config
 	void variantHeaderDoubleClicked(int row);
+	///Initializes IGV for current samples. Returns if the initialization was successfull.
+	bool initializeIvg(QAbstractSocket& socket);
 	///Open region in IGV
 	void openInIGV(QString region);
 	///Opens a custom track in IGV
@@ -357,8 +358,8 @@ public slots:
 	///Closes a tab by index
 	void closeTab(int index);
 
-	///Sends commands to IGV through the default socket. Returns if the commands executed successfully.
-	bool executeIGVCommands(QStringList commands);
+	///Sends commands to IGV through the socket. Returns if the commands executed successfully.
+	void executeIGVCommands(QStringList commands, bool init_if_not_done=false);
 
 	///Edits the variant configuration for the variant with the given index
 	void editVariantReportConfiguration(int index);

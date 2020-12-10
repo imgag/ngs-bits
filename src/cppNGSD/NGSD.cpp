@@ -4434,11 +4434,7 @@ EvaluationSheetData NGSD::evaluationSheetData(const QString& processed_sample_id
 {
 	EvaluationSheetData evaluation_sheet_data;
 	SqlQuery query = getQuery();
-	query.exec(QString("SELECT processed_sample_id, dna_rna_id, reviewer1, review_date1, reviewer2, review_date2, ")
-			   + "analysis_scope, acmg_requested, acmg_noticeable, acmg_analyzed, "
-			   + "filtered_by_freq_based_dominant, filtered_by_freq_based_recessive, filtered_by_cnv, filtered_by_mito, "
-			   + "filtered_by_x_chr, filtered_by_phenotype, filtered_by_multisample, filtered_by_trio_stringent, filtered_by_trio_relaxed "
-			   + "FROM evaluation_sheet_data WHERE processed_sample_id=" + processed_sample_id);
+	query.exec("SELECT * FROM evaluation_sheet_data WHERE processed_sample_id=" + processed_sample_id);
 	if (query.next())
 	{
 		// parse result
