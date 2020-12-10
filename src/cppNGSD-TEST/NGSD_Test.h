@@ -896,6 +896,7 @@ private slots:
 		report_var_conf3.classification = "5";
 		report_var_conf3.report_type = "diagnostic variant";
 		report_conf->set(report_var_conf3);
+
 		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
 
 		//reportConfigId
@@ -913,7 +914,7 @@ private slots:
 		IS_FALSE(report_conf2->finalizedAt().isValid());
 
 		//update
-		QThread::sleep(2);
+		QThread::sleep(3);
 		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
 		IS_TRUE(conf_id1==conf_id2);
 		//check that no double entries are inserted after second execution of setReportConfig
@@ -926,6 +927,8 @@ private slots:
 		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->lastUpdatedAt().isValid());
 		IS_TRUE(report_conf2->createdAt()!=report_conf2->lastUpdatedAt());
+
+
 		S_EQUAL(report_conf2->finalizedBy(), "");
 		IS_FALSE(report_conf2->finalizedAt().isValid());
 
@@ -1555,7 +1558,32 @@ private slots:
 
 		Helper::storeTextFile("out/somatic_report.xml", out.split("\n"));
 		COMPARE_FILES("out/somatic_report.xml", TESTDATA("data_out/somatic_report.xml"));
+
+
+
+		//somatic Variant Interpretation for Cancer Consortium
+		SomaticViccData vicc_data = db.getSomaticVariantInterpretation(Variant("chr13", 32929387, 32929387, "T", "C"));
+		I_EQUAL(vicc_data.null_mutation_in_tsg, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data.known_oncogenic_aa, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data.strong_cancerhotspot, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data.located_in_canerhotspot, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data.absent_from_controls, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data.protein_length_change, SomaticViccData::NOT_APPLICABLE);
+		I_EQUAL(vicc_data.other_aa_known_oncogenic, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data.weak_cancerhotspot, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data.computational_evidence, SomaticViccData::NOT_APPLICABLE);
+		I_EQUAL(vicc_data.mutation_in_gene_with_etiology, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data.very_weak_cancerhotspot, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data.very_high_maf, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data.benign_functional_studies, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data.high_maf, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data.benign_computational_evidence, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data.synonymous_mutation, SomaticViccData::NOT_APPLICABLE);
+
+
 	}
+
+
 
 	//Test for debugging (without initialization because of speed)
 	/*

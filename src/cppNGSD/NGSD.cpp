@@ -2382,6 +2382,53 @@ void NGSD::setSomaticClassification(const Variant& variant, ClassificationInfo i
 	query.exec();
 }
 
+SomaticViccData NGSD::getSomaticVariantInterpretation(const Variant& variant)
+{
+	QString variant_id = variantId(variant, false);
+	if (variant_id=="")
+	{
+		return SomaticViccData();
+	}
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT null_mutation_in_tsg, known_oncogenic_aa, strong_cancerhotspot, located_in_canerhotspot, absent_from_controls, protein_length_change, other_aa_known_oncogenic, weak_cancerhotspot, computational_evidence, mutation_in_gene_with_etiology, very_weak_cancerhotspot, very_high_maf, benign_functional_studies, high_maf, benign_computational_evidence, synonymous_mutation, comment, created_by, created_date, last_edit_by, last_edit_date FROM somatic_vicc_interpretation WHERE variant_id='" + variant_id + "'");
+	if (query.size()==0)
+	{
+		return SomaticViccData();
+	}
+	query.next();
+
+
+
+	SomaticViccData out;
+
+	auto varToState = [](const QVariant& var)
+	{
+		if(var.isNull()) return SomaticViccData::NOT_APPLICABLE;
+		if(var.toBool()) return SomaticViccData::TRUE123;
+		return SomaticViccData::FALSE123;
+	};
+
+	out.null_mutation_in_tsg = varToState(query.value(0));
+	out.known_oncogenic_aa = varToState(query.value(1));
+	out.strong_cancerhotspot = varToState(query.value(2));
+	out.located_in_canerhotspot = varToState(query.value(3));
+	out.absent_from_controls = varToState(query.value(4));
+	out.protein_length_change = varToState(query.value(5));
+	out.other_aa_known_oncogenic = varToState(query.value(6));
+	out.weak_cancerhotspot = varToState(query.value(7));
+	out.computational_evidence = varToState(query.value(8));
+	out.mutation_in_gene_with_etiology = varToState(query.value(9));
+	out.very_weak_cancerhotspot = varToState(query.value(10));
+	out.very_high_maf = varToState(query.value(11));
+	out.benign_functional_studies = varToState(query.value(12));
+	out.high_maf = varToState(query.value(13));
+	out.benign_computational_evidence = varToState(query.value(14));
+	out.synonymous_mutation = varToState(query.value(15));
+
+	return out;
+}
+
 
 
 void NGSD::addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details)

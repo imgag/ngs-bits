@@ -2,15 +2,16 @@
 #define SOMATICVARIANTINTERPRETER_H
 
 #include "cppNGS_global.h"
+#include <QVariant>
 
 //struct with input configuration for SomaticVariantInterpreter
-struct CPPNGSSHARED_EXPORT SomaticVariantInterpreterInput
+struct CPPNGSSHARED_EXPORT SomaticViccData
 {
 	enum state
 	{
-		NOT_APPLICABLE = -1,
-		FALSE,
-		TRUE
+		NOT_APPLICABLE,
+		FALSE123,
+		TRUE123
 	};
 	//very strong evidence
 	state null_mutation_in_tsg = NOT_APPLICABLE; //null mutation, i.e. nonsense, framshifft, splice sites, initiation codon, exon deletion in TSG
@@ -41,7 +42,7 @@ struct CPPNGSSHARED_EXPORT SomaticVariantInterpreterInput
 
 	//benign supporting evidence
 	state benign_computational_evidence = NOT_APPLICABLE; //multiple lines of computational evidence suggest no oncogenic impact
-	state synonymous = NOT_APPLICABLE; //synonymous mutation for which splicing prediction predict no impact to the splice consensus sequence or a creation of a new splice site
+	state synonymous_mutation = NOT_APPLICABLE; //synonymous_mutation mutation for which splicing prediction predict no impact to the splice consensus sequence or a creation of a new splice site
 
 	///returns whether input configuration is valid
 	bool isValid()
@@ -64,9 +65,9 @@ struct CPPNGSSHARED_EXPORT SomaticVariantInterpreterInput
 	int strongEvidenceCount() const
 	{
 		int count = 0;
-		if(known_oncogenic_aa == TRUE) ++count;
-		if(oncogenic_functional_studies == TRUE) ++count;
-		if(strong_cancerhotspot == TRUE) ++count;
+		if(known_oncogenic_aa == TRUE123) ++count;
+		if(oncogenic_functional_studies == TRUE123) ++count;
+		if(strong_cancerhotspot == TRUE123) ++count;
 		return count;
 	}
 
@@ -74,11 +75,11 @@ struct CPPNGSSHARED_EXPORT SomaticVariantInterpreterInput
 	int moderateEvidenceCount() const
 	{
 		int count = 0;
-		if(located_in_canerhotspot == TRUE) ++count;
-		if(absent_from_controls == TRUE) ++count;
-		if(protein_length_change == TRUE) ++count;
-		if(other_aa_known_oncogenic == TRUE) ++count;
-		if(weak_cancerhotspot == TRUE) ++count;
+		if(located_in_canerhotspot == TRUE123) ++count;
+		if(absent_from_controls == TRUE123) ++count;
+		if(protein_length_change == TRUE123) ++count;
+		if(other_aa_known_oncogenic == TRUE123) ++count;
+		if(weak_cancerhotspot == TRUE123) ++count;
 		return count;
 	}
 
@@ -86,9 +87,9 @@ struct CPPNGSSHARED_EXPORT SomaticVariantInterpreterInput
 	int supportingEvidenceCount() const
 	{
 		int count = 0;
-		if(computational_evidence == TRUE) ++count;
-		if(mutation_in_gene_with_etiology == TRUE) ++count;
-		if(very_weak_cancerhotspot == TRUE) ++count;
+		if(computational_evidence == TRUE123) ++count;
+		if(mutation_in_gene_with_etiology == TRUE123) ++count;
+		if(very_weak_cancerhotspot == TRUE123) ++count;
 		return count;
 	}
 
@@ -96,8 +97,8 @@ struct CPPNGSSHARED_EXPORT SomaticVariantInterpreterInput
 	int benignStrongEvidenceCount() const
 	{
 		int count = 0;
-		if(benign_functional_studies == TRUE) ++count;
-		if(high_maf == TRUE) ++count;
+		if(benign_functional_studies == TRUE123) ++count;
+		if(high_maf == TRUE123) ++count;
 		return count;
 	}
 
@@ -105,8 +106,8 @@ struct CPPNGSSHARED_EXPORT SomaticVariantInterpreterInput
 	int benignSupportingEvidenceCount() const
 	{
 		int count = 0;
-		if(benign_computational_evidence == TRUE) ++count;
-		if(synonymous == TRUE) ++count;
+		if(benign_computational_evidence == TRUE123) ++count;
+		if(synonymous_mutation == TRUE123) ++count;
 		return count;
 	}
 };
@@ -126,14 +127,14 @@ public:
 	};
 
 	///Returns variant score according VICC rules; combined oncogenic and benign algorithm
-	static result viccScore(const SomaticVariantInterpreterInput& input);
+	static result viccScore(const SomaticViccData& input);
 
 
 private:
 	///Returns result for oncogenicity score only
-	static result viccOncogenicRule(const SomaticVariantInterpreterInput& input);
+	static result viccOncogenicRule(const SomaticViccData& input);
 	///Returns result for benign score only
-	static result viccBenignRule(const SomaticVariantInterpreterInput& input);
+	static result viccBenignRule(const SomaticViccData& input);
 
 
 

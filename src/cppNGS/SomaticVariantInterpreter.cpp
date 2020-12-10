@@ -1,6 +1,6 @@
 #include "SomaticVariantInterpreter.h"
 
-SomaticVariantInterpreter::result SomaticVariantInterpreter::viccScore(const SomaticVariantInterpreterInput &input)
+SomaticVariantInterpreter::result SomaticVariantInterpreter::viccScore(const SomaticViccData &input)
 {
 	result oncogenic_result = viccOncogenicRule(input);
 	result benign_result = viccBenignRule(input);
@@ -12,10 +12,10 @@ SomaticVariantInterpreter::result SomaticVariantInterpreter::viccScore(const Som
 	return UNCERTAIN_SIGNIFICANCE; //neither benign nor oncogenic rule applied
 }
 
-SomaticVariantInterpreter::result SomaticVariantInterpreter::viccOncogenicRule(const SomaticVariantInterpreterInput &input)
+SomaticVariantInterpreter::result SomaticVariantInterpreter::viccOncogenicRule(const SomaticViccData &input)
 {
 	//Oncongenic
-	if(input.null_mutation_in_tsg == SomaticVariantInterpreterInput::TRUE)
+	if(input.null_mutation_in_tsg == SomaticViccData::TRUE123)
 	{
 		if(input.strongEvidenceCount() >= 1) return ONCOGENIC;
 		if(input.moderateEvidenceCount() >= 2) return ONCOGENIC;
@@ -31,7 +31,7 @@ SomaticVariantInterpreter::result SomaticVariantInterpreter::viccOncogenicRule(c
 	}
 
 	//Likely oncogenic
-	if(input.null_mutation_in_tsg == SomaticVariantInterpreterInput::TRUE && input.moderateEvidenceCount() >= 1) return LIKELY_ONCOGENIC;
+	if(input.null_mutation_in_tsg == SomaticViccData::TRUE123 && input.moderateEvidenceCount() >= 1) return LIKELY_ONCOGENIC;
 	if(input.strongEvidenceCount() == 1 && input.moderateEvidenceCount() >= 1) return LIKELY_ONCOGENIC;
 	if(input.strongEvidenceCount() == 1 && input.supportingEvidenceCount() >= 2) return LIKELY_ONCOGENIC;
 	if(input.moderateEvidenceCount() >= 3) return LIKELY_ONCOGENIC;
@@ -41,10 +41,10 @@ SomaticVariantInterpreter::result SomaticVariantInterpreter::viccOncogenicRule(c
 	return UNCERTAIN_SIGNIFICANCE;
 }
 
-SomaticVariantInterpreter::result SomaticVariantInterpreter::viccBenignRule(const SomaticVariantInterpreterInput &input)
+SomaticVariantInterpreter::result SomaticVariantInterpreter::viccBenignRule(const SomaticViccData &input)
 {
 	//Benign
-	if(input.very_high_maf == SomaticVariantInterpreterInput::TRUE) return BENIGN;
+	if(input.very_high_maf == SomaticViccData::TRUE123) return BENIGN;
 	if(input.benignStrongEvidenceCount() >= 2) return BENIGN;
 
 	//Likely Benign

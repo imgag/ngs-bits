@@ -484,6 +484,9 @@ INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id
 `exclude_high_baf_deviation`, `exclude_other_reason`, `comment`) VALUES
 (3, 4, true, false, false, false, false, "");
 
+--somatic_vic
+INSERT INTO `somatic_vicc_interpretation` (`id`, `variant_id`, `null_mutation_in_tsg`, `known_oncogenic_aa`, `strong_cancerhotspot`, `located_in_canerhotspot`, `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `comment`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
+(1, 210585, true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'this is was evaluated as an oncogenic variant', 99, '2020-11-05 13:06:13', 101, '2020-12-07 11:06:10');
 
 -- omim
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES
