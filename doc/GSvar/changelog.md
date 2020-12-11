@@ -1,6 +1,6 @@
 # GSvar change log
 
-### 2020_09-90 (10.12.20)
+### 2020_09-96 (11.12.20)
 - IGV: IGV is now started automatically from GSvar (with a user-specific port if NGSD is enabled).
 - Report: Added meta data check before a report can be created.
 - Report: Variants outside the target region can now be added to the report.

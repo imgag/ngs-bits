@@ -6,7 +6,7 @@ libs:
 - support CRAM in addition to BAM: use htslib functions with hts_ prefix instead of bam_ prefix
 
 GSvar:
-### Store successfull trio/multi analyses in NGSD (type, samples, sample infos) > do not search in the file system but in NGSD.
+### Add target region and gene list of processing systems and sub-panels to NGSD.
 ## Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)

@@ -772,6 +772,42 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	return output;
 }
 
+QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analysis_type, bool windows_path)
+{
+	QStringList output = getValues("SELECT gsvar_file FROM secondary_analysis WHERE type='" + analysis_type + "' AND gsvar_file LIKE '%" + processed_sample_name + "%'");
+
+	//convert linux to windows path
+	if (windows_path)
+	{
+		QString project_folder = Settings::string("projects_folder");
+		QStringList project_types = getEnum("project", "type");
+
+		for (int i=0; i<output.count(); ++i)
+		{
+			QString file = output[i];
+
+			//convert Linux > Windows
+			foreach(QString project_type, project_types)
+			{
+				QStringList parts = file.split("/" + project_type + "/");
+				if (parts.count()==2)
+				{
+					file = project_folder + "/" + project_type + "/" + parts[1];
+					break;
+				}
+			}
+
+			//normalize Windows path
+			file.replace("\\", "/");
+			while (file.contains("//")) file.replace("//", "/");
+
+			output[i] = file;
+		}
+	}
+
+	return output;
+}
+
 QString NGSD::addVariant(const Variant& variant, const VariantList& variant_list)
 {
 	SqlQuery query = getQuery(); //use binding (user input)
