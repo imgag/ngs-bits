@@ -17,6 +17,7 @@ class ReportDialog
 public:
 	///Constructor
 	ReportDialog(QString ps, ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QString target_region, QWidget* parent = 0);
+
 	///Returns the report/variant type
 	QString type() const
 	{
@@ -29,7 +30,8 @@ protected slots:
 	void writeBackSettings();
 	void activateOkButtonIfValid();
 	void initGUI();
-	void updateGUI();
+	void updateVariantTable();
+	void updateCoverageCheckboxStatus();
 
 	void editDiseaseGroupStatus();
 	void editDiseaseDetails();
@@ -45,6 +47,8 @@ protected:
 	QString roi_file_;
 	BedFile roi_;
 	NGSD db_;
+
+	QTableWidgetItem* addTableItem(int row, int col, QString text, bool checkable=false, bool checked_and_not_editable=false);
 };
 
 #endif // REPORTDIALOG_H

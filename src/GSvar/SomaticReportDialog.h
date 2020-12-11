@@ -13,7 +13,8 @@ class SomaticReportDialog
 	Q_OBJECT
 
 public:
-	SomaticReportDialog(SomaticReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const VariantList& germl_variants, QWidget* parent = 0);
+	///constructor
+	SomaticReportDialog(SomaticReportSettings& settings, const CnvList& cnvs, const VariantList& germl_variants, QWidget* parent = 0);
 
 	enum report_type
 	{
@@ -37,7 +38,6 @@ private:
 	Ui::SomaticReportDialog ui_;
 	NGSD db_;
 	SomaticReportSettings& settings_;
-	const VariantList& variants_;
 	const CnvList& cnvs_;
 	const VariantList& germl_variants_;
 	QString target_region_;
@@ -57,8 +57,9 @@ public slots:
 	bool skipNGSD();
 
 private slots:
-	///Deactivates all GUI elements (e.g. if user chooses RNA report)
+	///Deactivates all GUI elements (i.e. disable all tabs, e.g. if user chooses RNA report)
 	void disableGUI();
+	///Enables all GUI tabs
 	void enableGUI();
 
 	///enables/disables combobox with RNA ids.

@@ -37,11 +37,6 @@ ReportVariantDialog::ReportVariantDialog(QString variant, QList<KeyValuePair> in
 	{
 		ui_.inheritance_hint->setVisible(false);
 	}
-	else if (distinct_modes.count()==1) //only one option > set automatically
-	{
-		config_.inheritance = inheritance_by_gene[0].value;
-		ui_.inheritance_hint->setVisible(false);
-	}
 	else //several options > let user select
 	{
 		QString tooltip = "The following inheritance modes are set for the affected genes:";

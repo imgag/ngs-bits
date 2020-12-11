@@ -1,6 +1,7 @@
 #include "AlleleBalanceCalculator.h"
 #include "BasicStatistics.h"
 #include "Exceptions.h"
+#include <cmath>
 
 AlleleBalanceCalculator::AlleleBalanceCalculator(QWidget* parent)
 	: QWidget(parent)
