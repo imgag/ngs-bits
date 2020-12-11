@@ -1560,27 +1560,86 @@ private slots:
 		COMPARE_FILES("out/somatic_report.xml", TESTDATA("data_out/somatic_report.xml"));
 
 
+		I_EQUAL(db.getSomaticViccId(Variant("chr13", 32929387, 32929387, "T", "C")), 1);
+		I_EQUAL(db.getSomaticViccId(Variant("chr15", 43707808, 43707808, "A", "T")), 2);
+		I_EQUAL(db.getSomaticViccId(Variant("chr17", 43707815, 43707815, "A", "T")), -1);
+
+		//Variant exists but not VICC interpretation
+		IS_THROWN(DatabaseException, db.getSomaticViccData(Variant("chr5", 112175770, 112175770, "G", "A")) );
+		//Variant does not exist
+		IS_THROWN(DatabaseException, db.getSomaticViccData(Variant("chr1", 112175770, 112175770, "C", "A")) );
+
 
 		//somatic Variant Interpretation for Cancer Consortium
-		SomaticViccData vicc_data = db.getSomaticVariantInterpretation(Variant("chr13", 32929387, 32929387, "T", "C"));
-		I_EQUAL(vicc_data.null_mutation_in_tsg, SomaticViccData::TRUE123);
-		I_EQUAL(vicc_data.known_oncogenic_aa, SomaticViccData::FALSE123);
-		I_EQUAL(vicc_data.strong_cancerhotspot, SomaticViccData::FALSE123);
-		I_EQUAL(vicc_data.located_in_canerhotspot, SomaticViccData::TRUE123);
-		I_EQUAL(vicc_data.absent_from_controls, SomaticViccData::TRUE123);
-		I_EQUAL(vicc_data.protein_length_change, SomaticViccData::NOT_APPLICABLE);
-		I_EQUAL(vicc_data.other_aa_known_oncogenic, SomaticViccData::TRUE123);
-		I_EQUAL(vicc_data.weak_cancerhotspot, SomaticViccData::FALSE123);
-		I_EQUAL(vicc_data.computational_evidence, SomaticViccData::NOT_APPLICABLE);
-		I_EQUAL(vicc_data.mutation_in_gene_with_etiology, SomaticViccData::FALSE123);
-		I_EQUAL(vicc_data.very_weak_cancerhotspot, SomaticViccData::TRUE123);
-		I_EQUAL(vicc_data.very_high_maf, SomaticViccData::FALSE123);
-		I_EQUAL(vicc_data.benign_functional_studies, SomaticViccData::FALSE123);
-		I_EQUAL(vicc_data.high_maf, SomaticViccData::FALSE123);
-		I_EQUAL(vicc_data.benign_computational_evidence, SomaticViccData::FALSE123);
-		I_EQUAL(vicc_data.synonymous_mutation, SomaticViccData::NOT_APPLICABLE);
+		SomaticViccData vicc_data1 = db.getSomaticViccData(Variant("chr13", 32929387, 32929387, "T", "C"));
+		I_EQUAL(vicc_data1.null_mutation_in_tsg, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data1.known_oncogenic_aa, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data1.strong_cancerhotspot, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data1.located_in_canerhotspot, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data1.absent_from_controls, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data1.protein_length_change, SomaticViccData::NOT_APPLICABLE);
+		I_EQUAL(vicc_data1.other_aa_known_oncogenic, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data1.weak_cancerhotspot, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data1.computational_evidence, SomaticViccData::NOT_APPLICABLE);
+		I_EQUAL(vicc_data1.mutation_in_gene_with_etiology, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data1.very_weak_cancerhotspot, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data1.very_high_maf, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data1.benign_functional_studies, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data1.high_maf, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data1.benign_computational_evidence, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data1.synonymous_mutation, SomaticViccData::NOT_APPLICABLE);
+		S_EQUAL(vicc_data1.comment, "this variant was evaluated as an oncogenic variant");
+
+		S_EQUAL(vicc_data1.created_by, "ahmustm1");
+		S_EQUAL(vicc_data1.created_at.toString("yyyy-MM-dd hh:mm:ss"), "2020-11-05 13:06:13");
+		S_EQUAL(vicc_data1.last_updated_by, "ahkerra1");
+		S_EQUAL(vicc_data1.last_updated_at.toString("yyyy-MM-dd hh:mm:ss"), "2020-12-07 11:06:10");
 
 
+
+		SomaticViccData vicc_data2 = db.getSomaticViccData( Variant("chr15", 43707808, 43707808, "A", "T" ) );
+		S_EQUAL(vicc_data2.comment, "this variant was evaluated as variant of unclear significance");
+		S_EQUAL(vicc_data2.last_updated_by, "ahkerra1");
+		S_EQUAL(vicc_data2.last_updated_at.toString("yyyy-MM-dd hh:mm:ss"),  "2020-12-08 13:45:11");
+
+		//Update somatic VICC data in NGSD
+		SomaticViccData vicc_update = vicc_data2;
+		vicc_update.null_mutation_in_tsg = SomaticViccData::TRUE123;
+		vicc_update.known_oncogenic_aa = SomaticViccData::TRUE123;
+		vicc_update.very_high_maf = SomaticViccData::FALSE123;
+		vicc_update.benign_functional_studies =SomaticViccData::FALSE123;
+		vicc_update.high_maf = SomaticViccData::FALSE123;
+		vicc_update.benign_computational_evidence = SomaticViccData::FALSE123;
+		vicc_update.synonymous_mutation = SomaticViccData::FALSE123;
+		vicc_update.comment = "This variant was reevaluated as oncogenic!";
+
+		//known oncogneic amino acid change: located_in_cancerhotspot and other_aa_is_oncogenic cannot apply
+		IS_THROWN(ArgumentException, db.setSomaticViccData(Variant("chr15", 43707808, 43707808, "A", "T" ), vicc_update, "ahmustm1") );
+		vicc_update.located_in_canerhotspot = SomaticViccData::NOT_APPLICABLE;
+		vicc_update.other_aa_known_oncogenic = SomaticViccData::NOT_APPLICABLE;
+		db.setSomaticViccData(Variant("chr15", 43707808, 43707808, "A", "T" ), vicc_update, "ahmustm1");
+
+		vicc_data2 = db.getSomaticViccData( Variant("chr15", 43707808, 43707808, "A", "T") );
+
+		I_EQUAL(vicc_data2.null_mutation_in_tsg, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data2.known_oncogenic_aa, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data2.strong_cancerhotspot, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data2.located_in_canerhotspot, SomaticViccData::NOT_APPLICABLE);
+		I_EQUAL(vicc_data2.absent_from_controls, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data2.protein_length_change, SomaticViccData::NOT_APPLICABLE);
+		I_EQUAL(vicc_data2.other_aa_known_oncogenic, SomaticViccData::NOT_APPLICABLE);
+		I_EQUAL(vicc_data2.weak_cancerhotspot, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data2.computational_evidence, SomaticViccData::NOT_APPLICABLE);
+		I_EQUAL(vicc_data2.mutation_in_gene_with_etiology, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data2.very_weak_cancerhotspot, SomaticViccData::TRUE123);
+		I_EQUAL(vicc_data2.very_high_maf, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data2.benign_functional_studies, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data2.high_maf, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data2.benign_computational_evidence, SomaticViccData::FALSE123);
+		I_EQUAL(vicc_data2.synonymous_mutation, SomaticViccData::FALSE123);
+		S_EQUAL(vicc_data2.comment, "This variant was reevaluated as oncogenic!");
+		S_EQUAL(vicc_data2.last_updated_by, "ahmustm1");
+		IS_TRUE(vicc_data2.last_updated_at.toString("yyyy-MM-dd hh:mm:ss") != "2020-12-08 13:45:11");
 	}
 
 

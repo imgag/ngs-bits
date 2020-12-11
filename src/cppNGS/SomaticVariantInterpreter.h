@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include <QVariant>
+#include <QDateTime>
 
 //struct with input configuration for SomaticVariantInterpreter
 struct CPPNGSSHARED_EXPORT SomaticViccData
@@ -44,8 +45,16 @@ struct CPPNGSSHARED_EXPORT SomaticViccData
 	state benign_computational_evidence = NOT_APPLICABLE; //multiple lines of computational evidence suggest no oncogenic impact
 	state synonymous_mutation = NOT_APPLICABLE; //synonymous_mutation mutation for which splicing prediction predict no impact to the splice consensus sequence or a creation of a new splice site
 
+	QString comment = "";
+
+	QString created_by;
+	QDateTime created_at;
+
+	QString last_updated_by;
+	QDateTime last_updated_at;
+
 	///returns whether input configuration is valid
-	bool isValid()
+	bool isValid() const
 	{
 		if(known_oncogenic_aa != NOT_APPLICABLE && located_in_canerhotspot != NOT_APPLICABLE) return false;
 		if(strong_cancerhotspot != NOT_APPLICABLE && located_in_canerhotspot != NOT_APPLICABLE) return false;
