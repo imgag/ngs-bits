@@ -15,20 +15,14 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
+* none so far
+
+Changes in release 2020_12:
+
 * Added CRAM support.
 * NGSD:
 	* Added table for secondary analyses (trio, multi, somatic)
 	* Added support for studies, which can include samples from serveral projects.
-
-Changes in release 2020_09:
-
-* Added tools: FastqDownsample, BedpeAnnotateCnvOverlap, BedpeFilter, VcfCalculatePRS
-* Added output compression level parameter to: FastqAddBarcode/FastqConvert/FastqExtract/FastqTrim/PERsim/VariantFilterRegions/VcfLeftNormalize/VcfSort.
-* VariantFilterAnnotations/GSvar: Added filter 'somatic allele frequency'.
-* NGSD:
-	* Added preferred transcripts information
-	* Added sample relations 'tumor-cfDNA' and 'same patient'
-	* Added variant validation for CNVs/SVs (before only for small variants)
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 

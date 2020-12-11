@@ -4982,7 +4982,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 
 	//UCSC
 	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
-	QAction* a_ucsc_override = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser (override tracks)");
 
 	//LOVD upload
 	sub_menu = menu.addMenu(QIcon("://Icons/LOVD.png"), "LOVD");
@@ -5112,11 +5111,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	else if (action==a_ucsc)
 	{
 		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + variant.chr().str()+":"+QString::number(variant.start()-20)+"-"+QString::number(variant.end()+20)));
-	}
-	else if (action==a_ucsc_override)
-	{
-		//TODO > ask Rebecca
-		QMessageBox::warning(this, "Not implemented", "This feature is not yet implemented");
 	}
 	else if (action==a_lovd_find)
 	{
