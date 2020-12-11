@@ -1830,3 +1830,17 @@ INDEX `i_study_sample_idendifier` (`study_sample_idendifier` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `secondary_analysis`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `secondary_analysis`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `type` enum('multi sample','trio','somatic') NOT NULL,
+  `gsvar_file` VARCHAR(1000) NOT NULL,
+PRIMARY KEY (`id`),
+UNIQUE INDEX `unique_gsvar` (`gsvar_file`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;

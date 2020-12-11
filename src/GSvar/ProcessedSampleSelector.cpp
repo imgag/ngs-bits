@@ -48,9 +48,10 @@ QString ProcessedSampleSelector::processedSampleName() const
 	return db_.processedSampleName(ps_id);
 }
 
-void ProcessedSampleSelector::showSearchMulti()
+void ProcessedSampleSelector::showSearchMulti(bool checked)
 {
 	ui_.search_multi->setVisible(true);
+	ui_.search_multi->setChecked(checked);
 }
 
 bool ProcessedSampleSelector::searchMulti() const

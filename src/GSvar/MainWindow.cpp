@@ -1777,7 +1777,7 @@ void MainWindow::on_actionOpen_triggered()
 void MainWindow::on_actionOpenByName_triggered()
 {
 	ProcessedSampleSelector dlg(this, false);
-	dlg.showSearchMulti();
+	dlg.showSearchMulti(true);
 	if (!dlg.exec()) return;
 
 	QString ps_name = dlg.processedSampleName();
@@ -1792,7 +1792,6 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		//convert name to file
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
-		QString project_folder = db.processedSamplePath(processed_sample_id, NGSD::PROJECT_FOLDER);
 		QString file = db.processedSamplePath(processed_sample_id, NGSD::GSVAR);
 
 		//determine all analyses of the sample
@@ -1803,34 +1802,13 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		QString normal_sample = db.normalSample(processed_sample_id);
 		if (normal_sample!="")
 		{
-			QString gsvar_somatic = project_folder + "/" + "Somatic_" + processed_sample_name + "-" + normal_sample + "/" + processed_sample_name + "-" + normal_sample + ".GSvar";
-			if (QFile::exists(gsvar_somatic))
-			{
-				analyses << gsvar_somatic;
-			}
+			analyses << db.secondaryAnalyses(processed_sample_name + "-" + normal_sample, "somatic", true);
 		}
 		//check for germline trio/multi analyses
 		else if (search_multi)
 		{
-			QStringList trio_folders = Helper::findFolders(project_folder, "Trio_*"+processed_sample_name+"*", false);
-			foreach(QString trio_folder, trio_folders)
-			{
-				QString filename = trio_folder + "/trio.GSvar";
-				if (QFile::exists(filename))
-				{
-					analyses << filename;
-				}
-			}
-
-			QStringList multi_folders = Helper::findFolders(project_folder, "Multi_*"+processed_sample_name+"*", false);
-			foreach(QString multi_folder, multi_folders)
-			{
-				QString filename = multi_folder + "/multi.GSvar";
-				if (QFile::exists(filename))
-				{
-					analyses << filename;
-				}
-			}
+			analyses << db.secondaryAnalyses(processed_sample_name, "trio", true);
+			analyses << db.secondaryAnalyses(processed_sample_name, "multi sample", true);
 		}
 
 		//determine analysis to load

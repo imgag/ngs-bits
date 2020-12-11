@@ -33,7 +33,7 @@ public:
 	QString processedSampleName() const;
 
 	//Show multi/trio search checkbox
-	void showSearchMulti();
+	void showSearchMulti(bool checked);
 	//Returns if the search for multi/trio analysis is enabled
 	bool searchMulti() const;
 
