@@ -16,6 +16,9 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 Changes already implemented in GIT master for next release:
 
 * Added CRAM support.
+* NGSD:
+	* Added table for secondary analyses (trio, multi, somatic)
+	* Added support for studies, which can include samples from serveral projects.
 
 Changes in release 2020_09:
 
