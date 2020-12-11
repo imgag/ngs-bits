@@ -276,7 +276,8 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 					QStringList tmp_exons;
 					for(const auto& tmp_gene : tmp_genes)
 					{
-						tmp_exons << exonNumber(tmp_gene.toUtf8() , line.start(), line.end());
+						QByteArray exon = exonNumber(tmp_gene.toUtf8() , line.start(), line.end());
+						if(exon != "") tmp_exons << exon;
 					}
 					exons.append( tmp_exons.join(", ").toUtf8() );
 				}
