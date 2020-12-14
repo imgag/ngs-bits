@@ -1640,6 +1640,28 @@ private slots:
 		S_EQUAL(vicc_data2.comment, "This variant was reevaluated as oncogenic!");
 		S_EQUAL(vicc_data2.last_updated_by, "ahmustm1");
 		IS_TRUE(vicc_data2.last_updated_at.toString("yyyy-MM-dd hh:mm:ss") != "2020-12-08 13:45:11");
+
+		//Insert new somatic VICC interpretation
+		SomaticViccData new_vicc_data;
+		new_vicc_data.null_mutation_in_tsg = SomaticViccData::FALSE123;
+		new_vicc_data.protein_length_change = SomaticViccData::FALSE123;
+		new_vicc_data.computational_evidence = SomaticViccData::TRUE123;
+		new_vicc_data.high_maf = SomaticViccData::TRUE123;
+		new_vicc_data.benign_functional_studies = SomaticViccData::TRUE123;
+		new_vicc_data.synonymous_mutation = SomaticViccData::TRUE123;
+		new_vicc_data.comment = "This is a benign somatic variant.";
+		db.setSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C"), new_vicc_data, "ahmustm1");
+
+		SomaticViccData new_vicc_result = db.getSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C") );
+		I_EQUAL(new_vicc_result.null_mutation_in_tsg, SomaticViccData::FALSE123);
+		I_EQUAL(new_vicc_result.protein_length_change, SomaticViccData::FALSE123);
+		I_EQUAL(new_vicc_result.computational_evidence, SomaticViccData::TRUE123);
+		I_EQUAL(new_vicc_result.high_maf, SomaticViccData::TRUE123);
+		I_EQUAL(new_vicc_result.benign_functional_studies, SomaticViccData::TRUE123);
+		I_EQUAL(new_vicc_result.synonymous_mutation, SomaticViccData::TRUE123);
+		S_EQUAL(new_vicc_result.comment, "This is a benign somatic variant.");
+
+		I_EQUAL(db.getSomaticViccId(Variant("chr17", 59763465, 59763465, "T", "C")), 3);
 	}
 
 

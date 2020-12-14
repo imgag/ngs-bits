@@ -2,6 +2,7 @@
 #define SOMATICVARIANTINTERPRETER_H
 
 #include "cppNGS_global.h"
+#include "VariantList.h"
 #include <QVariant>
 #include <QDateTime>
 
@@ -138,6 +139,8 @@ public:
 	///Returns variant score according VICC rules; combined oncogenic and benign algorithm
 	static result viccScore(const SomaticViccData& input);
 
+	///predicts VICC decision parameters based on variant annotations
+	static SomaticViccData predictViccValue(const VariantList& vl, const Variant& var);
 
 private:
 	///Returns result for oncogenicity score only
@@ -149,6 +152,9 @@ private:
 
 private:
 	SomaticVariantInterpreter() = delete;
+
+	///checks if all annotations are available for parameter prediction
+	static bool checkAnnoForPrediction(const VariantList& vl);
 
 };
 
