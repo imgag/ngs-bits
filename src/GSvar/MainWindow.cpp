@@ -3127,7 +3127,7 @@ void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantCo
 			{
 				variant_in_pt[trans.gene] = false;
 			}
-			if (preferred_transcripts[trans.gene].contains(trans.id))
+			if (preferred_transcripts[trans.gene].contains(trans.idWithoutVersion()))
 			{
 				variant_in_pt[trans.gene] = true;
 			}
@@ -3135,7 +3135,7 @@ void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantCo
 	}
 	foreach(const VariantTranscript& trans, v.transcriptAnnotations(i_co_sp))
 	{
-		if (preferred_transcripts.contains(trans.gene) && variant_in_pt[trans.gene] && !preferred_transcripts[trans.gene].contains(trans.id))
+		if (preferred_transcripts.contains(trans.gene) && variant_in_pt[trans.gene] && !preferred_transcripts[trans.gene].contains(trans.idWithoutVersion()))
 		{
 			continue;
 		}
@@ -4929,8 +4929,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
 	foreach(const VariantTranscript& trans, transcripts)
 	{
-		QAction* action = sub_menu->addAction(trans.gene + " " + trans.id + " " + trans.hgvs_c + " " + trans.hgvs_p);
-		if (preferred_transcripts.value(trans.gene).contains(trans.id))
+		QAction* action = sub_menu->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
+		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
 		{
 			QFont font = action->font();
 			font.setBold(true);
@@ -4967,10 +4967,10 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		{
 			if  (transcript.id!="" && transcript.hgvs_c!="")
 			{
-				QAction* action = sub_menu->addAction(transcript.id + ":" + transcript.hgvs_c + " (" + transcript.gene + ")");
+				QAction* action = sub_menu->addAction(transcript.idWithoutVersion() + ":" + transcript.hgvs_c + " (" + transcript.gene + ")");
 
 				//highlight preferred transcripts
-				if (preferred_transcripts.value(transcript.gene).contains(transcript.id))
+				if (preferred_transcripts.value(transcript.gene).contains(transcript.idWithoutVersion()))
 				{
 					QFont font = action->font();
 					font.setBold(true);

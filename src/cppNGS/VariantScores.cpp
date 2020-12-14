@@ -187,7 +187,7 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 		const Variant& v = variants[i];
 
 		//get gene/transcript list
-		QList<VariantTranscript> transcript_info = Variant::parseTranscriptString(v.annotations()[i_coding]);
+		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
 		GeneSet genes;
 		foreach(const VariantTranscript& transcript, transcript_info)
 		{
@@ -433,7 +433,7 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 		const Variant& v = variants[i];
 
 		//get gene/transcript list
-		QList<VariantTranscript> transcript_info = Variant::parseTranscriptString(v.annotations()[i_coding]);
+		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
 		GeneSet genes;
 		foreach(const VariantTranscript& transcript, transcript_info)
 		{
