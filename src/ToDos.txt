@@ -5,7 +5,6 @@ libs:
 - The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
 
 GSvar:
-### Implement GRCh37>38 lift-over for Decipher: https://decipher.sanger.ac.uk/browser#q/
 ## Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)

@@ -254,11 +254,9 @@ void MainWindow::on_actionDebug_triggered()
 		qDebug() << "Processed sample to check:" << ps_names.count();
 		QString algorithm = "GSvar_v1_noNGSD";
 		QString special = "";
-		/*
-		TsvFile file;
-		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\+old_2020_11_18\\details_samples_pediatric.tsv");
-		foreach(QString ps, file.extractColumn(0)
-		*/
+		//TsvFile file;
+		//file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\+old_2020_11_18\\details_samples_pediatric.tsv");
+		//foreach(QString ps, file.extractColumn(0)
 		foreach(QString ps, ps_names)
 		{
 			QString ps_id = db.processedSampleId(ps);
