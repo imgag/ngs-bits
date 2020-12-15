@@ -1,0 +1,81 @@
+##ANALYSISTYPE=SOMATIC_PAIR
+##PIPELINE=megSAP 0.2-434-gf90f59a
+##SAMPLE=<ID=DX000001_01,Gender=male,ExternalSampleName=DNA-208563 A1,IsTumor=yes,IsFFPE=yes,DiseaseGroup=n/a,DiseaseStatus=n/a>
+##SAMPLE=<ID=DX000002_01,Gender=male,ExternalSampleName=DNA-205102 A1,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=n/a>
+##CGI_CANCER_TYPE=COC
+##DESCRIPTION=filter=Annotations for filtering and ranking variants.
+##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)
+##DESCRIPTION=gene=Affected gene list (comma-separated).
+##DESCRIPTION=variant_type=Variant type.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
+##DESCRIPTION=coding_and_splicing_refseq=Coding and splicing details based on RefSeq (Gene, RefSeq id, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
+##DESCRIPTION=regulatory=Regulatory consequence details.
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.
+##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).
+##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.
+##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.
+##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
+##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).
+##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+##DESCRIPTION=MMSplice_DeltaLogitPSI=MMsplice delta Logit PSI score: variant's effect on the exon inclusion - positive score shows higher exon inclusion, negative higher exclusion rate. A score greater than 2 or less than -2 can be considered strong.
+##DESCRIPTION=MMSplice_pathogenicity=MMsplice pathogenicity score: probability of pathogenic effect of the variant on splicing
+##DESCRIPTION=NGSD_som_c=Somatic variant count in the NGSD.
+##DESCRIPTION=NGSD_som_p=Project names of project containing this somatic variant in the NGSD.
+##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.
+##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.
+##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group.
+##DESCRIPTION=classification=Classification from the NGSD.
+##DESCRIPTION=classification_comment=Classification comment from the NGSD.
+##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!
+##DESCRIPTION=comment=Variant comments from the NGSD.
+##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
+##DESCRIPTION=CMC_genes=Gene symbol from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CMC_MUTATION_ID=COSV identifier of variant from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CMC_disease=diseases with > 1% of samples mutated where disease = Primary site(tissue) / Primary histology / Sub-histology = Samples mutated / Samples tested = Frequency from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CMC_DNDS_ratio=diseases with significant dn/ds ratio (q-value < 5%) from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CMC_mutation_significance=Significance tier of the variant from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CANCERHOTSPOTS_AA_CHANGE=Amino acid change as in original cancerhotspots.org file
+##DESCRIPTION=CANCERHOTSPOTS_TOTAL_MUT=Total mutation count in cancerhotspots.org at certain amino acid position.
+##DESCRIPTION=CANCERHOTSPOTS_ALT_COUNT=Count of specific amino acid alteration at same position in cancerhotspots.org.
+##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample DX000001_01).
+##DESCRIPTION=tumor_dp=Tumor Depth (Sample DX000001_01).
+##DESCRIPTION=normal_af=Mutant allele frequency in normal (Sample DX000002_01).
+##DESCRIPTION=normal_dp=Normal depth (Sample DX000002_01).
+##DESCRIPTION=somatic_classification_comment=Somatic classificaiton comment from the NGSD.
+##DESCRIPTION=somatic_classification=Somatic classification from the NGSD.
+##DESCRIPTION=CGI_id=Identifier for CGI statements
+##DESCRIPTION=CGI_driver_statement=CancerGenomeInterpreter.org oncogenic classification
+##DESCRIPTION=CGI_gene_role=CancerGenomeInterpreter.org gene role. LoF: Loss of Function, Act: Activating
+##DESCRIPTION=CGI_transcript=CancerGenomeInterpreter.org CGI Ensembl transcript ID
+##DESCRIPTION=CGI_gene=Gene symbol returned by CancerGenomeInterpreter.org
+##DESCRIPTION=CGI_consequence=Consequence of the mutation assessed by CancerGenomeInterpreter.org
+##DESCRIPTION=ncg_oncogene=1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
+##DESCRIPTION=ncg_tsg=1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
+##FILTER=LowDepth=Tumor or normal sample read depth at this locus is below 2
+##FILTER=LowEVS=Somatic Empirical Variant Score (SomaticEVS) is below threshold
+##FILTER=all-unknown=Allele unknown
+##FILTER=depth-nor=Sequencing depth in normal is too low (< 20)
+##FILTER=depth-tum=Sequencing depth in tumor is too low (< 20)
+##FILTER=freq-nor=Allele frequency in normal > 0.17 * allele frequency in tumor
+##FILTER=freq-tum=Allele frequency in tumor < 0.05
+##FILTER=lt-3-reads=Less than 3 supporting tumor reads
+##FILTER=off-target=Variant marked as 'off-target'.
+##FILTER=special-chromosome=Special chromosome
+#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	quality	gene	variant_type	coding_and_splicing	coding_and_splicing_refseq	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	dbscSNV	COSMIC	MMSplice_DeltaLogitPSI	MMSplice_pathogenicity	NGSD_som_c	NGSD_som_p	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	somatic_classification	somatic_classification_comment	validation	comment	gene_info	CMC_genes	CMC_MUTATION_ID	CMC_disease	CMC_DNDS_ratio	CMC_mutation_significance	CANCERHOTSPOTS_AA_CHANGE	CANCERHOTSPOTS_TOTAL_MUT	CANCERHOTSPOTS_ALT_COUNT	ncg_oncogene	ncg_tsg	test_comment
+chr2	43451948	43451958	GCGGCCGCAGC	-	0.3	48	0	41		QUAL=81	ZFP36L2,THADA	frameshift,intron	ZFP36L2:ENST00000282388:frameshift_variant:HIGH:exon2/2:c.985_995del:p.Ala329SerfsTer141:,THADA:ENST00000330266:intron_variant:MODIFIER:intron19/19:c.3189-58053_3189-58043del::	ZFP36L2:NM_006887.5:frameshift_variant:HIGH:exon2/2:c.985_995del:p.Ala329SerfsTer141:	regulatory_region_variant:promoter										3.705									-0.0098	0.9152	1	SomaticAndTreatment	0	0	0 / 0			inactivating	[inactivating] aharmes1 14.12.2020			THADA (inh=n/a oe_syn=1.25 oe_mis=1.27 oe_lof=0.80), ZFP36L2 (inh=n/a oe_syn=1.96 oe_mis=1.33 oe_lof=0.00)									na,na	na,na	frameshift, but no TSG
+chr2	43451948	43451958	GCGGCCGCAGC	-	0.3	48	0	41		QUAL=81	ZFP36L2,THADA	frameshift,intron	ZFP36L2:ENST00000282388:frameshift_variant:HIGH:exon2/2:c.985_995del:p.Ala329SerfsTer141:,THADA:ENST00000330266:intron_variant:MODIFIER:intron19/19:c.3189-58053_3189-58043del::	ZFP36L2:NM_006887.5:frameshift_variant:HIGH:exon2/2:c.985_995del:p.Ala329SerfsTer141:	regulatory_region_variant:promoter										3.705									-0.0098	0.9152	1	SomaticAndTreatment	0	0	0 / 0			inactivating	[inactivating] aharmes1 14.12.2020			THADA (inh=n/a oe_syn=1.25 oe_mis=1.27 oe_lof=0.80), ZFP36L2 (inh=n/a oe_syn=1.96 oe_mis=1.33 oe_lof=0.00)									na,na	1,na	frameshift and TSG
+chr12	25380276	25380276	T	A	0.7865	3560	0	856		QUAL=3070	KRAS	missense,intron	KRAS:ENST00000256078:missense_variant:MODERATE:exon3/6:c.182A>T:p.Gln61Leu:PF00071 [Ras family],KRAS:ENST00000311936:missense_variant:MODERATE:exon3/5:c.182A>T:p.Gln61Leu:PF00071 [Ras family],KRAS:ENST00000557334:intron_variant:MODIFIER:intron2/2:c.112-17431A>T::	KRAS:NM_001369786.1:missense_variant:MODERATE:exon3/6:c.182A>T:p.Gln61Leu:,KRAS:NM_001369787.1:missense_variant:MODERATE:exon3/5:c.182A>T:p.Gln61Leu:,KRAS:NM_004985.5:missense_variant:MODERATE:exon3/5:c.182A>T:p.Gln61Leu:,KRAS:NM_033360.4:missense_variant:MODERATE:exon3/6:c.182A>T:p.Gln61Leu:		190070 [GENE=KRAS PHENOS=Oculoectodermal syndrome,somatic,600268/Leukemia,acute myeloid,somatic,601626/Breast cancer,somatic,114480/RAS-associated autoimmune leukoproliferative disorder,614470,Autosomal dominant/Cardiofaciocutaneous syndrome 2,615278,Autosomal dominant/Arteriovenous malformation of the brain,somatic,108010/Bladder cancer,somatic,109800/Pancreatic carcinoma,somatic,260350/Lung cancer,somatic,211980/Gastric cancer,somatic,137215/Schimmelpenning-Feuerstein-Mims syndrome,somatic mosaic,163200/Noonan syndrome 3,609942,Autosomal dominant];	45116 [pathogenic DISEASE=Medullary thyroid carcinoma,Multiple myeloma,Non-small cell lung cancer,Neoplasm of the thyroid gland,Neoplasm of the large intestine];			rs121913240					7.986	D(0.00),D(0.00), 	P(0.63),P(0.68), 	0.98,0.99	28	0.89			COSV55498739,COSV55504296,COSV55508574	-0.2147	0.4418	4	SomaticAndTreatment	0	0	0 / 0			activating	[activating] aharmes1 16.07.2020			KRAS (inh=AR+AD oe_syn=0.93 oe_mis=0.34 oe_lof=0.63)	KRAS	COSV55504296			3	ENST00000256078:p.Gln61Leu	190	21	1	0	clinvar class 5 and cmc classification, strong cancerhotspot
+chr12	25380276	25380276	T	A	0.7865	3560	0	856		QUAL=3070	KRAS	missense,intron	KRAS:ENST00000256078:missense_variant:MODERATE:exon3/6:c.182A>T:p.Gln61Leu:PF00071 [Ras family],KRAS:ENST00000311936:missense_variant:MODERATE:exon3/5:c.182A>T:p.Gln61Leu:PF00071 [Ras family],KRAS:ENST00000557334:intron_variant:MODIFIER:intron2/2:c.112-17431A>T::	KRAS:NM_001369786.1:missense_variant:MODERATE:exon3/6:c.182A>T:p.Gln61Leu:,KRAS:NM_001369787.1:missense_variant:MODERATE:exon3/5:c.182A>T:p.Gln61Leu:,KRAS:NM_004985.5:missense_variant:MODERATE:exon3/5:c.182A>T:p.Gln61Leu:,KRAS:NM_033360.4:missense_variant:MODERATE:exon3/6:c.182A>T:p.Gln61Leu:		190070 [GENE=KRAS PHENOS=Oculoectodermal syndrome,somatic,600268/Leukemia,acute myeloid,somatic,601626/Breast cancer,somatic,114480/RAS-associated autoimmune leukoproliferative disorder,614470,Autosomal dominant/Cardiofaciocutaneous syndrome 2,615278,Autosomal dominant/Arteriovenous malformation of the brain,somatic,108010/Bladder cancer,somatic,109800/Pancreatic carcinoma,somatic,260350/Lung cancer,somatic,211980/Gastric cancer,somatic,137215/Schimmelpenning-Feuerstein-Mims syndrome,somatic mosaic,163200/Noonan syndrome 3,609942,Autosomal dominant];	45116 [pathogenic DISEASE=Medullary thyroid carcinoma,Multiple myeloma,Non-small cell lung cancer,Neoplasm of the thyroid gland,Neoplasm of the large intestine];			rs121913240		0.018			7.986	D(0.00),D(0.00), 	P(0.63),P(0.68), 	0.89,0.99	28	0.89			COSV55498739,COSV55504296,COSV55508574	-0.2147	0.4418	4	SomaticAndTreatment	0	0	0 / 0			activating	[activating] aharmes1 16.07.2020			KRAS (inh=AR+AD oe_syn=0.93 oe_mis=0.34 oe_lof=0.63)	KRAS	COSV55504296			Other	ENST00000256078:p.Gln61Leu	190	21	1	0	clinvar class 5 and no CMC classification, strong cancerhotspot
+chrX	66765597	66765597	C	T	0.2167	2101	0	1457		QUAL=1163	AR	synonymous	AR:ENST00000374690:synonymous_variant:LOW:exon1/8:c.609C>T:p.Ser203=:PF02166 [Androgen receptor],AR:ENST00000396044:synonymous_variant:LOW:exon1/5:c.609C>T:p.Ser203=:PF02166 [Androgen receptor],AR:ENST00000504326:synonymous_variant:LOW:exon1/4:c.609C>T:p.Ser203=:PF02166 [Androgen receptor]	AR:NM_000044.6:synonymous_variant:LOW:exon1/8:c.609C>T:p.Ser203=:,AR:NM_001011645.3:5_prime_UTR_variant:MODIFIER:exon1/9:c.-1175C>T::,AR:NM_001348061.1:synonymous_variant:LOW:exon1/4:c.609C>T:p.Ser203=:,AR:NM_001348063.1:synonymous_variant:LOW:exon1/4:c.609C>T:p.Ser203=:,AR:NM_001348064.1:synonymous_variant:LOW:exon1/3:c.609C>T:p.Ser203=:	regulatory_region_variant:promoter	313700 [GENE=AR PHENOS=Hypospadias 1,X-linked,300633,X-linked recessive/Androgen insensitivity,300068,X-linked recessive/Prostate cancer,susceptibility to,176807,Somatic mutation,Autosomal dominant/Androgen insensitivity,partial,with or without breast cancer,312300,X-linked recessive/Spinal and bulbar muscular atrophy of Kennedy,313200,X-linked recessive];	45116 [likely benign DISEASE=Multiple myeloma,Non-small cell lung cancer,Neoplasm of the thyroid gland];		(CAG)n (Simple_repeat)			0.07			-5.204			0.01,0.07	7.13					-0.0049	0.0964	0		0	0	0 / 0			unclear	[unclear] aharmes1 09.12.2020			AR (inh=XLR oe_syn=0.23 oe_mis=0.82 oe_lof=0.11)	AR	COSV101017927			Other				1	0	benign variant
+
