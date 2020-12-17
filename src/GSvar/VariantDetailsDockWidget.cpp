@@ -94,6 +94,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
 	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false).description());
 	ui->label_mmsplice->setToolTip("MMSplice prediction of splice-site variations;\nMaximum absolute values for the highest scored exon are shown in following format:\n[DeltaLogitPSI score as effect on exon inclusion (values below -2 stand for higher exclusion, values above 2 for higher inclusion) / Pathogenicity score]");
+	ui->label_spliceai->setToolTip("SpliceAI prediction of splice-site variations;\nProbability of the variant being splice-altering (range from 0-1).\nThe score is the maximum value of acceptor/donor gain/loss of all effected genes.");
 
 	//NGSD (all optional)
 	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false).description());
@@ -185,6 +186,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->maxentscan, vl, index, "MaxEntScan");
 	setAnnotation(ui->dbscsnv, vl, index, "dbscSNV");
 	setAnnotation(ui->mmsplice, vl, index, "MMSplice_DeltaLogitPSI");
+	setAnnotation(ui->spliceai, vl, index, "SpliceAI");
 	setAnnotation(ui->regulatory, vl, index, "regulatory");
 
 	//NGSD
