@@ -558,6 +558,8 @@
    <addaction name="actionRE"/>
    <addaction name="actionPRS"/>
    <addaction name="actionCircos"/>
+   <addaction name="actionExpressionData"/>
+   <addaction name="separator"/>
    <addaction name="actionDebug"/>
   </widget>
   <action name="actionOpen">
@@ -1225,6 +1227,15 @@
   <action name="actionAlleleBalance">
    <property name="text">
     <string>Allele balance</string>
+   </property>
+  </action>
+  <action name="actionExpressionData">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Expression Data</string>
    </property>
   </action>
  </widget>
