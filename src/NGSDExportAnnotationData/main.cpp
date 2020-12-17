@@ -180,7 +180,7 @@ private:
 		QHash<int, QList<int>> same_samples;
 		db_queries.restart();
 		SqlQuery query = db.getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample'");
+		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
 		db_query_sum += db_queries.elapsed();
 		while (query.next())
 		{
@@ -510,7 +510,7 @@ private:
 		QHash<int, QList<int>> same_samples;
 		db_queries.restart();
 		SqlQuery query = db.getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample'");
+		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
 		db_query_sum += db_queries.elapsed();
 		while (query.next())
 		{

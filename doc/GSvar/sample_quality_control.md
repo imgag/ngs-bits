@@ -74,11 +74,11 @@ If you have related samples and want to check how similar they are, you can do t
 
 ![alt text](qc_sample_correlation1.png)
 
-The method based on the GSvar file is faster and should be used for most cases.  
+The method based on the GSvar file is fast and should be used for most cases.  
 SampleSimilarity calculates several metrics that measure how similar two samples are:
 
- * overlap: Percentage of variants that occur in both samples - not considering the genotype (only in VCF mode).
- * correlation: Correlation of variant genotypes.
+ * overlap: Percentage of variants that occur in both samples - not considering the genotype (only in VCF/GSvar mode).
+ * correlation: Genotype correlation of overlapping variants.
  * ibs0: Percentage of variants with zero IBS, e.g. AA and CC (only in BAM mode).
  * ibs2: Percentage of variants with complete IBS, e.g. AA and AA.
 

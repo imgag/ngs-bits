@@ -991,7 +991,7 @@ QPair<int, int> NGSD::variantCounts(const QString& variant_id)
 	if (same_samples.isEmpty())
 	{
 		SqlQuery query = getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample'");
+		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
 		while (query.next())
 		{
 			int sample1_id = query.value(0).toInt();
