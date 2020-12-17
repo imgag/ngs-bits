@@ -1734,7 +1734,7 @@ CREATE  TABLE IF NOT EXISTS `variant_validation`
   `sv_inversion_id` INT(11) UNSIGNED DEFAULT NULL,
   `sv_translocation_id` INT(11) UNSIGNED DEFAULT NULL,
   `genotype` ENUM('hom','het') DEFAULT NULL,
-  `validation_method` ENUM('Sanger sequencing', 'breakpoint PCR', 'qPCR', 'MLPA', 'n/a') NOT NULL DEFAULT 'n/a',
+  `validation_method` ENUM('Sanger sequencing', 'breakpoint PCR', 'qPCR', 'MLPA', 'Array', 'n/a') NOT NULL DEFAULT 'n/a',
   `status` ENUM('n/a','to validate','to segregate','for reporting','true positive','false positive','wrong genotype') NOT NULL DEFAULT 'n/a',
   `comment` TEXT NULL DEFAULT NULL,
 PRIMARY KEY (`id`),
@@ -1827,6 +1827,20 @@ CONSTRAINT `fk_study_sample_has_ps`
   ON UPDATE NO ACTION,
   UNIQUE INDEX `unique_sample_ps` (`processed_sample_id`, `study_sample_idendifier`),
 INDEX `i_study_sample_idendifier` (`study_sample_idendifier` ASC)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `secondary_analysis`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `secondary_analysis`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `type` enum('multi sample','trio','somatic') NOT NULL,
+  `gsvar_file` VARCHAR(1000) NOT NULL,
+PRIMARY KEY (`id`),
+UNIQUE INDEX `unique_gsvar` (`gsvar_file`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;

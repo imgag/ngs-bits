@@ -209,10 +209,11 @@ void SvSearchWidget::search()
 			//concatinate single pos querie
 			query_same_position += "(" + query_pos_overlap.join("OR ") + ") ";
 		}
+		QStringList conditions;
+		conditions << query_same_position;
 
 
 		//(3) define SQL queries for filters
-		QStringList conditions;
 
 		// filter by processing system
 		// get processing system id
@@ -251,6 +252,7 @@ void SvSearchWidget::search()
 				+ "INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id "
 				+ "INNER JOIN sample s ON ps.sample_id = s.id "
 				+ "INNER JOIN processing_system sys ON ps.processing_system_id = sys.id "
+				+ "INNER JOIN project p ON ps.project_id = p.id "
 				+ "LEFT JOIN report_configuration_sv rpc ON sv.id = rpc." + sv_table.split(" ")[0] +"_id "
 				+ "LEFT JOIN diag_status ds ON sc.processed_sample_id=ds.processed_sample_id "
 				+ "WHERE " + conditions.join(" AND ")

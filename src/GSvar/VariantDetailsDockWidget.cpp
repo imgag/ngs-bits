@@ -665,7 +665,7 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 		//use first preferred transcript
 		for (int i=0; i<trans_data.count(); ++i)
 		{
-			if (preferred_transcripts.value(trans_data[i].gene).contains(trans_data[i].id))
+			if (preferred_transcripts.value(trans_data[i].gene).contains(trans_data[i].idWithoutVersion()))
 			{
 				setTranscript(i);
 				break;
@@ -695,7 +695,7 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	foreach(const VariantTranscript& trans, trans_data)
 	{
 		//highlight preferred transcripts
-		bool is_pt = preferred_transcripts.value(trans.gene).contains(trans.id);
+		bool is_pt = preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
 		tooltip += nobr() + (is_pt ? "<b>" : "") + trans.toString(' ') + (is_pt ? "</b>" : "");
 	}
 	ui->trans->setToolTip(tooltip);

@@ -74,7 +74,7 @@ QString ReportWorker::formatCodingSplicing(const QList<VariantTranscript>& trans
 
 		output.append(line);
 
-        if (preferred_transcripts.value(trans.gene).contains(trans.id))
+		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
 		{
 			output_pt.append(line);
 		}

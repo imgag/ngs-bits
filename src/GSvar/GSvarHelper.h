@@ -29,6 +29,7 @@ public:
 	//Returns the file path to the Manta evididence file for a given BAM file.
 	static QString getEvidenceFile(const QString& bam_file);
 
+	static BedLine liftOver(const Chromosome& chr, int start, int end);
 
 protected:
 	GSvarHelper() = delete;
