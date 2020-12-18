@@ -13,6 +13,17 @@ SomaticVariantInterpreter::result SomaticVariantInterpreter::viccScore(const Som
 	return UNCERTAIN_SIGNIFICANCE; //neither benign nor oncogenic rule applied
 }
 
+QString SomaticVariantInterpreter::viccScoreAsString(const SomaticViccData &input)
+{
+	result res = viccScore(input);
+	if(res == ONCOGENIC) return "ONCOGENIC";
+	if(res == LIKELY_ONCOGENIC) return "LIKELY_ONCOGENIC";
+	if(res == BENIGN) return "BENIGN";
+	if(res == LIKELY_BENIGN) return "LIKELY_BENIGN";
+
+	return "UNCERTAIN_SIGNIFICANCE";
+}
+
 SomaticVariantInterpreter::result SomaticVariantInterpreter::viccOncogenicRule(const SomaticViccData &input)
 {
 	//Oncongenic

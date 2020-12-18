@@ -11,7 +11,7 @@ struct CPPNGSSHARED_EXPORT SomaticViccData
 {
 	enum state
 	{
-		NOT_APPLICABLE,
+		NOT_APPLICABLE = -1,
 		FALSE123,
 		TRUE123
 	};
@@ -138,9 +138,12 @@ public:
 
 	///Returns variant score according VICC rules; combined oncogenic and benign algorithm
 	static result viccScore(const SomaticViccData& input);
+	static QString viccScoreAsString(const SomaticViccData& input);
 
 	///predicts VICC decision parameters based on variant annotations
 	static SomaticViccData predictViccValue(const VariantList& vl, const Variant& var);
+	///checks if all annotations are available for parameter prediction
+	static bool checkAnnoForPrediction(const VariantList& vl);
 
 private:
 	///Returns result for oncogenicity score only
@@ -149,12 +152,9 @@ private:
 	static result viccBenignRule(const SomaticViccData& input);
 
 
-
-private:
 	SomaticVariantInterpreter() = delete;
 
-	///checks if all annotations are available for parameter prediction
-	static bool checkAnnoForPrediction(const VariantList& vl);
+
 
 };
 

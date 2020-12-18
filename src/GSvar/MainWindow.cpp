@@ -113,6 +113,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "CfDNAPanelWidget.h"
 #include "ClinvarSubmissionGenerator.h"
 #include "AlleleBalanceCalculator.h"
+#include "SomaticVariantInterpreterWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -433,6 +434,10 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
+		qDebug() << "in" << endl;
+		SomaticVariantInterpreterWidget *widget = new SomaticVariantInterpreterWidget(variants_[0], variants_, this);
+		auto dlg = GUIHelper::createDialog(widget, "Somatic Variant Interpretation");
+		dlg->exec();
 	}
 	else if (user=="ahstoht1")
 	{
@@ -4919,6 +4924,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	a_var_class->setEnabled(ngsd_user_logged_in);
 	QAction* a_var_class_somatic = menu.addAction("Edit classification  (somatic)");
 	a_var_class_somatic->setEnabled(ngsd_user_logged_in);
+	QAction * a_var_interpretation_somatic = menu.addAction("Edit VICC interpretation (somatic)");
+	a_var_interpretation_somatic->setEnabled(ngsd_user_logged_in);
 	QAction* a_var_comment = menu.addAction("Edit comment");
 	a_var_comment->setEnabled(ngsd_user_logged_in);
 	QAction* a_var_val = menu.addAction("Perform variant validation");
@@ -5099,6 +5106,10 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	else if (action==a_var_class_somatic)
 	{
 		editVariantClassification(variants_, index, true);
+	}
+	else if (action==a_var_interpretation_somatic)
+	{
+		editSomaticVariantInterpretation(variants_, index);
 	}
 	else if (action==a_var_comment)
 	{
@@ -5331,6 +5342,15 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 		GUIHelper::showMessage("NGSD error", e.message());
 		return;
 	}
+}
+
+void MainWindow::editSomaticVariantInterpretation(const VariantList &vl, int index)
+{
+	SomaticVariantInterpreterWidget* interpreter = new SomaticVariantInterpreterWidget(vl[index], vl, this);
+	auto dlg = GUIHelper::createDialog(interpreter, "Somatic Variant Interpretation", "", true);
+	if(!dlg->exec()) return;
+
+	//TODO: store results into NGSD
 }
 
 QString MainWindow::cnvFile(QString gsvar_file)
