@@ -25,7 +25,6 @@ SOURCES += main.cpp\
     SubpanelArchiveDialog.cpp \
     IgvDialog.cpp \
     GapDialog.cpp \
-    GapValidationLabel.cpp \
     CnvWidget.cpp \
     GeneSelectorDialog.cpp \
     MultiSampleDialog.cpp \
@@ -96,7 +95,8 @@ SOURCES += main.cpp\
     DiseaseCourseWidget.cpp \
     CfDNAPanelWidget.cpp \
     AlleleBalanceCalculator.cpp \
-    ExpressionDataWidget.cpp
+    ExpressionDataWidget.cpp \
+    GapClosingDialog.cpp
 
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
@@ -116,7 +116,6 @@ HEADERS += MainWindow.h \
     SubpanelArchiveDialog.h \
     IgvDialog.h \
     GapDialog.h \
-    GapValidationLabel.h \
     CnvWidget.h \
     GeneSelectorDialog.h \
     MultiSampleDialog.h \
@@ -187,7 +186,8 @@ HEADERS += MainWindow.h \
     DiseaseCourseWidget.h \
     CfDNAPanelWidget.h \
     AlleleBalanceCalculator.h \
-    ExpressionDataWidget.h
+    ExpressionDataWidget.h \
+    GapClosingDialog.h
 
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
@@ -205,7 +205,6 @@ FORMS    += MainWindow.ui \
     SubpanelArchiveDialog.ui \
     IgvDialog.ui \
     GapDialog.ui \
-    GapValidationLabel.ui \
     CnvWidget.ui \
     GeneSelectorDialog.ui \
     MultiSampleDialog.ui \
@@ -264,7 +263,8 @@ FORMS    += MainWindow.ui \
     DiseaseCourseWidget.ui \
     CfDNAPanelWidget.ui \
     AlleleBalanceCalculator.ui \
-    ExpressionDataWidget.ui
+    ExpressionDataWidget.ui \
+    GapClosingDialog.ui
 
 include("../app_gui.pri")
 
