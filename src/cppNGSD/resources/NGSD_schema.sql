@@ -1844,3 +1844,28 @@ UNIQUE INDEX `unique_gsvar` (`gsvar_file`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `gaps`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `gaps`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start` INT(11) UNSIGNED NOT NULL,
+  `end` INT(11) UNSIGNED NOT NULL,
+  `processed_sample_id` INT(11) NOT NULL,
+  `status` enum('checked visually','to close','in progress','closed','canceled') NOT NULL,
+  `history` TEXT,
+PRIMARY KEY (`id`),
+INDEX `gap_index` (`chr` ASC, `start` ASC, `end` ASC),
+INDEX `processed_sample_id` (`processed_sample_id` ASC),
+INDEX `status` (`status` ASC),
+CONSTRAINT `fk_gap_has_processed_sample1`
+  FOREIGN KEY (`processed_sample_id`)
+  REFERENCES `processed_sample` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;

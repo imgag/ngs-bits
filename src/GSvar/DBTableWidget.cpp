@@ -25,7 +25,7 @@ DBTableWidget::DBTableWidget(QWidget* parent)
 	connect(copy_action, SIGNAL(triggered(bool)), this, SLOT(copyToClipboard()));
 }
 
-void DBTableWidget::setData(const DBTable& table)
+void DBTableWidget::setData(const DBTable& table, int max_col_width)
 {
 	QStringList headers = table.headers();
 
@@ -56,7 +56,7 @@ void DBTableWidget::setData(const DBTable& table)
 	}
 
 	//fomatting
-	GUIHelper::resizeTableCells(this, 200);
+	GUIHelper::resizeTableCells(this, max_col_width);
 }
 
 int DBTableWidget::columnIndex(const QString& column_header) const

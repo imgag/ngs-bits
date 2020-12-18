@@ -30,8 +30,8 @@ bool ProcessedSampleSelector::isValidSelection() const
 
 void ProcessedSampleSelector::initAutoCompletion()
 {
-	QString query = "SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM sample s, processed_sample ps WHERE ps.sample_id=s.id AND ps.id";
-	if (!ui_.show_merged->isChecked()) query += " NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
+	QString query = "SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM sample s, processed_sample ps WHERE ps.sample_id=s.id";
+	if (!ui_.show_merged->isChecked()) query += " AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples)";
 	ui_.processed_sample->fill(db_.createTable("processed_sample", query));
 }
 

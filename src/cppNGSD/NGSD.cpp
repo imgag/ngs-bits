@@ -2640,6 +2640,67 @@ QString NGSD::analysisJobGSvarFile(int job_id)
 	return output;
 }
 
+int NGSD::addGap(const QString& ps_id, const Chromosome& chr, int start, int end, const QString& status)
+{
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO `gaps`(`chr`, `start`, `end`, `processed_sample_id`) VALUES (:0,:1,:2,:3)");
+	query.bindValue(0, chr.strNormalized(true));
+	query.bindValue(1, start);
+	query.bindValue(2, end);
+	query.bindValue(3, ps_id);
+	query.exec();
+
+	//set status and history
+	int id = query.lastInsertId().toInt();
+	updateGapStatus(id, status);
+
+	return id;
+}
+
+int NGSD::gapId(const QString& ps_id, const Chromosome& chr, int start, int end, bool exact_match)
+{
+	if (exact_match)
+	{
+		QVariant id =  getValue("SELECT id FROM gaps WHERE processed_sample_id='" + ps_id + "' AND chr='" + chr.strNormalized(true) + "' AND start='" + QString::number(start) + "' AND end='" + QString::number(end) + "'", true);
+		if (id.isValid()) return id.toInt();
+	}
+	else
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT id, chr, start, end FROM gaps WHERE processed_sample_id='" + ps_id +"'");
+		while(query.next())
+		{
+			if (chr==query.value("chr").toString())
+			{
+				if (BasicStatistics::rangeOverlaps(start, end, query.value("start").toInt(), query.value("end").toInt()))
+				{
+					return query.value("id").toInt();
+				}
+			}
+		}
+	}
+
+	return -1;
+}
+
+void NGSD::updateGapStatus(int id, const QString& status)
+{
+	//check gap exists
+	QString id_str = QString::number(id);
+	if(getValue("SELECT EXISTS(SELECT * FROM gaps WHERE id='" + id_str + "')").toInt()==0)
+	{
+		THROW(ArgumentException, "Gap with ID '" + id_str + "' does not exist!");
+	}
+
+	//prepare history string
+	QString history = getValue("SELECT history FROM gaps WHERE id='" + id_str + "'").toString().trimmed();
+	if (!history.isEmpty()) history += "\n";
+	history += status +" (" + LoginManager::userName() + " at " + QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
+
+	SqlQuery query = getQuery();
+	query.exec("UPDATE gaps SET status='"+status+"', history='" + history + "' WHERE id='" + id_str + "'");
+}
+
 QHash<QString, QString> NGSD::cnvCallsetMetrics(int callset_id)
 {
 	QHash<QString, QString> output;
@@ -2868,6 +2929,11 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 	}
 	else //not affected
 	{
+		//diagnostic status
+		DiagnosticStatusData diag_status = getDiagnosticStatus(ps_id);
+		if (diag_status.outcome=="n/a") output[s_name] << "diagnostic status outcome unset!";
+
+		//report config
 		if (causal_diagnostic_variant_present)
 		{
 			output[s_name] << "disease status not 'Affected', but causal variant in the report configuration!";
