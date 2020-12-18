@@ -2,6 +2,7 @@
 #define DISEASECOURSEWIDGET_H
 
 #include <QWidget>
+#include <QTableWidgetItem>
 #include "VcfFile.h"
 #include "NGSD.h"
 #include "LoginManager.h"
@@ -29,6 +30,15 @@ class DiseaseCourseWidget : public QWidget
 public:
 	explicit DiseaseCourseWidget(const QString& tumor_sample_name, QWidget *parent = 0);
 	~DiseaseCourseWidget();
+
+signals:
+	void executeIGVCommands(QStringList commands);
+	void openInIGV(QString coords);
+
+protected slots:
+	void VariantDoubleClicked(QTableWidgetItem* item);
+	void copyToClipboard();
+
 
 private:
 	void getCfDNASampleIds();
