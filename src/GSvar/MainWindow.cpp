@@ -5503,7 +5503,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 		{
 			//show message to user
 			QApplication::restoreOverrideCursor();
-			QMessageBox::information(this, "IGV not running", "IGV is not running on port " + QString::number(igv_port) + ".\nIt will be started now!");
+			if (QMessageBox::information(this, "IGV not running", "IGV is not running on port " + QString::number(igv_port) + ".\nIt will be started now!", QMessageBox::Ok|QMessageBox::Default, QMessageBox::Cancel|QMessageBox::Escape)!=QMessageBox::Ok) return;
 			QApplication::setOverrideCursor(Qt::BusyCursor);
 
 			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";

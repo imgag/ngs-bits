@@ -2853,7 +2853,7 @@ void NGSD::updateGapStatus(int id, const QString& status)
 	//prepare history string
 	QString history = getValue("SELECT history FROM gaps WHERE id='" + id_str + "'").toString().trimmed();
 	if (!history.isEmpty()) history += "\n";
-	history += status +" (" + LoginManager::userName() + " at " + QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
+	history += QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") + " - " + status +" (" + LoginManager::userName() + ")";
 
 	SqlQuery query = getQuery();
 	query.exec("UPDATE gaps SET status='"+status+"', history='" + history + "' WHERE id='" + id_str + "'");
