@@ -165,7 +165,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		VariantTranscript trans = variants_[i].transcriptAnnotations(i_co_sp_).first();
 		for(const VariantTranscript& tmp_trans : variants_[i].transcriptAnnotations(i_co_sp_))
 		{
-			if(preferred_transcripts_.value(tmp_trans.gene).contains(tmp_trans.id))
+			if(preferred_transcripts_.value(tmp_trans.gene).contains(tmp_trans.idWithoutVersion()))
 			{
 				trans = tmp_trans;
 				break;

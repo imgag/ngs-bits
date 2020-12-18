@@ -579,6 +579,39 @@ QString NGSD::normalSample(const QString& processed_sample_id)
 	return processedSampleName(value.toString());
 }
 
+QStringList NGSD::sameSamples(QString sample_id, QString sample_type)
+{
+	QStringList valid_sample_types = getEnum("sample", "sample_type");
+	if (!valid_sample_types.contains(sample_type))
+	{
+		THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
+	}
+	QStringList all_same_samples;
+	SqlQuery query = getQuery();
+	query.exec("SELECT sample2_id FROM sample_relations WHERE relation='same sample' AND sample1_id='" + sample_id + "'");
+	while (query.next())
+	{
+		all_same_samples.append(query.value(0).toString());
+	}
+	query.exec("SELECT sample1_id FROM sample_relations WHERE relation='same sample' AND sample2_id='" + sample_id + "'");
+	while (query.next())
+	{
+		all_same_samples.append(query.value(0).toString());
+	}
+
+	QStringList filtered_same_samples;
+	// filter same samples by type
+	foreach(const QString& same_sample_id, all_same_samples)
+	{
+		if (getSampleData(same_sample_id).type == sample_type)
+		{
+			filtered_same_samples.append(same_sample_id);
+		}
+	}
+
+	return filtered_same_samples;
+}
+
 void NGSD::setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status)
 {
 	getQuery().exec("UPDATE sample SET disease_group='" + disease_group + "', disease_status='" + disease_status + "' WHERE id='" + sample_id + "'");
@@ -991,7 +1024,7 @@ QPair<int, int> NGSD::variantCounts(const QString& variant_id)
 	if (same_samples.isEmpty())
 	{
 		SqlQuery query = getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample'");
+		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
 		while (query.next())
 		{
 			int sample1_id = query.value(0).toInt();
@@ -2765,6 +2798,67 @@ QString NGSD::analysisJobGSvarFile(int job_id)
 	return output;
 }
 
+int NGSD::addGap(const QString& ps_id, const Chromosome& chr, int start, int end, const QString& status)
+{
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO `gaps`(`chr`, `start`, `end`, `processed_sample_id`) VALUES (:0,:1,:2,:3)");
+	query.bindValue(0, chr.strNormalized(true));
+	query.bindValue(1, start);
+	query.bindValue(2, end);
+	query.bindValue(3, ps_id);
+	query.exec();
+
+	//set status and history
+	int id = query.lastInsertId().toInt();
+	updateGapStatus(id, status);
+
+	return id;
+}
+
+int NGSD::gapId(const QString& ps_id, const Chromosome& chr, int start, int end, bool exact_match)
+{
+	if (exact_match)
+	{
+		QVariant id =  getValue("SELECT id FROM gaps WHERE processed_sample_id='" + ps_id + "' AND chr='" + chr.strNormalized(true) + "' AND start='" + QString::number(start) + "' AND end='" + QString::number(end) + "'", true);
+		if (id.isValid()) return id.toInt();
+	}
+	else
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT id, chr, start, end FROM gaps WHERE processed_sample_id='" + ps_id +"'");
+		while(query.next())
+		{
+			if (chr==query.value("chr").toString())
+			{
+				if (BasicStatistics::rangeOverlaps(start, end, query.value("start").toInt(), query.value("end").toInt()))
+				{
+					return query.value("id").toInt();
+				}
+			}
+		}
+	}
+
+	return -1;
+}
+
+void NGSD::updateGapStatus(int id, const QString& status)
+{
+	//check gap exists
+	QString id_str = QString::number(id);
+	if(getValue("SELECT EXISTS(SELECT * FROM gaps WHERE id='" + id_str + "')").toInt()==0)
+	{
+		THROW(ArgumentException, "Gap with ID '" + id_str + "' does not exist!");
+	}
+
+	//prepare history string
+	QString history = getValue("SELECT history FROM gaps WHERE id='" + id_str + "'").toString().trimmed();
+	if (!history.isEmpty()) history += "\n";
+	history += status +" (" + LoginManager::userName() + " at " + QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss");
+
+	SqlQuery query = getQuery();
+	query.exec("UPDATE gaps SET status='"+status+"', history='" + history + "' WHERE id='" + id_str + "'");
+}
+
 QHash<QString, QString> NGSD::cnvCallsetMetrics(int callset_id)
 {
 	QHash<QString, QString> output;
@@ -2993,6 +3087,11 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 	}
 	else //not affected
 	{
+		//diagnostic status
+		DiagnosticStatusData diag_status = getDiagnosticStatus(ps_id);
+		if (diag_status.outcome=="n/a") output[s_name] << "diagnostic status outcome unset!";
+
+		//report config
 		if (causal_diagnostic_variant_present)
 		{
 			output[s_name] << "disease status not 'Affected', but causal variant in the report configuration!";

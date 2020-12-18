@@ -112,8 +112,9 @@ QT_CHARTS_USE_NAMESPACE
 #include "DiseaseCourseWidget.h"
 #include "CfDNAPanelWidget.h"
 #include "ClinvarSubmissionGenerator.h"
-#include "AlleleBalanceCalculator.h"
 #include "SomaticVariantInterpreterWidget.h"
+#include "AlleleBalanceCalculator.h"
+#include "ExpressionDataWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -255,11 +256,9 @@ void MainWindow::on_actionDebug_triggered()
 		qDebug() << "Processed sample to check:" << ps_names.count();
 		QString algorithm = "GSvar_v1_noNGSD";
 		QString special = "";
-		/*
-		TsvFile file;
-		file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\+old_2020_11_18\\details_samples_pediatric.tsv");
-		foreach(QString ps, file.extractColumn(0)
-		*/
+		//TsvFile file;
+		//file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\+old_2020_11_18\\details_samples_pediatric.tsv");
+		//foreach(QString ps, file.extractColumn(0)
 		foreach(QString ps, ps_names)
 		{
 			QString ps_id = db.processedSampleId(ps);
@@ -890,6 +889,33 @@ void MainWindow::on_actionCircos_triggered()
 	//show dialog
 	CircosPlotWidget* widget = new CircosPlotWidget(filename_);
 	auto dlg = GUIHelper::createDialog(widget, "Circos Plot");
+	addModelessDialog(dlg, false);
+}
+
+void MainWindow::on_actionExpressionData_triggered()
+{
+	QString tsv_filename;
+	if (rna_count_files_.size() == 0)
+	{
+		// no rna sample found
+		return;
+	}
+	else if (rna_count_files_.size() == 1)
+	{
+		tsv_filename = rna_count_files_.at(0);
+	}
+	else
+	{
+		bool ok;
+		tsv_filename = QInputDialog::getItem(this, "Select TSV file with RNA counts", "Multiple files with RNA counts found.\nPlease select the requested TSV file:", rna_count_files_, 0, false, &ok);
+		if (!ok)
+		{
+			return;
+		}
+	}
+
+	ExpressionDataWidget* widget = new ExpressionDataWidget(tsv_filename, this);
+	auto dlg = GUIHelper::createDialog(widget, "Expression Data");
 	addModelessDialog(dlg, false);
 }
 
@@ -2336,6 +2362,42 @@ void MainWindow::loadFile(QString filename)
 
 	}
 
+	//get corresponding RNA sample:
+	rna_count_files_.clear();
+	if (LoginManager::active())
+	{
+		NGSD db;
+		QString sample_id = db.sampleId(filename_, false);
+		QStringList rna_ps_ids;
+		if (sample_id!="")
+		{
+			QStringList rna_samples = db.sameSamples(sample_id, "RNA");
+
+			foreach (const QString& rna_sample, rna_samples)
+			{
+				// get all processed samples of this rna sample
+				QStringList tmp = db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", rna_sample);
+				foreach(QString ps_id, tmp)
+				{
+					rna_ps_ids << ps_id;
+				}
+			}
+
+			//get count files
+			foreach (const QString& rna_ps_id, rna_ps_ids)
+			{
+				QString rna_counts_file_path = db.processedSamplePath(rna_ps_id, NGSD::SAMPLE_FOLDER) + "/" + db.processedSampleName(rna_ps_id) + "_counts.tsv";
+				// check if exists
+				if (QFileInfo(rna_counts_file_path).exists()) rna_count_files_ << rna_counts_file_path;
+			}
+
+			// remove duplicate files
+			rna_count_files_ = QStringList(rna_count_files_.toSet().toList());
+
+			// (de)activate expression button
+			ui_.actionExpressionData->setEnabled(rna_count_files_.size() > 0);
+		}
+	}
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -3132,7 +3194,7 @@ void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantCo
 			{
 				variant_in_pt[trans.gene] = false;
 			}
-			if (preferred_transcripts[trans.gene].contains(trans.id))
+			if (preferred_transcripts[trans.gene].contains(trans.idWithoutVersion()))
 			{
 				variant_in_pt[trans.gene] = true;
 			}
@@ -3140,7 +3202,7 @@ void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantCo
 	}
 	foreach(const VariantTranscript& trans, v.transcriptAnnotations(i_co_sp))
 	{
-		if (preferred_transcripts.contains(trans.gene) && variant_in_pt[trans.gene] && !preferred_transcripts[trans.gene].contains(trans.id))
+		if (preferred_transcripts.contains(trans.gene) && variant_in_pt[trans.gene] && !preferred_transcripts[trans.gene].contains(trans.idWithoutVersion()))
 		{
 			continue;
 		}
@@ -4936,8 +4998,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
 	foreach(const VariantTranscript& trans, transcripts)
 	{
-		QAction* action = sub_menu->addAction(trans.gene + " " + trans.id + " " + trans.hgvs_c + " " + trans.hgvs_p);
-		if (preferred_transcripts.value(trans.gene).contains(trans.id))
+		QAction* action = sub_menu->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
+		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
 		{
 			QFont font = action->font();
 			font.setBold(true);
@@ -4974,10 +5036,10 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		{
 			if  (transcript.id!="" && transcript.hgvs_c!="")
 			{
-				QAction* action = sub_menu->addAction(transcript.id + ":" + transcript.hgvs_c + " (" + transcript.gene + ")");
+				QAction* action = sub_menu->addAction(transcript.idWithoutVersion() + ":" + transcript.hgvs_c + " (" + transcript.gene + ")");
 
 				//highlight preferred transcripts
-				if (preferred_transcripts.value(transcript.gene).contains(transcript.id))
+				if (preferred_transcripts.value(transcript.gene).contains(transcript.idWithoutVersion()))
 				{
 					QFont font = action->font();
 					font.setBold(true);

@@ -80,7 +80,7 @@ RtfTable SomaticReportHelper::somaticAlterationTable(const VariantList& snvs, co
 
 			for(int j=0; j<transcripts.count(); ++j)
 			{
-				if(preferred_transcripts.value( transcripts[j].gene ).contains(transcripts[j].id) )
+				if(preferred_transcripts.value( transcripts[j].gene ).contains(transcripts[j].idWithoutVersion()) )
 				{
 					i_trans = j;
 					break;

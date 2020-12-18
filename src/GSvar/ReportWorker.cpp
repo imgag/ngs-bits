@@ -74,7 +74,7 @@ QString ReportWorker::formatCodingSplicing(const QList<VariantTranscript>& trans
 
 		output.append(line);
 
-        if (preferred_transcripts.value(trans.gene).contains(trans.id))
+		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
 		{
 			output_pt.append(line);
 		}
@@ -342,7 +342,7 @@ BedFile ReportWorker::precalculatedGaps(QString bam_file, const BedFile& roi, in
 
 	//find low-coverage file
 	QString dir = QFileInfo(bam_file).absolutePath();
-	QStringList low_cov_files = Helper::findFiles(dir, "*_lowcov.bed", false);
+	QStringList low_cov_files = Helper::findFiles(dir, "*_lowcov.bed", false); //TODO use NGSD/GSvarServer to get the file
 	if(low_cov_files.count()!=1)
 	{
 		message = "Low-coverage file does not exist in " + dir;

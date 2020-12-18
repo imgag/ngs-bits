@@ -17,7 +17,7 @@ public:
 	DBTableWidget(QWidget* parent = 0);
 
 	//Set table data
-	void setData(const DBTable& table);
+	void setData(const DBTable& table, int max_col_width=200);
 	//returns the column index, or throws ArgumentException if column is not present.
 	int columnIndex(const QString& column_header) const;
 	//returns the column name, or throws ArgumentException if column is not present.

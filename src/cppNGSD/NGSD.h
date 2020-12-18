@@ -606,11 +606,11 @@ public:
 	///If throw_if_false == false it returns -1 if user is not found
 	int userId(QString user_name, bool only_active=false, bool throw_if_fails = true);
 	///Returns the user login corresponding the given ID.
-	QString userLogin(int user_id=-1);
+	QString userLogin(int user_id);
 	///Returns the user name corresponding the given ID.
-	QString userName(int user_id=-1);
+	QString userName(int user_id);
 	///Returns the user email corresponding the given ID.
-	QString userEmail(int user_id=-1);
+	QString userEmail(int user_id);
 	///Replacement for passwords when they are shown in the GUI.
 	static const QString& passwordReplacement();
 	///Checks if the given user/password tuple is correct. If ok, returns an empty string. If not, returns an error message.
@@ -627,6 +627,9 @@ public:
 	ProcessedSampleData getProcessedSampleData(const QString& processed_sample_id);
 	///Returns the normal processed sample corresponding to a tumor processed sample, or "" if no normal samples is defined.
 	QString normalSample(const QString& processed_sample_id);
+
+	///Returns the corresponding same sample id(s) of a given type
+	QStringList sameSamples(QString sample_id, QString sample_type);
 
 	///Returns sample disease details from the database.
 	QList<SampleDiseaseInfo> getSampleDiseaseInfo(const QString& sample_id, QString only_type="");
@@ -739,6 +742,13 @@ public:
 	QString analysisJobFolder(int job_id);
 	///Returns the GSVar file of an analysis job.
 	QString analysisJobGSvarFile(int job_id);
+
+	///Adds a gap for a sample and returns the gap ID.
+	int addGap(const QString& ps_id, const Chromosome& chr, int start, int end, const QString& status);
+	///Returns the gap ID. If no matching gap is found, -1 is returned.
+	int gapId(const QString& ps_id, const Chromosome& chr, int start, int end, bool exact_match=true);
+	///Updates the status of a gap.
+	void updateGapStatus(int id, const QString& status);
 
 	///Returns quality metric for a CNV callsets (all metrics for a single sample)
 	QHash<QString, QString> cnvCallsetMetrics(int callset_id);

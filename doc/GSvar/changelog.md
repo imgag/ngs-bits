@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2020_12-1 (15.12.20)
+- General: Added support for ENSEMBL transcript identifiers with version number.
+
 ### 2020_09-96 (11.12.20)
 - IGV: IGV is now started automatically from GSvar (with a user-specific port if NGSD is enabled).
 - Report: Added meta data check before a report can be created.

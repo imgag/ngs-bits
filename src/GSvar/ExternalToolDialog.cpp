@@ -138,8 +138,7 @@ void ExternalToolDialog::browse()
 
 			stream << "Variants file1: " << QString::number(sc.noVariants1()) << endl;
 			stream << "Variants file2: " << QString::number(sc.noVariants2()) << endl;
-			double percentage = 100.0 * sc.olCount() / std::min(sc.noVariants1(), sc.noVariants2());
-			stream << "Variants overlapping: " << QString::number(sc.olCount()) << " (" << QString::number(percentage, 'f', 2) << "%)" << endl;
+			stream << "Variants overlapping: " << QString::number(sc.olCount()) << " (" << sc.olPerc() << "%)" << endl;
 			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
 		}
 		QApplication::restoreOverrideCursor();

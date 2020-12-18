@@ -26,6 +26,7 @@ analysis_steps_somatic=vc - variant calling, vi - virus detection, cn - copy num
 #webservice URLs
 PrimerDesign = ""
 Alamut = ""
+liftover_webservice = ""
 
 #proxy settings for GSvar
 proxy_host = ""
@@ -34,7 +35,6 @@ proxy_port =
 #special folders for GSvar
 gsvar_report_folder = ""
 gsvar_report_archive = ""
-gsvar_gap_folder = ""
 gsvar_xml_folder = ""
 gsvar_publication_folder = ""
 gsvar_variantsheet_folder = ""
