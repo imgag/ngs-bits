@@ -5007,7 +5007,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QAction* a_var_class_somatic = menu.addAction("Edit classification  (somatic)");
 	a_var_class_somatic->setEnabled(ngsd_user_logged_in);
 	QAction * a_var_interpretation_somatic = menu.addAction("Edit VICC interpretation (somatic)");
-	a_var_interpretation_somatic->setEnabled(ngsd_user_logged_in);
 	QAction* a_var_comment = menu.addAction("Edit comment");
 	a_var_comment->setEnabled(ngsd_user_logged_in);
 	QAction* a_var_val = menu.addAction("Perform variant validation");
@@ -5429,7 +5428,7 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 void MainWindow::editSomaticVariantInterpretation(const VariantList &vl, int index)
 {
 	SomaticVariantInterpreterWidget* interpreter = new SomaticVariantInterpreterWidget(vl[index], vl, this);
-	auto dlg = GUIHelper::createDialog(interpreter, "Somatic Variant Interpretation", "", true);
+	auto dlg = GUIHelper::createDialog(interpreter, "Somatic Variant Interpretation");
 	if(!dlg->exec()) return;
 
 }

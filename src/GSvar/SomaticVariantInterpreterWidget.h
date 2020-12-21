@@ -36,6 +36,7 @@ signals:
 
 public slots:
 	void disableGUI();
+	void disableNGSD();
 
 	///calculates score based on checkboxes of widget.
 	void predict();
@@ -46,7 +47,7 @@ public slots:
 	///preselects radio buttons depending on input variant annotation
 	void preselectFromInputAnno();
 	///preselects radio buttons based on VICC interpretation stored in NGSD
-	void preselectFromNGSD();
+	bool preselectFromNGSD();
 
 private slots:
 	///disables selection option depending on other selected properties
@@ -55,6 +56,8 @@ private slots:
 	void storeInNGSD();
 	///preselects radiobutton according parameters in input SomaticViccData
 	void preselect(const SomaticViccData& data);
+	///sets labels for metadata stored in NGSD (created by, comment...)
+	void setNGSDMetaData();
 };
 
 #endif // SOMATICVARIANTINTERPRETERWIDGET_H

@@ -17,6 +17,8 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(const Variant& 
 		disableGUI();
 	}
 
+	if(!LoginManager::active()) disableNGSD();
+
 	for(QButtonGroup* buttongroup: findChildren<QButtonGroup*>(QRegularExpression("^benign_*|onco_*")) )
 	{
 		connect(buttongroup, SIGNAL(buttonToggled(int,bool)), this, SLOT(disableUnapplicableParameters()));
@@ -32,8 +34,11 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(const Variant& 
 	connect(ui_->button_store_in_ngsd, SIGNAL(clicked(bool)), this, SLOT(storeInNGSD()));
 
 
-	//Preselect form values according annotations
-	preselectFromInputAnno();
+	//Preselect from NGSD, if not existing according annotations
+	if( !preselectFromNGSD() )	preselectFromInputAnno();
+
+	//load NGSD metadata
+	setNGSDMetaData();
 
 }
 
@@ -50,6 +55,17 @@ void SomaticVariantInterpreterWidget::disableGUI()
 		radiobutton->setChecked(false);
 		radiobutton->setEnabled(false);
 	}
+}
+
+void SomaticVariantInterpreterWidget::disableNGSD()
+{
+	ui_->label_result_in_ngsd->setText("NGSD disabled");
+	ui_->label_result_in_ngsd->setStyleSheet("color: gray");
+
+	ui_->comment->setEnabled(false);
+	ui_->button_select_from_NGSD->setEnabled(false);
+	ui_->button_store_in_ngsd->setEnabled(false);
+
 }
 
 SomaticViccData SomaticVariantInterpreterWidget::getParameters()
@@ -89,6 +105,8 @@ SomaticViccData SomaticVariantInterpreterWidget::getParameters()
 		if(button_group->objectName() == "benign_synonymous_mutation") out.synonymous_mutation = state;
 	}
 
+	out.comment = ui_->comment->toPlainText();
+
 	return out;
 }
 
@@ -111,6 +129,11 @@ void SomaticVariantInterpreterWidget::preselect(const SomaticViccData &data)
 	setSelection("benign_high_maf", data.high_maf);
 	setSelection("benign_benign_computational_evidence", data.benign_computational_evidence);
 	setSelection("benign_synonymous_mutation", data.synonymous_mutation);
+
+	ui_->comment->setText(data.comment);
+
+	//predict new VICC score after all radio buttons were set
+	predict();
 }
 
 void SomaticVariantInterpreterWidget::preselectFromInputAnno()
@@ -119,20 +142,21 @@ void SomaticVariantInterpreterWidget::preselectFromInputAnno()
 	preselect(preselection);
 }
 
-void SomaticVariantInterpreterWidget::preselectFromNGSD()
+bool SomaticVariantInterpreterWidget::preselectFromNGSD()
 {
-	if(!LoginManager::active()) return;
+	if(!LoginManager::active()) return false;
 	NGSD db;
 	int id = db.getSomaticViccId(snv_);
-	if(id == -1 ) return;
+	if(id == -1 ) return false;
 	preselect(db.getSomaticViccData(snv_) );
+	return true;
 }
 
 void SomaticVariantInterpreterWidget::predict()
 {
 	QString result = SomaticVariantInterpreter::viccScoreAsString(getParameters());
 
-	ui_->label_vicc_score->setText(result);
+	ui_->label_live_result->setText(result);
 }
 
 void SomaticVariantInterpreterWidget::disableUnapplicableParameters()
@@ -177,6 +201,9 @@ void SomaticVariantInterpreterWidget::storeInNGSD()
 	{
 		QMessageBox::warning(this, "Could not store somatic VICC interpretation", "Could not store somatic VICC interpretation in NGSD. Error message: " + e.message());
 	}
+
+	//update NGSD meta data labels
+	setNGSDMetaData();
 }
 
 
@@ -213,4 +240,31 @@ void SomaticVariantInterpreterWidget::setSelectionEnabled(QString name, bool sta
 		radiobutton->setEnabled(state);
 		if(radiobutton->text() == "unapplicable" && state == false) radiobutton->setChecked(true);
 	}
+}
+
+void SomaticVariantInterpreterWidget::setNGSDMetaData()
+{
+	if(!LoginManager::active()) return;
+	NGSD db;
+
+	if(db.getSomaticViccId(snv_) == -1) return;
+
+	SomaticViccData vicc_from_ngsd;
+	try
+	{
+		vicc_from_ngsd = db.getSomaticViccData(snv_);
+	}
+	catch(Exception)
+	{
+		return; //Do nothing in case of error
+	}
+
+	ui_->label_result_in_ngsd->setText( SomaticVariantInterpreter::viccScoreAsString(vicc_from_ngsd) );
+
+
+	ui_->label_creation_date->setText(vicc_from_ngsd.created_at.toString("yyyy-MM-dd hh:mm:ss"));
+	ui_->label_created_by->setText(vicc_from_ngsd.created_by);
+	ui_->label_last_update_by->setText(vicc_from_ngsd.last_updated_by);
+	ui_->label_last_update_date->setText(vicc_from_ngsd.last_updated_at.toString("yyyy-MM-dd hh:mm:ss"));
+	ui_->label_comment->setText(vicc_from_ngsd.comment);
 }
