@@ -5412,7 +5412,6 @@ void MainWindow::editSomaticVariantInterpretation(const VariantList &vl, int ind
 	auto dlg = GUIHelper::createDialog(interpreter, "Somatic Variant Interpretation", "", true);
 	if(!dlg->exec()) return;
 
-	//TODO: store results into NGSD
 }
 
 QString MainWindow::cnvFile(QString gsvar_file)

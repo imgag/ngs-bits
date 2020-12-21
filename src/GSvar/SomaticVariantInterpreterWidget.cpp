@@ -1,5 +1,8 @@
 #include "SomaticVariantInterpreterWidget.h"
 #include "ui_SomaticVariantInterpreterWidget.h"
+#include "LoginManager.h"
+#include "NGSD.h"
+#include "QMessageBox"
 #include <QDebug>
 
 SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(const Variant& var, const VariantList& vl, QWidget *parent): QWidget(parent),
@@ -20,20 +23,17 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(const Variant& 
 		connect(buttongroup, SIGNAL(buttonToggled(int,bool)), this, SLOT(predict()));
 	}
 
+	ui_->label_variant->setText(var.toString(true));
 
-	ui_->variant_label->setText(var.toString(true));
+
+	//connect buttons
+	connect(ui_->button_select_from_input_anno, SIGNAL(clicked(bool)), this, SLOT(preselectFromInputAnno()));
+	connect(ui_->button_select_from_NGSD, SIGNAL(clicked(bool)), this, SLOT(preselectFromNGSD()));
+	connect(ui_->button_store_in_ngsd, SIGNAL(clicked(bool)), this, SLOT(storeInNGSD()));
+
 
 	//Preselect form values according annotations
-	SomaticViccData preselection = SomaticVariantInterpreter::predictViccValue(vl_, snv_);
-	setSelection("onco_null_mutation_in_tsg", preselection.null_mutation_in_tsg);
-	setSelection("onco_known_oncogenic_aa", preselection.known_oncogenic_aa);
-	setSelection("onc_oncogenic_functional_studies", preselection.oncogenic_functional_studies);
-	setSelection("onco_strong_cancerhotspot", preselection.strong_cancerhotspot);
-	setSelection("onco_located_in_canerhotspot", preselection.located_in_canerhotspot);
-	setSelection("onco_absent_from_controls", preselection.absent_from_controls);
-	setSelection("onco_protein_length_change", preselection.protein_length_change);
-	setSelection("onco_other_aa_known_oncogenic", preselection.other_aa_known_oncogenic);
-	setSelection("onco_weak_cancerhotspot", preselection.weak_cancerhotspot);
+	preselectFromInputAnno();
 
 }
 
@@ -92,6 +92,42 @@ SomaticViccData SomaticVariantInterpreterWidget::getParameters()
 	return out;
 }
 
+void SomaticVariantInterpreterWidget::preselect(const SomaticViccData &data)
+{
+	setSelection("onco_null_mutation_in_tsg", data.null_mutation_in_tsg);
+	setSelection("onco_known_oncogenic_aa", data.known_oncogenic_aa);
+	setSelection("onc_oncogenic_functional_studies", data.oncogenic_functional_studies);
+	setSelection("onco_strong_cancerhotspot", data.strong_cancerhotspot);
+	setSelection("onco_located_in_canerhotspot", data.located_in_canerhotspot);
+	setSelection("onco_absent_from_controls", data.absent_from_controls);
+	setSelection("onco_protein_length_change", data.protein_length_change);
+	setSelection("onco_other_aa_known_oncogenic", data.other_aa_known_oncogenic);
+	setSelection("onco_weak_cancerhotspot", data.weak_cancerhotspot);
+	setSelection("onco_computational_evidence", data.computational_evidence);
+	setSelection("onco_mutation_in_gene_with_etiology", data.mutation_in_gene_with_etiology);
+	setSelection("onco_very_weak_cancerhotspot", data.very_weak_cancerhotspot);
+	setSelection("benign_very_high_maf", data.very_high_maf);
+	setSelection("benign_benign_functional_studies", data.benign_functional_studies);
+	setSelection("benign_high_maf", data.high_maf);
+	setSelection("benign_benign_computational_evidence", data.benign_computational_evidence);
+	setSelection("benign_synonymous_mutation", data.synonymous_mutation);
+}
+
+void SomaticVariantInterpreterWidget::preselectFromInputAnno()
+{
+	SomaticViccData preselection = SomaticVariantInterpreter::predictViccValue(vl_, snv_);
+	preselect(preselection);
+}
+
+void SomaticVariantInterpreterWidget::preselectFromNGSD()
+{
+	if(!LoginManager::active()) return;
+	NGSD db;
+	int id = db.getSomaticViccId(snv_);
+	if(id == -1 ) return;
+	preselect(db.getSomaticViccData(snv_) );
+}
+
 void SomaticVariantInterpreterWidget::predict()
 {
 	QString result = SomaticVariantInterpreter::viccScoreAsString(getParameters());
@@ -124,6 +160,23 @@ void SomaticVariantInterpreterWidget::disableUnapplicableParameters()
 	}
 	else setSelectionEnabled("onco_weak_cancerhotspot", true);
 
+}
+
+void SomaticVariantInterpreterWidget::storeInNGSD()
+{
+	if(!LoginManager::active()) return;
+	NGSD db;
+
+	SomaticViccData vicc_data = getParameters();
+	if(!vicc_data.isValid()) return;
+	try
+	{
+		db.setSomaticViccData(snv_, vicc_data, LoginManager::user());
+	}
+	catch(Exception e)
+	{
+		QMessageBox::warning(this, "Could not store somatic VICC interpretation", "Could not store somatic VICC interpretation in NGSD. Error message: " + e.message());
+	}
 }
 
 

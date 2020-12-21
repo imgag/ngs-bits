@@ -2528,6 +2528,8 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 		THROW(ArgumentException, "Cannot set somatic VICC data for variant " + variant.toString() + " because VICC data is invalid");
 	}
 
+	QString variant_id = variantId(variant);
+
 	SqlQuery query = getQuery();
 
 	//this lambda binds all values needed for both inserting and updating
@@ -2571,7 +2573,7 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 		query.prepare("INSERT INTO `somatic_vicc_interpretation` (`null_mutation_in_tsg`, `known_oncogenic_aa`, `strong_cancerhotspot`, `located_in_canerhotspot`,  `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `comment`, `last_edit_by`, `last_edit_date`, `created_by`, `created_date`, `variant_id`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, CURRENT_TIMESTAMP, :18, CURRENT_TIMESTAMP, :19)");
 		bind();
 		query.bindValue(18, userId(user_name) );
-		query.bindValue(19, variantId(variant));
+		query.bindValue(19, variant_id);
 		query.exec();
 	}
 }

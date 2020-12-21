@@ -43,9 +43,18 @@ public slots:
 	///returns parameters selected by user
 	SomaticViccData getParameters();
 
+	///preselects radio buttons depending on input variant annotation
+	void preselectFromInputAnno();
+	///preselects radio buttons based on VICC interpretation stored in NGSD
+	void preselectFromNGSD();
+
 private slots:
 	///disables selection option depending on other selected properties
 	void disableUnapplicableParameters();
+	///stores/updates VICC interpretation in NGSD
+	void storeInNGSD();
+	///preselects radiobutton according parameters in input SomaticViccData
+	void preselect(const SomaticViccData& data);
 };
 
 #endif // SOMATICVARIANTINTERPRETERWIDGET_H
