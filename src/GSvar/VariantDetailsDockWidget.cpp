@@ -221,6 +221,26 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->somatic_cancerhotspots, vl, index, "CANCERHOTSPOTS_AA_CHANGE");
 	setAnnotation(ui->somatic_cmc_class, vl, index, "CMC_mutation_significance");
 
+	//somatic VICC data from NGSD
+	if(!LoginManager::active())
+	{
+		ui->somatic_vicc_score->setText("n/a (NGSD disabled)");
+		ui->somatic_vicc_score->setStyleSheet("color: gray");
+	}
+	else
+	{
+		NGSD db;
+		if(db.getSomaticViccId(vl[index]) != -1)
+		{
+			ui->somatic_vicc_score->setText( SomaticVariantInterpreter::viccScoreAsString(db.getSomaticViccData(vl[index])) );
+		}
+		else
+		{
+			ui->somatic_vicc_score->setText("n/a");
+		}
+		ui->somatic_vicc_score->setStyleSheet("color: black");
+	}
+
 	//update NGSD button
 	ui->var_btn->setEnabled(LoginManager::active());
 }
