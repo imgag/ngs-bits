@@ -35,7 +35,6 @@ private:
 signals:
 
 public slots:
-	void disableGUI();
 	void disableNGSD();
 
 	///calculates score based on checkboxes of widget.

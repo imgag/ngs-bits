@@ -12,11 +12,6 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(const Variant& 
 {
 	ui_->setupUi(this);
 
-	if(!SomaticVariantInterpreter::checkAnnoForPrediction(vl))
-	{
-		disableGUI();
-	}
-
 	if(!LoginManager::active()) disableNGSD();
 
 	for(QButtonGroup* buttongroup: findChildren<QButtonGroup*>(QRegularExpression("^benign_*|onco_*")) )
@@ -45,16 +40,6 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(const Variant& 
 SomaticVariantInterpreterWidget::~SomaticVariantInterpreterWidget()
 {
 	delete ui_;
-}
-
-void SomaticVariantInterpreterWidget::disableGUI()
-{
-	QList<QRadioButton*> radiobuttons = findChildren<QRadioButton*>();
-	for(auto radiobutton : radiobuttons)
-	{
-		radiobutton->setChecked(false);
-		radiobutton->setEnabled(false);
-	}
 }
 
 void SomaticVariantInterpreterWidget::disableNGSD()
@@ -114,7 +99,7 @@ void SomaticVariantInterpreterWidget::preselect(const SomaticViccData &data)
 {
 	setSelection("onco_null_mutation_in_tsg", data.null_mutation_in_tsg);
 	setSelection("onco_known_oncogenic_aa", data.known_oncogenic_aa);
-	setSelection("onc_oncogenic_functional_studies", data.oncogenic_functional_studies);
+	setSelection("onco_oncogenic_functional_studies", data.oncogenic_functional_studies);
 	setSelection("onco_strong_cancerhotspot", data.strong_cancerhotspot);
 	setSelection("onco_located_in_canerhotspot", data.located_in_canerhotspot);
 	setSelection("onco_absent_from_controls", data.absent_from_controls);
@@ -138,6 +123,13 @@ void SomaticVariantInterpreterWidget::preselect(const SomaticViccData &data)
 
 void SomaticVariantInterpreterWidget::preselectFromInputAnno()
 {
+	if(!SomaticVariantInterpreter::checkAnnoForPrediction(vl_))
+	{
+		ui_->label_status->setText("Cannot preselect from annotations.");
+		ui_->label_status->setStyleSheet("color: red");
+		return;
+	}
+
 	SomaticViccData preselection = SomaticVariantInterpreter::predictViccValue(vl_, snv_);
 	preselect(preselection);
 }
