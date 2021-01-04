@@ -2562,9 +2562,10 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 		query.bindValue(17 , userId(user_name) );
 	};
 
-	if(getSomaticViccId(variant) != -1) //update data set
+	int vicc_id = getSomaticViccId(variant);
+	if(vicc_id != -1) //update data set
 	{
-		query.prepare("UPDATE `somatic_vicc_interpretation` SET  `null_mutation_in_tsg`=:0, `known_oncogenic_aa`=:1, `strong_cancerhotspot`=:2, `located_in_canerhotspot`=:3,  `absent_from_controls`=:4, `protein_length_change`=:5, `other_aa_known_oncogenic`=:6, `weak_cancerhotspot`=:7, `computational_evidence`=:8, `mutation_in_gene_with_etiology`=:9, `very_weak_cancerhotspot`=:10, `very_high_maf`=:11, `benign_functional_studies`=:12, `high_maf`=:13, `benign_computational_evidence`=:14, `synonymous_mutation`=:15, `comment`=:16, `last_edit_by`=:17, `last_edit_date`= CURRENT_TIMESTAMP");
+		query.prepare("UPDATE `somatic_vicc_interpretation` SET  `null_mutation_in_tsg`=:0, `known_oncogenic_aa`=:1, `strong_cancerhotspot`=:2, `located_in_canerhotspot`=:3,  `absent_from_controls`=:4, `protein_length_change`=:5, `other_aa_known_oncogenic`=:6, `weak_cancerhotspot`=:7, `computational_evidence`=:8, `mutation_in_gene_with_etiology`=:9, `very_weak_cancerhotspot`=:10, `very_high_maf`=:11, `benign_functional_studies`=:12, `high_maf`=:13, `benign_computational_evidence`=:14, `synonymous_mutation`=:15, `comment`=:16, `last_edit_by`=:17, `last_edit_date`= CURRENT_TIMESTAMP WHERE `id`=" + QByteArray::number(vicc_id) );
 		bind();
 		query.exec();
 	}

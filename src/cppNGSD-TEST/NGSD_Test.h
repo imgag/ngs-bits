@@ -1662,6 +1662,12 @@ private slots:
 		S_EQUAL(new_vicc_result.comment, "This is a benign somatic variant.");
 
 		I_EQUAL(db.getSomaticViccId(Variant("chr17", 59763465, 59763465, "T", "C")), 3);
+
+
+		//When updating one variant, all other data sets must not change (test case initially created for Bugfix)
+		db.setSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C"), new_vicc_data, "ahkerra1");
+		SomaticViccData vicc_data3 = db.getSomaticViccData( Variant("chr15", 43707808, 43707808, "A", "T") );
+		S_EQUAL(vicc_data3.comment, vicc_data2.comment);
 	}
 
 
