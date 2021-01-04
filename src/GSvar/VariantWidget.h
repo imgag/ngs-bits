@@ -27,6 +27,7 @@ private slots:
 	void openProcessedSampleTab();
 	void openGSvarFile();
 	void editClassification();
+	void gnomadClicked(QString var_id);
 
 private:
 	Ui::VariantWidget ui_;

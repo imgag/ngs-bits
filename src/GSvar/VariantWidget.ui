@@ -62,7 +62,7 @@
         <string>...</string>
        </property>
        <property name="icon">
-        <iconset>
+        <iconset resource="GSvar.qrc">
          <normaloff>:/Icons/Refresh.png</normaloff>:/Icons/Refresh.png</iconset>
        </property>
        <property name="shortcut">
@@ -120,6 +120,9 @@
         <property name="text">
          <string/>
         </property>
+        <property name="openExternalLinks">
+         <bool>false</bool>
+        </property>
         <property name="textInteractionFlags">
          <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
         </property>
@@ -140,12 +143,15 @@
         <property name="text">
          <string/>
         </property>
+        <property name="openExternalLinks">
+         <bool>false</bool>
+        </property>
         <property name="textInteractionFlags">
          <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="label_7">
         <property name="text">
          <string>comments:</string>
@@ -155,7 +161,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="6" column="1">
        <widget class="QLabel" name="comments">
         <property name="text">
          <string/>
@@ -168,7 +174,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="7" column="0">
        <widget class="QLabel" name="label_6">
         <property name="text">
          <string>transcripts:</string>
@@ -178,7 +184,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="7" column="1">
        <widget class="QLabel" name="transcripts">
         <property name="text">
          <string/>
@@ -217,6 +223,34 @@
        <widget class="QLabel" name="label_5">
         <property name="text">
          <string>Name:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>NGSD (het):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>NGSD (hom):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLabel" name="ngsd_het">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLabel" name="ngsd_hom">
+        <property name="text">
+         <string/>
         </property>
        </widget>
       </item>
@@ -276,7 +310,7 @@
          <string>...</string>
         </property>
         <property name="icon">
-         <iconset>
+         <iconset resource="GSvar.qrc">
           <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
         </property>
        </widget>
@@ -476,7 +510,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset>
+           <iconset resource="GSvar.qrc">
             <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
           </property>
           <property name="shortcut">
@@ -491,6 +525,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
  <connections/>
 </ui>
