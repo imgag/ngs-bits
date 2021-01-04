@@ -724,7 +724,7 @@ void MainWindow::on_actionSV_triggered()
 		{
 			list = new SvWidget(svs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_, this);
 		}
-		auto dlg = GUIHelper::createDialog(list, "Structural variants");
+		auto dlg = GUIHelper::createDialog(list, "Structural variants of " + processedSampleName());
 		connect(list,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
 		connect(list,SIGNAL(openGeneTab(QString)),this,SLOT(openGeneTab(QString)));
 		addModelessDialog(dlg);
@@ -805,7 +805,7 @@ void MainWindow::on_actionCNV_triggered()
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	connect(list, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	connect(list, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
-	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
+	auto dlg = GUIHelper::createDialog(list, "Copy number variants of " + processedSampleName());
 	addModelessDialog(dlg, true);
 }
 
@@ -856,7 +856,7 @@ void MainWindow::on_actionROH_triggered()
 
 	RohWidget* list = new RohWidget(filename, ui_.filters);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	auto dlg = GUIHelper::createDialog(list, "Runs of homozygosity");
+	auto dlg = GUIHelper::createDialog(list, "Runs of homozygosity of " + processedSampleName());
 	addModelessDialog(dlg);
 }
 
@@ -932,13 +932,14 @@ void MainWindow::on_actionRE_triggered()
 		bool is_exome = false;
 		if (LoginManager::active())
 		{
-			QString ps_id = NGSD().processedSampleId(filename_, false);
-			if (ps_id != "") is_exome = (NGSD().getProcessedSampleData(ps_id).processing_system_type == "WES");
+			NGSD db;
+			QString ps_id = db.processedSampleId(processedSampleName(), false);
+			is_exome = ps_id!="" && db.getProcessedSampleData(ps_id).processing_system_type=="WES";
 		}
 
 		//show dialog
 		RepeatExpansionWidget* widget = new RepeatExpansionWidget(re_file_name, is_exome);
-		auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions");
+		auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions of " + processedSampleName());
 		addModelessDialog(dlg, false);
 	}
 	else

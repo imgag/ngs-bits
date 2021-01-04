@@ -188,3 +188,29 @@ BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end)
 
 	return region;
 }
+
+QString GSvarHelper::gnomaADLink(const Variant& v)
+{
+	QString url = "http://gnomad.broadinstitute.org/variant/" + v.chr().strNormalized(false) + "-";
+
+	if (v.obs()=="-") //deletion
+	{
+		int pos = v.start()-1;
+		FastaFileIndex idx(Settings::string("reference_genome"));
+		QString base = idx.seq(v.chr(), pos, 1);
+		url += QString::number(pos) + "-" + base + v.ref() + "-" + base;
+	}
+	else if (v.ref()=="-") //insertion
+	{
+		int pos = v.start();
+		FastaFileIndex idx(Settings::string("reference_genome"));
+		QString base = idx.seq(v.chr(), pos, 1);
+		url += QString::number(v.start()) + "-" + base + "-" + base + v.obs();
+	}
+	else //snv
+	{
+		url += QString::number(v.start()) + "-" + v.ref() + "-" + v.obs();
+	}
+
+	return url;
+}
