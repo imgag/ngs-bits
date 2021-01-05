@@ -3,6 +3,7 @@
 
 #include "GeneSet.h"
 #include "BedFile.h"
+#include "VariantList.h"
 #include <QTableWidgetItem>
 
 ///Helper class for GSvar
@@ -29,7 +30,11 @@ public:
 	//Returns the file path to the Manta evididence file for a given BAM file.
 	static QString getEvidenceFile(const QString& bam_file);
 
+	//Lift-over from GRCh37 to GRCh38
 	static BedLine liftOver(const Chromosome& chr, int start, int end);
+
+	//Returns gnomAD link for a variant
+	static QString gnomaADLink(const Variant& v);
 
 protected:
 	GSvarHelper() = delete;

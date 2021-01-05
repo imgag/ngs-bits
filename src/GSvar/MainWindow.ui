@@ -1209,10 +1209,10 @@
   </action>
   <action name="actionCfDNADiseaseCourse">
    <property name="text">
-    <string>Show course of the disease (personalized cfDNA)</string>
+    <string>Show personalized cfDNA panel analysis</string>
    </property>
    <property name="toolTip">
-    <string>Show course of the disease (personalized cfDNA)</string>
+    <string>Show personalized cfDNA panel analysis</string>
    </property>
   </action>
   <action name="actionShowCfDNAPanel">

@@ -60,7 +60,11 @@
      <item>
       <widget class="QPushButton" name="text_filter_btn">
        <property name="text">
-        <string>search</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/Refresh.png</normaloff>:/Icons/Refresh.png</iconset>
        </property>
       </widget>
      </item>

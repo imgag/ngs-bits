@@ -325,7 +325,7 @@ void CnvWidget::updateGUI()
 	}
 
 	//resize columns
-	GUIHelper::resizeTableCells(ui->cnvs, 200);
+	GUIHelper::resizeTableCells(ui->cnvs, 200, true, 100);
 
 	//update quality from NGSD
 	updateQuality();

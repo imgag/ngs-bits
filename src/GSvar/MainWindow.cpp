@@ -720,7 +720,7 @@ void MainWindow::on_actionSV_triggered()
 		{
 			list = new SvWidget(svs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_, this);
 		}
-		auto dlg = GUIHelper::createDialog(list, "Structural variants");
+		auto dlg = GUIHelper::createDialog(list, "Structural variants of " + processedSampleName());
 		connect(list,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
 		connect(list,SIGNAL(openGeneTab(QString)),this,SLOT(openGeneTab(QString)));
 		addModelessDialog(dlg);
@@ -801,7 +801,7 @@ void MainWindow::on_actionCNV_triggered()
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	connect(list, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	connect(list, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
-	auto dlg = GUIHelper::createDialog(list, "Copy number variants");
+	auto dlg = GUIHelper::createDialog(list, "Copy number variants of " + processedSampleName());
 	addModelessDialog(dlg, true);
 }
 
@@ -852,7 +852,7 @@ void MainWindow::on_actionROH_triggered()
 
 	RohWidget* list = new RohWidget(filename, ui_.filters);
 	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	auto dlg = GUIHelper::createDialog(list, "Runs of homozygosity");
+	auto dlg = GUIHelper::createDialog(list, "Runs of homozygosity of " + processedSampleName());
 	addModelessDialog(dlg);
 }
 
@@ -928,13 +928,14 @@ void MainWindow::on_actionRE_triggered()
 		bool is_exome = false;
 		if (LoginManager::active())
 		{
-			QString ps_id = NGSD().processedSampleId(filename_, false);
-			if (ps_id != "") is_exome = (NGSD().getProcessedSampleData(ps_id).processing_system_type == "WES");
+			NGSD db;
+			QString ps_id = db.processedSampleId(processedSampleName(), false);
+			is_exome = ps_id!="" && db.getProcessedSampleData(ps_id).processing_system_type=="WES";
 		}
 
 		//show dialog
 		RepeatExpansionWidget* widget = new RepeatExpansionWidget(re_file_name, is_exome);
-		auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions");
+		auto dlg = GUIHelper::createDialog(widget, "Repeat Expansions of " + processedSampleName());
 		addModelessDialog(dlg, false);
 	}
 	else
@@ -971,8 +972,13 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 
 	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
-	QSharedPointer<CfDNAPanelDesignDialog> dialog = QSharedPointer<CfDNAPanelDesignDialog>(new CfDNAPanelDesignDialog(variants_, somatic_report_settings_.report_config, processedSampleName(), cfdna_processing_systems, this));
+	QSharedPointer<CfDNAPanelDesignDialog> dialog = QSharedPointer<CfDNAPanelDesignDialog>(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config,
+																													  processedSampleName(), cfdna_processing_systems, this));
 	dialog->setWindowFlags(Qt::Window);
+
+	// link IGV
+	connect(&*dialog,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
+
 	addModelessDialog(dialog, false);
 }
 
@@ -998,7 +1004,7 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 	if (bed_files.empty())
 	{
 		// show message
-		GUIHelper::showMessage("No cfDNA panel found!", "No cfDNA sample were found for the given tumor sample!");
+		GUIHelper::showMessage("No cfDNA panel found!", "No cfDNA panel was found for the given tumor sample!");
 		return;
 	}
 	else if (bed_files.size() > 1)
@@ -1033,7 +1039,12 @@ void MainWindow::on_actionCfDNADiseaseCourse_triggered()
 	if (!somaticReportSupported()) return;
 
 	DiseaseCourseWidget* widget = new DiseaseCourseWidget(processedSampleName());
-	auto dlg = GUIHelper::createDialog(widget, "Course of the disease (personalized cfDNA)");
+	auto dlg = GUIHelper::createDialog(widget, "Personalized cfDNA variants");
+
+	// link IGV
+	connect(widget,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
+	connect(widget,SIGNAL(executeIGVCommands(QStringList)),this,SLOT(executeIGVCommands(QStringList)));
+
 	addModelessDialog(dlg, false);
 }
 
@@ -1305,6 +1316,11 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 		if (!text.startsWith("custom track:")) continue;
 		dlg.addFile(text, "custom track", action->toolTip().replace("custom track:", "").trimmed(), action->isChecked());
 	}
+
+	// switch to MainWindow to prevent dialog to appear behind other widgets
+	raise();
+	activateWindow();
+	setFocus();
 
 	//execute dialog
 	if (!dlg.exec()) return false;
@@ -2396,6 +2412,11 @@ void MainWindow::loadFile(QString filename)
 			// (de)activate expression button
 			ui_.actionExpressionData->setEnabled(rna_count_files_.size() > 0);
 		}
+	}
+	else
+	{
+		// deactivate in offline mode
+		ui_.actionExpressionData->setEnabled(false);
 	}
 }
 
@@ -4718,6 +4739,7 @@ void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)
 	if (dlg.lastCreatedSubPanel()!="")
 	{
 		//update target region list
+		ui_.filters->reloadSubpanelList();
 		ui_.filters->loadTargetRegions();
 
 		//optinally use sub-panel as target regions
@@ -4735,6 +4757,7 @@ void MainWindow::on_actionArchiveSubpanel_triggered()
 	dlg.exec();
 	if (dlg.changedSubpanels())
 	{
+		ui_.filters->reloadSubpanelList();
 		ui_.filters->loadTargetRegions();
 	}
 }
@@ -5474,7 +5497,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 		{
 			//show message to user
 			QApplication::restoreOverrideCursor();
-			QMessageBox::information(this, "IGV not running", "IGV is not running on port " + QString::number(igv_port) + ".\nIt will be started now!");
+			if (QMessageBox::information(this, "IGV not running", "IGV is not running on port " + QString::number(igv_port) + ".\nIt will be started now!", QMessageBox::Ok|QMessageBox::Default, QMessageBox::Cancel|QMessageBox::Escape)!=QMessageBox::Ok) return;
 			QApplication::setOverrideCursor(Qt::BusyCursor);
 
 			if (debug) qDebug() << QDateTime::currentDateTime() << "FAILED - TRYING TO START IGV";

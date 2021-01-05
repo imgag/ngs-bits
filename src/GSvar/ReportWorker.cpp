@@ -65,27 +65,34 @@ QString ReportWorker::formatCodingSplicing(const QList<VariantTranscript>& trans
 {
     const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
-	QList<QByteArray> output;
-	QList<QByteArray> output_pt;
+	QMap<QString, QByteArray> gene_infos;
+	QMap<QString, QByteArray> gene_infos_pt;
 
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		QByteArray line = trans.gene + ":" + trans.id + ":" + trans.hgvs_c + ":" + trans.hgvs_p;
 
-		output.append(line);
+		gene_infos[trans.gene].append(line);
 
-		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
+		if (preferred_transcripts.contains(trans.gene) && preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
 		{
-			output_pt.append(line);
+			gene_infos_pt[trans.gene].append(line);
 		}
 	}
 
-	//return only preferred transcripts if present
-	if (output_pt.count()>0)
+	//return preferred transcripts only, if present
+	QStringList output;
+	foreach(QString gene, gene_infos.keys())
 	{
-		output = output_pt;
+		if (gene_infos_pt.contains(gene))
+		{
+			output << gene_infos_pt[gene];
+		}
+		else
+		{
+			output << gene_infos[gene];
+		}
 	}
-
 	return output.join("<br />");
 }
 

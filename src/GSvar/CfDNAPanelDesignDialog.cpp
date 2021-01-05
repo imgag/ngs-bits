@@ -6,10 +6,11 @@
 #include <QDir>
 
 
-CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
+CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
 	QDialog(parent),
 	ui_(new Ui::CfDNAPanelDesignDialog),
 	variants_(variants),
+	filter_result_(filter_result),
 	somatic_report_configuration_(somatic_report_configuration),
 	processed_sample_name_(processed_sample_name)
 {
@@ -23,6 +24,7 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 	connect(ui_->vars,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showVariantContextMenu(QPoint)));
 	connect(ui_->genes,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showGeneContextMenu(QPoint)));
 	connect(ui_->cb_hotspot_regions, SIGNAL(stateChanged(int)), this, SLOT(showHotspotRegions(int)));
+	connect(ui_->vars,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(openVariantInIGV(QTableWidgetItem*)));
 
 	// set context menus for tables
 	ui_->vars->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -31,6 +33,8 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 	// fill processing system ComboBox
 	ui_->cb_processing_system->fill(processing_systems, false);
 
+
+	loadPreviousPanels(processing_systems);
 	loadVariants();
 	loadHotspotRegions();
 	loadGenes();
@@ -41,16 +45,75 @@ CfDNAPanelDesignDialog::~CfDNAPanelDesignDialog()
 	delete ui_;
 }
 
+void CfDNAPanelDesignDialog::loadPreviousPanels(const DBTable& processing_systems)
+{
+	QStringList previous_panel_files;
+	for (int i = 0; i < processing_systems.rowCount(); ++i)
+	{
+		// check if previous panel exists
+		QString processing_system = processing_systems.row(i).value(0);
+		QString output_path = Settings::string("patient_specific_panel_folder", false) + processing_system + "/" +  processed_sample_name_ + ".vcf";
+		if(QFile::exists(output_path)) previous_panel_files.append(output_path);
+	}
+
+	if(previous_panel_files.size() > 0)
+	{
+
+		QString message_text = "A personalized cfDNA panel file for the processed sample " + processed_sample_name_ + " already exists.\n";
+		int load_previous_panel = QMessageBox::information(this, "cfDNA panel found", message_text + "Would you like to load the previous panel?\n\n"
+														   + previous_panel_files.join("\n"), QMessageBox::Yes, QMessageBox::Cancel);
+		if (load_previous_panel!=QMessageBox::Yes)
+		{
+			return;
+		}
+		QString selected_panel;
+		if(previous_panel_files.size() > 1)
+		{
+			QComboBox* vcf_file_selector = new QComboBox(this);
+			vcf_file_selector->addItems(previous_panel_files);
+
+			// create dlg
+			auto dlg = GUIHelper::createDialog(vcf_file_selector, "Select cfDNA panel", "Select the cfDNA panel which should be loaded:", true);
+			int btn = dlg->exec();
+			if (btn!=1)
+			{
+				return;
+			}
+			selected_panel = vcf_file_selector->currentText();
+		}
+		else
+		{
+			selected_panel = previous_panel_files.at(0);
+		}
+		// load previous panel
+		VcfFile prev_panel;
+		prev_panel.load(selected_panel);
+		for (int i = 0; i < prev_panel.count(); ++i)
+		{
+			const VcfLine& var = prev_panel.vcfLine(i);
+			// create vcf pos string
+			QString vcf_pos = var.chr().strNormalized(true) + ":" + QString::number(var.pos()) + " " + var.ref() + ">" + var.altString();
+			prev_vars_.insert(vcf_pos, false);
+		}
+
+
+	}
+}
+
 void CfDNAPanelDesignDialog::loadVariants()
 {
+	// load reference
+	FastaFileIndex genome_reference(Settings::string("reference_genome", false));
+
+
 	// set dimensions
 	ui_->vars->setRowCount(variants_.count());
-	ui_->vars->setColumnCount(10);
+	ui_->vars->setColumnCount(12);
 
 	//create header
 	int col_idx = 0;
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("select"));
-	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Select all variants which should be added to the cfDNA panel.");
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Select all variants which should be added to the cfDNA panel. Right click item to (de-)select all variants.");
 
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("chr"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Chromosome the variant is located on.");
@@ -63,6 +126,8 @@ void CfDNAPanelDesignDialog::loadVariants()
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("obs"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Alternate bases observed in the sample.\n`-` in case of an deletion.");
 
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("gene"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Affected gene list (comma-separated).");
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("tumor_af"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Mutant allele frequency in tumor.");
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("tumor_dp"));
@@ -71,6 +136,8 @@ void CfDNAPanelDesignDialog::loadVariants()
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Mutant allele frequency in normal.");
 	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("normal_dp"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Normal depth.");
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("info"));
+	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Additional variant info.");
 
 	// get indices of report config
 	QList<int> report_config_indices = somatic_report_configuration_.variantIndices(VariantType::SNVS_INDELS, false);
@@ -80,30 +147,63 @@ void CfDNAPanelDesignDialog::loadVariants()
 	int tumor_dp_idx = variants_.annotationIndexByName("tumor_dp");
 	int normal_af_idx = variants_.annotationIndexByName("normal_af");
 	int normal_dp_idx = variants_.annotationIndexByName("normal_dp");
+	int gene_idx = variants_.annotationIndexByName("gene");
 
 
 	// load filtered variant list
 	int row_idx = 0;
 	for (int i=0; i<variants_.count(); ++i)
 	{
+		bool preselect = false;
+		bool missing_in_cur_filter_set = false;
+
 		const Variant& variant = variants_[i];
-		int col_idx = 0;
 
-		// filter variants by filter column
-		if (variant.filters().length() != 0) continue;
+		// check if var is present in previous panel
+		QStringList vcf_str_list = variant.toVCF(genome_reference).split('\t');
+		QString vcf_pos = vcf_str_list[0].trimmed() + ":" + vcf_str_list[1].trimmed() + " " + vcf_str_list[3].trimmed() + ">" +vcf_str_list[4].trimmed();
+		if(prev_vars_.contains(vcf_pos))
+		{
+			preselect = true;
+			prev_vars_[vcf_pos] = true;
+		}
 
-		// filter variants by report config
+		// skip variants which are filtered out in the main window
+		if (!filter_result_.flags()[i])
+		{
+			if(!preselect)
+			{
+				continue;
+			}
+			else
+			{
+				missing_in_cur_filter_set = true;
+			}
+		}
+
+
+//		// filter variants by filter column
+//		if (variant.filters().length() != 0) continue;
+
+		// get report config for variant
 		SomaticReportVariantConfiguration var_conf;
 		if (report_config_indices.contains(i))
 		{
 			var_conf = somatic_report_configuration_.variantConfig(i, VariantType::SNVS_INDELS);
-			if (var_conf.exclude_artefact) continue;
+			//exclude artifacts
+//			if (var_conf.exclude_artefact) continue;
 		}
+
+		// create table
+		int col_idx = 0;
+
+
 
 
 		QTableWidgetItem* select_item = GUIHelper::createTableItem("");
 		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
-		select_item->setCheckState(Qt::Unchecked);
+		select_item->setCheckState((preselect) ? Qt::Checked : Qt::Unchecked);
+
 
 		ui_->vars->setItem(row_idx, col_idx++, select_item);
 
@@ -113,10 +213,19 @@ void CfDNAPanelDesignDialog::loadVariants()
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.obs()));
 
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[gene_idx]));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[tumor_af_idx]));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[tumor_dp_idx]));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_af_idx]));
 		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.annotations()[normal_dp_idx]));
+
+		if (missing_in_cur_filter_set)
+		{
+			QTableWidgetItem* info_item = GUIHelper::createTableItem("from loaded cfDNA panel");
+			info_item->setToolTip("This variant is part of the loaded cfDNA panel, but does not match the current filter settings.");
+			ui_->vars->setItem(row_idx, col_idx++, info_item);
+		}
+
 
 		// vertical header
 		QTableWidgetItem* item = GUIHelper::createTableItem(QByteArray::number(i+1));
@@ -142,6 +251,20 @@ void CfDNAPanelDesignDialog::loadVariants()
 
 	// init selection label
 	updateSelectedVariantCount();
+
+	// check if all previous variants were found in VariantList
+	QStringList missing_prev_vars;
+	foreach (const QString& vcf_string, prev_vars_.keys())
+	{
+		if (!prev_vars_.value(vcf_string)) missing_prev_vars.append(vcf_string);
+	}
+
+	if(missing_prev_vars.size() > 0)
+	{
+		GUIHelper::showMessage("Variant not found",
+							   "The following variants are part of the loaded cfDNA panel, but are missing in the current variant list:\n\n"
+							   + missing_prev_vars.join("\n"));
+	}
 
 
 }
@@ -270,7 +393,6 @@ void CfDNAPanelDesignDialog::loadGenes()
 	GUIHelper::resizeTableCells(ui_->genes, 150);
 }
 
-
 void CfDNAPanelDesignDialog::selectAllVariants(bool deselect)
 {
 	for (int r = 0; r < ui_->vars->rowCount(); ++r)
@@ -323,6 +445,21 @@ void CfDNAPanelDesignDialog::updateSelectedHotspotCount()
 	}
 
 	ui_->l_count_hotspot_regions->setText(QString::number(selected_hotspot_count) + " / " + QString::number(ui_->hotspot_regions->rowCount()));
+}
+
+void CfDNAPanelDesignDialog::openVariantInIGV(QTableWidgetItem* item)
+{
+	if (item==nullptr) return;
+	int r = item->row();
+
+	// get variant index
+	bool ok;
+	int var_idx = ui_->vars->verticalHeaderItem(r)->data(Qt::UserRole).toInt(&ok);
+	if (!ok) THROW(ProgrammingException, "Variant table row header user data '" + ui_->vars->verticalHeaderItem(r)->data(Qt::UserRole).toString() + "' is not an integer!");
+
+	const Variant& var = variants_[var_idx];
+	QString coords = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + "-" + QString::number(var.end());
+	emit openInIGV(coords);
 }
 
 void CfDNAPanelDesignDialog::createOutputFiles()
@@ -436,7 +573,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	if (!QDir(output_path).exists()) QDir().mkdir(output_path);
 
 	// check if panel already exists
-	if (QFile::exists(output_path + processed_sample_name_ + ".vcf") || QFile::exists(output_path + processed_sample_name_ + ".vcf"))
+	if (QFile::exists(output_path + processed_sample_name_ + ".vcf") || QFile::exists(output_path + processed_sample_name_ + ".bed"))
 	{
 		int btn = QMessageBox::information(this, "Panel file already exists", "A personalized cfDNA panel file for the processed sample "
 										   + processed_sample_name_ + " already exists.\nWould you like to overide the previous panel?",
@@ -461,6 +598,7 @@ void CfDNAPanelDesignDialog::showVariantContextMenu(QPoint pos)
 	QMenu menu(ui_->vars);
 	QAction* a_select_all = menu.addAction("Select all variants");
 	QAction* a_deselect_all = menu.addAction("Deselect all variants");
+	QAction* a_open_igv = menu.addAction("Open variant in IGV");
 	// execute menu
 	QAction* action = menu.exec(ui_->vars->viewport()->mapToGlobal(pos));
 	if (action == nullptr) return;
@@ -472,6 +610,10 @@ void CfDNAPanelDesignDialog::showVariantContextMenu(QPoint pos)
 	else if (action == a_deselect_all)
 	{
 		selectAllVariants(true);
+	}
+	else if (action == a_open_igv)
+	{
+		openVariantInIGV(ui_->vars->itemAt(pos));
 	}
 	else
 	{

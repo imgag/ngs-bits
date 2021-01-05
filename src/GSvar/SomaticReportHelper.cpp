@@ -1981,7 +1981,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	 **********************************/
 	RtfTable general_info_table;
 
-	general_info_table.addRow(RtfTableRow("Allgemeine genetische Charakteristika",doc_.maxWidth(),RtfParagraph().setBold(true)).setBackgroundColor(4).setBorders(1,"brdrhair",4));
+	general_info_table.addRow(RtfTableRow("Allgemeine genetische Charakteristika (" + RtfText(tumor_ps_.toUtf8() + "-" + normal_ps_.toUtf8()).setFontSize(16).setBold(false).RtfCode() +")",doc_.maxWidth(),RtfParagraph().setBold(true)).setBackgroundColor(4).setBorders(1,"brdrhair",4));
 
 
 	QByteArray tumor_content_bioinf = "";
