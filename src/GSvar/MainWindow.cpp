@@ -4753,6 +4753,7 @@ void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)
 	if (dlg.lastCreatedSubPanel()!="")
 	{
 		//update target region list
+		ui_.filters->reloadSubpanelList();
 		ui_.filters->loadTargetRegions();
 
 		//optinally use sub-panel as target regions
@@ -4770,6 +4771,7 @@ void MainWindow::on_actionArchiveSubpanel_triggered()
 	dlg.exec();
 	if (dlg.changedSubpanels())
 	{
+		ui_.filters->reloadSubpanelList();
 		ui_.filters->loadTargetRegions();
 	}
 }

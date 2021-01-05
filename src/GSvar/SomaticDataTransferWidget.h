@@ -36,16 +36,13 @@ private:
 	//normal processed sample id
 	QString n_ps_id_;
 
+	//api connection is ok (to be checked during initialization)
+	bool api_ok_;
+
     //URL of MTB XML API
     QString xml_url_;
-
-    //URL of MTB PDF API
-    QString pdf_url_;
-
 	//total path to XML file
 	QString xml_path_;
-	//total path to RTF file
-    QString pdf_path_;
 
 	///Adds line to status widget.
 	void addStatusRow(QString row, QString color ="", bool bold = false);
@@ -53,9 +50,6 @@ private:
 public slots:
 	///Uploads XML file (from xml_path_) to MTB
 	void uploadXML();
-
-    ///Uploads RTF file (from pdf_path_) to MTB;
-    void uploadPDF();
 
 private slots:
 	///Loads the command line input file.
@@ -67,7 +61,7 @@ private slots:
 	///Checks whether MTB server gives service status 200 ok
 	void checkApiConnection();
 
-	///Checks if the PDF/XML file is present
+	///Checks if the XML file is present
 	void checkUploadFiles();
 
 	///refresh GUI

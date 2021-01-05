@@ -378,7 +378,6 @@ struct CPPNGSDSHARED_EXPORT SomaticReportConfigurationData
 
 	QString target_file;
 	QString mtb_xml_upload_date;
-	QString mtb_pdf_upload_date;
 
 	///Returns a text representation of the creation and update. Can contain newline!
 	QString history() const;
@@ -717,8 +716,6 @@ public:
 	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const VariantList& germline_snvs, QStringList& messages);
 	///set upload time of somatic XML report to current timestamp
 	void setSomaticMtbXmlUpload(int report_id);
-	///set upload time of somatic PDF report to current timestamp
-	void setSomaticMtbPdfUpload(int report_id);
 
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality);

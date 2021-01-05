@@ -2,7 +2,6 @@
 
 GSvar:
 ## The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
-## Variant tab: disease group significance - remove duplicates because of family, one disease group vs the others.
 ## Implement "closing gaps by sanger"
     - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
     - make page where TA can select gaps (by gene/DX number)
@@ -12,6 +11,7 @@ GSvar:
     - 1 affected > easy
     - >1 affected > user has to set one affected as index > only report config of index is edited
     - no report needed - is created from individual samples
+- Variant tab: add disease group significance (remove duplicates because of family, calculates significance of one disease group vs the others)
 - Allow ClinVar upload as soon as the API is available
     - until then: perform manual upload at the end of each quater
     - also support CNVs/SVs?
