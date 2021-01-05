@@ -28,6 +28,7 @@ private:
 	DBTable table_;
 
 	void gapCoordinates(int row, Chromosome& chr, int& start, int& end);
+	QString exonNumber(const QByteArray& gene, int start, int end);
 };
 
 #endif // GAPCLOSINGDIALOG_H

@@ -2,6 +2,7 @@
 #include "Settings.h"
 #include "GUIHelper.h"
 #include "LoginManager.h"
+#include "GSvarHelper.h"
 #include <QDesktopServices>
 #include <QClipboard>
 
@@ -66,6 +67,43 @@ void GapClosingDialog::gapCoordinates(int row, Chromosome& chr, int& start, int&
 	end = Helper::toInt(parts[2], "Gap end position", gap);
 }
 
+QString GapClosingDialog::exonNumber(const QByteArray& gene, int start, int end)
+{
+	const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
+	QStringList output;
+
+	//preferred transcripts
+	if(preferred_transcripts.contains(gene))
+	{
+		foreach(QString transcript_name, preferred_transcripts.value(gene))
+		{
+			try
+			{
+				Transcript trans = db_.transcript(db_.transcriptId(transcript_name));
+				int exon_nr = trans.exonNumber(start-20, end+20);
+				if (exon_nr!=-1)
+				{
+					output << (trans.name() + ": " + QByteArray::number(exon_nr));
+				}
+			}
+			catch(...) {} //nothing to do here
+		}
+	}
+
+	//fallback to longest coding transcript or longest non-coding transcript
+	if (output.isEmpty())
+	{
+		Transcript trans = db_.longestCodingTranscript(db_.geneToApprovedID(gene), Transcript::SOURCE::ENSEMBL, false, true);
+		int exon_nr = trans.exonNumber(start-20, end+20);
+		if (exon_nr!=-1)
+		{
+			output << (trans.name() + ": " + QByteArray::number(exon_nr));
+		}
+	}
+
+	return output.join(", ");
+}
+
 void GapClosingDialog::updateTable()
 {
 	//clear
@@ -97,15 +135,27 @@ void GapClosingDialog::updateTable()
 
 	//add gene/exon information
 	QStringList genes;
+	QStringList exons;
 	Chromosome chr;
 	int start;
 	int end;
 	for (int row=0; row<table_.rowCount(); ++row)
 	{
 		gapCoordinates(row, chr, start, end);
-		genes << db_.genesOverlappingByExon(chr, start, end, 20).join(", ");
+		GeneSet genes_overlapping = db_.genesOverlappingByExon(chr, start, end, 20);
+		genes << genes_overlapping.join("<br>");
+		QStringList tmp;
+		foreach(const QByteArray& gene, genes_overlapping)
+		{
+			QString exon = exonNumber(gene, start, end);
+			if (exon!="") tmp << exon;
+		}
+		exons << tmp.join("<br>");
+
 	}
-	table_.insertColumn(2, genes, "genes");
+	table_.insertColumn(2, genes, "gene");
+	table_.insertColumn(3, exons, "exons");
+
 
 	//show table in GUI
 	ui_.table->setData(table_, 300);
@@ -177,7 +227,7 @@ void GapClosingDialog::setStatus()
 			QString status = db_.getValue("SELECT status FROM gaps WHERE id=" + gap_id).toString();
 			if (status!="to close" && status!="in progress" && status!="closed")
 			{
-				THROW(ArgumentException, "Status of gap " + ui_.table->item(row, 1)->text() + " of sample is '" + ui_.table->item(row, 0)->text() + "'. It cannot be changed!");
+				THROW(ArgumentException, "Status of gap " + ui_.table->item(row, 1)->text() + " of sample '" + ui_.table->item(row, 0)->text() + "' is '" + status + "'. It cannot be changed!");
 			}
 
 			if (status_new!=status)
