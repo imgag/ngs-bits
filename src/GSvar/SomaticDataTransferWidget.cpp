@@ -24,19 +24,15 @@ SomaticDataTransferWidget::SomaticDataTransferWidget(QString t_ps_id, QString n_
 	db_(),
 	http_handler_(HttpHandler::ProxyType::NONE, this),
 	t_ps_id_(t_ps_id),
-    n_ps_id_(n_ps_id)
+	n_ps_id_(n_ps_id),
+	api_ok_(false)
 {
 	ui->setupUi(this);
 	connect( ui->xml_select, SIGNAL(stateChanged(int)), this, SLOT(enableUpload()) );
-	connect( ui->pdf_select, SIGNAL(stateChanged(int)), this, SLOT(enableUpload()) );
 	connect( ui->upload_button, SIGNAL(clicked()), this, SLOT(uploadXML()) );
-	connect( ui->upload_button, SIGNAL(clicked()), this, SLOT(uploadPDF()) );
 
 	xml_url_ = Settings::string("mtb_xml_upload_url");
-    pdf_url_ = Settings::string("mtb_pdf_upload_url");
-
 	xml_path_ = Settings::string("gsvar_xml_folder") + "/" + t_ps_id + "-" + n_ps_id + ".xml";
-    pdf_path_ = Settings::string("genlab_somatic_report_folder") + "/" + t_ps_id + "-" + n_ps_id + ".pdf";
 	checkUploadFiles();
 
 	//Check whether there is somatic report configuration
@@ -53,9 +49,18 @@ SomaticDataTransferWidget::~SomaticDataTransferWidget()
 
 void SomaticDataTransferWidget::delayedInitialization()
 {
-	checkApiConnection();
+	try
+	{
+		checkApiConnection();
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, "Connection to ZPM API", "Connection to ZPM API failed. Error message: " + e.message());
+		close();
+	}
 
 	updateUploadStatus();
+	enableUpload();
 }
 
 void SomaticDataTransferWidget::uploadXML()
@@ -94,69 +99,10 @@ void SomaticDataTransferWidget::uploadXML()
 	}
 }
 
-void SomaticDataTransferWidget::uploadPDF()
-{
-	if(ui->pdf_select->isChecked())
-	{
-		addStatusRow("Uploading PDF file");
-
-		QString res = "";
-		try
-		{
-			QHttpMultiPart parts(this);
-			parts.setContentType(QHttpMultiPart::FormDataType);
-
-			QHttpPart file_part;
-			//filename must contain SAP id as prefix to be recognized @MTB API
-			GenLabDB genlab;
-			QString file_name_for_api = genlab.sapID(t_ps_id_) + QFileInfo(pdf_path_).fileName();
-			file_part.setHeader(QNetworkRequest::ContentDispositionHeader, QVariant("form-data; name=\"data\"; filename=\"" + file_name_for_api + "\""));
-			file_part.setHeader(QNetworkRequest::ContentTypeHeader, QVariant("application/pdf") );
-
-			QFile file(pdf_path_, this);
-			file.open(QIODevice::ReadOnly);
-
-			file_part.setBodyDevice(&file);
-			parts.append(file_part);
-
-			HttpHeaders add_headers;
-			add_headers.insert("Authorization", "Basic " +QString(Settings::string("mtb_pdf_upload_user") + ":" +Settings::string("mtb_pdf_upload_pass") ).toUtf8().toBase64());
-
-			res = http_handler_.post( pdf_url_ + "/ZPM_rest/mtb_imgag_doc", &parts, add_headers);
-		}
-		catch(Exception& e)
-		{
-			res = e.message();
-		}
-
-		if(res == "FILE WAS UPLOAD TO ZPM")
-		{
-			addStatusRow("OK");
-			db_.setSomaticMtbPdfUpload( db_.somaticReportConfigId( db_.processedSampleId(t_ps_id_), db_.processedSampleId(n_ps_id_) ) );
-
-			updateUploadStatus();
-
-			if(QMessageBox::question(this, "Delete file", "Upload of PDF report successful. Delete PDF report " + pdf_path_ + "?") == QMessageBox::Yes)
-			{
-				if(!QFile(pdf_path_).remove())
-				{
-					QMessageBox::warning(this, "Delete file", "Could not remove PDF report " + pdf_path_ + ".");
-				}
-			}
-		}
-		else
-		{
-			addStatusRow("Upload of PDF failed!", "red", true);
-			addStatusRow(res, "red");
-		}
-		addStatusRow("");
-	}
-}
-
 void SomaticDataTransferWidget::enableUpload()
 {
 	//only allow upload if both both APIs are ok
-	if( ui->pdf_select->isChecked() || ui->xml_select->isChecked() )
+	if(api_ok_ && ui->xml_select->isChecked() )
 	{
 		ui->upload_button->setEnabled(true);
 	}
@@ -170,22 +116,8 @@ void SomaticDataTransferWidget::checkApiConnection()
 {
 	addStatusRow("Checking server connection for MTB upload...");
 
-	//PDF
+	//check API response for XML files
 	QString reply = "";
-	try
-    {
-		reply = http_handler_.get(pdf_url_ + "/ZPM_rest");
-    }
-	catch(Exception& e) //connection to server failed
-    {
-		THROW(Exception, "Connection to the ZPM PDF server failed:\n" + e.message());
-    }
-	if(reply!="The rest API from the ZPM is alive")
-    {
-		THROW(Exception, "Connection to the ZPM PDF server failed:\nInvalid reply from server:\n" + reply);
-	}
-
-	//XML
 	try
 	{
 		reply = http_handler_.get(xml_url_ + "/condition");
@@ -196,10 +128,12 @@ void SomaticDataTransferWidget::checkApiConnection()
 	}
 	if(reply!="Service-Condition: OK")
 	{
-		THROW(Exception, "Connection to the ZPM PDF server failed:\nInvalid reply from server:\n" + reply);
+		THROW(Exception, "Connection to the ZPM XML server failed:\nInvalid reply from server:\n" + reply);
 	}
 
 	addStatusRow("OK");
+	api_ok_ = true;
+
 	addStatusRow("");
 }
 
@@ -208,23 +142,14 @@ void SomaticDataTransferWidget::checkUploadFiles()
 	if(QFile::exists(xml_path_))
 	{
 		ui->xml_filename->setText(xml_path_);
+		ui->xml_select->setChecked(true);
 	}
 	else
 	{
 		ui->xml_filename->setText("<font color='red'>not found</font>");
+		ui->xml_select->setChecked(false);
 		ui->xml_select->setEnabled(false);
 	}
-
-	if(QFile::exists(pdf_path_))
-	{
-		ui->pdf_filename->setText(pdf_path_);
-	}
-	else
-	{
-		ui->pdf_filename->setText("<font color='red'>not found</font>");
-		ui->pdf_select->setEnabled(false);
-	}
-
 }
 
 void SomaticDataTransferWidget::updateUploadStatus()
@@ -243,15 +168,6 @@ void SomaticDataTransferWidget::updateUploadStatus()
 		else
 		{
 			ui->xml_last_upload->clear();
-		}
-
-		if(conf_data.mtb_pdf_upload_date != "")
-		{
-			ui->pdf_last_upload->setText("last upload: " + conf_data.mtb_pdf_upload_date);
-		}
-		else
-		{
-			ui->pdf_last_upload->clear();
 		}
 	}
 	catch (...)
