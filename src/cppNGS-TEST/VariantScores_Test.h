@@ -34,7 +34,7 @@ private slots:
 		variants.load(TESTDATA("data_in/VariantScores_in1.GSvar"));
 
 		//rank
-		VariantScores::Result result = VariantScores::score("GSvar_v1", variants, pheno_rois, QList<Variant>());
+		VariantScores::Result result = VariantScores::score("GSvar_v1", variants, pheno_rois, VariantScores::blacklist());
 		S_EQUAL(result.algorithm, "GSvar_v1");
 		I_EQUAL(variants.count(), result.scores.count());
 		I_EQUAL(variants.count(), result.score_explainations.count());
@@ -123,7 +123,7 @@ private slots:
 		variants.load(TESTDATA("data_in/VariantScores_in1.GSvar"));
 
 		//rank
-		VariantScores::Result result = VariantScores::score("GSvar_v1_noNGSD", variants, pheno_rois, QList<Variant>());
+		VariantScores::Result result = VariantScores::score("GSvar_v1_noNGSD", variants, pheno_rois, VariantScores::blacklist());
 		I_EQUAL(variants.count(), result.scores.count());
 		I_EQUAL(variants.count(), result.score_explainations.count());
 		I_EQUAL(variants.count(), result.ranks.count());
