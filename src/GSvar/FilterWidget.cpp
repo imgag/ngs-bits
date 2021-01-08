@@ -140,7 +140,6 @@ const QList<KeyValuePair>& FilterWidget::subPanels()
 
 void FilterWidget::reloadSubpanelList()
 {
-	qDebug() << __LINE__ << QDateTime::currentDateTime();
 	try
 	{
 		QStringList files = Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", false);
@@ -157,7 +156,6 @@ void FilterWidget::reloadSubpanelList()
 	{
 		Log::warn("Could not load sub-panels target regions: " + e.message());
 	}
-	qDebug() << __LINE__ << QDateTime::currentDateTime();
 }
 
 void FilterWidget::resetSignalsUnblocked(bool clear_roi)

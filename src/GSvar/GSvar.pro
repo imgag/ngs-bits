@@ -25,7 +25,6 @@ SOURCES += main.cpp\
     SubpanelArchiveDialog.cpp \
     IgvDialog.cpp \
     GapDialog.cpp \
-    GapValidationLabel.cpp \
     CnvWidget.cpp \
     GeneSelectorDialog.cpp \
     MultiSampleDialog.cpp \
@@ -97,7 +96,8 @@ SOURCES += main.cpp\
     CfDNAPanelWidget.cpp \
     SomaticVariantInterpreterWidget.cpp \
     AlleleBalanceCalculator.cpp \
-    ExpressionDataWidget.cpp
+    ExpressionDataWidget.cpp \
+    GapClosingDialog.cpp
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -116,7 +116,6 @@ HEADERS += MainWindow.h \
     SubpanelArchiveDialog.h \
     IgvDialog.h \
     GapDialog.h \
-    GapValidationLabel.h \
     CnvWidget.h \
     GeneSelectorDialog.h \
     MultiSampleDialog.h \
@@ -188,7 +187,8 @@ HEADERS += MainWindow.h \
     CfDNAPanelWidget.h \
     SomaticVariantInterpreterWidget.h \
     AlleleBalanceCalculator.h \
-    ExpressionDataWidget.h
+    ExpressionDataWidget.h \
+    GapClosingDialog.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -205,7 +205,6 @@ FORMS    += MainWindow.ui \
     SubpanelArchiveDialog.ui \
     IgvDialog.ui \
     GapDialog.ui \
-    GapValidationLabel.ui \
     CnvWidget.ui \
     GeneSelectorDialog.ui \
     MultiSampleDialog.ui \
@@ -265,7 +264,8 @@ FORMS    += MainWindow.ui \
     CfDNAPanelWidget.ui \
     SomaticVariantInterpreterWidget.ui \
     AlleleBalanceCalculator.ui \
-    ExpressionDataWidget.ui
+    ExpressionDataWidget.ui \
+    GapClosingDialog.ui
     include("../app_gui.pri")
 
 #include NGSD library

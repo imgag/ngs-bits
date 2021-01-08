@@ -513,9 +513,6 @@
            <iconset resource="GSvar.qrc">
             <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
           </property>
-          <property name="shortcut">
-           <string>Ctrl+C</string>
-          </property>
          </widget>
         </item>
        </layout>

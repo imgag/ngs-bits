@@ -1,59 +1,49 @@
 #ifndef GAPDIALOG_H
 #define GAPDIALOG_H
 
+#include "ui_GapDialog.h"
 #include <QDialog>
 #include <QTableWidgetItem>
 #include "BedFile.h"
-#include "GapValidationLabel.h"
 #include "GeneSet.h"
+#include "DelayedInitializationTimer.h"
+#include "NGSD.h"
 
-namespace Ui {
-class GapDialog;
-}
-
-class GapDialog : public QDialog
+class GapDialog
+	: public QDialog
 {
 	Q_OBJECT
 
 public:
-	GapDialog(QWidget* parent, QString sample_name, QString target_region_name);
-	~GapDialog();
-	void process(QString bam_file, const BedFile& roi, const GeneSet& genes);
-	QString report() const;
+	GapDialog(QWidget* parent, QString ps, QString bam_file, const BedFile& roi, const GeneSet& genes);
 
 signals:
 	void openRegionInIGV(QString region);
 
 private slots:
+	void delayedInitialization();
+	QStringList calculteGapsAndInitGUI();
 	void gapDoubleClicked(QTableWidgetItem* item);
-	void updateGeneFilter(QString text);
+	void updateFilters();
+	void updateNGSDColumn();
+	void gapsContextMenu(QPoint pos);
 
 private:
-	static void highlightItem(QTableWidgetItem* item);
-	GapValidationLabel::State state(int row) const;
-	void reportSection(QTextStream& stream, bool ccds_only) const;
-
-	QString sample_name_;
-	QString target_region_name_;
-	QMap<QString, QStringList> preferred_transcripts_;
+	Ui::GapDialog ui_;
+	DelayedInitializationTimer init_timer_;
+	NGSD db_;
+	QString ps_;
+	QString bam_;
+	const BedFile& roi_;
+	const GeneSet& genes_;
+	int ngsd_col_;
 	struct GapInfo
 	{
-		BedLine line;
+		BedLine region;
 		double avg_depth;
 		GeneSet genes;
 		BedLine coding_overlap;
 		QString preferred_transcript;
-
-		QString asTsv(bool ccds_only) const
-		{
-			QString output = (ccds_only ? coding_overlap.toString(false) : line.toString(false)) + "\t";
-			output += "Groesse=" + QString::number(ccds_only ? coding_overlap.length() : line.length());
-			output += " mittlere Sequenziertiefe=" + QString::number(avg_depth, 'f', 2);
-			if (!genes.isEmpty()) output += " Gen=" + genes.join(",");
-			if (!ccds_only && isExonicSplicing()) output += " exonic/splicing";
-
-			return  output;
-		}
 
 		bool isExonicSplicing() const
 		{
@@ -61,7 +51,8 @@ private:
 		}
 	};
 	QList<GapInfo> gaps_;
-	Ui::GapDialog* ui;
+
+	static void highlightItem(QTableWidgetItem* item);
 };
 
 #endif // GAPDIALOG_H

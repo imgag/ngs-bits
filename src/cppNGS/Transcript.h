@@ -93,6 +93,9 @@ public:
 		return utr_5prime_;
 	}
 
+	//Returns the exon number of a region. Error codes: -1 if no exon overlaps, -2 if several exons overlap
+	int exonNumber(int start, int end) const;
+
 	///Converts source enum to string value.
 	static QString sourceToString(SOURCE source);
 	///Converts string to source enum.

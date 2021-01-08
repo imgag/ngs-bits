@@ -16,7 +16,7 @@ PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	//fill filter boxes
 	NGSD db;
 	ui_->f_sample->fill(db.createTable("sample", "SELECT id, name FROM sample"));
-	ui_->f_published->fill(db.createTable("user", "SELECT id, name FROM user"));
+	ui_->f_published->fill(db.createTable("user", "SELECT id, name FROM user ORDER BY name ASC"));
 	ui_->f_db->addItem("n/a");
 	ui_->f_db->addItems(db.getEnum("variant_publication", "db"));
 

@@ -138,6 +138,7 @@ public slots:
 	void on_actionVariantValidation_triggered();
 	void on_actionChangePassword_triggered();
 	void on_actionStudy_triggered();
+	void on_actionGaps_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();

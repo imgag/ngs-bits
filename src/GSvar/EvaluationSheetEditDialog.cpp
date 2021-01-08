@@ -114,7 +114,7 @@ void EvaluationSheetEditDialog::checkNonEmpty()
 
 void EvaluationSheetEditDialog::initReviewerNames()
 {
-	users_ = db_.createTable("users", "SELECT id, name FROM user");
+	users_ = db_.createTable("users", "SELECT id, name FROM user ORDER BY name ASC");
 	ui_->ds_reviewer1->fill(users_);
 	ui_->ds_reviewer2->fill(users_);
 }
