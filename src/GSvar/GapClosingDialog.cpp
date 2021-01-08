@@ -5,6 +5,7 @@
 #include "GSvarHelper.h"
 #include <QDesktopServices>
 #include <QClipboard>
+#include <QAction>
 
 GapClosingDialog::GapClosingDialog(QWidget* parent)
 	: QDialog(parent)
