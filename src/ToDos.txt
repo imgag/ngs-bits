@@ -1,12 +1,6 @@
 === TODO ===
 
 GSvar:
-## The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
-## Implement "closing gaps by sanger"
-    - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
-    - make page where TA can select gaps (by gene/DX number)
-        - also allow copying multiple gaps into clipboard (as table and for primer gap)
-        - add link for PrimerDesign tool
 # add multi-sample report-config
     - 1 affected > easy
     - >1 affected > user has to set one affected as index > only report config of index is edited
@@ -32,4 +26,3 @@ GSVar features to dicuss:
 - CAVE functionality for Genes (use e.g. for imprinting), model reasons? > SWAL
 - Sample: source tissue (for RNA) > TOH
 - Evaluation sheet: Add comment text, e.g. bad CNV quality > FH
-- Sample: allow several disease_groups per sample > CS

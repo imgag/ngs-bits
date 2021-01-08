@@ -251,12 +251,9 @@ void MainWindow::on_actionDebug_triggered()
 		int c_top10 = 0;
 		NGSD db;
 		QStringList ps_names = db.getValues("SELECT DISTINCT CONCAT(s.name, '_0', ps.process_id) FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND (sys.type='WGS' OR sys.type='WES') AND ps.project_id=p.id AND p.type='diagnostic' AND ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.type='diagnostic variant' AND s.disease_status='Affected'");
-		qDebug() << "Processed sample to check:" << ps_names.count();
+		qDebug() << "Processed samples to check:" << ps_names.count();
 		QString algorithm = "GSvar_v1_noNGSD";
 		QString special = "";
-		//TsvFile file;
-		//file.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\+old_2020_11_18\\details_samples_pediatric.tsv");
-		//foreach(QString ps, file.extractColumn(0)
 		foreach(QString ps, ps_names)
 		{
 			QString ps_id = db.processedSampleId(ps);
@@ -296,10 +293,11 @@ void MainWindow::on_actionDebug_triggered()
 				//load variants
 				VariantList variants;
 				variants.load(db.processedSamplePath(ps_id, NGSD::GSVAR));
-				//AIdiva: variants.load("W:\\share\\evaluations\\2020_07_14_reanalysis_pediatric_cases\\aidiva_results\\" + ps + "_full_aidiva.GSvar");
 
 				//score
-				VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois);
+				QList<Variant> blacklist;
+				blacklist = VariantScores::blacklist();
+				VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois, blacklist);
 				int c_scored = VariantScores::annotate(variants, result);
 				int i_rank = variants.annotationIndexByName("GSvar_rank");
 				int i_score = variants.annotationIndexByName("GSvar_score");
@@ -5797,7 +5795,7 @@ void MainWindow::variantRanking()
 		}
 
 		//score
-		VariantScores::Result result = VariantScores::score("GSvar_v1", variants_, phenotype_rois);
+		VariantScores::Result result = VariantScores::score("GSvar_v1", variants_, phenotype_rois, VariantScores::blacklist());
 
 		//update variant list
 		VariantScores::annotate(variants_, result, true);
