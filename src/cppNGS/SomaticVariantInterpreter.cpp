@@ -112,7 +112,7 @@ SomaticViccData SomaticVariantInterpreter::predictViccValue(const VariantList &v
 	else if(var.annotations()[i_clinvar].contains("pathogenic")) clinvar_class = 5;
 	else if(var.annotations()[i_clinvar].contains("likely benign")) clinvar_class = 2;
 	else if(var.annotations()[i_clinvar].contains("benign")) clinvar_class = 1;
-	if(!var.annotations()[i_cmc_mut_sign].trimmed().isEmpty() && !var.annotations()[i_cmc_mut_sign].contains("Other") && clinvar_class >= 4) //CMC mutation significance is 1,2 or 3
+	if(!var.annotations()[i_cmc_mut_sign].trimmed().isEmpty() && !var.annotations()[i_cmc_mut_sign].contains("Other") && clinvar_class >= 4) //CMC mutation significance is 4 or 5
 	{
 		out.known_oncogenic_aa = SomaticViccData::TRUE123;
 	}

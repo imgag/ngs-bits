@@ -115,6 +115,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticVariantInterpreterWidget.h"
 #include "AlleleBalanceCalculator.h"
 #include "ExpressionDataWidget.h"
+#include "GapClosingDialog.h"
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()

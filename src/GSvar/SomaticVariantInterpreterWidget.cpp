@@ -20,7 +20,19 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(const Variant& 
 		connect(buttongroup, SIGNAL(buttonToggled(int,bool)), this, SLOT(predict()));
 	}
 
-	ui_->label_variant->setText(var.toString(true));
+
+	QString variant_description = var.toString(true);
+
+
+	int i_co_sp = vl.annotationIndexByName("coding_and_splicing", true, false);
+	if(i_co_sp != -1)
+	{
+		VariantTranscript trans = var.transcriptAnnotations(i_co_sp).first();
+
+		variant_description +=  " " + trans.gene + ":" +trans.hgvs_c + " " + trans.gene + ":" + trans.hgvs_p;
+	}
+
+	ui_->label_variant->setText(variant_description);
 
 
 	//connect buttons
@@ -156,21 +168,21 @@ void SomaticVariantInterpreterWidget::disableUnapplicableParameters()
 	SomaticViccData data = getParameters();
 
 	//located in cancerhotspot
-	if(data.known_oncogenic_aa != SomaticViccData::NOT_APPLICABLE || data.strong_cancerhotspot != SomaticViccData::NOT_APPLICABLE)
+	if(data.known_oncogenic_aa == SomaticViccData::TRUE123 || data.strong_cancerhotspot == SomaticViccData::TRUE123)
 	{
 		setSelectionEnabled("onco_located_in_canerhotspot", false);
 	}
 	else setSelectionEnabled("onco_located_in_canerhotspot", true);
 
 	//other aa change is known
-	if(data.known_oncogenic_aa != SomaticViccData::NOT_APPLICABLE || data.strong_cancerhotspot != SomaticViccData::NOT_APPLICABLE || data.located_in_canerhotspot != SomaticViccData::state::NOT_APPLICABLE)
+	if(data.known_oncogenic_aa == SomaticViccData::TRUE123 || data.strong_cancerhotspot == SomaticViccData::TRUE123 || data.located_in_canerhotspot == SomaticViccData::state::TRUE123)
 	{
 		setSelectionEnabled("onco_other_aa_known_oncogenic", false);
 	}
 	else setSelectionEnabled("onco_other_aa_known_oncogenic", true);
 
 	//weak cancerhospot
-	if(data.located_in_canerhotspot != SomaticViccData::NOT_APPLICABLE || data.other_aa_known_oncogenic != SomaticViccData::NOT_APPLICABLE)
+	if(data.located_in_canerhotspot == SomaticViccData::TRUE123 || data.other_aa_known_oncogenic == SomaticViccData::TRUE123)
 	{
 		setSelectionEnabled("onco_weak_cancerhotspot", false);
 	}

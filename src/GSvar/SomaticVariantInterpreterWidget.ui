@@ -312,6 +312,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_5">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;null mutation&lt;/span&gt; (nonsense, frameshift, canonical ±1 or 2 splice sites, initiation codon, single or multi-exon deletion) in a bona fide &lt;span style=&quot; font-weight:600;&quot;&gt;TSG&lt;/span&gt;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>null mutation in TSG:</string>
          </property>
@@ -356,6 +359,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_6">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Same amino acid change&lt;/span&gt; as a previously &lt;span style=&quot; font-weight:600;&quot;&gt;established oncogenic/oncogenic mutation&lt;/span&gt; (by appropriate expert group) regardless of nucleotide change.&lt;/p&gt;&lt;p&gt;Example: Val→Leu caused by either G&amp;gt;C or G&amp;gt;T in the same codon.&lt;/p&gt;&lt;p&gt;Caveat: Beware of changes that impact splicing rather than at the amino acid/protein level.&lt;/p&gt;&lt;p&gt;Preselection is based on strings 'pathogenic' and 'likely pathogenic' in ClinVar annotation column. &lt;span style=&quot; font-weight:600;&quot;&gt;Check ClinVar.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>amino acid is known oncogenic:</string>
          </property>
@@ -400,6 +406,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_7">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Well-established &lt;span style=&quot; font-weight:600;&quot;&gt;in vitro or in vivo functional studies&lt;/span&gt; supportive of an oncogenic/oncogenic effect of the mutation.&lt;br/&gt;Note: Functional studies that have been validated and shown to be reproducible and robust in a clinical diagnostic laboratory settings are considered the most well established.&lt;br/&gt;If OS1_somatic is applicable, this rule can be used only if functional studies are based on particular nucleotide change. &lt;br/&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Check ClinVar cBioPortal/Jax CKB/google for class 3.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>oncogenic functional studies:</string>
          </property>
@@ -444,6 +453,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_8">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Located in one of the &lt;span style=&quot; font-weight:600;&quot;&gt;hotspots in cancerhotspots.org&lt;/span&gt; with &lt;span style=&quot; font-weight:600;&quot;&gt;at least 50 samples with mutation at amino acid position&lt;/span&gt; and the &lt;span style=&quot; font-weight:600;&quot;&gt;particular amino acid change count is at least 10 samples.&lt;/span&gt; (Use caution with hotspots driven by truncating mutations).&lt;br/&gt;If mutation is in a tumor type which is not covered well by cancerhotspots.org, resources such as tumor type specific study or &lt;span style=&quot; font-weight:600;&quot;&gt;COSMIC as an alternative&lt;/span&gt; could be used.&lt;br/&gt;This rule cannot be used if OS1_somatic is applicable, unless it’s possible to observe hotspots based on particular nucleotide change.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>strong cancer hotspot:</string>
          </property>
@@ -488,6 +500,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_9">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Located in a &lt;span style=&quot; font-weight:600;&quot;&gt;well-established mutational hot spot&lt;/span&gt; and/or critical and well-established functional domain (e.g., active site of an enzyme).&lt;br/&gt;This rule cannot be used if OS1_somatic or OS3_somatic is applicable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>located in cancerhotspot:</string>
          </property>
@@ -532,6 +547,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_10">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Absent from controls&lt;/span&gt; (or at extremely low frequency) in Genome Aggregation Database (gnomAD).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>absent from controls:</string>
          </property>
@@ -576,6 +594,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_11">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Protein length changes&lt;/span&gt; as a result of in-frame deletions/insertions &lt;span style=&quot; font-weight:600;&quot;&gt;in known oncogene&lt;/span&gt; or &lt;span style=&quot; font-weight:600;&quot;&gt;tumor suppressor gene&lt;/span&gt; or &lt;span style=&quot; font-weight:600;&quot;&gt;stop-loss mutations in known tumor suppressor gene.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>protein length changed</string>
          </property>
@@ -620,6 +641,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_12">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Missense change at an amino acid residue where a different missense change determined to be oncogenic&lt;/span&gt; has been documented (by an appropriate expert group).&lt;br/&gt;Example: Arg156His is oncogenic/oncogenic; now you observe Arg156Cys.&lt;br/&gt;This rule cannot be used if OS1_somatic or OS3_somatic or OM1_somatic is applicable.&lt;br/&gt;Caveat: Beware of changes that impact splicing rather than at the amino acid/protein level.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>other AA at same position is oncogenic</string>
          </property>
@@ -664,6 +688,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_13">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Located in one of the hotspots &lt;span style=&quot; font-weight:600;&quot;&gt;in cancerhotspots.org with less than 50 samples with mutation at amino acid position and the particular amino acid change count in cancerhotspots.org is at least 10.&lt;/span&gt;&lt;br/&gt;Use caution with hotspots driven by truncating mutations.&lt;/p&gt;&lt;p&gt;If mutation is in a tumor type which is not covered well by cancerhotspots.org resources such as COSMIC or tumor type specific study could be used.&lt;/p&gt;&lt;p&gt;This rule cannot be used if OM1_somatic or OM4_somatic is applicable.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>weak cancerhotspot:</string>
          </property>
@@ -708,6 +735,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_14">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Multiple lines of &lt;span style=&quot; font-weight:600;&quot;&gt;computational evidence&lt;/span&gt; support an oncogenic effect of a mutation. (conservation/evolutionary, splicing impact, etc.).&lt;/p&gt;&lt;p&gt;FATHMM &amp;gt; 0.9 and CADD &amp;gt; 20&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>computational evidence:</string>
          </property>
@@ -752,6 +782,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_15">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Mutation in a &lt;span style=&quot; font-weight:600;&quot;&gt;gene in malignancy with a single genetic etiology&lt;/span&gt;.&lt;/p&gt;&lt;p&gt;Example: retinoblastoma is caused by bi-allelic RB1 inactivation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>mutation in gene with etiology</string>
          </property>
@@ -796,6 +829,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_16">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Located in one of the &lt;span style=&quot; font-weight:600;&quot;&gt;hotspots in cancerhotspots.org&lt;/span&gt; and the &lt;span style=&quot; font-weight:600;&quot;&gt;particular amino acid change count is below 10&lt;/span&gt;.&lt;br/&gt;Use caution with hotspots driven by truncating mutations.&lt;/p&gt;&lt;p&gt;If mutation is in a tumor type which is not covered well by cancerhotspots.org, resources such as COSMIC or tumor type specific study could be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>very weak cancerhotspot:</string>
          </property>
@@ -853,6 +889,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_17">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Minor allele frequency is &amp;gt;5% in gnomAD.&lt;/span&gt;&lt;br/&gt;If the somatic variant is in a gene known to cause hereditary cancer, e.g. ACMG/AMP or ClinGen germline expert panel, gene specific guidelines need to be consulted.&lt;/p&gt;&lt;p&gt;If such exist, for cut off which take into account disease prevalence.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>minor AF above 5%:</string>
          </property>
@@ -897,6 +936,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_18">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Well-established in vitro or in vivo &lt;span style=&quot; font-weight:600;&quot;&gt;functional studies show no oncogenic/oncogenic effects.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>benign functional studies:</string>
          </property>
@@ -941,6 +983,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_19">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Minor allele frequency is &amp;gt;1% in gnomAD.&lt;/span&gt;&lt;br/&gt;If the somatic variant is in a gene known to cause hereditary cancer, e.g.ACMG/AMP or ClinGen germline expert panel, gene specific guidelines need to be consulted.&lt;/p&gt;&lt;p&gt;If such exist, for cut off which take into account disease prevalence.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>minor AF above 1%:</string>
          </property>
@@ -985,8 +1030,11 @@
        </property>
        <item>
         <widget class="QLabel" name="label_20">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Multiple lines of &lt;span style=&quot; font-weight:600;&quot;&gt;computational evidence suggest no impact of a mutation&lt;/span&gt; (conservation/ evolutionary, splicing impact, ...).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
-          <string>beign computational evidence:</string>
+          <string>benign computational evidence:</string>
          </property>
         </widget>
        </item>
@@ -1029,6 +1077,9 @@
        </property>
        <item>
         <widget class="QLabel" name="label_21">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A &lt;span style=&quot; font-weight:600;&quot;&gt;synonymous (silent) mutation&lt;/span&gt; for which splicing prediction algorithms predict &lt;span style=&quot; font-weight:600;&quot;&gt;no impact to the splice consensus sequence&lt;/span&gt; nor the creation of a new splice site AND the nucleotide is not highly conserved. OE_SYN &amp;gt; 0.1.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>synonymous mutation without impact:</string>
          </property>
@@ -1156,22 +1207,22 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="onco_absent_from_controls"/>
-  <buttongroup name="onco_protein_length_change"/>
-  <buttongroup name="benign_benign_computational_evidence"/>
-  <buttongroup name="benign_very_high_maf"/>
+  <buttongroup name="onco_located_in_canerhotspot"/>
+  <buttongroup name="benign_high_maf"/>
+  <buttongroup name="onco_known_oncogenic_aa"/>
+  <buttongroup name="onco_oncogenic_functional_studies"/>
   <buttongroup name="onco_null_mutation_in_tsg"/>
   <buttongroup name="onco_mutation_in_gene_with_etiology"/>
-  <buttongroup name="onco_other_aa_known_oncogenic"/>
-  <buttongroup name="onco_weak_cancerhotspot"/>
-  <buttongroup name="benign_high_maf"/>
-  <buttongroup name="onco_oncogenic_functional_studies"/>
-  <buttongroup name="onco_very_weak_cancerhotspot"/>
   <buttongroup name="benign_benign_functional_studies"/>
-  <buttongroup name="onco_computational_evidence"/>
-  <buttongroup name="onco_located_in_canerhotspot"/>
+  <buttongroup name="onco_protein_length_change"/>
   <buttongroup name="onco_strong_cancerhotspot"/>
-  <buttongroup name="onco_known_oncogenic_aa"/>
+  <buttongroup name="onco_absent_from_controls"/>
+  <buttongroup name="onco_other_aa_known_oncogenic"/>
+  <buttongroup name="onco_very_weak_cancerhotspot"/>
   <buttongroup name="benign_synonymous_mutation"/>
+  <buttongroup name="benign_benign_computational_evidence"/>
+  <buttongroup name="onco_weak_cancerhotspot"/>
+  <buttongroup name="onco_computational_evidence"/>
+  <buttongroup name="benign_very_high_maf"/>
  </buttongroups>
 </ui>
