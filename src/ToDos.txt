@@ -1,7 +1,6 @@
 === TODO ===
 
 GSvar:
-## The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
 # add multi-sample report-config
     - 1 affected > easy
     - >1 affected > user has to set one affected as index > only report config of index is edited
@@ -27,4 +26,3 @@ GSVar features to dicuss:
 - CAVE functionality for Genes (use e.g. for imprinting), model reasons? > SWAL
 - Sample: source tissue (for RNA) > TOH
 - Evaluation sheet: Add comment text, e.g. bad CNV quality > FH
-- Sample: allow several disease_groups per sample > CS

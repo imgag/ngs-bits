@@ -3,6 +3,7 @@
 #include "Helper.h"
 #include "GeneSet.h"
 #include "FilterCascade.h"
+#include "Settings.h"
 
 VariantScores::VariantScores()
 {
@@ -38,7 +39,7 @@ QString VariantScores::description(QString algorithm)
 	THROW(ArgumentException, "VariantScores::description: Not implemented algorithm '" + algorithm + "'!");
 }
 
-VariantScores::Result VariantScores::score(QString algorithm, const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois)
+VariantScores::Result VariantScores::score(QString algorithm, const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const QList<Variant>& blacklist)
 {
 	if (!algorithms().contains(algorithm))
 	{
@@ -49,11 +50,11 @@ VariantScores::Result VariantScores::score(QString algorithm, const VariantList&
 	VariantScores::Result result;
 	if (algorithm=="GSvar_v1")
 	{
-		 result = score_GSvar_V1(variants, phenotype_rois);
+		 result = score_GSvar_V1(variants, phenotype_rois, blacklist);
 	}
 	else if (algorithm=="GSvar_v1_noNGSD")
 	{
-		result = score_GSvar_V1_noNGSD(variants, phenotype_rois);
+		result = score_GSvar_V1_noNGSD(variants, phenotype_rois, blacklist);
 	}
 	else
 	{
@@ -134,7 +135,20 @@ int VariantScores::annotate(VariantList& variants, const VariantScores::Result& 
 	return c_scored;
 }
 
-VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois)
+QList<Variant> VariantScores::blacklist()
+{
+	QList<Variant> output;
+
+	QStringList entries = Settings::stringList("ranking_variant_blacklist");
+	foreach(QString entry, entries)
+	{
+		output << Variant::fromString(entry);
+	}
+
+	return output;
+}
+
+VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const QList<Variant>& blacklist)
 {
 	Result output;
 
@@ -184,7 +198,14 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 			continue;
 		}
 
+		//skip blacklist variants
 		const Variant& v = variants[i];
+		if (blacklist.contains(v))
+		{
+			output.scores << -1.0;
+			output.score_explainations << QStringList();
+			continue;
+		}
 
 		//get gene/transcript list
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
@@ -380,7 +401,7 @@ VariantScores::Result VariantScores::score_GSvar_V1(const VariantList& variants,
 	return output;
 }
 
-VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois)
+VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const QList<Variant>& blacklist)
 {
 	Result output;
 
@@ -391,13 +412,12 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
 	int i_clinvar = variants.annotationIndexByName("ClinVar");
 	int i_gene_info = variants.annotationIndexByName("gene_info");
-	int i_aidiva = variants.annotationIndexByName("AIDIVA", true, false);
 	QList<int> affected_cols = variants.getSampleHeader().sampleColumns(true);
 	if (affected_cols.count()!=1) THROW(ArgumentException, "VariantScores: Algorihtm 'GSvar_V1' can only be applied to variant lists with exactly one affected patient!");
 	int i_genotye = affected_cols[0];
 
 	//prepare ROI for fast lookup
-	//TODO: test counting each phenotype ROI hit separatly
+	//TODO: test counting each phenotype ROI hit separatly OR using Germans model
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
 	BedFile roi;
 	foreach(const BedFile& pheno_roi, phenotype_rois)
@@ -430,7 +450,14 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 			continue;
 		}
 
+		//skip blacklist variants
 		const Variant& v = variants[i];
+		if (blacklist.contains(v))
+		{
+			output.scores << -1.0;
+			output.score_explainations << QStringList();
+			continue;
+		}
 
 		//get gene/transcript list
 		QList<VariantTranscript> transcript_info = v.transcriptAnnotations(i_coding);
@@ -545,29 +572,6 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 		{
 			score += clinvar_score;
 			explainations << "ClinVar:" + QString::number(clinvar_score, 'f', 1);
-		}
-
-		//AIdiva
-		if (i_aidiva!=-1)
-		{
-			if (impact_score<3) //AIdiva only for MODERATE, LOW and MODIFIER
-			{
-				QByteArray aidiva = v.annotations()[i_aidiva].trimmed();
-				if (!aidiva.isEmpty())
-				{
-					double aidiva_score = Helper::toDouble(aidiva, "AIdiva score");
-					if (aidiva_score>=0.8)
-					{
-						score += 1.0;
-						explainations << "AIdiva:1.0";
-					}
-					else if (aidiva_score>=0.5)
-					{
-						score += 0.5;
-						explainations << "AIdiva:0.5";
-					}
-				}
-			}
 		}
 
 		//genotype

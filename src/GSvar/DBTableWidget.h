@@ -71,9 +71,11 @@ signals:
 
 protected:
 	void keyPressEvent(QKeyEvent* event) override;
+	void copyToClipboard(bool selection_only);
 
 protected slots:
-	void copyToClipboard();
+	void copySelectionToClipboard();
+	void copyTableToClipboard();
 	void processDoubleClick(int row, int column);
 
 protected:

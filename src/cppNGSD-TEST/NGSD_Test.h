@@ -913,7 +913,7 @@ private slots:
 		IS_FALSE(report_conf2->finalizedAt().isValid());
 
 		//update
-		QThread::sleep(2);
+		QThread::sleep(4);
 		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
 		IS_TRUE(conf_id1==conf_id2);
 		//check that no double entries are inserted after second execution of setReportConfig
@@ -1283,7 +1283,6 @@ private slots:
 		S_EQUAL(config_data.last_edit_by, "Sarah Kerrigan");
 		S_EQUAL(config_data.last_edit_date, "07.12.2019 17:06:10");
 		S_EQUAL(config_data.mtb_xml_upload_date, "27.07.2020 09:20:10");
-		S_EQUAL(config_data.mtb_pdf_upload_date, "27.07.2020 09:40:11");
 		S_EQUAL(config_data.target_file, "nowhere.bed");
 
 		//set somatic report configuration in test NGSD, using 2 SNVs
@@ -1435,14 +1434,11 @@ private slots:
 		S_EQUAL(config_data_1.last_edit_by, "Max Mustermann");
 		S_EQUAL(config_data_1.target_file, "somewhere.bed");
 		S_EQUAL(config_data_1.mtb_xml_upload_date, "");
-		S_EQUAL(config_data_1.mtb_pdf_upload_date, "");
 
 		//set
 		db.setSomaticMtbXmlUpload(config_id);
-		db.setSomaticMtbPdfUpload(config_id);
 
 		IS_TRUE(db.somaticReportConfigData(config_id).mtb_xml_upload_date != "");
-		IS_TRUE(db.somaticReportConfigData(config_id).mtb_pdf_upload_date != "");
 
 
 		//Update somatic report configuration (by other user), should update target_file and last_edits
