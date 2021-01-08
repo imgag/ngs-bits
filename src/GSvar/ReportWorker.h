@@ -30,6 +30,7 @@ public:
 
 	///writes a low-coverage report
 	void writeCoverageReport(QTextStream& stream, QString bam_file, QString roi_file, const BedFile& roi, const GeneSet& genes, int min_cov, NGSD& db, bool calculate_depth, QMap<QString, QString>* output=nullptr, bool gene_and_gap_details=true);
+	void writeClosedGapsReport(QTextStream& stream, const BedFile& roi);
 	void writeCoverageReportCCDS(QTextStream& stream, QString bam_file, const GeneSet& genes, int min_cov, int extend, NGSD& db, QMap<QString, QString>* output=nullptr, bool gap_table=true, bool gene_details=true);
 
 	///Returns if the pre-calcualed gaps for the given ROI.

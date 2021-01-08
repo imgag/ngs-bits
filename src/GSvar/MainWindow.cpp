@@ -114,6 +114,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "ClinvarSubmissionGenerator.h"
 #include "AlleleBalanceCalculator.h"
 #include "ExpressionDataWidget.h"
+#include "GapClosingDialog.h"
+
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -1712,27 +1714,30 @@ QString MainWindow::targetFileName() const
 
 QString MainWindow::processedSampleName()
 {
-	QString filename = QFileInfo(filename_).baseName();
-
-	if (variants_.type()==SOMATIC_PAIR)
+	switch(variants_.type())
 	{
-		return filename.split("-")[0];
-	}
-	else if (variants_.type()==GERMLINE_TRIO) //return index (child)
-	{
+		case GERMLINE_SINGLESAMPLE:
+			return QFileInfo(filename_).baseName();
+			break;
+		case GERMLINE_TRIO: //return index (child)
 		return variants_.getSampleHeader().infoByStatus(true).column_name;
-	}
-	else if (variants_.type()==GERMLINE_MULTISAMPLE) //return affected if there is exactly one affected
-	{
+			break;
+		case GERMLINE_MULTISAMPLE: //return affected if there is exactly one affected
 		try
 		{
 			SampleInfo info = variants_.getSampleHeader().infoByStatus(true);
 			return info.column_name;
 		}
 		catch(...) {} //Nothing to do here
+			break;
+		case SOMATIC_SINGLESAMPLE:
+			break;
+		case SOMATIC_PAIR:
+			return QFileInfo(filename_).baseName().split("-")[0];
+			break;
 	}
 
-	return filename;
+	return "";
 }
 
 QString MainWindow::sampleName()
@@ -3641,6 +3646,13 @@ void MainWindow::generateReportGermline()
 		return;
 	}
 
+	//check if there are unclosed gaps
+	QStringList unclosed_gap_ids = db.getValues("SELECT id FROM gaps WHERE processed_sample_id='" + processed_sample_id + "' AND (status='to close' OR status='in progress')");
+	if (unclosed_gap_ids.count()>0 && QMessageBox::question(this, "Not all gaps closed", "There are gaps for this sample, which still have to be closed!\nDo you want to continue?")==QMessageBox::No)
+	{
+		return;
+	}
+
 	//show report dialog
 	ReportDialog dialog(ps_name, report_settings_, variants_, cnvs_, svs_, ui_.filters->targetRegion(),this);
 	if (!dialog.exec()) return;
@@ -4310,6 +4322,12 @@ void MainWindow::on_actionStudy_triggered()
 	addModelessDialog(dlg);
 }
 
+void MainWindow::on_actionGaps_triggered()
+{
+	GapClosingDialog dlg(this);
+	dlg.exec();
+}
+
 void MainWindow::on_actionGenderXY_triggered()
 {
 	ExternalToolDialog dialog("Determine gender", "xy", this);
@@ -4476,8 +4494,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	QList<IgvFile> bams = getBamFiles();
 	if (bams.empty()) return;
 	QString bam_file = bams.first().filename;
-
-	QString sample_name = QFileInfo(bam_file).fileName().replace(".bam", "");
+	QString ps = QFileInfo(bam_file).fileName().replace(".bam", "");
 
 	//determine ROI name, ROI and gene list
 	QString roi_name;
@@ -4525,28 +4542,10 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 		return;
 	}
 
-	//prepare dialog
-	QApplication::setOverrideCursor(Qt::BusyCursor);
-	GapDialog dlg(this, sample_name, roi_name);
-	dlg.process(bam_file, roi, genes);
-	QApplication::restoreOverrideCursor();
-
 	//show dialog
+	GapDialog dlg(this, ps, bam_file, roi, genes);
 	connect(&dlg, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	if (dlg.exec())
-	{
-		QString report = dlg.report();
-		QApplication::clipboard()->setText(report);
-		QMessageBox::information(this, "Gap report", "Gap report was copied to clipboard.");
-
-		//write report file to transfer folder
-		QString gsvar_gap_folder = Settings::string("gsvar_gap_folder");
-		if (gsvar_gap_folder!="")
-		{
-			QString file_rep = gsvar_gap_folder + "/" + QFileInfo(bam_file).baseName() + targetFileName() + "_gaps_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
-			Helper::storeTextFile(file_rep, report.split("\n"));
-		}
-	}
+	dlg.exec();
 }
 
 void MainWindow::exportVCF()
@@ -6277,6 +6276,8 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionSampleSearch->setEnabled(ngsd_user_logged_in);
 	ui_.actionRunOverview->setEnabled(ngsd_user_logged_in);
 	ui_.actionConvertHgvsToGSvar->setEnabled(ngsd_user_logged_in);
+	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
+
 	//toolbar - NGSD search menu
 	QToolButton* ngsd_search_btn = ui_.tools->findChild<QToolButton*>("ngsd_search_btn");
 	QList<QAction*> ngsd_search_actions = ngsd_search_btn->menu()->actions();

@@ -99,6 +99,24 @@ void Transcript::setRegions(const BedFile& regions, int coding_start, int coding
 	coding_regions_.merge();
 }
 
+int Transcript::exonNumber(int start, int end) const
+{
+	QSet<int> matches;
+	for(int i=0; i<regions_.count(); ++i)
+	{
+		if(regions_[i].overlapsWith(start, end))
+		{
+			if(strand_==STRAND::PLUS) matches << i+1;
+			else if(strand_==STRAND::MINUS) matches << regions_.count()-i;
+		}
+	}
+
+	if (matches.count()==0) return -1;
+	if (matches.count()>1) return -2;
+
+	return *(matches.begin());
+}
+
 QString Transcript::sourceToString(Transcript::SOURCE source)
 {
 	switch(source)
