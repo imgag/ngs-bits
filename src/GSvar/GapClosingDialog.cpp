@@ -16,9 +16,11 @@ GapClosingDialog::GapClosingDialog(QWidget* parent)
 	ui_.f_status->addItem("");
 	ui_.f_status->addItems(db_.getEnum("gaps", "status"));
 	ui_.f_status->setCurrentText("to close");
+	ui_.f_user->fill(db_.createTable("user", "SELECT id, name FROM user ORDER BY name ASC"), true);
 
 	connect(ui_.f_ps, SIGNAL(editingFinished()), this, SLOT(updateTable()));
 	connect(ui_.f_status, SIGNAL(currentIndexChanged(QString)), this, SLOT(updateTable()));
+	connect(ui_.f_user, SIGNAL(currentIndexChanged(QString)), this, SLOT(updateTable()));
 
 	//primer gap
 	QAction* action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy for PrimerGap", this);
@@ -120,6 +122,11 @@ void GapClosingDialog::updateTable()
 	if (status!="")
 	{
 		conditions << "status='" + status + "'";
+	}
+	QString user = ui_.f_user->currentText();
+	if (user!="")
+	{
+		conditions << "history LIKE '%" + user + "%'";
 	}
 
 	//check at least one filter is present

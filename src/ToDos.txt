@@ -2,8 +2,6 @@
 
 GSvar:
 ## The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
-## Implement "closing gaps by sanger"
-    - use info in gap calculation of report?!
 # add multi-sample report-config
     - 1 affected > easy
     - >1 affected > user has to set one affected as index > only report config of index is edited

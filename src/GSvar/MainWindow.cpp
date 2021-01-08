@@ -3648,6 +3648,13 @@ void MainWindow::generateReportGermline()
 		return;
 	}
 
+	//check if there are unclosed gaps
+	QStringList unclosed_gap_ids = db.getValues("SELECT id FROM gaps WHERE processed_sample_id='" + processed_sample_id + "' AND (status='to close' OR status='in progress')");
+	if (unclosed_gap_ids.count()>0 && QMessageBox::question(this, "Not all gaps closed", "There are gaps for this sample, which still have to be closed!\nDo you want to continue?")==QMessageBox::No)
+	{
+		return;
+	}
+
 	//show report dialog
 	ReportDialog dialog(ps_name, report_settings_, variants_, cnvs_, svs_, ui_.filters->targetRegion(),this);
 	if (!dialog.exec()) return;

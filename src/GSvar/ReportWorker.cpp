@@ -209,13 +209,13 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 		stream << "<p>" << trans("Details Regionen mit Tiefe &lt;") << min_cov << ":" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("L&uuml;cken") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>" << endl;
+		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>" << endl;
 		for (auto it=grouped.cbegin(); it!=grouped.cend(); ++it)
 		{
 			stream << "<tr>" << endl;
 			stream << "<td>" << endl;
 			const BedFile& gaps = it.value();
-			QString chr = gaps[0].chr().strNormalized(true);;
+			QString chr = gaps[0].chr().strNormalized(true);
 			QStringList coords;
 			for (int i=0; i<gaps.count(); ++i)
 			{
@@ -230,12 +230,75 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 	}
 }
 
+void ReportWorker::writeClosedGapsReport(QTextStream& stream, const BedFile& roi)
+{
+	ChromosomalIndex<BedFile> roi_idx(roi);
+	//init
+	QString processed_sample_id = db_.processedSampleId(sample_name_);
+	SqlQuery query = db_.getQuery();
+	query.prepare("SELECT chr, start, end, status FROM gaps WHERE processed_sample_id='" + processed_sample_id + "' AND status=:0 ORDER BY chr,start,end");
+
+	stream << "<p><b>" << trans("L&uuml;ckenschluss") << "</b></p>" << endl;
+
+	//closed by Sanger
+	{
+		int base_sum = 0;
+		stream << "<p>" << trans("L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:") << "<br>";
+		stream << "<table>";
+		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>" << endl;
+		query.bindValue(0, "closed");
+		query.exec();
+		while(query.next())
+		{
+			Chromosome chr = query.value("chr").toString();
+			int start = query.value("start").toInt();
+			int end = query.value("end").toInt();
+			if (roi_idx.matchingIndex(chr, start, end)==-1) continue;
+
+			base_sum += end-start+1;
+
+			stream << "<tr>" << endl;
+			stream << "<td>" << db_.genesOverlapping(chr, start, end).join(", ") << "</td><td>" << QString::number(end-start+1) << "</td><td>" << chr.strNormalized(true) << "</td><td>" << QString::number(start) << "-" << QString::number(end) << "</td>";
+			stream << "</tr>" << endl;
+		}
+		stream << "</table>";
+		stream << trans("Basen gesamt:") << QString::number(base_sum);
+		stream << "</p>";
+	}
+
+	//closed by visual inspection
+	{
+		int base_sum = 0;
+		stream << "<p>" << trans("L&uuml;cken die mit visueller Inspektion der Rohdaten &uuml;berpr&uuml;ft wurden:") << "<br>";
+		stream << "<table>";
+		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>" << endl;
+		query.bindValue(0, "checked visually");
+		query.exec();
+		while(query.next())
+		{
+			Chromosome chr = query.value("chr").toString();
+			int start = query.value("start").toInt();
+			int end = query.value("end").toInt();
+			if (roi_idx.matchingIndex(chr, start, end)==-1) continue;
+
+			base_sum += end-start+1;
+
+			stream << "<tr>" << endl;
+			stream << "<td>" << db_.genesOverlapping(chr, start, end).join(", ") << "</td><td>" << QString::number(end-start+1) << "</td><td>" << chr.strNormalized(true) << "</td><td>" << QString::number(start) << "-" << QString::number(end) << "</td>";
+			stream << "</tr>" << endl;
+		}
+		stream << "</table>";
+		stream << trans("Basen gesamt:") << QString::number(base_sum);
+		stream << "</p>";
+	}
+}
+
 void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file, const GeneSet& genes, int min_cov, int extend, NGSD& db, QMap<QString, QString>* output, bool gap_table, bool gene_details)
 {
 	QString ext_string = (extend==0 ? "" : " +-" + QString::number(extend) + " ");
 	stream << "<p><b>" << trans("Abdeckungsstatistik f&uuml;r CCDS") << " " << ext_string << "</b></p>" << endl;
 	if (gap_table) stream << "<p><table>";
-	if (gap_table) stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Transcript") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("L&uuml;cken") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>";
+	if (gap_table) stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Transcript") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>";
 	QMap<QByteArray, int> gap_count;
 	long long bases_overall = 0;
 	long long bases_sequenced = 0;
@@ -806,6 +869,8 @@ void ReportWorker::writeHTML()
 		writeCoverageReportCCDS(stream, file_bam_, genes_, settings_.min_depth, 0, db_, &roi_stats_, false, false);
 
 		writeCoverageReportCCDS(stream, file_bam_, genes_, settings_.min_depth, 5, db_, nullptr, true, true);
+
+		writeClosedGapsReport(stream, roi_);
 	}
 
 	//OMIM table
@@ -1053,7 +1118,7 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Details Regionen mit Tiefe &lt;"] = "Details regions with depth &lt;";
 		de2en["Koordinaten (hg19)"] = "Coordinates (hg19)";
 		de2en["Chromosom"] = "Chromosome";
-		de2en["L&uuml;cken"] = "Gaps";
+		de2en["Basen"] = "Bases";
 		de2en["Abdeckungsstatistik f&uuml;r CCDS"] = "Coverage statistics for CCDS";
 		de2en["Gr&ouml;&szlig;e"] = "Size";
 		de2en["Transcript"] = "Transcript";
@@ -1075,6 +1140,10 @@ QString ReportWorker::trans(const QString& text) const
 		de2en["Inversion"] = "inversion";
 		de2en["Translokation"] = "translocation";
 		de2en["In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden."] = "In addition to likely pathogenic variants (class 4) and pathogenic variants (class 5), the following table contains only those variants of uncertain significance (class 3), for which a contribution to the clinical symptoms of the patient is conceivable and for which a further evaluation of the clinical relevance by follow-up examinations may be useful.  A list of all detected variants can be provided on request.";
+		de2en["L&uuml;ckenschluss"] = "Gaps closed";
+		de2en["L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:"] = "Gaps closed by Sanger sequencing:";
+		de2en["L&uuml;cken die mit visueller Inspektion der Rohdaten &uuml;berpr&uuml;ft wurden:"] = "Gaps checked by visual inspection of raw data:";
+		de2en["Basen gesamt:"] = "Base sum:";
 	}
 
 	//translate
