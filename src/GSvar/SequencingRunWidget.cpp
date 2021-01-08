@@ -16,6 +16,7 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	: QWidget(parent)
 	, ui_(new Ui::SequencingRunWidget)
 	, run_id_(run_id)
+	, qc_metric_accessions_(QStringList() << "QC:2000005" << "QC:2000023" << "QC:2000021" << "QC:2000024" << "QC:2000025" << "QC:2000027" << "QC:2000013" << "QC:2000014" << "QC:2000051")
 {
 	ui_->setupUi(this);
 	GUIHelper::styleSplitter(ui_->splitter);
@@ -35,11 +36,15 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, QString run_id)
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQuality()));
 
-	//QC plot
-	ui_->samples->setSelectionBehavior(QAbstractItemView::SelectItems);
-	action = new QAction("Plot", this);
-	ui_->samples->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(showPlot()));
+	//QC plot button
+	NGSD db;
+	ui_->plot_btn->setMenu(new QMenu());
+	foreach(QString accession, qc_metric_accessions_)
+	{
+		QString name = db.getValue("SELECT name FROM qc_terms WHERE qcml_id=:0", true, accession).toString();
+		name.replace("percentage", "%");
+		ui_->plot_btn->menu()->addAction(name, this, SLOT(showPlot()))->setData(accession);
+	}
 
 	updateGUI();
 }
@@ -109,8 +114,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	samples.formatBooleanColumn(samples.columnIndex("ffpe"));
 
 	//add QC data
-	QStringList accessions;
-	accessions << "QC:2000005" << "QC:2000023" << "QC:2000021" << "QC:2000024" << "QC:2000025" << "QC:2000027" << "QC:2000013" << "QC:2000014" << "QC:2000051";
+	const QStringList& accessions = qc_metric_accessions_;
 	if (ui_->show_qc->isChecked())
 	{
 		//create column data
@@ -258,38 +262,45 @@ void SequencingRunWidget::setQuality()
 
 void SequencingRunWidget::showPlot()
 {
+	//init
 	NGSD db;
 
-	//check one QC cell is selected
-	QList<int> selected_cols = ui_->samples->selectedColumns().toList();
+	//determine selected processed sample IDs
+	QStringList selected_ps_ids;
 	QList<int> selected_rows = ui_->samples->selectedRows().toList();
-	if (selected_cols.count()!=1 || selected_rows.count()!=1)
+	foreach(int row, selected_rows)
 	{
-		QMessageBox::information(this, "Plot error", "Please select <b>exactly one cell</b> containing a <b>quality metric</b> for plotting!");
-		return;
+		selected_ps_ids << ui_->samples->getId(row);
 	}
-	int col = selected_cols[0];
-	QString qc_term_id = db.getValue("SELECT id FROM qc_terms WHERE name='" + ui_->samples->columnHeader(col).replace("%", "percentage") + "'", true).toString();
-	if (qc_term_id.isEmpty())
+	if (selected_rows.isEmpty()) //no selection > select all samples (works if all have the sample processing system)
 	{
-		QMessageBox::information(this, "Plot error", "Please select <b>exactly one cell</b> containing a <b>quality metric</b> for plotting!");
+		selected_ps_ids << db.getValues("SELECT id FROM processed_sample WHERE sequencing_run_id='" + run_id_ + "'");
+	}
+
+	//check one processing system is selected
+	QStringList system_ids = db.getValues("SELECT DISTINCT processing_system_id FROM processed_sample WHERE id IN ('" + selected_ps_ids.join("', '") + "')");
+	if (system_ids.count()!=1)
+	{
+		QMessageBox::information(this, "Plot error", "Please select one or several samples of the <b>same processing system</b> for plotting!");
 		return;
 	}
 
 	//create widget
-	DBQCWidget* qc_widget = new DBQCWidget(this);
-	//highlight all samples on this run
-	SqlQuery query = db.getQuery();
-	query.exec("SELECT ps.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.sequencing_run_id=" + run_id_);
-	while (query.next())
+	DBQCWidget* qc_widget = new DBQCWidget();
+	qc_widget->setSystemId(system_ids[0]);
+
+	//highlight selected samples
+	foreach(QString ps_id, selected_ps_ids)
 	{
-		qc_widget->addHighlightedProcessedSampleById(query.value(0).toString(), query.value(1).toString(), false);
+		qc_widget->addHighlightedProcessedSampleById(ps_id, db.processedSampleName(ps_id), false);
 	}
 
-	//show widget
-	int row = selected_rows[0];
-	qc_widget->setSystemId(db.getValue("SELECT processing_system_id FROM processed_sample WHERE id='" + ui_->samples->getId(row) + "'", true).toString());
+	//determine QC term id
+	QString accession = qobject_cast<QAction*>(sender())->data().toString();
+	QString qc_term_id = db.getValue("SELECT id FROM qc_terms WHERE qcml_id='" + accession + "'", true).toString();
 	qc_widget->setTermId(qc_term_id);
+
+	//show widget
 	auto dlg = GUIHelper::createDialog(qc_widget, "QC plot");
 	dlg->exec();
 }

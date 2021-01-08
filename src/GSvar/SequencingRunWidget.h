@@ -36,6 +36,7 @@ protected slots:
 private:
 	Ui::SequencingRunWidget* ui_;
 	QString run_id_;
+	QStringList qc_metric_accessions_;
 
 	static void highlightItem(QTableWidgetItem* item);
 };

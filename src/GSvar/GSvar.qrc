@@ -109,5 +109,6 @@
         <file>Resources/cfDNA_hotspot_regions.bed</file>
         <file>Icons/cfDNA.png</file>
         <file>Icons/RNA.png</file>
+        <file>Icons/chart.png</file>
     </qresource>
 </RCC>
