@@ -243,7 +243,7 @@ void ReportWorker::writeClosedGapsReport(QTextStream& stream, const BedFile& roi
 	//closed by Sanger
 	{
 		int base_sum = 0;
-		stream << "<p>" << trans("L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:") << "<br>";
+		stream << "<p>" << trans("L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:") << "<br />";
 		stream << "<table>";
 		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>" << endl;
 		query.bindValue(0, "closed");
@@ -269,7 +269,7 @@ void ReportWorker::writeClosedGapsReport(QTextStream& stream, const BedFile& roi
 	//closed by visual inspection
 	{
 		int base_sum = 0;
-		stream << "<p>" << trans("L&uuml;cken die mit visueller Inspektion der Rohdaten &uuml;berpr&uuml;ft wurden:") << "<br>";
+		stream << "<p>" << trans("L&uuml;cken die mit visueller Inspektion der Rohdaten &uuml;berpr&uuml;ft wurden:") << "<br />";
 		stream << "<table>";
 		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>" << endl;
 		query.bindValue(0, "checked visually");
@@ -355,16 +355,16 @@ void ReportWorker::writeCoverageReportCCDS(QTextStream& stream, QString bam_file
 		bases_overall += bases_transcipt;
 		bases_sequenced += bases_transcipt - bases_gaps;
 	}
-	if (gap_table) stream << "</table>";
+	if (gap_table) stream << "</table></p>";
 
 	//show warning if non-coding transcripts had to be used
 	if (!genes_noncoding.isEmpty())
 	{
-		stream << "<br>Warning: Using the longest *non-coding* transcript for genes " << genes_noncoding.join(", ") << " (no coding transcripts for GRCh37 defined)";
+		stream << "<br />Warning: Using the longest *non-coding* transcript for genes " << genes_noncoding.join(", ") << " (no coding transcripts for GRCh37 defined)";
 	}
 	if (!genes_notranscript.isEmpty())
 	{
-		stream << "<br>Warning: No transcript defined for genes " << genes_notranscript.join(", ");
+		stream << "<br />Warning: No transcript defined for genes " << genes_notranscript.join(", ");
 	}
 
 	//overall statistics
@@ -656,7 +656,7 @@ void ReportWorker::writeHTML()
 
 	//output: selected variants
 	stream << "<p><b>" << trans("Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
-	stream << "<br>" << trans("In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden.") << endl;
+	stream << "<br />" << trans("In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden.") << endl;
 	stream << "</p>" << endl;
 	stream << "<table>" << endl;
 	stream << "<tr><td><b>" << trans("Variante") << "</b></td><td><b>" << trans("Genotyp") << "</b></td>";
@@ -893,7 +893,7 @@ void ReportWorker::writeHTML()
 					accessions << p.accession();
 				}
 
-				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << omim_info.mim << "</td><td>" << names.join("<br>")<< "</td><td>" << accessions.join("<br>")<< "</td></tr>";
+				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << omim_info.mim << "</td><td>" << names.join("<br />")<< "</td><td>" << accessions.join("<br />")<< "</td></tr>";
 			}
 		}
 		stream << "</table>" << endl;

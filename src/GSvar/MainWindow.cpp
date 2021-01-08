@@ -297,9 +297,7 @@ void MainWindow::on_actionDebug_triggered()
 				variants.load(db.processedSamplePath(ps_id, NGSD::GSVAR));
 
 				//score
-				QList<Variant> blacklist;
-				blacklist = VariantScores::blacklist();
-				VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois, blacklist);
+				VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois, VariantScores::blacklist());
 				int c_scored = VariantScores::annotate(variants, result);
 				int i_rank = variants.annotationIndexByName("GSvar_rank");
 				int i_score = variants.annotationIndexByName("GSvar_score");
