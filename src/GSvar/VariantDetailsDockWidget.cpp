@@ -222,24 +222,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->somatic_cmc_class, vl, index, "CMC_mutation_significance");
 
 	//somatic VICC data from NGSD
-	if(!LoginManager::active())
-	{
-		ui->somatic_vicc_score->setText("n/a (NGSD disabled)");
-		ui->somatic_vicc_score->setStyleSheet("color: gray");
-	}
-	else
-	{
-		NGSD db;
-		if(db.getSomaticViccId(vl[index]) != -1)
-		{
-			ui->somatic_vicc_score->setText( SomaticVariantInterpreter::viccScoreAsString(db.getSomaticViccData(vl[index])) );
-		}
-		else
-		{
-			ui->somatic_vicc_score->setText("n/a");
-		}
-		ui->somatic_vicc_score->setStyleSheet("color: black");
-	}
+	setAnnotation(ui->somatic_vicc_score, vl, index, "NGSD_som_vicc_interpretation");
 
 	//update NGSD button
 	ui->var_btn->setEnabled(LoginManager::active());
@@ -586,6 +569,11 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				}
 			}
 
+		}
+		else if(name == "NGSD_som_vicc_interpretation")
+		{
+			if(!anno.isEmpty()) text = anno;
+			else text = "n/a";
 		}
 		else //fallback: use complete annotations string
 		{
