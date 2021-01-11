@@ -65,8 +65,8 @@ QString ReportWorker::formatCodingSplicing(const QList<VariantTranscript>& trans
 {
     const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
-	QMap<QString, QByteArray> gene_infos;
-	QMap<QString, QByteArray> gene_infos_pt;
+	QMap<QString, QStringList> gene_infos;
+	QMap<QString, QStringList> gene_infos_pt;
 
 	foreach(const VariantTranscript& trans, transcripts)
 	{
