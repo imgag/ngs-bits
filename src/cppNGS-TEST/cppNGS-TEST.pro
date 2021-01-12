@@ -66,7 +66,8 @@ HEADERS += \
     VCFLine_Test.h \
     VcfFile_Test.h \
     VariantScores_Test.h \
-    BamWriter_Test.h
+    BamWriter_Test.h \
+    SomaticVariantInterpreter_Test.h
 
 SOURCES += \
         main.cpp

@@ -94,10 +94,10 @@ SOURCES += main.cpp\
     CfDNAPanelDesignDialog.cpp \
     DiseaseCourseWidget.cpp \
     CfDNAPanelWidget.cpp \
+    SomaticVariantInterpreterWidget.cpp \
     AlleleBalanceCalculator.cpp \
     ExpressionDataWidget.cpp \
     GapClosingDialog.cpp
-
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     ReportDialog.h \
@@ -185,10 +185,10 @@ HEADERS += MainWindow.h \
     CfDNAPanelDesignDialog.h \
     DiseaseCourseWidget.h \
     CfDNAPanelWidget.h \
+    SomaticVariantInterpreterWidget.h \
     AlleleBalanceCalculator.h \
     ExpressionDataWidget.h \
     GapClosingDialog.h
-
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -262,11 +262,11 @@ FORMS    += MainWindow.ui \
     CfDNAPanelDesignDialog.ui \
     DiseaseCourseWidget.ui \
     CfDNAPanelWidget.ui \
+    SomaticVariantInterpreterWidget.ui \
     AlleleBalanceCalculator.ui \
     ExpressionDataWidget.ui \
     GapClosingDialog.ui
-
-include("../app_gui.pri")
+    include("../app_gui.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD

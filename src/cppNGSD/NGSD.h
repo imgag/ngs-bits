@@ -21,6 +21,7 @@
 #include "SomaticReportConfiguration.h"
 #include "CnvList.h"
 #include "BedpeFile.h"
+#include "SomaticVariantInterpreter.h"
 
 ///OMIM information datastructure
 struct OmimInfo
@@ -662,6 +663,10 @@ public:
 	ClassificationInfo getSomaticClassification(const Variant& variant);
 	///Sets the somatic classification of a variant in the NGSD.
 	void setSomaticClassification(const Variant& variant, ClassificationInfo info);
+
+	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
+	int getSomaticViccId(const Variant& variant);
+	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
 
 	///Adds a variant publication
 	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details);

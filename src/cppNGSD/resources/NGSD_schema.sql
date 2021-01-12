@@ -643,6 +643,53 @@ CREATE TABLE IF NOT EXISTS `somatic_variant_classification`
 ENGINE = InnoDB 
 DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `somatic_vicc_interpretation`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_vicc_interpretation`
+(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `variant_id` int(11) NOT NULL,
+  `null_mutation_in_tsg` BOOLEAN NULL DEFAULT NULL,
+  `known_oncogenic_aa` BOOLEAN NULL DEFAULT NULL,
+  `strong_cancerhotspot` BOOLEAN NULL DEFAULT NULL,
+  `located_in_canerhotspot` BOOLEAN NULL DEFAULT NULL,
+  `absent_from_controls` BOOLEAN NULL DEFAULT NULL,
+  `protein_length_change` BOOLEAN NULL DEFAULT NULL,
+  `other_aa_known_oncogenic` BOOLEAN NULL DEFAULT NULL,
+  `weak_cancerhotspot` BOOLEAN NULL DEFAULT NULL,
+  `computational_evidence` BOOLEAN NULL DEFAULT NULL,
+  `mutation_in_gene_with_etiology` BOOLEAN NULL DEFAULT NULL,
+  `very_weak_cancerhotspot` BOOLEAN NULL DEFAULT NULL,
+  `very_high_maf` BOOLEAN NULL DEFAULT NULL,
+  `benign_functional_studies` BOOLEAN NULL DEFAULT NULL,
+  `high_maf` BOOLEAN NULL DEFAULT NULL,
+  `benign_computational_evidence` BOOLEAN NULL DEFAULT NULL,
+  `synonymous_mutation` BOOLEAN NULL DEFAULT NULL,
+  `comment` TEXT NULL DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `created_date` DATETIME NOT NULL,
+  `last_edit_by` int(11) DEFAULT NULL,
+  `last_edit_date` TIMESTAMP NULL DEFAULT NULL,
+PRIMARY KEY (`id`),
+UNIQUE KEY `somatic_vicc_interpretation_has_variant` (`variant_id`),
+CONSTRAINT `somatic_vicc_interpretation_has_variant`
+  FOREIGN KEY (`variant_id`)
+  REFERENCES `variant` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `somatic_vicc_interpretation_created_by_user` 
+  FOREIGN KEY (`created_by`)
+  REFERENCES `user` (`id`) 
+  ON DELETE NO ACTION 
+  ON UPDATE NO ACTION,
+CONSTRAINT `somatic_vicc_interpretation_last_edit_by_user`
+  FOREIGN KEY (`last_edit_by`)
+  REFERENCES `user` (`id`)
+  ON DELETE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `detected_variant`

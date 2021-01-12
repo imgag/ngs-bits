@@ -385,6 +385,12 @@ public slots:
 	///Clears somatic report settings
 	void clearSomaticReportSettings(QString ps_id_in_other_widget);
 
+
+	///Edit somatic variant interpretation (VICC consortium)
+	void editSomaticVariantInterpretation(const VariantList& vl, int index);
+	///Updates somatic variant interpreation annotation of GSvar file (adds anno column if missing)
+	void updateSomaticVariantInterpretationAnno(const Variant& var, QString vicc_interpretation, QString vicc_comment);
+
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
 	virtual void dropEvent(QDropEvent* e);

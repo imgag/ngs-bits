@@ -112,10 +112,10 @@ QT_CHARTS_USE_NAMESPACE
 #include "DiseaseCourseWidget.h"
 #include "CfDNAPanelWidget.h"
 #include "ClinvarSubmissionGenerator.h"
+#include "SomaticVariantInterpreterWidget.h"
 #include "AlleleBalanceCalculator.h"
 #include "ExpressionDataWidget.h"
 #include "GapClosingDialog.h"
-
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -429,6 +429,10 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
+		qDebug() << "in" << endl;
+		SomaticVariantInterpreterWidget *widget = new SomaticVariantInterpreterWidget(variants_[0], variants_, this);
+		auto dlg = GUIHelper::createDialog(widget, "Somatic Variant Interpretation");
+		dlg->exec();
 	}
 	else if (user=="ahstoht1")
 	{
@@ -4998,6 +5002,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	a_var_class->setEnabled(ngsd_user_logged_in);
 	QAction* a_var_class_somatic = menu.addAction("Edit classification  (somatic)");
 	a_var_class_somatic->setEnabled(ngsd_user_logged_in);
+	QAction * a_var_interpretation_somatic = menu.addAction("Edit VICC interpretation (somatic)");
 	QAction* a_var_comment = menu.addAction("Edit comment");
 	a_var_comment->setEnabled(ngsd_user_logged_in);
 	QAction* a_var_val = menu.addAction("Perform variant validation");
@@ -5178,6 +5183,10 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	else if (action==a_var_class_somatic)
 	{
 		editVariantClassification(variants_, index, true);
+	}
+	else if (action==a_var_interpretation_somatic)
+	{
+		editSomaticVariantInterpretation(variants_, index);
 	}
 	else if (action==a_var_comment)
 	{
@@ -5410,6 +5419,43 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 		GUIHelper::showMessage("NGSD error", e.message());
 		return;
 	}
+}
+
+void MainWindow::editSomaticVariantInterpretation(const VariantList &vl, int index)
+{
+	SomaticVariantInterpreterWidget* interpreter = new SomaticVariantInterpreterWidget(vl[index], vl, this);
+	auto dlg = GUIHelper::createDialog(interpreter, "Somatic Variant Interpretation");
+	connect(interpreter, SIGNAL(stored(const Variant&, QString, QString)), this, SLOT(updateSomaticVariantInterpretationAnno(const Variant&, QString, QString)) );
+
+	dlg->exec();
+}
+
+void MainWindow::updateSomaticVariantInterpretationAnno(const Variant& var, QString vicc_interpretation, QString vicc_comment)
+{
+	int i_vicc = variants_.addAnnotationIfMissing("NGSD_som_vicc_interpretation", "Somatic variant interpretation according VICC standard in the NGSD.", "");
+	int i_vicc_comment = variants_.addAnnotationIfMissing("NGSD_som_vicc_comment", "Somatic VICC interpretation comment in the NGSD.", "");
+
+	int index = -1;
+	for(int i=0;i<variants_.count(); ++i)
+	{
+		if(variants_[i] == var)
+		{
+			index = i;
+			variants_[i].annotations()[i_vicc] = vicc_interpretation.toUtf8();
+			variants_[i].annotations()[i_vicc_comment] = vicc_comment.toUtf8();
+			break;
+		}
+	}
+	if(index == -1) return; //do nothing if variant is not contained in variants_
+
+	filewatcher_.clearFile(); //disable file watcher for GSVar file
+
+	variants_.store(filename_);
+	//update details widget and filtering
+	ui_.variant_details->updateVariant(variants_, index);
+	refreshVariantTable();
+
+	filewatcher_.setFile(filename_); //activate filewatcher for GSvar file again
 }
 
 QString MainWindow::cnvFile(QString gsvar_file)

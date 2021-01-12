@@ -2046,6 +2046,26 @@
                 </property>
                </widget>
               </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="label_somatic_vicc_score">
+                <property name="toolTip">
+                 <string>VICC score from NGSD</string>
+                </property>
+                <property name="text">
+                 <string>VICC score:</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLabel" name="somatic_vicc_score">
+                <property name="toolTip">
+                 <string>VICC score from NGSD</string>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+               </widget>
+              </item>
              </layout>
             </widget>
            </widget>
