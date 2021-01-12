@@ -1,4 +1,4 @@
-name: Ubuntu Linux GCC Build
+name: Linux build
 
 on: [push, pull_request]
 
