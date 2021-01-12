@@ -1,0 +1,23 @@
+name: MacOS build
+
+on: [push, pull_request]
+
+jobs:
+  mac_build:
+    runs-on: macos-10.15
+    steps:
+    - uses: actions/checkout@v2
+    - name: Update submodules
+      run: git submodule update --recursive --init
+    - name: Update Homebrew
+      run: brew update
+    - name: Setup Qt dependencies
+      run: brew install qt lzlib
+    - name: Link Qt installation
+      run: brew link qt --force
+    - name: Install matplotlib
+      run: sudo pip install matplotlib
+    - name: Build project dependencies
+      run: make build_3rdparty build_libs_release build_tools_release build_gui_release
+    - name: Run tests
+      run: make -k test_lib test_tools

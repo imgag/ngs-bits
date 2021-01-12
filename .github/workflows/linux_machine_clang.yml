@@ -17,5 +17,5 @@ jobs:
       run: update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-3.8 100
     - name: Update submodules
       run: git submodule update --recursive --init
-    - name: Build dependencies
-      run: make build_3rdparty build_libs_release build_tools_release build_gui_release
+      #- name: Build dependencies
+      #run: make build_3rdparty build_libs_release build_tools_release build_gui_release
