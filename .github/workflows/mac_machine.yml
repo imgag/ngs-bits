@@ -3,7 +3,7 @@ name: MacOS build
 on: [push, pull_request]
 
 jobs:
-  mac_build:
+  mac-build-and-test:
     runs-on: macos-10.15
     steps:
     - uses: actions/checkout@v2
