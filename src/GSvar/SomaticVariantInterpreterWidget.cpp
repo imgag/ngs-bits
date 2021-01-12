@@ -29,7 +29,7 @@ SomaticVariantInterpreterWidget::SomaticVariantInterpreterWidget(const Variant& 
 	{
 		VariantTranscript trans = var.transcriptAnnotations(i_co_sp).first();
 
-		variant_description +=  " " + trans.gene + ":" +trans.hgvs_c + " " + trans.gene + ":" + trans.hgvs_p;
+		variant_description +=  " <b>" + trans.gene + "</b>:" +trans.hgvs_c + " <b>" + trans.gene + "</b>:" + trans.hgvs_p;
 	}
 
 	ui_->label_variant->setText(variant_description);
