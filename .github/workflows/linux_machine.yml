@@ -18,5 +18,6 @@ jobs:
   tests:
     runs-on: ubuntu-18.04
     needs: build
+    steps:
     - name: Run tests
       run: make -k test_lib test_tools
