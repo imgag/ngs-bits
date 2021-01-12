@@ -1,9 +1,9 @@
-name: Linux build Clang
+name: Ubuntu Linux Clang Build
 
 on: [push, pull_request]
 
 jobs:
-  build_clang:
+  clang-build-and-test:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
@@ -12,10 +12,10 @@ jobs:
     - name: Setup test environment
       run: sudo apt-get -y install make clang git python python-matplotlib qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev libbz2-dev liblzma-dev zlib1g-dev
     - name: Update alternatives for CC
-      run: update-alternatives --install /usr/bin/cc cc /usr/bin/clang-3.8 100
+      run: update-alternatives --install /usr/bin/cc cc /usr/bin/clang-6.0 100
     - name: Update alternatives for C++
-      run: update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-3.8 100
+      update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-6.0 100
     - name: Update submodules
       run: git submodule update --recursive --init
-      #- name: Build dependencies
-      #run: make build_3rdparty build_libs_release build_tools_release build_gui_release
+    - name: Build dependencies
+      run: make build_3rdparty build_libs_release build_tools_release build_gui_release
