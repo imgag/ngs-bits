@@ -3,7 +3,7 @@ name: Linux build
 on: [push, pull_request]
 
 jobs:
-  build:
+  build_and_test:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
@@ -14,6 +14,6 @@ jobs:
     - name: Update submodules
       run: git submodule update --recursive --init
     - name: Build dependencies
-      run: make build_3rdparty build_libs_release build_tools_release
+      run: make build_3rdparty build_libs_release build_tools_release build_gui_release
     - name: Run tests
       run: make -k test_lib test_tools
