@@ -99,7 +99,7 @@ SomaticViccData SomaticVariantInterpreterWidget::getParameters()
 		if(button_group->objectName() == "benign_benign_functional_studies") out.benign_functional_studies = state;
 		if(button_group->objectName() == "benign_high_maf") out.high_maf = state;
 		if(button_group->objectName() == "benign_benign_computational_evidence") out.benign_computational_evidence = state;
-		if(button_group->objectName() == "benign_synonymous_mutation") out.synonymous_mutation = state;
+		if(button_group->objectName() == "benign_synonymous_mutation") out.synonymous_mutation = state; //TODO fix warning > AXEL
 	}
 
 	out.comment = ui_->comment->toPlainText();

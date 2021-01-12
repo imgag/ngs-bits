@@ -9,11 +9,11 @@
 //struct with input configuration for SomaticVariantInterpreter
 struct CPPNGSSHARED_EXPORT SomaticViccData
 {
-	enum state
+	enum state //TODO upper-case > AXEL
 	{
-		NOT_APPLICABLE = -1,
-		FALSE123,
-		TRUE123
+		NOT_APPLICABLE,
+		FALSE123, //TODO name > AXEL
+		TRUE123,
 	};
 	//very strong evidence
 	state null_mutation_in_tsg = NOT_APPLICABLE; //null mutation, i.e. nonsense, framshifft, splice sites, initiation codon, exon deletion in TSG
@@ -127,7 +127,7 @@ class CPPNGSSHARED_EXPORT SomaticVariantInterpreter
 {
 public:
 	//result options of Vicc classification
-	enum result
+	enum result  //TODO upper-case > AXEL
 	{
 		ONCOGENIC,
 		LIKELY_ONCOGENIC,

@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2020_12-25 (15.12.20)
+- General: Gaps and closed gaps are not stored in NGSD and automatically added to the report.
+- General: Added support to annotate variant lists with expression data.
+
 ### 2020_12-1 (15.12.20)
 - General: Added support for ENSEMBL transcript identifiers with version number.
 
