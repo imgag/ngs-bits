@@ -5425,8 +5425,37 @@ void MainWindow::editSomaticVariantInterpretation(const VariantList &vl, int ind
 {
 	SomaticVariantInterpreterWidget* interpreter = new SomaticVariantInterpreterWidget(vl[index], vl, this);
 	auto dlg = GUIHelper::createDialog(interpreter, "Somatic Variant Interpretation");
-	if(!dlg->exec()) return;
+	connect(interpreter, SIGNAL(stored(const Variant&, QString, QString)), this, SLOT(updateSomaticVariantInterpretationAnno(const Variant&, QString, QString)) );
 
+	dlg->exec();
+}
+
+void MainWindow::updateSomaticVariantInterpretationAnno(const Variant& var, QString vicc_interpretation, QString vicc_comment)
+{
+	int i_vicc = variants_.addAnnotationIfMissing("NGSD_som_vicc_interpretation", "Somatic variant interpretation according VICC standard in the NGSD.", "");
+	int i_vicc_comment = variants_.addAnnotationIfMissing("NGSD_som_vicc_comment", "Somatic VICC interpretation comment in the NGSD.", "");
+
+	int index = -1;
+	for(int i=0;i<variants_.count(); ++i)
+	{
+		if(variants_[i] == var)
+		{
+			index = i;
+			variants_[i].annotations()[i_vicc] = vicc_interpretation.toUtf8();
+			variants_[i].annotations()[i_vicc_comment] = vicc_comment.toUtf8();
+			break;
+		}
+	}
+	if(index == -1) return; //do nothing if variant is not contained in variants_
+
+	filewatcher_.clearFile(); //disable file watcher for GSVar file
+
+	variants_.store(filename_);
+	//update details widget and filtering
+	ui_.variant_details->updateVariant(variants_, index);
+	refreshVariantTable();
+
+	filewatcher_.setFile(filename_); //activate filewatcher for GSvar file again
 }
 
 QString MainWindow::cnvFile(QString gsvar_file)

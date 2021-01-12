@@ -208,6 +208,9 @@ void SomaticVariantInterpreterWidget::storeInNGSD()
 
 	//update NGSD meta data labels
 	setNGSDMetaData();
+
+
+	emit stored(snv_, SomaticVariantInterpreter::viccScoreAsString(vicc_data), vicc_data.comment);
 }
 
 

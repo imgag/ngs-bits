@@ -33,6 +33,8 @@ private:
 	void setSelectionEnabled(QString name, bool state);
 
 signals:
+	///signal should be emitted when report was stored
+	void stored(const Variant& var, QString result, QString comment);
 
 public slots:
 	void disableNGSD();
