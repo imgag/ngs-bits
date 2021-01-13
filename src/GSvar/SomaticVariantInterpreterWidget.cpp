@@ -69,38 +69,23 @@ SomaticViccData SomaticVariantInterpreterWidget::getParameters()
 {
 	SomaticViccData out;
 
-	QList<QButtonGroup*> button_groups = findChildren<QButtonGroup*>(QRegularExpression("^benign_*|onco_*"));
-	for(auto button_group : button_groups)
-	{
-		if(!button_group->objectName().contains("onco_") && !button_group->objectName().contains("benign_")) continue;
-
-		//determine state that is checked
-		SomaticViccData::state state;
-		for(auto radiobox : button_group->buttons())
-		{
-			if( radiobox->text().contains("true") && radiobox->isChecked() ) state = SomaticViccData::TRUE123;
-			else if( radiobox->text().contains("false") && radiobox->isChecked() ) state = SomaticViccData::FALSE123;
-			else if( radiobox->text().contains("unapplicable") && radiobox->isChecked()) state = SomaticViccData::NOT_APPLICABLE;
-		}
-
-		if(button_group->objectName() == "onco_null_mutation_in_tsg" ) out.null_mutation_in_tsg = state;
-		if(button_group->objectName() == "onco_known_oncogenic_aa" ) out.known_oncogenic_aa = state;
-		if(button_group->objectName() == "onco_oncogenic_functional_studies") out.oncogenic_functional_studies = state;
-		if(button_group->objectName() == "onco_strong_cancerhotspot") out.strong_cancerhotspot = state;
-		if(button_group->objectName() == "onco_located_in_canerhotspot") out.located_in_canerhotspot = state;
-		if(button_group->objectName() == "onco_absent_from_controls") out.absent_from_controls = state;
-		if(button_group->objectName() == "onco_protein_length_change") out.protein_length_change = state;
-		if(button_group->objectName() == "onco_other_aa_known_oncogenic") out.other_aa_known_oncogenic = state;
-		if(button_group->objectName() == "onco_weak_cancerhotspot") out.weak_cancerhotspot = state;
-		if(button_group->objectName() == "onco_computational_evidence") out.computational_evidence = state;
-		if(button_group->objectName() == "onco_mutation_in_gene_with_etiology") out.mutation_in_gene_with_etiology = state;
-		if(button_group->objectName() == "onco_very_weak_cancerhotspot") out.very_weak_cancerhotspot = state;
-		if(button_group->objectName() == "benign_very_high_maf") out.very_high_maf = state;
-		if(button_group->objectName() == "benign_benign_functional_studies") out.benign_functional_studies = state;
-		if(button_group->objectName() == "benign_high_maf") out.high_maf = state;
-		if(button_group->objectName() == "benign_benign_computational_evidence") out.benign_computational_evidence = state;
-		if(button_group->objectName() == "benign_synonymous_mutation") out.synonymous_mutation = state; //TODO fix warning > AXEL
-	}
+	out.null_mutation_in_tsg = getSelection("onco_null_mutation_in_tsg");
+	out.known_oncogenic_aa = getSelection("onco_known_oncogenic_aa");
+	out.oncogenic_functional_studies = getSelection("onco_oncogenic_functional_studies");
+	out.strong_cancerhotspot = getSelection("onco_strong_cancerhotspot");
+	out.located_in_canerhotspot = getSelection("onco_located_in_canerhotspot");
+	out.absent_from_controls = getSelection("onco_absent_from_controls");
+	out.protein_length_change = getSelection("onco_protein_length_change");
+	out.other_aa_known_oncogenic = getSelection("onco_other_aa_known_oncogenic");
+	out.weak_cancerhotspot = getSelection("onco_weak_cancerhotspot");
+	out.computational_evidence = getSelection("onco_computational_evidence");
+	out.mutation_in_gene_with_etiology = getSelection("onco_mutation_in_gene_with_etiology");
+	out.very_weak_cancerhotspot = getSelection("onco_very_weak_cancerhotspot");
+	out.very_high_maf = getSelection("benign_very_high_maf");
+	out.benign_functional_studies = getSelection("benign_benign_functional_studies");
+	out.high_maf = getSelection("benign_high_maf");
+	out.benign_computational_evidence = getSelection("benign_benign_computational_evidence");
+	out.synonymous_mutation = getSelection("benign_synonymous_mutation");
 
 	out.comment = ui_->comment->toPlainText();
 
@@ -168,21 +153,21 @@ void SomaticVariantInterpreterWidget::disableUnapplicableParameters()
 	SomaticViccData data = getParameters();
 
 	//located in cancerhotspot
-	if(data.known_oncogenic_aa == SomaticViccData::TRUE123 || data.strong_cancerhotspot == SomaticViccData::TRUE123)
+	if(data.known_oncogenic_aa == SomaticViccData::State::VICC_TRUE || data.strong_cancerhotspot == SomaticViccData::State::VICC_TRUE)
 	{
 		setSelectionEnabled("onco_located_in_canerhotspot", false);
 	}
 	else setSelectionEnabled("onco_located_in_canerhotspot", true);
 
 	//other aa change is known
-	if(data.known_oncogenic_aa == SomaticViccData::TRUE123 || data.strong_cancerhotspot == SomaticViccData::TRUE123 || data.located_in_canerhotspot == SomaticViccData::state::TRUE123)
+	if(data.known_oncogenic_aa == SomaticViccData::State::VICC_TRUE || data.strong_cancerhotspot == SomaticViccData::State::VICC_TRUE || data.located_in_canerhotspot == SomaticViccData::State::VICC_TRUE)
 	{
 		setSelectionEnabled("onco_other_aa_known_oncogenic", false);
 	}
 	else setSelectionEnabled("onco_other_aa_known_oncogenic", true);
 
 	//weak cancerhospot
-	if(data.located_in_canerhotspot == SomaticViccData::TRUE123 || data.other_aa_known_oncogenic == SomaticViccData::TRUE123)
+	if(data.located_in_canerhotspot == SomaticViccData::State::VICC_TRUE || data.other_aa_known_oncogenic == SomaticViccData::State::VICC_TRUE)
 	{
 		setSelectionEnabled("onco_weak_cancerhotspot", false);
 	}
@@ -214,28 +199,28 @@ void SomaticVariantInterpreterWidget::storeInNGSD()
 }
 
 
-void SomaticVariantInterpreterWidget::setSelection(QString name, SomaticViccData::state vicc_state)
+void SomaticVariantInterpreterWidget::setSelection(QString name, SomaticViccData::State vicc_state)
 {
 	QButtonGroup* buttongroup = findChild<QButtonGroup*>(name);
 	if(buttongroup == nullptr) return;
 	for(auto radiobutton : buttongroup->buttons())
 	{
-		if(radiobutton->text() == "true" && vicc_state == SomaticViccData::TRUE123) radiobutton->setChecked(true);
-		if(radiobutton->text() == "false" && vicc_state == SomaticViccData::FALSE123) radiobutton->setChecked(true);
-		if(radiobutton->text() == "unapplicable" && vicc_state == SomaticViccData::NOT_APPLICABLE) radiobutton->setChecked(true);
+		if(radiobutton->text() == "true" && vicc_state == SomaticViccData::State::VICC_TRUE) radiobutton->setChecked(true);
+		if(radiobutton->text() == "false" && vicc_state == SomaticViccData::State::VICC_FALSE) radiobutton->setChecked(true);
+		if(radiobutton->text() == "unapplicable" && vicc_state == SomaticViccData::State::NOT_APPLICABLE) radiobutton->setChecked(true);
 	}
 }
 
-SomaticViccData::state SomaticVariantInterpreterWidget::getSelection(QString name)
+SomaticViccData::State SomaticVariantInterpreterWidget::getSelection(QString name)
 {
 	QButtonGroup* groupbox = findChild<QButtonGroup*>(name);
-	if(groupbox == nullptr) return SomaticViccData::NOT_APPLICABLE;
+	if(groupbox == nullptr) return SomaticViccData::State::NOT_APPLICABLE;
 	for(auto radiobox : groupbox->buttons())
 	{
-		if(radiobox->text() == "true" && radiobox->isChecked() ) return SomaticViccData::TRUE123;
-		if(radiobox->text() == "false" && radiobox->isChecked() ) return SomaticViccData::FALSE123;
+		if(radiobox->text() == "true" && radiobox->isChecked() ) return SomaticViccData::State::VICC_TRUE;
+		if(radiobox->text() == "false" && radiobox->isChecked() ) return SomaticViccData::State::VICC_FALSE;
 	}
-	return SomaticViccData::NOT_APPLICABLE;
+	return SomaticViccData::State::NOT_APPLICABLE;
 }
 
 void SomaticVariantInterpreterWidget::setSelectionEnabled(QString name, bool state)

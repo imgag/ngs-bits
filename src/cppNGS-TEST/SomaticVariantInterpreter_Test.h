@@ -14,30 +14,30 @@ private slots:
 		SomaticViccData input_data;
 		IS_TRUE(input_data.isValid());
 
-		input_data.known_oncogenic_aa = SomaticViccData::TRUE123;
-		input_data.located_in_canerhotspot = SomaticViccData::FALSE123;
+		input_data.known_oncogenic_aa = SomaticViccData::State::VICC_TRUE;
+		input_data.located_in_canerhotspot = SomaticViccData::State::VICC_FALSE;
 		IS_FALSE(input_data.isValid());
 
-		input_data.located_in_canerhotspot = SomaticViccData::NOT_APPLICABLE;
+		input_data.located_in_canerhotspot = SomaticViccData::State::NOT_APPLICABLE;
 		IS_TRUE(input_data.isValid());
-		input_data.other_aa_known_oncogenic = SomaticViccData::FALSE123;
+		input_data.other_aa_known_oncogenic = SomaticViccData::State::VICC_FALSE;
 		IS_FALSE(input_data.isValid());
 
 		//evidence counts
 		input_data = SomaticViccData();
 		I_EQUAL(input_data.strongEvidenceCount(), 0);
-		input_data.known_oncogenic_aa = SomaticViccData::TRUE123;
-		input_data.strong_cancerhotspot = SomaticViccData::TRUE123;
+		input_data.known_oncogenic_aa = SomaticViccData::State::VICC_TRUE;
+		input_data.strong_cancerhotspot = SomaticViccData::State::VICC_TRUE;
 		I_EQUAL(input_data.strongEvidenceCount(), 2);
 
 		I_EQUAL(input_data.moderateEvidenceCount(), 0);
-		input_data.absent_from_controls = SomaticViccData::TRUE123;
-		input_data.protein_length_change = SomaticViccData::TRUE123;
-		input_data.weak_cancerhotspot = SomaticViccData::TRUE123;
+		input_data.absent_from_controls = SomaticViccData::State::VICC_TRUE;
+		input_data.protein_length_change = SomaticViccData::State::VICC_TRUE;
+		input_data.weak_cancerhotspot = SomaticViccData::State::VICC_TRUE;
 		I_EQUAL(input_data.moderateEvidenceCount(), 3);
 
 		I_EQUAL(input_data.supportingEvidenceCount(), 0);
-		input_data.computational_evidence = SomaticViccData::TRUE123;
+		input_data.computational_evidence = SomaticViccData::State::VICC_TRUE;
 		I_EQUAL(input_data.supportingEvidenceCount(), 1);
 	}
 
@@ -46,64 +46,64 @@ private slots:
 		SomaticViccData input_data;
 
 		//Very strong evidence and 1x strong evidence
-		input_data.null_mutation_in_tsg = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::UNCERTAIN_SIGNIFICANCE);
-		input_data.oncogenic_functional_studies = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::ONCOGENIC);
+		input_data.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE);
+		input_data.oncogenic_functional_studies = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::ONCOGENIC);
 
 		//Very strong evidence and >=2 moderate
 		input_data = SomaticViccData();
-		input_data.null_mutation_in_tsg = SomaticViccData::TRUE123;
-		input_data.located_in_canerhotspot = SomaticViccData::TRUE123;
-		input_data.absent_from_controls = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::ONCOGENIC);
+		input_data.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
+		input_data.located_in_canerhotspot = SomaticViccData::State::VICC_TRUE;
+		input_data.absent_from_controls = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::ONCOGENIC);
 
 		//Very strong evidence and >=1 moderate and >=1 supporting
 		input_data = SomaticViccData();
-		input_data.null_mutation_in_tsg = SomaticViccData::TRUE123;
-		input_data.protein_length_change = SomaticViccData::TRUE123;
-		input_data.very_weak_cancerhotspot = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::ONCOGENIC);
+		input_data.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
+		input_data.protein_length_change = SomaticViccData::State::VICC_TRUE;
+		input_data.very_weak_cancerhotspot = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::ONCOGENIC);
 
 		//Very strong evidence and and >=2 supporting
 		input_data = SomaticViccData();
-		input_data.null_mutation_in_tsg = SomaticViccData::TRUE123;
-		input_data.computational_evidence = SomaticViccData::TRUE123;
-		input_data.mutation_in_gene_with_etiology = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::ONCOGENIC);
+		input_data.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
+		input_data.computational_evidence = SomaticViccData::State::VICC_TRUE;
+		input_data.mutation_in_gene_with_etiology = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::ONCOGENIC);
 
 		//>=2 strong evidence
 		input_data = SomaticViccData();
-		input_data.strong_cancerhotspot = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::UNCERTAIN_SIGNIFICANCE);
-		input_data.known_oncogenic_aa = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::ONCOGENIC);
+		input_data.strong_cancerhotspot = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE);
+		input_data.known_oncogenic_aa = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::ONCOGENIC);
 
 		//1x strong evidence and >= 3 moderate
 		input_data = SomaticViccData();
-		input_data.known_oncogenic_aa = SomaticViccData::TRUE123;
-		input_data.protein_length_change = SomaticViccData::TRUE123;
-		input_data.weak_cancerhotspot = SomaticViccData::TRUE123;
-		input_data.located_in_canerhotspot = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::ONCOGENIC);
+		input_data.known_oncogenic_aa = SomaticViccData::State::VICC_TRUE;
+		input_data.protein_length_change = SomaticViccData::State::VICC_TRUE;
+		input_data.weak_cancerhotspot = SomaticViccData::State::VICC_TRUE;
+		input_data.located_in_canerhotspot = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::ONCOGENIC);
 
 		//1x strong and >=2xmoderate and >=2x supporting
 		input_data = SomaticViccData();
-		input_data.oncogenic_functional_studies = SomaticViccData::TRUE123;
-		input_data.absent_from_controls = SomaticViccData::TRUE123;
-		input_data.other_aa_known_oncogenic = SomaticViccData::TRUE123;
-		input_data.very_weak_cancerhotspot = SomaticViccData::TRUE123;
-		input_data.mutation_in_gene_with_etiology = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::ONCOGENIC);
+		input_data.oncogenic_functional_studies = SomaticViccData::State::VICC_TRUE;
+		input_data.absent_from_controls = SomaticViccData::State::VICC_TRUE;
+		input_data.other_aa_known_oncogenic = SomaticViccData::State::VICC_TRUE;
+		input_data.very_weak_cancerhotspot = SomaticViccData::State::VICC_TRUE;
+		input_data.mutation_in_gene_with_etiology = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::ONCOGENIC);
 
 		//1x strong and >=1xmoderate and >=3x supporting
 		input_data = SomaticViccData();
-		input_data.oncogenic_functional_studies = SomaticViccData::TRUE123;
-		input_data.protein_length_change = SomaticViccData::TRUE123;
-		input_data.computational_evidence = SomaticViccData::TRUE123;
-		input_data.mutation_in_gene_with_etiology = SomaticViccData::TRUE123;
-		input_data.very_weak_cancerhotspot =  SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::ONCOGENIC);
+		input_data.oncogenic_functional_studies = SomaticViccData::State::VICC_TRUE;
+		input_data.protein_length_change = SomaticViccData::State::VICC_TRUE;
+		input_data.computational_evidence = SomaticViccData::State::VICC_TRUE;
+		input_data.mutation_in_gene_with_etiology = SomaticViccData::State::VICC_TRUE;
+		input_data.very_weak_cancerhotspot =  SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::ONCOGENIC);
 	}
 
 	void viccRulesLikelyOncogenic()
@@ -111,45 +111,45 @@ private slots:
 		SomaticViccData input_data;
 
 		//1x very strong and >=1x moderate
-		input_data.null_mutation_in_tsg = SomaticViccData::TRUE123;
-		input_data.other_aa_known_oncogenic = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::LIKELY_ONCOGENIC);
+		input_data.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
+		input_data.other_aa_known_oncogenic = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC);
 
 		//1x strong and >=1x moderate
 		input_data = SomaticViccData();
-		input_data.oncogenic_functional_studies = SomaticViccData::TRUE123;
-		input_data.weak_cancerhotspot = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::LIKELY_ONCOGENIC);
+		input_data.oncogenic_functional_studies = SomaticViccData::State::VICC_TRUE;
+		input_data.weak_cancerhotspot = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC);
 
 		//1x strong and >=2x supporting
 		input_data = SomaticViccData();
-		input_data.known_oncogenic_aa = SomaticViccData::TRUE123;
-		input_data.mutation_in_gene_with_etiology = SomaticViccData::TRUE123;
-		input_data.very_weak_cancerhotspot = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::LIKELY_ONCOGENIC);
+		input_data.known_oncogenic_aa = SomaticViccData::State::VICC_TRUE;
+		input_data.mutation_in_gene_with_etiology = SomaticViccData::State::VICC_TRUE;
+		input_data.very_weak_cancerhotspot = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC);
 
 		//>=3x moderate
 		input_data = SomaticViccData();
-		input_data.other_aa_known_oncogenic = SomaticViccData::TRUE123;
-		input_data.absent_from_controls = SomaticViccData::TRUE123;
-		input_data.weak_cancerhotspot = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::LIKELY_ONCOGENIC);
+		input_data.other_aa_known_oncogenic = SomaticViccData::State::VICC_TRUE;
+		input_data.absent_from_controls = SomaticViccData::State::VICC_TRUE;
+		input_data.weak_cancerhotspot = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC);
 
 		//>=2x moderate and >=2x supporting
 		input_data = SomaticViccData();
-		input_data.other_aa_known_oncogenic = SomaticViccData::TRUE123;
-		input_data.absent_from_controls = SomaticViccData::TRUE123;
-		input_data.computational_evidence = SomaticViccData::TRUE123;
-		input_data.mutation_in_gene_with_etiology = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::LIKELY_ONCOGENIC);
+		input_data.other_aa_known_oncogenic = SomaticViccData::State::VICC_TRUE;
+		input_data.absent_from_controls = SomaticViccData::State::VICC_TRUE;
+		input_data.computational_evidence = SomaticViccData::State::VICC_TRUE;
+		input_data.mutation_in_gene_with_etiology = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC);
 
 		//>=1x moderate and >=3x supportung
 		input_data = SomaticViccData();
-		input_data.located_in_canerhotspot = SomaticViccData::TRUE123;
-		input_data.computational_evidence = SomaticViccData::TRUE123;
-		input_data.mutation_in_gene_with_etiology = SomaticViccData::TRUE123;
-		input_data.very_weak_cancerhotspot = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::LIKELY_ONCOGENIC);
+		input_data.located_in_canerhotspot = SomaticViccData::State::VICC_TRUE;
+		input_data.computational_evidence = SomaticViccData::State::VICC_TRUE;
+		input_data.mutation_in_gene_with_etiology = SomaticViccData::State::VICC_TRUE;
+		input_data.very_weak_cancerhotspot = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC);
 	}
 
 
@@ -158,14 +158,14 @@ private slots:
 		SomaticViccData input_data;
 
 		//1x very strong evidence
-		input_data.very_high_maf = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::BENIGN);
+		input_data.very_high_maf = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::BENIGN);
 
 		//2x strong evidence
 		input_data = SomaticViccData();
-		input_data.benign_functional_studies = SomaticViccData::TRUE123;
-		input_data.high_maf = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::BENIGN);
+		input_data.benign_functional_studies = SomaticViccData::State::VICC_TRUE;
+		input_data.high_maf = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::BENIGN);
 	}
 
 	void viccRulesLikelyBenign()
@@ -173,10 +173,10 @@ private slots:
 		SomaticViccData input_data;
 
 		//1x strong evidence and <=2x supporting evidence
-		input_data.high_maf = SomaticViccData::TRUE123;
-		input_data.synonymous_mutation = SomaticViccData::TRUE123;
-		input_data.benign_computational_evidence = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::LIKELY_BENIGN);
+		input_data.high_maf = SomaticViccData::State::VICC_TRUE;
+		input_data.synonymous_mutation = SomaticViccData::State::VICC_TRUE;
+		input_data.benign_computational_evidence = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::LIKELY_BENIGN);
 	}
 
 	void viccRulesUncertainSignificance()
@@ -184,26 +184,26 @@ private slots:
 		SomaticViccData input_data;
 
 		//1xvery strong oncogenic and nothing else = uncertain
-		input_data.null_mutation_in_tsg = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::UNCERTAIN_SIGNIFICANCE);
+		input_data.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE);
 
 		//1x strong and 1x supporting oncogenic = uncertain
 		input_data = SomaticViccData();
-		input_data.oncogenic_functional_studies = SomaticViccData::TRUE123;
-		input_data.computational_evidence = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::UNCERTAIN_SIGNIFICANCE);
+		input_data.oncogenic_functional_studies = SomaticViccData::State::VICC_TRUE;
+		input_data.computational_evidence = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE);
 
 		//2x moderate oncogenic = uncertain
 		input_data = SomaticViccData();
-		input_data.absent_from_controls = SomaticViccData::TRUE123;
-		input_data.protein_length_change = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::UNCERTAIN_SIGNIFICANCE);
+		input_data.absent_from_controls = SomaticViccData::State::VICC_TRUE;
+		input_data.protein_length_change = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE);
 
 		//2x supporting benign = uncertain
 		input_data = SomaticViccData();
-		input_data.benign_computational_evidence = SomaticViccData::TRUE123;
-		input_data.synonymous_mutation = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::UNCERTAIN_SIGNIFICANCE);
+		input_data.benign_computational_evidence = SomaticViccData::State::VICC_TRUE;
+		input_data.synonymous_mutation = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE);
 	}
 
 	//tests where options for benign and oncogeinc rules apply positively
@@ -212,59 +212,59 @@ private slots:
 		SomaticViccData input_data;
 
 		//oncogenic and not benign/not likely benign
-		input_data.null_mutation_in_tsg = SomaticViccData::TRUE123;
-		input_data.oncogenic_functional_studies = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::ONCOGENIC);
+		input_data.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
+		input_data.oncogenic_functional_studies = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::ONCOGENIC);
 
 		//likely oncogenic and not benign/not likely benign
 		input_data = SomaticViccData();
-		input_data.oncogenic_functional_studies = SomaticViccData::TRUE123;
-		input_data.weak_cancerhotspot = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::LIKELY_ONCOGENIC);
+		input_data.oncogenic_functional_studies = SomaticViccData::State::VICC_TRUE;
+		input_data.weak_cancerhotspot = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC);
 
 		//oncogenic and benign
 		input_data = SomaticViccData();
-		input_data.null_mutation_in_tsg = SomaticViccData::TRUE123;
-		input_data.oncogenic_functional_studies = SomaticViccData::TRUE123;
-		input_data.very_high_maf = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::UNCERTAIN_SIGNIFICANCE);
+		input_data.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
+		input_data.oncogenic_functional_studies = SomaticViccData::State::VICC_TRUE;
+		input_data.very_high_maf = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE);
 
 		//oncogenic and likely benign
 		input_data = SomaticViccData();
-		input_data.null_mutation_in_tsg = SomaticViccData::TRUE123;
-		input_data.oncogenic_functional_studies = SomaticViccData::TRUE123;
-		input_data.high_maf = SomaticViccData::TRUE123;
-		input_data.synonymous_mutation = SomaticViccData::TRUE123;
-		input_data.benign_computational_evidence = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::UNCERTAIN_SIGNIFICANCE);
+		input_data.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
+		input_data.oncogenic_functional_studies = SomaticViccData::State::VICC_TRUE;
+		input_data.high_maf = SomaticViccData::State::VICC_TRUE;
+		input_data.synonymous_mutation = SomaticViccData::State::VICC_TRUE;
+		input_data.benign_computational_evidence = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE);
 
 		//likely oncogenic and benign
 		input_data = SomaticViccData();
-		input_data.null_mutation_in_tsg = SomaticViccData::TRUE123;
-		input_data.other_aa_known_oncogenic = SomaticViccData::TRUE123;
-		input_data.very_high_maf = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::UNCERTAIN_SIGNIFICANCE);
+		input_data.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
+		input_data.other_aa_known_oncogenic = SomaticViccData::State::VICC_TRUE;
+		input_data.very_high_maf = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE);
 
 		//likely oncogenic and likely benign
 		input_data = SomaticViccData();
-		input_data.null_mutation_in_tsg = SomaticViccData::TRUE123;
-		input_data.other_aa_known_oncogenic = SomaticViccData::TRUE123;
-		input_data.high_maf = SomaticViccData::TRUE123;
-		input_data.synonymous_mutation = SomaticViccData::TRUE123;
-		input_data.benign_computational_evidence = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::UNCERTAIN_SIGNIFICANCE);
+		input_data.null_mutation_in_tsg = SomaticViccData::State::VICC_TRUE;
+		input_data.other_aa_known_oncogenic = SomaticViccData::State::VICC_TRUE;
+		input_data.high_maf = SomaticViccData::State::VICC_TRUE;
+		input_data.synonymous_mutation = SomaticViccData::State::VICC_TRUE;
+		input_data.benign_computational_evidence = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE);
 
 		//benign and not oncogenic
 		input_data = SomaticViccData();
-		input_data.very_high_maf = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::BENIGN);
+		input_data.very_high_maf = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::BENIGN);
 
 		//likely benign and not oncogneic
 		input_data = SomaticViccData();
-		input_data.high_maf = SomaticViccData::TRUE123;
-		input_data.synonymous_mutation = SomaticViccData::TRUE123;
-		input_data.benign_computational_evidence = SomaticViccData::TRUE123;
-		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::result::LIKELY_BENIGN);
+		input_data.high_maf = SomaticViccData::State::VICC_TRUE;
+		input_data.synonymous_mutation = SomaticViccData::State::VICC_TRUE;
+		input_data.benign_computational_evidence = SomaticViccData::State::VICC_TRUE;
+		I_EQUAL(SomaticVariantInterpreter::viccScore(input_data), SomaticVariantInterpreter::Result::LIKELY_BENIGN);
 	}
 
 	void predictViccParameters()
@@ -276,51 +276,51 @@ private slots:
 
 		//frameshift, but no TSG
 		predicted_params = SomaticVariantInterpreter::predictViccValue(vl, vl[0]);
-		I_EQUAL(predicted_params.null_mutation_in_tsg, SomaticViccData::FALSE123);
+		I_EQUAL(predicted_params.null_mutation_in_tsg, SomaticViccData::State::VICC_FALSE);
 		//variant is not strong cancerhotspot
-		I_EQUAL(predicted_params.strong_cancerhotspot, SomaticViccData::FALSE123);
-		I_EQUAL(predicted_params.absent_from_controls, SomaticViccData::TRUE123);
-		I_EQUAL(predicted_params.protein_length_change, SomaticViccData::FALSE123);
-		I_EQUAL(predicted_params.weak_cancerhotspot, SomaticViccData::FALSE123);
-		I_EQUAL(predicted_params.computational_evidence, SomaticViccData::FALSE123);
-		I_EQUAL(predicted_params.very_weak_cancerhotspot, SomaticViccData::FALSE123);
-		I_EQUAL(predicted_params.very_high_maf, SomaticViccData::FALSE123);
-		I_EQUAL(predicted_params.benign_functional_studies, SomaticViccData::FALSE123);
-		I_EQUAL(predicted_params.high_maf, SomaticViccData::FALSE123);
-		I_EQUAL(predicted_params.synonymous_mutation, SomaticViccData::FALSE123);
+		I_EQUAL(predicted_params.strong_cancerhotspot, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.absent_from_controls, SomaticViccData::State::VICC_TRUE);
+		I_EQUAL(predicted_params.protein_length_change, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.weak_cancerhotspot, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.computational_evidence, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.very_weak_cancerhotspot, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.very_high_maf, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.benign_functional_studies, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.high_maf, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.synonymous_mutation, SomaticViccData::State::VICC_FALSE);
 
 
 		//TSG and frameshift
 		predicted_params = SomaticVariantInterpreter::predictViccValue(vl, vl[1]);
-		I_EQUAL(predicted_params.null_mutation_in_tsg, SomaticViccData::TRUE123);
+		I_EQUAL(predicted_params.null_mutation_in_tsg, SomaticViccData::State::VICC_TRUE);
 
 		//clinvar class 5 and CMC classification: os1 applies, strong cancerhotspot: os3 applies
 		predicted_params = SomaticVariantInterpreter::predictViccValue(vl, vl[2]);
-		I_EQUAL(predicted_params.known_oncogenic_aa, SomaticViccData::TRUE123);
-		I_EQUAL(predicted_params.strong_cancerhotspot, SomaticViccData::TRUE123);
-		I_EQUAL(predicted_params.absent_from_controls, SomaticViccData::TRUE123);
-		I_EQUAL(predicted_params.computational_evidence, SomaticViccData::TRUE123);
+		I_EQUAL(predicted_params.known_oncogenic_aa, SomaticViccData::State::VICC_TRUE);
+		I_EQUAL(predicted_params.strong_cancerhotspot, SomaticViccData::State::VICC_TRUE);
+		I_EQUAL(predicted_params.absent_from_controls, SomaticViccData::State::VICC_TRUE);
+		I_EQUAL(predicted_params.computational_evidence, SomaticViccData::State::VICC_TRUE);
 
 
 
 		//clinvar class 5 and no CMC classification: os1 does not apply, strong cancerhotspot: os3 applies
 		predicted_params = SomaticVariantInterpreter::predictViccValue(vl, vl[3]);
-		I_EQUAL(predicted_params.known_oncogenic_aa, SomaticViccData::FALSE123);
-		I_EQUAL(predicted_params.strong_cancerhotspot, SomaticViccData::TRUE123);
-		I_EQUAL(predicted_params.absent_from_controls, SomaticViccData::FALSE123);
-		I_EQUAL(predicted_params.weak_cancerhotspot, SomaticViccData::FALSE123);
-		I_EQUAL(predicted_params.computational_evidence, SomaticViccData::FALSE123);
+		I_EQUAL(predicted_params.known_oncogenic_aa, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.strong_cancerhotspot, SomaticViccData::State::VICC_TRUE);
+		I_EQUAL(predicted_params.absent_from_controls, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.weak_cancerhotspot, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.computational_evidence, SomaticViccData::State::VICC_FALSE);
 
-		I_EQUAL(predicted_params.very_high_maf, SomaticViccData::FALSE123);
-		I_EQUAL(predicted_params.high_maf, SomaticViccData::TRUE123);
+		I_EQUAL(predicted_params.very_high_maf, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.high_maf, SomaticViccData::State::VICC_TRUE);
 
 
 		//benign variant
 		predicted_params = SomaticVariantInterpreter::predictViccValue(vl, vl[4]);
-		I_EQUAL(predicted_params.very_high_maf, SomaticViccData::TRUE123);
-		I_EQUAL(predicted_params.benign_functional_studies, SomaticViccData::TRUE123);
-		I_EQUAL(predicted_params.high_maf, SomaticViccData::TRUE123);
-		I_EQUAL(predicted_params.synonymous_mutation, SomaticViccData::TRUE123);
+		I_EQUAL(predicted_params.very_high_maf, SomaticViccData::State::VICC_TRUE);
+		I_EQUAL(predicted_params.benign_functional_studies, SomaticViccData::State::VICC_TRUE);
+		I_EQUAL(predicted_params.high_maf, SomaticViccData::State::VICC_TRUE);
+		I_EQUAL(predicted_params.synonymous_mutation, SomaticViccData::State::VICC_TRUE);
 	}
 };
 

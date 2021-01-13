@@ -2488,9 +2488,9 @@ SomaticViccData NGSD::getSomaticViccData(const Variant& variant, bool throw_on_f
 
 	auto varToState = [](const QVariant& var)
 	{
-		if(var.isNull()) return SomaticViccData::NOT_APPLICABLE;
-		if(var.toBool()) return SomaticViccData::TRUE123;
-		return SomaticViccData::FALSE123;
+		if(var.isNull()) return SomaticViccData::State::NOT_APPLICABLE;
+		if(var.toBool()) return SomaticViccData::State::VICC_TRUE;
+		return SomaticViccData::State::VICC_FALSE;
 	};
 
 	out.null_mutation_in_tsg = varToState(query.value(0));
@@ -2535,10 +2535,10 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 	//this lambda binds all values needed for both inserting and updating
 	auto bind = [&query, vicc_data, user_name, this]()
 	{
-		auto stateToVar = [](SomaticViccData::state state)
+		auto stateToVar = [](SomaticViccData::State state)
 		{
-			if(state == SomaticViccData::TRUE123) return QVariant(true);
-			else if(state == SomaticViccData::FALSE123) return QVariant(false);
+			if(state == SomaticViccData::State::VICC_TRUE) return QVariant(true);
+			else if(state == SomaticViccData::State::VICC_FALSE) return QVariant(false);
 			return QVariant(QVariant::Bool);
 		};
 

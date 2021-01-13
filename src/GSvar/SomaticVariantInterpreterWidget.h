@@ -24,10 +24,10 @@ private:
 	const VariantList& vl_;
 
 	///sets selection for a group of radiobuttons by name
-	void setSelection(QString name, SomaticViccData::state vicc_state);
+	void setSelection(QString name, SomaticViccData::State vicc_state);
 
 	///returns state of a group of radiobuttons
-	SomaticViccData::state getSelection(QString name);
+	SomaticViccData::State getSelection(QString name);
 
 	///enables/disables a group of radiobuttons by name
 	void setSelectionEnabled(QString name, bool state);
