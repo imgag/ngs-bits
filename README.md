@@ -1,6 +1,7 @@
 # *ngs-bits* - Short-read sequencing tools
 
-[![TravisCI status](https://api.travis-ci.org/imgag/ngs-bits.svg?branch=master)](https://travis-ci.org/imgag/ngs-bits/builds)
+![Linux build status](https://github.com/imgag/ngs-bits/workflows/Linux%20build/badge.svg)
+![MacOS build status](https://github.com/imgag/ngs-bits/workflows/MacOS%20build/badge.svg)
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ngs-bits/README.html)
 
 ## Obtaining ngs-bits
