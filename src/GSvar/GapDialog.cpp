@@ -37,7 +37,7 @@ void GapDialog::delayedInitialization()
 	QApplication::restoreOverrideCursor();
 	if (!messages.isEmpty())
 	{
-		QMessageBox::warning(this, "Gap calculation", messages.join("<br>"));
+		QMessageBox::warning(this, "Gap calculation", messages.join("\n"));
 	}
 
 	//update NGSD column

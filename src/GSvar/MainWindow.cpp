@@ -1265,7 +1265,6 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 		dlg.addFile(file.id, file.type, file.filename, false);
 	}
 
-
 	//sample CNV file(s)
 	QList<IgvFile> segs = getSegFilesCnv();
 	foreach(const IgvFile& file, segs)
@@ -1288,13 +1287,11 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	}
 
 	//sample low-coverage
-	files = Helper::findFiles(folder, "*_lowcov.bed", false);
-
-	if (files.count()==1)
+	QList<IgvFile> low_cov_files = getLowCovFiles();
+	foreach(const IgvFile& file, low_cov_files)
 	{
-		dlg.addFile("low-coverage regions track", "BED", files[0], ui_.actionIgvLowcov->isChecked());
+		dlg.addFile(file.id, file.type, file.filename, ui_.actionIgvLowcov->isChecked());
 	}
-
 	//amplicon file (of processing system)
 	try
 	{
@@ -5937,7 +5934,7 @@ QList<IgvFile> MainWindow::getSegFilesCnv()
 		//tumor-normal SEG file
 		QString segfile = filename_.left(filename_.length()-6) + "_cnvs.seg";
 		QString pair = QFileInfo(filename_).baseName();
-		output << IgvFile{pair + " (copy number)", "CNV" , segfile};
+		output << IgvFile{pair + " (copy number calls)", "CNV" , segfile};
 
 		QString covfile = filename_.left(filename_.length()-6) + "_cov.seg";
 		output << IgvFile{pair + " (coverage)","CNV",covfile};
@@ -6006,24 +6003,59 @@ QList<IgvFile> MainWindow::getIgvFilesBaf()
 
 QList<IgvFile> MainWindow::getMantaEvidenceFiles()
 {
-	QList<IgvFile> evidence_files;
+	QList<IgvFile> output;
 
-	// search at location of all available BAM files
-	QList<IgvFile> bam_files = getBamFiles();
-	foreach (IgvFile bam_file, bam_files)
+	foreach (const IgvFile& bam_file, getBamFiles())
 	{
 		QString evidence_bam_file = GSvarHelper::getEvidenceFile(bam_file.filename);
-
-		// check if evidence file exists
 		if (!QFile::exists(evidence_bam_file)) continue;
 
 		IgvFile	evidence_file;
+		evidence_file.id = bam_file.id + " (Manta evidence)";
 		evidence_file.filename = evidence_bam_file;
 		evidence_file.type = "BAM";
-		evidence_file.id = QFileInfo(evidence_bam_file).baseName();
-		evidence_files.append(evidence_file);
+		output.append(evidence_file);
 	}
-	return evidence_files;
+	return output;
+}
+
+QList<IgvFile> MainWindow::getLowCovFiles()
+{
+	QList<IgvFile> output;
+
+	if (variants_.type()==SOMATIC_PAIR)
+	{
+		//search in analysis folder
+		QString folder = QFileInfo(filename_).absolutePath();
+		QStringList beds = Helper::findFiles(folder, "*_stat_lowcov.bed", false);
+		foreach(const QString& bed, beds)
+		{
+			IgvFile	file;
+			file.id = QFileInfo(bed).fileName().replace("_stat_lowcov.bed", "") + " (low-coverage regions)";
+			file.type = "BED";
+			file.filename = bed;
+			output.append(file);
+		}
+	}
+	else
+	{
+		// search in sample folders containing BAM files
+		foreach (const IgvFile& bam_file, getBamFiles())
+		{
+			QString folder = QFileInfo(bam_file.filename).absolutePath();
+			QStringList beds = Helper::findFiles(folder, "*_lowcov.bed", false);
+
+			foreach(const QString& bed, beds)
+			{
+				IgvFile	file;
+				file.id = bam_file.id + " (low-coverage regions)";
+				file.type = "BED";
+				file.filename = bed;
+				output.append(file);
+			}
+		}
+	}
+	return output;
 }
 
 void MainWindow::applyFilters(bool debug_time)

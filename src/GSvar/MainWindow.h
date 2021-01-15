@@ -41,6 +41,8 @@ public:
 	QList<IgvFile> getIgvFilesBaf();
 	///Returns Manta evidence BAM files for the analysis.
 	QList<IgvFile> getMantaEvidenceFiles();
+	///Returns low coverage BED files for the analysis.
+	QList<IgvFile> getLowCovFiles();
 	///Adds a file to the recent file list
 	void addToRecentFiles(QString filename);
 	///Updates recent files menu

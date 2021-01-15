@@ -30,8 +30,9 @@ void IgvDialog::addFile(QString label, QString type, QString filename, bool chec
 		group->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
 		if (type=="VCF") group->setToolTip(0, "Variant list(s)");
 		if (type=="BAM") group->setToolTip(0, "Sequencing read file(s)");
+		if (type=="CNV") group->setToolTip(0, "Copy-number file(s)");
 		if (type=="BAF") group->setToolTip(0, "b-allele frequency file(s)");
-		if (type=="BED") group->setToolTip(0, "regions file(s)");
+		if (type=="BED") group->setToolTip(0, "region file(s)");
 		if (type=="custom track") group->setToolTip(0, "Custom tracks");
 		ui_.tree->addTopLevelItem(group);
 	}
