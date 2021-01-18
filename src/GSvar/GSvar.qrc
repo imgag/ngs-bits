@@ -110,5 +110,6 @@
         <file>Icons/cfDNA.png</file>
         <file>Icons/RNA.png</file>
         <file>Icons/chart.png</file>
+        <file>Icons/GTEx.png</file>
     </qresource>
 </RCC>
