@@ -891,7 +891,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["Genes"] = &createInstance<FilterGenes>;
 		output["Filter column empty"] = &createInstance<FilterFilterColumnEmpty>;
 		output["Filter columns"] = &createInstance<FilterFilterColumn>;
-		output["SNPs only"] = &createInstance<FilterVariantIsSNP>;
+		output["SNVs only"] = &createInstance<FilterVariantIsSNV>;
 		output["Impact"] = &createInstance<FilterVariantImpact>;
 		output["Count NGSD"] = &createInstance<FilterVariantCountNGSD>;
 		output["Classification NGSD"] = &createInstance<FilterClassificationNGSD>;
@@ -1143,31 +1143,41 @@ void FilterFilterColumnEmpty::apply(const VcfFile& variants, FilterResult& resul
 	}
 }
 
-FilterVariantIsSNP::FilterVariantIsSNP()
+FilterVariantIsSNV::FilterVariantIsSNV()
 {
-	name_ = "SNPs only";
-	description_ = QStringList() << "Filter that preserves SNPs and removes all other variant types.";
+	name_ = "SNVs only";
+	description_ = QStringList() << "Filter that preserves SNVs and removes all other variant types.";
+	params_ << FilterParameter("invert", BOOL, false, "If set, removes all SNVs and keeps all other variants.");
 
 	checkIsRegistered();
 }
 
-QString FilterVariantIsSNP::toText() const
+QString FilterVariantIsSNV::toText() const
 {
-	return name();
+	return name() + (getBool("invert") ? " (invert)" : "");
 }
 
-void FilterVariantIsSNP::apply(const VariantList& variants, FilterResult& result) const
+void FilterVariantIsSNV::apply(const VariantList& variants, FilterResult& result) const
 {
 	if (!enabled_) return;
+
+	bool invert = getBool("invert");
 
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if (!result.flags()[i]) continue;
 
-		result.flags()[i] = variants[i].isSNV();
+		if (invert)
+		{
+			result.flags()[i] = !variants[i].isSNV();
+		}
+		else
+		{
+			result.flags()[i] = variants[i].isSNV();
+		}
 	}
 }
-void FilterVariantIsSNP::apply(const VcfFile& variants, FilterResult& result) const
+void FilterVariantIsSNV::apply(const VcfFile& variants, FilterResult& result) const
 {
 	if (!enabled_) return;
 

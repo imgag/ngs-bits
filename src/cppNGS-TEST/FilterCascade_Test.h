@@ -128,7 +128,7 @@ private slots:
 		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
 
 		FilterResult result(vl.count());
-		FilterVariantIsSNP filter;
+		FilterVariantIsSNV filter;
 		filter.apply(vl, result);
 
 		I_EQUAL(result.countPassing(), 135);
