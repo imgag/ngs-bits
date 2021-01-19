@@ -577,6 +577,19 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			if(!anno.isEmpty()) text = anno;
 			else text = "n/a";
 		}
+		else if(name=="SpliceAI")
+		{
+			bool ok = true;
+			double value = anno.toDouble(&ok);
+			if (ok && value >= 0.5)
+			{
+				text = formatText(anno, RED);
+			}
+			else
+			{
+				text = anno;
+			}
+		}
 		else //fallback: use complete annotations string
 		{
 			text = anno;
