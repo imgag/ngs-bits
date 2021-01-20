@@ -18,11 +18,14 @@ public:
 	{
 		setDescription("Imports Ensembl/CCDS transcript information into NGSD.");
 		addInfile("in", "Ensembl transcript file (download and unzip ftp://ftp.ensembl.org/pub/grch37/release-87/gff3/homo_sapiens/Homo_sapiens.GRCh37.87.chr.gff3.gz).", false);
+		addInfile("pseudogenes", "Pseudogene flat file (download from http://pseudogene.org/psidr/psiDR.v0.txt).", false);
+
 		//optional
 		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts not labeled as with the 'GENCODE basic' tag).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 
+		changeLog(2021,  1, 20, "Added import of pseudogene relations");
 		changeLog(2019,  8, 12, "Added handling of HGNC identifiers to resolve ambiguous gene names");
 		changeLog(2017,  7,  6, "Added first version");
 	}
@@ -111,6 +114,95 @@ public:
 		}
 	}
 
+	void importPseudogenes(const QMap<QByteArray, QByteArray>& transcript_gene_relation, const QMap<QByteArray, QByteArray>& gene_name_relation, QString pseudogene_file_path)
+	{
+		//init
+		NGSD db(getFlag("test"));
+		QTextStream out(stdout);
+
+		// prepare db queries
+		SqlQuery q_pseudogene = db.getQuery();
+		q_pseudogene.prepare("INSERT INTO gene_pseudogene_relation (parent_gene_id, pseudogene_gene_id, gene_name) VALUES (:0, :1, :2);");
+
+		// parse pseudogene file
+		QSharedPointer<QFile> pseudogene_fp = Helper::openFileForReading(pseudogene_file_path);
+
+		// stats
+		int n_missing_pseudogene_transcript_id = 0;
+		int n_missing_parent_in_file = 0;
+		int n_missing_parent_transcript_id = 0;
+		int n_found_gene_gene_relations = 0;
+		int n_found_gene_name_relations = 0;
+
+
+		while(!pseudogene_fp->atEnd())
+		{
+			QByteArray line = pseudogene_fp->readLine().trimmed();
+			if (line.isEmpty() || line.startsWith("#") || line.startsWith("Pseudogene_id")) continue;
+			QByteArrayList parts = line.split('\t');
+
+			// parse ensembl transcript ids
+			QByteArray pseudogene_transcript_ensembl_id = parts.at(0).split('.').at(0).trimmed();
+			QByteArray parent_transcript_ensembl_id = parts.at(7).split('.').at(0).trimmed();
+
+			// skip all entiries where no parent is listed or the parent transcript is not in the NGSD
+			if (parent_transcript_ensembl_id.isEmpty())
+			{
+				n_missing_parent_in_file++;
+				continue;
+			}
+			int parent_transcript_id = db.transcriptId(parent_transcript_ensembl_id, false);
+			if (parent_transcript_id == -1)
+			{
+				n_missing_parent_transcript_id++;
+				continue;
+			}
+
+			// get gene id for parent
+			int parent_gene_id = db.getValue("SELECT gene_id FROM gene_transcript WHERE id=" + QByteArray::number(parent_transcript_id), false).toInt();
+
+
+			// get gene id for pseudogene
+			int pseudogene_transcript_id = db.transcriptId(pseudogene_transcript_ensembl_id, false);
+			int pseudogene_gene_id = -1;
+			if (pseudogene_transcript_id != -1)
+			{
+				pseudogene_gene_id = db.getValue("SELECT gene_id FROM gene_transcript WHERE id=" + QByteArray::number(pseudogene_transcript_id), false).toInt();
+
+				// execute SQL query
+				q_pseudogene.bindValue(0, parent_gene_id);
+				q_pseudogene.bindValue(1, pseudogene_gene_id);
+				q_pseudogene.bindValue(2, QVariant());
+				q_pseudogene.exec();
+				n_found_gene_gene_relations++;
+			}
+			else // fallback annotate parent with pseudogene name and ensembl id
+			{
+				n_missing_pseudogene_transcript_id++;
+
+				// TODO: check if QbyteArray is empty (transcrpt not in ensembl file)
+				QByteArray ensembl_gene_id = transcript_gene_relation.value(pseudogene_transcript_ensembl_id);
+				QByteArray gene_name = gene_name_relation.value(ensembl_gene_id);
+
+				// execute SQL query
+				q_pseudogene.bindValue(0, parent_gene_id);
+				q_pseudogene.bindValue(1, QVariant());
+				q_pseudogene.bindValue(2, ensembl_gene_id + ";" + gene_name);
+				q_pseudogene.exec();
+				n_found_gene_name_relations++;
+			}
+
+		}
+		// print stats:
+		out << "pseudogene flat file:\n";
+		out << "\t missing parent transcript ids in File: " << n_missing_parent_in_file << "\n";
+		out << "\t missing pseudogene transcript ids in NGSD: " << n_missing_pseudogene_transcript_id << "\n";
+		out << "\t missing parent transcript ids in NGSD: " << n_missing_parent_transcript_id << "\n";
+		out << "\n\t found gene-gene relations: " << n_found_gene_gene_relations << "\n";
+		out << "\t found gene-name relations: " << n_found_gene_name_relations << "\n";
+
+	}
+
 	virtual void main()
 	{
 		//init
@@ -123,6 +215,7 @@ public:
 		db.tableExists("gene_alias");
 		db.tableExists("gene_transcript");
 		db.tableExists("gene_exon");
+		db.tableExists("gene_pseudogene_relation");
 
 		//clear tables if not empty
 		if (!db.tableEmpty("gene_transcript") || !db.tableEmpty("gene_exon"))
@@ -147,6 +240,10 @@ public:
 
 		SqlQuery q_gene = db.getQuery();
 		q_gene.prepare("SELECT id FROM gene WHERE hgnc_id=:0;");
+
+		// store trancript_id->gene_id and gene_id->gene_name relation for fallback in pseudogene db table
+		QMap<QByteArray, QByteArray> transcript_gene_relation;
+		QMap<QByteArray, QByteArray> gene_name_relation;
 
 		//parse input - format description at https://www.gencodegenes.org/data_format.html and http://www.ensembl.org/info/website/upload/gff3.html
 		QMap<QByteArray, int> gene_ensemble2ngsd;
@@ -203,6 +300,8 @@ public:
 			{
 				QByteArray gene = data["Name"];
 
+				// store mapping for pseudogene table
+				gene_name_relation.insert(data["gene_id"], data["Name"]);
 				
 				if (!Chromosome(parts[0]).isNonSpecial())
 				{
@@ -233,6 +332,9 @@ public:
 			//transcript line
 			else if (data.contains("transcript_id"))
 			{
+				// store mapping for pseudogene table
+				transcript_gene_relation.insert(data["transcript_id"], data["Parent"].split(':').at(1));
+
 				if (all || data.value("tag")=="basic")
 				{
 					QByteArray parent_id = data["Parent"];
@@ -280,6 +382,11 @@ public:
 				t_data.exons.append(BedLine(chr, start, end));
 			}
 		}
+
+
+		// parse Pseudogene file
+		importPseudogenes(transcript_gene_relation, gene_name_relation, getInfile("pseudogenes"));
+
 	}
 };
 

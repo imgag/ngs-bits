@@ -417,5 +417,9 @@ SUBDIRS += VariantRanking
 tools-TEST.depends += VariantRanking
 VariantRanking.depends = cppNGSD
 
+SUBDIRS += NGSDImportPseudogenes
+tools-TEST.depends += NGSDImportPseudogenes
+NGSDImportPseudogenes.depends = cppNGSD
+
 #other stuff
 OTHER_FILES += ToDos.txt
