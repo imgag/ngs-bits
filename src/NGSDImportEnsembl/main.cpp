@@ -131,6 +131,8 @@ public:
 		int n_missing_pseudogene_transcript_id = 0;
 		int n_missing_parent_in_file = 0;
 		int n_missing_parent_transcript_id = 0;
+        int n_missing_gene_name = 0;
+        int n_unknown_transcript = 0;
 		int n_found_gene_gene_relations = 0;
 		int n_found_gene_name_relations = 0;
 
@@ -181,15 +183,31 @@ public:
 				n_missing_pseudogene_transcript_id++;
 
 				// TODO: check if QbyteArray is empty (transcrpt not in ensembl file)
-				QByteArray ensembl_gene_id = transcript_gene_relation.value(pseudogene_transcript_ensembl_id);
-				QByteArray gene_name = gene_name_relation.value(ensembl_gene_id);
+                if (transcript_gene_relation.contains(pseudogene_transcript_ensembl_id))
+                {
+                   QByteArray ensembl_gene_id = transcript_gene_relation.value(pseudogene_transcript_ensembl_id);
+                   if (gene_name_relation.contains(ensembl_gene_id))
+                   {
+                       QByteArray gene_name = gene_name_relation.value(ensembl_gene_id);
 
-				// execute SQL query
-				q_pseudogene.bindValue(0, parent_gene_id);
-				q_pseudogene.bindValue(1, QVariant());
-				q_pseudogene.bindValue(2, ensembl_gene_id + ";" + gene_name);
-				q_pseudogene.exec();
-				n_found_gene_name_relations++;
+                       // execute SQL query
+                       q_pseudogene.bindValue(0, parent_gene_id);
+                       q_pseudogene.bindValue(1, QVariant());
+                       q_pseudogene.bindValue(2, ensembl_gene_id + ";" + gene_name);
+                       q_pseudogene.exec();
+                       n_found_gene_name_relations++;
+                   }
+                   else
+                   {
+                        out << "No gene name found for ensembl gene id '" << ensembl_gene_id << "'! \n";
+                        n_missing_gene_name++;
+                   }
+                }
+                else
+                {
+                    out << "Transcript '" << pseudogene_transcript_ensembl_id << "' not found in ensembl flat file! \n";
+                    n_unknown_transcript++;
+                }
 			}
 
 		}
@@ -200,6 +218,8 @@ public:
 		out << "\t missing parent transcript ids in NGSD: " << n_missing_parent_transcript_id << "\n";
 		out << "\n\t found gene-gene relations: " << n_found_gene_gene_relations << "\n";
 		out << "\t found gene-name relations: " << n_found_gene_name_relations << "\n";
+        out << "\t pseudogenes with no gene name: " << n_missing_gene_name << "\n";
+        out << "\t pseudogenes with unknown transcript: " << n_unknown_transcript << "\n";
 
 	}
 

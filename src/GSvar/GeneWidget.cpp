@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QInputDialog>
 #include <QMenu>
+#include <QDesktopServices>
 
 GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
     : QWidget(parent)
@@ -19,6 +20,8 @@ GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
 	ui_.notice->setVisible(false);
     connect(ui_.refesh_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_.variation_btn, SIGNAL(clicked(bool)), this, SLOT(showGeneVariationDialog()));
+    connect(ui_.pseudogenes, SIGNAL(linkActivated(QString)), this, SLOT(parseLink(QString)));
+    connect(ui_.parent_genes, SIGNAL(linkActivated(QString)), this, SIGNAL(openGeneTab(QString)));
 
     //edit button
     QMenu* menu = new QMenu();
@@ -57,6 +60,53 @@ void GeneWidget::updateGUI()
     html.replace("\n", "<br>");
 	ui_.comments->setText(html);
 
+    //add pseudogenes/parent genes
+    int gene_id = db.geneToApprovedID(symbol_);
+    QStringList pseudogene_link_list;
+    QStringList parent_gene_link_list;
+    QStringList pseudogene_ids = db.getValues("SELECT pseudogene_gene_id FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(gene_id) + " AND pseudogene_gene_id IS NOT NULL");
+    foreach (const QString& pseudogene_id, pseudogene_ids)
+    {
+        QString pseudogene_name = db.geneSymbol(pseudogene_id.toInt());
+        pseudogene_link_list.append("<a href=\"" + pseudogene_name + "\">" + pseudogene_name + "</a>");
+    }
+    QStringList pseudogenes = db.getValues("SELECT gene_name FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(gene_id) + " AND gene_name IS NOT NULL");
+    foreach (const QString& pseudogene, pseudogenes)
+    {
+        QString ensembl_id = pseudogene.split(';').at(0);
+        QString pseudogene_name = pseudogene.split(';').at(1);
+        pseudogene_link_list.append(pseudogene_name + "(<a href=\"ensembl:" + ensembl_id + "\">"+ ensembl_id + ")</a>");
+    }
+    if (pseudogene_link_list.size() > 0)
+    {
+        ui_.pseudogene_label->setVisible(true);
+        ui_.pseudogenes->setVisible(true);
+        ui_.pseudogenes->setText(pseudogene_link_list.join(", "));
+    }
+    else
+    {
+        ui_.pseudogene_label->setVisible(false);
+        ui_.pseudogenes->setVisible(false);
+    }
+
+    QStringList parent_gene_ids = db.getValues("SELECT parent_gene_id FROM gene_pseudogene_relation WHERE pseudogene_gene_id=" + QString::number(gene_id) + " AND parent_gene_id IS NOT NULL");
+    foreach (const QString& parent_gene_id, parent_gene_ids)
+    {
+        QString parent_gene_name = db.geneSymbol(parent_gene_id.toInt());
+        parent_gene_link_list.append("<a href=\"" + parent_gene_name + "\">" + parent_gene_name + "</a>");
+    }
+    if (parent_gene_link_list.size() > 0)
+    {
+        ui_.parent_gene_label->setVisible(true);
+        ui_.parent_genes->setVisible(true);
+        ui_.parent_genes->setText(parent_gene_link_list.join(", "));
+    }
+    else
+    {
+        ui_.parent_gene_label->setVisible(false);
+        ui_.parent_genes->setVisible(false);
+    }
+
 	//show gnomAD o/e score
     ui_.oe_mis->setText(info.oe_mis);
     ui_.oe_syn->setText(info.oe_syn);
@@ -70,7 +120,6 @@ void GeneWidget::updateGUI()
 	}
 
 	//HGNC info
-    int gene_id = db.geneToApprovedID(symbol_);
 	ui_.hgnc_id->setText("<a href='https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/" + info.hgnc_id + "'>" + info.hgnc_id + "</a>");
 	ui_.hgnc_previous->setText(db.previousSymbols(gene_id).join(", "));
 	ui_.hgnc_synonymous->setText(db.synonymousSymbols(gene_id).join(", "));
@@ -157,7 +206,21 @@ void GeneWidget::showGeneVariationDialog()
 void GeneWidget::openGeneDatabase()
 {
 	QToolButton* btn = qobject_cast<QToolButton*>(sender());
-	GeneInfoDBs::openUrl(btn->toolTip(), symbol_);
+    GeneInfoDBs::openUrl(btn->toolTip(), symbol_);
+}
+
+void GeneWidget::parseLink(QString link)
+{
+    if (link.startsWith("ensembl:"))
+    {
+        QString ensembl_id = link.split(':').at(1);
+        QString url = "https://grch37.ensembl.org/Human/Search/Results?q=" + ensembl_id + ";site=ensembl;facet_species=Human";
+        QDesktopServices::openUrl(QUrl(url));
+    }
+    else
+    {
+        emit openGeneTab(link);
+    }
 }
 
 void GeneWidget::updateTranscriptsTable(NGSD& db)
