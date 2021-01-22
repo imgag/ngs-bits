@@ -92,7 +92,8 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 	int i_ihdb_het = variants.annotationIndexByName("NGSD_het", true, false);
 	int i_clinvar = variants.annotationIndexByName("ClinVar", true, false);
 	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
-	int i_mmsplice = variants.annotationIndexByName("MMSplice_DeltaLogitPSI", true, false);
+	int i_mmsplice_dlogpsi = variants.annotationIndexByName("MMSplice_DeltaLogitPSI", true, false);
+	int i_spliceai = variants.annotationIndexByName("SpliceAI", true, false);
 	int r = -1;
 	for (int i=0; i<variants.count(); ++i)
 	{
@@ -146,10 +147,17 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
 			}
-			else if (j==i_mmsplice && anno.toDouble() <= -2)
+			else if (j==i_mmsplice_dlogpsi && (anno.toDouble() <= -2 || anno.toDouble() >= 2) )
 			{
 				item->setBackgroundColor(Qt::red);
 				is_warning_line = true;
+				is_notice_line = true;
+			}
+			else if (j==i_spliceai && anno.toDouble() >= 0.5)
+			{
+				item->setBackgroundColor(Qt::red);
+				is_warning_line = true;
+				is_notice_line = true;
 			}
 
 
@@ -158,10 +166,6 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 			{
 				item->setBackgroundColor(Qt::green);
 				is_ok_line = true;
-			}
-			else if (j==i_mmsplice && anno.toDouble() >= 2)
-			{
-				item->setBackgroundColor(Qt::green);
 			}
 
 			//highlighed

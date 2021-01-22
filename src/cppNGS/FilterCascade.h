@@ -395,11 +395,11 @@ class CPPNGSSHARED_EXPORT FilterFilterColumn
 };
 
 //Filter for SNPs
-class CPPNGSSHARED_EXPORT FilterVariantIsSNP
+class CPPNGSSHARED_EXPORT FilterVariantIsSNV
 	: public FilterBase
 {
 	public:
-		FilterVariantIsSNP();
+		FilterVariantIsSNV();
 		QString toText() const override;
 		void apply(const VariantList& variants, FilterResult& result) const override;
 		void apply(const VcfFile& variants, FilterResult& result) const override;

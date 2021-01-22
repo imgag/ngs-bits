@@ -317,7 +317,7 @@ void GapDialog::gapsContextMenu(QPoint pos)
 	QString status = item->text().trimmed();
 	action_visual->setEnabled(status=="" || status=="to close" || status=="canceled");
 	action_close->setEnabled(status=="" || status=="canceled" || status=="checked visually");
-	action_cancel->setEnabled(status=="to close");
+	action_cancel->setEnabled(status=="to close" || status=="checked visually");
 
 	//show menu
 	QAction* action = menu.exec(ui_.gaps->viewport()->mapToGlobal(pos));

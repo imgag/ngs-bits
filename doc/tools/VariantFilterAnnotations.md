@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2020_09-91-ge32c6068)
+	VariantFilterAnnotations (2020_12-25-g719118fd)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -86,7 +86,9 @@
 	Regulatory                         Filter for regulatory variants, i.e. the 'regulatory' column is not empty.
 	                                   Parameters:
 	                                     action - Action to perform [default=FILTER] [valid=REMOVE,FILTER]
-	SNPs only                          Filter that preserves SNPs and removes all other variant types.
+	SNVs only                          Filter that preserves SNVs and removes all other variant types.
+	                                   Parameters:
+	                                     invert - If set, removes all SNVs and keeps all other variants. [default=false]
 	Somatic allele frequency           Filter based on the allele frequency of variants in tumor/normal samples.
 	                                   Parameters:
 	                                     min_af_tum - Minimum allele frequency in tumor sample [%] [default=5] [min=0.0] [max=100.0]
@@ -102,8 +104,8 @@
 	                                     gender_child - Gender of the child - if 'n/a', the gender from the GSvar file header is taken [default=n/a] [valid=male,female,n/a]
 	Tumor zygosity                     Filter based on the zygosity of tumor-only samples. Filters out germline het/hom calls.
 	                                   Parameters:
-	                                     het_af_range - Consider allele frequencies of 50% ? het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
-	                                     hom_af_range - Consider allele frequencies of 100% ? hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
+	                                     het_af_range - Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
+	                                     hom_af_range - Consider allele frequencies of 100% ± hom_af_range as homozygous and thus as germline. [default=0] [min=0] [max=99.9]
 	Variant quality                    Filter for variant quality
 	                                   Parameters:
 	                                     qual - Minimum variant quality score (Phred) [default=250] [min=0]
@@ -131,7 +133,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2020_09-91-ge32c6068
+	VariantFilterAnnotations 2020_12-25-g719118fd
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

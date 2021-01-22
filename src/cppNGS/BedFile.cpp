@@ -46,7 +46,7 @@ BedLine BedLine::fromString(QString str)
 	//convert
 	try
 	{
-		return BedLine(parts[0], parts[1].toInt(), parts[2].toInt());
+		return BedLine(parts[0], Helper::toInt(parts[1], "range start position", str), Helper::toInt(parts[2], "range end position", str));
 	}
 	catch(...)
 	{
