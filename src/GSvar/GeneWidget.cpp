@@ -21,7 +21,7 @@ GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
     connect(ui_.refesh_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_.variation_btn, SIGNAL(clicked(bool)), this, SLOT(showGeneVariationDialog()));
     connect(ui_.pseudogenes, SIGNAL(linkActivated(QString)), this, SLOT(parseLink(QString)));
-    connect(ui_.parent_genes, SIGNAL(linkActivated(QString)), this, SIGNAL(openGeneTab(QString)));
+	connect(ui_.type, SIGNAL(linkActivated(QString)), this, SIGNAL(openGeneTab(QString)));
 
     //edit button
     QMenu* menu = new QMenu();
@@ -79,16 +79,15 @@ void GeneWidget::updateGUI()
     }
     if (pseudogene_link_list.size() > 0)
     {
-        ui_.pseudogene_label->setVisible(true);
-        ui_.pseudogenes->setVisible(true);
         ui_.pseudogenes->setText(pseudogene_link_list.join(", "));
     }
     else
     {
-        ui_.pseudogene_label->setVisible(false);
-        ui_.pseudogenes->setVisible(false);
+		ui_.pseudogenes->deleteLater();
+		ui_.pseudogene_label->deleteLater();
     }
 
+	// add parent gene (for pseudogenes
     QStringList parent_gene_ids = db.getValues("SELECT parent_gene_id FROM gene_pseudogene_relation WHERE pseudogene_gene_id=" + QString::number(gene_id) + " AND parent_gene_id IS NOT NULL");
     foreach (const QString& parent_gene_id, parent_gene_ids)
     {
@@ -97,14 +96,7 @@ void GeneWidget::updateGUI()
     }
     if (parent_gene_link_list.size() > 0)
     {
-        ui_.parent_gene_label->setVisible(true);
-        ui_.parent_genes->setVisible(true);
-        ui_.parent_genes->setText(parent_gene_link_list.join(", "));
-    }
-    else
-    {
-        ui_.parent_gene_label->setVisible(false);
-        ui_.parent_genes->setVisible(false);
+		ui_.type->setText(ui_.type->text() + " (Parent gene: " + parent_gene_link_list.join(", ") + ")");
     }
 
 	//show gnomAD o/e score
@@ -214,7 +206,7 @@ void GeneWidget::parseLink(QString link)
     if (link.startsWith("ensembl:"))
     {
         QString ensembl_id = link.split(':').at(1);
-        QString url = "https://grch37.ensembl.org/Human/Search/Results?q=" + ensembl_id + ";site=ensembl;facet_species=Human";
+		QString url = "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?g=" + ensembl_id;
         QDesktopServices::openUrl(QUrl(url));
     }
     else

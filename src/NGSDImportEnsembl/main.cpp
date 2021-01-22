@@ -131,9 +131,10 @@ public:
 		int n_missing_pseudogene_transcript_id = 0;
 		int n_missing_parent_in_file = 0;
 		int n_missing_parent_transcript_id = 0;
-        int n_missing_gene_name = 0;
-        int n_unknown_transcript = 0;
+		int n_missing_gene_name = 0;
+		int n_unknown_transcript = 0;
 		int n_found_gene_gene_relations = 0;
+		int n_found_gene_gene_relations_by_name_matching = 0;
 		int n_found_gene_name_relations = 0;
 
 
@@ -178,36 +179,49 @@ public:
 				q_pseudogene.exec();
 				n_found_gene_gene_relations++;
 			}
-			else // fallback annotate parent with pseudogene name and ensembl id
+			else // fallback1 lookup gene name in ensembl file
 			{
 				n_missing_pseudogene_transcript_id++;
 
-				// TODO: check if QbyteArray is empty (transcrpt not in ensembl file)
-                if (transcript_gene_relation.contains(pseudogene_transcript_ensembl_id))
-                {
-                   QByteArray ensembl_gene_id = transcript_gene_relation.value(pseudogene_transcript_ensembl_id);
-                   if (gene_name_relation.contains(ensembl_gene_id))
-                   {
-                       QByteArray gene_name = gene_name_relation.value(ensembl_gene_id);
+				if (transcript_gene_relation.contains(pseudogene_transcript_ensembl_id))
+				{
+					QByteArray ensembl_gene_id = transcript_gene_relation.value(pseudogene_transcript_ensembl_id);
+					if (gene_name_relation.contains(ensembl_gene_id))
+					{
+						QByteArray gene_name = gene_name_relation.value(ensembl_gene_id).split('.').at(0).trimmed();
+						pseudogene_gene_id = db.geneToApprovedID(gene_name);
 
-                       // execute SQL query
-                       q_pseudogene.bindValue(0, parent_gene_id);
-                       q_pseudogene.bindValue(1, QVariant());
-                       q_pseudogene.bindValue(2, ensembl_gene_id + ";" + gene_name);
-                       q_pseudogene.exec();
-                       n_found_gene_name_relations++;
-                   }
-                   else
-                   {
-                        out << "No gene name found for ensembl gene id '" << ensembl_gene_id << "'! \n";
-                        n_missing_gene_name++;
-                   }
-                }
-                else
-                {
-                    out << "Transcript '" << pseudogene_transcript_ensembl_id << "' not found in ensembl flat file! \n";
-                    n_unknown_transcript++;
-                }
+						// try to match by gene name
+						if (pseudogene_gene_id != -1)
+						{
+							// store gene-pseudogene relation
+							q_pseudogene.bindValue(0, parent_gene_id);
+							q_pseudogene.bindValue(1, pseudogene_gene_id);
+							q_pseudogene.bindValue(2, QVariant());
+							q_pseudogene.exec();
+							n_found_gene_gene_relations_by_name_matching++;
+						}
+						else // fallback 2: annotate parent with pseudogene name and ensembl id
+						{
+							// execute SQL query
+							q_pseudogene.bindValue(0, parent_gene_id);
+							q_pseudogene.bindValue(1, QVariant());
+							q_pseudogene.bindValue(2, ensembl_gene_id + ";" + gene_name);
+							q_pseudogene.exec();
+							n_found_gene_name_relations++;
+						}
+					}
+					else
+					{
+						out << "No gene name found for ensembl gene id '" << ensembl_gene_id << "'! \n";
+						n_missing_gene_name++;
+					}
+				}
+				else
+				{
+					out << "Transcript '" << pseudogene_transcript_ensembl_id << "' not found in ensembl flat file! \n";
+					n_unknown_transcript++;
+				}
 			}
 
 		}
@@ -217,9 +231,10 @@ public:
 		out << "\t missing pseudogene transcript ids in NGSD: " << n_missing_pseudogene_transcript_id << "\n";
 		out << "\t missing parent transcript ids in NGSD: " << n_missing_parent_transcript_id << "\n";
 		out << "\n\t found gene-gene relations: " << n_found_gene_gene_relations << "\n";
+		out << "\t additional gene-gene relations by name matching: " << n_found_gene_gene_relations_by_name_matching << "\n";
 		out << "\t found gene-name relations: " << n_found_gene_name_relations << "\n";
-        out << "\t pseudogenes with no gene name: " << n_missing_gene_name << "\n";
-        out << "\t pseudogenes with unknown transcript: " << n_unknown_transcript << "\n";
+		out << "\t pseudogenes with no gene name: " << n_missing_gene_name << "\n";
+		out << "\t pseudogenes with unknown transcript: " << n_unknown_transcript << "\n";
 
 	}
 
@@ -244,6 +259,7 @@ public:
 			{
 				db.clearTable("gene_exon");
 				db.clearTable("gene_transcript");
+				db.clearTable("gene_pseudogene_relation");
 			}
 			else
 			{
@@ -322,7 +338,7 @@ public:
 
 				// store mapping for pseudogene table
 				gene_name_relation.insert(data["gene_id"], data["Name"]);
-				
+
 				if (!Chromosome(parts[0]).isNonSpecial())
 				{
 					out << "Notice: Gene " << data["gene_id"] << "/" << gene << " on special chromosome " << parts[0] << " is skipped." << endl;
@@ -345,7 +361,7 @@ public:
 					out << "Notice: Gene " << data["gene_id"] << "/" << gene << " without HGNC-approved name is skipped." << endl;
 					continue;
 				}
-				
+
 				gene_ensemble2ngsd[data["ID"]] = ngsd_gene_id;
 			}
 
@@ -358,10 +374,10 @@ public:
 				if (all || data.value("tag")=="basic")
 				{
 					QByteArray parent_id = data["Parent"];
-					
+
 					//skip transcripts of unhandled genes (e.g. no HGNC gene name)
 					if (!gene_ensemble2ngsd.contains(parent_id)) continue;
-				
+
 					TranscriptData tmp;
 					tmp.name = data["transcript_id"];
 					tmp.name_ccds = data.value("ccdsid", "");
