@@ -18,15 +18,17 @@ public:
 	{
 		setDescription("Imports Ensembl/CCDS transcript information into NGSD.");
 		addInfile("in", "Ensembl transcript file (download and unzip ftp://ftp.ensembl.org/pub/grch37/release-87/gff3/homo_sapiens/Homo_sapiens.GRCh37.87.chr.gff3.gz).", false);
-		addInfile("pseudogenes", "Pseudogene flat file (download from http://pseudogene.org/psidr/psiDR.v0.txt).", false);
 
 		//optional
+        addInfile("pseudogenes", "Pseudogene flat file (download from http://pseudogene.org/psidr/psiDR.v0.txt).", true);
 		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts not labeled as with the 'GENCODE basic' tag).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 
+
+        changeLog(2021,  1, 25, "Made pseudogene file optional");
 		changeLog(2021,  1, 20, "Added import of pseudogene relations");
-		changeLog(2019,  8, 12, "Added handling of HGNC identifiers to resolve ambiguous gene names");
+        changeLog(2019,  8, 12, "Added handling of HGNC identifiers to resolve ambiguous gene names");
 		changeLog(2017,  7,  6, "Added first version");
 	}
 
@@ -421,9 +423,9 @@ public:
 
 
 		// parse Pseudogene file
-		importPseudogenes(transcript_gene_relation, gene_name_relation, getInfile("pseudogenes"));
-
-	}
+        QString pseudogene_file_path = getInfile("pseudogenes");
+        if (!pseudogene_file_path.isEmpty()) importPseudogenes(transcript_gene_relation, gene_name_relation, pseudogene_file_path);
+    }
 };
 
 #include "main.moc"

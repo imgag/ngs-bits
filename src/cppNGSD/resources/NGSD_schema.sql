@@ -1918,7 +1918,7 @@ DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
--- Table `pseudogene`
+-- Table `gene_pseudogene_relation`
 -- -----------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS `gene_pseudogene_relation`
@@ -1929,12 +1929,12 @@ CREATE TABLE IF NOT EXISTS `gene_pseudogene_relation`
 `gene_name` varchar(40) DEFAULT NULL,
 
 PRIMARY KEY (`id`),
-CONSTRAINT `fk_gene_id4`
+CONSTRAINT `fk_parent_gene_id`
   FOREIGN KEY (`parent_gene_id` )
   REFERENCES `gene` (`id` )
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
-CONSTRAINT `fk_gene_id5`
+CONSTRAINT `fk_pseudogene_gene_id`
   FOREIGN KEY (`pseudogene_gene_id` )
   REFERENCES `gene` (`id` )
   ON DELETE NO ACTION
