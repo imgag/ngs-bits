@@ -10,7 +10,7 @@ jobs:
     - name: Update OS repositories
       run: sudo apt-get update
     - name: Setup test environment
-      run: sudo apt-get -y install make g++ git python python-matplotlib qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev libbz2-dev liblzma-dev zlib1g-dev
+      run: sudo apt-get -y install make g++ git python python-matplotlib qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev libbz2-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev
     - name: Update submodules
       run: git submodule update --recursive --init
     - name: Build dependencies
