@@ -13,12 +13,16 @@ class GeneWidget
 public:
     GeneWidget(QWidget* parent, QByteArray symbol);
 
+signals:
+    void openGeneTab(QString);
+
 private slots:
     void updateGUI();
     void editInheritance();
     void editComment();
 	void showGeneVariationDialog();
 	void openGeneDatabase();
+    void parseLink(QString link);
 
 private:
     Ui::GeneWidget ui_;

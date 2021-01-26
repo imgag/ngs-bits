@@ -16,7 +16,10 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* none so far
+* NGSD:
+	* Added pseudogene-gene relation
+* GSvar:
+	* Added pseudogenes
 
 Changes in release 2020_12:
 

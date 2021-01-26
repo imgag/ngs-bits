@@ -1915,3 +1915,34 @@ CONSTRAINT `fk_gap_has_processed_sample1`
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `gene_pseudogene_relation`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `gene_pseudogene_relation`
+(
+`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+`parent_gene_id` int(10) unsigned NOT NULL,
+`pseudogene_gene_id` int(10) unsigned DEFAULT NULL,
+`gene_name` varchar(40) DEFAULT NULL,
+
+PRIMARY KEY (`id`),
+CONSTRAINT `fk_parent_gene_id`
+  FOREIGN KEY (`parent_gene_id` )
+  REFERENCES `gene` (`id` )
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `fk_pseudogene_gene_id`
+  FOREIGN KEY (`pseudogene_gene_id` )
+  REFERENCES `gene` (`id` )
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+UNIQUE KEY `pseudo_gene_relation` (`parent_gene_id`, `pseudogene_gene_id`, `gene_name`),
+INDEX `parent_gene_id` (`parent_gene_id` ASC),
+INDEX `pseudogene_gene_id` (`pseudogene_gene_id` ASC)
+) 
+ENGINE=InnoDB DEFAULT 
+CHARSET=utf8
+COMMENT='Gene-Pseudogene relation';

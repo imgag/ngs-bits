@@ -2027,6 +2027,7 @@ void MainWindow::openGeneTab(QString symbol)
 	}
 
 	GeneWidget* widget = new GeneWidget(this, symbol.toLatin1());
+    connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	int index = openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
