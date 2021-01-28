@@ -11,6 +11,7 @@ private slots:
 	{
 		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (Settings::string("reference_genome", true)=="") SKIP("Test needs access to the reference genome!");
 
 		//init
 		NGSD db(true);
@@ -31,6 +32,7 @@ private slots:
 	{
 		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (Settings::string("reference_genome", true)=="") SKIP("Test needs access to the reference genome!");
 
 		//init
 		NGSD db(true);
@@ -50,6 +52,7 @@ private slots:
 	{
 		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		if (Settings::string("reference_genome", true)=="") SKIP("Test needs access to the reference genome!");
 
 		//init
 		NGSD db(true);
