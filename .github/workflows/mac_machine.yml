@@ -1,19 +1,24 @@
-name: Linux build
+name: MacOS build
 
 on: [push, pull_request]
 
 jobs:
-  gcc-build-and-test:
-    runs-on: ubuntu-18.04
+  mac-build-and-test:
+    runs-on: macos-10.15
     steps:
     - uses: actions/checkout@v2
-    - name: Update OS repositories
-      run: sudo apt-get update
-    - name: Setup test environment
-      run: sudo apt-get -y install make g++ git python python-matplotlib qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev libbz2-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev
     - name: Update submodules
       run: git submodule update --recursive --init
-    - name: Build dependencies
+    - name: Update Homebrew
+      run: brew update
+    - name: Setup Qt dependencies
+      run: brew install qt lzlib openssl
+    - name: Link Qt installation
+      run: brew link qt --force
+    - name: Install matplotlib
+      run: sudo pip install matplotlib
+    - name: Build project dependencies
       run: make build_3rdparty build_libs_release build_tools_release build_gui_release
     - name: Run tests
       run: make -k test_lib test_tools
+
