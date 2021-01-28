@@ -21,4 +21,3 @@ jobs:
       run: make build_3rdparty build_libs_release build_tools_release build_gui_release
     - name: Run tests
       run: make -k test_lib test_tools
-
