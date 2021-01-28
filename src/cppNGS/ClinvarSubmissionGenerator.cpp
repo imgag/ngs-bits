@@ -160,7 +160,7 @@ void ClinvarSubmissionGenerator::generateXML(const ClinvarSubmissionData& data, 
 			w.writeCharacters("AssertionMethod");
 			w.writeEndElement();
 			w.writeStartElement("Attribute");
-			w.writeCharacters("ACMG Guidelines, 2015");
+			w.writeCharacters("In-house classification schema based on ACMG Guidelines 2015");
 			w.writeEndElement();
 			w.writeStartElement("Citation");
 			w.writeStartElement("ID");
@@ -417,5 +417,4 @@ QString ClinvarSubmissionGenerator::translateInheritance(QString mode)
 	### Questions internal###
 	1) Upload somatic variants to ClinVar? > Christopher
 	2) Report config inheritance modes AR+AD and XLR+XLDnecessary? Add others from ClinVar?
-	3) ACMG Guidelines als "AssertionMethod" ok? > Tobias
 */

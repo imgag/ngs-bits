@@ -139,7 +139,7 @@ QList<Variant> VariantScores::blacklist()
 {
 	QList<Variant> output;
 
-	QStringList entries = Settings::stringList("ranking_variant_blacklist");
+	QStringList entries = Settings::stringList("ranking_variant_blacklist", true);
 	foreach(QString entry, entries)
 	{
 		output << Variant::fromString(entry);

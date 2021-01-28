@@ -162,7 +162,7 @@ MainWindow::MainWindow(QWidget *parent)
 	// add cfdna menu
 	cfdna_menu_btn_ = new QToolButton();
 	cfdna_menu_btn_->setObjectName("cfdna_btn");
-    cfdna_menu_btn_->setIcon(QIcon(":/Icons/cfDNA.png"));
+	cfdna_menu_btn_->setIcon(QIcon(":/Icons/cfDNA.png"));
 	cfdna_menu_btn_->setToolTip("Open cfDNA menu entries");
 	cfdna_menu_btn_->setMenu(new QMenu());
 	cfdna_menu_btn_->menu()->addAction(ui_.actionDesignCfDNAPanel);
@@ -297,7 +297,13 @@ void MainWindow::on_actionDebug_triggered()
 				variants.load(db.processedSamplePath(ps_id, NGSD::GSVAR));
 
 				//score
-				VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois, VariantScores::blacklist());
+				QList<Variant> blacklist;
+				if (false)
+				{
+					blacklist = VariantScores::blacklist();
+					special += "_blacklist";
+				}
+				VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois, blacklist);
 				int c_scored = VariantScores::annotate(variants, result);
 				int i_rank = variants.annotationIndexByName("GSvar_rank");
 				int i_score = variants.annotationIndexByName("GSvar_score");
@@ -346,6 +352,64 @@ void MainWindow::on_actionDebug_triggered()
 		output.addComment("##Top5 : " + QString::number(c_top5) + " (" + QString::number(100.0*c_top5/output.rowCount(), 'f', 2) + "%)");
 		output.addComment("##Top10: " + QString::number(c_top10) + " (" + QString::number(100.0*c_top10/output.rowCount(), 'f', 2) + "%)");
 		output.store("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + special + ".tsv");
+
+		//non-causal variants annotation
+		/*
+		NGSD db;
+		QStringList input;
+		input << TODO
+		foreach(QString ps, input)
+		{
+			QString ps_id = db.processedSampleId(ps);
+			QString text;
+			QVariant rc_id = db.getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0", true, ps_id);
+			if (rc_id.isValid())
+			{
+				//find causal small variants
+				QStringList causal_ids = db.getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + rc_id.toString());
+				foreach(QString id, causal_ids)
+				{
+					Variant var = db.variant(id);
+					QString genotype = db.getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + id + "'").toString();
+					QString genes = db.getValue("SELECT gene FROM variant WHERE id='" + id + "'").toString();
+					QString var_class = db.getValue("SELECT class FROM variant_classification WHERE variant_id='" + id + "'").toString();
+					text += ", small variant: " + var.toString() + " (genotype:" + genotype + " genes:" + genes;
+					if (var_class != "") text += " classification:" + var_class; // add classification, if exists
+					text += ")";
+				}
+
+				//find causal CNVs
+				causal_ids = db.getValues("SELECT cnv_id FROM report_configuration_cnv WHERE  causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + rc_id.toString());
+				foreach(QString id, causal_ids)
+				{
+					CopyNumberVariant var = db.cnv(id.toInt());
+					QString cn = db.getValue("SELECT cn FROM cnv WHERE id='" + id + "'").toString();
+					QString cnv_class = db.getValue("SELECT class FROM report_configuration_cnv WHERE cnv_id='" + id + "'", false).toString();
+					text += ", CNV: " + var.toString() + " (cn:" + cn;
+					if (cnv_class != "") text += " classification:" + cnv_class; // add classification, if exists
+					text += ")";
+				}
+
+				//find causal SVs
+				QStringList sv_id_columns = QStringList() << "sv_deletion_id" << "sv_duplication_id" << "sv_insertion_id" << "sv_inversion_id" << "sv_translocation_id";
+				QList<StructuralVariantType> sv_types = {StructuralVariantType::DEL, StructuralVariantType::DUP, StructuralVariantType::INS, StructuralVariantType::INV, StructuralVariantType::BND};
+				BedpeFile svs;
+				for (int i = 0; i < sv_id_columns.size(); ++i)
+				{
+					causal_ids = db.getValues("SELECT " + sv_id_columns.at(i) + " FROM report_configuration_sv WHERE  causal='0' AND exclude_artefact='0' AND exclude_frequency='0' AND exclude_phenotype='0' AND exclude_mechanism='0' AND exclude_other='0' AND report_configuration_id=" + rc_id.toString() + " AND " + sv_id_columns.at(i) + " IS NOT NULL");
+
+					foreach(QString id, causal_ids)
+					{
+						BedpeLine var = db.structuralVariant(id.toInt(), sv_types.at(i), svs, true);
+						QString sv_class = db.getValue("SELECT class FROM report_configuration_sv WHERE " + sv_id_columns[i] + "='" + id + "'", false).toString();
+						text += ", SV: " + var.toString();
+						if (sv_class != "") text += " (classification:" + sv_class + ")"; // add classification, if exists
+					}
+				}
+			}
+			qDebug() << ps << "\t" << text;
+		}
+		*/
 
 		//Export GenLab dates for reanalysis of unsolved samples
 		/*
@@ -2027,7 +2091,7 @@ void MainWindow::openGeneTab(QString symbol)
 	}
 
 	GeneWidget* widget = new GeneWidget(this, symbol.toLatin1());
-    connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
+	connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	int index = openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
@@ -2352,7 +2416,7 @@ void MainWindow::loadFile(QString filename)
 			NGSD db;
 			QString sample_id;
 			QStringList same_sample_ids;
-			QStringList cf_dna_sample_ids;			
+			QStringList cf_dna_sample_ids;
 
 			// get all same samples
 			sample_id = db.sampleId(sampleName());
@@ -2724,7 +2788,7 @@ void MainWindow::storeSomaticReportConfig()
 		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, somatic_control_tissue_variants_, Helper::userName());
 	}
 	catch (Exception& e)
-	{	
+	{
 		QMessageBox::warning(this, "Storing somatic report configuration", "Error: Could not store the somatic report configuration.\nPlease resolve this error or report it to the administrator:\n\n" + e.message());
 	}
 }

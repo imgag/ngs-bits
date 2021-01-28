@@ -418,7 +418,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 					foreach(QString id, causal_ids)
 					{
-						BedpeLine var = structural_variant(id.toInt(), sv_types.at(i), svs, true);
+						BedpeLine var = structuralVariant(id.toInt(), sv_types.at(i), svs, true);
 						QString sv_class = getValue("SELECT class FROM report_configuration_sv WHERE " + sv_id_columns[i] + "='" + id + "'", false).toString();
 						text += ", causal SV: " + var.toString();
 						if (sv_class != "") text += " (classification:" + sv_class + ")"; // add classification, if exists
@@ -1561,7 +1561,7 @@ QString NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bo
 
 }
 
-BedpeLine NGSD::structural_variant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation)
+BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation)
 {
 	BedpeLine sv;
 	QList<QByteArray> annotations;
@@ -4390,7 +4390,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 				THROW(DatabaseException, "Report config entry does not contain a SV id!");
 			}
 
-			BedpeLine sv = structural_variant(sv_id, type, svs);
+			BedpeLine sv = structuralVariant(sv_id, type, svs);
 
 			var_conf.variant_index = svs.findMatch(sv, true, false);
 			if (var_conf.variant_index==-1)
