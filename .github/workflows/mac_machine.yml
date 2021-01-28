@@ -3,9 +3,8 @@ name: MacOS build
 on: [push, pull_request]
 
 jobs:
-  mac-build-and-test:
-    runs-on: macos-10.15
-
+  run-mysql-db:
+    runs-on: ubuntu-18.04
     services:
       mysql:
         image: mysql:5.7
@@ -16,6 +15,9 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
+  mac-build-and-test:
+    needs: run-mysql-db
+    runs-on: macos-10.15
     steps:
     - uses: actions/checkout@v2
     - name: Update submodules
