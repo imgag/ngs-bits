@@ -5,6 +5,17 @@ on: [push, pull_request]
 jobs:
   mac-build-and-test:
     runs-on: macos-10.15
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+            MYSQL_ALLOW_EMPTY_PASSWORD: yes
+            MYSQL_DATABASE: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
     - uses: actions/checkout@v2
     - name: Update submodules
@@ -19,5 +30,8 @@ jobs:
       run: sudo pip install matplotlib
     - name: Build project dependencies
       run: make build_3rdparty build_libs_release build_tools_release build_gui_release
+    - name: Create a settings.ini file for tests
+      run: ./settings.sh
+      shell: bash
     - name: Run tests
       run: make -k test_lib test_tools
