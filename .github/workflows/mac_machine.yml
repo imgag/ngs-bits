@@ -20,7 +20,7 @@ jobs:
       #- name: Build project dependencies
       #run: make build_3rdparty build_libs_release build_tools_release build_gui_release
     - name: Create a settings.ini file for tests
-      run: ./dd.sh
+      run: ./dds.sh
       shell: bash
   
       #run-mysql-db:
