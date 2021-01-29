@@ -255,7 +255,7 @@ public:
 		db.tableExists("gene_pseudogene_relation");
 
 		//clear tables if not empty
-		if (!db.tableEmpty("gene_transcript") || !db.tableEmpty("gene_exon"))
+		if (!db.tableEmpty("gene_transcript") || !db.tableEmpty("gene_exon") || !db.tableEmpty("gene_pseudogene_relation"))
 		{
 			if (getFlag("force"))
 			{
@@ -269,7 +269,7 @@ public:
 			}
 		}
 
-		//prepare queries
+		// prepare queries
 		SqlQuery q_trans = db.getQuery();
 		q_trans.prepare("INSERT INTO gene_transcript (gene_id, name, source, chromosome, start_coding, end_coding, strand) VALUES (:0, :1, :2, :3, :4, :5, :6);");
 
