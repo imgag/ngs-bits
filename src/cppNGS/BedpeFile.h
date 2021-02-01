@@ -208,6 +208,12 @@ public:
 		return lines_[index];
 	}
 
+	///Append BedpeLine to BedpeFile
+	void append(const BedpeLine& line)
+	{
+		lines_.append(line);
+	}
+
     ///Remove structural variant from list at index.
     void removeAt(int index)
     {
