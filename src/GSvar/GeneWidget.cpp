@@ -61,31 +61,33 @@ void GeneWidget::updateGUI()
 	ui_.comments->setText(html);
 
     //add pseudogenes/parent genes
-    int gene_id = db.geneToApprovedID(symbol_);
-    QStringList pseudogene_link_list;
-    QStringList parent_gene_link_list;
-    QStringList pseudogene_ids = db.getValues("SELECT pseudogene_gene_id FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(gene_id) + " AND pseudogene_gene_id IS NOT NULL");
-    foreach (const QString& pseudogene_id, pseudogene_ids)
-    {
-        QString pseudogene_name = db.geneSymbol(pseudogene_id.toInt());
-        pseudogene_link_list.append("<a href=\"" + pseudogene_name + "\">" + pseudogene_name + "</a>");
-    }
-    QStringList pseudogenes = db.getValues("SELECT gene_name FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(gene_id) + " AND gene_name IS NOT NULL");
-    foreach (const QString& pseudogene, pseudogenes)
-    {
-        QString ensembl_id = pseudogene.split(';').at(0);
-        QString pseudogene_name = pseudogene.split(';').at(1);
-        pseudogene_link_list.append(pseudogene_name + "(<a href=\"ensembl:" + ensembl_id + "\">"+ ensembl_id + ")</a>");
-    }
-    if (pseudogene_link_list.size() > 0)
-    {
-        ui_.pseudogenes->setText(pseudogene_link_list.join(", "));
-    }
-    else
-    {
+	int gene_id = db.geneToApprovedID(symbol_);
+	QStringList pseudogene_link_list;
+	QStringList parent_gene_link_list;
+	QStringList pseudogene_ids = db.getValues("SELECT pseudogene_gene_id FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(gene_id) + " AND pseudogene_gene_id IS NOT NULL");
+	foreach (const QString& pseudogene_id, pseudogene_ids)
+	{
+		QString pseudogene_name = db.geneSymbol(pseudogene_id.toInt());
+		pseudogene_link_list.append("<a href=\"" + pseudogene_name + "\">" + pseudogene_name + "</a>");
+	}
+	QStringList pseudogenes = db.getValues("SELECT gene_name FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(gene_id) + " AND gene_name IS NOT NULL");
+	foreach (const QString& pseudogene, pseudogenes)
+	{
+		QString ensembl_id = pseudogene.split(';').at(0);
+		QString pseudogene_name = pseudogene.split(';').at(1);
+		pseudogene_link_list.append(pseudogene_name + " (<a href=\"ensembl:" + ensembl_id + "\">"+ ensembl_id + ")</a>");
+	}
+	if (pseudogene_link_list.size() > 0)
+	{
+		ui_.pseudogenes->setText(pseudogene_link_list.join(", "));
+	}
+	else if (ui_.pseudogenes!=nullptr)
+	{
 		ui_.pseudogenes->deleteLater();
+		ui_.pseudogenes = nullptr;
 		ui_.pseudogene_label->deleteLater();
-    }
+		ui_.pseudogene_label = nullptr;
+	}
 
 	// add parent gene (for pseudogenes
     QStringList parent_gene_ids = db.getValues("SELECT parent_gene_id FROM gene_pseudogene_relation WHERE pseudogene_gene_id=" + QString::number(gene_id) + " AND parent_gene_id IS NOT NULL");
@@ -182,7 +184,7 @@ void GeneWidget::editComment()
     if (!ok) return;
 
     info.comments = text_new;
-    db.setGeneInfo(info);
+	db.setGeneInfo(info);
 
     updateGUI();
 }
