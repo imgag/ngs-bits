@@ -213,6 +213,8 @@ public slots:
 	void openVariantListFolder();
 	///Upload variant that is not part of the variant list to LOVD.
 	void on_actionPublishVariantInLOVD_triggered();
+	///Batch export for ClinVar
+	void on_actionBatchExportClinVar_triggered();
 	///Re-analyze current sample/case
 	void on_actionReanalyze_triggered();
 	///Annotate germline file with somatic variants
