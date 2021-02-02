@@ -1,5 +1,5 @@
 ### VariantRanking tool help
-	VariantRanking (2020_09-90-g55257954)
+	VariantRanking (2020_12-25-g719118fd)
 	
 	Annotatates variants in GSvar format with a score/rank.
 	
@@ -14,6 +14,8 @@
 	                     Valid: 'GSvar_v1,GSvar_v1_noNGSD'
 	  -add_explaination  Add a third column with an explaination how that score was calculated.
 	                     Default value: 'false'
+	  -use_blacklist     Use variant blacklist from settings.ini file.
+	                     Default value: 'false'
 	  -test              Uses the test database instead of on the production database.
 	                     Default value: 'false'
 	
@@ -24,7 +26,7 @@
 	  --tdx              Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantRanking changelog
-	VariantRanking 2020_09-90-g55257954
+	VariantRanking 2020_12-25-g719118fd
 	
 	2020-11-20 Initial commit.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

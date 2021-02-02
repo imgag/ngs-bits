@@ -20,12 +20,15 @@ DBTableWidget::DBTableWidget(QWidget* parent)
 
 	//context menu
 	setContextMenuPolicy(Qt::ActionsContextMenu);
-	QAction* copy_action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy", this);
+	QAction* copy_action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection", this);
 	addAction(copy_action);
-	connect(copy_action, SIGNAL(triggered(bool)), this, SLOT(copyToClipboard()));
+	connect(copy_action, SIGNAL(triggered(bool)), this, SLOT(copySelectionToClipboard()));
+	copy_action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all", this);
+	addAction(copy_action);
+	connect(copy_action, SIGNAL(triggered(bool)), this, SLOT(copyTableToClipboard()));
 }
 
-void DBTableWidget::setData(const DBTable& table)
+void DBTableWidget::setData(const DBTable& table, int max_col_width)
 {
 	QStringList headers = table.headers();
 
@@ -56,7 +59,7 @@ void DBTableWidget::setData(const DBTable& table)
 	}
 
 	//fomatting
-	GUIHelper::resizeTableCells(this, 200);
+	GUIHelper::resizeTableCells(this, max_col_width);
 }
 
 int DBTableWidget::columnIndex(const QString& column_header) const
@@ -227,7 +230,7 @@ void DBTableWidget::keyPressEvent(QKeyEvent* event)
 {
 	if(event->matches(QKeySequence::Copy))
 	{
-		copyToClipboard();
+		copySelectionToClipboard();
 		event->accept();
 		return;
 	}
@@ -235,7 +238,7 @@ void DBTableWidget::keyPressEvent(QKeyEvent* event)
 	QTableWidget::keyPressEvent(event);
 }
 
-void DBTableWidget::copyToClipboard()
+void DBTableWidget::copyToClipboard(bool selection_only)
 {
 	//header
 	QString output = "#";
@@ -254,7 +257,7 @@ void DBTableWidget::copyToClipboard()
 		if (isRowHidden(row)) continue;
 
 		//skip unselected
-		if (selected_rows.count()>0 && !selected_rows.contains(row)) continue;
+		if (selection_only && selected_rows.count()>0 && !selected_rows.contains(row)) continue;
 
 		for (int col=0; col<columnCount(); ++col)
 		{
@@ -265,6 +268,16 @@ void DBTableWidget::copyToClipboard()
 	}
 
 	QApplication::clipboard()->setText(output);
+}
+
+void DBTableWidget::copySelectionToClipboard()
+{
+	copyToClipboard(true);
+}
+
+void DBTableWidget::copyTableToClipboard()
+{
+	copyToClipboard(false);
 }
 
 void DBTableWidget::processDoubleClick(int row, int /*column*/)

@@ -475,15 +475,19 @@ INSERT INTO `somatic_cnv` (`id`, `somatic_cnv_callset_id`, `chr`, `start`, `end`
 (4, 5, 'chr7', 87000, 350000, 3.14, 4, 0.8);
 
 -- somatic_report_configuration
-INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `mtb_xml_upload_date`, `mtb_pdf_upload_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_score`, `tmb_ref_text`, `quality`, `filter`) VALUES 
-(3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10', '2020-07-29 09:06:10', '2020-07-29 09:36:10', NULL, false, false, false, false, false, 0, NULL, 'tumor cell content too low', 'somatic'),
-(51,5,4000,99,'2019-01-05 14:06:12', 101, '2019-12-07 17:06:10', '2020-07-27 09:20:10', '2020-07-27 09:40:11', 'nowhere.bed' , true, true, true, true, true, 1, "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp", NULL, NULL);
+INSERT INTO `somatic_report_configuration` (`id`, `ps_tumor_id`, `ps_normal_id`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`, `mtb_xml_upload_date`, `target_file`, `tum_content_max_af`, `tum_content_max_clonality`, `tum_content_hist`, `msi_status`, `cnv_burden`, `hrd_score`, `tmb_ref_text`, `quality`, `filter`) VALUES 
+(3,5,6,3,'2019-01-05 14:06:12', 99, '2019-12-07 17:06:10', '2020-07-29 09:06:10', NULL, false, false, false, false, false, 0, NULL, 'tumor cell content too low', 'somatic'),
+(51,5,4000,99,'2019-01-05 14:06:12', 101, '2019-12-07 17:06:10', '2020-07-27 09:20:10', 'nowhere.bed' , true, true, true, true, true, 1, "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp", NULL, NULL);
 
 --somatic_report_configuration_cnv
 INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id`, `somatic_cnv_id`, `exclude_artefact`, `exclude_low_tumor_content` , `exclude_low_copy_number`,
 `exclude_high_baf_deviation`, `exclude_other_reason`, `comment`) VALUES
 (3, 4, true, false, false, false, false, "");
 
+--somatic_vic
+INSERT INTO `somatic_vicc_interpretation` (`id`, `variant_id`, `null_mutation_in_tsg`, `known_oncogenic_aa`, `strong_cancerhotspot`, `located_in_canerhotspot`, `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `comment`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
+(1, 210585, true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'this variant was evaluated as an oncogenic variant', 99, '2020-11-05 13:06:13', 101, '2020-12-07 11:06:10'),
+(2, 213346, false, true, false, true, true, null, true, false, null, false, true, true, true, true, true, true, 'this variant was evaluated as variant of unclear significance', 99, '2020-12-05 12:07:11', 101, '2020-12-08 13:45:11');
 
 -- omim
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES

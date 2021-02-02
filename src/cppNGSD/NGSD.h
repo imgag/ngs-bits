@@ -21,6 +21,7 @@
 #include "SomaticReportConfiguration.h"
 #include "CnvList.h"
 #include "BedpeFile.h"
+#include "SomaticVariantInterpreter.h"
 
 ///OMIM information datastructure
 struct OmimInfo
@@ -377,7 +378,6 @@ struct CPPNGSDSHARED_EXPORT SomaticReportConfigurationData
 
 	QString target_file;
 	QString mtb_xml_upload_date;
-	QString mtb_pdf_upload_date;
 
 	///Returns a text representation of the creation and update. Can contain newline!
 	QString history() const;
@@ -556,6 +556,8 @@ public:
 	///Returns the default folder for a processed sample from file name or processed sample name. Throws an exception if it could not be determined.
 	enum PathType {PROJECT_FOLDER, SAMPLE_FOLDER, BAM, GSVAR, VCF};
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
+	///Returns the path to secondary analyses of the processed samples.
+	QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type, bool windows_path);
 
 	///Adds a variant to the NGSD. Returns the variant ID.
 	QString addVariant(const Variant& variant, const VariantList& variant_list);
@@ -583,12 +585,12 @@ public:
 	CopyNumberVariant cnv(int cnv_id);
 
 	///Adds a SV to the NGSD. Returns the SV ID.
-	int addSv(int callset_id, const BedpeLine& structural_variant, const BedpeFile& svs);
+	int addSv(int callset_id, const BedpeLine& structuralVariant, const BedpeFile& svs);
 	///Returns the NGSD ID for a SV. Returns '' or throws an exception if the ID cannot be determined.
 	QString svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bool throw_if_fails = true);
 	///Returns the SV corresponding to the given identifiers or throws an exception if the ID does not exist.
 	///		'no_annotation' will only return the SV position
-	BedpeLine structural_variant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false);
+	BedpeLine structuralVariant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation = false);
 	///Returns the SQL table name for a given StructuralVariantType
 	static QString svTableName(StructuralVariantType type);
 
@@ -603,11 +605,11 @@ public:
 	///If throw_if_false == false it returns -1 if user is not found
 	int userId(QString user_name, bool only_active=false, bool throw_if_fails = true);
 	///Returns the user login corresponding the given ID.
-	QString userLogin(int user_id=-1);
+	QString userLogin(int user_id);
 	///Returns the user name corresponding the given ID.
-	QString userName(int user_id=-1);
+	QString userName(int user_id);
 	///Returns the user email corresponding the given ID.
-	QString userEmail(int user_id=-1);
+	QString userEmail(int user_id);
 	///Replacement for passwords when they are shown in the GUI.
 	static const QString& passwordReplacement();
 	///Checks if the given user/password tuple is correct. If ok, returns an empty string. If not, returns an error message.
@@ -624,6 +626,9 @@ public:
 	ProcessedSampleData getProcessedSampleData(const QString& processed_sample_id);
 	///Returns the normal processed sample corresponding to a tumor processed sample, or "" if no normal samples is defined.
 	QString normalSample(const QString& processed_sample_id);
+
+	///Returns the corresponding same sample id(s) of a given type
+	QStringList sameSamples(QString sample_id, QString sample_type);
 
 	///Returns sample disease details from the database.
 	QList<SampleDiseaseInfo> getSampleDiseaseInfo(const QString& sample_id, QString only_type="");
@@ -658,6 +663,10 @@ public:
 	ClassificationInfo getSomaticClassification(const Variant& variant);
 	///Sets the somatic classification of a variant in the NGSD.
 	void setSomaticClassification(const Variant& variant, ClassificationInfo info);
+
+	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
+	int getSomaticViccId(const Variant& variant);
+	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
 
 	///Adds a variant publication
 	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details);
@@ -707,8 +716,6 @@ public:
 	SomaticReportConfiguration somaticReportConfig(QString t_ps_id, QString n_ps_id, const VariantList& snvs, const CnvList& cnvs, const VariantList& germline_snvs, QStringList& messages);
 	///set upload time of somatic XML report to current timestamp
 	void setSomaticMtbXmlUpload(int report_id);
-	///set upload time of somatic PDF report to current timestamp
-	void setSomaticMtbPdfUpload(int report_id);
 
 	///Sets processed sample quality
 	void setProcessedSampleQuality(const QString& processed_sample_id, const QString& quality);
@@ -732,6 +739,13 @@ public:
 	QString analysisJobFolder(int job_id);
 	///Returns the GSVar file of an analysis job.
 	QString analysisJobGSvarFile(int job_id);
+
+	///Adds a gap for a sample and returns the gap ID.
+	int addGap(const QString& ps_id, const Chromosome& chr, int start, int end, const QString& status);
+	///Returns the gap ID. If no matching gap is found, -1 is returned.
+	int gapId(const QString& ps_id, const Chromosome& chr, int start, int end, bool exact_match=true);
+	///Updates the status of a gap.
+	void updateGapStatus(int id, const QString& status);
 
 	///Returns quality metric for a CNV callsets (all metrics for a single sample)
 	QHash<QString, QString> cnvCallsetMetrics(int callset_id);

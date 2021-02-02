@@ -54,7 +54,7 @@ namespace {
 		//filter only SNVs
 		if (only_snvs)
 		{
-			FilterVariantIsSNP filter;
+			FilterVariantIsSNV filter;
 			filter.apply(output, filter_result);
 		}
 

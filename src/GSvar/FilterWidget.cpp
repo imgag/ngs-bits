@@ -15,6 +15,9 @@
 #include <QMessageBox>
 #include "LoginManager.h"
 
+
+QList<KeyValuePair> FilterWidget::subpanels_ = QList<KeyValuePair>();
+
 FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)
 	, ui_()
@@ -102,24 +105,11 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 		Log::warn("Could not load NGSD processing system target regions: " + e.message());
 	}
 
-	//load ROIs of sub-panels
-	try
+	foreach(const KeyValuePair& subpanel, subPanels())
 	{
-		QStringList subpanels = Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", false);
-		subpanels.sort(Qt::CaseInsensitive);
-		foreach(QString file, subpanels)
-		{
-			if (file.endsWith("_amplicons.bed")) continue;
-
-			QString name = QFileInfo(file).fileName().replace(".bed", "");
-			box->addItem("Sub-panel: " + name, Helper::canonicalPath(file));
-		}
-		box->insertSeparator(box->count());
+		box->addItem("Sub-panel: " + subpanel.key, subpanel.value);
 	}
-	catch (Exception& e)
-	{
-		Log::warn("Could not load sub-panels target regions: " + e.message());
-	}
+	box->insertSeparator(box->count());
 
 	//load additional ROIs from settings
 	QStringList rois = Settings::stringList("target_regions", true);
@@ -136,6 +126,36 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 	box->setCurrentIndex(current_index);
 
 	box->blockSignals(false);
+}
+
+const QList<KeyValuePair>& FilterWidget::subPanels()
+{
+	if (subpanels_.isEmpty())
+	{
+		reloadSubpanelList();
+	}
+
+	return subpanels_;
+}
+
+void FilterWidget::reloadSubpanelList()
+{
+	try
+	{
+		QStringList files = Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", false);
+		files.sort(Qt::CaseInsensitive);
+		foreach(const QString& file, files)
+		{
+			if (file.endsWith("_amplicons.bed")) continue;
+
+			QString name = QFileInfo(file).fileName().replace(".bed", "");
+			subpanels_ << KeyValuePair(name, Helper::canonicalPath(file));
+		}
+	}
+	catch (Exception& e)
+	{
+		Log::warn("Could not load sub-panels target regions: " + e.message());
+	}
 }
 
 void FilterWidget::resetSignalsUnblocked(bool clear_roi)

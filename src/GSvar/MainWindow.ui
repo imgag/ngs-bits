@@ -504,8 +504,9 @@
      <addaction name="actionSearchCNVs"/>
      <addaction name="actionSearchSVs"/>
      <addaction name="separator"/>
-     <addaction name="actionPublishVariantInLOVD"/>
      <addaction name="actionShowPublishedVariants"/>
+     <addaction name="actionPublishVariantInLOVD"/>
+     <addaction name="actionBatchExportClinVar"/>
     </widget>
     <addaction name="menuVariant_search"/>
     <addaction name="menuGenes_2"/>
@@ -516,6 +517,7 @@
     <addaction name="menuBatch_import"/>
     <addaction name="actionMidClashDetection"/>
     <addaction name="actionVariantValidation"/>
+    <addaction name="actionGaps"/>
     <addaction name="separator"/>
     <addaction name="actionStatistics"/>
    </widget>
@@ -558,6 +560,8 @@
    <addaction name="actionRE"/>
    <addaction name="actionPRS"/>
    <addaction name="actionCircos"/>
+   <addaction name="actionExpressionData"/>
+   <addaction name="separator"/>
    <addaction name="actionDebug"/>
   </widget>
   <action name="actionOpen">
@@ -640,7 +644,7 @@
     <string>Show gaps</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show low-coverage regions from the pre-calcualated low-coverage BED file in the sample folder.&lt;/p&gt;&lt;p&gt;Note: the gaps are based on the target region of the processing system, not the current target region&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Look-up low-coverage regions in the pre-calcualated low-coverage BED file located in the sample folder.&lt;/p&gt;&lt;p&gt;Note: the gaps are based on the target region of the processing system, not the current target region.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionShowHGMD">
@@ -689,7 +693,7 @@
     <string>Recalcualte gaps</string>
    </property>
    <property name="toolTip">
-    <string>Create a new low-coverage report for the current target region.</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Determine low-coverage regions (gaps) and request closing the gaps if necessary.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionOpenDocumentation">
@@ -1206,10 +1210,10 @@
   </action>
   <action name="actionCfDNADiseaseCourse">
    <property name="text">
-    <string>Show course of the disease (personalized cfDNA)</string>
+    <string>Show personalized cfDNA panel analysis</string>
    </property>
    <property name="toolTip">
-    <string>Show course of the disease (personalized cfDNA)</string>
+    <string>Show personalized cfDNA panel analysis</string>
    </property>
   </action>
   <action name="actionShowCfDNAPanel">
@@ -1225,6 +1229,29 @@
   <action name="actionAlleleBalance">
    <property name="text">
     <string>Allele balance</string>
+   </property>
+  </action>
+  <action name="actionExpressionData">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show Expression Data</string>
+   </property>
+  </action>
+  <action name="actionGaps">
+   <property name="text">
+    <string>Gaps</string>
+   </property>
+  </action>
+  <action name="actionBatchExportClinVar">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/ClinGen.png</normaloff>:/Icons/ClinGen.png</iconset>
+   </property>
+   <property name="text">
+    <string>Batch export for ClinVar</string>
    </property>
   </action>
  </widget>

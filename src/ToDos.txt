@@ -1,21 +1,11 @@
 === TODO ===
 
-libs:
-* FilterGenotypeAffected: exclude comp-het variant pairs, that are present in one or more controls
-- The call of "resizeColumnsToContents()" in "GUIHelper::resizeTableCells" is slow for large tables. Maybe we can re-implement it to use only the top x lines only?!
-- support CRAM in addition to BAM: use htslib functions with hts_ prefix instead of bam_ prefix
-
 GSvar:
-### Store successfull trio/multi analyses in NGSD (type, samples, sample infos) > do not search in the file system but in NGSD.
-## Implement "closing gaps by sanger"
-    - select gaps to close in gap dialog > write to NGSD table (sample_id>sample, enum status: 'to close', 'in progress', 'closed', requested_by>user, comment)
-    - make page where TA can select gaps (by gene/DX number)
-        - also allow copying multiple gaps into clipboard (as table and for primer gap)
-        - add link for PrimerDesign tool
 # add multi-sample report-config
     - 1 affected > easy
     - >1 affected > user has to set one affected as index > only report config of index is edited
     - no report needed - is created from individual samples
+- Variant tab: add disease group significance (remove duplicates because of family, calculates significance of one disease group vs the others)
 - Allow ClinVar upload as soon as the API is available
     - until then: perform manual upload at the end of each quater
     - also support CNVs/SVs?
@@ -23,13 +13,6 @@ GSvar:
 Tools:
 - UPDHunter: also support chrX?
 - SomaticQC: replace 'QC:?' by real qcML identifier - add to https://github.com/HUPO-PSI/mzQC (CS)
-- RohHunter:
-    - exclude CNP regions?
-    - optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)
-    - test splitting regions when dist is too high, e.g. > 100Kb => Q-score cutoff removes random parts?!
-    - test input of high-cov ROI to augment the input data with WT SNPs with AF>1-5%
-    - test if sub-population AF improves result
-    - benchmarks: chrX of males, add errors up to 2 percent, overlap WGS/WES
 
 External:
 - implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM)
@@ -39,8 +22,6 @@ External:
 GSVar features to dicuss:
 - Add family table linking samples in one family with "father", "mother", "child", "aunte", "cousin", ... OR import samples relations from GenLab?? > FH/LUCIA/TOH
 - Add liquid handler robot to processed sample talbe > FH/LAB/TOH
-- Correctly import sample sender data from GenLab > TOH/STEPHAN O.
 - CAVE functionality for Genes (use e.g. for imprinting), model reasons? > SWAL
 - Sample: source tissue (for RNA) > TOH
 - Evaluation sheet: Add comment text, e.g. bad CNV quality > FH
-- Sample: allow several disease_groups per sample > CS

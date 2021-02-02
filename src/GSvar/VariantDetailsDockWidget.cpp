@@ -94,6 +94,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_dbscsnv->setToolTip(vl.annotationDescriptionByName("dbscSNV").description());
 	ui->label_regulatory->setToolTip(vl.annotationDescriptionByName("regulatory", false).description());
 	ui->label_mmsplice->setToolTip("MMSplice prediction of splice-site variations;\nMaximum absolute values for the highest scored exon are shown in following format:\n[DeltaLogitPSI score as effect on exon inclusion (values below -2 stand for higher exclusion, values above 2 for higher inclusion) / Pathogenicity score]");
+	ui->label_spliceai->setToolTip("SpliceAI prediction of splice-site variations;\nProbability of the variant being splice-altering (range from 0-1).\nThe score is the maximum value of acceptor/donor gain/loss of all effected genes.");
 
 	//NGSD (all optional)
 	ui->label_ngsd_class->setToolTip(vl.annotationDescriptionByName("classification", false).description());
@@ -185,6 +186,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->maxentscan, vl, index, "MaxEntScan");
 	setAnnotation(ui->dbscsnv, vl, index, "dbscSNV");
 	setAnnotation(ui->mmsplice, vl, index, "MMSplice_DeltaLogitPSI");
+	setAnnotation(ui->spliceai, vl, index, "SpliceAI");
 	setAnnotation(ui->regulatory, vl, index, "regulatory");
 
 	//NGSD
@@ -220,6 +222,9 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 
 	setAnnotation(ui->somatic_cancerhotspots, vl, index, "CANCERHOTSPOTS_AA_CHANGE");
 	setAnnotation(ui->somatic_cmc_class, vl, index, "CMC_mutation_significance");
+
+	//somatic VICC data from NGSD
+	setAnnotation(ui->somatic_vicc_score, vl, index, "NGSD_som_vicc_interpretation");
 
 	//update NGSD button
 	ui->var_btn->setEnabled(LoginManager::active());
@@ -567,6 +572,24 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			}
 
 		}
+		else if(name == "NGSD_som_vicc_interpretation")
+		{
+			if(!anno.isEmpty()) text = anno;
+			else text = "n/a";
+		}
+		else if(name=="SpliceAI")
+		{
+			bool ok = true;
+			double value = anno.toDouble(&ok);
+			if (ok && value >= 0.5)
+			{
+				text = formatText(anno, RED);
+			}
+			else
+			{
+				text = anno;
+			}
+		}
 		else //fallback: use complete annotations string
 		{
 			text = anno;
@@ -665,7 +688,7 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 		//use first preferred transcript
 		for (int i=0; i<trans_data.count(); ++i)
 		{
-			if (preferred_transcripts.value(trans_data[i].gene).contains(trans_data[i].id))
+			if (preferred_transcripts.value(trans_data[i].gene).contains(trans_data[i].idWithoutVersion()))
 			{
 				setTranscript(i);
 				break;
@@ -695,7 +718,7 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	foreach(const VariantTranscript& trans, trans_data)
 	{
 		//highlight preferred transcripts
-		bool is_pt = preferred_transcripts.value(trans.gene).contains(trans.id);
+		bool is_pt = preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
 		tooltip += nobr() + (is_pt ? "<b>" : "") + trans.toString(' ') + (is_pt ? "</b>" : "");
 	}
 	ui->trans->setToolTip(tooltip);
@@ -809,34 +832,11 @@ QString VariantDetailsDockWidget::nobr()
 	return "<p style='white-space:pre; margin:0; padding:0;'>";
 }
 
-void VariantDetailsDockWidget::gnomadClicked(QString link)
+void VariantDetailsDockWidget::gnomadClicked(QString variant_string)
 {
-	QStringList parts = link.split(' ');
-	Chromosome chr(parts[0]);
-	QString start = parts[1];
-	QString ref = parts[3];
-	QString obs = parts[4];
-
-	QString url;
-	if (obs=="-") //deletion
-	{
-		int pos = start.toInt()-1;
-		FastaFileIndex idx(Settings::string("reference_genome"));
-		QString base = idx.seq(chr, pos, 1);
-		url = chr.strNormalized(false) + "-" + QString::number(pos) + "-" + base + ref + "-" + base;
-	}
-	else if (ref=="-") //insertion
-	{
-		int pos = start.toInt();
-		FastaFileIndex idx(Settings::string("reference_genome"));
-		QString base = idx.seq(chr, pos, 1);
-		url = chr.strNormalized(false) + "-" + start + "-" + base + "-" + base + obs;
-	}
-	else //snv
-	{
-		url =  chr.strNormalized(false) + "-" + start + "-" + ref + "-" + obs;
-	}
-	QDesktopServices::openUrl(QUrl("http://gnomad.broadinstitute.org/variant/" + url));
+	Variant v = Variant::fromString(variant_string);
+	QString link = GSvarHelper::gnomaADLink(v);
+	QDesktopServices::openUrl(QUrl(link));
 }
 
 void VariantDetailsDockWidget::transcriptClicked(QString link)

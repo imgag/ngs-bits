@@ -20,7 +20,6 @@ ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantLi
 {
 	ui_.setupUi(this);
 	connect(ui_.report_type, SIGNAL(currentTextChanged(QString)), this, SLOT(updateVariantTable()));
-	connect(ui_.report_type, SIGNAL(currentTextChanged(QString)), this, SLOT(activateOkButtonIfValid()));
 	connect(ui_.meta_data_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMetaData()));
 	connect(ui_.details_cov, SIGNAL(stateChanged(int)), this, SLOT(updateCoverageCheckboxStatus()));
 	connect(this, SIGNAL(accepted()), this, SLOT(writeBackSettings()));
@@ -335,14 +334,6 @@ void ReportDialog::activateOkButtonIfValid()
 {
 	ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 	ui_.buttonBox->setToolTip("");
-
-	//report type set?
-	if (ui_.report_type->currentIndex()==0)
-	{
-		ui_.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-		ui_.buttonBox->setToolTip("Select report type to continue!");
-		return;
-	}
 
 	//meta data ok?
 	if (!ui_.meta_data_check_output->text().trimmed().isEmpty())

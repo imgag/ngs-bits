@@ -8,6 +8,16 @@ TEST_CLASS(VariantList_Test)
 Q_OBJECT
 private slots:
 
+
+	void VariantTranscript_idWithoutVersion()
+	{
+		VariantTranscript trans;
+		trans.id = "ENST00000493901";
+		S_EQUAL(trans.idWithoutVersion(), "ENST00000493901");
+		trans.id = "ENST00000493901.1";
+		S_EQUAL(trans.idWithoutVersion(), "ENST00000493901");
+	}
+
 	void leftAlign()
 	{
 		QString ref_file = Settings::string("reference_genome", true);

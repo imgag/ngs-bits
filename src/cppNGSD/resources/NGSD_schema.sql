@@ -643,6 +643,53 @@ CREATE TABLE IF NOT EXISTS `somatic_variant_classification`
 ENGINE = InnoDB 
 DEFAULT CHARACTER SET = utf8;
 
+-- -----------------------------------------------------
+-- Table `somatic_vicc_interpretation`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_vicc_interpretation`
+(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `variant_id` int(11) NOT NULL,
+  `null_mutation_in_tsg` BOOLEAN NULL DEFAULT NULL,
+  `known_oncogenic_aa` BOOLEAN NULL DEFAULT NULL,
+  `strong_cancerhotspot` BOOLEAN NULL DEFAULT NULL,
+  `located_in_canerhotspot` BOOLEAN NULL DEFAULT NULL,
+  `absent_from_controls` BOOLEAN NULL DEFAULT NULL,
+  `protein_length_change` BOOLEAN NULL DEFAULT NULL,
+  `other_aa_known_oncogenic` BOOLEAN NULL DEFAULT NULL,
+  `weak_cancerhotspot` BOOLEAN NULL DEFAULT NULL,
+  `computational_evidence` BOOLEAN NULL DEFAULT NULL,
+  `mutation_in_gene_with_etiology` BOOLEAN NULL DEFAULT NULL,
+  `very_weak_cancerhotspot` BOOLEAN NULL DEFAULT NULL,
+  `very_high_maf` BOOLEAN NULL DEFAULT NULL,
+  `benign_functional_studies` BOOLEAN NULL DEFAULT NULL,
+  `high_maf` BOOLEAN NULL DEFAULT NULL,
+  `benign_computational_evidence` BOOLEAN NULL DEFAULT NULL,
+  `synonymous_mutation` BOOLEAN NULL DEFAULT NULL,
+  `comment` TEXT NULL DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `created_date` DATETIME NOT NULL,
+  `last_edit_by` int(11) DEFAULT NULL,
+  `last_edit_date` TIMESTAMP NULL DEFAULT NULL,
+PRIMARY KEY (`id`),
+UNIQUE KEY `somatic_vicc_interpretation_has_variant` (`variant_id`),
+CONSTRAINT `somatic_vicc_interpretation_has_variant`
+  FOREIGN KEY (`variant_id`)
+  REFERENCES `variant` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `somatic_vicc_interpretation_created_by_user` 
+  FOREIGN KEY (`created_by`)
+  REFERENCES `user` (`id`) 
+  ON DELETE NO ACTION 
+  ON UPDATE NO ACTION,
+CONSTRAINT `somatic_vicc_interpretation_last_edit_by_user`
+  FOREIGN KEY (`last_edit_by`)
+  REFERENCES `user` (`id`)
+  ON DELETE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `detected_variant`
@@ -1035,7 +1082,6 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `last_edit_by` int(11) DEFAULT NULL,
   `last_edit_date` timestamp NULL DEFAULT NULL,
   `mtb_xml_upload_date` timestamp NULL DEFAULT NULL,
-  `mtb_pdf_upload_date` timestamp NULL DEFAULT NULL,
   `target_file` VARCHAR(255) NULL DEFAULT NULL COMMENT 'filename of sub-panel BED file without preceding path. Path must be resolved using target_file_folder in ngs-bits settings.ini',
   `tum_content_max_af` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include tumor content calculated by median value maximum allele frequency',
   `tum_content_max_clonality` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include tumor content calculated by maximum CNV clonality',
@@ -1734,7 +1780,7 @@ CREATE  TABLE IF NOT EXISTS `variant_validation`
   `sv_inversion_id` INT(11) UNSIGNED DEFAULT NULL,
   `sv_translocation_id` INT(11) UNSIGNED DEFAULT NULL,
   `genotype` ENUM('hom','het') DEFAULT NULL,
-  `validation_method` ENUM('Sanger sequencing', 'breakpoint PCR', 'qPCR', 'MLPA', 'n/a') NOT NULL DEFAULT 'n/a',
+  `validation_method` ENUM('Sanger sequencing', 'breakpoint PCR', 'qPCR', 'MLPA', 'Array', 'n/a') NOT NULL DEFAULT 'n/a',
   `status` ENUM('n/a','to validate','to segregate','for reporting','true positive','false positive','wrong genotype') NOT NULL DEFAULT 'n/a',
   `comment` TEXT NULL DEFAULT NULL,
 PRIMARY KEY (`id`),
@@ -1830,3 +1876,73 @@ INDEX `i_study_sample_idendifier` (`study_sample_idendifier` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `secondary_analysis`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `secondary_analysis`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `type` enum('multi sample','trio','somatic') NOT NULL,
+  `gsvar_file` VARCHAR(1000) NOT NULL,
+PRIMARY KEY (`id`),
+UNIQUE INDEX `unique_gsvar` (`gsvar_file`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `gaps`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `gaps`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start` INT(11) UNSIGNED NOT NULL,
+  `end` INT(11) UNSIGNED NOT NULL,
+  `processed_sample_id` INT(11) NOT NULL,
+  `status` enum('checked visually','to close','in progress','closed','canceled') NOT NULL,
+  `history` TEXT,
+PRIMARY KEY (`id`),
+INDEX `gap_index` (`chr` ASC, `start` ASC, `end` ASC),
+INDEX `processed_sample_id` (`processed_sample_id` ASC),
+INDEX `status` (`status` ASC),
+CONSTRAINT `fk_gap_has_processed_sample1`
+  FOREIGN KEY (`processed_sample_id`)
+  REFERENCES `processed_sample` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+
+-- -----------------------------------------------------
+-- Table `gene_pseudogene_relation`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `gene_pseudogene_relation`
+(
+`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+`parent_gene_id` int(10) unsigned NOT NULL,
+`pseudogene_gene_id` int(10) unsigned DEFAULT NULL,
+`gene_name` varchar(40) DEFAULT NULL,
+
+PRIMARY KEY (`id`),
+CONSTRAINT `fk_parent_gene_id`
+  FOREIGN KEY (`parent_gene_id` )
+  REFERENCES `gene` (`id` )
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `fk_pseudogene_gene_id`
+  FOREIGN KEY (`pseudogene_gene_id` )
+  REFERENCES `gene` (`id` )
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+UNIQUE KEY `pseudo_gene_relation` (`parent_gene_id`, `pseudogene_gene_id`, `gene_name`),
+INDEX `parent_gene_id` (`parent_gene_id` ASC),
+INDEX `pseudogene_gene_id` (`pseudogene_gene_id` ASC)
+) 
+ENGINE=InnoDB DEFAULT 
+CHARSET=utf8
+COMMENT='Gene-Pseudogene relation';

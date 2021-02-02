@@ -207,6 +207,9 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 			//delete QC data
 			db.getQuery().exec("DELETE FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'");
 
+			//set referencing "normal sample" entries to NULL
+			db.getQuery().exec("UPDATE `processed_sample` SET `normal_id`=NULL WHERE normal_id='" + ps_id + "'");
+
 			//delete processed sample
 			try
 			{
@@ -221,4 +224,6 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 	}
 
 	QApplication::restoreOverrideCursor();
+
+	QMessageBox::information(this, "Deleting processed sample data", "Data was deleted according to your selection.");
 }

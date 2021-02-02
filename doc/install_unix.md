@@ -12,7 +12,7 @@ ngs-bits depends on the following software to be installed
 
 For example, the installation of the dependencies using Ubuntu 16.04/18.04 looks like that:
 
-	> sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql git python python-matplotlib libbz2-dev liblzma-dev
+	> sudo apt-get install git make g++ qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql git python python-matplotlib libbz2-dev liblzma-dev libcurl4 libcurl4-openssl-dev
 
 ## Download
 
@@ -20,7 +20,7 @@ Use git to clone the most recent release (the source code package of GitHub does
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2020_09
+	> git checkout 2020_12
 	> git submodule update --recursive --init
 
 ### Resolving proxy issues with git

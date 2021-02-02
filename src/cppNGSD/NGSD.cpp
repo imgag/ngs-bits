@@ -418,7 +418,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 					foreach(QString id, causal_ids)
 					{
-						BedpeLine var = structural_variant(id.toInt(), sv_types.at(i), svs, true);
+						BedpeLine var = structuralVariant(id.toInt(), sv_types.at(i), svs, true);
 						QString sv_class = getValue("SELECT class FROM report_configuration_sv WHERE " + sv_id_columns[i] + "='" + id + "'", false).toString();
 						text += ", causal SV: " + var.toString();
 						if (sv_class != "") text += " (classification:" + sv_class + ")"; // add classification, if exists
@@ -577,6 +577,39 @@ QString NGSD::normalSample(const QString& processed_sample_id)
 	if (value.isNull()) return "";
 
 	return processedSampleName(value.toString());
+}
+
+QStringList NGSD::sameSamples(QString sample_id, QString sample_type)
+{
+	QStringList valid_sample_types = getEnum("sample", "sample_type");
+	if (!valid_sample_types.contains(sample_type))
+	{
+		THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
+	}
+	QStringList all_same_samples;
+	SqlQuery query = getQuery();
+	query.exec("SELECT sample2_id FROM sample_relations WHERE relation='same sample' AND sample1_id='" + sample_id + "'");
+	while (query.next())
+	{
+		all_same_samples.append(query.value(0).toString());
+	}
+	query.exec("SELECT sample1_id FROM sample_relations WHERE relation='same sample' AND sample2_id='" + sample_id + "'");
+	while (query.next())
+	{
+		all_same_samples.append(query.value(0).toString());
+	}
+
+	QStringList filtered_same_samples;
+	// filter same samples by type
+	foreach(const QString& same_sample_id, all_same_samples)
+	{
+		if (getSampleData(same_sample_id).type == sample_type)
+		{
+			filtered_same_samples.append(same_sample_id);
+		}
+	}
+
+	return filtered_same_samples;
 }
 
 void NGSD::setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status)
@@ -772,6 +805,42 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	return output;
 }
 
+QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analysis_type, bool windows_path)
+{
+	QStringList output = getValues("SELECT gsvar_file FROM secondary_analysis WHERE type='" + analysis_type + "' AND gsvar_file LIKE '%" + processed_sample_name + "%'");
+
+	//convert linux to windows path
+	if (windows_path)
+	{
+		QString project_folder = Settings::string("projects_folder");
+		QStringList project_types = getEnum("project", "type");
+
+		for (int i=0; i<output.count(); ++i)
+		{
+			QString file = output[i];
+
+			//convert Linux > Windows
+			foreach(QString project_type, project_types)
+			{
+				QStringList parts = file.split("/" + project_type + "/");
+				if (parts.count()==2)
+				{
+					file = project_folder + "/" + project_type + "/" + parts[1];
+					break;
+				}
+			}
+
+			//normalize Windows path
+			file.replace("\\", "/");
+			while (file.contains("//")) file.replace("//", "/");
+
+			output[i] = file;
+		}
+	}
+
+	return output;
+}
+
 QString NGSD::addVariant(const Variant& variant, const VariantList& variant_list)
 {
 	SqlQuery query = getQuery(); //use binding (user input)
@@ -955,7 +1024,7 @@ QPair<int, int> NGSD::variantCounts(const QString& variant_id)
 	if (same_samples.isEmpty())
 	{
 		SqlQuery query = getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample'");
+		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
 		while (query.next())
 		{
 			int sample1_id = query.value(0).toInt();
@@ -1492,7 +1561,7 @@ QString NGSD::svId(const BedpeLine& sv, int callset_id, const BedpeFile& svs, bo
 
 }
 
-BedpeLine NGSD::structural_variant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation)
+BedpeLine NGSD::structuralVariant(int sv_id, StructuralVariantType type, const BedpeFile& svs, bool no_annotation)
 {
 	BedpeLine sv;
 	QList<QByteArray> annotations;
@@ -2382,6 +2451,134 @@ void NGSD::setSomaticClassification(const Variant& variant, ClassificationInfo i
 	query.exec();
 }
 
+int NGSD::getSomaticViccId(const Variant &variant)
+{
+	QString query = "SELECT id FROM somatic_vicc_interpretation WHERE variant_id = '" + variantId(variant, false) +"'";
+	QVariant id = getValue(query, true);
+	return id.isValid() ? id.toInt() : -1;
+}
+
+
+SomaticViccData NGSD::getSomaticViccData(const Variant& variant, bool throw_on_fail)
+{
+	QString variant_id = variantId(variant, throw_on_fail);
+	if (variant_id=="")
+	{
+		return SomaticViccData();
+	}
+
+	SqlQuery query = getQuery();
+	query.exec("SELECT null_mutation_in_tsg, known_oncogenic_aa, strong_cancerhotspot, located_in_canerhotspot, absent_from_controls, protein_length_change, other_aa_known_oncogenic, weak_cancerhotspot, computational_evidence, mutation_in_gene_with_etiology, very_weak_cancerhotspot, very_high_maf, benign_functional_studies, high_maf, benign_computational_evidence, synonymous_mutation, comment, created_by, created_date, last_edit_by, last_edit_date FROM somatic_vicc_interpretation WHERE variant_id='" + variant_id + "'");
+	if (query.size()==0)
+	{
+		if(throw_on_fail)
+		{
+			THROW(DatabaseException, "Cannot find somatic VICC data for variant " + variant.toString(true, 100, true));
+		}
+		else
+		{
+			return SomaticViccData();
+		}
+	}
+	query.next();
+
+
+
+	SomaticViccData out;
+
+	auto varToState = [](const QVariant& var)
+	{
+		if(var.isNull()) return SomaticViccData::State::NOT_APPLICABLE;
+		if(var.toBool()) return SomaticViccData::State::VICC_TRUE;
+		return SomaticViccData::State::VICC_FALSE;
+	};
+
+	out.null_mutation_in_tsg = varToState(query.value(0));
+	out.known_oncogenic_aa = varToState(query.value(1));
+	out.strong_cancerhotspot = varToState(query.value(2));
+	out.located_in_canerhotspot = varToState(query.value(3));
+	out.absent_from_controls = varToState(query.value(4));
+	out.protein_length_change = varToState(query.value(5));
+	out.other_aa_known_oncogenic = varToState(query.value(6));
+	out.weak_cancerhotspot = varToState(query.value(7));
+	out.computational_evidence = varToState(query.value(8));
+	out.mutation_in_gene_with_etiology = varToState(query.value(9));
+	out.very_weak_cancerhotspot = varToState(query.value(10));
+	out.very_high_maf = varToState(query.value(11));
+	out.benign_functional_studies = varToState(query.value(12));
+	out.high_maf = varToState(query.value(13));
+	out.benign_computational_evidence = varToState(query.value(14));
+	out.synonymous_mutation = varToState(query.value(15));
+
+	out.comment = query.value(16).toString();
+	//created_by, created_date, last_edit_by, last_edit_date
+
+	out.created_by = userLogin(query.value(17).toInt());
+	out.created_at = query.value(18).toDateTime();
+	out.last_updated_by = userLogin( query.value(19).toInt() );
+	out.last_updated_at = query.value(20).toDateTime();
+
+	return out;
+}
+
+void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name)
+{
+	if(!vicc_data.isValid())
+	{
+		THROW(ArgumentException, "Cannot set somatic VICC data for variant " + variant.toString() + " because VICC data is invalid");
+	}
+
+	QString variant_id = variantId(variant);
+
+	SqlQuery query = getQuery();
+
+	//this lambda binds all values needed for both inserting and updating
+	auto bind = [&query, vicc_data, user_name, this]()
+	{
+		auto stateToVar = [](SomaticViccData::State state)
+		{
+			if(state == SomaticViccData::State::VICC_TRUE) return QVariant(true);
+			else if(state == SomaticViccData::State::VICC_FALSE) return QVariant(false);
+			return QVariant(QVariant::Bool);
+		};
+
+		query.bindValue( 0 , stateToVar( vicc_data.null_mutation_in_tsg ) );
+		query.bindValue( 1 , stateToVar( vicc_data.known_oncogenic_aa ) );
+		query.bindValue( 2 , stateToVar( vicc_data.strong_cancerhotspot ) );
+		query.bindValue( 3 , stateToVar( vicc_data.located_in_canerhotspot ) );
+		query.bindValue( 4 , stateToVar( vicc_data.absent_from_controls ) );
+		query.bindValue( 5 , stateToVar( vicc_data.protein_length_change ) );
+		query.bindValue( 6 , stateToVar( vicc_data.other_aa_known_oncogenic ) );
+		query.bindValue( 7 , stateToVar( vicc_data.weak_cancerhotspot ) );
+		query.bindValue( 8 , stateToVar( vicc_data.computational_evidence ) );
+		query.bindValue( 9 , stateToVar( vicc_data.mutation_in_gene_with_etiology ) );
+		query.bindValue(10 , stateToVar( vicc_data.very_weak_cancerhotspot ) );
+		query.bindValue(11 , stateToVar( vicc_data.very_high_maf ) );
+		query.bindValue(12 , stateToVar( vicc_data.benign_functional_studies ) );
+		query.bindValue(13 , stateToVar( vicc_data.high_maf ) );
+		query.bindValue(14 , stateToVar( vicc_data.benign_computational_evidence ) );
+		query.bindValue(15 , stateToVar( vicc_data.synonymous_mutation ) );
+		query.bindValue(16 , vicc_data.comment );
+		query.bindValue(17 , userId(user_name) );
+	};
+
+	int vicc_id = getSomaticViccId(variant);
+	if(vicc_id != -1) //update data set
+	{
+		query.prepare("UPDATE `somatic_vicc_interpretation` SET  `null_mutation_in_tsg`=:0, `known_oncogenic_aa`=:1, `strong_cancerhotspot`=:2, `located_in_canerhotspot`=:3,  `absent_from_controls`=:4, `protein_length_change`=:5, `other_aa_known_oncogenic`=:6, `weak_cancerhotspot`=:7, `computational_evidence`=:8, `mutation_in_gene_with_etiology`=:9, `very_weak_cancerhotspot`=:10, `very_high_maf`=:11, `benign_functional_studies`=:12, `high_maf`=:13, `benign_computational_evidence`=:14, `synonymous_mutation`=:15, `comment`=:16, `last_edit_by`=:17, `last_edit_date`= CURRENT_TIMESTAMP WHERE `id`=" + QByteArray::number(vicc_id) );
+		bind();
+		query.exec();
+	}
+	else //insert new data set
+	{
+		query.prepare("INSERT INTO `somatic_vicc_interpretation` (`null_mutation_in_tsg`, `known_oncogenic_aa`, `strong_cancerhotspot`, `located_in_canerhotspot`,  `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `comment`, `last_edit_by`, `last_edit_date`, `created_by`, `created_date`, `variant_id`) VALUES (:0, :1, :2, :3, :4, :5, :6, :7, :8, :9, :10, :11, :12, :13, :14, :15, :16, :17, CURRENT_TIMESTAMP, :18, CURRENT_TIMESTAMP, :19)");
+		bind();
+		query.bindValue(18, userId(user_name) );
+		query.bindValue(19, variant_id);
+		query.exec();
+	}
+}
+
 
 
 void NGSD::addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details)
@@ -2602,6 +2799,67 @@ QString NGSD::analysisJobGSvarFile(int job_id)
 	}
 
 	return output;
+}
+
+int NGSD::addGap(const QString& ps_id, const Chromosome& chr, int start, int end, const QString& status)
+{
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO `gaps`(`chr`, `start`, `end`, `processed_sample_id`) VALUES (:0,:1,:2,:3)");
+	query.bindValue(0, chr.strNormalized(true));
+	query.bindValue(1, start);
+	query.bindValue(2, end);
+	query.bindValue(3, ps_id);
+	query.exec();
+
+	//set status and history
+	int id = query.lastInsertId().toInt();
+	updateGapStatus(id, status);
+
+	return id;
+}
+
+int NGSD::gapId(const QString& ps_id, const Chromosome& chr, int start, int end, bool exact_match)
+{
+	if (exact_match)
+	{
+		QVariant id =  getValue("SELECT id FROM gaps WHERE processed_sample_id='" + ps_id + "' AND chr='" + chr.strNormalized(true) + "' AND start='" + QString::number(start) + "' AND end='" + QString::number(end) + "'", true);
+		if (id.isValid()) return id.toInt();
+	}
+	else
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT id, chr, start, end FROM gaps WHERE processed_sample_id='" + ps_id +"'");
+		while(query.next())
+		{
+			if (chr==query.value("chr").toString())
+			{
+				if (BasicStatistics::rangeOverlaps(start, end, query.value("start").toInt(), query.value("end").toInt()))
+				{
+					return query.value("id").toInt();
+				}
+			}
+		}
+	}
+
+	return -1;
+}
+
+void NGSD::updateGapStatus(int id, const QString& status)
+{
+	//check gap exists
+	QString id_str = QString::number(id);
+	if(getValue("SELECT EXISTS(SELECT * FROM gaps WHERE id='" + id_str + "')").toInt()==0)
+	{
+		THROW(ArgumentException, "Gap with ID '" + id_str + "' does not exist!");
+	}
+
+	//prepare history string
+	QString history = getValue("SELECT history FROM gaps WHERE id='" + id_str + "'").toString().trimmed();
+	if (!history.isEmpty()) history += "\n";
+	history += QDateTime::currentDateTime().toString("dd.MM.yyyy hh:mm:ss") + " - " + status +" (" + LoginManager::userName() + ")";
+
+	SqlQuery query = getQuery();
+	query.exec("UPDATE gaps SET status='"+status+"', history='" + history + "' WHERE id='" + id_str + "'");
 }
 
 QHash<QString, QString> NGSD::cnvCallsetMetrics(int callset_id)
@@ -2832,6 +3090,11 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 	}
 	else //not affected
 	{
+		//diagnostic status
+		DiagnosticStatusData diag_status = getDiagnosticStatus(ps_id);
+		if (diag_status.outcome=="n/a") output[s_name] << "diagnostic status outcome unset!";
+
+		//report config
 		if (causal_diagnostic_variant_present)
 		{
 			output[s_name] << "disease status not 'Affected', but causal variant in the report configuration!";
@@ -4127,7 +4390,7 @@ QSharedPointer<ReportConfiguration> NGSD::reportConfig(int conf_id, const Varian
 				THROW(DatabaseException, "Report config entry does not contain a SV id!");
 			}
 
-			BedpeLine sv = structural_variant(sv_id, type, svs);
+			BedpeLine sv = structuralVariant(sv_id, type, svs);
 
 			var_conf.variant_index = svs.findMatch(sv, true, false);
 			if (var_conf.variant_index==-1)
@@ -4560,7 +4823,7 @@ QStringList NGSD::relatedSamples(const QString& sample_id, const QString& relati
 SomaticReportConfigurationData NGSD::somaticReportConfigData(int id)
 {
 	SqlQuery query = getQuery();
-	query.exec("SELECT created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date, mtb_xml_upload_date, mtb_pdf_upload_date, target_file FROM somatic_report_configuration WHERE id=" + QString::number(id));
+	query.exec("SELECT created_by, created_date, (SELECT name FROM user WHERE id=last_edit_by) as last_edit_by, last_edit_date, mtb_xml_upload_date, target_file FROM somatic_report_configuration WHERE id=" + QString::number(id));
 	query.next();
 
 	SomaticReportConfigurationData output;
@@ -4576,9 +4839,6 @@ SomaticReportConfigurationData NGSD::somaticReportConfigData(int id)
 
 	if( !query.value("mtb_xml_upload_date" ).isNull()) output.mtb_xml_upload_date = query.value("mtb_xml_upload_date").toDateTime().toString("dd.MM.yyyy hh:mm:ss");
 	else output.mtb_xml_upload_date = "";
-
-	if( !query.value("mtb_pdf_upload_date").isNull() ) output.mtb_pdf_upload_date = query.value("mtb_pdf_upload_date").toDateTime().toString("dd.MM.yyyy hh:mm:ss");
-    else output.mtb_pdf_upload_date = "";
 
 	return output;
 }
@@ -4956,14 +5216,6 @@ void NGSD::setSomaticMtbXmlUpload(int report_id)
 	SqlQuery query = getQuery();
 	query.prepare("UPDATE `somatic_report_configuration` SET `mtb_xml_upload_date`= CURRENT_TIMESTAMP WHERE id=:0");
 	query.bindValue(0, report_id );
-	query.exec();
-}
-
-void NGSD::setSomaticMtbPdfUpload(int report_id)
-{
-	SqlQuery query = getQuery();
-	query.prepare("UPDATE `somatic_report_configuration` SET `mtb_pdf_upload_date`= CURRENT_TIMESTAMP WHERE id=:0");
-	query.bindValue(0, report_id);
 	query.exec();
 }
 

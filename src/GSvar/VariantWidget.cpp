@@ -3,9 +3,11 @@
 #include "NGSD.h"
 #include "GUIHelper.h"
 #include "DBTableWidget.h"
+#include "GSvarHelper.h"
 #include <QDialog>
 #include <QMessageBox>
 #include <QAction>
+#include <QDesktopServices>
 
 VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	: QWidget(parent)
@@ -19,6 +21,7 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_.class_btn, SIGNAL(clicked(bool)), this, SLOT(editClassification()));
 	connect(ui_.transcripts, SIGNAL(linkActivated(QString)), this, SIGNAL(openGeneTab(QString)));
+	connect(ui_.af_gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
 
 	//add sample table context menu entries
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
@@ -45,7 +48,11 @@ void VariantWidget::updateGUI()
 	query.exec("SELECT * FROM variant WHERE id=" + variant_id);
 	query.next();
 	ui_.af_tg->setText(query.value("1000g").toString());
-	ui_.af_gnomad->setText(query.value("gnomad").toString());
+	ui_.af_gnomad->setText("<a style=\"color: #000000;\" href=\"" + variant_id + "\">" + query.value("gnomad").toString() + "</a>");
+
+	QPair<int, int> counts = db.variantCounts(variant_id);
+	ui_.ngsd_het->setText(QString::number(counts.first));
+	ui_.ngsd_hom->setText(QString::number(counts.second));
 	ui_.comments->setText(query.value("comment").toString());
 
 	//transcripts
@@ -262,5 +269,13 @@ void VariantWidget::editClassification()
 		GUIHelper::showMessage("NGSD error", e.message());
 		return;
 	}
+}
+
+void VariantWidget::gnomadClicked(QString var_id)
+{
+	NGSD db;
+	Variant v = db.variant(var_id);
+	QString link = GSvarHelper::gnomaADLink(v);
+	QDesktopServices::openUrl(QUrl(link));
 }
 

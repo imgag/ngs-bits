@@ -37,6 +37,10 @@ INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (1, 'chr1', 62728784,
 INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (2, 'chr3', 142277575, 142277575, 'A', 'T');
 INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (3, 'chr2', 48032740, 48032740, '-', 'T');
 
+--somatic_vicc_interpretation
+INSERT INTO `somatic_vicc_interpretation` (`id`, `variant_id`, `null_mutation_in_tsg`, `known_oncogenic_aa`, `strong_cancerhotspot`, `located_in_canerhotspot`, `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `comment`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
+(1, 3, 0, 1, 1, NULL, 1, 0, NULL, 0, 1, NULL, 0, 0, 0, 0, NULL, 0, 'test VICC comment', 99, '2020-12-21 09:59:37', 99, '2020-12-23 09:33:23');
+
 --detected somatic variant
 INSERT INTO detected_somatic_variant (id, processed_sample_id_tumor, processed_sample_id_normal, variant_id, variant_frequency, depth) VALUES (1, 1, 3, 1, 0.1, 500);
 INSERT INTO detected_somatic_variant (id, processed_sample_id_tumor, processed_sample_id_normal, variant_id, variant_frequency, depth) VALUES (2, 1, 3, 2, 0.1, 500);

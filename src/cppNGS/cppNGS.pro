@@ -66,8 +66,8 @@ SOURCES += BedFile.cpp \
     VcfFile.cpp \
     PhenotypeList.cpp \
     VariantScores.cpp \
+    SomaticVariantInterpreter.cpp \
     VariantType.cpp
-
 
 HEADERS += BedFile.h \
     Chromosome.h \
@@ -101,7 +101,9 @@ HEADERS += BedFile.h \
     VcfFileHelper.h \
     VcfFile.h \
     PhenotypeList.h \
-    VariantScores.h
+    VariantScores.h \
+    SomaticVariantInterpreter.h \
+    VariantType.h
 
 
 RESOURCES += \

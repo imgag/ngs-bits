@@ -1,78 +1,107 @@
 #include "GapDialog.h"
-#include "ui_GapDialog.h"
-#include "NGSD.h"
-#include "Statistics.h"
-#include "ReportWorker.h"
-#include "Log.h"
-#include "Helper.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
-#include <QComboBox>
-#include <QFileInfo>
+#include "Statistics.h"
+#include "ReportWorker.h"
+
 #include <QMessageBox>
+#include <QMenu>
 
-GapDialog::GapDialog(QWidget *parent, QString sample_name, QString target_region_name)
+GapDialog::GapDialog(QWidget *parent, QString ps, QString bam, const BedFile& roi, const GeneSet& genes)
 	: QDialog(parent)
-	, sample_name_(sample_name)
-	, target_region_name_(target_region_name)
-	, ui(new Ui::GapDialog)
+	, ui_()
+	, init_timer_(this, true)
+	, ps_(ps)
+	, bam_(bam)
+	, roi_(roi)
+	, genes_(genes)
+	, ngsd_col_(7)
 {
-	ui->setupUi(this);
-	setWindowTitle("Gaps of sample " + sample_name);
+	ui_.setupUi(this);
+	setWindowFlags(Qt::Window);
+	setWindowTitle("Gaps of sample " + ps);
 
-	connect(ui->gaps, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(gapDoubleClicked(QTableWidgetItem*)));
-	connect(ui->filter_gene, SIGNAL(textEdited(QString)), this, SLOT(updateGeneFilter(QString)));
+	connect(ui_.gaps, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(gapDoubleClicked(QTableWidgetItem*)));
+	connect(ui_.gaps, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(gapsContextMenu(QPoint)));
+	connect(ui_.f_gene, SIGNAL(textEdited(QString)), this, SLOT(updateFilters()));
+	connect(ui_.f_type, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFilters()));
 }
 
-void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& genes)
+void GapDialog::delayedInitialization()
+{
+	QMessageBox::information(this, "Gap calculation", "Calculating gaps for target region now.<br>This may take a while if the target region is big.");
+
+	//calculate gaps
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+	QStringList messages = calculteGapsAndInitGUI();
+	QApplication::restoreOverrideCursor();
+	if (!messages.isEmpty())
+	{
+		QMessageBox::warning(this, "Gap calculation", messages.join("\n"));
+	}
+
+	//update NGSD column
+	updateNGSDColumn();
+
+	//check if there are already gaps for this sample
+	QString ps_id = db_.processedSampleId(ps_);
+	int gap_count = db_.getValue("SELECT count(id) FROM gaps WHERE processed_sample_id='" + ps_id +"'").toInt();
+	if (gap_count>0)
+	{
+		QMessageBox::information(this, "Gaps in NGSD", "There are already gaps " + QString::number(gap_count) + " for this sample in the NGSD!");
+	}
+}
+
+QStringList GapDialog::calculteGapsAndInitGUI()
 {
 	//init
-	NGSD db;
+	QStringList output;
 	int cutoff = 20;
     const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 	//calculate low-coverage regions
 	QString message;
-	BedFile low_cov = ReportWorker::precalculatedGaps(bam_file, roi, cutoff, db, message);
+	BedFile low_cov = ReportWorker::precalculatedGaps(bam_, roi_, cutoff, db_, message);
 	if (!message.isEmpty())
 	{
-		Log::warn("Low-coverage statistics needs to be calculated. Pre-calulated gap file cannot be used because: " + message);
-		low_cov = Statistics::lowCoverage(roi, bam_file, cutoff);
+		output << "Low-coverage statistics needs to be calculated. Pre-calulated gap file cannot be used because: " + message;
+		low_cov = Statistics::lowCoverage(roi_, bam_, cutoff);
 	}
 
-	//show percentage of gaps
-	QString gap_perc = QString::number(100.0 * low_cov.baseCount() / roi.baseCount(), 'f', 2);
-	ui->percentage->setText("Percentage of target region with depth&lt;" + QString::number(cutoff) + "x: " + gap_perc + "%");
+	//show statistics
+	QString roi_genes = "genes: " + QString::number(genes_.count()) + "<br>";
+	QString roi_size = "bases: " + QString::number(roi_.baseCount()) + "<br>";
+	QString gap_perc = "bases with depth&lt;" + QString::number(cutoff) + "x: " + QString::number(low_cov.baseCount()) + " (" + QString::number(100.0 * low_cov.baseCount() / roi_.baseCount(), 'f', 2) + "%)<br>" ;
+	ui_.statistics->setText(roi_genes + roi_size + gap_perc);
 
 	//calculate average coverage for gaps
-	Statistics::avgCoverage(low_cov, bam_file, 1, false, true);
+	Statistics::avgCoverage(low_cov, bam_, 1, false, true);
 
 	//update data structure
-	gaps_.clear();
 	GeneSet genes_noncoding;
 	for(int i=0; i<low_cov.count(); ++i)
 	{
 		GapInfo info;
-		info.line = low_cov[i];
+		info.region = low_cov[i];
 		info.avg_depth = low_cov[i].annotations()[0].toDouble();
-		info.genes = db.genesOverlappingByExon(info.line.chr(), info.line.start(), info.line.end(), 30);
+		info.genes = db_.genesOverlappingByExon(info.region.chr(), info.region.start(), info.region.end(), 30);
 
 		//use longest coding transcript(s) of Ensembl
 		BedFile coding_overlap;
 		foreach(QByteArray gene, info.genes)
 		{
-			int gene_id = db.geneToApprovedID(gene);
-			Transcript transcript = db.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true);
+			int gene_id = db_.geneToApprovedID(gene);
+			Transcript transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true);
 			if (!transcript.isValid())
 			{
 				genes_noncoding.insert(gene);
-				transcript = db.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
+				transcript = db_.longestCodingTranscript(gene_id, Transcript::ENSEMBL, true, true);
 			}
 			coding_overlap.add(transcript.codingRegions());
 		}
 		coding_overlap.extend(5);
 		BedFile current_gap;
-		current_gap.append(info.line);
+		current_gap.append(info.region);
 		coding_overlap.intersect(current_gap);
 		if (coding_overlap.baseCount()>0)
 		{
@@ -88,11 +117,11 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 		BedFile pt_exon_regions;
 		foreach(QByteArray gene, info.genes)
 		{
-            QByteArray gene_approved = db.geneToApproved(gene, true);
+			QByteArray gene_approved = db_.geneToApproved(gene, true);
             if (preferred_transcripts.contains(gene_approved))
 			{
-				int gene_id = db.geneToApprovedID(gene);
-				QList<Transcript> transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
+				int gene_id = db_.geneToApprovedID(gene);
+				QList<Transcript> transcripts = db_.transcripts(gene_id, Transcript::ENSEMBL, false);
 				foreach(const Transcript& transcript, transcripts)
 				{
                     if (preferred_transcripts[gene_approved].contains(transcript.name()))
@@ -111,7 +140,7 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 			//check for overlap with coding region
 			pt_exon_regions.extend(5);
 			pt_exon_regions.merge();
-			if (pt_exon_regions.overlapsWith(info.line.chr(), info.line.start(), info.line.end()))
+			if (pt_exon_regions.overlapsWith(info.region.chr(), info.region.start(), info.region.end()))
 			{
 				info.preferred_transcript = "yes";
 			}
@@ -123,7 +152,7 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 				pt_splice_regions.merge();
 				pt_splice_regions.subtract(pt_exon_regions);
 
-				if (pt_splice_regions.overlapsWith(info.line.chr(), info.line.start(), info.line.end()))
+				if (pt_splice_regions.overlapsWith(info.region.chr(), info.region.start(), info.region.end()))
 				{
 					info.preferred_transcript = "yes (splice region)";
 				}
@@ -140,161 +169,179 @@ void GapDialog::process(QString bam_file, const BedFile& roi, const GeneSet& gen
 	//show warning if non-coding transcripts had to be used
 	if (!genes_noncoding.isEmpty())
 	{
-		QMessageBox::warning(this, "Non-coding transcrips were used for gaps!", "No coding transcript is defined for the following genes (for GRCh37):\n"+genes_noncoding.join(", ")+"\nFor these genes the longest *non-coding* transcript is used.\nPlease check gaps of these genes manually since they might be non-coding but shown as coding region +-5!");
+		output << "No coding transcript is defined for the following genes (for GRCh37):\n"+genes_noncoding.join(", ");
+		output << "For these genes the longest *non-coding* transcript is used.";
+		output << "Please check gaps of these genes manually since they might be non-coding but shown as coding region +-5!";
 	}
 
-	//update GUI
-	ui->gaps->setRowCount(gaps_.count());
+	//init GUI
+	ui_.gaps->setRowCount(gaps_.count());
 	for(int i=0; i<gaps_.count(); ++i)
 	{
 		//gap
 		const GapInfo& gap = gaps_[i];
-		QTableWidgetItem* item = GUIHelper::createTableItem(gap.line.toString(true));
-		ui->gaps->setItem(i, 0, item);
+		QTableWidgetItem* item = GUIHelper::createTableItem(gap.region.toString(true));
+		ui_.gaps->setItem(i, 0, item);
 
 		//size
-		QString size = QString::number(gap.line.length());
+		QString size = QString::number(gap.region.length());
 		if (gap.isExonicSplicing()) size += " (" + QString::number(gap.coding_overlap.length()) + ")";
 		item = GUIHelper::createTableItem(size, Qt::AlignRight|Qt::AlignTop);
-		ui->gaps->setItem(i, 1, item);
+		ui_.gaps->setItem(i, 1, item);
 
 		//depth
 		QString depth = QString::number(gap.avg_depth, 'f', 2);
 		item = GUIHelper::createTableItem(depth, Qt::AlignRight|Qt::AlignTop);
 		if (gap.avg_depth<10) highlightItem(item);
-		ui->gaps->setItem(i, 2, item);
+		ui_.gaps->setItem(i, 2, item);
 
 		//genes
 		item = GUIHelper::createTableItem(gap.genes.join(", "));
-		if (gap.genes.intersectsWith(genes)) highlightItem(item);
-		ui->gaps->setItem(i, 3, item);
+		if (gap.genes.intersectsWith(genes_)) highlightItem(item);
+		ui_.gaps->setItem(i, 3, item);
 
 		//type
 		item = GUIHelper::createTableItem(gap.isExonicSplicing() ? "exonic/splicing" : "intronic/intergenic");
 		if (gap.isExonicSplicing()) highlightItem(item);
-		ui->gaps->setItem(i, 4, item);
+		ui_.gaps->setItem(i, 4, item);
 
 		//preferred transcripts
 		item = GUIHelper::createTableItem(gap.preferred_transcript);
 		if (gap.preferred_transcript=="yes") highlightItem(item);
-		ui->gaps->setItem(i, 5, item);
+		ui_.gaps->setItem(i, 5, item);
 
-		//validate
-		ui->gaps->setItem(i, 6, new QTableWidgetItem());
-		GapValidationLabel* label = new GapValidationLabel();
-		ui->gaps->setCellWidget(i, 6, label);
-		if(!gap.isExonicSplicing()) label->setState(GapValidationLabel::NO_VALIDATION);
-	}
-	GUIHelper::resizeTableCells(ui->gaps);
-}
-
-GapDialog::~GapDialog()
-{
-	delete ui;
-}
-
-QString GapDialog::report() const
-{
-	QString output;
-	QTextStream stream(&output);
-
-	//header
-	stream << "Luecken-Report\n";
-	stream << "\n";
-	stream << "Probe: " << sample_name_ << "\n";
-	stream << "Zielregion: " << target_region_name_ << "\n";
-	stream << "\n";
-
-	//exonic/splicing report
-	stream << "### Regionen mit eingeschraenkter diagnostischer Beurteilbarkeit (Ensembl+-5) ###\n";
-	stream << "\n";
-	reportSection(stream, true);
-
-	//complete report
-	stream << "\n";
-	stream << "### Regionen mit eingeschraenkter diagnostischer Beurteilbarkeit (gesamte Zielregion) ###\n";
-	stream << "\n";
-	reportSection(stream, false);
-
-	stream.flush();
-	return  output;
-}
-
-
-void GapDialog::reportSection(QTextStream& stream, bool coding_only) const
-{
-	stream << "Sequenzabschnitte, die mittels Sanger-Sequenzierung analysiert wurden:\n";
-	int closed_sanger = 0;
-	for (int row=0; row<ui->gaps->rowCount(); ++row)
-	{
-		const GapInfo& gap = gaps_[row];
-
-		if (coding_only && !gap.isExonicSplicing()) continue;
-
-		if (state(row)==GapValidationLabel::VALIDATION)
+		//suggested action
+		QString action;
+		if (gap.isExonicSplicing())
 		{
-			stream << gap.asTsv(coding_only) << "\n";
-			closed_sanger += coding_only ? gap.coding_overlap.length() : gap.line.length();
+			if (gap.avg_depth>=15)
+			{
+				action = "check in IGV";
+			}
+			else
+			{
+				action = "close by Sanger sequencing";
+			}
 		}
+		item = GUIHelper::createTableItem(action);
+		ui_.gaps->setItem(i, 6, item);
+
+		//NGSD status
+		item = GUIHelper::createTableItem("");
+		ui_.gaps->setItem(i, ngsd_col_, item);
 	}
-	stream << "\n";
 
-	stream << "Sequenzabschnitte, die mittels visueller Inspektion analysiert wurden";
-	if (!coding_only) stream << " (or intronic/intergenic)";
-	stream << ":\n";
-	int closed_manual = 0;
-	for (int row=0; row<ui->gaps->rowCount(); ++row)
-	{
-		const GapInfo& gap = gaps_[row];
+	GUIHelper::resizeTableCells(ui_.gaps);
 
-		if (coding_only && !gap.isExonicSplicing()) continue;
-
-		if (state(row)==GapValidationLabel::NO_VALIDATION)
-		{
-			stream << gap.asTsv(coding_only) << "\n";
-			closed_manual += coding_only ? gap.coding_overlap.length() : gap.line.length();
-		}
-	}
-	stream << "\n";
-
-	stream << "Sequenzabschnitte, die nicht analysiert wurden:\n";
-	int closed_not = 0;
-	for (int row=0; row<ui->gaps->rowCount(); ++row)
-	{
-		const GapInfo& gap = gaps_[row];
-
-		if (coding_only && !gap.isExonicSplicing()) continue;
-
-		if (state(row)==GapValidationLabel::CHECK)
-		{
-			stream << gap.asTsv(coding_only) << "\n";
-			closed_not += coding_only ? gap.coding_overlap.length() : gap.line.length();
-		}
-	}
-	stream << "\n";
-
-	stream << "Zusammenfassung:\n";
-	stream << "Sequenzabschnitte, die mittels Sanger-Sequenzierung analysiert wurden: " << closed_sanger << " Basen\n";
-	stream << "Sequenzabschnitte, die mittels visueller Inspektion analysiert wurden: " << closed_manual << " Basen\n";
-	stream << "Sequenzabschnitte, die nicht analysiert wurden: " << closed_not << " Basen\n";
-	stream << "Summe: " << (closed_sanger+closed_manual+closed_not) << " Basen\n";
+	return output;
 }
 
 void GapDialog::gapDoubleClicked(QTableWidgetItem* item)
 {
 	if (item==nullptr) return;
 
-	QString region = ui->gaps->item(item->row(), 0)->text();
+	QString region = ui_.gaps->item(item->row(), 0)->text();
 	emit openRegionInIGV(region);
 }
 
-void GapDialog::updateGeneFilter(QString text)
+void GapDialog::updateFilters()
 {
-	for (int i=0; i<ui->gaps->rowCount(); ++i)
+	//show all rows
+	for (int i=0; i<ui_.gaps->rowCount(); ++i)
 	{
-		bool hide = !ui->gaps->item(i, 3)->text().contains(text, Qt::CaseInsensitive);
-		ui->gaps->setRowHidden(i, hide);
+		ui_.gaps->setRowHidden(i, false);
 	}
+
+	//filter by gene
+	QString gene = ui_.f_gene->text().trimmed();
+	if (gene!="")
+	{
+		for (int i=0; i<ui_.gaps->rowCount(); ++i)
+		{
+			bool hide = !ui_.gaps->item(i, 3)->text().contains(gene, Qt::CaseInsensitive);
+			if (hide) ui_.gaps->setRowHidden(i, true);
+		}
+	}
+
+	//filter by type
+	QString type = ui_.f_type->currentText().trimmed();
+	if (type!="")
+	{
+		for (int i=0; i<ui_.gaps->rowCount(); ++i)
+		{
+			bool hide = ui_.gaps->item(i, 4)->text()!=type;
+			if (hide) ui_.gaps->setRowHidden(i, true);
+		}
+	}
+}
+
+void GapDialog::updateNGSDColumn()
+{
+	QString ps_id = db_.processedSampleId(ps_);
+
+	for(int i=0; i<gaps_.count(); ++i)
+	{
+		QTableWidgetItem* item = ui_.gaps->item(i, ngsd_col_);
+		item->setText("");
+		item->setData(Qt::UserRole, -1);
+		item->setIcon(QIcon());
+
+		int gap_id = db_.gapId(ps_id, gaps_[i].region.chr(), gaps_[i].region.start(), gaps_[i].region.end());
+		if (gap_id!=-1)
+		{
+			QString status = db_.getValue("SELECT status FROM gaps WHERE id='" + QString::number(gap_id) + "'").toString();
+			item->setText(status);
+			item->setData(Qt::UserRole, gap_id);
+
+			if (status=="checked visually" || status=="closed")
+			{
+				item->setIcon(QIcon(":/Icons/Ok.png"));
+			}
+		}
+	}
+}
+
+void GapDialog::gapsContextMenu(QPoint pos)
+{
+	//determine row and item
+	if  (ui_.gaps->selectedItems().count()==0) return;
+	int row = ui_.gaps->selectedItems()[0]->row();
+	QTableWidgetItem* item = ui_.gaps->item(row, ngsd_col_);
+	if (item==nullptr) return;
+
+	//set up menu
+	QMenu menu;
+	QAction* action_visual = menu.addAction("checked visually");
+	QAction* action_close = menu.addAction("close by Sanger sequencing");
+	QAction* action_cancel = menu.addAction("cancel");
+	QString status = item->text().trimmed();
+	action_visual->setEnabled(status=="" || status=="to close" || status=="canceled");
+	action_close->setEnabled(status=="" || status=="canceled" || status=="checked visually");
+	action_cancel->setEnabled(status=="to close" || status=="checked visually");
+
+	//show menu
+	QAction* action = menu.exec(ui_.gaps->viewport()->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	//update NGSD
+	QString new_status;
+	if (action==action_visual) new_status = "checked visually";
+	if (action==action_close) new_status = "to close";
+	if (action==action_cancel) new_status = "canceled";
+
+	int gap_id = item->data(Qt::UserRole).toInt();
+	if (gap_id==-1)
+	{
+		QString ps_id = db_.processedSampleId(ps_);
+		db_.addGap(ps_id, gaps_[row].region.chr(), gaps_[row].region.start(), gaps_[row].region.end(), new_status);
+	}
+	else
+	{
+		db_.updateGapStatus(gap_id, new_status);
+	}
+
+	//update GUI
+	updateNGSDColumn();
 }
 
 void GapDialog::highlightItem(QTableWidgetItem* item)
@@ -302,9 +349,4 @@ void GapDialog::highlightItem(QTableWidgetItem* item)
 	QFont font = item->font();
 	font.setBold(true);
 	item->setFont(font);
-}
-
-GapValidationLabel::State GapDialog::state(int row) const
-{
-	return qobject_cast<GapValidationLabel*>(ui->gaps->cellWidget(row, 6))->state();
 }

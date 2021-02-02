@@ -43,7 +43,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->genlab_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseGroupAndInfo()));
 
 	//QC value > plot
-	QAction* action = new QAction("Plot", this);
+	QAction* action = new QAction(QIcon(":/Icons/chart.png"), "Plot", this);
 	ui_->qc_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(showPlot()));
 

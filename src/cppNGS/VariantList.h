@@ -18,7 +18,7 @@
 struct CPPNGSSHARED_EXPORT VariantTranscript
 {
 	QByteArray gene;
-	QByteArray id;
+	QByteArray id; //Attention: older GSvar files contain Ensembl transcripts without version number. Since 12/2020 a version number is included.
 	QByteArray type;
 	QByteArray impact;
 	QByteArray exon;
@@ -30,6 +30,9 @@ struct CPPNGSSHARED_EXPORT VariantTranscript
 
 	///Returns true if one the variant type matches the given terms
 	bool typeMatchesTerms(const OntologyTermCollection& terms) const;
+
+	///Returns the transcript identifier without
+	QByteArray idWithoutVersion() const;
 };
 
 ///Sample header struct for samples in variant lists.

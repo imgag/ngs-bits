@@ -22,6 +22,7 @@ public:
 		addOutfile("out", "Output variant list in GSvar format.", false);
 		addEnum("algorithm", "Algorithm used for ranking.", true, VariantScores::algorithms() , "GSvar_v1");
 		addFlag("add_explaination", "Add a third column with an explaination how that score was calculated.");
+		addFlag("use_blacklist", "Use variant blacklist from settings.ini file.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
 		changeLog(2020, 11, 20, "Initial commit.");
@@ -33,6 +34,7 @@ public:
 		QStringList hpo_ids = getString("hpo_ids").split(",");
 		QString algorithm = getEnum("algorithm");
 		bool add_explaination = getFlag("add_explaination");
+		bool use_blacklist = getFlag("use_blacklist");
 		NGSD db(getFlag("test"));
 
 		//load variants
@@ -78,7 +80,9 @@ public:
 		}
 
 		//rank
-		VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois);
+		QList<Variant> blacklist;
+		if (use_blacklist) blacklist = VariantScores::blacklist();
+		VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois, blacklist);
 		VariantScores::annotate(variants, result, add_explaination);
 
 		//store result

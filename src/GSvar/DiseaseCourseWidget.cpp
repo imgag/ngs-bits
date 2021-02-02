@@ -2,7 +2,7 @@
 #include "ui_DiseaseCourseWidget.h"
 #include "GUIHelper.h"
 #include "Settings.h"
-
+#include <QDir>
 #include <QMessageBox>
 
 DiseaseCourseWidget::DiseaseCourseWidget(const QString& tumor_sample_name, QWidget *parent) :
@@ -14,6 +14,10 @@ DiseaseCourseWidget::DiseaseCourseWidget(const QString& tumor_sample_name, QWidg
 
 	if (!LoginManager::active()) THROW(DatabaseException, "Error: DiseaseCourseWidget requires access to the NGSD!");
 
+	//link signal and slots
+	connect(ui_->vars,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(VariantDoubleClicked(QTableWidgetItem*)));
+	connect(ui_->btn_copyToClipboard,SIGNAL(clicked()),this,SLOT(copyToClipboard()));
+
 	getCfDNASampleIds();
 	loadVariantLists();
 	createTableView();
@@ -22,6 +26,32 @@ DiseaseCourseWidget::DiseaseCourseWidget(const QString& tumor_sample_name, QWidg
 DiseaseCourseWidget::~DiseaseCourseWidget()
 {
 	delete ui_;
+}
+
+void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
+{
+	if (item==nullptr) return;
+	int row = item->row();
+
+	const VcfLine& vcf_line = ref_column_.variants[row];
+	QString coords = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.pos());
+	emit openInIGV(coords);
+
+	// add cfDNA BAM Files to IGV
+	QStringList igv_commands;
+	foreach (const cfDnaColumn& cf_dna, cf_dna_columns_)
+	{
+		QString ps_id = db_.processedSampleId(cf_dna.name);
+		QString bam = NGSD().processedSamplePath(ps_id, NGSD::BAM);
+		igv_commands << "load \"" + QDir::toNativeSeparators(bam) + "\"";
+
+	}
+	emit executeIGVCommands(igv_commands);
+}
+
+void DiseaseCourseWidget::copyToClipboard()
+{
+	GUIHelper::copyToClipboard(ui_->vars);
 }
 
 void DiseaseCourseWidget::getCfDNASampleIds()

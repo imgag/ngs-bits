@@ -180,7 +180,7 @@ private:
 		QHash<int, QList<int>> same_samples;
 		db_queries.restart();
 		SqlQuery query = db.getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample'");
+		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
 		db_query_sum += db_queries.elapsed();
 		while (query.next())
 		{
@@ -218,6 +218,13 @@ private:
 		vcf_stream << "##INFO=<ID=SOM_P,Number=.,Type=String,"
 				   << "Description=\"Project names of project containing this somatic variant in "
 				   << "the NGSD.\">\n";
+		vcf_stream << "##INFO=<ID=SOM_VICC,Number=1,Type=String,"
+				   << "Description=\"Somatic variant interpretation according VICC standard in "
+				   << "the NGSD.\">\n";
+		vcf_stream << "##INFO=<ID=SOM_VICC_COMMENT,Number=1,Type=String,"
+				   << "Description=\"Somatic VICC interpretation comment in "
+				   << "the NGSD.\">\n";
+
 
 		// write header line
 		vcf_stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
@@ -336,6 +343,17 @@ private:
 						}
 
 					}
+
+
+					//Add somatic VICC interpretation
+					if(db.getSomaticViccId(variant) != -1)
+					{
+						SomaticViccData data = db.getSomaticViccData(variant);
+
+						info_column.append("SOM_VICC=" + VcfFile::encodeInfoValue(SomaticVariantInterpreter::viccScoreAsString(data)).toUtf8() );
+						info_column.append("SOM_VICC_COMMENT=" + VcfFile::encodeInfoValue(data.comment).toUtf8() );
+					}
+
 
 					// benchmark
 					count_computation_sum += count_computation.elapsed();
@@ -510,7 +528,7 @@ private:
 		QHash<int, QList<int>> same_samples;
 		db_queries.restart();
 		SqlQuery query = db.getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample'");
+		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
 		db_query_sum += db_queries.elapsed();
 		while (query.next())
 		{

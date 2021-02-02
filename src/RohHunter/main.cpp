@@ -6,6 +6,16 @@
 #include <QFileInfo>
 #include <cmath>
 
+/*
+Possible improvements:
+	- exclude CNP regions?
+	- optimize quality cutoffs based on variants that are het on chrX for males (AF, DP, MQM, blacklist, InDels, no AF annotation, homopolymer region,...)
+	- test splitting regions when dist is too high, e.g. > 100Kb => Q-score cutoff removes random parts?!
+	- test input of high-cov ROI to augment the input data with WT SNPs with AF>1-5%
+	- test if sub-population AF improves result
+	- benchmarks: chrX of males, add errors up to 2 percent, overlap WGS/WES
+*/
+
 class ConcreteTool
         : public ToolBase
 {

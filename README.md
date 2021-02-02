@@ -1,6 +1,7 @@
 # *ngs-bits* - Short-read sequencing tools
 
-[![TravisCI status](https://api.travis-ci.org/imgag/ngs-bits.svg?branch=master)](https://travis-ci.org/imgag/ngs-bits/builds)
+![Linux build status](https://github.com/imgag/ngs-bits/workflows/Linux%20build/badge.svg)
+![MacOS build status](https://github.com/imgag/ngs-bits/workflows/MacOS%20build/badge.svg)
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ngs-bits/README.html)
 
 ## Obtaining ngs-bits
@@ -15,17 +16,17 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* Added CRAM support.
-
-Changes in release 2020_09:
-
-* Added tools: FastqDownsample, BedpeAnnotateCnvOverlap, BedpeFilter, VcfCalculatePRS
-* Added output compression level parameter to: FastqAddBarcode/FastqConvert/FastqExtract/FastqTrim/PERsim/VariantFilterRegions/VcfLeftNormalize/VcfSort.
-* VariantFilterAnnotations/GSvar: Added filter 'somatic allele frequency'.
 * NGSD:
-	* Added preferred transcripts information
-	* Added sample relations 'tumor-cfDNA' and 'same patient'
-	* Added variant validation for CNVs/SVs (before only for small variants)
+	* Added pseudogene-gene relation
+* GSvar:
+	* Added pseudogenes
+
+Changes in release 2020_12:
+
+* Added CRAM support.
+* NGSD:
+	* Added table for secondary analyses (trio, multi, somatic)
+	* Added support for studies, which can include samples from serveral projects.
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 

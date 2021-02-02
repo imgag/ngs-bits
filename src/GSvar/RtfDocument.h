@@ -378,7 +378,7 @@ public:
 	RtfTableRow();
 
 	///Initialize Row containing one cell
-	RtfTableRow(const QByteArray& cell_content, int width, const RtfParagraph& format = RtfParagraph());
+	RtfTableRow(QByteArray cell_content, int width, const RtfParagraph& format = RtfParagraph());
 
 	///Constructor creates a row, content and cell widths according parameter lists
 	RtfTableRow(const QList<QByteArray>& cell_contents, const QList<int>& cell_widths,const RtfParagraph& format = RtfParagraph());

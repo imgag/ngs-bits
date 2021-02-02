@@ -96,60 +96,35 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 {
 	if(!LoginManager::active()) return "";
 
+	//get approved gene name
 	NGSD db;
+	int gene_id = db.geneToApprovedID(gene);
+	if (gene_id==-1) return "";
+	gene = db.geneSymbol(gene_id);
 
+	//select transcript
 	Transcript trans;
-	if(!preferred_transcripts_.value(gene).isEmpty()) //prefered transcript
+	try
 	{
-		try
+		if(preferred_transcripts_.contains(gene))
 		{
-			trans = db.transcript( db.transcriptId(preferred_transcripts_.value(gene).first()) );
+			trans = db.transcript(db.transcriptId(preferred_transcripts_.value(gene).first())); //TODO handle several preferred transcripts?! > AXEL
 		}
-		catch(Exception)
+		else //fallback to longest coding transcript
 		{
-			return "";
+			trans = db.longestCodingTranscript(gene_id, Transcript::SOURCE::ENSEMBL, false, true);
 		}
 	}
-	else //fallback to longest coding transcript
+	catch(Exception)
 	{
-		try
-		{
-			trans = db.longestCodingTranscript(db.geneToApprovedID(gene), Transcript::SOURCE::ENSEMBL, false, true);
-		}
-		catch(Exception)
-		{
-			return "";
-		}
+		return "";
 	}
 
+	//calculate exon number
+	int exon_number = trans.exonNumber(start, end);
+	if(exon_number<=0) return "";
 
-	//get transcript id of transcript
-	int trans_id = db.transcriptId(trans.name() , false);
-	if(trans_id == -1) return "";
-
-	//Create table with all exons
-	DBTable res = db.createTable("exons", "SELECT ge.transcript_id, ge.start, ge.end FROM gene_exon as ge WHERE ge.transcript_id=" + QByteArray::number(trans_id) );
-
-	int exon_number = -1;
-
-	//Calculate exon number based on overlap of variant and transcript strand
-	for(int i=0;i<res.rowCount(); ++i)
-	{
-		if( BasicStatistics::rangeOverlaps(res.row(i).value(0).toInt(), res.row(i).value(1).toInt(), start, end) )
-		{
-			if(trans.strand() == Transcript::STRAND::PLUS) exon_number = i+1;
-			else if(trans.strand() == Transcript::STRAND::MINUS) exon_number = res.rowCount()-i;
-			break;
-		}
-	}
-
-	if(exon_number != -1)
-	{
-		return trans.name() + " (exon " + QByteArray::number(exon_number) + "/" + QByteArray::number(res.rowCount()) + ")";
-	}
-
-	return "";
-
+	return trans.name() + " (exon " + QByteArray::number(exon_number) + "/" + QByteArray::number(trans.regions().count()) + ")";
 }
 
 void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
@@ -165,7 +140,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		VariantTranscript trans = variants_[i].transcriptAnnotations(i_co_sp_).first();
 		for(const VariantTranscript& tmp_trans : variants_[i].transcriptAnnotations(i_co_sp_))
 		{
-			if(preferred_transcripts_.value(tmp_trans.gene).contains(tmp_trans.id))
+			if(preferred_transcripts_.value(tmp_trans.gene).contains(tmp_trans.idWithoutVersion()))
 			{
 				trans = tmp_trans;
 				break;
@@ -276,7 +251,8 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 					QStringList tmp_exons;
 					for(const auto& tmp_gene : tmp_genes)
 					{
-						tmp_exons << exonNumber(tmp_gene.toUtf8() , line.start(), line.end());
+						QByteArray exon = exonNumber(tmp_gene.toUtf8() , line.start(), line.end());
+						if(exon != "") tmp_exons << exon;
 					}
 					exons.append( tmp_exons.join(", ").toUtf8() );
 				}

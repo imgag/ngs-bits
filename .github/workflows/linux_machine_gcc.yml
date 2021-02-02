@@ -1,0 +1,33 @@
+name: Linux build
+
+on: [push, pull_request]
+
+jobs:
+  gcc-build-and-test:
+    runs-on: ubuntu-18.04
+
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+            MYSQL_ALLOW_EMPTY_PASSWORD: yes
+            MYSQL_DATABASE: root
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Update OS repositories
+      run: sudo apt-get update
+    - name: Setup test environment
+      run: sudo apt-get -y install make g++ git python python-matplotlib qt5-default libqt5xmlpatterns5-dev libqt5sql5-mysql libqt5charts5-dev libbz2-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev
+    - name: Update submodules
+      run: git submodule update --recursive --init
+    - name: Build dependencies
+      run: make build_3rdparty build_libs_release build_tools_release build_gui_release
+    - name: Create a settings.ini file for tests
+      run: ./settings.sh
+      shell: bash
+    - name: Run tests
+      run: make -k test_lib test_tools

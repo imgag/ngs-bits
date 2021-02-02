@@ -22,10 +22,12 @@ analysis_steps_single_sample=ma - mapping, vc - SNV/InDel calling + annotation, 
 analysis_steps_multi_sample=vc - SNV/InDel calling + annotation, cn - CNV calling + annotation
 analysis_steps_trio=vc - SNV/InDel calling + annotation, cn - CNV calling + annotation, db - database import
 analysis_steps_somatic=vc - variant calling, vi - virus detection, cn - copy number calling, an - annotation, ci - CGI annotation, msi - microsatellite instabilty, an_rna - RNA annotation, db - database import
+analysis_steps_single_sample_rna = ma - mapping, rc - read counting, an -annotation, fu - fusion, db - database import
 
 #webservice URLs
 PrimerDesign = ""
 Alamut = ""
+liftover_webservice = ""
 
 #proxy settings for GSvar
 proxy_host = ""
@@ -34,7 +36,6 @@ proxy_port =
 #special folders for GSvar
 gsvar_report_folder = ""
 gsvar_report_archive = ""
-gsvar_gap_folder = ""
 gsvar_xml_folder = ""
 gsvar_publication_folder = ""
 gsvar_variantsheet_folder = ""
@@ -45,10 +46,6 @@ debug_mode_enabled=false
 
 #somatic data transfer to MTB
 mtb_xml_upload_url = ""
-mtb_pdf_upload_url = ""
-mtb_pdf_upload_user = ""
-mtb_pdf_upload_pass = "" 
-genlab_somatic_report_folder = ""
 
 #misc settings
 custom_menu_small_variants = ""

@@ -325,7 +325,7 @@ void CnvWidget::updateGUI()
 	}
 
 	//resize columns
-	GUIHelper::resizeTableCells(ui->cnvs, 200);
+	GUIHelper::resizeTableCells(ui->cnvs, 200, true, 100);
 
 	//update quality from NGSD
 	updateQuality();
@@ -609,9 +609,16 @@ void CnvWidget::showContextMenu(QPoint p)
 	}
 	else if (action==a_deciphter)
 	{
-		QString region = cnvs_[row].toString();
-		region.remove("chr");
-		QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + region));
+		try
+		{
+			QString region = GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end()).toString(true);
+			region.remove("chr");
+			QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + region));
+		}
+		catch(Exception& e)
+		{
+			QMessageBox::warning(this, "Lift-over error", "Decipher only accepts GRCh38 coordinates.\nCould not convert coordinates to GRCh38:\n" + e.message());
+		}
 	}
 	else if (action==a_rep_edit)
 	{

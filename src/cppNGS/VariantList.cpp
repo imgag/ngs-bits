@@ -1200,6 +1200,13 @@ bool VariantTranscript::typeMatchesTerms(const OntologyTermCollection& terms) co
 	return false;
 }
 
+QByteArray VariantTranscript::idWithoutVersion() const
+{
+	if (!id.contains(".")) return id;
+
+	return id.left(id.lastIndexOf("."));
+}
+
 Variant Variant::fromString(const QString& text_orig)
 {
 	//replace special characters

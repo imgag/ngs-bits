@@ -7,13 +7,21 @@
 #include "GUIHelper.h"
 #include "ProcessedSampleWidget.h"
 
-SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent)
+SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent, bool is_rna)
 	: QDialog(parent)
 	, ui_()
 	, db_()
 	, samples_()
-	, steps_(loadSteps("analysis_steps_single_sample"))
 {
+	if(is_rna)
+	{
+		steps_ = loadSteps("analysis_steps_single_sample_rna");
+	}
+	else
+	{
+		steps_ = loadSteps("analysis_steps_single_sample");
+	}
+
 	ui_.setupUi(this);
 	initTable(ui_.samples_table);
 	addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));

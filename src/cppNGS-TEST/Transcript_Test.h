@@ -346,4 +346,45 @@ private slots:
 		S_EQUAL(variant.obs(), "TGTGTGT");
 	}
 
+	void exonNumber()
+	{
+		Transcript trans = trans_SLC51A();
+		I_EQUAL(trans.exonNumber(195943370, 195943372), -1);
+		I_EQUAL(trans.exonNumber(195943375, 195943375), 1);
+		I_EQUAL(trans.exonNumber(195943621, 195943621), 1);
+		I_EQUAL(trans.exonNumber(195944713, 195944807), 2);
+		I_EQUAL(trans.exonNumber(195959934, 195960301), 9);
+		I_EQUAL(trans.exonNumber(195960302, 195960305), -1);
+		I_EQUAL(trans.exonNumber(195943375, 195944807), -2);
+
+		Transcript trans2 = trans_APOD();
+		I_EQUAL(trans2.exonNumber(195295570, 195295571), -1);
+		I_EQUAL(trans2.exonNumber(195295573, 195296006), 5);
+		I_EQUAL(trans2.exonNumber(195310749, 195310749), 1);
+		I_EQUAL(trans2.exonNumber(195311079, 195311080), -1);
+		I_EQUAL(trans2.exonNumber(195295573, 195310749), -2);
+	}
+
+	/*
+
+	Transcript trans_APOD()
+	{
+		Transcript t;
+
+		t.setName("ENST00000343267"); //NM_001647
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::MINUS);
+
+		BedFile regions;
+		regions.append(BedLine("chr3", 195295573, 195296006));
+		regions.append(BedLine("chr3", 195298148, 195298236));
+		regions.append(BedLine("chr3", 195300721, 195300842));
+		regions.append(BedLine("chr3", 195306210, 195306366));
+		regions.append(BedLine("chr3", 195310749, 195311076));
+		t.setRegions(regions, 195306332, 195295771);
+
+		return t;
+	}
+*/
+
 };

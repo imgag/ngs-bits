@@ -254,7 +254,7 @@ RtfTableRow::RtfTableRow()
 {
 }
 
-RtfTableRow::RtfTableRow(const QByteArray& cell_content, int width, const RtfParagraph& format)
+RtfTableRow::RtfTableRow(QByteArray cell_content, int width, const RtfParagraph& format)
 {
 	RtfParagraph temp_par = format;
 	temp_par.setContent(cell_content);
