@@ -319,6 +319,13 @@ void CnvList::store(QString filename)
 		header_line.insert(9, "number_of_regions");
 		header_line.insert(10, "genes");
 	}
+	else if(type() == CnvListType::CLINCNV_TUMOR_ONLY)
+	{
+		// assemble header line
+		header_line.insert(5, "no_of_regions");
+		header_line.insert(6, "length_KB");
+		header_line.insert(8, "genes");
+	}
 	else
 	{
 		THROW(NotImplementedException, "Export of this CnvListType is not supported!");
@@ -333,7 +340,7 @@ void CnvList::store(QString filename)
 		stream << variant.chr().strNormalized(true) << "\t" << variant.start() << "\t" << variant.end();
 		QByteArrayList cnv_annotations = variant.annotations();
 
-		if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
+		if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE || type() == CnvListType::CLINCNV_TUMOR_ONLY)
 		{
 			// assemble CNV line
 			cnv_annotations.insert(2, QByteArray::number(variant.regions()));
