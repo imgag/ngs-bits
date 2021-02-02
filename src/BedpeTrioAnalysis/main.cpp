@@ -81,61 +81,145 @@ public:
 				  + "' do not match. Cannot combine these file! Make sure all files were created with the same pipeline verion and contain the same annotations.");
 		}
 
+        // extend annotation by genotype (index, father, mother)
+        auto extended_annotation_headers = QList<QByteArray>() << "index" << "father" << "mother";
+        extended_annotation_headers += svs.annotationHeaders();
+
+        // parse all svs of the index
 		for (int i = 0; i < svs.count(); ++i)
 		{
-			const BedpeLine& sv_index = svs[i];
-			QByteArray gt_index;
+            QList<QByteArray> genotypes;
+            BedpeLine& sv_index = svs[i];
 			if (sv_index.formatValueByKey("GT", svs.annotationHeaders()).trimmed() == "1/1")
 			{
-				gt_index = "hom";
+                 genotypes << "hom";
 			}
 			else
 			{
-				gt_index = "het";
+                 genotypes << "het";
 			}
 
 			// search for SV in SVs of parents
-			QByteArray gt_father;
 			int i_sv_father = svs_father.findMatch(sv_index, false, false);
 			if (i_sv_father != -1)
 			{
 				const BedpeLine& sv_father = svs_father[i];
 				if (sv_father.formatValueByKey("GT", svs_father.annotationHeaders()).trimmed() == "1/1")
 				{
-					gt_father = "hom";
+                    genotypes << "hom";
 				}
 				else
 				{
-					gt_father = "het";
+                    genotypes << "het";
 				}
+                // remove sv
+                svs_father.removeAt(i_sv_father);
 			}
 			else
 			{
 				// SV not found --> wildtype
-				gt_father = "wt";
+                genotypes << "wt";
 			}
 
-			QByteArray gt_mother;
 			int i_sv_mother = svs_mother.findMatch(sv_index, false, false);
 			if (i_sv_mother != -1)
 			{
 				const BedpeLine& sv_mother = svs_mother[i];
 				if (sv_mother.formatValueByKey("GT", svs_mother.annotationHeaders()).trimmed() == "1/1")
 				{
-					gt_mother = "hom";
+                    genotypes << "hom";
 				}
 				else
 				{
-					gt_mother = "het";
+                    genotypes << "het";
 				}
+                // remove sv
+                svs_mother.removeAt(i_sv_mother);
 			}
 			else
 			{
 				// SV not found --> wildtype
-				gt_mother = "wt";
+                genotypes << "wt";
 			}
+
+            sv_index.setAnnotations(genotypes + sv_index.annotations());
 		}
-	}
+
+
+        // parse remaining SVs of the father
+        for (int i = 0; i < svs_father.count(); ++i)
+        {
+            QList<QByteArray> genotypes;
+            BedpeLine sv_father = svs[i];
+
+            genotypes << "wt"; //gt of index is wildtype
+
+            // determine genotype of father
+            if (sv_father.formatValueByKey("GT", svs_father.annotationHeaders()).trimmed() == "1/1")
+            {
+                 genotypes << "hom";
+            }
+            else
+            {
+                 genotypes << "het";
+            }
+
+            // try to find match in SVs of mother
+            int i_sv_mother = svs_mother.findMatch(sv_father, false, false);
+            if (i_sv_mother != -1)
+            {
+                const BedpeLine& sv_mother = svs_mother[i];
+                if (sv_mother.formatValueByKey("GT", svs_mother.annotationHeaders()).trimmed() == "1/1")
+                {
+                    genotypes << "hom";
+                }
+                else
+                {
+                    genotypes << "het";
+                }
+                // remove sv
+                svs_mother.removeAt(i_sv_mother);
+            }
+            else
+            {
+                // SV not found --> wildtype
+                genotypes << "wt";
+            }
+
+            //append SV to index SV file
+            sv_father.setAnnotations(genotypes + sv_father.annotations());
+            svs.append(sv_father);
+        }
+
+        // parse remaining SVs of the mother
+        for (int i = 0; i < svs_mother.count(); ++i)
+        {
+            QList<QByteArray> genotypes;
+            BedpeLine sv_mother = svs_mother[i];
+
+            genotypes << "wt" << "wt"; //gt of index and father is wildtype
+
+            // determine genotype of father
+            if (sv_mother.formatValueByKey("GT", svs_mother.annotationHeaders()).trimmed() == "1/1")
+            {
+                 genotypes << "hom";
+            }
+            else
+            {
+                 genotypes << "het";
+            }
+
+            //append SV to index SV file
+            sv_mother.setAnnotations(genotypes + sv_mother.annotations());
+            svs.append(sv_mother);
+        }
+
+        // sort Bedpe file before writing to disk
+        svs.sort();
+
+        // write SVs to file
+        svs.toTSV(getOutfile("out"));
+    }
 };
 
 #include "main.moc"
