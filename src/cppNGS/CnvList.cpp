@@ -340,7 +340,7 @@ void CnvList::store(QString filename)
 		stream << variant.chr().strNormalized(true) << "\t" << variant.start() << "\t" << variant.end();
 		QByteArrayList cnv_annotations = variant.annotations();
 
-		if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE || type() == CnvListType::CLINCNV_TUMOR_ONLY)
+		if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE)
 		{
 			// assemble CNV line
 			cnv_annotations.insert(2, QByteArray::number(variant.regions()));
@@ -369,6 +369,13 @@ void CnvList::store(QString filename)
 			cnv_annotations.insert(1, QByteArray::number(variant.size()));
 			cnv_annotations.insert(9, QByteArray::number(variant.regions()));
 			cnv_annotations.insert(10, variant.genes().toStringList().join(",").toUtf8());
+		}
+		else if(type() == CnvListType::CLINCNV_TUMOR_ONLY)
+		{
+			// assemble CNV line
+			cnv_annotations.insert(5, QByteArray::number(variant.regions()));
+			cnv_annotations.insert(6, QByteArray::number(((variant.size() - 1)/1000.0), 'f', 3).rightJustified(8, ' '));
+			cnv_annotations.insert(8, variant.genes().toStringList().join(",").toUtf8());
 		}
 		stream << "\t" << cnv_annotations.join("\t") << "\n";
 	}
