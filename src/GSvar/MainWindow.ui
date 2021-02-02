@@ -504,8 +504,9 @@
      <addaction name="actionSearchCNVs"/>
      <addaction name="actionSearchSVs"/>
      <addaction name="separator"/>
-     <addaction name="actionPublishVariantInLOVD"/>
      <addaction name="actionShowPublishedVariants"/>
+     <addaction name="actionPublishVariantInLOVD"/>
+     <addaction name="actionBatchExportClinVar"/>
     </widget>
     <addaction name="menuVariant_search"/>
     <addaction name="menuGenes_2"/>
@@ -1242,6 +1243,15 @@
   <action name="actionGaps">
    <property name="text">
     <string>Gaps</string>
+   </property>
+  </action>
+  <action name="actionBatchExportClinVar">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/ClinGen.png</normaloff>:/Icons/ClinGen.png</iconset>
+   </property>
+   <property name="text">
+    <string>Batch export for ClinVar</string>
    </property>
   </action>
  </widget>
