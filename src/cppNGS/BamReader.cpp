@@ -343,11 +343,11 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 		if (genome_pos>=pos)
 		{
 			int actual_pos = read_pos - (genome_pos + 1 - pos);
-			return qMakePair(base(actual_pos), quality((actual_pos)));
+			return qMakePair(base(actual_pos), quality(actual_pos));
 		}
 	}
 
-	THROW(Exception, "Could not find position  " + QString::number(pos) + " in read " + bases() + " with start position " + QString::number(start()) + "!");
+	THROW(Exception, "Could not find position " + QString::number(pos) + " in read " + name() + " with start position " + QString::number(start()) + "!");
 }
 
 QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
