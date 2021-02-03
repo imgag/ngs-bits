@@ -736,7 +736,7 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	CnvWidget *list;
-	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR || cnvs_.type() == CnvListType::CLINCNV_TUMOR_ONLY)
 	{
 		list = new CnvWidget(cnvs_, ps_id, ui_.filters, somatic_report_settings_.report_config, het_hit_genes, gene2region_cache_);
 	}
@@ -6095,17 +6095,18 @@ QList<IgvFile> MainWindow::getSegFilesCnv()
 		{
 			QString base_name = file.filename.left(file.filename.length()-4);
 			QString segfile = base_name + "_cnvs_clincnv.seg";
-			if (QFile::exists(segfile))
+			if (!QFile::exists(segfile)) //fallback to somatic
 			{
-				output << IgvFile{file.id, "CNV" , segfile};
+				segfile = base_name + "_clincnv.seg";
 			}
-			else
+			if (!QFile::exists(segfile)) //fallback to CnvHunter
 			{
 				segfile = base_name + "_cnvs.seg";
-				if (QFile::exists(segfile))
-				{
-					output << IgvFile{file.id, "CNV" , segfile};
-				}
+			}
+
+			if (QFile::exists(segfile))
+			{
+				output << IgvFile{file.id, "CNV" , segfile};				
 			}
 		}
 	}

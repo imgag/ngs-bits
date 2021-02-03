@@ -1,7 +1,9 @@
 ### CnvHunter tool help
-	CnvHunter (2018_11-55-g768b41c)
+	CnvHunter (2020_09-92-g96ca671f)
 	
 	CNV detection from targeted resequencing data using non-matched control samples.
+	
+	Note CnvHunter is no longer maintained and used. For CNV calling have a look at ClinCNV: https://github.com/imgag/ClinCNV.
 	
 	Mandatory parameters:
 	  -in <filelist>         Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth). If only one file is given, each line in this file is interpreted as an input file path.
@@ -52,7 +54,7 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvHunter changelog
-	CnvHunter 2018_11-55-g768b41c
+	CnvHunter 2020_09-92-g96ca671f
 	
 	2018-05-14 Added option to specify input files in single input file.
 	2017-09-04 Added GC normalization.
