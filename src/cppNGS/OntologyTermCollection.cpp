@@ -5,9 +5,9 @@
 
 OntologyTerm::OntologyTerm()
 	:id_()
-	,name_()
-	,def_()
-	,type_()
+	,name_("")
+	,def_("")
+	,type_("")
 	,synonyms_()
 	,parent_ids_()
 	,is_obsolete_(false)
@@ -18,7 +18,7 @@ OntologyTerm::OntologyTerm(QByteArray& id, QByteArray& name, QByteArray& def, QL
 	:id_(id)
 	,name_(name)
 	,def_(def)
-	,type_()
+	,type_("")
 	,synonyms_()
 	,parent_ids_(is_as)
 	,is_obsolete_(is_obsolete)
@@ -84,11 +84,11 @@ OntologyTermCollection::OntologyTermCollection(QString filename, bool skip_obsol
 				{
 					QByteArray parent = line.mid(5).trimmed();
 					int end = parent.lastIndexOf('!');
-					parent = parent.mid(0,end);
+					parent = parent.mid(0,end).trimmed();
 					temp.addParentID(parent);
 				}
 
-				if(line.startsWith("synonym:")) //Example: synonym: "Breast fibroadenomas" EXACT [HPO:skoehler]
+				if(line.startsWith("synonym:") && line.contains(" EXACT ")) //Example: synonym: "Breast fibroadenomas" EXACT [HPO:skoehler]
 				{
 					QByteArray synonym = line.mid(8).trimmed();
 					int start = synonym.indexOf('"')+1;
