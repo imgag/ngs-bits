@@ -2929,7 +2929,7 @@ void NGSD::updateQC(QString obo_file, bool debug)
 
 	QStringList valid_types = getEnum("qc_terms", "type");
 
-	QStringList lines = Helper::loadTextFile(obo_file, true, '#', true);
+	QStringList lines = Helper::loadTextFile(obo_file, true, '#', true); //TODO: use OntologyTermsCollection
 	QCTerm current;
 	foreach(QString line, lines)
 	{

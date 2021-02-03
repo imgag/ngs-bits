@@ -12,7 +12,6 @@ GSvar:
 
 Tools:
 - UPDHunter: also support chrX?
-- SomaticQC: replace 'QC:?' by real qcML identifier - add to https://github.com/HUPO-PSI/mzQC (CS)
 
 External:
 - implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM)

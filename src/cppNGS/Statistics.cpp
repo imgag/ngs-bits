@@ -1095,7 +1095,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	plot0b.setValues(counts, nuc_changes, colors);
 	QString plot0bname = Helper::tempFileName(".png");
 	plot0b.store(plot0bname);
-	output.insert(QCValue::Image("somatic SNV mutation types", plot0bname, "", "QC:?"));
+	output.insert(QCValue::Image("somatic SNV mutation types", plot0bname, "", "QC:2000056"));
 	QFile::remove(plot0bname);
 
 	//plot1: allele frequencies

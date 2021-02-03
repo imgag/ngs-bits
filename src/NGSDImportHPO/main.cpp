@@ -124,7 +124,7 @@ public:
 		QByteArray id, name, def = "";
 		QByteArrayList synonyms;
 		QHash<QByteArray, QByteArrayList > child_parents;
-		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("obo"));
+		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("obo")); //TODO: use OntologyTermsCollection
 		while(!fp->atEnd())
 		{
 			QByteArray line = fp->readLine().trimmed();

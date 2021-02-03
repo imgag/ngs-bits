@@ -8,6 +8,8 @@
 #include <QFileInfo>
 #include <QList>
 #include <QFile>
+#include <OntologyTermCollection.h>
+
 QCValue::QCValue()
 	: name_("")
 	, value_()
@@ -85,7 +87,7 @@ const QString& QCValue::description() const
 	return description_;
 }
 
-const QString&QCValue::accession() const
+const QString& QCValue::accession() const
 {
 	return accession_;
 }
@@ -204,7 +206,7 @@ void QCCollection::clear()
 	values_.clear();
 }
 
-void QCCollection::storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite, const QList<QList<QString>> metadata)
+void QCCollection::storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite, QList<QCValue> metadata)
 {
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
 	QTextStream stream(file.data());
@@ -230,11 +232,10 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 		stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"source file\" value=\"" << QFileInfo(sf).fileName() << "\" cvRef=\"QC\" accession=\"QC:1000005\"/>" << endl;
 		++idx;
 	}
-	foreach(const QList<QString>& md, metadata)
+	foreach(const QCValue& md, metadata)
 	{
-		if(md[0]=="QC:1000005")	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md[1] << "\" value=\"" << md[2] << "\" cvRef=\"QC\" accession=\"" << md[0] << "\"/>" << endl;
-		else if(md[0]=="QC:1000006")	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md[1] << "\" value=\"" << QFileInfo(md[2]).fileName() << "\" uri=\"" << md[2] << "\" cvRef=\"QC\" accession=\"" << md[0] << "\" />" << endl;
-		else	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md[1] << "\" value=\"" << md[2] << "\" cvRef=\"QC\" accession=\"" << md[0] << "\"/>" << endl;
+		if(md.accession()=="QC:1000006")	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md.name() << "\" value=\"" << QFileInfo(md.asString()).fileName() << "\" uri=\"" << md.asString() << "\" cvRef=\"QC\" accession=\"" << md.accession() << "\" />" << endl;
+		else	stream << "    <metaDataParameter ID=\"md" << QString::number(idx).rightJustified(4, '0') << "\" name=\"" << md.name() << "\" value=\"" << md.asString() << "\" cvRef=\"QC\" accession=\"" << md.accession() << "\"/>" << endl;
 		++idx;
 	}
 
@@ -263,7 +264,7 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 
 	//write CV list
 	stream << "  <cvList>" << endl;
-	stream << "    <cv uri=\"https://qcml.googlecode.com/svn/trunk/cv/qc-cv.obo\" ID=\"QC\" fullName=\"QC\" version=\"0.1\"/>" << endl;
+	stream << "    <cv uri=\"https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo\" ID=\"QC\" fullName=\"QC\" version=\"0.1\"/>" << endl;
 	stream << "  </cvList>" << endl;
 
 	//write stylesheet
@@ -343,11 +344,31 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 	//validate output
 	if(filename!="")
 	{
+		//check schema
 		QString xml_error = XmlHelper::isValidXml(filename, "://Resources/qcML_0.0.8.xsd");
 		if (xml_error!="")
 		{
 			THROW(ProgrammingException, "QCCollection::storeToQCML produced an invalid XML file: " + xml_error);
 		}
+
+		//check used terms
+		OntologyTermCollection terms("://Resources/qcML.obo", false);
+		QList<QCValue> qc_values_used;
+		qc_values_used.append(metadata);
+		qc_values_used.append(values_);
+		foreach(const QCValue& qc_value, qc_values_used)
+		{
+			QByteArray accession = qc_value.accession().toLatin1();
+			if (!terms.containsByID(accession))
+			{
+				THROW(ProgrammingException, "QCCollection::storeToQCML produced an invalid XML file: QC term '" + accession + "/" + qc_value.name() + "' not found in the ontology!");
+			}
+			else if (terms.findByID(accession).isObsolete())
+			{
+				THROW(ProgrammingException, "QCCollection::storeToQCML produced an invalid XML file: QC term '" + accession + "/" + qc_value.name() + "' is marked as obsolete in the ontology!");
+			}
+		}
+
 	}
 }
 
