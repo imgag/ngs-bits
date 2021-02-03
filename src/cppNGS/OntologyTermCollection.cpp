@@ -4,9 +4,11 @@
 
 
 OntologyTerm::OntologyTerm()
-	:id_("")
-	,name_("")
-	,def_("")
+	:id_()
+	,name_()
+	,def_()
+	,type_()
+	,synonyms_()
 	,parent_ids_()
 	,is_obsolete_(false)
 {
@@ -16,6 +18,8 @@ OntologyTerm::OntologyTerm(QByteArray& id, QByteArray& name, QByteArray& def, QL
 	:id_(id)
 	,name_(name)
 	,def_(def)
+	,type_()
+	,synonyms_()
 	,parent_ids_(is_as)
 	,is_obsolete_(is_obsolete)
 {
@@ -33,13 +37,11 @@ bool OntologyTerm::isChildOf(const QByteArray& parent_id) const
 	return false;
 }
 
-
 OntologyTermCollection::OntologyTermCollection()
 {
 }
 
-//read complete obo file
-OntologyTermCollection::OntologyTermCollection(const QByteArray &filename,bool skip_obsolete)
+OntologyTermCollection::OntologyTermCollection(QString filename, bool skip_obsolete_terms)
 {
 	QSharedPointer<QFile> fp = Helper::openFileForReading(filename);
 
@@ -55,34 +57,64 @@ OntologyTermCollection::OntologyTermCollection(const QByteArray &filename,bool s
 
 			do
 			{
-				if(line.startsWith("id"))
-					temp.setId(line.mid(4));
-				if(line.startsWith("name"))
-					temp.setName(line.mid(6));
-				if(line.startsWith("def"))
-					temp.setDefinition(line.mid(5));
-				if(line.startsWith("is_a"))
-					temp.addParentID(line.mid(6));
-
-				if(line.startsWith("is_obsolete"))
+				if(line.startsWith("id:"))
 				{
-					if(line.contains("true"))
-						temp.setIsObsolete(true);
-					else
-						temp.setIsObsolete(false);
+					temp.setId(line.mid(3).trimmed());
 				}
-				line = fp->readLine().trimmed();
+				if(line.startsWith("name:"))
+				{
+					temp.setName(line.mid(5).trimmed());
+				}
+				if(line.startsWith("def:")) //Example: def: "Raw read length of a single read before trimming. Comma-separated list of lengths if several." [PXS:QC]
+				{
+					QByteArray def = line.mid(4).trimmed();
+					int start = def.indexOf('"')+1;
+					int end = def.lastIndexOf('"');
+					def = def.mid(start, end-start);
+					temp.setDefinition(def);
+				}
+				if(line.startsWith("xref: value-type:xsd\\:")) //Example: xref: value-type:xsd\:int "The allowed value-type for this CV term."
+				{
+					line.append(":");
+					line.replace('"', ':');
+					QByteArray type = line.split(':')[3].trimmed();
+					temp.setType(type);
+				}
+				if(line.startsWith("is_a:")) //Example: is_a: QC:2000002 ! NGS aquisition parameter
+				{
+					QByteArray parent = line.mid(5).trimmed();
+					int end = parent.lastIndexOf('!');
+					parent = parent.mid(0,end);
+					temp.addParentID(parent);
+				}
 
-			}while(!line.isEmpty());
-			if(temp.isObsolete() && skip_obsolete)
-				continue;
+				if(line.startsWith("synonym:")) //Example: synonym: "Breast fibroadenomas" EXACT [HPO:skoehler]
+				{
+					QByteArray synonym = line.mid(8).trimmed();
+					int start = synonym.indexOf('"')+1;
+					int end = synonym.lastIndexOf('"');
+					synonym = synonym.mid(start, end-start);
+					temp.addSynonym(synonym);
+				}
+
+				if(line.startsWith("is_obsolete:"))
+				{
+					temp.setIsObsolete(line.contains("true"));
+				}
+
+				line = fp->readLine().trimmed();
+			}
+			while(!line.isEmpty());
+
+			if(temp.isObsolete() && skip_obsolete_terms) continue;
+
 			add(temp);
 		}
 	}
 	fp->close();
 }
 
-const OntologyTerm& OntologyTermCollection::findByID(const QByteArray& id)
+const OntologyTerm& OntologyTermCollection::getByID(const QByteArray& id)
 {
 	foreach(const OntologyTerm& term, ontology_terms_)
 	{
@@ -91,7 +123,7 @@ const OntologyTerm& OntologyTermCollection::findByID(const QByteArray& id)
 			return term;
 		}
 	}
-	THROW(ArgumentException, "No term with id "+ id + " found.");
+	THROW(ArgumentException, "OntologyTermCollection::getByID: No term with id '" + id + "' found.");
 }
 
 bool OntologyTermCollection::containsByID(const QByteArray& id)
@@ -116,6 +148,16 @@ bool OntologyTermCollection::containsByName(const QByteArray& name) const
 		}
 	}
 	return false;
+}
+
+const OntologyTerm& OntologyTermCollection::get(int index)
+{
+	if (index<0 || index>=size())
+	{
+		THROW(ArgumentException, "OntologyTermCollection::get: No term with index '" + QString::number(index) + "' found.");
+	}
+
+	return ontology_terms_[index];
 }
 
 QList<QByteArray> OntologyTermCollection::childIDs(const QByteArray& term_id, bool recursive)

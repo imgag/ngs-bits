@@ -1017,7 +1017,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	ids << obo_terms.childIDs("SO:0001568",true); //splicing variants
 	foreach(const QByteArray& id, ids)
 	{
-		obo_terms_coding_splicing_.add(obo_terms.findByID(id));
+		obo_terms_coding_splicing_.add(obo_terms.getByID(id));
 	}
 
 	//Assign SNV annotation indices
