@@ -265,7 +265,9 @@ public:
 	///Returns the index of the BedpeLine which matches the given SV, -1 if not found
 	///     NOTICE: 'deep_ins_compare' will perform a left-shift and a sequence comparison. In this case headers
 	///             of the given BedpeLine has to match the headers of this file
-	int findMatch(const BedpeLine& sv, bool deep_ins_compare = false, bool error_on_mismatch = true) const;
+	///		NOTICE: if 'compare_ci' is set to true, SVs which have overlapping confidence intervalls are also considered as match
+	///
+	int findMatch(const BedpeLine& sv, bool deep_ins_compare = false, bool error_on_mismatch = true, bool compare_ci=true) const;
 
 private:
 	QList<QByteArray> annotation_headers_;

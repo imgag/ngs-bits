@@ -28,197 +28,153 @@ public:
 		changeLog(2021, 2, 1, "Initial version of the tool.");
 	}
 
-	void parseParentSVs(QMap<StructuralVariantType,BedpeFile>& sv_parent, QMap<StructuralVariantType,QMap<QByteArray,BedpeLine>>& sv_parent_lookup, QString sv_file_path)
+	QByteArray extractGenotype(const BedpeLine& sv, const QList<QByteArray>& annotation_headers)
 	{
-		BedpeFile svs;
-		svs.load(sv_file_path);
-
-		// init QMaps
-		sv_parent.clear();
-		sv_parent.insert(StructuralVariantType::BND, BedpeFile());
-		sv_parent[StructuralVariantType::BND].setAnnotationHeaders(svs.annotationHeaders());
-		sv_parent.insert(StructuralVariantType::DEL, BedpeFile());
-		sv_parent[StructuralVariantType::DEL].setAnnotationHeaders(svs.annotationHeaders());
-		sv_parent.insert(StructuralVariantType::DUP, BedpeFile());
-		sv_parent[StructuralVariantType::DUP].setAnnotationHeaders(svs.annotationHeaders());
-		sv_parent.insert(StructuralVariantType::INS, BedpeFile());
-		sv_parent[StructuralVariantType::INS].setAnnotationHeaders(svs.annotationHeaders());
-		sv_parent.insert(StructuralVariantType::INV, BedpeFile());
-		sv_parent[StructuralVariantType::INV].setAnnotationHeaders(svs.annotationHeaders());
-		sv_parent_lookup.clear();
-		sv_parent_lookup.insert(StructuralVariantType::BND, QMap<QByteArray,BedpeLine>());
-		sv_parent_lookup.insert(StructuralVariantType::DEL, QMap<QByteArray,BedpeLine>());
-		sv_parent_lookup.insert(StructuralVariantType::DUP, QMap<QByteArray,BedpeLine>());
-		sv_parent_lookup.insert(StructuralVariantType::INS, QMap<QByteArray,BedpeLine>());
-		sv_parent_lookup.insert(StructuralVariantType::INV, QMap<QByteArray,BedpeLine>());
-		for (int i = 0; i < svs.count(); ++i)
+		QByteArray genotype = sv.formatValueByKey("GT", annotation_headers, false).trimmed();
+		if (genotype == "1/1")
 		{
-			const BedpeLine& sv = svs[i];
-			sv_parent[sv.type()].append(sv);
+			return "hom";
 		}
+		else if ((genotype == "0/1") || (genotype == "1/0"))
+		{
+			return "het";
+		}
+		return "n/a";
 	}
 
 	virtual void main()
 	{
 		// load index SVs
-		BedpeFile svs;
-		svs.load(getInfile("index"));
+		BedpeFile svs_index;
+		svs_index.load(getInfile("index"));
 		//load SVs from the parents
 		BedpeFile svs_father;
 		svs_father.load(getInfile("father"));
 		BedpeFile svs_mother;
 		svs_mother.load(getInfile("mother"));
 
+
+		bool fuzzy_match = true;
+
 		// compare annotation headers
-		if(svs.annotationHeaders() != svs_father.annotationHeaders())
+		auto annotation_headers_index = svs_index.annotationHeaders();
+		annotation_headers_index.removeAt(annotation_headers_index.indexOf("FORMAT") + 1);
+		auto annotation_headers_father = svs_father.annotationHeaders();
+		annotation_headers_father.removeAt(annotation_headers_father.indexOf("FORMAT") + 1);
+		auto annotation_headers_mother = svs_index.annotationHeaders();
+		annotation_headers_mother.removeAt(annotation_headers_mother.indexOf("FORMAT") + 1);
+
+		if(annotation_headers_index != annotation_headers_father)
 		{
 			THROW(ArgumentException, "The annotations of the BEDPE files '" +  getInfile("father") + "' and '" + getInfile("index")
 				  + "' do not match. Cannot combine these file! Make sure all files were created with the same pipeline verion and contain the same annotations.");
 		}
-		if(svs.annotationHeaders() != svs_mother.annotationHeaders())
+		if(annotation_headers_index != annotation_headers_mother)
 		{
 			THROW(ArgumentException, "The annotations of the BEDPE files '" +  getInfile("mother") + "' and '" + getInfile("index")
 				  + "' do not match. Cannot combine these file! Make sure all files were created with the same pipeline verion and contain the same annotations.");
 		}
 
         // extend annotation by genotype (index, father, mother)
-        auto extended_annotation_headers = QList<QByteArray>() << "index" << "father" << "mother";
-        extended_annotation_headers += svs.annotationHeaders();
+		QList<QByteArray> extended_annotation_headers = QList<QByteArray>() << "index" << "father" << "mother";
+		extended_annotation_headers += svs_index.annotationHeaders();
 
         // parse all svs of the index
-		for (int i = 0; i < svs.count(); ++i)
+		for (int i = 0; i < svs_index.count(); ++i)
 		{
-            QList<QByteArray> genotypes;
-            BedpeLine& sv_index = svs[i];
-			if (sv_index.formatValueByKey("GT", svs.annotationHeaders()).trimmed() == "1/1")
-			{
-                 genotypes << "hom";
-			}
-			else
-			{
-                 genotypes << "het";
-			}
+			QList<QByteArray> genotypes;
+			BedpeLine& sv_index = svs_index[i];
+			genotypes << extractGenotype(sv_index, svs_index.annotationHeaders());
+
 
 			// search for SV in SVs of parents
-			int i_sv_father = svs_father.findMatch(sv_index, false, false);
+			int i_sv_father = svs_father.findMatch(sv_index, false, false, fuzzy_match);
 			if (i_sv_father != -1)
 			{
-				const BedpeLine& sv_father = svs_father[i];
-				if (sv_father.formatValueByKey("GT", svs_father.annotationHeaders()).trimmed() == "1/1")
-				{
-                    genotypes << "hom";
-				}
-				else
-				{
-                    genotypes << "het";
-				}
-                // remove sv
-                svs_father.removeAt(i_sv_father);
+				// add genotype of father
+				genotypes << extractGenotype(svs_father[i_sv_father], svs_father.annotationHeaders());
+
+				// remove sv
+				svs_father.removeAt(i_sv_father);
 			}
 			else
 			{
 				// SV not found --> wildtype
-                genotypes << "wt";
+				genotypes << "wt";
 			}
 
-			int i_sv_mother = svs_mother.findMatch(sv_index, false, false);
+			int i_sv_mother = svs_mother.findMatch(sv_index, false, false, fuzzy_match);
 			if (i_sv_mother != -1)
 			{
-				const BedpeLine& sv_mother = svs_mother[i];
-				if (sv_mother.formatValueByKey("GT", svs_mother.annotationHeaders()).trimmed() == "1/1")
-				{
-                    genotypes << "hom";
-				}
-				else
-				{
-                    genotypes << "het";
-				}
-                // remove sv
-                svs_mother.removeAt(i_sv_mother);
+				// add genotype of mother
+				genotypes << extractGenotype(svs_mother[i_sv_mother], svs_mother.annotationHeaders());
+
+				// remove sv
+				svs_mother.removeAt(i_sv_mother);
 			}
 			else
 			{
 				// SV not found --> wildtype
-                genotypes << "wt";
+				genotypes << "wt";
 			}
 
-            sv_index.setAnnotations(genotypes + sv_index.annotations());
+			sv_index.setAnnotations(genotypes + sv_index.annotations());
 		}
 
+		// parse remaining SVs of the father
+		for (int i = 0; i < svs_father.count(); ++i)
+		{
+			QList<QByteArray> genotypes;
+			BedpeLine sv_father = svs_father[i];
 
-        // parse remaining SVs of the father
-        for (int i = 0; i < svs_father.count(); ++i)
-        {
-            QList<QByteArray> genotypes;
-            BedpeLine sv_father = svs[i];
+			genotypes << "wt"; //gt of index is wildtype
 
-            genotypes << "wt"; //gt of index is wildtype
+			// add genotype of father
+			genotypes << extractGenotype(svs_father[i], svs_father.annotationHeaders());
 
-            // determine genotype of father
-            if (sv_father.formatValueByKey("GT", svs_father.annotationHeaders()).trimmed() == "1/1")
-            {
-                 genotypes << "hom";
-            }
-            else
-            {
-                 genotypes << "het";
-            }
+			// try to find match in SVs of mother
+			int i_sv_mother = svs_mother.findMatch(sv_father, false, false, fuzzy_match);
+			if (i_sv_mother != -1)
+			{
+				// add genotype of mother
+				genotypes << extractGenotype(svs_mother[i_sv_mother], svs_mother.annotationHeaders());
 
-            // try to find match in SVs of mother
-            int i_sv_mother = svs_mother.findMatch(sv_father, false, false);
-            if (i_sv_mother != -1)
-            {
-                const BedpeLine& sv_mother = svs_mother[i];
-                if (sv_mother.formatValueByKey("GT", svs_mother.annotationHeaders()).trimmed() == "1/1")
-                {
-                    genotypes << "hom";
-                }
-                else
-                {
-                    genotypes << "het";
-                }
-                // remove sv
-                svs_mother.removeAt(i_sv_mother);
-            }
-            else
-            {
-                // SV not found --> wildtype
-                genotypes << "wt";
-            }
+				// remove sv
+				svs_mother.removeAt(i_sv_mother);
+			}
+			else
+			{
+				// SV not found --> wildtype
+				genotypes << "wt";
+			}
 
-            //append SV to index SV file
-            sv_father.setAnnotations(genotypes + sv_father.annotations());
-            svs.append(sv_father);
-        }
+			//append SV to index SV file
 
-        // parse remaining SVs of the mother
-        for (int i = 0; i < svs_mother.count(); ++i)
-        {
-            QList<QByteArray> genotypes;
-            BedpeLine sv_mother = svs_mother[i];
+			sv_father.setAnnotations(genotypes + sv_father.annotations());
+			svs_index.append(sv_father);
+		}
 
-            genotypes << "wt" << "wt"; //gt of index and father is wildtype
+		// parse remaining SVs of the mother
+		for (int i = 0; i < svs_mother.count(); ++i)
+		{
+			QList<QByteArray> genotypes;
+			BedpeLine sv_mother = svs_mother[i];
 
-            // determine genotype of father
-            if (sv_mother.formatValueByKey("GT", svs_mother.annotationHeaders()).trimmed() == "1/1")
-            {
-                 genotypes << "hom";
-            }
-            else
-            {
-                 genotypes << "het";
-            }
+			genotypes << "wt" << "wt"; //gt of index and father is wildtype
 
-            //append SV to index SV file
-            sv_mother.setAnnotations(genotypes + sv_mother.annotations());
-            svs.append(sv_mother);
-        }
+			// add genotype of mother
+			genotypes << extractGenotype(svs_mother[i], svs_mother.annotationHeaders());
+
+			//append SV to index SV file
+			sv_mother.setAnnotations(genotypes + sv_mother.annotations());
+			svs_index.append(sv_mother);
+		}
 
         // sort Bedpe file before writing to disk
-        svs.sort();
+		svs_index.sort();
 
-        // write SVs to file
-        svs.toTSV(getOutfile("out"));
+		//write SVs to file
+		svs_index.toTSV(getOutfile("out"));
     }
 };
 

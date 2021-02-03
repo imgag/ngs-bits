@@ -487,7 +487,7 @@ int BedpeFile::estimatedSvSize(int index) const
 	return sv_length;
 }
 
-int BedpeFile::findMatch(const BedpeLine& sv, bool deep_ins_compare, bool error_on_mismatch) const
+int BedpeFile::findMatch(const BedpeLine& sv, bool deep_ins_compare, bool error_on_mismatch, bool compare_ci) const
 {
 	int alt_a_idx = -1, info_a_idx = -1, pos_min_query = -1, pos_max_query = -1;
 	QByteArray left_seq_query, right_seq_query;
@@ -545,14 +545,27 @@ int BedpeFile::findMatch(const BedpeLine& sv, bool deep_ins_compare, bool error_
 		}
 		else
 		{
-			// compare SV positions
-			if(lines_[i].start1() != sv.start1()) continue;
-			if(lines_[i].end1() != sv.end1()) continue;
-			if(lines_[i].start2() != sv.start2()) continue;
-			if(lines_[i].end2() != sv.end2()) continue;
+			if (compare_ci)
+			{
+				// perform fuzzy matching (CI overlap)
+				if (!BasicStatistics::rangeOverlaps(lines_[i].start1(), lines_[i].end1(), sv.start1(), sv.end1())) continue;
+				if (!BasicStatistics::rangeOverlaps(lines_[i].start2(), lines_[i].end2(), sv.start2(), sv.end2())) continue;
+				// fuzzy match found
+				return i;
+			}
+			else
+			{
+				// search for exact match
+				// compare SV positions
+				if(lines_[i].start1() != sv.start1()) continue;
+				if(lines_[i].end1() != sv.end1()) continue;
+				if(lines_[i].start2() != sv.start2()) continue;
+				if(lines_[i].end2() != sv.end2()) continue;
 
-			// match found:
-			return i;
+				// match found:
+				return i;
+			}
+
 		}
 	}
 
