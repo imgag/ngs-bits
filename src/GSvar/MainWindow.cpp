@@ -766,7 +766,7 @@ void MainWindow::on_actionCNV_triggered()
 			{
 				if(mosaic_data[i].startsWith("#")) continue;
 				QStringList parts = mosaic_data[i].split("\t");
-				if(line.length() < 3)
+				if(parts.length() < 3)
 				{
 					QMessageBox::warning(this, "Mosaic CNV detection", "The CNV file can not be parsed!\n" + mosaic_file);
 				}
