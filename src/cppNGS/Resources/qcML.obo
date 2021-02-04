@@ -908,3 +908,18 @@ is_a: QC:0000050 ! image plot
 xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
 created_by: sturm
 
+[Term]
+id: QC:2000057
+name: near-target read percentage
+def: "Percentage of reads that were mapped to the target region or near the target region (at most 250 bases away)."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000058
+name: target region half depth percentage
+def: "Percentage of the target region that is covered at least with half of the target region average depth. This is a measure of coverage uniformity."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm

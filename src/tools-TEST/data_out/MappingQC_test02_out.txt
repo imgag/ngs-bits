@@ -2,6 +2,7 @@ trimmed base percentage: 1.34
 clipped base percentage: 0.06
 mapped read percentage: 99.98
 on-target read percentage: 99.98
+near-target read percentage: 99.98
 properly-paired read percentage: 99.73
 insert size: 162.66
 duplicate read percentage: 5.96
@@ -14,5 +15,6 @@ target region 50x percentage: 73.69
 target region 100x percentage: 31.09
 target region 200x percentage: 0.00
 target region 500x percentage: 0.00
+target region half depth percentage: 82.15
 
 SNV allele frequency deviation: n/a

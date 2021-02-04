@@ -398,7 +398,7 @@ public:
 					if(verbose)	out << "  finished indel correction reverse cigar " << reverse_overlap.getCigar() << endl;
 					if(forward_overlap.length()!=reverse_overlap.length()) //both cigar and base string should now be equally long
 					{
-						THROW(Exception, "Length mismatch between forward/reverse overlap - forward:" + QByteArray::number(forward_overlap.length()) + " reverse:" + QByteArray::number(reverse_overlap.length()) );
+						THROW(Exception, "Length mismatch between forward/reverse overlap - forward:" + QByteArray::number(forward_overlap.length()) + " reverse:" + QByteArray::number(reverse_overlap.length()) + " in read with name '" + al.name() + "'");
 					}
 
 					//detect mismtaches(read pos for, read pos rev)
