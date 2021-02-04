@@ -39,3 +39,6 @@ target_file_folder_linux = ""
 
 #setting for variant scoring/ranking
 ranking_variant_blacklist=
+
+#python executable for plotting (set if the python exe is not in the PATH)
+python_exe = ""

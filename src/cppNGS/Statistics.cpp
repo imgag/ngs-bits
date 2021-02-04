@@ -157,15 +157,15 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	for (int i=0; i<bed_file.count(); ++i)
 	{
 		const BedLine& line = bed_file[i];
-
-		if (!roi_cov.contains(line.chr().num()))
+		int chr_num = line.chr().num();
+		if (!roi_cov.contains(chr_num))
 		{
-			roi_cov.insert(line.chr().num(), QMap<int, int>());
+			roi_cov.insert(chr_num, QMap<int, int>());
 		}
 
 		for(int p=line.start(); p<=line.end(); ++p)
 		{
-			roi_cov[line.chr().num()].insert(p, 0);
+			roi_cov[chr_num].insert(p, 0);
 		}
 		roi_bases += line.length();
 	}
@@ -174,6 +174,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	int al_total = 0;
 	int al_mapped = 0;
 	int al_ontarget = 0;
+	int al_neartarget = 0;
 	int al_dup = 0;
 	int al_proper_paired = 0;
 	double bases_trimmed = 0;
@@ -250,6 +251,13 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 					}
 				}
 			}
+
+			//calcualte near target statistics
+			indices = roi_index.matchingIndices(chr, start_pos-250, end_pos+250);
+			if (indices.count()!=0)
+			{
+				++al_neartarget;
+			}
 		}
 
 		//trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
@@ -266,12 +274,18 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 
 	//calculate coverage depth statistics
 	double avg_depth = (double) bases_usable / roi_bases;
-	int hist_max = 999;
+	int half_depth = std::round(0.5*avg_depth);
+	long long bases_covered_at_least_half_depth = 0;
+	int hist_max = 599;
 	int hist_step = 5;
+	if (avg_depth>200)
+	{
+		hist_max += 400;
+		hist_step += 5;
+	}
 	if (avg_depth>500)
 	{
-		hist_max += 1000;
-		hist_step += 5;
+		hist_max += 500;
 	}
 	if (avg_depth>1000)
 	{
@@ -286,7 +300,14 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		while(it2.hasNext())
 		{
 			it2.next();
-			depth_dist.inc(it2.value(), true);
+
+			int depth = it2.value();
+			depth_dist.inc(depth, true);
+
+			if(depth>=half_depth)
+			{
+				++bases_covered_at_least_half_depth;
+			}
 		}
 	}
 
@@ -296,6 +317,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	output.insert(QCValue("clipped base percentage", 100.0 * bases_clipped / bases_mapped, "Percentage of the bases that are soft-clipped or hand-clipped during mapping.", "QC:2000052"));
 	output.insert(QCValue("mapped read percentage", 100.0 * al_mapped / al_total, "Percentage of reads that could be mapped to the reference genome.", "QC:2000020"));
 	output.insert(QCValue("on-target read percentage", 100.0 * al_ontarget / al_total, "Percentage of reads that could be mapped to the target region.", "QC:2000021"));
+	output.insert(QCValue("near-target read percentage", 100.0 * al_neartarget / al_total, "Percentage of reads that were mapped to the target region or near the target region (at most 250 bases away).", "QC:2000057"));
 	if (paired_end)
 	{
 		output.insert(QCValue("properly-paired read percentage", 100.0 * al_proper_paired / al_total, "Percentage of properly paired reads (for paired-end reads only).", "QC:2000022"));
@@ -315,7 +337,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc)", "QC:2000024"));
 	}
 	output.insert(QCValue("bases usable (MB)", (double)bases_usable / 1000000.0, "Bases sequenced that are usable for variant calling (in megabases).", "QC:2000050"));
-	output.insert(QCValue("target region read depth", (double)bases_usable / roi_bases, "Average sequencing depth in target region.", "QC:2000025"));
+	output.insert(QCValue("target region read depth", avg_depth, "Average sequencing depth in target region.", "QC:2000025"));
 
 	QVector<int> depths;
 	depths << 10 << 20 << 30 << 50 << 100 << 200 << 500;
@@ -327,6 +349,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		for (int bin=depth_dist.binIndex(depths[i]); bin<depth_dist.binCount(); ++bin) cov_bases += depth_dist.binValue(bin);
 		output.insert(QCValue("target region " + QString::number(depths[i]) + "x percentage", 100.0 * cov_bases / roi_bases, "Percentage of the target region that is covered at least " + QString::number(depths[i]) + "-fold.", accessions[i]));
 	}
+	output.insert(QCValue("target region half depth percentage", 100.0 * bases_covered_at_least_half_depth / roi_bases, "Percentage of the target region that is covered at least with half of the target region average depth. This is a measure of coverage uniformity.", "QC:2000058"));
 
 	//add depth distribtion plot
 	LinePlot plot;
