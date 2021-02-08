@@ -449,6 +449,7 @@ BedpeFileFormat BedpeFile::format() const
 		if(comment.contains("fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
 		if(comment.contains("fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
 		if(comment.contains("fileformat=BEDPE")) return BedpeFileFormat::BEDPE_GERMLINE_SINGLE;
+		if(comment.contains("fileformat=BEDPE_MULTI")) return BedpeFileFormat::BEDPE_GERMLINE_MULTI;
 	}
 	THROW(FileParseException, "Could not determine format of BEDPE file.");
 }

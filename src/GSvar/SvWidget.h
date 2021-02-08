@@ -21,10 +21,13 @@ class SvWidget
 
 public:
 	//default constructor without report config
-	SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0, bool init_gui=true);
+	SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0, bool init_gui=true);
 
-	//constructor with report config for germline
-	SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
+	//constructor with report config for germline single
+	SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
+
+	//constructor for multi/trio samples
+	SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache,  bool is_trio = true, QList<bool> affected = QList<bool>(), QWidget *parent = 0);
 
 signals:
 	void openInIGV(QString coords);
@@ -98,7 +101,8 @@ private:
 
 	Ui::SvWidget* ui;
 	BedpeFile sv_bedpe_file_;
-	QString ps_id_; //processed sample database ID. '' if unknown of NGSD is disabled.
+	QStringList ps_ids_; //processed sample database ID(s). '' if unknown or NGSD is disabled.
+	QStringList ps_names_; //processed sample names for the ids
 	FilterWidget* variant_filter_widget_; // Pointer to the FilterWidget of the varaint view (used for import settings to SV view)
 	GeneSet var_het_genes_;
 	QHash<QByteArray, BedFile>& gene2region_cache_;
@@ -115,6 +119,12 @@ private:
 	ChromosomalIndex<BedFile> roi_gene_index_;
 	bool is_somatic_;
 	bool loading_svs_ = false;
+
+	//multisample
+	bool is_multisample_= false;
+	bool is_trio_ = false;
+	QList<bool> affected_;
+
 
 
 

@@ -651,21 +651,21 @@ void MainWindow::on_actionSV_triggered()
 	try
 	{
 		//determine processed sample ID (needed for report config - so only germline)
-		QString ps_id = "";
+		QStringList ps_ids;
 		if (LoginManager::active() && germlineReportSupported())
 		{
-			ps_id = NGSD().processedSampleId(processedSampleName(), false);
+			ps_ids << NGSD().processedSampleId(processedSampleName(), false);
 		}
 
 		//open SV widget
 		SvWidget* list;
 		if(svs_.isSomatic())
 		{
-			list = new SvWidget(svs_, ps_id, ui_.filters, het_hit_genes, gene2region_cache_, this);
+			list = new SvWidget(svs_, ps_ids, ui_.filters, het_hit_genes, gene2region_cache_, this);
 		}
 		else
 		{
-			list = new SvWidget(svs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_, this);
+			list = new SvWidget(svs_, ps_ids, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_, this);
 		}
 		auto dlg = GUIHelper::createDialog(list, "Structural variants of " + processedSampleName());
 		connect(list,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));

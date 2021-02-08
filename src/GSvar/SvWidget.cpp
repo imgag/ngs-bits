@@ -23,23 +23,38 @@
 #include "VariantDetailsDockWidget.h"
 #include "ValidationDialog.h"
 
-SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* variant_filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent, bool ini_gui)
+SvWidget::SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent, bool ini_gui)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
 	, sv_bedpe_file_(bedpe_file)
-	, ps_id_(ps_id)
-	, variant_filter_widget_(variant_filter_widget)
+	, ps_ids_(ps_ids)
+	, variant_filter_widget_(filter_widget)
 	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
 	, ngsd_enabled_(LoginManager::active())
 	, report_config_(nullptr)
 	, roi_gene_index_(roi_genes_)
 {
+	// check if file type matches given processed sample count
+	if (ps_ids_.size() > 1 && (sv_bedpe_file_.format() != BedpeFileFormat::BEDPE_GERMLINE_MULTI))
+	{
+		THROW(ArgumentException, "Bedpe file type does not match given processed sample ids!");
+	}
+
+	// extract processed sample names from Bedpe file:
+	ps_names_.clear();
+	int idx_format = bedpe_file.annotationIndexByName("FORMAT");
+	if ((idx_format + ps_ids_.size()) > sv_bedpe_file_.annotationHeaders().size()) THROW(ArgumentException, "Too many processed sample ids given for BEDPE file!");
+	for (int col_idx = (idx_format + 1); col_idx < (idx_format + ps_ids_.size()); ++col_idx)
+	{
+		ps_names_.append(bedpe_file.annotationHeaders().at(col_idx));
+	}
+
 	ui->setupUi(this);
 	ui->svs->setContextMenuPolicy(Qt::CustomContextMenu);
 
 	//link variant filter widget to FilterWidgetSV
-	ui->filter_widget->setVariantFilterWidget(variant_filter_widget);
+	ui->filter_widget->setVariantFilterWidget(filter_widget);
 
 	//Setup signals and slots
 	connect(ui->copy_to_clipboard,SIGNAL(clicked()),this,SLOT(copyToClipboard()));
@@ -72,8 +87,8 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* var
 	}
 }
 
-SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
-	: SvWidget(bedpe_file, ps_id, filter_widget, het_hit_genes, cache, parent, false)
+SvWidget::SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+	: SvWidget(bedpe_file, ps_ids, filter_widget, het_hit_genes, cache, parent, false)
 {
 	if(bedpe_file.format()!=BedpeFileFormat::BEDPE_GERMLINE_SINGLE)
 	{
@@ -81,6 +96,18 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* fil
 	}
 	report_config_ = rep_conf;
 	initGUI();
+}
+
+SvWidget::SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, bool is_trio, QList<bool> affected, QWidget* parent)
+	: SvWidget(bedpe_file, ps_ids, filter_widget, het_hit_genes, cache, parent, false)
+{
+	if(bedpe_file.format()!=BedpeFileFormat::BEDPE_GERMLINE_MULTI)
+	{
+		THROW(ProgrammingException, "BEDPE file format does not match multisample constructor of SvWidget!");
+	}
+	is_multisample_ = true;
+	is_trio_ = is_trio;
+	affected_ = affected;
 }
 
 void SvWidget::initGUI()
@@ -108,6 +135,21 @@ void SvWidget::initGUI()
 		annotations_to_show_ << annotation_headers[i];
 	}
 
+	// check if given processed sample ids match samples in file
+	if (ngsd_enabled_)
+	{
+		// check if given processed sample ids match samples in file
+		NGSD db;
+		QStringList ps_db_names;
+		foreach (QString ps_id, ps_ids_)
+		{
+			if (ps_id != "") ps_db_names << db.processedSampleName(ps_id);
+		}
+		if (ps_db_names != ps_names_) THROW(ArgumentException, "Given processed sample ids do not match the samples in file!");
+	}
+
+
+
 	//Add annotation headers
 	QList<int> annotation_indices;
 	for(int i=0;i<sv_bedpe_file_.annotationHeaders().count();++i)
@@ -115,6 +157,19 @@ void SvWidget::initGUI()
 		QByteArray header = sv_bedpe_file_.annotationHeaders()[i];
 
 		if(!annotations_to_show_.contains(header)) continue;
+
+		//TODO: multisample add genotype of samples as separate column
+		if (is_multisample_)
+		{
+			int col_idx = ui->svs->columnCount();
+			ui->svs->setColumnCount(ui->svs->columnCount() + ps_names_.size());
+
+			for (int idx_sample = 0; idx_sample < ps_names_.size(); ++idx_sample)
+			{
+				QTableWidgetItem* item = new QTableWidgetItem(QString(ps_names_.at(idx_sample)));
+				ui->svs->setHorizontalHeaderItem(col_idx + idx_sample, item);
+			}
+		}
 
 		ui->svs->setColumnCount(ui->svs->columnCount() + 1 );
 		QTableWidgetItem* item = new QTableWidgetItem(QString(header));
@@ -162,8 +217,12 @@ void SvWidget::initGUI()
 		ui->svs->setItem(row,4,new QTableWidgetItem(QString::number(sv_bedpe_file_[row].start2())));
 		ui->svs->setItem(row,5,new QTableWidgetItem(QString::number(sv_bedpe_file_[row].end2())));
 
-		//Fill annotation columns
 		int col_in_widget = 6;
+
+		//TODO:
+		//Add genotype for multisample
+
+		//Fill annotation columns
 		foreach(int anno_index,annotation_indices)
 		{
 			ui->svs->setItem(row,col_in_widget,new QTableWidgetItem(QString(sv_bedpe_file_[row].annotations().at(anno_index))));
@@ -539,14 +598,14 @@ void SvWidget::editSvValidation(int row)
 		NGSD db;
 
 		//get SV ID
-		QString callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_id_).toString();
-		if (callset_id == "") THROW(DatabaseException, "No callset found for processed sample id " + ps_id_ + "!");
+		QString callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_ids_.at(0)).toString();
+		if (callset_id == "") THROW(DatabaseException, "No callset found for processed sample id " + ps_ids_.at(0) + "!");
 		QString sv_id = db.svId(sv, Helper::toInt(callset_id, "callset_id"), sv_bedpe_file_);
 		if (sv_id == "") THROW(DatabaseException, "SV not found in the NGSD! ");
 
 
 		//get sample ID
-		QString sample_id = db.sampleId(db.processedSampleName(ps_id_));
+		QString sample_id = db.sampleId(db.processedSampleName(ps_ids_.at(0)));
 
 		//get variant validation ID - add if missing
 		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE "+ db.svTableName(sv.type()) + "_id='" + sv_id + "' AND sample_id='" + sample_id + "'", true);
@@ -787,14 +846,14 @@ QByteArray SvWidget::getFormatEntryByKey(const QByteArray& key, const QByteArray
 
 void SvWidget::importPhenotypesFromNGSD()
 {
-	if (ps_id_=="")
+	if (ps_ids_.at(0) == "")
 	{
 		QMessageBox::warning(this, "Error loading phenotypes", "Cannot load phenotypes because no processed sample ID is set!");
 		return;
 	}
 
 	NGSD db;
-	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_id_).toString();
+	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_ids_.at(0)).toString();
 	PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
 
 	ui->filter_widget->setPhenotypes(phenotypes);
@@ -881,6 +940,7 @@ void SvWidget::SvSelectionChanged()
 
 	int i_format = colIndexbyName("FORMAT");
 
+	// TODO: adapt for multisample
 	int i_format_data = i_format+1;
 	//Check whether col with format data actually exists
 	if(ui->svs->columnCount()-1 < i_format_data ) return;
@@ -1028,7 +1088,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	else if (action==a_ngsd_search)
 	{
 		SvSearchWidget* widget = new SvSearchWidget();
-		widget->setProcessedSampleId(ps_id_);
+		widget->setProcessedSampleId(ps_ids_.at(0));
 		widget->setCoordinates(sv);
 		auto dlg = GUIHelper::createDialog(widget, "SV search");
 
