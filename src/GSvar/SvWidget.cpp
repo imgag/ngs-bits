@@ -158,21 +158,8 @@ void SvWidget::initGUI()
 
 		if(!annotations_to_show_.contains(header)) continue;
 
-		//TODO: multisample add genotype of samples as separate column
-		if (is_multisample_)
-		{
-			int col_idx = ui->svs->columnCount();
-			ui->svs->setColumnCount(ui->svs->columnCount() + ps_names_.size());
-
-			for (int idx_sample = 0; idx_sample < ps_names_.size(); ++idx_sample)
-			{
-				QTableWidgetItem* item = new QTableWidgetItem(QString(ps_names_.at(idx_sample)));
-				ui->svs->setHorizontalHeaderItem(col_idx + idx_sample, item);
-			}
-		}
-
 		ui->svs->setColumnCount(ui->svs->columnCount() + 1 );
-		QTableWidgetItem* item = new QTableWidgetItem(QString(header));
+        QTableWidgetItem* item = new QTableWidgetItem(QString(header));
 		if (header=="OMIM")
 		{
 			item->setIcon(QIcon("://Icons/Table.png"));
@@ -186,6 +173,31 @@ void SvWidget::initGUI()
 
 		ui->svs->setHorizontalHeaderItem(ui->svs->columnCount() - 1, item);
 		annotation_indices << i;
+
+        //add genotype of samples as separate column for trio/multisample after the positions
+        if (is_multisample_ && (i == 5))
+        {
+            int col_idx = ui->svs->columnCount();
+            ui->svs->setColumnCount(ui->svs->columnCount() + ps_names_.size());
+
+            for (int idx_sample = 0; idx_sample < ps_names_.size(); ++idx_sample)
+            {
+                QString sample_comment;
+                if (is_trio_)
+                {
+                    sample_comment =  (QStringList() << " (c)" << " (f)" << " (m)").at(idx_sample);
+
+                }
+                else
+                {
+
+                    sample_comment = (affected_.at(idx_sample)) ? " (a)" : " (c)";
+                }
+                QTableWidgetItem* item = new QTableWidgetItem(QString(header) + sample_comment);
+
+                ui->svs->setHorizontalHeaderItem(col_idx + idx_sample, item);
+            }
+        }
 	}
 
 
@@ -219,8 +231,15 @@ void SvWidget::initGUI()
 
 		int col_in_widget = 6;
 
-		//TODO:
-		//Add genotype for multisample
+        //add genotype of samples as separate column for trio/multisample after the positions
+        if (is_multisample_)
+        {
+            for (int idx_sample = 0; idx_sample < ps_names_.size(); ++idx_sample)
+            {
+                QString gt = extractGenotype(sv_bedpe_file_[row], sv_bedpe_file_.annotationHeaders(), idx_sample);
+                ui->svs->setItem(row, col_in_widget++, new QTableWidgetItem(gt));
+            }
+        }
 
 		//Fill annotation columns
 		foreach(int anno_index,annotation_indices)
@@ -228,7 +247,8 @@ void SvWidget::initGUI()
 			ui->svs->setItem(row,col_in_widget,new QTableWidgetItem(QString(sv_bedpe_file_[row].annotations().at(anno_index))));
 			++col_in_widget;
 		}
-	}
+    }
+
 
 	//set entries for SV filter columns filter
 	QStringList valid_filter_entries;
@@ -685,7 +705,21 @@ void SvWidget::editGermlineReportConfiguration(int row)
 
 	//update config, GUI and NGSD
 	report_config_->set(var_config);
-	updateReportConfigHeaderIcon(row);
+    updateReportConfigHeaderIcon(row);
+}
+
+QByteArray SvWidget::extractGenotype(const BedpeLine& sv, const QList<QByteArray>& annotation_headers, int sample_idx)
+{
+    QByteArray genotype = sv.formatValueByKey("GT", annotation_headers, false, "FORMAT", sample_idx).trimmed();
+    if (genotype == "1/1")
+    {
+        return "hom";
+    }
+    else if ((genotype == "0/1") || (genotype == "1/0"))
+    {
+        return "het";
+    }
+    return "n/a";
 }
 
 void SvWidget::loadGeneFile()

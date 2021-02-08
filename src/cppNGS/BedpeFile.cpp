@@ -174,8 +174,9 @@ QString BedpeLine::toString()
 	}
 }
 
-QByteArray BedpeLine::formatValueByKey(QByteArray format_key, const QList<QByteArray>& annotation_headers, bool error_on_mismatch, QByteArray format_header_name) const
+QByteArray BedpeLine::formatValueByKey(QByteArray format_key, const QList<QByteArray>& annotation_headers, bool error_on_mismatch, QByteArray format_header_name, int sample_idx) const
 {
+    if (sample_idx < 0) THROW(ArgumentException, "Invalid sample index " + QByteArray::number(sample_idx) + "!")
 
 	// get keys/values of the FORMAT column
 	int format_idx = annotation_headers.indexOf(format_header_name);
@@ -185,7 +186,7 @@ QByteArray BedpeLine::formatValueByKey(QByteArray format_key, const QList<QByteA
 		return "";
 	}
 	QByteArrayList keys = annotations_[format_idx].split(':');
-	QByteArrayList values = annotations_[format_idx + 1].split(':');
+    QByteArrayList values = annotations_[format_idx + 1 + sample_idx].split(':');
 
 	if (keys.size() != values.size())
 	{

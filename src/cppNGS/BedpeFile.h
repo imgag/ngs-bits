@@ -131,7 +131,7 @@ public:
 
 	///Returns the value of a given FORMAT key:
 	///		(only for germline single samples)
-	QByteArray formatValueByKey(QByteArray format_key, const QList<QByteArray>& annotation_headers, bool error_on_mismatch=true, QByteArray format_header_name="FORMAT") const;
+    QByteArray formatValueByKey(QByteArray format_key, const QList<QByteArray>& annotation_headers, bool error_on_mismatch=true, QByteArray format_header_name="FORMAT", int sample_idx = 0) const;
 
 	///Returns the genes as GeneSet
 	GeneSet genes(const QList<QByteArray>& annotation_headers, bool error_on_mismatch=true) const;
