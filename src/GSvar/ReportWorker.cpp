@@ -126,7 +126,9 @@ void ReportWorker::writeCoverageReport(QTextStream& stream, QString bam_file, QS
 	if (stats.count()==0)
 	{
 		Log::warn("Target region depth from NGSD cannot be used because ROI is not the processing system target region! Recalculating...");
-		stats = Statistics::mapping(roi, bam_file);
+
+		QString ref_file = Settings::string("reference_genome");
+		stats = Statistics::mapping(roi, bam_file, ref_file);
 	}
 	for (int i=0; i<stats.count(); ++i)
 	{
