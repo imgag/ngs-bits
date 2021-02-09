@@ -3,7 +3,6 @@
 
 #include "cppNGS_global.h"
 #include <QByteArray>
-#include <random>
 
 ///DNA sequence class
 class CPPNGSSHARED_EXPORT Sequence
@@ -32,6 +31,9 @@ public:
 
 	///Returns the reverse complement of the sequence.
 	Sequence toReverseComplement() const;
+
+	///Returns the G/C fraction [0,1]. If not valid base is contained in the sequence, nan is resturned.
+	double gcContent() const;
 
 	///Returns the complementary base of the given base.
 	static char complement(char base);

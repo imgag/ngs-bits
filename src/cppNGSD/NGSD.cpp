@@ -2943,6 +2943,7 @@ void NGSD::updateQC(QString obo_file, bool debug)
 		if (!valid_types.contains(term.type())) continue;
 		++c_terms_valid_type;
 
+		//insert (or update if already contained)
 		if (debug) qDebug() << "IMPORTING:" << term.id() << term.name() << term.type() << term.isObsolete()  << term.definition();
 		query.bindValue(0, term.id());
 		query.bindValue(1, term.name());

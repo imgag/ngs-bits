@@ -1,17 +1,21 @@
 === TODO ===
 
+lib:
+- Statistics::mapping:
+    - AT/GC dropout metric for WGS
+    - add coverage uniformity metric for WGS
+
 GSvar:
+# AF/DP of variants to germline XML report (Gunnar)
 # add multi-sample report-config
     - 1 affected > easy
     - >1 affected > user has to set one affected as index > only report config of index is edited
     - no report needed - is created from individual samples
+* Allow showing somatic variants in small variants search (CS)
 - Variant tab: add disease group significance (remove duplicates because of family, calculates significance of one disease group vs the others)
 - Allow ClinVar upload as soon as the API is available
     - until then: perform manual upload at the end of each quater
     - also support CNVs/SVs?
-
-Tools:
-- UPDHunter: also support chrX?
 
 External:
 - implement MultiQC support for ReadQC/MappingQC/VariantQC/SomaticQC (>JM)

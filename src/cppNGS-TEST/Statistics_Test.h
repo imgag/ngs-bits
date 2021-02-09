@@ -2,6 +2,7 @@
 #include "VariantList.h"
 #include "QCCollection.h"
 #include "Statistics.h"
+#include "Settings.h"
 
 TEST_CLASS(Statistics_Test)
 {
@@ -161,12 +162,15 @@ TEST_CLASS(Statistics_Test)
 
 	void mapping_panel()
 	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/panel.bed"));
 		bed_file.merge();
 
-		QCCollection stats = Statistics::mapping(bed_file, TESTDATA("data_in/panel.bam"), 20);
-		I_EQUAL(stats.count(), 20);
+		QCCollection stats = Statistics::mapping(bed_file, TESTDATA("data_in/panel.bam"), ref_file, 20);
+		I_EQUAL(stats.count(), 23);
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
 		S_EQUAL(stats[0].toString(), QString("10.82"));
 		S_EQUAL(stats[1].name(), QString("clipped base percentage"));
@@ -203,10 +207,16 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[16].toString(), QString("0.06"));
 		S_EQUAL(stats[17].name(), QString("target region half depth percentage"));
 		S_EQUAL(stats[17].toString(), QString("74.42"));
-		S_EQUAL(stats[18].name(), QString("depth distribution plot"));
-		IS_TRUE(stats[18].type()==QVariant::ByteArray);
-		S_EQUAL(stats[19].name(), QString("insert size distribution plot"));
-		IS_TRUE(stats[19].type()==QVariant::ByteArray);
+		S_EQUAL(stats[18].name(), QString("AT dropout"));
+		S_EQUAL(stats[18].toString(), QString("8.55"));
+		S_EQUAL(stats[19].name(), QString("GC dropout"));
+		S_EQUAL(stats[19].toString(), QString("1.15"));
+		S_EQUAL(stats[20].name(), QString("depth distribution plot"));
+		IS_TRUE(stats[20].type()==QVariant::ByteArray);
+		S_EQUAL(stats[21].name(), QString("insert size distribution plot"));
+		IS_TRUE(stats[21].type()==QVariant::ByteArray);
+		S_EQUAL(stats[22].name(), QString("GC bias plot"));
+		IS_TRUE(stats[22].type()==QVariant::ByteArray);
 
 		//check that there is a description for each term
 		for (int i=0; i<stats.count(); ++i)
@@ -226,12 +236,15 @@ TEST_CLASS(Statistics_Test)
 
 	void mapping_close_exons()
 	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
 		BedFile bed_file;
 		bed_file.load(TESTDATA("data_in/close_exons.bed"));
 		bed_file.merge();
 
-		QCCollection stats = Statistics::mapping(bed_file, TESTDATA("data_in/close_exons.bam"));
-		I_EQUAL(stats.count(), 20);
+		QCCollection stats = Statistics::mapping(bed_file, TESTDATA("data_in/close_exons.bam"), ref_file);
+		I_EQUAL(stats.count(), 23);
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
 		S_EQUAL(stats[0].toString(), QString("19.10"));
 		S_EQUAL(stats[1].name(), QString("clipped base percentage"));
@@ -268,10 +281,16 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[16].toString(), QString("39.61"));
 		S_EQUAL(stats[17].name(), QString("target region half depth percentage"));
 		S_EQUAL(stats[17].toString(), QString("77.92"));
-		S_EQUAL(stats[18].name(), QString("depth distribution plot"));
-		IS_TRUE(stats[18].type()==QVariant::ByteArray);
-		S_EQUAL(stats[19].name(), QString("insert size distribution plot"));
-		IS_TRUE(stats[19].type()==QVariant::ByteArray);
+		S_EQUAL(stats[18].name(), QString("AT dropout"));
+		S_EQUAL(stats[18].toString(), QString("0.00"));
+		S_EQUAL(stats[19].name(), QString("GC dropout"));
+		S_EQUAL(stats[19].toString(), QString("10.46"));
+		S_EQUAL(stats[20].name(), QString("depth distribution plot"));
+		IS_TRUE(stats[20].type()==QVariant::ByteArray);
+		S_EQUAL(stats[21].name(), QString("insert size distribution plot"));
+		IS_TRUE(stats[21].type()==QVariant::ByteArray);
+		S_EQUAL(stats[22].name(), QString("GC bias plot"));
+		IS_TRUE(stats[22].type()==QVariant::ByteArray);
 	}
 
 	void mapping_wgs()

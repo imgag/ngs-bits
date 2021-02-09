@@ -923,3 +923,28 @@ def: "Percentage of the target region that is covered at least with half of the 
 is_a: QC:2000003 ! NGS mapping parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: sturm
+
+[Term]
+id: QC:2000059
+name: AT dropout
+def: "Illumina-style AT dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[0..50]."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000060
+name: GC dropout
+def: "Illumina-style GC dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[50..100]."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: sturm
+
+[Term]
+id: QC:2000061
+name: GC bias plot
+def: "Plots the percentage of target regions and reads per GC bin [0-100]." [PXS:QC]
+is_a: QC:2000002 ! NGS mapping parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: sturm

@@ -16,5 +16,7 @@ target region 100x percentage: 31.09
 target region 200x percentage: 0.00
 target region 500x percentage: 0.00
 target region half depth percentage: 82.15
+AT dropout: 11.63
+GC dropout: 2.22
 
 SNV allele frequency deviation: n/a

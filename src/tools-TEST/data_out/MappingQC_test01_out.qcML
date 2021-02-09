@@ -24,11 +24,15 @@
     <qualityParameter ID="qp0015" name="target region 100x percentage" description="Percentage of the target region that is covered at least 100-fold." value="55.60" cvRef="QC" accession="QC:2000030"/>
     <qualityParameter ID="qp0016" name="target region 200x percentage" description="Percentage of the target region that is covered at least 200-fold." value="18.26" cvRef="QC" accession="QC:2000031"/>
     <qualityParameter ID="qp0017" name="target region 500x percentage" description="Percentage of the target region that is covered at least 500-fold." value="0.06" cvRef="QC" accession="QC:2000032"/>
-    <qualityParameter ID="qp0018" name="target region half depth percentage" description="Percentage of the target region that is covered at least with half of the target region average depth. This is a measure of coverage uniformity." value="74.47" cvRef="QC" accession="QC:2000058"/>
-    <qualityParameter ID="qp0021" name="SNV allele frequency deviation" description="Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)" value="1.57" cvRef="QC" accession="QC:2000051"/>
-    <attachment ID="qp0019" name="depth distribution plot" description="Depth of coverage distribution plot calculated one the target region." cvRef="QC" accession="QC:2000037">
+    <qualityParameter ID="qp0018" name="target region half depth percentage" description="Percentage of the target region that is covered at least with half of the target region average depth. This is a measure of coverage uniformity." value="74.47" cvRef="QC" accession="QC:2000059"/>
+    <qualityParameter ID="qp0019" name="AT dropout" description="Illumina-style AT dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[0..50]." value="8.55" cvRef="QC" accession="QC:2000059"/>
+    <qualityParameter ID="qp0020" name="GC dropout" description="Illumina-style GC dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[50..100]." value="1.15" cvRef="QC" accession="QC:2000060"/>
+    <qualityParameter ID="qp0024" name="SNV allele frequency deviation" description="Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)" value="1.57" cvRef="QC" accession="QC:2000051"/>
+    <attachment ID="qp0021" name="depth distribution plot" description="Depth of coverage distribution plot calculated one the target region." cvRef="QC" accession="QC:2000037">
     </attachment>
-    <attachment ID="qp0020" name="insert size distribution plot" description="Insert size distribution plot." cvRef="QC" accession="QC:2000038">
+    <attachment ID="qp0022" name="insert size distribution plot" description="Insert size distribution plot." cvRef="QC" accession="QC:2000038">
+    </attachment>
+    <attachment ID="qp0023" name="GC bias plot" description="GC bias plot." cvRef="QC" accession="QC:2000061">
     </attachment>
   </runQuality>
   <cvList>
