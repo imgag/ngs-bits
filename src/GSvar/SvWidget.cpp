@@ -45,7 +45,7 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget
 	ps_names_.clear();
 	int idx_format = bedpe_file.annotationIndexByName("FORMAT");
 	if ((idx_format + ps_ids_.size()) > sv_bedpe_file_.annotationHeaders().size()) THROW(ArgumentException, "Too many processed sample ids given for BEDPE file!");
-	for (int col_idx = (idx_format + 1); col_idx < (idx_format + ps_ids_.size()); ++col_idx)
+	for (int col_idx = (idx_format + 1); col_idx < (idx_format + 1 + ps_ids_.size()); ++col_idx)
 	{
 		ps_names_.append(bedpe_file.annotationHeaders().at(col_idx));
 	}
@@ -108,6 +108,7 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget
 	is_multisample_ = true;
 	is_trio_ = is_trio;
 	affected_ = affected;
+	initGUI();
 }
 
 void SvWidget::initGUI()
@@ -148,6 +149,29 @@ void SvWidget::initGUI()
 		if (ps_db_names != ps_names_) THROW(ArgumentException, "Given processed sample ids do not match the samples in file!");
 	}
 
+	//add genotype of samples as separate column for trio/multisample after the positions
+	if (is_multisample_)
+	{
+		int col_idx = ui->svs->columnCount();
+		ui->svs->setColumnCount(ui->svs->columnCount() + ps_names_.size());
+
+		for (int idx_sample = 0; idx_sample < ps_names_.size(); ++idx_sample)
+		{
+			QTableWidgetItem* item;
+			item = new QTableWidgetItem(QString(ps_names_.at(idx_sample)));
+			if (is_trio_)
+			{
+				item->setToolTip((QStringList() << "child" << "father" << "mother").at(idx_sample));
+			}
+			else
+			{
+				item->setToolTip((affected_.at(idx_sample))?"affected":"control");
+			}
+			if (affected_.at(idx_sample)) item->setForeground(QBrush(Qt::darkRed));
+
+			ui->svs->setHorizontalHeaderItem(col_idx + idx_sample, item);
+		}
+	}
 
 
 	//Add annotation headers
@@ -173,31 +197,6 @@ void SvWidget::initGUI()
 
 		ui->svs->setHorizontalHeaderItem(ui->svs->columnCount() - 1, item);
 		annotation_indices << i;
-
-        //add genotype of samples as separate column for trio/multisample after the positions
-        if (is_multisample_ && (i == 5))
-        {
-            int col_idx = ui->svs->columnCount();
-            ui->svs->setColumnCount(ui->svs->columnCount() + ps_names_.size());
-
-            for (int idx_sample = 0; idx_sample < ps_names_.size(); ++idx_sample)
-            {
-                QString sample_comment;
-                if (is_trio_)
-                {
-                    sample_comment =  (QStringList() << " (c)" << " (f)" << " (m)").at(idx_sample);
-
-                }
-                else
-                {
-
-                    sample_comment = (affected_.at(idx_sample)) ? " (a)" : " (c)";
-                }
-                QTableWidgetItem* item = new QTableWidgetItem(QString(header) + sample_comment);
-
-                ui->svs->setHorizontalHeaderItem(col_idx + idx_sample, item);
-            }
-        }
 	}
 
 
@@ -248,6 +247,15 @@ void SvWidget::initGUI()
 			++col_in_widget;
 		}
     }
+
+	if (is_multisample_)
+	{
+		ui->sv_details->setColumnCount(2 + ps_names_.size());
+		for (int sample_idx = 0; sample_idx < ps_names_.size(); ++sample_idx)
+		{
+			ui->sv_details->setHorizontalHeaderItem(2 + sample_idx, new QTableWidgetItem(QString(ps_names_.at(sample_idx))));
+		}
+	}
 
 
 	//set entries for SV filter columns filter
@@ -719,6 +727,10 @@ QByteArray SvWidget::extractGenotype(const BedpeLine& sv, const QList<QByteArray
     {
         return "het";
     }
+	else if (genotype == "0/0")
+	{
+		return "wt";
+	}
     return "n/a";
 }
 
@@ -974,14 +986,18 @@ void SvWidget::SvSelectionChanged()
 
 	int i_format = colIndexbyName("FORMAT");
 
-	// TODO: adapt for multisample
-	int i_format_data = i_format+1;
+	// adapt for multisample
+	int i_format_first_data = i_format+1;
 	//Check whether col with format data actually exists
-	if(ui->svs->columnCount()-1 < i_format_data ) return;
+	if(ui->svs->columnCount()-1 < i_format_first_data ) return;
 
 	QStringList format = ui->svs->item(row,i_format)->text().split(":");
-	QStringList data = ui->svs->item(row,i_format_data)->text().split(":");
-	if(format.count() != data.count()) return;
+	QVector<QStringList> data;
+	for(int sample_idx=0; sample_idx < ps_names_.size(); sample_idx++)
+	{
+		data.append(ui->svs->item(row,i_format_first_data + sample_idx)->text().split(":"));
+		if(format.count() != data.last().count()) return;
+	}
 	ui->sv_details->setRowCount(format.count());
 
 	//Map with description of format field, e.g. GT <-> GENOTYPE
@@ -991,7 +1007,11 @@ void SvWidget::SvSelectionChanged()
 	{
 		ui->sv_details->setItem(i,0,new QTableWidgetItem(QString(format[i])));
 		ui->sv_details->setItem(i,1,new QTableWidgetItem(QString(format_description.value(format.at(i).toLatin1()))));
-		ui->sv_details->setItem(i,2,new QTableWidgetItem(QString(data[i])));
+		for(int sample_idx=0; sample_idx < ps_names_.size(); sample_idx++)
+		{
+			ui->sv_details->setItem(i,2 + sample_idx, new QTableWidgetItem(QString(data.at(sample_idx).at(i))));
+		}
+
 	}
 	resizeQTableWidget(ui->sv_details);
 	ui->sv_details->scrollToTop();

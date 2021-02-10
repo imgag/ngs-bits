@@ -99,6 +99,7 @@ private:
 
 	void editGermlineReportConfiguration(int row);
 
+	/// returns the genotype of a SV of a given sample
     QByteArray extractGenotype(const BedpeLine& sv, const QList<QByteArray>& annotation_headers, int sample_idx = 0);
 
 	Ui::SvWidget* ui;

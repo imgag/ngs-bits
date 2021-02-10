@@ -650,23 +650,73 @@ void MainWindow::on_actionSV_triggered()
 
 	try
 	{
-		//determine processed sample ID (needed for report config - so only germline)
-		QStringList ps_ids;
-		if (LoginManager::active() && germlineReportSupported())
-		{
-			ps_ids << NGSD().processedSampleId(processedSampleName(), false);
-		}
-
 		//open SV widget
 		SvWidget* list;
-		if(svs_.isSomatic())
+
+		//determine processed sample ID(s)
+		QStringList ps_ids;
+
+		// get all sample names for trio/multisample
+		if ((variants_.type() == GERMLINE_MULTISAMPLE) || (variants_.type() == GERMLINE_TRIO))
 		{
-			list = new SvWidget(svs_, ps_ids, ui_.filters, het_hit_genes, gene2region_cache_, this);
+			bool is_trio = (variants_.type() == GERMLINE_TRIO);
+			QList<bool> affected;
+			QList<int> sample_column_indices_affected = variants_.getSampleHeader().sampleColumns(true);
+			QList<int> sample_column_indices_control = variants_.getSampleHeader().sampleColumns(false);
+			QList<int> sample_column_indices = sample_column_indices_affected + sample_column_indices_control;
+			std::sort(sample_column_indices.begin(), sample_column_indices.end());
+
+
+
+			// get ps_ids
+			foreach (int col_idx, sample_column_indices)
+			{
+				if (LoginManager::active())
+				{
+					qDebug() << variants_.getSampleHeader().at(col_idx).id;
+					ps_ids <<  NGSD().processedSampleId(variants_.getSampleHeader().at(col_idx).id, false);
+				}
+				else
+				{
+					ps_ids << "";
+				}
+				affected << sample_column_indices_affected.contains(col_idx);
+			}
+
+			list = new SvWidget(svs_, ps_ids, ui_.filters, het_hit_genes, gene2region_cache_,is_trio, affected, this);
+
 		}
 		else
 		{
-			list = new SvWidget(svs_, ps_ids, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_, this);
+			// single sample
+
+			if (LoginManager::active())
+			{
+				if (variants_.type() == GERMLINE_SINGLESAMPLE)
+				{
+					ps_ids << NGSD().processedSampleId(processedSampleName(), false);
+				}
+				else if (variants_.type() == GERMLINE_TRIO)
+				{
+					ps_ids << NGSD().processedSampleId(processedSampleName(), false);
+				}
+
+			}
+			else
+			{
+				ps_ids << "";
+			}
+
+			if(svs_.isSomatic())
+			{
+				list = new SvWidget(svs_, ps_ids, ui_.filters, het_hit_genes, gene2region_cache_, this);
+			}
+			else
+			{
+				list = new SvWidget(svs_, ps_ids, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_, this);
+			}
 		}
+
 		auto dlg = GUIHelper::createDialog(list, "Structural variants of " + processedSampleName());
 		connect(list,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
 		connect(list,SIGNAL(openGeneTab(QString)),this,SLOT(openGeneTab(QString)));
