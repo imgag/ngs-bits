@@ -602,6 +602,11 @@ void MainWindow::on_actionIgvPort_triggered()
 	}
 }
 
+void MainWindow::on_actionIgvDocumentation_triggered()
+{
+	QDesktopServices::openUrl(QUrl("https://software.broadinstitute.org/software/igv/UserGuide"));
+}
+
 void MainWindow::on_actionSV_triggered()
 {
 	if(filename_ == "") return;

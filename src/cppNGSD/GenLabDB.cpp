@@ -16,7 +16,7 @@ GenLabDB::GenLabDB()
 	QString user = Settings::string("genlab_user");
 	QString pass = Settings::string("genlab_pass");
 
-	if (Settings::string("genlab_mssql")!="true") //MySQL server
+	if (!Settings::boolean("genlab_mssql")) //MySQL server
 	{
 		db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
 

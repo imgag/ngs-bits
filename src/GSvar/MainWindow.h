@@ -185,6 +185,8 @@ public slots:
 	void on_actionIgvClear_triggered();
 	///Override IGV prot
 	void on_actionIgvPort_triggered();
+	///Open IGV documentation in browser
+	void on_actionIgvDocumentation_triggered();
 	///Open CNV dialog
 	void on_actionCNV_triggered();
 	///Open ROH dialog
