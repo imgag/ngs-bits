@@ -245,9 +245,6 @@ void BedpeFile::load(const QString& file_name)
 		}
 	}
 
-    // parse sample info of multi sample BEDPE files
-    if (format() == BEDPE_GERMLINE_MULTI) parseSampleHeaderInfo();
-
 	//header (first 6 fields are fixed)
 	const int fixed_cols = 6;
 	for(int i=fixed_cols; i<file.header().count(); ++i)
@@ -255,6 +252,9 @@ void BedpeFile::load(const QString& file_name)
 		annotation_headers_ << file.header()[i];
 	}
 	int i_type = annotationIndexByName("TYPE");
+
+	// parse sample info of multi sample BEDPE files
+	if ((format() == BEDPE_GERMLINE_MULTI) || (format() == BEDPE_GERMLINE_TRIO)) parseSampleHeaderInfo();
 
 	//fields
 	while(!file.atEnd())

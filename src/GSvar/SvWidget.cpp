@@ -153,8 +153,6 @@ void SvWidget::initGUI()
     }
 
 
-
-
 	//Set list of annotations to be showed, by default some annotations are filtered out
 	QByteArrayList annotation_headers = sv_bedpe_file_.annotationHeaders();
 
