@@ -415,7 +415,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		for (int bin=depth_dist.binIndex(depths[i]); bin<depth_dist.binCount(); ++bin) cov_bases += depth_dist.binValue(bin);
 		output.insert(QCValue("target region " + QString::number(depths[i]) + "x percentage", 100.0 * cov_bases / roi_bases, "Percentage of the target region that is covered at least " + QString::number(depths[i]) + "-fold.", accessions[i]));
 	}
-	output.insert(QCValue("target region half depth percentage", 100.0 * bases_covered_at_least_half_depth / roi_bases, "Percentage of the target region that is covered at least with half of the target region average depth. This is a measure of coverage uniformity.", "QC:2000059"));
+	output.insert(QCValue("target region half depth percentage", 100.0 * bases_covered_at_least_half_depth / roi_bases, "Percentage of the target region that is covered at least with half of the target region average depth. This is a measure of coverage uniformity.", "QC:2000058"));
 	output.insert(QCValue("AT dropout", at_dropout, "Illumina-style AT dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[0..50].", "QC:2000059"));
 	output.insert(QCValue("GC dropout", gc_dropout, "Illumina-style GC dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[50..100].", "QC:2000060"));
 
