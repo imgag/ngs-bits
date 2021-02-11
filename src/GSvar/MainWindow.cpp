@@ -653,67 +653,27 @@ void MainWindow::on_actionSV_triggered()
 		//open SV widget
 		SvWidget* list;
 
-		//determine processed sample ID(s)
-		QStringList ps_ids;
-
-		// get all sample names for trio/multisample
 		if ((variants_.type() == GERMLINE_MULTISAMPLE) || (variants_.type() == GERMLINE_TRIO))
 		{
-			bool is_trio = (variants_.type() == GERMLINE_TRIO);
-			QList<bool> affected;
-			QList<int> sample_column_indices_affected = variants_.getSampleHeader().sampleColumns(true);
-			QList<int> sample_column_indices_control = variants_.getSampleHeader().sampleColumns(false);
-			QList<int> sample_column_indices = sample_column_indices_affected + sample_column_indices_control;
-			std::sort(sample_column_indices.begin(), sample_column_indices.end());
-
-
-
-			// get ps_ids
-			foreach (int col_idx, sample_column_indices)
-			{
-				if (LoginManager::active())
-				{
-					qDebug() << variants_.getSampleHeader().at(col_idx).id;
-					ps_ids <<  NGSD().processedSampleId(variants_.getSampleHeader().at(col_idx).id, false);
-				}
-				else
-				{
-					ps_ids << "";
-				}
-				affected << sample_column_indices_affected.contains(col_idx);
-			}
-
-			list = new SvWidget(svs_, ps_ids, ui_.filters, het_hit_genes, gene2region_cache_,is_trio, affected, this);
-
+            // multisample (ps names will be extracted from BEDPE file)
+            list = new SvWidget(svs_, ui_.filters, het_hit_genes, gene2region_cache_, this);
 		}
 		else
 		{
 			// single sample
-
+            QString ps_id;
 			if (LoginManager::active())
 			{
-				if (variants_.type() == GERMLINE_SINGLESAMPLE)
-				{
-					ps_ids << NGSD().processedSampleId(processedSampleName(), false);
-				}
-				else if (variants_.type() == GERMLINE_TRIO)
-				{
-					ps_ids << NGSD().processedSampleId(processedSampleName(), false);
-				}
-
-			}
-			else
-			{
-				ps_ids << "";
+                ps_id = NGSD().processedSampleId(processedSampleName(), false);
 			}
 
 			if(svs_.isSomatic())
 			{
-				list = new SvWidget(svs_, ps_ids, ui_.filters, het_hit_genes, gene2region_cache_, this);
+                list = new SvWidget(svs_, ps_id, ui_.filters, het_hit_genes, gene2region_cache_, this);
 			}
 			else
 			{
-				list = new SvWidget(svs_, ps_ids, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_, this);
+                list = new SvWidget(svs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_, this);
 			}
 		}
 

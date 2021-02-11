@@ -6,6 +6,7 @@
 #include "Helper.h"
 #include "BedFile.h"
 #include "GeneSet.h"
+#include "VariantList.h"
 #include <QByteArrayList>
 #include <QMap>
 
@@ -164,7 +165,8 @@ enum BedpeFileFormat
 	BEDPE_GERMLINE_SINGLE,
 	BEDPE_SOMATIC_TUMOR_ONLY,
 	BEDPE_SOMATIC_TUMOR_NORMAL,
-	BEDPE_GERMLINE_MULTI
+    BEDPE_GERMLINE_MULTI,
+    BEDPE_GERMLINE_TRIO,
 };
 
 class CPPNGSSHARED_EXPORT BedpeFile
@@ -235,6 +237,12 @@ public:
 		annotation_headers_ = annotation_headers;
 	}
 
+    ///returns the sample header info of multisample BEDPE files
+    const SampleHeaderInfo& sampleHeaderInfo()
+    {
+        return sample_header_info_;
+    }
+
 
 	QByteArray annotationDescriptionByName(QByteArray name)
 	{
@@ -271,10 +279,12 @@ public:
 	int findMatch(const BedpeLine& sv, bool deep_ins_compare = false, bool error_on_mismatch = true, bool compare_ci=true) const;
 
 private:
+    void parseSampleHeaderInfo();
 	QList<QByteArray> annotation_headers_;
-	//annotation description in file header: ##DESCRIPTION=KEY=VALUE
+    /// annotation description in file header: ##DESCRIPTION=KEY=VALUE
 	QMap<QByteArray, QByteArray> annotation_descriptions_;
 	QList<QByteArray> comments_;
+    SampleHeaderInfo sample_header_info_; //contains sample info of trio/multisample
 	QList<BedpeLine> lines_;
 
 	///Returns all information fields with "NAME=" as list of QMAP containing key value pairs

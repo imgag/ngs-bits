@@ -245,6 +245,9 @@ void BedpeFile::load(const QString& file_name)
 		}
 	}
 
+    // parse sample info of multi sample BEDPE files
+    if (format() == BEDPE_GERMLINE_MULTI) parseSampleHeaderInfo();
+
 	//header (first 6 fields are fixed)
 	const int fixed_cols = 6;
 	for(int i=fixed_cols; i<file.header().count(); ++i)
@@ -450,6 +453,7 @@ BedpeFileFormat BedpeFile::format() const
 		if(comment.contains("fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
 		if(comment.contains("fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
 		if(comment.contains("fileformat=BEDPE_GERMLINE_MULTI")) return BedpeFileFormat::BEDPE_GERMLINE_MULTI;
+        if(comment.contains("fileformat=BEDPE_GERMLINE_TRIO")) return BedpeFileFormat::BEDPE_GERMLINE_TRIO;
 		if(comment.contains("fileformat=BEDPE")) return BedpeFileFormat::BEDPE_GERMLINE_SINGLE;
 	}
 	THROW(FileParseException, "Could not determine format of BEDPE file.");
@@ -577,5 +581,53 @@ int BedpeFile::findMatch(const BedpeLine& sv, bool deep_ins_compare, bool error_
 		THROW(ArgumentException, "No match found in given SV in BedpeFile!");
 	}
 
-	return -1;
+    return -1;
+}
+
+void BedpeFile::parseSampleHeaderInfo()
+{
+    sample_header_info_.clear();
+    foreach(QString line, comments_)
+    {
+        line = line.trimmed();
+
+        if (line.startsWith("##SAMPLE=<"))
+        {
+            //split into key=value pairs
+            QStringList parts = line.mid(10, line.length()-11).split(',');
+            for (int i=1; i<parts.count(); ++i)
+            {
+                if (!parts[i].contains("="))
+                {
+                    parts[i-1] += "," + parts[i];
+                    parts.removeAt(i);
+                    --i;
+                }
+            }
+
+            foreach(const QString& part, parts)
+            {
+                int sep_idx = part.indexOf('=');
+                QString key = part.left(sep_idx);
+                QString value = part.mid(sep_idx+1);
+                if (key=="ID")
+                {
+                    SampleInfo tmp;
+                    tmp.id = value;
+                    tmp.column_name = value;
+                    sample_header_info_ << tmp;
+                }
+                else
+                {
+                    sample_header_info_.last().properties[key] = value;
+                }
+            }
+        }
+    }
+
+    //determine column index
+    for (int i=0; i<sample_header_info_.count(); ++i)
+    {
+        sample_header_info_[i].column_index = annotationIndexByName(sample_header_info_[i].column_name.toLatin1());
+    }
 }

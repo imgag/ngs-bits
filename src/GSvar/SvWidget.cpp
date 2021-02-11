@@ -23,11 +23,11 @@
 #include "VariantDetailsDockWidget.h"
 #include "ValidationDialog.h"
 
-SvWidget::SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent, bool ini_gui)
+SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent, bool ini_gui)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
 	, sv_bedpe_file_(bedpe_file)
-	, ps_ids_(ps_ids)
+    , ps_ids_(QStringList() << ps_id)
 	, variant_filter_widget_(filter_widget)
 	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
@@ -39,15 +39,6 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget
 	if (ps_ids_.size() > 1 && (sv_bedpe_file_.format() != BedpeFileFormat::BEDPE_GERMLINE_MULTI))
 	{
 		THROW(ArgumentException, "Bedpe file type does not match given processed sample ids!");
-	}
-
-	// extract processed sample names from Bedpe file:
-	ps_names_.clear();
-	int idx_format = bedpe_file.annotationIndexByName("FORMAT");
-	if ((idx_format + ps_ids_.size()) > sv_bedpe_file_.annotationHeaders().size()) THROW(ArgumentException, "Too many processed sample ids given for BEDPE file!");
-	for (int col_idx = (idx_format + 1); col_idx < (idx_format + 1 + ps_ids_.size()); ++col_idx)
-	{
-		ps_names_.append(bedpe_file.annotationHeaders().at(col_idx));
 	}
 
 	ui->setupUi(this);
@@ -87,8 +78,8 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget
 	}
 }
 
-SvWidget::SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
-	: SvWidget(bedpe_file, ps_ids, filter_widget, het_hit_genes, cache, parent, false)
+SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+    : SvWidget(bedpe_file, ps_id, filter_widget, het_hit_genes, cache, parent, false)
 {
 	if(bedpe_file.format()!=BedpeFileFormat::BEDPE_GERMLINE_SINGLE)
 	{
@@ -98,16 +89,18 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget
 	initGUI();
 }
 
-SvWidget::SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, bool is_trio, QList<bool> affected, QWidget* parent)
-	: SvWidget(bedpe_file, ps_ids, filter_widget, het_hit_genes, cache, parent, false)
+SvWidget::SvWidget(const BedpeFile& bedpe_file, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
+    : SvWidget(bedpe_file, "", filter_widget, het_hit_genes, cache, parent, false)
 {
-	if(bedpe_file.format()!=BedpeFileFormat::BEDPE_GERMLINE_MULTI)
+    is_multisample_ = true;
+    if((bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)||(bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO))
 	{
-		THROW(ProgrammingException, "BEDPE file format does not match multisample constructor of SvWidget!");
+        is_trio_ = bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO;
 	}
-	is_multisample_ = true;
-	is_trio_ = is_trio;
-	affected_ = affected;
+    else
+    {
+        THROW(ProgrammingException, "BEDPE file format does not match multisample constructor of SvWidget!");
+    }
 	initGUI();
 }
 
@@ -125,6 +118,43 @@ void SvWidget::initGUI()
 		return;
 	}
 
+    if((sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)||(sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO))
+    {
+        // extract sample names from BEDPE file
+        ps_names_.clear();
+        foreach (const SampleInfo& sample_info, sv_bedpe_file_.sampleHeaderInfo())
+        {
+            ps_names_ << sample_info.column_name;
+        }
+
+        // get processed sample ids from NGSD
+        if (ngsd_enabled_)
+        {
+            ps_ids_.clear();
+            foreach (QString ps_name, ps_names_)
+            {
+                ps_ids_ << db_.processedSampleId(ps_name);
+            }
+        }
+    }
+    else
+    {
+        // single sample
+
+        if(ps_ids_.at(0) != "" && ngsd_enabled_)
+        {
+            ps_names_ = QStringList() << db_.processedSampleName(ps_ids_.at(0));
+        }
+        else
+        {
+            // fallback: extract sample name from BEDPE file
+            ps_names_ = QStringList() << sv_bedpe_file_.annotationHeaders().at(sv_bedpe_file_.annotationIndexByName("FORMAT") + 1);
+        }
+    }
+
+
+
+
 	//Set list of annotations to be showed, by default some annotations are filtered out
 	QByteArrayList annotation_headers = sv_bedpe_file_.annotationHeaders();
 
@@ -140,11 +170,10 @@ void SvWidget::initGUI()
 	if (ngsd_enabled_)
 	{
 		// check if given processed sample ids match samples in file
-		NGSD db;
 		QStringList ps_db_names;
 		foreach (QString ps_id, ps_ids_)
 		{
-			if (ps_id != "") ps_db_names << db.processedSampleName(ps_id);
+            if (ps_id != "") ps_db_names << db_.processedSampleName(ps_id);
 		}
 		if (ps_db_names != ps_names_) THROW(ArgumentException, "Given processed sample ids do not match the samples in file!");
 	}
@@ -165,9 +194,9 @@ void SvWidget::initGUI()
 			}
 			else
 			{
-				item->setToolTip((affected_.at(idx_sample))?"affected":"control");
+                item->setToolTip((sv_bedpe_file_.sampleHeaderInfo().at(idx_sample).isAffected())?"affected":"control");
 			}
-			if (affected_.at(idx_sample)) item->setForeground(QBrush(Qt::darkRed));
+            if (sv_bedpe_file_.sampleHeaderInfo().at(idx_sample).isAffected()) item->setForeground(QBrush(Qt::darkRed));
 
 			ui->svs->setHorizontalHeaderItem(col_idx + idx_sample, item);
 		}
@@ -439,11 +468,10 @@ void SvWidget::applyFilters(bool debug_time)
 		if (!phenotypes.isEmpty())
 		{
 			//convert phenotypes to genes
-			NGSD db;
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenotypes)
 			{
-				pheno_genes << db.phenotypeToGenes(pheno, true);
+                pheno_genes << db_.phenotypeToGenes(pheno, true);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
@@ -452,7 +480,7 @@ void SvWidget::applyFilters(bool debug_time)
 			{
 				if (!gene2region_cache_.contains(gene))
 				{
-					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+                    BedFile tmp = db_.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
 					tmp.clearAnnotations();
 					tmp.extend(5000);
 					tmp.merge();

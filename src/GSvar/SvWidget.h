@@ -5,6 +5,7 @@
 #include <QTableWidgetItem>
 #include <QByteArray>
 #include <QByteArrayList>
+#include <NGSD.h>
 #include "BedpeFile.h"
 #include "FilterWidget.h"
 #include "ReportConfiguration.h"
@@ -20,14 +21,14 @@ class SvWidget
 	Q_OBJECT
 
 public:
-	//default constructor without report config
-	SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0, bool init_gui=true);
+    //default constructor without report config for single sample
+    SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0, bool init_gui=true);
 
 	//constructor with report config for germline single
-	SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
+    SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
 
 	//constructor for multi/trio samples
-	SvWidget(const BedpeFile& bedpe_file, QStringList ps_ids, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache,  bool is_trio = true, QList<bool> affected = QList<bool>(), QWidget *parent = 0);
+    SvWidget(const BedpeFile& bedpe_file, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
 
 signals:
 	void openInIGV(QString coords);
@@ -105,11 +106,12 @@ private:
 	Ui::SvWidget* ui;
 	BedpeFile sv_bedpe_file_;
 	QStringList ps_ids_; //processed sample database ID(s). '' if unknown or NGSD is disabled.
-	QStringList ps_names_; //processed sample names for the ids
+    QStringList ps_names_; // processed sample names
 	FilterWidget* variant_filter_widget_; // Pointer to the FilterWidget of the varaint view (used for import settings to SV view)
 	GeneSet var_het_genes_;
 	QHash<QByteArray, BedFile>& gene2region_cache_;
 	bool ngsd_enabled_;
+    NGSD db_;
 
 	QSharedPointer<ReportConfiguration> report_config_;
 
@@ -126,7 +128,6 @@ private:
 	//multisample
 	bool is_multisample_= false;
 	bool is_trio_ = false;
-	QList<bool> affected_;
 
 
 
