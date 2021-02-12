@@ -102,7 +102,7 @@ public:
 			{
 				genotype_data << (use_roi ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg, getInfile("ref")) : SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, getInfile("ref")));
 			}
-			if (debug && genotype_data.count()%10==0)
+			if (debug && genotype_data.count()%100==0)
 			{
 				out << "##loaded " << genotype_data.count() << " input files (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
 			}
