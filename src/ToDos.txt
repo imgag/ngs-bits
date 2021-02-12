@@ -1,6 +1,7 @@
 === TODO ===
 
 lib:
+- VcfFile: use bgzip for compression
 - Statistics::mapping:
     - AT/GC dropout metric for WGS
     - add coverage uniformity metric for WGS

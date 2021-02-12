@@ -667,6 +667,7 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 {
 	//create ROI index (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
+	BedLine roi_last_line;
 	if (roi!=nullptr)
 	{
 		if (!roi->isSorted())
@@ -674,6 +675,7 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 			THROW(ArgumentException, "Target region unsorted, but needs to be sorted (given for reading file " + filename + ")!");
 		}
 		roi_idx.reset(new ChromosomalIndex<BedFile>(*roi));
+		roi_last_line = roi->operator[](roi->count()-1);
 	}
 
 	//load variant list
@@ -738,6 +740,11 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 		int end = atoi(fields[2]);
 		if (roi_idx!=nullptr)
 		{
+			//GSvar files are sorted by chromosomal location > we can stop reading the rest when we are after the last ROI line
+			if (chr>roi_last_line.chr() || (chr==roi_last_line.chr() && start>roi_last_line.end()))
+			{
+				break;
+			}
 
 			bool in_roi = roi_idx->matchingIndex(chr, start, end)!=-1;
 			if ((!in_roi && !invert) || (in_roi && invert))

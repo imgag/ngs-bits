@@ -13,7 +13,7 @@ class CPPNGSSHARED_EXPORT SampleSimilarity
 public:
 
 	//Variant representation.
-	typedef QHash<const QChar*, double> VariantGenotypes;
+	typedef QHash<const QChar*, float> VariantGenotypes;
 
 	//Extract genotypes from VCF/GSvar file (no WT genotype).
 	static VariantGenotypes genotypesFromVcf(QString filename, bool include_gonosomes, bool skip_multi, const BedFile& roi);
@@ -81,7 +81,7 @@ public:
 	void clear();
 
 private:
-	static double genoToDouble(const QString& geno);
+	static float genoToDouble(const QString& geno);
 
 	static VariantGenotypes genotypesVcf(const VcfFile& variants, const QString& filename, bool include_gonosomes, bool skip_multi);
 	static VariantGenotypes genotypesGSvar(VariantList variants, QString filename, bool include_gonosomes);
