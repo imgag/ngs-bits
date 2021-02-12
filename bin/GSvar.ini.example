@@ -49,6 +49,7 @@ mtb_xml_upload_url = ""
 
 #misc settings
 custom_menu_small_variants = ""
+use_free_hgmd_version = false
 
 #cfDNA
 patient_specific_panel_folder = ""
