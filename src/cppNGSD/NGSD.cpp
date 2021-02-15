@@ -2041,6 +2041,17 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 							info.fk_name_sql = "(SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM sample s, processed_sample ps WHERE ps.id=processed_sample.id AND s.id=ps.sample_id)";
 						}
 					}
+					else if (table=="sample_relations")
+					{
+						if (info.name=="sample1_id")
+						{
+							info.fk_name_sql = "name";
+						}
+						if (info.name=="sample2_id")
+						{
+							info.fk_name_sql = "name";
+						}
+					}
 				}
 			}
 

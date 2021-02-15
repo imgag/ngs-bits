@@ -494,6 +494,7 @@
      </property>
      <addaction name="actionImportSamples"/>
      <addaction name="actionImportProcessedSamples"/>
+     <addaction name="actionImportSampleRelations"/>
      <addaction name="separator"/>
      <addaction name="actionImportMids"/>
      <addaction name="actionImportStudy"/>
@@ -1259,6 +1260,11 @@
   <action name="actionIgvDocumentation">
    <property name="text">
     <string>Open documentation</string>
+   </property>
+  </action>
+  <action name="actionImportSampleRelations">
+   <property name="text">
+    <string>Sample relations</string>
    </property>
   </action>
  </widget>

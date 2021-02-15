@@ -4433,6 +4433,15 @@ void MainWindow::on_actionImportProcessedSamples_triggered()
 				);
 }
 
+void MainWindow::on_actionImportSampleRelations_triggered()
+{
+	importBatch("Import sample relations",
+				"Batch import of sample relations. Must contain the following tab-separated fields:<br><b>sample1</b>, <b>relation</b>, <b>sample2</b>",
+				"sample_relations",
+				QStringList() << "sample1_id" << "relation" << "sample2_id"
+				);
+}
+
 void MainWindow::on_actionMidClashDetection_triggered()
 {
 	MidCheckWidget* widget = new MidCheckWidget();
