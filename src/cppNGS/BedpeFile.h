@@ -238,11 +238,10 @@ public:
 	}
 
     ///returns the sample header info of multisample BEDPE files
-    const SampleHeaderInfo& sampleHeaderInfo()
+    const SampleHeaderInfo sampleHeaderInfo() const
     {
         return sample_header_info_;
     }
-
 
 	QByteArray annotationDescriptionByName(QByteArray name)
 	{

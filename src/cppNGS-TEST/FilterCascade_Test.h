@@ -1484,6 +1484,11 @@ private slots:
 		I_EQUAL(result.countPassing(), 55);
 	}
 
+//    void FilterSvTrio_apply()
+//    {
+
+//    }
+
 
 	/********************************************* Default filters for SVs *********************************************/
 
