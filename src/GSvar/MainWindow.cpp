@@ -355,6 +355,43 @@ void MainWindow::on_actionDebug_triggered()
 		output.addComment("##Top10: " + QString::number(c_top10) + " (" + QString::number(100.0*c_top10/output.rowCount(), 'f', 2) + "%)");
 		output.store("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + special + ".tsv");
 
+		//sample relations GenLab > NGSD
+		/*
+		QStringList pairs;
+		pairs << "DX070696_01	DX070760_01";
+
+		GenLabDB db2;
+		int c = 0;
+		foreach(QString pair, pairs)
+		{
+			QStringList parts = pair.split("\t");
+			if (parts.count()!=2)
+			{
+				qDebug() << "invalid line:" << pair;
+				continue;
+			}
+			++c;
+
+			auto relatives = db2.relatives(parts[0]);
+			foreach(auto rel, relatives)
+			{
+				if (parts[1].startsWith(rel.value))
+				{
+					qDebug() << rel.value << "parent-child" << parts[0];
+				}
+			}
+			relatives = db2.relatives(parts[1]);
+			foreach(auto rel, relatives)
+			{
+				if (parts[0].startsWith(rel.value))
+				{
+					qDebug() << rel.value << "parent-child" << parts[1];
+				}
+			}
+		}
+		return;
+		*/
+
 		//non-causal variants annotation
 		/*
 		NGSD db;
@@ -3960,7 +3997,12 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 				row.removeLast();
 			}
 		}
+	}
 
+	//special handling of sample_relations: add user
+	if (table=="sample_relations")
+	{
+		fields.append("user_id");
 	}
 
 	//prepare query
@@ -3986,6 +4028,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 		for (int i = 0; i < table_content.size(); ++i)
 		{
 			QStringList& row = table_content[i];
+
 			//special handling of processed sample: add 'process_id' and check tumor relation for cfDNA samples
 			if (table=="processed_sample")
 			{
@@ -4005,6 +4048,12 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 					duplicate_samples << sample_name;
 					continue;
 				}
+			}
+
+			//special handling of sample_relations: add user
+			if (table=="sample_relations")
+			{
+				row.append(LoginManager::userName());
 			}
 
 			//check tab-separated parts count
@@ -4099,7 +4148,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 			{
 				// add relation
 				SqlQuery query = db.getQuery();
-				query.exec("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES (" + tumor_sample_id + ",'tumor-cfDNA'," + cfdna_sample_id + ")");
+				query.exec("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`, `user_id`) VALUES (" + tumor_sample_id + ",'tumor-cfDNA'," + cfdna_sample_id + ","+QString::number(LoginManager::userId())+")");
 				imported_relations++;
 			}
 			else
@@ -4124,7 +4173,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 	catch (Exception& e)
 	{
 		db.rollback();
-		QMessageBox::warning(this, title + " - failed", "Message:\n" + e.message());
+		QMessageBox::warning(this, title + " - failed", "Import failed - no data was imported!\nError message:\n" + e.message());
 	}
 }
 

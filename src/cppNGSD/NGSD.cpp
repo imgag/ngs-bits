@@ -2051,6 +2051,10 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 						{
 							info.fk_name_sql = "name";
 						}
+						if (info.name=="user_id")
+						{
+							info.fk_name_sql = "name";
+						}
 					}
 				}
 			}
@@ -3081,6 +3085,9 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 	//related samples
 	QStringList related_sample_ids = relatedSamples(s_id, "parent-child");
 	related_sample_ids << relatedSamples(s_id, "siblings");
+	related_sample_ids << relatedSamples(s_id, "twins");
+	related_sample_ids << relatedSamples(s_id, "twins (monozygotic)");
+	related_sample_ids << relatedSamples(s_id, "cousins");
 	foreach(QString related_sample_id, related_sample_ids)
 	{
 		//sample data

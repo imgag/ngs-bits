@@ -24,7 +24,6 @@ External:
 
 ######################################################################################################################################################################
 GSVar features to dicuss:
-- Add family table linking samples in one family with "aunte", "uncle", "cousins 1st degree", "cousins 2nd degree", "monozygotic twins", ... OR import samples relations from GenLab?? > FH/LUCIA/TOH
 - Add liquid handler robot to processed sample talbe > FH/LAB/TOH
 - CAVE functionality for Genes (use e.g. for imprinting), model reasons? > SWAL
 - Sample: source tissue (for RNA) > TOH

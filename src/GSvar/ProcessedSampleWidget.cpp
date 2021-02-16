@@ -10,6 +10,7 @@
 #include "SingleSampleAnalysisDialog.h"
 #include "DBEditor.h"
 #include "GSvarHelper.h"
+#include "LoginManager.h"
 
 #include <QMessageBox>
 
@@ -192,8 +193,8 @@ void ProcessedSampleWidget::updateGUI()
 
 
 	//#### sample relations ####
-	DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id) FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
-	rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "relation" << "sample 2" << "type 2");
+	DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id), (SELECT name FROM user WHERE id=sample_relations.user_id), date FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
+	rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "relation" << "sample 2" << "type 2" << "added_by" << "added_date");
 	ui_->sample_relations->setData(rel_table);
 
 	//#### studies ####
@@ -429,7 +430,7 @@ void ProcessedSampleWidget::addRelation()
 	if (dlg->exec()!=QDialog::Accepted) return;
 
 	//add relation
-	NGSD().getQuery().exec("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES (" + dlg->sample1Id() + ",'" + dlg->relation() + "'," + dlg->sample2Id() + ")");
+	NGSD().getQuery().exec("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`, `user_id`) VALUES (" + dlg->sample1Id() + ",'" + dlg->relation() + "'," + dlg->sample2Id() + ","+QString::number(LoginManager::userId())+")");
 
 
 	//update GUI

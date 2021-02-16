@@ -420,8 +420,10 @@ CREATE  TABLE IF NOT EXISTS `sample_relations`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `sample1_id` INT(11) NOT NULL,
-  `relation` ENUM('parent-child', 'tumor-normal', 'siblings', 'same sample', 'tumor-cfDNA', 'same patient') NOT NULL,
+  `relation` ENUM('parent-child', 'tumor-normal', 'siblings', 'same sample', 'tumor-cfDNA', 'same patient', 'cousins', 'twins', 'twins (monozygotic)') NOT NULL,
   `sample2_id` INT(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `relation_unique` (`sample1_id` ASC, `relation` ASC, `sample2_id` ASC),
   CONSTRAINT `fk_sample1_id`
@@ -432,6 +434,11 @@ CREATE  TABLE IF NOT EXISTS `sample_relations`
   CONSTRAINT `fk_sample2_id`
     FOREIGN KEY (`sample2_id`)
     REFERENCES `sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_user2`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `user` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )
