@@ -32,7 +32,7 @@ public:
 		addFloat("max_male", "Maximum heterocygous SNP fraction for male (method hetx).", true, 0.15);
 		addFloat("sry_cov", "Minimum average coverage of SRY gene for males (method sry).", true, 20.0);
 		addEnum("build", "Genome build used to generate the input (methods hetx and sry).", true, QStringList() << "hg19" << "hg38", "hg19");
-		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
 		//changelog
 		changeLog(2020,  11, 27, "Added CRAM support.");
@@ -56,15 +56,15 @@ public:
 			GenderEstimate estimate;
 			if (method=="xy")
 			{
-				estimate = Statistics::genderXY(bam, getFloat("max_female"), getFloat("min_male"), getString("ref"));
+				estimate = Statistics::genderXY(bam, getFloat("max_female"), getFloat("min_male"), getInfile("ref"));
 			}
 			else if (method=="hetx")
 			{
-				estimate = Statistics::genderHetX(bam, getEnum("build"), getFloat("max_male"), getFloat("min_female"), getString("ref"));
+				estimate = Statistics::genderHetX(bam, getEnum("build"), getFloat("max_male"), getFloat("min_female"), getInfile("ref"));
 			}
 			else if (method=="sry")
 			{
-				estimate = Statistics::genderSRY(bam, getEnum("build"), getFloat("sry_cov"), getString("ref"));
+				estimate = Statistics::genderSRY(bam, getEnum("build"), getFloat("sry_cov"), getInfile("ref"));
 			}
 
 			//output header

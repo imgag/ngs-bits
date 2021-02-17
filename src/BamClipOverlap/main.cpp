@@ -39,7 +39,7 @@ public:
 		addFlag("overlap_mismatch_basen", "Set base to N if mismatch is found in overlapping reads.");
 		addFlag("ignore_indels","Turn off indel detection in overlap.");
 		addFlag("v", "Verbose mode.");
-		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("write_cram", "Writes a CRAM file as output.");
 
 		//changelog
@@ -60,8 +60,8 @@ public:
 		QTextStream out(stderr);
 		bool verbose = getFlag("v");
 		bool ignore_indels = getFlag("ignore_indels");
-		BamReader reader(getInfile("in"), getString("ref"));
-		BamWriter writer(getOutfile("out"), getString("ref"));
+		BamReader reader(getInfile("in"), getInfile("ref"));
+		BamWriter writer(getOutfile("out"), getInfile("ref"));
 		writer.writeHeader(reader);
 
 		//step 2: get alignments and softclip if necessary
@@ -398,7 +398,7 @@ public:
 					if(verbose)	out << "  finished indel correction reverse cigar " << reverse_overlap.getCigar() << endl;
 					if(forward_overlap.length()!=reverse_overlap.length()) //both cigar and base string should now be equally long
 					{
-						THROW(Exception, "Length mismatch between forward/reverse overlap - forward:" + QByteArray::number(forward_overlap.length()) + " reverse:" + QByteArray::number(reverse_overlap.length()) );
+						THROW(Exception, "Length mismatch between forward/reverse overlap - forward:" + QByteArray::number(forward_overlap.length()) + " reverse:" + QByteArray::number(reverse_overlap.length()) + " in read with name '" + al.name() + "'");
 					}
 
 					//detect mismtaches(read pos for, read pos rev)

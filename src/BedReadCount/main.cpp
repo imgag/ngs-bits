@@ -26,7 +26,7 @@ public:
 		//optional
 		addInfile("in", "Input BED file (note that overlapping regions will be merged before processing). If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
-		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
 		changeLog(2020,  11, 27, "Added CRAM support.");
 	}
@@ -78,7 +78,7 @@ public:
 
 		//get coverage info for bam files
 		QString bam = getInfile("bam");
-		readCount(file, bam, getInt("min_mapq"), getString("ref"));
+		readCount(file, bam, getInt("min_mapq"), getInfile("ref"));
 
 		//store
 		file.clearHeaders();

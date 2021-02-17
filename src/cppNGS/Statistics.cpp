@@ -139,7 +139,7 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	return output;
 }
 
-QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_file, int min_mapq, const QString& ref_file)
+QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_file, const QString& ref_file, int min_mapq)
 {
 	//check target region is merged/sorted and create index
 	if (!bed_file.isMergedAndSorted())
@@ -148,32 +148,56 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	}
 	ChromosomalIndex<BedFile> roi_index(bed_file);
 
-	//open BAM file
-	BamReader reader(bam_file, ref_file);
-
 	//create coverage statistics data structure
 	long long roi_bases = 0;
 	QHash<int, QMap<int, int> > roi_cov;
 	for (int i=0; i<bed_file.count(); ++i)
 	{
 		const BedLine& line = bed_file[i];
-
-		if (!roi_cov.contains(line.chr().num()))
+		int chr_num = line.chr().num();
+		if (!roi_cov.contains(chr_num))
 		{
-			roi_cov.insert(line.chr().num(), QMap<int, int>());
+			roi_cov.insert(chr_num, QMap<int, int>());
 		}
 
 		for(int p=line.start(); p<=line.end(); ++p)
 		{
-			roi_cov[line.chr().num()].insert(p, 0);
+			roi_cov[chr_num].insert(p, 0);
 		}
 		roi_bases += line.length();
 	}
+
+	//create AT/GC dropout datastructure
+	FastaFileIndex ref_idx(ref_file);
+	BedFile dropout;
+	dropout.add(bed_file);
+	dropout.chunk(100);
+	QHash<int, double> gc_roi;
+	QHash<int, double> gc_reads;
+	QHash<int, int> gc_index_to_bin_map;
+	for (int i=0; i<dropout.count(); ++i)
+	{
+		BedLine& line = dropout[i];
+		Sequence seq = ref_idx.seq(line.chr(), line.start(), line.length());
+		double gc_content = seq.gcContent();
+		if (!BasicStatistics::isValidFloat(gc_content))
+		{
+			gc_index_to_bin_map[i] = -1;
+		}
+		else
+		{
+			int bin = (int)std::floor(100.0*gc_content);
+			gc_index_to_bin_map[i] = bin;
+			gc_roi[bin] += 1.0;
+		}
+	}
+	ChromosomalIndex<BedFile> dropout_index(dropout);
 
 	//init counts
 	int al_total = 0;
 	int al_mapped = 0;
 	int al_ontarget = 0;
+	int al_neartarget = 0;
 	int al_dup = 0;
 	int al_proper_paired = 0;
 	double bases_trimmed = 0;
@@ -186,6 +210,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	bool paired_end = false;
 
 	//iterate through all alignments
+	BamReader reader(bam_file, ref_file);
 	BamAlignment al;
 	while (reader.getNextAlignment(al))
 	{
@@ -226,26 +251,45 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 				}
 			}
 
-			//calculate usable bases and base-resolution coverage
+			//calculate usable bases, base-resolution coverage and GC statistics
 			const Chromosome& chr = reader.chromosome(al.chromosomeID());
-			QVector<int> indices = roi_index.matchingIndices(chr, start_pos, end_pos);
+			QVector<int> indices = roi_index.matchingIndices(chr, start_pos-250, end_pos+250);
 			if (indices.count()!=0)
 			{
-				++al_ontarget;
+				++al_neartarget;
 
-				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
+				//check if on target
+				indices = roi_index.matchingIndices(chr, start_pos, end_pos);
+				if (indices.count()!=0)
 				{
+					++al_ontarget;
+
+					//calculate usable bases and base-resolution coverage on target region
+					if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
+					{
+						foreach(int index, indices)
+						{
+							const int ol_start = std::max(bed_file[index].start(), start_pos);
+							const int ol_end = std::min(bed_file[index].end(), end_pos);
+							bases_usable += ol_end - ol_start + 1;
+							auto it = roi_cov[chr.num()].lowerBound(ol_start);
+							auto end = roi_cov[chr.num()].upperBound(ol_end);
+							while (it!=end)
+							{
+								(*it)++;
+								++it;
+							}
+						}
+					}
+
+					//calcualte GC statistics
+					indices = dropout_index.matchingIndices(chr, start_pos, end_pos);
 					foreach(int index, indices)
 					{
-						const int ol_start = std::max(bed_file[index].start(), start_pos);
-						const int ol_end = std::min(bed_file[index].end(), end_pos);
-						bases_usable += ol_end - ol_start + 1;
-						auto it = roi_cov[chr.num()].lowerBound(ol_start);
-						auto end = roi_cov[chr.num()].upperBound(ol_end);
-						while (it!=end)
+						int bin = gc_index_to_bin_map[index];
+						if (bin>=0)
 						{
-							(*it)++;
-							++it;
+							gc_reads[bin] += 1.0/indices.count();
 						}
 					}
 				}
@@ -264,14 +308,50 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		}
 	}
 
+	//calculate AT/GC dropout
+	QList<double> values = gc_roi.values();
+	double gc_sum = std::accumulate(values.begin(),values.end(), 0.0);
+	values = gc_reads.values();
+	double roi_sum = std::accumulate(values.begin(),values.end(), 0.0);
+	double at_dropout = 0;
+	double gc_dropout = 0;
+	QVector<double> gc_read_percentages;
+	QVector<double> gc_roi_percentages;
+	for (int i=0; i<100; ++i)
+	{
+		double roi_perc = 100.0*gc_roi[i]/gc_sum;
+		gc_roi_percentages << roi_perc;
+		double read_perc = 100.0*gc_reads[i]/roi_sum;
+		gc_read_percentages << read_perc;
+
+		double diff = roi_perc-read_perc;
+		if (diff>0)
+		{
+			if (i<=50)
+			{
+				at_dropout += diff;
+			}
+			if (i>=50)
+			{
+				gc_dropout += diff;
+			}
+		}
+	}
+
 	//calculate coverage depth statistics
 	double avg_depth = (double) bases_usable / roi_bases;
-	int hist_max = 999;
+	int half_depth = std::round(0.5*avg_depth);
+	long long bases_covered_at_least_half_depth = 0;
+	int hist_max = 599;
 	int hist_step = 5;
+	if (avg_depth>200)
+	{
+		hist_max += 400;
+		hist_step += 5;
+	}
 	if (avg_depth>500)
 	{
-		hist_max += 1000;
-		hist_step += 5;
+		hist_max += 500;
 	}
 	if (avg_depth>1000)
 	{
@@ -286,7 +366,14 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		while(it2.hasNext())
 		{
 			it2.next();
-			depth_dist.inc(it2.value(), true);
+
+			int depth = it2.value();
+			depth_dist.inc(depth, true);
+
+			if(depth>=half_depth)
+			{
+				++bases_covered_at_least_half_depth;
+			}
 		}
 	}
 
@@ -296,6 +383,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	output.insert(QCValue("clipped base percentage", 100.0 * bases_clipped / bases_mapped, "Percentage of the bases that are soft-clipped or hand-clipped during mapping.", "QC:2000052"));
 	output.insert(QCValue("mapped read percentage", 100.0 * al_mapped / al_total, "Percentage of reads that could be mapped to the reference genome.", "QC:2000020"));
 	output.insert(QCValue("on-target read percentage", 100.0 * al_ontarget / al_total, "Percentage of reads that could be mapped to the target region.", "QC:2000021"));
+	output.insert(QCValue("near-target read percentage", 100.0 * al_neartarget / al_total, "Percentage of reads that were mapped to the target region or near the target region (at most 250 bases away).", "QC:2000057"));
 	if (paired_end)
 	{
 		output.insert(QCValue("properly-paired read percentage", 100.0 * al_proper_paired / al_total, "Percentage of properly paired reads (for paired-end reads only).", "QC:2000022"));
@@ -315,7 +403,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc)", "QC:2000024"));
 	}
 	output.insert(QCValue("bases usable (MB)", (double)bases_usable / 1000000.0, "Bases sequenced that are usable for variant calling (in megabases).", "QC:2000050"));
-	output.insert(QCValue("target region read depth", (double)bases_usable / roi_bases, "Average sequencing depth in target region.", "QC:2000025"));
+	output.insert(QCValue("target region read depth", avg_depth, "Average sequencing depth in target region.", "QC:2000025"));
 
 	QVector<int> depths;
 	depths << 10 << 20 << 30 << 50 << 100 << 200 << 500;
@@ -327,6 +415,9 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		for (int bin=depth_dist.binIndex(depths[i]); bin<depth_dist.binCount(); ++bin) cov_bases += depth_dist.binValue(bin);
 		output.insert(QCValue("target region " + QString::number(depths[i]) + "x percentage", 100.0 * cov_bases / roi_bases, "Percentage of the target region that is covered at least " + QString::number(depths[i]) + "-fold.", accessions[i]));
 	}
+	output.insert(QCValue("target region half depth percentage", 100.0 * bases_covered_at_least_half_depth / roi_bases, "Percentage of the target region that is covered at least with half of the target region average depth. This is a measure of coverage uniformity.", "QC:2000058"));
+	output.insert(QCValue("AT dropout", at_dropout, "Illumina-style AT dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[0..50].", "QC:2000059"));
+	output.insert(QCValue("GC dropout", gc_dropout, "Illumina-style GC dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[50..100].", "QC:2000060"));
 
 	//add depth distribtion plot
 	LinePlot plot;
@@ -353,6 +444,18 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
 		QFile::remove(plotname);
 	}
+
+	//add GC bias plot
+	LinePlot plot3;
+	plot3.setXLabel("GC bin");
+	plot3.setYLabel("count [%]");
+	plot3.setXValues(BasicStatistics::range(0.0, 100.0, 1.0));
+	plot3.addLine(gc_roi_percentages, "target region");
+	plot3.addLine(gc_read_percentages, "reads");
+	plotname = Helper::tempFileName(".png");
+	plot3.store(plotname);
+	output.insert(QCValue::Image("GC bias plot", plotname, "GC bias plot.", "QC:2000061"));
+	QFile::remove(plotname);
 
 	return output;
 }
@@ -1095,7 +1198,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	plot0b.setValues(counts, nuc_changes, colors);
 	QString plot0bname = Helper::tempFileName(".png");
 	plot0b.store(plot0bname);
-	output.insert(QCValue::Image("somatic SNV mutation types", plot0bname, "", "QC:?"));
+	output.insert(QCValue::Image("somatic SNV mutation types", plot0bname, "", "QC:2000056"));
 	QFile::remove(plot0bname);
 
 	//plot1: allele frequencies

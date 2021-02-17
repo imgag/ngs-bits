@@ -133,6 +133,7 @@ public slots:
 	void on_actionImportStudy_triggered();
 	void on_actionImportSamples_triggered();
 	void on_actionImportProcessedSamples_triggered();
+	void on_actionImportSampleRelations_triggered();
 	void on_actionMidClashDetection_triggered();
 	void on_actionVariantValidation_triggered();
 	void on_actionChangePassword_triggered();
@@ -185,6 +186,8 @@ public slots:
 	void on_actionIgvClear_triggered();
 	///Override IGV prot
 	void on_actionIgvPort_triggered();
+	///Open IGV documentation in browser
+	void on_actionIgvDocumentation_triggered();
 	///Open CNV dialog
 	void on_actionCNV_triggered();
 	///Open ROH dialog

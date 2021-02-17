@@ -89,7 +89,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 	const FastaIndexEntry& entry = index(chr);
 	if((start+length) > entry.length)
 	{
-		Log::warn("FastaFileIndex::seq: Sequence length changed to chromosome end for : " + chr.strNormalized(true) + ":" + QString::number(start+1) + "-" + QString::number(start+length));
+		Log::warn("FastaFileIndex::seq: Sequence length changed to chromosome end for: " + chr.strNormalized(true) + ":" + QString::number(start+1) + "-" + QString::number(start+length));
 		length = min(length, entry.length - start);
 	}
 

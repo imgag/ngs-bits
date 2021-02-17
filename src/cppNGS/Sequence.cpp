@@ -71,6 +71,23 @@ Sequence Sequence::toReverseComplement() const
 	return output;
 }
 
+double Sequence::gcContent() const
+{
+	int gc = 0;
+	int at = 0;
+	for (int i=0; i<count(); ++i)
+	{
+		char base = operator[](i);
+		if (base=='G' ||base=='C') ++gc;
+		else if (base=='A' ||base=='T') ++at;
+	}
+
+	if (gc+at==0) return std::numeric_limits<double>::quiet_NaN();
+
+
+	return (double)(gc)/(gc+at);
+}
+
 
 char Sequence::complement(char base)
 {

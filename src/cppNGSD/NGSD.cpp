@@ -18,6 +18,7 @@
 #include <QCryptographicHash>
 #include "cmath"
 
+
 QMap<QString, TableInfo> NGSD::infos_;
 
 NGSD::NGSD(bool test_db)
@@ -2040,6 +2041,17 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 							info.fk_name_sql = "(SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM sample s, processed_sample ps WHERE ps.id=processed_sample.id AND s.id=ps.sample_id)";
 						}
 					}
+					else if (table=="sample_relations")
+					{
+						if (info.name=="sample1_id")
+						{
+							info.fk_name_sql = "name";
+						}
+						if (info.name=="sample2_id")
+						{
+							info.fk_name_sql = "name";
+						}
+					}
 				}
 			}
 
@@ -2917,83 +2929,48 @@ QString NGSD::getTargetFilePath(bool subpanels, bool windows)
 
 void NGSD::updateQC(QString obo_file, bool debug)
 {
-	struct QCTerm
-	{
-		QString id;
-		QString name;
-		QString description;
-		QString type;
-		bool obsolete = false;
-	};
-	QList<QCTerm> terms;
-
+	//init
 	QStringList valid_types = getEnum("qc_terms", "type");
 
-	QStringList lines = Helper::loadTextFile(obo_file, true, '#', true);
-	QCTerm current;
-	foreach(QString line, lines)
-	{
-		if (line=="[Term]")
-		{
-			terms << current;
-			current = QCTerm();
-		}
-		else if (line.startsWith("id:"))
-		{
-			current.id = line.mid(3).trimmed();
-		}
-		else if (line.startsWith("name:"))
-		{
-			current.name = line.mid(5).trimmed();
-		}
-		else if (line.startsWith("def:"))
-		{
-			QStringList parts = line.split('"');
-			current.description = parts[1].trimmed();
-		}
-		else if (line.startsWith("xref: value-type:xsd\\:"))
-		{
-			QStringList parts = line.replace('"', ':').split(':');
-			current.type = parts[3].trimmed();
-		}
-		else if (line=="is_obsolete: true")
-		{
-			current.obsolete = true;
-		}
-	}
-	terms << current;
-	if (debug) qDebug() << "Terms parsed: " << terms.count();
-
-	//remove terms not for NGS
-	auto it = std::remove_if(terms.begin(), terms.end(), [](const QCTerm& term){return !term.id.startsWith("QC:2");});
-	terms.erase(it, terms.end());
-	if (debug) qDebug() << "Terms for NGS: " << terms.count();
-
-	//remove QC terms of invalid types
-	it = std::remove_if(terms.begin(), terms.end(), [valid_types](const QCTerm& term){return !valid_types.contains(term.type);});
-	terms.erase(it, terms.end());
-	if (debug) qDebug() << "Terms with valid types ("+valid_types.join(", ")+"): " << terms.count();
-
-	//update NGSD
-
+	//load terms
+	OntologyTermCollection terms(obo_file, false);
+	if (debug) qDebug() << "Terms parsed: " << terms.size();
 
 	// database connection
 	transaction();
 	QSqlQuery query = getQuery();
 	query.prepare("INSERT INTO qc_terms (qcml_id, name, description, type, obsolete) VALUES (:0, :1, :2, :3, :4) ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), type=VALUES(type), obsolete=VALUES(obsolete)");
-
-	foreach(const QCTerm& term, terms)
+	int c_terms_ngs = 0;
+	int c_terms_valid_type = 0;
+	for(int i=0; i<terms.size(); ++i)
 	{
-		if (debug) qDebug() << "IMPORTING:" << term.id  << term.name  << term.type  << term.obsolete  << term.description;
-		query.bindValue(0, term.id);
-		query.bindValue(1, term.name);
-		query.bindValue(2, term.description);
-		query.bindValue(3, term.type);
-		query.bindValue(4, term.obsolete);
+		const OntologyTerm& term = terms.get(i);
+
+		//remove terms not for NGS
+		if (!term.id().startsWith("QC:2")) continue;
+		++c_terms_ngs;
+
+		//remove QC terms of invalid types
+		if (!valid_types.contains(term.type())) continue;
+		++c_terms_valid_type;
+
+		//insert (or update if already contained)
+		if (debug) qDebug() << "IMPORTING:" << term.id() << term.name() << term.type() << term.isObsolete()  << term.definition();
+		query.bindValue(0, term.id());
+		query.bindValue(1, term.name());
+		query.bindValue(2, term.definition());
+		query.bindValue(3, term.type());
+		query.bindValue(4, term.isObsolete());
 		query.exec();
 		if (debug) qDebug() << "  ID:" << query.lastInsertId();
 	}
 	commit();
+
+	if (debug)
+	{
+		qDebug() << "Terms for NGS: " << c_terms_ngs;
+		qDebug() << "Terms with valid types ("+valid_types.join(", ")+"): " << c_terms_valid_type;
+	}
 }
 
 QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs)

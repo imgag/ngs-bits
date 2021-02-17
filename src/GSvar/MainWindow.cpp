@@ -602,6 +602,11 @@ void MainWindow::on_actionIgvPort_triggered()
 	}
 }
 
+void MainWindow::on_actionIgvDocumentation_triggered()
+{
+	QDesktopServices::openUrl(QUrl("https://software.broadinstitute.org/software/igv/UserGuide"));
+}
+
 void MainWindow::on_actionSV_triggered()
 {
 	if(filename_ == "") return;
@@ -746,7 +751,7 @@ void MainWindow::on_actionCNV_triggered()
 	}
 
 	CnvWidget *list;
-	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR || cnvs_.type() == CnvListType::CLINCNV_TUMOR_ONLY)
 	{
 		list = new CnvWidget(cnvs_, ps_id, ui_.filters, somatic_report_settings_.report_config, het_hit_genes, gene2region_cache_);
 	}
@@ -4438,6 +4443,15 @@ void MainWindow::on_actionImportProcessedSamples_triggered()
 				);
 }
 
+void MainWindow::on_actionImportSampleRelations_triggered()
+{
+	importBatch("Import sample relations",
+				"Batch import of sample relations. Must contain the following tab-separated fields:<br><b>sample1</b>, <b>relation</b>, <b>sample2</b>",
+				"sample_relations",
+				QStringList() << "sample1_id" << "relation" << "sample2_id"
+				);
+}
+
 void MainWindow::on_actionMidClashDetection_triggered()
 {
 	MidCheckWidget* widget = new MidCheckWidget();
@@ -6105,17 +6119,18 @@ QList<IgvFile> MainWindow::getSegFilesCnv()
 		{
 			QString base_name = file.filename.left(file.filename.length()-4);
 			QString segfile = base_name + "_cnvs_clincnv.seg";
-			if (QFile::exists(segfile))
+			if (!QFile::exists(segfile)) //fallback to somatic
 			{
-				output << IgvFile{file.id, "CNV" , segfile};
+				segfile = base_name + "_clincnv.seg";
 			}
-			else
+			if (!QFile::exists(segfile)) //fallback to CnvHunter
 			{
 				segfile = base_name + "_cnvs.seg";
-				if (QFile::exists(segfile))
-				{
-					output << IgvFile{file.id, "CNV" , segfile};
-				}
+			}
+
+			if (QFile::exists(segfile))
+			{
+				output << IgvFile{file.id, "CNV" , segfile};				
 			}
 		}
 	}

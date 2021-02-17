@@ -297,6 +297,15 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 	int read_pos = 0;
 	int genome_pos = start()-1;
 	const QList<CigarOp> cigar_data = cigarData();
+
+	//bwa-mem2 sometimes produces reads that are insert only > skip them
+	bool only_insert = true;
+	foreach(const CigarOp& op, cigar_data)
+	{
+		if (op.Type!=BAM_CINS && op.Type!=BAM_CSOFT_CLIP) only_insert = false;
+	}
+	if (only_insert) return qMakePair('~', -1);
+
 	foreach(const CigarOp& op, cigar_data)
 	{
 		//update positions
@@ -343,11 +352,15 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 		if (genome_pos>=pos)
 		{
 			int actual_pos = read_pos - (genome_pos + 1 - pos);
-			return qMakePair(base(actual_pos), quality((actual_pos)));
+			return qMakePair(base(actual_pos), quality(actual_pos));
 		}
 	}
 
-	THROW(Exception, "Could not find position  " + QString::number(pos) + " in read " + bases() + " with start position " + QString::number(start()) + "!");
+	foreach(const CigarOp& op, cigar_data)
+	{
+		qDebug() <<  op.Type << op.Length;
+	}
+	THROW(Exception, "Could not find position " + QString::number(pos) + " in read " + name() + " with start position " + QString::number(start()) + "!");
 }
 
 QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
