@@ -1227,6 +1227,11 @@ private slots:
 		IS_TRUE(pt["NIPA1"].contains("NIPA1_TR2"));
 		I_EQUAL(pt["NON-CODING"].count(), 1);
 		IS_TRUE(pt["NON-CODING"].contains("NON-CODING_TR1"));
+
+		//addSampleRelation
+		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"});
+		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}); //ignored
+		IS_THROWN(DatabaseException, db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}, true));
 	}
 
 	//Tests for SomaticReportConfiguration and specific somatic variants

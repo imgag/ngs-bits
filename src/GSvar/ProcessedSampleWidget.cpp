@@ -11,7 +11,7 @@
 #include "DBEditor.h"
 #include "GSvarHelper.h"
 #include "LoginManager.h"
-
+#include "GenLabDB.h"
 #include <QMessageBox>
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
@@ -41,7 +41,8 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->merged, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
 	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
 	connect(ui_->reanalyze_btn, SIGNAL(clicked(bool)), this, SLOT(queueSampleAnalysis()));
-	connect(ui_->genlab_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseGroupAndInfo()));
+	connect(ui_->genlab_disease_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseGroupAndInfo()));
+	connect(ui_->genlab_relations_btn, SIGNAL(clicked(bool)), this, SLOT(importSampleRelations()));
 
 	//QC value > plot
 	QAction* action = new QAction(QIcon(":/Icons/chart.png"), "Plot", this);
@@ -430,8 +431,7 @@ void ProcessedSampleWidget::addRelation()
 	if (dlg->exec()!=QDialog::Accepted) return;
 
 	//add relation
-	NGSD().getQuery().exec("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`, `user_id`) VALUES (" + dlg->sample1Id() + ",'" + dlg->relation() + "'," + dlg->sample2Id() + ","+QString::number(LoginManager::userId())+")");
-
+	NGSD().addSampleRelation(dlg->sampleRelation());
 
 	//update GUI
 	updateGUI();
@@ -664,6 +664,36 @@ void ProcessedSampleWidget::editDiseaseDetails()
 	if (dlg->exec() != QDialog::Accepted) return;
 
 	db.setSampleDiseaseInfo(sample_id, widget->diseaseInfo());
+	updateGUI();
+}
+
+void ProcessedSampleWidget::importSampleRelations()
+{
+	//init
+	NGSD db;
+	QString ps_name = db.processedSampleName(ps_id_);
+	QString s_id = db.sampleId(ps_name);
+
+	//import
+	int c_before = db.relatedSamples(s_id).count();
+	QString error;
+	try
+	{
+		QList<SampleRelation> relations = GenLabDB().relatives(ps_name);
+		foreach(const SampleRelation& rel, relations)
+		{
+			db.addSampleRelation(rel);
+		}
+	}
+	catch (Exception& e)
+	{
+		error = "\n\nWarning: An error occurred:\n" + e.message();
+	}
+
+	//show result to user
+	int c_after = db.relatedSamples(s_id).count();
+	QMessageBox::information(this, "Sample relation import", "Imported " + QString::number(c_after-c_before) + " sample relations from GenLab!" + error);
+
 	updateGUI();
 }
 

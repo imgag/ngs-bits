@@ -359,28 +359,40 @@ QString GenLabDB::sapID(QString ps_name)
 	return output;
 }
 
-QList<KeyValuePair> GenLabDB::relatives(QString ps_name)
+QList<SampleRelation> GenLabDB::relatives(QString ps_name)
 {
-	QList<KeyValuePair> output;
+	QList<SampleRelation> output;
 
-	SqlQuery query = getQuery();
 	foreach(QString name, names(ps_name))
 	{
+		SqlQuery query = getQuery();
 		query.exec("SELECT BEZIEHUNGSTEXT, Labornummer_Verwandter FROM v_ngs_duo WHERE Labornummer_Index='" + name + "'");
 		while(query.next())
 		{
-			QString relation = query.value(0).toString().toUpper();
-			if (relation=="VATER") relation = "father";
-			else if (relation=="MUTTER") relation = "mother";
+			QByteArray relation = query.value(0).toByteArray().toUpper();
+			if (relation=="VATER") relation = "parent-child";
+			else if (relation=="MUTTER") relation = "parent-child";
+			else if (relation=="SCHWESTER") relation = "siblings";
+			else if (relation=="BRUDER") relation = "siblings";
+			else if (relation=="ZWILLINGSSCHWESTER") relation = "twins";
+			else if (relation=="ZWILLINGSBRUDER") relation = "twins";
+			else if (relation=="COUSIN") relation = "cousins";
+			else if (relation=="COUSINE") relation = "cousins";
 			else THROW(ProgrammingException, "Unhandled sample relation '" + relation + "'!");
 
-			QString sample = query.value(1).toString();
-			if (sample.contains("_"))
+			QByteArray sample2 = query.value(1).toByteArray();
+			if (sample2.contains('_'))
 			{
-				sample = sample.split("_")[0];
+				sample2 = sample2.split('_')[0];
 			}
 
-			output << KeyValuePair(relation, sample);
+			QByteArray sample = ps_name.toLatin1();
+			if (sample.contains('_'))
+			{
+				sample = sample.split('_')[0];
+			}
+
+			output << SampleRelation{sample2, relation, sample};
 		}
 	}
 

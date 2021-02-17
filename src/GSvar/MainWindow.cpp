@@ -355,41 +355,45 @@ void MainWindow::on_actionDebug_triggered()
 		output.addComment("##Top10: " + QString::number(c_top10) + " (" + QString::number(100.0*c_top10/output.rowCount(), 'f', 2) + "%)");
 		output.store("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + special + ".tsv");
 
-		//sample relations GenLab > NGSD
+		//import of sample relations from GenLab
 		/*
 		QStringList pairs;
-		pairs << "DX070696_01	DX070760_01";
+		pairs << "DX070696	DX070760";
 
-		GenLabDB db2;
-		int c = 0;
+		NGSD db;
+		GenLabDB db_genlab;
 		foreach(QString pair, pairs)
 		{
 			QStringList parts = pair.split("\t");
 			if (parts.count()!=2)
 			{
-				qDebug() << "invalid line:" << pair;
-				continue;
+				qDebug() << "Error: invalid line: " << pair;
+				break;
 			}
-			++c;
+			QString sample1 = parts[0];
+			QString sample2 = parts[1];
+			qDebug() << sample1 << sample2;
 
-			auto relatives = db2.relatives(parts[0]);
-			foreach(auto rel, relatives)
+			//check one direction
+			QList<SampleRelation> relatives = db_genlab.relatives(sample1);
+			foreach(const SampleRelation& rel, relatives)
 			{
-				if (parts[1].startsWith(rel.value))
+				if (rel.sample1==sample2)
 				{
-					qDebug() << rel.value << "parent-child" << parts[0];
+					db.addSampleRelation(rel);
 				}
 			}
-			relatives = db2.relatives(parts[1]);
-			foreach(auto rel, relatives)
+
+			//check other direction
+			relatives = db_genlab.relatives(sample2);
+			foreach(SampleRelation rel, relatives)
 			{
-				if (parts[0].startsWith(rel.value))
+				if (rel.sample1==sample1)
 				{
-					qDebug() << rel.value << "parent-child" << parts[1];
+					db.addSampleRelation(rel);
 				}
 			}
 		}
-		return;
 		*/
 
 		//non-causal variants annotation
@@ -1215,7 +1219,7 @@ void MainWindow::on_actionBatchExportClinVar_triggered()
 
 			//update NGSD
 			QString gene = "gene="+db.getValue("SELECT gene FROM variant WHERE id='" + variant_id + "'").toString();
-			variant_publication_queries << "INSERT INTO `variant_publication` (`sample_id`, `variant_id`, `db`, `class`, `details`, `user_id`) VALUES ('"+sample_id+"','"+variant_id+"','ClinVar','"+classification+"','gene="+gene+"',"+QString::number(LoginManager::userId())+")";
+			variant_publication_queries << "INSERT INTO `variant_publication` (`sample_id`, `variant_id`, `db`, `class`, `details`, `user_id`) VALUES ('"+sample_id+"','"+variant_id+"','ClinVar','"+classification+"','gene="+gene+"',"+LoginManager::userIdAsString()+")";
 		}
 		messages << ("Exported variants to file: " + QString::number(variant_ids_done.count()));
 
@@ -4018,6 +4022,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 	q_insert.prepare(query_str);
 
 	//check and insert
+	QString last_processed_line;
 	try
 	{
 		db.transaction();
@@ -4028,6 +4033,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 		for (int i = 0; i < table_content.size(); ++i)
 		{
 			QStringList& row = table_content[i];
+			last_processed_line = row.join("\t");
 
 			//special handling of processed sample: add 'process_id' and check tumor relation for cfDNA samples
 			if (table=="processed_sample")
@@ -4057,7 +4063,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 			}
 
 			//check tab-separated parts count
-			if (row.count()!=fields.count()) THROW(ArgumentException, "Error: line with more/less than " + QString::number(fields.count()) + " tab-separated parts.\n\nLine:\n" + row.join("\n"));
+			if (row.count()!=fields.count()) THROW(ArgumentException, "Error: line with more/less than " + QString::number(fields.count()) + " tab-separated parts.");
 			//check and bind
 			for(int i=0; i<fields.count(); ++i)
 			{
@@ -4113,7 +4119,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 				QStringList errors = db.checkValue(table, fields[i], value, true);
 				if (errors.count()>0)
 				{
-					THROW(ArgumentException, "Error: Invalid value '" + value + "' for field '" + fields[i] + "':\n" + errors.join("\n") + "\n\nLine:\n" + row.join("\n"));
+					THROW(ArgumentException, "Error: Invalid value '" + value + "' for field '" + fields[i] + "':\n" + errors.join("\n"));
 				}
 
 				q_insert.bindValue(i, value.isEmpty() && field_info.is_nullable ? QVariant() : value);
@@ -4142,13 +4148,10 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 		{
 			const QPair<QString, QString>& relation = cfdna_tumor_relation.at(i);
 			// check for valid input
-			QString tumor_sample_id = db.sampleId(relation.first);
-			QString cfdna_sample_id = db.sampleId(relation.second);
-			if (db.getSampleData(tumor_sample_id).is_tumor)
+			if (db.getSampleData(db.sampleId(relation.first)).is_tumor)
 			{
 				// add relation
-				SqlQuery query = db.getQuery();
-				query.exec("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`, `user_id`) VALUES (" + tumor_sample_id + ",'tumor-cfDNA'," + cfdna_sample_id + ","+QString::number(LoginManager::userId())+")");
+				db.addSampleRelation(SampleRelation{relation.first.toLatin1(), "tumor-cfDNA", relation.second.toLatin1()}, true);
 				imported_relations++;
 			}
 			else
@@ -4173,7 +4176,7 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 	catch (Exception& e)
 	{
 		db.rollback();
-		QMessageBox::warning(this, title + " - failed", "Import failed - no data was imported!\nError message:\n" + e.message());
+		QMessageBox::warning(this, title + " - failed", "Import failed - no data was imported!\n\nLine:\n"+ last_processed_line.trimmed() + "\n\nError message:\n" + e.message());
 	}
 }
 
