@@ -93,7 +93,7 @@ private:
 	int pairedEndReadCount(int row);
 
 	///calculate AF of SV, either by paired end reads ("PR") or split reads ("SR");
-	double alleleFrequency(int row, const QByteArray& read_type = "PR");
+	double alleleFrequency(int row, const QByteArray& read_type = "PR", int sample_idx = 0);
 
 	///Edit validation status of current sv
 	void editSvValidation(int row);

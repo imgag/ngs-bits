@@ -4293,20 +4293,16 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
     }
 
     //determine column indices
-    i_quality = svs.annotationIndexByName("QUAL");
     int i_gene = svs.annotationIndexByName("GENES");
     SampleHeaderInfo sample_headers = svs.sampleHeaderInfo();
-    i_c = sample_headers.infoByStatus(true).column_index;
-    i_f = sample_headers.infoByStatus(false, "male").column_index;
-    i_m = sample_headers.infoByStatus(false, "female").column_index;
+	int i_c = sample_headers.infoByStatus(true).column_index;
+	int i_f = sample_headers.infoByStatus(false, "male").column_index;
+	int i_m = sample_headers.infoByStatus(false, "female").column_index;
 
     //determine AF indices
     QList<int> tmp;
     tmp << i_c << i_f << i_m;
     std::sort(tmp.begin(), tmp.end());
-    i_af_c = tmp.indexOf(i_c);
-    i_af_f = tmp.indexOf(i_f);
-    i_af_m = tmp.indexOf(i_m);
 
     //get PAR region
     BedFile par_region = NGSHelper::pseudoAutosomalRegion("hg19");
@@ -4339,9 +4335,6 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 
             if (diplod_chromosome)
             {
-//                QByteArray geno_c, geno_f, geno_m;
-//                correctedGenotypes(sv, geno_c, geno_f, geno_m);
-
                 if (geno_c=="het" && geno_f=="het" && geno_m=="wt")
                 {
                     het_mother << GeneSet::createFromText(sv.annotations()[i_gene], ',');
@@ -4381,8 +4374,6 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
         QByteArray geno_c = sv.annotations()[i_c];
         QByteArray geno_f = sv.annotations()[i_f];
         QByteArray geno_m = sv.annotations()[i_m];
-//        QByteArray geno_c, geno_f, geno_m;
-//        correctedGenotypes(sv, geno_c, geno_f, geno_m);
 
         //remove variants where index is wild-type
         if (geno_c=="wt")
@@ -4486,36 +4477,6 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
         result.flags()[i] = match;
     }
 }
-
-//void FilterSvTrio::correctedGenotypes(const BedpeLine &sv, QByteArray &geno_c, QByteArray &geno_f, QByteArray &geno_m) const
-//{
-//    geno_c = sv.annotations()[i_c];
-//    geno_f = sv.annotations()[i_f];
-//    geno_m = sv.annotations()[i_m];
-
-//    //correct genotypes based on AF
-//    QByteArrayList q_parts = sv.annotations()[i_quality].split(';');
-//    foreach(const QByteArray& part, q_parts)
-//    {
-//        if (part.startsWith("AF="))
-//        {
-//            QByteArrayList af_parts = part.mid(3).split(',');
-
-//            if (geno_f=="wt" && af_parts[i_af_f].toDouble()>=0.05 && af_parts[i_af_f].toDouble()<=0.3)
-//            {
-//                geno_f = "het";
-//            }
-//            if (geno_m=="wt" && af_parts[i_af_m].toDouble()>=0.05 && af_parts[i_af_m].toDouble()<=0.3)
-//            {
-//                geno_m = "het";
-//            }
-//            if (geno_c=="het" && af_parts[i_af_c].toDouble()<0.1)
-//            {
-//                geno_c = "wt";
-//            }
-//        }
-//    }
-//}
 
 FilterSomaticAlleleFrequency::FilterSomaticAlleleFrequency()
 {

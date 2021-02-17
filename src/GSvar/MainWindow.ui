@@ -1232,6 +1232,9 @@
    </property>
   </action>
   <action name="actionExpressionData">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="GSvar.qrc">
      <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>

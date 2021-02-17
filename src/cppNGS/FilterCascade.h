@@ -1008,17 +1008,6 @@ class CPPNGSSHARED_EXPORT FilterSvTrio
         QString toText() const override;
         void apply(const BedpeFile& svs, FilterResult& result) const override;
 
-    protected:
-        //returns genotypes corrected by allele frequency
-//        void correctedGenotypes(const BedpeLine& sv, QByteArray& geno_c, QByteArray& geno_f, QByteArray& geno_m) const;
-
-        mutable int i_quality;
-        mutable int i_c;
-        mutable int i_f;
-        mutable int i_m;
-        mutable int i_af_c;
-        mutable int i_af_f;
-        mutable int i_af_m;
 };
 
 #endif // FILTERCASCADE_H

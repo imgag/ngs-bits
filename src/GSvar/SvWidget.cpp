@@ -613,7 +613,7 @@ int SvWidget::pairedEndReadCount(int row)
 }
 
 
-double SvWidget::alleleFrequency(int row,const QByteArray& read_type)
+double SvWidget::alleleFrequency(int row, const QByteArray& read_type, int sample_idx)
 {
 	int i_format = colIndexbyName("FORMAT");
 	if(i_format == -1 ) return -1.;
@@ -621,7 +621,7 @@ double SvWidget::alleleFrequency(int row,const QByteArray& read_type)
 	if(ui->svs->columnCount() < i_format+1) return -1.;
 
 	QByteArray desc = ui->svs->item(row,i_format)->text().toUtf8();
-	QByteArray data = ui->svs->item(row,i_format+1)->text().toUtf8();
+	QByteArray data = ui->svs->item(row,i_format+1+sample_idx)->text().toUtf8();
 
 	int count_ref = 0;
 	int count_alt = 0;
@@ -629,9 +629,9 @@ double SvWidget::alleleFrequency(int row,const QByteArray& read_type)
 	QByteArrayList pr;
 	if(read_type == "PR") pr = getFormatEntryByKey("PR",desc,data).split(',');
 	else if(read_type == "SR") pr =  getFormatEntryByKey("SR",desc,data).split(',');
-	else return -1.;
+	else return -1;
 
-	if(pr.count() != 2) return -1.;
+	if(pr.count() != 2) return -1;
 
 	bool success = false;
 	count_ref = pr[0].toInt(&success);
@@ -1051,11 +1051,45 @@ void SvWidget::SvSelectionChanged()
 	int size = sv_bedpe_file_[row].size();
 	ui->label_size->setText(size==-1 ? "" : "Size: " + QString::number(size));
 
-	//Display Split Read AF of variant
-	ui->label_sr_af->setText("Split Read AF: " + QString::number(alleleFrequency(row, "SR"), 'f',2));
+	if (sv_bedpe_file_.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI || sv_bedpe_file_.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO)
+	{
+		QVector<double> pe_af;
+		QVector<double> sr_af;
+		for (int i = 0; i < sv_bedpe_file_.sampleHeaderInfo().size(); ++i)
+		{
+			double af = alleleFrequency(row, "PR", i);
+			if (af >= 0.0) pe_af.append(af);
+			af = alleleFrequency(row, "SR", i);
+			if (af >= 0.0) sr_af.append(af);
+		}
 
-	//Display Paired End Read AF of variant
-	ui->label_pe_af->setText("Paired End Read AF: " + QString::number(alleleFrequency(row, "PR"), 'f',2));
+		//Display Paired End Read AF of variant
+		QString af_range;
+		if (pe_af.size() > 0)
+		{
+			auto pe_minmax = std::minmax_element(pe_af.begin(), pe_af.end());
+			af_range = QString::number(*pe_minmax.first, 'f',2) + "-" + QString::number(*pe_minmax.second, 'f',2);
+		}
+		ui->label_pe_af->setText("Paired End Read AF: " + af_range);
+
+		//Display Split Read AF of variant
+		af_range = "";
+		if (sr_af.size() > 0)
+		{
+			auto sr_minmax = std::minmax_element(sr_af.begin(), sr_af.end());
+			af_range = QString::number(*sr_minmax.first, 'f',2) + "-" + QString::number(*sr_minmax.second, 'f',2);
+		}
+		ui->label_sr_af->setText("Split Read AF: " + af_range);
+
+	}
+	else
+	{
+		//Display Split Read AF of variant
+		ui->label_sr_af->setText("Split Read AF: " + QString::number(alleleFrequency(row, "SR"), 'f',2));
+		//Display Paired End Read AF of variant
+		ui->label_pe_af->setText("Paired End Read AF: " + QString::number(alleleFrequency(row, "PR"), 'f',2));
+	}
+
 }
 
 void SvWidget::setInfoWidgets(const QByteArray &name, int row, QTableWidget* widget)

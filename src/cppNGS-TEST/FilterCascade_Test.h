@@ -1317,6 +1317,19 @@ private slots:
 		I_EQUAL(result.countPassing(), 8);
 	}
 
+	void FilterSvPairedReadAF_apply_multi()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline_multi.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvPairedReadAF filter;
+		filter.setDouble("Paired Read AF", 0.13);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 2);
+	}
+
 	void FilterSvSplitReadAF_apply()
 	{
 		BedpeFile svs;
@@ -1330,6 +1343,19 @@ private slots:
 		I_EQUAL(result.countPassing(), 11);
 	}
 
+	void FilterSvSplitReadAF_apply_multi()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline_multi.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvSplitReadAF filter;
+		filter.setDouble("Split Read AF", 0.5);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 2);
+	}
+
 	void FilterSvPeReadDepth_apply()
 	{
 		BedpeFile svs;
@@ -1341,6 +1367,19 @@ private slots:
 		filter.setInteger("PE Read Depth", 10);
 		filter.apply(svs, result);
 		I_EQUAL(result.countPassing(), 35);
+	}
+
+	void FilterSvPeReadDepth_apply_multi()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline_multi.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvPeReadDepth filter;
+		filter.setInteger("PE Read Depth", 20);
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 2);
 	}
 
 	void FilterSvSomaticscore_apply()
