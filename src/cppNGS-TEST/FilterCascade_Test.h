@@ -1236,17 +1236,43 @@ private slots:
 		I_EQUAL(result.countPassing(), 74);
 	}
 
-	void FilterSvGenotype_apply()
+	void FilterSvGenotypeAffected_apply()
 	{
 		BedpeFile svs;
 		svs.load(TESTDATA("data_in/SV_Manta_germline.bedpe"));
 
 		FilterResult result(svs.count());
 
-		FilterSvGenotype filter;
-		filter.setStringList("Genotype", QStringList("hom"));
+		FilterSvGenotypeAffected filter;
+		filter.setStringList("genotypes", QStringList("hom"));
 		filter.apply(svs, result);
 		I_EQUAL(result.countPassing(), 43);
+	}
+
+	void FilterSvGenotypeAffected_apply_multi()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline_multi.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvGenotypeAffected filter;
+		filter.setStringList("genotypes", QStringList("hom"));
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 6);
+	}
+
+	void FilterSvGenotypeControl_apply_multi()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline_multi.bedpe"));
+
+		FilterResult result(svs.count());
+
+		FilterSvGenotypeControl filter;
+		filter.setStringList("genotypes", QStringList() << "het" << "wt");
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 10);
 	}
 
 	void FilterSvQuality_apply()

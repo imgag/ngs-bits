@@ -926,7 +926,8 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["CNV gene overlap"] = &createInstance<FilterCnvGeneOverlap>;
 		output["SV type"] = &createInstance<FilterSvType>;
 		output["SV remove chr type"] = &createInstance<FilterSvRemoveChromosomeType>;
-		output["SV genotype"] = &createInstance<FilterSvGenotype>;
+		output["SV genotype control"] = &createInstance<FilterSvGenotypeControl>;
+		output["SV genotype affected"] = &createInstance<FilterSvGenotypeAffected>;
 		output["SV quality"] = &createInstance<FilterSvQuality>;
 		output["SV filter columns"] = &createInstance<FilterSvFilterColumn>;
 		output["SV paired read AF"] = &createInstance<FilterSvPairedReadAF>;
@@ -3405,41 +3406,35 @@ void FilterSvRemoveChromosomeType::apply(const BedpeFile& svs, FilterResult& res
 	}
 }
 
-FilterSvGenotype::FilterSvGenotype()
+FilterSvGenotypeControl::FilterSvGenotypeControl()
 {
-	name_ = "SV genotype";
+	name_ = "SV genotype control";
 	type_ = VariantType::SVS;
-	description_ = QStringList() << "Filter structural variants based on their genotype.";
-	params_ << FilterParameter("Genotype", STRINGLIST, QStringList(), "Structural variant genotype");
-	params_.last().constraints["valid"] = "het,hom";
+	description_ = QStringList() << "Filter structural variants of control samples based on their genotype.";
+	params_ << FilterParameter("genotypes", STRINGLIST, QStringList(), "Structural variant genotype(s)");
+	params_.last().constraints["valid"] = "wt,het,hom,n/a";
 	params_.last().constraints["not_empty"] = "";
+	params_ << FilterParameter("same_genotype", BOOL, false, "Also check that all 'control' samples have the same genotype.");
 
 	checkIsRegistered();
 }
 
-QString FilterSvGenotype::toText() const
+QString FilterSvGenotypeControl::toText() const
 {
-	return name() + ": " + getStringList("Genotype", false).join(",");
+	return name() + ": " + getStringList("genotypes", false).join(",");
 }
 
-void FilterSvGenotype::apply(const BedpeFile& svs, FilterResult& result) const
+void FilterSvGenotypeControl::apply(const BedpeFile& svs, FilterResult& result) const
 {
 	if (!enabled_) return;
-	if (svs.format() == BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL)
-	{
-		// ignore filter if applied to tumor-normal sample
-		THROW(ArgumentException, "Filter '" + name() +"' cannot be applied to somatic tumor normal sample!");
-		return;
-	}
-    if ((svs.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI)||(svs.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO))
-    {
-        // ignore filter if applied to trio/multi sample
-        THROW(ArgumentException, "Filter '" + name() +"' cannot be applied to trio/multi sample!");
-        return;
-    }
+
+	QList<int> format_data_indices = svs.sampleHeaderInfo().sampleColumns(false);
+	if (format_data_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without control samples!")
+
 
 	// get genotypes
-	QStringList genotypes = getStringList("Genotype");
+	QStringList genotypes = getStringList("genotypes");
+	bool same_genotype = getBool("same_genotype");
 
 	int format_col_index = svs.annotationIndexByName("FORMAT");
 
@@ -3448,20 +3443,113 @@ void FilterSvGenotype::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		// get genotype
+		// get genotype for each control sample
 
 		// get format keys and values
 		QByteArrayList format_keys = svs[i].annotations()[format_col_index].split(':');
-		QByteArrayList format_values = svs[i].annotations()[format_col_index + 1].split(':');
+		int genotype_idx = format_keys.indexOf("GT");
 
-		QByteArray sv_genotype_string = format_values[format_keys.indexOf("GT")];
-		QString sv_genotype;
+		QSet<QString> genotypes_all;
+		foreach (int data_idx, format_data_indices)
+		{
+			QByteArrayList format_values = svs[i].annotations()[data_idx].split(':');
 
-		if (sv_genotype_string == "0/1") sv_genotype = "het";
-		else if (sv_genotype_string == "1/1") sv_genotype = "hom";
-		else THROW(FileParseException, "Invalid genotype in sv " + QByteArray::number(i) + "!");
+			QByteArray sv_genotype_string = format_values[genotype_idx].trimmed();
+			QString sv_genotype;
 
-		result.flags()[i] = genotypes.contains(sv_genotype);
+			// convert genotype into GSvar format
+			if (sv_genotype_string == "0/1" || (sv_genotype_string == "1/0")) sv_genotype = "het";
+			else if (sv_genotype_string == "1/1") sv_genotype = "hom";
+			else if (sv_genotype_string == "0/0") sv_genotype = "wt";
+			else sv_genotype = "n/a";
+
+			if (!genotypes.contains(sv_genotype))
+			{
+				result.flags()[i] = false;
+			}
+
+			// store determined genotype in set
+			genotypes_all.insert(sv_genotype);
+		}
+
+		// check if all SVs have the same genotype
+		if (same_genotype && genotypes_all.size() > 1) result.flags()[i] = false;
+	}
+}
+
+FilterSvGenotypeAffected::FilterSvGenotypeAffected()
+{
+	name_ = "SV genotype affected";
+	type_ = VariantType::SVS;
+	description_ = QStringList() << "Filter structural variants (of affected samples) based on their genotype.";
+	params_ << FilterParameter("genotypes", STRINGLIST, QStringList(), "Structural variant genotype(s)");
+	params_.last().constraints["valid"] = "wt,het,hom,n/a";
+	params_.last().constraints["not_empty"] = "";
+	params_ << FilterParameter("same_genotype", BOOL, false, "Also check that all 'control' samples have the same genotype.");
+
+	checkIsRegistered();
+}
+
+QString FilterSvGenotypeAffected::toText() const
+{
+	return name() + ": " + getStringList("genotypes", false).join(",");
+}
+
+void FilterSvGenotypeAffected::apply(const BedpeFile& svs, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	// get genotypes
+	QStringList genotypes = getStringList("genotypes");
+	bool same_genotype = getBool("same_genotype");
+
+	int format_col_index = svs.annotationIndexByName("FORMAT");
+
+	QList<int> format_data_indices;
+	format_data_indices << format_col_index + 1;
+	if ((svs.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI) || (svs.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO))
+	{
+		format_data_indices = svs.sampleHeaderInfo().sampleColumns(true);
+		if (format_data_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
+	}
+
+
+	// iterate over all SVs
+	for(int i=0; i<svs.count(); ++i)
+	{
+		if (!result.flags()[i]) continue;
+
+		// get genotype for each control sample
+
+		// get format keys and values
+		QByteArrayList format_keys = svs[i].annotations()[format_col_index].split(':');
+		int genotype_idx = format_keys.indexOf("GT");
+
+		QSet<QString> genotypes_all;
+		foreach (int data_idx, format_data_indices)
+		{
+			QByteArrayList format_values = svs[i].annotations()[data_idx].split(':');
+
+			QByteArray sv_genotype_string = format_values[genotype_idx].trimmed();
+			QString sv_genotype;
+
+			// convert genotype into GSvar format
+			if (sv_genotype_string == "0/1" || (sv_genotype_string == "1/0")) sv_genotype = "het";
+			else if (sv_genotype_string == "1/1") sv_genotype = "hom";
+			else if (sv_genotype_string == "0/0") sv_genotype = "wt";
+			else sv_genotype = "n/a";
+
+			if (!genotypes.contains(sv_genotype))
+			{
+				result.flags()[i] = false;
+			}
+
+			// store determined genotype in set
+			genotypes_all.insert(sv_genotype);
+		}
+
+		// check if all SVs have the same genotype
+		if (same_genotype && genotypes_all.size() > 1) result.flags()[i] = false;
 	}
 }
 
@@ -4259,6 +4347,7 @@ void FilterSvAfNGSD::apply(const BedpeFile& svs, FilterResult& result) const
 FilterSvTrio::FilterSvTrio()
 {
     name_ = "SV trio";
+	type_ = VariantType::SVS;
     description_ = QStringList() << "Filter trio structural variants";
     params_ << FilterParameter("types", STRINGLIST, QStringList() << "de-novo" << "recessive" << "comp-het" << "LOH" << "x-linked", "Variant types");
     params_.last().constraints["valid"] = "de-novo,recessive,comp-het,LOH,x-linked,imprinting";
@@ -4298,11 +4387,12 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 	int i_c = sample_headers.infoByStatus(true).column_index;
 	int i_f = sample_headers.infoByStatus(false, "male").column_index;
 	int i_m = sample_headers.infoByStatus(false, "female").column_index;
+	int i_format_col = svs.annotationIndexByName("FORMAT");
 
     //determine AF indices
-    QList<int> tmp;
-    tmp << i_c << i_f << i_m;
-    std::sort(tmp.begin(), tmp.end());
+//    QList<int> tmp;
+//    tmp << i_c << i_f << i_m;
+//    std::sort(tmp.begin(), tmp.end());
 
     //get PAR region
     BedFile par_region = NGSHelper::pseudoAutosomalRegion("hg19");
@@ -4328,10 +4418,10 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
                 diplod_chromosome = diplod_chromosome || sv.chr2().isAutosome() || (sv.chr2().isX() && gender_child=="female") || (sv.chr2().isX() && par_region.overlapsWith(sv_region[1].chr(), sv_region[1].start(), sv_region[1].end()));
             }
 
-            // get genotypes
-            QByteArray geno_c = sv.annotations()[i_c];
-            QByteArray geno_f = sv.annotations()[i_f];
-            QByteArray geno_m = sv.annotations()[i_m];
+			// get genotypes
+			QByteArray geno_c = determineGenotype(sv.annotations()[i_format_col], sv.annotations().at(i_c));
+			QByteArray geno_f = determineGenotype(sv.annotations()[i_format_col], sv.annotations()[i_f]);
+			QByteArray geno_m = determineGenotype(sv.annotations()[i_format_col], sv.annotations()[i_m]);
 
             if (diplod_chromosome)
             {
@@ -4371,9 +4461,9 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
         const BedpeLine& sv = svs[i];
 
         //get genotypes
-        QByteArray geno_c = sv.annotations()[i_c];
-        QByteArray geno_f = sv.annotations()[i_f];
-        QByteArray geno_m = sv.annotations()[i_m];
+		QByteArray geno_c = determineGenotype(sv.annotations()[i_format_col], sv.annotations()[i_c]);
+		QByteArray geno_f = determineGenotype(sv.annotations()[i_format_col], sv.annotations()[i_f]);
+		QByteArray geno_m = determineGenotype(sv.annotations()[i_format_col], sv.annotations()[i_m]);
 
         //remove variants where index is wild-type
         if (geno_c=="wt")
@@ -4475,7 +4565,24 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
         }
 
         result.flags()[i] = match;
-    }
+	}
+}
+
+QByteArray FilterSvTrio::determineGenotype(const QByteArray& format_col, const QByteArray& data_col) const
+{
+	QByteArrayList keys = format_col.split(':');
+	QByteArrayList values = data_col.split(':');
+	int genotype_idx = keys.indexOf("GT");
+	if (genotype_idx < 0) THROW(FileParseException, "No genotype entry found for SV!");
+	QByteArray genotype_string = values.at(genotype_idx);
+	QByteArray genotype;
+	// convert genotype into GSvar format
+	if ((genotype_string == "0/1") || (genotype_string == "1/0")) genotype = "het";
+	else if (genotype_string == "1/1") genotype = "hom";
+	else if (genotype_string == "0/0") genotype = "wt";
+	else genotype = "n/a";
+
+	return genotype;
 }
 
 FilterSomaticAlleleFrequency::FilterSomaticAlleleFrequency()
