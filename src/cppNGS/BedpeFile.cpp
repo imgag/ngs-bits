@@ -254,6 +254,7 @@ void BedpeFile::load(const QString& file_name)
 	int i_type = annotationIndexByName("TYPE");
 
 	// parse sample info of multi sample BEDPE files
+	sample_header_info_.clear();
 	if ((format() == BEDPE_GERMLINE_MULTI) || (format() == BEDPE_GERMLINE_TRIO)) parseSampleHeaderInfo();
 
 	//fields

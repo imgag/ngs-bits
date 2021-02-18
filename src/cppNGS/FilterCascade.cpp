@@ -3429,8 +3429,7 @@ void FilterSvGenotypeControl::apply(const BedpeFile& svs, FilterResult& result) 
 	if (!enabled_) return;
 
 	QList<int> format_data_indices = svs.sampleHeaderInfo().sampleColumns(false);
-	if (format_data_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without control samples!")
-
+	if (format_data_indices.size() < 1) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without control samples!");
 
 	// get genotypes
 	QStringList genotypes = getStringList("genotypes");
