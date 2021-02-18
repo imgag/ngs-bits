@@ -2051,6 +2051,10 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 						{
 							info.fk_name_sql = "name";
 						}
+						if (info.name=="user_id")
+						{
+							info.fk_name_sql = "name";
+						}
 					}
 				}
 			}
@@ -3081,6 +3085,9 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 	//related samples
 	QStringList related_sample_ids = relatedSamples(s_id, "parent-child");
 	related_sample_ids << relatedSamples(s_id, "siblings");
+	related_sample_ids << relatedSamples(s_id, "twins");
+	related_sample_ids << relatedSamples(s_id, "twins (monozygotic)");
+	related_sample_ids << relatedSamples(s_id, "cousins");
 	foreach(QString related_sample_id, related_sample_ids)
 	{
 		//sample data
@@ -4795,6 +4802,19 @@ QStringList NGSD::relatedSamples(const QString& sample_id, const QString& relati
 	}
 
 	return related_sample_ids;
+}
+
+void NGSD::addSampleRelation(const SampleRelation& rel, bool error_if_already_present)
+{
+	QString query_ext = error_if_already_present ? "" : " ON DUPLICATE KEY UPDATE relation=VALUES(relation)";
+	//skip samples that already have a relation in NGSD
+
+	SqlQuery query = getQuery();
+	query.prepare("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`, `user_id`) VALUES (:0, :1, :2, "+QString::number(LoginManager::userId())+")" + query_ext);
+	query.bindValue(0, sampleId(rel.sample1));
+	query.bindValue(1, rel.relation);
+	query.bindValue(2, sampleId(rel.sample2));
+	query.exec();
 }
 
 SomaticReportConfigurationData NGSD::somaticReportConfigData(int id)
