@@ -11,17 +11,12 @@ ReportWorker::ReportWorker(GermlineReportGeneratorData data, QString filename)
 
 void ReportWorker::process()
 {
-	qDebug() << __FILE__ << __LINE__;
 	//generate HTML report
 	QString temp_filename = Helper::tempFileName(".html");
-	qDebug() << __FILE__ << __LINE__;
 	GermlineReportGenerator report_generator(data_);
-	qDebug() << __FILE__ << __LINE__;
 	report_generator.writeHTML(temp_filename);
-	qDebug() << __FILE__ << __LINE__;
 	moveReport(temp_filename, filename_);
 
-	qDebug() << __FILE__ << __LINE__;
 	//copy HTML report to archive folder
 	QString archive_folder = Settings::string("gsvar_report_archive");
 	if (archive_folder!="")
@@ -37,7 +32,6 @@ void ReportWorker::process()
 		}
 	}
 
-	qDebug() << __FILE__ << __LINE__;
 	//generate XML report
 	QString gsvar_xml_folder = Settings::string("gsvar_xml_folder");
 	if (gsvar_xml_folder!="")
@@ -48,7 +42,6 @@ void ReportWorker::process()
 		QString xml_file = gsvar_xml_folder + "/" + QFileInfo(filename_).fileName().replace(".html", ".xml");
 		moveReport(temp_filename, xml_file);
 	}
-	qDebug() << __FILE__ << __LINE__;
 }
 
 void ReportWorker::moveReport(QString temp_filename, QString filename)

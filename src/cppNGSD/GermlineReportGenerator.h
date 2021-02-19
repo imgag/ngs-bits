@@ -40,6 +40,9 @@ public:
 	///Writes the XML report, including the HTML report. Call after generating the HTML report - some statistics data is cached between reports.
 	void writeXML(QString filename, QString html_document);
 
+	///Overrides BAM file (for testing only)
+	void overrideBamFile(QString bam_file);
+
 	///Returns if the pre-calcualed gaps for the given ROI.
 	///If using the pre-calculated gaps file is not possible, @p message contains an error message.
 	static BedFile precalculatedGaps(QString bam_file, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region);
@@ -58,9 +61,9 @@ private:
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
 	QString trans(const QString& text);
-	void writeCoverageReport(QTextStream& stream, const BedFile& roi, const GeneSet& genes, int min_cov, bool calculate_depth, bool gene_and_gap_details);
+	void writeCoverageReport(QTextStream& stream);
 	void writeClosedGapsReport(QTextStream& stream, const BedFile& roi);
-	void writeCoverageReportCCDS(QTextStream& stream, const GeneSet& genes, int min_cov, int extend, bool gap_table=true, bool gene_details=true);
+	void writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table=true, bool gene_details=true);
 	static QByteArray formatGenotype(const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
 

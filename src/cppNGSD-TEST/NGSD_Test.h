@@ -4,6 +4,7 @@
 #include "LoginManager.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
+#include "GermlineReportGenerator.h"
 #include <QThread>
 #include <cmath>
 #include <QCoreApplication>
@@ -94,8 +95,6 @@ private slots:
 	{
 		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
-
-		QCoreApplication::setApplicationVersion("0.1-cppNGSD-TEST-Version"); //application version (is written into somatic xml report)
 
 		//init
 		NGSD db(true);
@@ -1232,10 +1231,78 @@ private slots:
 		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"});
 		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}); //ignored
 		IS_THROWN(DatabaseException, db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}, true));
+
+	}
+
+	inline void report_germline()
+	{
+		QString host = Settings::string("ngsd_test_host", true);
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
+
+		//init NGSD
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
+		db.getQuery().exec("UPDATE processing_system SET target_file='" + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + "' WHERE name_short='hpHBOCv5'");
+		LoginManager::login("ahmustm1", true);
+
+		//setup
+		VariantList variants;
+		variants.load(TESTDATA("../cppNGS-TEST/data_in/panel_vep.GSvar"));
+		CnvList cnvs;
+		cnvs.load(TESTDATA("../cppNGS-TEST/data_in/panel_cnvs_clincnv.tsv"));
+		BedpeFile svs;
+		svs.load(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
+		ReportSettings report_settings;
+		report_settings.report_type = "diagnostic variant";
+		//TODO selected_variants + report_config
+		report_settings.min_depth = 20;
+		report_settings.show_coverage_details = false;
+		report_settings.roi_low_cov = false;
+		report_settings.recalculate_avg_depth = false;
+		report_settings.show_omim_table = false;
+		report_settings.show_class_details = false;
+		FilterCascade filters;
+		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
+		QMap<QByteArray, QByteArrayList> preferred_transcripts;
+		//TODO
+		GermlineReportGeneratorData data("NA12878_03", variants, cnvs, svs, report_settings, filters, preferred_transcripts);
+
+		//TEST 1 - minimal, no target region
+		GermlineReportGenerator generator(data, true);
+		generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+		generator.writeHTML("out/germline_report1.html");
+		//TODO COMPARE_FILES("out/germline_report1.html", TESTDATA("data_out/germline_report1.html"));
+		generator.writeXML("out/germline_report1.xml", "out/germline_report1.html");
+		//TODO COMPARE_FILES("out/germline_report1.xml", TESTDATA("data_out/germline_report1.xml"));
+
+		//TEST 2 - maximal, with target region
+		report_settings.show_coverage_details = true;
+		report_settings.roi_low_cov = true;
+		report_settings.recalculate_avg_depth = true;
+		report_settings.show_omim_table = true;
+		report_settings.show_class_details = true;
+		data.roi_file = TESTDATA("../cppNGS-TEST/data_in/panel.bed");
+		data.roi_genes.insert("BRCA1");
+		data.roi_genes.insert("BRCA2");
+		data.roi_genes.insert("NIPA1");
+
+		generator.writeHTML("out/germline_report2.html");
+		//TODO COMPARE_FILES("out/germline_report2.html", TESTDATA("data_out/germline_report2.html"));
+		generator.writeXML("out/germline_report2.xml", "out/germline_report2.html");
+		//TODO COMPARE_FILES("out/germline_report2.xml", TESTDATA("data_out/germline_report2.xml"));
+
+
+		//TEST 3 - maximal, with target region, english
+		report_settings.language = "english";
+
+		generator.writeHTML("out/germline_report3.html");
+		//TODO COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));
+
 	}
 
 	//Tests for SomaticReportConfiguration and specific somatic variants
-	inline void somatic_tests()
+	inline void report_somatic()
 	{
 		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
