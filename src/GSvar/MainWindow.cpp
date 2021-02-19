@@ -699,28 +699,23 @@ void MainWindow::on_actionSV_triggered()
 		//open SV widget
 		SvWidget* list;
 
-		if ((variants_.type() == GERMLINE_MULTISAMPLE) || (variants_.type() == GERMLINE_TRIO))
+		QString ps_id;
+		if (LoginManager::active())
 		{
-            // multisample (ps names will be extracted from BEDPE file)
-            list = new SvWidget(svs_, ui_.filters, het_hit_genes, gene2region_cache_, this);
+			ps_id = NGSD().processedSampleId(processedSampleName(), false);
+		}
+
+		if(svs_.isSomatic())
+		{
+			// somatic
+			list = new SvWidget(svs_, ps_id, ui_.filters, het_hit_genes, gene2region_cache_, this);
 		}
 		else
 		{
-			// single sample
-            QString ps_id;
-			if (LoginManager::active())
-			{
-                ps_id = NGSD().processedSampleId(processedSampleName(), false);
-			}
-
-			if(svs_.isSomatic())
-			{
-                list = new SvWidget(svs_, ps_id, ui_.filters, het_hit_genes, gene2region_cache_, this);
-			}
-			else
-			{
-                list = new SvWidget(svs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_, this);
-			}
+			// germline single, trio or multi sample
+			QSharedPointer<ReportConfiguration> report_config = nullptr;
+			if (germlineReportSupported()) report_config = report_settings_.report_config;
+			list = new SvWidget(svs_, ps_id, ui_.filters, report_config, het_hit_genes, gene2region_cache_, this);
 		}
 
 		auto dlg = GUIHelper::createDialog(list, "Structural variants of " + processedSampleName());
@@ -5711,6 +5706,19 @@ QString MainWindow::svFile(QString gsvar_file)
 bool MainWindow::germlineReportSupported()
 {
 	AnalysisType type = variants_.type();
+	if (type==GERMLINE_MULTISAMPLE)
+	{
+		// check if exactly one affected (-> use report of the affected sample)
+		try
+		{
+			SampleInfo info = variants_.getSampleHeader().infoByStatus(true);
+			return true;
+		}
+		catch (...)
+		{
+			return false;
+		}
+	}
 	return type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO;
 }
 

@@ -27,7 +27,8 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* fil
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
 	, sv_bedpe_file_(bedpe_file)
-    , ps_ids_(QStringList() << ps_id)
+	, ps_ids_(QStringList())
+	, ps_id_(ps_id)
 	, variant_filter_widget_(filter_widget)
 	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
@@ -35,11 +36,6 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* fil
 	, report_config_(nullptr)
 	, roi_gene_index_(roi_genes_)
 {
-	// check if file type matches given processed sample count
-	if (ps_ids_.size() > 1 && (sv_bedpe_file_.format() != BedpeFileFormat::BEDPE_GERMLINE_MULTI))
-	{
-		THROW(ArgumentException, "Bedpe file type does not match given processed sample ids!");
-	}
 
 	ui->setupUi(this);
 	ui->svs->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -81,26 +77,16 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* fil
 SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
     : SvWidget(bedpe_file, ps_id, filter_widget, het_hit_genes, cache, parent, false)
 {
-	if(bedpe_file.format()!=BedpeFileFormat::BEDPE_GERMLINE_SINGLE)
+	if((bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)||(bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO))
+	{
+		is_multisample_ = true;
+		is_trio_ = bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO;
+	}
+	else if(bedpe_file.format()!=BedpeFileFormat::BEDPE_GERMLINE_SINGLE)
 	{
 		THROW(ProgrammingException, "Constructor in SvWidget has to be used using germline SV data.");
 	}
 	report_config_ = rep_conf;
-	initGUI();
-}
-
-SvWidget::SvWidget(const BedpeFile& bedpe_file, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
-    : SvWidget(bedpe_file, "", filter_widget, het_hit_genes, cache, parent, false)
-{
-    is_multisample_ = true;
-    if((bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)||(bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO))
-	{
-        is_trio_ = bedpe_file.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO;
-	}
-    else
-    {
-        THROW(ProgrammingException, "BEDPE file format does not match multisample constructor of SvWidget!");
-    }
 	initGUI();
 }
 
@@ -131,19 +117,39 @@ void SvWidget::initGUI()
         if (ngsd_enabled_)
         {
             ps_ids_.clear();
+			ps_id_ = "";
             foreach (QString ps_name, ps_names_)
             {
                 ps_ids_ << db_.processedSampleId(ps_name);
             }
+
+			// determine ps_id for report config / base info
+			if(sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO)
+			{
+				// in trio samples: use child
+				ps_id_ = db_.processedSampleId(sv_bedpe_file_.sampleHeaderInfo().infoByStatus(true).column_name);
+			}
+			else
+			{
+				//multisample: if only one affected sample: use this sample
+				try
+				{
+					ps_id_ = db_.processedSampleId(sv_bedpe_file_.sampleHeaderInfo().infoByStatus(true).column_name);
+				}
+				catch (ProgrammingException)
+				{
+					ps_id_ = "";
+				}
+			}
         }
     }
     else
     {
         // single sample
-
-        if(ps_ids_.at(0) != "" && ngsd_enabled_)
+		ps_ids_.clear();
+		if(ps_id_ != "" && ngsd_enabled_)
         {
-            ps_names_ = QStringList() << db_.processedSampleName(ps_ids_.at(0));
+			ps_names_ = QStringList() << db_.processedSampleName(ps_id_);
         }
         else
         {
@@ -162,18 +168,6 @@ void SvWidget::initGUI()
 		if(annotation_headers[i].contains("NAME_")) continue;
 		if(annotation_headers[i] == "ID") continue;
 		annotations_to_show_ << annotation_headers[i];
-	}
-
-	// check if given processed sample ids match samples in file
-	if (ngsd_enabled_)
-	{
-		// check if given processed sample ids match samples in file
-		QStringList ps_db_names;
-		foreach (QString ps_id, ps_ids_)
-		{
-            if (ps_id != "") ps_db_names << db_.processedSampleName(ps_id);
-		}
-		if (ps_db_names != ps_names_) THROW(ArgumentException, "Given processed sample ids do not match the samples in file!");
 	}
 
 	//add genotype of samples as separate column for trio/multisample after the positions
@@ -652,14 +646,14 @@ void SvWidget::editSvValidation(int row)
 		NGSD db;
 
 		//get SV ID
-		QString callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_ids_.at(0)).toString();
-		if (callset_id == "") THROW(DatabaseException, "No callset found for processed sample id " + ps_ids_.at(0) + "!");
+		QString callset_id = db.getValue("SELECT id FROM sv_callset WHERE processed_sample_id=:0", true, ps_id_).toString();
+		if (callset_id == "") THROW(DatabaseException, "No callset found for processed sample id " + ps_id_ + "!");
 		QString sv_id = db.svId(sv, Helper::toInt(callset_id, "callset_id"), sv_bedpe_file_);
 		if (sv_id == "") THROW(DatabaseException, "SV not found in the NGSD! ");
 
 
 		//get sample ID
-		QString sample_id = db.sampleId(db.processedSampleName(ps_ids_.at(0)));
+		QString sample_id = db.sampleId(db.processedSampleName(ps_id_));
 
 		//get variant validation ID - add if missing
 		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE "+ db.svTableName(sv.type()) + "_id='" + sv_id + "' AND sample_id='" + sample_id + "'", true);
@@ -918,14 +912,14 @@ QByteArray SvWidget::getFormatEntryByKey(const QByteArray& key, const QByteArray
 
 void SvWidget::importPhenotypesFromNGSD()
 {
-	if (ps_ids_.at(0) == "")
+	if (ps_id_ == "")
 	{
 		QMessageBox::warning(this, "Error loading phenotypes", "Cannot load phenotypes because no processed sample ID is set!");
 		return;
 	}
 
 	NGSD db;
-	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_ids_.at(0)).toString();
+	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_id_).toString();
 	PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
 
 	ui->filter_widget->setPhenotypes(phenotypes);
@@ -939,7 +933,7 @@ void SvWidget::svHeaderDoubleClicked(int row)
 
 void SvWidget::svHeaderContextMenu(QPoint pos)
 {
-	if (!ngsd_enabled_) return;
+	if (!ngsd_enabled_ || (report_config_ == nullptr)) return;
 
 	//skip somatic samples:
 	if(is_somatic_) return;
@@ -1134,9 +1128,10 @@ void SvWidget::showContextMenu(QPoint pos)
 	//create menu
 	QMenu menu(ui->svs);
 	QAction* a_rep_edit = menu.addAction(QIcon(":/Icons/Report.png"), "Add/edit report configuration");
-	a_rep_edit->setEnabled(ngsd_enabled_ && !is_somatic_);
+	a_rep_edit->setEnabled((report_config_ != nullptr) && ngsd_enabled_ && !is_somatic_);
 	QAction* a_rep_del = menu.addAction(QIcon(":/Icons/Remove.png"), "Delete report configuration");
-	a_rep_del->setEnabled(ngsd_enabled_ && !is_somatic_ && report_config_->exists(VariantType::SVS, row) && !report_config_->isFinalized());
+	a_rep_del->setEnabled(false);
+	a_rep_del->setEnabled((report_config_ != nullptr) && ngsd_enabled_ && !is_somatic_ && report_config_->exists(VariantType::SVS, row) && !report_config_->isFinalized());
 	menu.addSeparator();
 	QAction* a_sv_val = menu.addAction("Perform structural variant validation");
 	menu.addSeparator();
@@ -1202,7 +1197,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	else if (action==a_ngsd_search)
 	{
 		SvSearchWidget* widget = new SvSearchWidget();
-		widget->setProcessedSampleId(ps_ids_.at(0));
+		widget->setProcessedSampleId(ps_id_);
 		widget->setCoordinates(sv);
 		auto dlg = GUIHelper::createDialog(widget, "SV search");
 
