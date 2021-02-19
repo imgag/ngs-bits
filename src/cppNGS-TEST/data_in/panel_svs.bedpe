@@ -1,5 +1,5 @@
 ##fileformat=BEDPE
-##fileDate=20191218
+##fileDate=20201021
 ##source=GenerateSVCandidates 1.6.0
 ##reference=file:///tmp/local_ngs_data/GRCh37.fa
 ##contig=<ID=chr1,length=249250621>
@@ -88,10 +88,11 @@
 ##contig=<ID=chrGL000192.1,length=547496>
 ##contig=<ID=chrNC_007605,length=171823>
 ##contig=<ID=chrhs37d5,length=35477943>
+##ALT=<ID=INV,Description="Inversion">
 ##ALT=<ID=DEL,Description="Deletion">
 ##ALT=<ID=INS,Description="Insertion">
 ##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
-##cmdline=/mnt/share/opt/manta-1.6.0.centos6_x86_64/bin//configManta.py --referenceFasta /tmp/local_ngs_data//GRCh37.fa --runDir /tmp/22231.1.default_srv014/megSAP_user_bioinf/vc_manta_sbnfL7/mantaAnalysis --config /mnt/share/opt/manta-1.6.0.centos6_x86_64/bin//configManta.py.ini --outputContig --generateEvidenceBam --exome --normalBam /tmp/22231.1.default_srv014/megSAP_user_bioinf/vc_manta_XpiVye_nocomplex.bam
+##cmdline=/mnt/share/opt/manta-1.6.0.centos6_x86_64/bin//configManta.py --referenceFasta /tmp/local_ngs_data//GRCh37.fa --runDir /tmp/113948.1.default_srv015/megSAP_user_bioinf/vc_manta_nQ9qei/mantaAnalysis --config /mnt/share/opt/manta-1.6.0.centos6_x86_64/bin//configManta.py.ini --outputContig --generateEvidenceBam --exome --normalBam /mnt/projects/test/KontrollDNACoriell/Sample_NA12878_03//NA12878_03.bam
 ##INFO=<ID=IMPRECISE,Number=0,Type=Flag,Description="Imprecise structural variation">
 ##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
 ##INFO=<ID=POS,Number=1,Type=Integer,Description="Position of the variant described in the original VCF file.">
@@ -112,19 +113,21 @@
 ##INFO=<ID=BND_DEPTH,Number=1,Type=Integer,Description="Read depth at local translocation breakend">
 ##INFO=<ID=MATE_BND_DEPTH,Number=1,Type=Integer,Description="Read depth at remote translocation mate breakend">
 ##INFO=<ID=JUNCTION_QUAL,Number=1,Type=Integer,Description="If the SV junction is part of an EVENT (ie. a multi-adjacency variant), this field provides the QUAL value for the adjacency in question only">
+##INFO=<ID=INV3,Number=0,Type=Flag,Description="Inversion breakends open 3' of reported location">
+##INFO=<ID=INV5,Number=0,Type=Flag,Description="Inversion breakends open 5' of reported location">
+##FILTER=<ID=Ploidy,Description="For DEL & DUP variants, the genotypes of overlapping variants (with similar size) are inconsistent with diploid expectation">
+##FILTER=<ID=MaxMQ0Frac,Description="For a small variant (<1000 bases), the fraction of reads in all samples with MAPQ0 around either breakend exceeds 0.4">
+##FILTER=<ID=NoPairSupport,Description="For variants significantly larger than the paired read fragment size, no paired reads support the alternate allele in any sample.">
+##FILTER=<ID=MinQUAL,Description="QUAL score is less than 20">
+##FILTER=<ID=SampleFT,Description="No sample passes all the sample-level filters (at the field FORMAT/FT)">
+##FILTER=<ID=MinGQ,Description="GQ score is less than 15 (filter applied at sample level)">
+##FILTER=<ID=HomRef,Description="homozygous reference call (filter applied at sample level)">
+##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##FORMAT=<ID=FT,Number=1,Type=String,Description="Sample filter, 'PASS' indicates that all filters have passed for this sample">
 ##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
 ##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
 ##FORMAT=<ID=PR,Number=.,Type=Integer,Description="Spanning paired-read support for the ref and alt alleles in the order listed">
 ##FORMAT=<ID=SR,Number=.,Type=Integer,Description="Split reads for the ref and alt alleles in the order listed, for reads where P(allele|read)>0.999">
-##FILTER=<ID=HomRef,Description="homozygous reference call (filter applied at sample level)">
-##FILTER=<ID=MaxMQ0Frac,Description="For a small variant (<1000 bases), the fraction of reads in all samples with MAPQ0 around either breakend exceeds 0.4">
-##FILTER=<ID=MinGQ,Description="GQ score is less than 15 (filter applied at sample level)">
-##FILTER=<ID=MinQUAL,Description="QUAL score is less than 20">
-##FILTER=<ID=NoPairSupport,Description="For variants significantly larger than the paired read fragment size, no paired reads support the alternate allele in any sample.">
-##FILTER=<ID=Ploidy,Description="For DEL & DUP variants, the genotypes of overlapping variants (with similar size) are inconsistent with diploid expectation">
-##FILTER=<ID=SampleFT,Description="No sample passes all the sample-level filters (at the field FORMAT/FT)">
-##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
-#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	ID	QUAL	STRAND_A	STRAND_B	TYPE	FILTER	NAME_A	REF_A	ALT_A	NAME_B	REF_B	ALT_B	INFO_A	INFO_B	FORMAT	NA12878_03
-chr16	89844943	89845059	chr15	80242306	80242417	MantaBND:33:0:1:0:0:0:0	85	.	.	BND	off-target	MantaBND:33:0:1:0:0:0:0	A	[CHR15:80242361[A	MantaBND:33:0:1:0:0:0:1	A	[CHR16:89845001[A	IMPRECISE;SVTYPE=BND;CIPOS=-58,58;MATEID=MantaBND:33:0:1:0:0:0:1;BND_DEPTH=597;MATE_BND_DEPTH=2	IMPRECISE;SVTYPE=BND;CIPOS=-55,56;MATEID=MantaBND:33:0:1:0:0:0:0;BND_DEPTH=2;MATE_BND_DEPTH=597	GT:FT:GQ:PL:PR	1/1:PASS:18:138,20,0:0,7
+#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	ID	QUAL	STRAND_A	STRAND_B	TYPE	FILTER	NAME_A	REF_A	ALT_A	NAME_B	REF_B	ALT_B	INFO_A	INFO_B	FORMAT	NA12878_03	GENES	GENE_INFO	NGSD_COUNT	NGSD_COUNT_OVERLAP	OMIM	CNV_OVERLAP
+chr1	9121449	9121453	chr14	93712482	93712486	MantaBND:40:0:1:0:0:0:0	552	.	.	BND	AMBIGUOUS	MantaBND:40:0:1:0:0:0:0	C	[CHR14:93712486[C	MantaBND:40:0:1:0:0:0:1	A	[CHR1:9121453[A	SVTYPE=BND;MATEID=MantaBND:40:0:1:0:0:0:1;CONTIG=TGCCACCACACCCAGCTAATTTTTAAATTTTTTTTGGTAGAGACAGGATTTCCCTATGTTGCCCAATCTGGTCTCAAACTCCAGGGTGGATGGAAGGCCACAAAAGAGTCCAGATCTGTAAACATGGTTTCTGCAGGAGGTGTACTGTTTACGCGACATCTCCCAGGCTGTCTCATTG;CIPOS=0,4;HOMLEN=4;HOMSEQ=CCTG;BND_DEPTH=15;MATE_BND_DEPTH=100	SVTYPE=BND;MATEID=MantaBND:40:0:1:0:0:0:0;CONTIG=TGCCACCACACCCAGCTAATTTTTAAATTTTTTTTGGTAGAGACAGGATTTCCCTATGTTGCCCAATCTGGTCTCAAACTCCAGGGTGGATGGAAGGCCACAAAAGAGTCCAGATCTGTAAACATGGTTTCTGCAGGAGGTGTACTGTTTACGCGACATCTCCCAGGCTGTCTCATTG;CIPOS=0,4;HOMLEN=4;HOMSEQ=GGGT;BND_DEPTH=100;MATE_BND_DEPTH=15	GT:FT:GQ:PL:PR:SR	0/1:PASS:552:602,0,568:15,10:41,13	BTBD7,SLC2A5	BTBD7 (oe_lof=0.34 region=exonic/splicing),SLC2A5 (oe_lof=0.79 region=intronic/intergenic)	1266 (0.1748)	1266		

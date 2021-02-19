@@ -26,8 +26,14 @@ GermlineReportGenerator::GermlineReportGenerator(const GermlineReportGeneratorDa
 {
 	ps_id_ = db_.processedSampleId(data_.ps);
 	ps_bam_ = db_.processedSamplePath(ps_id_, NGSD::BAM);
+
+	if (data_.roi_file!="")
+	{
+		roi_.load(data_.roi_file);
+	}
+
 	int system_id = db_.processingSystemIdFromProcessedSample(data_.ps);
-	sys_roi_file_ = db_.getProcessingSystemData(system_id, Helper::isWindows()).target_file;
+	sys_roi_file_ = db_.getProcessingSystemData(system_id, Helper::isWindows() && !test_mode).target_file;
 	sys_roi_.load(sys_roi_file_);
 }
 
@@ -457,14 +463,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	//element TargetRegion (optional)
 	if (data_.roi_file!="")
 	{
-		BedFile roi;
-		roi.load(data_.roi_file);
-		roi.merge();
-
 		w.writeStartElement("TargetRegion");
 		w.writeAttribute("name", QFileInfo(data_.roi_file).fileName().replace(".bed", ""));
-		w.writeAttribute("regions", QString::number(roi.count()));
-		w.writeAttribute("bases", QString::number(roi.baseCount()));
+		w.writeAttribute("regions", QString::number(roi_.count()));
+		w.writeAttribute("bases", QString::number(roi_.baseCount()));
 		QString gap_percentage = cache_["gap_percentage"]; //cached from HTML report
 		if (!gap_percentage.isEmpty())
 		{
@@ -980,7 +982,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	}
 	if (stats.count()==0)
 	{
-		Log::warn("Target region depth from NGSD cannot be used because ROI is not the processing system target region! Recalculating...");
+		Log::warn("Average target region depth from NGSD cannot be used! Recalculating it...");
 
 		QString ref_file = Settings::string("reference_genome");
 		stats = Statistics::mapping(roi_, ps_bam_, ref_file);

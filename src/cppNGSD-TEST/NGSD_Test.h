@@ -1238,6 +1238,8 @@ private slots:
 	{
 		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		//init NGSD
 		NGSD db(true);
@@ -1248,7 +1250,7 @@ private slots:
 
 		//setup
 		VariantList variants;
-		variants.load(TESTDATA("../cppNGS-TEST/data_in/panel_vep.GSvar"));
+		variants.load(TESTDATA("../cppNGS-TEST/data_in/panel.GSvar"));
 		CnvList cnvs;
 		cnvs.load(TESTDATA("../cppNGS-TEST/data_in/panel_cnvs_clincnv.tsv"));
 		BedpeFile svs;
@@ -1264,41 +1266,91 @@ private slots:
 		FilterCascade filters;
 		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
 		QMap<QByteArray, QByteArrayList> preferred_transcripts;
+		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
 
 		GermlineReportGeneratorData data("NA12878_03", variants, cnvs, svs, report_settings, filters, preferred_transcripts);
 
-		//TEST 1 - minimal
-		GermlineReportGenerator generator(data, true);
-		generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-		generator.writeHTML("out/germline_report1.html");
-		COMPARE_FILES("out/germline_report1.html", TESTDATA("data_out/germline_report1.html"));
-		generator.writeXML("out/germline_report1.xml", "out/germline_report1.html");
-		COMPARE_FILES("out/germline_report1.xml", TESTDATA("data_out/germline_report1.xml"));
+		//############################### TEST 1 - minimal ###############################
+		{
+			GermlineReportGenerator generator(data, true);
+			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
 
-		//TEST 2 - with variants, with target region, all optional parts enabled
-		//TODO selected_variants + report_config + preferred_transcripts
-		report_settings.show_coverage_details = true;
-		report_settings.roi_low_cov = true;
-		report_settings.recalculate_avg_depth = true;
-		report_settings.show_omim_table = true;
-		report_settings.show_class_details = true;
-		data.roi_file = TESTDATA("../cppNGS-TEST/data_in/panel.bed");
-		data.roi_genes.insert("BRCA1");
-		data.roi_genes.insert("BRCA2");
-		data.roi_genes.insert("NIPA1");
+			generator.writeHTML("out/germline_report1.html");
+			COMPARE_FILES("out/germline_report1.html", TESTDATA("data_out/germline_report1.html"));
+			generator.writeXML("out/germline_report1.xml", "out/germline_report1.html");
+			COMPARE_FILES("out/germline_report1.xml", TESTDATA("data_out/germline_report1.xml"));
+		}
 
-		generator.writeHTML("out/germline_report2.html");
-		//TODO COMPARE_FILES("out/germline_report2.html", TESTDATA("data_out/germline_report2.html"));
-		generator.writeXML("out/germline_report2.xml", "out/germline_report2.html");
-		//TODO COMPARE_FILES("out/germline_report2.xml", TESTDATA("data_out/germline_report2.xml"));
+		//############################### TEST 2 - with variants, with target region, all optional parts enabled ###############################
+		{
+			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 252)); //small variant - chr13:41367370 C>G (SPG7)
+			ReportVariantConfiguration var_conf;
+			var_conf.variant_type = VariantType::SNVS_INDELS;
+			var_conf.variant_index = 252;
+			var_conf.causal = true;
+			var_conf.mosaic = true;
+			var_conf.de_novo = true;
+			var_conf.comp_het = false;
+			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 173)); //small variant - chr13:41367370 C>G (SLC25A15)
+			var_conf.variant_type = VariantType::SNVS_INDELS;
+			var_conf.variant_index = 173;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = true;
+			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 0)); //CNV - het deletion
+			var_conf.variant_type = VariantType::CNVS;
+			var_conf.variant_index = 0;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = true;
+			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 0)); //SV - breakpoint
+			var_conf.variant_type = VariantType::SVS;
+			var_conf.variant_index = 0;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = false;
+			report_settings.report_config->set(var_conf);
+
+			report_settings.show_coverage_details = true;
+			report_settings.roi_low_cov = true;
+			report_settings.recalculate_avg_depth = true;
+			report_settings.show_omim_table = true;
+			report_settings.show_class_details = true;
+
+			data.roi_file = TESTDATA("../cppNGS-TEST/data_in/panel.bed");
+			data.roi_genes.insert("BRCA1");
+			data.roi_genes.insert("BRCA2");
+			data.roi_genes.insert("NIPA1");
+
+			GermlineReportGenerator generator(data, true);
+			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+
+			generator.writeHTML("out/germline_report2.html");
+			COMPARE_FILES("out/germline_report2.html", TESTDATA("data_out/germline_report2.html"));
+			generator.writeXML("out/germline_report2.xml", "out/germline_report2.html");
+			COMPARE_FILES("out/germline_report2.xml", TESTDATA("data_out/germline_report2.xml"));
+		}
 
 
-		//TEST 3 - english
-		report_settings.language = "english";
+		//############################### TEST 3 - english ###############################
+		{
+			report_settings.language = "english";
 
-		generator.writeHTML("out/germline_report3.html");
-		//TODO COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));
+			GermlineReportGenerator generator(data, true);
+			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
 
+			generator.writeHTML("out/germline_report3.html");
+			COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));
+		}
 	}
 
 	//Tests for SomaticReportConfiguration and specific somatic variants

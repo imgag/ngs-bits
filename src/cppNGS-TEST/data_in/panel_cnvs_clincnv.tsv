@@ -1,5 +1,12 @@
 ##ANALYSISTYPE=CLINCNV_GERMLINE_SINGLE
 ##ClinCNV version: v1.16.6
-##CNV calling skipped: Array.
-##Germline samples NA12878_03 did not pass QC due to high level of noise
-#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	cn_pathogenic	dosage_sensitive_disease_genes	clinvar_cnvs	hgmd_cnvs	omim	gene_info	ngsd_pathogenic_cnvs
+##Analysis finished on: 2020-08-06 19:45:46
+##high-quality cnvs: 1
+##mean correlation to reference samples: 0.961
+##gender of sample: F
+##number of iterations: 1
+##quality used at final iteration: 20
+##was it outlier after clustering: FALSE
+##fraction of outliers: 0.055
+#chr	start	end	CN_change	loglikelihood	no_of_regions	length_KB	potential_AF	genes	qvalue	overlap af_genomes_imgag	cn_pathogenic	dosage_sensitive_disease_genes	clinvar_cnvs	hgmd_cnvs	omim	gene_info	ngsd_pathogenic_cnvs
+chr21	10862601	10971365	1	132	22	 108.764	0.065	IGHV1OR21-1,TPTE	0.00694	1.000 (1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,0.09,0.09,0.09,0.09,0.09,0.09,1.00,0.09,0.09,0.09,0.09,0.09,0.09,0.09,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.08,0.07,0.06,0.05,0.05,0.04,0.04,0.05,0.05,0.05,0.04,0.04,0.04,0.05,0.04,0.04,0.04,0.05,0.06,0.06,0.05,0.04,0.04,0.04,0.04,0.04,0.04,0.04,0.04)			58981 [CN_TYPE=loss CN=1 CLNSIG="Pathogenic" PHENOTYPE="See cases"]			IGHV1OR21-1 (oe_lof=n/a region=exonic/splicing),SLC25A15P4 (oe_lof=n/a region=complete),TPTE (oe_lof=1.09 region=exonic/splicing),CYCSP41 (oe_lof=n/a region=complete)	
