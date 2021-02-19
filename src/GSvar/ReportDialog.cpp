@@ -104,7 +104,6 @@ void ReportDialog::initGUI()
 	ui_.min_cov->setValue(settings_.min_depth);
 	ui_.details_cov_roi->setChecked(settings_.roi_low_cov);
 	ui_.depth_calc->setChecked(settings_.recalculate_avg_depth);
-	ui_.tool_details->setChecked(settings_.show_tool_details);
 	ui_.omim_table->setChecked(settings_.show_omim_table);
 	ui_.class_info->setChecked(settings_.show_class_details);
 	ui_.language->setCurrentText(settings_.language);
@@ -324,7 +323,6 @@ void ReportDialog::writeBackSettings()
 	settings_.min_depth = ui_.min_cov->value();
 	settings_.roi_low_cov = ui_.details_cov_roi->isChecked();
 	settings_.recalculate_avg_depth = ui_.depth_calc->isChecked();
-	settings_.show_tool_details = ui_.tool_details->isChecked();
 	settings_.show_omim_table = ui_.omim_table->isChecked();
 	settings_.show_class_details = ui_.class_info->isChecked();
 	settings_.language = ui_.language->currentText();
