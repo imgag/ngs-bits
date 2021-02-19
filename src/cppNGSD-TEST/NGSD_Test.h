@@ -1645,6 +1645,7 @@ private slots:
 		//Insert new somatic VICC interpretation
 		SomaticViccData new_vicc_data;
 		new_vicc_data.null_mutation_in_tsg = SomaticViccData::State::VICC_FALSE;
+		new_vicc_data.oncogenic_functional_studies = SomaticViccData::State::VICC_FALSE;
 		new_vicc_data.protein_length_change = SomaticViccData::State::VICC_FALSE;
 		new_vicc_data.computational_evidence = SomaticViccData::State::VICC_TRUE;
 		new_vicc_data.high_maf = SomaticViccData::State::VICC_TRUE;
@@ -1655,6 +1656,7 @@ private slots:
 
 		SomaticViccData new_vicc_result = db.getSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C") );
 		I_EQUAL(new_vicc_result.null_mutation_in_tsg, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(new_vicc_result.oncogenic_functional_studies, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(new_vicc_result.protein_length_change, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(new_vicc_result.computational_evidence, SomaticViccData::State::VICC_TRUE);
 		I_EQUAL(new_vicc_result.high_maf, SomaticViccData::State::VICC_TRUE);

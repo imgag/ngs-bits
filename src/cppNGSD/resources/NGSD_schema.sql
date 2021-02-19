@@ -659,6 +659,7 @@ CREATE TABLE IF NOT EXISTS `somatic_vicc_interpretation`
   `variant_id` int(11) NOT NULL,
   `null_mutation_in_tsg` BOOLEAN NULL DEFAULT NULL,
   `known_oncogenic_aa` BOOLEAN NULL DEFAULT NULL,
+  `oncogenic_funtional_studies` BOOLEAN NULL DEFAULT NULL,
   `strong_cancerhotspot` BOOLEAN NULL DEFAULT NULL,
   `located_in_canerhotspot` BOOLEAN NULL DEFAULT NULL,
   `absent_from_controls` BOOLEAN NULL DEFAULT NULL,
