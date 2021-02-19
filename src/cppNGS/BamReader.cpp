@@ -464,10 +464,12 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 	//set reference for CRAM files
 	if(fp_->is_cram)
 	{
-		Q_UNUSED(ref_genome);
-		#ifdef _WIN32
-			THROW(FileAccessException, "No CRAM support for Windows yet!");
-		#else
+		if (Helper::isWindows())
+		{
+			THROW(FileAccessException, "CRAM is not supported on Windows!");
+		}
+		else
+		{
 			//load reference file for cram
 			if(!(ref_genome.isNull() || ref_genome == ""))
 			{
@@ -485,7 +487,7 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 			{
 				THROW(FileAccessException, "Reference genome necessary for opening CRAM file " + bam_file + ".");
 			}
-		#endif
+		}
 	}
 
 	//parse chromosome names and sizes

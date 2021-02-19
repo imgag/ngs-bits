@@ -27,7 +27,7 @@ GermlineReportGenerator::GermlineReportGenerator(const GermlineReportGeneratorDa
 	ps_id_ = db_.processedSampleId(data_.ps);
 	ps_bam_ = db_.processedSamplePath(ps_id_, NGSD::BAM);
 	int system_id = db_.processingSystemIdFromProcessedSample(data_.ps);
-	sys_roi_file_ = db_.getProcessingSystemData(system_id, true).target_file;
+	sys_roi_file_ = db_.getProcessingSystemData(system_id, Helper::isWindows()).target_file;
 	sys_roi_.load(sys_roi_file_);
 }
 

@@ -1255,7 +1255,6 @@ private slots:
 		svs.load(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
 		ReportSettings report_settings;
 		report_settings.report_type = "diagnostic variant";
-		//TODO selected_variants + report_config
 		report_settings.min_depth = 20;
 		report_settings.show_coverage_details = false;
 		report_settings.roi_low_cov = false;
@@ -1265,18 +1264,19 @@ private slots:
 		FilterCascade filters;
 		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
 		QMap<QByteArray, QByteArrayList> preferred_transcripts;
-		//TODO
+
 		GermlineReportGeneratorData data("NA12878_03", variants, cnvs, svs, report_settings, filters, preferred_transcripts);
 
-		//TEST 1 - minimal, no target region
+		//TEST 1 - minimal
 		GermlineReportGenerator generator(data, true);
 		generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
 		generator.writeHTML("out/germline_report1.html");
-		//TODO COMPARE_FILES("out/germline_report1.html", TESTDATA("data_out/germline_report1.html"));
+		COMPARE_FILES("out/germline_report1.html", TESTDATA("data_out/germline_report1.html"));
 		generator.writeXML("out/germline_report1.xml", "out/germline_report1.html");
-		//TODO COMPARE_FILES("out/germline_report1.xml", TESTDATA("data_out/germline_report1.xml"));
+		COMPARE_FILES("out/germline_report1.xml", TESTDATA("data_out/germline_report1.xml"));
 
-		//TEST 2 - maximal, with target region
+		//TEST 2 - with variants, with target region, all optional parts enabled
+		//TODO selected_variants + report_config + preferred_transcripts
 		report_settings.show_coverage_details = true;
 		report_settings.roi_low_cov = true;
 		report_settings.recalculate_avg_depth = true;
@@ -1293,7 +1293,7 @@ private slots:
 		//TODO COMPARE_FILES("out/germline_report2.xml", TESTDATA("data_out/germline_report2.xml"));
 
 
-		//TEST 3 - maximal, with target region, english
+		//TEST 3 - english
 		report_settings.language = "english";
 
 		generator.writeHTML("out/germline_report3.html");
