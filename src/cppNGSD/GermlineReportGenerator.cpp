@@ -22,6 +22,7 @@ GermlineReportGeneratorData::GermlineReportGeneratorData(QString ps_, const Vari
 GermlineReportGenerator::GermlineReportGenerator(const GermlineReportGeneratorData& data, bool test_mode)
 	: db_(test_mode)
 	, data_(data)
+	, date_(QDate::currentDate())
 	, test_mode_(test_mode)
 {
 	ps_id_ = db_.processedSampleId(data_.ps);
@@ -75,7 +76,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "<br />" << trans("Prozessierungssystem") << ": " << processed_sample_data.processing_system << endl;
 	stream << "<br />" << trans("Prozessierungssystem-Typ") << ": " << processed_sample_data.processing_system_type << endl;
 	stream << "<br />" << trans("Referenzgenom") << ": " << system_data.genome << endl;
-	stream << "<br />" << trans("Datum") << ": " << QDate::currentDate().toString("dd.MM.yyyy") << endl;
+	stream << "<br />" << trans("Datum") << ": " << date_.toString("dd.MM.yyyy") << endl;
 	stream << "<br />" << trans("Benutzer") << ": " << LoginManager::user() << endl;
 	stream << "<br />" << trans("Analysepipeline") << ": "  << data_.variants.getPipeline() << endl;
 	stream << "<br />" << trans("Auswertungssoftware") << ": "  << QCoreApplication::applicationName() << " " << QCoreApplication::applicationVersion() << endl;
@@ -443,7 +444,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element ReportGeneration
 	w.writeStartElement("ReportGeneration");
-	w.writeAttribute("date", QDate::currentDate().toString("yyyy-MM-dd"));
+	w.writeAttribute("date", date_.toString("yyyy-MM-dd"));
 	w.writeAttribute("user_name", LoginManager::user());
 	w.writeAttribute("software", QCoreApplication::applicationName() + " " + QCoreApplication::applicationVersion());
 	w.writeAttribute("outcome", db_.getDiagnosticStatus(ps_id_).outcome);
@@ -737,6 +738,13 @@ void GermlineReportGenerator::overrideBamFile(QString bam_file)
 	if (!test_mode_) THROW(ProgrammingException, "This function can only be used in test mode!");
 
 	ps_bam_ = bam_file;
+}
+
+void GermlineReportGenerator::overrideDate(QDate date)
+{
+	if (!test_mode_) THROW(ProgrammingException, "This function can only be used in test mode!");
+
+	date_ = date;
 }
 
 BedFile GermlineReportGenerator::precalculatedGaps(QString bam_file, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region)

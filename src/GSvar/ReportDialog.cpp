@@ -152,11 +152,13 @@ void ReportDialog::updateVariantTable()
 		bool in_roi = true;
 		if (roi_file_!="" && !roi_.overlapsWith(variant.chr(), variant.start(), variant.end())) in_roi = false;
 
+		QByteArray genotype = variant.annotations().at(geno_idx).trimmed();
+
 		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
-		addTableItem(row, 0, "", true, in_roi)->setData(Qt::UserRole, i);
+		addCheckBox(row, 0, in_roi && genotype!="wt", !in_roi)->setData(Qt::UserRole, i);
 		addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
 		addTableItem(row, 2, variantTypeToString(VariantType::SNVS_INDELS));
-		addTableItem(row, 3, variant.toString(false, 30) + " (" + variant.annotations().at(geno_idx) + ")");
+		addTableItem(row, 3, variant.toString(false, 30) + " (" + genotype + ")");
 		addTableItem(row, 4, variant.annotations().at(gene_idx));
 		addTableItem(row, 5, variant.annotations().at(class_idx));
 		++row;
@@ -173,7 +175,7 @@ void ReportDialog::updateVariantTable()
 		if (roi_file_!="" && !roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end())) in_roi = false;
 
 		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
-		addTableItem(row, 0, "", true, in_roi)->setData(Qt::UserRole, i);
+		addCheckBox(row, 0, in_roi, !in_roi)->setData(Qt::UserRole, i);
 		addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
 		addTableItem(row, 2, variantTypeToString(VariantType::CNVS));
 		addTableItem(row, 3, cnv.toStringWithMetaData() + " cn=" + QString::number(cnv.copyNumber(cnvs_.annotationHeaders())));
@@ -204,7 +206,7 @@ void ReportDialog::updateVariantTable()
 		}
 
 		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
-		addTableItem(row, 0, "", true, in_roi)->setData(Qt::UserRole, i);
+		addCheckBox(row, 0, in_roi, !in_roi)->setData(Qt::UserRole, i); //TODO in new multi-sample mode only variants that the index case has can be selected (see small variants) > LEON
 		addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
 		addTableItem(row, 2, variantTypeToString(VariantType::SVS));
 		addTableItem(row, 3, affected_region[0].toString(true) + (sv.type()==StructuralVariantType::BND ? (" <-> " + affected_region[1].toString(true)) : "") + " type=" + BedpeFile::typeToString(sv.type()));
@@ -278,28 +280,39 @@ void ReportDialog::editDiagnosticStatus()
 	checkMetaData();
 }
 
-QTableWidgetItem* ReportDialog::addTableItem(int row, int col, QString text, bool checkable, bool checked_and_not_editable)
+QTableWidgetItem* ReportDialog::addTableItem(int row, int col, QString text)
 {
-	//create item
 	QTableWidgetItem* item = new QTableWidgetItem();
-	if (checkable)
+
+	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+	item->setText(text);
+
+	ui_.vars->setItem(row, col, item);
+
+	return item;
+}
+
+QTableWidgetItem*ReportDialog::addCheckBox(int row, int col, bool is_checked, bool check_state_editable)
+{
+	QTableWidgetItem* item = new QTableWidgetItem();
+
+	if (is_checked)
 	{
-		if (checked_and_not_editable)
-		{
-			item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsUserCheckable);
-			item->setCheckState(Qt::Checked);
-			item->setToolTip("Variants inside the target region cannot be unselected.");
-		}
-		else
-		{
-			item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled|Qt::ItemIsUserCheckable);
-			item->setCheckState(Qt::Unchecked);
-		}
+		item->setCheckState(Qt::Checked);
 	}
 	else
 	{
-		item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
-		item->setText(text);
+		item->setCheckState(Qt::Unchecked);
+	}
+
+	if (check_state_editable)
+	{
+		item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled|Qt::ItemIsUserCheckable);
+	}
+	else
+	{
+		item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsUserCheckable);
+		item->setToolTip("Variants inside the target region are always seleted.\nVariants with genotype 'wt' cannot be selected.");
 	}
 
 	ui_.vars->setItem(row, col, item);

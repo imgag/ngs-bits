@@ -1274,6 +1274,7 @@ private slots:
 		{
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+			generator.overrideDate(QDate::fromString("2021-02-19", Qt::ISODate));
 
 			generator.writeHTML("out/germline_report1.html");
 			COMPARE_FILES("out/germline_report1.html", TESTDATA("data_out/germline_report1.html"));
@@ -1333,6 +1334,7 @@ private slots:
 
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+			generator.overrideDate(QDate::fromString("2021-02-19", Qt::ISODate));
 
 			generator.writeHTML("out/germline_report2.html");
 			COMPARE_FILES("out/germline_report2.html", TESTDATA("data_out/germline_report2.html"));
@@ -1347,6 +1349,7 @@ private slots:
 
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+			generator.overrideDate(QDate::fromString("2021-02-19", Qt::ISODate));
 
 			generator.writeHTML("out/germline_report3.html");
 			COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));

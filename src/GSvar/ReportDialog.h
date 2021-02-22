@@ -48,7 +48,8 @@ protected:
 	BedFile roi_;
 	NGSD db_;
 
-	QTableWidgetItem* addTableItem(int row, int col, QString text, bool checkable=false, bool checked_and_not_editable=false);
+	QTableWidgetItem* addTableItem(int row, int col, QString text);
+	QTableWidgetItem* addCheckBox(int row, int col, bool is_checked, bool check_state_editable);
 };
 
 #endif // REPORTDIALOG_H

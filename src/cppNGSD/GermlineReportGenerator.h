@@ -42,6 +42,8 @@ public:
 
 	///Overrides BAM file (for testing only)
 	void overrideBamFile(QString bam_file);
+	///Overrides date (for testing only)
+	void overrideDate(QDate date);
 
 	///Returns if the pre-calcualed gaps for the given ROI.
 	///If using the pre-calculated gaps file is not possible, @p message contains an error message.
@@ -49,6 +51,7 @@ public:
 private:
 	NGSD db_;
 	const GermlineReportGeneratorData& data_;
+	QDate date_;
 	bool test_mode_;
 
 	QString ps_id_;
