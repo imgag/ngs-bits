@@ -439,7 +439,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "3");
+	w.writeAttribute("version", "4");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -497,6 +497,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element Variant
 	int geno_idx = data_.variants.getSampleHeader().infoByStatus(true).column_index;
+	int qual_idx = data_.variants.annotationIndexByName("quality");
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
@@ -510,6 +511,21 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("end", QString::number(variant.end()));
 		w.writeAttribute("ref", variant.ref());
 		w.writeAttribute("obs", variant.obs());
+		double allele_frequency = 0.0;
+		int depth = 0;
+		foreach(QByteArray entry, variant.annotations()[qual_idx].split(';'))
+		{
+			if(entry.startsWith("AF="))
+			{
+				allele_frequency = Helper::toDouble(entry.mid(3), "variant allele-frequency of " + variant.toString());
+			}
+			if(entry.startsWith("DP="))
+			{
+				depth = Helper::toInt(entry.mid(3), "variant depth of " + variant.toString());
+			}
+		}
+		w.writeAttribute("allele_frequency", QString::number(allele_frequency, 'f', 2));
+		w.writeAttribute("depth", QString::number(depth));
 		w.writeAttribute("genotype", formatGenotype(processed_sample_data.gender.toLatin1(), variant.annotations()[geno_idx], variant));
 		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
@@ -715,10 +731,14 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	QString format = QFileInfo(html_document).suffix().toUpper();
 	w.writeAttribute("format", format);
 	QByteArray base64_data = "";
-	QFile file(html_document);
-	file.open(QIODevice::ReadOnly);
-	base64_data = file.readAll().toBase64();
-	file.close();
+	if (!test_mode_)
+	{
+		QFile file(html_document);
+		file.open(QIODevice::ReadOnly);
+		base64_data = file.readAll();
+		file.close();
+	}
+	base64_data = base64_data.toBase64();
 	w.writeCharacters(base64_data);
 	w.writeEndElement();
 
@@ -726,7 +746,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v3.xsd");
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v4.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "Invalid germline report XML file gererated: " + xml_error);

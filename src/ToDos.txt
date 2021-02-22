@@ -8,7 +8,6 @@ lib:
 
 GSvar:
 ##### export PRS to GenLab (in XML or technical report)
-# AF/DP of variants to germline XML report (Gunnar)
 # add multi-sample report-config
     - 1 affected > easy
     - >1 affected > user has to set one affected as index > only report config of index is edited
