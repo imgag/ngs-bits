@@ -8,11 +8,12 @@
 #include <QFileInfo>
 #include <QXmlStreamWriter>
 
-GermlineReportGeneratorData::GermlineReportGeneratorData(QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_)
+GermlineReportGeneratorData::GermlineReportGeneratorData(QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_)
 	: ps(ps_)
 	, variants(variants_)
 	, cnvs(cnvs_)
 	, svs(svs_)
+	, prs(prs_)
 	, report_settings(report_settings_)
 	, filters(filters_)
 	, preferred_transcripts(preferred_transcripts_)
@@ -405,6 +406,24 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << omim_info.mim << "</td><td>" << names.join("<br />")<< "</td><td>" << accessions.join("<br />")<< "</td></tr>";
 			}
+		}
+		stream << "</table>" << endl;
+	}
+
+	//PRS table
+	if (data_.prs.rowCount()>0)
+	{
+		stream << "<p><b>" << trans("Polygenic Risk Scores") << "</b>" << endl;
+		stream << "</p>" << endl;
+		stream << "<table>" << endl;
+		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Publikation") << "</b></td></tr>" << endl;
+		int trait_idx = data_.prs.headers().indexOf("trait");
+		int score_idx = data_.prs.headers().indexOf("score");
+		int citation_idx = data_.prs.headers().indexOf("citation");
+		for (int r=0; r<data_.prs.rowCount(); ++r)
+		{
+			const QStringList& row = data_.prs.row(r);
+			stream << "<tr><td>" << row[trait_idx] << "</td><td>" << row[score_idx] << "</td><td>" << row[citation_idx] << "</td></tr>";
 		}
 		stream << "</table>" << endl;
 	}
@@ -964,6 +983,10 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:"] = "Gaps closed by Sanger sequencing:";
 		de2en["L&uuml;cken die mit visueller Inspektion der Rohdaten &uuml;berpr&uuml;ft wurden:"] = "Gaps checked by visual inspection of raw data:";
 		de2en["Basen gesamt:"] = "Base sum:";
+		de2en["Polygenic Risk Scores"] = "Polygenic Risk Scores";
+		de2en["Erkrankung"] = "Trait";
+		de2en["Score"] = "Score";
+		de2en["Publikation"] = "Publication";
 	}
 
 	//translate

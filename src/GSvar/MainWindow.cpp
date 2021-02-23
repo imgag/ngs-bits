@@ -943,7 +943,7 @@ void MainWindow::on_actionPRS_triggered()
 	if (filename_=="") return;
 
 	// determine PRS file name
-	QString prs_file_name = QFileInfo(filename_).absolutePath() + "/" + processedSampleName() +  "_prs.tsv";
+	QString prs_file_name = QFileInfo(filename_).absolutePath() + "/" + processedSampleName() +  "_prs.tsv"; //TODO use NGSD/GSvarServer to get that file > ALEXANDR
 
 	if (QFileInfo(prs_file_name).exists())
 	{
@@ -3852,7 +3852,13 @@ void MainWindow::generateReportGermline()
 	last_report_path_ = QFileInfo(file_rep).absolutePath();
 
 	//prepare report generation data
-	GermlineReportGeneratorData data(ps_name, variants_, cnvs_, svs_, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
+	PrsTable prs_table;
+	QString prs_file = QFileInfo(filename_).absolutePath() + "/" + processedSampleName() +  "_prs.tsv"; //TODO use NGSD/GSvarServer to get that file > ALEXANDR
+	qDebug() << prs_file;
+	qDebug() << QFile::exists(prs_file);
+	if (QFile::exists(prs_file)) prs_table.load(prs_file);
+
+	GermlineReportGeneratorData data(ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
 	QString roi_file = ui_.filters->targetRegion();
 	if (roi_file!="")
 	{

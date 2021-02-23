@@ -1,30 +1,25 @@
 #ifndef PRSVIEW_H
 #define PRSVIEW_H
 
-#include <QTableWidgetItem>
-#include <QWidget>
+#include "ui_PRSWidget.h"
+#include "PrsTable.h"
 
-namespace Ui {
-class PRSView;
-}
-
-class PRSWidget : public QWidget
+class PRSWidget
+	: public QWidget
 {
 	Q_OBJECT
 
 public:
-	explicit PRSWidget(QString filename, QWidget *parent = 0);
-	~PRSWidget();
+	PRSWidget(QString filename, QWidget *parent = 0);
 
 protected slots:
 	void showContextMenu(QPoint pos);
 
-
 private:
-	void loadPrsData();
-	Ui::PRSView *ui_;
-	QString filename_;
-	QByteArrayList column_header_;
+	void initGui();
+
+	Ui::PRSView ui_;
+	PrsTable prs_table_;
 };
 
 #endif // PRSVIEW_H

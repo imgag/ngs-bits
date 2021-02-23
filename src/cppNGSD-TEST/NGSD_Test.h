@@ -1255,6 +1255,8 @@ private slots:
 		cnvs.load(TESTDATA("../cppNGS-TEST/data_in/panel_cnvs_clincnv.tsv"));
 		BedpeFile svs;
 		svs.load(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
+		PrsTable prs;
+		prs.load(TESTDATA("../cppNGS-TEST/data_in/panel_prs.tsv"));
 		ReportSettings report_settings;
 		report_settings.report_type = "diagnostic variant";
 		report_settings.min_depth = 20;
@@ -1267,8 +1269,7 @@ private slots:
 		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
 		QMap<QByteArray, QByteArrayList> preferred_transcripts;
 		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
-
-		GermlineReportGeneratorData data("NA12878_03", variants, cnvs, svs, report_settings, filters, preferred_transcripts);
+		GermlineReportGeneratorData data("NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
 
 		//############################### TEST 1 - minimal ###############################
 		{
