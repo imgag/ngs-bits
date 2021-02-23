@@ -1,5 +1,5 @@
 #repeat_id	repeat_unit	max_normal	min_pathogenic	inheritance	reliable_in_exomes	additional_info
-GLS	GCA				1
+GLS	GCA				1	
 ATXN7	GCA	19	36	dominant	1	not tested
 ATXN7_GCC	GCC				1	
 CNBP	CAGG	11	75	dominant	0	normal: < 30  uninterrupted , 11-26 with any interruption; pathogenic: 75-11000 (mean: 5000)

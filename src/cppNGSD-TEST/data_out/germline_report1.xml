@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DiagnosticNgsReport version="4" type="diagnostic variant">
+    <ReportGeneration date="2021-02-19" user_name="ahmustm1" software="cppNGSD-TEST " outcome="no significant findings"/>
+    <Sample name="NA12878_03" name_external="ex1" processing_system="HaloPlex HBOC v5" processing_system_type="Panel Haloplex"/>
+    <VariantList overall_number="319" genome_build="hg19"/>
+    <CnvList cnv_caller="ClinCNV" overall_number="1" genome_build="hg19" quality="good" number_of_iterations="1" number_of_hq_cnvs="127"/>
+    <ReportDocument format="HTML"></ReportDocument>
+</DiagnosticNgsReport>

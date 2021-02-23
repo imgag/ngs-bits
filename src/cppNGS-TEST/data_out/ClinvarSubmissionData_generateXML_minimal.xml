@@ -21,7 +21,7 @@
             </AttributeSet>
             <AttributeSet>
                 <MeasureTraitAttributeType val_type="name">AssertionMethod</MeasureTraitAttributeType>
-                <Attribute>In-house classification schema based on ACMG Guidelines 2015</Attribute>
+                <Attribute>ACMG Guidelines, 2015</Attribute>
                 <Citation>
                     <ID Source="PubMed">25741868</ID>
                 </Citation>

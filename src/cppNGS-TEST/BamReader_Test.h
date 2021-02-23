@@ -355,13 +355,12 @@ private slots:
 
 /************************************************************* Cram Support *************************************************************/
 
-#ifndef _WIN32
-
 	void CramSupport_referenceAsParameter_tests()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 
@@ -417,6 +416,7 @@ private slots:
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 		BamAlignment al;
@@ -452,6 +452,7 @@ private slots:
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 
@@ -503,7 +504,5 @@ private slots:
 		I_EQUAL(pileup.indels().count(), 6);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 6);
 	}
-
-#endif
 
 };

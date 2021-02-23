@@ -117,6 +117,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ExpressionDataWidget.h"
 #include "GapClosingDialog.h"
 #include "XmlHelper.h"
+#include "GermlineReportGenerator.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -3611,7 +3612,7 @@ void MainWindow::generateReportTumorOnly()
 		QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 		worker.writeRtf(temp_filename);
 
-		ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
+		ReportWorker::moveReport(temp_filename, file_rep);
 	}
 	catch(Exception e)
 	{
@@ -3737,7 +3738,7 @@ void MainWindow::generateReportSomaticRTF()
 
 			report.storeRtf(temp_filename);
 
-			ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
+			ReportWorker::moveReport(temp_filename, file_rep);
 
 			//Generate files for QBIC upload
 			report.germlineSnvForQbic();
@@ -3777,7 +3778,7 @@ void MainWindow::generateReportSomaticRTF()
 			SomaticRnaReport rna_report(variants_, ui_.filters->filters(), cnvs_, dlg.getRNAid());
 			rna_report.checkRefTissueTypeInNGSD(rna_report.refTissueType(variants_),somatic_report_settings_.tumor_ps);
 			rna_report.writeRtf(temp_filename);
-			ReportWorker::validateAndCopyReport(temp_filename, file_rep, false, true);
+			ReportWorker::moveReport(temp_filename, file_rep);
 			QApplication::restoreOverrideCursor();
 		}
 		catch(Exception& error)
@@ -3855,18 +3856,21 @@ void MainWindow::generateReportGermline()
 	if (file_rep=="") return;
 	last_report_path_ = QFileInfo(file_rep).absolutePath();
 
-	//get BAM file name if necessary
-	QString bam_file = "";
-	QList<IgvFile> bams = getBamFiles();
-	if (bams.empty()) return;
-	bam_file = bams.first().filename;
+	//prepare report generation data
+	GermlineReportGeneratorData data(ps_name, variants_, cnvs_, svs_, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
+	QString roi_file = ui_.filters->targetRegion();
+	if (roi_file!="")
+	{
+		data.roi_file = roi_file;
+		data.roi_genes = GeneSet::createFromFile(roi_file.left(roi_file.size()-4) + "_genes.txt"); //TODO use NGSD/GSvarServer to get the file > ALEXANDR
+	}
 
 	//show busy dialog
 	busy_dialog_ = new BusyDialog("Report", this);
 	busy_dialog_->init("Generating report", false);
 
 	//start worker in new thread
-	ReportWorker* worker = new ReportWorker(ps_name, bam_file, ui_.filters->targetRegion(), variants_, cnvs_, svs_, ui_.filters->filters(), report_settings_, getLogFiles(), file_rep);
+	ReportWorker* worker = new ReportWorker(data, file_rep);
 	connect(worker, SIGNAL(finished(bool)), this, SLOT(reportGenerationFinished(bool)));
 	worker->start();
 }
@@ -6089,12 +6093,6 @@ void MainWindow::clearSomaticReportSettings(QString ps_id_in_other_widget)
 	if(this_ps_id != ps_id_in_other_widget) return; //skip if ps id of file is different than in other widget
 	somatic_report_settings_ = SomaticReportSettings();
 	refreshVariantTable();
-}
-QStringList MainWindow::getLogFiles()
-{
-	QString path = QFileInfo(filename_).absolutePath();
-
-	return Helper::findFiles(path, "*_log?_*.log", false);
 }
 
 QList<IgvFile> MainWindow::getBamFiles()
