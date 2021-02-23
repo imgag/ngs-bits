@@ -1292,6 +1292,7 @@ private slots:
 			var_conf.mosaic = true;
 			var_conf.de_novo = true;
 			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 173)); //small variant - chr13:41367370 C>G (SLC25A15)
@@ -1301,6 +1302,7 @@ private slots:
 			var_conf.mosaic = false;
 			var_conf.de_novo = false;
 			var_conf.comp_het = true;
+			var_conf.report_type = "diagnostic variant";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 0)); //CNV - het deletion
@@ -1310,6 +1312,7 @@ private slots:
 			var_conf.mosaic = false;
 			var_conf.de_novo = false;
 			var_conf.comp_het = true;
+			var_conf.report_type = "diagnostic variant";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 0)); //SV - breakpoint
@@ -1319,6 +1322,7 @@ private slots:
 			var_conf.mosaic = false;
 			var_conf.de_novo = false;
 			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
 			report_settings.report_config->set(var_conf);
 
 			report_settings.show_coverage_details = true;
