@@ -3854,8 +3854,6 @@ void MainWindow::generateReportGermline()
 	//prepare report generation data
 	PrsTable prs_table;
 	QString prs_file = QFileInfo(filename_).absolutePath() + "/" + processedSampleName() +  "_prs.tsv"; //TODO use NGSD/GSvarServer to get that file > ALEXANDR
-	qDebug() << prs_file;
-	qDebug() << QFile::exists(prs_file);
 	if (QFile::exists(prs_file)) prs_table.load(prs_file);
 
 	GermlineReportGeneratorData data(ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());

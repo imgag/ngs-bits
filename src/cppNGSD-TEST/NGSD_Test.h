@@ -512,7 +512,7 @@ private slots:
 
 		//approvedGeneNames
 		GeneSet approved = db.approvedGeneNames();
-		I_EQUAL(approved.count(), 14);
+		I_EQUAL(approved.count(), 17);
 
 		//phenotypes
 		PhenotypeList phenos = db.phenotypes(QStringList() << "aBNOrmality");
@@ -1232,6 +1232,10 @@ private slots:
 		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}); //ignored
 		IS_THROWN(DatabaseException, db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}, true));
 
+		//omimPreferredPhenotype
+		S_EQUAL(db.omimPreferredPhenotype("BRCA1", "Neoplasms"), "");
+		S_EQUAL(db.omimPreferredPhenotype("ATM", "Diseases of the immune system"), "");
+		S_EQUAL(db.omimPreferredPhenotype("ATM", "Neoplasms"), "114480");
 	}
 
 	inline void report_germline()
@@ -1244,8 +1248,8 @@ private slots:
 		//init NGSD
 		NGSD db(true);
 		db.init();
-		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
-		db.getQuery().exec("UPDATE processing_system SET target_file='" + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + "' WHERE name_short='hpHBOCv5'");
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
+		db.getQuery().exec("UPDATE processing_system SET target_file='" + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + "' WHERE name_short='hpHSPv2'");
 		LoginManager::login("ahmustm1", true);
 
 		//setup
@@ -1264,6 +1268,7 @@ private slots:
 		report_settings.roi_low_cov = false;
 		report_settings.recalculate_avg_depth = false;
 		report_settings.show_omim_table = false;
+		report_settings.show_one_entry_in_omim_table = false;
 		report_settings.show_class_details = false;
 		FilterCascade filters;
 		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
@@ -1330,12 +1335,13 @@ private slots:
 			report_settings.roi_low_cov = true;
 			report_settings.recalculate_avg_depth = true;
 			report_settings.show_omim_table = true;
+			report_settings.show_one_entry_in_omim_table = true;
 			report_settings.show_class_details = true;
 
 			data.roi_file = TESTDATA("../cppNGS-TEST/data_in/panel.bed");
-			data.roi_genes.insert("BRCA1");
-			data.roi_genes.insert("BRCA2");
-			data.roi_genes.insert("NIPA1");
+			data.roi_genes.insert("SLC25A15");
+			data.roi_genes.insert("SPG7");
+			data.roi_genes.insert("CYP7B1");
 
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
