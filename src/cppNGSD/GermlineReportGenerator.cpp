@@ -124,7 +124,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	}
 
 	//get column indices
-	int i_genotype = data_.variants.getSampleHeader().infoByStatus(true).column_index;
+	int i_genotype = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
 	int i_gene = data_.variants.annotationIndexByName("gene", true, true);
 	int i_co_sp = data_.variants.annotationIndexByName("coding_and_splicing", true, true);
 	int i_omim = data_.variants.annotationIndexByName("OMIM", true, true);
@@ -550,7 +550,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	w.writeAttribute("genome_build", "hg19");
 
 	//element Variant
-	int geno_idx = data_.variants.getSampleHeader().infoByStatus(true).column_index;
+	int geno_idx = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
 	int qual_idx = data_.variants.annotationIndexByName("quality");
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
@@ -567,15 +567,32 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("obs", variant.obs());
 		double allele_frequency = 0.0;
 		int depth = 0;
+		AnalysisType type = data_.variants.type();
 		foreach(QByteArray entry, variant.annotations()[qual_idx].split(';'))
 		{
 			if(entry.startsWith("AF="))
 			{
-				allele_frequency = Helper::toDouble(entry.mid(3), "variant allele-frequency of " + variant.toString());
+				QByteArray value = entry.mid(3);
+				if (type==GERMLINE_TRIO || GERMLINE_MULTISAMPLE)
+				{
+					int index = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
+					QByteArrayList parts = value.split(',');
+					if (index>=parts.count()) THROW(ProgrammingException, "Invalid AF quality entry. Could not determine index " + QString::number(index) + " in comma-separated string '" + value + "'!");
+					value = parts[index];
+				}
+				allele_frequency = Helper::toDouble(value, "variant allele-frequency of " + variant.toString());
 			}
 			if(entry.startsWith("DP="))
 			{
-				depth = Helper::toInt(entry.mid(3), "variant depth of " + variant.toString());
+				QByteArray value = entry.mid(3);
+				if (type==GERMLINE_TRIO || GERMLINE_MULTISAMPLE)
+				{
+					int index = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
+					QByteArrayList parts = value.split(',');
+					if (index>=parts.count()) THROW(ProgrammingException, "Invalid DP quality entry. Could not determine index " + QString::number(index) + " in comma-separated string '" + value + "'!");
+					value = parts[index];
+				}
+				depth = Helper::toInt(value, "variant depth of " + variant.toString());
 			}
 		}
 		w.writeAttribute("allele_frequency", QString::number(allele_frequency, 'f', 2));

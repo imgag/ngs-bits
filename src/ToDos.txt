@@ -7,11 +7,6 @@ lib:
     - add coverage uniformity metric for WGS
 
 GSvar:
-## Add preferred phenotype functionality and use only preferred phenotype in report. Use random/first phenotype if unset.
-# add multi-sample report-config
-    - 1 affected > easy
-    - >1 affected > user has to set one affected as index > only report config of index is edited
-    - no report needed - is created from individual samples
 * Allow showing somatic variants in small variants search (CS)
 - Variant tab: add disease group significance (remove duplicates because of family, calculates significance of one disease group vs the others)
 - Allow ClinVar upload as soon as the API is available

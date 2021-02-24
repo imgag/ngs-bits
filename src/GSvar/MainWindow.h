@@ -75,9 +75,11 @@ public:
 
 	///Returns if germline report is supported for current variant list.
 	bool germlineReportSupported();
-	///Returns if somatic report is supported for current variant list.
+	///Returns the processed sample name for which report configuration is set and the report is generated.
+	QString germlineReportSample();
+	///Returns if somatic tumor-normal report is supported for current variant list.
 	bool somaticReportSupported();
-
+	///Returns if somatic tumpr-only report is supported for current variant list.
 	bool tumoronlyReportSupported();
 
 	///Lets the user select a gene. If the user aborts, "" is returned.
@@ -290,8 +292,6 @@ public slots:
 	void updateVariantDetails();
 	///Updates the variant table once the variant list changed
 	void refreshVariantTable(bool keep_widths = true);
-	///Resets the annotation status
-	void resetAnnotationStatus();
 	///Opens the recent file defined by the sender action text
 	void openRecentFile();
 	///Loads the command line input file.
@@ -414,15 +414,12 @@ private:
 	//DATA
 	QString filename_;
 	FileWatcher filewatcher_;
-	enum {YES, NO, ROI} db_annos_updated_;
 	bool igv_initialized_;
 	VariantList variants_;
 	bool variants_changed_;
 	CnvList cnvs_;
 	BedpeFile svs_;
 	FilterResult filter_result_;
-	QMap<QString, QString> link_columns_;
-	QSet<int> link_indices_;
 	QString last_roi_filename_;
 	BedFile last_roi_;
 	QString last_report_path_;
@@ -430,6 +427,7 @@ private:
 	BedFile last_phenos_roi_;
     QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
+	QString germline_report_ps_;
 	SomaticReportSettings somatic_report_settings_;
 	VariantList somatic_control_tissue_variants_;
 
