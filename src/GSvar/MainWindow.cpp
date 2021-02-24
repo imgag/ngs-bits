@@ -941,7 +941,7 @@ void MainWindow::on_actionPRS_triggered()
 	if (filename_=="") return;
 
 	// determine PRS file name
-	QString prs_file_name = QFileInfo(filename_).absolutePath() + "/" + processedSampleName() +  "_prs.tsv"; //TODO use NGSD/GSvarServer to get that file > ALEXANDR
+	QString prs_file_name = QFileInfo(filename_).absolutePath() + "/" + processedSampleName() +  "_prs.tsv";
 
 	if (QFileInfo(prs_file_name).exists())
 	{
@@ -2996,7 +2996,7 @@ void MainWindow::generateEvaluationSheet()
 	if (filename.isEmpty()) return;
 
 	//open file
-	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename); //TODO move to separate class and test (including HTML validation) > MARC
 	QTextStream stream(file.data());
 
 	//write header
@@ -3828,7 +3828,7 @@ void MainWindow::generateReportGermline()
 
 	//prepare report generation data
 	PrsTable prs_table;
-	QString prs_file = db.processedSamplePath(processed_sample_id, NGSD::SAMPLE_FOLDER) + "/" + ps_name +  "_prs.tsv"; //TODO use NGSD/GSvarServer to get that file > ALEXANDR
+	QString prs_file = db.processedSamplePath(processed_sample_id, NGSD::SAMPLE_FOLDER) + "/" + ps_name +  "_prs.tsv";
 	if (QFile::exists(prs_file)) prs_table.load(prs_file);
 
 	GermlineReportGeneratorData data(ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
@@ -3836,7 +3836,7 @@ void MainWindow::generateReportGermline()
 	if (roi_file!="")
 	{
 		data.roi_file = roi_file;
-		data.roi_genes = GeneSet::createFromFile(roi_file.left(roi_file.size()-4) + "_genes.txt"); //TODO use NGSD/GSvarServer to get the file > ALEXANDR
+		data.roi_genes = GeneSet::createFromFile(roi_file.left(roi_file.size()-4) + "_genes.txt");
 	}
 
 	//show busy dialog

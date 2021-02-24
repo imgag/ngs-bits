@@ -845,7 +845,7 @@ BedFile GermlineReportGenerator::precalculatedGaps(QString bam_file, const BedFi
 
 	//find low-coverage file
 	QString dir = QFileInfo(bam_file).absolutePath();
-	QStringList low_cov_files = Helper::findFiles(dir, "*_lowcov.bed", false); //TODO use NGSD/GSvarServer to get the file > ALEXANDR
+	QStringList low_cov_files = Helper::findFiles(dir, "*_lowcov.bed", false);
 	if(low_cov_files.count()!=1) THROW(ArgumentException, "Low-coverage file does not exist in " + dir);
 	QString low_cov_file = low_cov_files[0];
 
