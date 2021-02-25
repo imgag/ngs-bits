@@ -3702,7 +3702,6 @@ void MainWindow::generateReportSomaticRTF()
 				QMessageBox::warning(this, "creation of XML file failed", e.message());
 			}
 
-			qDebug() << 1 << endl;
 			//Generate RTF
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 
@@ -3732,7 +3731,7 @@ void MainWindow::generateReportSomaticRTF()
 			QMessageBox::warning(this, "Error while creating report", "No error message!");
 			return;
 		}
-qDebug() << 5 << endl;
+
 		//open report
 		if (QMessageBox::question(this, "DNA report", "DNA report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
 		{
@@ -4066,7 +4065,6 @@ void MainWindow::importBatch(QString title, QString text, QString table, QString
 					}
 				}
 
-				//qDebug() << table << fields[i] << value;
 				const TableFieldInfo& field_info = db.tableInfo(table).fieldInfo(fields[i]);
 
 
