@@ -80,7 +80,7 @@ public:
 				++reads_saved;
 				continue;
 			}
-			if(al.isUnmapped() && al.isMateUnmapped())	// only mapped reads
+			if(al.isUnmapped() || al.isMateUnmapped())	// only mapped read pairs
 			{
 				writer.writeAlignment(al);
 				++reads_saved;
@@ -92,7 +92,7 @@ public:
 				++reads_saved;
 				continue;
 			}
-			if(al.cigarData().isEmpty())	// only with CIGAR data
+			if(al.cigarIsOnlyInsertion())	// only reads with valid CIGAR data
 			{
 				writer.writeAlignment(al);
 				++reads_saved;

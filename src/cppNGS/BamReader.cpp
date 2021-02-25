@@ -104,6 +104,20 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 	return output;
 }
 
+bool BamAlignment::cigarIsOnlyInsertion() const
+{
+	bool only_insert = true;
+
+	const auto cigar = bam_get_cigar(aln_);
+	for (uint32_t i = 0; i<aln_->core.n_cigar; ++i)
+	{
+		int type = (int)bam_cigar_op(cigar[i]);
+		if (type!=BAM_CINS && type!=BAM_CSOFT_CLIP) only_insert = false;
+	}
+
+	return only_insert;
+}
+
 Sequence BamAlignment::bases() const
 {
 	QByteArray output;
@@ -296,16 +310,11 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 {
 	int read_pos = 0;
 	int genome_pos = start()-1;
+
+	//sometimes reads consist of insertions only > skip them
+	if (cigarIsOnlyInsertion()) return qMakePair('~', -1);
+
 	const QList<CigarOp> cigar_data = cigarData();
-
-	//bwa-mem2 sometimes produces reads that are insert only > skip them
-	bool only_insert = true;
-	foreach(const CigarOp& op, cigar_data)
-	{
-		if (op.Type!=BAM_CINS && op.Type!=BAM_CSOFT_CLIP) only_insert = false;
-	}
-	if (only_insert) return qMakePair('~', -1);
-
 	foreach(const CigarOp& op, cigar_data)
 	{
 		//update positions

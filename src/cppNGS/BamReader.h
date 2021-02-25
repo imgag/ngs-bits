@@ -174,6 +174,8 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		void setCigarData(const QList<CigarOp>& cigar);
 		//Returns the CIGAR data as a string.
 		QByteArray cigarDataAsString(bool expand=false) const;
+		//Returns if the CIGAR is only insertion (or soft-clipped).
+		bool cigarIsOnlyInsertion() const;
 
 		//Returns the sequence bases.
 		Sequence bases() const;
