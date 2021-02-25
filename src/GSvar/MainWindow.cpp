@@ -773,7 +773,7 @@ void MainWindow::on_actionCNV_triggered()
 				QString line = parts[0] + ":" + parts[1] + "-" + parts[2];
 				text_edit->appendPlainText(line);
 			}
-			text_edit->setMinimumSize(200, 100);
+			text_edit->setMinimumSize(300, 100);
 			auto dlg = GUIHelper::createDialog(text_edit, "Mosaic CNVs detected!");
 			dlg->exec();
 		}
