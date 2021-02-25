@@ -2826,7 +2826,7 @@ void MainWindow::loadSomaticReportConfig()
 
 	try //load normal sample
 	{
-		somatic_control_tissue_variants_.load(db.processedSamplePath(ps_normal, NGSD::GSVAR));
+		somatic_control_tissue_variants_.load(db.processedSamplePath(db.processedSampleId(ps_normal), NGSD::GSVAR));
 	}
 	catch(Exception e)
 	{
@@ -3702,7 +3702,7 @@ void MainWindow::generateReportSomaticRTF()
 				QMessageBox::warning(this, "creation of XML file failed", e.message());
 			}
 
-
+			qDebug() << 1 << endl;
 			//Generate RTF
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
 
@@ -3732,7 +3732,7 @@ void MainWindow::generateReportSomaticRTF()
 			QMessageBox::warning(this, "Error while creating report", "No error message!");
 			return;
 		}
-
+qDebug() << 5 << endl;
 		//open report
 		if (QMessageBox::question(this, "DNA report", "DNA report generated successfully!\nDo you want to open the report in your default RTF viewer?")==QMessageBox::Yes)
 		{
