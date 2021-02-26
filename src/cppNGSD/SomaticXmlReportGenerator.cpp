@@ -396,6 +396,10 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			QByteArrayList genes = cnv.annotations()[i_cgi_genes].split(',');
 			QByteArrayList tsg = cnv.annotations()[i_tsg].split(',');
 			QByteArrayList oncogenes = cnv.annotations()[i_oncogene].split(',');
+			if(genes.count() != tsg.count() || genes.count() != oncogenes.count())
+			{
+				THROW(FileParseException, "Could not create XML report because number of CGI genes and corresponding TSG or oncogene annotation count differs");
+			}
 			for(int j=0; j<genes.count(); ++j)
 			{
 				w.writeStartElement("Gene");

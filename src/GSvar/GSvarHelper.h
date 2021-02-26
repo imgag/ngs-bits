@@ -14,6 +14,8 @@ public:
 	static const GeneSet& impritingGenes();
 	//Returns genes with no evidence of haploinsufficiency.
 	static const GeneSet& hi0Genes();
+	//Returns genes that have one or more pseudogenes.
+	static const GeneSet& genesWithPseudogene();
 	//Returns gene to preferred transcripts map
     static const QMap<QByteArray, QByteArrayList>& preferredTranscripts(bool reload=false);
     //Returns a list of special regions that are to be added to sub-panel designs for a given gene
@@ -41,6 +43,7 @@ protected:
 
 	static GeneSet imprinting_genes_;
 	static GeneSet hi0_genes_;
+	static GeneSet pseudogene_genes_;
     static QMap<QByteArray, QByteArrayList> preferred_transcripts_;
     static QMap<QByteArray, QList<BedLine>> special_regions_;
 	static QMap<QByteArray, QByteArrayList> transcript_matches_;

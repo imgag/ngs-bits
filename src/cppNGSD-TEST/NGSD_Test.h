@@ -1252,6 +1252,8 @@ private slots:
 		db.getQuery().exec("UPDATE processing_system SET target_file='" + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + "' WHERE name_short='hpHSPv2'");
 		LoginManager::login("ahmustm1", true);
 
+		QDate report_date = QDate::fromString("2021-02-19", Qt::ISODate);
+
 		//setup
 		VariantList variants;
 		variants.load(TESTDATA("../cppNGS-TEST/data_in/panel.GSvar"));
@@ -1280,7 +1282,7 @@ private slots:
 		{
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideDate(QDate::fromString("2021-02-19", Qt::ISODate));
+			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report1.html");
 			COMPARE_FILES("out/germline_report1.html", TESTDATA("data_out/germline_report1.html"));
@@ -1345,7 +1347,7 @@ private slots:
 
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideDate(QDate::fromString("2021-02-19", Qt::ISODate));
+			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report2.html");
 			COMPARE_FILES("out/germline_report2.html", TESTDATA("data_out/germline_report2.html"));
@@ -1360,10 +1362,42 @@ private slots:
 
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideDate(QDate::fromString("2021-02-19", Qt::ISODate));
+			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report3.html");
 			COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));
+		}
+
+
+		//############################### TEST 4 - evaluation sheet ###############################
+		{
+			GermlineReportGenerator generator(data, true);
+			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+			generator.overrideDate(report_date);
+
+			EvaluationSheetData sheet_data;
+			sheet_data.ps_id = "";
+			sheet_data.dna_rna = "NA12878";
+			sheet_data.reviewer1 = "Jim Raynor";
+			sheet_data.review_date1 = report_date;
+			sheet_data.reviewer2 = "Sarah Kerrigan";
+			sheet_data.review_date2 = QDate::fromString("2021-02-21", Qt::ISODate);
+			sheet_data.analysis_scope = "Alles";
+			sheet_data.acmg_requested = true;
+			sheet_data.acmg_noticeable = true;
+			sheet_data.acmg_analyzed = true;
+			sheet_data.filtered_by_freq_based_dominant = true;
+			sheet_data.filtered_by_freq_based_recessive = false;
+			sheet_data.filtered_by_cnv = true;
+			sheet_data.filtered_by_mito = false;
+			sheet_data.filtered_by_x_chr = true;
+			sheet_data.filtered_by_phenotype = false;
+			sheet_data.filtered_by_multisample = true;
+			sheet_data.filtered_by_trio_stringent = false;
+			sheet_data.filtered_by_trio_relaxed = true;
+
+			generator.writeEvaluationSheet("out/germline_sheet1.html", sheet_data);
+			COMPARE_FILES("out/germline_sheet1.html", TESTDATA("data_out/germline_sheet1.html"));
 		}
 	}
 

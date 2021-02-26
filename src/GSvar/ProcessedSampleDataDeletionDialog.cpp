@@ -69,6 +69,12 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 		QMessageBox::information(this, "Deleting variants from NGSD", "You cannot delete variants and keep the report configuration.\nPlease correct the selection and try again!");
 		return;
 	}
+	if(!ui_.somatic_report_config->isChecked() && (ui_.somatic_var_small->isChecked() || ui_.somatic_var_cnv->isChecked()))
+	{
+		QMessageBox::information(this, "Deleting somatic variants from NGSD", "You cannot delete somatic variants and keep the somatic report configuration.\nPlease correct the selection and try again!");
+		return;
+	}
+
 
 	//check if the user is sure about deleting unrecoverable data
 	if(ui_.report_config->isChecked() && QMessageBox::Yes!=QMessageBox::question(this, "Deleting report configuration from NGSD", "You are about to delete report configuration data from the NGSD.\nThis is permanent and cannot be undone.\n\nDo you really want to delete it?"))
