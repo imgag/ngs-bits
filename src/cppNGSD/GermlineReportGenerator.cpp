@@ -8,11 +8,12 @@
 #include <QFileInfo>
 #include <QXmlStreamWriter>
 
-GermlineReportGeneratorData::GermlineReportGeneratorData(QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_)
+GermlineReportGeneratorData::GermlineReportGeneratorData(QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_)
 	: ps(ps_)
 	, variants(variants_)
 	, cnvs(cnvs_)
 	, svs(svs_)
+	, prs(prs_)
 	, report_settings(report_settings_)
 	, filters(filters_)
 	, preferred_transcripts(preferred_transcripts_)
@@ -63,8 +64,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	//report header (meta information)
 	stream << "<h4>" << trans("Technischer Report zur bioinformatischen Analyse") << "</h4>" << endl;
 
-	stream << "<p>" << endl;
-	stream << "<b>" << trans("Probe") << ": " << data_.ps << "</b> (" << sample_data.name_external << ")" << endl;
+	stream << endl;
+	stream << "<p><b>" << trans("Probe") << ": " << data_.ps << "</b> (" << sample_data.name_external << ")" << endl;
 	if (is_trio)
 	{
 		stream << "<br />" << endl;
@@ -84,6 +85,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "</p>" << endl;
 
 	///Phenotype information
+	stream << endl;
 	stream << "<p><b>" << trans("Ph&auml;notyp") << "</b>" << endl;
 	QList<SampleDiseaseInfo> info = db_.getSampleDiseaseInfo(sample_id, "ICD10 code");
 	foreach(const SampleDiseaseInfo& entry, info)
@@ -110,6 +112,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	///Target region statistics
 	if (data_.roi_file!="")
 	{
+		stream << endl;
 		stream << "<p><b>" << trans("Zielregion") << "</b>" << endl;
 		stream << "<br /><span style=\"font-size: 8pt;\">" << trans("Die Zielregion umfasst mindestens die CCDS (\"consensus coding sequence\") unten genannter Gene &plusmn;20 Basen flankierender intronischer Sequenz, kann aber auch zus&auml;tzliche Exons und/oder flankierende Basen beinhalten.") << endl;
 		stream << "<br />" << trans("Name") << ": " << QFileInfo(data_.roi_file).fileName().replace(".bed", "") << endl;
@@ -121,7 +124,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	}
 
 	//get column indices
-	int i_genotype = data_.variants.getSampleHeader().infoByStatus(true).column_index;
+	int i_genotype = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
 	int i_gene = data_.variants.annotationIndexByName("gene", true, true);
 	int i_co_sp = data_.variants.annotationIndexByName("coding_and_splicing", true, true);
 	int i_omim = data_.variants.annotationIndexByName("OMIM", true, true);
@@ -131,6 +134,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	int i_gnomad = data_.variants.annotationIndexByName("gnomAD", true, true);
 
 	//output: applied filters
+	stream << endl;
 	stream << "<p><b>" << trans("Filterkriterien") << " " << "</b>" << endl;
 	for(int i=0; i<data_.filters.count(); ++i)
 	{
@@ -165,6 +169,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "</p>" << endl;
 
 	//output: selected variants
+	stream << endl;
 	stream << "<p><b>" << trans("Varianten nach klinischer Interpretation im Kontext der Fragestellung") << "</b>" << endl;
 	stream << "<br />" << trans("In der folgenden Tabelle werden neben wahrscheinlich pathogenen (Klasse 4) und pathogenen (Klasse 5) nur solche Varianten unklarer klinischer Signifikanz (Klasse 3) gelistet, f&uuml;r die in Zusammenschau von Literatur und Klinik des Patienten ein Beitrag zur Symptomatik denkbar ist und f&uuml;r die gegebenenfalls eine weitere Einordnung der klinischen Relevanz durch Folgeuntersuchungen sinnvoll ist. Eine Liste aller detektierten Varianten kann bei Bedarf angefordert werden.") << endl;
 	stream << "</p>" << endl;
@@ -361,6 +366,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	///classification explaination
 	if (data_.report_settings.show_class_details)
 	{
+		stream << endl;
 		stream << "<p><b>" << trans("Klassifikation von Varianten") << ":</b>" << endl;
 		stream << "<br />" << trans("Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)") << endl;
 		stream << "<br /><b>" << trans("Klasse 5: Eindeutig pathogene Ver&auml;nderung / Mutation") << ":</b> " << trans("Ver&auml;nderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen).") << endl;
@@ -386,25 +392,73 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	//OMIM table
 	if (data_.report_settings.show_omim_table)
 	{
+		stream << endl;
 		stream << "<p><b>" << trans("OMIM Gene und Phenotypen") << "</b>" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Gen MIM") << "</b></td><td><b>" << trans("Phenotyp") << "</b></td><td><b>" << trans("Phenotyp MIM") << "</b></td></tr>" << endl;
+		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Gen MIM") << "</b></td><td><b>" << trans("Phenotyp") << "</b></td><td><b>" << trans("Phenotyp MIM") << "</b></td>";
+		if (data_.report_settings.show_one_entry_in_omim_table) stream << "<td><b>" << trans("Hauptphenotyp") << "</b></td>" << endl;
+		stream << "</tr>";
 		foreach(const QByteArray& gene, data_.roi_genes)
 		{
+			QString preferred_phenotype_accession;
+			if (sample_data.disease_group!="n/a") preferred_phenotype_accession = db_.omimPreferredPhenotype(gene, sample_data.disease_group.toLatin1());
+
 			QList<OmimInfo> omim_infos = db_.omimInfo(gene);
 			foreach(const OmimInfo& omim_info, omim_infos)
 			{
+				QString preferred_phenotype_name ="";
 				QStringList names;
 				QStringList accessions;
 				foreach(const Phenotype& p, omim_info.phenotypes)
 				{
 					names << p.name();
 					accessions << p.accession();
+					if (preferred_phenotype_accession!="" && p.accession()==preferred_phenotype_accession)
+					{
+						preferred_phenotype_name = p.name();
+					}
 				}
 
-				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << omim_info.mim << "</td><td>" << names.join("<br />")<< "</td><td>" << accessions.join("<br />")<< "</td></tr>";
+				//show only one entry
+				if (data_.report_settings.show_one_entry_in_omim_table)
+				{
+					if (preferred_phenotype_name!="")
+					{
+						names.clear();
+						names << preferred_phenotype_name;
+						accessions.clear();
+						accessions << preferred_phenotype_accession;
+					}
+					else
+					{
+						while(names.count()>1) names.removeLast();
+						while(accessions.count()>1) accessions.removeLast();
+					}
+				}
+				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << omim_info.mim << "</td><td>" << names.join("<br />") << "</td><td>" << accessions.join("<br />") << "</td>";
+				if (data_.report_settings.show_one_entry_in_omim_table) stream << "<td>" <<trans(preferred_phenotype_name!="" ? "ja" : "nein") << "</td>" << endl;
+				stream << "</tr>";
 			}
+		}
+		stream << "</table>" << endl;
+	}
+
+	//PRS table
+	if (data_.prs.rowCount()>0)
+	{
+		stream << endl;
+		stream << "<p><b>" << trans("Polygenic Risk Scores") << "</b>" << endl;
+		stream << "</p>" << endl;
+		stream << "<table>" << endl;
+		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Publikation") << "</b></td></tr>" << endl;
+		int trait_idx = data_.prs.headers().indexOf("trait");
+		int score_idx = data_.prs.headers().indexOf("score");
+		int citation_idx = data_.prs.headers().indexOf("citation");
+		for (int r=0; r<data_.prs.rowCount(); ++r)
+		{
+			const QStringList& row = data_.prs.row(r);
+			stream << "<tr><td>" << row[trait_idx] << "</td><td>" << row[score_idx] << "</td><td>" << row[citation_idx] << "</td></tr>";
 		}
 		stream << "</table>" << endl;
 	}
@@ -496,7 +550,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	w.writeAttribute("genome_build", "hg19");
 
 	//element Variant
-	int geno_idx = data_.variants.getSampleHeader().infoByStatus(true).column_index;
+	int geno_idx = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
 	int qual_idx = data_.variants.annotationIndexByName("quality");
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
@@ -513,15 +567,32 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("obs", variant.obs());
 		double allele_frequency = 0.0;
 		int depth = 0;
+		AnalysisType type = data_.variants.type();
 		foreach(QByteArray entry, variant.annotations()[qual_idx].split(';'))
 		{
 			if(entry.startsWith("AF="))
 			{
-				allele_frequency = Helper::toDouble(entry.mid(3), "variant allele-frequency of " + variant.toString());
+				QByteArray value = entry.mid(3);
+				if (type==GERMLINE_TRIO || GERMLINE_MULTISAMPLE)
+				{
+					int index = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
+					QByteArrayList parts = value.split(',');
+					if (index>=parts.count()) THROW(ProgrammingException, "Invalid AF quality entry. Could not determine index " + QString::number(index) + " in comma-separated string '" + value + "'!");
+					value = parts[index];
+				}
+				allele_frequency = Helper::toDouble(value, "variant allele-frequency of " + variant.toString());
 			}
 			if(entry.startsWith("DP="))
 			{
-				depth = Helper::toInt(entry.mid(3), "variant depth of " + variant.toString());
+				QByteArray value = entry.mid(3);
+				if (type==GERMLINE_TRIO || GERMLINE_MULTISAMPLE)
+				{
+					int index = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
+					QByteArrayList parts = value.split(',');
+					if (index>=parts.count()) THROW(ProgrammingException, "Invalid DP quality entry. Could not determine index " + QString::number(index) + " in comma-separated string '" + value + "'!");
+					value = parts[index];
+				}
+				depth = Helper::toInt(value, "variant depth of " + variant.toString());
 			}
 		}
 		w.writeAttribute("allele_frequency", QString::number(allele_frequency, 'f', 2));
@@ -774,7 +845,7 @@ BedFile GermlineReportGenerator::precalculatedGaps(QString bam_file, const BedFi
 
 	//find low-coverage file
 	QString dir = QFileInfo(bam_file).absolutePath();
-	QStringList low_cov_files = Helper::findFiles(dir, "*_lowcov.bed", false); //TODO use NGSD/GSvarServer to get the file > ALEXANDR
+	QStringList low_cov_files = Helper::findFiles(dir, "*_lowcov.bed", false);
 	if(low_cov_files.count()!=1) THROW(ArgumentException, "Low-coverage file does not exist in " + dir);
 	QString low_cov_file = low_cov_files[0];
 
@@ -964,6 +1035,13 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:"] = "Gaps closed by Sanger sequencing:";
 		de2en["L&uuml;cken die mit visueller Inspektion der Rohdaten &uuml;berpr&uuml;ft wurden:"] = "Gaps checked by visual inspection of raw data:";
 		de2en["Basen gesamt:"] = "Base sum:";
+		de2en["Polygenic Risk Scores"] = "Polygenic Risk Scores";
+		de2en["Erkrankung"] = "Trait";
+		de2en["Score"] = "Score";
+		de2en["Publikation"] = "Publication";
+		de2en["Hauptphenotyp"] = "preferred phenotype";
+		de2en["ja"] = "yes";
+		de2en["nein"] = "no";
 	}
 
 	//translate
@@ -1019,6 +1097,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	{
 		if (stats[i].accession()=="QC:2000025") avg_cov = stats[i].toString();
 	}
+	stream << endl;
 	stream << "<p><b>" << trans("Abdeckungsstatistik") << "</b>" << endl;
 	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << avg_cov << endl;
 	BedFile mito_bed;
@@ -1050,7 +1129,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		}
 
 		//group by gene name
-		QHash<QByteArray, BedFile> grouped;
+		QMap<QByteArray, BedFile> grouped;
 		for (int i=0; i<low_cov.count(); ++i)
 		{
 			QList<QByteArray> genes = low_cov[i].annotations()[0].split(',');
@@ -1131,13 +1210,14 @@ void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream, const B
 	SqlQuery query = db_.getQuery();
 	query.prepare("SELECT chr, start, end, status FROM gaps WHERE processed_sample_id='" + ps_id_ + "' AND status=:0 ORDER BY chr,start,end");
 
+	stream << endl;
 	stream << "<p><b>" << trans("L&uuml;ckenschluss") << "</b></p>" << endl;
 
 	//closed by Sanger
 	{
 		int base_sum = 0;
 		stream << "<p>" << trans("L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:") << "<br />";
-		stream << "<table>";
+		stream << "<table>" << endl;
 		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>" << endl;
 		query.bindValue(0, "closed");
 		query.exec();
@@ -1154,16 +1234,16 @@ void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream, const B
 			stream << "<td>" << db_.genesOverlapping(chr, start, end).join(", ") << "</td><td>" << QString::number(end-start+1) << "</td><td>" << chr.strNormalized(true) << "</td><td>" << QString::number(start) << "-" << QString::number(end) << "</td>";
 			stream << "</tr>" << endl;
 		}
-		stream << "</table>";
+		stream << "</table>" << endl;
 		stream << trans("Basen gesamt:") << QString::number(base_sum);
-		stream << "</p>";
+		stream << "</p>" << endl;
 	}
 
 	//closed by visual inspection
 	{
 		int base_sum = 0;
 		stream << "<p>" << trans("L&uuml;cken die mit visueller Inspektion der Rohdaten &uuml;berpr&uuml;ft wurden:") << "<br />";
-		stream << "<table>";
+		stream << "<table>" << endl;
 		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>" << endl;
 		query.bindValue(0, "checked visually");
 		query.exec();
@@ -1180,17 +1260,18 @@ void GermlineReportGenerator::writeClosedGapsReport(QTextStream& stream, const B
 			stream << "<td>" << db_.genesOverlapping(chr, start, end).join(", ") << "</td><td>" << QString::number(end-start+1) << "</td><td>" << chr.strNormalized(true) << "</td><td>" << QString::number(start) << "-" << QString::number(end) << "</td>";
 			stream << "</tr>" << endl;
 		}
-		stream << "</table>";
+		stream << "</table>" << endl;
 		stream << trans("Basen gesamt:") << QString::number(base_sum);
-		stream << "</p>";
+		stream << "</p>" << endl;
 	}
 }
 
 void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table, bool gene_details)
 {
 	QString ext_string = (extend==0 ? "" : " +-" + QString::number(extend) + " ");
+	stream << endl;
 	stream << "<p><b>" << trans("Abdeckungsstatistik f&uuml;r CCDS") << " " << ext_string << "</b></p>" << endl;
-	if (gap_table) stream << "<p><table>";
+	if (gap_table) stream << "<p><table>" << endl;
 	if (gap_table) stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Transcript") << "</b></td><td><b>" << trans("Gr&ouml;&szlig;e") << "</b></td><td><b>" << trans("Basen") << "</b></td><td><b>" << trans("Chromosom") << "</b></td><td><b>" << trans("Koordinaten (hg19)") << "</b></td></tr>";
 	QMap<QByteArray, int> gap_count;
 	long long bases_overall = 0;
@@ -1251,7 +1332,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		bases_overall += bases_transcipt;
 		bases_sequenced += bases_transcipt - bases_gaps;
 	}
-	if (gap_table) stream << "</table></p>";
+	if (gap_table) stream << "</table></p>" << endl;
 
 	//show warning if non-coding transcripts had to be used
 	if (!genes_noncoding.isEmpty())

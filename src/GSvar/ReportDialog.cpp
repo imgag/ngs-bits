@@ -19,6 +19,7 @@ ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantLi
 	, roi_()
 {
 	ui_.setupUi(this);
+	setWindowTitle(windowTitle() + ps);
 	connect(ui_.report_type, SIGNAL(currentTextChanged(QString)), this, SLOT(updateVariantTable()));
 	connect(ui_.meta_data_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMetaData()));
 	connect(ui_.details_cov, SIGNAL(stateChanged(int)), this, SLOT(updateCoverageCheckboxStatus()));
@@ -105,6 +106,7 @@ void ReportDialog::initGUI()
 	ui_.details_cov_roi->setChecked(settings_.roi_low_cov);
 	ui_.depth_calc->setChecked(settings_.recalculate_avg_depth);
 	ui_.omim_table->setChecked(settings_.show_omim_table);
+	ui_.omim_table_one_only->setChecked(settings_.show_one_entry_in_omim_table);
 	ui_.class_info->setChecked(settings_.show_class_details);
 	ui_.language->setCurrentText(settings_.language);
 
@@ -141,7 +143,7 @@ void ReportDialog::updateVariantTable()
 	int row = 0;
 
 	//add small variants
-	int geno_idx = variants_.getSampleHeader().infoByStatus(true).column_index;
+	int geno_idx = variants_.getSampleHeader().infoByID(ps_).column_index;
 	int gene_idx = variants_.annotationIndexByName("gene");
 	int class_idx = variants_.annotationIndexByName("classification");
 	foreach(int i, settings_.report_config->variantIndices(VariantType::SNVS_INDELS, true, type()))
@@ -361,6 +363,7 @@ void ReportDialog::writeBackSettings()
 	settings_.roi_low_cov = ui_.details_cov_roi->isChecked();
 	settings_.recalculate_avg_depth = ui_.depth_calc->isChecked();
 	settings_.show_omim_table = ui_.omim_table->isChecked();
+	settings_.show_one_entry_in_omim_table = ui_.omim_table_one_only->isChecked();
 	settings_.show_class_details = ui_.class_info->isChecked();
 	settings_.language = ui_.language->currentText();
 }

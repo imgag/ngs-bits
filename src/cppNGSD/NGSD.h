@@ -553,6 +553,8 @@ public:
 	PhenotypeList phenotypeChildTerms(const Phenotype& phenotype, bool recursive);
 	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.
 	QList<OmimInfo> omimInfo(const QByteArray& symbol);
+	///Returns the accession (6 digit number) of the preferred OMIM phenotype for a gene. If unset, an empty string is returned.
+	QString omimPreferredPhenotype(const QByteArray& symbol, const QByteArray& disease_group);
 
 	/*** Base functionality for file/variant processing ***/
 	///Returns the processed sample name for an ID.

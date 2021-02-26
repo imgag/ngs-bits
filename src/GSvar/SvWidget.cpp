@@ -122,25 +122,6 @@ void SvWidget::initGUI()
             {
                 ps_ids_ << db_.processedSampleId(ps_name);
             }
-
-			// determine ps_id for report config / base info
-			if(sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO)
-			{
-				// in trio samples: use child
-				ps_id_ = db_.processedSampleId(sv_bedpe_file_.sampleHeaderInfo().infoByStatus(true).column_name);
-			}
-			else
-			{
-				//multisample: if only one affected sample: use this sample
-				try
-				{
-					ps_id_ = db_.processedSampleId(sv_bedpe_file_.sampleHeaderInfo().infoByStatus(true).column_name);
-				}
-				catch (ProgrammingException)
-				{
-					ps_id_ = "";
-				}
-			}
         }
     }
     else

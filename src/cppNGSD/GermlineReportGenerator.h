@@ -5,18 +5,20 @@
 #include "NGSD.h"
 #include "ReportSettings.h"
 #include "FilterCascade.h"
+#include "PrsTable.h"
 
 //Data for germline report gerneration
 struct CPPNGSDSHARED_EXPORT GermlineReportGeneratorData
 {
 	//constructor
-	GermlineReportGeneratorData(QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_);
+	GermlineReportGeneratorData(QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_);
 
 	//sample data
 	QString ps;
 	const VariantList& variants;
 	const CnvList& cnvs;
 	const BedpeFile& svs;
+	PrsTable prs;
 
 	//target region data (set if a target region was used)
 	QString roi_file;

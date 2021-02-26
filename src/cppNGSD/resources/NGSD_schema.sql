@@ -1057,6 +1057,19 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
+-- Table `omim_preferred_phenotype`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `omim_preferred_phenotype`
+(
+  `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  `disease_group` ENUM('Neoplasms','Diseases of the blood or blood-forming organs','Diseases of the immune system','Endocrine, nutritional or metabolic diseases','Mental, behavioural or neurodevelopmental disorders','Sleep-wake disorders','Diseases of the nervous system','Diseases of the visual system','Diseases of the ear or mastoid process','Diseases of the circulatory system','Diseases of the respiratory system','Diseases of the digestive system','Diseases of the skin','Diseases of the musculoskeletal system or connective tissue','Diseases of the genitourinary system','Developmental anomalies','Other diseases') NOT NULL,
+  `phenotype_accession` VARCHAR(6) CHARACTER SET 'utf8' NOT NULL,
+  PRIMARY KEY (`gene`,`disease_group`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
 -- Table `merged_processed_samples`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `merged_processed_samples`

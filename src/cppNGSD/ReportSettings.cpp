@@ -8,6 +8,7 @@ ReportSettings::ReportSettings()
 	, roi_low_cov(false)
 	, recalculate_avg_depth(false)
 	, show_omim_table(true)
+	, show_one_entry_in_omim_table(true)
 	, show_class_details(false)
 	, language("german")
 {

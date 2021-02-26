@@ -36,26 +36,29 @@ p
 	</head>
 	<body>
 <h4>Technical Report for Bioinformatic Analysis</h4>
-<p>
-<b>Sample: NA12878_03</b> (ex1)
+
+<p><b>Sample: NA12878_03</b> (ex1)
 <br />
 <br />sample sex: male
-<br />Processing system: HaloPlex HBOC v5
+<br />Processing system: HaloPlex HSP v2
 <br />Processing system type: Panel Haloplex
 <br />Reference genome: GRCh37
 <br />Date: 19.02.2021
 <br />User: ahmustm1
 <br />Analysis pipeline: megSAP 0.2-486-gc928f885
 <br />Analysis software: cppNGSD-TEST 
-<br /> KASP result: n/a
+<br /> KASP result: 0.0977%
 </p>
+
 <p><b>Phenotype information</b>
 </p>
+
 <p><b>Target region</b>
 <br /><span style="font-size: 8pt;">The target region includes CCDS ("consensus coding sequence") of the genes listed below &plusmn;20 flanking bases of the intronic sequence. It may comprise additional exons and/or flanking bases.
 <br />Name: panel
-<br />Genes analyzed (3): BRCA1, BRCA2, NIPA1
+<br />Genes analyzed (3): CYP7B1, SLC25A15, SPG7
 </span></p>
+
 <p><b>Criteria for variant filtering </b>
 <br />&nbsp;&nbsp;&nbsp;&nbsp;- Allele frequency &le; 1.00%
 <br />Variants in target region: 135
@@ -63,6 +66,7 @@ p
 <br />CNVs selected for report: 1
 <br />SVs selected for report: 1
 </p>
+
 <p><b>List of prioritized variants</b>
 <br />In addition to likely pathogenic variants (class 4) and pathogenic variants (class 5), the following table contains only those variants of uncertain significance (class 3), for which a contribution to the clinical symptoms of the patient is conceivable and for which a further evaluation of the clinical relevance by follow-up examinations may be useful.  A list of all detected variants can be provided on request.
 </p>
@@ -122,6 +126,7 @@ chr16:89598369&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 </p>
 <p>Depending on the type of genetic alteration, family history and clinical features of the patient further investigations might change the classification of variants of unknown significance (class 3). In case of a suspected clinical diagnosis genetic counseling is necessary to evaluate the indication/possibility of further genetic studies.
 </p>
+
 <p><b>Classification of variants:</b>
 <br />Classification and interpretation of variants: The classification of variants is based on the criteria of Plon et al. (PMID: 18951446). A short description of each class can be found in the following
 <br /><b>Class 5, pathogenic variant:</b> The variant is considered to be the cause of the patient's disease.
@@ -130,37 +135,80 @@ chr16:89598369&nbsp;G&nbsp;&gt;&nbsp;A</td><td>het (de-novo) (mosaic)</td>
 <br /><b>Class 2, most likely benign variants:</b> The variant is not likely to be the cause of the tested disease. Class 2 variants are not reported, but can be provided upon request.
 <br /><b>Class 1, benign variants:</b> The variant is not considered to be the cause of the tested disease. Class 1 variants are not reported, but can be provided upon request.
 </p>
+
 <p><b>Coverage statistics</b>
 <br />Average sequencing depth: 103.24
 <br />Average sequencing depth (chrMT): 0.00
 </p>
-<br />Genes without gaps: BRCA1, BRCA2, NIPA1
+<br />Genes without gaps: 
 <br />Percentage of regions with depth &lt;20: 5.69%
-<br />Number of missing bases for genes with gaps: 
+<br />Number of missing bases for genes with gaps: CYP7B1 <span style="font-size: 8pt;">243</span> , SLC25A15 <span style="font-size: 8pt;">129</span> , SPG7 <span style="font-size: 8pt;">126</span> 
 <p>Details regions with depth &lt;20:
 </p>
 <table>
 <tr><td><b>Gene</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg19)</b></td></tr>
+<tr>
+<td>
+CYP7B1</td><td>243</td><td>chr8</td><td>65528270-65528297, 65528773-65528775, 65536950-65537072, 65711013-65711101
+</td>
+</tr>
+<tr>
+<td>
+SLC25A15</td><td>129</td><td>chr13</td><td>41373322-41373450
+</td>
+</tr>
+<tr>
+<td>
+SPG7</td><td>126</td><td>chr16</td><td>89590454-89590512, 89620884-89620950
+</td>
+</tr>
 </table>
+
 <p><b>Coverage statistics for CCDS </b></p>
-<p>CCDS overall: 288
-<br />CCDS with depth &ge;20: 0 (0.00%)
-<br />CCDS with depth &lt;20: 288 (100.00%)
+<p>CCDS overall: 4815
+<br />CCDS with depth &ge;20: 4347 (90.28%)
+<br />CCDS with depth &lt;20: 468 (9.72%)
 </p>
+
 <p><b>Coverage statistics for CCDS  +-5 </b></p>
-<p><table><tr><td><b>Gene</b></td><td><b>Transcript</b></td><td><b>Size</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg19)</b></td></tr><tr><td>BRCA1</td><td>BRCA1_TR1</td><td>83</td><td>83</td><td>chr17</td><td>95-135, 155-175, 185-205</td></tr><tr><td>BRCA2</td><td>BRCA2_TR1</td><td>62</td><td>62</td><td>chr13</td><td>95-125, 175-205</td></tr><tr><td>NIPA1</td><td>NIPA1_TR1</td><td>222</td><td>222</td><td>chr15</td><td>95-205, 295-405</td></tr></table></p><p>CCDS  +-5 overall: 367
-<br />CCDS  +-5 with depth &ge;20: 0 (0.00%)
-<br />CCDS  +-5 with depth &lt;20: 367 (100.00%)
+<p><table>
+<tr><td><b>Gene</b></td><td><b>Transcript</b></td><td><b>Size</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg19)</b></td></tr><tr><td>CYP7B1</td><td>ENST00000310193</td><td>1581</td><td>233</td><td>chr8</td><td>65528270-65528297, 65528773-65528775, 65536955-65537072, 65711018-65711101</td></tr><tr><td>SLC25A15</td><td>ENST00000338625</td><td>966</td><td>129</td><td>chr13</td><td>41373322-41373450</td></tr><tr><td>SPG7</td><td>ENST00000268704</td><td>2558</td><td>121</td><td>chr16</td><td>89590454-89590512, 89620889-89620950</td></tr></table></p>
+<p>CCDS  +-5 overall: 5105
+<br />CCDS  +-5 with depth &ge;20: 4622 (90.54%)
+<br />CCDS  +-5 with depth &lt;20: 483 (9.46%)
 </p>
 <p>Genes without gaps: 
-<br />Number of missing bases for genes with gaps: BRCA1 <span style="font-size: 8pt;">83</span> , BRCA2 <span style="font-size: 8pt;">62</span> , NIPA1 <span style="font-size: 8pt;">222</span> 
-</p><p><b>Gaps closed</b></p>
-<p>Gaps closed by Sanger sequencing:<br /><table><tr><td><b>Gene</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg19)</b></td></tr>
-</table>Base sum:0</p><p>Gaps checked by visual inspection of raw data:<br /><table><tr><td><b>Gene</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg19)</b></td></tr>
-</table>Base sum:0</p><p><b>OMIM gene and phenotypes</b>
+<br />Number of missing bases for genes with gaps: CYP7B1 <span style="font-size: 8pt;">233</span> , SLC25A15 <span style="font-size: 8pt;">129</span> , SPG7 <span style="font-size: 8pt;">121</span> 
+</p>
+<p><b>Gaps closed</b></p>
+<p>Gaps closed by Sanger sequencing:<br /><table>
+<tr><td><b>Gene</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg19)</b></td></tr>
+<tr>
+<td>SPG7</td><td>59</td><td>chr16</td><td>89590454-89590512</td></tr>
+</table>
+Base sum:59</p>
+<p>Gaps checked by visual inspection of raw data:<br /><table>
+<tr><td><b>Gene</b></td><td><b>Bases</b></td><td><b>Chromosome</b></td><td><b>Coordinates (hg19)</b></td></tr>
+<tr>
+<td>CYP7B1</td><td>28</td><td>chr8</td><td>65528270-65528297</td></tr>
+<tr>
+<td>CYP7B1</td><td>3</td><td>chr8</td><td>65528773-65528775</td></tr>
+</table>
+Base sum:31</p>
+
+<p><b>OMIM gene and phenotypes</b>
 </p>
 <table>
-<tr><td><b>Gene</b></td><td><b>gene MIM</b></td><td><b>phenotype</b></td><td><b>phenotype MIM</b></td></tr>
-</table>
+<tr><td><b>Gene</b></td><td><b>gene MIM</b></td><td><b>phenotype</b></td><td><b>phenotype MIM</b></td><td><b>preferred phenotype</b></td>
+</tr><tr><td>CYP7B1</td><td>603711</td><td>Spastic paraplegia 5A, autosomal recessive, 270800 (3)</td><td>270800</td><td>yes</td>
+</tr><tr><td>SLC25A15</td><td>603861</td><td>Hyperornithinemia-hyperammonemia-homocitrullinemia syndrome, 238970 (3)</td><td>238970</td><td>no</td>
+</tr><tr><td>SPG7</td><td>602783</td><td>Spastic paraplegia 7, autosomal recessive, 607259 (3)</td><td>607259</td><td>no</td>
+</tr></table>
+
+<p><b>Polygenic Risk Scores</b>
+</p>
+<table>
+<tr><td><b>Trait</b></td><td><b>Score</b></td><td><b>Publication</b></td></tr>
+<tr><td>Breast Cancer</td><td>-0.2773</td><td>Mavaddat N et al. Am J Hum Genet (2018). doi:10.1016/j.ajhg.2018.11.002</td></tr></table>
 	</body>
 </html>

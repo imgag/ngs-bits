@@ -126,7 +126,6 @@ MainWindow::MainWindow(QWidget *parent)
 	, busy_dialog_(nullptr)
 	, notification_label_(new QLabel())
 	, filename_()
-	, db_annos_updated_(NO)
 	, igv_initialized_(false)
 	, variants_changed_(false)
 	, last_report_path_(QDir::homePath())
@@ -181,7 +180,6 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varsContextMenu(QPoint)));
 	connect(ui_.filters, SIGNAL(filtersChanged()), this, SLOT(refreshVariantTable()));
-	connect(ui_.filters, SIGNAL(targetRegionChanged()), this, SLOT(resetAnnotationStatus()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
 	connect(ui_.vars, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(variantCellDoubleClicked(int, int)));
@@ -697,15 +695,17 @@ void MainWindow::on_actionSV_triggered()
 
 	try
 	{
-		//open SV widget
-		SvWidget* list;
-
-		QString ps_id;
-		if (LoginManager::active())
+		//determine processed sample ID (needed for report config)
+		QString ps_id = "";
+		QSharedPointer<ReportConfiguration> report_config = nullptr;
+		if (germlineReportSupported())
 		{
-			ps_id = NGSD().processedSampleId(processedSampleName(), false);
+			ps_id = NGSD().processedSampleId(germlineReportSample(), false);
+			report_config = report_settings_.report_config;
 		}
 
+		//open SV widget
+		SvWidget* list;
 		if(svs_.isSomatic())
 		{
 			// somatic
@@ -714,8 +714,6 @@ void MainWindow::on_actionSV_triggered()
 		else
 		{
 			// germline single, trio or multi sample
-			QSharedPointer<ReportConfiguration> report_config = nullptr;
-			if (germlineReportSupported()) report_config = report_settings_.report_config;
 			list = new SvWidget(svs_, ps_id, ui_.filters, report_config, het_hit_genes, gene2region_cache_, this);
 		}
 
@@ -780,11 +778,11 @@ void MainWindow::on_actionCNV_triggered()
 		QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
 
-	//determine processed sample ID (needed for report config - so only germline)
+	//determine processed sample ID (needed for report config)
 	QString ps_id = "";
-	if (LoginManager::active() && germlineReportSupported())
+	if (germlineReportSupported())
 	{
-		ps_id = NGSD().processedSampleId(processedSampleName(), false);
+		ps_id = NGSD().processedSampleId(germlineReportSample(), false);
 	}
 
 	CnvWidget *list;
@@ -1632,7 +1630,7 @@ void MainWindow::editVariantValidation(int index)
 		if (!val_id.isValid())
 		{
 			//get genotype
-			int i_genotype = variants_.getSampleHeader().infoByStatus(true).column_index;
+			int i_genotype = variants_.getSampleHeader().infoByID(processedSampleName()).column_index;
 			QByteArray genotype = variant.annotations()[i_genotype];
 
 			//insert
@@ -1908,17 +1906,18 @@ QString MainWindow::processedSampleName()
 			return QFileInfo(filename_).baseName();
 			break;
 		case GERMLINE_TRIO: //return index (child)
-		return variants_.getSampleHeader().infoByStatus(true).column_name;
+			return variants_.getSampleHeader().infoByStatus(true).column_name;
 			break;
 		case GERMLINE_MULTISAMPLE: //return affected if there is exactly one affected
-		try
-		{
-			SampleInfo info = variants_.getSampleHeader().infoByStatus(true);
-			return info.column_name;
-		}
-		catch(...) {} //Nothing to do here
+			try
+			{
+				SampleInfo info = variants_.getSampleHeader().infoByStatus(true);
+				return info.column_name;
+			}
+			catch(...) {} //Nothing to do here
 			break;
 		case SOMATIC_SINGLESAMPLE:
+			return QFileInfo(filename_).baseName();
 			break;
 		case SOMATIC_PAIR:
 			return QFileInfo(filename_).baseName().split("-")[0];
@@ -2344,12 +2343,11 @@ void MainWindow::loadFile(QString filename)
 	cnvs_.clear();
 	svs_.clear();
 	filewatcher_.clearFile();
-	db_annos_updated_ = NO;
 	igv_initialized_ = false;
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
 	connect(report_settings_.report_config.data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
-
+	germline_report_ps_ = "";
 	somatic_report_settings_ = SomaticReportSettings();
 
 	ui_.tabs->setCurrentIndex(0);
@@ -2456,14 +2454,12 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//load report config
-	if (LoginManager::active() && germlineReportSupported())
+	if (germlineReportSupported())
 	{
 		loadReportConfig();
 	}
 	else if(LoginManager::active() && somaticReportSupported())
 	{
-
-
 		loadSomaticReportConfig();
 	}
 
@@ -2791,12 +2787,11 @@ void MainWindow::on_actionAnnotateSomaticVariants_triggered()
 void MainWindow::loadReportConfig()
 {
 	//check if applicable
-	if (filename_=="") return;
 	if (!germlineReportSupported()) return;
 
 	//check if report config exists
 	NGSD db;
-	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
+	QString processed_sample_id = db.processedSampleId(germlineReportSample(), false);
 	int rc_id = db.reportConfigId(processed_sample_id);
 	if (rc_id==-1) return;
 
@@ -2820,25 +2815,23 @@ void MainWindow::loadSomaticReportConfig()
 	NGSD db;
 
 	//Determine processed sample ids
-	QString ps_tumor_id = db.processedSampleId(processedSampleName(), false);
+	QString ps_tumor = processedSampleName();
+	QString ps_tumor_id = db.processedSampleId(ps_tumor, false);
 	if(ps_tumor_id == "") return;
-	QString ps_normal_name = normalSampleName();
-	if(ps_normal_name.isEmpty()) return;
-	QString ps_normal_id = db.processedSampleId(ps_normal_name, false);
+	QString ps_normal = normalSampleName();
+	if(ps_normal.isEmpty()) return;
+	QString ps_normal_id = db.processedSampleId(ps_normal, false);
 	if(ps_normal_id == "") return;
 
 
-	somatic_report_settings_.tumor_ps = processedSampleName();
-	somatic_report_settings_.normal_ps = normalSampleName();
+	somatic_report_settings_.tumor_ps = ps_tumor;
+	somatic_report_settings_.normal_ps = ps_normal;
 
-	somatic_report_settings_.sample_dir = QFileInfo(filename_).dir().absolutePath();
+	somatic_report_settings_.sample_dir = QFileInfo(filename_).absolutePath();
 
 	try //load normal sample
 	{
-		QDir dir = QFileInfo(filename_).dir();
-		dir.cdUp();
-		dir.cd("Sample_" + normalSampleName());
-		somatic_control_tissue_variants_.load( Helper::canonicalPath(dir.absolutePath() + "/" +normalSampleName() + ".GSvar" ) );
+		somatic_control_tissue_variants_.load(db.processedSamplePath(ps_normal, NGSD::GSVAR));
 	}
 	catch(Exception e)
 	{
@@ -2921,13 +2914,11 @@ void MainWindow::storeSomaticReportConfig()
 void MainWindow::storeReportConfig()
 {
 	//check if applicable
-	if (filename_=="") return;
-	if (!LoginManager::active()) return;
 	if (!germlineReportSupported()) return;
 
 	//check sample
 	NGSD db;
-	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
+	QString processed_sample_id = db.processedSampleId(germlineReportSample(), false);
 	if (processed_sample_id=="")
 	{
 		QMessageBox::warning(this, "Storing report configuration", "Sample was not found in the NGSD!");
@@ -2962,26 +2953,16 @@ void MainWindow::storeReportConfig()
 
 void MainWindow::generateEvaluationSheet()
 {
-	if (!LoginManager::active())
-	{
-		QMessageBox::warning(this, "Evaluation Sheet creation", "Error: No connection to the NGSD.\nYou need access to the NGSD to create an evaluation sheet:\n\n");
-		return;
-	}
-	if (filename_=="") return;
-	QString base_name = processedSampleName().trimmed();
-
 	//check if applicable
-	if (!germlineReportSupported())
-	{
-		QMessageBox::information(this, "Variant sheet error", "Variant sheet not supported for this type of analysis!");
-		return;
-	}
+	if (!germlineReportSupported()) return;
+
+	QString base_name = germlineReportSample();
 
 	//make sure free-text phenotype infos are available
 	NGSD db;
 	QString sample_id = db.sampleId(base_name);
 	QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(sample_id, "clinical phenotype (free text)");
-	if (disease_infos.isEmpty() && QMessageBox::question(this, "Variant sheet", "No clinical phenotype (free text) is set for the sample!\nIt will be shown on the variant sheet!\n\nDo you want to set it?")==QMessageBox::Yes)
+	if (disease_infos.isEmpty() && QMessageBox::question(this, "Evaluation sheet", "No clinical phenotype (free text) is set for the sample!\nIt will be shown on the evaluation sheet!\n\nDo you want to set it?")==QMessageBox::Yes)
 	{
 		SampleDiseaseInfoWidget* widget = new SampleDiseaseInfoWidget(base_name, this);
 		widget->setDiseaseInfo(db.getSampleDiseaseInfo(sample_id));
@@ -3016,11 +2997,11 @@ void MainWindow::generateEvaluationSheet()
 
 	//get filename
 	QString folder = Settings::string("gsvar_variantsheet_folder");
-	QString filename = QFileDialog::getSaveFileName(this, "Store variant sheet",  folder + "/" + base_name + "_variant_sheet_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	QString filename = QFileDialog::getSaveFileName(this, "Store evaluation sheet",  folder + "/" + base_name + "_variant_sheet_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (filename.isEmpty()) return;
 
 	//open file
-	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename); //TODO move to separate class and test (including HTML validation) > MARC
 	QTextStream stream(file.data());
 
 	//write header
@@ -3224,7 +3205,7 @@ void MainWindow::generateEvaluationSheet()
 	stream << "  </body>" << endl;
 	stream << "</html>" << endl;
 
-	if (QMessageBox::question(this, "Variant sheet", "Variant sheet generated successfully!\nDo you want to open it in your browser?")==QMessageBox::Yes)
+	if (QMessageBox::question(this, "Evaluation sheet", "Evaluation sheet generated successfully!\nDo you want to open it in your browser?")==QMessageBox::Yes)
 	{
 		QDesktopServices::openUrl(QUrl::fromLocalFile(filename));
 	}
@@ -3250,16 +3231,15 @@ void MainWindow::transferSomaticData()
 
 void MainWindow::showReportConfigInfo()
 {
-	QString title = "Report configuration information";
-
-
 	//check if applicable
-	if (filename_=="") return;
-	if (!LoginManager::active()) return;
+	if (!germlineReportSupported() && !somaticReportSupported()) return;
+
+	QString ps = germlineReportSupported() ? germlineReportSample() : processedSampleName();
+	QString title = "Report configuration information of " + ps;
 
 	//check sample exists
 	NGSD db;
-	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
+	QString processed_sample_id = db.processedSampleId(ps, false);
 	if (processed_sample_id=="")
 	{
 		QMessageBox::warning(this, title, "Sample was not found in the NGSD!");
@@ -3297,27 +3277,20 @@ void MainWindow::showReportConfigInfo()
 
 void MainWindow::finalizeReportConfig()
 {
-	QString dialog_title = "Finalize report configuration";
-
 	//check if applicable
-	if (filename_=="") return;
-	if (!LoginManager::active()) return;
+	if(!germlineReportSupported()) return;
+
+	QString dialog_title = "Finalize report configuration of " + germlineReportSample();
 
 	//check sample exists
 	NGSD db;
-	QString processed_sample_id = db.processedSampleId(processedSampleName(), false);
+	QString processed_sample_id = db.processedSampleId(germlineReportSample(), false);
 	if (processed_sample_id=="")
 	{
 		QMessageBox::warning(this, dialog_title, "Sample was not found in the NGSD!");
 		return;
 	}
 
-	//only implemented for germline so far
-	if(!germlineReportSupported())
-	{
-		QMessageBox::warning(this, dialog_title, "Unsupported variant list type!");
-		return;
-	}
 
 	//check config exists
 	int conf_id = db.reportConfigId(processed_sample_id);
@@ -3378,7 +3351,7 @@ void MainWindow::printVariantSheetRow(QTextStream& stream, const ReportVariantCo
 {
 	//get column indices
 	const Variant& v = variants_[conf.variant_index];
-	int i_genotype = variants_.getSampleHeader().infoByStatus(true).column_index;
+	int i_genotype = variants_.getSampleHeader().infoByID(germlineReportSample()).column_index;
 	int i_co_sp = variants_.annotationIndexByName("coding_and_splicing", true, true);
 	int i_class = variants_.annotationIndexByName("classification", true, true);
 	int i_gnomad = variants_.annotationIndexByName("gnomAD", true, true);
@@ -3587,20 +3560,22 @@ void MainWindow::generateReportTumorOnly()
 		QMessageBox::warning(this, "Invalid tumor only file" + filename_, "Could not find all neccessary annotations in tumor-only variant list. Aborting creation of report. " + e.message());
 		return;
 	}
+	QString sample_folder = QFileInfo(filename_).absolutePath();
+	QString ps = processedSampleName();
 
 	//get report settings
 	TumorOnlyReportWorkerConfig config;
-	config.mapping_stat_qcml_file = QFileInfo(filename_).absolutePath() + "/" + QFileInfo(filename_).baseName() + "_stats_map.qcML";
+	config.mapping_stat_qcml_file = sample_folder + "/" + ps + "_stats_map.qcML";
 	config.target_file = ui_.filters->targetRegion();
-	config.low_coverage_file = QFileInfo(filename_).absolutePath() + "/" + QFileInfo(filename_).baseName() + "_stat_lowcov.bed";
-	config.bam_file = QFileInfo(filename_).absolutePath() + "/" + QFileInfo(filename_).baseName() + ".bam";
+	config.low_coverage_file = sample_folder + "/" + ps + "_stat_lowcov.bed";
+	config.bam_file = sample_folder + "/" + ps + ".bam";
 	config.filter_result = filter_result_;
 
 	TumorOnlyReportDialog dlg(variants_, config, this);
 	if(!dlg.exec()) return;
 
 	//get RTF file name
-	QString destination_path = last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_DNA_tumor_only_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
+	QString destination_path = last_report_path_ + "/" + ps + "_DNA_tumor_only_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
 	QString file_rep = QFileDialog::getSaveFileName(this, "Store report file", destination_path, "RTF files (*.rtf);;All files(*.*)");
 	if (file_rep=="") return;
 
@@ -3685,11 +3660,11 @@ void MainWindow::generateReportSomaticRTF()
 	QString destination_path; //path to rtf file
 	if(dlg.getReportType() == SomaticReportDialog::report_type::DNA)
 	{
-		destination_path = last_report_path_ + "/" + QFileInfo(filename_).baseName() + "_DNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
+		destination_path = last_report_path_ + "/" + processedSampleName() + "_DNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
 	}
 	else
 	{
-		destination_path = last_report_path_ + "/" + dlg.getRNAid() + "-" + QFileInfo(filename_).baseName() + "_RNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
+		destination_path = last_report_path_ + "/" + dlg.getRNAid() + "-" + processedSampleName() + "_RNA_report_somatic_" + QDate::currentDate().toString("yyyyMMdd") + ".rtf";
 	}
 
 	//get RTF file name
@@ -3816,7 +3791,7 @@ void MainWindow::generateReportGermline()
 
 	//check if NGSD annotations are up-to-date
 	QDateTime mod_date = QFileInfo(filename_).lastModified();
-	if (db_annos_updated_==NO && mod_date < QDateTime::currentDateTime().addDays(-42))
+	if (mod_date < QDateTime::currentDateTime().addDays(-42))
 	{
 		if (QMessageBox::question(this, "NGSD annotations outdated", "NGSD annotation data is older than six weeks!\nDo you want to continue with annotations from " + mod_date.toString("yyyy-MM-dd") + "?")==QMessageBox::No)
 		{
@@ -3826,12 +3801,12 @@ void MainWindow::generateReportGermline()
 
 	//check that sample is in NGSD
 	NGSD db;
-	QString ps_name = processedSampleName();
+	QString ps_name = germlineReportSample();
 	QString sample_id = db.sampleId(ps_name, false);
 	QString processed_sample_id = db.processedSampleId(ps_name, false);
 	if (sample_id.isEmpty() || processed_sample_id.isEmpty())
 	{
-		GUIHelper::showMessage("Error", "Sample not found in database.\nCannot generate a report for samples that are not in the NGSD!");
+		GUIHelper::showMessage("Error", "Sample not found in the NGSD.\nCannot generate a report for samples that are not in the NGSD!");
 		return;
 	}
 
@@ -3857,12 +3832,16 @@ void MainWindow::generateReportGermline()
 	last_report_path_ = QFileInfo(file_rep).absolutePath();
 
 	//prepare report generation data
-	GermlineReportGeneratorData data(ps_name, variants_, cnvs_, svs_, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
+	PrsTable prs_table;
+	QString prs_file = db.processedSamplePath(processed_sample_id, NGSD::SAMPLE_FOLDER) + "/" + ps_name +  "_prs.tsv";
+	if (QFile::exists(prs_file)) prs_table.load(prs_file);
+
+	GermlineReportGeneratorData data(ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
 	QString roi_file = ui_.filters->targetRegion();
 	if (roi_file!="")
 	{
 		data.roi_file = roi_file;
-		data.roi_genes = GeneSet::createFromFile(roi_file.left(roi_file.size()-4) + "_genes.txt"); //TODO use NGSD/GSvarServer to get the file > ALEXANDR
+		data.roi_genes = GeneSet::createFromFile(roi_file.left(roi_file.size()-4) + "_genes.txt");
 	}
 
 	//show busy dialog
@@ -5004,7 +4983,7 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	//data 1st variant
 	const Variant& variant = variants_[variant_index];
 	data.variant = variant;
-	int genotype_index = variants_.getSampleHeader().infoByStatus(true).column_index;
+	int genotype_index = variants_.getSampleHeader().infoByID(data.processed_sample).column_index;
 	data.genotype = variant.annotations()[genotype_index];
 	FastaFileIndex idx(Settings::string("reference_genome"));
 	data.hgvs_g = variant.toHGVS(idx);
@@ -5709,21 +5688,59 @@ QString MainWindow::svFile(QString gsvar_file)
 
 bool MainWindow::germlineReportSupported()
 {
+	//no file loaded
+	if (filename_.isEmpty()) return false;
+
+	//user has to be logged in
+	if (!LoginManager::active()) return false;
+
+	//single and trio (~one affected)
 	AnalysisType type = variants_.type();
-	if (type==GERMLINE_MULTISAMPLE)
+	//multi-sample only with at least one affected
+	if (type==GERMLINE_MULTISAMPLE && variants_.getSampleHeader().sampleColumns(true).count()>=1) return true;
+
+	return false;}
+
+QString MainWindow::germlineReportSample()
+{
+	if (!germlineReportSupported())
 	{
-		// check if exactly one affected (-> use report of the affected sample)
-		try
+		THROW(ProgrammingException, "germlineReportSample() cannot be used if germline report is not supported!");
+	}
+
+	//set sample for report
+	while (germline_report_ps_.isEmpty())
+	{
+		//determine affected sample names
+		QStringList affected_ps;
+		foreach(const SampleInfo& info, variants_.getSampleHeader())
 		{
-			SampleInfo info = variants_.getSampleHeader().infoByStatus(true);
-			return true;
+			if(info.isAffected())
+			{
+				affected_ps << info.column_name.trimmed();
+			}
 		}
-		catch (...)
+
+		if (affected_ps.isEmpty()) //no affected => error
 		{
-			return false;
+			THROW(ProgrammingException, "germlineReportSample() cannot be used if there is no affected sample!");
+		}
+		else if (affected_ps.count()==1) //one affected => auto-select
+		{
+			germline_report_ps_ = affected_ps[0];
+		}
+		else //several affected => let user select
+		{
+			bool ok = false;
+			QString selected = QInputDialog::getItem(this, "Report sample", "processed sample used for report:", affected_ps, 0, false, &ok);
+			if (ok)
+			{
+				germline_report_ps_ = selected;
+			}
 		}
 	}
-	return type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO;
+
+	return germline_report_ps_;
 }
 
 bool MainWindow::somaticReportSupported()
@@ -6493,14 +6510,6 @@ void MainWindow::applyFilters(bool debug_time)
 	}
 }
 
-void MainWindow::resetAnnotationStatus()
-{
-	if (db_annos_updated_==ROI)
-	{
-		db_annos_updated_ = NO;
-	}
-}
-
 void MainWindow::addToRecentFiles(QString filename)
 {
 	//update settings
@@ -6605,6 +6614,11 @@ QString MainWindow::normalSampleName()
 {
 	if(variants_.type() != AnalysisType::SOMATIC_PAIR) return "";
 
-	return QFileInfo(filename_).baseName().append("-").split("-")[1];
+	foreach(const SampleInfo& info, variants_.getSampleHeader())
+	{
+		if (!info.isTumor()) return info.column_name;
+	}
+
+	return "";
 }
 

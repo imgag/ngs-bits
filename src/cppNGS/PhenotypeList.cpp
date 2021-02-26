@@ -25,6 +25,11 @@ void PhenotypeList::sortByName()
 	std::sort(begin(), end(), [](const Phenotype& a, const Phenotype& b){ return a.name()<b.name(); });
 }
 
+void PhenotypeList::sortByAccession()
+{
+	std::sort(begin(), end(), [](const Phenotype& a, const Phenotype& b){ return a.accession()<b.accession(); });
+}
+
 QString PhenotypeList::toString(QString seperator) const
 {
 	return toStringList().join(seperator);

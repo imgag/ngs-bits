@@ -3752,6 +3752,25 @@ QList<OmimInfo> NGSD::omimInfo(const QByteArray& symbol)
 	return output;
 }
 
+QString NGSD::omimPreferredPhenotype(const QByteArray& symbol, const QByteArray& disease_group)
+{
+	SqlQuery query = getQuery();
+	query.prepare("SELECT phenotype_accession FROM omim_preferred_phenotype WHERE gene=:0 AND disease_group=:1");
+
+	query.bindValue(0, symbol);
+	query.bindValue(1, disease_group);
+	query.exec();
+
+	if (query.next())
+	{
+		return query.value(0).toString();
+	}
+	else
+	{
+		return "";
+	}
+}
+
 
 Phenotype NGSD::phenotypeByName(const QByteArray& name, bool throw_on_error)
 {
