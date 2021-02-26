@@ -64,7 +64,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 	try
 	{
 		int sys_id = db_.processingSystemIdFromProcessedSample(ps_);
-		QString sys_roi_file = db_.getProcessingSystemData(sys_id, true).target_file;
+		QString sys_roi_file = db_.getProcessingSystemData(sys_id).target_file;
 		BedFile sys_roi;
 		sys_roi.load(sys_roi_file);
 

@@ -673,7 +673,7 @@ int NGSD::processingSystemIdFromProcessedSample(QString ps_name)
 	return getValue("SELECT processing_system_id FROM processed_sample WHERE id="+ps_id).toInt();
 }
 
-ProcessingSystemData NGSD::getProcessingSystemData(int sys_id, bool windows_path)
+ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 {
 	ProcessingSystemData output;
 
@@ -684,13 +684,7 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id, bool windows_path
 	output.name = query.value(0).toString();
 	output.name_short = query.value(1).toString();
 	output.type = query.value(2).toString();
-	output.target_file = query.value(3).toString();
-	if (windows_path)
-	{
-		QString p_linux = getTargetFilePath(false, false);
-		QString p_win = getTargetFilePath(false, true);
-		output.target_file.replace(p_linux, p_win);
-	}
+	output.target_file = getTargetFilePath(false) + query.value(3).toString();
 	output.adapter1_p5 = query.value(4).toString();
 	output.adapter2_p7 = query.value(5).toString();
 	output.shotgun = query.value(6).toString()=="1";
@@ -2313,18 +2307,9 @@ void NGSD::init(QString password)
 	}
 }
 
-QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi, bool windows_paths)
+QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi)
 {
 	QMap<QString, QString> out;
-
-	//load paths
-	QString p_win;
-	QString p_linux;
-	if (windows_paths)
-	{
-		p_linux = getTargetFilePath(false, false);
-		p_win = getTargetFilePath(false, true);
-	}
 
 	//load processing systems
 	SqlQuery query = getQuery();
@@ -2332,7 +2317,7 @@ QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi,
 	while(query.next())
 	{
 		QString name = query.value(0).toString();
-		QString roi = query.value(1).toString().replace(p_linux, p_win);
+		QString roi = getTargetFilePath(false) + query.value(1).toString();
 		if (roi=="" && skip_systems_without_roi) continue;
 		out.insert(name, roi);
 	}
@@ -2916,18 +2901,13 @@ QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString me
 	return output;
 }
 
-QString NGSD::getTargetFilePath(bool subpanels, bool windows)
+QString NGSD::getTargetFilePath(bool subpanels)
 {
-	QString key = windows ? "target_file_folder_windows" : "target_file_folder_linux";
-	QString output = Settings::string(key);
-	if (output=="")
-	{
-		THROW(ProgrammingException, "'" + key + "' entry is missing in settings!");
-	}
+	QString output = Settings::string("data_folder", false) + "/enrichment/";
 
 	if (subpanels)
 	{
-		output += "/subpanels/";
+		output += "subpanels/";
 	}
 
 	return output;

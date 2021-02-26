@@ -113,7 +113,7 @@ private slots:
 		S_EQUAL(enum_values[4], "Endocrine, nutritional or metabolic diseases");
 
 		//getProcessingSystems
-		QMap<QString, QString> systems = db.getProcessingSystems(false, false);
+		QMap<QString, QString> systems = db.getProcessingSystems(false);
 		I_EQUAL(systems.size(), 4);
 		IS_TRUE(systems.contains("HaloPlex HBOC v5"))
 		IS_TRUE(systems.contains("HaloPlex HBOC v6"))
@@ -127,7 +127,7 @@ private slots:
 		S_EQUAL(sys_id, 1);
 
 		//getProcessingSystemData
-		ProcessingSystemData system_data = db.getProcessingSystemData(sys_id, false);
+		ProcessingSystemData system_data = db.getProcessingSystemData(sys_id);
 		S_EQUAL(system_data.name, "HaloPlex HBOC v5");
 		S_EQUAL(system_data.name_short, "hpHBOCv5");
 		S_EQUAL(system_data.adapter1_p5, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC");
