@@ -170,13 +170,21 @@ void FastqFileStream::readEntry(FastqEntry& entry)
 
 void FastqFileStream::extractLine(QByteArray& line)
 {
-	int i=0;
-	while(i<1023 && buffer_[i]!='\0' && buffer_[i]!='\n' && buffer_[i]!='\r')
-	{
-		++i;
-	}
-	line = QByteArray(buffer_, i);
+	line = QByteArray(buffer_);
+	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+
 	last_output_ = gzgets(gzfile_, buffer_, 1024);
+
+	//handle errors like truncated GZ file
+	if (last_output_==nullptr)
+	{
+		int error_no = Z_OK;
+		QByteArray error_message = gzerror(gzfile_, &error_no);
+		if (error_no!=Z_OK && error_no!=Z_STREAM_END)
+		{
+			THROW(FileParseException, "Error while reading file '" + filename_ + "': " + error_message);
+		}
+	}
 }
 
 
