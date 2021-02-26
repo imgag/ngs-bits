@@ -7,4 +7,4 @@ echo "ngsd_test_name = \"root\"" >> ./bin/settings.ini
 echo "ngsd_test_user = \"root\"" >> ./bin/settings.ini
 echo "ngsd_test_pass = \"\"" >> ./bin/settings.ini
 echo "projects_folder = \"projects_folder\"" >> ./bin/settings.ini
-echo "target_file_folder_linux = \"\"" >> ./bin/settings.ini
+echo "data_folder = \"\"" >> ./bin/settings.ini
