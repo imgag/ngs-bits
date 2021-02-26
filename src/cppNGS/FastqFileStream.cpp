@@ -109,7 +109,8 @@ int FastqEntry::trimN(int num_n)
 }
 
 FastqFileStream::FastqFileStream(QString filename, bool auto_validate)
-	: gzfile_(NULL)
+	: filename_(filename)
+	, gzfile_(NULL)
 	, buffer_(0)
     , is_first_entry_(true)
     , last_output_(NULL)
