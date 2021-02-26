@@ -126,7 +126,6 @@ void GeneSelectorDialog::updateGeneTable()
 	ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(sample_name_));
 	if (system_data.target_file=="")
 	{
-
 		updateError("Gene selection error", "Processing system target region BED file not found for sample '" + sample_name_ +  "'");
 		return;
 	}
