@@ -139,13 +139,14 @@ public:
 								job.clear();
 								in1.readEntry(job.e1);
 								in2.readEntry(job.e2);
-								if (in1.atEnd() || in2.atEnd()) break;
 								job.status = TO_BE_ANALYZED;
 								analysis_pool.start(new AnalysisWorker(job, params_, stats_, ecstats_));
 								break;
 							case ERROR: //handle errors during analayis (must be thrown in the main thread)
 								THROW(Exception, job.error_message);
 						}
+
+						if (in1.atEnd() || in2.atEnd()) break;
 					}
 
 					//progress output
