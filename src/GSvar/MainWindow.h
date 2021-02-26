@@ -259,20 +259,6 @@ public slots:
 	void showReportConfigInfo();
 	///Finalize report configuration
 	void finalizeReportConfig();
-	///Helper function for printVariantSheet()
-	void printVariantSheetRowHeader(QTextStream& stream, bool causal);
-	///Helper function for printVariantSheet()
-	void printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration& conf);
-	///Helper function for printVariantSheet()
-	void printVariantSheetRowHeaderCnv(QTextStream& stream, bool causal);
-	///Helper function for printVariantSheet()
-	void printVariantSheetRowCnv(QTextStream& stream, const ReportVariantConfiguration& conf);
-	///Helper function for printVariantSheet()
-	void printVariantSheetRowHeaderSv(QTextStream& stream, bool causal);
-	///Helper function for printVariantSheet()
-	void printVariantSheetRowSv(QTextStream& stream, const ReportVariantConfiguration& conf);
-	///Helper function for printVariantSheet()
-	static QString exclusionCriteria(const ReportVariantConfiguration& conf);
 	///Generate report
 	void generateReport();
 	///Generates a report (somatic pair) in .rtf format

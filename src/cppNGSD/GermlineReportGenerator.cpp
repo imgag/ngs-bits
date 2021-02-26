@@ -423,17 +423,28 @@ void GermlineReportGenerator::writeHTML(QString filename)
 				//show only one entry
 				if (data_.report_settings.show_one_entry_in_omim_table)
 				{
-					if (preferred_phenotype_name!="")
+					if (preferred_phenotype_name!="") //preferred phenotype match => show only preferred phenotype
 					{
 						names.clear();
 						names << preferred_phenotype_name;
 						accessions.clear();
 						accessions << preferred_phenotype_accession;
 					}
-					else
+					else if (accessions.count()>1) //no preferred phenotype match => show first entry
 					{
-						while(names.count()>1) names.removeLast();
-						while(accessions.count()>1) accessions.removeLast();
+						//search for for first entry with accession (fallback to first entry)
+						int selected_index = 0;
+						for (int i=0; i<accessions.count(); ++i)
+						{
+							if (accessions[i]!="")
+							{
+								selected_index = i;
+								break;
+							}
+						}
+
+						accessions = QStringList() << accessions[selected_index];
+						names = QStringList() << names[selected_index];
 					}
 				}
 				stream << "<tr><td>" << omim_info.gene_symbol << "</td><td>" << omim_info.mim << "</td><td>" << names.join("<br />") << "</td><td>" << accessions.join("<br />") << "</td>";
@@ -1418,4 +1429,430 @@ QString GermlineReportGenerator::formatCodingSplicing(const QList<VariantTranscr
 		}
 	}
 	return output.join("<br />");
+}
+
+void GermlineReportGenerator::writeEvaluationSheet(QString filename, const EvaluationSheetData& evaluation_sheet_data)
+{
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
+	QTextStream stream(file.data());
+
+	//write header
+	stream << "<html>" << endl;
+	stream << "  <head>" << endl;
+	stream << "    <style>" << endl;
+	stream << "      @page" << endl;
+	stream << "      {" << endl;
+	stream << "        size: landscape;" << endl;
+	stream << "        margin: 1cm;" << endl;
+	stream << "      }" << endl;
+	stream << "      table" << endl;
+	stream << "      {" << endl;
+	stream << "        border-collapse: collapse;" << endl;
+	stream << "        border: 1px solid black;" << endl;
+	stream << "      }" << endl;
+	stream << "      th, td" << endl;
+	stream << "      {" << endl;
+	stream << "        border: 1px solid black;" << endl;
+	stream << "      }" << endl;
+	stream << "      .line {" << endl;
+	stream << "        display: inline-block;" << endl;
+	stream << "        border-bottom: 1px solid #000;" << endl;
+	stream << "        width: 250px;" << endl;
+	stream << "        margin-left: 10px;" << endl;
+	stream << "        margin-right: 10px;" << endl;
+	stream << "      }" << endl;
+	stream << "      .noborder {" << endl;
+	stream << "        border: 0px;" << endl;
+	stream << "      }" << endl;
+	stream << "    </style>" << endl;
+	stream << "  </head>" << endl;
+	stream << "  <body>" << endl;
+	stream << "    <table class='noborder' width='100%'>" << endl;
+	stream << "      <tr>" << endl;
+	stream << "        <td class='noborder' valign='top'>" << endl;
+	stream << "           <h3>Probe: " << data_.ps << "</h3>" << endl;
+	stream << "        </td>" << endl;
+	stream << "      </tr>" << endl;
+	stream << "    </table>" << endl;
+	stream << "    <table class='noborder' width='100%'>" << endl;
+	stream << "      <tr>" << endl;
+	stream << "        <td class='noborder' valign='top'>" << endl;
+	stream << "          <p>DNA/RNA#: <span class='line'>" << evaluation_sheet_data.dna_rna << "</span></p>" << endl;
+	stream << "          <br />" << endl;
+	stream << "          <p>1. Auswerter: <span class='line'>" << evaluation_sheet_data.reviewer1 << "</span> Datum: <span class='line'>" << evaluation_sheet_data.review_date1.toString("dd.MM.yyyy") << "</span></p>" << endl;
+	stream << "          <p><nobr>2. Auswerter: <span class='line'>" << evaluation_sheet_data.reviewer2 << "</span> Datum: <span class='line'>" << evaluation_sheet_data.review_date2.toString("dd.MM.yyyy") << "</span></nobr></p>" << endl;
+	stream << "          <br />" << endl;
+	stream << "          <p>Auswerteumfang: <span class='line'>" << evaluation_sheet_data.analysis_scope << "</span></p>" << endl;
+	stream << "          <br />" << endl;
+	stream << "          <table border='0'>" << endl;
+	stream << "            <tr> <td colspan='2'><b>ACMG</b></td> </tr>" << endl;
+	stream << "            <tr> <td>angefordert: &nbsp;&nbsp; </td> <td>"<< ((evaluation_sheet_data.acmg_requested)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>analysiert: &nbsp;&nbsp; </td> <td>"<< ((evaluation_sheet_data.acmg_analyzed)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>auff&auml;llig: &nbsp;&nbsp; </td> <td>"<< ((evaluation_sheet_data.acmg_noticeable)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "          </table>" << endl;
+	stream << "        </td>" << endl;
+	stream << "        <td class='noborder' valign='top' style='width: 1%; white-space: nowrap;'>" << endl;
+	stream << "          <table border='0'>" << endl;
+	stream << "            <tr> <td colspan='2'><b>Filterung erfolgt</b></td> </tr>" << endl;
+	stream << "            <tr> <td style='white-space: nowrap'>Freq.-basiert dominant&nbsp;&nbsp;</td> <td>"<< ((evaluation_sheet_data.filtered_by_freq_based_dominant)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Freq.-basiert rezessiv</td> <td>"<< ((evaluation_sheet_data.filtered_by_freq_based_recessive)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>CNV</td> <td>"<< ((evaluation_sheet_data.filtered_by_cnv)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Mitochondrial</td> <td>"<< ((evaluation_sheet_data.filtered_by_mito)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>X-chromosomal</td> <td>"<< ((evaluation_sheet_data.filtered_by_x_chr)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Ph&auml;notyp-basiert</td> <td>"<< ((evaluation_sheet_data.filtered_by_phenotype)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Multi-Sample-Auswertung</td> <td>"<< ((evaluation_sheet_data.filtered_by_multisample)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Trio stringent</td> <td>"<< ((evaluation_sheet_data.filtered_by_trio_stringent)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Trio relaxed</td> <td>"<< ((evaluation_sheet_data.filtered_by_trio_relaxed)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "          </table>" << endl;
+	stream << "          <br />" << endl;
+	stream << "        </td>" << endl;
+	stream << "      </tr>" << endl;
+	stream << "    </table>" << endl;
+
+	//phenotype
+	QString sample_id = db_.sampleId(data_.ps);
+	QList<SampleDiseaseInfo> disease_infos = db_.getSampleDiseaseInfo(sample_id);
+	QString clinical_phenotype;
+	QStringList infos;
+	foreach(const SampleDiseaseInfo& info, disease_infos)
+	{
+		if (info.type=="ICD10 code")
+		{
+			infos << info.type + ": " + info.disease_info;
+		}
+		if (info.type=="HPO term id")
+		{
+			infos << db_.phenotypeByAccession(info.disease_info.toLatin1(), false).toString();
+		}
+		if (info.type=="Orpha number")
+		{
+			infos << info.type + ": " + info.disease_info;
+		}
+		if (info.type=="clinical phenotype (free text)")
+		{
+			clinical_phenotype += info.disease_info + " ";
+		}
+	}
+
+	stream << "    <br />" << endl;
+	stream << "    <b>Klinik:</b>" << endl;
+	stream << "    <table class='noborder' width='100%'>" << endl;
+	stream << "      <tr>" << endl;
+	stream << "        <td class='noborder' valign='top'>" << endl;
+	stream << "          " << clinical_phenotype.trimmed() << endl;
+	stream << "        </td>" << endl;
+	stream << "        <td class='noborder' style='width: 1%; white-space: nowrap;'>" << endl;
+	stream << "          " << infos.join("<br />          ") << endl;
+	stream << "        </td>" << endl;
+	stream << "      </tr>" << endl;
+	stream << "    </table>" << endl;
+
+	//write small variants
+	stream << "    <p><b>Kausale Varianten:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeader(stream, true);
+	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (conf.variant_type!=VariantType::SNVS_INDELS) continue;
+		if (conf.causal)
+		{
+			printVariantSheetRow(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	stream << "    <p><b>Sonstige Varianten:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeader(stream, false);
+	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (conf.variant_type!=VariantType::SNVS_INDELS) continue;
+		if (!conf.causal)
+		{
+			printVariantSheetRow(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	//CNVs
+	stream << "    <p><b>Kausale CNVs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderCnv(stream, true);
+	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (conf.variant_type!=VariantType::CNVS) continue;
+		if (conf.causal)
+		{
+			printVariantSheetRowCnv(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	stream << "    <p><b>Sonstige CNVs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderCnv(stream, false);
+	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (conf.variant_type!=VariantType::CNVS) continue;
+		if (!conf.causal)
+		{
+			printVariantSheetRowCnv(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	//SVs
+	stream << "    <p><b>Kausale SVs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderSv(stream, true);
+	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (conf.variant_type!=VariantType::SVS) continue;
+		if (conf.causal)
+		{
+			printVariantSheetRowSv(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	stream << "    <p><b>Sonstige SVs:</b>" << endl;
+	stream << "      <table border='1'>" << endl;
+	printVariantSheetRowHeaderSv(stream, false);
+	foreach(const ReportVariantConfiguration& conf, data_.report_settings.report_config->variantConfig())
+	{
+		if (conf.variant_type!=VariantType::SVS) continue;
+		if (!conf.causal)
+		{
+			printVariantSheetRowSv(stream, conf);
+		}
+	}
+	stream << "      </table>" << endl;
+	stream << "    </p>" << endl;
+
+	//write footer
+	stream << "  </body>" << endl;
+	stream << "</html>" << endl;
+	stream.flush();
+
+	//validate written file
+	QString validation_error = XmlHelper::isValidXml(filename);
+	if (validation_error!="")
+	{
+		if (test_mode_)
+		{
+			THROW(ProgrammingException, "Invalid germline report HTML file gererated: " + validation_error);
+		}
+		else
+		{
+			Log::warn("Generated evaluation sheet at " + filename + " is not well-formed: " + validation_error);
+		}
+	}
+}
+
+void GermlineReportGenerator::printVariantSheetRowHeader(QTextStream& stream, bool causal)
+{
+	stream << "     <tr>" << endl;
+	stream << "       <th>Gen</th>" << endl;
+	stream << "       <th>Typ</th>" << endl;
+	stream << "       <th>Genotyp</th>" << endl;
+	stream << "       <th>Variante</th>" << endl;
+	stream << "       <th>Erbgang</th>" << endl;
+	if (causal)
+	{
+		stream << "       <th>c.</th>" << endl;
+		stream << "       <th>p.</th>" << endl;
+	}
+	else
+	{
+		stream << "       <th>Ausschlussgrund</th>" << endl;
+	}
+	stream << "       <th>gnomAD</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>NGSD hom/het</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>Kommentar 1. Auswerter</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>Kommentar 2. Auswerter</th>" << endl;
+	stream << "       <th>Klasse</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>In Report</th>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void GermlineReportGenerator::printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration& conf)
+{
+	//get column indices
+	const Variant& v = data_.variants[conf.variant_index];
+	int i_genotype = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
+	int i_co_sp = data_.variants.annotationIndexByName("coding_and_splicing", true, true);
+	int i_class = data_.variants.annotationIndexByName("classification", true, true);
+	int i_gnomad = data_.variants.annotationIndexByName("gnomAD", true, true);
+	int i_ngsd_hom = data_.variants.annotationIndexByName("NGSD_hom", true, true);
+	int i_ngsd_het = data_.variants.annotationIndexByName("NGSD_het", true, true);
+
+	//get transcript-specific data
+	QStringList genes;
+	QStringList types;
+	QStringList hgvs_cs;
+	QStringList hgvs_ps;
+	//for genes with preferred transcripts, determine if the variant is actually in the preferred transcript, or not.
+	QHash<QByteArray, bool> variant_in_pt;
+	foreach(const VariantTranscript& trans, v.transcriptAnnotations(i_co_sp))
+	{
+		if (data_.preferred_transcripts.contains(trans.gene))
+		{
+			if (!variant_in_pt.contains(trans.gene))
+			{
+				variant_in_pt[trans.gene] = false;
+			}
+			if (data_.preferred_transcripts[trans.gene].contains(trans.idWithoutVersion()))
+			{
+				variant_in_pt[trans.gene] = true;
+			}
+		}
+	}
+	foreach(const VariantTranscript& trans, v.transcriptAnnotations(i_co_sp))
+	{
+		if (data_.preferred_transcripts.contains(trans.gene) && variant_in_pt[trans.gene] && !data_.preferred_transcripts[trans.gene].contains(trans.idWithoutVersion()))
+		{
+			continue;
+		}
+		genes << trans.gene;
+		types << trans.type;
+		hgvs_cs << trans.hgvs_c;
+		hgvs_ps << trans.hgvs_p;
+	}
+	genes.removeDuplicates();
+	types.removeDuplicates();
+	hgvs_cs.removeDuplicates();
+	hgvs_ps.removeDuplicates();
+
+	//write line
+	stream << "     <tr>" << endl;
+	stream << "       <td>" << genes.join(", ") << "</td>" << endl;
+	stream << "       <td>" << types.join(", ") << "</td>" << endl;
+	stream << "       <td>" << v.annotations()[i_genotype] << "</td>" << endl;
+	stream << "       <td style='white-space: nowrap'>" << v.toString(false, 20) << "</td>" << endl;
+	stream << "       <td>" << conf.inheritance << "</td>" << endl;
+	if (conf.causal)
+	{
+		stream << "       <td>" << hgvs_cs.join(", ") << "</td>" << endl;
+		stream << "       <td>" << hgvs_ps.join(", ") << "</td>" << endl;
+	}
+	else
+	{
+		stream << "       <td>" << exclusionCriteria(conf) << "</td>" << endl;
+	}
+	stream << "       <td>" << v.annotations()[i_gnomad] << "</td>" << endl;
+	stream << "       <td>" << v.annotations()[i_ngsd_hom] << " / " << v.annotations()[i_ngsd_het] << "</td>" << endl;
+	stream << "       <td>" << conf.comments << "</td>" << endl;
+	stream << "       <td>" << conf.comments2 << "</td>" << endl;
+	stream << "       <td>" << v.annotations()[i_class] << "</td>" << endl;
+	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void GermlineReportGenerator::printVariantSheetRowHeaderCnv(QTextStream& stream, bool causal)
+{
+	stream << "     <tr>" << endl;
+	stream << "       <th>CNV</th>" << endl;
+	stream << "       <th>copy-number</th>" << endl;
+	stream << "       <th>Gene</th>" << endl;
+	stream << "       <th>Erbgang</th>" << endl;
+	if (causal)
+	{
+		stream << "       <th>Infos</th>" << endl;
+	}
+	else
+	{
+		stream << "       <th>Ausschlussgrund</th>" << endl;
+	}
+	stream << "       <th style='white-space: nowrap'>Kommentar 1. Auswerter</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>Kommentar 2. Auswerter</th>" << endl;
+	stream << "       <th>Klasse</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>In Report</th>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void GermlineReportGenerator::printVariantSheetRowCnv(QTextStream& stream, const ReportVariantConfiguration& conf)
+{
+	const CopyNumberVariant& cnv = data_.cnvs[conf.variant_index];
+	stream << "     <tr>" << endl;
+	stream << "       <td>" << cnv.toString() << "</td>" << endl;
+	stream << "       <td>" << cnv.copyNumber(data_.cnvs.annotationHeaders()) << "</td>" << endl;
+	stream << "       <td>" << cnv.genes().join(", ") << "</td>" << endl;
+	stream << "       <td>" << conf.inheritance << "</td>" << endl;
+	if (conf.causal)
+	{
+		stream << "       <td>regions:" << cnv.regions() << " size:" << QString::number(cnv.size()/1000.0, 'f', 3) << "kb</td>" << endl;
+	}
+	else
+	{
+		stream << "       <td>" << exclusionCriteria(conf) << "</td>" << endl;
+	}
+	stream << "       <td>" << conf.comments << "</td>" << endl;
+	stream << "       <td>" << conf.comments2 << "</td>" << endl;
+	stream << "       <td>" << conf.classification << "</td>" << endl;
+	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void GermlineReportGenerator::printVariantSheetRowHeaderSv(QTextStream& stream, bool causal)
+{
+	stream << "     <tr>" << endl;
+	stream << "       <th>SV</th>" << endl;
+	stream << "       <th>Typ</th>" << endl;
+	stream << "       <th>Gene</th>" << endl;
+	stream << "       <th>Erbgang</th>" << endl;
+	if (causal)
+	{
+		stream << "       <th>Infos</th>" << endl;
+	}
+	else
+	{
+		stream << "       <th>Ausschlussgrund</th>" << endl;
+	}
+	stream << "       <th style='white-space: nowrap'>Kommentar 1. Auswerter</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>Kommentar 2. Auswerter</th>" << endl;
+	stream << "       <th>Klasse</th>" << endl;
+	stream << "       <th style='white-space: nowrap'>In Report</th>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+void GermlineReportGenerator::printVariantSheetRowSv(QTextStream& stream, const ReportVariantConfiguration& conf)
+{
+	const BedpeLine& sv = data_.svs[conf.variant_index];
+	BedFile affected_region = sv.affectedRegion();
+	stream << "     <tr>" << endl;
+	stream << "       <td>" << affected_region[0].toString(true);
+	if(sv.type() == StructuralVariantType::BND) stream << " &lt;-&gt; " << affected_region[1].toString(true);
+	stream << "</td>" << endl;
+	stream << "       <td>" << BedpeFile::typeToString(sv.type()) << "</td>" << endl;
+	stream << "       <td>" << sv.genes(data_.svs.annotationHeaders()).join(", ") << "</td>" << endl;
+	stream << "       <td>" << conf.inheritance << "</td>" << endl;
+	if (conf.causal)
+	{
+		stream << "       <td>estimated size:" << QString::number(data_.svs.estimatedSvSize(conf.variant_index)/1000.0, 'f', 3) << "kb</td>" << endl;
+	}
+	else
+	{
+		stream << "       <td>" << exclusionCriteria(conf) << "</td>" << endl;
+	}
+	stream << "       <td>" << conf.comments << "</td>" << endl;
+	stream << "       <td>" << conf.comments2 << "</td>" << endl;
+	stream << "       <td>" << conf.classification << "</td>" << endl;
+	stream << "       <td>" << (conf.showInReport() ? "ja" : "nein") << " (" << conf.report_type << ")</td>" << endl;
+	stream << "     </tr>" << endl;
+}
+
+QString GermlineReportGenerator::exclusionCriteria(const ReportVariantConfiguration& conf)
+{
+	QByteArrayList exclustion_criteria;
+	if (conf.exclude_artefact) exclustion_criteria << "Artefakt";
+	if (conf.exclude_frequency) exclustion_criteria << "Frequenz";
+	if (conf.exclude_phenotype) exclustion_criteria << "Phenotyp";
+	if (conf.exclude_mechanism) exclustion_criteria << "Pathomechanismus";
+	if (conf.exclude_other) exclustion_criteria << "Anderer (siehe Kommentare)";
+	return exclustion_criteria.join(", ");
 }

@@ -50,6 +50,10 @@ public:
 	///Returns if the pre-calcualed gaps for the given ROI.
 	///If using the pre-calculated gaps file is not possible, @p message contains an error message.
 	static BedFile precalculatedGaps(QString bam_file, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region);
+
+	///Writes a evaluation sheet in HTML format.
+	void writeEvaluationSheet(QString filename, const EvaluationSheetData& evaluation_sheet_data);
+
 private:
 	NGSD db_;
 	const GermlineReportGeneratorData& data_;
@@ -71,6 +75,15 @@ private:
 	void writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table=true, bool gene_details=true);
 	static QByteArray formatGenotype(const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
+
+	///Helper functions for writeEvaluationSheet()
+	static void printVariantSheetRowHeader(QTextStream& stream, bool causal);
+	void printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration& conf);
+	static void printVariantSheetRowHeaderCnv(QTextStream& stream, bool causal);
+	void printVariantSheetRowCnv(QTextStream& stream, const ReportVariantConfiguration& conf);
+	static void printVariantSheetRowHeaderSv(QTextStream& stream, bool causal);
+	void printVariantSheetRowSv(QTextStream& stream, const ReportVariantConfiguration& conf);
+	static QString exclusionCriteria(const ReportVariantConfiguration& conf);
 
 	GermlineReportGenerator() = delete;
 };

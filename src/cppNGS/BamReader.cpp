@@ -106,16 +106,14 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 
 bool BamAlignment::cigarIsOnlyInsertion() const
 {
-	bool only_insert = true;
-
 	const auto cigar = bam_get_cigar(aln_);
 	for (uint32_t i = 0; i<aln_->core.n_cigar; ++i)
 	{
-		int type = (int)bam_cigar_op(cigar[i]);
-		if (type!=BAM_CINS && type!=BAM_CSOFT_CLIP) only_insert = false;
+		int op = (int)bam_cigar_op(cigar[i]);
+		if (op!=BAM_CINS && op!=BAM_CSOFT_CLIP) return false;
 	}
 
-	return only_insert;
+	return true;
 }
 
 Sequence BamAlignment::bases() const
