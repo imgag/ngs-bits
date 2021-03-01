@@ -1,5 +1,8 @@
+#include <QDir>
 #include <QFile>
 #include <QMessageBox>
+#include <QFileInfo>
+#include <QDesktopServices>
 #include "RepeatExpansionWidget.h"
 #include "ui_RepeatExpansionWidget.h"
 #include "Helper.h"
@@ -30,12 +33,35 @@ RepeatExpansionWidget::RepeatExpansionWidget(QString vcf_filename, bool is_exome
 	ui_(new Ui::RepeatExpansionWidget)
 {
 	ui_->setupUi(this);
+    //Setup signals and slots
+    connect(ui_->repeat_expansions,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(SvDoubleClicked(QTableWidgetItem*)));
 	loadRepeatExpansionData();
 }
 
 RepeatExpansionWidget::~RepeatExpansionWidget()
 {
-	delete ui_;
+    delete ui_;
+}
+
+void RepeatExpansionWidget::openREViewerSvg(QTableWidgetItem* item)
+{
+    //get repeat name
+    QString repeat_name = ui_->repeat_expansions->item(item->row(),3)->text().split('_').at(0);
+
+    //check file existence
+    QFileInfo vcf_fi = QFileInfo(vcf_filename_);
+    QString folder = vcf_fi.path();
+    QString base_name = vcf_fi.baseName();
+    QString svg_filepath = folder + "/repeat_expansions/" + base_name + "_" + repeat_name + ".svg";
+
+    qDebug() << svg_filepath;
+
+    if (QFile::exists(svg_filepath))
+    {
+        //open SVG in browser
+        QDesktopServices::openUrl(QUrl(svg_filepath));
+    }
+
 }
 
 void RepeatExpansionWidget::loadRepeatExpansionData()

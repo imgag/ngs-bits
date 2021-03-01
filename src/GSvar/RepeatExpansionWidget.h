@@ -37,12 +37,15 @@ public:
 	RepeatExpansionWidget(QString vcf_filename, bool is_exome=false, QWidget *parent = 0);
 	~RepeatExpansionWidget();
 
+private slots:
+    void openREViewerSvg(QTableWidgetItem *item);
 
 private:
 	void loadRepeatExpansionData();
 	QString vcf_filename_;
 	bool is_exome_;
 	Ui::RepeatExpansionWidget *ui_;
+
 };
 
 #endif // REPEATEXPANSIONWIDGET_H
