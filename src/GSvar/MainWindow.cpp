@@ -757,7 +757,7 @@ void MainWindow::on_actionCNV_triggered()
 	QString mosaic_file = base + "_mosaic_cnvs.tsv";
 	if (QFile::exists(mosaic_file))
 	{
-		QStringList mosaic_data = Helper::loadTextFile(mosaic_file, false, QChar::Null, true);
+		QStringList mosaic_data = Helper::loadTextFile(mosaic_file, false, '#', true);
 		if (mosaic_data.count()>1)
 		{
 			QPlainTextEdit* text_edit = new QPlainTextEdit(this);
