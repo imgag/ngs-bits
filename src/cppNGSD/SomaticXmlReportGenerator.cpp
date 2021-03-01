@@ -160,7 +160,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	//Element TargetRegion
 	w.writeStartElement("TargetRegion");
 
-	ProcessingSystemData processing_system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(data.settings.tumor_ps), QSysInfo::productType().contains("windows"));
+	ProcessingSystemData processing_system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(data.settings.tumor_ps));
 	w.writeAttribute("name", processing_system_data.name); //in our workflow identical to processing system name
 
 		QString target_file = processing_system_data.target_file;
