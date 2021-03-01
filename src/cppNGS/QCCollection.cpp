@@ -368,7 +368,6 @@ void QCCollection::storeToQCML(QString filename, const QStringList& source_files
 				THROW(ProgrammingException, "QCCollection::storeToQCML produced an invalid XML file: QC term '" + accession + "/" + qc_value.name() + "' is marked as obsolete in the ontology!");
 			}
 		}
-
 	}
 }
 

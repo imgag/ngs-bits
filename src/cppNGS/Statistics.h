@@ -81,6 +81,9 @@ private:
 	static void countCoverageWGSWithoutBaseQuality(int start, int end, QVector<unsigned char>& cov);
 	static void countCoverageWGSWithBaseQuality(int min_baseq, QVector<unsigned char>& cov, int start, int end, QBitArray& baseQualities, const BamAlignment& al);
 
+	template <typename T>
+	static void addQcValue(QCCollection& output, QByteArray accession, QByteArray name, const T& value);
+	static void addQcPlot(QCCollection& output, QByteArray accession, QByteArray name, QString filename);
 };
 
 #endif // STATISTICS_H

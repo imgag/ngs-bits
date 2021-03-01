@@ -40,21 +40,21 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	}
 
 	//var_total
-	output.insert(QCValue("variant count", variants.count(), "Total number of variants in the target region.", "QC:2000013"));
+	addQcValue(output, "QC:2000013", "variant count", variants.count());
 
 	//var_perc_dbsnp and high-impact variants
 	if (variants.count()==0)
 	{
-		output.insert(QCValue("known variants percentage", "n/a (no variants)", "Percentage of variants that are known polymorphisms in the dbSNP database.", "QC:2000014"));
-		output.insert(QCValue("high-impact variants percentage", "n/a (no variants)", "Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants.", "QC:2000015"));
+		addQcValue(output, "QC:2000014", "known variants percentage", "n/a (no variants)");
+		addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (no variants)");
 	}
 	else
 	{
 		bool csq_entry_exists = variants.informationIDs().contains("CSQ");
 		if (!csq_entry_exists)
 		{
-			output.insert(QCValue("known variants percentage", "n/a (CSQ info field missing)", "Percentage of variants that are known polymorphisms in the dbSNP database.", "QC:2000014"));
-			output.insert(QCValue("high-impact variants percentage", "n/a (CSQ info field missing)", "Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants.", "QC:2000015"));
+			addQcValue(output, "QC:2000014", "known variants percentage", "n/a (CSQ info field missing)");
+			addQcValue(output, "QC:2000015", "high-impact variants percentage", "n/a (CSQ info field missing)");
 		}
 		else
 		{
@@ -71,8 +71,8 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 					++high_impact_count;
 				}
 			}
-			output.insert(QCValue("known variants percentage", 100.0*dbsnp_count/variants.count(), "Percentage of variants that are known polymorphisms in the dbSNP database.", "QC:2000014"));
-			output.insert(QCValue("high-impact variants percentage", 100.0*high_impact_count/variants.count(), "Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants.", "QC:2000015"));
+			addQcValue(output, "QC:2000014", "known variants percentage", 100.0*dbsnp_count/variants.count());
+			addQcValue(output, "QC:2000015", "high-impact variants percentage", 100.0*high_impact_count/variants.count());
 		}
 	}
 
@@ -89,11 +89,11 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 				++hom_count;
 			}
 		}
-		output.insert(QCValue("homozygous variants percentage", 100.0*hom_count/variants.count(), "Percentage of variants that are called as homozygous.", "QC:2000016"));
+		addQcValue(output, "QC:2000016", "homozygous variants percentage", 100.0*hom_count/variants.count());
 	}
 	else
 	{
-		output.insert(QCValue("homozygous variants percentage", "n/a (GT annotation not found, or no variants)", "Percentage of variants that are called as homozygous.", "QC:2000016"));
+		addQcValue(output, "QC:2000016", "homozygous variants percentage", "n/a (GT annotation not found, or no variants)");
 	}
 
 	//var_perc_indel / var_ti_tv_ratio
@@ -120,20 +120,20 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 
 	if (variants.count()!=0)
 	{
-		output.insert(QCValue("indel variants percentage", 100.0*indel_count/variants.count(), "Percentage of variants that are insertions/deletions.", "QC:2000017"));
+		addQcValue(output, "QC:2000017", "indel variants percentage", 100.0*indel_count/variants.count());
 	}
 	else
 	{
-		output.insert(QCValue("indel variants percentage", "n/a (no variants)", "Percentage of variants that are insertions/deletions.", "QC:2000017"));
+		addQcValue(output, "QC:2000017", "indel variants percentage", "n/a (no variants)");
 	}
 
 	if (tv_count!=0)
 	{
-		output.insert(QCValue("transition/transversion ratio", ti_count/tv_count , "Transition/transversion ratio of SNV variants.", "QC:2000018"));
+		addQcValue(output, "QC:2000018", "transition/transversion ratio", ti_count/tv_count);
 	}
 	else
 	{
-		output.insert(QCValue("transition/transversion ratio", "n/a (no variants or tansversions)", "Transition/transversion ratio of SNV variants.", "QC:2000018"));
+		addQcValue(output, "QC:2000018", "transition/transversion ratio", "n/a (no variants or tansversions)");
 	}
 
 	return output;
@@ -379,45 +379,45 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 
 	//output
 	QCCollection output;
-	output.insert(QCValue("trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length, "Percentage of bases that were trimmed during to adapter or quality trimming.", "QC:2000019"));
-	output.insert(QCValue("clipped base percentage", 100.0 * bases_clipped / bases_mapped, "Percentage of the bases that are soft-clipped or hand-clipped during mapping.", "QC:2000052"));
-	output.insert(QCValue("mapped read percentage", 100.0 * al_mapped / al_total, "Percentage of reads that could be mapped to the reference genome.", "QC:2000020"));
-	output.insert(QCValue("on-target read percentage", 100.0 * al_ontarget / al_total, "Percentage of reads that could be mapped to the target region.", "QC:2000021"));
-	output.insert(QCValue("near-target read percentage", 100.0 * al_neartarget / al_total, "Percentage of reads that were mapped to the target region or near the target region (at most 250 bases away).", "QC:2000057"));
+	addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
+	addQcValue(output, "QC:2000052", "clipped base percentage", 100.0 * bases_clipped / bases_mapped);
+	addQcValue(output, "QC:2000020", "mapped read percentage", 100.0 * al_mapped / al_total);
+	addQcValue(output, "QC:2000021", "on-target read percentage", 100.0 * al_ontarget / al_total);
+	addQcValue(output, "QC:2000057", "near-target read percentage", 100.0 * al_neartarget / al_total);
 	if (paired_end)
 	{
-		output.insert(QCValue("properly-paired read percentage", 100.0 * al_proper_paired / al_total, "Percentage of properly paired reads (for paired-end reads only).", "QC:2000022"));
-		output.insert(QCValue("insert size", insert_size_sum / al_proper_paired, "Mean insert size (for paired-end reads only).", "QC:2000023"));
+		addQcValue(output, "QC:2000022", "properly-paired read percentage", 100.0 * al_proper_paired / al_total);
+		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / al_proper_paired);
 	}
 	else
 	{
-		output.insert(QCValue("properly-paired read percentage", "n/a (single end)", "Percentage of properly paired reads (for paired-end reads only).", "QC:2000022"));
-		output.insert(QCValue("insert size", "n/a (single end)", "Mean insert size (for paired-end reads only).", "QC:2000023"));
+		addQcValue(output, "QC:2000022", "properly-paired read percentage", "n/a (single end)");
+		addQcValue(output, "QC:2000023", "insert size", "n/a (single end)");
 	}
 	if (al_dup==0)
 	{
-		output.insert(QCValue("duplicate read percentage", "n/a (no duplicates marked or duplicates removed during data analysis)", "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
+		addQcValue(output, "QC:2000024", "duplicate read percentage", "n/a (no duplicates marked or duplicates removed during data analysis)");
 	}
 	else
 	{
-		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc)", "QC:2000024"));
+		addQcValue(output, "QC:2000024", "duplicate read percentage", 100.0 * al_dup / al_total);
 	}
-	output.insert(QCValue("bases usable (MB)", (double)bases_usable / 1000000.0, "Bases sequenced that are usable for variant calling (in megabases).", "QC:2000050"));
-	output.insert(QCValue("target region read depth", avg_depth, "Average sequencing depth in target region.", "QC:2000025"));
+	addQcValue(output, "QC:2000050", "bases usable (MB)", (double)bases_usable / 1000000.0);
+	addQcValue(output, "QC:2000025", "target region read depth", avg_depth);
 
 	QVector<int> depths;
 	depths << 10 << 20 << 30 << 50 << 100 << 200 << 500;
-	QVector<QString> accessions;
+	QVector<QByteArray> accessions;
 	accessions << "QC:2000026" << "QC:2000027" << "QC:2000028" << "QC:2000029" << "QC:2000030" << "QC:2000031" << "QC:2000032";
 	for (int i=0; i<depths.count(); ++i)
 	{
 		double cov_bases = 0.0;
 		for (int bin=depth_dist.binIndex(depths[i]); bin<depth_dist.binCount(); ++bin) cov_bases += depth_dist.binValue(bin);
-		output.insert(QCValue("target region " + QString::number(depths[i]) + "x percentage", 100.0 * cov_bases / roi_bases, "Percentage of the target region that is covered at least " + QString::number(depths[i]) + "-fold.", accessions[i]));
+		addQcValue(output, accessions[i], "target region " + QByteArray::number(depths[i]) + "x percentage", 100.0 * cov_bases / roi_bases);
 	}
-	output.insert(QCValue("target region half depth percentage", 100.0 * bases_covered_at_least_half_depth / roi_bases, "Percentage of the target region that is covered at least with half of the target region average depth. This is a measure of coverage uniformity.", "QC:2000058"));
-	output.insert(QCValue("AT dropout", at_dropout, "Illumina-style AT dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[0..50].", "QC:2000059"));
-	output.insert(QCValue("GC dropout", gc_dropout, "Illumina-style GC dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[50..100].", "QC:2000060"));
+	addQcValue(output, "QC:2000058", "target region half depth percentage", 100.0 * bases_covered_at_least_half_depth / roi_bases);
+	addQcValue(output, "QC:2000059", "AT dropout", at_dropout);
+	addQcValue(output, "QC:2000060", "GC dropout", gc_dropout);
 
 	//add depth distribtion plot
 	LinePlot plot;
@@ -427,7 +427,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	plot.addLine(depth_dist.yCoords(true));
 	QString plotname = Helper::tempFileName(".png");
 	plot.store(plotname);
-	output.insert(QCValue::Image("depth distribution plot", plotname, "Depth of coverage distribution plot calculated one the target region.", "QC:2000037"));
+	addQcPlot(output, "QC:2000037", "depth distribution plot", plotname);
 	QFile::remove(plotname);
 
 	//add insert size distribution plot
@@ -441,7 +441,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 
 		plotname = Helper::tempFileName(".png");
 		plot2.store(plotname);
-		output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
+		addQcPlot(output, "QC:2000038", "insert size distribution plot", plotname);
 		QFile::remove(plotname);
 	}
 
@@ -454,7 +454,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	plot3.addLine(gc_read_percentages, "reads");
 	plotname = Helper::tempFileName(".png");
 	plot3.store(plotname);
-	output.insert(QCValue::Image("GC bias plot", plotname, "GC bias plot.", "QC:2000061"));
+	addQcPlot(output, "QC:2000061","GC bias plot", plotname);
 	QFile::remove(plotname);
 
 	return output;
@@ -612,29 +612,29 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq, cons
 
 	//output
 	QCCollection output;
-	output.insert(QCValue("trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length, "Percentage of bases that were trimmed during to adapter or quality trimming.", "QC:2000019"));
-	output.insert(QCValue("clipped base percentage", 100.0 * bases_clipped / bases_mapped, "Percentage of the bases that are soft-clipped or hand-clipped during mapping.", "QC:2000052"));
-	output.insert(QCValue("mapped read percentage", 100.0 * al_mapped / al_total, "Percentage of reads that could be mapped to the reference genome.", "QC:2000020"));
-	output.insert(QCValue("on-target read percentage", 100.0 * al_ontarget / al_total, "Percentage of reads that could be mapped to the target region.", "QC:2000021"));
+	addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
+	addQcValue(output, "QC:2000052", "clipped base percentage", 100.0 * bases_clipped / bases_mapped);
+	addQcValue(output, "QC:2000020", "mapped read percentage", 100.0 * al_mapped / al_total);
+	addQcValue(output, "QC:2000021", "on-target read percentage", 100.0 * al_ontarget / al_total);
 	if (paired_end)
 	{
-		output.insert(QCValue("properly-paired read percentage", 100.0 * al_proper_paired / al_total, "Percentage of properly paired reads (for paired-end reads only).", "QC:2000022"));
-		output.insert(QCValue("insert size", insert_size_sum / al_proper_paired, "Mean insert size (for paired-end reads only).", "QC:2000023"));
+		addQcValue(output, "QC:2000022", "properly-paired read percentage", 100.0 * al_proper_paired / al_total);
+		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / al_proper_paired);
 	}
 	else
 	{
-		output.insert(QCValue("properly-paired read percentage", "n/a (single end)", "Percentage of properly paired reads (for paired-end reads only).", "QC:2000022"));
-		output.insert(QCValue("insert size", "n/a (single end)", "Mean insert size (for paired-end reads only).", "QC:2000023"));
+		addQcValue(output, "QC:2000022", "properly-paired read percentage", "n/a (single end)");
+		addQcValue(output, "QC:2000023", "insert size", "n/a (single end)");
 	}
 	if (al_dup==0)
 	{
-		output.insert(QCValue("duplicate read percentage", "n/a (duplicates not marked or removed during data analysis)", "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
+		addQcValue(output, "QC:2000024", "duplicate read percentage", "n/a (duplicates not marked or removed during data analysis)");
 	}
 	else
 	{
-		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
+		addQcValue(output, "QC:2000024", "duplicate read percentage", 100.0 * al_dup / al_total);
 	}
-	output.insert(QCValue("bases usable (MB)", (double)bases_usable / 1000000.0, "Bases sequenced that are usable for variant calling (in megabases).", "QC:2000050"));
+	addQcValue(output, "QC:2000050", "bases usable (MB)", (double)bases_usable / 1000000.0);
 
 	//add insert size distribution plot
 	if (paired_end)
@@ -647,7 +647,7 @@ QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq, cons
 
 		QString plotname = Helper::tempFileName(".png");
 		plot2.store(plotname);
-		output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
+		addQcPlot(output, "QC:2000038","insert size distribution plot", plotname);
 		QFile::remove(plotname);
 	}
 
@@ -739,30 +739,30 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 
 	//output
 	QCCollection output;
-	output.insert(QCValue("trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length, "Percentage of bases that were trimmed during to adapter or quality trimming.", "QC:2000019"));
-	output.insert(QCValue("clipped base percentage", 100.0 * bases_clipped / bases_mapped, "Percentage of the bases that are soft-clipped or hand-clipped during mapping.", "QC:2000052"));
-	output.insert(QCValue("mapped read percentage", 100.0 * al_mapped / al_total, "Percentage of reads that could be mapped to the reference genome.", "QC:2000020"));
-	output.insert(QCValue("on-target read percentage", 100.0 * al_ontarget / al_total, "Percentage of reads that could be mapped to the target region.", "QC:2000021"));
+	addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
+	addQcValue(output, "QC:2000052", "clipped base percentage", 100.0 * bases_clipped / bases_mapped);
+	addQcValue(output, "QC:2000020", "mapped read percentage", 100.0 * al_mapped / al_total);
+	addQcValue(output, "QC:2000021", "on-target read percentage", 100.0 * al_ontarget / al_total);
 	if (paired_end)
 	{
-		output.insert(QCValue("properly-paired read percentage", 100.0 * al_proper_paired / al_total, "Percentage of properly paired reads (for paired-end reads only).", "QC:2000022"));
-		output.insert(QCValue("insert size", insert_size_sum / al_proper_paired, "Mean insert size (for paired-end reads only).", "QC:2000023"));
+		addQcValue(output, "QC:2000022", "properly-paired read percentage", 100.0 * al_proper_paired / al_total);
+		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / al_proper_paired);
 	}
 	else
 	{
-		output.insert(QCValue("properly-paired read percentage", "n/a (single end)", "Percentage of properly paired reads (for paired-end reads only).", "QC:2000022"));
-		output.insert(QCValue("insert size", "n/a (single end)", "Mean insert size (for paired-end reads only).", "QC:2000023"));
+		addQcValue(output, "QC:2000022", "properly-paired read percentage", "n/a (single end)");
+		addQcValue(output, "QC:2000023", "insert size", "n/a (single end)");
 	}
 	if (al_dup==0)
 	{
-		output.insert(QCValue("duplicate read percentage", "n/a (duplicates not marked or removed during data analysis)", "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
+		addQcValue(output, "QC:2000024", "duplicate read percentage", "n/a (duplicates not marked or removed during data analysis)");
 	}
 	else
 	{
-		output.insert(QCValue("duplicate read percentage", 100.0 * al_dup / al_total, "Percentage of reads removed because they were duplicates (PCR, optical, etc).", "QC:2000024"));
+		addQcValue(output, "QC:2000024", "duplicate read percentage", 100.0 * al_dup / al_total);
 	}
-	output.insert(QCValue("bases usable (MB)", (double)bases_usable / 1000000.0, "Bases sequenced that are usable for variant calling (in megabases).", "QC:2000050"));
-	output.insert(QCValue("target region read depth", (double) bases_usable / reader.genomeSize(false), "Average sequencing depth in target region.", "QC:2000025"));
+	addQcValue(output, "QC:2000050", "bases usable (MB)", (double)bases_usable / 1000000.0);
+	addQcValue(output, "QC:2000025", "target region read depth", (double) bases_usable / reader.genomeSize(false));
 
 	//add insert size distribution plot
 	if (paired_end)
@@ -777,7 +777,7 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 
 			QString plotname = Helper::tempFileName(".png");
 			plot2.store(plotname);
-			output.insert(QCValue::Image("insert size distribution plot", plotname, "Insert size distribution plot.", "QC:2000038"));
+			addQcPlot(output, "QC:2000038", "insert size distribution plot", plotname);
 			QFile::remove(plotname);
 		}
 		else
@@ -941,7 +941,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 
 	sc.calculateSimilarity(tumor_genotypes, normal_genotypes);
 
-	output.insert(QCValue("sample correlation", ( sc.olCount()<100 ? "n/a (too few variants)" : QString::number(sc.sampleCorrelation(),'f',2) ), "SNP-based sample correlation of tumor / normal.", "QC:2000040"));
+	addQcValue(output, "QC:2000040", "sample correlation", sc.olCount()<100 ? "n/a (too few variants)" : QString::number(sc.sampleCorrelation(),'f',2));
 
 	//variants
 	VcfFile variants;
@@ -951,7 +951,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	variants.sort();
 
 	//total variants
-	output.insert(QCValue("variant count", variants.count(), "Total number of variants in the target region.", "QC:2000013"));
+	addQcValue(output, "QC:2000013", "variant count", variants.count());
 
 	//total variants filtered
 	int somatic_count = 0;
@@ -960,7 +960,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		if (!variants[i].failedFilters().empty())	continue;
 		++somatic_count;
 	}
-	output.insert(QCValue("somatic variant count", somatic_count, "Total number of somatic variants in the target region.", "QC:2000041"));
+	addQcValue(output, "QC:2000041", "somatic variant count", somatic_count);
 
 	//percentage known variants
 	double known_count = 0;
@@ -988,16 +988,16 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 					++known_count;
 				}
 			}
-			output.insert(QCValue("known somatic variants percentage", 100.0*known_count/somatic_count, "Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF>1% in ExAC).", "QC:2000045"));
+			addQcValue(output, "QC:2000045", "known somatic variants percentage", 100.0*known_count/somatic_count);
 		}
 		else
 		{
-			output.insert(QCValue("known somatic variants percentage", "n/a (no somatic variants)", "Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF>1% in ExAC).", "QC:2000045"));
+			addQcValue(output, "QC:2000045", "known somatic variants percentage", "n/a (no somatic variants)");
 		}
 	}
 	else
 	{
-		output.insert(QCValue("known somatic variants percentage", "n/a (no gnomAD_AF annotation in CSQ info field)", "Percentage of somatic variants that are listed as germline variants in public datbases (e.g. AF>1% in ExAC).", "QC:2000045"));
+		addQcValue(output, "QC:2000045", "known somatic variants percentage", "n/a (no gnomAD_AF annotation in CSQ info field)");
 	}
 	
 
@@ -1025,19 +1025,19 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	}
 	if (somatic_count!=0)
 	{
-		output.insert(QCValue("somatic indel percentage", 100.0*indel_count/somatic_count, "Percentage of somatic variants that are insertions/deletions.", "QC:2000042"));
+		addQcValue(output, "QC:2000042", "somatic indel variants percentage", 100.0*indel_count/somatic_count);
 	}
 	else
 	{
-		output.insert(QCValue("somatic indel variants percentage", "n/a (no variants)", "Percentage of variants that are insertions/deletions.", "QC:2000042"));
+		addQcValue(output, "QC:2000042", "somatic indel variants percentage", "n/a (no variants)");
 	}
 	if (tv_count!=0)
 	{
-		output.insert(QCValue("somatic transition/transversion ratio", ti_count/tv_count , "Somatic Transition/transversion ratio of SNV variants.", "QC:2000043"));
+		addQcValue(output, "QC:2000043", "somatic transition/transversion ratio", ti_count/tv_count);
 	}
 	else
 	{
-		output.insert(QCValue("somatic transition/transversion ratio", "n/a (no variants or transversions)", "Somatic transition/transversion ratio of SNV variants.", "QC:2000043"));
+		addQcValue(output, "QC:2000043", "somatic transition/transversion ratio", "n/a (no variants or transversions)");
 	}
 
 
@@ -1085,7 +1085,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	{
 		value = "n/a (too few variants)";
 	}
-	output.insert(QCValue("tumor content estimate", value, "Estimate of tumor content.", "QC:2000054"));
+	addQcValue(output, "QC:2000054", "tumor content estimate", value);
 
 	if(skip_plots)	return output;
 
@@ -1148,7 +1148,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	hist_all.setLabel("all variants");
 	hist_filtered.setLabel("variants with filter PASS");
 	Histogram::storeCombinedHistogram(plot0name, QList<Histogram>({hist_all,hist_filtered}),"tumor allele frequency","count");
-	output.insert(QCValue::Image("somatic SNVs allele frequency histogram", plot0name, "Allele frequency histogram of somatic SNVs.", "QC:2000055"));
+	addQcPlot(output, "QC:2000055","somatic SNVs allele frequency histogram", plot0name);
 	QFile::remove(plot0name);
 
 	//plot0b: absolute count mutation distribution
@@ -1198,7 +1198,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	plot0b.setValues(counts, nuc_changes, colors);
 	QString plot0bname = Helper::tempFileName(".png");
 	plot0b.store(plot0bname);
-	output.insert(QCValue::Image("somatic SNV mutation types", plot0bname, "", "QC:2000056"));
+	addQcPlot(output, "QC:2000056","somatic SNV mutation types", plot0bname);
 	QFile::remove(plot0bname);
 
 	//plot1: allele frequencies
@@ -1309,7 +1309,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 
 	QString plot1name = Helper::tempFileName(".png");
 	plot1.store(plot1name);
-	output.insert(QCValue::Image("somatic variants allele frequencies plot", plot1name, ".", "QC:2000048"));
+	addQcPlot(output, "QC:2000048", "somatic variants allele frequencies plot", plot1name);
 	QFile::remove(plot1name);
 
 	//plot2: somatic variant signature
@@ -1456,7 +1456,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	plot2.setValues(frequencies, labels, colors);
 	QString plot2name = Helper::tempFileName(".png");
 	plot2.store(plot2name);
-	output.insert(QCValue::Image("somatic SNV signature plot", plot2name, "Percentage of different variant types. If a target file was given, the variant type percentage is normalized to the reference genome.", "QC:2000047"));
+	addQcPlot(output, "QC:2000047", "somatic variant signature plot", plot2name);
 	QFile::remove(plot2name);
 
 	//plot3: somatic variant distances, only for whole genome sequencing
@@ -1532,7 +1532,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		plot3.setValues(points3);
 		QString plot3name = Helper::tempFileName(".png");
 		plot3.store(plot3name);
-		output.insert(QCValue::Image("somatic variant distance plot", plot3name, ".", "QC:2000046"));
+		addQcPlot(output, "QC:2000046","somatic variant distance plot", plot3name);
 		QFile::remove(plot3name);
 	}
 
@@ -1583,7 +1583,7 @@ QCCollection Statistics::contamination(QString build, QString bam, const QString
 	for (int i=14; i<=18; ++i) off += hist.binValue(i, true);
 	QCCollection output;
 	QString value = (passed < min_snps) ? "n/a" : QString::number(off, 'f', 2);
-	output.insert(QCValue("SNV allele frequency deviation", value, "Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)", "QC:2000051"));
+	addQcValue(output, "QC:2000051", "SNV allele frequency deviation", value);
 	return output;
 }
 
@@ -2227,4 +2227,43 @@ GenderEstimate Statistics::genderSRY(QString bam_file, QString build, double min
 	output.add_info << KeyValuePair("coverage_sry", QString::number(cov, 'f', 2));
 	output.gender = cov>=min_cov ? "male" : "female";
 	return output;
+}
+
+template<typename T>
+void Statistics::addQcValue(QCCollection& output, QByteArray accession, QByteArray name, const T& value)
+{
+	//load qcML terms
+	static OntologyTermCollection terms("://Resources/qcML.obo", false);
+
+	//check
+	if (!terms.containsByID(accession))
+	{
+		THROW(ProgrammingException, "qcML does not contain term with accession '" + accession + "'!");
+	}
+	const OntologyTerm& term = terms.getByID(accession);
+	if (term.name()!=name)
+	{
+		THROW(ProgrammingException, "qcML term with accession '" + accession + "' does not have name '" + name + "'!");
+	}
+
+	output.insert(QCValue(name, value, term.definition(), accession));
+}
+
+void Statistics::addQcPlot(QCCollection& output, QByteArray accession, QByteArray name, QString filename)
+{
+	//load qcML terms
+	static OntologyTermCollection terms("://Resources/qcML.obo", false);
+
+	//check
+	if (!terms.containsByID(accession))
+	{
+		THROW(ProgrammingException, "qcML does not contain term with accession '" + accession + "'!");
+	}
+	const OntologyTerm& term = terms.getByID(accession);
+	if (term.name()!=name)
+	{
+		THROW(ProgrammingException, "qcML term with accession '" + accession + "' does not have name '" + name + "'!");
+	}
+
+	output.insert(QCValue::Image(name, filename, term.definition(), accession));
 }

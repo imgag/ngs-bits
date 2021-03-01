@@ -200,28 +200,28 @@ public:
 			if (progress>0) out << Helper::dateTime() << " analysis finished" << endl;
 			output_worker->terminate();
 			delete output_worker; //has to be deleted before the job list > no QScopedPointer is used!
-
-			//print trimming statistics
-			if (progress>0) out << Helper::dateTime() << " writing statistics summary" << endl;
-			stats_.writeStatistics(out, params_);
-
-			//write qc output file
-			if (!params_.qc.isEmpty())
-			{
-				stats_.qc.getResult().storeToQCML(getOutfile("qc"), QStringList() << in1_files << in2_files, "");
-			}
-
-			//print error correction statistics
-			if (params_.ec)
-			{
-				if (progress>0) out << Helper::dateTime() << " writing error corrections summary" << endl;
-				ecstats_.writeStatistics(out);
-			}
 		}
 		catch(...)
 		{
 			output_worker->terminate();
 			throw;
+		}
+
+		//print trimming statistics
+		if (progress>0) out << Helper::dateTime() << " writing statistics summary" << endl;
+		stats_.writeStatistics(out, params_);
+
+		//write qc output file
+		if (!params_.qc.isEmpty())
+		{
+			stats_.qc.getResult().storeToQCML(getOutfile("qc"), QStringList() << in1_files << in2_files, "");
+		}
+
+		//print error correction statistics
+		if (params_.ec)
+		{
+			if (progress>0) out << Helper::dateTime() << " writing error corrections summary" << endl;
+			ecstats_.writeStatistics(out);
 		}
 	}
 
