@@ -123,10 +123,9 @@ void GeneSelectorDialog::updateGeneTable()
 
 	//load processing system target region
 	NGSD db;
-	ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(sample_name_), true);
+	ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(sample_name_));
 	if (system_data.target_file=="")
 	{
-
 		updateError("Gene selection error", "Processing system target region BED file not found for sample '" + sample_name_ +  "'");
 		return;
 	}
@@ -234,7 +233,7 @@ QString GeneSelectorDialog::report()
 	stream << "\n";
 	stream << "Sample: " << sample_name_ << "\n";
 	NGSD db;
-	ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(sample_name_), true);
+	ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(sample_name_));
 	stream << "Target region: " << system_data.name << "\n";
 	stream << "\n";
 

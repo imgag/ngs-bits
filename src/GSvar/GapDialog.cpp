@@ -2,7 +2,7 @@
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
 #include "Statistics.h"
-#include "ReportWorker.h"
+#include "GermlineReportGenerator.h"
 
 #include <QMessageBox>
 #include <QMenu>
@@ -60,11 +60,19 @@ QStringList GapDialog::calculteGapsAndInitGUI()
     const QMap<QByteArray, QByteArrayList>& preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 	//calculate low-coverage regions
-	QString message;
-	BedFile low_cov = ReportWorker::precalculatedGaps(bam_, roi_, cutoff, db_, message);
-	if (!message.isEmpty())
+	BedFile low_cov;
+	try
 	{
-		output << "Low-coverage statistics needs to be calculated. Pre-calulated gap file cannot be used because: " + message;
+		int sys_id = db_.processingSystemIdFromProcessedSample(ps_);
+		QString sys_roi_file = db_.getProcessingSystemData(sys_id).target_file;
+		BedFile sys_roi;
+		sys_roi.load(sys_roi_file);
+
+		low_cov = GermlineReportGenerator::precalculatedGaps(bam_, roi_, cutoff, sys_roi);
+	}
+	catch(Exception e)
+	{
+		output << "Low-coverage statistics needs to be calculated. Pre-calulated gap file cannot be used because: " + e.message();
 		low_cov = Statistics::lowCoverage(roi_, bam_, cutoff);
 	}
 

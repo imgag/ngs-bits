@@ -165,7 +165,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system`
   `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)') NOT NULL,
   `shotgun` TINYINT(1) NOT NULL,
   `umi_type` ENUM('n/a','HaloPlex HS','SureSelect HS','ThruPLEX','Safe-SeqS','MIPs','QIAseq','IDT-UDI-UMI','IDT-xGen-Prism') NOT NULL DEFAULT 'n/a',
-  `target_file` VARCHAR(255) NULL DEFAULT NULL,
+  `target_file` VARCHAR(255) NULL DEFAULT NULL COMMENT 'filename of sub-panel BED file relative to the megSAP enrichment folder.',
   `genome_id` INT(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_short` (`name_short` ASC),
@@ -420,8 +420,10 @@ CREATE  TABLE IF NOT EXISTS `sample_relations`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `sample1_id` INT(11) NOT NULL,
-  `relation` ENUM('parent-child', 'tumor-normal', 'siblings', 'same sample', 'tumor-cfDNA', 'same patient') NOT NULL,
+  `relation` ENUM('parent-child', 'tumor-normal', 'siblings', 'same sample', 'tumor-cfDNA', 'same patient', 'cousins', 'twins', 'twins (monozygotic)') NOT NULL,
   `sample2_id` INT(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `relation_unique` (`sample1_id` ASC, `relation` ASC, `sample2_id` ASC),
   CONSTRAINT `fk_sample1_id`
@@ -432,6 +434,11 @@ CREATE  TABLE IF NOT EXISTS `sample_relations`
   CONSTRAINT `fk_sample2_id`
     FOREIGN KEY (`sample2_id`)
     REFERENCES `sample` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_user2`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `user` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION
 )
@@ -652,6 +659,7 @@ CREATE TABLE IF NOT EXISTS `somatic_vicc_interpretation`
   `variant_id` int(11) NOT NULL,
   `null_mutation_in_tsg` BOOLEAN NULL DEFAULT NULL,
   `known_oncogenic_aa` BOOLEAN NULL DEFAULT NULL,
+  `oncogenic_funtional_studies` BOOLEAN NULL DEFAULT NULL,
   `strong_cancerhotspot` BOOLEAN NULL DEFAULT NULL,
   `located_in_canerhotspot` BOOLEAN NULL DEFAULT NULL,
   `absent_from_controls` BOOLEAN NULL DEFAULT NULL,
@@ -1049,6 +1057,19 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
+-- Table `omim_preferred_phenotype`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `omim_preferred_phenotype`
+(
+  `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  `disease_group` ENUM('Neoplasms','Diseases of the blood or blood-forming organs','Diseases of the immune system','Endocrine, nutritional or metabolic diseases','Mental, behavioural or neurodevelopmental disorders','Sleep-wake disorders','Diseases of the nervous system','Diseases of the visual system','Diseases of the ear or mastoid process','Diseases of the circulatory system','Diseases of the respiratory system','Diseases of the digestive system','Diseases of the skin','Diseases of the musculoskeletal system or connective tissue','Diseases of the genitourinary system','Developmental anomalies','Other diseases') NOT NULL,
+  `phenotype_accession` VARCHAR(6) CHARACTER SET 'utf8' NOT NULL,
+  PRIMARY KEY (`gene`,`disease_group`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
 -- Table `merged_processed_samples`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `merged_processed_samples`
@@ -1082,7 +1103,7 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `last_edit_by` int(11) DEFAULT NULL,
   `last_edit_date` timestamp NULL DEFAULT NULL,
   `mtb_xml_upload_date` timestamp NULL DEFAULT NULL,
-  `target_file` VARCHAR(255) NULL DEFAULT NULL COMMENT 'filename of sub-panel BED file without preceding path. Path must be resolved using target_file_folder in ngs-bits settings.ini',
+  `target_file` VARCHAR(255) NULL DEFAULT NULL COMMENT 'filename of sub-panel BED file without path',
   `tum_content_max_af` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include tumor content calculated by median value maximum allele frequency',
   `tum_content_max_clonality` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include tumor content calculated by maximum CNV clonality',
   `tum_content_hist` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include histological tumor content estimate ',

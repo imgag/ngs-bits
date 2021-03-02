@@ -17,7 +17,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports QC terms into the NGSD.");
-		addInfile("obo", "HPO ontology file from 'https://github.com/imgag/megSAP/raw/master/data/misc/qc-cv.obo'.", false);
+		addInfile("obo", "HPO ontology file from 'https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo'.", false);
 
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");

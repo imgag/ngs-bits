@@ -699,7 +699,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QToolButton" name="genlab_btn">
+             <widget class="QToolButton" name="genlab_disease_btn">
               <property name="toolTip">
                <string>Import disease group/status from GenLab.</string>
               </property>
@@ -1082,7 +1082,28 @@
              </widget>
             </item>
             <item>
-             <widget class="QWidget" name="widget_3" native="true"/>
+             <widget class="QWidget" name="widget_3" native="true">
+              <widget class="QToolButton" name="genlab_relations_btn">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>23</width>
+                 <height>22</height>
+                </rect>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Import sample relations from GenLab.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+               <property name="text">
+                <string>...</string>
+               </property>
+               <property name="icon">
+                <iconset resource="GSvar.qrc">
+                 <normaloff>:/Icons/GenLab.png</normaloff>:/Icons/GenLab.png</iconset>
+               </property>
+              </widget>
+             </widget>
             </item>
            </layout>
           </item>

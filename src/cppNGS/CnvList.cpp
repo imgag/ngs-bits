@@ -118,6 +118,7 @@ void CnvList::load(QString filename)
 			else if (type=="CLINCNV_GERMLINE_SINGLE") type_ = CnvListType::CLINCNV_GERMLINE_SINGLE;
 			else if (type=="CLINCNV_GERMLINE_MULTI") type_ = CnvListType::CLINCNV_GERMLINE_MULTI;
 			else if (type=="CLINCNV_TUMOR_NORMAL_PAIR") type_ = CnvListType::CLINCNV_TUMOR_NORMAL_PAIR;
+			else if (type=="CLINCNV_TUMOR_ONLY") type_ = CnvListType::CLINCNV_TUMOR_ONLY;
 			else THROW(FileParseException, "CNV file '" + filename + "' contains unknown analysis type: " + type);
 		}
 		else if (line.startsWith("##DESCRIPTION=")) //header descriptions
@@ -201,6 +202,15 @@ void CnvList::load(QString filename)
 		int i_sample = file.colIndex("sample", true);
 		annotation_indices.removeAll(i_sample);
 		int i_size = file.colIndex("size", true);
+		annotation_indices.removeAll(i_size);
+	}
+	else if (type()==CnvListType::CLINCNV_TUMOR_ONLY)
+	{
+		//mandatory columns
+		i_region_count = file.colIndex("no_of_regions", false);
+		annotation_indices.removeAll(i_region_count);
+		//remove
+		int i_size = file.colIndex("length_KB", true);
 		annotation_indices.removeAll(i_size);
 	}
 	else
@@ -309,6 +319,13 @@ void CnvList::store(QString filename)
 		header_line.insert(9, "number_of_regions");
 		header_line.insert(10, "genes");
 	}
+	else if(type() == CnvListType::CLINCNV_TUMOR_ONLY)
+	{
+		// assemble header line
+		header_line.insert(5, "no_of_regions");
+		header_line.insert(6, "length_KB");
+		header_line.insert(8, "genes");
+	}
 	else
 	{
 		THROW(NotImplementedException, "Export of this CnvListType is not supported!");
@@ -353,6 +370,13 @@ void CnvList::store(QString filename)
 			cnv_annotations.insert(9, QByteArray::number(variant.regions()));
 			cnv_annotations.insert(10, variant.genes().toStringList().join(",").toUtf8());
 		}
+		else if(type() == CnvListType::CLINCNV_TUMOR_ONLY)
+		{
+			// assemble CNV line
+			cnv_annotations.insert(5, QByteArray::number(variant.regions()));
+			cnv_annotations.insert(6, QByteArray::number(((variant.size() - 1)/1000.0), 'f', 3).rightJustified(8, ' '));
+			cnv_annotations.insert(8, variant.genes().toStringList().join(",").toUtf8());
+		}
 		stream << "\t" << cnv_annotations.join("\t") << "\n";
 	}
 
@@ -367,6 +391,7 @@ QString CnvList::typeAsString() const
 	else if (type()==CnvListType::CLINCNV_GERMLINE_SINGLE) return "CLINCNV_GERMLINE_SINGLE";
 	else if (type()==CnvListType::CLINCNV_GERMLINE_MULTI) return "CLINCNV_GERMLINE_MULTI";
 	else if (type()==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR) return "CLINCNV_TUMOR_NORMAL_PAIR";
+	else if (type()==CnvListType::CLINCNV_TUMOR_ONLY) return "CLINCNV_TUMOR_ONLY";
 	else if (type()==CnvListType::INVALID) return "INVALID";
 
 	THROW(NotImplementedException, "Unknown CnvListType!");
@@ -383,7 +408,7 @@ CnvCallerType CnvList::caller() const
 	{
 		return CnvCallerType::CNVHUNTER;
 	}
-	else if (list_type==CnvListType::CLINCNV_GERMLINE_SINGLE || list_type==CnvListType::CLINCNV_GERMLINE_MULTI || list_type==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	else if (list_type==CnvListType::CLINCNV_GERMLINE_SINGLE || list_type==CnvListType::CLINCNV_GERMLINE_MULTI || list_type==CnvListType::CLINCNV_TUMOR_NORMAL_PAIR || list_type==CnvListType::CLINCNV_TUMOR_ONLY)
 	{
 		return CnvCallerType::CLINCNV;
 	}

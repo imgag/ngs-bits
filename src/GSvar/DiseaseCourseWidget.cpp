@@ -87,7 +87,7 @@ void DiseaseCourseWidget::loadVariantLists()
 	QSet<QString> processing_systems;
 	foreach (const QString& cf_dna_ps_id, cf_dna_ps_ids_)
 	{
-		processing_systems.insert(db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(db_.processedSampleName(cf_dna_ps_id)), true).name_short);
+		processing_systems.insert(db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(db_.processedSampleName(cf_dna_ps_id))).name_short);
 	}
 	if (processing_systems.size() > 1) THROW(ArgumentException, "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
 	QString system_name = processing_systems.toList().at(0);

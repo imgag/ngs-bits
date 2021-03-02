@@ -26,7 +26,7 @@ public:
 		//optional
 		addInfile("in", "Input BED file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
-		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
 		changeLog(2020,  11, 27, "Added CRAM support.");
 	}
@@ -44,7 +44,7 @@ public:
 
 		//open BAM files
 		QList<QSharedPointer<BamReader>> bams_open;
-		const QString ref_string = getString("ref");
+		const QString ref_string = getInfile("ref");
 		foreach(QString bam, bams)
 		{
 			bams_open.append(QSharedPointer<BamReader>(new BamReader(bam, ref_string)));

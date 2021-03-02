@@ -40,6 +40,28 @@ public:
 		def_ = def;
 	}
 
+	const QByteArray& type() const
+	{
+		return type_;
+	}
+	void setType(const QByteArray& type)
+	{
+		type_ = type;
+	}
+
+	const QByteArrayList& synonyms() const
+	{
+		return synonyms_;
+	}
+	void setSynonyms(const QByteArrayList& synonyms)
+	{
+		synonyms_ = synonyms;
+	}
+	void addSynonym(const QByteArray& synonym)
+	{
+		synonyms_ << synonym;
+	}
+
 	const QByteArrayList& parentIDs() const
 	{
 		return parent_ids_;
@@ -69,40 +91,48 @@ private:
 	QByteArray id_;
 	QByteArray name_;
 	QByteArray def_;
-	QList<QByteArray> parent_ids_;
+	QByteArray type_;
+	QByteArrayList synonyms_;
+	QByteArrayList parent_ids_;
 	bool is_obsolete_;
 };
-
 
 ///represents a collection of Ontology Terms and provides methods for parsing obo files
 class CPPNGSSHARED_EXPORT OntologyTermCollection
 {
 public:
+	///Default constructor
 	OntologyTermCollection();
-	///constructor parses given obo file, skip_obsolete discards obsolete terms
-	OntologyTermCollection(const QByteArray& obo_file, bool skip_obsolete);
-	///finds obo term by ID in collection, if not found ArgumentException is thrown
-	const OntologyTerm& findByID(const QByteArray& id);
-	///check whether Collection contains term with given id
-	bool containsByID(const QByteArray& id);
-	///check whether Collection contains term with given name
-	bool containsByName(const QByteArray& name) const;
-	///Returns the child IDs of the given term, if recursive is true all descendants are included
-	QList<QByteArray> childIDs(const QByteArray& term_id, bool recursive);
+	///Constructor parses given OBO file.
+	OntologyTermCollection(QString obo_file, bool skip_obsolete_terms);
 
+	///Adds a term
 	void add(const OntologyTerm& add)
 	{
 		ontology_terms_.append(add);
 	}
 
-	int count()
+	///check whether Collection contains term with given id
+	bool containsByID(const QByteArray& id);
+	///check whether Collection contains term with given name
+	bool containsByName(const QByteArray& name) const;
+
+	///Returns a term by index.
+	const OntologyTerm& get(int index);
+	///finds obo term by ID in collection, if not found ArgumentException is thrown
+	const OntologyTerm& getByID(const QByteArray& id);
+
+	///Returns the child IDs of the given term, if recursive is true all descendants are included.
+	QList<QByteArray> childIDs(const QByteArray& term_id, bool recursive);
+
+	///Returns the number of terms
+	int size()
 	{
 		return ontology_terms_.length();
 	}
 
 private:
 	QList<OntologyTerm> ontology_terms_;
-
 };
 
 #endif // ONTOLOGYTERMCOLLECTION_H

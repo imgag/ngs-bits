@@ -26,6 +26,9 @@ void EvaluationSheetEditDialog::importEvaluationSheetData(EvaluationSheetData& e
 {
 	evaluation_sheet_data_ = &evaluation_sheet_data;
 
+	QString ps = db_.processedSampleName(evaluation_sheet_data_->ps_id);
+	setWindowTitle(windowTitle() + " of " + ps);
+
 	// update GUI
 	ui_->le_dna_rna->setText(evaluation_sheet_data_->dna_rna);
 	if (db_.userId(evaluation_sheet_data_->reviewer1, false, false) != -1) ui_->ds_reviewer1->setText(evaluation_sheet_data_->reviewer1);

@@ -31,8 +31,6 @@ public:
 	MainWindow(QWidget* parent = 0);
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
-	///Returns the LOG files corresponding to the variant list.
-	QStringList getLogFiles();
 	///Returns the BAM files for the analysis.
 	QList<IgvFile> getBamFiles();
 	///Returns CNV SEG files for the analysis.
@@ -77,9 +75,11 @@ public:
 
 	///Returns if germline report is supported for current variant list.
 	bool germlineReportSupported();
-	///Returns if somatic report is supported for current variant list.
+	///Returns the processed sample name for which report configuration is set and the report is generated.
+	QString germlineReportSample();
+	///Returns if somatic tumor-normal report is supported for current variant list.
 	bool somaticReportSupported();
-
+	///Returns if somatic tumpr-only report is supported for current variant list.
 	bool tumoronlyReportSupported();
 
 	///Lets the user select a gene. If the user aborts, "" is returned.
@@ -133,6 +133,7 @@ public slots:
 	void on_actionImportStudy_triggered();
 	void on_actionImportSamples_triggered();
 	void on_actionImportProcessedSamples_triggered();
+	void on_actionImportSampleRelations_triggered();
 	void on_actionMidClashDetection_triggered();
 	void on_actionVariantValidation_triggered();
 	void on_actionChangePassword_triggered();
@@ -185,6 +186,8 @@ public slots:
 	void on_actionIgvClear_triggered();
 	///Override IGV prot
 	void on_actionIgvPort_triggered();
+	///Open IGV documentation in browser
+	void on_actionIgvDocumentation_triggered();
 	///Open CNV dialog
 	void on_actionCNV_triggered();
 	///Open ROH dialog
@@ -256,20 +259,6 @@ public slots:
 	void showReportConfigInfo();
 	///Finalize report configuration
 	void finalizeReportConfig();
-	///Helper function for printVariantSheet()
-	void printVariantSheetRowHeader(QTextStream& stream, bool causal);
-	///Helper function for printVariantSheet()
-	void printVariantSheetRow(QTextStream& stream, const ReportVariantConfiguration& conf);
-	///Helper function for printVariantSheet()
-	void printVariantSheetRowHeaderCnv(QTextStream& stream, bool causal);
-	///Helper function for printVariantSheet()
-	void printVariantSheetRowCnv(QTextStream& stream, const ReportVariantConfiguration& conf);
-	///Helper function for printVariantSheet()
-	void printVariantSheetRowHeaderSv(QTextStream& stream, bool causal);
-	///Helper function for printVariantSheet()
-	void printVariantSheetRowSv(QTextStream& stream, const ReportVariantConfiguration& conf);
-	///Helper function for printVariantSheet()
-	static QString exclusionCriteria(const ReportVariantConfiguration& conf);
 	///Generate report
 	void generateReport();
 	///Generates a report (somatic pair) in .rtf format
@@ -289,8 +278,6 @@ public slots:
 	void updateVariantDetails();
 	///Updates the variant table once the variant list changed
 	void refreshVariantTable(bool keep_widths = true);
-	///Resets the annotation status
-	void resetAnnotationStatus();
 	///Opens the recent file defined by the sender action text
 	void openRecentFile();
 	///Loads the command line input file.
@@ -413,15 +400,12 @@ private:
 	//DATA
 	QString filename_;
 	FileWatcher filewatcher_;
-	enum {YES, NO, ROI} db_annos_updated_;
 	bool igv_initialized_;
 	VariantList variants_;
 	bool variants_changed_;
 	CnvList cnvs_;
 	BedpeFile svs_;
 	FilterResult filter_result_;
-	QMap<QString, QString> link_columns_;
-	QSet<int> link_indices_;
 	QString last_roi_filename_;
 	BedFile last_roi_;
 	QString last_report_path_;
@@ -429,6 +413,7 @@ private:
 	BedFile last_phenos_roi_;
     QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
+	QString germline_report_ps_;
 	SomaticReportSettings somatic_report_settings_;
 	VariantList somatic_control_tissue_variants_;
 

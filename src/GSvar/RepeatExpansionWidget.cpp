@@ -185,7 +185,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		QPair<QByteArray, QByteArray> key = QPair<QByteArray, QByteArray>(info_repid, info_ru);
 		if(!cutoff_info_map.contains(key))
 		{
-			THROW(FileParseException, "Repeat '" + info_repid + ", " + info_ru + "' not fout in cutoff file!");
+			Log::warn("Repeat '" + info_repid + ", " + info_ru + "' not found in cutoff file!");
 		}
 		RepeatCutoffInfo cutoff_info = cutoff_info_map.value(key);
 

@@ -241,7 +241,7 @@ private slots:
 	//special test with RNA because it contains the CIGAR operations S and N
 	void BamReader_getPileup_RNA()
 	{
-		BamReader reader(TESTDATA("data_in/rna.bam"));
+		BamReader reader(TESTDATA("data_in/BamReader_rna.bam"));
 		Pileup pileup;
 		//SNP
 		pileup = reader.getPileup("chr10", 90974727);
@@ -260,6 +260,22 @@ private slots:
 		I_EQUAL(pileup.indels().count(), 0);
 	}
 
+	//special test with CIGAR strings that are
+	void BamReader_getPileup_insert_only()
+	{
+		BamReader reader(TESTDATA("data_in/BamReader_insert_only.bam"));
+		Pileup pileup;
+
+		//SNP
+		pileup = reader.getPileup("chr19", 5787214);
+		I_EQUAL(pileup.depth(true), 111);
+		F_EQUAL2(pileup.frequency('T', 'C'), 0.556, 0.001);
+
+		//SNP
+		pileup = reader.getPileup("chr19", 5787215);
+		I_EQUAL(pileup.depth(true), 118);
+		F_EQUAL2(pileup.frequency('G', 'A'), 0.389, 0.001);
+	}
 
 	void BamReader_getVariantDetails()
 	{
@@ -339,13 +355,12 @@ private slots:
 
 /************************************************************* Cram Support *************************************************************/
 
-#ifndef _WIN32
-
 	void CramSupport_referenceAsParameter_tests()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 
@@ -401,6 +416,7 @@ private slots:
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 		BamAlignment al;
@@ -436,6 +452,7 @@ private slots:
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
 
@@ -487,7 +504,5 @@ private slots:
 		I_EQUAL(pileup.indels().count(), 6);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 6);
 	}
-
-#endif
 
 };

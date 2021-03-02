@@ -91,7 +91,7 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 	//load ROIs of NGSD processing systems
 	try
 	{
-		QMap<QString, QString> systems = NGSD().getProcessingSystems(true, true);
+		QMap<QString, QString> systems = NGSD().getProcessingSystems(true);
 		auto it = systems.constBegin();
 		while (it != systems.constEnd())
 		{

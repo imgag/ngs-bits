@@ -192,18 +192,20 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString bu
 
 void SampleSimilarity::calculateSimilarity(const VariantGenotypes& in1, const VariantGenotypes& in2)
 {
+	static QVector<double> geno1;
+	geno1.clear();
+	static QVector<double> geno2;
+	geno2.clear();
 	clear();
 
 	//calculate overlap / correlation
 	int c_ol = 0;
 	int c_ibs2 = 0;
 	int c_ibs0 = 0;
-	QVector<double> geno1;
-	QVector<double> geno2;
 	for (auto it=in1.cbegin(); it!=in1.cend(); ++it)
 	{
-		double freq1 = it.value();
-		double freq2 = in2.value(it.key(), -1.0);
+		float freq1 = it.value();
+		float freq2 = in2.value(it.key(), -1.0);
 		if (freq2==-1.0) continue;
 		++c_ol;
 
@@ -256,7 +258,7 @@ void SampleSimilarity::clear()
 	messages_.clear();
 }
 
-double SampleSimilarity::genoToDouble(const QString& geno)
+float SampleSimilarity::genoToDouble(const QString& geno)
 {
 	//GSvar format
 	if (geno=="hom") return 1.0;

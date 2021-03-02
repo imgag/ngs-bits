@@ -145,7 +145,7 @@ void GeneWidget::updateGUI()
 	QByteArrayList orpha_links;
 	SqlQuery query = db.getQuery();
 	query.exec("SELECT dt.* FROM disease_term dt, disease_gene dg WHERE dg.disease_term_id=dt.id AND dg.gene='" + symbol_ + "'");
-	if (query.next())
+	while (query.next())
 	{
 		QByteArray identifier = query.value("identifier").toByteArray();
 		QByteArray number = identifier.mid(6);

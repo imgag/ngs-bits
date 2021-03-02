@@ -160,17 +160,12 @@ QByteArray VcfToBedpe::getLine()
 		{
 			THROW(FileParseException, "Error while reading file '" + filename_ + "': " + error_message);
 		}
-		
-		return QByteArray();
 	}
-	
-	int i=0;
-	while(i<buffer_size_ && buffer_[i]!='\0' && buffer_[i]!='\n' && buffer_[i]!='\r')
-	{
-		++i;
-	}
-	
-	return QByteArray(buffer_, i);
+
+	QByteArray line(buffer_);
+	while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+
+	return line;
 }
 
 void VcfToBedpe::addHeaderInfoFieldAfter(const QByteArray& before, const QByteArray &key, const QByteArray &type, int number, const QByteArray &desc)

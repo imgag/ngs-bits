@@ -19,7 +19,7 @@
     </attachment>
   </runQuality>
   <cvList>
-    <cv uri="https://qcml.googlecode.com/svn/trunk/cv/qc-cv.obo" ID="QC" fullName="QC" version="0.1"/>
+    <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>
   </cvList>
   <xsl:stylesheet id="stylesheet" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ns="http://www.prime-xs.eu/ms/qcml" xmlns="">
       <xsl:template match="/">

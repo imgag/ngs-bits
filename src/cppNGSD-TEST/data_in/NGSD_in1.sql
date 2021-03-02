@@ -58,9 +58,10 @@ INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
 (499568, 3823, 'FOXP1', 'forkhead box P1', 'protein-coding gene'),
 (511007, 7436, 'MTHFR', 'methylenetetrahydrofolate reductase', 'protein-coding gene'),
 (512576, 7981, 'NR4A2', 'nuclear receptor subfamily 4 group A member 2', 'protein-coding gene'),
-(526175, 17575, 'SPEN', 'spen family transcriptional repressor', 'protein-coding gene');
-
-
+(526175, 17575, 'SPEN', 'spen family transcriptional repressor', 'protein-coding gene'),
+(622167, 2652, 'CYP7B1', 'cytochrome P450 family 7 subfamily B member 1', 'protein-coding gene'),
+(650913, 10985, 'SLC25A15', 'solute carrier family 25 member 15', 'protein-coding gene'),
+(652410, 11237, 'SPG7', 'SPG7 matrix AAA peptidase subunit, paraplegin', 'protein-coding gene');
 
 INSERT INTO `gene_alias` (`gene_id`, `symbol`, `type`) VALUES
 (427667, 'COX2', 'synonym'),
@@ -73,7 +74,11 @@ INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `source`, `chromosome`, `
 (2, 2,'BRCA2_TR1','ccds','13',100,200,'+'),
 (3, 3,'NIPA1_TR1','ensembl','15',100,400,'-'),
 (4, 3,'NIPA1_TR2','ensembl','15',150,350,'-'),
-(5, 4,'NON-CODING_TR1','ensembl','22',NULL,NULL,'-');
+(5, 4,'NON-CODING_TR1','ensembl','22',NULL,NULL,'-'),
+(1568912, 622167, 'ENST00000310193', 'ensembl', '8', 65509199, 65711144, '-'),
+(1503635, 650913, 'ENST00000338625', 'ensembl', '13', 41367363, 41383803, '+'),
+(1515928, 652410, 'ENST00000268704', 'ensembl', '16', 89574826, 89623501, '+'),
+(1515930, 652410, 'ENST00000341316', 'ensembl', '16', 89574826, 89603318, '+');
 
 INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES
 (1, 100, 110),
@@ -89,7 +94,47 @@ INSERT INTO `gene_exon`(`transcript_id`, `start`, `end`) VALUES
 (4, 300, 400),
 (4, 410, 420),
 (5, 100, 200),
-(5, 300, 400);
+(5, 300, 400),
+(1503635, 41363633, 41363799),
+(1503635, 41367294, 41367417),
+(1503635, 41373193, 41373451),
+(1503635, 41379254, 41379391),
+(1503635, 41381430, 41381599),
+(1503635, 41382574, 41382732),
+(1503635, 41383679, 41384247),
+(1515928, 89574811, 89575008),
+(1515928, 89576898, 89577000),
+(1515928, 89579356, 89579445),
+(1515928, 89590414, 89590655),
+(1515928, 89592737, 89592876),
+(1515928, 89595885, 89595987),
+(1515928, 89597091, 89597216),
+(1515928, 89598312, 89598474),
+(1515928, 89598871, 89599044),
+(1515928, 89611056, 89611180),
+(1515928, 89613066, 89613168),
+(1515928, 89614411, 89614521),
+(1515928, 89616902, 89617017),
+(1515928, 89619387, 89619543),
+(1515928, 89620202, 89620368),
+(1515928, 89620894, 89620971),
+(1515928, 89623295, 89624174),
+(1515930, 89574819, 89575008),
+(1515930, 89576898, 89577000),
+(1515930, 89579356, 89579445),
+(1515930, 89590414, 89590655),
+(1515930, 89592737, 89592876),
+(1515930, 89595885, 89595987),
+(1515930, 89597091, 89597216),
+(1515930, 89598312, 89598474),
+(1515930, 89598871, 89599044),
+(1515930, 89603173, 89604129),
+(1568912, 65508692, 65509486),
+(1568912, 65517239, 65517414),
+(1568912, 65527583, 65527789),
+(1568912, 65528248, 65528838),
+(1568912, 65536960, 65537096),
+(1568912, 65711023, 65711318);
 
 INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `gnomad_oe_syn`, `gnomad_oe_mis`, `gnomad_oe_lof`, `comments`) VALUES
 ('BRCA1', 'AD', 0.77, 0.88, 0.99, ''),
@@ -507,6 +552,9 @@ INSERT INTO `omim_phenotype` (`omim_gene_id`, `phenotype`) VALUES
 (193942, 'Langer mesomelic dysplasia, 249700 (3)'),
 (193942, 'Leri-Weill dyschondrosteosis, 127300 (3)'),
 (193942, 'Short stature, idiopathic familial, 300582 (3)');
+
+INSERT INTO `omim_preferred_phenotype`(`gene`, `disease_group`, `phenotype_accession`) VALUES
+('ATM', 'Neoplasms', '114480');
 
 --structural variants
 INSERT INTO `sv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `call_date`) VALUES

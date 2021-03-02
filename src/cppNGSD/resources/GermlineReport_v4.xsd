@@ -334,6 +334,27 @@
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>
+									<xs:attribute name="allele_frequency" use="required">
+										<xs:annotation>
+											<xs:documentation>allele frequency of the observerd sequence</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:float">
+												<xs:minInclusive value="0"/>
+												<xs:maxInclusive value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="depth" use="required">
+										<xs:annotation>
+											<xs:documentation>depth at the variant position</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:int">
+												<xs:minInclusive value="0"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
 									<xs:attribute name="causal" type="xs:boolean" use="required">
 										<xs:annotation>
 											<xs:documentation>If the variant is causal in the context of the diagnostics phenotype.</xs:documentation>
@@ -658,8 +679,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="3"/>
-						<xs:maxInclusive value="3"/>
+						<xs:minInclusive value="4"/>
+						<xs:maxInclusive value="4"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
