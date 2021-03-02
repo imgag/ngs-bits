@@ -32,6 +32,7 @@ GermlineReportGenerator::GermlineReportGenerator(const GermlineReportGeneratorDa
 	if (data_.roi_file!="")
 	{
 		roi_.load(data_.roi_file);
+		roi_.merge();
 	}
 
 	int system_id = db_.processingSystemIdFromProcessedSample(data_.ps);

@@ -127,6 +127,8 @@ void ReportDialog::initGUI()
 
 		ui_.omim_table->setChecked(false);
 		ui_.omim_table->setEnabled(false);
+		ui_.omim_table_one_only->setChecked(false);
+		ui_.omim_table_one_only->setEnabled(false);
 	}
 
 	//check box status
