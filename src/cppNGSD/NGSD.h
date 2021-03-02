@@ -567,7 +567,7 @@ public:
 	enum PathType {PROJECT_FOLDER, SAMPLE_FOLDER, BAM, GSVAR, VCF};
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
 	///Returns the path to secondary analyses of the processed samples.
-	QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type, bool windows_path);
+	QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type);
 
 	///Adds a variant to the NGSD. Returns the variant ID.
 	QString addVariant(const Variant& variant, const VariantList& variant_list);

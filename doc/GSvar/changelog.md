@@ -1,6 +1,12 @@
 # GSvar change log
 
-### 2020_12-70 (28.01.21)
+### 2020_12-84 (01.03.21)
+- General: Genes with pseudogenes are now marked in variant tables.
+- Report: Added support for generating report from multi-sample analyses.
+- Report: Added option to list only one OMIM phenotype per gene in the report.
+- Report: Added PRS scores to report.
+
+### 2020_12-70 (18.02.21)
 - Sample: Added import of sample relations from GenLab.
 
 ### 2020_12-40 (28.01.21)
