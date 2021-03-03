@@ -38,12 +38,16 @@ public:
 	~RepeatExpansionWidget();
 
 private slots:
+    ///Context menu that shall appear if right click on repeat expansion
+    void showContextMenu(QPoint pos);
     void openREViewerSvg(QTableWidgetItem *item);
 
 private:
 	void loadRepeatExpansionData();
+    void loadSvgFiles();
 	QString vcf_filename_;
 	bool is_exome_;
+    QMap<QString,QString> re_svg_files_;
 	Ui::RepeatExpansionWidget *ui_;
 
 };

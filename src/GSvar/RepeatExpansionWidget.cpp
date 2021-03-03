@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QDesktopServices>
+#include <QMenu>
 #include "RepeatExpansionWidget.h"
 #include "ui_RepeatExpansionWidget.h"
 #include "Helper.h"
@@ -36,11 +37,36 @@ RepeatExpansionWidget::RepeatExpansionWidget(QString vcf_filename, bool is_exome
     //Setup signals and slots
     connect(ui_->repeat_expansions,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(SvDoubleClicked(QTableWidgetItem*)));
 	loadRepeatExpansionData();
+    loadSvgFiles();
 }
 
 RepeatExpansionWidget::~RepeatExpansionWidget()
 {
     delete ui_;
+}
+
+void RepeatExpansionWidget::showContextMenu(QPoint pos)
+{
+    QModelIndexList rows = ui_->repeat_expansions->selectionModel()->selectedRows();
+    if(rows.count() != 1) return;
+    int row = rows.at(0).row();
+
+    //get repeat name
+    QString repeat_name = ui_->repeat_expansions->item(row,3)->text().split('_').at(0);
+
+    //create menu
+    QMenu menu(ui_->repeat_expansions);
+    QAction* a_show_svg = menu.addAction("Show REViewer SVG of repeat");
+    a_show_svg->setEnabled(re_svg_files_.contains(repeat_name));
+
+    //execute menu
+    QAction* action = menu.exec(ui_->repeat_expansions->viewport()->mapToGlobal(pos));
+    if (action == nullptr) return;
+    if (action==a_show_svg)
+    {
+        //open SVG in browser
+        QDesktopServices::openUrl(QUrl(re_svg_files_.value(repeat_name)));
+    }
 }
 
 void RepeatExpansionWidget::openREViewerSvg(QTableWidgetItem* item)
@@ -282,7 +308,29 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 	GUIHelper::resizeTableCells(ui_->repeat_expansions);
 
 	// display vertical header
-	ui_->repeat_expansions->verticalHeader()->setVisible(true);
+    ui_->repeat_expansions->verticalHeader()->setVisible(true);
+}
+
+void RepeatExpansionWidget::loadSvgFiles()
+{
+    // get all available svg files
+    QDir re_svg_folder = QDir(QFileInfo(vcf_filename_).path() + "/repeat_expansions/");
+    QStringList svg_filepaths = re_svg_folder.entryList(QStringList() << QFileInfo(vcf_filename_).baseName() + "_*.svg");
+
+    if (re_svg_files_.size() > 1)
+    {
+        foreach (const QString& svg, svg_filepaths)
+        {
+            QString repeat_name = QFileInfo(svg).baseName().split('_').last();
+            re_svg_files_.insert(repeat_name, svg);
+            // debug
+            qDebug() << repeat_name << " " << svg;
+        }
+    }
+    else
+    {
+       GUIHelper::showMessage("No SVGs found", "No REViewer SVGs found! Please reannotate the Sample.");
+    }
 }
 
 
