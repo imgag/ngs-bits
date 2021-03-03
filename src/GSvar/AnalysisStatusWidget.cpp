@@ -38,17 +38,13 @@ void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples
 	NGSD db;
 
 	//Determine whether samples are RNA => show RNA steps
-	//TODO: introduce different sample type for RNA single samples in NGSD!
 	bool is_rna = false;
 	for(const AnalysisJobSample& sample : samples)
 	{
-		QString ps_id = db.processedSampleId(sample.name);
-		if(ps_id != "")
+		if(db.getSampleData(db.sampleId(sample.name)).type=="RNA")
 		{
-			if(db.getProcessedSampleData(ps_id).processing_system_type == "RNA")
-			{
-				is_rna = true;
-			}
+			is_rna = true;
+			break;
 		}
 	}
 	SingleSampleAnalysisDialog dlg(this, is_rna);
@@ -323,20 +319,14 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 
 		if (type=="single sample")
 		{
-			//Determine whether only RNA or DNA is selected
-			//TODO: introduce NGSD type for RNA single samples
-			QSet<QString> rna_dna_types;
+			//Show restart action only if only DNA or only RNA samples are selected
+			QSet<QString> sample_types;
 			NGSD db;
-			for(const auto& sample : samples)
+			for(const AnalysisJobSample& sample : samples)
 			{
-				QString ps_id = db.processedSampleId(sample.name,false);
-				if(ps_id != "")
-				{
-					if(db.getProcessedSampleData(ps_id).processing_system_type == "RNA") rna_dna_types << "RNA";
-					else rna_dna_types << "DNA";
-				}
+				sample_types << (db.getSampleData(db.sampleId(sample.name)).type=="RNA" ? "RNA" : "DNA");
 			}
-			if(rna_dna_types.count() == 1) menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart single sample analysis");
+			if(sample_types.count() == 1) menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart single sample analysis");
 		}
 		else if (type=="multi sample" && job_ids.count()==1)
 		{

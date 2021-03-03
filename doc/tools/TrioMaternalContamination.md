@@ -1,5 +1,5 @@
 ### TrioMaternalContamination tool help
-	TrioMaternalContamination (2020_09-79-gc6314b21)
+	TrioMaternalContamination (2020_12-85-g5ff87d17)
 	
 	Detects maternal contamination of a child using SNPs from parents.
 	
@@ -21,7 +21,7 @@
 	                       Valid: 'hg19,hg38'
 	  -out <file>          Output file. If unset, writes to STDOUT.
 	                       Default value: ''
-	  -ref <string>        Reference genome for CRAM support (mandatory if CRAM is used).
+	  -ref <file>          Reference genome for CRAM support (mandatory if CRAM is used).
 	                       Default value: ''
 	
 	Special parameters:
@@ -31,7 +31,7 @@
 	  --tdx                Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### TrioMaternalContamination changelog
-	TrioMaternalContamination 2020_09-79-gc6314b21
+	TrioMaternalContamination 2020_12-85-g5ff87d17
 	
 	2020-11-27 Added CRAM support.
 	2020-06-18 Initial version of the tool.
