@@ -795,6 +795,34 @@ void MainWindow::on_actionCNV_triggered()
 	connect(list, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants of " + processedSampleName());
 	addModelessDialog(dlg, true);
+
+	//mosaic CNVs
+	QFileInfo file_info = QFileInfo(filename_);
+	QString base = file_info.absolutePath() +  QDir::separator() + processedSampleName();
+	QString mosaic_file = base + "_mosaic_cnvs.tsv";
+	if (QFile::exists(mosaic_file))
+	{
+		QStringList mosaic_data = Helper::loadTextFile(mosaic_file, false, '#', true);
+		if (mosaic_data.count()>1)
+		{
+			QPlainTextEdit* text_edit = new QPlainTextEdit(this);
+			text_edit->setReadOnly(true);
+			for (int i=0; i<mosaic_data.count(); ++i)
+			{
+				if(mosaic_data[i].startsWith("#")) continue;
+				QStringList parts = mosaic_data[i].split("\t");
+				if(parts.length() < 3)
+				{
+					QMessageBox::warning(this, "Mosaic CNV detection", "The CNV file can not be parsed!\n" + mosaic_file);
+				}
+				QString line = parts[0] + ":" + parts[1] + "-" + parts[2];
+				text_edit->appendPlainText(line);
+			}
+			text_edit->setMinimumSize(300, 100);
+			auto dlg = GUIHelper::createDialog(text_edit, "Mosaic CNVs detected!");
+			dlg->exec();
+		}
+	}
 }
 
 void MainWindow::on_actionROH_triggered()
