@@ -52,20 +52,14 @@ public:
 		{
 			BedLine& r = file[i];
 			Sequence seq = reference.seq(r.chr(), r.start()-extend, r.length()+2*extend, true);
-			int gc = 0;
-			int at = 0;
-			for(int j=0; j<seq.length(); ++j)
-			{
-				if (seq[j]=='G' || seq[j]=='C') ++gc;
-				else if (seq[j]=='A' || seq[j]=='T') ++at;
-			}
-			if (gc+at==0)
+			double gc_content = seq.gcContent();
+			if (!BasicStatistics::isValidFloat(gc_content))
 			{
 				r.annotations().append("n/a");
 			}
 			else
 			{
-				r.annotations().append(QByteArray::number((double)gc/(gc+at), 'f', 4));
+				r.annotations().append(QByteArray::number(gc_content, 'f', 4));
 			}
 		}
 

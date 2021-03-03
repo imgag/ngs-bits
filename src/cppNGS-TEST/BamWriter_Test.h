@@ -55,13 +55,12 @@ private slots:
 		S_EQUAL(al_string, new_al.cigarDataAsString());
 	}
 
-#ifndef _WIN32
-
 	void write_cram_test()
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		const QString al_string = write_cram_file(ref_file);
 
@@ -75,6 +74,4 @@ private slots:
 		S_EQUAL(al_string, new_al.cigarDataAsString());
 
 	}
-
-#endif
 };

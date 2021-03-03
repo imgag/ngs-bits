@@ -830,7 +830,7 @@ void VcfFile::storeHeaderColumns(QTextStream &stream) const
 {
 	if(vcfColumnHeader().count() < MIN_COLS)
 	{
-		THROW(ArgumentException, "Number of column headers is less than the minimum number of expected columns: " + QString(MIN_COLS) + ".");
+		THROW(ArgumentException, "Number of column headers is " + QString::number(vcfColumnHeader().count()) + ", but the minimum expected number of columns is: " + QString::number(MIN_COLS) + ".");
 	}
 
 	stream << "#";

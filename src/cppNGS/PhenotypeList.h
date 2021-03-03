@@ -20,6 +20,8 @@ public:
 
 	//Sort by name
 	void sortByName();
+	//Sort by accession
+	void sortByAccession();
 
 	//Converts the phenotype list to a string
 	QString toString(QString seperator = "; ") const;

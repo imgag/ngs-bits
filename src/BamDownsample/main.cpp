@@ -24,7 +24,7 @@ public:
 		addOutfile("out", "Output BAM/CRAM file.", false, true);
 		//optional
 		addFlag("test", "Test mode: fix random number generator seed and write kept read names to STDOUT.");
-		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("write_cram", "Writes a CRAM file as output.");
 
 		changeLog(2020,  11, 27, "Added CRAM support.");
@@ -39,9 +39,9 @@ public:
 		double percentage = getFloat("percentage");
 		if (percentage<=0 || percentage>=100) THROW(CommandLineParsingException, "Invalid percentage " + QString::number(percentage) +"!");
 
-		BamReader reader(getInfile("in"), getString("ref"));
+		BamReader reader(getInfile("in"), getInfile("ref"));
 
-		BamWriter writer(getOutfile("out"), getString("ref"));
+		BamWriter writer(getOutfile("out"), getInfile("ref"));
 		writer.writeHeader(reader);
 
 		//process alignments

@@ -107,97 +107,105 @@ public:
 		OutputWorker* output_worker = new OutputWorker(job_pool, getOutfile("out1"), getOutfile("out2"), getOutfile("out3"), params_, stats_);
 		analysis_pool.start(output_worker);
 
-		//process
-		QTime timer;
-		if (progress>0) timer.start();
-		for (int i=0; i<in1_files.count(); ++i)
+		try //we need this block to terminate the output_worker in case something goes wrong...
 		{
-			if (progress>0) out << Helper::dateTime() << " starting - forward: " << in1_files[i] << " reverse: " << in2_files[i] << endl;
-
-			FastqFileStream in1(in1_files[i], false);
-			FastqFileStream in2(in2_files[i], false);
-			while (!in1.atEnd() && !in2.atEnd())
+			//process
+			QTime timer;
+			if (progress>0) timer.start();
+			for (int i=0; i<in1_files.count(); ++i)
 			{
-				int to_be_analyzed = 0;
-				int to_be_written = 0;
-				int done = 0;
+				if (progress>0) out << Helper::dateTime() << " starting - forward: " << in1_files[i] << " reverse: " << in2_files[i] << endl;
+
+				FastqFileStream in1(in1_files[i], false);
+				FastqFileStream in2(in2_files[i], false);
+				while (!in1.atEnd() && !in2.atEnd())
+				{
+					int to_be_analyzed = 0;
+					int to_be_written = 0;
+					int done = 0;
+					for (int j=0; j<job_pool.count(); ++j)
+					{
+						AnalysisJob& job = job_pool[j];
+						switch(job.status)
+						{
+							case TO_BE_ANALYZED:
+								++to_be_analyzed;
+								break;
+							case TO_BE_WRITTEN:
+								++to_be_written;
+								break;
+							case DONE:
+								++done;
+								job.clear();
+								in1.readEntry(job.e1);
+								in2.readEntry(job.e2);
+								job.status = TO_BE_ANALYZED;
+								analysis_pool.start(new AnalysisWorker(job, params_, stats_, ecstats_));
+								break;
+							case ERROR: //handle errors during analayis (must be thrown in the main thread)
+								THROW(Exception, job.error_message);
+						}
+
+						if (in1.atEnd() || in2.atEnd()) break;
+					}
+
+					//progress output
+					if (progress>0 && timer.elapsed()>progress)
+					{
+						out << Helper::dateTime() << " progress - to_be_analyzed: " << to_be_analyzed << " to_be_written: " << to_be_written << " done: " << done << endl;
+						timer.restart();
+					}
+				}
+
+				//check that forward and reverse read file are both at the end
+				if (!in1.atEnd())
+				{
+					THROW(FileParseException, "File " + in1_files[i] + " has more entries than " + in2_files[i] + "!");
+				}
+				if (!in2.atEnd())
+				{
+					THROW(FileParseException, "File " + in2_files[i] + " has more entries than " + in1_files[i] + "!");
+				}
+			}
+
+			//close workers and streams
+			if (progress>0) out << Helper::dateTime() << " input data read completely - waiting for analysis to finish" << endl;
+			int done = 0;
+			while(done < job_pool.count())
+			{
+				done = 0;
 				for (int j=0; j<job_pool.count(); ++j)
 				{
 					AnalysisJob& job = job_pool[j];
 					switch(job.status)
 					{
-						case TO_BE_ANALYZED:
-							++to_be_analyzed;
-							break;
-						case TO_BE_WRITTEN:
-							++to_be_written;
-							break;
 						case DONE:
 							++done;
-							job.clear();
-							in1.readEntry(job.e1);
-							in2.readEntry(job.e2);
-							job.status = TO_BE_ANALYZED;
-							analysis_pool.start(new AnalysisWorker(job, params_, stats_, ecstats_));
 							break;
 						case ERROR: //handle errors during analayis (must be thrown in the main thread)
 							THROW(Exception, job.error_message);
+							break;
+						default:
+							break;
 					}
-
-					if (in1.atEnd() || in2.atEnd()) break;
 				}
 
 				//progress output
 				if (progress>0 && timer.elapsed()>progress)
 				{
-					out << Helper::dateTime() << " progress - to_be_analyzed: " << to_be_analyzed << " to_be_written: " << to_be_written << " done: " << done << endl;
+					out << Helper::dateTime() << " progress - done: " << done << endl;
 					timer.restart();
 				}
 			}
-
-			//check that forward and reverse read file are both at the end
-			if (!in1.atEnd())
-			{
-				THROW(FileParseException, "File " + in1_files[i] + " has more entries than " + in2_files[i] + "!");
-			}
-			if (!in2.atEnd())
-			{
-				THROW(FileParseException, "File " + in2_files[i] + " has more entries than " + in1_files[i] + "!");
-			}
+			if (progress>0) out << Helper::dateTime() << " analysis finished" << endl;
+			output_worker->terminate();
+			delete output_worker; //has to be deleted before the job list > no QScopedPointer is used!
 		}
-
-		//close workers and streams
-		if (progress>0) out << Helper::dateTime() << " input data read completely - waiting for analysis to finish" << endl;
-		int done = 0;
-		while(done < job_pool.count())
+		catch(...)
 		{
-			done = 0;
-			for (int j=0; j<job_pool.count(); ++j)
-			{
-				AnalysisJob& job = job_pool[j];
-				switch(job.status)
-				{
-					case DONE:
-						++done;
-						break;
-					case ERROR: //handle errors during analayis (must be thrown in the main thread)
-						THROW(Exception, job.error_message);
-						break;
-					default:
-						break;
-				}
-			}
-
-			//progress output
-			if (progress>0 && timer.elapsed()>progress)
-			{
-				out << Helper::dateTime() << " progress - done: " << done << endl;
-				timer.restart();
-			}
+			output_worker->terminate();
+			throw;
 		}
-		if (progress>0) out << Helper::dateTime() << " analysis finished" << endl;
-		output_worker->terminate();
-		delete output_worker; //has to be deleted before the job list > no QScopedPointer is used!
 
 		//print trimming statistics
 		if (progress>0) out << Helper::dateTime() << " writing statistics summary" << endl;

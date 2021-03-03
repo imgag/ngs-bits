@@ -1,5 +1,5 @@
 ### BedCoverage tool help
-	BedCoverage (2020_09-79-gc6314b21)
+	BedCoverage (2020_12-85-g5ff87d17)
 	
 	Extracts the average coverage for input regions from one or several BAM/CRAM file(s).
 	
@@ -20,7 +20,7 @@
 	                  Default value: '2'
 	  -out <file>     Output BED file. If unset, writes to STDOUT.
 	                  Default value: ''
-	  -ref <string>   Reference genome for CRAM support (mandatory if CRAM is used).
+	  -ref <file>     Reference genome for CRAM support (mandatory if CRAM is used).
 	                  Default value: ''
 	
 	Special parameters:
@@ -30,7 +30,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BedCoverage changelog
-	BedCoverage 2020_09-79-gc6314b21
+	BedCoverage 2020_12-85-g5ff87d17
 	
 	2020-11-27 Added CRAM support.
 	2017-06-02 Added 'dup' parameter.

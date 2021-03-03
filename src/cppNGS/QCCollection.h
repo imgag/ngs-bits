@@ -74,8 +74,8 @@ public:
 	void clear();
 
 	///Stores the collection to a qcML file. Double precitions for selected terms can be overwritten (default is 2).
-	void storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite = QMap<QString, int>(), QList<QList<QString>> metadata = QList<QList<QString>>());
-	///Appends the terms to a string list, e.g. for text output. Skips PNG images. Double precitions for selected terms can be overwritten (default is 2).
+	void storeToQCML(QString filename, const QStringList& source_files, QString parameters, QMap<QString, int> precision_overwrite = QMap<QString, int>(), QList<QCValue> metadata = QList<QCValue>());
+	///Appends the terms to a string list, e.g. for text output. Skips PNG images. Double precisions for selected terms can be overwritten (default is 2).
 	void appendToStringList(QStringList& list, QMap<QString, int> precision_overwrite = QMap<QString, int>());
 
 	///reads a whole QCML file
@@ -90,7 +90,7 @@ private:
 	static void findElementsWithAttributes(const QDomElement& elem, const QString& attr, QList<QDomElement>& foundElements);
 
 protected:
-	QVector<QCValue> values_;
+	QList<QCValue> values_;
 };
 
 #endif // QCCOLLECTION_H

@@ -1,5 +1,5 @@
 ### BamToFastq tool help
-	BamToFastq (2020_09-79-gc6314b21)
+	BamToFastq (2020_12-85-g5ff87d17)
 	
 	Converts a coordinate-sorted BAM file to FASTQ files (paired-end only).
 	
@@ -17,7 +17,7 @@
 	                           Default value: '1'
 	  -write_buffer_size <int> Output write buffer size (number of FASTQ entry pairs).
 	                           Default value: '100'
-	  -ref <string>            Reference genome for CRAM support (mandatory if CRAM is used).
+	  -ref <file>              Reference genome for CRAM support (mandatory if CRAM is used).
 	                           Default value: ''
 	
 	Special parameters:
@@ -27,7 +27,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### BamToFastq changelog
-	BamToFastq 2020_09-79-gc6314b21
+	BamToFastq 2020_12-85-g5ff87d17
 	
 	2020-11-27 Added CRAM support.
 	2020-05-29 Massive speed-up by writing in background. Added 'compression_level' parameter.

@@ -160,7 +160,7 @@ void ClinvarSubmissionGenerator::generateXML(const ClinvarSubmissionData& data, 
 			w.writeCharacters("AssertionMethod");
 			w.writeEndElement();
 			w.writeStartElement("Attribute");
-			w.writeCharacters("In-house classification schema based on ACMG Guidelines 2015");
+			w.writeCharacters("ACMG Guidelines, 2015");
 			w.writeEndElement();
 			w.writeStartElement("Citation");
 			w.writeStartElement("ID");

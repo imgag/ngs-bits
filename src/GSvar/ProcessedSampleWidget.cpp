@@ -10,7 +10,8 @@
 #include "SingleSampleAnalysisDialog.h"
 #include "DBEditor.h"
 #include "GSvarHelper.h"
-
+#include "LoginManager.h"
+#include "GenLabDB.h"
 #include <QMessageBox>
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
@@ -40,7 +41,8 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->merged, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
 	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
 	connect(ui_->reanalyze_btn, SIGNAL(clicked(bool)), this, SLOT(queueSampleAnalysis()));
-	connect(ui_->genlab_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseGroupAndInfo()));
+	connect(ui_->genlab_disease_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseGroupAndInfo()));
+	connect(ui_->genlab_relations_btn, SIGNAL(clicked(bool)), this, SLOT(importSampleRelations()));
 
 	//QC value > plot
 	QAction* action = new QAction(QIcon(":/Icons/chart.png"), "Plot", this);
@@ -192,8 +194,8 @@ void ProcessedSampleWidget::updateGUI()
 
 
 	//#### sample relations ####
-	DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id) FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
-	rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "relation" << "sample 2" << "type 2");
+	DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id), (SELECT name FROM user WHERE id=sample_relations.user_id), date FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
+	rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "relation" << "sample 2" << "type 2" << "added_by" << "added_date");
 	ui_->sample_relations->setData(rel_table);
 
 	//#### studies ####
@@ -429,8 +431,7 @@ void ProcessedSampleWidget::addRelation()
 	if (dlg->exec()!=QDialog::Accepted) return;
 
 	//add relation
-	NGSD().getQuery().exec("INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES (" + dlg->sample1Id() + ",'" + dlg->relation() + "'," + dlg->sample2Id() + ")");
-
+	NGSD().addSampleRelation(dlg->sampleRelation());
 
 	//update GUI
 	updateGUI();
@@ -553,13 +554,13 @@ void ProcessedSampleWidget::addBamToIgv()
 {
 	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
 
-	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(bam) + "\"");
+	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(bam) + "\"");
 }
 
 void ProcessedSampleWidget::addVariantsToIgv()
 {
 	QString vcf = NGSD().processedSamplePath(ps_id_, NGSD::VCF);
-	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(vcf) + "\"");
+	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(vcf) + "\"");
 }
 
 void ProcessedSampleWidget::addCnvsToIgv()
@@ -570,14 +571,14 @@ void ProcessedSampleWidget::addCnvsToIgv()
 	QString segfile = base_name + "_cnvs_clincnv.seg";
 	if (QFile::exists(segfile))
 	{
-		executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(segfile) + "\"");
+		executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(segfile) + "\"");
 	}
 	else
 	{
 		segfile = base_name + "_cnvs.seg";
 		if (QFile::exists(segfile))
 		{
-			executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(segfile) + "\"");
+			executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(segfile) + "\"");
 		}
 	}
 }
@@ -586,7 +587,7 @@ void ProcessedSampleWidget::addSvsToIgv()
 {
 	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
 	QString vcf = bam.left(bam.length()-4) + "_manta_var_structural.vcf.gz";
-	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(vcf) + "\"");
+	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(vcf) + "\"");
 }
 
 void ProcessedSampleWidget::addBafsToIgv()
@@ -594,7 +595,7 @@ void ProcessedSampleWidget::addBafsToIgv()
 	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
 	QString bafs = bam.left(bam.length()-4) + "_bafs.igv";
 
-	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(bafs) + "\"");
+	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(bafs) + "\"");
 }
 
 void ProcessedSampleWidget::addEvidenceBamToIgv()
@@ -602,7 +603,7 @@ void ProcessedSampleWidget::addEvidenceBamToIgv()
 	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
 	QString evidence_bam = GSvarHelper::getEvidenceFile(bam);
 
-	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(evidence_bam) + "\"");
+	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(evidence_bam) + "\"");
 }
 
 void ProcessedSampleWidget::somRepDeleted()
@@ -663,6 +664,36 @@ void ProcessedSampleWidget::editDiseaseDetails()
 	if (dlg->exec() != QDialog::Accepted) return;
 
 	db.setSampleDiseaseInfo(sample_id, widget->diseaseInfo());
+	updateGUI();
+}
+
+void ProcessedSampleWidget::importSampleRelations()
+{
+	//init
+	NGSD db;
+	QString ps_name = db.processedSampleName(ps_id_);
+	QString s_id = db.sampleId(ps_name);
+
+	//import
+	int c_before = db.relatedSamples(s_id).count();
+	QString error;
+	try
+	{
+		QList<SampleRelation> relations = GenLabDB().relatives(ps_name);
+		foreach(const SampleRelation& rel, relations)
+		{
+			db.addSampleRelation(rel);
+		}
+	}
+	catch (Exception& e)
+	{
+		error = "\n\nWarning: An error occurred:\n" + e.message();
+	}
+
+	//show result to user
+	int c_after = db.relatedSamples(s_id).count();
+	QMessageBox::information(this, "Sample relation import", "Imported " + QString::number(c_after-c_before) + " sample relations from GenLab!" + error);
+
 	updateGUI();
 }
 

@@ -27,7 +27,7 @@ void ProcessingSystemWidget::updateGUI()
 
 	//get variant id
 	NGSD db;
-	ProcessingSystemData ps_data = db.getProcessingSystemData(sys_id_, true);
+	ProcessingSystemData ps_data = db.getProcessingSystemData(sys_id_);
 
 	//###base infos###
 	ui_.name_long->setText(ps_data.name);
@@ -85,15 +85,15 @@ void ProcessingSystemWidget::edit()
 void ProcessingSystemWidget::openRoiInExplorer()
 {
 	NGSD db;
-	QString roi = db.getProcessingSystemData(sys_id_, true).target_file;
+	QString roi = db.getProcessingSystemData(sys_id_).target_file;
 
-	QProcess::startDetached("explorer.exe", QStringList() <<  "/select," + QDir::toNativeSeparators(roi));
+	QProcess::startDetached("explorer.exe", QStringList() <<  "/select," + Helper::canonicalPath(roi));
 }
 
 void ProcessingSystemWidget::openRoiInIGV()
 {
 	NGSD db;
-	QString roi = db.getProcessingSystemData(sys_id_, true).target_file;
+	QString roi = db.getProcessingSystemData(sys_id_).target_file;
 
-	emit executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(roi) + "\"");
+	emit executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(roi) + "\"");
 }

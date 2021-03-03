@@ -4,6 +4,7 @@
 #include "LoginManager.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
+#include "GermlineReportGenerator.h"
 #include <QThread>
 #include <cmath>
 #include <QCoreApplication>
@@ -95,8 +96,6 @@ private slots:
 		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
-		QCoreApplication::setApplicationVersion("0.1-cppNGSD-TEST-Version"); //application version (is written into somatic xml report)
-
 		//init
 		NGSD db(true);
 		db.init();
@@ -114,7 +113,7 @@ private slots:
 		S_EQUAL(enum_values[4], "Endocrine, nutritional or metabolic diseases");
 
 		//getProcessingSystems
-		QMap<QString, QString> systems = db.getProcessingSystems(false, false);
+		QMap<QString, QString> systems = db.getProcessingSystems(false);
 		I_EQUAL(systems.size(), 4);
 		IS_TRUE(systems.contains("HaloPlex HBOC v5"))
 		IS_TRUE(systems.contains("HaloPlex HBOC v6"))
@@ -128,7 +127,7 @@ private slots:
 		S_EQUAL(sys_id, 1);
 
 		//getProcessingSystemData
-		ProcessingSystemData system_data = db.getProcessingSystemData(sys_id, false);
+		ProcessingSystemData system_data = db.getProcessingSystemData(sys_id);
 		S_EQUAL(system_data.name, "HaloPlex HBOC v5");
 		S_EQUAL(system_data.name_short, "hpHBOCv5");
 		S_EQUAL(system_data.adapter1_p5, "AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC");
@@ -513,7 +512,7 @@ private slots:
 
 		//approvedGeneNames
 		GeneSet approved = db.approvedGeneNames();
-		I_EQUAL(approved.count(), 14);
+		I_EQUAL(approved.count(), 17);
 
 		//phenotypes
 		PhenotypeList phenos = db.phenotypes(QStringList() << "aBNOrmality");
@@ -732,26 +731,26 @@ private slots:
 
 		//analysisJobFolder
 		QString folder = db.analysisJobFolder(1);
-		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Sample_NA12878_03/"));
+		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Sample_NA12878_03/"));
 		db.queueAnalysis("somatic", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12345_01", "tumor"} << AnalysisJobSample{"NA12878_03", "normal"});
 		folder = db.analysisJobFolder(3);
-		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/"));
+		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/"));
 		db.queueAnalysis("trio", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12878_03", "child"} << AnalysisJobSample{"NA12123_04", "father"} << AnalysisJobSample{"NA12345_01", "mother"});
 		folder = db.analysisJobFolder(4);
-		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/"));
+		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/"));
 		db.queueAnalysis("multi sample", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12123_04", "affected"} << AnalysisJobSample{"NA12345_01", "affected"});
 		folder = db.analysisJobFolder(5);
-		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/"));
+		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/"));
 
 		//analysisJobGSvarFile
 		QString gsvar = db.analysisJobGSvarFile(1);
-		IS_TRUE(gsvar.endsWith("/test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar"));
+		IS_TRUE(gsvar.endsWith("test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar"));
 		gsvar = db.analysisJobGSvarFile(3);
-		IS_TRUE(gsvar.endsWith("/test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/NA12345_01-NA12878_03.GSvar"));
+		IS_TRUE(gsvar.endsWith("test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/NA12345_01-NA12878_03.GSvar"));
 		gsvar = db.analysisJobGSvarFile(4);
-		IS_TRUE(gsvar.endsWith("/test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/trio.GSvar"));
+		IS_TRUE(gsvar.endsWith("test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/trio.GSvar"));
 		gsvar = db.analysisJobGSvarFile(5);
-		IS_TRUE(gsvar.endsWith("/test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/multi.GSvar"));
+		IS_TRUE(gsvar.endsWith("test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/multi.GSvar"));
 
 		//updateQC
 		db.updateQC(TESTDATA("data_in/qcml.obo"), false);
@@ -1227,10 +1226,183 @@ private slots:
 		IS_TRUE(pt["NIPA1"].contains("NIPA1_TR2"));
 		I_EQUAL(pt["NON-CODING"].count(), 1);
 		IS_TRUE(pt["NON-CODING"].contains("NON-CODING_TR1"));
+
+		//addSampleRelation
+		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"});
+		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}); //ignored
+		IS_THROWN(DatabaseException, db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}, true));
+
+		//omimPreferredPhenotype
+		S_EQUAL(db.omimPreferredPhenotype("BRCA1", "Neoplasms"), "");
+		S_EQUAL(db.omimPreferredPhenotype("ATM", "Diseases of the immune system"), "");
+		S_EQUAL(db.omimPreferredPhenotype("ATM", "Neoplasms"), "114480");
+	}
+
+	inline void report_germline()
+	{
+		QString host = Settings::string("ngsd_test_host", true);
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		//init NGSD
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
+		db.getQuery().exec("UPDATE processing_system SET target_file='" + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + "' WHERE name_short='hpHSPv2'");
+		LoginManager::login("ahmustm1", true);
+
+		QDate report_date = QDate::fromString("2021-02-19", Qt::ISODate);
+
+		//setup
+		VariantList variants;
+		variants.load(TESTDATA("../cppNGS-TEST/data_in/panel.GSvar"));
+		CnvList cnvs;
+		cnvs.load(TESTDATA("../cppNGS-TEST/data_in/panel_cnvs_clincnv.tsv"));
+		BedpeFile svs;
+		svs.load(TESTDATA("../cppNGS-TEST/data_in/panel_svs.bedpe"));
+		PrsTable prs;
+		prs.load(TESTDATA("../cppNGS-TEST/data_in/panel_prs.tsv"));
+		ReportSettings report_settings;
+		report_settings.report_type = "diagnostic variant";
+		report_settings.min_depth = 20;
+		report_settings.show_coverage_details = false;
+		report_settings.roi_low_cov = false;
+		report_settings.recalculate_avg_depth = false;
+		report_settings.show_omim_table = false;
+		report_settings.show_one_entry_in_omim_table = false;
+		report_settings.show_class_details = false;
+		FilterCascade filters;
+		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
+		QMap<QByteArray, QByteArrayList> preferred_transcripts;
+		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
+		GermlineReportGeneratorData data("NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
+
+		//############################### TEST 1 - minimal ###############################
+		{
+			GermlineReportGenerator generator(data, true);
+			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+			generator.overrideDate(report_date);
+
+			generator.writeHTML("out/germline_report1.html");
+			COMPARE_FILES("out/germline_report1.html", TESTDATA("data_out/germline_report1.html"));
+			generator.writeXML("out/germline_report1.xml", "out/germline_report1.html");
+			COMPARE_FILES("out/germline_report1.xml", TESTDATA("data_out/germline_report1.xml"));
+		}
+
+		//############################### TEST 2 - with variants, with target region, all optional parts enabled ###############################
+		{
+			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 252)); //small variant - chr13:41367370 C>G (SPG7)
+			ReportVariantConfiguration var_conf;
+			var_conf.variant_type = VariantType::SNVS_INDELS;
+			var_conf.variant_index = 252;
+			var_conf.causal = true;
+			var_conf.mosaic = true;
+			var_conf.de_novo = true;
+			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
+			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 173)); //small variant - chr13:41367370 C>G (SLC25A15)
+			var_conf.variant_type = VariantType::SNVS_INDELS;
+			var_conf.variant_index = 173;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = true;
+			var_conf.report_type = "diagnostic variant";
+			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::CNVS, 0)); //CNV - het deletion
+			var_conf.variant_type = VariantType::CNVS;
+			var_conf.variant_index = 0;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = true;
+			var_conf.report_type = "diagnostic variant";
+			report_settings.report_config->set(var_conf);
+
+			report_settings.selected_variants.append(qMakePair(VariantType::SVS, 0)); //SV - breakpoint
+			var_conf.variant_type = VariantType::SVS;
+			var_conf.variant_index = 0;
+			var_conf.causal = false;
+			var_conf.mosaic = false;
+			var_conf.de_novo = false;
+			var_conf.comp_het = false;
+			var_conf.report_type = "diagnostic variant";
+			report_settings.report_config->set(var_conf);
+
+			report_settings.show_coverage_details = true;
+			report_settings.roi_low_cov = true;
+			report_settings.recalculate_avg_depth = true;
+			report_settings.show_omim_table = true;
+			report_settings.show_one_entry_in_omim_table = true;
+			report_settings.show_class_details = true;
+
+			data.roi_file = TESTDATA("../cppNGS-TEST/data_in/panel.bed");
+			data.roi_genes.insert("SLC25A15");
+			data.roi_genes.insert("SPG7");
+			data.roi_genes.insert("CYP7B1");
+
+			GermlineReportGenerator generator(data, true);
+			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+			generator.overrideDate(report_date);
+
+			generator.writeHTML("out/germline_report2.html");
+			COMPARE_FILES("out/germline_report2.html", TESTDATA("data_out/germline_report2.html"));
+			generator.writeXML("out/germline_report2.xml", "out/germline_report2.html");
+			COMPARE_FILES("out/germline_report2.xml", TESTDATA("data_out/germline_report2.xml"));
+		}
+
+
+		//############################### TEST 3 - english ###############################
+		{
+			report_settings.language = "english";
+
+			GermlineReportGenerator generator(data, true);
+			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+			generator.overrideDate(report_date);
+
+			generator.writeHTML("out/germline_report3.html");
+			COMPARE_FILES("out/germline_report3.html", TESTDATA("data_out/germline_report3.html"));
+		}
+
+
+		//############################### TEST 4 - evaluation sheet ###############################
+		{
+			GermlineReportGenerator generator(data, true);
+			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+			generator.overrideDate(report_date);
+
+			EvaluationSheetData sheet_data;
+			sheet_data.ps_id = "";
+			sheet_data.dna_rna = "NA12878";
+			sheet_data.reviewer1 = "Jim Raynor";
+			sheet_data.review_date1 = report_date;
+			sheet_data.reviewer2 = "Sarah Kerrigan";
+			sheet_data.review_date2 = QDate::fromString("2021-02-21", Qt::ISODate);
+			sheet_data.analysis_scope = "Alles";
+			sheet_data.acmg_requested = true;
+			sheet_data.acmg_noticeable = true;
+			sheet_data.acmg_analyzed = true;
+			sheet_data.filtered_by_freq_based_dominant = true;
+			sheet_data.filtered_by_freq_based_recessive = false;
+			sheet_data.filtered_by_cnv = true;
+			sheet_data.filtered_by_mito = false;
+			sheet_data.filtered_by_x_chr = true;
+			sheet_data.filtered_by_phenotype = false;
+			sheet_data.filtered_by_multisample = true;
+			sheet_data.filtered_by_trio_stringent = false;
+			sheet_data.filtered_by_trio_relaxed = true;
+
+			generator.writeEvaluationSheet("out/germline_sheet1.html", sheet_data);
+			COMPARE_FILES("out/germline_sheet1.html", TESTDATA("data_out/germline_sheet1.html"));
+		}
 	}
 
 	//Tests for SomaticReportConfiguration and specific somatic variants
-	inline void somatic_tests()
+	inline void report_somatic()
 	{
 		QString host = Settings::string("ngsd_test_host", true);
 		if (host=="") SKIP("Test needs access to the NGSD test database!");
@@ -1640,6 +1812,7 @@ private slots:
 		//Insert new somatic VICC interpretation
 		SomaticViccData new_vicc_data;
 		new_vicc_data.null_mutation_in_tsg = SomaticViccData::State::VICC_FALSE;
+		new_vicc_data.oncogenic_functional_studies = SomaticViccData::State::VICC_FALSE;
 		new_vicc_data.protein_length_change = SomaticViccData::State::VICC_FALSE;
 		new_vicc_data.computational_evidence = SomaticViccData::State::VICC_TRUE;
 		new_vicc_data.high_maf = SomaticViccData::State::VICC_TRUE;
@@ -1650,6 +1823,7 @@ private slots:
 
 		SomaticViccData new_vicc_result = db.getSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C") );
 		I_EQUAL(new_vicc_result.null_mutation_in_tsg, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(new_vicc_result.oncogenic_functional_studies, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(new_vicc_result.protein_length_change, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(new_vicc_result.computational_evidence, SomaticViccData::State::VICC_TRUE);
 		I_EQUAL(new_vicc_result.high_maf, SomaticViccData::State::VICC_TRUE);

@@ -426,6 +426,8 @@
     <addaction name="separator"/>
     <addaction name="menuTrackDefaults"/>
     <addaction name="actionIgvPort"/>
+    <addaction name="separator"/>
+    <addaction name="actionIgvDocumentation"/>
    </widget>
    <widget class="QMenu" name="menuVariants">
     <property name="title">
@@ -492,6 +494,7 @@
      </property>
      <addaction name="actionImportSamples"/>
      <addaction name="actionImportProcessedSamples"/>
+     <addaction name="actionImportSampleRelations"/>
      <addaction name="separator"/>
      <addaction name="actionImportMids"/>
      <addaction name="actionImportStudy"/>
@@ -1252,6 +1255,16 @@
    </property>
    <property name="text">
     <string>Batch export for ClinVar</string>
+   </property>
+  </action>
+  <action name="actionIgvDocumentation">
+   <property name="text">
+    <string>Open documentation</string>
+   </property>
+  </action>
+  <action name="actionImportSampleRelations">
+   <property name="text">
+    <string>Sample relations</string>
    </property>
   </action>
  </widget>

@@ -9,6 +9,7 @@
 
 GeneSet GSvarHelper::imprinting_genes_ = GeneSet();
 GeneSet GSvarHelper::hi0_genes_ = GeneSet();
+GeneSet GSvarHelper::pseudogene_genes_ = GeneSet();
 QMap<QByteArray, QByteArrayList> GSvarHelper::preferred_transcripts_ = QMap<QByteArray, QByteArrayList>();
 QMap<QByteArray, QList<BedLine>> GSvarHelper::special_regions_ = QMap<QByteArray, QList<BedLine>>();
 QMap<QByteArray, QByteArrayList> GSvarHelper::transcript_matches_ = QMap<QByteArray, QByteArrayList>();
@@ -57,6 +58,29 @@ const GeneSet& GSvarHelper::hi0Genes()
 	}
 
 	return hi0_genes_;
+}
+
+const GeneSet& GSvarHelper::genesWithPseudogene()
+{
+	static bool initialized = false;
+
+	if (!initialized)
+	{
+		if (LoginManager::active())
+		{
+			NGSD db;
+			QStringList genes = db.getValues("SELECT DISTINCT(g.symbol) FROM gene g, gene_pseudogene_relation gpr WHERE g.id=gpr.parent_gene_id");
+			foreach(QString gene, genes)
+			{
+				pseudogene_genes_ << gene.toLatin1();
+			}
+
+			initialized = true;
+		}
+
+	}
+
+	return pseudogene_genes_;
 }
 
 const QMap<QByteArray, QByteArrayList>& GSvarHelper::preferredTranscripts(bool reload)
@@ -138,25 +162,37 @@ QString GSvarHelper::applicationBaseName()
 
 void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 {
+	//init
 	static const GeneSet& imprinting_genes = impritingGenes();
 	static const GeneSet& hi0_genes = hi0Genes();
+	static const GeneSet& pseudogene_genes = genesWithPseudogene();
 
-	bool hit_imprinting = imprinting_genes.intersectsWith(genes);
-	bool hit_hi0 = hi0_genes.intersectsWith(genes);
-	if (hit_imprinting && hit_hi0)
+	QStringList messages;
+
+	GeneSet intersect = genes.intersect(imprinting_genes);
+	foreach(const QByteArray& gene, intersect)
 	{
-		item->setBackgroundColor(Qt::green);
-		item->setToolTip("Imprinting gene\nNo evidence for haploinsufficiency");
+		messages << (gene + ": Imprinting gene");
 	}
-	else if (hit_imprinting)
+
+	intersect = genes.intersect(hi0_genes);
+	foreach(const QByteArray& gene, intersect)
 	{
+		messages << (gene + ": No evidence for haploinsufficiency");
+	}
+
+	intersect = genes.intersect(pseudogene_genes);
+	foreach(const QByteArray& gene, intersect)
+	{
+		messages << (gene + ": Has pseudogene(s)");
+	}
+
+	//mark gene
+	if (!messages.isEmpty())
+	{
+		messages.sort();
 		item->setBackgroundColor(Qt::yellow);
-		item->setToolTip("Imprinting gene");
-	}
-	else if (hit_hi0)
-	{
-		item->setBackgroundColor(Qt::cyan);
-		item->setToolTip("No evidence for haploinsufficiency");
+		item->setToolTip(messages.join("\n"));
 	}
 }
 

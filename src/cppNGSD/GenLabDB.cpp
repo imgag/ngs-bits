@@ -16,7 +16,7 @@ GenLabDB::GenLabDB()
 	QString user = Settings::string("genlab_user");
 	QString pass = Settings::string("genlab_pass");
 
-	if (Settings::string("genlab_mssql")!="true") //MySQL server
+	if (!Settings::boolean("genlab_mssql")) //MySQL server
 	{
 		db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
 
@@ -112,6 +112,14 @@ const TableInfo& GenLabDB::tableInfo(const QString& table) const
 					info.type_constraints.max_length = query.value("character_maximum_length").toInt();
 				}
 			}
+			else if(type=="varchar")
+			{
+				info.type = TableFieldInfo::VARCHAR;
+				if (!query.value("character_maximum_length").isNull())
+				{
+					info.type_constraints.max_length = query.value("character_maximum_length").toInt();
+				}
+			}
 			else
 			{
 				THROW(ProgrammingException, "Unhandled SQL field type '" + type + "' in field '" + info.name + "' of table '" + table + "'!");
@@ -143,8 +151,7 @@ PhenotypeList GenLabDB::phenotypes(QString ps_name)
 
 	NGSD ngsd;
 
-	QString s_name = (ps_name + "_").split('_')[0];
-	foreach(QString name, QStringList() << ps_name << s_name)
+	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT code FROM v_ngs_hpo WHERE labornummer='" + name + "'");
@@ -168,8 +175,7 @@ QStringList GenLabDB::orphanet(QString ps_name)
 {
 	QStringList output;
 
-	QString s_name = (ps_name + "_").split('_')[0];
-	foreach(QString name, QStringList() << ps_name << s_name)
+	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT code FROM v_ngs_orpha WHERE labornummer='" + name + "'");
@@ -196,8 +202,7 @@ QStringList GenLabDB::diagnosis(QString ps_name)
 {
 	QStringList output;
 
-	QString s_name = (ps_name + "_").split('_')[0];
-	foreach(QString name, QStringList() << ps_name << s_name)
+	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT code FROM v_ngs_icd10 WHERE labornummer='" + name + "'");
@@ -219,12 +224,11 @@ QStringList GenLabDB::anamnesis(QString ps_name)
 {
 	QStringList output;
 
-	QString s_name = (ps_name + "_").split('_')[0];
-	foreach(QString name, QStringList() << ps_name << s_name)
+	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT ANAMNESE FROM v_ngs_anamnese WHERE LABORNUMMER='" + name + "' AND ANAMNESE != 'leer'");
-		if(query.next())
+		while(query.next())
 		{
 			QString anamnesis = query.value(0).toString();
 			anamnesis = anamnesis.replace(QChar::Null, ' ').trimmed(); //somehow GenLab contains Null characters
@@ -243,8 +247,7 @@ QStringList GenLabDB::tumorFraction(QString ps_name)
 {
 	QStringList output;
 
-	QString s_name = (ps_name + "_").split('_')[0];
-	foreach(QString name, QStringList() << ps_name << s_name)
+	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT tumoranteil FROM v_ngs_tumoranteil WHERE labornummer='" + name + "' AND tumoranteil IS NOT NULL");
@@ -264,8 +267,7 @@ QStringList GenLabDB::tumorFraction(QString ps_name)
 
 QString GenLabDB::yearOfBirth(QString ps_name)
 {
-	QString s_name = (ps_name + "_").split('_')[0];
-	foreach(QString name, QStringList() << ps_name << s_name)
+	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT Geburtsjahr FROM v_ngs_dates WHERE LABORNUMMER='" + name + "' AND Geburtsjahr IS NOT NULL");
@@ -280,8 +282,7 @@ QString GenLabDB::yearOfBirth(QString ps_name)
 
 QString GenLabDB::yearOfOrderEntry(QString ps_name)
 {
-	QString s_name = (ps_name + "_").split('_')[0];
-	foreach(QString name, QStringList() << ps_name << s_name)
+	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT Datum_Auftragseingang FROM v_ngs_dates WHERE LABORNUMMER='" + name + "' AND Datum_Auftragseingang IS NOT NULL");
@@ -299,8 +300,7 @@ QPair<QString, QString> GenLabDB::diseaseInfo(QString ps_name)
 	QString group = "n/a";
 	QString status = "n/a";
 
-	QString s_name = (ps_name + "_").split('_')[0];
-	foreach(QString name, QStringList() << ps_name << s_name)
+	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT krankheitsgruppe, patienttyp FROM v_krankheitsgruppe_pattyp WHERE labornummer='" + name + "'");
@@ -341,12 +341,11 @@ QString GenLabDB::sapID(QString ps_name)
 {
 	QString output;
 
-	QString s_name = (ps_name + "_").split('_')[0];
-	foreach(QString name, QStringList() << ps_name << s_name)
+	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT identnr FROM v_ngs_sap WHERE labornummer='" + name + "'");
-		if(query.next())
+		while (query.next())
 		{
 			QString id = query.value(0).toString().trimmed();
 			if (!id.isEmpty())
@@ -354,6 +353,46 @@ QString GenLabDB::sapID(QString ps_name)
 				output = id;
 				break;
 			}
+		}
+	}
+
+	return output;
+}
+
+QList<SampleRelation> GenLabDB::relatives(QString ps_name)
+{
+	QList<SampleRelation> output;
+
+	foreach(QString name, names(ps_name))
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT BEZIEHUNGSTEXT, Labornummer_Verwandter FROM v_ngs_duo WHERE Labornummer_Index='" + name + "'");
+		while(query.next())
+		{
+			QByteArray relation = query.value(0).toByteArray().toUpper();
+			if (relation=="VATER") relation = "parent-child";
+			else if (relation=="MUTTER") relation = "parent-child";
+			else if (relation=="SCHWESTER") relation = "siblings";
+			else if (relation=="BRUDER") relation = "siblings";
+			else if (relation=="ZWILLINGSSCHWESTER") relation = "twins";
+			else if (relation=="ZWILLINGSBRUDER") relation = "twins";
+			else if (relation=="COUSIN") relation = "cousins";
+			else if (relation=="COUSINE") relation = "cousins";
+			else THROW(ProgrammingException, "Unhandled sample relation '" + relation + "'!");
+
+			QByteArray sample2 = query.value(1).toByteArray();
+			if (sample2.contains('_'))
+			{
+				sample2 = sample2.split('_')[0];
+			}
+
+			QByteArray sample = ps_name.toLatin1();
+			if (sample.contains('_'))
+			{
+				sample = sample.split('_')[0];
+			}
+
+			output << SampleRelation{sample2, relation, sample};
 		}
 	}
 
@@ -466,5 +505,17 @@ bool GenLabDB::addDiseaseInfoIfMissing(QString type, QString value, QDateTime da
 	disease_details << new_entry;
 
 	return true;
+}
+
+QStringList GenLabDB::names(QString ps_name)
+{
+	QStringList output;
+	output << ps_name;
+	if (ps_name.contains("_"))
+	{
+		QString s_name = ps_name.split('_')[0];
+		output << s_name;
+	}
+	return output;
 }
 

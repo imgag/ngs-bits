@@ -43,7 +43,7 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 	{
 		QString ps_id = db_.processedSampleId(cf_dna.name);
 		QString bam = NGSD().processedSamplePath(ps_id, NGSD::BAM);
-		igv_commands << "load \"" + QDir::toNativeSeparators(bam) + "\"";
+		igv_commands << "load \"" + Helper::canonicalPath(bam) + "\"";
 
 	}
 	emit executeIGVCommands(igv_commands);
@@ -87,13 +87,13 @@ void DiseaseCourseWidget::loadVariantLists()
 	QSet<QString> processing_systems;
 	foreach (const QString& cf_dna_ps_id, cf_dna_ps_ids_)
 	{
-		processing_systems.insert(db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(db_.processedSampleName(cf_dna_ps_id)), true).name_short);
+		processing_systems.insert(db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(db_.processedSampleName(cf_dna_ps_id))).name_short);
 	}
 	if (processing_systems.size() > 1) THROW(ArgumentException, "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
 	QString system_name = processing_systems.toList().at(0);
 
 	// load ref tumor variants
-	QString panel_folder = Settings::string("patient_specific_panel_folder", false);
+	QString panel_folder = Settings::path("patient_specific_panel_folder", false);
 	QString vcf_file_path = panel_folder + "/" + system_name + "/" + tumor_sample_name_ + ".vcf";
 
 	if (!QFile::exists(vcf_file_path)) THROW(FileAccessException, "Could not find reference tumor VCF in '" + vcf_file_path + "'! ");

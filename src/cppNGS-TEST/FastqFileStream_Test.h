@@ -181,6 +181,27 @@ private slots:
 		S_EQUAL(entry.header, QByteArray(""));
 	}
 
+	void read_gzipped_corrupt()
+	{
+		FastqFileStream stream(TESTDATA("data_in/example8.fastq.gz"), false); //the file is truncated, like it happens if it is not completely transferred.
+		FastqEntry entry;
+		int i = 0;
+		while(!stream.atEnd())
+		{
+			++i;
+
+			if (i<317)
+			{
+				stream.readEntry(entry);
+				IS_FALSE(entry.bases.isEmpty());
+			}
+			else
+			{
+				IS_THROWN(FileParseException,stream.readEntry(entry));
+			}
+		}
+	}
+
 	void read_plain()
 	{
 		FastqFileStream stream(TESTDATA("data_in/example2.fastq"));
