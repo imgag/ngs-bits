@@ -43,7 +43,7 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 	{
 		QString ps_id = db_.processedSampleId(cf_dna.name);
 		QString bam = NGSD().processedSamplePath(ps_id, NGSD::BAM);
-		igv_commands << "load \"" + QDir::toNativeSeparators(bam) + "\"";
+		igv_commands << "load \"" + Helper::canonicalPath(bam) + "\"";
 
 	}
 	emit executeIGVCommands(igv_commands);
@@ -93,7 +93,7 @@ void DiseaseCourseWidget::loadVariantLists()
 	QString system_name = processing_systems.toList().at(0);
 
 	// load ref tumor variants
-	QString panel_folder = Settings::string("patient_specific_panel_folder", false);
+	QString panel_folder = Settings::path("patient_specific_panel_folder", false);
 	QString vcf_file_path = panel_folder + "/" + system_name + "/" + tumor_sample_name_ + ".vcf";
 
 	if (!QFile::exists(vcf_file_path)) THROW(FileAccessException, "Could not find reference tumor VCF in '" + vcf_file_path + "'! ");
