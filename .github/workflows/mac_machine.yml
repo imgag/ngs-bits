@@ -12,9 +12,9 @@ jobs:
     - name: Update Homebrew
       run: brew update
     - name: Setup Qt dependencies
-      run: brew install qt lzlib openssl
+      run: brew install qt@5 lzlib openssl
     - name: Link Qt installation
-      run: brew link qt --force
+      run: brew link qt@5 --force
     - name: Install matplotlib
       run: sudo pip install matplotlib
     - name: Build project dependencies
