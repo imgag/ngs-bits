@@ -807,18 +807,20 @@ void MainWindow::on_actionCNV_triggered()
 		{
 			QPlainTextEdit* text_edit = new QPlainTextEdit(this);
 			text_edit->setReadOnly(true);
+			QString header = "CHR\tSTART\tEND\tCOPY NUMBER";
+			text_edit->appendPlainText(header);
 			for (int i=0; i<mosaic_data.count(); ++i)
 			{
 				if(mosaic_data[i].startsWith("#")) continue;
 				QStringList parts = mosaic_data[i].split("\t");
-				if(parts.length() < 3)
+				if(parts.length() < 4)
 				{
 					QMessageBox::warning(this, "Mosaic CNV detection", "The CNV file can not be parsed!\n" + mosaic_file);
 				}
-				QString line = parts[0] + ":" + parts[1] + "-" + parts[2];
+				QString line = parts[0] + "\t" + parts[1] + "\t" + parts[2] + "\t" + parts[3];
 				text_edit->appendPlainText(line);
 			}
-			text_edit->setMinimumSize(300, 100);
+			text_edit->setMinimumSize(450, 100);
 			auto dlg = GUIHelper::createDialog(text_edit, "Mosaic CNVs detected!");
 			dlg->exec();
 		}
