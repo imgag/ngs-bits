@@ -41,9 +41,9 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 CnvWidget::CnvWidget(const CnvList& cnvs, QString t_ps_id, FilterWidget* filter_widget, SomaticReportConfiguration& som_rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent)
 	: CnvWidget(cnvs, t_ps_id, filter_widget, het_hit_genes, cache, parent)
 {
-	if(cnvs.type() != CnvListType::CLINCNV_TUMOR_NORMAL_PAIR)
+	if(cnvs.type() != CnvListType::CLINCNV_TUMOR_NORMAL_PAIR && cnvs.type() != CnvListType::CLINCNV_TUMOR_ONLY)
 	{
-		THROW(ProgrammingException, "Constructor in CnvWidget has to be used using tumor-normal pair data.");
+		THROW(ProgrammingException, "Constructor in CnvWidget has to be used using tumor-normal pair or tumor-only data.");
 	}
 	somatic_report_config_ = &som_rep_conf;
 	is_somatic_ = true;
@@ -887,6 +887,10 @@ void CnvWidget::editReportConfiguration(int row)
 		{
 			editSomaticReportConfiguration(row);
 		}
+	}
+	else if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_ONLY)
+	{
+		QMessageBox::warning(this, "Not implemented", "Report Config is not yet implemented for tumor only!");
 	}
 	else
 	{

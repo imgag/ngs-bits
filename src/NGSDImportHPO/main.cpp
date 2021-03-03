@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include "OntologyTermCollection.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -60,31 +61,6 @@ public:
 		return c_imported;
 	}
 
-	QHash<QByteArray, int> addTerm(SqlQuery& query, QByteArray& id, QByteArray& name, QByteArray& def, QByteArrayList& synonyms)
-	{
-		static QHash<QByteArray, int> id2ngsd;
-
-		//add non-obsolete terms
-		if (!id.isEmpty() && !name.startsWith("obsolete "))
-		{
-			query.bindValue(0, id);
-			query.bindValue(1, name);
-			query.bindValue(2, def);
-			query.bindValue(3, synonyms.count()==0 ? "" : synonyms.join('\n'));
-			query.exec();
-
-			id2ngsd.insert(id, query.lastInsertId().toInt());
-		}
-
-		//clear data
-		id.clear();
-		name.clear();
-		def = "";
-		synonyms.clear();
-
-		return id2ngsd;
-	}
-
 	virtual void main()
 	{
 		//init
@@ -120,63 +96,32 @@ public:
 		SqlQuery qi_gene = db.getQuery();
 		qi_gene.prepare("INSERT IGNORE INTO hpo_genes (hpo_term_id, gene) VALUES (:0, :1);");
 
-		//parse OBO and insert terms
-		QByteArray id, name, def = "";
-		QByteArrayList synonyms;
-		QHash<QByteArray, QByteArrayList > child_parents;
-		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("obo"));
-		while(!fp->atEnd())
+		//parse OBO and insert terms into NGSD
+		QHash<QByteArray, int> id2ngsd;
+		OntologyTermCollection terms(getInfile("obo"), true);
+		for (int i=0; i<terms.size(); ++i)
 		{
-			QByteArray line = fp->readLine().trimmed();
-			if (line.isEmpty()) continue;
+			const OntologyTerm& term = terms.get(i);
 
-			if (line=="[Term]")
-			{
-				addTerm(qi_term, id, name, def, synonyms);
-			}
-			else if (line=="is_obsolete: true")
-			{
-				id.clear();
-			}
-			else if (line.startsWith("id: "))
-			{
-				id = line.mid(4);
-			}
-			else if (line.startsWith("name: "))
-			{
-				name = line.mid(6);
-			}
-			else if (line.startsWith("def: "))
-			{
-				def = line.mid(5, line.lastIndexOf('"')-5);
-			}
-			else if (line.startsWith("synonym: ") && line.contains("EXACT"))
-			{
-				int start = line.indexOf('"');
-				int end = line.indexOf('"', start+1);
-				QByteArray syn = line.mid(start+1, end-start-1).trimmed();
-				synonyms << syn;
-			}
-			else if (line.startsWith("is_a: HP:"))
-			{
-				if (!child_parents.contains(id)) child_parents[id] = QByteArrayList();
-				child_parents[id].append(line.mid(6, 10));
-			}
+			qi_term.bindValue(0, term.id());
+			qi_term.bindValue(1, term.name());
+			qi_term.bindValue(2, term.definition());
+			qi_term.bindValue(3, term.synonyms().count()==0 ? "" : term.synonyms().join('\n'));
+			qi_term.exec();
+
+			id2ngsd.insert(term.id(), qi_term.lastInsertId().toInt());
 		}
-		fp->close();
-
-		QHash<QByteArray, int> id2ngsd = addTerm(qi_term, id, name, def, synonyms);
 		out << "Imported " << db.getValue("SELECT COUNT(*) FROM hpo_term").toInt() << " non-obsolete HPO terms." << endl;
 
 		//insert parent-child relations between (valid) terms
-		for(auto it=child_parents.begin(); it!=child_parents.end(); ++it)
+		for (int i=0; i<terms.size(); ++i)
 		{
-			QByteArray c_id = it.key();
-			int c_db = id2ngsd.value(c_id, -1);
+			const OntologyTerm& term = terms.get(i);
+
+			int c_db = id2ngsd.value(term.id(), -1);
 			if (c_db==-1) continue;
 
-			QByteArrayList parent_ids = it.value();
-			foreach(const QByteArray& p_id, parent_ids)
+			foreach(const QByteArray& p_id, term.parentIDs())
 			{
 				int p_db = id2ngsd.value(p_id, -1);
 				if (p_db==-1) continue;
@@ -190,7 +135,7 @@ public:
 
 
 		//parse term-disease and disease-gene relations from HPO
-		fp = Helper::openFileForReading(getInfile("anno"));
+		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("anno"));
 		QSet<QByteArray> non_hgnc_genes;
 		QList<Phenotype> inheritance_terms = db.phenotypeChildTerms(Phenotype("HP:0000005", "Mode of inheritance"), true);
 

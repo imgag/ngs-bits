@@ -738,7 +738,6 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 		int end = atoi(fields[2]);
 		if (roi_idx!=nullptr)
 		{
-
 			bool in_roi = roi_idx->matchingIndex(chr, start, end)!=-1;
 			if ((!in_roi && !invert) || (in_roi && invert))
 			{

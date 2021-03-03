@@ -13,10 +13,10 @@ struct RepeatCutoffInfo
 {
 	QByteArray repeat_id;
 	QByteArray repeat_unit;
-	int max_normal;
-	int min_pathogenic;
+	int max_normal = -1;
+	int min_pathogenic = -1;
 	QByteArray inheritance;
-	bool reliable_in_exomes;
+	bool reliable_in_exomes = true;
 	QByteArrayList additional_info;
 };
 

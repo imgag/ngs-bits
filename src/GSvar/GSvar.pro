@@ -57,7 +57,6 @@ SOURCES += main.cpp\
     FilterWidgetCNV.cpp \
     FilterCascadeWidget.cpp \
     FilterWidget.cpp \
-    ReportSettings.cpp \
     ReportVariantDialog.cpp \
     GSvarHelper.cpp \
     SomaticRnaReport.cpp \
@@ -148,7 +147,6 @@ HEADERS += MainWindow.h \
     FilterWidgetCNV.h \
     FilterCascadeWidget.h \
     FilterWidget.h \
-    ReportSettings.h \
     ReportVariantDialog.h \
     GSvarHelper.h \
     SomaticRnaReport.h \

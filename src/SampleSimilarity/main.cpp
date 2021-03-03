@@ -35,7 +35,8 @@ public:
 		addInt("min_cov",  "Minimum coverage to consider a SNP for the analysis (BAM mode).",  true,  30);
 		addInt("max_snps",  "The maximum number of high-coverage SNPs to extract from BAM/CRAM. 0 means unlimited (BAM mode).",  true, 2000);
 		addEnum("build", "Genome build used to generate the input (BAM mode).", true, QStringList() << "hg19" << "hg38", "hg19");
-		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addFlag("debug", "Print debug output.");
 
 		//changelog
 		changeLog(2020,  11, 27, "Added CRAM support.");
@@ -64,6 +65,9 @@ public:
 		bool include_gonosomes = getFlag("include_gonosomes");
 		QString build = getEnum("build");
 		bool skip_multi = getFlag("skip_multi");
+		bool debug = getFlag("debug");
+		QTime timer;
+		timer.start();
 
 		//write header
 		if (mode=="vcf" || mode=="gsvar")
@@ -96,8 +100,17 @@ public:
 			}
 			else
 			{
-				genotype_data << (use_roi ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg, getString("ref")) : SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, getString("ref")));
+				genotype_data << (use_roi ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg, getInfile("ref")) : SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, getInfile("ref")));
 			}
+			if (debug && genotype_data.count()%100==0)
+			{
+				out << "##loaded " << genotype_data.count() << " input files (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
+			}
+		}
+		if (debug)
+		{
+			out << "##loaded all input files (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
+			timer.restart();
 		}
 
 		//process
@@ -131,6 +144,10 @@ public:
 				cols << sc.messages().join(", ");
 				out << cols.join("\t") << endl;
 			}
+		}
+		if (debug)
+		{
+			out << "##calcualted similarity (took: " << Helper::elapsedTime(timer, true) << ")" << endl;
 		}
 	}
 

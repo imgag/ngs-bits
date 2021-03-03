@@ -27,7 +27,7 @@ public:
 		addOutfile("out", "Output BED file. If unset, writes to STDOUT.", true);
 		addInt("min_mapq", "Minimum mapping quality to consider a read.", true, 1);
 		addInt("min_baseq", "Minimum base quality to consider a base.", true, 0);
-		addString("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
+		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
 		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2020,  5,  26, "Added parameter 'min_baseq'.");
@@ -51,14 +51,14 @@ public:
 		BedFile output;
         if (wgs) //WGS
         {
-			output = Statistics::highCoverage(bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getString("ref"));
+			output = Statistics::highCoverage(bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInfile("ref"));
         }
 		else //ROI
         {
             BedFile file;
             file.load(in);
 			file.merge(true, true);
-			output = Statistics::highCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getString("ref"));
+			output = Statistics::highCoverage(file, bam, getInt("cutoff"), getInt("min_mapq"), getInt("min_baseq"), getInfile("ref"));
         }
         output.store(getOutfile("out"));
 	}

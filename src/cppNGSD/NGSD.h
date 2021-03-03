@@ -23,8 +23,16 @@
 #include "BedpeFile.h"
 #include "SomaticVariantInterpreter.h"
 
+///Sample relation datastructure
+struct CPPNGSDSHARED_EXPORT SampleRelation
+{
+	QByteArray sample1; //sample name, not identifier
+	QByteArray relation;
+	QByteArray sample2; //sample name, not identifier
+};
+
 ///OMIM information datastructure
-struct OmimInfo
+struct CPPNGSDSHARED_EXPORT OmimInfo
 {
 	QByteArray gene_symbol;
 	QByteArray mim;
@@ -33,7 +41,7 @@ struct OmimInfo
 };
 
 ///Type constraints class for database fields
-struct TableFieldConstraints
+struct CPPNGSDSHARED_EXPORT TableFieldConstraints
 {
 	QStringList valid_strings; //ENUM (from schema)
 	int max_length; //VARCHAR (from schema)
@@ -545,6 +553,8 @@ public:
 	PhenotypeList phenotypeChildTerms(const Phenotype& phenotype, bool recursive);
 	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.
 	QList<OmimInfo> omimInfo(const QByteArray& symbol);
+	///Returns the accession (6 digit number) of the preferred OMIM phenotype for a gene. If unset, an empty string is returned.
+	QString omimPreferredPhenotype(const QByteArray& symbol, const QByteArray& disease_group);
 
 	/*** Base functionality for file/variant processing ***/
 	///Returns the processed sample name for an ID.
@@ -644,9 +654,9 @@ public:
 	///Returns the processing system ID from the processed sample name. Throws a DatabaseException if processed sample does not exist;
 	int processingSystemIdFromProcessedSample(QString ps_name);
 	///Returns the processing system information for a processed sample.
-	ProcessingSystemData getProcessingSystemData(int sys_id, bool windows_path);
+	ProcessingSystemData getProcessingSystemData(int sys_id);
 	///Returns all processing systems (long name) and the corresponding target regions.
-	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi, bool windows_paths);
+	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi);
 
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
@@ -700,8 +710,10 @@ public:
 	///Stores a given EvaluationSheetData in the NGSD (return table id)
 	int storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_data, bool overwrite_existing_data = false);
 
-	///Return a list of sample ids which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
+	///Return a list of sample ids (not name) which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
 	QStringList relatedSamples(const QString& sample_id, const QString& relation="");
+	///Adds a new sample relation to the database;
+	void addSampleRelation(const SampleRelation& rel, bool error_if_already_present=false);
 
 	///Returns the report config creation data (user/date) for somatic reports
 	SomaticReportConfigurationData somaticReportConfigData(int id);
@@ -754,7 +766,7 @@ public:
 	QVector<double> cnvCallsetMetrics(QString processing_system_id, QString metric_name);
 
 	///Returns the target file path (or sub-panel folder)
-	static QString getTargetFilePath(bool subpanels = false, bool windows = true);
+	static QString getTargetFilePath(bool subpanels = false);
 
 	///Parses OBO file and updates QC term data
 	void updateQC(QString obo_file, bool debug=false);

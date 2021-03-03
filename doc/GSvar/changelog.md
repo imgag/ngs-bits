@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2020_12-70 (28.01.21)
+- Sample: Added import of sample relations from GenLab.
+
 ### 2020_12-40 (28.01.21)
 - Gene tab: Added pseudogene information
 

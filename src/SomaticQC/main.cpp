@@ -23,45 +23,6 @@ public:
 	{
 	}
 
-	QList<QString> extractExperimentInfo(QString bam, QString tag, const QString& ref_file)
-	{
-		QStringList platforms;
-		QStringList devices;
-		QStringList enrichments;
-
-		BamReader reader(bam, ref_file);
-		foreach(QByteArray line, reader.headerLines())
-		{
-			if(line.startsWith("@RG"))
-			{
-				QString platform = "unknown_platform";
-				QString device = "unknown_device";
-				QString enrichment = "unknown_enrichment";
-				QByteArrayList parts = line.split('\t');
-				foreach(QByteArray part, parts)
-				{
-					if (part.startsWith("PL:"))
-					{
-						platform = part.mid(3).trimmed();
-					}
-					if (part.startsWith("PM:"))
-					{
-						device = part.mid(3).trimmed();
-					}
-					if (part.startsWith("en:"))
-					{
-						enrichment = part.mid(3).trimmed();
-					}
-				}
-				platforms << platform;
-				devices << device;
-				enrichments << enrichment;
-			}
-		}
-
-		return QList<QString>({"QC:?", "experiment", platforms.join(":") + ", " + devices.join(":") + ", " + enrichments.join(":") + " (" + tag + ")"});
-	}
-
 	virtual void setup()
 	{
 		setDescription("Calculates QC metrics based on tumor-normal pairs.");
@@ -108,13 +69,10 @@ public:
 		QString build = getEnum("build");
 
 		// metadata
-		QList<QList<QString>> metadata;
-		const QString ref_file_cram = getString("ref_cram");
-		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(tumor_bam).fileName() + " (tumor)"});
-		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(normal_bam).fileName() + " (normal)"});
-		metadata += QList<QString>({"QC:1000005","source file",QFileInfo(somatic_vcf).fileName()});
-		metadata += extractExperimentInfo(tumor_bam, "tumor", ref_file_cram);
-		metadata += extractExperimentInfo(normal_bam, "normal", ref_file_cram);
+		QList<QCValue> metadata;
+		metadata << QCValue("source file", QFileInfo(tumor_bam).fileName() + " (tumor)", "", "QC:1000005");
+		metadata << QCValue("source file", QFileInfo(normal_bam).fileName() + " (normal)", "", "QC:1000005");
+		metadata << QCValue("source file", QFileInfo(somatic_vcf).fileName(), "", "QC:1000005");
 
 		// metadata - add linked files as relative paths
 		QDir out_dir = QFileInfo(out).absoluteDir();
@@ -127,7 +85,7 @@ public:
 			}
 			QString rel = out_dir.relativeFilePath( QFileInfo(links[i]).absolutePath() );
 			if(!rel.isEmpty())	 rel += "/";
-			metadata += QList<QString>({"QC:1000006","linked file",rel + QFileInfo(links[i]).fileName()});
+			metadata << QCValue("linked file", rel + QFileInfo(links[i]).fileName(), "", "QC:1000006");
 		}
 
 		// calculate somatic QC metrics

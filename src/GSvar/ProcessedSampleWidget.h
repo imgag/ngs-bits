@@ -65,6 +65,8 @@ protected slots:
 	void editDiseaseGroupAndInfo();
 	///Opens a dialog to edit the disease details.
 	void editDiseaseDetails();
+	///Import sample relations for GenLab
+	void importSampleRelations();
 
 private:
 	Ui::ProcessedSampleWidget* ui_;

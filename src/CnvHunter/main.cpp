@@ -166,6 +166,8 @@ public:
     virtual void setup()
     {
 		setDescription("CNV detection from targeted resequencing data using non-matched control samples.");
+		setExtendedDescription(QStringList() << "Note CnvHunter is no longer maintained and used. For CNV calling have a look at ClinCNV: https://github.com/imgag/ClinCNV.");
+
 		addInfileList("in", "Input TSV files (one per sample) containing coverage data (chr, start, end, avg_depth). If only one file is given, each line in this file is interpreted as an input file path.", false, true);
         addOutfile("out", "Output TSV file containing the detected CNVs.", false, true);
 		//optional

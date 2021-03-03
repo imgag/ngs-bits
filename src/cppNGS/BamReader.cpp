@@ -104,6 +104,18 @@ QByteArray BamAlignment::cigarDataAsString(bool expand) const
 	return output;
 }
 
+bool BamAlignment::cigarIsOnlyInsertion() const
+{
+	const auto cigar = bam_get_cigar(aln_);
+	for (uint32_t i = 0; i<aln_->core.n_cigar; ++i)
+	{
+		int op = (int)bam_cigar_op(cigar[i]);
+		if (op!=BAM_CINS && op!=BAM_CSOFT_CLIP) return false;
+	}
+
+	return true;
+}
+
 Sequence BamAlignment::bases() const
 {
 	QByteArray output;
@@ -296,6 +308,10 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 {
 	int read_pos = 0;
 	int genome_pos = start()-1;
+
+	//sometimes reads consist of insertions only > skip them
+	if (cigarIsOnlyInsertion()) return qMakePair('~', -1);
+
 	const QList<CigarOp> cigar_data = cigarData();
 	foreach(const CigarOp& op, cigar_data)
 	{
@@ -343,11 +359,15 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos)
 		if (genome_pos>=pos)
 		{
 			int actual_pos = read_pos - (genome_pos + 1 - pos);
-			return qMakePair(base(actual_pos), quality((actual_pos)));
+			return qMakePair(base(actual_pos), quality(actual_pos));
 		}
 	}
 
-	THROW(Exception, "Could not find position  " + QString::number(pos) + " in read " + bases() + " with start position " + QString::number(start()) + "!");
+	foreach(const CigarOp& op, cigar_data)
+	{
+		qDebug() <<  op.Type << op.Length;
+	}
+	THROW(Exception, "Could not find position " + QString::number(pos) + " in read " + name() + " with start position " + QString::number(start()) + "!");
 }
 
 QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
@@ -451,10 +471,12 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 	//set reference for CRAM files
 	if(fp_->is_cram)
 	{
-		Q_UNUSED(ref_genome);
-		#ifdef _WIN32
-			THROW(FileAccessException, "No CRAM support for Windows yet!");
-		#else
+		if (Helper::isWindows())
+		{
+			THROW(FileAccessException, "CRAM is not supported on Windows!");
+		}
+		else
+		{
 			//load reference file for cram
 			if(!(ref_genome.isNull() || ref_genome == ""))
 			{
@@ -472,7 +494,7 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 			{
 				THROW(FileAccessException, "Reference genome necessary for opening CRAM file " + bam_file + ".");
 			}
-		#endif
+		}
 	}
 
 	//parse chromosome names and sizes

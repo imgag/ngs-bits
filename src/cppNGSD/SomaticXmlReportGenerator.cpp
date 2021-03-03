@@ -160,7 +160,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	//Element TargetRegion
 	w.writeStartElement("TargetRegion");
 
-	ProcessingSystemData processing_system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(data.settings.tumor_ps), QSysInfo::productType().contains("windows"));
+	ProcessingSystemData processing_system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(data.settings.tumor_ps));
 	w.writeAttribute("name", processing_system_data.name); //in our workflow identical to processing system name
 
 		QString target_file = processing_system_data.target_file;
@@ -396,6 +396,10 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			QByteArrayList genes = cnv.annotations()[i_cgi_genes].split(',');
 			QByteArrayList tsg = cnv.annotations()[i_tsg].split(',');
 			QByteArrayList oncogenes = cnv.annotations()[i_oncogene].split(',');
+			if(genes.count() != tsg.count() || genes.count() != oncogenes.count())
+			{
+				THROW(FileParseException, "Could not create XML report because number of CGI genes and corresponding TSG or oncogene annotation count differs");
+			}
 			for(int j=0; j<genes.count(); ++j)
 			{
 				w.writeStartElement("Gene");

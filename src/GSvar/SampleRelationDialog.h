@@ -16,9 +16,7 @@ public:
 	void setSample1(QString sample_name, bool enabled=true);
 	void setSample2(QString sample_name, bool enabled=true);
 
-	QString sample1Id() const;
-	QString relation() const;
-	QString sample2Id() const;
+	SampleRelation sampleRelation() const;
 
 private slots:
 	void swapSamples();

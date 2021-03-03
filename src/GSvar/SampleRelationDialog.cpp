@@ -34,19 +34,9 @@ void SampleRelationDialog::setSample2(QString sample_name, bool enabled)
 	ui_.sample2->setEnabled(enabled);
 }
 
-QString SampleRelationDialog::sample1Id() const
+SampleRelation SampleRelationDialog::sampleRelation() const
 {
-	return ui_.sample1->getId();
-}
-
-QString SampleRelationDialog::relation() const
-{
-	return ui_.relation->currentText();
-}
-
-QString SampleRelationDialog::sample2Id() const
-{
-	return ui_.sample2->getId();
+	return SampleRelation{ui_.sample1->text().toLatin1(), ui_.relation->currentText().toLatin1(), ui_.sample2->text().toLatin1()};
 }
 
 void SampleRelationDialog::swapSamples()

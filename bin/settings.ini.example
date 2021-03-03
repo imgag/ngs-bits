@@ -30,8 +30,9 @@ genlab_name = ""
 genlab_user = ""
 genlab_pass = ""
 
-#projects folder
+#megSAP folders
 projects_folder = ""
+data_folder = ""
 
 #Processing system target region path (where the target region BED files are located)
 target_file_folder_windows = ""
@@ -39,3 +40,6 @@ target_file_folder_linux = ""
 
 #setting for variant scoring/ranking
 ranking_variant_blacklist=
+
+#python executable for plotting (set if the python exe is not in the PATH)
+python_exe = ""

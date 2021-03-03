@@ -37,7 +37,7 @@ public:
 	///Calculates QC metrics on a variant list (only for VCF).
 	static QCCollection variantList(VcfFile variants, bool filter);
 	///Calculates mapping QC metrics for a target region from a BAM file. The input BED file must be merged!
-	static QCCollection mapping(const BedFile& bed_file, const QString& bam_file, int min_mapq=1, const QString& ref_file = QString::null);
+	static QCCollection mapping(const BedFile& bed_file, const QString& bam_file, const QString& ref_file, int min_mapq=1);
     ///Calculates mapping QC metrics for RNA from a BAM file.
 	static QCCollection mapping_rna(const QString& bam_file, int min_mapq=1, const QString& ref_file = QString::null);
 	///Calculates mapping QC metrics for WGS from a BAM file.
@@ -81,6 +81,9 @@ private:
 	static void countCoverageWGSWithoutBaseQuality(int start, int end, QVector<unsigned char>& cov);
 	static void countCoverageWGSWithBaseQuality(int min_baseq, QVector<unsigned char>& cov, int start, int end, QBitArray& baseQualities, const BamAlignment& al);
 
+	template <typename T>
+	static void addQcValue(QCCollection& output, QByteArray accession, QByteArray name, const T& value);
+	static void addQcPlot(QCCollection& output, QByteArray accession, QByteArray name, QString filename);
 };
 
 #endif // STATISTICS_H

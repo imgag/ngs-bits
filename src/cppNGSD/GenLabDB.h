@@ -54,6 +54,9 @@ public:
 	///Returns SAP patient identifier (tries sample name if processed sample name is not found)
 	QString sapID(QString ps_name);
 
+	///Returns sample relations
+	QList<SampleRelation> relatives(QString ps_name);
+
 	///Imports missing sample meta data (disease group/status/details) for a sample into NGSD
 	void addMissingMetaDataToNGSD(QString ps_name, bool log=false, bool add_disease_group_status=true, bool add_disease_details=true);
 
@@ -69,6 +72,9 @@ protected:
 
 	///Adds a disease info item to the list, if it is missing. Returns if an item was added.
 	static bool addDiseaseInfoIfMissing(QString type, QString value, QDateTime date, QString user, QList<SampleDiseaseInfo>& disease_details);
+
+	///Returns the sample and processed sample name
+	static QStringList names(QString ps_name);
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
