@@ -5290,6 +5290,8 @@ bool MainWindow::germlineReportSupported()
 
 	//single and trio (~one affected)
 	AnalysisType type = variants_.type();
+	if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO) return true;
+
 	//multi-sample only with at least one affected
 	if (type==GERMLINE_MULTISAMPLE && variants_.getSampleHeader().sampleColumns(true).count()>=1) return true;
 
