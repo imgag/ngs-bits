@@ -1483,7 +1483,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	try
 	{
 		NGSD db;
-		ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(processedSampleName()), true);
+		ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(processedSampleName()));
 		QString amplicons = system_data.target_file.left(system_data.target_file.length()-4) + "_amplicons.bed";
 		if (QFile::exists(amplicons))
 		{
@@ -2033,13 +2033,13 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		QString normal_sample = db.normalSample(processed_sample_id);
 		if (normal_sample!="")
 		{
-			analyses << db.secondaryAnalyses(processed_sample_name + "-" + normal_sample, "somatic", true);
+			analyses << db.secondaryAnalyses(processed_sample_name + "-" + normal_sample, "somatic");
 		}
 		//check for germline trio/multi analyses
 		else if (search_multi)
 		{
-			analyses << db.secondaryAnalyses(processed_sample_name, "trio", true);
-			analyses << db.secondaryAnalyses(processed_sample_name, "multi sample", true);
+			analyses << db.secondaryAnalyses(processed_sample_name, "trio");
+			analyses << db.secondaryAnalyses(processed_sample_name, "multi sample");
 		}
 
 		//determine analysis to load
@@ -2856,7 +2856,7 @@ void MainWindow::loadSomaticReportConfig()
 	//Preselect target region bed file in NGSD
 	if(somatic_report_settings_.report_config.targetFile() != "")
 	{
-		QString full_path = db.getTargetFilePath(true, true) + "/" + somatic_report_settings_.report_config.targetFile();
+		QString full_path = db.getTargetFilePath(true) + "/" + somatic_report_settings_.report_config.targetFile();
 		if(QFileInfo(full_path).exists()) ui_.filters->setTargetRegion(full_path);
 	}
 
@@ -4210,7 +4210,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 		if (ps_id!="")
 		{
 			QString sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=:0", true, ps_id).toString();
-			QString roi = db.getProcessingSystemData(sys_id.toInt(), true).target_file;
+			QString roi = db.getProcessingSystemData(sys_id.toInt()).target_file;
 			if (roi!="")
 			{
 				BedFile region = db.geneToRegions(gene.toLatin1(), Transcript::ENSEMBL, "gene");
@@ -6164,7 +6164,16 @@ void MainWindow::updateIGVMenu()
 void MainWindow::updateNGSDSupport()
 {
 	//init
-	bool target_file_folder_set = Settings::string("target_file_folder_windows")!="" && Settings::string("target_file_folder_linux")!="";
+	bool target_file_folder_set = true;
+	try
+	{
+		NGSD db;
+		db.getTargetFilePath(false);
+	}
+	catch (Exception& /*e*/)
+	{
+		target_file_folder_set = false;
+	}
 	bool ngsd_user_logged_in = LoginManager::active();
 
 	//toolbar

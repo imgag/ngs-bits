@@ -16,6 +16,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QCryptographicHash>
+#include <QDir>
 #include "cmath"
 
 
@@ -289,7 +290,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	//add path
 	if(p.add_path)
 	{
-		QString pfolder = Settings::string("projects_folder");
+		QString pfolder = Settings::path("projects_folder");
 		int i_psname = output.columnIndex("name");
 		int i_ptype = output.columnIndex("project_type");
 		int i_pname = output.columnIndex("project_name");
@@ -298,7 +299,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		for (int r=0; r<output.rowCount(); ++r)
 		{
 			const DBRow& row = output.row(r);
-			new_col << pfolder + "/" + row.value(i_ptype) + "/" + row.value(i_pname) + "/Sample_" + row.value(i_psname) + "/";
+			new_col << pfolder + row.value(i_ptype) + QDir::separator() + row.value(i_pname) + QDir::separator() + "Sample_" + row.value(i_psname) + QDir::separator();
 		}
 		output.addColumn(new_col, "path");
 	}
@@ -673,7 +674,7 @@ int NGSD::processingSystemIdFromProcessedSample(QString ps_name)
 	return getValue("SELECT processing_system_id FROM processed_sample WHERE id="+ps_id).toInt();
 }
 
-ProcessingSystemData NGSD::getProcessingSystemData(int sys_id, bool windows_path)
+ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 {
 	ProcessingSystemData output;
 
@@ -684,13 +685,7 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id, bool windows_path
 	output.name = query.value(0).toString();
 	output.name_short = query.value(1).toString();
 	output.type = query.value(2).toString();
-	output.target_file = query.value(3).toString();
-	if (windows_path)
-	{
-		QString p_linux = getTargetFilePath(false, false);
-		QString p_win = getTargetFilePath(false, true);
-		output.target_file.replace(p_linux, p_win);
-	}
+	output.target_file = getTargetFilePath(false) + query.value(3).toString();
 	output.adapter1_p5 = query.value(4).toString();
 	output.adapter2_p7 = query.value(5).toString();
 	output.shotgun = query.value(6).toString()=="1";
@@ -783,12 +778,12 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	query.next();
 
 	//create sample folder
-	QString output = Settings::string("projects_folder") + "/";
+	QString output = Settings::path("projects_folder");
 	QString ps_name = query.value(0).toString();
 	QString p_type = query.value(1).toString();
 	output += p_type;
 	QString p_name = query.value(2).toString();
-	output += "/" + p_name + "/";
+	output += QDir::separator() + p_name + QDir::separator();
 	if (type!=PROJECT_FOLDER)
 	{
 		output += "Sample_" + ps_name + "/";
@@ -806,37 +801,32 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	return output;
 }
 
-QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analysis_type, bool windows_path)
+QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analysis_type)
 {
 	QStringList output = getValues("SELECT gsvar_file FROM secondary_analysis WHERE type='" + analysis_type + "' AND gsvar_file LIKE '%" + processed_sample_name + "%'");
 
-	//convert linux to windows path
-	if (windows_path)
+	//convert platform-specific canonical path
+	QString project_folder = Settings::path("projects_folder");
+	QStringList project_types = getEnum("project", "type");
+
+	for (int i=0; i<output.count(); ++i)
 	{
-		QString project_folder = Settings::string("projects_folder");
-		QStringList project_types = getEnum("project", "type");
+		QString file = output[i];
 
-		for (int i=0; i<output.count(); ++i)
+		foreach(QString project_type, project_types)
 		{
-			QString file = output[i];
-
-			//convert Linux > Windows
-			foreach(QString project_type, project_types)
+			QStringList parts = file.split("/" + project_type + "/");
+			if (parts.count()==2)
 			{
-				QStringList parts = file.split("/" + project_type + "/");
-				if (parts.count()==2)
-				{
-					file = project_folder + "/" + project_type + "/" + parts[1];
-					break;
-				}
+				file = project_folder + project_type + QDir::separator() + parts[1];
+				break;
 			}
-
-			//normalize Windows path
-			file.replace("\\", "/");
-			while (file.contains("//")) file.replace("//", "/");
-
-			output[i] = file;
 		}
+
+		//convert to canonical path
+		file = QFileInfo(file).absoluteFilePath();
+
+		output[i] = file;
 	}
 
 	return output;
@@ -2313,18 +2303,9 @@ void NGSD::init(QString password)
 	}
 }
 
-QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi, bool windows_paths)
+QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi)
 {
 	QMap<QString, QString> out;
-
-	//load paths
-	QString p_win;
-	QString p_linux;
-	if (windows_paths)
-	{
-		p_linux = getTargetFilePath(false, false);
-		p_win = getTargetFilePath(false, true);
-	}
 
 	//load processing systems
 	SqlQuery query = getQuery();
@@ -2332,7 +2313,7 @@ QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi,
 	while(query.next())
 	{
 		QString name = query.value(0).toString();
-		QString roi = query.value(1).toString().replace(p_linux, p_win);
+		QString roi = getTargetFilePath(false) + query.value(1).toString();
 		if (roi=="" && skip_systems_without_roi) continue;
 		out.insert(name, roi);
 	}
@@ -2916,18 +2897,13 @@ QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString me
 	return output;
 }
 
-QString NGSD::getTargetFilePath(bool subpanels, bool windows)
+QString NGSD::getTargetFilePath(bool subpanels)
 {
-	QString key = windows ? "target_file_folder_windows" : "target_file_folder_linux";
-	QString output = Settings::string(key);
-	if (output=="")
-	{
-		THROW(ProgrammingException, "'" + key + "' entry is missing in settings!");
-	}
+	QString output = Settings::path("data_folder", false) + "enrichment" + QDir::separator();
 
 	if (subpanels)
 	{
-		output += "/subpanels/";
+		output += QString("subpanels") + QDir::separator();
 	}
 
 	return output;
@@ -3183,7 +3159,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 		QString ps_name = query.value(0).toString();
 		QString p_type = query.value(1).toString();
 
-		QString folder = Settings::string("projects_folder") + "/" + p_type + "/" + query.value(2).toString() + "/Sample_" + ps_name + "/";
+		QString folder = Settings::path("projects_folder") + p_type + QDir::separator() + query.value(2).toString() + QDir::separator() + "Sample_" + ps_name + QDir::separator();
 		if (!QFile::exists(folder))
 		{
 			QString ps_id = query.value(4).toString();
@@ -3194,7 +3170,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 			query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name FROM sample s, processed_sample ps, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id AND s.id='" + query.value(3).toString()+"' AND ps.id!='" + ps_id + "'");
 			while(query2.next())
 			{
-				QString folder2 = Settings::string("projects_folder") + "/" + query2.value(1).toString() + "/" + query2.value(2).toString() + "/Sample_" + query2.value(0).toString() + "/";
+				QString folder2 = Settings::path("projects_folder") + query2.value(1).toString() + QDir::separator() + query2.value(2).toString() + QDir::separator() + "Sample_" + query2.value(0).toString() + QDir::separator();
 				if (QFile::exists(folder2))
 				{
 					QStringList files = Helper::findFiles(folder2, ps_name + "*.fastq.gz", false);

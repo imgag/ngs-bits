@@ -32,10 +32,15 @@ GermlineReportGenerator::GermlineReportGenerator(const GermlineReportGeneratorDa
 	if (data_.roi_file!="")
 	{
 		roi_.load(data_.roi_file);
+		roi_.merge();
 	}
 
 	int system_id = db_.processingSystemIdFromProcessedSample(data_.ps);
-	sys_roi_file_ = db_.getProcessingSystemData(system_id, Helper::isWindows() && !test_mode).target_file;
+	sys_roi_file_ = db_.getProcessingSystemData(system_id).target_file;
+	if(test_mode) //in test mode the path is relative > remove target region prefix
+	{
+		sys_roi_file_.remove(db_.getTargetFilePath(false));
+	}
 	sys_roi_.load(sys_roi_file_);
 }
 
@@ -59,7 +64,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	QString sample_id = db_.sampleId(data_.ps);
 	SampleData sample_data = db_.getSampleData(sample_id);
 	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(ps_id_);
-	ProcessingSystemData system_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(data_.ps), true);
+	ProcessingSystemData system_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(data_.ps));
 
 	//report header (meta information)
 	stream << "<h4>" << trans("Technischer Report zur bioinformatischen Analyse") << "</h4>" << endl;

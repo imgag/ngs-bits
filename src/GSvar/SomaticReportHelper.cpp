@@ -952,7 +952,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 
 	if(settings.report_config.targetFile() != "") //resolve target region in sub-panel directory
 	{
-		target_region_ = Helper::canonicalPath(db_.getTargetFilePath(true,true) + "/" + QFileInfo(settings.report_config.targetFile()).fileName());
+		target_region_ = Helper::canonicalPath(db_.getTargetFilePath(true) + "/" + QFileInfo(settings.report_config.targetFile()).fileName());
 	}
 
 	QString prefix = tumor_ps_ + "-" + normal_ps_;
@@ -1040,7 +1040,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	//load qcml data
 	qcml_data_ = QCCollection::fromQCML(Helper::canonicalPath(settings_.sample_dir + "/" +prefix + "_stats_som.qcML"));
 
-	processing_system_data_ = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_ps_), true);
+	processing_system_data_ = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_ps_));
 
 	//load disease details from NGSD
 	QStringList tmp;
@@ -1131,7 +1131,7 @@ QByteArray SomaticReportHelper::cgiCancerTypeFromVariantList(const VariantList &
 QMap<QByteArray, BedFile> SomaticReportHelper::gapStatistics(const BedFile& region_of_interest)
 {
 	BedFile roi_inter;
-	ProcessingSystemData system_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_ps_), true);
+	ProcessingSystemData system_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_ps_));
 	roi_inter.load(system_data.target_file);
 	roi_inter.intersect(region_of_interest);
 	roi_inter.merge();
@@ -1509,7 +1509,7 @@ void SomaticReportHelper::somaticCnvForQbic()
 		return;
 	}
 
-	QString target_region_processing_system = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_ps_), true).target_file;
+	QString target_region_processing_system = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_ps_)).target_file;
 	GeneSet target_genes = GeneSet::createFromFile(target_region_processing_system.left(target_region_processing_system.size()-4) + "_genes.txt");
 	NGSD db;
 	target_genes = db.genesToApproved(target_genes);
@@ -1680,7 +1680,7 @@ void SomaticReportHelper::metaDataForQbic()
 	stream << "\t";
 	stream << "\t";
 
-	stream << db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_ps_), true).genome;
+	stream << db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_ps_)).genome;
 	stream << endl;
 
 	meta_data_qbic->close();

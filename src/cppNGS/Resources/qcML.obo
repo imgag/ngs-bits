@@ -770,15 +770,15 @@ created_by: sturm
 [Term]
 id: QC:2000040
 name: sample correlation
-def: "Detailed description of sample correlation. Type is either DNA or RNA, type of experiment. WT = 0, het = 1, hom = 2. Genotype of common SNPs. SNPs with a good quality / depth. Exemplary result: '98.7 % (Type: SampleID1, Type: SampleID2)'."
+def: "Correlation of high-quality SNV genotypes between tumor and normal sample."
 is_a: QC:2000001 ! NGS quality parameter
-xref: value-type:xsd\:string "The allowed value-type for this CV term."
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schroeder
 
 [Term]
 id: QC:2000041
 name: somatic variant count
-def: "Number of somatic variants."
+def: "Total number of somatic variants in the target region."
 is_a: QC:2000004 ! NGS variant list parameter
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: schroeder
@@ -827,7 +827,7 @@ created_by: schroeder
 [Term]
 id: QC:2000047
 name: somatic variant signature plot
-def: "Plots the mutation signature of somatic variants." [PXS:QC]
+def: "Percentage of different variant types. If a target file was given, the variant type percentage is normalized to the reference genome." [PXS:QC]
 is_a: QC:2000004 ! NGS variant list parameter
 is_a: QC:0000050 ! image plot
 xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
@@ -868,7 +868,7 @@ created_by: sturm
 
 [Term]
 id: QC:2000052
-name: clipped bases percentage
+name: clipped base percentage
 def: "Percentage of the bases that are soft-clipped or hand-clipped during mapping." [PXS:QC]
 is_a: QC:2000003 ! NGS mapping parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."

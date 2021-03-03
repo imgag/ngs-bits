@@ -239,10 +239,6 @@ public:
 					quality_metrics.insert(pair.key, pair.value);
 				}
 			}
-			else
-			{
-				THROW(FileParseException, "Invalid header line '" + line + "' in file '" + filename + "'!");
-			}
 		}
 		if (cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE)
 		{

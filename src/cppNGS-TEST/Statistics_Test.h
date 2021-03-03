@@ -32,7 +32,7 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[3].name(), QString("known somatic variants percentage"));
 		S_EQUAL(stats[3].accession(), QString("QC:2000045"));
 		S_EQUAL(stats[3].toString(), QString("n/a (no gnomAD_AF annotation in CSQ info field)"));
-		S_EQUAL(stats[4].name(), QString("somatic indel percentage"));
+		S_EQUAL(stats[4].name(), QString("somatic indel variants percentage"));
 		S_EQUAL(stats[4].accession(), QString("QC:2000042"));
 		S_EQUAL(stats[4].toString(), QString("0.00"));
 		S_EQUAL(stats[5].name(), QString("somatic transition/transversion ratio"));

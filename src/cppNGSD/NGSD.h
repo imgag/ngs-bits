@@ -567,7 +567,7 @@ public:
 	enum PathType {PROJECT_FOLDER, SAMPLE_FOLDER, BAM, GSVAR, VCF};
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
 	///Returns the path to secondary analyses of the processed samples.
-	QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type, bool windows_path);
+	QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type);
 
 	///Adds a variant to the NGSD. Returns the variant ID.
 	QString addVariant(const Variant& variant, const VariantList& variant_list);
@@ -654,9 +654,9 @@ public:
 	///Returns the processing system ID from the processed sample name. Throws a DatabaseException if processed sample does not exist;
 	int processingSystemIdFromProcessedSample(QString ps_name);
 	///Returns the processing system information for a processed sample.
-	ProcessingSystemData getProcessingSystemData(int sys_id, bool windows_path);
+	ProcessingSystemData getProcessingSystemData(int sys_id);
 	///Returns all processing systems (long name) and the corresponding target regions.
-	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi, bool windows_paths);
+	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi);
 
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
@@ -766,7 +766,7 @@ public:
 	QVector<double> cnvCallsetMetrics(QString processing_system_id, QString metric_name);
 
 	///Returns the target file path (or sub-panel folder)
-	static QString getTargetFilePath(bool subpanels = false, bool windows = true);
+	static QString getTargetFilePath(bool subpanels = false);
 
 	///Parses OBO file and updates QC term data
 	void updateQC(QString obo_file, bool debug=false);
