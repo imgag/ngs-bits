@@ -731,26 +731,26 @@ private slots:
 
 		//analysisJobFolder
 		QString folder = db.analysisJobFolder(1);
-		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Sample_NA12878_03/"));
+		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Sample_NA12878_03/"));
 		db.queueAnalysis("somatic", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12345_01", "tumor"} << AnalysisJobSample{"NA12878_03", "normal"});
 		folder = db.analysisJobFolder(3);
-		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/"));
+		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/"));
 		db.queueAnalysis("trio", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12878_03", "child"} << AnalysisJobSample{"NA12123_04", "father"} << AnalysisJobSample{"NA12345_01", "mother"});
 		folder = db.analysisJobFolder(4);
-		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/"));
+		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/"));
 		db.queueAnalysis("multi sample", false, QStringList(), QList<AnalysisJobSample>() << AnalysisJobSample{"NA12123_04", "affected"} << AnalysisJobSample{"NA12345_01", "affected"});
 		folder = db.analysisJobFolder(5);
-		IS_TRUE(folder.endsWith("/test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/"));
+		IS_TRUE(folder.endsWith("test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/"));
 
 		//analysisJobGSvarFile
 		QString gsvar = db.analysisJobGSvarFile(1);
-		IS_TRUE(gsvar.endsWith("/test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar"));
+		IS_TRUE(gsvar.endsWith("test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar"));
 		gsvar = db.analysisJobGSvarFile(3);
-		IS_TRUE(gsvar.endsWith("/test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/NA12345_01-NA12878_03.GSvar"));
+		IS_TRUE(gsvar.endsWith("test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/NA12345_01-NA12878_03.GSvar"));
 		gsvar = db.analysisJobGSvarFile(4);
-		IS_TRUE(gsvar.endsWith("/test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/trio.GSvar"));
+		IS_TRUE(gsvar.endsWith("test/KontrollDNACoriell/Trio_NA12878_03_NA12123_04_NA12345_01/trio.GSvar"));
 		gsvar = db.analysisJobGSvarFile(5);
-		IS_TRUE(gsvar.endsWith("/test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/multi.GSvar"));
+		IS_TRUE(gsvar.endsWith("test/KontrollDNACoriell/Multi_NA12123_04_NA12345_01/multi.GSvar"));
 
 		//updateQC
 		db.updateQC(TESTDATA("data_in/qcml.obo"), false);
