@@ -123,7 +123,6 @@ private slots:
 			S_EQUAL(Helper::canonicalPath("/users/bioinf/file.txt"), "/users/bioinf/file.txt");
 			S_EQUAL(Helper::canonicalPath("/users/./bioinf/file.txt"), "/users/bioinf/file.txt");
 			S_EQUAL(Helper::canonicalPath("/users/klaus/../bioinf/file.txt"), "/users/bioinf/file.txt");
-			S_EQUAL(Helper::canonicalPath("\\\\some-server\\\\some-share\\some_file.txt"), "\\\\some-server\\some-share\\some_file.txt");
 		}
 	}
 };
