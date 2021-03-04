@@ -298,23 +298,11 @@ void RepeatExpansionWidget::loadSvgFiles()
     QDir re_svg_folder = QDir(QFileInfo(vcf_filename_).path() + "/repeat_expansions/");
     QStringList svg_filepaths = re_svg_folder.entryList(QStringList() << QFileInfo(vcf_filename_).baseName() + "_*.svg");
 
-//	qDebug() << re_svg_folder.path();
-//	qDebug() << svg_filepaths;
-
-	if (svg_filepaths.size() > 1)
-    {
-        foreach (const QString& svg, svg_filepaths)
-        {
-            QString repeat_name = QFileInfo(svg).baseName().split('_').last();
-			re_svg_files_.insert(repeat_name, re_svg_folder.path() + "/" + svg);
-            // debug
-//			qDebug() << repeat_name << " " << (re_svg_folder.path() + "/" + svg);
-        }
-    }
-    else
-    {
-       GUIHelper::showMessage("No SVGs found", "No REViewer SVGs found! Please reannotate the Sample.");
-    }
+	foreach (const QString& svg, svg_filepaths)
+	{
+		QString repeat_name = QFileInfo(svg).baseName().split('_').last();
+		re_svg_files_.insert(repeat_name, re_svg_folder.path() + "/" + svg);
+	}
 }
 
 
