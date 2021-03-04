@@ -275,6 +275,8 @@ struct CPPNGSDSHARED_EXPORT ProcessingSystemData
 	QString name;
 	QString name_short;
 	QString target_file;
+	QString target_gene_file; //Text file with one genes in target region (one gene per line)
+	QString target_amplicon_file; //amplicon file of target region
 	QString adapter1_p5;
 	QString adapter2_p7;
 	bool shotgun;

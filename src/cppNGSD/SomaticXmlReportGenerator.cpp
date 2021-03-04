@@ -180,7 +180,11 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			w.writeEndElement();
 		}
 
-		QString target_gene_file = target_file.mid(0, target_file.length()-4) + "_genes.txt";
+		QString target_gene_file = processing_system_data.target_gene_file;
+		if (test)
+		{
+			target_gene_file = target_file.left(target_file.length()-4) + "_genes.txt";
+		}
 		if( QFile::exists(target_gene_file) )
 		{
 			GeneSet target_genes = GeneSet::createFromFile(target_gene_file);

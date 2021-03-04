@@ -492,8 +492,7 @@ RtfTable SomaticReportHelper::createCnvTable()
 
 	//neccessary for filtering for target region
 	//create set with target genes
-	QString target_region = processing_system_data_.target_file;
-	GeneSet target_genes = GeneSet::createFromFile(target_region.left(target_region.size()-4) + "_genes.txt");
+	GeneSet target_genes = GeneSet::createFromFile(processing_system_data_.target_gene_file);
 	target_genes = db_.genesToApproved(target_genes);
 
 	int i_cnv_state = cnvs_.annotationIndexByName("state", false);
@@ -1131,8 +1130,7 @@ QByteArray SomaticReportHelper::cgiCancerTypeFromVariantList(const VariantList &
 QMap<QByteArray, BedFile> SomaticReportHelper::gapStatistics(const BedFile& region_of_interest)
 {
 	BedFile roi_inter;
-	ProcessingSystemData system_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_ps_));
-	roi_inter.load(system_data.target_file);
+	roi_inter.load(processing_system_data_.target_file);
 	roi_inter.intersect(region_of_interest);
 	roi_inter.merge();
 
@@ -1508,9 +1506,7 @@ void SomaticReportHelper::somaticCnvForQbic()
 		somatic_cnvs_qbic->close();
 		return;
 	}
-
-	QString target_region_processing_system = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(tumor_ps_)).target_file;
-	GeneSet target_genes = GeneSet::createFromFile(target_region_processing_system.left(target_region_processing_system.size()-4) + "_genes.txt");
+	GeneSet target_genes = GeneSet::createFromFile(processing_system_data_.target_gene_file);
 	NGSD db;
 	target_genes = db.genesToApproved(target_genes);
 
@@ -2332,7 +2328,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 
 	metadata.addRow(RtfTableRow({"MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3)), "Coverage Normal 100x:", qcml_data_normal.value("QC:2000030",true).toString().toUtf8() + " \%"} , {1550,3000,2250,3121} ));
 
-	GeneSet gene_set = GeneSet::createFromFile(processing_system_data_.target_file.left(processing_system_data_.target_file.size()-4) + "_genes.txt");
+	GeneSet gene_set = GeneSet::createFromFile(processing_system_data_.target_gene_file);
 	metadata.addRow(RtfTableRow({"Prozessierungssystem:",processing_system_data_.name.toUtf8() + " (" + QByteArray::number(gene_set.count()) + ")", "Durchschnittliche Tiefe Normal:", qcml_data_normal.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,3121}));
 
 	metadata.setUniqueFontSize(14);

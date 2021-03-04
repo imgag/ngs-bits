@@ -50,7 +50,7 @@ void ProcessingSystemWidget::updateGUI()
 		ui_.roi_bases->setText(QString::number(roi.baseCount(), 'f', 0));
 		ui_.roi_regions->setText(QString::number(roi.count(), 'f', 0));
 	}
-	QString genes_file = roi_file.left(roi_file.count()-4) + "_genes.txt";
+	QString genes_file = ps_data.target_gene_file;
 	if (QFile::exists(genes_file))
 	{
 		GeneSet roi_genes = GeneSet::createFromFile(genes_file);

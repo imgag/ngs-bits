@@ -686,6 +686,11 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 	output.name_short = query.value(1).toString();
 	output.type = query.value(2).toString();
 	output.target_file = getTargetFilePath(false) + query.value(3).toString();
+	QString target_base = output.target_file.left(output.target_file.length()-4);
+	QString amplicon_file =  target_base + "_amplicons.bed";
+	output.target_amplicon_file = QFile::exists(amplicon_file) ? amplicon_file : "";
+	QString gene_file = target_base + "_genes.txt";
+	output.target_gene_file = QFile::exists(gene_file) ? gene_file : "";
 	output.adapter1_p5 = query.value(4).toString();
 	output.adapter2_p7 = query.value(5).toString();
 	output.shotgun = query.value(6).toString()=="1";

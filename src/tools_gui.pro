@@ -14,6 +14,3 @@ cppNGSD.depends = cppCORE cppNGS
 
 SUBDIRS += GSvar
 GSvar.depends = cppGUI cppNGSD
-
-#other stuff
-OTHER_FILES += ToDos.txt
