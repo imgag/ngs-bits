@@ -13,6 +13,3 @@ cppNGS.depends = cppXML
 cppNGS-TEST.depends = cppNGS
 cppNGSD.depends = cppNGS
 cppNGSD-TEST.depends = cppNGSD
-
-
-OTHER_FILES += ToDos.txt

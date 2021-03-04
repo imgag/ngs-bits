@@ -800,7 +800,6 @@ void MainWindow::on_actionCNV_triggered()
 	if (variants_.type()==GERMLINE_SINGLESAMPLE)
 	{
 		QString mosaic_file = filename_.left(filename_.length()-6) + "_mosaic_cnvs.tsv";
-		qDebug() << mosaic_file;
 		if (QFile::exists(mosaic_file))
 		{
 			QStringList mosaic_data = Helper::loadTextFile(mosaic_file, false, '#', true);
