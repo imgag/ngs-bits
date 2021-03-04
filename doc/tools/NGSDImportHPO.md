@@ -1,11 +1,11 @@
 ### NGSDImportHPO tool help
-	NGSDImportHPO (2020_12-25-g719118fd)
+	NGSDImportHPO (2020_12-90-g14665103)
 	
 	Imports HPO terms and gene-phenotype relations into the NGSD.
 	
 	Mandatory parameters:
 	  -obo <file>     HPO ontology file from 'http://purl.obolibrary.org/obo/hp.obo'.
-	  -anno <file>    HPO annotations file from 'http://compbio.charite.de/jenkins/job/hpo.annotations/lastSuccessfulBuild/artifact/util/annotation/phenotype_to_genes.txt'
+	  -anno <file>    HPO annotations file from 'https://ci.monarchinitiative.org/view/hpo/job/hpo.annotations/lastSuccessfulBuild/artifact/rare-diseases/util/annotation/phenotype_to_genes.txt'
 	
 	Optional parameters:
 	  -omim <file>    OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.
@@ -28,7 +28,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportHPO changelog
-	NGSDImportHPO 2020_12-25-g719118fd
+	NGSDImportHPO 2020_12-90-g14665103
 	
 	2020-07-07 Added support of HGMD gene-phenotype relations.
 	2020-07-06 Added support for HGMD phenobase file.

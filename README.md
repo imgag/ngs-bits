@@ -16,17 +16,23 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
+* none so far.
+
+Changes in release 2021_03:
+
+* SeqPurge: fixed bug that could cause hanging in case of currupt input data.
+* VcfLeftNormalize: added option to steam the VCF if no compression is used.
+* ReadQC: can now merge and write input FASTQ files.
+* CnvHunter: is now deprecated - use [ClinCNV](http:://github.com/imgag/ClinCNV) instead.
+* BamClipOverlap: Fixed handling of reads with insertion-only CIGAR.
+* SampleSimilarity: improvements speed and memory usage.
+* MappingQC: Added metrics for GC/AT dropout and homogeneity of coverage.
 * NGSD:
-	* Added pseudogene-gene relation
-* GSvar:
-	* Added pseudogenes
+	* Added pseudogene-gene relation table
+	* Added more sample relations (twins, cousins, ...)
+	* Added gap table
 
 Changes in release 2020_12:
-
-* Added CRAM support.
-* NGSD:
-	* Added table for secondary analyses (trio, multi, somatic)
-	* Added support for studies, which can include samples from serveral projects.
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
