@@ -37,12 +37,18 @@ public:
 	RepeatExpansionWidget(QString vcf_filename, bool is_exome=false, QWidget *parent = 0);
 	~RepeatExpansionWidget();
 
+private slots:
+    ///Context menu that shall appear if right click on repeat expansion
+    void showContextMenu(QPoint pos);
 
 private:
 	void loadRepeatExpansionData();
+    void loadSvgFiles();
 	QString vcf_filename_;
 	bool is_exome_;
+    QMap<QString,QString> re_svg_files_;
 	Ui::RepeatExpansionWidget *ui_;
+
 };
 
 #endif // REPEATEXPANSIONWIDGET_H
