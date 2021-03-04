@@ -417,7 +417,7 @@ VariantScores::Result VariantScores::score_GSvar_V1_noNGSD(const VariantList& va
 	int i_genotye = affected_cols[0];
 
 	//prepare ROI for fast lookup
-	//TODO: test counting each phenotype ROI hit separatly OR using Germans model
+	//TODO: test counting each phenotype ROI hit separatly OR using Germans model (email 09.12.2020)
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
 	BedFile roi;
 	foreach(const BedFile& pheno_roi, phenotype_rois)

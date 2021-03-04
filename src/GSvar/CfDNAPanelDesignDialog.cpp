@@ -52,7 +52,7 @@ void CfDNAPanelDesignDialog::loadPreviousPanels(const DBTable& processing_system
 	{
 		// check if previous panel exists
 		QString processing_system = processing_systems.row(i).value(0);
-		QString output_path = Settings::string("patient_specific_panel_folder", false) + processing_system + "/" +  processed_sample_name_ + ".vcf";
+		QString output_path = Settings::path("patient_specific_panel_folder", false) + processing_system + "/" +  processed_sample_name_ + ".vcf";
 		if(QFile::exists(output_path)) previous_panel_files.append(output_path);
 	}
 
@@ -326,7 +326,7 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 void CfDNAPanelDesignDialog::loadGenes()
 {
 	// get all bed files in the genes folder
-	QDir gene_folder(Settings::string("patient_specific_panel_folder", false) + "genes/");
+	QDir gene_folder(Settings::path("patient_specific_panel_folder", false) + "genes/");
 	QStringList bed_file_paths = gene_folder.entryList(QStringList() << "*.bed" << "*.BED", QDir::Files);
 
 	// extract info
@@ -566,7 +566,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		}
 	}
 
-	QString output_path = Settings::string("patient_specific_panel_folder", false);
+	QString output_path = Settings::path("patient_specific_panel_folder", false);
 	output_path += ui_->cb_processing_system->currentText() + "/";
 
 	// create output folder if it not exists

@@ -554,13 +554,13 @@ void ProcessedSampleWidget::addBamToIgv()
 {
 	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
 
-	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(bam) + "\"");
+	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(bam) + "\"");
 }
 
 void ProcessedSampleWidget::addVariantsToIgv()
 {
 	QString vcf = NGSD().processedSamplePath(ps_id_, NGSD::VCF);
-	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(vcf) + "\"");
+	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(vcf) + "\"");
 }
 
 void ProcessedSampleWidget::addCnvsToIgv()
@@ -571,14 +571,14 @@ void ProcessedSampleWidget::addCnvsToIgv()
 	QString segfile = base_name + "_cnvs_clincnv.seg";
 	if (QFile::exists(segfile))
 	{
-		executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(segfile) + "\"");
+		executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(segfile) + "\"");
 	}
 	else
 	{
 		segfile = base_name + "_cnvs.seg";
 		if (QFile::exists(segfile))
 		{
-			executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(segfile) + "\"");
+			executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(segfile) + "\"");
 		}
 	}
 }
@@ -587,7 +587,7 @@ void ProcessedSampleWidget::addSvsToIgv()
 {
 	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
 	QString vcf = bam.left(bam.length()-4) + "_manta_var_structural.vcf.gz";
-	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(vcf) + "\"");
+	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(vcf) + "\"");
 }
 
 void ProcessedSampleWidget::addBafsToIgv()
@@ -595,7 +595,7 @@ void ProcessedSampleWidget::addBafsToIgv()
 	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
 	QString bafs = bam.left(bam.length()-4) + "_bafs.igv";
 
-	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(bafs) + "\"");
+	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(bafs) + "\"");
 }
 
 void ProcessedSampleWidget::addEvidenceBamToIgv()
@@ -603,7 +603,7 @@ void ProcessedSampleWidget::addEvidenceBamToIgv()
 	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
 	QString evidence_bam = GSvarHelper::getEvidenceFile(bam);
 
-	executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(evidence_bam) + "\"");
+	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(evidence_bam) + "\"");
 }
 
 void ProcessedSampleWidget::somRepDeleted()
