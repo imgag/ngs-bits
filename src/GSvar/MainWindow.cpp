@@ -797,32 +797,37 @@ void MainWindow::on_actionCNV_triggered()
 	addModelessDialog(dlg, true);
 
 	//mosaic CNVs
-	QFileInfo file_info = QFileInfo(filename_);
-	QString base = file_info.absolutePath() +  QDir::separator() + processedSampleName();
-	QString mosaic_file = base + "_mosaic_cnvs.tsv";
-	if (QFile::exists(mosaic_file))
+	if (variants_.type()==GERMLINE_SINGLESAMPLE)
 	{
-		QStringList mosaic_data = Helper::loadTextFile(mosaic_file, false, '#', true);
-		if (mosaic_data.count()>1)
+		QString mosaic_file = filename_.left(filename_.length()-6) + "_mosaic_cnvs.tsv";
+		qDebug() << mosaic_file;
+		if (QFile::exists(mosaic_file))
 		{
-			QPlainTextEdit* text_edit = new QPlainTextEdit(this);
-			text_edit->setReadOnly(true);
-			QString header = "CHR\tSTART\tEND\tCOPY NUMBER";
-			text_edit->appendPlainText(header);
-			for (int i=0; i<mosaic_data.count(); ++i)
+			QStringList mosaic_data = Helper::loadTextFile(mosaic_file, false, '#', true);
+			if (mosaic_data.count()>1)
 			{
-				if(mosaic_data[i].startsWith("#")) continue;
-				QStringList parts = mosaic_data[i].split("\t");
-				if(parts.length() < 4)
+				QPlainTextEdit* text_edit = new QPlainTextEdit(this);
+				text_edit->setReadOnly(true);
+				text_edit->setMinimumSize(450, 100);
+				text_edit->appendPlainText("#CHR\tSTART\tEND\tCOPY NUMBER");
+
+				foreach (const QString& line, mosaic_data)
 				{
-					QMessageBox::warning(this, "Mosaic CNV detection", "The CNV file can not be parsed!\n" + mosaic_file);
+					if(line.trimmed().isEmpty() || line.startsWith("#")) continue;
+
+					QStringList parts = line.split("\t");
+					if(parts.length()<4)
+					{
+						Log::warn("Mosaic CNV file '" + mosaic_file + "' has line with less than 4 elements: " + line);
+					}
+					else
+					{
+						text_edit->appendPlainText(parts.mid(0, 4).join("\t"));
+					}
 				}
-				QString line = parts[0] + "\t" + parts[1] + "\t" + parts[2] + "\t" + parts[3];
-				text_edit->appendPlainText(line);
+				auto dlg = GUIHelper::createDialog(text_edit, "Possible mosaic CNV(s) detected!");
+				dlg->exec();
 			}
-			text_edit->setMinimumSize(450, 100);
-			auto dlg = GUIHelper::createDialog(text_edit, "Mosaic CNVs detected!");
-			dlg->exec();
 		}
 	}
 }
@@ -1509,8 +1514,8 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	{
 		NGSD db;
 		ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(processedSampleName()));
-		QString amplicons = system_data.target_file.left(system_data.target_file.length()-4) + "_amplicons.bed";
-		if (QFile::exists(amplicons))
+		QString amplicons = system_data.target_amplicon_file;
+		if (amplicons!="")
 		{
 			dlg.addFile("amplicons track (of processing system)", "BED", amplicons, true);
 		}

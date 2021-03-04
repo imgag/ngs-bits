@@ -589,7 +589,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			if(entry.startsWith("AF="))
 			{
 				QByteArray value = entry.mid(3);
-				if (type==GERMLINE_TRIO || GERMLINE_MULTISAMPLE)
+				if (type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
 				{
 					int index = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
 					QByteArrayList parts = value.split(',');
@@ -601,7 +601,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			if(entry.startsWith("DP="))
 			{
 				QByteArray value = entry.mid(3);
-				if (type==GERMLINE_TRIO || GERMLINE_MULTISAMPLE)
+				if (type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
 				{
 					int index = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
 					QByteArrayList parts = value.split(',');
