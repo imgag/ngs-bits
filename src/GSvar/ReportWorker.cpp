@@ -18,7 +18,7 @@ void ReportWorker::process()
 	moveReport(temp_filename, filename_);
 
 	//copy HTML report to archive folder
-	QString archive_folder = Settings::string("gsvar_report_archive");
+	QString archive_folder = Settings::path("gsvar_report_archive");
 	if (archive_folder!="")
 	{
 		QString file_rep_copy = archive_folder + "\\" + QFileInfo(filename_).fileName();
@@ -33,7 +33,7 @@ void ReportWorker::process()
 	}
 
 	//generate XML report
-	QString gsvar_xml_folder = Settings::string("gsvar_xml_folder");
+	QString gsvar_xml_folder = Settings::path("gsvar_xml_folder");
 	if (gsvar_xml_folder!="")
 	{
 		temp_filename = Helper::tempFileName(".xml");

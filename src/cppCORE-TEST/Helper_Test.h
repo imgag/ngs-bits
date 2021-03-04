@@ -108,12 +108,21 @@ private slots:
 
 	void canonicalPath()
 	{
-		S_EQUAL(Helper::canonicalPath("C:/file.txt"), "C:\\file.txt");
-		S_EQUAL(Helper::canonicalPath("C:\\file.txt"), "C:\\file.txt");
-		S_EQUAL(Helper::canonicalPath("C://folder//file.bed"), "C:\\folder\\file.bed");
-		S_EQUAL(Helper::canonicalPath("C://.//file.bed"), "C:\\file.bed");
-		S_EQUAL(Helper::canonicalPath("C://ignore_me//../folder/file.bed"), "C:\\folder\\file.bed");
-		S_EQUAL(Helper::canonicalPath("C://ignore_me//..//ignore_me2//../folder/file.bed"), "C:\\folder\\file.bed");
-		S_EQUAL(Helper::canonicalPath("\\\\some-server\\\\some-share\\some_file.txt"), "\\\\some-server\\some-share\\some_file.txt");
+		if (Helper::isWindows())
+		{
+			S_EQUAL(Helper::canonicalPath("C:/file.txt"), "C:\\file.txt");
+			S_EQUAL(Helper::canonicalPath("C:\\file.txt"), "C:\\file.txt");
+			S_EQUAL(Helper::canonicalPath("C://folder//file.bed"), "C:\\folder\\file.bed");
+			S_EQUAL(Helper::canonicalPath("C://.//file.bed"), "C:\\file.bed");
+			S_EQUAL(Helper::canonicalPath("C://ignore_me//../folder/file.bed"), "C:\\folder\\file.bed");
+			S_EQUAL(Helper::canonicalPath("C://ignore_me//..//ignore_me2//../folder/file.bed"), "C:\\folder\\file.bed");
+			S_EQUAL(Helper::canonicalPath("\\\\some-server\\\\some-share\\some_file.txt"), "\\\\some-server\\some-share\\some_file.txt");
+		}
+		else //Unix
+		{
+			S_EQUAL(Helper::canonicalPath("/users/bioinf/file.txt"), "/users/bioinf/file.txt");
+			S_EQUAL(Helper::canonicalPath("/users/./bioinf/file.txt"), "/users/bioinf/file.txt");
+			S_EQUAL(Helper::canonicalPath("/users/klaus/../bioinf/file.txt"), "/users/bioinf/file.txt");
+		}
 	}
 };

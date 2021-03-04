@@ -228,7 +228,7 @@ void LovdUploadDialog::upload()
 			ui_.comment_upload->setText(lines.join("\n").replace("=", ": "));
 
 			//write report file to transfer folder
-			QString gsvar_publication_folder = Settings::string("gsvar_publication_folder");
+			QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
 			if (gsvar_publication_folder!="")
 			{
 				QString file_rep = gsvar_publication_folder + "/" + processed_sample + "_LOVD_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";

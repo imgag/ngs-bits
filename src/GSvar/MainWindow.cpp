@@ -220,7 +220,7 @@ MainWindow::MainWindow(QWidget *parent)
 	filewatcher_.setDelayInSeconds(10);
 
 	//if at home, use Patientenserver
-	QString gsvar_report_folder = Settings::string("gsvar_report_folder", true);
+	QString gsvar_report_folder = Settings::path("gsvar_report_folder", true);
 	if (gsvar_report_folder!="" && QDir(gsvar_report_folder).exists())
 	{
 		last_report_path_ = gsvar_report_folder;
@@ -800,6 +800,36 @@ void MainWindow::on_actionCNV_triggered()
 	connect(list, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants of " + processedSampleName());
 	addModelessDialog(dlg, true);
+
+	//mosaic CNVs
+	QFileInfo file_info = QFileInfo(filename_);
+	QString base = file_info.absolutePath() +  QDir::separator() + processedSampleName();
+	QString mosaic_file = base + "_mosaic_cnvs.tsv";
+	if (QFile::exists(mosaic_file))
+	{
+		QStringList mosaic_data = Helper::loadTextFile(mosaic_file, false, '#', true);
+		if (mosaic_data.count()>1)
+		{
+			QPlainTextEdit* text_edit = new QPlainTextEdit(this);
+			text_edit->setReadOnly(true);
+			QString header = "CHR\tSTART\tEND\tCOPY NUMBER";
+			text_edit->appendPlainText(header);
+			for (int i=0; i<mosaic_data.count(); ++i)
+			{
+				if(mosaic_data[i].startsWith("#")) continue;
+				QStringList parts = mosaic_data[i].split("\t");
+				if(parts.length() < 4)
+				{
+					QMessageBox::warning(this, "Mosaic CNV detection", "The CNV file can not be parsed!\n" + mosaic_file);
+				}
+				QString line = parts[0] + "\t" + parts[1] + "\t" + parts[2] + "\t" + parts[3];
+				text_edit->appendPlainText(line);
+			}
+			text_edit->setMinimumSize(450, 100);
+			auto dlg = GUIHelper::createDialog(text_edit, "Mosaic CNVs detected!");
+			dlg->exec();
+		}
+	}
 }
 
 void MainWindow::on_actionROH_triggered()
@@ -987,7 +1017,7 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 
 	// get files
 	QStringList processing_systems = NGSD().getValues("SELECT name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
-	QString folder = Settings::string("patient_specific_panel_folder", false);
+	QString folder = Settings::path("patient_specific_panel_folder", false);
 	QStringList bed_files;
 	QString selected_bed_file;
 
@@ -1517,14 +1547,14 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 			QStringList files_to_load = dlg.filesToLoad();
 			QStringList init_commands;
 			init_commands.append("new");
-			init_commands.append("genome " + Settings::string("igv_genome"));
+			init_commands.append("genome " + Settings::path("igv_genome"));
 
 			//load non-BAM files
 			foreach(QString file, files_to_load)
 			{
 				if (!file.endsWith(".bam"))
 				{
-					init_commands.append("load \"" + QDir::toNativeSeparators(file) + "\"");
+					init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 				}
 			}
 
@@ -1536,7 +1566,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 			{
 				if (file.endsWith(".bam"))
 				{
-					init_commands.append("load \"" + QDir::toNativeSeparators(file) + "\"");
+					init_commands.append("load \"" + Helper::canonicalPath(file) + "\"");
 				}
 			}
 
@@ -1602,7 +1632,7 @@ void MainWindow::openCustomIgvTrack()
 		QStringList parts = entry.trimmed().split("\t");
 		if(parts[0]==name)
 		{
-			executeIGVCommands(QStringList() << "load \"" + QDir::toNativeSeparators(parts[2]) + "\"");
+			executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(parts[2]) + "\"");
 		}
 	}
 }
@@ -2995,7 +3025,7 @@ void MainWindow::generateEvaluationSheet()
 	db.storeEvaluationSheetData(evaluation_sheet_data, true);
 
 	//get filename
-	QString folder = Settings::string("gsvar_variantsheet_folder");
+	QString folder = Settings::path("gsvar_variantsheet_folder");
 	QString filename = QFileDialog::getSaveFileName(this, "Store evaluation sheet",  folder + "/" + base_name + "_variant_sheet_" + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (filename.isEmpty()) return;
 
@@ -3292,7 +3322,7 @@ void MainWindow::generateReportSomaticRTF()
 			SomaticReportHelper report(variants_, cnvs_, somatic_control_tissue_variants_, somatic_report_settings_);
 
 			//Store XML file with the same somatic report configuration settings
-			QString gsvar_xml_folder = Settings::string("gsvar_xml_folder");
+			QString gsvar_xml_folder = Settings::path("gsvar_xml_folder");
 
 			try
 			{
@@ -4413,7 +4443,7 @@ void MainWindow::exportVCF()
 
 		//store
 		QFileInfo filename_info(filename_);
-		QString folder = Settings::string("gsvar_variant_export_folder", true).trimmed();
+		QString folder = Settings::path("gsvar_variant_export_folder", true).trimmed();
 		if (folder.isEmpty()) folder = filename_info.absolutePath();
 		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf.gz";
 		file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf.gz);;All files (*.*)");
@@ -4455,7 +4485,7 @@ void MainWindow::exportGSvar()
 
 		//store
 		QFileInfo filename_info(filename_);
-		QString folder = Settings::string("gsvar_variant_export_folder", true).trimmed();
+		QString folder = Settings::path("gsvar_variant_export_folder", true).trimmed();
 		if (folder.isEmpty()) folder = filename_info.absolutePath();
 		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".GSvar";
 		file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "GSvar (*.gsvar);;All files (*.*)");
@@ -5389,7 +5419,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 			igv_initialized_ = false;
 
 			//try to start IGV
-			QString igv_app = Settings::string("igv_app").trimmed();
+			QString igv_app = Settings::path("igv_app").trimmed();
 			if (igv_app.isEmpty())
 			{
 				THROW(Exception, "Could not start IGV: No settings entry for 'igv_app' found!");
