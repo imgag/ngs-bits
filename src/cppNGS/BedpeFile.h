@@ -6,6 +6,7 @@
 #include "Helper.h"
 #include "BedFile.h"
 #include "GeneSet.h"
+#include "VariantList.h"
 #include <QByteArrayList>
 #include <QMap>
 
@@ -131,7 +132,7 @@ public:
 
 	///Returns the value of a given FORMAT key:
 	///		(only for germline single samples)
-	QByteArray formatValueByKey(QByteArray format_key, const QList<QByteArray>& annotation_headers, bool error_on_mismatch=true, QByteArray format_header_name="FORMAT") const;
+    QByteArray formatValueByKey(QByteArray format_key, const QList<QByteArray>& annotation_headers, bool error_on_mismatch=true, QByteArray format_header_name="FORMAT", int sample_idx = 0) const;
 
 	///Returns the genes as GeneSet
 	GeneSet genes(const QList<QByteArray>& annotation_headers, bool error_on_mismatch=true) const;
@@ -163,7 +164,9 @@ enum BedpeFileFormat
 {
 	BEDPE_GERMLINE_SINGLE,
 	BEDPE_SOMATIC_TUMOR_ONLY,
-	BEDPE_SOMATIC_TUMOR_NORMAL
+	BEDPE_SOMATIC_TUMOR_NORMAL,
+    BEDPE_GERMLINE_MULTI,
+    BEDPE_GERMLINE_TRIO,
 };
 
 class CPPNGSSHARED_EXPORT BedpeFile
@@ -208,6 +211,12 @@ public:
 		return lines_[index];
 	}
 
+	///Append BedpeLine to BedpeFile
+	void append(const BedpeLine& line)
+	{
+		lines_.append(line);
+	}
+
     ///Remove structural variant from list at index.
     void removeAt(int index)
     {
@@ -228,6 +237,11 @@ public:
 		annotation_headers_ = annotation_headers;
 	}
 
+    ///returns the sample header info of multisample BEDPE files
+    const SampleHeaderInfo sampleHeaderInfo() const
+    {
+        return sample_header_info_;
+    }
 
 	QByteArray annotationDescriptionByName(QByteArray name)
 	{
@@ -259,13 +273,17 @@ public:
 	///Returns the index of the BedpeLine which matches the given SV, -1 if not found
 	///     NOTICE: 'deep_ins_compare' will perform a left-shift and a sequence comparison. In this case headers
 	///             of the given BedpeLine has to match the headers of this file
-	int findMatch(const BedpeLine& sv, bool deep_ins_compare = false, bool error_on_mismatch = true) const;
+	///		NOTICE: if 'compare_ci' is set to true, SVs which have overlapping confidence intervalls are also considered as match
+	///
+	int findMatch(const BedpeLine& sv, bool deep_ins_compare = false, bool error_on_mismatch = true, bool compare_ci=true) const;
 
 private:
+    void parseSampleHeaderInfo();
 	QList<QByteArray> annotation_headers_;
-	//annotation description in file header: ##DESCRIPTION=KEY=VALUE
+    /// annotation description in file header: ##DESCRIPTION=KEY=VALUE
 	QMap<QByteArray, QByteArray> annotation_descriptions_;
 	QList<QByteArray> comments_;
+    SampleHeaderInfo sample_header_info_; //contains sample info of trio/multisample
 	QList<BedpeLine> lines_;
 
 	///Returns all information fields with "NAME=" as list of QMAP containing key value pairs

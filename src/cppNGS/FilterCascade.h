@@ -842,12 +842,22 @@ class CPPNGSSHARED_EXPORT FilterSvRemoveChromosomeType
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };
 
-// Filter SVs for genotype
-class CPPNGSSHARED_EXPORT FilterSvGenotype
+// Filter SVs for genotype (control)
+class CPPNGSSHARED_EXPORT FilterSvGenotypeControl
 	: public FilterBase
 {
 	public:
-		FilterSvGenotype();
+		FilterSvGenotypeControl();
+		QString toText() const override;
+		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+// Filter SVs for genotype (affected)
+class CPPNGSSHARED_EXPORT FilterSvGenotypeAffected
+	: public FilterBase
+{
+	public:
+		FilterSvGenotypeAffected();
 		QString toText() const override;
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
 };
@@ -997,6 +1007,20 @@ class CPPNGSSHARED_EXPORT FilterSvAfNGSD
 		FilterSvAfNGSD();
 		QString toText() const override;
 		void apply(const BedpeFile& svs, FilterResult& result) const override;
+};
+
+//Trio sv filter
+class CPPNGSSHARED_EXPORT FilterSvTrio
+    : public FilterBase
+{
+    public:
+        FilterSvTrio();
+        QString toText() const override;
+        void apply(const BedpeFile& svs, FilterResult& result) const override;
+
+	protected:
+		QByteArray determineGenotype(const QByteArray& format_col, const QByteArray& data_col) const;
+
 };
 
 #endif // FILTERCASCADE_H

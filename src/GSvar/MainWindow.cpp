@@ -694,21 +694,26 @@ void MainWindow::on_actionSV_triggered()
 	{
 		//determine processed sample ID (needed for report config)
 		QString ps_id = "";
+		QSharedPointer<ReportConfiguration> report_config = nullptr;
 		if (germlineReportSupported())
 		{
 			ps_id = NGSD().processedSampleId(germlineReportSample(), false);
+			report_config = report_settings_.report_config;
 		}
 
 		//open SV widget
 		SvWidget* list;
 		if(svs_.isSomatic())
 		{
+			// somatic
 			list = new SvWidget(svs_, ps_id, ui_.filters, het_hit_genes, gene2region_cache_, this);
 		}
 		else
 		{
-			list = new SvWidget(svs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_, this);
+			// germline single, trio or multi sample
+			list = new SvWidget(svs_, ps_id, ui_.filters, report_config, het_hit_genes, gene2region_cache_, this);
 		}
+
 		auto dlg = GUIHelper::createDialog(list, "Structural variants of " + processedSampleName());
 		connect(list,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
 		connect(list,SIGNAL(openGeneTab(QString)),this,SLOT(openGeneTab(QString)));
@@ -5186,8 +5191,7 @@ bool MainWindow::germlineReportSupported()
 	//multi-sample only with at least one affected
 	if (type==GERMLINE_MULTISAMPLE && variants_.getSampleHeader().sampleColumns(true).count()>=1) return true;
 
-	return false;
-}
+	return false;}
 
 QString MainWindow::germlineReportSample()
 {
