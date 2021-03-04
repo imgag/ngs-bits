@@ -426,8 +426,6 @@
     <addaction name="separator"/>
     <addaction name="menuTrackDefaults"/>
     <addaction name="actionIgvPort"/>
-    <addaction name="separator"/>
-    <addaction name="actionIgvDocumentation"/>
    </widget>
    <widget class="QMenu" name="menuVariants">
     <property name="title">
@@ -452,6 +450,7 @@
      <addaction name="actionGenesToRegions"/>
      <addaction name="separator"/>
      <addaction name="actionPreferredTranscripts"/>
+     <addaction name="actionEditSomaticGeneRoles"/>
     </widget>
     <widget class="QMenu" name="menuPhenotypes_2">
      <property name="title">
@@ -545,7 +544,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionAnnotateSomaticVariants"/>
+   <addaction name="actionAnnotateSomaticVariantInterpretation"/>
    <addaction name="separator"/>
    <addaction name="actionSampleSearch"/>
    <addaction name="actionRunOverview"/>
@@ -897,7 +896,7 @@
     <string>Encrypt</string>
    </property>
   </action>
-  <action name="actionAnnotateSomaticVariants">
+  <action name="actionAnnotateSomaticVariantInterpretation">
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -909,7 +908,7 @@
     <string>AnnotateSomaticVariants</string>
    </property>
    <property name="toolTip">
-    <string>Annotate variant list with information from somatic GSvar file</string>
+    <string>(Re)annotate variant list with VICC data from NGSD</string>
    </property>
    <property name="visible">
     <bool>true</bool>
@@ -1255,6 +1254,11 @@
    </property>
    <property name="text">
     <string>Batch export for ClinVar</string>
+   </property>
+  </action>
+  <action name="actionEditSomaticGeneRoles">
+   <property name="text">
+    <string>Edit somatic gene roles</string>
    </property>
   </action>
   <action name="actionIgvDocumentation">

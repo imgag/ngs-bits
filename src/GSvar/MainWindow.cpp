@@ -535,10 +535,7 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
-		qDebug() << "in" << endl;
-		SomaticVariantInterpreterWidget *widget = new SomaticVariantInterpreterWidget(variants_[0], variants_, this);
-		auto dlg = GUIHelper::createDialog(widget, "Somatic Variant Interpretation");
-		dlg->exec();
+		;
 	}
 	else if (user=="ahstoht1")
 	{
@@ -2637,182 +2634,6 @@ void MainWindow::on_actionAbout_triggered()
 	QMessageBox::about(this, "About " + QCoreApplication::applicationName(), QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()+ "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits");
 }
 
-void MainWindow::on_actionAnnotateSomaticVariants_triggered()
-{
-	QApplication::setOverrideCursor(Qt::BusyCursor);
-
-	//Only germline files shall be annotated
-	if(variants_.type() != AnalysisType::GERMLINE_SINGLESAMPLE)
-	{
-		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this, "Annotation not possible", "Only single-sample germline variants lists can be annotated with data from somatic variant lists!");
-		return;
-	}
-
-	//Load somatic .GSvar file
-	QString path = Settings::path("path_variantlists", true);
-	QString filename = QFileDialog::getOpenFileName(this, "Select somatic variant list for annotation", path, "GSvar files (*.GSvar);;All files (*.*)");
-	if(filename == "")
-	{
-		QApplication::restoreOverrideCursor();
-		return;
-	}
-
-	VariantList somatic_variants;
-	somatic_variants.load(filename);
-	if(somatic_variants.type() != AnalysisType::SOMATIC_PAIR)
-	{
-		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this,"Could not annotate somatic variants", "Could not annotate variants because " + filename + " is no tumor-normal variant file.");
-		return;
-	}
-
-	//Get Indices of gene
-	int i_germline_gene = variants_.annotationIndexByName("gene",true,false);
-	int i_somatic_gene = somatic_variants.annotationIndexByName("gene",true,false);
-	//Indices of data to be annotated
-	int i_somatic_type = somatic_variants.annotationIndexByName("variant_type",true,false);
-	int i_somatic_af = somatic_variants.annotationIndexByName("tumor_af",true,false);
-	int i_somatic_dp = somatic_variants.annotationIndexByName("tumor_dp",true,false);
-	int i_somatic_cgi_driver_statement = somatic_variants.annotationIndexByName("CGI_driver_statement",true,false);
-
-	//Add empty annotation column
-	QByteArray somatic_prefix = QFileInfo(filename).baseName().toUtf8();
-	int i_germline_annot_type = variants_.addAnnotationIfMissing(somatic_prefix + "_somatic_variants","semicolon-separated SNPs in the same gene from the somatic file. genomic_alteration:variant_type:tumor_af:tumor_dp:CGI_driver_statement","");
-
-	//abort if there is a missing column
-	if(i_germline_gene == -1 || i_somatic_gene == -1 || i_somatic_type == -1 || i_somatic_af == -1 || i_somatic_dp == -1)
-	{
-		QApplication::restoreOverrideCursor();
-		return;
-	}
-
-	NGSD db;
-	//Annotate variants per genes
-	for(int i=0;i<variants_.count();++i)
-	{
-		//SNPs are annotated by gene: Make sure gene names are up-to-date
-		GeneSet germline_genes = db.genesToApproved(GeneSet::createFromText(variants_[i].annotations().at(i_germline_gene),','),true);
-
-		QByteArray annotation = "";
-
-		for(int j=0;j<somatic_variants.count();++j)
-		{
-			GeneSet somatic_genes = db.genesToApproved(GeneSet::createFromText(somatic_variants[j].annotations().at(i_somatic_gene),','),true);
-
-			foreach(QByteArray gene, somatic_genes)
-			{
-				//If genes match annotate info ":"-separated, ";" separated for multiple variants in the gene
-				if(germline_genes.contains(gene))
-				{
-					QByteArray pos = somatic_variants[j].chr().str() + "_" + QByteArray::number(somatic_variants[j].start()) + "_" + QByteArray::number(somatic_variants[j].end()) + "_" + somatic_variants[j].ref() + "_" + somatic_variants[j].obs();
-					annotation.append(pos + ":");
-
-					annotation.append(somatic_variants[j].annotations().at(i_somatic_type) + ":");
-					annotation.append(somatic_variants[j].annotations().at(i_somatic_af) + ":");
-					annotation.append(somatic_variants[j].annotations().at(i_somatic_dp));
-					if(i_somatic_cgi_driver_statement != -1)
-					{
-						annotation.append(":" + somatic_variants[j].annotations().at(i_somatic_cgi_driver_statement));
-					}
-
-					annotation.append(';');
-					break;
-				}
-			}
-		}
-
-		//Remove last ";" in annotation text
-		int i_last_char = annotation.lastIndexOf(";",-1);
-		if(i_last_char > -1 && annotation.at(i_last_char) == ';')
-		{
-			annotation.truncate(i_last_char);
-		}
-		if(annotation == "") continue;
-
-		variants_[i].annotations()[i_germline_annot_type] = annotation;
-	}
-
-
-	//Annotate cnvs
-	QStringList cnv_files = Helper::findFiles(QFileInfo(filename).absolutePath(), "*_clincnv.tsv", false);
-
-	bool skip_cnv_annotation = false;
-
-	if(cnv_files.count() != 1)
-	{
-		QMessageBox::warning(this,"No ClinCNV file", "No or multiple ClinCNV files in somatic sample folder detected. Skipping somatic CNV annotation");
-		skip_cnv_annotation = true;
-	}
-
-	CnvList cnvs;
-	try
-	{
-		cnvs.load(cnv_files[0]);
-	}
-	catch(...)
-	{
-		QMessageBox::warning(this,"CliNCNV file","Could not parse ClinCNV file. Skipping somatic CNV annotation.");
-		skip_cnv_annotation = true;
-	}
-
-	int i_cn_change = cnvs.annotationIndexByName("tumor_CN_change", false);
-	int i_tumor_clonality = cnvs.annotationIndexByName("tumor_clonality", false);
-	int i_cgi_driver_statement = cnvs.annotationIndexByName("CGI_driver_statement", false);
-	int i_cgi_genes = cnvs.annotationIndexByName("CGI_genes", false);
-	if(i_cn_change == -1 || i_tumor_clonality == -1 || i_cgi_driver_statement == -1)
-	{
-		QMessageBox::warning(this,"CNV file outdated","Could not find all neccessary columns in ClinCNV file. Aborting CNV annotation");
-		skip_cnv_annotation = true;
-	}
-
-	if(!skip_cnv_annotation)
-	{
-		int i_germline_annot_cnvs = variants_.addAnnotationIfMissing(somatic_prefix + "_somatic_cnvs","CNVs from somatic file that overlap SNP. tumor_CN_change:tumor_clonality:CGI_driver_statement");
-
-		for(int i=0; i<variants_.count(); ++i)
-		{
-			auto& snv = variants_[i];
-
-			QList<QByteArray> germline_genes = variants_[i].annotations().at(i_germline_gene).split(',');
-			QByteArrayList annotations;
-
-			for(int j=0; j<cnvs.count(); ++j)
-			{
-				if(cnvs[j].overlapsWith(snv.chr(),snv.start(),snv.end()))
-				{
-					annotations << cnvs[j].annotations().at(i_cn_change) + ":" + cnvs[j].annotations().at(i_tumor_clonality);
-
-					QList<QByteArray> somatic_genes = cnvs[j].annotations().at(i_cgi_genes).split(',');
-
-					QByteArrayList driver_statements = cnvs[j].annotations().at(i_cgi_driver_statement).split(',');
-
-					QByteArrayList driver_statements_annotated = {};
-
-					for(const auto& germline_gene : germline_genes)
-					{
-						for(int k = 0; k < somatic_genes.count(); ++k)
-						{
-							if(db.geneToApproved(germline_gene,true) == db.geneToApproved(somatic_genes[k],true))
-							{
-								driver_statements_annotated << driver_statements[k];
-							}
-						}
-					}
-					if(!driver_statements_annotated.empty()) annotations << driver_statements_annotated.join();
-				}
-			}
-			snv.annotations()[i_germline_annot_cnvs] = annotations.join(":");
-		}
-	}
-
-	QApplication::restoreOverrideCursor();
-	QMessageBox::information(this,"Success","Somatic variants from " + filename + " were annotated successfully.");
-
-	//mark variant list as changed
-	markVariantListChanged();
-}
-
 void MainWindow::loadReportConfig()
 {
 	//check if applicable
@@ -3303,14 +3124,6 @@ void MainWindow::generateReportSomaticRTF()
 		//generate somatic DNA report
 		try
 		{
-			//check CGI columns are present
-			if(!SomaticReportHelper::checkRequiredSNVAnnotations(variants_))
-			{
-				QApplication::restoreOverrideCursor();
-				QMessageBox::warning(this,"Somatic report", "DNA report cannot be created because GSVar-file does not contain NCG, CGI or somatic_classification annotation columns.");
-				return;
-			}
-
 			if(!SomaticReportHelper::checkGermlineSNVFile(somatic_control_tissue_variants_))
 			{
 				QApplication::restoreOverrideCursor();
@@ -3374,7 +3187,7 @@ void MainWindow::generateReportSomaticRTF()
 		try
 		{
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
-			SomaticRnaReport rna_report(variants_, ui_.filters->filters(), cnvs_, dlg.getRNAid());
+			SomaticRnaReport rna_report(variants_, ui_.filters->filters(), cnvs_, dlg.getRNAid(), somatic_report_settings_.tumor_ps, somatic_report_settings_.normal_ps);
 			rna_report.checkRefTissueTypeInNGSD(rna_report.refTissueType(variants_),somatic_report_settings_.tumor_ps);
 			rna_report.writeRtf(temp_filename);
 			ReportWorker::moveReport(temp_filename, file_rep);
@@ -4518,6 +4331,13 @@ void MainWindow::on_actionPreferredTranscripts_triggered()
 	GSvarHelper::preferredTranscripts(true);
 }
 
+void MainWindow::on_actionEditSomaticGeneRoles_triggered()
+{
+	DBTableAdministration* table = new DBTableAdministration("somatic_gene_role");
+	auto dlg = GUIHelper::createDialog(table, "Somatic Gene Roles");
+	addModelessDialog(dlg);
+}
+
 void MainWindow::on_actionOpenDocumentation_triggered()
 {
 	QDesktopServices::openUrl(QUrl("https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/index.md"));
@@ -5262,12 +5082,54 @@ void MainWindow::updateSomaticVariantInterpretationAnno(const Variant& var, QStr
 
 	filewatcher_.clearFile(); //disable file watcher for GSVar file
 
-	variants_.store(filename_);
+	try
+	{
+		variants_.store(filename_);
+	}
+	catch(FileAccessException e)
+	{
+		QMessageBox::warning(this, "Write to file", "Could not write changes of VICC configuration to Gsvar file. Message: " + e.message());
+	}
+
 	//update details widget and filtering
 	ui_.variant_details->updateVariant(variants_, index);
 	refreshVariantTable();
 
 	filewatcher_.setFile(filename_); //activate filewatcher for GSvar file again
+}
+
+void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
+{
+	if(!LoginManager::active()) return;
+
+	int i_vicc = variants_.addAnnotationIfMissing("NGSD_som_vicc_interpretation", "Somatic variant interpretation according VICC standard in the NGSD.", "");
+	int i_vicc_comment = variants_.addAnnotationIfMissing("NGSD_som_vicc_comment", "Somatic VICC interpretation comment in the NGSD.", "");
+
+	NGSD db;
+	for(int i=0; i<variants_.count(); ++i)
+	{
+		if(db.getSomaticViccId(variants_[i]) == -1) continue;
+
+		SomaticViccData vicc_data = db.getSomaticViccData(variants_[i]);
+		variants_[i].annotations()[i_vicc] = SomaticVariantInterpreter::viccScoreAsString(vicc_data).toUtf8();
+		variants_[i].annotations()[i_vicc_comment] = vicc_data.comment.toUtf8();
+	}
+
+	filewatcher_.clearFile(); //temporarily disable file watcher for GSVar file
+
+	try
+	{
+		variants_.store(filename_);
+	}
+	catch(FileAccessException e)
+	{
+		QMessageBox::warning(this, "Write to file", "Could not write changes of VICC configuration to Gsvar file. Message: " + e.message());
+	}
+
+	//update details widget and filtering
+	refreshVariantTable();
+
+	filewatcher_.setFile(filename_); //reactivate filewatcher for GSvar file again
 }
 
 QString MainWindow::cnvFile(QString gsvar_file)

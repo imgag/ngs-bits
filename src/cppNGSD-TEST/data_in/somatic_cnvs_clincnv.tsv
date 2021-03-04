@@ -14,7 +14,7 @@
 ##DESCRIPTION=ncg_tsg=1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column CGI_genes.
 ##DESCRIPTION=cytoband=Cytobands that are affected by CNV.
 #chr	start	end	sample	size	tumor_CN_change	state	major_CN_allele	minor_CN_allele	tumor_clonality	CN_change	loglikelihood	number_of_regions	genes	Ontarget_RD_CI_lower	Ontarget_RD_CI_upper	Offtarget_RD_CI_lower	Offtarget_RD_CI_upper	Lowmed_tumor_BAF	Highmed_tumor_BAF	BAF_qval_fdr	Overall_qvalue	cnv_type	CGI_genes	CGI_driver_statement	CGI_gene_role	ncg_oncogene	ncg_tsg	cytoband
-chr1	32097627	32860246	DX184894_01-DX184263_01	762620	3	AMP	2	1	0.775	2.775	191	8	EPRS	NA	NA	2.43	2.99	NA	NA	NA	0	cluster	EPRS	predicted driver	Act	1	0	p35.1,p35.2
-chr8	3489730	4474360	DX184894_01-DX184263_01	984631	1	DEL	1	0	0.775	1.225	408	11	QARS1	NA	NA	1.02	1.35	NA	NA	NA	0	focal	QARS1	known in: CANCER	ambiguous	0	1	p23.2
-chr9	129905875	130616939	DX184894_01-DX184263_01	711065	3	AMP	2	1	0.75	2.75	291	7	FOXP1,DAZ1	NA	NA	2.61	3.06	NA	NA	NA	0	cluster	FOXP1,DAZ1	predicted driver,predicted passenger	Act,ambiguous	na,1	na,0	q33.3,q34.11
-chr11	26582421	27694430	DX184894_01-DX184263_01	1112010	3	AMP	2	1	0.775	2.775	248	11	SPEN,MTHFR	NA	NA	2.51	3.19	NA	NA	NA	0	cluster	SPEN,MTHFR	predicted passenger,predicted passenger	ambiguous,ambiguous	na,na	na,na	p14.1,p14.2
+chr1	32097627	32860246	DX184894_01-DX184263_01	762620	3	AMP	2	1	0.775	2.775	191	8	EPRS	NA	NA	2.43	2.99	NA	NA	NA	0	cluster	EPRS	predicted driver	Act			p35.1,p35.2
+chr8	3489730	4474360	DX184894_01-DX184263_01	984631	1	DEL	1	0	0.775	1.225	408	11	QARS1	NA	NA	1.02	1.35	NA	NA	NA	0	focal	QARS1	known in: CANCER	ambiguous		QARS1	p23.2
+chr9	129905875	130616939	DX184894_01-DX184263_01	711065	3	AMP	2	1	0.75	2.75	291	7	FOXP1,DAZ1	NA	NA	2.61	3.06	NA	NA	NA	0	cluster	FOXP1,DAZ1	predicted driver,predicted passenger	Act,ambiguous	DAZ1		q33.3,q34.11
+chr11	26582421	27694430	DX184894_01-DX184263_01	1112010	3	AMP	2	1	0.775	2.775	248	11	SPEN,MTHFR	NA	NA	2.51	3.19	NA	NA	NA	0	cluster	SPEN,MTHFR	predicted passenger,predicted passenger	ambiguous,ambiguous			p14.1,p14.2

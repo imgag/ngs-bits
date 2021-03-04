@@ -38,13 +38,15 @@ public:
 		}
 	}
 
-	void updateGeneinfoGermline(NGSD& db)
+
+	//Update gene symbols in table with table_name. name for gene symbol column must be "symboL"
+	void updateTable(NGSD& db, QString table_name)
 	{
 		QTextStream out(stdout);
-		out << "Updating entries in geneinfo_germline table..." << endl;
+		out << "Updating entries in " + table_name + " table..." << endl;
 		//get all gene names
 		SqlQuery query = db.getQuery();
-		query.exec("SELECT symbol FROM geneinfo_germline");
+		query.exec("SELECT symbol FROM " + table_name);
 		QSet<QString> genes;
 		while (query.next())
 		{
@@ -60,26 +62,25 @@ public:
 
 			if (approved.second.startsWith("ERROR:"))
 			{
-				query.exec("DELETE FROM `geneinfo_germline` WHERE symbol='" + gene + "'");
+				query.exec("DELETE FROM `" + table_name + "` WHERE symbol='" + gene + "'");
 				++c_del;
 			}
 			if (approved.second.startsWith("REPLACED:"))
 			{
 				if (genes.contains(approved.first))
 				{
-					query.exec("DELETE FROM `geneinfo_germline` WHERE symbol='" + gene + "'");
+					query.exec("DELETE FROM `" + table_name + "` WHERE symbol='" + gene + "'");
 					++c_del;
 				}
 				else
 				{
-					query.exec("UPDATE geneinfo_germline SET symbol='" + approved.first + "' WHERE symbol='" + gene + "'");
+					query.exec("UPDATE " + table_name +" SET symbol='" + approved.first + "' WHERE symbol='" + gene + "'");
 					++c_upd;
 				}
 			}
 		}
 		out << "  updated  " << c_upd << " entries" << endl;
 		out << "  deleted  " << c_del << " entries" << endl;
-
 	}
 
 	virtual void main()
@@ -152,8 +153,9 @@ public:
 			addAliases(alias_query, gene_id, parts[8], "synonym");
 		}
 
-		//update gene symbols in geneinfo_germline table
-		updateGeneinfoGermline(db);
+		//update gene symbols in geneinfo_germline and somatic_gene_role table
+		updateTable(db, "geneinfo_germline");
+		updateTable(db, "somatic_gene_role");
 	}
 };
 

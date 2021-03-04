@@ -2036,7 +2036,10 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 							info.fk_name_sql = "(SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM sample s, processed_sample ps WHERE ps.id=processed_sample.id AND s.id=ps.sample_id)";
 						}
 					}
-					else if (table=="sample_relations")
+					else if (table=="somatic_gene_role")
+					{
+						if(info.name == "gene_id") info.fk_name_sql = "symbol";
+					}
 					{
 						if (info.name=="sample1_id")
 						{
@@ -2583,6 +2586,125 @@ void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vic
 	}
 }
 
+int NGSD::getSomaticGeneRoleId(QByteArray gene_symbol)
+{
+	QString query ="SELECT somatic_gene_role.id FROM somatic_gene_role WHERE symbol = '" + geneToApproved(gene_symbol, true) + "'";
+	QVariant id = getValue(query, true);
+	return id.isValid() ? id.toInt() : -1;
+}
+
+SomaticGeneRole NGSD::getSomaticGeneRole(QByteArray gene, bool throw_on_fail)
+{
+	SqlQuery query = getQuery();
+
+	//Initialize output without gene symbol (in case it fails and method shall not throw error)
+	SomaticGeneRole out;
+
+
+	int gene_role_id = getSomaticGeneRoleId(gene);
+	if(gene_role_id == -1)
+	{
+		if(throw_on_fail)
+		{
+			THROW(DatabaseException, "There is no somatic gene role for gene symbol '" + gene + "' in the NGSD.") ;
+		}
+		else
+		{
+			return out; //return empty data
+		}
+	}
+
+	query.prepare("SELECT gene_role, high_evidence, comment FROM somatic_gene_role WHERE somatic_gene_role.id = " + QByteArray::number(gene_role_id));
+	query.exec();
+
+	if(query.size() != 1)
+	{
+		if(throw_on_fail)
+		{
+			THROW(DatabaseException, "Could not or found multiple somatic gene roles for " + gene);
+		}
+		else
+		{
+			return out; //return empty data
+		}
+	}
+
+
+	query.next();
+
+	out.gene = gene;
+
+	//set gene role
+	if(query.value(0).toString() == "activating") out.role = SomaticGeneRole::Role::ACTIVATING;
+	else if(query.value(0).toString() == "loss_of_function") out.role = SomaticGeneRole::Role::LOSS_OF_FUNCTION;
+	else if(query.value(0).toString() == "ambiguous") out.role = SomaticGeneRole::Role::AMBIGUOUS;
+	else THROW(DatabaseException, "Unknown gene role '" + query.value(0).toString() + "' in relation 'somatic_gene_role'.");
+
+	//evidence
+	out.high_evidence = query.value(1).toBool();
+
+	out.comment = query.value(2).toString();
+
+
+	return out;
+}
+
+void NGSD::setSomaticGeneRole(const SomaticGeneRole& gene_role)
+{
+	QByteArray symbol = geneToApproved(gene_role.gene);
+
+	if(geneToApprovedID(symbol) == -1)
+	{
+		THROW(DatabaseException, "Could not find gene symbol '" + symbol + "' in the NGSD in NGSD::setSomaticGeneRole!");
+	}
+
+	int gene_role_id = getSomaticGeneRoleId(symbol);
+
+	SqlQuery query = getQuery();
+
+	if(gene_role_id != -1) //update existing
+	{
+		query.prepare("UPDATE `somatic_gene_role` SET  `gene_role`=:0, `high_evidence`=:1, `comment`=:2 WHERE `id` = " + QByteArray::number(gene_role_id));
+
+		if(gene_role.role == SomaticGeneRole::Role::ACTIVATING) query.bindValue(0, "activating");
+		else if(gene_role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION) query.bindValue(0, "loss_of_function");
+		else query.bindValue(0, "ambiguous");
+
+		query.bindValue(1, gene_role.high_evidence);
+		if(!gene_role.comment.isEmpty()) query.bindValue(2, gene_role.comment);
+		else query.bindValue(2, QVariant::String);
+
+		query.exec();
+	}
+	else //insert new somatic gene role
+	{
+		query.prepare("INSERT INTO somatic_gene_role (symbol, gene_role, high_evidence, comment) VALUES (:0, :1, :2, :3)");
+		query.bindValue(0, symbol);
+		if(gene_role.role == SomaticGeneRole::Role::ACTIVATING) query.bindValue(1, "activating");
+		else if(gene_role.role == SomaticGeneRole::Role::LOSS_OF_FUNCTION) query.bindValue(1, "loss_of_function");
+		else query.bindValue(1, "ambiguous");
+
+		query.bindValue(2, gene_role.high_evidence);
+		if(!gene_role.comment.isEmpty()) query.bindValue(3, gene_role.comment);
+		else query.bindValue(3, QVariant::String);
+
+		query.exec();
+	}
+
+}
+
+void NGSD::deleteSomaticGeneRole(QByteArray gene)
+{
+	int id = getSomaticGeneRoleId(gene);
+	if(id == -1)
+	{
+		THROW(ProgrammingException, "Cannot delete somatic gene role for gene symbol '" + gene + "' because it does not exist in NGSD::deleteSomaticGeneRole");
+	}
+
+	SqlQuery query = getQuery();
+	query.exec("DELETE FROM somatic_gene_role WHERE id = " + QByteArray::number(id));
+
+}
 
 
 void NGSD::addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details)

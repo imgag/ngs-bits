@@ -377,18 +377,15 @@
 														<xs:documentation>HGNC gene identifer</xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
-												<xs:attribute name="effect">
+												<xs:attribute name="role">
 													<xs:annotation>
-														<xs:documentation>Effect of the variant on the gene</xs:documentation>
+														<xs:documentation>Role of the gene in cancer.</xs:documentation>
 													</xs:annotation>
 													<xs:simpleType>
 														<xs:restriction base="xs:string">
 															<xs:enumeration value="activating"/>
-															<xs:enumeration value="likely_activating"/>
-															<xs:enumeration value="likely_inactivating"/>
-															<xs:enumeration value="inactivating"/>
-															<xs:enumeration value="unclear"/>
-															<xs:enumeration value="test_dependent"/>
+															<xs:enumeration value="loss_of_function"/>
+															<xs:enumeration value="ambiguous"/>
 														</xs:restriction>
 													</xs:simpleType>
 												</xs:attribute>
@@ -527,6 +524,20 @@
 											<xs:documentation>Normal sample depth</xs:documentation>
 										</xs:annotation>
 									</xs:attribute>
+									<xs:attribute name="effect">
+										<xs:annotation>
+											<xs:documentation>Effect of the variant according VICC standard.</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="oncogenic"/>
+												<xs:enumeration value="likely_oncogenic"/>
+												<xs:enumeration value="uncertain_significance"/>
+												<xs:enumeration value="likely_benign"/>
+												<xs:enumeration value="benign"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
 						</xs:sequence>
@@ -588,6 +599,18 @@
 													<xs:annotation>
 														<xs:documentation>HGNC gene identifer</xs:documentation>
 													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="role">
+													<xs:annotation>
+														<xs:documentation>Role of the gene in cancer.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="activating"/>
+															<xs:enumeration value="loss_of_function"/>
+															<xs:enumeration value="ambiguous"/>
+														</xs:restriction>
+													</xs:simpleType>
 												</xs:attribute>
 											</xs:complexType>
 										</xs:element>

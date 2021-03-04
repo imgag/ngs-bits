@@ -1831,13 +1831,91 @@ private slots:
 		I_EQUAL(new_vicc_result.synonymous_mutation, SomaticViccData::State::VICC_TRUE);
 		S_EQUAL(new_vicc_result.comment, "This is a benign somatic variant.");
 
-		I_EQUAL(db.getSomaticViccId(Variant("chr17", 59763465, 59763465, "T", "C")), 3);
+		I_EQUAL(db.getSomaticViccId(Variant("chr17", 59763465, 59763465, "T", "C")), 5); //id of new inserted vicc data set is 5 in TEST-NGSD
 
 
 		//When updating one variant, all other data sets must not change (test case initially created for Bugfix)
 		db.setSomaticViccData(Variant("chr17", 59763465, 59763465, "T", "C"), new_vicc_data, "ahkerra1");
 		SomaticViccData vicc_data3 = db.getSomaticViccData( Variant("chr15", 43707808, 43707808, "A", "T") );
 		S_EQUAL(vicc_data3.comment, vicc_data2.comment);
+
+
+
+		//somatic CNV gene role
+		I_EQUAL(db.getSomaticGeneRoleId("EPRS"), 3);
+		I_EQUAL(db.getSomaticGeneRoleId("BRCA2"), 1);
+		I_EQUAL(db.getSomaticGeneRoleId("PTGS2"), 2);
+		I_EQUAL(db.getSomaticGeneRoleId("FOXP1"), -1);
+		I_EQUAL(db.getSomaticGeneRoleId("ASDFJKL"), -1);
+
+
+		IS_THROWN(DatabaseException, db.getSomaticGeneRole("FOXP1", true));
+		IS_THROWN(DatabaseException, db.getSomaticGeneRole("ASDFJKL", true));
+
+		SomaticGeneRole gene_role_res1 =  db.getSomaticGeneRole("PTGS2", true);
+		S_EQUAL(gene_role_res1.gene, "PTGS2");
+		I_EQUAL(gene_role_res1.role, SomaticGeneRole::Role::AMBIGUOUS);
+		IS_FALSE(gene_role_res1.high_evidence);
+		S_EQUAL(gene_role_res1.comment, "comment on gene");
+
+		SomaticGeneRole gene_role_res2 = db.getSomaticGeneRole("BRCA2");
+		S_EQUAL(gene_role_res2.gene, "BRCA2");
+		I_EQUAL(gene_role_res2.role, SomaticGeneRole::Role::LOSS_OF_FUNCTION);
+		IS_TRUE(gene_role_res2.high_evidence);
+		S_EQUAL(gene_role_res2.comment, "test comment");
+
+		SomaticGeneRole gene_role_res3= db.getSomaticGeneRole("EPRS");
+		S_EQUAL(gene_role_res3.gene, "EPRS");
+		I_EQUAL(gene_role_res3.role, SomaticGeneRole::Role::ACTIVATING);
+		IS_TRUE(gene_role_res3.high_evidence);
+		S_EQUAL(gene_role_res3.comment, "");
+
+		SomaticGeneRole gene_role_res4 = db.getSomaticGeneRole("ASDFJKL"); //empty
+		S_EQUAL(gene_role_res4.gene, "");
+
+
+		//Update gene Roles
+		gene_role_res1.role = SomaticGeneRole::Role::ACTIVATING;
+		gene_role_res1.high_evidence = true;
+		gene_role_res1.comment = "comment update";
+		db.setSomaticGeneRole(gene_role_res1);
+		gene_role_res1 =  db.getSomaticGeneRole("PTGS2", true);
+		S_EQUAL(gene_role_res1.gene, "PTGS2");
+		I_EQUAL(gene_role_res1.role, SomaticGeneRole::Role::ACTIVATING);
+		IS_TRUE(gene_role_res1.high_evidence);
+		S_EQUAL(gene_role_res1.comment, "comment update");
+		I_EQUAL(db.getSomaticGeneRoleId("PTGS2"), 2);
+
+		//insert new gene roles: gene symbol does not exist
+		SomaticGeneRole role_for_ins1;
+		role_for_ins1.gene = "NOTEXISTING";
+		role_for_ins1.high_evidence = true;
+		role_for_ins1.role = SomaticGeneRole::Role::AMBIGUOUS;
+		IS_THROWN(DatabaseException, db.setSomaticGeneRole(role_for_ins1));
+
+		//insert new gene role
+		SomaticGeneRole role_for_ins2;
+		role_for_ins2.gene = "FOXP1";
+		role_for_ins2.role = SomaticGeneRole::Role::ACTIVATING;
+		role_for_ins2.comment = "newly inserted test role";
+		db.setSomaticGeneRole(role_for_ins2);
+		SomaticGeneRole gene_role_res5 = db.getSomaticGeneRole("FOXP1");
+		S_EQUAL(gene_role_res5.gene, "FOXP1");
+		I_EQUAL(gene_role_res5.role, SomaticGeneRole::Role::ACTIVATING);
+		IS_FALSE(gene_role_res5.high_evidence);
+		S_EQUAL(gene_role_res5.comment, "newly inserted test role");
+		I_EQUAL(db.getSomaticGeneRoleId("FOXP1"), 4);
+
+
+		//delete gene role
+		IS_THROWN( ProgrammingException, db.deleteSomaticGeneRole("NONEXISTING") );
+		IS_THROWN( ProgrammingException, db.deleteSomaticGeneRole("SUFU") );
+
+		db.deleteSomaticGeneRole("PTGS2");
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT id FROM somatic_gene_role"); //3 remaining rows
+		I_EQUAL(query.size(), 3 );
+		I_EQUAL(-1, db.getSomaticGeneRoleId("PTGS2"));
 	}
 
 

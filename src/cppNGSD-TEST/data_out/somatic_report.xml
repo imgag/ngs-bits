@@ -32,7 +32,7 @@
         <Gene name="SPEN" id="HGNC:17575"/>
     </TargetRegion>
     <VariantList>
-        <Variant chr="chr2" start="178096717" end="178096717" ref="T" obs="C" af_tumor="0.1057" depth_tumor="389" af_normal="0.0000" depth_normal="603">
+        <Variant chr="chr2" start="178096717" end="178096717" ref="T" obs="C" af_tumor="0.1057" depth_tumor="389" af_normal="0.0000" depth_normal="603" effect="benign">
             <Gene name="NFE2L2" id=""/>
             <TranscriptInformation transcript_id="ENST00000397062" gene="NFE2L2" type="missense_variant" hgvs_c="c.614A&gt;G" hgvs_p="p.Asp205Gly" exon="exon5/5" variant_type="missense_variant" main_transcript="true"/>
             <TranscriptInformation transcript_id="ENST00000397063" gene="NFE2L2" type="missense_variant" hgvs_c="c.566A&gt;G" hgvs_p="p.Asp189Gly" exon="exon5/5" variant_type="missense_variant" main_transcript="false"/>
@@ -46,7 +46,7 @@
             <TranscriptInformation transcript_id="ENST00000564887" gene="NUP93" type="synonymous_variant" hgvs_c="c.1425A&gt;C" hgvs_p="p.Ile475=" exon="exon15/20" variant_type="synonymous_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000569842" gene="NUP93" type="synonymous_variant" hgvs_c="c.1794A&gt;C" hgvs_p="p.Ile598=" exon="exon17/23" variant_type="synonymous_variant" main_transcript="false"/>
         </Variant>
-        <Variant chr="chr6" start="26093141" end="26093141" ref="G" obs="A" af_tumor="0.7" depth_tumor="1210" af_normal="0.5">
+        <Variant chr="chr6" start="26093141" end="26093141" ref="G" obs="A" af_tumor="0.7" depth_tumor="1210" af_normal="0.5" effect="oncogenic">
             <TranscriptInformation transcript_id="ENST00000309234" gene="HFE" type="missense_variant" hgvs_c="c.845G&gt;A" hgvs_p="p.Cys282Tyr" exon="exon4/6" variant_type="missense_variant" main_transcript="true"/>
             <TranscriptInformation transcript_id="ENST00000317896" gene="HFE" type="missense_variant" hgvs_c="c.569G&gt;A" hgvs_p="p.Cys190Tyr" exon="exon3/5" variant_type="missense_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000336625" gene="HFE" type="missense_variant" hgvs_c="c.527G&gt;A" hgvs_p="p.Cys176Tyr" exon="exon3/5" variant_type="missense_variant" main_transcript="false"/>
@@ -72,9 +72,7 @@
     </VariantList>
     <CnvList>
         <Cnv chr="chr1" start="32097627" end="32860246" start_band="p35.1" end_band="p35.2" af="0.775" alteration="AMP" type="cluster" cn="3" cn_a="1" cn_b="2">
-            <Gene name="EPRS" id="HGNC:3418">
-                <IsOncoGene source="Network of Cancer Genes" source_version="6.0"/>
-            </Gene>
+            <Gene name="EPRS" id="HGNC:3418" role="activating"/>
         </Cnv>
         <Cnv chr="chr8" start="3489730" end="4474360" start_band="p23.2" end_band="p23.2" af="0.775" alteration="DEL" type="focal" cn="1" cn_a="0" cn_b="1">
             <Gene name="QARS1" id="HGNC:9751">
@@ -82,8 +80,8 @@
             </Gene>
         </Cnv>
         <Cnv chr="chr11" start="26582421" end="27694430" start_band="p14.1" end_band="p14.2" af="0.775" alteration="AMP" type="cluster" cn="3" cn_a="1" cn_b="2">
-            <Gene name="SPEN" id="HGNC:17575"/>
             <Gene name="MTHFR" id="HGNC:7436"/>
+            <Gene name="SPEN" id="HGNC:17575"/>
         </Cnv>
     </CnvList>
     <ReportDocument format="RTF"/>

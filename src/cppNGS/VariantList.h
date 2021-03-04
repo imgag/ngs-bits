@@ -404,6 +404,12 @@ public:
 	///Returns analysis type.
 	AnalysisType type(bool allow_fallback_germline_single_sample = true) const;
 
+	///Returns whether list contains variant with same chr, start, end, ref and obs
+	bool contains(const Variant& var)
+	{
+		return variants_.contains(var);
+	}
+
 protected:
     QStringList comments_;
 	QList<VariantAnnotationDescription> annotation_descriptions_;

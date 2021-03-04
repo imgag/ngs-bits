@@ -700,6 +700,22 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
+-- Table `somatic_gene_role`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `somatic_gene_role`
+(
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `symbol` VARCHAR(40) NOT NULL,
+  `gene_role` ENUM('activating','loss_of_function', 'ambiguous') NOT NULL,
+  `high_evidence` BOOLEAN DEFAULT FALSE,
+  `comment` TEXT NULL DEFAULT NULL,
+PRIMARY KEY (`id`),
+UNIQUE KEY (`symbol`)
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
 -- Table `detected_variant`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `detected_variant`
@@ -1111,7 +1127,7 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `cnv_burden` BOOLEAN NOT NULL DEFAULT FALSE,
   `hrd_score` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'homologous recombination deficiency score',
   `tmb_ref_text` VARCHAR(200) NULL DEFAULT NULL COMMENT 'reference data as free text for tumor mutation burden',
-  `quality` ENUM('no abnormalities','tumor cell content too low', 'quality of tumor DNA too low', 'DNA quantity too low') NULL DEFAULT NULL COMMENT 'user comment on the quality of the DNA',
+  `quality` ENUM('no abnormalities','tumor cell content too low', 'quality of tumor DNA too low', 'DNA quantity too low', 'heterogeneous sample') NULL DEFAULT NULL COMMENT 'user comment on the quality of the DNA',
   `fusions_detected` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'fusions or other SVs were detected. Cannot be determined automatically, because manta files contain too many false positives',
   `cin_chr` TEXT NULL DEFAULT NULL COMMENT 'comma separated list of instable chromosomes',
   `limitations` TEXT NULL DEFAULT NULL COMMENT 'manually created text if the analysis has special limitations',

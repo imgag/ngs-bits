@@ -22,6 +22,7 @@
 #include "CnvList.h"
 #include "BedpeFile.h"
 #include "SomaticVariantInterpreter.h"
+#include "SomaticCnvInterpreter.h"
 
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
@@ -679,6 +680,17 @@ public:
 	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
 	int getSomaticViccId(const Variant& variant);
 	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
+
+
+	///retrieve ID of somatic gene role
+	int getSomaticGeneRoleId(QByteArray gene_symbol);
+	///retrieve somatic gene role data
+	SomaticGeneRole getSomaticGeneRole(QByteArray gene, bool throw_on_fail = false);
+	///stores/updates somatic gene role data. "gene_role" has to contain valid gene
+	void setSomaticGeneRole(const SomaticGeneRole& gene_role);
+	///delete somatic gene role data for certain gene
+	void deleteSomaticGeneRole(QByteArray gene);
+
 
 	///Adds a variant publication
 	void addVariantPublication(QString filename, const Variant& variant, QString database, QString classification, QString details);

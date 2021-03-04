@@ -214,3 +214,18 @@ bool SomaticVariantInterpreter::checkAnnoForPrediction(const VariantList &vl)
 	}
 	return true;
 }
+
+SomaticVariantInterpreter::Result SomaticVariantInterpreter::resultFromString(QByteArray in)
+{
+	QString input = in.toUpper().trimmed();
+
+	if(input == "ONCOGENIC") return Result::ONCOGENIC;
+	else if(input == "LIKELY_ONCOGENIC") return Result::LIKELY_ONCOGENIC;
+	else if(input == "BENIGN") return Result::BENIGN;
+	else if(input == "LIKELY_BENIGN") return Result::LIKELY_BENIGN;
+	else if(input == "UNCERTAIN_SIGNIFICANCE") return Result::UNCERTAIN_SIGNIFICANCE;
+	else
+	{
+		THROW(ArgumentException, "Could not parse '" +in + "' to SomaticVariantInterpreter::Result ");
+	}
+}

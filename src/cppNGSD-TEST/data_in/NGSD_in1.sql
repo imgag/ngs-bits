@@ -141,6 +141,11 @@ INSERT INTO `geneinfo_germline`(`symbol`, `inheritance`, `gnomad_oe_syn`, `gnoma
 ('TP53', 'AD', 0.93, 0.92, 0.91, ''),
 ('NIPA1', 'n/a', NULL, NULL, NULL, '');
 
+INSERT INTO `somatic_gene_role` (`id`, `symbol`, `gene_role`, `high_evidence`, `comment`) VALUES
+(1, 'BRCA2', 'loss_of_function', true, "test comment"),
+(2, 'PTGS2', 'ambiguous',  false, "comment on gene"),
+(3, 'EPRS', 'activating', true, NULL);
+
 INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `1000g`, `gnomAD`, `gene`, `variant_type`, `coding`) VALUES
 (6, 'chr10', 43613843, 43613843, 'G', 'T', 0.7125, 0.7653, 'RET', 'synonymous', 'RET:NM_020975.4:synonymous:LOW:exon13/20:c.2307G>T:p.Leu769Leu,RET:NM_020630.4:synonymous:LOW:exon13/19:c.2307G>T:p.Leu769Leu'),
 (405, 'chr17', 7579472, 7579472, 'G', 'C', 0.5429, 0.7452, 'TP53', 'missense,upstream_gene', 'TP53:NM_000546.5:missense:MODERATE:exon4/11:c.215C>G:p.Pro72Arg,TP53:NM_001126112.2:missense:MODERATE:exon4/11:c.215C>G:p.Pro72Arg,TP53:NM_001126113.2:missense:MODERATE:exon4/12:c.215C>G:p.Pro72Arg,TP53:NM_001126114.2:missense:MODERATE:exon4/12:c.215C>G:p.Pro72Arg,TP53:NM_001126118.1:missense:MODERATE:exon3/10:c.98C>G:p.Pro33Arg,TP53:NM_001276695.1:missense:MODERATE:exon4/12:c.98C>G:p.Pro33Arg,TP53:NM_001276696.1:missense:MODERATE:exon4/12:c.98C>G:p.Pro33Arg,TP53:NM_001276760.1:missense:MODERATE:exon4/11:c.98C>G:p.Pro33Arg,TP53:NM_001276761.1:missense:MODERATE:exon4/11:c.98C>G:p.Pro33Arg,TP53:NM_001126115.1:upstream_gene:MODIFIER::c.-939C>G:,TP53:NM_001126116.1:upstream_gene:MODIFIER::c.-939C>G:,TP53:NM_001126117.1:upstream_gene:MODIFIER::c.-939C>G:,TP53:NM_001276697.1:upstream_gene:MODIFIER::c.-1020C>G:,TP53:NM_001276698.1:upstream_gene:MODIFIER::c.-1020C>G:,TP53:NM_001276699.1:upstream_gene:MODIFIER::c.-1020C>G:'),
@@ -280,7 +285,9 @@ INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `1000g`, `gnom
 (2346586, 'chr7', 6037057, 6037057, '-', 'A', 0.0264, 0, 'PMS2', 'splice_region&intron', 'PMS2:NM_000535.5:splice_region&intron:LOW:exon6/14:c.706-4dupT:,PMS2:NR_003085.2:splice_region&intron:LOW:exon6/14:n.788-4dupT:'),
 (2346588, 'chr7', 140453136, 140453136, 'T', 'A', 0.0, 0.0, 'BRAF', 'missense', 'BRAF:ENST00000288602:missense_variant:MODERATE:exon15/18:c.1799T>A:p.Val600Glu:PF07714'),
 (2407544, 'chr9', 98232224, 98232224, 'A', '-', 0, 0.0018, 'PTCH1,LOC100507346', 'splice_region&intron,non_coding_exon', 'PTCH1:NM_000264.3:splice_region&intron:LOW:exon12/23:c.1729-11delT:,PTCH1:NM_001083607.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083606.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083604.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083605.1:splice_region&intron:LOW:exon12/23:c.1276-11delT:,PTCH1:NM_001083602.1:splice_region&intron:LOW:exon12/23:c.1531-11delT:,PTCH1:NM_001083603.1:splice_region&intron:LOW:exon12/23:c.1726-11delT:,LOC100507346:NR_038982.1:non_coding_exon:MODIFIER:exon4/4:n.1887delA:'),
-(2407599, 'chr9', 98232299, 98232299, '-', 'AGT', 0, 0.0018, 'unused', 'unused', 'unused');
+(2407599, 'chr9', 98232299, 98232299, '-', 'AGT', 0, 0.0018, 'unused', 'unused', 'unused'),
+(2407600, 'chr6', 26093141, 26093141, 'G', 'A', 0, 0.0001, 'unused', 'unused', 'unused'),
+(2407601, 'chr2', 178096717, 178096717, 'T', 'C', 0, 0.0001, 'unused', 'unused', 'unused');
 
 INSERT INTO `detected_somatic_variant` (`id`, `processed_sample_id_tumor`, `processed_sample_id_normal`, `variant_id`, `variant_frequency`, `depth`, `quality_snp`) VALUES
 (5, 4000, 3999, 2346588, 0.6, 642, 0.9);
@@ -532,7 +539,10 @@ INSERT INTO `somatic_report_configuration_cnv` (`somatic_report_configuration_id
 --somatic_vic
 INSERT INTO `somatic_vicc_interpretation` (`id`, `variant_id`, `null_mutation_in_tsg`, `known_oncogenic_aa`, `strong_cancerhotspot`, `located_in_canerhotspot`, `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `comment`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES
 (1, 210585, true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'this variant was evaluated as an oncogenic variant', 99, '2020-11-05 13:06:13', 101, '2020-12-07 11:06:10'),
-(2, 213346, false, true, false, true, true, null, true, false, null, false, true, true, true, true, true, true, 'this variant was evaluated as variant of unclear significance', 99, '2020-12-05 12:07:11', 101, '2020-12-08 13:45:11');
+(2, 213346, false, true, false, true, true, null, true, false, null, false, true, true, true, true, true, true, 'this variant was evaluated as variant of unclear significance', 99, '2020-12-05 12:07:11', 101, '2020-12-08 13:45:11'),
+(3, 2407600,  true, false, false, true, true, null, true, false, null, false, true, false, false, false, false, null, 'this variant was evaluated as an oncogenic variant', 99, '2021-01-05 13:06:13', 101, '2021-02-07 11:06:10'),
+(4, 2407601,  false, false, false, false, true, null, true, false, null, false, true, true, true, false, false, null, 'this variant was evaluated as an oncogenic variant', 99, '2021-02-06 11:06:14', 101, '2021-02-08 13:06:10');
+
 
 -- omim
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES

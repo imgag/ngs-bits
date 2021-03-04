@@ -68,6 +68,7 @@ SOURCES += BedFile.cpp \
     VariantScores.cpp \
     SomaticVariantInterpreter.cpp \
     VariantType.cpp \
+    SomaticCnvInterpreter.cpp \
     PrsTable.cpp
 
 HEADERS += BedFile.h \
@@ -105,8 +106,8 @@ HEADERS += BedFile.h \
     VariantScores.h \
     SomaticVariantInterpreter.h \
     VariantType.h \
+    SomaticCnvInterpreter.h \
     PrsTable.h
-
 
 RESOURCES += \
     cppNGS.qrc

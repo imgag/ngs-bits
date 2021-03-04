@@ -5,12 +5,13 @@
 #include "NGSD.h"
 #include "FilterCascade.h"
 #include "VariantList.h"
+#include "SomaticCnvInterpreter.h"
 
 
 class SomaticRnaReport
 {
 public:
-	SomaticRnaReport(const VariantList& snv_list, const FilterCascade& filters, const CnvList& cnv_list, QString rna_ps_name);
+	SomaticRnaReport(const VariantList& snv_list, const FilterCascade& filters, const CnvList& cnv_list, QString rna_ps_name, QString dna_tumor_name, QString dna_normal_name);
 
 	///write RTF to file
 	void writeRtf(QByteArray out_file);
@@ -30,14 +31,6 @@ public:
 		QByteArray type;
 	};
 
-	enum GeneRole
-	{
-		AMBIGOUS,
-		LOF,
-		ACTIVATING,
-		INACTIVATING
-	};
-
 	///Checks whether all annotations neccessary for creating an RNA report are available
 	static bool checkRequiredSNVAnnotations(const VariantList& variants);
 	///Checks whether all annotations neccessary for creating RNA CNV table are available
@@ -50,11 +43,13 @@ public:
 	void checkRefTissueTypeInNGSD(QString ref_type, QString tumor_dna_ps_id);
 
 	///Calculates a rank for CNVs (=1 high or =2 low) depending on gene expression and gene role
-	static int rankCnv(double tpm, double mean_tpm, GeneRole gene_role, bool oncogene, bool tsg);
+	static int rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role, bool oncogene, bool tsg);
 
 private:
 	//processed sample name of RNA sample
 	QString rna_ps_name_ = "";
+	QString dna_ps_tumor_name_ = "";
+	QString dna_ps_normal_name_ = "";
 
 	NGSD db_;
 
@@ -67,6 +62,9 @@ private:
 
 	//Tissue type for RNA reference TPM in SNV list
 	QString ref_tissue_type_ = "";
+
+	//genes that lie in target region of DNA sample
+	GeneSet target_genes_;
 
 	///Creates table that containts fusions from RNA data
 	RtfTable fusions();

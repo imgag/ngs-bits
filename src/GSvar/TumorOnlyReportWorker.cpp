@@ -92,6 +92,7 @@ QByteArray TumorOnlyReportWorker::trans(QByteArray english)
 	return en2de[english];
 }
 
+
 QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end)
 {
 	if(!LoginManager::active()) return "";
@@ -102,17 +103,20 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 	if (gene_id==-1) return "";
 	gene = db.geneSymbol(gene_id);
 
-	//select transcript
-	Transcript trans;
+	//select transcripts
+	QList<Transcript> transcripts;
 	try
 	{
 		if(preferred_transcripts_.contains(gene))
 		{
-			trans = db.transcript(db.transcriptId(preferred_transcripts_.value(gene).first())); //TODO handle several preferred transcripts?! > AXEL
+			for(QByteArray preferred_trans : preferred_transcripts_.value(gene))
+			{
+				transcripts << db.transcript(db.transcriptId(preferred_trans));
+			}
 		}
 		else //fallback to longest coding transcript
 		{
-			trans = db.longestCodingTranscript(gene_id, Transcript::SOURCE::ENSEMBL, false, true);
+			transcripts << db.longestCodingTranscript(gene_id, Transcript::SOURCE::ENSEMBL, false, true);
 		}
 	}
 	catch(Exception)
@@ -121,10 +125,30 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 	}
 
 	//calculate exon number
-	int exon_number = trans.exonNumber(start, end);
-	if(exon_number<=0) return "";
+	QByteArrayList out;
+	for(const Transcript& trans : transcripts)
+	{
+		int exon_number = trans.exonNumber(start, end);
+		if(exon_number<=0) continue;
+		out << trans.name() + " (exon " + QByteArray::number(exon_number) + "/" + QByteArray::number(trans.regions().count()) + ")";
+	}
+	return out.join(",\\line\n");
+}
 
-	return trans.name() + " (exon " + QByteArray::number(exon_number) + "/" + QByteArray::number(trans.regions().count()) + ")";
+
+QByteArray TumorOnlyReportWorker::cgiCancerTypeFromVariantList(const VariantList &variants)
+{
+	QStringList comments = variants.comments();
+	foreach(QString comment,comments)
+	{
+		if(comment.startsWith("##CGI_CANCER_TYPE="))
+		{
+			QByteArray cancer_type = comment.mid(18).trimmed().toUtf8();
+			if(!cancer_type.isEmpty()) return cancer_type;
+			else return "n/a";
+		}
+	}
+	return "n/a";
 }
 
 void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
@@ -176,7 +200,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 	metadata.addRow( RtfTableRow( { "Datum:",QDate::currentDate().toString("dd.MM.yyyy").toUtf8(), "Coverage 100x:",  qc_mapping.value("QC:2000030",true).toString().toUtf8() + "\%"}, {2250,2750,2319,2319}) );
 	metadata.addRow( RtfTableRow( { "Analysepipeline:", variants_.getPipeline().toUtf8(), "Coverage 500x:", qc_mapping.value("QC:2000032",true).toString().toUtf8() + "\%"} , {2250, 2750, 2319, 2319} ) );
 	metadata.addRow( RtfTableRow( { "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8(), "Durchschnittliche Tiefe", qc_mapping.value("QC:2000025",true).toString().toUtf8() + "x"}, {2250,2750,2319,2319}) );
-	metadata.addRow( RtfTableRow( { "CGI-Tumortyp:", SomaticReportHelper::cgiCancerTypeFromVariantList(variants_), "", ""} , {2250,2750,2319,2319} ) );
+	metadata.addRow( RtfTableRow( { "CGI-Tumortyp:", cgiCancerTypeFromVariantList(variants_), "", ""} , {2250,2750,2319,2319} ) );
 
 	metadata.setUniqueFontSize(16);
 

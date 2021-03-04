@@ -2,6 +2,46 @@
 #include "SomaticReportHelper.h"
 #include <QMessageBox>
 
+//struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
+struct tmbInfo
+{
+	QByteArray hpoterm;
+	int cohort_count;
+	double tmb_median;
+	double tmb_max;
+	QByteArray tumor_entity;
+
+	static QList<tmbInfo> load(const QByteArray& file_name)
+	{
+		TSVFileStream in(file_name);
+
+		int i_hpoterms = in.colIndex("HPO_TERMS",true);
+		int i_count = in.colIndex("COUNT",true);
+		int i_tmb_median = in.colIndex("TMB_MEDIAN",true);
+		int i_tmb_max = in.colIndex("TMB_MAXIMUM",true);
+		int i_tumor_entity = in.colIndex("TUMOR_ENTITY",true);
+
+		QList<tmbInfo> out;
+		while(!in.atEnd())
+		{
+			QByteArrayList current_line = in.readLine();
+			tmbInfo tmp;
+			tmp.hpoterm = current_line.at(i_hpoterms);
+			tmp.cohort_count = current_line.at(i_count).toInt();
+			tmp.tmb_median = current_line.at(i_tmb_median).toDouble();
+			tmp.tmb_max = current_line.at(i_tmb_max).toDouble();
+			tmp.tumor_entity = current_line.at(i_tumor_entity);
+			out << tmp;
+		}
+		return out;
+	}
+	bool operator==(const tmbInfo& rhs) const
+	{
+		if(this->hpoterm == rhs.hpoterm) return true;
+		return true;
+	}
+};
+
 SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const CnvList &cnvs, const VariantList& germl_variants, QWidget *parent)
 	: QDialog(parent)
 	, ui_()
@@ -73,7 +113,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 		if( !hpos_ngsd.contains(hpo_tmb.hpoterm) ) continue;
 
 		QTableWidgetItem *disease = new QTableWidgetItem(QString(hpo_tmb.tumor_entity));
-		QTableWidgetItem *tmb_text = new QTableWidgetItem("Median: " + QString::number(hpo_tmb.tmb_median,'f', 2) + " Var/Mbp, Maximum: " + QString::number(hpo_tmb.tmb_max,'f',2) + " Var/Mbp");
+		QTableWidgetItem *tmb_text = new QTableWidgetItem("Median: " + QString::number(hpo_tmb.tmb_median,'f', 2).replace(".",",") + " Var/Mbp, Maximum: " + QString::number(hpo_tmb.tmb_max,'f',2).replace(".",",") + " Var/Mbp");
 
 		ui_.tmb_reference->insertRow(ui_.tmb_reference->rowCount());
 		ui_.tmb_reference->setItem(ui_.tmb_reference->rowCount()-1, 0, disease);
@@ -205,7 +245,8 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 		text += "Aufgrund der Allelfrequenz der einzelnen tumorspezifischen Varianten schätzen wir den Tumorgehalt der eingesandten Probe bei unter 10%. Aufgrund des geringen Tumorgehaltes der ";
 		text += "verwendeten Tumorprobe war nur eine eingeschränkte Detektion somatischer Varianten (Punktmutationen und Kopienzahlveränderungen) möglich. Die Mutationslast und";
 		text += " MSI-Status sind nicht bestimmbar. Die hier berichteten Varianten wurden vor allem durch eine Senkung des Detektionslimits der Allelfrequenz auf unter 5% detektiert ";
-		text += " und wurden manuell überprüft. Eine Wiederholung der DNA-Isolation aus Tumorgewebe war nicht möglich.";
+		text += " und wurden manuell überprüft. Eine Wiederholung der DNA-Isolation aus Tumorgewebe war nicht möglich.\n\n";
+		text += "Es gibt Hinweise auf eine heterogene Probe mit niedrigem Anteil an Tumorzellen. Die Auswertung der Kopienzahlveränderungen ist in diesem Fall limitiert.";
 		ui_.limitations_text->setPlainText(text);
 	}
 

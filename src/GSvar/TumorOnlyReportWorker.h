@@ -5,6 +5,7 @@
 #include "VariantList.h"
 #include "RtfDocument.h"
 #include "FilterCascade.h"
+#include "Transcript.h"
 
 ///Input configuration for TumorOnlyReportWorker
 struct TumorOnlyReportWorkerConfig
@@ -28,6 +29,8 @@ class TumorOnlyReportWorker
 public:
 	///constructor
 	TumorOnlyReportWorker(const VariantList& variants, const TumorOnlyReportWorkerConfig& config);
+	///returns CGI cancertype if available from VariantList
+	static QByteArray cgiCancerTypeFromVariantList(const VariantList& variants);
 	///writes RTF file with report to file_path
 	void writeRtf(QByteArray file_path);
 	///checks whether all neccessary annotations are available in variants and throws FileParseException if not available
@@ -67,6 +70,7 @@ private:
 
 	///Get exon number according preferred transcript from NGSD and returns parsed string
 	QByteArray exonNumber(QByteArray gene, int start, int end);
+
 };
 
 #endif // TUMORONLYREPORTWORKER_H

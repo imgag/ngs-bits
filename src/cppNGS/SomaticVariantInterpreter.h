@@ -6,7 +6,7 @@
 #include <QVariant>
 #include <QDateTime>
 
-//struct with input configuration for SomaticVariantInterpreter
+//struct with VICC (Variant Interpretation for Cancer Consortium) input configuration for SomaticVariantInterpreter
 struct CPPNGSSHARED_EXPORT SomaticViccData
 {
 	enum class State
@@ -136,14 +136,17 @@ public:
 		UNCERTAIN_SIGNIFICANCE
 	};
 
-	///Returns variant score according VICC rules; combined oncogenic and benign algorithm
+	///Returns variant score according VICC rules; combines oncogenic and benign algorithm
 	static Result viccScore(const SomaticViccData& input);
+	///Returns variant score according VICC rules as string
 	static QString viccScoreAsString(const SomaticViccData& input);
 
 	///predicts VICC decision parameters based on variant annotations
 	static SomaticViccData predictViccValue(const VariantList& vl, const Variant& var);
 	///checks if all annotations are available for parameter prediction
 	static bool checkAnnoForPrediction(const VariantList& vl);
+
+	static Result resultFromString(QByteArray in);
 
 private:
 	///Returns result for oncogenicity score only
@@ -153,9 +156,6 @@ private:
 
 
 	SomaticVariantInterpreter() = delete;
-
-
-
 };
 
 #endif // SOMATICVARIANTINTERPRETER_H

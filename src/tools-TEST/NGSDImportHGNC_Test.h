@@ -48,6 +48,17 @@ private slots:
 		alias = db.synonymousSymbols(gene_id);
 		I_EQUAL(alias.count(), 1)
 		S_EQUAL(alias[0], "CARP")
+
+		//check update of geneinfo_germline relation: only BRCA1 and BRCA2 are left over (see NGSDImportHGNC_init.sql for input data)
+		QStringList geneinfo = db.getValues("SELECT symbol FROM geneinfo_germline");
+		I_EQUAL(geneinfo.count(), 2);
+		S_EQUAL(geneinfo[0], "BRCA1");
+		S_EQUAL(geneinfo[1], "BRCA2");
+
+		QStringList somatic_gene_roles = db.getValues("SELECT symbol FROM somatic_gene_role");
+		I_EQUAL(somatic_gene_roles.count(), 2);
+		S_EQUAL(somatic_gene_roles[0], "BRCA1");
+		S_EQUAL(somatic_gene_roles[1], "BRCA2");
 	}
 
 };

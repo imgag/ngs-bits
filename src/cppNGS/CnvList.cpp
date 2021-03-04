@@ -45,7 +45,11 @@ int CopyNumberVariant::copyNumber(const QByteArrayList& annotation_headers, bool
 {
 	for (int i=0; i<annotation_headers.count(); ++i)
 	{
-		if (annotation_headers[i]=="CN_change") //ClinCNV
+		if(annotation_headers[i] == "tumor_CN_change") //somatic ClinCNV
+		{
+			return annotations_[i].toInt();
+		}
+		else if (annotation_headers[i]=="CN_change") //ClinCNV
 		{
 			return annotations_[i].toInt();
 		}

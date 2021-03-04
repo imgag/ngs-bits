@@ -4,7 +4,8 @@
 #include "SomaticReportHelper.h"
 #include "TSVFileStream.h"
 
-SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCascade& filters, const CnvList& cnv_list, QString rna_ps_name)
+
+SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCascade& filters, const CnvList& cnv_list, QString rna_ps_name, QString dna_tumor_name, QString dna_normal_name)
 	: db_()
 	, dna_cnvs_(cnv_list)
 {
@@ -16,6 +17,8 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 		dna_snvs_.append(snv_list[i]);
 	}
 	rna_ps_name_ = rna_ps_name;
+	dna_ps_tumor_name_ = dna_tumor_name;
+	dna_ps_normal_name_ = dna_normal_name;
 
 	//Get RNA processed sample name and resolve path to RNA directory
 	QString rna_sample_dir ="";
@@ -64,12 +67,25 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 		fusions_.append(temp);
 	}
 
+
+	ProcessingSystemData tumor_ps_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(dna_ps_tumor_name_));
+	QString target_genes_file = tumor_ps_data.target_file.left(tumor_ps_data.target_file.size()-4) + "_genes.txt";
+	if(QFile::exists(target_genes_file))
+	{
+		 target_genes_ = GeneSet::createFromFile(target_genes_file);
+		 target_genes_ = db_.genesToApproved(target_genes_,true);
+	}
+	else
+	{
+		THROW(FileAccessException, "Could not access gene list file " + target_genes_file + " in SomaticReportHelper::SomaticReportHelper");
+	}
+
 }
 
 bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
 {
 	//neccessary DNA annotations (exact match)
-	const QByteArrayList an_names_dna = {"coding_and_splicing", "tumor_af", "CGI_driver_statement", "somatic_classification", "ncg_tsg", "ncg_oncogene"};
+	const QByteArrayList an_names_dna = {"coding_and_splicing", "tumor_af", "ncg_tsg", "ncg_oncogene"};
 	for(QByteArray an : an_names_dna)
 	{
 		if(variants.annotationIndexByName(an, true, false) == -1) return false;
@@ -86,7 +102,7 @@ bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
 
 bool SomaticRnaReport::checkRequiredCNVAnnotations(const CnvList &cnvs)
 {
-	QByteArrayList an_names_dna = {"cnv_type", "CGI_genes", "CGI_driver_statement", "CGI_gene_role", "ncg_oncogene", "ncg_tsg"};
+	QByteArrayList an_names_dna = {"cnv_type", "ncg_oncogene", "ncg_tsg"};
 	for(QByteArray an : an_names_dna)
 	{
 		if(cnvs.annotationIndexByName(an, false) < 0) return false;
@@ -130,15 +146,15 @@ void SomaticRnaReport::checkRefTissueTypeInNGSD(QString ref_type, QString tumor_
 	}
 }
 
-int SomaticRnaReport::rankCnv(double tpm, double mean_tpm, GeneRole gene_role, bool oncogene, bool tsg)
+int SomaticRnaReport::rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role, bool oncogene, bool tsg)
 {
 	double ratio = tpm/mean_tpm;
 
-	if(gene_role == GeneRole::LOF && ratio <= 0.8)
+	if(gene_role == SomaticGeneRole::Role::LOSS_OF_FUNCTION && ratio <= 0.8)
 	{
 		return 1;
 	}
-	else if(gene_role == GeneRole::ACTIVATING && ratio >= 1.5)
+	else if(gene_role == SomaticGeneRole::Role::ACTIVATING && ratio >= 1.5)
 	{
 		return 1;
 	}
@@ -178,14 +194,11 @@ RtfTable SomaticRnaReport::snvTable()
 
 	int i_co_sp = dna_snvs_.annotationIndexByName("coding_and_splicing");
 	int i_tum_af = dna_snvs_.annotationIndexByName("tumor_af");
-	int i_cgi_statem = dna_snvs_.annotationIndexByName("CGI_driver_statement");
 
 	int i_rna_tpm = dna_snvs_.annotationIndexByName(rna_ps_name_ + "_rna_tpm");
 	int i_rna_af = dna_snvs_.annotationIndexByName(rna_ps_name_ + "_rna_af");
-
 	int i_rna_ref_tpm = dna_snvs_.annotationIndexByName("rna_ref_tpm");
 
-	int i_som_class = dna_snvs_.annotationIndexByName("somatic_classification");
 	int i_tsg = dna_snvs_.annotationIndexByName("ncg_tsg");
 	int i_oncogene = dna_snvs_.annotationIndexByName("ncg_oncogene");
 
@@ -193,7 +206,12 @@ RtfTable SomaticRnaReport::snvTable()
 	for(int i=0; i<dna_snvs_.count(); ++i)
 	{
 		const Variant& var = dna_snvs_[i];
-		if(!var.annotations()[i_cgi_statem].contains("known") && !var.annotations()[i_cgi_statem].contains("driver") && !var.annotations()[i_som_class].contains("activating")) continue;
+
+
+		if(db_.getSomaticViccId(var) == -1) continue;
+		SomaticViccData vicc_data = db_.getSomaticViccData(var);
+		SomaticVariantInterpreter::Result vicc_result = SomaticVariantInterpreter::viccScore(vicc_data);
+		if(vicc_result != SomaticVariantInterpreter::Result::ONCOGENIC && vicc_result != SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC) continue;
 
 		VariantTranscript trans = var.transcriptAnnotations(i_co_sp)[0];
 
@@ -202,24 +220,9 @@ RtfTable SomaticRnaReport::snvTable()
 		row.addCell(1000, trans.gene, RtfParagraph().setItalic(true).setBold(true).setFontSize(16));
 		row.addCell({RtfText(trans.hgvs_c + ":" + trans.hgvs_p).setFontSize(16).RtfCode(), RtfText(trans.id).setFontSize(14).RtfCode()}, 2550);
 		row.addCell(1150, trans.type.replace("_variant",""), RtfParagraph().setFontSize(16));
-
 		row.addCell(750, QByteArray::number(var.annotations()[i_tum_af].toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
-
-
-		RtfSourceCode description = "unklare Funktion";
-		if(!var.annotations()[i_som_class].isEmpty())
-		{
-			description = SomaticRnaReport::trans( QString(var.annotations()[i_som_class]) );
-		}
-		else if(var.annotations()[i_cgi_statem].contains("known"))
-		{
-			description = "Treiber (bekannt)";
-		}
-		else if(var.annotations()[i_cgi_statem].contains("predicted driver"))
-		{
-			description = "Treiber (vorhergesagt)";
-		}
+		RtfSourceCode description = SomaticReportHelper::trans(SomaticVariantInterpreter::viccScoreAsString(vicc_data)).toUtf8();
 
 		if(var.annotations().at(i_oncogene).contains("1") ) description.append(", Onkogen");
 		if(var.annotations().at(i_tsg).contains("1") ) description.append(", TSG");
@@ -247,7 +250,7 @@ RtfTable SomaticRnaReport::snvTable()
 
 	table.prependRow(RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Beschreibung", "Anteil", "TPM", "MW TPM*"},{1000,2550,1150,750,1950,675,625,1221}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2) );
 	table.prependRow(RtfTableRow({"DNA", "RNA"}, {7400, 2521}, RtfParagraph().setFontSize(16).setHorizontalAlignment("c").setBold(true)).setBorders(1, "brdrhair", 2) );
-	table.prependRow(RtfTableRow("Punktmutationen (SNVs) und kleine Insertionen/Deletionen (INDELs)", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.prependRow(RtfTableRow("Punktmutationen (SNVs) und kleine Insertionen/Deletionen (INDELs) (" + rna_ps_name_.toUtf8() + "-" + dna_ps_tumor_name_.toUtf8() + "-" + dna_ps_normal_name_.toUtf8() + ")", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	table.setUniqueBorder(1, "brdrhair", 2);
 
@@ -264,12 +267,6 @@ RtfTable SomaticRnaReport::snvTable()
 
 RtfTable SomaticRnaReport::cnvTable()
 {
-	//DNA annotation indices
-	int i_cgi_genes = dna_cnvs_.annotationIndexByName("CGI_genes", false);
-	int i_cgi_driver_statement = dna_cnvs_.annotationIndexByName("CGI_driver_statement", false);
-	int i_cgi_gene_role = dna_cnvs_.annotationIndexByName("CGI_gene_role", false);
-
-	int i_tumor_cn = dna_cnvs_.annotationIndexByName("tumor_CN_change", true);
 	int i_tum_clonality = dna_cnvs_.annotationIndexByName("tumor_clonality", true);
 	int i_size_desc = dna_cnvs_.annotationIndexByName("cnv_type", true);
 	//RNA annotations indices
@@ -281,87 +278,70 @@ RtfTable SomaticRnaReport::cnvTable()
 	int i_oncogene = dna_cnvs_.annotationIndexByName("ncg_oncogene", true);
 
 
-	RtfTable temp_table;
+	RtfTable table;
 	for(int i=0; i<dna_cnvs_.count(); ++i)
 	{
 		const CopyNumberVariant& cnv = dna_cnvs_[i];
 
-		QByteArrayList genes = dna_cnvs_[i].annotations()[i_cgi_genes].split(',');
-		QByteArrayList statements = dna_cnvs_[i].annotations()[i_cgi_driver_statement].split(',');
-		QByteArrayList cgi_gene_roles = dna_cnvs_[i].annotations()[i_cgi_gene_role].split(',');
-		QByteArrayList tumor_sup_genes = dna_cnvs_[i].annotations()[i_tsg].split(',');
-		QByteArrayList oncogenes = dna_cnvs_[i].annotations()[i_oncogene].split(',');
+		GeneSet genes = dna_cnvs_[i].genes().intersect(target_genes_);
+		GeneSet tsgs = GeneSet::createFromText(dna_cnvs_[i].annotations()[i_tsg], ',' );
+		GeneSet oncogenes = GeneSet::createFromText( dna_cnvs_[i].annotations()[i_oncogene] , ',' );
 
-		for(int j=0; j<statements.count(); ++j)
+		for(const auto& gene : genes)
 		{
-			if(statements[j].contains("known") || statements[j].contains("driver"))
-			{
-				RtfTableRow temp;
-				temp.addCell(1000, genes[j], RtfParagraph().setBold(true).setItalic(true).setFontSize(16));
-				temp.addCell(2100, cnv.chr().str() + " (" + cnv.annotations().at(i_size_desc).trimmed() + ")", RtfParagraph().setFontSize(16));
+			if(db_.getSomaticGeneRoleId(gene) == -1 ) continue;
+			SomaticGeneRole role = db_.getSomaticGeneRole(gene, true);
 
-				bool ok = false;
-				int tumor_cn = cnv.annotations().at(i_tumor_cn).toInt(&ok);
-				if(!ok) tumor_cn = -1;
-				temp.addCell(1300, SomaticReportHelper::CnvTypeDescription(tumor_cn), RtfParagraph().setFontSize(16));
+			if( !SomaticCnvInterpreter::includeInReport(dna_cnvs_,cnv, role) ) continue;
+			if( !role.high_evidence) continue;
 
 
-				temp.addCell(500, cnv.annotations().at(i_tumor_cn), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
+			RtfTableRow temp;
+			temp.addCell(1000, gene, RtfParagraph().setBold(true).setItalic(true).setFontSize(16));
+			temp.addCell(2100, cnv.chr().str() + " (" + cnv.annotations().at(i_size_desc).trimmed() + ")", RtfParagraph().setFontSize(16));
 
-				temp.addCell(750, QByteArray::number(cnv.annotations().at(i_tum_clonality).toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
-
-
-
-				bool is_oncogene = false, is_tsg = false;
-				if(tumor_sup_genes[j].contains("1")) is_tsg = true;
-				else if(oncogenes[j].contains("1")) is_oncogene = true;
+			int tumor_cn = cnv.copyNumber(dna_cnvs_.annotationHeaders());
+			temp.addCell(1300, SomaticReportHelper::CnvTypeDescription(tumor_cn), RtfParagraph().setFontSize(16));
 
 
-				RtfSourceCode description = "";
-				if(is_oncogene) description += ", Onkogen";
-				if(is_tsg) description += ", TSG";
-				if(!is_oncogene && !is_tsg) description += ", NA";
-				description = description.mid(2); //remove leading comma
+			temp.addCell(500, QByteArray::number(tumor_cn), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
-				temp.addCell(1886, description , RtfParagraph().setFontSize(16));
+			temp.addCell(750, QByteArray::number(cnv.annotations().at(i_tum_clonality).toDouble(), 'f', 2), RtfParagraph().setFontSize(16).setHorizontalAlignment("c"));
 
-				temp.addCell(900, QByteArray::number(getTpm(genes[j], cnv.annotations().at(i_rna_tpm)), 'f', 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
-				temp.addCell(900, QByteArray::number(getTpm(genes[j], cnv.annotations().at(i_ref_rna_tpm)), 'f', 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			bool is_oncogene = false, is_tsg = false;
+			if(tsgs.contains(gene)) is_tsg = true;
+			else if(oncogenes.contains(gene)) is_oncogene = true;
 
 
-				//Determine oncogenetic rank of expression change
-				GeneRole gene_role = GeneRole::AMBIGOUS;
-				if(cgi_gene_roles[j].contains("LoF")) gene_role = GeneRole::LOF;
-				else if(cgi_gene_roles[j].contains("Act")) gene_role = GeneRole::ACTIVATING;
-				int rank = rankCnv( getTpm(genes[j], cnv.annotations().at(i_rna_tpm)) , getTpm(genes[j], cnv.annotations().at(i_ref_rna_tpm)), gene_role , is_oncogene , is_tsg);
+			QList<RtfSourceCode> description;
+			if(is_oncogene) description << "Onkogen";
+			if(is_tsg) description <<  "TSG";
+			if(!is_oncogene && !is_tsg) description << "NA";
 
-				temp.addCell( 585 , QByteArray::number(rank) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
-				temp_table.addRow(temp);
-			}
+			temp.addCell(1886, description.join(", ") , RtfParagraph().setFontSize(16));
+
+			temp.addCell(900, QByteArray::number(getTpm(gene, cnv.annotations().at(i_rna_tpm)), 'f', 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			temp.addCell(900, QByteArray::number(getTpm(gene, cnv.annotations().at(i_ref_rna_tpm)), 'f', 1), RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+
+
+			//Determine oncogenetic rank of expression change
+			int rank = rankCnv( getTpm(gene, cnv.annotations().at(i_rna_tpm)) , getTpm(gene, cnv.annotations().at(i_ref_rna_tpm)), role.role , is_oncogene , is_tsg);
+
+			temp.addCell( 585 , QByteArray::number(rank) , RtfParagraph().setFontSize(16).setHorizontalAlignment("c") );
+			table.addRow(temp);
 		}
 	}
 
-	temp_table.sortByCol(0); //sort by gene name alphabetically
+	table.sortbyCols({8,0}); //sort by rank tean by gene symbol
 
-
-	RtfTable table;
-
-	//Add rows to output table, sorted by rank
-	for(int i=0; i<temp_table.count(); ++i)
-	{
-		if(temp_table[i][8].format().content().contains("1")) table.addRow(temp_table[i]);
-	}
-	for(int i=0; i<temp_table.count(); ++i)
-	{
-		if(temp_table[i][8].format().content().contains("2")) table.addRow(temp_table[i]);
-	}
-
+	//add table headings
 	table.prependRow(RtfTableRow({"Gen", "Position", "CNV", "CN", "Anteil","Beschreibung","TPM RNA", "MW TPM*", "Rang"},{1000,2100,1300,500,750,1886,900,900,585}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader());
 	table.prependRow(RtfTableRow({"DNA", "RNA"},{7536,2385}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader() );
 	table.prependRow(RtfTableRow("Kopienzahlveränderungen (CNVs)", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	table.setUniqueBorder(1, "brdrhair", 2);
 
+	//description hints below table
 	RtfSourceCode desc = "";
 	desc += RtfText("*MW TPM:").setBold(true).setFontSize(14).RtfCode() + " " + "Mittelwerte von Vergleichsproben aus " + trans(ref_tissue_type_) + " (The Human Protein Atlas). ";
 	desc += RtfText("Rang 1:").setBold(true).setFontSize(14).RtfCode() + " Die Expression eines Gens mit beschriebenem Funktionsgewinn (Gain of Function) ist in der Probe erhöht oder die Expression eines Gens mit Funktionsverlust (LoF) ist in der Probe reduziert. ";

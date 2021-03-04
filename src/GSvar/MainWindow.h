@@ -168,6 +168,8 @@ public slots:
 	void exportGSvar();
 	///Preferred transcript list
 	void on_actionPreferredTranscripts_triggered();
+	///Somatic gene roles
+	void on_actionEditSomaticGeneRoles_triggered();
 	///Opens online documentation
 	void on_actionOpenDocumentation_triggered();
 	///Approved symbols dialog
@@ -220,8 +222,6 @@ public slots:
 	void on_actionBatchExportClinVar_triggered();
 	///Re-analyze current sample/case
 	void on_actionReanalyze_triggered();
-	///Annotate germline file with somatic variants
-	void on_actionAnnotateSomaticVariants_triggered();
 	///Action for debugging
 	void on_actionDebug_triggered();
 	///Action for variant conversion (VCF > GSvar)
@@ -309,6 +309,8 @@ public slots:
 	void showAfHistogram(bool filtered);
 	///Show encryption helper
 	void on_actionEncrypt_triggered();
+	///reannotates VICC data from NGSD to list and stores updated list to variants file
+	void on_actionAnnotateSomaticVariantInterpretation_triggered();
 	///Show sample search dialog
 	void on_actionSampleSearch_triggered();
 	///Show run overview
@@ -379,7 +381,7 @@ public slots:
 
 	///Edit somatic variant interpretation (VICC consortium)
 	void editSomaticVariantInterpretation(const VariantList& vl, int index);
-	///Updates somatic variant interpreation annotation of GSvar file (adds anno column if missing)
+	///Updates somatic variant interpreation annotation for specific variant of GSvar file (adds anno column if missing)
 	void updateSomaticVariantInterpretationAnno(const Variant& var, QString vicc_interpretation, QString vicc_comment);
 
 protected:

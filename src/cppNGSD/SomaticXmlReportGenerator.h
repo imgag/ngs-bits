@@ -39,6 +39,8 @@ public:
 
 	static QString generateXML(const SomaticXmlReportGeneratorData &data, NGSD& db, bool test=false);
 
+	static void checkSomaticVariantAnnotation(const VariantList& vl);
+
 private:
 	static void generateXML(const SomaticXmlReportGeneratorData& data, QString& output, NGSD& db, bool test=false);
 
