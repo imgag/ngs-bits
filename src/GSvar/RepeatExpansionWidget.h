@@ -40,7 +40,6 @@ public:
 private slots:
     ///Context menu that shall appear if right click on repeat expansion
     void showContextMenu(QPoint pos);
-    void openREViewerSvg(QTableWidgetItem *item);
 
 private:
 	void loadRepeatExpansionData();
