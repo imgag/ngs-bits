@@ -715,7 +715,11 @@
     </layout>
    </item>
    <item>
-    <widget class="DBTableWidget" name="table"/>
+    <widget class="DBTableWidget" name="table">
+     <property name="sortingEnabled">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

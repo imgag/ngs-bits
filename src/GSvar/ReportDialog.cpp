@@ -189,58 +189,61 @@ void ReportDialog::updateVariantTable()
 	}
 
 	//add SVs
-	int sv_format_idx = svs_.annotationIndexByName("FORMAT");
-	int sv_sample_idx = sv_format_idx + 1;
-	if (svs_.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI || svs_.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO)
+	if (svs_.isValid())
 	{
-		try
+		int sv_format_idx = svs_.annotationIndexByName("FORMAT");
+		int sv_sample_idx = sv_format_idx + 1;
+		if (svs_.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI || svs_.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO)
 		{
-			sv_sample_idx = svs_.sampleHeaderInfo().infoByStatus(true).column_index;
-		}
-		catch (...)
-		{
-			sv_sample_idx = -1;
-		}
-
-	}
-	foreach(int i, settings_.report_config->variantIndices(VariantType::SVS, true, type()))
-	{
-		const BedpeLine& sv = svs_[i];
-		const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::SVS,i);
-
-		QByteArray genotype;
-		if (sv_sample_idx != -1)
-		{
-			int gt_idx = sv.annotations().at(sv_format_idx).split(':').indexOf("GT");
-			if (gt_idx != -1)
+			try
 			{
-				genotype = sv.annotations().at(sv_sample_idx).split(':').at(gt_idx).trimmed();
+				sv_sample_idx = svs_.sampleHeaderInfo().infoByStatus(true).column_index;
 			}
-		}
+			catch (...)
+			{
+				sv_sample_idx = -1;
+			}
 
-		bool in_roi = true;
-		BedFile affected_region = sv.affectedRegion();
-		if (roi_file_!="")
+		}
+		foreach(int i, settings_.report_config->variantIndices(VariantType::SVS, true, type()))
 		{
-			if (sv.type() != StructuralVariantType::BND)
-			{
-				if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())) in_roi = false;
-			}
-			else
-			{
-				if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())
-					&& !roi_.overlapsWith(affected_region[1].chr(), affected_region[1].start(), affected_region[1].end())) in_roi = false;
-			}
-		}
+			const BedpeLine& sv = svs_[i];
+			const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::SVS,i);
 
-		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
-		addCheckBox(row, 0, in_roi && genotype!="0/0", !in_roi)->setData(Qt::UserRole, i); //TODO in new multi-sample mode only variants that the index case has can be selected (see small variants) > LEON
-		addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
-		addTableItem(row, 2, variantTypeToString(VariantType::SVS));
-		addTableItem(row, 3, affected_region[0].toString(true) + (sv.type()==StructuralVariantType::BND ? (" <-> " + affected_region[1].toString(true)) : "") + " type=" + BedpeFile::typeToString(sv.type()));
-		addTableItem(row, 4, sv.genes(svs_.annotationHeaders()).join(", "));
-		addTableItem(row, 5, var_conf.classification);
-		++row;
+			QByteArray genotype;
+			if (sv_sample_idx != -1)
+			{
+				int gt_idx = sv.annotations().at(sv_format_idx).split(':').indexOf("GT");
+				if (gt_idx != -1)
+				{
+					genotype = sv.annotations().at(sv_sample_idx).split(':').at(gt_idx).trimmed();
+				}
+			}
+
+			bool in_roi = true;
+			BedFile affected_region = sv.affectedRegion();
+			if (roi_file_!="")
+			{
+				if (sv.type() != StructuralVariantType::BND)
+				{
+					if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())) in_roi = false;
+				}
+				else
+				{
+					if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())
+						&& !roi_.overlapsWith(affected_region[1].chr(), affected_region[1].start(), affected_region[1].end())) in_roi = false;
+				}
+			}
+
+			ui_.vars->setRowCount(ui_.vars->rowCount()+1);
+			addCheckBox(row, 0, in_roi && genotype!="0/0", !in_roi)->setData(Qt::UserRole, i); //TODO in new multi-sample mode only variants that the index case has can be selected (see small variants) > LEON
+			addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
+			addTableItem(row, 2, variantTypeToString(VariantType::SVS));
+			addTableItem(row, 3, affected_region[0].toString(true) + (sv.type()==StructuralVariantType::BND ? (" <-> " + affected_region[1].toString(true)) : "") + " type=" + BedpeFile::typeToString(sv.type()));
+			addTableItem(row, 4, sv.genes(svs_.annotationHeaders()).join(", "));
+			addTableItem(row, 5, var_conf.classification);
+			++row;
+		}
 	}
 
 	//resize table cells
