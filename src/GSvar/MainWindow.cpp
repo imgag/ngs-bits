@@ -2381,12 +2381,10 @@ void MainWindow::loadFile(QString filename)
 		Log::perf("Loading small variant list took ", timer);
 		if (filename.startsWith("http"))
 		{
-			qDebug() << "Server project";
 			GlobalServiceProvider::instance().setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename, Settings::string("server_host"), Settings::integer("server_port"))));
 		}
 		else
 		{
-			qDebug() << "Local project";
 			GlobalServiceProvider::instance().setFileLocationProvider(QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(filename, variants_.getSampleHeader(), variants_.type())));
 		}
 
