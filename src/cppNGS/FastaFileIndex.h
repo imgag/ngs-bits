@@ -22,16 +22,16 @@ public:
 	Sequence seq(const Chromosome& chr, int start, int length, bool to_upper = true) const;
 
 	///Returns the length of the given chromosome.
-    int lengthOf(const Chromosome& chr) const
-    {
-        return index(chr).length;
-    }
+	int lengthOf(const Chromosome& chr) const
+	{
+		return index(chr).length;
+	}
 
-    ///Returns the chromosome names (normalized).
-    QList<QString> names() const
-    {
-        return index_.keys();
-    }
+	///Returns the chromosome names (normalized).
+	QList<QString> names() const
+	{
+		return index_.keys();
+	}
 
 protected:
 	QString fasta_name_;
@@ -47,6 +47,8 @@ protected:
 	QMap<QString, FastaIndexEntry> index_;
 	mutable QFile file_;
 	const FastaIndexEntry& index(const Chromosome& chr) const;
+	bool is_fasta_file_local(const QString& source) const;
+	void saveEntryToIndex(const QList<QByteArray>& fields);
 };
 
 #endif

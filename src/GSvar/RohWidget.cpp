@@ -7,6 +7,7 @@
 #include "NGSD.h"
 #include "Settings.h"
 #include "GSvarHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -15,7 +16,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-RohWidget::RohWidget(QString filename, FilterWidget* filter_widget, QWidget *parent)
+RohWidget::RohWidget(FilterWidget* filter_widget, QWidget *parent)
 	: QWidget(parent)
 	, var_filters(filter_widget)
 	, ui(new Ui::RohWidget)
@@ -40,9 +41,9 @@ RohWidget::RohWidget(QString filename, FilterWidget* filter_widget, QWidget *par
 	connect(var_filters, SIGNAL(filtersChanged()), this, SLOT(variantFiltersChanged()));
 	connect(var_filters, SIGNAL(targetRegionChanged()), this, SLOT(variantFiltersChanged()));
 
-	//load ROH data file
-	QString path = QFileInfo(filename).absolutePath();
-	QStringList roh_files = Helper::findFiles(path, "*_rohs.tsv", false);
+	//load ROH data file	
+	QString path = GlobalServiceProvider::instance().fileLocationProvider()->getProjectAbsolutePath();
+	QStringList roh_files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::instance().fileLocationProvider()->getRohsTsvFiles());
 	if (roh_files.count()==0)
 	{
 		addInfoLine("<font color='red'>No ROH data file found in directory " + path + "</font>");

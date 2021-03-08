@@ -8,11 +8,11 @@
 #include <QDebug>
 #include <QFileInfo>
 #include <QMessageBox>
+#include "GlobalServiceProvider.h"
 
-GeneSelectorDialog::GeneSelectorDialog(QString sample_folder, QString sample_name, QWidget* parent)
+GeneSelectorDialog::GeneSelectorDialog(QString sample_name, QWidget* parent)
 	: QDialog(parent)
-	, ui(new Ui::GeneSelectorDialog)
-	, sample_folder_(sample_folder)
+	, ui(new Ui::GeneSelectorDialog)	
 	, sample_name_(sample_name)
 {
 	ui->setupUi(this);
@@ -49,16 +49,16 @@ void GeneSelectorDialog::updateGeneTable()
 
 	//check for CN calling results
 	CnvCallerType cnv_caller = CnvCallerType::INVALID;
-	QStringList seg_files = Helper::findFiles(sample_folder_, "*_cnvs_clincnv.seg", false);
-	QStringList tsv_files = Helper::findFiles(sample_folder_, "*_cnvs_clincnv.tsv", false);
+	QStringList seg_files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::instance().fileLocationProvider()->getCnvsClincnvSegFiles());
+		QStringList tsv_files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::instance().fileLocationProvider()->getCnvsClincnvTsvFiles());
 	if (seg_files.count()==1 && tsv_files.size()==1)
 	{
 		cnv_caller = CnvCallerType::CLINCNV;
 	}
 	else //CnvHunter
 	{
-		seg_files = Helper::findFiles(sample_folder_, "*_cnvs.seg", false);
-		tsv_files = Helper::findFiles(sample_folder_, "*_cnvs.tsv", false);
+		seg_files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::instance().fileLocationProvider()->getCnvsSegFiles());
+		tsv_files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::instance().fileLocationProvider()->getCnvsTsvFiles());
 		if (seg_files.count()==1 && tsv_files.size()==1)
 		{
 			cnv_caller = CnvCallerType::CNVHUNTER;
@@ -110,7 +110,7 @@ void GeneSelectorDialog::updateGeneTable()
 
 	//load low-coverage file for processing system
 	BedFile sys_gaps;
-	QStringList files = Helper::findFiles(sample_folder_, "*_lowcov.bed", false);
+	QStringList files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::instance().fileLocationProvider()->getLowcovBedFiles());
 	bool gaps_file_exists = files.count()==1;
 	if(gaps_file_exists)
 	{

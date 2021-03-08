@@ -144,7 +144,7 @@ private slots:
 		S_EQUAL(db.nextProcessingId(db.sampleId("NA12878")), "5");
 
 		//processedSamplePath
-		QString gsvar_path = db.processedSamplePath(db.processedSampleId("NA12878_03"), NGSD::GSVAR);
+		QString gsvar_path = db.processedSamplePath(db.processedSampleId("NA12878_03"), PathType::GSVAR);
 		IS_TRUE(gsvar_path.endsWith("test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar"));
 
 		//geneToApproved

@@ -41,10 +41,9 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 	QStringList igv_commands;
 	foreach (const cfDnaColumn& cf_dna, cf_dna_columns_)
 	{
-		QString ps_id = db_.processedSampleId(cf_dna.name);
-		QString bam = NGSD().processedSamplePath(ps_id, NGSD::BAM);
-		igv_commands << "load \"" + Helper::canonicalPath(bam) + "\"";
-
+		QString ps_id = db_.processedSampleId(cf_dna.name);		
+		QString bam = NGSD().processedSamplePath(ps_id, PathType::BAM);
+		igv_commands << "load \"" + QDir::toNativeSeparators(bam) + "\"";
 	}
 	emit executeIGVCommands(igv_commands);
 }
@@ -110,7 +109,7 @@ void DiseaseCourseWidget::loadVariantLists()
 		cfDnaColumn cf_dna_column;
 		cf_dna_column.name = db_.processedSampleName(ps_id);
 		cf_dna_column.date = QDate::fromString(db_.getSampleData(db_.sampleId(cf_dna_column.name)).received, "dd.MM.yyyy");
-		QString cf_dna_vcf_path = db_.processedSamplePath(ps_id, NGSD::SAMPLE_FOLDER) + "/" + cf_dna_column.name + "_var.vcf";
+		QString cf_dna_vcf_path = db_.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER) + "/" + cf_dna_column.name + "_var.vcf";
 		if (!QFile::exists(cf_dna_vcf_path))
 		{
 			QMessageBox::warning(this, "File not found", "Could not find cfDNA VCF for processed Sample " + cf_dna_column.name + "! ");

@@ -7,6 +7,7 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
+    GlobalServiceProvider.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
     ReportDialog.cpp \
@@ -99,6 +100,7 @@ SOURCES += main.cpp\
     GapClosingDialog.cpp
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
+    GlobalServiceProvider.h \
     ReportDialog.h \
     ReportWorker.h \
     TrioDialog.h \

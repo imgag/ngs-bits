@@ -204,7 +204,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	//Load virus data (from tumor sample dir)
 	try
 	{
-		QString path = db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), NGSD::PathType::SAMPLE_FOLDER) + "/" + settings_.tumor_ps + "_viral.tsv";
+		QString path = db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::SAMPLE_FOLDER) + "/" + settings_.tumor_ps + "_viral.tsv";
 		TSVFileStream file(path);
 		while(!file.atEnd())
 		{

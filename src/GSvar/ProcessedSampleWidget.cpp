@@ -212,18 +212,18 @@ void ProcessedSampleWidget::updateGUI()
 		if (action->text() == "Add Manta evidence BAM track")
 		{
 			// check if evidence BAM file exists:
-			action->setEnabled(QFile::exists(GSvarHelper::getEvidenceFile(NGSD().processedSamplePath(ps_id_, NGSD::BAM))));
+			action->setEnabled(QFile::exists(FileLocationHelper::getEvidenceFile(NGSD().processedSamplePath(ps_id_, PathType::BAM))));
 		}
 		else if (action->text() == "Add SV track")
 		{
 			// check if evidence BAM file exists:
-			QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
+			QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
 			action->setEnabled(QFile::exists(bam.left(bam.length()-4) + "_manta_var_structural.vcf.gz"));
 		}
 		else if (action->text() == "Add BAF track")
 		{
 			// check if evidence BAM file exists:
-			QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
+			QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
 			action->setEnabled(QFile::exists(bam.left(bam.length()-4) + "_bafs.igv"));
 		}
 	};
@@ -328,7 +328,7 @@ void ProcessedSampleWidget::showPlot()
 
 void ProcessedSampleWidget::openSampleFolder()
 {
-	QString folder = NGSD().processedSamplePath(ps_id_, NGSD::SAMPLE_FOLDER);
+	QString folder = NGSD().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
 	if(!QFile::exists(folder))
 	{
 		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder);
@@ -552,20 +552,20 @@ void ProcessedSampleWidget::loadVariantList()
 
 void ProcessedSampleWidget::addBamToIgv()
 {
-	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
+	QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
 
 	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(bam) + "\"");
 }
 
 void ProcessedSampleWidget::addVariantsToIgv()
 {
-	QString vcf = NGSD().processedSamplePath(ps_id_, NGSD::VCF);
+	QString vcf = NGSD().processedSamplePath(ps_id_, PathType::VCF);
 	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(vcf) + "\"");
 }
 
 void ProcessedSampleWidget::addCnvsToIgv()
 {
-	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
+	QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
 
 	QString base_name = bam.left(bam.length()-4);
 	QString segfile = base_name + "_cnvs_clincnv.seg";
@@ -585,14 +585,14 @@ void ProcessedSampleWidget::addCnvsToIgv()
 
 void ProcessedSampleWidget::addSvsToIgv()
 {
-	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
+	QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
 	QString vcf = bam.left(bam.length()-4) + "_manta_var_structural.vcf.gz";
 	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(vcf) + "\"");
 }
 
 void ProcessedSampleWidget::addBafsToIgv()
 {
-	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
+	QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
 	QString bafs = bam.left(bam.length()-4) + "_bafs.igv";
 
 	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(bafs) + "\"");
@@ -600,8 +600,8 @@ void ProcessedSampleWidget::addBafsToIgv()
 
 void ProcessedSampleWidget::addEvidenceBamToIgv()
 {
-	QString bam = NGSD().processedSamplePath(ps_id_, NGSD::BAM);
-	QString evidence_bam = GSvarHelper::getEvidenceFile(bam);
+	QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
+	QString evidence_bam = FileLocationHelper::getEvidenceFile(bam);
 
 	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(evidence_bam) + "\"");
 }

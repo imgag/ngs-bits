@@ -4,6 +4,8 @@
 #include <QDialog>
 #include <QTreeWidgetItem>
 #include "ui_IgvDialog.h"
+#include "FileLocationHelper.h"
+#include "FileLocationProvider.h"
 
 class IgvDialog
 		: public QDialog
@@ -15,7 +17,7 @@ public:
 	IgvDialog(QWidget* parent = 0);
 
 	//Add a file
-	void addFile(QString label, QString type, QString filename, bool checked);
+	void addFile(const FileLocation file, bool checked);
 
 	enum InitAction
 	{

@@ -27,7 +27,7 @@ GermlineReportGenerator::GermlineReportGenerator(const GermlineReportGeneratorDa
 	, test_mode_(test_mode)
 {
 	ps_id_ = db_.processedSampleId(data_.ps);
-	ps_bam_ = db_.processedSamplePath(ps_id_, NGSD::BAM);
+	ps_bam_ = db_.processedSamplePath(ps_id_, PathType::BAM);
 
 	if (data_.roi_file!="")
 	{

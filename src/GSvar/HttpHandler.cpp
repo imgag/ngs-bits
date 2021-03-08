@@ -14,35 +14,36 @@
 #include <QPointer>
 #include <QHttpMultiPart>
 
-HttpHandler::HttpHandler(ProxyType proxy_type, QObject* parent)
+HttpHandler::HttpHandler(HttpRequestHandler::ProxyType proxy_type, QObject* parent)
 	: QObject(parent)
 	, nmgr_()
 	, headers_()
+	, proxy_type_(proxy_type)
 {
 	//default headers
-	setHeader("User-Agent", "GSvar");
-	setHeader("X-Custom-User-Agent", "GSvar");
+//	setHeader("User-Agent", "GSvar");
+//	setHeader("X-Custom-User-Agent", "GSvar");
 
 	//proxy
-	if (proxy_type==SYSTEM)
-	{
-		QNetworkProxyFactory::setUseSystemConfiguration(true);
-	}
-	else if (proxy_type==INI)
-	{
-		QNetworkProxy proxy;
-		proxy.setType(QNetworkProxy::HttpProxy);
-		proxy.setHostName(Settings::string("proxy_host"));
-		proxy.setPort(Settings::integer("proxy_port"));
-		nmgr_.setProxy(proxy);
-	}
-	else
-	{
-		nmgr_.setProxy(QNetworkProxy(QNetworkProxy::NoProxy));
-	}
+//	if (proxy_type==SYSTEM)
+//	{
+//		QNetworkProxyFactory::setUseSystemConfiguration(true);
+//	}
+//	else if (proxy_type==INI)
+//	{
+//		QNetworkProxy proxy;
+//		proxy.setType(QNetworkProxy::HttpProxy);
+//		proxy.setHostName(Settings::string("proxy_host"));
+//		proxy.setPort(Settings::integer("proxy_port"));
+//		nmgr_.setProxy(proxy);
+//	}
+//	else
+//	{
+//		nmgr_.setProxy(QNetworkProxy(QNetworkProxy::NoProxy));
+//	}
 
 	//signals+slots
-	connect(&nmgr_, SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError> &)), this, SLOT(handleSslErrors(QNetworkReply*, const QList<QSslError>&)));
+//	connect(&nmgr_, SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError> &)), this, SLOT(handleSslErrors(QNetworkReply*, const QList<QSslError>&)));
 	connect(&nmgr_, SIGNAL(proxyAuthenticationRequired(const QNetworkProxy& , QAuthenticator*)), this, SLOT(handleProxyAuthentification(const QNetworkProxy& , QAuthenticator*)));
 }
 
@@ -58,107 +59,17 @@ void HttpHandler::setHeader(const QByteArray& key, const QByteArray& value)
 
 QString HttpHandler::get(QString url, const HttpHeaders& add_headers)
 {
-	//request
-	QNetworkRequest request;
-	request.setUrl(url);
-	for(auto it=headers_.begin(); it!=headers_.end(); ++it)
-	{
-		request.setRawHeader(it.key(), it.value());
-	}
-	for(auto it=add_headers.begin(); it!=add_headers.end(); ++it)
-	{
-		request.setRawHeader(it.key(), it.value());
-	}
-
-	//query
-	QNetworkReply* reply = nmgr_.get(request);
-
-	//make the loop process the reply immediately
-	QEventLoop loop;
-	connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-	loop.exec();
-
-	//output
-	QString output = reply->readAll();
-	if (reply->error()!=QNetworkReply::NoError)
-	{
-		THROW(Exception, "Network error " + QString::number(reply->error()) + "\nError message: " + reply->errorString() + "\nReply: " + output);
-	}
-	reply->deleteLater();
-	return output;
+	return HttpRequestHandler(proxy_type_, this).get(url, add_headers);
 }
 
 QString HttpHandler::post(QString url, const QByteArray& data, const HttpHeaders& add_headers)
 {
-	//request
-	QNetworkRequest request;
-	request.setUrl(url);
-	for(auto it=headers_.begin(); it!=headers_.end(); ++it)
-	{
-		request.setRawHeader(it.key(), it.value());
-	}
-	for(auto it=add_headers.begin(); it!=add_headers.end(); ++it)
-	{
-		request.setRawHeader(it.key(), it.value());
-	}
-
-	//query
-	QNetworkReply* reply = nmgr_.post(request, data);
-
-	//make the loop process the reply immediately
-	QEventLoop loop;
-	connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-	loop.exec();
-
-	//output
-	QString output = reply->readAll();
-	if (reply->error()!=QNetworkReply::NoError)
-	{
-		THROW(Exception, "Network error " + QString::number(reply->error()) + "\nError message: " + reply->errorString() + "\nReply: " + output);
-	}
-	reply->deleteLater();
-	return output;
+	return HttpRequestHandler(proxy_type_, this).post(url, data, add_headers);
 }
 
 QString HttpHandler::post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers)
 {
-	//request
-	QNetworkRequest request;
-	request.setUrl(url);
-	for(auto it=headers_.begin(); it!=headers_.end(); ++it)
-	{
-		request.setRawHeader(it.key(), it.value());
-	}
-	for(auto it=add_headers.begin(); it!=add_headers.end(); ++it)
-	{
-		request.setRawHeader(it.key(), it.value());
-	}
-
-	//query
-	QNetworkReply* reply = nmgr_.post(request, parts);
-
-	//make the loop process the reply immediately
-	QEventLoop loop;
-	connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
-	loop.exec();
-
-	//output
-	QString output = reply->readAll();
-	if (reply->error()!=QNetworkReply::NoError)
-	{
-		THROW(Exception, "Network error " + QString::number(reply->error()) + "\nError message: " + reply->errorString() + "\nReply: " + output);
-	}
-	reply->deleteLater();
-	return output;
-}
-
-void HttpHandler::handleSslErrors(QNetworkReply* reply, const QList<QSslError>& errors)
-{
-	foreach(const QSslError& error, errors)
-	{
-		qDebug() << "ignore error" << error.errorString();
-	}
-	reply->ignoreSslErrors(errors);
+	return HttpRequestHandler(proxy_type_, this).post(url, parts, add_headers);
 }
 
 void HttpHandler::handleProxyAuthentification(const QNetworkProxy& proxy, QAuthenticator* auth)
@@ -167,5 +78,7 @@ void HttpHandler::handleProxyAuthentification(const QNetworkProxy& proxy, QAuthe
 	auth->setUser(proxy_user);
 	QString proxy_pass = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password for " + proxy.hostName(), QLineEdit::Password);
 	auth->setPassword(proxy_pass);
+
+	nmgr_.setProxy(proxy);
 }
 

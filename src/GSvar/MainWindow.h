@@ -13,12 +13,9 @@
 #include "ReportSettings.h"
 #include "DelayedInitializationTimer.h"
 #include "SomaticReportSettings.h"
-struct IgvFile
-{
-	QString id; //sample identifier/name (for visualization)
-	QString type; //file type (for grouping)
-	QString filename; //file name
-};
+#include "GlobalServiceProvider.h"
+#include "FileLocationProviderLocal.h"
+#include "FileLocationProviderRemote.h"
 
 ///Main window class
 class MainWindow
@@ -31,16 +28,16 @@ public:
 	MainWindow(QWidget* parent = 0);
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
-	///Returns the BAM files for the analysis.
-	QList<IgvFile> getBamFiles();
+	///Returns the LOG files corresponding to the variant list.
+	QStringList getLogFiles();
 	///Returns CNV SEG files for the analysis.
-	QList<IgvFile> getSegFilesCnv();
+	QList<FileLocation> getSegFilesCnv();
 	///Returns BAF SEG files for the analysis.
-	QList<IgvFile> getIgvFilesBaf();
+	QList<FileLocation> getIgvFilesBaf();
 	///Returns Manta evidence BAM files for the analysis.
-	QList<IgvFile> getMantaEvidenceFiles();
+	QList<FileLocation> getMantaEvidenceFiles();
 	///Returns low coverage BED files for the analysis.
-	QList<IgvFile> getLowCovFiles();
+	QList<FileLocation> getLowCovFiles();
 	///Adds a file to the recent file list
 	void addToRecentFiles(QString filename);
 	///Updates recent files menu
@@ -54,9 +51,7 @@ public:
 	///Upload variant to LOVD
 	void uploadtoLovd(int variant_index, int variant_index2 = -1);
 	///Returns the target file name without extension and date part prefixed with '_', or an empty string if no target file is set
-	QString targetFileName() const;
-	///Returns the processed sample name (in case of a somatic variant list, the tumor is returned).
-	QString processedSampleName();
+	QString targetFileName() const;	
 	///Returns the sample name (in case of a somatic variant list, the tumor is returned).
 	QString sampleName();
 

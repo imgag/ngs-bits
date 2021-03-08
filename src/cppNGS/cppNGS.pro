@@ -3,7 +3,7 @@ CONFIG += c++11
 
 #base settings
 QT       -= gui
-QT       += xml xmlpatterns
+QT       += xml xmlpatterns network
 TEMPLATE = lib
 TARGET = cppNGS
 DEFINES += CPPNGS_LIBRARY
@@ -38,6 +38,9 @@ QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += BedFile.cpp \
     Chromosome.cpp \
+    FileLocationHelper.cpp \
+    FileLocationProviderLocal.cpp \
+    FileLocationProviderRemote.cpp \
     VariantList.cpp \
     Statistics.cpp \
     Pileup.cpp \
@@ -73,6 +76,11 @@ SOURCES += BedFile.cpp \
 
 HEADERS += BedFile.h \
     Chromosome.h \
+    FileLocation.h \
+    FileLocationHelper.h \
+    FileLocationProvider.h \
+    FileLocationProviderLocal.h \
+    FileLocationProviderRemote.h \
     VariantList.h \
     ChromosomalIndex.h \
     Statistics.h \
