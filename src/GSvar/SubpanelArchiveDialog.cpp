@@ -37,7 +37,9 @@ bool SubpanelArchiveDialog::changedSubpanels()
 
 void SubpanelArchiveDialog::openSubpanelFolder()
 {
-	QDesktopServices::openUrl(QUrl(NGSD::getTargetFilePath(true)));
+	QString path = NGSD::getTargetFilePath(true);
+	QString url = "file:///" + Helper::canonicalPath(path);
+	QDesktopServices::openUrl(url);
 }
 
 void SubpanelArchiveDialog::updateSubpanelLists()
