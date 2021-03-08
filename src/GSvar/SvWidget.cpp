@@ -134,8 +134,8 @@ void SvWidget::initGUI()
         }
         else
         {
-            // fallback: extract sample name from BEDPE file
-            ps_names_ = QStringList() << sv_bedpe_file_.annotationHeaders().at(sv_bedpe_file_.annotationIndexByName("FORMAT") + 1);
+			// fallback: use empty sample header
+			ps_names_ = QStringList() << "";
         }
     }
 
