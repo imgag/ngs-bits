@@ -5,7 +5,8 @@
 
 QString FileLocationHelper::pathTypeToString(PathType type)
 {
-	switch(type) {
+	switch(type)
+	{
 		case PathType::PROJECT_FOLDER:
 			return "PROJECT_FOLDER";
 		case PathType::SAMPLE_FOLDER:
@@ -26,9 +27,9 @@ QString FileLocationHelper::pathTypeToString(PathType type)
 			return "MANTA_EVIDENCE";
 		case PathType::OTHER:
 			return "OTHER";
-	  default:
+		default:
 		 return "Invalid PathType";
-   }
+	}
 }
 
 PathType FileLocationHelper::stringToPathType(QString in)

@@ -21,29 +21,9 @@ HttpHandler::HttpHandler(HttpRequestHandler::ProxyType proxy_type, QObject* pare
 	, proxy_type_(proxy_type)
 {
 	//default headers
-//	setHeader("User-Agent", "GSvar");
-//	setHeader("X-Custom-User-Agent", "GSvar");
+	setHeader("User-Agent", "GSvar");
+	setHeader("X-Custom-User-Agent", "GSvar");
 
-	//proxy
-//	if (proxy_type==SYSTEM)
-//	{
-//		QNetworkProxyFactory::setUseSystemConfiguration(true);
-//	}
-//	else if (proxy_type==INI)
-//	{
-//		QNetworkProxy proxy;
-//		proxy.setType(QNetworkProxy::HttpProxy);
-//		proxy.setHostName(Settings::string("proxy_host"));
-//		proxy.setPort(Settings::integer("proxy_port"));
-//		nmgr_.setProxy(proxy);
-//	}
-//	else
-//	{
-//		nmgr_.setProxy(QNetworkProxy(QNetworkProxy::NoProxy));
-//	}
-
-	//signals+slots
-//	connect(&nmgr_, SIGNAL(sslErrors(QNetworkReply*, const QList<QSslError> &)), this, SLOT(handleSslErrors(QNetworkReply*, const QList<QSslError>&)));
 	connect(&nmgr_, SIGNAL(proxyAuthenticationRequired(const QNetworkProxy& , QAuthenticator*)), this, SLOT(handleProxyAuthentification(const QNetworkProxy& , QAuthenticator*)));
 }
 

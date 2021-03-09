@@ -61,7 +61,7 @@ QList<FileLocation> FileLocationProviderRemote::getBamFiles()
 
 QList<FileLocation> FileLocationProviderRemote::getSegFilesCnv()
 {
-		return requestFileInfoByType(PathType::COPY_NUMBER_RAW_DATA);
+	return requestFileInfoByType(PathType::COPY_NUMBER_RAW_DATA);
 }
 
 QList<FileLocation> FileLocationProviderRemote::getIgvFilesBaf()
