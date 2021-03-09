@@ -12,7 +12,7 @@ CircosPlotWidget::CircosPlotWidget(QWidget *parent)
 	ui_->setupUi(this);
 
 	//load plot file
-	QList<FileLocation> plot_files = GlobalServiceProvider::instance().fileLocationProvider()->getCircosPlotFiles();
+        QList<FileLocation> plot_files = GlobalServiceProvider::fileLocationProvider()->getCircosPlotFiles();
 	if (plot_files.count()==1)
 	{
 		loadCircosPlot(plot_files[0].filename);

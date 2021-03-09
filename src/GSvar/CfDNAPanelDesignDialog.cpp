@@ -326,7 +326,7 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 void CfDNAPanelDesignDialog::loadGenes()
 {
 	// get all bed files in the genes folder
-	QDir gene_folder(Settings::string("patient_specific_panel_folder", false) + "genes/"); //TODO: it should be moved to the database
+	QDir gene_folder(Settings::path("patient_specific_panel_folder", false) + "genes/"); //TODO: it should be moved to the database
 	QStringList bed_file_paths = gene_folder.entryList(QStringList() << "*.bed" << "*.BED", QDir::Files);
 
 	// extract info

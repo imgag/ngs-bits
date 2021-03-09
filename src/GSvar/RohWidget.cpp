@@ -42,8 +42,8 @@ RohWidget::RohWidget(FilterWidget* filter_widget, QWidget *parent)
 	connect(var_filters, SIGNAL(targetRegionChanged()), this, SLOT(variantFiltersChanged()));
 
 	//load ROH data file	
-	QString path = GlobalServiceProvider::instance().fileLocationProvider()->getProjectAbsolutePath();
-	QStringList roh_files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::instance().fileLocationProvider()->getRohsTsvFiles());
+	QString path = GlobalServiceProvider::fileLocationProvider()->getProjectAbsolutePath();
+	QStringList roh_files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::fileLocationProvider()->getRohsTsvFiles());
 	if (roh_files.count()==0)
 	{
 		addInfoLine("<font color='red'>No ROH data file found in directory " + path + "</font>");

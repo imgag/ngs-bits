@@ -13,7 +13,7 @@ GlobalServiceProvider::~GlobalServiceProvider()
 {
 }
 
-GlobalServiceProvider& GlobalServiceProvider::instance()
+GlobalServiceProvider GlobalServiceProvider::instance()
 {
 	static GlobalServiceProvider instance;
 

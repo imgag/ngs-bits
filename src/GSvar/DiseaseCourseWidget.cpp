@@ -43,7 +43,7 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 	{
 		QString ps_id = db_.processedSampleId(cf_dna.name);		
 		QString bam = NGSD().processedSamplePath(ps_id, PathType::BAM);
-		igv_commands << "load \"" + QDir::toNativeSeparators(bam) + "\"";
+		igv_commands << "load \"" + Helper::canonicalPath(bam) + "\"";
 	}
 	emit executeIGVCommands(igv_commands);
 }
