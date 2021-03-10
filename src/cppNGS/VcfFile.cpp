@@ -374,6 +374,7 @@ void VcfFile::processVcfLine(int& line_number, const QByteArray& line, QSet<QByt
 	}
 }
 
+//zlib also opens BGZF files (if index is not needed)
 void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, ChromosomalIndex<BedFile>* roi_idx, bool invert)
 {
 	//clear content in case we load a second file
@@ -441,7 +442,7 @@ void VcfFile::load(const QString& filename, const BedFile& roi, bool allow_multi
 	}
 	roi_idx.reset(new ChromosomalIndex<BedFile>(roi));
 
-	loadFromVCFGZ(filename, allow_multi_sample, roi_idx.data(), invert);
+	loadFromVCFGZ(filename, allow_multi_sample);
 }
 
 void VcfFile::storeAsTsv(const QString& filename)
@@ -538,10 +539,22 @@ void writeZipped(gzFile& gz_file, QString& vcf_file_data, const QString& filenam
 	vcf_file_data.clear();
 }
 
-void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int compression_level, int compression_strategy) const
+void writeBGZipped(BGZF* instream, QString& vcf_file_data)
+{
+	const QByteArray utf8String = vcf_file_data.toUtf8();
+	size_t length_bytes = utf8String.size();
+	size_t written_bytes = bgzf_write(instream, utf8String.constData(), length_bytes);
+
+	if(length_bytes != written_bytes)
+	{
+		THROW(FileAccessException, "Writing bgzipped vcf file failed; not all bytes were written.");
+	}
+}
+
+void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int compression_level) const
 {
 
-	if(compression_level == 0)
+	if(compression_level == BGZF_NO_COMPRESSION)
 	{
 		//open stream
 		QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_file_empty);
@@ -559,45 +572,43 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 			storeLineInformation(file_stream, vcfLine(i));
 		}
 	}
-	else //TODO use BGZIP from vcflib to store the compress the VCF - it can be indexed then > TIM
+	else
 	{
 		if(filename.isEmpty())
 		{
 			THROW(ArgumentException, "Conflicting parameters for empty filename and compression level > 0");
 		}
-
-		FILE* instream = fopen(filename.toLatin1().data(), "wb");
-		gzFile file = gzdopen(fileno(instream), "wb"); //read binary: always open in binary mode because windows and mac open in text mode
-
-		if (file==NULL)
-		{
-			THROW(FileAccessException, "Could not open file '" + filename + "' for reading!");
-		}
-
 		if (compression_level<0 || compression_level>9) THROW(ArgumentException, "Invalid gzip compression level '" + QString::number(compression_level) +"' given for VCF file '" + filename + "'!");
-		if (compression_strategy<0 || compression_strategy>4) THROW(ArgumentException, "Invalid gzip compression strategy '" + QString::number(compression_strategy) +"' given for VCF file '" + filename + "'!");
-		gzsetparams(file, compression_level, compression_strategy);
+
+		std::string compression_mode_string = "wb";
+		std::string compression_mode_level_string = std::to_string(compression_level);
+		compression_mode_string.append(compression_mode_level_string);
+
+		const char* compression_mode = compression_mode_string.c_str();
+		BGZF* instream = bgzf_open(filename.toLatin1().data(), compression_mode);
+		if (instream==NULL)
+		{
+			THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
+		}
 
 		//write gzipped informations
 		//open stream
 		QString vcf_file;
 		QTextStream stream(&vcf_file);
+
 		//write header information
 		vcf_header_.storeHeaderInformation(stream);
-		writeZipped(file, vcf_file, filename);
-
 		//write header columns
 		storeHeaderColumns(stream);
-		writeZipped(file, vcf_file, filename);
 
-		//write vcf lines
 		for(int i = 0; i < vcf_lines_.count(); ++i)
 		{
 			storeLineInformation(stream, vcfLine(i));
-			writeZipped(file, vcf_file, filename);
 		}
 
-		gzclose(file);
+		writeBGZipped(instream, vcf_file);
+
+		bgzf_close(instream);
 	}
 
 }
