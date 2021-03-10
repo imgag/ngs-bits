@@ -442,7 +442,7 @@ void VcfFile::load(const QString& filename, const BedFile& roi, bool allow_multi
 	}
 	roi_idx.reset(new ChromosomalIndex<BedFile>(roi));
 
-	loadFromVCFGZ(filename, allow_multi_sample);
+	loadFromVCFGZ(filename, allow_multi_sample, roi_idx.data(), invert);
 }
 
 void VcfFile::storeAsTsv(const QString& filename)
