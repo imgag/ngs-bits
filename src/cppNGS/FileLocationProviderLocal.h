@@ -30,15 +30,15 @@ public:
 	QList<FileLocation> getCnvsTsvFiles() override;
 	QList<FileLocation> getRohsTsvFiles() override;
 
-	QString getProjectAbsolutePath() override;
-	QString getProjectParentAbsolutePath() override;
+	QString getAnalysisPath() override;
+	QString getProjectPath() override;
 	QString getRohFileAbsolutePath() override;
 
 	QString processedSampleName() override;
 
 private:
 	QList<FileLocation> mapFoundFilesToFileLocation(QStringList& files, PathType type);
-	void setIsFoundFlag(FileLocation& file);
+	static void addToList(const FileLocation& loc, QList<FileLocation>& list);
 
 protected:
 	QString gsvar_file_;

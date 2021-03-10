@@ -35,8 +35,8 @@ public:
 	virtual QList<FileLocation> getCnvsTsvFiles() = 0;
 	virtual QList<FileLocation> getRohsTsvFiles() = 0;
 
-	virtual QString getProjectAbsolutePath() = 0;
-	virtual QString getProjectParentAbsolutePath() = 0;
+	virtual QString getAnalysisPath() = 0;
+	virtual QString getProjectPath() = 0;
 	virtual QString getRohFileAbsolutePath() = 0;
 
 	virtual QString processedSampleName() = 0;

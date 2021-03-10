@@ -42,7 +42,7 @@ RohWidget::RohWidget(FilterWidget* filter_widget, QWidget *parent)
 	connect(var_filters, SIGNAL(targetRegionChanged()), this, SLOT(variantFiltersChanged()));
 
 	//load ROH data file	
-	QString path = GlobalServiceProvider::fileLocationProvider()->getProjectAbsolutePath();
+	QString path = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath();
 	QStringList roh_files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::fileLocationProvider()->getRohsTsvFiles());
 	if (roh_files.count()==0)
 	{

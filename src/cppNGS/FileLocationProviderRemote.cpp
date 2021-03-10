@@ -139,12 +139,12 @@ QList<FileLocation> FileLocationProviderRemote::getRohsTsvFiles()
 	return QList<FileLocation>{};
 }
 
-QString FileLocationProviderRemote::getProjectAbsolutePath()
+QString FileLocationProviderRemote::getAnalysisPath()
 {
 	return "";
 }
 
-QString FileLocationProviderRemote::getProjectParentAbsolutePath()
+QString FileLocationProviderRemote::getProjectPath()
 {
 	return "";
 }

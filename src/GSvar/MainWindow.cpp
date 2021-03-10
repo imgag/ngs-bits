@@ -841,7 +841,7 @@ void MainWindow::on_actionROH_triggered()
 	if (variants_.type()==GERMLINE_TRIO)
 	{		
 		//UPDs
-		QString upd_file = GlobalServiceProvider::fileLocationProvider()->getProjectAbsolutePath() + "/trio_upd.tsv";
+		QString upd_file = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath() + "/trio_upd.tsv";
 		if (!QFile::exists(upd_file))
 		{
 			QMessageBox::warning(this, "UPD detection", "The UPD file is missing!\n" + upd_file);
@@ -940,7 +940,7 @@ void MainWindow::on_actionRE_triggered()
 	if (filename_=="") return;
 
 	// determine repeat expansion file name	
-	QString re_file_name = GlobalServiceProvider::fileLocationProvider()->getProjectAbsolutePath() + "/" + GlobalServiceProvider::fileLocationProvider()->processedSampleName() +  "_repeats_expansionhunter.vcf";
+	QString re_file_name = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath() + "/" + GlobalServiceProvider::fileLocationProvider()->processedSampleName() +  "_repeats_expansionhunter.vcf";
 
 	if (QFileInfo(re_file_name).exists())
 	{
@@ -970,7 +970,7 @@ void MainWindow::on_actionPRS_triggered()
 	if (filename_=="") return;
 
 	// determine PRS file name
-	QString prs_file_name = GlobalServiceProvider::fileLocationProvider()->getProjectAbsolutePath() + "/" + GlobalServiceProvider::fileLocationProvider()->processedSampleName() +  "_prs.tsv";
+	QString prs_file_name = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath() + "/" + GlobalServiceProvider::fileLocationProvider()->processedSampleName() +  "_prs.tsv";
 
 	if (QFileInfo(prs_file_name).exists())
 	{
@@ -1467,8 +1467,8 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	QList<FileLocation> bams = GlobalServiceProvider::fileLocationProvider()->getBamFiles();
 	if (bams.empty())
 	{
-		QString sample_folder = GlobalServiceProvider::fileLocationProvider()->getProjectAbsolutePath();
-		QString project_folder = GlobalServiceProvider::fileLocationProvider()->getProjectParentAbsolutePath();
+		QString sample_folder = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath();
+		QString project_folder = GlobalServiceProvider::fileLocationProvider()->getProjectPath();
 		THROW(Exception, "Could not find BAM file at one of the default locations:"+sample_folder+", "+project_folder);
 	}
 
@@ -4028,7 +4028,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 	if (gene=="") return;
 
 	//locate report(s)
-	QString folder = GlobalServiceProvider::fileLocationProvider()->getProjectAbsolutePath();
+	QString folder = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath();
 	QList<FileLocation> reports = GlobalServiceProvider::fileLocationProvider()->getLowcovBedFiles();
 
 	//abort if no report is found
@@ -4251,7 +4251,7 @@ void MainWindow::exportVCF()
 		//store
 		QFileInfo filename_info(filename_);
 		QString folder = Settings::string("gsvar_variant_export_folder", true).trimmed();
-		if (folder.isEmpty()) folder = GlobalServiceProvider::fileLocationProvider()->getProjectAbsolutePath();
+		if (folder.isEmpty()) folder = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath();
 		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf.gz";
 
 		file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf.gz);;All files (*.*)");
@@ -4294,7 +4294,7 @@ void MainWindow::exportGSvar()
 		//store
 		QFileInfo filename_info(filename_);
 		QString folder = Settings::string("gsvar_variant_export_folder", true).trimmed();
-		if (folder.isEmpty()) folder = GlobalServiceProvider::fileLocationProvider()->getProjectAbsolutePath();
+		if (folder.isEmpty()) folder = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath();
 		QString file_name = folder + QDir::separator() + filename_info.fileName().replace(".GSvar", "") + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".GSvar";
 
 		if (file_name!="")
@@ -5130,7 +5130,7 @@ void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
 
 QString MainWindow::cnvFile(QString gsvar_file)
 {
-	QString base = GlobalServiceProvider::fileLocationProvider()->getProjectAbsolutePath() + QDir::separator() + QFileInfo(gsvar_file).baseName();
+	QString base = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath() + QDir::separator() + QFileInfo(gsvar_file).baseName();
 	QString cnv_file = base + "_cnvs_clincnv.tsv";
 	if (!QFile::exists(cnv_file)) //fallback to somatic
 	{
@@ -5150,7 +5150,7 @@ QString MainWindow::cnvFile(QString gsvar_file)
 
 QString MainWindow::svFile(QString gsvar_file)
 {
-	QString base = GlobalServiceProvider::fileLocationProvider()->getProjectAbsolutePath() + QDir::separator() + QFileInfo(gsvar_file).baseName();
+	QString base = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath() + QDir::separator() + QFileInfo(gsvar_file).baseName();
 	QString sv_file = base + "_manta_var_structural.bedpe"; //germline file naming convention
 
 	if (QFile::exists(sv_file))

@@ -32,8 +32,8 @@ public:
 	QList<FileLocation> getCnvsTsvFiles() override;
 	QList<FileLocation> getRohsTsvFiles() override;
 
-	QString getProjectAbsolutePath() override;
-	QString getProjectParentAbsolutePath() override;
+	QString getAnalysisPath() override;
+	QString getProjectPath() override;
 	QString getRohFileAbsolutePath() override;
 
 	QString processedSampleName() override;
