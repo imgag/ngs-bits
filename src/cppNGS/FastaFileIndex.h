@@ -47,7 +47,7 @@ protected:
 	QMap<QString, FastaIndexEntry> index_;
 	mutable QFile file_;
 	const FastaIndexEntry& index(const Chromosome& chr) const;
-	bool is_fasta_file_local(const QString& source) const;
+	bool isFastaFileLocal(const QString& source) const;
 	void saveEntryToIndex(const QList<QByteArray>& fields);
 };
 

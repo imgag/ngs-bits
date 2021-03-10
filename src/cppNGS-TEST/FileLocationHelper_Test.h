@@ -7,32 +7,23 @@ Q_OBJECT
 private slots:
 	void convert_pathTypeToString()
 	{
-		QString text = FileLocationHelper::pathTypeToString(PathType::PROJECT_FOLDER);
-		S_EQUAL(text, "PROJECT_FOLDER");
+		S_EQUAL(FileLocation::typeToString(PathType::PROJECT_FOLDER), "PROJECT_FOLDER");
 
-		text = FileLocationHelper::pathTypeToString(PathType::SAMPLE_FOLDER);
-		S_EQUAL(text, "SAMPLE_FOLDER");
+		S_EQUAL(FileLocation::typeToString(PathType::SAMPLE_FOLDER), "SAMPLE_FOLDER");
 
-		text = FileLocationHelper::pathTypeToString(PathType::BAM);
-		S_EQUAL(text, "BAM");
+		S_EQUAL(FileLocation::typeToString(PathType::BAM), "BAM");
 
-		text = FileLocationHelper::pathTypeToString(PathType::GSVAR);
-		S_EQUAL(text, "GSVAR");
+		S_EQUAL(FileLocation::typeToString(PathType::GSVAR), "GSVAR");
 
-		text = FileLocationHelper::pathTypeToString(PathType::VCF);
-		S_EQUAL(text, "VCF");
+		S_EQUAL(FileLocation::typeToString(PathType::VCF), "VCF");
 
-		text = FileLocationHelper::pathTypeToString(PathType::BAF);
-		S_EQUAL(text, "BAF");
+		S_EQUAL(FileLocation::typeToString(PathType::BAF), "BAF");
 
-		text = FileLocationHelper::pathTypeToString(PathType::COPY_NUMBER_CALLS);
-		S_EQUAL(text, "COPY_NUMBER_CALLS");
+		S_EQUAL(FileLocation::typeToString(PathType::COPY_NUMBER_CALLS), "COPY_NUMBER_CALLS");
 
-		text = FileLocationHelper::pathTypeToString(PathType::COPY_NUMBER_RAW_DATA);
-		S_EQUAL(text, "COPY_NUMBER_RAW_DATA");
+		S_EQUAL(FileLocation::typeToString(PathType::COPY_NUMBER_RAW_DATA), "COPY_NUMBER_RAW_DATA");
 
-		text = FileLocationHelper::pathTypeToString(PathType::OTHER);
-		S_EQUAL(text, "OTHER");
+		S_EQUAL(FileLocation::typeToString(PathType::OTHER), "OTHER");
 	}
 
 	void bam_getEvidenceFile()

@@ -9,10 +9,10 @@ class CPPNGSSHARED_EXPORT FileLocationHelper
 {
 public:
 	///Returns a string representation for PathType
-	static QString pathTypeToString(PathType type);
+//	static QString pathTypeToString(PathType type);
 
 	///Converts a string into PathType value
-	static PathType stringToPathType(QString in);
+//	static PathType stringToPathType(QString in);
 
 	///Returns the file path to the Manta evididence file for a given BAM file.
 	static QString getEvidenceFile(const QString& bam_file);

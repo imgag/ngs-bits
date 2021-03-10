@@ -13,7 +13,7 @@ FastaFileIndex::FastaFileIndex(QString fasta_file)
 	, index_name_(fasta_file + ".fai")
 	, file_(fasta_file)
 {
-	if (!is_fasta_file_local(fasta_file))
+	if (!isFastaFileLocal(fasta_file))
 	{
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
@@ -63,7 +63,7 @@ FastaFileIndex::FastaFileIndex(QString fasta_file)
 
 FastaFileIndex::~FastaFileIndex()
 {
-	if (is_fasta_file_local(fasta_name_))
+	if (isFastaFileLocal(fasta_name_))
 	{
 		file_.close();
 	}
@@ -73,7 +73,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 {
 	const FastaIndexEntry& entry = index(chr);
 
-	if (is_fasta_file_local(fasta_name_))
+	if (isFastaFileLocal(fasta_name_))
 	{
 		//jump to postion
 		if (!file_.seek(entry.offset))
@@ -87,7 +87,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 	int seqlen = newlines_in_sequence  + entry.length;
 	Sequence output {};
 
-	if (is_fasta_file_local(fasta_name_))
+	if (isFastaFileLocal(fasta_name_))
 	{
 		output = file_.read(seqlen).replace("\n", 1, "", 0);
 
@@ -130,7 +130,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 	//jump to postion
 	int newlines_before = start > 0 ? (start - 1) / entry.line_blen : 0;
 	qint64 read_start_pos = entry.offset + newlines_before + start;
-	if (is_fasta_file_local(fasta_name_))
+	if (isFastaFileLocal(fasta_name_))
 	{
 		if (!file_.seek(read_start_pos))
 		{
@@ -144,7 +144,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 	int seqlen = length + newlines_inside;
 	Sequence output {};
 
-	if (is_fasta_file_local(fasta_name_))
+	if (isFastaFileLocal(fasta_name_))
 	{
 		output = file_.read(seqlen).replace("\n", 1, "", 0);
 	}
@@ -172,7 +172,7 @@ const FastaFileIndex::FastaIndexEntry& FastaFileIndex::index(const Chromosome& c
 	return it.value();
 }
 
-bool FastaFileIndex::is_fasta_file_local(const QString& source) const
+bool FastaFileIndex::isFastaFileLocal(const QString& source) const
 {
 	if (source.toLower().indexOf("http") > -1)
 	{

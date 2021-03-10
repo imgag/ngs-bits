@@ -19,14 +19,14 @@ QList<FileLocation> FileLocationProviderRemote::requestFileInfoByType(PathType t
 
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
-	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://" + server_host_ + ":" + QString::number(server_port_) + "/v1/file_location?ps=" + sample_id_ + "&type=" + FileLocationHelper::pathTypeToString(type), add_headers);
+	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://" + server_host_ + ":" + QString::number(server_port_) + "/v1/file_location?ps=" + sample_id_ + "&type=" + FileLocation::typeToString(type), add_headers);
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
 	QJsonArray file_list = json_doc.array();
 
 	if (file_list.count() == 0)
 	{
-		THROW(Exception, "Could not find file info: " + FileLocationHelper::pathTypeToString(type));
+		THROW(Exception, "Could not find file info: " + FileLocation::typeToString(type));
 	}
 
 	qDebug() << "Requested files:" << file_list;
@@ -35,10 +35,10 @@ QList<FileLocation> FileLocationProviderRemote::requestFileInfoByType(PathType t
 }
 
 FileLocation FileLocationProviderRemote::mapJsonObjectToFileLocation(QJsonObject obj)
-{
+{	
 	return FileLocation {
 		obj.value("id").toString(),
-		FileLocationHelper::stringToPathType(obj.value("type").toString()),
+		FileLocation::stringToType(obj.value("type").toString()),
 		obj.value("filename").toString(),
 		obj.value("is_found").toBool()
 	};
