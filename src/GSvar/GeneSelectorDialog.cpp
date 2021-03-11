@@ -49,16 +49,16 @@ void GeneSelectorDialog::updateGeneTable()
 
 	//check for CN calling results
 	CnvCallerType cnv_caller = CnvCallerType::INVALID;
-        QStringList seg_files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::fileLocationProvider()->getCnvsClincnvSegFiles());
-                QStringList tsv_files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::fileLocationProvider()->getCnvsClincnvTsvFiles());
+	QStringList seg_files = GlobalServiceProvider::fileLocationProvider()->getCnvsClincnvSegFiles().asStringList();
+	QStringList tsv_files = GlobalServiceProvider::fileLocationProvider()->getCnvsClincnvTsvFiles().asStringList();
 	if (seg_files.count()==1 && tsv_files.size()==1)
 	{
 		cnv_caller = CnvCallerType::CLINCNV;
 	}
 	else //CnvHunter
 	{
-                seg_files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::fileLocationProvider()->getCnvsSegFiles());
-                tsv_files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::fileLocationProvider()->getCnvsTsvFiles());
+		seg_files = GlobalServiceProvider::fileLocationProvider()->getCnvsSegFiles().asStringList();
+		tsv_files = GlobalServiceProvider::fileLocationProvider()->getCnvsTsvFiles().asStringList();
 		if (seg_files.count()==1 && tsv_files.size()==1)
 		{
 			cnv_caller = CnvCallerType::CNVHUNTER;
@@ -110,7 +110,7 @@ void GeneSelectorDialog::updateGeneTable()
 
 	//load low-coverage file for processing system
 	BedFile sys_gaps;
-        QStringList files = FileLocationHelper::getFileLocationsAsStringList(GlobalServiceProvider::fileLocationProvider()->getLowcovBedFiles());
+	QStringList files = GlobalServiceProvider::fileLocationProvider()->getLowcovBedFiles().asStringList();
 	bool gaps_file_exists = files.count()==1;
 	if(gaps_file_exists)
 	{

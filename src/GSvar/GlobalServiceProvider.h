@@ -13,7 +13,7 @@ public:
 protected:
 	GlobalServiceProvider();
 	~GlobalServiceProvider();
-	static GlobalServiceProvider instance();
+	static GlobalServiceProvider& instance();
 
 private:
 	QSharedPointer<FileLocationProvider> file_location_provider_;

@@ -77,4 +77,17 @@ private slots:
 		S_EQUAL(manta_files[2].filename, project_folder+"/Sample_Control1/manta_evid/Control1_manta_evidence.bam");
 		S_EQUAL(manta_files[3].filename, project_folder+"/Sample_Control2/manta_evid/Control2_manta_evidence.bam");
 	}
+
+	void bam_getEvidenceFile()
+	{
+		QString filename = "data_in/VariantFilter_in.GSvar";
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+		FileLocationProviderLocal fp = FileLocationProviderLocal(filename, vl.getSampleHeader(), vl.type());
+
+		QString evidence = fp.getEvidenceFile("data_in/panel.bam");
+		IS_TRUE(evidence.endsWith("panel_manta_evidence.bam"));
+
+		IS_THROWN(ArgumentException, fp.getEvidenceFile("blbbla"));
+	}
 };

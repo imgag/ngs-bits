@@ -11,24 +11,25 @@ public:
 	FileLocationProviderLocal(QString gsvar_file, const SampleHeaderInfo header_info, const AnalysisType analysis_type);
 	virtual ~FileLocationProviderLocal() {}
 
-	QList<FileLocation> getBamFiles() override;
-	QList<FileLocation> getSegFilesCnv() override;
-	QList<FileLocation> getIgvFilesBaf() override;
-	QList<FileLocation> getMantaEvidenceFiles() override;
+	FileLocationList getBamFiles() override;
+	FileLocationList getSegFilesCnv() override;
+	FileLocationList getIgvFilesBaf() override;
+	FileLocationList getMantaEvidenceFiles() override;
+	QString getEvidenceFile(QString bam_file) override;
 
-	QList<FileLocation> getAnalysisLogFiles() override;
-	QList<FileLocation> getCircosPlotFiles() override;
-	QList<FileLocation> getVcfGzFiles() override;
-	QList<FileLocation> getExpansionhunterVcfFiles() override;
-	QList<FileLocation> getPrsTsvFiles() override;
-	QList<FileLocation> getClincnvTsvFiles() override;
-	QList<FileLocation> getLowcovBedFiles() override;
-	QList<FileLocation> getStatLowcovBedFiles() override;
-	QList<FileLocation> getCnvsClincnvSegFiles() override;
-	QList<FileLocation> getCnvsClincnvTsvFiles() override;
-	QList<FileLocation> getCnvsSegFiles() override;
-	QList<FileLocation> getCnvsTsvFiles() override;
-	QList<FileLocation> getRohsTsvFiles() override;
+	FileLocationList getAnalysisLogFiles() override;
+	FileLocationList getCircosPlotFiles() override;
+	FileLocationList getVcfGzFiles() override;
+	FileLocationList getExpansionhunterVcfFiles() override;
+	FileLocationList getPrsTsvFiles() override;
+	FileLocationList getClincnvTsvFiles() override;
+	FileLocationList getLowcovBedFiles() override;
+	FileLocationList getStatLowcovBedFiles() override;
+	FileLocationList getCnvsClincnvSegFiles() override;
+	FileLocationList getCnvsClincnvTsvFiles() override;
+	FileLocationList getCnvsSegFiles() override;
+	FileLocationList getCnvsTsvFiles() override;
+	FileLocationList getRohsTsvFiles() override;
 
 	QString getAnalysisPath() override;
 	QString getProjectPath() override;
@@ -37,8 +38,8 @@ public:
 	QString processedSampleName() override;
 
 private:
-	QList<FileLocation> mapFoundFilesToFileLocation(QStringList& files, PathType type);
-	static void addToList(const FileLocation& loc, QList<FileLocation>& list);
+	FileLocationList mapFoundFilesToFileLocation(QStringList& files, PathType type);
+	static void addToList(const FileLocation& loc, FileLocationList& list);
 
 protected:
 	QString gsvar_file_;

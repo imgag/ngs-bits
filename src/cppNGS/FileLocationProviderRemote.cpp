@@ -8,9 +8,9 @@ FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id,c
 {
 }
 
-QList<FileLocation> FileLocationProviderRemote::requestFileInfoByType(PathType type)
+FileLocationList FileLocationProviderRemote::requestFileInfoByType(PathType type)
 {
-	QList<FileLocation> output {};
+	FileLocationList output {};
 	if (sample_id_ == nullptr)
 	{
 		THROW(ArgumentException, "File name has not been specified")
@@ -44,9 +44,9 @@ FileLocation FileLocationProviderRemote::mapJsonObjectToFileLocation(QJsonObject
 	};
 }
 
-QList<FileLocation> FileLocationProviderRemote::mapJsonArrayToFileLocationList(QJsonArray array)
+FileLocationList FileLocationProviderRemote::mapJsonArrayToFileLocationList(QJsonArray array)
 {
-	QList<FileLocation> output {};
+	FileLocationList output {};
 	for (int i = 0; i < array.count(); ++i)
 	{
 		output.append(mapJsonObjectToFileLocation(array[i].toObject()));
@@ -54,89 +54,94 @@ QList<FileLocation> FileLocationProviderRemote::mapJsonArrayToFileLocationList(Q
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderRemote::getBamFiles()
+FileLocationList FileLocationProviderRemote::getBamFiles()
 {
 	return requestFileInfoByType(PathType::BAM);
 }
 
-QList<FileLocation> FileLocationProviderRemote::getSegFilesCnv()
+FileLocationList FileLocationProviderRemote::getSegFilesCnv()
 {
 	return requestFileInfoByType(PathType::COPY_NUMBER_RAW_DATA);
 }
 
-QList<FileLocation> FileLocationProviderRemote::getIgvFilesBaf()
+FileLocationList FileLocationProviderRemote::getIgvFilesBaf()
 {
 	return requestFileInfoByType(PathType::BAF);
 }
 
-QList<FileLocation> FileLocationProviderRemote::getMantaEvidenceFiles()
+FileLocationList FileLocationProviderRemote::getMantaEvidenceFiles()
 {
 	return requestFileInfoByType(PathType::MANTA_EVIDENCE);
 }
 
-QList<FileLocation> FileLocationProviderRemote::getAnalysisLogFiles()
+QString FileLocationProviderRemote::getEvidenceFile(QString bam_file)
 {
-	return QList<FileLocation>{};
+	return bam_file;
 }
 
-QList<FileLocation> FileLocationProviderRemote::getCircosPlotFiles()
+FileLocationList FileLocationProviderRemote::getAnalysisLogFiles()
 {
-	return QList<FileLocation>{};
+	return FileLocationList{};
 }
 
-QList<FileLocation> FileLocationProviderRemote::getVcfGzFiles()
+FileLocationList FileLocationProviderRemote::getCircosPlotFiles()
 {
-	return QList<FileLocation>{};
+	return FileLocationList{};
 }
 
-QList<FileLocation> FileLocationProviderRemote::getExpansionhunterVcfFiles()
+FileLocationList FileLocationProviderRemote::getVcfGzFiles()
 {
-	return QList<FileLocation>{};
+	return FileLocationList{};
 }
 
-QList<FileLocation> FileLocationProviderRemote::getPrsTsvFiles()
+FileLocationList FileLocationProviderRemote::getExpansionhunterVcfFiles()
 {
-	return QList<FileLocation>{};
+	return FileLocationList{};
 }
 
-QList<FileLocation> FileLocationProviderRemote::getClincnvTsvFiles()
+FileLocationList FileLocationProviderRemote::getPrsTsvFiles()
 {
-	return QList<FileLocation>{};
+	return FileLocationList{};
 }
 
-QList<FileLocation> FileLocationProviderRemote::getLowcovBedFiles()
+FileLocationList FileLocationProviderRemote::getClincnvTsvFiles()
 {
-	return QList<FileLocation>{};
+	return FileLocationList{};
 }
 
-QList<FileLocation> FileLocationProviderRemote::getStatLowcovBedFiles()
+FileLocationList FileLocationProviderRemote::getLowcovBedFiles()
 {
-	return QList<FileLocation>{};
+	return FileLocationList{};
 }
 
-QList<FileLocation> FileLocationProviderRemote::getCnvsClincnvSegFiles()
+FileLocationList FileLocationProviderRemote::getStatLowcovBedFiles()
 {
-	return QList<FileLocation>{};
+	return FileLocationList{};
 }
 
-QList<FileLocation> FileLocationProviderRemote::getCnvsClincnvTsvFiles()
+FileLocationList FileLocationProviderRemote::getCnvsClincnvSegFiles()
 {
-	return QList<FileLocation>{};
+	return FileLocationList{};
 }
 
-QList<FileLocation> FileLocationProviderRemote::getCnvsSegFiles()
+FileLocationList FileLocationProviderRemote::getCnvsClincnvTsvFiles()
 {
-	return QList<FileLocation>{};
+	return FileLocationList{};
 }
 
-QList<FileLocation> FileLocationProviderRemote::getCnvsTsvFiles()
+FileLocationList FileLocationProviderRemote::getCnvsSegFiles()
 {
-	return QList<FileLocation>{};
+	return FileLocationList{};
 }
 
-QList<FileLocation> FileLocationProviderRemote::getRohsTsvFiles()
+FileLocationList FileLocationProviderRemote::getCnvsTsvFiles()
 {
-	return QList<FileLocation>{};
+	return FileLocationList{};
+}
+
+FileLocationList FileLocationProviderRemote::getRohsTsvFiles()
+{
+	return FileLocationList{};
 }
 
 QString FileLocationProviderRemote::getAnalysisPath()

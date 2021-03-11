@@ -24,7 +24,7 @@
 #include "SomaticVariantInterpreter.h"
 #include "SomaticCnvInterpreter.h"
 #include "NGSHelper.h"
-#include "FileLocationHelper.h"
+#include "FileLocation.h"
 
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation

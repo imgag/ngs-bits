@@ -1454,7 +1454,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	IgvDialog dlg(this);
 
 	//sample VCF
-	QList<FileLocation> files = GlobalServiceProvider::fileLocationProvider()->getVcfGzFiles();
+	FileLocationList files = GlobalServiceProvider::fileLocationProvider()->getVcfGzFiles();
 	if (files.count()==1)
 	{						
 		QString name = QFileInfo(files[0].filename).baseName().replace("_var_annotated", "");
@@ -1464,7 +1464,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	}
 
 	//sample BAM file(s)
-	QList<FileLocation> bams = GlobalServiceProvider::fileLocationProvider()->getBamFiles();
+	FileLocationList bams = GlobalServiceProvider::fileLocationProvider()->getBamFiles();
 	if (bams.empty())
 	{
 		QString sample_folder = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath();
@@ -1478,7 +1478,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	}
 
 	//sample Manta evidence file(s)
-	QList<FileLocation> evidence_files = getMantaEvidenceFiles();
+	FileLocationList evidence_files = GlobalServiceProvider::fileLocationProvider()->getMantaEvidenceFiles();
 	foreach(const FileLocation& file, evidence_files)
 	{
 		bool is_found = false;
@@ -1487,7 +1487,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	}
 
 	//sample CNV file(s)
-	QList<FileLocation> segs = getSegFilesCnv();
+	FileLocationList segs = GlobalServiceProvider::fileLocationProvider()->getSegFilesCnv();
 	foreach(const FileLocation& file, segs)
 	{
 		bool is_found = false;
@@ -1496,7 +1496,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	}
 
 	//sample BAF file(s)
-	QList<FileLocation> bafs = getIgvFilesBaf();
+	FileLocationList bafs = GlobalServiceProvider::fileLocationProvider()->getIgvFilesBaf();
 	foreach(const FileLocation& file, bafs)
 	{
 		bool is_found = false;
@@ -1514,7 +1514,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	}
 
 	//sample low-coverage
-	QList<FileLocation> low_cov_files = getLowCovFiles();
+	FileLocationList low_cov_files = GlobalServiceProvider::fileLocationProvider()->getStatLowcovBedFiles();
 	foreach(const FileLocation& file, low_cov_files)
 	{
 		bool is_found = false;
@@ -1782,7 +1782,7 @@ void MainWindow::showCnHistogram()
 	}
 
 	//check SEG file exists
-	QList<FileLocation> seg_files = getSegFilesCnv();
+	FileLocationList seg_files = GlobalServiceProvider::fileLocationProvider()->getSegFilesCnv();
 	if (seg_files.isEmpty() || !seg_files[0].filename.endsWith( "_cnvs_clincnv.seg"))
 	{
 		QMessageBox::warning(this, title, "Could not find a SEG file produced from ClinCNV. Aborting!");
@@ -2496,7 +2496,7 @@ void MainWindow::loadFile(QString filename)
 	checkPendingVariantValidations();
 
 	//activate Circos plot menu item if plot is available
-	QList<FileLocation> plot_files = GlobalServiceProvider::fileLocationProvider()->getCircosPlotFiles();
+	FileLocationList plot_files = GlobalServiceProvider::fileLocationProvider()->getCircosPlotFiles();
 	if (plot_files.size() < 1)
 	{
 		//deactivate
@@ -2509,7 +2509,7 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//activate Repeat Expansion menu item if RE calls are available
-	QList<FileLocation> re_files = GlobalServiceProvider::fileLocationProvider()->getExpansionhunterVcfFiles();
+	FileLocationList re_files = GlobalServiceProvider::fileLocationProvider()->getExpansionhunterVcfFiles();
 	if (re_files.size() < 1)
 	{
 		//deactivate
@@ -2523,7 +2523,7 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//activate PRS menu item if PRS are available
-	QList<FileLocation> prs_files = GlobalServiceProvider::fileLocationProvider()->getPrsTsvFiles();
+	FileLocationList prs_files = GlobalServiceProvider::fileLocationProvider()->getPrsTsvFiles();
 	if (prs_files.size() < 1)
 	{
 		//deactivate
@@ -4029,7 +4029,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 
 	//locate report(s)
 	QString folder = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath();
-	QList<FileLocation> reports = GlobalServiceProvider::fileLocationProvider()->getLowcovBedFiles();
+	FileLocationList reports = GlobalServiceProvider::fileLocationProvider()->getLowcovBedFiles();
 
 	//abort if no report is found
 	if (reports.count()==0)
@@ -4082,7 +4082,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 	else
 	{
 		bool ok = true;
-		report = QInputDialog::getItem(this, "Select low-coverage BED file", "Files", FileLocationHelper::getFileLocationsAsStringList(reports), 0, false, &ok);
+		report = QInputDialog::getItem(this, "Select low-coverage BED file", "Files", reports.asStringList(), 0, false, &ok);
 		if (!ok) return;
 	}
 
@@ -4113,7 +4113,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	if (filename_=="") return;
 
 	//check for BAM file
-	QList<FileLocation> bams =GlobalServiceProvider::fileLocationProvider()->getBamFiles();
+	FileLocationList bams = GlobalServiceProvider::fileLocationProvider()->getBamFiles();
 	if (bams.empty()) return;
 	QString bam_file = bams.first().filename;
 	QString ps = QFileInfo(bam_file).fileName().replace(".bam", "");
@@ -4862,7 +4862,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			QString value = parts[0];
 			if (value=="BAM")
 			{
-				QList<FileLocation> bams = GlobalServiceProvider::fileLocationProvider()->getBamFiles();
+				FileLocationList bams = GlobalServiceProvider::fileLocationProvider()->getBamFiles();
 				if (bams.empty()) return;
 				value = "BAM<" + bams.first().filename;
 			}
@@ -5588,26 +5588,6 @@ void MainWindow::clearSomaticReportSettings(QString ps_id_in_other_widget)
 	if(this_ps_id != ps_id_in_other_widget) return; //skip if ps id of file is different than in other widget
 	somatic_report_settings_ = SomaticReportSettings();
 	refreshVariantTable();
-}
-
-QList<FileLocation> MainWindow::getSegFilesCnv()
-{
-	return GlobalServiceProvider::fileLocationProvider()->getSegFilesCnv();
-}
-
-QList<FileLocation> MainWindow::getIgvFilesBaf()
-{
-	return GlobalServiceProvider::fileLocationProvider()->getIgvFilesBaf();
-}
-
-QList<FileLocation> MainWindow::getMantaEvidenceFiles()
-{
-	return GlobalServiceProvider::fileLocationProvider()->getMantaEvidenceFiles();
-}
-
-QList<FileLocation> MainWindow::getLowCovFiles()
-{
-	return GlobalServiceProvider::fileLocationProvider()->getStatLowcovBedFiles();
 }
 
 void MainWindow::applyFilters(bool debug_time)

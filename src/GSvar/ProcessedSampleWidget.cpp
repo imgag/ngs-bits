@@ -13,6 +13,7 @@
 #include "LoginManager.h"
 #include "GenLabDB.h"
 #include <QMessageBox>
+#include "GlobalServiceProvider.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: QWidget(parent)
@@ -212,7 +213,7 @@ void ProcessedSampleWidget::updateGUI()
 		if (action->text() == "Add Manta evidence BAM track")
 		{
 			// check if evidence BAM file exists:
-			action->setEnabled(QFile::exists(FileLocationHelper::getEvidenceFile(NGSD().processedSamplePath(ps_id_, PathType::BAM))));
+			action->setEnabled(QFile::exists(GlobalServiceProvider::fileLocationProvider()->getEvidenceFile(NGSD().processedSamplePath(ps_id_, PathType::BAM))));
 		}
 		else if (action->text() == "Add SV track")
 		{
@@ -599,10 +600,8 @@ void ProcessedSampleWidget::addBafsToIgv()
 }
 
 void ProcessedSampleWidget::addEvidenceBamToIgv()
-{
-	QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
-	QString evidence_bam = FileLocationHelper::getEvidenceFile(bam);
-
+{	
+	QString evidence_bam = GlobalServiceProvider::fileLocationProvider()->getEvidenceFile(NGSD().processedSamplePath(ps_id_, PathType::BAM));
 	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(evidence_bam) + "\"");
 }
 

@@ -29,15 +29,7 @@ public:
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
-	QStringList getLogFiles();
-	///Returns CNV SEG files for the analysis.
-	QList<FileLocation> getSegFilesCnv();
-	///Returns BAF SEG files for the analysis.
-	QList<FileLocation> getIgvFilesBaf();
-	///Returns Manta evidence BAM files for the analysis.
-	QList<FileLocation> getMantaEvidenceFiles();
-	///Returns low coverage BED files for the analysis.
-	QList<FileLocation> getLowCovFiles();
+	QStringList getLogFiles();	
 	///Adds a file to the recent file list
 	void addToRecentFiles(QString filename);
 	///Updates recent files menu

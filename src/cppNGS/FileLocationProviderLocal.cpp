@@ -7,15 +7,15 @@ FileLocationProviderLocal::FileLocationProviderLocal(QString gsvar_file, const S
 {
 }
 
-void FileLocationProviderLocal::addToList(const FileLocation& loc, QList<FileLocation>& list)
+void FileLocationProviderLocal::addToList(const FileLocation& loc, FileLocationList& list)
 {
 	list << loc;
 	list.last().is_found = QFile::exists(loc.filename);
 }
 
-QList<FileLocation> FileLocationProviderLocal::getBamFiles()
+FileLocationList FileLocationProviderLocal::getBamFiles()
 {
-	QList<FileLocation> output;
+	FileLocationList output;
 
 	if (gsvar_file_ == nullptr)
 	{
@@ -48,9 +48,9 @@ QList<FileLocation> FileLocationProviderLocal::getBamFiles()
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getSegFilesCnv()
+FileLocationList FileLocationProviderLocal::getSegFilesCnv()
 {
-	QList<FileLocation> output;
+	FileLocationList output;
 
 	if (analysis_type_==SOMATIC_PAIR)
 	{
@@ -93,9 +93,9 @@ QList<FileLocation> FileLocationProviderLocal::getSegFilesCnv()
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getIgvFilesBaf()
+FileLocationList FileLocationProviderLocal::getIgvFilesBaf()
 {
-	QList<FileLocation> output;
+	FileLocationList output;
 	if (analysis_type_==SOMATIC_PAIR)
 	{
 		FileLocation bafs_igv = FileLocation{QFileInfo(gsvar_file_).baseName(), PathType::BAF, gsvar_file_.left(gsvar_file_.length()-6) + "_bafs.igv", false};		
@@ -114,76 +114,88 @@ QList<FileLocation> FileLocationProviderLocal::getIgvFilesBaf()
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getMantaEvidenceFiles()
+FileLocationList FileLocationProviderLocal::getMantaEvidenceFiles()
 {
-	QList<FileLocation> evidence_files;
+	FileLocationList evidence_files;
 	// search at location of all available BAM files
 	QList<FileLocation> bam_files = getBamFiles();
 	foreach (FileLocation bam_file, bam_files)
 	{
-		QString evidence_bam_file = FileLocationHelper::getEvidenceFile(bam_file.filename);
+		QString evidence_bam_file = getEvidenceFile(bam_file.filename);
 		FileLocation evidence_bam = FileLocation{QFileInfo(evidence_bam_file).baseName(), PathType::BAM, evidence_bam_file, false};		
 		addToList(evidence_bam, evidence_files);
 	}
 	return evidence_files;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getAnalysisLogFiles()
+QString FileLocationProviderLocal::getEvidenceFile(QString bam_file)
 {
-	return QList<FileLocation>{};
+	if (!bam_file.endsWith(".bam", Qt::CaseInsensitive))
+	{
+		THROW(ArgumentException, "Invalid BAM file path \"" + bam_file + "\"!");
+	}
+	QFileInfo bam_file_info(bam_file);
+	QDir evidence_dir(bam_file_info.absolutePath() + "/manta_evid/");
+	QString ps_name = bam_file_info.fileName().left(bam_file_info.fileName().length() - 4);
+	return evidence_dir.absoluteFilePath(ps_name + "_manta_evidence.bam");
 }
 
-QList<FileLocation> FileLocationProviderLocal::getCircosPlotFiles()
+FileLocationList FileLocationProviderLocal::getAnalysisLogFiles()
+{
+	return FileLocationList{};
+}
+
+FileLocationList FileLocationProviderLocal::getCircosPlotFiles()
 {
 	QStringList files = Helper::findFiles(getAnalysisPath(), "*_circos.png", false);
-	QList<FileLocation> output = mapFoundFilesToFileLocation(files, PathType::CIRCOS_PLOT);
+	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::CIRCOS_PLOT);
 
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getVcfGzFiles()
+FileLocationList FileLocationProviderLocal::getVcfGzFiles()
 {
 	QStringList files = Helper::findFiles(getAnalysisPath(), "*_var_annotated.vcf.gz", false);
-	QList<FileLocation> output = mapFoundFilesToFileLocation(files, PathType::VCF_GZ);
+	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::VCF_GZ);
 
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getExpansionhunterVcfFiles()
+FileLocationList FileLocationProviderLocal::getExpansionhunterVcfFiles()
 {
 	QStringList files = Helper::findFiles(getAnalysisPath(), processedSampleName() + "_repeats_expansionhunter.vcf", false);
-	QList<FileLocation> output = mapFoundFilesToFileLocation(files, PathType::REPEATS_EXPANSION_HUNTER_VCF);
+	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::REPEATS_EXPANSION_HUNTER_VCF);
 
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getPrsTsvFiles()
+FileLocationList FileLocationProviderLocal::getPrsTsvFiles()
 {
 	QStringList files = Helper::findFiles(getAnalysisPath(), processedSampleName() + "_prs.tsv", false);
-	QList<FileLocation> output = mapFoundFilesToFileLocation(files, PathType::PRS_TSV);
+	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::PRS_TSV);
 
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getClincnvTsvFiles()
+FileLocationList FileLocationProviderLocal::getClincnvTsvFiles()
 {
 	QStringList files = Helper::findFiles(getAnalysisPath(), "*_clincnv.tsv", false);
-	QList<FileLocation> output = mapFoundFilesToFileLocation(files, PathType::CLINCNV_TSV);
+	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::CLINCNV_TSV);
 
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getLowcovBedFiles()
+FileLocationList FileLocationProviderLocal::getLowcovBedFiles()
 {
 	QStringList files = Helper::findFiles(getAnalysisPath(), "*_lowcov.bed", false);
-	QList<FileLocation> output = mapFoundFilesToFileLocation(files, PathType::LOWCOV_BED);
+	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::LOWCOV_BED);
 
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getStatLowcovBedFiles()
+FileLocationList FileLocationProviderLocal::getStatLowcovBedFiles()
 {
-	QList<FileLocation> output {};
+	FileLocationList output {};
 
 	if (analysis_type_==SOMATIC_PAIR)
 	{
@@ -220,39 +232,39 @@ QList<FileLocation> FileLocationProviderLocal::getStatLowcovBedFiles()
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getCnvsClincnvSegFiles()
+FileLocationList FileLocationProviderLocal::getCnvsClincnvSegFiles()
 {
 	QStringList files = Helper::findFiles(getAnalysisPath(), "*_cnvs_clincnv.seg", false);
-	QList<FileLocation> output = mapFoundFilesToFileLocation(files, PathType::CNVS_CLINCNV_SEG);
+	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::CNVS_CLINCNV_SEG);
 
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getCnvsClincnvTsvFiles()
+FileLocationList FileLocationProviderLocal::getCnvsClincnvTsvFiles()
 {
 	QStringList files = Helper::findFiles(getAnalysisPath(), "*_cnvs_clincnv.tsv", false);
-	QList<FileLocation> output = mapFoundFilesToFileLocation(files, PathType::CNVS_CLINCNV_TSV);
+	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::CNVS_CLINCNV_TSV);
 
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getCnvsSegFiles()
+FileLocationList FileLocationProviderLocal::getCnvsSegFiles()
 {
 	QStringList files = Helper::findFiles(getAnalysisPath(), "*_cnvs.seg", false);
-	QList<FileLocation> output = mapFoundFilesToFileLocation(files, PathType::CNVS_SEG);
+	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::CNVS_SEG);
 
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getCnvsTsvFiles()
+FileLocationList FileLocationProviderLocal::getCnvsTsvFiles()
 {
 	QStringList files = Helper::findFiles(getAnalysisPath(), "*_cnvs.tsv", false);
-	QList<FileLocation> output = mapFoundFilesToFileLocation(files, PathType::CNVS_TSV);
+	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::CNVS_TSV);
 
 	return output;
 }
 
-QList<FileLocation> FileLocationProviderLocal::getRohsTsvFiles()
+FileLocationList FileLocationProviderLocal::getRohsTsvFiles()
 {
 	QString filename = gsvar_file_;
 	if (analysis_type_==GERMLINE_TRIO)
@@ -262,7 +274,7 @@ QList<FileLocation> FileLocationProviderLocal::getRohsTsvFiles()
 	}
 	QString folder = QFileInfo(filename).absolutePath();
 	QStringList files = Helper::findFiles(folder, "*_rohs.tsv", false);
-	QList<FileLocation> output = mapFoundFilesToFileLocation(files, PathType::ROHS_TSV);
+	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::ROHS_TSV);
 
 	return output;
 }
@@ -318,9 +330,9 @@ QString FileLocationProviderLocal::processedSampleName()
 	return "";
 }
 
-QList<FileLocation> FileLocationProviderLocal::mapFoundFilesToFileLocation(QStringList& files, PathType type)
+FileLocationList FileLocationProviderLocal::mapFoundFilesToFileLocation(QStringList& files, PathType type)
 {
-	QList<FileLocation> output {};
+	FileLocationList output {};
 	for (int i = 0; i < files.count(); i++)
 	{
 		FileLocation current_location;

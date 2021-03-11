@@ -44,8 +44,8 @@ HEADERS += \
         Chromosome_Test.h \
         BedLine_Test.h \
         BedFile_Test.h \
-    FileLocationHelper_Test.h \
     FileLocationProvider_Test.h \
+    FileLocation_Test.h \
         VariantList_Test.h \
         FilterCascade_Test.h \
         ChromosomalIndex_Test.h \

@@ -38,7 +38,7 @@ QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += BedFile.cpp \
     Chromosome.cpp \
-    FileLocationHelper.cpp \
+    FileLocationList.cpp \
     FileLocationProviderLocal.cpp \
     FileLocationProviderRemote.cpp \
     VariantList.cpp \
@@ -77,7 +77,7 @@ SOURCES += BedFile.cpp \
 HEADERS += BedFile.h \
     Chromosome.h \
     FileLocation.h \
-    FileLocationHelper.h \
+    FileLocationList.h \
     FileLocationProvider.h \
     FileLocationProviderLocal.h \
     FileLocationProviderRemote.h \

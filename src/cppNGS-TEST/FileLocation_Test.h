@@ -1,7 +1,7 @@
 #include "TestFramework.h"
-#include "FileLocationHelper.h"
+#include "FileLocation.h"
 
-TEST_CLASS(FileLocationHelper_Test)
+TEST_CLASS(FileLocation_Test)
 {
 Q_OBJECT
 private slots:
@@ -25,13 +25,4 @@ private slots:
 
 		S_EQUAL(FileLocation::typeToString(PathType::OTHER), "OTHER");
 	}
-
-	void bam_getEvidenceFile()
-	{
-		QString evidence = FileLocationHelper::getEvidenceFile("data_in/panel.bam");
-		IS_TRUE(evidence.endsWith("panel_manta_evidence.bam"));
-
-		IS_THROWN(ArgumentException, FileLocationHelper::getEvidenceFile("blbbla"));
-	}
-
 };
