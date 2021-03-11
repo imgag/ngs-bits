@@ -11,7 +11,7 @@ IgvDialog::IgvDialog(QWidget *parent)
 	connect(ui_.tree, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(treeItemChanged(QTreeWidgetItem*)));
 }
 
-void IgvDialog::addFile(const FileLocation file, bool checked)
+void IgvDialog::addFile(const FileLocation& file, bool checked)
 {
 	//determine group
 	QTreeWidgetItem* group = nullptr;

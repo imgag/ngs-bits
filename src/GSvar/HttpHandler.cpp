@@ -17,8 +17,8 @@
 HttpHandler::HttpHandler(HttpRequestHandler::ProxyType proxy_type, QObject* parent)
 	: QObject(parent)
 	, nmgr_()
-	, headers_()
 	, proxy_type_(proxy_type)
+	, headers_()
 {
 	//default headers
 	setHeader("User-Agent", "GSvar");

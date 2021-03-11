@@ -16,7 +16,7 @@ public:
 	IgvDialog(QWidget* parent = 0);
 
 	//Add a file
-	void addFile(const FileLocation file, bool checked);
+	void addFile(const FileLocation& file, bool checked);
 
 	enum InitAction
 	{

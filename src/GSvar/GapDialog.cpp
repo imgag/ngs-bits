@@ -72,7 +72,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 	}
 	catch(Exception e)
 	{
-		output << "Low-coverage statistics needs to be calculated. Pre-calulated gap file cannot be used because: " + e.message();
+		output << "Low-coverage statistics had to be re-calculated!\nPre-calulated gap file could not be used because:\n " + e.message();
 		low_cov = Statistics::lowCoverage(roi_, bam_, cutoff);
 	}
 

@@ -7,7 +7,6 @@
 #include <QWidget>
 #include <QChart>
 
-
 ///Quality statistics widget.
 class DBQCWidget
 	: public QWidget

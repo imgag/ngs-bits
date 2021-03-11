@@ -17,7 +17,7 @@
 #include <QRegularExpression>
 
 //Parameter type
-enum FilterParameterType
+enum class FilterParameterType
 {
 	INT,
 	DOUBLE,
