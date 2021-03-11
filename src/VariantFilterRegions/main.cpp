@@ -28,7 +28,7 @@ public:
 		addString("mark", "If set, instead of removing variants, they are marked with the given flag in the 'filter' column.", true);
 		addFlag("inv", "Inverts the filter, i.e. variants inside the region are removed/marked.");
 		addEnum("mode", "Mode (input format).", true, QStringList() << "vcf" << "gsvar", "vcf");
-		addInt("compression_level", "Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.", true, Z_NO_COMPRESSION);
+		addInt("compression_level", "Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.", true, BGZF_NO_COMPRESSION);
 
 		changeLog(2020, 8, 12, "Added parameter '-compression_level' for compression level of output vcf files.");
 		changeLog(2018, 1, 23, "Added parameter '-inv' and made parameter '-mark' a string parameter to allow custom annotations names.");
