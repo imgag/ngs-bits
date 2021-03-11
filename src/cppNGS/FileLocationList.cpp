@@ -8,9 +8,9 @@ FileLocationList::~FileLocationList()
 {
 }
 
-QStringList FileLocationList::asStringList()
+QStringList FileLocationList::asStringList() const
 {
-	QStringList output {};
+	QStringList output;
 	for (int i = 0; i < this->count(); i++)
 	{
 		output.append(this->value(i).filename);

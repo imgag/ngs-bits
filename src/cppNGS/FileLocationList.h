@@ -3,15 +3,15 @@
 
 #include "cppNGS_global.h"
 #include <QStringList>
-#include <QList>
 #include "FileLocation.h"
 
-class CPPNGSSHARED_EXPORT FileLocationList : public QList<FileLocation> {
-
+class CPPNGSSHARED_EXPORT FileLocationList
+	: public QList<FileLocation>
+{
 public:
 	FileLocationList();
 	~FileLocationList();
-	QStringList asStringList();
+	QStringList asStringList() const;
 };
 
 #endif // FILELOCATIONLIST_H

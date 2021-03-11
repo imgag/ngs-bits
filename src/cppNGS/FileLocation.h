@@ -110,8 +110,3 @@ struct FileLocation
 };
 
 #endif // FILELOCATION_H
-
-//QString FileLocation::typeToString() const
-//{
-
-//}
