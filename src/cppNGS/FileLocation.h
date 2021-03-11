@@ -54,6 +54,11 @@ struct FileLocation
 	QString filename; //file name
 	bool is_found; // indicates if a file exists or not
 
+	QString typeToString() const
+	{
+		return typeToString(type);
+	}
+
 	static QString typeToString(PathType pathtype)
 	{
 		switch(pathtype)
@@ -81,11 +86,6 @@ struct FileLocation
 			default:
 			 return "Invalid PathType";
 		}
-	}
-
-	QString typeToString() const
-	{
-		return typeToString(type);
 	}
 
 	static PathType stringToType(QString in)
