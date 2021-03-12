@@ -265,6 +265,7 @@ CREATE  TABLE IF NOT EXISTS `runqc_lane`
   `yield` FLOAT NOT NULL,
   `error_rate` FLOAT DEFAULT NULL,
   `q30_perc` FLOAT NOT NULL,
+  `occupied_perc` FLOAT NOT NULL,
   `runqc_read_id` INT(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE (`runqc_read_id`, `lane_num`),
