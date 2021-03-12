@@ -48,23 +48,10 @@ void GeneSelectorDialog::updateGeneTable()
 	ui->details->blockSignals(true); //otherwise itemChanged is emitted
 
 	//check for CN calling results
-	CnvCallerType cnv_caller = CnvCallerType::INVALID;
-	QStringList seg_files = GlobalServiceProvider::fileLocationProvider()->getCnvsClincnvSegFiles().asStringList();
-	QStringList tsv_files = GlobalServiceProvider::fileLocationProvider()->getCnvsClincnvTsvFiles().asStringList();
-	if (seg_files.count()==1 && tsv_files.size()==1)
-	{
-		cnv_caller = CnvCallerType::CLINCNV;
-	}
-	else //CnvHunter
-	{
-		seg_files = GlobalServiceProvider::fileLocationProvider()->getCnvsSegFiles().asStringList();
-		tsv_files = GlobalServiceProvider::fileLocationProvider()->getCnvsTsvFiles().asStringList();
-		if (seg_files.count()==1 && tsv_files.size()==1)
-		{
-			cnv_caller = CnvCallerType::CNVHUNTER;
-		}
-	}
-	if (cnv_caller==CnvCallerType::INVALID)
+	QStringList seg_files = GlobalServiceProvider::fileLocationProvider().getCnvCoverageFiles(false).filterById(sample_name_).asStringList();
+	QStringList tsv_files = GlobalServiceProvider::fileLocationProvider().getCopyNumberCallFiles(false).filterById(sample_name_).asStringList();
+	bool cnv_data_found = seg_files.count()==1 && tsv_files.size()==1;
+	if (!cnv_data_found)
 	{
 		QMessageBox::warning(this, "CNV data not found", "CNV files not found not in sample folder.\nSkipping CNV statistics!\n\nThis should only happen if CNV calling was not possible for the sample!");
 	}
@@ -72,7 +59,7 @@ void GeneSelectorDialog::updateGeneTable()
 	//load CNA results
 	BedFile cnv_calls;
 	BedFile cnv_regions_skipped;
-	if (cnv_caller!=CnvCallerType::INVALID)
+	if (cnv_data_found)
 	{
 		//load calls
 		cnv_calls.load(tsv_files[0]);
@@ -110,11 +97,10 @@ void GeneSelectorDialog::updateGeneTable()
 
 	//load low-coverage file for processing system
 	BedFile sys_gaps;
-	QStringList files = GlobalServiceProvider::fileLocationProvider()->getLowcovBedFiles().asStringList();
-	bool gaps_file_exists = files.count()==1;
-	if(gaps_file_exists)
+	QStringList lowcov_files = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(sample_name_).asStringList();
+	if(lowcov_files.count()==1)
 	{
-		sys_gaps.load(files[0]);
+		sys_gaps.load(lowcov_files[0]);
 	}
 	else
 	{
@@ -159,7 +145,7 @@ void GeneSelectorDialog::updateGeneTable()
 		setGeneTableItem(r, 2, QString::number(bases), Qt::AlignRight);
 
 		//calculate gaps inside target region
-		if (!gaps_file_exists)
+		if (sys_gaps.count()==0)
 		{
 			setGeneTableItem(r, 3, "n/a", Qt::AlignRight);
 			setGeneTableItem(r, 4, "n/a", Qt::AlignRight);
@@ -182,12 +168,7 @@ void GeneSelectorDialog::updateGeneTable()
 		}
 
 		//CNVs detected and CNV region fails
-		if (cnv_caller==CnvCallerType::INVALID)
-		{
-			setGeneTableItem(r, 5, "n/a", Qt::AlignRight);
-			setGeneTableItem(r, 6, "n/a", Qt::AlignRight);
-		}
-		else
+		if (cnv_data_found)
 		{
 			BedFile tmp = region;
 			tmp.overlapping(cnv_calls);
@@ -196,6 +177,11 @@ void GeneSelectorDialog::updateGeneTable()
 			tmp = region;
 			tmp.overlapping(cnv_regions_skipped);
 			setGeneTableItem(r, 6, QString::number(tmp.count()), Qt::AlignRight);
+		}
+		else
+		{
+			setGeneTableItem(r, 5, "n/a", Qt::AlignRight);
+			setGeneTableItem(r, 6, "n/a", Qt::AlignRight);
 		}
 	}
 

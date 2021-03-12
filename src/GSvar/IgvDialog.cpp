@@ -27,20 +27,21 @@ void IgvDialog::addFile(const FileLocation& file, bool checked)
 	if (group==nullptr)
 	{
 		group = new QTreeWidgetItem(QStringList() << file.typeToString());
-		group->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);		
+		group->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
+		//TODO support all types
 		if (file.type==PathType::VCF) group->setToolTip(0, "Variant list(s)");
-		if (file.type==PathType::BAM) group->setToolTip(0, "Sequencing read file(s)");
-		if (file.type==PathType::COPY_NUMBER_CALLS) group->setToolTip(0, "Copy-number file(s)");
+		if (file.type==PathType::BAM) group->setToolTip(0, "BAM file(s)");
+		if (file.type==PathType::COPY_NUMBER_RAW_DATA) group->setToolTip(0, "Copy-number coverage file(s)");
+		if (file.type==PathType::COPY_NUMBER_CALLS) group->setToolTip(0, "Copy-number call(s)");
 		if (file.type==PathType::BAF) group->setToolTip(0, "b-allele frequency file(s)");
-		//if (file.type==PathType::CNV_CALLS) group->setToolTip(0, "regions file(s)");
-		if (file.type==PathType::OTHER) group->setToolTip(0, "Custom tracks");
+		if (file.type==PathType::OTHER) group->setToolTip(0, "Misc");
 		ui_.tree->addTopLevelItem(group);
 	}
 
 	//add file
 	QTreeWidgetItem* item = new QTreeWidgetItem(QStringList() << file.id);
 	item->setToolTip(0, file.filename);
-	if (file.is_found)
+	if (file.exists)
 	{
 		item->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
 		item->setCheckState(0, checked ? Qt::Checked : Qt::Unchecked);

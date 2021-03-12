@@ -55,11 +55,6 @@ public:
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
 
-	///Returns the CNV file corresponding to the GSvar file
-	QString cnvFile(QString gsvar_file);
-	///Returns the Manta SV file corresponding to the GSvar file
-	QString svFile(QString gsvar_file);
-
 	///Returns if germline report is supported for current variant list.
 	bool germlineReportSupported();
 	///Returns the processed sample name for which report configuration is set and the report is generated.

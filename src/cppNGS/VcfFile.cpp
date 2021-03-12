@@ -559,7 +559,7 @@ void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int comp
 			storeLineInformation(file_stream, vcfLine(i));
 		}
 	}
-	else //TODO use BGZIP from vcflib to store the compress the VCF - it can be indexed then > TIM
+	else
 	{
 		if(filename.isEmpty())
 		{

@@ -6,53 +6,38 @@
 
 enum class PathType
 {
-	PROJECT_FOLDER, // project root folder
-	SAMPLE_FOLDER, // folder with samples
-	BAM, // binary alignment map with sequence alignment data
-	GSVAR, // GSVar tool sample data
+	//folders
+	PROJECT_FOLDER, // project folder (normally the parent folder of analysis folder)
+	SAMPLE_FOLDER, // folder of a single sample
 
-	// VCF
-	VCF, // variant call format file storing gene sequence variations
-	REPEATS_EXPANSION_HUNTER_VCF, // *_repeats_expansionhunter.vcf
+	//mapping data
+	BAM, //BAM file
 
-	BAF, // b-allele frequency file
+	//variant data
+	VCF, //small variants (VCF format)
+	GSVAR, //small variants (GSvar format)
+	COPY_NUMBER_CALLS, //copy number calls (TSV format)
+	STRUCTURAL_VARIANTS, //structural variant call file (BEDPE format)
+	REPEAT_EXPANSIONS, //repeat expansions (VCF format)
+	UPD, //UPD calls (TSV format)
 
-	// BED
-	COPY_NUMBER_CALLS, // BED files
-	LOWCOV_BED, // *_lowcov.bed
-	STAT_LOWCOV_BED, // *_stat_lowcov.bed
-	ANY_BED, // *.bed
-
-	// SEG
-	CNVS_CLINCNV_SEG, // *_cnvs_clincnv.seg
-	CNVS_SEG, // *_cnvs.seg
-	COPY_NUMBER_RAW_DATA, // SEG file with copy
-	MANTA_EVIDENCE, // also BAM files
-
-	ANALYSIS_LOG, // analysis log files *.log
-	CIRCOS_PLOT, // *_circos.png
-
-	// TSV
-	CNVS_CLINCNV_TSV, // *_cnvs_clincnv.tsv
-	CLINCNV_TSV, // *_clincnv.tsv
-	CNVS_TSV, // *_cnvs.tsv
-	PRS_TSV, // *_prs.tsv
-	ROHS_TSV, // *_rohs.tsv
-	VAR_FUSIONS_TSV, // *_var_fusions.tsv
-
-	// GZ
-	VCF_GZ, // *_var_annotated.vcf.gz
-	FASTQ_GZ, // *.fastq.gz
-
+	//other files
+	LOWCOV_BED, //Low coverage region files (BED format)
+	BAF, //b-allele frequency file (IGV format)
+	ROH, //ROH file (TSV format)
+	PRS, //polygenic risk scores (TSV format)
+	MANTA_EVIDENCE, //Reads that were used for structural variant calling (BAM format)
+	COPY_NUMBER_RAW_DATA, //Copy number estimates based on coverage (SEG format)
+	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	OTHER // everything else
 };
 
 struct FileLocation
 {
-	QString id; //sample identifier/name
+	QString id; //sample name (for single sample analyses) or analysis name (for multi-sample analyses)
 	PathType type; //file type
 	QString filename; //file name
-	bool is_found; // indicates if a file exists or not
+	bool exists; // if filename actually exists or not
 
 	QString typeToString() const
 	{
@@ -83,12 +68,23 @@ struct FileLocation
 				return "MANTA_EVIDENCE";
 			case PathType::OTHER:
 				return "OTHER";
+			case PathType::REPEAT_EXPANSIONS:
+				return "REPEAT_EXPANSIONS";
+			case PathType::LOWCOV_BED:
+				return "LOWCOV_BED";
+			case PathType::ROH:
+				return "ROH";
+			case PathType::PRS:
+				return "PRS";
+			case PathType::CIRCOS_PLOT:
+				return "CIRCOS_PLOT";
+
 			default:
 			 return "Invalid PathType";
 		}
 	}
 
-	static PathType stringToType(QString in)
+	static PathType stringToType(const QString& in)
 	{
 		if (in.toUpper() == "PROJECT_FOLDER") return PathType::PROJECT_FOLDER;
 		if (in.toUpper() == "SAMPLE_FOLDER") return PathType::SAMPLE_FOLDER;
@@ -99,6 +95,11 @@ struct FileLocation
 		if (in.toUpper() == "COPY_NUMBER_CALLS") return PathType::COPY_NUMBER_CALLS;
 		if (in.toUpper() == "COPY_NUMBER_RAW_DATA") return PathType::COPY_NUMBER_RAW_DATA;
 		if (in.toUpper() == "MANTA_EVIDENCE") return PathType::MANTA_EVIDENCE;
+		if (in.toUpper() == "REPEAT_EXPANSIONS") return PathType::REPEAT_EXPANSIONS;
+		if (in.toUpper() == "LOWCOV_BED") return PathType::LOWCOV_BED;
+		if (in.toUpper() == "ROH") return PathType::ROH;
+		if (in.toUpper() == "PRS") return PathType::PRS;
+		if (in.toUpper() == "CIRCOS_PLOT") return PathType::CIRCOS_PLOT;
 
 		return PathType::OTHER;
 	}

@@ -25,12 +25,12 @@ void GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationP
 	instance().file_location_provider_ = file_location_provider;
 }
 
-const QSharedPointer<FileLocationProvider> GlobalServiceProvider::fileLocationProvider()
+const FileLocationProvider& GlobalServiceProvider::fileLocationProvider()
 {	
 	if (instance().file_location_provider_.isNull())
 	{
 		THROW(ProgrammingException, "File location provider requested but not set!");
 	}
 
-	return instance().file_location_provider_;
+	return *(instance().file_location_provider_);
 }

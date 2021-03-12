@@ -5,18 +5,13 @@
 #include "GlobalServiceProvider.h"
 
 
-CircosPlotWidget::CircosPlotWidget(QWidget *parent)
+CircosPlotWidget::CircosPlotWidget(QString filename, QWidget *parent)
 	: QWidget(parent)
 	, ui_(new Ui::CircosPlotWidget)
 {
 	ui_->setupUi(this);
 
-	//load plot file
-        QList<FileLocation> plot_files = GlobalServiceProvider::fileLocationProvider()->getCircosPlotFiles();
-	if (plot_files.count()==1)
-	{
-		loadCircosPlot(plot_files[0].filename);
-	}	
+	loadCircosPlot(filename);
 }
 
 CircosPlotWidget::~CircosPlotWidget()

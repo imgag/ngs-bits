@@ -8,7 +8,27 @@ FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id,c
 {
 }
 
-FileLocationList FileLocationProviderRemote::requestFileInfoByType(PathType type)
+FileLocation FileLocationProviderRemote::getAnalysisVcf() const
+{
+	return FileLocation(); //TODO > Alexandr
+}
+
+FileLocation FileLocationProviderRemote::getAnalysisSvFile() const
+{
+	return FileLocation(); //TODO > Alexandr
+}
+
+FileLocation FileLocationProviderRemote::getAnalysisCnvFile() const
+{
+	return FileLocation(); //TODO > Alexandr
+}
+
+FileLocation FileLocationProviderRemote::getAnalysisUpdFile() const
+{
+	return FileLocation(); //TODO > Alexandr
+}
+
+FileLocationList FileLocationProviderRemote::requestFileInfoByType(PathType type) const
 {
 	FileLocationList output {};
 	if (sample_id_ == nullptr)
@@ -34,7 +54,7 @@ FileLocationList FileLocationProviderRemote::requestFileInfoByType(PathType type
 	return output;
 }
 
-FileLocation FileLocationProviderRemote::mapJsonObjectToFileLocation(QJsonObject obj)
+FileLocation FileLocationProviderRemote::mapJsonObjectToFileLocation(QJsonObject obj) const
 {	
 	return FileLocation {
 		obj.value("id").toString(),
@@ -44,7 +64,7 @@ FileLocation FileLocationProviderRemote::mapJsonObjectToFileLocation(QJsonObject
 	};
 }
 
-FileLocationList FileLocationProviderRemote::mapJsonArrayToFileLocationList(QJsonArray array)
+FileLocationList FileLocationProviderRemote::mapJsonArrayToFileLocationList(QJsonArray array) const
 {
 	FileLocationList output {};
 	for (int i = 0; i < array.count(); ++i)
@@ -54,112 +74,72 @@ FileLocationList FileLocationProviderRemote::mapJsonArrayToFileLocationList(QJso
 	return output;
 }
 
-FileLocationList FileLocationProviderRemote::getBamFiles()
+FileLocationList FileLocationProviderRemote::getBamFiles(bool /*return_if_missing*/) const //TODO > Alexandr
 {
 	return requestFileInfoByType(PathType::BAM);
 }
 
-FileLocationList FileLocationProviderRemote::getSegFilesCnv()
+FileLocationList FileLocationProviderRemote::getCnvCoverageFiles(bool /*return_if_missing*/) const //TODO > Alexandr
 {
 	return requestFileInfoByType(PathType::COPY_NUMBER_RAW_DATA);
 }
 
-FileLocationList FileLocationProviderRemote::getIgvFilesBaf()
+FileLocationList FileLocationProviderRemote::getBafFiles(bool /*return_if_missing*/) const //TODO > Alexandr
 {
 	return requestFileInfoByType(PathType::BAF);
 }
 
-FileLocationList FileLocationProviderRemote::getMantaEvidenceFiles()
+FileLocationList FileLocationProviderRemote::getMantaEvidenceFiles(bool /*return_if_missing*/) const //TODO > Alexandr
 {
 	return requestFileInfoByType(PathType::MANTA_EVIDENCE);
 }
 
-QString FileLocationProviderRemote::getEvidenceFile(QString bam_file)
-{
-	return bam_file;
-}
-
-FileLocationList FileLocationProviderRemote::getAnalysisLogFiles()
+FileLocationList FileLocationProviderRemote::getCircosPlotFiles(bool /*return_if_missing*/) const //TODO > Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getCircosPlotFiles()
+FileLocationList FileLocationProviderRemote::getVcfFiles(bool /*return_if_missing*/) const //TODO > Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getVcfGzFiles()
+FileLocationList FileLocationProviderRemote::getRepeatExpansionFiles(bool /*return_if_missing*/) const //TODO > Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getExpansionhunterVcfFiles()
+FileLocationList FileLocationProviderRemote::getPrsFiles(bool /*return_if_missing*/) const //TODO > Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getPrsTsvFiles()
+FileLocationList FileLocationProviderRemote::getLowCoverageFiles(bool /*return_if_missing*/) const //TODO > Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getClincnvTsvFiles()
+FileLocationList FileLocationProviderRemote::getCopyNumberCallFiles(bool /*return_if_missing*/) const //TODO > Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getLowcovBedFiles()
+FileLocationList FileLocationProviderRemote::getRohFiles(bool /*return_if_missing*/) const //TODO > Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getStatLowcovBedFiles()
-{
-	return FileLocationList{};
-}
-
-FileLocationList FileLocationProviderRemote::getCnvsClincnvSegFiles()
-{
-	return FileLocationList{};
-}
-
-FileLocationList FileLocationProviderRemote::getCnvsClincnvTsvFiles()
-{
-	return FileLocationList{};
-}
-
-FileLocationList FileLocationProviderRemote::getCnvsSegFiles()
-{
-	return FileLocationList{};
-}
-
-FileLocationList FileLocationProviderRemote::getCnvsTsvFiles()
-{
-	return FileLocationList{};
-}
-
-FileLocationList FileLocationProviderRemote::getRohsTsvFiles()
-{
-	return FileLocationList{};
-}
-
-QString FileLocationProviderRemote::getAnalysisPath()
+QString FileLocationProviderRemote::getAnalysisPath() const
 {
 	return "";
 }
 
-QString FileLocationProviderRemote::getProjectPath()
+QString FileLocationProviderRemote::getProjectPath() const
 {
 	return "";
 }
 
-QString FileLocationProviderRemote::getRohFileAbsolutePath()
-{
-	return "";
-}
-
-QString FileLocationProviderRemote::processedSampleName()
+QString FileLocationProviderRemote::processedSampleName() const
 {
 	return "";
 }

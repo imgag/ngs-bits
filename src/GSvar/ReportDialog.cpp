@@ -236,7 +236,7 @@ void ReportDialog::updateVariantTable()
 			}
 
 			ui_.vars->setRowCount(ui_.vars->rowCount()+1);
-			addCheckBox(row, 0, in_roi && genotype!="0/0", !in_roi)->setData(Qt::UserRole, i); //TODO in new multi-sample mode only variants that the index case has can be selected (see small variants) > LEON
+			addCheckBox(row, 0, in_roi && genotype!="0/0", !in_roi)->setData(Qt::UserRole, i);
 			addTableItem(row, 1, var_conf.report_type + (var_conf.causal ? " (causal)" : ""));
 			addTableItem(row, 2, variantTypeToString(VariantType::SVS));
 			addTableItem(row, 3, affected_region[0].toString(true) + (sv.type()==StructuralVariantType::BND ? (" <-> " + affected_region[1].toString(true)) : "") + " type=" + BedpeFile::typeToString(sv.type()));

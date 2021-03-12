@@ -14,7 +14,7 @@ class CircosPlotWidget
 	Q_OBJECT
 
 public:
-	explicit CircosPlotWidget(QWidget *parent = 0);
+	explicit CircosPlotWidget(QString filename, QWidget *parent = 0);
 	~CircosPlotWidget();
 
 protected:

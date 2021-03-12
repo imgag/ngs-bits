@@ -13,37 +13,53 @@ class CPPNGSSHARED_EXPORT FileLocationProvider
 public:
 	virtual ~FileLocationProvider(){}
 
-	//Returns a map of sample identifier to filename
-	virtual FileLocationList getBamFiles() = 0;
-	virtual FileLocationList getSegFilesCnv() = 0;
-	virtual FileLocationList getIgvFilesBaf() = 0;
-	virtual FileLocationList getMantaEvidenceFiles() = 0;
-	virtual QString getEvidenceFile(QString bam_file) = 0;
+	//Returns the annotated VCF of the current analysis
+	virtual FileLocation getAnalysisVcf() const = 0;
+	//Returns the structural variant BEDPE file of the current analysis
+	virtual FileLocation getAnalysisSvFile() const = 0;
+	//Returns the copy-number call TSV file of the current analysis
+	virtual FileLocation getAnalysisCnvFile() const = 0;
+	//Returns the UPD calls TSV file of the current analysis (works for GERMLINE_TRIO only)
+	virtual FileLocation getAnalysisUpdFile() const = 0;
 
-	virtual FileLocationList getAnalysisLogFiles() = 0;
-	virtual FileLocationList getCircosPlotFiles() = 0;
-	virtual FileLocationList getVcfGzFiles() = 0;
+	//Returns sample-specific BAM files
+	virtual FileLocationList getBamFiles(bool return_if_missing) const = 0;
+	//Returns sample-specific low coverage files (BED format)
+	virtual FileLocationList getLowCoverageFiles(bool return_if_missing) const = 0;
+	//Returns sample-specifi b-allele frequency files (IGV format)
+	virtual FileLocationList getBafFiles(bool return_if_missing) const = 0;
+	//Returns sample-specifi ROH files (TSV format)
+	virtual FileLocationList getRohFiles(bool return_if_missing) const = 0;
+	//Returns sample-specific annotated VCF files
+	virtual FileLocationList getVcfFiles(bool return_if_missing) const = 0;
+	//Returns sample-specific CNV coverage data in SEG format (plus tumor-normal coverage data in case of SOMATIC_PAIR)
+	virtual FileLocationList getCnvCoverageFiles(bool return_if_missing) const = 0;
+	//Returns sample-specific copy-number call files in TSV format (plus tumor-normal CNV calls in case of SOMATIC_PAIR)
+	virtual FileLocationList getCopyNumberCallFiles(bool return_if_missing) const = 0;
+	//Returns sample-specific repeat expansion files (TSV format)
+	virtual FileLocationList getRepeatExpansionFiles(bool return_if_missing) const = 0;
+	//Returns sample-specific reads supporting structural variant calls (BAM format)
+	virtual FileLocationList getMantaEvidenceFiles(bool return_if_missing) const = 0;
+	//Returns sample-specific polygenic risk score files (TSV format)
+	virtual FileLocationList getPrsFiles(bool return_if_missing) const = 0;
+	//Returns  sample-specific CIRCOS plot files.
+	virtual FileLocationList getCircosPlotFiles(bool return_if_missing) const = 0;
 
-	virtual FileLocationList getExpansionhunterVcfFiles() = 0;
 
-	virtual FileLocationList getPrsTsvFiles() = 0;
-	virtual FileLocationList getClincnvTsvFiles() = 0;
-	virtual FileLocationList getLowcovBedFiles() = 0;
-	virtual FileLocationList getStatLowcovBedFiles() = 0;
-	virtual FileLocationList getCnvsClincnvSegFiles() = 0;
-	virtual FileLocationList getCnvsClincnvTsvFiles() = 0;
-	virtual FileLocationList getCnvsSegFiles() = 0;
-	virtual FileLocationList getCnvsTsvFiles() = 0;
-	virtual FileLocationList getRohsTsvFiles() = 0;
+	/*
+	//TODO > MARC
 
-	virtual QString getAnalysisPath() = 0;
-	virtual QString getProjectPath() = 0;
-	virtual QString getRohFileAbsolutePath() = 0;
+		FileLocation cnvs_seg = FileLocation{pair + " (copy number)", PathType::COPY_NUMBER_RAW_DATA, gsvar_file_.left(gsvar_file_.length()-6) + "_cnvs.seg", false};
+		addToList(cnvs_seg, output);
+	*/
 
-	virtual QString processedSampleName() = 0;
-private:
-	VariantList variants;
-	QString filename;
+	virtual QString processedSampleName() const = 0;
+
+protected:
+	//Returns analysis path, i.e. the path of the GSvar file
+	virtual QString getAnalysisPath() const = 0;
+	//Returns the project path , i.e. the parent directory of the analysis path
+	virtual QString getProjectPath() const = 0;
 };
 
 #endif // FILELOCATIONPROVIDER_H

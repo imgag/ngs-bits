@@ -181,12 +181,12 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 
 	QString prefix = settings_.tumor_ps + "-" + settings_.normal_ps;
 
-	snv_filename_ = Helper::canonicalPath(settings_.sample_dir + "/" + prefix + ".GSvar");
+	snv_filename_ = Helper::canonicalPath(settings_.sample_dir + "/" + prefix + ".GSvar"); //TODO use FileLocationProvider
 
 	//load MSI Mantis data
 	try
 	{
-		TSVFileStream msi_file(Helper::canonicalPath(settings_.sample_dir + "/" + prefix + "_msi.tsv"));
+		TSVFileStream msi_file(Helper::canonicalPath(settings_.sample_dir + "/" + prefix + "_msi.tsv")); //TODO use FileLocationProvider
 		//Use step wise difference (-> stored in the first line of MSI status file) for MSI status
 		QByteArrayList data = msi_file.readLine();
 		if(data.count() > 0) mantis_msi_swd_value_ = data[1].toDouble();
@@ -250,7 +250,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 
 
 	//load qcml data
-	qcml_data_ = QCCollection::fromQCML(Helper::canonicalPath(settings_.sample_dir + "/" +prefix + "_stats_som.qcML"));
+	qcml_data_ = QCCollection::fromQCML(Helper::canonicalPath(settings_.sample_dir + "/" +prefix + "_stats_som.qcML")); //TODO use FileLocationProvider
 
 	processing_system_data_ = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(settings_.tumor_ps));
 
@@ -617,7 +617,7 @@ void SomaticReportHelper::metaDataForQbic()
 
 }
 
-VariantList SomaticReportHelper::gsvarToVcf(const VariantList& gsvar_list, const QString& orig_name)
+VariantList SomaticReportHelper::gsvarToVcf(const VariantList& gsvar_list, const QString& orig_name) //TODO use VcfFile::convertGSvarToVcf?!
 {
 	BedFile roi;
 	for(int i=0;i<gsvar_list.count();++i)
@@ -1562,8 +1562,8 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	 *******************************************/
 	QDir directory = QFileInfo(snv_filename_).dir();
 	directory.cdUp();
-	QString qcml_file_tumor_stats_map_absolute_path = directory.absolutePath() + "/" + "Sample_" + settings_.tumor_ps + "/" + settings_.tumor_ps + "_stats_map.qcML";
-	QString qcml_file_normal_stats_map_absolute_path = directory.absolutePath() + "/" + "Sample_" + settings_.normal_ps + "/" + settings_.normal_ps + "_stats_map.qcML";
+	QString qcml_file_tumor_stats_map_absolute_path = directory.absolutePath() + "/" + "Sample_" + settings_.tumor_ps + "/" + settings_.tumor_ps + "_stats_map.qcML"; //TODO use FileLocationProvider
+	QString qcml_file_normal_stats_map_absolute_path = directory.absolutePath() + "/" + "Sample_" + settings_.normal_ps + "/" + settings_.normal_ps + "_stats_map.qcML"; //TODO use FileLocationProvider
 
 	QCCollection qcml_data_tumor = QCCollection::fromQCML(qcml_file_tumor_stats_map_absolute_path);
 	QCCollection qcml_data_normal = QCCollection::fromQCML(qcml_file_normal_stats_map_absolute_path);

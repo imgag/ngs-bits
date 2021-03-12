@@ -16,7 +16,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-RohWidget::RohWidget(FilterWidget* filter_widget, QWidget *parent)
+RohWidget::RohWidget(QString filename, FilterWidget* filter_widget, QWidget *parent)
 	: QWidget(parent)
 	, var_filters(filter_widget)
 	, ui(new Ui::RohWidget)
@@ -41,23 +41,8 @@ RohWidget::RohWidget(FilterWidget* filter_widget, QWidget *parent)
 	connect(var_filters, SIGNAL(filtersChanged()), this, SLOT(variantFiltersChanged()));
 	connect(var_filters, SIGNAL(targetRegionChanged()), this, SLOT(variantFiltersChanged()));
 
-	//load ROH data file	
-	QString path = GlobalServiceProvider::fileLocationProvider()->getAnalysisPath();
-	QStringList roh_files = GlobalServiceProvider::fileLocationProvider()->getRohsTsvFiles().asStringList();
-	if (roh_files.count()==0)
-	{
-		addInfoLine("<font color='red'>No ROH data file found in directory " + path + "</font>");
-		disableGUI();
-	}
-	else if (roh_files.count()>1)
-	{
-		addInfoLine("<font color='red'>Two or more ROH data files found in directory " + path + "</font>");
-		disableGUI();
-	}
-	else
-	{
-		loadROHs(roh_files[0]);
-	}
+	//load ROHs
+	loadROHs(filename);
 
 	//update variant list dependent filters (and apply filters)
 	variantFiltersChanged();

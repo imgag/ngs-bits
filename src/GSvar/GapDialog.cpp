@@ -7,12 +7,13 @@
 #include <QMessageBox>
 #include <QMenu>
 
-GapDialog::GapDialog(QWidget *parent, QString ps, QString bam, const BedFile& roi, const GeneSet& genes)
+GapDialog::GapDialog(QWidget *parent, QString ps, QString bam_file, QString lowcov_file, const BedFile& roi, const GeneSet& genes)
 	: QDialog(parent)
 	, ui_()
 	, init_timer_(this, true)
 	, ps_(ps)
-	, bam_(bam)
+	, bam_(bam_file)
+	, lowcov_(lowcov_file)
 	, roi_(roi)
 	, genes_(genes)
 	, ngsd_col_(7)
@@ -68,7 +69,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 		BedFile sys_roi;
 		sys_roi.load(sys_roi_file);
 
-		low_cov = GermlineReportGenerator::precalculatedGaps(bam_, roi_, cutoff, sys_roi);
+		low_cov = GermlineReportGenerator::precalculatedGaps(lowcov_, roi_, cutoff, sys_roi);
 	}
 	catch(Exception e)
 	{

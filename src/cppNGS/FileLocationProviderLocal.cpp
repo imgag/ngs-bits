@@ -1,347 +1,315 @@
 #include "FileLocationProviderLocal.h"
+#include <QDir>
 
-FileLocationProviderLocal::FileLocationProviderLocal(QString gsvar_file, const SampleHeaderInfo header_info, const AnalysisType analysis_type)
+FileLocationProviderLocal::FileLocationProviderLocal(QString gsvar_file, const SampleHeaderInfo& header_info, AnalysisType analysis_type)
   : gsvar_file_(gsvar_file)
   , header_info_(header_info)
   , analysis_type_(analysis_type)
 {
+	if (gsvar_file_.isEmpty()) THROW(ArgumentException, "GSvar filename has not been specified!");
+	if (header_info_.isEmpty()) THROW(ArgumentException, "Header information has not been specified!");
 }
 
-void FileLocationProviderLocal::addToList(const FileLocation& loc, FileLocationList& list)
+FileLocation FileLocationProviderLocal::getAnalysisVcf() const
 {
-	list << loc;
-	list.last().is_found = QFile::exists(loc.filename);
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_var_annotated.vcf.gz";
+
+	return FileLocation{name, PathType::VCF, file, QFile::exists(file)};
 }
 
-FileLocationList FileLocationProviderLocal::getBamFiles()
+FileLocation FileLocationProviderLocal::getAnalysisSvFile() const
 {
-	FileLocationList output;
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_manta_var_structural.bedpe";
 
-	if (gsvar_file_ == nullptr)
+	return FileLocation{name, PathType::STRUCTURAL_VARIANTS, file, QFile::exists(file)};
+}
+
+FileLocation FileLocationProviderLocal::getAnalysisCnvFile() const
+{
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString base = gsvar_file_.left(gsvar_file_.length()-6);
+
+	if (analysis_type_==SOMATIC_SINGLESAMPLE || analysis_type_==SOMATIC_PAIR)
 	{
-		THROW(ArgumentException, "File name has not been specified")
-		return output;
+		QString file = base	+ "_clincnv.tsv";
+		return FileLocation{name, PathType::STRUCTURAL_VARIANTS, file, QFile::exists(file)};
+	}
+	else
+	{
+		QString file = base	+ "_cnvs_clincnv.tsv";
+		return FileLocation{name, PathType::STRUCTURAL_VARIANTS, file, QFile::exists(file)};
+	}
+}
+
+FileLocation FileLocationProviderLocal::getAnalysisUpdFile() const
+{
+	FileLocation output;
+
+	if (analysis_type_!=GERMLINE_TRIO) return FileLocation();
+
+	{
+		QString name = QFileInfo(gsvar_file_).baseName();
+		QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_manta_var_structural.bedpe";
+
+		return FileLocation{name, PathType::STRUCTURAL_VARIANTS, file, QFile::exists(file)};
+
 	}
 
-	if (header_info_.empty())
-	{
-		THROW(ArgumentException, "Header information has not been specified");
-		return output;
-	}
-
-	QString sample_folder = QFileInfo(gsvar_file_).absolutePath();
-	QString project_folder = QFileInfo(sample_folder).absolutePath();
-
-	foreach(const SampleInfo& info, header_info_)
-	{
-		if (analysis_type_ == GERMLINE_SINGLESAMPLE)
-		{
-			FileLocation single_bam = FileLocation{info.id, PathType::BAM, sample_folder + "/" + info.id + ".bam", false};
-			addToList(single_bam, output);
-		}
-		else
-		{
-			FileLocation multi_bam = FileLocation{info.id, PathType::BAM, project_folder + "/Sample_" + info.id + "/" + info.id + ".bam", false};			
-			addToList(multi_bam, output);
-		}
-	}
 	return output;
 }
 
-FileLocationList FileLocationProviderLocal::getSegFilesCnv()
+void FileLocationProviderLocal::addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing)
+{
+	bool exists = QFile::exists(loc.filename);
+	if (exists)
+	{
+		list << loc;
+		list.last().exists = true;
+	}
+	else if(add_if_missing)
+	{
+		list << loc;
+		list.last().exists = false;
+	}
+}
+
+FileLocationList FileLocationProviderLocal::getBamFiles(bool return_if_missing) const
 {
 	FileLocationList output;
 
+	foreach(const KeyValuePair& loc, getBaseLocations())
+	{
+		FileLocation file = FileLocation{loc.key, PathType::BAM, loc.value + ".bam", false};
+		addToList(file, output, return_if_missing);
+	}
+
+	return output;
+}
+
+FileLocationList FileLocationProviderLocal::getCnvCoverageFiles(bool return_if_missing) const
+{
+	FileLocationList output;
+
+	//special handling of tumor-normal pair: add pair coverage data
 	if (analysis_type_==SOMATIC_PAIR)
 	{
 		//tumor-normal SEG file
 		QString pair = QFileInfo(gsvar_file_).baseName();
-
-		FileLocation cnvs_seg = FileLocation{pair + " (copy number)", PathType::COPY_NUMBER_RAW_DATA, gsvar_file_.left(gsvar_file_.length()-6) + "_cnvs.seg", false};		
-		addToList(cnvs_seg, output);
-
-		FileLocation con_seg = FileLocation{pair + " (coverage)", PathType::COPY_NUMBER_RAW_DATA, gsvar_file_.left(gsvar_file_.length()-6) + "_cov.seg", false};		
-		addToList(con_seg, output);
-
-		//germline SEG file
-		QString basename = QFileInfo(gsvar_file_).baseName().left(gsvar_file_.length()-6);
-		if (basename.contains("-"))
-		{
-			QString tumor_ps_name = basename.split("-")[1];
-			QString pair_folder = QFileInfo(gsvar_file_).absolutePath();
-			QString project_folder = QFileInfo(pair_folder).absolutePath();
-			output << FileLocation{tumor_ps_name, PathType::COPY_NUMBER_RAW_DATA, project_folder + "/Sample_" + tumor_ps_name + "/" + tumor_ps_name + "_cnvs.seg", false};
-		}
+		FileLocation con_seg = FileLocation{pair, PathType::COPY_NUMBER_RAW_DATA, gsvar_file_.left(gsvar_file_.length()-6) + "_cov.seg", false};
+		addToList(con_seg, output, return_if_missing);
 	}
-	else
+
+	foreach(const KeyValuePair& loc, getBaseLocations())
 	{
-		QList<FileLocation> tmp = getBamFiles();
-		foreach(const FileLocation& file, tmp)
-		{
-			QString base_name = file.filename.left(file.filename.length()-4);
-			FileLocation cnvs_clincnv_seg = FileLocation{file.id, PathType::COPY_NUMBER_RAW_DATA, base_name + "_cnvs_clincnv.seg", false};
-			addToList(cnvs_clincnv_seg, output);
-			if (!output.last().is_found)
-			{
-				output.removeLast();
-				FileLocation cnvs_seg = FileLocation{file.id, PathType::COPY_NUMBER_RAW_DATA, base_name + "_cnvs.seg", false};
-				addToList(cnvs_seg, output);
-			}
-		}
+		FileLocation file = FileLocation{loc.key, PathType::COPY_NUMBER_RAW_DATA, loc.value + "_cnvs_clincnv.seg", false};
+		addToList(file, output, return_if_missing);
 	}
 
 	return output;
 }
 
-FileLocationList FileLocationProviderLocal::getIgvFilesBaf()
+FileLocationList FileLocationProviderLocal::getBafFiles(bool return_if_missing) const
 {
 	FileLocationList output;
+
+	foreach(const KeyValuePair& loc, getBaseLocations())
+	{
+		FileLocation file = FileLocation{loc.key, PathType::BAF, loc.value + "_bafs.igv", false};
+		addToList(file, output, return_if_missing);
+	}
+
+	return output;
+}
+
+FileLocationList FileLocationProviderLocal::getMantaEvidenceFiles(bool return_if_missing) const
+{
+	FileLocationList output;
+
+	foreach(const KeyValuePair& loc, getBaseLocations())
+	{
+		QString folder = loc.value.left(loc.value.length()-loc.key.length());
+
+		FileLocation file = FileLocation{loc.key, PathType::MANTA_EVIDENCE, folder + "manta_evid/" + loc.key + "_manta_evidence.bam", false};
+		addToList(file, output, return_if_missing);
+	}
+
+	return output;
+}
+
+FileLocationList FileLocationProviderLocal::getCircosPlotFiles(bool return_if_missing) const
+{
+	FileLocationList output;
+
+	foreach(const KeyValuePair& loc, getBaseLocations())
+	{
+		FileLocation file = FileLocation{loc.key, PathType::CIRCOS_PLOT, loc.value + "_circos.png", false};
+		addToList(file, output, return_if_missing);
+	}
+
+	return output;
+}
+
+FileLocationList FileLocationProviderLocal::getVcfFiles(bool return_if_missing) const
+{
+	FileLocationList output;
+
+	foreach(const KeyValuePair& loc, getBaseLocations())
+	{
+		FileLocation file = FileLocation{loc.key, PathType::VCF, loc.value + "_var_annotated.vcf.gz", false};
+		addToList(file, output, return_if_missing);
+	}
+
+	return output;
+}
+
+FileLocationList FileLocationProviderLocal::getRepeatExpansionFiles(bool return_if_missing) const
+{
+	FileLocationList output;
+
+	foreach(const KeyValuePair& loc, getBaseLocations())
+	{
+		FileLocation file = FileLocation{loc.key, PathType::REPEAT_EXPANSIONS, loc.value + "_repeats_expansionhunter.vcf", false};
+		addToList(file, output, return_if_missing);
+	}
+
+	return output;
+}
+
+FileLocationList FileLocationProviderLocal::getPrsFiles(bool return_if_missing) const
+{
+	FileLocationList output;
+
+	foreach(const KeyValuePair& loc, getBaseLocations())
+	{
+		FileLocation file = FileLocation{loc.key, PathType::PRS, loc.value + "_prs.tsv", false};
+		addToList(file, output, return_if_missing);
+	}
+
+	return output;
+}
+
+FileLocationList FileLocationProviderLocal::getLowCoverageFiles(bool return_if_missing) const
+{
+	FileLocationList output;
+
+	//tumor-normal SEG file
 	if (analysis_type_==SOMATIC_PAIR)
 	{
-		FileLocation bafs_igv = FileLocation{QFileInfo(gsvar_file_).baseName(), PathType::BAF, gsvar_file_.left(gsvar_file_.length()-6) + "_bafs.igv", false};		
-		addToList(bafs_igv, output);
-	}
-	else
-	{
-		QList<FileLocation> tmp = getBamFiles();
-		foreach(const FileLocation& file, tmp)
-		{
-			FileLocation bafs_igv = FileLocation{file.id, PathType::BAF, file.filename.left(file.filename.length()-4) + "_bafs.igv", false};			
-			addToList(bafs_igv, output);
-		}
+		QString pair = QFileInfo(gsvar_file_).baseName();
+		FileLocation con_seg = FileLocation{pair, PathType::LOWCOV_BED, gsvar_file_.left(gsvar_file_.length()-6) + "_stat_lowcov.bed", false};
+		addToList(con_seg, output, return_if_missing);
 	}
 
-	return output;
-}
-
-FileLocationList FileLocationProviderLocal::getMantaEvidenceFiles()
-{
-	FileLocationList evidence_files;
-	// search at location of all available BAM files
-	QList<FileLocation> bam_files = getBamFiles();
-	foreach (FileLocation bam_file, bam_files)
+	foreach(const KeyValuePair& loc, getBaseLocations())
 	{
-		QString evidence_bam_file = getEvidenceFile(bam_file.filename);
-		FileLocation evidence_bam = FileLocation{QFileInfo(evidence_bam_file).baseName(), PathType::BAM, evidence_bam_file, false};		
-		addToList(evidence_bam, evidence_files);
-	}
-	return evidence_files;
-}
+		QString folder = loc.value.left(loc.value.length()-loc.key.length());
 
-QString FileLocationProviderLocal::getEvidenceFile(QString bam_file)
-{
-	if (!bam_file.endsWith(".bam", Qt::CaseInsensitive))
-	{
-		THROW(ArgumentException, "Invalid BAM file path \"" + bam_file + "\"!");
-	}
-	QFileInfo bam_file_info(bam_file);
-	QDir evidence_dir(bam_file_info.absolutePath() + "/manta_evid/");
-	QString ps_name = bam_file_info.fileName().left(bam_file_info.fileName().length() - 4);
-	return evidence_dir.absoluteFilePath(ps_name + "_manta_evidence.bam");
-}
-
-FileLocationList FileLocationProviderLocal::getAnalysisLogFiles()
-{
-	return FileLocationList{};
-}
-
-FileLocationList FileLocationProviderLocal::getCircosPlotFiles()
-{
-	QStringList files = Helper::findFiles(getAnalysisPath(), "*_circos.png", false);
-	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::CIRCOS_PLOT);
-
-	return output;
-}
-
-FileLocationList FileLocationProviderLocal::getVcfGzFiles()
-{
-	QStringList files = Helper::findFiles(getAnalysisPath(), "*_var_annotated.vcf.gz", false);
-	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::VCF_GZ);
-
-	return output;
-}
-
-FileLocationList FileLocationProviderLocal::getExpansionhunterVcfFiles()
-{
-	QStringList files = Helper::findFiles(getAnalysisPath(), processedSampleName() + "_repeats_expansionhunter.vcf", false);
-	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::REPEATS_EXPANSION_HUNTER_VCF);
-
-	return output;
-}
-
-FileLocationList FileLocationProviderLocal::getPrsTsvFiles()
-{
-	QStringList files = Helper::findFiles(getAnalysisPath(), processedSampleName() + "_prs.tsv", false);
-	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::PRS_TSV);
-
-	return output;
-}
-
-FileLocationList FileLocationProviderLocal::getClincnvTsvFiles()
-{
-	QStringList files = Helper::findFiles(getAnalysisPath(), "*_clincnv.tsv", false);
-	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::CLINCNV_TSV);
-
-	return output;
-}
-
-FileLocationList FileLocationProviderLocal::getLowcovBedFiles()
-{
-	QStringList files = Helper::findFiles(getAnalysisPath(), "*_lowcov.bed", false);
-	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::LOWCOV_BED);
-
-	return output;
-}
-
-FileLocationList FileLocationProviderLocal::getStatLowcovBedFiles()
-{
-	FileLocationList output {};
-
-	if (analysis_type_==SOMATIC_PAIR)
-	{
-		//search in analysis folder
-		QStringList beds = Helper::findFiles(getAnalysisPath(), "*_stat_lowcov.bed", false);
+		QStringList beds = Helper::findFiles(folder, "*_stat_lowcov.bed", false); //TODO to return missing files, we would have to get rid of the processing system name inside the filename...
 		foreach(const QString& bed, beds)
 		{
-			FileLocation file;
-			file.id = QFileInfo(bed).fileName().replace("_stat_lowcov.bed", "") + " (low-coverage regions)";
-			file.type = PathType::COPY_NUMBER_CALLS;
-			file.filename = bed;
-			output.append(file);
-		}
-	}
-	else
-	{
-		// search in sample folders containing BAM files
-		foreach (const FileLocation& bam_file, getBamFiles())
-		{
-			QString folder = QFileInfo(bam_file.filename).absolutePath();
-			QStringList beds = Helper::findFiles(folder, "*_lowcov.bed", false);
-
-			foreach(const QString& bed, beds)
-			{
-				FileLocation file;
-				file.id = bam_file.id + " (low-coverage regions)";
-				file.type = PathType::COPY_NUMBER_CALLS;
-				file.filename = bed;
-				output.append(file);
-			}
+			FileLocation file = FileLocation{loc.key, PathType::LOWCOV_BED, bed, true};
+			addToList(file, output, return_if_missing);
 		}
 	}
 
 	return output;
 }
 
-FileLocationList FileLocationProviderLocal::getCnvsClincnvSegFiles()
+FileLocationList FileLocationProviderLocal::getCopyNumberCallFiles(bool return_if_missing) const
 {
-	QStringList files = Helper::findFiles(getAnalysisPath(), "*_cnvs_clincnv.seg", false);
-	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::CNVS_CLINCNV_SEG);
+	FileLocationList output;
 
-	return output;
-}
-
-FileLocationList FileLocationProviderLocal::getCnvsClincnvTsvFiles()
-{
-	QStringList files = Helper::findFiles(getAnalysisPath(), "*_cnvs_clincnv.tsv", false);
-	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::CNVS_CLINCNV_TSV);
-
-	return output;
-}
-
-FileLocationList FileLocationProviderLocal::getCnvsSegFiles()
-{
-	QStringList files = Helper::findFiles(getAnalysisPath(), "*_cnvs.seg", false);
-	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::CNVS_SEG);
-
-	return output;
-}
-
-FileLocationList FileLocationProviderLocal::getCnvsTsvFiles()
-{
-	QStringList files = Helper::findFiles(getAnalysisPath(), "*_cnvs.tsv", false);
-	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::CNVS_TSV);
-
-	return output;
-}
-
-FileLocationList FileLocationProviderLocal::getRohsTsvFiles()
-{
-	QString filename = gsvar_file_;
-	if (analysis_type_==GERMLINE_TRIO)
+	foreach(const KeyValuePair& loc, getBaseLocations())
 	{
-		QString child = header_info_.infoByStatus(true).column_name;
-		filename = QFileInfo(gsvar_file_).absolutePath() + "/Sample_" + child + "/" + child + ".GSvar";
+		FileLocation file = FileLocation{loc.key, PathType::COPY_NUMBER_CALLS, loc.value + "_cnvs_clincnv.tsv", false};
+		addToList(file, output, return_if_missing);
 	}
-	QString folder = QFileInfo(filename).absolutePath();
-	QStringList files = Helper::findFiles(folder, "*_rohs.tsv", false);
-	FileLocationList output = mapFoundFilesToFileLocation(files, PathType::ROHS_TSV);
+	return output;
+}
+
+FileLocationList FileLocationProviderLocal::getRohFiles(bool return_if_missing) const
+{
+	FileLocationList output;
+
+	foreach(const KeyValuePair& loc, getBaseLocations())
+	{
+		FileLocation file = FileLocation{loc.key, PathType::ROH, loc.value + "_rohs.tsv", false};
+		addToList(file, output, return_if_missing);
+	}
 
 	return output;
 }
 
-QString FileLocationProviderLocal::getAnalysisPath()
+QString FileLocationProviderLocal::getAnalysisPath() const
 {
 	return QFileInfo(gsvar_file_).absolutePath();
 }
 
-QString FileLocationProviderLocal::getProjectPath()
+QString FileLocationProviderLocal::getProjectPath() const
 {
 	QDir directory = QFileInfo(gsvar_file_).dir();
 	directory.cdUp();
 	return directory.absolutePath();
 }
 
-QString FileLocationProviderLocal::getRohFileAbsolutePath()
+QString FileLocationProviderLocal::processedSampleName() const
 {
-	QString filename = gsvar_file_;
-	if (analysis_type_==GERMLINE_TRIO)
-	{
-		QString child = header_info_.infoByStatus(true).column_name;
-		filename = getAnalysisPath() + "/Sample_" + child + "/" + child + ".GSvar";
-	}
-	return QFileInfo(filename).absolutePath();
-}
-
-QString FileLocationProviderLocal::processedSampleName()
-{
+	QStringList output;
 	switch(analysis_type_)
 	{
-		case GERMLINE_SINGLESAMPLE:
-			return QFileInfo(gsvar_file_).baseName();
-			break;
-		case GERMLINE_TRIO: //return index (child)
-		return header_info_.infoByStatus(true).column_name;
-			break;
-		case GERMLINE_MULTISAMPLE: //return affected if there is exactly one affected
-		try
-		{
-			SampleInfo info = header_info_.infoByStatus(true);
-			return info.column_name;
-		}
-		catch(...) {} //Nothing to do here
-			break;
 		case SOMATIC_SINGLESAMPLE:
+		case GERMLINE_SINGLESAMPLE:
+			foreach(const SampleInfo& entry, header_info_)
+			{
+				output << entry.id;
+			}
+			break;
+		case GERMLINE_TRIO:
+		case GERMLINE_MULTISAMPLE:
+			foreach(const SampleInfo& entry, header_info_)
+			{
+				if (entry.isAffected())
+				{
+					output << entry.id;
+				}
+			}
 			break;
 		case SOMATIC_PAIR:
-			return QFileInfo(gsvar_file_).baseName().split("-")[0];
+			foreach(const SampleInfo& entry, header_info_)
+			{
+				if (entry.isTumor())
+				{
+					output << entry.id;
+				}
+			}
 			break;
 	}
 
-	return "";
+	if (output.count()!=1) THROW(ProgrammingException, "Could not determine single processed sample name from sample header of GSvar file!");
+
+	return output[0];
 }
 
-FileLocationList FileLocationProviderLocal::mapFoundFilesToFileLocation(QStringList& files, PathType type)
+QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const
 {
-	FileLocationList output {};
-	for (int i = 0; i < files.count(); i++)
-	{
-		FileLocation current_location;
-		current_location.id = "";
-		current_location.type = type;
-		current_location.filename = files[i];
-		current_location.is_found = true;
+	QList<KeyValuePair> output;
 
-		output.append(current_location);
+	if (analysis_type_==GERMLINE_SINGLESAMPLE || analysis_type_==SOMATIC_SINGLESAMPLE)
+	{
+		QString id = header_info_.begin()->id;
+		output << KeyValuePair(id, getAnalysisPath() + "/" + id);
 	}
+	else if (analysis_type_==GERMLINE_TRIO || analysis_type_==GERMLINE_MULTISAMPLE || analysis_type_==SOMATIC_PAIR)
+	{
+		QString project_folder = getProjectPath();
+
+		foreach(const SampleInfo& info, header_info_)
+		{
+			output << KeyValuePair(info.id, project_folder + "/Sample_" + info.id + "/" + info.id);
+		}
+	}
+
 	return output;
 }

@@ -60,16 +60,23 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	ui_->disease_details->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openExternalDiseaseDatabase()));
 
-	//IGV button
+	//IGV button //TODO could be done in a member based on PathType only if there was a conversion of PathType to human-readable names
+	NGSD db;
 	QMenu* menu = new QMenu();
-	menu->addAction("Add BAM track", this, SLOT(addBamToIgv()));
-	menu->addAction("Add Manta evidence BAM track", this, SLOT(addEvidenceBamToIgv()));
-	menu->addSeparator();
-	menu->addAction("Add variant track", this, SLOT(addVariantsToIgv()));
-	menu->addAction("Add CNV track", this, SLOT(addCnvsToIgv()));
-	menu->addAction("Add SV track", this, SLOT(addSvsToIgv()));
-	menu->addSeparator();
-	menu->addAction("Add BAF track", this, SLOT(addBafsToIgv()));
+	action = menu->addAction("Add BAM track", this, SLOT(addBamToIgv()));
+	action->setEnabled(QFile::exists(db.processedSamplePath(ps_id_, PathType::BAM)));
+	action = menu->addAction("Add Manta evidence BAM track", this, SLOT(addEvidenceBamToIgv()));
+	action->setEnabled(QFile::exists(db.processedSamplePath(ps_id_, PathType::MANTA_EVIDENCE)));
+	action = menu->addSeparator();
+	action = menu->addAction("Add variant track", this, SLOT(addVariantsToIgv()));
+	action->setEnabled(QFile::exists(db.processedSamplePath(ps_id_, PathType::VCF)));
+	action = menu->addAction("Add CNV track", this, SLOT(addCnvsToIgv()));
+	action->setEnabled(QFile::exists(db.processedSamplePath(ps_id_, PathType::COPY_NUMBER_RAW_DATA)));
+	action = menu->addAction("Add SV track", this, SLOT(addSvsToIgv()));
+	action->setEnabled(QFile::exists(db.processedSamplePath(ps_id_, PathType::STRUCTURAL_VARIANTS)));
+	action = menu->addSeparator();
+	action = menu->addAction("Add BAF track", this, SLOT(addBafsToIgv()));
+	action->setEnabled(QFile::exists(db.processedSamplePath(ps_id_, PathType::BAF)));
 	ui_->igv_btn->setMenu(menu);
 
 	updateGUI();
@@ -206,28 +213,6 @@ void ProcessedSampleWidget::updateGUI()
 
 	//#### QC ####
 	updateQCMetrics();
-
-	//IGV button deactivate tracks which are not
-	foreach (QAction* action, ui_->igv_btn->menu()->actions())
-	{
-		if (action->text() == "Add Manta evidence BAM track")
-		{
-			// check if evidence BAM file exists:
-			action->setEnabled(QFile::exists(GlobalServiceProvider::fileLocationProvider()->getEvidenceFile(NGSD().processedSamplePath(ps_id_, PathType::BAM))));
-		}
-		else if (action->text() == "Add SV track")
-		{
-			// check if evidence BAM file exists:
-			QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
-			action->setEnabled(QFile::exists(bam.left(bam.length()-4) + "_manta_var_structural.vcf.gz"));
-		}
-		else if (action->text() == "Add BAF track")
-		{
-			// check if evidence BAM file exists:
-			QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
-			action->setEnabled(QFile::exists(bam.left(bam.length()-4) + "_bafs.igv"));
-		}
-	};
 }
 
 void ProcessedSampleWidget::updateQCMetrics()
@@ -554,7 +539,6 @@ void ProcessedSampleWidget::loadVariantList()
 void ProcessedSampleWidget::addBamToIgv()
 {
 	QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
-
 	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(bam) + "\"");
 }
 
@@ -566,42 +550,25 @@ void ProcessedSampleWidget::addVariantsToIgv()
 
 void ProcessedSampleWidget::addCnvsToIgv()
 {
-	QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
-
-	QString base_name = bam.left(bam.length()-4);
-	QString segfile = base_name + "_cnvs_clincnv.seg";
-	if (QFile::exists(segfile))
-	{
-		executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(segfile) + "\"");
-	}
-	else
-	{
-		segfile = base_name + "_cnvs.seg";
-		if (QFile::exists(segfile))
-		{
-			executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(segfile) + "\"");
-		}
-	}
+	QString segfile = NGSD().processedSamplePath(ps_id_, PathType::COPY_NUMBER_RAW_DATA);
+	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(segfile) + "\"");
 }
 
 void ProcessedSampleWidget::addSvsToIgv()
 {
-	QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
-	QString vcf = bam.left(bam.length()-4) + "_manta_var_structural.vcf.gz";
+	QString vcf = NGSD().processedSamplePath(ps_id_, PathType::STRUCTURAL_VARIANTS);
 	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(vcf) + "\"");
 }
 
 void ProcessedSampleWidget::addBafsToIgv()
 {
-	QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
-	QString bafs = bam.left(bam.length()-4) + "_bafs.igv";
-
+	QString bafs = NGSD().processedSamplePath(ps_id_, PathType::BAF);
 	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(bafs) + "\"");
 }
 
 void ProcessedSampleWidget::addEvidenceBamToIgv()
-{	
-	QString evidence_bam = GlobalServiceProvider::fileLocationProvider()->getEvidenceFile(NGSD().processedSamplePath(ps_id_, PathType::BAM));
+{
+	QString evidence_bam = NGSD().processedSamplePath(ps_id_, PathType::MANTA_EVIDENCE);
 	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(evidence_bam) + "\"");
 }
 

@@ -10,7 +10,10 @@ class CPPNGSSHARED_EXPORT FileLocationList
 {
 public:
 	FileLocationList();
-	~FileLocationList();
+
+	//Filters the list by ID, i.e. sample name
+	FileLocationList filterById(const QString& id) const;
+
 	QStringList asStringList() const;
 };
 

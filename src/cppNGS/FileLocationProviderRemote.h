@@ -7,48 +7,49 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-class CPPNGSSHARED_EXPORT FileLocationProviderRemote : virtual public FileLocationProvider
+class CPPNGSSHARED_EXPORT FileLocationProviderRemote
+	: virtual public FileLocationProvider
 {
 public:
 	FileLocationProviderRemote(const QString sample_id, const QString server_host, const int server_port);
 	virtual ~FileLocationProviderRemote() {}
 
-	FileLocationList getBamFiles() override;
-	FileLocationList getSegFilesCnv() override;
-	FileLocationList getIgvFilesBaf() override;
-	FileLocationList getMantaEvidenceFiles() override;
-	QString getEvidenceFile(QString bam_file) override;
+	FileLocation getAnalysisVcf() const override;
+	FileLocation getAnalysisSvFile() const override;
+	FileLocation getAnalysisCnvFile() const override;
+	FileLocation getAnalysisUpdFile() const override;
 
-	FileLocationList getAnalysisLogFiles() override;
-	FileLocationList getCircosPlotFiles() override;
-	FileLocationList getVcfGzFiles() override;
-	FileLocationList getExpansionhunterVcfFiles() override;
-	FileLocationList getPrsTsvFiles() override;
-	FileLocationList getClincnvTsvFiles() override;
-	FileLocationList getLowcovBedFiles() override;
-	FileLocationList getStatLowcovBedFiles() override;
-	FileLocationList getCnvsClincnvSegFiles() override;
-	FileLocationList getCnvsClincnvTsvFiles() override;
-	FileLocationList getCnvsSegFiles() override;
-	FileLocationList getCnvsTsvFiles() override;
-	FileLocationList getRohsTsvFiles() override;
+	FileLocationList getBamFiles(bool return_if_missing) const override;
+	FileLocationList getCnvCoverageFiles(bool return_if_missing) const override;
+	FileLocationList getBafFiles(bool return_if_missing) const override;
+	FileLocationList getMantaEvidenceFiles(bool return_if_missing) const override;
 
-	QString getAnalysisPath() override;
-	QString getProjectPath() override;
-	QString getRohFileAbsolutePath() override;
+	FileLocationList getCircosPlotFiles(bool return_if_missing) const override;
+	FileLocationList getVcfFiles(bool return_if_missing) const override;
+	FileLocationList getRepeatExpansionFiles(bool return_if_missing) const override;
+	FileLocationList getPrsFiles(bool return_if_missing) const override;
+	FileLocationList getLowCoverageFiles(bool return_if_missing) const override;
+	FileLocationList getCopyNumberCallFiles(bool return_if_missing) const override;
+	FileLocationList getRohFiles(bool return_if_missing) const override;
 
-	QString processedSampleName() override;
+	QString processedSampleName() const override;
 
 private:
-	void setIsFoundFlag(FileLocation& file);
-	FileLocationList requestFileInfoByType(PathType type);
-	FileLocation mapJsonObjectToFileLocation(QJsonObject obj);
-	FileLocationList mapJsonArrayToFileLocationList(QJsonArray array);
+	FileLocationList requestFileInfoByType(PathType type) const;
+	FileLocation mapJsonObjectToFileLocation(QJsonObject obj) const;
+	FileLocationList mapJsonArrayToFileLocationList(QJsonArray array) const;
 
 protected:
 	QString sample_id_;
 	QString server_host_;
 	int server_port_;
+
+	QString getAnalysisPath() const override;
+	QString getProjectPath() const override;
 };
 
 #endif // FILELOCATIONPROVIDERSERVER_H
+
+//TODOs for client-server support:
+// - Storing GSvar after updating classification ...
+// - Storing QBIC files => special folder

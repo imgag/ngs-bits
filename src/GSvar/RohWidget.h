@@ -20,7 +20,7 @@ class RohWidget
 	Q_OBJECT
 
 public:
-	explicit RohWidget(FilterWidget* filter_widget, QWidget *parent = 0);
+	explicit RohWidget(QString filename, FilterWidget* filter_widget, QWidget *parent = 0);
 	~RohWidget();
 
 signals:

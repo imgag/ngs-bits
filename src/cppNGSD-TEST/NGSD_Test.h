@@ -1282,6 +1282,7 @@ private slots:
 		{
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report1.html");
@@ -1347,6 +1348,7 @@ private slots:
 
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report2.html");
@@ -1362,6 +1364,7 @@ private slots:
 
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report3.html");
@@ -1373,6 +1376,7 @@ private slots:
 		{
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
+			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			EvaluationSheetData sheet_data;
