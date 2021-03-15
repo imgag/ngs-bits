@@ -3117,7 +3117,7 @@ void MainWindow::generateReportSomaticRTF()
 
 			ReportWorker::moveReport(temp_filename, file_rep);
 
-			//Generate files for QBIC upload
+			//Generate files for QBIC upload //TODO GSvarServer: use
 			report.germlineSnvForQbic();
 			report.somaticSnvForQbic();
 			report.germlineCnvForQbic();
@@ -4129,7 +4129,7 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	dlg.exec();
 }
 
-void MainWindow::exportVCF() //TODO use VcfFile::convertGSvarToVcf?! - does this work for all variant list types, or only for GERMLINE_SINGLE?
+void MainWindow::exportVCF()
 {
 	try
 	{
@@ -5384,7 +5384,7 @@ void MainWindow::markVariantListChanged()
 	variants_changed_ = true;
 }
 
-void MainWindow::storeCurrentVariantList()
+void MainWindow::storeCurrentVariantList() //TODO GSvarServer: how do we handle this?
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 	filewatcher_.clearFile();

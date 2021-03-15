@@ -50,6 +50,3 @@ protected:
 
 #endif // FILELOCATIONPROVIDERSERVER_H
 
-//TODOs for client-server support:
-// - Storing GSvar after updating classification ...
-// - Storing QBIC files => special folder

@@ -13,28 +13,19 @@ IgvDialog::IgvDialog(QWidget *parent)
 
 void IgvDialog::addFile(const FileLocation& file, bool checked)
 {
-	//determine group
+	//determine group (if present)
 	QTreeWidgetItem* group = nullptr;
 	for(int i=0; i<ui_.tree->topLevelItemCount(); ++i)
 	{
-		if (ui_.tree->topLevelItem(i)->text(0)==file.typeToString())
+		if (ui_.tree->topLevelItem(i)->text(0)==file.typeAsHumanReadableString())
 		{
 			group = ui_.tree->topLevelItem(i);
 		}
 	}
-
-	//add group if missing
-	if (group==nullptr)
+	if (group==nullptr) //add group if missing
 	{
-		group = new QTreeWidgetItem(QStringList() << file.typeToString());
+		group = new QTreeWidgetItem(QStringList() << file.typeAsHumanReadableString());
 		group->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-		//TODO support all types
-		if (file.type==PathType::VCF) group->setToolTip(0, "Variant list(s)");
-		if (file.type==PathType::BAM) group->setToolTip(0, "BAM file(s)");
-		if (file.type==PathType::COPY_NUMBER_RAW_DATA) group->setToolTip(0, "Copy-number coverage file(s)");
-		if (file.type==PathType::COPY_NUMBER_CALLS) group->setToolTip(0, "Copy-number call(s)");
-		if (file.type==PathType::BAF) group->setToolTip(0, "b-allele frequency file(s)");
-		if (file.type==PathType::OTHER) group->setToolTip(0, "Misc");
 		ui_.tree->addTopLevelItem(group);
 	}
 

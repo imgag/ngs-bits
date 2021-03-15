@@ -2,6 +2,7 @@
 #define FILELOCATION_H
 
 #include "cppNGS_global.h"
+#include "Exceptions.h"
 #include <QString>
 
 enum class PathType
@@ -39,9 +40,14 @@ struct FileLocation
 	QString filename; //file name
 	bool exists; // if filename actually exists or not
 
-	QString typeToString() const
+	QString typeAsString() const
 	{
 		return typeToString(type);
+	}
+
+	QString typeAsHumanReadableString() const
+	{
+		return typeToHumanReadableString(type);
 	}
 
 	static QString typeToString(PathType pathtype)
@@ -76,32 +82,80 @@ struct FileLocation
 				return "ROH";
 			case PathType::PRS:
 				return "PRS";
+			case PathType::UPD:
+				return "UPD";
 			case PathType::CIRCOS_PLOT:
 				return "CIRCOS_PLOT";
-
-			default:
-			 return "Invalid PathType";
+			case PathType::STRUCTURAL_VARIANTS:
+				return "STRUCTURAL_VARIANTS";
 		}
+		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
 
 	static PathType stringToType(const QString& in)
 	{
-		if (in.toUpper() == "PROJECT_FOLDER") return PathType::PROJECT_FOLDER;
-		if (in.toUpper() == "SAMPLE_FOLDER") return PathType::SAMPLE_FOLDER;
-		if (in.toUpper() == "BAM") return PathType::BAM;
-		if (in.toUpper() == "GSVAR") return PathType::GSVAR;
-		if (in.toUpper() == "VCF") return PathType::VCF;
-		if (in.toUpper() == "BAF") return PathType::BAF;
-		if (in.toUpper() == "COPY_NUMBER_CALLS") return PathType::COPY_NUMBER_CALLS;
-		if (in.toUpper() == "COPY_NUMBER_RAW_DATA") return PathType::COPY_NUMBER_RAW_DATA;
-		if (in.toUpper() == "MANTA_EVIDENCE") return PathType::MANTA_EVIDENCE;
-		if (in.toUpper() == "REPEAT_EXPANSIONS") return PathType::REPEAT_EXPANSIONS;
-		if (in.toUpper() == "LOWCOV_BED") return PathType::LOWCOV_BED;
-		if (in.toUpper() == "ROH") return PathType::ROH;
-		if (in.toUpper() == "PRS") return PathType::PRS;
-		if (in.toUpper() == "CIRCOS_PLOT") return PathType::CIRCOS_PLOT;
+		QString in_upper = in.toUpper().trimmed();
 
-		return PathType::OTHER;
+		if (in_upper == "PROJECT_FOLDER") return PathType::PROJECT_FOLDER;
+		if (in_upper == "SAMPLE_FOLDER") return PathType::SAMPLE_FOLDER;
+		if (in_upper == "BAM") return PathType::BAM;
+		if (in_upper == "GSVAR") return PathType::GSVAR;
+		if (in_upper == "VCF") return PathType::VCF;
+		if (in_upper == "BAF") return PathType::BAF;
+		if (in_upper == "COPY_NUMBER_CALLS") return PathType::COPY_NUMBER_CALLS;
+		if (in_upper == "COPY_NUMBER_RAW_DATA") return PathType::COPY_NUMBER_RAW_DATA;
+		if (in_upper == "MANTA_EVIDENCE") return PathType::MANTA_EVIDENCE;
+		if (in_upper == "REPEAT_EXPANSIONS") return PathType::REPEAT_EXPANSIONS;
+		if (in_upper == "LOWCOV_BED") return PathType::LOWCOV_BED;
+		if (in_upper == "ROH") return PathType::ROH;
+		if (in_upper == "PRS") return PathType::PRS;
+		if (in_upper == "UPD") return PathType::UPD;
+		if (in_upper == "CIRCOS_PLOT") return PathType::CIRCOS_PLOT;
+		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
+
+		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
+	}
+
+	static QString typeToHumanReadableString(PathType pathtype)
+	{
+		switch(pathtype)
+		{
+			case PathType::PROJECT_FOLDER:
+				return "project folder";
+			case PathType::SAMPLE_FOLDER:
+				return "sample/analysis folder";
+			case PathType::BAM:
+				return "BAM file";
+			case PathType::VCF:
+				return "small variant calls";
+			case PathType::GSVAR:
+				return "GSvar file";
+			case PathType::BAF:
+				return "b-allele frequency file";
+			case PathType::COPY_NUMBER_CALLS:
+				return "copy-number calls";
+			case PathType::COPY_NUMBER_RAW_DATA:
+				return "copy-number raw data";
+			case PathType::MANTA_EVIDENCE:
+				return "evidence file for Manta structural variants";
+			case PathType::REPEAT_EXPANSIONS:
+				return "repeat expansions";
+			case PathType::LOWCOV_BED:
+				return "low coverage regions";
+			case PathType::ROH:
+				return "runs of homozygosity";
+			case PathType::PRS:
+				return "polygenic risk scores";
+			case PathType::CIRCOS_PLOT:
+				return "circos plot";
+			case PathType::STRUCTURAL_VARIANTS:
+				return "strctural variant calls";
+			case PathType::UPD:
+				return "uniparental disomy regions";
+			case PathType::OTHER:
+				return "other files";
+		}
+		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}
 
 	bool operator == (const FileLocation& x) const

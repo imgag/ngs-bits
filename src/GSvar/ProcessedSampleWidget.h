@@ -5,6 +5,7 @@
 
 #include <QWidget>
 #include <QLabel>
+#include <QMenu>
 
 namespace Ui {
 class ProcessedSampleWidget;
@@ -47,12 +48,7 @@ protected slots:
 	void loadVariantList();
 	void queueSampleAnalysis();
 
-	void addBamToIgv();
-	void addVariantsToIgv();
-	void addCnvsToIgv();
-	void addSvsToIgv();
-	void addBafsToIgv();
-	void addEvidenceBamToIgv();
+	void openIgvTrack();
 	void somRepDeleted();
 
 	///Opens the processed sample edit dialog
@@ -75,6 +71,7 @@ private:
 	QString sampleName() const;
 	QString processedSampleName() const;
 	QString mergedSamples() const;
+	void addIgvMenuEntry(QMenu* menu, PathType file_type);
 };
 
 #endif // PROCESSEDSAMPLEWIDGET_H

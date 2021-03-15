@@ -10,22 +10,22 @@ FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id,c
 
 FileLocation FileLocationProviderRemote::getAnalysisVcf() const
 {
-	return FileLocation(); //TODO > Alexandr
+	return FileLocation(); //Alexandr
 }
 
 FileLocation FileLocationProviderRemote::getAnalysisSvFile() const
 {
-	return FileLocation(); //TODO > Alexandr
+	return FileLocation(); //Alexandr
 }
 
 FileLocation FileLocationProviderRemote::getAnalysisCnvFile() const
 {
-	return FileLocation(); //TODO > Alexandr
+	return FileLocation(); //Alexandr
 }
 
 FileLocation FileLocationProviderRemote::getAnalysisUpdFile() const
 {
-	return FileLocation(); //TODO > Alexandr
+	return FileLocation(); // Alexandr
 }
 
 FileLocationList FileLocationProviderRemote::requestFileInfoByType(PathType type) const
@@ -74,57 +74,57 @@ FileLocationList FileLocationProviderRemote::mapJsonArrayToFileLocationList(QJso
 	return output;
 }
 
-FileLocationList FileLocationProviderRemote::getBamFiles(bool /*return_if_missing*/) const //TODO > Alexandr
+FileLocationList FileLocationProviderRemote::getBamFiles(bool /*return_if_missing*/) const //Alexandr
 {
 	return requestFileInfoByType(PathType::BAM);
 }
 
-FileLocationList FileLocationProviderRemote::getCnvCoverageFiles(bool /*return_if_missing*/) const //TODO > Alexandr
+FileLocationList FileLocationProviderRemote::getCnvCoverageFiles(bool /*return_if_missing*/) const //Alexandr
 {
 	return requestFileInfoByType(PathType::COPY_NUMBER_RAW_DATA);
 }
 
-FileLocationList FileLocationProviderRemote::getBafFiles(bool /*return_if_missing*/) const //TODO > Alexandr
+FileLocationList FileLocationProviderRemote::getBafFiles(bool /*return_if_missing*/) const //Alexandr
 {
 	return requestFileInfoByType(PathType::BAF);
 }
 
-FileLocationList FileLocationProviderRemote::getMantaEvidenceFiles(bool /*return_if_missing*/) const //TODO > Alexandr
+FileLocationList FileLocationProviderRemote::getMantaEvidenceFiles(bool /*return_if_missing*/) const //Alexandr
 {
 	return requestFileInfoByType(PathType::MANTA_EVIDENCE);
 }
 
-FileLocationList FileLocationProviderRemote::getCircosPlotFiles(bool /*return_if_missing*/) const //TODO > Alexandr
+FileLocationList FileLocationProviderRemote::getCircosPlotFiles(bool /*return_if_missing*/) const //Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getVcfFiles(bool /*return_if_missing*/) const //TODO > Alexandr
+FileLocationList FileLocationProviderRemote::getVcfFiles(bool /*return_if_missing*/) const //Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getRepeatExpansionFiles(bool /*return_if_missing*/) const //TODO > Alexandr
+FileLocationList FileLocationProviderRemote::getRepeatExpansionFiles(bool /*return_if_missing*/) const //Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getPrsFiles(bool /*return_if_missing*/) const //TODO > Alexandr
+FileLocationList FileLocationProviderRemote::getPrsFiles(bool /*return_if_missing*/) const //Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getLowCoverageFiles(bool /*return_if_missing*/) const //TODO > Alexandr
+FileLocationList FileLocationProviderRemote::getLowCoverageFiles(bool /*return_if_missing*/) const //Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getCopyNumberCallFiles(bool /*return_if_missing*/) const //TODO > Alexandr
+FileLocationList FileLocationProviderRemote::getCopyNumberCallFiles(bool /*return_if_missing*/) const //Alexandr
 {
 	return FileLocationList{};
 }
 
-FileLocationList FileLocationProviderRemote::getRohFiles(bool /*return_if_missing*/) const //TODO > Alexandr
+FileLocationList FileLocationProviderRemote::getRohFiles(bool /*return_if_missing*/) const //Alexandr
 {
 	return FileLocationList{};
 }

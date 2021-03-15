@@ -60,27 +60,21 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	ui_->disease_details->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openExternalDiseaseDatabase()));
 
-	//IGV button //TODO could be done in a member based on PathType only if there was a conversion of PathType to human-readable names
-	NGSD db;
 	QMenu* menu = new QMenu();
-	action = menu->addAction("Add BAM track", this, SLOT(addBamToIgv()));
-	action->setEnabled(QFile::exists(db.processedSamplePath(ps_id_, PathType::BAM)));
-	action = menu->addAction("Add Manta evidence BAM track", this, SLOT(addEvidenceBamToIgv()));
-	action->setEnabled(QFile::exists(db.processedSamplePath(ps_id_, PathType::MANTA_EVIDENCE)));
-	action = menu->addSeparator();
-	action = menu->addAction("Add variant track", this, SLOT(addVariantsToIgv()));
-	action->setEnabled(QFile::exists(db.processedSamplePath(ps_id_, PathType::VCF)));
-	action = menu->addAction("Add CNV track", this, SLOT(addCnvsToIgv()));
-	action->setEnabled(QFile::exists(db.processedSamplePath(ps_id_, PathType::COPY_NUMBER_RAW_DATA)));
-	action = menu->addAction("Add SV track", this, SLOT(addSvsToIgv()));
-	action->setEnabled(QFile::exists(db.processedSamplePath(ps_id_, PathType::STRUCTURAL_VARIANTS)));
-	action = menu->addSeparator();
-	action = menu->addAction("Add BAF track", this, SLOT(addBafsToIgv()));
-	action->setEnabled(QFile::exists(db.processedSamplePath(ps_id_, PathType::BAF)));
+	addIgvMenuEntry(menu, PathType::BAM);
+	addIgvMenuEntry(menu, PathType::LOWCOV_BED);
+	addIgvMenuEntry(menu, PathType::BAF);
+	menu->addSeparator();
+	addIgvMenuEntry(menu, PathType::VCF);
+	addIgvMenuEntry(menu, PathType::COPY_NUMBER_RAW_DATA);
+	addIgvMenuEntry(menu, PathType::STRUCTURAL_VARIANTS);
+	menu->addSeparator();
+	addIgvMenuEntry(menu, PathType::MANTA_EVIDENCE);
 	ui_->igv_btn->setMenu(menu);
 
 	updateGUI();
 }
+
 ProcessedSampleWidget::~ProcessedSampleWidget()
 {
 	delete ui_;
@@ -536,40 +530,20 @@ void ProcessedSampleWidget::loadVariantList()
 	emit openProcessedSampleFromNGSD(NGSD().processedSampleName(ps_id_));
 }
 
-void ProcessedSampleWidget::addBamToIgv()
+void ProcessedSampleWidget::addIgvMenuEntry(QMenu* menu, PathType file_type)
 {
-	QString bam = NGSD().processedSamplePath(ps_id_, PathType::BAM);
-	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(bam) + "\"");
+	QAction* action = menu->addAction(FileLocation::typeToHumanReadableString(file_type), this, SLOT(openIgvTrack()));
+	action->setData((int)file_type);
+	action->setEnabled(QFile::exists(NGSD().processedSamplePath(ps_id_, file_type)));
 }
 
-void ProcessedSampleWidget::addVariantsToIgv()
+void ProcessedSampleWidget::openIgvTrack()
 {
-	QString vcf = NGSD().processedSamplePath(ps_id_, PathType::VCF);
-	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(vcf) + "\"");
-}
+	QAction* action = qobject_cast<QAction*>(sender());
+	PathType type = static_cast<PathType>(action->data().toInt());
 
-void ProcessedSampleWidget::addCnvsToIgv()
-{
-	QString segfile = NGSD().processedSamplePath(ps_id_, PathType::COPY_NUMBER_RAW_DATA);
-	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(segfile) + "\"");
-}
-
-void ProcessedSampleWidget::addSvsToIgv()
-{
-	QString vcf = NGSD().processedSamplePath(ps_id_, PathType::STRUCTURAL_VARIANTS);
-	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(vcf) + "\"");
-}
-
-void ProcessedSampleWidget::addBafsToIgv()
-{
-	QString bafs = NGSD().processedSamplePath(ps_id_, PathType::BAF);
-	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(bafs) + "\"");
-}
-
-void ProcessedSampleWidget::addEvidenceBamToIgv()
-{
-	QString evidence_bam = NGSD().processedSamplePath(ps_id_, PathType::MANTA_EVIDENCE);
-	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(evidence_bam) + "\"");
+	QString file = NGSD().processedSamplePath(ps_id_, type);
+	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(file) + "\"");
 }
 
 void ProcessedSampleWidget::somRepDeleted()
