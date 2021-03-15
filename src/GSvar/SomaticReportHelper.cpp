@@ -1391,7 +1391,8 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 				for(int j=0; j<somatic_vl_.count(); ++j)
 				{
 					const Variant& snv = somatic_vl_[j];
-					if(gene == selectSomaticTranscript(snv).gene)
+
+					if(gene == selectSomaticTranscript(snv).gene && !vl_high_significance.contains(snv))
 					{
 						vl_high_significance.append(snv);
 						break;
