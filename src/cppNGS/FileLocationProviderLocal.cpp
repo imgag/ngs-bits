@@ -45,19 +45,12 @@ FileLocation FileLocationProviderLocal::getAnalysisCnvFile() const
 
 FileLocation FileLocationProviderLocal::getAnalysisUpdFile() const
 {
-	FileLocation output;
-
 	if (analysis_type_!=GERMLINE_TRIO) return FileLocation();
 
-	{
-		QString name = QFileInfo(gsvar_file_).baseName();
-		QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_manta_var_structural.bedpe";
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_manta_var_structural.bedpe";
 
-		return FileLocation{name, PathType::STRUCTURAL_VARIANTS, file, QFile::exists(file)};
-
-	}
-
-	return output;
+	return FileLocation{name, PathType::STRUCTURAL_VARIANTS, file, QFile::exists(file)};
 }
 
 void FileLocationProviderLocal::addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing)
@@ -240,6 +233,16 @@ FileLocationList FileLocationProviderLocal::getRohFiles(bool return_if_missing) 
 	}
 
 	return output;
+}
+
+FileLocation FileLocationProviderLocal::getSomaticCnvSegFile() const
+{
+	if (analysis_type_!=SOMATIC_PAIR) return FileLocation();
+
+	QString name = QFileInfo(gsvar_file_).baseName() + " (copy number)";
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_cnvs.seg";
+
+	return FileLocation{name, PathType::COPY_NUMBER_RAW_DATA, file, QFile::exists(file)};
 }
 
 QString FileLocationProviderLocal::getAnalysisPath() const

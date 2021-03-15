@@ -1459,27 +1459,9 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 {
 	IgvDialog dlg(this);
 
-	//analysis VCF
-	FileLocation vcf = GlobalServiceProvider::fileLocationProvider().getAnalysisVcf();
-	dlg.addFile(vcf, ui_.actionIgvSample->isChecked());
-
 	//sample BAM file(s)
 	FileLocationList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(true);
 	foreach(const FileLocation& file, bams)
-	{
-		dlg.addFile(file, true);
-	}
-
-	//sample Manta evidence file(s)
-	FileLocationList evidence_files = GlobalServiceProvider::fileLocationProvider().getMantaEvidenceFiles(true);
-	foreach(const FileLocation& file, evidence_files)
-	{
-		dlg.addFile(file, false);
-	}
-
-	//sample CNV raw data file(s)
-	FileLocationList segs = GlobalServiceProvider::fileLocationProvider().getCnvCoverageFiles(true);
-	foreach(const FileLocation& file, segs)
 	{
 		dlg.addFile(file, true);
 	}
@@ -1491,11 +1473,36 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 		dlg.addFile(file, true);
 	}
 
+	//analysis VCF
+	FileLocation vcf = GlobalServiceProvider::fileLocationProvider().getAnalysisVcf();
+	dlg.addFile(vcf, ui_.actionIgvSample->isChecked());
+
+	//somatic CNV raw data (of calls only)
+	if (variants_.type()==SOMATIC_PAIR)
+	{
+		FileLocation file = GlobalServiceProvider::fileLocationProvider().getSomaticCnvSegFile();
+		dlg.addFile(file, true);
+	}
+
+	//sample CNV raw data file(s)
+	FileLocationList segs = GlobalServiceProvider::fileLocationProvider().getCnvCoverageFiles(true);
+	foreach(const FileLocation& file, segs)
+	{
+		dlg.addFile(file, true);
+	}
+
+	//sample Manta evidence file(s)
+	FileLocationList evidence_files = GlobalServiceProvider::fileLocationProvider().getMantaEvidenceFiles(true);
+	foreach(const FileLocation& file, evidence_files)
+	{
+		dlg.addFile(file, false);
+	}
+
 	//target region
 	QString roi = ui_.filters->targetRegion();
 	if (roi!="")
 	{
-		dlg.addFile(FileLocation{"target region", PathType::OTHER, roi, true}, true);
+		dlg.addFile(FileLocation{"target region (selected in GSvar)", PathType::OTHER, roi, true}, true);
 	}
 
 	//amplicon file (of processing system)
@@ -3117,7 +3124,7 @@ void MainWindow::generateReportSomaticRTF()
 
 			ReportWorker::moveReport(temp_filename, file_rep);
 
-			//Generate files for QBIC upload //TODO GSvarServer: use
+			//Generate files for QBIC upload //TODO GSvarServer: use settings path
 			report.germlineSnvForQbic();
 			report.somaticSnvForQbic();
 			report.germlineCnvForQbic();

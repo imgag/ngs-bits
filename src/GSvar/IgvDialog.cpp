@@ -101,6 +101,6 @@ void IgvDialog::treeItemChanged(QTreeWidgetItem* item)
 {
 	for (int i=0; i<item->childCount(); ++i)
 	{
-		item->child(i)->setCheckState(0, item->checkState(0));
+		item->child(i)->setCheckState(0, item->child(i)->isDisabled() ? Qt::Unchecked :  item->checkState(0));
 	}
 }

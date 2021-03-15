@@ -129,6 +129,11 @@ FileLocationList FileLocationProviderRemote::getRohFiles(bool /*return_if_missin
 	return FileLocationList{};
 }
 
+FileLocation FileLocationProviderRemote::getSomaticCnvSegFile() const //Alexandr
+{
+	return FileLocation();
+}
+
 QString FileLocationProviderRemote::getAnalysisPath() const
 {
 	return "";

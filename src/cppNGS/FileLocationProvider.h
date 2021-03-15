@@ -13,6 +13,10 @@ class CPPNGSSHARED_EXPORT FileLocationProvider
 public:
 	virtual ~FileLocationProvider(){}
 
+	//Retrns the processed sample name of the main sample (child for trio, tumor for tumor-normal, only affected for multi). Throws an exception of no main sample was found!
+	virtual QString processedSampleName() const = 0; //TODO check where used > multi-sample
+
+	//############################## analysis-specific files ##############################
 	//Returns the annotated VCF of the current analysis
 	virtual FileLocation getAnalysisVcf() const = 0;
 	//Returns the structural variant BEDPE file of the current analysis
@@ -22,9 +26,10 @@ public:
 	//Returns the UPD calls TSV file of the current analysis (works for GERMLINE_TRIO only)
 	virtual FileLocation getAnalysisUpdFile() const = 0;
 
+	//############################## sample-specific files ##############################
 	//Returns sample-specific BAM files
 	virtual FileLocationList getBamFiles(bool return_if_missing) const = 0;
-	//Returns sample-specific low coverage files (BED format)
+	//Returns sample-specific low coverage files in BED format (plus tumor-normal low coverage file in case of SOMATIC_PAIR)
 	virtual FileLocationList getLowCoverageFiles(bool return_if_missing) const = 0;
 	//Returns sample-specifi b-allele frequency files (IGV format)
 	virtual FileLocationList getBafFiles(bool return_if_missing) const = 0;
@@ -34,7 +39,7 @@ public:
 	virtual FileLocationList getVcfFiles(bool return_if_missing) const = 0;
 	//Returns sample-specific CNV coverage data in SEG format (plus tumor-normal coverage data in case of SOMATIC_PAIR)
 	virtual FileLocationList getCnvCoverageFiles(bool return_if_missing) const = 0;
-	//Returns sample-specific copy-number call files in TSV format (plus tumor-normal CNV calls in case of SOMATIC_PAIR)
+	//Returns sample-specific copy-number call files in TSV format
 	virtual FileLocationList getCopyNumberCallFiles(bool return_if_missing) const = 0;
 	//Returns sample-specific repeat expansion files (TSV format)
 	virtual FileLocationList getRepeatExpansionFiles(bool return_if_missing) const = 0;
@@ -42,18 +47,13 @@ public:
 	virtual FileLocationList getMantaEvidenceFiles(bool return_if_missing) const = 0;
 	//Returns sample-specific polygenic risk score files (TSV format)
 	virtual FileLocationList getPrsFiles(bool return_if_missing) const = 0;
-	//Returns  sample-specific CIRCOS plot files.
+	//Returns sample-specific CIRCOS plot files.
 	virtual FileLocationList getCircosPlotFiles(bool return_if_missing) const = 0;
 
+	//############################## somatic-only files ##############################
 
-	/*
-	//TODO > MARC
-
-		FileLocation cnvs_seg = FileLocation{pair + " (copy number)", PathType::COPY_NUMBER_RAW_DATA, gsvar_file_.left(gsvar_file_.length()-6) + "_cnvs.seg", false};
-		addToList(cnvs_seg, output);
-	*/
-
-	virtual QString processedSampleName() const = 0;
+	//Returns the tumor-normal CNV calls SEG file (works for SOMATIC_PAIR only)
+	virtual FileLocation getSomaticCnvSegFile() const = 0;
 
 protected:
 	//Returns analysis path, i.e. the path of the GSvar file
