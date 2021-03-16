@@ -128,13 +128,13 @@
         <widget class="QGroupBox" name="groupBox_2">
          <property name="minimumSize">
           <size>
-           <width>550</width>
+           <width>630</width>
            <height>200</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>550</width>
+           <width>630</width>
            <height>16777215</height>
           </size>
          </property>
