@@ -65,7 +65,10 @@ public:
 	static BedFile highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, const QString& ref_file = QString::null);
 
 	static BedFile highCoverageScanLine(const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file);
+	static BedFile highCoverageScanLine(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file);
+
 	static BedFile lowCoverageScanLine(const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file);
+	static BedFile lowCoverageScanLine(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file);
 
 	///Determines the gender based on the read ratio between X and Y chromosome.
 	static GenderEstimate genderXY(QString bam_file, double max_female=0.06, double min_male=0.09, const QString& ref_file = QString::null);
