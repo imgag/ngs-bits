@@ -3674,10 +3674,11 @@ FilterSvPairedReadAF::FilterSvPairedReadAF()
 	name_ = "SV paired read AF";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only SVs with a certain Paired Read Allele Frequency +/- 10%";
-	description_ << "(In trio/multi sample all affected samples must meet the requirements.)";
+    description_ << "(In trio/multi sample all (affected) samples must meet the requirements.)";
 	params_ << FilterParameter("Paired Read AF", DOUBLE, 0.0, "Paired Read Allele Frequency +/- 10%");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
+    params_ << FilterParameter("only_affected", BOOL, false , "Apply filter only to affected Samples.");
 
 
 	checkIsRegistered();
@@ -3701,6 +3702,8 @@ void FilterSvPairedReadAF::apply(const BedpeFile& svs, FilterResult& result) con
 	// get allowed interval
 	double upper_limit = getDouble("Paired Read AF", false) + 0.1;
 	double lower_limit = getDouble("Paired Read AF", false) - 0.1;
+    bool only_affected = getBool("only_affected");
+
 
 	int format_col_index = svs.annotationIndexByName("FORMAT");
 
@@ -3727,7 +3730,7 @@ void FilterSvPairedReadAF::apply(const BedpeFile& svs, FilterResult& result) con
 		for (int sample_idx = 0; sample_idx < sample_count; ++sample_idx)
         {
 			// skip on control samples
-			if (is_multisample && !svs.sampleHeaderInfo().at(sample_idx).isAffected()) continue;
+            if (is_multisample && only_affected && !svs.sampleHeaderInfo().at(sample_idx).isAffected()) continue;
 
 			QByteArrayList format_values = svs[i].annotations()[format_col_index + sample_idx + 1].split(':');
 
@@ -3757,10 +3760,12 @@ FilterSvSplitReadAF::FilterSvSplitReadAF()
 	name_ = "SV split read AF";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only SVs with a certain Split Read Allele Frequency +/- 10%";
-	description_ << "(In trio/multi sample all affected samples must meet the requirements.)";
+    description_ << "(In trio/multi sample all (affected) samples must meet the requirements.)";
 	params_ << FilterParameter("Split Read AF", DOUBLE, 0.0, "Split Read Allele Frequency +/- 10%");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
+    params_ << FilterParameter("only_affected", BOOL, false , "Apply filter only to affected Samples.");
+
 
 
 	checkIsRegistered();
@@ -3784,6 +3789,7 @@ void FilterSvSplitReadAF::apply(const BedpeFile& svs, FilterResult& result) cons
 	// get allowed interval
 	double upper_limit = getDouble("Split Read AF", false) + 0.1;
 	double lower_limit = getDouble("Split Read AF", false) - 0.1;
+    bool only_affected = getBool("only_affected");
 
 	int format_col_index = svs.annotationIndexByName("FORMAT");
 
@@ -3817,7 +3823,7 @@ void FilterSvSplitReadAF::apply(const BedpeFile& svs, FilterResult& result) cons
 		for (int sample_idx = 0; sample_idx < sample_count; ++sample_idx)
         {
 			// skip on control samples
-			if (is_multisample && !svs.sampleHeaderInfo().at(sample_idx).isAffected()) continue;
+            if (is_multisample && only_affected && !svs.sampleHeaderInfo().at(sample_idx).isAffected()) continue;
 
 			QByteArrayList format_values = svs[i].annotations()[format_col_index + sample_idx + 1].split(':');
 
@@ -3846,9 +3852,11 @@ FilterSvPeReadDepth::FilterSvPeReadDepth()
 	name_ = "SV PE read depth";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only SVs with at least a certain number of Paired End Reads";
-	description_ << "(In trio/multi sample all affected samples must meet the requirements.)";
+    description_ << "(In trio/multi sample all (affected) samples must meet the requirements.)";
 	params_ << FilterParameter("PE Read Depth", INT, 0, "minimal number of Paired End Reads");
 	params_.last().constraints["min"] = "0";
+    params_ << FilterParameter("only_affected", BOOL, false , "Apply filter only to affected Samples.");
+
 
 	checkIsRegistered();
 }
@@ -3870,6 +3878,7 @@ void FilterSvPeReadDepth::apply(const BedpeFile& svs, FilterResult& result) cons
 
 	// get min PE read depth
 	int min_read_depth = getInt("PE Read Depth", false);
+    bool only_affected = getBool("only_affected");
 
 	int format_col_index = svs.annotationIndexByName("FORMAT");
 
@@ -3894,7 +3903,7 @@ void FilterSvPeReadDepth::apply(const BedpeFile& svs, FilterResult& result) cons
 		for (int sample_idx = 0; sample_idx < sample_count; ++sample_idx)
         {
 			// skip on control samples
-			if (is_multisample && !svs.sampleHeaderInfo().at(sample_idx).isAffected()) continue;
+            if (is_multisample && only_affected && !svs.sampleHeaderInfo().at(sample_idx).isAffected()) continue;
 
 			QByteArrayList format_values = svs[i].annotations()[format_col_index + sample_idx + 1].split(':');
 
