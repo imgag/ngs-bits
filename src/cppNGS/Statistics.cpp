@@ -1810,9 +1810,238 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	return output;
 }
 
+void sort_end_queue(QVector<int>& end_queue, int& max_end, BamAlignment al)
+{
+	//sort the queue (since most alignment ends are already sorted
+	//we simply sort them from the back)
+	int pos = end_queue.size() - 1;
+	while(pos > 0 && end_queue[pos] < end_queue[pos-1])
+	{
+		std::swap(end_queue[pos], end_queue[pos-1]);
+		--pos;
+	}
+	max_end = std::max(max_end, al.end());
+}
+
+BedFile Statistics::highCoverageScanLine(const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file)
+{
+	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
+	qDebug() << "SCANLINE CALCING\n";
+	BedFile output;
+
+	//open BAM file
+	BamReader reader(bam_file, ref_file);
+
+	QVector<unsigned char> cov;
+
+	//iteratore through chromosomes
+	foreach(const Chromosome& chr, reader.chromosomes())
+	{
+		if (!chr.isNonSpecial()) continue;
+
+		int chr_size = reader.chromosomeSize(chr);
+		cov.fill(0, chr_size);
+
+		//jump to chromosome
+		reader.setRegion(chr, 0, chr_size);
+
+		//iterate through all alignments
+		int coverage_count = 0;
+
+		int start = -1;
+		int end = -1; //end of recent coverage zone
+
+		int max_end = 0;
+		bool high_coverage_zone = false;
+
+		QVector<int> end_queue;
+
+		BamAlignment al;
+
+		while (reader.getNextAlignment(al))
+		{
+			if (al.isDuplicate()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
+
+			//qDebug() << al.chromosomeID() << "_" << al.start() << "__" << al.end();
+			//qDebug() << coverage_count;
+			//continue in case there is a gap between all previous and current alignment
+			//qDebug() << __LINE__;
+
+			//decrease coverage count for every encountered alignment end
+			while(!end_queue.empty() && end_queue.front() < al.start())
+			{
+				//qDebug() << __LINE__;
+				--coverage_count;
+				if(coverage_count + 1 == cutoff)
+				{
+					end = end_queue.front();
+				}
+				end_queue.pop_front();
+			}
+			//qDebug() << __LINE__;
+
+			//if a high coverage zone is done, save the found zone
+			if(high_coverage_zone && ((end + 1) < al.start()) && (coverage_count < cutoff))
+			{
+				//qDebug() << "#WRITING " << __LINE__ << start << end;
+
+				output.append(BedLine(chr, start, end));
+				high_coverage_zone = false;
+				end = -1;
+				start = -1;
+			}
+			//qDebug() << __LINE__;
+
+			//check for start of high coverage zone
+			++coverage_count;
+			if(coverage_count >= cutoff && !high_coverage_zone)
+			{
+				//qDebug() << "##SETTING TRUE " << __LINE__;
+
+				start = al.start();
+				high_coverage_zone = true;
+			}
+			end_queue.push_back(al.end());
+
+			sort_end_queue(end_queue, max_end, al);
+			//qDebug() << __LINE__ << coverage_count;
+		}
+
+		if(high_coverage_zone)
+		{
+			while(!end_queue.empty())
+			{
+				//qDebug() << __LINE__;
+				--coverage_count;
+				if(coverage_count + 1 == cutoff)
+				{
+					end = end_queue.front();
+					output.append(BedLine(chr, start, end));
+					break;
+				}
+				end_queue.pop_front();
+			}
+
+		}
+
+	}
+
+	output.merge();
+	return output;
+}
+
+BedFile Statistics::lowCoverageScanLine(const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file)
+{
+	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
+	qDebug() << "SCANLINE CALCING\n";
+	BedFile output;
+
+	//open BAM file
+	BamReader reader(bam_file, ref_file);
+
+	QVector<unsigned char> cov;
+
+	//iteratore through chromosomes
+	foreach(const Chromosome& chr, reader.chromosomes())
+	{
+		if (!chr.isNonSpecial()) continue;
+
+		int chr_size = reader.chromosomeSize(chr);
+		cov.fill(0, chr_size);
+
+		//jump to chromosome
+		reader.setRegion(chr, 0, chr_size);
+
+		//iterate through all alignments
+		int coverage_count = 0;
+
+		int start = 1;
+		int end = -1; //end of recent coverage zone
+
+		int max_end = 0;
+		bool low_coverage_zone = true;
+
+		QVector<int> end_queue;
+
+		BamAlignment al;
+
+		while (reader.getNextAlignment(al))
+		{
+			if (al.isDuplicate()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
+
+			//qDebug() << al.chromosomeID() << "_" << al.start() << "__" << al.end();
+			//qDebug() << coverage_count;
+			//continue in case there is a gap between all previous and current alignment
+			//qDebug() << __LINE__;
+
+			//decrease coverage count for every encountered alignment end
+			while(!end_queue.empty() && end_queue.front() < al.start())
+			{
+				//qDebug() << __LINE__;
+				--coverage_count;
+				if(coverage_count + 1 == cutoff && !low_coverage_zone)
+				{
+					start = end_queue.front() + 1;
+					low_coverage_zone = true;
+				}
+				end_queue.pop_front();
+			}
+			//qDebug() << __LINE__;
+
+			//check for end of low coverage zone
+			++coverage_count;
+			if(coverage_count >= cutoff && low_coverage_zone)
+			{
+
+				end = al.start() - 1;
+				qDebug() << "##SETTING TRUE " << __LINE__ << start << "_" << end;
+
+				if(start <= end)
+				{
+					output.append(BedLine(chr, start, end));
+					low_coverage_zone = false;
+					end = -1;
+					start = -1;
+				}
+				else
+				{
+					low_coverage_zone = false;
+					end = -1;
+					start = -1;
+				}
+
+			}
+			end_queue.push_back(al.end());
+
+			sort_end_queue(end_queue, max_end, al);
+			//qDebug() << __LINE__ << coverage_count;
+		}
+
+		if(low_coverage_zone && start)
+		{
+			end = reader.chromosomeSize(chr);
+			if(start <= end)
+			{
+				output.append(BedLine(chr, start, end));
+			}
+		}
+
+	}
+
+	output.merge();
+	return output;
+}
+
+
+//firstly ONLY for this case
 BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
+	if(min_baseq == 0) return lowCoverageScanLine(bam_file, cutoff, min_mapq, ref_file);
 
 	BedFile output;
 
@@ -2019,6 +2248,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
+	if(min_baseq == 0) return highCoverageScanLine(bam_file, cutoff, min_mapq, ref_file);
 
 	BedFile output;
 
