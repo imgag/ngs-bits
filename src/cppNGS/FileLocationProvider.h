@@ -13,6 +13,9 @@ class CPPNGSSHARED_EXPORT FileLocationProvider
 public:
 	virtual ~FileLocationProvider(){}
 
+	//Returns if the analysis is locally available (and not on server).
+	virtual bool isLocal() const = 0;
+
 	//############################## analysis-specific files ##############################
 	//Returns the annotated VCF of the current analysis
 	virtual FileLocation getAnalysisVcf() const = 0;
@@ -48,13 +51,14 @@ public:
 	virtual FileLocationList getCircosPlotFiles(bool return_if_missing) const = 0;
 
 	//############################## somatic-only files ##############################
-
-	//Returns the tumor-normal CNV coverage SEG file (throws an exception if not SOMATIC_PAIR)
+	//Returns the tumor-normal CNV coverage SEG file (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)
 	virtual FileLocation getSomaticCnvCoverageFile() const = 0;
-	//Returns the tumor-normal CNV calls SEG file (throws an exception if not SOMATIC_PAIR)
+	//Returns the tumor-normal CNV calls SEG file (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)
 	virtual FileLocation getSomaticCnvCallFile() const = 0;
 	//Returns the somatic low coverage BED file (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)
 	virtual FileLocation getSomaticLowCoverageFile() const = 0;
+	//Returns the somatic MSI file in TSV format (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)
+	virtual FileLocation getSomaticMsiFile() const = 0;
 
 protected:
 	//Returns analysis path, i.e. the path of the GSvar file

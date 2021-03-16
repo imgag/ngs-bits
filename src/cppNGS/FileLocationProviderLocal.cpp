@@ -10,6 +10,11 @@ FileLocationProviderLocal::FileLocationProviderLocal(QString gsvar_file, const S
 	if (header_info_.isEmpty()) THROW(ArgumentException, "Header information has not been specified!");
 }
 
+bool FileLocationProviderLocal::isLocal() const
+{
+	return true;
+}
+
 FileLocation FileLocationProviderLocal::getAnalysisVcf() const
 {
 	QString name = QFileInfo(gsvar_file_).baseName();
@@ -182,7 +187,7 @@ FileLocationList FileLocationProviderLocal::getLowCoverageFiles(bool return_if_m
 	{
 		QString folder = loc.value.left(loc.value.length()-loc.key.length());
 
-		QStringList beds = Helper::findFiles(folder, "*_stat_lowcov.bed", false); //TODO to return missing files, we would have to get rid of the processing system name inside the filename...
+		QStringList beds = Helper::findFiles(folder, "*_stat_lowcov.bed", false);
 		foreach(const QString& bed, beds)
 		{
 			FileLocation file = FileLocation{loc.key, PathType::LOWCOV_BED, bed, true};
@@ -220,7 +225,7 @@ FileLocationList FileLocationProviderLocal::getRohFiles(bool return_if_missing) 
 
 FileLocation FileLocationProviderLocal::getSomaticCnvCoverageFile() const
 {
-	if (analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString name = QFileInfo(gsvar_file_).baseName() + " (coverage)";
 	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_cov.seg";
@@ -230,7 +235,7 @@ FileLocation FileLocationProviderLocal::getSomaticCnvCoverageFile() const
 
 FileLocation FileLocationProviderLocal::getSomaticCnvCallFile() const
 {
-	if (analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCallFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCallFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString name = QFileInfo(gsvar_file_).baseName() + " (copy number)";
 	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_cnvs.seg";
@@ -244,6 +249,16 @@ FileLocation FileLocationProviderLocal::getSomaticLowCoverageFile() const
 
 	QString name = QFileInfo(gsvar_file_).baseName();
 	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_stats_lowcov.bed";
+
+	return FileLocation{name, PathType::LOWCOV_BED, file, QFile::exists(file)};
+}
+
+FileLocation FileLocationProviderLocal::getSomaticMsiFile() const
+{
+	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticMsiFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_msi.tsv";
 
 	return FileLocation{name, PathType::LOWCOV_BED, file, QFile::exists(file)};
 }

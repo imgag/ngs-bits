@@ -739,6 +739,8 @@ void MainWindow::on_actionCNV_triggered()
 		return;
 	}
 
+	AnalysisType type = variants_.type();
+
 	//create list of genes with heterozygous variant hits
 	GeneSet het_hit_genes;
 	int i_genes = variants_.annotationIndexByName("gene", true, false);
@@ -770,7 +772,7 @@ void MainWindow::on_actionCNV_triggered()
 			het_hit_genes.insert(GeneSet::createFromText(variants_[i].annotations()[i_genes], ','));
 		}
 	}
-	else if (variants_.type()!=SOMATIC_PAIR && variants_.type() != SOMATIC_SINGLESAMPLE)
+	else if (type!=SOMATIC_PAIR && type!=SOMATIC_SINGLESAMPLE)
 	{
 		QMessageBox::information(this, "Invalid variant list", "Column for genes or genotypes not found in variant list. Cannot apply compound-heterozygous filter based on variants!");
 	}
@@ -799,7 +801,7 @@ void MainWindow::on_actionCNV_triggered()
 	addModelessDialog(dlg, true);
 
 	//mosaic CNVs
-	if (variants_.type()==GERMLINE_SINGLESAMPLE)
+	if (type==GERMLINE_SINGLESAMPLE)
 	{
 		QString mosaic_file = filename_.left(filename_.length()-6) + "_mosaic_cnvs.tsv";
 		if (QFile::exists(mosaic_file))
@@ -836,10 +838,12 @@ void MainWindow::on_actionCNV_triggered()
 void MainWindow::on_actionROH_triggered()
 {
 	if (filename_=="") return;
-	if (variants_.type()!=GERMLINE_SINGLESAMPLE && variants_.type()!=GERMLINE_TRIO && variants_.type()!=GERMLINE_MULTISAMPLE) return;
+
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE) return;
 
 	//trio special handling: show UPD file is not empty
-	if (variants_.type()==GERMLINE_TRIO)
+	if (type==GERMLINE_TRIO)
 	{		
 		//UPDs
 		FileLocation upd_loc = GlobalServiceProvider::fileLocationProvider().getAnalysisUpdFile();
@@ -889,7 +893,8 @@ void MainWindow::on_actionROH_triggered()
 void MainWindow::on_actionGeneSelector_triggered()
 {
 	if (filename_=="") return;
-	if (variants_.type()!=GERMLINE_SINGLESAMPLE && variants_.type()!=GERMLINE_TRIO && variants_.type()!=GERMLINE_MULTISAMPLE) return;
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE) return;
 
 	QString ps_name = germlineReportSample();
 
@@ -1089,7 +1094,13 @@ void MainWindow::openVariantListFolder()
 {
 	if (filename_=="") return;
 
-	QDesktopServices::openUrl(QFileInfo(filename_).absolutePath()); //TODO
+	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
+	{
+		QMessageBox::information(this, "Open analysis folder", "Cannot open analysis folder in non-local mode!");
+		return;
+	}
+
+	QDesktopServices::openUrl(QFileInfo(filename_).absolutePath());
 }
 
 void MainWindow::on_actionPublishVariantInLOVD_triggered()
@@ -1292,10 +1303,11 @@ void MainWindow::on_actionReanalyze_triggered()
 {
 	if (filename_=="") return;
 
+	AnalysisType type = variants_.type();
 	SampleHeaderInfo header_info = variants_.getSampleHeader();
 
 	QList<AnalysisJobSample> samples;
-	if (variants_.type()==GERMLINE_SINGLESAMPLE)
+	if (type==GERMLINE_SINGLESAMPLE)
 	{
 		SingleSampleAnalysisDialog dlg(this);
 		samples << AnalysisJobSample {header_info[0].id, ""};
@@ -1308,7 +1320,7 @@ void MainWindow::on_actionReanalyze_triggered()
 			}
 		}
 	}
-	else if (variants_.type()==GERMLINE_MULTISAMPLE)
+	else if (type==GERMLINE_MULTISAMPLE)
 	{
 		MultiSampleDialog dlg(this);
 		foreach(const SampleInfo& info, header_info)
@@ -1321,7 +1333,7 @@ void MainWindow::on_actionReanalyze_triggered()
 			NGSD().queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
 		}
 	}
-	else if (variants_.type()==GERMLINE_TRIO)
+	else if (type==GERMLINE_TRIO)
 	{
 		TrioDialog dlg(this);
 		foreach(const SampleInfo& info, header_info)
@@ -1341,7 +1353,7 @@ void MainWindow::on_actionReanalyze_triggered()
 			NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
 		}
 	}
-	else if (variants_.type()==SOMATIC_PAIR)
+	else if (type==SOMATIC_PAIR)
 	{
 		SomaticDialog dlg(this);
 		foreach(const SampleInfo& info, header_info)
@@ -1482,7 +1494,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	dlg.addFile(vcf, ui_.actionIgvSample->isChecked());
 
 	//CNV files
-	if (analysis_type==SOMATIC_PAIR)
+	if (analysis_type==SOMATIC_SINGLESAMPLE || analysis_type==SOMATIC_PAIR)
 	{
 		FileLocation file = GlobalServiceProvider::fileLocationProvider().getSomaticCnvCoverageFile();
 		dlg.addFile(file, true);
@@ -2429,10 +2441,10 @@ void MainWindow::loadFile(QString filename)
 		//update data structures
 		Settings::setPath("path_variantlists", filename);
 		filename_ = filename;
-		filewatcher_.setFile(filename);
+		filewatcher_.setFile(filename); //TODO GSvarServer: how do we handle that?
 
 		//update GUI
-		setWindowTitle(QCoreApplication::applicationName() + " - " + filename);
+		setWindowTitle(QCoreApplication::applicationName() + " - " + variants_.analysisName());
 		ui_.statusBar->showMessage("Loaded variant list with " + QString::number(variants_.count()) + " variants.");
 
 		refreshVariantTable(false);
@@ -2491,7 +2503,8 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//check mendelian error rate for trios
-	if (variants_.type()==GERMLINE_TRIO)
+	AnalysisType type = variants_.type();
+	if (type==GERMLINE_TRIO)
 	{
 		checkMendelianErrorRate();
 	}
@@ -2500,7 +2513,7 @@ void MainWindow::loadFile(QString filename)
 	checkPendingVariantValidations();
 
 	//activate Circos plot menu item if plot is available
-	if (variants_.type()==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(false).isEmpty())
+	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(false).isEmpty())
 	{
 		ui_.actionCircos->setEnabled(true);
 	}
@@ -2510,7 +2523,7 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//activate Repeat Expansion menu item if RE calls are available
-	if (variants_.type()==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false).isEmpty())
+	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getRepeatExpansionFiles(false).isEmpty())
 	{
 		ui_.actionRE->setEnabled(true);
 	}
@@ -2520,7 +2533,7 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//activate PRS menu item if PRS are available
-	if (variants_.type()==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).isEmpty())
+	if (type==GERMLINE_SINGLESAMPLE && !GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).isEmpty())
 	{
 		ui_.actionPRS->setEnabled(true);
 	}
@@ -2663,8 +2676,8 @@ void MainWindow::loadSomaticReportConfig()
 
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;
-
-	somatic_report_settings_.sample_dir = QFileInfo(filename_).absolutePath();
+	somatic_report_settings_.gsvar_file = filename_;
+	somatic_report_settings_.msi_file = GlobalServiceProvider::fileLocationProvider().getSomaticMsiFile().filename;
 
 	try //load normal sample
 	{
@@ -2997,10 +3010,10 @@ void MainWindow::generateReportTumorOnly()
 
 	//get report settings
 	TumorOnlyReportWorkerConfig config;
-	config.mapping_stat_qcml_file = QFileInfo(filename_).absolutePath() + "/" + ps + "_stats_map.qcML"; //TODO
+	config.ps = ps;
 	config.target_file = ui_.filters->targetRegion();
 	config.low_coverage_file = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile().filename;
-	config.bam_file = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).at(0).filename;
+	config.bam_file = GlobalServiceProvider::fileLocationProvider().getBamFiles(true).at(0).filename;
 	config.filter_result = filter_result_;
 
 	TumorOnlyReportDialog dlg(variants_, config, this);
@@ -3143,13 +3156,13 @@ void MainWindow::generateReportSomaticRTF()
 
 			ReportWorker::moveReport(temp_filename, file_rep);
 
-			//Generate files for QBIC upload //TODO GSvarServer: use settings path
-			report.germlineSnvForQbic();
-			report.somaticSnvForQbic();
-			report.germlineCnvForQbic();
-			report.somaticCnvForQbic();
-			report.somaticSvForQbic();
-			report.metaDataForQbic();
+			//Generate files for QBIC upload
+			QString base_dir = Settings::path("qbic_data_path", true);
+			if (!base_dir.isEmpty())
+			{
+				QString path = base_dir + ps_tumor + "-" + ps_normal + QDir::separator();
+				report.storeQbicData(path);
+			}
 
 			QApplication::restoreOverrideCursor();
 		}
@@ -3218,7 +3231,7 @@ void MainWindow::generateReportGermline()
 	}
 
 	//check if NGSD annotations are up-to-date
-	QDateTime mod_date = QFileInfo(filename_).lastModified();
+	QDateTime mod_date = QFileInfo(filename_).lastModified(); //TODO GSvarServer: how do we handle this?
 	if (mod_date < QDateTime::currentDateTime().addDays(-42))
 	{
 		if (QMessageBox::question(this, "NGSD annotations outdated", "NGSD annotation data is older than six weeks!\nDo you want to continue with annotations from " + mod_date.toString("yyyy-MM-dd") + "?")==QMessageBox::No)
@@ -4010,7 +4023,9 @@ void MainWindow::on_actionAnalysisStatus_triggered()
 void MainWindow::on_actionGapsLookup_triggered()
 {
 	if (filename_=="") return;
-	if (variants_.type()!=GERMLINE_SINGLESAMPLE && variants_.type()!=GERMLINE_TRIO && variants_.type()!=GERMLINE_MULTISAMPLE) return;
+
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE) return;
 
 	QString ps_name = germlineReportSample();
 

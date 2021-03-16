@@ -686,11 +686,6 @@ QByteArrayList VcfFile::formatIDs() const
 	return formats;
 }
 
-AnalysisType VcfFile::type(bool allow_fallback_germline_single_sample) const
-{
-	return vcfHeader().type(allow_fallback_germline_single_sample);
-}
-
 void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 {
 	//chr

@@ -8,13 +8,6 @@ TEST_CLASS(VcfFile_Test)
 Q_OBJECT
 private slots:
 
-	void type()
-	{
-		VcfFile vl;
-		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		I_EQUAL(vl.type(false),  GERMLINE_SINGLESAMPLE);
-	}
-
 	void removeDuplicates_VCF()
 	{
 		VcfFile vl,vl2;

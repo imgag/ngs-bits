@@ -14,6 +14,8 @@ public:
 	FileLocationProviderRemote(const QString sample_id, const QString server_host, const int server_port);
 	virtual ~FileLocationProviderRemote() {}
 
+	bool isLocal() const override;
+
 	FileLocation getAnalysisVcf() const override;
 	FileLocation getAnalysisSvFile() const override;
 	FileLocation getAnalysisCnvFile() const override;
@@ -35,6 +37,7 @@ public:
 	FileLocation getSomaticCnvCoverageFile() const override;
 	FileLocation getSomaticCnvCallFile() const override;
 	FileLocation getSomaticLowCoverageFile() const override;
+	FileLocation getSomaticMsiFile() const override;
 
 private:
 	FileLocationList requestFileInfoByType(PathType type) const;

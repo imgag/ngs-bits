@@ -73,9 +73,6 @@ public:
 		std::sort(vcf_lines_.begin(), vcf_lines_.end(), comparator);
 	}
 
-	///Returns analysis type.
-	AnalysisType type(bool allow_fallback_germline_single_sample = true) const;
-
 	///Returns a QVector of all vcf lines
 	const QVector<VcfLinePtr>& vcfLines() const
 	{

@@ -8,6 +8,11 @@ FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id,c
 {
 }
 
+bool FileLocationProviderRemote::isLocal() const
+{
+	return false;
+}
+
 FileLocation FileLocationProviderRemote::getAnalysisVcf() const
 {
 	return FileLocation(); //Alexandr
@@ -140,6 +145,11 @@ FileLocation FileLocationProviderRemote::getSomaticCnvCallFile() const //Alexand
 }
 
 FileLocation FileLocationProviderRemote::getSomaticLowCoverageFile() const //Alexandr
+{
+	return FileLocation();
+}
+
+FileLocation FileLocationProviderRemote::getSomaticMsiFile() const //Alexandr
 {
 	return FileLocation();
 }

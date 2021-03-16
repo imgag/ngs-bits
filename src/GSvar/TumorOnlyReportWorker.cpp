@@ -8,7 +8,8 @@
 #include "GSvarHelper.h"
 
 TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const TumorOnlyReportWorkerConfig& config)
-	: variants_(variants)
+	: ps_(config.ps)
+	, variants_(variants)
 	, filter_result_(config.filter_result)
 	, preferred_transcripts_(GSvarHelper::preferredTranscripts())
 {
@@ -22,7 +23,6 @@ TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const 
 	i_somatic_class_ = variants_.annotationIndexByName("somatic_classification");
 
 	//set file paths
-	mapping_stat_qcml_file_ = config.mapping_stat_qcml_file;
 	target_file_ = config.target_file;
 	low_cov_file_ = config.low_coverage_file;
 	bam_file_ = config.bam_file;
@@ -194,7 +194,8 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 
 
 	//Create table with additional report data
-	QCCollection qc_mapping = QCCollection::fromQCML(mapping_stat_qcml_file_);
+	NGSD db;
+	QCCollection qc_mapping = db.getQCData(ps_);
 	RtfTable metadata;
 	metadata.addRow( RtfTableRow( { RtfText("Allgemeine Informationen").setBold(true).setFontSize(16).RtfCode(), RtfText("Qualitätsparameter").setBold(true).setFontSize(16).RtfCode() }, {5000,4638}) );
 	metadata.addRow( RtfTableRow( { "Datum:",QDate::currentDate().toString("dd.MM.yyyy").toUtf8(), "Coverage 100x:",  qc_mapping.value("QC:2000030",true).toString().toUtf8() + "\%"}, {2250,2750,2319,2319}) );

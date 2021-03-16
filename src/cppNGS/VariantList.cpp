@@ -1056,7 +1056,7 @@ QString VariantList::getPipeline() const
 	return "n/a";
 }
 
-AnalysisType VariantList::type() const
+AnalysisType VariantList::type(bool allow_fallback_germline_single_sample) const
 {
 	foreach(const QString& line, comments_)
 	{
@@ -1065,6 +1065,12 @@ AnalysisType VariantList::type() const
 			QString type = line.mid(15).trimmed();
 			return stringToAnalysisType(type);
 		}
+	}
+
+	//fallback for old files without ANALYSISTYPE header and for default-constructed variant lists
+	if (allow_fallback_germline_single_sample)
+	{
+		return GERMLINE_SINGLESAMPLE;
 	}
 
 	THROW(FileParseException, "No ANALYSISTYPE line found in variant list header!");

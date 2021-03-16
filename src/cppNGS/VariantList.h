@@ -411,7 +411,7 @@ public:
 	QString getPipeline() const;
 
 	///Returns analysis type.
-	AnalysisType type() const;
+	AnalysisType type(bool allow_fallback_germline_single_sample=true) const;
 
 	///Returns whether list contains variant with same chr, start, end, ref and obs
 	bool contains(const Variant& var)
