@@ -1,7 +1,10 @@
 <?xml version="1.0"?>
 <SomaticNgsReport version="1" genome_build="GRCh37">
     <ReportGeneration date="2000-01-01" user_name="ahmustm1" software="cppNGSD-TEST 0.1-cppNGSD-TEST-Version"/>
-    <PatientInfo sap_patient_identifier="SAP_TEST_IDENTIFIER"/>
+    <PatientInfo sap_patient_identifier="SAP_TEST_IDENTIFIER">
+        <DiseaseInfo type="ICD10" identifier="C17.2"/>
+        <DiseaseInfo type="ICD10" identifier="C20.21"/>
+    </PatientInfo>
     <TumorSample name="DX184894_01" processing_system="SureSelect Somatic vTEST" processing_system_type="Panel" sequencer="MiSeq" average_depth="457.34" tumor_content_histology="0.600" tumor_content_bioinformatic="0.800" mutation_burden="17.30" microsatellite_instability="0.74" hrd_score="4"/>
     <NormalSample name="DX184263_01" processing_system="SureSelect Somatic vTEST" processing_system_type="Panel" sequencer="MiSeq" average_depth="251.78"/>
     <AnalysisPipeline name="megSAP" version="0.1-835-g57035c2" url="https://github.com/imgag/megSAP" comment="Mapping: bwa mem, Indel Realignment: Abra2, Variant Caller: Strelka2, CNV Caller: ClinCNV"/>

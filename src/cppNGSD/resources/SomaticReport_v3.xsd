@@ -44,6 +44,36 @@
 						<xs:documentation>Meta data about the patient</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DiseaseInfo" minOccurs="0" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Disease and phenotype information of the patient</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="type" use="required">
+										<xs:annotation>
+											<xs:documentation>Source database of the disease/phenotype identifier</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:enumeration value="ICD10"/>
+												<xs:enumeration value="HPO"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="identifier" use="required">
+										<xs:annotation>
+											<xs:documentation>Disease/phenotype identifier</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
 						<xs:attribute name="sap_patient_identifier" type="xs:string">
 							<xs:annotation>
 								<xs:documentation>SAP patient identifier</xs:documentation>
