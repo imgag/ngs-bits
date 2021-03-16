@@ -129,7 +129,17 @@ FileLocationList FileLocationProviderRemote::getRohFiles(bool /*return_if_missin
 	return FileLocationList{};
 }
 
-FileLocation FileLocationProviderRemote::getSomaticCnvSegFile() const //Alexandr
+FileLocation FileLocationProviderRemote::getSomaticCnvCoverageFile() const //Alexandr
+{
+	return FileLocation();
+}
+
+FileLocation FileLocationProviderRemote::getSomaticCnvCallFile() const //Alexandr
+{
+	return FileLocation();
+}
+
+FileLocation FileLocationProviderRemote::getSomaticLowCoverageFile() const //Alexandr
 {
 	return FileLocation();
 }
@@ -140,11 +150,6 @@ QString FileLocationProviderRemote::getAnalysisPath() const
 }
 
 QString FileLocationProviderRemote::getProjectPath() const
-{
-	return "";
-}
-
-QString FileLocationProviderRemote::processedSampleName() const
 {
 	return "";
 }

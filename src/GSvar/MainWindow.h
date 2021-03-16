@@ -43,9 +43,7 @@ public:
 	///Upload variant to LOVD
 	void uploadtoLovd(int variant_index, int variant_index2 = -1);
 	///Returns the target file name without extension and date part prefixed with '_', or an empty string if no target file is set
-	QString targetFileName() const;	
-	///Returns the sample name (in case of a somatic variant list, the tumor is returned).
-	QString sampleName();
+	QString targetFileName() const;
 
 	///Context menu for single variant
 	void contextMenuSingleVariant(QPoint pos, int index);
@@ -84,8 +82,8 @@ public slots:
 	void on_actionChangeLog_triggered();
 	///About dialog
 	void on_actionAbout_triggered();
-	///Open processed sample tabs
-	void openProcessedSampleTabsCurrentSample();
+	///Open processed sample tabs for all samples of the current analysis
+	void openProcessedSampleTabsCurrentAnalysis();
 	///Open processed sample tab by name
 	void on_actionOpenProcessedSampleTabByName_triggered();
 	///Open sequencing run tab by name

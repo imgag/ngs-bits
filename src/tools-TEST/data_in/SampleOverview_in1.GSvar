@@ -1,3 +1,4 @@
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##DESCRIPTION=variant_type=Variant type.
 ##DESCRIPTION=gene=Affected gene list (comma-separated).
 ##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, NM number, type, impact, exon number, HGVS.c, HGVS.p).

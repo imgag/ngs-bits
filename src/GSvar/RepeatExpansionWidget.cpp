@@ -295,7 +295,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 void RepeatExpansionWidget::loadSvgFiles()
 {
     // get all available svg files
-    QDir re_svg_folder = QDir(QFileInfo(vcf_filename_).path() + "/repeat_expansions/");
+	QDir re_svg_folder = QDir(QFileInfo(vcf_filename_).path() + "/repeat_expansions/"); //TODO
     QStringList svg_filepaths = re_svg_folder.entryList(QStringList() << QFileInfo(vcf_filename_).baseName() + "_*.svg");
 
 	foreach (const QString& svg, svg_filepaths)

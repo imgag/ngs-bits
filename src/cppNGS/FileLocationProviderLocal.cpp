@@ -85,15 +85,6 @@ FileLocationList FileLocationProviderLocal::getCnvCoverageFiles(bool return_if_m
 {
 	FileLocationList output;
 
-	//special handling of tumor-normal pair: add pair coverage data
-	if (analysis_type_==SOMATIC_PAIR)
-	{
-		//tumor-normal SEG file
-		QString pair = QFileInfo(gsvar_file_).baseName();
-		FileLocation con_seg = FileLocation{pair, PathType::COPY_NUMBER_RAW_DATA, gsvar_file_.left(gsvar_file_.length()-6) + "_cov.seg", false};
-		addToList(con_seg, output, return_if_missing);
-	}
-
 	foreach(const KeyValuePair& loc, getBaseLocations())
 	{
 		FileLocation file = FileLocation{loc.key, PathType::COPY_NUMBER_RAW_DATA, loc.value + "_cnvs_clincnv.seg", false};
@@ -187,14 +178,6 @@ FileLocationList FileLocationProviderLocal::getLowCoverageFiles(bool return_if_m
 {
 	FileLocationList output;
 
-	//tumor-normal SEG file
-	if (analysis_type_==SOMATIC_PAIR)
-	{
-		QString pair = QFileInfo(gsvar_file_).baseName();
-		FileLocation con_seg = FileLocation{pair, PathType::LOWCOV_BED, gsvar_file_.left(gsvar_file_.length()-6) + "_stat_lowcov.bed", false};
-		addToList(con_seg, output, return_if_missing);
-	}
-
 	foreach(const KeyValuePair& loc, getBaseLocations())
 	{
 		QString folder = loc.value.left(loc.value.length()-loc.key.length());
@@ -235,14 +218,34 @@ FileLocationList FileLocationProviderLocal::getRohFiles(bool return_if_missing) 
 	return output;
 }
 
-FileLocation FileLocationProviderLocal::getSomaticCnvSegFile() const
+FileLocation FileLocationProviderLocal::getSomaticCnvCoverageFile() const
 {
-	if (analysis_type_!=SOMATIC_PAIR) return FileLocation();
+	if (analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+
+	QString name = QFileInfo(gsvar_file_).baseName() + " (coverage)";
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_cov.seg";
+
+	return FileLocation{name, PathType::COPY_NUMBER_RAW_DATA, file, QFile::exists(file)};
+}
+
+FileLocation FileLocationProviderLocal::getSomaticCnvCallFile() const
+{
+	if (analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticCnvCallFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString name = QFileInfo(gsvar_file_).baseName() + " (copy number)";
 	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_cnvs.seg";
 
 	return FileLocation{name, PathType::COPY_NUMBER_RAW_DATA, file, QFile::exists(file)};
+}
+
+FileLocation FileLocationProviderLocal::getSomaticLowCoverageFile() const
+{
+	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticLowCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
+
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_stats_lowcov.bed";
+
+	return FileLocation{name, PathType::LOWCOV_BED, file, QFile::exists(file)};
 }
 
 QString FileLocationProviderLocal::getAnalysisPath() const
@@ -255,44 +258,6 @@ QString FileLocationProviderLocal::getProjectPath() const
 	QDir directory = QFileInfo(gsvar_file_).dir();
 	directory.cdUp();
 	return directory.absolutePath();
-}
-
-QString FileLocationProviderLocal::processedSampleName() const
-{
-	QStringList output;
-	switch(analysis_type_)
-	{
-		case SOMATIC_SINGLESAMPLE:
-		case GERMLINE_SINGLESAMPLE:
-			foreach(const SampleInfo& entry, header_info_)
-			{
-				output << entry.id;
-			}
-			break;
-		case GERMLINE_TRIO:
-		case GERMLINE_MULTISAMPLE:
-			foreach(const SampleInfo& entry, header_info_)
-			{
-				if (entry.isAffected())
-				{
-					output << entry.id;
-				}
-			}
-			break;
-		case SOMATIC_PAIR:
-			foreach(const SampleInfo& entry, header_info_)
-			{
-				if (entry.isTumor())
-				{
-					output << entry.id;
-				}
-			}
-			break;
-	}
-
-	if (output.count()!=1) THROW(ProgrammingException, "Could not determine single processed sample name from sample header of GSvar file!");
-
-	return output[0];
 }
 
 QList<KeyValuePair> FileLocationProviderLocal::getBaseLocations() const

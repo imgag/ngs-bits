@@ -57,7 +57,7 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 		}
 
 		//additional descriptions and color for genotype columns
-		SampleHeaderInfo sample_data = variants.getSampleHeader(false);
+		SampleHeaderInfo sample_data = variants.getSampleHeader();
 		foreach(const SampleInfo& info, sample_data)
 		{
 			if (info.column_name==anno)

@@ -14,8 +14,6 @@ public:
 	FileLocationProviderRemote(const QString sample_id, const QString server_host, const int server_port);
 	virtual ~FileLocationProviderRemote() {}
 
-	QString processedSampleName() const override;
-
 	FileLocation getAnalysisVcf() const override;
 	FileLocation getAnalysisSvFile() const override;
 	FileLocation getAnalysisCnvFile() const override;
@@ -34,7 +32,9 @@ public:
 	FileLocationList getCopyNumberCallFiles(bool return_if_missing) const override;
 	FileLocationList getRohFiles(bool return_if_missing) const override;
 
-	FileLocation getSomaticCnvSegFile() const override;
+	FileLocation getSomaticCnvCoverageFile() const override;
+	FileLocation getSomaticCnvCallFile() const override;
+	FileLocation getSomaticLowCoverageFile() const override;
 
 private:
 	FileLocationList requestFileInfoByType(PathType type) const;

@@ -2294,7 +2294,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	QString gender_child = getString("gender_child");
 	if (gender_child=="n/a")
 	{
-		gender_child = variants.getSampleHeader(true).infoByStatus(true).gender();
+		gender_child = variants.getSampleHeader().infoByStatus(true).gender();
 	}
 	if (gender_child=="n/a")
 	{

@@ -934,28 +934,26 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 	//add header fields
 	vcf_file.column_headers_ << "CHROM" << "POS" << "ID" << "REF" << "ALT" << "QUAL" << "FILTER" << "INFO" << "FORMAT";
 	//search for genotype on annotations
-	SampleHeaderInfo genotype_columns = variant_list.getSampleHeader(false);
-	if(genotype_columns.empty() || (genotype_columns.size() == 1 && genotype_columns.first().column_name == "genotype") )
+	SampleHeaderInfo genotype_columns;
+	try
 	{
-		vcf_file.column_headers_ << "Sample";
+		genotype_columns = variant_list.getSampleHeader();
 	}
-	else
+	catch(...){} //nothing to do here
+
+	//write genotype Format into header
+	if(!genotype_columns.empty())
 	{
 		for(const SampleInfo& genotype : genotype_columns)
 		{
 			vcf_file.column_headers_ << genotype.column_name.toUtf8();
 		}
-	}
 
-	//write genotype Format into header
-	if(!genotype_columns.empty())
-	{
 		InfoFormatLine format_line;
 		format_line.id = "GT";
 		format_line.number = "1";
 		format_line.type = "String";
 		format_line.description = "Genotype";
-
 		vcf_file.vcf_header_.addFormatLine(format_line);
 	}
 

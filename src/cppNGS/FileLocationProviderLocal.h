@@ -12,8 +12,6 @@ public:
 	FileLocationProviderLocal(QString gsvar_file, const SampleHeaderInfo& header_info, AnalysisType analysis_type);
 	virtual ~FileLocationProviderLocal() {}
 
-	QString processedSampleName() const override;
-
 	FileLocation getAnalysisVcf() const override;
 	FileLocation getAnalysisSvFile() const override;
 	FileLocation getAnalysisCnvFile() const override;
@@ -31,7 +29,9 @@ public:
 	FileLocationList getCopyNumberCallFiles(bool return_if_missing) const override;
 	FileLocationList getRohFiles(bool return_if_missing) const override;
 
-	FileLocation getSomaticCnvSegFile() const override;
+	FileLocation getSomaticCnvCoverageFile() const override;
+	FileLocation getSomaticCnvCallFile() const override;
+	FileLocation getSomaticLowCoverageFile() const override;
 
 private:
 	static void addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing=true); //Make add_if_missing mandatory when all

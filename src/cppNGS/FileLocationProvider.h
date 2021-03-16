@@ -13,9 +13,6 @@ class CPPNGSSHARED_EXPORT FileLocationProvider
 public:
 	virtual ~FileLocationProvider(){}
 
-	//Retrns the processed sample name of the main sample (child for trio, tumor for tumor-normal, only affected for multi). Throws an exception of no main sample was found!
-	virtual QString processedSampleName() const = 0; //TODO check where used > multi-sample
-
 	//############################## analysis-specific files ##############################
 	//Returns the annotated VCF of the current analysis
 	virtual FileLocation getAnalysisVcf() const = 0;
@@ -29,7 +26,7 @@ public:
 	//############################## sample-specific files ##############################
 	//Returns sample-specific BAM files
 	virtual FileLocationList getBamFiles(bool return_if_missing) const = 0;
-	//Returns sample-specific low coverage files in BED format (plus tumor-normal low coverage file in case of SOMATIC_PAIR)
+	//Returns sample-specific low coverage files in BED format
 	virtual FileLocationList getLowCoverageFiles(bool return_if_missing) const = 0;
 	//Returns sample-specifi b-allele frequency files (IGV format)
 	virtual FileLocationList getBafFiles(bool return_if_missing) const = 0;
@@ -37,7 +34,7 @@ public:
 	virtual FileLocationList getRohFiles(bool return_if_missing) const = 0;
 	//Returns sample-specific annotated VCF files
 	virtual FileLocationList getVcfFiles(bool return_if_missing) const = 0;
-	//Returns sample-specific CNV coverage data in SEG format (plus tumor-normal coverage data in case of SOMATIC_PAIR)
+	//Returns sample-specific CNV coverage data in SEG format.
 	virtual FileLocationList getCnvCoverageFiles(bool return_if_missing) const = 0;
 	//Returns sample-specific copy-number call files in TSV format
 	virtual FileLocationList getCopyNumberCallFiles(bool return_if_missing) const = 0;
@@ -52,8 +49,12 @@ public:
 
 	//############################## somatic-only files ##############################
 
-	//Returns the tumor-normal CNV calls SEG file (works for SOMATIC_PAIR only)
-	virtual FileLocation getSomaticCnvSegFile() const = 0;
+	//Returns the tumor-normal CNV coverage SEG file (throws an exception if not SOMATIC_PAIR)
+	virtual FileLocation getSomaticCnvCoverageFile() const = 0;
+	//Returns the tumor-normal CNV calls SEG file (throws an exception if not SOMATIC_PAIR)
+	virtual FileLocation getSomaticCnvCallFile() const = 0;
+	//Returns the somatic low coverage BED file (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)
+	virtual FileLocation getSomaticLowCoverageFile() const = 0;
 
 protected:
 	//Returns analysis path, i.e. the path of the GSvar file
