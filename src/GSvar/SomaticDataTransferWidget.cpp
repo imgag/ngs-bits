@@ -31,7 +31,7 @@ SomaticDataTransferWidget::SomaticDataTransferWidget(QString t_ps_id, QString n_
 	connect( ui->xml_select, SIGNAL(stateChanged(int)), this, SLOT(enableUpload()) );
 	connect( ui->upload_button, SIGNAL(clicked()), this, SLOT(uploadXML()) );
 
-	xml_url_ = Settings::path("mtb_xml_upload_url");
+	xml_url_ = Settings::string("mtb_xml_upload_url").trimmed();
 	xml_path_ = Settings::path("gsvar_xml_folder") + "/" + t_ps_id + "-" + n_ps_id + ".xml";
 	checkUploadFiles();
 

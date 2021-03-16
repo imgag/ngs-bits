@@ -112,15 +112,29 @@ private slots:
 
 	void loadVCFWithNewFilter()
 	{
+		//test loading and storing with BGZF_NO_COMPRESSION
 		VcfFile vcfH;
 		vcfH.load(TESTDATA("data_in/VcfFileHandler_in.vcf"), true);
-		vcfH.store("out/VcfFileHandler_out.vcf", false, Z_NO_COMPRESSION);
-		vcfH.store("out/VcfFileHandler_out.vcf.gz", false, Z_BEST_COMPRESSION);
-
+		vcfH.store("out/VcfFileHandler_out.vcf", false, BGZF_NO_COMPRESSION);
 		COMPARE_FILES("out/VcfFileHandler_out.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
 
+		//test BGZF_BEST_COMPRESSION
+		vcfH.store("out/VcfFileHandler_out.vcf.gz", false, BGZF_BEST_COMPRESSION);
 		vcfH.load("out/VcfFileHandler_out.vcf.gz", true);
-		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped.vcf", false, Z_NO_COMPRESSION);
+		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped.vcf", false, BGZF_NO_COMPRESSION);
+		COMPARE_FILES("out/VcfFileHandler_out_loaded_from_gzipped.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
+
+		//test intermediate BGZF COMPRESSION
+		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped_compression5.vcf.gz", false, 5);
+		vcfH.load("out/VcfFileHandler_out_loaded_from_gzipped_compression5.vcf.gz", true);
+		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped_2.vcf", false, BGZF_NO_COMPRESSION);
+		COMPARE_FILES("out/VcfFileHandler_out_loaded_from_gzipped.vcf", TESTDATA("out/VcfFileHandler_out_loaded_from_gzipped_2.vcf"));
+
+		//test BGZF_GZIP_COMPRESSION
+		vcfH.load(TESTDATA("data_in/VcfFileHandler_in.vcf"), true);
+		vcfH.store("out/VcfFileHandler_out_gzipped.vcf.gz", false, BGZF_GZIP_COMPRESSION);
+		vcfH.load("out/VcfFileHandler_out_gzipped.vcf.gz", true);
+		vcfH.store("out/VcfFileHandler_out_loaded_from_gzipped.vcf", false, BGZF_NO_COMPRESSION);
 		COMPARE_FILES("out/VcfFileHandler_out_loaded_from_gzipped.vcf", TESTDATA("data_out/VcfFileHandler_out.vcf"));
 	}
 
@@ -206,7 +220,7 @@ private slots:
 
 		VcfFile vl;
 		vl.load(in);
-		vl.store(out, false, Z_NO_COMPRESSION);
+		vl.store(out, false, BGZF_NO_COMPRESSION);
 
 		COMPARE_FILES(in,out);
 	}
@@ -216,7 +230,7 @@ private slots:
 		//store loaded file
 		VcfFile vl;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		vl.store("out/VariantList_store_01.vcf", false, Z_NO_COMPRESSION);
+		vl.store("out/VariantList_store_01.vcf", false, BGZF_NO_COMPRESSION);
 		VCF_IS_VALID("out/VariantList_store_01.vcf")
 
 		//reload and check that everything stayed the same
@@ -289,7 +303,7 @@ private slots:
 		//store loaded vcf file
 		VcfFile vl;
 		vl.load(TESTDATA("data_in/VariantList_emptyDescriptions.vcf"));
-		vl.store("out/VariantList_emptyDescriptions_fixed.vcf", false, Z_NO_COMPRESSION);
+		vl.store("out/VariantList_emptyDescriptions_fixed.vcf", false, BGZF_NO_COMPRESSION);
 		VCF_IS_VALID("out/VariantList_emptyDescriptions_fixed.vcf")
 
 		VcfFile vl2;
@@ -373,7 +387,7 @@ private slots:
 		VcfFile vl;
 		vl.load(TESTDATA("data_in/sort_in.vcf"));
 		vl.sort();
-		vl.store("out/sort_out.vcf", false, Z_NO_COMPRESSION);
+		vl.store("out/sort_out.vcf", false, BGZF_NO_COMPRESSION);
 		COMPARE_FILES("out/sort_out.vcf",TESTDATA("data_out/sort_out.vcf"));
 		VCF_IS_VALID("out/sort_out.vcf")
 	}
@@ -414,7 +428,7 @@ private slots:
 		VcfFile vl;
 		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
 		vl.sortByFile(TESTDATA("data_in/variantList_sortbyFile.fai"));
-		vl.store("out/sortByFile.vcf", false, Z_NO_COMPRESSION);
+		vl.store("out/sortByFile.vcf", false, BGZF_NO_COMPRESSION);
 		//entries should be sorted by variantList_sortbyFile.fai, which is reverse-numeric concerning chromosomes
 		VCF_IS_VALID("out/sortByFile.vcf")
 		X_EQUAL(vl.vcfLine(0).chr(),Chromosome("chr19"));
@@ -540,7 +554,7 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		//tests multisample and leftNormalize from GSvar format to VCF for insertion, deletion, SNP
 		VcfFile vcf_file = VcfFile::convertGSvarToVcf(variant_list, ref_file);
-		vcf_file.store("out/GSvarToVcf.vcf", false, Z_NO_COMPRESSION);
+		vcf_file.store("out/GSvarToVcf.vcf", false, BGZF_NO_COMPRESSION);
 
 		COMPARE_FILES("out/GSvarToVcf.vcf", TESTDATA("data_out/GSvarToVcf.vcf"));
 	}

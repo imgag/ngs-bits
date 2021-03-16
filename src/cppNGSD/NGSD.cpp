@@ -685,7 +685,11 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 	output.name = query.value(0).toString();
 	output.name_short = query.value(1).toString();
 	output.type = query.value(2).toString();
-	output.target_file = getTargetFilePath(false) + query.value(3).toString();
+	QString rel_path = query.value(3).toString().trimmed();
+	if (rel_path!="")
+	{
+		output.target_file = getTargetFilePath(false) + rel_path;
+	}
 	QString target_base = output.target_file.left(output.target_file.length()-4);
 	QString amplicon_file =  target_base + "_amplicons.bed";
 	output.target_amplicon_file = QFile::exists(amplicon_file) ? amplicon_file : "";
@@ -2327,9 +2331,9 @@ QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi)
 	while(query.next())
 	{
 		QString name = query.value(0).toString();
-		QString roi = getTargetFilePath(false) + query.value(1).toString();
+		QString roi = query.value(1).toString().trimmed();
 		if (roi=="" && skip_systems_without_roi) continue;
-		out.insert(name, roi);
+		out.insert(name, getTargetFilePath(false) + roi);
 	}
 
 	return out;

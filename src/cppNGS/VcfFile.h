@@ -2,8 +2,14 @@
 
 #include "BedFile.h"
 #include "VcfFileHelper.h"
+#include "htslib/bgzf.h"
 
 #include <zlib.h>
+
+#define BGZF_NO_COMPRESSION         10
+#define BGZF_GZIP_COMPRESSION		0
+#define BGZF_BEST_SPEED             1
+#define BGZF_BEST_COMPRESSION       9
 
 ///class handling vcf and vcf.gz files
 class CPPNGSSHARED_EXPORT VcfFile
@@ -53,7 +59,7 @@ public:
 	///removes duplicate variants
 	void removeDuplicates(bool sort_by_quality);
 	///stores the data of VCFFileHandler in a vcf file
-	void store(const QString& filename, bool stdout_if_file_empty = false, int compression_level = Z_BEST_SPEED, int compression_strategy = Z_DEFAULT_STRATEGY) const;
+	void store(const QString& filename, bool stdout_if_file_empty = false, int compression_level = BGZF_NO_COMPRESSION) const;
 	///stores a VCFFile as tsv file, INFO and FORMAT fields are differentiated by "_info" and "_format" attached to the name in ##Description lines,
 	///in the header line each FORMAT column is additionally prefixed with the sample name:
 	/// ##VCF:
