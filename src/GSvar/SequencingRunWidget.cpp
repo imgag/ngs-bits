@@ -432,7 +432,7 @@ void SequencingRunWidget::updateReadQualityTable()
 
 	//set header
 	QStringList headers;
-	headers << "read" << "lane" << "Q30 [%]" << "error rate [%]" << "clusters [K/mm2]" << "clusters PF [%]" << "yield [GB]";
+	headers << "read" << "lane" << "Q30 [%]" << "error rate [%]" << "occupied [%]" << "clusters [K/mm2]" << "clusters PF [%]" << "yield [GB]";
 
 	table->setColumnCount(headers.count());
 	for(int c=0; c<headers.count(); ++c)
@@ -480,10 +480,11 @@ void SequencingRunWidget::updateReadQualityTable()
 			table->setItem(row, 1, GUIHelper::createTableItem(q_lanes.value("lane_num").toString()));
 			table->setItem(row, 2, GUIHelper::createTableItem(QString::number(q_lanes.value("q30_perc").toDouble(), 'f', 2)));
 			table->setItem(row, 3, GUIHelper::createTableItem(QString::number(q_lanes.value("error_rate").toDouble(), 'f', 2)));
+			table->setItem(row, 4, GUIHelper::createTableItem(QString::number(q_lanes.value("occupied_perc").toDouble(), 'f', 2)));
 			double density = q_lanes.value("cluster_density").toDouble();
-			table->setItem(row, 4, GUIHelper::createTableItem(QString::number(density/1000.0, 'f', 2)));
-			table->setItem(row, 5, GUIHelper::createTableItem(QString::number(q_lanes.value("cluster_density_pf").toDouble()/density*100.0, 'f', 2)));
-			table->setItem(row, 6, GUIHelper::createTableItem(QString::number(q_lanes.value("yield").toDouble()/1000000000.0, 'f', 2)));
+			table->setItem(row, 5, GUIHelper::createTableItem(QString::number(density/1000.0, 'f', 2)));
+			table->setItem(row, 6, GUIHelper::createTableItem(QString::number(q_lanes.value("cluster_density_pf").toDouble()/density*100.0, 'f', 2)));
+			table->setItem(row, 7, GUIHelper::createTableItem(QString::number(q_lanes.value("yield").toDouble()/1000000000.0, 'f', 2)));
 		}
 	}
 	GUIHelper::resizeTableCells(table);
