@@ -195,7 +195,8 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 
 	//Create table with additional report data
 	NGSD db;
-	QCCollection qc_mapping = db.getQCData(ps_);
+	QCCollection qc_mapping = db.getQCData(db.processedSampleId(ps_));
+
 	RtfTable metadata;
 	metadata.addRow( RtfTableRow( { RtfText("Allgemeine Informationen").setBold(true).setFontSize(16).RtfCode(), RtfText("Qualitätsparameter").setBold(true).setFontSize(16).RtfCode() }, {5000,4638}) );
 	metadata.addRow( RtfTableRow( { "Datum:",QDate::currentDate().toString("dd.MM.yyyy").toUtf8(), "Coverage 100x:",  qc_mapping.value("QC:2000030",true).toString().toUtf8() + "\%"}, {2250,2750,2319,2319}) );
@@ -239,7 +240,6 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		//Low coverage statistics of target region
 		BedFile low_cov;
 		low_cov.load(low_cov_file_);
-
 
 		low_cov.intersect(roi);
 

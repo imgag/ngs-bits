@@ -248,7 +248,7 @@ FileLocation FileLocationProviderLocal::getSomaticLowCoverageFile() const
 	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticLowCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString name = QFileInfo(gsvar_file_).baseName();
-	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_stats_lowcov.bed";
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_stat_lowcov.bed";
 
 	return FileLocation{name, PathType::LOWCOV_BED, file, QFile::exists(file)};
 }

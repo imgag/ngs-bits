@@ -174,12 +174,9 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	//Assign SNV annotation indices
 	snv_index_coding_splicing_ = variants.annotationIndexByName("coding_and_splicing");
 	somatic_vl_ = SomaticReportSettings::filterVariants(variants, settings); //filtered out snvs flagged as artefacts
-	somatic_vl_.sortByAnnotation(somatic_vl_.annotationIndexByName("gene"));
 
 	//Filter CNVs according report configuration settings
 	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings);
-
-	QString prefix = settings_.tumor_ps + "-" + settings_.normal_ps;
 
 	//load MSI Mantis data
 	try
