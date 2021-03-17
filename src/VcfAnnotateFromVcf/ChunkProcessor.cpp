@@ -66,6 +66,37 @@ QByteArray modifyInfoHeaderValue(const QByteArray &header_line, const QByteArray
 {
     // parse info id:
     QByteArrayList info_line_key_values = header_line.split('<')[1].split('>')[0].split(',');
+
+    // rejoin segments which are inside double quotes:
+    QByteArrayList joint_key_values;
+    QByteArray tmp;
+    foreach (const QByteArray& key_value, info_line_key_values)
+    {
+        // append to previously opened string
+        tmp.append(key_value);
+
+        // check if quotes are closed:
+        int n_quotes = tmp.count("\"");
+        // remove escaped quotes:
+        n_quotes -= tmp.count("\\\"");
+
+        if(n_quotes % 2 == 0)
+        {
+            // --> quotes closed -> add complete key-value pair to list and clear string
+            joint_key_values.append(tmp);
+            tmp.clear();
+        }
+        else
+        {
+            // --> quotes not closed -> continue in next iteration
+        }
+    }
+
+
+
+    // overwrite uncorrected key-value list
+    info_line_key_values = joint_key_values;
+
     for (int i = 0; i < info_line_key_values.size(); i++)
     {
         bool key_match = info_line_key_values[i].startsWith(key)
