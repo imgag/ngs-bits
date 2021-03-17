@@ -2060,8 +2060,7 @@ BedFile Statistics::lowCoverageScanLine(const QString& bam_file, int cutoff, int
 
 BedFile Statistics::lowCoverageScanLine(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file)
 {
-	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
-	qDebug() << "SCANLINE CALCING BED LOW\n";
+
 	BedFile output;
 
 	//check target region is merged/sorted and create index
