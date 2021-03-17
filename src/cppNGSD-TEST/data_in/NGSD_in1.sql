@@ -491,7 +491,9 @@ INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES
 (2, 'same sample', 4);
 
 INSERT INTO `sample_disease_info`(`id`, `sample_id`, `disease_info`, `type`, `user_id`) VALUES
-(1, 3, 'HP:0001251', 'HPO term id', 99);
+(1, 3, 'HP:0001251', 'HPO term id', 99),
+(2, 5, 'C17.2', 'ICD10 code', 99),
+(3, 5, 'C20.21', 'ICD10 code', 99);
 
 
 -- cnv_callset

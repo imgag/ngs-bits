@@ -102,15 +102,27 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	//Element PatientInfo
 	w.writeStartElement("PatientInfo");
 
-	if(test)
-	{
-		w.writeAttribute("sap_patient_identifier", "SAP_TEST_IDENTIFIER");
-	}
-	else
-	{
-		GenLabDB genlab;
-		w.writeAttribute("sap_patient_identifier", genlab.sapID(data.settings.tumor_ps) );
-	}
+		if(test)
+		{
+			w.writeAttribute("sap_patient_identifier", "SAP_TEST_IDENTIFIER");
+		}
+		else
+		{
+			GenLabDB genlab;
+			w.writeAttribute("sap_patient_identifier", genlab.sapID(data.settings.tumor_ps) );
+		}
+
+		QList<SampleDiseaseInfo> disease_infos = db.getSampleDiseaseInfo(db.sampleId(data.settings.tumor_ps), "ICD10 code");
+		if(!disease_infos.empty())
+		{
+			for(const auto& disease_info : disease_infos)
+			{
+				w.writeStartElement("DiseaseInfo");
+				w.writeAttribute("type", "ICD10");
+				w.writeAttribute("identifier", disease_info.disease_info);
+				w.writeEndElement();
+			}
+		}
 
 	w.writeEndElement();
 
@@ -479,7 +491,7 @@ void SomaticXmlReportGenerator::validateXml(const QString &xml)
 	QString tmp_file = Helper::tempFileName(".xml");
 	Helper::storeTextFile(tmp_file, QStringList() << xml);
 
-	QString xml_error = XmlHelper::isValidXml(tmp_file, ":/resources/SomaticReport_v2.xsd");
+	QString xml_error = XmlHelper::isValidXml(tmp_file, ":/resources/SomaticReport_v3.xsd");
 
 	if(xml_error!= "")
 	{
