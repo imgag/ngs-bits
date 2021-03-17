@@ -2175,73 +2175,6 @@ BedFile Statistics::lowCoverageScanLine(const BedFile& bed_file, const QString& 
 	return output;
 }
 
-BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
-{
-	//if basequality is not required, run scan line approach
-	if(min_baseq == 0) return lowCoverageScanLine(bam_file, cutoff, min_mapq, ref_file);
-
-	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
-	BedFile output;
-
-	//open BAM file
-	BamReader reader(bam_file, ref_file);
-
-	QVector<unsigned char> cov;
-
-	//iteratore through chromosomes
-	foreach(const Chromosome& chr, reader.chromosomes())
-	{
-		if (!chr.isNonSpecial()) continue;
-
-		int chr_size = reader.chromosomeSize(chr);
-		cov.fill(0, chr_size);
-
-		//jump to chromosome
-		reader.setRegion(chr, 0, chr_size);
-
-		//iterate through all alignments
-		BamAlignment al;
-		QBitArray baseQualities;
-
-		while (reader.getNextAlignment(al))
-		{
-			if (al.isDuplicate()) continue;
-			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
-
-			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
-						countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
-
-		}
-
-		//create low-coverage regions file
-		bool reg_open = false;
-		int reg_start = -1;
-		for (int p=0; p<chr_size; ++p)
-		{
-			bool low_cov = cov[p]<cutoff;
-			if (reg_open && !low_cov)
-			{
-				output.append(BedLine(chr, reg_start+1, p));
-				reg_open = false;
-				reg_start = -1;
-			}
-			if (!reg_open && low_cov)
-			{
-				reg_open = true;
-				reg_start = p;
-			}
-		}
-		if (reg_open)
-		{
-			output.append(BedLine(chr, reg_start+1, chr_size));
-		}
-	}
-
-	output.merge();
-	return output;
-}
-
 BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
 	//if basequality is not required, run scan line approach
@@ -2309,6 +2242,73 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 		}
 	}
 
+	return output;
+}
+
+BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
+{
+	//if basequality is not required, run scan line approach
+	if(min_baseq == 0) return lowCoverageScanLine(bam_file, cutoff, min_mapq, ref_file);
+
+	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
+	BedFile output;
+
+	//open BAM file
+	BamReader reader(bam_file, ref_file);
+
+	QVector<unsigned char> cov;
+
+	//iteratore through chromosomes
+	foreach(const Chromosome& chr, reader.chromosomes())
+	{
+		if (!chr.isNonSpecial()) continue;
+
+		int chr_size = reader.chromosomeSize(chr);
+		cov.fill(0, chr_size);
+
+		//jump to chromosome
+		reader.setRegion(chr, 0, chr_size);
+
+		//iterate through all alignments
+		BamAlignment al;
+		QBitArray baseQualities;
+
+		while (reader.getNextAlignment(al))
+		{
+			if (al.isDuplicate()) continue;
+			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
+
+			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
+						countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
+
+		}
+
+		//create low-coverage regions file
+		bool reg_open = false;
+		int reg_start = -1;
+		for (int p=0; p<chr_size; ++p)
+		{
+			bool low_cov = cov[p]<cutoff;
+			if (reg_open && !low_cov)
+			{
+				output.append(BedLine(chr, reg_start+1, p));
+				reg_open = false;
+				reg_start = -1;
+			}
+			if (!reg_open && low_cov)
+			{
+				reg_open = true;
+				reg_start = p;
+			}
+		}
+		if (reg_open)
+		{
+			output.append(BedLine(chr, reg_start+1, chr_size));
+		}
+	}
+
+	output.merge();
 	return output;
 }
 
