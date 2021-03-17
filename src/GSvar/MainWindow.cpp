@@ -925,7 +925,7 @@ void MainWindow::on_actionCircos_triggered()
 
 	//show plot
 	CircosPlotWidget* widget = new CircosPlotWidget(plot_files[0].filename);
-	auto dlg = GUIHelper::createDialog(widget, "Circos Plot");
+	auto dlg = GUIHelper::createDialog(widget, "Circos Plot of " + variants_.analysisName());
 	addModelessDialog(dlg, false);
 }
 
@@ -993,7 +993,7 @@ void MainWindow::on_actionPRS_triggered()
 
 	//show dialog
 	PRSWidget* widget = new PRSWidget(prs_files[0].filename);
-	auto dlg = GUIHelper::createDialog(widget, "Polygenic Risk Scores");
+	auto dlg = GUIHelper::createDialog(widget, "Polygenic Risk Scores of " + variants_.analysisName());
 	addModelessDialog(dlg, false);
 }
 
@@ -2162,7 +2162,7 @@ void MainWindow::checkMendelianErrorRate(double cutoff_perc)
 
 			double percentage = 100.0 * errors / autosomal;
 			if (percentage>cutoff_perc) above_cutoff = true;
-			mers << infos.infoByStatus(true).column_name + " - " + info.column_name + ": " + QString::number(errors) + "/" + QString::number(autosomal) + " ~ " + QString::number(percentage, 'f', 2) + "%";
+			mers << infos.infoByStatus(true).id + " - " + info.id + ": " + QString::number(errors) + "/" + QString::number(autosomal) + " ~ " + QString::number(percentage, 'f', 2) + "%";
 		}
 
 		if (above_cutoff)
@@ -2441,7 +2441,7 @@ void MainWindow::loadFile(QString filename)
 		//update data structures
 		Settings::setPath("path_variantlists", filename);
 		filename_ = filename;
-		filewatcher_.setFile(filename); //TODO GSvarServer: how do we handle that?
+		filewatcher_.setFile(filename); //TODO GSvarServer: how do we handle that? Remove or replace by regularly checking the creation date in the header if it changed...
 
 		//update GUI
 		setWindowTitle(QCoreApplication::applicationName() + " - " + variants_.analysisName());
@@ -3231,7 +3231,7 @@ void MainWindow::generateReportGermline()
 	}
 
 	//check if NGSD annotations are up-to-date
-	QDateTime mod_date = QFileInfo(filename_).lastModified(); //TODO GSvarServer: how do we handle this?
+	QDateTime mod_date = QFileInfo(filename_).lastModified(); //TODO GSvarServer: how do we handle this? Added creation date to file header!?
 	if (mod_date < QDateTime::currentDateTime().addDays(-42))
 	{
 		if (QMessageBox::question(this, "NGSD annotations outdated", "NGSD annotation data is older than six weeks!\nDo you want to continue with annotations from " + mod_date.toString("yyyy-MM-dd") + "?")==QMessageBox::No)
@@ -3323,7 +3323,7 @@ void MainWindow::openProcessedSampleTabsCurrentAnalysis()
 	SampleHeaderInfo infos = variants_.getSampleHeader();
 	foreach(const SampleInfo& info, infos)
 	{
-		openProcessedSampleTab(info.column_name);
+		openProcessedSampleTab(info.id);
 	}
 }
 
@@ -4033,7 +4033,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 	QStringList low_cov_files = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(ps_name).asStringList();
 	if (low_cov_files.isEmpty())
 	{
-		QMessageBox::warning(this, "Gap lookup", "Could not find a low-coverage file for sample " + ps_name + ". Aborting!");
+		QMessageBox::warning(this, "Gap lookup", "No look-up of gaps is possible!\nCould not find a low-coverage file for sample " + ps_name + ".");
 		return;
 	}
 
@@ -4093,7 +4093,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 	edit->setMinimumWidth(500);
 	edit->setWordWrapMode(QTextOption::NoWrap);
 	edit->setReadOnly(true);
-	auto dlg = GUIHelper::createDialog(edit, "Gaps of gene '" + gene + "' from low-coverage BED file '" + low_cov_files[0] + "':");
+	auto dlg = GUIHelper::createDialog(edit, "Gaps of gene '" + gene + "' from low-coverage BED file for sample " + ps_name);
 	dlg->exec();
 }
 
@@ -4104,10 +4104,9 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	//check for BAM file
 	QString ps = germlineReportSample();
 	QStringList bams = GlobalServiceProvider::fileLocationProvider().getBamFiles(false).filterById(ps).asStringList();
-	QStringList low_covs = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(ps).asStringList();
-	if (bams.empty() || low_covs.empty())
+	if (bams.empty())
 	{
-		QMessageBox::warning(this, "Gaps error", "No BAM file or no low-coverage file found for sample " + ps + "!");
+		QMessageBox::warning(this, "Gaps error", "No BAM file found for sample " + ps + "!");
 		return;
 	}
 
@@ -4158,6 +4157,8 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	}
 
 	//show dialog
+	QStringList low_covs = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(ps).asStringList();
+	low_covs << ""; //add empty string in case there is no low-coverage file > this case is handled inside the dialog
 	GapDialog dlg(this, ps, bams[0], low_covs[0], roi, genes);
 	connect(&dlg, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	dlg.exec();
@@ -5152,7 +5153,7 @@ QString MainWindow::germlineReportSample()
 		{
 			if(info.isAffected())
 			{
-				affected_ps << info.column_name.trimmed();
+				affected_ps << info.id.trimmed();
 			}
 		}
 
@@ -5875,7 +5876,7 @@ QString MainWindow::normalSampleName()
 
 	foreach(const SampleInfo& info, variants_.getSampleHeader())
 	{
-		if (!info.isTumor()) return info.column_name;
+		if (!info.isTumor()) return info.id;
 	}
 
 	return "";

@@ -53,9 +53,9 @@ FileLocation FileLocationProviderLocal::getAnalysisUpdFile() const
 	if (analysis_type_!=GERMLINE_TRIO) return FileLocation();
 
 	QString name = QFileInfo(gsvar_file_).baseName();
-	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_manta_var_structural.bedpe";
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_upd.tsv";
 
-	return FileLocation{name, PathType::STRUCTURAL_VARIANTS, file, QFile::exists(file)};
+	return FileLocation(name, PathType::UPD, file, QFile::exists(file));
 }
 
 void FileLocationProviderLocal::addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing)
@@ -187,7 +187,7 @@ FileLocationList FileLocationProviderLocal::getLowCoverageFiles(bool return_if_m
 	{
 		QString folder = loc.value.left(loc.value.length()-loc.key.length());
 
-		QStringList beds = Helper::findFiles(folder, "*_stat_lowcov.bed", false);
+		QStringList beds = Helper::findFiles(folder, "*_lowcov.bed", false);
 		foreach(const QString& bed, beds)
 		{
 			FileLocation file = FileLocation{loc.key, PathType::LOWCOV_BED, bed, true};
@@ -248,7 +248,7 @@ FileLocation FileLocationProviderLocal::getSomaticLowCoverageFile() const
 	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticLowCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString name = QFileInfo(gsvar_file_).baseName();
-	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_stat_lowcov.bed";
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_stats_lowcov.bed";
 
 	return FileLocation{name, PathType::LOWCOV_BED, file, QFile::exists(file)};
 }

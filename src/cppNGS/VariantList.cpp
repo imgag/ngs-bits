@@ -352,7 +352,7 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
 	THROW(ProgrammingException, "Could not convert variant " + toString(false) + " to string! This should not happen!");
 }
 
-QString Variant::toVCF(const FastaFileIndex& genome_index) const
+QString Variant::toVCF(const FastaFileIndex& genome_index) const //TODO refactor to return VcfLine or struct > Marc
 {
 	int pos = start_;
 	Sequence ref = ref_;

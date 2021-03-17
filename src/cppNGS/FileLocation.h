@@ -36,9 +36,25 @@ enum class PathType
 struct FileLocation
 {
 	QString id; //sample name (for single sample analyses) or analysis name (for multi-sample analyses)
-	PathType type; //file type
+	PathType type = PathType::OTHER; //file type
 	QString filename; //file name
-	bool exists; // if filename actually exists or not
+	bool exists = false; // if filename actually exists or not
+
+	FileLocation()
+		: id()
+		, type(PathType::OTHER)
+		, filename()
+		, exists(false)
+	{
+	}
+
+	FileLocation(const QString& id_, PathType type_, const QString& filename_, bool exists_)
+		: id(id_)
+		, type(type_)
+		, filename(filename_)
+		, exists(exists_)
+	{
+	}
 
 	QString typeAsString() const
 	{

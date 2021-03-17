@@ -13,7 +13,7 @@ GapDialog::GapDialog(QWidget *parent, QString ps, QString bam_file, QString lowc
 	, init_timer_(this, true)
 	, ps_(ps)
 	, bam_(bam_file)
-	, lowcov_(lowcov_file)
+	, lowcov_(lowcov_file.trimmed())
 	, roi_(roi)
 	, genes_(genes)
 	, ngsd_col_(7)
@@ -30,15 +30,25 @@ GapDialog::GapDialog(QWidget *parent, QString ps, QString bam_file, QString lowc
 
 void GapDialog::delayedInitialization()
 {
-	QMessageBox::information(this, "Gap calculation", "Calculating gaps for target region now.<br>This may take a while if the target region is big.");
+	QString title = "Gap calculation";
+	QStringList messages;
+	messages << "Calculating gaps for target region now.";
+	if (lowcov_.isEmpty())
+	{
+		messages << "";
+		messages << "Gaps need to be calculated from BAM as there is no low-coverage file for this samples.";
+		messages << "This may take a while if the target region is big!";
+	}
+
+	QMessageBox::information(this, title, messages.join("\n"));
 
 	//calculate gaps
 	QApplication::setOverrideCursor(Qt::BusyCursor);
-	QStringList messages = calculteGapsAndInitGUI();
+	messages = calculteGapsAndInitGUI();
 	QApplication::restoreOverrideCursor();
 	if (!messages.isEmpty())
 	{
-		QMessageBox::warning(this, "Gap calculation", messages.join("\n"));
+		QMessageBox::warning(this, title, messages.join("\n"));
 	}
 
 	//update NGSD column
@@ -49,7 +59,7 @@ void GapDialog::delayedInitialization()
 	int gap_count = db_.getValue("SELECT count(id) FROM gaps WHERE processed_sample_id='" + ps_id +"'").toInt();
 	if (gap_count>0)
 	{
-		QMessageBox::information(this, "Gaps in NGSD", "There are already gaps " + QString::number(gap_count) + " for this sample in the NGSD!");
+		QMessageBox::information(this, title, "There are already " + QString::number(gap_count) + " gaps for this sample in the NGSD!");
 	}
 }
 
@@ -62,19 +72,28 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 
 	//calculate low-coverage regions
 	BedFile low_cov;
-	try
+	if (lowcov_.isEmpty())
 	{
-		int sys_id = db_.processingSystemIdFromProcessedSample(ps_);
-		QString sys_roi_file = db_.getProcessingSystemData(sys_id).target_file;
-		BedFile sys_roi;
-		sys_roi.load(sys_roi_file);
-
-		low_cov = GermlineReportGenerator::precalculatedGaps(lowcov_, roi_, cutoff, sys_roi);
-	}
-	catch(Exception e)
-	{
-		output << "Low-coverage statistics had to be re-calculated!\nPre-calulated gap file could not be used because:\n " + e.message();
 		low_cov = Statistics::lowCoverage(roi_, bam_, cutoff);
+	}
+	else
+	{
+		try
+		{
+			int sys_id = db_.processingSystemIdFromProcessedSample(ps_);
+			QString sys_roi_file = db_.getProcessingSystemData(sys_id).target_file;
+			BedFile sys_roi;
+			sys_roi.load(sys_roi_file);
+
+			low_cov = GermlineReportGenerator::precalculatedGaps(lowcov_, roi_, cutoff, sys_roi);
+		}
+		catch(Exception e)
+		{
+			output << "Low-coverage statistics had to be re-calculated!";
+			output << "Pre-calulated gap file could not be used because:";
+			output << e.message();
+			low_cov = Statistics::lowCoverage(roi_, bam_, cutoff);
+		}
 	}
 
 	//show statistics
@@ -178,7 +197,8 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 	//show warning if non-coding transcripts had to be used
 	if (!genes_noncoding.isEmpty())
 	{
-		output << "No coding transcript is defined for the following genes (for GRCh37):\n"+genes_noncoding.join(", ");
+		output << "No coding transcript is defined for the following genes (for GRCh37):";
+		output << genes_noncoding.join(", ");
 		output << "For these genes the longest *non-coding* transcript is used.";
 		output << "Please check gaps of these genes manually since they might be non-coding but shown as coding region +-5!";
 	}
