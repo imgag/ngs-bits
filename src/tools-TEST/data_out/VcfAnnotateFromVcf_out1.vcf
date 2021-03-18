@@ -149,7 +149,7 @@
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##PIPELINE=megSAP 0.1-1150-g9c8dd4c
 ##SAMPLE=<ID=NA12878_38,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Neoplasms,DiseaseStatus=affected>
-##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file VcfAnnotateFromVcf_an1_ClinVar.vcf.gz)">
+##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation, added \" to test parser (from file VcfAnnotateFromVcf_an1_ClinVar.vcf.gz)">
 ##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file VcfAnnotateFromVcf_an1_ClinVar.vcf.gz)">
 ##INFO=<ID=NGSD_COUNTS,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD. (from file VcfAnnotateFromVcf_an2_NGSD.vcf.gz)">
 ##INFO=<ID=NGSD_GROUP,Number=2,Type=Integer,Description="Homozygous/Heterozygous variant counts in NGSD for neoplasms. (from file VcfAnnotateFromVcf_an2_NGSD.vcf.gz)">
