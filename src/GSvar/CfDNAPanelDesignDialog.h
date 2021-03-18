@@ -59,7 +59,7 @@ private:
 	const VariantList& variants_;
 	const FilterResult& filter_result_;
 	const SomaticReportConfiguration& somatic_report_configuration_;
-	QMap<QString,bool> prev_vars_;
+	QMap<QString, bool> prev_vars_;
 	QString processed_sample_name_;
 	QList<GeneEntry> genes_;
 };

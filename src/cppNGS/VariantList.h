@@ -66,6 +66,15 @@ class CPPNGSSHARED_EXPORT SampleHeaderInfo
 		QList<int> sampleColumns(bool affected) const;
 };
 
+///VCF representation of a variant in GSvar format.
+struct VariantVcfRepresentation
+{
+	Chromosome chr;
+	int pos;
+	Sequence ref;
+	Sequence alt;
+};
+
 ///Genetic variant or mutation (1-based).
 class CPPNGSSHARED_EXPORT Variant
 {
@@ -200,7 +209,7 @@ public:
 	/// Returns the HGVS.g notation of the variant.
 	QString toHGVS(const FastaFileIndex& genome_index) const;
 	/// Returns the VCF line notation of the variant up to the INFO column.
-	QString toVCF(const FastaFileIndex& genome_index) const;
+	VariantVcfRepresentation toVCF(const FastaFileIndex& genome_index) const;
 
     ///Auxilary function: Removes common prefix and suffix bases from indels and adapts the start position accordingly.
 	static void normalize(int& start, Sequence& ref, Sequence& obs);
@@ -373,8 +382,6 @@ public:
 	void load(QString filename);
     ///Stores the variant list to a file.
 	void store(QString filename) const;
-	///Stores the variant list as a VCF file (all columns are stored in INFO)
-	void storeAsVCF(QString filename, const QString& reference_genome, int compression_level = 1) const;
 
 	///Default sorting of variants. The order is chromosome (numeric), position, ref, obs, quality (if desired - only for VCF).
 	void sort(bool use_quality = false);

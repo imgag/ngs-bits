@@ -11,9 +11,6 @@ void ClinvarSubmissionData::check() const
 	checkNotEmpty("submitter_id", submitter_id);
 	checkNotEmpty("organization_id", organization_id);
 
-	if (!variant.isValid()) THROW(ArgumentException, "ClinVar submission variant is not valid!");
-	if (variant.ref()=="" || variant.ref()=="-") THROW(ArgumentException, "ClinVar submission variant is not in VCF format! Reference base '" + variant.ref() + "' is not valid!");
-	if (variant.obs()=="" || variant.obs()=="-") THROW(ArgumentException, "ClinVar submission variant is not in VCF format! Alternate base '" + variant.ref() + "' is not valid!");
 	checkNotEmpty("variant_classification", variant_classification);
 	checkIn("variant_classification", variant_classification, validClassifications(), false);
 	checkNotEmpty("variant_inheritance", variant_inheritance);
@@ -260,10 +257,10 @@ void ClinvarSubmissionGenerator::generateXML(const ClinvarSubmissionData& data, 
 			w.writeEndElement();
 			w.writeStartElement("SequenceLocation");
 			w.writeAttribute("Assembly", "GRCh37");
-			w.writeAttribute("Chr", data.variant.chr().strNormalized(false));
-			w.writeAttribute("referenceAllele", data.variant.ref());
-			w.writeAttribute("alternateAllele", data.variant.obs());
-			w.writeAttribute("start", QString::number(data.variant.start()));
+			w.writeAttribute("Chr", data.variant.chr.strNormalized(false));
+			w.writeAttribute("referenceAllele", data.variant.ref);
+			w.writeAttribute("alternateAllele", data.variant.alt);
+			w.writeAttribute("start", QString::number(data.variant.pos));
 			w.writeEndElement();
 			w.writeEndElement();
 

@@ -187,8 +187,8 @@ void VariantConversionWidget::convert()
 				Sequence ref = parts[3].toLatin1().toUpper().trimmed();
 				Sequence obs = parts[4].toLatin1().toUpper().trimmed();
 
-				Variant variant(parts[0], start, end, ref, obs);
-				output << variant.toVCF(idx);
+				VariantVcfRepresentation vcf_rep = Variant(parts[0], start, end, ref, obs).toVCF(idx);
+				output << vcf_rep.chr.str() + "\t" + QString::number(vcf_rep.pos) + "\t.\t" + vcf_rep.ref + "\t" + vcf_rep.alt + "\t30\tPASS\t.";
 			}
 		}
 

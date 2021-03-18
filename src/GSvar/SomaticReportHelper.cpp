@@ -349,12 +349,12 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
 		const Variant& variant = somatic_vl_[i];
-		QStringList vcf_parts = variant.toVCF(genome_reference).split('\t');
 
-		stream << vcf_parts[0] << "\t";
-		stream << vcf_parts[1] << "\t";
-		stream << vcf_parts[3] << "\t";
-		stream << vcf_parts[4] << "\t";
+		VariantVcfRepresentation vcf_rep = variant.toVCF(genome_reference);
+		stream << vcf_rep.chr.str() << "\t";
+		stream << vcf_rep.pos << "\t";
+		stream << vcf_rep.ref << "\t";
+		stream << vcf_rep.alt << "\t";
 		stream << variant.annotations().at(i_tumor_af) << "\t";
 		stream << variant.annotations().at(i_tumor_depth) << "\t";
 

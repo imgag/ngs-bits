@@ -100,19 +100,14 @@ public:
 		return *(vcf_lines_[pos]);
 	}
 	///Returns the vcf line at pos
-	const VcfLine& operator[](int pos) const
+	const VcfLine& operator[](int index) const
 	{
-		return *(vcf_lines_.at(pos));
+		return *(vcf_lines_[index]);
 	}
 	///Read-Write access to a vcf line at pos
-	VcfLine& operator[](int pos)
+	VcfLine& operator[](int index)
 	{
-		return *(vcf_lines_[pos]);
-	}
-	///Returns the pointer to a vcf line at pos
-	const VcfLinePtr& getVariantPtr(int pos)
-	{
-		return vcf_lines_[pos];
+		return *(vcf_lines_[index]);
 	}
 	///Returns the vcf header
 	const VcfHeader& vcfHeader() const

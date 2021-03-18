@@ -553,7 +553,6 @@ void writeBGZipped(BGZF* instream, QString& vcf_file_data)
 
 void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int compression_level) const
 {
-
 	if(compression_level == BGZF_NO_COMPRESSION)
 	{
 		//open stream
@@ -884,7 +883,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 	//fileformat must always be set in vcf
 	if(vcf_file.vcf_header_.fileFormat().isEmpty())
 	{
-		QByteArray format = "##fileformat=unavailable";
+		QByteArray format = "##fileformat=VCFv4.2";
 		vcf_file.vcf_header_.setFormat(format);
 	}
 

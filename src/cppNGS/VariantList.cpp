@@ -352,34 +352,36 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
 	THROW(ProgrammingException, "Could not convert variant " + toString(false) + " to string! This should not happen!");
 }
 
-QString Variant::toVCF(const FastaFileIndex& genome_index) const //TODO refactor to return VcfLine or struct > Marc
+VariantVcfRepresentation Variant::toVCF(const FastaFileIndex& genome_index) const
 {
-	int pos = start_;
-	Sequence ref = ref_;
-	Sequence obs = obs_;
+	VariantVcfRepresentation output;
+	output.chr = chr_;
+	output.pos = start_;
+	output.ref = ref_;
+	output.alt = obs_;
 
 	//prepend base for InDels
 	if (!isSNV())
 	{
-		if (ref=="-")
+		if (output.ref=="-")
 		{
-			ref = "";
+			output.ref.clear();
 		}
-		else if (obs=="-")
+		else if (output.alt=="-")
 		{
-			pos -= 1;
-			obs = "";
+			output.pos -= 1;
+			output.alt.clear();
 		}
-		else if(ref.size() > 1 || obs.size() > 1)
+		else if(output.ref.size() > 1 || output.alt.size() > 1)
 		{
-			pos -= 1;
+			output.pos -= 1;
 		}
-		Sequence prefix_base = genome_index.seq(chr_, pos, 1);
-		ref = prefix_base + ref;
-		obs = prefix_base + obs;
+		Sequence prefix_base = genome_index.seq(output.chr, output.pos, 1);
+		output.ref = prefix_base + output.ref;
+		output.alt = prefix_base + output.alt;
 	}
 
-	return chr_.str() + "\t" + QString::number(pos) + "\t.\t" + ref + "\t" + obs + "\t30\tPASS\t.";
+	return output;
 }
 
 VariantList::LessComparatorByAnnotation::LessComparatorByAnnotation(int annotation_index)
@@ -872,13 +874,6 @@ void VariantList::store(QString filename) const
 		}
 		stream << "\n";
 	}
-}
-
-void VariantList::storeAsVCF(QString filename, const QString& reference_genome, int compression_level) const
-{
-	VcfFile vcf_file;
-	vcf_file = VcfFile::convertGSvarToVcf(*this, reference_genome);
-	vcf_file.store(filename, true, compression_level);
 }
 
 void VariantList::sort(bool use_quality)
