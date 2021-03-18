@@ -20,6 +20,7 @@ public:
 	FileLocation getAnalysisSvFile() const override;
 	FileLocation getAnalysisCnvFile() const override;
 	FileLocation getAnalysisUpdFile() const override;
+	FileLocation getRepeatExpansionImage(QString locus) const override;
 
 	FileLocationList getBamFiles(bool return_if_missing) const override;
 	FileLocationList getCnvCoverageFiles(bool return_if_missing) const override;

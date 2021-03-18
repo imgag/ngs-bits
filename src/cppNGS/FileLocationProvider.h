@@ -25,6 +25,8 @@ public:
 	virtual FileLocation getAnalysisCnvFile() const = 0;
 	//Returns the UPD calls TSV file of the current analysis (works for GERMLINE_TRIO only)
 	virtual FileLocation getAnalysisUpdFile() const = 0;
+	//Returns the repeat expansion locus image of the current analysis
+	virtual FileLocation getRepeatExpansionImage(QString locus) const = 0;
 
 	//############################## sample-specific files ##############################
 	//Returns sample-specific BAM files

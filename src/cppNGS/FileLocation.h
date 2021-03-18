@@ -30,6 +30,7 @@ enum class PathType
 	MANTA_EVIDENCE, //Reads that were used for structural variant calling (BAM format)
 	COPY_NUMBER_RAW_DATA, //Copy number estimates based on coverage (SEG format)
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
+	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
 	OTHER // everything else
 };
 
@@ -104,6 +105,8 @@ struct FileLocation
 				return "CIRCOS_PLOT";
 			case PathType::STRUCTURAL_VARIANTS:
 				return "STRUCTURAL_VARIANTS";
+			case PathType::REPEAT_EXPANSION_IMAGE:
+				return "REPEAT_EXPANSION_IMAGE";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -128,6 +131,7 @@ struct FileLocation
 		if (in_upper == "UPD") return PathType::UPD;
 		if (in_upper == "CIRCOS_PLOT") return PathType::CIRCOS_PLOT;
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
+		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
 
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
@@ -168,6 +172,8 @@ struct FileLocation
 				return "strctural variant calls";
 			case PathType::UPD:
 				return "uniparental disomy regions";
+			case PathType::REPEAT_EXPANSION_IMAGE:
+				return "repeat expansion visualization";
 			case PathType::OTHER:
 				return "other files";
 		}

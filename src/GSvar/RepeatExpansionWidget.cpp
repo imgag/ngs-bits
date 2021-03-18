@@ -10,6 +10,7 @@
 #include "GUIHelper.h"
 #include "TsvFile.h"
 #include "VcfFile.h"
+#include "GlobalServiceProvider.h"
 
 NumericWidgetItem::NumericWidgetItem(QString text):
 	QTableWidgetItem(text)
@@ -38,7 +39,6 @@ RepeatExpansionWidget::RepeatExpansionWidget(QString vcf_filename, bool is_exome
 	ui_->repeat_expansions->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui_->repeat_expansions,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
 	loadRepeatExpansionData();
-    loadSvgFiles();
 }
 
 RepeatExpansionWidget::~RepeatExpansionWidget()
@@ -53,13 +53,14 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	if(selection.count() != 1) return;
 	int row = selection.at(0).indexes().at(0).row();
 
-    //get repeat name
-    QString repeat_name = ui_->repeat_expansions->item(row,3)->text().split('_').at(0);
+	//get image
+	QString locus = ui_->repeat_expansions->item(row,3)->text().split('_').at(0);
+	FileLocation image_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionImage(locus);
 
     //create menu
     QMenu menu(ui_->repeat_expansions);
-    QAction* a_show_svg = menu.addAction("Show REViewer SVG of repeat");
-    a_show_svg->setEnabled(re_svg_files_.contains(repeat_name));
+	QAction* a_show_svg = menu.addAction("Show image of repeat");
+	a_show_svg->setEnabled(image_loc.exists);
 
     //execute menu
     QAction* action = menu.exec(ui_->repeat_expansions->viewport()->mapToGlobal(pos));
@@ -67,7 +68,8 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
     if (action==a_show_svg)
     {
         //open SVG in browser
-        QDesktopServices::openUrl(QUrl(re_svg_files_.value(repeat_name)));
+		QString filename = QFileInfo(image_loc.filename).absoluteFilePath();
+		QDesktopServices::openUrl(QUrl(filename));
     }
 }
 
@@ -291,20 +293,3 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 	// display vertical header
     ui_->repeat_expansions->verticalHeader()->setVisible(true);
 }
-
-void RepeatExpansionWidget::loadSvgFiles()
-{
-    // get all available svg files
-	QDir re_svg_folder = QDir(QFileInfo(vcf_filename_).path() + "/repeat_expansions/"); //TODO
-    QStringList svg_filepaths = re_svg_folder.entryList(QStringList() << QFileInfo(vcf_filename_).baseName() + "_*.svg");
-
-	foreach (const QString& svg, svg_filepaths)
-	{
-		QString repeat_name = QFileInfo(svg).baseName().split('_').last();
-		re_svg_files_.insert(repeat_name, re_svg_folder.path() + "/" + svg);
-	}
-}
-
-
-
-

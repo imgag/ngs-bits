@@ -33,6 +33,11 @@ FileLocation FileLocationProviderRemote::getAnalysisUpdFile() const
 	return FileLocation(); // Alexandr
 }
 
+FileLocation FileLocationProviderRemote::getRepeatExpansionImage(QString /*locus*/) const
+{
+	return FileLocation(); // Alexandr
+}
+
 FileLocationList FileLocationProviderRemote::requestFileInfoByType(PathType type) const
 {
 	FileLocationList output {};

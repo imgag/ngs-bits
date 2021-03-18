@@ -58,6 +58,13 @@ FileLocation FileLocationProviderLocal::getAnalysisUpdFile() const
 	return FileLocation(name, PathType::UPD, file, QFile::exists(file));
 }
 
+FileLocation FileLocationProviderLocal::getRepeatExpansionImage(QString locus) const
+{
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = getAnalysisPath() + QDir::separator() + "repeat_expansions" + QDir::separator() + name  + "_repeats_expansionhunter_" + locus + ".svg";
+	return FileLocation(name, PathType::REPEAT_EXPANSION_IMAGE, file, QFile::exists(file));
+}
+
 void FileLocationProviderLocal::addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing)
 {
 	bool exists = QFile::exists(loc.filename);
