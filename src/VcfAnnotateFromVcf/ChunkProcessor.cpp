@@ -37,7 +37,7 @@ ChunkProcessor::ChunkProcessor(AnalysisJob &job,
  *  returns the value of a given INFO key from a given INFO header line
  */
 QByteArray getInfoHeaderValue(const QByteArray &header_line, const QByteArray &key,
-                              bool case_sensitive = false)
+							  QString& error_message, bool case_sensitive = false)
 {
     // parse info id:
     QByteArrayList info_line_key_values = header_line.split('<')[1].split('>')[0].split(',');
@@ -50,7 +50,7 @@ QByteArray getInfoHeaderValue(const QByteArray &header_line, const QByteArray &k
             return key_value.split('=')[1].trimmed();
         }
     }
-    THROW(FileParseException, "Key \"" + key + "\" not found in header line!");
+	error_message = "FileParseException\tKey \"" + key + "\" not found in header line!";
     return "";
 }
 
@@ -61,11 +61,45 @@ QByteArray getInfoHeaderValue(const QByteArray &header_line, const QByteArray &k
  *	if extend == true the value will not be replaced but extended
  */
 QByteArray modifyInfoHeaderValue(const QByteArray &header_line, const QByteArray &key,
-                                 const QByteArray &new_value, bool case_sensitive = false,
-                                 bool extend=false)
+								 const QByteArray &new_value,  QString& error_message,
+								 bool case_sensitive = false, bool extend=false)
 {
     // parse info id:
-    QByteArrayList info_line_key_values = header_line.split('<')[1].split('>')[0].split(',');
+	QByteArrayList info_line_key_values = header_line.mid(header_line.indexOf('<') + 1, header_line.lastIndexOf('>') - header_line.indexOf('<')).split(',');
+
+    // rejoin segments which are inside double quotes:
+    QByteArrayList joint_key_values;
+    QByteArray tmp;
+    foreach (const QByteArray& key_value, info_line_key_values)
+    {
+        // append to previously opened string
+		if (tmp.size() > 0) tmp.append(",");
+        tmp.append(key_value);
+
+        // check if quotes are closed:
+        int n_quotes = tmp.count("\"");
+        // remove escaped quotes:
+        n_quotes -= tmp.count("\\\"");
+
+        if(n_quotes % 2 == 0)
+        {
+            // --> quotes closed -> add complete key-value pair to list and clear string
+            joint_key_values.append(tmp);
+            tmp.clear();
+        }
+		// else --> quotes not closed -> continue in next iteration
+    }
+
+	if(!tmp.isEmpty())
+	{
+		error_message = "FileParseException\tError parsing Info header: Quoted string was not closed!";
+		return "";
+	}
+    // overwrite uncorrected key-value list
+    info_line_key_values = joint_key_values;
+
+
+	// modify header line
     for (int i = 0; i < info_line_key_values.size(); i++)
     {
         bool key_match = info_line_key_values[i].startsWith(key)
@@ -80,8 +114,7 @@ QByteArray modifyInfoHeaderValue(const QByteArray &header_line, const QByteArray
             if (in_quotes)
             {
                 // remove quotes
-                key_value[1] = key_value[1].trimmed();
-                key_value[1] = key_value[1].split('\"')[1].split('\"')[0];
+				key_value[1] = key_value[1].mid(1, key_value[1].lastIndexOf('\"') - 1 ).trimmed();
             }
             if (extend)
             {
@@ -106,7 +139,7 @@ QByteArray modifyInfoHeaderValue(const QByteArray &header_line, const QByteArray
             return "##INFO=<" + info_line_key_values.join(',') + ">\n";
         }
     }
-    THROW(FileParseException, "Key \"" + key + "\" not found in header line!");
+	error_message = "FileParseException\tKey \"" + key + "\" not found in header line!";
     return "";
 }
 
@@ -115,7 +148,7 @@ QByteArray modifyInfoHeaderValue(const QByteArray &header_line, const QByteArray
  */
 QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList info_ids,
                                  const QByteArray &id_column_name, int &id_column_idx,
-                                 bool allow_missing_header)
+								 bool allow_missing_header, QString& error_message)
 {
     QByteArrayList info_header_lines;
     bool id_column_found = id_column_name == "";
@@ -127,7 +160,8 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
         gzFile vcfgz_file = gzopen(vcf_file_path, "rb");
         if (vcfgz_file==NULL)
         {
-            THROW(FileAccessException, "Could not open file '" + vcf_file_path + "' for reading!");
+			error_message = "FileAccessException\tCould not open file '" + vcf_file_path + "' for reading!";
+			return QByteArrayList();
         }
 
         char* buffer = new char[1048576]; //1MB buffer
@@ -140,11 +174,11 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
             if (char_array==nullptr)
             {
                 int error_no = Z_OK;
-                QByteArray error_message = gzerror(vcfgz_file, &error_no);
+				QByteArray error_string = gzerror(vcfgz_file, &error_no);
                 if (error_no!=Z_OK && error_no!=Z_STREAM_END)
                 {
-                    THROW(FileParseException, "Error while reading file '" + vcf_file_path
-                          + "': " + error_message);
+					error_message = "FileParseException\tError while reading file '" + vcf_file_path + "': " + error_string;
+					return QByteArrayList();
                 }
             }
 
@@ -160,7 +194,8 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
             if (line.startsWith("##INFO=<ID="))
             {
                 // get info id value:
-                QByteArray id_value = getInfoHeaderValue(line, "ID");
+				QByteArray id_value = getInfoHeaderValue(line, "ID", error_message);
+				if (!error_message.isEmpty()) return QByteArrayList();
                 if (info_ids.contains(id_value))
                 {
                     // header line found
@@ -176,8 +211,8 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
                 id_column_idx = header.indexOf(id_column_name);
                 if (id_column_idx == -1)
                 {
-                    THROW(FileParseException, "Id column \"" + id_column_name
-                          + "\" not found in annotation file!");
+					error_message = "FileParseException\tId column \"" + id_column_name + "\" not found in annotation file!";
+					return QByteArrayList();
                 }
                 id_column_found = true;
 
@@ -192,7 +227,8 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
     else
     {
         // invalid/unknown file type:
-        THROW(FileParseException, "File type of file \"" + vcf_file_path + "\" is invalid/unknown!");
+		error_message = "FileParseException\tFile type of file \"" + vcf_file_path + "\" is invalid/unknown!";
+		return QByteArrayList();
     }
 
     if (info_ids.size() > 0)
@@ -207,8 +243,8 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
         }
         else
         {
-            THROW(FileParseException, "INFO id(s) \"" + info_ids.join(", ")
-                  + "\" not found in VCF.GZ file \"" + vcf_file_path + "\"!");
+			error_message = "FileParseException\tINFO id(s) \"" + info_ids.join(", ") + "\" not found in VCF.GZ file \"" + vcf_file_path + "\"!";
+			return QByteArrayList();
         }
     }
 
@@ -225,7 +261,9 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
         QByteArray additional_info = " (from file "
                 + QFileInfo(vcf_file_path).fileName().toUtf8() + ")";
         info_header_lines[i] = modifyInfoHeaderValue(info_header_lines[i], "Description",
-                                                     additional_info, false, true);
+													 additional_info, error_message, false, true);
+		// abort on error
+		if(!error_message.isEmpty()) return QByteArrayList();
     }
     return info_header_lines;
 
@@ -239,17 +277,17 @@ QByteArray extendVcfDataLine(const QByteArray &vcf_line,
                              const QVector<QByteArrayList> &out_info_ids,
                              const QByteArrayList &out_id_column_name_list,
                              const QVector<int> &id_column_indices,
-                             QVector<TabixIndexedFile> &annotation_files)
+							 QVector<TabixIndexedFile> &annotation_files,
+							 QString& error_message)
 {
-    QTextStream out(stdout);
-
-    int extended_lines_ = 0;
+	int extended_lines_ = 0;
 
     //split line and extract variant infos
     QList<QByteArray> vcf_column = vcf_line.trimmed().split('\t');
     if (vcf_column.count()<VcfFile::MIN_COLS)
     {
-        THROW(FileParseException, "VCF line with too few columns in input file: \n" + vcf_line);
+		error_message = "FileParseException\tVCF line with too few columns in input file: \n" + vcf_line;
+		return "";
     }
 
     // parse position
@@ -258,8 +296,8 @@ QByteArray extendVcfDataLine(const QByteArray &vcf_line,
     int start = vcf_column[VcfFile::POS].toInt(&ok);
     if (!ok)
     {
-        THROW(FileParseException, "Could not convert VCF variant position '"
-              + vcf_column[1] + "' to integer!");
+		error_message = "FileParseException\tCould not convert VCF variant position '" + vcf_column[1] + "' to integer!";
+		return "";
     }
     int end = start + vcf_column[VcfFile::REF].length() - 1; //length of ref
 
@@ -286,8 +324,8 @@ QByteArray extendVcfDataLine(const QByteArray &vcf_line,
             QByteArrayList parts = match.trimmed().split('\t');
             if (parts.count()<VcfFile::MIN_COLS)
             {
-                THROW(FileParseException,
-                      "VCF line with too few columns in annotation file: \n" + match);
+				error_message = "FileParseException\tVCF line with too few columns in annotation file: \n" + match;
+				return "";
             }
 
             // check if same variant
@@ -296,8 +334,8 @@ QByteArray extendVcfDataLine(const QByteArray &vcf_line,
             int pos = parts[VcfFile::POS].toInt(&ok);
             if (!ok)
             {
-                THROW(FileParseException,
-                      "VCF annotation file has invalid position in VCF line: \n" + match);
+				error_message = "FileParseException\tVCF annotation file has invalid position in VCF line: \n" + match;
+				return "";
             }
             if (pos != start) continue;
 
@@ -384,26 +422,26 @@ QByteArray extendVcfDataLine(const QByteArray &vcf_line,
 void ChunkProcessor::run()
 {
 
-    QTextStream out(stdout);
-
-    //out << "Start processing " << job.chunk_id << endl;
-
-    //out << "Started CHUNKPROCESSOR!" << endl;
-
     // open all annotation files
     QVector<TabixIndexedFile> annotation_files(annotation_file_list.size());
     QVector<int> id_column_indices(annotation_file_list.size(), -1);
     QByteArrayList annotation_header_lines;
+	job.error_message.clear();
     for (int i = 0; i < annotation_file_list.size(); i++)
     {
-        // out << "loading annotation file \"" << annotation_file_list[i] << "\"..." << endl;
         // get annotation header lines:
         QByteArrayList header_lines = getVcfHeaderLines(annotation_file_list[i],
                                                         info_id_list[i],
                                                         id_column_name_list[i],
                                                         id_column_indices[i],
-                                                        allow_missing_header_list[i]);
+														allow_missing_header_list[i],
+														job.error_message);
 
+		if (!job.error_message.isEmpty())
+		{
+			job.status = ERROR;
+			return;
+		}
         // replace input INFO ids with output INFO ids
         for (int j = 0; j < info_id_list[i].size(); j++)
         {
@@ -448,11 +486,17 @@ void ChunkProcessor::run()
                 {
 
                     // get INFO id value:
-                    QByteArray id_value = getInfoHeaderValue(line, "ID");
+					QByteArray id_value = getInfoHeaderValue(line, "ID", job.error_message);
+					if (!job.error_message.isEmpty())
+					{
+						job.status = ERROR;
+						return;
+					}
                     if (ids.contains(id_value))
                     {
-                        THROW(FileParseException, "Annotation \"" + id_value
-                              + "\" already exists in input file");
+						job.error_message = "FileParseException\tAnnotation \"" + id_value + "\" already exists in input file";
+						job.status = ERROR;
+						return;
                     }
 
                 }
@@ -475,7 +519,13 @@ void ChunkProcessor::run()
                                                                      out_info_id_list,
                                                                      out_id_column_name_list,
                                                                      id_column_indices,
-                                                                     annotation_files));
+																	 annotation_files,
+																	 job.error_message));
+				if (!job.error_message.isEmpty())
+				{
+					job.status = ERROR;
+					return;
+				}
             }
         }
     }
