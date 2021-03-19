@@ -3686,7 +3686,7 @@ FilterSvPairedReadAF::FilterSvPairedReadAF()
 
 QString FilterSvPairedReadAF::toText() const
 {
-	return name() + " = " + QByteArray::number(getDouble("Paired Read AF", false), 'f', 2) + " &plusmn; 10%";
+	return name() + " = " + QByteArray::number(getDouble("Paired Read AF", false), 'f', 2) + " &plusmn; 10%" + ((getBool("only_affected"))?" (only affected)": "");
 }
 
 void FilterSvPairedReadAF::apply(const BedpeFile& svs, FilterResult& result) const
@@ -3773,7 +3773,7 @@ FilterSvSplitReadAF::FilterSvSplitReadAF()
 
 QString FilterSvSplitReadAF::toText() const
 {
-	return name() + " = " + QByteArray::number(getDouble("Split Read AF", false), 'f', 2) + " &plusmn; 10%";
+	return name() + " = " + QByteArray::number(getDouble("Split Read AF", false), 'f', 2) + " &plusmn; 10%"  + ((getBool("only_affected"))?" (only affected)" : "");
 }
 
 void FilterSvSplitReadAF::apply(const BedpeFile& svs, FilterResult& result) const
@@ -3863,7 +3863,7 @@ FilterSvPeReadDepth::FilterSvPeReadDepth()
 
 QString FilterSvPeReadDepth::toText() const
 {
-	return name() + " &ge; " + QByteArray::number(getInt("PE Read Depth", false));
+	return name() + " &ge; " + QByteArray::number(getInt("PE Read Depth", false))  + ((getBool("only_affected"))? " (only affected)": "");
 }
 
 void FilterSvPeReadDepth::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4416,11 +4416,6 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 	int i_f = sample_headers.infoByStatus(false, "male").column_index;
 	int i_m = sample_headers.infoByStatus(false, "female").column_index;
 	int i_format_col = svs.annotationIndexByName("FORMAT");
-
-    //determine AF indices
-//    QList<int> tmp;
-//    tmp << i_c << i_f << i_m;
-//    std::sort(tmp.begin(), tmp.end());
 
     //get PAR region
     BedFile par_region = NGSHelper::pseudoAutosomalRegion("hg19");

@@ -1391,7 +1391,7 @@ private slots:
 		FilterResult result(svs.count());
 
 		FilterSvSplitReadAF filter;
-		filter.setDouble("Split Read AF", 0.5);
+		filter.setDouble("Split Read AF", 0.55);
 		filter.apply(svs, result);
 		I_EQUAL(result.countPassing(), 2);
 	}
@@ -1404,10 +1404,10 @@ private slots:
         FilterResult result(svs.count());
 
         FilterSvSplitReadAF filter;
-        filter.setDouble("Split Read AF", 0.5);
+		filter.setDouble("Split Read AF", 0.55);
         filter.setBool("only_affected", true);
         filter.apply(svs, result);
-        I_EQUAL(result.countPassing(), 2);
+		I_EQUAL(result.countPassing(), 4);
     }
 
 	void FilterSvPeReadDepth_apply()
@@ -1591,10 +1591,32 @@ private slots:
 		I_EQUAL(result.countPassing(), 55);
 	}
 
-//    void FilterSvTrio_apply()
-//    {
+	void FilterSvTrio_apply()
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_Manta_germline_trio.bedpe"));
 
-//    }
+		FilterResult result(svs.count());
+
+		// custom maximum
+		FilterSvTrio filter;
+		filter.setString("gender_child", "female");
+		// de-novo
+		filter.setStringList("types", QStringList() << "de-novo");
+		result.reset();
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 10);
+		// recessive
+		filter.setStringList("types", QStringList() << "recessive");
+		result.reset();
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 10);
+		// imprinting
+		filter.setStringList("types", QStringList() << "imprinting");
+		result.reset();
+		filter.apply(svs, result);
+		I_EQUAL(result.countPassing(), 5);
+	}
 
 
 	/********************************************* Default filters for SVs *********************************************/
