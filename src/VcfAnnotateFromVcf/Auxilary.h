@@ -10,7 +10,8 @@ enum AnalysisStatus
 {
     TO_BE_PROCESSED,
     TO_BE_WRITTEN,
-    DONE
+	ERROR,
+	DONE
 };
 
 //Analysis data for worker thread

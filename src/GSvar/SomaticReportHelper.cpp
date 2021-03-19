@@ -1073,7 +1073,9 @@ RtfTable SomaticReportHelper::snvTable(const VariantList &vl, bool include_germl
 	desc += RtfText("Anteil:").setFontSize(14).setBold(true).RtfCode() + " Anteil der Allele mit der gelisteten Variante (SNV, INDEL) bzw. Anteil der Zellen mit der entsprechenden Kopienzahlvariante (CNV) in der ";
 	desc += "untersuchten Probe; ";
 	desc += RtfText("Beschreibung: ").setFontSize(14).setBold(true).RtfCode();
-	desc += "Informationen aus Datenbanken (z.B. COSMIC, Cancerhotspots, Cancer Genome Interpreter, PubMed, OnkoKB, ClinVar, OMIM, VarSome, LOVD, HGMD) zu der Variante und funktionelle Daten werden integriert und die Onkogenität der Veränderung wird nach " + RtfText("Variant Interpretation for Cancer Consortium").setFontSize(14).setItalic(true).RtfCode() +" (VICC)-Richtlinien bewertet. In dieser Tabelle sind nur onkogene Veränderungen dargestellt.";
+	desc += "Informationen aus Datenbanken (z.B. COSMIC, Cancerhotspots, Cancer Genome Interpreter, PubMed, OnkoKB, ClinVar, OMIM, VarSome, LOVD, HGMD) zu der Variante und funktionelle Daten werden integriert und die Onkogenität der Veränderung wird nach " + RtfText("Variant Interpretation for Cancer Consortium").setFontSize(14).setItalic(true).RtfCode() +" (VICC)-Richtlinien bewertet. In dieser Tabelle sind nur ";
+	desc += (include_cnvs ? "onkogene" : "unklare");
+	desc += " Veränderungen dargestellt.";
 	if(som_var_in_normal.count() > 0 && include_germline) desc += "\n\\line\n{\\super#} auch in der Normalprobe nachgewiesen.";
 
 	table.addRow(RtfTableRow(desc,{doc_.maxWidth()},RtfParagraph().setFontSize(14).setHorizontalAlignment("j")));
