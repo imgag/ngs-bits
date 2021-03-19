@@ -27,7 +27,8 @@ GermlineReportGenerator::GermlineReportGenerator(const GermlineReportGeneratorDa
 	, test_mode_(test_mode)
 {
 	ps_id_ = db_.processedSampleId(data_.ps);
-	ps_bam_ = db_.processedSamplePath(ps_id_, NGSD::BAM);
+	ps_bam_ = db_.processedSamplePath(ps_id_, PathType::BAM);
+	ps_lowcov_ = db_.processedSamplePath(ps_id_, PathType::LOWCOV_BED);
 
 	if (data_.roi_file!="")
 	{
@@ -847,6 +848,13 @@ void GermlineReportGenerator::overrideBamFile(QString bam_file)
 	ps_bam_ = bam_file;
 }
 
+void GermlineReportGenerator::overrideLowCovFile(QString lowcov_file)
+{
+	if (!test_mode_) THROW(ProgrammingException, "This function can only be used in test mode!");
+
+	ps_lowcov_ = lowcov_file;
+}
+
 void GermlineReportGenerator::overrideDate(QDate date)
 {
 	if (!test_mode_) THROW(ProgrammingException, "This function can only be used in test mode!");
@@ -854,16 +862,10 @@ void GermlineReportGenerator::overrideDate(QDate date)
 	date_ = date;
 }
 
-BedFile GermlineReportGenerator::precalculatedGaps(QString bam_file, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region)
+BedFile GermlineReportGenerator::precalculatedGaps(QString low_cov_file, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region)
 {
 	//check depth cutoff
 	if (min_cov!=20) THROW(ArgumentException, "Depth cutoff is not 20!");
-
-	//find low-coverage file
-	QString dir = QFileInfo(bam_file).absolutePath();
-	QStringList low_cov_files = Helper::findFiles(dir, "*_lowcov.bed", false);
-	if(low_cov_files.count()!=1) THROW(ArgumentException, "Low-coverage file does not exist in " + dir);
-	QString low_cov_file = low_cov_files[0];
 
 	//load low-coverage file
 	BedFile gaps;
@@ -1128,7 +1130,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		BedFile low_cov;
 		try
 		{
-			low_cov = GermlineReportGenerator::precalculatedGaps(ps_bam_, roi_, data_.report_settings.min_depth, sys_roi_);
+			low_cov = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, roi_, data_.report_settings.min_depth, sys_roi_);
 		}
 		catch(Exception e)
 		{
@@ -1328,7 +1330,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		BedFile gaps;
 		try
 		{
-			gaps = GermlineReportGenerator::precalculatedGaps(ps_bam_, roi, data_.report_settings.min_depth, sys_roi_);
+			gaps = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, roi, data_.report_settings.min_depth, sys_roi_);
 		}
 		catch(Exception e)
 		{

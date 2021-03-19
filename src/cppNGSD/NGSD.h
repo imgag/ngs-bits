@@ -23,6 +23,8 @@
 #include "BedpeFile.h"
 #include "SomaticVariantInterpreter.h"
 #include "SomaticCnvInterpreter.h"
+#include "NGSHelper.h"
+#include "FileLocation.h"
 
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
@@ -566,8 +568,7 @@ public:
 	QString sampleId(const QString& filename, bool throw_if_fails = true);
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
-	///Returns the default folder for a processed sample from file name or processed sample name. Throws an exception if it could not be determined.
-	enum PathType {PROJECT_FOLDER, SAMPLE_FOLDER, BAM, GSVAR, VCF};
+
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
 	///Returns the path to secondary analyses of the processed samples.
 	QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type);

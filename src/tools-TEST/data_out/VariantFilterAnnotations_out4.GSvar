@@ -1,6 +1,7 @@
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##SAMPLE=<ID=NA12878_03,Gender=female,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=affected>
 ##PIPELINE=megSAP 0.1-742-ged8ba02
-#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	gnomAD_sub	ESP_sub	gnomAD	phyloP	PolyPhen	Sift	OMIM	fathmm-MKL	CADD	REVEL	ClinVar	HGMD	COSMIC	NGSD_hom	NGSD_het	classification	classification_comment	validation	gene_info
+#chr	start	end	ref	obs	NA12878_03	filter	quality	gene	variant_type	coding_and_splicing	RepeatMasker	dbSNP	1000g	gnomAD_sub	ESP_sub	gnomAD	phyloP	PolyPhen	Sift	OMIM	fathmm-MKL	CADD	REVEL	ClinVar	HGMD	COSMIC	NGSD_hom	NGSD_het	classification	classification_comment	validation	gene_info
 chr1	62732421	62732421	T	C	het		QUAL=13777;DP=857;AF=0.52;MQM=60	KANK4	missense_variant	KANK4:NM_181712.4:missense_variant:MODERATE:exon6/10:c.2302A>G:p.Thr768Ala		rs11207949	0.3055	0.284	0.284	0.2449	2.3800	T	T,T,T								50	368				LINC00115 (inh=n/a pLI=n/a)
 chr1	62739198	62739198	G	A	het		QUAL=2166;DP=140;AF=0.49;MQM=60	KANK4	synonymous_variant	KANK4:NM_181712.4:synonymous_variant:LOW:exon3/10:c.1578C>T:p.Ser526Ser		rs17855078	0.2506	0.308	0.308	0.3309											114	480				LINC00115 (inh=n/a pLI=n/a)
 chr1	120458004	120458004	A	T	het		QUAL=2123;DP=127;AF=0.55;MQM=60	NOTCH2	synonymous_variant	NOTCH2:NM_024408.3:synonymous_variant:LOW:exon34/34:c.7341T>A:p.Gly2447Gly		rs6685892	0.1925	0.129	0.129	0.1038				600275 [NOTCH2 (provisional) Alagille syndrome 2|Hajdu-Cheney syndrome];							11	217				SAMD11 (inh=n/a pLI=0.00)

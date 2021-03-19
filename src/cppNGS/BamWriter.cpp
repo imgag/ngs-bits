@@ -1,9 +1,10 @@
 #include "BamWriter.h"
+#include "Helper.h"
 
 #include <QFileInfo>
 
 BamWriter::BamWriter(const QString& bam_file, const QString& ref_file)
-	: bam_file_(QFileInfo(bam_file).absoluteFilePath())
+	: bam_file_(Helper::canonicalPath(bam_file))
 {
 	//open file pointer
 	if(bam_file.endsWith(".bam"))

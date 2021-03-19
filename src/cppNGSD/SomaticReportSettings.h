@@ -19,7 +19,8 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 
 	QByteArray cancer_type;
 
-	QString sample_dir;
+	QString gsvar_file;
+	QString msi_file;
 
 	///returns variant list according filters and include/exclude report_config settings. Include from settings will overwrite FilterCascade entry
 	static VariantList filterVariants(const VariantList& snvs, const SomaticReportSettings& sett);

@@ -10,7 +10,8 @@
 ///Input configuration for TumorOnlyReportWorker
 struct TumorOnlyReportWorkerConfig
 {
-	QString mapping_stat_qcml_file = "";
+	QString ps; //Tumor processed sample name
+
 	QString target_file = "";
 	QString low_coverage_file = "";
 	QString bam_file = "";
@@ -37,6 +38,7 @@ public:
 	static void checkAnnotation(const VariantList& variants);
 
 private:
+	QString ps_;
 	const VariantList& variants_;
 	const FilterResult& filter_result_;
 
@@ -45,7 +47,6 @@ private:
 	RtfDocument doc_;
 
 	//input files
-	QString mapping_stat_qcml_file_;
 	QString target_file_;
 	QString low_cov_file_;
 	QString bam_file_;

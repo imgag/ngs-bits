@@ -174,19 +174,14 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	//Assign SNV annotation indices
 	snv_index_coding_splicing_ = variants.annotationIndexByName("coding_and_splicing");
 	somatic_vl_ = SomaticReportSettings::filterVariants(variants, settings); //filtered out snvs flagged as artefacts
-	somatic_vl_.sortByAnnotation(somatic_vl_.annotationIndexByName("gene"));
 
 	//Filter CNVs according report configuration settings
 	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings);
 
-	QString prefix = settings_.tumor_ps + "-" + settings_.normal_ps;
-
-	snv_filename_ = Helper::canonicalPath(settings_.sample_dir + "/" + prefix + ".GSvar");
-
 	//load MSI Mantis data
 	try
 	{
-		TSVFileStream msi_file(Helper::canonicalPath(settings_.sample_dir + "/" + prefix + "_msi.tsv"));
+		TSVFileStream msi_file(settings.msi_file);
 		//Use step wise difference (-> stored in the first line of MSI status file) for MSI status
 		QByteArrayList data = msi_file.readLine();
 		if(data.count() > 0) mantis_msi_swd_value_ = data[1].toDouble();
@@ -204,7 +199,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	//Load virus data (from tumor sample dir)
 	try
 	{
-		QString path = db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), NGSD::PathType::SAMPLE_FOLDER) + "/" + settings_.tumor_ps + "_viral.tsv";
+		QString path = db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::SAMPLE_FOLDER) + "/" + settings_.tumor_ps + "_viral.tsv";
 		TSVFileStream file(path);
 		while(!file.atEnd())
 		{
@@ -250,7 +245,8 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 
 
 	//load qcml data
-	qcml_data_ = QCCollection::fromQCML(Helper::canonicalPath(settings_.sample_dir + "/" +prefix + "_stats_som.qcML"));
+	tumor_qcml_data_ = db_.getQCData(db_.processedSampleId(settings_.tumor_ps));
+	normal_qcml_data_ = db_.getQCData(db_.processedSampleId(settings_.normal_ps));
 
 	processing_system_data_ = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(settings_.tumor_ps));
 
@@ -293,7 +289,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	//get mutation burden
 	try
 	{
-		QString mb_string = qcml_data_.value("QC:2000053",true).toString();
+		QString mb_string = tumor_qcml_data_.value("QC:2000053",true).toString();
 		if (mb_string.contains("var/Mb")) //deal with previous version, e.g. "high (23.79 var/Mb)"
 		{
 			mb_string = mb_string.append("  ").split(' ')[1].replace("(", "");
@@ -318,15 +314,8 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	doc_.addColor(191,191,191);
 }
 
-void SomaticReportHelper::germlineSnvForQbic()
+void SomaticReportHelper::germlineSnvForQbic(QString path_target_folder)
 {
-	QString path_target_folder = QFileInfo(snv_filename_).absolutePath() + "/" + "QBIC_files/";
-
-	if(!QDir(path_target_folder).exists())
-	{
-		QDir().mkdir(path_target_folder);
-	}
-
 	//currently no germline SNVs are uploaded, only created header
 	QSharedPointer<QFile> germline_snvs_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_germline_snv.tsv");
 
@@ -340,16 +329,9 @@ void SomaticReportHelper::germlineSnvForQbic()
 	germline_snvs_qbic->close();
 }
 
-void SomaticReportHelper::somaticSnvForQbic()
+void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 {
-	QString path_target_folder = QFileInfo(snv_filename_).absolutePath() + "/" + "QBIC_files/";
-
-	if(!QDir(path_target_folder).exists())
-	{
-		QDir().mkdir(path_target_folder);
-	}
-	VariantList variants = gsvarToVcf(somatic_vl_,snv_filename_.replace(".GSvar","_var_annotated.vcf.gz"));
-	variants.sort();
+	FastaFileIndex genome_reference(Settings::string("reference_genome", false));
 
 	QSharedPointer<QFile> somatic_snvs_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_somatic_snv.tsv");
 
@@ -361,17 +343,18 @@ void SomaticReportHelper::somaticSnvForQbic()
 	stream << "gene" << "\t" << "base_change" << "\t" << "aa_change" << "\t";
 	stream << "transcript" << "\t" << "functional_class" << "\t" << "effect" << endl;
 
-	int i_tumor_af = variants.annotationIndexByName("tumor_af",true,true);
-	int i_tumor_depth = variants.annotationIndexByName("tumor_dp",true,true);
+	int i_tumor_af = somatic_vl_.annotationIndexByName("tumor_af",true,true);
+	int i_tumor_depth = somatic_vl_.annotationIndexByName("tumor_dp",true,true);
 
-	for(int i=0; i<variants.count(); ++i)
+	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
-		const Variant& variant = variants[i];
+		const Variant& variant = somatic_vl_[i];
 
-		stream << variant.chr().str() << "\t";
-		stream << variant.start() << "\t";
-		stream << variant.ref() << "\t";
-		stream << variant.obs()<< "\t";
+		VariantVcfRepresentation vcf_rep = variant.toVCF(genome_reference);
+		stream << vcf_rep.chr.str() << "\t";
+		stream << vcf_rep.pos << "\t";
+		stream << vcf_rep.ref << "\t";
+		stream << vcf_rep.alt << "\t";
 		stream << variant.annotations().at(i_tumor_af) << "\t";
 		stream << variant.annotations().at(i_tumor_depth) << "\t";
 
@@ -419,15 +402,8 @@ void SomaticReportHelper::somaticSnvForQbic()
 	somatic_snvs_qbic->close();
 }
 
-void SomaticReportHelper::germlineCnvForQbic()
+void SomaticReportHelper::germlineCnvForQbic(QString path_target_folder)
 {
-	QString path_target_folder = QFileInfo(snv_filename_).absolutePath() + "/" + "QBIC_files/";
-
-	if(!QDir(path_target_folder).exists())
-	{
-		QDir().mkdir(path_target_folder);
-	}
-
 	QSharedPointer<QFile> germline_cnvs_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_germline_cnv.tsv");
 
 	QTextStream stream(germline_cnvs_qbic.data());
@@ -440,15 +416,8 @@ void SomaticReportHelper::germlineCnvForQbic()
 }
 
 
-void SomaticReportHelper::somaticCnvForQbic()
+void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 {
-	QString path_target_folder = QFileInfo(snv_filename_).absolutePath() + "/" + "QBIC_files/";
-
-	if(!QDir(path_target_folder).exists())
-	{
-		QDir().mkdir(path_target_folder);
-	}
-
 	QSharedPointer<QFile> somatic_cnvs_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_somatic_cnv.tsv");
 
 	QTextStream stream(somatic_cnvs_qbic.data());
@@ -553,15 +522,8 @@ void SomaticReportHelper::somaticCnvForQbic()
 	somatic_cnvs_qbic->close();
 }
 
-void SomaticReportHelper::somaticSvForQbic()
+void SomaticReportHelper::somaticSvForQbic(QString path_target_folder)
 {
-	QString path_target_folder = QFileInfo(snv_filename_).absolutePath() + "/" + "QBIC_files/";
-
-	if(!QDir(path_target_folder).exists())
-	{
-		QDir().mkdir(path_target_folder);
-	}
-
 	QSharedPointer<QFile> somatic_sv_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_somatic_sv.tsv");
 
 	QTextStream stream(somatic_sv_qbic.data());
@@ -572,15 +534,8 @@ void SomaticReportHelper::somaticSvForQbic()
 
 }
 
-void SomaticReportHelper::metaDataForQbic()
+void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 {
-	QString path_target_folder = QFileInfo(snv_filename_).absolutePath() + "/" + "QBIC_files/";
-
-	if(!QDir(path_target_folder).exists())
-	{
-		QDir().mkdir(path_target_folder);
-	}
-
 	QSharedPointer<QFile> meta_data_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_metadata.tsv");
 
 	QTextStream stream(meta_data_qbic.data());
@@ -615,95 +570,6 @@ void SomaticReportHelper::metaDataForQbic()
 
 	meta_data_qbic->close();
 
-}
-
-VariantList SomaticReportHelper::gsvarToVcf(const VariantList& gsvar_list, const QString& orig_name)
-{
-	BedFile roi;
-	for(int i=0;i<gsvar_list.count();++i)
-	{
-		roi.append(BedLine(gsvar_list[i].chr(), gsvar_list[i].start()-15, gsvar_list[i].end()+15));
-	}
-	roi.merge();
-
-	VariantList output;
-	output.copyMetaData(gsvar_list);
-
-	if(!QFile::exists(orig_name))
-	{
-		THROW(FileParseException,"Could not find vcf file " + orig_name + " to convert GSvar to VCF format.");
-		return output;
-	}
-
-	VcfFile orig_vcf;
-	orig_vcf.load(orig_name, roi);
-
-	ChromosomalIndex<VcfFile> orig_idx(orig_vcf);
-
-	for(int i=0;i<gsvar_list.count();++i)
-	{
-		const Variant& v = gsvar_list[i];
-
-		int hit_count = 0;
-
-		QVector<int> matches = orig_idx.matchingIndices(v.chr(), v.start()-10, v.end()+10);
-
-		QList<QByteArray> annotations = v.annotations();
-
-		foreach(int index, matches)
-		{
-			VcfLine v2 = orig_vcf[index];
-			Variant vcf_coordinate_variant;
-
-			if(v2.isMultiAllelic()) continue;
-
-			if (v.isSNV()) //SNV
-			{
-				if (v.start()==v2.start() && v.obs()==v2.alt(0))
-				{
-					v2.copyCoordinatesIntoVariant(vcf_coordinate_variant);
-					vcf_coordinate_variant.setAnnotations(annotations);
-					output.append(vcf_coordinate_variant);
-					++hit_count;
-				}
-			}
-			else if (v.ref()=="-") //insertion
-			{
-				if (v.start()==v2.start() && v2.ref().count()==1 && v2.alt(0).mid(1)==v.obs())
-				{
-					v2.copyCoordinatesIntoVariant(vcf_coordinate_variant);
-					vcf_coordinate_variant.setAnnotations(annotations);
-					output.append(vcf_coordinate_variant);
-					++hit_count;
-				}
-			}
-			else if (v.obs()=="-") //deletion
-			{
-				if (v.start()-1==v2.start() && v2.alt(0).count()==1 && v2.ref().mid(1)==v.ref())
-				{
-					v2.copyCoordinatesIntoVariant(vcf_coordinate_variant);
-					vcf_coordinate_variant.setAnnotations(annotations);
-					output.append(vcf_coordinate_variant);
-					++hit_count;
-				}
-			}
-			else //complex
-			{
-				if (v.start()==v2.start() && v2.alt(0)==v.obs() && v2.ref()==v.ref())
-				{
-					v2.copyCoordinatesIntoVariant(vcf_coordinate_variant);
-					vcf_coordinate_variant.setAnnotations(annotations);
-					output.append(vcf_coordinate_variant);
-					++hit_count;
-				}
-			}
-		}
-		if (hit_count!=1)
-		{
-			THROW(ProgrammingException, "Found " + QString::number(hit_count) + " matching variants for " + v.toString() + " in VCF file. Exactly one expected!");
-		}
-	}
-	return output;
 }
 
 VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& variant)
@@ -862,7 +728,7 @@ double SomaticReportHelper::getTumorContentBySNVs()
 	double tumor_molecular_proportion;
 	try
 	{
-		 tumor_molecular_proportion = qcml_data_.value("QC:2000054",true).toString().toDouble();
+		 tumor_molecular_proportion = tumor_qcml_data_.value("QC:2000054",true).toString().toDouble();
 	}
 	catch(...)
 	{
@@ -1563,25 +1429,16 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	/*******************************************
 	 * GENERAL INFORMATION / QUALITY PARAMETERS*
 	 *******************************************/
-	QDir directory = QFileInfo(snv_filename_).dir();
-	directory.cdUp();
-	QString qcml_file_tumor_stats_map_absolute_path = directory.absolutePath() + "/" + "Sample_" + settings_.tumor_ps + "/" + settings_.tumor_ps + "_stats_map.qcML";
-	QString qcml_file_normal_stats_map_absolute_path = directory.absolutePath() + "/" + "Sample_" + settings_.normal_ps + "/" + settings_.normal_ps + "_stats_map.qcML";
-
-	QCCollection qcml_data_tumor = QCCollection::fromQCML(qcml_file_tumor_stats_map_absolute_path);
-	QCCollection qcml_data_normal = QCCollection::fromQCML(qcml_file_normal_stats_map_absolute_path);
-
-
 	RtfTable metadata;
 	metadata.addRow(RtfTableRow({RtfText("Allgemeine Informationen").setBold(true).setFontSize(16).RtfCode(),RtfText("Qualitätsparameter").setBold(true).setFontSize(16).RtfCode()}, {4550,5371}));
 	metadata.addRow(RtfTableRow({"Auswertungsdatum:",QDate::currentDate().toString("dd.MM.yyyy").toUtf8(),"Analysepipeline:", somatic_vl_.getPipeline().toUtf8()}, {1550,3000,2250,3121}));
 	metadata.addRow(RtfTableRow({"Proben-ID (Tumor):", settings_.tumor_ps.toUtf8(), "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8()},{1550,3000,2250,3121}));
-	metadata.addRow(RtfTableRow({"Proben-ID (Keimbahn):", settings_.normal_ps.toUtf8(), "Coverage Tumor 100x:", qcml_data_tumor.value("QC:2000030",true).toString().toUtf8() + " \%"},{1550,3000,2250,3121}));
-	metadata.addRow(RtfTableRow({"MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3)),  "Durchschnittliche Tiefe Tumor:", qcml_data_tumor.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,3121}));
+	metadata.addRow(RtfTableRow({"Proben-ID (Keimbahn):", settings_.normal_ps.toUtf8(), "Coverage Tumor 100x:", tumor_qcml_data_.value("QC:2000030",true).toString().toUtf8() + " \%"},{1550,3000,2250,3121}));
+	metadata.addRow(RtfTableRow({"MSI-Status:", (!BasicStatistics::isValidFloat(mantis_msi_swd_value_) ? "n/a" : QByteArray::number(mantis_msi_swd_value_,'f',3)),  "Durchschnittliche Tiefe Tumor:", tumor_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,3121}));
 
 
-	metadata.addRow(RtfTableRow({"Prozessierungssystem:",processing_system_data_.name.toUtf8() + " (" + QByteArray::number(target_genes_.count()) + ")", "Coverage Normal 100x:", qcml_data_normal.value("QC:2000030",true).toString().toUtf8() + " \%"} , {1550,3000,2250,3121} ));
-	metadata.addRow(RtfTableRow({"ICD10:", icd10_diagnosis_code_.toUtf8(), "Durchschnittliche Tiefe Normal:", qcml_data_normal.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,3121}));
+	metadata.addRow(RtfTableRow({"Prozessierungssystem:",processing_system_data_.name.toUtf8() + " (" + QByteArray::number(target_genes_.count()) + ")", "Coverage Normal 100x:", normal_qcml_data_.value("QC:2000030",true).toString().toUtf8() + " \%"} , {1550,3000,2250,3121} ));
+	metadata.addRow(RtfTableRow({"ICD10:", icd10_diagnosis_code_.toUtf8(), "Durchschnittliche Tiefe Normal:", normal_qcml_data_.value("QC:2000025",true).toString().toUtf8() + "x"},{1550,3000,2250,3121}));
 
 	metadata.addRow(RtfTableRow("In Regionen mit einer Abdeckung >100x können somatische Varianten mit einer Frequenz >5% im Tumorgewebe mit einer Sensitivität >95,0% und einem Positive Prediction Value PPW >99% bestimmt werden. Für mindestens 95% aller untersuchten Gene kann die Kopienzahl korrekt unter diesen Bedingungen bestimmt werden.", doc_.maxWidth()) );
 
@@ -1618,6 +1475,21 @@ void SomaticReportHelper::storeXML(QString file_name)
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(file_name);
 	out_file->write(xml_data);
 	out_file->close();
+}
+
+void SomaticReportHelper::storeQbicData(QString path)
+{
+	if(!QDir(path).exists())
+	{
+		QDir().mkdir(path);
+	}
+
+	germlineSnvForQbic(path);
+	somaticSnvForQbic(path);
+	germlineCnvForQbic(path);
+	somaticCnvForQbic(path);
+	somaticSvForQbic(path);
+	metaDataForQbic(path);
 }
 
 

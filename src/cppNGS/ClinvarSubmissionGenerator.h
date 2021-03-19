@@ -19,7 +19,7 @@ struct CPPNGSSHARED_EXPORT ClinvarSubmissionData
 	QString organization_id; //NCBI organization ID, e.g. https://www.ncbi.nlm.nih.gov/clinvar/submitters/506385/
 
 	//variant data
-	Variant variant; //variant in VCF format
+	VariantVcfRepresentation variant;
 	QString variant_classification;
 	QString variant_inheritance;
 

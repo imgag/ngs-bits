@@ -40,7 +40,7 @@ struct CPPNGSSHARED_EXPORT SampleInfo
 {
 	QString id; //sample name/identifier
 	QString column_name; //sample column in VCF/GSvar format
-	int column_index;
+	int column_index; //column index of the sample genotype column (for germline only, below zero for somatic)
 	QMap<QString, QString> properties;
 
 	///Returns if the sample has state 'affected'.
@@ -64,6 +64,15 @@ class CPPNGSSHARED_EXPORT SampleHeaderInfo
 		const SampleInfo& infoByStatus(bool affected, QString gender = "n/a") const;
 		///Returns sample genotype column indices of affected/unaffected samples.
 		QList<int> sampleColumns(bool affected) const;
+};
+
+///VCF representation of a variant in GSvar format.
+struct VariantVcfRepresentation
+{
+	Chromosome chr;
+	int pos;
+	Sequence ref;
+	Sequence alt;
 };
 
 ///Genetic variant or mutation (1-based).
@@ -200,7 +209,7 @@ public:
 	/// Returns the HGVS.g notation of the variant.
 	QString toHGVS(const FastaFileIndex& genome_index) const;
 	/// Returns the VCF line notation of the variant up to the INFO column.
-	QString toVCF(const FastaFileIndex& genome_index) const;
+	VariantVcfRepresentation toVCF(const FastaFileIndex& genome_index) const;
 
     ///Auxilary function: Removes common prefix and suffix bases from indels and adapts the start position accordingly.
 	static void normalize(int& start, Sequence& ref, Sequence& obs);
@@ -236,7 +245,7 @@ protected:
 ///Debug output operator for Variant.
 QDebug operator<<(QDebug d, const Variant& v);
 
-///Supported analysis types
+///Supported analysis types.
 enum AnalysisType
 {
 	GERMLINE_SINGLESAMPLE,
@@ -245,6 +254,10 @@ enum AnalysisType
 	SOMATIC_SINGLESAMPLE,
 	SOMATIC_PAIR
 };
+///Returns the string repesentation of the analysis type (or a human-readable version).
+QString analysisTypeToString(AnalysisType type, bool human_readable=false);
+///Returns a the  repesentation of the analysis type (does not support the human-readable version).
+AnalysisType stringToAnalysisType(QString type);
 
 ///A list of genetic variants
 class CPPNGSSHARED_EXPORT VariantList
@@ -252,6 +265,11 @@ class CPPNGSSHARED_EXPORT VariantList
 public:
     ///Default constructor
     VariantList();
+
+	///Returns the human readable name of the analysis, e.g. for showning in a GUI.
+	QString analysisName() const;
+	///Returns the name of the main processed sample (child for trio, tumor for tumor-normal, only affected for multi). Throws an exception of no main sample could be determined!
+	QString mainSampleName() const;
 
 	///Copies meta data from a variant list (comment, annotations, sample name), but not the variants.
 	void copyMetaData(const VariantList& rhs);
@@ -364,8 +382,6 @@ public:
 	void load(QString filename);
     ///Stores the variant list to a file.
 	void store(QString filename) const;
-	///Stores the variant list as a VCF file (all columns are stored in INFO)
-	void storeAsVCF(QString filename, const QString& reference_genome, int compression_level = 1) const;
 
 	///Default sorting of variants. The order is chromosome (numeric), position, ref, obs, quality (if desired - only for VCF).
 	void sort(bool use_quality = false);
@@ -396,13 +412,13 @@ public:
 	void checkValid() const;
 
 	///Parses and returns sample data from variant list header (only for GSvar).
-	SampleHeaderInfo getSampleHeader(bool error_if_missing=true) const;
+	SampleHeaderInfo getSampleHeader() const;
 
 	///Parse analysis pipeline version from comments
 	QString getPipeline() const;
 
 	///Returns analysis type.
-	AnalysisType type(bool allow_fallback_germline_single_sample = true) const;
+	AnalysisType type(bool allow_fallback_germline_single_sample=true) const;
 
 	///Returns whether list contains variant with same chr, start, end, ref and obs
 	bool contains(const Variant& var)
@@ -455,9 +471,6 @@ protected:
 		private:
 			int quality_index_;
     };
-
-	///Converts an annotation type to a string (for VCF only)
-	static QString annotationTypeToString(VariantAnnotationDescription::AnnotationType type);
 };
 
 #endif // VARIANTLIST_H

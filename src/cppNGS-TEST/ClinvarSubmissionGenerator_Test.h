@@ -14,7 +14,7 @@ private:
 		data.submission_id = "123456";
 		data.submitter_id = "78325";
 		data.organization_id = "506385";
-		data.variant = Variant("chr7",  140453136, 140453136, "T", "A");
+		data.variant = VariantVcfRepresentation{"chr7", 140453136, "T", "A"};
 		data.variant_classification = "Pathogenic";
 		data.variant_inheritance = "Autosomal recessive inheritance";
 

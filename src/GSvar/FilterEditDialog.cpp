@@ -30,7 +30,7 @@ void FilterEditDialog::setupForm()
 		QList<QWidget*> widgets;
 		switch (p.type)
 		{
-			case INT:
+			case FilterParameterType::INT:
 			{
 				QSpinBox* widget = new QSpinBox(this);
 				bool min_set = p.constraints.contains("min");
@@ -60,7 +60,7 @@ void FilterEditDialog::setupForm()
 				widgets << widget;
 				break;
 			}
-			case DOUBLE:
+			case FilterParameterType::DOUBLE:
 			{
 				auto widget = new QDoubleSpinBox(this);
 				bool min_set = p.constraints.contains("min");
@@ -90,7 +90,7 @@ void FilterEditDialog::setupForm()
 				widgets << widget;
 				break;
 			}
-			case BOOL:
+			case FilterParameterType::BOOL:
 			{
 				QButtonGroup* group = new QButtonGroup(this);
 
@@ -106,7 +106,7 @@ void FilterEditDialog::setupForm()
 
 				break;
 			}
-			case STRING:
+			case FilterParameterType::STRING:
 			{
 				QString value = p.value.toString();
 				if(p.constraints.contains("valid"))
@@ -130,7 +130,7 @@ void FilterEditDialog::setupForm()
 				}
 				break;
 			}
-			case STRINGLIST:
+			case FilterParameterType::STRINGLIST:
 			{
 				QStringList values = p.value.toStringList();
 
@@ -193,17 +193,17 @@ void FilterEditDialog::done(int r)
 			{
 				switch (p.type)
 				{
-					case INT:
+					case FilterParameterType::INT:
 					{
 						filter_->setInteger(p.name, getWidget<QSpinBox*>(p.name)->value());
 						break;
 					}
-					case DOUBLE:
+					case FilterParameterType::DOUBLE:
 					{
 						filter_->setDouble(p.name, getWidget<QDoubleSpinBox*>(p.name)->value());
 						break;
 					}
-					case BOOL:
+					case FilterParameterType::BOOL:
 					{
 						QList<QRadioButton*> buttons = getWidgets<QRadioButton*>(p.name);
 						foreach(QRadioButton* button, buttons)
@@ -215,7 +215,7 @@ void FilterEditDialog::done(int r)
 						}
 						break;
 					}
-					case STRING:
+					case FilterParameterType::STRING:
 					{
 						if(p.constraints.contains("valid"))
 						{
@@ -234,7 +234,7 @@ void FilterEditDialog::done(int r)
 						}
 						break;
 					}
-					case STRINGLIST:
+					case FilterParameterType::STRINGLIST:
 					{
 						if(p.constraints.contains("valid"))
 						{

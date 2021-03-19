@@ -11,43 +11,35 @@ IgvDialog::IgvDialog(QWidget *parent)
 	connect(ui_.tree, SIGNAL(itemChanged(QTreeWidgetItem*,int)), this, SLOT(treeItemChanged(QTreeWidgetItem*)));
 }
 
-void IgvDialog::addFile(QString label, QString type, QString filename, bool checked)
+void IgvDialog::addFile(const FileLocation& file, bool checked)
 {
-	//determine group
+	//determine group (if present)
 	QTreeWidgetItem* group = nullptr;
 	for(int i=0; i<ui_.tree->topLevelItemCount(); ++i)
 	{
-		if (ui_.tree->topLevelItem(i)->text(0)==type)
+		if (ui_.tree->topLevelItem(i)->text(0)==file.typeAsHumanReadableString())
 		{
 			group = ui_.tree->topLevelItem(i);
 		}
 	}
-
-	//add group if missing
-	if (group==nullptr)
+	if (group==nullptr) //add group if missing
 	{
-		group = new QTreeWidgetItem(QStringList() << type);
+		group = new QTreeWidgetItem(QStringList() << file.typeAsHumanReadableString());
 		group->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
-		if (type=="VCF") group->setToolTip(0, "Variant list(s)");
-		if (type=="BAM") group->setToolTip(0, "Sequencing read file(s)");
-		if (type=="CNV") group->setToolTip(0, "Copy-number file(s)");
-		if (type=="BAF") group->setToolTip(0, "b-allele frequency file(s)");
-		if (type=="BED") group->setToolTip(0, "region file(s)");
-		if (type=="custom track") group->setToolTip(0, "Custom tracks");
 		ui_.tree->addTopLevelItem(group);
 	}
 
 	//add file
-	QTreeWidgetItem* item = new QTreeWidgetItem(QStringList() << label);
-	item->setToolTip(0, filename);
-	if (QFile::exists(filename))
+	QTreeWidgetItem* item = new QTreeWidgetItem(QStringList() << file.id);
+	item->setToolTip(0, file.filename);
+	if (file.exists)
 	{
 		item->setFlags(Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
 		item->setCheckState(0, checked ? Qt::Checked : Qt::Unchecked);
 	}
 	else
 	{
-		item->setText(0, label + " (missing)");
+		item->setText(0, file.id + " (missing)");
 		item->setFlags(Qt::ItemIsUserCheckable);
 		item->setCheckState(0, Qt::Unchecked);
 	}
@@ -109,6 +101,6 @@ void IgvDialog::treeItemChanged(QTreeWidgetItem* item)
 {
 	for (int i=0; i<item->childCount(); ++i)
 	{
-		item->child(i)->setCheckState(0, item->checkState(0));
+		item->child(i)->setCheckState(0, item->child(i)->isDisabled() ? Qt::Unchecked :  item->checkState(0));
 	}
 }

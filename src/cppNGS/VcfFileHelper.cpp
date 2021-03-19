@@ -446,32 +446,6 @@ bool VcfHeader::parseInfoFormatLine(const QByteArray& line,InfoFormatLine& info_
 	return true;
 }
 
-AnalysisType VcfHeader::type(bool allow_fallback_germline_single_sample) const
-{
-	foreach(const VcfHeaderLine& line, file_comments_)
-	{
-		if (line.key == ("ANALYSISTYPE"))
-		{
-			QString type = line.value;
-			if (type=="GERMLINE_SINGLESAMPLE") return GERMLINE_SINGLESAMPLE;
-			else if (type=="GERMLINE_TRIO") return GERMLINE_TRIO;
-			else if (type=="GERMLINE_MULTISAMPLE") return GERMLINE_MULTISAMPLE;
-			else if (type=="SOMATIC_SINGLESAMPLE") return SOMATIC_SINGLESAMPLE;
-			else if (type=="SOMATIC_PAIR") return SOMATIC_PAIR;
-			else THROW(FileParseException, "Invalid analysis type '" + type + "' found in variant list!");
-		}
-	}
-
-	if (allow_fallback_germline_single_sample)
-	{
-		return GERMLINE_SINGLESAMPLE; //fallback for old files without ANALYSISTYPE header
-	}
-	else
-	{
-		THROW(FileParseException, "No analysis type found in variant list!");
-	}
-}
-
 //returns if the chromosome is valid
 bool VcfLine::isValidGenomicPosition() const
 {

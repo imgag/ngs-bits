@@ -18,15 +18,15 @@ FilterParameter::FilterParameter(QString n, FilterParameterType t, QVariant v, Q
 
 QString FilterParameter::valueAsString() const
 {
-	if (type==INT || type==DOUBLE || type==STRING)
+	if (type==FilterParameterType::INT || type==FilterParameterType::DOUBLE || type==FilterParameterType::STRING)
 	{
 		return value.toString();
 	}
-	else if (type==BOOL)
+	else if (type==FilterParameterType::BOOL)
 	{
 		return value.toBool() ? "yes" : "no";
 	}
-	else if (type==STRINGLIST)
+	else if (type==FilterParameterType::STRINGLIST)
 	{
 		return value.toStringList().join(",");
 	}
@@ -38,23 +38,23 @@ QString FilterParameter::valueAsString() const
 
 QString FilterParameter::typeAsString(FilterParameterType type)
 {
-	if (type==INT)
+	if (type==FilterParameterType::INT)
 	{
 		return "INT";
 	}
-	else if (type==DOUBLE)
+	else if (type==FilterParameterType::DOUBLE)
 	{
 		return "DOUBLE";
 	}
-	else if (type==BOOL)
+	else if (type==FilterParameterType::BOOL)
 	{
 		return "BOOL";
 	}
-	else if (type==STRING)
+	else if (type==FilterParameterType::STRING)
 	{
 		return "STRING";
 	}
-	else if (type==STRINGLIST)
+	else if (type==FilterParameterType::STRINGLIST)
 	{
 		return "STRINGLIST";
 	}
@@ -245,12 +245,12 @@ QStringList FilterBase::description(bool add_parameter_description) const
 		foreach(const FilterParameter& p, params_)
 		{
 			QString text = p.name + " - " + p.description;
-			QString default_value = p.type==STRINGLIST ? p.value.toStringList().join(",").trimmed() : p.value.toString().trimmed();
+			QString default_value = p.type==FilterParameterType::STRINGLIST ? p.value.toStringList().join(",").trimmed() : p.value.toString().trimmed();
 			if (default_value!="")
 			{
 				text += " [default=" + default_value + "]";
 			}
-			if (p.type==INT || p.type==DOUBLE)
+			if (p.type==FilterParameterType::INT || p.type==FilterParameterType::DOUBLE)
 			{
 				if (p.constraints.contains("min"))
 				{
@@ -261,7 +261,7 @@ QStringList FilterBase::description(bool add_parameter_description) const
 					text += " [max=" + p.constraints["max"] + "]";
 				}
 			}
-			else if (p.type==STRING || p.type==STRINGLIST)
+			else if (p.type==FilterParameterType::STRING || p.type==FilterParameterType::STRINGLIST)
 			{
 				if (p.constraints.contains("valid"))
 				{
@@ -281,7 +281,7 @@ QStringList FilterBase::description(bool add_parameter_description) const
 void FilterBase::setGeneric(const QString& name, const QString& value)
 {
 	FilterParameterType type = parameter(name).type;
-	if (type==DOUBLE)
+	if (type==FilterParameterType::DOUBLE)
 	{
 		bool ok = false;
 		double value_conv = value.toDouble(&ok);
@@ -289,7 +289,7 @@ void FilterBase::setGeneric(const QString& name, const QString& value)
 
 		setDouble(name, value_conv);
 	}
-	else if (type==INT)
+	else if (type==FilterParameterType::INT)
 	{
 		bool ok = false;
 		int value_conv = value.toInt(&ok);
@@ -297,7 +297,7 @@ void FilterBase::setGeneric(const QString& name, const QString& value)
 
 		setInteger(name, value_conv);
 	}
-	else if (type==BOOL)
+	else if (type==FilterParameterType::BOOL)
 	{
 		bool value_conv;
 		if (value.toLower()=="yes" || value.toLower()=="true") value_conv = true;
@@ -306,37 +306,37 @@ void FilterBase::setGeneric(const QString& name, const QString& value)
 
 		setBool(name, value_conv);
 	}
-	else if (type==STRING)
+	else if (type==FilterParameterType::STRING)
 	{
 		setString(name, value);
 	}
-	else if (type==STRINGLIST)
+	else if (type==FilterParameterType::STRINGLIST)
 	{
 		setStringList(name, value.split(','));
 	}
 	else
 	{
-		THROW(ProgrammingException, "Filter parameter type '" + QString(QVariant::typeToName(type)) + "' not supported in setGenericParameter (parameter '" + name + "' of filter '" + this->name() + "')!");
+		THROW(ProgrammingException, "Filter parameter type '" + FilterParameter::typeAsString(type) + "' not supported in setGenericParameter (parameter '" + name + "' of filter '" + this->name() + "')!");
 	}
 }
 
 void FilterBase::setDouble(const QString& name, double value)
 {
-	checkParameterType(name, DOUBLE);
+	checkParameterType(name, FilterParameterType::DOUBLE);
 
 	parameter(name).value = value;
 }
 
 void FilterBase::setString(const QString& name, const QString& value)
 {
-	checkParameterType(name, STRING);
+	checkParameterType(name, FilterParameterType::STRING);
 
 	parameter(name).value = value;
 }
 
 void FilterBase::setStringList(const QString& name, const QStringList& value)
 {
-	checkParameterType(name, STRINGLIST);
+	checkParameterType(name, FilterParameterType::STRINGLIST);
 
 	parameter(name).value = value;
 }
@@ -369,14 +369,14 @@ void FilterBase::apply(const BedpeFile& /*sv_list*/, FilterResult& /*result*/) c
 
 void FilterBase::setInteger(const QString& name, int value)
 {
-	checkParameterType(name, INT);
+	checkParameterType(name, FilterParameterType::INT);
 
 	parameter(name).value = value;
 }
 
 void FilterBase::setBool(const QString& name, bool value)
 {
-	checkParameterType(name, BOOL);
+	checkParameterType(name, FilterParameterType::BOOL);
 
 	parameter(name).value = value;
 }
@@ -412,7 +412,7 @@ void FilterBase::checkParameterType(const QString& name, FilterParameterType typ
 
 double FilterBase::getDouble(const QString& name, bool check_constraints) const
 {
-	checkParameterType(name, DOUBLE);
+	checkParameterType(name, FilterParameterType::DOUBLE);
 
 	const FilterParameter& p = parameter(name);
 
@@ -438,7 +438,7 @@ double FilterBase::getDouble(const QString& name, bool check_constraints) const
 
 int FilterBase::getInt(const QString& name, bool check_constraints) const
 {
-	checkParameterType(name, INT);
+	checkParameterType(name, FilterParameterType::INT);
 
 	const FilterParameter& p = parameter(name);
 
@@ -464,7 +464,7 @@ int FilterBase::getInt(const QString& name, bool check_constraints) const
 
 double FilterBase::getBool(const QString& name) const
 {
-	checkParameterType(name, BOOL);
+	checkParameterType(name, FilterParameterType::BOOL);
 
 	const FilterParameter& p = parameter(name);
 
@@ -473,7 +473,7 @@ double FilterBase::getBool(const QString& name) const
 
 QString FilterBase::getString(const QString& name, bool check_constraints) const
 {
-	checkParameterType(name, STRING);
+	checkParameterType(name, FilterParameterType::STRING);
 
 	const FilterParameter& p = parameter(name);
 
@@ -503,7 +503,7 @@ QString FilterBase::getString(const QString& name, bool check_constraints) const
 
 QStringList FilterBase::getStringList(const QString& name, bool check_constraints) const
 {
-	checkParameterType(name, STRINGLIST);
+	checkParameterType(name, FilterParameterType::STRINGLIST);
 
 	const FilterParameter& p = parameter(name);
 
@@ -954,7 +954,7 @@ FilterAlleleFrequency::FilterAlleleFrequency()
 {
 	name_ = "Allele frequency";
 	description_ = QStringList() << "Filter based on overall allele frequency given by 1000 Genomes and gnomAD.";
-	params_ << FilterParameter("max_af", DOUBLE, 1.0, "Maximum allele frequency in %");
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";
 
@@ -990,7 +990,7 @@ FilterGenes::FilterGenes()
 {
 	name_ = "Genes";
 	description_ = QStringList() << "Filter for that preserves a gene set.";
-	params_ << FilterParameter("genes", STRINGLIST, QStringList(), "Gene set");
+	params_ << FilterParameter("genes", FilterParameterType::STRINGLIST, QStringList(), "Gene set");
 	params_.last().constraints["not_empty"] = "";
 
 	checkIsRegistered();
@@ -1149,7 +1149,7 @@ FilterVariantIsSNV::FilterVariantIsSNV()
 {
 	name_ = "SNVs only";
 	description_ = QStringList() << "Filter that preserves SNVs and removes all other variant types.";
-	params_ << FilterParameter("invert", BOOL, false, "If set, removes all SNVs and keeps all other variants.");
+	params_ << FilterParameter("invert", FilterParameterType::BOOL, false, "If set, removes all SNVs and keeps all other variants.");
 
 	checkIsRegistered();
 }
@@ -1195,7 +1195,7 @@ FilterSubpopulationAlleleFrequency::FilterSubpopulationAlleleFrequency()
 {
 	name_ = "Allele frequency (sub-populations)";
 	description_ = QStringList() << "Filter based on sub-population allele frequency given by gnomAD.";
-	params_ << FilterParameter("max_af", DOUBLE, 1.0, "Maximum allele frequency in %");
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";
 
@@ -1237,7 +1237,7 @@ FilterVariantImpact::FilterVariantImpact()
 	name_ = "Impact";
 	description_ = QStringList() << "Filter based on the variant impact given by VEP." << "For more details see: https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html";
 
-	params_ << FilterParameter("impact", STRINGLIST, QStringList() << "HIGH" << "MODERATE" << "LOW", "Valid impacts");
+	params_ << FilterParameter("impact", FilterParameterType::STRINGLIST, QStringList() << "HIGH" << "MODERATE" << "LOW", "Valid impacts");
 	params_.last().constraints["valid"] = "HIGH,MODERATE,LOW,MODIFIER";
 	params_.last().constraints["not_empty"] = "";
 
@@ -1282,9 +1282,9 @@ FilterVariantCountNGSD::FilterVariantCountNGSD()
 {
 	name_ = "Count NGSD";
 	description_ = QStringList() << "Filter based on the hom/het occurances of a variant in the NGSD.";
-	params_ << FilterParameter("max_count", INT, 20, "Maximum NGSD count");
+	params_ << FilterParameter("max_count", FilterParameterType::INT, 20, "Maximum NGSD count");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("ignore_genotype", BOOL, false, "If set, all NGSD entries are counted independent of the variant genotype. Otherwise, for homozygous variants only homozygous NGSD entries are counted and for heterozygous variants all NGSD entries are counted.");
+	params_ << FilterParameter("ignore_genotype", FilterParameterType::BOOL, false, "If set, all NGSD entries are counted independent of the variant genotype. Otherwise, for homozygous variants only homozygous NGSD entries are counted and for heterozygous variants all NGSD entries are counted.");
 
 	checkIsRegistered();
 }
@@ -1347,9 +1347,9 @@ FilterFilterColumn::FilterFilterColumn()
 	name_ = "Filter columns";
 	description_ = QStringList() << "Filter based on the entries of the 'filter' column.";
 
-	params_ << FilterParameter("entries", STRINGLIST, QStringList(), "Filter column entries");
+	params_ << FilterParameter("entries", FilterParameterType::STRINGLIST, QStringList(), "Filter column entries");
 	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("action", STRING, "REMOVE", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "REMOVE", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,REMOVE,FILTER";
 
 	checkIsRegistered();
@@ -1416,10 +1416,10 @@ FilterClassificationNGSD::FilterClassificationNGSD()
 	name_ = "Classification NGSD";
 	description_ = QStringList() << "Filter for variant classification from NGSD.";
 
-	params_ << FilterParameter("classes", STRINGLIST, QStringList() << "4" << "5", "NGSD classes");
+	params_ << FilterParameter("classes", FilterParameterType::STRINGLIST, QStringList() << "4" << "5", "NGSD classes");
 	params_.last().constraints["valid"] = "1,2,3,4,5,M";
 	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("action", STRING, "KEEP", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER,REMOVE";
 
 	checkIsRegistered();
@@ -1481,7 +1481,7 @@ FilterGeneInheritance::FilterGeneInheritance()
 	name_ = "Gene inheritance";
 	description_ = QStringList() << "Filter based on gene inheritance.";
 
-	params_ << FilterParameter("modes", STRINGLIST, QStringList(), "Inheritance mode(s)");
+	params_ << FilterParameter("modes", FilterParameterType::STRINGLIST, QStringList(), "Inheritance mode(s)");
 	params_.last().constraints["valid"] = "AR,AD,XLR,XLD,MT";
 	params_.last().constraints["not_empty"] = "";
 
@@ -1537,11 +1537,11 @@ FilterGeneConstraint::FilterGeneConstraint()
 	name_ = "Gene constraint";
 	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/" << "Note: ExAC pLI is deprected and support for backward compatibility with old GSvar files.";
 
-	params_ << FilterParameter("max_oe_lof", DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
+	params_ << FilterParameter("max_oe_lof", FilterParameterType::DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
-	params_ << FilterParameter("min_pli", DOUBLE, 0.9, "Minumum ExAC pLI score");
+	params_ << FilterParameter("min_pli",FilterParameterType:: DOUBLE, 0.9, "Minumum ExAC pLI score");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -1608,10 +1608,10 @@ FilterGenotypeControl::FilterGenotypeControl()
 	name_ = "Genotype control";
 	description_ = QStringList() << "Filter for genotype of the 'control' sample(s).";
 
-	params_ << FilterParameter("genotypes", STRINGLIST, QStringList(), "Genotype(s)");
+	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Genotype(s)");
 	params_.last().constraints["valid"] = "wt,het,hom,n/a";
 	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("same_genotype", BOOL, false, "Also check that all 'control' samples have the same genotype.");
+	params_ << FilterParameter("same_genotype", FilterParameterType::BOOL, false, "Also check that all 'control' samples have the same genotype.");
 
 	checkIsRegistered();
 }
@@ -1678,7 +1678,7 @@ FilterGenotypeAffected::FilterGenotypeAffected()
 {
 	name_ = "Genotype affected";
 	description_ = QStringList() << "Filter for genotype(s) of the 'affected' sample(s)." << "Variants pass if 'affected' samples have the same genotype and the genotype is in the list selected genotype(s).";
-	params_ << FilterParameter("genotypes", STRINGLIST, QStringList(), "Genotype(s)");
+	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Genotype(s)");
 	params_.last().constraints["valid"] = "wt,het,hom,n/a,comp-het";
 	params_.last().constraints["not_empty"] = "";
 
@@ -1792,11 +1792,11 @@ FilterColumnMatchRegexp::FilterColumnMatchRegexp()
 	name_ = "Column match";
 	description_ = QStringList() << "Filter that matches the content of a column against a perl-compatible regular expression." << "For details about regular expressions, see http://perldoc.perl.org/perlretut.html";
 
-	params_ << FilterParameter("pattern", STRING, "", "Pattern to match to column");
+	params_ << FilterParameter("pattern", FilterParameterType::STRING, "", "Pattern to match to column");
 	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("column", STRING, "", "Column to filter");
+	params_ << FilterParameter("column", FilterParameterType::STRING, "", "Column to filter");
 	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("action", STRING, "KEEP", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER,REMOVE";
 
 	checkIsRegistered();
@@ -1856,11 +1856,11 @@ FilterAnnotationPathogenic::FilterAnnotationPathogenic()
 	name_ = "Annotated pathogenic";
 	description_ = QStringList() << "Filter that matches variants annotated to be pathogenic by ClinVar or HGMD.";
 
-	params_ << FilterParameter("sources", STRINGLIST, QStringList() << "ClinVar" << "HGMD", "Sources of pathogenicity to use");
+	params_ << FilterParameter("sources", FilterParameterType::STRINGLIST, QStringList() << "ClinVar" << "HGMD", "Sources of pathogenicity to use");
 	params_.last().constraints["valid"] = "ClinVar,HGMD";
 	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("also_likely_pathogenic", BOOL, false, "Also consider likely pathogenic variants");
-	params_ << FilterParameter("action", STRING, "KEEP", "Action to perform");
+	params_ << FilterParameter("also_likely_pathogenic", FilterParameterType::BOOL, false, "Also consider likely pathogenic variants");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER";
 
 	checkIsRegistered();
@@ -1941,9 +1941,9 @@ FilterPredictionPathogenic::FilterPredictionPathogenic()
 {
 	name_ = "Predicted pathogenic";
 	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Prediction scores included are: phyloP>=1.6, Sift=D, PolyPhen=D, fathmm-MKL>=0.5, CADD>=20 and REVEL>=0.5.";
-	params_ << FilterParameter("min", INT, 1, "Minimum number of pathogenic predictions");
+	params_ << FilterParameter("min", FilterParameterType::INT, 1, "Minimum number of pathogenic predictions");
 	params_.last().constraints["min"] = "1";
-	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER";
 
 	checkIsRegistered();
@@ -2035,9 +2035,9 @@ FilterAnnotationText::FilterAnnotationText()
 {
 	name_ = "Text search";
 	description_ = QStringList() << "Filter for text match in variant annotations." << "The text comparison ignores the case.";
-	params_ << FilterParameter("term", STRING, QString(), "Search term");
+	params_ << FilterParameter("term", FilterParameterType::STRING, QString(), "Search term");
 	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "FILTER,KEEP,REMOVE";
 
 	checkIsRegistered();
@@ -2101,16 +2101,16 @@ FilterVariantType::FilterVariantType()
 {
 	name_ = "Variant type";
 	description_ = QStringList() << "Filter for variant types as defined by sequence ontology." << "For details see http://www.sequenceontology.org/browser/obob.cgi";
-	params_ << FilterParameter("HIGH", STRINGLIST, QStringList() << "frameshift_variant" << "splice_acceptor_variant" << "splice_donor_variant" << "start_lost" << "start_retained_variant" << "stop_gained" << "stop_lost", "High impact variant types");
+	params_ << FilterParameter("HIGH", FilterParameterType::STRINGLIST, QStringList() << "frameshift_variant" << "splice_acceptor_variant" << "splice_donor_variant" << "start_lost" << "start_retained_variant" << "stop_gained" << "stop_lost", "High impact variant types");
 	params_.last().constraints["valid"] = "frameshift_variant,splice_acceptor_variant,splice_donor_variant,start_lost,start_retained_variant,stop_gained,stop_lost";
 
-	params_ << FilterParameter("MODERATE", STRINGLIST, QStringList() << "inframe_deletion" << "inframe_insertion" << "missense_variant", "Moderate impact variant types");
+	params_ << FilterParameter("MODERATE", FilterParameterType::STRINGLIST, QStringList() << "inframe_deletion" << "inframe_insertion" << "missense_variant", "Moderate impact variant types");
 	params_.last().constraints["valid"] = "inframe_deletion,inframe_insertion,missense_variant";
 
-	params_ << FilterParameter("LOW", STRINGLIST, QStringList() << "splice_region_variant", "Low impact variant types");
+	params_ << FilterParameter("LOW", FilterParameterType::STRINGLIST, QStringList() << "splice_region_variant", "Low impact variant types");
 	params_.last().constraints["valid"] = "splice_region_variant,stop_retained_variant,synonymous_variant";
 
-	params_ << FilterParameter("MODIFIER", STRINGLIST, QStringList(), "Lowest impact variant types");
+	params_ << FilterParameter("MODIFIER", FilterParameterType::STRINGLIST, QStringList(), "Lowest impact variant types");
 	params_.last().constraints["valid"] = "3_prime_UTR_variant,5_prime_UTR_variant,NMD_transcript_variant,downstream_gene_variant,intergenic_variant,intron_variant,mature_miRNA_variant,non_coding_transcript_exon_variant,non_coding_transcript_variant,upstream_gene_variant";
 
 	checkIsRegistered();
@@ -2173,15 +2173,15 @@ FilterVariantQC::FilterVariantQC()
 {
 	name_ = "Variant quality";
 	description_ = QStringList() << "Filter for variant quality";
-	params_ << FilterParameter("qual", INT, 250, "Minimum variant quality score (Phred)");
+	params_ << FilterParameter("qual", FilterParameterType::INT, 250, "Minimum variant quality score (Phred)");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("depth", INT, 0, "Minimum depth");
+	params_ << FilterParameter("depth", FilterParameterType::INT, 0, "Minimum depth");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("mapq", INT, 40, "Minimum mapping quality of alternate allele (Phred)");
+	params_ << FilterParameter("mapq", FilterParameterType::INT, 40, "Minimum mapping quality of alternate allele (Phred)");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("strand_bias", INT, 20, "Maximum strand bias Phred score of alternate allele (set -1 to disable)");
+	params_ << FilterParameter("strand_bias", FilterParameterType::INT, 20, "Maximum strand bias Phred score of alternate allele (set -1 to disable)");
 	params_.last().constraints["min"] = "-1";
-	params_ << FilterParameter("allele_balance", INT, 40, "Maximum allele balance Phred score (set -1 to disable)");
+	params_ << FilterParameter("allele_balance", FilterParameterType::INT, 40, "Maximum allele balance Phred score (set -1 to disable)");
 	params_.last().constraints["min"] = "-1";
 
 	checkIsRegistered();
@@ -2271,11 +2271,11 @@ FilterTrio::FilterTrio()
 {
 	name_ = "Trio";
 	description_ = QStringList() << "Filter trio variants";
-	params_ << FilterParameter("types", STRINGLIST, QStringList() << "de-novo" << "recessive" << "comp-het" << "LOH" << "x-linked", "Variant types");
+	params_ << FilterParameter("types", FilterParameterType::STRINGLIST, QStringList() << "de-novo" << "recessive" << "comp-het" << "LOH" << "x-linked", "Variant types");
 	params_.last().constraints["valid"] = "de-novo,recessive,comp-het,LOH,x-linked,imprinting";
 	params_.last().constraints["non-empty"] = "";
 
-	params_ << FilterParameter("gender_child", STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
+	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
 	params_.last().constraints["valid"] = "male,female,n/a";
 
 	checkIsRegistered();
@@ -2294,7 +2294,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	QString gender_child = getString("gender_child");
 	if (gender_child=="n/a")
 	{
-		gender_child = variants.getSampleHeader(true).infoByStatus(true).gender();
+		gender_child = variants.getSampleHeader().infoByStatus(true).gender();
 	}
 	if (gender_child=="n/a")
 	{
@@ -2511,7 +2511,7 @@ FilterOMIM::FilterOMIM()
 {
 	name_ = "OMIM genes";
 	description_ = QStringList() << "Filter for OMIM genes i.e. the 'OMIM' column is not empty.";
-	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "REMOVE,FILTER";
 	checkIsRegistered();
 }
@@ -2558,7 +2558,7 @@ FilterConservedness::FilterConservedness()
 {
 	name_ = "Conservedness";
 	description_ = QStringList() << "Filter for variants that affect conserved bases";
-	params_ << FilterParameter("min_score", DOUBLE, 1.6, "Minimum phlyoP score.");
+	params_ << FilterParameter("min_score", FilterParameterType::DOUBLE, 1.6, "Minimum phlyoP score.");
 
 	checkIsRegistered();
 }
@@ -2592,7 +2592,7 @@ FilterRegulatory::FilterRegulatory()
 {
 	name_ = "Regulatory";
 	description_ = QStringList() << "Filter for regulatory variants, i.e. the 'regulatory' column is not empty.";
-	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "REMOVE,FILTER";
 
 	checkIsRegistered();
@@ -2643,7 +2643,7 @@ FilterCnvSize::FilterCnvSize()
 	name_ = "CNV size";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for CNV size (kilobases).";
-	params_ << FilterParameter("size", DOUBLE, 0.0, "Minimum CNV size in kilobases");
+	params_ << FilterParameter("size", FilterParameterType::DOUBLE, 0.0, "Minimum CNV size in kilobases");
 	params_.last().constraints["min"] = "0";
 
 	checkIsRegistered();
@@ -2675,7 +2675,7 @@ FilterCnvRegions::FilterCnvRegions()
 	name_ = "CNV regions";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for number of regions/exons.";
-	params_ << FilterParameter("regions", INT, 3, "Minimum number of regions");
+	params_ << FilterParameter("regions", FilterParameterType::INT, 3, "Minimum number of regions");
 	params_.last().constraints["min"] = "1";
 
 	checkIsRegistered();
@@ -2709,7 +2709,7 @@ FilterCnvCopyNumber::FilterCnvCopyNumber()
 	name_ = "CNV copy-number";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for CNV copy number.";
-	params_ << FilterParameter("cn", STRING, "n/a", "Copy number");
+	params_ << FilterParameter("cn", FilterParameterType::STRING, "n/a", "Copy number");
 	params_.last().constraints["valid"] = "n/a,0,1,2,3,4+";
 
 	checkIsRegistered();
@@ -2771,7 +2771,7 @@ FilterCnvAlleleFrequency::FilterCnvAlleleFrequency()
 	name_ = "CNV allele frequency";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for CNV allele frequency in the analyzed cohort.";
-	params_ << FilterParameter("max_af", DOUBLE, 0.05, "Maximum allele frequency");
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 0.05, "Maximum allele frequency");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -2832,7 +2832,7 @@ FilterCnvZscore::FilterCnvZscore()
 	name_ = "CNV z-score";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for CNV z-score." << "The z-score determines to what degee that the region was a statistical outlier when compared to the reference samples." << "Note: for deletions z-scores lower than the negative cutoff pass." << "Note: this filter works for CnvHunter CNV lists only!";
-	params_ << FilterParameter("min_z", DOUBLE, 4.0, "Minimum z-score");
+	params_ << FilterParameter("min_z", FilterParameterType::DOUBLE, 4.0, "Minimum z-score");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "10.0";
 
@@ -2877,9 +2877,9 @@ FilterCnvLoglikelihood::FilterCnvLoglikelihood()
 	name_ = "CNV log-likelihood";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for CNV log-likelihood." << "The log-likelihood is the logarithm of the ratio between likelihoods of the no CN change model vs the CN equal to the reported state model (bigger is better). If scale by region is checked the total log-likelihood value is normalized by the number of regions." << "Note: when applied to multi-sample CNV lists, each log-likelihood entry must exceed the cutuff!" << "Note: this filter works for CNV lists generated by ClinCNV only!" << "Note: log-likelihood scaling can only be applied to CNV lists with regions count";
-	params_ << FilterParameter("min_ll", DOUBLE, 20.0, "Minimum log-likelihood");
+	params_ << FilterParameter("min_ll", FilterParameterType::DOUBLE, 20.0, "Minimum log-likelihood");
 	params_.last().constraints["min"] = "0.0";
-	params_ << FilterParameter("scale_by_regions", BOOL, false, "Scale log-likelihood by number of regions.");
+	params_ << FilterParameter("scale_by_regions", FilterParameterType::BOOL, false, "Scale log-likelihood by number of regions.");
 
 	checkIsRegistered();
 }
@@ -2963,7 +2963,7 @@ FilterCnvQvalue::FilterCnvQvalue()
 	name_ = "CNV q-value";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for CNV q-value." << "The q-value is the p-value corrected for the number of CNVs detected (smaller is better)" << "Note: when applied to multi-sample CNV lists, each q-value must be below the cutuff!" << "Note: this filter works for CNV lists generated by ClinCNV only!";
-	params_ << FilterParameter("max_q", DOUBLE, 1.0, "Maximum q-value");
+	params_ << FilterParameter("max_q", FilterParameterType::DOUBLE, 1.0, "Maximum q-value");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -3023,7 +3023,7 @@ FilterCnvCompHet::FilterCnvCompHet()
 	name_ = "CNV compound-heterozygous";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for compound-heterozygous CNVs." << "Mode 'CNV-CNV' detects genes with two or more CNV hits." << "Mode 'CNV-SNV/INDEL' detectes genes with exactly one CNV and exactly one small variant hit (after other filters are applied).";
-	params_ << FilterParameter("mode", STRING, "n/a", "Compound-heterozygotes detection mode.");
+	params_ << FilterParameter("mode", FilterParameterType::STRING, "n/a", "Compound-heterozygotes detection mode.");
 	params_.last().constraints["valid"] = "n/a,CNV-CNV,CNV-SNV/INDEL";
 
 	checkIsRegistered();
@@ -3102,7 +3102,7 @@ FilterCnvOMIM::FilterCnvOMIM()
 	name_ = "CNV OMIM genes";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for OMIM genes i.e. the 'OMIM' column is not empty.";
-	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "REMOVE,FILTER";
 
 	checkIsRegistered();
@@ -3150,8 +3150,8 @@ FilterCnvCnpOverlap::FilterCnvCnpOverlap()
 	name_ = "CNV polymorphism region";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for overlap with CNP regions.";
-	params_ << FilterParameter("column", STRING, "overlap af_genomes_imgag", "CNP column name");
-	params_ << FilterParameter("max_ol", DOUBLE, 0.95, "Maximum overlap");
+	params_ << FilterParameter("column", FilterParameterType::STRING, "overlap af_genomes_imgag", "CNP column name");
+	params_ << FilterParameter("max_ol", FilterParameterType::DOUBLE, 0.95, "Maximum overlap");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -3187,7 +3187,7 @@ FilterCnvGeneConstraint::FilterCnvGeneConstraint()
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/";
 
-	params_ << FilterParameter("max_oe_lof", DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
+	params_ << FilterParameter("max_oe_lof", FilterParameterType::DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -3243,9 +3243,9 @@ FilterCnvGeneOverlap::FilterCnvGeneOverlap()
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter based on gene overlap.";
 
-	params_ << FilterParameter("complete", BOOL, true , "Overlaps the complete gene.");
-	params_ << FilterParameter("exonic/splicing", BOOL, true , "Overlaps the coding or splicing region of the gene.");
-	params_ << FilterParameter("intronic/intergenic", BOOL, false , "Overlaps the intronic/intergenic region of the gene only.");
+	params_ << FilterParameter("complete", FilterParameterType::BOOL, true , "Overlaps the complete gene.");
+	params_ << FilterParameter("exonic/splicing", FilterParameterType::BOOL, true , "Overlaps the coding or splicing region of the gene.");
+	params_ << FilterParameter("intronic/intergenic", FilterParameterType::BOOL, false , "Overlaps the intronic/intergenic region of the gene only.");
 
 	checkIsRegistered();
 }
@@ -3338,7 +3338,7 @@ FilterSvType::FilterSvType()
 	name_ = "SV type";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter based on SV types.";
-	params_ << FilterParameter("Structural variant type", STRINGLIST, QStringList(), "Structural variant type");
+	params_ << FilterParameter("Structural variant type", FilterParameterType::STRINGLIST, QStringList(), "Structural variant type");
 	params_.last().constraints["valid"] = "DEL,DUP,INS,INV,BND";
 	params_.last().constraints["not_empty"] = "";
 
@@ -3371,7 +3371,7 @@ FilterSvRemoveChromosomeType::FilterSvRemoveChromosomeType()
 	name_ = "SV remove chr type";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Removes all structural variants which contains non-standard/standard chromosomes.";
-	params_ << FilterParameter("chromosome type", STRING, "special chromosomes", "Structural variants containing non-standard/standard chromosome are removed.");
+	params_ << FilterParameter("chromosome type", FilterParameterType::STRING, "special chromosomes", "Structural variants containing non-standard/standard chromosome are removed.");
 	params_.last().constraints["valid"] = "special chromosomes,standard chromosomes";
 	params_.last().constraints["not_empty"] = "";
 	checkIsRegistered();
@@ -3411,10 +3411,10 @@ FilterSvGenotypeControl::FilterSvGenotypeControl()
 	name_ = "SV genotype control";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter structural variants of control samples based on their genotype.";
-	params_ << FilterParameter("genotypes", STRINGLIST, QStringList(), "Structural variant genotype(s)");
+	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Structural variant genotype(s)");
 	params_.last().constraints["valid"] = "wt,het,hom,n/a";
 	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("same_genotype", BOOL, false, "Also check that all 'control' samples have the same genotype.");
+	params_ << FilterParameter("same_genotype", FilterParameterType::BOOL, false, "Also check that all 'control' samples have the same genotype.");
 
 	checkIsRegistered();
 }
@@ -3481,10 +3481,10 @@ FilterSvGenotypeAffected::FilterSvGenotypeAffected()
 	name_ = "SV genotype affected";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter structural variants (of affected samples) based on their genotype.";
-	params_ << FilterParameter("genotypes", STRINGLIST, QStringList(), "Structural variant genotype(s)");
+	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Structural variant genotype(s)");
 	params_.last().constraints["valid"] = "wt,het,hom,n/a";
 	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("same_genotype", BOOL, false, "Also check that all 'control' samples have the same genotype.");
+	params_ << FilterParameter("same_genotype", FilterParameterType::BOOL, false, "Also check that all 'control' samples have the same genotype.");
 
 	checkIsRegistered();
 }
@@ -3557,7 +3557,7 @@ FilterSvQuality::FilterSvQuality()
 	name_ = "SV quality";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter structural variants based on their quality.";
-	params_ << FilterParameter("quality", INT, 0, "Minimum quality score");
+	params_ << FilterParameter("quality", FilterParameterType::INT, 0, "Minimum quality score");
 	params_.last().constraints["min"] = "0";
 
 	checkIsRegistered();
@@ -3599,10 +3599,10 @@ FilterSvFilterColumn::FilterSvFilterColumn()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter structural variants based on the entries of the 'FILTER' column.";
 
-	params_ << FilterParameter("entries", STRINGLIST, QStringList(), "Filter column entries");
+	params_ << FilterParameter("entries", FilterParameterType::STRINGLIST, QStringList(), "Filter column entries");
 	//params_.last().constraints["valid"] ="PASS,MinSomaticScore,HomRef,MaxDepth,MaxMQ0Frac,MinGQ,MinQUAL,NoPairSupport,Ploidy,SampleFT,off-target";
 	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("action", STRING, "REMOVE", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "REMOVE", "Action to perform");
 	params_.last().constraints["valid"] = "REMOVE,FILTER,KEEP";
 
 	checkIsRegistered();
@@ -3675,7 +3675,7 @@ FilterSvPairedReadAF::FilterSvPairedReadAF()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only SVs with a certain Paired Read Allele Frequency +/- 10%";
     description_ << "(In trio/multi sample all samples must meet the requirements.)";
-	params_ << FilterParameter("Paired Read AF", DOUBLE, 0.0, "Paired Read Allele Frequency +/- 10%");
+	params_ << FilterParameter("Paired Read AF", FilterParameterType::DOUBLE, 0.0, "Paired Read Allele Frequency +/- 10%");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -3749,7 +3749,7 @@ FilterSvSplitReadAF::FilterSvSplitReadAF()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only SVs with a certain Split Read Allele Frequency +/- 10%";
     description_ << "(In trio/multi sample all samples must meet the requirements.)";
-	params_ << FilterParameter("Split Read AF", DOUBLE, 0.0, "Split Read Allele Frequency +/- 10%");
+	params_ << FilterParameter("Split Read AF", FilterParameterType::DOUBLE, 0.0, "Split Read Allele Frequency +/- 10%");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -3832,7 +3832,7 @@ FilterSvPeReadDepth::FilterSvPeReadDepth()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only SVs with at least a certain number of Paired End Reads";
     description_ << "(In trio/multi sample all samples must meet the requirements.)";
-	params_ << FilterParameter("PE Read Depth", INT, 0, "minimal number of Paired End Reads");
+	params_ << FilterParameter("PE Read Depth", FilterParameterType::INT, 0, "minimal number of Paired End Reads");
 	params_.last().constraints["min"] = "0";
 
 	checkIsRegistered();
@@ -3899,7 +3899,7 @@ FilterSvSomaticscore::FilterSvSomaticscore()
 	name_ = "SV SomaticScore";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only SVs with at least a certain Somaticscore";
-	params_ << FilterParameter("Somaticscore", INT, 0, "min. Somaticscore");
+	params_ << FilterParameter("Somaticscore", FilterParameterType::INT, 0, "min. Somaticscore");
 	params_.last().constraints["min"] = "0";
 
 	checkIsRegistered();
@@ -3947,7 +3947,7 @@ FilterSvGeneConstraint::FilterSvGeneConstraint()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/";
 
-	params_ << FilterParameter("max_oe_lof", DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
+	params_ << FilterParameter("max_oe_lof", FilterParameterType::DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "1.0";
 
@@ -4012,9 +4012,9 @@ FilterSvGeneOverlap::FilterSvGeneOverlap()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter based on gene overlap.";
 
-	params_ << FilterParameter("complete", BOOL, true , "Overlaps the complete gene.");
-	params_ << FilterParameter("exonic/splicing", BOOL, true , "Overlaps the coding or splicing region of the gene.");
-	params_ << FilterParameter("intronic/intergenic", BOOL, false , "Overlaps the intronic/intergenic region of the gene only.");
+	params_ << FilterParameter("complete", FilterParameterType::BOOL, true , "Overlaps the complete gene.");
+	params_ << FilterParameter("exonic/splicing", FilterParameterType::BOOL, true , "Overlaps the coding or splicing region of the gene.");
+	params_ << FilterParameter("intronic/intergenic", FilterParameterType::BOOL, false , "Overlaps the intronic/intergenic region of the gene only.");
 
 	checkIsRegistered();
 }
@@ -4083,9 +4083,9 @@ FilterSvSize::FilterSvSize()
 	name_ = "SV size";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter for SV size in the given range.";
-	params_ << FilterParameter("min_size", INT, 0, "Minimum SV size (absolute size).");
+	params_ << FilterParameter("min_size", FilterParameterType::INT, 0, "Minimum SV size (absolute size).");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("max_size", INT, 0, "Maximum SV size (absolute size). Select 0 for infinity.");
+	params_ << FilterParameter("max_size", FilterParameterType::INT, 0, "Maximum SV size (absolute size). Select 0 for infinity.");
 	params_.last().constraints["min"] = "0";
 
 	checkIsRegistered();
@@ -4125,7 +4125,7 @@ FilterSvOMIM::FilterSvOMIM()
 	name_ = "SV OMIM genes";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter for OMIM genes i.e. the 'OMIM' column is not empty.";
-	params_ << FilterParameter("action", STRING, "FILTER", "Action to perform");
+	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "REMOVE,FILTER";
 	checkIsRegistered();
 }
@@ -4172,7 +4172,7 @@ FilterSvCompHet::FilterSvCompHet()
 	name_ = "SV compound-heterozygous";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter for compound-heterozygous SVs." << "Mode 'SV-SV' detects genes with two or more SV hits." << "Mode 'SV-SNV/INDEL' detectes genes with exactly one SV and exactly one small variant hit (after other filters are applied).";
-	params_ << FilterParameter("mode", STRING, "n/a", "Compound-heterozygotes detection mode.");
+	params_ << FilterParameter("mode", FilterParameterType::STRING, "n/a", "Compound-heterozygotes detection mode.");
 	params_.last().constraints["valid"] = "n/a,SV-SV,SV-SNV/INDEL";
 
 	checkIsRegistered();
@@ -4259,9 +4259,9 @@ FilterSvCountNGSD::FilterSvCountNGSD()
 	name_ = "SV count NGSD";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter based on the occurances of a structural variant in the NGSD.";
-	params_ << FilterParameter("max_count", INT, 20, "Maximum NGSD SV count");
+	params_ << FilterParameter("max_count", FilterParameterType::INT, 20, "Maximum NGSD SV count");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("overlap_matches", BOOL, false, "If set, overlaping SVs are considered also.");
+	params_ << FilterParameter("overlap_matches", FilterParameterType::BOOL, false, "If set, overlaping SVs are considered also.");
 
 	checkIsRegistered();
 }
@@ -4315,7 +4315,7 @@ FilterSvAfNGSD::FilterSvAfNGSD()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter based on the allele frequency of this structural variant in the NGSD."
 								 << "Note: this filter should only be used for whole genome samples.";
-	params_ << FilterParameter("max_af", DOUBLE, 1.0, "Maximum allele frequency in %");
+	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";
 
@@ -4348,11 +4348,11 @@ FilterSvTrio::FilterSvTrio()
     name_ = "SV trio";
 	type_ = VariantType::SVS;
     description_ = QStringList() << "Filter trio structural variants";
-    params_ << FilterParameter("types", STRINGLIST, QStringList() << "de-novo" << "recessive" << "comp-het" << "LOH" << "x-linked", "Variant types");
+	params_ << FilterParameter("types", FilterParameterType::STRINGLIST, QStringList() << "de-novo" << "recessive" << "comp-het" << "LOH" << "x-linked", "Variant types");
     params_.last().constraints["valid"] = "de-novo,recessive,comp-het,LOH,x-linked,imprinting";
     params_.last().constraints["non-empty"] = "";
 
-    params_ << FilterParameter("gender_child", STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
+	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
     params_.last().constraints["valid"] = "male,female,n/a";
 
     checkIsRegistered();
@@ -4589,10 +4589,10 @@ FilterSomaticAlleleFrequency::FilterSomaticAlleleFrequency()
 	name_ = "Somatic allele frequency";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the allele frequency of variants in tumor/normal samples.";
-	params_ << FilterParameter("min_af_tum", DOUBLE, 5.0, "Minimum allele frequency in tumor sample [%]");
+	params_ << FilterParameter("min_af_tum", FilterParameterType::DOUBLE, 5.0, "Minimum allele frequency in tumor sample [%]");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";
-	params_ << FilterParameter("max_af_nor", DOUBLE, 1.0, "Maximum allele frequency in normal sample [%]");
+	params_ << FilterParameter("max_af_nor", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in normal sample [%]");
 	params_.last().constraints["min"] = "0.0";
 	params_.last().constraints["max"] = "100.0";
 
@@ -4658,10 +4658,10 @@ FilterTumorOnlyHomHet::FilterTumorOnlyHomHet()
 	name_ = "Tumor zygosity";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the zygosity of tumor-only samples. Filters out germline het/hom calls.";
-	params_ << FilterParameter("het_af_range", DOUBLE, 0.0, "Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline.");
+	params_ << FilterParameter("het_af_range", FilterParameterType::DOUBLE, 0.0, "Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "49.9";
-	params_ << FilterParameter("hom_af_range", DOUBLE, 0.0, "Consider allele frequencies of 100% ± hom_af_range as homozygous and thus as germline.");
+	params_ << FilterParameter("hom_af_range", FilterParameterType::DOUBLE, 0.0, "Consider allele frequencies of 100% ± hom_af_range as homozygous and thus as germline.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "99.9";
 
@@ -4728,7 +4728,7 @@ FilterGSvarScoreAndRank::FilterGSvarScoreAndRank()
 	name_ = "GSvar score/rank";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based GSvar score/rank.";
-	params_ << FilterParameter("top", INT, 10, "Show top X rankging variants only.");
+	params_ << FilterParameter("top", FilterParameterType::INT, 10, "Show top X rankging variants only.");
 	params_.last().constraints["min"] = "1";
 
 	checkIsRegistered();

@@ -95,8 +95,6 @@ void CfDNAPanelDesignDialog::loadPreviousPanels(const DBTable& processing_system
 			QString vcf_pos = var.chr().strNormalized(true) + ":" + QString::number(var.pos()) + " " + var.ref() + ">" + var.altString();
 			prev_vars_.insert(vcf_pos, false);
 		}
-
-
 	}
 }
 
@@ -160,8 +158,8 @@ void CfDNAPanelDesignDialog::loadVariants()
 		const Variant& variant = variants_[i];
 
 		// check if var is present in previous panel
-		QStringList vcf_str_list = variant.toVCF(genome_reference).split('\t');
-		QString vcf_pos = vcf_str_list[0].trimmed() + ":" + vcf_str_list[1].trimmed() + " " + vcf_str_list[3].trimmed() + ">" +vcf_str_list[4].trimmed();
+		VariantVcfRepresentation vcf_rep = variant.toVCF(genome_reference);
+		QString vcf_pos = vcf_rep.chr.str() + ":" + QString::number(vcf_rep.pos) + " " + vcf_rep.ref + ">" + vcf_rep.alt;
 		if(prev_vars_.contains(vcf_pos))
 		{
 			preselect = true;
@@ -326,7 +324,7 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 void CfDNAPanelDesignDialog::loadGenes()
 {
 	// get all bed files in the genes folder
-	QDir gene_folder(Settings::path("patient_specific_panel_folder", false) + "genes/");
+	QDir gene_folder(Settings::path("patient_specific_panel_folder", false) + "genes/"); //TODO GSvarServer: it should be moved to the database
 	QStringList bed_file_paths = gene_folder.entryList(QStringList() << "*.bed" << "*.BED", QDir::Files);
 
 	// extract info

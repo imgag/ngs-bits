@@ -158,7 +158,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	int i_class = germl_variants.annotationIndexByName("classification", true, false);
 	int i_co_sp = germl_variants.annotationIndexByName("coding_and_splicing", true, false);
 
-	BamReader bam_reader(db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), NGSD::PathType::BAM));
+	BamReader bam_reader(db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::BAM));
 	FastaFileIndex fasta_idx(Settings::string("reference_genome"));
 
 	QList<int> germl_indices_in_report = settings_.report_config.variantIndicesGermline();
