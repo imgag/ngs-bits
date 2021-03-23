@@ -17,6 +17,7 @@ public:
 	FileLocation getAnalysisVcf() const override;
 	FileLocation getAnalysisSvFile() const override;
 	FileLocation getAnalysisCnvFile() const override;
+	FileLocation getAnalysisMosaicCnvFile() const override;
 	FileLocation getAnalysisUpdFile() const override;
 	FileLocation getRepeatExpansionImage(QString locus) const override;
 

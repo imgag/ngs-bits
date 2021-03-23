@@ -28,6 +28,11 @@ FileLocation FileLocationProviderRemote::getAnalysisCnvFile() const
 	return FileLocation(); //Alexandr
 }
 
+FileLocation FileLocationProviderRemote::getAnalysisMosaicCnvFile() const
+{
+	return FileLocation(); //Alexandr
+}
+
 FileLocation FileLocationProviderRemote::getAnalysisUpdFile() const
 {
 	return FileLocation(); // Alexandr

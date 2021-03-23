@@ -18,6 +18,7 @@ enum class PathType
 	VCF, //small variants (VCF format)
 	GSVAR, //small variants (GSvar format)
 	COPY_NUMBER_CALLS, //copy number calls (TSV format)
+	COPY_NUMBER_CALLS_MOSAIC, //mosaic copy number calls (TSV format)
 	STRUCTURAL_VARIANTS, //structural variant call file (BEDPE format)
 	REPEAT_EXPANSIONS, //repeat expansions (VCF format)
 	UPD, //UPD calls (TSV format)
@@ -85,6 +86,8 @@ struct FileLocation
 				return "BAF";
 			case PathType::COPY_NUMBER_CALLS:
 				return "COPY_NUMBER_CALLS";
+			case PathType::COPY_NUMBER_CALLS_MOSAIC:
+				return "COPY_NUMBER_CALLS_MOSAIC";
 			case PathType::COPY_NUMBER_RAW_DATA:
 				return "COPY_NUMBER_RAW_DATA";
 			case PathType::MANTA_EVIDENCE:
@@ -122,6 +125,7 @@ struct FileLocation
 		if (in_upper == "VCF") return PathType::VCF;
 		if (in_upper == "BAF") return PathType::BAF;
 		if (in_upper == "COPY_NUMBER_CALLS") return PathType::COPY_NUMBER_CALLS;
+		if (in_upper == "COPY_NUMBER_CALLS_MOSAIC") return PathType::COPY_NUMBER_CALLS_MOSAIC;
 		if (in_upper == "COPY_NUMBER_RAW_DATA") return PathType::COPY_NUMBER_RAW_DATA;
 		if (in_upper == "MANTA_EVIDENCE") return PathType::MANTA_EVIDENCE;
 		if (in_upper == "REPEAT_EXPANSIONS") return PathType::REPEAT_EXPANSIONS;
@@ -154,6 +158,8 @@ struct FileLocation
 				return "b-allele frequency file";
 			case PathType::COPY_NUMBER_CALLS:
 				return "copy-number calls";
+			case PathType::COPY_NUMBER_CALLS_MOSAIC:
+				return "copy-number calls (mosaic)";
 			case PathType::COPY_NUMBER_RAW_DATA:
 				return "copy-number raw data";
 			case PathType::MANTA_EVIDENCE:

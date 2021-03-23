@@ -39,13 +39,22 @@ FileLocation FileLocationProviderLocal::getAnalysisCnvFile() const
 	if (analysis_type_==SOMATIC_SINGLESAMPLE || analysis_type_==SOMATIC_PAIR)
 	{
 		QString file = base	+ "_clincnv.tsv";
-		return FileLocation{name, PathType::STRUCTURAL_VARIANTS, file, QFile::exists(file)};
+		return FileLocation{name, PathType::COPY_NUMBER_CALLS, file, QFile::exists(file)};
 	}
 	else
 	{
 		QString file = base	+ "_cnvs_clincnv.tsv";
-		return FileLocation{name, PathType::STRUCTURAL_VARIANTS, file, QFile::exists(file)};
+		return FileLocation{name, PathType::COPY_NUMBER_CALLS, file, QFile::exists(file)};
 	}
+}
+
+FileLocation FileLocationProviderLocal::getAnalysisMosaicCnvFile() const
+{
+
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_mosaic_cnvs.tsv";
+
+	return FileLocation{name, PathType::COPY_NUMBER_CALLS_MOSAIC, file, QFile::exists(file)};
 }
 
 FileLocation FileLocationProviderLocal::getAnalysisUpdFile() const

@@ -799,10 +799,10 @@ void MainWindow::on_actionCNV_triggered()
 	//mosaic CNVs
 	if (type==GERMLINE_SINGLESAMPLE)
 	{
-		QString mosaic_file = filename_.left(filename_.length()-6) + "_mosaic_cnvs.tsv"; //TODO
-		if (QFile::exists(mosaic_file))
+		FileLocation mosaic_file = GlobalServiceProvider::fileLocationProvider().getAnalysisMosaicCnvFile();
+		if (mosaic_file.exists)
 		{
-			QStringList mosaic_data = Helper::loadTextFile(mosaic_file, false, '#', true);
+			QStringList mosaic_data = Helper::loadTextFile(mosaic_file.filename, false, '#', true);
 			if (mosaic_data.count()>1)
 			{
 				QPlainTextEdit* text_edit = new QPlainTextEdit(this);
@@ -817,7 +817,7 @@ void MainWindow::on_actionCNV_triggered()
 					QStringList parts = line.split("\t");
 					if(parts.length()<4)
 					{
-						Log::warn("Mosaic CNV file '" + mosaic_file + "' has line with less than 4 elements: " + line);
+						Log::warn("Mosaic CNV file '" + mosaic_file.filename + "' has line with less than 4 elements: " + line);
 					}
 					else
 					{
