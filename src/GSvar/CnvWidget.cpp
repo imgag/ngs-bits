@@ -143,7 +143,7 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 		}
 		if (col_name=="dosage_sensitive_disease_genes")
 		{
-			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://search.clinicalgenome.org/kb/gene-dosage?search=");
 		}
 		if (col_name=="clinvar_cnvs")
 		{

@@ -465,7 +465,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	if (data_.prs.rowCount()>0)
 	{
 		stream << endl;
-		stream << "<p><b>" << trans("Polygenic Risk Scores") << "</b>" << endl;
+		stream << "<p><b>" << trans("Polygener Risiko-Score (PRS)") << "</b>" << endl;
 		stream << "</p>" << endl;
 		stream << "<table>" << endl;
 		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Publikation") << "</b></td></tr>" << endl;
@@ -1053,7 +1053,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:"] = "Gaps closed by Sanger sequencing:";
 		de2en["L&uuml;cken die mit visueller Inspektion der Rohdaten &uuml;berpr&uuml;ft wurden:"] = "Gaps checked by visual inspection of raw data:";
 		de2en["Basen gesamt:"] = "Base sum:";
-		de2en["Polygenic Risk Scores"] = "Polygenic Risk Scores";
+		de2en["Polygener Risiko-Score (PRS)"] = "Polygenic Risk Scores (PRS)";
 		de2en["Erkrankung"] = "Trait";
 		de2en["Score"] = "Score";
 		de2en["Publikation"] = "Publication";
