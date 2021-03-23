@@ -1051,6 +1051,19 @@ QString VariantList::getPipeline() const
 	return "n/a";
 }
 
+QDate VariantList::getCreationDate() const
+{
+	foreach(const QString& line, comments_)
+	{
+		if (line.startsWith("##CREATION_DATE="))
+		{
+			return QDate::fromString(line.mid(16).trimmed(), "yyyy-MM-dd");
+		}
+	}
+
+	return QDate();
+}
+
 AnalysisType VariantList::type(bool allow_fallback_germline_single_sample) const
 {
 	foreach(const QString& line, comments_)

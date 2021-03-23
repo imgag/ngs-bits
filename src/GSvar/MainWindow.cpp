@@ -181,7 +181,6 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(varsContextMenu(QPoint)));
 	connect(ui_.filters, SIGNAL(filtersChanged()), this, SLOT(refreshVariantTable()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
-	connect(&filewatcher_, SIGNAL(fileChanged()), this, SLOT(handleInputFileChange()));
 	connect(ui_.vars, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(variantCellDoubleClicked(int, int)));
 	connect(ui_.vars->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(variantHeaderDoubleClicked(int)));
 	ui_.vars->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -215,9 +214,6 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_af_hist->menu()->addAction("Show CN histogram (CNVs in given region)", this, SLOT(showCnHistogram()));
 
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentAnalysis()));
-
-	//misc initialization
-	filewatcher_.setDelayInSeconds(10);
 
 	//if at home, use Patientenserver
 	QString gsvar_report_folder = Settings::path("gsvar_report_folder", true);
@@ -1443,12 +1439,6 @@ void MainWindow::delayedInitialization()
 	}
 }
 
-void MainWindow::handleInputFileChange()
-{
-	QMessageBox::information(this, "GSvar file changed", "The input GSvar file changed.\nIt is reloaded now!");
-	loadFile(filename_);
-}
-
 void MainWindow::variantCellDoubleClicked(int row, int /*col*/)
 {
 	const Variant& v = variants_[ui_.vars->rowToVariantIndex(row)];
@@ -2364,7 +2354,6 @@ void MainWindow::loadFile(QString filename)
 	variants_changed_ = false;
 	cnvs_.clear();
 	svs_.clear();
-	filewatcher_.clearFile();
 	igv_initialized_ = false;
 	ui_.vars->clearContents();
 	report_settings_ = ReportSettings();
@@ -2435,7 +2424,6 @@ void MainWindow::loadFile(QString filename)
 		//update data structures
 		Settings::setPath("path_variantlists", filename);
 		filename_ = filename;
-		filewatcher_.setFile(filename); //TODO GSvarServer: how do we handle that? Remove or replace by regularly checking the creation date in the header if it changed...
 
 		//update GUI
 		setWindowTitle(QCoreApplication::applicationName() + " - " + variants_.analysisName());
@@ -3225,10 +3213,10 @@ void MainWindow::generateReportGermline()
 	}
 
 	//check if NGSD annotations are up-to-date
-	QDateTime mod_date = QFileInfo(filename_).lastModified(); //TODO GSvarServer: how do we handle this? Added creation date to file header!?
-	if (mod_date < QDateTime::currentDateTime().addDays(-42))
+	QDate create_date = variants_.getCreationDate();
+	if (create_date.isValid() && create_date < QDate::currentDate().addDays(-42))
 	{
-		if (QMessageBox::question(this, "NGSD annotations outdated", "NGSD annotation data is older than six weeks!\nDo you want to continue with annotations from " + mod_date.toString("yyyy-MM-dd") + "?")==QMessageBox::No)
+		if (QMessageBox::question(this, "NGSD annotations outdated", "NGSD annotation data is older than six weeks!\nDo you want to continue with annotations from " + create_date.toString("yyyy-MM-dd") + "?")==QMessageBox::No)
 		{
 			return;
 		}
@@ -5002,22 +4990,11 @@ void MainWindow::updateSomaticVariantInterpretationAnno(const Variant& var, QStr
 	}
 	if(index == -1) return; //do nothing if variant is not contained in variants_
 
-	filewatcher_.clearFile(); //disable file watcher for GSVar file
-
-	try
-	{
-		variants_.store(filename_);
-	}
-	catch(FileAccessException e)
-	{
-		QMessageBox::warning(this, "Write to file", "Could not write changes of VICC configuration to Gsvar file. Message: " + e.message());
-	}
+	storeCurrentVariantList();
 
 	//update details widget and filtering
 	ui_.variant_details->updateVariant(variants_, index);
 	refreshVariantTable();
-
-	filewatcher_.setFile(filename_); //activate filewatcher for GSvar file again
 }
 
 void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
@@ -5037,21 +5014,10 @@ void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
 		variants_[i].annotations()[i_vicc_comment] = vicc_data.comment.toUtf8();
 	}
 
-	filewatcher_.clearFile(); //temporarily disable file watcher for GSVar file
-
-	try
-	{
-		variants_.store(filename_);
-	}
-	catch(FileAccessException e)
-	{
-		QMessageBox::warning(this, "Write to file", "Could not write changes of VICC configuration to Gsvar file. Message: " + e.message());
-	}
+	storeCurrentVariantList();
 
 	//update details widget and filtering
 	refreshVariantTable();
-
-	filewatcher_.setFile(filename_); //reactivate filewatcher for GSvar file again
 }
 
 bool MainWindow::germlineReportSupported()
@@ -5356,7 +5322,6 @@ void MainWindow::markVariantListChanged()
 void MainWindow::storeCurrentVariantList() //TODO GSvarServer: how do we handle this?
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
-	filewatcher_.clearFile();
 
 	try
 	{
@@ -5376,7 +5341,6 @@ void MainWindow::storeCurrentVariantList() //TODO GSvarServer: how do we handle 
 		QMessageBox::warning(this, "Error stroring GSvar file", "The GSvar file could not be stored:\n" + e.message());
 	}
 
-	filewatcher_.setFile(filename_);
 	QApplication::restoreOverrideCursor();
 }
 

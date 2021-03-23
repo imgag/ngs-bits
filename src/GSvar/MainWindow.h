@@ -7,7 +7,6 @@
 #include "VariantList.h"
 #include "BedFile.h"
 #include "NGSD.h"
-#include "FileWatcher.h"
 #include "BusyDialog.h"
 #include "FilterCascade.h"
 #include "ReportSettings.h"
@@ -262,8 +261,6 @@ public slots:
 	void openRecentFile();
 	///Loads the command line input file.
 	void delayedInitialization();
-	///Handles the re-loading the variant list when the file changes.
-	void handleInputFileChange();
 	///A variant has been double-clicked > open in IGV
 	void variantCellDoubleClicked(int row, int col);
 	///A variant header has beed double-clicked > edit report config
@@ -381,7 +378,6 @@ private:
 
 	//DATA
 	QString filename_;
-	FileWatcher filewatcher_;
 	bool igv_initialized_;
 	VariantList variants_;
 	bool variants_changed_;

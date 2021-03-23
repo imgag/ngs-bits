@@ -371,4 +371,16 @@ private slots:
 		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
 		S_EQUAL(vl.getPipeline(), "n/a");
 	}
+
+	void getCreationDate()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
+		IS_TRUE(vl.getCreationDate().isValid());
+		S_EQUAL(vl.getCreationDate().toString("yyyy-MM-dd"), "2020-08-15");
+
+		//header not set
+		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
+		IS_FALSE(vl.getCreationDate().isValid());
+	}
 };
