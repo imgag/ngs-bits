@@ -2592,7 +2592,7 @@ void MainWindow::loadFile(QString filename)
 			//get count files
 			foreach (const QString& rna_ps_id, rna_ps_ids)
 			{
-				QString rna_counts_file_path = db.processedSamplePath(rna_ps_id, PathType::SAMPLE_FOLDER) + "/" + db.processedSampleName(rna_ps_id) + "_counts.tsv";
+				QString rna_counts_file_path = db.processedSamplePath(rna_ps_id, PathType::SAMPLE_FOLDER) + "/" + db.processedSampleName(rna_ps_id) + "_counts.tsv"; //TODO GSvarServer
 				// check if exists
 				if (QFileInfo(rna_counts_file_path).exists()) rna_count_files_ << rna_counts_file_path;
 			}

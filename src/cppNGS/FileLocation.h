@@ -32,6 +32,7 @@ enum class PathType
 	COPY_NUMBER_RAW_DATA, //Copy number estimates based on coverage (SEG format)
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
+	FUSIONS, //gene fusions determined from RNA (TSV format)
 	OTHER // everything else
 };
 
@@ -110,6 +111,8 @@ struct FileLocation
 				return "STRUCTURAL_VARIANTS";
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				return "REPEAT_EXPANSION_IMAGE";
+			case PathType::FUSIONS:
+				return "FUSIONS";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -136,6 +139,7 @@ struct FileLocation
 		if (in_upper == "CIRCOS_PLOT") return PathType::CIRCOS_PLOT;
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
+		if (in_upper == "FUSIONS") return PathType::FUSIONS;
 
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
@@ -180,6 +184,8 @@ struct FileLocation
 				return "uniparental disomy regions";
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				return "repeat expansion visualization";
+			case PathType::FUSIONS:
+				return "gene fusions";
 			case PathType::OTHER:
 				return "other files";
 		}
