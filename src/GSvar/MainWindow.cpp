@@ -803,7 +803,7 @@ void MainWindow::on_actionCNV_triggered()
 		if (mosaic_file.exists)
 		{
 			QStringList mosaic_data = Helper::loadTextFile(mosaic_file.filename, false, '#', true);
-			if (mosaic_data.count()>1)
+			if (!mosaic_data.isEmpty())
 			{
 				QPlainTextEdit* text_edit = new QPlainTextEdit(this);
 				text_edit->setReadOnly(true);
