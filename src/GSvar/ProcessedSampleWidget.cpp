@@ -127,6 +127,7 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->molarity->setText(ps_data.molarity);
 	QString normal_sample = ps_data.normal_sample_name;
 	ui_->normal_sample->setText("<a href=\"" + normal_sample + "\">"+normal_sample+"</a>");
+	ui_->ancestry->setText(ps_data.ancestry);
 
 	//#### sample details ####
 	QString s_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id='" + ps_id_ + "'").toString();

@@ -517,6 +517,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	}
 	output.processing_input = query.value("processing_input").toString().trimmed();
 	output.molarity = query.value("molarity").toString().trimmed();
+	output.ancestry = getValue("SELECT `population` FROM `processed_sample_ancestry` WHERE `processed_sample_id`=:0", true, processed_sample_id).toString();
 
 	return output;
 

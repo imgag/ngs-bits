@@ -3,6 +3,8 @@
 #include "BusyDialog.h"
 #include <QMessageBox>
 
+//TODO: evaluation_sheet_data, study_sample, gaps > MARC
+
 ProcessedSampleDataDeletionDialog::ProcessedSampleDataDeletionDialog(QWidget* parent, QStringList ids)
 	: QDialog(parent)
 	, ui_()
@@ -215,6 +217,9 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 
 			//set referencing "normal sample" entries to NULL
 			db.getQuery().exec("UPDATE `processed_sample` SET `normal_id`=NULL WHERE normal_id='" + ps_id + "'");
+
+			//delete ancestry data
+			db.getQuery().exec("DELETE FROM processed_sample_ancestry WHERE processed_sample_id='" + ps_id + "'");
 
 			//delete processed sample
 			try

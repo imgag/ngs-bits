@@ -270,6 +270,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString lab_operator;
 	QString processing_input;
 	QString molarity;
+	QString ancestry;
 };
 
 ///Processing system information.
