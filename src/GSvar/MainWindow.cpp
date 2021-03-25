@@ -1470,6 +1470,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	FileLocationList bafs = GlobalServiceProvider::fileLocationProvider().getBafFiles(true);
 	foreach(const FileLocation& file, bafs)
 	{
+		if(analysis_type == SOMATIC_PAIR && !file.id.contains("somatic")) continue;
 		dlg.addFile(file, true);
 	}
 
@@ -1523,7 +1524,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	catch(...) {} //Nothing to do here
 
 	//sample low-coverage
-	if (analysis_type==SOMATIC_PAIR || analysis_type==SOMATIC_PAIR)
+	if (analysis_type==SOMATIC_SINGLESAMPLE || analysis_type==SOMATIC_PAIR)
 	{
 		FileLocation loc = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile();
 		dlg.addFile(loc, ui_.actionIgvLowcov->isChecked());
