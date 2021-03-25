@@ -1,5 +1,6 @@
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##SAMPLE=<ID=NA12877_03,Status=affected>
-#chr	start	end	ref	obs	genotype	quality	region	gene	variant_details	coding	snp_1000g2012feb_all	snp_snp135	ljb_phylop	ljb_mt	esp6500_ea	repeatmasker	quality_filter	ref_variant_frequency	ref_variant_depth	normal_allele	rna_tum_frequency	rna_tum_depth
+#chr	start	end	ref	obs	NA12877_03	quality	region	gene	variant_details	coding	snp_1000g2012feb_all	snp_snp135	ljb_phylop	ljb_mt	esp6500_ea	repeatmasker	quality_filter	ref_variant_frequency	ref_variant_depth	normal_allele	rna_tum_frequency	rna_tum_depth
 chr1	62675645	62675674	CCTCAGGGCTGGAGGAGGAGGAGGAAGAGC	-	het	100	exonic	L1TD1	nonframeshift deletion	L1TD1:NM_001164835:exon5:c.1199_1228del:p.400_410del,L1TD1:NM_019079:exon4:c.1199_1228del:p.400_410del,	.	.	.	.	.	230	passed	0	16	CCTCAGGGCTGGAGGAGGAGGAGGAAGAGC	n/a	0
 chr1	110302413	110302413	C	T	het	101	exonic	EPS8L3	nonsynonymous SNV	EPS8L3:NM_139053:exon4:c.G142A:p.E48K,EPS8L3:NM_133181:exon4:c.G142A:p.E48K,EPS8L3:NM_024526:exon4:c.G142A:p.E48K,	.	.	0.9680	0.0001	.	.	passed	0	143	C	n/a	0
 chr1	111957517	111957540	TCACAGGGGTCACAGACTGATGAC	-	het	102	exonic	OVGP1	nonframeshift deletion	OVGP1:NM_002557:exon11:c.1583_1606del:p.528_536del,	.	.	.	.	.	.	passed	0	36	TCACAGGGGTCACAGACTGATGAC	0.0000	2

@@ -196,23 +196,11 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	}
 }
 
-QString GSvarHelper::getEvidenceFile(const QString& bam_file)
-{
-	if (!bam_file.endsWith(".bam", Qt::CaseInsensitive))
-	{
-		THROW(ArgumentException, "Invalid BAM file path \"" + bam_file + "\"!");
-	}
-	QFileInfo bam_file_info(bam_file);
-	QDir evidence_dir(bam_file_info.absolutePath() + "/manta_evid/");
-	QString ps_name = bam_file_info.fileName().left(bam_file_info.fileName().length() - 4);
-	return evidence_dir.absoluteFilePath(ps_name + "_manta_evidence.bam");
-}
-
 BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end)
 {
 	//call lift-over webservice
 	QString base_url = Settings::string("liftover_webservice");
-	HttpHandler handler(HttpHandler::NONE);
+	HttpHandler handler(HttpRequestHandler::ProxyType::NONE);
 	QString output = handler.get(base_url + "?chr=" + chr.strNormalized(true) + "&start=" + QString::number(start) + "&end=" + QString::number(end));
 
 	//handle error from webservice

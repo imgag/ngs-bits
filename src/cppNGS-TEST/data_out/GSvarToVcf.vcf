@@ -1,4 +1,4 @@
-##fileformat=unavailable
+##fileformat=VCFv4.2
 ##ANALYSISTYPE=GERMLINE_TRIO
 ##PIPELINE=megSAP 0.1-753-gd2b1864
 ##SAMPLE=<ID=father,Gender=male,ExternalSampleName=131751,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=control>

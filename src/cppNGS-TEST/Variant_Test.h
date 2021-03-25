@@ -363,27 +363,48 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		FastaFileIndex genome_index(ref_file);
 
-		Variant v;
-		v = Variant("chr1", 47110766, 47110766, "-", "C");
-		S_EQUAL(v.toVCF(genome_index), "chr1\t47110766\t.\tG\tGC\t30\tPASS\t.");
+		VariantVcfRepresentation v_rep;
+		v_rep = Variant("chr1", 47110766, 47110766, "-", "C").toVCF(genome_index);
+		S_EQUAL(v_rep.chr.str(), "chr1");
+		I_EQUAL(v_rep.pos, 47110766);
+		S_EQUAL(v_rep.ref, "G");
+		S_EQUAL(v_rep.alt, "GC");
 
-		v = Variant("chr1", 47133811, 47133811, "T", "C");
-		S_EQUAL(v.toVCF(genome_index), "chr1\t47133811\t.\tT\tC\t30\tPASS\t.");
+		v_rep = Variant("chr1", 47133811, 47133811, "T", "C").toVCF(genome_index);
+		S_EQUAL(v_rep.chr.str(), "chr1");
+		I_EQUAL(v_rep.pos, 47133811);
+		S_EQUAL(v_rep.ref, "T");
+		S_EQUAL(v_rep.alt, "C");
 
-		v = Variant("chr1", 47181921, 47181921, "A", "-");
-		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCA\tC\t30\tPASS\t.");
+		v_rep = Variant("chr1", 47181921, 47181921, "A", "-").toVCF(genome_index);
+		S_EQUAL(v_rep.chr.str(), "chr1");
+		I_EQUAL(v_rep.pos, 47181920);
+		S_EQUAL(v_rep.ref, "CA");
+		S_EQUAL(v_rep.alt, "C");
 
-		v = Variant("chr1", 47181921, 47181922, "AA", "GC");
-		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCAA\tCGC\t30\tPASS\t.");
+		v_rep = Variant("chr1", 47181921, 47181922, "AA", "GC").toVCF(genome_index);
+		S_EQUAL(v_rep.chr.str(), "chr1");
+		I_EQUAL(v_rep.pos, 47181920);
+		S_EQUAL(v_rep.ref, "CAA");
+		S_EQUAL(v_rep.alt, "CGC");
 
-		v = Variant("chr1", 47181921, 47181921, "A", "TGC");
-		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCA\tCTGC\t30\tPASS\t.");
+		v_rep = Variant("chr1", 47181921, 47181921, "A", "TGC").toVCF(genome_index);
+		S_EQUAL(v_rep.chr.str(), "chr1");
+		I_EQUAL(v_rep.pos, 47181920);
+		S_EQUAL(v_rep.ref, "CA");
+		S_EQUAL(v_rep.alt, "CTGC");
 
-		v = Variant("chr1", 47181921, 47181925, "AAAAA", "GCT");
-		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCAAAAA\tCGCT\t30\tPASS\t.");
+		v_rep = Variant("chr1", 47181921, 47181925, "AAAAA", "GCT").toVCF(genome_index);
+		S_EQUAL(v_rep.chr.str(), "chr1");
+		I_EQUAL(v_rep.pos, 47181920);
+		S_EQUAL(v_rep.ref, "CAAAAA");
+		S_EQUAL(v_rep.alt, "CGCT");
 
-		v = Variant("chr1", 47181921, 47181925, "AAAAA", "GCTGCTGCT");
-		S_EQUAL(v.toVCF(genome_index), "chr1\t47181920\t.\tCAAAAA\tCGCTGCTGCT\t30\tPASS\t.");
+		v_rep = Variant("chr1", 47181921, 47181925, "AAAAA", "GCTGCTGCT").toVCF(genome_index);
+		S_EQUAL(v_rep.chr.str(), "chr1");
+		I_EQUAL(v_rep.pos, 47181920);
+		S_EQUAL(v_rep.ref, "CAAAAA");
+		S_EQUAL(v_rep.alt, "CGCTGCTGCT");
 	}
 
 	void addFilter()

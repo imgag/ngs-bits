@@ -44,12 +44,14 @@ public:
 
 	///Overrides BAM file (for testing only)
 	void overrideBamFile(QString bam_file);
+	///Overrides low-coverage file (for testing only)
+	void overrideLowCovFile(QString lowcov_file);
 	///Overrides date (for testing only)
 	void overrideDate(QDate date);
 
 	///Returns if the pre-calcualed gaps for the given ROI.
 	///If using the pre-calculated gaps file is not possible, @p message contains an error message.
-	static BedFile precalculatedGaps(QString bam_file, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region);
+	static BedFile precalculatedGaps(QString low_cov_file, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region);
 
 	///Writes a evaluation sheet in HTML format.
 	void writeEvaluationSheet(QString filename, const EvaluationSheetData& evaluation_sheet_data);
@@ -62,6 +64,7 @@ private:
 
 	QString ps_id_;
 	QString ps_bam_;
+	QString ps_lowcov_;
 	BedFile roi_;
 	QString sys_roi_file_;
 	BedFile sys_roi_;

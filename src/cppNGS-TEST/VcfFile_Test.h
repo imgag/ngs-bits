@@ -8,13 +8,6 @@ TEST_CLASS(VcfFile_Test)
 Q_OBJECT
 private slots:
 
-	void type()
-	{
-		VcfFile vl;
-		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		I_EQUAL(vl.type(false),  GERMLINE_SINGLESAMPLE);
-	}
-
 	void removeDuplicates_VCF()
 	{
 		VcfFile vl,vl2;
@@ -555,13 +548,13 @@ private slots:
 	void convertTSVtoVCF()
 	{
 		VariantList variant_list;
-		variant_list.load(TESTDATA("data_in/GSvarToVcf.GSvar"));
+		variant_list.load(TESTDATA("data_in/GSvarToVcf.GSvar")); //TODO add real-life tests (single-sample, trio, somatic) and check output with VcfFile::isValid()
 
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		//tests multisample and leftNormalize from GSvar format to VCF for insertion, deletion, SNP
 		VcfFile vcf_file = VcfFile::convertGSvarToVcf(variant_list, ref_file);
-		vcf_file.store("out/GSvarToVcf.vcf", false, BGZF_NO_COMPRESSION);
+		vcf_file.store("out/GSvarToVcf.vcf");
 
 		COMPARE_FILES("out/GSvarToVcf.vcf", TESTDATA("data_out/GSvarToVcf.vcf"));
 	}

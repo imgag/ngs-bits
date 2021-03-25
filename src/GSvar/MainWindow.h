@@ -13,12 +13,9 @@
 #include "ReportSettings.h"
 #include "DelayedInitializationTimer.h"
 #include "SomaticReportSettings.h"
-struct IgvFile
-{
-	QString id; //sample identifier/name (for visualization)
-	QString type; //file type (for grouping)
-	QString filename; //file name
-};
+#include "GlobalServiceProvider.h"
+#include "FileLocationProviderLocal.h"
+#include "FileLocationProviderRemote.h"
 
 ///Main window class
 class MainWindow
@@ -31,16 +28,8 @@ public:
 	MainWindow(QWidget* parent = 0);
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
-	///Returns the BAM files for the analysis.
-	QList<IgvFile> getBamFiles();
-	///Returns CNV SEG files for the analysis.
-	QList<IgvFile> getSegFilesCnv();
-	///Returns BAF SEG files for the analysis.
-	QList<IgvFile> getIgvFilesBaf();
-	///Returns Manta evidence BAM files for the analysis.
-	QList<IgvFile> getMantaEvidenceFiles();
-	///Returns low coverage BED files for the analysis.
-	QList<IgvFile> getLowCovFiles();
+	///Returns the LOG files corresponding to the variant list.
+	QStringList getLogFiles();	
 	///Adds a file to the recent file list
 	void addToRecentFiles(QString filename);
 	///Updates recent files menu
@@ -55,10 +44,6 @@ public:
 	void uploadtoLovd(int variant_index, int variant_index2 = -1);
 	///Returns the target file name without extension and date part prefixed with '_', or an empty string if no target file is set
 	QString targetFileName() const;
-	///Returns the processed sample name (in case of a somatic variant list, the tumor is returned).
-	QString processedSampleName();
-	///Returns the sample name (in case of a somatic variant list, the tumor is returned).
-	QString sampleName();
 
 	///Context menu for single variant
 	void contextMenuSingleVariant(QPoint pos, int index);
@@ -67,11 +52,6 @@ public:
 
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
-
-	///Returns the CNV file corresponding to the GSvar file
-	QString cnvFile(QString gsvar_file);
-	///Returns the Manta SV file corresponding to the GSvar file
-	QString svFile(QString gsvar_file);
 
 	///Returns if germline report is supported for current variant list.
 	bool germlineReportSupported();
@@ -102,8 +82,8 @@ public slots:
 	void on_actionChangeLog_triggered();
 	///About dialog
 	void on_actionAbout_triggered();
-	///Open processed sample tabs
-	void openProcessedSampleTabsCurrentSample();
+	///Open processed sample tabs for all samples of the current analysis
+	void openProcessedSampleTabsCurrentAnalysis();
 	///Open processed sample tab by name
 	void on_actionOpenProcessedSampleTabByName_triggered();
 	///Open sequencing run tab by name

@@ -7,6 +7,7 @@
 #include "NGSD.h"
 #include "Settings.h"
 #include "GSvarHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -40,23 +41,8 @@ RohWidget::RohWidget(QString filename, FilterWidget* filter_widget, QWidget *par
 	connect(var_filters, SIGNAL(filtersChanged()), this, SLOT(variantFiltersChanged()));
 	connect(var_filters, SIGNAL(targetRegionChanged()), this, SLOT(variantFiltersChanged()));
 
-	//load ROH data file
-	QString path = QFileInfo(filename).absolutePath();
-	QStringList roh_files = Helper::findFiles(path, "*_rohs.tsv", false);
-	if (roh_files.count()==0)
-	{
-		addInfoLine("<font color='red'>No ROH data file found in directory " + path + "</font>");
-		disableGUI();
-	}
-	else if (roh_files.count()>1)
-	{
-		addInfoLine("<font color='red'>Two or more ROH data files found in directory " + path + "</font>");
-		disableGUI();
-	}
-	else
-	{
-		loadROHs(roh_files[0]);
-	}
+	//load ROHs
+	loadROHs(filename);
 
 	//update variant list dependent filters (and apply filters)
 	variantFiltersChanged();

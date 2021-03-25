@@ -141,7 +141,7 @@ void LovdUploadDialog::upload()
 	QByteArray upload_file = createJson();
 
 	//upload data
-	static HttpHandler http_handler(HttpHandler::INI); //static to allow caching of credentials
+	static HttpHandler http_handler(HttpRequestHandler::INI); //static to allow caching of credentials
 	try
 	{
 		//add headers

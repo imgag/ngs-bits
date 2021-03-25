@@ -209,8 +209,6 @@ public:
 	InfoFormatLine formatLineByID(const QByteArray& id, bool error_not_found = true) const;
 	FilterLine filterLineByID(const QByteArray& id, bool error_not_found = true) const;
 
-	//returning type of the analysis (e.g. somatic single sample)
-	AnalysisType type(bool allow_fallback_germline_single_sample) const;
 	//looks up the position of name in the list of VEP annotations from the info line in the header (CSQ line)
 	int vepIndexByName(const QString& name, bool error_if_not_found = true) const;
 

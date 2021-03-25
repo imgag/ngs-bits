@@ -1,3 +1,4 @@
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##SAMPLE=<ID=SAMPLE3,Status=affected>
 #chr	start	end	ref	obs	SAMPLE3	snp_q	depth	map_q	variant	variant_frequency	variant_type	gene	variant_details	coding_and_splicing	snp_1000g2011may_all	snp_snp132	ljb_phylop	ljb_mt	esp6500si_ea	quality_filter	ref_variant_frequency	ref_variant_depth	normal_allele	ds_tum_frequency	ds_tum_depth	ihdb_hom_34	ihdb_het_34	ihdb_wt_34	ihdb_allsys
 chr1	153907296	153907304	CTGCTGCTG	-	het	217	44	48	INDEL	0.0476	exonic	DENND4B	nonframeshift deletion	DENND4B:NM_014856:exon18:c.2704_2712del:p.902_904del,	.	.	.	420		passed	0	36	CTGCTGCTG	0.1363	1115	0.6765	0	0.3235	25

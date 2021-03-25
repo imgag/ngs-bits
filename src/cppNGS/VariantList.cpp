@@ -352,34 +352,36 @@ QString Variant::toHGVS(const FastaFileIndex& genome_index) const
 	THROW(ProgrammingException, "Could not convert variant " + toString(false) + " to string! This should not happen!");
 }
 
-QString Variant::toVCF(const FastaFileIndex& genome_index) const
+VariantVcfRepresentation Variant::toVCF(const FastaFileIndex& genome_index) const
 {
-	int pos = start_;
-	Sequence ref = ref_;
-	Sequence obs = obs_;
+	VariantVcfRepresentation output;
+	output.chr = chr_;
+	output.pos = start_;
+	output.ref = ref_;
+	output.alt = obs_;
 
 	//prepend base for InDels
 	if (!isSNV())
 	{
-		if (ref=="-")
+		if (output.ref=="-")
 		{
-			ref = "";
+			output.ref.clear();
 		}
-		else if (obs=="-")
+		else if (output.alt=="-")
 		{
-			pos -= 1;
-			obs = "";
+			output.pos -= 1;
+			output.alt.clear();
 		}
-		else if(ref.size() > 1 || obs.size() > 1)
+		else if(output.ref.size() > 1 || output.alt.size() > 1)
 		{
-			pos -= 1;
+			output.pos -= 1;
 		}
-		Sequence prefix_base = genome_index.seq(chr_, pos, 1);
-		ref = prefix_base + ref;
-		obs = prefix_base + obs;
+		Sequence prefix_base = genome_index.seq(output.chr, output.pos, 1);
+		output.ref = prefix_base + output.ref;
+		output.alt = prefix_base + output.alt;
 	}
 
-	return chr_.str() + "\t" + QString::number(pos) + "\t.\t" + ref + "\t" + obs + "\t30\tPASS\t.";
+	return output;
 }
 
 VariantList::LessComparatorByAnnotation::LessComparatorByAnnotation(int annotation_index)
@@ -469,6 +471,57 @@ VariantList::VariantList()
 	, filters_()
 	, variants_()
 {
+}
+
+QString VariantList::analysisName() const
+{
+	//determine sample list
+	QStringList samples;
+	SampleHeaderInfo header_info = getSampleHeader();
+	foreach(const SampleInfo& info, header_info)
+	{
+		samples << info.id;
+	}
+
+	return analysisTypeToString(type(), true) + " " + samples.join("/");
+}
+
+QString VariantList::mainSampleName() const
+{
+	QStringList samples;
+	switch(type())
+	{
+		case SOMATIC_SINGLESAMPLE:
+		case GERMLINE_SINGLESAMPLE:
+			foreach(const SampleInfo& entry, getSampleHeader())
+			{
+				samples << entry.id;
+			}
+			break;
+		case GERMLINE_TRIO:
+		case GERMLINE_MULTISAMPLE:
+			foreach(const SampleInfo& entry, getSampleHeader())
+			{
+				if (entry.isAffected())
+				{
+					samples << entry.id;
+				}
+			}
+			break;
+		case SOMATIC_PAIR:
+			foreach(const SampleInfo& entry, getSampleHeader())
+			{
+				if (entry.isTumor())
+				{
+					samples << entry.id;
+				}
+			}
+			break;
+	}
+
+	if (samples.count()!=1) THROW(ProgrammingException, "Could not determine main processed sample for " + analysisName() + "!");
+
+	return samples[0];
 }
 
 void VariantList::copyMetaData(const VariantList& rhs)
@@ -823,13 +876,6 @@ void VariantList::store(QString filename) const
 	}
 }
 
-void VariantList::storeAsVCF(QString filename, const QString& reference_genome, int compression_level) const
-{
-	VcfFile vcf_file;
-	vcf_file = VcfFile::convertGSvarToVcf(*this, reference_genome);
-	vcf_file.store(filename, true, compression_level);
-}
-
 void VariantList::sort(bool use_quality)
 {
 	//skip this if no variants are there - otherwise finding the quality column might fail...
@@ -938,7 +984,7 @@ void VariantList::checkValid() const
 	}
 }
 
-SampleHeaderInfo VariantList::getSampleHeader(bool error_if_missing) const
+SampleHeaderInfo VariantList::getSampleHeader() const
 {
 	SampleHeaderInfo output;
 
@@ -980,16 +1026,7 @@ SampleHeaderInfo VariantList::getSampleHeader(bool error_if_missing) const
 		}
 	}
 
-	//special handling of old single-sample analysis (no longer required, but kept for backward-compatibility)
-	if (output.count()==1 && annotationIndexByName("genotype", true, false)!=-1)
-	{
-		output.first().column_name = "genotype";
-	}
-
-	if (output.count()==0 && error_if_missing)
-	{
-		THROW(ProgrammingException, "Could not find any sample information in the variant list header!");
-	}
+	if (output.count()==0) THROW(ProgrammingException, "No sample information found in the variant list header!");
 
 	//determine column index
 	AnalysisType analysis_type = type();
@@ -1020,24 +1057,18 @@ AnalysisType VariantList::type(bool allow_fallback_germline_single_sample) const
 	{
 		if (line.startsWith("##ANALYSISTYPE="))
 		{
-			QString type = line.trimmed().mid(15);
-			if (type=="GERMLINE_SINGLESAMPLE") return GERMLINE_SINGLESAMPLE;
-			else if (type=="GERMLINE_TRIO") return GERMLINE_TRIO;
-			else if (type=="GERMLINE_MULTISAMPLE") return GERMLINE_MULTISAMPLE;
-			else if (type=="SOMATIC_SINGLESAMPLE") return SOMATIC_SINGLESAMPLE;
-			else if (type=="SOMATIC_PAIR") return SOMATIC_PAIR;
-			else THROW(FileParseException, "Invalid analysis type '" + type + "' found in variant list!");
+			QString type = line.mid(15).trimmed();
+			return stringToAnalysisType(type);
 		}
 	}
 
+	//fallback for old files without ANALYSISTYPE header and for default-constructed variant lists
 	if (allow_fallback_germline_single_sample)
 	{
-		return GERMLINE_SINGLESAMPLE; //fallback for old files without ANALYSISTYPE header
+		return GERMLINE_SINGLESAMPLE;
 	}
-	else
-	{
-		THROW(FileParseException, "No analysis type found in variant list!");
-	}
+
+	THROW(FileParseException, "No ANALYSISTYPE line found in variant list header!");
 }
 
 void Variant::normalize(int& start, Sequence& ref, Sequence& obs)
@@ -1229,4 +1260,37 @@ Variant Variant::fromString(const QString& text_orig)
 	v.checkValid();
 
 	return v;
+}
+
+QString analysisTypeToString(AnalysisType type, bool human_readable)
+{
+	if (human_readable)
+	{
+		if (type==GERMLINE_SINGLESAMPLE) return "single-sample analysis";
+		if (type==GERMLINE_TRIO) return "trio analysis";
+		if (type==GERMLINE_MULTISAMPLE) return "multi-sample analysis";
+		if (type==SOMATIC_SINGLESAMPLE) return "tumor-only analysis";
+		if (type==SOMATIC_PAIR) return "tumor/normal analysis";
+	}
+	else
+	{
+		if (type==GERMLINE_SINGLESAMPLE) return "GERMLINE_SINGLESAMPLE";
+		if (type==GERMLINE_TRIO) return "GERMLINE_TRIO";
+		if (type==GERMLINE_MULTISAMPLE) return "GERMLINE_MULTISAMPLE";
+		if (type==SOMATIC_SINGLESAMPLE) return "SOMATIC_SINGLESAMPLE";
+		if (type==SOMATIC_PAIR) return "SOMATIC_PAIR";
+	}
+
+	THROW(ProgrammingException, "Unhandled analysis type with integer value '" + QString::number(type) + "'!");
+}
+
+AnalysisType stringToAnalysisType(QString type)
+{
+	if (type=="GERMLINE_SINGLESAMPLE") return GERMLINE_SINGLESAMPLE;
+	if (type=="GERMLINE_TRIO") return GERMLINE_TRIO;
+	if (type=="GERMLINE_MULTISAMPLE") return GERMLINE_MULTISAMPLE;
+	if (type=="SOMATIC_SINGLESAMPLE") return SOMATIC_SINGLESAMPLE;
+	if (type=="SOMATIC_PAIR") return SOMATIC_PAIR;
+
+	THROW(ProgrammingException, "Unknown analysis type with string representation '" + type + "'!");
 }
