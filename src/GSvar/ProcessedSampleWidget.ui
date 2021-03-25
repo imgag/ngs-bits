@@ -414,7 +414,7 @@
             <item row="9" column="0">
              <widget class="QLabel" name="label_16">
               <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ancestry estimated from variant data using the ngs-bits SampleAncestry tool.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ancestry estimated from variant data using the ngs-bits SampleAncestry tool:&lt;br/&gt;- EUR: european&lt;br/&gt;- AFR: african&lt;br/&gt;- EAS: east asian&lt;br/&gt;- SAS: south asian&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>ancestry:</string>

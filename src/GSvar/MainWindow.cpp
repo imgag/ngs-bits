@@ -4627,7 +4627,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	if (ngsd_user_logged_in)
 	{
 		NGSD db;
-		QString sample_id = db.sampleId(variants_.mainSampleName(), false);
+		QString ps = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
+		QString sample_id = db.sampleId(ps, false);
 		if (sample_id!="")
 		{
 			//get disease list (HPO and CGI cancer type)
