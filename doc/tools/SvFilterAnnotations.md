@@ -1,5 +1,5 @@
 ### SvFilterAnnotations tool help
-	SvFilterAnnotations (2020_03-159-g5c8b2e82)
+	SvFilterAnnotations (2021_03-23-g5c26fea8)
 	
 	Filter a structural variant list in BEDPE format based on variant annotations.
 	
@@ -18,6 +18,7 @@
 	                         Parameters:
 	                           action - Action to perform [default=FILTER] [valid=REMOVE,FILTER]
 	SV PE read depth         Show only SVs with at least a certain number of Paired End Reads
+	                         (In trio/multi sample all samples must meet the requirements.)
 	                         Parameters:
 	                           PE Read Depth - minimal number of Paired End Reads [default=0] [min=0]
 	SV SomaticScore          Show only SVs with at least a certain Somaticscore
@@ -50,10 +51,16 @@
 	                           complete - Overlaps the complete gene. [default=true]
 	                           exonic/splicing - Overlaps the coding or splicing region of the gene. [default=true]
 	                           intronic/intergenic - Overlaps the intronic/intergenic region of the gene only. [default=false]
-	SV genotype              Filter structural variants based on their genotype.
+	SV genotype affected     Filter structural variants (of affected samples) based on their genotype.
 	                         Parameters:
-	                           Genotype - Structural variant genotype [valid=het,hom] [non-empty]
+	                           genotypes - Structural variant genotype(s) [valid=wt,het,hom,n/a] [non-empty]
+	                           same_genotype - Also check that all 'control' samples have the same genotype. [default=false]
+	SV genotype control      Filter structural variants of control samples based on their genotype.
+	                         Parameters:
+	                           genotypes - Structural variant genotype(s) [valid=wt,het,hom,n/a] [non-empty]
+	                           same_genotype - Also check that all 'control' samples have the same genotype. [default=false]
 	SV paired read AF        Show only SVs with a certain Paired Read Allele Frequency +/- 10%
+	                         (In trio/multi sample all samples must meet the requirements.)
 	                         Parameters:
 	                           Paired Read AF - Paired Read Allele Frequency +/- 10% [default=0] [min=0.0] [max=1.0]
 	SV quality               Filter structural variants based on their quality.
@@ -67,8 +74,13 @@
 	                           min_size - Minimum SV size (absolute size). [default=0] [min=0]
 	                           max_size - Maximum SV size (absolute size). Select 0 for infinity. [default=0] [min=0]
 	SV split read AF         Show only SVs with a certain Split Read Allele Frequency +/- 10%
+	                         (In trio/multi sample all samples must meet the requirements.)
 	                         Parameters:
 	                           Split Read AF - Split Read Allele Frequency +/- 10% [default=0] [min=0.0] [max=1.0]
+	SV trio                  Filter trio structural variants
+	                         Parameters:
+	                           types - Variant types [default=de-novo,recessive,comp-het,LOH,x-linked] [valid=de-novo,recessive,comp-het,LOH,x-linked,imprinting]
+	                           gender_child - Gender of the child - if 'n/a', the gender from the GSvar file header is taken [default=n/a] [valid=male,female,n/a]
 	SV type                  Filter based on SV types.
 	                         Parameters:
 	                           Structural variant type - Structural variant type [valid=DEL,DUP,INS,INV,BND] [non-empty]
@@ -85,7 +97,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SvFilterAnnotations changelog
-	SvFilterAnnotations 2020_03-159-g5c8b2e82
+	SvFilterAnnotations 2021_03-23-g5c26fea8
 	
 	2020-04-16 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

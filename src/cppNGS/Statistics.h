@@ -66,7 +66,7 @@ public:
 
 	///Determines the gender based on the read ratio between X and Y chromosome.
 	static GenderEstimate genderXY(QString bam_file, double max_female=0.06, double min_male=0.09, const QString& ref_file = QString::null);
-	///Determines the gender based on the fraction of heterocygous SNPs on chromosome X.
+	///Determines the gender based on the fraction of heterozygous SNPs on chromosome X.
 	static GenderEstimate genderHetX(QString bam_file, QString build, double max_male=0.15, double min_female=0.24, const QString& ref_file = QString::null);
 	///Determines the gender based on the coverge of the SRY gene on chrY.
 	static GenderEstimate genderSRY(QString bam_file, QString build, double min_cov=20.0, const QString& ref_file = QString::null);

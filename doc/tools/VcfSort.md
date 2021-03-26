@@ -1,5 +1,5 @@
 ### VcfSort tool help
-	VcfSort (2020_06-89-g5de737ff)
+	VcfSort (2021_03-23-g5c26fea8)
 	
 	Sorts variant lists according to chromosomal position.
 	
@@ -13,7 +13,7 @@
 	  -fai <file>              FAI file defining different chromosome order.
 	                           Default value: ''
 	  -compression_level <int> Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.
-	                           Default value: '0'
+	                           Default value: '10'
 	
 	Special parameters:
 	  --help                   Shows this help and exits.
@@ -22,7 +22,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfSort changelog
-	VcfSort 2020_06-89-g5de737ff
+	VcfSort 2021_03-23-g5c26fea8
 	
 	2020-08-12 Added parameter '-compression_level' for compression level of output vcf files.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

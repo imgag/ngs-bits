@@ -1,11 +1,11 @@
 ### SampleGender tool help
-	SampleGender (2020_12-85-g5ff87d17)
+	SampleGender (2021_03-23-g5c26fea8)
 	
 	Determines the gender of a sample from the BAM/CRAM file.
 	
 	Mandatory parameters:
 	  -in <filelist>      Input BAM/CRAM file(s).
-	  -method <enum>      Method selection: Read distribution on X and Y chromosome (xy), fraction of heterocygous variants on X chromosome (hetx), or coverage of SRY gene (sry).
+	  -method <enum>      Method selection: Read distribution on X and Y chromosome (xy), fraction of heterozygous variants on X chromosome (hetx), or coverage of SRY gene (sry).
 	                      Valid: 'xy,hetx,sry'
 	
 	Optional parameters:
@@ -15,10 +15,10 @@
 	                      Default value: '0.06'
 	  -min_male <float>   Minimum Y/X ratio for male (method xy).
 	                      Default value: '0.09'
-	  -min_female <float> Minimum heterocygous SNP fraction for female (method hetx).
-	                      Default value: '0.24'
-	  -max_male <float>   Maximum heterocygous SNP fraction for male (method hetx).
-	                      Default value: '0.15'
+	  -min_female <float> Minimum heterozygous SNP fraction for female (method hetx).
+	                      Default value: '0.25'
+	  -max_male <float>   Maximum heterozygous SNP fraction for male (method hetx).
+	                      Default value: '0.05'
 	  -sry_cov <float>    Minimum average coverage of SRY gene for males (method sry).
 	                      Default value: '20'
 	  -build <enum>       Genome build used to generate the input (methods hetx and sry).
@@ -34,7 +34,7 @@
 	  --tdx               Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SampleGender changelog
-	SampleGender 2020_12-85-g5ff87d17
+	SampleGender 2021_03-23-g5c26fea8
 	
 	2020-11-27 Added CRAM support.
 	2018-07-13 Change of output to TSV format for batch support.
