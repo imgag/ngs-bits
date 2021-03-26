@@ -92,7 +92,7 @@ void CfDNAPanelDesignDialog::loadPreviousPanels(const DBTable& processing_system
 		{
 			const VcfLine& var = prev_panel.vcfLine(i);
 			// create vcf pos string
-			QString vcf_pos = var.chr().strNormalized(true) + ":" + QString::number(var.pos()) + " " + var.ref() + ">" + var.altString();
+			QString vcf_pos = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + " " + var.ref() + ">" + var.altString();
 			prev_vars_.insert(vcf_pos, false);
 		}
 	}

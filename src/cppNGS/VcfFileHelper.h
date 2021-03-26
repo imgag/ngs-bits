@@ -238,28 +238,24 @@ public:
 	VcfLine();
 	///Constructor with basic entries
 	/// (chromosome, start position, reference base(s), List of alternative base(s), List of FormatIDs, List of sampleIDs, List containing for every sample a list of values for every format)
-	VcfLine(const Chromosome& chr, int pos, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids = QByteArrayList(), QByteArrayList sample_ids = QByteArrayList(), QList<QByteArrayList> list_of_format_values = QList<QByteArrayList>());
+	VcfLine(const Chromosome& chr, int start, const Sequence& ref, const QVector<Sequence>& alt, QByteArrayList format_ids = QByteArrayList(), QByteArrayList sample_ids = QByteArrayList(), QList<QByteArrayList> list_of_format_values = QList<QByteArrayList>());
 
 	const Chromosome& chr() const
 	{
 		return chr_;
 	}
-	const int& pos() const
+	int start() const
 	{
 		return pos_;
-	}
-	const int& start() const
-	{
-		return pos_;
-	}
-	const Sequence& ref() const
-	{
-		return ref_;
 	}
 	int end() const
 	{
 		if(ref().length() <= 0) THROW(ArgumentException, "Reference can not have length zero in a VCF File.");
-		return (pos() + ref().length() - 1);
+		return (start() + ref().length() - 1);
+	}
+	const Sequence& ref() const
+	{
+		return ref_;
 	}
 	const QVector<Sequence>& alt() const
 	{
@@ -522,12 +518,12 @@ public:
 	//Overlap check for chromosome and position range.
 	bool overlapsWith(const Chromosome& input_chr, int input_start, int input_end) const
 	{
-		return (chr_==input_chr && BasicStatistics::rangeOverlaps(pos(), end(), input_start, input_end));
+		return (chr_==input_chr && BasicStatistics::rangeOverlaps(start(), end(), input_start, input_end));
 	}
 	//Overlap check for position range only.
 	bool overlapsWith(int input_start, int input_end) const
 	{
-		return BasicStatistics::rangeOverlaps(pos(), end(), input_start, input_end);
+		return BasicStatistics::rangeOverlaps(start(), end(), input_start, input_end);
 	}
 	//Overlap check BED file line.
 	bool overlapsWith(const BedLine& line) const

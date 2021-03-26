@@ -21,11 +21,11 @@
 
 QCCollection Statistics::variantList(VcfFile variants, bool filter)
 {
-    //support only single sample vcf files
-    if(variants.sampleIDs().count() > 1)
-    {
-        THROW(FileParseException, "Can not generate QCCollection for a vcf file with multiple samples.");
-    }
+	//support only single sample vcf files
+	if(variants.sampleIDs().count() > 1)
+	{
+		THROW(FileParseException, "Can not generate QCCollection for a vcf file with multiple samples.");
+	}
 
 
 	QCCollection output;
@@ -83,7 +83,7 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 		double hom_count = 0;
 		for(int i=0; i<variants.count(); ++i)
 		{
-            QByteArray geno = variants.vcfLine(i).formatValueFromSample("GT");
+			QByteArray geno = variants.vcfLine(i).formatValueFromSample("GT");
 			if (geno=="1/1" || geno=="1|1")
 			{
 				++hom_count;
@@ -104,7 +104,7 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	{
 		//only first variant is analyzed
 		const  VcfLine& var = variants.vcfLine(i);
-        if (var.isInDel())
+		if (var.isInDel())
 		{
 			++indel_count;
 		}
@@ -909,7 +909,7 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString exons, QString t
 		if(vcf_file.vcfLine(i).failedFilters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
 
 		const Chromosome chr = vcf_file.vcfLine(i).chr();
-		int start = vcf_file.vcfLine(i).pos();
+		int start = vcf_file.vcfLine(i).start();
 		int end = vcf_file.vcfLine(i).end();
 
 		if(target_file.overlapsWith(chr, start, end))
@@ -1010,11 +1010,11 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		if (!variants[i].failedFilters().empty())	continue;
 
 		const  VcfLine& var = variants[i];
-        if (var.isInDel())
+		if (var.isInDel())
 		{
 			++indel_count;
 		}
-        else if ((var.alt(0)=="A" && var.ref()=="G") || (var.alt(0)=="G" && var.ref()=="A") || (var.alt(0)=="T" && var.ref()=="C") || (var.alt(0)=="C" && var.ref()=="T"))
+		else if ((var.alt(0)=="A" && var.ref()=="G") || (var.alt(0)=="G" && var.ref()=="A") || (var.alt(0)=="T" && var.ref()=="C") || (var.alt(0)=="C" && var.ref()=="T"))
 		{
 			++ti_count;
 		}
@@ -1062,10 +1062,10 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		Pileup pileup_no = reader_normal.getPileup(v.chr(), v.start());
 		if (pileup_no.depth(true) < min_depth) continue;
 
-        double no_freq = pileup_no.frequency(v.ref()[0], v.alt(0)[0]);
+		double no_freq = pileup_no.frequency(v.ref()[0], v.alt(0)[0]);
 		if (!BasicStatistics::isValidFloat(no_freq) || no_freq >= max_somatic) continue;
 
-        double tu_freq = pileup_tu.frequency(v.ref()[0], v.alt(0)[0]);
+		double tu_freq = pileup_tu.frequency(v.ref()[0], v.alt(0)[0]);
 		if (!BasicStatistics::isValidFloat(tu_freq) || tu_freq > 0.6) continue;
 
 		freqs.append(tu_freq);
@@ -1112,7 +1112,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 			foreach(const QByteArray& n, nucleotides)
 			{
 				int tmp = variants[i].formatValueFromSample(n+"U", tumor_id.toUtf8()).split(',')[0].toInt();
-                if(n==variants[i].alt(0)) count_mut += tmp;
+				if(n==variants[i].alt(0)) count_mut += tmp;
 				count_all += tmp;
 			}
 			if(count_all>0)
@@ -1170,12 +1170,12 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		if(!variants[i].isSNV())	continue;	//skip indels
 
 		VcfLine v = variants[i];
-        QString n = v.ref()+">"+v.alt(0);
+		QString n = v.ref()+">"+v.alt(0);
 		bool contained = false;
 		if(nuc_changes.contains(n))	contained = true;
 		else
 		{
-            n = v.ref().toReverseComplement() + ">" + v.alt(0).toReverseComplement();
+			n = v.ref().toReverseComplement() + ">" + v.alt(0).toReverseComplement();
 			if(nuc_changes.contains(n))	contained = true;
 		}
 
@@ -1224,7 +1224,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 			foreach(const QByteArray& n, nucleotides)
 			{
 				int tmp = variants[i].formatValueFromSample(n+"U", tumor_id.toUtf8()).split(',')[0].toInt();
-                if(n==variants[i].alt(0))	count_mut += tmp;
+				if(n==variants[i].alt(0))	count_mut += tmp;
 				count_all += tmp;
 			}
 			if(count_all>0)	af_tumor = (double)count_mut/count_all;
@@ -1234,7 +1234,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 			foreach(const QByteArray& n, nucleotides)
 			{
 				int tmp = variants[i].formatValueFromSample(n+"U", normal_id.toUtf8()).split(',')[0].toInt();
-                if(n==variants[i].alt(0))	count_mut += tmp;
+				if(n==variants[i].alt(0))	count_mut += tmp;
 				count_all += tmp;
 			}
 			if(count_all>0)	af_normal = (double)count_mut/count_all;
@@ -1555,7 +1555,7 @@ QCCollection Statistics::contamination(QString build, QString bam, const QString
 		int depth = pileup.depth(false);
 		if (depth<min_cov) continue;
 
-        double freq = pileup.frequency(snps[i].ref()[0], snps[i].alt(0)[0]);
+		double freq = pileup.frequency(snps[i].ref()[0], snps[i].alt(0)[0]);
 
 		//skip non-informative snps
 		if (!BasicStatistics::isValidFloat(freq)) continue;
@@ -1589,11 +1589,11 @@ QCCollection Statistics::contamination(QString build, QString bam, const QString
 
 AncestryEstimates Statistics::ancestry(QString build, const VcfFile& vl, int min_snp, double min_pop_dist)
 {
-    //multi sample is not supported
-    if(vl.sampleIDs().count() > 1)
-    {
-        THROW(ArgumentException, "Multi sample vcf files are not supported for ancestry estimates.");
-    }
+	//multi sample is not supported
+	if(vl.sampleIDs().count() > 1)
+	{
+		THROW(ArgumentException, "Multi sample vcf files are not supported for ancestry estimates.");
+	}
 
 	//determine required annotation indices
 	if(!vl.formatIDs().contains("GT"))
@@ -1625,7 +1625,7 @@ AncestryEstimates Statistics::ancestry(QString build, const VcfFile& vl, int min
 		const  VcfLine& v = vl.vcfLine(i);
 
 		//skip non-informative SNPs
-		int index = af_idx.matchingIndex(v.chr(), v.pos(), v.end());
+		int index = af_idx.matchingIndex(v.chr(), v.start(), v.end());
 		if (index==-1) continue;
 		const  VcfLine& v2 = af[index];
 		if (v.ref()!=v2.ref() || v.alt()!=v2.alt()) continue;
@@ -2127,66 +2127,43 @@ GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double ma
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
 
-	//restrict to X chromosome
+	//load common SNPs on chrX that are outside the PAR
 	Chromosome chrx("chrX");
 	int chrx_end_pos = reader.chromosomeSize(chrx);
-	reader.setRegion(chrx, 1, chrx_end_pos);
-
-	//load SNPs on chrX
-	BedFile roi_chrx("chrX", 1, chrx_end_pos);
+	BedFile roi_chrx(chrx, 1, chrx_end_pos);
+	roi_chrx.subtract(NGSHelper::pseudoAutosomalRegion(build));
 	VcfFile snps = NGSHelper::getKnownVariants(build, true, roi_chrx, 0.2, 0.8);
+
+	//count het SNPs
+	int c_all = 0;
+	int c_het = 0;
 	QVector<Pileup> counts;
-	counts.fill(Pileup(), snps.count());
-
-	//iterate through all alignments and create counts
-	BamAlignment al;
-	while (reader.getNextAlignment(al))
-	{
-		if (al.mappingQuality()<20) continue;
-
-		int start = al.start();
-		int end = al.end();
-
-		for (int i=0; i<snps.count(); ++i)
-		{
-			int pos = snps[i].start();
-			if (start <= pos && end >= pos)
-			{
-				QPair<char, int> base = al.extractBaseByCIGAR(pos);
-				counts[i].inc(base.first);
-			}
-		}
-	}
-
-	//count
-	int hom_count = 0;
-	int het_count = 0;
+	counts.reserve(snps.count());
 	for (int i=0; i<snps.count(); ++i)
 	{
-		int depth = counts[i].depth(false);
-		if (depth>=30)
-		{
-			int max = counts[i].max();
-			if (max<0.8 * depth)
-			{
-				++het_count;
-			}
-			else
-			{
-				++hom_count;
-			}
-		}
+		const VcfLine& snp = snps[i];
+		Pileup pileup = reader.getPileup(snp.chr(), snp.start(), -1, 20, false, 20);
+
+		int depth = pileup.depth(false);
+		if (depth<20) continue;
+
+		double af = pileup.frequency(snp.ref()[0], snp.alt()[0][0]);
+		if (!BasicStatistics::isValidFloat(af)) continue;
+
+		++c_all;
+		if (af>0.1 && af<0.9) ++c_het;
 	}
-	double het_frac = (double) het_count / (het_count + hom_count);
+
+	double het_frac = (double) c_het / c_all;
 
 	//output
 	GenderEstimate output;
-	output.add_info << KeyValuePair("snps_usable", QString::number(hom_count + het_count) + " of " + QString::number(snps.count()));
-	output.add_info << KeyValuePair("hom_count", QString::number(hom_count));
-	output.add_info << KeyValuePair("het_count", QString::number(het_count));
+	output.add_info << KeyValuePair("snps_usable", QString::number(c_all) + " of " + QString::number(snps.count()));
+	output.add_info << KeyValuePair("hom_count", QString::number(c_all - c_het));
+	output.add_info << KeyValuePair("het_count", QString::number(c_het));
 	output.add_info << KeyValuePair("het_fraction", QString::number(het_frac, 'f', 4));
 
-	if (hom_count + het_count < 20) output.gender = "unknown (too few SNPs)";
+	if (c_all<20) output.gender = "unknown (too few SNPs)";
 	else if (het_frac<=max_male) output.gender = "male";
 	else if (het_frac>=min_female) output.gender = "female";
 	else output.gender = "unknown (fraction in gray area)";

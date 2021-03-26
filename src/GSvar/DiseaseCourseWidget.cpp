@@ -34,7 +34,7 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 	int row = item->row();
 
 	const VcfLine& vcf_line = ref_column_.variants[row];
-	QString coords = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.pos());
+	QString coords = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.start());
 	emit openInIGV(coords);
 
 	// add cfDNA BAM Files to IGV
