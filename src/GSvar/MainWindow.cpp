@@ -2349,9 +2349,9 @@ void MainWindow::loadFile(QString filename)
 
 	//reset GUI and data structures
 	setWindowTitle(QCoreApplication::applicationName());
-	ui_.filters->reset(true);
 	filename_ = "";
 	variants_.clear();
+	GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProvider>());
 	variants_changed_ = false;
 	cnvs_.clear();
 	svs_.clear();
@@ -2363,6 +2363,8 @@ void MainWindow::loadFile(QString filename)
 	somatic_report_settings_ = SomaticReportSettings();
 
 	ui_.tabs->setCurrentIndex(0);
+
+	ui_.filters->reset(true);
 
 	Log::perf("Clearing variant table took ", timer);
 
@@ -5001,7 +5003,8 @@ void MainWindow::updateSomaticVariantInterpretationAnno(const Variant& var, QStr
 
 void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
 {
-	if(!LoginManager::active()) return;
+	if (filename_.isEmpty()) return;
+	if (!LoginManager::active()) return;
 
 	int i_vicc = variants_.addAnnotationIfMissing("NGSD_som_vicc_interpretation", "Somatic variant interpretation according VICC standard in the NGSD.", "");
 	int i_vicc_comment = variants_.addAnnotationIfMissing("NGSD_som_vicc_comment", "Somatic VICC interpretation comment in the NGSD.", "");
@@ -5374,6 +5377,9 @@ void MainWindow::showNotification(QString text)
 
 void MainWindow::variantRanking()
 {
+	if (filename_.isEmpty()) return;
+	if (!LoginManager::active()) return;
+
 	QApplication::setOverrideCursor(Qt::BusyCursor);	
 	QString ps_name = germlineReportSample();
 	try

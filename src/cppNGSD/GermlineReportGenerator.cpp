@@ -967,7 +967,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 	if (de2en.isEmpty())
 	{
 		de2en["male"] = "male";
-		de2en["female"] = "male";
+		de2en["female"] = "female";
 		de2en["Technischer Report zur bioinformatischen Analyse"] = "Technical Report for Bioinformatic Analysis";
 		de2en["Probe"] = "Sample";
 		de2en["Prozessierungssystem"] = "Processing system";

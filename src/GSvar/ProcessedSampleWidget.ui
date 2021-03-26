@@ -909,7 +909,7 @@
              </size>
             </property>
             <property name="text">
-             <string>SNPs checked:</string>
+             <string>SNPs matching:</string>
             </property>
            </widget>
           </item>
