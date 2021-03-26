@@ -465,19 +465,30 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	if (data_.prs.rowCount()>0)
 	{
 		stream << endl;
-		stream << "<p><b>" << trans("Polygener Risiko-Score (PRS)") << "</b>" << endl;
-		stream << "</p>" << endl;
+		stream << "<p><b>" << trans("Polygener Risiko-Score (PRS)") << "</b></p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Publikation") << "</b></td></tr>" << endl;
+		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>" << trans("Publikation") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Z-Score") << "</b></td><td><b>" << trans("Population (gesch&auml;tzt aus NGS)") << "</b></td></tr>" << endl;
 		int trait_idx = data_.prs.headers().indexOf("trait");
 		int score_idx = data_.prs.headers().indexOf("score");
 		int citation_idx = data_.prs.headers().indexOf("citation");
 		for (int r=0; r<data_.prs.rowCount(); ++r)
 		{
 			const QStringList& row = data_.prs.row(r);
-			stream << "<tr><td>" << row[trait_idx] << "</td><td>" << row[score_idx] << "</td><td>" << row[citation_idx] << "</td></tr>";
+			QString trait = row[trait_idx];
+			QString score = row[score_idx];
+			QString zscore = "n/a";
+			QString population = processed_sample_data.ancestry;
+			if (trait=="Breast Cancer") // mean and standard deviation taken from BCAC315 data
+			{
+				double mean = -0.424;
+				double stdev = 0.611;
+				zscore = QString::number((Helper::toDouble(score, "PRS score") - mean) / stdev, 'f', 3);
+			}
+
+			stream << "<tr><td>" << trait << "</td><td>" << row[citation_idx] << "</td><td>" << score << "</td><td>" << zscore << "</td><td>" << population << "</td></tr>";
 		}
 		stream << "</table>" << endl;
+		stream << "<p>" << trans("Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnische Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs).") << "</p>" << endl;
 	}
 
 	//close stream
@@ -1060,6 +1071,9 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["Hauptphenotyp"] = "preferred phenotype";
 		de2en["ja"] = "yes";
 		de2en["nein"] = "no";
+		de2en["Z-Score"] = "z-score";
+		de2en["Population (gesch&auml;tzt aus NGS)"] = "population (estimated from NGS)";
+		de2en["Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnische Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs)."] = "A validated risk estimation program must be used to judge the clinical importance of a PRS, e.g. CanRisk.org for breast cancer. The ethnicity of the patient must also be considered.";
 	}
 
 	//translate
