@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/client/info.html</file>
+        <file>assets/client/api.json</file>
+	<file>assets/client/example.png</file>
+    </qresource>
+</RCC>
