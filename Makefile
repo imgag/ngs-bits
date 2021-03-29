@@ -71,6 +71,13 @@ build_release_noclean:
 	cd build-tools_gui-Linux-Release; \
 		qmake ../src/tools_gui.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
 		make -j5;
+
+build_server_release:
+	rm -rf build-GSvarServer-Linux-Release;
+	mkdir -p build-GSvarServer-Linux-Release;
+	cd build-GSvarServer-Linux-Release; \
+                qmake ../src/GSvarServer/GSvarServer.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+                make -j5;
 	
 #################################### other targets ##################################
 
@@ -80,7 +87,7 @@ clean:
 	find bin -type f -or -type l | grep -v ".ini" | grep -v "GSvar_" | grep -v "libhts" | xargs -l1 rm -rf
 
 test_lib:
-	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST
+	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
 
 test_tools:
 	cd bin && ./tools-TEST

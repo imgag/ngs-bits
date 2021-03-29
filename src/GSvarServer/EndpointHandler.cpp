@@ -123,19 +123,19 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	QList<FileLocation> file_list {};
 	QJsonDocument json_doc_output {};
 	QJsonArray json_list_output {};
-	switch(FileLocationHelper::stringToPathType(request.getUrlParams()["type"].toLower()))
+	switch(FileLocation::stringToType(request.getUrlParams()["type"].toLower()))
 	{
 		case PathType::BAM:
-			file_list = file_locator->getBamFiles();
+			file_list = file_locator->getBamFiles(true);
 			break;
 		case PathType::COPY_NUMBER_RAW_DATA:
-			file_list = file_locator->getSegFilesCnv();
+			file_list = file_locator->getCnvCoverageFiles(true);
 			break;
 		case PathType::BAF:
-			file_list = file_locator->getMantaEvidenceFiles();
+			file_list = file_locator->getMantaEvidenceFiles(true);
 			break;
 		case PathType::MANTA_EVIDENCE:
-			file_list = file_locator->getMantaEvidenceFiles();
+			file_list = file_locator->getMantaEvidenceFiles(true);
 			break;
 
 		default:
@@ -144,7 +144,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 				gsvar_file.id = request.getUrlParams()["ps"];
 				gsvar_file.type = PathType::GSVAR;
 				gsvar_file.filename = found_file;
-				gsvar_file.is_found = true;
+				gsvar_file.exists = true;
 				file_list.append(gsvar_file);
 			}
 	}
@@ -154,7 +154,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 		qDebug() << file_list[i].filename;
 		QJsonObject cur_json_item {};
 		cur_json_item.insert("id", file_list[i].id);
-		cur_json_item.insert("type", FileLocationHelper::pathTypeToString(file_list[i].type));
+		cur_json_item.insert("type", FileLocation::typeToString(file_list[i].type));
 		bool needs_url = true;
 		if (request.getUrlParams().contains("path"))
 		{
@@ -170,7 +170,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 			cur_json_item.insert("filename", file_list[i].filename);
 		}
 
-		cur_json_item.insert("is_found", file_list[i].is_found);
+		cur_json_item.insert("is_found", file_list[i].exists);
 		json_list_output.append(cur_json_item);
 	}
 
