@@ -37,6 +37,9 @@ public:
 
 	///Returns a the local target region folder where tempory target regions and gene lists can be stored for IGV.
 	static QString localRoiFolder();
+	
+	//Checks if the reference genome is available
+	static bool isGenomeFound();
 
 protected:
 	GSvarHelper() = delete;

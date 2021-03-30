@@ -91,6 +91,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneOmimInfoWidget.h"
 #include "LoginManager.h"
 #include "LoginDialog.h"
+#include "RefGenDownloadDialog.h"
 #include "GeneInfoDBs.h"
 #include "VariantConversionWidget.h"
 #include "PasswordDialog.h"
@@ -1551,6 +1552,13 @@ void MainWindow::delayedInitialization()
 		{
 			LoginManager::login(dlg.userName());
 		}
+	}
+
+	//check if the reference genome is available locally
+	if (!GSvarHelper::isGenomeFound())
+	{
+		RefGenDownloadDialog dlg(this);
+		dlg.exec();
 	}
 
 	//init GUI

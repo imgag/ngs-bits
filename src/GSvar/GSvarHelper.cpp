@@ -245,4 +245,24 @@ QString GSvarHelper::localRoiFolder()
 	}
 
 	return local_roi_folder;
+	
+bool GSvarHelper::isGenomeFound()
+{
+	bool found = false;
+	QFile genome_file(Settings::string("reference_genome"));
+	QFile genome_index_file(Settings::string("reference_genome") + ".fai");
+	if (genome_file.exists() && genome_index_file.exists())
+	{
+		qint64 local_file_size = genome_file.size();
+		qint64 local_index_file_size = genome_index_file.size();
+		qint64 remote_file_size = HttpHandler(HttpRequestHandler::NONE).getFileSize(Settings::string("remote_reference_genome"));
+		qint64 remote_index_file_size = HttpHandler(HttpRequestHandler::NONE).getFileSize(Settings::string("remote_reference_genome") + ".fai");
+		if ((local_file_size != 0) && (remote_file_size != 0) && (local_file_size == remote_file_size)
+			&& (local_index_file_size != 0) && (remote_index_file_size != 0)
+			&& (local_index_file_size == remote_index_file_size))
+		{
+			found = true;
+		}
+	}
+	return found;
 }

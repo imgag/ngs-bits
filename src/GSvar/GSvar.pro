@@ -10,6 +10,7 @@ SOURCES += main.cpp\
     GlobalServiceProvider.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
+    RefGenDownloadDialog.cpp \
     ReportDialog.cpp \
     ReportWorker.cpp \
     TrioDialog.cpp \
@@ -98,6 +99,7 @@ SOURCES += main.cpp\
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
+    RefGenDownloadDialog.h \
     ReportDialog.h \
     ReportWorker.h \
     TrioDialog.h \
@@ -186,6 +188,7 @@ HEADERS += MainWindow.h \
     DatabaseServiceLocal.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
+    RefGenDownloadDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
