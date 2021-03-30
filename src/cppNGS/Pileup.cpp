@@ -51,15 +51,14 @@ long long Pileup::depth(bool count_del, bool count_n) const
 
 double Pileup::frequency(QChar wt, QChar mut) const
 {
+	wt = wt.toUpper();
+	mut = mut.toUpper();
+
 	double w;
 	if (wt=='A') w = a_;
 	else if (wt=='C') w = c_;
 	else if (wt=='G') w = g_;
 	else if (wt=='T') w = t_;
-	else if (wt=='a') w = a_;
-	else if (wt=='c') w = c_;
-	else if (wt=='g') w = g_;
-	else if (wt=='t') w = t_;
 	else THROW(ArgumentException, "Unknown wild-type base '" + QString(wt) + "' in frequency calculation!");
 
 	double m;
@@ -67,10 +66,6 @@ double Pileup::frequency(QChar wt, QChar mut) const
 	else if (mut=='C') m = c_;
 	else if (mut=='G') m = g_;
 	else if (mut=='T') m = t_;
-	else if (mut=='a') m = a_;
-	else if (mut=='c') m = c_;
-	else if (mut=='g') m = g_;
-	else if (mut=='t') m = t_;
 	else THROW(ArgumentException, "Unknown mutant base '" + QString(mut) + "' in frequency calculation!");
 
 	if (w+m==0)

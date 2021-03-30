@@ -509,14 +509,14 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 }
 
 BamReader::BamReader(const QString& bam_file)
-	: bam_file_(QFileInfo(bam_file).absoluteFilePath())
+	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
 {
 	init(bam_file);
 }
 
 BamReader::BamReader(const QString& bam_file, const QString& ref_genome)
-	: bam_file_(QFileInfo(bam_file).absoluteFilePath())
+	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
 {
 	init(bam_file, ref_genome);

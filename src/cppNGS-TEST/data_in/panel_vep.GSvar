@@ -1,3 +1,4 @@
+##CREATION_DATE=2020-08-15
 ##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##PIPELINE=megSAP 0.1-742-ged8ba02
 ##SAMPLE=<ID=NA12878_03,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Other diseases,DiseaseStatus=affected>

@@ -44,8 +44,9 @@ gsvar_variant_export_folder = ""
 #debugging
 debug_mode_enabled=false
 
-#somatic data transfer to MTB
+#somatic data transfer to MTB/QBIC
 mtb_xml_upload_url = ""
+qbic_data_path = ""
 
 #misc settings
 custom_menu_small_variants = ""

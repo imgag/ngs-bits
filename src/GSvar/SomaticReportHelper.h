@@ -75,14 +75,7 @@ public:
 	void storeXML(QString file_name);
 
 	///methods that create TSV files for QBIC
-	void somaticSnvForQbic();
-	void germlineSnvForQbic();
-	void somaticCnvForQbic();
-	void germlineCnvForQbic();
-	void somaticSvForQbic();
-	void metaDataForQbic();
-
-
+	void storeQbicData(QString path);
 
 	///Returns CNV type, e.g. DEL (het) according copy number
 	static QByteArray CnvTypeDescription(int tumor_cn);
@@ -137,9 +130,6 @@ private:
 	//VariantList for relevant germline SNVs
 	const VariantList& germline_vl_;
 
-	//SNV file
-	QString snv_filename_;
-
 	//Microsatellite instability MANTIS step-wise-difference metric
 	double mantis_msi_swd_value_;
 
@@ -154,7 +144,8 @@ private:
 
 	NGSD db_;
 
-	QCCollection qcml_data_;
+	QCCollection tumor_qcml_data_;
+	QCCollection normal_qcml_data_;
 
 	//Processing system data
 	ProcessingSystemData processing_system_data_;
@@ -186,9 +177,14 @@ private:
 	int cnv_index_tumor_clonality_;
 	int cnv_index_cytoband_;
 
-
-
 	RtfDocument doc_;
+
+	void somaticSnvForQbic(QString path);
+	void germlineSnvForQbic(QString path);
+	void somaticCnvForQbic(QString path);
+	void germlineCnvForQbic(QString path);
+	void somaticSvForQbic(QString path);
+	void metaDataForQbic(QString path);
 };
 
 #endif // SomaticReportHelper_H

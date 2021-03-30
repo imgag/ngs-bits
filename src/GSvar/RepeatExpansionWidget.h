@@ -46,8 +46,7 @@ private:
     void loadSvgFiles();
 	QString vcf_filename_;
 	bool is_exome_;
-    QMap<QString,QString> re_svg_files_;
-	Ui::RepeatExpansionWidget *ui_;
+	Ui::RepeatExpansionWidget* ui_;
 
 };
 

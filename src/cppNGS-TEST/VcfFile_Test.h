@@ -8,13 +8,6 @@ TEST_CLASS(VcfFile_Test)
 Q_OBJECT
 private slots:
 
-	void type()
-	{
-		VcfFile vl;
-		vl.load(TESTDATA("data_in/panel_snpeff.vcf"));
-		I_EQUAL(vl.type(false),  GERMLINE_SINGLESAMPLE);
-	}
-
 	void removeDuplicates_VCF()
 	{
 		VcfFile vl,vl2;
@@ -26,7 +19,7 @@ private slots:
 		I_EQUAL(vl.count(),vl2.count());
 		for (int i=0; i<vl.count(); ++i)
 		{
-			S_EQUAL(vl.vcfLine(i).pos(),vl2.vcfLine(i).pos());
+			S_EQUAL(vl.vcfLine(i).start(),vl2.vcfLine(i).start());
 			I_EQUAL(vl.vcfLine(i).alt().size(), vl2.vcfLine(i).alt().size())
 			for(int alt_id = 0; alt_id < vl.vcfLine(i).alt().count(); ++alt_id)
 			{
@@ -78,7 +71,7 @@ private slots:
 		S_EQUAL(vl.vcfHeader().filterLineByID("s50").description, QString("Less than 50% of samples have data"));
 
 		X_EQUAL(vl.vcfLine(0).chr(), Chromosome("chr17"));
-		I_EQUAL(vl.vcfLine(0).pos(), 72196817);
+		I_EQUAL(vl.vcfLine(0).start(), 72196817);
 		I_EQUAL(vl.vcfLine(0).end(), 72196817);
 		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("GA"));
@@ -94,7 +87,7 @@ private slots:
 		S_EQUAL(vl.vcfLine(11).filter().at(0), QByteArray("low_DP"));
 
 		X_EQUAL(vl.vcfLine(12).chr(), Chromosome("chr9"));
-		I_EQUAL(vl.vcfLine(12).pos(), 130931421);
+		I_EQUAL(vl.vcfLine(12).start(), 130931421);
 		I_EQUAL(vl.vcfLine(12).end(), 130931421);
 		S_EQUAL(vl.vcfLine(12).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(12).alt(0), Sequence("A"));
@@ -161,13 +154,13 @@ private slots:
 		I_EQUAL(vl.formatIDs().count(), 6);
 
 		X_EQUAL(vl.vcfLine(0).chr(), Chromosome("chr17"));
-		I_EQUAL(vl.vcfLine(0).pos(), 72196887);
+		I_EQUAL(vl.vcfLine(0).start(), 72196887);
 		X_EQUAL(vl.vcfLine(1).chr(), Chromosome("chr17"));
-		I_EQUAL(vl.vcfLine(1).pos(), 72196892);
+		I_EQUAL(vl.vcfLine(1).start(), 72196892);
 		X_EQUAL(vl.vcfLine(2).chr(), Chromosome("chr18"));
-		I_EQUAL(vl.vcfLine(2).pos(), 67904549);
+		I_EQUAL(vl.vcfLine(2).start(), 67904549);
 		X_EQUAL(vl.vcfLine(3).chr(), Chromosome("chr18"));
-		I_EQUAL(vl.vcfLine(3).pos(), 67904586);
+		I_EQUAL(vl.vcfLine(3).start(), 67904586);
 	}
 
 	void loadFromVCF_noSampleOrFormatColumn()
@@ -274,7 +267,7 @@ private slots:
 		S_EQUAL(vl.vcfHeader().filterLineByID("s50").description, QString("Less than 50% of samples have data"));
 
 		X_EQUAL(vl.vcfLine(0).chr(), Chromosome("chr17"));
-		I_EQUAL(vl.vcfLine(0).pos(), 72196817);
+		I_EQUAL(vl.vcfLine(0).start(), 72196817);
 		I_EQUAL(vl.vcfLine(0).end(), 72196817);
 		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("GA"));
@@ -290,7 +283,7 @@ private slots:
 		S_EQUAL(vl.vcfLine(11).filter().at(0), QByteArray("low_DP"));
 
 		X_EQUAL(vl.vcfLine(12).chr(), Chromosome("chr9"));
-		I_EQUAL(vl.vcfLine(12).pos(), 130931421);
+		I_EQUAL(vl.vcfLine(12).start(), 130931421);
 		I_EQUAL(vl.vcfLine(12).end(), 130931421);
 		S_EQUAL(vl.vcfLine(12).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(12).alt(0), Sequence("A"));
@@ -353,7 +346,7 @@ private slots:
 		S_EQUAL(vl.informationIDs().at(63), "EXAC_AF");
 
 		X_EQUAL(vl.vcfLine(0).chr().str(), "chr1");
-		I_EQUAL(vl.vcfLine(0).pos(), 27687466);
+		I_EQUAL(vl.vcfLine(0).start(), 27687466);
 		I_EQUAL(vl.vcfLine(0).end(), 27687466);
 		S_EQUAL(vl.vcfLine(0).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(0).alt(0), Sequence("T"));
@@ -365,7 +358,7 @@ private slots:
 		S_EQUAL(vl.vcfLine(0).info("EXAC_AF"), "0.223");
 
 		X_EQUAL(vl.vcfLine(156).chr().str(), "chr20");
-		I_EQUAL(vl.vcfLine(156).pos(), 48301146);
+		I_EQUAL(vl.vcfLine(156).start(), 48301146);
 		I_EQUAL(vl.vcfLine(156).end(), 48301146);
 		S_EQUAL(vl.vcfLine(156).ref(), Sequence("G"));
 		S_EQUAL(vl.vcfLine(156).alt(0), Sequence("A"));
@@ -407,26 +400,26 @@ private slots:
 		vl.sort(true);
 		//entries should be sorted numerically
 		X_EQUAL(vl.vcfLine(0).chr() ,Chromosome("chr1"));
-		I_EQUAL(vl.vcfLine(0).pos(),11676308);
-		I_EQUAL(vl.vcfLine(1).pos(),11676377);
+		I_EQUAL(vl.vcfLine(0).start(),11676308);
+		I_EQUAL(vl.vcfLine(1).start(),11676377);
 		X_EQUAL(vl.vcfLine(2).chr(), Chromosome("chr2"));
-		I_EQUAL(vl.vcfLine(2).pos(),139498511);
+		I_EQUAL(vl.vcfLine(2).start(),139498511);
 		X_EQUAL(vl.vcfLine(3).chr(), Chromosome("chr4"));
-		I_EQUAL(vl.vcfLine(3).pos(),68247038);
-		I_EQUAL(vl.vcfLine(4).pos(),68247113);
+		I_EQUAL(vl.vcfLine(3).start(),68247038);
+		I_EQUAL(vl.vcfLine(4).start(),68247113);
 		X_EQUAL(vl.vcfLine(5).chr(), Chromosome("chr9"));
-		I_EQUAL(vl.vcfLine(5).pos(),130931421);
-		I_EQUAL(vl.vcfLine(6).pos(),130932396);
+		I_EQUAL(vl.vcfLine(5).start(),130931421);
+		I_EQUAL(vl.vcfLine(6).start(),130932396);
 		X_EQUAL(vl.vcfLine(7).chr(), Chromosome("chr17"));
-		I_EQUAL(vl.vcfLine(7).pos(),72196817);
-		I_EQUAL(vl.vcfLine(8).pos(),72196887);
-		I_EQUAL(vl.vcfLine(9).pos(),72196892);
+		I_EQUAL(vl.vcfLine(7).start(),72196817);
+		I_EQUAL(vl.vcfLine(8).start(),72196887);
+		I_EQUAL(vl.vcfLine(9).start(),72196892);
 		X_EQUAL(vl.vcfLine(10).chr(), Chromosome("chr18"));
-		I_EQUAL(vl.vcfLine(10).pos(),67904549);
-		I_EQUAL(vl.vcfLine(11).pos(),67904586);
-		I_EQUAL(vl.vcfLine(12).pos(),67904672);
+		I_EQUAL(vl.vcfLine(10).start(),67904549);
+		I_EQUAL(vl.vcfLine(11).start(),67904586);
+		I_EQUAL(vl.vcfLine(12).start(),67904672);
 		X_EQUAL(vl.vcfLine(13).chr(), Chromosome("chr19"));
-		I_EQUAL(vl.vcfLine(13).pos(),14466629);
+		I_EQUAL(vl.vcfLine(13).start(),14466629);
 	}
 
 	//test sortByFile function for *.vcf-files
@@ -439,26 +432,26 @@ private slots:
 		//entries should be sorted by variantList_sortbyFile.fai, which is reverse-numeric concerning chromosomes
 		VCF_IS_VALID("out/sortByFile.vcf")
 		X_EQUAL(vl.vcfLine(0).chr(),Chromosome("chr19"));
-		I_EQUAL(vl.vcfLine(0).pos(),14466629);
+		I_EQUAL(vl.vcfLine(0).start(),14466629);
 		X_EQUAL(vl.vcfLine(1).chr(),Chromosome("chr18"));
-		I_EQUAL(vl.vcfLine(1).pos(),67904549);
-		I_EQUAL(vl.vcfLine(2).pos(),67904586);
-		I_EQUAL(vl.vcfLine(3).pos(),67904672);
+		I_EQUAL(vl.vcfLine(1).start(),67904549);
+		I_EQUAL(vl.vcfLine(2).start(),67904586);
+		I_EQUAL(vl.vcfLine(3).start(),67904672);
 		X_EQUAL(vl.vcfLine(4).chr(),Chromosome("chr17"));
-		I_EQUAL(vl.vcfLine(4).pos(),72196817);
-		I_EQUAL(vl.vcfLine(5).pos(),72196887);
-		I_EQUAL(vl.vcfLine(6).pos(),72196892);
+		I_EQUAL(vl.vcfLine(4).start(),72196817);
+		I_EQUAL(vl.vcfLine(5).start(),72196887);
+		I_EQUAL(vl.vcfLine(6).start(),72196892);
 		X_EQUAL(vl.vcfLine(7).chr(),Chromosome("chr9"));
-		I_EQUAL(vl.vcfLine(7).pos(),130931421);
-		I_EQUAL(vl.vcfLine(8).pos(),130932396);
+		I_EQUAL(vl.vcfLine(7).start(),130931421);
+		I_EQUAL(vl.vcfLine(8).start(),130932396);
 		X_EQUAL(vl.vcfLine(9).chr(),Chromosome("chr4"));
-		I_EQUAL(vl.vcfLine(9).pos(),68247038);
-		I_EQUAL(vl.vcfLine(10).pos(),68247113);
+		I_EQUAL(vl.vcfLine(9).start(),68247038);
+		I_EQUAL(vl.vcfLine(10).start(),68247113);
 		X_EQUAL(vl.vcfLine(11).chr(),Chromosome("chr2"));
-		I_EQUAL(vl.vcfLine(11).pos(),139498511);
+		I_EQUAL(vl.vcfLine(11).start(),139498511);
 		X_EQUAL(vl.vcfLine(12).chr() ,Chromosome("chr1"));
-		I_EQUAL(vl.vcfLine(12).pos(),11676308);
-		I_EQUAL(vl.vcfLine(13).pos(),11676377);
+		I_EQUAL(vl.vcfLine(12).start(),11676308);
+		I_EQUAL(vl.vcfLine(13).start(),11676377);
 	}
 
 
@@ -466,26 +459,26 @@ private slots:
 	{
 		VcfFile vl;
 		vl.load(TESTDATA("data_in/sort_in.vcf"));
-		vl.sortCustom([](const VcfLinePtr& a, const VcfLinePtr& b) {return a->pos() < b->pos(); });
+		vl.sortCustom([](const VcfLinePtr& a, const VcfLinePtr& b) {return a->start() < b->start(); });
 
 		I_EQUAL(vl.count(), 2344);
 		X_EQUAL(vl.vcfLine(0).chr(),Chromosome("chr4"));
-		I_EQUAL(vl.vcfLine(0).pos(),85995);
+		I_EQUAL(vl.vcfLine(0).start(),85995);
 		X_EQUAL(vl.vcfLine(1).chr(),Chromosome("chr4"));
-		I_EQUAL(vl.vcfLine(1).pos(),85997);
+		I_EQUAL(vl.vcfLine(1).start(),85997);
 		X_EQUAL(vl.vcfLine(2).chr(),Chromosome("chr4"));
-		I_EQUAL(vl.vcfLine(2).pos(),86101);
+		I_EQUAL(vl.vcfLine(2).start(),86101);
 		X_EQUAL(vl.vcfLine(3).chr(),Chromosome("chr4"));
-		I_EQUAL(vl.vcfLine(3).pos(),86102);
+		I_EQUAL(vl.vcfLine(3).start(),86102);
 		X_EQUAL(vl.vcfLine(4).chr(),Chromosome("chr4"));
-		I_EQUAL(vl.vcfLine(4).pos(),87313);
+		I_EQUAL(vl.vcfLine(4).start(),87313);
 		X_EQUAL(vl.vcfLine(5).chr(),Chromosome("chr20"));
-		I_EQUAL(vl.vcfLine(5).pos(),126309);
+		I_EQUAL(vl.vcfLine(5).start(),126309);
 		X_EQUAL(vl.vcfLine(6).chr(),Chromosome("chr20"));
-		I_EQUAL(vl.vcfLine(6).pos(),126310);
+		I_EQUAL(vl.vcfLine(6).start(),126310);
 		//...
 		X_EQUAL(vl.vcfLine(2343).chr(),Chromosome("chr1"));
-		I_EQUAL(vl.vcfLine(2343).pos(),248802249);
+		I_EQUAL(vl.vcfLine(2343).start(),248802249);
 	}
 
 	void storeLine()
@@ -555,13 +548,13 @@ private slots:
 	void convertTSVtoVCF()
 	{
 		VariantList variant_list;
-		variant_list.load(TESTDATA("data_in/GSvarToVcf.GSvar"));
+		variant_list.load(TESTDATA("data_in/GSvarToVcf.GSvar")); //TODO add real-life tests (single-sample, trio, somatic) and check output with VcfFile::isValid()
 
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 		//tests multisample and leftNormalize from GSvar format to VCF for insertion, deletion, SNP
 		VcfFile vcf_file = VcfFile::convertGSvarToVcf(variant_list, ref_file);
-		vcf_file.store("out/GSvarToVcf.vcf", false, BGZF_NO_COMPRESSION);
+		vcf_file.store("out/GSvarToVcf.vcf");
 
 		COMPARE_FILES("out/GSvarToVcf.vcf", TESTDATA("data_out/GSvarToVcf.vcf"));
 	}

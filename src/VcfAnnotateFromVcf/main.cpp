@@ -311,6 +311,22 @@ public:
                         ++write_chunk;
                         job.status = DONE;
                     }
+					break;
+
+				case ERROR:
+					if (job.error_message.startsWith("FileParseException\t"))
+					{
+						THROW(FileParseException, job.error_message.split("\t").at(1));
+					}
+					else if (job.error_message.startsWith("FileAccessException\t"))
+					{
+						THROW(FileAccessException, job.error_message.split("\t").at(1));
+					}
+					else
+					{
+						THROW(Exception, job.error_message);
+					}
+					break;
 
                 default:
                     break;

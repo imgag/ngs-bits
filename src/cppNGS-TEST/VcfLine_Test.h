@@ -32,7 +32,7 @@ TEST_CLASS(VcfLine_Test)
 
         VcfLine variant(Chromosome("chr4"), 777, "A", alt, format_ids, sample_ids, list_of_format_values);
         X_EQUAL(variant.chr(), Chromosome("chr4"));
-        I_EQUAL(variant.pos(), 777);
+        I_EQUAL(variant.start(), 777);
         S_EQUAL(variant.ref(), "A");
         S_EQUAL(variant.altString(), "T");
         QByteArrayList format = variant.formatKeys();

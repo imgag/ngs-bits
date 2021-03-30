@@ -15,7 +15,7 @@ class GapDialog
 	Q_OBJECT
 
 public:
-	GapDialog(QWidget* parent, QString ps, QString bam_file, const BedFile& roi, const GeneSet& genes);
+	GapDialog(QWidget* parent, QString ps, QString bam_file, QString lowcov_file, const BedFile& roi, const GeneSet& genes);
 
 signals:
 	void openRegionInIGV(QString region);
@@ -34,6 +34,7 @@ private:
 	NGSD db_;
 	QString ps_;
 	QString bam_;
+	QString lowcov_;
 	const BedFile& roi_;
 	const GeneSet& genes_;
 	int ngsd_col_;

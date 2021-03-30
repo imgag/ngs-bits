@@ -109,26 +109,6 @@ private slots:
 		I_EQUAL(vl.annotations().count(), 30);
 	}
 
-	void test_backward_compatabilty_genotype_column()
-	{
-		//new format
-		VariantList vl;
-		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
-		vl.checkValid();
-		SampleInfo info = vl.getSampleHeader().infoByStatus(true);
-		S_EQUAL(info.id, "NA12878_03");
-		S_EQUAL(info.column_name, "NA12878_03");
-		I_EQUAL(info.column_index, 0);
-
-
-		//old format
-		vl.load(TESTDATA("data_in/old_format.GSvar"));
-		vl.checkValid();
-		info = vl.getSampleHeader().infoByStatus(true);
-		S_EQUAL(info.id, "NA12878_03");
-		S_EQUAL(info.column_name, "genotype");
-		I_EQUAL(info.column_index, 0);
-	}
 	void loadFromTSV_withROI()
 	{
 		BedFile roi;
@@ -348,11 +328,19 @@ private slots:
 		QString input = TESTDATA("data_in/panel_vep.GSvar");
 		VariantList vl;
 		vl.load(input);
+
 		SampleHeaderInfo info = vl.getSampleHeader();
 		I_EQUAL(info.count(), 1);
 		I_EQUAL(info.sampleColumns(true).count(), 1);
 		I_EQUAL(info.sampleColumns(true)[0], 0);
 		I_EQUAL(info.sampleColumns(false).count(), 0);
+
+		SampleInfo entry = info.infoByStatus(true);
+		S_EQUAL(entry.id, "NA12878_03");
+		S_EQUAL(entry.column_name, "NA12878_03");
+		I_EQUAL(entry.column_index, 0);
+
+		S_EQUAL(vl.analysisName(), "single-sample analysis NA12878_03");
 	}
 
 	void getSampleHeader_multisample()
@@ -360,6 +348,7 @@ private slots:
 		QString input = TESTDATA("data_in/VariantFilter_in_multi.GSvar");
 		VariantList vl;
 		vl.load(input);
+
 		SampleHeaderInfo info = vl.getSampleHeader();
 		I_EQUAL(info.count(), 4);
 		I_EQUAL(info.sampleColumns(true).count(), 2);
@@ -368,6 +357,8 @@ private slots:
 		I_EQUAL(info.sampleColumns(false).count(), 2);
 		I_EQUAL(info.sampleColumns(false)[0], 1);
 		I_EQUAL(info.sampleColumns(false)[1], 2);
+
+		S_EQUAL(vl.analysisName(), "multi-sample analysis Affected1/Affected2/Control1/Control2");
 	}
 
 	void getPipeline()
@@ -379,5 +370,17 @@ private slots:
 		//header not set
 		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
 		S_EQUAL(vl.getPipeline(), "n/a");
+	}
+
+	void getCreationDate()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/panel_vep.GSvar"));
+		IS_TRUE(vl.getCreationDate().isValid());
+		S_EQUAL(vl.getCreationDate().toString("yyyy-MM-dd"), "2020-08-15");
+
+		//header not set
+		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
+		IS_FALSE(vl.getCreationDate().isValid());
 	}
 };

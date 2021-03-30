@@ -1,5 +1,5 @@
 ### VariantFilterRegions tool help
-	VariantFilterRegions (2020_06-89-g5de737ff)
+	VariantFilterRegions (2021_03-23-g5c26fea8)
 	
 	Filter a variant list based on a target region.
 	
@@ -20,7 +20,7 @@
 	                           Default value: 'vcf'
 	                           Valid: 'vcf,gsvar'
 	  -compression_level <int> Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.
-	                           Default value: '0'
+	                           Default value: '10'
 	
 	Special parameters:
 	  --help                   Shows this help and exits.
@@ -29,7 +29,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterRegions changelog
-	VariantFilterRegions 2020_06-89-g5de737ff
+	VariantFilterRegions 2021_03-23-g5c26fea8
 	
 	2020-08-12 Added parameter '-compression_level' for compression level of output vcf files.
 	2018-01-23 Added parameter '-inv' and made parameter '-mark' a string parameter to allow custom annotations names.

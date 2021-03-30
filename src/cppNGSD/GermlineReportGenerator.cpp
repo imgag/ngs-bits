@@ -27,7 +27,8 @@ GermlineReportGenerator::GermlineReportGenerator(const GermlineReportGeneratorDa
 	, test_mode_(test_mode)
 {
 	ps_id_ = db_.processedSampleId(data_.ps);
-	ps_bam_ = db_.processedSamplePath(ps_id_, NGSD::BAM);
+	ps_bam_ = db_.processedSamplePath(ps_id_, PathType::BAM);
+	ps_lowcov_ = db_.processedSamplePath(ps_id_, PathType::LOWCOV_BED);
 
 	if (data_.roi_file!="")
 	{
@@ -464,19 +465,30 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	if (data_.prs.rowCount()>0)
 	{
 		stream << endl;
-		stream << "<p><b>" << trans("Polygenic Risk Scores") << "</b>" << endl;
-		stream << "</p>" << endl;
+		stream << "<p><b>" << trans("Polygener Risiko-Score (PRS)") << "</b></p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Publikation") << "</b></td></tr>" << endl;
+		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>" << trans("Publikation") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Z-Score") << "</b></td><td><b>" << trans("Population (gesch&auml;tzt aus NGS)") << "</b></td></tr>" << endl;
 		int trait_idx = data_.prs.headers().indexOf("trait");
 		int score_idx = data_.prs.headers().indexOf("score");
 		int citation_idx = data_.prs.headers().indexOf("citation");
 		for (int r=0; r<data_.prs.rowCount(); ++r)
 		{
 			const QStringList& row = data_.prs.row(r);
-			stream << "<tr><td>" << row[trait_idx] << "</td><td>" << row[score_idx] << "</td><td>" << row[citation_idx] << "</td></tr>";
+			QString trait = row[trait_idx];
+			QString score = row[score_idx];
+			QString zscore = "n/a";
+			QString population = processed_sample_data.ancestry;
+			if (trait=="Breast Cancer") // mean and standard deviation taken from BCAC315 data
+			{
+				double mean = -0.424;
+				double stdev = 0.611;
+				zscore = QString::number((Helper::toDouble(score, "PRS score") - mean) / stdev, 'f', 3);
+			}
+
+			stream << "<tr><td>" << trait << "</td><td>" << row[citation_idx] << "</td><td>" << score << "</td><td>" << zscore << "</td><td>" << population << "</td></tr>";
 		}
 		stream << "</table>" << endl;
+		stream << "<p>" << trans("Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnische Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs).") << "</p>" << endl;
 	}
 
 	//close stream
@@ -847,6 +859,13 @@ void GermlineReportGenerator::overrideBamFile(QString bam_file)
 	ps_bam_ = bam_file;
 }
 
+void GermlineReportGenerator::overrideLowCovFile(QString lowcov_file)
+{
+	if (!test_mode_) THROW(ProgrammingException, "This function can only be used in test mode!");
+
+	ps_lowcov_ = lowcov_file;
+}
+
 void GermlineReportGenerator::overrideDate(QDate date)
 {
 	if (!test_mode_) THROW(ProgrammingException, "This function can only be used in test mode!");
@@ -854,16 +873,10 @@ void GermlineReportGenerator::overrideDate(QDate date)
 	date_ = date;
 }
 
-BedFile GermlineReportGenerator::precalculatedGaps(QString bam_file, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region)
+BedFile GermlineReportGenerator::precalculatedGaps(QString low_cov_file, const BedFile& roi, int min_cov, const BedFile& processing_system_target_region)
 {
 	//check depth cutoff
 	if (min_cov!=20) THROW(ArgumentException, "Depth cutoff is not 20!");
-
-	//find low-coverage file
-	QString dir = QFileInfo(bam_file).absolutePath();
-	QStringList low_cov_files = Helper::findFiles(dir, "*_lowcov.bed", false);
-	if(low_cov_files.count()!=1) THROW(ArgumentException, "Low-coverage file does not exist in " + dir);
-	QString low_cov_file = low_cov_files[0];
 
 	//load low-coverage file
 	BedFile gaps;
@@ -965,7 +978,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 	if (de2en.isEmpty())
 	{
 		de2en["male"] = "male";
-		de2en["female"] = "male";
+		de2en["female"] = "female";
 		de2en["Technischer Report zur bioinformatischen Analyse"] = "Technical Report for Bioinformatic Analysis";
 		de2en["Probe"] = "Sample";
 		de2en["Prozessierungssystem"] = "Processing system";
@@ -1051,13 +1064,16 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:"] = "Gaps closed by Sanger sequencing:";
 		de2en["L&uuml;cken die mit visueller Inspektion der Rohdaten &uuml;berpr&uuml;ft wurden:"] = "Gaps checked by visual inspection of raw data:";
 		de2en["Basen gesamt:"] = "Base sum:";
-		de2en["Polygenic Risk Scores"] = "Polygenic Risk Scores";
+		de2en["Polygener Risiko-Score (PRS)"] = "Polygenic Risk Scores (PRS)";
 		de2en["Erkrankung"] = "Trait";
 		de2en["Score"] = "Score";
 		de2en["Publikation"] = "Publication";
 		de2en["Hauptphenotyp"] = "preferred phenotype";
 		de2en["ja"] = "yes";
 		de2en["nein"] = "no";
+		de2en["Z-Score"] = "z-score";
+		de2en["Population (gesch&auml;tzt aus NGS)"] = "population (estimated from NGS)";
+		de2en["Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnische Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs)."] = "A validated risk estimation program must be used to judge the clinical importance of a PRS, e.g. CanRisk.org for breast cancer. The ethnicity of the patient must also be considered.";
 	}
 
 	//translate
@@ -1128,7 +1144,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		BedFile low_cov;
 		try
 		{
-			low_cov = GermlineReportGenerator::precalculatedGaps(ps_bam_, roi_, data_.report_settings.min_depth, sys_roi_);
+			low_cov = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, roi_, data_.report_settings.min_depth, sys_roi_);
 		}
 		catch(Exception e)
 		{
@@ -1328,7 +1344,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		BedFile gaps;
 		try
 		{
-			gaps = GermlineReportGenerator::precalculatedGaps(ps_bam_, roi, data_.report_settings.min_depth, sys_roi_);
+			gaps = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, roi, data_.report_settings.min_depth, sys_roi_);
 		}
 		catch(Exception e)
 		{

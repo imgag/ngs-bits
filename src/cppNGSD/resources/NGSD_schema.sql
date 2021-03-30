@@ -210,7 +210,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `device_id` INT(11) NOT NULL,
   `recipe` VARCHAR(45) NOT NULL COMMENT 'Read length for reads and index reads separated by \'+\'',
   `pool_molarity` float DEFAULT NULL,
-  `pool_quantification_method` enum('n/a','Tapestation','Bioanalyzer','qPCR','Tapestation & Qubit','Bioanalyzer & Qubit') NOT NULL DEFAULT 'n/a',
+  `pool_quantification_method` enum('n/a','Tapestation','Bioanalyzer','qPCR','Tapestation & Qubit','Bioanalyzer & Qubit','Bioanalyzer & Tecan Infinite','Fragment Analyzer & Qubit','Fragment Analyzer & Tecan Infinite','Illumina 450bp & Qubit ssDNA','PCR Size & ssDNA') NOT NULL DEFAULT 'n/a',
   `comment` TEXT NULL DEFAULT NULL,
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   `status` ENUM('n/a','run_started','run_finished','run_aborted','demultiplexing_started','analysis_started','analysis_finished','analysis_not_possible','analysis_and_backup_not_required') NOT NULL DEFAULT 'n/a',
@@ -265,6 +265,7 @@ CREATE  TABLE IF NOT EXISTS `runqc_lane`
   `yield` FLOAT NOT NULL,
   `error_rate` FLOAT DEFAULT NULL,
   `q30_perc` FLOAT NOT NULL,
+  `occupied_perc` FLOAT DEFAULT NULL,
   `runqc_read_id` INT(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE (`runqc_read_id`, `lane_num`),
@@ -1983,3 +1984,25 @@ INDEX `pseudogene_gene_id` (`pseudogene_gene_id` ASC)
 ENGINE=InnoDB DEFAULT 
 CHARSET=utf8
 COMMENT='Gene-Pseudogene relation';
+
+-- -----------------------------------------------------
+-- Table `processed_sample_ancestry`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `processed_sample_ancestry`
+(
+  `processed_sample_id` INT(11) NOT NULL,
+  `num_snps` INT(11) NOT NULL,
+  `score_afr` FLOAT NOT NULL,
+  `score_eur` FLOAT NOT NULL,
+  `score_sas` FLOAT NOT NULL,
+  `score_eas` FLOAT NOT NULL,
+  `population` enum('AFR','EUR','SAS','EAS','ADMIXED/UNKNOWN') NOT NULL,
+PRIMARY KEY (`processed_sample_id`),
+CONSTRAINT `fk_processed_sample_ancestry_has_processed_sample`
+  FOREIGN KEY (`processed_sample_id`)
+  REFERENCES `processed_sample` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;

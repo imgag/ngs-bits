@@ -15,7 +15,7 @@ bool SomaticCnvInterpreter::includeInReport(const CnvList& cnv_list,const CopyNu
 	if(cn > 2 && gene_role.role == SomaticGeneRole::Role::ACTIVATING) return true;
 
 	//very strong amplicfications
-	if(cn > 5) return true;
+	if(cn > 5 && gene_role.role != SomaticGeneRole::Role::LOSS_OF_FUNCTION) return true;
 
 	//focal CNVs
 	int i_cnv_type = cnv_list.annotationIndexByName("cnv_type", true);

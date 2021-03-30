@@ -1,5 +1,6 @@
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
 ##SAMPLE=<ID=NA12878_03,Status=affected>
-#chr	start	end	ref	obs	genotype
+#chr	start	end	ref	obs	NA12878_03
 chr1	801943	801943	C	T	hom
 chr1	801995	801995	G	A	het
 chr1	802026	802026	G	A	het

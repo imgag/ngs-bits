@@ -2,6 +2,7 @@
 #include "ui_CircosPlotWidget.h"
 #include <QFileInfo>
 #include "Helper.h"
+#include "GlobalServiceProvider.h"
 
 
 CircosPlotWidget::CircosPlotWidget(QString filename, QWidget *parent)
@@ -10,17 +11,7 @@ CircosPlotWidget::CircosPlotWidget(QString filename, QWidget *parent)
 {
 	ui_->setupUi(this);
 
-	//load plot file
-	QString path = QFileInfo(filename).absolutePath();
-	QStringList plot_files = Helper::findFiles(path, "*_circos.png", false);
-	if (plot_files.count()==1)
-	{
-		loadCircosPlot(plot_files[0]);
-	}
-	else
-	{
-
-	}
+	loadCircosPlot(filename);
 }
 
 CircosPlotWidget::~CircosPlotWidget()

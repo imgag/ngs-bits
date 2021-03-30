@@ -98,12 +98,12 @@ QSet<Chromosome> BedFile::chromosomes() const
 	return output;
 }
 
-void BedFile::load(QString filename)
+void BedFile::load(QString filename, bool stdin_if_empty)
 {
 	clear();
 
 	//parse from stream
-	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
+	QSharedPointer<QFile> file = Helper::openFileForReading(filename, stdin_if_empty);
 	while(!file->atEnd())
 	{
 		QByteArray line = file->readLine();
@@ -136,10 +136,10 @@ void BedFile::load(QString filename)
 	}
 }
 
-void BedFile::store(QString filename) const
+void BedFile::store(QString filename, bool stdout_if_empty) const
 {
 	//open stream
-	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, true);
+	QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_empty);
 	QTextStream stream(file.data());
 
 	//write headers

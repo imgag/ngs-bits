@@ -101,6 +101,27 @@ void GeneWidget::updateGUI()
 		ui_.type->setText(ui_.type->text() + " (Parent gene: " + parent_gene_link_list.join(", ") + ")");
     }
 
+	//add imprinting infos
+	if (NGSHelper::imprintingGenes().contains(symbol_))
+	{
+		QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
+		foreach(const QString& line, lines)
+		{
+			QStringList parts = line.split("\t");
+			if (parts.count()==3 && parts[0]==symbol_)
+			{
+				ui_.imprinting->setText(parts[1] + " (" + parts[2] + ")");
+			}
+		}
+	}
+	else
+	{
+		ui_.imprinting->deleteLater();
+		ui_.imprinting = nullptr;
+		ui_.imprinting_label->deleteLater();
+		ui_.imprinting_label = nullptr;
+	}
+
 	//show gnomAD o/e score
     ui_.oe_mis->setText(info.oe_mis);
     ui_.oe_syn->setText(info.oe_syn);

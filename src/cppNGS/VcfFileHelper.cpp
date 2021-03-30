@@ -64,8 +64,8 @@ bool VcfFormat::LessComparator::operator()(const VcfLinePtr& a, const VcfLinePtr
 {
 	if (a->chr()<b->chr()) return true;//compare chromsomes
 	else if (a->chr()>b->chr()) return false;
-	else if (a->pos()<b->pos()) return true;//compare start positions
-	else if (a->pos()>b->pos()) return false;
+	else if (a->start()<b->start()) return true;//compare start positions
+	else if (a->start()>b->start()) return false;
 	else if (a->ref().length()<b->ref().length()) return true;//compare end positions by comparing length of ref
 	else if (a->ref().length()>b->ref().length()) return false;
 	else if (a->ref()<b->ref()) return true;//compare reference seqs
@@ -110,8 +110,8 @@ bool VcfFormat::LessComparatorByFile::operator()(const VcfLinePtr& a, const VcfL
 
 	if (chrom_rank_[a_chr_num]<chrom_rank_[b_chr_num]) return true; //compare rank of chromosome
 	else if (chrom_rank_[a_chr_num]>chrom_rank_[b_chr_num]) return false;
-	else if (a->pos()<b->pos()) return true; //compare start position
-	else if (a->pos()>b->pos()) return false;
+	else if (a->start()<b->start()) return true; //compare start position
+	else if (a->start()>b->start()) return false;
 	else if (a->ref().length()<b->ref().length()) return true; //compare end position
 	else if (a->ref().length()>b->ref().length()) return false;
 	else if (a->ref()<b->ref()) return true; //compare ref sequence
@@ -446,32 +446,6 @@ bool VcfHeader::parseInfoFormatLine(const QByteArray& line,InfoFormatLine& info_
 	return true;
 }
 
-AnalysisType VcfHeader::type(bool allow_fallback_germline_single_sample) const
-{
-	foreach(const VcfHeaderLine& line, file_comments_)
-	{
-		if (line.key == ("ANALYSISTYPE"))
-		{
-			QString type = line.value;
-			if (type=="GERMLINE_SINGLESAMPLE") return GERMLINE_SINGLESAMPLE;
-			else if (type=="GERMLINE_TRIO") return GERMLINE_TRIO;
-			else if (type=="GERMLINE_MULTISAMPLE") return GERMLINE_MULTISAMPLE;
-			else if (type=="SOMATIC_SINGLESAMPLE") return SOMATIC_SINGLESAMPLE;
-			else if (type=="SOMATIC_PAIR") return SOMATIC_PAIR;
-			else THROW(FileParseException, "Invalid analysis type '" + type + "' found in variant list!");
-		}
-	}
-
-	if (allow_fallback_germline_single_sample)
-	{
-		return GERMLINE_SINGLESAMPLE; //fallback for old files without ANALYSISTYPE header
-	}
-	else
-	{
-		THROW(FileParseException, "No analysis type found in variant list!");
-	}
-}
-
 //returns if the chromosome is valid
 bool VcfLine::isValidGenomicPosition() const
 {
@@ -534,15 +508,15 @@ QString VcfLine::variantToString() const
 
 bool VcfLine::operator==(const VcfLine& rhs) const
 {
-	return pos_==rhs.pos() && chr_==rhs.chr() && ref_==rhs.ref() && altString()==rhs.altString();
+	return pos_==rhs.start() && chr_==rhs.chr() && ref_==rhs.ref() && altString()==rhs.altString();
 }
 
 bool VcfLine::operator<(const VcfLine& rhs) const
 {
 	if (chr_<rhs.chr_) return true; //compare chromosome
 	else if (chr_>rhs.chr_) return false;
-	else if (pos_<rhs.pos()) return true; //compare start position
-	else if (pos_>rhs.pos()) return false;
+	else if (pos_<rhs.start()) return true; //compare start position
+	else if (pos_>rhs.start()) return false;
 	else if (ref_<rhs.ref()) return true; //compare ref sequence
 	else if (ref_>rhs.ref()) return false;
 	else if (altString()<rhs.altString()) return true; //compare obs sequence

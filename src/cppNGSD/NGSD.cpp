@@ -517,6 +517,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	}
 	output.processing_input = query.value("processing_input").toString().trimmed();
 	output.molarity = query.value("molarity").toString().trimmed();
+	output.ancestry = getValue("SELECT `population` FROM `processed_sample_ancestry` WHERE `processed_sample_id`=:0", true, processed_sample_id).toString();
 
 	return output;
 
@@ -780,7 +781,7 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType type)
 {
 	SqlQuery query = getQuery();
-	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0");
+	query.prepare("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name, sys.name_short FROM processed_sample ps, sample s, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.project_id=p.id AND ps.id=:0");
 	query.bindValue(0, processed_sample_id);
 	query.exec();
 	if (query.size()==0) THROW(DatabaseException, "Processed sample with id '" + processed_sample_id + "' not found in NGSD!");
@@ -793,16 +794,23 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	output += p_type;
 	QString p_name = query.value(2).toString();
 	output += QDir::separator() + p_name + QDir::separator();
-	if (type!=PROJECT_FOLDER)
+	if (type!=PathType::PROJECT_FOLDER)
 	{
 		output += "Sample_" + ps_name + "/";
 	}
+	QString sys_name_short = query.value(3).toString();
 
 	//append file name if requested
-	if (type==BAM) output += ps_name + ".bam";
-	else if (type==GSVAR) output += ps_name + ".GSvar";
-	else if (type==VCF) output += ps_name + "_var_annotated.vcf.gz";
-	else if (type!=SAMPLE_FOLDER && type!=PROJECT_FOLDER) THROW(ProgrammingException, "Unknown PathType '" + QString::number(type) + "'!");
+	if (type==PathType::BAM) output += ps_name + ".bam";
+	else if (type==PathType::GSVAR) output += ps_name + ".GSvar";
+	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
+	else if (type==PathType::LOWCOV_BED) output += ps_name + "_" + sys_name_short + "_lowcov.bed";
+	else if (type==PathType::MANTA_EVIDENCE) output += "manta_evid/" + ps_name + "_manta_evidence.bam";
+	else if (type==PathType::BAF) output += ps_name + "_bafs.igv";
+	else if (type==PathType::STRUCTURAL_VARIANTS) output += ps_name + "_manta_var_structural.bedpe";
+	else if (type==PathType::COPY_NUMBER_RAW_DATA) output += ps_name + "_cnvs_clincnv.seg";
+	else if (type==PathType::FUSIONS) output += ps_name + "_var_fusions.tsv";
+	else if (type!=PathType::SAMPLE_FOLDER && type!=PathType::PROJECT_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
 	//convert to canonical path
 	output = QFileInfo(output).absoluteFilePath();
@@ -2842,7 +2850,7 @@ QString NGSD::analysisJobFolder(int job_id)
 	AnalysisJob job = analysisInfo(job_id, true);
 
 	//project path
-	QString output = processedSamplePath(processedSampleId(job.samples[0].name), NGSD::PROJECT_FOLDER);
+	QString output = processedSamplePath(processedSampleId(job.samples[0].name), PathType::PROJECT_FOLDER);
 
 	//type
 	QString sample_sep;
