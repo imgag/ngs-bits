@@ -1742,10 +1742,11 @@ void Statistics::countCoverageWGSWithBaseQuality(
 	}
 }
 
-void sort_end_queue(QVector<int>& end_queue, BamAlignment al)
+void addEndPositionAndSortQueue(QVector<int>& end_queue, int end_pos)
 {
-	//sort the queue (since most alignment ends are already sorted
-	//we simply sort them from the back)
+	end_queue.push_back(end_pos);
+
+	//sort the queue (since most alignment ends are already sorted we simply sort them from the back)
 	int pos = end_queue.size() - 1;
 	while(pos > 0 && end_queue[pos] < end_queue[pos-1])
 	{
@@ -1756,10 +1757,10 @@ void sort_end_queue(QVector<int>& end_queue, BamAlignment al)
 
 BedFile Statistics::highCoverageScanLine(const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file)
 {
-
 	BedFile output;
 
-	//open BAM file
+	//init
+	QVector<int> end_queue;
 	BamReader reader(bam_file, ref_file);
 
 	QVector<unsigned char> cov;
@@ -1769,26 +1770,19 @@ BedFile Statistics::highCoverageScanLine(const QString& bam_file, int cutoff, in
 	{
 		if (!chr.isNonSpecial()) continue;
 
+		//init
+		int coverage_count = 0;
+		int start = -1;
+		int end = -1;
+		bool high_coverage_zone = false;
+		end_queue.clear();
+
 		int chr_size = reader.chromosomeSize(chr);
 		cov.fill(0, chr_size);
 
-		//jump to chromosome
-		reader.setRegion(chr, 0, chr_size);
-
 		//iterate through all alignments
-		int coverage_count = 0;
-
-		//start and end of high coverage zone
-		int start = -1;
-		int end = -1;
-
-		bool high_coverage_zone = false;
-
-		//queue storing unvisited aligment end points
-		QVector<int> end_queue;
-
+		reader.setRegion(chr, 0, chr_size);
 		BamAlignment al;
-
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isDuplicate()) continue;
@@ -1807,7 +1801,7 @@ BedFile Statistics::highCoverageScanLine(const QString& bam_file, int cutoff, in
 			}
 
 			//if a high coverage zone is done, save the found zone
-			if(high_coverage_zone && (coverage_count < cutoff))
+			if(high_coverage_zone && coverage_count < cutoff)
 			{
 				output.append(BedLine(chr, start, end));
 				high_coverage_zone = false;
@@ -1817,14 +1811,13 @@ BedFile Statistics::highCoverageScanLine(const QString& bam_file, int cutoff, in
 
 			//check for start of high coverage zone
 			++coverage_count;
-			if(coverage_count >= cutoff && !high_coverage_zone)
+			if(!high_coverage_zone && coverage_count >= cutoff)
 			{
 				start = al.start();
 				high_coverage_zone = true;
 			}
-			end_queue.push_back(al.end());
 
-			sort_end_queue(end_queue, al);
+			addEndPositionAndSortQueue(end_queue, al.end());
 		}
 
 		//if we are still in a high coverage zone without detected end point
@@ -1841,9 +1834,7 @@ BedFile Statistics::highCoverageScanLine(const QString& bam_file, int cutoff, in
 				}
 				end_queue.pop_front();
 			}
-
 		}
-
 	}
 
 	output.merge();
@@ -1852,49 +1843,35 @@ BedFile Statistics::highCoverageScanLine(const QString& bam_file, int cutoff, in
 
 BedFile Statistics::highCoverageScanLine(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file)
 {
-
 	BedFile output;
 
-	//check target region is merged/sorted and create index
-	if (!bed_file.isMergedAndSorted())
-	{
-		THROW(ArgumentException, "Merged and sorted BED file required for low-coverage statistics!");
-	}
-
+	//init
 	BamReader reader(bam_file, ref_file);
+	QVector<int> end_queue;
 
 	//iterate trough all regions (i.e. exons in most cases)
 	for (int i=0; i<bed_file.count(); ++i)
 	{
 		const BedLine& bed_line = bed_file[i];
-		const int bed_start = bed_line.start();
-		const int bed_end = bed_line.end();
 
-		//jump to region
-		reader.setRegion(bed_line.chr(), bed_start, bed_line.end());
-
-		//iterate through all alignments
+		//init
 		int coverage_count = 0;
-
-		//start and end of high coverage zone
 		int start = -1;
 		int end = -1;
-
 		bool high_coverage_zone = false;
+		end_queue.clear();
 
-		//queue storing unvisited aligment end points
-		QVector<int> end_queue;
-
+		//iterate through all alignments
+		reader.setRegion(bed_line.chr(), bed_line.start(), bed_line.end());
 		BamAlignment al;
-
 		while (reader.getNextAlignment(al))
 		{
-			int al_start = std::max(al.start(), bed_start);
-			int al_end = std::min(al.end(), bed_end);
-
 			if (al.isDuplicate()) continue;
 			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
+
+			int al_start = std::max(al.start(), bed_line.start());
+			int al_end = std::min(al.end(), bed_line.end());
 
 			//decrease coverage count for every encountered alignment end
 			while(!end_queue.empty() && end_queue.front() < al_start)
@@ -1908,7 +1885,7 @@ BedFile Statistics::highCoverageScanLine(const BedFile& bed_file, const QString&
 			}
 
 			//if a high coverage zone is done, save the found zone
-			if(high_coverage_zone && (coverage_count < cutoff))
+			if(high_coverage_zone && coverage_count < cutoff)
 			{
 				output.append(BedLine(bed_line.chr(), start, end, bed_line.annotations()));
 				high_coverage_zone = false;
@@ -1918,22 +1895,21 @@ BedFile Statistics::highCoverageScanLine(const BedFile& bed_file, const QString&
 
 			//check for start of high coverage zone
 			++coverage_count;
-			if(coverage_count >= cutoff && !high_coverage_zone)
+			if(!high_coverage_zone && coverage_count >= cutoff)
 			{
 				start = al_start;
 				high_coverage_zone = true;
 			}
-			end_queue.push_back(al_end);
 
-			sort_end_queue(end_queue, al);
+			addEndPositionAndSortQueue(end_queue, al_end);
 		}
 
 		if(high_coverage_zone)
 		{
-
 			while(!end_queue.empty())
 			{
 				--coverage_count;
+
 				if(coverage_count + 1 == cutoff)
 				{
 					end = end_queue.front();
@@ -1942,52 +1918,40 @@ BedFile Statistics::highCoverageScanLine(const BedFile& bed_file, const QString&
 				}
 				end_queue.pop_front();
 			}
-
 		}
-
 	}
 
-	output.merge();
+	output.merge(true, true, true);
 	return output;
 }
 
 BedFile Statistics::lowCoverageScanLine(const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file)
 {
-
 	BedFile output;
 
-	//open BAM file
+	//init
 	BamReader reader(bam_file, ref_file);
-
 	QVector<unsigned char> cov;
+	QVector<int> end_queue;
 
 	//iteratore through chromosomes
 	foreach(const Chromosome& chr, reader.chromosomes())
 	{
 		if (!chr.isNonSpecial()) continue;
 
+		//init
+		int coverage_count = 0;
+		int start = 1; //for low coverage we start by expecting the beginning to be lowcoverage, since coverage is initially zero, start is 1-based
+		int end = -1;
+		bool low_coverage_zone = true;
+		end_queue.clear();
+
 		int chr_size = reader.chromosomeSize(chr);
 		cov.fill(0, chr_size);
 
-		//jump to chromosome
-		reader.setRegion(chr, 0, chr_size);
-
 		//iterate through all alignments
-		int coverage_count = 0;
-
-		//start and end of low coverage zone
-		//for low coverage we start by expecting the beginning to be lowcoverage
-		//since coverage is initially zero, start is 1-based
-		int start = 1;
-		int end = -1;
-
-		bool low_coverage_zone = true;
-
-		//queue storing unvisited aligment end points
-		QVector<int> end_queue;
-
+		reader.setRegion(chr, 0, chr_size);
 		BamAlignment al;
-
 		while (reader.getNextAlignment(al))
 		{
 			if (al.isDuplicate()) continue;
@@ -1998,7 +1962,7 @@ BedFile Statistics::lowCoverageScanLine(const QString& bam_file, int cutoff, int
 			while(!end_queue.empty() && end_queue.front() < al.start())
 			{
 				--coverage_count;
-				if(coverage_count + 1 == cutoff && !low_coverage_zone)
+				if(!low_coverage_zone && coverage_count + 1 == cutoff)
 				{
 					start = end_queue.front() + 1;
 					low_coverage_zone = true;
@@ -2007,9 +1971,8 @@ BedFile Statistics::lowCoverageScanLine(const QString& bam_file, int cutoff, int
 			}
 
 			++coverage_count;
-			if(coverage_count >= cutoff && low_coverage_zone)
+			if(low_coverage_zone && coverage_count >= cutoff)
 			{
-
 				end = al.start() - 1;
 
 				if(start <= end)
@@ -2025,11 +1988,9 @@ BedFile Statistics::lowCoverageScanLine(const QString& bam_file, int cutoff, int
 					end = -1;
 					start = -1;
 				}
-
 			}
-			end_queue.push_back(al.end());
 
-			sort_end_queue(end_queue, al);
+			addEndPositionAndSortQueue(end_queue, al.end());
 		}
 
 		if(low_coverage_zone && start)
@@ -2060,58 +2021,42 @@ BedFile Statistics::lowCoverageScanLine(const QString& bam_file, int cutoff, int
 
 BedFile Statistics::lowCoverageScanLine(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file)
 {
-
 	BedFile output;
 
-	//check target region is merged/sorted and create index
-	if (!bed_file.isMergedAndSorted())
-	{
-		THROW(ArgumentException, "Merged and sorted BED file required for low-coverage statistics!");
-	}
-
-	//open BAM file
+	//init
 	BamReader reader(bam_file, ref_file);
+	QVector<int> end_queue;
 
 	//iterate trough all regions (i.e. exons in most cases)
 	for (int i=0; i<bed_file.count(); ++i)
 	{
 		const BedLine& bed_line = bed_file[i];
-		const int bed_start = bed_line.start();
-		const int bed_end = bed_line.end();
 
-		//jump to region
-		reader.setRegion(bed_line.chr(), bed_start, bed_end);
-
+		//init
+		int coverage_count = 0;
+		int start = bed_line.start(); //we expect the beginning to be lowcoverage since coverage is initially 0
+		int end = -1;
+		bool low_coverage_zone = true;
+		end_queue.clear();
 
 		//iterate through all alignments
-		int coverage_count = 0;
-
-		//start and end of lowcoverage zone
-		int start = bed_start; //we expect the beginning to be lowcoverage since coverage is initially 0
-		int end = -1;
-
-		bool low_coverage_zone = true;
-
-		//queue storing unvisited aligment end points
-		QVector<int> end_queue;
-
+		reader.setRegion(bed_line.chr(), bed_line.start(), bed_line.end());
 		BamAlignment al;
-
 		while (reader.getNextAlignment(al))
 		{
-			int al_start = std::max(al.start(), bed_start);
-			int al_end = std::min(al.end(), bed_end);
-
 			if (al.isDuplicate()) continue;
 			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
+
+			int al_start = std::max(al.start(), bed_line.start());
+			int al_end = std::min(al.end(), bed_line.end());
 
 			//decrease coverage count for every encountered alignment end
 			while(!end_queue.empty() && end_queue.front() < al_start)
 			{
 				--coverage_count;
 
-				if(coverage_count + 1 == cutoff && !low_coverage_zone)
+				if(!low_coverage_zone && coverage_count + 1 == cutoff)
 				{
 					start = end_queue.front() + 1;
 					low_coverage_zone = true;
@@ -2121,14 +2066,12 @@ BedFile Statistics::lowCoverageScanLine(const BedFile& bed_file, const QString& 
 
 			//check for end of low coverage zone
 			++coverage_count;
-			if(coverage_count >= cutoff && low_coverage_zone)
+			if(low_coverage_zone && coverage_count >= cutoff)
 			{
-
 				end = al_start - 1;
 
 				if(start <= end)
 				{
-
 					output.append(BedLine(bed_line.chr(), start, end, bed_line.annotations()));
 					low_coverage_zone = false;
 					end = -1;
@@ -2140,30 +2083,28 @@ BedFile Statistics::lowCoverageScanLine(const BedFile& bed_file, const QString& 
 					end = -1;
 					start = -1;
 				}
-
 			}
 
-			end_queue.push_back(al_end);
-			sort_end_queue(end_queue, al);
+			addEndPositionAndSortQueue(end_queue, al_end);
 		}
 
 		if(low_coverage_zone && start)
 		{
-
-			end = bed_end;
+			end = bed_line.end();
 			if(start <= end)
 			{
 				output.append(BedLine(bed_line.chr(), start, end, bed_line.annotations()));
 			}
 		}
-		while(!end_queue.empty() && end_queue.front() < bed_end)
+
+		while(!end_queue.empty() && end_queue.front() < bed_line.end())
 		{
 			--coverage_count;
 
-			if(coverage_count + 1 == cutoff && !low_coverage_zone)
+			if(!low_coverage_zone && coverage_count + 1 == cutoff)
 			{
 				start = end_queue.front() + 1;
-				end = bed_end;
+				end = bed_line.end();
 				output.append(BedLine(bed_line.chr(), start, end, bed_line.annotations()));
 			}
 			end_queue.pop_front();
@@ -2181,11 +2122,6 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 	if(min_baseq == 0) return lowCoverageScanLine(bed_file, bam_file, cutoff, min_mapq, ref_file);
 
 	BedFile output;
-	//check target region is merged/sorted and create index
-	if (!bed_file.isMergedAndSorted())
-	{
-		THROW(ArgumentException, "Merged and sorted BED file required for low-coverage statistics!");
-	}
 
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2242,6 +2178,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 		}
 	}
 
+	output.merge(true, true, true);
 	return output;
 }
 
@@ -2314,12 +2251,6 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 
 void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool include_duplicates, bool panel_mode, int decimals, const QString& ref_file)
 {
-	//check target region is merged/sorted and create index
-	if (!bed_file.isMergedAndSorted())
-	{
-		THROW(ArgumentException, "Merged and sorted BED file required for coverage calculation!");
-	}
-
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
 
@@ -2353,12 +2284,18 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 	else //default mode
 	{
+		//check target region is merged/sorted and create index
+		if (!bed_file.isMergedAndSorted())
+		{
+			THROW(ArgumentException, "Merged and sorted BED file required for coverage calculation!");
+		}
+		ChromosomalIndex<BedFile> bed_idx(bed_file);
+
 		//init coverage statistics data structure
 		QVector<long> cov;
 		cov.fill(0, bed_file.count());
 
 		//iterate through all alignments
-		ChromosomalIndex<BedFile> bed_idx(bed_file);
 		BamAlignment al;
 		while (reader.getNextAlignment(al))
 		{
@@ -2391,12 +2328,6 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
 	BedFile output;
-
-	//check target region is merged/sorted and create index
-	if (!bed_file.isMergedAndSorted())
-	{
-		THROW(ArgumentException, "Merged and sorted BED file required for low-coverage statistics!");
-	}
 
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2454,7 +2385,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 		}
 	}
 
-	output.merge();
+	output.merge(true, true, true);
 	return output;
 }
 
