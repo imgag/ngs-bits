@@ -76,7 +76,7 @@ build_server_release:
 	rm -rf build-GSvarServer-Linux-Release;
 	mkdir -p build-GSvarServer-Linux-Release;
 	cd build-GSvarServer-Linux-Release; \
-                qmake ../src/GSvarServer/GSvarServer.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
+                qmake ../src/tools_server.pro "CONFIG-=debug" "CONFIG+=release" "DEFINES+=QT_NO_DEBUG_OUTPUT"; \
                 make -j5;
 	
 #################################### other targets ##################################

@@ -9,14 +9,14 @@ Q_OBJECT
 private slots:
     void test_isEligibileToAccess()
     {
-            Request request {};
-            request.method = Request::MethodType::GET;
-            request.return_type = ContentType::TEXT_PLAIN;
+			HttpRequest request {};
+			request.setMethod(RequestMethod::GET);
+			request.setContentType(ContentType::TEXT_PLAIN);
             QString token = ServerHelper::generateUniqueStr();
             SessionManager::addNewSession(token, Session{"test_user", QDateTime::currentDateTime()});
-            request.url_params.insert("token", token);
+			request.addUrlParam("token", token);
 
-            IS_TRUE(EndpointHandler::isEligibileToAccess(request));
+			IS_TRUE(EndpointHelper::isEligibileToAccess(request));
             I_EQUAL(token.length(), 36);
             I_EQUAL(token.count("-"), 4);
     }
