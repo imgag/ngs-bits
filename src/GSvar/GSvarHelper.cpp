@@ -20,18 +20,8 @@ const GeneSet& GSvarHelper::impritingGenes()
 
 	if (!initialized)
 	{
-        imprinting_genes_.clear();
-
-		//load imprinting gene list
-		QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
-		foreach(const QString& line, lines)
-		{
-			QStringList parts = line.split("\t");
-			if (parts.count()==2)
-			{
-				imprinting_genes_ << parts[0].toLatin1();
-			}
-		}
+		imprinting_genes_.clear();
+		imprinting_genes_ << NGSHelper::imprintingGenes().keys();
 
 		initialized = true;
 	}

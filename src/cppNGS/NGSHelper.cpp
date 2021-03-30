@@ -436,6 +436,27 @@ BedLine NGSHelper::cytoBandToRange(QByteArray cytoband)
 	}
 }
 
+const QMap<QByteArray, QByteArray>& NGSHelper::imprintingGenes()
+{
+	static QMap<QByteArray, QByteArray> output;
+
+	//init
+	if (output.isEmpty())
+	{
+		QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
+		foreach(const QString& line, lines)
+		{
+			QStringList parts = line.split("\t");
+			if (parts.count()==3)
+			{
+				output[parts[0].toLatin1()] = parts[1].toLatin1();
+			}
+		}
+	}
+
+	return output;
+}
+
 void NGSHelper::parseRegion(const QString& text, Chromosome& chr, int& start, int& end)
 {
 	QString simplyfied = text;

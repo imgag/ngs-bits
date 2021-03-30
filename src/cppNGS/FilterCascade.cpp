@@ -2353,19 +2353,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	}
 
 	//load imprinting gene list
-	QMap<QByteArray, QByteArray> imprinting;
-	if (types.contains("imprinting"))
-	{
-		QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
-		foreach(const QString& line, lines)
-		{
-			QStringList parts = line.split("\t");
-			if (parts.count()==2)
-			{
-				imprinting[parts[0].toLatin1()] = parts[1].toLatin1();
-			}
-		}
-	}
+	QMap<QByteArray, QByteArray> imprinting = NGSHelper::imprintingGenes();
 
 	//apply
 	for(int i=0; i<variants.count(); ++i)
@@ -2452,7 +2440,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 				GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
-					if (imprinting.contains(gene) && (imprinting[gene]=="paternal" || imprinting[gene]=="both"))
+					if (imprinting.contains(gene) && imprinting[gene]!="maternal")
 					{
 						match = true;
 					}
@@ -2463,7 +2451,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 				GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
-					if (imprinting.contains(gene) && (imprinting[gene]=="maternal" || imprinting[gene]=="both"))
+					if (imprinting.contains(gene) && imprinting[gene]!="paternal")
 					{
 						match = true;
 					}
@@ -4438,19 +4426,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
     }
 
     //load imprinting gene list
-    QMap<QByteArray, QByteArray> imprinting;
-    if (types.contains("imprinting"))
-    {
-        QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
-        foreach(const QString& line, lines)
-        {
-            QStringList parts = line.split("\t");
-            if (parts.count()==2)
-            {
-                imprinting[parts[0].toLatin1()] = parts[1].toLatin1();
-            }
-        }
-    }
+	QMap<QByteArray, QByteArray> imprinting = NGSHelper::imprintingGenes();
 
     //apply
     for(int i=0; i<svs.count(); ++i)
@@ -4544,7 +4520,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
                 GeneSet genes = GeneSet::createFromText(sv.annotations()[i_gene], ',');
                 foreach(const QByteArray& gene, genes)
                 {
-                    if (imprinting.contains(gene) && (imprinting[gene]=="paternal" || imprinting[gene]=="both"))
+					if (imprinting.contains(gene) && imprinting[gene]!="maternal")
                     {
                         match = true;
                     }
@@ -4555,7 +4531,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
                 GeneSet genes = GeneSet::createFromText(sv.annotations()[i_gene], ',');
                 foreach(const QByteArray& gene, genes)
                 {
-                    if (imprinting.contains(gene) && (imprinting[gene]=="maternal" || imprinting[gene]=="both"))
+					if (imprinting.contains(gene) && imprinting[gene]!="paternal")
                     {
                         match = true;
                     }

@@ -155,4 +155,13 @@ private slots:
 		S_EQUAL(NGSHelper::cytoBandToRange("1p36.33-1p36.32").toString(true), "chr1:1-5400000");
 		S_EQUAL(NGSHelper::cytoBandToRange("1p36.32-1p36.33").toString(true), "chr1:1-5400000");
 	}
+
+	void impringGenes()
+	{
+		QMap<QByteArray, QByteArray> imp_genes = NGSHelper::imprintingGenes();
+
+		I_EQUAL(imp_genes.count(), 244);
+		S_EQUAL(imp_genes["NPAP1"], "paternal");
+		S_EQUAL(imp_genes["NTM"], "maternal");
+	}
 };
