@@ -120,6 +120,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 
 	FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type());
 
+	qDebug() << "found_file " << found_file;
 	QList<FileLocation> file_list {};
 	QJsonDocument json_doc_output {};
 	QJsonArray json_list_output {};
@@ -170,7 +171,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 			cur_json_item.insert("filename", file_list[i].filename);
 		}
 
-		cur_json_item.insert("is_found", file_list[i].exists);
+		cur_json_item.insert("exists", file_list[i].exists);
 		json_list_output.append(cur_json_item);
 	}
 

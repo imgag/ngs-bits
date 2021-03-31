@@ -43,10 +43,10 @@ FileLocation FileLocationProviderRemote::getRepeatExpansionImage(QString /*locus
 	return FileLocation(); // Alexandr
 }
 
-FileLocationList FileLocationProviderRemote::requestFileInfoByType(PathType type) const
+FileLocationList FileLocationProviderRemote::requestFileLocationsByType(PathType type, bool return_if_missing) const
 {
 	FileLocationList output {};
-	if (sample_id_ == nullptr)
+	if (sample_id_.isEmpty())
 	{
 		THROW(ArgumentException, "File name has not been specified")
 		return output;
@@ -65,7 +65,7 @@ FileLocationList FileLocationProviderRemote::requestFileInfoByType(PathType type
 	}
 
 	qDebug() << "Requested files:" << file_list;
-	output = mapJsonArrayToFileLocationList(file_list);
+	output = mapJsonArrayToFileLocationList(file_list, return_if_missing);
 	return output;
 }
 
@@ -75,41 +75,45 @@ FileLocation FileLocationProviderRemote::mapJsonObjectToFileLocation(QJsonObject
 		obj.value("id").toString(),
 		FileLocation::stringToType(obj.value("type").toString()),
 		obj.value("filename").toString(),
-		obj.value("is_found").toBool()
+		obj.value("exists").toBool()
 	};
 }
 
-FileLocationList FileLocationProviderRemote::mapJsonArrayToFileLocationList(QJsonArray array) const
+FileLocationList FileLocationProviderRemote::mapJsonArrayToFileLocationList(QJsonArray array, bool return_if_missing) const
 {
 	FileLocationList output {};
 	for (int i = 0; i < array.count(); ++i)
 	{
-		output.append(mapJsonObjectToFileLocation(array[i].toObject()));
+		FileLocation loc = mapJsonObjectToFileLocation(array[i].toObject());
+		if (loc.exists || return_if_missing)
+		{
+			output.append(loc);
+		}
 	}
 	return output;
 }
 
-FileLocationList FileLocationProviderRemote::getBamFiles(bool /*return_if_missing*/) const //Alexandr
+FileLocationList FileLocationProviderRemote::getBamFiles(bool return_if_missing) const //Alexandr
 {
-	return requestFileInfoByType(PathType::BAM);
+	return requestFileLocationsByType(PathType::BAM, return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getCnvCoverageFiles(bool /*return_if_missing*/) const //Alexandr
+FileLocationList FileLocationProviderRemote::getCnvCoverageFiles(bool return_if_missing) const //Alexandr
 {
-	return requestFileInfoByType(PathType::COPY_NUMBER_RAW_DATA);
+	return requestFileLocationsByType(PathType::COPY_NUMBER_RAW_DATA, return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getBafFiles(bool /*return_if_missing*/) const //Alexandr
+FileLocationList FileLocationProviderRemote::getBafFiles(bool return_if_missing) const //Alexandr
 {
-	return requestFileInfoByType(PathType::BAF);
+	return requestFileLocationsByType(PathType::BAF, return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getMantaEvidenceFiles(bool /*return_if_missing*/) const //Alexandr
+FileLocationList FileLocationProviderRemote::getMantaEvidenceFiles(bool return_if_missing) const //Alexandr
 {
-	return requestFileInfoByType(PathType::MANTA_EVIDENCE);
+	return requestFileLocationsByType(PathType::MANTA_EVIDENCE, return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getCircosPlotFiles(bool /*return_if_missing*/) const //Alexandr
+FileLocationList FileLocationProviderRemote::getCircosPlotFiles(bool return_if_missing) const //Alexandr
 {
 	return FileLocationList{};
 }
