@@ -107,15 +107,18 @@ HttpResponse EndpointHandler::serveTempUrl(HttpRequest request)
 HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 {
 	qDebug() << "File location service";
-	QString path = ServerHelper::getStringSettingsValue("projects_folder");
-	QString found_file = getGSvarFile(request.getUrlParams()["ps"], false);
+	if (!request.getUrlParams().contains("ps"))
+	{
+		return HttpResponse(HttpError{StatusCode::BAD_REQUEST, request.getContentType(), "Sample id has not been provided"});
+	}
+	QString found_file = getGSvarFile(request.getUrlParams().value("ps"), false);
 
 	if (found_file.isEmpty())
 	{
-		return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), "Could not find the sample: " + request.getUrlParams()["ps"]});
+		return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), "Could not find the sample: " + request.getUrlParams().value("ps")});
 	}
 
-	VariantList variants {};
+	VariantList variants;
 	variants.load(found_file);
 
 	FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type());
@@ -124,31 +127,106 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	QList<FileLocation> file_list {};
 	QJsonDocument json_doc_output {};
 	QJsonArray json_list_output {};
-	switch(FileLocation::stringToType(request.getUrlParams()["type"].toLower()))
-	{
-		case PathType::BAM:
-			file_list = file_locator->getBamFiles(true);
-			break;
-		case PathType::COPY_NUMBER_RAW_DATA:
-			file_list = file_locator->getCnvCoverageFiles(true);
-			break;
-		case PathType::BAF:
-			file_list = file_locator->getMantaEvidenceFiles(true);
-			break;
-		case PathType::MANTA_EVIDENCE:
-			file_list = file_locator->getMantaEvidenceFiles(true);
-			break;
 
-		default:
-			{
-				FileLocation gsvar_file {};
-				gsvar_file.id = request.getUrlParams()["ps"];
-				gsvar_file.type = PathType::GSVAR;
-				gsvar_file.filename = found_file;
-				gsvar_file.exists = true;
-				file_list.append(gsvar_file);
-			}
+	if(request.getUrlParams()["type"].toLower() == "analysisvcf")
+	{
+		file_list << file_locator->getAnalysisVcf();
 	}
+	else if(request.getUrlParams()["type"].toLower() == "analysissvfile")
+	{
+		file_list << file_locator->getAnalysisSvFile();
+	}
+	else if(request.getUrlParams()["type"].toLower() == "analysiscnvfile")
+	{
+		file_list << file_locator->getAnalysisCnvFile();
+	}
+	else if(request.getUrlParams()["type"].toLower() == "analysismosaiccnvfile")
+	{
+		file_list << file_locator->getAnalysisMosaicCnvFile();
+	}
+	else if(request.getUrlParams()["type"].toLower() == "analysisupdfile")
+	{
+		file_list << file_locator->getAnalysisUpdFile();
+	}
+	else if(request.getUrlParams()["type"].toLower() == "repeatexpansionimage")
+	{
+		if (!request.getUrlParams().contains("locus"))
+		{
+			return HttpResponse(HttpError{StatusCode::BAD_REQUEST, request.getContentType(), "Locus value has not been provided"});
+		}
+		file_list << file_locator->getRepeatExpansionImage(request.getUrlParams().value("locus"));
+	}
+	else if(request.getUrlParams()["type"].toLower() == "bam")
+	{
+		file_list = file_locator->getBamFiles(true);
+	}
+	else if(request.getUrlParams()["type"].toLower() == "cnvcoverage")
+	{
+		file_list = file_locator->getCnvCoverageFiles(true);
+	}
+	else if(request.getUrlParams()["type"].toLower() == "baf")
+	{
+		file_list = file_locator->getBafFiles(true);
+	}
+	else if (request.getUrlParams()["type"].toLower() == "mantaevidence")
+	{
+		file_list = file_locator->getMantaEvidenceFiles(true);
+	}
+	else if (request.getUrlParams()["type"].toLower() == "circosplot")
+	{
+		file_list = file_locator->getCircosPlotFiles(true);
+	}
+	else if (request.getUrlParams()["type"].toLower() == "vcf")
+	{
+		file_list = file_locator->getVcfFiles(true);
+	}
+	else if (request.getUrlParams()["type"].toLower() == "repeatexpansion")
+	{
+		file_list = file_locator->getRepeatExpansionFiles(true);
+	}
+	else if (request.getUrlParams()["type"].toLower() == "prs")
+	{
+		file_list = file_locator->getPrsFiles(true);
+	}
+	else if (request.getUrlParams()["type"].toLower() == "lowcoverage")
+	{
+		file_list = file_locator->getLowCoverageFiles(true);
+	}
+	else if (request.getUrlParams()["type"].toLower() == "copynumbercall")
+	{
+		file_list = file_locator->getCopyNumberCallFiles(true);
+	}
+	else if (request.getUrlParams()["type"].toLower() == "roh")
+	{
+		file_list = file_locator->getRohFiles(true);
+	}
+	else if (request.getUrlParams()["type"].toLower() == "somaticcnvcoverage")
+	{
+		file_list << file_locator->getSomaticCnvCoverageFile();
+	}
+	else if (request.getUrlParams()["type"].toLower() == "somaticcnvcallfile")
+	{
+		file_list << file_locator->getSomaticCnvCallFile();
+	}
+	else if (request.getUrlParams()["type"].toLower() == "somaticlowcoverage")
+	{
+		file_list << file_locator->getSomaticLowCoverageFile();
+	}
+	else if (request.getUrlParams()["type"].toLower() == "somaticmsi")
+	{
+		file_list << file_locator->getSomaticMsiFile();
+	}
+//	else
+//	{
+//		FileLocation gsvar_file(
+//			request.getUrlParams()["ps"],
+//			PathType::GSVAR,
+//			found_file,
+//			true
+//		);
+//		file_list.append(gsvar_file);
+//	}
+
 
 	for (int i = 0; i < file_list.count(); ++i)
 	{
@@ -176,7 +254,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	}
 
 	json_doc_output.setArray(json_list_output);
-	return HttpResponse{false, "", EndpointHelper::generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson()};
+	return HttpResponse(false, "", EndpointHelper::generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson());
 }
 
 HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
