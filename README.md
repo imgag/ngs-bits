@@ -32,8 +32,6 @@ Changes in release 2021_03:
 	* Added more sample relations (twins, cousins, ...)
 	* Added gap table
 
-Changes in release 2020_12:
-
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
 ## Support

@@ -399,8 +399,6 @@ private:
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;
 
-	QStringList rna_count_files_;
-
 	//SPECIAL
 	DelayedInitializationTimer init_timer_;
 };
