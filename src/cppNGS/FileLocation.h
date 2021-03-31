@@ -15,7 +15,7 @@ enum class PathType
 	BAM, //BAM file
 
 	//variant data
-	VCF, //small variants (VCF format)
+	VCF, //small variants (VCF.GZ format)
 	GSVAR, //small variants (GSvar format)
 	COPY_NUMBER_CALLS, //copy number calls (TSV format)
 	COPY_NUMBER_CALLS_MOSAIC, //mosaic copy number calls (TSV format)
@@ -35,6 +35,7 @@ enum class PathType
 	FUSIONS, //gene fusions determined from RNA (TSV format)
 	COUNTS, //gene/transcript counts from RNA (TSV format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
+	VCF_CF_DNA, //cfDNA variants file (VCF format)
 	OTHER // everything else
 };
 
@@ -119,6 +120,9 @@ struct FileLocation
 				return "COUNTS";
 			case PathType::VIRAL:
 				return "VIRAL";
+			case PathType::VCF_CF_DNA:
+				return "VCF_CF_DNA";
+
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -148,6 +152,7 @@ struct FileLocation
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
 		if (in_upper == "COUNTS") return PathType::COUNTS;
 		if (in_upper == "VIRAL") return PathType::VIRAL;
+		if (in_upper == "VCF_CF_DNA") return PathType::VCF_CF_DNA;
 
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
@@ -200,6 +205,8 @@ struct FileLocation
 				return "viral DNA";
 			case PathType::OTHER:
 				return "other files";
+			case PathType::VCF_CF_DNA:
+				return "cfDNA small variant calls";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}
