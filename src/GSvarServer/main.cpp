@@ -171,7 +171,8 @@ int main(int argc, char **argv)
 						   {"ps", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, false, "Sample id"}},
 						   {"type", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, true, "Format of the requested file(s)"}},
 						   {"path", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, true, "Returns an absolute path on the server, if set to 'absolute'"}},
-						   {"locus", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, true, "Locus for repeat expansion image"}}
+						   {"locus", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, true, "Locus for repeat expansion image"}},
+						   {"return_if_missing", ParamProps{ParamProps::ParamType::INTEGER, ParamProps::ParamCategory::GET_URL_PARAM, true, "Return file info, if the file is missing"}}
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,

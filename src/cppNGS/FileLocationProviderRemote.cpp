@@ -15,37 +15,37 @@ bool FileLocationProviderRemote::isLocal() const
 
 FileLocation FileLocationProviderRemote::getAnalysisVcf() const
 {
-	return FileLocation(); //Alexandr
+	return getOneFileLocationByType("analysisvcf", "");
 }
 
 FileLocation FileLocationProviderRemote::getAnalysisSvFile() const
 {
-	return FileLocation(); //Alexandr
+	return getOneFileLocationByType("analysissv", "");
 }
 
 FileLocation FileLocationProviderRemote::getAnalysisCnvFile() const
 {
-	return FileLocation(); //Alexandr
+	return getOneFileLocationByType("analysiscnv", "");
 }
 
 FileLocation FileLocationProviderRemote::getAnalysisMosaicCnvFile() const
 {
-	return FileLocation(); //Alexandr
+	return getOneFileLocationByType("analysismosaiccnv", "");
 }
 
 FileLocation FileLocationProviderRemote::getAnalysisUpdFile() const
 {
-	return FileLocation(); // Alexandr
+	return getOneFileLocationByType("analysisupd", "");
 }
 
-FileLocation FileLocationProviderRemote::getRepeatExpansionImage(QString /*locus*/) const
+FileLocation FileLocationProviderRemote::getRepeatExpansionImage(QString locus) const
 {
-	return FileLocation(); // Alexandr
+	return getOneFileLocationByType("repeatexpansionimage", locus);
 }
 
-FileLocationList FileLocationProviderRemote::requestFileLocationsByType(PathType type, bool return_if_missing) const
+FileLocationList FileLocationProviderRemote::getFileLocationsByType(QString type, bool return_if_missing) const
 {
-	FileLocationList output {};
+	FileLocationList output;
 	if (sample_id_.isEmpty())
 	{
 		THROW(ArgumentException, "File name has not been specified")
@@ -54,20 +54,53 @@ FileLocationList FileLocationProviderRemote::requestFileLocationsByType(PathType
 
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
-	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://" + server_host_ + ":" + QString::number(server_port_) + "/v1/file_location?ps=" + sample_id_ + "&type=" + FileLocation::typeToString(type), add_headers);
+	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
+				"https://" + server_host_ + ":" + QString::number(server_port_)
+				+ "/v1/file_location?ps=" + sample_id_ + "&type=" + type
+				+ "&return_if_missing=" +(return_if_missing ? "1" : "0"), add_headers);
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
 	QJsonArray file_list = json_doc.array();
 
 	if (file_list.count() == 0)
 	{
-		THROW(Exception, "Could not find file info: " + FileLocation::typeToString(type));
+		THROW(Exception, "Could not find file info: " + type);
 	}
 
 	qDebug() << "Requested files:" << file_list;
 	output = mapJsonArrayToFileLocationList(file_list, return_if_missing);
 	return output;
 }
+
+FileLocation FileLocationProviderRemote::getOneFileLocationByType(QString type, QString locus) const
+{
+	FileLocation output;
+	if (sample_id_.isEmpty())
+	{
+		THROW(ArgumentException, "File name has not been specified")
+		return output;
+	}
+
+	HttpHeaders add_headers;
+	add_headers.insert("Accept", "application/json");
+	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
+				"https://" + server_host_ + ":" + QString::number(server_port_)
+				+ "/v1/file_location?ps=" + sample_id_ + "&type=" + type
+				+ (locus.isEmpty() ? "" : "&locus=" + locus), add_headers);
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
+	QJsonObject file_object = json_doc.object();
+
+	if (file_object.isEmpty())
+	{
+		THROW(Exception, "Could not find file info: " + type);
+	}
+
+	qDebug() << "Requested files:" << file_object;
+	output = mapJsonObjectToFileLocation(file_object);
+	return output;
+}
+
 
 FileLocation FileLocationProviderRemote::mapJsonObjectToFileLocation(QJsonObject obj) const
 {	
@@ -93,79 +126,79 @@ FileLocationList FileLocationProviderRemote::mapJsonArrayToFileLocationList(QJso
 	return output;
 }
 
-FileLocationList FileLocationProviderRemote::getBamFiles(bool return_if_missing) const //Alexandr
+FileLocationList FileLocationProviderRemote::getBamFiles(bool return_if_missing) const
 {
-	return requestFileLocationsByType(PathType::BAM, return_if_missing);
+	return getFileLocationsByType("bam", return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getCnvCoverageFiles(bool return_if_missing) const //Alexandr
+FileLocationList FileLocationProviderRemote::getCnvCoverageFiles(bool return_if_missing) const
 {
-	return requestFileLocationsByType(PathType::COPY_NUMBER_RAW_DATA, return_if_missing);
+	return getFileLocationsByType("cnvcoverage", return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getBafFiles(bool return_if_missing) const //Alexandr
+FileLocationList FileLocationProviderRemote::getBafFiles(bool return_if_missing) const
 {
-	return requestFileLocationsByType(PathType::BAF, return_if_missing);
+	return getFileLocationsByType("baf", return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getMantaEvidenceFiles(bool return_if_missing) const //Alexandr
+FileLocationList FileLocationProviderRemote::getMantaEvidenceFiles(bool return_if_missing) const
 {
-	return requestFileLocationsByType(PathType::MANTA_EVIDENCE, return_if_missing);
+	return getFileLocationsByType("mantaevidence", return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getCircosPlotFiles(bool return_if_missing) const //Alexandr
+FileLocationList FileLocationProviderRemote::getCircosPlotFiles(bool return_if_missing) const
 {
-	return FileLocationList{};
+	return getFileLocationsByType("circosplot", return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getVcfFiles(bool /*return_if_missing*/) const //Alexandr
+FileLocationList FileLocationProviderRemote::getVcfFiles(bool return_if_missing) const
 {
-	return FileLocationList{};
+	return getFileLocationsByType("vcf", return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getRepeatExpansionFiles(bool /*return_if_missing*/) const //Alexandr
+FileLocationList FileLocationProviderRemote::getRepeatExpansionFiles(bool return_if_missing) const
 {
-	return FileLocationList{};
+	return getFileLocationsByType("repeatexpansion", return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getPrsFiles(bool /*return_if_missing*/) const //Alexandr
+FileLocationList FileLocationProviderRemote::getPrsFiles(bool return_if_missing) const
 {
-	return FileLocationList{};
+	return getFileLocationsByType("prs", return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getLowCoverageFiles(bool /*return_if_missing*/) const //Alexandr
+FileLocationList FileLocationProviderRemote::getLowCoverageFiles(bool return_if_missing) const
 {
-	return FileLocationList{};
+	return getFileLocationsByType("lowcoverage", return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getCopyNumberCallFiles(bool /*return_if_missing*/) const //Alexandr
+FileLocationList FileLocationProviderRemote::getCopyNumberCallFiles(bool return_if_missing) const
 {
-	return FileLocationList{};
+	return getFileLocationsByType("copynumbercall", return_if_missing);
 }
 
-FileLocationList FileLocationProviderRemote::getRohFiles(bool /*return_if_missing*/) const //Alexandr
+FileLocationList FileLocationProviderRemote::getRohFiles(bool return_if_missing) const
 {
-	return FileLocationList{};
+	return getFileLocationsByType("roh", return_if_missing);
 }
 
-FileLocation FileLocationProviderRemote::getSomaticCnvCoverageFile() const //Alexandr
+FileLocation FileLocationProviderRemote::getSomaticCnvCoverageFile() const
 {
-	return FileLocation();
+	return getOneFileLocationByType("somaticcnvcoverage", "");
 }
 
-FileLocation FileLocationProviderRemote::getSomaticCnvCallFile() const //Alexandr
+FileLocation FileLocationProviderRemote::getSomaticCnvCallFile() const
 {
-	return FileLocation();
+	return getOneFileLocationByType("somaticcnvcall", "");
 }
 
-FileLocation FileLocationProviderRemote::getSomaticLowCoverageFile() const //Alexandr
+FileLocation FileLocationProviderRemote::getSomaticLowCoverageFile() const
 {
-	return FileLocation();
+	return getOneFileLocationByType("somaticlowcoverage", "");
 }
 
-FileLocation FileLocationProviderRemote::getSomaticMsiFile() const //Alexandr
+FileLocation FileLocationProviderRemote::getSomaticMsiFile() const
 {
-	return FileLocation();
+	return getOneFileLocationByType("somaticmsi", "");
 }
 
 QString FileLocationProviderRemote::getAnalysisPath() const

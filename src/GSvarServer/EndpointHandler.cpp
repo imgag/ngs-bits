@@ -113,6 +113,15 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	}
 	QString found_file = getGSvarFile(request.getUrlParams().value("ps"), false);
 
+	bool return_if_missing = true;
+	if (!request.getUrlParams().contains("return_if_missing"))
+	{
+		if (request.getUrlParams().value("return_if_missing") == "0")
+		{
+			return_if_missing = false;
+		}
+	}
+
 	if (found_file.isEmpty())
 	{
 		return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), "Could not find the sample: " + request.getUrlParams().value("ps")});
@@ -132,19 +141,19 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	{
 		file_list << file_locator->getAnalysisVcf();
 	}
-	else if(request.getUrlParams()["type"].toLower() == "analysissvfile")
+	else if(request.getUrlParams()["type"].toLower() == "analysissv")
 	{
 		file_list << file_locator->getAnalysisSvFile();
 	}
-	else if(request.getUrlParams()["type"].toLower() == "analysiscnvfile")
+	else if(request.getUrlParams()["type"].toLower() == "analysiscnv")
 	{
 		file_list << file_locator->getAnalysisCnvFile();
 	}
-	else if(request.getUrlParams()["type"].toLower() == "analysismosaiccnvfile")
+	else if(request.getUrlParams()["type"].toLower() == "analysismosaiccnv")
 	{
 		file_list << file_locator->getAnalysisMosaicCnvFile();
 	}
-	else if(request.getUrlParams()["type"].toLower() == "analysisupdfile")
+	else if(request.getUrlParams()["type"].toLower() == "analysisupd")
 	{
 		file_list << file_locator->getAnalysisUpdFile();
 	}
@@ -158,53 +167,53 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	}
 	else if(request.getUrlParams()["type"].toLower() == "bam")
 	{
-		file_list = file_locator->getBamFiles(true);
+		file_list = file_locator->getBamFiles(return_if_missing);
 	}
 	else if(request.getUrlParams()["type"].toLower() == "cnvcoverage")
 	{
-		file_list = file_locator->getCnvCoverageFiles(true);
+		file_list = file_locator->getCnvCoverageFiles(return_if_missing);
 	}
 	else if(request.getUrlParams()["type"].toLower() == "baf")
 	{
-		file_list = file_locator->getBafFiles(true);
+		file_list = file_locator->getBafFiles(return_if_missing);
 	}
 	else if (request.getUrlParams()["type"].toLower() == "mantaevidence")
 	{
-		file_list = file_locator->getMantaEvidenceFiles(true);
+		file_list = file_locator->getMantaEvidenceFiles(return_if_missing);
 	}
 	else if (request.getUrlParams()["type"].toLower() == "circosplot")
 	{
-		file_list = file_locator->getCircosPlotFiles(true);
+		file_list = file_locator->getCircosPlotFiles(return_if_missing);
 	}
 	else if (request.getUrlParams()["type"].toLower() == "vcf")
 	{
-		file_list = file_locator->getVcfFiles(true);
+		file_list = file_locator->getVcfFiles(return_if_missing);
 	}
 	else if (request.getUrlParams()["type"].toLower() == "repeatexpansion")
 	{
-		file_list = file_locator->getRepeatExpansionFiles(true);
+		file_list = file_locator->getRepeatExpansionFiles(return_if_missing);
 	}
 	else if (request.getUrlParams()["type"].toLower() == "prs")
 	{
-		file_list = file_locator->getPrsFiles(true);
+		file_list = file_locator->getPrsFiles(return_if_missing);
 	}
 	else if (request.getUrlParams()["type"].toLower() == "lowcoverage")
 	{
-		file_list = file_locator->getLowCoverageFiles(true);
+		file_list = file_locator->getLowCoverageFiles(return_if_missing);
 	}
 	else if (request.getUrlParams()["type"].toLower() == "copynumbercall")
 	{
-		file_list = file_locator->getCopyNumberCallFiles(true);
+		file_list = file_locator->getCopyNumberCallFiles(return_if_missing);
 	}
 	else if (request.getUrlParams()["type"].toLower() == "roh")
 	{
-		file_list = file_locator->getRohFiles(true);
+		file_list = file_locator->getRohFiles(return_if_missing);
 	}
 	else if (request.getUrlParams()["type"].toLower() == "somaticcnvcoverage")
 	{
 		file_list << file_locator->getSomaticCnvCoverageFile();
 	}
-	else if (request.getUrlParams()["type"].toLower() == "somaticcnvcallfile")
+	else if (request.getUrlParams()["type"].toLower() == "somaticcnvcall")
 	{
 		file_list << file_locator->getSomaticCnvCallFile();
 	}
@@ -216,17 +225,16 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	{
 		file_list << file_locator->getSomaticMsiFile();
 	}
-//	else
-//	{
-//		FileLocation gsvar_file(
-//			request.getUrlParams()["ps"],
-//			PathType::GSVAR,
-//			found_file,
-//			true
-//		);
-//		file_list.append(gsvar_file);
-//	}
-
+	else
+	{
+		FileLocation gsvar_file(
+			request.getUrlParams()["ps"],
+			PathType::GSVAR,
+			found_file,
+			true
+		);
+		file_list.append(gsvar_file);
+	}
 
 	for (int i = 0; i < file_list.count(); ++i)
 	{
