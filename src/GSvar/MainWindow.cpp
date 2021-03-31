@@ -927,27 +927,54 @@ void MainWindow::on_actionCircos_triggered()
 
 void MainWindow::on_actionExpressionData_triggered()
 {
-	QString tsv_filename;
-	if (rna_count_files_.size() == 0)
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+
+	QString title = "Expression data";
+
+	NGSD db;
+	QString sample_id = db.sampleId(filename_, false);
+	if (sample_id=="")
 	{
-		// no rna sample found
+		QMessageBox::warning(this, title, "Error: Sample not found in NGSD!");
 		return;
 	}
-	else if (rna_count_files_.size() == 1)
+
+	//get count files of all RNA processed samples corresponding to the current sample
+	QStringList rna_ps_ids;
+	foreach (QString rna_sample, db.sameSamples(sample_id, "RNA"))
 	{
-		tsv_filename = rna_count_files_.at(0);
+		rna_ps_ids << db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", rna_sample);
+	}
+
+	QStringList rna_count_files;
+	foreach (QString rna_ps_id, rna_ps_ids)
+	{
+		QString file = db.processedSamplePath(rna_ps_id, PathType::COUNTS);
+		if (QFile::exists(file)) rna_count_files << file;
+	}
+	rna_count_files.removeDuplicates();
+
+	if (rna_count_files.isEmpty())
+	{
+		QMessageBox::warning(this, title, "Error: No RNA count files of corresponding RNA samples found!");
+		return;
+	}
+
+	//select file to open
+	QString count_file;
+	if (rna_count_files.size()==1)
+	{
+		count_file = rna_count_files.at(0);
 	}
 	else
 	{
 		bool ok;
-		tsv_filename = QInputDialog::getItem(this, "Select TSV file with RNA counts", "Multiple files with RNA counts found.\nPlease select the requested TSV file:", rna_count_files_, 0, false, &ok);
-		if (!ok)
-		{
-			return;
-		}
+		count_file = QInputDialog::getItem(this, title, "Multiple RNA count files found.\nPlease select a file:", rna_count_files, 0, false, &ok);
+		if (!ok) return;
 	}
 
-	ExpressionDataWidget* widget = new ExpressionDataWidget(tsv_filename, this);
+	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data");
 	addModelessDialog(dlg, false);
 }
@@ -2569,48 +2596,6 @@ void MainWindow::loadFile(QString filename)
 
 		}
 
-	}
-
-	//get corresponding RNA sample:
-	rna_count_files_.clear();
-	if (LoginManager::active())
-	{
-		NGSD db;
-		QString sample_id = db.sampleId(filename_, false);
-		QStringList rna_ps_ids;
-		if (sample_id!="")
-		{
-			QStringList rna_samples = db.sameSamples(sample_id, "RNA");
-
-			foreach (const QString& rna_sample, rna_samples)
-			{
-				// get all processed samples of this rna sample
-				QStringList tmp = db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", rna_sample);
-				foreach(QString ps_id, tmp)
-				{
-					rna_ps_ids << ps_id;
-				}
-			}
-
-			//get count files
-			foreach (const QString& rna_ps_id, rna_ps_ids)
-			{
-				QString rna_counts_file_path = db.processedSamplePath(rna_ps_id, PathType::SAMPLE_FOLDER) + "/" + db.processedSampleName(rna_ps_id) + "_counts.tsv"; //TODO GSvarServer
-				// check if exists
-				if (QFileInfo(rna_counts_file_path).exists()) rna_count_files_ << rna_counts_file_path;
-			}
-
-			// remove duplicate files
-			rna_count_files_ = QStringList(rna_count_files_.toSet().toList());
-
-			// (de)activate expression button
-			ui_.actionExpressionData->setEnabled(rna_count_files_.size() > 0);
-		}
-	}
-	else
-	{
-		// deactivate in offline mode
-		ui_.actionExpressionData->setEnabled(false);
 	}
 }
 
@@ -5749,6 +5734,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionRunOverview->setEnabled(ngsd_user_logged_in);
 	ui_.actionConvertHgvsToGSvar->setEnabled(ngsd_user_logged_in);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
+	ui_.actionExpressionData->setEnabled(ngsd_user_logged_in);
 
 	//toolbar - NGSD search menu
 	QToolButton* ngsd_search_btn = ui_.tools->findChild<QToolButton*>("ngsd_search_btn");

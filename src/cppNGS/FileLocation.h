@@ -33,6 +33,8 @@ enum class PathType
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
 	FUSIONS, //gene fusions determined from RNA (TSV format)
+	COUNTS, //gene/transcript counts from RNA (TSV format)
+	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	OTHER // everything else
 };
 
@@ -113,6 +115,10 @@ struct FileLocation
 				return "REPEAT_EXPANSION_IMAGE";
 			case PathType::FUSIONS:
 				return "FUSIONS";
+			case PathType::COUNTS:
+				return "COUNTS";
+			case PathType::VIRAL:
+				return "VIRAL";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -140,6 +146,8 @@ struct FileLocation
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
+		if (in_upper == "COUNTS") return PathType::COUNTS;
+		if (in_upper == "VIRAL") return PathType::VIRAL;
 
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
@@ -186,6 +194,10 @@ struct FileLocation
 				return "repeat expansion visualization";
 			case PathType::FUSIONS:
 				return "gene fusions";
+			case PathType::COUNTS:
+				return "RNA counts";
+			case PathType::VIRAL:
+				return "viral DNA";
 			case PathType::OTHER:
 				return "other files";
 		}

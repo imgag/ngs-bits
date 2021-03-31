@@ -197,27 +197,27 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	}
 
 	//Load virus data (from tumor sample dir)
+	QString viral_file = db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::VIRAL);
 	try
 	{
-		QString path = db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::SAMPLE_FOLDER) + "/" + settings_.tumor_ps + "_viral.tsv"; //TODO  GSvarServer
-		TSVFileStream file(path);
+		TSVFileStream file(viral_file);
 		while(!file.atEnd())
 		{
 			QByteArrayList parts = file.readLine();
 			if(parts.isEmpty()) continue;
 
-			somaticVirus tmp;
-			tmp.chr_ = parts[0];
-			tmp.start_ = parts[1].toInt();
-			tmp.end_ = parts[2].toInt();
-			tmp.name_ = parts[file.colIndex("name",true)];
-			tmp.reads_ = parts[file.colIndex("reads",true)].toInt();
-			tmp.coverage_ = parts[file.colIndex("coverage",true)].toDouble();
-			tmp.mismatches_ = parts[file.colIndex("mismatches",true)].toInt();
-			tmp.idendity_ = parts[file.colIndex("identity\%",true)].toDouble();
+			SomaticVirusInfo tmp;
+			tmp.chr = parts[0];
+			tmp.start = parts[1].toInt();
+			tmp.end = parts[2].toInt();
+			tmp.name = parts[file.colIndex("name",true)];
+			tmp.reads = parts[file.colIndex("reads",true)].toInt();
+			tmp.coverage = parts[file.colIndex("coverage",true)].toDouble();
+			tmp.mismatches = parts[file.colIndex("mismatches",true)].toInt();
+			tmp.idendity = parts[file.colIndex("identity\%",true)].toDouble();
 
-			if(tmp.coverage_ < 100) continue;
-			if(tmp.idendity_ < 90) continue;
+			if(tmp.coverage < 100) continue;
+			if(tmp.idendity < 90) continue;
 
 			validated_viruses_ << tmp;
 		}
@@ -1419,11 +1419,11 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 			row.addCell(963,virus.virusName());
 
 			row.addCell(964,virus.virusGene());
-			row.addCell(1927,virus.chr_);
+			row.addCell(1927,virus.chr);
 
-			QByteArray region = QByteArray::number(virus.start_) + "-" + QByteArray::number(virus.end_);
+			QByteArray region = QByteArray::number(virus.start) + "-" + QByteArray::number(virus.end);
 			row.addCell(1927,region);
-			row.addCell(1927,QByteArray::number(virus.coverage_,'f',1));
+			row.addCell(1927,QByteArray::number(virus.coverage,'f',1));
 			row.addCell(1929,"nachgewiesen*");
 
 			virus_table.addRow(row);
