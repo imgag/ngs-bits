@@ -35,8 +35,8 @@ public:
 	static HttpResponse performLogout(HttpRequest request);
 
 private:
-	static bool isValidUser(QString name, QString password);
-	static QString getGSvarFile(QString sample_name, bool search_multi);
+	static bool isValidUser(QString name, QString password);	
+	static QList<QString> getAnalysisFiles(QString sample_name, bool search_multi);
 	static QString createTempUrl(QString filename);
 };
 

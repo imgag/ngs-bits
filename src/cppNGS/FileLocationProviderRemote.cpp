@@ -88,8 +88,12 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(QString type, 
 				+ "/v1/file_location?ps=" + sample_id_ + "&type=" + type
 				+ (locus.isEmpty() ? "" : "&locus=" + locus), add_headers);
 
+	qDebug() << "REPLY = " << reply;
+
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
-	QJsonObject file_object = json_doc.object();
+	QJsonArray file_list = json_doc.array();
+	QJsonObject file_object = file_list[0].toObject();
+
 
 	if (file_object.isEmpty())
 	{

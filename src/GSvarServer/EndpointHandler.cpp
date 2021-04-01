@@ -27,59 +27,37 @@ bool EndpointHandler::isValidUser(QString name, QString password)
 	return false;
 }
 
-QString EndpointHandler::getGSvarFile(QString sample_name, bool search_multi)
+QList<QString> EndpointHandler::getAnalysisFiles(QString sample_name, bool search_multi)
 {
-	QString file;
+	QList<QString> files;
 	try
 	{
 		//convert name to file
 		NGSD db;
-		QString processed_sample_id = db.processedSampleId(sample_name);		
-		file = db.processedSamplePath(processed_sample_id, PathType::GSVAR);
+		QString processed_sample_id = db.processedSampleId(sample_name);
+		QString analysis_file = db.processedSamplePath(processed_sample_id, PathType::GSVAR);
 
 		//determine all analyses of the sample
-		QStringList analyses;
-		if (QFile::exists(file)) analyses << file;
+		if (QFile::exists(analysis_file)) files << analysis_file;
 
 		//somatic tumor sample > ask user if he wants to open the tumor-normal pair
 		QString normal_sample = db.normalSample(processed_sample_id);
 		if (normal_sample!="")
 		{
-			analyses << db.secondaryAnalyses(sample_name + "-" + normal_sample, "somatic");
+			files << db.secondaryAnalyses(sample_name + "-" + normal_sample, "somatic");
 		}
 		//check for germline trio/multi analyses
 		else if (search_multi)
 		{
-			analyses << db.secondaryAnalyses(sample_name, "trio");
-			analyses << db.secondaryAnalyses(sample_name, "multi sample");
-		}
-
-		//determine analysis to load
-		if (analyses.count()==0)
-		{
-			qWarning() << "The GSvar file does not exist:" << file;
-			return "";
-		}
-		else if (analyses.count()==1)
-		{
-			file = analyses[0];
-		}
-		else
-		{
-			bool ok = false;
-			QString filename = ""; //QInputDialog::getItem(this, "Several analyses of the sample present", "select analysis:", analyses, 0, false, &ok);
-			if (!ok)
-			{
-				return "";
-			}
-			file = filename;
+			files << db.secondaryAnalyses(sample_name, "trio");
+			files << db.secondaryAnalyses(sample_name, "multi sample");
 		}
 	}
 	catch (Exception& e)
 	{
 		qWarning() << "Error opening processed sample from NGSD:" << e.message();
 	}
-	return file;
+	return files;
 }
 
 HttpResponse EndpointHandler::serveIndexPage(HttpRequest request)
@@ -111,7 +89,19 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	{
 		return HttpResponse(HttpError{StatusCode::BAD_REQUEST, request.getContentType(), "Sample id has not been provided"});
 	}
-	QString found_file = getGSvarFile(request.getUrlParams().value("ps"), false);
+	QString ps = request.getUrlParams().value("ps");
+	qDebug() << "PS" << ps;
+	QString found_file;
+	if (ps.indexOf("/")>-1){
+
+		UrlEntity url_entity = UrlManager::getURLById(ps.split("/").last().trimmed());
+		qDebug() << "FOUND PROJECT" << url_entity.filename_with_path;
+		found_file = url_entity.filename_with_path;
+	}
+//	else
+//	{
+//		found_file = getGSvarFile(request.getUrlParams().value("ps"), false);
+//	}
 
 	bool return_if_missing = true;
 	if (!request.getUrlParams().contains("return_if_missing"))
@@ -268,9 +258,25 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
 {
 	qDebug() << "Project file location";
-	QString found_file = getGSvarFile(request.getUrlParams()["ps"], false);
-	found_file = createTempUrl(found_file);
-	return HttpResponse{false, "", EndpointHelper::generateHeaders(found_file.length(), ContentType::TEXT_PLAIN), found_file.toLocal8Bit()};
+	QJsonDocument json_doc_output;
+	QJsonArray json_list_output;
+
+	bool search_multi = false;
+	if (request.getUrlParams().contains("multi"))
+	{
+		if (request.getUrlParams().value("multi") == "1")
+		{
+			search_multi = true;
+		}
+	}
+
+	QList<QString> found_files = getAnalysisFiles(request.getUrlParams().value("ps"), search_multi);
+	for (int i = 0; i < found_files.count(); i++)
+	{
+		json_list_output.append(createTempUrl(found_files[i]));
+	}
+	json_doc_output.setArray(json_list_output);
+	return HttpResponse(false, "", EndpointHelper::generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson());
 }
 
 HttpResponse EndpointHandler::performLogin(HttpRequest request)

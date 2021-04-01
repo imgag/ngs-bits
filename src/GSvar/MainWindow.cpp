@@ -2211,28 +2211,26 @@ void MainWindow::on_actionOpenByName_triggered()
 
 void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi)
 {
+	QString file;
 	try
 	{
-		//convert name to file
-		NGSD db;
-		QString processed_sample_id = db.processedSampleId(processed_sample_name);
-		QString file = db.processedSamplePath(processed_sample_id, PathType::GSVAR);
+		HttpHeaders add_headers;
+		add_headers.insert("Accept", "application/json");
+		QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
+					"https://" + Settings::string("server_host") + ":" + QString::number(Settings::integer("server_port"))
+					+ "/v1/project_file?ps=" + processed_sample_name
+					+ (!search_multi ? "" : "&multi=1")
+					, add_headers);
 
-		//determine all analyses of the sample
+		QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
+		QJsonArray json_array = json_doc.array();
 		QStringList analyses;
-		if (QFile::exists(file)) analyses << file;
-
-		//somatic tumor sample > ask user if he wants to open the tumor-normal pair
-		QString normal_sample = db.normalSample(processed_sample_id);
-		if (normal_sample!="")
+		for (int i = 0; i < json_array.count(); i++)
 		{
-			analyses << db.secondaryAnalyses(processed_sample_name + "-" + normal_sample, "somatic");
-		}
-		//check for germline trio/multi analyses
-		else if (search_multi)
-		{
-			analyses << db.secondaryAnalyses(processed_sample_name, "trio");
-			analyses << db.secondaryAnalyses(processed_sample_name, "multi sample");
+			if (!json_array.at(i).toString().isEmpty())
+			{
+				analyses << json_array.at(i).toString();
+			}
 		}
 
 		//determine analysis to load
@@ -2260,7 +2258,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 	}
 	catch (Exception& e)
 	{
-		QMessageBox::warning(this, "Error opening processed sample from NGSD", e.message());
+		QMessageBox::warning(this, "Could not reach the server:", e.message());
 	}
 }
 
@@ -2555,7 +2553,7 @@ void MainWindow::loadFile(QString filename)
 	try
 	{
 		//load variants
-		timer.restart();
+		timer.restart();		
 		variants_.load(filename);
 		Log::perf("Loading small variant list took ", timer);
 		if (filename.startsWith("http"))
