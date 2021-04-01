@@ -3,8 +3,6 @@
 #include "BusyDialog.h"
 #include <QMessageBox>
 
-//TODO: evaluation_sheet_data, study_sample, gaps > MARC
-
 ProcessedSampleDataDeletionDialog::ProcessedSampleDataDeletionDialog(QWidget* parent, QStringList ids)
 	: QDialog(parent)
 	, ui_()
@@ -121,6 +119,8 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 			{
 				db.deleteReportConfig(conf_id);
 			}
+
+			db.getQuery().exec("DELETE FROM evaluation_sheet_data WHERE processed_sample_id=" + ps_id);
 		}
 	}
 
@@ -202,6 +202,12 @@ void ProcessedSampleDataDeletionDialog::deleteData()
 	{
 		foreach(const QString& ps_id, ps_ids_)
 		{
+			//delete gap data
+			db.getQuery().exec("DELETE FROM gaps WHERE processed_sample_id=" + ps_id);
+
+			//delete study data
+			db.getQuery().exec("DELETE FROM study_sample WHERE processed_sample_id=" + ps_id);
+
 			//delete merged processed samples
 			db.getQuery().exec("DELETE FROM merged_processed_samples WHERE processed_sample_id='" + ps_id + "' OR merged_into='" + ps_id + "'");
 
