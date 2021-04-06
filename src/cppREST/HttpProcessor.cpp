@@ -63,10 +63,15 @@ ContentType HttpProcessor::getContentTypeByFilename(QString filename)
 	if ((extention == "html") || (extention == "htm")) return TEXT_HTML;
 	if (extention == "xml") return TEXT_XML;
 	if (extention == "css") return TEXT_CSS;
-	if (extention == "bam") return TEXT_PLAIN;
+	if (extention == "bam") return APPLICATION_OCTET_STREAM;
+	if (extention == "bai") return TEXT_PLAIN;
 	if (extention == "gsvar") return TEXT_PLAIN;
+	if (extention == "bed") return TEXT_PLAIN;
+	if (extention == "tsv") return TEXT_PLAIN;
 	if (extention == "seg") return TEXT_PLAIN;
 	if (extention == "igv") return TEXT_PLAIN;
+	if (extention == "gz") return APPLICATION_OCTET_STREAM;
+	if (extention == "vcf") return TEXT_PLAIN;
 
 	return APPLICATION_OCTET_STREAM;
 }

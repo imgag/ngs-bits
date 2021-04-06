@@ -20,7 +20,7 @@ public:
 	static QString addFileToCache(QString filename);
 	static HttpResponse serveStaticFile(QString filename, ByteRange byte_range, ContentType type, bool is_downloadable);
 	static HttpResponse serveStaticFileFromCache(QString id, ByteRange byte_range, ContentType type, bool is_downloadable);
-	static HttpResponse streamStaticFile(QString filename, ContentType type, bool is_downloadable);
+	static HttpResponse streamStaticFile(QString filename, bool is_downloadable);
 	static HttpResponse serveFolderContent(QString folder);
 	static QByteArray generateHeaders(QString filename, int length, ByteRange byte_range, qint64 file_size, ContentType type, bool is_downloadable);
 	static QByteArray generateHeaders(int length, ContentType type);

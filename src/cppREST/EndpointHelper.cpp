@@ -82,7 +82,7 @@ HttpResponse EndpointHelper::serveStaticFile(QString filename, ByteRange byte_ra
 		return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, e.message()});
 	}
 
-	return HttpResponse(false, "", generateHeaders(getFileNameWithExtension(filename), static_file.content.length(), byte_range, static_file.size, type, is_downloadable), static_file.content);
+	return HttpResponse(false, false, "", generateHeaders(getFileNameWithExtension(filename), static_file.content.length(), byte_range, static_file.size, type, is_downloadable), static_file.content);
 }
 
 HttpResponse EndpointHelper::serveStaticFileFromCache(QString id, ByteRange byte_range, ContentType type, bool is_downloadable)
@@ -94,20 +94,26 @@ HttpResponse EndpointHelper::serveStaticFileFromCache(QString id, ByteRange byte
 		return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Empty or corrpupted file"});
 	}
 
-	return HttpResponse(false, "", generateHeaders(getFileNameWithExtension(FileCache::getFileById(id).filename_with_path), static_file.content.length(), byte_range, static_file.size, type, is_downloadable), static_file.content);
+	return HttpResponse(false, false, "", generateHeaders(getFileNameWithExtension(FileCache::getFileById(id).filename_with_path), static_file.content.length(), byte_range, static_file.size, type, is_downloadable), static_file.content);
 }
 
-HttpResponse EndpointHelper::streamStaticFile(QString filename, ContentType type, bool is_downloadable)
+HttpResponse EndpointHelper::streamStaticFile(QString filename, bool is_downloadable)
 {
+	ContentType content_type = HttpProcessor::getContentTypeByFilename(filename);
 	HttpResponse response;
-	response.setIsStream(true);
+	response.setIsBinary(false);
+	if ((content_type == APPLICATION_OCTET_STREAM) || (content_type == IMAGE_PNG) || (content_type == IMAGE_JPEG))
+	{
+		response.setIsBinary(true);
+	}
+	response.setIsStream(true);	
 	response.setFilename(filename);
 	response.addHeader("HTTP/1.1 200 OK\r\n");
 	response.addHeader("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
 	response.addHeader("Server: " + ServerHelper::getAppName() + "\r\n");
 	response.addHeader("Transfer-Encoding: chunked\r\n");
 	response.addHeader("Connection: Keep-Alive\r\n");
-	response.addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(type) + "\r\n");
+	response.addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(content_type) + "\r\n");
 	if (is_downloadable)
 	{
 		response.addHeader("Content-Disposition: attachment; filename="+getFileNameWithExtension(filename)+"\r\n");
@@ -198,7 +204,7 @@ HttpResponse EndpointHelper::serveEndpointHelp(HttpRequest request)
 	{
 		body = EndpointManager::generateEntityHelp(request.getPathParams()[0], request.getMethod()).toLocal8Bit();
 	}
-	return HttpResponse{false, "", generateHeaders(body.length(), ContentType::TEXT_HTML), body};
+	return HttpResponse{false, false, "", generateHeaders(body.length(), ContentType::TEXT_HTML), body};
 }
 
 HttpResponse EndpointHelper::serveStaticFile(HttpRequest request)
@@ -238,7 +244,7 @@ HttpResponse EndpointHelper::streamStaticFile(HttpRequest request)
 	path = ServerHelper::getUrlWithoutParams(path.trimmed() + request.getPathParams()[0]);
 	bool downloadable = false;
 	if (request.getUrlParams().size() > 0) downloadable = true;
-	return streamStaticFile(path, request.getContentType(), downloadable);
+	return streamStaticFile(path, downloadable);
 }
 
 HttpResponse EndpointHelper::serveProtectedStaticFile(HttpRequest request)
@@ -273,7 +279,7 @@ HttpResponse EndpointHelper::getFileInfo(HttpRequest request)
 	json_object.insert("exists", QFileInfo(filename).exists());
 
 	json_doc_output.setObject(json_object);
-	return HttpResponse{false, "", generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson()};
+	return HttpResponse{false, false, "", generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson()};
 }
 
 HttpResponse EndpointHelper::serveFolderListing(QList<FolderItem> items)

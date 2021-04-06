@@ -41,17 +41,37 @@ void WorkerThread::run()
 			THROW(FileAccessException, "Could not open file for reading");
 		}
 
-		QTextStream stream(&streamed_file);
-		while(!stream.atEnd())
+		if (response.isBinary())
 		{
-			QString line = stream.readLine().append("\n");
-			emit dataChunkReady(intToHex(line.size()).toLocal8Bit()+"\r\n");
-			emit dataChunkReady(line.toLocal8Bit()+"\r\n");
+			qDebug() << "Binary stream thread";
+			qint64 chunk_size = 1024;
+			qint64 pos = 0;
+
+			while(!streamed_file.atEnd())
+			{
+				streamed_file.seek(pos);
+				QByteArray data = streamed_file.read(chunk_size);
+				pos = pos + chunk_size;
+				emit dataChunkReady(intToHex(data.size()).toLocal8Bit()+"\r\n");
+				emit dataChunkReady(data+"\r\n");
+			}
+		}
+		else
+		{
+			qDebug() << "Text stream thread";
+			QTextStream stream(&streamed_file);
+			while(!stream.atEnd())
+			{
+				QString line = stream.readLine().append("\n");
+				emit dataChunkReady(intToHex(line.size()).toLocal8Bit()+"\r\n");
+				emit dataChunkReady(line.toLocal8Bit()+"\r\n");
+			}
 		}
 		streamed_file.close();
 
 		emit dataChunkReady("0\r\n");
 		emit dataChunkReady("\r\n");
+		emit dataChunkReady("%end%\r\n");
 		return;
 	}
 	else if (!response.getPayload().isNull())

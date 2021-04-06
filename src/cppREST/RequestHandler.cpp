@@ -229,19 +229,21 @@ void RequestHandler::handleResults(const HttpResponse &response)
 
 void RequestHandler::handleDataChunk(const QByteArray& data)
 {
-	socket_->write(data);
 	QString string_data = QString(data).trimmed();
+	if (string_data != "%end%") socket_->write(data);
 
-	if ((string_data.isEmpty()) && (end_of_content_found_))
+	if (string_data == "%end%")
 	{
-		qDebug() << "Closing the socket";
-		socket_->close();
-		socket_->deleteLater();
-	}
 
-	if (string_data == "0")
-	{
-		end_of_content_found_ = true;
+		if (!socket_->bytesToWrite())
+		{
+			qDebug() << "Closing the socket";
+			socket_->close();
+			socket_->deleteLater();
+		}
+		else {
+			qDebug() << "Cannot close the socket, the server is still sending the data";
+		}
 	}
 }
 

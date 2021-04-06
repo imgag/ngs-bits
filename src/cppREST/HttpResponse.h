@@ -15,11 +15,14 @@ class CPPRESTSHARED_EXPORT HttpResponse : public QByteArray
 public:
 	HttpResponse();
 	HttpResponse(QByteArray response_data);
-	HttpResponse(bool is_stream, QString filename, QByteArray headers, QByteArray payload);
+	HttpResponse(bool is_stream, bool is_binary, QString filename, QByteArray headers, QByteArray payload);
 	HttpResponse(HttpError error);
 
 	void setIsStream(bool is_stream);
 	bool isStream();
+
+	void setIsBinary(bool is_binary);
+	bool isBinary();
 
 	void setFilename(QString filename);
 	QString getFilename();
@@ -33,6 +36,7 @@ public:
 
 protected:
 	bool is_stream_;
+	bool is_binary_;
 	QString filename_;
 	QByteArray headers_;
 	QByteArray payload_;

@@ -79,7 +79,8 @@ HttpResponse EndpointHandler::serveTempUrl(HttpRequest request)
 	}
 
 	qDebug() << "Serving file: " << url_entity.filename_with_path;
-	return EndpointHelper::serveStaticFile(url_entity.filename_with_path, ByteRange{}, HttpProcessor::getContentTypeByFilename(url_entity.filename_with_path), false);
+//	return EndpointHelper::serveStaticFile(url_entity.filename_with_path, ByteRange{}, HttpProcessor::getContentTypeByFilename(url_entity.filename_with_path), false);
+	return EndpointHelper::streamStaticFile(url_entity.filename_with_path, false);
 }
 
 HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
@@ -252,7 +253,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	}
 
 	json_doc_output.setArray(json_list_output);
-	return HttpResponse(false, "", EndpointHelper::generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson());
+	return HttpResponse(false, false, "", EndpointHelper::generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson());
 }
 
 HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
@@ -276,7 +277,7 @@ HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
 		json_list_output.append(createTempUrl(found_files[i]));
 	}
 	json_doc_output.setArray(json_list_output);
-	return HttpResponse(false, "", EndpointHelper::generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson());
+	return HttpResponse(false, false, "", EndpointHelper::generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson());
 }
 
 HttpResponse EndpointHandler::performLogin(HttpRequest request)
@@ -294,7 +295,7 @@ HttpResponse EndpointHandler::performLogin(HttpRequest request)
 
 		SessionManager::addNewSession(secure_token, cur_session);
 		body = secure_token.toLocal8Bit();
-		return HttpResponse{false, "", EndpointHelper::generateHeaders(body.length(), ContentType::TEXT_PLAIN), body};
+		return HttpResponse{false, false, "", EndpointHelper::generateHeaders(body.length(), ContentType::TEXT_PLAIN), body};
 	}
 
 	return HttpResponse(HttpError{StatusCode::UNAUTHORIZED, request.getContentType(), "Invalid username or password"});
@@ -317,7 +318,7 @@ HttpResponse EndpointHandler::performLogout(HttpRequest request)
 			return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, request.getContentType(), e.message()});
 		}
 		body = request.getFormUrlEncoded()["token"].toLocal8Bit();
-		return HttpResponse{false, "", EndpointHelper::generateHeaders(body.length(), ContentType::TEXT_PLAIN), body};
+		return HttpResponse{false, false, "", EndpointHelper::generateHeaders(body.length(), ContentType::TEXT_PLAIN), body};
 	}
 	return HttpResponse(HttpError{StatusCode::FORBIDDEN, request.getContentType(), "You have provided an invalid token"});
 }

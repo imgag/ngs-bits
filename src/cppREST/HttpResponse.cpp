@@ -11,8 +11,9 @@ HttpResponse::HttpResponse(QByteArray response_data)
 	this->append(response_data);
 }
 
-HttpResponse::HttpResponse(bool is_stream, QString filename, QByteArray headers, QByteArray payload)
+HttpResponse::HttpResponse(bool is_stream, bool is_binary, QString filename, QByteArray headers, QByteArray payload)
 	: is_stream_(is_stream)
+	, is_binary_(is_binary)
 	, filename_(filename)
 	, headers_(headers)
 	, payload_(payload)
@@ -71,6 +72,16 @@ void HttpResponse::setIsStream(bool is_stream)
 bool HttpResponse::isStream()
 {
 	return is_stream_;
+}
+
+void HttpResponse::setIsBinary(bool is_binary)
+{
+	is_binary_ = is_binary;
+}
+
+bool HttpResponse::isBinary()
+{
+	return is_binary_;
 }
 
 void HttpResponse::setFilename(QString filename)
