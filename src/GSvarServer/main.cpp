@@ -14,7 +14,7 @@ QFile gsvar_server_log_file("gsvar-server-log.txt");
 void interceptLogMessage(QtMsgType type, const QMessageLogContext &, const QString &msg)
 {
 	QString time_stamp = QDate::currentDate().toString("dd/MM/yyyy") + " " + QTime::currentTime().toString("hh:mm:ss:zzz");
-	QString log_statement;
+	QString log_statement = "";
 	int msg_level = 0;
 	switch (type) {
 		case QtCriticalMsg:
@@ -33,11 +33,10 @@ void interceptLogMessage(QtMsgType type, const QMessageLogContext &, const QStri
 			msg_level = 2;
 			log_statement = QString("%1 - [Warning] %2").arg(time_stamp, msg);
 			break;
-		case QtDebugMsg:
+		case QtDebugMsg:			
+		default:
 			msg_level = 3;
 			log_statement = QString("%1 - [Debug] %2").arg(time_stamp, msg);
-			break;
-		default:
 			return;
 	}
 
