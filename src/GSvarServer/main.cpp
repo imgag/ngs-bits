@@ -37,7 +37,6 @@ void interceptLogMessage(QtMsgType type, const QMessageLogContext &, const QStri
 		default:
 			msg_level = 3;
 			log_statement = QString("%1 - [Debug] %2").arg(time_stamp, msg);
-			return;
 	}
 
 	// Log levels:
@@ -91,7 +90,7 @@ int main(int argc, char **argv)
 		log_level = log_level_option.toInt();
 	}
 	else {
-		qInfo() << "Using log level from the application settings";
+		qInfo() << "Using log level from the application settings:" << ServerHelper::getNumSettingsValue("log_level");
 		log_level = ServerHelper::getNumSettingsValue("log_level");
 	}
 	qInstallMessageHandler(interceptLogMessage);
