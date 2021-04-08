@@ -1996,8 +1996,8 @@ void MainWindow::showCnHistogram()
 
 		//determine CN values
 		QVector<double> cn_values;
-		QSharedPointer<QFile> file = Helper::openFileForReading(seg_files[0]);
-		QTextStream stream(file.data());
+		QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(seg_files[0]);
+		QTextStream stream(file.data()->IODevice());
 		while (!stream.atEnd())
 		{
 			QString line = stream.readLine();
