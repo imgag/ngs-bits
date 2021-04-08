@@ -13,7 +13,7 @@ QFile gsvar_server_log_file("gsvar-server-log.txt");
 
 void interceptLogMessage(QtMsgType type, const QMessageLogContext &, const QString &msg)
 {
-	QString time_stamp = QTime::currentTime().toString("hh:mm:ss:zzz");
+	QString time_stamp = QDate::currentDate().toString("dd/MM/yyyy") + " " + QTime::currentTime().toString("hh:mm:ss:zzz");
 	QString log_statement;
 	int msg_level = 0;
 	switch (type) {
@@ -66,7 +66,7 @@ void interceptLogMessage(QtMsgType type, const QMessageLogContext &, const QStri
 int main(int argc, char **argv)
 {
 	gsvar_server_log_file.open(QIODevice::WriteOnly | QIODevice::Append);
-	qInstallMessageHandler(interceptLogMessage);
+
 
 	QCoreApplication app(argc, argv);
 
@@ -95,6 +95,7 @@ int main(int argc, char **argv)
 		qInfo() << "Using log level from the application settings";
 		log_level = ServerHelper::getNumSettingsValue("log_level");
 	}
+	qInstallMessageHandler(interceptLogMessage);
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"",
