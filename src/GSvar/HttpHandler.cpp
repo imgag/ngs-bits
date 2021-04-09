@@ -2,6 +2,7 @@
 #include "Exceptions.h"
 #include "Settings.h"
 #include "Helper.h"
+#include "GSvarHelper.h"
 
 #include <QNetworkRequest>
 #include <QNetworkReply>
@@ -59,11 +60,15 @@ QString HttpHandler::post(QString url, QHttpMultiPart* parts, const HttpHeaders&
 
 void HttpHandler::handleProxyAuthentification(const QNetworkProxy& proxy, QAuthenticator* auth)
 {
-	QString proxy_user = QInputDialog::getText(QApplication::activeWindow(), "Proxy user required", "Proxy user for " + proxy.hostName());
-	auth->setUser(proxy_user);
-	QString proxy_pass = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password for " + proxy.hostName(), QLineEdit::Password);
-	auth->setPassword(proxy_pass);
+	if (GSvarHelper::proxyUser().isEmpty() && GSvarHelper::proxyPassword().isEmpty())
+	{
+		QString proxy_user = QInputDialog::getText(QApplication::activeWindow(), "Proxy user required", "Proxy user for " + proxy.hostName());
+		QString proxy_pass = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password for " + proxy.hostName(), QLineEdit::Password);
 
+		GSvarHelper::setProxyCredentials(proxy_user, proxy_pass);
+	}
+	auth->setUser(GSvarHelper::proxyUser());
+	auth->setPassword(GSvarHelper::proxyPassword());
 	nmgr_.setProxy(proxy);
 }
 

@@ -3,6 +3,7 @@
 RefGenDownloadDialog::RefGenDownloadDialog(QWidget* parent)
 	: QDialog(parent)
 	, ui_()
+	, proxy_type_(HttpRequestHandler::ProxyType::NONE)
 {
 	ui_.setupUi(this);
 	connect(ui_.start_btn, SIGNAL(clicked(bool)), this, SLOT(startDownload()));
@@ -24,7 +25,10 @@ RefGenDownloadDialog::RefGenDownloadDialog(QWidget* parent)
 	}
 
 	is_interrupted_ = false;
-	qDebug() << Settings::string("reference_genome");
+	if ((!Settings::string("proxy_host").isEmpty()) && (!Settings::string("proxy_port").isEmpty()))
+	{
+		proxy_type_ = HttpRequestHandler::ProxyType::INI;
+	}
 }
 
 void RefGenDownloadDialog::startDownload()
@@ -36,7 +40,8 @@ void RefGenDownloadDialog::startDownload()
 	{
 		ui_.message->setText("The reference genome is being downloaded");
 		ui_.start_btn->setEnabled(false);
-		QString index_file_content = HttpHandler(HttpRequestHandler::NONE).get(Settings::string("remote_reference_genome") + ".fai");
+		HttpHandler* handler = new HttpHandler(proxy_type_);
+		QString index_file_content = handler->get(Settings::string("remote_reference_genome") + ".fai");
 		QFile index_file(Settings::string("reference_genome") + ".fai");
 		if (!index_file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
 		{
@@ -46,7 +51,7 @@ void RefGenDownloadDialog::startDownload()
 		index_out << index_file_content;
 		index_file.close();
 
-		qint64 reply = HttpHandler(HttpRequestHandler::NONE).getFileSize(Settings::string("remote_reference_genome"));
+		qint64 reply = handler->getFileSize(Settings::string("remote_reference_genome"));
 		QFile file(Settings::string("reference_genome"));
 		if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
 		{
@@ -74,7 +79,7 @@ void RefGenDownloadDialog::startDownload()
 				range = "bytes=" + QString::number(chunk_count*chunk_size) + "-" + QString::number((chunk_count*chunk_size) + remainder);
 			}
 			headers.insert("Range", range.toLocal8Bit());
-			QString chunk = HttpHandler(HttpRequestHandler::NONE).get(Settings::string("remote_reference_genome"), headers);
+			QString chunk = handler->get(Settings::string("remote_reference_genome"), headers);
 			out << chunk;
 		}
 		file.close();

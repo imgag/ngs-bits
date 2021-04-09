@@ -248,6 +248,12 @@ QString GSvarHelper::localRoiFolder()
 	
 bool GSvarHelper::isGenomeFound()
 {
+	HttpRequestHandler::ProxyType proxy_type = HttpRequestHandler::ProxyType::NONE;
+	if ((!Settings::string("proxy_host").isEmpty()) && (!Settings::string("proxy_port").isEmpty()))
+	{
+		proxy_type = HttpRequestHandler::ProxyType::INI;
+	}
+
 	bool found = false;
 	QFile genome_file(Settings::string("reference_genome"));
 	QFile genome_index_file(Settings::string("reference_genome") + ".fai");
@@ -255,8 +261,8 @@ bool GSvarHelper::isGenomeFound()
 	{
 		qint64 local_file_size = genome_file.size();
 		qint64 local_index_file_size = genome_index_file.size();
-		qint64 remote_file_size = HttpHandler(HttpRequestHandler::NONE).getFileSize(Settings::string("remote_reference_genome"));
-		qint64 remote_index_file_size = HttpHandler(HttpRequestHandler::NONE).getFileSize(Settings::string("remote_reference_genome") + ".fai");
+		qint64 remote_file_size = HttpHandler(proxy_type).getFileSize(Settings::string("remote_reference_genome"));
+		qint64 remote_index_file_size = HttpHandler(proxy_type).getFileSize(Settings::string("remote_reference_genome") + ".fai");
 		if ((local_file_size != 0) && (remote_file_size != 0) && (local_file_size == remote_file_size)
 			&& (local_index_file_size != 0) && (remote_index_file_size != 0)
 			&& (local_index_file_size == remote_index_file_size))
@@ -265,4 +271,20 @@ bool GSvarHelper::isGenomeFound()
 		}
 	}
 	return found;
+}
+
+void GSvarHelper::setProxyCredentials(const QString user, const QString password)
+{
+	proxy_user_ = user;
+	proxy_password_ = password;
+}
+
+const QString& GSvarHelper::proxyUser()
+{
+	return proxy_user_;
+}
+
+const QString& GSvarHelper::proxyPassword()
+{
+	return proxy_password_;
 }

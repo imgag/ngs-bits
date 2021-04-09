@@ -26,6 +26,7 @@ public slots:
 private:
         Ui::RefGenDownloadDialog ui_;
         bool is_interrupted_;
+		HttpRequestHandler::ProxyType proxy_type_;
         void closeEvent(QCloseEvent *bar);
         void keyPressEvent(QKeyEvent *e);
 };
