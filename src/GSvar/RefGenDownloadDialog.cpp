@@ -40,8 +40,8 @@ void RefGenDownloadDialog::startDownload()
 	{
 		ui_.message->setText("The reference genome is being downloaded");
 		ui_.start_btn->setEnabled(false);
-		HttpHandler* handler = new HttpHandler(proxy_type_);
-		QString index_file_content = handler->get(Settings::string("remote_reference_genome") + ".fai");
+		static HttpHandler http_handler(proxy_type_);
+		QString index_file_content = http_handler.get(Settings::string("remote_reference_genome") + ".fai");
 		QFile index_file(Settings::string("reference_genome") + ".fai");
 		if (!index_file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
 		{
@@ -51,7 +51,7 @@ void RefGenDownloadDialog::startDownload()
 		index_out << index_file_content;
 		index_file.close();
 
-		qint64 reply = handler->getFileSize(Settings::string("remote_reference_genome"));
+		qint64 reply = http_handler.getFileSize(Settings::string("remote_reference_genome"));
 		QFile file(Settings::string("reference_genome"));
 		if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
 		{
@@ -79,7 +79,7 @@ void RefGenDownloadDialog::startDownload()
 				range = "bytes=" + QString::number(chunk_count*chunk_size) + "-" + QString::number((chunk_count*chunk_size) + remainder);
 			}
 			headers.insert("Range", range.toLocal8Bit());
-			QString chunk = handler->get(Settings::string("remote_reference_genome"), headers);
+			QString chunk = http_handler.get(Settings::string("remote_reference_genome"), headers);
 			out << chunk;
 		}
 		file.close();
