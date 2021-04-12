@@ -8,6 +8,8 @@
 #include <QSqlRecord>
 #include <QDir>
 
+//TODO: Add infos: imprinting, pseudogenes, OMIM
+
 class ConcreteTool
 		: public ToolBase
 {
