@@ -7,7 +7,7 @@ RefGenDownloadDialog::RefGenDownloadDialog(QWidget* parent)
 {
 	ui_.setupUi(this);
 	connect(ui_.start_btn, SIGNAL(clicked(bool)), this, SLOT(startDownload()));
-	connect(ui_.cancel_btn, SIGNAL(clicked(bool)), this, SLOT(cancelDownload()));
+	connect(ui_.cancel_btn, SIGNAL(clicked(bool)), this, SLOT(cancelDownload()));	
 
 	ui_.message->setText("The reference genome is required to use the entire set of features");
 	bool genome_found = GSvarHelper::isGenomeFound();
@@ -41,17 +41,42 @@ void RefGenDownloadDialog::startDownload()
 		ui_.message->setText("The reference genome is being downloaded");
 		ui_.start_btn->setEnabled(false);
 		static HttpHandler http_handler(proxy_type_);
-		QString index_file_content = http_handler.get(Settings::string("remote_reference_genome") + ".fai");
-		QFile index_file(Settings::string("reference_genome") + ".fai");
-		if (!index_file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
-		{
-			ui_.message->setText("Cannot save the reference genome index locally");
-		}
-		QTextStream index_out(&index_file);
-		index_out << index_file_content;
-		index_file.close();
 
-		qint64 reply = http_handler.getFileSize(Settings::string("remote_reference_genome"));
+		try
+		{
+			QString index_file_content = http_handler.get(Settings::string("remote_reference_genome") + ".fai");
+			QFile index_file(Settings::string("reference_genome") + ".fai");
+			if (!index_file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
+			{
+				ui_.message->setText("Cannot save the reference genome index locally");
+			}
+			QTextStream index_out(&index_file);
+			index_out << index_file_content;
+			index_file.close();
+		}
+		catch(Exception& e)
+		{
+			QMessageBox::warning(QApplication::activeWindow(), "Could not retrieve the index of the reference genome", e.message());
+			return;
+		}
+
+		qint64 genome_size = 0;
+		try
+		{
+			genome_size = http_handler.getFileSize(Settings::string("remote_reference_genome"));
+		}
+		catch(Exception& e)
+		{
+			QMessageBox::warning(QApplication::activeWindow(), "Could not determine the reference genome file size", e.message());
+			return;
+		}
+
+		if (genome_size == 0)
+		{
+			QMessageBox::warning(QApplication::activeWindow(), "Reference genome file size is zero", "The file may be empty or corrupted");
+			return;
+		}
+
 		QFile file(Settings::string("reference_genome"));
 		if (!file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
 		{
@@ -61,8 +86,8 @@ void RefGenDownloadDialog::startDownload()
 
 		int chunk_count = 100;
 		int chunks_completed = -1;
-		qint64 chunk_size = reply / chunk_count;
-		int remainder = reply % chunk_count;
+		qint64 chunk_size = genome_size / chunk_count;
+		int remainder = genome_size % chunk_count;
 
 		for (int i = 0; i < (chunk_count+1); i++)
 		{
@@ -72,15 +97,24 @@ void RefGenDownloadDialog::startDownload()
 				break;
 			}
 			ui_.progressBar->setValue(i);
-			HttpHeaders headers {};
-			QString range = "bytes=" + QString::number(i*chunk_size) + "-" + QString::number(((i+1)*chunk_size)-1);
-			if (i == (chunk_count))
+
+			try
 			{
-				range = "bytes=" + QString::number(chunk_count*chunk_size) + "-" + QString::number((chunk_count*chunk_size) + remainder);
+				HttpHeaders headers {};
+				QString range = "bytes=" + QString::number(i*chunk_size) + "-" + QString::number(((i+1)*chunk_size)-1);
+				if (i == (chunk_count))
+				{
+					range = "bytes=" + QString::number(chunk_count*chunk_size) + "-" + QString::number((chunk_count*chunk_size) + remainder);
+				}
+				headers.insert("Range", range.toLocal8Bit());
+				QString chunk = http_handler.get(Settings::string("remote_reference_genome"), headers);
+				out << chunk;
 			}
-			headers.insert("Range", range.toLocal8Bit());
-			QString chunk = http_handler.get(Settings::string("remote_reference_genome"), headers);
-			out << chunk;
+			catch(Exception& e)
+			{
+				QMessageBox::warning(QApplication::activeWindow(), "Download problem", e.message());
+				return;
+			}
 		}
 		file.close();
 		qDebug() << "chunk_count = " << chunk_count << ", chunks_completed = " << chunks_completed;
@@ -89,6 +123,8 @@ void RefGenDownloadDialog::startDownload()
 			ui_.message->setText("Reference genome has been downloaded");
 			ui_.start_btn->setEnabled(false);
 			ui_.cancel_btn->setEnabled(false);
+
+			QTimer::singleShot(500, this, &RefGenDownloadDialog::closeWindow);
 		}
 		else
 		{
@@ -117,4 +153,9 @@ void RefGenDownloadDialog::keyPressEvent(QKeyEvent *e)
 	qDebug() << "Hit Esc";
 	if (e->key() == Qt::Key_Escape) return;
 	QDialog::keyPressEvent(e);
+}
+
+void RefGenDownloadDialog::closeWindow()
+{
+	close();
 }

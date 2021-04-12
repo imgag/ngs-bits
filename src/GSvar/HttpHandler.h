@@ -41,9 +41,11 @@ public slots:
 private:
 	QNetworkAccessManager nmgr_;
 	HttpRequestHandler::ProxyType proxy_type_;
+	QString proxy_user_;
+	QString proxy_password_;
 	HttpHeaders headers_;
 	//declared away
-	HttpHandler() = delete;
+	HttpHandler() = delete;	
 };
 
 #endif // HTTPHANDLER_H

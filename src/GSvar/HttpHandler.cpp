@@ -60,15 +60,21 @@ QString HttpHandler::post(QString url, QHttpMultiPart* parts, const HttpHeaders&
 
 void HttpHandler::handleProxyAuthentification(const QNetworkProxy& proxy, QAuthenticator* auth)
 {
-	if (GSvarHelper::proxyUser().isEmpty() && GSvarHelper::proxyPassword().isEmpty())
+	if (proxy_user_.isEmpty() && proxy_password_.isEmpty())
 	{
-		QString proxy_user = QInputDialog::getText(QApplication::activeWindow(), "Proxy user required", "Proxy user for " + proxy.hostName());
-		QString proxy_pass = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password for " + proxy.hostName(), QLineEdit::Password);
-
-		GSvarHelper::setProxyCredentials(proxy_user, proxy_pass);
+		try
+		{
+			proxy_user_ = Settings::string("proxy_user");
+			proxy_password_ = Settings::string("proxy_password");
+		}
+		catch(Exception& e)
+		{
+			proxy_user_ = QInputDialog::getText(QApplication::activeWindow(), "Proxy user required", "Proxy user for " + proxy.hostName());
+			proxy_password_ = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password for " + proxy.hostName(), QLineEdit::Password);
+		}
 	}
-	auth->setUser(GSvarHelper::proxyUser());
-	auth->setPassword(GSvarHelper::proxyPassword());
+	auth->setUser(proxy_user_);
+	auth->setPassword(proxy_password_);
 	nmgr_.setProxy(proxy);
 }
 

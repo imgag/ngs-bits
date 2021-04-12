@@ -5,8 +5,11 @@
 #include <QProgressBar>
 #include <QDebug>
 #include <QKeyEvent>
+#include <QMessageBox>
+#include <QTimer>
 #include "ui_RefGenDownloadDialog.h"
 #include "Settings.h"
+#include "Exceptions.h"
 #include "HttpHandler.h"
 #include "HttpRequestHandler.h"
 #include "GSvarHelper.h"
@@ -21,7 +24,7 @@ public:
 
 public slots:
         void startDownload();
-        void cancelDownload();
+        void cancelDownload();	
 
 private:
         Ui::RefGenDownloadDialog ui_;
@@ -29,6 +32,7 @@ private:
 		HttpRequestHandler::ProxyType proxy_type_;
         void closeEvent(QCloseEvent *bar);
         void keyPressEvent(QKeyEvent *e);
+		void closeWindow();
 };
 
 #endif // REFGENDOWNLOADDIALOG_H
