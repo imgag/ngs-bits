@@ -102,17 +102,10 @@ void GeneWidget::updateGUI()
     }
 
 	//add imprinting infos
-	if (NGSHelper::imprintingGenes().contains(symbol_))
+	const QMap<QByteArray, ImprintingInfo>& imprinting_genes = NGSHelper::imprintingGenes();
+	if (imprinting_genes.contains(symbol_))
 	{
-		QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
-		foreach(const QString& line, lines)
-		{
-			QStringList parts = line.split("\t");
-			if (parts.count()==3 && parts[0]==symbol_)
-			{
-				ui_.imprinting->setText(parts[1] + " (" + parts[2] + ")");
-			}
-		}
+		ui_.imprinting->setText(imprinting_genes[symbol_].source_allele + " (" + imprinting_genes[symbol_].status + ")");
 	}
 	else
 	{

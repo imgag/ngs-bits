@@ -7,21 +7,24 @@
 #include <QDir>
 #include <QFileInfo>
 
-GeneSet GSvarHelper::imprinting_genes_ = GeneSet();
-GeneSet GSvarHelper::hi0_genes_ = GeneSet();
-GeneSet GSvarHelper::pseudogene_genes_ = GeneSet();
-QMap<QByteArray, QByteArrayList> GSvarHelper::preferred_transcripts_ = QMap<QByteArray, QByteArrayList>();
-QMap<QByteArray, QList<BedLine>> GSvarHelper::special_regions_ = QMap<QByteArray, QList<BedLine>>();
-QMap<QByteArray, QByteArrayList> GSvarHelper::transcript_matches_ = QMap<QByteArray, QByteArrayList>();
-
 const GeneSet& GSvarHelper::impritingGenes()
 {
+	static GeneSet imprinting_genes_;
 	static bool initialized = false;
 
 	if (!initialized)
 	{
-		imprinting_genes_.clear();
-		imprinting_genes_ << NGSHelper::imprintingGenes().keys();
+		const QMap<QByteArray, ImprintingInfo>& imprinting_genes = NGSHelper::imprintingGenes();
+		auto it = imprinting_genes.begin();
+		while(it!=imprinting_genes.end())
+		{
+			if (it.value().status=="imprinted")
+			{
+				imprinting_genes_ << it.key();
+			}
+
+			++it;
+		}
 
 		initialized = true;
 	}
@@ -31,13 +34,11 @@ const GeneSet& GSvarHelper::impritingGenes()
 
 const GeneSet& GSvarHelper::hi0Genes()
 {
+	static GeneSet hi0_genes_;
 	static bool initialized = false;
 
 	if (!initialized)
 	{
-		hi0_genes_.clear();
-
-		//load imprinting gene list
 		QStringList lines = Helper::loadTextFile(":/Resources/genes_actionable_hi0.tsv", true, '#', true);
 		foreach(const QString& line, lines)
 		{
@@ -52,6 +53,7 @@ const GeneSet& GSvarHelper::hi0Genes()
 
 const GeneSet& GSvarHelper::genesWithPseudogene()
 {
+	static GeneSet pseudogene_genes_;
 	static bool initialized = false;
 
 	if (!initialized)
@@ -75,6 +77,7 @@ const GeneSet& GSvarHelper::genesWithPseudogene()
 
 const QMap<QByteArray, QByteArrayList>& GSvarHelper::preferredTranscripts(bool reload)
 {
+	static QMap<QByteArray, QByteArrayList> preferred_transcripts_;
     static bool initialized = false;
 
     if (!initialized || reload)
@@ -86,7 +89,6 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::preferredTranscripts(bool r
 
 			initialized = true;
 		}
-
     }
 
     return preferred_transcripts_;
@@ -94,12 +96,11 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::preferredTranscripts(bool r
 
 const QMap<QByteArray, QList<BedLine>> & GSvarHelper::specialRegions()
 {
+	static QMap<QByteArray, QList<BedLine>> special_regions_;
     static bool initialized = false;
 
     if (!initialized)
-    {
-        special_regions_.clear();
-
+	{
         QString filename = GSvarHelper::applicationBaseName() + "_special_regions.tsv";
         QStringList lines = Helper::loadTextFile(filename, true, '#', true);
         foreach(const QString& line, lines)
@@ -123,6 +124,7 @@ const QMap<QByteArray, QList<BedLine>> & GSvarHelper::specialRegions()
 
 const QMap<QByteArray, QByteArrayList>& GSvarHelper::transcriptMatches()
 {
+	static QMap<QByteArray, QByteArrayList> transcript_matches_;
 	static bool initialized = false;
 
 	if (!initialized)

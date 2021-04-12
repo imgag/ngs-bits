@@ -436,9 +436,9 @@ BedLine NGSHelper::cytoBandToRange(QByteArray cytoband)
 	}
 }
 
-const QMap<QByteArray, QByteArray>& NGSHelper::imprintingGenes()
+const QMap<QByteArray, ImprintingInfo>& NGSHelper::imprintingGenes()
 {
-	static QMap<QByteArray, QByteArray> output;
+	static QMap<QByteArray, ImprintingInfo> output;
 
 	//init
 	if (output.isEmpty())
@@ -449,7 +449,10 @@ const QMap<QByteArray, QByteArray>& NGSHelper::imprintingGenes()
 			QStringList parts = line.split("\t");
 			if (parts.count()==3)
 			{
-				output[parts[0].toLatin1()] = parts[1].toLatin1();
+				QByteArray gene = parts[0].toLatin1().trimmed();
+				QByteArray source_allele = parts[1].toLatin1().trimmed();
+				QByteArray status = parts[2].toLatin1().trimmed();
+				output[gene] = ImprintingInfo{source_allele, status};
 			}
 		}
 	}

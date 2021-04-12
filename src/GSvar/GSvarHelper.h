@@ -37,13 +37,6 @@ public:
 
 protected:
 	GSvarHelper() = delete;
-
-	static GeneSet imprinting_genes_;
-	static GeneSet hi0_genes_;
-	static GeneSet pseudogene_genes_;
-    static QMap<QByteArray, QByteArrayList> preferred_transcripts_;
-    static QMap<QByteArray, QList<BedLine>> special_regions_;
-	static QMap<QByteArray, QByteArrayList> transcript_matches_;
 };
 
 #endif // GSVARHELPER_H
