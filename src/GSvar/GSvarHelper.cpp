@@ -9,7 +9,7 @@
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
-	static GeneSet imprinting_genes_;
+	static GeneSet output;
 	static bool initialized = false;
 
 	if (!initialized)
@@ -20,7 +20,7 @@ const GeneSet& GSvarHelper::impritingGenes()
 		{
 			if (it.value().status=="imprinted")
 			{
-				imprinting_genes_ << it.key();
+				output << it.key();
 			}
 
 			++it;
@@ -29,12 +29,12 @@ const GeneSet& GSvarHelper::impritingGenes()
 		initialized = true;
 	}
 
-	return imprinting_genes_;
+	return output;
 }
 
 const GeneSet& GSvarHelper::hi0Genes()
 {
-	static GeneSet hi0_genes_;
+	static GeneSet output;
 	static bool initialized = false;
 
 	if (!initialized)
@@ -42,18 +42,18 @@ const GeneSet& GSvarHelper::hi0Genes()
 		QStringList lines = Helper::loadTextFile(":/Resources/genes_actionable_hi0.tsv", true, '#', true);
 		foreach(const QString& line, lines)
 		{
-			hi0_genes_ << line.toLatin1();
+			output << line.toLatin1();
 		}
 
 		initialized = true;
 	}
 
-	return hi0_genes_;
+	return output;
 }
 
 const GeneSet& GSvarHelper::genesWithPseudogene()
 {
-	static GeneSet pseudogene_genes_;
+	static GeneSet output;
 	static bool initialized = false;
 
 	if (!initialized)
@@ -64,7 +64,7 @@ const GeneSet& GSvarHelper::genesWithPseudogene()
 			QStringList genes = db.getValues("SELECT DISTINCT(g.symbol) FROM gene g, gene_pseudogene_relation gpr WHERE g.id=gpr.parent_gene_id");
 			foreach(QString gene, genes)
 			{
-				pseudogene_genes_ << gene.toLatin1();
+				output << gene.toLatin1();
 			}
 
 			initialized = true;
@@ -72,12 +72,12 @@ const GeneSet& GSvarHelper::genesWithPseudogene()
 
 	}
 
-	return pseudogene_genes_;
+	return output;
 }
 
 const QMap<QByteArray, QByteArrayList>& GSvarHelper::preferredTranscripts(bool reload)
 {
-	static QMap<QByteArray, QByteArrayList> preferred_transcripts_;
+	static QMap<QByteArray, QByteArrayList> output;
     static bool initialized = false;
 
     if (!initialized || reload)
@@ -85,18 +85,18 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::preferredTranscripts(bool r
 		if (LoginManager::active())
 		{
 			NGSD db;
-			preferred_transcripts_ = db.getPreferredTranscripts();
+			output = db.getPreferredTranscripts();
 
 			initialized = true;
 		}
     }
 
-    return preferred_transcripts_;
+	return output;
 }
 
 const QMap<QByteArray, QList<BedLine>> & GSvarHelper::specialRegions()
 {
-	static QMap<QByteArray, QList<BedLine>> special_regions_;
+	static QMap<QByteArray, QList<BedLine>> output;
     static bool initialized = false;
 
     if (!initialized)
@@ -111,7 +111,7 @@ const QMap<QByteArray, QList<BedLine>> & GSvarHelper::specialRegions()
                 QByteArray gene = parts[0].trimmed();
                 for (int i=1; i<parts.count(); ++i)
                 {
-                    special_regions_[gene] << BedLine::fromString(parts[i]);
+					output[gene] << BedLine::fromString(parts[i]);
                 }
             }
         }
@@ -119,12 +119,12 @@ const QMap<QByteArray, QList<BedLine>> & GSvarHelper::specialRegions()
         initialized = true;
     }
 
-	return special_regions_;
+	return output;
 }
 
 const QMap<QByteArray, QByteArrayList>& GSvarHelper::transcriptMatches()
 {
-	static QMap<QByteArray, QByteArrayList> transcript_matches_;
+	static QMap<QByteArray, QByteArrayList> output;
 	static bool initialized = false;
 
 	if (!initialized)
@@ -137,14 +137,14 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::transcriptMatches()
 			{
 				QByteArray enst = parts[0];
 				QByteArray match = parts[1];
-				transcript_matches_[enst] << match;
+				output[enst] << match;
 			}
 		}
 
 		initialized = true;
 	}
 
-	return transcript_matches_;
+	return output;
 }
 
 QString GSvarHelper::applicationBaseName()

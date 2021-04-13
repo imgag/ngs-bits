@@ -1,14 +1,6 @@
-#include "Exceptions.h"
 #include "ToolBase.h"
 #include "NGSD.h"
 #include "Helper.h"
-#include "Exceptions.h"
-#include "Settings.h"
-#include <QSqlQuery>
-#include <QSqlRecord>
-#include <QDir>
-
-//TODO: Add infos: imprinting, pseudogenes, OMIM
 
 class ConcreteTool
 		: public ToolBase
@@ -26,18 +18,19 @@ public:
 		setDescription("Lists genes from NGSD.");
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		//optional
-		addFlag("hpo", "Annotate with HPO terms (slow).");
+		addFlag("add_disease_info", "Annotate with disease information from HPO, OrphaNet and OMIM (slow).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
-		changeLog(2018,  5,  3, "First version");
+		changeLog(2021,  4,  13, "Added more information (imprinting, pseudogenes, OrphaNet, OMIM).");
 		changeLog(2019,  9,  20, "Added several columns with gene details.");
+		changeLog(2018,  5,  3 , "First version");
 	}
 
 	virtual void main()
 	{
 		//init
 		NGSD db(getFlag("test"));
-		bool hpo = getFlag("hpo");
+		bool add_disease_info = getFlag("add_disease_info");
 		
 		//write header
 		QSharedPointer<QFile> output = Helper::openFileForWriting(getOutfile("out"), true);
@@ -51,7 +44,14 @@ public:
 		output->write("\tgenomAD oe (mis)");
 		output->write("\tgenomAD oe (lof)");
 		output->write("\tinheritance");
-		if (hpo) output->write("\tHPO terms");
+		output->write("\timprinting");
+		output->write("\tpseudogenes");
+		if (add_disease_info)
+		{
+			output->write("\tHPO terms");
+			output->write("\tOMIM phenotypes");
+			output->write("\tOrphaNet diseases");
+		}
 		output->write("\n");
 
 		//write content
@@ -73,12 +73,20 @@ public:
 			output->write(gene_info.oe_syn.replace("n/a", "").toLatin1() + "\t");
 			output->write(gene_info.oe_mis.replace("n/a", "").toLatin1() + "\t");
 			output->write(gene_info.oe_lof.replace("n/a", "").toLatin1() + "\t");
-			output->write(gene_info.inheritance.replace("n/a", "").toLatin1());
-			
-			if (hpo)
+			output->write(gene_info.inheritance.replace("n/a", "").toLatin1() + "\t");
+			QString inprinting_info = "";
+			if(!gene_info.imprinting_source_allele.isEmpty() || !gene_info.imprinting_status.isEmpty())
+			{
+				inprinting_info = gene_info.imprinting_source_allele + " (" + gene_info.imprinting_status + ")";
+			}
+			output->write(inprinting_info.toLatin1() + "\t");
+			output->write(gene_info.pseudogenes.join(", ").toLatin1());
+
+			//disease info
+			if (add_disease_info)
 			{
 				output->write("\t");
-				
+
 				//HPO terms
 				QByteArrayList hpos;
 				QList<Phenotype> phenos = db.phenotypes(gene_symbol);
@@ -86,7 +94,30 @@ public:
 				{
 					hpos << pheno.toString();
 				}
-				output->write(hpos.join(","));
+				output->write(hpos.join("; ") + "\t");
+
+				//OMIM
+				QByteArrayList omim_phenos;
+				foreach(const OmimInfo& omim, db.omimInfo(gene_symbol))
+				{
+					foreach(const Phenotype& p, omim.phenotypes)
+					{
+						omim_phenos << p.name();
+					}
+				}
+				output->write(omim_phenos.join("; ") + "\t");
+
+				//Orphanet
+				QByteArrayList orpha_diseases;
+				SqlQuery query2 = db.getQuery();
+				query2.exec("SELECT dt.identifier, dt.name FROM disease_term dt, disease_gene dg WHERE dg.disease_term_id=dt.id AND dt.source='OrphaNet' AND dg.gene='" + gene_symbol + "'");
+				while (query2.next())
+				{
+					QByteArray identifier = query2.value("identifier").toByteArray();
+					QByteArray name = query2.value("name").toByteArray();
+					orpha_diseases << identifier + " - " + name;
+				}
+				output->write(orpha_diseases.join("; "));
 			}
 			
 			output->write("\n");

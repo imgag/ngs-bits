@@ -1,6 +1,5 @@
-#symbol	HGNC id	type	name	transcripts coding (ensembl)	transcripts non-coding (ensembl)	genomAD oe (syn)	genomAD oe (mis)	genomAD oe (lof)	inheritance	HPO terms
-A1BG-AS1	HGNC:37133	non-coding RNA	A1BG antisense RNA 1	0	0					
-A2MP1	HGNC:8	pseudogene	alpha-2-macroglobulin pseudogene 1	0	0					
-AAVS1	HGNC:1101	other	adeno-associated virus integration site 1	0	0					
-BRCA1	HGNC:1100	protein-coding gene	Breast cancer associated gene 1	12	2	0.22	0.11	0.33	AD	HP:0002862 - Bladder carcinoma,HP:0000003 - Multicystic kidney dysplasia
-BRCA2	HGNC:1002	protein-coding gene	Breast cancer associated gene 2	0	0					
+#symbol	HGNC id	type	name	transcripts coding (ensembl)	transcripts non-coding (ensembl)	genomAD oe (syn)	genomAD oe (mis)	genomAD oe (lof)	inheritance	imprinting	pseudogenes
+AACS	HGNC:21298	protein-coding gene	acetoacetyl-CoA synthetase	5	0	0.97	0.94	0.80	AR		AACSP1
+AACSP1	HGNC:18226	pseudogene	acetoacetyl-CoA synthetase pseudogene 1	0	1						
+BRCA1	HGNC:1100	protein-coding gene	Breast cancer associated gene 1	12	2	0.22	0.11	0.33	AD		
+ZNF597	HGNC:26573	protein-coding gene	zinc finger protein 597	1	0	1.10	1.10	0.38		maternal (imprinted)	

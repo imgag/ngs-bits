@@ -8,7 +8,6 @@
 enum class PathType
 {
 	//folders
-	PROJECT_FOLDER, // project folder (normally the parent folder of analysis folder)
 	SAMPLE_FOLDER, // folder of a single sample
 
 	//mapping data
@@ -76,8 +75,6 @@ struct FileLocation
 	{
 		switch(pathtype)
 		{
-			case PathType::PROJECT_FOLDER:
-				return "PROJECT_FOLDER";
 			case PathType::SAMPLE_FOLDER:
 				return "SAMPLE_FOLDER";
 			case PathType::BAM:
@@ -131,7 +128,6 @@ struct FileLocation
 	{
 		QString in_upper = in.toUpper().trimmed();
 
-		if (in_upper == "PROJECT_FOLDER") return PathType::PROJECT_FOLDER;
 		if (in_upper == "SAMPLE_FOLDER") return PathType::SAMPLE_FOLDER;
 		if (in_upper == "BAM") return PathType::BAM;
 		if (in_upper == "GSVAR") return PathType::GSVAR;
@@ -161,8 +157,6 @@ struct FileLocation
 	{
 		switch(pathtype)
 		{
-			case PathType::PROJECT_FOLDER:
-				return "project folder";
 			case PathType::SAMPLE_FOLDER:
 				return "sample/analysis folder";
 			case PathType::BAM:
