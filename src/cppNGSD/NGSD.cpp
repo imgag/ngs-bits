@@ -1872,6 +1872,7 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 				type = type.replace(" unsigned", "");
 			}
 			if(type=="text") info.type = TableFieldInfo::TEXT;
+			else if(type=="mediumtext") info.type = TableFieldInfo::TEXT;
 			else if(type=="float") info.type = TableFieldInfo::FLOAT;
 			else if(type=="date") info.type = TableFieldInfo::DATE;
 			else if(type=="datetime") info.type = TableFieldInfo::DATETIME;
