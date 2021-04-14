@@ -67,7 +67,6 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(QString type
 		THROW(Exception, "Could not find file info: " + type);
 	}
 
-	qDebug() << "Requested files:" << file_list;
 	output = mapJsonArrayToFileLocationList(file_list, return_if_missing);
 	return output;
 }
@@ -88,8 +87,6 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(QString type, 
 				+ "/v1/file_location?ps=" + sample_id_ + "&type=" + type
 				+ (locus.isEmpty() ? "" : "&locus=" + locus), add_headers);
 
-	qDebug() << "REPLY = " << reply;
-
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
 	QJsonArray file_list = json_doc.array();
 	QJsonObject file_object = file_list[0].toObject();
@@ -100,7 +97,6 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(QString type, 
 		THROW(Exception, "Could not find file info: " + type);
 	}
 
-	qDebug() << "Requested files:" << file_object;
 	output = mapJsonObjectToFileLocation(file_object);
 	return output;
 }

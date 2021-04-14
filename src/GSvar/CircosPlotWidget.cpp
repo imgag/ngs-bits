@@ -1,9 +1,9 @@
 #include "CircosPlotWidget.h"
 #include "ui_CircosPlotWidget.h"
-#include <QFileInfo>
 #include "Helper.h"
 #include "GlobalServiceProvider.h"
-
+#include "HttpRequestHandler.h"
+#include <QMessageBox>
 
 CircosPlotWidget::CircosPlotWidget(QString filename, QWidget *parent)
 	: QWidget(parent)
@@ -28,7 +28,13 @@ void CircosPlotWidget::resizeEvent(QResizeEvent*)
 void CircosPlotWidget::loadCircosPlot(QString filename)
 {
 	// load plot file
-	image_= QPixmap(filename);
+	VersatileFile file(filename);
+	if (!file.open(QIODevice::ReadOnly))
+	{
+		QMessageBox::warning(this, "Read error", "Could not open a circos plot image file: '" + filename);
+		return;
+	}
+	image_.loadFromData(file.readAll());
 
 	// display plot
 	ui_->imageLabel->setPixmap(image_);

@@ -98,7 +98,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
 		add_headers.insert("Range", byte_range.toLocal8Bit());
-		output = HttpRequestHandler(HttpRequestHandler::NONE).get(fasta_name_, add_headers).toLocal8Bit().replace("\n", 1, "", 0);
+		output = HttpRequestHandler(HttpRequestHandler::NONE).get(fasta_name_, add_headers).replace("\n", 1, "", 0);
 	}
 
 	//output
@@ -154,7 +154,7 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
 		add_headers.insert("Range", byte_range.toLocal8Bit());
-		output = HttpRequestHandler(HttpRequestHandler::NONE).get(fasta_name_, add_headers).toLocal8Bit().replace("\n", 1, "", 0);
+		output = HttpRequestHandler(HttpRequestHandler::NONE).get(fasta_name_, add_headers).replace("\n", 1, "", 0);
 	}
 
 	//output
