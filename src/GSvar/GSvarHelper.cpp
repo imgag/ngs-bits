@@ -6,6 +6,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
+#include <QStandardPaths>
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -184,7 +185,7 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	{
 		messages.sort();
 		item->setBackgroundColor(Qt::yellow);
-		item->setToolTip(messages.join("\n"));
+		item->setToolTip(messages.join('\n'));
 	}
 }
 
@@ -229,4 +230,37 @@ QString GSvarHelper::gnomaADLink(const Variant& v)
 	}
 
 	return url;
+}
+
+QString GSvarHelper::subpanelRegions(QString name)
+{
+	QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
+	if(default_paths.isEmpty())
+	{
+		THROW(Exception, "No local application data path was found!");
+	}
+	QString subpanel_folder = default_paths[0] + QDir::separator() + "subpanels" + QDir::separator();
+	if(!QFile::exists(subpanel_folder) && !QDir().mkpath(subpanel_folder))
+	{
+		THROW(ProgrammingException, "Could not create application subpanel path '" + subpanel_folder + "'!");
+	}
+
+	//store ROI
+	NGSD db;
+	QStringList roi = db.getValue("SELECT roi FROM subpanels WHERE name=:0", false, name).toString().split('\n');
+	QString file = subpanel_folder + name + ".bed";
+	Helper::storeTextFile(file, roi);
+
+	//store gene list
+	GeneSet genes = subpanelGenes(name);
+	genes.store(subpanel_folder + name + "_genes.txt");
+
+	return file;
+}
+
+GeneSet GSvarHelper::subpanelGenes(QString name)
+{
+	QByteArray genes = NGSD().getValue("SELECT genes FROM subpanels WHERE name=:0", false, name).toByteArray();
+
+	return GeneSet::createFromText(genes);
 }

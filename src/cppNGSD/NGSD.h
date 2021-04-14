@@ -673,6 +673,9 @@ public:
 	///Returns all processing systems (long name) and the corresponding target regions.
 	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi);
 
+	///Retuns the list of sub-panel names.
+	QStringList subPanelList(bool archived);
+
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)
@@ -791,8 +794,8 @@ public:
 	///Returns quality metric values for a given metric for all samples of a given processing system
 	QVector<double> cnvCallsetMetrics(QString processing_system_id, QString metric_name);
 
-	///Returns the target file path (or sub-panel folder)
-	static QString getTargetFilePath(bool subpanels = false);
+	///Returns the target region folder.
+	static QString getTargetFilePath();
 
 	///Parses OBO file and updates QC term data
 	void updateQC(QString obo_file, bool debug=false);

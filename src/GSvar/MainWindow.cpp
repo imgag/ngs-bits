@@ -1119,7 +1119,7 @@ void MainWindow::openVariantListFolder()
 
 	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
 	{
-		QMessageBox::information(this, "Open analysis folder", "Cannot open analysis folder in non-local mode!");
+		QMessageBox::information(this, "Open analysis folder", "Cannot open analysis folder in client-server mode!");
 		return;
 	}
 
@@ -2676,8 +2676,7 @@ void MainWindow::loadSomaticReportConfig()
 	//Preselect target region bed file in NGSD
 	if(somatic_report_settings_.report_config.targetFile() != "")
 	{
-		QString full_path = db.getTargetFilePath(true) + "/" + somatic_report_settings_.report_config.targetFile();
-		if(QFileInfo(full_path).exists()) ui_.filters->setTargetRegion(full_path);
+		ui_.filters->setTargetRegionName(somatic_report_settings_.report_config.targetFile());
 	}
 
 	//Preselect filter from NGSD som. rep. conf.
@@ -4276,16 +4275,14 @@ void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)
 	if (dlg.lastCreatedSubPanel()!="")
 	{
 		//update target region list
-		ui_.filters->reloadSubpanelList();
 		ui_.filters->loadTargetRegions();
 
 		//optinally use sub-panel as target regions
 		if (QMessageBox::question(this, "Use sub-panel?", "Do you want to set the sub-panel as target region?")==QMessageBox::Yes)
 		{
-			ui_.filters->setTargetRegion(dlg.lastCreatedSubPanel());
+			ui_.filters->setTargetRegionName(dlg.lastCreatedSubPanel());
 		}
 	}
-
 }
 
 void MainWindow::on_actionArchiveSubpanel_triggered()
@@ -4294,7 +4291,6 @@ void MainWindow::on_actionArchiveSubpanel_triggered()
 	dlg.exec();
 	if (dlg.changedSubpanels())
 	{
-		ui_.filters->reloadSubpanelList();
 		ui_.filters->loadTargetRegions();
 	}
 }
@@ -5712,16 +5708,6 @@ void MainWindow::updateIGVMenu()
 void MainWindow::updateNGSDSupport()
 {
 	//init
-	bool target_file_folder_set = true;
-	try
-	{
-		NGSD db;
-		db.getTargetFilePath(false);
-	}
-	catch (Exception& /*e*/)
-	{
-		target_file_folder_set = false;
-	}
 	bool ngsd_user_logged_in = LoginManager::active();
 
 	//toolbar
@@ -5746,7 +5732,7 @@ void MainWindow::updateNGSDSupport()
 
 	//NGSD menu
 	ui_.menuNGSD->setEnabled(ngsd_user_logged_in);
-	ui_.actionDesignSubpanel->setEnabled(ngsd_user_logged_in && target_file_folder_set);
+	ui_.actionDesignSubpanel->setEnabled(ngsd_user_logged_in);
 
 	//other actions
 	ui_.actionOpenByName->setEnabled(ngsd_user_logged_in);

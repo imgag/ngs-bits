@@ -40,7 +40,7 @@ GermlineReportGenerator::GermlineReportGenerator(const GermlineReportGeneratorDa
 	sys_roi_file_ = db_.getProcessingSystemData(system_id).target_file;
 	if(test_mode) //in test mode the path is relative > remove target region prefix
 	{
-		sys_roi_file_.remove(db_.getTargetFilePath(false));
+		sys_roi_file_.remove(db_.getTargetFilePath());
 	}
 	sys_roi_.load(sys_roi_file_);
 }

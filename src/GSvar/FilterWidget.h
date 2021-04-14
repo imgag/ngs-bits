@@ -38,8 +38,6 @@ public:
 
 	///Returns the target region BED file or an empty string if unset.
 	QString targetRegion() const;
-	///Sets the target region BED file.
-	void setTargetRegion(QString roi_file);
 	///Returns the target region display name or an empty string if unset.
 	QString targetRegionName() const;
 	///Sets the target region by name file. Returns if the target region name was found and set.
@@ -67,10 +65,6 @@ public:
 	void loadTargetRegions();
 	/// Helper for loading target regions (also in CNV/SV widget)
 	static void loadTargetRegions(QComboBox* box);
-	/// Returns the sub-panel list (name and filename).
-	static const QList<KeyValuePair>& subPanels();
-	/// Reloads the sub-panel list from the file system.
-	static void reloadSubpanelList();
 
 	///Returns the filter INI file name
 	static QString filterFileName();
@@ -124,7 +118,6 @@ private:
 	Ui::FilterWidget ui_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
-	static QList<KeyValuePair> subpanels_;
 };
 
 #endif // FILTERWIDGET_H

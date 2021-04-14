@@ -2006,3 +2006,31 @@ CONSTRAINT `fk_processed_sample_ancestry_has_processed_sample`
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `subpanels`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `subpanels`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) NOT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `created_date` DATE NOT NULL,
+  `mode` ENUM('exon', 'gene') NOT NULL,
+  `extend` INT(11) NOT NULL,
+  `genes` MEDIUMTEXT NOT NULL,
+  `roi` MEDIUMTEXT NOT NULL,
+  `archived` TINYINT(1) NOT NULL,
+PRIMARY KEY (`id`),
+UNIQUE KEY `name` (`name`),
+INDEX(`created_by`),
+INDEX(`created_date`),
+INDEX(`archived`),
+CONSTRAINT `subpanels_created_by_user`
+  FOREIGN KEY (`created_by`)
+  REFERENCES `user` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;

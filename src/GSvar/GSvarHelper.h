@@ -35,6 +35,11 @@ public:
 	//Returns gnomAD link for a variant
 	static QString gnomaADLink(const Variant& v);
 
+	//Returns the subpanel target region file
+	static QString subpanelRegions(QString name);
+	//Returns the subpanel genes
+	static GeneSet subpanelGenes(QString name);
+
 protected:
 	GSvarHelper() = delete;
 };

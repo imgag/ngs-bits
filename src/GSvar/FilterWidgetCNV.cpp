@@ -199,8 +199,18 @@ void FilterWidgetCNV::roiSelectionChanged(int index)
 		ui_.roi->setEditable(false);
 	}
 
-
-	ui_.roi->setToolTip(ui_.roi->itemData(index).toString());
+	//set target file as tooltip
+	QString data = ui_.roi->itemData(index).toString().trimmed();
+	if (data.startsWith("Sub-panel: "))
+	{
+		QString name = data.split(":")[1].trimmed();
+		QString roi = GSvarHelper::subpanelRegions(name);
+		ui_.roi->setToolTip(roi);
+	}
+	else
+	{
+		ui_.roi->setToolTip(data);
+	}
 
 	if(index!=0)
 	{

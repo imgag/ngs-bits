@@ -15,9 +15,6 @@
 #include <QMessageBox>
 #include "LoginManager.h"
 
-
-QList<KeyValuePair> FilterWidget::subpanels_ = QList<KeyValuePair>();
-
 FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)
 	, ui_()
@@ -88,10 +85,12 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 	box->addItem("none", "");
 	box->insertSeparator(box->count());
 
-	//load ROIs of NGSD processing systems
 	try
 	{
-		QMap<QString, QString> systems = NGSD().getProcessingSystems(true);
+		NGSD db;
+
+		//load ROIs of NGSD processing systems
+		QMap<QString, QString> systems = db.getProcessingSystems(true);
 		auto it = systems.constBegin();
 		while (it != systems.constEnd())
 		{
@@ -99,17 +98,18 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 			++it;
 		}
 		box->insertSeparator(box->count());
+
+		//load ROIs of NGSD sub-panels
+		foreach(const QString& subpanel, db.subPanelList(false))
+		{
+			box->addItem("Sub-panel: " + subpanel, "Sub-panel: " + subpanel);
+		}
+		box->insertSeparator(box->count());
 	}
 	catch (Exception& e)
 	{
-		Log::warn("Could not load NGSD processing system target regions: " + e.message());
+		Log::warn("Could not load NGSD target regions: " + e.message());
 	}
-
-	foreach(const KeyValuePair& subpanel, subPanels())
-	{
-		box->addItem("Sub-panel: " + subpanel.key, subpanel.value);
-	}
-	box->insertSeparator(box->count());
 
 	//load additional ROIs from settings
 	QStringList rois = Settings::stringList("target_regions", true);
@@ -126,36 +126,6 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 	box->setCurrentIndex(current_index);
 
 	box->blockSignals(false);
-}
-
-const QList<KeyValuePair>& FilterWidget::subPanels()
-{
-	if (subpanels_.isEmpty())
-	{
-		reloadSubpanelList();
-	}
-
-	return subpanels_;
-}
-
-void FilterWidget::reloadSubpanelList()
-{
-	try
-	{
-		QStringList files = Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", false);
-		files.sort(Qt::CaseInsensitive);
-		foreach(const QString& file, files)
-		{
-			if (file.endsWith("_amplicons.bed")) continue;
-
-			QString name = QFileInfo(file).fileName().replace(".bed", "");
-			subpanels_ << KeyValuePair(name, Helper::canonicalPath(file));
-		}
-	}
-	catch (Exception& e)
-	{
-		Log::warn("Could not load sub-panels target regions: " + e.message());
-	}
 }
 
 void FilterWidget::resetSignalsUnblocked(bool clear_roi)
@@ -248,21 +218,6 @@ bool FilterWidget::setTargetRegionName(QString name)
 	}
 
 	return false;
-}
-
-void FilterWidget::setTargetRegion(QString roi_file)
-{
-	roi_file = Helper::canonicalPath(roi_file);
-	for (int i=0; i<ui_.roi->count(); ++i)
-	{
-		if (ui_.roi->itemData(i).toString()==roi_file)
-		{
-			ui_.roi->setCurrentIndex(i);
-			break;
-		}
-	}
-
-	emit targetRegionChanged();
 }
 
 GeneSet FilterWidget::genes() const
@@ -395,8 +350,19 @@ void FilterWidget::roiSelectionChanged(int index)
 		ui_.roi->setEditable(false);
 	}
 
+	//set target file as tooltip
+	QString data = ui_.roi->itemData(index).toString().trimmed();
+	if (data.startsWith("Sub-panel: "))
+	{
 
-	ui_.roi->setToolTip(ui_.roi->itemData(index).toString());
+		QString name = data.split(":")[1].trimmed();
+		QString roi = GSvarHelper::subpanelRegions(name);
+		ui_.roi->setToolTip(roi);
+	}
+	else
+	{
+		ui_.roi->setToolTip(data);
+	}
 
 	if(index!=0)
 	{
@@ -477,7 +443,7 @@ void FilterWidget::showTargetRegionDetails()
 	QString roi = targetRegion();
 	if (roi=="") return;
 
-	//create text
+	//ROI statistics
 	QStringList text;
 	text << "Target region: " + QFileInfo(roi).baseName();
 	BedFile file;
@@ -485,10 +451,25 @@ void FilterWidget::showTargetRegionDetails()
 	text << "Regions: " + QString::number(file.count());
 	text << "Bases: " + QString::number(file.baseCount());
 	text << "";
-	QString genes_file = roi.left(roi.size()-4) + "_genes.txt";
-	if (QFile::exists(genes_file))
+
+	//genes
+	GeneSet genes;
+	if (targetRegionName().startsWith("Sub-panel: "))
 	{
-		GeneSet genes = GeneSet::createFromFile(genes_file);
+		QString name = targetRegionName().split(":")[1].trimmed();
+		genes = GSvarHelper::subpanelGenes(name);
+	}
+	else
+	{
+		QString genes_file = roi.left(roi.size()-4) + "_genes.txt";
+		if (QFile::exists(genes_file))
+		{
+			genes = GeneSet::createFromFile(genes_file);
+		}
+	}
+
+	if (genes.count()!=0)
+	{
 		text << "Genes: " + QString::number(genes.count());
 		text << genes.join(", ");
 	}
