@@ -36,9 +36,19 @@ void WorkerThread::run()
 	{
 		emit dataChunkReady(response.getHeaders());
 		QFile streamed_file(response.getFilename());
-		if (!streamed_file.open(QFile::ReadOnly | QIODevice::Text))
+		if (response.isBinary())
 		{
-			THROW(FileAccessException, "Could not open file for reading");
+			streamed_file.open(QFile::ReadOnly);
+		}
+		else
+		{
+			streamed_file.open(QFile::ReadOnly | QFile::Text);
+		}
+
+		if (!streamed_file.isOpen())
+		{			
+			emit resultReady(HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, request_.getContentType(), "Could not open file for reading"}));
+			return;
 		}
 
 		if (response.isBinary())
@@ -52,20 +62,20 @@ void WorkerThread::run()
 				streamed_file.seek(pos);
 				QByteArray data = streamed_file.read(chunk_size);
 				pos = pos + chunk_size;
-				emit dataChunkReady(intToHex(data.size()).toLocal8Bit()+"\r\n");
-				emit dataChunkReady(data+"\r\n");
+				emit dataChunkReady(intToHex(data.length()).toLocal8Bit()+"\r\n");
+				emit dataChunkReady(data.append("\r\n"));
 			}
 		}
 		else
-		{
+		{			
 			qDebug() << "Text stream thread";
 			QTextStream stream(&streamed_file);
 			while(!stream.atEnd())
 			{
-				QString line = stream.readLine().append("\n");
+				QByteArray line = stream.readLine().append("\n").toLocal8Bit();
 				emit dataChunkReady(intToHex(line.size()).toLocal8Bit()+"\r\n");
-				emit dataChunkReady(line.toLocal8Bit()+"\r\n");
-			}
+				emit dataChunkReady(line+"\r\n");
+			}		
 		}
 		streamed_file.close();
 

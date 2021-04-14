@@ -229,12 +229,16 @@ void RequestHandler::handleResults(const HttpResponse &response)
 
 void RequestHandler::handleDataChunk(const QByteArray& data)
 {
+	if (socket_->bytesToWrite())
+	{
+		socket_->waitForBytesWritten();
+	}
+
 	QString string_data = QString(data).trimmed();
 	if (string_data != "%end%") socket_->write(data);
 
 	if (string_data == "%end%")
 	{
-
 		if (!socket_->bytesToWrite())
 		{
 			qDebug() << "Closing the socket";
@@ -243,6 +247,10 @@ void RequestHandler::handleDataChunk(const QByteArray& data)
 		}
 		else {
 			qDebug() << "Cannot close the socket, the server is still sending the data";
+			socket_->waitForBytesWritten();
+			qDebug() << "Closing the socket forcefully";
+			socket_->close();
+			socket_->deleteLater();
 		}
 	}
 }

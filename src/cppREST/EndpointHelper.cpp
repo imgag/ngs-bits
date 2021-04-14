@@ -104,9 +104,10 @@ HttpResponse EndpointHelper::streamStaticFile(QString filename, bool is_download
 	response.setIsBinary(false);
 	if ((content_type == APPLICATION_OCTET_STREAM) || (content_type == IMAGE_PNG) || (content_type == IMAGE_JPEG))
 	{
-		response.setIsBinary(true);
+		response.setIsBinary(true);		
 	}
-	response.setIsStream(true);	
+
+	response.setIsStream(true);
 	response.setFilename(filename);
 	response.addHeader("HTTP/1.1 200 OK\r\n");
 	response.addHeader("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
@@ -114,6 +115,7 @@ HttpResponse EndpointHelper::streamStaticFile(QString filename, bool is_download
 	response.addHeader("Transfer-Encoding: chunked\r\n");
 	response.addHeader("Connection: Keep-Alive\r\n");
 	response.addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(content_type) + "\r\n");
+
 	if (is_downloadable)
 	{
 		response.addHeader("Content-Disposition: attachment; filename="+getFileNameWithExtension(filename)+"\r\n");

@@ -80,7 +80,11 @@ HttpResponse EndpointHandler::serveTempUrl(HttpRequest request)
 
 	qDebug() << "Serving file: " << url_entity.filename_with_path;
 //	return EndpointHelper::serveStaticFile(url_entity.filename_with_path, ByteRange{}, HttpProcessor::getContentTypeByFilename(url_entity.filename_with_path), false);
-	return EndpointHelper::streamStaticFile(url_entity.filename_with_path, false);
+	try {
+		return EndpointHelper::streamStaticFile(url_entity.filename_with_path, false);
+	} catch (Exception& e) {
+		return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, request.getContentType(), "File streaming has failed"});
+	}
 }
 
 HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
