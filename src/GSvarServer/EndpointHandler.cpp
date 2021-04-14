@@ -95,18 +95,10 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 		return HttpResponse(HttpError{StatusCode::BAD_REQUEST, request.getContentType(), "Sample id has not been provided"});
 	}
 	QString ps = request.getUrlParams().value("ps");
-	qDebug() << "PS" << ps;
-	QString found_file;
-	if (ps.indexOf("/")>-1){
 
-		UrlEntity url_entity = UrlManager::getURLById(ps.split("/").last().trimmed());
-		qDebug() << "FOUND PROJECT" << url_entity.filename_with_path;
-		found_file = url_entity.filename_with_path;
-	}
-//	else
-//	{
-//		found_file = getGSvarFile(request.getUrlParams().value("ps"), false);
-//	}
+	UrlEntity url_entity = UrlManager::getURLById(ps.trimmed());
+	qDebug() << "GSvar file: " << url_entity.filename_with_path;
+	QString found_file = url_entity.filename_with_path;
 
 	bool return_if_missing = true;
 	if (!request.getUrlParams().contains("return_if_missing"))
@@ -127,7 +119,6 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 
 	FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type());
 
-	qDebug() << "found_file " << found_file;
 	QList<FileLocation> file_list {};
 	QJsonDocument json_doc_output {};
 	QJsonArray json_list_output {};
@@ -223,7 +214,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	else
 	{
 		FileLocation gsvar_file(
-			request.getUrlParams()["ps"],
+			url_entity.file_id,
 			PathType::GSVAR,
 			found_file,
 			true

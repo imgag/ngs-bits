@@ -56,7 +56,7 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(QString type
 	add_headers.insert("Accept", "application/json");
 	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
 				"https://" + server_host_ + ":" + QString::number(server_port_)
-				+ "/v1/file_location?ps=" + sample_id_ + "&type=" + type
+				+ "/v1/file_location?ps=" + sample_id_.split("/").last().trimmed() + "&type=" + type
 				+ "&return_if_missing=" +(return_if_missing ? "1" : "0"), add_headers);
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
@@ -84,7 +84,7 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(QString type, 
 	add_headers.insert("Accept", "application/json");
 	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
 				"https://" + server_host_ + ":" + QString::number(server_port_)
-				+ "/v1/file_location?ps=" + sample_id_ + "&type=" + type
+				+ "/v1/file_location?ps=" + sample_id_.split("/").last().trimmed() + "&type=" + type
 				+ (locus.isEmpty() ? "" : "&locus=" + locus), add_headers);
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
