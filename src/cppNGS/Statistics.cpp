@@ -1766,6 +1766,7 @@ void addEndPositionAndSortQueue(QVector<int>& end_queue, int end_pos)
 	}
 }
 
+/*REMOVE ME
 BedFile Statistics::highCoverageScanLine(const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file)
 {
 	BedFile output;
@@ -2126,12 +2127,10 @@ BedFile Statistics::lowCoverageScanLine(const BedFile& bed_file, const QString& 
 	output.merge(true, true, true);
 	return output;
 }
+*/
 
 BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
-	//if basequality is not required, run scan line approach
-	if(min_baseq == 0) return lowCoverageScanLine(bed_file, bam_file, cutoff, min_mapq, ref_file);
-
 	BedFile output;
 
 	//open BAM file
@@ -2195,9 +2194,6 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 
 BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
-	//if basequality is not required, run scan line approach
-	if(min_baseq == 0) return lowCoverageScanLine(bam_file, cutoff, min_mapq, ref_file);
-
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 	BedFile output;
 
@@ -2333,9 +2329,6 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 
 BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
-	//if basequality is not required, run scan line approach
-	if(min_baseq == 0) return highCoverageScanLine(bed_file, bam_file, cutoff, min_mapq, ref_file);
-
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
 	BedFile output;
@@ -2402,9 +2395,6 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 
 BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
-	//if basequality is not required, run scan line approach
-	if(min_baseq == 0) return highCoverageScanLine(bam_file, cutoff, min_mapq, ref_file);
-
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
 	BedFile output;
