@@ -2,13 +2,15 @@
 #define TUMORONLYREPORTWORKER_H
 
 #include <QObject>
+#include "cppNGSD_global.h"
 #include "VariantList.h"
 #include "RtfDocument.h"
 #include "FilterCascade.h"
 #include "NGSHelper.h"
+#include "RtfDocument.h"
 
 ///Input configuration for TumorOnlyReportWorker
-struct TumorOnlyReportWorkerConfig
+struct CPPNGSDSHARED_EXPORT TumorOnlyReportWorkerConfig
 {
 	QString ps; //Tumor processed sample name
 
@@ -25,7 +27,7 @@ struct TumorOnlyReportWorkerConfig
 };
 
 ///Helper class for tumor-only report generation
-class TumorOnlyReportWorker //TODO move to cppNGSD and add test > AXEL
+class CPPNGSDSHARED_EXPORT TumorOnlyReportWorker //TODO add test > AXEL
 {
 
 public:

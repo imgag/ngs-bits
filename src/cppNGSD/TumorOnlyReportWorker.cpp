@@ -1,11 +1,12 @@
 #include <QCoreApplication>
+#include <QFileInfo>
 #include "TumorOnlyReportWorker.h"
 #include "QCCollection.h"
 #include "Exceptions.h"
-#include "SomaticReportHelper.h"
 #include "Statistics.h"
 #include "LoginManager.h"
-#include "GSvarHelper.h"
+#include "NGSD.h"
+#include "RtfDocument.h"
 
 TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const TumorOnlyReportWorkerConfig& config)
 	: config_(config)
