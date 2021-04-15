@@ -1555,7 +1555,17 @@ void MainWindow::delayedInitialization()
 	}
 
 	//check if the reference genome is available locally
-	if (!GSvarHelper::isGenomeFound())
+	bool is_genome_found = false;
+	try
+	{
+		is_genome_found = GSvarHelper::isGenomeFound();
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Read error", "Could not the size of the genome file:" + e.message());
+	}
+
+	if (!is_genome_found)
 	{
 		RefGenDownloadDialog dlg(this);
 		dlg.exec();

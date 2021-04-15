@@ -10,7 +10,16 @@ RefGenDownloadDialog::RefGenDownloadDialog(QWidget* parent)
 	connect(ui_.cancel_btn, SIGNAL(clicked(bool)), this, SLOT(cancelDownload()));	
 
 	ui_.message->setText("The reference genome is required to use the entire set of features");
-	bool genome_found = GSvarHelper::isGenomeFound();
+	bool genome_found = false;
+	try
+	{
+		genome_found = GSvarHelper::isGenomeFound();
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Read error", "Could not the size of the genome file:" + e.message());
+	}
+
 	if (genome_found)
 	{
 		ui_.message->setText("The reference genome has been found locally");
@@ -35,7 +44,15 @@ void RefGenDownloadDialog::startDownload()
 {
 	is_interrupted_ = false;
 	ui_.cancel_btn->setEnabled(true);
-	bool genome_found = GSvarHelper::isGenomeFound();
+	bool genome_found = false;
+	try
+	{
+		genome_found = GSvarHelper::isGenomeFound();
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, "Read error", "Could not the size of the genome file:" + e.message());
+	}
 	if (!genome_found)
 	{
 		ui_.message->setText("The reference genome is being downloaded");
