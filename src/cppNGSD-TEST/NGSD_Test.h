@@ -1341,10 +1341,11 @@ private slots:
 			report_settings.show_one_entry_in_omim_table = true;
 			report_settings.show_class_details = true;
 
-			data.roi_file = TESTDATA("../cppNGS-TEST/data_in/panel.bed");
-			data.roi_genes.insert("SLC25A15");
-			data.roi_genes.insert("SPG7");
-			data.roi_genes.insert("CYP7B1");
+			data.roi.name = "panel";
+			data.roi.regions.load(TESTDATA("../cppNGS-TEST/data_in/panel.bed"));
+			data.roi.genes.insert("SLC25A15");
+			data.roi.genes.insert("SPG7");
+			data.roi.genes.insert("CYP7B1");
 
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
@@ -1485,7 +1486,7 @@ private slots:
 		som_rep_conf.set(var1);
 		som_rep_conf.set(var2);
 		som_rep_conf.setCreatedBy("ahmustm1");
-		som_rep_conf.setTargetFile("/path/to/somewhere.bed");
+		som_rep_conf.setTargetRegionName("/path/to/somewhere.bed");
 		som_rep_conf.setTumContentByMaxSNV(true);
 		som_rep_conf.setTumContentByClonality(true);
 		som_rep_conf.setTumContentByHistological(true);
@@ -1621,7 +1622,7 @@ private slots:
 
 
 		//Update somatic report configuration (by other user), should update target_file and last_edits
-		som_rep_conf.setTargetFile("/path/to/somewhere/else.bed");
+		som_rep_conf.setTargetRegionName("/path/to/somewhere/else.bed");
 		som_rep_conf.setTumContentByMaxSNV(false);
 		som_rep_conf.setTumContentByClonality(false);
 		som_rep_conf.setTumContentByHistological(false);
@@ -1661,7 +1662,7 @@ private slots:
 		IS_TRUE(config_data_2.last_edit_date != "");
 
 		//report config in case of no target file
-		som_rep_conf.setTargetFile("");
+		som_rep_conf.setTargetRegionName("");
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
 		SomaticReportConfigurationData config_data_3 = db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_3.target_file, "");
@@ -1918,8 +1919,25 @@ private slots:
 		db.deleteSomaticGeneRole("PTGS2");
 		SqlQuery query = db.getQuery();
 		query.exec("SELECT id FROM somatic_gene_role"); //3 remaining rows
-		I_EQUAL(query.size(), 3 );
+		I_EQUAL(query.size(), 3);
 		I_EQUAL(-1, db.getSomaticGeneRoleId("PTGS2"));
+
+		//subPanelList
+		QStringList subpanels = db.subPanelList(true);
+		I_EQUAL(subpanels.size(), 0);
+
+		subpanels = db.subPanelList(false);
+		I_EQUAL(subpanels.size(), 1);
+
+		//subpanelGenes
+		GeneSet subpanel_genes = db.subpanelGenes("some_target_region");
+		I_EQUAL(subpanel_genes.count(), 1);
+		S_EQUAL(subpanel_genes[0], "WDPCP");
+
+		//subpanelRegions
+		BedFile subpanel_regions = db.subpanelRegions("some_target_region");
+		I_EQUAL(subpanel_regions.count(), 20);
+		I_EQUAL(subpanel_regions.baseCount(), 2508);
 	}
 
 

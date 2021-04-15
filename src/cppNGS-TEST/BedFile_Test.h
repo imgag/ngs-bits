@@ -573,4 +573,14 @@ private slots:
 		expected.insert(Chromosome("chr3"));
 		X_EQUAL(f.chromosomes(), expected);
 	}
+
+	void fromText()
+	{
+		BedFile f = BedFile::fromText("#bla\n#track name='dummy'\nchr1\t0\t99\n\nchr2\t0\t99");
+		I_EQUAL(f.headers().count(), 2);
+		S_EQUAL(f.headers()[0], "#bla");
+		S_EQUAL(f.headers()[1], "#track name='dummy'");
+		I_EQUAL(f.count(), 2);
+		I_EQUAL(f.baseCount(), 198);
+	}
 };

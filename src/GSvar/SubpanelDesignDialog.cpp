@@ -190,7 +190,7 @@ void SubpanelDesignDialog::importFromExistingSubpanel()
 	ui_.name->setText(basename);
 
 	//set genes
-	setGenes(GSvarHelper::subpanelGenes(selected));
+	setGenes(NGSD().subpanelGenes(selected));
 }
 
 QString SubpanelDesignDialog::getName(bool with_suffix) const

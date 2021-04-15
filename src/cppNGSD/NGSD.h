@@ -675,6 +675,10 @@ public:
 
 	///Retuns the list of sub-panel names.
 	QStringList subPanelList(bool archived);
+	///Returns the subpanel target region file.
+	BedFile subpanelRegions(QString name);
+	///Returns the subpanel genes.
+	GeneSet subpanelGenes(QString name);
 
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);

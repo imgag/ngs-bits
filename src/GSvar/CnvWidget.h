@@ -57,7 +57,7 @@ private slots:
 	void importPhenotypesFromNGSD();
 
 	///Loads the gene file to a given target region BED file
-	void loadGeneFile();
+	void annotateTargetRegionGeneOverlap();
 	///Removes the calculated gene overlap tooltips
 	void clearTooltips();
 
@@ -86,9 +86,6 @@ private:
 	QHash<QByteArray, BedFile>& gene2region_cache_;
 	QSet<QString> metrics_done_;
 	bool ngsd_enabled_;
-
-	BedFile roi_genes_;
-	ChromosomalIndex<BedFile> roi_gene_index_;
 };
 
 #endif // CNVWIDGET_H

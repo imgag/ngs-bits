@@ -2337,6 +2337,20 @@ QStringList NGSD::subPanelList(bool archived)
 	return getValues("SELECT name FROM subpanels WHERE archived=" + QString(archived ? "1" : "0") + " ORDER BY name ASC");
 }
 
+BedFile NGSD::subpanelRegions(QString name)
+{
+	QByteArray roi = getValue("SELECT roi FROM subpanels WHERE name=:0", false, name).toByteArray();
+
+	return BedFile::fromText(roi);
+}
+
+GeneSet NGSD::subpanelGenes(QString name)
+{
+	QByteArray genes = getValue("SELECT genes FROM subpanels WHERE name=:0", false, name).toByteArray();
+
+	return GeneSet::createFromText(genes);
+}
+
 QCCollection NGSD::getQCData(const QString& processed_sample_id)
 {
 	//get QC data
@@ -4979,9 +4993,9 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 	int id = somaticReportConfigId(t_ps_id, n_ps_id);
 
 	QString target_file = "";
-	if(!config.targetFile().isEmpty())
+	if(!config.targetRegionName().isEmpty())
 	{
-		target_file = QFileInfo(config.targetFile()).fileName(); //store filename without path
+		target_file = QFileInfo(config.targetRegionName()).fileName(); //store filename without path
 	}
 
 	if(id != -1) //delete old report if id exists
@@ -5216,7 +5230,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 	query.next();
 	output.setCreatedBy(query.value("name").toString());
 	output.setCreatedAt(query.value("created_date").toDateTime());
-	output.setTargetFile(query.value("target_file").toString());
+	output.setTargetRegionName(query.value("target_file").toString());
 
 	output.setTumContentByMaxSNV(query.value("tum_content_max_af").toBool());
 	output.setTumContentByClonality(query.value("tum_content_max_clonality").toBool());

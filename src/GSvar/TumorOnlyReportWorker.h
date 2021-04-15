@@ -5,26 +5,27 @@
 #include "VariantList.h"
 #include "RtfDocument.h"
 #include "FilterCascade.h"
-#include "Transcript.h"
+#include "NGSHelper.h"
 
 ///Input configuration for TumorOnlyReportWorker
 struct TumorOnlyReportWorkerConfig
 {
 	QString ps; //Tumor processed sample name
 
-	QString target_file = "";
+	TargetRegionInfo roi;
 	QString low_coverage_file = "";
 	QString bam_file = "";
 
 	FilterResult filter_result;
 
 	bool include_coverage_per_gap = false;
-
 	bool include_exon_number_per_gap = false;
+
+	QMap<QByteArray, QByteArrayList> preferred_transcripts;
 };
 
 ///Helper class for tumor-only report generation
-class TumorOnlyReportWorker
+class TumorOnlyReportWorker //TODO move to cppNGSD and add test > AXEL
 {
 
 public:
@@ -38,21 +39,10 @@ public:
 	static void checkAnnotation(const VariantList& variants);
 
 private:
-	QString ps_;
+	const TumorOnlyReportWorkerConfig& config_;
 	const VariantList& variants_;
-	const FilterResult& filter_result_;
-
-	const QMap<QByteArray, QByteArrayList>& preferred_transcripts_;
 
 	RtfDocument doc_;
-
-	//input files
-	QString target_file_;
-	QString low_cov_file_;
-	QString bam_file_;
-
-	bool include_coverage_per_gap_;
-	bool include_exons_per_gap_;
 
 	//variant annotation indices
 	int i_co_sp_;

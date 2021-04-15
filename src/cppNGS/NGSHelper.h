@@ -12,6 +12,29 @@ struct ImprintingInfo
 	QByteArray status;
 };
 
+//Target region information.
+struct TargetRegionInfo
+{
+	QString name;
+	BedFile regions;
+	GeneSet genes;
+
+	//Returns if a target region is set
+	bool isValid() const
+	{
+		return !regions.isEmpty();
+	}
+
+	//Clears all data
+	void clear()
+	{
+		name.clear();
+		regions.clear();
+		genes.clear();
+	}
+
+};
+
 ///Helper class for NGS-specific stuff.
 class CPPNGSSHARED_EXPORT NGSHelper
 {

@@ -18,6 +18,7 @@
 FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)
 	, ui_()
+	, roi_()
 {
 	ui_.setupUi(this);
 	ui_.cascade_widget->setSubject(VariantType::SNVS_INDELS);
@@ -85,7 +86,7 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 	box->addItem("none", "");
 	box->insertSeparator(box->count());
 
-	try
+	if (Settings::boolean("NGSD_enabled"))
 	{
 		NGSD db;
 
@@ -106,10 +107,6 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 		}
 		box->insertSeparator(box->count());
 	}
-	catch (Exception& e)
-	{
-		Log::warn("Could not load NGSD target regions: " + e.message());
-	}
 
 	//load additional ROIs from settings
 	QStringList rois = Settings::stringList("target_regions", true);
@@ -128,6 +125,38 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 	box->blockSignals(false);
 }
 
+void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
+{
+	roi.clear();
+
+	if (name.trimmed()=="") return;
+
+	if (name.startsWith("Sub-panel: "))
+	{
+		roi.name = name.split(":")[1].trimmed();
+
+		NGSD db;
+		roi.regions = db.subpanelRegions(roi.name);
+		roi.regions.merge();
+
+		roi.genes = db.subpanelGenes(roi.name);
+	}
+	else //processing system target region and local target regions
+	{
+		roi.name = QFileInfo(name).baseName();
+
+		roi.regions.load(name);
+		roi.regions.merge();
+
+		QString genes_file = name.left(name.size()-4) + "_genes.txt";
+		if (QFile::exists(genes_file))
+		{
+			roi.genes = GeneSet::createFromFile(genes_file);
+		}
+	}
+
+}
+
 void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 {
 	//filter cols
@@ -138,7 +167,7 @@ void FilterWidget::resetSignalsUnblocked(bool clear_roi)
 	if (clear_roi)
 	{
 		ui_.roi->setCurrentIndex(1);
-		ui_.roi->setToolTip("");
+		roi_.clear();
 		ui_.gene_warning->setHidden(true);
 	}
 
@@ -193,18 +222,20 @@ void FilterWidget::reset(bool clear_roi)
 	if (clear_roi) emit targetRegionChanged();
 }
 
-QString FilterWidget::targetRegion() const
+const TargetRegionInfo& FilterWidget::targetRegion() const
 {
-	return ui_.roi->toolTip();
+	return roi_;
 }
 
-QString FilterWidget::targetRegionName() const
+QString FilterWidget::targetRegionDisplayName() const
 {
 	return ui_.roi->currentText();
 }
 
-bool FilterWidget::setTargetRegionName(QString name)
+bool FilterWidget::setTargetRegionByDisplayName(QString name)
 {
+	if (name.endsWith(".bed")) name = name.left(name.size()-4);
+
 	QString system = "Processing system: " + name;
 	QString subpanel ="Sub-panel: " + name;
 
@@ -350,19 +381,10 @@ void FilterWidget::roiSelectionChanged(int index)
 		ui_.roi->setEditable(false);
 	}
 
-	//set target file as tooltip
-	QString data = ui_.roi->itemData(index).toString().trimmed();
-	if (data.startsWith("Sub-panel: "))
-	{
 
-		QString name = data.split(":")[1].trimmed();
-		QString roi = GSvarHelper::subpanelRegions(name);
-		ui_.roi->setToolTip(roi);
-	}
-	else
-	{
-		ui_.roi->setToolTip(data);
-	}
+	//load target region data
+	QString roi_name = ui_.roi->itemData(index).toString().trimmed();
+	loadTargetRegionData(roi_, roi_name);
 
 	if(index!=0)
 	{
@@ -440,38 +462,19 @@ void FilterWidget::customFilterLoaded()
 
 void FilterWidget::showTargetRegionDetails()
 {
-	QString roi = targetRegion();
-	if (roi=="") return;
+	if (!roi_.isValid()) return;
 
 	//ROI statistics
 	QStringList text;
-	text << "Target region: " + QFileInfo(roi).baseName();
-	BedFile file;
-	file.load(roi);
-	text << "Regions: " + QString::number(file.count());
-	text << "Bases: " + QString::number(file.baseCount());
+	text << "Target region: " + roi_.name;
+	text << "Regions: " + QString::number(roi_.regions.count());
+	text << "Bases: " + QString::number(roi_.regions.baseCount());
 	text << "";
 
-	//genes
-	GeneSet genes;
-	if (targetRegionName().startsWith("Sub-panel: "))
+	if (roi_.genes.count()!=0)
 	{
-		QString name = targetRegionName().split(":")[1].trimmed();
-		genes = GSvarHelper::subpanelGenes(name);
-	}
-	else
-	{
-		QString genes_file = roi.left(roi.size()-4) + "_genes.txt";
-		if (QFile::exists(genes_file))
-		{
-			genes = GeneSet::createFromFile(genes_file);
-		}
-	}
-
-	if (genes.count()!=0)
-	{
-		text << "Genes: " + QString::number(genes.count());
-		text << genes.join(", ");
+		text << "Genes: " + QString::number(roi_.genes.count());
+		text << roi_.genes.join(", ");
 	}
 	else
 	{
@@ -489,34 +492,27 @@ void FilterWidget::updateGeneWarning()
 {
 	QStringList warnings;
 
-	QString roi = targetRegion();
-	if (roi!="")
+	if (roi_.isValid() && !roi_.genes.isEmpty())
 	{
-		QString genes_file = roi.left(roi.size()-4) + "_genes.txt";
-		if (QFile::exists(genes_file))
+		//check non-coding in GRCh37
 		{
-			GeneSet roi_genes = GeneSet::createFromFile(genes_file);
-
-			//check non-coding in GRCh37
+			GeneSet non_coding;
+			non_coding << "PADI6" << "SRD5A2" << "SYN2" << "NEFL" << "ABO" << "NR2E3" << "TTC25";
+			GeneSet inter = roi_.genes.intersect(non_coding);
+			if (!inter.isEmpty())
 			{
-				GeneSet non_coding;
-				non_coding << "PADI6" << "SRD5A2" << "SYN2" << "NEFL" << "ABO" << "NR2E3" << "TTC25";
-				GeneSet inter = roi_genes.intersect(non_coding);
-				if (!inter.isEmpty())
-				{
-					warnings.append("Some genes (" + inter.join(", ") + ") of the target region are non-coding in the Ensembl annotation of GRCh37, but coding for GRCh38.\nVariants in non-coding genes have LOW/MODIFIER impact. Make sure to check these variants too!");
-				}
+				warnings.append("Some genes (" + inter.join(", ") + ") of the target region are non-coding in the Ensembl annotation of GRCh37, but coding for GRCh38.\nVariants in non-coding genes have LOW/MODIFIER impact. Make sure to check these variants too!");
 			}
+		}
 
-			//check "indikationsspezifische Abrechnung"
+		//check "indikationsspezifische Abrechnung"
+		{
+			GeneSet billing;
+			billing << "ACTA2" << "COL3A1" << "FBN1" << "MYH11" << "MYLK" << "SMAD3" << "TGFB2" << "TGFBR1" << "TGFBR2" << "MLH1" << "MSH2" << "MSH6" << "PMS2" << "GJB2" << "GJB6" << "SMN1" << "SMN2" << "F8" << "CNBP" << "DMPK" << "HTT" << "PTPN11" << "FMR1" << "SOS1" << "RAF1" << "RIT1" << "BRAF" << "KRAS" << "CFTR" << "DMD";
+			GeneSet inter = roi_.genes.intersect(billing);
+			if (!inter.isEmpty())
 			{
-				GeneSet billing;
-				billing << "ACTA2" << "COL3A1" << "FBN1" << "MYH11" << "MYLK" << "SMAD3" << "TGFB2" << "TGFBR1" << "TGFBR2" << "MLH1" << "MSH2" << "MSH6" << "PMS2" << "GJB2" << "GJB6" << "SMN1" << "SMN2" << "F8" << "CNBP" << "DMPK" << "HTT" << "PTPN11" << "FMR1" << "SOS1" << "RAF1" << "RIT1" << "BRAF" << "KRAS" << "CFTR" << "DMD";
-				GeneSet inter = roi_genes.intersect(billing);
-				if (!inter.isEmpty())
-				{
-					warnings.append("Some genes (" + inter.join(", ") + ") of the target region require 'indikationsspezifische Abrechnung'!");
-				}
+				warnings.append("Some genes (" + inter.join(", ") + ") of the target region require 'indikationsspezifische Abrechnung'!");
 			}
 		}
 	}

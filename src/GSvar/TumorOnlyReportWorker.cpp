@@ -8,10 +8,8 @@
 #include "GSvarHelper.h"
 
 TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const TumorOnlyReportWorkerConfig& config)
-	: ps_(config.ps)
+	: config_(config)
 	, variants_(variants)
-	, filter_result_(config.filter_result)
-	, preferred_transcripts_(GSvarHelper::preferredTranscripts())
 {
 	//set annotation indices
 	i_co_sp_ = variants_.annotationIndexByName("coding_and_splicing");
@@ -21,14 +19,6 @@ TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const 
 	i_ncg_tsg = variants_.annotationIndexByName("ncg_tsg");
 	i_germl_class_ = variants_.annotationIndexByName("classification");
 	i_somatic_class_ = variants_.annotationIndexByName("somatic_classification");
-
-	//set file paths
-	target_file_ = config.target_file;
-	low_cov_file_ = config.low_coverage_file;
-	bam_file_ = config.bam_file;
-	include_coverage_per_gap_ = config.include_coverage_per_gap;
-	include_exons_per_gap_ = config.include_exon_number_per_gap;
-
 
 	//Set up RTF file specifications
 	doc_.setMargins(1134,1134,1134,1134);
@@ -107,9 +97,9 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 	QList<Transcript> transcripts;
 	try
 	{
-		if(preferred_transcripts_.contains(gene))
+		if(config_.preferred_transcripts.contains(gene))
 		{
-			for(QByteArray preferred_trans : preferred_transcripts_.value(gene))
+			for(QByteArray preferred_trans : config_.preferred_transcripts.value(gene))
 			{
 				transcripts << db.transcript(db.transcriptId(preferred_trans));
 			}
@@ -158,13 +148,13 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 	RtfTable snv_table;
 	for(int i=0; i<variants_.count(); ++i)
 	{
-		if(!filter_result_.passing(i)) continue;
+		if(!config_.filter_result.passing(i)) continue;
 
 		RtfTableRow row;
 		VariantTranscript trans = variants_[i].transcriptAnnotations(i_co_sp_).first();
 		for(const VariantTranscript& tmp_trans : variants_[i].transcriptAnnotations(i_co_sp_))
 		{
-			if(preferred_transcripts_.value(tmp_trans.gene).contains(tmp_trans.idWithoutVersion()))
+			if(config_.preferred_transcripts.value(tmp_trans.gene).contains(tmp_trans.idWithoutVersion()))
 			{
 				trans = tmp_trans;
 				break;
@@ -195,7 +185,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 
 	//Create table with additional report data
 	NGSD db;
-	QCCollection qc_mapping = db.getQCData(db.processedSampleId(ps_));
+	QCCollection qc_mapping = db.getQCData(db.processedSampleId(config_.ps));
 
 	RtfTable metadata;
 	metadata.addRow( RtfTableRow( { RtfText("Allgemeine Informationen").setBold(true).setFontSize(16).RtfCode(), RtfText("Qualitätsparameter").setBold(true).setFontSize(16).RtfCode() }, {5000,4638}) );
@@ -211,43 +201,27 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 
 
 	//gap statistics if target file exists
-	if(QFileInfo::exists(target_file_) && QFileInfo::exists(low_cov_file_))
+	if(config_.roi.isValid() && QFileInfo::exists(config_.low_coverage_file))
 	{
-		BedFile roi;
-		roi.load(target_file_);
-
-		GeneSet genes_in_roi;
-		try
-		{
-			genes_in_roi = GeneSet::createFromFile(target_file_.left(target_file_.size()-4)+"_genes.txt");
-		}
-		catch(...) //nothing to do
-		{
-		}
-
 		doc_.addPart(RtfParagraph("Statistik:").setBold(true).setSpaceAfter(45).setSpaceBefore(45).setFontSize(16).RtfCode());
 		RtfTable table;
-		table.addRow( RtfTableRow( {"Zielregion:", QFileInfo(target_file_).fileName().toUtf8()} , {1700,7938} ) );
+		table.addRow( RtfTableRow( {"Zielregion:", config_.roi.name.toUtf8()} , {1700,7938} ) );
 
-		if(!genes_in_roi.isEmpty())
+		if(!config_.roi.genes.isEmpty())
 		{
-			table.addRow( RtfTableRow({"Zielregion Gene (" + QByteArray::number(genes_in_roi.count())+"):", genes_in_roi.join(", ")} , {1700,7938}) );
+			table.addRow( RtfTableRow({"Zielregion Gene (" + QByteArray::number(config_.roi.genes.count())+"):", config_.roi.genes.join(", ")} , {1700,7938}) );
 		}
-		table.addRow( RtfTableRow({"Zielregion Region:",QByteArray::number(roi.count())} , {1700,7938}) );
-		table.addRow( RtfTableRow({"Zielregion Basen:",QByteArray::number(roi.baseCount())} , {1700,7938}) );
+		table.addRow( RtfTableRow({"Zielregion Region:",QByteArray::number(config_.roi.regions.count())} , {1700,7938}) );
+		table.addRow( RtfTableRow({"Zielregion Basen:",QByteArray::number(config_.roi.regions.baseCount())} , {1700,7938}) );
 
 
 		//Low coverage statistics of target region
 		BedFile low_cov;
-		low_cov.load(low_cov_file_);
-
-		low_cov.intersect(roi);
-
-
-
+		low_cov.load(config_.low_coverage_file);
+		low_cov.intersect(config_.roi.regions);
 
 		table.addRow( RtfTableRow( {"Lücken Regionen:",QByteArray::number(low_cov.count())}, {1700,7938}) );
-		table.addRow( RtfTableRow( {"Lücken Basen:",QByteArray::number(low_cov.baseCount()) + " (" + QByteArray::number(100.0 * low_cov.baseCount()/roi.baseCount(), 'f', 2) + "%)"},{1700,7938}) );
+		table.addRow( RtfTableRow( {"Lücken Basen:",QByteArray::number(low_cov.baseCount()) + " (" + QByteArray::number(100.0 * low_cov.baseCount()/config_.roi.regions.baseCount(), 'f', 2) + "%)"},{1700,7938}) );
 
 		table.setUniqueFontSize(16);
 		doc_.addPart( table.RtfCode() );
@@ -255,7 +229,10 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 
 
 		//Add coverage per gap as annotation to low cov file
-		if(include_coverage_per_gap_)	Statistics::avgCoverage(low_cov, bam_file_, 1, false, true, 2);
+		if(config_.include_coverage_per_gap)
+		{
+			Statistics::avgCoverage(low_cov, config_.bam_file, 1, false, true, 2);
+		}
 
 		//Find genes with gaps
 		QVector<QByteArray> genes;
@@ -271,7 +248,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 
 				genes.append( tmp_genes.join(", ").toUtf8() );
 
-				if(include_exons_per_gap_)
+				if(config_.include_exon_number_per_gap)
 				{
 					QStringList tmp_exons;
 					for(const auto& tmp_gene : tmp_genes)
@@ -303,7 +280,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 			if(!exons.isEmpty() && !exons[i].isEmpty()) pos += RtfText("\\line\n" + exons[i]).setFontSize(14).RtfCode();
 
 			row.addCell(3500, pos);
-			if(include_coverage_per_gap_) row.addCell(4138, low_cov[i].annotations().last() + "x");
+			if(config_.include_coverage_per_gap) row.addCell(4138, low_cov[i].annotations().last() + "x");
 
 			detailed_gaps.addRow(row);
 		}
@@ -315,7 +292,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		if(low_cov.count()>0)
 		{
 			detailed_gaps.prependRow(RtfTableRow({"Gen", "Lücke"}, {2000,3500}, RtfParagraph().setBold(true) ).setHeader() );
-			if(include_coverage_per_gap_) detailed_gaps.first().addCell(4138, "Coverage", RtfParagraph().setBold(true) );
+			if(config_.include_coverage_per_gap) detailed_gaps.first().addCell(4138, "Coverage", RtfParagraph().setBold(true) );
 		}
 
 		detailed_gaps.setUniqueFontSize(16);

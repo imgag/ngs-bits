@@ -28,10 +28,8 @@ public:
 	//Visually marks filters that failed.
 	void markFailedFilters();
 
-	//Returns the target region BED file name or an empty string if unset.
-	QString targetRegion() const;
-	//Sets the target region BED file.
-	void setTargetRegion(QString roi_file);
+	///Returns the target region BED file. Name is empty if unset.
+	const TargetRegionInfo& targetRegion() const;
 
 	//Returns the gene names filter.
 	GeneSet genes() const;
@@ -77,8 +75,6 @@ protected slots:
 	void customFilterLoaded();
 	void setFilter(int index);
 	void clearTargetRegion();
-	void calculateGeneOverlap();
-	void checkForGeneFileNGSD();
 
 private:
 	//Loads filters
@@ -91,6 +87,7 @@ private:
 	QString filterFileName() const;
 
 	Ui::FilterWidgetCNV ui_;
+	TargetRegionInfo roi_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
 	FilterWidget* filter_widget_;

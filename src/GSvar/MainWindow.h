@@ -41,8 +41,6 @@ public:
 	static QString nobr();
 	///Upload variant to LOVD
 	void uploadtoLovd(int variant_index, int variant_index2 = -1);
-	///Returns the target file name without extension and date part prefixed with '_', or an empty string if no target file is set
-	QString targetFileName() const;
 
 	///Context menu for single variant
 	void contextMenuSingleVariant(QPoint pos, int index);
@@ -384,8 +382,6 @@ private:
 	CnvList cnvs_;
 	BedpeFile svs_;
 	FilterResult filter_result_;
-	QString last_roi_filename_;
-	BedFile last_roi_;
 	QString last_report_path_;
 	PhenotypeList last_phenos_;
 	BedFile last_phenos_roi_;

@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "ReportSettings.h"
 #include "VariantList.h"
+#include "FilterWidget.h"
 #include "ui_ReportDialog.h"
 #include "NGSD.h"
 
@@ -16,7 +17,7 @@ class ReportDialog
 	
 public:
 	///Constructor
-	ReportDialog(QString ps, ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QString target_region, QWidget* parent = 0);
+	ReportDialog(QString ps, ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const TargetRegionInfo& roi, QWidget* parent = 0);
 
 	///Returns the report/variant type
 	QString type() const
@@ -44,8 +45,7 @@ protected:
 	const VariantList& variants_;
 	const CnvList& cnvs_;
 	const BedpeFile svs_;
-	QString roi_file_;
-	BedFile roi_;
+	const TargetRegionInfo& roi_;
 	NGSD db_;
 
 	QTableWidgetItem* addTableItem(int row, int col, QString text);

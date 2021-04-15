@@ -1454,9 +1454,9 @@ void MainWindow::delayedInitialization()
 			int sep_pos = arg.indexOf(':');
 			QString roi_name = arg.mid(sep_pos+1).trimmed();
 
-			if (!ui_.filters->setTargetRegionName(roi_name))
+			if (!ui_.filters->setTargetRegionByDisplayName(roi_name))
 			{
-				qDebug() << "Target region name " << arg << " not found. Ignoring it!";
+				qDebug() << "Target region name " << roi_name << " not found. Ignoring it!";
 			}
 		}
 		else
@@ -1531,10 +1531,24 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	}
 
 	//target region
-	QString roi = ui_.filters->targetRegion();
-	if (roi!="")
+	if (ui_.filters->targetRegion().isValid())
 	{
-		dlg.addFile(FileLocation{"target region (selected in GSvar)", PathType::OTHER, roi, true}, true);
+		//store target region locally
+		QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
+		if(default_paths.isEmpty())
+		{
+			THROW(Exception, "No local application data path was found!");
+		}
+		QString local_roi_folder = default_paths[0] + QDir::separator() + "target_regions" + QDir::separator();
+		if(!QFile::exists(local_roi_folder) && !QDir().mkpath(local_roi_folder))
+		{
+			THROW(ProgrammingException, "Could not create application target region folder '" + local_roi_folder + "'!");
+		}
+
+		QString roi_file = local_roi_folder + ui_.filters->targetRegion().name + ".bed";
+		ui_.filters->targetRegion().regions.store(roi_file);
+
+		dlg.addFile(FileLocation{"target region (selected in GSvar)", PathType::OTHER, roi_file, true}, true);
 	}
 
 	//amplicon file (of processing system)
@@ -1961,16 +1975,6 @@ void MainWindow::on_actionRunOverview_triggered()
 	SequencingRunOverview* widget = new SequencingRunOverview(this);
 	connect(widget, SIGNAL(openRun(QString)), this, SLOT(openRunTab(QString)));
 	openTab(QIcon(":/Icons/NGSD_run_overview.png"), "Sequencing run overview", widget);
-}
-
-QString MainWindow::targetFileName() const
-{
-	if (ui_.filters->targetRegion()=="") return "";
-
-	QString output = "_" + QFileInfo(ui_.filters->targetRegion()).fileName();
-	output.remove(".bed");
-	output.remove(QRegExp("_[0-9_]{4}_[0-9_]{2}_[0-9_]{2}"));
-	return output;
 }
 
 void MainWindow::addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize)
@@ -2674,9 +2678,9 @@ void MainWindow::loadSomaticReportConfig()
 	}
 
 	//Preselect target region bed file in NGSD
-	if(somatic_report_settings_.report_config.targetFile() != "")
+	if(somatic_report_settings_.report_config.targetRegionName()!="")
 	{
-		ui_.filters->setTargetRegionName(somatic_report_settings_.report_config.targetFile());
+		ui_.filters->setTargetRegionByDisplayName(somatic_report_settings_.report_config.targetRegionName());
 	}
 
 	//Preselect filter from NGSD som. rep. conf.
@@ -2980,10 +2984,11 @@ void MainWindow::generateReportTumorOnly()
 	//get report settings
 	TumorOnlyReportWorkerConfig config;
 	config.ps = ps;
-	config.target_file = ui_.filters->targetRegion();
+	config.roi = ui_.filters->targetRegion();
 	config.low_coverage_file = GlobalServiceProvider::fileLocationProvider().getSomaticLowCoverageFile().filename;
 	config.bam_file = GlobalServiceProvider::fileLocationProvider().getBamFiles(true).at(0).filename;
 	config.filter_result = filter_result_;
+	config.preferred_transcripts = GSvarHelper::preferredTranscripts();
 
 	TumorOnlyReportDialog dlg(variants_, config, this);
 	if(!dlg.exec()) return;
@@ -3029,7 +3034,7 @@ void MainWindow::generateReportSomaticRTF()
 	QString ps_normal_id = db.processedSampleId(ps_normal);
 
 	//Set data in somatic report settings
-	somatic_report_settings_.report_config.setTargetFile(ui_.filters->targetRegion());
+	somatic_report_settings_.report_config.setTargetRegionName(ui_.filters->targetRegion().name);
 
 	somatic_report_settings_.report_config.setFilter((ui_.filters->filterName() != "[none]" ? ui_.filters->filterName() : "") ); //filter name -> goes to NGSD som. rep. conf.
 	somatic_report_settings_.filters = ui_.filters->filters(); //filter cascase -> goes to report helper
@@ -3228,7 +3233,7 @@ void MainWindow::generateReportGermline()
 	}
 
 	//show report dialog
-	ReportDialog dialog(ps_name, report_settings_, variants_, cnvs_, svs_, ui_.filters->targetRegion(),this);
+	ReportDialog dialog(ps_name, report_settings_, variants_, cnvs_, svs_, ui_.filters->targetRegion(), this);
 	if (!dialog.exec()) return;
 
 	//set report type
@@ -3237,7 +3242,13 @@ void MainWindow::generateReportGermline()
 	//get export file name
 	QString trio_suffix = (variants_.type() == GERMLINE_TRIO ? "trio_" : "");
 	QString type_suffix = dialog.type().replace(" ", "_") + "s_";
-	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + ps_name + targetFileName() + "_report_" + trio_suffix + type_suffix + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
+	QString roi_name = ui_.filters->targetRegion().name;
+	if (roi_name!="") //remove date and prefix with '_'
+	{
+		roi_name.remove(QRegExp("_[0-9]{4}_[0-9]{2}_[0-9]{2}"));
+		roi_name = "_" + roi_name;
+	}
+	QString file_rep = QFileDialog::getSaveFileName(this, "Export report file", last_report_path_ + "/" + ps_name + roi_name + "_report_" + trio_suffix + type_suffix + QDate::currentDate().toString("yyyyMMdd") + ".html", "HTML files (*.html);;All files(*.*)");
 	if (file_rep=="") return;
 	last_report_path_ = QFileInfo(file_rep).absolutePath();
 
@@ -3247,11 +3258,9 @@ void MainWindow::generateReportGermline()
 	if (prs_files.count()==1) prs_table.load(prs_files[0].filename);
 
 	GermlineReportGeneratorData data(ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
-	QString roi_file = ui_.filters->targetRegion();
-	if (roi_file!="")
+	if (ui_.filters->targetRegion().isValid())
 	{
-		data.roi_file = roi_file;
-		data.roi_genes = GeneSet::createFromFile(roi_file.left(roi_file.size()-4) + "_genes.txt");
+		data.roi = ui_.filters->targetRegion();
 	}
 
 	//show busy dialog
@@ -4080,24 +4089,14 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	}
 
 	//determine ROI name, ROI and gene list
-	QString roi_name;
 	BedFile roi;
 	GeneSet genes;
 
 	//check for ROI file
-	QString roi_file = ui_.filters->targetRegion();
-	if (roi_file!="")
+	if (ui_.filters->targetRegion().isValid())
 	{
-		roi_name = QFileInfo(roi_file).fileName().replace(".bed", "");
-
-		roi.load(roi_file);
-		roi.merge();
-
-		QString genes_file = roi_file.left(roi_file.size()-4) + "_genes.txt";
-		if (QFile::exists(genes_file))
-		{
-			genes = GeneSet::createFromFile(genes_file);
-		}
+		roi = ui_.filters->targetRegion().regions;
+		genes = ui_.filters->targetRegion().genes;
 	}
 	else if (LoginManager::active())
 	{
@@ -4108,8 +4107,6 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 		if (symbol=="") return;
 
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-
-		roi_name = "Gene " + symbol;
 
 		roi = NGSD().geneToRegions(symbol, Transcript::ENSEMBL, "exon", true, false);
 		roi.extend(20);
@@ -4280,7 +4277,7 @@ void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)
 		//optinally use sub-panel as target regions
 		if (QMessageBox::question(this, "Use sub-panel?", "Do you want to set the sub-panel as target region?")==QMessageBox::Yes)
 		{
-			ui_.filters->setTargetRegionName(dlg.lastCreatedSubPanel());
+			ui_.filters->setTargetRegionByDisplayName(dlg.lastCreatedSubPanel());
 		}
 	}
 }
@@ -5289,7 +5286,7 @@ void MainWindow::updateReportConfigHeaderIcon(int index)
 	}
 	else if(somaticReportSupported())
 	{
-		if(ui_.filters->targetRegion() == "" || ui_.filters->filters().count() > 0)
+		if(!ui_.filters->targetRegion().isValid() || ui_.filters->filters().count() > 0)
 		{
 			refreshVariantTable();
 		}
@@ -5454,31 +5451,10 @@ void MainWindow::applyFilters(bool debug_time)
 			timer.start();
 		}
 
-		//roi file name changed => update ROI
-		QString roi = ui_.filters->targetRegion();
-		if (roi!=last_roi_filename_)
-		{
-			last_roi_filename_ = "";
-			last_roi_.clear();
-
-			if (roi!="")
-			{
-				last_roi_.load(roi);
-				last_roi_.merge();
-				last_roi_filename_ = roi;
-			}
-
-			if (debug_time)
-			{
-				Log::perf("Updating target region filter took ", timer);
-				timer.start();
-			}
-		}
-
 		//roi filter
-		if (roi!="")
+		if (ui_.filters->targetRegion().isValid())
 		{
-			FilterRegions::apply(variants_, last_roi_, filter_result_);
+			FilterRegions::apply(variants_, ui_.filters->targetRegion().regions, filter_result_);
 
 			if (debug_time)
 			{
