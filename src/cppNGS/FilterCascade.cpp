@@ -2353,7 +2353,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	}
 
 	//load imprinting gene list
-	QMap<QByteArray, QByteArray> imprinting = NGSHelper::imprintingGenes();
+	QMap<QByteArray, ImprintingInfo> imprinting = NGSHelper::imprintingGenes();
 
 	//apply
 	for(int i=0; i<variants.count(); ++i)
@@ -2440,7 +2440,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 				GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
-					if (imprinting.contains(gene) && imprinting[gene]!="maternal")
+					if (imprinting.contains(gene) && imprinting[gene].source_allele!="maternal")
 					{
 						match = true;
 					}
@@ -2451,7 +2451,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 				GeneSet genes = GeneSet::createFromText(v.annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
-					if (imprinting.contains(gene) && imprinting[gene]!="paternal")
+					if (imprinting.contains(gene) && imprinting[gene].source_allele!="paternal")
 					{
 						match = true;
 					}
@@ -4426,7 +4426,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
     }
 
     //load imprinting gene list
-	QMap<QByteArray, QByteArray> imprinting = NGSHelper::imprintingGenes();
+	QMap<QByteArray, ImprintingInfo> imprinting = NGSHelper::imprintingGenes();
 
     //apply
     for(int i=0; i<svs.count(); ++i)
@@ -4520,7 +4520,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
                 GeneSet genes = GeneSet::createFromText(sv.annotations()[i_gene], ',');
                 foreach(const QByteArray& gene, genes)
                 {
-					if (imprinting.contains(gene) && imprinting[gene]!="maternal")
+					if (imprinting.contains(gene) && imprinting[gene].source_allele!="maternal")
                     {
                         match = true;
                     }
@@ -4531,7 +4531,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
                 GeneSet genes = GeneSet::createFromText(sv.annotations()[i_gene], ',');
                 foreach(const QByteArray& gene, genes)
                 {
-					if (imprinting.contains(gene) && imprinting[gene]!="paternal")
+					if (imprinting.contains(gene) && imprinting[gene].source_allele!="paternal")
                     {
                         match = true;
                     }

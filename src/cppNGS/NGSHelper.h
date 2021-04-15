@@ -5,6 +5,13 @@
 #include "BamReader.h"
 #include "FilterCascade.h"
 
+//Helper datastructure for gene impringing info.
+struct ImprintingInfo
+{
+	QByteArray source_allele;
+	QByteArray status;
+};
+
 ///Helper class for NGS-specific stuff.
 class CPPNGSSHARED_EXPORT NGSHelper
 {
@@ -31,7 +38,7 @@ public:
 	static BedLine cytoBandToRange(QByteArray cytoband);
 
 	///Returns a map if imprinted genes and inherited allele.
-	static const QMap<QByteArray, QByteArray>& imprintingGenes();
+	static const QMap<QByteArray, ImprintingInfo>& imprintingGenes();
 
 	///Parses a chromosomal region from the given text. Throws an error, if the region is not valid.
 	static void parseRegion(const QString& text, Chromosome& chr, int& start, int& end);

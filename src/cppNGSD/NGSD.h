@@ -305,12 +305,22 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 
 	//gene inheritance mode
 	QString inheritance;
+
 	//genomAD o/e score for synonymous variants (default is NULL).
 	QString oe_syn;
 	//genomAD o/e score for missense variants (default is NULL).
 	QString oe_mis;
 	//genomAD o/e score for loss-of-function variants (default is NULL).
 	QString oe_lof;
+
+	//status of imprinting information
+	QString imprinting_status;
+	//sources allele of imprinted gene
+	QString imprinting_source_allele;
+
+	//list of pseudogenes (not all are HGNC-approved symbols)
+	QStringList pseudogenes;
+
 	//comments
 	QString comments;
 
@@ -374,7 +384,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QString r_device_name;
 
 	//output options
-	bool add_path = false;
+	QString add_path;
 	bool add_disease_details = false;
 	bool add_outcome = false;
 	bool add_qc = false;

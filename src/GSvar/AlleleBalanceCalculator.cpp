@@ -23,6 +23,7 @@ void AlleleBalanceCalculator::updateResult()
 		//init
 		int depth = ui_.depth->value();
 		int allele_count = ui_.allele_count->value();
+		if (allele_count>0.5*depth) allele_count = depth - allele_count; //the code below assumes we are on the left side of the distribution...
 		double p = 0.5;
 
 		//take care of factorial overflow

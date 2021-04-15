@@ -1587,32 +1587,42 @@ QCCollection Statistics::contamination(QString build, QString bam, const QString
 	return output;
 }
 
-AncestryEstimates Statistics::ancestry(QString build, const VcfFile& vl, int min_snp, double min_pop_dist)
+AncestryEstimates Statistics::ancestry(QString build, QString filename, int min_snp, double min_pop_dist)
 {
-	//multi sample is not supported
-	if(vl.sampleIDs().count() > 1)
+	//copy ancestry SNP file from resources (gzopen cannot access Qt resources)
+	QString snp_file = ":/Resources/" + build + "_ancestry.vcf";
+	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "' for ancestry estimation!");
+	QString tmp = Helper::tempFileName(".vcf");
+	QFile::copy(snp_file, tmp);
+
+	//load ancestry SNP file
+	VcfFile vars_ancestry;
+	vars_ancestry.load(tmp);
+	ChromosomalIndex<VcfFile> vars_ancestry_idx(vars_ancestry);
+
+	//create ROI to speed up loading the sample file, e.g. for genomes.
+	BedFile roi;
+	for(int i=0; i<vars_ancestry.count(); ++i)
 	{
-		THROW(ArgumentException, "Multi sample vcf files are not supported for ancestry estimates.");
+		const VcfLine& var = vars_ancestry.vcfLine(i);
+		roi.append(BedLine(var.chr(), var.start(), var.end()));
+	}
+
+	//load relevant variants from VCF
+	VcfFile vl;
+	vl.load(filename, roi);
+
+	//multi-sample VCF is not supported
+	if(vl.sampleIDs().count()!=1)
+	{
+		THROW(ArgumentException, "Only single-sample VCFs are supported for ancestry estimation!");
 	}
 
 	//determine required annotation indices
 	if(!vl.formatIDs().contains("GT"))
 	{
-		THROW(ArgumentException, "VCF file does not contain FORMAT GT.")
+		THROW(ArgumentException, "VCF file does not contain FORMAT entry 'GT', which is required for ancestry estimation!")
 	}
-
-	//determine ancestry-informative SNP list
-	QString snp_file = ":/Resources/" + build + "_ancestry.vcf";
-	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
-	
-	//copy from resource file (gzopen cannot access Qt resources)
-	QString tmp = Helper::tempFileName(".vcf");
-	QFile::copy(snp_file, tmp);
-	
-	//load 
-	VcfFile af;
-	af.load(tmp);
-	ChromosomalIndex< VcfFile> af_idx(af);
 
 	//process variants
 	QVector<double> geno_sample;
@@ -1622,12 +1632,13 @@ AncestryEstimates Statistics::ancestry(QString build, const VcfFile& vl, int min
 	QVector<double> af_eas;
 	for(int i=0; i<vl.count(); ++i)
 	{
-		const  VcfLine& v = vl.vcfLine(i);
+		const VcfLine& v = vl.vcfLine(i);
 
 		//skip non-informative SNPs
-		int index = af_idx.matchingIndex(v.chr(), v.start(), v.end());
+		int index = vars_ancestry_idx.matchingIndex(v.chr(), v.start(), v.end());
 		if (index==-1) continue;
-		const  VcfLine& v2 = af[index];
+
+		const VcfLine& v2 = vars_ancestry[index];
 		if (v.ref()!=v2.ref() || v.alt()!=v2.alt()) continue;
 
 		//genotype sample

@@ -488,7 +488,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			stream << "<tr><td>" << trait << "</td><td>" << row[citation_idx] << "</td><td>" << score << "</td><td>" << zscore << "</td><td>" << population << "</td></tr>";
 		}
 		stream << "</table>" << endl;
-		stream << "<p>" << trans("Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnische Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs).") << "</p>" << endl;
+		stream << "<p>" << trans("Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnischen Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs).") << "</p>" << endl;
 	}
 
 	//close stream
@@ -603,7 +603,15 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 				QByteArray value = entry.mid(3);
 				if (type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
 				{
-					int index = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
+					//determine index of report sample in quality entry
+					SampleHeaderInfo header_info = data_.variants.getSampleHeader();
+					int index = 0;
+					while (index<header_info.count())
+					{
+						if (header_info[index].column_name==data_.ps) break;
+						++index;
+					}
+
 					QByteArrayList parts = value.split(',');
 					if (index>=parts.count()) THROW(ProgrammingException, "Invalid AF quality entry. Could not determine index " + QString::number(index) + " in comma-separated string '" + value + "'!");
 					value = parts[index];
@@ -615,7 +623,15 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 				QByteArray value = entry.mid(3);
 				if (type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
 				{
-					int index = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
+					//determine index of report sample in quality entry
+					SampleHeaderInfo header_info = data_.variants.getSampleHeader();
+					int index = 0;
+					while (index<header_info.count())
+					{
+						if (header_info[index].column_name==data_.ps) break;
+						++index;
+					}
+
 					QByteArrayList parts = value.split(',');
 					if (index>=parts.count()) THROW(ProgrammingException, "Invalid DP quality entry. Could not determine index " + QString::number(index) + " in comma-separated string '" + value + "'!");
 					value = parts[index];
@@ -1073,7 +1089,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["nein"] = "no";
 		de2en["Z-Score"] = "z-score";
 		de2en["Population (gesch&auml;tzt aus NGS)"] = "population (estimated from NGS)";
-		de2en["Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnische Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs)."] = "A validated risk estimation program must be used to judge the clinical importance of a PRS, e.g. CanRisk.org for breast cancer. The ethnicity of the patient must also be considered.";
+		de2en["Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnischen Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs)."] = "A validated risk estimation program must be used to judge the clinical importance of a PRS, e.g. CanRisk.org for breast cancer. The ethnicity of the patient must also be considered.";
 	}
 
 	//translate

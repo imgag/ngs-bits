@@ -288,18 +288,12 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
 
 	//add path
-	if(p.add_path)
+	if(!p.add_path.isEmpty())
 	{
-		QString pfolder = Settings::path("projects_folder");
-		int i_psname = output.columnIndex("name");
-		int i_ptype = output.columnIndex("project_type");
-		int i_pname = output.columnIndex("project_name");
-
 		QStringList new_col;
 		for (int r=0; r<output.rowCount(); ++r)
 		{
-			const DBRow& row = output.row(r);
-			new_col << pfolder + row.value(i_ptype) + QDir::separator() + row.value(i_pname) + QDir::separator() + "Sample_" + row.value(i_psname) + QDir::separator();
+			new_col << processedSamplePath(output.row(r).id(), FileLocation::stringToType(p.add_path));
 		}
 		output.addColumn(new_col, "path");
 	}
@@ -793,11 +787,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	QString p_type = query.value(1).toString();
 	output += p_type;
 	QString p_name = query.value(2).toString();
-	output += QDir::separator() + p_name + QDir::separator();
-	if (type!=PathType::PROJECT_FOLDER)
-	{
-		output += "Sample_" + ps_name + "/";
-	}
+	output += QDir::separator() + p_name + QDir::separator() + "Sample_" + ps_name + QDir::separator();
 	QString sys_name_short = query.value(3).toString();
 
 	//append file name if requested
@@ -809,15 +799,13 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::BAF) output += ps_name + "_bafs.igv";
 	else if (type==PathType::STRUCTURAL_VARIANTS) output += ps_name + "_manta_var_structural.bedpe";
 	else if (type==PathType::COPY_NUMBER_RAW_DATA) output += ps_name + "_cnvs_clincnv.seg";
+	else if (type==PathType::COPY_NUMBER_CALLS) output += ps_name + "_cnvs_clincnv.tsv";
 	else if (type==PathType::FUSIONS) output += ps_name + "_var_fusions.tsv";
 	else if (type==PathType::VIRAL) output += ps_name + "_viral.tsv";
 	else if (type==PathType::COUNTS) output += ps_name + "_counts.tsv";
-	else if (type!=PathType::SAMPLE_FOLDER && type!=PathType::PROJECT_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
+	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
-	//convert to canonical path
-	output = QFileInfo(output).absoluteFilePath();
-
-	return output;
+	return QFileInfo(output).absoluteFilePath();
 }
 
 QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analysis_type)
@@ -2852,7 +2840,7 @@ QString NGSD::analysisJobFolder(int job_id)
 	AnalysisJob job = analysisInfo(job_id, true);
 
 	//project path
-	QString output = processedSamplePath(processedSampleId(job.samples[0].name), PathType::PROJECT_FOLDER);
+	QString output = processedSamplePath(processedSampleId(job.samples[0].name), PathType::SAMPLE_FOLDER) + QDir::separator() + ".." + QDir::separator();
 
 	//type
 	QString sample_sep;
@@ -2902,9 +2890,9 @@ QString NGSD::analysisJobFolder(int job_id)
 		output += sample.name;
 		first = false;
 	}
-	output += "/";
+	output += QDir::separator();
 
-	return output;
+	return QFileInfo(output).absoluteFilePath();
 }
 
 QString NGSD::analysisJobGSvarFile(int job_id)
@@ -5370,6 +5358,7 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 	output.symbol_notice = approved.second;
 
 	//get infos from 'gene' table
+	QString gene_id;
 	SqlQuery query = getQuery();
 	query.exec("SELECT * FROM gene WHERE symbol='" + output.symbol + "'");
 	if (query.size()==0)
@@ -5381,6 +5370,7 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 	else
 	{
 		query.next();
+		gene_id = query.value("id").toString();
 		output.name = query.value("name").toString();
 		output.hgnc_id = "HGNC:" + query.value("hgnc_id").toString();
 		output.locus_group = query.value("type").toString();
@@ -5404,6 +5394,27 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 		output.oe_mis = query.value(2).isNull() ? "n/a" : QString::number(query.value(2).toDouble(), 'f', 2);
 		output.oe_lof = query.value(3).isNull() ? "n/a" : QString::number(query.value(3).toDouble(), 'f', 2);
 		output.comments = query.value(4).toString();
+	}
+
+	//imprinting info
+	const QMap<QByteArray, ImprintingInfo>& imprinting = NGSHelper::imprintingGenes();
+	if (imprinting.contains(symbol))
+	{
+		output.imprinting_source_allele = imprinting[symbol].source_allele;
+		output.imprinting_status = imprinting[symbol].status;
+	}
+
+	//pseudogene info
+	if (!gene_id.isEmpty())
+	{
+		query.exec("SELECT g.symbol, gps.gene_name FROM gene_pseudogene_relation gps LEFT JOIN gene g ON gps.pseudogene_gene_id=g.id WHERE parent_gene_id="+gene_id);
+		if (query.size()>0)
+		{
+			query.next();
+
+			QString hgnc_symbol = query.value(0).toString().trimmed();
+			output.pseudogenes << (hgnc_symbol.isEmpty() ? query.value(1).toString().split(';').at(1) : hgnc_symbol);
+		}
 	}
 
 	return output;

@@ -105,6 +105,9 @@
      </item>
      <item row="8" column="1">
       <widget class="QCheckBox" name="report_config">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Deletes report configuration, evaluation sheet and gap data.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>report configuration</string>
        </property>

@@ -89,7 +89,7 @@ void GeneWidget::updateGUI()
 		ui_.pseudogene_label = nullptr;
 	}
 
-	// add parent gene (for pseudogenes
+	// add parent gene (for pseudogenes)
     QStringList parent_gene_ids = db.getValues("SELECT parent_gene_id FROM gene_pseudogene_relation WHERE pseudogene_gene_id=" + QString::number(gene_id) + " AND parent_gene_id IS NOT NULL");
     foreach (const QString& parent_gene_id, parent_gene_ids)
     {
@@ -102,17 +102,9 @@ void GeneWidget::updateGUI()
     }
 
 	//add imprinting infos
-	if (NGSHelper::imprintingGenes().contains(symbol_))
+	if (!info.imprinting_status.isEmpty() || !info.imprinting_source_allele.isEmpty())
 	{
-		QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
-		foreach(const QString& line, lines)
-		{
-			QStringList parts = line.split("\t");
-			if (parts.count()==3 && parts[0]==symbol_)
-			{
-				ui_.imprinting->setText(parts[1] + " (" + parts[2] + ")");
-			}
-		}
+		ui_.imprinting->setText(info.imprinting_source_allele + " (" + info.imprinting_status + ")");
 	}
 	else
 	{
@@ -165,7 +157,7 @@ void GeneWidget::updateGUI()
 	//show OrphaNet info
 	QByteArrayList orpha_links;
 	SqlQuery query = db.getQuery();
-	query.exec("SELECT dt.* FROM disease_term dt, disease_gene dg WHERE dg.disease_term_id=dt.id AND dg.gene='" + symbol_ + "'");
+	query.exec("SELECT dt.* FROM disease_term dt, disease_gene dg WHERE dg.disease_term_id=dt.id AND dt.source='OrphaNet' AND dg.gene='" + symbol_ + "'");
 	while (query.next())
 	{
 		QByteArray identifier = query.value("identifier").toByteArray();

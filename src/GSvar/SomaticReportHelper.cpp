@@ -1276,6 +1276,22 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	doc_.addPart(high_significant_table.RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
+
+
+	//SNVs of low significance
+	VariantList vl_low_significance;
+	vl_low_significance.copyMetaData(somatic_vl_);
+	for(int i=0; i<somatic_vl_.count(); ++i)
+	{
+		const Variant& var = somatic_vl_[i];
+		if(!vl_high_significance.contains(var))
+		{
+			vl_low_significance.append(var);
+		}
+	}
+	vl_low_significance.sortByAnnotation(vl_low_significance.annotationIndexByName("gene"));
+
+
 	//Write hint in case of unclassified variants
 	bool unclassified_snvs = false;
 	for(int i=0; i<vl_high_significance.count();++i)
@@ -1286,9 +1302,20 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 			break;
 		}
 	}
+
+	for(int i=0; i<vl_low_significance.count(); ++i)
+	{
+		if(vl_low_significance[i].annotations()[i_som_vicc].trimmed().isEmpty())
+		{
+			unclassified_snvs = true;
+			break;
+		}
+	}
+
+
 	if(unclassified_snvs)
 	{
-		doc_.addPart(RtfParagraph("Es wurden sehr viele somatische Varianten nachgewiesen, die zu einer hohen Mutationslast führen. Da die Wechselwirkungen aller Varianten nicht eingeschätzt werden können, wird von der funktionellen Bewertung einzelner Varianten abgesehen. Falls erforderlich kann die Bewertung nachgereicht werden.").setHorizontalAlignment("j").highlight(3).RtfCode());
+		doc_.addPart(RtfParagraph("Es wurden sehr viele somatische Varianten nachgewiesen, die zu einer hohen Mutationslast führen. Da die Wechselwirkungen aller Varianten nicht eingeschätzt werden können, wird von der funktionellen Bewertung einzelner Varianten abgesehen. Falls erforderlich kann die Bewertung nachgereicht werden.").highlight(3).RtfCode());
 		doc_.addPart(RtfParagraph("").RtfCode());
 	}
 
@@ -1349,18 +1376,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	/*********************
 	 * ADDITIONAL REPORT *
 	 *********************/
-	//SNVs of low significance
-	VariantList vl_low_significance;
-	vl_low_significance.copyMetaData(somatic_vl_);
-	for(int i=0; i<somatic_vl_.count(); ++i)
-	{
-		const Variant& var = somatic_vl_[i];
-		if(!vl_high_significance.contains(var))
-		{
-			vl_low_significance.append(var);
-		}
-	}
-	vl_low_significance.sortByAnnotation(vl_low_significance.annotationIndexByName("gene"));
+
 	doc_.addPart( RtfParagraph("Varianten unklarer Onkogenität:").setBold(true).setIndent(0,0,0).setSpaceBefore(250).RtfCode() );
 	RtfTable low_significant_table = snvTable(vl_low_significance, false, false);
 	doc_.addPart(low_significant_table.RtfCode());

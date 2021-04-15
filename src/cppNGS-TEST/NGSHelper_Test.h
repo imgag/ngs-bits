@@ -127,7 +127,6 @@ private slots:
 		S_EQUAL(al.cigarDataAsString(), "10S131M10S5H");
 	}
 
-
 	void pseudoAutosomalRegion()
 	{
 		BedFile par = NGSHelper::pseudoAutosomalRegion("hg19");
@@ -158,10 +157,14 @@ private slots:
 
 	void impringGenes()
 	{
-		QMap<QByteArray, QByteArray> imp_genes = NGSHelper::imprintingGenes();
+		QMap<QByteArray, ImprintingInfo> imp_genes = NGSHelper::imprintingGenes();
 
-		I_EQUAL(imp_genes.count(), 244);
-		S_EQUAL(imp_genes["NPAP1"], "paternal");
-		S_EQUAL(imp_genes["NTM"], "maternal");
+		I_EQUAL(imp_genes.count(), 243);
+		S_EQUAL(imp_genes["NPAP1"].source_allele, "paternal");
+		S_EQUAL(imp_genes["NPAP1"].status, "imprinted");
+		S_EQUAL(imp_genes["NTM"].source_allele, "maternal");
+		S_EQUAL(imp_genes["NTM"].status, "imprinted");
+		S_EQUAL(imp_genes["SALL1"].source_allele, "maternal");
+		S_EQUAL(imp_genes["SALL1"].status, "predicted");
 	}
 };

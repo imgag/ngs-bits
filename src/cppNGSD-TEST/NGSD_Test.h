@@ -802,7 +802,7 @@ private slots:
 		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 18);
 		//add path
-		params.add_path = true;
+		params.add_path = "SAMPLE_FOLDER";
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 19);

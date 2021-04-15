@@ -150,9 +150,7 @@ void ExternalToolDialog::browse()
 
 		//process
 		QApplication::setOverrideCursor(Qt::BusyCursor);
-		VcfFile vl;
-		vl.load(filename);
-		AncestryEstimates ancestry = Statistics::ancestry("hg19", vl);
+		AncestryEstimates ancestry = Statistics::ancestry("hg19", filename);
 
 		stream << "Informative SNPs: " << QString::number(ancestry.snps) << endl;
 		stream << endl;
