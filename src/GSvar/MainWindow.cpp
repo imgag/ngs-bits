@@ -5302,26 +5302,33 @@ void MainWindow::markVariantListChanged()
 	variants_changed_ = true;
 }
 
-void MainWindow::storeCurrentVariantList() //TODO GSvarServer: how do we handle this?
+void MainWindow::storeCurrentVariantList()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	try
+	if (GlobalServiceProvider::fileLocationProvider().isLocal())
 	{
-		//store to temporary file
-		QString tmp = filename_ + ".tmp";
-		variants_.store(tmp);
+		try
+		{
+			//store to temporary file
+			QString tmp = filename_ + ".tmp";
+			variants_.store(tmp);
 
-		//copy temp
-		QFile::remove(filename_);
-		QFile::rename(tmp, filename_);
+			//copy temp
+			QFile::remove(filename_);
+			QFile::rename(tmp, filename_);
 
-		variants_changed_ = false;
+			variants_changed_ = false;
+		}
+		catch(Exception& e)
+		{
+			QApplication::restoreOverrideCursor();
+			QMessageBox::warning(this, "Error stroring GSvar file", "The GSvar file could not be stored:\n" + e.message());
+		}
 	}
-	catch(Exception& e)
+	else
 	{
-		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this, "Error stroring GSvar file", "The GSvar file could not be stored:\n" + e.message());
+		//TODO GSvarServer: add a end-point that updates the GSvar file - input is variant, column name and value to use.
 	}
 
 	QApplication::restoreOverrideCursor();
