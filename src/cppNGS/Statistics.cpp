@@ -1753,6 +1753,7 @@ void Statistics::countCoverageWGSWithBaseQuality(
 	}
 }
 
+/*REMOVE ME
 void addEndPositionAndSortQueue(QVector<int>& end_queue, int end_pos)
 {
 	end_queue.push_back(end_pos);
@@ -1766,7 +1767,6 @@ void addEndPositionAndSortQueue(QVector<int>& end_queue, int end_pos)
 	}
 }
 
-/*REMOVE ME
 BedFile Statistics::highCoverageScanLine(const QString& bam_file, int cutoff, int min_mapq, const QString& ref_file)
 {
 	BedFile output;
