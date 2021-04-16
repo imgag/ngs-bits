@@ -8,6 +8,7 @@
 #include "FilterCascade.h"
 #include "NGSHelper.h"
 #include "RtfDocument.h"
+#include "NGSD.h"
 
 ///Input configuration for TumorOnlyReportWorker
 struct CPPNGSDSHARED_EXPORT TumorOnlyReportWorkerConfig
@@ -24,6 +25,8 @@ struct CPPNGSDSHARED_EXPORT TumorOnlyReportWorkerConfig
 	bool include_exon_number_per_gap = false;
 
 	QMap<QByteArray, QByteArrayList> preferred_transcripts;
+
+	bool use_test_db = false;
 };
 
 ///Helper class for tumor-only report generation
@@ -43,6 +46,7 @@ public:
 private:
 	const TumorOnlyReportWorkerConfig& config_;
 	const VariantList& variants_;
+	NGSD db_;
 
 	RtfDocument doc_;
 
@@ -51,7 +55,7 @@ private:
 	int i_tum_af_;
 	int i_cgi_driver_statem_;
 	int i_ncg_oncogene_;
-	int i_ncg_tsg;
+	int i_ncg_tsg_;
 	int i_germl_class_;
 	int i_somatic_class_;
 

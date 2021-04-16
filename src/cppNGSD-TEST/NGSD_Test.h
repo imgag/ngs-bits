@@ -5,6 +5,8 @@
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
 #include "GermlineReportGenerator.h"
+#include "TumorOnlyReportWorker.h"
+
 #include <QThread>
 #include <cmath>
 #include <QCoreApplication>
@@ -1938,6 +1940,53 @@ private slots:
 		BedFile subpanel_regions = db.subpanelRegions("some_target_region");
 		I_EQUAL(subpanel_regions.count(), 20);
 		I_EQUAL(subpanel_regions.baseCount(), 2508);
+	}
+
+	//Test tumor only RTF report generation
+	void report_tumor_only()
+	{
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
+
+		VariantList vl;
+		vl.load(TESTDATA("data_in/tumor_only.GSvar"));
+
+		//Specifiy filter for report generation
+		FilterCascade filters;
+		filters.add(QSharedPointer<FilterBase>(new FilterFilterColumnEmpty()));
+		QSharedPointer<FilterBase> keep_driver_filter(new FilterColumnMatchRegexp());
+		keep_driver_filter->setString("action", "KEEP");
+		keep_driver_filter->setString("column", "CGI_driver_statement");
+		keep_driver_filter->setString("pattern", "known");
+		filters.add( ( keep_driver_filter ) );
+
+		//Fill report config
+		TumorOnlyReportWorkerConfig config;
+		config.filter_result = filters.apply(vl);
+		config.low_coverage_file = TESTDATA("data_in/tumor_only_stat_lowcov.bed");
+		config.preferred_transcripts.insert("MITF", QByteArrayList() << "ENST00000314589");
+		config.ps = "DX000001_01";
+		config.roi.name = "tum_only_target_filter";
+		config.roi.genes = GeneSet::createFromStringList(QStringList() << "MITF");
+
+		BedFile tum_only_roi_filter;
+		tum_only_roi_filter.load(TESTDATA("data_in/tumor_only_target_region.bed"));
+		config.roi.regions = tum_only_roi_filter;
+
+		config.bam_file = TESTDATA("data_in/tumor_only.bam");
+		config.include_coverage_per_gap = true;
+		config.include_exon_number_per_gap = true;
+		config.use_test_db = true;
+
+		//create RTF report with 2 SNVs and two gaps
+		TumorOnlyReportWorker report_worker(vl, config);
+		report_worker.checkAnnotation(vl);
+		report_worker.writeRtf("out/tumor_only_report.rtf");
+
+		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QDate::currentDate().toString("dd.MM.yyyy").toUtf8())); //today's date
+
+		COMPARE_FILES("out/tumor_only_report.rtf", TESTDATA("data_out/tumor_only_report.rtf"));
 	}
 
 

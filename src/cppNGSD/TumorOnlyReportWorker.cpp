@@ -5,19 +5,19 @@
 #include "Exceptions.h"
 #include "Statistics.h"
 #include "LoginManager.h"
-#include "NGSD.h"
 #include "RtfDocument.h"
 
 TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const TumorOnlyReportWorkerConfig& config)
 	: config_(config)
 	, variants_(variants)
+	, db_(config.use_test_db)
 {
 	//set annotation indices
 	i_co_sp_ = variants_.annotationIndexByName("coding_and_splicing");
 	i_tum_af_ = variants_.annotationIndexByName("tumor_af");
 	i_cgi_driver_statem_ = variants_.annotationIndexByName("CGI_driver_statement");
 	i_ncg_oncogene_ = variants_.annotationIndexByName("ncg_oncogene");
-	i_ncg_tsg = variants_.annotationIndexByName("ncg_tsg");
+	i_ncg_tsg_ = variants_.annotationIndexByName("ncg_tsg");
 	i_germl_class_ = variants_.annotationIndexByName("classification");
 	i_somatic_class_ = variants_.annotationIndexByName("somatic_classification");
 
@@ -47,7 +47,7 @@ QByteArray TumorOnlyReportWorker::variantDescription(const Variant &var)
 	QByteArrayList out;
 
 	//NCG gene classification
-	if(var.annotations()[i_ncg_tsg].contains("1")) out << "TSG";
+	if(var.annotations()[i_ncg_tsg_].contains("1")) out << "TSG";
 	if(var.annotations()[i_ncg_oncogene_].contains("1")) out << "Onkogen";
 
 	//germline in-house classification
@@ -86,13 +86,10 @@ QByteArray TumorOnlyReportWorker::trans(QByteArray english)
 
 QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end)
 {
-	if(!LoginManager::active()) return "";
-
 	//get approved gene name
-	NGSD db;
-	int gene_id = db.geneToApprovedID(gene);
+	int gene_id = db_.geneToApprovedID(gene);
 	if (gene_id==-1) return "";
-	gene = db.geneSymbol(gene_id);
+	gene = db_.geneSymbol(gene_id);
 
 	//select transcripts
 	QList<Transcript> transcripts;
@@ -102,12 +99,12 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 		{
 			for(QByteArray preferred_trans : config_.preferred_transcripts.value(gene))
 			{
-				transcripts << db.transcript(db.transcriptId(preferred_trans));
+				transcripts << db_.transcript(db_.transcriptId(preferred_trans));
 			}
 		}
 		else //fallback to longest coding transcript
 		{
-			transcripts << db.longestCodingTranscript(gene_id, Transcript::SOURCE::ENSEMBL, false, true);
+			transcripts << db_.longestCodingTranscript(gene_id, Transcript::SOURCE::ENSEMBL, false, true);
 		}
 	}
 	catch(Exception)
@@ -185,8 +182,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 
 
 	//Create table with additional report data
-	NGSD db;
-	QCCollection qc_mapping = db.getQCData(db.processedSampleId(config_.ps));
+	QCCollection qc_mapping = db_.getQCData(db_.processedSampleId(config_.ps));
 
 	RtfTable metadata;
 	metadata.addRow( RtfTableRow( { RtfText("Allgemeine Informationen").setBold(true).setFontSize(16).RtfCode(), RtfText("Qualitätsparameter").setBold(true).setFontSize(16).RtfCode() }, {5000,4638}) );
@@ -238,29 +234,25 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		//Find genes with gaps
 		QVector<QByteArray> genes;
 		QVector<QByteArray> exons;
-		if(LoginManager::active())
+		for(int i=0; i<low_cov.count(); ++i)
 		{
-			NGSD db;
-			for(int i=0; i<low_cov.count(); ++i)
+			const BedLine& line = low_cov[i];
+
+			QStringList tmp_genes = db_.genesOverlapping(line.chr(), line.start(), line.end()).toStringList();
+
+			genes.append( tmp_genes.join(", ").toUtf8() );
+
+			if(config_.include_exon_number_per_gap)
 			{
-				const BedLine& line = low_cov[i];
-
-				QStringList tmp_genes = db.genesOverlapping(line.chr(), line.start(), line.end()).toStringList();
-
-				genes.append( tmp_genes.join(", ").toUtf8() );
-
-				if(config_.include_exon_number_per_gap)
+				QStringList tmp_exons;
+				for(const auto& tmp_gene : tmp_genes)
 				{
-					QStringList tmp_exons;
-					for(const auto& tmp_gene : tmp_genes)
-					{
-						QByteArray exon = exonNumber(tmp_gene.toUtf8() , line.start(), line.end());
-						if(exon != "") tmp_exons << exon;
-					}
-					exons.append( tmp_exons.join(", ").toUtf8() );
+					QByteArray exon = exonNumber(tmp_gene.toUtf8() , line.start(), line.end());
+					if(exon != "") tmp_exons << exon;
 				}
-
+				exons.append( tmp_exons.join(", ").toUtf8() );
 			}
+
 		}
 
 		//Write each gaps
