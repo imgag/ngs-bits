@@ -17,7 +17,7 @@ TumorOnlyReportDialog::TumorOnlyReportDialog(const VariantList& variants, TumorO
 	connect( this, SIGNAL(accepted()), this, SLOT(writeBackSettings()) );
 	connect( ui->snvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(rightClickMenu(QPoint)) );
 
-	if(!config_.roi.isValid())
+	if(config_.roi.isValid())
 	{
 		ui->include_cov_per_gap->setEnabled(true);
 		ui->include_cov_per_gap->setChecked(true);
