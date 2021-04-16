@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QMutex>
 #include <QDateTime>
+#include "ServerHelper.h"
 
 struct CPPRESTSHARED_EXPORT StaticFile
 {

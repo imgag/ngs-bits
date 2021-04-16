@@ -6,13 +6,13 @@ HttpsServer::HttpsServer(quint16 port)
 	if (ssl_certificate.isEmpty())
 	{
 		ssl_certificate = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-cert.crt";
-		qDebug() << "SSL certificate has not been specified in the config. Using a test certificate: " + ssl_certificate;
+		ServerHelper::debug("SSL certificate has not been specified in the config. Using a test certificate: " + ssl_certificate);
 	}
 
 	QFile certFile(ssl_certificate);
 	if (!certFile.open(QIODevice::ReadOnly))
-	{
-		qFatal("Unable to load SSL certificate");
+	{		
+		ServerHelper::fatal("Unable to load SSL certificate");
         return;
     }
 
@@ -20,13 +20,13 @@ HttpsServer::HttpsServer(quint16 port)
 	if (ssl_key.isEmpty())
 	{
 		ssl_key = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-key.key";
-		qDebug() << "SSL key has not been specified in the config. Using a test key: " + ssl_key;
+		ServerHelper::debug("SSL key has not been specified in the config. Using a test key: " + ssl_key);
 	}
 
 	QFile keyFile(ssl_key);
 	if (!keyFile.open(QIODevice::ReadOnly))
 	{
-		qFatal("Unable to load SSL key");
+		ServerHelper::fatal("Unable to load SSL key");
         return;
     }
 
@@ -41,16 +41,16 @@ HttpsServer::HttpsServer(quint16 port)
     config.setPrivateKey(key);
 	server_->setSslConfiguration(config);
 	if (server_->listen(QHostAddress::Any, port))
-	{
-		qInfo() << "HTTPS server is running on port #" << port;
+	{		
+		ServerHelper::info("HTTPS server is running on port #" + QString::number(port));
 
 		QTimer *timer = new QTimer(this);
 		connect(timer, &QTimer::timeout, this, &UrlManager::removeExpiredUrls);
 		timer->start(10000); // every 10 seconds
 	}
 	else
-	{
-		qCritical() << "Could not start the HTTPS server on port #" << port << ":" << server_->serverError();
+	{		
+		ServerHelper::critical("Could not start the HTTPS server on port #" + QString::number(port) + ":" + server_->serverError());
 	}
 }
 

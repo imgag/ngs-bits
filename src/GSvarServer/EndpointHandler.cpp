@@ -22,7 +22,7 @@ bool EndpointHandler::isValidUser(QString name, QString password)
 	}
 	catch (DatabaseException& e)
 	{
-		qCritical() << e.message();
+		ServerHelper::critical(e.message());
 	}
 	return false;
 }
@@ -55,7 +55,7 @@ QList<QString> EndpointHandler::getAnalysisFiles(QString sample_name, bool searc
 	}
 	catch (Exception& e)
 	{
-		qWarning() << "Error opening processed sample from NGSD:" << e.message();
+		ServerHelper::warning("Error opening processed sample from NGSD:" + e.message());
 	}
 	return files;
 }
@@ -78,7 +78,7 @@ HttpResponse EndpointHandler::serveTempUrl(HttpRequest request)
 		return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), "Could not find a file linked to the id: " + request.getPathParams()[0]});
 	}
 
-	qDebug() << "Serving file: " << url_entity.filename_with_path;
+	ServerHelper::debug("Serving file: " + url_entity.filename_with_path);
 //	return EndpointHelper::serveStaticFile(url_entity.filename_with_path, ByteRange{}, HttpProcessor::getContentTypeByFilename(url_entity.filename_with_path), false);
 	try {
 		return EndpointHelper::streamStaticFile(url_entity.filename_with_path, false);
@@ -89,7 +89,7 @@ HttpResponse EndpointHandler::serveTempUrl(HttpRequest request)
 
 HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 {
-	qDebug() << "File location service";
+	ServerHelper::debug("File location service");
 	if (!request.getUrlParams().contains("ps"))
 	{
 		return HttpResponse(HttpError{StatusCode::BAD_REQUEST, request.getContentType(), "Sample id has not been provided"});
@@ -97,7 +97,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	QString ps = request.getUrlParams().value("ps");
 
 	UrlEntity url_entity = UrlManager::getURLById(ps.trimmed());
-	qDebug() << "GSvar file: " << url_entity.filename_with_path;
+	ServerHelper::debug("GSvar file: " + url_entity.filename_with_path);
 	QString found_file = url_entity.filename_with_path;
 
 	bool return_if_missing = true;
@@ -224,7 +224,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 
 	for (int i = 0; i < file_list.count(); ++i)
 	{
-		qDebug() << file_list[i].filename;
+		ServerHelper::debug(file_list[i].filename);
 		QJsonObject cur_json_item {};
 		cur_json_item.insert("id", file_list[i].id);
 		cur_json_item.insert("type", FileLocation::typeToString(file_list[i].type));
@@ -253,7 +253,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 
 HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
 {
-	qDebug() << "Project file location";
+	ServerHelper::debug("Project file location");
 	QJsonDocument json_doc_output;
 	QJsonArray json_list_output;
 

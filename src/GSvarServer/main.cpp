@@ -3,68 +3,22 @@
 #include <QFile>
 #include <QTextStream>
 #include <QCommandLineParser>
+#include <QLoggingCategory>
 #include "HttpsServer.h"
 #include "ServerHelper.h"
 #include "EndpointHelper.h"
 #include "EndpointHandler.h"
 
 int log_level = 3;
-QFile gsvar_server_log_file("gsvar-server-log.txt");
-
-void interceptLogMessage(QtMsgType type, const QMessageLogContext &, const QString &msg)
-{
-	QString time_stamp = QDate::currentDate().toString("dd/MM/yyyy") + " " + QTime::currentTime().toString("hh:mm:ss:zzz");
-	QString log_statement = "";
-	int msg_level = 0;
-	switch (type) {
-		case QtCriticalMsg:
-			msg_level = 0;
-			log_statement = QString("%1 - [Critical] %2").arg(time_stamp, msg);
-			break;
-		case QtFatalMsg:
-			msg_level = 0;
-			log_statement = QString("%1 - [Fatal] %2").arg(time_stamp, msg);
-			break;
-		case QtInfoMsg:
-			msg_level = 1;
-			log_statement = QString("%1 - [Info] %2").arg(time_stamp, msg);
-			break;
-		case QtWarningMsg:
-			msg_level = 2;
-			log_statement = QString("%1 - [Warning] %2").arg(time_stamp, msg);
-			break;
-		case QtDebugMsg:			
-		default:
-			msg_level = 3;
-			log_statement = QString("%1 - [Debug] %2").arg(time_stamp, msg);
-	}
-
-	// Log levels:
-	// 0: only critical and fatal
-	// 1: += info
-	// 2: += warning
-	// 3: += debug
-	if (msg_level <= log_level)
-	{
-		printf("%s", qUtf8Printable(log_statement));
-		printf("\n");
-
-		QTextStream out_stream(&gsvar_server_log_file);
-		out_stream.setCodec("UTF-8");
-		out_stream.setGenerateByteOrderMark(false);
-		out_stream << log_statement << endl;
-	}
-
-	if (type == QtFatalMsg)
-	{
-		abort();
-	}
-}
 
 int main(int argc, char **argv)
 {
-	gsvar_server_log_file.open(QIODevice::WriteOnly | QIODevice::Append);
+//	QLoggingCategory::defaultCategory()->setEnabled(QtDebugMsg, true);
+//	gsvar_server_log_file.open(QIODevice::WriteOnly | QIODevice::Append);
 
+
+//	QTextStream out(stdout);
+//	out << "overall reads: " << "test text" << endl;
 
 	QCoreApplication app(argc, argv);
 
@@ -86,14 +40,13 @@ int main(int argc, char **argv)
 
 	if (!log_level_option.isEmpty())
 	{
-		qInfo() << "Log level parameter has been provided through the command line arguments:" << log_level_option.toInt();
+		ServerHelper::info("Log level parameter has been provided through the command line arguments:" + log_level_option);
 		log_level = log_level_option.toInt();
 	}
 	else {
-		qInfo() << "Using log level from the application settings:" << ServerHelper::getNumSettingsValue("log_level");
+		ServerHelper::info("Using log level from the application settings:" + QString::number(ServerHelper::getNumSettingsValue("log_level")));
 		log_level = ServerHelper::getNumSettingsValue("log_level");
 	}
-	qInstallMessageHandler(interceptLogMessage);
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"",
@@ -228,12 +181,11 @@ int main(int argc, char **argv)
 
 	if (!port.isEmpty())
 	{
-		qInfo() << "Server port has been provided through the command line arguments:" << port.toInt();
+		ServerHelper::info("Server port has been provided through the command line arguments:" + port);
 		port_number = port.toInt();
 	}
 	else {
-		qInfo() << "Using port number from the application settings";
-
+		ServerHelper::info("Using port number from the application settings");
 	}
 
 	HttpsServer sslserver(port_number);

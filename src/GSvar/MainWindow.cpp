@@ -1786,11 +1786,19 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			}
 
 			//execute commands
-			bool debug = false;
+			bool debug = true;
 			foreach(QString command, init_commands)
 			{
+
+				if (command.indexOf("https:/")>-1)
+				{
+					command = command.replace("https:/", "https://");
+				}
+				qDebug() << "Command " << command;
 				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
+				socket.setProperty("jsse.enableSNIExtension", "false");
 				socket.write((command + "\n").toLatin1());
+
 				bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
 				QString answer = socket.readAll().trimmed();
 				if (!ok || answer!="OK")

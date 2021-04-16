@@ -21,7 +21,7 @@ QString EndpointHelper::getFileNameWithExtension(QString filename_with_path)
 
 StaticFile EndpointHelper::readFileContent(QString filename, ByteRange byte_range)
 {
-	qDebug() << "Reading file:" << filename;
+	ServerHelper::debug("Reading file:" + filename);
 	StaticFile static_file {};
 	static_file.filename_with_path = filename;
 	static_file.modified = QFileInfo(filename).lastModified();
@@ -29,7 +29,7 @@ StaticFile EndpointHelper::readFileContent(QString filename, ByteRange byte_rang
 	QString found_id = FileCache::getFileIdIfInCache(filename);
 	if (found_id.length() > 0)
 	{
-		qDebug() << "File has been found in the cache:" << found_id;
+		ServerHelper::debug("File has been found in the cache:" + found_id);
 		return FileCache::getFileById(found_id);
 	}
 
@@ -43,13 +43,13 @@ StaticFile EndpointHelper::readFileContent(QString filename, ByteRange byte_rang
 
 	if ((!file.atEnd()) && (byte_range.length == 0))
 	{
-		qDebug() << "Reading the entire file at once";
+		ServerHelper::debug("Reading the entire file at once");
 		static_file.content = file.readAll();
 	}
 
 	if ((!file.atEnd()) && (byte_range.length > 0) && (file.seek(byte_range.start)))
 	{
-		qDebug() << "Partial file reading";
+		ServerHelper::debug("Partial file reading");
 		static_file.content = file.read(byte_range.length);
 	}
 
@@ -147,8 +147,7 @@ HttpResponse EndpointHelper::serveFolderContent(QString folder)
 		current_item.modified = fileInfo.lastModified();
 		current_item.is_folder = fileInfo.isDir() ? true : false;
 		files.append(current_item);
-		qDebug() << "File:" << fileInfo.fileName() << ", " << fileInfo.size() << fileInfo.isDir();
-
+		ServerHelper::debug("File:" + fileInfo.fileName() + ", " + fileInfo.size() + fileInfo.isDir());
 	}
 	return serveFolderListing(files);
 }
@@ -218,7 +217,7 @@ HttpResponse EndpointHelper::serveStaticFile(HttpRequest request)
 	if (request.getHeaders().contains("range"))
 	{
 		QString range_value = request.getHeaders().value("range");
-		qDebug() << "Reading byte range header:" << range_value;
+		ServerHelper::debug("Reading byte range header:" + range_value);
 		range_value = range_value.replace("bytes", "");
 		range_value = range_value.replace("=", "");
 		range_value = range_value.trimmed();
