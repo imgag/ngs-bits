@@ -1,4 +1,4 @@
-#name	name_external	gender	is_tumor	is_ffpe	quality	system_name	system_name_short	system_type	project_name	project_type	run_name	run_flowcell_id	run_flowcell_type	run_recipe	run_quality	disease_group	disease_status
-NA12878_01		female	0	0	bad	HaloPlex System	hpSYSv1	WGS	First_project	research	run1	ABC	n/a	100+8+8+100	good	Neoplasms	Affected
-NA12878_02		female	0	0	n/a	SureSelect Human All Exon v5	ssHAEv5	WGS	Second_project	diagnostic	run2	XYZ	n/a	100+8+100	good	Neoplasms	Affected
-NA12880_01		female	1	0	n/a	SureSelect Human All Exon v5	ssHAEv5	WGS	Second_project	diagnostic	run2	XYZ	n/a	100+8+100	good	n/a	n/a
+#name	name_external	gender	is_tumor	is_ffpe	quality	ancestry	system_name	system_name_short	system_type	project_name	project_type	run_name	run_flowcell_id	run_flowcell_type	run_recipe	run_quality	disease_group	disease_status
+NA12878_01		female	0	0	bad	EUR	HaloPlex System	hpSYSv1	WGS	First_project	research	run1	ABC	n/a	100+8+8+100	good	Neoplasms	Affected
+NA12878_02		female	0	0	n/a	ADMIXED/UNKNOWN	SureSelect Human All Exon v5	ssHAEv5	WGS	Second_project	diagnostic	run2	XYZ	n/a	100+8+100	good	Neoplasms	Affected
+NA12880_01		female	1	0	n/a		SureSelect Human All Exon v5	ssHAEv5	WGS	Second_project	diagnostic	run2	XYZ	n/a	100+8+100	good	n/a	n/a
