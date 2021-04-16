@@ -30,7 +30,7 @@ struct CPPNGSDSHARED_EXPORT TumorOnlyReportWorkerConfig
 };
 
 ///Helper class for tumor-only report generation
-class CPPNGSDSHARED_EXPORT TumorOnlyReportWorker //TODO add test > AXEL
+class CPPNGSDSHARED_EXPORT TumorOnlyReportWorker
 {
 
 public:
