@@ -1757,12 +1757,6 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 {
 	BedFile output;
 
-	//check target region is merged/sorted and create index
-	if (!bed_file.isMergedAndSorted())
-	{
-		THROW(ArgumentException, "Merged and sorted BED file required for low-coverage statistics!");
-	}
-
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
 
@@ -1818,13 +1812,13 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 		}
 	}
 
+	output.merge(true, true, true);
 	return output;
 }
 
 BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
 	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
-
 	BedFile output;
 
 	//open BAM file
@@ -1888,12 +1882,6 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 
 void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool include_duplicates, bool panel_mode, int decimals, const QString& ref_file)
 {
-	//check target region is merged/sorted and create index
-	if (!bed_file.isMergedAndSorted())
-	{
-		THROW(ArgumentException, "Merged and sorted BED file required for coverage calculation!");
-	}
-
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
 
@@ -1927,12 +1915,18 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 	else //default mode
 	{
+		//check target region is merged/sorted and create index
+		if (!bed_file.isMergedAndSorted())
+		{
+			THROW(ArgumentException, "Merged and sorted BED file required for coverage calculation!");
+		}
+		ChromosomalIndex<BedFile> bed_idx(bed_file);
+
 		//init coverage statistics data structure
 		QVector<long> cov;
 		cov.fill(0, bed_file.count());
 
 		//iterate through all alignments
-		ChromosomalIndex<BedFile> bed_idx(bed_file);
 		BamAlignment al;
 		while (reader.getNextAlignment(al))
 		{
@@ -1959,13 +1953,9 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 
 BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq, int min_baseq, const QString& ref_file)
 {
-	BedFile output;
+	if (cutoff>255) THROW(ArgumentException, "Cutoff cannot be bigger than 255!");
 
-	//check target region is merged/sorted and create index
-	if (!bed_file.isMergedAndSorted())
-	{
-		THROW(ArgumentException, "Merged and sorted BED file required for low-coverage statistics!");
-	}
+	BedFile output;
 
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2023,7 +2013,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 		}
 	}
 
-	output.merge();
+	output.merge(true, true, true);
 	return output;
 }
 

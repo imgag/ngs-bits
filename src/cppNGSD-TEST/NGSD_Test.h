@@ -802,43 +802,43 @@ private slots:
 		ProcessedSampleSearchParameters params;
 		DBTable ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 18);
+		I_EQUAL(ps_table.columnCount(), 19);
 		//add path
 		params.add_path = "SAMPLE_FOLDER";
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 19);
+		I_EQUAL(ps_table.columnCount(), 20);
 		//add outcome
 		params.add_outcome = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 21);
+		I_EQUAL(ps_table.columnCount(), 22);
 		//add disease details
 		params.add_disease_details = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 30);
+		I_EQUAL(ps_table.columnCount(), 31);
 		//add QC
 		params.add_qc = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 69);
+		I_EQUAL(ps_table.columnCount(), 70);
 		//add report config
 		params.add_report_config = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 70);
-		S_EQUAL(ps_table.row(0).value(69), "");
-		S_EQUAL(ps_table.row(4).value(69), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1,LOC100507346), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
+		I_EQUAL(ps_table.columnCount(), 71);
+		S_EQUAL(ps_table.row(0).value(70), "");
+		S_EQUAL(ps_table.row(4).value(70), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1,LOC100507346), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
 		//add comments
 		params.add_comments = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 9);
-		I_EQUAL(ps_table.columnCount(), 72);
-		S_EQUAL(ps_table.headers().at(18), "comment_sample");
-		S_EQUAL(ps_table.headers().at(19), "comment_processed_sample");
-		S_EQUAL(ps_table.row(0).value(18), "comment_s6");
-		S_EQUAL(ps_table.row(0).value(19), "comment_ps7");
+		I_EQUAL(ps_table.columnCount(), 73);
+		S_EQUAL(ps_table.headers().at(19), "comment_sample");
+		S_EQUAL(ps_table.headers().at(20), "comment_processed_sample");
+		S_EQUAL(ps_table.row(0).value(19), "comment_s6");
+		S_EQUAL(ps_table.row(0).value(20), "comment_ps7");
 
 
 		//apply all search parameters
@@ -859,7 +859,7 @@ private slots:
 		params.run_finished = true;
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
-		I_EQUAL(ps_table.columnCount(), 72);
+		I_EQUAL(ps_table.columnCount(), 73);
 
 		//reportConfigId
 		QString ps_id = db.processedSampleId("NA12878_03");

@@ -556,6 +556,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	else a_rep_del->setEnabled(ngsd_enabled_ && somatic_report_config_->exists(VariantType::CNVS, row));
 	menu.addSeparator();
 	QAction* a_cnv_val = menu.addAction("Perform copy-number variant validation");
+	a_cnv_val->setEnabled(ngsd_enabled_);
 	menu.addSeparator();
 	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching CNVs in NGSD");
 	a_ngsd_search->setEnabled(ngsd_enabled_);
