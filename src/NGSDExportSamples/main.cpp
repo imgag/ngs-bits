@@ -53,6 +53,7 @@ public:
 		addFlag("add_comments", "Adds sample and processed sample comments columns.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2021,  4, 16, "Added ancestry column.");
 		changeLog(2021,  4, 13, "Changed 'add_path' parameter to support different file/folder types.");
 		changeLog(2020, 10,  8, "Added parameters 'sender' and 'study'.");
 		changeLog(2020,  7, 20, "Added 'match_external_names' flag.");

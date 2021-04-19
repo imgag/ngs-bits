@@ -114,4 +114,8 @@ INSERT INTO `study`(`id`, `name`, `description`) VALUES
 INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES
 (1, 2);
 
+INSERT INTO `processed_sample_ancestry` (`processed_sample_id`, `num_snps`, `score_afr`, `score_eur`, `score_sas`, `score_eas`, `population`) VALUES
+(1, 3123, 0.0469, 0.3401, 0.1803, 0.0349, 'EUR'),
+(2, 3151, 0.0412, 0.3028, 0.1796, 0.0926, 'ADMIXED/UNKNOWN');
+
 

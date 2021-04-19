@@ -146,6 +146,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			<< "s.tumor as is_tumor"
 			<< "s.ffpe as is_ffpe"
 			<< "ps.quality as quality"
+			<< "psa.population as ancestry"
 			<< "sys.name_manufacturer as system_name"
 			<< "sys.name_short as system_name_short"
 			<< "sys.type as system_type"
@@ -163,7 +164,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	tables	<< "sample s"
 			<< "processing_system sys"
 			<< "project p"
-			<< "processed_sample ps LEFT JOIN sequencing_run r ON r.id=ps.sequencing_run_id LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id"; //sequencing_run and diag_status are optional
+			<< "processed_sample ps LEFT JOIN sequencing_run r ON r.id=ps.sequencing_run_id LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id LEFT JOIN processed_sample_ancestry psa ON psa.processed_sample_id=ps.id"; //sequencing_run and diag_status are optional
 
 	QStringList conditions;
 	conditions	<< "ps.sample_id=s.id"
