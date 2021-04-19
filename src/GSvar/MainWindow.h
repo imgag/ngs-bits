@@ -51,7 +51,7 @@ public:
 	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
 
 	///Returns if germline report is supported for current variant list.
-	bool germlineReportSupported();
+	bool germlineReportSupported(bool require_ngsd = true);
 	///Returns the processed sample name for which report configuration is set and the report is generated.
 	QString germlineReportSample();
 	///Returns if somatic tumor-normal report is supported for current variant list.

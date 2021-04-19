@@ -104,7 +104,7 @@ void SvWidget::initGUI()
 		return;
 	}
 
-    if((sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)||(sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO))
+	if(sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI || sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO)
     {
         // extract sample names from BEDPE file
         ps_names_.clear();
@@ -120,7 +120,7 @@ void SvWidget::initGUI()
 			ps_id_ = "";
             foreach (QString ps_name, ps_names_)
             {
-                ps_ids_ << db_.processedSampleId(ps_name);
+				ps_ids_ << NGSD().processedSampleId(ps_name);
             }
         }
     }
@@ -130,14 +130,14 @@ void SvWidget::initGUI()
 		ps_ids_.clear();
 		if(ps_id_ != "" && ngsd_enabled_)
         {
-			ps_names_ = QStringList() << db_.processedSampleName(ps_id_);
+			ps_names_ = QStringList() << NGSD().processedSampleName(ps_id_);
         }
         else
         {
 			// fallback: use empty sample header
 			ps_names_ = QStringList() << "";
         }
-    }
+	}
 
 
 	//Set list of annotations to be showed, by default some annotations are filtered out
@@ -248,7 +248,7 @@ void SvWidget::initGUI()
 			ui->svs->setItem(row,col_in_widget,new QTableWidgetItem(QString(sv_bedpe_file_[row].annotations().at(anno_index))));
 			++col_in_widget;
 		}
-    }
+	}
 
 	if (is_multisample_)
 	{
@@ -427,11 +427,12 @@ void SvWidget::applyFilters(bool debug_time)
 		QList<Phenotype> phenotypes = ui->filter_widget->phenotypes();
 		if (!phenotypes.isEmpty())
 		{
+			NGSD db;
 			//convert phenotypes to genes
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenotypes)
 			{
-                pheno_genes << db_.phenotypeToGenes(pheno, true);
+				pheno_genes << db.phenotypeToGenes(pheno, true);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
@@ -440,7 +441,7 @@ void SvWidget::applyFilters(bool debug_time)
 			{
 				if (!gene2region_cache_.contains(gene))
 				{
-                    BedFile tmp = db_.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
 					tmp.clearAnnotations();
 					tmp.extend(5000);
 					tmp.merge();
@@ -1073,6 +1074,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	a_rep_del->setEnabled((report_config_ != nullptr) && ngsd_enabled_ && !is_somatic_ && report_config_->exists(VariantType::SVS, row) && !report_config_->isFinalized());
 	menu.addSeparator();
 	QAction* a_sv_val = menu.addAction("Perform structural variant validation");
+	a_sv_val->setEnabled(ngsd_enabled_);
 	menu.addSeparator();
 	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching SVs in NGSD");
 	a_ngsd_search->setEnabled(ngsd_enabled_);

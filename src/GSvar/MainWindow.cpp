@@ -4526,6 +4526,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QAction* a_var_class_somatic = menu.addAction("Edit classification  (somatic)");
 	a_var_class_somatic->setEnabled(ngsd_user_logged_in);
 	QAction * a_var_interpretation_somatic = menu.addAction("Edit VICC interpretation (somatic)");
+	a_var_interpretation_somatic->setEnabled(ngsd_user_logged_in);
 	QAction* a_var_comment = menu.addAction("Edit comment");
 	a_var_comment->setEnabled(ngsd_user_logged_in);
 	QAction* a_var_val = menu.addAction("Perform variant validation");
@@ -5003,13 +5004,13 @@ void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
 	refreshVariantTable();
 }
 
-bool MainWindow::germlineReportSupported()
+bool MainWindow::germlineReportSupported(bool require_ngsd)
 {
 	//no file loaded
 	if (filename_.isEmpty()) return false;
 
 	//user has to be logged in
-	if (!LoginManager::active()) return false;
+	if (require_ngsd && !LoginManager::active()) return false;
 
 	//single and trio (~one affected)
 	AnalysisType type = variants_.type();
@@ -5022,7 +5023,7 @@ bool MainWindow::germlineReportSupported()
 
 QString MainWindow::germlineReportSample()
 {
-	if (!germlineReportSupported())
+	if (!germlineReportSupported(false))
 	{
 		THROW(ProgrammingException, "germlineReportSample() cannot be used if germline report is not supported!");
 	}
@@ -5707,11 +5708,7 @@ void MainWindow::updateNGSDSupport()
 
 	//toolbar - NGSD search menu
 	QToolButton* ngsd_search_btn = ui_.tools->findChild<QToolButton*>("ngsd_search_btn");
-	QList<QAction*> ngsd_search_actions = ngsd_search_btn->menu()->actions();
-	foreach(QAction* action, ngsd_search_actions)
-	{
-		action->setEnabled(ngsd_user_logged_in);
-	}
+	ngsd_search_btn->setEnabled(ngsd_user_logged_in);
 
 	//NGSD menu
 	ui_.menuNGSD->setEnabled(ngsd_user_logged_in);
