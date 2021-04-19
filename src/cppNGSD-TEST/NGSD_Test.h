@@ -1945,6 +1945,9 @@ private slots:
 	//Test tumor only RTF report generation
 	void report_tumor_only()
 	{
+		QString host = Settings::string("ngsd_test_host", true);
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
+
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
