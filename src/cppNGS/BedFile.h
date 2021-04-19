@@ -150,9 +150,15 @@ public:
     int count() const
     {
         return lines_.count();
-    }
+	}
     ///Returns the number of bases summed up over all elements. This method does not consider if elements overlap - they are counted several times then.
     long long baseCount() const;
+	///Retuns if there are no lines.
+	bool isEmpty() const
+	{
+		return lines_.isEmpty();
+	}
+
 	///Returns the contained chromosomes
 	QSet<Chromosome> chromosomes() const;
 	const QVector<QByteArray>& headers() const
@@ -218,6 +224,9 @@ public:
     bool isMergedAndSorted() const;
 	///Returns if the given chromosomal position is in the BED file region. Note that is method is slow when too many lines are present. Use ChromosomalIndex<BedFile> in this case!
     bool overlapsWith(const Chromosome& chr, int start, int end) const;
+
+	///Creates a BED file from a string
+	static BedFile fromText(const QByteArray& string);
 
 protected:
     ///Removes empty lines.

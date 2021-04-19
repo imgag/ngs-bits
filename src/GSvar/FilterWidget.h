@@ -7,6 +7,7 @@
 #include "GeneSet.h"
 #include "PhenotypeList.h"
 #include "FilterCascade.h"
+#include "NGSHelper.h"
 
 //Filter settings for report configuration
 enum class ReportConfigFilter
@@ -36,14 +37,12 @@ public:
 	/// Visually marks filters that failed.
 	void markFailedFilters();
 
-	///Returns the target region BED file or an empty string if unset.
-	QString targetRegion() const;
-	///Sets the target region BED file.
-	void setTargetRegion(QString roi_file);
+	///Returns the target region BED file. Empty if unset.
+	const TargetRegionInfo& targetRegion() const;
 	///Returns the target region display name or an empty string if unset.
-	QString targetRegionName() const;
-	///Sets the target region by name file. Returns if the target region name was found and set.
-	bool setTargetRegionName(QString name);
+	QString targetRegionDisplayName() const;
+	///Sets the target region by name file (without the type prefix). Returns if the target region name was found and set.
+	bool setTargetRegionByDisplayName(QString name);
 
 	/// Returns the gene names filter.
 	GeneSet genes() const;
@@ -67,10 +66,8 @@ public:
 	void loadTargetRegions();
 	/// Helper for loading target regions (also in CNV/SV widget)
 	static void loadTargetRegions(QComboBox* box);
-	/// Returns the sub-panel list (name and filename).
-	static const QList<KeyValuePair>& subPanels();
-	/// Reloads the sub-panel list from the file system.
-	static void reloadSubpanelList();
+	/// Helper for loading target region data
+	static void loadTargetRegionData(TargetRegionInfo& roi, QString name);
 
 	///Returns the filter INI file name
 	static QString filterFileName();
@@ -122,9 +119,9 @@ private:
 	void resetSignalsUnblocked(bool clear_roi);
 
 	Ui::FilterWidget ui_;
+	TargetRegionInfo roi_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
-	static QList<KeyValuePair> subpanels_;
 };
 
 #endif // FILTERWIDGET_H

@@ -351,7 +351,6 @@ void CfDNAPanelDesignDialog::loadGenes()
 
 		// add gene bed file to list
 		genes_.append(gene_entry);
-
 	}
 
 	// create table

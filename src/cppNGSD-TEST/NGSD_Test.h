@@ -5,6 +5,8 @@
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
 #include "GermlineReportGenerator.h"
+#include "TumorOnlyReportWorker.h"
+
 #include <QThread>
 #include <cmath>
 #include <QCoreApplication>
@@ -1341,10 +1343,11 @@ private slots:
 			report_settings.show_one_entry_in_omim_table = true;
 			report_settings.show_class_details = true;
 
-			data.roi_file = TESTDATA("../cppNGS-TEST/data_in/panel.bed");
-			data.roi_genes.insert("SLC25A15");
-			data.roi_genes.insert("SPG7");
-			data.roi_genes.insert("CYP7B1");
+			data.roi.name = "panel";
+			data.roi.regions.load(TESTDATA("../cppNGS-TEST/data_in/panel.bed"));
+			data.roi.genes.insert("SLC25A15");
+			data.roi.genes.insert("SPG7");
+			data.roi.genes.insert("CYP7B1");
 
 			GermlineReportGenerator generator(data, true);
 			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
@@ -1485,7 +1488,7 @@ private slots:
 		som_rep_conf.set(var1);
 		som_rep_conf.set(var2);
 		som_rep_conf.setCreatedBy("ahmustm1");
-		som_rep_conf.setTargetFile("/path/to/somewhere.bed");
+		som_rep_conf.setTargetRegionName("/path/to/somewhere.bed");
 		som_rep_conf.setTumContentByMaxSNV(true);
 		som_rep_conf.setTumContentByClonality(true);
 		som_rep_conf.setTumContentByHistological(true);
@@ -1621,7 +1624,7 @@ private slots:
 
 
 		//Update somatic report configuration (by other user), should update target_file and last_edits
-		som_rep_conf.setTargetFile("/path/to/somewhere/else.bed");
+		som_rep_conf.setTargetRegionName("/path/to/somewhere/else.bed");
 		som_rep_conf.setTumContentByMaxSNV(false);
 		som_rep_conf.setTumContentByClonality(false);
 		som_rep_conf.setTumContentByHistological(false);
@@ -1661,7 +1664,7 @@ private slots:
 		IS_TRUE(config_data_2.last_edit_date != "");
 
 		//report config in case of no target file
-		som_rep_conf.setTargetFile("");
+		som_rep_conf.setTargetRegionName("");
 		db.setSomaticReportConfig(t_ps_id, n_ps_id, som_rep_conf, vl, cnvs, vl_germl, "ahkerra1");
 		SomaticReportConfigurationData config_data_3 = db.somaticReportConfigData(config_id);
 		S_EQUAL(config_data_3.target_file, "");
@@ -1918,8 +1921,74 @@ private slots:
 		db.deleteSomaticGeneRole("PTGS2");
 		SqlQuery query = db.getQuery();
 		query.exec("SELECT id FROM somatic_gene_role"); //3 remaining rows
-		I_EQUAL(query.size(), 3 );
+		I_EQUAL(query.size(), 3);
 		I_EQUAL(-1, db.getSomaticGeneRoleId("PTGS2"));
+
+		//subPanelList
+		QStringList subpanels = db.subPanelList(true);
+		I_EQUAL(subpanels.size(), 0);
+
+		subpanels = db.subPanelList(false);
+		I_EQUAL(subpanels.size(), 1);
+
+		//subpanelGenes
+		GeneSet subpanel_genes = db.subpanelGenes("some_target_region");
+		I_EQUAL(subpanel_genes.count(), 1);
+		S_EQUAL(subpanel_genes[0], "WDPCP");
+
+		//subpanelRegions
+		BedFile subpanel_regions = db.subpanelRegions("some_target_region");
+		I_EQUAL(subpanel_regions.count(), 20);
+		I_EQUAL(subpanel_regions.baseCount(), 2508);
+	}
+
+	//Test tumor only RTF report generation
+	void report_tumor_only()
+	{
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
+
+		db.reinitializeStaticVariables();
+
+		VariantList vl;
+		vl.load(TESTDATA("data_in/tumor_only.GSvar"));
+
+		//Specifiy filter for report generation
+		FilterCascade filters;
+		filters.add(QSharedPointer<FilterBase>(new FilterFilterColumnEmpty()));
+		QSharedPointer<FilterBase> keep_driver_filter(new FilterColumnMatchRegexp());
+		keep_driver_filter->setString("action", "KEEP");
+		keep_driver_filter->setString("column", "CGI_driver_statement");
+		keep_driver_filter->setString("pattern", "known");
+		filters.add( ( keep_driver_filter ) );
+
+		//Fill report config
+		TumorOnlyReportWorkerConfig config;
+		config.filter_result = filters.apply(vl);
+		config.low_coverage_file = TESTDATA("data_in/tumor_only_stat_lowcov.bed");
+		config.preferred_transcripts.insert("MITF", QByteArrayList() << "ENST00000314589");
+		config.ps = "DX000001_01";
+		config.roi.name = "tum_only_target_filter";
+		config.roi.genes = GeneSet::createFromStringList(QStringList() << "MITF");
+
+		BedFile tum_only_roi_filter;
+		tum_only_roi_filter.load(TESTDATA("data_in/tumor_only_target_region.bed"));
+		config.roi.regions = tum_only_roi_filter;
+		config.bam_file = TESTDATA("data_in/tumor_only.bam");
+		config.include_coverage_per_gap = true;
+		config.include_exon_number_per_gap = true;
+		config.use_test_db = true;
+
+		//create RTF report with 2 SNVs and two gaps
+		TumorOnlyReportWorker report_worker(vl, config);
+		report_worker.checkAnnotation(vl);
+		report_worker.writeRtf("out/tumor_only_report.rtf");
+
+		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QDate::currentDate().toString("dd.MM.yyyy").toUtf8())); //today's date
+		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QCoreApplication::applicationName().toUtf8())); //application name and version
+
+		COMPARE_FILES("out/tumor_only_report.rtf", TESTDATA("data_out/tumor_only_report.rtf"));
 	}
 
 

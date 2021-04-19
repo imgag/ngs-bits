@@ -221,7 +221,7 @@ void AnalysisStatusWidget::refreshStatus()
 			//last update
 			QString last_update;
 			QColor bg_color = Qt::transparent;
-			if (status.startsWith("started (") || status.startsWith("canceled"))
+			if (status.startsWith("started ("))
 			{
 				QString folder = db.analysisJobFolder(job_id);
 				if (QFile::exists(folder))

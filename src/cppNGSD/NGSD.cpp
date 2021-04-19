@@ -684,7 +684,7 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 	QString rel_path = query.value(3).toString().trimmed();
 	if (rel_path!="")
 	{
-		output.target_file = getTargetFilePath(false) + rel_path;
+		output.target_file = getTargetFilePath() + rel_path;
 	}
 	QString target_base = output.target_file.left(output.target_file.length()-4);
 	QString amplicon_file =  target_base + "_amplicons.bed";
@@ -1873,6 +1873,7 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 				type = type.replace(" unsigned", "");
 			}
 			if(type=="text") info.type = TableFieldInfo::TEXT;
+			else if(type=="mediumtext") info.type = TableFieldInfo::TEXT;
 			else if(type=="float") info.type = TableFieldInfo::FLOAT;
 			else if(type=="date") info.type = TableFieldInfo::DATE;
 			else if(type=="datetime") info.type = TableFieldInfo::DATETIME;
@@ -2314,6 +2315,14 @@ void NGSD::init(QString password)
 	}
 }
 
+void NGSD::reinitializeStaticVariables()
+{
+	//re-execute functions with dummy data for reinitilization
+	genesOverlapping("chr1",1, 2, 0, true);
+	genesOverlappingByExon("chr1", 1, 2, 0, true);
+	approvedGeneNames(true);
+}
+
 QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi)
 {
 	QMap<QString, QString> out;
@@ -2326,10 +2335,29 @@ QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi)
 		QString name = query.value(0).toString();
 		QString roi = query.value(1).toString().trimmed();
 		if (roi=="" && skip_systems_without_roi) continue;
-		out.insert(name, getTargetFilePath(false) + roi);
+		out.insert(name, getTargetFilePath() + roi);
 	}
 
 	return out;
+}
+
+QStringList NGSD::subPanelList(bool archived)
+{
+	return getValues("SELECT name FROM subpanels WHERE archived=" + QString(archived ? "1" : "0") + " ORDER BY name ASC");
+}
+
+BedFile NGSD::subpanelRegions(QString name)
+{
+	QByteArray roi = getValue("SELECT roi FROM subpanels WHERE name=:0", false, name).toByteArray();
+
+	return BedFile::fromText(roi);
+}
+
+GeneSet NGSD::subpanelGenes(QString name)
+{
+	QByteArray genes = getValue("SELECT genes FROM subpanels WHERE name=:0", false, name).toByteArray();
+
+	return GeneSet::createFromText(genes);
 }
 
 QCCollection NGSD::getQCData(const QString& processed_sample_id)
@@ -3027,16 +3055,9 @@ QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString me
 	return output;
 }
 
-QString NGSD::getTargetFilePath(bool subpanels)
+QString NGSD::getTargetFilePath()
 {
-	QString output = Settings::path("data_folder", false) + "enrichment" + QDir::separator();
-
-	if (subpanels)
-	{
-		output += QString("subpanels") + QDir::separator();
-	}
-
-	return output;
+	return Settings::path("data_folder", false) + "enrichment" + QDir::separator();
 }
 
 void NGSD::updateQC(QString obo_file, bool debug)
@@ -3910,9 +3931,11 @@ Phenotype NGSD::phenotypeByAccession(const QByteArray& accession, bool throw_on_
 	return cache[accession];
 }
 
-const GeneSet& NGSD::approvedGeneNames()
+const GeneSet& NGSD::approvedGeneNames(bool reinitialize)
 {
 	static GeneSet output;
+
+	if(reinitialize) output.clear();
 
 	if (output.count()==0)
 	{
@@ -3967,11 +3990,18 @@ bool NGSD::addPreferredTranscript(QByteArray transcript_name)
 }
 
 
-GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend)
+GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend, bool reinitialize)
 {
 	//init static data (load gene regions file from NGSD to memory)
 	static BedFile bed;
 	static ChromosomalIndex<BedFile> index(bed);
+
+	if(reinitialize)
+	{
+		bed.clear();
+		index.createIndex();
+	}
+
 	if (bed.count()==0)
 	{
 		//add transcripts
@@ -3997,11 +4027,18 @@ GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int ex
 	return genes;
 }
 
-GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend)
+GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend, bool reinitialize)
 {
 	//init static data (load gene regions file from NGSD to memory)
 	static BedFile bed;
 	static ChromosomalIndex<BedFile> index(bed);
+
+	if(reinitialize)
+	{
+		bed.clear();
+		index.createIndex();
+	}
+
 	if (bed.count()==0)
 	{
 		SqlQuery query = getQuery();
@@ -4981,9 +5018,9 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 	int id = somaticReportConfigId(t_ps_id, n_ps_id);
 
 	QString target_file = "";
-	if(!config.targetFile().isEmpty())
+	if(!config.targetRegionName().isEmpty())
 	{
-		target_file = QFileInfo(config.targetFile()).fileName(); //store filename without path
+		target_file = QFileInfo(config.targetRegionName()).fileName(); //store filename without path
 	}
 
 	if(id != -1) //delete old report if id exists
@@ -5218,7 +5255,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 	query.next();
 	output.setCreatedBy(query.value("name").toString());
 	output.setCreatedAt(query.value("created_date").toDateTime());
-	output.setTargetFile(query.value("target_file").toString());
+	output.setTargetRegionName(query.value("target_file").toString());
 
 	output.setTumContentByMaxSNV(query.value("tum_content_max_af").toBool());
 	output.setTumContentByClonality(query.value("tum_content_max_clonality").toBool());

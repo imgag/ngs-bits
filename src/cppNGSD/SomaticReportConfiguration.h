@@ -83,8 +83,8 @@ public:
 
 	///GETTER/SETTER
 
-	QString targetFile() const;
-	void setTargetFile(QString target_bed);
+	QString targetRegionName() const;
+	void setTargetRegionName(QString target_name);
 
 	QString createdBy() const;
 	void setCreatedBy(QString user);
@@ -136,7 +136,7 @@ private:
 
 	QString created_by_;
 	QDateTime created_at_;
-	QString target_file_;
+	QString target_region_name_;
 
 	bool include_tum_content_clonality_;
 	bool include_tum_content_snp_af_;

@@ -1,123 +1,89 @@
 #include "SubpanelDesignDialog.h"
-#include "ui_SubpanelDesignDialog.h"
 #include "NGSD.h"
-#include "Settings.h"
-#include "Exceptions.h"
-#include "Helper.h"
-#include "NGSHelper.h"
 #include "GSvarHelper.h"
-#include <QPushButton>
-#include <QFileInfo>
-#include <QMessageBox>
-#include <QInputDialog>
 #include <GUIHelper.h>
+#include <QMessageBox>
 
 SubpanelDesignDialog::SubpanelDesignDialog(QWidget *parent)
 	: QDialog(parent)
-	, ui(new Ui::SubpanelDesignDialog)
-	, last_created_subpanel("")
+	, ui_()
+	, subpanel_names_(NGSD().subPanelList(false))
+	, last_created_subpanel_("")
 {
-	ui->setupUi(this);
+	ui_.setupUi(this);
 	createSubpanelCompleter();
 
-	connect(ui->check, SIGNAL(clicked()), this, SLOT(checkAndCreatePanel()));
-	connect(ui->store, SIGNAL(clicked()), this, SLOT(storePanel()));
-	connect(ui->import_btn, SIGNAL(clicked()), this, SLOT(importFromExistingSubpanel()));
+	connect(ui_.check, SIGNAL(clicked()), this, SLOT(checkAndCreatePanel()));
+	connect(ui_.store, SIGNAL(clicked()), this, SLOT(storePanel()));
+	connect(ui_.import_btn, SIGNAL(clicked()), this, SLOT(importFromExistingSubpanel()));
 
-	connect(ui->name, SIGNAL(textEdited(QString)), this, SLOT(disableStoreButton()));
-	connect(ui->genes, SIGNAL(textChanged()), this, SLOT(disableStoreButton()));
-}
-
-SubpanelDesignDialog::~SubpanelDesignDialog()
-{
-	delete ui;
+	connect(ui_.name, SIGNAL(textEdited(QString)), this, SLOT(disableStoreButton()));
+	connect(ui_.genes, SIGNAL(textChanged()), this, SLOT(disableStoreButton()));
 }
 
 void SubpanelDesignDialog::setGenes(const GeneSet& genes)
 {
-	ui->genes->clear();
-	ui->genes->setPlainText(genes.join("\n"));
+	ui_.genes->clear();
+	ui_.genes->setPlainText(genes.join("\n"));
 }
 
 QString SubpanelDesignDialog::lastCreatedSubPanel()
 {
-	return last_created_subpanel;
-}
-
-
-QStringList SubpanelDesignDialog::subpanelList()
-{
-	QStringList names;
-
-	QStringList tmp = Helper::findFiles(NGSD::getTargetFilePath(true), "*.bed", false);
-	foreach(QString t, tmp)
-	{
-		if(t.endsWith("_amplicons.bed")) continue;
-
-		names.append(QFileInfo(t).fileName().replace(".bed", ""));
-	}
-
-	return names;
+	return last_created_subpanel_;
 }
 
 void SubpanelDesignDialog::createSubpanelCompleter()
 {
-	completer = new QCompleter(subpanelList());
-	completer->setCaseSensitivity(Qt::CaseInsensitive);
-	ui->name->setCompleter(completer);
+	completer_ = new QCompleter(subpanel_names_);
+	completer_->setCaseSensitivity(Qt::CaseInsensitive);
+	ui_.name->setCompleter(completer_);
 }
 
 void SubpanelDesignDialog::checkAndCreatePanel()
 {
+	NGSD db;
+
 	//clear
 	disableStoreButton();
 	clearMessages();
 
 	//name check name
-	QString basename = ui->name->text().trimmed();
-	if (basename.isEmpty() || !QRegExp("[0-9a-zA-Z_\\.]+").exactMatch(basename))
+	QString name = getName(true);
+	if (name.isEmpty() || !QRegExp("[0-9a-zA-Z_\\.]+").exactMatch(name))
 	{
-		addMessage("Name '" + basename + "' is empty or contains invalid characters!", true, true);
+		addMessage("Name '" + name + "' is empty or contains invalid characters!", true, true);
 		return;
 	}
 
-	//check output path does not exist
-	QString bed_file = getBedFilename();
-	if (QFile::exists(bed_file))
+	//check name is not already used
+	if(!db.getValue("SELECT id FROM subpanels WHERE name=:0", true, name).isNull())
 	{
-		addMessage("Output file '" + bed_file + "' already exists!", true, true);
-		return;
-	}
-	QString bed_file_archive = getBedFilenameArchive();
-	if (QFile::exists(bed_file_archive))
-	{
-		addMessage("Output file '" + bed_file_archive + "' already exists!", true, true);
+		addMessage("Name '" + name + "' is already used!", true, true);
 		return;
 	}
 
 	//check gene names
-	NGSD db;
-	genes.clear();
-	QByteArrayList lines = ui->genes->toPlainText().toLatin1().split('\n');
+	genes_.clear();
+	QByteArrayList lines = ui_.genes->toPlainText().toLatin1().split('\n');
 	foreach(QByteArray line, lines)
 	{
 		int tab_idx = line.indexOf("\t");
 		if (tab_idx==-1)
 		{
-			genes.insert(line);
+			genes_.insert(line);
 		}
 		else
 		{
-			genes.insert(line.left(tab_idx));
+			genes_.insert(line.left(tab_idx));
 		}
 	}
-	if (genes.count()==0)
+	if (genes_.count()==0)
 	{
 		addMessage("Genes are not set!", true, true);
 		return;
 	}
-	bool ignore_gene_errors = ui->ignore_gene_errors->isChecked();
-	foreach(QString gene, genes)
+	bool ignore_gene_errors = ui_.ignore_gene_errors->isChecked();
+	foreach(QString gene, genes_)
 	{
 		QPair<QString, QString> geneinfo = db.geneToApprovedWithMessage(gene);
 		if (geneinfo.first!=gene || geneinfo.second.startsWith("ERROR"))
@@ -126,25 +92,11 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 		}
 	}
 
-	//check that BED and genes file are writable
-	roi_file = getBedFilename();
-	if (!Helper::isWritable(roi_file))
-	{
-		addMessage("Region file '" + roi_file + "' is not writable!", true, true);
-		return;
-	}
-	gene_file = roi_file.left(roi_file.size()-4) + "_genes.txt";
-	if (!Helper::isWritable(gene_file))
-	{
-		addMessage("Genes file '" + gene_file + "' is not writable!", true, true);
-		return;
-	}
-
 	//create target region
-	QString mode = ui->mode->currentText();
+	QString mode = ui_.mode->currentText();
 	QString messages;
 	QTextStream stream(&messages);
-	regions = db.genesToRegions(genes, Transcript::ENSEMBL, mode, ui->fallback->isChecked(), false, &stream);
+	regions_ = db.genesToRegions(genes_, Transcript::ENSEMBL, mode, ui_.fallback->isChecked(), false, &stream);
 	if (messages!="")
 	{
 		foreach(QString message, messages.split('\n'))
@@ -154,16 +106,16 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 	}
 
 	//add flanking regions
-	int flanking  = ui->flanking->currentText().toInt();
+	int flanking  = ui_.flanking->currentText().toInt();
 	if (flanking>0)
 	{
-		regions.extend(flanking);
+		regions_.extend(flanking);
 	}
 
 	//add special regions (gene symbol, region1, region2, ...)
     auto special_regions = GSvarHelper::specialRegions();
     QStringList genes_special;
-    foreach(QByteArray gene, genes)
+	foreach(QByteArray gene, genes_)
     {
         if (special_regions.contains(gene))
         {
@@ -171,37 +123,49 @@ void SubpanelDesignDialog::checkAndCreatePanel()
 
             foreach(const BedLine& region, special_regions[gene])
             {
-                regions.append(region);
+				regions_.append(region);
             }
         }
     }
-	regions.merge();
+	regions_.merge();
 
 	//show message
-	addMessage("Sub-panel with " + QString::number(genes.count()) + " genes of size " + QString::number(regions.baseCount()) + " bp (" + mode + " plus " + ui->flanking->currentText() + " flanking bases) designed. You can store it now!", false, true);
+	addMessage("Sub-panel with " + QString::number(genes_.count()) + " genes of size " + QString::number(regions_.baseCount()) + " bp (" + mode + " plus " + ui_.flanking->currentText() + " flanking bases) designed. You can store it now!", false, true);
 	if (!genes_special.isEmpty())
 	{
 		addMessage("Added special regions for gene(s): " + genes_special.join(", "), false, true);
 	}
 
-	ui->store->setEnabled(!errorMessagesPresent());
+	ui_.store->setEnabled(!errorMessagesPresent());
 }
 
 void SubpanelDesignDialog::storePanel()
 {
-	regions.store(roi_file);
-	genes.store(gene_file);
+	NGSD db;
+
+	QString name = getName(true);
+
+	SqlQuery query = db.getQuery();
+	query.prepare("INSERT INTO `subpanels`(`name`, `created_by`, `created_date`, `mode`, `extend`, `genes`, `roi`, `archived`) VALUES (:0,:1,:2,:3,:4,:5,:6,0)");
+	query.bindValue(0, name);
+	query.bindValue(1, db.userId(Helper::userName()));
+	query.bindValue(2, QDate::currentDate().toString(Qt::ISODate));
+	query.bindValue(3, ui_.mode->currentText());
+	query.bindValue(4, ui_.flanking->currentText());
+	query.bindValue(5, genes_.toStringList().join("\n"));
+	query.bindValue(6, regions_.toText());
+	query.exec();
 
 	clearMessages();
-	addMessage("Sub-panel '" + QFileInfo(roi_file).baseName() + "' written successfully!", false, true);
+	addMessage("Sub-panel '" + name + "' stored to NGSD.", false, true);
 	disableStoreButton();
 
-	last_created_subpanel = roi_file;
+	last_created_subpanel_ = name;
 }
 
 void SubpanelDesignDialog::disableStoreButton()
 {
-	ui->store->setEnabled(false);
+	ui_.store->setEnabled(false);
 }
 
 void SubpanelDesignDialog::importFromExistingSubpanel()
@@ -209,84 +173,63 @@ void SubpanelDesignDialog::importFromExistingSubpanel()
 	//show selection dialog
 	QLineEdit* panels = new QLineEdit(this);
 	panels->setMinimumWidth(400);
-	panels->setCompleter(completer);
+	panels->setCompleter(completer_);
 	auto dlg = GUIHelper::createDialog(panels, "Import data from existing sub-panel", "source sub-panel:", true);
-	if(dlg->exec()==QDialog::Accepted)
+	if(dlg->exec()!=QDialog::Accepted) return;
+
+	QString selected = panels->text();
+	if (!subpanel_names_.contains(selected))
 	{
-		QString selected = panels->text();
-		if (subpanelList().contains(selected))
-		{
-			//set base name (remove auto-suffix when present)
-			QString basename = selected;
-			if (basename.count('_')>=3)
-			{
-				QStringList parts = basename.split('_');
-				QString first_suffix_part = parts[parts.count()-3];
-				for (int i=0; i<ui->mode->count(); ++i)
-				{
-					if (QRegExp(ui->mode->itemText(i) + "[0-9]+").exactMatch(first_suffix_part))
-					{
-						basename = parts.mid(0, parts.count()-3).join("_");
-						break;
-					}
-				}
-			}
-
-			ui->name->setText(basename);
-
-			//set genes
-			QString filename = NGSD::getTargetFilePath(true) + "/" + selected + "_genes.txt";
-			setGenes(GeneSet::createFromFile(filename));
-		}
-		else
-		{
-			QMessageBox::warning(this, "Invalid sub-panel", "Please select an existing sub-panel!\n'" + selected + "' is not valid");
-		}
+		QMessageBox::warning(this, "Invalid sub-panel", "Please select an existing sub-panel!\n'" + selected + "' is not valid");
+		return;
 	}
 
-	delete panels;
+	//set base name (remove auto-suffix)
+	QStringList parts = selected.split('_');
+	QString basename = parts.mid(0, parts.count()-3).join("_");
+	ui_.name->setText(basename);
+
+	//set genes
+	setGenes(NGSD().subpanelGenes(selected));
 }
 
-QString SubpanelDesignDialog::getBedFilename() const
+QString SubpanelDesignDialog::getName(bool with_suffix) const
 {
-	return NGSD::getTargetFilePath(true) + ui->name->text() + getBedSuffix();
-}
+	QString output = ui_.name->text().trimmed();
 
-QString SubpanelDesignDialog::getBedFilenameArchive() const
-{
-	return NGSD::getTargetFilePath(true) + "/archive/" + ui->name->text() + getBedSuffix();
-}
+	if (with_suffix)
+	{
+		output += "_" + ui_.mode->currentText() + ui_.flanking->currentText() + "_" + Helper::userName() + "_" + QDate::currentDate().toString("yyyyMMdd");
+	}
 
-QString SubpanelDesignDialog::getBedSuffix() const
-{
-	return 	"_" + ui->mode->currentText() + ui->flanking->currentText() + "_" + Helper::userName() + "_" + QDate::currentDate().toString("yyyyMMdd") + ".bed";
+	return output;
 }
 
 void SubpanelDesignDialog::clearMessages()
 {
-	messages.clear();
-	ui->messages->clear();
+	messages_.clear();
+	ui_.messages->clear();
 }
 
 void SubpanelDesignDialog::addMessage(QString text, bool is_error, bool update_gui)
 {
-	messages << Message{text, is_error};
+	messages_ << Message{text, is_error};
 
 	if (update_gui)
 	{
 		QString text;
-		foreach(const Message& m, messages)
+		foreach(const Message& m, messages_)
 		{
 			if (!text.isEmpty()) text += "<br>";
 			text += m.is_error ? "<font color='red'>" + m.text + "</font>" : m.text;
 		}
-		ui->messages->setHtml(text);
+		ui_.messages->setHtml(text);
 	}
 }
 
 bool SubpanelDesignDialog::errorMessagesPresent()
 {
-	foreach(const Message& m, messages)
+	foreach(const Message& m, messages_)
 	{
 		if (m.is_error) return true;
 	}

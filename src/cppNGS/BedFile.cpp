@@ -586,6 +586,42 @@ bool BedFile::overlapsWith(const Chromosome& chr, int start, int end) const
 	return false;
 }
 
+BedFile BedFile::fromText(const QByteArray& string)
+{
+	BedFile output;
+
+	QByteArrayList lines = string.split('\n');
+	foreach (QByteArray line, lines)
+	{
+		line = line.trimmed();
+		if(line.isEmpty()) continue;
+
+		//store headers
+		if (line.startsWith("#") || line.startsWith("track ") || line.startsWith("browser "))
+		{
+			output.appendHeader(line);
+			continue;
+		}
+
+		//error when less than 3 fields
+		QByteArrayList fields = line.split('\t');
+		if (fields.count()<3)
+		{
+			THROW(FileParseException, "BED file line with less than three fields found: '" + line.trimmed() + "'");
+		}
+
+		//check that start/end is number
+		bool ok = true;
+		int start = fields[1].toInt(&ok) + 1;
+		if (!ok) THROW(FileParseException, "BED file line with invalid starts position found: '" + line.trimmed() + "'");
+		int end = fields[2].toInt(&ok);
+		if (!ok) THROW(FileParseException, "BED file line with invalid end position found: '" + line.trimmed() + "'");
+		output.append(BedLine(fields[0], start, end, fields.mid(3)));
+	}
+
+	return output;
+}
+
 bool BedFile::LessComparatorWithName::operator()(const BedLine& a, const BedLine& b) const
 {
 	if (a<b) return true;

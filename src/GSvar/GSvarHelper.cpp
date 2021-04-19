@@ -3,9 +3,7 @@
 #include "NGSD.h"
 #include "HttpHandler.h"
 #include "Settings.h"
-#include <QCoreApplication>
 #include <QDir>
-#include <QFileInfo>
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -184,7 +182,7 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	{
 		messages.sort();
 		item->setBackgroundColor(Qt::yellow);
-		item->setToolTip(messages.join("\n"));
+		item->setToolTip(messages.join('\n'));
 	}
 }
 

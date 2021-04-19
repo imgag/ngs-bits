@@ -482,6 +482,9 @@ public:
 	///Creates database tables and imports initial data (password is required for production database if it is not empty)
 	void init(QString password="");
 
+	///Reinitializes static method variables from data in NGSD
+	void reinitializeStaticVariables();
+
 	/*** General database functionality ***/
 	///Executes an SQL query and returns the single return value.
 	///If no values are returned an error thrown or a default-constructed QVariant is returned (depending on @p empty_is_ok).
@@ -532,9 +535,9 @@ public:
 	///Returns aliases of a gene.
 	GeneSet synonymousSymbols(int id);
 	///Returns the genes overlapping a regions (extended by some bases)
-	GeneSet genesOverlapping(const Chromosome& chr, int start, int end, int extend=0);
+	GeneSet genesOverlapping(const Chromosome& chr, int start, int end, int extend=0, bool reinitialize=false);
 	///Returns the genes overlapping a regions (extended by some bases)
-	GeneSet genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend=0);
+	GeneSet genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend=0, bool reinitialize=false);
 	///Returns the chromosomal regions corresponding to the given gene. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile geneToRegions(const QByteArray& gene, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
@@ -548,7 +551,7 @@ public:
 	///Returns longest coding transcript of a gene.
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_alt_source_nocoding=false);
 	///Returns the list of all approved gene names
-	const GeneSet& approvedGeneNames();
+	const GeneSet& approvedGeneNames(bool reinitialize=false);
 	///Returns the map of gene to preferred transcripts
 	QMap<QByteArray, QByteArrayList> getPreferredTranscripts();
 	///Adds a preferred transcript. Returns if it was added, i.e. it was not already present. Throws an exception, if the transcript name is not valid.
@@ -673,6 +676,13 @@ public:
 	///Returns all processing systems (long name) and the corresponding target regions.
 	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi);
 
+	///Retuns the list of sub-panel names.
+	QStringList subPanelList(bool archived);
+	///Returns the subpanel target region file.
+	BedFile subpanelRegions(QString name);
+	///Returns the subpanel genes.
+	GeneSet subpanelGenes(QString name);
+
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)
@@ -791,8 +801,8 @@ public:
 	///Returns quality metric values for a given metric for all samples of a given processing system
 	QVector<double> cnvCallsetMetrics(QString processing_system_id, QString metric_name);
 
-	///Returns the target file path (or sub-panel folder)
-	static QString getTargetFilePath(bool subpanels = false);
+	///Returns the target region folder.
+	static QString getTargetFilePath();
 
 	///Parses OBO file and updates QC term data
 	void updateQC(QString obo_file, bool debug=false);

@@ -16,13 +16,15 @@ INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `stat
 (1, '#00372', 'AB2J9', 1, '158+8+158', 'analysis_finished');
 
 INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`) VALUES
-(1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the nervous system', 'Affected');
+(1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the nervous system', 'Affected'),
+(2, 'DX000001' , 'ext_tum_only 1', 'DNA', 1, 'male', 'good', 1, 1, 1, 'commenting stuff', 'n/a', 'n/a');
 
 INSERT INTO `processing_system` (`id`, `name_short`, `name_manufacturer`, `adapter1_p5`, `adapter2_p7`, `type`, `shotgun`, `target_file`, `genome_id`) VALUES
 (1, 'hpHSPv2', 'HaloPlex HSP v2', 'AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC', 'AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT', 'Panel Haloplex', 0, '/mnt/share/data/enrichment/hpHSP_v2_2013_12_03.bed', 1);
 
 INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_id`, `lane`, `processing_system_id`, `project_id`, `quality`, `comment`, `normal_id`) VALUES
-(3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null);
+(3999, 1, 3, 1, '1', 1, 1, 'medium', 'comment_ps1', null),
+(4000, 2, 1, 1, '1', 1, 1, 'good', 'comment_ps2', null);
 
 INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `outcome`, `comment`) VALUES
 (3999, 'done', 99, '2014-07-29 09:40:49', 'no significant findings', "free text");
@@ -30,11 +32,16 @@ INSERT INTO `diag_status`(`processed_sample_id`, `status`, `user_id`, `date`, `o
 -- QC infos
 INSERT INTO `qc_terms`(`id`, `qcml_id`, `name`, `description`, `type`, `obsolete`) VALUES
 (31, "QC:2000027", "target region 20x percentage", "Percentage of the target region that is covered at...", 'float', 0),
-(47, "QC:2000025", "target region read depth", "Average sequencing depth in target region.", 'float', 0);
+(47, "QC:2000025", "target region read depth", "Average sequencing depth in target region.", 'float', 0),
+(34, "QC:2000030", "target region 100x percentage", "Percentage of the target region that is covered at least 100-fold.", 'float', 0),
+(36, "QC:2000032", "target region 500x percentage", "Percentage of the target region that is covered at least 500-fold.", 'float', 0);
 
 INSERT INTO `processed_sample_qc`(`id`, `processed_sample_id`, `qc_terms_id`, `value`) VALUES
 (1, 3999, 31, "95.96"),
-(2, 3999, 47, "103.24");
+(2, 3999, 47, "103.24"),
+(3, 4000, 34, "94.7"),
+(4, 4000, 36, "89.87"),
+(5, 4000, 47, "210.3");
 
 INSERT INTO `kasp_status` (`processed_sample_id`, `random_error_prob`, `snps_evaluated`, `snps_match`) VALUES
 (3999, 0.000977, 10, 10);
@@ -52,13 +59,17 @@ INSERT INTO `cnv_callset` (`id`, `processed_sample_id`, `caller`, `caller_versio
 INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
 (622167, 2652, 'CYP7B1', 'cytochrome P450 family 7 subfamily B member 1', 'protein-coding gene'),
 (650913, 10985, 'SLC25A15', 'solute carrier family 25 member 15', 'protein-coding gene'),
-(652410, 11237, 'SPG7', 'SPG7 matrix AAA peptidase subunit, paraplegin', 'protein-coding gene');
+(652410, 11237, 'SPG7', 'SPG7 matrix AAA peptidase subunit, paraplegin', 'protein-coding gene'),
+(636152, 7105, 'MITF', 'melanocyte inducing transcription factor', 'protein-coding gene');
 
 INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES
 (1568912, 622167, 'ENST00000310193', 'ensembl', '8', 65509199, 65711144, '-'),
 (1503635, 650913, 'ENST00000338625', 'ensembl', '13', 41367363, 41383803, '+'),
 (1515928, 652410, 'ENST00000268704', 'ensembl', '16', 89574826, 89623501, '+'),
-(1515930, 652410, 'ENST00000341316', 'ensembl', '16', 89574826, 89603318, '+');
+(1515930, 652410, 'ENST00000341316', 'ensembl', '16', 89574826, 89603318, '+'),
+(1545575, 636152, 'ENST00000314557', 'ensembl', '3', 69985874, 70014399, '+'),
+(1545577, 636152, 'ENST00000314589', 'ensembl', '3', 69915442, 70014399, '+'),
+(1545579, 636152, 'ENST00000328528', 'ensembl', '3', 69812993, 70014399, '+');
 
 INSERT INTO `gene_exon` (`transcript_id`, `start`, `end`) VALUES
 (1503635, 41363633, 41363799),
@@ -100,7 +111,36 @@ INSERT INTO `gene_exon` (`transcript_id`, `start`, `end`) VALUES
 (1568912, 65527583, 65527789),
 (1568912, 65528248, 65528838),
 (1568912, 65536960, 65537096),
-(1568912, 65711023, 65711318);
+(1568912, 65711023, 65711318),
+(1545575, 69985738, 69985906),
+(1545575, 69986973, 69987200),
+(1545575, 69988249, 69988332),
+(1545575, 69990387, 69990482),
+(1545575, 69998202, 69998319),
+(1545575, 70000981, 70001037),
+(1545575, 70005606, 70005681),
+(1545575, 70008424, 70008571),
+(1545575, 70013998, 70014819),
+(1545577, 69915430, 69915497),
+(1545577, 69928285, 69928534),
+(1545577, 69986973, 69987200),
+(1545577, 69988249, 69988332),
+(1545577, 69990387, 69990482),
+(1545577, 69998202, 69998319),
+(1545577, 70000981, 70001037),
+(1545577, 70005606, 70005681),
+(1545577, 70008424, 70008571),
+(1545577, 70013998, 70014798),
+(1545579, 69812962, 69813093),
+(1545579, 69928285, 69928534),
+(1545579, 69986973, 69987200),
+(1545579, 69988249, 69988332),
+(1545579, 69990387, 69990482),
+(1545579, 69998202, 69998319),
+(1545579, 70000981, 70001037),
+(1545579, 70005606, 70005681),
+(1545579, 70008424, 70008571),
+(1545579, 70013998, 70017488);
 
 INSERT INTO `omim_gene` (`id`, `gene`, `mim`) VALUES
 (244380, 'SPG7', '602783'),

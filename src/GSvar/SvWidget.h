@@ -64,7 +64,7 @@ private slots:
 	void editReportConfiguration(int row);
 
 	///Loads the gene file to a given target region BED file
-	void loadGeneFile();
+	void annotateTargetRegionGeneOverlap();
 	///Removes the calculated gene overlap tooltips
 	void clearTooltips();
 
@@ -109,7 +109,6 @@ private:
 	GeneSet var_het_genes_;
 	QHash<QByteArray, BedFile>& gene2region_cache_;
 	bool ngsd_enabled_;
-    NGSD db_;
 
 	QSharedPointer<ReportConfiguration> report_config_;
 
@@ -117,7 +116,6 @@ private:
 	QByteArrayList annotations_to_show_;
 
 	BedFile roi_;
-	QString roi_filename_;
 	BedFile roi_genes_;
 	ChromosomalIndex<BedFile> roi_gene_index_;
 	bool is_somatic_;
@@ -126,10 +124,6 @@ private:
 	//multisample
 	bool is_multisample_= false;
 	bool is_trio_ = false;
-
-
-
-
 };
 
 #endif // SVWIDGET_H

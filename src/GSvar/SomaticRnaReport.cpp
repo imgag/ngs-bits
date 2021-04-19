@@ -60,7 +60,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 
 
 	ProcessingSystemData tumor_ps_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(dna_ps_tumor_name_));
-	QString target_genes_file = tumor_ps_data.target_file.left(tumor_ps_data.target_file.size()-4) + "_genes.txt";
+	QString target_genes_file = tumor_ps_data.target_gene_file;
 	if(QFile::exists(target_genes_file))
 	{
 		 target_genes_ = GeneSet::createFromFile(target_genes_file);

@@ -1,0 +1,68 @@
+##ANALYSISTYPE=SOMATIC_SINGLESAMPLE
+##PIPELINE=megSAP 0.2-413-gaf6ed63
+##FILTER=indelError=Likely artifact due to indel reads at this position
+##FILTER=off-target=Variant marked as 'off-target'.
+##FILTER=str10=Less than 10% or more than 90% of variant supporting reads on one strand
+##SAMPLE=<ID=DX000000_01,Gender=female,ExternalSampleName=DNA-207566 A1,IsTumor=yes,IsFFPE=yes,DiseaseGroup=n/a,DiseaseStatus=n/a>
+##DESCRIPTION=filter=Annotations for filtering and ranking variants.
+##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)
+##DESCRIPTION=gene=Affected gene list (comma-separated).
+##DESCRIPTION=variant_type=Variant type.
+##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
+##DESCRIPTION=coding_and_splicing_refseq=Coding and splicing details based on RefSeq (Gene, RefSeq id, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
+##DESCRIPTION=regulatory=Regulatory consequence details.
+##DESCRIPTION=OMIM=OMIM database annotation.
+##DESCRIPTION=ClinVar=ClinVar database annotation.
+##DESCRIPTION=HGMD=HGMD database annotation.
+##DESCRIPTION=RepeatMasker=RepeatMasker annotation.
+##DESCRIPTION=dbSNP=Identifier in dbSNP database.
+##DESCRIPTION=1000g=Allele frequency in 1000 genomes project.
+##DESCRIPTION=gnomAD=Allele frequency in gnomAD project.
+##DESCRIPTION=gnomAD_hom_hemi=Homoyzgous counts and hemizygous counts of gnomAD project (genome data).
+##DESCRIPTION=gnomAD_sub=Sub-population allele frequenciens (AFR,AMR,EAS,NFE,SAS) in gnomAD project.
+##DESCRIPTION=phyloP=phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6.
+##DESCRIPTION=Sift=Sift effect prediction and score for each transcript: D=damaging, T=tolerated.
+##DESCRIPTION=PolyPhen=PolyPhen (humVar) effect prediction and score for each transcript: D=probably damaging, P=possibly damaging, B=benign.
+##DESCRIPTION=fathmm-MKL=fathmm-MKL score (for coding/non-coding regions). Deleterious threshold > 0.5.
+##DESCRIPTION=CADD=CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20.
+##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
+##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).
+##DESCRIPTION=dbscSNV=dbscSNV splicing prediction (ADA/RF score).
+##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
+##DESCRIPTION=MMSplice_DeltaLogitPSI=MMsplice delta Logit PSI score: variant's effect on the exon inclusion - positive score shows higher exon inclusion, negative higher exclusion rate. A score greater than 2 or less than -2 can be considered strong.
+##DESCRIPTION=MMSplice_pathogenicity=MMsplice pathogenicity score: probability of pathogenic effect of the variant on splicing
+##DESCRIPTION=NGSD_som_c=Somatic variant count in the NGSD.
+##DESCRIPTION=NGSD_som_p=Project names of project containing this somatic variant in the NGSD.
+##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.
+##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.
+##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group.
+##DESCRIPTION=classification=Classification from the NGSD.
+##DESCRIPTION=classification_comment=Classification comment from the NGSD.
+##DESCRIPTION=validation=Validation information from the NGSD. Validation results of other samples are listed in brackets!
+##DESCRIPTION=comment=Variant comments from the NGSD.
+##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
+##DESCRIPTION=CMC_genes=Gene symbol from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CMC_MUTATION_ID=COSV identifier of variant from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CMC_disease=diseases with > 1% of samples mutated where disease = Primary site(tissue) / Primary histology / Sub-histology = Samples mutated / Samples tested = Frequency from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CMC_DNDS_ratio=diseases with significant dn/ds ratio (q-value < 5%) from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CMC_mutation_significance=Significance tier of the variant from COSMIC Cancer Mutation Census (CMC).
+##DESCRIPTION=CANCERHOTSPOTS_AA_CHANGE=Amino acid change as in original cancerhotspots.org file
+##DESCRIPTION=CANCERHOTSPOTS_TOTAL_MUT=Total mutation count in cancerhotspots.org at certain amino acid position.
+##DESCRIPTION=CANCERHOTSPOTS_ALT_COUNT=Count of specific amino acid alteration at same position in cancerhotspots.org.
+##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample DX000000_01).
+##DESCRIPTION=tumor_dp=Tumor Depth (Sample DX000000_01).
+##DESCRIPTION=somatic_classification_comment=Somatic classification comment from the NGSD.
+##DESCRIPTION=somatic_classification=Somatic classification from the NGSD.
+##CGI_CANCER_TYPE=NS
+##DESCRIPTION=CGI_id=Identifier for CGI statements
+##DESCRIPTION=CGI_driver_statement=CancerGenomeInterpreter.org oncogenic classification
+##DESCRIPTION=CGI_gene_role=CancerGenomeInterpreter.org gene role. LoF: Loss of Function, Act: Activating
+##DESCRIPTION=CGI_transcript=CancerGenomeInterpreter.org CGI Ensembl transcript ID
+##DESCRIPTION=CGI_gene=Gene symbol returned by CancerGenomeInterpreter.org
+##DESCRIPTION=CGI_consequence=Consequence of the mutation assessed by CancerGenomeInterpreter.org
+##DESCRIPTION=ncg_oncogene=1:gene is oncogene according NCG6.0, 0:No oncogene according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
+##DESCRIPTION=ncg_tsg=1:gene is TSG according NCG6.0, 0:No TSG according NCG6.0, na: no information available about gene in NCG6.0. Order is the same as in column gene.
+#chr	start	end	ref	obs	tumor_af	tumor_dp	filter	quality	gene	variant_type	coding_and_splicing	coding_and_splicing_refseq	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	Sift	PolyPhen	fathmm-MKL	CADD	REVEL	MaxEntScan	dbscSNV	COSMIC	MMSplice_DeltaLogitPSI	MMSplice_pathogenicity	NGSD_som_c	NGSD_som_p	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	somatic_classification	somatic_classification_comment	validation	comment	gene_info	CMC_genes	CMC_MUTATION_ID	CMC_disease	CMC_DNDS_ratio	CMC_mutation_significance	CANCERHOTSPOTS_AA_CHANGE	CANCERHOTSPOTS_TOTAL_MUT	CANCERHOTSPOTS_ALT_COUNT	CGI_id	CGI_driver_statement	CGI_gene_role	CGI_transcript	CGI_gene	CGI_consequence	ncg_oncogene	ncg_tsg
+chr3	63597382	63597382	G	A	0.4063	694		QUAL=255	SYNPR	intron	SYNPR:ENST00000295894:intron_variant:MODIFIER:intron4/4:c.540+2390G>A::,SYNPR:ENST00000460711:intron_variant:MODIFIER:intron5/5:c.573+2390G>A::,SYNPR:ENST00000465156:intron_variant:MODIFIER:intron3/3:c.349-3518G>A::,SYNPR:ENST00000478300:intron_variant:MODIFIER:intron5/5:c.600+2390G>A::,SYNPR:ENST00000479198:intron_variant:MODIFIER:intron5/5:c.*11+1153G>A::	SYNPR:NM_001130003.2:intron_variant:MODIFIER:intron5/5:c.600+2390G>A::,SYNPR:NM_144642.5:intron_variant:MODIFIER:intron4/4:c.540+2390G>A::					MLT1O (LTR/ERVL-MaLR)	rs6774940	0.4900	0.4679	3451,.		-0.3820			0.01,0.11	0.24							3	ARO-16,SomaticAndTreatment	n/a (AF>5%)	n/a (AF>5%)	n/a (AF>5%)							SYNPR (inh=n/a oe_syn=1.13 oe_mis=0.91 oe_lof=0.45)															na	na
+chr3	70005503	70005503	G	A	0.4706	136	off-target	QUAL=235	MITF	intron	MITF:ENST00000314557:intron_variant:MODIFIER:intron6/8:c.617-103G>A::,MITF:ENST00000314589:intron_variant:MODIFIER:intron7/9:c.890-103G>A::,MITF:ENST00000328528:intron_variant:MODIFIER:intron7/9:c.935-103G>A::,MITF:ENST00000352241:intron_variant:MODIFIER:intron7/9:c.938-103G>A::,MITF:ENST00000394351:intron_variant:MODIFIER:intron6/8:c.635-103G>A::,MITF:ENST00000394355:intron_variant:MODIFIER:intron6/8:c.863-103G>A::,MITF:ENST00000448226:intron_variant:MODIFIER:intron7/9:c.956-103G>A::,MITF:ENST00000472437:intron_variant:MODIFIER:intron7/9:c.782-103G>A::,MITF:ENST00000531774:intron_variant:MODIFIER:intron6/8:c.449-103G>A::	MITF:NM_000248.3:intron_variant:MODIFIER:intron6/8:c.635-103G>A::,MITF:NM_001184967.2:intron_variant:MODIFIER:intron7/9:c.782-103G>A::,MITF:NM_001354604.2:intron_variant:MODIFIER:intron7/9:c.956-103G>A::,MITF:NM_001354605.2:intron_variant:MODIFIER:intron7/9:c.953-103G>A::,MITF:NM_001354606.2:intron_variant:MODIFIER:intron7/9:c.935-103G>A::,MITF:NM_001354607.2:intron_variant:MODIFIER:intron8/10:c.887-103G>A::,MITF:NM_001354608.2:intron_variant:MODIFIER:intron8/10:c.782-103G>A::,MITF:NM_006722.2:intron_variant:MODIFIER:intron7/9:c.935-103G>A::,MITF:NM_198158.3:intron_variant:MODIFIER:intron6/8:c.617-103G>A::,MITF:NM_198159.3:intron_variant:MODIFIER:intron7/9:c.938-103G>A::,MITF:NM_198177.3:intron_variant:MODIFIER:intron7/9:c.890-103G>A::,MITF:NM_198178.3:intron_variant:MODIFIER:intron6/8:c.449-103G>A::		156845 [GENE=MITF PHENOS=COMMAD syndrome,617306,Autosomal recessive/Melanoma,cutaneous malignant,susceptibility to,8,614456/Waardenburg syndrome,type 2A,193510,Autosomal dominant/Waardenburg syndrome/ocular albinism,digenic,103470/Tietz albinism-deafness syndrome,103500,Autosomal dominant];				rs915405532		0.0001	0,.		0.5050			0.07,0.20	7.28							0		0	0	0 / 0							MITF (inh=AR+AD oe_syn=0.96 oe_mis=0.77 oe_lof=0.13)															1	0
+chr3	70014091	70014091	G	A	0.4763	1390		QUAL=255	MITF	missense	MITF:ENST00000314557:missense_variant:MODERATE:exon9/9:c.934G>A:p.Glu312Lys:PF11851 [Domain of unknown function (DUF3371)],MITF:ENST00000314589:missense_variant:MODERATE:exon10/10:c.1207G>A:p.Glu403Lys:PF11851 [Domain of unknown function (DUF3371)],MITF:ENST00000328528:missense_variant:MODERATE:exon10/10:c.1252G>A:p.Glu418Lys:PF11851 [Domain of unknown function (DUF3371)],MITF:ENST00000352241:missense_variant:MODERATE:exon10/10:c.1255G>A:p.Glu419Lys:PF11851 [Domain of unknown function (DUF3371)],MITF:ENST00000394351:missense_variant:MODERATE:exon9/9:c.952G>A:p.Glu318Lys:PF11851 [Domain of unknown function (DUF3371)],MITF:ENST00000394355:missense_variant:MODERATE:exon9/9:c.1180G>A:p.Glu394Lys:PF11851 [Domain of unknown function (DUF3371)],MITF:ENST00000448226:missense_variant:MODERATE:exon10/10:c.1273G>A:p.Glu425Lys:PF11851 [Domain of unknown function (DUF3371)],MITF:ENST00000472437:missense_variant:MODERATE:exon10/10:c.1099G>A:p.Glu367Lys:PF11851 [Domain of unknown function (DUF3371)],MITF:ENST00000531774:missense_variant:MODERATE:exon9/9:c.766G>A:p.Glu256Lys:PF11851 [Domain of unknown function (DUF3371)]	MITF:NM_000248.3:missense_variant:MODERATE:exon9/9:c.952G>A:p.Glu318Lys:,MITF:NM_001184967.2:missense_variant:MODERATE:exon10/10:c.1099G>A:p.Glu367Lys:,MITF:NM_001354604.2:missense_variant:MODERATE:exon10/10:c.1273G>A:p.Glu425Lys:,MITF:NM_001354605.2:missense_variant:MODERATE:exon10/10:c.1270G>A:p.Glu424Lys:,MITF:NM_001354606.2:missense_variant:MODERATE:exon10/10:c.1252G>A:p.Glu418Lys:,MITF:NM_001354607.2:missense_variant:MODERATE:exon11/11:c.1204G>A:p.Glu402Lys:,MITF:NM_001354608.2:missense_variant:MODERATE:exon11/11:c.1099G>A:p.Glu367Lys:,MITF:NM_006722.2:missense_variant:MODERATE:exon10/10:c.1252G>A:p.Glu418Lys:,MITF:NM_198158.3:missense_variant:MODERATE:exon9/9:c.934G>A:p.Glu312Lys:,MITF:NM_198159.3:missense_variant:MODERATE:exon10/10:c.1255G>A:p.Glu419Lys:,MITF:NM_198177.3:missense_variant:MODERATE:exon10/10:c.1207G>A:p.Glu403Lys:,MITF:NM_198178.3:missense_variant:MODERATE:exon9/9:c.766G>A:p.Glu256Lys:		156845 [GENE=MITF PHENOS=COMMAD syndrome,617306,Autosomal recessive/Melanoma,cutaneous malignant,susceptibility to,8,614456/Waardenburg syndrome,type 2A,193510,Autosomal dominant/Waardenburg syndrome/ocular albinism,digenic,103470/Tietz albinism-deafness syndrome,103500,Autosomal dominant];	29792 [conflicting interpretations of pathogenicity DISEASE=Hereditary cancer-predisposing syndrome,Tietz syndrome,Waardenburg syndrome type 2A,Cutaneous malignant melanoma 8,not specified,not provided];	CM119995 [CLASS=DFP MUT=ALT PHEN="Melanoma / renal cell carcinoma predisposition to" GENE=MITF];		rs149617956	0.0008	0.0014	0,.	0.0006,0.0005,0.0000,0.0025,0.0000	9.8730	D(0.03),D(0.03),D(0.03),D(0.04),D(0.03),D(0.04),D(0.04),D(0.03),D(0.03)	P(0.84),D(0.94),P(0.89),P(0.85),P(0.80),P(0.80),P(0.88),P(0.90),D(0.93)	1.00,0.99	29.40	0.44				-0.0782	0.9275	1	SomaticAndTreatment	0	53	0 / 14	4	"[4] aharmes1 02.09.2019%0Asegregiert moderat, 2-fach erhöhtes Risiko für Melanom "					MITF (inh=AR+AD oe_syn=0.96 oe_mis=0.77 oe_lof=0.13)									chr3_70014091_70014091_G_A	known in: CANCER-PR	Act	ENST00000394351	MITF	Missense	1	0

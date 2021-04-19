@@ -6,18 +6,18 @@
 #include "GUIHelper.h"
 
 
-TumorOnlyReportDialog::TumorOnlyReportDialog(const VariantList& variants, TumorOnlyReportWorkerConfig& config, QWidget *parent) :
-	QDialog(parent),
-	ui(new Ui::TumorOnlyReportDialog),
-	config_(config),
-	variants_(variants)
+TumorOnlyReportDialog::TumorOnlyReportDialog(const VariantList& variants, TumorOnlyReportWorkerConfig& config, QWidget *parent)
+	: QDialog(parent)
+	, ui(new Ui::TumorOnlyReportDialog)
+	, config_(config)
+	, variants_(variants)
 {
 	ui->setupUi(this);
 
 	connect( this, SIGNAL(accepted()), this, SLOT(writeBackSettings()) );
 	connect( ui->snvs, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(rightClickMenu(QPoint)) );
 
-	if(!config_.target_file.isEmpty())
+	if(config_.roi.isValid())
 	{
 		ui->include_cov_per_gap->setEnabled(true);
 		ui->include_cov_per_gap->setChecked(true);
@@ -70,9 +70,6 @@ TumorOnlyReportDialog::TumorOnlyReportDialog(const VariantList& variants, TumorO
 
 	}
 	GUIHelper::resizeTableCells(ui->snvs);
-
-
-
 }
 
 TumorOnlyReportDialog::~TumorOnlyReportDialog()

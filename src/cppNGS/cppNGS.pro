@@ -72,7 +72,8 @@ SOURCES += BedFile.cpp \
     SomaticVariantInterpreter.cpp \
     VariantType.cpp \
     SomaticCnvInterpreter.cpp \
-    PrsTable.cpp
+    PrsTable.cpp \
+    RtfDocument.cpp
 
 HEADERS += BedFile.h \
     Chromosome.h \
@@ -115,7 +116,8 @@ HEADERS += BedFile.h \
     SomaticVariantInterpreter.h \
     VariantType.h \
     SomaticCnvInterpreter.h \
-    PrsTable.h
+    PrsTable.h \
+    RtfDocument.h
 
 RESOURCES += \
     cppNGS.qrc

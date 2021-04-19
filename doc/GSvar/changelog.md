@@ -1,5 +1,8 @@
 # GSvar change log
 
+### 2021_03-XX (XX.04.21)
+- Subpanels are now stored in the NGSD.
+
 ### 2021_03-34 (01.04.21)
 - Report: added PRS z-scores to germline report.
 - Gene tab: added imprinting information.

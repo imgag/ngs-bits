@@ -1,6 +1,7 @@
 #ifndef RTFDOCUMENT_H
 #define RTFDOCUMENT_H
 
+#include "cppNGS_global.h"
 #include <QByteArray>
 #include <QList>
 #include <tuple>
@@ -12,7 +13,7 @@ typedef QByteArray RtfSourceCode;
  * RTF TEXT BASE CLASSES *
  *************************/
 ///struct describesformat of raw RTF text (e.g. if text format shall changes within a paragraph or you need text outside a paragraph)
-class RtfText
+class CPPNGSSHARED_EXPORT RtfText
 {
 public:
 	friend class RtfParagraph;
@@ -104,7 +105,7 @@ private:
 
 
 ///struct describing layout of a text paragraph, all values in twips
-class RtfParagraph : public RtfText
+class CPPNGSSHARED_EXPORT RtfParagraph : public RtfText
 {
 public:
 	RtfParagraph()
@@ -193,7 +194,7 @@ private:
 	int line_spacing_ = 0;
 };
 
-class RtfDocument
+class CPPNGSSHARED_EXPORT RtfDocument
 {
 public:
 	///Constructor initializes class using suggestive values for the document
@@ -290,7 +291,7 @@ private:
 /**************************************
  * CLASSES FOR RTF CELL/ROW AND TABLE *
  **************************************/
-class RtfTableCell
+class CPPNGSSHARED_EXPORT RtfTableCell
 {
 	friend class RtfTableRow;
 
@@ -371,7 +372,7 @@ private:
 	int background_color_ = 0;
 };
 
-class RtfTableRow
+class CPPNGSSHARED_EXPORT RtfTableRow
 {
 public:
 	///Default constructor creates empty instance, cells can be added later
@@ -468,7 +469,7 @@ private:
 };
 
 
-class RtfTable
+class CPPNGSSHARED_EXPORT RtfTable
 {
 public:
 	RtfTable();

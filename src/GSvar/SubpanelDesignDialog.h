@@ -1,14 +1,10 @@
 #ifndef SUBPANELDESIGNDIALOG_H
 #define SUBPANELDESIGNDIALOG_H
 
-#include <QDialog>
 #include <QCompleter>
 #include "BedFile.h"
 #include "GeneSet.h"
-
-namespace Ui {
-class SubpanelDesignDialog;
-}
+#include "ui_SubpanelDesignDialog.h"
 
 class SubpanelDesignDialog
 	: public QDialog
@@ -16,13 +12,12 @@ class SubpanelDesignDialog
 	Q_OBJECT
 
 public:
-	explicit SubpanelDesignDialog(QWidget *parent = 0);
-	~SubpanelDesignDialog();
+	SubpanelDesignDialog(QWidget *parent = 0);
 
 	///Sets the gene list
-	void setGenes(const GeneSet& genes);
+	void setGenes(const GeneSet& genes_);
 
-	///Returns the last created subpane name (or an empty string if not subpanel was designed).
+	///Returns the last created sub-panel name (or an empty string if not subpanel was designed).
 	QString lastCreatedSubPanel();
 
 protected slots:
@@ -31,30 +26,29 @@ protected slots:
 	void disableStoreButton();
 	void importFromExistingSubpanel();
 
-private:
-	QStringList subpanelList();
+protected:
+	QString getName(bool with_suffix) const;
+
 	void createSubpanelCompleter();
-	QString getBedFilename() const;
-	QString getBedFilenameArchive() const;
-	QString getBedSuffix() const;
 
 	void clearMessages();
 	void addMessage(QString text, bool is_error, bool update_gui);
 	bool errorMessagesPresent();
 
+private:
+	Ui::SubpanelDesignDialog ui_;
 	struct Message
 	{
 		QString text;
 		bool is_error;
 	};
-	QList<Message> messages;
-	Ui::SubpanelDesignDialog* ui;
-	QCompleter* completer;
-	GeneSet genes;
-	BedFile regions;
-	QString roi_file;
-	QString gene_file;
-	QString last_created_subpanel;
+	QStringList subpanel_names_;
+	QList<Message> messages_;
+	QCompleter* completer_;
+	GeneSet genes_;
+	BedFile regions_;
+	QString last_created_subpanel_;
+
 };
 
 #endif // SUBPANELDESIGNDIALOG_H
