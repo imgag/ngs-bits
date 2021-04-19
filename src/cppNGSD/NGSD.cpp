@@ -2314,6 +2314,14 @@ void NGSD::init(QString password)
 	}
 }
 
+void NGSD::reinitializeStaticVariables()
+{
+	//re-execute functions with dummy data for reinitilization
+	genesOverlapping("chr1",1, 2, 0, true);
+	genesOverlappingByExon("chr1", 1, 2, 0, true);
+	approvedGeneNames(true);
+}
+
 QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi)
 {
 	QMap<QString, QString> out;
@@ -3922,9 +3930,11 @@ Phenotype NGSD::phenotypeByAccession(const QByteArray& accession, bool throw_on_
 	return cache[accession];
 }
 
-const GeneSet& NGSD::approvedGeneNames()
+const GeneSet& NGSD::approvedGeneNames(bool reinitialize)
 {
 	static GeneSet output;
+
+	if(reinitialize) output.clear();
 
 	if (output.count()==0)
 	{
@@ -3979,11 +3989,18 @@ bool NGSD::addPreferredTranscript(QByteArray transcript_name)
 }
 
 
-GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend)
+GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend, bool reinitialize)
 {
 	//init static data (load gene regions file from NGSD to memory)
 	static BedFile bed;
 	static ChromosomalIndex<BedFile> index(bed);
+
+	if(reinitialize)
+	{
+		bed.clear();
+		index.createIndex();
+	}
+
 	if (bed.count()==0)
 	{
 		//add transcripts
@@ -4009,11 +4026,18 @@ GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int ex
 	return genes;
 }
 
-GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend)
+GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend, bool reinitialize)
 {
 	//init static data (load gene regions file from NGSD to memory)
 	static BedFile bed;
 	static ChromosomalIndex<BedFile> index(bed);
+
+	if(reinitialize)
+	{
+		bed.clear();
+		index.createIndex();
+	}
+
 	if (bed.count()==0)
 	{
 		SqlQuery query = getQuery();

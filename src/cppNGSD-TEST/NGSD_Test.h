@@ -1949,6 +1949,8 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
 
+		db.reinitializeStaticVariables();
+
 		VariantList vl;
 		vl.load(TESTDATA("data_in/tumor_only.GSvar"));
 
@@ -1973,7 +1975,6 @@ private slots:
 		BedFile tum_only_roi_filter;
 		tum_only_roi_filter.load(TESTDATA("data_in/tumor_only_target_region.bed"));
 		config.roi.regions = tum_only_roi_filter;
-
 		config.bam_file = TESTDATA("data_in/tumor_only.bam");
 		config.include_coverage_per_gap = true;
 		config.include_exon_number_per_gap = true;
@@ -1985,6 +1986,7 @@ private slots:
 		report_worker.writeRtf("out/tumor_only_report.rtf");
 
 		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QDate::currentDate().toString("dd.MM.yyyy").toUtf8())); //today's date
+		REMOVE_LINES("out/tumor_only_report.rtf", QRegExp(QCoreApplication::applicationName().toUtf8())); //application name and version
 
 		COMPARE_FILES("out/tumor_only_report.rtf", TESTDATA("data_out/tumor_only_report.rtf"));
 	}
