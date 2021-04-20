@@ -162,7 +162,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system`
   `name_manufacturer` VARCHAR(100) NOT NULL,
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
-  `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)') NOT NULL,
+  `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)', 'cfDNA') NOT NULL,
   `shotgun` TINYINT(1) NOT NULL,
   `umi_type` ENUM('n/a','HaloPlex HS','SureSelect HS','ThruPLEX','Safe-SeqS','MIPs','QIAseq','IDT-UDI-UMI','IDT-xGen-Prism') NOT NULL DEFAULT 'n/a',
   `target_file` VARCHAR(255) NULL DEFAULT NULL COMMENT 'filename of sub-panel BED file relative to the megSAP enrichment folder.',
@@ -2027,6 +2027,41 @@ INDEX(`created_by`),
 INDEX(`created_date`),
 INDEX(`archived`),
 CONSTRAINT `subpanels_created_by_user`
+  FOREIGN KEY (`created_by`)
+  REFERENCES `user` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `cfdna_panels`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `cfdna_panels`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `tumor_id` INT(11) NOT NULL,
+  `cfdna_id` INT(11) DEFAULT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `created_date` DATE NOT NULL,
+  `bed` MEDIUMTEXT NOT NULL,
+  `vcf` MEDIUMTEXT NOT NULL,
+PRIMARY KEY (`id`),
+INDEX(`created_by`),
+INDEX(`created_date`),
+INDEX(`tumor_id`),
+CONSTRAINT `cfdna_panels_tumor_id`
+  FOREIGN KEY (`tumor_id`)
+  REFERENCES `processed_sample` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `cfdna_panels_cfdna_id`
+  FOREIGN KEY (`cfdna_id`)
+  REFERENCES `processed_sample` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `cfdna_panels_created_by_user`
   FOREIGN KEY (`created_by`)
   REFERENCES `user` (`id`)
   ON DELETE NO ACTION
