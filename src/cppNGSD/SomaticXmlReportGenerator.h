@@ -27,6 +27,10 @@ struct CPPNGSDSHARED_EXPORT SomaticXmlReportGeneratorData
 	double tumor_mutation_burden;
 	double mantis_msi;
 
+	//processing system information
+	BedFile processing_system_roi;
+	GeneSet processing_system_genes;
+
 	//Check whether all neccessary data is set up consistently
 	void check() const;
 };

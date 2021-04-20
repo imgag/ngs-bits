@@ -126,9 +126,8 @@ RtfTable SomaticReportHelper::billingTable()
 
 	table.addRow(RtfTableRow({"#Gene", "OMIM"}, {doc_.maxWidth()/2, doc_.maxWidth()/2}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader() );
 
-	BedFile target;
-	target.load(processing_system_data_.target_file);
-	target.sort();
+	int sys_id = db_.processingSystemIdFromProcessedSample(settings_.tumor_ps);
+	BedFile target = db_.processingSystemRegions(sys_id);
 	target.merge();
 
 	BedFile ebm_genes_target = db_.genesToRegions(ebm_genes_,Transcript::SOURCE::ENSEMBL,"gene");
@@ -248,17 +247,11 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	tumor_qcml_data_ = db_.getQCData(db_.processedSampleId(settings_.tumor_ps));
 	normal_qcml_data_ = db_.getQCData(db_.processedSampleId(settings_.normal_ps));
 
-	processing_system_data_ = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(settings_.tumor_ps));
-
-	if(QFile::exists(processing_system_data_.target_gene_file))
-	{
-		 target_genes_ = GeneSet::createFromFile(processing_system_data_.target_gene_file);
-		 target_genes_ = db_.genesToApproved(target_genes_,true);
-	}
-	else
-	{
-		THROW(FileAccessException, "Could not access gene list file " + processing_system_data_.target_gene_file + " in SomaticReportHelper::SomaticReportHelper");
-	}
+	//load processing system data
+	int sys_id = db_.processingSystemIdFromProcessedSample(settings_.tumor_ps);
+	processing_system_data_ = db_.getProcessingSystemData(sys_id);
+	target_genes_ = db_.processingSystemGenes(sys_id);
+	target_genes_ = db_.genesToApproved(target_genes_,true);
 
 	//load disease details from NGSD
 	QStringList tmp;
@@ -1480,6 +1473,11 @@ void SomaticReportHelper::storeXML(QString file_name)
 {
 	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(germline_vl_, settings_);
 	SomaticXmlReportGeneratorData data(settings_, somatic_vl_, som_var_in_normal, cnvs_);
+
+	int sys_id = db_.processingSystemIdFromProcessedSample(settings_.tumor_ps);
+	data.processing_system_roi = db_.processingSystemRegions(sys_id);
+	data.processing_system_genes = db_.processingSystemGenes(sys_id);
+
 	data.tumor_content_histology = histol_tumor_fraction_ / 100.; //is stored as double between 0 and 1, NGSD contains percentages
 	data.tumor_content_snvs = getTumorContentBySNVs() / 100; //is stored as a double between 0 and 1, QCML file contains percentages
 	data.tumor_content_clonality = getCnvMaxTumorClonality(cnvs_) ;

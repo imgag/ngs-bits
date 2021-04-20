@@ -278,9 +278,6 @@ struct CPPNGSDSHARED_EXPORT ProcessingSystemData
 {
 	QString name;
 	QString name_short;
-	QString target_file;
-	QString target_gene_file; //Text file with one genes in target region (one gene per line)
-	QString target_amplicon_file; //amplicon file of target region
 	QString adapter1_p5;
 	QString adapter2_p7;
 	bool shotgun;
@@ -673,8 +670,12 @@ public:
 	int processingSystemIdFromProcessedSample(QString ps_name);
 	///Returns the processing system information for a processed sample.
 	ProcessingSystemData getProcessingSystemData(int sys_id);
-	///Returns all processing systems (long name) and the corresponding target regions.
-	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi);
+	///Returns the processing system target region file.
+	BedFile processingSystemRegions(int sys_id);
+	///Returns the processing system amplicon region file.
+	BedFile processingSystemAmplicons(int sys_id);
+	///Returns the processing system genes.
+	GeneSet processingSystemGenes(int sys_id);
 
 	///Retuns the list of sub-panel names.
 	QStringList subPanelList(bool archived);
@@ -801,9 +802,6 @@ public:
 	///Returns quality metric values for a given metric for all samples of a given processing system
 	QVector<double> cnvCallsetMetrics(QString processing_system_id, QString metric_name);
 
-	///Returns the target region folder.
-	static QString getTargetFilePath();
-
 	///Parses OBO file and updates QC term data
 	void updateQC(QString obo_file, bool debug=false);
 
@@ -825,6 +823,9 @@ protected:
 
 	///Returns the maxiumn allele frequency of a variant.
 	static double maxAlleleFrequency(const Variant& v, QList<int> af_column_index);
+
+	///Returns the target region folder.
+	static QString getTargetFilePath();
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;

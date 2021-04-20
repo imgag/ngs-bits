@@ -1533,19 +1533,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	//target region
 	if (ui_.filters->targetRegion().isValid())
 	{
-		//store target region locally
-		QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
-		if(default_paths.isEmpty())
-		{
-			THROW(Exception, "No local application data path was found!");
-		}
-		QString local_roi_folder = default_paths[0] + QDir::separator() + "target_regions" + QDir::separator();
-		if(!QFile::exists(local_roi_folder) && !QDir().mkpath(local_roi_folder))
-		{
-			THROW(ProgrammingException, "Could not create application target region folder '" + local_roi_folder + "'!");
-		}
-
-		QString roi_file = local_roi_folder + ui_.filters->targetRegion().name + ".bed";
+		QString roi_file = GSvarHelper::localRoiFolder() + ui_.filters->targetRegion().name + ".bed";
 		ui_.filters->targetRegion().regions.store(roi_file);
 
 		dlg.addFile(FileLocation{"target region (selected in GSvar)", PathType::OTHER, roi_file, true}, true);
@@ -1555,11 +1543,14 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	try
 	{
 		NGSD db;
-		ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(germlineReportSample()));
-		QString amplicons = system_data.target_amplicon_file;
-		if (amplicons!="")
+		int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
+		BedFile ampilicons = db.processingSystemAmplicons(sys_id);
+		if (!ampilicons.isEmpty())
 		{
-			dlg.addFile(FileLocation{"amplicons track (of processing system)", PathType::OTHER, amplicons, true}, true);
+			QString amp_file = GSvarHelper::localRoiFolder() + db.getProcessingSystemData(sys_id).name_short + "_amplicons.bed";
+			ampilicons.store(amp_file);
+
+			dlg.addFile(FileLocation{"amplicons track (of processing system)", PathType::OTHER, amp_file, true}, true);
 		}
 	}
 	catch(...) {} //Nothing to do here
@@ -3258,6 +3249,7 @@ void MainWindow::generateReportGermline()
 	if (prs_files.count()==1) prs_table.load(prs_files[0].filename);
 
 	GermlineReportGeneratorData data(ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
+	data.processing_system_roi = db.processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_name));
 	if (ui_.filters->targetRegion().isValid())
 	{
 		data.roi = ui_.filters->targetRegion();
@@ -4026,28 +4018,23 @@ void MainWindow::on_actionGapsLookup_triggered()
 		QString ps_id = db.processedSampleId(variants_.mainSampleName());
 		if (ps_id!="")
 		{
-			QString sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=:0", true, ps_id).toString();
-			QString roi = db.getProcessingSystemData(sys_id.toInt()).target_file;
-			if (roi!="")
+			int sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=:0", true, ps_id).toInt();
+			BedFile sys_regions = db.processingSystemRegions(sys_id);
+			if (!sys_regions.isEmpty())
 			{
 				BedFile region = db.geneToRegions(gene.toLatin1(), Transcript::ENSEMBL, "gene");
 				region.merge();
-
 				if (region.count()==0)
 				{
-					QMessageBox::warning(this, "Precalculated gaps for gene", "Error:\nCould not convert gene symbol '" + gene + "' to a target region.\nIs this a HGNC-approved gene name with associated transcripts?");
+					QMessageBox::warning(this, "Precalculated gaps for gene", "Error:\nCould not convert gene symbol '" + gene + "' to a genomic region.\nIs this a HGNC-approved gene name with associated transcripts?");
 					return;
 				}
-				else
+
+				region.intersect(sys_regions);
+				if (region.count()==0)
 				{
-					BedFile sys_regions;
-					sys_regions.load(roi);
-					region.intersect(sys_regions);
-					if (region.count()==0)
-					{
-						QMessageBox::warning(this, "Precalculated gaps for gene", "Error:\nGene '" + gene + "' locus does not overlap with sample target region!");
-						return;
-					}
+					QMessageBox::warning(this, "Precalculated gaps for gene", "Error:\nGene '" + gene + "' locus does not overlap with sample target region!");
+					return;
 				}
 			}
 		}
@@ -5324,12 +5311,12 @@ void MainWindow::storeCurrentVariantList()
 		catch(Exception& e)
 		{
 			QApplication::restoreOverrideCursor();
-			QMessageBox::warning(this, "Error stroring GSvar file", "The GSvar file could not be stored:\n" + e.message());
+			QMessageBox::warning(this, "Error storing GSvar file", "The GSvar file could not be stored:\n" + e.message());
 		}
 	}
 	else
 	{
-		//TODO GSvarServer: add a end-point that updates the GSvar file - input is variant, column name and value to use.
+		//TODO GSvarServer: add a end-point that updates the GSvar file - input is: variant, column name and value to use
 	}
 
 	QApplication::restoreOverrideCursor();
