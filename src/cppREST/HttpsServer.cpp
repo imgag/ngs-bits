@@ -34,7 +34,7 @@ HttpsServer::HttpsServer(quint16 port)
     QSslKey key(&keyFile, QSsl::Rsa);
 
 	server_ = new SslServer(this);
-	connect(server_, SIGNAL(securelyConnected()), this, SLOT(handleConnection()));
+//	connect(server_, SIGNAL(securelyConnected()), this, SLOT(handleConnection()));
 
 	QSslConfiguration config = server_->getSslConfiguration();
     config.setLocalCertificate(cert);

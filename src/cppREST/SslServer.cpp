@@ -27,26 +27,31 @@ QSslSocket *SslServer::nextPendingConnection()
 
 void SslServer::incomingConnection(qintptr socket)
 {
-	QSslSocket *ssl_socket = new QSslSocket();
+//	QSslSocket *ssl_socket = new QSslSocket();
 
-	if (!ssl_socket)
-	{
-		THROW(Exception, "Could not create a socket");
-		return;
-	}
-	ssl_socket->setSslConfiguration(current_ssl_configuration_);
+//	if (!ssl_socket)
+//	{
+//		THROW(Exception, "Could not create a socket");
+//		return;
+//	}
+//	ssl_socket->setSslConfiguration(current_ssl_configuration_);
 
-	if (!ssl_socket->setSocketDescriptor(socket))
-	{
-		THROW(Exception, "Could not set a socket descriptor");
-		delete ssl_socket;
-		return;
-	}
+//	if (!ssl_socket->setSocketDescriptor(socket))
+//	{
+//		THROW(Exception, "Could not set a socket descriptor");
+//		delete ssl_socket;
+//		return;
+//	}
 
-	typedef void (QSslSocket::* sslFailed)(const QList<QSslError> &);
-	connect(ssl_socket, static_cast<sslFailed>(&QSslSocket::sslErrors), this, &SslServer::sslFailed);
-	connect(ssl_socket, &QSslSocket::peerVerifyError, this, &SslServer::verificationFailed);
-	connect(ssl_socket, &QSslSocket::encrypted, this, &SslServer::securelyConnected);
-	addPendingConnection(ssl_socket);
-	ssl_socket->startServerEncryption();
+//	typedef void (QSslSocket::* sslFailed)(const QList<QSslError> &);
+//	connect(ssl_socket, static_cast<sslFailed>(&QSslSocket::sslErrors), this, &SslServer::sslFailed, Qt::QueuedConnection);
+//	connect(ssl_socket, &QSslSocket::peerVerifyError, this, &SslServer::verificationFailed, Qt::QueuedConnection);
+//	connect(ssl_socket, &QSslSocket::encrypted, this, &SslServer::securelyConnected, Qt::QueuedConnection);
+//	addPendingConnection(ssl_socket);
+//	ssl_socket->startServerEncryption();
+
+	RequestWorker *request_worker = new RequestWorker(current_ssl_configuration_, socket);
+
+	connect(request_worker, &RequestWorker::finished, request_worker, &QObject::deleteLater);
+	request_worker->start();
 }
