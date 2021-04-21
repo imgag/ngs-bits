@@ -690,7 +690,7 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 	return output;
 }
 
-BedFile NGSD::processingSystemRegions(int sys_id) //TODO GSvarServer - add end-point for this
+BedFile NGSD::processingSystemRegions(int sys_id)
 {
 	BedFile output;
 
@@ -703,7 +703,7 @@ BedFile NGSD::processingSystemRegions(int sys_id) //TODO GSvarServer - add end-p
 	return output;
 }
 
-BedFile NGSD::processingSystemAmplicons(int sys_id) //TODO GSvarServer - add end-point for this
+BedFile NGSD::processingSystemAmplicons(int sys_id)
 {
 	BedFile output;
 
@@ -720,7 +720,7 @@ BedFile NGSD::processingSystemAmplicons(int sys_id) //TODO GSvarServer - add end
 	return output;
 }
 
-GeneSet NGSD::processingSystemGenes(int sys_id) //TODO GSvarServer - add end-point for this
+GeneSet NGSD::processingSystemGenes(int sys_id)
 {
 	GeneSet output;
 

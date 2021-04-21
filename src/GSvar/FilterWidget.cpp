@@ -14,6 +14,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include "LoginManager.h"
+#include "GlobalServiceProvider.h"
 
 FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)
@@ -86,7 +87,7 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 	box->addItem("none", "");
 	box->insertSeparator(box->count());
 
-	if (Settings::boolean("NGSD_enabled"))
+	if (GlobalServiceProvider::database().enabled())
 	{
 		NGSD db;
 
@@ -150,9 +151,9 @@ void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
 
 		NGSD db;
 		int sys_id = db.processingSystemId(roi.name);
-		roi.regions = db.processingSystemRegions(sys_id);
+		roi.regions = GlobalServiceProvider::database().processingSystemRegions(sys_id);
 		roi.regions.merge();
-		roi.genes = db.processingSystemGenes(sys_id);
+		roi.genes = GlobalServiceProvider::database().processingSystemGenes(sys_id);
 	}
 	else //local target regions
 	{

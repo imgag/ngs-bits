@@ -1,5 +1,6 @@
 #include <QDebug>
 #include "NGSD.h"
+#include "GlobalServiceProvider.h"
 #include "SomaticRnaReport.h"
 #include "SomaticReportHelper.h"
 #include "TSVFileStream.h"
@@ -60,7 +61,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 
 	//get gene list from NGSD
 	int sys_id = db_.processingSystemIdFromProcessedSample(dna_ps_tumor_name_);
-	target_genes_ = db_.processingSystemGenes(sys_id);
+	target_genes_ = GlobalServiceProvider::database().processingSystemGenes(sys_id);
 	target_genes_ = db_.genesToApproved(target_genes_, true);
 }
 

@@ -95,7 +95,8 @@ SOURCES += main.cpp\
     SomaticVariantInterpreterWidget.cpp \
     AlleleBalanceCalculator.cpp \
     ExpressionDataWidget.cpp \
-    GapClosingDialog.cpp
+    GapClosingDialog.cpp \
+    DatabaseServiceLocal.cpp
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
@@ -184,7 +185,9 @@ HEADERS += MainWindow.h \
     SomaticVariantInterpreterWidget.h \
     AlleleBalanceCalculator.h \
     ExpressionDataWidget.h \
-    GapClosingDialog.h
+    GapClosingDialog.h \
+    DatabaseService.h \
+    DatabaseServiceLocal.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \

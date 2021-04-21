@@ -8,12 +8,12 @@
 #include "FileLocation.h"
 #include "FileLocationList.h"
 
-class CPPNGSSHARED_EXPORT FileLocationProvider
+//Analysis file location provider interface for local/client-server mode.
+class CPPNGSSHARED_EXPORT FileLocationProvider //TODO move to GSvar project!
 {
 public:
-	virtual ~FileLocationProvider(){}
 
-	//Returns if the analysis is locally available (and not on server).
+	//Returns if the analysis is locally available (not in client-server mode).
 	virtual bool isLocal() const = 0;
 
 	//############################## analysis-specific files ##############################

@@ -4,17 +4,15 @@
 #include "Helper.h"
 #include "TSVFileStream.h"
 #include "NGSHelper.h"
-#include "FilterWidget.h"
 #include "ReportWorker.h"
 #include "SomaticReportSettings.h"
 #include "NGSD.h"
-#include "LoginManager.h"
 #include "XmlHelper.h"
 #include "GenLabDB.h"
 #include "GSvarHelper.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticVariantInterpreter.h"
-
+#include "GlobalServiceProvider.h"
 #include <cmath>
 #include <QFileInfo>
 #include <QDir>
@@ -25,8 +23,6 @@
 #include <QCollator>
 #include <QMainWindow>
 #include <QXmlStreamWriter>
-
-
 
 bool SomaticReportHelper::checkGermlineSNVFile(const VariantList &germline_variants)
 {
@@ -127,7 +123,7 @@ RtfTable SomaticReportHelper::billingTable()
 	table.addRow(RtfTableRow({"#Gene", "OMIM"}, {doc_.maxWidth()/2, doc_.maxWidth()/2}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader() );
 
 	int sys_id = db_.processingSystemIdFromProcessedSample(settings_.tumor_ps);
-	BedFile target = db_.processingSystemRegions(sys_id);
+	BedFile target = GlobalServiceProvider::database().processingSystemRegions(sys_id);
 	target.merge();
 
 	BedFile ebm_genes_target = db_.genesToRegions(ebm_genes_,Transcript::SOURCE::ENSEMBL,"gene");
@@ -250,7 +246,7 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	//load processing system data
 	int sys_id = db_.processingSystemIdFromProcessedSample(settings_.tumor_ps);
 	processing_system_data_ = db_.getProcessingSystemData(sys_id);
-	target_genes_ = db_.processingSystemGenes(sys_id);
+	target_genes_ = GlobalServiceProvider::database().processingSystemGenes(sys_id);
 	target_genes_ = db_.genesToApproved(target_genes_,true);
 
 	//load disease details from NGSD
@@ -1475,8 +1471,8 @@ void SomaticReportHelper::storeXML(QString file_name)
 	SomaticXmlReportGeneratorData data(settings_, somatic_vl_, som_var_in_normal, cnvs_);
 
 	int sys_id = db_.processingSystemIdFromProcessedSample(settings_.tumor_ps);
-	data.processing_system_roi = db_.processingSystemRegions(sys_id);
-	data.processing_system_genes = db_.processingSystemGenes(sys_id);
+	data.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(sys_id);
+	data.processing_system_genes = GlobalServiceProvider::database().processingSystemGenes(sys_id);
 
 	data.tumor_content_histology = histol_tumor_fraction_ / 100.; //is stored as double between 0 and 1, NGSD contains percentages
 	data.tumor_content_snvs = getTumorContentBySNVs() / 100; //is stored as a double between 0 and 1, QCML file contains percentages
