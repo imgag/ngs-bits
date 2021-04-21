@@ -51,7 +51,6 @@ SOURCES += main.cpp\
     AnalysisStatusWidget.cpp \
     VariantTable.cpp \
     SampleSearchWidget.cpp \
-    SomaticReportHelper.cpp \
     SampleRelationDialog.cpp \
     ProcessedSampleSelector.cpp \
     FilterWidgetCNV.cpp \
@@ -141,7 +140,6 @@ HEADERS += MainWindow.h \
     AnalysisStatusWidget.h \
     VariantTable.h \
     SampleSearchWidget.h \
-    SomaticReportHelper.h \
     SampleRelationDialog.h \
     ProcessedSampleSelector.h \
     FilterWidgetCNV.h \

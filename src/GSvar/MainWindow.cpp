@@ -56,7 +56,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "TSVFileStream.h"
 #include "LovdUploadDialog.h"
 #include "OntologyTermCollection.h"
-#include "SomaticReportHelper.h"
 #include "SvWidget.h"
 #include "VariantWidget.h"
 #include "SomaticReportConfigurationWidget.h"
@@ -118,6 +117,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GapClosingDialog.h"
 #include "XmlHelper.h"
 #include "GermlineReportGenerator.h"
+#include "SomaticReportHelper.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -2614,7 +2614,6 @@ void MainWindow::checkVariantList(QStringList messages)
 		cols << "somatic_classification_comment";
 		cols << "NGSD_som_vicc_interpretation";
 		cols << "NGSD_som_vicc_comment";
-		cols << "";
 	}
 
 	//check columns
@@ -2679,7 +2678,6 @@ void MainWindow::loadSomaticReportConfig()
 
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;
-	somatic_report_settings_.gsvar_file = filename_;
 	somatic_report_settings_.msi_file = GlobalServiceProvider::fileLocationProvider().getSomaticMsiFile().filename;
 
 	try //load normal sample
@@ -3070,6 +3068,11 @@ void MainWindow::generateReportSomaticRTF()
 
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;
+
+	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions( db.processingSystemIdFromProcessedSample(ps_tumor) );
+	somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor)), true );
+
 
 	//Preselect report settings if not already exists to most common values
 	if(db.somaticReportConfigId(ps_tumor_id, ps_normal_id) == -1)
