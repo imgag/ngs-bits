@@ -146,6 +146,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			<< "s.tumor as is_tumor"
 			<< "s.ffpe as is_ffpe"
 			<< "ps.quality as quality"
+			<< "psa.population as ancestry"
 			<< "sys.name_manufacturer as system_name"
 			<< "sys.name_short as system_name_short"
 			<< "sys.type as system_type"
@@ -163,7 +164,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	tables	<< "sample s"
 			<< "processing_system sys"
 			<< "project p"
-			<< "processed_sample ps LEFT JOIN sequencing_run r ON r.id=ps.sequencing_run_id LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id"; //sequencing_run and diag_status are optional
+			<< "processed_sample ps LEFT JOIN sequencing_run r ON r.id=ps.sequencing_run_id LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id LEFT JOIN processed_sample_ancestry psa ON psa.processed_sample_id=ps.id"; //sequencing_run and diag_status are optional
 
 	QStringList conditions;
 	conditions	<< "ps.sample_id=s.id"
@@ -288,18 +289,12 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY s.name ASC, ps.process_id ASC");
 
 	//add path
-	if(p.add_path)
+	if(!p.add_path.isEmpty())
 	{
-		QString pfolder = Settings::path("projects_folder");
-		int i_psname = output.columnIndex("name");
-		int i_ptype = output.columnIndex("project_type");
-		int i_pname = output.columnIndex("project_name");
-
 		QStringList new_col;
 		for (int r=0; r<output.rowCount(); ++r)
 		{
-			const DBRow& row = output.row(r);
-			new_col << pfolder + row.value(i_ptype) + QDir::separator() + row.value(i_pname) + QDir::separator() + "Sample_" + row.value(i_psname) + QDir::separator();
+			new_col << processedSamplePath(output.row(r).id(), FileLocation::stringToType(p.add_path));
 		}
 		output.addColumn(new_col, "path");
 	}
@@ -517,6 +512,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	}
 	output.processing_input = query.value("processing_input").toString().trimmed();
 	output.molarity = query.value("molarity").toString().trimmed();
+	output.ancestry = getValue("SELECT `population` FROM `processed_sample_ancestry` WHERE `processed_sample_id`=:0", true, processed_sample_id).toString();
 
 	return output;
 
@@ -679,27 +675,65 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 	ProcessingSystemData output;
 
 	SqlQuery query = getQuery();
-	query.exec("SELECT sys.name_manufacturer, sys.name_short, sys.type, sys.target_file, sys.adapter1_p5, sys.adapter2_p7, sys.shotgun, sys.umi_type, g.build FROM processing_system sys, genome g WHERE sys.genome_id=g.id AND sys.id=" + QString::number(sys_id));
+	query.exec("SELECT sys.name_manufacturer, sys.name_short, sys.type, sys.adapter1_p5, sys.adapter2_p7, sys.shotgun, sys.umi_type, g.build FROM processing_system sys, genome g WHERE sys.genome_id=g.id AND sys.id=" + QString::number(sys_id));
 	query.next();
 
 	output.name = query.value(0).toString();
 	output.name_short = query.value(1).toString();
 	output.type = query.value(2).toString();
-	QString rel_path = query.value(3).toString().trimmed();
-	if (rel_path!="")
+	output.adapter1_p5 = query.value(3).toString();
+	output.adapter2_p7 = query.value(4).toString();
+	output.shotgun = query.value(5).toString()=="1";
+	output.umi_type = query.value(6).toString();
+	output.genome = query.value(7).toString();
+
+	return output;
+}
+
+BedFile NGSD::processingSystemRegions(int sys_id) //TODO GSvarServer - add end-point for this
+{
+	BedFile output;
+
+	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
+	if (!rel_path.isEmpty())
 	{
-		output.target_file = getTargetFilePath(false) + rel_path;
+		output.load(getTargetFilePath() + rel_path);
 	}
-	QString target_base = output.target_file.left(output.target_file.length()-4);
-	QString amplicon_file =  target_base + "_amplicons.bed";
-	output.target_amplicon_file = QFile::exists(amplicon_file) ? amplicon_file : "";
-	QString gene_file = target_base + "_genes.txt";
-	output.target_gene_file = QFile::exists(gene_file) ? gene_file : "";
-	output.adapter1_p5 = query.value(4).toString();
-	output.adapter2_p7 = query.value(5).toString();
-	output.shotgun = query.value(6).toString()=="1";
-	output.umi_type = query.value(7).toString();
-	output.genome = query.value(8).toString();
+
+	return output;
+}
+
+BedFile NGSD::processingSystemAmplicons(int sys_id) //TODO GSvarServer - add end-point for this
+{
+	BedFile output;
+
+	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
+	if (!rel_path.isEmpty())
+	{
+		QString amplicon_file = getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_amplicons.bed";
+		if (QFile::exists(amplicon_file))
+		{
+			output.load(amplicon_file);
+		}
+	}
+
+	return output;
+}
+
+GeneSet NGSD::processingSystemGenes(int sys_id) //TODO GSvarServer - add end-point for this
+{
+	GeneSet output;
+
+	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
+	if (!rel_path.isEmpty())
+	{
+		QString gene_file = getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_genes.txt";
+
+		if (QFile::exists(gene_file))
+		{
+			output = GeneSet::createFromFile(gene_file);
+		}
+	}
 
 	return output;
 }
@@ -792,11 +826,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	QString p_type = query.value(1).toString();
 	output += p_type;
 	QString p_name = query.value(2).toString();
-	output += QDir::separator() + p_name + QDir::separator();
-	if (type!=PathType::PROJECT_FOLDER)
-	{
-		output += "Sample_" + ps_name + "/";
-	}
+	output += QDir::separator() + p_name + QDir::separator() + "Sample_" + ps_name + QDir::separator();
 	QString sys_name_short = query.value(3).toString();
 
 	//append file name if requested
@@ -808,12 +838,13 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::BAF) output += ps_name + "_bafs.igv";
 	else if (type==PathType::STRUCTURAL_VARIANTS) output += ps_name + "_manta_var_structural.bedpe";
 	else if (type==PathType::COPY_NUMBER_RAW_DATA) output += ps_name + "_cnvs_clincnv.seg";
-	else if (type!=PathType::SAMPLE_FOLDER && type!=PathType::PROJECT_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
+	else if (type==PathType::COPY_NUMBER_CALLS) output += ps_name + "_cnvs_clincnv.tsv";
+	else if (type==PathType::FUSIONS) output += ps_name + "_var_fusions.tsv";
+	else if (type==PathType::VIRAL) output += ps_name + "_viral.tsv";
+	else if (type==PathType::COUNTS) output += ps_name + "_counts.tsv";
+	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
-	//convert to canonical path
-	output = QFileInfo(output).absoluteFilePath();
-
-	return output;
+	return QFileInfo(output).absoluteFilePath();
 }
 
 QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analysis_type)
@@ -1880,6 +1911,7 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 				type = type.replace(" unsigned", "");
 			}
 			if(type=="text") info.type = TableFieldInfo::TEXT;
+			else if(type=="mediumtext") info.type = TableFieldInfo::TEXT;
 			else if(type=="float") info.type = TableFieldInfo::FLOAT;
 			else if(type=="date") info.type = TableFieldInfo::DATE;
 			else if(type=="datetime") info.type = TableFieldInfo::DATETIME;
@@ -2321,22 +2353,31 @@ void NGSD::init(QString password)
 	}
 }
 
-QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi)
+void NGSD::reinitializeStaticVariables()
 {
-	QMap<QString, QString> out;
+	//re-execute functions with dummy data for reinitilization
+	genesOverlapping("chr1",1, 2, 0, true);
+	genesOverlappingByExon("chr1", 1, 2, 0, true);
+	approvedGeneNames(true);
+}
 
-	//load processing systems
-	SqlQuery query = getQuery();
-	query.exec("SELECT name_manufacturer, target_file FROM processing_system");
-	while(query.next())
-	{
-		QString name = query.value(0).toString();
-		QString roi = query.value(1).toString().trimmed();
-		if (roi=="" && skip_systems_without_roi) continue;
-		out.insert(name, getTargetFilePath(false) + roi);
-	}
+QStringList NGSD::subPanelList(bool archived)
+{
+	return getValues("SELECT name FROM subpanels WHERE archived=" + QString(archived ? "1" : "0") + " ORDER BY name ASC");
+}
 
-	return out;
+BedFile NGSD::subpanelRegions(QString name)
+{
+	QByteArray roi = getValue("SELECT roi FROM subpanels WHERE name=:0", false, name).toByteArray();
+
+	return BedFile::fromText(roi);
+}
+
+GeneSet NGSD::subpanelGenes(QString name)
+{
+	QByteArray genes = getValue("SELECT genes FROM subpanels WHERE name=:0", false, name).toByteArray();
+
+	return GeneSet::createFromText(genes);
 }
 
 QCCollection NGSD::getQCData(const QString& processed_sample_id)
@@ -2848,7 +2889,7 @@ QString NGSD::analysisJobFolder(int job_id)
 	AnalysisJob job = analysisInfo(job_id, true);
 
 	//project path
-	QString output = processedSamplePath(processedSampleId(job.samples[0].name), PathType::PROJECT_FOLDER);
+	QString output = processedSamplePath(processedSampleId(job.samples[0].name), PathType::SAMPLE_FOLDER) + QDir::separator() + ".." + QDir::separator();
 
 	//type
 	QString sample_sep;
@@ -2898,9 +2939,9 @@ QString NGSD::analysisJobFolder(int job_id)
 		output += sample.name;
 		first = false;
 	}
-	output += "/";
+	output += QDir::separator();
 
-	return output;
+	return QFileInfo(output).absoluteFilePath();
 }
 
 QString NGSD::analysisJobGSvarFile(int job_id)
@@ -3034,16 +3075,9 @@ QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString me
 	return output;
 }
 
-QString NGSD::getTargetFilePath(bool subpanels)
+QString NGSD::getTargetFilePath()
 {
-	QString output = Settings::path("data_folder", false) + "enrichment" + QDir::separator();
-
-	if (subpanels)
-	{
-		output += QString("subpanels") + QDir::separator();
-	}
-
-	return output;
+	return Settings::path("data_folder", false) + QDir::separator() + "enrichment" + QDir::separator();
 }
 
 void NGSD::updateQC(QString obo_file, bool debug)
@@ -3917,9 +3951,11 @@ Phenotype NGSD::phenotypeByAccession(const QByteArray& accession, bool throw_on_
 	return cache[accession];
 }
 
-const GeneSet& NGSD::approvedGeneNames()
+const GeneSet& NGSD::approvedGeneNames(bool reinitialize)
 {
 	static GeneSet output;
+
+	if(reinitialize) output.clear();
 
 	if (output.count()==0)
 	{
@@ -3974,11 +4010,18 @@ bool NGSD::addPreferredTranscript(QByteArray transcript_name)
 }
 
 
-GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend)
+GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend, bool reinitialize)
 {
 	//init static data (load gene regions file from NGSD to memory)
 	static BedFile bed;
 	static ChromosomalIndex<BedFile> index(bed);
+
+	if(reinitialize)
+	{
+		bed.clear();
+		index.createIndex();
+	}
+
 	if (bed.count()==0)
 	{
 		//add transcripts
@@ -4004,11 +4047,18 @@ GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int ex
 	return genes;
 }
 
-GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend)
+GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend, bool reinitialize)
 {
 	//init static data (load gene regions file from NGSD to memory)
 	static BedFile bed;
 	static ChromosomalIndex<BedFile> index(bed);
+
+	if(reinitialize)
+	{
+		bed.clear();
+		index.createIndex();
+	}
+
 	if (bed.count()==0)
 	{
 		SqlQuery query = getQuery();
@@ -4988,9 +5038,9 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, const Somatic
 	int id = somaticReportConfigId(t_ps_id, n_ps_id);
 
 	QString target_file = "";
-	if(!config.targetFile().isEmpty())
+	if(!config.targetRegionName().isEmpty())
 	{
-		target_file = QFileInfo(config.targetFile()).fileName(); //store filename without path
+		target_file = QFileInfo(config.targetRegionName()).fileName(); //store filename without path
 	}
 
 	if(id != -1) //delete old report if id exists
@@ -5225,7 +5275,7 @@ SomaticReportConfiguration NGSD::somaticReportConfig(QString t_ps_id, QString n_
 	query.next();
 	output.setCreatedBy(query.value("name").toString());
 	output.setCreatedAt(query.value("created_date").toDateTime());
-	output.setTargetFile(query.value("target_file").toString());
+	output.setTargetRegionName(query.value("target_file").toString());
 
 	output.setTumContentByMaxSNV(query.value("tum_content_max_af").toBool());
 	output.setTumContentByClonality(query.value("tum_content_max_clonality").toBool());
@@ -5366,6 +5416,7 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 	output.symbol_notice = approved.second;
 
 	//get infos from 'gene' table
+	QString gene_id;
 	SqlQuery query = getQuery();
 	query.exec("SELECT * FROM gene WHERE symbol='" + output.symbol + "'");
 	if (query.size()==0)
@@ -5377,6 +5428,7 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 	else
 	{
 		query.next();
+		gene_id = query.value("id").toString();
 		output.name = query.value("name").toString();
 		output.hgnc_id = "HGNC:" + query.value("hgnc_id").toString();
 		output.locus_group = query.value("type").toString();
@@ -5400,6 +5452,27 @@ GeneInfo NGSD::geneInfo(QByteArray symbol)
 		output.oe_mis = query.value(2).isNull() ? "n/a" : QString::number(query.value(2).toDouble(), 'f', 2);
 		output.oe_lof = query.value(3).isNull() ? "n/a" : QString::number(query.value(3).toDouble(), 'f', 2);
 		output.comments = query.value(4).toString();
+	}
+
+	//imprinting info
+	const QMap<QByteArray, ImprintingInfo>& imprinting = NGSHelper::imprintingGenes();
+	if (imprinting.contains(symbol))
+	{
+		output.imprinting_source_allele = imprinting[symbol].source_allele;
+		output.imprinting_status = imprinting[symbol].status;
+	}
+
+	//pseudogene info
+	if (!gene_id.isEmpty())
+	{
+		query.exec("SELECT g.symbol, gps.gene_name FROM gene_pseudogene_relation gps LEFT JOIN gene g ON gps.pseudogene_gene_id=g.id WHERE parent_gene_id="+gene_id);
+		if (query.size()>0)
+		{
+			query.next();
+
+			QString hgnc_symbol = query.value(0).toString().trimmed();
+			output.pseudogenes << (hgnc_symbol.isEmpty() ? query.value(1).toString().split(';').at(1) : hgnc_symbol);
+		}
 	}
 
 	return output;

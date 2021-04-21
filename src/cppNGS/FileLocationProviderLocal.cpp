@@ -39,13 +39,22 @@ FileLocation FileLocationProviderLocal::getAnalysisCnvFile() const
 	if (analysis_type_==SOMATIC_SINGLESAMPLE || analysis_type_==SOMATIC_PAIR)
 	{
 		QString file = base	+ "_clincnv.tsv";
-		return FileLocation{name, PathType::STRUCTURAL_VARIANTS, file, QFile::exists(file)};
+		return FileLocation{name, PathType::COPY_NUMBER_CALLS, file, QFile::exists(file)};
 	}
 	else
 	{
 		QString file = base	+ "_cnvs_clincnv.tsv";
-		return FileLocation{name, PathType::STRUCTURAL_VARIANTS, file, QFile::exists(file)};
+		return FileLocation{name, PathType::COPY_NUMBER_CALLS, file, QFile::exists(file)};
 	}
+}
+
+FileLocation FileLocationProviderLocal::getAnalysisMosaicCnvFile() const
+{
+
+	QString name = QFileInfo(gsvar_file_).baseName();
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_mosaic_cnvs.tsv";
+
+	return FileLocation{name, PathType::COPY_NUMBER_CALLS_MOSAIC, file, QFile::exists(file)};
 }
 
 FileLocation FileLocationProviderLocal::getAnalysisUpdFile() const
@@ -115,6 +124,14 @@ FileLocationList FileLocationProviderLocal::getBafFiles(bool return_if_missing) 
 		FileLocation file = FileLocation{loc.key, PathType::BAF, loc.value + "_bafs.igv", false};
 		addToList(file, output, return_if_missing);
 	}
+
+	if (analysis_type_==SOMATIC_PAIR)
+	{
+		QString name = QFileInfo(gsvar_file_).baseName() + " (somatic)";
+		QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_bafs.igv";
+		addToList( FileLocation{name, PathType::BAF, file, QFile::exists(file)}, output, return_if_missing);
+	}
+
 
 	return output;
 }
@@ -255,7 +272,7 @@ FileLocation FileLocationProviderLocal::getSomaticLowCoverageFile() const
 	if (analysis_type_!=SOMATIC_SINGLESAMPLE && analysis_type_!=SOMATIC_PAIR) THROW(ProgrammingException, "Invalid call of getSomaticLowCoverageFile() on variant list type " + analysisTypeToString(analysis_type_) + "!");
 
 	QString name = QFileInfo(gsvar_file_).baseName();
-	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_stats_lowcov.bed";
+	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_stat_lowcov.bed";
 
 	return FileLocation{name, PathType::LOWCOV_BED, file, QFile::exists(file)};
 }

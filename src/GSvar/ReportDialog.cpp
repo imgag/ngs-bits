@@ -7,7 +7,7 @@
 #include <QMenu>
 
 
-ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, QString target_region, QWidget* parent)
+ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantList& variants, const CnvList& cnvs, const BedpeFile& svs, const TargetRegionInfo& roi, QWidget* parent)
 	: QDialog(parent)
 	, ui_()
 	, ps_(ps)
@@ -15,8 +15,7 @@ ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantLi
 	, variants_(variants)
 	, cnvs_(cnvs)
 	, svs_(svs)
-	, roi_file_(target_region.trimmed())
-	, roi_()
+	, roi_(roi)
 {
 	ui_.setupUi(this);
 	setWindowTitle(windowTitle() + ps);
@@ -24,12 +23,6 @@ ReportDialog::ReportDialog(QString ps, ReportSettings& settings, const VariantLi
 	connect(ui_.meta_data_check_btn, SIGNAL(clicked(bool)), this, SLOT(checkMetaData()));
 	connect(ui_.details_cov, SIGNAL(stateChanged(int)), this, SLOT(updateCoverageCheckboxStatus()));
 	connect(this, SIGNAL(accepted()), this, SLOT(writeBackSettings()));
-
-	//handle ROI
-	if (roi_file_!="")
-	{
-		roi_.load(roi_file_);
-	}
 
 	initGUI();
 }
@@ -111,7 +104,7 @@ void ReportDialog::initGUI()
 	ui_.language->setCurrentText(settings_.language);
 
 	//no ROI > no roi options
-	if (roi_file_=="")
+	if (!roi_.isValid())
 	{
 		ui_.details_cov->setChecked(false);
 		ui_.details_cov->setEnabled(false);
@@ -154,7 +147,7 @@ void ReportDialog::updateVariantTable()
 		const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::SNVS_INDELS, i);
 
 		bool in_roi = true;
-		if (roi_file_!="" && !roi_.overlapsWith(variant.chr(), variant.start(), variant.end())) in_roi = false;
+		if (roi_.isValid() && !roi_.regions.overlapsWith(variant.chr(), variant.start(), variant.end())) in_roi = false;
 
 		QByteArray genotype = variant.annotations().at(geno_idx).trimmed();
 
@@ -176,7 +169,7 @@ void ReportDialog::updateVariantTable()
 		const ReportVariantConfiguration& var_conf = settings_.report_config->get(VariantType::CNVS,i);
 
 		bool in_roi = true;
-		if (roi_file_!="" && !roi_.overlapsWith(cnv.chr(), cnv.start(), cnv.end())) in_roi = false;
+		if (roi_.isValid() && !roi_.regions.overlapsWith(cnv.chr(), cnv.start(), cnv.end())) in_roi = false;
 
 		ui_.vars->setRowCount(ui_.vars->rowCount()+1);
 		addCheckBox(row, 0, in_roi, !in_roi)->setData(Qt::UserRole, i);
@@ -222,16 +215,16 @@ void ReportDialog::updateVariantTable()
 
 			bool in_roi = true;
 			BedFile affected_region = sv.affectedRegion();
-			if (roi_file_!="")
+			if (roi_.name!="")
 			{
 				if (sv.type() != StructuralVariantType::BND)
 				{
-					if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())) in_roi = false;
+					if (!roi_.regions.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())) in_roi = false;
 				}
 				else
 				{
-					if (!roi_.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())
-						&& !roi_.overlapsWith(affected_region[1].chr(), affected_region[1].start(), affected_region[1].end())) in_roi = false;
+					if (!roi_.regions.overlapsWith(affected_region[0].chr(), affected_region[0].start(), affected_region[0].end())
+						&& !roi_.regions.overlapsWith(affected_region[1].chr(), affected_region[1].start(), affected_region[1].end())) in_roi = false;
 				}
 			}
 
@@ -253,7 +246,7 @@ void ReportDialog::updateVariantTable()
 void ReportDialog::updateCoverageCheckboxStatus()
 {
 	//enable coverage detail settings only if necessary
-	if (roi_file_!="")
+	if (roi_.isValid())
 	{
 		bool add_cov_details = ui_.details_cov->isChecked();
 		ui_.min_cov->setEnabled(add_cov_details);

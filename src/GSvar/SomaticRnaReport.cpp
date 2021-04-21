@@ -21,21 +21,12 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 	dna_ps_normal_name_ = dna_normal_name;
 
 	//Get RNA processed sample name and resolve path to RNA directory
-	QString rna_sample_dir ="";
-
 	ref_tissue_type_ = refTissueType(dna_snvs_);
 
-	rna_sample_dir = db_.processedSamplePath(db_.processedSampleId(rna_ps_name_), PathType::SAMPLE_FOLDER);
-
-
-	QStringList fusion_files = Helper::findFiles(rna_sample_dir, "*_var_fusions.tsv", false);
-	if(fusion_files.count() > 1)
+	QString fusion_file = db_.processedSamplePath(db_.processedSampleId(rna_ps_name_), PathType::FUSIONS);
+	if(!QFile::exists(fusion_file))
 	{
-		THROW(FileAccessException, "Found more than 1 file with RNA fusions in " + rna_sample_dir);
-	}
-	if(fusion_files.count() == 0)
-	{
-		THROW(FileAccessException, "Could not find any files with RNA fusions in " + rna_sample_dir);
+		THROW(FileAccessException, "RNA fusions file does not exist: " + fusion_file);
 	}
 
 	if(!checkRequiredSNVAnnotations(snv_list) && dna_snvs_.count() > 0)
@@ -49,7 +40,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 
 
 	//Load fusions
-	TSVFileStream in_file(fusion_files[0]);
+	TSVFileStream in_file(fusion_file);
 	int i_cds_left = in_file.colIndex("CDS_LEFT_ID", true);
 	int i_cds_left_range = in_file.colIndex("CDS_LEFT_RANGE", true);
 	int i_cds_right = in_file.colIndex("CDS_RIGHT_ID", true);
@@ -67,19 +58,10 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 		fusions_.append(temp);
 	}
 
-
-	ProcessingSystemData tumor_ps_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(dna_ps_tumor_name_));
-	QString target_genes_file = tumor_ps_data.target_file.left(tumor_ps_data.target_file.size()-4) + "_genes.txt";
-	if(QFile::exists(target_genes_file))
-	{
-		 target_genes_ = GeneSet::createFromFile(target_genes_file);
-		 target_genes_ = db_.genesToApproved(target_genes_,true);
-	}
-	else
-	{
-		THROW(FileAccessException, "Could not access gene list file " + target_genes_file + " in SomaticReportHelper::SomaticReportHelper");
-	}
-
+	//get gene list from NGSD
+	int sys_id = db_.processingSystemIdFromProcessedSample(dna_ps_tumor_name_);
+	target_genes_ = db_.processingSystemGenes(sys_id);
+	target_genes_ = db_.genesToApproved(target_genes_, true);
 }
 
 bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)

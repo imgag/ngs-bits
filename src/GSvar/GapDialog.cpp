@@ -81,10 +81,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 		try
 		{
 			int sys_id = db_.processingSystemIdFromProcessedSample(ps_);
-			QString sys_roi_file = db_.getProcessingSystemData(sys_id).target_file;
-			BedFile sys_roi;
-			sys_roi.load(sys_roi_file);
-
+			BedFile sys_roi = db_.processingSystemRegions(sys_id);
 			low_cov = GermlineReportGenerator::precalculatedGaps(lowcov_, roi_, cutoff, sys_roi);
 		}
 		catch(Exception e)

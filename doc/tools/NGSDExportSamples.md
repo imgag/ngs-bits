@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2020_09-90-g55257954)
+	NGSDExportSamples (2021_03-16-ge75f73c2)
 	
 	Lists processed samples from the NGSD.
 	
@@ -42,8 +42,9 @@
 	                         Default value: 'false'
 	  -add_disease_details   If set, disease details columns are added to output.
 	                         Default value: 'false'
-	  -add_path              Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).
-	                         Default value: 'false'
+	  -add_path <enum>       Adds a column with the given path type.
+	                         Default value: ''
+	                         Valid: ',SAMPLE_FOLDER,BAM,VCF,GSVAR,COPY_NUMBER_CALLS,STRUCTURAL_VARIANTS'
 	  -add_report_config     Adds a column with report configuration information (exists/has_small_variants/has_cnvs).
 	                         Default value: 'false'
 	  -add_comments          Adds sample and processed sample comments columns.
@@ -58,8 +59,9 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2020_09-90-g55257954
+	NGSDExportSamples 2021_03-16-ge75f73c2
 	
+	2021-04-13 Changed 'add_path' parameter to support different file/folder types.
 	2020-10-08 Added parameters 'sender' and 'study'.
 	2020-07-20 Added 'match_external_names' flag.
 	2019-12-11 Added 'run_finished' and 'add_report_config' flags.

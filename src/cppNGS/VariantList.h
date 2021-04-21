@@ -414,10 +414,11 @@ public:
 	///Parses and returns sample data from variant list header (only for GSvar).
 	SampleHeaderInfo getSampleHeader() const;
 
-	///Parse analysis pipeline version from comments
+	///Returns the analysis pipeline and version from the header.
 	QString getPipeline() const;
-
-	///Returns analysis type.
+	///Returns the creation date from the header i.e. the date of the annotatated VCF from which the GSvar was created. If not available, a invalid date is returned.
+	QDate getCreationDate() const;
+	///Returns the analysis type from the header.
 	AnalysisType type(bool allow_fallback_germline_single_sample=true) const;
 
 	///Returns whether list contains variant with same chr, start, end, ref and obs

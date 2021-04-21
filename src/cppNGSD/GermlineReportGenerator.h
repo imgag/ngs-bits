@@ -20,9 +20,11 @@ struct CPPNGSDSHARED_EXPORT GermlineReportGeneratorData
 	const BedpeFile& svs;
 	PrsTable prs;
 
+	//processing system target region
+	BedFile processing_system_roi;
+
 	//target region data (set if a target region was used)
-	QString roi_file;
-	GeneSet roi_genes;
+	TargetRegionInfo roi;
 
 	//other data
 	const ReportSettings& report_settings;
@@ -65,9 +67,6 @@ private:
 	QString ps_id_;
 	QString ps_bam_;
 	QString ps_lowcov_;
-	BedFile roi_;
-	QString sys_roi_file_;
-	BedFile sys_roi_;
 	QMap<QString, QString> cache_;
 
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);

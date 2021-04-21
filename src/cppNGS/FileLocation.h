@@ -8,16 +8,16 @@
 enum class PathType
 {
 	//folders
-	PROJECT_FOLDER, // project folder (normally the parent folder of analysis folder)
 	SAMPLE_FOLDER, // folder of a single sample
 
 	//mapping data
 	BAM, //BAM file
 
 	//variant data
-	VCF, //small variants (VCF format)
+	VCF, //small variants (VCF.GZ format)
 	GSVAR, //small variants (GSvar format)
 	COPY_NUMBER_CALLS, //copy number calls (TSV format)
+	COPY_NUMBER_CALLS_MOSAIC, //mosaic copy number calls (TSV format)
 	STRUCTURAL_VARIANTS, //structural variant call file (BEDPE format)
 	REPEAT_EXPANSIONS, //repeat expansions (VCF format)
 	UPD, //UPD calls (TSV format)
@@ -31,6 +31,10 @@ enum class PathType
 	COPY_NUMBER_RAW_DATA, //Copy number estimates based on coverage (SEG format)
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
+	FUSIONS, //gene fusions determined from RNA (TSV format)
+	COUNTS, //gene/transcript counts from RNA (TSV format)
+	VIRAL, //viral DNA detected in tumor samples (TSV format)
+	VCF_CF_DNA, //cfDNA variants file (VCF format)
 	OTHER // everything else
 };
 
@@ -71,8 +75,6 @@ struct FileLocation
 	{
 		switch(pathtype)
 		{
-			case PathType::PROJECT_FOLDER:
-				return "PROJECT_FOLDER";
 			case PathType::SAMPLE_FOLDER:
 				return "SAMPLE_FOLDER";
 			case PathType::BAM:
@@ -85,6 +87,8 @@ struct FileLocation
 				return "BAF";
 			case PathType::COPY_NUMBER_CALLS:
 				return "COPY_NUMBER_CALLS";
+			case PathType::COPY_NUMBER_CALLS_MOSAIC:
+				return "COPY_NUMBER_CALLS_MOSAIC";
 			case PathType::COPY_NUMBER_RAW_DATA:
 				return "COPY_NUMBER_RAW_DATA";
 			case PathType::MANTA_EVIDENCE:
@@ -107,6 +111,15 @@ struct FileLocation
 				return "STRUCTURAL_VARIANTS";
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				return "REPEAT_EXPANSION_IMAGE";
+			case PathType::FUSIONS:
+				return "FUSIONS";
+			case PathType::COUNTS:
+				return "COUNTS";
+			case PathType::VIRAL:
+				return "VIRAL";
+			case PathType::VCF_CF_DNA:
+				return "VCF_CF_DNA";
+
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -115,13 +128,13 @@ struct FileLocation
 	{
 		QString in_upper = in.toUpper().trimmed();
 
-		if (in_upper == "PROJECT_FOLDER") return PathType::PROJECT_FOLDER;
 		if (in_upper == "SAMPLE_FOLDER") return PathType::SAMPLE_FOLDER;
 		if (in_upper == "BAM") return PathType::BAM;
 		if (in_upper == "GSVAR") return PathType::GSVAR;
 		if (in_upper == "VCF") return PathType::VCF;
 		if (in_upper == "BAF") return PathType::BAF;
 		if (in_upper == "COPY_NUMBER_CALLS") return PathType::COPY_NUMBER_CALLS;
+		if (in_upper == "COPY_NUMBER_CALLS_MOSAIC") return PathType::COPY_NUMBER_CALLS_MOSAIC;
 		if (in_upper == "COPY_NUMBER_RAW_DATA") return PathType::COPY_NUMBER_RAW_DATA;
 		if (in_upper == "MANTA_EVIDENCE") return PathType::MANTA_EVIDENCE;
 		if (in_upper == "REPEAT_EXPANSIONS") return PathType::REPEAT_EXPANSIONS;
@@ -132,6 +145,10 @@ struct FileLocation
 		if (in_upper == "CIRCOS_PLOT") return PathType::CIRCOS_PLOT;
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
+		if (in_upper == "FUSIONS") return PathType::FUSIONS;
+		if (in_upper == "COUNTS") return PathType::COUNTS;
+		if (in_upper == "VIRAL") return PathType::VIRAL;
+		if (in_upper == "VCF_CF_DNA") return PathType::VCF_CF_DNA;
 
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
@@ -140,8 +157,6 @@ struct FileLocation
 	{
 		switch(pathtype)
 		{
-			case PathType::PROJECT_FOLDER:
-				return "project folder";
 			case PathType::SAMPLE_FOLDER:
 				return "sample/analysis folder";
 			case PathType::BAM:
@@ -154,6 +169,8 @@ struct FileLocation
 				return "b-allele frequency file";
 			case PathType::COPY_NUMBER_CALLS:
 				return "copy-number calls";
+			case PathType::COPY_NUMBER_CALLS_MOSAIC:
+				return "copy-number calls (mosaic)";
 			case PathType::COPY_NUMBER_RAW_DATA:
 				return "copy-number raw data";
 			case PathType::MANTA_EVIDENCE:
@@ -174,8 +191,16 @@ struct FileLocation
 				return "uniparental disomy regions";
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				return "repeat expansion visualization";
+			case PathType::FUSIONS:
+				return "gene fusions";
+			case PathType::COUNTS:
+				return "RNA counts";
+			case PathType::VIRAL:
+				return "viral DNA";
 			case PathType::OTHER:
 				return "other files";
+			case PathType::VCF_CF_DNA:
+				return "cfDNA small variant calls";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}

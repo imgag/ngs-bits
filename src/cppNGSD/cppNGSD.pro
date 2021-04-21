@@ -49,7 +49,8 @@ SOURCES += \
     SomaticXmlReportGenerator.cpp \
     SomaticReportSettings.cpp \
     ReportSettings.cpp \
-    GermlineReportGenerator.cpp
+    GermlineReportGenerator.cpp \
+    TumorOnlyReportWorker.cpp
 
 HEADERS += \
     SqlQuery.h \
@@ -62,7 +63,8 @@ HEADERS += \
     SomaticXmlReportGenerator.h \
     SomaticReportSettings.h \
     ReportSettings.h \
-    GermlineReportGenerator.h
+    GermlineReportGenerator.h \
+    TumorOnlyReportWorker.h
 
 RESOURCES += \
     cppNGSD.qrc

@@ -49,7 +49,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	, settings_(settings)
 	, cnvs_(cnvs)
 	, germl_variants_(germl_variants)
-	, target_region_(settings.report_config.targetFile())
+	, target_region_(settings.report_config.targetRegionName())
 	, tum_cont_snps_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_max_clonality_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_histological_(std::numeric_limits<double>::quiet_NaN())

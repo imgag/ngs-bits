@@ -265,7 +265,7 @@ CREATE  TABLE IF NOT EXISTS `runqc_lane`
   `yield` FLOAT NOT NULL,
   `error_rate` FLOAT DEFAULT NULL,
   `q30_perc` FLOAT NOT NULL,
-  `occupied_perc` FLOAT NOT NULL,
+  `occupied_perc` FLOAT DEFAULT NULL,
   `runqc_read_id` INT(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE (`runqc_read_id`, `lane_num`),
@@ -1984,3 +1984,53 @@ INDEX `pseudogene_gene_id` (`pseudogene_gene_id` ASC)
 ENGINE=InnoDB DEFAULT 
 CHARSET=utf8
 COMMENT='Gene-Pseudogene relation';
+
+-- -----------------------------------------------------
+-- Table `processed_sample_ancestry`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `processed_sample_ancestry`
+(
+  `processed_sample_id` INT(11) NOT NULL,
+  `num_snps` INT(11) NOT NULL,
+  `score_afr` FLOAT NOT NULL,
+  `score_eur` FLOAT NOT NULL,
+  `score_sas` FLOAT NOT NULL,
+  `score_eas` FLOAT NOT NULL,
+  `population` enum('AFR','EUR','SAS','EAS','ADMIXED/UNKNOWN') NOT NULL,
+PRIMARY KEY (`processed_sample_id`),
+CONSTRAINT `fk_processed_sample_ancestry_has_processed_sample`
+  FOREIGN KEY (`processed_sample_id`)
+  REFERENCES `processed_sample` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `subpanels`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `subpanels`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(200) NOT NULL,
+  `created_by` int(11) DEFAULT NULL,
+  `created_date` DATE NOT NULL,
+  `mode` ENUM('exon', 'gene') NOT NULL,
+  `extend` INT(11) NOT NULL,
+  `genes` MEDIUMTEXT NOT NULL,
+  `roi` MEDIUMTEXT NOT NULL,
+  `archived` TINYINT(1) NOT NULL,
+PRIMARY KEY (`id`),
+UNIQUE KEY `name` (`name`),
+INDEX(`created_by`),
+INDEX(`created_date`),
+INDEX(`archived`),
+CONSTRAINT `subpanels_created_by_user`
+  FOREIGN KEY (`created_by`)
+  REFERENCES `user` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;

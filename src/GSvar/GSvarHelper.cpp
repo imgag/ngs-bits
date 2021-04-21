@@ -3,65 +3,56 @@
 #include "NGSD.h"
 #include "HttpHandler.h"
 #include "Settings.h"
-#include <QCoreApplication>
 #include <QDir>
-#include <QFileInfo>
-
-GeneSet GSvarHelper::imprinting_genes_ = GeneSet();
-GeneSet GSvarHelper::hi0_genes_ = GeneSet();
-GeneSet GSvarHelper::pseudogene_genes_ = GeneSet();
-QMap<QByteArray, QByteArrayList> GSvarHelper::preferred_transcripts_ = QMap<QByteArray, QByteArrayList>();
-QMap<QByteArray, QList<BedLine>> GSvarHelper::special_regions_ = QMap<QByteArray, QList<BedLine>>();
-QMap<QByteArray, QByteArrayList> GSvarHelper::transcript_matches_ = QMap<QByteArray, QByteArrayList>();
+#include <QStandardPaths>
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
+	static GeneSet output;
 	static bool initialized = false;
 
 	if (!initialized)
 	{
-        imprinting_genes_.clear();
-
-		//load imprinting gene list
-		QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
-		foreach(const QString& line, lines)
+		const QMap<QByteArray, ImprintingInfo>& imprinting_genes = NGSHelper::imprintingGenes();
+		auto it = imprinting_genes.begin();
+		while(it!=imprinting_genes.end())
 		{
-			QStringList parts = line.split("\t");
-			if (parts.count()==2)
+			if (it.value().status=="imprinted")
 			{
-				imprinting_genes_ << parts[0].toLatin1();
+				output << it.key();
 			}
+
+			++it;
 		}
 
 		initialized = true;
 	}
 
-	return imprinting_genes_;
+	return output;
 }
 
 const GeneSet& GSvarHelper::hi0Genes()
 {
+	static GeneSet output;
 	static bool initialized = false;
 
 	if (!initialized)
 	{
-		hi0_genes_.clear();
-
-		//load imprinting gene list
 		QStringList lines = Helper::loadTextFile(":/Resources/genes_actionable_hi0.tsv", true, '#', true);
 		foreach(const QString& line, lines)
 		{
-			hi0_genes_ << line.toLatin1();
+			output << line.toLatin1();
 		}
 
 		initialized = true;
 	}
 
-	return hi0_genes_;
+	return output;
 }
 
 const GeneSet& GSvarHelper::genesWithPseudogene()
 {
+	static GeneSet output;
 	static bool initialized = false;
 
 	if (!initialized)
@@ -72,7 +63,7 @@ const GeneSet& GSvarHelper::genesWithPseudogene()
 			QStringList genes = db.getValues("SELECT DISTINCT(g.symbol) FROM gene g, gene_pseudogene_relation gpr WHERE g.id=gpr.parent_gene_id");
 			foreach(QString gene, genes)
 			{
-				pseudogene_genes_ << gene.toLatin1();
+				output << gene.toLatin1();
 			}
 
 			initialized = true;
@@ -80,11 +71,12 @@ const GeneSet& GSvarHelper::genesWithPseudogene()
 
 	}
 
-	return pseudogene_genes_;
+	return output;
 }
 
 const QMap<QByteArray, QByteArrayList>& GSvarHelper::preferredTranscripts(bool reload)
 {
+	static QMap<QByteArray, QByteArrayList> output;
     static bool initialized = false;
 
     if (!initialized || reload)
@@ -92,24 +84,22 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::preferredTranscripts(bool r
 		if (LoginManager::active())
 		{
 			NGSD db;
-			preferred_transcripts_ = db.getPreferredTranscripts();
+			output = db.getPreferredTranscripts();
 
 			initialized = true;
 		}
-
     }
 
-    return preferred_transcripts_;
+	return output;
 }
 
 const QMap<QByteArray, QList<BedLine>> & GSvarHelper::specialRegions()
 {
+	static QMap<QByteArray, QList<BedLine>> output;
     static bool initialized = false;
 
     if (!initialized)
-    {
-        special_regions_.clear();
-
+	{
         QString filename = GSvarHelper::applicationBaseName() + "_special_regions.tsv";
         QStringList lines = Helper::loadTextFile(filename, true, '#', true);
         foreach(const QString& line, lines)
@@ -120,7 +110,7 @@ const QMap<QByteArray, QList<BedLine>> & GSvarHelper::specialRegions()
                 QByteArray gene = parts[0].trimmed();
                 for (int i=1; i<parts.count(); ++i)
                 {
-                    special_regions_[gene] << BedLine::fromString(parts[i]);
+					output[gene] << BedLine::fromString(parts[i]);
                 }
             }
         }
@@ -128,11 +118,12 @@ const QMap<QByteArray, QList<BedLine>> & GSvarHelper::specialRegions()
         initialized = true;
     }
 
-	return special_regions_;
+	return output;
 }
 
 const QMap<QByteArray, QByteArrayList>& GSvarHelper::transcriptMatches()
 {
+	static QMap<QByteArray, QByteArrayList> output;
 	static bool initialized = false;
 
 	if (!initialized)
@@ -145,14 +136,14 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::transcriptMatches()
 			{
 				QByteArray enst = parts[0];
 				QByteArray match = parts[1];
-				transcript_matches_[enst] << match;
+				output[enst] << match;
 			}
 		}
 
 		initialized = true;
 	}
 
-	return transcript_matches_;
+	return output;
 }
 
 QString GSvarHelper::applicationBaseName()
@@ -192,7 +183,7 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	{
 		messages.sort();
 		item->setBackgroundColor(Qt::yellow);
-		item->setToolTip(messages.join("\n"));
+		item->setToolTip(messages.join('\n'));
 	}
 }
 
@@ -237,4 +228,21 @@ QString GSvarHelper::gnomaADLink(const Variant& v)
 	}
 
 	return url;
+}
+
+QString GSvarHelper::localRoiFolder()
+{
+	QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
+	if(default_paths.isEmpty())
+	{
+		THROW(Exception, "No local application data path was found!");
+	}
+
+	QString local_roi_folder = default_paths[0] + QDir::separator() + "target_regions" + QDir::separator();
+	if(!QFile::exists(local_roi_folder) && !QDir().mkpath(local_roi_folder))
+	{
+		THROW(ProgrammingException, "Could not create application target region folder '" + local_roi_folder + "'!");
+	}
+
+	return local_roi_folder;
 }

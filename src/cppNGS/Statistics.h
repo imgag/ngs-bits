@@ -50,8 +50,8 @@ public:
 	static QCValue mutationBurden(QString somatic_vcf, QString exons, QString target, QString tsg, QString blacklist);
 	///Calculates the percentage of common SNPs that lie outside the expected allele frequency range for diploid organisms.
 	static QCCollection contamination(QString build, QString bam, const QString& ref_file = QString::null, bool debug = false, int min_cov = 20, int min_snps = 50);
-	///Returns ancestry estimates for a variant list.
-	static AncestryEstimates ancestry(QString build, const VcfFile& variants, int min_snp=100, double min_pop_dist = 0.15);
+	///Returns ancestry estimates for a variant list in VCF format.
+	static AncestryEstimates ancestry(QString build, QString filename, int min_snp=100, double min_pop_dist = 0.15);
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
 	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, const QString& ref_file = QString::null);
@@ -66,7 +66,7 @@ public:
 
 	///Determines the gender based on the read ratio between X and Y chromosome.
 	static GenderEstimate genderXY(QString bam_file, double max_female=0.06, double min_male=0.09, const QString& ref_file = QString::null);
-	///Determines the gender based on the fraction of heterocygous SNPs on chromosome X.
+	///Determines the gender based on the fraction of heterozygous SNPs on chromosome X.
 	static GenderEstimate genderHetX(QString bam_file, QString build, double max_male=0.15, double min_female=0.24, const QString& ref_file = QString::null);
 	///Determines the gender based on the coverge of the SRY gene on chrY.
 	static GenderEstimate genderSRY(QString bam_file, QString build, double min_cov=20.0, const QString& ref_file = QString::null);

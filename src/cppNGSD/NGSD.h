@@ -270,6 +270,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 	QString lab_operator;
 	QString processing_input;
 	QString molarity;
+	QString ancestry;
 };
 
 ///Processing system information.
@@ -277,9 +278,6 @@ struct CPPNGSDSHARED_EXPORT ProcessingSystemData
 {
 	QString name;
 	QString name_short;
-	QString target_file;
-	QString target_gene_file; //Text file with one genes in target region (one gene per line)
-	QString target_amplicon_file; //amplicon file of target region
 	QString adapter1_p5;
 	QString adapter2_p7;
 	bool shotgun;
@@ -304,12 +302,22 @@ struct CPPNGSDSHARED_EXPORT GeneInfo
 
 	//gene inheritance mode
 	QString inheritance;
+
 	//genomAD o/e score for synonymous variants (default is NULL).
 	QString oe_syn;
 	//genomAD o/e score for missense variants (default is NULL).
 	QString oe_mis;
 	//genomAD o/e score for loss-of-function variants (default is NULL).
 	QString oe_lof;
+
+	//status of imprinting information
+	QString imprinting_status;
+	//sources allele of imprinted gene
+	QString imprinting_source_allele;
+
+	//list of pseudogenes (not all are HGNC-approved symbols)
+	QStringList pseudogenes;
+
 	//comments
 	QString comments;
 
@@ -373,7 +381,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QString r_device_name;
 
 	//output options
-	bool add_path = false;
+	QString add_path;
 	bool add_disease_details = false;
 	bool add_outcome = false;
 	bool add_qc = false;
@@ -471,6 +479,9 @@ public:
 	///Creates database tables and imports initial data (password is required for production database if it is not empty)
 	void init(QString password="");
 
+	///Reinitializes static method variables from data in NGSD
+	void reinitializeStaticVariables();
+
 	/*** General database functionality ***/
 	///Executes an SQL query and returns the single return value.
 	///If no values are returned an error thrown or a default-constructed QVariant is returned (depending on @p empty_is_ok).
@@ -521,9 +532,9 @@ public:
 	///Returns aliases of a gene.
 	GeneSet synonymousSymbols(int id);
 	///Returns the genes overlapping a regions (extended by some bases)
-	GeneSet genesOverlapping(const Chromosome& chr, int start, int end, int extend=0);
+	GeneSet genesOverlapping(const Chromosome& chr, int start, int end, int extend=0, bool reinitialize=false);
 	///Returns the genes overlapping a regions (extended by some bases)
-	GeneSet genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend=0);
+	GeneSet genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend=0, bool reinitialize=false);
 	///Returns the chromosomal regions corresponding to the given gene. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile geneToRegions(const QByteArray& gene, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
@@ -537,7 +548,7 @@ public:
 	///Returns longest coding transcript of a gene.
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_alt_source_nocoding=false);
 	///Returns the list of all approved gene names
-	const GeneSet& approvedGeneNames();
+	const GeneSet& approvedGeneNames(bool reinitialize=false);
 	///Returns the map of gene to preferred transcripts
 	QMap<QByteArray, QByteArrayList> getPreferredTranscripts();
 	///Adds a preferred transcript. Returns if it was added, i.e. it was not already present. Throws an exception, if the transcript name is not valid.
@@ -659,8 +670,19 @@ public:
 	int processingSystemIdFromProcessedSample(QString ps_name);
 	///Returns the processing system information for a processed sample.
 	ProcessingSystemData getProcessingSystemData(int sys_id);
-	///Returns all processing systems (long name) and the corresponding target regions.
-	QMap<QString, QString> getProcessingSystems(bool skip_systems_without_roi);
+	///Returns the processing system target region file.
+	BedFile processingSystemRegions(int sys_id);
+	///Returns the processing system amplicon region file.
+	BedFile processingSystemAmplicons(int sys_id);
+	///Returns the processing system genes.
+	GeneSet processingSystemGenes(int sys_id);
+
+	///Retuns the list of sub-panel names.
+	QStringList subPanelList(bool archived);
+	///Returns the subpanel target region file.
+	BedFile subpanelRegions(QString name);
+	///Returns the subpanel genes.
+	GeneSet subpanelGenes(QString name);
 
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
@@ -780,9 +802,6 @@ public:
 	///Returns quality metric values for a given metric for all samples of a given processing system
 	QVector<double> cnvCallsetMetrics(QString processing_system_id, QString metric_name);
 
-	///Returns the target file path (or sub-panel folder)
-	static QString getTargetFilePath(bool subpanels = false);
-
 	///Parses OBO file and updates QC term data
 	void updateQC(QString obo_file, bool debug=false);
 
@@ -804,6 +823,9 @@ protected:
 
 	///Returns the maxiumn allele frequency of a variant.
 	static double maxAlleleFrequency(const Variant& v, QList<int> af_column_index);
+
+	///Returns the target region folder.
+	static QString getTargetFilePath();
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;

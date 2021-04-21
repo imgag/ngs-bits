@@ -29,20 +29,6 @@ GermlineReportGenerator::GermlineReportGenerator(const GermlineReportGeneratorDa
 	ps_id_ = db_.processedSampleId(data_.ps);
 	ps_bam_ = db_.processedSamplePath(ps_id_, PathType::BAM);
 	ps_lowcov_ = db_.processedSamplePath(ps_id_, PathType::LOWCOV_BED);
-
-	if (data_.roi_file!="")
-	{
-		roi_.load(data_.roi_file);
-		roi_.merge();
-	}
-
-	int system_id = db_.processingSystemIdFromProcessedSample(data_.ps);
-	sys_roi_file_ = db_.getProcessingSystemData(system_id).target_file;
-	if(test_mode) //in test mode the path is relative > remove target region prefix
-	{
-		sys_roi_file_.remove(db_.getTargetFilePath(false));
-	}
-	sys_roi_.load(sys_roi_file_);
 }
 
 void GermlineReportGenerator::writeHTML(QString filename)
@@ -116,15 +102,15 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	stream << "</p>" << endl;
 
 	///Target region statistics
-	if (data_.roi_file!="")
+	if (data_.roi.isValid())
 	{
 		stream << endl;
 		stream << "<p><b>" << trans("Zielregion") << "</b>" << endl;
 		stream << "<br /><span style=\"font-size: 8pt;\">" << trans("Die Zielregion umfasst mindestens die CCDS (\"consensus coding sequence\") unten genannter Gene &plusmn;20 Basen flankierender intronischer Sequenz, kann aber auch zus&auml;tzliche Exons und/oder flankierende Basen beinhalten.") << endl;
-		stream << "<br />" << trans("Name") << ": " << QFileInfo(data_.roi_file).fileName().replace(".bed", "") << endl;
-		if (!data_.roi_genes.isEmpty())
+		stream << "<br />" << trans("Name") << ": " << data_.roi.name << endl;
+		if (!data_.roi.genes.isEmpty())
 		{
-			stream << "<br />" << trans("Ausgewertete Gene") << " (" << QString::number(data_.roi_genes.count()) << "): " << data_.roi_genes.join(", ") << endl;
+			stream << "<br />" << trans("Ausgewertete Gene") << " (" << QString::number(data_.roi.genes.count()) << "): " << data_.roi.genes.join(", ") << endl;
 		}
 		stream << "</span></p>" << endl;
 	}
@@ -149,10 +135,10 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 	//determine variant count (inside target region)
 	int var_count = data_.variants.count();
-	if (data_.roi_file!="")
+	if (data_.roi.isValid())
 	{
 		FilterResult filter_result(data_.variants.count());
-		FilterRegions::apply(data_.variants, roi_, filter_result);
+		FilterRegions::apply(data_.variants, data_.roi.regions, filter_result);
 		var_count = filter_result.countPassing();
 	}
 
@@ -392,7 +378,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 
 		writeCoverageReportCCDS(stream, 5, true, true);
 
-		writeClosedGapsReport(stream, roi_);
+		writeClosedGapsReport(stream, data_.roi.regions);
 	}
 
 	//OMIM table
@@ -405,7 +391,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<tr><td><b>" << trans("Gen") << "</b></td><td><b>" << trans("Gen MIM") << "</b></td><td><b>" << trans("Phenotyp") << "</b></td><td><b>" << trans("Phenotyp MIM") << "</b></td>";
 		if (data_.report_settings.show_one_entry_in_omim_table) stream << "<td><b>" << trans("Hauptphenotyp") << "</b></td>" << endl;
 		stream << "</tr>";
-		foreach(const QByteArray& gene, data_.roi_genes)
+		foreach(const QByteArray& gene, data_.roi.genes)
 		{
 			QString preferred_phenotype_accession;
 			if (sample_data.disease_group!="n/a") preferred_phenotype_accession = db_.omimPreferredPhenotype(gene, sample_data.disease_group.toLatin1());
@@ -465,19 +451,30 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	if (data_.prs.rowCount()>0)
 	{
 		stream << endl;
-		stream << "<p><b>" << trans("Polygenic Risk Scores") << "</b>" << endl;
-		stream << "</p>" << endl;
+		stream << "<p><b>" << trans("Polygener Risiko-Score (PRS)") << "</b></p>" << endl;
 		stream << "<table>" << endl;
-		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Publikation") << "</b></td></tr>" << endl;
+		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>" << trans("Publikation") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Z-Score") << "</b></td><td><b>" << trans("Population (gesch&auml;tzt aus NGS)") << "</b></td></tr>" << endl;
 		int trait_idx = data_.prs.headers().indexOf("trait");
 		int score_idx = data_.prs.headers().indexOf("score");
 		int citation_idx = data_.prs.headers().indexOf("citation");
 		for (int r=0; r<data_.prs.rowCount(); ++r)
 		{
 			const QStringList& row = data_.prs.row(r);
-			stream << "<tr><td>" << row[trait_idx] << "</td><td>" << row[score_idx] << "</td><td>" << row[citation_idx] << "</td></tr>";
+			QString trait = row[trait_idx];
+			QString score = row[score_idx];
+			QString zscore = "n/a";
+			QString population = processed_sample_data.ancestry;
+			if (trait=="Breast Cancer") // mean and standard deviation taken from BCAC315 data
+			{
+				double mean = -0.424;
+				double stdev = 0.611;
+				zscore = QString::number((Helper::toDouble(score, "PRS score") - mean) / stdev, 'f', 3);
+			}
+
+			stream << "<tr><td>" << trait << "</td><td>" << row[citation_idx] << "</td><td>" << score << "</td><td>" << zscore << "</td><td>" << population << "</td></tr>";
 		}
 		stream << "</table>" << endl;
+		stream << "<p>" << trans("Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnischen Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs).") << "</p>" << endl;
 	}
 
 	//close stream
@@ -533,12 +530,12 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	w.writeEndElement();
 
 	//element TargetRegion (optional)
-	if (data_.roi_file!="")
+	if (data_.roi.isValid())
 	{
 		w.writeStartElement("TargetRegion");
-		w.writeAttribute("name", QFileInfo(data_.roi_file).fileName().replace(".bed", ""));
-		w.writeAttribute("regions", QString::number(roi_.count()));
-		w.writeAttribute("bases", QString::number(roi_.baseCount()));
+		w.writeAttribute("name", data_.roi.name);
+		w.writeAttribute("regions", QString::number(data_.roi.regions.count()));
+		w.writeAttribute("bases", QString::number(data_.roi.regions.baseCount()));
 		QString gap_percentage = cache_["gap_percentage"]; //cached from HTML report
 		if (!gap_percentage.isEmpty())
 		{
@@ -551,7 +548,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		}
 
 		//contained genes
-		foreach(const QByteArray& gene, data_.roi_genes)
+		foreach(const QByteArray& gene, data_.roi.genes)
 		{
 			w.writeStartElement("Gene");
 			w.writeAttribute("name", gene);
@@ -592,7 +589,15 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 				QByteArray value = entry.mid(3);
 				if (type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
 				{
-					int index = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
+					//determine index of report sample in quality entry
+					SampleHeaderInfo header_info = data_.variants.getSampleHeader();
+					int index = 0;
+					while (index<header_info.count())
+					{
+						if (header_info[index].column_name==data_.ps) break;
+						++index;
+					}
+
 					QByteArrayList parts = value.split(',');
 					if (index>=parts.count()) THROW(ProgrammingException, "Invalid AF quality entry. Could not determine index " + QString::number(index) + " in comma-separated string '" + value + "'!");
 					value = parts[index];
@@ -604,7 +609,15 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 				QByteArray value = entry.mid(3);
 				if (type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
 				{
-					int index = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
+					//determine index of report sample in quality entry
+					SampleHeaderInfo header_info = data_.variants.getSampleHeader();
+					int index = 0;
+					while (index<header_info.count())
+					{
+						if (header_info[index].column_name==data_.ps) break;
+						++index;
+					}
+
 					QByteArrayList parts = value.split(',');
 					if (index>=parts.count()) THROW(ProgrammingException, "Invalid DP quality entry. Could not determine index " + QString::number(index) + " in comma-separated string '" + value + "'!");
 					value = parts[index];
@@ -967,7 +980,7 @@ QString GermlineReportGenerator::trans(const QString& text)
 	if (de2en.isEmpty())
 	{
 		de2en["male"] = "male";
-		de2en["female"] = "male";
+		de2en["female"] = "female";
 		de2en["Technischer Report zur bioinformatischen Analyse"] = "Technical Report for Bioinformatic Analysis";
 		de2en["Probe"] = "Sample";
 		de2en["Prozessierungssystem"] = "Processing system";
@@ -1053,13 +1066,16 @@ QString GermlineReportGenerator::trans(const QString& text)
 		de2en["L&uuml;cken die mit Sanger-Sequenzierung geschlossen wurden:"] = "Gaps closed by Sanger sequencing:";
 		de2en["L&uuml;cken die mit visueller Inspektion der Rohdaten &uuml;berpr&uuml;ft wurden:"] = "Gaps checked by visual inspection of raw data:";
 		de2en["Basen gesamt:"] = "Base sum:";
-		de2en["Polygenic Risk Scores"] = "Polygenic Risk Scores";
+		de2en["Polygener Risiko-Score (PRS)"] = "Polygenic Risk Scores (PRS)";
 		de2en["Erkrankung"] = "Trait";
 		de2en["Score"] = "Score";
 		de2en["Publikation"] = "Publication";
 		de2en["Hauptphenotyp"] = "preferred phenotype";
 		de2en["ja"] = "yes";
 		de2en["nein"] = "no";
+		de2en["Z-Score"] = "z-score";
+		de2en["Population (gesch&auml;tzt aus NGS)"] = "population (estimated from NGS)";
+		de2en["Die Einsch&auml;tzung der klinischen Bedeutung eines PRS ist nur unter Verwendung eines entsprechenden validierten Risiko-Kalkulations-Programms und unter Ber&uuml;cksichtigung der ethnischen Zugeh&ouml;rigkeit m&ouml;glich (z.B. CanRisk.org f&uuml;r Brustkrebs)."] = "A validated risk estimation program must be used to judge the clinical importance of a PRS, e.g. CanRisk.org for breast cancer. The ethnicity of the patient must also be considered.";
 	}
 
 	//translate
@@ -1093,7 +1109,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	//get target region coverages (from NGSD or calculate)
 	QString avg_cov = "";
 	QCCollection stats;
-	bool roi_is_system_target_region = sys_roi_.count()==roi_.count() && sys_roi_.baseCount()==roi_.baseCount();
+	bool roi_is_system_target_region = data_.processing_system_roi.count()==data_.roi.regions.count() && data_.processing_system_roi.baseCount()==data_.roi.regions.baseCount();
 	if (roi_is_system_target_region || !data_.report_settings.recalculate_avg_depth)
 	{
 		try
@@ -1109,7 +1125,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		Log::warn("Average target region depth from NGSD cannot be used! Recalculating it...");
 
 		QString ref_file = Settings::string("reference_genome");
-		stats = Statistics::mapping(roi_, ps_bam_, ref_file);
+		stats = Statistics::mapping(data_.roi.regions, ps_bam_, ref_file);
 	}
 	for (int i=0; i<stats.count(); ++i)
 	{
@@ -1130,12 +1146,12 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		BedFile low_cov;
 		try
 		{
-			low_cov = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, roi_, data_.report_settings.min_depth, sys_roi_);
+			low_cov = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, data_.roi.regions, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
 		catch(Exception e)
 		{
 			Log::warn("Low-coverage statistics needs to be calculated. Pre-calulated gap file cannot be used because: " + e.message());
-			low_cov = Statistics::lowCoverage(roi_, ps_bam_, data_.report_settings.roi_low_cov);
+			low_cov = Statistics::lowCoverage(data_.roi.regions, ps_bam_, data_.report_settings.roi_low_cov);
 		}
 
 		//annotate low-coverage regions with gene names
@@ -1165,10 +1181,10 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		}
 
 		//output
-		if (!data_.roi_genes.isEmpty())
+		if (!data_.roi.genes.isEmpty())
 		{
 			QStringList complete_genes;
-			foreach(const QByteArray& gene, data_.roi_genes)
+			foreach(const QByteArray& gene, data_.roi.genes)
 			{
 				if (!grouped.contains(gene))
 				{
@@ -1178,16 +1194,16 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 			stream << "<br />" << trans("Komplett abgedeckte Gene") << ": " << complete_genes.join(", ") << endl;
 		}
 		QString gap_perc = "";
-		if (roi_.baseCount()>0)
+		if (data_.roi.regions.baseCount()>0)
 		{
-			gap_perc = QString::number(100.0*low_cov.baseCount()/roi_.baseCount(), 'f', 2);
+			gap_perc = QString::number(100.0*low_cov.baseCount()/data_.roi.regions.baseCount(), 'f', 2);
 		}
 		stream << "<br />" << trans("Anteil Regionen mit Tiefe &lt;") << data_.report_settings.min_depth << ": " << gap_perc << "%" << endl;
 		cache_["gap_percentage"] = gap_perc;
-		if (!data_.roi_genes.isEmpty())
+		if (!data_.roi.genes.isEmpty())
 		{
 			QStringList incomplete_genes;
-			foreach(const QByteArray& gene, data_.roi_genes)
+			foreach(const QByteArray& gene, data_.roi.genes)
 			{
 				if (grouped.contains(gene))
 				{
@@ -1296,7 +1312,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 	long long bases_sequenced = 0;
 	GeneSet genes_noncoding;
 	GeneSet genes_notranscript;
-	foreach(const QByteArray& gene, data_.roi_genes)
+	foreach(const QByteArray& gene, data_.roi.genes)
 	{
 		int gene_id = db_.geneToApprovedID(gene);
 
@@ -1330,7 +1346,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		BedFile gaps;
 		try
 		{
-			gaps = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, roi, data_.report_settings.min_depth, sys_roi_);
+			gaps = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, roi, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
 		catch(Exception e)
 		{

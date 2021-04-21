@@ -50,7 +50,6 @@ SOURCES += main.cpp\
     SequencingRunWidget.cpp \
     AnalysisStatusWidget.cpp \
     VariantTable.cpp \
-    RtfDocument.cpp \
     SampleSearchWidget.cpp \
     SomaticReportHelper.cpp \
     SampleRelationDialog.cpp \
@@ -89,7 +88,6 @@ SOURCES += main.cpp\
     EvaluationSheetEditDialog.cpp \
     PublishedVariantsWidget.cpp \
     PreferredTranscriptsWidget.cpp\
-    TumorOnlyReportWorker.cpp \
     TumorOnlyReportDialog.cpp \
     CfDNAPanelDesignDialog.cpp \
     DiseaseCourseWidget.cpp \
@@ -141,7 +139,6 @@ HEADERS += MainWindow.h \
     SequencingRunWidget.h \
     AnalysisStatusWidget.h \
     VariantTable.h \
-    RtfDocument.h \
     SampleSearchWidget.h \
     SomaticReportHelper.h \
     SampleRelationDialog.h \
@@ -180,7 +177,6 @@ HEADERS += MainWindow.h \
     EvaluationSheetEditDialog.h \
     PublishedVariantsWidget.h \
     PreferredTranscriptsWidget.h \
-    TumorOnlyReportWorker.h \
     TumorOnlyReportDialog.h \
     CfDNAPanelDesignDialog.h \
     DiseaseCourseWidget.h \

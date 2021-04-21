@@ -23,6 +23,8 @@ public:
 	virtual FileLocation getAnalysisSvFile() const = 0;
 	//Returns the copy-number call TSV file of the current analysis
 	virtual FileLocation getAnalysisCnvFile() const = 0;
+	//Returns the mosaic copy-number call TSV file of the current analysis
+	virtual FileLocation getAnalysisMosaicCnvFile() const = 0;
 	//Returns the UPD calls TSV file of the current analysis (works for GERMLINE_TRIO only)
 	virtual FileLocation getAnalysisUpdFile() const = 0;
 	//Returns the repeat expansion locus image of the current analysis

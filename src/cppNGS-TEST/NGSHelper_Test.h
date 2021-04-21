@@ -19,7 +19,7 @@ private slots:
 
 		//only SNPs, AF<80%
 		list = NGSHelper::getKnownVariants("hg19", true, 0.0, 0.8);
-		I_EQUAL(list.count(), 91185);
+		I_EQUAL(list.count(), 91186);
 
 		//only SNPs, AF>20%
 		list = NGSHelper::getKnownVariants("hg19", true, 0.2);
@@ -27,7 +27,7 @@ private slots:
 
 		//only SNPs, AF>20%, AF<80%
 		list = NGSHelper::getKnownVariants("hg19", true, 0.2, 0.8);
-		I_EQUAL(list.count(), 29738);
+		I_EQUAL(list.count(), 29739);
 
 		//only SNPs on chrX
 		BedFile roi_chrx("chrX", 1, 155270560);
@@ -127,7 +127,6 @@ private slots:
 		S_EQUAL(al.cigarDataAsString(), "10S131M10S5H");
 	}
 
-
 	void pseudoAutosomalRegion()
 	{
 		BedFile par = NGSHelper::pseudoAutosomalRegion("hg19");
@@ -154,5 +153,18 @@ private slots:
 		S_EQUAL(NGSHelper::cytoBandToRange("1p36.33").toString(true), "chr1:1-2300000");
 		S_EQUAL(NGSHelper::cytoBandToRange("1p36.33-1p36.32").toString(true), "chr1:1-5400000");
 		S_EQUAL(NGSHelper::cytoBandToRange("1p36.32-1p36.33").toString(true), "chr1:1-5400000");
+	}
+
+	void impringGenes()
+	{
+		QMap<QByteArray, ImprintingInfo> imp_genes = NGSHelper::imprintingGenes();
+
+		I_EQUAL(imp_genes.count(), 243);
+		S_EQUAL(imp_genes["NPAP1"].source_allele, "paternal");
+		S_EQUAL(imp_genes["NPAP1"].status, "imprinted");
+		S_EQUAL(imp_genes["NTM"].source_allele, "maternal");
+		S_EQUAL(imp_genes["NTM"].status, "imprinted");
+		S_EQUAL(imp_genes["SALL1"].source_allele, "maternal");
+		S_EQUAL(imp_genes["SALL1"].status, "predicted");
 	}
 };

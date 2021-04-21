@@ -64,7 +64,6 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	, var_het_genes_(het_hit_genes)
 	, gene2region_cache_(cache)
 	, ngsd_enabled_(LoginManager::active())
-	, roi_gene_index_(roi_genes_)
 {
 	ui->setupUi(this);
 	connect(ui->cnvs, SIGNAL(itemDoubleClicked(QTableWidgetItem*)), this, SLOT(cnvDoubleClicked(QTableWidgetItem*)));
@@ -72,7 +71,7 @@ CnvWidget::CnvWidget(const CnvList& cnvs, QString ps_id, FilterWidget* filter_wi
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
 	connect(ui->filter_widget, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
-	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(loadGeneFile()));
+	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(annotateTargetRegionGeneOverlap()));
 	connect(ui->cnvs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(cnvHeaderDoubleClicked(int)));
 	ui->cnvs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->cnvs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(cnvHeaderContextMenu(QPoint)));
@@ -143,7 +142,7 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 		}
 		if (col_name=="dosage_sensitive_disease_genes")
 		{
-			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://www.ncbi.nlm.nih.gov/projects/dbvar/clingen/clingen_gene.cgi?sym=");
+			VariantDetailsDockWidget::showOverviewTable(title, text, ',', "https://search.clinicalgenome.org/kb/gene-dosage?search=");
 		}
 		if (col_name=="clinvar_cnvs")
 		{
@@ -431,16 +430,13 @@ void CnvWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by ROI
-		QString roi_file = ui->filter_widget->targetRegion();
-		if (roi_file!="")
+		if (ui->filter_widget->targetRegion().isValid())
 		{
-			BedFile roi;
-			roi.load(roi_file);
 			for(int r=0; r<rows; ++r)
 			{
 				if (!filter_result.flags()[r]) continue;
 
-				filter_result.flags()[r] = roi.overlapsWith(cnvs_[r].chr(), cnvs_[r].start(), cnvs_[r].end());
+				filter_result.flags()[r] = ui->filter_widget->targetRegion().regions.overlapsWith(cnvs_[r].chr(), cnvs_[r].start(), cnvs_[r].end());
 			}
 		}
 
@@ -560,6 +556,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	else a_rep_del->setEnabled(ngsd_enabled_ && somatic_report_config_->exists(VariantType::CNVS, row));
 	menu.addSeparator();
 	QAction* a_cnv_val = menu.addAction("Perform copy-number variant validation");
+	a_cnv_val->setEnabled(ngsd_enabled_);
 	menu.addSeparator();
 	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching CNVs in NGSD");
 	a_ngsd_search->setEnabled(ngsd_enabled_);
@@ -913,47 +910,16 @@ void CnvWidget::importPhenotypesFromNGSD()
 	ui->filter_widget->setPhenotypes(phenotypes);
 }
 
-void CnvWidget::loadGeneFile()
+void CnvWidget::annotateTargetRegionGeneOverlap()
 {
-	QTime timer;
-	timer.start();
 	QApplication::setOverrideCursor(Qt::BusyCursor);
-	// skip if no connection to the NGSD
-	if(!LoginManager::active())
-	{
-		// clear old files
-		roi_genes_.clear();
-		roi_gene_index_.createIndex();
-		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this, "DB connection failed", "No connection to the NGSD.\nConnection is required to calculate gene-region relation.");
-		return;
-	}
-	// check for gene list file:
-	QString roi_filename = ui->filter_widget->targetRegion();
-	QString gene_file_path = roi_filename.left(roi_filename.size() - 4) + "_genes.txt";
-	if (QFile::exists(gene_file_path))
-	{
-		// load genes:
-		GeneSet target_genes = GeneSet::createFromFile(gene_file_path);
-		// create bed file
-		roi_genes_ = NGSD().genesToRegions(target_genes, Transcript::ENSEMBL, "gene");
-		roi_genes_.extend(5000);
-	}
-	else
-	{
-		// clear old files
-		roi_genes_.clear();
-		roi_gene_index_.createIndex();
-		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this, "Gene file not found!", "No gene file found at \"" + gene_file_path
-							 + "\". Cannot annotate SV with genes of the current target region." );
-		return;
-	}
-	roi_gene_index_.createIndex();
+
+	//generate gene regions and index
+	BedFile roi_genes = NGSD().genesToRegions(ui->filter_widget->targetRegion().genes, Transcript::ENSEMBL, "gene", true);
+	roi_genes.extend(5000);
+	ChromosomalIndex<BedFile> roi_genes_index(roi_genes);
 
 	// update gene tooltips
-	timer.start();
-	// get gene column index
 	int gene_idx = -1;
 	for (int col_idx = 0; col_idx < ui->cnvs->columnCount(); ++col_idx)
 	{
@@ -965,22 +931,20 @@ void CnvWidget::loadGeneFile()
 	}
 	if (gene_idx >= 0)
 	{
-		// iterate over sv table
 		for (int row_idx = 0; row_idx < ui->cnvs->rowCount(); ++row_idx)
 		{
-				// get all matching lines in gene bed file
-				QVector<int> matching_indices = roi_gene_index_.matchingIndices(cnvs_[row_idx].chr(), cnvs_[row_idx].start(), cnvs_[row_idx].end());
+			// get all matching lines in gene bed file
+			QVector<int> matching_indices = roi_genes_index.matchingIndices(cnvs_[row_idx].chr(), cnvs_[row_idx].start(), cnvs_[row_idx].end());
 
-				// extract gene names
-				GeneSet genes;
-				foreach (int idx, matching_indices)
-				{
-					genes.insert(roi_genes_[idx].annotations().at(0));
-				}
+			// extract gene names
+			GeneSet genes;
+			foreach (int idx, matching_indices)
+			{
+				genes.insert(roi_genes[idx].annotations().at(0));
+			}
 
-				// update tooltip
-				ui->cnvs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> "
-															 + genes.toStringList().join(", ") + "</div>");
+			// update tooltip
+			ui->cnvs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> " + genes.toStringList().join(", ") + "</div>");
 		}
 	}
 	QApplication::restoreOverrideCursor();

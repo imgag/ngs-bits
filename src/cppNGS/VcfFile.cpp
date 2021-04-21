@@ -122,17 +122,17 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		THROW(ArgumentException, "Invalid variant chromosome string in line " + QString::number(line_number) + ": " + vcf_line->chr().str() + ".");
 	}
 	vcf_line->setPos(atoi(line_parts[POS]));
-	if(vcf_line->pos() < 1)
+	if(vcf_line->start() < 1)
 	{
-		THROW(ArgumentException, "Invalid variant position range in line " + QString::number(line_number) + ": " + QString::number(vcf_line->pos()) + ".");
+		THROW(ArgumentException, "Invalid variant position range in line " + QString::number(line_number) + ": " + QString::number(vcf_line->start()) + ".");
 	}
 	vcf_line->setRef(strToPointer(line_parts[REF].toUpper()));
 
 	//Skip variants that are not in the target region (if given)
 	if (roi_idx!=nullptr)
 	{
-		int end =  vcf_line->pos() +  vcf_line->ref().length() - 1;
-		bool in_roi = roi_idx->matchingIndex(vcf_line->chr(), vcf_line->pos(), end) != -1;
+		int end =  vcf_line->start() +  vcf_line->ref().length() - 1;
+		bool in_roi = roi_idx->matchingIndex(vcf_line->chr(), vcf_line->start(), end) != -1;
 		if ((!in_roi && !invert) || (in_roi && invert))
 		{
 			return;
@@ -642,7 +642,7 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 	for (int i=0; i<vcfLines().count()-1; ++i)
 	{
 		int j = i+1;
-		if (vcf_lines_.at(i)->chr() != vcf_lines_.at(j)->chr() || vcf_lines_.at(i)->pos() != vcf_lines_.at(j)->pos() || vcf_lines_.at(i)->ref() !=vcf_lines_.at(j)->ref() || !qEqual(vcf_lines_.at(i)->alt().begin(),  vcf_lines_.at(i)->alt().end(), vcf_lines_.at(j)->alt().begin()))
+		if (vcf_lines_.at(i)->chr() != vcf_lines_.at(j)->chr() || vcf_lines_.at(i)->start() != vcf_lines_.at(j)->start() || vcf_lines_.at(i)->ref() !=vcf_lines_.at(j)->ref() || !qEqual(vcf_lines_.at(i)->alt().begin(),  vcf_lines_.at(i)->alt().end(), vcf_lines_.at(j)->alt().begin()))
 		{
 			output.append(vcf_lines_.at(i));
 		}
@@ -699,7 +699,7 @@ QByteArrayList VcfFile::formatIDs() const
 void VcfFile::storeLineInformation(QTextStream& stream, VcfLine line) const
 {
 	//chr
-	stream << line.chr().str()  << "\t" << line.pos();
+	stream << line.chr().str()  << "\t" << line.start();
 
 	//if id exists
 	if(!line.id().empty())
@@ -1148,7 +1148,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		if (ref.size() == 1 && !(ref=="N" || ref=="A" || ref=="C" || ref=="G" || ref=="T")) //empty seq symbol in ref
 		{
 			FastaFileIndex reference(reference_genome);
-			QByteArray base = reference.seq(v_line->chr(), v_line->pos() - 1, 1);
+			QByteArray base = reference.seq(v_line->chr(), v_line->start() - 1, 1);
 
 			QList<Sequence> alt_seq;
 			//for GSvar there is only one alternative sequence (alt(0) stores VariantList.obs(0))
@@ -1163,11 +1163,11 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		if (alt.size() == 1 && !(alt=="N" || alt=="A" || alt=="C" || alt=="G" || alt=="T")) //empty seq symbol in alt
 		{
 			FastaFileIndex reference(reference_genome);
-			QByteArray base = reference.seq(v_line->chr(), v_line->pos() - 1, 1);
+			QByteArray base = reference.seq(v_line->chr(), v_line->start() - 1, 1);
 			QByteArray new_ref = base + v_line->ref();
 			v_line->setSingleAlt(base);
 			v_line->setRef(new_ref);
-			v_line->setPos(v_line->pos() - 1);
+			v_line->setPos(v_line->start() - 1);
 		}
 
 	}

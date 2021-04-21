@@ -382,7 +382,7 @@
               </property>
              </widget>
             </item>
-            <item row="9" column="0">
+            <item row="10" column="0">
              <widget class="QLabel" name="label_10">
               <property name="text">
                <string>comments:</string>
@@ -392,7 +392,7 @@
               </property>
              </widget>
             </item>
-            <item row="9" column="1">
+            <item row="10" column="1">
              <widget class="QLabel" name="comments_processed_sample">
               <property name="minimumSize">
                <size>
@@ -408,6 +408,23 @@
               </property>
               <property name="textInteractionFlags">
                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="0">
+             <widget class="QLabel" name="label_16">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ancestry estimated from variant data using the ngs-bits SampleAncestry tool:&lt;br/&gt;- EUR: european&lt;br/&gt;- AFR: african&lt;br/&gt;- EAS: east asian&lt;br/&gt;- SAS: south asian&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>ancestry:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="9" column="1">
+             <widget class="QLabel" name="ancestry">
+              <property name="text">
+               <string>TextLabel</string>
               </property>
              </widget>
             </item>
@@ -892,7 +909,7 @@
              </size>
             </property>
             <property name="text">
-             <string>SNPs checked:</string>
+             <string>SNPs matching:</string>
             </property>
            </widget>
           </item>

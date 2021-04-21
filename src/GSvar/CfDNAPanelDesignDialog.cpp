@@ -92,7 +92,7 @@ void CfDNAPanelDesignDialog::loadPreviousPanels(const DBTable& processing_system
 		{
 			const VcfLine& var = prev_panel.vcfLine(i);
 			// create vcf pos string
-			QString vcf_pos = var.chr().strNormalized(true) + ":" + QString::number(var.pos()) + " " + var.ref() + ">" + var.altString();
+			QString vcf_pos = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + " " + var.ref() + ">" + var.altString();
 			prev_vars_.insert(vcf_pos, false);
 		}
 	}
@@ -324,7 +324,7 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 void CfDNAPanelDesignDialog::loadGenes()
 {
 	// get all bed files in the genes folder
-	QDir gene_folder(Settings::path("patient_specific_panel_folder", false) + "genes/"); //TODO GSvarServer: it should be moved to the database
+	QDir gene_folder(Settings::path("patient_specific_panel_folder", false) + "genes/"); //TODO it should be moved to the database > LEON
 	QStringList bed_file_paths = gene_folder.entryList(QStringList() << "*.bed" << "*.BED", QDir::Files);
 
 	// extract info
@@ -351,7 +351,6 @@ void CfDNAPanelDesignDialog::loadGenes()
 
 		// add gene bed file to list
 		genes_.append(gene_entry);
-
 	}
 
 	// create table

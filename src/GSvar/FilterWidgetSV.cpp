@@ -28,7 +28,6 @@ FilterWidgetSV::FilterWidgetSV(QWidget *parent)
 	ui_.lab_modified->setHidden(true);
 
 	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
-	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(checkForGeneFileNGSD()));
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
@@ -40,7 +39,7 @@ FilterWidgetSV::FilterWidgetSV(QWidget *parent)
 	connect(ui_.gene_import, SIGNAL(clicked(bool)), this, SLOT(importGene()));
 	connect(ui_.text_import, SIGNAL(clicked(bool)), this, SLOT(importText()));
 	connect(ui_.report_config, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
-	connect(ui_.calculate_gene_overlap, SIGNAL(clicked(bool)), this, SLOT(calculateGeneOverlap()));
+	connect(ui_.calculate_gene_overlap, SIGNAL(clicked(bool)), this, SIGNAL(calculateGeneTargetRegionOverlap()));
 
 	QAction* action = new QAction("clear", this);
 	connect(action, &QAction::triggered, this, &FilterWidgetSV::clearTargetRegion);
@@ -74,7 +73,7 @@ void FilterWidgetSV::resetSignalsUnblocked(bool clear_roi)
 	if (clear_roi)
 	{
 		ui_.roi->setCurrentIndex(1);
-		ui_.roi->setToolTip("");
+		roi_.clear();
 	}
 
 	//gene
@@ -112,24 +111,9 @@ void FilterWidgetSV::markFailedFilters()
 	ui_.cascade_widget->markFailedFilters();
 }
 
-QString FilterWidgetSV::targetRegion() const
+const TargetRegionInfo& FilterWidgetSV::targetRegion() const
 {
-	return ui_.roi->toolTip();
-}
-
-void FilterWidgetSV::setTargetRegion(QString roi_file)
-{
-	roi_file = Helper::canonicalPath(roi_file);
-	for (int i=0; i<ui_.roi->count(); ++i)
-	{
-		if (ui_.roi->itemData(i).toString()==roi_file)
-		{
-			ui_.roi->setCurrentIndex(i);
-			break;
-		}
-	}
-
-	emit targetRegionChanged();
+	return roi_;
 }
 
 GeneSet FilterWidgetSV::genes() const
@@ -205,9 +189,12 @@ void FilterWidgetSV::roiSelectionChanged(int index)
 		ui_.roi->setEditable(false);
 	}
 
-	QString bed_file_name = ui_.roi->itemData(index).toString().trimmed();
-	ui_.roi->setToolTip(bed_file_name);
+	//load target region data
+	QString roi_name = ui_.roi->itemData(index).toString().trimmed();
+	FilterWidget::loadTargetRegionData(roi_, roi_name);
 
+	//enable annotation button if annotation is possible
+	ui_.calculate_gene_overlap->setEnabled(LoginManager::active() && !roi_.genes.isEmpty());
 
 	if(index!=0)
 	{
@@ -310,7 +297,7 @@ void FilterWidgetSV::importHPO()
 
 void FilterWidgetSV::importROI()
 {
-	ui_.roi->setCurrentText(filter_widget_->targetRegionName());
+	ui_.roi->setCurrentText(filter_widget_->targetRegionDisplayName());
 	emit filtersChanged();
 }
 
@@ -375,18 +362,6 @@ void FilterWidgetSV::setFilter(int index)
 void FilterWidgetSV::clearTargetRegion()
 {
 	ui_.roi->setCurrentText("none");
-}
-
-void FilterWidgetSV::calculateGeneOverlap()
-{
-	emit calculateGeneTargetRegionOverlap();
-}
-
-void FilterWidgetSV::checkForGeneFileNGSD()
-{
-	// checks if gene file for target region is available and connection to the NGSD exists
-	QString gene_file_path = targetRegion().left(targetRegion().size() - 4) + "_genes.txt";
-	ui_.calculate_gene_overlap->setEnabled(QFile::exists(gene_file_path) && LoginManager::active());
 }
 
 void FilterWidgetSV::loadFilters()

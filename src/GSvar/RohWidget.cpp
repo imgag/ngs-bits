@@ -216,8 +216,8 @@ void RohWidget::filtersChanged()
 	//filter by ROI
 	if (ui->f_roi->isChecked())
 	{
-		BedFile roi;
-		roi.load(var_filters->targetRegion());
+		const BedFile& roi =  var_filters->targetRegion().regions;
+
 		for(int r=0; r<rows; ++r)
 		{
 			if (!pass[r]) continue;
@@ -282,7 +282,7 @@ void RohWidget::variantFiltersChanged()
 	ui->f_genes->setEnabled(!var_filters->genes().isEmpty());
 	if (!ui->f_genes->isEnabled()) ui->f_genes->setChecked(false);
 
-	ui->f_roi->setEnabled(!var_filters->targetRegion().isEmpty());
+	ui->f_roi->setEnabled(var_filters->targetRegion().isValid());
 	if (!ui->f_roi->isEnabled()) ui->f_roi->setChecked(false);
 
 	//re-apply filters in case the genes/target region changed

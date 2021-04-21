@@ -611,3 +611,6 @@ INSERT INTO `study_sample`(`study_id`, `processed_sample_id`) VALUES
 (1, 6),
 (1, 7),
 (1, 8);
+
+INSERT INTO `subpanels` (`id`, `name`, `created_by`, `created_date`, `mode`, `extend`, `genes`, `roi`, `archived`) VALUES
+(1, 'some_target_region', 99, '2021-04-15', 'exon', 5, 'WDPCP\r\n', 'chr2	63349135	63349196\r\nchr2	63380043	63380085\r\nchr2	63380624	63380714\r\nchr2	63401799	63401972\r\nchr2	63456957	63457012\r\nchr2	63486436	63486549\r\nchr2	63540377	63540451\r\nchr2	63605515	63605649\r\nchr2	63609035	63609234\r\nchr2	63631177	63631797\r\nchr2	63660873	63661075\r\nchr2	63664549	63664693\r\nchr2	63664990	63665022\r\nchr2	63666885	63667010\r\nchr2	63711732	63711802\r\nchr2	63712045	63712126\r\nchr2	63713670	63713725\r\nchr2	63714575	63714633\r\nchr2	63719984	63720079\r\nchr2	63815325	63815410\r\n', 0);

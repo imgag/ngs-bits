@@ -126,9 +126,8 @@ RtfTable SomaticReportHelper::billingTable()
 
 	table.addRow(RtfTableRow({"#Gene", "OMIM"}, {doc_.maxWidth()/2, doc_.maxWidth()/2}, RtfParagraph().setHorizontalAlignment("c").setFontSize(16).setBold(true)).setHeader() );
 
-	BedFile target;
-	target.load(processing_system_data_.target_file);
-	target.sort();
+	int sys_id = db_.processingSystemIdFromProcessedSample(settings_.tumor_ps);
+	BedFile target = db_.processingSystemRegions(sys_id);
 	target.merge();
 
 	BedFile ebm_genes_target = db_.genesToRegions(ebm_genes_,Transcript::SOURCE::ENSEMBL,"gene");
@@ -197,27 +196,27 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	}
 
 	//Load virus data (from tumor sample dir)
+	QString viral_file = db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::VIRAL);
 	try
 	{
-		QString path = db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::SAMPLE_FOLDER) + "/" + settings_.tumor_ps + "_viral.tsv";
-		TSVFileStream file(path);
+		TSVFileStream file(viral_file);
 		while(!file.atEnd())
 		{
 			QByteArrayList parts = file.readLine();
 			if(parts.isEmpty()) continue;
 
-			somaticVirus tmp;
-			tmp.chr_ = parts[0];
-			tmp.start_ = parts[1].toInt();
-			tmp.end_ = parts[2].toInt();
-			tmp.name_ = parts[file.colIndex("name",true)];
-			tmp.reads_ = parts[file.colIndex("reads",true)].toInt();
-			tmp.coverage_ = parts[file.colIndex("coverage",true)].toDouble();
-			tmp.mismatches_ = parts[file.colIndex("mismatches",true)].toInt();
-			tmp.idendity_ = parts[file.colIndex("identity\%",true)].toDouble();
+			SomaticVirusInfo tmp;
+			tmp.chr = parts[0];
+			tmp.start = parts[1].toInt();
+			tmp.end = parts[2].toInt();
+			tmp.name = parts[file.colIndex("name",true)];
+			tmp.reads = parts[file.colIndex("reads",true)].toInt();
+			tmp.coverage = parts[file.colIndex("coverage",true)].toDouble();
+			tmp.mismatches = parts[file.colIndex("mismatches",true)].toInt();
+			tmp.idendity = parts[file.colIndex("identity\%",true)].toDouble();
 
-			if(tmp.coverage_ < 100) continue;
-			if(tmp.idendity_ < 90) continue;
+			if(tmp.coverage < 100) continue;
+			if(tmp.idendity < 90) continue;
 
 			validated_viruses_ << tmp;
 		}
@@ -248,17 +247,11 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 	tumor_qcml_data_ = db_.getQCData(db_.processedSampleId(settings_.tumor_ps));
 	normal_qcml_data_ = db_.getQCData(db_.processedSampleId(settings_.normal_ps));
 
-	processing_system_data_ = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(settings_.tumor_ps));
-
-	if(QFile::exists(processing_system_data_.target_gene_file))
-	{
-		 target_genes_ = GeneSet::createFromFile(processing_system_data_.target_gene_file);
-		 target_genes_ = db_.genesToApproved(target_genes_,true);
-	}
-	else
-	{
-		THROW(FileAccessException, "Could not access gene list file " + processing_system_data_.target_gene_file + " in SomaticReportHelper::SomaticReportHelper");
-	}
+	//load processing system data
+	int sys_id = db_.processingSystemIdFromProcessedSample(settings_.tumor_ps);
+	processing_system_data_ = db_.getProcessingSystemData(sys_id);
+	target_genes_ = db_.processingSystemGenes(sys_id);
+	target_genes_ = db_.genesToApproved(target_genes_,true);
 
 	//load disease details from NGSD
 	QStringList tmp;
@@ -1276,6 +1269,22 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	doc_.addPart(high_significant_table.RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
 
+
+
+	//SNVs of low significance
+	VariantList vl_low_significance;
+	vl_low_significance.copyMetaData(somatic_vl_);
+	for(int i=0; i<somatic_vl_.count(); ++i)
+	{
+		const Variant& var = somatic_vl_[i];
+		if(!vl_high_significance.contains(var))
+		{
+			vl_low_significance.append(var);
+		}
+	}
+	vl_low_significance.sortByAnnotation(vl_low_significance.annotationIndexByName("gene"));
+
+
 	//Write hint in case of unclassified variants
 	bool unclassified_snvs = false;
 	for(int i=0; i<vl_high_significance.count();++i)
@@ -1286,9 +1295,20 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 			break;
 		}
 	}
+
+	for(int i=0; i<vl_low_significance.count(); ++i)
+	{
+		if(vl_low_significance[i].annotations()[i_som_vicc].trimmed().isEmpty())
+		{
+			unclassified_snvs = true;
+			break;
+		}
+	}
+
+
 	if(unclassified_snvs)
 	{
-		doc_.addPart(RtfParagraph("Es wurden sehr viele somatische Varianten nachgewiesen, die zu einer hohen Mutationslast führen. Da die Wechselwirkungen aller Varianten nicht eingeschätzt werden können, wird von der funktionellen Bewertung einzelner Varianten abgesehen. Falls erforderlich kann die Bewertung nachgereicht werden.").setHorizontalAlignment("j").highlight(3).RtfCode());
+		doc_.addPart(RtfParagraph("Es wurden sehr viele somatische Varianten nachgewiesen, die zu einer hohen Mutationslast führen. Da die Wechselwirkungen aller Varianten nicht eingeschätzt werden können, wird von der funktionellen Bewertung einzelner Varianten abgesehen. Falls erforderlich kann die Bewertung nachgereicht werden.").highlight(3).RtfCode());
 		doc_.addPart(RtfParagraph("").RtfCode());
 	}
 
@@ -1349,18 +1369,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	/*********************
 	 * ADDITIONAL REPORT *
 	 *********************/
-	//SNVs of low significance
-	VariantList vl_low_significance;
-	vl_low_significance.copyMetaData(somatic_vl_);
-	for(int i=0; i<somatic_vl_.count(); ++i)
-	{
-		const Variant& var = somatic_vl_[i];
-		if(!vl_high_significance.contains(var))
-		{
-			vl_low_significance.append(var);
-		}
-	}
-	vl_low_significance.sortByAnnotation(vl_low_significance.annotationIndexByName("gene"));
+
 	doc_.addPart( RtfParagraph("Varianten unklarer Onkogenität:").setBold(true).setIndent(0,0,0).setSpaceBefore(250).RtfCode() );
 	RtfTable low_significant_table = snvTable(vl_low_significance, false, false);
 	doc_.addPart(low_significant_table.RtfCode());
@@ -1403,11 +1412,11 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 			row.addCell(963,virus.virusName());
 
 			row.addCell(964,virus.virusGene());
-			row.addCell(1927,virus.chr_);
+			row.addCell(1927,virus.chr);
 
-			QByteArray region = QByteArray::number(virus.start_) + "-" + QByteArray::number(virus.end_);
+			QByteArray region = QByteArray::number(virus.start) + "-" + QByteArray::number(virus.end);
 			row.addCell(1927,region);
-			row.addCell(1927,QByteArray::number(virus.coverage_,'f',1));
+			row.addCell(1927,QByteArray::number(virus.coverage,'f',1));
 			row.addCell(1929,"nachgewiesen*");
 
 			virus_table.addRow(row);
@@ -1464,6 +1473,11 @@ void SomaticReportHelper::storeXML(QString file_name)
 {
 	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(germline_vl_, settings_);
 	SomaticXmlReportGeneratorData data(settings_, somatic_vl_, som_var_in_normal, cnvs_);
+
+	int sys_id = db_.processingSystemIdFromProcessedSample(settings_.tumor_ps);
+	data.processing_system_roi = db_.processingSystemRegions(sys_id);
+	data.processing_system_genes = db_.processingSystemGenes(sys_id);
+
 	data.tumor_content_histology = histol_tumor_fraction_ / 100.; //is stored as double between 0 and 1, NGSD contains percentages
 	data.tumor_content_snvs = getTumorContentBySNVs() / 100; //is stored as a double between 0 and 1, QCML file contains percentages
 	data.tumor_content_clonality = getCnvMaxTumorClonality(cnvs_) ;

@@ -51,7 +51,7 @@ SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* fil
 	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
 	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui->filter_widget, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
-	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(loadGeneFile()));
+	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(annotateTargetRegionGeneOverlap()));
 	connect(ui->svs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(svHeaderDoubleClicked(int)));
 	ui->svs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->svs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(svHeaderContextMenu(QPoint)));
@@ -104,7 +104,7 @@ void SvWidget::initGUI()
 		return;
 	}
 
-    if((sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI)||(sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO))
+	if(sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_MULTI || sv_bedpe_file_.format()==BedpeFileFormat::BEDPE_GERMLINE_TRIO)
     {
         // extract sample names from BEDPE file
         ps_names_.clear();
@@ -120,7 +120,7 @@ void SvWidget::initGUI()
 			ps_id_ = "";
             foreach (QString ps_name, ps_names_)
             {
-                ps_ids_ << db_.processedSampleId(ps_name);
+				ps_ids_ << NGSD().processedSampleId(ps_name);
             }
         }
     }
@@ -130,14 +130,14 @@ void SvWidget::initGUI()
 		ps_ids_.clear();
 		if(ps_id_ != "" && ngsd_enabled_)
         {
-			ps_names_ = QStringList() << db_.processedSampleName(ps_id_);
+			ps_names_ = QStringList() << NGSD().processedSampleName(ps_id_);
         }
         else
         {
 			// fallback: use empty sample header
 			ps_names_ = QStringList() << "";
         }
-    }
+	}
 
 
 	//Set list of annotations to be showed, by default some annotations are filtered out
@@ -248,7 +248,7 @@ void SvWidget::initGUI()
 			ui->svs->setItem(row,col_in_widget,new QTableWidgetItem(QString(sv_bedpe_file_[row].annotations().at(anno_index))));
 			++col_in_widget;
 		}
-    }
+	}
 
 	if (is_multisample_)
 	{
@@ -388,26 +388,13 @@ void SvWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by ROI
-		QString roi = ui->filter_widget->targetRegion();
-		if (roi!=roi_filename_) //update roi regions if it changed
-		{
-			roi_filename_ = "";
-			roi_.clear();
-
-			if (roi!="")
-			{
-				roi_.load(roi);
-				roi_.merge();
-				roi_filename_ = roi;
-			}
-		}
-		if (roi!="") //perform actual filtering
+		if (ui->filter_widget->targetRegion().isValid())
 		{
 			for(int row=0; row<row_count; ++row)
 			{
 				if(!filter_result.flags()[row]) continue;
 
-				if (!sv_bedpe_file_[row].intersectsWith(roi_, true)) filter_result.flags()[row] = false;
+				if (!sv_bedpe_file_[row].intersectsWith(ui->filter_widget->targetRegion().regions, true)) filter_result.flags()[row] = false;
 			}
 		}
 
@@ -440,11 +427,12 @@ void SvWidget::applyFilters(bool debug_time)
 		QList<Phenotype> phenotypes = ui->filter_widget->phenotypes();
 		if (!phenotypes.isEmpty())
 		{
+			NGSD db;
 			//convert phenotypes to genes
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenotypes)
 			{
-                pheno_genes << db_.phenotypeToGenes(pheno, true);
+				pheno_genes << db.phenotypeToGenes(pheno, true);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
@@ -453,7 +441,7 @@ void SvWidget::applyFilters(bool debug_time)
 			{
 				if (!gene2region_cache_.contains(gene))
 				{
-                    BedFile tmp = db_.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
+					BedFile tmp = db.geneToRegions(gene, Transcript::ENSEMBL, "gene", true);
 					tmp.clearAnnotations();
 					tmp.extend(5000);
 					tmp.merge();
@@ -735,46 +723,16 @@ QByteArray SvWidget::extractGenotype(const BedpeLine& sv, const QList<QByteArray
     return "n/a";
 }
 
-void SvWidget::loadGeneFile()
+void SvWidget::annotateTargetRegionGeneOverlap()
 {
-	QTime timer;
-	timer.start();
 	QApplication::setOverrideCursor(Qt::BusyCursor);
-	// skip if no connection to the NGSD
-	if(!LoginManager::active())
-	{
-		// clear old files
-		roi_genes_.clear();
-		roi_gene_index_.createIndex();
-		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this, "DB connection failed", "No connection to the NGSD.\nConnection is required to calculate gene-region relation.");
-		return;
-	}
-	// check for gene list file:
-	QString gene_file_path = roi_filename_.left(roi_filename_.size() - 4) + "_genes.txt";
-	if (QFile::exists(gene_file_path))
-	{
-		// load genes:
-		GeneSet target_genes = GeneSet::createFromFile(gene_file_path);
-		// create bed file
-		roi_genes_ = NGSD().genesToRegions(target_genes, Transcript::ENSEMBL, "gene");
-		roi_genes_.extend(5000);
-	}
-	else
-	{
-		// clear old files
-		roi_genes_.clear();
-		roi_gene_index_.createIndex();
-		QApplication::restoreOverrideCursor();
-		QMessageBox::warning(this, "Gene file not found!", "No gene file found at \"" + gene_file_path
-							 + "\". Cannot annotate SV with genes of the current target region." );
-		return;
-	}
-	roi_gene_index_.createIndex();
+
+	//generate gene regions and index
+	BedFile roi_genes = NGSD().genesToRegions(ui->filter_widget->targetRegion().genes, Transcript::ENSEMBL, "gene", true);
+	roi_genes.extend(5000);
+	ChromosomalIndex<BedFile> roi_genes_index(roi_genes);
 
 	// update gene tooltips
-	timer.start();
-	// get gene column index
 	int gene_idx = -1;
 	for (int col_idx = 0; col_idx < ui->svs->columnCount(); ++col_idx)
 	{
@@ -784,31 +742,32 @@ void SvWidget::loadGeneFile()
 			break;
 		}
 	}
+
 	if (gene_idx >= 0)
 	{
 		// iterate over sv table
 		for (int row_idx = 0; row_idx < ui->svs->rowCount(); ++row_idx)
 		{
-				// get all matching lines in gene bed file
-				BedFile sv_regions = sv_bedpe_file_[row_idx].affectedRegion();
-				QVector<int> matching_indices;
-				for (int i = 0; i < sv_regions.count(); ++i)
-				{
-					matching_indices += roi_gene_index_.matchingIndices(sv_regions[i].chr(), sv_regions[i].start(), sv_regions[i].end());
-				}
+			// get all matching lines in gene bed file
+			BedFile sv_regions = sv_bedpe_file_[row_idx].affectedRegion();
+			QVector<int> matching_indices;
+			for (int i = 0; i < sv_regions.count(); ++i)
+			{
+				matching_indices << roi_genes_index.matchingIndices(sv_regions[i].chr(), sv_regions[i].start(), sv_regions[i].end());
+			}
 
-				// extract gene names
-				GeneSet genes;
-				foreach (int idx, matching_indices)
-				{
-					genes.insert(roi_genes_[idx].annotations().at(0));
-				}
+			// extract gene names
+			GeneSet genes;
+			foreach (int idx, matching_indices)
+			{
+				genes.insert(roi_genes[idx].annotations().at(0));
+			}
 
-				// update tooltip
-				ui->svs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> "
-															 + genes.toStringList().join(", ") + "</div>");
+			// update tooltip
+			ui->svs->item(row_idx, gene_idx)->setToolTip("<div style=\"wordwrap\">Target region gene overlap: <br> " + genes.toStringList().join(", ") + "</div>");
 		}
 	}
+
 	QApplication::restoreOverrideCursor();
 }
 
@@ -1115,6 +1074,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	a_rep_del->setEnabled((report_config_ != nullptr) && ngsd_enabled_ && !is_somatic_ && report_config_->exists(VariantType::SVS, row) && !report_config_->isFinalized());
 	menu.addSeparator();
 	QAction* a_sv_val = menu.addAction("Perform structural variant validation");
+	a_sv_val->setEnabled(ngsd_enabled_);
 	menu.addSeparator();
 	QAction* a_ngsd_search = menu.addAction(QIcon(":/Icons/NGSD.png"), "Matching SVs in NGSD");
 	a_ngsd_search->setEnabled(ngsd_enabled_);

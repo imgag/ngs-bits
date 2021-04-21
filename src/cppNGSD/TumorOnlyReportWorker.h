@@ -2,29 +2,35 @@
 #define TUMORONLYREPORTWORKER_H
 
 #include <QObject>
+#include "cppNGSD_global.h"
 #include "VariantList.h"
 #include "RtfDocument.h"
 #include "FilterCascade.h"
-#include "Transcript.h"
+#include "NGSHelper.h"
+#include "RtfDocument.h"
+#include "NGSD.h"
 
 ///Input configuration for TumorOnlyReportWorker
-struct TumorOnlyReportWorkerConfig
+struct CPPNGSDSHARED_EXPORT TumorOnlyReportWorkerConfig
 {
 	QString ps; //Tumor processed sample name
 
-	QString target_file = "";
+	TargetRegionInfo roi;
 	QString low_coverage_file = "";
 	QString bam_file = "";
 
 	FilterResult filter_result;
 
 	bool include_coverage_per_gap = false;
-
 	bool include_exon_number_per_gap = false;
+
+	QMap<QByteArray, QByteArrayList> preferred_transcripts;
+
+	bool use_test_db = false;
 };
 
 ///Helper class for tumor-only report generation
-class TumorOnlyReportWorker
+class CPPNGSDSHARED_EXPORT TumorOnlyReportWorker
 {
 
 public:
@@ -38,28 +44,18 @@ public:
 	static void checkAnnotation(const VariantList& variants);
 
 private:
-	QString ps_;
+	const TumorOnlyReportWorkerConfig& config_;
 	const VariantList& variants_;
-	const FilterResult& filter_result_;
-
-	const QMap<QByteArray, QByteArrayList>& preferred_transcripts_;
+	NGSD db_;
 
 	RtfDocument doc_;
-
-	//input files
-	QString target_file_;
-	QString low_cov_file_;
-	QString bam_file_;
-
-	bool include_coverage_per_gap_;
-	bool include_exons_per_gap_;
 
 	//variant annotation indices
 	int i_co_sp_;
 	int i_tum_af_;
 	int i_cgi_driver_statem_;
 	int i_ncg_oncogene_;
-	int i_ncg_tsg;
+	int i_ncg_tsg_;
 	int i_germl_class_;
 	int i_somatic_class_;
 

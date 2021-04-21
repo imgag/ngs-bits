@@ -1,5 +1,5 @@
 ### VcfLeftNormalize tool help
-	VcfLeftNormalize (2020_12-52-gd0b78e6c)
+	VcfLeftNormalize (2021_03-23-g5c26fea8)
 	
 	Normalizes all variants and shifts indels to the left in a VCF file. Multi-allelic and complex variant are not changed!
 	
@@ -11,7 +11,7 @@
 	  -ref <file>              Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
 	                           Default value: ''
 	  -compression_level <int> Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.
-	                           Default value: '0'
+	                           Default value: '10'
 	  -stream                  Allows to stream the input and output VCF without loading the whole file into memory. Only supported with uncompressed VCF files.
 	                           Default value: 'false'
 	
@@ -22,7 +22,7 @@
 	  --tdx                    Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfLeftNormalize changelog
-	VcfLeftNormalize 2020_12-52-gd0b78e6c
+	VcfLeftNormalize 2021_03-23-g5c26fea8
 	
 	2020-08-12 Added parameter '-compression_level' for compression level of output vcf files.
 	2016-06-24 Initial implementation.

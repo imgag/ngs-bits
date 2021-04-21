@@ -33,7 +33,7 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	, germ_variant_config_()
 	, created_by_(Helper::userName())
 	, created_at_(QDateTime::currentDateTime())
-	, target_file_()
+	, target_region_name_()
 	, include_tum_content_clonality_(false)
 	, include_tum_content_snp_af_(false)
 	, include_tum_content_histological_(false)
@@ -222,9 +222,9 @@ QString SomaticReportConfiguration::createdBy() const
 {
 	return created_by_;
 }
-QString SomaticReportConfiguration::targetFile() const
+QString SomaticReportConfiguration::targetRegionName() const
 {
-	return target_file_;
+	return target_region_name_;
 }
 void SomaticReportConfiguration::setCreatedAt(QDateTime time)
 {
@@ -234,10 +234,9 @@ void SomaticReportConfiguration::setCreatedBy(QString user)
 {
 	created_by_ = user;
 }
-void SomaticReportConfiguration::setTargetFile(QString target_bed)
+void SomaticReportConfiguration::setTargetRegionName(QString target_name)
 {
-	if(target_bed != "") target_file_ = QFileInfo(target_bed).fileName();
-	else target_file_ = "";
+	target_region_name_ = target_name;
 }
 void SomaticReportConfiguration::sortByPosition()
 {

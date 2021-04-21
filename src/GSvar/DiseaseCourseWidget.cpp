@@ -34,7 +34,7 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 	int row = item->row();
 
 	const VcfLine& vcf_line = ref_column_.variants[row];
-	QString coords = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.pos());
+	QString coords = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.start());
 	emit openInIGV(coords);
 
 	// add cfDNA BAM Files to IGV
@@ -58,10 +58,10 @@ void DiseaseCourseWidget::getCfDNASampleIds()
 	// get all same samples
 	QString sample_id = db_.sampleId(tumor_sample_name_);
 	QStringList same_sample_ids = db_.relatedSamples(sample_id, "same sample");
-	QStringList cf_dna_sample_ids;
 	same_sample_ids << sample_id; // add current sample id
 
 	// get all related cfDNA samples
+	QStringList cf_dna_sample_ids;
 	foreach (QString cur_sample_id, same_sample_ids)
 	{
 		cf_dna_sample_ids.append(db_.relatedSamples(cur_sample_id, "tumor-cfDNA"));
@@ -109,15 +109,15 @@ void DiseaseCourseWidget::loadVariantLists()
 		cfDnaColumn cf_dna_column;
 		cf_dna_column.name = db_.processedSampleName(ps_id);
 		cf_dna_column.date = QDate::fromString(db_.getSampleData(db_.sampleId(cf_dna_column.name)).received, "dd.MM.yyyy");
-		QString cf_dna_vcf_path = db_.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER) + "/" + cf_dna_column.name + "_var.vcf";
-		if (!QFile::exists(cf_dna_vcf_path))
+		QString cfdna_vcf = db_.processedSamplePath(ps_id, PathType::VCF_CF_DNA);
+		if (!QFile::exists(cfdna_vcf))
 		{
 			QMessageBox::warning(this, "File not found", "Could not find cfDNA VCF for processed Sample " + cf_dna_column.name + "! ");
 		}
 		else
 		{
 			// load variant list
-			cf_dna_column.variants.load(cf_dna_vcf_path);
+			cf_dna_column.variants.load(cfdna_vcf);
 
 			// create lookup table for each variant
 			cf_dna_column.lookup_table.clear();

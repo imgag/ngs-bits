@@ -28,8 +28,9 @@ namespace {
 
 	void filterVcfFile(VcfFile& output, bool only_snvs, double min_af, double max_af)
 	{
-		//filter by AF
 		FilterResult filter_result(output.count());
+
+		//check input
 		if (min_af<0.0 || min_af>1.0)
 		{
 			THROW(ArgumentException, "Minumum allele frequency out of range (0.0-1.0): " + QByteArray::number(min_af));
@@ -38,16 +39,14 @@ namespace {
 		{
 			THROW(ArgumentException, "Maximum allele frequency out of range (0.0-1.0): " + QByteArray::number(max_af));
 		}
-		bool min_set = min_af>0.0;
-		bool max_set = max_af<1.0;
-		if (min_set || max_set)
+
+		//filter by AF
+		if (min_af>0.0 || max_af<1.0)
 		{
 			for (int i=0; i<output.count(); ++i)
 			{
-				if (!filter_result.passing(i)) continue;
-
 				double af = output[i].info("AF").toDouble();
-				filter_result.flags()[i] = (!min_set || af>min_af) && (!max_set || af<max_af);
+				filter_result.flags()[i] = af>=min_af && af<=max_af;
 			}
 		}
 
@@ -67,7 +66,7 @@ VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, const BedFile
 {
 	//check variant list exists
 	QString tmp = copyFromResource(build);
-	
+
 	//load
 	VcfFile output;
 	output.load(tmp, roi, false);
@@ -342,18 +341,26 @@ QByteArray NGSHelper::expandAminoAcidAbbreviation(QChar amino_acid_change_in)
 
 const BedFile& NGSHelper::pseudoAutosomalRegion(const QString& build)
 {
-	if  (build!="hg19") THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
+	static QMap<QString, BedFile> output;
 
-	static BedFile output; //if we support more genomes, we have to use a static QMap<QString,BedFile>
-	if (output.count()==0)
+	//init - taken from https://www.ncbi.nlm.nih.gov/grc/human
+	if (output.isEmpty())
 	{
-		output.append(BedLine(Chromosome("chrX"), 60001, 2699520));
-		output.append(BedLine(Chromosome("chrX"), 154931044, 155260560));
-		output.append(BedLine(Chromosome("chrY"), 10001, 2649520));
-		output.append(BedLine(Chromosome("chrY"), 59034050, 59363566));
+		output["hg19"].append(BedLine(Chromosome("chrX"), 60001, 2699520));
+		output["hg19"].append(BedLine(Chromosome("chrX"), 154931044, 155260560));
+		output["hg19"].append(BedLine(Chromosome("chrY"), 10001, 2649520));
+		output["hg19"].append(BedLine(Chromosome("chrY"), 59034050, 59363566));
+
+		output["hg38"].append(BedLine(Chromosome("chrX"), 10001, 2781479));
+		output["hg38"].append(BedLine(Chromosome("chrX"), 155701383, 156030895));
+		output["hg38"].append(BedLine(Chromosome("chrY"), 10001, 2781479));
+		output["hg38"].append(BedLine(Chromosome("chrY"), 56887903, 57217415));
 	}
 
-	return output;
+	//check build is supported
+	if  (!output.contains(build)) THROW(ProgrammingException, "Unsupported genome build '" + build + "' in NGSHelper::pseudoAutosomalRegion!");
+
+	return output[build];
 }
 
 QByteArray NGSHelper::cytoBand(Chromosome chr, int pos)
@@ -427,6 +434,30 @@ BedLine NGSHelper::cytoBandToRange(QByteArray cytoband)
 		}
 		THROW(ArgumentException, "Cytoband '" + cytoband + "' contains unknown band name '" + band + "'!");
 	}
+}
+
+const QMap<QByteArray, ImprintingInfo>& NGSHelper::imprintingGenes()
+{
+	static QMap<QByteArray, ImprintingInfo> output;
+
+	//init
+	if (output.isEmpty())
+	{
+		QStringList lines = Helper::loadTextFile(":/Resources/imprinting_genes.tsv", true, '#', true);
+		foreach(const QString& line, lines)
+		{
+			QStringList parts = line.split("\t");
+			if (parts.count()==3)
+			{
+				QByteArray gene = parts[0].toLatin1().trimmed();
+				QByteArray source_allele = parts[1].toLatin1().trimmed();
+				QByteArray status = parts[2].toLatin1().trimmed();
+				output[gene] = ImprintingInfo{source_allele, status};
+			}
+		}
+	}
+
+	return output;
 }
 
 void NGSHelper::parseRegion(const QString& text, Chromosome& chr, int& start, int& end)

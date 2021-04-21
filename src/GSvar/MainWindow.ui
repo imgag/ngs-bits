@@ -614,7 +614,7 @@
   </action>
   <action name="actionGenderHet">
    <property name="text">
-    <string>Based on heterocygous SNPs on X</string>
+    <string>Based on heterozygous SNPs on X</string>
    </property>
   </action>
   <action name="actionSampleDiff">
@@ -916,7 +916,7 @@
   </action>
   <action name="actionIgvClear">
    <property name="text">
-    <string>Clear</string>
+    <string>Start/clear</string>
    </property>
   </action>
   <action name="actionOpenGeneTabByName">

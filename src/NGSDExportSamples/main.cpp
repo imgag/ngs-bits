@@ -12,6 +12,20 @@ public:
 	{
 	}
 
+	QStringList validPathStrings()
+	{
+		QStringList output;
+
+		output << "";
+
+		foreach(PathType type, QList<PathType>() << PathType::SAMPLE_FOLDER << PathType::BAM << PathType::VCF << PathType::GSVAR << PathType::COPY_NUMBER_CALLS << PathType::STRUCTURAL_VARIANTS)
+		{
+			output << FileLocation::typeToString(type);
+		}
+
+		return output;
+	}
+
 	virtual void setup()
 	{
 		setDescription("Lists processed samples from the NGSD.");
@@ -34,11 +48,13 @@ public:
 		addFlag("add_qc", "If set, QC columns are added to output.");
 		addFlag("add_outcome", "If set, diagnostic outcome columns are added to output.");
 		addFlag("add_disease_details", "If set, disease details columns are added to output.");
-		addFlag("add_path", "Checks if the sample folder is present at the defaults location in the 'projects_folder' (as defined in the 'settings.ini' file).");
+		addEnum("add_path", "Adds a column with the given path type.", true, validPathStrings());
 		addFlag("add_report_config", "Adds a column with report configuration information (exists/has_small_variants/has_cnvs).");
 		addFlag("add_comments", "Adds sample and processed sample comments columns.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2021,  4, 16, "Added ancestry column.");
+		changeLog(2021,  4, 13, "Changed 'add_path' parameter to support different file/folder types.");
 		changeLog(2020, 10,  8, "Added parameters 'sender' and 'study'.");
 		changeLog(2020,  7, 20, "Added 'match_external_names' flag.");
 		changeLog(2019, 12, 11, "Added 'run_finished' and 'add_report_config' flags.");
@@ -73,7 +89,7 @@ public:
 		params.add_qc = getFlag("add_qc");
 		params.add_outcome = getFlag("add_outcome");
 		params.add_disease_details = getFlag("add_disease_details");
-		params.add_path = getFlag("add_path");
+		params.add_path = getEnum("add_path");
 		params.add_report_config = getFlag("add_report_config");
 		params.add_comments = getFlag("add_comments");
 

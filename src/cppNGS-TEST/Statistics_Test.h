@@ -552,12 +552,8 @@ TEST_CLASS(Statistics_Test)
 
 	void ancestry()
 	{
-
-		VcfFile vl;
-		vl.load(TESTDATA("data_in/ancestry.vcf.gz"));
-
 		//default
-		AncestryEstimates ancestry = Statistics::ancestry("hg19", vl);
+		AncestryEstimates ancestry = Statistics::ancestry("hg19", TESTDATA("data_in/ancestry.vcf.gz"));
 		I_EQUAL(ancestry.snps, 3096);
 		F_EQUAL2(ancestry.afr, 0.0114, 0.001);
 		F_EQUAL2(ancestry.eur, 0.3088, 0.001);
@@ -566,12 +562,12 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(ancestry.population, "EUR");
 
 		//not enough SNPs
-		ancestry = Statistics::ancestry("hg19", vl, 10000);
+		ancestry = Statistics::ancestry("hg19", TESTDATA("data_in/ancestry.vcf.gz"), 10000);
 		I_EQUAL(ancestry.snps, 3096);
 		S_EQUAL(ancestry.population, "NOT_ENOUGH_SNPS");
 
 		//not enough popultation distance
-		ancestry = Statistics::ancestry("hg19", vl, 1000, 0.7);
+		ancestry = Statistics::ancestry("hg19", TESTDATA("data_in/ancestry.vcf.gz"), 1000, 0.7);
 		I_EQUAL(ancestry.snps, 3096);
 		F_EQUAL2(ancestry.afr, 0.0114, 0.001);
 		F_EQUAL2(ancestry.eur, 0.3088, 0.001);
@@ -582,13 +578,8 @@ TEST_CLASS(Statistics_Test)
 
 	void ancestry_hg38()
 	{
-
-		VcfFile vl;
-		vl.load(TESTDATA("data_in/ancestry_hg38.vcf.gz"));
-
-		//default
-		AncestryEstimates ancestry = Statistics::ancestry("hg38", vl);
-		I_EQUAL(ancestry.snps, 2122);
+		AncestryEstimates ancestry = Statistics::ancestry("hg38", TESTDATA("data_in/ancestry_hg38.vcf.gz"));
+		I_EQUAL(ancestry.snps, 2126);
 		F_EQUAL2(ancestry.afr, 0.4984, 0.001);
 		F_EQUAL2(ancestry.eur, 0.0241, 0.001);
 		F_EQUAL2(ancestry.sas, 0.1046, 0.001);

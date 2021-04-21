@@ -25,11 +25,11 @@ public:
 		addOutfile("out", "Output TSV file - one line per input BAM/CRAM file. If unset, writes to STDOUT.", true);
 		QStringList methods;
 		methods << "xy" << "hetx" << "sry";
-		addEnum("method", "Method selection: Read distribution on X and Y chromosome (xy), fraction of heterocygous variants on X chromosome (hetx), or coverage of SRY gene (sry).", false, methods);
+		addEnum("method", "Method selection: Read distribution on X and Y chromosome (xy), fraction of heterozygous variants on X chromosome (hetx), or coverage of SRY gene (sry).", false, methods);
 		addFloat("max_female", "Maximum Y/X ratio for female (method xy).", true, 0.06);
 		addFloat("min_male", "Minimum Y/X ratio for male (method xy).", true, 0.09);
-		addFloat("min_female", "Minimum heterocygous SNP fraction for female (method hetx).", true, 0.24);
-		addFloat("max_male", "Maximum heterocygous SNP fraction for male (method hetx).", true, 0.15);
+		addFloat("min_female", "Minimum heterozygous SNP fraction for female (method hetx).", true, 0.25);
+		addFloat("max_male", "Maximum heterozygous SNP fraction for male (method hetx).", true, 0.05);
 		addFloat("sry_cov", "Minimum average coverage of SRY gene for males (method sry).", true, 20.0);
 		addEnum("build", "Genome build used to generate the input (methods hetx and sry).", true, QStringList() << "hg19" << "hg38", "hg19");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
