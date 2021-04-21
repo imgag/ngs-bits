@@ -30,6 +30,14 @@ HttpsServer::HttpsServer(quint16 port)
         return;
     }
 
+	QString ssl_chain = ServerHelper::getStringSettingsValue("ssl_certificate_chain");
+	QList<QSslCertificate> ca_certificates;
+	if (!ssl_chain.isEmpty())
+	{
+		ServerHelper::info("Reading SSL certificate chain file");
+		ca_certificates = QSslCertificate::fromPath(ssl_chain, QSsl::Der);
+	}
+
     QSslCertificate cert(&certFile);
     QSslKey key(&keyFile, QSsl::Rsa);
 
@@ -39,6 +47,13 @@ HttpsServer::HttpsServer(quint16 port)
 	QSslConfiguration config = server_->getSslConfiguration();
     config.setLocalCertificate(cert);
     config.setPrivateKey(key);
+
+	if (ca_certificates.size()>0)
+	{
+		ServerHelper::info("Loading SSL certificate chain");
+		config.setLocalCertificateChain(ca_certificates);
+	}
+
 	server_->setSslConfiguration(config);
 	if (server_->listen(QHostAddress::Any, port))
 	{		
