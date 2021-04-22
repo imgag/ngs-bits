@@ -3,12 +3,18 @@
 
 #include<QSharedPointer>
 #include "FileLocationProvider.h"
+#include "DatabaseService.h"
 
 class GlobalServiceProvider
 {
 public:
-	static void setFileLocationProvider(QSharedPointer<FileLocationProvider> file_location_provider);
+	//analysis file location functionality (depends on where the file was opened from)
 	static const FileLocationProvider& fileLocationProvider();
+	static void setFileLocationProvider(QSharedPointer<FileLocationProvider> file_location_provider);
+	static void clearFileLocationProvider();
+
+	//database service functionality
+	static const DatabaseService& database();
 
 protected:
 	GlobalServiceProvider();
@@ -17,6 +23,7 @@ protected:
 
 private:
 	QSharedPointer<FileLocationProvider> file_location_provider_;
+	QSharedPointer<DatabaseService> database_service_;
 };
 
 #endif // GLOBALSERVICEPROVIDER_H

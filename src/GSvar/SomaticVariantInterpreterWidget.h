@@ -14,12 +14,13 @@ class SomaticVariantInterpreterWidget : public QWidget
 {
 	Q_OBJECT
 public:
-	explicit SomaticVariantInterpreterWidget(const Variant& var, const VariantList& vl,  QWidget *parent = nullptr);
+	explicit SomaticVariantInterpreterWidget(int variant_index, const VariantList& vl,  QWidget *parent = nullptr);
 	~SomaticVariantInterpreterWidget();
 
 private:
 	Ui::SomaticVariantInterpreterWidget* ui_;
 
+	int variant_index_;
 	const Variant& snv_;
 	const VariantList& vl_;
 
@@ -34,7 +35,7 @@ private:
 
 signals:
 	///signal should be emitted when report was stored
-	void stored(const Variant& var, QString result, QString comment);
+	void stored(int variant_index, QString result, QString comment);
 
 public slots:
 	void disableNGSD();

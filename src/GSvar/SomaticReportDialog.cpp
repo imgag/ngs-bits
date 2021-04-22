@@ -1,4 +1,5 @@
 #include "SomaticReportDialog.h"
+#include "NGSD.h"
 #include "SomaticReportHelper.h"
 #include <QMessageBox>
 

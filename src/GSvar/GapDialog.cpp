@@ -3,7 +3,7 @@
 #include "GSvarHelper.h"
 #include "Statistics.h"
 #include "GermlineReportGenerator.h"
-
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QMenu>
 
@@ -81,7 +81,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 		try
 		{
 			int sys_id = db_.processingSystemIdFromProcessedSample(ps_);
-			BedFile sys_roi = db_.processingSystemRegions(sys_id);
+			BedFile sys_roi = GlobalServiceProvider::database().processingSystemRegions(sys_id);
 			low_cov = GermlineReportGenerator::precalculatedGaps(lowcov_, roi_, cutoff, sys_roi);
 		}
 		catch(Exception e)

@@ -71,6 +71,8 @@ public:
 public slots:
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="");
+	///Checks if variant list is outdated
+	void checkVariantList(QStringList messages);
 	///Open dialog
 	void on_actionOpen_triggered();
 	///Open dialog by name (using NGSD)
@@ -338,8 +340,8 @@ public slots:
 	void updateReportConfigHeaderIcon(int index);
 
 	///Mark the current variant list as changed. It is stored when the sample is closed.
-	void markVariantListChanged();
-	///Store the current variant list.
+	void markVariantListChanged(const Variant& variant, QString column, QString text);
+	///Store the current variant list. Do not call direclty - use markVariantListChanged instead!
 	void storeCurrentVariantList();
 
 	///Check for variant validations that need action.
@@ -356,8 +358,8 @@ public slots:
 
 	///Edit somatic variant interpretation (VICC consortium)
 	void editSomaticVariantInterpretation(const VariantList& vl, int index);
-	///Updates somatic variant interpreation annotation for specific variant of GSvar file (adds anno column if missing)
-	void updateSomaticVariantInterpretationAnno(const Variant& var, QString vicc_interpretation, QString vicc_comment);
+	///Updates somatic variant interpreation annotation for specific variant of GSvar file
+	void updateSomaticVariantInterpretationAnno(int index, QString vicc_interpretation, QString vicc_comment);
 
 protected:
 	virtual void dragEnterEvent(QDragEnterEvent* e);
@@ -378,7 +380,13 @@ private:
 	QString filename_;
 	bool igv_initialized_;
 	VariantList variants_;
-	bool variants_changed_;
+	struct VariantListChange
+	{
+		Variant variant;
+		QString column;
+		QString text;
+	};
+	QList<VariantListChange> variants_changed_;
 	CnvList cnvs_;
 	BedpeFile svs_;
 	FilterResult filter_result_;
