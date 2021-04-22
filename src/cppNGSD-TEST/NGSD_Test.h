@@ -1947,8 +1947,6 @@ private slots:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
 
-		db.reinitializeStaticVariables();
-
 		VariantList vl;
 		vl.load(TESTDATA("data_in/tumor_only.GSvar"));
 

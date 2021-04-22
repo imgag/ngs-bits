@@ -180,20 +180,24 @@ void SomaticVariantInterpreterWidget::disableUnapplicableParameters()
 void SomaticVariantInterpreterWidget::storeInNGSD()
 {
 	SomaticViccData vicc_data = getParameters();
-	if(!vicc_data.isValid()) return; //TODO no error or user message? > AXEL
+
 	try
 	{
-		NGSD db;
-		db.setSomaticViccData(snv_, vicc_data, LoginManager::user());
+		if(!vicc_data.isValid())
+		{
+			THROW(ArgumentException, "VICC data is not valid!");
+		}
+
+		NGSD().setSomaticViccData(snv_, vicc_data, LoginManager::user());
 	}
 	catch(Exception e)
 	{
-		QMessageBox::warning(this, "Could not store somatic VICC interpretation", "Could not store somatic VICC interpretation in NGSD. Error message: " + e.message());
+		QMessageBox::warning(this, "Error storing VICC data", "Could not store somatic VICC interpretation to NGSD.\n\nError message:\n" + e.message());
+		return;
 	}
 
 	//update NGSD meta data labels
 	setNGSDMetaData();
-
 
 	emit stored(variant_index_, SomaticVariantInterpreter::viccScoreAsString(vicc_data), vicc_data.comment);
 }

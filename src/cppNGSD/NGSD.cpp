@@ -19,9 +19,6 @@
 #include <QDir>
 #include "cmath"
 
-
-QMap<QString, TableInfo> NGSD::infos_;
-
 NGSD::NGSD(bool test_db)
 	: test_db_(test_db)
 {
@@ -1057,7 +1054,7 @@ Variant NGSD::variant(const QString& variant_id)
 QPair<int, int> NGSD::variantCounts(const QString& variant_id)
 {
 	//get same sample information (cached)
-	static QHash<int, QList<int>> same_samples;
+	QHash<int, QList<int>>& same_samples = getCache().same_samples;
 	if (same_samples.isEmpty())
 	{
 		SqlQuery query = getQuery();
@@ -1870,8 +1867,10 @@ QStringList NGSD::tables() const
 
 const TableInfo& NGSD::tableInfo(const QString& table) const
 {
+	QMap<QString, TableInfo>& table_infos = getCache().table_infos;
+
 	//create if necessary
-	if (!infos_.contains(table))
+	if (!table_infos.contains(table))
 	{
 		//check table exists
 		if (!tables().contains(table))
@@ -2158,10 +2157,10 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 			infos.append(info);
 		}
 		output.setFieldInfo(infos);
-		infos_.insert(table, output);
+		table_infos.insert(table, output);
 	}
 
-	return infos_[table];
+	return table_infos[table];
 }
 
 DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
@@ -2351,14 +2350,9 @@ void NGSD::init(QString password)
 	{
 		getQuery().exec("INSERT INTO user VALUES (NULL, 'init_date', 'pass', 'user', 'some name','some_name@email.de', NOW(), NULL, 0, NULL)");
 	}
-}
 
-void NGSD::reinitializeStaticVariables()
-{
-	//re-execute functions with dummy data for reinitilization
-	genesOverlapping("chr1",1, 2, 0, true);
-	genesOverlappingByExon("chr1", 1, 2, 0, true);
-	approvedGeneNames(true);
+	//clear cache
+	clearCache();
 }
 
 QStringList NGSD::subPanelList(bool archived)
@@ -3454,7 +3448,7 @@ QString NGSD::nextProcessingId(const QString& sample_id)
 QStringList NGSD::getEnum(QString table, QString column) const
 {
 	//check cache
-	static QMap<QString, QStringList> cache;
+	QMap<QString, QStringList>& cache = getCache().enum_values;
 	QString hash = table+"."+column;
 	if (cache.contains(hash))
 	{
@@ -3553,7 +3547,7 @@ QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconver
 	}
 
 	//check if already cached
-	static QMap<QByteArray, QByteArray> mapping;
+	QMap<QByteArray, QByteArray>& mapping = getCache().non_approved_to_approved_gene_names;
 	if (mapping.contains(gene))
 	{
 		if (return_input_when_unconvertable && mapping[gene].isEmpty())
@@ -3932,7 +3926,7 @@ Phenotype NGSD::phenotypeByName(const QByteArray& name, bool throw_on_error)
 
 Phenotype NGSD::phenotypeByAccession(const QByteArray& accession, bool throw_on_error)
 {
-	static QHash<QByteArray, Phenotype> cache;
+	QHash<QByteArray, Phenotype>& cache = getCache().phenotypes_by_accession;
 	if (cache.contains(accession))
 	{
 		return cache[accession];
@@ -3951,11 +3945,9 @@ Phenotype NGSD::phenotypeByAccession(const QByteArray& accession, bool throw_on_
 	return cache[accession];
 }
 
-const GeneSet& NGSD::approvedGeneNames(bool reinitialize)
+const GeneSet& NGSD::approvedGeneNames()
 {
-	static GeneSet output;
-
-	if(reinitialize) output.clear();
+	GeneSet& output = getCache().approved_gene_names;
 
 	if (output.count()==0)
 	{
@@ -4010,17 +4002,11 @@ bool NGSD::addPreferredTranscript(QByteArray transcript_name)
 }
 
 
-GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend, bool reinitialize)
+GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend)
 {
-	//init static data (load gene regions file from NGSD to memory)
-	static BedFile bed;
-	static ChromosomalIndex<BedFile> index(bed);
-
-	if(reinitialize)
-	{
-		bed.clear();
-		index.createIndex();
-	}
+	//init cache
+	BedFile& bed = getCache().gene_regions;
+	ChromosomalIndex<BedFile>& index = getCache().gene_regions_index;
 
 	if (bed.count()==0)
 	{
@@ -4047,17 +4033,11 @@ GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int ex
 	return genes;
 }
 
-GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend, bool reinitialize)
+GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend)
 {
-	//init static data (load gene regions file from NGSD to memory)
-	static BedFile bed;
-	static ChromosomalIndex<BedFile> index(bed);
-
-	if(reinitialize)
-	{
-		bed.clear();
-		index.createIndex();
-	}
+	//init cache
+	BedFile& bed = getCache().gene_exons;
+	ChromosomalIndex<BedFile>& index = getCache().gene_exons_index;
 
 	if (bed.count()==0)
 	{
@@ -5816,4 +5796,39 @@ QString NGSD::escapeText(QString text)
 	f.setValue(text);
 
 	return db_->driver()->formatValue(f);
+}
+
+
+NGSD::Cache& NGSD::getCache()
+{
+	static Cache cache_instance;
+
+	return cache_instance;
+}
+
+void NGSD::clearCache()
+{
+	Cache& cache_instance = getCache();
+
+	cache_instance.table_infos.clear();
+	cache_instance.same_samples.clear();
+	cache_instance.approved_gene_names.clear();
+	cache_instance.enum_values.clear();
+	cache_instance.non_approved_to_approved_gene_names.clear();
+	cache_instance.phenotypes_by_accession.clear();
+
+	cache_instance.gene_regions.clear();
+	cache_instance.gene_regions_index.createIndex();
+
+	cache_instance.gene_exons.clear();
+	cache_instance.gene_exons_index.createIndex();
+}
+
+
+NGSD::Cache::Cache()
+	: gene_regions()
+	, gene_regions_index(gene_regions)
+	, gene_exons()
+	, gene_exons_index(gene_exons)
+{
 }
