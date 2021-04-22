@@ -862,6 +862,42 @@ void VcfFile::copyMetaDataForSubsetting(const VcfFile& rhs)
 	info_id_to_idx_list_ = rhs.infoIDToIdxList();
 }
 
+QString VcfFile::toText() const
+{
+	//open stream
+	QString output;
+	QTextStream stream(&output);
+
+	//write header information
+	vcf_header_.storeHeaderInformation(stream);
+	//write header columns
+	storeHeaderColumns(stream);
+
+	for(int i = 0; i < vcf_lines_.count(); ++i)
+	{
+		storeLineInformation(stream, vcfLine(i));
+	}
+
+	return output;
+}
+
+void VcfFile::loadFromText(QString text)
+{
+	//clear content in case we load a second file
+	clear();
+	QByteArrayList lines = text.toUtf8().split('\n');
+
+	int line_number = 0;
+	QSet<QByteArray> info_ids_in_header;
+	QSet<QByteArray> format_ids_in_header;
+	QSet<QByteArray> filter_ids_in_header;
+
+	foreach (const QByteArray& line, lines)
+	{
+		processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header, true, nullptr, false);
+	}
+}
+
 VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome)
 {
 	VcfFile vcf_file;
