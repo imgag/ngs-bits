@@ -213,6 +213,7 @@ void RequestWorker::dataChunkReady(QSslSocket* socket, QByteArray data)
 	if (!socket->isValid())
 	{
 		ServerHelper::debug("Invalid socket");
+		this->terminate();
 		return;
 	}
 
@@ -225,6 +226,7 @@ void RequestWorker::dataChunkReady(QSslSocket* socket, QByteArray data)
 
 	if (socket->bytesToWrite())
 	{
+		socket->flush();
 		socket->waitForBytesWritten();
 	}
 
