@@ -29,14 +29,6 @@ GermlineReportGenerator::GermlineReportGenerator(const GermlineReportGeneratorDa
 	ps_id_ = db_.processedSampleId(data_.ps);
 	ps_bam_ = db_.processedSamplePath(ps_id_, PathType::BAM);
 	ps_lowcov_ = db_.processedSamplePath(ps_id_, PathType::LOWCOV_BED);
-
-	int system_id = db_.processingSystemIdFromProcessedSample(data_.ps);
-	sys_roi_file_ = db_.getProcessingSystemData(system_id).target_file;
-	if(test_mode) //in test mode the path is relative > remove target region prefix
-	{
-		sys_roi_file_.remove(db_.getTargetFilePath());
-	}
-	sys_roi_.load(sys_roi_file_);
 }
 
 void GermlineReportGenerator::writeHTML(QString filename)
@@ -1117,7 +1109,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	//get target region coverages (from NGSD or calculate)
 	QString avg_cov = "";
 	QCCollection stats;
-	bool roi_is_system_target_region = sys_roi_.count()==data_.roi.regions.count() && sys_roi_.baseCount()==data_.roi.regions.baseCount();
+	bool roi_is_system_target_region = data_.processing_system_roi.count()==data_.roi.regions.count() && data_.processing_system_roi.baseCount()==data_.roi.regions.baseCount();
 	if (roi_is_system_target_region || !data_.report_settings.recalculate_avg_depth)
 	{
 		try
@@ -1154,7 +1146,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		BedFile low_cov;
 		try
 		{
-			low_cov = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, data_.roi.regions, data_.report_settings.min_depth, sys_roi_);
+			low_cov = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, data_.roi.regions, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
 		catch(Exception e)
 		{
@@ -1354,7 +1346,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		BedFile gaps;
 		try
 		{
-			gaps = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, roi, data_.report_settings.min_depth, sys_roi_);
+			gaps = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, roi, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
 		catch(Exception e)
 		{

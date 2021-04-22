@@ -187,44 +187,28 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	//Element TargetRegion
 	w.writeStartElement("TargetRegion");
 
-	ProcessingSystemData processing_system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(data.settings.tumor_ps));
-	w.writeAttribute("name", processing_system_data.name); //in our workflow identical to processing system name
+	int sys_id = db.processingSystemIdFromProcessedSample(data.settings.tumor_ps);
+	w.writeAttribute("name",  db.getProcessingSystemData(sys_id).name); //in our workflow identical to processing system name
 
-		QString target_file = processing_system_data.target_file;
-		if (test)
-		{
-			target_file = QDir::currentPath() + "/../src/cppNGSD-TEST/data_in/" + QFileInfo(target_file).fileName();
-		}
+	for(int i=0; i<data.processing_system_roi.count(); ++i)
+	{
+		const BedLine& line = data.processing_system_roi[i];
 
-		BedFile target;
-		target.load(target_file);
-		for(int i=0; i< target.count(); ++i)
-		{
-			w.writeStartElement("Region");
-			w.writeAttribute("chr", target[i].chr().strNormalized(true));
-			w.writeAttribute("start", QString::number(target[i].start()) );
-			w.writeAttribute("end", QString::number(target[i].end()) );
-			w.writeEndElement();
-		}
+		w.writeStartElement("Region");
+		w.writeAttribute("chr", line.chr().strNormalized(true));
+		w.writeAttribute("start", QString::number(line.start()));
+		w.writeAttribute("end", QString::number(line.end()));
+		w.writeEndElement();
+	}
 
-		QString target_gene_file = processing_system_data.target_gene_file;
-		if (test)
-		{
-			target_gene_file = target_file.left(target_file.length()-4) + "_genes.txt";
-		}
-		if( QFile::exists(target_gene_file) )
-		{
-			GeneSet target_genes = GeneSet::createFromFile(target_gene_file);
-
-			for(int i=0; i<target_genes.count(); ++i)
-			{
-				w.writeStartElement("Gene");
-				GeneInfo gene_info = db.geneInfo(target_genes[i]);
-				w.writeAttribute("name", gene_info.symbol);
-				w.writeAttribute("id", gene_info.hgnc_id);
-				w.writeEndElement();
-			}
-		}
+	foreach(const QByteArray& gene, data.processing_system_genes)
+	{
+		w.writeStartElement("Gene");
+		GeneInfo gene_info = db.geneInfo(gene);
+		w.writeAttribute("name", gene_info.symbol);
+		w.writeAttribute("id", gene_info.hgnc_id);
+		w.writeEndElement();
+	}
 
 	//End Element TargetRegion
 	w.writeEndElement();

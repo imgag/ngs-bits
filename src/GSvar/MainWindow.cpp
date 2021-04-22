@@ -56,7 +56,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "TSVFileStream.h"
 #include "LovdUploadDialog.h"
 #include "OntologyTermCollection.h"
-#include "SomaticReportHelper.h"
 #include "SvWidget.h"
 #include "VariantWidget.h"
 #include "SomaticReportConfigurationWidget.h"
@@ -118,6 +117,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GapClosingDialog.h"
 #include "XmlHelper.h"
 #include "GermlineReportGenerator.h"
+#include "SomaticReportHelper.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -127,7 +127,7 @@ MainWindow::MainWindow(QWidget *parent)
 	, notification_label_(new QLabel())
 	, filename_()
 	, igv_initialized_(false)
-	, variants_changed_(false)
+	, variants_changed_()
 	, last_report_path_(QDir::homePath())
 	, init_timer_(this, true)
 {
@@ -1400,8 +1400,8 @@ void MainWindow::delayedInitialization()
 		return;
 	}
 
-	//check user is in NGSD
-	if (Settings::boolean("NGSD_enabled"))
+	//user login for database
+	if (GlobalServiceProvider::database().enabled())
 	{
 		LoginDialog dlg(this);
 		if (dlg.exec()==QDialog::Accepted)
@@ -1533,19 +1533,7 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	//target region
 	if (ui_.filters->targetRegion().isValid())
 	{
-		//store target region locally
-		QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
-		if(default_paths.isEmpty())
-		{
-			THROW(Exception, "No local application data path was found!");
-		}
-		QString local_roi_folder = default_paths[0] + QDir::separator() + "target_regions" + QDir::separator();
-		if(!QFile::exists(local_roi_folder) && !QDir().mkpath(local_roi_folder))
-		{
-			THROW(ProgrammingException, "Could not create application target region folder '" + local_roi_folder + "'!");
-		}
-
-		QString roi_file = local_roi_folder + ui_.filters->targetRegion().name + ".bed";
+		QString roi_file = GSvarHelper::localRoiFolder() + ui_.filters->targetRegion().name + ".bed";
 		ui_.filters->targetRegion().regions.store(roi_file);
 
 		dlg.addFile(FileLocation{"target region (selected in GSvar)", PathType::OTHER, roi_file, true}, true);
@@ -1555,11 +1543,14 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	try
 	{
 		NGSD db;
-		ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(germlineReportSample()));
-		QString amplicons = system_data.target_amplicon_file;
-		if (amplicons!="")
+		int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
+		BedFile ampilicons = GlobalServiceProvider::database().processingSystemAmplicons(sys_id);
+		if (!ampilicons.isEmpty())
 		{
-			dlg.addFile(FileLocation{"amplicons track (of processing system)", PathType::OTHER, amplicons, true}, true);
+			QString amp_file = GSvarHelper::localRoiFolder() + db.getProcessingSystemData(sys_id).name_short + "_amplicons.bed";
+			ampilicons.store(amp_file);
+
+			dlg.addFile(FileLocation{"amplicons track (of processing system)", PathType::OTHER, amp_file, true}, true);
 		}
 	}
 	catch(...) {} //Nothing to do here
@@ -1748,7 +1739,7 @@ void MainWindow::editVariantValidation(int index)
 			refreshVariantTable();
 
 			//mark variant list as changed
-			markVariantListChanged();
+			markVariantListChanged(variant, "validation", status);
 		}
 		else
 		{
@@ -1793,7 +1784,7 @@ void MainWindow::editVariantComment(int index)
 				refreshVariantTable();
 
 				//mark variant list as changed
-				markVariantListChanged();
+				markVariantListChanged(variant, "comment", text);
 			}
 		}
 	}
@@ -2366,7 +2357,7 @@ void MainWindow::on_actionChangeLog_triggered()
 void MainWindow::loadFile(QString filename)
 {
 	//store variant list in case it changed
-	if (variants_changed_)
+	if (!variants_changed_.isEmpty())
 	{
 		int result = QMessageBox::question(this, "Store GSvar file?", "The GSvar file was changed by you.\nDo you want to store the changes to file?", QMessageBox::Yes, QMessageBox::No);
 		if (result==QMessageBox::Yes)
@@ -2382,8 +2373,8 @@ void MainWindow::loadFile(QString filename)
 	setWindowTitle(QCoreApplication::applicationName());
 	filename_ = "";
 	variants_.clear();
-	GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProvider>());
-	variants_changed_ = false;
+	GlobalServiceProvider::clearFileLocationProvider();
+	variants_changed_.clear();
 	cnvs_.clear();
 	svs_.clear();
 	igv_initialized_ = false;
@@ -2479,34 +2470,17 @@ void MainWindow::loadFile(QString filename)
 	//update recent files (before try block to remove non-existing files from the recent files menu)
 	addToRecentFiles(filename);
 
-	//warn if no 'filter' column is present or header is not ok
-	QStringList errors;
-	if (variants_.annotationIndexByName("filter", true, false)==-1)
-	{
-		errors << "column 'filter' missing";
-	}
-	try
-	{
-		variants_.getSampleHeader();
-	}
-	catch(Exception e)
-	{
-		errors << e.message();
-	}
-	if (!errors.empty())
-	{
-		QMessageBox::warning(this, "Outdated GSvar file", "The GSvar file contains the following error(s):\n  -" + errors.join("\n  -") + "\n\nTo ensure that GSvar works as expected, re-run the analysis starting from annotation!");
-	}
-
-	//update variant details widget
+	//check if variant list is outdated
+	QStringList messages;
 	try
 	{
 		ui_.variant_details->setLabelTooltips(variants_);
 	}
 	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Outdated GSvar file", "The GSvar file contains the following error:\n" + e.message() + "\n\nTo ensure that GSvar works as expected, re-run the analysis starting from annotation!");
+		messages << e.message();
 	}
+	checkVariantList(messages);
 
 	//load report config
 	if (germlineReportSupported())
@@ -2603,6 +2577,60 @@ void MainWindow::loadFile(QString filename)
 	}
 }
 
+void MainWindow::checkVariantList(QStringList messages)
+{
+	//check creation date
+	QDate create_date = variants_.getCreationDate();
+	if (create_date.isValid() && create_date < QDate::currentDate().addDays(-42))
+	{
+		messages << "annotations are older than six weeks (" + create_date.toString("yyyy-MM-dd") + ")";
+	}
+
+	//check sample header
+	try
+	{
+		variants_.getSampleHeader();
+	}
+	catch(Exception e)
+	{
+		messages << e.message();
+	}
+
+	//create list of required columns
+	QStringList cols;
+	cols << "filter";
+	AnalysisType type = variants_.type();
+	if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
+	{
+		cols << "classification";
+		cols << "NGSD_hom";
+		cols << "NGSD_het";
+		cols << "comment";
+		cols << "gene_info";
+	}
+	if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR)
+	{
+		cols << "somatic_classification";
+		cols << "somatic_classification_comment";
+		cols << "NGSD_som_vicc_interpretation";
+		cols << "NGSD_som_vicc_comment";
+	}
+
+	//check columns
+	foreach(QString col, cols)
+	{
+		if (variants_.annotationIndexByName(col, true, false)==-1)
+		{
+			messages << ("column '" + col + "' missing");
+		}
+	}
+
+	if (!messages.empty())
+	{
+		QMessageBox::warning(this, "GSvar file outdated", "The GSvar file contains the following error(s):\n  -" + messages.join("\n  -") + "\n\nTo ensure that GSvar works as expected, re-run the annotation steps for the analysis!");
+	}
+}
+
 void MainWindow::on_actionAbout_triggered()
 {
 	QMessageBox::about(this, "About " + QCoreApplication::applicationName(), QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()+ "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits");
@@ -2650,7 +2678,6 @@ void MainWindow::loadSomaticReportConfig()
 
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;
-	somatic_report_settings_.gsvar_file = filename_;
 	somatic_report_settings_.msi_file = GlobalServiceProvider::fileLocationProvider().getSomaticMsiFile().filename;
 
 	try //load normal sample
@@ -3042,6 +3069,11 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;
 
+	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
+	somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions( db.processingSystemIdFromProcessedSample(ps_tumor) );
+	somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor)), true );
+
+
 	//Preselect report settings if not already exists to most common values
 	if(db.somaticReportConfigId(ps_tumor_id, ps_normal_id) == -1)
 	{
@@ -3193,27 +3225,6 @@ void MainWindow::generateReportSomaticRTF()
 
 void MainWindow::generateReportGermline()
 {
-	//check if required NGSD annotations are present
-	if (variants_.annotationIndexByName("classification", true, false)==-1
-	 || variants_.annotationIndexByName("NGSD_hom", true, false)==-1
-	 || variants_.annotationIndexByName("NGSD_het", true, false)==-1
-	 || variants_.annotationIndexByName("comment", true, false)==-1
-	 || variants_.annotationIndexByName("gene_info", true, false)==-1)
-	{
-		GUIHelper::showMessage("Error", "Cannot generate report without complete NGSD annotation!\nPlease re-annotate NGSD information first!");
-		return;
-	}
-
-	//check if NGSD annotations are up-to-date
-	QDate create_date = variants_.getCreationDate();
-	if (create_date.isValid() && create_date < QDate::currentDate().addDays(-42))
-	{
-		if (QMessageBox::question(this, "NGSD annotations outdated", "NGSD annotation data is older than six weeks!\nDo you want to continue with annotations from " + create_date.toString("yyyy-MM-dd") + "?")==QMessageBox::No)
-		{
-			return;
-		}
-	}
-
 	//check that sample is in NGSD
 	NGSD db;
 	QString ps_name = germlineReportSample();
@@ -3258,6 +3269,7 @@ void MainWindow::generateReportGermline()
 	if (prs_files.count()==1) prs_table.load(prs_files[0].filename);
 
 	GermlineReportGeneratorData data(ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
+	data.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_name));
 	if (ui_.filters->targetRegion().isValid())
 	{
 		data.roi = ui_.filters->targetRegion();
@@ -4026,28 +4038,23 @@ void MainWindow::on_actionGapsLookup_triggered()
 		QString ps_id = db.processedSampleId(variants_.mainSampleName());
 		if (ps_id!="")
 		{
-			QString sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=:0", true, ps_id).toString();
-			QString roi = db.getProcessingSystemData(sys_id.toInt()).target_file;
-			if (roi!="")
+			int sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=:0", true, ps_id).toInt();
+			BedFile sys_regions = GlobalServiceProvider::database().processingSystemRegions(sys_id);
+			if (!sys_regions.isEmpty())
 			{
 				BedFile region = db.geneToRegions(gene.toLatin1(), Transcript::ENSEMBL, "gene");
 				region.merge();
-
 				if (region.count()==0)
 				{
-					QMessageBox::warning(this, "Precalculated gaps for gene", "Error:\nCould not convert gene symbol '" + gene + "' to a target region.\nIs this a HGNC-approved gene name with associated transcripts?");
+					QMessageBox::warning(this, "Precalculated gaps for gene", "Error:\nCould not convert gene symbol '" + gene + "' to a genomic region.\nIs this a HGNC-approved gene name with associated transcripts?");
 					return;
 				}
-				else
+
+				region.intersect(sys_regions);
+				if (region.count()==0)
 				{
-					BedFile sys_regions;
-					sys_regions.load(roi);
-					region.intersect(sys_regions);
-					if (region.count()==0)
-					{
-						QMessageBox::warning(this, "Precalculated gaps for gene", "Error:\nGene '" + gene + "' locus does not overlap with sample target region!");
-						return;
-					}
+					QMessageBox::warning(this, "Precalculated gaps for gene", "Error:\nGene '" + gene + "' locus does not overlap with sample target region!");
+					return;
 				}
 			}
 		}
@@ -4914,30 +4921,42 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 		{
 			db.setSomaticClassification(variant, class_info);
 
-			int i_som_class = variants.addAnnotationIfMissing("somatic_classification", "Somatic classification from the NGSD.");
-			variant.annotations()[i_som_class] = class_info.classification.replace("n/a", "").toLatin1();
+			//update variant list classification
+			int i_som_class = variants.annotationIndexByName("somatic_classification");
+			QString new_class = class_info.classification.replace("n/a", "");
+			variant.annotations()[i_som_class] = new_class.toLatin1();
 
-			int i_som_class_comment = variants.addAnnotationIfMissing("somatic_classification_comment", "Somatic classificaiton comment from the NGSD.");
+			markVariantListChanged(variant, "somatic_classification", new_class);
+
+			//update variant list classification comment
+			int i_som_class_comment = variants.annotationIndexByName("somatic_classification_comment");
 			variant.annotations()[i_som_class_comment] = class_info.comments.toLatin1();
+
+			markVariantListChanged(variant, "somatic_classification_comment", class_info.comments);
 
 		}
 		else //germline variants
 		{
-			db.setClassification(variant, variants_,class_info);
-			//update variant table
-			int i_class = variants.annotationIndexByName("classification", true, true);
-			variant.annotations()[i_class] = class_info.classification.replace("n/a", "").toLatin1();
-			int i_class_comment = variants.annotationIndexByName("classification_comment", true, true);
-			variant.annotations()[i_class_comment] = class_info.comments.toLatin1();
-		}
+			db.setClassification(variant, variants_, class_info);
 
+			//update variant list classification
+			int i_class = variants.annotationIndexByName("classification");
+			QString new_class = class_info.classification.replace("n/a", "");
+			variant.annotations()[i_class] = new_class.toLatin1();
+
+			markVariantListChanged(variant, "classification", new_class);
+
+			//update variant list classification comment
+			int i_class_comment = variants.annotationIndexByName("classification_comment");
+			variant.annotations()[i_class_comment] = class_info.comments.toLatin1();
+
+			markVariantListChanged(variant, "classification_comment", class_info.comments);
+		}
 
 		//update details widget and filtering
 		ui_.variant_details->updateVariant(variants, index);
 		refreshVariantTable();
 
-		//mark variant list as changed
-		markVariantListChanged();
 	}
 	catch (DatabaseException& e)
 	{
@@ -4948,32 +4967,24 @@ void MainWindow::editVariantClassification(VariantList& variants, int index, boo
 
 void MainWindow::editSomaticVariantInterpretation(const VariantList &vl, int index)
 {
-	SomaticVariantInterpreterWidget* interpreter = new SomaticVariantInterpreterWidget(vl[index], vl, this);
+	SomaticVariantInterpreterWidget* interpreter = new SomaticVariantInterpreterWidget(index, vl, this);
 	auto dlg = GUIHelper::createDialog(interpreter, "Somatic Variant Interpretation");
-	connect(interpreter, SIGNAL(stored(const Variant&, QString, QString)), this, SLOT(updateSomaticVariantInterpretationAnno(const Variant&, QString, QString)) );
+	connect(interpreter, SIGNAL(stored(int, QString, QString)), this, SLOT(updateSomaticVariantInterpretationAnno(int, QString, QString)) );
 
 	dlg->exec();
 }
 
-void MainWindow::updateSomaticVariantInterpretationAnno(const Variant& var, QString vicc_interpretation, QString vicc_comment)
+void MainWindow::updateSomaticVariantInterpretationAnno(int index, QString vicc_interpretation, QString vicc_comment)
 {
-	int i_vicc = variants_.addAnnotationIfMissing("NGSD_som_vicc_interpretation", "Somatic variant interpretation according VICC standard in the NGSD.", "");
-	int i_vicc_comment = variants_.addAnnotationIfMissing("NGSD_som_vicc_comment", "Somatic VICC interpretation comment in the NGSD.", "");
+	int i_vicc = variants_.annotationIndexByName("NGSD_som_vicc_interpretation");
+	variants_[index].annotations()[i_vicc] = vicc_interpretation.toUtf8();
 
-	int index = -1;
-	for(int i=0;i<variants_.count(); ++i)
-	{
-		if(variants_[i] == var)
-		{
-			index = i;
-			variants_[i].annotations()[i_vicc] = vicc_interpretation.toUtf8();
-			variants_[i].annotations()[i_vicc_comment] = vicc_comment.toUtf8();
-			break;
-		}
-	}
-	if(index == -1) return; //do nothing if variant is not contained in variants_
+	markVariantListChanged(variants_[index], "NGSD_som_vicc_interpretation", vicc_interpretation);
 
-	storeCurrentVariantList();
+	int i_vicc_comment = variants_.annotationIndexByName("NGSD_som_vicc_comment");
+	variants_[index].annotations()[i_vicc_comment] = vicc_comment.toUtf8();
+
+	markVariantListChanged(variants_[index], "NGSD_som_vicc_comment", vicc_comment);
 
 	//update details widget and filtering
 	ui_.variant_details->updateVariant(variants_, index);
@@ -4985,20 +4996,32 @@ void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
 	if (filename_.isEmpty()) return;
 	if (!LoginManager::active()) return;
 
-	int i_vicc = variants_.addAnnotationIfMissing("NGSD_som_vicc_interpretation", "Somatic variant interpretation according VICC standard in the NGSD.", "");
-	int i_vicc_comment = variants_.addAnnotationIfMissing("NGSD_som_vicc_comment", "Somatic VICC interpretation comment in the NGSD.", "");
+	int i_vicc = variants_.annotationIndexByName("NGSD_som_vicc_interpretation");
+	int i_vicc_comment = variants_.annotationIndexByName("NGSD_som_vicc_comment");
 
 	NGSD db;
 	for(int i=0; i<variants_.count(); ++i)
 	{
-		if(db.getSomaticViccId(variants_[i]) == -1) continue;
+		//skip variants without VICC infos in NGSD
+		SomaticViccData vicc_data = db.getSomaticViccData(variants_[i], false);
+		if (vicc_data.created_by.isEmpty()) continue;
 
-		SomaticViccData vicc_data = db.getSomaticViccData(variants_[i]);
-		variants_[i].annotations()[i_vicc] = SomaticVariantInterpreter::viccScoreAsString(vicc_data).toUtf8();
-		variants_[i].annotations()[i_vicc_comment] = vicc_data.comment.toUtf8();
+		//update score
+		QByteArray vicc_score = SomaticVariantInterpreter::viccScoreAsString(vicc_data).toUtf8();
+		if (vicc_score!=variants_[i].annotations()[i_vicc])
+		{
+			variants_[i].annotations()[i_vicc] = vicc_score;
+			markVariantListChanged(variants_[i], "NGSD_som_vicc_interpretation", vicc_score);
+		}
+
+		//update comment
+		QByteArray vicc_comment = vicc_data.comment.toUtf8();
+		if (variants_[i].annotations()[i_vicc_comment]!=vicc_comment)
+		{
+			variants_[i].annotations()[i_vicc_comment]= vicc_comment;
+			markVariantListChanged(variants_[i], "NGSD_som_vicc_comment", vicc_comment);
+		}
 	}
-
-	storeCurrentVariantList();
 
 	//update details widget and filtering
 	refreshVariantTable();
@@ -5298,9 +5321,9 @@ void MainWindow::updateReportConfigHeaderIcon(int index)
 	}
 }
 
-void MainWindow::markVariantListChanged()
+void MainWindow::markVariantListChanged(const Variant& variant, QString column, QString text)
 {
-	variants_changed_ = true;
+	variants_changed_ << VariantListChange{variant, column, text};
 }
 
 void MainWindow::storeCurrentVariantList()
@@ -5319,17 +5342,17 @@ void MainWindow::storeCurrentVariantList()
 			QFile::remove(filename_);
 			QFile::rename(tmp, filename_);
 
-			variants_changed_ = false;
+			variants_changed_.clear();
 		}
 		catch(Exception& e)
 		{
 			QApplication::restoreOverrideCursor();
-			QMessageBox::warning(this, "Error stroring GSvar file", "The GSvar file could not be stored:\n" + e.message());
+			QMessageBox::warning(this, "Error storing GSvar file", "The GSvar file could not be stored:\n" + e.message());
 		}
 	}
 	else
 	{
-		//TODO GSvarServer: add a end-point that updates the GSvar file - input is variant, column name and value to use.
+		//TODO GSvarServer: add a end-point to update the GSvar file on the server - use data from variants_changed_
 	}
 
 	QApplication::restoreOverrideCursor();
@@ -5626,7 +5649,7 @@ void MainWindow::applyFilters(bool debug_time)
 	}
 	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nTry re-annotating the NGSD columns.\n If re-annotation does not help, please re-analyze the sample (starting from annotation) in the sample information dialog !");
+		QMessageBox::warning(this, "Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nPlease re-run the annotation steps for the analysis!");
 
 		filter_result_ = FilterResult(variants_.count(), false);
 	}

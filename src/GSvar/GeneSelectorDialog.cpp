@@ -108,15 +108,14 @@ void GeneSelectorDialog::updateGeneTable()
 	}
 
 	//load processing system target region
+
 	NGSD db;
-	ProcessingSystemData system_data = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(sample_name_));
-	if (system_data.target_file=="")
+	BedFile sys_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(sample_name_));
+	if (sys_roi.isEmpty())
 	{
-		updateError("Gene selection error", "Processing system target region BED file not found for sample '" + sample_name_ +  "'");
+		updateError("Gene selection error", "Processing system target region file not found for sample '" + sample_name_ +  "'");
 		return;
 	}
-	BedFile sys_roi;
-	sys_roi.load(system_data.target_file);
 
 	//display genes
 	ui->details->setRowCount(genes.count());

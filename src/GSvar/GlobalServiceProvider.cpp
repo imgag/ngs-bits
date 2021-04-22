@@ -1,12 +1,20 @@
-#include <stdio.h>
-#include <stddef.h>
-#include <iostream>
 #include "GlobalServiceProvider.h"
 
+#include "Settings.h"
+#include "DatabaseServiceLocal.h"
 
 GlobalServiceProvider::GlobalServiceProvider()
-  :  file_location_provider_()
+  : file_location_provider_()
+  , database_service_()
 {
+	if (Settings::string("server_host",true).trimmed()!="" && Settings::string("server_port").trimmed()!="")
+	{
+		//TODO GSvarServer
+	}
+	else
+	{
+		database_service_ = QSharedPointer<DatabaseService>(new DatabaseServiceLocal());
+	}
 }
 
 GlobalServiceProvider::~GlobalServiceProvider()
@@ -33,4 +41,14 @@ const FileLocationProvider& GlobalServiceProvider::fileLocationProvider()
 	}
 
 	return *(instance().file_location_provider_);
+}
+
+void GlobalServiceProvider::clearFileLocationProvider()
+{
+	instance().file_location_provider_ = QSharedPointer<FileLocationProvider>();
+}
+
+const DatabaseService& GlobalServiceProvider::database()
+{
+	return *(instance().database_service_);
 }

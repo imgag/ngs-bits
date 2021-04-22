@@ -4,6 +4,7 @@
 #include "HttpHandler.h"
 #include "Settings.h"
 #include <QDir>
+#include <QStandardPaths>
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -227,4 +228,21 @@ QString GSvarHelper::gnomaADLink(const Variant& v)
 	}
 
 	return url;
+}
+
+QString GSvarHelper::localRoiFolder()
+{
+	QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
+	if(default_paths.isEmpty())
+	{
+		THROW(Exception, "No local application data path was found!");
+	}
+
+	QString local_roi_folder = default_paths[0] + QDir::separator() + "target_regions" + QDir::separator();
+	if(!QFile::exists(local_roi_folder) && !QDir().mkpath(local_roi_folder))
+	{
+		THROW(ProgrammingException, "Could not create application target region folder '" + local_roi_folder + "'!");
+	}
+
+	return local_roi_folder;
 }

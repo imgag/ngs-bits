@@ -25,7 +25,6 @@ private slots:
 	void delayedInitialization();
 	void edit();
 
-	void openRoiInExplorer();
 	void openRoiInIGV();
 
 private:

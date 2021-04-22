@@ -6,7 +6,6 @@ SomaticReportSettings::SomaticReportSettings()
 	, tumor_ps()
 	, normal_ps()
 	, filters()
-	, cancer_type()
 {
 }
 

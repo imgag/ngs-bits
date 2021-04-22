@@ -1,5 +1,6 @@
 #include <QDebug>
 #include "NGSD.h"
+#include "GlobalServiceProvider.h"
 #include "SomaticRnaReport.h"
 #include "SomaticReportHelper.h"
 #include "TSVFileStream.h"
@@ -58,19 +59,10 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 		fusions_.append(temp);
 	}
 
-
-	ProcessingSystemData tumor_ps_data = db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(dna_ps_tumor_name_));
-	QString target_genes_file = tumor_ps_data.target_gene_file;
-	if(QFile::exists(target_genes_file))
-	{
-		 target_genes_ = GeneSet::createFromFile(target_genes_file);
-		 target_genes_ = db_.genesToApproved(target_genes_,true);
-	}
-	else
-	{
-		THROW(FileAccessException, "Could not access gene list file " + target_genes_file + " in SomaticReportHelper::SomaticReportHelper");
-	}
-
+	//get gene list from NGSD
+	int sys_id = db_.processingSystemIdFromProcessedSample(dna_ps_tumor_name_);
+	target_genes_ = GlobalServiceProvider::database().processingSystemGenes(sys_id);
+	target_genes_ = db_.genesToApproved(target_genes_, true);
 }
 
 bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)

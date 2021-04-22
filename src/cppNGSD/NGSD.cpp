@@ -675,27 +675,65 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 	ProcessingSystemData output;
 
 	SqlQuery query = getQuery();
-	query.exec("SELECT sys.name_manufacturer, sys.name_short, sys.type, sys.target_file, sys.adapter1_p5, sys.adapter2_p7, sys.shotgun, sys.umi_type, g.build FROM processing_system sys, genome g WHERE sys.genome_id=g.id AND sys.id=" + QString::number(sys_id));
+	query.exec("SELECT sys.name_manufacturer, sys.name_short, sys.type, sys.adapter1_p5, sys.adapter2_p7, sys.shotgun, sys.umi_type, g.build FROM processing_system sys, genome g WHERE sys.genome_id=g.id AND sys.id=" + QString::number(sys_id));
 	query.next();
 
 	output.name = query.value(0).toString();
 	output.name_short = query.value(1).toString();
 	output.type = query.value(2).toString();
-	QString rel_path = query.value(3).toString().trimmed();
-	if (rel_path!="")
+	output.adapter1_p5 = query.value(3).toString();
+	output.adapter2_p7 = query.value(4).toString();
+	output.shotgun = query.value(5).toString()=="1";
+	output.umi_type = query.value(6).toString();
+	output.genome = query.value(7).toString();
+
+	return output;
+}
+
+BedFile NGSD::processingSystemRegions(int sys_id)
+{
+	BedFile output;
+
+	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
+	if (!rel_path.isEmpty())
 	{
-		output.target_file = getTargetFilePath() + rel_path;
+		output.load(getTargetFilePath() + rel_path);
 	}
-	QString target_base = output.target_file.left(output.target_file.length()-4);
-	QString amplicon_file =  target_base + "_amplicons.bed";
-	output.target_amplicon_file = QFile::exists(amplicon_file) ? amplicon_file : "";
-	QString gene_file = target_base + "_genes.txt";
-	output.target_gene_file = QFile::exists(gene_file) ? gene_file : "";
-	output.adapter1_p5 = query.value(4).toString();
-	output.adapter2_p7 = query.value(5).toString();
-	output.shotgun = query.value(6).toString()=="1";
-	output.umi_type = query.value(7).toString();
-	output.genome = query.value(8).toString();
+
+	return output;
+}
+
+BedFile NGSD::processingSystemAmplicons(int sys_id)
+{
+	BedFile output;
+
+	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
+	if (!rel_path.isEmpty())
+	{
+		QString amplicon_file = getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_amplicons.bed";
+		if (QFile::exists(amplicon_file))
+		{
+			output.load(amplicon_file);
+		}
+	}
+
+	return output;
+}
+
+GeneSet NGSD::processingSystemGenes(int sys_id)
+{
+	GeneSet output;
+
+	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
+	if (!rel_path.isEmpty())
+	{
+		QString gene_file = getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_genes.txt";
+
+		if (QFile::exists(gene_file))
+		{
+			output = GeneSet::createFromFile(gene_file);
+		}
+	}
 
 	return output;
 }
@@ -2323,24 +2361,6 @@ void NGSD::reinitializeStaticVariables()
 	approvedGeneNames(true);
 }
 
-QMap<QString, QString> NGSD::getProcessingSystems(bool skip_systems_without_roi)
-{
-	QMap<QString, QString> out;
-
-	//load processing systems
-	SqlQuery query = getQuery();
-	query.exec("SELECT name_manufacturer, target_file FROM processing_system");
-	while(query.next())
-	{
-		QString name = query.value(0).toString();
-		QString roi = query.value(1).toString().trimmed();
-		if (roi=="" && skip_systems_without_roi) continue;
-		out.insert(name, getTargetFilePath() + roi);
-	}
-
-	return out;
-}
-
 QStringList NGSD::subPanelList(bool archived)
 {
 	return getValues("SELECT name FROM subpanels WHERE archived=" + QString(archived ? "1" : "0") + " ORDER BY name ASC");
@@ -3057,7 +3077,7 @@ QVector<double> NGSD::cnvCallsetMetrics(QString processing_system_id, QString me
 
 QString NGSD::getTargetFilePath()
 {
-	return Settings::path("data_folder", false) + "enrichment" + QDir::separator();
+	return Settings::path("data_folder", false) + QDir::separator() + "enrichment" + QDir::separator();
 }
 
 void NGSD::updateQC(QString obo_file, bool debug)

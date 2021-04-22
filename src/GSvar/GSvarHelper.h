@@ -35,6 +35,9 @@ public:
 	//Returns gnomAD link for a variant
 	static QString gnomaADLink(const Variant& v);
 
+	///Returns a the local target region folder where tempory target regions and gene lists can be stored for IGV.
+	static QString localRoiFolder();
+
 protected:
 	GSvarHelper() = delete;
 };

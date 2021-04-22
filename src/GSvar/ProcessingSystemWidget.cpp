@@ -1,8 +1,9 @@
 #include "DBEditor.h"
 #include "ProcessingSystemWidget.h"
-
+#include "GSvarHelper.h"
 #include "NGSD.h"
 #include "GUIHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QDir>
 #include <QDesktopServices>
 #include <QProcess>
@@ -16,7 +17,6 @@ ProcessingSystemWidget::ProcessingSystemWidget(QWidget* parent, int sys_id)
 {
 	ui_.setupUi(this);
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
-	connect(ui_.explorer_btn, SIGNAL(clicked(bool)), this, SLOT(openRoiInExplorer()));
 	connect(ui_.igv_btn, SIGNAL(clicked(bool)), this, SLOT(openRoiInIGV()));
 	connect(ui_.edit_btn, SIGNAL(clicked(bool)), this, SLOT(edit()));
 }
@@ -37,23 +37,18 @@ void ProcessingSystemWidget::updateGUI()
 	ui_.type->setText(ps_data.type);
 	ui_.shotgun->setText(ps_data.shotgun ? "yes" : "no");
 	ui_.umi->setText(ps_data.umi_type);
-	QString roi_file = ps_data.target_file;
-	ui_.target_file->setText(roi_file);
-	if (!QFile::exists(roi_file)) ui_.target_file->setText(roi_file+" <font color=red>(file is missing!)</font>");
 	ui_.genome->setText(ps_data.genome);
 
 	//###target region infos###
-	if (QFile::exists(roi_file))
+	BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_);
+	if (!roi.isEmpty())
 	{
-		BedFile roi;
-		roi.load(roi_file);
 		ui_.roi_bases->setText(QString::number(roi.baseCount(), 'f', 0));
 		ui_.roi_regions->setText(QString::number(roi.count(), 'f', 0));
 	}
-	QString genes_file = ps_data.target_gene_file;
-	if (QFile::exists(genes_file))
+	GeneSet roi_genes = GlobalServiceProvider::database().processingSystemGenes(sys_id_);
+	if (!roi_genes.isEmpty())
 	{
-		GeneSet roi_genes = GeneSet::createFromFile(genes_file);
 		ui_.roi_genes->setText(QString::number(roi_genes.count(), 'f', 0));
 	}
 
@@ -82,18 +77,15 @@ void ProcessingSystemWidget::edit()
 	}
 }
 
-void ProcessingSystemWidget::openRoiInExplorer()
-{
-	NGSD db;
-	QString roi = db.getProcessingSystemData(sys_id_).target_file;
-
-	QProcess::startDetached("explorer.exe", QStringList() <<  "/select," + Helper::canonicalPath(roi));
-}
-
 void ProcessingSystemWidget::openRoiInIGV()
 {
-	NGSD db;
-	QString roi = db.getProcessingSystemData(sys_id_).target_file;
+	//load ROI
+	BedFile roi = GlobalServiceProvider::database().processingSystemRegions(sys_id_);
 
-	emit executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(roi) + "\"");
+	//store to temporary file
+	QString roi_file = GSvarHelper::localRoiFolder() + ui_.name_short->text().trimmed() + ".bed";
+	roi_file = Helper::canonicalPath(roi_file);
+	roi.store(roi_file);
+
+	emit executeIGVCommands(QStringList() << "load \"" + roi_file + "\"");
 }

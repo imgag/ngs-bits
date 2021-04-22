@@ -11,14 +11,13 @@
 #include "TSVFileStream.h"
 #include "OntologyTermCollection.h"
 #include "FilterCascade.h"
-#include <QDialog>
 #include <QMultiMap>
 #include <QDir>
 #include "RtfDocument.h"
 #include "BedpeFile.h"
 #include "SomaticReportSettings.h"
 
-struct SomaticVirusInfo
+struct CPPNGSDSHARED_EXPORT SomaticVirusInfo
 {
 	QByteArray chr;
 	int start;
@@ -54,7 +53,7 @@ struct SomaticVirusInfo
 };
 
 ///creates a somatic RTF report
-class SomaticReportHelper
+class CPPNGSDSHARED_EXPORT SomaticReportHelper
 {
 public:
 	///Constructor loads data into class
@@ -149,9 +148,6 @@ private:
 
 	//Processing system data
 	ProcessingSystemData processing_system_data_;
-
-	//genes included in target panel
-	GeneSet target_genes_;
 
 	//genes that are printed on last report page for EBM billing. List is to be filled in snvTable()
 	GeneSet ebm_genes_;

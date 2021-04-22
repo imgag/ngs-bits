@@ -114,12 +114,6 @@ private slots:
 		I_EQUAL(enum_values.count(), 18);
 		S_EQUAL(enum_values[4], "Endocrine, nutritional or metabolic diseases");
 
-		//getProcessingSystems
-		QMap<QString, QString> systems = db.getProcessingSystems(false);
-		I_EQUAL(systems.size(), 4);
-		IS_TRUE(systems.contains("HaloPlex HBOC v5"))
-		IS_TRUE(systems.contains("HaloPlex HBOC v6"))
-
 		//processedSampleName
 		QString ps_name = db.processedSampleName(db.processedSampleId("NA12878_03"), false);
 		S_EQUAL(ps_name, "NA12878_03");
@@ -1251,7 +1245,6 @@ private slots:
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
-		db.getQuery().exec("UPDATE processing_system SET target_file='" + TESTDATA("../cppNGS-TEST/data_in/panel.bed") + "' WHERE name_short='hpHSPv2'");
 		LoginManager::login("ahmustm1", true);
 
 		QDate report_date = QDate::fromString("2021-02-19", Qt::ISODate);
@@ -1279,6 +1272,7 @@ private slots:
 		QMap<QByteArray, QByteArrayList> preferred_transcripts;
 		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
 		GermlineReportGeneratorData data("NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
+		data.processing_system_roi.load(TESTDATA("../cppNGS-TEST/data_in/panel.bed"));
 
 		//############################### TEST 1 - minimal ###############################
 		{
@@ -1719,7 +1713,8 @@ private slots:
 		CnvList cnvs_filtered = SomaticReportSettings::filterCnvs(cnvs,settings);
 
 		SomaticXmlReportGeneratorData xml_data(settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
-
+		xml_data.processing_system_roi.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
+		xml_data.processing_system_genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));
 		IS_THROWN(ArgumentException, xml_data.check());
 
 		xml_data.mantis_msi = 0.74;

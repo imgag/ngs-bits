@@ -14,6 +14,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include "LoginManager.h"
+#include "GlobalServiceProvider.h"
 
 FilterWidget::FilterWidget(QWidget *parent)
 	: QWidget(parent)
@@ -86,17 +87,20 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 	box->addItem("none", "");
 	box->insertSeparator(box->count());
 
-	if (Settings::boolean("NGSD_enabled"))
+	if (GlobalServiceProvider::database().enabled())
 	{
 		NGSD db;
 
 		//load ROIs of NGSD processing systems
-		QMap<QString, QString> systems = db.getProcessingSystems(true);
-		auto it = systems.constBegin();
-		while (it != systems.constEnd())
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT name_manufacturer, target_file FROM processing_system ORDER by name_manufacturer ASC");
+		while(query.next())
 		{
-			box->addItem("Processing system: " + it.key(), Helper::canonicalPath(it.value()));
-			++it;
+			QString name = query.value(0).toString();
+			QString roi = query.value(1).toString().trimmed();
+			if (roi.isEmpty()) continue;
+
+			box->addItem("Processing system: " + name, "Processing system: " + name);
 		}
 		box->insertSeparator(box->count());
 
@@ -141,7 +145,17 @@ void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
 
 		roi.genes = db.subpanelGenes(roi.name);
 	}
-	else //processing system target region and local target regions
+	else if (name.startsWith("Processing system: "))
+	{
+		roi.name = name.split(":")[1].trimmed();
+
+		NGSD db;
+		int sys_id = db.processingSystemId(roi.name);
+		roi.regions = GlobalServiceProvider::database().processingSystemRegions(sys_id);
+		roi.regions.merge();
+		roi.genes = GlobalServiceProvider::database().processingSystemGenes(sys_id);
+	}
+	else //local target regions
 	{
 		roi.name = QFileInfo(name).baseName();
 
@@ -154,7 +168,6 @@ void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
 			roi.genes = GeneSet::createFromFile(genes_file);
 		}
 	}
-
 }
 
 void FilterWidget::resetSignalsUnblocked(bool clear_roi)
