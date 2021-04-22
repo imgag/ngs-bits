@@ -210,6 +210,9 @@ HttpResponse EndpointHelper::serveEndpointHelp(HttpRequest request)
 
 HttpResponse EndpointHelper::serveStaticFile(HttpRequest request)
 {
+
+
+
 	QString path = ServerHelper::getStringSettingsValue("server_root");
 	ByteRange byte_range {};
 	byte_range.start = 0;
@@ -230,7 +233,15 @@ HttpResponse EndpointHelper::serveStaticFile(HttpRequest request)
 	byte_range.length = ((byte_range.end - byte_range.start) > -1.0) ? (byte_range.end - byte_range.start) : 0;
 
 	path = ServerHelper::getUrlWithoutParams(path.trimmed() + request.getPathParams()[0]);
-	return serveStaticFile(path, byte_range, HttpProcessor::getContentTypeByFilename(path), false);
+
+	try {
+		return streamStaticFile(path, true);
+	} catch (Exception& e) {
+		return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, request.getContentType(), "File streaming has failed"});
+	}
+
+
+//	return serveStaticFile(path, byte_range, HttpProcessor::getContentTypeByFilename(path), false);
 }
 
 HttpResponse EndpointHelper::serveStaticFileFromCache(HttpRequest request)

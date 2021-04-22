@@ -216,6 +216,13 @@ void RequestWorker::dataChunkReady(QSslSocket* socket, QByteArray data)
 		return;
 	}
 
+	if (socket->state() == QSslSocket::SocketState::UnconnectedState)
+	{
+		socket->close();
+		socket->deleteLater();
+		return;
+	}
+
 	if (socket->bytesToWrite())
 	{
 		socket->waitForBytesWritten();
