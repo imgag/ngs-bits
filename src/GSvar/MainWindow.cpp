@@ -2679,6 +2679,7 @@ void MainWindow::loadSomaticReportConfig()
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;
 	somatic_report_settings_.msi_file = GlobalServiceProvider::fileLocationProvider().getSomaticMsiFile().filename;
+	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 
 	try //load normal sample
 	{
@@ -3072,6 +3073,8 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
 	somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions( db.processingSystemIdFromProcessedSample(ps_tumor) );
 	somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor)), true );
+
+	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 
 
 	//Preselect report settings if not already exists to most common values
