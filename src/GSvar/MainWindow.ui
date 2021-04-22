@@ -413,6 +413,7 @@
       <string>Track defaults</string>
      </property>
      <addaction name="actionIgvSample"/>
+     <addaction name="actionSampleBedpe"/>
      <addaction name="actionIgvLowcov"/>
      <addaction name="separator"/>
     </widget>
@@ -1272,6 +1273,11 @@
   <action name="actionImportSampleRelations">
    <property name="text">
     <string>Sample relations</string>
+   </property>
+  </action>
+  <action name="actionSampleBedpe">
+   <property name="text">
+    <string>Sample structural variants BEDPE file</string>
    </property>
   </action>
  </widget>

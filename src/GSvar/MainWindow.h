@@ -266,7 +266,7 @@ public slots:
 	///A variant header has beed double-clicked > edit report config
 	void variantHeaderDoubleClicked(int row);
 	///Initializes IGV for current samples. Returns if the initialization was successfull.
-	bool initializeIvg(QAbstractSocket& socket);
+	bool initializeIGV(QAbstractSocket& socket);
 	///Open region in IGV
 	void openInIGV(QString region);
 	///Opens a custom track in IGV

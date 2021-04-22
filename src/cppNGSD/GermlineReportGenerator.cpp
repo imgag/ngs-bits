@@ -753,11 +753,10 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	w.writeAttribute("cnv_caller", no_cnv_calling ? "NONE" :  data_.cnvs.callerAsString());
 	w.writeAttribute("overall_number", QString::number(data_.cnvs.count()));
 	w.writeAttribute("genome_build", "hg19");
-	QString cnv_callset_id = db_.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id_, true).toString();
-	if (no_cnv_calling) cnv_callset_id = "-1";
-	QString cnv_calling_quality = db_.getValue("SELECT quality FROM cnv_callset WHERE id=" + cnv_callset_id, true).toString();
-	if (cnv_calling_quality.trimmed()=="") cnv_calling_quality="n/a";
-	w.writeAttribute("quality", cnv_calling_quality);
+	QString cnv_callset_id = db_.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id_, true).toString().trimmed();
+	if (no_cnv_calling || cnv_callset_id.isEmpty()) cnv_callset_id = "-1";
+	QString cnv_calling_quality = db_.getValue("SELECT quality FROM cnv_callset WHERE id=" + cnv_callset_id, true).toString().trimmed();
+	w.writeAttribute("quality", cnv_calling_quality.isEmpty() ? "n/a" : cnv_calling_quality);
 	if(data_.cnvs.caller()==CnvCallerType::CLINCNV && !cnv_callset_id.isEmpty())
 	{
 		QHash<QString, QString> qc_metrics = db_.cnvCallsetMetrics(cnv_callset_id.toInt());

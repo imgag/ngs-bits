@@ -1480,7 +1480,7 @@ void MainWindow::variantHeaderDoubleClicked(int row)
 	editVariantReportConfiguration(var_index);
 }
 
-bool MainWindow::initializeIvg(QAbstractSocket& socket)
+bool MainWindow::initializeIGV(QAbstractSocket& socket)
 {
 	AnalysisType analysis_type = variants_.type();
 
@@ -1504,6 +1504,10 @@ bool MainWindow::initializeIvg(QAbstractSocket& socket)
 	//analysis VCF
 	FileLocation vcf = GlobalServiceProvider::fileLocationProvider().getAnalysisVcf();
 	dlg.addFile(vcf, ui_.actionIgvSample->isChecked());
+
+	//analysis SV file
+	FileLocation bedpe = GlobalServiceProvider::fileLocationProvider().getAnalysisSvFile();
+	dlg.addFile(bedpe, ui_.actionSampleBedpe->isChecked());
 
 	//CNV files
 	if (analysis_type==SOMATIC_SINGLESAMPLE || analysis_type==SOMATIC_PAIR)
@@ -2679,6 +2683,7 @@ void MainWindow::loadSomaticReportConfig()
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;
 	somatic_report_settings_.msi_file = GlobalServiceProvider::fileLocationProvider().getSomaticMsiFile().filename;
+	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 
 	try //load normal sample
 	{
@@ -3072,6 +3077,8 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.preferred_transcripts = GSvarHelper::preferredTranscripts();
 	somatic_report_settings_.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions( db.processingSystemIdFromProcessedSample(ps_tumor) );
 	somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor)), true );
+
+	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 
 
 	//Preselect report settings if not already exists to most common values
@@ -5176,7 +5183,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 		if (!igv_initialized_ && init_if_not_done)
 		{
 			if (debug) qDebug() << QDateTime::currentDateTime() << "INITIALIZING IGV FOR CURRENT SAMPLE!";
-			if (!initializeIvg(socket)) return;
+			if (!initializeIGV(socket)) return;
 		}
 
 		//execute commands

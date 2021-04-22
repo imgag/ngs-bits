@@ -17,7 +17,14 @@ VariantList SomaticReportSettings::filterVariants(const VariantList &snvs, const
 
 	result.copyMetaData(snvs);
 
-	FilterResult filter_res =sett.filters.apply(snvs); //does not regard "include" result of report_config
+	FilterResult filter_res = sett.filters.apply(snvs); //does not regard "include" result of report_config
+
+	//filter for target region
+	if(sett.target_region_filter.regions.count() > 0)
+	{
+		FilterRegions::apply(snvs, sett.target_region_filter.regions, filter_res);
+	}
+
 
 	//Adapt filter results to results from report settings
 	for(int index : variant_indices)

@@ -9,7 +9,7 @@
 #include "FileLocationList.h"
 
 //Analysis file location provider interface for local/client-server mode.
-class CPPNGSSHARED_EXPORT FileLocationProvider //TODO move to GSvar project!
+class CPPNGSSHARED_EXPORT FileLocationProvider
 {
 public:
 

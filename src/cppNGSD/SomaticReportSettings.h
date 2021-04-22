@@ -26,6 +26,8 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	//genes that lie in processing systems target
 	GeneSet processing_system_genes;
 
+	TargetRegionInfo target_region_filter;
+
 
 	///returns variant list according filters and include/exclude report_config settings. Include from settings will overwrite FilterCascade entry
 	static VariantList filterVariants(const VariantList& snvs, const SomaticReportSettings& sett);
