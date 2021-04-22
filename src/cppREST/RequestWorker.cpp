@@ -156,7 +156,14 @@ void RequestWorker::run()
 				qint64 pos = 0;
 
 				ServerHelper::debug("Content type" + response.getHeaders());
-
+				if (!streamed_file.atEnd())
+				{
+					ServerHelper::debug("Stream is not finished");
+				}
+				else
+				{
+					ServerHelper::debug("Stream is completed");
+				}
 				while(!streamed_file.atEnd())
 				{
 					streamed_file.seek(pos);
@@ -165,6 +172,8 @@ void RequestWorker::run()
 					dataChunkReady(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
 					dataChunkReady(ssl_socket, data.append("\r\n"));
 				}
+				ServerHelper::debug("POS = " + QString::number(pos));
+				ServerHelper::debug("After the loop");
 			}
 			else
 			{
