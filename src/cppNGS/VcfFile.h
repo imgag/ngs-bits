@@ -160,9 +160,9 @@ public:
 	void copyMetaDataForSubsetting(const VcfFile& rhs);
 
 	///Returns VCF content as string
-	QString toText() const;
+    QByteArray toText() const;
 	///Reads a VCF from a string
-	void loadFromText(QString text);
+    void fromText(const QByteArray& text);
 
 	///Converts a Variant list (e.g. from a GSvar file) to a VcfFile
 	static VcfFile convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome);

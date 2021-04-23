@@ -862,10 +862,10 @@ void VcfFile::copyMetaDataForSubsetting(const VcfFile& rhs)
 	info_id_to_idx_list_ = rhs.infoIDToIdxList();
 }
 
-QString VcfFile::toText() const
+QByteArray VcfFile::toText() const
 {
 	//open stream
-	QString output;
+    QByteArray output;
 	QTextStream stream(&output);
 
 	//write header information
@@ -881,11 +881,11 @@ QString VcfFile::toText() const
 	return output;
 }
 
-void VcfFile::loadFromText(QString text)
+void VcfFile::fromText(const QByteArray &text)
 {
 	//clear content in case we load a second file
 	clear();
-	QByteArrayList lines = text.toUtf8().split('\n');
+    QByteArrayList lines = text.split('\n');
 
 	int line_number = 0;
 	QSet<QByteArray> info_ids_in_header;

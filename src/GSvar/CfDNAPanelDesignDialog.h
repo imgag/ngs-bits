@@ -21,6 +21,15 @@ struct GeneEntry
 	QString file_path;
 };
 
+struct CfdnaDbEntry
+{
+    int id = -1;
+    int tumor_id = -1;
+    int cfdna_id = -1;
+    QByteArray created_by;
+    QDate created_date;
+};
+
 namespace Ui {
 class CfDNAPanelDesignDialog;
 }
@@ -61,7 +70,9 @@ private:
 	const SomaticReportConfiguration& somatic_report_configuration_;
 	QMap<QString, bool> prev_vars_;
 	QString processed_sample_name_;
+    QString processed_sample_id_;
 	QList<GeneEntry> genes_;
+    CfdnaDbEntry selected_panel_;
 };
 
 #endif // CFDNAPANELDESIGNDIALOG_H

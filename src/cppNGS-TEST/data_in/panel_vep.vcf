@@ -99,6 +99,7 @@
 ##contig=<ID=chrNC_007605,length=171823>
 ##contig=<ID=chrX,length=155270560>
 ##contig=<ID=chrY,length=59373566>
+##SAMPLE=<ID=NA12878_03,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Other diseases,DiseaseStatus=affected>
 ##INFO=<ID=AB,Number=A,Type=Float,Description="Allele balance at heterozygous sites: a number between 0 and 1 representing the ratio of reads showing the reference allele to all reads, considering only reads from individuals called as heterozygous">
 ##INFO=<ID=ABP,Number=A,Type=Float,Description="Allele balance probability at heterozygous sites: Phred-scaled upper-bounds estimate of the probability of observing the deviation between ABR and ABA given E(ABR/ABA) ~ 0.5, derived using Hoeffding's inequality">
 ##INFO=<ID=AC,Number=A,Type=Integer,Description="Total number of alternate alleles in called genotypes">
@@ -163,17 +164,16 @@
 ##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
 ##INFO=<ID=TYPE,Number=A,Type=String,Description="The type of allele, either snp, mnp, ins, del, or complex.">
 ##FILTER=<ID=off-target,Description="Variant marked as 'off-target'.">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Number of observation for each allele">
 ##FORMAT=<ID=AO,Number=A,Type=Integer,Description="Alternate allele observation count">
 ##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
 ##FORMAT=<ID=GL,Number=G,Type=Float,Description="Genotype Likelihood, log10-scaled likelihoods of the data given the called genotype for each possible genotype generated from the reference and alternate alleles given the sample ploidy">
 ##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality, the Phred-scaled marginal (or unconditional) probability of the called genotype">
-##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 ##FORMAT=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
 ##FORMAT=<ID=QA,Number=A,Type=Integer,Description="Sum of quality of the alternate observations">
 ##FORMAT=<ID=QR,Number=1,Type=Integer,Description="Sum of quality of the reference observations">
 ##FORMAT=<ID=RO,Number=1,Type=Integer,Description="Reference allele observation count">
-##SAMPLE=<ID=NA12878_03,Gender=n/a,ExternalSampleName=Coriell-DNA,IsTumor=no,IsFFPE=no,DiseaseGroup=Other diseases,DiseaseStatus=affected>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12878_03
 chr1	27682481	.	G	A	2181	off-target	MQM=60;CSQ=A|downstream_gene_variant|MODIFIER|SYTL1|ENSG00000142765|Transcript|ENST00000318074|protein_coding||||||||||rs12569127|2060|1||HGNC|15584||||||0.1903|0.2274|0.3297|0.2621|0.2162|0.2015|0.4024|0.1154|0.257|0.3242|0.2864|0.1645||||4.110|0.090542||0.06109|0.19126|rs12569127|2.65859e-01||||-0.5||||||,A|intron_variant|MODIFIER|MAP3K6|ENSG00000142733|Transcript|ENST00000357582|protein_coding||27/28|ENST00000357582.2:c.3711+36C>T|||||||rs12569127||-1||HGNC|6858||||||0.1903|0.2274|0.3297|0.2621|0.2162|0.2015|0.4024|0.1154|0.257|0.3242|0.2864|0.1645||||4.110|0.090542||0.06109|0.19126|rs12569127|2.65859e-01||||-0.5||||||,A|intron_variant|MODIFIER|MAP3K6|ENSG00000142733|Transcript|ENST00000374040|protein_coding||26/27|ENST00000374040.3:c.3687+36C>T|||||||rs12569127||-1||HGNC|6858||||||0.1903|0.2274|0.3297|0.2621|0.2162|0.2015|0.4024|0.1154|0.257|0.3242|0.2864|0.1645||||4.110|0.090542||0.06109|0.19126|rs12569127|2.65859e-01||||-0.5||||||,A|intron_variant|MODIFIER|MAP3K6|ENSG00000142733|Transcript|ENST00000493901|protein_coding||28/29|ENST00000493901.1:c.3711+36C>T|||||||rs12569127||-1||HGNC|6858||||||0.1903|0.2274|0.3297|0.2621|0.2162|0.2015|0.4024|0.1154|0.257|0.3242|0.2864|0.1645||||4.110|0.090542||0.06109|0.19126|rs12569127|2.65859e-01||||-0.5||||||,A|downstream_gene_variant|MODIFIER|SYTL1|ENSG00000142765|Transcript|ENST00000543823|protein_coding||||||||||rs12569127|2060|1||HGNC|15584||||||0.1903|0.2274|0.3297|0.2621|0.2162|0.2015|0.4024|0.1154|0.257|0.3242|0.2864|0.1645||||4.110|0.090542||0.06109|0.19126|rs12569127|2.65859e-01||||-0.5||||||	GT:DP:AO	0/1:169:86
 chr1	27686063	.	G	C	6115	off-target	MQM=60;CSQ=C|intron_variant|MODIFIER|MAP3K6|ENSG00000142733|Transcript|ENST00000357582|protein_coding||17/28|ENST00000357582.2:c.2320-50C>G|||||||rs7521552||-1||HGNC|6858|||||||0.9648|0.996|0.9944|0.9658|0.9966|0.9931|1|0.9994|0.9953|0.9956|0.9965||||2.849|0.014560||0.00175|0.10577|rs7521552|9.87931e-01||||-0.351999998092651||||||,C|intron_variant|MODIFIER|MAP3K6|ENSG00000142733|Transcript|ENST00000374040|protein_coding||16/27|ENST00000374040.3:c.2296-50C>G|||||||rs7521552||-1||HGNC|6858|||||||0.9648|0.996|0.9944|0.9658|0.9966|0.9931|1|0.9994|0.9953|0.9956|0.9965||||2.849|0.014560||0.00175|0.10577|rs7521552|9.87931e-01||||-0.351999998092651||||||,C|intron_variant|MODIFIER|MAP3K6|ENSG00000142733|Transcript|ENST00000493901|protein_coding||18/29|ENST00000493901.1:c.2320-50C>G|||||||rs7521552||-1||HGNC|6858|||||||0.9648|0.996|0.9944|0.9658|0.9966|0.9931|1|0.9994|0.9953|0.9956|0.9965||||2.849|0.014560||0.00175|0.10577|rs7521552|9.87931e-01||||-0.351999998092651||||||	GT:DP:AO	1/1:198:198

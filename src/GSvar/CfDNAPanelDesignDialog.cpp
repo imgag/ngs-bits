@@ -1,6 +1,8 @@
 #include "CfDNAPanelDesignDialog.h"
 #include "ui_CfDNAPanelDesignDialog.h"
 #include "GUIHelper.h"
+#include "LoginManager.h"
+#include "NGSD.h"
 #include <QMessageBox>
 #include <QMenu>
 #include <QDir>
@@ -14,6 +16,17 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 	somatic_report_configuration_(somatic_report_configuration),
 	processed_sample_name_(processed_sample_name)
 {
+
+    // abort if no connection to NGSD
+    if (!LoginManager::active())
+    {
+        GUIHelper::showMessage("No connection to the NGSD!", "You need access to the NGSD to design cfDNA panels!");
+        this->close();
+    }
+
+    processed_sample_id_ = NGSD().processedSampleId(processed_sample_name_);
+
+
 	// remove '?' entry
 	setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
 
@@ -47,30 +60,48 @@ CfDNAPanelDesignDialog::~CfDNAPanelDesignDialog()
 
 void CfDNAPanelDesignDialog::loadPreviousPanels(const DBTable& processing_systems)
 {
-	QStringList previous_panel_files;
-	for (int i = 0; i < processing_systems.rowCount(); ++i)
-	{
-		// check if previous panel exists
-		QString processing_system = processing_systems.row(i).value(0);
-		QString output_path = Settings::path("patient_specific_panel_folder", false) + processing_system + "/" +  processed_sample_name_ + ".vcf";
-		if(QFile::exists(output_path)) previous_panel_files.append(output_path);
-	}
+    // get all cfDNA Panel for this
+    QVector<CfdnaDbEntry> previous_panels;
+    SqlQuery query = NGSD().getQuery();
+    query.exec("SELECT id, tumor_id, cfdna_id, created_by, created_date FROM cfdna_panels WHERE tumor_id=" + processed_sample_id_);
+    while(query.next())
+    {
+        bool ok;
+        CfdnaDbEntry entry;
+        entry.id = query.value(0).toInt(&ok);
+        if (!ok) THROW(DatabaseException, "Error parsing id in cfdna_panels!");
+        entry.tumor_id = query.value(1).toInt(&ok);
+        if (!ok) THROW(DatabaseException, "Error parsing tumor_id in cfdna_panels!");
+        entry.cfdna_id = query.value(2).toInt(&ok);
+        if (!ok) THROW(DatabaseException, "Error parsing cfdna_id in cfdna_panels!");
+        int user_id = query.value(3).toInt(&ok);
+        entry.created_by = NGSD().userName(user_id).toUtf8();
+        if (!ok) THROW(DatabaseException, "Error parsing created_by in cfdna_panels!");
+        entry.created_date = query.value(4).toDate();
 
-	if(previous_panel_files.size() > 0)
+        previous_panels.append(entry);
+    }
+
+    if(previous_panels.size() > 0)
 	{
+        QStringList panel_text;
+        foreach (const CfdnaDbEntry& panel, previous_panels)
+        {
+            panel_text.append(panel.created_date.toString("dd.MM.yyyy") + " by " + panel.created_by);
+        }
 
 		QString message_text = "A personalized cfDNA panel file for the processed sample " + processed_sample_name_ + " already exists.\n";
-		int load_previous_panel = QMessageBox::information(this, "cfDNA panel found", message_text + "Would you like to load the previous panel?\n\n"
-														   + previous_panel_files.join("\n"), QMessageBox::Yes, QMessageBox::Cancel);
+        int load_previous_panel = QMessageBox::information(this, "cfDNA panel found", message_text + "Would you like to load a previous panel?\n\n",
+                                                           QMessageBox::Yes, QMessageBox::Cancel);
 		if (load_previous_panel!=QMessageBox::Yes)
 		{
 			return;
 		}
-		QString selected_panel;
-		if(previous_panel_files.size() > 1)
+
+        if(previous_panels.size() > 1)
 		{
 			QComboBox* vcf_file_selector = new QComboBox(this);
-			vcf_file_selector->addItems(previous_panel_files);
+            vcf_file_selector->addItems(panel_text);
 
 			// create dlg
 			auto dlg = GUIHelper::createDialog(vcf_file_selector, "Select cfDNA panel", "Select the cfDNA panel which should be loaded:", true);
@@ -79,15 +110,15 @@ void CfDNAPanelDesignDialog::loadPreviousPanels(const DBTable& processing_system
 			{
 				return;
 			}
-			selected_panel = vcf_file_selector->currentText();
+            selected_panel_ = previous_panels.at(vcf_file_selector->currentIndex());
 		}
 		else
 		{
-			selected_panel = previous_panel_files.at(0);
+            selected_panel_ = previous_panels.at(0);
 		}
 		// load previous panel
 		VcfFile prev_panel;
-		prev_panel.load(selected_panel);
+        prev_panel.fromText(NGSD().getValue("SELECT vcf FROM cfdna_panels WHERE id=:0", false, QString::number(selected_panel_.id)).toString().toUtf8());
 		for (int i = 0; i < prev_panel.count(); ++i)
 		{
 			const VcfLine& var = prev_panel.vcfLine(i);
@@ -581,6 +612,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		}
 	}
 
+    // TODO: store in Database
 	// store variant list
 	vcf_file.store(output_path + processed_sample_name_ + ".vcf", false, 0);
 	roi.sort();
