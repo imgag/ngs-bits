@@ -234,13 +234,8 @@ HttpResponse EndpointHelper::serveStaticFile(HttpRequest request)
 
 	path = ServerHelper::getUrlWithoutParams(path.trimmed() + request.getPathParams()[0]);
 
-	try {
-		return streamStaticFile(path, true);
-	} catch (Exception& e) {
-		return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, request.getContentType(), "File streaming has failed"});
-	}
 
-
+	return streamStaticFile(path, false);
 //	return serveStaticFile(path, byte_range, HttpProcessor::getContentTypeByFilename(path), false);
 }
 

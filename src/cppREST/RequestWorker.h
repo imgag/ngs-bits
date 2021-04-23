@@ -28,15 +28,14 @@ Q_SIGNALS:
 	void verificationFailed(const QSslError &error);
 	void securelyConnected();
 
-//signals:
-//	void dataChunkReady(QSslSocket *socket, const QByteArray &data);
-//	void allDataReady(QSslSocket *socket, const HttpResponse &response);
 
 private:
 	QString intToHex(const int &input);
 
-	void dataChunkReady(QSslSocket *socket, QByteArray data);
-	void allDataReady(QSslSocket *socket, HttpResponse response);
+	void closeAndDeleteSocket(QSslSocket* socket);
+	void sendResponseChunk(QSslSocket *socket, QByteArray data);
+	void sendEntireResponse(QSslSocket *socket, HttpResponse response);
+	void finishChunckedResponse(QSslSocket* socket);
 
 	QSslConfiguration ssl_configuration_;
 	qintptr socket_;
