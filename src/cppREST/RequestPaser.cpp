@@ -21,20 +21,10 @@ HttpRequest RequestPaser::getRequest()
 			QList<QByteArray> request_info = body[i].split(' ');
 			if (request_info.length() < 2)
 			{
-//				writeResponse(HttpResponse(HttpError{StatusCode::BAD_REQUEST, ContentType::TEXT_HTML, "Cannot process the request. It is possible a URL is missing or incorrect"}));
-				THROW(Exception, "Cannot process the request. It is possible a URL is missing or incorrect");
+				THROW(Exception, "Cannot process the request. It is possible the URL is missing or incorrect");
 				return request;
 			}
-//			try
-//			{
-				request.setMethod(inferRequestMethod(request_info[0].toUpper()));
-//			}
-//			catch (ArgumentException& e)
-//			{
-//				writeResponse(HttpResponse(HttpError{StatusCode::BAD_REQUEST, ContentType::TEXT_HTML, e.message()}));
-//				return;
-//			}
-
+			request.setMethod(inferRequestMethod(request_info[0].toUpper()));
 
 			QList<QString> path_items = QString(request_info[1]).split('/');
 
@@ -50,7 +40,6 @@ HttpRequest RequestPaser::getRequest()
 		int param_separator = body[i].indexOf('=');
 		if ((header_separator == -1) && (param_separator == -1) && (body[i].length() > 0))
 		{
-//			writeResponse(HttpResponse(HttpError{StatusCode::BAD_REQUEST, ContentType::TEXT_HTML, "Malformed element: " + body[i]}));
 			THROW(Exception, "Malformed element: " + body[i]);
 			return request;
 		}

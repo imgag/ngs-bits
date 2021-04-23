@@ -35,6 +35,7 @@ HEADERS += \
     HtmlEngine_Test.h \
     HttpProcessor_Test.h \
     HttpsServer_Test.h \
+    RequestParser_Test.h \
     ServerHelper_Test.h \
     SessionManager_Test.h \
     UrlManager_Test.h
