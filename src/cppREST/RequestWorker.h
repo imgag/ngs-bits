@@ -8,10 +8,14 @@
 #include <QSslSocket>
 #include <QSslError>
 #include <QSslConfiguration>
+#include <QHostAddress>
 #include <QList>
 
 #include "Exceptions.h"
-#include "RequestHandler.h"
+#include "HttpResponse.h"
+#include "RequestParser.h"
+#include "EndpointManager.h"
+
 
 class CPPRESTSHARED_EXPORT RequestWorker : public QThread
 {

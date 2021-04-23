@@ -13,7 +13,6 @@
 #include <QTimer>
 
 #include "SslServer.h"
-#include "RequestHandler.h"
 #include "UrlManager.h"
 
 class CPPRESTSHARED_EXPORT HttpsServer : public QObject
@@ -22,9 +21,6 @@ class CPPRESTSHARED_EXPORT HttpsServer : public QObject
 
 public:
 	HttpsServer(quint16 port);   
-
-protected slots:
-    void handleConnection();	
 
 private:
 	SslServer *server_;

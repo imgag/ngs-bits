@@ -1,6 +1,4 @@
 #include "RequestWorker.h"
-#include "HttpResponse.h"
-#include "RequestParser.h"
 
 RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket)
 	:

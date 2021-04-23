@@ -8,7 +8,6 @@
 #include "HtmlEngine.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"
-#include "WebExceptions.h"
 
 struct CPPRESTSHARED_EXPORT ParamProps
 {

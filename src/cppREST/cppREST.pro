@@ -54,15 +54,12 @@ SOURCES += \
     HttpRequest.cpp \
     HttpResponse.cpp \
     HttpsServer.cpp \
-    RequestHandler.cpp \
     RequestPaser.cpp \
     RequestWorker.cpp \
     ServerHelper.cpp \
     SessionManager.cpp \
     SslServer.cpp \
-    UrlManager.cpp \
-    WebExceptions.cpp \
-    WorkerThread.cpp
+    UrlManager.cpp
 
 HEADERS += \
     EndpointHelper.h \
@@ -74,15 +71,12 @@ HEADERS += \
     HttpRequest.h \
     HttpResponse.h \
     HttpsServer.h \
-    RequestHandler.h \
     RequestParser.h \
     RequestWorker.h \
     ServerHelper.h \
     SessionManager.h \
     SslServer.h \
-    UrlManager.h \
-    WebExceptions.h \
-    WorkerThread.h
+    UrlManager.h
 
 RESOURCES += \
     cppREST.qrc

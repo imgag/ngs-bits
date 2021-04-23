@@ -42,7 +42,6 @@ HttpsServer::HttpsServer(quint16 port)
     QSslKey key(&keyFile, QSsl::Rsa);
 
 	server_ = new SslServer(this);
-//	connect(server_, SIGNAL(securelyConnected()), this, SLOT(handleConnection()));
 
 	QSslConfiguration config = server_->getSslConfiguration();
     config.setLocalCertificate(cert);
@@ -66,14 +65,5 @@ HttpsServer::HttpsServer(quint16 port)
 	else
 	{		
 		qCritical() << "Could not start the HTTPS server on port #" + QString::number(port) + ":" + server_->serverError();
-	}
-}
-
-void HttpsServer::handleConnection()
-{
-	while(server_->hasPendingConnections())
-	{
-		QSslSocket *sock = server_->nextPendingConnection();
-		RequestHandler *handler = new RequestHandler(sock);
 	}
 }
