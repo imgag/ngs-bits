@@ -27,7 +27,7 @@ void WorkerThread::run()
 		return;
 	}
 
-	ServerHelper::debug("Requested:" + current_endpoint.comment);
+	qDebug() << "Requested:" + current_endpoint.comment;
 
 	endpoint_action_ = current_endpoint.action_func;
 	HttpResponse response = (*endpoint_action_)(request_);
@@ -53,7 +53,7 @@ void WorkerThread::run()
 
 		if (response.isBinary())
 		{
-			ServerHelper::debug("Binary stream thread");
+			qDebug() << "Binary stream thread";
 			qint64 chunk_size = 1024;
 			qint64 pos = 0;
 
@@ -68,7 +68,7 @@ void WorkerThread::run()
 		}
 		else
 		{			
-			ServerHelper::debug("Text stream thread");
+			qDebug() << "Text stream thread";
 			QTextStream stream(&streamed_file);
 			while(!stream.atEnd())
 			{

@@ -63,7 +63,7 @@ void RequestWorker::run()
 		}
 
 		// Process the request based on the endpoint info
-		ServerHelper::info(parsed_request.methodAsString().toUpper() + "/" + parsed_request.getPath() + parsed_request.getRemoteAddress().toLatin1().data());
+		qInfo() << parsed_request.methodAsString().toUpper() + "/" + parsed_request.getPath() + parsed_request.getRemoteAddress().toLatin1().data();
 
 		Endpoint current_endpoint = EndpointManager::getEndpointEntity(parsed_request.getPath(), parsed_request.getMethod());
 		if (current_endpoint.action_func == nullptr)
@@ -82,25 +82,25 @@ void RequestWorker::run()
 			return;
 		}
 
-		ServerHelper::debug("Requested:" + current_endpoint.comment);
+		qDebug() << "Requested:" + current_endpoint.comment;
 		HttpResponse (*endpoint_action_)(HttpRequest request) = current_endpoint.action_func;
 		HttpResponse response;
 
-		ServerHelper::debug("Trying to execute an action");
+		qDebug() << "Trying to execute an action";
 		try
 		{
 			response = (*endpoint_action_)(parsed_request);
 		}
 		catch (Exception& e)
 		{
-			ServerHelper::debug("Error while executing an action");
+			qDebug() << "Error while executing an action";
 			sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not process endpoint action"}));
 			return;
 		}
 
 		if (response.isStream())
 		{
-			ServerHelper::debug("Initiating a stream: " + response.getFilename());
+			qDebug() << "Initiating a stream: " + response.getFilename();
 
 			if (response.getFilename().isEmpty())
 			{
@@ -122,14 +122,14 @@ void RequestWorker::run()
 			}
 			catch (Exception& e)
 			{
-				ServerHelper::debug("Error while opening a file for streaming");
+				qDebug() << "Error while opening a file for streaming";
 				sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not open a file for streaming: " + response.getFilename()}));
 				return;
 			}
 
 			if (!streamed_file.isOpen())
 			{
-				ServerHelper::debug("File is not open");
+				qDebug() << "File is not open";
 				sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "File is not open: " + response.getFilename()}));
 				return;
 			}
@@ -137,11 +137,11 @@ void RequestWorker::run()
 			sendResponseChunk(ssl_socket, response.getHeaders());
 			if (response.isBinary())
 			{
-				ServerHelper::debug("Binary stream thread");
+				qDebug() << "Binary stream thread";
 				qint64 chunk_size = 1024;
 				qint64 pos = 0;
 
-				ServerHelper::debug("Content type" + response.getHeaders());
+				qDebug() << "Content type" + response.getHeaders();
 
 				while(!streamed_file.atEnd())
 				{
@@ -154,7 +154,7 @@ void RequestWorker::run()
 			}
 			else
 			{
-				ServerHelper::debug("Text stream thread");
+				qDebug() << "Text stream thread";
 				QTextStream stream(&streamed_file);
 				while(!stream.atEnd())
 				{
@@ -180,7 +180,7 @@ void RequestWorker::run()
 
 void RequestWorker::handleConnection()
 {
-	ServerHelper::debug("Secure connection has been established");
+	qDebug() << "Secure connection has been established";
 }
 
 QString RequestWorker::intToHex(const int& input)
@@ -200,7 +200,7 @@ void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
 	// clinet cancels the stream or simply disconnects
 	if ((!socket->isValid()) || (socket->state() == QSslSocket::SocketState::UnconnectedState))
 	{
-		ServerHelper::debug("Socket is disconnected and no longer used");
+		qDebug() << "Socket is disconnected and no longer used";
 		this->terminate();
 		return;
 	}
@@ -216,7 +216,7 @@ void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
 
 void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response)
 {
-	ServerHelper::debug("Writing an entire response");
+	qDebug() << "Writing an entire response";
 	socket->write(response.getHeaders());
 	socket->write(response.getPayload());
 	closeAndDeleteSocket(socket);
@@ -232,13 +232,13 @@ void RequestWorker::finishChunckedResponse(QSslSocket* socket)
 
 	if (!socket->bytesToWrite())
 	{
-		ServerHelper::debug("Closing the socket");
+		qDebug() << "Closing the socket";
 		socket->write("0\r\n");
 		socket->write("\r\n");
 		closeAndDeleteSocket(socket);
 		return;
 	}
 
-	ServerHelper::debug("Closing the socket forcefully");
+	qDebug() << "Closing the socket forcefully";
 	closeAndDeleteSocket(socket);
 }

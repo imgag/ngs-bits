@@ -33,7 +33,7 @@ QString FileCache::getFileIdIfInCache(QString filename_with_path)
 	QMapIterator<QString, StaticFile> i(instance().file_cache_);
 	while (i.hasNext()) {
 		i.next();
-		ServerHelper::debug(i.key() + ": " + i.value().filename_with_path);
+		qDebug() << i.key() + ": " + i.value().filename_with_path;
 		if (i.value().filename_with_path == filename_with_path)
 		{
 			return i.key();
@@ -48,7 +48,7 @@ bool FileCache::isInCacheAlready(QString filename_with_path)
 	QMapIterator<QString, StaticFile> i(instance().file_cache_);
 	while (i.hasNext()) {
 		i.next();
-		ServerHelper::debug(i.key() + ": " + i.value().filename_with_path);
+		qDebug() << i.key() + ": " + i.value().filename_with_path;
 		if (i.value().filename_with_path == filename_with_path)
 		{
 			return true;

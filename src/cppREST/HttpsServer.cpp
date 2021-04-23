@@ -6,13 +6,13 @@ HttpsServer::HttpsServer(quint16 port)
 	if (ssl_certificate.isEmpty())
 	{
 		ssl_certificate = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-cert.crt";
-		ServerHelper::debug("SSL certificate has not been specified in the config. Using a test certificate: " + ssl_certificate);
+		qDebug() << "SSL certificate has not been specified in the config. Using a test certificate: " + ssl_certificate;
 	}
 
 	QFile certFile(ssl_certificate);
 	if (!certFile.open(QIODevice::ReadOnly))
 	{		
-		ServerHelper::fatal("Unable to load SSL certificate");
+		qFatal("Unable to load SSL certificate");
         return;
     }
 
@@ -20,13 +20,13 @@ HttpsServer::HttpsServer(quint16 port)
 	if (ssl_key.isEmpty())
 	{
 		ssl_key = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-key.key";
-		ServerHelper::debug("SSL key has not been specified in the config. Using a test key: " + ssl_key);
+		qDebug() << "SSL key has not been specified in the config. Using a test key: " + ssl_key;
 	}
 
 	QFile keyFile(ssl_key);
 	if (!keyFile.open(QIODevice::ReadOnly))
 	{
-		ServerHelper::fatal("Unable to load SSL key");
+		qFatal("Unable to load SSL key");
         return;
     }
 
@@ -34,7 +34,7 @@ HttpsServer::HttpsServer(quint16 port)
 	QList<QSslCertificate> ca_certificates;
 	if (!ssl_chain.isEmpty())
 	{
-		ServerHelper::info("Reading SSL certificate chain file");
+		qInfo() << "Reading SSL certificate chain file";
 		ca_certificates = QSslCertificate::fromPath(ssl_chain, QSsl::Der);
 	}
 
@@ -50,14 +50,14 @@ HttpsServer::HttpsServer(quint16 port)
 
 	if (ca_certificates.size()>0)
 	{
-		ServerHelper::info("Loading SSL certificate chain");
+		qInfo() << "Loading SSL certificate chain";
 		config.setLocalCertificateChain(ca_certificates);
 	}
 
 	server_->setSslConfiguration(config);
 	if (server_->listen(QHostAddress::Any, port))
 	{		
-		ServerHelper::info("HTTPS server is running on port #" + QString::number(port));
+		qInfo() << "HTTPS server is running on port #" + QString::number(port);
 
 		QTimer *timer = new QTimer(this);
 		connect(timer, &QTimer::timeout, this, &UrlManager::removeExpiredUrls);
@@ -65,7 +65,7 @@ HttpsServer::HttpsServer(quint16 port)
 	}
 	else
 	{		
-		ServerHelper::critical("Could not start the HTTPS server on port #" + QString::number(port) + ":" + server_->serverError());
+		qCritical() << "Could not start the HTTPS server on port #" + QString::number(port) + ":" + server_->serverError();
 	}
 }
 

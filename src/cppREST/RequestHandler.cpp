@@ -241,14 +241,14 @@ void RequestHandler::handleDataChunk(const QByteArray& data)
 	{
 		if (!socket_->bytesToWrite())
 		{			
-			ServerHelper::debug("Closing the socket");
+			qDebug() << "Closing the socket";
 			socket_->close();
 			socket_->deleteLater();
 		}
 		else {
-			ServerHelper::debug("Cannot close the socket, the server is still sending the data");
+			qDebug() << "Cannot close the socket, the server is still sending the data";
 			socket_->waitForBytesWritten();
-			ServerHelper::debug("Closing the socket forcefully");
+			qDebug() << "Closing the socket forcefully";
 			socket_->close();
 			socket_->deleteLater();
 		}

@@ -35,6 +35,13 @@ clean_tools_debug:
 	rm -rf build-tools-Linux-Debug;
 
 build_tools_debug: clean_tools_debug build_tools_debug_noclean
+
+build_server_debug:
+	rm -rf build-GSvarServer-Linux-Debug;
+	mkdir -p build-GSvarServer-Linux-Debug;
+	cd build-GSvarServer-Linux-Debug; \
+                qmake ../src/tools_server.pro "CONFIG+=debug" "CONFIG-=release"; \
+                make -j5;
 	
 #################################### build - RELEASE ####################################
 
