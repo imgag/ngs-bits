@@ -6,12 +6,24 @@
 #include "FilterCascade.h"
 #include "VariantList.h"
 #include "SomaticCnvInterpreter.h"
+#include "SomaticReportSettings.h"
 
 
-class SomaticRnaReport
+struct CPPNGSDSHARED_EXPORT SomaticRnaReportData : public SomaticReportSettings
+{
+	//copy constructor that initializes base members from SomaticReportSettings
+	SomaticRnaReportData(const SomaticReportSettings& other);
+
+	QString rna_ps_name;
+	QString rna_fusion_file;
+};
+
+
+
+class CPPNGSDSHARED_EXPORT SomaticRnaReport
 {
 public:
-	SomaticRnaReport(const VariantList& snv_list, const FilterCascade& filters, const CnvList& cnv_list, QString rna_ps_name, QString dna_tumor_name, QString dna_normal_name);
+	SomaticRnaReport(const VariantList& snv_list, const CnvList& cnv_list, const SomaticRnaReportData& data);
 
 	///write RTF to file
 	void writeRtf(QByteArray out_file);
@@ -46,12 +58,10 @@ public:
 	static int rankCnv(double tpm, double mean_tpm, SomaticGeneRole::Role gene_role, bool oncogene, bool tsg);
 
 private:
-	//processed sample name of RNA sample
-	QString rna_ps_name_ = "";
-	QString dna_ps_tumor_name_ = "";
-	QString dna_ps_normal_name_ = "";
-
 	NGSD db_;
+
+
+	const SomaticRnaReportData& data_;
 
 	//Somatic DNA SNVs
 	VariantList dna_snvs_;
@@ -62,9 +72,6 @@ private:
 
 	//Tissue type for RNA reference TPM in SNV list
 	QString ref_tissue_type_ = "";
-
-	//genes that lie in target region of DNA sample
-	GeneSet target_genes_;
 
 	///Creates table that containts fusions from RNA data
 	RtfTable fusions();

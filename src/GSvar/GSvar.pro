@@ -58,7 +58,6 @@ SOURCES += main.cpp\
     FilterWidget.cpp \
     ReportVariantDialog.cpp \
     GSvarHelper.cpp \
-    SomaticRnaReport.cpp \
     ProcessedSampleDataDeletionDialog.cpp \
     VariantWidget.cpp \
     ProcessingSystemWidget.cpp \
@@ -147,7 +146,6 @@ HEADERS += MainWindow.h \
     FilterWidget.h \
     ReportVariantDialog.h \
     GSvarHelper.h \
-    SomaticRnaReport.h \
     ProcessedSampleDataDeletionDialog.h \
     VariantWidget.h \
     ProcessingSystemWidget.h \
