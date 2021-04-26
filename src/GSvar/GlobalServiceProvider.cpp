@@ -50,5 +50,9 @@ void GlobalServiceProvider::clearFileLocationProvider()
 
 const DatabaseService& GlobalServiceProvider::database()
 {
+	if (instance().database_service_.isNull())
+	{
+		THROW(ProgrammingException, "Database service requested but not set!");
+	}
 	return *(instance().database_service_);
 }

@@ -245,7 +245,8 @@ QString GSvarHelper::localRoiFolder()
 	}
 
 	return local_roi_folder;
-	
+}
+
 bool GSvarHelper::isGenomeFound()
 {
 	HttpRequestHandler::ProxyType proxy_type = HttpRequestHandler::ProxyType::NONE;
