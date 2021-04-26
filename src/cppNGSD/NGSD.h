@@ -446,6 +446,17 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 	bool filtered_by_trio_relaxed;
 };
 
+/// Metadata of cfDNA panel DB entry
+struct CfdnaPanelInfo
+{
+	int id = -1;
+	int tumor_id = -1;
+	int cfdna_id = -1;
+	QByteArray created_by;
+	QDate created_date;
+	QByteArray processing_system;
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -680,6 +691,11 @@ public:
 	BedFile subpanelRegions(QString name);
 	///Returns the subpanel genes.
 	GeneSet subpanelGenes(QString name);
+
+	///Returns all coresponding cfDNA panels for a given processed sample
+	QVector<CfdnaPanelInfo> cfdnaPanels(const QString& processed_sample_id);
+	///stores a cfDNA panel in the NGSD
+	void storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content);
 
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);

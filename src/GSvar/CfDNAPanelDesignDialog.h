@@ -10,6 +10,7 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "DBComboBox.h"
+#include "NGSD.h"
 
 struct GeneEntry
 {
@@ -18,16 +19,7 @@ struct GeneEntry
 	int start;
 	int end;
 	QDate date;
-	QString file_path;
-};
-
-struct CfdnaDbEntry
-{
-    int id = -1;
-    int tumor_id = -1;
-    int cfdna_id = -1;
-    QByteArray created_by;
-    QDate created_date;
+	BedFile bed = BedFile();
 };
 
 namespace Ui {
@@ -59,7 +51,7 @@ private slots:
 	void openVariantInIGV(QTableWidgetItem* item);
 
 private:
-	void loadPreviousPanels(const DBTable& processing_systems);
+	void loadPreviousPanels();
 	void loadVariants();
 	void loadGenes();
 	void loadHotspotRegions();
@@ -72,7 +64,7 @@ private:
 	QString processed_sample_name_;
     QString processed_sample_id_;
 	QList<GeneEntry> genes_;
-    CfdnaDbEntry selected_panel_;
+	CfdnaPanelInfo cfdna_panel_info_;
 };
 
 #endif // CFDNAPANELDESIGNDIALOG_H

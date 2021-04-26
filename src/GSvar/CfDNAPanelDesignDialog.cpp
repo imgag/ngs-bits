@@ -47,7 +47,7 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 	ui_->cb_processing_system->fill(processing_systems, false);
 
 
-	loadPreviousPanels(processing_systems);
+	loadPreviousPanels();
 	loadVariants();
 	loadHotspotRegions();
 	loadGenes();
@@ -58,36 +58,19 @@ CfDNAPanelDesignDialog::~CfDNAPanelDesignDialog()
 	delete ui_;
 }
 
-void CfDNAPanelDesignDialog::loadPreviousPanels(const DBTable& processing_systems)
+void CfDNAPanelDesignDialog::loadPreviousPanels()
 {
-    // get all cfDNA Panel for this
-    QVector<CfdnaDbEntry> previous_panels;
-    SqlQuery query = NGSD().getQuery();
-    query.exec("SELECT id, tumor_id, cfdna_id, created_by, created_date FROM cfdna_panels WHERE tumor_id=" + processed_sample_id_);
-    while(query.next())
-    {
-        bool ok;
-        CfdnaDbEntry entry;
-        entry.id = query.value(0).toInt(&ok);
-        if (!ok) THROW(DatabaseException, "Error parsing id in cfdna_panels!");
-        entry.tumor_id = query.value(1).toInt(&ok);
-        if (!ok) THROW(DatabaseException, "Error parsing tumor_id in cfdna_panels!");
-        entry.cfdna_id = query.value(2).toInt(&ok);
-        if (!ok) THROW(DatabaseException, "Error parsing cfdna_id in cfdna_panels!");
-        int user_id = query.value(3).toInt(&ok);
-        entry.created_by = NGSD().userName(user_id).toUtf8();
-        if (!ok) THROW(DatabaseException, "Error parsing created_by in cfdna_panels!");
-        entry.created_date = query.value(4).toDate();
+	// clear prev panel
+	cfdna_panel_info_ = CfdnaPanelInfo();
 
-        previous_panels.append(entry);
-    }
+	QVector<CfdnaPanelInfo> previous_panels = NGSD().cfdnaPanels(processed_sample_id_);
 
     if(previous_panels.size() > 0)
 	{
         QStringList panel_text;
-        foreach (const CfdnaDbEntry& panel, previous_panels)
+		foreach (const CfdnaPanelInfo& panel, previous_panels)
         {
-            panel_text.append(panel.created_date.toString("dd.MM.yyyy") + " by " + panel.created_by);
+			panel_text.append(panel.created_date.toString("dd.MM.yyyy") + " by " + panel.created_by + "(" + panel.processing_system + ")");
         }
 
 		QString message_text = "A personalized cfDNA panel file for the processed sample " + processed_sample_name_ + " already exists.\n";
@@ -110,15 +93,15 @@ void CfDNAPanelDesignDialog::loadPreviousPanels(const DBTable& processing_system
 			{
 				return;
 			}
-            selected_panel_ = previous_panels.at(vcf_file_selector->currentIndex());
+			cfdna_panel_info_ = previous_panels.at(vcf_file_selector->currentIndex());
 		}
 		else
 		{
-            selected_panel_ = previous_panels.at(0);
+			cfdna_panel_info_ = previous_panels.at(0);
 		}
 		// load previous panel
 		VcfFile prev_panel;
-        prev_panel.fromText(NGSD().getValue("SELECT vcf FROM cfdna_panels WHERE id=:0", false, QString::number(selected_panel_.id)).toString().toUtf8());
+		prev_panel.fromText(NGSD().getValue("SELECT vcf FROM cfdna_panels WHERE id=:0", false, QString::number(cfdna_panel_info_.id)).toString().toUtf8());
 		for (int i = 0; i < prev_panel.count(); ++i)
 		{
 			const VcfLine& var = prev_panel.vcfLine(i);
@@ -354,33 +337,53 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 
 void CfDNAPanelDesignDialog::loadGenes()
 {
-	// get all bed files in the genes folder
-	QDir gene_folder(Settings::path("patient_specific_panel_folder", false) + "genes/"); //TODO it should be moved to the database > LEON
-	QStringList bed_file_paths = gene_folder.entryList(QStringList() << "*.bed" << "*.BED", QDir::Files);
+//	// get all bed files in the genes folder
+//	QDir gene_folder(Settings::path("patient_specific_panel_folder", false) + "genes/"); //TODO it should be moved to the database > LEON
+//	QStringList bed_file_paths = gene_folder.entryList(QStringList() << "*.bed" << "*.BED", QDir::Files);
 
-	// extract info
-	foreach (const QString& file_name, bed_file_paths)
+//	// extract info
+//	foreach (const QString& file_name, bed_file_paths)
+//	{
+//		GeneEntry gene_entry;
+//		gene_entry.file_path = gene_folder.absolutePath() + "/" + file_name;
+//		QString base_name = QFileInfo(file_name).baseName();
+//		QStringList parts = base_name.split("_");
+//		if(parts.length() != 2)
+//		{
+//			QMessageBox::warning(this, "Invalid File", "Invalid BED file name '" + file_name + "' found in gene folder. Skipping file.");
+//			continue;
+//		}
+//		gene_entry.gene_name = parts.at(0).trimmed();
+//		gene_entry.date = QDate::fromString(parts.at(1).trimmed(), "yyyy-MM-dd");
+
+//		// load BED file to get gene start and end
+//		BedFile bed_file;
+//		bed_file.load(gene_entry.file_path);
+//		gene_entry.chr = bed_file[0].chr();
+//		gene_entry.start = bed_file[0].start();
+//		gene_entry.end = bed_file[bed_file.count()-1].end();
+
+//		// add gene bed file to list
+//		genes_.append(gene_entry);
+//	}
+
+	// clear previous
+	genes_.clear();
+
+	// get all genes from NGSD
+	SqlQuery query = NGSD().getQuery();
+	query.exec("SELECT `gene_name`, `chr`, `start`, `end`, `date`, `bed` FROM cfdna_panel_genes");
+
+	while (query.next())
 	{
 		GeneEntry gene_entry;
-		gene_entry.file_path = gene_folder.absolutePath() + "/" + file_name;
-		QString base_name = QFileInfo(file_name).baseName();
-		QStringList parts = base_name.split("_");
-		if(parts.length() != 2)
-		{
-			QMessageBox::warning(this, "Invalid File", "Invalid BED file name '" + file_name + "' found in gene folder. Skipping file.");
-			continue;
-		}
-		gene_entry.gene_name = parts.at(0).trimmed();
-		gene_entry.date = QDate::fromString(parts.at(1).trimmed(), "yyyy-MM-dd");
+		gene_entry.gene_name = query.value("gene_name").toString();
+		gene_entry.chr = Chromosome(query.value("chr").toString());
+		gene_entry.start = query.value("start").toInt();
+		gene_entry.end = query.value("end").toInt();
+		gene_entry.date = query.value("date").toDate();
+		gene_entry.bed = BedFile::fromText(query.value("bed").toString().toUtf8());
 
-		// load BED file to get gene start and end
-		BedFile bed_file;
-		bed_file.load(gene_entry.file_path);
-		gene_entry.chr = bed_file[0].chr();
-		gene_entry.start = bed_file[0].start();
-		gene_entry.end = bed_file[bed_file.count()-1].end();
-
-		// add gene bed file to list
 		genes_.append(gene_entry);
 	}
 
@@ -408,7 +411,7 @@ void CfDNAPanelDesignDialog::loadGenes()
 		select_item->setCheckState(Qt::Unchecked);
 
 		// store file path in first cell
-		select_item->setData(Qt::UserRole, entry.file_path);
+		select_item->setData(Qt::UserRole, r);
 
 		ui_->genes->setItem(r, 0, select_item);
 		ui_->genes->setItem(r, 1, GUIHelper::createTableItem(entry.gene_name));
@@ -539,20 +542,16 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	{
 		if (ui_->genes->item(r, 0)->checkState() == Qt::Checked)
 		{
-			QString file_path = ui_->genes->item(r, 0)->data(Qt::UserRole).toString();
+			int idx = ui_->genes->item(r, 0)->data(Qt::UserRole).toInt();
 			QString gene_name = ui_->genes->item(r, 1)->text();
-
-			// load single gene bed file
-			BedFile gene;
-			gene.load(file_path);
-			gene.clearAnnotations();
 
 			// add to overall gene list
 			QByteArrayList annotations;
 			annotations.append("gene:" + gene_name.toUtf8());
-			for (int i = 0; i < gene.count(); ++i)
+			const BedFile& bed = genes_.at(idx).bed;
+			for (int i = 0; i < bed.count(); ++i)
 			{
-				roi.append(BedLine(gene[i].chr(), gene[i].start(), gene[i].end(), annotations));
+				roi.append(BedLine(bed[i].chr(), bed[i].start(), bed[i].end(), annotations));
 			}
 		}
 	}
@@ -582,6 +581,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		roi.append(BedLine(vcf_file[i].chr(), vcf_file[i].start(), vcf_file[i].end(), QByteArrayList() << "patient_specific_somatic_variant:" + vcf_file[i].ref() + ">" + vcf_file[i].altString()));
 	}
 
+
 	// check number of selected variants
 	if (variant_count < 25)
 	{
@@ -594,29 +594,15 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		}
 	}
 
-	QString output_path = Settings::path("patient_specific_panel_folder", false);
-	output_path += ui_->cb_processing_system->currentText() + "/";
-
-	// create output folder if it not exists
-	if (!QDir(output_path).exists()) QDir().mkdir(output_path);
-
-	// check if panel already exists
-	if (QFile::exists(output_path + processed_sample_name_ + ".vcf") || QFile::exists(output_path + processed_sample_name_ + ".bed"))
-	{
-		int btn = QMessageBox::information(this, "Panel file already exists", "A personalized cfDNA panel file for the processed sample "
-										   + processed_sample_name_ + " already exists.\nWould you like to overide the previous panel?",
-										   QMessageBox::Yes, QMessageBox::Cancel);
-		if (btn!=QMessageBox::Yes)
-		{
-			return;
-		}
-	}
-
-    // TODO: store in Database
-	// store variant list
-	vcf_file.store(output_path + processed_sample_name_ + ".vcf", false, 0);
+	// store variant list in data base
 	roi.sort();
-	roi.store(output_path + processed_sample_name_ + ".bed");
+
+	cfdna_panel_info_.tumor_id = processed_sample_id_.toInt();
+	cfdna_panel_info_.created_by = LoginManager::userName().toUtf8();
+	cfdna_panel_info_.created_date = QDate::currentDate();
+	cfdna_panel_info_.processing_system = ui_->cb_processing_system->currentText().toUtf8();
+
+	NGSD().storeCfdnaPanel(cfdna_panel_info_, roi.toText().toUtf8(), vcf_file.toText());
 
 	emit accept();
 }

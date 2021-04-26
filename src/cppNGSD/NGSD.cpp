@@ -2374,6 +2374,63 @@ GeneSet NGSD::subpanelGenes(QString name)
 	return GeneSet::createFromText(genes);
 }
 
+QVector<CfdnaPanelInfo> NGSD::cfdnaPanels(const QString& processed_sample_id)
+{
+	// get all cfDNA Panel for the given tumor id
+	QVector<CfdnaPanelInfo> cfdna_panels;
+	SqlQuery query = NGSD().getQuery();
+	query.prepare("SELECT id, tumor_id, cfdna_id, created_by, created_date, `processing_system_id` FROM cfdna_panels WHERE tumor_id=:0");
+	query.bindValue(0, processed_sample_id);
+	query.exec();
+	while(query.next())
+	{
+		bool ok;
+		CfdnaPanelInfo panel;
+		panel.id = query.value(0).toInt(&ok);
+		if (!ok) THROW(DatabaseException, "Error parsing id in cfdna_panels!");
+		panel.tumor_id = query.value(1).toInt(&ok);
+		if (!ok) THROW(DatabaseException, "Error parsing tumor_id in cfdna_panels!");
+		panel.cfdna_id = query.value(2).toInt(&ok);
+		if (!ok) THROW(DatabaseException, "Error parsing cfdna_id in cfdna_panels!");
+		int user_id = query.value(3).toInt(&ok);
+		 if (!ok) THROW(DatabaseException, "Error parsing created_by in cfdna_panels!");
+		panel.created_by = userName(user_id).toUtf8();
+
+		panel.created_date = query.value(4).toDate();
+		int p_sys_id = query.value(5).toInt(&ok);
+		if (!ok) THROW(DatabaseException, "Error parsing processing_system in cfdna_panels!");
+		panel.processing_system = getValue("SELECT name_short FROM processing_system WHERE id=:0", false, QString::number(p_sys_id)).toString().toUtf8();
+
+		cfdna_panels.append(panel);
+	}
+
+	return cfdna_panels;
+}
+
+void NGSD::storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content)
+{
+	SqlQuery query = getQuery();
+	if (panel_info.id == -1)
+	{
+		query.prepare("INSERT INTO `cfdna_panels` (`tumor_id`, `created_by`, `created_date`, `bed`, `vcf`) VALUES (:0, :1, :2, :3, :4);");
+
+	}
+	else
+	{
+		query.prepare("UPDATE `cfdna_panels` SET `tumor_id`=:0, `created_by`=:1, `created_date`=:2, `bed`=:3, `vcf`=:4 WHERE `id`=:5");
+		query.bindValue(5, panel_info.id);
+	}
+
+	// bind values
+	query.bindValue(0, panel_info.tumor_id);
+	query.bindValue(1, panel_info.created_by);
+	query.bindValue(2, panel_info.created_date);
+	query.bindValue(3, bed_content);
+	query.bindValue(4, vcf_content);
+
+	query.exec();
+}
+
 QCCollection NGSD::getQCData(const QString& processed_sample_id)
 {
 	//get QC data

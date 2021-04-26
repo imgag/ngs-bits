@@ -2045,6 +2045,7 @@ CREATE  TABLE IF NOT EXISTS `cfdna_panels`
   `cfdna_id` INT(11) DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `created_date` DATE NOT NULL,
+  `processing_system_id` INT(11) NOT NULL,
   `bed` MEDIUMTEXT NOT NULL,
   `vcf` MEDIUMTEXT NOT NULL,
 PRIMARY KEY (`id`),
@@ -2065,7 +2066,30 @@ CONSTRAINT `cfdna_panels_created_by_user`
   FOREIGN KEY (`created_by`)
   REFERENCES `user` (`id`)
   ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `cfdna_panels_processing_system_id`
+  FOREIGN KEY (`processing_system_id`)
+  REFERENCES `processing_system` (`id`)
+  ON DELETE NO ACTION
   ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `cfdna_panel_genes`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `cfdna_panel_genes`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `gene_name` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start` INT(11) UNSIGNED NOT NULL,
+  `end` INT(11) UNSIGNED NOT NULL,
+  `date` DATE NOT NULL,
+  `bed` MEDIUMTEXT NOT NULL,
+PRIMARY KEY (`id`),
+INDEX(`gene_name`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
