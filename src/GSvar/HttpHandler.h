@@ -28,7 +28,7 @@ public:
 	///Return file size
 	qint64 getFileSize(QString url, const HttpHeaders& add_headers = HttpHeaders());
 	///Performs GET request
-	QString get(QString url, const HttpHeaders& add_headers = HttpHeaders());
+	QByteArray get(QString url, const HttpHeaders& add_headers = HttpHeaders());
 	///Performs POST request
 	QString post(QString url, const QByteArray& data, const HttpHeaders& add_headers = HttpHeaders());
 	///Performs POST request for content type multipart
