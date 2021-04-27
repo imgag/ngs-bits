@@ -101,6 +101,82 @@ void ExpressionDataWidget::applyFilters()
 		}
 	}
 
+	//filter by cohort z-score
+	QString zscore = ui_->cohort_zscore->text();
+	if (!zscore.isEmpty())
+	{
+		qDebug() << "z-score filtering";
+		int idx = column_names_.indexOf("cohort_zscore");
+
+		double zscore_cutoff = Helper::toDouble(zscore);
+		for(int row_idx=0; row_idx<row_count; ++row_idx)
+		{
+			//skip already filtered
+			if (!filter_result.flags()[row_idx]) continue;
+
+			QString value = ui_->expressionData->item(row_idx, idx)->text();
+			if (value.isNull() || value.isEmpty() || value == "n/a")
+			{
+				filter_result.flags()[row_idx] = false;
+			}
+			else
+			{
+				double value_dbl = Helper::toDouble(value);
+				filter_result.flags()[row_idx] = abs(value_dbl) >= zscore_cutoff;
+			}
+		}
+	}
+
+	//filter by cohort logFC
+	QString logfc = ui_->cohort_logfc->text();
+	if (!logfc.isEmpty())
+	{
+		int idx = column_names_.indexOf("cohort_log2fc");
+
+		double logfc_cutoff = Helper::toDouble(logfc);
+		for(int row_idx=0; row_idx<row_count; ++row_idx)
+		{
+			//skip already filtered
+			if (!filter_result.flags()[row_idx]) continue;
+
+			QString value = ui_->expressionData->item(row_idx, idx)->text();
+			if (value.isEmpty() || value == "n/a")
+			{
+				filter_result.flags()[row_idx] = false;
+			}
+			else
+			{
+				double value_dbl = Helper::toDouble(value);
+				filter_result.flags()[row_idx] = abs(value_dbl) >= logfc_cutoff;
+			}
+		}
+	}
+
+	//filter by reference logFC
+	QString ref_logfc = ui_->ref_logfc->text();
+	if (!ref_logfc.isEmpty())
+	{
+		int idx = column_names_.indexOf("hpa_log2fc");
+
+		double logfc_cutoff = Helper::toDouble(ref_logfc);
+		for(int row_idx=0; row_idx<row_count; ++row_idx)
+		{
+			//skip already filtered
+			if (!filter_result.flags()[row_idx]) continue;
+
+			QString value = ui_->expressionData->item(row_idx, idx)->text();
+			if (value.isEmpty() || value == "n/a")
+			{
+				filter_result.flags()[row_idx] = false;
+			}
+			else
+			{
+				double value_dbl = Helper::toDouble(value);
+				filter_result.flags()[row_idx] = abs(value_dbl) >= logfc_cutoff;
+			}
+		}
+	}
+
 	//hide rows not passing filters
 	for(int row=0; row<row_count; ++row)
 	{
@@ -147,8 +223,8 @@ void ExpressionDataWidget::loadExpressionData()
 
 	//define columns
 
-	column_names_ << "gene_name" << "tpm" << "raw";
-	numeric_columns_  << false << true << true;
+	column_names_ << "gene_id" << "gene_name" << "raw" << "tpm" << "cohort_log2fc" << "cohort_zscore" << "hpa_log2fc";
+	numeric_columns_  << false << false << true << true << true << true << true;
 	//determine col indices for table columns in tsv file
 	QVector<int> column_indices;
 	QStringList tsv_header = expression_data.headers();
@@ -179,10 +255,19 @@ void ExpressionDataWidget::loadExpressionData()
 			if(numeric_columns_.at(col_idx))
 			{
 				// add numeric QTableWidgetItem
-				QString rounded_number = QString::number(Helper::toDouble(row.at(column_indices.at(col_idx)),
-																		  "TSV column " + QString::number(col_idx),
-																		  QString::number(row_idx)), 'f', 2);
-				ui_->expressionData->setItem(row_idx, col_idx, new NumericWidgetItem(rounded_number));
+				QString value = row.at(column_indices.at(col_idx));
+				if (value != "n/a" && !value.isEmpty())
+				{
+					QString rounded_number = QString::number(Helper::toDouble(value,
+																			  "TSV column " + QString::number(col_idx),
+																			  QString::number(row_idx)), 'f', 2);
+					ui_->expressionData->setItem(row_idx, col_idx, new NumericWidgetItem(rounded_number));
+				}
+				else
+				{
+					//TODO this breaks sorting, but if there is no value set, it breaks filtering
+					ui_->expressionData->setItem(row_idx, col_idx, new QTableWidgetItem(""));
+				}
 			}
 			else
 			{
