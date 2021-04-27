@@ -7,6 +7,7 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
+    DatabaseServiceRemote.cpp \
     GlobalServiceProvider.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
@@ -97,6 +98,7 @@ SOURCES += main.cpp\
     GapClosingDialog.cpp \
     DatabaseServiceLocal.cpp
 HEADERS += MainWindow.h \
+    DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
     RefGenDownloadDialog.h \

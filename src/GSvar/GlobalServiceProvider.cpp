@@ -2,14 +2,15 @@
 
 #include "Settings.h"
 #include "DatabaseServiceLocal.h"
+#include "DatabaseServiceRemote.h"
 
 GlobalServiceProvider::GlobalServiceProvider()
   : file_location_provider_()
   , database_service_()
 {
 	if (Settings::string("server_host",true).trimmed()!="" && Settings::string("server_port").trimmed()!="")
-	{
-		//TODO GSvarServer
+	{		
+		database_service_ = QSharedPointer<DatabaseService>(new DatabaseServiceRemote());
 	}
 	else
 	{

@@ -289,6 +289,42 @@ HttpResponse EndpointHelper::getFileInfo(HttpRequest request)
 	return HttpResponse{false, false, "", generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson()};
 }
 
+HttpResponse EndpointHelper::getProcessingSystemRegions(HttpRequest request)
+{
+	NGSD db;
+	QString sys_id = request.getUrlParams()["sys_id"];
+	QString filename = db.processingSystemRegionsFilePath(sys_id.toInt());
+	if (filename.isEmpty())
+	{
+		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Processing system regions file has not been found"});
+	}
+	return streamStaticFile(filename, false);
+}
+
+HttpResponse EndpointHelper::getProcessingSystemAmplicons(HttpRequest request)
+{
+	NGSD db;
+	QString sys_id = request.getUrlParams()["sys_id"];
+	QString filename = db.processingSystemAmpliconsFilePath(sys_id.toInt());
+	if (filename.isEmpty())
+	{
+		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Processing system amplicons file has not been found"});
+	}
+	return streamStaticFile(filename, false);
+}
+
+HttpResponse EndpointHelper::getProcessingSystemGenes(HttpRequest request)
+{
+	NGSD db;
+	QString sys_id = request.getUrlParams()["sys_id"];
+	QString filename = db.processingSystemGenesFilePath(sys_id.toInt());
+	if (filename.isEmpty())
+	{
+		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Processing system genes file has not been found"});
+	}
+	return streamStaticFile(filename, false);
+}
+
 HttpResponse EndpointHelper::serveFolderListing(QList<FolderItem> items)
 {
 	HttpResponse response;

@@ -9,6 +9,7 @@
 #include "EndpointManager.h"
 #include "UrlManager.h"
 #include "HttpResponse.h"
+#include "NGSD.h"
 
 
 class CPPRESTSHARED_EXPORT EndpointHelper
@@ -31,6 +32,9 @@ public:
 	static HttpResponse streamStaticFile(HttpRequest request);
 	static HttpResponse serveProtectedStaticFile(HttpRequest request);
 	static HttpResponse getFileInfo(HttpRequest request);
+	static HttpResponse getProcessingSystemRegions(HttpRequest request);
+	static HttpResponse getProcessingSystemAmplicons(HttpRequest request);
+	static HttpResponse getProcessingSystemGenes(HttpRequest request);
 	static HttpResponse serveFolderListing(QList<FolderItem> items);
 
 protected:

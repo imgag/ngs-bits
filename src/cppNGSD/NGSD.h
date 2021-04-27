@@ -692,10 +692,19 @@ public:
 	int processingSystemIdFromProcessedSample(QString ps_name);
 	///Returns the processing system information for a processed sample.
 	ProcessingSystemData getProcessingSystemData(int sys_id);
+
+	///Returns a path (including filename) for the processing system target region file.
+	QString processingSystemRegionsFilePath(int sys_id);
 	///Returns the processing system target region file.
 	BedFile processingSystemRegions(int sys_id);
+
+	///Returns a path (including filename) for the processing system amplicon region file.
+	QString processingSystemAmpliconsFilePath(int sys_id);
 	///Returns the processing system amplicon region file.
 	BedFile processingSystemAmplicons(int sys_id);
+
+	///Returns a path (including filename) for the processing system genes.
+	QString processingSystemGenesFilePath(int sys_id);
 	///Returns the processing system genes.
 	GeneSet processingSystemGenes(int sys_id);
 

@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 						},
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
-						"Retrieve file location information for scecific file types",
+						"Retrieve file location information for specific file types",
 						&EndpointHandler::locateFileByType
 					});
 
@@ -201,6 +201,40 @@ int main(int argc, char **argv)
 						ContentType::APPLICATION_JSON,
 						"Detailed information about a specific file",
 						&EndpointHelper::getFileInfo
+					});
+
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"ps_regions",
+						QMap<QString, ParamProps> {
+						   {"sys_id", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}}
+						},
+						RequestMethod::GET,
+						ContentType::TEXT_PLAIN,
+						"Processing system regions",
+						&EndpointHelper::getProcessingSystemRegions
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"ps_amplicons",
+						QMap<QString, ParamProps> {
+						   {"sys_id", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}}
+						},
+						RequestMethod::GET,
+						ContentType::TEXT_PLAIN,
+						"Processing system amplicons",
+						&EndpointHelper::getProcessingSystemAmplicons
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"ps_genes",
+						QMap<QString, ParamProps> {
+						   {"sys_id", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, false, "Processing system id"}}
+						},
+						RequestMethod::GET,
+						ContentType::TEXT_PLAIN,
+						"Processing system genes",
+						&EndpointHelper::getProcessingSystemGenes
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
