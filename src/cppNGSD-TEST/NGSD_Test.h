@@ -1935,6 +1935,26 @@ private slots:
 		BedFile subpanel_regions = db.subpanelRegions("some_target_region");
 		I_EQUAL(subpanel_regions.count(), 20);
 		I_EQUAL(subpanel_regions.baseCount(), 2508);
+
+
+        //cfDNA panels
+        CfdnaPanelInfo panel_info;
+        panel_info.tumor_id = db.processedSampleId("DX184894_01").toInt();
+        panel_info.created_by = "ahmustm1";
+        panel_info.created_date = QDate(2021, 01, 01);
+        panel_info.processing_system = "IDT_xGenPrism";
+
+        BedFile bed;
+        bed.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.bed"));
+        VcfFile vcf;
+        vcf.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.vcf"));
+
+        db.storeCfdnaPanel(panel_info, bed.toText().toUtf8(), vcf.toText());
+
+
+
+
+
 	}
 
 	//Test tumor only RTF report generation

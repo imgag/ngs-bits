@@ -1916,7 +1916,7 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 			else if(type=="datetime") info.type = TableFieldInfo::DATETIME;
 			else if(type=="timestamp") info.type = TableFieldInfo::TIMESTAMP;
 			else if(type=="tinyint(1)") info.type = TableFieldInfo::BOOL;
-			else if(type.startsWith("int(") || type.startsWith("tinyint(")) info.type = TableFieldInfo::INT;
+            else if(type=="int" || type.startsWith("int(") || type.startsWith("tinyint(")) info.type = TableFieldInfo::INT;
 			else if(type.startsWith("enum("))
 			{
 				info.type = TableFieldInfo::ENUM;
@@ -2390,8 +2390,15 @@ QVector<CfdnaPanelInfo> NGSD::cfdnaPanels(const QString& processed_sample_id)
 		if (!ok) THROW(DatabaseException, "Error parsing id in cfdna_panels!");
 		panel.tumor_id = query.value(1).toInt(&ok);
 		if (!ok) THROW(DatabaseException, "Error parsing tumor_id in cfdna_panels!");
-		panel.cfdna_id = query.value(2).toInt(&ok);
-		if (!ok) THROW(DatabaseException, "Error parsing cfdna_id in cfdna_panels!");
+        if (query.value(2) == QVariant())
+        {
+            panel.cfdna_id = -1;
+        }
+        else
+        {
+            panel.cfdna_id = query.value(2).toInt(&ok);
+            if (!ok) THROW(DatabaseException, "Error parsing cfdna_id in cfdna_panels!");
+        }
 		int user_id = query.value(3).toInt(&ok);
 		 if (!ok) THROW(DatabaseException, "Error parsing created_by in cfdna_panels!");
 		panel.created_by = userName(user_id).toUtf8();
