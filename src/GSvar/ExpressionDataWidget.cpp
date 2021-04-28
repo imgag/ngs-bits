@@ -266,7 +266,7 @@ void ExpressionDataWidget::loadExpressionData()
 				else
 				{
 					//TODO this breaks sorting, but if there is no value set, it breaks filtering
-					ui_->expressionData->setItem(row_idx, col_idx, new QTableWidgetItem(""));
+					ui_->expressionData->setItem(row_idx, col_idx, new NumericWidgetItem(""));
 				}
 			}
 			else
