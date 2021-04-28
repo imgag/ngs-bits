@@ -243,7 +243,13 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	}
 
 	json_doc_output.setArray(json_list_output);
-	return HttpResponse(false, false, "", EndpointHelper::generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson());
+
+	BasicResponseData response_data;
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = ContentType::APPLICATION_JSON;
+	response_data.is_downloadable = false;
+
+	return HttpResponse(false, false, "", EndpointHelper::generateHeaders(response_data), json_doc_output.toJson());
 }
 
 HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
@@ -267,7 +273,13 @@ HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
 		json_list_output.append(createTempUrl(found_files[i]));
 	}
 	json_doc_output.setArray(json_list_output);
-	return HttpResponse(false, false, "", EndpointHelper::generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson());
+
+	BasicResponseData response_data;
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = ContentType::APPLICATION_JSON;
+	response_data.is_downloadable = false;
+
+	return HttpResponse(false, false, "", EndpointHelper::generateHeaders(response_data), json_doc_output.toJson());
 }
 
 HttpResponse EndpointHandler::performLogin(HttpRequest request)
@@ -285,7 +297,13 @@ HttpResponse EndpointHandler::performLogin(HttpRequest request)
 
 		SessionManager::addNewSession(secure_token, cur_session);
 		body = secure_token.toLocal8Bit();
-		return HttpResponse{false, false, "", EndpointHelper::generateHeaders(body.length(), ContentType::TEXT_PLAIN), body};
+
+		BasicResponseData response_data;
+		response_data.length = body.length();
+		response_data.content_type = ContentType::TEXT_PLAIN;
+		response_data.is_downloadable = false;
+
+		return HttpResponse{false, false, "", EndpointHelper::generateHeaders(response_data), body};
 	}
 
 	return HttpResponse(HttpError{StatusCode::UNAUTHORIZED, request.getContentType(), "Invalid username or password"});
@@ -308,7 +326,13 @@ HttpResponse EndpointHandler::performLogout(HttpRequest request)
 			return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, request.getContentType(), e.message()});
 		}
 		body = request.getFormUrlEncoded()["token"].toLocal8Bit();
-		return HttpResponse{false, false, "", EndpointHelper::generateHeaders(body.length(), ContentType::TEXT_PLAIN), body};
+
+		BasicResponseData response_data;
+		response_data.length = body.length();
+		response_data.content_type = ContentType::TEXT_PLAIN;
+		response_data.is_downloadable = false;
+
+		return HttpResponse{false, false, "", EndpointHelper::generateHeaders(response_data), body};
 	}
 	return HttpResponse(HttpError{StatusCode::FORBIDDEN, request.getContentType(), "You have provided an invalid token"});
 }

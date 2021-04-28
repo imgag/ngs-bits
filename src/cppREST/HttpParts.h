@@ -88,4 +88,14 @@ struct CPPRESTSHARED_EXPORT HttpError
 	QString error_message;
 };
 
+struct CPPRESTSHARED_EXPORT BasicResponseData
+{
+	qint64 length;
+	ContentType content_type;
+	QString filename;
+	ByteRange byte_range;
+	qint64 file_size;
+	bool is_downloadable;
+};
+
 #endif // HTTPPARTS_H

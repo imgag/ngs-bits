@@ -23,19 +23,22 @@ public:
 	static HttpResponse serveStaticFileFromCache(QString id, ByteRange byte_range, ContentType type, bool is_downloadable);
 	static HttpResponse streamStaticFile(QString filename, bool is_downloadable);
 	static HttpResponse serveFolderContent(QString folder);
-	static QByteArray generateHeaders(QString filename, int length, ByteRange byte_range, qint64 file_size, ContentType type, bool is_downloadable);
-	static QByteArray generateHeaders(int length, ContentType type);
+
+	static QByteArray generateHeaders(BasicResponseData data);
+
 	static HttpResponse listFolderContent(HttpRequest request);
 	static HttpResponse serveEndpointHelp(HttpRequest request);
 	static HttpResponse serveStaticFile(HttpRequest request);
 	static HttpResponse serveStaticFileFromCache(HttpRequest request);
 	static HttpResponse streamStaticFile(HttpRequest request);
+	static HttpResponse serveFolderListing(QList<FolderItem> items);
+
 	static HttpResponse serveProtectedStaticFile(HttpRequest request);
 	static HttpResponse getFileInfo(HttpRequest request);
 	static HttpResponse getProcessingSystemRegions(HttpRequest request);
 	static HttpResponse getProcessingSystemAmplicons(HttpRequest request);
 	static HttpResponse getProcessingSystemGenes(HttpRequest request);
-	static HttpResponse serveFolderListing(QList<FolderItem> items);
+
 
 protected:
 	EndpointHelper();	

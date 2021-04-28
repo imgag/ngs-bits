@@ -32,20 +32,25 @@ void RequestWorker::run()
 	connect(ssl_socket, &QSslSocket::peerVerifyError, this, &RequestWorker::verificationFailed);
 	connect(ssl_socket, &QSslSocket::encrypted, this, &RequestWorker::securelyConnected);
 	connect(this, SIGNAL(securelyConnected()), this, SLOT(handleConnection()));
-
+	qDebug() << "Starting the encryption";
 	ssl_socket->startServerEncryption();
 
 	if (!ssl_socket->isOpen()) return;
-
+	qDebug() << "Wait for the socket to be ready";
 	if (!ssl_socket->waitForReadyRead())
 	{
-		sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Request could not be processed"}));
+		if (ssl_socket->isOpen())
+		{
+			sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Request could not be processed"}));
+		}
+		qDebug() << "Socket is not ready. Exiting";
 		return;
 	}
 	else
 	{
+		qDebug() << "Start the processing";
 		if (!ssl_socket->isEncrypted()) closeAndDeleteSocket(ssl_socket);
-
+		qDebug() << "Read the request";
 		// Read the request
 		QByteArray raw_request = ssl_socket->readAll();
 		HttpRequest parsed_request;
@@ -188,6 +193,7 @@ QString RequestWorker::intToHex(const int& input)
 
 void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 {
+	qDebug() << "Closing the socket";
 	socket->flush();
 	socket->close();
 	socket->deleteLater();
@@ -198,8 +204,8 @@ void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
 	// clinet cancels the stream or simply disconnects
 	if ((!socket->isValid()) || (socket->state() == QSslSocket::SocketState::UnconnectedState))
 	{
-		qDebug() << "Socket is disconnected and no longer used";
-		this->terminate();
+		qDebug() << "Socket is disconnected and no longer used";		
+		this->quit();
 		return;
 	}
 
@@ -229,8 +235,7 @@ void RequestWorker::finishChunckedResponse(QSslSocket* socket)
 	}
 
 	if (!socket->bytesToWrite())
-	{
-		qDebug() << "Closing the socket";
+	{		
 		socket->write("0\r\n");
 		socket->write("\r\n");
 		closeAndDeleteSocket(socket);

@@ -82,7 +82,15 @@ HttpResponse EndpointHelper::serveStaticFile(QString filename, ByteRange byte_ra
 		return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, e.message()});
 	}
 
-	return HttpResponse(false, false, "", generateHeaders(getFileNameWithExtension(filename), static_file.content.length(), byte_range, static_file.size, type, is_downloadable), static_file.content);
+	BasicResponseData response_data;
+	response_data.filename = getFileNameWithExtension(filename);
+	response_data.length = static_file.content.length();
+	response_data.byte_range = byte_range;
+	response_data.file_size = static_file.size;
+	response_data.content_type = type;
+	response_data.is_downloadable = is_downloadable;
+
+	return HttpResponse(false, false, "", generateHeaders(response_data), static_file.content);
 }
 
 HttpResponse EndpointHelper::serveStaticFileFromCache(QString id, ByteRange byte_range, ContentType type, bool is_downloadable)
@@ -94,7 +102,15 @@ HttpResponse EndpointHelper::serveStaticFileFromCache(QString id, ByteRange byte
 		return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Empty or corrpupted file"});
 	}
 
-	return HttpResponse(false, false, "", generateHeaders(getFileNameWithExtension(FileCache::getFileById(id).filename_with_path), static_file.content.length(), byte_range, static_file.size, type, is_downloadable), static_file.content);
+	BasicResponseData response_data;
+	response_data.filename = getFileNameWithExtension(FileCache::getFileById(id).filename_with_path);
+	response_data.length = static_file.content.length();
+	response_data.byte_range = byte_range;
+	response_data.file_size = static_file.size;
+	response_data.content_type = type;
+	response_data.is_downloadable = is_downloadable;
+
+	return HttpResponse(false, false, "", generateHeaders(response_data), static_file.content);
 }
 
 HttpResponse EndpointHelper::streamStaticFile(QString filename, bool is_downloadable)
@@ -152,10 +168,10 @@ HttpResponse EndpointHelper::serveFolderContent(QString folder)
 	return serveFolderListing(files);
 }
 
-QByteArray EndpointHelper::generateHeaders(QString filename, int length, ByteRange byte_range, qint64 file_size, ContentType type, bool is_downloadable)
+QByteArray EndpointHelper::generateHeaders(BasicResponseData data)
 {
-	QByteArray headers {};
-	if ((byte_range.end > 0) && (byte_range.length > 0))
+	QByteArray headers;
+	if ((data.byte_range.end > 0) && (data.byte_range.length > 0))
 	{
 		headers.append("HTTP/1.1 206 Partial Content\r\n");
 	}
@@ -167,26 +183,21 @@ QByteArray EndpointHelper::generateHeaders(QString filename, int length, ByteRan
 	headers.append("Server: " + ServerHelper::getAppName() + "\r\n");
 	headers.append("Connection: Keep-Alive\r\n");
 	headers.append("Keep-Alive: timeout=5, max=1000\r\n");
-	headers.append("Content-Length: " + QString::number(length) + "\r\n");
-	headers.append("Content-Type: " + HttpProcessor::convertContentTypeToString(type) + "\r\n");
+	headers.append("Content-Length: " + QString::number(data.length) + "\r\n");
+	headers.append("Content-Type: " + HttpProcessor::convertContentTypeToString(data.content_type) + "\r\n");
 
-	if ((byte_range.end > 0) && (byte_range.length > 0))
+	if ((data.byte_range.end > 0) && (data.byte_range.length > 0))
 	{
 		headers.append("Accept-Ranges: bytes\r\n");
-		headers.append("Content-Range: bytes " + QString::number(byte_range.start) + "-" + QString::number(byte_range.end) + "/" + QString::number(file_size) + "\r\n");
+		headers.append("Content-Range: bytes " + QString::number(data.byte_range.start) + "-" + QString::number(data.byte_range.end) + "/" + QString::number(data.file_size) + "\r\n");
 	}
-	if (is_downloadable)
+	if (data.is_downloadable)
 	{
-		headers.append("Content-Disposition: form-data; name=file_download; filename=" + filename + "\r\n");
+		headers.append("Content-Disposition: form-data; name=file_download; filename=" + data.filename + "\r\n");
 	}
 
 	headers.append("\r\n");
 	return headers;
-}
-
-QByteArray EndpointHelper::generateHeaders(int length, ContentType type)
-{
-	return generateHeaders("", length, ByteRange{}, 0, type, false);
 }
 
 HttpResponse EndpointHelper::listFolderContent(HttpRequest request)
@@ -205,15 +216,27 @@ HttpResponse EndpointHelper::serveEndpointHelp(HttpRequest request)
 	{
 		body = EndpointManager::generateEntityHelp(request.getPathParams()[0], request.getMethod()).toLocal8Bit();
 	}
-	return HttpResponse{false, false, "", generateHeaders(body.length(), ContentType::TEXT_HTML), body};
+	BasicResponseData response_data;
+	response_data.length = body.length();
+	response_data.content_type = ContentType::TEXT_HTML;
+	response_data.is_downloadable = false;
+	return HttpResponse{false, false, "", generateHeaders(response_data), body};
 }
 
 HttpResponse EndpointHelper::serveStaticFile(HttpRequest request)
 {
+	QString server_root = ServerHelper::getStringSettingsValue("server_root");
+	if (!server_root.endsWith(QDir::separator()))
+	{
+		server_root = server_root + QDir::separator();
+	}
 
+	QString served_file = server_root.trimmed() + request.getPathParams()[0];
+	if (!QFile(served_file).exists())
+	{
+		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "File does not exist: " + request.getPathParams()[0]});
+	}
 
-
-	QString path = ServerHelper::getStringSettingsValue("server_root");
 	ByteRange byte_range {};
 	byte_range.start = 0;
 	byte_range.end = 0;
@@ -232,11 +255,11 @@ HttpResponse EndpointHelper::serveStaticFile(HttpRequest request)
 	}
 	byte_range.length = ((byte_range.end - byte_range.start) > -1.0) ? (byte_range.end - byte_range.start) : 0;
 
-	path = ServerHelper::getUrlWithoutParams(path.trimmed() + request.getPathParams()[0]);
-
-
-	return streamStaticFile(path, false);
-//	return serveStaticFile(path, byte_range, HttpProcessor::getContentTypeByFilename(path), false);
+	if (!request.getHeaders().contains("range"))
+	{
+		return streamStaticFile(served_file, false);
+	}
+	return serveStaticFile(served_file, byte_range, HttpProcessor::getContentTypeByFilename(served_file), false);
 }
 
 HttpResponse EndpointHelper::serveStaticFileFromCache(HttpRequest request)
@@ -286,7 +309,13 @@ HttpResponse EndpointHelper::getFileInfo(HttpRequest request)
 	json_object.insert("exists", QFileInfo(filename).exists());
 
 	json_doc_output.setObject(json_object);
-	return HttpResponse{false, false, "", generateHeaders(json_doc_output.toJson().length(), ContentType::APPLICATION_JSON), json_doc_output.toJson()};
+
+	BasicResponseData response_data;
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = ContentType::APPLICATION_JSON;
+	response_data.is_downloadable = false;
+
+	return HttpResponse{false, false, "", generateHeaders(response_data), json_doc_output.toJson()};
 }
 
 HttpResponse EndpointHelper::getProcessingSystemRegions(HttpRequest request)
