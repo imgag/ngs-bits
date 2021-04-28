@@ -1945,7 +1945,7 @@ private slots:
         panel_info.processing_system = "IDT_xGenPrism";
 
         BedFile bed;
-        bed.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.bed"));
+		bed.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.bed"));
         VcfFile vcf;
         vcf.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.vcf"));
 

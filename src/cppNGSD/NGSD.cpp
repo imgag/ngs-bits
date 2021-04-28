@@ -2416,24 +2416,33 @@ QVector<CfdnaPanelInfo> NGSD::cfdnaPanels(const QString& processed_sample_id)
 
 void NGSD::storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content)
 {
+
+	// TODO: prevent duplications
+
+	// get user id
+	int user_id = userId(panel_info.created_by);
+	// get processing system
+	int sys_id = processingSystemId(panel_info.processing_system);
+
 	SqlQuery query = getQuery();
 	if (panel_info.id == -1)
 	{
-		query.prepare("INSERT INTO `cfdna_panels` (`tumor_id`, `created_by`, `created_date`, `bed`, `vcf`) VALUES (:0, :1, :2, :3, :4);");
+		query.prepare("INSERT INTO `cfdna_panels` (`tumor_id`, `created_by`, `created_date`, `processing_system_id`, `bed`, `vcf`) VALUES (:0, :1, :2, :3, :4, :5);");
 
 	}
 	else
 	{
-		query.prepare("UPDATE `cfdna_panels` SET `tumor_id`=:0, `created_by`=:1, `created_date`=:2, `bed`=:3, `vcf`=:4 WHERE `id`=:5");
-		query.bindValue(5, panel_info.id);
+		query.prepare("UPDATE `cfdna_panels` SET `tumor_id`=:0, `created_by`=:1, `created_date`=:2, `processing_system_id`=:3, `bed`=:4, `vcf`=:5  WHERE `id`=:6");
+		query.bindValue(6, panel_info.id);
 	}
 
 	// bind values
 	query.bindValue(0, panel_info.tumor_id);
-	query.bindValue(1, panel_info.created_by);
+	query.bindValue(1, user_id);
 	query.bindValue(2, panel_info.created_date);
-	query.bindValue(3, bed_content);
-	query.bindValue(4, vcf_content);
+	query.bindValue(3, sys_id);
+	query.bindValue(4, bed_content);
+	query.bindValue(5, vcf_content);
 
 	query.exec();
 }
