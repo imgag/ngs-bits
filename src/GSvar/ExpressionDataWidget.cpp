@@ -122,7 +122,7 @@ void ExpressionDataWidget::applyFilters()
 			else
 			{
 				double value_dbl = Helper::toDouble(value);
-				filter_result.flags()[row_idx] = abs(value_dbl) >= zscore_cutoff;
+				filter_result.flags()[row_idx] = fabs(value_dbl) >= zscore_cutoff;
 			}
 		}
 	}
@@ -147,7 +147,7 @@ void ExpressionDataWidget::applyFilters()
 			else
 			{
 				double value_dbl = Helper::toDouble(value);
-				filter_result.flags()[row_idx] = abs(value_dbl) >= logfc_cutoff;
+				filter_result.flags()[row_idx] = fabs(value_dbl) >= logfc_cutoff;
 			}
 		}
 	}
@@ -172,7 +172,7 @@ void ExpressionDataWidget::applyFilters()
 			else
 			{
 				double value_dbl = Helper::toDouble(value);
-				filter_result.flags()[row_idx] = abs(value_dbl) >= logfc_cutoff;
+				filter_result.flags()[row_idx] = fabs(value_dbl) >= logfc_cutoff;
 			}
 		}
 	}
@@ -265,7 +265,6 @@ void ExpressionDataWidget::loadExpressionData()
 				}
 				else
 				{
-					//TODO this breaks sorting, but if there is no value set, it breaks filtering
 					ui_->expressionData->setItem(row_idx, col_idx, new NumericWidgetItem(""));
 				}
 			}
