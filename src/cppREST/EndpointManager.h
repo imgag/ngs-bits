@@ -59,10 +59,8 @@ public:
 	static ParamProps::ParamType getParamTypeFromString(QString in);	
 	static void validateInputData(Endpoint* current_endpoint, HttpRequest request);
 	static void appendEndpoint(Endpoint new_endpoint);	
-	static QString generateGlobalHelp();
-	static QString generateEntityHelp(QString path, RequestMethod method);
-
 	static Endpoint getEndpointEntity(QString url, RequestMethod method);
+	static QList<Endpoint>* getEndpointEntities();
 
 protected:
 	EndpointManager();
@@ -70,8 +68,6 @@ protected:
 private:	
 	static EndpointManager& instance();
 	static bool isParamTypeValid(QString param, ParamProps::ParamType type);
-
-	static QString getEndpointHelpTemplate(QList<Endpoint>* endpoint_list);
 	QList<Endpoint> endpoint_registry_;
 };
 

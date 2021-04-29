@@ -5,7 +5,7 @@
 #include <QCommandLineParser>
 #include "HttpsServer.h"
 #include "ServerHelper.h"
-#include "EndpointHelper.h"
+#include "EndpointController.h"
 #include "EndpointHandler.h"
 
 int log_level = 3;
@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
 						"Static content served from the server root folder (defined in the config file)",
-						&EndpointHelper::serveStaticFile
+						&EndpointController::serveStaticFile
 				   });
 	EndpointManager::appendEndpoint(Endpoint{
 						"textstream",
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
 						"Static text file is streamed from the server root folder (defined in the config file)",
-						&EndpointHelper::streamStaticFile
+						&EndpointController::streamStaticFile
 				   });
 	EndpointManager::appendEndpoint(Endpoint{
 						"cache",
@@ -141,7 +141,7 @@ int main(int argc, char **argv)
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
 						"Static content served from the server cache",
-						&EndpointHelper::serveStaticFileFromCache
+						&EndpointController::serveStaticFileFromCache
 				   });
 	EndpointManager::appendEndpoint(Endpoint{
 						"temp",
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
 						"Static file served via secure temporary URL",
-						&EndpointHandler::serveTempUrl
+						&EndpointController::serveStaticFile
 				   });
 	EndpointManager::appendEndpoint(Endpoint{
 						"help",
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
 						"Help page on the usage of the endpoints",
-						&EndpointHelper::serveEndpointHelp
+						&EndpointController::serveEndpointHelp
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 						RequestMethod::GET,
 						ContentType::APPLICATION_JSON,
 						"Detailed information about a specific file",
-						&EndpointHelper::getFileInfo
+						&EndpointController::getFileInfo
 					});
 
 
@@ -212,7 +212,7 @@ int main(int argc, char **argv)
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
 						"Processing system regions",
-						&EndpointHelper::getProcessingSystemRegions
+						&EndpointHandler::getProcessingSystemRegions
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -223,7 +223,7 @@ int main(int argc, char **argv)
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
 						"Processing system amplicons",
-						&EndpointHelper::getProcessingSystemAmplicons
+						&EndpointHandler::getProcessingSystemAmplicons
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -234,7 +234,7 @@ int main(int argc, char **argv)
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
 						"Processing system genes",
-						&EndpointHelper::getProcessingSystemGenes
+						&EndpointHandler::getProcessingSystemGenes
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{

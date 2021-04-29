@@ -61,25 +61,21 @@ QList<QString> EndpointHandler::getAnalysisFiles(QString sample_name, bool searc
 }
 
 HttpResponse EndpointHandler::serveIndexPage(HttpRequest request)
-{	
-	return EndpointHelper::serveStaticFile(":/assets/client/info.html", ByteRange{}, ContentType::TEXT_HTML, false);
+{
+	if (request.getPathParams().count() == 0)
+	{
+		return EndpointController::createStaticFileResponse(":/assets/client/info.html", ByteRange{}, ContentType::TEXT_HTML, false);
+	}
+	return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), "Index page was not found"});
 }
 
 HttpResponse EndpointHandler::serveApiInfo(HttpRequest request)
 {
-	return EndpointHelper::serveStaticFile(":/assets/client/api.json", ByteRange{}, ContentType::APPLICATION_JSON, false);
-}
-
-HttpResponse EndpointHandler::serveTempUrl(HttpRequest request)
-{
-	UrlEntity url_entity = UrlManager::getURLById(request.getPathParams()[0]);
-	if (url_entity.filename_with_path.isEmpty())
+	if (request.getPathParams().count() == 0)
 	{
-		return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), "Could not find a file linked to the id: " + request.getPathParams()[0]});
+		return EndpointController::createStaticFileResponse(":/assets/client/api.json", ByteRange{}, ContentType::APPLICATION_JSON, false);
 	}
-
-	qDebug() << "Serving file: " + url_entity.filename_with_path;
-	return EndpointHelper::streamStaticFile(url_entity.filename_with_path, false);
+	return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), "API info was not found"});
 }
 
 HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
@@ -249,7 +245,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	response_data.content_type = ContentType::APPLICATION_JSON;
 	response_data.is_downloadable = false;
 
-	return HttpResponse(false, false, "", EndpointHelper::generateHeaders(response_data), json_doc_output.toJson());
+	return HttpResponse(false, false, "", HttpProcessor::generateHeaders(response_data), json_doc_output.toJson());
 }
 
 HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
@@ -275,11 +271,48 @@ HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
 	json_doc_output.setArray(json_list_output);
 
 	BasicResponseData response_data;
+	response_data.byte_range = ByteRange{};
 	response_data.length = json_doc_output.toJson().length();
 	response_data.content_type = ContentType::APPLICATION_JSON;
 	response_data.is_downloadable = false;
 
-	return HttpResponse(false, false, "", EndpointHelper::generateHeaders(response_data), json_doc_output.toJson());
+	return HttpResponse(false, false, "", HttpProcessor::generateHeaders(response_data), json_doc_output.toJson());
+}
+
+HttpResponse EndpointHandler::getProcessingSystemRegions(HttpRequest request)
+{
+	NGSD db;
+	QString sys_id = request.getUrlParams()["sys_id"];
+	QString filename = db.processingSystemRegionsFilePath(sys_id.toInt());
+	if (filename.isEmpty())
+	{
+		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Processing system regions file has not been found"});
+	}
+	return EndpointController::createStaticStreamResponse(filename, false);
+}
+
+HttpResponse EndpointHandler::getProcessingSystemAmplicons(HttpRequest request)
+{
+	NGSD db;
+	QString sys_id = request.getUrlParams()["sys_id"];
+	QString filename = db.processingSystemAmpliconsFilePath(sys_id.toInt());
+	if (filename.isEmpty())
+	{
+		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Processing system amplicons file has not been found"});
+	}
+	return EndpointController::createStaticStreamResponse(filename, false);
+}
+
+HttpResponse EndpointHandler::getProcessingSystemGenes(HttpRequest request)
+{
+	NGSD db;
+	QString sys_id = request.getUrlParams()["sys_id"];
+	QString filename = db.processingSystemGenesFilePath(sys_id.toInt());
+	if (filename.isEmpty())
+	{
+		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Processing system genes file has not been found"});
+	}
+	return EndpointController::createStaticStreamResponse(filename, false);
 }
 
 HttpResponse EndpointHandler::performLogin(HttpRequest request)
@@ -303,7 +336,7 @@ HttpResponse EndpointHandler::performLogin(HttpRequest request)
 		response_data.content_type = ContentType::TEXT_PLAIN;
 		response_data.is_downloadable = false;
 
-		return HttpResponse{false, false, "", EndpointHelper::generateHeaders(response_data), body};
+		return HttpResponse{false, false, "", HttpProcessor::generateHeaders(response_data), body};
 	}
 
 	return HttpResponse(HttpError{StatusCode::UNAUTHORIZED, request.getContentType(), "Invalid username or password"});
@@ -332,7 +365,7 @@ HttpResponse EndpointHandler::performLogout(HttpRequest request)
 		response_data.content_type = ContentType::TEXT_PLAIN;
 		response_data.is_downloadable = false;
 
-		return HttpResponse{false, false, "", EndpointHelper::generateHeaders(response_data), body};
+		return HttpResponse{false, false, "", HttpProcessor::generateHeaders(response_data), body};
 	}
 	return HttpResponse(HttpError{StatusCode::FORBIDDEN, request.getContentType(), "You have provided an invalid token"});
 }

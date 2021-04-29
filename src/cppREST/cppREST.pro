@@ -46,7 +46,7 @@ LIBS += -lz
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += \
-    EndpointHelper.cpp \
+    EndpointController.cpp \
     EndpointManager.cpp \
     FileCache.cpp \
     HtmlEngine.cpp \
@@ -62,7 +62,7 @@ SOURCES += \
     UrlManager.cpp
 
 HEADERS += \
-    EndpointHelper.h \
+    EndpointController.h \
     EndpointManager.h \
     FileCache.h \
     HtmlEngine.h \

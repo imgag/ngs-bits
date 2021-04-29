@@ -3,6 +3,7 @@
 
 #include "cppREST_global.h"
 #include "HttpParts.h"
+#include <QDateTime>
 
 class CPPRESTSHARED_EXPORT HttpProcessor
 {
@@ -16,6 +17,8 @@ public:
 
 	static QString convertStatusCodeToReasonPhrase(StatusCode status_code);
 	static int convertStatusCodeToInt(StatusCode status_code);
+
+	static QByteArray generateHeaders(BasicResponseData data);
 
 protected:
 	HttpProcessor();

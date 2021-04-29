@@ -9,12 +9,7 @@
 #include <QJsonDocument>
 
 #include "Exceptions.h"
-#include "FileCache.h"
-#include "NGSD.h"
-#include "SessionManager.h"
-#include "EndpointHelper.h"
-#include "UrlManager.h"
-
+#include "EndpointController.h"
 #include "FileLocationProviderLocal.h"
 #include "VariantList.h"
 
@@ -31,6 +26,14 @@ public:
 	static HttpResponse serveTempUrl(HttpRequest request);
 	static HttpResponse locateFileByType(HttpRequest request);
 	static HttpResponse locateProjectFile(HttpRequest request);
+
+	/// Streams processing system regions file
+	static HttpResponse getProcessingSystemRegions(HttpRequest request);
+	/// Streams processing system amplicons file
+	static HttpResponse getProcessingSystemAmplicons(HttpRequest request);
+	/// Streams processing system genes file
+	static HttpResponse getProcessingSystemGenes(HttpRequest request);
+
 	static HttpResponse performLogin(HttpRequest request);
 	static HttpResponse performLogout(HttpRequest request);
 

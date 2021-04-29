@@ -66,18 +66,6 @@ void EndpointManager::appendEndpoint(Endpoint new_endpoint)
 	}
 }
 
-QString EndpointManager::generateGlobalHelp()
-{
-	return getEndpointHelpTemplate(&instance().endpoint_registry_);
-}
-
-QString EndpointManager::generateEntityHelp(QString path, RequestMethod method)
-{
-	QList<Endpoint> selected_endpoints {};
-	selected_endpoints.append(getEndpointEntity(path, method));
-	return getEndpointHelpTemplate(&selected_endpoints);
-}
-
 EndpointManager& EndpointManager::instance()
 {
 	static EndpointManager endpoint_factory;
@@ -109,39 +97,7 @@ Endpoint EndpointManager::getEndpointEntity(QString url, RequestMethod method)
 	return Endpoint{};
 }
 
-QString EndpointManager::getEndpointHelpTemplate(QList<Endpoint>* endpoint_list)
+QList<Endpoint>* EndpointManager::getEndpointEntities()
 {
-	QString output;
-	QTextStream stream(&output);
-
-	stream << HtmlEngine::getPageHeader();
-	stream << HtmlEngine::getApiHelpHeader("API Help Page");
-
-	for (int i = 0; i < endpoint_list->count(); ++i)
-	{
-		QList<QString> param_names {};
-		QList<QString> param_desc {};
-
-		QMapIterator<QString, ParamProps> p((*endpoint_list)[i].params);
-		while (p.hasNext()) {
-			p.next();
-			param_names.append(p.key());
-			param_desc.append(p.value().comment);
-		}
-
-		HttpRequest request;
-		request.setMethod((*endpoint_list)[i].method);
-
-		stream << HtmlEngine::getApiHelpEntry(
-					  (*endpoint_list)[i].url,
-					  request.methodAsString(),
-					  param_names,
-					  param_desc,
-					  (*endpoint_list)[i].comment
-					);
-	}
-
-	stream << HtmlEngine::getPageFooter();
-
-	return output;
+	return &instance().endpoint_registry_;
 }
