@@ -101,8 +101,8 @@ QString HtmlEngine::getPageFooter()
 {
 	QString output;
 	QTextStream stream(&output);
-	stream << "<hr />\n";
-	stream << "GSvarServer v.1.0\n";
+	stream << "			<hr>\n";
+	stream << "			<p>GSvarServer v.1.0</p>\n";
 	stream << "		</body>\n";
 	stream << "</html>\n";
 	return output;

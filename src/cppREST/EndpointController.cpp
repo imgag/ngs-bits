@@ -32,7 +32,7 @@ HttpResponse EndpointController::serveFolderContent(HttpRequest request)
 		current_item.modified = fileInfo.lastModified();
 		current_item.is_folder = fileInfo.isDir() ? true : false;
 		files.append(current_item);
-		qDebug() << "File:" + fileInfo.fileName() + ", " + fileInfo.size() + fileInfo.isDir();
+//		qDebug() << "File:" + fileInfo.fileName() + ", " + fileInfo.size() + fileInfo.isDir();
 	}
 	return serveFolderListing(files);
 }
@@ -250,10 +250,11 @@ HttpResponse EndpointController::serveFolderListing(QList<FolderItem> items)
 	stream << HtmlEngine::getPageFooter();
 
 	response.addHeader("HTTP/1.1 200 OK\n");
-	response.addHeader("Content-Length: " + QString::number(output.length()) + "\n");
+	response.addHeader("Content-Length: " + QString::number(output.toLocal8Bit().length()) + "\n");
 	response.addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(ContentType::TEXT_HTML) + "\n");
 	response.addHeader("\n");
 	response.setPayload(output.toLocal8Bit());
+	response.setIsStream(false);
 
 	return response;
 }
