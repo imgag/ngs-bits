@@ -851,6 +851,7 @@ private slots:
 		params.r_device_name = "Neo";
 		params.include_bad_quality_runs = false;
 		params.run_finished = true;
+		params.r_before = QDate::fromString("2021-02-19", Qt::ISODate);
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
 		I_EQUAL(ps_table.columnCount(), 73);

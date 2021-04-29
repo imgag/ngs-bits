@@ -378,6 +378,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QString r_name;
 	bool include_bad_quality_runs = true;
 	bool run_finished = false;
+	QDate r_before = QDate();
 	QString r_device_name;
 
 	//output options

@@ -62,46 +62,53 @@ void SampleSearchWidget::search()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-	//init GUI
-	ui_.sample_table->clearContents();
-	ui_.sample_table->setEnabled(true);
-	ui_.search_status->clear();
-
-	//create search parameters
-	ProcessedSampleSearchParameters params;
-	params.s_name = ui_.s_name->text();
-	params.s_name_ext = ui_.s_name_ext->isChecked();
-	params.s_name_comments = ui_.s_name_comments->isChecked();
-	params.s_species = ui_.s_species->text();
-	params.s_sender = ui_.s_sender->text();
-	params.s_study = ui_.s_study->text();
-	params.s_disease_group = ui_.s_disease_group->currentText();
-	params.s_disease_status = ui_.s_disease_status->currentText();
-	params.include_bad_quality_samples = ui_.s_bad_quality->isChecked();
-	params.include_tumor_samples = ui_.s_tumor->isChecked();
-	params.include_ffpe_samples = ui_.s_ffpe->isChecked();
-	params.include_merged_samples = ui_.s_merged->isChecked();
-
-	params.p_name = ui_.p_name->text();
-	params.p_type = ui_.p_type->currentText();
-
-	params.sys_name = ui_.sys_name->text();
-	params.sys_type = ui_.sys_type->currentText();
-
-	params.r_name = ui_.r_name->text();
-	params.include_bad_quality_runs = ui_.r_bad_quality->isChecked();
-	params.run_finished = ui_.r_analysis_finished->isChecked();
-	params.r_device_name = ui_.r_device_name->text();
-
-	params.add_outcome = ui_.add_outcome->isChecked();
-	params.add_disease_details = ui_.add_disease_details->isChecked();
-	params.add_qc = ui_.add_qc->isChecked();
-	params.add_report_config = ui_.add_report_config->isChecked();
-	params.add_comments = ui_.add_comments->isChecked();
-
-	//execute query
 	try
 	{
+		//init GUI
+		ui_.sample_table->clearContents();
+		ui_.sample_table->setEnabled(true);
+		ui_.search_status->clear();
+
+		//create search parameters
+		ProcessedSampleSearchParameters params;
+		params.s_name = ui_.s_name->text();
+		params.s_name_ext = ui_.s_name_ext->isChecked();
+		params.s_name_comments = ui_.s_name_comments->isChecked();
+		params.s_species = ui_.s_species->text();
+		params.s_sender = ui_.s_sender->text();
+		params.s_study = ui_.s_study->text();
+		params.s_disease_group = ui_.s_disease_group->currentText();
+		params.s_disease_status = ui_.s_disease_status->currentText();
+		params.include_bad_quality_samples = ui_.s_bad_quality->isChecked();
+		params.include_tumor_samples = ui_.s_tumor->isChecked();
+		params.include_ffpe_samples = ui_.s_ffpe->isChecked();
+		params.include_merged_samples = ui_.s_merged->isChecked();
+
+		params.p_name = ui_.p_name->text();
+		params.p_type = ui_.p_type->currentText();
+
+		params.sys_name = ui_.sys_name->text();
+		params.sys_type = ui_.sys_type->currentText();
+
+		params.r_name = ui_.r_name->text();
+		params.include_bad_quality_runs = ui_.r_bad_quality->isChecked();
+		params.run_finished = ui_.r_analysis_finished->isChecked();
+
+		QDate run_start_date = QDate::fromString(ui_.r_run_start_date->text(), Qt::ISODate);
+		if (!run_start_date.isValid())
+		{
+			THROW(ArgumentException, "Invalid date format for run start given.\nThe expected format is a ISO date, e.g. '2012-09-27'.");
+		}
+		params.r_before = run_start_date;
+		params.r_device_name = ui_.r_device_name->text();
+
+		params.add_outcome = ui_.add_outcome->isChecked();
+		params.add_disease_details = ui_.add_disease_details->isChecked();
+		params.add_qc = ui_.add_qc->isChecked();
+		params.add_report_config = ui_.add_report_config->isChecked();
+		params.add_comments = ui_.add_comments->isChecked();
+
+		//execute query
 		DBTable ps_table = db_.processedSampleSearch(params);
 		ps_table.formatBooleanColumn(ps_table.columnIndex("is_tumor"));
 		ps_table.formatBooleanColumn(ps_table.columnIndex("is_ffpe"));
@@ -116,9 +123,9 @@ void SampleSearchWidget::search()
 		//text
 		ui_.search_status->setText("Found " + QString::number(ps_table.rowCount()) + " matching samples.");
 	}
-	catch(DatabaseException& e)
+	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "NGSD error", "Database error:\n" + e.message());
+		QMessageBox::warning(this, "Sample search error", "Error:\n" + e.message());
 	}
 
 	QApplication::restoreOverrideCursor();
