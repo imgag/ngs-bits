@@ -91,14 +91,14 @@ void DiseaseCourseWidget::loadVariantLists()
 	if (processing_systems.size() > 1) THROW(ArgumentException, "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
 	QString system_name = processing_systems.toList().at(0);
 
-	// load ref tumor variants
-	QString panel_folder = Settings::path("patient_specific_panel_folder", false);
-	QString vcf_file_path = panel_folder + "/" + system_name + "/" + tumor_sample_name_ + ".vcf";
+	// TODO: load cfDNA panel
+	QList<CfdnaPanelInfo> cfdna_panels = db_.cfdnaPanelInfo(db_.processedSampleId(tumor_sample_name_), QString::number(db_.processingSystemId(system_name)));
+	if (cfdna_panels.size() < 1) THROW(DatabaseException, "No matchin cfDNA panel for sample " + tumor_sample_name_ + " found in NGSD!");
+	CfdnaPanelInfo cfdna_panel_info  = cfdna_panels.at(0);
 
-	if (!QFile::exists(vcf_file_path)) THROW(FileAccessException, "Could not find reference tumor VCF in '" + vcf_file_path + "'! ");
 
 	// create ref tumor column
-	ref_column_.variants.load(vcf_file_path);
+	ref_column_.variants= db_.cfdnaPanelVcf(cfdna_panel_info.id);
 	ref_column_.name = tumor_sample_name_;
 	ref_column_.date = QDate::fromString(db_.getSampleData(db_.sampleId(tumor_sample_name_)).received, "dd.MM.yyyy");
 

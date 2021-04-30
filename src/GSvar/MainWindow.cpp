@@ -1045,48 +1045,42 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 	if (!LoginManager::active()) return;
 	if (!somaticReportSupported()) return;
 
-	// get files
-	QString ps_tumor = variants_.mainSampleName();
-	QStringList processing_systems = NGSD().getValues("SELECT name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
-	QString folder = Settings::path("patient_specific_panel_folder", false);
-	QStringList bed_files;
-	QString selected_bed_file;
-
-	foreach (const QString& system, processing_systems)
-	{		
-		QString file_path = folder + "/" + system + "/" + ps_tumor + ".bed";
-
-		if (QFileInfo(file_path).exists()) bed_files << file_path;
-	}
-
-	if (bed_files.empty())
+	// get cfDNA panels:
+	QList<CfdnaPanelInfo> cfdna_panels = NGSD().cfdnaPanelInfo(NGSD().processedSampleId(variants_.mainSampleName()));
+	CfdnaPanelInfo selected_panel;
+	if (cfdna_panels.size() < 1)
 	{
 		// show message
 		GUIHelper::showMessage("No cfDNA panel found!", "No cfDNA panel was found for the given tumor sample!");
 		return;
 	}
-	else if (bed_files.size() > 1)
+	else if (cfdna_panels.size() > 1)
 	{
-		QComboBox* bed_file_selector = new QComboBox(this);
-		bed_file_selector->addItems(bed_files);
+		QStringList cfdna_panel_description;
+		foreach (const CfdnaPanelInfo& panel, cfdna_panels)
+		{
+			cfdna_panel_description.append("cfDNA panel for " + panel.processing_system  + " (" + panel.created_date.toString("dd.MM.yyyy") + " by " + panel.created_by + ")");
+		}
+
+		QComboBox* cfdna_panel_selector = new QComboBox(this);
+		cfdna_panel_selector->addItems(cfdna_panel_description);
 
 		// create dlg
-		auto dlg = GUIHelper::createDialog(bed_file_selector, "Select cfDNA panel", "", true);
+		auto dlg = GUIHelper::createDialog(cfdna_panel_selector, "Select cfDNA panel", "", true);
 		int btn = dlg->exec();
 		if (btn!=1)
 		{
 			return;
 		}
-		selected_bed_file = bed_file_selector->currentText();
+		selected_panel = cfdna_panels.at(cfdna_panel_selector->currentIndex());
 	}
 	else
 	{
-		// 1 file found
-		selected_bed_file = bed_files.at(0);
+		selected_panel = cfdna_panels.at(0);
 	}
 
 	//show dialog	
-	CfDNAPanelWidget* widget = new CfDNAPanelWidget(selected_bed_file, ps_tumor);
+	CfDNAPanelWidget* widget = new CfDNAPanelWidget(selected_panel);
 	auto dlg = GUIHelper::createDialog(widget, "cfDNA panel for tumor " + variants_.analysisName());
 	addModelessDialog(dlg, false);
 }

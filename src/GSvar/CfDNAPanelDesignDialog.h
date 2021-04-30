@@ -12,16 +12,6 @@
 #include "DBComboBox.h"
 #include "NGSD.h"
 
-struct GeneEntry
-{
-	QString gene_name;
-	Chromosome chr;
-	int start;
-	int end;
-	QDate date;
-	BedFile bed = BedFile();
-};
-
 namespace Ui {
 class CfDNAPanelDesignDialog;
 }
@@ -49,6 +39,7 @@ private slots:
 	void updateSelectedVariantCount();
 	void updateSelectedHotspotCount();
 	void openVariantInIGV(QTableWidgetItem* item);
+	void updateSystemSelection();
 
 private:
 	void loadPreviousPanels();
@@ -63,7 +54,7 @@ private:
 	QMap<QString, bool> prev_vars_;
 	QString processed_sample_name_;
     QString processed_sample_id_;
-	QList<GeneEntry> genes_;
+	QList<CfdnaGeneEntry> genes_;
 	CfdnaPanelInfo cfdna_panel_info_;
 };
 

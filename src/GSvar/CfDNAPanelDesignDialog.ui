@@ -135,6 +135,13 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QLabel" name="l_error_message">
+       <property name="text">
+        <string>Error: A cfDNA panel for the selected processing system already exists. You can only create one panel per system.</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>

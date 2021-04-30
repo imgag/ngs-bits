@@ -2043,7 +2043,7 @@ CREATE  TABLE IF NOT EXISTS `cfdna_panels`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `tumor_id` INT(11) NOT NULL,
   `cfdna_id` INT(11) DEFAULT NULL,
-  `created_by` int(11) DEFAULT NULL,
+  `created_by` INT(11) DEFAULT NULL,
   `created_date` DATE NOT NULL,
   `processing_system_id` INT(11) NOT NULL,
   `bed` MEDIUMTEXT NOT NULL,
@@ -2052,6 +2052,7 @@ PRIMARY KEY (`id`),
 INDEX(`created_by`),
 INDEX(`created_date`),
 INDEX(`tumor_id`),
+UNIQUE `unique_cfdna_panel`(`tumor_id`, `processing_system_id`),
 CONSTRAINT `cfdna_panels_tumor_id`
   FOREIGN KEY (`tumor_id`)
   REFERENCES `processed_sample` (`id`)
@@ -2089,7 +2090,7 @@ CREATE  TABLE IF NOT EXISTS `cfdna_panel_genes`
   `date` DATE NOT NULL,
   `bed` MEDIUMTEXT NOT NULL,
 PRIMARY KEY (`id`),
-INDEX(`gene_name`)
+UNIQUE INDEX(`gene_name`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
