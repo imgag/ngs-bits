@@ -689,9 +689,12 @@ void CnvWidget::proposeQualityIfUnset()
 	QString quality =  db.getValue("SELECT quality FROM cnv_callset WHERE id=" + callset_id_).toString();
 	if (quality!="n/a") return;
 
+
 	//check number of iterations
 	QStringList errors;
-	if(cnvs_.qcMetric("number of iterations")!="1")
+	QString iterations = cnvs_.qcMetric("number of iterations", false);
+	if (iterations.isEmpty()) return;
+	if(iterations!="1")
 	{
 		errors << "Number of iteration > 1";
 	}
@@ -704,8 +707,9 @@ void CnvWidget::proposeQualityIfUnset()
 	double mean = BasicStatistics::median(hq_cnv_dist, false);
 	double stdev = 1.482 * BasicStatistics::mad(hq_cnv_dist, mean);
 
-	double hq_cnvs = cnvs_.qcMetric("high-quality cnvs").toDouble();
-	if (hq_cnvs> mean + 2.5*stdev)
+	QString hq_cnvs = cnvs_.qcMetric("high-quality cnvs", false);
+	if (hq_cnvs.isEmpty()) return;
+	if (hq_cnvs.toDouble()> mean + 2.5*stdev)
 	{
 		errors << "Number of high-quality CNVs is too high (median: " + QString::number(mean, 'f', 2) + " / stdev: " + QString::number(stdev, 'f', 2) + ")";
 	}
