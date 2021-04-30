@@ -76,9 +76,9 @@ typedef enum
 
 struct CPPRESTSHARED_EXPORT ByteRange
 {
-	quint64 start;
-	quint64 end;
-	quint64 length;
+	quint64 start = 0;
+	quint64 end = 0;
+	quint64 length = 0;
 };
 
 struct CPPRESTSHARED_EXPORT HttpError

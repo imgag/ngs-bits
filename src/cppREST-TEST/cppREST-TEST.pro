@@ -31,6 +31,7 @@ INCLUDEPATH += $$PWD/../GSvarServer
 INCLUDEPATH += $$PWD/../cppTFW
 
 HEADERS += \
+    EndpointController_Test.h \
     FileCache_Test.h \
     HtmlEngine_Test.h \
     HttpProcessor_Test.h \
@@ -42,4 +43,8 @@ HEADERS += \
 
 SOURCES += \
         main.cpp
+
+DISTFILES +=
+
+RESOURCES +=
 

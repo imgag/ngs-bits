@@ -1,0 +1,76 @@
+#include "TestFramework.h"
+#include "EndpointController.h"
+
+TEST_CLASS(EndpointController_Test)
+{
+Q_OBJECT
+private slots:
+
+	void test_static_file_random_access()
+	{
+		QString url_id = ServerHelper::generateUniqueStr();
+		QByteArray filename = TESTDATA("data_in/text.txt");
+
+		IS_FALSE(UrlManager::isInStorageAlready(filename));
+
+		UrlManager::addUrlToStorage(url_id, filename);
+		IS_TRUE(UrlManager::isInStorageAlready(filename));
+
+		HttpRequest request;
+		request.setMethod(RequestMethod::GET);
+		request.setContentType(ContentType::TEXT_HTML);
+		request.addHeader("host", "localhost:8443");
+		request.addHeader("accept", "text/html");
+		request.addHeader("connection", "keep-alive");
+		request.addHeader("range", "bytes=10-17");
+		request.setPrefix("v1");
+		request.setPath("temp");
+		request.addPathParam(url_id);
+
+		HttpResponse response = EndpointController::serveStaticFile(request);
+
+		IS_TRUE(response.getHeaders().split('\n').first().contains("206"));
+		S_EQUAL(response.getPayload(), "content");
+
+		QList<QString> params;
+		params.append("fake_id");
+		request.setPathParams(params);
+		response = EndpointController::serveStaticFile(request);
+		IS_TRUE(response.getHeaders().split('\n').first().contains("404"));
+	}
+
+	void test_file_info()
+	{
+		QString url_id = ServerHelper::generateUniqueStr();
+		QByteArray filename = TESTDATA("data_in/picture.png");
+
+		IS_FALSE(UrlManager::isInStorageAlready(filename));
+
+		UrlManager::addUrlToStorage(url_id, filename);
+		IS_TRUE(UrlManager::isInStorageAlready(filename));
+
+		HttpRequest request;
+		request.setMethod(RequestMethod::GET);
+		request.setContentType(ContentType::APPLICATION_JSON);
+		request.addHeader("host", "localhost:8443");
+		request.addHeader("accept", "application/json");
+		request.addHeader("connection", "keep-alive");
+		request.setPrefix("v1");
+		request.setPath("file_info");
+		request.addUrlParam("file", "https://localhost/v1/temp/" + url_id);
+
+		HttpResponse response = EndpointController::getFileInfo(request);
+
+		QJsonDocument document = QJsonDocument::fromJson(response.getPayload());
+		QJsonObject json_object = document.object();
+		qDebug() << json_object.value("file_name").toString();
+		S_EQUAL(json_object.value("file_name").toString(), "picture.png");
+		IS_TRUE(json_object.value("exists").toBool());
+
+		QMap<QString, QString> params;
+		params.insert("file", "https://localhost/v1/temp/fake_id");
+		request.setUrlParams(params);
+		response = EndpointController::getFileInfo(request);
+		IS_TRUE(response.getHeaders().split('\n').first().contains("404"));
+	}
+};
