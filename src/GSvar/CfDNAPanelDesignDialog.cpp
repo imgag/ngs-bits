@@ -64,6 +64,10 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 {
 	// clear prev panel
 	cfdna_panel_info_ = CfdnaPanelInfo();
+	prev_vars_.clear();
+	prev_genes_.clear();
+	prev_kasp_ = true;
+	prev_hotspots_.clear();
 
 	QList<CfdnaPanelInfo> previous_panels = NGSD().cfdnaPanelInfo(processed_sample_id_);
 
@@ -98,8 +102,37 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 			QString vcf_pos = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + " " + var.ref() + ">" + var.altString();
 			prev_vars_.insert(vcf_pos, false);
 		}
-		// TODO: load genes, KASP and hotspot regions
+		//load genes, KASP and hotspot regions
+		BedFile prev_panel_regions =  NGSD().cfdnaPanelRegions(cfdna_panel_info_.id);
+		prev_kasp_ = false;
+		for (int i = 0; i < prev_panel_regions.count(); ++i)
+		{
+			const BedLine& bed_line = prev_panel_regions[i];
+			const QByteArray& annotation = bed_line.annotations().at(0);
+			//genes
+			if (annotation.startsWith("gene:"))
+			{
+				prev_genes_.insert(annotation.split(':').at(1).trimmed());
+			}
+			//KASP
+			else if (annotation.startsWith("SNP_for_sample_identification:KASP_set2"))
+			{
+				prev_kasp_ = true;
+			}
+			//hotspots
+			else if (annotation.startsWith("hotspot_region:"))
+			{
+				prev_hotspots_.insert(bed_line.toString(true), false);
+			}
+		}
+
 	}
+
+	//activate KASP identifier
+	ui_->cb_sample_identifier->setCheckState((prev_kasp_)?Qt::Checked:Qt::Unchecked);
+
+	//preselect processing system
+	ui_->cb_processing_system->setCurrentText(cfdna_panel_info_.processing_system);
 }
 
 void CfDNAPanelDesignDialog::loadVariants()
@@ -184,16 +217,12 @@ void CfDNAPanelDesignDialog::loadVariants()
 		}
 
 
-//		// filter variants by filter column
-//		if (variant.filters().length() != 0) continue;
 
 		// get report config for variant
 		SomaticReportVariantConfiguration var_conf;
 		if (report_config_indices.contains(i))
 		{
 			var_conf = somatic_report_configuration_.variantConfig(i, VariantType::SNVS_INDELS);
-			//exclude artifacts
-//			if (var_conf.exclude_artefact) continue;
 		}
 
 		// create table
@@ -263,9 +292,9 @@ void CfDNAPanelDesignDialog::loadVariants()
 
 	if(missing_prev_vars.size() > 0)
 	{
-		GUIHelper::showMessage("Variant not found",
-							   "The following variants are part of the loaded cfDNA panel, but are missing in the current variant list:\n\n"
-							   + missing_prev_vars.join("\n"));
+		QMessageBox::warning(this, "Variant not found",
+							 "The following variants are part of the loaded cfDNA panel, but are missing in the current variant list:\n\n"
+							 + missing_prev_vars.join("\n"));
 	}
 
 
@@ -301,7 +330,17 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 
 		QTableWidgetItem* select_item = GUIHelper::createTableItem("");
 		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
-		select_item->setCheckState(Qt::Unchecked);
+		// precheck if in loaded panel
+		if (prev_hotspots_.contains(line.toString(true)))
+		{
+			select_item->setCheckState(Qt::Checked);
+			prev_hotspots_[line.toString(true)] = true;
+
+		}
+		else
+		{
+			select_item->setCheckState(Qt::Unchecked);
+		}
 
 		// store file path in first cell
 		select_item->setData(Qt::UserRole, i);
@@ -312,6 +351,23 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 		ui_->hotspot_regions->setItem(i, col_idx++, GUIHelper::createTableItem(QString::number(line.start())));
 		ui_->hotspot_regions->setItem(i, col_idx++, GUIHelper::createTableItem(QString::number(line.end())));
 		if (line.annotations().size() > 0) ui_->hotspot_regions->setItem(i, col_idx++, GUIHelper::createTableItem(line.annotations().at(0)));
+	}
+
+	// activate hotspot region view
+	if (prev_hotspots_.size() > 0) ui_->cb_hotspot_regions->setCheckState(Qt::Checked);
+
+	// check if all previous previous hotspot were found
+	QStringList missing_prev_hotspots;
+	foreach (const QString& region, prev_hotspots_.keys())
+	{
+		if (!prev_hotspots_.value(region)) missing_prev_hotspots.append(region);
+	}
+
+	if(missing_prev_hotspots.size() > 0)
+	{
+		QMessageBox::warning(this, "Hotspot region not found", QString() + "The following hotspot regions are part of the loaded cfDNA panel, "
+							 + "but are missing in the current hotspot list \n(Maybe the hotspot list has been updated):\n\n"
+							 + missing_prev_hotspots.join("\n"));
 	}
 
 	// optimize cell sizes
@@ -351,7 +407,16 @@ void CfDNAPanelDesignDialog::loadGenes()
 	{
 		QTableWidgetItem* select_item = GUIHelper::createTableItem("");
 		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
-		select_item->setCheckState(Qt::Unchecked);
+		// precheck if in loaded panel
+		if (prev_genes_.contains(entry.gene_name))
+		{
+			select_item->setCheckState(Qt::Checked);
+		}
+		else
+		{
+			select_item->setCheckState(Qt::Unchecked);
+		}
+
 
 		// store file path in first cell
 		select_item->setData(Qt::UserRole, r);

@@ -52,6 +52,9 @@ private:
 	const FilterResult& filter_result_;
 	const SomaticReportConfiguration& somatic_report_configuration_;
 	QMap<QString, bool> prev_vars_;
+	QSet<QString> prev_genes_;
+	bool prev_kasp_;
+	QMap<QString, bool> prev_hotspots_;
 	QString processed_sample_name_;
     QString processed_sample_id_;
 	QList<CfdnaGeneEntry> genes_;
