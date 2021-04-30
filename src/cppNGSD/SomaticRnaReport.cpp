@@ -1,33 +1,33 @@
 #include <QDebug>
 #include "NGSD.h"
-#include "GlobalServiceProvider.h"
 #include "SomaticRnaReport.h"
 #include "SomaticReportHelper.h"
 #include "TSVFileStream.h"
 
 
-SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCascade& filters, const CnvList& cnv_list, QString rna_ps_name, QString dna_tumor_name, QString dna_normal_name)
-	: db_()
-	, dna_cnvs_(cnv_list)
+SomaticRnaReportData::SomaticRnaReportData(const SomaticReportSettings& other)
+	: SomaticReportSettings(other)
 {
-	dna_snvs_.copyMetaData(snv_list);
-	QBitArray som_filters_pass = filters.apply(snv_list).flags();
-	for(int i=0; i<snv_list.count(); ++i)
-	{
-		if(!som_filters_pass[i]) continue;
-		dna_snvs_.append(snv_list[i]);
-	}
-	rna_ps_name_ = rna_ps_name;
-	dna_ps_tumor_name_ = dna_tumor_name;
-	dna_ps_normal_name_ = dna_normal_name;
+}
+
+
+
+SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& cnv_list, const SomaticRnaReportData& data)
+	: db_()
+	, data_(data)
+{
+	//filter DNA variants according somatic report configuration
+	dna_snvs_ = SomaticRnaReportData::filterVariants(snv_list, data);
+	dna_cnvs_ = SomaticRnaReportData::filterCnvs(cnv_list, data);
+
 
 	//Get RNA processed sample name and resolve path to RNA directory
 	ref_tissue_type_ = refTissueType(dna_snvs_);
 
-	QString fusion_file = db_.processedSamplePath(db_.processedSampleId(rna_ps_name_), PathType::FUSIONS);
-	if(!QFile::exists(fusion_file))
+
+	if(!QFile::exists(data.rna_fusion_file))
 	{
-		THROW(FileAccessException, "RNA fusions file does not exist: " + fusion_file);
+		THROW(FileAccessException, "RNA fusions file does not exist: " + data.rna_fusion_file);
 	}
 
 	if(!checkRequiredSNVAnnotations(snv_list) && dna_snvs_.count() > 0)
@@ -41,7 +41,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 
 
 	//Load fusions
-	TSVFileStream in_file(fusion_file);
+	TSVFileStream in_file(data.rna_fusion_file);
 	int i_cds_left = in_file.colIndex("CDS_LEFT_ID", true);
 	int i_cds_left_range = in_file.colIndex("CDS_LEFT_RANGE", true);
 	int i_cds_right = in_file.colIndex("CDS_RIGHT_ID", true);
@@ -58,11 +58,6 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const FilterCasc
 		fusion temp{parts[i_fusion_name].replace("--","-"), parts[i_cds_left], parts[i_cds_right], parts[i_cds_left_range], parts[i_cds_right_range], parts[i_fusion_type]};
 		fusions_.append(temp);
 	}
-
-	//get gene list from NGSD
-	int sys_id = db_.processingSystemIdFromProcessedSample(dna_ps_tumor_name_);
-	target_genes_ = GlobalServiceProvider::database().processingSystemGenes(sys_id);
-	target_genes_ = db_.genesToApproved(target_genes_, true);
 }
 
 bool SomaticRnaReport::checkRequiredSNVAnnotations(const VariantList& variants)
@@ -178,8 +173,8 @@ RtfTable SomaticRnaReport::snvTable()
 	int i_co_sp = dna_snvs_.annotationIndexByName("coding_and_splicing");
 	int i_tum_af = dna_snvs_.annotationIndexByName("tumor_af");
 
-	int i_rna_tpm = dna_snvs_.annotationIndexByName(rna_ps_name_ + "_rna_tpm");
-	int i_rna_af = dna_snvs_.annotationIndexByName(rna_ps_name_ + "_rna_af");
+	int i_rna_tpm = dna_snvs_.annotationIndexByName(data_.rna_ps_name + "_rna_tpm");
+	int i_rna_af = dna_snvs_.annotationIndexByName(data_.rna_ps_name + "_rna_af");
 	int i_rna_ref_tpm = dna_snvs_.annotationIndexByName("rna_ref_tpm");
 
 	int i_tsg = dna_snvs_.annotationIndexByName("ncg_tsg");
@@ -233,7 +228,7 @@ RtfTable SomaticRnaReport::snvTable()
 
 	table.prependRow(RtfTableRow({"Gen", "Veränderung", "Typ", "Anteil", "Beschreibung", "Anteil", "TPM", "MW TPM*"},{1000,2550,1150,750,1950,675,625,1221}, RtfParagraph().setFontSize(16).setBold(true).setHorizontalAlignment("c")).setHeader().setBorders(1, "brdrhair", 2) );
 	table.prependRow(RtfTableRow({"DNA", "RNA"}, {7400, 2521}, RtfParagraph().setFontSize(16).setHorizontalAlignment("c").setBold(true)).setBorders(1, "brdrhair", 2) );
-	table.prependRow(RtfTableRow("Punktmutationen (SNVs) und kleine Insertionen/Deletionen (INDELs) (" + rna_ps_name_.toUtf8() + "-" + dna_ps_tumor_name_.toUtf8() + "-" + dna_ps_normal_name_.toUtf8() + ")", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
+	table.prependRow(RtfTableRow("Punktmutationen (SNVs) und kleine Insertionen/Deletionen (INDELs) (" + data_.rna_ps_name.toUtf8() + "-" + data_.tumor_ps.toUtf8() + "-" + data_.normal_ps.toUtf8() + ")", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1).setBorders(1, "brdrhair", 2) );
 
 	table.setUniqueBorder(1, "brdrhair", 2);
 
@@ -253,7 +248,7 @@ RtfTable SomaticRnaReport::cnvTable()
 	int i_tum_clonality = dna_cnvs_.annotationIndexByName("tumor_clonality", true);
 	int i_size_desc = dna_cnvs_.annotationIndexByName("cnv_type", true);
 	//RNA annotations indices
-	int i_rna_tpm = dna_cnvs_.annotationIndexByName(rna_ps_name_.toUtf8() + "_rna_tpm", true);
+	int i_rna_tpm = dna_cnvs_.annotationIndexByName(data_.rna_ps_name.toUtf8() + "_rna_tpm", true);
 	int i_ref_rna_tpm = dna_cnvs_.annotationIndexByName("rna_ref_tpm", true);
 
 	//TSG/Oncogene
@@ -266,7 +261,8 @@ RtfTable SomaticRnaReport::cnvTable()
 	{
 		const CopyNumberVariant& cnv = dna_cnvs_[i];
 
-		GeneSet genes = dna_cnvs_[i].genes().intersect(target_genes_);
+		GeneSet genes = dna_cnvs_[i].genes().intersect(data_.processing_system_genes);
+
 		GeneSet tsgs = GeneSet::createFromText(dna_cnvs_[i].annotations()[i_tsg], ',' );
 		GeneSet oncogenes = GeneSet::createFromText( dna_cnvs_[i].annotations()[i_oncogene] , ',' );
 

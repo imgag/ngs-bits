@@ -14,11 +14,11 @@ The database backend of the NGSD is a MySQL database. To set it up, follow these
 
 * If not available, install the MySQL package:
 
-		> apt-get install mysql-server
+		> sudo apt-get install mysql-server
 
 * Log into the server, e.g. with:
 
-		> mysql -u root -p
+		> sudo mysql -u root
 
 * Create the NGSD database:
 
@@ -31,24 +31,24 @@ The database backend of the NGSD is a MySQL database. To set it up, follow these
 In order to optimize the performance of MySQL for the NGSD, you can adapt/add the following settings in the `/etc/mysql/my.cnf` file:
 
 		[mysqld]
+		innodb_buffer_pool_instances = 2
+		innodb_buffer_pool_size = 32G
+		innodb_flush_log_at_trx_commit = 2
+		innodb_lock_wait_timeout = 1000
+		innodb_lru_scan_depth = 512
 		join_buffer_size = 16M
+		max_allowed_packet = 64M
+		max_connections = 300
+		max_heap_table_size = 256M
 		query_cache_limit = 64M
 		query_cache_size = 256M
 		tmp_table_size = 256M
-		max_heap_table_size = 256M
-		innodb_buffer_pool_size = 32G
-		innodb_buffer_pool_instances = 2
-		innodb_flush_log_at_trx_commit = 2
-		innodb_lock_wait_timeout = 1000
-		bind_address = 0.0.0.0
-		innodb_lru_scan_depth = 512
-		max_allowed_packet = 64M
 		wait_timeout = 108000
-		max_connections = 300
+
 
 Restart the server:
 
-		> service mysql restart
+		> sudo service mysql restart
 
 ## Initial import of data
 

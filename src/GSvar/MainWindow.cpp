@@ -2677,7 +2677,6 @@ void MainWindow::loadSomaticReportConfig()
 	somatic_report_settings_.tumor_ps = ps_tumor;
 	somatic_report_settings_.normal_ps = ps_normal;
 	somatic_report_settings_.msi_file = GlobalServiceProvider::fileLocationProvider().getSomaticMsiFile().filename;
-	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 
 	try //load normal sample
 	{
@@ -2714,6 +2713,8 @@ void MainWindow::loadSomaticReportConfig()
 	{
 		ui_.filters->setFilter( somatic_report_settings_.report_config.filter() );
 	}
+
+	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 
 	refreshVariantTable();
 }
@@ -3198,8 +3199,16 @@ void MainWindow::generateReportSomaticRTF()
 		try
 		{
 			QByteArray temp_filename = Helper::tempFileName(".rtf").toUtf8();
-			SomaticRnaReport rna_report(variants_, ui_.filters->filters(), cnvs_, dlg.getRNAid(), somatic_report_settings_.tumor_ps, somatic_report_settings_.normal_ps);
+
+
+			SomaticRnaReportData rna_report_data = somatic_report_settings_;
+			rna_report_data.rna_ps_name = dlg.getRNAid();
+			rna_report_data.rna_fusion_file = db.processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS);
+
+			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
+
 			rna_report.checkRefTissueTypeInNGSD(rna_report.refTissueType(variants_),somatic_report_settings_.tumor_ps);
+
 			rna_report.writeRtf(temp_filename);
 			ReportWorker::moveReport(temp_filename, file_rep);
 			QApplication::restoreOverrideCursor();

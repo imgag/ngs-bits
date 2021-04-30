@@ -262,6 +262,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 	{
 		conditions << "r.status='analysis_finished'";
 	}
+	if (p.r_before.isValid())
+	{
+		conditions << "r.start_date<='" + p.r_before.toString(Qt::ISODate)+"'";
+	}
 	if (p.r_device_name.trimmed()!="")
 	{
 		tables << "device d";

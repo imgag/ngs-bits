@@ -13,8 +13,8 @@ INSERT INTO `sender` (`id`, `name`) VALUES
 INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysis`) VALUES
 (1, 'KontrollDNACoriell', 'test', 1, 'variants');
 
-INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `status`) VALUES
-(1, '#00372', 'AB2J9', 1, '158+8+158', 'analysis_finished');
+INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `start_date`, `device_id`, `recipe`, `status`) VALUES
+(1, '#00372', 'AB2J9', '2021-02-19', 1, '158+8+158', 'analysis_finished');
 
 INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`) VALUES
 (1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the blood or blood-forming organs', 'Unaffected'),
