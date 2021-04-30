@@ -16,32 +16,23 @@ private slots:
 
 	void test_if_server_is_running()
 	{
-		QString reply {};
-
-		EndpointManager::appendEndpoint(Endpoint{
-							"info",
-							QMap<QString, ParamProps>{},
-							RequestMethod::GET,
-							ContentType::APPLICATION_JSON,
-							"General information about this API",
-							&EndpointHandler::serveApiInfo
-						});
-
-		HttpsServer sslserver(8443);
+		QByteArray reply;
 		try
 		{
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "application/json");
-			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:8443/v1/info", add_headers);
+			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:8443/v1/", add_headers);
 		}
 		catch(Exception& e)
 		{
 			qDebug() << "Error while getting API info:" << e.message();
+			SKIP("The server is probably not available");
 		}
 
-		QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
+		QJsonDocument json_doc = QJsonDocument::fromJson(reply);
 		QJsonObject json_obj = json_doc.object();
 
+		qDebug() << reply;
 		IS_TRUE(!reply.isEmpty());
 		S_EQUAL(json_obj.value("name").toString(), "GSvarServer");
 

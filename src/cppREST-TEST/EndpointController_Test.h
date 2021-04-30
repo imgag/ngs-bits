@@ -63,7 +63,6 @@ private slots:
 
 		QJsonDocument document = QJsonDocument::fromJson(response.getPayload());
 		QJsonObject json_object = document.object();
-		qDebug() << json_object.value("file_name").toString();
 		S_EQUAL(json_object.value("file_name").toString(), "picture.png");
 		IS_TRUE(json_object.value("exists").toBool());
 
