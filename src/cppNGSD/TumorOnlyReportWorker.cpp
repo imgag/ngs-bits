@@ -234,6 +234,11 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		//Find genes with gaps
 		QVector<QByteArray> genes;
 		QVector<QByteArray> exons;
+
+
+		//block summary of gaps that overlap an exon, to be printed after gap statistics in table
+		QMultiMap<QString, QString> block_summary;
+
 		for(int i=0; i<low_cov.count(); ++i)
 		{
 			const BedLine& line = low_cov[i];
@@ -248,13 +253,16 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 				for(const auto& tmp_gene : tmp_genes)
 				{
 					QByteArray exon = exonNumber(tmp_gene.toUtf8() , line.start(), line.end());
-					if(exon != "") tmp_exons << exon;
+					if(exon != "")
+					{
+						tmp_exons << exon;
+						block_summary.insert(tmp_gene, line.toString(true));
+					}
 				}
 				exons.append( tmp_exons.join(", ").toUtf8() );
 			}
 
 		}
-
 		//Write each gaps
 		RtfTable detailed_gaps;
 		for(int i=0; i< low_cov.count(); ++i)
@@ -290,6 +298,18 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 
 		detailed_gaps.setUniqueFontSize(16);
 		doc_.addPart(detailed_gaps.RtfCode());
+
+		//add block summary of exon gaps
+		if(!block_summary.isEmpty())
+		{
+			QList<RtfSourceCode> block_text;
+			for( const auto& gene : block_summary.uniqueKeys() )
+			{
+				block_text << RtfText(gene.toUtf8()).setItalic(true).setFontSize(16).RtfCode() + ": " + block_summary.values(gene).join(", ").toUtf8();
+			}
+			doc_.addPart(RtfParagraph("").RtfCode());
+			doc_.addPart(RtfParagraph(block_text.join("; ")).setFontSize(16).RtfCode());
+		}
 	}
 
 	doc_.save(file_path);
