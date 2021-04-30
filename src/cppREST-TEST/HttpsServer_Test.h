@@ -20,7 +20,7 @@ private slots:
 		try
 		{
 			HttpHeaders add_headers;
-			add_headers.insert("Accept", "application/json");
+			add_headers.insert("Accept", "text/html");
 			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:8443/v1/", add_headers);
 		}
 		catch(Exception& e)
@@ -28,13 +28,7 @@ private slots:
 			qDebug() << "Error while getting API info:" << e.message();
 			SKIP("The server is probably not available");
 		}
-
-		QJsonDocument json_doc = QJsonDocument::fromJson(reply);
-		QJsonObject json_obj = json_doc.object();
-
-		qDebug() << reply;
 		IS_TRUE(!reply.isEmpty());
-		S_EQUAL(json_obj.value("name").toString(), "GSvarServer");
 
 		QThread::sleep(5);
 		try
