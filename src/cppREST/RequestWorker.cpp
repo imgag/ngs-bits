@@ -90,6 +90,7 @@ void RequestWorker::run()
 		HttpResponse response;
 
 		qDebug() << "Trying to execute an action";
+		qDebug() << "Headers = " << parsed_request.getHeaders();
 		try
 		{
 			response = (*endpoint_action_)(parsed_request);
@@ -205,8 +206,8 @@ void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
 	if (socket->state() == QSslSocket::SocketState::UnconnectedState)
 	{
 		qDebug() << "Socket is disconnected and no longer used";
-		socket->close();
-		socket->deleteLater();
+		this->terminate();
+		exit(1);
 //		this->quit();
 		return;
 	}
