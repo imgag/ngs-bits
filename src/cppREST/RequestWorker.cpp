@@ -204,8 +204,10 @@ void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
 	// clinet cancels the stream or simply disconnects
 	if (socket->state() == QSslSocket::SocketState::UnconnectedState)
 	{
-		qDebug() << "Socket is disconnected and no longer used";		
-		this->quit();
+		qDebug() << "Socket is disconnected and no longer used";
+		socket->close();
+		socket->deleteLater();
+//		this->quit();
 		return;
 	}
 

@@ -35,7 +35,7 @@ HttpsServer::HttpsServer(quint16 port)
 	if (!ssl_chain.isEmpty())
 	{
 		qInfo() << "Reading SSL certificate chain file";
-		ca_certificates = QSslCertificate::fromPath(ssl_chain, QSsl::Der);
+		ca_certificates = QSslCertificate::fromPath(ssl_chain, QSsl::Pem);
 	}
 
     QSslCertificate cert(&certFile);
@@ -44,7 +44,7 @@ HttpsServer::HttpsServer(quint16 port)
 	server_ = new SslServer(this);
 
 	QSslConfiguration config = server_->getSslConfiguration();
-    config.setLocalCertificate(cert);
+	config.setLocalCertificate(cert);
     config.setPrivateKey(key);
 
 	if (ca_certificates.size()>0)
