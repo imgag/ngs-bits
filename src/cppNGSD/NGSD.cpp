@@ -834,6 +834,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	if (type==PathType::BAM) output += ps_name + ".bam";
 	else if (type==PathType::GSVAR) output += ps_name + ".GSvar";
 	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
+	else if (type==PathType::VCF_CF_DNA) output += ps_name + "_var.vcf";
 	else if (type==PathType::LOWCOV_BED) output += ps_name + "_" + sys_name_short + "_lowcov.bed";
 	else if (type==PathType::MANTA_EVIDENCE) output += "manta_evid/" + ps_name + "_manta_evidence.bam";
 	else if (type==PathType::BAF) output += ps_name + "_bafs.igv";
@@ -2430,6 +2431,13 @@ QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, c
 
 void NGSD::storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content)
 {
+	//debug
+	QSharedPointer<QFile> out_p = Helper::openFileForWriting("test.vcf", true);
+	out_p->write(vcf_content);
+	out_p->flush();
+	out_p->close();
+
+
 	// get user id
 	int user_id = userId(panel_info.created_by);
 	// get processing system

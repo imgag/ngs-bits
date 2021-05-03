@@ -185,10 +185,12 @@ void DiseaseCourseWidget::createTableView()
 		ui_->vars->setItem(i, col_idx, GUIHelper::createTableItem(variant.info("coding_and_splicing", false)));
 		ui_->vars->item(i, col_idx++)->setToolTip(variant.info("coding_and_splicing", false).replace(",", "\n"));
 
-
-
 		// show tumor af of ref
 		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.info("tumor_af")));
+
+		//rightAlign number columns
+		ui_->vars->item(i, 1)->setTextAlignment(Qt::AlignRight);
+		ui_->vars->item(i, 6)->setTextAlignment(Qt::AlignRight);
 
 		// get tumor af for each cfDNA sample
 		QByteArray key = variant.variantToString().toUtf8();
@@ -208,6 +210,7 @@ void DiseaseCourseWidget::createTableView()
 				cfdna_item->setToolTip("Alt. count:\t" + QString::number(alt_count, 'f', 0).rightJustified(9, ' ')
 									+ "\nDepth:     \t" + QString::number(depth, 'f', 0).rightJustified(7, ' ')
 									+ "\np-value:   \t" + QString::number(p_value, 'f', 4).rightJustified(6, ' '));
+				cfdna_item->setTextAlignment(Qt::AlignRight);
 				ui_->vars->setItem(i, col_idx++, cfdna_item);
 			}
 			else
@@ -219,7 +222,9 @@ void DiseaseCourseWidget::createTableView()
 	}
 
 	// optimize cell sizes
-	GUIHelper::resizeTableCells(ui_->vars, 150);
+	GUIHelper::resizeTableCells(ui_->vars, 250);
 
+	// set row height to fixed value
+	for (int i=0; i<ui_->vars->rowCount(); ++i) ui_->vars->setRowHeight(i, 25);
 
 }

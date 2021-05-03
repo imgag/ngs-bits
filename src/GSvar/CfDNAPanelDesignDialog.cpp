@@ -48,6 +48,9 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 	// fill processing system ComboBox
 	ui_->cb_processing_system->fill(processing_systems, false);
 
+	// set style of Error message
+	ui_->l_error_message->setStyleSheet("QLabel{color: rgb(255, 0, 0);}");
+
 
 	loadPreviousPanels();
 	loadVariants();
@@ -133,6 +136,9 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 
 	//preselect processing system
 	ui_->cb_processing_system->setCurrentText(cfdna_panel_info_.processing_system);
+
+	//update duplicate check
+	updateSystemSelection();
 }
 
 void CfDNAPanelDesignDialog::loadVariants()
@@ -631,6 +637,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	cfdna_panel_info_.processing_system = ui_->cb_processing_system->currentText().toUtf8();
 
 	NGSD().storeCfdnaPanel(cfdna_panel_info_, roi.toText().toUtf8(), vcf_file.toText());
+
 
 	emit accept();
 }

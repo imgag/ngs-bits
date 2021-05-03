@@ -865,7 +865,7 @@ void VcfFile::copyMetaDataForSubsetting(const VcfFile& rhs)
 QByteArray VcfFile::toText() const
 {
 	//open stream
-    QByteArray output;
+	QString output;
 	QTextStream stream(&output);
 
 	//write header information
@@ -878,7 +878,7 @@ QByteArray VcfFile::toText() const
 		storeLineInformation(stream, vcfLine(i));
 	}
 
-	return output;
+	return output.toUtf8();
 }
 
 void VcfFile::fromText(const QByteArray &text)
