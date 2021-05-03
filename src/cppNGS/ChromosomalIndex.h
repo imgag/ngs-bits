@@ -50,6 +50,11 @@ ChromosomalIndex<T>::ChromosomalIndex(const T& container, int bin_size)
 template <class T>
 void ChromosomalIndex<T>::createIndex()
 {
+	//clear index
+	index_.clear();
+	max_length_ = -1;
+
+	//re-create index
 	int min = std::numeric_limits<int>::min();
 	int max = std::numeric_limits<int>::max();
 

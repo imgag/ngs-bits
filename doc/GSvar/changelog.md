@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2021_03-54 (03.05.21)
+- Somatic tumor-only report: Added summary of low coverage regions that overlap transcript.
+- Somatic tumor-normal report: Added target region filter.
+- Sample search: Added run start date filter to sample search.
+
 ### 2021_03-42 (22.04.21)
 - Subpanels are now stored in the NGSD.
 
