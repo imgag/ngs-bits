@@ -150,12 +150,13 @@ void RequestWorker::run()
 				qint64 pos = 0;
 
 				qDebug() << "Content type" + response.getHeaders();
-
+				qint64 file_size = streamed_file.size();
 				while(!streamed_file.atEnd())
 				{
+					if (pos > file_size) break;
 					streamed_file.seek(pos);
 					QByteArray data = streamed_file.read(chunk_size);
-					pos = pos + chunk_size;
+					pos = pos + chunk_size;					
 					sendResponseChunk(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
 					sendResponseChunk(ssl_socket, data.append("\r\n"));
 				}
@@ -211,9 +212,10 @@ void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
 	{
 		qDebug() << "Socket is disconnected and no longer used";
 
+//		emit finished();
 		socket->close();
 		socket->deleteLater();
-		this->quit();
+//		this->quit();
 		return;
 	}
 
