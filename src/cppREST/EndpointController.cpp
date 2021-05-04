@@ -180,10 +180,22 @@ HttpResponse EndpointController::getFileInfo(HttpRequest request)
 
 HttpResponse EndpointController::createStaticFileResponse(QString filename, ByteRange byte_range, ContentType type, bool is_downloadable)
 {
-	StaticFile static_file {};
+	StaticFile static_file;
+
 	try
 	{
-		static_file = readFileContent(filename, byte_range);
+		if ((byte_range.start == 0) && (byte_range.end == 0))
+		{
+			ByteRange entireFile;
+			entireFile.start = 0;
+			entireFile.end = QFileInfo(filename).size() - 1;
+			entireFile.length = QFileInfo(filename).size();
+			static_file = readFileContent(filename, entireFile);
+		}
+		else
+		{
+			static_file = readFileContent(filename, byte_range);
+		}
 	}
 	catch(Exception& e)
 	{
