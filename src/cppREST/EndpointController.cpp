@@ -103,8 +103,12 @@ HttpResponse EndpointController::serveStaticFile(HttpRequest request)
 
 	if (!request.getHeaders().contains("range"))
 	{
-		qDebug() << "Processing STREAM";
-		return createStaticStreamResponse(served_file, false);
+//		qDebug() << "Processing STREAM";
+//		return createStaticStreamResponse(served_file, false);
+
+		qDebug() << "STATIC FILE ALL";
+		return createStaticFileResponse(served_file, ByteRange{}, HttpProcessor::getContentTypeByFilename(served_file), false);
+
 	}
 	qDebug() << "Processing RANGE";
 	return createStaticFileResponse(served_file, byte_range, HttpProcessor::getContentTypeByFilename(served_file), false);
