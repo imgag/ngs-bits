@@ -91,7 +91,7 @@ void DiseaseCourseWidget::loadVariantLists()
 	if (processing_systems.size() > 1) THROW(ArgumentException, "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
 	QString system_name = processing_systems.toList().at(0);
 
-	// TODO: load cfDNA panel
+	// load cfDNA panel
 	QList<CfdnaPanelInfo> cfdna_panels = db_.cfdnaPanelInfo(db_.processedSampleId(tumor_sample_name_), QString::number(db_.processingSystemId(system_name)));
 	if (cfdna_panels.size() < 1) THROW(DatabaseException, "No matchin cfDNA panel for sample " + tumor_sample_name_ + " found in NGSD!");
 	CfdnaPanelInfo cfdna_panel_info  = cfdna_panels.at(0);
