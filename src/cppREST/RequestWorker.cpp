@@ -210,9 +210,10 @@ void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
 	if (socket->state() == QSslSocket::SocketState::UnconnectedState)
 	{
 		qDebug() << "Socket is disconnected and no longer used";
-		this->terminate();
-		exit(1);
-//		this->quit();
+
+		socket->close();
+		socket->deleteLater();
+		this->quit();
 		return;
 	}
 
