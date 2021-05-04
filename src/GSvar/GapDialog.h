@@ -34,7 +34,7 @@ private:
 	NGSD db_;
 	QString ps_;
 	QString bam_;
-	QString lowcov_;
+	QString lowcov_file_;
 	const BedFile& roi_;
 	const GeneSet& genes_;
 	int ngsd_col_;

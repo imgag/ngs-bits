@@ -1784,8 +1784,7 @@ BedFile Statistics::lowCoverage(const BedFile& bed_file, const QString& bam_file
 
 			const int ol_start = std::max(start, al.start()) - start;
 			const int ol_end = std::min(bed_line.end(), al.end()) - start;
-			min_baseq ? countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) :
-						countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
+			min_baseq>0 ? countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) : countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
 		}
 
 		//create low-coverage regions file
@@ -1847,8 +1846,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
-						countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
+			min_baseq>0 ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) : countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
 
 		}
 
@@ -1984,8 +1982,7 @@ BedFile Statistics::highCoverage(const BedFile& bed_file, const QString& bam_fil
 
 			const int ol_start = std::max(start, al.start()) - start;
 			const int ol_end = std::min(bed_line.end(), al.end()) - start;
-			min_baseq ? countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) :
-						countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
+			min_baseq>0 ? countCoverageWithBaseQuality(min_baseq, roi_cov, start, ol_start, ol_end, baseQualities, al) : countCoverageWithoutBaseQuality(roi_cov, ol_start, ol_end);
 
 		}
 
@@ -2049,8 +2046,7 @@ BedFile Statistics::highCoverage(const QString& bam_file, int cutoff, int min_ma
 			if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 			if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
 
-			min_baseq ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) :
-						countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
+			min_baseq>0 ? countCoverageWGSWithBaseQuality(min_baseq, cov, al.start() - 1, al.end(), baseQualities, al) : countCoverageWGSWithoutBaseQuality(al.start()-1, al.end(), cov);
 
 		}
 

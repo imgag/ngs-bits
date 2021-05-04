@@ -531,10 +531,6 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
-		;
-	}
-	else if (user=="ahstoht1")
-	{
 	}
 }
 
@@ -2415,7 +2411,7 @@ void MainWindow::loadFile(QString filename)
 			try
 			{
 				cnvs_.load(cnv_loc.filename);
-				if (cnvs_.count()>50000) THROW(ArgumentException, "CNV file contains too many CNVs - could not load it!")
+				if (cnvs_.count()>80000) THROW(ArgumentException, "CNV file contains too many CNVs - could not load it!")
 			}
 			catch(Exception& e)
 			{

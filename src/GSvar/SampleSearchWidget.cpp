@@ -94,12 +94,16 @@ void SampleSearchWidget::search()
 		params.include_bad_quality_runs = ui_.r_bad_quality->isChecked();
 		params.run_finished = ui_.r_analysis_finished->isChecked();
 
-		QDate run_start_date = QDate::fromString(ui_.r_run_start_date->text(), Qt::ISODate);
-		if (!run_start_date.isValid())
+		QString run_start_date_text = ui_.r_run_start_date->text().trimmed();
+		if(run_start_date_text!="")
 		{
-			THROW(ArgumentException, "Invalid date format for run start given.\nThe expected format is a ISO date, e.g. '2012-09-27'.");
+			QDate run_start_date = QDate::fromString(ui_.r_run_start_date->text(), Qt::ISODate);
+			if (!run_start_date.isValid())
+			{
+				THROW(ArgumentException, "Invalid date format for run start given.\nThe expected format is a ISO date, e.g. '2012-09-27'.");
+			}
+			params.r_before = run_start_date;
 		}
-		params.r_before = run_start_date;
 		params.r_device_name = ui_.r_device_name->text();
 
 		params.add_outcome = ui_.add_outcome->isChecked();
