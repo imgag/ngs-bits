@@ -188,8 +188,8 @@ HttpResponse EndpointController::createStaticFileResponse(QString filename, Byte
 		{
 			ByteRange entireFile;
 			entireFile.start = 0;
-			entireFile.end = QFileInfo(filename).size() - 1;
-			entireFile.length = QFileInfo(filename).size();
+			entireFile.end = 0;
+			entireFile.length = 0;
 			static_file = readFileContent(filename, entireFile);
 		}
 		else
