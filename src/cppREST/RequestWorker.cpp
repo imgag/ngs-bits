@@ -153,7 +153,8 @@ void RequestWorker::run()
 				qint64 file_size = streamed_file.size();
 				while(!streamed_file.atEnd())
 				{
-					if (pos > file_size) break;
+					if ((pos > file_size) || (pos < 0)) break;
+					qDebug() << "pos = " << pos;
 					streamed_file.seek(pos);
 					QByteArray data = streamed_file.read(chunk_size);
 					pos = pos + chunk_size;					
@@ -210,7 +211,7 @@ void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
 	// clinet cancels the stream or simply disconnects
 	if (socket->state() == QSslSocket::SocketState::UnconnectedState)
 	{
-		qDebug() << "Socket is disconnected and no longer used";
+//		qDebug() << "Socket is disconnected and no longer used";
 
 //		emit finished();
 		socket->close();
