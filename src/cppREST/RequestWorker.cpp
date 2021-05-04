@@ -154,7 +154,7 @@ void RequestWorker::run()
 				while(!streamed_file.atEnd())
 				{
 					if ((pos > file_size) || (pos < 0)) break;
-					qDebug() << "pos = " << pos;
+//					qDebug() << "pos = " << pos;
 					streamed_file.seek(pos);
 					QByteArray data = streamed_file.read(chunk_size);
 					pos = pos + chunk_size;					

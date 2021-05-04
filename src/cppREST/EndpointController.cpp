@@ -101,11 +101,11 @@ HttpResponse EndpointController::serveStaticFile(HttpRequest request)
 		return response;
 	}
 
-	if (!request.getHeaders().contains("range"))
-	{
-		qDebug() << "Processing RANGE";
-		return createStaticStreamResponse(served_file, false);
-	}
+//	if (!request.getHeaders().contains("range"))
+//	{
+//		qDebug() << "Processing RANGE";
+//		return createStaticStreamResponse(served_file, false);
+//	}
 	qDebug() << "Processing WHOLE FILE";
 	return createStaticFileResponse(served_file, byte_range, HttpProcessor::getContentTypeByFilename(served_file), false);
 }
