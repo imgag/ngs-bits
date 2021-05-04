@@ -103,11 +103,11 @@ HttpResponse EndpointController::serveStaticFile(HttpRequest request)
 
 	if (!request.getHeaders().contains("range"))
 	{
-//		qDebug() << "Processing STREAM";
-//		return createStaticStreamResponse(served_file, false);
+		qDebug() << "Processing STREAM";
+		return createStaticStreamResponse(served_file, false);
 
-		qDebug() << "STATIC FILE ALL";
-		return createStaticFileResponse(served_file, ByteRange{}, HttpProcessor::getContentTypeByFilename(served_file), false);
+//		qDebug() << "STATIC FILE ALL";
+//		return createStaticFileResponse(served_file, ByteRange{}, HttpProcessor::getContentTypeByFilename(served_file), false);
 
 	}
 	qDebug() << "Processing RANGE";
@@ -221,7 +221,9 @@ HttpResponse EndpointController::createStaticStreamResponse(QString filename, bo
 	response.addHeader("HTTP/1.1 200 OK\r\n");
 	response.addHeader("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
 	response.addHeader("Server: " + ServerHelper::getAppName() + "\r\n");
-	response.addHeader("Transfer-Encoding: chunked\r\n");
+//	response.addHeader("Transfer-Encoding: chunked\r\n");
+	response.addHeader("Content-Length: " + QString::number(QFileInfo(filename).size()) + "\r\n");
+
 	response.addHeader("Connection: Keep-Alive\r\n");
 	response.addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(content_type) + "\r\n");
 

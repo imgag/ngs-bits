@@ -158,8 +158,9 @@ void RequestWorker::run()
 					streamed_file.seek(pos);
 					QByteArray data = streamed_file.read(chunk_size);
 					pos = pos + chunk_size;					
-					sendResponseChunk(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
-					sendResponseChunk(ssl_socket, data.append("\r\n"));
+//					sendResponseChunk(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
+//					sendResponseChunk(ssl_socket, data.append("\r\n"));
+					sendResponseChunk(ssl_socket, data);
 				}
 			}
 			else
@@ -169,8 +170,9 @@ void RequestWorker::run()
 				while(!stream.atEnd())
 				{
 					QByteArray line = stream.readLine().append("\n").toLocal8Bit();
-					sendResponseChunk(ssl_socket, intToHex(line.size()).toLocal8Bit()+"\r\n");
-					sendResponseChunk(ssl_socket, line+"\r\n");
+//					sendResponseChunk(ssl_socket, intToHex(line.size()).toLocal8Bit()+"\r\n");
+//					sendResponseChunk(ssl_socket, line+"\r\n");
+					sendResponseChunk(ssl_socket, line);
 				}
 			}
 			streamed_file.close();
@@ -247,8 +249,8 @@ void RequestWorker::finishChunckedResponse(QSslSocket* socket)
 
 	if (!socket->bytesToWrite())
 	{		
-		socket->write("0\r\n");
-		socket->write("\r\n");
+//		socket->write("0\r\n");
+//		socket->write("\r\n");
 		closeAndDeleteSocket(socket);
 		return;
 	}
