@@ -53,6 +53,8 @@ void RequestWorker::run()
 		qDebug() << "Read the request";
 		// Read the request
 		QByteArray raw_request = ssl_socket->readAll();
+
+		qDebug() << "Raw request" << raw_request;
 		HttpRequest parsed_request;
 		RequestPaser *parser = new RequestPaser(&raw_request, ssl_socket->peerAddress().toString());
 		try
@@ -81,6 +83,7 @@ void RequestWorker::run()
 		}
 		catch (ArgumentException& e)
 		{
+			qDebug() << "Validation has failed";
 			sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::BAD_REQUEST, parsed_request.getContentType(), e.message()}));
 			return;
 		}
@@ -91,6 +94,7 @@ void RequestWorker::run()
 
 		qDebug() << "Trying to execute an action";
 		qDebug() << "Headers = " << parsed_request.getHeaders();
+		qDebug() << "vars = " << parsed_request.getPathParams();
 		try
 		{
 			response = (*endpoint_action_)(parsed_request);
@@ -172,7 +176,7 @@ void RequestWorker::run()
 			finishChunckedResponse(ssl_socket);
 			return;
 		}
-		else if (!response.getPayload().isNull())
+		else if ((!response.getPayload().isNull()) || (parsed_request.getMethod() == RequestMethod::HEAD))
 		{
 			sendEntireResponse(ssl_socket, response);
 			return;

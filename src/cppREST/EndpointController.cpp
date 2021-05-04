@@ -81,10 +81,32 @@ HttpResponse EndpointController::serveStaticFile(HttpRequest request)
 	}
 	byte_range.length = ((byte_range.end - byte_range.start) > -1.0) ? (byte_range.end - byte_range.start) : 0;
 
+	if (request.getMethod() == RequestMethod::HEAD)
+	{
+		qDebug() << "Processing HEAD method";
+		HttpResponse response;
+		response.setIsStream(false);
+		response.setIsBinary(false);
+		response.setFilename(served_file);
+
+		QByteArray headers;
+		headers.append("HTTP/1.1 200 OK\r\n");
+		headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
+		headers.append("Server: " + ServerHelper::getAppName() + "\r\n");
+		headers.append("Last-Modified: " + QFileInfo(served_file).lastModified().toUTC().toString() + "\r\n");
+		headers.append("Content-Length: " + QString::number(QFileInfo(served_file).size()) + "\r\n");
+		headers.append("Accept-Ranges: bytes\r\n");
+
+		response.setHeaders(headers);
+		return response;
+	}
+
 	if (!request.getHeaders().contains("range"))
 	{
+		qDebug() << "Processing RANGE";
 		return createStaticStreamResponse(served_file, false);
 	}
+	qDebug() << "Processing WHOLE FILE";
 	return createStaticFileResponse(served_file, byte_range, HttpProcessor::getContentTypeByFilename(served_file), false);
 }
 

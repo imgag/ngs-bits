@@ -170,6 +170,10 @@ RequestMethod RequestPaser::inferRequestMethod(QByteArray input)
 	{
 		return RequestMethod::PATCH;
 	}
+	if (input.toUpper() == QByteArrayLiteral("HEAD"))
+	{
+		return RequestMethod::HEAD;
+	}
 
 	THROW(ArgumentException, "Incorrect request method");
 }

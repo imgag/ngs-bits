@@ -71,7 +71,8 @@ typedef enum
 	POST,
 	DELETE,
 	PUT,
-	PATCH
+	PATCH,
+	HEAD,
 } RequestMethod;
 
 struct CPPRESTSHARED_EXPORT ByteRange

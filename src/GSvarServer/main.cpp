@@ -122,6 +122,18 @@ int main(int argc, char **argv)
 						"Static content served from the server root folder (defined in the config file)",
 						&EndpointController::serveStaticFile
 				   });
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"static",
+						QMap<QString, ParamProps>{
+						   {"filename", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::PATH_PARAM, false, "Name of the file to be served"}}
+						},
+						RequestMethod::HEAD,
+						ContentType::TEXT_HTML,
+						"Size of the static content served from the server root folder (defined in the config file)",
+						&EndpointController::serveStaticFile
+				   });
+
 	EndpointManager::appendEndpoint(Endpoint{
 						"textstream",
 						QMap<QString, ParamProps>{
@@ -153,6 +165,18 @@ int main(int argc, char **argv)
 						"Static file served via secure temporary URL",
 						&EndpointController::serveStaticFile
 				   });
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"temp",
+						QMap<QString, ParamProps>{
+						   {"id", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::PATH_PARAM, false, "Unique id pointing to a file"}}
+						},
+						RequestMethod::HEAD,
+						ContentType::TEXT_HTML,
+						"Size of the static file served via secure temporary URL",
+						&EndpointController::serveStaticFile
+				   });
+
 	EndpointManager::appendEndpoint(Endpoint{
 						"help",
 						QMap<QString, ParamProps>{

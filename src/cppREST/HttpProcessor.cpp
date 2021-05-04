@@ -96,6 +96,7 @@ QString HttpProcessor::convertMethodTypeToString(RequestMethod in)
 		case RequestMethod::DELETE: return "delete";
 		case RequestMethod::PUT: return "put";
 		case RequestMethod::PATCH: return "patch";
+		case RequestMethod::HEAD: return "head";
 		default: return "unknown";
 	}
 }
