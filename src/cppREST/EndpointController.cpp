@@ -101,12 +101,12 @@ HttpResponse EndpointController::serveStaticFile(HttpRequest request)
 		return response;
 	}
 
-//	if (!request.getHeaders().contains("range"))
-//	{
-//		qDebug() << "Processing RANGE";
-//		return createStaticStreamResponse(served_file, false);
-//	}
-	qDebug() << "Processing WHOLE FILE";
+	if (!request.getHeaders().contains("range"))
+	{
+		qDebug() << "Processing STREAM";
+		return createStaticStreamResponse(served_file, false);
+	}
+	qDebug() << "Processing RANGE";
 	return createStaticFileResponse(served_file, byte_range, HttpProcessor::getContentTypeByFilename(served_file), false);
 }
 
@@ -184,18 +184,7 @@ HttpResponse EndpointController::createStaticFileResponse(QString filename, Byte
 
 	try
 	{
-		if ((byte_range.start == 0) && (byte_range.end == 0))
-		{
-			ByteRange entireFile;
-			entireFile.start = 0;
-			entireFile.end = 0;
-			entireFile.length = 0;
-			static_file = readFileContent(filename, entireFile);
-		}
-		else
-		{
-			static_file = readFileContent(filename, byte_range);
-		}
+		static_file = readFileContent(filename, byte_range);
 	}
 	catch(Exception& e)
 	{
