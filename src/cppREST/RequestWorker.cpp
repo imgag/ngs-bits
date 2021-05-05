@@ -215,7 +215,7 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 	socket->flush();
 	socket->waitForBytesWritten();
 //	socket->close();
-	socket->deleteLater();
+//	socket->deleteLater();
 }
 
 void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
