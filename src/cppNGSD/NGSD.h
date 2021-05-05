@@ -447,6 +447,28 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 	bool filtered_by_trio_relaxed;
 };
 
+/// Metadata of cfDNA panel DB entry
+struct CfdnaPanelInfo
+{
+	int id = -1;
+	int tumor_id = -1;
+	int cfdna_id = -1;
+	QByteArray created_by;
+	QDate created_date;
+	QByteArray processing_system;
+};
+
+/// cfDNA Gene entry
+struct CfdnaGeneEntry
+{
+	QString gene_name;
+	Chromosome chr;
+	int start;
+	int end;
+	QDate date;
+	BedFile bed = BedFile();
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -682,12 +704,24 @@ public:
 	///Returns the subpanel genes.
 	GeneSet subpanelGenes(QString name);
 
+	///Returns all coresponding cfDNA panel info for a given processed sample
+	QList<CfdnaPanelInfo> cfdnaPanelInfo(const QString& processed_sample_id, const QString& processing_system_id = "");
+	///stores a cfDNA panel in the NGSD
+	void storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content);
+	///Returns the BED file of a given cfDNA panel
+	BedFile cfdnaPanelRegions(int id);
+	///Returns the VCF of a given cfDNA panel
+	VcfFile cfdnaPanelVcf(int id);
+	///Returns all available cfDNA gene entries
+	QList<CfdnaGeneEntry> cfdnaGenes();
+
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)
 	QVector<double> getQCValues(const QString& accession, const QString& processed_sample_id);
 	///Returns the next processing ID for the given sample.
 	QString nextProcessingId(const QString& sample_id);
+
 
 	///Returns classification information
 	ClassificationInfo getClassification(const Variant& variant);

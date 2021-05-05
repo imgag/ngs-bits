@@ -10,16 +10,7 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "DBComboBox.h"
-
-struct GeneEntry
-{
-	QString gene_name;
-	Chromosome chr;
-	int start;
-	int end;
-	QDate date;
-	QString file_path;
-};
+#include "NGSD.h"
 
 namespace Ui {
 class CfDNAPanelDesignDialog;
@@ -48,9 +39,10 @@ private slots:
 	void updateSelectedVariantCount();
 	void updateSelectedHotspotCount();
 	void openVariantInIGV(QTableWidgetItem* item);
+	void updateSystemSelection();
 
 private:
-	void loadPreviousPanels(const DBTable& processing_systems);
+	void loadPreviousPanels();
 	void loadVariants();
 	void loadGenes();
 	void loadHotspotRegions();
@@ -60,8 +52,13 @@ private:
 	const FilterResult& filter_result_;
 	const SomaticReportConfiguration& somatic_report_configuration_;
 	QMap<QString, bool> prev_vars_;
+	QSet<QString> prev_genes_;
+	bool prev_kasp_;
+	QMap<QString, bool> prev_hotspots_;
 	QString processed_sample_name_;
-	QList<GeneEntry> genes_;
+    QString processed_sample_id_;
+	QList<CfdnaGeneEntry> genes_;
+	CfdnaPanelInfo cfdna_panel_info_;
 };
 
 #endif // CFDNAPANELDESIGNDIALOG_H

@@ -715,4 +715,33 @@ private slots:
 		I_EQUAL(vcf_file.formatIDToIdxList().keys().count(), 1);
 		I_EQUAL(vcf_file.infoIDToIdxList().keys().count(), 4);
 	}
+
+    void convertToStringAndParseFromString()
+    {
+        VcfFile vcf_file;
+        vcf_file.load(TESTDATA("data_in/panel_vep.vcf"));
+
+        // to string
+        QByteArray vcf_string = vcf_file.toText();
+
+
+        // from string
+        VcfFile vcf_file_from_text;
+        vcf_file_from_text.fromText(vcf_string);
+
+        // write to file
+        vcf_file.store("out/panel_vep_fromString.vcf");
+
+        COMPARE_FILES("out/panel_vep_fromString.vcf", TESTDATA("data_in/panel_vep.vcf"));
+    }
+
+    void loadStoreComparison()
+    {
+        VcfFile vcf_file;
+        vcf_file.load(TESTDATA("data_in/panel_vep.vcf"));
+        vcf_file.store("out/panel_vep_loadStore.vcf");
+        COMPARE_FILES("out/panel_vep_loadStore.vcf", TESTDATA("data_in/panel_vep.vcf"));
+
+    }
+
 };

@@ -2,7 +2,9 @@
 #define CFDNAPANELWIDGET_H
 
 #include "BedFile.h"
+#include "NGSD.h"
 #include <QWidget>
+
 
 namespace Ui {
 class cfDNAPanelWidget;
@@ -13,7 +15,7 @@ class CfDNAPanelWidget : public QWidget
 	Q_OBJECT
 
 public:
-	explicit CfDNAPanelWidget(const QString& bed_file_path, const QString& tumor_sample_name, QWidget *parent = 0);
+	explicit CfDNAPanelWidget(const CfdnaPanelInfo& panel_info, QWidget *parent = 0);
 	~CfDNAPanelWidget();
 
 private slots:
@@ -23,8 +25,7 @@ private slots:
 private:
 	Ui::cfDNAPanelWidget *ui_;
 	void loadBedFile();
-	QString bed_file_path_;
-	QString tumor_sample_name_;
+	CfdnaPanelInfo panel_info_;
 	BedFile bed_file_;
 
 };

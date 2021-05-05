@@ -1,9 +1,12 @@
 #include "CfDNAPanelDesignDialog.h"
 #include "ui_CfDNAPanelDesignDialog.h"
 #include "GUIHelper.h"
+#include "LoginManager.h"
+#include "NGSD.h"
 #include <QMessageBox>
 #include <QMenu>
 #include <QDir>
+#include <QPushButton>
 
 
 CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
@@ -14,6 +17,17 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 	somatic_report_configuration_(somatic_report_configuration),
 	processed_sample_name_(processed_sample_name)
 {
+
+    // abort if no connection to NGSD
+    if (!LoginManager::active())
+    {
+        GUIHelper::showMessage("No connection to the NGSD!", "You need access to the NGSD to design cfDNA panels!");
+        this->close();
+    }
+
+    processed_sample_id_ = NGSD().processedSampleId(processed_sample_name_);
+
+
 	// remove '?' entry
 	setWindowFlags(windowFlags() & (~Qt::WindowContextHelpButtonHint));
 
@@ -25,6 +39,7 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 	connect(ui_->genes,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showGeneContextMenu(QPoint)));
 	connect(ui_->cb_hotspot_regions, SIGNAL(stateChanged(int)), this, SLOT(showHotspotRegions(int)));
 	connect(ui_->vars,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(openVariantInIGV(QTableWidgetItem*)));
+	connect(ui_->cb_processing_system,SIGNAL(currentTextChanged(QString)),this,SLOT(updateSystemSelection()));
 
 	// set context menus for tables
 	ui_->vars->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -33,8 +48,11 @@ CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, cons
 	// fill processing system ComboBox
 	ui_->cb_processing_system->fill(processing_systems, false);
 
+	// set style of Error message
+	ui_->l_error_message->setStyleSheet("QLabel{color: rgb(255, 0, 0);}");
 
-	loadPreviousPanels(processing_systems);
+
+	loadPreviousPanels();
 	loadVariants();
 	loadHotspotRegions();
 	loadGenes();
@@ -45,49 +63,41 @@ CfDNAPanelDesignDialog::~CfDNAPanelDesignDialog()
 	delete ui_;
 }
 
-void CfDNAPanelDesignDialog::loadPreviousPanels(const DBTable& processing_systems)
+void CfDNAPanelDesignDialog::loadPreviousPanels()
 {
-	QStringList previous_panel_files;
-	for (int i = 0; i < processing_systems.rowCount(); ++i)
-	{
-		// check if previous panel exists
-		QString processing_system = processing_systems.row(i).value(0);
-		QString output_path = Settings::path("patient_specific_panel_folder", false) + processing_system + "/" +  processed_sample_name_ + ".vcf";
-		if(QFile::exists(output_path)) previous_panel_files.append(output_path);
-	}
+	// clear prev panel
+	cfdna_panel_info_ = CfdnaPanelInfo();
+	prev_vars_.clear();
+	prev_genes_.clear();
+	prev_kasp_ = true;
+	prev_hotspots_.clear();
 
-	if(previous_panel_files.size() > 0)
-	{
+	QList<CfdnaPanelInfo> previous_panels = NGSD().cfdnaPanelInfo(processed_sample_id_);
 
-		QString message_text = "A personalized cfDNA panel file for the processed sample " + processed_sample_name_ + " already exists.\n";
-		int load_previous_panel = QMessageBox::information(this, "cfDNA panel found", message_text + "Would you like to load the previous panel?\n\n"
-														   + previous_panel_files.join("\n"), QMessageBox::Yes, QMessageBox::Cancel);
-		if (load_previous_panel!=QMessageBox::Yes)
+    if(previous_panels.size() > 0)
+	{
+        QStringList panel_text;
+		foreach (const CfdnaPanelInfo& panel, previous_panels)
+        {
+			panel_text.append("cfDNA panel for " + panel.processing_system  + " (" + panel.created_date.toString("dd.MM.yyyy") + " by " + panel.created_by + ")");
+        }
+
+		QComboBox* cfdna_panel_selector = new QComboBox(this);
+		cfdna_panel_selector->addItems(panel_text);
+
+		// create dlg
+		QString message_text = "<br/>A personalized cfDNA panel file for the processed sample " + processed_sample_name_ + " already exists.<br/>"
+				+ "<br/>Select the cfDNA panel which should be loaded or press 'cancel' to create a new panel:";
+		auto dlg = GUIHelper::createDialog(cfdna_panel_selector, "Personalized cfDNA panel for " + processed_sample_name_ + " found", message_text, true);
+		int btn = dlg->exec();
+		if (btn!=1)
 		{
 			return;
 		}
-		QString selected_panel;
-		if(previous_panel_files.size() > 1)
-		{
-			QComboBox* vcf_file_selector = new QComboBox(this);
-			vcf_file_selector->addItems(previous_panel_files);
+		cfdna_panel_info_ = previous_panels.at(cfdna_panel_selector->currentIndex());
 
-			// create dlg
-			auto dlg = GUIHelper::createDialog(vcf_file_selector, "Select cfDNA panel", "Select the cfDNA panel which should be loaded:", true);
-			int btn = dlg->exec();
-			if (btn!=1)
-			{
-				return;
-			}
-			selected_panel = vcf_file_selector->currentText();
-		}
-		else
-		{
-			selected_panel = previous_panel_files.at(0);
-		}
 		// load previous panel
-		VcfFile prev_panel;
-		prev_panel.load(selected_panel);
+		VcfFile prev_panel = NGSD().cfdnaPanelVcf(cfdna_panel_info_.id);
 		for (int i = 0; i < prev_panel.count(); ++i)
 		{
 			const VcfLine& var = prev_panel.vcfLine(i);
@@ -95,7 +105,40 @@ void CfDNAPanelDesignDialog::loadPreviousPanels(const DBTable& processing_system
 			QString vcf_pos = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + " " + var.ref() + ">" + var.altString();
 			prev_vars_.insert(vcf_pos, false);
 		}
+		//load genes, KASP and hotspot regions
+		BedFile prev_panel_regions =  NGSD().cfdnaPanelRegions(cfdna_panel_info_.id);
+		prev_kasp_ = false;
+		for (int i = 0; i < prev_panel_regions.count(); ++i)
+		{
+			const BedLine& bed_line = prev_panel_regions[i];
+			const QByteArray& annotation = bed_line.annotations().at(0);
+			//genes
+			if (annotation.startsWith("gene:"))
+			{
+				prev_genes_.insert(annotation.split(':').at(1).trimmed());
+			}
+			//KASP
+			else if (annotation.startsWith("SNP_for_sample_identification:KASP_set2"))
+			{
+				prev_kasp_ = true;
+			}
+			//hotspots
+			else if (annotation.startsWith("hotspot_region:"))
+			{
+				prev_hotspots_.insert(bed_line.toString(true), false);
+			}
+		}
+
 	}
+
+	//activate KASP identifier
+	ui_->cb_sample_identifier->setCheckState((prev_kasp_)?Qt::Checked:Qt::Unchecked);
+
+	//preselect processing system
+	ui_->cb_processing_system->setCurrentText(cfdna_panel_info_.processing_system);
+
+	//update duplicate check
+	updateSystemSelection();
 }
 
 void CfDNAPanelDesignDialog::loadVariants()
@@ -180,16 +223,12 @@ void CfDNAPanelDesignDialog::loadVariants()
 		}
 
 
-//		// filter variants by filter column
-//		if (variant.filters().length() != 0) continue;
 
 		// get report config for variant
 		SomaticReportVariantConfiguration var_conf;
 		if (report_config_indices.contains(i))
 		{
 			var_conf = somatic_report_configuration_.variantConfig(i, VariantType::SNVS_INDELS);
-			//exclude artifacts
-//			if (var_conf.exclude_artefact) continue;
 		}
 
 		// create table
@@ -259,9 +298,9 @@ void CfDNAPanelDesignDialog::loadVariants()
 
 	if(missing_prev_vars.size() > 0)
 	{
-		GUIHelper::showMessage("Variant not found",
-							   "The following variants are part of the loaded cfDNA panel, but are missing in the current variant list:\n\n"
-							   + missing_prev_vars.join("\n"));
+		QMessageBox::warning(this, "Variant not found",
+							 "The following variants are part of the loaded cfDNA panel, but are missing in the current variant list:\n\n"
+							 + missing_prev_vars.join("\n"));
 	}
 
 
@@ -297,7 +336,17 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 
 		QTableWidgetItem* select_item = GUIHelper::createTableItem("");
 		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
-		select_item->setCheckState(Qt::Unchecked);
+		// precheck if in loaded panel
+		if (prev_hotspots_.contains(line.toString(true)))
+		{
+			select_item->setCheckState(Qt::Checked);
+			prev_hotspots_[line.toString(true)] = true;
+
+		}
+		else
+		{
+			select_item->setCheckState(Qt::Unchecked);
+		}
 
 		// store file path in first cell
 		select_item->setData(Qt::UserRole, i);
@@ -308,6 +357,23 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 		ui_->hotspot_regions->setItem(i, col_idx++, GUIHelper::createTableItem(QString::number(line.start())));
 		ui_->hotspot_regions->setItem(i, col_idx++, GUIHelper::createTableItem(QString::number(line.end())));
 		if (line.annotations().size() > 0) ui_->hotspot_regions->setItem(i, col_idx++, GUIHelper::createTableItem(line.annotations().at(0)));
+	}
+
+	// activate hotspot region view
+	if (prev_hotspots_.size() > 0) ui_->cb_hotspot_regions->setCheckState(Qt::Checked);
+
+	// check if all previous previous hotspot were found
+	QStringList missing_prev_hotspots;
+	foreach (const QString& region, prev_hotspots_.keys())
+	{
+		if (!prev_hotspots_.value(region)) missing_prev_hotspots.append(region);
+	}
+
+	if(missing_prev_hotspots.size() > 0)
+	{
+		QMessageBox::warning(this, "Hotspot region not found", QString() + "The following hotspot regions are part of the loaded cfDNA panel, "
+							 + "but are missing in the current hotspot list \n(Maybe the hotspot list has been updated):\n\n"
+							 + missing_prev_hotspots.join("\n"));
 	}
 
 	// optimize cell sizes
@@ -323,35 +389,8 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 
 void CfDNAPanelDesignDialog::loadGenes()
 {
-	// get all bed files in the genes folder
-	QDir gene_folder(Settings::path("patient_specific_panel_folder", false) + "genes/"); //TODO it should be moved to the database > LEON
-	QStringList bed_file_paths = gene_folder.entryList(QStringList() << "*.bed" << "*.BED", QDir::Files);
-
-	// extract info
-	foreach (const QString& file_name, bed_file_paths)
-	{
-		GeneEntry gene_entry;
-		gene_entry.file_path = gene_folder.absolutePath() + "/" + file_name;
-		QString base_name = QFileInfo(file_name).baseName();
-		QStringList parts = base_name.split("_");
-		if(parts.length() != 2)
-		{
-			QMessageBox::warning(this, "Invalid File", "Invalid BED file name '" + file_name + "' found in gene folder. Skipping file.");
-			continue;
-		}
-		gene_entry.gene_name = parts.at(0).trimmed();
-		gene_entry.date = QDate::fromString(parts.at(1).trimmed(), "yyyy-MM-dd");
-
-		// load BED file to get gene start and end
-		BedFile bed_file;
-		bed_file.load(gene_entry.file_path);
-		gene_entry.chr = bed_file[0].chr();
-		gene_entry.start = bed_file[0].start();
-		gene_entry.end = bed_file[bed_file.count()-1].end();
-
-		// add gene bed file to list
-		genes_.append(gene_entry);
-	}
+	// get all genes from NGSD
+	genes_=NGSD().cfdnaGenes();
 
 	// create table
 
@@ -370,14 +409,23 @@ void CfDNAPanelDesignDialog::loadGenes()
 
 	// fill table
 	int r = 0;
-	foreach (const GeneEntry& entry, genes_)
+	foreach (const CfdnaGeneEntry& entry, genes_)
 	{
 		QTableWidgetItem* select_item = GUIHelper::createTableItem("");
 		select_item->setFlags(select_item->flags() | Qt::ItemIsUserCheckable); // add checkbox
-		select_item->setCheckState(Qt::Unchecked);
+		// precheck if in loaded panel
+		if (prev_genes_.contains(entry.gene_name))
+		{
+			select_item->setCheckState(Qt::Checked);
+		}
+		else
+		{
+			select_item->setCheckState(Qt::Unchecked);
+		}
+
 
 		// store file path in first cell
-		select_item->setData(Qt::UserRole, entry.file_path);
+		select_item->setData(Qt::UserRole, r);
 
 		ui_->genes->setItem(r, 0, select_item);
 		ui_->genes->setItem(r, 1, GUIHelper::createTableItem(entry.gene_name));
@@ -459,6 +507,26 @@ void CfDNAPanelDesignDialog::openVariantInIGV(QTableWidgetItem* item)
 	emit openInIGV(coords);
 }
 
+void CfDNAPanelDesignDialog::updateSystemSelection()
+{
+	// skip on loaded panels
+	if ((cfdna_panel_info_.id != -1) && (ui_->cb_processing_system->currentText().toUtf8() == cfdna_panel_info_.processing_system))
+	{
+		ui_->l_error_message->setVisible(false);
+		ui_->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
+		return;
+	}
+
+	// get processing system id
+	int sys_id = NGSD().processingSystemId(ui_->cb_processing_system->currentText());
+
+	bool panel_exists = (NGSD().cfdnaPanelInfo(processed_sample_id_, QString::number(sys_id)).size() > 0);
+
+	// (de-)activate OK button and error message
+	ui_->l_error_message->setVisible(panel_exists);
+	ui_->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!panel_exists);
+}
+
 void CfDNAPanelDesignDialog::createOutputFiles()
 {
 
@@ -508,20 +576,16 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	{
 		if (ui_->genes->item(r, 0)->checkState() == Qt::Checked)
 		{
-			QString file_path = ui_->genes->item(r, 0)->data(Qt::UserRole).toString();
+			int idx = ui_->genes->item(r, 0)->data(Qt::UserRole).toInt();
 			QString gene_name = ui_->genes->item(r, 1)->text();
-
-			// load single gene bed file
-			BedFile gene;
-			gene.load(file_path);
-			gene.clearAnnotations();
 
 			// add to overall gene list
 			QByteArrayList annotations;
 			annotations.append("gene:" + gene_name.toUtf8());
-			for (int i = 0; i < gene.count(); ++i)
+			const BedFile& bed = genes_.at(idx).bed;
+			for (int i = 0; i < bed.count(); ++i)
 			{
-				roi.append(BedLine(gene[i].chr(), gene[i].start(), gene[i].end(), annotations));
+				roi.append(BedLine(bed[i].chr(), bed[i].start(), bed[i].end(), annotations));
 			}
 		}
 	}
@@ -551,6 +615,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		roi.append(BedLine(vcf_file[i].chr(), vcf_file[i].start(), vcf_file[i].end(), QByteArrayList() << "patient_specific_somatic_variant:" + vcf_file[i].ref() + ">" + vcf_file[i].altString()));
 	}
 
+
 	// check number of selected variants
 	if (variant_count < 25)
 	{
@@ -563,28 +628,16 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		}
 	}
 
-	QString output_path = Settings::path("patient_specific_panel_folder", false);
-	output_path += ui_->cb_processing_system->currentText() + "/";
-
-	// create output folder if it not exists
-	if (!QDir(output_path).exists()) QDir().mkdir(output_path);
-
-	// check if panel already exists
-	if (QFile::exists(output_path + processed_sample_name_ + ".vcf") || QFile::exists(output_path + processed_sample_name_ + ".bed"))
-	{
-		int btn = QMessageBox::information(this, "Panel file already exists", "A personalized cfDNA panel file for the processed sample "
-										   + processed_sample_name_ + " already exists.\nWould you like to overide the previous panel?",
-										   QMessageBox::Yes, QMessageBox::Cancel);
-		if (btn!=QMessageBox::Yes)
-		{
-			return;
-		}
-	}
-
-	// store variant list
-	vcf_file.store(output_path + processed_sample_name_ + ".vcf", false, 0);
+	// store variant list in data base
 	roi.sort();
-	roi.store(output_path + processed_sample_name_ + ".bed");
+
+	cfdna_panel_info_.tumor_id = processed_sample_id_.toInt();
+	cfdna_panel_info_.created_by = LoginManager::userName().toUtf8();
+	cfdna_panel_info_.created_date = QDate::currentDate();
+	cfdna_panel_info_.processing_system = ui_->cb_processing_system->currentText().toUtf8();
+
+	NGSD().storeCfdnaPanel(cfdna_panel_info_, roi.toText().toUtf8(), vcf_file.toText());
+
 
 	emit accept();
 }

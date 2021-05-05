@@ -834,6 +834,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	if (type==PathType::BAM) output += ps_name + ".bam";
 	else if (type==PathType::GSVAR) output += ps_name + ".GSvar";
 	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
+	else if (type==PathType::VCF_CF_DNA) output += ps_name + "_var.vcf";
 	else if (type==PathType::LOWCOV_BED) output += ps_name + "_" + sys_name_short + "_lowcov.bed";
 	else if (type==PathType::MANTA_EVIDENCE) output += "manta_evid/" + ps_name + "_manta_evidence.bam";
 	else if (type==PathType::BAF) output += ps_name + "_bafs.igv";
@@ -1920,7 +1921,7 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 			else if(type=="datetime") info.type = TableFieldInfo::DATETIME;
 			else if(type=="timestamp") info.type = TableFieldInfo::TIMESTAMP;
 			else if(type=="tinyint(1)") info.type = TableFieldInfo::BOOL;
-			else if(type.startsWith("int(") || type.startsWith("tinyint(")) info.type = TableFieldInfo::INT;
+            else if(type=="int" || type.startsWith("int(") || type.startsWith("tinyint(")) info.type = TableFieldInfo::INT;
 			else if(type.startsWith("enum("))
 			{
 				info.type = TableFieldInfo::ENUM;
@@ -2376,6 +2377,127 @@ GeneSet NGSD::subpanelGenes(QString name)
 	QByteArray genes = getValue("SELECT genes FROM subpanels WHERE name=:0", false, name).toByteArray();
 
 	return GeneSet::createFromText(genes);
+}
+
+QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, const QString& processing_system_id)
+{
+	// get all cfDNA Panel for the given tumor id
+	QList<CfdnaPanelInfo> cfdna_panels;
+	SqlQuery query = getQuery();
+	if(processing_system_id.isEmpty())
+	{
+		query.prepare("SELECT id, tumor_id, cfdna_id, created_by, created_date, `processing_system_id` FROM cfdna_panels WHERE tumor_id=:0");
+		query.bindValue(0, processed_sample_id);
+	}
+	else
+	{
+		query.prepare("SELECT id, tumor_id, cfdna_id, created_by, created_date, `processing_system_id` FROM cfdna_panels WHERE tumor_id=:0 AND `processing_system_id`=:1");
+		query.bindValue(0, processed_sample_id);
+		query.bindValue(1, processing_system_id);
+	}
+
+	query.exec();
+	while(query.next())
+	{
+		bool ok;
+		CfdnaPanelInfo panel;
+		panel.id = query.value(0).toInt(&ok);
+		if (!ok) THROW(DatabaseException, "Error parsing id in cfdna_panels!");
+		panel.tumor_id = query.value(1).toInt(&ok);
+		if (!ok) THROW(DatabaseException, "Error parsing tumor_id in cfdna_panels!");
+        if (query.value(2) == QVariant())
+        {
+            panel.cfdna_id = -1;
+        }
+        else
+        {
+            panel.cfdna_id = query.value(2).toInt(&ok);
+            if (!ok) THROW(DatabaseException, "Error parsing cfdna_id in cfdna_panels!");
+        }
+		int user_id = query.value(3).toInt(&ok);
+		 if (!ok) THROW(DatabaseException, "Error parsing created_by in cfdna_panels!");
+		panel.created_by = userLogin(user_id).toUtf8();
+
+		panel.created_date = query.value(4).toDate();
+		int p_sys_id = query.value(5).toInt(&ok);
+		if (!ok) THROW(DatabaseException, "Error parsing processing_system in cfdna_panels!");
+		panel.processing_system = getValue("SELECT name_short FROM processing_system WHERE id=:0", false, QString::number(p_sys_id)).toString().toUtf8();
+
+		cfdna_panels.append(panel);
+	}
+
+	return cfdna_panels;
+}
+
+void NGSD::storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content)
+{
+	//debug
+	QSharedPointer<QFile> out_p = Helper::openFileForWriting("test.vcf", true);
+	out_p->write(vcf_content);
+	out_p->flush();
+	out_p->close();
+
+
+	// get user id
+	int user_id = userId(panel_info.created_by);
+	// get processing system
+	int sys_id = processingSystemId(panel_info.processing_system);
+
+	SqlQuery query = getQuery();
+	if (panel_info.id == -1)
+	{
+		query.prepare("INSERT INTO `cfdna_panels` (`tumor_id`, `created_by`, `created_date`, `processing_system_id`, `bed`, `vcf`) VALUES (:0, :1, :2, :3, :4, :5);");
+
+	}
+	else
+	{
+		query.prepare("UPDATE `cfdna_panels` SET `tumor_id`=:0, `created_by`=:1, `created_date`=:2, `processing_system_id`=:3, `bed`=:4, `vcf`=:5  WHERE `id`=:6");
+		query.bindValue(6, panel_info.id);
+	}
+
+	// bind values
+	query.bindValue(0, panel_info.tumor_id);
+	query.bindValue(1, user_id);
+	query.bindValue(2, panel_info.created_date);
+	query.bindValue(3, sys_id);
+	query.bindValue(4, bed_content);
+	query.bindValue(5, vcf_content);
+
+	query.exec();
+}
+
+BedFile NGSD::cfdnaPanelRegions(int id)
+{
+	return BedFile::fromText(getValue("SELECT bed FROM cfdna_panels WHERE id=:0", false, QString::number(id)).toString().toUtf8());
+}
+
+VcfFile NGSD::cfdnaPanelVcf(int id)
+{
+	VcfFile vcf;
+	vcf.fromText(getValue("SELECT vcf FROM cfdna_panels WHERE id=:0", false, QString::number(id)).toString().toUtf8());
+	return vcf;
+}
+
+QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
+{
+	QList<CfdnaGeneEntry> genes;
+	SqlQuery query = getQuery();
+	query.exec("SELECT `gene_name`, `chr`, `start`, `end`, `date`, `bed` FROM cfdna_panel_genes");
+
+	while (query.next())
+	{
+		CfdnaGeneEntry gene_entry;
+		gene_entry.gene_name = query.value("gene_name").toString();
+		gene_entry.chr = Chromosome(query.value("chr").toString());
+		gene_entry.start = query.value("start").toInt();
+		gene_entry.end = query.value("end").toInt();
+		gene_entry.date = query.value("date").toDate();
+		gene_entry.bed = BedFile::fromText(query.value("bed").toString().toUtf8());
+
+		genes.append(gene_entry);
+	}
+
+	return genes;
 }
 
 QCCollection NGSD::getQCData(const QString& processed_sample_id)

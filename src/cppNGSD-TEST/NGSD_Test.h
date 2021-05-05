@@ -1233,6 +1233,35 @@ private slots:
 		S_EQUAL(db.omimPreferredPhenotype("BRCA1", "Neoplasms"), "");
 		S_EQUAL(db.omimPreferredPhenotype("ATM", "Diseases of the immune system"), "");
 		S_EQUAL(db.omimPreferredPhenotype("ATM", "Neoplasms"), "114480");
+
+
+		//cfDNA panels
+		CfdnaPanelInfo panel_info;
+		panel_info.tumor_id = db.processedSampleId("DX184894_01").toInt();
+		panel_info.created_by = "ahmustm1";
+		panel_info.created_date = QDate(2021, 01, 01);
+		panel_info.processing_system = "IDT_xGenPrism";
+
+		BedFile bed;
+		bed.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.bed"));
+		VcfFile vcf;
+		vcf.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.vcf"));
+
+		db.storeCfdnaPanel(panel_info, bed.toText().toUtf8(), vcf.toText());
+
+		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("IDT_xGenPrism"))).size(), 1);
+		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id)).size(), 1);
+		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("hpHBOCv5"))).size(), 0);
+
+		CfdnaPanelInfo loaded_panel_info = db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("IDT_xGenPrism"))).at(0);
+		I_EQUAL(loaded_panel_info.tumor_id, panel_info.tumor_id);
+		S_EQUAL(loaded_panel_info.created_by, panel_info.created_by);
+		IS_TRUE(loaded_panel_info.created_date == panel_info.created_date);
+		S_EQUAL(loaded_panel_info.processing_system, panel_info.processing_system);
+
+		S_EQUAL(db.cfdnaPanelRegions(loaded_panel_info.id).toText(), bed.toText());
+		S_EQUAL(db.cfdnaPanelVcf(loaded_panel_info.id).toText(), vcf.toText());
+
 	}
 
 	inline void report_germline()
@@ -1936,6 +1965,7 @@ private slots:
 		BedFile subpanel_regions = db.subpanelRegions("some_target_region");
 		I_EQUAL(subpanel_regions.count(), 20);
 		I_EQUAL(subpanel_regions.baseCount(), 2508);
+
 	}
 
 	//Test tumor only RTF report generation
