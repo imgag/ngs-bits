@@ -211,8 +211,8 @@ QByteArray HttpProcessor::generateHeaders(BasicResponseData data)
 		headers.append("HTTP/1.1 200 OK\r\n");
 	}
 	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
-	headers.append("Connection: Keep-Alive\r\n");
-	headers.append("Keep-Alive: timeout=5, max=1000\r\n");
+//	headers.append("Connection: Keep-Alive\r\n");
+//	headers.append("Keep-Alive: timeout=5, max=1000\r\n");
 	headers.append("Content-Length: " + QString::number(data.length) + "\r\n");
 	headers.append("Content-Type: " + HttpProcessor::convertContentTypeToString(data.content_type) + "\r\n");
 
