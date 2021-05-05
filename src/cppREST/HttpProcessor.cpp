@@ -1,4 +1,5 @@
 #include "HttpProcessor.h"
+#include <QDebug>
 
 HttpProcessor::HttpProcessor()
 {
@@ -220,6 +221,7 @@ QByteArray HttpProcessor::generateHeaders(BasicResponseData data)
 	{
 		headers.append("Accept-Ranges: bytes\r\n");
 		headers.append("Content-Range: bytes " + QString::number(data.byte_range.start) + "-" + QString::number(data.byte_range.end) + "/" + QString::number(data.file_size) + "\r\n");
+		qDebug() << "Content-Range: bytes " << QString::number(data.byte_range.start) << "-" << QString::number(data.byte_range.end) << "/" << QString::number(data.file_size);
 	}
 	if (data.is_downloadable)
 	{

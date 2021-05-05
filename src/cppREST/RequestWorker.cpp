@@ -189,6 +189,19 @@ void RequestWorker::run()
 			sendEntireResponse(ssl_socket, response);
 			return;
 		}
+		else if (response.getPayload().isNull())
+		{
+			QByteArray headers;
+//			HTTP/1.1 416 Range Not Satisfiable
+//			Date: Fri, 20 Jan 2012 15:41:54 GMT
+//			Content-Range: bytes */47022
+			headers.append("HTTP/1.1 416 Range Not Satisfiable\r\n");
+			headers.append("Content-Range: bytes */47022");
+			response.setHeaders(headers);
+			sendEntireResponse(ssl_socket, response);
+			return;
+			//			sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::RANGE_NOT_SATISFIABLE, parsed_request.getContentType(), "File does not have the given range"}));
+		}
 
 		sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::NOT_FOUND, parsed_request.getContentType(), "This page does not exist. Check the URL and try again"}));
 	}
