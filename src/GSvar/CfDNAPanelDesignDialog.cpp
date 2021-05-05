@@ -86,8 +86,8 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 		cfdna_panel_selector->addItems(panel_text);
 
 		// create dlg
-		QString message_text = "A personalized cfDNA panel file for the processed sample " + processed_sample_name_ + " already exists.\n"
-				+ "Select the cfDNA panel which should be loaded or press 'cancel' to create a new panel:";
+		QString message_text = "<br/>A personalized cfDNA panel file for the processed sample " + processed_sample_name_ + " already exists.<br/>"
+				+ "<br/>Select the cfDNA panel which should be loaded or press 'cancel' to create a new panel:";
 		auto dlg = GUIHelper::createDialog(cfdna_panel_selector, "Personalized cfDNA panel for " + processed_sample_name_ + " found", message_text, true);
 		int btn = dlg->exec();
 		if (btn!=1)
