@@ -200,7 +200,7 @@ HttpResponse EndpointController::createStaticFileResponse(QString filename, Byte
 	response_data.filename = getFileNameWithExtension(filename);
 	response_data.length = static_file.content.length();
 	response_data.byte_range = byte_range;
-	response_data.file_size = static_file.size;
+	response_data.file_size = QFile(filename).size();
 	response_data.content_type = type;
 	response_data.is_downloadable = is_downloadable;
 
