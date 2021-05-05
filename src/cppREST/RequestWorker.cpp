@@ -204,8 +204,8 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 {
 	qDebug() << "Closing the socket";
 	socket->flush();
-	socket->close();
-	socket->deleteLater();
+//	socket->close();
+//	socket->deleteLater();
 }
 
 void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
@@ -247,14 +247,14 @@ void RequestWorker::finishChunckedResponse(QSslSocket* socket)
 		socket->waitForBytesWritten();
 	}
 
-	if (!socket->bytesToWrite())
-	{		
-//		socket->write("0\r\n");
-//		socket->write("\r\n");
-		closeAndDeleteSocket(socket);
-		return;
-	}
+//	if (!socket->bytesToWrite())
+//	{
+////		socket->write("0\r\n");
+////		socket->write("\r\n");
+//		closeAndDeleteSocket(socket);
+//		return;
+//	}
 
-	qDebug() << "Closing the socket forcefully";
-	closeAndDeleteSocket(socket);
+//	qDebug() << "Closing the socket forcefully";
+//	closeAndDeleteSocket(socket);
 }
