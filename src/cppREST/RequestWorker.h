@@ -26,6 +26,7 @@ public:
 
 protected slots:
 	void handleConnection();
+	void socketDisconnected();
 
 Q_SIGNALS:
 	void sslFailed(const QList<QSslError> &error);

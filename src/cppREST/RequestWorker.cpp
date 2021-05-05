@@ -31,6 +31,10 @@ void RequestWorker::run()
 	connect(ssl_socket, static_cast<sslFailed>(&QSslSocket::sslErrors), this, &RequestWorker::sslFailed);
 	connect(ssl_socket, &QSslSocket::peerVerifyError, this, &RequestWorker::verificationFailed);
 	connect(ssl_socket, &QSslSocket::encrypted, this, &RequestWorker::securelyConnected);
+
+	connect(ssl_socket, &QSslSocket::disconnected, this, &RequestWorker::socketDisconnected);
+
+
 	connect(this, SIGNAL(securelyConnected()), this, SLOT(handleConnection()));
 	qDebug() << "Starting the encryption";
 	ssl_socket->startServerEncryption();
@@ -119,10 +123,10 @@ void RequestWorker::run()
 			QFile streamed_file(response.getFilename());
 			QFile::OpenMode mode = QFile::ReadOnly;
 
-			if (!response.isBinary())
-			{
-				 mode = QFile::ReadOnly | QFile::Text;
-			}
+//			if (!response.isBinary())
+//			{
+//				 mode = QFile::ReadOnly | QFile::Text;
+//			}
 
 			try
 			{
@@ -143,8 +147,8 @@ void RequestWorker::run()
 			}
 
 			sendResponseChunk(ssl_socket, response.getHeaders());
-			if (response.isBinary())
-			{
+//			if (response.isBinary())
+//			{
 				qDebug() << "Binary stream thread";
 				qint64 chunk_size = 1024;
 				qint64 pos = 0;
@@ -162,19 +166,19 @@ void RequestWorker::run()
 //					sendResponseChunk(ssl_socket, data.append("\r\n"));
 					sendResponseChunk(ssl_socket, data);
 				}
-			}
-			else
-			{
-				qDebug() << "Text stream thread";
-				QTextStream stream(&streamed_file);
-				while(!stream.atEnd())
-				{
-					QByteArray line = stream.readLine().append("\n").toLocal8Bit();
-//					sendResponseChunk(ssl_socket, intToHex(line.size()).toLocal8Bit()+"\r\n");
-//					sendResponseChunk(ssl_socket, line+"\r\n");
-					sendResponseChunk(ssl_socket, line);
-				}
-			}
+//			}
+//			else
+//			{
+//				qDebug() << "Text stream thread";
+//				QTextStream stream(&streamed_file);
+//				while(!stream.atEnd())
+//				{
+//					QByteArray line = stream.readLine().append("\n").toLocal8Bit();
+////					sendResponseChunk(ssl_socket, intToHex(line.size()).toLocal8Bit()+"\r\n");
+////					sendResponseChunk(ssl_socket, line+"\r\n");
+//					sendResponseChunk(ssl_socket, line);
+//				}
+//			}
 			streamed_file.close();
 
 			finishChunckedResponse(ssl_socket);
@@ -195,6 +199,11 @@ void RequestWorker::handleConnection()
 	qDebug() << "Secure connection has been established";
 }
 
+void RequestWorker::socketDisconnected()
+{
+	qDebug() << "Client has disconnected from the socket";
+}
+
 QString RequestWorker::intToHex(const int& input)
 {
 	return QString("%1").arg(input, 10, 16, QLatin1Char('0')).toUpper();
@@ -204,8 +213,9 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 {
 	qDebug() << "Closing the socket";
 	socket->flush();
+
 //	socket->close();
-//	socket->deleteLater();
+	socket->deleteLater();
 }
 
 void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
@@ -247,14 +257,14 @@ void RequestWorker::finishChunckedResponse(QSslSocket* socket)
 		socket->waitForBytesWritten();
 	}
 
-//	if (!socket->bytesToWrite())
-//	{
-////		socket->write("0\r\n");
-////		socket->write("\r\n");
-//		closeAndDeleteSocket(socket);
-//		return;
-//	}
+	if (!socket->bytesToWrite())
+	{
+//		socket->write("0\r\n");
+//		socket->write("\r\n");
+		closeAndDeleteSocket(socket);
+		return;
+	}
 
-//	qDebug() << "Closing the socket forcefully";
-//	closeAndDeleteSocket(socket);
+	qDebug() << "Closing the socket forcefully";
+	closeAndDeleteSocket(socket);
 }
