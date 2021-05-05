@@ -586,5 +586,102 @@ TEST_CLASS(Statistics_Test)
 		F_EQUAL2(ancestry.eas, 0.0742, 0.001);
 		S_EQUAL(ancestry.population, "AFR");
 	}
+
+
+	void hrdScore()
+	{
+		const QList<BedLine> tmp_centromeres = {
+			BedLine("chr1", 121535434, 124535434),
+			BedLine("chr2", 92326171, 95326171),
+			BedLine("chr3", 90504854, 93504854),
+			BedLine("chr4", 49660117, 52660117),
+			BedLine("chr5", 46405641, 49405641),
+			BedLine("chr6", 58830166, 61830166),
+			BedLine("chr7", 58054331, 61054331),
+			BedLine("chr8", 43838887, 46838887),
+			BedLine("chr9", 47367679, 50367679),
+			BedLine("chr10", 39254935, 42254935),
+			BedLine("chr11", 51644205, 54644205),
+			BedLine("chr12", 34856694, 37856694),
+			BedLine("chr13", 16000000, 19000000),
+			BedLine("chr14", 16000000, 19000000),
+			BedLine("chr15", 17000000, 20000000),
+			BedLine("chr16", 35335801, 38335801),
+			BedLine("chr17", 22263006, 25263006),
+			BedLine("chr18", 15460898, 18460898),
+			BedLine("chr19", 24681782, 27681782),
+			BedLine("chr20", 26369569, 29369569),
+			BedLine("chr21", 11288129, 14288129),
+			BedLine("chr22", 13000000, 16000000),
+			BedLine("chrX", 58632012, 61632012),
+			BedLine("chrY", 10104553, 13104553)
+		};
+		BedFile centromeres;
+		for(const auto& line : tmp_centromeres) centromeres.append(line);
+
+		const QList<BedLine> tmp_telomeres = {
+			BedLine("chr1", 1, 10000),
+			BedLine("chr1", 249240621, 249250621),
+			BedLine("chr2", 1, 10000),
+			BedLine("chr2", 243189373, 243199373),
+			BedLine("chr3", 1, 10000),
+			BedLine("chr3", 198012430, 198022430),
+			BedLine("chr4", 1, 10000),
+			BedLine("chr4", 191144276, 191154276),
+			BedLine("chr5", 1, 10000),
+			BedLine("chr5", 180905260, 180915260),
+			BedLine("chr6", 1, 10000),
+			BedLine("chr6", 171105067, 171115067),
+			BedLine("chr7", 1, 10000),
+			BedLine("chr7", 159128663, 159138663),
+			BedLine("chr8", 1, 10000),
+			BedLine("chr8", 146354022, 146364022),
+			BedLine("chr9", 1, 10000),
+			BedLine("chr9", 141203431, 141213431),
+			BedLine("chr10", 1, 10000),
+			BedLine("chr10", 135524747, 135534747),
+			BedLine("chr11", 1, 10000),
+			BedLine("chr11", 134996516, 135006516),
+			BedLine("chr12", 1, 10000),
+			BedLine("chr12", 133841895, 133851895),
+			BedLine("chr13", 1, 10000),
+			BedLine("chr13", 115159878, 115169878),
+			BedLine("chr14", 1, 10000),
+			BedLine("chr14", 107339540, 107349540),
+			BedLine("chr15", 1, 10000),
+			BedLine("chr15", 102521392, 102531392),
+			BedLine("chr16", 1, 10000),
+			BedLine("chr16", 90344753, 90354753),
+			BedLine("chr18", 1, 10000),
+			BedLine("chr18", 78067248, 78077248),
+			BedLine("chr19", 1, 10000),
+			BedLine("chr19", 59118983, 59128983),
+			BedLine("chr20", 1, 10000),
+			BedLine("chr20", 63015520, 63025520),
+			BedLine("chr21", 1, 10000),
+			BedLine("chr21", 48119895, 48129895),
+			BedLine("chr22", 1, 10000),
+			BedLine("chr22", 51294566, 51304566),
+			BedLine("chrX", 1, 10000),
+			BedLine("chrX", 155260560, 155270560),
+			BedLine("chrY", 1, 10000),
+			BedLine("chrY", 59363566, 59373566)
+		};
+
+		BedFile telomeres;
+		for(const auto& line : tmp_telomeres) telomeres.append(line);
+
+		CnvList cnvs;
+		cnvs.load( TESTDATA("data_in/hrdScore_lst_cnvs.tsv") );
+
+		QCCollection hrd_results = Statistics::hrdScore(cnvs, centromeres, telomeres);
+
+		I_EQUAL(hrd_results.value("QC:2000062", true).asInt() , 2);
+		I_EQUAL(hrd_results.value("QC:2000063", true).asInt() , 3);
+		I_EQUAL(hrd_results.value("QC:2000064", true).asInt() , 3);
+
+	}
+
+
 };
 
