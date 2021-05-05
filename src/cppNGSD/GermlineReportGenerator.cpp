@@ -87,7 +87,11 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	info = db_.getSampleDiseaseInfo(sample_id, "HPO term id");
 	foreach(const SampleDiseaseInfo& entry, info)
 	{
-		stream << "<br />HPO: " << entry.disease_info << " (" << db_.phenotypeByAccession(entry.disease_info.toLatin1(), false).name() << ")" << endl;
+		int hpo_id = db_.phenotypeIdByAccession(entry.disease_info.toLatin1(), false);
+		if (hpo_id!=-1)
+		{
+			stream << "<br />HPO: " << entry.disease_info << " (" << db_.phenotype(hpo_id).name() << ")" << endl;
+		}
 	}
 	info = db_.getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
 	foreach(const SampleDiseaseInfo& entry, info)
@@ -1544,7 +1548,11 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 		}
 		if (info.type=="HPO term id")
 		{
-			infos << db_.phenotypeByAccession(info.disease_info.toLatin1(), false).toString();
+			int hpo_id = db_.phenotypeIdByAccession(info.disease_info.toLatin1(), false);
+			if (hpo_id!=-1)
+			{
+				infos << db_.phenotype(hpo_id).toString();
+			}
 		}
 		if (info.type=="Orpha number")
 		{

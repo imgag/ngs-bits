@@ -133,7 +133,7 @@ void GeneWidget::updateGUI()
 
 	//show phenotypes/diseases from HPO
     QByteArrayList hpo_links;
-    QList<Phenotype> pheno_list = db.phenotypes(symbol_);
+	PhenotypeList pheno_list = db.phenotypes(symbol_);
 	foreach(const Phenotype& pheno, pheno_list)
 	{
         hpo_links << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name();

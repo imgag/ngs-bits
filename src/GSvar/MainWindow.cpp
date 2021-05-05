@@ -238,6 +238,42 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
+		NGSD db;
+		PhenotypeList phenotypic_abnormality_subterms = db.phenotypeChildTerms(db.phenotypeIdByName("Phenotypic abnormality"), true);
+
+		auto file = Helper::openFileForWriting("C:\\Marc\\hpos.tsv");
+		QTextStream stream(file.data());
+		stream << "#hpo_id\thpo_name\tsamples\terrors\n";
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT `disease_info`, COUNT(`sample_id`) as sample_count FROM `sample_disease_info` WHERE `type`='HPO term id' GROUP BY disease_info");
+		while(query.next())
+		{
+			QStringList errors;
+
+			QByteArray hpo_id = query.value(0).toByteArray().trimmed();
+			QString samples = query.value(1).toString().trimmed();
+
+			QString hpo_name;
+			try
+			{
+				int id = db.phenotypeIdByAccession(hpo_id);
+
+				hpo_name = db.phenotype(id).name();
+
+				if (!phenotypic_abnormality_subterms.containsAccession(hpo_id))
+				{
+					errors << "Not a child of 'phenotypic abnormality'";
+				}
+			}
+			catch(Exception & e)
+			{
+				errors << e.message();
+			}
+
+			stream << hpo_id << "\t"  << hpo_name << "\t"  << samples << "\t" << errors.join(", ") << "\n";
+			stream.flush();
+		}
+
 		//export of recurring variants with similar phenotype
 		/*
 		NGSD db;
@@ -2132,7 +2168,7 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 	GeneSet genes;
 	foreach(const Phenotype& pheno, ui_.filters->phenotypes())
 	{
-		genes << db.phenotypeToGenes(pheno, true);
+		genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 	}
 	QApplication::restoreOverrideCursor();
 
@@ -4750,10 +4786,14 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			{
 				if (info.type=="HPO term id")
 				{
-					QByteArray disease = db.phenotypeByAccession(info.disease_info.toLatin1(), false).name().trimmed();
-					if (!diseases.contains(disease) && !disease.isEmpty())
+					int id = db.phenotypeIdByAccession(info.disease_info.toLatin1(), false);
+					if (id!=-1)
 					{
-						diseases << disease;
+						QByteArray disease = db.phenotype(id).name().trimmed();
+						if (!diseases.contains(disease))
+						{
+							diseases << disease;
+						}
 					}
 				}
 				else if (info.type=="CGI cancer type")
@@ -5526,10 +5566,10 @@ void MainWindow::variantRanking()
 		{
 			phenotypes = db.getSampleData(sample_id).phenotypes;
 		}
-		foreach(Phenotype pheno, phenotypes)
+		foreach(const Phenotype& pheno, phenotypes)
 		{
 			//pheno > genes
-			GeneSet genes = db.phenotypeToGenes(pheno, true);
+			GeneSet genes = db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 
 			//genes > roi
 			BedFile roi;
@@ -5686,7 +5726,7 @@ void MainWindow::applyFilters(bool debug_time)
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenos)
 			{
-				pheno_genes << db.phenotypeToGenes(pheno, true);
+				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)

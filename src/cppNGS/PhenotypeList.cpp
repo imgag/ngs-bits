@@ -1,12 +1,16 @@
 #include "PhenotypeList.h"
 
 PhenotypeList::PhenotypeList()
+	: QList<Phenotype>()
+	, accessions_()
 {
 }
 
 PhenotypeList& PhenotypeList::operator<<(const Phenotype& pheno)
 {
 	append(pheno);
+
+	accessions_ << pheno.accession();
 
     return *this;
 }
@@ -18,6 +22,24 @@ PhenotypeList& PhenotypeList::operator<<(const QSet<Phenotype>& set)
 		*this << pheno;
 	}
 	return *this;
+}
+
+void PhenotypeList::removeAt(int i)
+{
+	QList<Phenotype>::removeAt(i);
+
+	//removed element > update accession list (the same element can be in the list twice, thus we cannot remove the accession from accessions_)
+	accessions_.clear();
+	foreach(const Phenotype& pheno, *this)
+	{
+		accessions_ << pheno.accession();
+	}
+}
+
+void PhenotypeList::clear()
+{
+	QList<Phenotype>::clear();
+	accessions_.clear();
 }
 
 void PhenotypeList::sortByName()
