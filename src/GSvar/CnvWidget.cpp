@@ -1071,12 +1071,15 @@ void CnvWidget::editCnvValidation(int row)
 
 		//get variant validation ID - add if missing
 		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE cnv_id='" + cnv_id + "' AND sample_id='" + sample_id + "'", true);
+		bool added_validation_entry = false;
 		if (!val_id.isValid())
 		{
 			//insert
 			SqlQuery query = db.getQuery();
 			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_type, cnv_id, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','CNV','" + cnv_id + "','n/a')");
 			val_id = query.lastInsertId();
+
+			added_validation_entry = true;
 		}
 
 		ValidationDialog dlg(this, val_id.toInt());
@@ -1086,7 +1089,7 @@ void CnvWidget::editCnvValidation(int row)
 			//update DB
 			dlg.store();
 		}
-		else
+		else if (added_validation_entry)
 		{
 			// remove created but empty validation if ValidationDialog is aborted
 			SqlQuery query = db.getQuery();

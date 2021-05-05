@@ -238,7 +238,120 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
+		//export of recurring variants with similar phenotype
+		/*
+		NGSD db;
+		auto file = Helper::openFileForWriting("C:\\Marc\\vars.tsv");
+		QTextStream stream(file.data());
+		stream << "#gene\ttranscript\tvariant\tHGVS.p\ttype\timpact\tgnomad_AF\tclassification\tnum_affected\tnum_unaffeacted\tnum_unknown\tshared_disease_group\tsamples_with_hpo\tshared_hpo_term\n";
+
+		//NGSD db;
+		int c_gene = 0;
+		QStringList genes = db.getValues("SELECT DISTINCT gene FROM omim_gene og WHERE id IN (SELECT DISTINCT omim_gene_id  FROM omim_phenotype) ORDER BY gene ASC");
+		foreach(QString gene, genes)
+		{
+			qDebug() << ++c_gene << gene;
+			int gene_id = db.geneToApprovedID(gene.toLatin1());
+			if (gene_id==-1)
+			{
+				stream << "##" << gene << ": skipped - no approved gene name\n";
+				continue;
+			}
+
+			Transcript lct = db.longestCodingTranscript(gene_id, Transcript::ENSEMBL, false, false);
+			if (lct.codingRegions().baseCount()==0)
+			{
+				stream << "##" << gene << ": skipped - no longest coding transcript\n";
+				continue;
+			}
+
+			BedFile roi_coding = lct.codingRegions();
+			roi_coding.extend(20);
+			roi_coding.merge();
+
+
+			SqlQuery query = db.getQuery();
+			QString af = "0.001";
+			Chromosome chr = roi_coding[0].chr();
+			query.exec("SELECT v.id, v.start, v.end, v.ref, v.obs, v.coding, v.gnomad FROM variant v WHERE chr='" + chr.strNormalized(true)  + "' AND start>='" + QString::number(roi_coding[0].start()) + "' AND end<='" + QString::number(roi_coding[roi_coding.count()-1].end()) + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start");
+			while(query.next())
+			{
+				QList<VariantTranscript> trans_infos;
+				try
+				{
+					trans_infos = Variant::parseTranscriptString(query.value(5).toByteArray(), true);
+				}
+				catch(...) {} //do nothing (old RefSeq entries)
+
+				foreach(const VariantTranscript& trans, trans_infos)
+				{
+					if ((trans.impact=="HIGH" || trans.impact=="MODERATE") &&  trans.id.startsWith(lct.name())) //no direct comparision of transcript name because we have mix transcripts with/without version number in NGSD.
+					{
+						QString variant_id = query.value(0).toString();
+						QString var = chr.strNormalized(true) + ":" + query.value(1).toString() + "-" + query.value(2).toString() + " " + query.value(3).toString() + ">" + query.value(4).toString();
+						QString af = query.value(6).toString();
+						SqlQuery query2 = db.getQuery();
+						query2.exec("SELECT s.disease_group, s.disease_status, s.id FROM sample s, processed_sample ps, project p, detected_variant dv, processing_system sys WHERE ps.processing_system_id=sys.id AND dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id + " AND p.type='diagnostic' AND ps.quality!='bad' AND (sys.type='WES' OR sys.type='WGS')");
+
+						int c_affected = 0;
+						int c_unaffected = 0;
+						int c_unknown = 0;
+						QMap<QString, int> dg_affected;
+						int samples_with_hpo = 0;
+						QMap<QString, int> hpo_affected;
+						while(query2.next())
+						{
+							QString disease_group = query2.value(0).toString();
+
+							QString disease_status = query2.value(1).toString();
+							if (disease_status=="Affected")
+							{
+								++c_affected;
+
+								if (!dg_affected.contains(disease_group)) dg_affected[disease_group] = 0;
+								dg_affected[disease_group] += 1;
+
+								auto phenos = db.samplePhenotypes(query2.value(2).toString());
+								if (phenos.count()>0) ++samples_with_hpo;
+								foreach(const Phenotype& pheno, phenos)
+								{
+									//TODO also all sub-terms?
+									QString hpo_name = pheno.name();
+									if (!hpo_affected.contains(hpo_name)) hpo_affected[hpo_name] = 0;
+									hpo_affected[hpo_name] += 1;
+								}
+							}
+							else if (disease_status=="Unaffected")
+							{
+								++c_unaffected;
+							}
+							else
+							{
+								++c_unknown;
+							}
+						}
+						if (c_affected<3) continue; //RESTRICTION at least 3 times in affected diagnostic WES/WGS samples
+						QString dg_shared_by_affected;
+						if (dg_affected.count()==1)
+						{
+							dg_shared_by_affected = dg_affected.keys().first();
+						}
+						QStringList hpos_shared_by_affected;
+						foreach(QString hpo_name, hpo_affected.keys())
+						{
+							if (samples_with_hpo>=3 && hpo_affected[hpo_name]==samples_with_hpo) hpos_shared_by_affected << (hpo_name + " (" + QString::number(hpo_affected[hpo_name])+")");
+							if (samples_with_hpo>=4 && hpo_affected[hpo_name]==samples_with_hpo-1) hpos_shared_by_affected << (hpo_name + " (" + QString::number(hpo_affected[hpo_name])+")");
+						}
+						stream << gene << "\t" << lct.name() << "\t" << var << "\t" << trans.hgvs_p << "\t" << trans.type << "\t" << trans.impact << "\t" << af << "\t" << db.getValue("SELECT class FROM variant_classification WHERE variant_id="+variant_id).toString() << "\t" << QString::number(c_affected) << "\t" << QString::number(c_unaffected) << "\t" << QString::number(c_unknown) << "\t" << dg_shared_by_affected << "\t" << QString::number(samples_with_hpo) << "\t" << hpos_shared_by_affected.join(", ") << "\n";
+						stream.flush();
+					}
+				}
+			}
+		}
+		*/
+
 		//evaluation GSvar score/rank
+		/*
 		TsvFile output;
 		output.addHeader("ps");
 		output.addHeader("variants_causal");
@@ -349,6 +462,7 @@ void MainWindow::on_actionDebug_triggered()
 		output.addComment("##Top5 : " + QString::number(c_top5) + " (" + QString::number(100.0*c_top5/output.rowCount(), 'f', 2) + "%)");
 		output.addComment("##Top10: " + QString::number(c_top10) + " (" + QString::number(100.0*c_top10/output.rowCount(), 'f', 2) + "%)");
 		output.store("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + special + ".tsv");
+		*/
 
 		//import of sample relations from GenLab
 		/*
@@ -1702,6 +1816,7 @@ void MainWindow::editVariantValidation(int index)
 
 		//get variant validation ID - add if missing
 		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE variant_id='" + variant_id + "' AND sample_id='" + sample_id + "'", true);
+		bool added_validation_entry = false;
 		if (!val_id.isValid())
 		{
 			//get genotype			
@@ -1712,6 +1827,8 @@ void MainWindow::editVariantValidation(int index)
 			SqlQuery query = db.getQuery();
 			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_type, variant_id, genotype, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','SNV_INDEL','" + variant_id + "','" + genotype + "','n/a')");
 			val_id = query.lastInsertId();
+
+			added_validation_entry = true;
 		}
 
 		ValidationDialog dlg(this, val_id.toInt());
@@ -1735,7 +1852,7 @@ void MainWindow::editVariantValidation(int index)
 			//mark variant list as changed
 			markVariantListChanged(variant, "validation", status);
 		}
-		else
+		else if (added_validation_entry)
 		{
 			// remove created but empty validation if ValidationDialog is aborted
 			SqlQuery query = db.getQuery();
@@ -5160,7 +5277,7 @@ void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 
 			//wait for IGV to respond after start
 			bool connected = false;
-			QDateTime max_wait = QDateTime::currentDateTime().addSecs(20);
+			QDateTime max_wait = QDateTime::currentDateTime().addSecs(40);
 			while (QDateTime::currentDateTime() < max_wait)
 			{
 				socket.connectToHost(igv_host, igv_port);
