@@ -205,7 +205,7 @@ HttpResponse EndpointController::createStaticFileResponse(QString filename, Byte
 	response_data.is_downloadable = is_downloadable;
 
 	qDebug() << "response_data.file_size = " << response_data.file_size;
-	return HttpResponse(false, false, "", HttpProcessor::generateHeaders(response_data), static_file.content);
+	return HttpResponse(false, false, filename, HttpProcessor::generateHeaders(response_data), static_file.content);
 }
 
 HttpResponse EndpointController::createStaticStreamResponse(QString filename, bool is_downloadable)

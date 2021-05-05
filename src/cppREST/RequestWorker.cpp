@@ -116,7 +116,11 @@ void RequestWorker::run()
 
 			if (response.getFilename().isEmpty())
 			{
-				sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "File name has not been found"}));
+				HttpResponse error_response;
+				error_response.addHeader("HTTP/1.1 404 Not Found\r\n");
+				error_response.addHeader("\r\n");
+				sendEntireResponse(ssl_socket, error_response);
+				//sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::NOT_FOUND, parsed_request.getContentType(), "File name has not been found"}));
 				return;
 			}
 
@@ -192,11 +196,12 @@ void RequestWorker::run()
 		else if (response.getPayload().isNull())
 		{
 			QByteArray headers;
-//			HTTP/1.1 416 Range Not Satisfiable
-//			Date: Fri, 20 Jan 2012 15:41:54 GMT
-//			Content-Range: bytes */47022
+			qDebug() << "Range file = " << response.getFilename();
+
 			headers.append("HTTP/1.1 416 Range Not Satisfiable\r\n");
-			headers.append("Content-Range: bytes */47022");
+//			headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
+			headers.append("Content-Range: bytes */" + QString::number(QFile(response.getFilename()).size()) + "\r\n");
+			headers.append("\r\n");
 			response.setHeaders(headers);
 			sendEntireResponse(ssl_socket, response);
 			return;
