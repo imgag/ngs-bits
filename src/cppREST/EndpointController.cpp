@@ -97,7 +97,7 @@ HttpResponse EndpointController::serveStaticFile(HttpRequest request)
 		headers.append("Content-Length: " + QString::number(QFileInfo(served_file).size()) + "\r\n");
 		headers.append("Content-Type: " + HttpProcessor::convertContentTypeToString(HttpProcessor::getContentTypeByFilename(served_file)) + "\r\n");
 //		headers.append("Accept-Ranges: bytes\r\n");
-
+		headers.append("\r\n");
 		response.setHeaders(headers);
 		return response;
 	}

@@ -214,9 +214,7 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 	qDebug() << "Closing the socket";
 	socket->flush();
 	socket->waitForBytesWritten();
-
-	QThread::sleep(3);
-
+	socket->waitForDisconnected();
 	socket->close();
 	socket->deleteLater();
 }
