@@ -43,11 +43,15 @@ public:
 		if(!t_ps.isEmpty() && !n_ps.isEmpty())
 		{
 			NGSD db;
-			VariantList empty_var;
-			QStringList messages;
-			SomaticReportSettings settings;
-			settings.report_config = db.somaticReportConfig(db.processedSampleId(t_ps), db.processedSampleId(n_ps), empty_var, cnvs, empty_var, messages);
-			cnvs = SomaticReportSettings::filterCnvs(cnvs, settings);
+
+			if(db.somaticReportConfigId(db.processedSampleId(t_ps), db.processedSampleId(n_ps)) != -1)
+			{
+				VariantList empty_var;
+				QStringList messages;
+				SomaticReportSettings settings;
+				settings.report_config = db.somaticReportConfig(db.processedSampleId(t_ps), db.processedSampleId(n_ps), empty_var, cnvs, empty_var, messages);
+				cnvs = SomaticReportSettings::filterCnvs(cnvs, settings);
+			}
 		}
 
 		QCCollection result = Statistics::hrdScore(cnvs, centromeres, telomeres);
