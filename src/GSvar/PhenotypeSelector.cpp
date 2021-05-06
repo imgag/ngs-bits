@@ -42,16 +42,16 @@ void PhenotypeSelector::search(QString text)
 	if (text.isEmpty()) return;
 
 	//add search terms
-	QList<Phenotype> phenos = db_.phenotypes(text.split(" "));
+	PhenotypeList phenos = db_.phenotypes(text.split(" "));
 	foreach(const Phenotype& pheno, phenos)
 	{
 		ui->list->addItem(pheno.name());
 	}
 }
 
-Phenotype PhenotypeSelector::nameToPhenotype(QByteArray name) const
+const Phenotype& PhenotypeSelector::nameToPhenotype(QByteArray name) const
 {
-	return db_.phenotypeByName(name, true);
+	return db_.phenotype(db_.phenotypeIdByName(name));
 }
 
 void PhenotypeSelector::keyPressEvent(QKeyEvent* event)

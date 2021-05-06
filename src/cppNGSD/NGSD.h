@@ -575,18 +575,20 @@ public:
 	bool addPreferredTranscript(QByteArray transcript_name);
 
 	/*** phenotype handling (HPO, OMIM) ***/
+	///Returns the NGSD database ID of the phenotype given. Returns -1 or throws a DatabaseException if term name does not exist.
+	int phenotypeIdByAccession(const QByteArray& accession, bool throw_on_error=true);
+	///Returns the NGSD database ID of the phenotype given. Returns -1 or throws a DatabaseException if term name does not exist. Prefer phenotypeIdByAccession whenever possible since it is faster!
+	int phenotypeIdByName(const QByteArray& name, bool throw_on_error=true);
 	///Returns the phenotype for a given HPO accession.
-	Phenotype phenotypeByName(const QByteArray& name, bool throw_on_error=true);
-	///Returns the phenotype for a given HPO accession. If the accession is invalid, a phenotype with empty name is returned, or an error is thrown.
-	Phenotype phenotypeByAccession(const QByteArray& accession, bool throw_on_error=true);
+	const Phenotype& phenotype(int id);
 	///Returns the phenotypes of a gene
 	PhenotypeList phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	PhenotypeList phenotypes(QStringList search_terms);
-	///Returns all genes associated to a phenotype
-	GeneSet phenotypeToGenes(const Phenotype& phenotype, bool recursive);
+	///Returns all genes associated to a phenotype. If is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
+	GeneSet phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype_terms=true);
 	///Returns all child terms of the given phenotype
-	PhenotypeList phenotypeChildTerms(const Phenotype& phenotype, bool recursive);
+	PhenotypeList phenotypeChildTerms(int term_id, bool recursive);
 	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.
 	QList<OmimInfo> omimInfo(const QByteArray& symbol);
 	///Returns the accession (6 digit number) of the preferred OMIM phenotype for a gene. If unset, an empty string is returned.
@@ -873,7 +875,8 @@ protected:
 		GeneSet approved_gene_names;
 		QMap<QString, QStringList> enum_values;
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
-		QHash<QByteArray, Phenotype> phenotypes_by_accession;
+		QHash<int, Phenotype> phenotypes_by_id;
+		QHash<QByteArray, int> phenotypes_accession_to_id;
 
 		BedFile gene_regions;
 		ChromosomalIndex<BedFile> gene_regions_index;

@@ -137,7 +137,7 @@ public:
 		//parse term-disease and disease-gene relations from HPO
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("anno"));
 		QSet<QByteArray> non_hgnc_genes;
-		QList<Phenotype> inheritance_terms = db.phenotypeChildTerms(Phenotype("HP:0000005", "Mode of inheritance"), true);
+		PhenotypeList inheritance_terms = db.phenotypeChildTerms(db.phenotypeIdByAccession("HP:0000005"), true); //Mode of inheritance
 
 		QHash<int, QSet<QByteArray> > term2diseases;
 		QHash<QByteArray, GeneSet> disease2genes;
@@ -158,7 +158,7 @@ public:
 
 			if (term_db_id!=-1)
 			{
-				if (inheritance_terms.contains(Phenotype(term_accession, "")))
+				if (inheritance_terms.containsAccession(term_accession))
 				{
 					if (gene_db_id!=-1)
 					{
@@ -555,30 +555,30 @@ public:
 		// compute import stats
 
 		// get first level of subtrees:
-		QList<Phenotype> subtree_roots = db.phenotypeChildTerms(root, false);
-		QList<QList<Phenotype>> subtrees;
+		PhenotypeList subtree_roots = db.phenotypeChildTerms(db.phenotypeIdByAccession(root.accession()), false);
+		QList<PhenotypeList> subtrees;
 		foreach (const Phenotype& pt, subtree_roots)
 		{
-			subtrees.append(db.phenotypeChildTerms(pt, true));
+			subtrees.append(db.phenotypeChildTerms(db.phenotypeIdByAccession(pt.accession()), true));
 		}
-		QVector<int> subtree_counts(subtree_roots.size());
+		QVector<int> subtree_counts(subtree_roots.count());
 
 		//calulate stats:
 		QStringList hpo_terms = db.getValues("SELECT ht.hpo_id, hg.gene FROM hpo_genes hg INNER JOIN hpo_term ht ON hg.hpo_term_id = ht.id");
 		foreach (const QString& hpo_term, hpo_terms)
 		{
-			Phenotype pt = Phenotype(hpo_term.toUtf8(), "");
-			for (int i = 0; i < subtree_roots.size(); ++i)
+			QByteArray pt = hpo_term.toUtf8();
+			for (int i = 0; i < subtree_roots.count(); ++i)
 			{
-				if (subtrees.at(i).contains(pt)) subtree_counts[i]++;
+				if (subtrees[i].containsAccession(pt)) subtree_counts[i]++;
 			}
 		}
 
 		out << "Imported HPO-Gene relations: \n";
 		out << " Overall:\t" << hpo_terms.size() << "\n";
-		for (int i = 0; i < subtree_roots.size(); ++i)
+		for (int i = 0; i < subtree_roots.count(); ++i)
 		{
-			out << " " << subtree_roots.at(i).name() << ":\t" << subtree_counts.at(i) << "\n";
+			out << " " << subtree_roots[i].name() << ":\t" << subtree_counts.at(i) << "\n";
 		}
 
 		out << removed_genes << " duplicate genes removed during optimization" << endl;
@@ -587,20 +587,21 @@ public:
 	void optimizeHpoGeneTable(const Phenotype& root, NGSD& db, const QHash<QByteArray, int>& pt2id, int& removed_genes)
 	{
 		// get all child nodes
-		QList<Phenotype> children = db.phenotypeChildTerms(root, false);
+		int root_id = db.phenotypeIdByAccession(root.accession());
+		PhenotypeList children = db.phenotypeChildTerms(root_id, false);
 
 		// abort if leaf node
-		if (children.size() == 0) return;
+		if (children.count() == 0) return;
 
 		// get all genes which are associated with the sub-trees
 		GeneSet genes_children;
 		foreach (const Phenotype& child, children)
 		{
-			genes_children.insert(db.phenotypeToGenes(child, true));
+			genes_children.insert(db.phenotypeToGenes(db.phenotypeIdByAccession(child.accession()), true, false));
 		}
 
 		// intersect with genes present in the root node
-		GeneSet genes_to_remove = genes_children.intersect(db.phenotypeToGenes(root, false));
+		GeneSet genes_to_remove = genes_children.intersect(db.phenotypeToGenes(root_id, false, false));
 
 		if (genes_to_remove.count() != 0)
 		{

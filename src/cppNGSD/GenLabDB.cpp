@@ -160,9 +160,10 @@ PhenotypeList GenLabDB::phenotypes(QString ps_name)
 			QByteArray hpo_id = query.value(0).toByteArray().trimmed();
 			if (hpo_id.isEmpty()) continue;
 
-			Phenotype pheno = ngsd.phenotypeByAccession(hpo_id, false);
-			if (pheno.name().isEmpty()) continue;
-			if (output.contains(pheno)) continue;
+			int id = ngsd.phenotypeIdByAccession(hpo_id, false);
+			if (id==-1) continue;
+			Phenotype pheno = ngsd.phenotype(id);
+			if (output.containsAccession(pheno.accession())) continue;
 
 			output << pheno;
 		}

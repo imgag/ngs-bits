@@ -513,37 +513,37 @@ private slots:
 		//phenotypes
 		PhenotypeList phenos = db.phenotypes(QStringList() << "aBNOrmality");
 		I_EQUAL(phenos.count(), 1);
-		IS_TRUE(phenos.contains(Phenotype("HP:0000118","Phenotypic abnormality")));
+		IS_TRUE(phenos.containsAccession("HP:0000118")); //Phenotypic abnormality
 		//synonyms
 		phenos = db.phenotypes(QStringList() << "sYNonym");
 		I_EQUAL(phenos.count(), 2);
-		IS_TRUE(phenos.contains(Phenotype("HP:0012823","Clinical modifier")));
-		IS_TRUE(phenos.contains(Phenotype("HP:0040279","Frequency")));
-		//phenotypeByName
-		Phenotype pheno = db.phenotypeByName("Frequency");
-		S_EQUAL(pheno.accession(), "HP:0040279");
-		S_EQUAL(pheno.name(), "Frequency");
+		IS_TRUE(phenos.containsAccession("HP:0012823")); //Clinical modifier
+		IS_TRUE(phenos.containsAccession("HP:0040279")); //Frequency
+		//phenotypeIdByName / phenotypeIdByAccession
+		int hpo_id1 = db.phenotypeIdByName("Frequency");
+		int hpo_id2 = db.phenotypeIdByAccession("HP:0040279");
+		I_EQUAL(hpo_id1, hpo_id2);
 
 		//phenotypeChildTems
-		phenos = db.phenotypeChildTerms(Phenotype("HP:0000001", "All"), true);
+		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("All"), true);
 		I_EQUAL(phenos.count(), 10);
-		phenos = db.phenotypeChildTerms(Phenotype("HP:0000001", "All"), false);
+		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("All"), false);
 		I_EQUAL(phenos.count(), 4);
-		IS_TRUE(phenos.contains(Phenotype("HP:0000005","Mode of inheritance")));
-		IS_TRUE(phenos.contains(Phenotype("HP:0000118","Phenotypic abnormality")));
-		IS_TRUE(phenos.contains(Phenotype("HP:0012823","Clinical modifier")));
-		IS_TRUE(phenos.contains(Phenotype("HP:0040279","Frequency")));
+		IS_TRUE(phenos.containsAccession("HP:0000005")); //Mode of inheritance
+		IS_TRUE(phenos.containsAccession("HP:0000118")); //Phenotypic abnormality
+		IS_TRUE(phenos.containsAccession("HP:0012823")); //Clinical modifier
+		IS_TRUE(phenos.containsAccession("HP:0040279")); //"Frequency"
 		//inner node
-		phenos = db.phenotypeChildTerms(Phenotype("HP:0000005", "Mode of inheritance"), true);
+		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("Mode of inheritance"), true);
 		I_EQUAL(phenos.count(), 6);
-		IS_TRUE(phenos.contains(Phenotype("HP:0001419","X-linked recessive inheritance")));
-		phenos = db.phenotypeChildTerms(Phenotype("HP:0000005", "Mode of inheritance"), false);
+		IS_TRUE(phenos.containsAccession("HP:0001419")); //X-linked recessive inheritance
+		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("Mode of inheritance"), false);
 		I_EQUAL(phenos.count(), 4);
-		IS_FALSE(phenos.contains(Phenotype("HP:0001419","X-linked recessive inheritance")));
+		IS_FALSE(phenos.containsAccession("HP:0001419")); //X-linked recessive inheritance
 		//leaf
-		phenos = db.phenotypeChildTerms(Phenotype("HP:0001427", "Mitochondrial inheritance"), true);
+		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("Mitochondrial inheritance"), true);
 		I_EQUAL(phenos.count(), 0);
-		phenos = db.phenotypeChildTerms(Phenotype("HP:0001427", "Mitochondrial inheritance"), false);
+		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("Mitochondrial inheritance"), false);
 		I_EQUAL(phenos.count(), 0);
 
 		//getDiagnosticStatus

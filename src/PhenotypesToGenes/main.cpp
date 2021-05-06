@@ -21,6 +21,7 @@ public:
 		addOutfile("out", "Output TSV file with genes (column 1) and matched phenotypes (column 2). If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("ignore_invalid", "Ignores invalid HPO identifiers instead of throwing an error.");
+		addFlag("ignore_non_phenotype", "Ignores HPO identifiers that are sub-terms of 'Mode of inheritance' or 'Frequency'");
 
 		changeLog(2020, 11, 23, "Added parameter 'ignore_invalid'.");
 		changeLog(2020,  5, 24, "First version.");
@@ -34,6 +35,7 @@ public:
 		QString in = getString("in");
 		QString out = getOutfile("out");
 		bool ignore_invalid = getFlag("ignore_invalid");
+		bool ignore_non_phenotype = getFlag("ignore_non_phenotype");
 
 		//get HPO IDs
 		QStringList hpo_ids;
@@ -48,11 +50,11 @@ public:
 		hpo_ids.removeDuplicates();
 
 		//convert to phenotypes
-		QMap<QByteArray, QList<Phenotype>> genes2phenotypes;
+		QMap<QByteArray, PhenotypeList> genes2phenotypes;
 		foreach(const QString& hpo_id, hpo_ids)
 		{
-			Phenotype pheno = db.phenotypeByAccession(hpo_id.toLatin1(), false);
-			if (pheno.name().isEmpty())
+			int id = db.phenotypeIdByAccession(hpo_id.toLatin1(), false);
+			if (id==-1)
 			{
 				if (ignore_invalid)
 				{
@@ -63,10 +65,10 @@ public:
 					THROW(ArgumentException, "Cannot find HPO phenotype with accession '" + hpo_id + "' in NGSD!");
 				}
 			}
-			GeneSet genes = db.phenotypeToGenes(pheno, true);
+			GeneSet genes = db.phenotypeToGenes(id, true, ignore_non_phenotype);
 			foreach(const QByteArray& gene, genes)
 			{
-				genes2phenotypes[gene] << pheno;
+				genes2phenotypes[gene] << db.phenotype(id);
 			}
 		}
 

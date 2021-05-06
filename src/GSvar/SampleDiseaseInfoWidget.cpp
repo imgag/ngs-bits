@@ -58,8 +58,8 @@ void SampleDiseaseInfoWidget::updateDiseaseInfoTable()
 		QString disease_info = entry.disease_info;
 		if (entry.type=="HPO term id")
 		{
-			Phenotype pheno = db_.phenotypeByAccession(disease_info.toLatin1(), false);
-			disease_info +=  " (" + (pheno.name().isEmpty() ? "invalid" : pheno.name()) + ")";
+			int id = db_.phenotypeIdByAccession(disease_info.toLatin1(), false);
+			disease_info +=  " (" + (id==-1 ? "invalid" : db_.phenotype(id).name()) + ")";
 		}
 		ui_->disease_info->setItem(i, 0, new QTableWidgetItem(disease_info));
 		ui_->disease_info->setItem(i, 1, new QTableWidgetItem(entry.type));

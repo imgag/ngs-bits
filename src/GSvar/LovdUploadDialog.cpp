@@ -478,7 +478,7 @@ QByteArray LovdUploadDialog::createJson()
 	stream << "                    \"@code\": \"" << convertGender(ui_.gender->currentText().trimmed()) <<"\"\n";
 	stream << "                },\n";
 	stream << "                \"phenotype\": [\n";
-	QList<Phenotype> phenotypes = ui_.phenos->selectedPhenotypes();
+	PhenotypeList phenotypes = ui_.phenos->selectedPhenotypes();
 	for (int i=0; i<phenotypes.count(); ++i)
 	{
 		stream << "                    {\n";

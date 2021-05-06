@@ -464,7 +464,7 @@ void CnvWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by phenotype (via genes, not genomic regions)
-		QList<Phenotype> phenotypes = ui->filter_widget->phenotypes();
+		PhenotypeList phenotypes = ui->filter_widget->phenotypes();
 		if (!phenotypes.isEmpty())
 		{
 			//convert phenotypes to genes
@@ -472,7 +472,7 @@ void CnvWidget::applyFilters(bool debug_time)
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenotypes)
 			{
-				pheno_genes << db.phenotypeToGenes(pheno, true);
+				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
