@@ -137,7 +137,7 @@ public:
 		//parse term-disease and disease-gene relations from HPO
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("anno"));
 		QSet<QByteArray> non_hgnc_genes;
-		PhenotypeList inheritance_terms = db.phenotypeChildTerms(db.phenotypeIdByName("Mode of inheritance"), true);
+		PhenotypeList inheritance_terms = db.phenotypeChildTerms(db.phenotypeIdByAccession("HP:0000005"), true); //Mode of inheritance
 
 		QHash<int, QSet<QByteArray> > term2diseases;
 		QHash<QByteArray, GeneSet> disease2genes;

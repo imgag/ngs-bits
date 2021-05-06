@@ -26,6 +26,8 @@ public:
 	PhenotypeList& operator<<(const Phenotype& pheno);
 	//Adds a phenotype list.
 	PhenotypeList& operator<<(const QSet<Phenotype>& set);
+	//Adds a phenotype list.
+	PhenotypeList& operator<<(const PhenotypeList& list);
 
 	//Equality operator
 	bool operator==(const PhenotypeList& rhs) const

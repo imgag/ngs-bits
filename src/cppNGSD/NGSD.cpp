@@ -3912,13 +3912,13 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 	QSet<int> ignored_terms_ids;
 	if (ignore_non_phenotype_terms)
 	{
-		int pheno_inh = phenotypeIdByName("Mode of inheritance");
+		int pheno_inh = phenotypeIdByAccession("HP:0000005"); //"Mode of inheritance"
 		ignored_terms_ids << pheno_inh;
 		foreach(const Phenotype& pheno, phenotypeChildTerms(pheno_inh, true))
 		{
 			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
 		}
-		int pheno_freq = phenotypeIdByName("Frequency");
+		int pheno_freq = phenotypeIdByAccession("HP:0040279"); //"Frequency"
 		ignored_terms_ids << pheno_freq;
 		foreach(const Phenotype& pheno, phenotypeChildTerms(pheno_freq, true))
 		{
@@ -3978,11 +3978,11 @@ PhenotypeList NGSD::phenotypeChildTerms(int term_id, bool recursive)
 		pid2children.exec();
 		while(pid2children.next())
 		{
-			int id = pid2children.value(0).toInt();
-			output << phenotype(id);
+			int id_child = pid2children.value(0).toInt();
+			output << phenotype(id_child);
 			if (recursive)
 			{
-				term_ids << id;
+				term_ids << id_child;
 			}
 		}
 	}
@@ -4123,24 +4123,30 @@ int NGSD::phenotypeIdByName(const QByteArray& name, bool throw_on_error)
 
 int NGSD::phenotypeIdByAccession(const QByteArray& accession, bool throw_on_error)
 {
-	SqlQuery q = getQuery();
-	q.prepare("SELECT id FROM hpo_term WHERE hpo_id=:0");
-	q.bindValue(0, accession);
-	q.exec();
-
-	if (!q.next())
+	QHash<QByteArray, int>& cache = getCache().phenotypes_accession_to_id;
+	if (!cache.contains(accession))
 	{
-		if (throw_on_error)
+		SqlQuery q = getQuery();
+		q.prepare("SELECT id FROM hpo_term WHERE hpo_id=:0");
+		q.bindValue(0, accession);
+		q.exec();
+
+		if (!q.next())
 		{
-			THROW(DatabaseException, "Unknown HPO phenotype accession '" + accession + "'!");
+			if (throw_on_error)
+			{
+				THROW(DatabaseException, "Unknown HPO phenotype accession '" + accession + "'!");
+			}
+			else
+			{
+				return -1;
+			}
 		}
-		else
-		{
-			return -1;
-		}
+
+		cache[accession] = q.value(0).toInt();
 	}
 
-	return q.value(0).toInt();
+	return cache[accession];
 }
 
 const Phenotype& NGSD::phenotype(int id)
@@ -5976,6 +5982,7 @@ void NGSD::clearCache()
 	cache_instance.enum_values.clear();
 	cache_instance.non_approved_to_approved_gene_names.clear();
 	cache_instance.phenotypes_by_id.clear();
+	cache_instance.phenotypes_accession_to_id.clear();
 
 	cache_instance.gene_regions.clear();
 	cache_instance.gene_regions_index.createIndex();

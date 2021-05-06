@@ -239,7 +239,10 @@ void MainWindow::on_actionDebug_triggered()
 		timer.start();
 
 		NGSD db;
-		PhenotypeList phenotypic_abnormality_subterms = db.phenotypeChildTerms(db.phenotypeIdByName("Phenotypic abnormality"), true);
+		PhenotypeList valid_terms;
+		valid_terms << db.phenotypeChildTerms(db.phenotypeIdByName("Clinical modifier"), true);
+		valid_terms << db.phenotypeChildTerms(db.phenotypeIdByName("Past medical history"), true);
+		valid_terms << db.phenotypeChildTerms(db.phenotypeIdByName("Phenotypic abnormality"), true);
 
 		auto file = Helper::openFileForWriting("C:\\Marc\\hpos.tsv");
 		QTextStream stream(file.data());
@@ -260,9 +263,9 @@ void MainWindow::on_actionDebug_triggered()
 
 				hpo_name = db.phenotype(id).name();
 
-				if (!phenotypic_abnormality_subterms.containsAccession(hpo_id))
+				if (!valid_terms.containsAccession(hpo_id))
 				{
-					errors << "Not a child of 'phenotypic abnormality'";
+					errors << "Not a child of 'phenotypic abnormality', 'Clinical modifier' or 'Past medical history'";
 				}
 			}
 			catch(Exception & e)
@@ -351,7 +354,6 @@ void MainWindow::on_actionDebug_triggered()
 								if (phenos.count()>0) ++samples_with_hpo;
 								foreach(const Phenotype& pheno, phenos)
 								{
-									//TODO also all sub-terms?
 									QString hpo_name = pheno.name();
 									if (!hpo_affected.contains(hpo_name)) hpo_affected[hpo_name] = 0;
 									hpo_affected[hpo_name] += 1;
