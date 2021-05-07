@@ -149,7 +149,7 @@ struct FileLocation
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
-		if (in_upper == "MANTA_FUSION") return PathType::MANTA_FUSIONS;
+		if (in_upper == "MANTA_FUSIONS") return PathType::MANTA_FUSIONS;
 		if (in_upper == "COUNTS") return PathType::COUNTS;
 		if (in_upper == "VIRAL") return PathType::VIRAL;
 		if (in_upper == "VCF_CF_DNA") return PathType::VCF_CF_DNA;
