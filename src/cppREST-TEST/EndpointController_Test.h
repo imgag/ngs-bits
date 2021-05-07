@@ -25,7 +25,7 @@ private slots:
 		request.addHeader("range", "bytes=10-17");
 		request.setPrefix("v1");
 		request.setPath("temp");
-		request.addPathParam(url_id);
+		request.addPathParam(url_id+"/text.txt");
 
 		HttpResponse response = EndpointController::serveStaticFile(request);
 
@@ -57,7 +57,7 @@ private slots:
 		request.addHeader("connection", "keep-alive");
 		request.setPrefix("v1");
 		request.setPath("file_info");
-		request.addUrlParam("file", "https://localhost/v1/temp/" + url_id);
+		request.addUrlParam("file", "https://localhost/v1/temp/" + url_id + "/picture.png");
 
 		HttpResponse response = EndpointController::getFileInfo(request);
 
