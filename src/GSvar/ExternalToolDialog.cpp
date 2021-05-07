@@ -10,6 +10,7 @@
 #include "SampleSimilarity.h"
 #include "LoginManager.h"
 #include "ProcessedSampleSelector.h"
+#include "GlobalServiceProvider.h"
 
 ExternalToolDialog::ExternalToolDialog(QString tool_name, QString mode, QWidget* parent)
 	: QDialog(parent)
@@ -191,9 +192,9 @@ QString ExternalToolDialog::getFileName(FileType type, bool ngsd_instead_of_file
 			QString ps_id = dlg.processedSampleId();
 			NGSD db;
 
-			if (type==BAM) return db.processedSamplePath(ps_id, PathType::BAM);
-			if (type==GSVAR) return db.processedSamplePath(ps_id, PathType::GSVAR);
-			if (type==VCF) return db.processedSamplePath(ps_id, PathType::VCF);
+			if (type==BAM) return GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::BAM).filename;
+			if (type==GSVAR) return GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::GSVAR).filename;
+			if (type==VCF) return GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::VCF).filename;
 		}
 	}
 	else //from filesystem

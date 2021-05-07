@@ -309,7 +309,7 @@ void ProcessedSampleWidget::showPlot()
 
 void ProcessedSampleWidget::openSampleFolder()
 {
-	QString folder = NGSD().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
+	QString folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER).filename;
 	if(!QFile::exists(folder))
 	{
 		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder);
@@ -535,7 +535,7 @@ void ProcessedSampleWidget::addIgvMenuEntry(QMenu* menu, PathType file_type)
 {
 	QAction* action = menu->addAction(FileLocation::typeToHumanReadableString(file_type), this, SLOT(openIgvTrack()));
 	action->setData((int)file_type);
-	action->setEnabled(QFile::exists(NGSD().processedSamplePath(ps_id_, file_type)));
+	action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, file_type).exists);
 }
 
 void ProcessedSampleWidget::openIgvTrack()
@@ -543,7 +543,7 @@ void ProcessedSampleWidget::openIgvTrack()
 	QAction* action = qobject_cast<QAction*>(sender());
 	PathType type = static_cast<PathType>(action->data().toInt());
 
-	QString file = NGSD().processedSamplePath(ps_id_, type);
+	QString file = GlobalServiceProvider::database().processedSamplePath(ps_id_, type).filename;
 	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(file) + "\"");
 }
 
