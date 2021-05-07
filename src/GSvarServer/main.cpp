@@ -169,7 +169,8 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"temp",
 						QMap<QString, ParamProps>{
-						   {"id", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::PATH_PARAM, false, "Unique id pointing to a file"}}
+							{"id", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::PATH_PARAM, false, "Unique id pointing to a folder"}},
+							{"filename", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::PATH_PARAM, true, "Filename in a folder with a temporary URL"}}
 						},
 						RequestMethod::HEAD,
 						ContentType::TEXT_HTML,

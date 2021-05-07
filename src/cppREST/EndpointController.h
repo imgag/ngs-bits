@@ -45,7 +45,7 @@ private:
 	static QString getEndpointHelpTemplate(QList<Endpoint>* endpoint_list);
 	static QString generateGlobalHelp();
 	static QString generateEntityHelp(QString path, RequestMethod method);
-	static QString getServedFileLocation(QString file_id);
+	static QString getServedFileLocation(QString url_id, QString filename);
 	static bool isEligibileToAccess(HttpRequest request);
 	static QString getFileNameWithExtension(QString filename_with_path);
 	static StaticFile readFileContent(QString filename, ByteRange byte_range);

@@ -9,12 +9,12 @@ private slots:
 	void test_static_file_random_access()
 	{
 		QString url_id = ServerHelper::generateUniqueStr();
-		QByteArray filename = TESTDATA("data_in/text.txt");
+		QByteArray file = TESTDATA("data_in/text.txt");
 
-		IS_FALSE(UrlManager::isInStorageAlready(filename));
+		IS_FALSE(UrlManager::isInStorageAlready(file));
 
-		UrlManager::addUrlToStorage(url_id, filename);
-		IS_TRUE(UrlManager::isInStorageAlready(filename));
+		UrlManager::addUrlToStorage(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
+		IS_TRUE(UrlManager::isInStorageAlready(file));
 
 		HttpRequest request;
 		request.setMethod(RequestMethod::GET);
@@ -42,12 +42,12 @@ private slots:
 	void test_file_info()
 	{
 		QString url_id = ServerHelper::generateUniqueStr();
-		QByteArray filename = TESTDATA("data_in/picture.png");
+		QByteArray file = TESTDATA("data_in/picture.png");
 
-		IS_FALSE(UrlManager::isInStorageAlready(filename));
+		IS_FALSE(UrlManager::isInStorageAlready(file));
 
-		UrlManager::addUrlToStorage(url_id, filename);
-		IS_TRUE(UrlManager::isInStorageAlready(filename));
+		UrlManager::addUrlToStorage(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
+		IS_TRUE(UrlManager::isInStorageAlready(file));
 
 		HttpRequest request;
 		request.setMethod(RequestMethod::GET);

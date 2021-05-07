@@ -9,13 +9,14 @@ HttpResponse EndpointController::serveFolderContent(HttpRequest request)
 	}
 	else
 	{
-		folder = request.getPathParams().value(0);
+		UrlEntity url = UrlManager::getURLById(request.getPathParams().value(0));
+		folder = url.path;
 	}
 
 	QDir dir(folder);
-	if (!dir.exists())
+	if ((folder.isEmpty()) || (!dir.exists()))
 	{
-		return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Requested folder does not exist"});
+		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Requested folder does not exist"});
 	}
 
 	dir.setFilter(QDir::Dirs | QDir::Files | QDir::Hidden | QDir::NoSymLinks);
@@ -57,7 +58,14 @@ HttpResponse EndpointController::serveEndpointHelp(HttpRequest request)
 
 HttpResponse EndpointController::serveStaticFile(HttpRequest request)
 {
-	QString served_file = getServedFileLocation(request.getPathParams().value(0));
+	if (request.getPathParams().size() == 1)
+	{
+		return serveFolderContent(request);
+	}
+
+
+
+	QString served_file = getServedFileLocation(request.getPathParams().value(0), request.getPathParams().value(1));
 	if (served_file.isEmpty())
 	{
 		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "File does not exist: " + request.getPathParams()[0]});
@@ -123,7 +131,12 @@ HttpResponse EndpointController::serveStaticFileFromCache(HttpRequest request)
 
 HttpResponse EndpointController::streamStaticFile(HttpRequest request)
 {
-	QString served_file = getServedFileLocation(request.getPathParams().value(0));
+	if (request.getPathParams().size() == 1)
+	{
+		return serveFolderContent(request);
+	}
+
+	QString served_file = getServedFileLocation(request.getPathParams().value(0), request.getPathParams().value(1));
 	if (served_file.isEmpty())
 	{
 		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "File does not exist: " + request.getPathParams()[0]});
@@ -339,24 +352,28 @@ QString EndpointController::generateEntityHelp(QString path, RequestMethod metho
 	return getEndpointHelpTemplate(&selected_endpoints);
 }
 
-QString EndpointController::getServedFileLocation(QString file_id)
+QString EndpointController::getServedFileLocation(QString url_id, QString filename)
 {
-	QString server_root = ServerHelper::getStringSettingsValue("server_root");
-	if (!server_root.endsWith(QDir::separator()))
-	{
-		server_root = server_root + QDir::separator();
-	}
+//	QString server_root = ServerHelper::getStringSettingsValue("server_root");
+//	if (!server_root.endsWith(QDir::separator()))
+//	{
+//		server_root = server_root + QDir::separator();
+//	}
 
-	QString served_file = server_root.trimmed() + file_id;
-	if (QFile(served_file).exists())
-	{
-		return served_file;
-	}
+//	QString served_file = server_root.trimmed() + file_id;
+//	if (QFile(served_file).exists())
+//	{
+//		return served_file;
+//	}
 
-	UrlEntity url_entity = UrlManager::getURLById(file_id);
+	UrlEntity url_entity = UrlManager::getURLById(url_id);
 	if (!url_entity.filename_with_path.isEmpty())
 	{
-		return url_entity.filename_with_path;
+		if (QFileInfo(url_entity.filename_with_path).fileName() == filename)
+		{
+			return url_entity.filename_with_path;
+		}
+		return QFileInfo(url_entity.filename_with_path).absolutePath() + QDir::separator() + filename;
 	}
 
 	return "";

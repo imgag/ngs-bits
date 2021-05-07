@@ -1790,15 +1790,9 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			foreach(QString command, init_commands)
 			{
 
-//				if (command.indexOf("https:/")>-1)
-//				{
-//					command = command.replace("https:/", "https://");
-//				}
-
-				if (command.indexOf("/media/ubuntolog/Data")> -1)
+				if (command.indexOf("https:/")>-1)
 				{
-					command = command.replace("/media/ubuntolog/Data/test/KontrollDNACoriell/Sample_NA12878_08/",
-											"https://brokcalie.com:8443/v1/static/");
+					command = command.replace("https:/", "https://");
 				}
 
 				qDebug() << "Command " << command;

@@ -227,7 +227,14 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 		}
 		if (needs_url)
 		{
-			cur_json_item.insert("filename", createTempUrl(file_list[i].filename));
+			try
+			{
+				cur_json_item.insert("filename", createFileTempUrl(file_list[i].filename));
+			}
+			catch (Exception& e)
+			{
+				return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), e.message()});
+			}
 		}
 		else
 		{
@@ -266,7 +273,14 @@ HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
 	QList<QString> found_files = getAnalysisFiles(request.getUrlParams().value("ps"), search_multi);
 	for (int i = 0; i < found_files.count(); i++)
 	{
-		json_list_output.append(createTempUrl(found_files[i]));
+		try
+		{
+			json_list_output.append(createFileTempUrl(found_files[i]));
+		}
+		catch (Exception& e)
+		{
+			return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), e.message()});
+		}
 	}
 	json_doc_output.setArray(json_list_output);
 
@@ -370,11 +384,11 @@ HttpResponse EndpointHandler::performLogout(HttpRequest request)
 	return HttpResponse(HttpError{StatusCode::FORBIDDEN, request.getContentType(), "You have provided an invalid token"});
 }
 
-QString EndpointHandler::createTempUrl(QString filename)
+QString EndpointHandler::createFileTempUrl(QString file)
 {
 	QString id = ServerHelper::generateUniqueStr();
-	UrlManager::addUrlToStorage(id, filename);
+	UrlManager::addUrlToStorage(id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
 	return ServerHelper::getStringSettingsValue("server_host") +
 			+ ":" + ServerHelper::getStringSettingsValue("server_port") +
-			+ "/v1/temp/" + id;
+			+ "/v1/temp/" + id + "/" + QFileInfo(file).fileName();
 }

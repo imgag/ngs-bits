@@ -11,10 +11,10 @@ UrlManager& UrlManager::instance()
 	return url_manager;
 }
 
-void UrlManager::addUrlToStorage(QString id, QString filename_with_path)
+void UrlManager::addUrlToStorage(QString id, QString filename, QString path, QString filename_with_path)
 {
 	instance().mutex_.lock();
-	instance().url_storage_.insert(id, UrlEntity{filename_with_path, id, QDateTime::currentDateTime()});
+	instance().url_storage_.insert(id, UrlEntity{filename, path, filename_with_path, id, QDateTime::currentDateTime()});
 	instance().mutex_.unlock();
 }
 
