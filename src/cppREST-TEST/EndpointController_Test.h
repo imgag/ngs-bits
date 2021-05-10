@@ -10,7 +10,6 @@ private slots:
 	{
 		QString url_id = ServerHelper::generateUniqueStr();
 		QByteArray file = TESTDATA("data_in/text.txt");
-
 		IS_FALSE(UrlManager::isInStorageAlready(file));
 
 		UrlManager::addUrlToStorage(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
@@ -25,7 +24,8 @@ private slots:
 		request.addHeader("range", "bytes=10-17");
 		request.setPrefix("v1");
 		request.setPath("temp");
-		request.addPathParam(url_id+"/text.txt");
+		request.addPathParam(url_id);
+		request.addPathParam("text.txt");
 
 		HttpResponse response = EndpointController::serveStaticFile(request);
 
@@ -43,7 +43,6 @@ private slots:
 	{
 		QString url_id = ServerHelper::generateUniqueStr();
 		QByteArray file = TESTDATA("data_in/picture.png");
-
 		IS_FALSE(UrlManager::isInStorageAlready(file));
 
 		UrlManager::addUrlToStorage(url_id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
@@ -57,17 +56,16 @@ private slots:
 		request.addHeader("connection", "keep-alive");
 		request.setPrefix("v1");
 		request.setPath("file_info");
-		request.addUrlParam("file", "https://localhost/v1/temp/" + url_id + "/picture.png");
+		request.addUrlParam("file", "https://localhost:8443/v1/temp/" + url_id + "/picture.png");
 
-		HttpResponse response = EndpointController::getFileInfo(request);
-
+		HttpResponse response = EndpointController::getFileInfo(request);		
 		QJsonDocument document = QJsonDocument::fromJson(response.getPayload());
 		QJsonObject json_object = document.object();
 		S_EQUAL(json_object.value("file_name").toString(), "picture.png");
 		IS_TRUE(json_object.value("exists").toBool());
 
 		QMap<QString, QString> params;
-		params.insert("file", "https://localhost/v1/temp/fake_id");
+		params.insert("file", "https://localhost:8443/v1/temp/fake_id");
 		request.setUrlParams(params);
 		response = EndpointController::getFileInfo(request);
 		IS_TRUE(response.getHeaders().split('\n').first().contains("404"));

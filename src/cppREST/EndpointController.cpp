@@ -68,7 +68,7 @@ HttpResponse EndpointController::serveStaticFile(HttpRequest request)
 	QString served_file = getServedFileLocation(request.getPathParams().value(0), request.getPathParams().value(1));
 	if (served_file.isEmpty())
 	{
-		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "File does not exist: " + request.getPathParams()[0]});
+		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Requested file does not exist"});
 	}
 
 	ByteRange byte_range {};
@@ -165,10 +165,10 @@ HttpResponse EndpointController::getFileInfo(HttpRequest request)
 		QList<QString> url_parts = request.getUrlParams()["file"].split("/");
 		if (url_parts.size() > 0)
 		{
-			UrlEntity current_entity = UrlManager::getURLById(url_parts[url_parts.size()-1]);
-			if (current_entity.filename_with_path.length()>0)
+			UrlEntity current_entity = UrlManager::getURLById(url_parts[url_parts.size()-2]);
+			if (!current_entity.path.isEmpty())
 			{
-				filename = current_entity.filename_with_path;
+				filename = current_entity.path + QDir::separator() + url_parts.value(url_parts.size()-1);
 			}
 		}
 	}
