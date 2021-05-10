@@ -435,7 +435,7 @@ void GenLabDB::addMissingMetaDataToNGSD(QString ps_name, bool log, bool add_dise
 	}
 
 	//sample disease details
-	if (add_disease_details && sample_data.disease_status=="Affected")
+	if (add_disease_details)
 	{
 		QList<SampleDiseaseInfo> disease_details = db.getSampleDiseaseInfo(sample_id);
 		QDateTime date = QDateTime::currentDateTime();
