@@ -66,7 +66,7 @@ HttpResponse EndpointHandler::serveIndexPage(HttpRequest request)
 	{
 		return EndpointController::createStaticFileResponse(":/assets/client/info.html", ByteRange{}, ContentType::TEXT_HTML, false);
 	}
-	return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), "Index page was not found"});
+	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Index page was not found");
 }
 
 HttpResponse EndpointHandler::serveApiInfo(HttpRequest request)
@@ -75,7 +75,7 @@ HttpResponse EndpointHandler::serveApiInfo(HttpRequest request)
 	{
 		return EndpointController::createStaticFileResponse(":/assets/client/api.json", ByteRange{}, ContentType::APPLICATION_JSON, false);
 	}
-	return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), "API info was not found"});
+	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "API info was not found");
 }
 
 HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
@@ -83,7 +83,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	qDebug() << "File location service";
 	if (!request.getUrlParams().contains("ps"))
 	{
-		return HttpResponse(HttpError{StatusCode::BAD_REQUEST, request.getContentType(), "Sample id has not been provided"});
+		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Sample id has not been provided");
 	}
 	QString ps = request.getUrlParams().value("ps");
 
@@ -102,7 +102,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 
 	if (found_file.isEmpty())
 	{
-		return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), "Could not find the sample: " + request.getUrlParams().value("ps")});
+		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Could not find the sample: " + request.getUrlParams().value("ps"));
 	}
 
 	VariantList variants;
@@ -138,7 +138,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	{
 		if (!request.getUrlParams().contains("locus"))
 		{
-			return HttpResponse(HttpError{StatusCode::BAD_REQUEST, request.getContentType(), "Locus value has not been provided"});
+			return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Locus value has not been provided");
 		}
 		file_list << file_locator->getRepeatExpansionImage(request.getUrlParams().value("locus"));
 	}
@@ -233,7 +233,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 			}
 			catch (Exception& e)
 			{
-				return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), e.message()});
+				return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), e.message());
 			}
 		}
 		else
@@ -252,7 +252,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	response_data.content_type = ContentType::APPLICATION_JSON;
 	response_data.is_downloadable = false;
 
-	return HttpResponse(false, false, "", HttpProcessor::generateHeaders(response_data), json_doc_output.toJson());
+	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
 HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
@@ -279,7 +279,7 @@ HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
 		}
 		catch (Exception& e)
 		{
-			return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), e.message()});
+			return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), e.message());
 		}
 	}
 	json_doc_output.setArray(json_list_output);
@@ -290,7 +290,7 @@ HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
 	response_data.content_type = ContentType::APPLICATION_JSON;
 	response_data.is_downloadable = false;
 
-	return HttpResponse(false, false, "", HttpProcessor::generateHeaders(response_data), json_doc_output.toJson());
+	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
 HttpResponse EndpointHandler::getProcessingSystemRegions(HttpRequest request)
@@ -300,7 +300,7 @@ HttpResponse EndpointHandler::getProcessingSystemRegions(HttpRequest request)
 	QString filename = db.processingSystemRegionsFilePath(sys_id.toInt());
 	if (filename.isEmpty())
 	{
-		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Processing system regions file has not been found"});
+		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Processing system regions file has not been found");
 	}
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
@@ -312,7 +312,7 @@ HttpResponse EndpointHandler::getProcessingSystemAmplicons(HttpRequest request)
 	QString filename = db.processingSystemAmpliconsFilePath(sys_id.toInt());
 	if (filename.isEmpty())
 	{
-		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Processing system amplicons file has not been found"});
+		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Processing system amplicons file has not been found");
 	}
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
@@ -324,7 +324,7 @@ HttpResponse EndpointHandler::getProcessingSystemGenes(HttpRequest request)
 	QString filename = db.processingSystemGenesFilePath(sys_id.toInt());
 	if (filename.isEmpty())
 	{
-		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Processing system genes file has not been found"});
+		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Processing system genes file has not been found");
 	}
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
@@ -334,7 +334,7 @@ HttpResponse EndpointHandler::performLogin(HttpRequest request)
 	QByteArray body {};
 	if (!request.getFormUrlEncoded().contains("name") || !request.getFormUrlEncoded().contains("password"))
 	{
-		return HttpResponse(HttpError{StatusCode::FORBIDDEN, request.getContentType(), "No username or/and password were found"});
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "No username or/and password were found");
 	}
 
 	if (isValidUser(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]))
@@ -350,10 +350,10 @@ HttpResponse EndpointHandler::performLogin(HttpRequest request)
 		response_data.content_type = ContentType::TEXT_PLAIN;
 		response_data.is_downloadable = false;
 
-		return HttpResponse{false, false, "", HttpProcessor::generateHeaders(response_data), body};
+		return HttpResponse(response_data, body);
 	}
 
-	return HttpResponse(HttpError{StatusCode::UNAUTHORIZED, request.getContentType(), "Invalid username or password"});
+	return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid username or password");
 }
 
 HttpResponse EndpointHandler::performLogout(HttpRequest request)
@@ -361,7 +361,7 @@ HttpResponse EndpointHandler::performLogout(HttpRequest request)
 	QByteArray body {};
 	if (!request.getFormUrlEncoded().contains("token"))
 	{
-		return HttpResponse(HttpError{StatusCode::FORBIDDEN, request.getContentType(), "Secure token has not been provided"});
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Secure token has not been provided");
 	}
 	if (SessionManager::isTokenValid(request.getFormUrlEncoded()["token"]))
 	{
@@ -370,7 +370,7 @@ HttpResponse EndpointHandler::performLogout(HttpRequest request)
 			SessionManager::removeSession(request.getFormUrlEncoded()["token"]);
 		} catch (Exception& e)
 		{
-			return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, request.getContentType(), e.message()});
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), e.message());
 		}
 		body = request.getFormUrlEncoded()["token"].toLocal8Bit();
 
@@ -379,9 +379,9 @@ HttpResponse EndpointHandler::performLogout(HttpRequest request)
 		response_data.content_type = ContentType::TEXT_PLAIN;
 		response_data.is_downloadable = false;
 
-		return HttpResponse{false, false, "", HttpProcessor::generateHeaders(response_data), body};
+		return HttpResponse(response_data, body);
 	}
-	return HttpResponse(HttpError{StatusCode::FORBIDDEN, request.getContentType(), "You have provided an invalid token"});
+	return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You have provided an invalid token");
 }
 
 QString EndpointHandler::createFileTempUrl(QString file)

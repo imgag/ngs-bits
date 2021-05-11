@@ -1,26 +1,19 @@
 #include "EndpointController.h"
 
-HttpResponse EndpointController::serveFolderContent(HttpRequest request)
+HttpResponse EndpointController::serveFolderContent(QString path)
 {
-	QString folder;
-	if (request.getPathParams().count() == 0)
-	{
-		folder = Settings::string("server_root");
-	}
-	else
-	{
-		UrlEntity url = UrlManager::getURLById(request.getPathParams().value(0));
-		folder = url.path;
-	}
+	qDebug() << "serveFolderContent -----";
 
-	QDir dir(folder);
-	if ((folder.isEmpty()) || (!dir.exists()))
+	QDir dir(path);
+	if (!dir.exists())
 	{
-		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Requested folder does not exist"});
+		qDebug() << "serveFolderContent NOT FOUND-----";
+		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Requested folder does not exist");
 	}
 
 	dir.setFilter(QDir::Dirs | QDir::Files | QDir::Hidden | QDir::NoSymLinks);
 
+	qDebug() << "serveFolderContent READING LIST-----";
 	QFileInfoList list = dir.entryInfoList();
 	QList<FolderItem> files {};
 	for (int i = 0; i < list.size(); ++i) {
@@ -53,74 +46,53 @@ HttpResponse EndpointController::serveEndpointHelp(HttpRequest request)
 	response_data.length = body.length();
 	response_data.content_type = ContentType::TEXT_HTML;
 	response_data.is_downloadable = false;
-	return HttpResponse{false, false, "", HttpProcessor::generateHeaders(response_data), body};
+	return HttpResponse(response_data, body);
 }
 
-HttpResponse EndpointController::serveStaticFile(HttpRequest request)
+HttpResponse EndpointController::serveStaticFromServerRoot(HttpRequest request)
 {
-	if (request.getPathParams().size() == 1)
-	{
-		return serveFolderContent(request);
-	}
+	qDebug() << "------------SERVER ROOT";
+	qDebug() << request.getPathParams();
 
-
-
-	QString served_file = getServedFileLocation(request.getPathParams().value(0), request.getPathParams().value(1));
+	QString served_file = getServedRootPath(request.getPathParams());
+	qDebug() << "served_file " << served_file;
 	if (served_file.isEmpty())
 	{
-		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "Requested file does not exist"});
+		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Location has not been found in the server root folder");
 	}
 
-	ByteRange byte_range {};
-	byte_range.start = 0;
-	byte_range.end = 0;
-	if (request.getHeaders().contains("range"))
+	if (QFileInfo(served_file).isDir())
 	{
-		QString range_value = request.getHeaders().value("range");
-		qDebug() << "Reading byte range header:" + range_value;
-		range_value = range_value.replace("bytes", "");
-		range_value = range_value.replace("=", "");
-		range_value = range_value.trimmed();
-		if (range_value.count("-") == 1)
-		{
-			byte_range.start = static_cast<quint64>(range_value.mid(0, range_value.indexOf("-")).trimmed().toULongLong());
-			byte_range.end = static_cast<quint64>(range_value.mid(range_value.indexOf("-")+1, range_value.length()-range_value.indexOf("-")).trimmed().toULongLong());
-		}
+		return serveFolderContent(served_file);
 	}
-	byte_range.length = ((byte_range.end - byte_range.start) > -1.0) ? (byte_range.end - byte_range.start) : 0;
 
-	if (request.getMethod() == RequestMethod::HEAD)
+	qDebug() << "Serve a file";
+	return serveStaticFile(served_file, request.getMethod(), request.getHeaders());
+}
+
+HttpResponse EndpointController::serveStaticForTempUrl(HttpRequest request)
+{
+	qDebug() << "------------ TEMP URL";
+	qDebug() << request.getPathParams();
+
+	QString served_file;
+	try
 	{
-		qDebug() << "Processing HEAD method";
-		HttpResponse response;
-		response.setIsStream(false);
-		response.setIsBinary(false);
-		response.setFilename(served_file);
-
-		QByteArray headers;
-		headers.append("HTTP/1.1 200 OK\r\n");
-		headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
-		headers.append("Server: " + ServerHelper::getAppName() + "\r\n");
-		headers.append("Last-Modified: " + QFileInfo(served_file).lastModified().toUTC().toString() + "\r\n");
-		headers.append("Content-Length: " + QString::number(QFileInfo(served_file).size()) + "\r\n");
-		headers.append("Content-Type: " + HttpProcessor::convertContentTypeToString(HttpProcessor::getContentTypeByFilename(served_file)) + "\r\n");
-//		headers.append("Accept-Ranges: bytes\r\n");
-		headers.append("\r\n");
-		response.setHeaders(headers);
-		return response;
+		served_file = getServedTempPath(request.getPathParams());
 	}
-
-	if (!request.getHeaders().contains("range"))
+	catch(Exception& e)
 	{
-		qDebug() << "Processing STREAM";
-		return createStaticStreamResponse(served_file, false);
-
-//		qDebug() << "STATIC FILE ALL";
-//		return createStaticFileResponse(served_file, ByteRange{}, HttpProcessor::getContentTypeByFilename(served_file), false);
-
+		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), e.message());
 	}
-	qDebug() << "Processing RANGE";
-	return createStaticFileResponse(served_file, byte_range, HttpProcessor::getContentTypeByFilename(served_file), false);
+
+	qDebug() << "served_file2 " << served_file;
+
+	if (QFileInfo(served_file).isDir())
+	{
+		return serveFolderContent(served_file);
+	}
+
+	return serveStaticFile(served_file, request.getMethod(), request.getHeaders());
 }
 
 HttpResponse EndpointController::serveStaticFileFromCache(HttpRequest request)
@@ -129,29 +101,11 @@ HttpResponse EndpointController::serveStaticFileFromCache(HttpRequest request)
 	return createStaticFromCacheResponse(filename, ByteRange{}, HttpProcessor::getContentTypeByFilename(filename), false);
 }
 
-HttpResponse EndpointController::streamStaticFile(HttpRequest request)
-{
-	if (request.getPathParams().size() == 1)
-	{
-		return serveFolderContent(request);
-	}
-
-	QString served_file = getServedFileLocation(request.getPathParams().value(0), request.getPathParams().value(1));
-	if (served_file.isEmpty())
-	{
-		return HttpResponse(HttpError{StatusCode::NOT_FOUND, ContentType::TEXT_HTML, "File does not exist: " + request.getPathParams()[0]});
-	}
-
-	bool downloadable = false;
-	if (request.getUrlParams().size() > 0) downloadable = true;
-	return createStaticStreamResponse(served_file, downloadable);
-}
-
 HttpResponse EndpointController::serveProtectedStaticFile(HttpRequest request)
 {
 	if (!isEligibileToAccess(request))
 	{
-		return HttpResponse(HttpError{StatusCode::FORBIDDEN, request.getContentType(), "Secure token has not been provided"});
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Secure token has not been provided");
 	}
 	// this is just an example
 	return createStaticFileResponse(":/assets/client/example.png", ByteRange{}, ContentType::APPLICATION_OCTET_STREAM, true);
@@ -175,7 +129,7 @@ HttpResponse EndpointController::getFileInfo(HttpRequest request)
 
 	if (!QFile(filename).exists())
 	{
-		return HttpResponse(HttpError{StatusCode::NOT_FOUND, request.getContentType(), "File does not exist: " + filename});
+		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "File does not exist: " + filename);
 	}
 
 	QJsonDocument json_doc_output {};
@@ -193,7 +147,7 @@ HttpResponse EndpointController::getFileInfo(HttpRequest request)
 	response_data.content_type = ContentType::APPLICATION_JSON;
 	response_data.is_downloadable = false;
 
-	return HttpResponse{false, false, "", HttpProcessor::generateHeaders(response_data), json_doc_output.toJson()};
+	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
 HttpResponse EndpointController::createStaticFileResponse(QString filename, ByteRange byte_range, ContentType type, bool is_downloadable)
@@ -206,7 +160,7 @@ HttpResponse EndpointController::createStaticFileResponse(QString filename, Byte
 	}
 	catch(Exception& e)
 	{
-		return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, e.message()});
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, e.message());
 	}
 
 	BasicResponseData response_data;
@@ -218,37 +172,20 @@ HttpResponse EndpointController::createStaticFileResponse(QString filename, Byte
 	response_data.is_downloadable = is_downloadable;
 
 	qDebug() << "response_data.file_size = " << response_data.file_size;
-	return HttpResponse(false, false, filename, HttpProcessor::generateHeaders(response_data), static_file.content);
+	return HttpResponse(response_data, static_file.content);
 }
 
 HttpResponse EndpointController::createStaticStreamResponse(QString filename, bool is_downloadable)
 {
-	ContentType content_type = HttpProcessor::getContentTypeByFilename(filename);
-	HttpResponse response;
-	response.setIsBinary(false);
-	if ((content_type == APPLICATION_OCTET_STREAM) || (content_type == IMAGE_PNG) || (content_type == IMAGE_JPEG))
-	{
-		response.setIsBinary(true);
-	}
+	BasicResponseData response_data;
+	response_data.length = QFileInfo(filename).size();
+	response_data.filename = filename;
+	response_data.file_size = QFileInfo(filename).size();
+	response_data.is_stream = true;
+	response_data.content_type = HttpProcessor::getContentTypeByFilename(filename);
+	response_data.is_downloadable = is_downloadable;
 
-	response.setIsStream(true);
-	response.setFilename(filename);
-	response.addHeader("HTTP/1.1 200 OK\r\n");
-	response.addHeader("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
-	response.addHeader("Server: " + ServerHelper::getAppName() + "\r\n");
-//	response.addHeader("Transfer-Encoding: chunked\r\n");
-	response.addHeader("Content-Length: " + QString::number(QFileInfo(filename).size()) + "\r\n");
-
-	response.addHeader("Connection: Keep-Alive\r\n");
-	response.addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(content_type) + "\r\n");
-
-	if (is_downloadable)
-	{
-		response.addHeader("Content-Disposition: attachment; filename="+getFileNameWithExtension(filename)+"\r\n");
-	}
-	response.addHeader("\r\n");
-
-	return response;
+	return HttpResponse(response_data);
 }
 
 HttpResponse EndpointController::createStaticFromCacheResponse(QString id, ByteRange byte_range, ContentType type, bool is_downloadable)
@@ -257,7 +194,7 @@ HttpResponse EndpointController::createStaticFromCacheResponse(QString id, ByteR
 
 	if (static_file.content.isEmpty() || static_file.content.isNull())
 	{
-		return HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Empty or corrpupted file"});
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Empty or corrpupted file");
 	}
 
 	BasicResponseData response_data;
@@ -268,7 +205,7 @@ HttpResponse EndpointController::createStaticFromCacheResponse(QString id, ByteR
 	response_data.content_type = type;
 	response_data.is_downloadable = is_downloadable;
 
-	return HttpResponse(false, false, "", HttpProcessor::generateHeaders(response_data), static_file.content);
+	return HttpResponse(response_data, static_file.content);
 }
 
 EndpointController::EndpointController()
@@ -281,8 +218,56 @@ EndpointController& EndpointController::instance()
 	return endpoint_controller;
 }
 
+HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod method, QMap<QString, QString> headers)
+{
+	if (filename.isEmpty())
+	{
+		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Requested file does not exist");
+	}
+
+	ByteRange byte_range {};
+	byte_range.start = 0;
+	byte_range.end = 0;
+	if (headers.contains("range"))
+	{
+		QString range_value = headers.value("range");
+		qDebug() << "Reading byte range header:" + range_value;
+		range_value = range_value.replace("bytes", "");
+		range_value = range_value.replace("=", "");
+		range_value = range_value.trimmed();
+		if (range_value.count("-") == 1)
+		{
+			byte_range.start = static_cast<quint64>(range_value.mid(0, range_value.indexOf("-")).trimmed().toULongLong());
+			byte_range.end = static_cast<quint64>(range_value.mid(range_value.indexOf("-")+1, range_value.length()-range_value.indexOf("-")).trimmed().toULongLong());
+		}
+	}
+	byte_range.length = ((byte_range.end - byte_range.start) > -1.0) ? (byte_range.end - byte_range.start) : 0;
+
+	if (method == RequestMethod::HEAD)
+	{
+		qDebug() << "Processing HEAD method";
+		BasicResponseData response_data;
+		response_data.length = QFileInfo(filename).size();
+		response_data.filename = filename;
+		response_data.file_size = QFileInfo(filename).size();
+		response_data.content_type = HttpProcessor::getContentTypeByFilename(filename);
+		response_data.is_stream = false;
+
+		return HttpResponse(response_data);
+	}
+
+	if (!headers.contains("range"))
+	{
+		qDebug() << "Processing STREAM";
+		return createStaticStreamResponse(filename, false);
+	}
+	qDebug() << "Processing RANGE";
+	return createStaticFileResponse(filename, byte_range, HttpProcessor::getContentTypeByFilename(filename), false);
+}
+
 HttpResponse EndpointController::serveFolderListing(QList<FolderItem> items)
 {
+	qDebug() << "FOLDER LIST";
 	HttpResponse response;
 
 	QString output;
@@ -293,14 +278,12 @@ HttpResponse EndpointController::serveFolderListing(QList<FolderItem> items)
 	stream << HtmlEngine::createFolderListingElements(items);
 	stream << HtmlEngine::getPageFooter();
 
-	response.addHeader("HTTP/1.1 200 OK\n");
-	response.addHeader("Content-Length: " + QString::number(output.toLocal8Bit().length()) + "\n");
-	response.addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(ContentType::TEXT_HTML) + "\n");
-	response.addHeader("\n");
-	response.setPayload(output.toLocal8Bit());
-	response.setIsStream(false);
+	BasicResponseData response_data;
+	response_data.length = output.toLocal8Bit().length();
+	response_data.is_stream = false;
+	response_data.content_type = ContentType::TEXT_HTML;
 
-	return response;
+	return HttpResponse(response_data, output.toLocal8Bit());
 }
 
 QString EndpointController::getEndpointHelpTemplate(QList<Endpoint>* endpoint_list)
@@ -352,28 +335,36 @@ QString EndpointController::generateEntityHelp(QString path, RequestMethod metho
 	return getEndpointHelpTemplate(&selected_endpoints);
 }
 
-QString EndpointController::getServedFileLocation(QString url_id, QString filename)
+
+QString EndpointController::getServedTempPath(QList<QString> path_parts)
 {
-//	QString server_root = ServerHelper::getStringSettingsValue("server_root");
-//	if (!server_root.endsWith(QDir::separator()))
-//	{
-//		server_root = server_root + QDir::separator();
-//	}
+	if (path_parts.size() < 1)
+	{
+		THROW(Exception, "Not path has been provided in temporary URL");
+	}
 
-//	QString served_file = server_root.trimmed() + file_id;
-//	if (QFile(served_file).exists())
-//	{
-//		return served_file;
-//	}
-
-	UrlEntity url_entity = UrlManager::getURLById(url_id);
+	UrlEntity url_entity = UrlManager::getURLById(path_parts.value(0));
 	if (!url_entity.filename_with_path.isEmpty())
 	{
-		if (QFileInfo(url_entity.filename_with_path).fileName() == filename)
-		{
-			return url_entity.filename_with_path;
-		}
-		return QFileInfo(url_entity.filename_with_path).absolutePath() + QDir::separator() + filename;
+		path_parts.removeAt(0);
+		return QFileInfo(url_entity.filename_with_path).absolutePath() + QDir::separator() + path_parts.join(QDir::separator());
+	}
+
+	return "";
+}
+
+QString EndpointController::getServedRootPath(QList<QString> path_parts)
+{
+	QString server_root = ServerHelper::getStringSettingsValue("server_root");
+	if (!server_root.endsWith(QDir::separator()))
+	{
+		server_root = server_root + QDir::separator();
+	}
+
+	QString served_file = server_root.trimmed() + path_parts.join(QDir::separator());
+	if (QFile(served_file).exists())
+	{
+		return served_file;
 	}
 
 	return "";

@@ -120,7 +120,7 @@ int main(int argc, char **argv)
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
 						"Static content served from the server root folder (defined in the config file)",
-						&EndpointController::serveStaticFile
+						&EndpointController::serveStaticFromServerRoot
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -131,20 +131,9 @@ int main(int argc, char **argv)
 						RequestMethod::HEAD,
 						ContentType::TEXT_HTML,
 						"Size of the static content served from the server root folder (defined in the config file)",
-						&EndpointController::serveStaticFile
+						&EndpointController::serveStaticFromServerRoot
 				   });
 
-	EndpointManager::appendEndpoint(Endpoint{
-						"textstream",
-						QMap<QString, ParamProps>{
-						   {"filename", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::PATH_PARAM, false, "Name of the file to be streamed"}},
-						   {"download", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, true, "Initiate file download"}}
-						},
-						RequestMethod::GET,
-						ContentType::TEXT_PLAIN,
-						"Static text file is streamed from the server root folder (defined in the config file)",
-						&EndpointController::streamStaticFile
-				   });
 	EndpointManager::appendEndpoint(Endpoint{
 						"cache",
 						QMap<QString, ParamProps>{
@@ -163,7 +152,7 @@ int main(int argc, char **argv)
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
 						"Static file served via secure temporary URL",
-						&EndpointController::serveStaticFile
+						&EndpointController::serveStaticForTempUrl
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
@@ -175,7 +164,7 @@ int main(int argc, char **argv)
 						RequestMethod::HEAD,
 						ContentType::TEXT_HTML,
 						"Size of the static file served via secure temporary URL",
-						&EndpointController::serveStaticFile
+						&EndpointController::serveStaticForTempUrl
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{

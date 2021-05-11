@@ -45,7 +45,7 @@ void RequestWorker::run()
 	{
 		if (ssl_socket->isOpen())
 		{
-			sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Request could not be processed"}));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Request could not be processed"));
 		}
 		qDebug() << "Socket is not ready. Exiting";
 		return;
@@ -67,7 +67,7 @@ void RequestWorker::run()
 		}
 		catch (ArgumentException& e)
 		{
-			sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::BAD_REQUEST, ContentType::TEXT_HTML, e.message()}));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_HTML, e.message()));
 			return;
 		}
 
@@ -77,7 +77,7 @@ void RequestWorker::run()
 		Endpoint current_endpoint = EndpointManager::getEndpointEntity(parsed_request.getPath(), parsed_request.getMethod());
 		if (current_endpoint.action_func == nullptr)
 		{
-			sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::BAD_REQUEST, parsed_request.getContentType(), "This action cannot be processed"}));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, parsed_request.getContentType(), "This action cannot be processed"));
 			return;
 		}
 
@@ -88,7 +88,7 @@ void RequestWorker::run()
 		catch (ArgumentException& e)
 		{
 			qDebug() << "Validation has failed";
-			sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::BAD_REQUEST, parsed_request.getContentType(), e.message()}));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, parsed_request.getContentType(), e.message()));
 			return;
 		}
 
@@ -106,7 +106,7 @@ void RequestWorker::run()
 		catch (Exception& e)
 		{
 			qDebug() << "Error while executing an action";
-			sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not process endpoint action"}));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not process endpoint action"));
 			return;
 		}
 
@@ -117,10 +117,10 @@ void RequestWorker::run()
 			if (response.getFilename().isEmpty())
 			{
 				HttpResponse error_response;
-				error_response.addHeader("HTTP/1.1 404 Not Found\r\n");
-				error_response.addHeader("\r\n");
-				sendEntireResponse(ssl_socket, error_response);
-				//sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::NOT_FOUND, parsed_request.getContentType(), "File name has not been found"}));
+//				error_response.addHeader("HTTP/1.1 404 Not Found\r\n");
+//				error_response.addHeader("\r\n");
+//				sendEntireResponse(ssl_socket, error_response);
+				sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "File name has not been found"));
 				return;
 			}
 
@@ -139,17 +139,18 @@ void RequestWorker::run()
 			catch (Exception& e)
 			{
 				qDebug() << "Error while opening a file for streaming";
-				sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not open a file for streaming: " + response.getFilename()}));
+				sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not open a file for streaming: " + response.getFilename()));
 				return;
 			}
 
 			if (!streamed_file.isOpen())
 			{
 				qDebug() << "File is not open";
-				sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "File is not open: " + response.getFilename()}));
+				sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "File is not open: " + response.getFilename()));
 				return;
 			}
 
+			sendResponseChunk(ssl_socket, response.getStatusLine());
 			sendResponseChunk(ssl_socket, response.getHeaders());
 //			if (response.isBinary())
 //			{
@@ -195,20 +196,26 @@ void RequestWorker::run()
 		}
 		else if (response.getPayload().isNull())
 		{
+			BasicResponseData response_data;
+			response_data.file_size = QFile(response.getFilename()).size();
+			response.setStatusLine(ResponseStatus::RANGE_NOT_SATISFIABLE);
+			response.setRangeNotSatisfiableHeaders(response_data);
+
 			QByteArray headers;
 			qDebug() << "Range file = " << response.getFilename();
 
-			headers.append("HTTP/1.1 416 Range Not Satisfiable\r\n");
-//			headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
-			headers.append("Content-Range: bytes */" + QString::number(QFile(response.getFilename()).size()) + "\r\n");
-			headers.append("\r\n");
-			response.setHeaders(headers);
+
+
+//			headers.append("HTTP/1.1 416 Range Not Satisfiable\r\n");
+//			headers.append("Content-Range: bytes */" + QString::number(QFile(response.getFilename()).size()) + "\r\n");
+//			headers.append("\r\n");
+//			response.setHeaders(headers);
 			sendEntireResponse(ssl_socket, response);
 			return;
 			//			sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::RANGE_NOT_SATISFIABLE, parsed_request.getContentType(), "File does not have the given range"}));
 		}
 
-		sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::NOT_FOUND, parsed_request.getContentType(), "This page does not exist. Check the URL and try again"}));
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "This page does not exist. Check the URL and try again"));
 	}
 }
 
@@ -263,6 +270,7 @@ void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
 void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response)
 {
 	qDebug() << "Writing an entire response";
+	socket->write(response.getStatusLine());
 	socket->write(response.getHeaders());
 	socket->write(response.getPayload());
 	closeAndDeleteSocket(socket);

@@ -15,8 +15,10 @@ class CPPRESTSHARED_EXPORT HttpResponse : public QByteArray
 public:
 	HttpResponse();
 	HttpResponse(QByteArray response_data);
-	HttpResponse(bool is_stream, bool is_binary, QString filename, QByteArray headers, QByteArray payload);
-	HttpResponse(HttpError error);
+	HttpResponse(BasicResponseData data);
+	HttpResponse(BasicResponseData data, QByteArray payload);
+//	HttpResponse(bool is_stream, bool is_binary, QString filename, QByteArray headers, QByteArray payload);
+	HttpResponse(ResponseStatus status, ContentType content_type, QString message);
 
 	void setIsStream(bool is_stream);
 	bool isStream();
@@ -27,17 +29,29 @@ public:
 	void setFilename(QString filename);
 	QString getFilename();
 
+	void setStatusLine(ResponseStatus response_status);
+	QByteArray getStatusLine();
+
 	void setHeaders(QByteArray headers);
 	void addHeader(QString header);
 	QByteArray getHeaders();
 
 	void setPayload(QByteArray payload);
-	QByteArray getPayload();	
+	QByteArray getPayload();
+
+	void setRangeNotSatisfiableHeaders(BasicResponseData data);
+
+private:
+	void readBasicResponseData(BasicResponseData data);
+	QByteArray generateRegularHeaders(BasicResponseData data);
+	QByteArray generateChunkedStreamHeaders(BasicResponseData data);
+	QByteArray generateRangeNotSatisfiableHeaders(BasicResponseData data);
 
 protected:
 	bool is_stream_;
 	bool is_binary_;
 	QString filename_;
+	QByteArray status_line_;
 	QByteArray headers_;
 	QByteArray payload_;
 	int getContentLength();

@@ -63,7 +63,7 @@ typedef enum
 	GATEWAY_TIMEOUT,
 	HTTP_VERSION_NOT_SUPPORTED,
 	UNKNOWN_STATUS_CODE
-} StatusCode;
+} ResponseStatus;
 
 typedef enum
 {
@@ -82,12 +82,12 @@ struct CPPRESTSHARED_EXPORT ByteRange
 	quint64 length = 0;
 };
 
-struct CPPRESTSHARED_EXPORT HttpError
-{
-	StatusCode status_code;
-	ContentType content_type;
-	QString error_message;
-};
+//struct CPPRESTSHARED_EXPORT HttpError
+//{
+//	ResponseStatus status_code;
+//	ContentType content_type;
+//	QString error_message;
+//};
 
 struct CPPRESTSHARED_EXPORT BasicResponseData
 {
@@ -96,7 +96,8 @@ struct CPPRESTSHARED_EXPORT BasicResponseData
 	QString filename;
 	ByteRange byte_range;
 	qint64 file_size;
-	bool is_downloadable;
+	bool is_stream = false;
+	bool is_downloadable = false;
 };
 
 #endif // HTTPPARTS_H

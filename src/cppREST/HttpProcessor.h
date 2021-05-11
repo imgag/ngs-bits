@@ -15,10 +15,8 @@ public:
 	static RequestMethod getMethodTypeFromString(QString in);
 	static QString convertMethodTypeToString(RequestMethod in);
 
-	static QString convertStatusCodeToReasonPhrase(StatusCode status_code);
-	static int convertStatusCodeToInt(StatusCode status_code);
-
-	static QByteArray generateHeaders(BasicResponseData data);
+	static QString convertResponseStatusToReasonPhrase(ResponseStatus response_status);
+	static int convertResponseStatusToStatusCode(ResponseStatus status_code);
 
 protected:
 	HttpProcessor();

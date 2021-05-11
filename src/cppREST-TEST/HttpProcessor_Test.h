@@ -161,157 +161,157 @@ private slots:
 
 	void test_convertErrorTypeToText()
 	{
-		QString error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::BAD_REQUEST);
+		QString error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::BAD_REQUEST);
 		S_EQUAL(error_msg, "Bad Request");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::UNAUTHORIZED);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::UNAUTHORIZED);
 		S_EQUAL(error_msg, "Unauthorized");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::PAYMENT_REQUIRED);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::PAYMENT_REQUIRED);
 		S_EQUAL(error_msg, "Payment Required");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::FORBIDDEN);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::FORBIDDEN);
 		S_EQUAL(error_msg, "Forbidden");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::NOT_FOUND);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::NOT_FOUND);
 		S_EQUAL(error_msg, "Not Found");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::METHOD_NOT_ALLOWED);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::METHOD_NOT_ALLOWED);
 		S_EQUAL(error_msg, "Method Not Allowed");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::NOT_ACCEPTABLE);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::NOT_ACCEPTABLE);
 		S_EQUAL(error_msg, "Not Acceptable");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::PROXY_AUTH_REQUIRED);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::PROXY_AUTH_REQUIRED);
 		S_EQUAL(error_msg, "Proxy Authentication Required");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::REQUEST_TIMEOUT);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::REQUEST_TIMEOUT);
 		S_EQUAL(error_msg, "Request Timeout");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::CONFLICT);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::CONFLICT);
 		S_EQUAL(error_msg, "Conflict");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::GONE);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::GONE);
 		S_EQUAL(error_msg, "Gone");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::LENGTH_REQUIRED);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::LENGTH_REQUIRED);
 		S_EQUAL(error_msg, "Length Required");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::PRECONDITION_FAILED);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::PRECONDITION_FAILED);
 		S_EQUAL(error_msg, "Precondition Failed");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::ENTITY_TOO_LARGE);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::ENTITY_TOO_LARGE);
 		S_EQUAL(error_msg, "Request Entity Too Large");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::URI_TOO_LONG);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::URI_TOO_LONG);
 		S_EQUAL(error_msg, "Request-URI Too Long");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::UNSUPPORTED_MEDIA_TYPE);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::UNSUPPORTED_MEDIA_TYPE);
 		S_EQUAL(error_msg, "Unsupported Media Type");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::RANGE_NOT_SATISFIABLE);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::RANGE_NOT_SATISFIABLE);
 		S_EQUAL(error_msg, "Requested Range Not Satisfiable");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::EXPECTATION_FAILED);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::EXPECTATION_FAILED);
 		S_EQUAL(error_msg, "Expectation Failed");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::INTERNAL_SERVER_ERROR);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::INTERNAL_SERVER_ERROR);
 		S_EQUAL(error_msg, "Internal Server Error");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::NOT_IMPLEMENTED);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::NOT_IMPLEMENTED);
 		S_EQUAL(error_msg, "Not Implemented");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::BAD_GATEWAY);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::BAD_GATEWAY);
 		S_EQUAL(error_msg, "Bad Gateway");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::SERVICE_UNAVAILABLE);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::SERVICE_UNAVAILABLE);
 		S_EQUAL(error_msg, "Service Unavailable");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::GATEWAY_TIMEOUT);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::GATEWAY_TIMEOUT);
 		S_EQUAL(error_msg, "Gateway Timeout");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::HTTP_VERSION_NOT_SUPPORTED);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::HTTP_VERSION_NOT_SUPPORTED);
 		S_EQUAL(error_msg, "HTTP Version Not Supported");
 
-		error_msg = HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode::UNKNOWN_STATUS_CODE);
+		error_msg = HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus::UNKNOWN_STATUS_CODE);
 		S_EQUAL(error_msg, "Unknown Status Code");
 	}
 
 	void test_getErrorCodeByType()
 	{
-		int code = HttpProcessor::convertStatusCodeToInt(StatusCode::BAD_REQUEST);
+		int code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::BAD_REQUEST);
 		I_EQUAL(code, 400);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::UNAUTHORIZED);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::UNAUTHORIZED);
 		I_EQUAL(code, 401);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::PAYMENT_REQUIRED);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::PAYMENT_REQUIRED);
 		I_EQUAL(code, 402);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::FORBIDDEN);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::FORBIDDEN);
 		I_EQUAL(code, 403);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::NOT_FOUND);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::NOT_FOUND);
 		I_EQUAL(code, 404);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::METHOD_NOT_ALLOWED);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::METHOD_NOT_ALLOWED);
 		I_EQUAL(code, 405);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::NOT_ACCEPTABLE);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::NOT_ACCEPTABLE);
 		I_EQUAL(code, 406);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::PROXY_AUTH_REQUIRED);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::PROXY_AUTH_REQUIRED);
 		I_EQUAL(code, 407);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::REQUEST_TIMEOUT);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::REQUEST_TIMEOUT);
 		I_EQUAL(code, 408);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::CONFLICT);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::CONFLICT);
 		I_EQUAL(code, 409);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::GONE);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::GONE);
 		I_EQUAL(code, 410);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::LENGTH_REQUIRED);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::LENGTH_REQUIRED);
 		I_EQUAL(code, 411);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::PRECONDITION_FAILED);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::PRECONDITION_FAILED);
 		I_EQUAL(code, 412);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::ENTITY_TOO_LARGE);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::ENTITY_TOO_LARGE);
 		I_EQUAL(code, 413);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::URI_TOO_LONG);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::URI_TOO_LONG);
 		I_EQUAL(code, 414);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::UNSUPPORTED_MEDIA_TYPE);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::UNSUPPORTED_MEDIA_TYPE);
 		I_EQUAL(code, 415);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::RANGE_NOT_SATISFIABLE);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::RANGE_NOT_SATISFIABLE);
 		I_EQUAL(code, 416);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::EXPECTATION_FAILED);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::EXPECTATION_FAILED);
 		I_EQUAL(code, 417);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::INTERNAL_SERVER_ERROR);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::INTERNAL_SERVER_ERROR);
 		I_EQUAL(code, 500);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::NOT_IMPLEMENTED);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::NOT_IMPLEMENTED);
 		I_EQUAL(code, 501);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::BAD_GATEWAY);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::BAD_GATEWAY);
 		I_EQUAL(code, 502);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::SERVICE_UNAVAILABLE);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::SERVICE_UNAVAILABLE);
 		I_EQUAL(code, 503);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::GATEWAY_TIMEOUT);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::GATEWAY_TIMEOUT);
 		I_EQUAL(code, 504);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::HTTP_VERSION_NOT_SUPPORTED);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::HTTP_VERSION_NOT_SUPPORTED);
 		I_EQUAL(code, 505);
 
-		code = HttpProcessor::convertStatusCodeToInt(StatusCode::UNKNOWN_STATUS_CODE);
+		code = HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus::UNKNOWN_STATUS_CODE);
 		I_EQUAL(code, 0);
 	}
 };

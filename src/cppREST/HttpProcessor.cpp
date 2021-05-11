@@ -102,9 +102,9 @@ QString HttpProcessor::convertMethodTypeToString(RequestMethod in)
 	}
 }
 
-QString HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode status_code)
+QString HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus response_status)
 {
-	switch(status_code)
+	switch(response_status)
 	{
 		case CONTINUE: return "Continue";
 		case SWITCHING_PROTOCOLS: return "Switching Protocols";
@@ -151,9 +151,9 @@ QString HttpProcessor::convertStatusCodeToReasonPhrase(StatusCode status_code)
 	}
 }
 
-int HttpProcessor::convertStatusCodeToInt(StatusCode status_code)
+int HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus response_status)
 {
-	switch(status_code)
+	switch(response_status)
 	{
 		case CONTINUE: return 100;
 		case SWITCHING_PROTOCOLS: return 101;
@@ -198,37 +198,5 @@ int HttpProcessor::convertStatusCodeToInt(StatusCode status_code)
 		case UNKNOWN_STATUS_CODE:
 		default: return 0;
 	}
-}
-
-QByteArray HttpProcessor::generateHeaders(BasicResponseData data)
-{
-	QByteArray headers;
-	if ((data.byte_range.end > 0) && (data.byte_range.length > 0))
-	{
-		headers.append("HTTP/1.1 206 Partial Content\r\n");
-	}
-	else
-	{
-		headers.append("HTTP/1.1 200 OK\r\n");
-	}
-	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
-//	headers.append("Connection: Keep-Alive\r\n");
-//	headers.append("Keep-Alive: timeout=5, max=1000\r\n");
-	headers.append("Content-Length: " + QString::number(data.length) + "\r\n");
-	headers.append("Content-Type: " + HttpProcessor::convertContentTypeToString(data.content_type) + "\r\n");
-
-	if ((data.byte_range.end > 0) && (data.byte_range.length > 0))
-	{
-		headers.append("Accept-Ranges: bytes\r\n");
-		headers.append("Content-Range: bytes " + QString::number(data.byte_range.start) + "-" + QString::number(data.byte_range.end) + "/" + QString::number(data.file_size) + "\r\n");
-		qDebug() << "Content-Range: bytes " << QString::number(data.byte_range.start) << "-" << QString::number(data.byte_range.end) << "/" << QString::number(data.file_size);
-	}
-	if (data.is_downloadable)
-	{
-		headers.append("Content-Disposition: form-data; name=file_download; filename=" + data.filename + "\r\n");
-	}
-
-	headers.append("\r\n");
-	return headers;
 }
 
