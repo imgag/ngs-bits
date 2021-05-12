@@ -117,14 +117,17 @@ void RequestWorker::run()
 			if (response.getFilename().isEmpty())
 			{
 				HttpResponse error_response;
-//				error_response.addHeader("HTTP/1.1 404 Not Found\r\n");
-//				error_response.addHeader("\r\n");
-//				sendEntireResponse(ssl_socket, error_response);
 				sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "File name has not been found"));
 				return;
 			}
 
 			QFile streamed_file(response.getFilename());
+			if (!streamed_file.exists())
+			{
+				sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "Requested file does not exist"));
+				return;
+			}
+
 			QFile::OpenMode mode = QFile::ReadOnly;
 
 //			if (!response.isBinary())

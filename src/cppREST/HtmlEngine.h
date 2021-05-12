@@ -11,7 +11,7 @@ struct CPPRESTSHARED_EXPORT FolderItem
 {
 	QString name;
 	bool is_folder;
-	int size;
+	qint64 size;
 	QDateTime modified;
 };
 
@@ -30,15 +30,15 @@ typedef enum
 class CPPRESTSHARED_EXPORT HtmlEngine
 {
 public:
-	static QString getPageHeader();
+	static QString getPageHeader(QString page_title);
 	static QString getPageFooter();
 	static QString getApiHelpHeader(QString title);
 	static QString getApiHelpEntry(QString url, QString method, QList<QString> param_names, QList<QString> param_desc, QString comment);
-	static QString getErrorPageTemplate();
+	static QString getErrorPageTemplate(QString title, QString message);
 
 	static QString convertIconNameToString(FolderItemIcon in);
 	static QString createFolderListingHeader(QString folder_name, QString parent_folder_link);
-	static QString createFolderListingElements(QList<FolderItem> in);
+	static QString createFolderListingElements(QList<FolderItem> in, QString cur_folder_url);
 
 	static QString getFolderIcons();
 protected:

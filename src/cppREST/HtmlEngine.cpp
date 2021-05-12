@@ -10,7 +10,7 @@ HtmlEngine& HtmlEngine::instance()
 	return html_engine;
 }
 
-QString HtmlEngine::getPageHeader()
+QString HtmlEngine::getPageHeader(QString page_title)
 {
 	QString output;
 	QTextStream stream(&output);
@@ -20,7 +20,7 @@ QString HtmlEngine::getPageHeader()
 	stream << "		<head>\n";
 	stream << "			<meta charset=\"utf-8\">\n";
 	stream << "			<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\">\n";
-	stream << "			<title>%TITLE%</title>\n";
+	stream << "			<title>" << page_title << "</title>\n";
 	stream << "			<style>\n";
 	stream << "				html, body {\n";
 	stream << "					padding: 10px;\n";
@@ -150,18 +150,18 @@ QString HtmlEngine::getApiHelpEntry(QString url, QString method, QList<QString> 
 	return output;
 }
 
-QString HtmlEngine::getErrorPageTemplate()
+QString HtmlEngine::getErrorPageTemplate(QString title, QString message)
 {
 	QString output;
 	QTextStream stream(&output);
 
-	stream << getPageHeader();
+	stream << getPageHeader(title);
 	stream << "			<div class=\"main-content\">\n";
 	stream << "				<div class=\"data-container\">\n";
-	stream << "					<h1 class=\"centered\">%TITLE%</h1>\n";
+	stream << "					<h1 class=\"centered\">" << title << "</h1>\n";
 	stream << "					<p>An error has occurred. Below you will find a short summary\n";
 	stream << "					that may help to fix it or to prevent it from happening:</p>\n";
-	stream << "					<pre>%MESSAGE%</pre>\n";
+	stream << "					<pre>" << message << "</pre>\n";
 	stream << "					<pre class=\"centered\">\n";
 	stream << "O       o O       o O       o\n";
 	stream << "| O   o | | O   o | | O   o |\n";
@@ -208,16 +208,36 @@ QString HtmlEngine::createFolderListingHeader(QString folder_name, QString paren
 	return output;
 }
 
-QString HtmlEngine::createFolderListingElements(QList<FolderItem> in)
+QString HtmlEngine::createFolderListingElements(QList<FolderItem> in, QString cur_folder_url)
 {
 	QString output;
 	QTextStream stream(&output);
 
 	for (int i = 0; i < in.count(); ++i)
 	{
+		long double size = in[i].size;
+		QString size_units = "Bytes";
+		if (in[i].size >= 1024)
+		{
+			size = size/1024.0;
+			size_units = "KB";
+		}
+
+		if (in[i].size >= (1024*1024))
+		{
+			size = size/1024.0;
+			size_units = "MB";
+		}
+
+		if (in[i].size >= (1024*1024*1024))
+		{
+			size = size/1024.0;
+			size_units = "GB";
+		}
+
 		stream << "			<div class=\"row\">\n";
-		stream << "				<div class=\"column-33\">" << HtmlEngine::createFolderItemLink(in[i].name, "", HtmlEngine::getIconType(in[i])) << "</div>\n";
-		stream << "				<div class=\"column-33\">" << in[i].size << "</div>\n";
+		stream << "				<div class=\"column-33\">" << HtmlEngine::createFolderItemLink(in[i].name, cur_folder_url + in[i].name, HtmlEngine::getIconType(in[i])) << "</div>\n";
+		stream << "				<div class=\"column-33\">" << QString::number(size, 'g', 5) << " " << size_units <<"</div>\n";
 		stream << "				<div class=\"column-33\">" << in[i].modified.toString() << "</div>\n";
 		stream << "			</div>\n";
 	}

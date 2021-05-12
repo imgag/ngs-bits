@@ -42,9 +42,9 @@ HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, QStr
 	{
 		case ContentType::TEXT_HTML:
 		{
-			QString html_body = HtmlEngine::getErrorPageTemplate();
-			html_body.replace("%TITLE%", "Error " + QString::number(HttpProcessor::convertResponseStatusToStatusCode(status)) + " - " + HttpProcessor::convertResponseStatusToReasonPhrase(status));
-			html_body.replace("%MESSAGE%", message);
+			QString html_body = HtmlEngine::getErrorPageTemplate("Error " + QString::number(HttpProcessor::convertResponseStatusToStatusCode(status))
+																 + " - " + HttpProcessor::convertResponseStatusToReasonPhrase(status),
+																 message);
 			setPayload(html_body.toLocal8Bit());
 		}
 		break;

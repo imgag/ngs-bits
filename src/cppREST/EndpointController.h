@@ -10,13 +10,12 @@
 #include "UrlManager.h"
 #include "HttpResponse.h"
 #include "NGSD.h"
+#include <QUrl>
 
 
 class CPPRESTSHARED_EXPORT EndpointController
 {
-public:
-	/// Shows a page with the list of files and folders in a given location (server root is the default location)
-	static HttpResponse serveFolderContent(QString path);
+public:	
 	/// Shows a page explaining what a particular(s) endpoint(s) does(do)
 	static HttpResponse serveEndpointHelp(HttpRequest request);
 	/// Provides a random access to a file or streams it (depending on the headers), as well as displays a folder
@@ -44,8 +43,9 @@ protected:
 private:
 	static EndpointController& instance();
 
+	static HttpResponse serveFolderContent(QString path, QString request_prefix, QString request_path, QList<QString> request_path_params);
 	static HttpResponse serveStaticFile(QString filename, RequestMethod method, QMap<QString, QString> headers);
-	static HttpResponse serveFolderListing(QList<FolderItem> items);
+	static HttpResponse serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items);
 
 	static QString getEndpointHelpTemplate(QList<Endpoint>* endpoint_list);
 	static QString generateGlobalHelp();

@@ -1,36 +1,5 @@
 #include "EndpointController.h"
 
-HttpResponse EndpointController::serveFolderContent(QString path)
-{
-	qDebug() << "serveFolderContent -----";
-
-	QDir dir(path);
-	if (!dir.exists())
-	{
-		qDebug() << "serveFolderContent NOT FOUND-----";
-		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Requested folder does not exist");
-	}
-
-	dir.setFilter(QDir::Dirs | QDir::Files | QDir::Hidden | QDir::NoSymLinks);
-
-	qDebug() << "serveFolderContent READING LIST-----";
-	QFileInfoList list = dir.entryInfoList();
-	QList<FolderItem> files {};
-	for (int i = 0; i < list.size(); ++i) {
-		QFileInfo fileInfo = list.at(i);
-		if ((fileInfo.fileName() == ".") || (fileInfo.fileName() == "..")) continue;
-
-		FolderItem current_item;
-		current_item.name = fileInfo.fileName();
-		current_item.size = fileInfo.size();
-		current_item.modified = fileInfo.lastModified();
-		current_item.is_folder = fileInfo.isDir() ? true : false;
-		files.append(current_item);
-//		qDebug() << "File:" + fileInfo.fileName() + ", " + fileInfo.size() + fileInfo.isDir();
-	}
-	return serveFolderListing(files);
-}
-
 HttpResponse EndpointController::serveEndpointHelp(HttpRequest request)
 {
 	QByteArray body;
@@ -51,11 +20,8 @@ HttpResponse EndpointController::serveEndpointHelp(HttpRequest request)
 
 HttpResponse EndpointController::serveStaticFromServerRoot(HttpRequest request)
 {
-	qDebug() << "------------SERVER ROOT";
-	qDebug() << request.getPathParams();
-
 	QString served_file = getServedRootPath(request.getPathParams());
-	qDebug() << "served_file " << served_file;
+
 	if (served_file.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Location has not been found in the server root folder");
@@ -63,10 +29,9 @@ HttpResponse EndpointController::serveStaticFromServerRoot(HttpRequest request)
 
 	if (QFileInfo(served_file).isDir())
 	{
-		return serveFolderContent(served_file);
+		return serveFolderContent(served_file, request.getPrefix(), request.getPath(), request.getPathParams());
 	}
 
-	qDebug() << "Serve a file";
 	return serveStaticFile(served_file, request.getMethod(), request.getHeaders());
 }
 
@@ -89,7 +54,7 @@ HttpResponse EndpointController::serveStaticForTempUrl(HttpRequest request)
 
 	if (QFileInfo(served_file).isDir())
 	{
-		return serveFolderContent(served_file);
+		return serveFolderContent(served_file, request.getPrefix(), request.getPath(), request.getPathParams());
 	}
 
 	return serveStaticFile(served_file, request.getMethod(), request.getHeaders());
@@ -218,6 +183,47 @@ EndpointController& EndpointController::instance()
 	return endpoint_controller;
 }
 
+HttpResponse EndpointController::serveFolderContent(QString path, QString request_prefix, QString request_path, QList<QString> request_path_params)
+{
+	QDir dir(path);
+	if (!dir.exists())
+	{
+		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Requested folder does not exist");
+	}
+
+	QString base_folder_url = ServerHelper::getStringSettingsValue("server_host") + ":" + QString::number(ServerHelper::getNumSettingsValue("server_port")) + "/" + request_prefix + "/" + request_path;
+	if (!base_folder_url.endsWith("/"))
+	{
+		base_folder_url = base_folder_url + "/";
+	}
+	QString cur_folder_url = base_folder_url + request_path_params.join("/");
+	if (!cur_folder_url.endsWith("/"))
+	{
+		cur_folder_url = cur_folder_url + "/";
+	}
+	if (request_path_params.size()>0)
+	{
+		request_path_params.removeAt(request_path_params.size()-1);
+	}
+	QString parent_folder_url = base_folder_url + request_path_params.join("/");
+
+	dir.setFilter(QDir::Dirs | QDir::Files | QDir::NoSymLinks);
+	QFileInfoList list = dir.entryInfoList();
+	QList<FolderItem> files {};
+	for (int i = 0; i < list.size(); ++i) {
+		QFileInfo fileInfo = list.at(i);
+		if ((fileInfo.fileName() == ".") || (fileInfo.fileName() == "..")) continue;
+
+		FolderItem current_item;
+		current_item.name = fileInfo.fileName();
+		current_item.size = fileInfo.size();
+		current_item.modified = fileInfo.lastModified();
+		current_item.is_folder = fileInfo.isDir() ? true : false;
+		files.append(current_item);
+	}
+	return serveFolderListing(dir.dirName(), cur_folder_url, parent_folder_url, files);
+}
+
 HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod method, QMap<QString, QString> headers)
 {
 	if (filename.isEmpty())
@@ -265,17 +271,16 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 	return createStaticFileResponse(filename, byte_range, HttpProcessor::getContentTypeByFilename(filename), false);
 }
 
-HttpResponse EndpointController::serveFolderListing(QList<FolderItem> items)
+HttpResponse EndpointController::serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items)
 {
-	qDebug() << "FOLDER LIST";
 	HttpResponse response;
 
 	QString output;
 	QTextStream stream(&output);
-	stream << HtmlEngine::getPageHeader();
+	stream << HtmlEngine::getPageHeader("Folder content: " + folder_title);
 	stream << HtmlEngine::getFolderIcons();
-	stream << HtmlEngine::createFolderListingHeader("Folder name", "");
-	stream << HtmlEngine::createFolderListingElements(items);
+	stream << HtmlEngine::createFolderListingHeader(folder_title, parent_folder_url);
+	stream << HtmlEngine::createFolderListingElements(items, cur_folder_url);
 	stream << HtmlEngine::getPageFooter();
 
 	BasicResponseData response_data;
@@ -291,7 +296,7 @@ QString EndpointController::getEndpointHelpTemplate(QList<Endpoint>* endpoint_li
 	QString output;
 	QTextStream stream(&output);
 
-	stream << HtmlEngine::getPageHeader();
+	stream << HtmlEngine::getPageHeader("API Help Page");
 	stream << HtmlEngine::getApiHelpHeader("API Help Page");
 
 	for (int i = 0; i < endpoint_list->count(); ++i)
@@ -362,6 +367,8 @@ QString EndpointController::getServedRootPath(QList<QString> path_parts)
 	}
 
 	QString served_file = server_root.trimmed() + path_parts.join(QDir::separator());
+	served_file = QUrl::fromEncoded(served_file.toLocal8Bit()).toString(); // handling browser endcoding, e.g. spaces and other characters in names
+
 	if (QFile(served_file).exists())
 	{
 		return served_file;

@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"static",
 						QMap<QString, ParamProps>{
-						   {"filename", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::PATH_PARAM, false, "Name of the file to be served"}}
+						   {"filename", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::PATH_PARAM, true, "Name of the file to be served"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_HTML,
