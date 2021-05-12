@@ -17,14 +17,10 @@ public:
 	HttpResponse(QByteArray response_data);
 	HttpResponse(BasicResponseData data);
 	HttpResponse(BasicResponseData data, QByteArray payload);
-//	HttpResponse(bool is_stream, bool is_binary, QString filename, QByteArray headers, QByteArray payload);
 	HttpResponse(ResponseStatus status, ContentType content_type, QString message);
 
 	void setIsStream(bool is_stream);
 	bool isStream();
-
-	void setIsBinary(bool is_binary);
-	bool isBinary();
 
 	void setFilename(QString filename);
 	QString getFilename();
@@ -49,7 +45,6 @@ private:
 
 protected:
 	bool is_stream_;
-	bool is_binary_;
 	QString filename_;
 	QByteArray status_line_;
 	QByteArray headers_;

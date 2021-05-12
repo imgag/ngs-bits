@@ -31,11 +31,9 @@ void RequestWorker::run()
 	connect(ssl_socket, static_cast<sslFailed>(&QSslSocket::sslErrors), this, &RequestWorker::sslFailed);
 	connect(ssl_socket, &QSslSocket::peerVerifyError, this, &RequestWorker::verificationFailed);
 	connect(ssl_socket, &QSslSocket::encrypted, this, &RequestWorker::securelyConnected);
-
 	connect(ssl_socket, &QSslSocket::disconnected, this, &RequestWorker::socketDisconnected);
-
-
 	connect(this, SIGNAL(securelyConnected()), this, SLOT(handleConnection()));
+
 	qDebug() << "Starting the encryption";
 	ssl_socket->startServerEncryption();
 
@@ -130,11 +128,6 @@ void RequestWorker::run()
 
 			QFile::OpenMode mode = QFile::ReadOnly;
 
-//			if (!response.isBinary())
-//			{
-//				 mode = QFile::ReadOnly | QFile::Text;
-//			}
-
 			try
 			{
 				streamed_file.open(mode);
@@ -153,43 +146,36 @@ void RequestWorker::run()
 				return;
 			}
 
-			sendResponseChunk(ssl_socket, response.getStatusLine());
-			sendResponseChunk(ssl_socket, response.getHeaders());
-//			if (response.isBinary())
-//			{
-				qDebug() << "Binary stream thread";
-				qint64 chunk_size = 1024;
-				qint64 pos = 0;
+			sendResponseDataPart(ssl_socket, response.getStatusLine());
+			sendResponseDataPart(ssl_socket, response.getHeaders());
 
-				qDebug() << "Content type" + response.getHeaders();
-				qint64 file_size = streamed_file.size();
-				while(!streamed_file.atEnd())
-				{
-					if ((pos > file_size) || (pos < 0)) break;
-//					qDebug() << "pos = " << pos;
-					streamed_file.seek(pos);
-					QByteArray data = streamed_file.read(chunk_size);
-					pos = pos + chunk_size;					
-//					sendResponseChunk(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
-//					sendResponseChunk(ssl_socket, data.append("\r\n"));
-					sendResponseChunk(ssl_socket, data);
-				}
-//			}
-//			else
-//			{
-//				qDebug() << "Text stream thread";
-//				QTextStream stream(&streamed_file);
-//				while(!stream.atEnd())
-//				{
-//					QByteArray line = stream.readLine().append("\n").toLocal8Bit();
-////					sendResponseChunk(ssl_socket, intToHex(line.size()).toLocal8Bit()+"\r\n");
-////					sendResponseChunk(ssl_socket, line+"\r\n");
-//					sendResponseChunk(ssl_socket, line);
-//				}
-//			}
+			qDebug() << "Stream thread";
+			qint64 chunk_size = 1024;
+			qint64 pos = 0;
+
+			qDebug() << "Content type" + response.getHeaders();
+			qint64 file_size = streamed_file.size();
+			while(!streamed_file.atEnd())
+			{
+				if ((pos > file_size) || (pos < 0)) break;
+				streamed_file.seek(pos);
+				QByteArray data = streamed_file.read(chunk_size);
+				pos = pos + chunk_size;
+
+				// Should be used for chunked transfer (without content-lenght)
+				//sendResponseDataPart(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
+				//sendResponseDataPart(ssl_socket, data.append("\r\n"));
+
+				sendResponseDataPart(ssl_socket, data);
+			}
+
 			streamed_file.close();
 
-			finishChunckedResponse(ssl_socket);
+			// Should be used for chunked transfer (without content-lenght)
+			//sendResponseDataPart(ssl_socket, "0\r\n");
+			//sendResponseDataPart(ssl_socket, "\r\n");
+
+			finishPartialDataResponse(ssl_socket);
 			return;
 		}
 		else if ((!response.getPayload().isNull()) || (parsed_request.getMethod() == RequestMethod::HEAD))
@@ -203,19 +189,8 @@ void RequestWorker::run()
 			response_data.file_size = QFile(response.getFilename()).size();
 			response.setStatusLine(ResponseStatus::RANGE_NOT_SATISFIABLE);
 			response.setRangeNotSatisfiableHeaders(response_data);
-
-			QByteArray headers;
-			qDebug() << "Range file = " << response.getFilename();
-
-
-
-//			headers.append("HTTP/1.1 416 Range Not Satisfiable\r\n");
-//			headers.append("Content-Range: bytes */" + QString::number(QFile(response.getFilename()).size()) + "\r\n");
-//			headers.append("\r\n");
-//			response.setHeaders(headers);
 			sendEntireResponse(ssl_socket, response);
-			return;
-			//			sendEntireResponse(ssl_socket, HttpResponse(HttpError{StatusCode::RANGE_NOT_SATISFIABLE, parsed_request.getContentType(), "File does not have the given range"}));
+			return;			
 		}
 
 		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "This page does not exist. Check the URL and try again"));
@@ -242,22 +217,17 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 	qDebug() << "Closing the socket";
 	socket->flush();
 	socket->waitForBytesWritten();
-//	socket->waitForDisconnected();
 	socket->close();
 	socket->deleteLater();
 }
 
-void RequestWorker::sendResponseChunk(QSslSocket* socket, QByteArray data)
+void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 {
 	// clinet cancels the stream or simply disconnects
 	if (socket->state() == QSslSocket::SocketState::UnconnectedState)
 	{
-//		qDebug() << "Socket is disconnected and no longer used";
-
-//		emit finished();
 		socket->close();
 		socket->deleteLater();
-//		this->quit();
 		return;
 	}
 
@@ -279,7 +249,7 @@ void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response
 	closeAndDeleteSocket(socket);
 }
 
-void RequestWorker::finishChunckedResponse(QSslSocket* socket)
+void RequestWorker::finishPartialDataResponse(QSslSocket* socket)
 {
 	if (socket->bytesToWrite())
 	{
@@ -289,8 +259,6 @@ void RequestWorker::finishChunckedResponse(QSslSocket* socket)
 
 	if (!socket->bytesToWrite())
 	{
-//		socket->write("0\r\n");
-//		socket->write("\r\n");
 		closeAndDeleteSocket(socket);
 		return;
 	}

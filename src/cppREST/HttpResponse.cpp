@@ -84,16 +84,6 @@ bool HttpResponse::isStream()
 	return is_stream_;
 }
 
-void HttpResponse::setIsBinary(bool is_binary)
-{
-	is_binary_ = is_binary;
-}
-
-bool HttpResponse::isBinary()
-{
-	return is_binary_;
-}
-
 void HttpResponse::setFilename(QString filename)
 {
 	filename_ = filename;
@@ -150,8 +140,6 @@ void HttpResponse::setRangeNotSatisfiableHeaders(BasicResponseData data)
 
 void HttpResponse::readBasicResponseData(BasicResponseData data)
 {
-	qDebug() << "Creating a response object";
-	qDebug() << "data.filename 1" << data.filename;
 	if ((data.byte_range.end > 0) && (data.byte_range.length > 0))
 	{
 		setStatusLine(ResponseStatus::PARTIAL_CONTENT);
@@ -164,13 +152,6 @@ void HttpResponse::readBasicResponseData(BasicResponseData data)
 	setIsStream(data.is_stream);
 	if (data.is_stream)
 	{
-		ContentType content_type = HttpProcessor::getContentTypeByFilename(data.filename);
-		setIsBinary(false);
-		if ((content_type == APPLICATION_OCTET_STREAM) || (content_type == IMAGE_PNG) || (content_type == IMAGE_JPEG))
-		{
-			setIsBinary(true);
-		}
-		qDebug() << "data.filename" << data.filename;
 		setFilename(data.filename);
 	}
 

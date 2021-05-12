@@ -38,9 +38,9 @@ private:
 	QString intToHex(const int &input);
 
 	void closeAndDeleteSocket(QSslSocket* socket);
-	void sendResponseChunk(QSslSocket *socket, QByteArray data);
+	void sendResponseDataPart(QSslSocket *socket, QByteArray data);
 	void sendEntireResponse(QSslSocket *socket, HttpResponse response);
-	void finishChunckedResponse(QSslSocket* socket);
+	void finishPartialDataResponse(QSslSocket* socket);
 
 	QSslConfiguration ssl_configuration_;
 	qintptr socket_;

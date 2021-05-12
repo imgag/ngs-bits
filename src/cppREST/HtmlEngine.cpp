@@ -238,7 +238,7 @@ QString HtmlEngine::createFolderListingElements(QList<FolderItem> in, QString cu
 		stream << "			<div class=\"row\">\n";
 		stream << "				<div class=\"column-33\">" << HtmlEngine::createFolderItemLink(in[i].name, cur_folder_url + in[i].name, HtmlEngine::getIconType(in[i])) << "</div>\n";
 		stream << "				<div class=\"column-33\">" << QString::number(size, 'g', 5) << " " << size_units <<"</div>\n";
-		stream << "				<div class=\"column-33\">" << in[i].modified.toString() << "</div>\n";
+		stream << "				<div class=\"column-33\">" << in[i].modified.toUTC().toString("hh:mm:ss dd.MM.yyyy") << "</div>\n";
 		stream << "			</div>\n";
 	}
 	return output;
