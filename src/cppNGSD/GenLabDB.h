@@ -57,8 +57,11 @@ public:
 	///Returns sample relations
 	QList<SampleRelation> relatives(QString ps_name);
 
+	///Returns the sample gender
+	QString gender(QString ps_name);
+
 	///Imports missing sample meta data (disease group/status/details) for a sample into NGSD
-	void addMissingMetaDataToNGSD(QString ps_name, bool log=false, bool add_disease_group_status=true, bool add_disease_details=true);
+	void addMissingMetaDataToNGSD(QString ps_name, bool log=false, bool add_disease_group_status=true, bool add_disease_details=true, bool add_gender=true, bool add_relations=true);
 
 protected:
 	///Copy constructor "declared away".

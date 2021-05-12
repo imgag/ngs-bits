@@ -138,7 +138,7 @@ void SampleDiseaseInfoWidget::importDiseaseInfoFromGenLab()
 
 	//import disease details to NGSD
 	GenLabDB genlab_db;
-	genlab_db.addMissingMetaDataToNGSD(ps_name_, false, false, true);
+	genlab_db.addMissingMetaDataToNGSD(ps_name_, false, false, true, false, false);
 
 	//load them from NGSD into the local datastructure
 	QString sample_id = db_.sampleId(ps_name_);

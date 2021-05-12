@@ -151,6 +151,37 @@ PhenotypeList GenLabDB::phenotypes(QString ps_name)
 
 	NGSD ngsd;
 
+	//ignore HPO terms of certain subbranches
+	static QSet<int> ignored_terms_ids;
+	if (ignored_terms_ids.isEmpty())
+	{
+		ignored_terms_ids << ngsd.phenotypeIdByAccession("HP:0000001"); //"All"
+		ignored_terms_ids << ngsd.phenotypeIdByAccession("HP:0000118"); //"Phenotypic abnormality"
+
+		//"Mode of inheritance"
+		int parent_term = ngsd.phenotypeIdByAccession("HP:0000005");
+		ignored_terms_ids << parent_term;
+		foreach(const Phenotype& pheno, ngsd.phenotypeChildTerms(parent_term, true))
+		{
+			ignored_terms_ids << ngsd.phenotypeIdByAccession(pheno.accession());
+		}
+		//"Frequency"
+		parent_term = ngsd.phenotypeIdByAccession("HP:0040279");
+		ignored_terms_ids << parent_term;
+		foreach(const Phenotype& pheno, ngsd.phenotypeChildTerms(parent_term, true))
+		{
+			ignored_terms_ids << ngsd.phenotypeIdByAccession(pheno.accession());
+		}
+		//"Blood group"
+		parent_term = ngsd.phenotypeIdByAccession("HP:0032223");
+		ignored_terms_ids << parent_term;
+		foreach(const Phenotype& pheno, ngsd.phenotypeChildTerms(parent_term, true))
+		{
+			ignored_terms_ids << ngsd.phenotypeIdByAccession(pheno.accession());
+		}
+	}
+
+
 	foreach(QString name, names(ps_name))
 	{
 		SqlQuery query = getQuery();
@@ -162,6 +193,8 @@ PhenotypeList GenLabDB::phenotypes(QString ps_name)
 
 			int id = ngsd.phenotypeIdByAccession(hpo_id, false);
 			if (id==-1) continue;
+			if (ignored_terms_ids.contains(id)) continue;
+
 			Phenotype pheno = ngsd.phenotype(id);
 			if (output.containsAccession(pheno.accession())) continue;
 
@@ -400,7 +433,24 @@ QList<SampleRelation> GenLabDB::relatives(QString ps_name)
 	return output;
 }
 
-void GenLabDB::addMissingMetaDataToNGSD(QString ps_name, bool log, bool add_disease_group_status, bool add_disease_details)
+QString GenLabDB::gender(QString ps_name)
+{
+	foreach(QString name, names(ps_name))
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT geschlecht FROM v_ngs_geschlecht WHERE labornummer='" + name + "'");
+		if(query.next())
+		{
+			QString gender = query.value(0).toString().trimmed();
+			if (gender=="1") return "female";
+			if (gender=="2") return "male";
+		}
+	}
+
+	return "n/a";
+}
+
+void GenLabDB::addMissingMetaDataToNGSD(QString ps_name, bool log, bool add_disease_group_status, bool add_disease_details, bool add_gender, bool add_relations)
 {
 	//init
 	NGSD db;
@@ -487,6 +537,46 @@ void GenLabDB::addMissingMetaDataToNGSD(QString ps_name, bool log, bool add_dise
 		if (modified_details)
 		{
 			db.setSampleDiseaseInfo(sample_id, disease_details);
+		}
+	}
+
+	//gender
+	if (add_gender)
+	{
+		if (sample_data.gender=="n/a")
+		{
+			QString gender_genlab = gender(ps_name);
+			if (gender_genlab!="n/a")
+			{
+				db.getQuery().exec("UPDATE sample SET gender='" + gender_genlab + "' WHERE id=" + sample_id);
+				if (log) Log::info(ps_name + ": Imported gender from GenLab: " + gender_genlab);
+			}
+		}
+	}
+
+	//sample relations
+	if (add_relations)
+	{
+		QList<SampleRelation> relations = relatives(ps_name);
+		if (relations.count()>0)
+		{
+			foreach(const SampleRelation& rel, relations)
+			{
+				QString sample2_id = db.sampleId(rel.sample1, false);
+				if (sample2_id.isEmpty()) continue;
+
+				QString relation_ngsd = db.getValue("SELECT relation FROM sample_relations WHERE (sample1_id='"+sample_id+"' AND sample2_id='"+sample2_id+"')", "").toString();
+				if (relation_ngsd.isEmpty()) relation_ngsd = db.getValue("SELECT relation FROM sample_relations WHERE (sample1_id='"+sample2_id+"' AND sample2_id='"+sample_id+"')", "").toString();
+				if (relation_ngsd.isEmpty())
+				{
+					Log::info(ps_name + ": Imported missing relation '" + rel.relation + "' to " + rel.sample1);
+					db.addSampleRelation(rel);
+				}
+				else if (rel.relation=="parent-child" && relation_ngsd!=rel.relation)
+				{
+					Log::info(ps_name + ": relation '" + relation_ngsd + "' instead of '" + rel.relation + "' to " + rel.sample1);
+				}
+			}
 		}
 	}
 }
