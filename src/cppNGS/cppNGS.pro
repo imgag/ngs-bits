@@ -117,7 +117,10 @@ HEADERS += BedFile.h \
     VariantType.h \
     SomaticCnvInterpreter.h \
     PrsTable.h \
-    RtfDocument.h
+    RtfDocument.h \
+    Graph.h \
+    GraphNode.h \
+    GraphEdge.h
 
 RESOURCES += \
     cppNGS.qrc
