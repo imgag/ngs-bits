@@ -39,7 +39,7 @@ int ServerHelper::getNumSettingsValue(QString key)
 	}
 	catch (Exception& e)
 	{
-		qDebug() << "The server may crash due to the missing numerical key " + key + " from settings: " + e.message();
+		qDebug() << "Cannot find numerical key " + key + " in the settings: " + e.message();
 	}
 
 	return num_value;
@@ -54,7 +54,7 @@ QString ServerHelper::getStringSettingsValue(QString key)
 	}
 	catch (Exception& e)
 	{
-		qDebug() << "The server may crash due to the missing string key " + key + " from settings: " + e.message();
+		qDebug() << "Cannot find string key " + key + " in the settings: " + e.message();
 	}
 
 	return string_value;

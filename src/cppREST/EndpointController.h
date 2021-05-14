@@ -26,8 +26,6 @@ public:
 	static HttpResponse serveStaticForTempUrl(HttpRequest request);
 	/// Serves or streams file content saved in the server cache
 	static HttpResponse serveStaticFileFromCache(HttpRequest request);
-	/// Initiates a file stream (binary or text depending on the file content)
-//	static HttpResponse streamStaticFile(HttpRequest request);
 	/// Provides an access to a file for authenticated users
 	static HttpResponse serveProtectedStaticFile(HttpRequest request);
 	/// Returns file information in JSON format for a specific file
@@ -36,6 +34,7 @@ public:
 	static HttpResponse createStaticFileResponse(QString filename, ByteRange byte_range, ContentType type, bool is_downloadable);
 	static HttpResponse createStaticStreamResponse(QString filename, bool is_downloadable);
 	static HttpResponse createStaticFromCacheResponse(QString id, ByteRange byte_range, ContentType type, bool is_downloadable);
+	static HttpResponse serveStaticFile(QString filename, RequestMethod method, QMap<QString, QString> headers);
 
 protected:
 	EndpointController();
@@ -44,7 +43,6 @@ private:
 	static EndpointController& instance();
 
 	static HttpResponse serveFolderContent(QString path, QString request_prefix, QString request_path, QList<QString> request_path_params);
-	static HttpResponse serveStaticFile(QString filename, RequestMethod method, QMap<QString, QString> headers);
 	static HttpResponse serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items);
 
 	static QString getEndpointHelpTemplate(QList<Endpoint>* endpoint_list);
@@ -53,9 +51,7 @@ private:
 	static QString getServedTempPath(QList<QString> path_parts);
 	static QString getServedRootPath(QList<QString> path_parts);
 
-//	static QString getServedFileLocation(QString url_id, QString filename);
 	static bool isEligibileToAccess(HttpRequest request);
-	static QString getFileNameWithExtension(QString filename_with_path);
 	static StaticFile readFileContent(QString filename, ByteRange byte_range);
 	static QString addFileToCache(QString filename);
 

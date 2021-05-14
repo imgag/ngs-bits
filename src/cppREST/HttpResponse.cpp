@@ -150,11 +150,7 @@ void HttpResponse::readBasicResponseData(BasicResponseData data)
 	}
 
 	setIsStream(data.is_stream);
-	if (data.is_stream)
-	{
-		setFilename(data.filename);
-	}
-
+	setFilename(data.filename);
 	setHeaders(generateRegularHeaders(data));
 }
 
@@ -173,7 +169,7 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 	}
 	if (data.is_downloadable)
 	{
-		headers.append("Content-Disposition: form-data; name=file_download; filename=" + data.filename + "\r\n");
+		headers.append("Content-Disposition: form-data; name=file_download; filename=" + getFileNameWithExtension(data.filename) + "\r\n");
 	}
 
 	headers.append("\r\n");
@@ -190,7 +186,7 @@ QByteArray HttpResponse::generateChunkedStreamHeaders(BasicResponseData data)
 
 	if (data.is_downloadable)
 	{
-		headers.append("Content-Disposition: form-data; name=file_download; filename=" + data.filename + "\r\n");
+		headers.append("Content-Disposition: form-data; name=file_download; filename=" + getFileNameWithExtension(data.filename) + "\r\n");
 	}
 
 	headers.append("\r\n");
@@ -204,6 +200,12 @@ QByteArray HttpResponse::generateRangeNotSatisfiableHeaders(BasicResponseData da
 	headers.append("Content-Range: bytes */" + QString::number(data.file_size) + "\r\n");
 	headers.append("\r\n");
 	return headers;
+}
+
+QString HttpResponse::getFileNameWithExtension(QString filename_with_path)
+{
+	QList<QString> path_items = filename_with_path.split(QDir::separator());
+	return path_items.takeLast();
 }
 
 int HttpResponse::getContentLength()

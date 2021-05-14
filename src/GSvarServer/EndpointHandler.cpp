@@ -68,7 +68,7 @@ HttpResponse EndpointHandler::serveIndexPage(HttpRequest request)
 	}
 	else if ((request.getPrefix().toLower().contains("index") || (request.getPrefix().toLower().trimmed() == "v1")) && (request.getPathParams().count() == 0))
 	{
-		return EndpointController::createStaticFileResponse(":/assets/client/info.html", ByteRange{}, ContentType::TEXT_HTML, false);
+		return EndpointController::serveStaticFile(":/assets/client/info.html", request.getMethod(), request.getHeaders());
 	}
 
 	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Requested page was not found");
@@ -78,7 +78,7 @@ HttpResponse EndpointHandler::serveFavicon(HttpRequest request)
 {
 	if (request.getPathParams().count() == 0)
 	{
-		return EndpointController::createStaticFileResponse(":/assets/client/favicon.ico", ByteRange{}, ContentType::TEXT_HTML, false);
+		return EndpointController::serveStaticFile(":/assets/client/favicon.ico", request.getMethod(), request.getHeaders());
 	}
 	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Favicon was not found");
 }
@@ -87,7 +87,7 @@ HttpResponse EndpointHandler::serveApiInfo(HttpRequest request)
 {
 	if (request.getPathParams().count() == 0)
 	{
-		return EndpointController::createStaticFileResponse(":/assets/client/api.json", ByteRange{}, ContentType::APPLICATION_JSON, false);
+		return EndpointController::serveStaticFile(":/assets/client/api.json", request.getMethod(), request.getHeaders());
 	}
 	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "API info was not found");
 }

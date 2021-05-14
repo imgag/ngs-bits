@@ -5,12 +5,11 @@ RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket
 	 ssl_configuration_(ssl_configuration)
 	, socket_(socket)
 {
-	qDebug() << "*** Initialize a new thread ***";
 }
 
 void RequestWorker::run()
 {
-	qDebug() << "*** Processing an incomming connection in a thread ***";
+	qDebug() << "Start processing an incomming connection in a new separate thread";
 	QSslSocket *ssl_socket = new QSslSocket();
 
 	if (!ssl_socket)
@@ -170,19 +169,32 @@ void RequestWorker::run()
 			finishPartialDataResponse(ssl_socket);
 			return;
 		}
-		else if ((!response.getPayload().isNull()) || (parsed_request.getMethod() == RequestMethod::HEAD))
+		else if (!response.getPayload().isNull())
 		{
 			sendEntireResponse(ssl_socket, response);
 			return;
 		}
-		else if (response.getPayload().isNull())
+		// Returns headers with file size without fetching the file itself
+		else if (parsed_request.getMethod() == RequestMethod::HEAD)
 		{
+			sendEntireResponse(ssl_socket, response);
+			return;
+		}
+		else if ((response.getPayload().isNull()) && (parsed_request.getHeaders().contains("range")))
+		{			
 			BasicResponseData response_data;
+			response_data.filename = response.getFilename();
 			response_data.file_size = QFile(response.getFilename()).size();
+			qDebug() << response_data.file_size << response.getFilename();
 			response.setStatusLine(ResponseStatus::RANGE_NOT_SATISFIABLE);
 			response.setRangeNotSatisfiableHeaders(response_data);
 			sendEntireResponse(ssl_socket, response);
 			return;			
+		}
+		else if (response.getPayload().isNull())
+		{
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not produce any output"));
+			return;
 		}
 
 		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "This page does not exist. Check the URL and try again"));
@@ -206,26 +218,28 @@ QString RequestWorker::intToHex(const int& input)
 
 void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 {
-	qDebug() << "Closing the socket";
-	socket->flush();
-	socket->waitForBytesWritten();
+	qDebug() << "Closing the socket";	
+	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
+	{
+		socket->flush();
+		socket->waitForBytesWritten();
+	}
 	socket->close();
 	socket->deleteLater();
 }
 
 void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 {
-	// clinet cancels the stream or simply disconnects
+	// clinet completes/cancels the stream or simply disconnects
 	if (socket->state() == QSslSocket::SocketState::UnconnectedState)
 	{
-		socket->close();
-		socket->deleteLater();
+		closeAndDeleteSocket(socket);
 		return;
 	}
 
 	if (socket->bytesToWrite())
 	{
-		socket->flush();
+		socket->flush();		
 		socket->waitForBytesWritten();
 	}
 
@@ -243,18 +257,11 @@ void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response
 
 void RequestWorker::finishPartialDataResponse(QSslSocket* socket)
 {
-	if (socket->bytesToWrite())
+	if ((socket->state() != QSslSocket::SocketState::UnconnectedState) && (socket->bytesToWrite()))
 	{
-		socket->flush();
+		socket->flush();		
 		socket->waitForBytesWritten();
 	}
 
-	if (!socket->bytesToWrite())
-	{
-		closeAndDeleteSocket(socket);
-		return;
-	}
-
-	qDebug() << "Closing the socket forcefully";
 	closeAndDeleteSocket(socket);
 }

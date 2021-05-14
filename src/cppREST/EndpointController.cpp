@@ -124,7 +124,7 @@ HttpResponse EndpointController::createStaticFileResponse(QString filename, Byte
 	}
 
 	BasicResponseData response_data;
-	response_data.filename = getFileNameWithExtension(filename);
+	response_data.filename = filename;
 	response_data.length = static_file.content.length();
 	response_data.byte_range = byte_range;
 	response_data.file_size = QFile(filename).size();
@@ -158,7 +158,7 @@ HttpResponse EndpointController::createStaticFromCacheResponse(QString id, ByteR
 	}
 
 	BasicResponseData response_data;
-	response_data.filename = getFileNameWithExtension(FileCache::getFileById(id).filename_with_path);
+	response_data.filename = FileCache::getFileById(id).filename_with_path;
 	response_data.length = static_file.content.length();
 	response_data.byte_range = byte_range;
 	response_data.file_size = static_file.size;
@@ -385,12 +385,6 @@ bool EndpointController::isEligibileToAccess(HttpRequest request)
 	return true;
 }
 
-QString EndpointController::getFileNameWithExtension(QString filename_with_path)
-{
-	QList<QString> path_items = filename_with_path.split(QDir::separator());
-	return path_items.takeLast();
-}
-
 StaticFile EndpointController::readFileContent(QString filename, ByteRange byte_range)
 {
 	qDebug() << "Reading file:" + filename;
@@ -416,7 +410,14 @@ StaticFile EndpointController::readFileContent(QString filename, ByteRange byte_
 	if ((!file.atEnd()) && (byte_range.length == 0))
 	{
 		qDebug() << "Reading the entire file at once";
-		static_file.content = file.readAll();
+		try
+		{
+			static_file.content = file.readAll();
+		}
+		catch (FileAccessException& e)
+		{
+			THROW(FileAccessException, "File cannot be processed (possibly due to the large size)");
+		}
 	}
 
 	if ((!file.atEnd()) && (byte_range.length > 0) && (file.seek(byte_range.start)))
@@ -425,11 +426,11 @@ StaticFile EndpointController::readFileContent(QString filename, ByteRange byte_
 		static_file.content = file.read(byte_range.length);
 	}
 
-//	if (!content.isEmpty())
-//	{
-//		qDebug() << "Adding file to the cache:" << filename;
-//		FileCache::addFileToCache(ServerHelper::generateUniqueStr(), filename, content);
-//	}
+	if ((!static_file.content.isEmpty()) && (Settings::boolean("static_cache", true)))
+	{
+		qDebug() << "Adding file to the cache:" << filename;
+		FileCache::addFileToCache(ServerHelper::generateUniqueStr(), filename, static_file.content, static_file.content.size());
+	}
 
 	file.close();
 

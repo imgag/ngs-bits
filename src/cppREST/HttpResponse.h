@@ -4,6 +4,7 @@
 #include "cppREST_global.h"
 #include <QByteArray>
 #include <QString>
+#include <QDir>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include "HttpParts.h"
@@ -42,6 +43,7 @@ private:
 	QByteArray generateRegularHeaders(BasicResponseData data);
 	QByteArray generateChunkedStreamHeaders(BasicResponseData data);
 	QByteArray generateRangeNotSatisfiableHeaders(BasicResponseData data);
+	QString getFileNameWithExtension(QString filename_with_path);
 
 protected:
 	bool is_stream_;

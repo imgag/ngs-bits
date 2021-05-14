@@ -25,7 +25,7 @@ private slots:
 		}
 		catch(Exception& e)
 		{
-			qDebug() << "Error while getting API info:" << e.message();
+			qDebug() << e.message();
 			SKIP("The server is probably not available");
 		}
 		IS_TRUE(!reply.isEmpty());
@@ -44,5 +44,26 @@ private slots:
 
 		}
 		IS_TRUE(reply.indexOf("This action cannot be processed")!=-1);
+	}
+
+
+	void test_partial_content_request()
+	{
+		QByteArray reply;
+		try
+		{
+			HttpHeaders add_headers;
+			add_headers.insert("Accept", "text/html");
+			add_headers.insert("Range", "bytes=251-283");
+			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:8443/v1/", add_headers);
+		}
+		catch(Exception& e)
+		{
+			qDebug() << e.message();
+			SKIP("The server is probably not available");
+		}
+
+		qDebug() << reply;
+		S_EQUAL(reply, "Welcome to GSvarServer info page");
 	}
 };

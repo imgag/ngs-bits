@@ -27,8 +27,6 @@ HttpRequest RequestPaser::getRequest()
 			request.setMethod(inferRequestMethod(request_info[0].toUpper()));
 
 			QList<QString> path_items = QString(request_info[1]).split('/');
-			qDebug() << "path_items = " << path_items;
-			qDebug() << "";
 			request.setPrefix(getRequestPrefix(path_items));
 			request.setPath(getRequestPath(path_items));
 			request.setPathParams(getRequestPathParams(path_items));
