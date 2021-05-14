@@ -22,6 +22,7 @@ public:
     EndpointHandler();
 
 	static HttpResponse serveIndexPage(HttpRequest request);
+	static HttpResponse serveFavicon(HttpRequest request);
 	static HttpResponse serveApiInfo(HttpRequest request);
 	static HttpResponse serveTempUrl(HttpRequest request);
 	static HttpResponse locateFileByType(HttpRequest request);

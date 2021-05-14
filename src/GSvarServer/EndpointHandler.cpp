@@ -62,11 +62,25 @@ QList<QString> EndpointHandler::getAnalysisFiles(QString sample_name, bool searc
 
 HttpResponse EndpointHandler::serveIndexPage(HttpRequest request)
 {
-	if (request.getPathParams().count() == 0)
+	if (request.getPrefix().toLower() == "favicon.ico")
+	{
+		return serveFavicon(request);
+	}
+	else if ((request.getPrefix().toLower().contains("index") || (request.getPrefix().trimmed().isEmpty())) && (request.getPathParams().count() == 0))
 	{
 		return EndpointController::createStaticFileResponse(":/assets/client/info.html", ByteRange{}, ContentType::TEXT_HTML, false);
 	}
-	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Index page was not found");
+
+	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Requested page was not found");
+}
+
+HttpResponse EndpointHandler::serveFavicon(HttpRequest request)
+{
+	if (request.getPathParams().count() == 0)
+	{
+		return EndpointController::createStaticFileResponse(":/assets/client/favicon.ico", ByteRange{}, ContentType::TEXT_HTML, false);
+	}
+	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Favicon was not found");
 }
 
 HttpResponse EndpointHandler::serveApiInfo(HttpRequest request)

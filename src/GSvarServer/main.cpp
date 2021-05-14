@@ -105,6 +105,14 @@ int main(int argc, char **argv)
 						&EndpointHandler::serveIndexPage
 					});
 	EndpointManager::appendEndpoint(Endpoint{
+						"favicon.ico",
+						QMap<QString, ParamProps>{},
+						RequestMethod::GET,
+						ContentType::IMAGE_PNG,
+						"Favicon to avoid warnings from the browser",
+						&EndpointHandler::serveFavicon
+					});
+	EndpointManager::appendEndpoint(Endpoint{
 						"info",
 						QMap<QString, ParamProps>{},
 						RequestMethod::GET,

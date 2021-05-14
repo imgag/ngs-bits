@@ -37,9 +37,6 @@ HttpResponse EndpointController::serveStaticFromServerRoot(HttpRequest request)
 
 HttpResponse EndpointController::serveStaticForTempUrl(HttpRequest request)
 {
-	qDebug() << "------------ TEMP URL";
-	qDebug() << request.getPathParams();
-
 	QString served_file;
 	try
 	{
@@ -49,8 +46,6 @@ HttpResponse EndpointController::serveStaticForTempUrl(HttpRequest request)
 	{
 		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), e.message());
 	}
-
-	qDebug() << "served_file2 " << served_file;
 
 	if (QFileInfo(served_file).isDir())
 	{

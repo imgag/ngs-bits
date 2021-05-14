@@ -52,11 +52,8 @@ void RequestWorker::run()
 	{
 		qDebug() << "Start the processing";
 		if (!ssl_socket->isEncrypted()) closeAndDeleteSocket(ssl_socket);
-		qDebug() << "Read the request";
 		// Read the request
 		QByteArray raw_request = ssl_socket->readAll();
-
-		qDebug() << "Raw request" << raw_request;
 		HttpRequest parsed_request;
 		RequestPaser *parser = new RequestPaser(&raw_request, ssl_socket->peerAddress().toString());
 		try
@@ -85,7 +82,7 @@ void RequestWorker::run()
 		}
 		catch (ArgumentException& e)
 		{
-			qDebug() << "Validation has failed";
+			qDebug() << "Parameter validation has failed";
 			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, parsed_request.getContentType(), e.message()));
 			return;
 		}
@@ -94,9 +91,6 @@ void RequestWorker::run()
 		HttpResponse (*endpoint_action_)(HttpRequest request) = current_endpoint.action_func;
 		HttpResponse response;
 
-		qDebug() << "Trying to execute an action";
-		qDebug() << "Headers = " << parsed_request.getHeaders();
-		qDebug() << "vars = " << parsed_request.getPathParams();
 		try
 		{
 			response = (*endpoint_action_)(parsed_request);
@@ -152,8 +146,6 @@ void RequestWorker::run()
 			qDebug() << "Stream thread";
 			qint64 chunk_size = 1024;
 			qint64 pos = 0;
-
-			qDebug() << "Content type" + response.getHeaders();
 			qint64 file_size = streamed_file.size();
 			while(!streamed_file.atEnd())
 			{
