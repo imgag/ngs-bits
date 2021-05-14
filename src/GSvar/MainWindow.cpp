@@ -1789,13 +1789,12 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			bool debug = true;
 			foreach(QString command, init_commands)
 			{
-
+				// Character escaping is needed to the URL, otherwise the address is being cut off
 				if (command.indexOf("https:/")>-1)
 				{
 					command = command.replace("https:/", "https://");
 				}
 
-				qDebug() << "Command " << command;
 				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
 				socket.setProperty("jsse.enableSNIExtension", "false");
 				socket.write((command + "\n").toLatin1());

@@ -66,7 +66,7 @@ HttpResponse EndpointHandler::serveIndexPage(HttpRequest request)
 	{
 		return serveFavicon(request);
 	}
-	else if ((request.getPrefix().toLower().contains("index") || (request.getPrefix().trimmed().isEmpty())) && (request.getPathParams().count() == 0))
+	else if ((request.getPrefix().toLower().contains("index") || (request.getPrefix().toLower().trimmed() == "v1")) && (request.getPathParams().count() == 0))
 	{
 		return EndpointController::createStaticFileResponse(":/assets/client/info.html", ByteRange{}, ContentType::TEXT_HTML, false);
 	}
