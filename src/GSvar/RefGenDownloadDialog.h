@@ -14,25 +14,24 @@
 #include "HttpRequestHandler.h"
 #include "GSvarHelper.h"
 
-class RefGenDownloadDialog
-        : public QDialog
+class RefGenDownloadDialog: public QDialog
 {
-        Q_OBJECT
+	Q_OBJECT
 
 public:
-        RefGenDownloadDialog(QWidget *parent = 0);
+	RefGenDownloadDialog(QWidget *parent = 0);
 
 public slots:
-        void startDownload();
-        void cancelDownload();	
+	void startDownload();
+	void cancelDownload();
 
 private:
-        Ui::RefGenDownloadDialog ui_;
-        bool is_interrupted_;
-		HttpRequestHandler::ProxyType proxy_type_;
-        void closeEvent(QCloseEvent *bar);
-        void keyPressEvent(QKeyEvent *e);
-		void closeWindow();
+	Ui::RefGenDownloadDialog ui_;
+	bool is_interrupted_;
+	HttpRequestHandler::ProxyType proxy_type_;
+	void closeEvent(QCloseEvent *bar);
+	void keyPressEvent(QKeyEvent *e);
+	void closeWindow();
 };
 
 #endif // REFGENDOWNLOADDIALOG_H

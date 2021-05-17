@@ -25,8 +25,8 @@ public:
 	///Adds/overrides a basic header.
 	void setHeader(const QByteArray& key, const QByteArray& value);
 
-	///Return file size
-	qint64 getFileSize(QString url, const HttpHeaders& add_headers = HttpHeaders());
+	///Returns headers for a specific file: key-value pairs
+	QMap<QByteArray, QByteArray> head(QString url, const HttpHeaders& add_headers = HttpHeaders());
 	///Performs GET request
 	QByteArray get(QString url, const HttpHeaders& add_headers = HttpHeaders());
 	///Performs POST request

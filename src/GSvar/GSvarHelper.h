@@ -41,6 +41,9 @@ public:
 	//Checks if the reference genome is available
 	static bool isGenomeFound();
 
+	//Return the size of a remote file over HTTP(S)
+	static qint64 getRemoteFileSize(QString url);
+
 protected:
 	GSvarHelper() = delete;
 };

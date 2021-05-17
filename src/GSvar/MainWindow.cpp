@@ -2235,7 +2235,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "application/json");
 		QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
-					"https://" + Settings::string("server_host") + ":" + QString::number(Settings::integer("server_port"))
+					Settings::string("server_host") + ":" + QString::number(Settings::integer("server_port"))
 					+ "/v1/project_file?ps=" + processed_sample_name
 					+ (!search_multi ? "" : "&multi=1")
 					, add_headers);

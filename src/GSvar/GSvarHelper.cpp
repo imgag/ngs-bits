@@ -249,14 +249,6 @@ QString GSvarHelper::localRoiFolder()
 
 bool GSvarHelper::isGenomeFound()
 {
-	HttpRequestHandler::ProxyType proxy_type = HttpRequestHandler::ProxyType::NONE;
-	if ((!Settings::string("proxy_host").isEmpty()) && (!Settings::string("proxy_port").isEmpty()))
-	{
-		proxy_type = HttpRequestHandler::ProxyType::INI;
-	}
-
-	static HttpHandler http_handler(proxy_type);
-
 	bool found = false;
 	QFile genome_file(Settings::string("reference_genome"));
 	QFile genome_index_file(Settings::string("reference_genome") + ".fai");
@@ -264,8 +256,9 @@ bool GSvarHelper::isGenomeFound()
 	{
 		qint64 local_file_size = genome_file.size();
 		qint64 local_index_file_size = genome_index_file.size();
-		qint64 remote_file_size = http_handler.getFileSize(Settings::string("remote_reference_genome"));
-		qint64 remote_index_file_size = http_handler.getFileSize(Settings::string("remote_reference_genome") + ".fai");
+		qint64 remote_file_size = getRemoteFileSize(Settings::string("remote_reference_genome"));
+		qint64 remote_index_file_size = getRemoteFileSize(Settings::string("remote_reference_genome") + ".fai");
+
 		if ((local_file_size != 0) && (remote_file_size != 0) && (local_file_size == remote_file_size)
 			&& (local_index_file_size != 0) && (remote_index_file_size != 0)
 			&& (local_index_file_size == remote_index_file_size))
@@ -274,4 +267,28 @@ bool GSvarHelper::isGenomeFound()
 		}
 	}
 	return found;
+}
+
+qint64 GSvarHelper::getRemoteFileSize(QString url)
+{
+	HttpRequestHandler::ProxyType proxy_type = HttpRequestHandler::ProxyType::NONE;
+	if ((!Settings::string("proxy_host").isEmpty()) && (!Settings::string("proxy_port").isEmpty()))
+	{
+		proxy_type = HttpRequestHandler::ProxyType::INI;
+	}
+
+	static HttpHandler http_handler(proxy_type);
+
+	qint64 remote_file_size = 0.0;
+	QMap<QByteArray, QByteArray> genome_headers = http_handler.head(url);
+
+	for(auto it= genome_headers.begin(); it!= genome_headers.end(); ++it)
+	{
+		if (it.key().toLower() == "content-length")
+		{
+			remote_file_size = it.value().toLongLong();
+		}
+	}
+
+	return remote_file_size;
 }

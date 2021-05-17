@@ -63,7 +63,7 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(QString type
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
 	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
-				"https://" + server_host_ + ":" + QString::number(server_port_)
+				server_host_ + ":" + QString::number(server_port_)
 				+ "/v1/file_location?ps=" + file_id + "&type=" + type
 				+ "&return_if_missing=" +(return_if_missing ? "1" : "0"), add_headers);
 
@@ -99,7 +99,7 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(QString type, 
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
 	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
-				"https://" + server_host_ + ":" + QString::number(server_port_)
+				server_host_ + ":" + QString::number(server_port_)
 				+ "/v1/file_location?ps=" + file_id + "&type=" + type
 				+ (locus.isEmpty() ? "" : "&locus=" + locus), add_headers);
 

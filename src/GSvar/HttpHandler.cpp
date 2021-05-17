@@ -38,9 +38,9 @@ void HttpHandler::setHeader(const QByteArray& key, const QByteArray& value)
 	headers_.insert(key, value);
 }
 
-qint64 HttpHandler::getFileSize(QString url, const HttpHeaders& add_headers)
+QMap<QByteArray, QByteArray> HttpHandler::head(QString url, const HttpHeaders& add_headers)
 {
-	return HttpRequestHandler(proxy_type_, this).getFileSize(url, add_headers);
+	return HttpRequestHandler(proxy_type_, this).head(url, add_headers);
 }
 
 QByteArray HttpHandler::get(QString url, const HttpHeaders& add_headers)
