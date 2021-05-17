@@ -17,7 +17,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports Ensembl/CCDS transcript information into NGSD.");
-		addInfile("in", "Ensembl transcript file (download and unzip ftp://ftp.ensembl.org/pub/grch37/release-87/gff3/homo_sapiens/Homo_sapiens.GRCh37.87.chr.gff3.gz).", false);
+		addInfile("in", "Ensembl transcript file (download and unzip ftp://ftp.ensembl.org/pub/grch37/release-87/gff3/homo_sapiens/Homo_sapiens.GRCh37.87.chr.gff3.gz for GRCh37 and ftp://ftp.ensembl.org/pub/release-104/gff3/homo_sapiens/Homo_sapiens.GRCh38.104.chr.gff3.gz for GRCH38).", false);
 
 		//optional
         addInfile("pseudogenes", "Pseudogene flat file (download from http://pseudogene.org/psidr/psiDR.v0.txt).", true);
