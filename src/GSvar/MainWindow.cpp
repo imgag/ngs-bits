@@ -251,8 +251,14 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
+		//Check HPO terms in NGSD
+		/*
 		NGSD db;
-		PhenotypeList phenotypic_abnormality_subterms = db.phenotypeChildTerms(db.phenotypeIdByName("Phenotypic abnormality"), true);
+		PhenotypeList valid_terms;
+		valid_terms << db.phenotypeChildTerms(db.phenotypeIdByName("Clinical course"), true);
+		valid_terms << db.phenotypeChildTerms(db.phenotypeIdByName("Clinical modifier"), true);
+		valid_terms << db.phenotypeChildTerms(db.phenotypeIdByName("Past medical history"), true);
+		valid_terms << db.phenotypeChildTerms(db.phenotypeIdByName("Phenotypic abnormality"), true);
 
 		auto file = Helper::openFileForWriting("C:\\Marc\\hpos.tsv");
 		QTextStream stream(file.data());
@@ -273,9 +279,9 @@ void MainWindow::on_actionDebug_triggered()
 
 				hpo_name = db.phenotype(id).name();
 
-				if (!phenotypic_abnormality_subterms.containsAccession(hpo_id))
+				if (!valid_terms.containsAccession(hpo_id))
 				{
-					errors << "Not a child of 'phenotypic abnormality'";
+					errors << "Not a child of 'phenotypic abnormality', 'Clinical modifier' or 'Past medical history'";
 				}
 			}
 			catch(Exception & e)
@@ -286,6 +292,7 @@ void MainWindow::on_actionDebug_triggered()
 			stream << hpo_id << "\t"  << hpo_name << "\t"  << samples << "\t" << errors.join(", ") << "\n";
 			stream.flush();
 		}
+		*/
 
 		//export of recurring variants with similar phenotype
 		/*
@@ -364,7 +371,6 @@ void MainWindow::on_actionDebug_triggered()
 								if (phenos.count()>0) ++samples_with_hpo;
 								foreach(const Phenotype& pheno, phenos)
 								{
-									//TODO also all sub-terms?
 									QString hpo_name = pheno.name();
 									if (!hpo_affected.contains(hpo_name)) hpo_affected[hpo_name] = 0;
 									hpo_affected[hpo_name] += 1;
@@ -661,16 +667,13 @@ void MainWindow::on_actionDebug_triggered()
 		*/
 
 		//import sample meta data from GenLab
-		/*
 		GenLabDB genlab;
 		NGSD db;
 		ProcessedSampleSearchParameters params;
-		params.s_species = "human";
 		params.p_type = "diagnostic";
 		params.sys_type = "WES";
 		params.include_bad_quality_samples = false;
 		params.include_tumor_samples = false;
-		params.include_ffpe_samples = false;
 		params.include_merged_samples = false;
 		params.include_bad_quality_runs = false;
 		params.run_finished = true;
@@ -684,9 +687,9 @@ void MainWindow::on_actionDebug_triggered()
 			if (i<ps_start_index) continue;
 
 			qDebug() << i << "/" << ps_list.size() << " - " << ps;
-			genlab.addMissingMetaDataToNGSD(ps, true);
+			genlab.addMissingMetaDataToNGSD(ps, true, false, false, false, true);
 		}
-		*/
+
 		qDebug() << Helper::elapsedTime(timer, true);
 	}
 	else if (user=="ahschul1")

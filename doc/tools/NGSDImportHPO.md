@@ -1,5 +1,5 @@
 ### NGSDImportHPO tool help
-	NGSDImportHPO (2020_12-90-g14665103)
+	NGSDImportHPO (2021_03-59-g32c44298)
 	
 	Imports HPO terms and gene-phenotype relations into the NGSD.
 	
@@ -10,9 +10,9 @@
 	Optional parameters:
 	  -omim <file>    OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.
 	                  Default value: ''
-	  -clinvar <file> ClinVar VCF file for additional disease-gene information. Download and unzip from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2021/clinvar_20210110.vcf.gz'.
+	  -clinvar <file> ClinVar VCF file for additional disease-gene information. Download and unzip from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2021/clinvar_20210424.vcf.gz' for GRCH37 or 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20210424.vcf.gz' for GRCh38.
 	                  Default value: ''
-	  -hgmd <file>    HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2020.4.dump').
+	  -hgmd <file>    HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2021.1.dump').
 	                  Default value: ''
 	  -test           Uses the test database instead of on the production database.
 	                  Default value: 'false'
@@ -28,7 +28,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDImportHPO changelog
-	NGSDImportHPO 2020_12-90-g14665103
+	NGSDImportHPO 2021_03-59-g32c44298
 	
 	2020-07-07 Added support of HGMD gene-phenotype relations.
 	2020-07-06 Added support for HGMD phenobase file.

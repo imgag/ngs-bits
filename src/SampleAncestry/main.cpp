@@ -26,10 +26,12 @@ public:
 		//optional
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addInt("min_snps", "Minimum number of informative SNPs for population determination. If less SNPs are found, 'NOT_ENOUGH_SNPS' is returned.", true, 1000);
-		addFloat("pop_dist", "Minimum relative distance between first/second population score. If below this score 'ADMIXED/UNKNOWN' is called.", true, 0.15);
+		addFloat("score_cutoff", "Absolute score cutoff above which a sample is assigned to a population.", true, 0.32);
+		addFloat("mad_dist", "Maximum number of median average diviations that are allowed from median population score.", true, 4.2);
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
 
 		//changelog
+		changeLog(2021,  5, 17, "Population assignment is based on abolute score and on median/mad now. Should be much more accurate now especially for admixed samples.");
         changeLog(2020,  8, 07, "VCF files only as input format for variant list.");
 		changeLog(2018, 12, 10, "Fixed bug in handling of 'pop_dist' parameter.");
 		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
@@ -43,14 +45,16 @@ public:
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
 		int min_snps = getInt("min_snps");
-		double pop_dist = getFloat("pop_dist");
+		double mad_dist = getFloat("mad_dist");
+		double score_cutoff = getFloat("score_cutoff");
+
 		QString build = getEnum("build");
 
 		//process
-		out << "#sample\tsnps\tAFR\tEUR\tSAS\tEAS\tpopulation" << endl; //TODO Add probabilty for each population > MARC
+		out << "#sample\tsnps\tAFR\tEUR\tSAS\tEAS\tpopulation" << endl;
 		foreach(QString filename, in)
 		{
-			AncestryEstimates ancestry = Statistics::ancestry(build, filename, min_snps, pop_dist);
+			AncestryEstimates ancestry = Statistics::ancestry(build, filename, min_snps, score_cutoff, mad_dist);
 			out << QFileInfo(filename).fileName()
 				<< "\t" << ancestry.snps
 				<< "\t" << QString::number(ancestry.afr, 'f', 4)

@@ -1,4 +1,5 @@
 #include "PhenotypeList.h"
+#include <QDebug>
 
 PhenotypeList::PhenotypeList()
 	: QList<Phenotype>()
@@ -21,6 +22,16 @@ PhenotypeList& PhenotypeList::operator<<(const QSet<Phenotype>& set)
 	{
 		*this << pheno;
 	}
+	return *this;
+}
+
+PhenotypeList& PhenotypeList::operator<<(const PhenotypeList& list)
+{
+	foreach(const Phenotype& pheno, list)
+	{
+		*this << pheno;
+	}
+
 	return *this;
 }
 

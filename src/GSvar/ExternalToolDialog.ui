@@ -79,12 +79,12 @@
     </layout>
    </item>
    <item>
-    <widget class="QPlainTextEdit" name="output">
+    <widget class="QTextBrowser" name="output">
      <property name="readOnly">
       <bool>true</bool>
      </property>
-     <property name="textInteractionFlags">
-      <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+     <property name="openExternalLinks">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
