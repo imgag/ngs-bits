@@ -160,6 +160,7 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->status->setText(diag.dagnostic_status + " (by " + diag.user + " on " + diag.date.toString("dd.MM.yyyy")+")");
 	ui_->outcome->setText(diag.outcome);
 	ui_->comments_diag->setText(diag.comments);
+	ui_->report_config->setText(db.reportConfigSummaryText(ps_id_));
 
 
 	//#### kasp status ####
