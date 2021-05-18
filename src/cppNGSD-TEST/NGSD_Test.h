@@ -1303,12 +1303,12 @@ private slots:
 		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
 		GermlineReportGeneratorData data("NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
 		data.processing_system_roi.load(TESTDATA("../cppNGS-TEST/data_in/panel.bed"));
+		data.ps_bam = TESTDATA("../cppNGS-TEST/data_in/panel.bam");
+		data.ps_lowcov = TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed");
 
 		//############################### TEST 1 - minimal ###############################
 		{
 			GermlineReportGenerator generator(data, true);
-			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report1.html");
@@ -1374,8 +1374,6 @@ private slots:
 			data.roi.genes.insert("CYP7B1");
 
 			GermlineReportGenerator generator(data, true);
-			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report2.html");
@@ -1390,8 +1388,6 @@ private slots:
 			report_settings.language = "english";
 
 			GermlineReportGenerator generator(data, true);
-			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report3.html");
@@ -1402,8 +1398,6 @@ private slots:
 		//############################### TEST 4 - evaluation sheet ###############################
 		{
 			GermlineReportGenerator generator(data, true);
-			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			EvaluationSheetData sheet_data;

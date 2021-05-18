@@ -27,8 +27,6 @@ GermlineReportGenerator::GermlineReportGenerator(const GermlineReportGeneratorDa
 	, test_mode_(test_mode)
 {
 	ps_id_ = db_.processedSampleId(data_.ps);
-	ps_bam_ = db_.processedSamplePath(ps_id_, PathType::BAM);
-	ps_lowcov_ = db_.processedSamplePath(ps_id_, PathType::LOWCOV_BED);
 }
 
 void GermlineReportGenerator::writeHTML(QString filename)
@@ -857,20 +855,6 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	}
 }
 
-void GermlineReportGenerator::overrideBamFile(QString bam_file)
-{
-	if (!test_mode_) THROW(ProgrammingException, "This function can only be used in test mode!");
-
-	ps_bam_ = bam_file;
-}
-
-void GermlineReportGenerator::overrideLowCovFile(QString lowcov_file)
-{
-	if (!test_mode_) THROW(ProgrammingException, "This function can only be used in test mode!");
-
-	ps_lowcov_ = lowcov_file;
-}
-
 void GermlineReportGenerator::overrideDate(QDate date)
 {
 	if (!test_mode_) THROW(ProgrammingException, "This function can only be used in test mode!");
@@ -1128,7 +1112,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		Log::warn("Average target region depth from NGSD cannot be used! Recalculating it...");
 
 		QString ref_file = Settings::string("reference_genome");
-		stats = Statistics::mapping(data_.roi.regions, ps_bam_, ref_file);
+		stats = Statistics::mapping(data_.roi.regions, data_.ps_bam, ref_file);
 	}
 	for (int i=0; i<stats.count(); ++i)
 	{
@@ -1139,7 +1123,7 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe") << ": " << avg_cov << endl;
 	BedFile mito_bed;
 	mito_bed.append(BedLine("chrMT", 1, 16569));
-	Statistics::avgCoverage(mito_bed, ps_bam_, 1, false, true);
+	Statistics::avgCoverage(mito_bed, data_.ps_bam, 1, false, true);
 	stream << "<br />" << trans("Durchschnittliche Sequenziertiefe (chrMT)") << ": " << mito_bed[0].annotations()[0] << endl;
 	stream << "</p>" << endl;
 
@@ -1149,12 +1133,12 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		BedFile low_cov;
 		try
 		{
-			low_cov = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, data_.roi.regions, data_.report_settings.min_depth, data_.processing_system_roi);
+			low_cov = GermlineReportGenerator::precalculatedGaps(data_.ps_lowcov, data_.roi.regions, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
 		catch(Exception e)
 		{
 			Log::warn("Low-coverage statistics needs to be calculated. Pre-calulated gap file cannot be used because: " + e.message());
-			low_cov = Statistics::lowCoverage(data_.roi.regions, ps_bam_, data_.report_settings.roi_low_cov);
+			low_cov = Statistics::lowCoverage(data_.roi.regions, data_.ps_bam, data_.report_settings.roi_low_cov);
 		}
 
 		//annotate low-coverage regions with gene names
@@ -1349,12 +1333,12 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 		BedFile gaps;
 		try
 		{
-			gaps = GermlineReportGenerator::precalculatedGaps(ps_lowcov_, roi, data_.report_settings.min_depth, data_.processing_system_roi);
+			gaps = GermlineReportGenerator::precalculatedGaps(data_.ps_lowcov, roi, data_.report_settings.min_depth, data_.processing_system_roi);
 		}
 		catch(Exception e)
 		{
 			Log::warn("Low-coverage statistics for transcript " + transcript.name() + " needs to be calculated. Pre-calulated gap file cannot be used because: " + e.message());
-			gaps = Statistics::lowCoverage(roi, ps_bam_, data_.report_settings.min_depth);
+			gaps = Statistics::lowCoverage(roi, data_.ps_bam, data_.report_settings.min_depth);
 		}
 
 		long long bases_transcipt = roi.baseCount();
