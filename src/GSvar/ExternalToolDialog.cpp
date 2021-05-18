@@ -10,6 +10,7 @@
 #include "SampleSimilarity.h"
 #include "LoginManager.h"
 #include "ProcessedSampleSelector.h"
+#include "GlobalServiceProvider.h"
 
 ExternalToolDialog::ExternalToolDialog(QString tool_name, QString mode, QWidget* parent)
 	: QDialog(parent)
@@ -37,137 +38,151 @@ void ExternalToolDialog::browse()
 	QString output;
 	QTextStream stream(&output);
 	bool ngsd_instead_of_filesystem = sender()==ui_.browse_ngsd;
-
-	if (tool_name_ == "BED file information")
+	try
 	{
-		QString filename = getFileName(BED, ngsd_instead_of_filesystem);
-		if (filename=="") return;
-
-		//process
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-		BedFile file;
-		file.load(filename);
-		QCCollection stats = Statistics::region(file, true);
-		QApplication::restoreOverrideCursor();
-
-		//output
-		stream << "Regions: " << stats.value("roi_fragments").toString() << endl;
-		stream << "Bases: " << stats.value("roi_bases").toString(0) << endl;
-		stream << "Chromosomes: " << stats.value("roi_chromosomes").toString() << endl;
-		stream << endl;
-		stream << "Is sorted: " << stats.value("roi_is_sorted").toString() << endl;
-		stream << "Is merged: " << stats.value("roi_is_merged").toString() << endl;
-		stream << endl;
-		stream << "Fragment size (min): " << stats.value("roi_fragment_min").toString() << endl;
-		stream << "Fragment size (max): " << stats.value("roi_fragment_max").toString() << endl;
-		stream << "Fragment size (mean): " << stats.value("roi_fragment_mean").toString() << endl;
-		stream << "Fragment size (stdev): " << stats.value("roi_fragment_stdev").toString() << endl;
-	}
-	else if (tool_name_ == "Determine gender")
-	{
-		QString filename = getFileName(BAM, ngsd_instead_of_filesystem);
-		if (filename=="") return;
-
-		//process
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-
-		GenderEstimate estimate;
-		if (mode_=="xy")
+		if (tool_name_ == "BED file information")
 		{
-			estimate = Statistics::genderXY(filename);
+			QString filename = getFileName(BED, ngsd_instead_of_filesystem);
+			if (filename=="") return;
+
+			//process
+			QApplication::setOverrideCursor(Qt::BusyCursor);
+			BedFile file;
+			file.load(filename);
+			QCCollection stats = Statistics::region(file, true);
+			QApplication::restoreOverrideCursor();
+
+			//output
+			stream << "Regions: " << stats.value("roi_fragments").toString()<< "<br>";
+			stream << "Bases: " << stats.value("roi_bases").toString(0)<< "<br>";
+			stream << "Chromosomes: " << stats.value("roi_chromosomes").toString()<< "<br>";
+			stream<< "<br>";
+			stream << "Is sorted: " << stats.value("roi_is_sorted").toString()<< "<br>";
+			stream << "Is merged: " << stats.value("roi_is_merged").toString()<< "<br>";
+			stream<< "<br>";
+			stream << "Fragment size (min): " << stats.value("roi_fragment_min").toString()<< "<br>";
+			stream << "Fragment size (max): " << stats.value("roi_fragment_max").toString()<< "<br>";
+			stream << "Fragment size (mean): " << stats.value("roi_fragment_mean").toString()<< "<br>";
+			stream << "Fragment size (stdev): " << stats.value("roi_fragment_stdev").toString()<< "<br>";
 		}
-		else if (mode_=="hetx")
+		else if (tool_name_ == "Determine gender")
 		{
-			estimate = Statistics::genderHetX(filename, "hg19");
-		}
-		else if (mode_=="sry")
-		{
-			estimate = Statistics::genderSRY(filename, "hg19");
-		}
-		QApplication::restoreOverrideCursor();
+			QString filename = getFileName(BAM, ngsd_instead_of_filesystem);
+			if (filename=="") return;
 
-		//output
-		foreach(auto info, estimate.add_info)
-		{
-			stream  << info.key << ": " << info.value << endl;
-		}
-		stream << endl;
-		stream << "gender: " << estimate.gender << endl;
-	}
-	else if (tool_name_ == "Sample similarity")
-	{
-		//get file names
-		FileType type = GSVAR;
-		if (mode_=="vcf") type = VCF;
-		if (mode_=="bam") type = BAM;
-		QString filename1 = getFileName(type, ngsd_instead_of_filesystem);
-		if (filename1=="") return;
-		QString filename2 = getFileName(type, ngsd_instead_of_filesystem);
-		if (filename2=="") return;
+			//process
+			QApplication::setOverrideCursor(Qt::BusyCursor);
 
-		//process
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-		if (mode_=="bam")
-		{
-			SampleSimilarity::VariantGenotypes geno1 = SampleSimilarity::genotypesFromBam("hg19", filename1, 30, 500, false);
-			SampleSimilarity::VariantGenotypes geno2 = SampleSimilarity::genotypesFromBam("hg19", filename2, 30, 500, false);
-
-			SampleSimilarity sc;
-			sc.calculateSimilarity(geno1, geno2);
-
-			stream << "Variants overlapping: " << QString::number(sc.olCount()) << endl;
-			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
-		}
-		else //VCF/GSvar
-		{
-			SampleSimilarity::VariantGenotypes geno1;
-			SampleSimilarity::VariantGenotypes geno2;
-			if (mode_=="vcf")
+			GenderEstimate estimate;
+			if (mode_=="xy")
 			{
-				geno1 = SampleSimilarity::genotypesFromVcf(filename1, false, true);
-				geno2 = SampleSimilarity::genotypesFromVcf(filename2, false, true);
+				estimate = Statistics::genderXY(filename);
 			}
-			else
+			else if (mode_=="hetx")
 			{
-				geno1 = SampleSimilarity::genotypesFromGSvar(filename1, false);
-				geno2 = SampleSimilarity::genotypesFromGSvar(filename2, false);
+				estimate = Statistics::genderHetX(filename, "hg19");
 			}
+			else if (mode_=="sry")
+			{
+				estimate = Statistics::genderSRY(filename, "hg19");
+			}
+			QApplication::restoreOverrideCursor();
 
-			SampleSimilarity sc;
-			sc.calculateSimilarity(geno1, geno2);
-
-			stream << "Variants file1: " << QString::number(sc.noVariants1()) << endl;
-			stream << "Variants file2: " << QString::number(sc.noVariants2()) << endl;
-			stream << "Variants overlapping: " << QString::number(sc.olCount()) << " (" << sc.olPerc() << "%)" << endl;
-			stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4) << endl;
+			//output
+			foreach(auto info, estimate.add_info)
+			{
+				stream  << info.key << ": " << info.value<< "<br>";
+			}
+			stream<< "<br>";
+			stream << "gender: " << estimate.gender<< "<br>";
 		}
-		QApplication::restoreOverrideCursor();
+		else if (tool_name_ == "Sample similarity")
+		{
+			//get file names
+			FileType type = GSVAR;
+			if (mode_=="vcf") type = VCF;
+			if (mode_=="bam") type = BAM;
+			QString filename1 = getFileName(type, ngsd_instead_of_filesystem);
+			if (filename1=="") return;
+			QString filename2 = getFileName(type, ngsd_instead_of_filesystem);
+			if (filename2=="") return;
+
+			//process
+			QApplication::setOverrideCursor(Qt::BusyCursor);
+			if (mode_=="bam")
+			{
+				SampleSimilarity::VariantGenotypes geno1 = SampleSimilarity::genotypesFromBam("hg19", filename1, 30, 500, false);
+				SampleSimilarity::VariantGenotypes geno2 = SampleSimilarity::genotypesFromBam("hg19", filename2, 30, 500, false);
+
+				SampleSimilarity sc;
+				sc.calculateSimilarity(geno1, geno2);
+
+				stream << "Variants overlapping: " << QString::number(sc.olCount())<< "<br>";
+				stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4)<< "<br>";
+			}
+			else //VCF/GSvar
+			{
+				SampleSimilarity::VariantGenotypes geno1;
+				SampleSimilarity::VariantGenotypes geno2;
+				if (mode_=="vcf")
+				{
+					geno1 = SampleSimilarity::genotypesFromVcf(filename1, false, true);
+					geno2 = SampleSimilarity::genotypesFromVcf(filename2, false, true);
+				}
+				else
+				{
+					geno1 = SampleSimilarity::genotypesFromGSvar(filename1, false);
+					geno2 = SampleSimilarity::genotypesFromGSvar(filename2, false);
+				}
+
+				SampleSimilarity sc;
+				sc.calculateSimilarity(geno1, geno2);
+
+				stream << "Variants file1: " << QString::number(sc.noVariants1())<< "<br>";
+				stream << "Variants file2: " << QString::number(sc.noVariants2())<< "<br>";
+				stream << "Variants overlapping: " << QString::number(sc.olCount()) << " (" << sc.olPerc() << "%)"<< "<br>";
+				stream << "Correlation: " << QString::number(sc.sampleCorrelation(), 'f', 4)<< "<br>";
+			}
+			QApplication::restoreOverrideCursor();
+
+			stream<< "<br>";
+			stream << "For more information about the similarity scores see the <a href=\"https://github.com/imgag/ngs-bits/blob/master/doc/tools/SampleSimilarity/index.md\">documentation</a>." << "<br>";
+			stream << ""<< "<br>";
+		}
+		else if (tool_name_ == "Sample ancestry")
+		{
+			QString filename = getFileName(VCF, ngsd_instead_of_filesystem);
+			if (filename=="") return;
+
+			//process
+			QApplication::setOverrideCursor(Qt::BusyCursor);
+			AncestryEstimates ancestry = Statistics::ancestry("hg19", filename);
+
+			stream << "Informative SNPs: " << QString::number(ancestry.snps)<< "<br>";
+			stream<< "<br>";
+			stream << "Correlation AFR: " << QString::number(ancestry.afr, 'f', 4)<< "<br>";
+			stream << "Correlation EUR: " << QString::number(ancestry.eur, 'f', 4)<< "<br>";
+			stream << "Correlation SAS: " << QString::number(ancestry.sas, 'f', 4)<< "<br>";
+			stream << "Correlation EAS: " << QString::number(ancestry.eas, 'f', 4)<< "<br>";
+			stream<< "<br>";
+			stream << "Population: " << ancestry.population<< "<br>";
+			QApplication::restoreOverrideCursor();
+
+			stream<< "<br>";
+			stream << "For more information about the population scores see the <a href=\"https://github.com/imgag/ngs-bits/blob/master/doc/tools/SampleAncestry/index.md\">documentation</a>." << "<br>";
+		}
+		else
+		{
+			THROW(ProgrammingException, "Unknown tool '" + tool_name_ + "' requested in ExternalToolDialog!");
+		}
 	}
-	else if (tool_name_ == "Sample ancestry")
+	catch(Exception& e)
 	{
-		QString filename = getFileName(VCF, ngsd_instead_of_filesystem);
-		if (filename=="") return;
-
-		//process
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-		AncestryEstimates ancestry = Statistics::ancestry("hg19", filename);
-
-		stream << "Informative SNPs: " << QString::number(ancestry.snps) << endl;
-		stream << endl;
-		stream << "Correlation AFR: " << QString::number(ancestry.afr, 'f', 4) << endl;
-		stream << "Correlation EUR: " << QString::number(ancestry.eur, 'f', 4) << endl;
-		stream << "Correlation SAS: " << QString::number(ancestry.sas, 'f', 4) << endl;
-		stream << "Correlation EAS: " << QString::number(ancestry.eas, 'f', 4) << endl;
-		stream << endl;
-		stream << "Population: " << ancestry.population << endl;
 		QApplication::restoreOverrideCursor();
-	}
-	else
-	{
-		THROW(ProgrammingException, "Unknown tool '" + tool_name_ + "' requested in ExternalToolDialog!");
+		output = "Execution failed:\n" + e.message();
 	}
 
-	ui_.output->setPlainText(output);
+	ui_.output->setHtml(output);
 }
 
 QString ExternalToolDialog::getFileName(FileType type, bool ngsd_instead_of_filesystem)
@@ -191,9 +206,9 @@ QString ExternalToolDialog::getFileName(FileType type, bool ngsd_instead_of_file
 			QString ps_id = dlg.processedSampleId();
 			NGSD db;
 
-			if (type==BAM) return db.processedSamplePath(ps_id, PathType::BAM);
-			if (type==GSVAR) return db.processedSamplePath(ps_id, PathType::GSVAR);
-			if (type==VCF) return db.processedSamplePath(ps_id, PathType::VCF);
+			if (type==BAM) return GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::BAM).filename;
+			if (type==GSVAR) return GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::GSVAR).filename;
+			if (type==VCF) return GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::VCF).filename;
 		}
 	}
 	else //from filesystem

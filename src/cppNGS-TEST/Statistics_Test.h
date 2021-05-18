@@ -567,7 +567,7 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(ancestry.population, "NOT_ENOUGH_SNPS");
 
 		//not enough popultation distance
-		ancestry = Statistics::ancestry("hg19", TESTDATA("data_in/ancestry.vcf.gz"), 1000, 0.7);
+		ancestry = Statistics::ancestry("hg19", TESTDATA("data_in/ancestry.vcf.gz"), 1000, 0.0, 2.0);
 		I_EQUAL(ancestry.snps, 3096);
 		F_EQUAL2(ancestry.afr, 0.0114, 0.001);
 		F_EQUAL2(ancestry.eur, 0.3088, 0.001);

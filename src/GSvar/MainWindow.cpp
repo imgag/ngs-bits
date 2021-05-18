@@ -165,6 +165,19 @@ MainWindow::MainWindow(QWidget *parent)
 	ngsd_btn->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->insertWidget(ui_.actionSampleSearch, ngsd_btn);
 
+	// add rna menu
+	rna_menu_btn_ = new QToolButton();
+	rna_menu_btn_->setObjectName("rna_btn");
+	rna_menu_btn_->setIcon(QIcon(":/Icons/RNA.png"));
+	rna_menu_btn_->setToolTip("Open RNA menu entries");
+	rna_menu_btn_->setMenu(new QMenu());
+	rna_menu_btn_->menu()->addAction(ui_.actionExpressionData);
+	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
+	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
+	ui_.tools->addWidget(rna_menu_btn_);
+	// deaktivate on default
+	rna_menu_btn_->setEnabled(false);
+
 	// add cfdna menu
 	cfdna_menu_btn_ = new QToolButton();
 	cfdna_menu_btn_->setObjectName("cfdna_btn");
@@ -242,8 +255,11 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
+		//Check HPO terms in NGSD
+		/*
 		NGSD db;
 		PhenotypeList valid_terms;
+		valid_terms << db.phenotypeChildTerms(db.phenotypeIdByName("Clinical course"), true);
 		valid_terms << db.phenotypeChildTerms(db.phenotypeIdByName("Clinical modifier"), true);
 		valid_terms << db.phenotypeChildTerms(db.phenotypeIdByName("Past medical history"), true);
 		valid_terms << db.phenotypeChildTerms(db.phenotypeIdByName("Phenotypic abnormality"), true);
@@ -280,6 +296,7 @@ void MainWindow::on_actionDebug_triggered()
 			stream << hpo_id << "\t"  << hpo_name << "\t"  << samples << "\t" << errors.join(", ") << "\n";
 			stream.flush();
 		}
+		*/
 
 		//export of recurring variants with similar phenotype
 		/*
@@ -654,16 +671,13 @@ void MainWindow::on_actionDebug_triggered()
 		*/
 
 		//import sample meta data from GenLab
-		/*
 		GenLabDB genlab;
 		NGSD db;
 		ProcessedSampleSearchParameters params;
-		params.s_species = "human";
 		params.p_type = "diagnostic";
 		params.sys_type = "WES";
 		params.include_bad_quality_samples = false;
 		params.include_tumor_samples = false;
-		params.include_ffpe_samples = false;
 		params.include_merged_samples = false;
 		params.include_bad_quality_runs = false;
 		params.run_finished = true;
@@ -677,9 +691,9 @@ void MainWindow::on_actionDebug_triggered()
 			if (i<ps_start_index) continue;
 
 			qDebug() << i << "/" << ps_list.size() << " - " << ps;
-			genlab.addMissingMetaDataToNGSD(ps, true);
+			genlab.addMissingMetaDataToNGSD(ps, true, false, false, false, true);
 		}
-		*/
+
 		qDebug() << Helper::elapsedTime(timer, true);
 	}
 	else if (user=="ahschul1")
@@ -1183,8 +1197,8 @@ void MainWindow::on_actionExpressionData_triggered()
 	QStringList rna_count_files;
 	foreach (QString rna_ps_id, rna_ps_ids)
 	{
-		QString file = db.processedSamplePath(rna_ps_id, PathType::COUNTS);
-		if (QFile::exists(file)) rna_count_files << file;
+		FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::COUNTS);
+		if (file_location.exists) rna_count_files << file_location.filename;
 	}
 	rna_count_files.removeDuplicates();
 
@@ -1210,6 +1224,57 @@ void MainWindow::on_actionExpressionData_triggered()
 	ExpressionDataWidget* widget = new ExpressionDataWidget(count_file, this);
 	auto dlg = GUIHelper::createDialog(widget, "Expression Data");
 	addModelessDialog(dlg, false);
+}
+
+void MainWindow::on_actionShowRnaFusions_triggered()
+{
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+
+	//get all available files
+	QStringList manta_fusion_files;
+	QStringList rna_sample_ids = NGSD().sameSamples(NGSD().sampleId(variants_.mainSampleName()), "RNA");
+	foreach (const QString& rna_sample_id, rna_sample_ids)
+	{
+		// check for required files
+		foreach (const QString& rna_ps_id, NGSD().getValues("SELECT id FROM processed_sample WHERE sample_id=:0", rna_sample_id))
+		{
+			// search for manta fusion file
+			FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
+			if (manta_fusion_file.exists) manta_fusion_files << manta_fusion_file.filename;
+		}
+	}
+
+	if (manta_fusion_files.isEmpty())
+	{
+		QMessageBox::warning(this, "Manta fusion files missing", "Error: No RNA manta fusion files of corresponding RNA samples found!");
+		return;
+	}
+
+	//select file to open
+	QString manta_fusion_filepath;
+	if (manta_fusion_files.size()==1)
+	{
+		manta_fusion_filepath = manta_fusion_files.at(0);
+	}
+	else
+	{
+		bool ok;
+		manta_fusion_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA manta fusion files found.\nPlease select a file:", manta_fusion_files, 0, false, &ok);
+		if (!ok) return;
+	}
+
+	BedpeFile fusions;
+	fusions.load(manta_fusion_filepath);
+
+	//open SV widget
+	SvWidget* sv_widget;
+	sv_widget = new SvWidget(fusions, NGSD().processedSampleId(variants_.mainSampleName()), ui_.filters, GeneSet(), gene2region_cache_, this);
+
+	auto dlg = GUIHelper::createDialog(sv_widget, "Manta fusions of " + variants_.analysisName());
+	connect(sv_widget,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
+	connect(sv_widget,SIGNAL(openGeneTab(QString)),this,SLOT(openGeneTab(QString)));
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionRE_triggered()
@@ -2292,11 +2357,11 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		//convert name to file
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
-		QString file = db.processedSamplePath(processed_sample_id, PathType::GSVAR);
+		FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::GSVAR);
 
 		//determine all analyses of the sample
 		QStringList analyses;
-		if (QFile::exists(file)) analyses << file;
+		if (file_location.exists) analyses << file_location.filename;
 
 		//somatic tumor sample > ask user if he wants to open the tumor-normal pair
 		QString normal_sample = db.normalSample(processed_sample_id);
@@ -2312,9 +2377,10 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		}
 
 		//determine analysis to load
+		QString file;
 		if (analyses.count()==0)
 		{
-			QMessageBox::warning(this, "GSvar file missing", "The GSvar file does not exist:\n" + file);
+			QMessageBox::warning(this, "GSvar file missing", "The GSvar file does not exist:\n" + file_location.filename);
 			return;
 		}
 		else if (analyses.count()==1)
@@ -2809,6 +2875,34 @@ void MainWindow::loadFile(QString filename)
 		}
 
 	}
+
+	//activate RNA menu
+	rna_menu_btn_->setEnabled(false);
+	ui_.actionExpressionData->setEnabled(false);
+	ui_.actionShowRnaFusions->setEnabled(false);
+	if (LoginManager::active())
+	{
+		QStringList rna_sample_ids = NGSD().sameSamples(NGSD().sampleId(variants_.mainSampleName()), "RNA");
+		foreach (const QString& rna_sample_id, rna_sample_ids)
+		{
+			// activate menu if RNA sample is available
+			rna_menu_btn_->setEnabled(true);
+
+			// check for required files
+			foreach (const QString& rna_ps_id, NGSD().getValues("SELECT id FROM processed_sample WHERE sample_id=:0", rna_sample_id))
+			{
+				// search for count file
+				FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::COUNTS);
+				if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
+
+				//TODO: Reactivate if RNA Widget works
+//				// search for manta fusion file
+//				FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
+//				if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
+			}
+
+		}
+	}
 }
 
 void MainWindow::checkVariantList(QStringList messages)
@@ -2916,7 +3010,7 @@ void MainWindow::loadSomaticReportConfig()
 
 	try //load normal sample
 	{
-		somatic_control_tissue_variants_.load(db.processedSamplePath(db.processedSampleId(ps_normal), PathType::GSVAR));
+		somatic_control_tissue_variants_.load(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(ps_normal), PathType::GSVAR).filename);
 	}
 	catch(Exception e)
 	{
@@ -3439,7 +3533,7 @@ void MainWindow::generateReportSomaticRTF()
 
 			SomaticRnaReportData rna_report_data = somatic_report_settings_;
 			rna_report_data.rna_ps_name = dlg.getRNAid();
-			rna_report_data.rna_fusion_file = db.processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS);
+			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS).filename;
 
 			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
 

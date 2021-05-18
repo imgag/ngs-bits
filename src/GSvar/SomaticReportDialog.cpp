@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "SomaticReportHelper.h"
 #include <QMessageBox>
+#include "GlobalServiceProvider.h"
 
 //struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
 struct tmbInfo
@@ -159,7 +160,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	int i_class = germl_variants.annotationIndexByName("classification", true, false);
 	int i_co_sp = germl_variants.annotationIndexByName("coding_and_splicing", true, false);
 
-	BamReader bam_reader(db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::BAM));
+	BamReader bam_reader(GlobalServiceProvider::database().processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::BAM).filename);
 	FastaFileIndex fasta_idx(Settings::string("reference_genome"));
 
 	QList<int> germl_indices_in_report = settings_.report_config.variantIndicesGermline();

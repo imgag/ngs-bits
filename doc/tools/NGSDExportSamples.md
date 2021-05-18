@@ -1,5 +1,5 @@
 ### NGSDExportSamples tool help
-	NGSDExportSamples (2021_03-16-ge75f73c2)
+	NGSDExportSamples (2021_03-58-g9b3abcdd)
 	
 	Lists processed samples from the NGSD.
 	
@@ -34,6 +34,8 @@
 	                         Default value: 'false'
 	  -run_device <string>   Sequencing run device name filter.
 	                         Default value: ''
+	  -run_before <string>   Sequencing run start date before or equal to the given date.
+	                         Default value: ''
 	  -no_bad_runs           If set, sequencing runs with 'bad' quality are excluded.
 	                         Default value: 'false'
 	  -add_qc                If set, QC columns are added to output.
@@ -59,8 +61,10 @@
 	  --tdx                  Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportSamples changelog
-	NGSDExportSamples 2021_03-16-ge75f73c2
+	NGSDExportSamples 2021_03-58-g9b3abcdd
 	
+	2021-04-29 Added 'run_before' filter option.
+	2021-04-16 Added ancestry column.
 	2021-04-13 Changed 'add_path' parameter to support different file/folder types.
 	2020-10-08 Added parameters 'sender' and 'study'.
 	2020-07-20 Added 'match_external_names' flag.

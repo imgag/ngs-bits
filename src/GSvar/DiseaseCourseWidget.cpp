@@ -2,6 +2,7 @@
 #include "ui_DiseaseCourseWidget.h"
 #include "GUIHelper.h"
 #include "Settings.h"
+#include "GlobalServiceProvider.h"
 #include <QDir>
 #include <QMessageBox>
 
@@ -42,7 +43,7 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 	foreach (const cfDnaColumn& cf_dna, cf_dna_columns_)
 	{
 		QString ps_id = db_.processedSampleId(cf_dna.name);		
-		QString bam = NGSD().processedSamplePath(ps_id, PathType::BAM);
+		QString bam = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::BAM).filename;
 		igv_commands << "load \"" + Helper::canonicalPath(bam) + "\"";
 	}
 	emit executeIGVCommands(igv_commands);
@@ -109,7 +110,7 @@ void DiseaseCourseWidget::loadVariantLists()
 		cfDnaColumn cf_dna_column;
 		cf_dna_column.name = db_.processedSampleName(ps_id);
 		cf_dna_column.date = QDate::fromString(db_.getSampleData(db_.sampleId(cf_dna_column.name)).received, "dd.MM.yyyy");
-		QString cfdna_vcf = db_.processedSamplePath(ps_id, PathType::VCF_CF_DNA);
+		QString cfdna_vcf = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::VCF_CF_DNA).filename;
 		if (!QFile::exists(cfdna_vcf))
 		{
 			QMessageBox::warning(this, "File not found", "Could not find cfDNA VCF for processed Sample " + cf_dna_column.name + "! ");

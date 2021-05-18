@@ -128,6 +128,13 @@ void ProcessedSampleWidget::updateGUI()
 	QString normal_sample = ps_data.normal_sample_name;
 	ui_->normal_sample->setText("<a href=\"" + normal_sample + "\">"+normal_sample+"</a>");
 	ui_->ancestry->setText(ps_data.ancestry);
+	QStringList ancestry_details;
+	ancestry_details << "Raw scores:";
+	ancestry_details << "AFR (african): " + db.getValue("SELECT score_afr FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+	ancestry_details << "EUR (european): " + db.getValue("SELECT score_eur FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+	ancestry_details << "SAS (south asian): " + db.getValue("SELECT score_sas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+	ancestry_details << "EAS (east asian): " + db.getValue("SELECT score_eas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+	ui_->ancestry->setToolTip(ancestry_details.join("\n"));
 
 	//#### sample details ####
 	QString s_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id='" + ps_id_ + "'").toString();
@@ -309,7 +316,7 @@ void ProcessedSampleWidget::showPlot()
 
 void ProcessedSampleWidget::openSampleFolder()
 {
-	QString folder = NGSD().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
+	QString folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER).filename;
 	if(!QFile::exists(folder))
 	{
 		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder);
@@ -535,7 +542,7 @@ void ProcessedSampleWidget::addIgvMenuEntry(QMenu* menu, PathType file_type)
 {
 	QAction* action = menu->addAction(FileLocation::typeToHumanReadableString(file_type), this, SLOT(openIgvTrack()));
 	action->setData((int)file_type);
-	action->setEnabled(QFile::exists(NGSD().processedSamplePath(ps_id_, file_type)));
+	action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, file_type).exists);
 }
 
 void ProcessedSampleWidget::openIgvTrack()
@@ -543,7 +550,7 @@ void ProcessedSampleWidget::openIgvTrack()
 	QAction* action = qobject_cast<QAction*>(sender());
 	PathType type = static_cast<PathType>(action->data().toInt());
 
-	QString file = NGSD().processedSamplePath(ps_id_, type);
+	QString file = GlobalServiceProvider::database().processedSamplePath(ps_id_, type).filename;
 	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(file) + "\"");
 }
 

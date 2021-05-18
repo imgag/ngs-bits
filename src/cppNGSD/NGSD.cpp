@@ -842,6 +842,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::COPY_NUMBER_RAW_DATA) output += ps_name + "_cnvs_clincnv.seg";
 	else if (type==PathType::COPY_NUMBER_CALLS) output += ps_name + "_cnvs_clincnv.tsv";
 	else if (type==PathType::FUSIONS) output += ps_name + "_var_fusions.tsv";
+	else if (type==PathType::MANTA_FUSIONS) output +=  ps_name + "_var_fusions_manta.bedpe";
 	else if (type==PathType::VIRAL) output += ps_name + "_viral.tsv";
 	else if (type==PathType::COUNTS) output += ps_name + "_counts.tsv";
 	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
@@ -3672,22 +3673,15 @@ QByteArray NGSD::geneToApproved(QByteArray gene, bool return_input_when_unconver
 		return gene;
 	}
 
-	//check if already cached
+	//not cached => try to convert
 	QMap<QByteArray, QByteArray>& mapping = getCache().non_approved_to_approved_gene_names;
-	if (mapping.contains(gene))
+	if (!mapping.contains(gene))
 	{
-		if (return_input_when_unconvertable && mapping[gene].isEmpty())
-		{
-			return gene;
-		}
-
-		return mapping[gene];
+		int gene_id = geneToApprovedID(gene);
+		mapping[gene] = (gene_id!=-1) ? geneSymbol(gene_id) : "";
 	}
 
-	//not cached => try to convert
-	int gene_id = geneToApprovedID(gene);
-	mapping[gene] = (gene_id!=-1) ? geneSymbol(gene_id) : "";
-
+	//return result
 	if (return_input_when_unconvertable && mapping[gene].isEmpty())
 	{
 		return gene;
@@ -4047,7 +4041,7 @@ const GeneSet& NGSD::approvedGeneNames()
 {
 	GeneSet& output = getCache().approved_gene_names;
 
-	if (output.count()==0)
+	if (output.isEmpty())
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT symbol from gene");
@@ -4124,26 +4118,29 @@ int NGSD::phenotypeIdByName(const QByteArray& name, bool throw_on_error)
 int NGSD::phenotypeIdByAccession(const QByteArray& accession, bool throw_on_error)
 {
 	QHash<QByteArray, int>& cache = getCache().phenotypes_accession_to_id;
-	if (!cache.contains(accession))
+
+	//init cache
+	if (cache.isEmpty())
 	{
 		SqlQuery q = getQuery();
-		q.prepare("SELECT id FROM hpo_term WHERE hpo_id=:0");
-		q.bindValue(0, accession);
-		q.exec();
-
-		if (!q.next())
+		q.exec("SELECT hpo_id, id FROM hpo_term");
+		while (q.next())
 		{
-			if (throw_on_error)
-			{
-				THROW(DatabaseException, "Unknown HPO phenotype accession '" + accession + "'!");
-			}
-			else
-			{
-				return -1;
-			}
+			cache[q.value(0).toByteArray()] = q.value(1).toInt();
 		}
+	}
 
-		cache[accession] = q.value(0).toInt();
+	//check phenotype is in cache
+	if (!cache.contains(accession))
+	{
+		if (throw_on_error)
+		{
+			THROW(DatabaseException, "Unknown HPO phenotype accession '" + accession + "'!");
+		}
+		else
+		{
+			return -1;
+		}
 	}
 
 	return cache[accession];
@@ -4152,17 +4149,22 @@ int NGSD::phenotypeIdByAccession(const QByteArray& accession, bool throw_on_erro
 const Phenotype& NGSD::phenotype(int id)
 {
 	QHash<int, Phenotype>& cache = getCache().phenotypes_by_id;
-	if (!cache.contains(id))
+
+	//init cache
+	if (cache.isEmpty())
 	{
 		SqlQuery q = getQuery();
-		q.exec("SELECT hpo_id, name FROM hpo_term WHERE id=" + QString::number(id));
-
-		if (!q.next())
+		q.exec("SELECT id, hpo_id, name FROM hpo_term");
+		while (q.next())
 		{
-			THROW(DatabaseException, "HPO phenotype with id '" + QString::number(id) + "' not found in NGSD!");
+			cache[q.value(0).toInt()] = Phenotype(q.value(1).toByteArray(), q.value(2).toByteArray());
 		}
+	}
 
-		cache[id] = Phenotype(q.value(0).toByteArray(), q.value(1).toByteArray());
+	//check phenotype is in cache
+	if (!cache.contains(id))
+	{
+		THROW(DatabaseException, "HPO phenotype with id '" + QString::number(id) + "' not found in NGSD!");
 	}
 
 	return cache[id];
@@ -4174,7 +4176,7 @@ GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int ex
 	BedFile& bed = getCache().gene_regions;
 	ChromosomalIndex<BedFile>& index = getCache().gene_regions_index;
 
-	if (bed.count()==0)
+	if (bed.isEmpty())
 	{
 		//add transcripts
 		SqlQuery query = getQuery();
@@ -4205,7 +4207,7 @@ GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, 
 	BedFile& bed = getCache().gene_exons;
 	ChromosomalIndex<BedFile>& index = getCache().gene_exons_index;
 
-	if (bed.count()==0)
+	if (bed.isEmpty())
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT DISTINCT g.symbol, gt.chromosome, ge.start, ge.end FROM gene g, gene_exon ge, gene_transcript gt WHERE ge.transcript_id=gt.id AND gt.gene_id=g.id");

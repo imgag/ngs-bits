@@ -7,6 +7,7 @@
 #include "ScrollableTextDialog.h"
 #include "cmath"
 #include "LoginManager.h"
+#include "GlobalServiceProvider.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -403,7 +404,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		NGSD db;
 		foreach(const AnalysisJobSample& sample, samples)
 		{
-			QDesktopServices::openUrl(db.processedSamplePath(db.processedSampleId(sample.name), PathType::SAMPLE_FOLDER));
+			QDesktopServices::openUrl(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(sample.name), PathType::SAMPLE_FOLDER).filename);
 		}
 	}
 	if (text=="Open log file")

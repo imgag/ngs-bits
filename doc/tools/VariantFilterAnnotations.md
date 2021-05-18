@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2021_03-23-g5c26fea8)
+	VariantFilterAnnotations (2021_03-59-g32c44298)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -133,7 +133,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2021_03-23-g5c26fea8
+	VariantFilterAnnotations 2021_03-59-g32c44298
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.
