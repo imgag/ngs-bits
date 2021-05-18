@@ -1634,6 +1634,7 @@ AncestryEstimates Statistics::ancestry(QString build, QString filename, int min_
 		const VcfLine& var = vars_ancestry.vcfLine(i);
 		roi.append(BedLine(var.chr(), var.start(), var.end()));
 	}
+	roi.merge(true);
 
 	//load relevant variants from VCF
 	VcfFile vl;
