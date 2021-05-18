@@ -563,7 +563,6 @@
    <addaction name="actionRE"/>
    <addaction name="actionPRS"/>
    <addaction name="actionCircos"/>
-   <addaction name="actionExpressionData"/>
    <addaction name="separator"/>
    <addaction name="actionDebug"/>
   </widget>
@@ -1278,6 +1277,14 @@
   <action name="actionSampleBedpe">
    <property name="text">
     <string>Sample structural variants BEDPE file</string>
+   </property>
+  </action>
+  <action name="actionShowRnaFusions">
+   <property name="text">
+    <string>Show RNA Fusions</string>
+   </property>
+   <property name="toolTip">
+    <string>Show RNA Fusions</string>
    </property>
   </action>
  </widget>

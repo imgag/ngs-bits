@@ -191,6 +191,8 @@ public slots:
 	void on_actionCfDNADiseaseCourse_triggered();
 	///Open expression data Widget
 	void on_actionExpressionData_triggered();
+	///Open RNA fusion widget
+	void on_actionShowRnaFusions_triggered();
 	///Open gene OMIM info dialog.
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
@@ -400,6 +402,7 @@ private:
 	VariantList somatic_control_tissue_variants_;
 
 	bool cf_dna_available;
+	QToolButton* rna_menu_btn_;
 	QToolButton* cfdna_menu_btn_;
 	int igv_port_manual = -1;
 
