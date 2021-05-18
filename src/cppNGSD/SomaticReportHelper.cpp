@@ -182,11 +182,10 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 		mantis_msi_swd_value_ = std::numeric_limits<double>::quiet_NaN();
 	}
 
-	//Load virus data (from tumor sample dir)
-	QString viral_file = db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::VIRAL);
+	//Load virus data if available
 	try
 	{
-		TSVFileStream file(viral_file);
+		TSVFileStream file(settings_.viral_file);
 		while(!file.atEnd())
 		{
 			QByteArrayList parts = file.readLine();
