@@ -5542,7 +5542,49 @@ void MainWindow::storeCurrentVariantList()
 	}
 	else
 	{
-		//TODO GSvarServer: add a end-point to update the GSvar file on the server - use data from variants_changed_
+		QJsonDocument json_doc = QJsonDocument();
+		QJsonArray json_array;
+
+		for (int i = 0; i < variants_changed_.size(); i++)
+		{
+			try
+			{
+				QJsonObject json_object;
+				json_object.insert("variant", variants_changed_.value(i).variant.toString());
+				json_object.insert("column", variants_changed_.value(i).column);
+				json_object.insert("text", variants_changed_.value(i).text);
+				json_array.append(json_object);
+			}
+			catch (Exception& e)
+			{				
+				QMessageBox::warning(this, "Could not send changes to the server:", e.message());
+			}
+		}
+
+		json_doc.setArray(json_array);
+
+		QString ps_id;
+		QList<QString> filename_parts = filename_.split("/");
+		if (filename_parts.size()>3)
+		{
+			ps_id = filename_parts.value(filename_parts.size()-2);
+		}
+
+		try
+		{
+			HttpHeaders add_headers;
+			add_headers.insert("Accept", "application/json");
+			QString reply = HttpRequestHandler(HttpRequestHandler::NONE).put(
+						Settings::string("server_host") + ":" + QString::number(Settings::integer("server_port"))
+						+ "/v1/project_file?ps=" + ps_id,
+						json_doc.toJson(),
+						add_headers
+					);
+		}
+		catch (Exception& e)
+		{
+			QMessageBox::warning(this, "Could not reach the server:", e.message());
+		}
 	}
 
 	QApplication::restoreOverrideCursor();
