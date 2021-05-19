@@ -43,6 +43,16 @@ QMap<QString, QString> HttpRequest::getHeaders()
 	return headers_;
 }
 
+void HttpRequest::setBody(QByteArray body)
+{
+	body_ = body;
+}
+
+QByteArray HttpRequest::getBody()
+{
+	return body_;
+}
+
 void HttpRequest::setPrefix(QString prefix)
 {
 	prefix_ = prefix;

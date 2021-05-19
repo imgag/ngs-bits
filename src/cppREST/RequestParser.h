@@ -23,7 +23,8 @@ public:
 
 
 private:
-	QList<QByteArray> splitRequestIntoLines();
+	QList<QByteArray> getRawRequestHeaders();
+	QByteArray getRequestBody();
 	QList<QByteArray> getKeyValuePair(QByteArray input);
 	QMap<QString, QString> getVariables(QByteArray input);
 	QByteArray getVariableSequence(QByteArray url);

@@ -59,7 +59,7 @@ void RequestWorker::run()
 		{
 			parsed_request = parser->getRequest();
 		}
-		catch (ArgumentException& e)
+		catch (Exception& e)
 		{
 			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_HTML, e.message()));
 			return;

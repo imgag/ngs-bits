@@ -28,6 +28,8 @@ public:
 	static HttpResponse locateFileByType(HttpRequest request);
 	static HttpResponse locateProjectFile(HttpRequest request);
 
+	static HttpResponse saveProjectFile(HttpRequest request);
+
 	/// Streams processing system regions file
 	static HttpResponse getProcessingSystemRegions(HttpRequest request);
 	/// Streams processing system amplicons file

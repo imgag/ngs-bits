@@ -9,9 +9,8 @@ RequestPaser::RequestPaser(QByteArray *request, QString client_address)
 HttpRequest RequestPaser::getRequest()
 {
 	HttpRequest request;
-	QList<QByteArray> body = splitRequestIntoLines();
-
 	request.setRemoteAddress(client_address_);
+	QList<QByteArray> body = getRawRequestHeaders();
 
 	for (int i = 0; i < body.count(); ++i)
 	{
@@ -53,6 +52,8 @@ HttpRequest RequestPaser::getRequest()
 		}
 	}
 
+	request.setBody(getRequestBody().trimmed());
+	qDebug() << "Body = " << request.getBody();
 	request.setContentType(ContentType::TEXT_HTML);
 	if (request.getHeaders().contains("accept"))
 	{
@@ -65,15 +66,27 @@ HttpRequest RequestPaser::getRequest()
 	return request;
 }
 
-QList<QByteArray> RequestPaser::splitRequestIntoLines()
+QList<QByteArray> RequestPaser::getRawRequestHeaders()
 {
-	QList<QByteArray> request_items;
-	request_items = raw_request_->split('\n');
+	QList<QByteArray> output;
+	QList<QByteArray> request_items = raw_request_->split('\n');
 	for (int i = 0; i < request_items.count(); ++i)
 	{
-		request_items[i] = request_items[i].trimmed();
+		if (request_items.value(i).trimmed().isEmpty()) return output;
+		output.append(request_items.value(i).trimmed());
 	}
-	return request_items;
+	return output;
+}
+
+QByteArray RequestPaser::getRequestBody()
+{
+	QByteArray output;
+	int separator = raw_request_->trimmed().lastIndexOf("\r\n");
+	if (separator > -1)
+	{
+		output = raw_request_->trimmed().mid(separator, -1);
+	}
+	return output;
 }
 
 QList<QByteArray> RequestPaser::getKeyValuePair(QByteArray input)

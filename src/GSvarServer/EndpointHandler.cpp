@@ -307,6 +307,121 @@ HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
+HttpResponse EndpointHandler::saveProjectFile(HttpRequest request)
+{
+	QString ps_id = request.getUrlParams()["ps"];
+	UrlEntity url = UrlManager::getURLById(ps_id);
+
+	if (url.filename_with_path.isEmpty())
+	{
+		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "The GSvar file in " + ps_id + "could not be located");
+	}
+
+	QJsonDocument json_doc;
+	try
+	{
+		json_doc = QJsonDocument::fromJson(request.getBody());
+	}
+	catch (Exception& e)
+	{
+		qWarning() << "Error while parsing changes for the GSvar file" + url.filename_with_path + ":" << e.message();
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Changes for the GSvar file in " + ps_id + "could not be parsed: " + e.message());
+	}
+
+	qDebug() << "ps_id = " << ps_id;
+
+	QString tmp = url.filename_with_path + ".tmp";
+	QSharedPointer<QFile> in_file = Helper::openFileForReading(url.filename_with_path);
+	QTextStream in_stream(in_file.data());
+	QSharedPointer<QFile> out_file = Helper::openFileForWriting(tmp);
+	QTextStream out_stream(out_file.data());
+
+	QList<QString> column_names;
+	int chr_pos = -1;
+	int start_pos = -1;
+	int end_pos = -1;
+	int ref_pos = -1;
+	int obs_pos = -1;
+	bool is_file_changed = false;
+	while(!in_stream.atEnd())
+	{
+		QString line = in_stream.readLine();
+		if (line.startsWith("##"))
+		{
+			out_stream << line << "\n";
+			continue;
+		}
+
+		// Headers
+		if ((line.startsWith("#")) && (line.count("#") == 1))
+		{
+			out_stream << line << "\n";
+			column_names = line.split("\t");
+			chr_pos = column_names.indexOf("#chr");
+			start_pos = column_names.indexOf("start");
+			end_pos = column_names.indexOf("end");
+			ref_pos = column_names.indexOf("ref");
+			obs_pos = column_names.indexOf("obs");
+
+			if ((chr_pos == -1) || (start_pos == -1) || (end_pos == -1) || (ref_pos == -1) || (obs_pos == -1))
+			{
+				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not identify key columns in GSvar file: " + ps_id);
+			}
+			continue;
+		}
+
+		QList<QString> line_columns = line.split("\t");
+		QString variant_in = line_columns.value(chr_pos) + ":" + line_columns.value(start_pos) + "-" + line_columns.value(end_pos) + " " + line_columns.value(ref_pos) + ">" + line_columns.value(obs_pos);
+		bool is_current_variant_changed = false;
+
+		for (int i = 0; i <  json_doc.array().size(); i++)
+		{
+			try
+			{
+				QString variant_changed = json_doc.array().takeAt(i).toObject().value("variant").toString();
+				QString column = json_doc.array().takeAt(i).toObject().value("column").toString();
+				QString text = json_doc.array().takeAt(i).toObject().value("text").toString();
+
+				// Locating changed variant
+				if (variant_in.toLower() == variant_changed.toLower())
+				{
+					// Locating changed column
+					if (column_names.indexOf(column) == -1)
+					{
+						return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not identify changed column " + column + " in GSvar file: " + ps_id);
+					}
+					is_current_variant_changed = true;
+					is_file_changed = true;
+					line_columns[column_names.indexOf(column)] = text;
+				}
+			}
+			catch (Exception& e)
+			{
+				qDebug() << "Error while processing changes for the GSvar file" + url.filename_with_path + ":" << e.message();
+				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Changes for the GSvar file in " + ps_id + "could not be parsed: " + e.message());
+			}
+		}
+
+		if (!is_current_variant_changed)
+		{
+			out_stream << line << "\n";
+		}
+		else
+		{
+			out_stream << line_columns.join("\t") << "\n";
+		}
+	}
+
+	if (is_file_changed)
+	{
+		//copy temp
+		QFile::remove(url.filename_with_path);
+		QFile::rename(tmp, url.filename_with_path);
+	}
+
+	return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, "");
+}
+
 HttpResponse EndpointHandler::getProcessingSystemRegions(HttpRequest request)
 {
 	NGSD db;

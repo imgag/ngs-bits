@@ -20,6 +20,9 @@ public:
 	void addHeader(QString key, QString value);
 	QMap<QString, QString> getHeaders();
 
+	void setBody(QByteArray body);
+	QByteArray getBody();
+
 	void setPrefix(QString prefix);
 	QString getPrefix();
 
@@ -45,6 +48,7 @@ private:
 	RequestMethod method_;
 	ContentType return_type_;
 	QMap<QString, QString> headers_;
+	QByteArray body_;
 	QString prefix_;
 	QString path_;
 	QString remote_address_;

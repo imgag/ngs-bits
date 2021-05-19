@@ -215,6 +215,18 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"project_file",
+						QMap<QString, ParamProps> {
+						   {"ps", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, false, "Sample id"}}
+
+						},
+						RequestMethod::PUT,
+						ContentType::APPLICATION_JSON,
+						"Update an existing project file (GSvar file)",
+						&EndpointHandler::saveProjectFile
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"file_info",
 						QMap<QString, ParamProps> {
 						   {"file", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, false, "Filename with its full path"}}
