@@ -1,3 +1,4 @@
+#include <QFileInfo>
 #include "ToolBase.h"
 #include "NGSD.h"
 #include "SomaticReportSettings.h"
@@ -18,28 +19,29 @@ public:
 	{
 		setDescription("Calculate somatic CNV metrics based on CNV file.");
 		addInfile("in", "Input somatic ClinCNV file in TSV format.", false);
-
-		addInfile("centromeres", "BED file containing centromere coordinates", false);
-		addInfile("telomeres", "Input file containing telomere coordinates.", false);
-		addString("tid", "tumor processed sample ID (for retrieving CNVs flagged as artefact.)", true);
-		addString("nid", "Normal processed sample ID (for retrieving CNVs flagged as artefact.)", true);
-		addOutfile("out", "Output file.", true);
+		addString("tid", "tumor processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
+		addString("nid", "Normal processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
+		addEnum("build", "Reference genome to be used.", true, QStringList() << "GRCh37" << "GRCh38", "GRCh37");
+		addOutfile("out", "Output QCML file.", true);
 
 		changeLog(2021, 5, 6, "Initial version of the tool to calculate HRD score.");
 	}
 	virtual void main()
 	{
-		CnvList cnvs;
-		cnvs.load( getInfile("in") );
-
-		BedFile centromeres;
-		centromeres.load( getInfile("centromeres") );
-		BedFile telomeres;
-		telomeres.load( getInfile("telomeres") );
-
+		QString in =  getInfile("in");
 		QString t_ps = getString("tid");
 		QString n_ps = getString("nid");
+		QString build = getEnum("build");
+		QString out = getOutfile("out");
 
+		//metadata
+		QList<QCValue> metadata;
+		metadata << QCValue("source file", QFileInfo(in).fileName(), "", "QC:1000005");
+
+		CnvList cnvs;
+		cnvs.load(in);
+
+		//Load somatic report from NGSD and filter out CNVs flagged as artefacts
 		if(!t_ps.isEmpty() && !n_ps.isEmpty())
 		{
 			NGSD db;
@@ -54,18 +56,13 @@ public:
 			}
 		}
 
-		QCCollection result = Statistics::hrdScore(cnvs, centromeres, telomeres);
+		QCCollection result = Statistics::hrdScore(cnvs, build);
 
-		int loh_count = result.value("QC:2000062", true).asInt();
-		int tai_count = result.value("QC:2000063", true).asInt();
-		int lst_count = result.value("QC:2000064", true).asInt();
-
-		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
-		QTextStream out(outfile.data());
-
-
-		out << "#LOH\tTAI\tLST\tHRD-SCORE\n";
-		out << loh_count << "\t" << tai_count << "\t" << lst_count << "\t" << loh_count+tai_count+lst_count <<endl;
+		QString parameters = "";
+		if( !t_ps.isEmpty() ) parameters += " -tid " + t_ps;
+		if( !n_ps.isEmpty() ) parameters += " -nid " + n_ps;
+		parameters += " -build " + build;
+		result.storeToQCML(out, QStringList(), parameters, QMap< QString, int >(), metadata);
 	}
 };
 

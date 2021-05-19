@@ -2243,8 +2243,10 @@ GenderEstimate Statistics::genderSRY(QString bam_file, QString build, double min
 }
 
 
-QCCollection Statistics::hrdScore(const CnvList &cnvs, const BedFile& centromeres, const BedFile& telomeres)
+QCCollection Statistics::hrdScore(const CnvList &cnvs, QString build)
 {
+	BedFile centromeres = NGSHelper::centromeres(build);
+	BedFile telomeres = NGSHelper::telomeres(build);
 	//Loss of Heterozygosity
 	int loh = 0;
 	for(int i=0; i<cnvs.count(); ++i)

@@ -71,7 +71,7 @@ public:
 	///Determines the gender based on the coverge of the SRY gene on chrY.
 	static GenderEstimate genderSRY(QString bam_file, QString build, double min_cov=20.0, const QString& ref_file = QString::null);
 
-	static QCCollection hrdScore(const CnvList& cnvs, const BedFile& centromeres, const BedFile& telomeres);
+	static QCCollection hrdScore(const CnvList& cnvs, QString build);
 
 protected:
 	///No default constructor

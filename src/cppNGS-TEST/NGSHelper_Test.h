@@ -167,4 +167,58 @@ private slots:
 		S_EQUAL(imp_genes["SALL1"].source_allele, "maternal");
 		S_EQUAL(imp_genes["SALL1"].status, "predicted");
 	}
+
+	void centromeres()
+	{
+		BedFile centros = NGSHelper::centromeres("GRCh37");
+		I_EQUAL(centros.count(), 24);
+		S_EQUAL(centros[1].toString(true), "chr2:92326171-95326171");
+		S_EQUAL(centros[11].toString(true), "chr12:34856694-37856694");
+
+		//check whether static variable initialized only once
+		NGSHelper::centromeres("GRCh37");
+		NGSHelper::centromeres("GRCh38");
+		NGSHelper::centromeres("desf");
+		NGSHelper::centromeres("abcd");
+		BedFile centros2 = NGSHelper::centromeres("GRCh37");
+		I_EQUAL(centros2.count(), 24);
+		S_EQUAL(centros2[1].toString(true), "chr2:92326171-95326171");
+		S_EQUAL(centros2[11].toString(true), "chr12:34856694-37856694");
+
+		BedFile centros3 = NGSHelper::centromeres("hg19");
+		I_EQUAL(centros3.count(), 24);
+		S_EQUAL(centros3[1].toString(true), "chr2:92326171-95326171");
+		S_EQUAL(centros3[11].toString(true), "chr12:34856694-37856694");
+
+
+		BedFile centros4 = NGSHelper::centromeres("GRCh38");
+		NGSHelper::centromeres("GRCh38");
+		NGSHelper::centromeres("GRCh38");
+		I_EQUAL(centros4.count(), 24);
+		S_EQUAL(centros4[0].toString(true), "chr1:121700000-125100000");
+
+		//non existent build
+		I_EQUAL(NGSHelper::centromeres("GRCH78").count(), 0);
+	}
+
+	void telomeres()
+	{
+		BedFile telos1 = NGSHelper::telomeres("hg19");
+		NGSHelper::telomeres("hg19");
+		NGSHelper::telomeres("GRCh37");
+
+		I_EQUAL(telos1.count(), 46);
+		S_EQUAL(telos1[45].toString(true), "chrY:59363566-59373566");
+
+		BedFile telos2 = NGSHelper::telomeres("hg38");
+		NGSHelper::telomeres("hg38");
+		NGSHelper::telomeres("hg38");
+
+		I_EQUAL(telos2.count(), 48);
+		S_EQUAL(telos2[32].toString(true), "chr17:1-10000");
+		S_EQUAL(telos2[45].toString(true), "chrX:156030895-156040895");
+
+		//not existing build
+		I_EQUAL(NGSHelper::telomeres("NOT_EXISTING").count(), 0);
+	}
 };
