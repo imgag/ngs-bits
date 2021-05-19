@@ -1786,7 +1786,7 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			}
 
 			//execute commands
-			bool debug = true;
+			bool debug = false;
 			foreach(QString command, init_commands)
 			{
 				// Character escaping is needed for the URL, otherwise the address is being cut off
@@ -1795,10 +1795,8 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 					command = command.replace("https:/", "https://");
 				}
 
-				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
-				socket.setProperty("jsse.enableSNIExtension", "false");
+				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;				
 				socket.write((command + "\n").toLatin1());
-
 				bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
 				QString answer = socket.readAll().trimmed();
 				if (!ok || answer!="OK")
