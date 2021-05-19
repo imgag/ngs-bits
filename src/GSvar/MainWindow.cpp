@@ -132,12 +132,9 @@ MainWindow::MainWindow(QWidget *parent)
 	, last_report_path_(QDir::homePath())
 	, init_timer_(this, true)
 {
-	qDebug() << 1 << endl;
 	//setup GUI
 	ui_.setupUi(this);
-	qDebug() << 2 << endl;
-	setWindowTitle(QCoreApplication::applicationName());
-	qDebug() << 3 << endl;
+	setWindowTitle(appName());
 	GUIHelper::styleSplitter(ui_.splitter);
 	ui_.splitter->setStretchFactor(0, 10);
 	ui_.splitter->setStretchFactor(1, 1);
@@ -245,6 +242,13 @@ MainWindow::MainWindow(QWidget *parent)
 	notification_label_->setMaximumSize(16,16);
 	notification_label_->setPixmap(QPixmap(":/Icons/email.png"));
 	ui_.statusBar->addPermanentWidget(notification_label_);
+}
+
+QString MainWindow::appName() const
+{
+	QString name = QCoreApplication::applicationName();
+	if (Settings::string("reference_genome").contains("GRCh38")) name += " GRCH38";
+	return name;
 }
 
 void MainWindow::on_actionDebug_triggered()
@@ -2592,7 +2596,7 @@ void MainWindow::loadFile(QString filename)
 	timer.start();
 
 	//reset GUI and data structures
-	setWindowTitle(QCoreApplication::applicationName());
+	setWindowTitle(appName());
 	filename_ = "";
 	variants_.clear();
 	GlobalServiceProvider::clearFileLocationProvider();
@@ -2673,7 +2677,7 @@ void MainWindow::loadFile(QString filename)
 		filename_ = filename;
 
 		//update GUI
-		setWindowTitle(QCoreApplication::applicationName() + " - " + variants_.analysisName());
+		setWindowTitle(appName() + " - " + variants_.analysisName());
 		ui_.statusBar->showMessage("Loaded variant list with " + QString::number(variants_.count()) + " variants.");
 
 		refreshVariantTable(false);
@@ -2883,7 +2887,7 @@ void MainWindow::checkVariantList(QStringList messages)
 
 void MainWindow::on_actionAbout_triggered()
 {
-	QMessageBox::about(this, "About " + QCoreApplication::applicationName(), QCoreApplication::applicationName()+ " " + QCoreApplication::applicationVersion()+ "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits");
+	QMessageBox::about(this, "About " + appName(), appName()+ " " + QCoreApplication::applicationVersion()+ "\n\nA free viewing and filtering tool for genomic variants.\n\nInstitute of Medical Genetics and Applied Genomics\nUniversity Hospital Tübingen\nGermany\n\nMore information at:\nhttps://github.com/imgag/ngs-bits");
 }
 
 void MainWindow::loadReportConfig()

@@ -25,6 +25,10 @@ class MainWindow
 public:
 	///Constructor
 	MainWindow(QWidget* parent = 0);
+
+	///Returns the application name
+	QString appName() const;
+
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
