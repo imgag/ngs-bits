@@ -57,7 +57,7 @@ struct CPPNGSSHARED_EXPORT FilterParameter
 class CPPNGSSHARED_EXPORT FilterResult
 {
 	public:
-		///Default constructor
+		///Default constructor. Prefer the other constructor when possible - if not make sure to initialize it before use!
 		FilterResult();
 		///Constructor that pre-fills the datastructure.
 		FilterResult(int variant_count, bool value=true);
