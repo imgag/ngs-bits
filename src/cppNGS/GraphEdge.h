@@ -9,33 +9,34 @@ template <typename EdgeType, typename NodeType>
 class GraphEdge
 {
     public:
+        using NodePointer = QSharedPointer<GraphNode<NodeType>>;
+
         // constructors
         GraphEdge();
-        GraphEdge(QSharedPointer<GraphNode<NodeType>> node_1, QSharedPointer<GraphNode<NodeType>> node_2, const EdgeType& content);
+        GraphEdge(NodePointer node_1, NodePointer node_2, const EdgeType& content);
 
         // getters
         QSharedPointer<const GraphNode<NodeType>> node1() const;
-        QSharedPointer<GraphNode<NodeType>> node1();
+        NodePointer node1();
         QSharedPointer<const GraphNode<NodeType>> node2() const;
-        QSharedPointer<GraphNode<NodeType>> node2();
+        NodePointer node2();
 
         const EdgeType& edgeContent() const;
         EdgeType& edgeContent();
 
         // setters
-        void setNodes(QSharedPointer<GraphNode<NodeType>> node_1, QSharedPointer<GraphNode<NodeType>> node_2);
+        void setNodes(NodePointer node_1, NodePointer node_2);
 
     private:
         // the two nodes connected by this edge
-        QSharedPointer<GraphNode<NodeType>> node_1_;
-        QSharedPointer<GraphNode<NodeType>> node_2_;
+        NodePointer node_1_;
+        NodePointer node_2_;
 
         EdgeType edge_content_;
 };
 
 template <typename EdgeType, typename NodeType>
 GraphEdge<EdgeType, NodeType>::GraphEdge()
-    : edge_content_()
 {
 }
 
@@ -54,7 +55,7 @@ QSharedPointer<const GraphNode<NodeType>> GraphEdge<EdgeType, NodeType>::node1()
 }
 
 template <typename EdgeType, typename NodeType>
-QSharedPointer<GraphNode<NodeType>> GraphEdge<EdgeType, NodeType>::node1()
+typename GraphEdge<EdgeType, NodeType>::NodePointer GraphEdge<EdgeType, NodeType>::node1()
 {
     return node_1_;
 }
@@ -62,13 +63,13 @@ QSharedPointer<GraphNode<NodeType>> GraphEdge<EdgeType, NodeType>::node1()
 template <typename EdgeType, typename NodeType>
 QSharedPointer<const GraphNode<NodeType>> GraphEdge<EdgeType, NodeType>::node2() const
 {
-    return node_1_;
+    return node_2_;
 }
 
 template <typename EdgeType, typename NodeType>
-QSharedPointer<GraphNode<NodeType>> GraphEdge<EdgeType, NodeType>::node2()
+typename GraphEdge<EdgeType, NodeType>::NodePointer GraphEdge<EdgeType, NodeType>::node2()
 {
-    return node_1_;
+    return node_2_;
 }
 
 template <typename EdgeType, typename NodeType>
@@ -84,7 +85,7 @@ EdgeType& GraphEdge<EdgeType, NodeType>::edgeContent()
 }
 
 template <typename EdgeType, typename NodeType>
-void GraphEdge<EdgeType, NodeType>::setNodes(QSharedPointer<GraphNode<NodeType>> node_1, QSharedPointer<GraphNode<NodeType>> node_2)
+void GraphEdge<EdgeType, NodeType>::setNodes(NodePointer node_1, NodePointer node_2)
 {
     node_1_ = node_1;
     node_2_ = node_2;

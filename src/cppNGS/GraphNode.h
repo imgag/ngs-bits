@@ -18,7 +18,6 @@ class GraphNode
         const NodeType& nodeContent() const;
         NodeType& nodeContent();
         const QString& nodeName() const;
-        QString& nodeName();
 
     private:
         NodeType node_content_;
@@ -27,8 +26,6 @@ class GraphNode
 
 template <typename NodeType>
 GraphNode<NodeType>::GraphNode()
-    : node_content_(),
-      node_name_()
 {
 }
 
@@ -53,12 +50,6 @@ NodeType& GraphNode<NodeType>::nodeContent()
 
 template <typename NodeType>
 const QString& GraphNode<NodeType>::nodeName() const
-{
-    return node_name_;
-}
-
-template <typename NodeType>
-QString& GraphNode<NodeType>::nodeName()
 {
     return node_name_;
 }
