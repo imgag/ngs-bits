@@ -88,6 +88,8 @@ FilterResult::FilterResult(int variant_count, bool value)
 
 void FilterResult::removeFlagged(VariantList& variants)
 {
+	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::removeFlagged!");
+
 	//skip if all variants pass
 	if (countPassing()==variants.count()) return;
 
@@ -114,6 +116,8 @@ void FilterResult::removeFlagged(VariantList& variants)
 
 void FilterResult::removeFlagged(VcfFile& variants)
 {
+	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::removeFlagged!");
+
 	//skip if all variants pass
 	if (countPassing()==variants.count()) return;
 
@@ -140,6 +144,8 @@ void FilterResult::removeFlagged(VcfFile& variants)
 
 void FilterResult::removeFlagged(CnvList& cnvs)
 {
+	if (pass.count()!=cnvs.count()) THROW(ProgrammingException, "CNV and filter result count not equal in FilterResult::removeFlagged!");
+
     //skip if all variants pass
     if (countPassing()==cnvs.count()) return;
 
@@ -162,6 +168,8 @@ void FilterResult::removeFlagged(CnvList& cnvs)
 
 void FilterResult::removeFlagged(BedpeFile& svs)
 {
+	if (pass.count()!=svs.count()) THROW(ProgrammingException, "SV and filter result count not equal in FilterResult::removeFlagged!");
+
     //skip if all variants pass
     if (countPassing()==svs.count()) return;
 
@@ -182,6 +190,8 @@ void FilterResult::removeFlagged(BedpeFile& svs)
 
 void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArray description)
 {
+	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::tagNonPassing!");
+
 	//create 'filter' column (if missing)
 	int index = variants.addAnnotationIfMissing("filter", "Filter column.");
 
@@ -203,6 +213,7 @@ void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArr
 
 void FilterResult::tagNonPassing(VcfFile& variants, QByteArray tag, QString description)
 {
+	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::tagNonPassing!");
 
 	//add tag description (if missing)
 	if (!variants.filterIDs().contains(tag))

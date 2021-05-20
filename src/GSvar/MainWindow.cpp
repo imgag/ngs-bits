@@ -247,7 +247,7 @@ MainWindow::MainWindow(QWidget *parent)
 QString MainWindow::appName() const
 {
 	QString name = QCoreApplication::applicationName();
-	if (Settings::string("reference_genome").contains("GRCh38")) name += " GRCH38";
+	if (Settings::string("reference_genome").contains("GRCh38")) name += " hg38";
 	return name;
 }
 
@@ -2643,7 +2643,21 @@ void MainWindow::loadFile(QString filename)
 			try
 			{
 				cnvs_.load(cnv_loc.filename);
-				if (cnvs_.count()>80000) THROW(ArgumentException, "CNV file contains too many CNVs - could not load it!")
+				int cnv_count_initial = cnvs_.count();
+				double min_ll = 0.0;
+				while (cnvs_.count()>50000)
+				{
+					min_ll += 1.0;
+					FilterResult result(cnvs_.count());
+					FilterCnvLoglikelihood filter;
+					filter.setDouble("min_ll", min_ll);
+					filter.apply(cnvs_, result);
+					result.removeFlagged(cnvs_);
+				}
+				if (min_ll>0)
+				{
+					QMessageBox::information(this, "CNV pre-filtering applied", "The CNV calls file contains too many CNVs: " + QString::number(cnv_count_initial) +".\nOnly CNVs with log-likelyhood >= " + QString::number(min_ll) +" are displayed: " + QString::number(cnvs_.count()) +".");
+				}
 			}
 			catch(Exception& e)
 			{

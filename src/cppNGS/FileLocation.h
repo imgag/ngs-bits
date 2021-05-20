@@ -190,7 +190,7 @@ struct FileLocation
 			case PathType::CIRCOS_PLOT:
 				return "circos plot";
 			case PathType::STRUCTURAL_VARIANTS:
-				return "strctural variant calls";
+				return "structural variant calls";
 			case PathType::UPD:
 				return "uniparental disomy regions";
 			case PathType::REPEAT_EXPANSION_IMAGE:
