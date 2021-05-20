@@ -4,6 +4,9 @@
 #include "cppNGS_global.h"
 #include "Exceptions.h"
 #include <QList>
+#include <QHash>
+#include <QSet>
+#include <QPair>
 #include <QSharedPointer>
 #include "GraphNode.h"
 #include "GraphEdge.h"
@@ -19,20 +22,19 @@ class CPPNGSSHARED_EXPORT Graph
         Graph(bool directed);
 
         // getters
-        const QList<NodePointer>& nodeList() const;
-        const QList<EdgePointer>& edgeList() const;
+        const QHash<QString, NodePointer>& nodeList() const;
         const QHash<NodePointer, QList<EdgePointer>>& adjacencyList() const;
         bool directed();
 
         // create and add node
-        bool addNode(const NodeType& content, const QString& name, bool throw_exception_if_contained = true);
+        bool addNode(const QString& name, const NodeType& content, bool throw_exception_if_contained = true);
 
         // add edge between existing nodes
         bool addEdge(NodePointer node_1, NodePointer node_2,
                      const EdgeType& content);
         // create nodes and add an edge between them
-        bool addEdge(const NodeType& node_content_1, const QString& name_1,
-                     const NodeType& node_content_2, const QString& name_2,
+        bool addEdge(const QString& name_1, const NodeType& node_content_1,
+                     const QString& name_2, const NodeType& node_content_2,
                      const EdgeType& edge_content);
 
         // check if specific node exists in the graph
@@ -58,11 +60,12 @@ class CPPNGSSHARED_EXPORT Graph
         bool addNode(NodePointer node, bool throw_exception_if_contained = true);
 
     private:
-        QList<NodePointer> node_list_;
-        QList<EdgePointer> edge_list_;
+        QHash<QString, NodePointer> node_list_;
 
         // store an adjacency list for each node
         QHash<NodePointer, QList<EdgePointer>> adjacency_list_;
+
+        QSet<QPair<QString, QString>> edge_list_;
 
         bool directed_;
 };
@@ -71,8 +74,8 @@ class CPPNGSSHARED_EXPORT Graph
 template <typename NodeType, typename EdgeType>
 Graph<NodeType, EdgeType>::Graph()
     : node_list_(),
-      edge_list_(),
       adjacency_list_(),
+      edge_list_(),
       directed_(false)
 {
 }
@@ -81,8 +84,8 @@ Graph<NodeType, EdgeType>::Graph()
 template <typename NodeType, typename EdgeType>
 Graph<NodeType, EdgeType>::Graph(bool directed)
     : node_list_(),
-      edge_list_(),
       adjacency_list_(),
+      edge_list_(),
       directed_(directed)
 {
 }
@@ -91,15 +94,9 @@ Graph<NodeType, EdgeType>::Graph(bool directed)
 // getters
 
 template <typename NodeType, typename EdgeType>
-const QList<typename Graph<NodeType, EdgeType>::NodePointer>& Graph<NodeType, EdgeType>::nodeList() const
+const QHash<QString, typename Graph<NodeType, EdgeType>::NodePointer> &Graph<NodeType, EdgeType>::nodeList() const
 {
     return node_list_;
-}
-
-template <typename NodeType, typename EdgeType>
-const QList<typename Graph<NodeType, EdgeType>::EdgePointer>& Graph<NodeType, EdgeType>::edgeList() const
-{
-    return edge_list_;
 }
 
 template <typename NodeType, typename EdgeType>
@@ -121,9 +118,9 @@ bool Graph<NodeType, EdgeType>::directed()
 template <typename NodeType, typename EdgeType>
 bool Graph<NodeType, EdgeType>::addNode(NodePointer node, bool throw_exception_if_contained)
 {
-    if(!node_list_.contains(node))
+    if(!hasNode(node))
     {
-        node_list_.append(node);
+        node_list_.insert(node.data()->nodeName(), node);
         // add the node to the adjacency list with an empty list of edges
         adjacency_list_.insert(node, QList<EdgePointer>());
         return true;
@@ -138,7 +135,7 @@ bool Graph<NodeType, EdgeType>::addNode(NodePointer node, bool throw_exception_i
 
 // generate a new node and add it to the graph
 template <typename NodeType, typename EdgeType>
-bool Graph<NodeType, EdgeType>::addNode(const NodeType& content, const QString& name,
+bool Graph<NodeType, EdgeType>::addNode(const QString& name, const NodeType& content,
                                         bool throw_exception_if_contained)
 {
     if(name.isEmpty())
@@ -149,8 +146,7 @@ bool Graph<NodeType, EdgeType>::addNode(const NodeType& content, const QString& 
     if(!this->hasNode(name))
     {
         NodePointer node(new GraphNode<NodeType>(content, name));
-        this->addNode(node);
-        return true;
+        return this->addNode(node);
     }
     else if (throw_exception_if_contained)
     {
@@ -163,16 +159,9 @@ bool Graph<NodeType, EdgeType>::addNode(const NodeType& content, const QString& 
 
 // check by name if a specific node exists in the graph
 template <typename NodeType, typename EdgeType>
-bool Graph<NodeType, EdgeType>::hasNode(const QString &name)
+bool Graph<NodeType, EdgeType>::hasNode(const QString& name)
 {
-    foreach(const NodePointer& node, node_list_)
-    {
-        if(node.data()->nodeName() == name)
-        {
-            return true;
-        }
-    }
-    return false;
+    return node_list_.contains(name);
 }
 
 // check if node of the same name as given node exists in the graph
@@ -184,14 +173,11 @@ bool Graph<NodeType, EdgeType>::hasNode(NodePointer node)
 
 // get a specific node by name
 template <typename NodeType, typename EdgeType>
-typename Graph<NodeType, EdgeType>::NodePointer Graph<NodeType, EdgeType>::getNode(const QString &name)
+typename Graph<NodeType, EdgeType>::NodePointer Graph<NodeType, EdgeType>::getNode(const QString& name)
 {
-    foreach(const NodePointer& node, node_list_)
+    if(hasNode(name))
     {
-        if(node.data()->nodeName() == name)
-        {
-            return node;
-        }
+        return node_list_.value(name);
     }
     THROW(ArgumentException, "Invalid argument: Non-existing node")
 }
@@ -203,8 +189,9 @@ typename Graph<NodeType, EdgeType>::NodePointer Graph<NodeType, EdgeType>::getNo
 template <typename NodeType, typename EdgeType>
 bool Graph<NodeType, EdgeType>::addEdge(EdgePointer edge)
 {
-    edge_list_.append(edge);
     adjacency_list_[edge.data()->node1()].append(edge);
+    edge_list_.insert(QPair<QString, QString>(edge.data()->node1().data()->nodeName(),
+                      edge.data()->node2().data()->nodeName()));
     if(!directed_)
     {
         adjacency_list_[edge.data()->node2()].append(edge);
@@ -233,18 +220,18 @@ bool Graph<NodeType, EdgeType>::addEdge(NodePointer node_1,
 
 // generate two nodes with content and name and add an edge between them
 template <typename NodeType, typename EdgeType>
-bool Graph<NodeType, EdgeType>::addEdge(const NodeType& node_content_1, const QString& name_1,
-                                        const NodeType& node_content_2, const QString& name_2,
+bool Graph<NodeType, EdgeType>::addEdge(const QString& name_1, const NodeType& node_content_1,
+                                        const QString& name_2, const NodeType& node_content_2,
                                         const EdgeType& edge_content)
 {
     // only create and add nodes if they do not yet exist
     if(!hasNode(name_1))
     {
-        addNode(node_content_1, name_1);
+        addNode(name_1, node_content_1);
     }
     if(!hasNode(name_2))
     {
-        addNode(node_content_2, name_2);
+        addNode(name_2, node_content_2);
     }
 
     if(!hasEdge(name_1, name_2))
@@ -252,8 +239,8 @@ bool Graph<NodeType, EdgeType>::addEdge(const NodeType& node_content_1, const QS
         auto node_1 = getNode(name_1);
         auto node_2 = getNode(name_2);
         EdgePointer edge(new GraphEdge<EdgeType, NodeType>(node_1, node_2, edge_content));
-        edge_list_.append(edge);
         adjacency_list_[node_1].append(edge);
+        edge_list_.insert(QPair<QString, QString>(name_1, name_2));
         if(!directed_)
         {
             adjacency_list_[node_2].append(edge);
@@ -274,36 +261,23 @@ bool Graph<NodeType, EdgeType>::hasEdge(EdgePointer edge)
 template <typename NodeType, typename EdgeType>
 bool Graph<NodeType, EdgeType>::hasEdge(NodePointer node_1, NodePointer node_2)
 {
-    EdgePointer edge;
-    foreach(edge, edge_list_)
-    {
-        if(edge.data()->node1() == node_1 && edge.data()->node2() == node_2) {
-            return true;
-        }
-        else if(!directed_ && edge.data()->node1() == node_2 && edge.data()->node2() == node_1)
-        {
-            return true;
-        }
-    }
-    return false;
+    return hasEdge(node_1.data()->nodeName(), node_2.data()->nodeName());
 }
 
 // check if a specific edge exists by the names of the nodes that it connects
 template <typename NodeType, typename EdgeType>
 bool Graph<NodeType, EdgeType>::hasEdge(const QString& node_name_1, const QString& node_name_2)
 {
-    EdgePointer edge;
-    foreach(edge, edge_list_)
+    if(!hasNode(node_name_1) || !hasNode(node_name_2))
     {
-        if(edge.data()->node1().data()->nodeName() == node_name_1 &&
-                edge.data()->node2().data()->nodeName() == node_name_2) {
-            return true;
-        }
-        else if(!directed_ && edge.data()->node1().data()->nodeName() == node_name_2 &&
-                edge.data()->node2().data()->nodeName() == node_name_1)
-        {
-            return true;
-        }
+        return false;
+    }
+    if(edge_list_.contains(QPair<QString, QString>(node_name_1, node_name_2))) {
+        return true;
+    }
+    else if(edge_list_.contains(QPair<QString, QString>(node_name_2, node_name_1)) && !directed())
+    {
+        return true;
     }
     return false;
 }
@@ -312,8 +286,11 @@ bool Graph<NodeType, EdgeType>::hasEdge(const QString& node_name_1, const QStrin
 template <typename NodeType, typename EdgeType>
 typename Graph<NodeType, EdgeType>::EdgePointer Graph<NodeType, EdgeType>::getEdge(NodePointer node_1, NodePointer node_2)
 {
-    EdgePointer edge;
-    foreach(edge, edge_list_)
+    if(!hasNode(node_1) || !hasNode(node_2))
+    {
+        THROW(ArgumentException, "Invalid argument: Non-existing node")
+    }
+    foreach(EdgePointer edge, adjacency_list_[node_1])
     {
         if(edge.data()->node1() == node_1 && edge.data()->node2() == node_2) {
             return edge;
@@ -330,8 +307,11 @@ typename Graph<NodeType, EdgeType>::EdgePointer Graph<NodeType, EdgeType>::getEd
 template <typename NodeType, typename EdgeType>
 typename Graph<NodeType, EdgeType>::EdgePointer Graph<NodeType, EdgeType>::getEdge(const QString &node_name_1, const QString &node_name_2)
 {
-    EdgePointer edge;
-    foreach(edge, edge_list_)
+    if(!hasNode(node_name_1) || !hasNode(node_name_2))
+    {
+        THROW(ArgumentException, "Invalid argument: Non-existing node")
+    }
+    foreach(EdgePointer edge, adjacency_list_[getNode(node_name_1)])
     {
         if(edge.data()->node1().data()->nodeName() == node_name_1 &&
                 edge.data()->node2().data()->nodeName() == node_name_2) {
