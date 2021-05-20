@@ -74,9 +74,29 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	FileLocation output;
-//	QString id = NGSD().processedSampleName(processed_sample_id);
-//	QString filename = NGSD().processedSamplePath(processed_sample_id, type);
-	return output; //FileLocation(id, type, filename, QFile::exists(filename));
+	QByteArray reply = makeApiCall("project_file?ps_id="+processed_sample_id);
+
+	if (reply.length() == 0)
+	{
+		THROW(Exception, "Could not get a GSvar file for the processed sample " + processed_sample_id);
+	}
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
+	QJsonArray json_array = json_doc.array();
+	QStringList analyses;
+	for (int i = 0; i < json_array.count(); i++)
+	{
+		if (!json_array.at(i).isObject()) break;
+
+		if (json_array.at(i).toObject().contains("id") && json_array.at(i).toObject().contains("type")
+			&& json_array.at(i).toObject().contains("filename") && json_array.at(i).toObject().contains("exists"))
+		{
+			return FileLocation(json_array.at(i).toObject().value("id").toString(), FileLocation::stringToType(json_array.at(i).toObject().value("type").toString()),
+								json_array.at(i).toObject().value("filename").toString(), json_array.at(i).toObject().value("exists").toBool());
+		}
+	}
+
+	return output;
 }
 
 QByteArray DatabaseServiceRemote::makeApiCall(QString url_param) const

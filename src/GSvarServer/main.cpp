@@ -205,8 +205,7 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"project_file",
 						QMap<QString, ParamProps> {
-						   {"ps", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, false, "Sample id"}},
-						   {"multi", ParamProps{ParamProps::ParamType::INTEGER, ParamProps::ParamCategory::GET_URL_PARAM, true, "Perform multi search"}}
+						   {"ps_id", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample id"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,

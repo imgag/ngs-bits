@@ -3,6 +3,9 @@
 
 #include "DatabaseService.h"
 #include "Exceptions.h"
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 class DatabaseServiceRemote
 	: virtual public DatabaseService

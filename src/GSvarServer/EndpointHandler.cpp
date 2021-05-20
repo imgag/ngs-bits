@@ -27,39 +27,6 @@ bool EndpointHandler::isValidUser(QString name, QString password)
 	return false;
 }
 
-QList<QString> EndpointHandler::getAnalysisFiles(QString sample_name, bool search_multi)
-{
-	QList<QString> files;
-	try
-	{
-		//convert name to file
-		NGSD db;
-		QString processed_sample_id = db.processedSampleId(sample_name);
-		QString analysis_file = db.processedSamplePath(processed_sample_id, PathType::GSVAR);
-
-		//determine all analyses of the sample
-		if (QFile::exists(analysis_file)) files << analysis_file;
-
-		//somatic tumor sample > ask user if he wants to open the tumor-normal pair
-		QString normal_sample = db.normalSample(processed_sample_id);
-		if (normal_sample!="")
-		{
-			files << db.secondaryAnalyses(sample_name + "-" + normal_sample, "somatic");
-		}
-		//check for germline trio/multi analyses
-		else if (search_multi)
-		{
-			files << db.secondaryAnalyses(sample_name, "trio");
-			files << db.secondaryAnalyses(sample_name, "multi sample");
-		}
-	}
-	catch (Exception& e)
-	{
-		qWarning() << "Error opening processed sample from NGSD:" + e.message();
-	}
-	return files;
-}
-
 HttpResponse EndpointHandler::serveIndexPage(HttpRequest request)
 {
 	if (request.getPrefix().toLower() == "favicon.ico")
@@ -272,30 +239,30 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
 {
 	qDebug() << "Project file location";
+	QList<QString> project_files;
 	QJsonDocument json_doc_output;
 	QJsonArray json_list_output;
+	QJsonObject json_object_output;
 
-	bool search_multi = false;
-	if (request.getUrlParams().contains("multi"))
+	QString id;
+	QString found_file_path;
+	try
 	{
-		if (request.getUrlParams().value("multi") == "1")
-		{
-			search_multi = true;
-		}
+		id = NGSD().processedSampleName(request.getUrlParams().value("ps_id"));
+		found_file_path =  NGSD().processedSamplePath(request.getUrlParams().value("ps_id"), PathType::GSVAR);
+	}
+	catch (Exception& e)
+	{
+		qWarning() << "Error opening processed sample from NGSD:" + e.message();
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), e.message());
 	}
 
-	QList<QString> found_files = getAnalysisFiles(request.getUrlParams().value("ps"), search_multi);
-	for (int i = 0; i < found_files.count(); i++)
-	{
-		try
-		{
-			json_list_output.append(createFileTempUrl(found_files[i]));
-		}
-		catch (Exception& e)
-		{
-			return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), e.message());
-		}
-	}
+	FileLocation project_file = FileLocation(id, PathType::GSVAR, createFileTempUrl(found_file_path), true);
+	json_object_output.insert("id", id);
+	json_object_output.insert("type", project_file.typeAsString());
+	json_object_output.insert("filename", project_file.filename);
+	json_object_output.insert("exists", project_file.exists);
+	json_list_output.append(json_object_output);
 	json_doc_output.setArray(json_list_output);
 
 	BasicResponseData response_data;

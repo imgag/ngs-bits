@@ -42,7 +42,6 @@ public:
 
 private:
 	static bool isValidUser(QString name, QString password);	
-	static QList<QString> getAnalysisFiles(QString sample_name, bool search_multi);
 
 	/// Creates a temporary URL for a file (includes a file name and its full path)
 	static QString createFileTempUrl(QString file);
