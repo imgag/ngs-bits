@@ -65,7 +65,7 @@ HttpResponse EndpointController::serveProtectedStaticFile(HttpRequest request)
 {
 	if (!isEligibileToAccess(request))
 	{
-		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Secure token has not been provided");
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Invalid or missing secure token");
 	}
 	// this is just an example
 	return createStaticFileResponse(":/assets/client/example.png", ByteRange{}, ContentType::APPLICATION_OCTET_STREAM, true);

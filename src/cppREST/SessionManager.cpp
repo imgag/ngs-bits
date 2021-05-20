@@ -59,6 +59,7 @@ bool SessionManager::isSessionExpired(Session in)
 {
 	qint64 login_time = in.login_time.toSecsSinceEpoch();
 	qint64 valid_period = ServerHelper::getNumSettingsValue("session_duration");
+	if (valid_period == 0) valid_period = 60;
 
 	if ((login_time + valid_period) > QDateTime::currentDateTime().toSecsSinceEpoch())
 	{

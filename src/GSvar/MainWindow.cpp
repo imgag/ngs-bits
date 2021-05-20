@@ -5661,7 +5661,7 @@ void MainWindow::storeCurrentVariantList()
 			}
 			catch (Exception& e)
 			{				
-				QMessageBox::warning(this, "Could not send changes to the server:", e.message());
+				QMessageBox::warning(this, "Could not process the changes to be sent to the server:", e.message());
 			}
 		}
 
