@@ -22,7 +22,7 @@ public:
 		addString("tid", "tumor processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
 		addString("nid", "Normal processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
 		addEnum("build", "Reference genome to be used.", true, QStringList() << "GRCh37" << "GRCh38", "GRCh37");
-		addOutfile("out", "Output QCML file.", true);
+		addOutfile("out", "Output QCML file.", false);
 
 		changeLog(2021, 5, 6, "Initial version of the tool to calculate HRD score.");
 	}

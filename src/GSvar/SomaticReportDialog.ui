@@ -304,6 +304,114 @@
           </layout>
          </item>
          <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <property name="spacing">
+            <number>3</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="label_11">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>HRD statement:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="hrd_statement">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>Hrd comment to be printed in report.</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="groupBox_2">
+           <property name="title">
+            <string>CNV metrics</string>
+           </property>
+           <layout class="QFormLayout" name="formLayout">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_8">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>Count of loss of heterozygosity CNV events for HRD estimation.</string>
+              </property>
+              <property name="text">
+               <string>LOH:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QLabel" name="cnv_loh_count">
+              <property name="toolTip">
+               <string>Count of loss of heterozygosity CNV events for HRD estimation.</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_9">
+              <property name="toolTip">
+               <string>Count of telomeric allelic imbalance CNV events for HRD estimation.</string>
+              </property>
+              <property name="text">
+               <string>TAI:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_10">
+              <property name="toolTip">
+               <string>Count of long state transition CNV events for HRD estimation.</string>
+              </property>
+              <property name="text">
+               <string>LST:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLabel" name="cnv_tai_count">
+              <property name="toolTip">
+               <string>Count of telomeric allelic imbalance CNV events for HRD estimation.</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="cnv_lst_count">
+              <property name="toolTip">
+               <string>Count of long state transition CNV events for HRD estimation.</string>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
           <spacer name="verticalSpacer_3">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -972,6 +1080,71 @@
      </widget>
     </widget>
    </item>
+   <item row="0" column="0">
+    <widget class="QGroupBox" name="groupBox">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>75</height>
+      </size>
+     </property>
+     <property name="title">
+      <string>Sample information</string>
+     </property>
+     <property name="flat">
+      <bool>true</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_8">
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
+       <number>3</number>
+      </property>
+      <property name="spacing">
+       <number>3</number>
+      </property>
+      <item row="0" column="1">
+       <widget class="QLabel" name="target_bed_path">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>target region:</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
    <item row="2" column="0">
     <widget class="QGroupBox" name="groupBox_4">
      <property name="sizePolicy">
@@ -1105,71 +1278,6 @@
         </property>
         <property name="text">
          <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item row="0" column="0">
-    <widget class="QGroupBox" name="groupBox">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>75</height>
-      </size>
-     </property>
-     <property name="title">
-      <string>Sample information</string>
-     </property>
-     <property name="flat">
-      <bool>true</bool>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_8">
-      <property name="leftMargin">
-       <number>3</number>
-      </property>
-      <property name="topMargin">
-       <number>3</number>
-      </property>
-      <property name="rightMargin">
-       <number>3</number>
-      </property>
-      <property name="bottomMargin">
-       <number>3</number>
-      </property>
-      <property name="spacing">
-       <number>3</number>
-      </property>
-      <item row="0" column="1">
-       <widget class="QLabel" name="target_bed_path">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_6">
-        <property name="text">
-         <string>target region:</string>
         </property>
        </widget>
       </item>
