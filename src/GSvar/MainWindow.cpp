@@ -5667,11 +5667,11 @@ void MainWindow::storeCurrentVariantList()
 
 		json_doc.setArray(json_array);
 
-		QString ps_id;
+		QString ps_url_id;
 		QList<QString> filename_parts = filename_.split("/");
 		if (filename_parts.size()>3)
 		{
-			ps_id = filename_parts.value(filename_parts.size()-2);
+			ps_url_id = filename_parts.value(filename_parts.size()-2);
 		}
 
 		try
@@ -5680,7 +5680,7 @@ void MainWindow::storeCurrentVariantList()
 			add_headers.insert("Accept", "application/json");
 			QString reply = HttpRequestHandler(HttpRequestHandler::NONE).put(
 						Settings::string("server_host") + ":" + QString::number(Settings::integer("server_port"))
-						+ "/v1/project_file?ps=" + ps_id,
+						+ "/v1/project_file?ps_url_id=" + ps_url_id,
 						json_doc.toJson(),
 						add_headers
 					);

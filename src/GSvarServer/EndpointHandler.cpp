@@ -62,13 +62,13 @@ HttpResponse EndpointHandler::serveApiInfo(HttpRequest request)
 HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 {
 	qDebug() << "File location service";
-	if (!request.getUrlParams().contains("ps"))
+	if (!request.getUrlParams().contains("ps_url_id"))
 	{
 		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Sample id has not been provided");
 	}
-	QString ps = request.getUrlParams().value("ps");
+	QString ps_url_id = request.getUrlParams().value("ps_url_id");
 
-	UrlEntity url_entity = UrlManager::getURLById(ps.trimmed());
+	UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());
 	qDebug() << "GSvar file: " + url_entity.filename_with_path;
 	QString found_file = url_entity.filename_with_path;
 
@@ -83,7 +83,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 
 	if (found_file.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Could not find the sample: " + request.getUrlParams().value("ps"));
+		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Could not find the sample: " + request.getUrlParams().value("ps_url_id"));
 	}
 
 	VariantList variants;
@@ -276,12 +276,12 @@ HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
 
 HttpResponse EndpointHandler::saveProjectFile(HttpRequest request)
 {
-	QString ps_id = request.getUrlParams()["ps"];
-	UrlEntity url = UrlManager::getURLById(ps_id);
+	QString ps_url_id = request.getUrlParams()["ps_url_id"];
+	UrlEntity url = UrlManager::getURLById(ps_url_id);
 
 	if (url.filename_with_path.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "The GSvar file in " + ps_id + "could not be located");
+		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "The GSvar file in " + ps_url_id + "could not be located");
 	}
 
 	QJsonDocument json_doc;
@@ -292,12 +292,10 @@ HttpResponse EndpointHandler::saveProjectFile(HttpRequest request)
 	catch (Exception& e)
 	{
 		qWarning() << "Error while parsing changes for the GSvar file" + url.filename_with_path + ":" << e.message();
-		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Changes for the GSvar file in " + ps_id + "could not be parsed: " + e.message());
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Changes for the GSvar file in " + ps_url_id + "could not be parsed: " + e.message());
 	}
 
-	qDebug() << "ps_id = " << ps_id;
-
-	QString tmp = url.filename_with_path + ".tmp";
+	QString tmp = url.filename_with_path + "_" + ps_url_id + ".tmp";
 	QSharedPointer<QFile> in_file = Helper::openFileForReading(url.filename_with_path);
 	QTextStream in_stream(in_file.data());
 	QSharedPointer<QFile> out_file = Helper::openFileForWriting(tmp);
@@ -332,7 +330,7 @@ HttpResponse EndpointHandler::saveProjectFile(HttpRequest request)
 
 			if ((chr_pos == -1) || (start_pos == -1) || (end_pos == -1) || (ref_pos == -1) || (obs_pos == -1))
 			{
-				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not identify key columns in GSvar file: " + ps_id);
+				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not identify key columns in GSvar file: " + ps_url_id);
 			}
 			continue;
 		}
@@ -355,7 +353,7 @@ HttpResponse EndpointHandler::saveProjectFile(HttpRequest request)
 					// Locating changed column
 					if (column_names.indexOf(column) == -1)
 					{
-						return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not identify changed column " + column + " in GSvar file: " + ps_id);
+						return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not identify changed column " + column + " in GSvar file: " + ps_url_id);
 					}
 					is_current_variant_changed = true;
 					is_file_changed = true;
@@ -365,7 +363,7 @@ HttpResponse EndpointHandler::saveProjectFile(HttpRequest request)
 			catch (Exception& e)
 			{
 				qDebug() << "Error while processing changes for the GSvar file" + url.filename_with_path + ":" << e.message();
-				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Changes for the GSvar file in " + ps_id + "could not be parsed: " + e.message());
+				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Changes for the GSvar file in " + ps_url_id + "could not be parsed: " + e.message());
 			}
 		}
 
