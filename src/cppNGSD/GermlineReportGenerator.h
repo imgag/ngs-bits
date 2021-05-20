@@ -20,6 +20,10 @@ struct CPPNGSDSHARED_EXPORT GermlineReportGeneratorData
 	const BedpeFile& svs;
 	PrsTable prs;
 
+	//files needed e.g. for coverage statics
+	QString ps_bam;
+	QString ps_lowcov;
+
 	//processing system target region
 	BedFile processing_system_roi;
 
@@ -44,10 +48,6 @@ public:
 	///Writes the XML report, including the HTML report. Call after generating the HTML report - some statistics data is cached between reports.
 	void writeXML(QString filename, QString html_document);
 
-	///Overrides BAM file (for testing only)
-	void overrideBamFile(QString bam_file);
-	///Overrides low-coverage file (for testing only)
-	void overrideLowCovFile(QString lowcov_file);
 	///Overrides date (for testing only)
 	void overrideDate(QDate date);
 
@@ -65,8 +65,6 @@ private:
 	bool test_mode_;
 
 	QString ps_id_;
-	QString ps_bam_;
-	QString ps_lowcov_;
 	QMap<QString, QString> cache_;
 
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);

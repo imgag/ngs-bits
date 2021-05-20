@@ -1,5 +1,10 @@
 # GSvar change log
 
+### 2021_03-66 (19.05.21)
+- Processed sample tab: added ancestry score details (tool-tip).
+- Sample similarity tool: Added link to documentation.
+- Sample ancestry tool: Added link to documentation.
+
 ### 2021_03-54 (03.05.21)
 - Somatic tumor-only report: Added summary of low coverage regions that overlap transcript.
 - Somatic tumor-normal report: Added target region filter.

@@ -1587,8 +1587,35 @@ QCCollection Statistics::contamination(QString build, QString bam, const QString
 	return output;
 }
 
-AncestryEstimates Statistics::ancestry(QString build, QString filename, int min_snp, double min_pop_dist)
+AncestryEstimates Statistics::ancestry(QString build, QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
 {
+	//init score statistics
+	struct PopScore
+	{
+		double median;
+		double mad;
+	};
+	static QMap<QString, QMap<QString, PopScore>> scores;
+	if (scores.isEmpty())
+	{
+		scores["AFR"]["AFR"] = {0.5002, 0.0291};
+		scores["AFR"]["EUR"] = {0.0553, 0.0280};
+		scores["AFR"]["SAS"] = {0.1061, 0.0267};
+		scores["AFR"]["EAS"] = {0.0895, 0.0274};
+		scores["EUR"]["AFR"] = {0.0727, 0.0271};
+		scores["EUR"]["EUR"] = {0.3251, 0.0252};
+		scores["EUR"]["SAS"] = {0.1922, 0.0249};
+		scores["EUR"]["EAS"] = {0.0603, 0.0264};
+		scores["SAS"]["AFR"] = {0.0698, 0.0264};
+		scores["SAS"]["EUR"] = {0.1574, 0.0295};
+		scores["SAS"]["SAS"] = {0.3395, 0.0291};
+		scores["SAS"]["EAS"] = {0.1693, 0.0288};
+		scores["EAS"]["AFR"] = {0.08415, 0.0275};
+		scores["EAS"]["EUR"] = {0.06725, 0.0269};
+		scores["EAS"]["SAS"] = {0.21495, 0.0228};
+		scores["EAS"]["EAS"] = {0.47035, 0.0242};
+	}
+
 	//copy ancestry SNP file from resources (gzopen cannot access Qt resources)
 	QString snp_file = ":/Resources/" + build + "_ancestry.vcf";
 	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "' for ancestry estimation!");
@@ -1607,6 +1634,7 @@ AncestryEstimates Statistics::ancestry(QString build, QString filename, int min_
 		const VcfLine& var = vars_ancestry.vcfLine(i);
 		roi.append(BedLine(var.chr(), var.start(), var.end()));
 	}
+	roi.merge(true);
 
 	//load relevant variants from VCF
 	VcfFile vl;
@@ -1675,16 +1703,27 @@ AncestryEstimates Statistics::ancestry(QString build, QString filename, int min_
 	if (output.eas<0) output.eas = 0.0;
 
 	//determine population
-	QList<QPair<QString, double>> sorted;
-	sorted << QPair<QString, double>("AFR", output.afr);
-	sorted << QPair<QString, double>("EUR", output.eur);
-	sorted << QPair<QString, double>("SAS", output.sas);
-	sorted << QPair<QString, double>("EAS", output.eas);
-	std::sort(sorted.begin(), sorted.end(), [](const QPair<QString, double>& a, const QPair<QString, double>& b){ return a.second > b.second ;});
-	output.population = sorted[0].first;
-	if (sorted[1].second/sorted[0].second>1.0-min_pop_dist)
+	QSet<QString> pop_matches;
+	if (output.afr>=abs_score_cutoff) pop_matches << "AFR";
+	if (output.eur>=abs_score_cutoff) pop_matches << "EUR";
+	if (output.sas>=abs_score_cutoff) pop_matches << "SAS";
+	if (output.eas>=abs_score_cutoff) pop_matches << "EAS";
+	foreach(const QString& pop, scores.keys())
+	{
+		bool in_dist = true;
+		if (fabs((output.afr-scores[pop]["AFR"].median)/scores[pop]["AFR"].mad)>max_mad_dist) in_dist = false;
+		if (fabs((output.eur-scores[pop]["EUR"].median)/scores[pop]["EUR"].mad)>max_mad_dist) in_dist = false;
+		if (fabs((output.sas-scores[pop]["SAS"].median)/scores[pop]["SAS"].mad)>max_mad_dist) in_dist = false;
+		if (fabs((output.eas-scores[pop]["EAS"].median)/scores[pop]["EAS"].mad)>max_mad_dist) in_dist = false;
+		if (in_dist) pop_matches << pop;
+	}
+	if (pop_matches.count()!=1)
 	{
 		output.population = "ADMIXED/UNKNOWN";
+	}
+	else
+	{
+		output.population = *(pop_matches.begin());
 	}
 
 	return output;

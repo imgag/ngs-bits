@@ -374,56 +374,8 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		QStringList report_conf_col;
 		for (int r=0; r<output.rowCount(); ++r)
 		{
-			QString ps_id = output.row(r).id();
-			QString text;
-			QVariant rc_id = getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0", true, ps_id);
-			if (rc_id.isValid())
-			{
-				text = "exists";
-
-				//find causal small variants
-				QStringList causal_ids = getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='1' AND report_configuration_id=" + rc_id.toString());
-				foreach(QString id, causal_ids)
-				{
-					Variant var = variant(id);
-					QString genotype = getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + id + "'").toString();
-					QString genes = getValue("SELECT gene FROM variant WHERE id='" + id + "'").toString();
-					QString var_class = getValue("SELECT class FROM variant_classification WHERE variant_id='" + id + "'").toString();
-					text += ", causal variant: " + var.toString() + " (genotype:" + genotype + " genes:" + genes;
-					if (var_class != "") text += " classification:" + var_class; // add classification, if exists
-					text += ")";
-				}
-
-				//find causal CNVs
-				causal_ids = getValues("SELECT cnv_id FROM report_configuration_cnv WHERE causal='1' AND report_configuration_id=" + rc_id.toString());
-				foreach(QString id, causal_ids)
-				{
-					CopyNumberVariant var = cnv(id.toInt());
-					QString cn = getValue("SELECT cn FROM cnv WHERE id='" + id + "'").toString();
-					QString cnv_class = getValue("SELECT class FROM report_configuration_cnv WHERE cnv_id='" + id + "'", false).toString();
-					text += ", causal CNV: " + var.toString() + " (cn:" + cn;
-					if (cnv_class != "") text += " classification:" + cnv_class; // add classification, if exists
-					text += ")";
-				}
-
-				//find causal SVs
-				QStringList sv_id_columns = QStringList() << "sv_deletion_id" << "sv_duplication_id" << "sv_insertion_id" << "sv_inversion_id" << "sv_translocation_id";
-				QList<StructuralVariantType> sv_types = {StructuralVariantType::DEL, StructuralVariantType::DUP, StructuralVariantType::INS, StructuralVariantType::INV, StructuralVariantType::BND};
-				BedpeFile svs;
-				for (int i = 0; i < sv_id_columns.size(); ++i)
-				{
-					causal_ids = getValues("SELECT " + sv_id_columns.at(i) + " FROM report_configuration_sv WHERE causal='1' AND report_configuration_id=" + rc_id.toString() + " AND " + sv_id_columns.at(i) + " IS NOT NULL");
-
-					foreach(QString id, causal_ids)
-					{
-						BedpeLine var = structuralVariant(id.toInt(), sv_types.at(i), svs, true);
-						QString sv_class = getValue("SELECT class FROM report_configuration_sv WHERE " + sv_id_columns[i] + "='" + id + "'", false).toString();
-						text += ", causal SV: " + var.toString();
-						if (sv_class != "") text += " (classification:" + sv_class + ")"; // add classification, if exists
-					}
-				}
-			}
-			report_conf_col << text;
+			const QString& ps_id = output.row(r).id();
+			report_conf_col << reportConfigSummaryText(ps_id);
 		}
 		output.addColumn(report_conf_col, "report_config");
 	}
@@ -871,6 +823,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::COPY_NUMBER_RAW_DATA) output += ps_name + "_cnvs_clincnv.seg";
 	else if (type==PathType::COPY_NUMBER_CALLS) output += ps_name + "_cnvs_clincnv.tsv";
 	else if (type==PathType::FUSIONS) output += ps_name + "_var_fusions.tsv";
+	else if (type==PathType::MANTA_FUSIONS) output +=  ps_name + "_var_fusions_manta.bedpe";
 	else if (type==PathType::VIRAL) output += ps_name + "_viral.tsv";
 	else if (type==PathType::COUNTS) output += ps_name + "_counts.tsv";
 	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
@@ -4589,6 +4542,67 @@ int NGSD::reportConfigId(const QString& processed_sample_id)
 {
 	QVariant id = getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0", true, processed_sample_id);
 	return id.isValid() ? id.toInt() : -1;
+}
+
+QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
+{
+	QString output;
+
+	QVariant rc_id = getValue("SELECT id FROM report_configuration WHERE processed_sample_id=:0", true, processed_sample_id);
+	if (rc_id.isValid())
+	{
+		output = "exists";
+
+		//find causal small variants
+		{
+			QStringList causal_ids = getValues("SELECT variant_id FROM report_configuration_variant WHERE causal='1' AND report_configuration_id=" + rc_id.toString());
+			foreach(const QString& id, causal_ids)
+			{
+				Variant var = variant(id);
+				QString genotype = getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='" + processed_sample_id + "' AND variant_id='" + id + "'").toString();
+				QString genes = getValue("SELECT gene FROM variant WHERE id='" + id + "'").toString();
+				QString var_class = getValue("SELECT class FROM variant_classification WHERE variant_id='" + id + "'").toString();
+				output += ", causal variant: " + var.toString() + " (genotype:" + genotype + " genes:" + genes;
+				if (var_class != "") output += " classification:" + var_class; // add classification, if exists
+				output += ")";
+			}
+		}
+
+		//find causal CNVs
+		{
+			QStringList causal_ids = getValues("SELECT cnv_id FROM report_configuration_cnv WHERE causal='1' AND report_configuration_id=" + rc_id.toString());
+			foreach(const QString& id, causal_ids)
+			{
+				CopyNumberVariant var = cnv(id.toInt());
+				QString cn = getValue("SELECT cn FROM cnv WHERE id='" + id + "'").toString();
+				QString cnv_class = getValue("SELECT class FROM report_configuration_cnv WHERE cnv_id='" + id + "'", false).toString();
+				output += ", causal CNV: " + var.toString() + " (cn:" + cn;
+				if (cnv_class != "") output += " classification:" + cnv_class; // add classification, if exists
+				output += ")";
+			}
+		}
+
+		//find causal SVs
+		{
+			QStringList sv_id_columns = QStringList() << "sv_deletion_id" << "sv_duplication_id" << "sv_insertion_id" << "sv_inversion_id" << "sv_translocation_id";
+			QList<StructuralVariantType> sv_types = {StructuralVariantType::DEL, StructuralVariantType::DUP, StructuralVariantType::INS, StructuralVariantType::INV, StructuralVariantType::BND};
+			BedpeFile svs;
+			for (int i = 0; i < sv_id_columns.size(); ++i)
+			{
+				QStringList causal_ids = getValues("SELECT " + sv_id_columns.at(i) + " FROM report_configuration_sv WHERE causal='1' AND report_configuration_id=" + rc_id.toString() + " AND " + sv_id_columns.at(i) + " IS NOT NULL");
+
+				foreach(const QString& id, causal_ids)
+				{
+					BedpeLine var = structuralVariant(id.toInt(), sv_types.at(i), svs, true);
+					QString sv_class = getValue("SELECT class FROM report_configuration_sv WHERE " + sv_id_columns[i] + "='" + id + "'", false).toString();
+					output += ", causal SV: " + var.toString();
+					if (sv_class != "") output += " (classification:" + sv_class + ")"; // add classification, if exists
+				}
+			}
+		}
+	}
+
+	return output;
 }
 
 bool NGSD::reportConfigIsFinalized(int id)
