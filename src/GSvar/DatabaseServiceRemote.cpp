@@ -69,6 +69,16 @@ GeneSet DatabaseServiceRemote::processingSystemGenes(int sys_id) const
 	return output;
 }
 
+FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed_sample_id, PathType type) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	FileLocation output;
+//	QString id = NGSD().processedSampleName(processed_sample_id);
+//	QString filename = NGSD().processedSamplePath(processed_sample_id, type);
+	return output; //FileLocation(id, type, filename, QFile::exists(filename));
+}
+
 QByteArray DatabaseServiceRemote::makeApiCall(QString url_param) const
 {
 	HttpHeaders add_headers;
@@ -77,4 +87,3 @@ QByteArray DatabaseServiceRemote::makeApiCall(QString url_param) const
 			Settings::string("server_host",true) + ":" + Settings::string("server_port")
 			+ "/v1/"+url_param, add_headers);
 }
-
