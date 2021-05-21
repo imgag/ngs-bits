@@ -376,12 +376,16 @@ bool EndpointController::isEligibileToAccess(HttpRequest request)
 {
 	if ((!request.getFormUrlEncoded().contains("token")) && (!request.getUrlParams().contains("token")))
 	{
+		qDebug() << "Secure token is missing";
 		return false;
 	}
+	qDebug() << "Secure token is present";
 	if ((!SessionManager::isTokenValid(request.getFormUrlEncoded()["token"])) && (!SessionManager::isTokenValid(request.getUrlParams()["token"])))
 	{
+		qDebug() << "Secure token is not valid";
 		return false;
 	}
+	qDebug() << "Secure token is valid";
 	return true;
 }
 
