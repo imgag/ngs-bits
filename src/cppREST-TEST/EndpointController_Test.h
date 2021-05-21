@@ -78,7 +78,7 @@ private slots:
 	{
 		HttpRequest request;
 		request.setMethod(RequestMethod::GET);
-		request.setContentType(ContentType::TEXT_PLAIN);
+		request.setContentType(ContentType::APPLICATION_OCTET_STREAM);
 		request.setPrefix("v1");
 		request.setPath("protected_file");
 
@@ -93,6 +93,9 @@ private slots:
 		request.addUrlParam("token", token);
 		response = EndpointController::serveProtectedStaticFile(request);
 		qDebug() << "response.getStatusLine() " << response.getStatusLine();
-		IS_TRUE(response.getStatusLine().contains("200"));
+		qDebug() << "response.getStatusLine() " << response.getStatusLine().mid(9, 3);
+
+		S_EQUAL(response.getStatusLine().mid(9, 3), "200");
+//		IS_TRUE(response.getStatusLine().contains("200"));
 	}
 };
