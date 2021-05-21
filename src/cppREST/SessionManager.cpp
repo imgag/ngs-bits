@@ -42,6 +42,7 @@ Session SessionManager::getSessionByUserId(QString id)
 			return i.value();
 		}
 	}
+	qDebug() << "Session return";
 	return Session();
 }
 
@@ -52,6 +53,7 @@ Session SessionManager::getSessionBySecureToken(QString token)
 		return instance().session_store_[token];
 	}
 
+	qDebug() << "Session return";
 	return Session();
 }
 
