@@ -1167,7 +1167,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	}
 
 
-	general_info_table.addRow(RtfTableRow({"HRD-Score", QByteArray::number(settings_.report_config.hrdScore()) + RtfText("\\line Ein Wert \\u8805;3 weist auf eine HRD hin.").setFontSize(14).RtfCode()}, {2500,7421},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+	general_info_table.addRow(RtfTableRow({"HRD", trans(settings_.report_config.hrdStatement()).toUtf8()}, {2500,7421},  RtfParagraph()).setBorders(1, "brdrhair", 4));
 
 	if(settings_.report_config.quality() != "no abnormalities")
 	{
@@ -1179,12 +1179,19 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	desc += RtfText("Mutationslast:").setFontSize(14).setBold(true).RtfCode() + " Anzahl der Varianten in den kodierenden untersuchten Genen normiert auf eine Million Basenpaare; ";
 	desc += RtfText("Mikrosatelliten:").setFontSize(14).setBold(true).RtfCode() + " Bewertung der Mikrosatelliteninstabilität; ";
 	desc += RtfText("CNV-Last:").setFontSize(14).setBold(true).RtfCode() + " Anteil des Genoms, bei dem die Kopienzahl verändert ist. ";
-	desc += RtfText("HRD-Score:").setFontSize(14).setBold(true).RtfCode() + " Homologer Rekombinations-Defizienz-Score.";
+	desc += RtfText("HRD:").setFontSize(14).setBold(true).RtfCode() + " Homologe Rekombinations-Defizienz.";
 	general_info_table.addRow(RtfTableRow(desc, doc_.maxWidth(), RtfParagraph().setFontSize(14).setHorizontalAlignment("j")).setBorders(0) );
 
 
 	doc_.addPart(general_info_table.RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
+
+	//.setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).highlight(3)
+
+	RtfSourceCode text = "In der nachfolgenden Übersicht finden Sie alle Varianten und Kopienzahlveränderungen, die in unterschiedlichen Datenbanken als funktionell relevant eingestuft wurden. ";
+	text += "Alle aufgelisteten somatischen Veränderungen sind, wenn nicht anderweitig vermerkt, im Normalgewebe nicht nachweisbar.";
+	doc_.addPart(RtfParagraph(text).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
+	doc_.addPart(RtfParagraph("").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 
 
 	/********************************
@@ -1291,8 +1298,8 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 
 	if(unclassified_snvs)
 	{
-		doc_.addPart(RtfParagraph("Es wurden sehr viele somatische Varianten nachgewiesen, die zu einer hohen Mutationslast führen. Da die Wechselwirkungen aller Varianten nicht eingeschätzt werden können, wird von der funktionellen Bewertung einzelner Varianten abgesehen. Falls erforderlich kann die Bewertung nachgereicht werden.").highlight(3).RtfCode());
-		doc_.addPart(RtfParagraph("").RtfCode());
+		doc_.addPart(RtfParagraph("Es wurden sehr viele somatische Varianten nachgewiesen, die zu einer hohen Mutationslast führen. Da die Wechselwirkungen aller Varianten nicht eingeschätzt werden können, wird von der funktionellen Bewertung einzelner Varianten abgesehen. Falls erforderlich kann die Bewertung nachgereicht werden.").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).highlight(3).RtfCode());
+		doc_.addPart(RtfParagraph("").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 	}
 
 	if(skipped_amp_.count() > 0)
@@ -1334,6 +1341,19 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	snv_expl += " Weitere Informationen zu allen nachgewiesenen somatischen Veränderungen und pharmakogenetisch relevanten Polymorphismen entnehmen Sie bitte der Anlage. ";
 	doc_.addPart(RtfParagraph(snv_expl).highlight(3).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setLineSpacing(276).setFontSize(18).RtfCode());
+	if(settings_.report_config.hrdStatement() != "undeterminable" && !settings_.report_config.hrdStatement().isEmpty())
+	{
+		RtfSourceCode text = RtfSourceCode("Es gibt ") + (settings_.report_config.hrdStatement() == "no proof" ? "keine " : "") + "Hinweise auf eine homologe Rekombinationsdefizienz (HRD). ";
+
+
+		QByteArray hrd_sum = QByteArray::number( settings_.report_config.cnvLohCount() + settings_.report_config.cnvTaiCount() + settings_.report_config.cnvLstCount() );
+
+		text += "Diese Einschätzung basiert auf einer Beurteilung der chromosomalen Veränderungen in der Tumorprobe (analog PMID: 26957554, Wert " + hrd_sum + ", HRD bei \\u8805; 32) und einer Kombination chromosomaler Veränderungen mit Veränderungen in HR-relevanten Genen (analog TOP-ART Studie, Wert " + QByteArray::number(settings_.report_config.hrdScore()) + ", HRD bei \\u8805; 3).";
+		text += " Details zur Berechnung der jeweiligen Werte finden sich im Anhang des Befundes.";
+		doc_.addPart(RtfParagraph(text).setFontSize(18).setIndent(0,0,0).setSpaceBefore(30).setSpaceAfter(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
+		doc_.addPart(RtfParagraph("").setIndent(0,0,0).setLineSpacing(276).setFontSize(18).RtfCode());
+	}
+
 
 	snv_expl = "Die Varianten- und Gendosisanalysen der Gene " + RtfText("BRCA1").setItalic(true).setFontSize(18).RtfCode() + " und " + RtfText("BRCA2").setItalic(true).setFontSize(18).RtfCode();
 	snv_expl += " in der Normalprobe waren unauffällig.";
@@ -1506,6 +1526,9 @@ QString SomaticReportHelper::trans(const QString &text)
 	en2de["UNCERTAIN_SIGNIFICANCE"] = "unklare Variante";
 	en2de["loss_of_function"] = "Funktionsverlust";
 	en2de["ambiguous"] = "unklare Bedeutung";
+	en2de["proof"] = "Hinweise auf HRD";
+	en2de["no proof"] = "Keine Hinweise";
+	en2de["undeterminable"] = "nicht bestimmbar";
 
 
 	if(!en2de.contains(text)) return text; //return original entry if not found

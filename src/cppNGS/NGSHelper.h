@@ -66,6 +66,12 @@ public:
 	///Parses a chromosomal region from the given text. Throws an error, if the region is not valid.
 	static void parseRegion(const QString& text, Chromosome& chr, int& start, int& end);
 
+	///Returns Bed File with coordinates of centromeres (GRCh37 and GRCh38). Empty if unknown build
+	static BedFile centromeres(const QString& build);
+
+	///Returns Bed file with coordinates of telomeres (GRCh37 and GRCh38). Empty if unknown build
+	static BedFile telomeres(const QString& build);
+
 private:
 	///Constructor declared away
 	NGSHelper() = delete;

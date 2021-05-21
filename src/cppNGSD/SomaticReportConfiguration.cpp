@@ -40,6 +40,10 @@ SomaticReportConfiguration::SomaticReportConfiguration()
 	, include_msi_status_(false)
 	, include_cnv_burden_(false)
 	, hrd_score_(0)
+	, hrd_statement_()
+	, cnv_loh_count_(0)
+	, cnv_tai_count_(0)
+	, cnv_lst_count_(0)
 	, cin_chromosomes_()
 	, limitations_()
 	, fusions_detected_(false)
@@ -375,6 +379,46 @@ QString SomaticReportConfiguration::filter() const
 void SomaticReportConfiguration::setFilter(QString filter)
 {
 	filter_ = filter;
+}
+
+int SomaticReportConfiguration::cnvLohCount() const
+{
+    return cnv_loh_count_;
+}
+
+void SomaticReportConfiguration::setCnvLohCount(int cnv_loh_count)
+{
+    cnv_loh_count_ = cnv_loh_count;
+}
+
+int SomaticReportConfiguration::cnvTaiCount() const
+{
+    return cnv_tai_count_;
+}
+
+void SomaticReportConfiguration::setCnvTaiCount(int cnv_tai_count)
+{
+    cnv_tai_count_ = cnv_tai_count;
+}
+
+int SomaticReportConfiguration::cnvLstCount() const
+{
+    return cnv_lst_count_;
+}
+
+void SomaticReportConfiguration::setCnvLstCount(int cnv_lst_count)
+{
+    cnv_lst_count_ = cnv_lst_count;
+}
+
+QString SomaticReportConfiguration::hrdStatement() const
+{
+	return hrd_statement_;
+}
+
+void SomaticReportConfiguration::setHrdStatement(const QString& hrd_statement)
+{
+	hrd_statement_ = hrd_statement;
 }
 
 

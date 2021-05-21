@@ -78,8 +78,6 @@ VariantList SomaticReportSettings::filterGermlineVariants(const VariantList &ger
 	}
 
 	return result;
-
-
 }
 
 CnvList SomaticReportSettings::filterCnvs(const CnvList &cnvs, const SomaticReportSettings &sett)

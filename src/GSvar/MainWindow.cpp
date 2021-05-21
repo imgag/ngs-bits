@@ -118,6 +118,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "XmlHelper.h"
 #include "GermlineReportGenerator.h"
 #include "SomaticReportHelper.h"
+#include "Statistics.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -708,6 +709,7 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
+		Statistics::hrdScore(cnvs_, "GRCh37");
 	}
 }
 
@@ -3344,6 +3346,12 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.processing_system_genes = db.genesToApproved( GlobalServiceProvider::database().processingSystemGenes(db.processingSystemIdFromProcessedSample(ps_tumor)), true );
 
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
+
+
+	QCCollection cnv_metrics = Statistics::hrdScore(SomaticReportSettings::filterCnvs(cnvs_, somatic_report_settings_), GSvarHelper::build());
+	somatic_report_settings_.report_config.setCnvLohCount( cnv_metrics.value("QC:2000062", true).asInt() );
+	somatic_report_settings_.report_config.setCnvTaiCount( cnv_metrics.value("QC:2000063", true).asInt() );
+	somatic_report_settings_.report_config.setCnvLstCount( cnv_metrics.value("QC:2000064", true).asInt() );
 
 
 	//Preselect report settings if not already exists to most common values
