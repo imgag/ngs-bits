@@ -96,6 +96,9 @@ clean:
 test_lib:
 	cd bin && ./cppCORE-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
 
+test_server:
+	cd bin && ./GSvarServer-TEST
+
 test_tools:
 	cd bin && ./tools-TEST
 

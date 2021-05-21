@@ -92,6 +92,7 @@ private slots:
 
 		request.addUrlParam("token", token);
 		response = EndpointController::serveProtectedStaticFile(request);
+		qDebug() << "response.getStatusLine() " << response.getStatusLine();
 		IS_TRUE(response.getStatusLine().contains("200"));
 	}
 };
