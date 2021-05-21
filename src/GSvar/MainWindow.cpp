@@ -3348,7 +3348,7 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 
 
-	QCCollection cnv_metrics = Statistics::hrdScore(SomaticReportSettings::filterCnvs(cnvs_, somatic_report_settings_), "GRCh37");
+	QCCollection cnv_metrics = Statistics::hrdScore(SomaticReportSettings::filterCnvs(cnvs_, somatic_report_settings_), GSvarHelper::build());
 	somatic_report_settings_.report_config.setCnvLohCount( cnv_metrics.value("QC:2000062", true).asInt() );
 	somatic_report_settings_.report_config.setCnvTaiCount( cnv_metrics.value("QC:2000063", true).asInt() );
 	somatic_report_settings_.report_config.setCnvLstCount( cnv_metrics.value("QC:2000064", true).asInt() );

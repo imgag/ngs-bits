@@ -19,7 +19,7 @@ public:
 	{
 		setDescription("Calculate somatic CNV metrics based on CNV file.");
 		addInfile("in", "Input somatic ClinCNV file in TSV format.", false);
-		addString("tid", "tumor processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
+		addString("tid", "Tumor processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
 		addString("nid", "Normal processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
 		addEnum("build", "Reference genome to be used.", true, QStringList() << "GRCh37" << "GRCh38", "GRCh37");
 		addOutfile("out", "Output QCML file.", false);
