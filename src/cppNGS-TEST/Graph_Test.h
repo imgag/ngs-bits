@@ -8,8 +8,8 @@
 TEST_CLASS(Graph_Test)
 {
 Q_OBJECT
-    int lines{8000000};
-    QByteArray filename{"D://Dateien//Documents//Eigene Dateien//Studium//Tübingen//HiWi-Job//Daten//9606.protein.links.v11.0.txt"};
+    int lines{10000};
+    QByteArray filename{"data_in/string_db_physical.txt"};
 
 private slots:
     void createIntGraph()
