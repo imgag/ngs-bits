@@ -1301,7 +1301,7 @@ private slots:
 		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
 		QMap<QByteArray, QByteArrayList> preferred_transcripts;
 		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
-		GermlineReportGeneratorData data("NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
+		GermlineReportGeneratorData data("hg19", "NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
 		data.processing_system_roi.load(TESTDATA("../cppNGS-TEST/data_in/panel.bed"));
 		data.ps_bam = TESTDATA("../cppNGS-TEST/data_in/panel.bam");
 		data.ps_lowcov = TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed");

@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2021_03-69 (20.05.21)
+- General: added pre-filtering of CNVs if too many.
+- Processed sample tab: added report configuration summary.
+
 ### 2021_03-66 (19.05.21)
 - Processed sample tab: added ancestry score details (tool-tip).
 - Sample similarity tool: Added link to documentation.

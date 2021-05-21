@@ -352,6 +352,16 @@ void FilterBase::setStringList(const QString& name, const QStringList& value)
 	parameter(name).value = value;
 }
 
+bool FilterBase::hasParameter(const QString& name, FilterParameterType type) const
+{
+	for (int i=0; i<params_.count(); ++i)
+	{
+		if (params_[i].name==name && params_[i].type==type) return true;
+	}
+
+	return false;
+}
+
 void FilterBase::overrideConstraint(const QString& parameter_name, const QString& constraint_name, const QString& constraint_value)
 {
 	parameter(parameter_name).constraints[constraint_name] = constraint_value;
@@ -2289,6 +2299,9 @@ FilterTrio::FilterTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
 	params_.last().constraints["valid"] = "male,female,n/a";
 
+	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
+	params_.last().constraints["valid"] = "hg19,hg38";
+
 	checkIsRegistered();
 }
 
@@ -2329,7 +2342,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	i_af_m = tmp.indexOf(i_m);
 
 	//get PAR region
-	BedFile par_region = NGSHelper::pseudoAutosomalRegion("hg19");
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion(getString("build"));
 
 	//pre-calculate genes with heterozygous variants
 	QSet<QString> types = getStringList("types").toSet();
@@ -4383,6 +4396,9 @@ FilterSvTrio::FilterSvTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
     params_.last().constraints["valid"] = "male,female,n/a";
 
+	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
+	params_.last().constraints["valid"] = "hg19,hg38";
+
     checkIsRegistered();
 }
 
@@ -4417,7 +4433,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 	int i_format_col = svs.annotationIndexByName("FORMAT");
 
     //get PAR region
-    BedFile par_region = NGSHelper::pseudoAutosomalRegion("hg19");
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion(getString("build"));
 
     //pre-calculate genes with heterozygous variants
     QSet<QString> types = getStringList("types").toSet();

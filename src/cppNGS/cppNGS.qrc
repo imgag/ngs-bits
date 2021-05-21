@@ -7,9 +7,10 @@
         <file>Resources/hg38_snps.vcf</file>
         <file>Resources/hg38_ancestry.vcf</file>
         <file>Resources/imprinting_genes.tsv</file>
-        <file>Resources/cyto_band.bed</file>
+        <file>Resources/hg19_cyto_band.bed</file>
         <file>Resources/hg19_ensembl_transcript_matches.tsv</file>
         <file>Resources/clinvar_submission_1.6.xsd</file>
         <file>Resources/qcML.obo</file>
+        <file>Resources/hg38_cyto_band.bed</file>
     </qresource>
 </RCC>

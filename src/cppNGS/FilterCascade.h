@@ -164,6 +164,9 @@ class CPPNGSSHARED_EXPORT FilterBase
 			return params_;
 		}
 
+		//Returns if the filter has a parameter with the given name and type.
+		bool hasParameter(const QString& name, FilterParameterType type) const;
+
 		//Overrides a constriant of a parameter
 		void overrideConstraint(const QString& parameter_name, const QString& constraint_name, const QString& constraint_value);
 
