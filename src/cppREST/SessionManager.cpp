@@ -57,15 +57,14 @@ Session SessionManager::getSessionBySecureToken(QString token)
 
 bool SessionManager::isSessionExpired(Session in)
 {
-	qint64 login_time = in.login_time.toSecsSinceEpoch();
 	qint64 valid_period = ServerHelper::getNumSettingsValue("session_duration");
 	if (valid_period == 0) valid_period = 60;
 
-	qDebug() << "Login time: " << login_time;
+	qDebug() << "Login time: " << in.login_time;
 	qDebug() << "Current time: " << QDateTime::currentDateTime().toSecsSinceEpoch();
 	qDebug() << "Valid period: " << valid_period;
 
-	if ((login_time + valid_period) > QDateTime::currentDateTime().toSecsSinceEpoch())
+	if (in.login_time.addSecs(valid_period) > QDateTime::currentDateTime())
 	{
 		return true;
 	}
