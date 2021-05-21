@@ -42,18 +42,22 @@ Session SessionManager::getSessionByUserId(QString id)
 			return i.value();
 		}
 	}
-	qDebug() << "Session return";
+	qDebug() << "Session return user id";
 	return Session();
 }
 
 Session SessionManager::getSessionBySecureToken(QString token)
 {
-	if (instance().session_store_.contains(token))
-	{
-		return instance().session_store_[token];
+	QMapIterator<QString, Session> i(instance().session_store_);
+	while (i.hasNext()) {
+		i.next();
+		if (i.key() == token)
+		{
+			return i.value();
+		}
 	}
 
-	qDebug() << "Session return";
+	qDebug() << "Session return by token";
 	return Session();
 }
 
@@ -63,6 +67,7 @@ bool SessionManager::isSessionExpired(Session in)
 	if (valid_period == 0) valid_period = 60;
 
 	qDebug() << "Login time: " << in.login_time;
+	qDebug() << "User id: " << in.user_id;
 	qDebug() << "Current time: " << QDateTime::currentDateTime().toSecsSinceEpoch();
 	qDebug() << "Valid period: " << valid_period;
 
