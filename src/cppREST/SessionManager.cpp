@@ -48,9 +48,12 @@ Session SessionManager::getSessionByUserId(QString id)
 
 Session SessionManager::getSessionBySecureToken(QString token)
 {
+	qDebug() << "instance().session_store_ " << instance().session_store_.size();
+	qDebug() << "instance().session_store_ " << instance().session_store_;
 	QMapIterator<QString, Session> i(instance().session_store_);
 	while (i.hasNext()) {
 		i.next();
+		qDebug() << "key" << i.key();
 		if (i.key() == token)
 		{
 			return i.value();
