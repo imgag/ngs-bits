@@ -11,7 +11,7 @@ private slots:
 		QString username = "username";
 		QString token = "secure_token";
 		QDateTime login_time = QDateTime::currentDateTime();
-		SessionManager::addNewSession(token, Session{username, login_time});
+		SessionManager::addNewSession(token, username, login_time);
 
 		Session session = SessionManager::getSessionByUserId(username);
 		S_EQUAL(session.user_id, username);

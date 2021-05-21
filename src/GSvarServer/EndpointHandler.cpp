@@ -434,9 +434,7 @@ HttpResponse EndpointHandler::performLogin(HttpRequest request)
 	if (isValidUser(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]))
 	{
 		QString secure_token = ServerHelper::generateUniqueStr();
-		Session cur_session = Session{request.getFormUrlEncoded()["name"], QDateTime::currentDateTime()};
-
-		SessionManager::addNewSession(secure_token, cur_session);
+		SessionManager::addNewSession(secure_token, request.getFormUrlEncoded()["name"], QDateTime::currentDateTime());
 		body = secure_token.toLocal8Bit();
 
 		BasicResponseData response_data;

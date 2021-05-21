@@ -11,10 +11,10 @@ SessionManager& SessionManager::instance()
 	return session_manager;
 }
 
-void SessionManager::addNewSession(QString id, Session in)
+void SessionManager::addNewSession(QString id, QString user_id, QDateTime login_time)
 {
 	instance().mutex_.lock();
-	instance().session_store_.insert(id, in);
+	instance().session_store_.insert(id, Session(user_id, login_time));
 	instance().mutex_.unlock();
 }
 
@@ -49,7 +49,6 @@ Session SessionManager::getSessionByUserId(QString id)
 Session SessionManager::getSessionBySecureToken(QString token)
 {
 	qDebug() << "instance().session_store_ " << instance().session_store_.size();
-	qDebug() << "instance().session_store_ " << instance().session_store_;
 	QMapIterator<QString, Session> i(instance().session_store_);
 	while (i.hasNext()) {
 		i.next();

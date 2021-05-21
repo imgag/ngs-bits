@@ -86,7 +86,7 @@ private slots:
 		IS_TRUE(response.getStatusLine().contains("403"));
 
 		QString token = ServerHelper::generateUniqueStr();
-		SessionManager::addNewSession(token, Session("test_user", QDateTime::currentDateTime()));
+		SessionManager::addNewSession(token, "test_user", QDateTime::currentDateTime());
 		I_EQUAL(token.length(), 36);
 		I_EQUAL(token.count("-"), 4);
 
