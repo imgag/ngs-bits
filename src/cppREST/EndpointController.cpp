@@ -63,6 +63,7 @@ HttpResponse EndpointController::serveStaticFileFromCache(HttpRequest request)
 
 HttpResponse EndpointController::serveProtectedStaticFile(HttpRequest request)
 {
+	qDebug() << request.getUrlParams().value("token");
 	if (!isEligibileToAccess(request))
 	{
 		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Invalid or missing secure token");
@@ -374,19 +375,18 @@ QString EndpointController::getServedRootPath(QList<QString> path_parts)
 
 bool EndpointController::isEligibileToAccess(HttpRequest request)
 {
-	if ((!request.getFormUrlEncoded().contains("token")) && (!request.getUrlParams().contains("token")))
+	if (request.getFormUrlEncoded().contains("token"))
 	{
-		qDebug() << "Secure token is missing";
-		return false;
+		return SessionManager::isTokenValid(request.getFormUrlEncoded().value("token"));
 	}
-	qDebug() << "Secure token is present";
-	if ((!SessionManager::isTokenValid(request.getFormUrlEncoded()["token"])) && (!SessionManager::isTokenValid(request.getUrlParams()["token"])))
+
+	if (request.getUrlParams().contains("token"))
 	{
-		qDebug() << "Secure token is not valid";
-		return false;
+		return SessionManager::isTokenValid(request.getUrlParams().value("token"));
 	}
-	qDebug() << "Secure token is valid";
-	return true;
+
+	qDebug() << "Secure token is missing";
+	return false;
 }
 
 StaticFile EndpointController::readFileContent(QString filename, ByteRange byte_range)
