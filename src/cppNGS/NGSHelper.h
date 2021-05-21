@@ -56,9 +56,9 @@ public:
 	static const BedFile& pseudoAutosomalRegion(const QString& build);
 
 	///Returns the cytogenetic band for to chromosomal position
-	static QByteArray cytoBand(Chromosome chr, int pos);
+	static QByteArray cytoBand(const QString& build, Chromosome chr, int pos);
 	///Returns the chromosomal range of a cytoband or cytoband range.
-	static BedLine cytoBandToRange(QByteArray cytoband);
+	static BedLine cytoBandToRange(const QString& build, QByteArray cytoband);
 
 	///Returns a map if imprinted genes and inherited allele.
 	static const QMap<QByteArray, ImprintingInfo>& imprintingGenes();

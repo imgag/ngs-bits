@@ -929,7 +929,7 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString exons, QString t
 	return QCValue(qcml_name, QString::number(mutation_burden, 'f', 2), qcml_desc, qcml_id);
 }
 
-QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file,bool skip_plots, const QString& ref_file_cram)
+QCCollection Statistics::somatic(const QString& build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots, const QString& ref_file_cram)
 {
 	QCCollection output;
 
@@ -1539,7 +1539,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	return output;
 }
 
-QCCollection Statistics::contamination(QString build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps)
+QCCollection Statistics::contamination(const QString& build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps)
 {
 	//open BAM
 	BamReader reader(bam, ref_file);
@@ -1587,7 +1587,7 @@ QCCollection Statistics::contamination(QString build, QString bam, const QString
 	return output;
 }
 
-AncestryEstimates Statistics::ancestry(QString build, QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
+AncestryEstimates Statistics::ancestry(const QString& build, QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
 {
 	//init score statistics
 	struct PopScore
@@ -2158,7 +2158,7 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	return output;
 }
 
-GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double max_male, double min_female, const QString& ref_file)
+GenderEstimate Statistics::genderHetX(const QString& build, QString bam_file, double max_male, double min_female, const QString& ref_file)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2207,7 +2207,7 @@ GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double ma
 	return output;
 }
 
-GenderEstimate Statistics::genderSRY(QString bam_file, QString build, double min_cov, const QString& ref_file)
+GenderEstimate Statistics::genderSRY(const QString& build, QString bam_file, double min_cov, const QString& ref_file)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);

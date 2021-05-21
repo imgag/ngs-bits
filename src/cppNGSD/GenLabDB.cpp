@@ -357,9 +357,13 @@ QPair<QString, QString> GenLabDB::diseaseInfo(QString ps_name)
 				{
 					status = "Affected";
 				}
-				if (tmp=="Angehöriger gesund")
+				else if (tmp=="Angehöriger gesund")
 				{
 					status = "Unaffected";
+				}
+				else if (tmp=="Angehöriger unklar")
+				{
+					status = "Unclear";
 				}
 			}
 

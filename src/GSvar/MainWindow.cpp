@@ -247,7 +247,9 @@ MainWindow::MainWindow(QWidget *parent)
 QString MainWindow::appName() const
 {
 	QString name = QCoreApplication::applicationName();
-	if (Settings::string("reference_genome").contains("GRCh38")) name += " hg38";
+
+	if (GSvarHelper::build()=="hg38") name += " hg38";
+
 	return name;
 }
 
@@ -1611,9 +1613,9 @@ void MainWindow::delayedInitialization()
 	Log::appInfo();
 
 	//load from INI file (if a valid INI file - otherwise restore INI file)
-	if (!Settings::contains("igv_genome"))
+	if (!Settings::contains("igv_genome") || (GSvarHelper::build()!="hg19" && GSvarHelper::build()!="hg38"))
 	{
-		QMessageBox::warning(this, "GSvar not configured", "GSvar is not configured correctly.\nThe settings key 'igv_genome' is not set.\nPlease inform your administrator!");
+		QMessageBox::warning(this, "GSvar is not configured", "GSvar is not configured correctly.\nPlease inform your administrator!");
 		close();
 		return;
 	}
@@ -3121,7 +3123,7 @@ void MainWindow::generateEvaluationSheet()
 
 	//write sheet
 	PrsTable prs_table; //not needed
-	GermlineReportGeneratorData generator_data(base_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
+	GermlineReportGeneratorData generator_data(GSvarHelper::build(), base_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
 	GermlineReportGenerator generator(generator_data);
 	generator.writeEvaluationSheet(filename, evaluation_sheet_data);
 
@@ -3554,7 +3556,7 @@ void MainWindow::generateReportGermline()
 	FileLocationList prs_files = GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).filterById(ps_name);
 	if (prs_files.count()==1) prs_table.load(prs_files[0].filename);
 
-	GermlineReportGeneratorData data(ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
+	GermlineReportGeneratorData data(GSvarHelper::build(), ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
 	data.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_name));
 	data.ps_bam = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::BAM).filename;
 	data.ps_lowcov = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::LOWCOV_BED).filename;
@@ -5101,7 +5103,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		QString obs = variant.obs();
 		obs.replace("-", "");
 		QString var = variant.chr().str() + "-" + QString::number(variant.start()) + "-" +  ref + "-" + obs;
-		QString genome = variant.chr().isM() ? "hg38" : "hg19";
+		QString genome = variant.chr().isM() ? "hg38" : GSvarHelper::build();
 		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/" + genome + "/" + var));
 	}
 	else if (action==a_report_edit)

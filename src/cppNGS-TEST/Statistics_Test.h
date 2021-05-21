@@ -537,16 +537,16 @@ TEST_CLASS(Statistics_Test)
 
 	void genderHetX()
 	{
-		GenderEstimate estimate = Statistics::genderHetX(TESTDATA("data_in/panel.bam"), "hg19");
+		GenderEstimate estimate = Statistics::genderHetX("hg19", TESTDATA("data_in/panel.bam"));
 		S_EQUAL(estimate.gender, QString("unknown (too few SNPs)"));
 	}
 
 	void genderSRY()
 	{
-		GenderEstimate estimate = Statistics::genderSRY(TESTDATA("data_in/panel.bam"), "hg19");
+		GenderEstimate estimate = Statistics::genderSRY("hg19", TESTDATA("data_in/panel.bam"));
 		S_EQUAL(estimate.gender, "female");
 
-		estimate = Statistics::genderSRY(TESTDATA("data_in/sry.bam"), "hg19");
+		estimate = Statistics::genderSRY("hg19", TESTDATA("data_in/sry.bam"));
 		S_EQUAL(estimate.gender, "male");
 	}
 

@@ -363,13 +363,13 @@ const BedFile& NGSHelper::pseudoAutosomalRegion(const QString& build)
 	return output[build];
 }
 
-QByteArray NGSHelper::cytoBand(Chromosome chr, int pos)
+QByteArray NGSHelper::cytoBand(const QString& build, Chromosome chr, int pos)
 {
 	//init
 	static BedFile bands;
 	if (bands.count()==0)
 	{
-		bands.load(":/Resources/cyto_band.bed");
+		bands.load(":/Resources/" + build + "_cyto_band.bed");
 	}
 
 	//search for band
@@ -384,13 +384,13 @@ QByteArray NGSHelper::cytoBand(Chromosome chr, int pos)
 	THROW(ProgrammingException, "Could not find band for coordinate " + chr.str() + ":" + QString::number(pos));
 }
 
-BedLine NGSHelper::cytoBandToRange(QByteArray cytoband)
+BedLine NGSHelper::cytoBandToRange(const QString& build, QByteArray cytoband)
 {
 	//init
 	static BedFile bands;
 	if (bands.count()==0)
 	{
-		bands.load(":/Resources/cyto_band.bed");
+		bands.load(":/Resources/" + build + "_cyto_band.bed");
 	}
 
 	//determine chromosome
@@ -403,8 +403,8 @@ BedLine NGSHelper::cytoBandToRange(QByteArray cytoband)
 		}
 		else
 		{
-			BedLine range1 = cytoBandToRange(parts[0]);
-			BedLine range2 = cytoBandToRange(parts[1]);
+			BedLine range1 = cytoBandToRange(build, parts[0]);
+			BedLine range2 = cytoBandToRange(build, parts[1]);
 
 			if (range1.chr()!=range2.chr()) THROW(ArgumentException, "Cytoband '" + cytoband + "' contains range with non-matching chromosomes!");
 

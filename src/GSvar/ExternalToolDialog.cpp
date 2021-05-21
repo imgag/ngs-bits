@@ -11,6 +11,7 @@
 #include "LoginManager.h"
 #include "ProcessedSampleSelector.h"
 #include "GlobalServiceProvider.h"
+#include "GSvarHelper.h"
 
 ExternalToolDialog::ExternalToolDialog(QString tool_name, QString mode, QWidget* parent)
 	: QDialog(parent)
@@ -80,11 +81,11 @@ void ExternalToolDialog::browse()
 			}
 			else if (mode_=="hetx")
 			{
-				estimate = Statistics::genderHetX(filename, "hg19");
+				estimate = Statistics::genderHetX(GSvarHelper::build(), filename);
 			}
 			else if (mode_=="sry")
 			{
-				estimate = Statistics::genderSRY(filename, "hg19");
+				estimate = Statistics::genderSRY(GSvarHelper::build(), filename);
 			}
 			QApplication::restoreOverrideCursor();
 
@@ -111,8 +112,8 @@ void ExternalToolDialog::browse()
 			QApplication::setOverrideCursor(Qt::BusyCursor);
 			if (mode_=="bam")
 			{
-				SampleSimilarity::VariantGenotypes geno1 = SampleSimilarity::genotypesFromBam("hg19", filename1, 30, 500, false);
-				SampleSimilarity::VariantGenotypes geno2 = SampleSimilarity::genotypesFromBam("hg19", filename2, 30, 500, false);
+				SampleSimilarity::VariantGenotypes geno1 = SampleSimilarity::genotypesFromBam(GSvarHelper::build(), filename1, 30, 500, false);
+				SampleSimilarity::VariantGenotypes geno2 = SampleSimilarity::genotypesFromBam(GSvarHelper::build(), filename2, 30, 500, false);
 
 				SampleSimilarity sc;
 				sc.calculateSimilarity(geno1, geno2);
@@ -156,7 +157,7 @@ void ExternalToolDialog::browse()
 
 			//process
 			QApplication::setOverrideCursor(Qt::BusyCursor);
-			AncestryEstimates ancestry = Statistics::ancestry("hg19", filename);
+			AncestryEstimates ancestry = Statistics::ancestry(GSvarHelper::build(), filename);
 
 			stream << "Informative SNPs: " << QString::number(ancestry.snps)<< "<br>";
 			stream<< "<br>";
