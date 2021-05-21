@@ -42,7 +42,7 @@ Session SessionManager::getSessionByUserId(QString id)
 			return i.value();
 		}
 	}
-	return Session{};
+	return Session();
 }
 
 Session SessionManager::getSessionBySecureToken(QString token)
@@ -52,7 +52,7 @@ Session SessionManager::getSessionBySecureToken(QString token)
 		return instance().session_store_[token];
 	}
 
-	return Session{};
+	return Session();
 }
 
 bool SessionManager::isSessionExpired(Session in)

@@ -13,6 +13,18 @@ struct CPPRESTSHARED_EXPORT Session
 {
 	QString user_id;
 	QDateTime login_time;
+
+	Session()
+		: user_id()
+		, login_time()
+	{
+	}
+
+	Session(const QString& user_id_, const QDateTime login_time_)
+		: user_id(user_id_)
+		, login_time(login_time_)
+	{
+	}
 };
 
 class CPPRESTSHARED_EXPORT SessionManager
