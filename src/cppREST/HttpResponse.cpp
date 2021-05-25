@@ -70,6 +70,12 @@ HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, QStr
 	setStatusLine(status);
 	addHeader("Content-Length: " + QString::number(getContentLength()) + "\r\n");
 	addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(content_type) + "\r\n");
+
+	if (HttpProcessor::convertResponseStatusToStatusCode(status) == 401)
+	{
+		addHeader("WWW-Authenticate: Basic realm=\"Access to the secure area of GSvar\"\r\n");
+	}
+
 	addHeader(QString("\r\n"));
 	setIsStream(false);
 }
@@ -140,14 +146,15 @@ void HttpResponse::setRangeNotSatisfiableHeaders(BasicResponseData data)
 
 void HttpResponse::readBasicResponseData(BasicResponseData data)
 {
+	setStatusLine(data.status);
 	if ((data.byte_range.end > 0) && (data.byte_range.length > 0))
 	{
 		setStatusLine(ResponseStatus::PARTIAL_CONTENT);
 	}
-	else
-	{
-		setStatusLine(ResponseStatus::OK);
-	}
+//	else
+//	{
+//		setStatusLine(ResponseStatus::UNAUTHORIZED);
+//	}
 
 	setIsStream(data.is_stream);
 	setFilename(data.filename);
@@ -161,6 +168,10 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 	headers.append("Content-Length: " + QString::number(data.length) + "\r\n");
 	headers.append("Content-Type: " + HttpProcessor::convertContentTypeToString(data.content_type) + "\r\n");
 	headers.append("Connection: Keep-Alive\r\n");
+	if (HttpProcessor::convertResponseStatusToStatusCode(data.status) == 401)
+	{
+		headers.append("WWW-Authenticate: Basic realm=\"Access to the secure area of GSvar\"");
+	}
 	if ((data.byte_range.end > 0) && (data.byte_range.length > 0))
 	{
 		headers.append("Accept-Ranges: bytes\r\n");

@@ -143,6 +143,17 @@ int main(int argc, char **argv)
 				   });
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"protected",
+						QMap<QString, ParamProps>{
+						   {"filename", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::PATH_PARAM, true, "Name of the file to be served"}}
+						},
+						RequestMethod::GET,
+						ContentType::TEXT_HTML,
+						"Protected static files",
+						&EndpointController::serveProtectedStaticFromServerRoot
+				   });
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"cache",
 						QMap<QString, ParamProps>{
 						   {"filename", ParamProps{ParamProps::ParamType::STRING, ParamProps::ParamCategory::PATH_PARAM, false, "Name of the file to be served"}}

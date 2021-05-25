@@ -19,6 +19,7 @@ public:
 
 	void addHeader(QString key, QString value);
 	QMap<QString, QString> getHeaders();
+	QString getHeaderByName(QString key);
 
 	void setBody(QByteArray body);
 	QByteArray getBody();

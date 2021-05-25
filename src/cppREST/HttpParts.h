@@ -91,6 +91,7 @@ struct CPPRESTSHARED_EXPORT ByteRange
 
 struct CPPRESTSHARED_EXPORT BasicResponseData
 {
+	ResponseStatus status = OK;
 	qint64 length;
 	ContentType content_type;
 	QString filename;

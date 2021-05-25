@@ -43,6 +43,16 @@ QMap<QString, QString> HttpRequest::getHeaders()
 	return headers_;
 }
 
+QString HttpRequest::getHeaderByName(QString key)
+{
+	if (headers_.contains(key.toLower()))
+	{
+		return headers_.value(key.toLower());
+	}
+
+	return "";
+}
+
 void HttpRequest::setBody(QByteArray body)
 {
 	body_ = body;
