@@ -1167,7 +1167,14 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	}
 
 
-	general_info_table.addRow(RtfTableRow({"HRD", trans(settings_.report_config.hrdStatement()).toUtf8()}, {2500,7421},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+	RtfSourceCode hrd_text = trans(settings_.report_config.hrdStatement()).toUtf8();
+	if(settings_.report_config.hrdStatement() != "undeterminable")
+	{
+		hrd_text += RtfText("\n\\line\nHRD-Score chromosomale Veränderungen: " + QByteArray::number(settings_.report_config.cnvLohCount() + settings_.report_config.cnvTaiCount() + settings_.report_config.cnvLstCount()) + " (HRD bei \\u8805; 32)" ).setFontSize(14).RtfCode();
+		hrd_text += RtfText("\n\\line\nHRD-Score analog TOP-ART-Studie: " + QByteArray::number(settings_.report_config.hrdScore()) + " (HRD bei \\u8805; 3)" ).setFontSize(14).RtfCode();
+	}
+	general_info_table.addRow(RtfTableRow({"HRD-Score", hrd_text}, {2500,7421},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+
 
 	if(settings_.report_config.quality() != "no abnormalities")
 	{
@@ -1341,19 +1348,6 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	snv_expl += " Weitere Informationen zu allen nachgewiesenen somatischen Veränderungen und pharmakogenetisch relevanten Polymorphismen entnehmen Sie bitte der Anlage. ";
 	doc_.addPart(RtfParagraph(snv_expl).highlight(3).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 	doc_.addPart(RtfParagraph("").setIndent(0,0,0).setLineSpacing(276).setFontSize(18).RtfCode());
-	if(settings_.report_config.hrdStatement() != "undeterminable" && !settings_.report_config.hrdStatement().isEmpty())
-	{
-		RtfSourceCode text = RtfSourceCode("Es gibt ") + (settings_.report_config.hrdStatement() == "no proof" ? "keine " : "") + "Hinweise auf eine homologe Rekombinationsdefizienz (HRD). ";
-
-
-		QByteArray hrd_sum = QByteArray::number( settings_.report_config.cnvLohCount() + settings_.report_config.cnvTaiCount() + settings_.report_config.cnvLstCount() );
-
-		text += "Diese Einschätzung basiert auf einer Beurteilung der chromosomalen Veränderungen in der Tumorprobe (analog PMID: 26957554, Wert " + hrd_sum + ", HRD bei \\u8805; 32) und einer Kombination chromosomaler Veränderungen mit Veränderungen in HR-relevanten Genen (analog TOP-ART Studie, Wert " + QByteArray::number(settings_.report_config.hrdScore()) + ", HRD bei \\u8805; 3).";
-		text += " Details zur Berechnung der jeweiligen Werte finden sich im Anhang des Befundes.";
-		doc_.addPart(RtfParagraph(text).setFontSize(18).setIndent(0,0,0).setSpaceBefore(30).setSpaceAfter(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
-		doc_.addPart(RtfParagraph("").setIndent(0,0,0).setLineSpacing(276).setFontSize(18).RtfCode());
-	}
-
 
 	snv_expl = "Die Varianten- und Gendosisanalysen der Gene " + RtfText("BRCA1").setItalic(true).setFontSize(18).RtfCode() + " und " + RtfText("BRCA2").setItalic(true).setFontSize(18).RtfCode();
 	snv_expl += " in der Normalprobe waren unauffällig.";
@@ -1526,8 +1520,8 @@ QString SomaticReportHelper::trans(const QString &text)
 	en2de["UNCERTAIN_SIGNIFICANCE"] = "unklare Variante";
 	en2de["loss_of_function"] = "Funktionsverlust";
 	en2de["ambiguous"] = "unklare Bedeutung";
-	en2de["proof"] = "Hinweise auf HRD";
-	en2de["no proof"] = "Keine Hinweise";
+	en2de["proof"] = "Hinweise auf eine HRD";
+	en2de["no proof"] = "Keine Hinweise auf eine HRD";
 	en2de["undeterminable"] = "nicht bestimmbar";
 
 
