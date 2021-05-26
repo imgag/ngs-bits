@@ -195,6 +195,7 @@ void RequestWorker::run()
 		}
 		else if ((response.getPayload().isNull()) && (parsed_request.getHeaders().contains("range")))
 		{			
+			// Fetching non-existing range (e.g. larger than the file itself)
 			BasicResponseData response_data;
 			response_data.filename = response.getFilename();
 			response_data.file_size = QFile(response.getFilename()).size();
