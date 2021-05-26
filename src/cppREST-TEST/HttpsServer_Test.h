@@ -26,7 +26,7 @@ private slots:
 		catch(Exception& e)
 		{
 			qDebug() << e.message();
-			SKIP("The server is probably not available");
+			SKIP("This test requieres a running server");
 		}
 		IS_TRUE(!reply.isEmpty());
 
@@ -60,10 +60,37 @@ private slots:
 		catch(Exception& e)
 		{
 			qDebug() << e.message();
-			SKIP("The server is probably not available");
+			SKIP("This test requieres a running server");
 		}
 
-		qDebug() << reply;
 		S_EQUAL(reply, "Welcome to GSvarServer info page");
+	}
+
+	void test_basic_http_authentication()
+	{
+		QByteArray reply;
+		try
+		{
+			HttpHeaders add_headers;
+			add_headers.insert("Accept", "text/html");
+			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://user:somepassword@localhost:8443/v1/protected", add_headers);
+		}
+		catch(Exception& e)
+		{
+			IS_TRUE(e.message().contains("Network error 201")); // Access denied response (status code 403)
+		}
+
+		try
+		{
+			HttpHeaders add_headers;
+			add_headers.insert("Accept", "text/html");
+			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://ahmustm1:123456@localhost:8443/v1/protected", add_headers);
+		}
+		catch(Exception& e)
+		{
+			SKIP("This test requieres a running server");
+		}
+
+		IS_TRUE(reply.contains("Folder content:"))
 	}
 };
