@@ -27,7 +27,6 @@ public:
 	static HttpResponse serveTempUrl(HttpRequest request);
 	static HttpResponse locateFileByType(HttpRequest request);
 	static HttpResponse locateProjectFile(HttpRequest request);
-
 	static HttpResponse saveProjectFile(HttpRequest request);
 
 	/// Streams processing system regions file
@@ -37,12 +36,7 @@ public:
 	/// Streams processing system genes file
 	static HttpResponse getProcessingSystemGenes(HttpRequest request);
 
-	static HttpResponse performLogin(HttpRequest request);
-	static HttpResponse performLogout(HttpRequest request);
-
 private:
-	static bool isValidUser(QString name, QString password);	
-
 	/// Creates a temporary URL for a file (includes a file name and its full path)
 	static QString createFileTempUrl(QString file);
 };

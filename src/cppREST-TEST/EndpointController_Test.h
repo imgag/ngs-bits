@@ -73,32 +73,4 @@ private slots:
 
 		IS_TRUE(response.getStatusLine().split('\n').first().contains("404"));
 	}
-
-	void test_protected_content_access()
-	{
-
-		QString token = ServerHelper::generateUniqueStr();
-		SessionManager::addNewSession(token, "test_user", QDateTime::currentDateTime());
-		I_EQUAL(token.length(), 36);
-		I_EQUAL(token.count("-"), 4);
-
-		HttpRequest request;
-		request.setMethod(RequestMethod::GET);
-		request.setContentType(ContentType::APPLICATION_OCTET_STREAM);
-		request.setPrefix("v1");
-		request.setPath("protected_file");
-
-		HttpResponse response = EndpointController::serveProtectedStaticFile(request);
-		IS_TRUE(response.getStatusLine().contains("403"));
-
-
-
-		request.addUrlParam("token", token);
-		response = EndpointController::serveProtectedStaticFile(request);
-		qDebug() << "response.getStatusLine() " << response.getStatusLine();
-		qDebug() << "response.getStatusLine() " << response.getStatusLine().mid(9, 3);
-
-		S_EQUAL(response.getStatusLine().mid(9, 3), "200");
-//		IS_TRUE(response.getStatusLine().contains("200"));
-	}
 };

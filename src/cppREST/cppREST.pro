@@ -57,7 +57,6 @@ SOURCES += \
     RequestPaser.cpp \
     RequestWorker.cpp \
     ServerHelper.cpp \
-    SessionManager.cpp \
     SslServer.cpp \
     UrlManager.cpp
 
@@ -74,7 +73,6 @@ HEADERS += \
     RequestParser.h \
     RequestWorker.h \
     ServerHelper.h \
-    SessionManager.h \
     SslServer.h \
     UrlManager.h
 

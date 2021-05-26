@@ -61,17 +61,6 @@ HttpResponse EndpointController::serveStaticFileFromCache(HttpRequest request)
 	return createStaticFromCacheResponse(filename, ByteRange{}, HttpProcessor::getContentTypeByFilename(filename), false);
 }
 
-HttpResponse EndpointController::serveProtectedStaticFile(HttpRequest request)
-{
-	qDebug() << request.getUrlParams().value("token");
-	if (!isEligibileToAccess(request))
-	{
-		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Invalid or missing secure token");
-	}
-	// this is just an example
-	return createStaticFileResponse(":/assets/client/example.png", ByteRange{}, ContentType::APPLICATION_OCTET_STREAM, true);
-}
-
 HttpResponse EndpointController::getFileInfo(HttpRequest request)
 {
 	QString filename = request.getUrlParams()["file"];
@@ -371,22 +360,6 @@ QString EndpointController::getServedRootPath(QList<QString> path_parts)
 	}
 
 	return "";
-}
-
-bool EndpointController::isEligibileToAccess(HttpRequest request)
-{
-	if (request.getFormUrlEncoded().contains("token"))
-	{
-		return SessionManager::isTokenValid(request.getFormUrlEncoded().value("token"));
-	}
-
-	if (request.getUrlParams().contains("token"))
-	{
-		return SessionManager::isTokenValid(request.getUrlParams().value("token"));
-	}
-
-	qDebug() << "Secure token is missing";
-	return false;
 }
 
 StaticFile EndpointController::readFileContent(QString filename, ByteRange byte_range)

@@ -1,5 +1,4 @@
 #include "TestFramework.h"
-#include "SessionManager.h"
 #include "EndpointHandler.h"
 #include "EndpointHandler.cpp"
 
@@ -54,4 +53,5 @@ private slots:
 
 		QFile::remove(copy_name);
 	}
+
 };

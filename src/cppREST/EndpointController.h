@@ -4,12 +4,12 @@
 #include "cppREST_global.h"
 #include "HttpParts.h"
 #include "HtmlEngine.h"
-#include "SessionManager.h"
 #include "FileCache.h"
 #include "EndpointManager.h"
 #include "UrlManager.h"
 #include "HttpResponse.h"
 #include <QUrl>
+#include <QDir>
 
 
 class CPPRESTSHARED_EXPORT EndpointController
@@ -25,8 +25,6 @@ public:
 	static HttpResponse serveStaticForTempUrl(HttpRequest request);
 	/// Serves or streams file content saved in the server cache
 	static HttpResponse serveStaticFileFromCache(HttpRequest request);
-	/// Provides an access to a file for authenticated users
-	static HttpResponse serveProtectedStaticFile(HttpRequest request);
 	/// Returns file information in JSON format for a specific file
 	static HttpResponse getFileInfo(HttpRequest request);
 
@@ -50,7 +48,6 @@ private:
 	static QString getServedTempPath(QList<QString> path_parts);
 	static QString getServedRootPath(QList<QString> path_parts);
 
-	static bool isEligibileToAccess(HttpRequest request);
 	static StaticFile readFileContent(QString filename, ByteRange byte_range);
 	static QString addFileToCache(QString filename);
 };
