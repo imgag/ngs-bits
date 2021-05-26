@@ -73,6 +73,7 @@ public:
 		while(!in_p->atEnd())
 		{
 			QByteArray line = in_p->readLine();
+			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
 			//skip empty lines
 			if (line.trimmed().isEmpty()) continue;
@@ -87,6 +88,7 @@ public:
 				}
 
 				out_p->write(line);
+				out_p->write("\n");
 				continue;
 			}
 
@@ -132,6 +134,7 @@ public:
 					}
 				}
 			}
+			out_p->write("\n");
 		}
     }
 
