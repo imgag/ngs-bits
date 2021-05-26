@@ -87,6 +87,19 @@ void RequestWorker::run()
 		}
 
 		qDebug() << "Requested:" + current_endpoint.comment;
+		if (current_endpoint.is_password_protected)
+		{
+			qDebug() << "Accessing password protected area";
+			HttpResponse auth_response = EndpointManager::blockInvalidUsers(parsed_request);
+			qDebug() << "Response status line = " << auth_response.getStatusLine();
+			if (auth_response.getStatusCode() > 0)
+			{
+				sendEntireResponse(ssl_socket, auth_response);
+				return;
+			}
+		}
+
+
 		HttpResponse (*endpoint_action_)(HttpRequest request) = current_endpoint.action_func;
 		HttpResponse response;
 
@@ -186,7 +199,7 @@ void RequestWorker::run()
 			response_data.filename = response.getFilename();
 			response_data.file_size = QFile(response.getFilename()).size();
 			qDebug() << response_data.file_size << response.getFilename();
-			response.setStatusLine(ResponseStatus::RANGE_NOT_SATISFIABLE);
+			response.setStatus(ResponseStatus::RANGE_NOT_SATISFIABLE);
 			response.setRangeNotSatisfiableHeaders(response_data);
 			sendEntireResponse(ssl_socket, response);
 			return;			

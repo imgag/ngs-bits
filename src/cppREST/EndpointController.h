@@ -9,7 +9,6 @@
 #include "EndpointManager.h"
 #include "UrlManager.h"
 #include "HttpResponse.h"
-#include "NGSD.h"
 #include <QUrl>
 
 
@@ -21,9 +20,6 @@ public:
 	/// Provides a random access to a file or streams it (depending on the headers), as well as displays a folder
 	/// content from the server root folder
 	static HttpResponse serveStaticFromServerRoot(HttpRequest request);
-	static HttpResponse serveProtectedStaticFromServerRoot(HttpRequest request);
-
-
 	/// Provides a random access to a file or streams it (depending on the headers), as well as displays a folder
 	/// content for a specific project folder linked to a temporary URL
 	static HttpResponse serveStaticForTempUrl(HttpRequest request);
@@ -57,9 +53,6 @@ private:
 	static bool isEligibileToAccess(HttpRequest request);
 	static StaticFile readFileContent(QString filename, ByteRange byte_range);
 	static QString addFileToCache(QString filename);
-	static bool isValidUser(QString& name, QString& password);
-
-
 };
 
 #endif // ENDPOINTCONTROLLER_H

@@ -8,16 +8,10 @@
 #include "HtmlEngine.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"
+#include "NGSD.h"
 
 struct CPPRESTSHARED_EXPORT ParamProps
 {
-	enum ParamType
-	{
-		INTEGER,
-		STRING,
-		ENUM,
-		UNKNOWN
-	};
 	enum ParamCategory
 	{
 		PATH_PARAM, // http://url/{param}
@@ -25,15 +19,13 @@ struct CPPRESTSHARED_EXPORT ParamProps
 		POST_URL_ENCODED, // application/x-www-form-urlencoded
 		POST_FORM_DATA // multipart/form-data
 	};
-
-	ParamType type;
 	ParamCategory category;
 	bool is_optional;
 	QString comment;
 
 	bool operator==(const ParamProps& p) const
 	{
-		return type==p.type && category==p.category && is_optional==p.is_optional;
+		return category==p.category && is_optional==p.is_optional;
 	}	
 };
 
@@ -43,6 +35,7 @@ struct CPPRESTSHARED_EXPORT Endpoint
 	QMap<QString, ParamProps> params;
 	RequestMethod method;
 	ContentType return_type;
+	bool is_password_protected;
 	QString comment;
 	HttpResponse (*action_func)(HttpRequest request);
 
@@ -56,7 +49,7 @@ class CPPRESTSHARED_EXPORT EndpointManager
 {
 
 public:
-	static ParamProps::ParamType getParamTypeFromString(QString in);	
+	static HttpResponse blockInvalidUsers(HttpRequest request);
 	static void validateInputData(Endpoint* current_endpoint, HttpRequest request);
 	static void appendEndpoint(Endpoint new_endpoint);	
 	static Endpoint getEndpointEntity(QString url, RequestMethod method);
@@ -67,8 +60,8 @@ protected:
 
 private:	
 	static EndpointManager& instance();
-	static bool isParamTypeValid(QString param, ParamProps::ParamType type);
-	QList<Endpoint> endpoint_registry_;
+	QList<Endpoint> endpoint_list_;
+	static bool isUserValid(QString &user, QString &password);
 };
 
 #endif // ENDPOINTMANAGER_H

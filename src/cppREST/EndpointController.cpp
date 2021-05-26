@@ -35,38 +35,6 @@ HttpResponse EndpointController::serveStaticFromServerRoot(HttpRequest request)
 	return serveStaticFile(served_file, request.getMethod(), request.getHeaders());
 }
 
-HttpResponse EndpointController::serveProtectedStaticFromServerRoot(HttpRequest request)
-{
-	QString auth_header = request.getHeaderByName("Authorization");
-	if (auth_header.isEmpty())
-	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::getContentTypeFromString("text/plain"), "Protected area");
-	}
-
-	if (auth_header.split(" ").size() < 2)
-	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Could not parse basic authentication headers");
-	}
-
-	auth_header = auth_header.split(" ").takeLast().trimmed();
-	QByteArray auth_header_decoded = QByteArray::fromBase64(auth_header.toLatin1());
-	int separator_pos = auth_header_decoded.indexOf(":");
-
-	if (separator_pos == -1)
-	{
-		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Could not retrieve the credentials");
-	}
-
-	QString username = auth_header_decoded.mid(0, separator_pos);
-	QString password = auth_header_decoded.mid(separator_pos+1, auth_header_decoded.size()-username.size()-1);
-
-	if (!isValidUser(username, password))
-	{
-		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Invalid user credentials");
-	}
-	return serveStaticFromServerRoot(request);
-}
-
 HttpResponse EndpointController::serveStaticForTempUrl(HttpRequest request)
 {
 	QString served_file;
@@ -477,29 +445,6 @@ QString EndpointController::addFileToCache(QString filename)
 {
 	readFileContent(filename, ByteRange{});
 	return FileCache::getFileIdIfInCache(filename);
-}
-
-bool EndpointController::isValidUser(QString& name, QString& password)
-{
-	try
-	{
-		NGSD db;
-		QString message = db.checkPassword(name, password, true);
-		if (message.isEmpty())
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-
-	}
-	catch (DatabaseException& e)
-	{
-		qCritical() << e.message();
-	}
-	return false;
 }
 
 

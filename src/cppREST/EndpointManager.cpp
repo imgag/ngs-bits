@@ -4,12 +4,37 @@ EndpointManager::EndpointManager()
 {
 }
 
-ParamProps::ParamType EndpointManager::getParamTypeFromString(QString in)
+HttpResponse EndpointManager::blockInvalidUsers(HttpRequest request)
 {
-	if (in.toLower() == "string") return ParamProps::ParamType::STRING;
-	if ((in.toLower() == "int") || (in.toLower() == "integer")) return ParamProps::ParamType::INTEGER;
+	QString auth_header = request.getHeaderByName("Authorization");
+	if (auth_header.isEmpty())
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::getContentTypeFromString("text/plain"), "Protected area");
+	}
 
-	return ParamProps::ParamType::UNKNOWN;
+	if (auth_header.split(" ").size() < 2)
+	{
+		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Could not parse basic authentication headers");
+	}
+
+	auth_header = auth_header.split(" ").takeLast().trimmed();
+	QByteArray auth_header_decoded = QByteArray::fromBase64(auth_header.toLatin1());
+	int separator_pos = auth_header_decoded.indexOf(":");
+
+	if (separator_pos == -1)
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Could not retrieve the credentials");
+	}
+
+	QString username = auth_header_decoded.mid(0, separator_pos);
+	QString password = auth_header_decoded.mid(separator_pos+1, auth_header_decoded.size()-username.size()-1);
+
+	if (!isUserValid(username, password))
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Invalid user credentials");
+	}
+
+	return HttpResponse();
 }
 
 void EndpointManager::validateInputData(Endpoint* current_endpoint, HttpRequest request)
@@ -24,10 +49,6 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, HttpRequest 
 			if (request.getFormUrlEncoded().contains(i.key()))
 			{
 				is_found = true;
-				if (!isParamTypeValid(request.getFormUrlEncoded()[i.key()], current_endpoint->params[i.key()].type))
-				{
-					THROW(ArgumentException, i.key() + " x-www-form-urlencoded parameter has an invalid type");
-				}
 			}
 		}
 
@@ -35,11 +56,7 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, HttpRequest 
 		{
 			if (request.getUrlParams().contains(i.key()))
 			{
-				is_found = true;				
-				if (!isParamTypeValid(request.getUrlParams()[i.key()], current_endpoint->params[i.key()].type))
-				{
-					THROW(ArgumentException, i.key() + " parameter inside URL has an invalid type");
-				}
+				is_found = true;
 			}
 		}
 
@@ -60,37 +77,20 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, HttpRequest 
 
 void EndpointManager::appendEndpoint(Endpoint new_endpoint)
 {
-	if (!instance().endpoint_registry_.contains(new_endpoint))
+	if (!instance().endpoint_list_.contains(new_endpoint))
 	{
-		instance().endpoint_registry_.append(new_endpoint);
-	}
-}
-
-EndpointManager& EndpointManager::instance()
-{
-	static EndpointManager endpoint_factory;
-	return endpoint_factory;
-}
-
-bool EndpointManager::isParamTypeValid(QString param, ParamProps::ParamType type)
-{
-	switch (type)
-	{
-		case ParamProps::ParamType::STRING: return true;
-		case ParamProps::ParamType::INTEGER: return ServerHelper::canConvertToInt(param);
-
-		default: return false;
+		instance().endpoint_list_.append(new_endpoint);
 	}
 }
 
 Endpoint EndpointManager::getEndpointEntity(QString url, RequestMethod method)
 {
-	for (int i = 0; i < instance().endpoint_registry_.count(); ++i)
+	for (int i = 0; i < instance().endpoint_list_.count(); ++i)
 	{
-		if ((instance().endpoint_registry_[i].url.toLower() == url.toLower()) &&
-			(instance().endpoint_registry_[i].method == method))
+		if ((instance().endpoint_list_[i].url.toLower() == url.toLower()) &&
+			(instance().endpoint_list_[i].method == method))
 		{
-			return instance().endpoint_registry_[i];
+			return instance().endpoint_list_[i];
 		}
 	}
 
@@ -99,5 +99,34 @@ Endpoint EndpointManager::getEndpointEntity(QString url, RequestMethod method)
 
 QList<Endpoint>* EndpointManager::getEndpointEntities()
 {
-	return &instance().endpoint_registry_;
+	return &instance().endpoint_list_;
+}
+
+EndpointManager& EndpointManager::instance()
+{
+	static EndpointManager endpoint_factory;
+	return endpoint_factory;
+}
+
+bool EndpointManager::isUserValid(QString& user, QString& password)
+{
+	try
+	{
+		NGSD db;
+		QString message = db.checkPassword(user, password, true);
+		if (message.isEmpty())
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+
+	}
+	catch (DatabaseException& e)
+	{
+		qCritical() << e.message();
+	}
+	return false;
 }

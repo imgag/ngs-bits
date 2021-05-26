@@ -67,7 +67,7 @@ HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, QStr
 		}
 	}
 
-	setStatusLine(status);
+	setStatus(status);
 	addHeader("Content-Length: " + QString::number(getContentLength()) + "\r\n");
 	addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(content_type) + "\r\n");
 
@@ -100,15 +100,25 @@ QString HttpResponse::getFilename()
 	return filename_;
 }
 
-void HttpResponse::setStatusLine(ResponseStatus response_status)
+void HttpResponse::setStatus(ResponseStatus response_status)
 {
-	status_line_ = "HTTP/1.1 " + QByteArray::number(HttpProcessor::convertResponseStatusToStatusCode(response_status))
-			+ " " + HttpProcessor::convertResponseStatusToReasonPhrase(response_status).toLocal8Bit() + "\r\n";
+	response_status_ = response_status;
+}
+
+ResponseStatus HttpResponse::getStatus()
+{
+	return response_status_;
 }
 
 QByteArray HttpResponse::getStatusLine()
 {
-	return status_line_;
+	return "HTTP/1.1 " + QByteArray::number(HttpProcessor::convertResponseStatusToStatusCode(response_status_))
+			+ " " + HttpProcessor::convertResponseStatusToReasonPhrase(response_status_).toLocal8Bit() + "\r\n";
+}
+
+int HttpResponse::getStatusCode()
+{
+	return HttpProcessor::convertResponseStatusToStatusCode(response_status_);
 }
 
 void HttpResponse::setHeaders(QByteArray headers)
@@ -146,10 +156,10 @@ void HttpResponse::setRangeNotSatisfiableHeaders(BasicResponseData data)
 
 void HttpResponse::readBasicResponseData(BasicResponseData data)
 {
-	setStatusLine(data.status);
+	setStatus(data.status);
 	if ((data.byte_range.end > 0) && (data.byte_range.length > 0))
 	{
-		setStatusLine(ResponseStatus::PARTIAL_CONTENT);
+		setStatus(ResponseStatus::PARTIAL_CONTENT);
 	}
 //	else
 //	{

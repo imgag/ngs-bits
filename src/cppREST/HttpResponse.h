@@ -26,8 +26,12 @@ public:
 	void setFilename(QString filename);
 	QString getFilename();
 
-	void setStatusLine(ResponseStatus response_status);
+	void setStatus(ResponseStatus response_status);
+	ResponseStatus getStatus();
+
 	QByteArray getStatusLine();
+
+	int getStatusCode();
 
 	void setHeaders(QByteArray headers);
 	void addHeader(QString header);
@@ -48,6 +52,7 @@ private:
 protected:
 	bool is_stream_;
 	QString filename_;
+	ResponseStatus response_status_;
 	QByteArray status_line_;
 	QByteArray headers_;
 	QByteArray payload_;
