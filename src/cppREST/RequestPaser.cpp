@@ -6,7 +6,7 @@ RequestPaser::RequestPaser(QByteArray *request, QString client_address)
 {
 }
 
-HttpRequest RequestPaser::getRequest()
+HttpRequest RequestPaser::getRequest() const
 {
 	HttpRequest request;
 	request.setRemoteAddress(client_address_);
@@ -66,7 +66,7 @@ HttpRequest RequestPaser::getRequest()
 	return request;
 }
 
-QList<QByteArray> RequestPaser::getRawRequestHeaders()
+QList<QByteArray> RequestPaser::getRawRequestHeaders() const
 {
 	QList<QByteArray> output;
 	QList<QByteArray> request_items = raw_request_->split('\n');
@@ -78,7 +78,7 @@ QList<QByteArray> RequestPaser::getRawRequestHeaders()
 	return output;
 }
 
-QByteArray RequestPaser::getRequestBody()
+QByteArray RequestPaser::getRequestBody() const
 {
 	QByteArray output;
 	int separator = raw_request_->trimmed().lastIndexOf("\r\n");
@@ -89,7 +89,7 @@ QByteArray RequestPaser::getRequestBody()
 	return output;
 }
 
-QList<QByteArray> RequestPaser::getKeyValuePair(QByteArray input)
+QList<QByteArray> RequestPaser::getKeyValuePair(QByteArray input) const
 {
 	QList<QByteArray> result;
 
@@ -101,7 +101,7 @@ QList<QByteArray> RequestPaser::getKeyValuePair(QByteArray input)
 	return result;
 }
 
-QMap<QString, QString> RequestPaser::getVariables(QByteArray input)
+QMap<QString, QString> RequestPaser::getVariables(QByteArray input) const
 {
 	QMap<QString, QString> url_vars {};
 	QList<QByteArray> var_list = input.split('&');
@@ -119,14 +119,14 @@ QMap<QString, QString> RequestPaser::getVariables(QByteArray input)
 	return url_vars;
 }
 
-QByteArray RequestPaser::getVariableSequence(QByteArray url)
+QByteArray RequestPaser::getVariableSequence(QByteArray url) const
 {
 	QByteArray var_string;
 	if (url.indexOf('?') == -1) return var_string;
 	return url.split('?')[1];
 }
 
-QString RequestPaser::getRequestPrefix(QList<QString> path_items)
+QString RequestPaser::getRequestPrefix(QList<QString> path_items) const
 {
 	if (path_items.count()>1)
 	{
@@ -135,7 +135,7 @@ QString RequestPaser::getRequestPrefix(QList<QString> path_items)
 	return "";
 }
 
-QString RequestPaser::getRequestPath(QList<QString> path_items)
+QString RequestPaser::getRequestPath(QList<QString> path_items) const
 {
 	if (path_items.count()>2)
 	{
@@ -144,7 +144,7 @@ QString RequestPaser::getRequestPath(QList<QString> path_items)
 	return "";
 }
 
-QList<QString> RequestPaser::getRequestPathParams(QList<QString> path_items)
+QList<QString> RequestPaser::getRequestPathParams(QList<QString> path_items) const
 {
 	QList<QString> params {};
 	if (path_items.count()>3)
@@ -160,7 +160,7 @@ QList<QString> RequestPaser::getRequestPathParams(QList<QString> path_items)
 	return params;
 }
 
-RequestMethod RequestPaser::inferRequestMethod(QByteArray input)
+RequestMethod RequestPaser::inferRequestMethod(QByteArray input) const
 {
 	if (input.toUpper() == QByteArrayLiteral("GET"))
 	{

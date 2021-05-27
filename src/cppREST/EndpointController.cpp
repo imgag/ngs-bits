@@ -317,7 +317,7 @@ QString EndpointController::generateGlobalHelp()
 	return getEndpointHelpTemplate(EndpointManager::getEndpointEntities());
 }
 
-QString EndpointController::generateEntityHelp(QString path, RequestMethod method)
+QString EndpointController::generateEntityHelp(const QString& path, const RequestMethod& method)
 {
 	QList<Endpoint> selected_endpoints;
 	selected_endpoints.append(EndpointManager::getEndpointEntity(path, method));
@@ -342,7 +342,7 @@ QString EndpointController::getServedTempPath(QList<QString> path_parts)
 	return "";
 }
 
-QString EndpointController::getServedRootPath(QList<QString> path_parts)
+QString EndpointController::getServedRootPath(const QList<QString>& path_parts)
 {
 	QString server_root = ServerHelper::getStringSettingsValue("server_root");
 	if (!server_root.endsWith(QDir::separator()))
@@ -361,7 +361,7 @@ QString EndpointController::getServedRootPath(QList<QString> path_parts)
 	return "";
 }
 
-StaticFile EndpointController::readFileContent(QString filename, ByteRange byte_range)
+StaticFile EndpointController::readFileContent(const QString& filename, const ByteRange& byte_range)
 {
 	qDebug() << "Reading file:" + filename;
 	StaticFile static_file {};
@@ -420,7 +420,7 @@ StaticFile EndpointController::readFileContent(QString filename, ByteRange byte_
 	return static_file;
 }
 
-QString EndpointController::addFileToCache(QString filename)
+QString EndpointController::addFileToCache(const QString& filename)
 {
 	readFileContent(filename, ByteRange{});
 	return FileCache::getFileIdIfInCache(filename);

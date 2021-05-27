@@ -19,21 +19,19 @@ class CPPRESTSHARED_EXPORT RequestPaser : public QObject
 
 public:
 	RequestPaser(QByteArray *request, QString client_address);
-	HttpRequest getRequest();
+	HttpRequest getRequest() const;
 
 
 private:
-	QList<QByteArray> getRawRequestHeaders();
-	QByteArray getRequestBody();
-	QList<QByteArray> getKeyValuePair(QByteArray input);
-	QMap<QString, QString> getVariables(QByteArray input);
-	QByteArray getVariableSequence(QByteArray url);
-	QString getRequestPrefix(QList<QString> path_items);
-	QString getRequestPath(QList<QString> path_items);
-	QList<QString> getRequestPathParams(QList<QString> path_items);
-	RequestMethod inferRequestMethod(QByteArray input);
-
-
+	QList<QByteArray> getRawRequestHeaders() const;
+	QByteArray getRequestBody() const;
+	QList<QByteArray> getKeyValuePair(QByteArray input) const;
+	QMap<QString, QString> getVariables(QByteArray input) const;
+	QByteArray getVariableSequence(QByteArray url) const;
+	QString getRequestPrefix(QList<QString> path_items) const;
+	QString getRequestPath(QList<QString> path_items) const;
+	QList<QString> getRequestPathParams(QList<QString> path_items) const;
+	RequestMethod inferRequestMethod(QByteArray input) const;
 
 	QByteArray *raw_request_;
 	QString client_address_;

@@ -86,7 +86,7 @@ void HttpResponse::setFilename(QString filename)
 	filename_ = filename;
 }
 
-QString HttpResponse::getFilename()
+QString HttpResponse::getFilename() const
 {
 	return filename_;
 }
@@ -96,18 +96,18 @@ void HttpResponse::setStatus(ResponseStatus response_status)
 	response_status_ = response_status;
 }
 
-ResponseStatus HttpResponse::getStatus()
+ResponseStatus HttpResponse::getStatus() const
 {
 	return response_status_;
 }
 
-QByteArray HttpResponse::getStatusLine()
+QByteArray HttpResponse::getStatusLine() const
 {
 	return "HTTP/1.1 " + QByteArray::number(HttpProcessor::convertResponseStatusToStatusCode(response_status_))
 			+ " " + HttpProcessor::convertResponseStatusToReasonPhrase(response_status_).toLocal8Bit() + "\r\n";
 }
 
-int HttpResponse::getStatusCode()
+int HttpResponse::getStatusCode() const
 {
 	return HttpProcessor::convertResponseStatusToStatusCode(response_status_);
 }
@@ -124,7 +124,7 @@ void HttpResponse::addHeader(QString header)
 	updateResponseData();
 }
 
-QByteArray HttpResponse::getHeaders()
+QByteArray HttpResponse::getHeaders() const
 {
 	return headers_;
 }
@@ -135,7 +135,7 @@ void HttpResponse::setPayload(QByteArray payload)
 	updateResponseData();
 }
 
-QByteArray HttpResponse::getPayload()
+QByteArray HttpResponse::getPayload() const
 {
 	return payload_;
 }
@@ -210,13 +210,13 @@ QByteArray HttpResponse::generateRangeNotSatisfiableHeaders(BasicResponseData da
 	return headers;
 }
 
-QString HttpResponse::getFileNameWithExtension(QString filename_with_path)
+QString HttpResponse::getFileNameWithExtension(QString filename_with_path) const
 {
 	QList<QString> path_items = filename_with_path.split(QDir::separator());
 	return path_items.takeLast();
 }
 
-int HttpResponse::getContentLength()
+int HttpResponse::getContentLength() const
 {
 	return payload_.length();
 }

@@ -24,21 +24,21 @@ public:
 	bool isStream();
 
 	void setFilename(QString filename);
-	QString getFilename();
+	QString getFilename() const;
 
 	void setStatus(ResponseStatus response_status);
-	ResponseStatus getStatus();
+	ResponseStatus getStatus() const;
 
-	QByteArray getStatusLine();
+	QByteArray getStatusLine() const;
 
-	int getStatusCode();
+	int getStatusCode() const;
 
 	void setHeaders(QByteArray headers);
 	void addHeader(QString header);
-	QByteArray getHeaders();
+	QByteArray getHeaders() const;
 
 	void setPayload(QByteArray payload);
-	QByteArray getPayload();
+	QByteArray getPayload() const;
 
 	void setRangeNotSatisfiableHeaders(BasicResponseData data);
 
@@ -47,7 +47,9 @@ private:
 	QByteArray generateRegularHeaders(BasicResponseData data);
 	QByteArray generateChunkedStreamHeaders(BasicResponseData data);
 	QByteArray generateRangeNotSatisfiableHeaders(BasicResponseData data);
-	QString getFileNameWithExtension(QString filename_with_path);
+	QString getFileNameWithExtension(QString filename_with_path) const;
+	int getContentLength() const;
+	void updateResponseData();
 
 protected:
 	bool is_stream_;
@@ -56,8 +58,6 @@ protected:
 	QByteArray status_line_;
 	QByteArray headers_;
 	QByteArray payload_;
-	int getContentLength();
-	void updateResponseData();
 };
 
 #endif // HTTPRESPONSE_H

@@ -11,7 +11,7 @@ HttpProcessor& HttpProcessor::instance()
 	return http_processor;
 }
 
-ContentType HttpProcessor::getContentTypeFromString(QString in)
+ContentType HttpProcessor::getContentTypeFromString(const QString& in)
 {
 	if (in.toLower() == "application/octet-stream") return APPLICATION_OCTET_STREAM;
 	if (in.toLower() == "application/json") return APPLICATION_JSON;
@@ -29,7 +29,7 @@ ContentType HttpProcessor::getContentTypeFromString(QString in)
 	return APPLICATION_OCTET_STREAM;
 }
 
-QString HttpProcessor::convertContentTypeToString(ContentType in)
+QString HttpProcessor::convertContentTypeToString(const ContentType& in)
 {
 	switch(in)
 	{
@@ -49,7 +49,7 @@ QString HttpProcessor::convertContentTypeToString(ContentType in)
 	return "";
 }
 
-ContentType HttpProcessor::getContentTypeByFilename(QString filename)
+ContentType HttpProcessor::getContentTypeByFilename(const QString& filename)
 {
 	QList<QString> name_items = filename.split(".");
 	QString extention = name_items.takeLast().toLower();
@@ -77,7 +77,7 @@ ContentType HttpProcessor::getContentTypeByFilename(QString filename)
 	return APPLICATION_OCTET_STREAM;
 }
 
-RequestMethod HttpProcessor::getMethodTypeFromString(QString in)
+RequestMethod HttpProcessor::getMethodTypeFromString(const QString& in)
 {
 	if (in.toLower() == "get") return RequestMethod::GET;
 	if (in.toLower() == "post") return RequestMethod::POST;
@@ -88,7 +88,7 @@ RequestMethod HttpProcessor::getMethodTypeFromString(QString in)
 	return RequestMethod::GET;
 }
 
-QString HttpProcessor::convertMethodTypeToString(RequestMethod in)
+QString HttpProcessor::convertMethodTypeToString(const RequestMethod& in)
 {
 	switch(in)
 	{
@@ -102,7 +102,7 @@ QString HttpProcessor::convertMethodTypeToString(RequestMethod in)
 	}
 }
 
-QString HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus response_status)
+QString HttpProcessor::convertResponseStatusToReasonPhrase(const ResponseStatus& response_status)
 {
 	switch(response_status)
 	{
@@ -151,7 +151,7 @@ QString HttpProcessor::convertResponseStatusToReasonPhrase(ResponseStatus respon
 	}
 }
 
-int HttpProcessor::convertResponseStatusToStatusCode(ResponseStatus response_status)
+int HttpProcessor::convertResponseStatusToStatusCode(const ResponseStatus& response_status)
 {
 	switch(response_status)
 	{

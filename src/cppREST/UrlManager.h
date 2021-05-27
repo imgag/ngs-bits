@@ -21,9 +21,9 @@ class CPPRESTSHARED_EXPORT UrlManager
 {
 public:
 	static void addUrlToStorage(QString id, QString filename, QString path, QString filename_with_path);
-	static void removeUrlFromStorage(QString id);
-	static bool isInStorageAlready(QString filename_with_path);
-	static UrlEntity getURLById(QString id);
+	static void removeUrlFromStorage(const QString& id);
+	static bool isInStorageAlready(const QString& filename_with_path);
+	static UrlEntity getURLById(const QString& id);
 
 
 public slots:

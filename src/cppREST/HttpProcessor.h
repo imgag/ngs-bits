@@ -8,15 +8,15 @@
 class CPPRESTSHARED_EXPORT HttpProcessor
 {
 public:
-	static ContentType getContentTypeFromString(QString in);	
-	static QString convertContentTypeToString(ContentType in);
-	static ContentType getContentTypeByFilename(QString filename);
+	static ContentType getContentTypeFromString(const QString& in);
+	static QString convertContentTypeToString(const ContentType& in);
+	static ContentType getContentTypeByFilename(const QString& filename);
 
-	static RequestMethod getMethodTypeFromString(QString in);
-	static QString convertMethodTypeToString(RequestMethod in);
+	static RequestMethod getMethodTypeFromString(const QString& in);
+	static QString convertMethodTypeToString(const RequestMethod& in);
 
-	static QString convertResponseStatusToReasonPhrase(ResponseStatus response_status);
-	static int convertResponseStatusToStatusCode(ResponseStatus status_code);
+	static QString convertResponseStatusToReasonPhrase(const ResponseStatus& response_status);
+	static int convertResponseStatusToStatusCode(const ResponseStatus& status_code);
 
 protected:
 	HttpProcessor();

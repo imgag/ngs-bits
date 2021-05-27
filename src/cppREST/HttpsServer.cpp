@@ -1,6 +1,6 @@
 #include "HttpsServer.h"
 
-HttpsServer::HttpsServer(quint16 port)
+HttpsServer::HttpsServer(const quint16& port)
 {
 	QString ssl_certificate = ServerHelper::getStringSettingsValue("ssl_certificate");
 	if (ssl_certificate.isEmpty())

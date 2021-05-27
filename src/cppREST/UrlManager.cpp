@@ -18,7 +18,7 @@ void UrlManager::addUrlToStorage(QString id, QString filename, QString path, QSt
 	instance().mutex_.unlock();
 }
 
-void UrlManager::removeUrlFromStorage(QString id)
+void UrlManager::removeUrlFromStorage(const QString& id)
 {
 	if (instance().url_storage_.contains(id))
 	{
@@ -28,7 +28,7 @@ void UrlManager::removeUrlFromStorage(QString id)
 	}
 }
 
-bool UrlManager::isInStorageAlready(QString filename_with_path)
+bool UrlManager::isInStorageAlready(const QString& filename_with_path)
 {
 	QMapIterator<QString, UrlEntity> i(instance().url_storage_);
 	while (i.hasNext()) {
@@ -42,7 +42,7 @@ bool UrlManager::isInStorageAlready(QString filename_with_path)
 	return false;
 }
 
-UrlEntity UrlManager::getURLById(QString id)
+UrlEntity UrlManager::getURLById(const QString& id)
 {
 	if (instance().url_storage_.contains(id))
 	{

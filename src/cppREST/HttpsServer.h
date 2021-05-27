@@ -20,7 +20,7 @@ class CPPRESTSHARED_EXPORT HttpsServer : public QObject
     Q_OBJECT
 
 public:
-	HttpsServer(quint16 port);   
+	HttpsServer(const quint16& port);
 
 private:
 	SslServer *server_;

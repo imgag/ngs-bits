@@ -44,12 +44,12 @@ private:
 
 	static QString getEndpointHelpTemplate(QList<Endpoint>* endpoint_list);
 	static QString generateGlobalHelp();
-	static QString generateEntityHelp(QString path, RequestMethod method);
+	static QString generateEntityHelp(const QString& path, const RequestMethod& method);
 	static QString getServedTempPath(QList<QString> path_parts);
-	static QString getServedRootPath(QList<QString> path_parts);
+	static QString getServedRootPath(const QList<QString>& path_parts);
 
-	static StaticFile readFileContent(QString filename, ByteRange byte_range);
-	static QString addFileToCache(QString filename);
+	static StaticFile readFileContent(const QString& filename, const ByteRange& byte_range);
+	static QString addFileToCache(const QString& filename);
 };
 
 #endif // ENDPOINTCONTROLLER_H

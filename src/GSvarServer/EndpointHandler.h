@@ -38,7 +38,7 @@ public:
 
 private:
 	/// Creates a temporary URL for a file (includes a file name and its full path)
-	static QString createFileTempUrl(QString file);
+	static QString createFileTempUrl(const QString& file);
 };
 
 #endif // ENDPOINTHANDLER_H

@@ -10,7 +10,7 @@ HtmlEngine& HtmlEngine::instance()
 	return html_engine;
 }
 
-QString HtmlEngine::getPageHeader(QString page_title)
+QString HtmlEngine::getPageHeader(const QString& page_title)
 {
 	QString output;
 	QTextStream stream(&output);
@@ -108,7 +108,7 @@ QString HtmlEngine::getPageFooter()
 	return output;
 }
 
-QString HtmlEngine::getApiHelpHeader(QString title)
+QString HtmlEngine::getApiHelpHeader(const QString& title)
 {
 	QString output;
 	QTextStream stream(&output);
@@ -124,7 +124,7 @@ QString HtmlEngine::getApiHelpHeader(QString title)
 	return output;
 }
 
-QString HtmlEngine::getApiHelpEntry(QString url, QString method, QList<QString> param_names, QList<QString> param_desc, QString comment)
+QString HtmlEngine::getApiHelpEntry(const QString& url, const QString& method, const QList<QString>& param_names, const QList<QString>& param_desc, const QString& comment)
 {
 	QString output;
 	QTextStream stream(&output);
@@ -150,7 +150,7 @@ QString HtmlEngine::getApiHelpEntry(QString url, QString method, QList<QString> 
 	return output;
 }
 
-QString HtmlEngine::getErrorPageTemplate(QString title, QString message)
+QString HtmlEngine::getErrorPageTemplate(const QString& title, const QString& message)
 {
 	QString output;
 	QTextStream stream(&output);
@@ -176,7 +176,7 @@ QString HtmlEngine::getErrorPageTemplate(QString title, QString message)
 	return output;
 }
 
-QString HtmlEngine::convertIconNameToString(FolderItemIcon in)
+QString HtmlEngine::convertIconNameToString(const FolderItemIcon& in)
 {
 	switch(in)
 	{
@@ -192,7 +192,7 @@ QString HtmlEngine::convertIconNameToString(FolderItemIcon in)
 	return "";
 }
 
-QString HtmlEngine::createFolderListingHeader(QString folder_name, QString parent_folder_link)
+QString HtmlEngine::createFolderListingHeader(const QString& folder_name, const QString& parent_folder_link)
 {
 	QString output;
 	QTextStream stream(&output);
@@ -208,7 +208,7 @@ QString HtmlEngine::createFolderListingHeader(QString folder_name, QString paren
 	return output;
 }
 
-QString HtmlEngine::createFolderListingElements(QList<FolderItem> in, QString cur_folder_url)
+QString HtmlEngine::createFolderListingElements(const QList<FolderItem>& in, const QString& cur_folder_url)
 {
 	QString output;
 	QTextStream stream(&output);
@@ -290,7 +290,7 @@ QString HtmlEngine::getFolderIcons()
 }
 
 
-FolderItemIcon HtmlEngine::getIconType(FolderItem item)
+FolderItemIcon HtmlEngine::getIconType(const FolderItem& item)
 {
 	if (item.is_folder) return FolderItemIcon::FOLDER;
 
@@ -307,7 +307,7 @@ FolderItemIcon HtmlEngine::getIconType(FolderItem item)
 	return FolderItemIcon::GENERIC_FILE;
 }
 
-QString HtmlEngine::createFolderItemLink(QString name, QString url, FolderItemIcon type)
+QString HtmlEngine::createFolderItemLink(const QString& name, const QString& url, const FolderItemIcon& type)
 {
 	return "<a class=\"file-list\" href=\"" +url + "\"><svg class=\"file-list\" width=\"2em\" height=\"2em\"><use xlink:href=\"#" + convertIconNameToString(type) + "\" /></svg> <span>" + name + "</span></a>";
 }

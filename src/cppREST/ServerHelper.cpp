@@ -9,7 +9,7 @@ QString ServerHelper::getAppName()
 	return QCoreApplication::applicationName();
 }
 
-int ServerHelper::strToInt(QString in)
+int ServerHelper::strToInt(const QString& in)
 {
 	bool ok;
 	int dec = in.toInt(&ok, 10);
@@ -18,7 +18,7 @@ int ServerHelper::strToInt(QString in)
 	return dec;
 }
 
-bool ServerHelper::canConvertToInt(QString in)
+bool ServerHelper::canConvertToInt(const QString& in)
 {
 	bool ok;
 	in.toInt(&ok, 10);
@@ -30,7 +30,7 @@ QString ServerHelper::generateUniqueStr()
 	return QUuid::createUuid().toString().replace("{", "").replace("}", "");
 }
 
-int ServerHelper::getNumSettingsValue(QString key)
+int ServerHelper::getNumSettingsValue(const QString& key)
 {
 	int num_value = 0;
 	try
@@ -45,7 +45,7 @@ int ServerHelper::getNumSettingsValue(QString key)
 	return num_value;
 }
 
-QString ServerHelper::getStringSettingsValue(QString key)
+QString ServerHelper::getStringSettingsValue(const QString& key)
 {
 	QString string_value = "";
 	try
@@ -60,7 +60,7 @@ QString ServerHelper::getStringSettingsValue(QString key)
 	return string_value;
 }
 
-QString ServerHelper::getUrlWithoutParams(QString url)
+QString ServerHelper::getUrlWithoutParams(const QString& url)
 {
 	QList<QString> url_parts = url.split('?');
 	return url_parts[0];

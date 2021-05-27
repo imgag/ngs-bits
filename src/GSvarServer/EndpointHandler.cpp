@@ -45,8 +45,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 	}
 	QString ps_url_id = request.getUrlParams().value("ps_url_id");
 
-	UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());
-	qDebug() << "GSvar file: " + url_entity.filename_with_path;
+	UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());	
 	QString found_file = url_entity.filename_with_path;
 
 	bool return_if_missing = true;
@@ -400,7 +399,7 @@ HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& reques
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
 
-QString EndpointHandler::createFileTempUrl(QString file)
+QString EndpointHandler::createFileTempUrl(const QString& file)
 {
 	QString id = ServerHelper::generateUniqueStr();
 	UrlManager::addUrlToStorage(id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);

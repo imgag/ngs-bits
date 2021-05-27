@@ -30,15 +30,15 @@ typedef enum
 class CPPRESTSHARED_EXPORT HtmlEngine
 {
 public:
-	static QString getPageHeader(QString page_title);
+	static QString getPageHeader(const QString& page_title);
 	static QString getPageFooter();
-	static QString getApiHelpHeader(QString title);
-	static QString getApiHelpEntry(QString url, QString method, QList<QString> param_names, QList<QString> param_desc, QString comment);
-	static QString getErrorPageTemplate(QString title, QString message);
+	static QString getApiHelpHeader(const QString& title);
+	static QString getApiHelpEntry(const QString& url, const QString& method, const QList<QString>& param_names, const QList<QString>& param_desc, const QString& comment);
+	static QString getErrorPageTemplate(const QString& title, const QString& message);
 
-	static QString convertIconNameToString(FolderItemIcon in);
-	static QString createFolderListingHeader(QString folder_name, QString parent_folder_link);
-	static QString createFolderListingElements(QList<FolderItem> in, QString cur_folder_url);
+	static QString convertIconNameToString(const FolderItemIcon& in);
+	static QString createFolderListingHeader(const QString& folder_name, const QString& parent_folder_link);
+	static QString createFolderListingElements(const QList<FolderItem>& in, const QString& cur_folder_url);
 
 	static QString getFolderIcons();
 protected:
@@ -54,8 +54,8 @@ private:
 	const QList<QString> TABLE_EXT = {"csv", "xls", "xlsx"};
 
 
-	static FolderItemIcon getIconType(FolderItem item);
-	static QString createFolderItemLink(QString name, QString url, FolderItemIcon type);
+	static FolderItemIcon getIconType(const FolderItem& item);
+	static QString createFolderItemLink(const QString& name, const QString& url, const FolderItemIcon& type);
 
 };
 
