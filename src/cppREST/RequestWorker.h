@@ -44,6 +44,7 @@ private:
 
 	QSslConfiguration ssl_configuration_;
 	qintptr socket_;
+	bool is_terminated_;
 };
 
 

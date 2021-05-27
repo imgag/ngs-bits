@@ -161,10 +161,6 @@ void HttpResponse::readBasicResponseData(BasicResponseData data)
 	{
 		setStatus(ResponseStatus::PARTIAL_CONTENT);
 	}
-//	else
-//	{
-//		setStatusLine(ResponseStatus::UNAUTHORIZED);
-//	}
 
 	setIsStream(data.is_stream);
 	setFilename(data.filename);
@@ -180,7 +176,7 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 	headers.append("Connection: Keep-Alive\r\n");
 	if (HttpProcessor::convertResponseStatusToStatusCode(data.status) == 401)
 	{
-		headers.append("WWW-Authenticate: Basic realm=\"Access to the secure area of GSvar\"");
+		headers.append("WWW-Authenticate: Basic realm=\"Access to the secure area of GSvar\"\r\n");
 	}
 	if ((data.byte_range.end > 0) && (data.byte_range.length > 0))
 	{

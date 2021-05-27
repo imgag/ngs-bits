@@ -4,6 +4,7 @@ RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket
 	:
 	 ssl_configuration_(ssl_configuration)
 	, socket_(socket)
+   , is_terminated_(false)
 {
 }
 
@@ -99,7 +100,6 @@ void RequestWorker::run()
 			}
 		}
 
-
 		HttpResponse (*endpoint_action_)(HttpRequest request) = current_endpoint.action_func;
 		HttpResponse response;
 
@@ -155,29 +155,38 @@ void RequestWorker::run()
 			sendResponseDataPart(ssl_socket, response.getStatusLine());
 			sendResponseDataPart(ssl_socket, response.getHeaders());
 
-			qDebug() << "Stream thread";
 			qint64 chunk_size = 1024;
 			qint64 pos = 0;
 			qint64 file_size = streamed_file.size();
 			while(!streamed_file.atEnd())
 			{
+				if (is_terminated_) break;
 				if ((pos > file_size) || (pos < 0)) break;
 				streamed_file.seek(pos);
 				QByteArray data = streamed_file.read(chunk_size);
 				pos = pos + chunk_size;
 
-				// Should be used for chunked transfer (without content-lenght)
-				//sendResponseDataPart(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
-				//sendResponseDataPart(ssl_socket, data.append("\r\n"));
-
-				sendResponseDataPart(ssl_socket, data);
+				if (parsed_request.getHeaderByName("Transfer-Encoding").toLower() == "chunked")
+				{
+					// Should be used for chunked transfer (without content-lenght)
+					sendResponseDataPart(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
+					sendResponseDataPart(ssl_socket, data.append("\r\n"));
+				}
+				else
+				{
+					// Keep connection alive and add data incrementally in parts (content-lenght is specified)
+					sendResponseDataPart(ssl_socket, data);
+				}
 			}
 
 			streamed_file.close();
 
 			// Should be used for chunked transfer (without content-lenght)
-			//sendResponseDataPart(ssl_socket, "0\r\n");
-			//sendResponseDataPart(ssl_socket, "\r\n");
+			if (parsed_request.getHeaderByName("Transfer-Encoding").toLower() == "chunked")
+			{
+				sendResponseDataPart(ssl_socket, "0\r\n");
+				sendResponseDataPart(ssl_socket, "\r\n");
+			}
 
 			finishPartialDataResponse(ssl_socket);
 			return;
@@ -199,7 +208,6 @@ void RequestWorker::run()
 			BasicResponseData response_data;
 			response_data.filename = response.getFilename();
 			response_data.file_size = QFile(response.getFilename()).size();
-			qDebug() << response_data.file_size << response.getFilename();
 			response.setStatus(ResponseStatus::RANGE_NOT_SATISFIABLE);
 			response.setRangeNotSatisfiableHeaders(response_data);
 			sendEntireResponse(ssl_socket, response);
@@ -232,7 +240,8 @@ QString RequestWorker::intToHex(const int& input)
 
 void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 {
-	qDebug() << "Closing the socket";	
+	qDebug() << "Closing the socket";
+	is_terminated_ = true;
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
 		socket->flush();
