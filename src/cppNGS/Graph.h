@@ -53,6 +53,20 @@ class CPPNGSSHARED_EXPORT Graph
         EdgePointer getEdge(NodePointer node_1, NodePointer node_2);
         EdgePointer getEdge(const QString& node_name_1, const QString& node_name_2);
 
+        // get adjacent edges/nodes for a particular node
+        QList<NodePointer> getAdjacentNodes(const QString& name);
+        QList<EdgePointer> getAdjacentEdges(const QString& name);
+
+        // check if node with name_2 is adjacent to node with name_1
+        bool isAdjacent(const QString& name_1, const QString& name_2);
+
+        // get degree of specific node
+        int getDegree(const QString& name);
+
+        // only for directed graphs
+        int getIndegree(const QString& name);
+        int getOutdegree(const QString& name);
+
     protected:
         // add existing edge
         bool addEdge(EdgePointer edge);
@@ -61,6 +75,9 @@ class CPPNGSSHARED_EXPORT Graph
 
     private:
         QHash<QString, NodePointer> node_list_;
+
+        // only for directed graph
+        QHash<QString, int> indegree_;
 
         // store an adjacency list for each node
         QHash<NodePointer, QList<EdgePointer>> adjacency_list_;
@@ -94,7 +111,7 @@ Graph<NodeType, EdgeType>::Graph(bool directed)
 // getters
 
 template <typename NodeType, typename EdgeType>
-const QHash<QString, typename Graph<NodeType, EdgeType>::NodePointer> &Graph<NodeType, EdgeType>::nodeList() const
+const QHash<QString, typename Graph<NodeType, EdgeType>::NodePointer>& Graph<NodeType, EdgeType>::nodeList() const
 {
     return node_list_;
 }
@@ -123,11 +140,15 @@ bool Graph<NodeType, EdgeType>::addNode(NodePointer node, bool throw_exception_i
         node_list_.insert(node.data()->nodeName(), node);
         // add the node to the adjacency list with an empty list of edges
         adjacency_list_.insert(node, QList<EdgePointer>());
+        if(directed_)
+        {
+            indegree_.insert(node.data()->nodeName(), 0);
+        }
         return true;
     }
     else if(throw_exception_if_contained)
     {
-        THROW(ArgumentException, "Invalid argument: Node already in graph")
+        THROW(ArgumentException, "Invalid argument: Node already in graph");
     }
 
     return false;
@@ -140,7 +161,7 @@ bool Graph<NodeType, EdgeType>::addNode(const QString& name, const NodeType& con
 {
     if(name.isEmpty())
     {
-        THROW(ArgumentException, "Invalid argument: Empty node name")
+        THROW(ArgumentException, "Invalid argument: Empty node name");
     }
 
     if(!this->hasNode(name))
@@ -179,7 +200,7 @@ typename Graph<NodeType, EdgeType>::NodePointer Graph<NodeType, EdgeType>::getNo
     {
         return node_list_.value(name);
     }
-    THROW(ArgumentException, "Invalid argument: Non-existing node")
+    THROW(ArgumentException, "Invalid argument: Non-existing node");
 }
 
 
@@ -192,7 +213,11 @@ bool Graph<NodeType, EdgeType>::addEdge(EdgePointer edge)
     adjacency_list_[edge.data()->node1()].append(edge);
     edge_list_.insert(QPair<QString, QString>(edge.data()->node1().data()->nodeName(),
                       edge.data()->node2().data()->nodeName()));
-    if(!directed_)
+    if(directed_)
+    {
+        indegree_[edge.data()->node2().data()->nodeName()] += 1;
+    }
+    else
     {
         adjacency_list_[edge.data()->node2()].append(edge);
     }
@@ -207,7 +232,7 @@ bool Graph<NodeType, EdgeType>::addEdge(NodePointer node_1,
 {
     if(!hasNode(node_1) || !hasNode(node_2))
     {
-        THROW(ArgumentException, "Invalid argument: Non-existing node")
+        THROW(ArgumentException, "Invalid argument: Non-existing node");
     }
 
     if(!hasEdge(node_1, node_2))
@@ -241,9 +266,11 @@ bool Graph<NodeType, EdgeType>::addEdge(const QString& name_1, const NodeType& n
         EdgePointer edge(new GraphEdge<EdgeType, NodeType>(node_1, node_2, edge_content));
         adjacency_list_[node_1].append(edge);
         edge_list_.insert(QPair<QString, QString>(name_1, name_2));
+        indegree_[name_2] += 1;
         if(!directed_)
         {
             adjacency_list_[node_2].append(edge);
+            indegree_[name_1] += 1;
         }
         return true;
     }
@@ -288,7 +315,7 @@ typename Graph<NodeType, EdgeType>::EdgePointer Graph<NodeType, EdgeType>::getEd
 {
     if(!hasNode(node_1) || !hasNode(node_2))
     {
-        THROW(ArgumentException, "Invalid argument: Non-existing node")
+        THROW(ArgumentException, "Invalid argument: Non-existing node");
     }
     foreach(EdgePointer edge, adjacency_list_[node_1])
     {
@@ -300,7 +327,7 @@ typename Graph<NodeType, EdgeType>::EdgePointer Graph<NodeType, EdgeType>::getEd
             return edge;
         }
     }
-    THROW(ArgumentException, "Invalid argument: Non-existing edge")
+    THROW(ArgumentException, "Invalid argument: Non-existing edge");
 }
 
 // get an edge from the names of the two nodes it connects
@@ -309,7 +336,7 @@ typename Graph<NodeType, EdgeType>::EdgePointer Graph<NodeType, EdgeType>::getEd
 {
     if(!hasNode(node_name_1) || !hasNode(node_name_2))
     {
-        THROW(ArgumentException, "Invalid argument: Non-existing node")
+        THROW(ArgumentException, "Invalid argument: Non-existing node");
     }
     foreach(EdgePointer edge, adjacency_list_[getNode(node_name_1)])
     {
@@ -323,7 +350,119 @@ typename Graph<NodeType, EdgeType>::EdgePointer Graph<NodeType, EdgeType>::getEd
             return edge;
         }
     }
-    THROW(ArgumentException, "Invalid argument: Non-existing edge")
+    THROW(ArgumentException, "Invalid argument: Non-existing edge");
+}
+
+template <typename NodeType, typename EdgeType>
+QList<typename Graph<NodeType, EdgeType>::NodePointer> Graph<NodeType, EdgeType>::getAdjacentNodes(const QString& name)
+{
+    QList<NodePointer> adjacent_nodes;
+    if(!hasNode(name))
+    {
+        THROW(ArgumentException, "Illegal argument: Non-existing node");
+    }
+    foreach(EdgePointer edge, getAdjacentEdges(name))
+    {
+        if(edge.data()->node1().data()->nodeName() == name)
+        {
+            adjacent_nodes.append(edge.data()->node2());
+        }
+        else
+        {
+            adjacent_nodes.append(edge.data()->node1());
+        }
+    }
+    return adjacent_nodes;
+}
+
+template <typename NodeType, typename EdgeType>
+QList<typename Graph<NodeType, EdgeType>::EdgePointer> Graph<NodeType, EdgeType>::getAdjacentEdges(const QString& name)
+{
+    if(hasNode(name))
+    {
+        return adjacency_list_[getNode(name)];
+    }
+    else
+    {
+        THROW(ArgumentException, "Invalid argument: Non-existing node");
+    }
+}
+
+// check if node with name_2 is adjacent to node with name_1
+template <typename NodeType, typename EdgeType>
+bool Graph<NodeType, EdgeType>::isAdjacent(const QString& name_1, const QString& name_2)
+{
+    if(!hasNode(name_1) || !hasNode(name_2))
+    {
+        THROW(ArgumentException, "Invalid argument: Non-existing node");
+    }
+    foreach(NodePointer node, getAdjacentNodes(name_1))
+    {
+        if(node.data()->nodeName() == name_2)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+// get the degree of a node
+template <typename NodeType, typename EdgeType>
+int Graph<NodeType, EdgeType>::getDegree(const QString& name)
+{
+    if(directed_)
+    {
+        THROW(Exception, "Invalid use of method: Only for undirected graphs");
+    }
+    if(hasNode(name))
+    {
+        return adjacency_list_[getNode(name)].size();
+    }
+    else
+    {
+        THROW(ArgumentException, "Invalid argument: Non-existing node");
+    }
+}
+
+// for directed graphs only: get the indegree/outdegree of a node
+template <typename NodeType, typename EdgeType>
+int Graph<NodeType, EdgeType>::getIndegree(const QString& name)
+{
+    if(directed_)
+    {
+        if(hasNode(name))
+        {
+            return indegree_[name];
+        }
+        else
+        {
+            THROW(ArgumentException, "Invalid argument: Non-existing node")
+        }
+    }
+    else
+    {
+        THROW(Exception, "Invalid use of method: Only for directed graphs");
+    }
+}
+
+template <typename NodeType, typename EdgeType>
+int Graph<NodeType, EdgeType>::getOutdegree(const QString& name)
+{
+    if(directed_)
+    {
+        if(hasNode(name))
+        {
+            return adjacency_list_[getNode(name)].size();
+        }
+        else
+        {
+            THROW(ArgumentException, "Invalid argument: Non-existing node")
+        }
+    }
+    else
+    {
+        THROW(Exception, "Invalid use of method: Only for directed graphs");
+    }
 }
 
 
