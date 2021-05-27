@@ -37,7 +37,7 @@ struct CPPRESTSHARED_EXPORT Endpoint
 	ContentType return_type;
 	bool is_password_protected;
 	QString comment;
-	HttpResponse (*action_func)(HttpRequest request);
+	HttpResponse (*action_func)(const HttpRequest& request);
 
 	bool operator==(const Endpoint& e) const
 	{

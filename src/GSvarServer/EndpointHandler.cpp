@@ -4,7 +4,7 @@ EndpointHandler::EndpointHandler()
 {
 }
 
-HttpResponse EndpointHandler::serveIndexPage(HttpRequest request)
+HttpResponse EndpointHandler::serveIndexPage(const HttpRequest& request)
 {
 	if (request.getPrefix().toLower() == "favicon.ico")
 	{
@@ -18,7 +18,7 @@ HttpResponse EndpointHandler::serveIndexPage(HttpRequest request)
 	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Requested page was not found");
 }
 
-HttpResponse EndpointHandler::serveFavicon(HttpRequest request)
+HttpResponse EndpointHandler::serveFavicon(const HttpRequest& request)
 {
 	if (request.getPathParams().count() == 0)
 	{
@@ -27,7 +27,7 @@ HttpResponse EndpointHandler::serveFavicon(HttpRequest request)
 	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Favicon was not found");
 }
 
-HttpResponse EndpointHandler::serveApiInfo(HttpRequest request)
+HttpResponse EndpointHandler::serveApiInfo(const HttpRequest& request)
 {
 	if (request.getPathParams().count() == 0)
 	{
@@ -36,7 +36,7 @@ HttpResponse EndpointHandler::serveApiInfo(HttpRequest request)
 	return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "API info was not found");
 }
 
-HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
+HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 {
 	qDebug() << "File location service";
 	if (!request.getUrlParams().contains("ps_url_id"))
@@ -213,7 +213,7 @@ HttpResponse EndpointHandler::locateFileByType(HttpRequest request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
+HttpResponse EndpointHandler::locateProjectFile(const HttpRequest& request)
 {
 	qDebug() << "Project file location";
 	QList<QString> project_files;
@@ -251,7 +251,7 @@ HttpResponse EndpointHandler::locateProjectFile(HttpRequest request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-HttpResponse EndpointHandler::saveProjectFile(HttpRequest request)
+HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 {
 	QString ps_url_id = request.getUrlParams()["ps_url_id"];
 	UrlEntity url = UrlManager::getURLById(ps_url_id);
@@ -364,7 +364,7 @@ HttpResponse EndpointHandler::saveProjectFile(HttpRequest request)
 	return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, "");
 }
 
-HttpResponse EndpointHandler::getProcessingSystemRegions(HttpRequest request)
+HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& request)
 {
 	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
@@ -376,7 +376,7 @@ HttpResponse EndpointHandler::getProcessingSystemRegions(HttpRequest request)
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
 
-HttpResponse EndpointHandler::getProcessingSystemAmplicons(HttpRequest request)
+HttpResponse EndpointHandler::getProcessingSystemAmplicons(const HttpRequest& request)
 {
 	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];
@@ -388,7 +388,7 @@ HttpResponse EndpointHandler::getProcessingSystemAmplicons(HttpRequest request)
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
 
-HttpResponse EndpointHandler::getProcessingSystemGenes(HttpRequest request)
+HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& request)
 {
 	NGSD db;
 	QString sys_id = request.getUrlParams()["sys_id"];

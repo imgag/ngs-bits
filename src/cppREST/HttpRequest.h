@@ -11,39 +11,39 @@ public:
 	HttpRequest();
 
 	void setMethod(RequestMethod type);
-	RequestMethod getMethod();
+	RequestMethod getMethod() const;
 	QString methodAsString();
 
 	void setContentType(ContentType type);
-	ContentType getContentType();
+	ContentType getContentType() const;
 
 	void addHeader(QString key, QString value);
-	QMap<QString, QString> getHeaders();
-	QString getHeaderByName(QString key);
+	QMap<QString, QString> getHeaders() const;
+	QString getHeaderByName(QString key) const;
 
 	void setBody(QByteArray body);
-	QByteArray getBody();
+	QByteArray getBody() const;
 
 	void setPrefix(QString prefix);
-	QString getPrefix();
+	QString getPrefix() const;
 
 	void setPath(QString path);
-	QString getPath();
+	QString getPath() const;
 
 	void setRemoteAddress(QString address);
-	QString getRemoteAddress();
+	QString getRemoteAddress() const;
 
 	void addUrlParam(QString key, QString value);
 	void setUrlParams(QMap<QString, QString> params);
-	QMap<QString, QString> getUrlParams();
+	QMap<QString, QString> getUrlParams() const;
 
 	void addFormUrlEncoded(QString key, QString value);
 	void setFormUrlEncoded(QMap<QString, QString> form_params);
-	QMap<QString, QString> getFormUrlEncoded();
+	QMap<QString, QString> getFormUrlEncoded() const;
 
 	void addPathParam(QString param);
 	void setPathParams(QList<QString> params);
-	QList<QString> getPathParams();
+	QList<QString> getPathParams() const;
 
 private:
 	RequestMethod method_;

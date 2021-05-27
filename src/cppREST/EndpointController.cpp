@@ -1,6 +1,6 @@
 #include "EndpointController.h"
 
-HttpResponse EndpointController::serveEndpointHelp(HttpRequest request)
+HttpResponse EndpointController::serveEndpointHelp(const HttpRequest& request)
 {
 	QByteArray body;
 	if (request.getPathParams().count() == 0)
@@ -18,7 +18,7 @@ HttpResponse EndpointController::serveEndpointHelp(HttpRequest request)
 	return HttpResponse(response_data, body);
 }
 
-HttpResponse EndpointController::serveStaticFromServerRoot(HttpRequest request)
+HttpResponse EndpointController::serveStaticFromServerRoot(const HttpRequest& request)
 {
 	QString served_file = getServedRootPath(request.getPathParams());
 
@@ -35,7 +35,7 @@ HttpResponse EndpointController::serveStaticFromServerRoot(HttpRequest request)
 	return serveStaticFile(served_file, request.getMethod(), request.getHeaders());
 }
 
-HttpResponse EndpointController::serveStaticForTempUrl(HttpRequest request)
+HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& request)
 {
 	QString served_file;
 	try
@@ -55,13 +55,13 @@ HttpResponse EndpointController::serveStaticForTempUrl(HttpRequest request)
 	return serveStaticFile(served_file, request.getMethod(), request.getHeaders());
 }
 
-HttpResponse EndpointController::serveStaticFileFromCache(HttpRequest request)
+HttpResponse EndpointController::serveStaticFileFromCache(const HttpRequest& request)
 {
 	QString filename = FileCache::getFileById(request.getPathParams().value(0)).filename_with_path;
 	return createStaticFromCacheResponse(filename, ByteRange{}, HttpProcessor::getContentTypeByFilename(filename), false);
 }
 
-HttpResponse EndpointController::getFileInfo(HttpRequest request)
+HttpResponse EndpointController::getFileInfo(const HttpRequest& request)
 {
 	QString filename = request.getUrlParams()["file"];
 	if (request.getUrlParams()["file"].toLower().startsWith("http"))
@@ -100,7 +100,7 @@ HttpResponse EndpointController::getFileInfo(HttpRequest request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-HttpResponse EndpointController::createStaticFileResponse(QString filename, ByteRange byte_range, ContentType type, bool is_downloadable)
+HttpResponse EndpointController::createStaticFileRangeResponse(QString filename, ByteRange byte_range, ContentType type, bool is_downloadable)
 {
 	StaticFile static_file;
 
@@ -121,7 +121,6 @@ HttpResponse EndpointController::createStaticFileResponse(QString filename, Byte
 	response_data.content_type = type;
 	response_data.is_downloadable = is_downloadable;
 
-	qDebug() << "response_data.file_size = " << response_data.file_size;
 	return HttpResponse(response_data, static_file.content);
 }
 
@@ -253,7 +252,7 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 		return createStaticStreamResponse(filename, false);
 	}
 	qDebug() << "Processing RANGE";
-	return createStaticFileResponse(filename, byte_range, HttpProcessor::getContentTypeByFilename(filename), false);
+	return createStaticFileRangeResponse(filename, byte_range, HttpProcessor::getContentTypeByFilename(filename), false);
 }
 
 HttpResponse EndpointController::serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items)
@@ -406,7 +405,14 @@ StaticFile EndpointController::readFileContent(QString filename, ByteRange byte_
 	if ((!static_file.content.isEmpty()) && (Settings::boolean("static_cache", true)))
 	{
 		qDebug() << "Adding file to the cache:" << filename;
-		FileCache::addFileToCache(ServerHelper::generateUniqueStr(), filename, static_file.content, static_file.content.size());
+		try
+		{
+			FileCache::addFileToCache(ServerHelper::generateUniqueStr(), filename, static_file.content, static_file.content.size());
+		}
+		catch (Exception& e)
+		{
+			qDebug() << "Could not add " << filename << " to the cache:" << e.message();
+		}
 	}
 
 	file.close();

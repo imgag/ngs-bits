@@ -100,7 +100,7 @@ void RequestWorker::run()
 			}
 		}
 
-		HttpResponse (*endpoint_action_)(HttpRequest request) = current_endpoint.action_func;
+		HttpResponse (*endpoint_action_)(const HttpRequest& request) = current_endpoint.action_func;
 		HttpResponse response;
 
 		try

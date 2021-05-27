@@ -22,15 +22,6 @@ HttpResponse::HttpResponse(BasicResponseData data, QByteArray payload)
 	readBasicResponseData(data);
 }
 
-//HttpResponse::HttpResponse(bool is_stream, bool is_binary, QString filename, QByteArray headers, QByteArray payload)
-//	: is_stream_(is_stream)
-//	, is_binary_(is_binary)
-//	, filename_(filename)
-//	, headers_(headers)
-//	, payload_(payload)
-//{
-//}
-
 HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, QString message)
 {
 	if (message.isEmpty())

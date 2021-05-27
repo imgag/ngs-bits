@@ -21,20 +21,20 @@ class EndpointHandler
 public:
     EndpointHandler();
 
-	static HttpResponse serveIndexPage(HttpRequest request);
-	static HttpResponse serveFavicon(HttpRequest request);
-	static HttpResponse serveApiInfo(HttpRequest request);
-	static HttpResponse serveTempUrl(HttpRequest request);
-	static HttpResponse locateFileByType(HttpRequest request);
-	static HttpResponse locateProjectFile(HttpRequest request);
-	static HttpResponse saveProjectFile(HttpRequest request);
+	static HttpResponse serveIndexPage(const HttpRequest& request);
+	static HttpResponse serveFavicon(const HttpRequest& request);
+	static HttpResponse serveApiInfo(const HttpRequest& request);
+	static HttpResponse serveTempUrl(const HttpRequest& request);
+	static HttpResponse locateFileByType(const HttpRequest& request);
+	static HttpResponse locateProjectFile(const HttpRequest& request);
+	static HttpResponse saveProjectFile(const HttpRequest& request);
 
 	/// Streams processing system regions file
-	static HttpResponse getProcessingSystemRegions(HttpRequest request);
+	static HttpResponse getProcessingSystemRegions(const HttpRequest& request);
 	/// Streams processing system amplicons file
-	static HttpResponse getProcessingSystemAmplicons(HttpRequest request);
+	static HttpResponse getProcessingSystemAmplicons(const HttpRequest& request);
 	/// Streams processing system genes file
-	static HttpResponse getProcessingSystemGenes(HttpRequest request);
+	static HttpResponse getProcessingSystemGenes(const HttpRequest& request);
 
 private:
 	/// Creates a temporary URL for a file (includes a file name and its full path)

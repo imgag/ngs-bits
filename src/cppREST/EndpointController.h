@@ -16,19 +16,19 @@ class CPPRESTSHARED_EXPORT EndpointController
 {
 public:	
 	/// Shows a page explaining what a particular(s) endpoint(s) does(do)
-	static HttpResponse serveEndpointHelp(HttpRequest request);
+	static HttpResponse serveEndpointHelp(const HttpRequest& request);
 	/// Provides a random access to a file or streams it (depending on the headers), as well as displays a folder
 	/// content from the server root folder
-	static HttpResponse serveStaticFromServerRoot(HttpRequest request);
+	static HttpResponse serveStaticFromServerRoot(const HttpRequest& request);
 	/// Provides a random access to a file or streams it (depending on the headers), as well as displays a folder
 	/// content for a specific project folder linked to a temporary URL
-	static HttpResponse serveStaticForTempUrl(HttpRequest request);
+	static HttpResponse serveStaticForTempUrl(const HttpRequest& request);
 	/// Serves or streams file content saved in the server cache
-	static HttpResponse serveStaticFileFromCache(HttpRequest request);
+	static HttpResponse serveStaticFileFromCache(const HttpRequest& request);
 	/// Returns file information in JSON format for a specific file
-	static HttpResponse getFileInfo(HttpRequest request);
+	static HttpResponse getFileInfo(const HttpRequest& request);
 
-	static HttpResponse createStaticFileResponse(QString filename, ByteRange byte_range, ContentType type, bool is_downloadable);
+	static HttpResponse createStaticFileRangeResponse(QString filename, ByteRange byte_range, ContentType type, bool is_downloadable);
 	static HttpResponse createStaticStreamResponse(QString filename, bool is_downloadable);
 	static HttpResponse createStaticFromCacheResponse(QString id, ByteRange byte_range, ContentType type, bool is_downloadable);
 	static HttpResponse serveStaticFile(QString filename, RequestMethod method, QMap<QString, QString> headers);

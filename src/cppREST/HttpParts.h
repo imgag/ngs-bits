@@ -82,13 +82,6 @@ struct CPPRESTSHARED_EXPORT ByteRange
 	quint64 length = 0;
 };
 
-//struct CPPRESTSHARED_EXPORT HttpError
-//{
-//	ResponseStatus status_code;
-//	ContentType content_type;
-//	QString error_message;
-//};
-
 struct CPPRESTSHARED_EXPORT BasicResponseData
 {
 	ResponseStatus status = OK;
