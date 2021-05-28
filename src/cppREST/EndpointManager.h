@@ -50,10 +50,11 @@ class CPPRESTSHARED_EXPORT EndpointManager
 
 public:
 	static HttpResponse blockInvalidUsers(HttpRequest request);
-	static void validateInputData(Endpoint* current_endpoint, HttpRequest request);
+	static void validateInputData(Endpoint* current_endpoint, const HttpRequest& request);
 	static void appendEndpoint(Endpoint new_endpoint);	
-	static Endpoint getEndpointEntity(QString url, RequestMethod method);
-	static QList<Endpoint>* getEndpointEntities();
+	static Endpoint getEndpointByUrlAndMethod(const QString& url, const RequestMethod& method);
+	static QList<Endpoint> getEndpointsByUrl(const QString& url);
+	static QList<Endpoint> getEndpointEntities();
 
 protected:
 	EndpointManager();

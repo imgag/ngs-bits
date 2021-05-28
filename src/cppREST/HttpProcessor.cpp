@@ -84,6 +84,7 @@ RequestMethod HttpProcessor::getMethodTypeFromString(const QString& in)
 	if (in.toLower() == "delete") return RequestMethod::DELETE;
 	if (in.toLower() == "put") return RequestMethod::PUT;
 	if (in.toLower() == "patch") return RequestMethod::PATCH;
+	if (in.toLower() == "head") return RequestMethod::HEAD;
 
 	return RequestMethod::GET;
 }

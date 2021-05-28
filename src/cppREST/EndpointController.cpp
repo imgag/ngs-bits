@@ -3,14 +3,22 @@
 HttpResponse EndpointController::serveEndpointHelp(const HttpRequest& request)
 {
 	QByteArray body;
-	if (request.getPathParams().count() == 0)
+	if (request.getPathParams().count() == 2)
 	{
-		body = generateGlobalHelp().toLocal8Bit();
+		// Locate endpoint by URL and request method
+		body = generateHelpPage(request.getPathParams().value(0), HttpProcessor::getMethodTypeFromString(request.getPathParams().value(1))).toLocal8Bit();
+	}
+	else if (request.getPathParams().count() == 1)
+	{
+		// For the same URL several request methods may be used: e.g. GET and POST
+		body = generateHelpPage(request.getPathParams().value(0)).toLocal8Bit();
 	}
 	else
 	{
-		body = generateEntityHelp(request.getPathParams().value(0), request.getMethod()).toLocal8Bit();
+		// Help for all defined endpoints
+		body = generateHelpPage().toLocal8Bit();
 	}
+
 	BasicResponseData response_data;
 	response_data.length = body.length();
 	response_data.content_type = ContentType::TEXT_HTML;
@@ -275,7 +283,7 @@ HttpResponse EndpointController::serveFolderListing(QString folder_title, QStrin
 	return HttpResponse(response_data, output.toLocal8Bit());
 }
 
-QString EndpointController::getEndpointHelpTemplate(QList<Endpoint>* endpoint_list)
+QString EndpointController::getEndpointHelpTemplate(QList<Endpoint> endpoint_list)
 {
 	QString output;
 	QTextStream stream(&output);
@@ -283,12 +291,12 @@ QString EndpointController::getEndpointHelpTemplate(QList<Endpoint>* endpoint_li
 	stream << HtmlEngine::getPageHeader("API Help Page");
 	stream << HtmlEngine::getApiHelpHeader("API Help Page");
 
-	for (int i = 0; i < endpoint_list->count(); ++i)
+	for (int i = 0; i < endpoint_list.count(); ++i)
 	{
 		QList<QString> param_names {};
 		QList<QString> param_desc {};
 
-		QMapIterator<QString, ParamProps> p((*endpoint_list)[i].params);
+		QMapIterator<QString, ParamProps> p(endpoint_list.value(i).params);
 		while (p.hasNext()) {
 			p.next();
 			param_names.append(p.key());
@@ -296,14 +304,14 @@ QString EndpointController::getEndpointHelpTemplate(QList<Endpoint>* endpoint_li
 		}
 
 		HttpRequest request;
-		request.setMethod((*endpoint_list)[i].method);
+		request.setMethod(endpoint_list.value(i).method);
 
 		stream << HtmlEngine::getApiHelpEntry(
-					  (*endpoint_list)[i].url,
+					  endpoint_list.value(i).url,
 					  request.methodAsString(),
 					  param_names,
 					  param_desc,
-					  (*endpoint_list)[i].comment
+					  endpoint_list.value(i).comment
 					);
 	}
 
@@ -312,16 +320,21 @@ QString EndpointController::getEndpointHelpTemplate(QList<Endpoint>* endpoint_li
 	return output;
 }
 
-QString EndpointController::generateGlobalHelp()
+QString EndpointController::generateHelpPage()
 {
 	return getEndpointHelpTemplate(EndpointManager::getEndpointEntities());
 }
 
-QString EndpointController::generateEntityHelp(const QString& path, const RequestMethod& method)
+QString EndpointController::generateHelpPage(const QString& path, const RequestMethod& method)
 {
 	QList<Endpoint> selected_endpoints;
-	selected_endpoints.append(EndpointManager::getEndpointEntity(path, method));
-	return getEndpointHelpTemplate(&selected_endpoints);
+	selected_endpoints.append(EndpointManager::getEndpointByUrlAndMethod(path, method));
+	return getEndpointHelpTemplate(selected_endpoints);
+}
+
+QString EndpointController::generateHelpPage(const QString& path)
+{
+	return getEndpointHelpTemplate(EndpointManager::getEndpointsByUrl(path));
 }
 
 

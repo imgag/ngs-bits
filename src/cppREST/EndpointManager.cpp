@@ -37,7 +37,7 @@ HttpResponse EndpointManager::blockInvalidUsers(HttpRequest request)
 	return HttpResponse();
 }
 
-void EndpointManager::validateInputData(Endpoint* current_endpoint, HttpRequest request)
+void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRequest& request)
 {	
 	QMapIterator<QString, ParamProps> i(current_endpoint->params);
 	while (i.hasNext()) {
@@ -83,7 +83,7 @@ void EndpointManager::appendEndpoint(Endpoint new_endpoint)
 	}
 }
 
-Endpoint EndpointManager::getEndpointEntity(QString url, RequestMethod method)
+Endpoint EndpointManager::getEndpointByUrlAndMethod(const QString& url, const RequestMethod& method)
 {
 	for (int i = 0; i < instance().endpoint_list_.count(); ++i)
 	{
@@ -94,12 +94,26 @@ Endpoint EndpointManager::getEndpointEntity(QString url, RequestMethod method)
 		}
 	}
 
-	return Endpoint{};
+	return Endpoint();
 }
 
-QList<Endpoint>* EndpointManager::getEndpointEntities()
+QList<Endpoint> EndpointManager::getEndpointsByUrl(const QString& url)
 {
-	return &instance().endpoint_list_;
+	QList<Endpoint> results;
+	for (int i = 0; i < instance().endpoint_list_.count(); ++i)
+	{
+		if (instance().endpoint_list_.value(i).url.toLower() == url.toLower())
+		{
+			results.append(instance().endpoint_list_.value(i));
+		}
+	}
+
+	return results;
+}
+
+QList<Endpoint> EndpointManager::getEndpointEntities()
+{
+	return instance().endpoint_list_;
 }
 
 EndpointManager& EndpointManager::instance()

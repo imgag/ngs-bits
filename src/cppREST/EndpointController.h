@@ -42,9 +42,10 @@ private:
 	static HttpResponse serveFolderContent(QString path, QString request_prefix, QString request_path, QList<QString> request_path_params);
 	static HttpResponse serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items);
 
-	static QString getEndpointHelpTemplate(QList<Endpoint>* endpoint_list);
-	static QString generateGlobalHelp();
-	static QString generateEntityHelp(const QString& path, const RequestMethod& method);
+	static QString getEndpointHelpTemplate(QList<Endpoint> endpoint_list);
+	static QString generateHelpPage();
+	static QString generateHelpPage(const QString& path, const RequestMethod& method);
+	static QString generateHelpPage(const QString& path);
 	static QString getServedTempPath(QList<QString> path_parts);
 	static QString getServedRootPath(const QList<QString>& path_parts);
 
