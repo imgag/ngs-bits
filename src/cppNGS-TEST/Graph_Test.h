@@ -1,15 +1,18 @@
 #include "TestFramework.h"
 #include "Graph.h"
+#include "StringDbParser.h"
+#include "Helper.h"
 #include <QByteArray>
 #include <QString>
 #include <QStringList>
 #include <QFile>
+#include <QSharedPointer>
 
 TEST_CLASS(Graph_Test)
 {
 Q_OBJECT
-    int lines{10000};
-    QByteArray filename{"data_in/string_db_physical.txt"};
+    QByteArray string_db_file{"data_in/string_db_physical.txt"};
+    QByteArray alias_file{"data_in/string_db_aliases.txt"};
 
 private slots:
     void testUndirectedGraph()
@@ -272,7 +275,7 @@ private slots:
         QByteArray path;
         try
         {
-            path = TESTDATA(filename);
+            path = TESTDATA(string_db_file);
         }
         catch(ProgrammingException ex)
         {
@@ -288,7 +291,6 @@ private slots:
         Graph<int, int> graph;
 
         QTextStream in(&file);
-        int i{0};
 
         // skip header line
         if(!in.atEnd())
@@ -299,52 +301,43 @@ private slots:
         //QString content{""};
 
         // read file line by line, adding line to string
-        while (!in.atEnd() && i <= lines)
+        while (!in.atEnd())
         {
             //content.append(in.readLine());
             in.readLine();
-            ++i;
         }
     }
 
-    void createStringDbGraph()
+    void createInteractionNetwork()
     {
-        QByteArray path;
+        QByteArray alias_path;
+        QByteArray string_db_path;
+        QByteArray statistics_path;
+
         try
         {
-            path = TESTDATA(filename);
+            alias_path = TESTDATA(alias_file);
+            string_db_path = TESTDATA(string_db_file);
+            statistics_path = TESTDATA("data_out/string_db_statistics.tsv");
         }
         catch(ProgrammingException ex)
         {
-            SKIP("String-DB file not found!");
-        }
-        QFile file(path);
-
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            return;
+            SKIP("String-DB file(s) not found!");
         }
 
-        Graph<int, int> graph;
+        StringDbParser string_parser(string_db_path, alias_path);
+        Graph<int, int> interaction_network = string_parser.interactionNetwork();
 
-        QTextStream in(&file);
-        int i{0};
+        // statistics: write degree of every node to a file
+        QSharedPointer<QFile> writer = Helper::openFileForWriting(statistics_path);
+        QTextStream stream(writer.data());
 
-        // skip header line
-        if(!in.atEnd())
+        stream << "node\tdegree" << endl;
+
+        Graph<int, int>::NodePointer node;
+        foreach(node, interaction_network.adjacencyList().keys())
         {
-            in.readLine();
-        }
-
-        // read file line by line, adding an edge for each line
-        while (!in.atEnd() && i <= lines)
-        {
-            QStringList line = in.readLine().split(" ");
-            if(line.size() == 3)
-            {
-                graph.addEdge(line.at(0), 0, line.at(1), 0, line.at(2).toInt());
-            }
-            ++i;
+            stream << node.data()->nodeName() << "\t" << interaction_network.getDegree(node.data()->nodeName()) << endl;
         }
     }
 };

@@ -73,7 +73,8 @@ SOURCES += BedFile.cpp \
     VariantType.cpp \
     SomaticCnvInterpreter.cpp \
     PrsTable.cpp \
-    RtfDocument.cpp
+    RtfDocument.cpp \
+    StringDbParser.cpp
 
 HEADERS += BedFile.h \
     Chromosome.h \
@@ -120,7 +121,8 @@ HEADERS += BedFile.h \
     RtfDocument.h \
     Graph.h \
     GraphNode.h \
-    GraphEdge.h
+    GraphEdge.h \
+    StringDbParser.h
 
 RESOURCES += \
     cppNGS.qrc
