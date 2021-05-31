@@ -9,7 +9,7 @@ HttpResponse EndpointManager::blockInvalidUsers(HttpRequest request)
 	QString auth_header = request.getHeaderByName("Authorization");
 	if (auth_header.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::getContentTypeFromString("text/plain"), "Protected area");
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::getContentTypeFromString("text/plain"), "You are in a protected area. Please provide your credentials");
 	}
 
 	if (auth_header.split(" ").size() < 2)
@@ -23,15 +23,16 @@ HttpResponse EndpointManager::blockInvalidUsers(HttpRequest request)
 
 	if (separator_pos == -1)
 	{
-		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Could not retrieve the credentials");
+		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Could not retrieve the credentials");
 	}
 
 	QString username = auth_header_decoded.mid(0, separator_pos);
 	QString password = auth_header_decoded.mid(separator_pos+1, auth_header_decoded.size()-username.size()-1);
 
+	// TODO: brute-force attck protection may be needed
 	if (!isUserValid(username, password))
 	{
-		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Invalid user credentials");
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid user credentials");
 	}
 
 	return HttpResponse();
