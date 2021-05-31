@@ -5289,6 +5289,8 @@ void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
 {
 	if (filename_.isEmpty()) return;
 	if (!LoginManager::active()) return;
+	AnalysisType type = variants_.type();
+	if (type!=SOMATIC_SINGLESAMPLE && type!=SOMATIC_PAIR) return;
 
 	int i_vicc = variants_.annotationIndexByName("NGSD_som_vicc_interpretation");
 	int i_vicc_comment = variants_.annotationIndexByName("NGSD_som_vicc_comment");
