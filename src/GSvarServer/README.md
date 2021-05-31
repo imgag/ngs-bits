@@ -14,8 +14,9 @@ To build the server, the following steps have to be executed
 ## Running
 The following command starts the server (if you are located at the root of the repository):
 > bin/GSvarServer -p=8443 -l=3
-`p` parameter stands for the port number
-`l` means the logging detail level:
+
+`p` parameter stands for the port number\
+`l` means the logging detail level:\
 * 0 only critical and fatal
 * 1 += info
 * 2 += warning
@@ -23,7 +24,8 @@ The following command starts the server (if you are located at the root of the r
 
 GSvar app is needed to utilize the server to its full capacity. However, you can also use any browser to access the data:
 > https://[DOMAIN_NAME]:[PORT_NUMBER]
-To open the help page, use this address:
+
+To open the help page, use this address:\
 > https://[DOMAIN_NAME]:[PORT_NUMBER]/v1/help
 
 ## Configuration
