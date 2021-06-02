@@ -3,6 +3,7 @@
 #include "GUIHelper.h"
 #include "LoginManager.h"
 #include "NGSD.h"
+#include "GSvarHelper.h"
 #include <QMessageBox>
 #include <QMenu>
 #include <QDir>
@@ -310,7 +311,7 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 {
 	// open BED file
 	BedFile hotspot_regions;
-	hotspot_regions.load("://Resources/cfDNA_hotspot_regions.bed");
+	hotspot_regions.load("://Resources/" + GSvarHelper::build() + "_cfDNA_hotspot_regions.bed");
 
 	// fill table
 
@@ -594,7 +595,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	if (ui_->cb_sample_identifier->isChecked())
 	{
 		BedFile kasp_variants;
-		kasp_variants.load("://Resources/KASP_set2_pad5.bed");
+		kasp_variants.load("://Resources/" + GSvarHelper::build() + "_KASP_set2_pad5.bed");
 		kasp_variants.clearAnnotations();
 		variant_count += kasp_variants.count();
 		for (int i=0; i<kasp_variants.count(); i++)
