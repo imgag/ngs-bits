@@ -1,11 +1,26 @@
 #include "StringDbParser.h"
 
-StringDbParser::StringDbParser(const QByteArray& string_db_file, const QByteArray& alias_file)
+/**
+ * @brief StringDbParser::StringDbParser
+ * @param string_db_file path to String-DB file with interactions
+ * @param alias_file path to String-DB file with identifier aliases
+ * @param threshold float, between 0 and 1, lower threshold for combined interaction scores; default is medium confidence threshold 0.4
+ */
+StringDbParser::StringDbParser(const QByteArray& string_db_file, const QByteArray& alias_file, float threshold)
     : string_db_file_(string_db_file),
       alias_file_(alias_file),
       hgnc_translator_(),
       interaction_network_()
 {
+    if(threshold >= 0 && threshold <= 1)
+    {
+        threshold_ = (int) (threshold * 1000);
+    }
+    else
+    {
+        THROW(ArgumentException, "Threshold for interaction score should be between 0 and 1");
+    }
+
     parseAliasFile();
     parseStringDbFile();
 }
@@ -72,7 +87,8 @@ void StringDbParser::parseStringDbFile()
 
         if(line.size() == 3)
         {
-            if(hgnc_translator_.contains(line.at(0)) && hgnc_translator_.contains(line.at(1)))
+            // only add edges for interactions between nodes with HGNC identifier and above the threshold
+            if(hgnc_translator_.contains(line.at(0)) && hgnc_translator_.contains(line.at(1)) && line.at(2).toInt() >= threshold_)
             {
                 interaction_network_.addEdge(hgnc_translator_[line.at(0)], 0, hgnc_translator_[line.at(1)], 0, line.at(2).toInt());
             }

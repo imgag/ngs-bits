@@ -11,7 +11,7 @@
 TEST_CLASS(Graph_Test)
 {
 Q_OBJECT
-    QByteArray string_db_file{"data_in/string_db_physical.txt"};
+    QByteArray string_db_file{"data_in/string_db_interactions.txt"};
     QByteArray alias_file{"data_in/string_db_aliases.txt"};
 
 private slots:
@@ -325,6 +325,7 @@ private slots:
             SKIP("String-DB file(s) not found!");
         }
 
+        // create string db graph with default confidence threshold
         StringDbParser string_parser(string_db_path, alias_path);
         Graph<int, int> interaction_network = string_parser.interactionNetwork();
 

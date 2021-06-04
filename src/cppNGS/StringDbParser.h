@@ -13,11 +13,14 @@
 class CPPNGSSHARED_EXPORT StringDbParser
 {
     public:
-        StringDbParser(const QByteArray& string_db_file, const QByteArray& alias_file);
+        StringDbParser(const QByteArray& string_db_file, const QByteArray& alias_file, float threshold = 0.4);
 
         Graph<int, int>& interactionNetwork();
 
     private:
+        // lower threshold for combined score of putative interactions; ranges from 0 to 1000
+        int threshold_;
+
         QByteArray string_db_file_;
         QByteArray alias_file_;
 
