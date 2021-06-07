@@ -65,6 +65,8 @@ public:
 
 	///Lets the user select a gene. If the user aborts, "" is returned.
 	static QString selectGene();
+	///Lets the user select a processed sample from the current variant list. If only one processed sample is contained, it is returned. If the user aborts, "" is returned.
+	QString selectProcessedSample();
 
 	///Performs batch import of table rows
 	void importBatch(QString title, QString text, QString table, QStringList fields);

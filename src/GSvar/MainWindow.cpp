@@ -416,7 +416,6 @@ void MainWindow::on_actionDebug_triggered()
 		*/
 
 		//evaluation GSvar score/rank
-		/*
 		TsvFile output;
 		output.addHeader("ps");
 		output.addHeader("variants_causal");
@@ -426,6 +425,7 @@ void MainWindow::on_actionDebug_triggered()
 		int c_top1 = 0;
 		int c_top5 = 0;
 		int c_top10 = 0;
+		int c_none = 0;
 		NGSD db;
 		QStringList ps_names = db.getValues("SELECT DISTINCT CONCAT(s.name, '_0', ps.process_id) FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND (sys.type='WGS' OR sys.type='WES') AND ps.project_id=p.id AND p.type='diagnostic' AND ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.type='diagnostic variant' AND s.disease_status='Affected'");
 		qDebug() << "Processed samples to check:" << ps_names.count();
@@ -444,7 +444,7 @@ void MainWindow::on_actionDebug_triggered()
 			foreach(Phenotype pheno, phenotypes)
 			{
 				//pheno > genes
-				GeneSet genes = db.phenotypeToGenes(pheno, true);
+				GeneSet genes = db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 
 				//genes > roi
 				BedFile roi;
@@ -510,7 +510,10 @@ void MainWindow::on_actionDebug_triggered()
 										if (rank<=5) ++c_top5;
 										if (rank<=10) ++c_top10;
 									}
-									catch(...) {} //nothing to do here
+									catch(...)
+									{
+										++c_none;
+									}
 								}
 							}
 						}
@@ -526,8 +529,8 @@ void MainWindow::on_actionDebug_triggered()
 		output.addComment("##Rank1: " + QString::number(c_top1) + " (" + QString::number(100.0*c_top1/output.rowCount(), 'f', 2) + "%)");
 		output.addComment("##Top5 : " + QString::number(c_top5) + " (" + QString::number(100.0*c_top5/output.rowCount(), 'f', 2) + "%)");
 		output.addComment("##Top10: " + QString::number(c_top10) + " (" + QString::number(100.0*c_top10/output.rowCount(), 'f', 2) + "%)");
+		output.addComment("##None : " + QString::number(c_none) + " (" + QString::number(100.0*c_none/output.rowCount(), 'f', 2) + "%)");
 		output.store("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + special + ".tsv");
-		*/
 
 		//import of sample relations from GenLab
 		/*
@@ -677,6 +680,7 @@ void MainWindow::on_actionDebug_triggered()
 		*/
 
 		//import sample meta data from GenLab
+		/*
 		GenLabDB genlab;
 		NGSD db;
 		ProcessedSampleSearchParameters params;
@@ -700,6 +704,7 @@ void MainWindow::on_actionDebug_triggered()
 			qDebug() << i << "/" << ps_list.size() << " - " << ps;
 			genlab.addMissingMetaDataToNGSD(ps, true, true, true, true, false);
 		}
+		*/
 
 		qDebug() << Helper::elapsedTime(timer, true);
 	}
@@ -1253,9 +1258,7 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 
 	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
-	QSharedPointer<CfDNAPanelDesignDialog> dialog = QSharedPointer<CfDNAPanelDesignDialog>(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config,
-																													  variants_.mainSampleName(),
-																													  cfdna_processing_systems, this));
+		QSharedPointer<CfDNAPanelDesignDialog> dialog = QSharedPointer<CfDNAPanelDesignDialog>(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config, variants_.mainSampleName(), cfdna_processing_systems, this));
 	dialog->setWindowFlags(Qt::Window);
 
 	// link IGV
@@ -1916,7 +1919,9 @@ void MainWindow::editVariantValidation(int index)
 
 	try
 	{
-		QString ps = variants_.mainSampleName();
+		QString ps = selectProcessedSample();
+		if (ps.isEmpty()) return;
+
 		NGSD db;
 
 		//get variant ID - add if missing
@@ -2224,7 +2229,7 @@ void MainWindow::cleanUpModelessDialogs()
 
 void MainWindow::importPhenotypesFromNGSD()
 {
-	QString ps_name = variants_.mainSampleName();
+	QString ps_name = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
 	try
 	{
 		NGSD db;
@@ -2824,7 +2829,7 @@ void MainWindow::loadFile(QString filename)
 	if (LoginManager::active())
 	{
 		NGSD db;
-		QString sample_id = db.sampleId(variants_.mainSampleName(), false);
+		QString sample_id = db.sampleId(germlineReportSample(), false);
 		if (sample_id!="")
 		{
 			QStringList rna_sample_ids = db.sameSamples(sample_id, "RNA");
@@ -3655,6 +3660,35 @@ QString MainWindow::selectGene()
 	return selector->text();
 }
 
+QString MainWindow::selectProcessedSample()
+{
+    //determine processed sample names
+    QStringList ps_list;
+    foreach(const SampleInfo& info, variants_.getSampleHeader())
+    {
+        ps_list << info.id.trimmed();
+    }
+
+    //no samples => error
+    if (ps_list.isEmpty())
+    {
+        THROW(ProgrammingException, "selectProcessedSample() cannot be used if there is no variant list loaded!");
+    }
+
+    //one sample => auto-select
+    if (ps_list.count()==1)
+    {
+       return ps_list[0];
+    }
+
+    //several affected => let user select
+    bool ok = false;
+    QString selected = QInputDialog::getItem(this, "Select processed sample", "processed sample:", ps_list, 0, false, &ok);
+    if (ok) return selected;
+
+    return "";
+}
+
 void MainWindow::importBatch(QString title, QString text, QString table, QStringList fields)
 {
 	//show dialog
@@ -4310,7 +4344,8 @@ void MainWindow::on_actionGapsLookup_triggered()
 	AnalysisType type = variants_.type();
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE) return;
 
-	QString ps_name = germlineReportSample();
+	QString ps_name = selectProcessedSample();
+	if (ps_name.isEmpty()) return;
 
 	//check low-coverage file exists
 	QStringList low_cov_files = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(ps_name).asStringList();
@@ -4328,7 +4363,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 	if (LoginManager::active())
 	{
 		NGSD db;
-		QString ps_id = db.processedSampleId(variants_.mainSampleName());
+		QString ps_id = db.processedSampleId(germlineReportSample());
 		if (ps_id!="")
 		{
 			int sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=:0", true, ps_id).toInt();
@@ -4603,7 +4638,7 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	LovdUploadData data;
 
 	//sample name
-	data.processed_sample = variants_.mainSampleName();
+	data.processed_sample = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
 
 	//gender
 	NGSD db;
@@ -5341,7 +5376,8 @@ bool MainWindow::germlineReportSupported(bool require_ngsd)
 	//multi-sample only with at least one affected
 	if (type==GERMLINE_MULTISAMPLE && variants_.getSampleHeader().sampleColumns(true).count()>=1) return true;
 
-	return false;}
+	return false;
+}
 
 QString MainWindow::germlineReportSample()
 {
