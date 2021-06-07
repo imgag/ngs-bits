@@ -2829,7 +2829,9 @@ void MainWindow::loadFile(QString filename)
 	if (LoginManager::active())
 	{
 		NGSD db;
-		QString sample_id = db.sampleId(germlineReportSample(), false);
+
+		QString sample_id = "";
+		if(germlineReportSupported()) sample_id =  db.sampleId(germlineReportSample(), false);
 		if (sample_id!="")
 		{
 			QStringList rna_sample_ids = db.sameSamples(sample_id, "RNA");
