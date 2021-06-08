@@ -1141,6 +1141,13 @@ QCCollection Statistics::somatic(const QString& build, QString& tumor_bam, QStri
 			hist_all.inc(variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble());;
 			if(variants[i].failedFilters().empty())	hist_filtered.inc(variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble());
 		}
+        //MuTect2
+        //##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
+        else if(variants.formatIDs().contains("AF"))
+        {
+            hist_all.inc(variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble());;
+            if(variants[i].failedFilters().empty())	hist_filtered.inc(variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble());
+        }
 		// else: strelka indel
 	}
 
@@ -1272,12 +1279,19 @@ QCCollection Statistics::somatic(const QString& build, QString& tumor_bam, QStri
 		//##FORMAT=<ID=FA,Number=A,Type=Float,Description="Allele fraction of the alternate allele with regard to reference">
 		else if(variants.formatIDs().contains("FA"))
 		{
-			af_tumor = variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble();
+            af_tumor = variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble();
 			af_normal = variants[i].formatValueFromSample("FA", normal_id.toUtf8()).toDouble();
 		}
+        //MuTect2
+        //##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
+        else if(variants.formatIDs().contains("AF"))
+        {
+            af_tumor = variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble();
+            af_normal = variants[i].formatValueFromSample("AF", normal_id.toUtf8()).toDouble();
+        }
 		else
 		{
-			Log::error("Could not identify vcf format in line " + QString::number(i+1) + ". Sample-ID: " + tumor_id + ". Position " + variants[i].chr().str() + ":" + QString::number(variants[i].start()) + ". Only strelka and freebayes are currently supported.");
+            Log::error("Could not identify vcf format in line " + QString::number(i+1) + ". Sample-ID: " + tumor_id + ". Position " + variants[i].chr().str() + ":" + QString::number(variants[i].start()) + ". Only strelka, freebayes and mutect2 are currently supported.");
 		}
 
 		//find AF and set x and y points, implement freebayes and strelka fields

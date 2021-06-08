@@ -1,0 +1,194 @@
+##fileformat=VCFv4.2
+##FILTER=<ID=FAIL,Description="Fail the site if all alleles fail but for different reasons.">
+##FILTER=<ID=PASS,Description="Site contains at least one allele that passes filters">
+##FILTER=<ID=base_qual,Description="alt median base quality">
+##FILTER=<ID=clustered_events,Description="Clustered events observed in the tumor">
+##FILTER=<ID=contamination,Description="contamination">
+##FILTER=<ID=duplicate,Description="evidence for alt allele is overrepresented by apparent duplicates">
+##FILTER=<ID=fragment,Description="abs(ref - alt) median fragment length">
+##FILTER=<ID=germline,Description="Evidence indicates this site is germline, not somatic">
+##FILTER=<ID=haplotype,Description="Variant near filtered variant on same haplotype.">
+##FILTER=<ID=low_allele_frac,Description="Allele fraction is below specified threshold">
+##FILTER=<ID=map_qual,Description="ref - alt median mapping quality">
+##FILTER=<ID=multiallelic,Description="Site filtered because too many alt alleles pass tumor LOD">
+##FILTER=<ID=n_ratio,Description="Ratio of N to alt exceeds specified ratio">
+##FILTER=<ID=normal_artifact,Description="artifact_in_normal">
+##FILTER=<ID=orientation,Description="orientation bias detected by the orientation bias mixture model">
+##FILTER=<ID=panel_of_normals,Description="Blacklisted site in panel of normals">
+##FILTER=<ID=position,Description="median distance of alt variants from end of reads">
+##FILTER=<ID=possible_numt,Description="Allele depth is below expected coverage of NuMT in autosome">
+##FILTER=<ID=slippage,Description="Site filtered due to contraction of short tandem repeat region">
+##FILTER=<ID=strand_bias,Description="Evidence for alt allele comes from one read direction only">
+##FILTER=<ID=strict_strand,Description="Evidence for alt allele is not represented in both directions">
+##FILTER=<ID=weak_evidence,Description="Mutation does not meet likelihood threshold">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with MQ=255 or with bad mates are filtered)">
+##FORMAT=<ID=F1R2,Number=R,Type=Integer,Description="Count of reads in F1R2 pair orientation supporting each allele">
+##FORMAT=<ID=F2R1,Number=R,Type=Integer,Description="Count of reads in F2R1 pair orientation supporting each allele">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=PGT,Number=1,Type=String,Description="Physical phasing haplotype information, describing how the alternate alleles are phased in relation to one another; will always be heterozygous and is not intended to describe called alleles">
+##FORMAT=<ID=PID,Number=1,Type=String,Description="Physical phasing ID information, where each unique ID within a given sample (but not across samples) connects records within a phasing group">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Phasing set (typically the position of the first variant in the set)">
+##FORMAT=<ID=SB,Number=4,Type=Integer,Description="Per-sample component statistics which comprise the Fisher's Exact Test to detect strand bias.">
+##GATKCommandLine=<ID=FilterMutectCalls,CommandLine="FilterMutectCalls --output SomaticQC_in9.vcf --variant SomaticQC_in9_unfiltered.vcf --reference /mnt/e/UKT/share/genomes/hg19.fasta --threshold-strategy OPTIMAL_F_SCORE --f-score-beta 1.0 --false-discovery-rate 0.05 --initial-threshold 0.1 --mitochondria-mode false --max-events-in-region 2 --max-alt-allele-count 1 --unique-alt-read-count 0 --min-median-mapping-quality 30 --min-median-base-quality 20 --max-median-fragment-length-difference 10000 --min-median-read-position 1 --max-n-ratio Infinity --min-reads-per-strand 0 --min-allele-fraction 0.0 --contamination-estimate 0.0 --log-snv-prior -13.815510557964275 --log-indel-prior -16.11809565095832 --log-artifact-prior -2.302585092994046 --normal-p-value-threshold 0.001 --min-slippage-length 8 --pcr-slippage-rate 0.1 --distance-on-haplotype 100 --long-indel-length 5 --interval-set-rule UNION --interval-padding 0 --interval-exclusion-padding 0 --interval-merging-rule ALL --read-validation-stringency SILENT --seconds-between-progress-updates 10.0 --disable-sequence-dictionary-validation false --create-output-bam-index true --create-output-bam-md5 false --create-output-variant-index true --create-output-variant-md5 false --lenient false --add-output-sam-program-record true --add-output-vcf-command-line true --cloud-prefetch-buffer 40 --cloud-index-prefetch-buffer -1 --disable-bam-index-caching false --sites-only-vcf-output false --help false --version false --showHidden false --verbosity INFO --QUIET false --use-jdk-deflater false --use-jdk-inflater false --gcs-max-retries 20 --gcs-project-for-requester-pays  --disable-tool-default-read-filters false",Version="4.2.0.0",Date="May 18, 2021 at 4:36:20 PM CEST">
+##GATKCommandLine=<ID=Mutect2,CommandLine="Mutect2 --normal-sample GS120180 --output SomaticQC_in9.vcf --input SomaticQC_in1_nor.bam --input SomaticQC_in1_tum.bam --reference /mnt/e/UKT/share/genomes/hg19.fasta --f1r2-median-mq 50 --f1r2-min-bq 20 --f1r2-max-depth 200 --genotype-pon-sites false --genotype-germline-sites false --af-of-alleles-not-in-resource -1.0 --mitochondria-mode false --tumor-lod-to-emit 3.0 --initial-tumor-lod 2.0 --pcr-snv-qual 40 --pcr-indel-qual 40 --max-population-af 0.01 --downsampling-stride 1 --callable-depth 10 --max-suspicious-reads-per-alignment-start 0 --normal-lod 2.2 --ignore-itr-artifacts false --gvcf-lod-band -2.5 --gvcf-lod-band -2.0 --gvcf-lod-band -1.5 --gvcf-lod-band -1.0 --gvcf-lod-band -0.5 --gvcf-lod-band 0.0 --gvcf-lod-band 0.5 --gvcf-lod-band 1.0 --minimum-allele-fraction 0.0 --independent-mates false --disable-adaptive-pruning false --kmer-size 10 --kmer-size 25 --dont-increase-kmer-sizes-for-cycles false --allow-non-unique-kmers-in-ref false --num-pruning-samples 1 --min-dangling-branch-length 4 --recover-all-dangling-branches false --max-num-haplotypes-in-population 128 --min-pruning 2 --adaptive-pruning-initial-error-rate 0.001 --pruning-lod-threshold 2.302585092994046 --pruning-seeding-lod-threshold 9.210340371976184 --max-unpruned-variants 100 --linked-de-bruijn-graph false --disable-artificial-haplotype-recovery false --enable-legacy-graph-cycle-detection false --debug-assembly false --debug-graph-transformations false --capture-assembly-failure-bam false --num-matching-bases-in-dangling-end-to-recover -1 --error-correction-log-odds -Infinity --error-correct-reads false --kmer-length-for-read-error-correction 25 --min-observations-for-kmer-to-be-solid 20 --base-quality-score-threshold 18 --dragstr-het-hom-ratio 2 --dont-use-dragstr-pair-hmm-scores false --pair-hmm-gap-continuation-penalty 10 --expected-mismatch-rate-for-read-disqualification 0.02 --pair-hmm-implementation FASTEST_AVAILABLE --pcr-indel-model CONSERVATIVE --phred-scaled-global-read-mismapping-rate 45 --disable-symmetric-hmm-normalizing false --disable-cap-base-qualities-to-map-quality false --enable-dynamic-read-disqualification-for-genotyping false --dynamic-read-disqualification-threshold 1.0 --native-pair-hmm-threads 4 --native-pair-hmm-use-double-precision false --bam-writer-type CALLED_HAPLOTYPES --dont-use-soft-clipped-bases false --min-base-quality-score 10 --smith-waterman JAVA --emit-ref-confidence NONE --max-mnp-distance 1 --force-call-filtered-alleles false --soft-clip-low-quality-ends false --allele-informative-reads-overlap-margin 2 --min-assembly-region-size 50 --max-assembly-region-size 300 --active-probability-threshold 0.002 --max-prob-propagation-distance 50 --force-active false --assembly-region-padding 100 --padding-around-indels 75 --padding-around-snps 20 --padding-around-strs 75 --max-extension-into-assembly-region-padding-legacy 25 --max-reads-per-alignment-start 50 --enable-legacy-assembly-region-trimming false --interval-set-rule UNION --interval-padding 0 --interval-exclusion-padding 0 --interval-merging-rule ALL --read-validation-stringency SILENT --seconds-between-progress-updates 10.0 --disable-sequence-dictionary-validation false --create-output-bam-index true --create-output-bam-md5 false --create-output-variant-index true --create-output-variant-md5 false --lenient false --add-output-sam-program-record true --add-output-vcf-command-line true --cloud-prefetch-buffer 40 --cloud-index-prefetch-buffer -1 --disable-bam-index-caching false --sites-only-vcf-output false --help false --version false --showHidden false --verbosity INFO --QUIET false --use-jdk-deflater false --use-jdk-inflater false --gcs-max-retries 20 --gcs-project-for-requester-pays  --disable-tool-default-read-filters false --max-read-length 2147483647 --min-read-length 30 --minimum-mapping-quality 20 --disable-tool-default-annotations false --enable-all-annotations false",Version="4.2.0.0",Date="May 18, 2021 at 3:38:59 PM CEST">
+##INFO=<ID=AS_FilterStatus,Number=A,Type=String,Description="Filter status for each allele, as assessed by ApplyVQSR. Note that the VCF filter field will reflect the most lenient/sensitive status across all alleles.">
+##INFO=<ID=AS_SB_TABLE,Number=1,Type=String,Description="Allele-specific forward/reverse read counts for strand bias tests. Includes the reference and alleles separated by |.">
+##INFO=<ID=AS_UNIQ_ALT_READ_COUNT,Number=A,Type=Integer,Description="Number of reads with unique start and mate end positions for each alt at a variant site">
+##INFO=<ID=CONTQ,Number=1,Type=Float,Description="Phred-scaled qualities that alt allele are not due to contamination">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth; some reads may have been filtered">
+##INFO=<ID=ECNT,Number=1,Type=Integer,Description="Number of events in this haplotype">
+##INFO=<ID=GERMQ,Number=1,Type=Integer,Description="Phred-scaled quality that alt alleles are not germline variants">
+##INFO=<ID=MBQ,Number=R,Type=Integer,Description="median base quality">
+##INFO=<ID=MFRL,Number=R,Type=Integer,Description="median fragment length">
+##INFO=<ID=MMQ,Number=R,Type=Integer,Description="median mapping quality">
+##INFO=<ID=MPOS,Number=A,Type=Integer,Description="median distance from end of read">
+##INFO=<ID=NALOD,Number=A,Type=Float,Description="Negative log 10 odds of artifact in normal with same allele fraction as tumor">
+##INFO=<ID=NCount,Number=1,Type=Integer,Description="Count of N bases in the pileup">
+##INFO=<ID=NLOD,Number=A,Type=Float,Description="Normal log 10 likelihood ratio of diploid het or hom alt genotypes">
+##INFO=<ID=OCM,Number=1,Type=Integer,Description="Number of alt reads whose original alignment doesn't match the current contig.">
+##INFO=<ID=PON,Number=0,Type=Flag,Description="site found in panel of normals">
+##INFO=<ID=POPAF,Number=A,Type=Float,Description="negative log 10 population allele frequencies of alt alleles">
+##INFO=<ID=ROQ,Number=1,Type=Float,Description="Phred-scaled qualities that alt allele are not due to read orientation artifact">
+##INFO=<ID=RPA,Number=R,Type=Integer,Description="Number of times tandem repeat unit is repeated, for each allele (including reference)">
+##INFO=<ID=RU,Number=1,Type=String,Description="Tandem repeat unit (bases)">
+##INFO=<ID=SEQQ,Number=1,Type=Integer,Description="Phred-scaled quality that alt alleles are not sequencing errors">
+##INFO=<ID=STR,Number=0,Type=Flag,Description="Variant is a short tandem repeat">
+##INFO=<ID=STRANDQ,Number=1,Type=Integer,Description="Phred-scaled quality of strand bias artifact">
+##INFO=<ID=STRQ,Number=1,Type=Integer,Description="Phred-scaled quality that alt alleles in STRs are not polymerase slippage errors">
+##INFO=<ID=TLOD,Number=A,Type=Float,Description="Log 10 likelihood ratio score of variant existing versus not existing">
+##MutectVersion=2.2
+##contig=<ID=chrM,length=16571,assembly=ucsc.hg19>
+##contig=<ID=chr1,length=249250621,assembly=ucsc.hg19>
+##contig=<ID=chr2,length=243199373,assembly=ucsc.hg19>
+##contig=<ID=chr3,length=198022430,assembly=ucsc.hg19>
+##contig=<ID=chr4,length=191154276,assembly=ucsc.hg19>
+##contig=<ID=chr5,length=180915260,assembly=ucsc.hg19>
+##contig=<ID=chr6,length=171115067,assembly=ucsc.hg19>
+##contig=<ID=chr7,length=159138663,assembly=ucsc.hg19>
+##contig=<ID=chr8,length=146364022,assembly=ucsc.hg19>
+##contig=<ID=chr9,length=141213431,assembly=ucsc.hg19>
+##contig=<ID=chr10,length=135534747,assembly=ucsc.hg19>
+##contig=<ID=chr11,length=135006516,assembly=ucsc.hg19>
+##contig=<ID=chr12,length=133851895,assembly=ucsc.hg19>
+##contig=<ID=chr13,length=115169878,assembly=ucsc.hg19>
+##contig=<ID=chr14,length=107349540,assembly=ucsc.hg19>
+##contig=<ID=chr15,length=102531392,assembly=ucsc.hg19>
+##contig=<ID=chr16,length=90354753,assembly=ucsc.hg19>
+##contig=<ID=chr17,length=81195210,assembly=ucsc.hg19>
+##contig=<ID=chr18,length=78077248,assembly=ucsc.hg19>
+##contig=<ID=chr19,length=59128983,assembly=ucsc.hg19>
+##contig=<ID=chr20,length=63025520,assembly=ucsc.hg19>
+##contig=<ID=chr21,length=48129895,assembly=ucsc.hg19>
+##contig=<ID=chr22,length=51304566,assembly=ucsc.hg19>
+##contig=<ID=chrX,length=155270560,assembly=ucsc.hg19>
+##contig=<ID=chrY,length=59373566,assembly=ucsc.hg19>
+##contig=<ID=chr1_gl000191_random,length=106433,assembly=ucsc.hg19>
+##contig=<ID=chr1_gl000192_random,length=547496,assembly=ucsc.hg19>
+##contig=<ID=chr4_ctg9_hap1,length=590426,assembly=ucsc.hg19>
+##contig=<ID=chr4_gl000193_random,length=189789,assembly=ucsc.hg19>
+##contig=<ID=chr4_gl000194_random,length=191469,assembly=ucsc.hg19>
+##contig=<ID=chr6_apd_hap1,length=4622290,assembly=ucsc.hg19>
+##contig=<ID=chr6_cox_hap2,length=4795371,assembly=ucsc.hg19>
+##contig=<ID=chr6_dbb_hap3,length=4610396,assembly=ucsc.hg19>
+##contig=<ID=chr6_mann_hap4,length=4683263,assembly=ucsc.hg19>
+##contig=<ID=chr6_mcf_hap5,length=4833398,assembly=ucsc.hg19>
+##contig=<ID=chr6_qbl_hap6,length=4611984,assembly=ucsc.hg19>
+##contig=<ID=chr6_ssto_hap7,length=4928567,assembly=ucsc.hg19>
+##contig=<ID=chr7_gl000195_random,length=182896,assembly=ucsc.hg19>
+##contig=<ID=chr8_gl000196_random,length=38914,assembly=ucsc.hg19>
+##contig=<ID=chr8_gl000197_random,length=37175,assembly=ucsc.hg19>
+##contig=<ID=chr9_gl000198_random,length=90085,assembly=ucsc.hg19>
+##contig=<ID=chr9_gl000199_random,length=169874,assembly=ucsc.hg19>
+##contig=<ID=chr9_gl000200_random,length=187035,assembly=ucsc.hg19>
+##contig=<ID=chr9_gl000201_random,length=36148,assembly=ucsc.hg19>
+##contig=<ID=chr11_gl000202_random,length=40103,assembly=ucsc.hg19>
+##contig=<ID=chr17_ctg5_hap1,length=1680828,assembly=ucsc.hg19>
+##contig=<ID=chr17_gl000203_random,length=37498,assembly=ucsc.hg19>
+##contig=<ID=chr17_gl000204_random,length=81310,assembly=ucsc.hg19>
+##contig=<ID=chr17_gl000205_random,length=174588,assembly=ucsc.hg19>
+##contig=<ID=chr17_gl000206_random,length=41001,assembly=ucsc.hg19>
+##contig=<ID=chr18_gl000207_random,length=4262,assembly=ucsc.hg19>
+##contig=<ID=chr19_gl000208_random,length=92689,assembly=ucsc.hg19>
+##contig=<ID=chr19_gl000209_random,length=159169,assembly=ucsc.hg19>
+##contig=<ID=chr21_gl000210_random,length=27682,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000211,length=166566,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000212,length=186858,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000213,length=164239,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000214,length=137718,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000215,length=172545,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000216,length=172294,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000217,length=172149,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000218,length=161147,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000219,length=179198,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000220,length=161802,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000221,length=155397,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000222,length=186861,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000223,length=180455,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000224,length=179693,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000225,length=211173,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000226,length=15008,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000227,length=128374,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000228,length=129120,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000229,length=19913,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000230,length=43691,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000231,length=27386,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000232,length=40652,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000233,length=45941,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000234,length=40531,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000235,length=34474,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000236,length=41934,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000237,length=45867,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000238,length=39939,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000239,length=33824,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000240,length=41933,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000241,length=42152,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000242,length=43523,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000243,length=43341,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000244,length=39929,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000245,length=36651,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000246,length=38154,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000247,length=36422,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000248,length=39786,assembly=ucsc.hg19>
+##contig=<ID=chrUn_gl000249,length=38502,assembly=ucsc.hg19>
+##filtering_status=These calls have been filtered by FilterMutectCalls to label false positives with a list of failed filters and true positives with PASS.
+##normal_sample=GS120180
+##source=FilterMutectCalls
+##source=Mutect2
+##tumor_sample=GS120240
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	GS120180	GS120240
+chr1	40777372	.	C	A	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=36,30|15,12;DP=99;ECNT=1;GERMQ=93;MBQ=31,20;MFRL=107,103;MMQ=60,60;MPOS=11;NALOD=1.48;NLOD=8.43;POPAF=6.00;TLOD=76.81	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:37,0:0.032:37:9,0:28,0:22,15,0,0	0/1:29,27:0.467:56:9,8:19,19:14,15,15,12
+chr1	152749188	.	C	G	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=43,65|18,32;DP=162;ECNT=1;GERMQ=93;MBQ=20,20;MFRL=96,112;MMQ=60,60;MPOS=25;NALOD=1.52;NLOD=9.59;POPAF=6.00;TLOD=127.05	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:49,0:0.029:49:30,0:18,0:20,29,0,0	0/1:59,50:0.456:109:25,21:33,29:23,36,18,32
+chr1	202985088	.	G	C	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=214,172|61,36;DP=497;ECNT=1;GERMQ=93;MBQ=20,20;MFRL=100,108;MMQ=60,60;MPOS=20;NALOD=2.22;NLOD=49.31;POPAF=6.00;TLOD=239.91	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:244,0:5.997e-03:244:116,0:127,0:139,105,0,0	0/1:142,97:0.417:239:74,51:66,44:75,67,61,36
+chr1	238046120	.	G	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=46,92|12,27;DP=192;ECNT=1;GERMQ=93;MBQ=20,20;MFRL=98,99;MMQ=60,60;MPOS=15;NALOD=1.88;NLOD=21.92;POPAF=6.00;TLOD=106.45	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:101,0:0.013:101:52,0:47,0:36,65,0,0	0/1:37,39:0.494:76:20,15:15,24:10,27,12,27
+chr1	248903045	.	C	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=51,107|9,37;DP=224;ECNT=1;GERMQ=93;MBQ=36,36;MFRL=119,140;MMQ=60,60;MPOS=19;NALOD=1.88;NLOD=22.27;POPAF=6.00;TLOD=144.25	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:95,0:0.013:95:33,0:62,0:34,61,0,0	0/1:63,46:0.427:109:30,23:33,23:17,46,9,37
+chr2	17902509	.	C	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=27,59|2,11;DP=105;ECNT=1;GERMQ=93;MBQ=20,38;MFRL=100,115;MMQ=60,60;MPOS=21;NALOD=1.67;NLOD=13.24;POPAF=6.00;TLOD=38.48	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:62,0:0.021:62:23,0:39,0:21,41,0,0	0/1:24,13:0.375:37:11,7:13,6:6,18,2,11
+chr2	99722073	.	G	A	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=136,127|35,40;DP=358;ECNT=1;GERMQ=93;MBQ=20,20;MFRL=101,101;MMQ=60,60;MPOS=12;NALOD=2.12;NLOD=38.18;POPAF=6.00;TLOD=204.03	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:178,0:7.608e-03:178:67,0:109,0:96,82,0,0	0/1:85,75:0.471:160:39,35:45,37:40,45,35,40
+chr2	207516552	.	T	A	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=43,22|9,6;DP=85;ECNT=1;GERMQ=93;MBQ=20,20;MFRL=99,88;MMQ=60,60;MPOS=18;NALOD=1.45;NLOD=8.13;POPAF=6.00;TLOD=35.82	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:41,0:0.034:41:19,0:21,0:25,16,0,0	0/1:24,15:0.366:39:8,8:16,7:18,6,9,6
+chr3	13860779	.	C	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=95,255|25,74;DP=480;ECNT=1;GERMQ=93;MBQ=38,38;MFRL=142,153;MMQ=60,60;MPOS=21;NALOD=2.33;NLOD=59.60;POPAF=6.00;TLOD=328.89	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:207,0:4.835e-03:207:100,0:100,0:68,139,0,0	0/1:143,99:0.413:242:69,44:70,54:27,116,25,74
+chr3	48665362	.	C	T	.	clustered_events	AS_FilterStatus=SITE;AS_SB_TABLE=254,210|31,23;DP=551;ECNT=4;GERMQ=93;MBQ=35,36;MFRL=110,108;MMQ=60,60;MPOS=17;NALOD=0.396;NLOD=67.50;POPAF=6.00;TLOD=136.00	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:288,1:8.168e-03:289:108,0:177,1:152,136,0,1	0/1:176,53:0.235:229:68,20:105,32:102,74,31,22
+chr3	48665382	.	C	T	.	clustered_events;haplotype	AS_FilterStatus=SITE;AS_SB_TABLE=347,365|40,46;DP=798;ECNT=4;GERMQ=93;MBQ=33,32;MFRL=109,110;MMQ=60,60;MPOS=26;NALOD=0.564;NLOD=98.14;POPAF=6.00;TLOD=310.22	GT:AD:AF:DP:F1R2:F2R1:PGT:PID:PS:SB	0|0:449,1:5.811e-03:450:165,0:269,1:0|1:48665382_C_T:48665382:212,237,0,1	0|1:263,85:0.238:348:102,36:155,45:0|1:48665382_C_T:48665382:135,128,40,45
+chr3	48665385	.	C	T	.	clustered_events;haplotype	AS_FilterStatus=SITE;AS_SB_TABLE=351,367|41,47;DP=860;ECNT=4;GERMQ=93;MBQ=32,32;MFRL=109,110;MMQ=60,60;MPOS=25;NALOD=0.580;NLOD=98.44;POPAF=6.00;TLOD=315.47	GT:AD:AF:DP:F1R2:F2R1:PGT:PID:PS:SB	0|0:450,1:5.729e-03:451:168,0:275,1:0|1:48665382_C_T:48665382:213,237,0,1	0|1:268,87:0.240:355:109,39:157,48:0|1:48665382_C_T:48665382:138,130,41,46
+chr3	48665417	.	C	T	.	clustered_events	AS_FilterStatus=SITE;AS_SB_TABLE=312,460|38,66;DP=930;ECNT=4;GERMQ=93;MBQ=20,20;MFRL=112,112;MMQ=60,60;MPOS=19;NALOD=2.56;NLOD=107.13;POPAF=6.00;TLOD=252.06	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:488,0:2.749e-03:488:203,0:282,0:196,292,0,0	0/1:284,104:0.260:388:120,42:164,60:116,168,38,66
+chr3	48665884	.	C	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=123,105|15,14;DP=258;ECNT=2;GERMQ=93;MBQ=20,20;MFRL=96,115;MMQ=60,60;MPOS=22;NALOD=1.88;NLOD=22.27;POPAF=6.00;TLOD=104.05	GT:AD:AF:DP:F1R2:F2R1:PGT:PID:PS:SB	0|0:116,0:0.013:116:39,0:75,0:0|1:48665884_C_T:48665884:63,53,0,0	0|1:112,29:0.214:141:50,12:56,17:0|1:48665884_C_T:48665884:60,52,15,14
+chr3	48665891	.	C	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=119,105|13,14;DP=255;ECNT=2;GERMQ=93;MBQ=20,20;MFRL=96,115;MMQ=60,60;MPOS=17;NALOD=1.88;NLOD=22.57;POPAF=6.00;TLOD=98.68	GT:AD:AF:DP:F1R2:F2R1:PGT:PID:PS:SB	0|0:114,0:0.013:114:38,0:68,0:0|1:48665884_C_T:48665884:61,53,0,0	0|1:110,27:0.202:137:48,12:58,15:0|1:48665884_C_T:48665884:58,52,13,14
+chr3	51977468	.	G	A	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=36,43|12,9;DP=108;ECNT=1;GERMQ=93;MBQ=20,34;MFRL=107,120;MMQ=60,60;MPOS=19;NALOD=1.57;NLOD=10.23;POPAF=6.00;TLOD=59.29	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:49,0:0.027:49:23,0:26,0:24,25,0,0	0/1:30,21:0.419:51:9,10:19,11:12,18,12,9
+chr3	98188928	.	G	A	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=97,117|29,25;DP=288;ECNT=1;GERMQ=93;MBQ=32,39;MFRL=112,128;MMQ=60,60;MPOS=21;NALOD=2.01;NLOD=29.45;POPAF=6.00;TLOD=165.75	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:136,0:9.730e-03:136:66,0:69,0:69,67,0,0	0/1:78,54:0.412:132:25,20:52,34:28,50,29,25
+chr5	96231010	.	G	C	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=138,121|10,11;DP=289;ECNT=2;GERMQ=93;MBQ=20,20;MFRL=91,91;MMQ=60,60;MPOS=16;NALOD=1.91;NLOD=26.25;POPAF=6.00;TLOD=41.89	GT:AD:AF:DP:F1R2:F2R1:PGT:PID:PS:SB	0|0:148,2:0.013:150:67,0:81,2:0|1:96231010_G_C:96231010:77,71,1,1	0|1:111,19:0.150:130:51,10:59,9:0|1:96231010_G_C:96231010:61,50,9,10
+chr5	96231014	.	A	ACCACT	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=146,136|1,1;DP=293;ECNT=2;GERMQ=93;MBQ=20,20;MFRL=91,69;MMQ=60,68;MPOS=6;NALOD=1.98;NLOD=28.01;POPAF=6.00;TLOD=5.19	GT:AD:AF:DP:F1R2:F2R1:PGT:PID:PS:SB	0|0:154,0:0.010:154:69,0:78,0:0|1:96231010_G_C:96231010:79,75,0,0	0|1:128,2:0.024:130:61,2:64,0:0|1:96231010_G_C:96231010:67,61,1,1
+chr7	100187432	.	C	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=15,62|4,17;DP=106;ECNT=1;GERMQ=93;MBQ=37,39;MFRL=124,129;MMQ=60,60;MPOS=16;NALOD=1.60;NLOD=10.83;POPAF=6.00;TLOD=69.49	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:43,0:0.025:43:27,0:16,0:11,32,0,0	0/1:34,21:0.389:55:16,14:18,7:4,30,4,17
+chr8	22464760	.	C	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=161,123|52,45;DP=414;ECNT=1;GERMQ=93;MBQ=23,29;MFRL=110,120;MMQ=60,60;MPOS=15;NALOD=2.14;NLOD=40.23;POPAF=6.00;TLOD=274.76	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:181,0:7.227e-03:181:84,0:93,0:95,86,0,0	0/1:103,97:0.464:200:52,43:50,52:66,37,52,45
+chr8	145057332	.	C	A	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=56,55|10,10;DP=137;ECNT=1;GERMQ=93;MBQ=20,20;MFRL=114,109;MMQ=60,60;MPOS=25;NALOD=1.59;NLOD=11.39;POPAF=6.00;TLOD=46.68	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:56,0:0.025:56:16,0:37,0:30,26,0,0	0/1:55,20:0.264:75:26,6:27,14:26,29,10,10
+chr9	32784354	.	C	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=76,89|14,27;DP=212;ECNT=1;GERMQ=93;MBQ=20,36;MFRL=110,142;MMQ=60,60;MPOS=20;NALOD=1.85;NLOD=20.45;POPAF=6.00;TLOD=118.58	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:95,0:0.014:95:46,0:48,0:44,51,0,0	0/1:70,41:0.383:111:25,20:41,21:32,38,14,27
+chr9	34971543	.	G	A	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=73,90|16,28;DP=218;ECNT=1;GERMQ=93;MBQ=33,35;MFRL=122,144;MMQ=60,60;MPOS=18;NALOD=1.89;NLOD=22.52;POPAF=6.00;TLOD=124.32	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:93,0:0.013:93:49,0:41,0:45,48,0,0	0/1:70,44:0.402:114:32,25:38,15:28,42,16,28
+chr14	22038001	.	C	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=40,45|8,7;DP=106;ECNT=1;GERMQ=93;MBQ=20,35;MFRL=99,108;MMQ=60,60;MPOS=18;NALOD=1.52;NLOD=9.63;POPAF=6.00;TLOD=41.33	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:49,0:0.029:49:28,0:20,0:26,23,0,0	0/1:36,15:0.325:51:18,9:17,5:14,22,8,7
+chr15	22062313	.	C	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=31,16|4,4;DP=55;ECNT=1;GERMQ=87;MBQ=20,20;MFRL=93,44;MMQ=34,61;MPOS=12;NALOD=1.20;NLOD=4.51;POPAF=6.00;TLOD=14.69	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:23,0:0.059:23:14,0:9,0:15,8,0,0	0/1:24,8:0.227:32:14,4:10,4:16,8,4,4
+chr15	75042142	.	C	A	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=120,200|27,52;DP=429;ECNT=1;GERMQ=93;MBQ=32,37;MFRL=105,132;MMQ=60,60;MPOS=22;NALOD=2.14;NLOD=40.03;POPAF=6.00;TLOD=232.46	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:180,0:7.195e-03:180:83,0:95,0:66,114,0,0	0/1:140,79:0.374:219:64,36:73,40:54,86,27,52
+chr16	4445287	.	C	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=108,118|35,21;DP=291;ECNT=1;GERMQ=93;MBQ=20,30;MFRL=98,121;MMQ=60,60;MPOS=18;NALOD=2.01;NLOD=29.74;POPAF=6.00;TLOD=151.35	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:139,0:9.798e-03:139:62,0:76,0:70,69,0,0	0/1:87,56:0.398:143:44,24:41,32:38,49,35,21
+chr18	47803301	.	C	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=165,318|35,62;DP=612;ECNT=1;GERMQ=93;MBQ=35,28;MFRL=121,112;MMQ=60,60;MPOS=16;NALOD=2.25;NLOD=52.32;POPAF=6.00;TLOD=246.83	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:227,0:5.566e-03:227:95,0:131,0:83,144,0,0	0/1:256,97:0.261:353:127,42:127,52:82,174,35,62
+chr19	49869056	.	G	A	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=166,95|38,18;DP=329;ECNT=1;GERMQ=93;MBQ=20,37;MFRL=115,135;MMQ=60,60;MPOS=19;NALOD=2.08;NLOD=35.17;POPAF=6.00;TLOD=166.90	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:163,0:8.235e-03:163:79,0:82,0:99,64,0,0	0/1:98,56:0.385:154:47,30:46,25:67,31,38,18
+chr20	51872272	.	G	T	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=102,157|17,34;DP=321;ECNT=1;GERMQ=93;MBQ=20,35;MFRL=113,127;MMQ=60,60;MPOS=17;NALOD=2.11;NLOD=37.81;POPAF=6.00;TLOD=145.80	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:178,0:7.674e-03:178:75,0:96,0:68,110,0,0	0/1:81,51:0.411:132:28,21:51,30:34,47,17,34
+chr22	51012951	.	G	A	.	PASS	AS_FilterStatus=SITE;AS_SB_TABLE=266,319|35,51;DP=704;ECNT=1;GERMQ=93;MBQ=20,33;MFRL=106,129;MMQ=60,60;MPOS=22;NALOD=2.41;NLOD=74.89;POPAF=6.00;TLOD=230.78	GT:AD:AF:DP:F1R2:F2R1:SB	0/0:357,0:3.908e-03:357:192,0:156,0:165,192,0,0	0/1:228,86:0.282:314:105,33:117,50:101,127,35,51
