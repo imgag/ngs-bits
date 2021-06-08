@@ -1,0 +1,4 @@
+#ifndef ENDPOINTBASE_H
+#define ENDPOINTBASE_H
+
+#endif // ENDPOINTBASE_H
