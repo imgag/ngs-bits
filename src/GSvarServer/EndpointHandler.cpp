@@ -319,12 +319,12 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 		{
 			try
 			{
-				QString variant_changed = json_doc.array().takeAt(i).toObject().value("variant").toString();
-				QString column = json_doc.array().takeAt(i).toObject().value("column").toString();
+				QString variant_changed = json_doc.array().takeAt(i).toObject().value("variant").toString().trimmed();
+				QString column = json_doc.array().takeAt(i).toObject().value("column").toString().trimmed();
 				QString text = json_doc.array().takeAt(i).toObject().value("text").toString();
 
 				// Locating changed variant
-				if (variant_in.toLower() == variant_changed.toLower())
+				if (variant_in.toLower().trimmed() == variant_changed.toLower())
 				{
 					// Locating changed column
 					if (column_names.indexOf(column) == -1)
@@ -355,6 +355,8 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 
 	if (is_file_changed)
 	{
+		qDebug() << "Temporary GSvar file: " << url.filename_with_path;
+		qDebug() << tmp;
 		//copy temp
 		QFile::remove(url.filename_with_path);
 		QFile::rename(tmp, url.filename_with_path);
