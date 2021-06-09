@@ -285,7 +285,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 	int obs_pos = -1;
 	bool is_file_changed = false;
 
-	QString msg = "Size = " + QString::number(json_doc.array().size());
+	QString msg = "Size = " + QString::number(json_doc.array().size()) + request.getBody();
 
 	while(!in_stream.atEnd())
 	{
