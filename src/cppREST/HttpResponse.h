@@ -7,7 +7,6 @@
 #include <QDir>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include "HttpParts.h"
 #include "HttpProcessor.h"
 #include "HtmlEngine.h"
 
