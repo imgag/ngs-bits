@@ -275,6 +275,11 @@ void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response
 	socket->write(response.getStatusLine());
 	socket->write(response.getHeaders());
 	socket->write(response.getPayload());
+	qDebug() << "Extra debug info";
+	if (response.getPayload().length()>20)
+	{
+		qDebug() << response.getPayload().mid(0, 20);
+	}
 	closeAndDeleteSocket(socket);
 }
 
