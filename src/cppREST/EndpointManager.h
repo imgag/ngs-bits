@@ -5,7 +5,6 @@
 #include <QDebug>
 #include <QFile>
 #include "ServerHelper.h"
-#include "HtmlEngine.h"
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 #include "NGSD.h"

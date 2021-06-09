@@ -3,7 +3,6 @@
 
 #include "cppREST_global.h"
 #include "HttpParts.h"
-#include "HtmlEngine.h"
 #include "FileCache.h"
 #include "EndpointManager.h"
 #include "UrlManager.h"
