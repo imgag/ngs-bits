@@ -19,7 +19,7 @@
 #include <QDir>
 #include "cmath"
 
-NGSD::NGSD(bool test_db)
+NGSD::NGSD(bool test_db, bool hg38)
 	: test_db_(test_db)
 {
 	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20))));
@@ -27,6 +27,7 @@ NGSD::NGSD(bool test_db)
 	//connect to DB
 	QString prefix = "ngsd";
 	if (test_db_) prefix += "_test";
+	if (hg38) prefix += "_hg38";
 	db_->setHostName(Settings::string(prefix + "_host"));
 	db_->setPort(Settings::integer(prefix + "_port"));
 	db_->setDatabaseName(Settings::string(prefix + "_name"));

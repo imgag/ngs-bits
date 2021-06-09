@@ -119,6 +119,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GermlineReportGenerator.h"
 #include "SomaticReportHelper.h"
 #include "Statistics.h"
+#include "NGSDReplicationWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -4269,6 +4270,14 @@ void MainWindow::on_actionGaps_triggered()
 {
 	GapClosingDialog dlg(this);
 	dlg.exec();
+}
+
+void MainWindow::on_actionReplicateNGSD_triggered()
+{
+	NGSDReplicationWidget* widget = new NGSDReplicationWidget(this);
+
+	auto dlg = GUIHelper::createDialog(widget, "Replicate NGSD (hg19 to hg38)");
+	dlg->exec();
 }
 
 void MainWindow::on_actionGenderXY_triggered()
