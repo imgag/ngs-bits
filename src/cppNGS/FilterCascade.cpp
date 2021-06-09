@@ -3460,6 +3460,11 @@ void FilterSvGenotypeControl::apply(const BedpeFile& svs, FilterResult& result) 
 		QByteArrayList format_keys = svs[i].annotations()[format_col_index].split(':');
 		int genotype_idx = format_keys.indexOf("GT");
 
+		if(genotype_idx == -1)
+		{
+			THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list because could not find GT field in format column.");
+		}
+
 		QSet<QString> genotypes_all;
 		foreach (int data_idx, format_data_indices)
 		{
@@ -3535,6 +3540,11 @@ void FilterSvGenotypeAffected::apply(const BedpeFile& svs, FilterResult& result)
 		// get format keys and values
 		QByteArrayList format_keys = svs[i].annotations()[format_col_index].split(':');
 		int genotype_idx = format_keys.indexOf("GT");
+
+		if(genotype_idx == -1)
+		{
+			THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list because could not find GT field in format column.");
+		}
 
 		QSet<QString> genotypes_all;
 		foreach (int data_idx, format_data_indices)

@@ -2831,8 +2831,7 @@ void MainWindow::loadFile(QString filename)
 	{
 		NGSD db;
 
-		QString sample_id = "";
-		if(germlineReportSupported()) sample_id =  db.sampleId(germlineReportSample(), false);
+		QString sample_id = (germlineReportSupported() ?  db.sampleId(germlineReportSample(), false) : db.sampleId(variants_.mainSampleName()));
 		if (sample_id!="")
 		{
 			QStringList rna_sample_ids = db.sameSamples(sample_id, "RNA");
@@ -2848,10 +2847,9 @@ void MainWindow::loadFile(QString filename)
 					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::COUNTS);
 					if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
 
-					//TODO: Reactivate if RNA Widget works
-//				// search for manta fusion file
-//				FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
-//				if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
+					// search for manta fusion file
+					FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
+					if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
 				}
 			}
 		}
