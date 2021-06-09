@@ -284,6 +284,9 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 	int ref_pos = -1;
 	int obs_pos = -1;
 	bool is_file_changed = false;
+
+	QString msg = "";
+
 	while(!in_stream.atEnd())
 	{
 		QString line = in_stream.readLine();
@@ -322,6 +325,8 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 				QString variant_changed = json_doc.array().takeAt(i).toObject().value("variant").toString().trimmed();
 				QString column = json_doc.array().takeAt(i).toObject().value("column").toString().trimmed();
 				QString text = json_doc.array().takeAt(i).toObject().value("text").toString();
+
+				msg = variant_changed;
 
 				// Locating changed variant
 				if (variant_in.toLower().trimmed() == variant_changed.toLower())
@@ -366,9 +371,9 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 
 	if (is_file_changed)
 	{
-		return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, "changed");
+		return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, "changed" + msg);
 	}
-	return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, "");
+	return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, msg);
 }
 
 HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& request)
