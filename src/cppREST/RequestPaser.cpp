@@ -81,11 +81,13 @@ QList<QByteArray> RequestPaser::getRawRequestHeaders() const
 QByteArray RequestPaser::getRequestBody() const
 {
 	QByteArray output;
+	qDebug() << "raw_request_ " << raw_request_;
 	int separator = raw_request_->trimmed().lastIndexOf("\r\n");
 	if (separator > -1)
 	{
 		output = raw_request_->trimmed().mid(separator, -1);
 	}
+	qDebug() << "output " << output;
 	return output;
 }
 
