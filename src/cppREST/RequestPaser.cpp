@@ -8,12 +8,26 @@ RequestPaser::RequestPaser(QByteArray *request, QString client_address)
 
 HttpRequest RequestPaser::getRequest() const
 {
-	HttpRequest request;
-	request.setRemoteAddress(client_address_);
+	HttpRequest parsed_request;
+
+
+
+
+	QList<QByteArray> r = raw_request_->split('\n');
+
+	for (int i = 0; i < r.count(); ++i)
+	{
+		qDebug() << "Request line " << i << r.value(i);
+	}
+
+
+
+	parsed_request.setRemoteAddress(client_address_);
 	QList<QByteArray> body = getRawRequestHeaders();
 
 	for (int i = 0; i < body.count(); ++i)
 	{
+		qDebug() << body[i];
 		// First line with method type and URL
 		if (i == 0)
 		{
@@ -21,15 +35,15 @@ HttpRequest RequestPaser::getRequest() const
 			if (request_info.length() < 2)
 			{
 				THROW(Exception, "Cannot process the request. It is possible the URL is missing or incorrect");
-				return request;
+				return parsed_request;
 			}
-			request.setMethod(inferRequestMethod(request_info[0].toUpper()));
+			parsed_request.setMethod(inferRequestMethod(request_info[0].toUpper()));
 
 			QList<QString> path_items = QString(request_info[1]).split('/');
-			request.setPrefix(getRequestPrefix(path_items));
-			request.setPath(getRequestPath(path_items));
-			request.setPathParams(getRequestPathParams(path_items));
-			request.setUrlParams(getVariables(getVariableSequence(request_info[1])));
+			parsed_request.setPrefix(getRequestPrefix(path_items));
+			parsed_request.setPath(getRequestPath(path_items));
+			parsed_request.setPathParams(getRequestPathParams(path_items));
+			parsed_request.setUrlParams(getVariables(getVariableSequence(request_info[1])));
 			continue;
 		}
 
@@ -39,31 +53,31 @@ HttpRequest RequestPaser::getRequest() const
 		if ((header_separator == -1) && (param_separator == -1) && (body[i].length() > 0))
 		{
 			THROW(Exception, "Malformed element: " + body[i]);
-			return request;
+			return parsed_request;
 		}
 
 		if (header_separator > -1)
 		{
-			request.addHeader(body[i].left(header_separator).toLower(), body[i].mid(header_separator+1).trimmed());
+			parsed_request.addHeader(body[i].left(header_separator).toLower(), body[i].mid(header_separator+1).trimmed());
 		}
 		else if (param_separator > -1)
 		{
-			request.setFormUrlEncoded(getVariables(body[i]));
+			parsed_request.setFormUrlEncoded(getVariables(body[i]));
 		}
 	}
 
-	request.setBody(getRequestBody().trimmed());
-	qDebug() << "Body = " << request.getBody();
-	request.setContentType(ContentType::TEXT_HTML);
-	if (request.getHeaders().contains("accept"))
+	parsed_request.setBody(getRequestBody().trimmed());
+	qDebug() << "Body = " << parsed_request.getBody();
+	parsed_request.setContentType(ContentType::TEXT_HTML);
+	if (parsed_request.getHeaders().contains("accept"))
 	{
-		if (HttpProcessor::getContentTypeFromString(request.getHeaders()["accept"]) == ContentType::APPLICATION_JSON)
+		if (HttpProcessor::getContentTypeFromString(parsed_request.getHeaders()["accept"]) == ContentType::APPLICATION_JSON)
 		{
-			request.setContentType(ContentType::APPLICATION_JSON);
+			parsed_request.setContentType(ContentType::APPLICATION_JSON);
 		}
 	}
 
-	return request;
+	return parsed_request;
 }
 
 QList<QByteArray> RequestPaser::getRawRequestHeaders() const
@@ -81,12 +95,27 @@ QList<QByteArray> RequestPaser::getRawRequestHeaders() const
 QByteArray RequestPaser::getRequestBody() const
 {
 	QByteArray output;
-	qDebug() << "raw_request_ " << raw_request_;
-	int separator = raw_request_->trimmed().lastIndexOf("\r\n");
-	if (separator > -1)
+
+
+	QList<QByteArray> request_items = raw_request_->split('\n');
+	bool passed_headers = false;
+	for (int i = 0; i < request_items.count(); ++i)
 	{
-		output = raw_request_->trimmed().mid(separator, -1);
+		if (request_items.value(i).trimmed().isEmpty()) passed_headers = true;
+		if (passed_headers)
+		{
+			output.append(request_items.value(i));
+			output.append('\n');
+		}
+//		output.append(request_items.value(i).trimmed());
 	}
+
+
+//	int separator = raw_request_->trimmed().lastIndexOf("\r\n");
+//	if (separator > -1)
+//	{
+//		output = raw_request_->trimmed().mid(separator, -1);
+//	}
 	qDebug() << "output " << output;
 	return output;
 }
