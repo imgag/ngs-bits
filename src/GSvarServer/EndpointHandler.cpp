@@ -285,7 +285,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 	int obs_pos = -1;
 	bool is_file_changed = false;
 
-	QString msg = "";
+	QString msg = "empty";
 
 	while(!in_stream.atEnd())
 	{
