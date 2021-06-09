@@ -10,7 +10,7 @@ HttpRequest RequestPaser::getRequest() const
 {
 	HttpRequest parsed_request;
 
-
+	qDebug() << QString(*raw_request_);
 
 
 	QList<QByteArray> r = raw_request_->split('\n');

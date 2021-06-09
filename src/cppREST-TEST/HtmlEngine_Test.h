@@ -3,7 +3,6 @@
 
 #include "TestFramework.h"
 #include "HtmlEngine.h"
-#include "HtmlEngine.cpp"
 
 TEST_CLASS(HtmlEngine_Test)
 {

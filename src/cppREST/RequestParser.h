@@ -1,8 +1,6 @@
 #ifndef REQUESTPARSER_H
 #define REQUESTPARSER_H
 
-
-
 #include "cppREST_global.h"
 #include <QObject>
 #include <QList>
@@ -11,7 +9,6 @@
 #include "HttpProcessor.h"
 #include "Exceptions.h"
 #include "ServerHelper.h"
-//#include "HttpResponse.h"
 
 class CPPRESTSHARED_EXPORT RequestPaser : public QObject
 {

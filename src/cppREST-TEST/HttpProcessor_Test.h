@@ -1,6 +1,5 @@
 #include "TestFramework.h"
 #include "HttpProcessor.h"
-#include "HttpProcessor.cpp"
 
 TEST_CLASS(HttpProcessor_Test)
 {
