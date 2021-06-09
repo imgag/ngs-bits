@@ -3,7 +3,6 @@
 
 #include "cppREST_global.h"
 #include "HttpParts.h"
-#include <QDateTime>
 
 class CPPRESTSHARED_EXPORT HttpProcessor
 {

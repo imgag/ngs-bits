@@ -2,10 +2,8 @@
 #define HTMLENGINE_H
 
 #include "cppREST_global.h"
-#include <QCoreApplication>
+#include <QTextStream>
 #include <QDateTime>
-#include "Exceptions.h"
-#include "Settings.h"
 
 struct CPPRESTSHARED_EXPORT FolderItem
 {
