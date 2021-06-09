@@ -2846,10 +2846,9 @@ void MainWindow::loadFile(QString filename)
 					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::COUNTS);
 					if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
 
-					//TODO: Reactivate if RNA Widget works
-//				// search for manta fusion file
-//				FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
-//				if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
+					// search for manta fusion file
+					FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
+					if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
 				}
 			}
 		}
