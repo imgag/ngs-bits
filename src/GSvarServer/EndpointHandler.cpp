@@ -362,7 +362,12 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 		QFile::rename(tmp, url.filename_with_path);
 	}
 
-	return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, "");
+	return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, url.filename_with_path + " - "
+						+ QString::number(chr_pos) + ", "
+						+ QString::number(start_pos) + ", "
+						+ QString::number(end_pos) + ", "
+						+ QString::number(ref_pos) + ", "
+						+ QString::number(obs_pos));
 }
 
 HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& request)
