@@ -358,16 +358,17 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 		qDebug() << "Temporary GSvar file: " << url.filename_with_path;
 		qDebug() << tmp;
 		//copy temp
+		QFile file_to_be_removed(url.filename_with_path);
+		file_to_be_removed.setPermissions(QFile::WriteOther);
 		QFile::remove(url.filename_with_path);
 		QFile::rename(tmp, url.filename_with_path);
 	}
 
-	return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, url.filename_with_path + " - "
-						+ QString::number(chr_pos) + ", "
-						+ QString::number(start_pos) + ", "
-						+ QString::number(end_pos) + ", "
-						+ QString::number(ref_pos) + ", "
-						+ QString::number(obs_pos));
+	if (is_file_changed)
+	{
+		return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, "changed");
+	}
+	return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, "");
 }
 
 HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& request)
