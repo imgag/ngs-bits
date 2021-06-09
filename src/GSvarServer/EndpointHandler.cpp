@@ -285,7 +285,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 	int obs_pos = -1;
 	bool is_file_changed = false;
 
-	QString msg = "empty";
+	QString msg = "Size = " + QString::number(json_doc.array().size());
 
 	while(!in_stream.atEnd())
 	{
@@ -326,7 +326,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 				QString column = json_doc.array().takeAt(i).toObject().value("column").toString().trimmed();
 				QString text = json_doc.array().takeAt(i).toObject().value("text").toString();
 
-				msg = variant_changed;
+//				msg = variant_changed;
 
 				// Locating changed variant
 				if (variant_in.toLower().trimmed() == variant_changed.toLower())
