@@ -8,6 +8,16 @@
 #include <QFile>
 #include <QSharedPointer>
 
+struct EdgeContent
+{
+    double weight;
+
+    EdgeContent()
+        : weight(0.0)
+    {
+    }
+};
+
 TEST_CLASS(Graph_Test)
 {
 Q_OBJECT
@@ -310,15 +320,15 @@ private slots:
 
     void createInteractionNetwork()
     {
-        QByteArray alias_path;
-        QByteArray string_db_path;
-        QByteArray statistics_path;
+        QString alias_path;
+        QString string_db_path;
+        QString statistics_path;
 
         try
         {
-            alias_path = TESTDATA(alias_file);
-            string_db_path = TESTDATA(string_db_file);
-            statistics_path = TESTDATA("data_out/string_db_statistics.tsv");
+            alias_path = QString(TESTDATA(alias_file));
+            string_db_path = QString(TESTDATA(string_db_file));
+            statistics_path = QString(TESTDATA("data_out/string_db_statistics.tsv"));
         }
         catch(ProgrammingException ex)
         {
@@ -326,8 +336,8 @@ private slots:
         }
 
         // create string db graph with default confidence threshold
-        StringDbParser string_parser(string_db_path, alias_path);
-        Graph<int, int> interaction_network = string_parser.interactionNetwork();
+        StringDbParser<int, EdgeContent> string_parser(string_db_path, alias_path);
+        Graph<int, EdgeContent> interaction_network = string_parser.interactionNetwork();
 
         // statistics: write degree of every node to a file
         QSharedPointer<QFile> writer = Helper::openFileForWriting(statistics_path);
@@ -335,7 +345,7 @@ private slots:
 
         stream << "node\tdegree" << endl;
 
-        Graph<int, int>::NodePointer node;
+        Graph<int, EdgeContent>::NodePointer node;
         foreach(node, interaction_network.adjacencyList().keys())
         {
             stream << node.data()->nodeName() << "\t" << interaction_network.getDegree(node.data()->nodeName()) << endl;

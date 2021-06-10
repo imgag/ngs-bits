@@ -73,8 +73,7 @@ SOURCES += BedFile.cpp \
     VariantType.cpp \
     SomaticCnvInterpreter.cpp \
     PrsTable.cpp \
-    RtfDocument.cpp \
-    StringDbParser.cpp
+    RtfDocument.cpp
 
 HEADERS += BedFile.h \
     Chromosome.h \

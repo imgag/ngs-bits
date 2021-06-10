@@ -5,7 +5,7 @@ CONFIG += console
 SUBDIRS = cppCORE\
         cppXML \
         cppNGS \
-        cppNGSD 
+        cppNGSD
 cppXML.depends = cppCORE
 cppNGS.depends = cppXML
 cppNGSD.depends = cppNGS
@@ -417,3 +417,5 @@ SUBDIRS += VariantRanking
 tools-TEST.depends += VariantRanking
 VariantRanking.depends = cppNGSD
 
+SUBDIRS += GenePrioritization
+GenePrioritization.depends = cppNGS
