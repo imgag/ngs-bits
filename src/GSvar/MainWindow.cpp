@@ -5685,12 +5685,13 @@ void MainWindow::storeCurrentVariantList()
 		{
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "application/json");
-			QString reply = HttpRequestHandler(HttpRequestHandler::NONE).put(
+			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
 						Settings::string("server_host") + ":" + QString::number(Settings::integer("server_port"))
 						+ "/v1/project_file?ps_url_id=" + ps_url_id,
 						json_doc.toJson(),
 						add_headers
 					);
+			qDebug() << "json_doc.toJson() " << json_doc.toJson();
 		}
 		catch (Exception& e)
 		{

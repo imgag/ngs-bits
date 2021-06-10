@@ -107,7 +107,6 @@ QByteArray RequestPaser::getRequestBody() const
 			output.append(request_items.value(i));
 			output.append('\n');
 		}
-//		output.append(request_items.value(i).trimmed());
 	}
 
 
@@ -116,8 +115,8 @@ QByteArray RequestPaser::getRequestBody() const
 //	{
 //		output = raw_request_->trimmed().mid(separator, -1);
 //	}
-	qDebug() << "output " << output;
-	return output;
+	qDebug() << "output " << output.trimmed();
+	return output.trimmed();
 }
 
 QList<QByteArray> RequestPaser::getKeyValuePair(QByteArray input) const
