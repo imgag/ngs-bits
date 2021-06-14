@@ -308,6 +308,9 @@ int main(int argc, char **argv)
 		qInfo() << "Using port number from the application settings";
 	}
 
+	qDebug()<<"SSL version use for build: "<<QSslSocket::sslLibraryBuildVersionString();
+	qDebug()<<"SSL version use for run-time: "<<QSslSocket::sslLibraryVersionNumber();
+
 	HttpsServer sslserver(port_number);
 	return app.exec();
 }
