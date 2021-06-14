@@ -5655,12 +5655,13 @@ void MainWindow::storeCurrentVariantList()
 	{
 		QJsonDocument json_doc = QJsonDocument();
 		QJsonArray json_array;
+		QJsonObject json_object;
 
 		for (int i = 0; i < variants_changed_.size(); i++)
 		{
 			try
 			{
-				QJsonObject json_object;
+
 				json_object.insert("variant", variants_changed_.value(i).variant.toString());
 				json_object.insert("column", variants_changed_.value(i).column);
 				json_object.insert("text", variants_changed_.value(i).text);
@@ -5685,6 +5686,9 @@ void MainWindow::storeCurrentVariantList()
 		{
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "application/json");
+			add_headers.insert("Content-Type", "application/json");
+			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
+			qDebug() << "json object " << json_doc;
 			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
 						Settings::string("server_host") + ":" + QString::number(Settings::integer("server_port"))
 						+ "/v1/project_file?ps_url_id=" + ps_url_id,
@@ -5692,6 +5696,7 @@ void MainWindow::storeCurrentVariantList()
 						add_headers
 					);
 			qDebug() << "json_doc.toJson() " << json_doc.toJson();
+			qDebug() << reply;
 		}
 		catch (Exception& e)
 		{
