@@ -46,6 +46,7 @@ HttpsServer::HttpsServer(const quint16& port)
 	QSslConfiguration config = server_->getSslConfiguration();
 	config.setLocalCertificate(cert);
     config.setPrivateKey(key);
+	config.setProtocol(QSsl::TlsV1_0);
 
 	if (ca_certificates.size()>0)
 	{
