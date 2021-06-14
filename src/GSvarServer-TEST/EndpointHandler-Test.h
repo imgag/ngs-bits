@@ -50,7 +50,7 @@ private slots:
 
 		HttpResponse response = EndpointHandler::saveProjectFile(request);
 		IS_TRUE(response.getStatusLine().contains("200"));
-
+		COMPARE_FILES(file_copy, TESTDATA("data/sample_saved_changes.gsvar"));
 		QFile::remove(copy_name);
 	}
 
