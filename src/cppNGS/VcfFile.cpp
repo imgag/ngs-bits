@@ -1543,7 +1543,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 						QByteArrayList csq_parts = csq_transcript.split('|');
 						if (csq_parts.count()!=csq_defs.count())
 						{
-							printError(out_stream, "VEP-based CSQ annoation has " + QByteArray::number(csq_parts.count()) + " entries, expected " + QByteArray::number(csq_defs.count()) + " according to definition in header!", l, line);
+							printError(out_stream, "VEP-based CSQ annotation has " + QByteArray::number(csq_parts.count()) + " entries, expected " + QByteArray::number(csq_defs.count()) + " according to definition in header!", l, line);
 							return false;
 						}
 

@@ -1,5 +1,5 @@
 ### SvFilterAnnotations tool help
-	SvFilterAnnotations (2021_03-58-g9b3abcdd)
+	SvFilterAnnotations (2021_03-100-g09f25a25)
 	
 	Filter a structural variant list in BEDPE format based on variant annotations.
 	
@@ -84,6 +84,7 @@
 	                         Parameters:
 	                           types - Variant types [default=de-novo,recessive,comp-het,LOH,x-linked] [valid=de-novo,recessive,comp-het,LOH,x-linked,imprinting]
 	                           gender_child - Gender of the child - if 'n/a', the gender from the GSvar file header is taken [default=n/a] [valid=male,female,n/a]
+	                           build - Genome build used for pseudoautosomal region coordinates [default=hg19] [valid=hg19,hg38]
 	SV type                  Filter based on SV types.
 	                         Parameters:
 	                           Structural variant type - Structural variant type [valid=DEL,DUP,INS,INV,BND] [non-empty]
@@ -100,7 +101,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### SvFilterAnnotations changelog
-	SvFilterAnnotations 2021_03-58-g9b3abcdd
+	SvFilterAnnotations 2021_03-100-g09f25a25
 	
 	2020-04-16 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)
