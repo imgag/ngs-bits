@@ -51,9 +51,17 @@ void RequestWorker::run()
 	else
 	{
 		qDebug() << "Start the processing";
-		if (!ssl_socket->isEncrypted()) closeAndDeleteSocket(ssl_socket);
+		if (!ssl_socket->isEncrypted())
+		{
+			closeAndDeleteSocket(ssl_socket);
+			return;
+		}
+
 		// Read the request
 		QByteArray raw_request = ssl_socket->readAll();
+		if (ssl_socket->bytesAvailable()) {
+			qDebug() << "THERE ARE BYTES TO READ";
+		}
 		HttpRequest parsed_request;
 		RequestPaser *parser = new RequestPaser(&raw_request, ssl_socket->peerAddress().toString());
 		try
