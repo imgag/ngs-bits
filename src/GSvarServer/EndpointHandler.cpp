@@ -358,6 +358,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 		}
 	}
 
+	in_file.data()->close();
 	out_file.data()->close();
 
 	if (is_file_changed)
@@ -365,12 +366,12 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 		qDebug() << "Temporary GSvar file: " << url.filename_with_path;
 		qDebug() << tmp;
 		//copy temp
-		QFile file_to_be_removed(url.filename_with_path);
-		file_to_be_removed.setPermissions(QFile::WriteOther);
+//		QFile file_to_be_removed(url.filename_with_path);
+		in_file.data()->setPermissions(QFile::WriteOther);
 //		QFile::remove(url.filename_with_path);
-		if (!file_to_be_removed.remove())
+		if (!in_file.data()->remove())
 		{
-			qDebug() << "Could not remove: " << file_to_be_removed.fileName();
+			qDebug() << "Could not remove: " << in_file.data()->fileName();
 		}
 		out_file.data()->setPermissions(QFile::WriteOther);
 //		QFile::rename(tmp, url.filename_with_path);
