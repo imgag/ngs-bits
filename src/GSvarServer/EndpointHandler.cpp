@@ -365,8 +365,16 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 		//copy temp
 		QFile file_to_be_removed(url.filename_with_path);
 		file_to_be_removed.setPermissions(QFile::WriteOther);
-		QFile::remove(url.filename_with_path);
-		QFile::rename(tmp, url.filename_with_path);
+//		QFile::remove(url.filename_with_path);
+		if (!file_to_be_removed.remove())
+		{
+			qDebug() << "Could not remove: " << file_to_be_removed.fileName();
+		}
+//		QFile::rename(tmp, url.filename_with_path);
+		if (!out_file.data()->rename(url.filename_with_path))
+		{
+			qDebug() << "Could not rename: " << out_file.data()->fileName();
+		}
 	}
 
 	if (is_file_changed)
