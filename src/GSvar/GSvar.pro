@@ -94,7 +94,8 @@ SOURCES += main.cpp\
     AlleleBalanceCalculator.cpp \
     ExpressionDataWidget.cpp \
     GapClosingDialog.cpp \
-    DatabaseServiceLocal.cpp
+    DatabaseServiceLocal.cpp \
+    ClinVarUploadDialog.cpp
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
@@ -183,7 +184,8 @@ HEADERS += MainWindow.h \
     ExpressionDataWidget.h \
     GapClosingDialog.h \
     DatabaseService.h \
-    DatabaseServiceLocal.h
+    DatabaseServiceLocal.h \
+    ClinVarUploadDialog.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -260,7 +262,8 @@ FORMS    += MainWindow.ui \
     SomaticVariantInterpreterWidget.ui \
     AlleleBalanceCalculator.ui \
     ExpressionDataWidget.ui \
-    GapClosingDialog.ui
+    GapClosingDialog.ui \
+    ClinVarUploadDialog.ui
     include("../app_gui.pri")
 
 #include NGSD library
