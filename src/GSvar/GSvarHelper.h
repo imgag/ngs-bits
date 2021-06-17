@@ -25,6 +25,8 @@ public:
 
 	//Returns the application base name - path and filename
     static QString applicationBaseName();
+	//Returns the genome build used by GSvar - 'hg19' or 'hg38'
+	static const QString& build();
 
 	//colors imprinting and non-haploinsufficiency genes.
 	static void colorGeneItem(QTableWidgetItem* item, const GeneSet& genes);

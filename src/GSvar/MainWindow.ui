@@ -483,6 +483,8 @@
      <addaction name="separator"/>
      <addaction name="actionUsers"/>
      <addaction name="actionChangePassword"/>
+     <addaction name="separator"/>
+     <addaction name="actionReplicateNGSD"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -1285,6 +1287,11 @@
    </property>
    <property name="toolTip">
     <string>Show RNA Fusions</string>
+   </property>
+  </action>
+  <action name="actionReplicateNGSD">
+   <property name="text">
+    <string>Replicate (hg19 to hg38)</string>
    </property>
   </action>
  </widget>

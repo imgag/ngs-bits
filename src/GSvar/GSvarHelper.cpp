@@ -151,6 +151,20 @@ QString GSvarHelper::applicationBaseName()
 	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName();
 }
 
+const QString& GSvarHelper::build()
+{
+	static QString build;
+
+	//init
+	if (build.isEmpty())
+	{
+		build = Settings::string("build").trimmed();
+	}
+
+
+	return build;
+}
+
 void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 {
 	//init

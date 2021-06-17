@@ -537,16 +537,16 @@ TEST_CLASS(Statistics_Test)
 
 	void genderHetX()
 	{
-		GenderEstimate estimate = Statistics::genderHetX(TESTDATA("data_in/panel.bam"), "hg19");
+		GenderEstimate estimate = Statistics::genderHetX("hg19", TESTDATA("data_in/panel.bam"));
 		S_EQUAL(estimate.gender, QString("unknown (too few SNPs)"));
 	}
 
 	void genderSRY()
 	{
-		GenderEstimate estimate = Statistics::genderSRY(TESTDATA("data_in/panel.bam"), "hg19");
+		GenderEstimate estimate = Statistics::genderSRY("hg19", TESTDATA("data_in/panel.bam"));
 		S_EQUAL(estimate.gender, "female");
 
-		estimate = Statistics::genderSRY(TESTDATA("data_in/sry.bam"), "hg19");
+		estimate = Statistics::genderSRY("hg19", TESTDATA("data_in/sry.bam"));
 		S_EQUAL(estimate.gender, "male");
 	}
 
@@ -586,5 +586,21 @@ TEST_CLASS(Statistics_Test)
 		F_EQUAL2(ancestry.eas, 0.0742, 0.001);
 		S_EQUAL(ancestry.population, "AFR");
 	}
+
+
+	void hrdScore()
+	{
+		CnvList cnvs;
+		cnvs.load( TESTDATA("data_in/hrdScore_lst_cnvs.tsv") );
+
+		QCCollection hrd_results = Statistics::hrdScore(cnvs, "GRCh37");
+
+		I_EQUAL(hrd_results.value("QC:2000062", true).asInt() , 2);
+		I_EQUAL(hrd_results.value("QC:2000063", true).asInt() , 3);
+		I_EQUAL(hrd_results.value("QC:2000064", true).asInt() , 3);
+
+	}
+
+
 };
 

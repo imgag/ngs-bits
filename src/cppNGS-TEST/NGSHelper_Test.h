@@ -136,23 +136,23 @@ private slots:
 
 	void cytoBand()
 	{
-		S_EQUAL(NGSHelper::cytoBand("chrY", 34847524), "Yq12");
-		S_EQUAL(NGSHelper::cytoBand("chr1", 76992611), "1p31.1");
+		S_EQUAL(NGSHelper::cytoBand("hg19", "chrY", 34847524), "Yq12");
+		S_EQUAL(NGSHelper::cytoBand("hg19", "chr1", 76992611), "1p31.1");
 	}
 
 	void cytoBandToRange()
 	{
-		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange(""));
-		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("Zr36.33"));
-		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("1r36.33"));
-		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("1p36.33-"));
-		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("1p36.33-5q21.2"));
-		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("1p36.33-1p36.32-1p36.31"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("hg19", ""));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("hg19", "Zr36.33"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("hg19", "1r36.33"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("hg19", "1p36.33-"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("hg19", "1p36.33-5q21.2"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("hg19", "1p36.33-1p36.32-1p36.31"));
 
-		S_EQUAL(NGSHelper::cytoBandToRange("chr1p36.33").toString(true), "chr1:1-2300000");
-		S_EQUAL(NGSHelper::cytoBandToRange("1p36.33").toString(true), "chr1:1-2300000");
-		S_EQUAL(NGSHelper::cytoBandToRange("1p36.33-1p36.32").toString(true), "chr1:1-5400000");
-		S_EQUAL(NGSHelper::cytoBandToRange("1p36.32-1p36.33").toString(true), "chr1:1-5400000");
+		S_EQUAL(NGSHelper::cytoBandToRange("hg19", "chr1p36.33").toString(true), "chr1:1-2300000");
+		S_EQUAL(NGSHelper::cytoBandToRange("hg19", "1p36.33").toString(true), "chr1:1-2300000");
+		S_EQUAL(NGSHelper::cytoBandToRange("hg19", "1p36.33-1p36.32").toString(true), "chr1:1-5400000");
+		S_EQUAL(NGSHelper::cytoBandToRange("hg19", "1p36.32-1p36.33").toString(true), "chr1:1-5400000");
 	}
 
 	void impringGenes()
@@ -166,5 +166,59 @@ private slots:
 		S_EQUAL(imp_genes["NTM"].status, "imprinted");
 		S_EQUAL(imp_genes["SALL1"].source_allele, "maternal");
 		S_EQUAL(imp_genes["SALL1"].status, "predicted");
+	}
+
+	void centromeres()
+	{
+		BedFile centros = NGSHelper::centromeres("GRCh37");
+		I_EQUAL(centros.count(), 24);
+		S_EQUAL(centros[1].toString(true), "chr2:92326171-95326171");
+		S_EQUAL(centros[11].toString(true), "chr12:34856694-37856694");
+
+		//check whether static variable initialized only once
+		NGSHelper::centromeres("GRCh37");
+		NGSHelper::centromeres("GRCh38");
+		NGSHelper::centromeres("desf");
+		NGSHelper::centromeres("abcd");
+		BedFile centros2 = NGSHelper::centromeres("GRCh37");
+		I_EQUAL(centros2.count(), 24);
+		S_EQUAL(centros2[1].toString(true), "chr2:92326171-95326171");
+		S_EQUAL(centros2[11].toString(true), "chr12:34856694-37856694");
+
+		BedFile centros3 = NGSHelper::centromeres("hg19");
+		I_EQUAL(centros3.count(), 24);
+		S_EQUAL(centros3[1].toString(true), "chr2:92326171-95326171");
+		S_EQUAL(centros3[11].toString(true), "chr12:34856694-37856694");
+
+
+		BedFile centros4 = NGSHelper::centromeres("GRCh38");
+		NGSHelper::centromeres("GRCh38");
+		NGSHelper::centromeres("GRCh38");
+		I_EQUAL(centros4.count(), 24);
+		S_EQUAL(centros4[0].toString(true), "chr1:121700000-125100000");
+
+		//non existent build
+		I_EQUAL(NGSHelper::centromeres("GRCH78").count(), 0);
+	}
+
+	void telomeres()
+	{
+		BedFile telos1 = NGSHelper::telomeres("hg19");
+		NGSHelper::telomeres("hg19");
+		NGSHelper::telomeres("GRCh37");
+
+		I_EQUAL(telos1.count(), 46);
+		S_EQUAL(telos1[45].toString(true), "chrY:59363566-59373566");
+
+		BedFile telos2 = NGSHelper::telomeres("hg38");
+		NGSHelper::telomeres("hg38");
+		NGSHelper::telomeres("hg38");
+
+		I_EQUAL(telos2.count(), 48);
+		S_EQUAL(telos2[32].toString(true), "chr17:1-10000");
+		S_EQUAL(telos2[45].toString(true), "chrX:156030895-156040895");
+
+		//not existing build
+		I_EQUAL(NGSHelper::telomeres("NOT_EXISTING").count(), 0);
 	}
 };

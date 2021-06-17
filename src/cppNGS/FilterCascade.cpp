@@ -88,6 +88,8 @@ FilterResult::FilterResult(int variant_count, bool value)
 
 void FilterResult::removeFlagged(VariantList& variants)
 {
+	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::removeFlagged!");
+
 	//skip if all variants pass
 	if (countPassing()==variants.count()) return;
 
@@ -114,6 +116,8 @@ void FilterResult::removeFlagged(VariantList& variants)
 
 void FilterResult::removeFlagged(VcfFile& variants)
 {
+	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::removeFlagged!");
+
 	//skip if all variants pass
 	if (countPassing()==variants.count()) return;
 
@@ -140,6 +144,8 @@ void FilterResult::removeFlagged(VcfFile& variants)
 
 void FilterResult::removeFlagged(CnvList& cnvs)
 {
+	if (pass.count()!=cnvs.count()) THROW(ProgrammingException, "CNV and filter result count not equal in FilterResult::removeFlagged!");
+
     //skip if all variants pass
     if (countPassing()==cnvs.count()) return;
 
@@ -162,6 +168,8 @@ void FilterResult::removeFlagged(CnvList& cnvs)
 
 void FilterResult::removeFlagged(BedpeFile& svs)
 {
+	if (pass.count()!=svs.count()) THROW(ProgrammingException, "SV and filter result count not equal in FilterResult::removeFlagged!");
+
     //skip if all variants pass
     if (countPassing()==svs.count()) return;
 
@@ -182,6 +190,8 @@ void FilterResult::removeFlagged(BedpeFile& svs)
 
 void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArray description)
 {
+	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::tagNonPassing!");
+
 	//create 'filter' column (if missing)
 	int index = variants.addAnnotationIfMissing("filter", "Filter column.");
 
@@ -203,6 +213,7 @@ void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArr
 
 void FilterResult::tagNonPassing(VcfFile& variants, QByteArray tag, QString description)
 {
+	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::tagNonPassing!");
 
 	//add tag description (if missing)
 	if (!variants.filterIDs().contains(tag))
@@ -339,6 +350,16 @@ void FilterBase::setStringList(const QString& name, const QStringList& value)
 	checkParameterType(name, FilterParameterType::STRINGLIST);
 
 	parameter(name).value = value;
+}
+
+bool FilterBase::hasParameter(const QString& name, FilterParameterType type) const
+{
+	for (int i=0; i<params_.count(); ++i)
+	{
+		if (params_[i].name==name && params_[i].type==type) return true;
+	}
+
+	return false;
 }
 
 void FilterBase::overrideConstraint(const QString& parameter_name, const QString& constraint_name, const QString& constraint_value)
@@ -2278,6 +2299,9 @@ FilterTrio::FilterTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
 	params_.last().constraints["valid"] = "male,female,n/a";
 
+	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
+	params_.last().constraints["valid"] = "hg19,hg38";
+
 	checkIsRegistered();
 }
 
@@ -2318,7 +2342,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	i_af_m = tmp.indexOf(i_m);
 
 	//get PAR region
-	BedFile par_region = NGSHelper::pseudoAutosomalRegion("hg19");
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion(getString("build"));
 
 	//pre-calculate genes with heterozygous variants
 	QSet<QString> types = getStringList("types").toSet();
@@ -3436,6 +3460,11 @@ void FilterSvGenotypeControl::apply(const BedpeFile& svs, FilterResult& result) 
 		QByteArrayList format_keys = svs[i].annotations()[format_col_index].split(':');
 		int genotype_idx = format_keys.indexOf("GT");
 
+		if(genotype_idx == -1)
+		{
+			THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list because could not find GT field in format column.");
+		}
+
 		QSet<QString> genotypes_all;
 		foreach (int data_idx, format_data_indices)
 		{
@@ -3511,6 +3540,11 @@ void FilterSvGenotypeAffected::apply(const BedpeFile& svs, FilterResult& result)
 		// get format keys and values
 		QByteArrayList format_keys = svs[i].annotations()[format_col_index].split(':');
 		int genotype_idx = format_keys.indexOf("GT");
+
+		if(genotype_idx == -1)
+		{
+			THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list because could not find GT field in format column.");
+		}
 
 		QSet<QString> genotypes_all;
 		foreach (int data_idx, format_data_indices)
@@ -4372,6 +4406,9 @@ FilterSvTrio::FilterSvTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
     params_.last().constraints["valid"] = "male,female,n/a";
 
+	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
+	params_.last().constraints["valid"] = "hg19,hg38";
+
     checkIsRegistered();
 }
 
@@ -4406,7 +4443,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 	int i_format_col = svs.annotationIndexByName("FORMAT");
 
     //get PAR region
-    BedFile par_region = NGSHelper::pseudoAutosomalRegion("hg19");
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion(getString("build"));
 
     //pre-calculate genes with heterozygous variants
     QSet<QString> types = getStringList("types").toSet();

@@ -60,11 +60,11 @@ public:
 			}
 			else if (method=="hetx")
 			{
-				estimate = Statistics::genderHetX(bam, getEnum("build"), getFloat("max_male"), getFloat("min_female"), getInfile("ref"));
+				estimate = Statistics::genderHetX(getEnum("build"), bam, getFloat("max_male"), getFloat("min_female"), getInfile("ref"));
 			}
 			else if (method=="sry")
 			{
-				estimate = Statistics::genderSRY(bam, getEnum("build"), getFloat("sry_cov"), getInfile("ref"));
+				estimate = Statistics::genderSRY(getEnum("build"), bam, getFloat("sry_cov"), getInfile("ref"));
 			}
 
 			//output header

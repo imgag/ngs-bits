@@ -119,6 +119,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "XmlHelper.h"
 #include "GermlineReportGenerator.h"
 #include "SomaticReportHelper.h"
+#include "Statistics.h"
+#include "NGSDReplicationWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -247,7 +249,9 @@ MainWindow::MainWindow(QWidget *parent)
 QString MainWindow::appName() const
 {
 	QString name = QCoreApplication::applicationName();
-	if (Settings::string("reference_genome").contains("GRCh38")) name += " GRCH38";
+
+	if (GSvarHelper::build()=="hg38") name += " hg38";
+
 	return name;
 }
 
@@ -414,7 +418,6 @@ void MainWindow::on_actionDebug_triggered()
 		*/
 
 		//evaluation GSvar score/rank
-		/*
 		TsvFile output;
 		output.addHeader("ps");
 		output.addHeader("variants_causal");
@@ -424,6 +427,7 @@ void MainWindow::on_actionDebug_triggered()
 		int c_top1 = 0;
 		int c_top5 = 0;
 		int c_top10 = 0;
+		int c_none = 0;
 		NGSD db;
 		QStringList ps_names = db.getValues("SELECT DISTINCT CONCAT(s.name, '_0', ps.process_id) FROM sample s, processed_sample ps, diag_status ds, report_configuration rc, report_configuration_variant rcv, project p, processing_system sys WHERE ps.processing_system_id=sys.id AND (sys.type='WGS' OR sys.type='WES') AND ps.project_id=p.id AND p.type='diagnostic' AND ps.sample_id=s.id AND ps.quality!='bad' AND ds.processed_sample_id=ps.id AND ds.outcome='significant findings' AND rc.processed_sample_id=ps.id AND rcv.report_configuration_id=rc.id AND rcv.causal='1' AND rcv.type='diagnostic variant' AND s.disease_status='Affected'");
 		qDebug() << "Processed samples to check:" << ps_names.count();
@@ -442,7 +446,7 @@ void MainWindow::on_actionDebug_triggered()
 			foreach(Phenotype pheno, phenotypes)
 			{
 				//pheno > genes
-				GeneSet genes = db.phenotypeToGenes(pheno, true);
+				GeneSet genes = db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 
 				//genes > roi
 				BedFile roi;
@@ -508,7 +512,10 @@ void MainWindow::on_actionDebug_triggered()
 										if (rank<=5) ++c_top5;
 										if (rank<=10) ++c_top10;
 									}
-									catch(...) {} //nothing to do here
+									catch(...)
+									{
+										++c_none;
+									}
 								}
 							}
 						}
@@ -524,8 +531,8 @@ void MainWindow::on_actionDebug_triggered()
 		output.addComment("##Rank1: " + QString::number(c_top1) + " (" + QString::number(100.0*c_top1/output.rowCount(), 'f', 2) + "%)");
 		output.addComment("##Top5 : " + QString::number(c_top5) + " (" + QString::number(100.0*c_top5/output.rowCount(), 'f', 2) + "%)");
 		output.addComment("##Top10: " + QString::number(c_top10) + " (" + QString::number(100.0*c_top10/output.rowCount(), 'f', 2) + "%)");
+		output.addComment("##None : " + QString::number(c_none) + " (" + QString::number(100.0*c_none/output.rowCount(), 'f', 2) + "%)");
 		output.store("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + special + ".tsv");
-		*/
 
 		//import of sample relations from GenLab
 		/*
@@ -675,19 +682,19 @@ void MainWindow::on_actionDebug_triggered()
 		*/
 
 		//import sample meta data from GenLab
+		/*
 		GenLabDB genlab;
 		NGSD db;
 		ProcessedSampleSearchParameters params;
 		params.p_type = "diagnostic";
-		params.sys_type = "WES";
+		params.sys_type = "WGS";
 		params.include_bad_quality_samples = false;
 		params.include_tumor_samples = false;
 		params.include_merged_samples = false;
 		params.include_bad_quality_runs = false;
 		params.run_finished = true;
 		DBTable ps_table = db.processedSampleSearch(params);
-		QStringList ps_list; // = ps_table.extractColumn(0);
-		ps_list << "DX100719_01" << "DX111409_01" << "DX141166_01" << "DX142799_01" << "DX143337_01" << "DX160341_01" << "DX160857_03" << "DX161578_01" << "DX162267_01" << "DX162373_01" << "DX162553_01" << "DX162994_01" << "DX163046_02" << "DX163281_01" << "DX170039_01" << "DX170222_01" << "DX170246_01" << "DX170527_01" << "DX170655_01" << "DX170668_01" << "DX170684_01" << "DX170685_01" << "DX170757_02" << "DX170802_01" << "DX170806_01" << "DX170807_01" << "DX170980_01" << "DX171047_01" << "DX171069_03" << "DX171258_01" << "DX171479_02" << "DX171501_01" << "DX171503_01" << "DX171506_01" << "DX171684_01" << "DX171686_01" << "DX171731_02" << "DX171751_01" << "DX171767_01" << "DX171767_02" << "DX171809_02" << "DX172050_01" << "DX172311_01" << "DX172312_01" << "DX172342_01" << "DX172347_01" << "DX172347_02" << "DX172529_01" << "DX172586_01" << "DX172615_01" << "DX172659_01" << "DX172802_01" << "DX172846_01" << "DX172999_01" << "DX173401_01" << "DX173409_01" << "DX173473_01" << "DX173508_01" << "DX173611_01" << "DX173895_01" << "DX174083_01" << "DX174151_01" << "DX174333_01" << "DX174398_01" << "DX174399_01" << "DX174399_02" << "DX174400_01" << "DX174505_02" << "DX174667_01" << "DX174668_01" << "DX174698_01" << "DX180051_03" << "DX180062_03" << "DX180382_02" << "DX180422_01" << "DX180567_01" << "DX180686_02" << "DX180691_01" << "DX180824_01" << "DX180947_01" << "DX181087_01" << "DX181088_01" << "DX181093_01" << "DX181094_01" << "DX181099_01" << "DX181099_02" << "DX181118_01" << "DX181199_02" << "DX181302_01" << "DX181342_01" << "DX181437_01" << "DX181459_01" << "DX181523_02" << "DX181666_01" << "DX182121_01" << "DX182151_02" << "DX182159_01" << "DX182251_01" << "DX182462_01" << "DX182799_01" << "DX182856_01" << "DX182871_01" << "DX182897_01" << "DX182899_01" << "DX183004_01" << "DX183005_01" << "DX183223_01" << "DX183440_01" << "DX183565_01" << "DX183661_01" << "DX183754_02" << "DX183755_02" << "DX183854_01" << "DX183856_01" << "DX184198_01" << "DX184350_01" << "DX184488_01" << "DX184594_01" << "DX184675_01" << "DX184739_01" << "DX184750_01" << "DX185042_03" << "DX185047_03" << "DX185049_03" << "DX185088_01" << "DX185341_01" << "DX185466_01" << "DX185587_02" << "DX185921_01" << "DX186183_01" << "DX186665_01" << "DX190058_01" << "DX190058_02" << "DX190106_01" << "DX190205_01" << "DX190272_02" << "DX190286_01" << "DX190308_01" << "DX190416_01" << "DX190450_02" << "DX190511_01" << "DX190517_01" << "DX190546_01" << "DX190834_01" << "DX190898_01" << "DX190899_01" << "DX191055_02" << "DX191172_02" << "DX191173_02" << "DX192040_01" << "DX192238_01" << "DX192377_01" << "DX192498_01" << "DX192611_01" << "DX192660_03" << "DX192699_01" << "DX192729_01" << "DX192879_01" << "DX192901_01" << "DX193151_02" << "DX193153_02" << "DX193707_01" << "DX193737_01" << "DX193878_01" << "DX194036_01" << "DX194163_01" << "DX194308_01" << "DX194524_01" << "DX194777_01" << "DX194902_01" << "DX195046_01" << "DX195179_01" << "DX195348_02" << "DX195504_01" << "DX195604_02" << "DX195725_01" << "DX195876_03" << "DX196053_01" << "DX196054_01" << "DX196178_02" << "DX196180_02" << "DX196642_03" << "DX196735_01" << "DX196761_01" << "DX196871_02" << "DX196934_02" << "DX197017_01" << "DX197155_02" << "DX197268_02" << "DX197574_01" << "DX197801_01" << "DX197804_01" << "DX197839_02" << "DX197911_01" << "DX197977_01" << "DX197989_01" << "DX198007_01" << "DX198016_01" << "DX198028_01" << "DX198039_01" << "DX198040_01" << "DX198041_01" << "DX198045_01" << "DX198047_01" << "DX198048_01" << "DX198050_01" << "DX198051_01" << "DX198052_01" << "DX198053_01" << "DX198335_01" << "DX198447_01" << "DX198749_02" << "DX198982_01" << "DX200114_01" << "DX200169_01" << "DX200550_02" << "DX200687_02" << "DX200743_01" << "DX200979_01" << "DX200980_01" << "DX201452_01" << "DX201469_01" << "DX201514_01" << "DX201515_02" << "DX201629_02" << "DX201939_01" << "DX202199_01" << "DX202204_01" << "DX202211_01" << "DX202237_01" << "DX202238_01" << "DX202455_01" << "DX202469_01" << "DX202504_02" << "DX202579_02" << "DX202811_01" << "DX202893_01" << "DX203029_01" << "DX203088_02" << "DX203148_02" << "DX203273_02" << "DX203367_02" << "DX203429_02" << "DX203625_01" << "DX203848_01" << "DX203863_02" << "DX203930_02" << "DX203965_01" << "DX204016_01" << "DX204134_01" << "DX204272_01" << "DX204342_01" << "DX204343_01" << "DX204846_01" << "DX204937_02" << "DX205123_01" << "DX205326_02" << "DX205384_02" << "DX205460_02" << "DX205538_01" << "DX205712_01" << "DX205936_01" << "DX206041_01" << "DX206111_01" << "DX206286_01" << "DX206536_01" << "DX206556_02" << "DX206956_01" << "DX207246_01" << "DX207247_01" << "DX207313_01" << "DX207320_01" << "DX207324_01" << "DX207349_01" << "DX207350_01" << "DX207469_01" << "DX207472_01" << "DX207730_01" << "DX207752_01" << "DX207808_01" << "DX207812_01" << "DX207826_02" << "DX207831_01" << "DX207885_01" << "DX207906_01" << "DX207967_01" << "DX207968_01" << "DX208004_01" << "DX208090_01" << "DX208113_01" << "DX208298_01" << "DX208299_01" << "DX208322_01" << "DX208326_02" << "DX208336_01" << "DX208451_02" << "DX208552_01" << "DX208749_02" << "DX208845_02" << "DX208862_01" << "DX208924_01" << "DX209153_02" << "FO11802x01_01" << "GS160774_01" << "GS160775_01" << "GS160776_01" << "GS160784_01" << "GS160785_01" << "GS160787_01" << "GS160788_01" << "GS160791_01" << "GS160793_01" << "GS160795_01" << "GS160796_01" << "GS160798_01" << "GS160802_01" << "GS160803_01" << "GS160805_01" << "GS160806_01" << "GS160807_01" << "GS160808_01" << "GS160849_01" << "GS160850_01" << "GS160851_01" << "GS160862_01" << "GS160863_01" << "GS160864_01" << "GS160868_01" << "GS160869_01" << "GS160872_01" << "GS160873_01" << "GS160874_01" << "GS160876_01" << "GS160877_01" << "GS160878_01" << "GS160939_01" << "GS160940_01" << "GS160941_01" << "GS160942_01" << "GS160943_01" << "GS160944_01" << "GS160945_01" << "GS160949_01" << "GS160966_01" << "GS160978_01" << "GS160979_01" << "GS160981_01" << "GS160983_01" << "GS160985_01" << "GS160986_01" << "GS160987_01" << "GS160988_01" << "GS160989_01" << "GS160990_01" << "GS160991_02" << "GS160992_01" << "GS161011_01" << "GS161012_01" << "GS161013_01" << "GS161016_01" << "GS161017_01" << "GS161019_01" << "GS161029_01" << "GS161032_01" << "GS161034_01" << "GS161035_01" << "GS161041_01" << "GS161043_01" << "GS161048_01" << "GS161049_01" << "GS161051_01" << "GS161058_01" << "GS161063_01" << "GS161064_01" << "GS161073_01" << "GS161080_01" << "GS161082_01" << "GS161083_01" << "GS161085_01" << "GS161087_01" << "GS161088_01" << "GS161089_01" << "GS161091_01" << "GS161092_01" << "GS161093_01" << "GS161094_01" << "GS161095_01" << "GS161096_01" << "GS161100_01" << "GS161102_01" << "GS161103_01" << "GS161104_01" << "GS161111_01" << "GS161112_01" << "GS161113_01" << "GS161114_01" << "GS161116_01" << "GS161117_01" << "GS161118_01" << "GS161123_01" << "GS161124_01" << "GS161134_01";
+		QStringList ps_list = ps_table.extractColumn(0);
 
 		int ps_start_index = -1;
 		int i=0;
@@ -699,6 +706,7 @@ void MainWindow::on_actionDebug_triggered()
 			qDebug() << i << "/" << ps_list.size() << " - " << ps;
 			genlab.addMissingMetaDataToNGSD(ps, true, true, true, true, false);
 		}
+		*/
 
 		qDebug() << Helper::elapsedTime(timer, true);
 	}
@@ -707,6 +715,7 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
+		Statistics::hrdScore(cnvs_, "GRCh37");
 	}
 }
 
@@ -1251,9 +1260,7 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 
 	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
-	QSharedPointer<CfDNAPanelDesignDialog> dialog = QSharedPointer<CfDNAPanelDesignDialog>(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config,
-																													  variants_.mainSampleName(),
-																													  cfdna_processing_systems, this));
+		QSharedPointer<CfDNAPanelDesignDialog> dialog = QSharedPointer<CfDNAPanelDesignDialog>(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config, variants_.mainSampleName(), cfdna_processing_systems, this));
 	dialog->setWindowFlags(Qt::Window);
 
 	// link IGV
@@ -1610,9 +1617,9 @@ void MainWindow::delayedInitialization()
 	Log::appInfo();
 
 	//load from INI file (if a valid INI file - otherwise restore INI file)
-	if (!Settings::contains("igv_genome"))
+	if (!Settings::contains("igv_genome") || (GSvarHelper::build()!="hg19" && GSvarHelper::build()!="hg38"))
 	{
-		QMessageBox::warning(this, "GSvar not configured", "GSvar is not configured correctly.\nThe settings key 'igv_genome' is not set.\nPlease inform your administrator!");
+		QMessageBox::warning(this, "GSvar is not configured", "GSvar is not configured correctly.\nPlease inform your administrator!");
 		close();
 		return;
 	}
@@ -1944,7 +1951,9 @@ void MainWindow::editVariantValidation(int index)
 
 	try
 	{
-		QString ps = variants_.mainSampleName();
+		QString ps = selectProcessedSample();
+		if (ps.isEmpty()) return;
+
 		NGSD db;
 
 		//get variant ID - add if missing
@@ -2252,7 +2261,7 @@ void MainWindow::cleanUpModelessDialogs()
 
 void MainWindow::importPhenotypesFromNGSD()
 {
-	QString ps_name = variants_.mainSampleName();
+	QString ps_name = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
 	try
 	{
 		NGSD db;
@@ -2672,7 +2681,21 @@ void MainWindow::loadFile(QString filename)
 			try
 			{
 				cnvs_.load(cnv_loc.filename);
-				if (cnvs_.count()>80000) THROW(ArgumentException, "CNV file contains too many CNVs - could not load it!")
+				int cnv_count_initial = cnvs_.count();
+				double min_ll = 0.0;
+				while (cnvs_.count()>50000)
+				{
+					min_ll += 1.0;
+					FilterResult result(cnvs_.count());
+					FilterCnvLoglikelihood filter;
+					filter.setDouble("min_ll", min_ll);
+					filter.apply(cnvs_, result);
+					result.removeFlagged(cnvs_);
+				}
+				if (min_ll>0)
+				{
+					QMessageBox::information(this, "CNV pre-filtering applied", "The CNV calls file contains too many CNVs: " + QString::number(cnv_count_initial) +".\nOnly CNVs with log-likelyhood >= " + QString::number(min_ll) +" are displayed: " + QString::number(cnvs_.count()) +".");
+				}
 			}
 			catch(Exception& e)
 			{
@@ -2837,25 +2860,29 @@ void MainWindow::loadFile(QString filename)
 	ui_.actionShowRnaFusions->setEnabled(false);
 	if (LoginManager::active())
 	{
-		QStringList rna_sample_ids = NGSD().sameSamples(NGSD().sampleId(variants_.mainSampleName()), "RNA");
-		foreach (const QString& rna_sample_id, rna_sample_ids)
+		NGSD db;
+
+		QString sample_id = (germlineReportSupported() ?  db.sampleId(germlineReportSample(), false) : db.sampleId(variants_.mainSampleName()));
+		if (sample_id!="")
 		{
-			// activate menu if RNA sample is available
-			rna_menu_btn_->setEnabled(true);
-
-			// check for required files
-			foreach (const QString& rna_ps_id, NGSD().getValues("SELECT id FROM processed_sample WHERE sample_id=:0", rna_sample_id))
+			QStringList rna_sample_ids = db.sameSamples(sample_id, "RNA");
+			foreach (const QString& rna_sample_id, rna_sample_ids)
 			{
-				// search for count file
-				FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::COUNTS);
-				if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
+				// activate menu if RNA sample is available
+				rna_menu_btn_->setEnabled(true);
 
-				//TODO: Reactivate if RNA Widget works
-//				// search for manta fusion file
-//				FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
-//				if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
+				// check for required files
+				foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", rna_sample_id))
+				{
+					// search for count file
+					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::COUNTS);
+					if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
+
+					// search for manta fusion file
+					FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
+					if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
+				}
 			}
-
 		}
 	}
 }
@@ -3136,7 +3163,7 @@ void MainWindow::generateEvaluationSheet()
 
 	//write sheet
 	PrsTable prs_table; //not needed
-	GermlineReportGeneratorData generator_data(base_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
+	GermlineReportGeneratorData generator_data(GSvarHelper::build(), base_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
 	GermlineReportGenerator generator(generator_data);
 	generator.writeEvaluationSheet(filename, evaluation_sheet_data);
 
@@ -3361,6 +3388,12 @@ void MainWindow::generateReportSomaticRTF()
 	somatic_report_settings_.target_region_filter = ui_.filters->targetRegion();
 
 
+	QCCollection cnv_metrics = Statistics::hrdScore(SomaticReportSettings::filterCnvs(cnvs_, somatic_report_settings_), GSvarHelper::build());
+	somatic_report_settings_.report_config.setCnvLohCount( cnv_metrics.value("QC:2000062", true).asInt() );
+	somatic_report_settings_.report_config.setCnvTaiCount( cnv_metrics.value("QC:2000063", true).asInt() );
+	somatic_report_settings_.report_config.setCnvLstCount( cnv_metrics.value("QC:2000064", true).asInt() );
+
+
 	//Preselect report settings if not already exists to most common values
 	if(db.somaticReportConfigId(ps_tumor_id, ps_normal_id) == -1)
 	{
@@ -3563,7 +3596,7 @@ void MainWindow::generateReportGermline()
 	FileLocationList prs_files = GlobalServiceProvider::fileLocationProvider().getPrsFiles(false).filterById(ps_name);
 	if (prs_files.count()==1) prs_table.load(prs_files[0].filename);
 
-	GermlineReportGeneratorData data(ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
+	GermlineReportGeneratorData data(GSvarHelper::build(), ps_name, variants_, cnvs_, svs_, prs_table, report_settings_, ui_.filters->filters(), GSvarHelper::preferredTranscripts());
 	data.processing_system_roi = GlobalServiceProvider::database().processingSystemRegions(db.processingSystemIdFromProcessedSample(ps_name));
 	data.ps_bam = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::BAM).filename;
 	data.ps_lowcov = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::LOWCOV_BED).filename;
@@ -3657,6 +3690,35 @@ QString MainWindow::selectGene()
 	if (selector->getId()=="") return "";
 
 	return selector->text();
+}
+
+QString MainWindow::selectProcessedSample()
+{
+    //determine processed sample names
+    QStringList ps_list;
+    foreach(const SampleInfo& info, variants_.getSampleHeader())
+    {
+        ps_list << info.id.trimmed();
+    }
+
+    //no samples => error
+    if (ps_list.isEmpty())
+    {
+        THROW(ProgrammingException, "selectProcessedSample() cannot be used if there is no variant list loaded!");
+    }
+
+    //one sample => auto-select
+    if (ps_list.count()==1)
+    {
+       return ps_list[0];
+    }
+
+    //several affected => let user select
+    bool ok = false;
+    QString selected = QInputDialog::getItem(this, "Select processed sample", "processed sample:", ps_list, 0, false, &ok);
+    if (ok) return selected;
+
+    return "";
 }
 
 void MainWindow::importBatch(QString title, QString text, QString table, QStringList fields)
@@ -4239,6 +4301,14 @@ void MainWindow::on_actionGaps_triggered()
 	dlg.exec();
 }
 
+void MainWindow::on_actionReplicateNGSD_triggered()
+{
+	NGSDReplicationWidget* widget = new NGSDReplicationWidget(this);
+
+	auto dlg = GUIHelper::createDialog(widget, "Replicate NGSD (hg19 to hg38)");
+	dlg->exec();
+}
+
 void MainWindow::on_actionGenderXY_triggered()
 {
 	ExternalToolDialog dialog("Determine gender", "xy", this);
@@ -4314,7 +4384,8 @@ void MainWindow::on_actionGapsLookup_triggered()
 	AnalysisType type = variants_.type();
 	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE) return;
 
-	QString ps_name = germlineReportSample();
+	QString ps_name = selectProcessedSample();
+	if (ps_name.isEmpty()) return;
 
 	//check low-coverage file exists
 	QStringList low_cov_files = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(ps_name).asStringList();
@@ -4332,7 +4403,7 @@ void MainWindow::on_actionGapsLookup_triggered()
 	if (LoginManager::active())
 	{
 		NGSD db;
-		QString ps_id = db.processedSampleId(variants_.mainSampleName());
+		QString ps_id = db.processedSampleId(germlineReportSample());
 		if (ps_id!="")
 		{
 			int sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id=:0", true, ps_id).toInt();
@@ -4607,7 +4678,7 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	LovdUploadData data;
 
 	//sample name
-	data.processed_sample = variants_.mainSampleName();
+	data.processed_sample = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
 
 	//gender
 	NGSD db;
@@ -5110,7 +5181,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		QString obs = variant.obs();
 		obs.replace("-", "");
 		QString var = variant.chr().str() + "-" + QString::number(variant.start()) + "-" +  ref + "-" + obs;
-		QString genome = variant.chr().isM() ? "hg38" : "hg19";
+		QString genome = variant.chr().isM() ? "hg38" : GSvarHelper::build();
 		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/" + genome + "/" + var));
 	}
 	else if (action==a_report_edit)
@@ -5296,6 +5367,8 @@ void MainWindow::on_actionAnnotateSomaticVariantInterpretation_triggered()
 {
 	if (filename_.isEmpty()) return;
 	if (!LoginManager::active()) return;
+	AnalysisType type = variants_.type();
+	if (type!=SOMATIC_SINGLESAMPLE && type!=SOMATIC_PAIR) return;
 
 	int i_vicc = variants_.annotationIndexByName("NGSD_som_vicc_interpretation");
 	int i_vicc_comment = variants_.annotationIndexByName("NGSD_som_vicc_comment");
@@ -5343,7 +5416,8 @@ bool MainWindow::germlineReportSupported(bool require_ngsd)
 	//multi-sample only with at least one affected
 	if (type==GERMLINE_MULTISAMPLE && variants_.getSampleHeader().sampleColumns(true).count()>=1) return true;
 
-	return false;}
+	return false;
+}
 
 QString MainWindow::germlineReportSample()
 {

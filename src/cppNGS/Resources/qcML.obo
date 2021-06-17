@@ -948,3 +948,27 @@ is_a: QC:2000002 ! NGS mapping parameter
 is_a: QC:0000050 ! image plot
 xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
 created_by: sturm
+
+[Term]
+id: QC:2000062
+name: somatic LOH events
+def: "Count of large somatic LOHs events (that do not touch centromeres)." [PXS:QC]
+is_a: QC:2000001 ! NGS quality parameter
+xref: xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: gschwind
+
+[Term]
+id: QC:2000063
+name: telomer allelic imbalance
+def: "Count of somatic telomer allelic imbalance (TAI) events." [PXS:QC]
+is_a: QC:2000001 ! NGS quality parameter
+xref: xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: gschwind
+
+[Term]
+id: QC:2000064
+name: long state transition
+def: "Count of somatic long state transition (LST) events." [PXS:QC]
+is_a: QC:2000001 ! NGS quality parameter
+xref: xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: gschwind

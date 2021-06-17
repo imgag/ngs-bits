@@ -929,7 +929,7 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString exons, QString t
 	return QCValue(qcml_name, QString::number(mutation_burden, 'f', 2), qcml_desc, qcml_id);
 }
 
-QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file,bool skip_plots, const QString& ref_file_cram)
+QCCollection Statistics::somatic(const QString& build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots, const QString& ref_file_cram)
 {
 	QCCollection output;
 
@@ -1141,6 +1141,13 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 			hist_all.inc(variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble());;
 			if(variants[i].failedFilters().empty())	hist_filtered.inc(variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble());
 		}
+        //MuTect2
+        //##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
+        else if(variants.formatIDs().contains("AF"))
+        {
+            hist_all.inc(variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble());;
+            if(variants[i].failedFilters().empty())	hist_filtered.inc(variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble());
+        }
 		// else: strelka indel
 	}
 
@@ -1272,12 +1279,19 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 		//##FORMAT=<ID=FA,Number=A,Type=Float,Description="Allele fraction of the alternate allele with regard to reference">
 		else if(variants.formatIDs().contains("FA"))
 		{
-			af_tumor = variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble();
+            af_tumor = variants[i].formatValueFromSample("FA", tumor_id.toUtf8()).toDouble();
 			af_normal = variants[i].formatValueFromSample("FA", normal_id.toUtf8()).toDouble();
 		}
+        //MuTect2
+        //##FORMAT=<ID=AF,Number=A,Type=Float,Description="Allele fractions of alternate alleles in the tumor">
+        else if(variants.formatIDs().contains("AF"))
+        {
+            af_tumor = variants[i].formatValueFromSample("AF", tumor_id.toUtf8()).toDouble();
+            af_normal = variants[i].formatValueFromSample("AF", normal_id.toUtf8()).toDouble();
+        }
 		else
 		{
-			Log::error("Could not identify vcf format in line " + QString::number(i+1) + ". Sample-ID: " + tumor_id + ". Position " + variants[i].chr().str() + ":" + QString::number(variants[i].start()) + ". Only strelka and freebayes are currently supported.");
+            Log::error("Could not identify vcf format in line " + QString::number(i+1) + ". Sample-ID: " + tumor_id + ". Position " + variants[i].chr().str() + ":" + QString::number(variants[i].start()) + ". Only strelka, freebayes and mutect2 are currently supported.");
 		}
 
 		//find AF and set x and y points, implement freebayes and strelka fields
@@ -1539,7 +1553,7 @@ QCCollection Statistics::somatic(QString build, QString& tumor_bam, QString& nor
 	return output;
 }
 
-QCCollection Statistics::contamination(QString build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps)
+QCCollection Statistics::contamination(const QString& build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps)
 {
 	//open BAM
 	BamReader reader(bam, ref_file);
@@ -1587,7 +1601,7 @@ QCCollection Statistics::contamination(QString build, QString bam, const QString
 	return output;
 }
 
-AncestryEstimates Statistics::ancestry(QString build, QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
+AncestryEstimates Statistics::ancestry(const QString& build, QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
 {
 	//init score statistics
 	struct PopScore
@@ -2158,7 +2172,7 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	return output;
 }
 
-GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double max_male, double min_female, const QString& ref_file)
+GenderEstimate Statistics::genderHetX(const QString& build, QString bam_file, double max_male, double min_female, const QString& ref_file)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2207,7 +2221,7 @@ GenderEstimate Statistics::genderHetX(QString bam_file, QString build, double ma
 	return output;
 }
 
-GenderEstimate Statistics::genderSRY(QString bam_file, QString build, double min_cov, const QString& ref_file)
+GenderEstimate Statistics::genderSRY(const QString& build, QString bam_file, double min_cov, const QString& ref_file)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2241,6 +2255,120 @@ GenderEstimate Statistics::genderSRY(QString bam_file, QString build, double min
 	output.gender = cov>=min_cov ? "male" : "female";
 	return output;
 }
+
+
+QCCollection Statistics::hrdScore(const CnvList &cnvs, QString build)
+{
+	BedFile centromeres = NGSHelper::centromeres(build);
+	BedFile telomeres = NGSHelper::telomeres(build);
+	//Loss of Heterozygosity
+	int loh = 0;
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		const auto& cnv = cnvs[i];
+
+		if( !cnv.chr().isAutosome() ) continue;
+
+		if(cnv.copyNumber(cnvs.annotationHeaders()) != 2) continue;
+
+		//skip smaller than 15 MB
+		if( cnv.size() < 15000000 ) continue;
+
+		//must not overlap centromere
+		if( centromeres.overlapsWith( cnv.chr(),cnv.start(), cnv.end() ) ) continue;
+
+		++loh;
+	}
+
+	//Telomer allelic imbalance
+	int tai = 0;
+	for(int i=0; i<cnvs.count(); ++i)
+	{
+		const auto& cnv = cnvs[i];
+
+		if( !cnv.chr().isAutosome() ) continue;
+
+		if( cnv.copyNumber(cnvs.annotationHeaders()) == 2 ) continue;
+
+
+		//skip larger than 11MB
+		if(cnv.size() > 11000000) continue;
+
+
+		//must not overlap with centromere
+		if( centromeres.overlapsWith(cnv.chr(), cnv.start(), cnv.end()) ) continue;
+
+		//must overlap with  telomere
+		if( !telomeres.overlapsWith(cnv.chr(), cnv.start(), cnv.end()) ) continue;
+		++tai;
+	}
+
+
+	//Long state transition: LST
+	struct raw_cnv
+	{
+		Chromosome chr;
+		int start;
+		int end;
+		int cn;
+	};
+
+	//discard CNVs that overlap telomeres or centromeres
+	QVector<raw_cnv> filtered_cnvs;
+	for(int i=0;i<cnvs.count(); ++i)
+	{
+		if( !cnvs[i].chr().isAutosome() ) continue;
+
+		if( cnvs[i].copyNumber(cnvs.annotationHeaders()) == 2 ) continue;
+
+		//skip overlapping telomeres and centromeres
+		if(telomeres.overlapsWith(cnvs[i].chr(), cnvs[i].start(), cnvs[i].end()) ) continue;
+		if(centromeres.overlapsWith(cnvs[i].chr(), cnvs[i].start(), cnvs[i].end()) ) continue;
+
+		filtered_cnvs << raw_cnv{ cnvs[i].chr(), cnvs[i].start(), cnvs[i].end(), cnvs[i].copyNumber(cnvs.annotationHeaders()) };
+	}
+
+	//Merge CNVs
+	if(filtered_cnvs.count() > 1)
+	{
+		raw_cnv next_cnv = filtered_cnvs.first();
+		int next_cnv_index = 0;
+		for (int i=1; i<filtered_cnvs.count(); ++i)
+		{
+			const raw_cnv& cnv = filtered_cnvs[i];
+
+			if ( next_cnv.chr == cnv.chr && cnv.start-next_cnv.end < 5000000 && next_cnv.cn == cnv.cn ) //merge if distance < 5MB and same copy number
+			{
+				next_cnv.end = cnv.end;
+			}
+			else
+			{
+				filtered_cnvs[next_cnv_index] = next_cnv;
+				++next_cnv_index;
+				next_cnv = cnv;
+			}
+		}
+		//add last cnv
+		filtered_cnvs[next_cnv_index] = next_cnv;
+		//remove excess cnv
+		filtered_cnvs.resize(next_cnv_index+1);
+	}
+
+
+	int lst = 0;
+	for(int i=0;i<filtered_cnvs.count();++i)
+	{
+		if(filtered_cnvs[i].end-filtered_cnvs[i].start < 10000000) continue; // skip smaller 10MB
+		++lst;
+	}
+
+	QCCollection out;
+	addQcValue(out, "QC:2000062", "somatic LOH events", loh);
+	addQcValue(out, "QC:2000063",  "telomer allelic imbalance", tai);
+	addQcValue(out, "QC:2000064", "long state transition", lst);
+	return out;
+}
+
 
 template<typename T>
 void Statistics::addQcValue(QCCollection& output, QByteArray accession, QByteArray name, const T& value)

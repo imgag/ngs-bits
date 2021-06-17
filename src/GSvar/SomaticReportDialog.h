@@ -38,7 +38,7 @@ private:
 	Ui::SomaticReportDialog ui_;
 	NGSD db_;
 	SomaticReportSettings& settings_;
-	const CnvList& cnvs_;
+	CnvList cnvs_;
 	const VariantList& germl_variants_;
 	QString target_region_;
 
