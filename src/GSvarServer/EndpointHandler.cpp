@@ -326,8 +326,6 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 				QString column = json_doc.array().takeAt(i).toObject().value("column").toString().trimmed();
 				QString text = json_doc.array().takeAt(i).toObject().value("text").toString();
 
-//				msg = variant_changed;
-
 				// Locating changed variant
 				if (variant_in.toLower().trimmed() == variant_changed.toLower())
 				{
@@ -338,7 +336,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 					}
 					is_current_variant_changed = true;
 					is_file_changed = true;
-					line_columns[column_names.indexOf(column)] = text;
+					line_columns[column_names.indexOf(column)] = text.replace("\n", " ").replace("\t", " ");
 				}
 			}
 			catch (Exception& e)
@@ -350,7 +348,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 
 		if (!is_current_variant_changed)
 		{
-			out_stream << line.replace("\n", " ").replace("\t", " ") << "\n";
+			out_stream << line << "\n";
 		}
 		else
 		{
