@@ -367,13 +367,13 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 		qDebug() << tmp;
 		//copy temp
 //		QFile file_to_be_removed(url.filename_with_path);
-		in_file.data()->setPermissions(QFile::WriteOther);
+//		in_file.data()->setPermissions(QFile::WriteOther);
 //		QFile::remove(url.filename_with_path);
 		if (!in_file.data()->remove())
 		{
 			qDebug() << "Could not remove: " << in_file.data()->fileName();
 		}
-		out_file.data()->setPermissions(QFile::WriteOther);
+//		out_file.data()->setPermissions(QFile::WriteOther);
 //		QFile::rename(tmp, url.filename_with_path);
 		if (!out_file.data()->rename(url.filename_with_path))
 		{
