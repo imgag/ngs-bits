@@ -35,8 +35,6 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 
 void VariantWidget::updateGUI()
 {
-	QApplication::setOverrideCursor(Qt::BusyCursor);
-
 	//get variant id
 	NGSD db;
 	QString variant_id = db.variantId(variant_);
@@ -44,20 +42,20 @@ void VariantWidget::updateGUI()
 	//variant base info
 	ui_.variant->setText(variant_.toString());
 
-	SqlQuery query = db.getQuery();
-	query.exec("SELECT * FROM variant WHERE id=" + variant_id);
-	query.next();
-	ui_.af_tg->setText(query.value("1000g").toString());
-	ui_.af_gnomad->setText("<a style=\"color: #000000;\" href=\"" + variant_id + "\">" + query.value("gnomad").toString() + "</a>");
+	SqlQuery query1 = db.getQuery();
+	query1.exec("SELECT * FROM variant WHERE id=" + variant_id);
+	query1.next();
+	ui_.af_tg->setText(query1.value("1000g").toString());
+	ui_.af_gnomad->setText("<a style=\"color: #000000;\" href=\"" + variant_id + "\">" + query1.value("gnomad").toString() + "</a>");
 
 	QPair<int, int> counts = db.variantCounts(variant_id);
 	ui_.ngsd_het->setText(QString::number(counts.first));
 	ui_.ngsd_hom->setText(QString::number(counts.second));
-	ui_.comments->setText(query.value("comment").toString());
+	ui_.comments->setText(query1.value("comment").toString());
 
 	//transcripts
 	QStringList lines;
-	QList<VariantTranscript> transcripts = Variant::parseTranscriptString(query.value("coding").toByteArray(), true);
+	QList<VariantTranscript> transcripts = Variant::parseTranscriptString(query1.value("coding").toByteArray(), true);
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		lines << "<a href=\"" + trans.gene + "\">" + trans.gene + "</a> " + trans.id + ": " + trans.type + " " + trans.hgvs_c + " " + trans.hgvs_p;
@@ -69,18 +67,27 @@ void VariantWidget::updateGUI()
 	ui_.classification_comment->setText(class_info.comments);
 
 	//samples table
+	SqlQuery query2 = db.getQuery();
+	query2.exec("SELECT processed_sample_id, genotype FROM detected_variant WHERE variant_id=" + variant_id);
+	bool fill_table = true;
+	if (query2.size()>100)
 	{
-		SqlQuery query = db.getQuery();
-		query.exec("SELECT processed_sample_id, genotype FROM detected_variant WHERE variant_id=" + variant_id);
+		int res = QMessageBox::question(this, "Many variants detected.", "The variant is in NGSD " + QString::number(query2.size()) + " times.\nShowing the variant table might be slow.\nDo you want to fill the variant table?", QMessageBox::Yes, QMessageBox::No|QMessageBox::Default);
+		if (res!=QMessageBox::Yes) fill_table = false;
+	}
+
+	if (fill_table)
+	{
+		QApplication::setOverrideCursor(Qt::BusyCursor);
 
 		//resize table
-		ui_.table->setRowCount(query.size());
+		ui_.table->setRowCount(query2.size());
 
 		//fill samples table
 		int row = 0;
-		while(query.next())
+		while(query2.next())
 		{
-			QString ps_id = query.value(0).toString();
+			QString ps_id = query2.value(0).toString();
 
 			SampleData s_data = db.getSampleData(db.getValue("SELECT sample_id FROM processed_sample WHERE id=" + ps_id).toString());
 			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
@@ -90,7 +97,7 @@ void VariantWidget::updateGUI()
 			addItem(row, 1,  s_data.name_external);
 			addItem(row, 2,  s_data.gender);
 			addItem(row, 3,  s_data.quality + " / " + ps_data.quality);
-			addItem(row, 4,  query.value(1).toString());
+			addItem(row, 4,  query2.value(1).toString());
 			addItem(row, 5, ps_data.processing_system);
 			addItem(row, 6, ps_data.project_name);
 			addItem(row, 7, s_data.disease_group);
@@ -126,6 +133,16 @@ void VariantWidget::updateGUI()
 			}
 			addItem(row, 15, genes_candidate.join(','));
 
+			//add report config comment of variant
+			QString rc_comment;
+			SqlQuery query5 = db.getQuery();
+			query5.exec("SELECT CONCAT(rcv.comments, ' // ', rcv.comments2) FROM report_configuration rc, report_configuration_variant rcv WHERE rcv.report_configuration_id=rc.id AND rc.processed_sample_id=" + ps_id + " AND rcv.variant_id=" + variant_id);
+			if(query5.next())
+			{
+				rc_comment = query5.value(0).toString().trimmed();
+			}
+			addItem(row, 16, rc_comment);
+
 			++row;
 		}
 
@@ -134,9 +151,9 @@ void VariantWidget::updateGUI()
 
 		//resize table cols
 		GUIHelper::resizeTableCells(ui_.table, 200);
-	}
 
-	QApplication::restoreOverrideCursor();
+		QApplication::restoreOverrideCursor();
+	}
 }
 
 void VariantWidget::delayedInitialization()
