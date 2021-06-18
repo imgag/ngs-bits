@@ -66,7 +66,6 @@ QString ServerHelper::getUrlWithoutParams(const QString& url)
 	return url_parts[0];
 }
 
-
 ServerHelper& ServerHelper::instance()
 {
 	static ServerHelper server_helper;

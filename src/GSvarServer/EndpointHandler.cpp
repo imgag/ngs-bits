@@ -336,7 +336,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 					}
 					is_current_variant_changed = true;
 					is_file_changed = true;
-					line_columns[column_names.indexOf(column)] = text.replace("\n", " ").replace("\t", " ");
+					line_columns[column_names.indexOf(column)] = QUrl::toPercentEncoding(text); // text.replace("\n", " ").replace("\t", " ");
 				}
 			}
 			catch (Exception& e)
