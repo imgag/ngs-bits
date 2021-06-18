@@ -4,11 +4,11 @@
 #include "LoginManager.h"
 #include "NGSD.h"
 #include "GSvarHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QMenu>
 #include <QDir>
 #include <QPushButton>
-
 
 CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
 	QDialog(parent),
@@ -505,7 +505,7 @@ void CfDNAPanelDesignDialog::openVariantInIGV(QTableWidgetItem* item)
 
 	const Variant& var = variants_[var_idx];
 	QString coords = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + "-" + QString::number(var.end());
-	emit openInIGV(coords);
+	GlobalServiceProvider::gotoInIGV(coords, true);
 }
 
 void CfDNAPanelDesignDialog::updateSystemSelection()

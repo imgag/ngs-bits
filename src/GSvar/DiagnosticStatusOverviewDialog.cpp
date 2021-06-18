@@ -1,4 +1,5 @@
 #include "DiagnosticStatusOverviewDialog.h"
+#include "GlobalServiceProvider.h"
 #include "GUIHelper.h"
 #include <QClipboard>
 #include <QMenu>
@@ -147,6 +148,6 @@ void DiagnosticStatusOverviewDialog::sampleContextMenu(QPoint pos)
 	if (action==action_sample)
 	{
 		QString processed_sample_name = ui.sample_infos->item(item->row(), 1)->text();
-		emit openProcessedSampleTab(processed_sample_name);
+		GlobalServiceProvider::openProcessedSampleTab(processed_sample_name);
 	}
 }

@@ -4,6 +4,7 @@
 #include "GUIHelper.h"
 #include "DBTableWidget.h"
 #include "GSvarHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QDialog>
 #include <QMessageBox>
 #include <QAction>
@@ -20,13 +21,13 @@ VariantWidget::VariantWidget(const Variant& variant, QWidget *parent)
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_.class_btn, SIGNAL(clicked(bool)), this, SLOT(editClassification()));
-	connect(ui_.transcripts, SIGNAL(linkActivated(QString)), this, SIGNAL(openGeneTab(QString)));
+	connect(ui_.transcripts, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
 	connect(ui_.af_gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
 
 	//add sample table context menu entries
 	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_.table->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSampleTab()));
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSampleTabs()));
 
 	action = new QAction(QIcon(":/Icons/Icon.png"), "Open variant list", this);
 	ui_.table->addAction(action);
@@ -242,14 +243,19 @@ QList<int> VariantWidget::selectedRows() const
 	return set.toList();
 }
 
-void VariantWidget::openProcessedSampleTab()
+void VariantWidget::openProcessedSampleTabs()
 {
 	QList<int> rows = selectedRows();
 	foreach(int row, rows)
 	{
 		QString ps = ui_.table->item(row, 0)->text();
-		emit openProcessedSampleTab(ps);
+		GlobalServiceProvider::openProcessedSampleTab(ps);
 	}
+}
+
+void VariantWidget::openGeneTab(QString symbol)
+{
+	GlobalServiceProvider::openGeneTab(symbol);
 }
 
 void VariantWidget::openGSvarFile()
@@ -264,7 +270,7 @@ void VariantWidget::openGSvarFile()
 	}
 
 	QString ps = ui_.table->item(rows[0], 0)->text();
-	emit openProcessedSampleFromNGSD(ps);
+	GlobalServiceProvider::openGSvarViaNGSD(ps, true);
 }
 
 void VariantWidget::editClassification()

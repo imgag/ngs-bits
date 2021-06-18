@@ -15,6 +15,7 @@
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QHeaderView>
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
@@ -791,10 +792,8 @@ void VariantDetailsDockWidget::previousTanscript()
 
 void VariantDetailsDockWidget::variantClicked(QString link)
 {
-	//extract location only
-	link = link.left(link.indexOf(' '));
-
-	emit jumbToRegion(link);
+	QString region = link.left(link.indexOf(' '));
+	GlobalServiceProvider::gotoInIGV(region, true);
 }
 
 QString VariantDetailsDockWidget::formatLink(QString text, QString url, Color bgcolor)
@@ -847,7 +846,7 @@ void VariantDetailsDockWidget::transcriptClicked(QString link)
 	}
 	else //gene
 	{
-		emit openGeneTab(link);
+		GlobalServiceProvider::openGeneTab(link);
 	}
 }
 
@@ -855,7 +854,7 @@ void VariantDetailsDockWidget::variantButtonClicked()
 {
 	if (variant_str.isEmpty()) return;
 
-	emit openVariantTab(Variant::fromString(variant_str));
+	GlobalServiceProvider::openVariantTab(Variant::fromString(variant_str));
 }
 
 void VariantDetailsDockWidget::nextSomDetails()

@@ -277,7 +277,7 @@ void GapDialog::gapDoubleClicked(QTableWidgetItem* item)
 	if (item==nullptr) return;
 
 	QString region = ui_.gaps->item(item->row(), 0)->text();
-	emit openRegionInIGV(region);
+	GlobalServiceProvider::gotoInIGV(region, true);
 }
 
 void GapDialog::updateFilters()

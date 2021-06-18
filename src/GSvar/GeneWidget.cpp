@@ -5,6 +5,7 @@
 #include "GUIHelper.h"
 #include "GeneInfoDBs.h"
 #include "GSvarHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QPushButton>
 #include <QInputDialog>
 #include <QMenu>
@@ -21,7 +22,7 @@ GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
     connect(ui_.refesh_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_.variation_btn, SIGNAL(clicked(bool)), this, SLOT(showGeneVariationDialog()));
     connect(ui_.pseudogenes, SIGNAL(linkActivated(QString)), this, SLOT(parseLink(QString)));
-	connect(ui_.type, SIGNAL(linkActivated(QString)), this, SIGNAL(openGeneTab(QString)));
+	connect(ui_.type, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
 
     //edit button
     QMenu* menu = new QMenu();
@@ -226,8 +227,13 @@ void GeneWidget::parseLink(QString link)
     }
     else
     {
-        emit openGeneTab(link);
-    }
+		GlobalServiceProvider::openGeneTab(link);
+	}
+}
+
+void GeneWidget::openGeneTab(QString symbol)
+{
+	GlobalServiceProvider::openGeneTab(symbol);
 }
 
 void GeneWidget::updateTranscriptsTable(NGSD& db)

@@ -24,12 +24,6 @@ public:
 	static void styleQualityLabel(QLabel* label, const QString& quality);
 
 signals:
-	void openProcessedSampleTab(QString ps_name);
-	void openRunTab(QString run_name);
-	void openProcessingSystemTab(QString name_short);
-	void openProjectTab(QString project_name);
-	void executeIGVCommands(QStringList commands);
-	void openProcessedSampleFromNGSD(QString gsvar);
 	void clearMainTableSomReport(QString ps_name);
 
 protected slots:
@@ -50,6 +44,11 @@ protected slots:
 
 	void openIgvTrack();
 	void somRepDeleted();
+
+	void openProcessedSampleTab(QString ps);
+	void openRunTab(QString name);
+	void openProjectTab(QString project_name);
+	void openProcessingSystemTab(QString system_short_name);
 
 	///Opens the processed sample edit dialog
 	void edit();

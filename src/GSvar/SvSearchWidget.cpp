@@ -4,6 +4,7 @@
 #include "Helper.h"
 #include "FilterCascade.h"
 #include "NGSHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -20,6 +21,10 @@ SvSearchWidget::SvSearchWidget(QWidget* parent)
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
 
 	connect(ui_.rb_single_sv->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
+
+	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
 }
 
 void SvSearchWidget::setCoordinates(const BedpeLine& sv_coordinates)
@@ -300,4 +305,14 @@ void SvSearchWidget::changeSearchType()
 	ui_.operation->setEnabled(ui_.rb_single_sv->isChecked());
 	ui_.le_region->setEnabled(ui_.rb_region->isChecked());
 	ui_.le_genes->setEnabled(ui_.rb_genes->isChecked());
+}
+
+void SvSearchWidget::openSelectedSampleTabs()
+{
+	int col = ui_.table->columnIndex("sample");
+	foreach (int row, ui_.table->selectedRows().toList())
+	{
+		QString ps = ui_.table->item(row, col)->text();
+		GlobalServiceProvider::openProcessedSampleTab(ps);
+	}
 }

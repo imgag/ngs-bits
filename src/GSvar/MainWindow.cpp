@@ -142,9 +142,6 @@ MainWindow::MainWindow(QWidget *parent)
 	GUIHelper::styleSplitter(ui_.splitter_2);
 	ui_.splitter_2->setStretchFactor(0, 10);
 	ui_.splitter_2->setStretchFactor(1, 1);
-	connect(ui_.variant_details, SIGNAL(jumbToRegion(QString)), this, SLOT(openInIGV(QString)));
-	connect(ui_.variant_details, SIGNAL(openVariantTab(Variant)), this, SLOT(openVariantTab(Variant)));
-	connect(ui_.variant_details, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	connect(ui_.tabs, SIGNAL(tabCloseRequested(int)), this, SLOT(closeTab(int)));
 	ui_.actionDebug->setVisible(Settings::boolean("debug_mode_enabled", true));
 
@@ -752,7 +749,6 @@ void MainWindow::on_actionCytobandsToRegions_triggered()
 void MainWindow::on_actionSearchSNVs_triggered()
 {
 	SmallVariantSearchWidget* widget = new SmallVariantSearchWidget();
-	connect(widget, SIGNAL(openVariantTab(Variant)), this, SLOT(openVariantTab(Variant)));
 	auto dlg = GUIHelper::createDialog(widget, "Small variants search");
 	addModelessDialog(dlg);
 }
@@ -891,8 +887,6 @@ void MainWindow::on_actionSV_triggered()
 		}
 
 		auto dlg = GUIHelper::createDialog(list, "Structural variants of " + variants_.analysisName());
-		connect(list,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
-		connect(list,SIGNAL(openGeneTab(QString)),this,SLOT(openGeneTab(QString)));
 		addModelessDialog(dlg);
 	}
 	catch(FileParseException error)
@@ -960,19 +954,17 @@ void MainWindow::on_actionCNV_triggered()
 		ps_id = NGSD().processedSampleId(germlineReportSample(), false);
 	}
 
-	CnvWidget *list;
+	CnvWidget* list;
 	if(cnvs_.type() == CnvListType::CLINCNV_TUMOR_NORMAL_PAIR || cnvs_.type() == CnvListType::CLINCNV_TUMOR_ONLY)
 	{
 		list = new CnvWidget(cnvs_, ps_id, ui_.filters, somatic_report_settings_.report_config, het_hit_genes, gene2region_cache_);
+		connect(list, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 	}
 	else
 	{
 		list = new CnvWidget(cnvs_, ps_id, ui_.filters, report_settings_.report_config, het_hit_genes, gene2region_cache_);
 	}
 
-	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
-	connect(list, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
-	connect(list, SIGNAL(storeSomaticReportConfiguration()), this, SLOT(storeSomaticReportConfig()));
 	auto dlg = GUIHelper::createDialog(list, "Copy number variants of " + variants_.analysisName());
 	addModelessDialog(dlg, true);
 
@@ -1061,7 +1053,6 @@ void MainWindow::on_actionROH_triggered()
 	}
 
 	RohWidget* list = new RohWidget(roh_files[0], ui_.filters);
-	connect(list, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	auto dlg = GUIHelper::createDialog(list, "Runs of homozygosity of " + variants_.analysisName());
 	addModelessDialog(dlg);
 }
@@ -1076,7 +1067,6 @@ void MainWindow::on_actionGeneSelector_triggered()
 
 	//show dialog	
 	GeneSelectorDialog dlg(ps_name, this);
-	connect(&dlg, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	if (dlg.exec())
 	{
 		//copy report to clipboard
@@ -1201,12 +1191,9 @@ void MainWindow::on_actionShowRnaFusions_triggered()
 	fusions.load(manta_fusion_filepath);
 
 	//open SV widget
-	SvWidget* sv_widget;
-	sv_widget = new SvWidget(fusions, NGSD().processedSampleId(variants_.mainSampleName()), ui_.filters, GeneSet(), gene2region_cache_, this);
+	SvWidget* sv_widget = new SvWidget(fusions, NGSD().processedSampleId(variants_.mainSampleName()), ui_.filters, GeneSet(), gene2region_cache_, this);
 
 	auto dlg = GUIHelper::createDialog(sv_widget, "Manta fusions of " + variants_.analysisName());
-	connect(sv_widget,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
-	connect(sv_widget,SIGNAL(openGeneTab(QString)),this,SLOT(openGeneTab(QString)));
 	addModelessDialog(dlg);
 }
 
@@ -1259,11 +1246,8 @@ void MainWindow::on_actionDesignCfDNAPanel_triggered()
 
 	DBTable cfdna_processing_systems = NGSD().createTable("processing_system", "SELECT id, name_short FROM processing_system WHERE type='cfDNA (patient-specific)'");
 
-		QSharedPointer<CfDNAPanelDesignDialog> dialog = QSharedPointer<CfDNAPanelDesignDialog>(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config, variants_.mainSampleName(), cfdna_processing_systems, this));
+	QSharedPointer<CfDNAPanelDesignDialog> dialog(new CfDNAPanelDesignDialog(variants_, filter_result_, somatic_report_settings_.report_config, variants_.mainSampleName(), cfdna_processing_systems, this));
 	dialog->setWindowFlags(Qt::Window);
-
-	// link IGV
-	connect(&*dialog,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
 
 	addModelessDialog(dialog, false);
 }
@@ -1275,7 +1259,8 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 	if (!somaticReportSupported()) return;
 
 	// get cfDNA panels:
-	QList<CfdnaPanelInfo> cfdna_panels = NGSD().cfdnaPanelInfo(NGSD().processedSampleId(variants_.mainSampleName()));
+	NGSD db;
+	QList<CfdnaPanelInfo> cfdna_panels = db.cfdnaPanelInfo(db.processedSampleId(variants_.mainSampleName()));
 	CfdnaPanelInfo selected_panel;
 	if (cfdna_panels.size() < 1)
 	{
@@ -1321,11 +1306,6 @@ void MainWindow::on_actionCfDNADiseaseCourse_triggered()
 
 	DiseaseCourseWidget* widget = new DiseaseCourseWidget(variants_.mainSampleName());
 	auto dlg = GUIHelper::createDialog(widget, "Personalized cfDNA variants");
-
-	// link IGV
-	connect(widget,SIGNAL(openInIGV(QString)),this,SLOT(openInIGV(QString)));
-	connect(widget,SIGNAL(executeIGVCommands(QStringList)),this,SLOT(executeIGVCommands(QStringList)));
-
 	addModelessDialog(dlg, false);
 }
 
@@ -1692,7 +1672,7 @@ void MainWindow::delayedInitialization()
 void MainWindow::variantCellDoubleClicked(int row, int /*col*/)
 {
 	const Variant& v = variants_[ui_.vars->rowToVariantIndex(row)];
-	openInIGV(v.chr().str() + ":" + QString::number(v.start()) + "-" + QString::number(v.end()));
+	GlobalServiceProvider::gotoInIGV(v.chr().str() + ":" + QString::number(v.start()) + "-" + QString::number(v.end()), true);
 }
 
 void MainWindow::variantHeaderDoubleClicked(int row)
@@ -1891,11 +1871,6 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 	}
 }
 
-void MainWindow::openInIGV(QString region)
-{
-	executeIGVCommands(QStringList() << "goto " + region, true);
-}
-
 void MainWindow::openCustomIgvTrack()
 {
 	QAction* action = qobject_cast<QAction*>(sender());
@@ -1909,7 +1884,7 @@ void MainWindow::openCustomIgvTrack()
 		QStringList parts = entry.trimmed().split("\t");
 		if(parts[0]==name)
 		{
-			executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(parts[2]) + "\"");
+			GlobalServiceProvider::loadFileInIGV(parts[2], false);
 		}
 	}
 }
@@ -2188,15 +2163,12 @@ void MainWindow::on_actionEncrypt_triggered()
 void MainWindow::on_actionSampleSearch_triggered()
 {
 	SampleSearchWidget* widget = new SampleSearchWidget(this);
-	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
-	connect(widget, SIGNAL(openProcessedSample(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
 	openTab(QIcon(":/Icons/NGSD_sample_search.png"), "Sample search", widget);
 }
 
 void MainWindow::on_actionRunOverview_triggered()
 {
 	SequencingRunOverview* widget = new SequencingRunOverview(this);
-	connect(widget, SIGNAL(openRun(QString)), this, SLOT(openRunTab(QString)));
 	openTab(QIcon(":/Icons/NGSD_run_overview.png"), "Sequencing run overview", widget);
 }
 
@@ -2435,15 +2407,7 @@ void MainWindow::openProcessedSampleTab(QString ps_name)
 	}
 
 	ProcessedSampleWidget* widget = new ProcessedSampleWidget(this, ps_id);
-	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
-	connect(widget, SIGNAL(openRunTab(QString)), this, SLOT(openRunTab(QString)));
-	connect(widget, SIGNAL(executeIGVCommands(QStringList)), this, SLOT(executeIGVCommands(QStringList)));
-	connect(widget, SIGNAL(openProcessingSystemTab(QString)), this, SLOT(openProcessingSystemTab(QString)));
-	connect(widget, SIGNAL(openProjectTab(QString)), this, SLOT(openProjectTab(QString)));
-	connect(widget, SIGNAL(openProcessedSampleFromNGSD(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
-
 	connect(widget, SIGNAL(clearMainTableSomReport(QString)), this, SLOT(clearSomaticReportSettings(QString)));
-
 	int index = openTab(QIcon(":/Icons/NGSD_sample.png"), ps_name, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
@@ -2465,7 +2429,6 @@ void MainWindow::openRunTab(QString run_name)
 	}
 
 	SequencingRunWidget* widget = new SequencingRunWidget(this, run_id);
-	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	int index = openTab(QIcon(":/Icons/NGSD_run.png"), run_name, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
@@ -2483,7 +2446,6 @@ void MainWindow::openGeneTab(QString symbol)
 	}
 
 	GeneWidget* widget = new GeneWidget(this, symbol.toLatin1());
-	connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	int index = openTab(QIcon(":/Icons/NGSD_gene.png"), symbol, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
@@ -2504,9 +2466,6 @@ void MainWindow::openVariantTab(Variant variant)
 
 	//open tab
 	VariantWidget* widget = new VariantWidget(variant, this);
-	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
-	connect(widget, SIGNAL(openProcessedSampleFromNGSD(QString)), this, SLOT(openProcessedSampleFromNGSD(QString)));
-	connect(widget, SIGNAL(openGeneTab(QString)), this, SLOT(openGeneTab(QString)));
 	int index = openTab(QIcon(":/Icons/NGSD_variant.png"), variant.toString(), widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
@@ -2514,19 +2473,18 @@ void MainWindow::openVariantTab(Variant variant)
 	}
 }
 
-void MainWindow::openProcessingSystemTab(QString name_short)
+void MainWindow::openProcessingSystemTab(QString system_name)
 {
 	NGSD db;
-	int sys_id = db.processingSystemId(name_short, false);
+	int sys_id = db.processingSystemId(system_name, false);
 	if (sys_id==-1)
 	{
-		GUIHelper::showMessage("NGSD error", "Processing system name '" + name_short + "' not found in NGSD!");
+		GUIHelper::showMessage("NGSD error", "Processing system name '" + system_name + "' not found in NGSD!");
 		return;
 	}
 
 	ProcessingSystemWidget* widget = new ProcessingSystemWidget(this, sys_id);
-	connect(widget, SIGNAL(executeIGVCommands(QStringList)), this, SLOT(executeIGVCommands(QStringList)));
-	int index = openTab(QIcon(":/Icons/NGSD_processing_system.png"), name_short, widget);
+	int index = openTab(QIcon(":/Icons/NGSD_processing_system.png"), db.getProcessingSystemData(sys_id).name, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
 		ui_.tabs->setTabToolTip(index, "NGSD ID: " + QString::number(sys_id));
@@ -2536,7 +2494,6 @@ void MainWindow::openProcessingSystemTab(QString name_short)
 void MainWindow::openProjectTab(QString name)
 {
 	ProjectWidget* widget = new ProjectWidget(this, name);
-	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	int index = openTab(QIcon(":/Icons/NGSD_project.png"), name, widget);
 	if (Settings::boolean("debug_mode_enabled"))
 	{
@@ -4163,7 +4120,6 @@ void MainWindow::on_actionMID_triggered()
 void MainWindow::on_actionProcessingSystem_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("processing_system");
-	connect(widget, SIGNAL(openProcessingSystemTab(QString)), this, SLOT(openProcessingSystemTab(QString)));
 	auto dlg = GUIHelper::createDialog(widget, "Processing system administration");
 	addModelessDialog(dlg);
 }
@@ -4171,7 +4127,6 @@ void MainWindow::on_actionProcessingSystem_triggered()
 void MainWindow::on_actionProject_triggered()
 {
 	DBTableAdministration* widget = new DBTableAdministration("project");
-	connect(widget, SIGNAL(openProjectTab(QString)), this, SLOT(openProjectTab(QString)));
 	auto dlg = GUIHelper::createDialog(widget, "Project administration");
 	addModelessDialog(dlg);
 }
@@ -4373,8 +4328,6 @@ void MainWindow::on_actionAnalysisStatus_triggered()
 
 	//open new
 	AnalysisStatusWidget* widget = new AnalysisStatusWidget(this);
-	connect(widget, SIGNAL(openProcessedSampleTab(QString)), this, SLOT(openProcessedSampleTab(QString)));
-	connect(widget, SIGNAL(openRunTab(QString)), this, SLOT(openRunTab(QString)));
 	connect(widget, SIGNAL(loadFile(QString)), this, SLOT(loadFile(QString)));
 	openTab(QIcon(":/Icons/Server.png"), "Analysis status", widget);
 }
@@ -4503,7 +4456,6 @@ void MainWindow::on_actionGapsRecalculate_triggered()
 	QStringList low_covs = GlobalServiceProvider::fileLocationProvider().getLowCoverageFiles(false).filterById(ps).asStringList();
 	low_covs << ""; //add empty string in case there is no low-coverage file > this case is handled inside the dialog
 	GapDialog dlg(this, ps, bams[0], low_covs[0], roi, genes);
-	connect(&dlg, SIGNAL(openRegionInIGV(QString)), this, SLOT(openInIGV(QString)));
 	dlg.exec();
 }
 

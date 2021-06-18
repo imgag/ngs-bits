@@ -24,9 +24,6 @@ public:
 	///Returns the selected gene list (for variants)
 	GeneSet genesForVariants();
 
-signals:
-	void openRegionInIGV(QString gene);
-
 private slots:
 	void updateGeneTable();
 	void geneTableItemChanged(int row, int col);

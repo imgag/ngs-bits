@@ -13,15 +13,11 @@ class SampleSearchWidget
 public:
 	SampleSearchWidget(QWidget *parent = 0);
 
-signals:
-	void openProcessedSampleTab(QString ps_name);
-	void openProcessedSample(QString ps_name);
-
 protected slots:
 	void search();
 	void openProcessedSampleTab();
 	void openProcessedSampleTab(int row);
-	void openProcessedSample();
+	void openVariantList();
 	void deleteSampleData();
 	void queueAnalysis();
 
