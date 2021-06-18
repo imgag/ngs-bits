@@ -1010,7 +1010,7 @@ void FilterAlleleFrequency::apply(const VariantList& variants, FilterResult& res
 FilterGenes::FilterGenes()
 {
 	name_ = "Genes";
-	description_ = QStringList() << "Filter for that preserves a gene set.";
+	description_ = QStringList() << "Filter that preserves a gene set.";
 	params_ << FilterParameter("genes", FilterParameterType::STRINGLIST, QStringList(), "Gene set");
 	params_.last().constraints["not_empty"] = "";
 
@@ -1337,6 +1337,7 @@ void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& re
 	{
 		//get affected column indices
 		QList<int> geno_indices = variants.getSampleHeader().sampleColumns(true);
+		geno_indices.removeAll(-1);
 		if (geno_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 
 		for(int i=0; i<variants.count(); ++i)
@@ -1651,6 +1652,7 @@ void FilterGenotypeControl::apply(const VariantList& variants, FilterResult& res
 
 	//get control column indices
 	QList<int> geno_indices = variants.getSampleHeader().sampleColumns(false);
+	geno_indices.removeAll(-1);
 	if (geno_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without control samples!");
 
 	//filter
@@ -1719,6 +1721,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 
 	//get affected column indices
 	QList<int> geno_indices = variants.getSampleHeader().sampleColumns(true);
+	geno_indices.removeAll(-1);
 	if (geno_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 
 
@@ -3441,6 +3444,7 @@ void FilterSvGenotypeControl::apply(const BedpeFile& svs, FilterResult& result) 
 	if (!enabled_) return;
 
 	QList<int> format_data_indices = svs.sampleHeaderInfo().sampleColumns(false);
+	format_data_indices.removeAll(-1);
 	if (format_data_indices.size() < 1) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without control samples!");
 
 	// get genotypes
@@ -3526,6 +3530,7 @@ void FilterSvGenotypeAffected::apply(const BedpeFile& svs, FilterResult& result)
 	if ((svs.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI) || (svs.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO))
 	{
 		format_data_indices = svs.sampleHeaderInfo().sampleColumns(true);
+		format_data_indices.removeAll(-1);
 		if (format_data_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 	}
 

@@ -158,9 +158,8 @@ const QString& GSvarHelper::build()
 	//init
 	if (build.isEmpty())
 	{
-		build = Settings::string("build").trimmed();
+		build = Settings::string("build", true).trimmed();
 	}
-
 
 	return build;
 }
