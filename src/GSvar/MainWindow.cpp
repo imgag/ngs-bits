@@ -119,6 +119,8 @@ QT_CHARTS_USE_NAMESPACE
 #include "GermlineReportGenerator.h"
 #include "SomaticReportHelper.h"
 #include "Statistics.h"
+
+#include "NGSDReplicationWidget.h"
 #include "ClinVarUploadDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -2847,10 +2849,9 @@ void MainWindow::loadFile(QString filename)
 					FileLocation rna_count_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::COUNTS);
 					if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
 
-					//TODO: Reactivate if RNA Widget works
-//				// search for manta fusion file
-//				FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
-//				if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
+					// search for manta fusion file
+					FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
+					if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
 				}
 			}
 		}
@@ -4269,6 +4270,14 @@ void MainWindow::on_actionGaps_triggered()
 {
 	GapClosingDialog dlg(this);
 	dlg.exec();
+}
+
+void MainWindow::on_actionReplicateNGSD_triggered()
+{
+	NGSDReplicationWidget* widget = new NGSDReplicationWidget(this);
+
+	auto dlg = GUIHelper::createDialog(widget, "Replicate NGSD (hg19 to hg38)");
+	dlg->exec();
 }
 
 void MainWindow::on_actionGenderXY_triggered()

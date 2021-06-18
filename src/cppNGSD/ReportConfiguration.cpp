@@ -31,21 +31,21 @@ bool ReportVariantConfiguration::showInReport() const
 	return !(exclude_artefact || exclude_frequency || exclude_phenotype || exclude_mechanism || exclude_other);
 }
 
-QStringList ReportVariantConfiguration::getTypeOptions(bool test_db)
+QStringList ReportVariantConfiguration::getTypeOptions()
 {
-	static QStringList types = NGSD(test_db).getEnum("report_configuration_variant", "type");
+	static QStringList types = NGSD().getEnum("report_configuration_variant", "type");
 	return types;
 }
 
-QStringList ReportVariantConfiguration::getInheritanceModeOptions(bool test_db)
+QStringList ReportVariantConfiguration::getInheritanceModeOptions()
 {
-	static QStringList modes = NGSD(test_db).getEnum("report_configuration_variant", "inheritance");
+	static QStringList modes = NGSD().getEnum("report_configuration_variant", "inheritance");
 	return modes;
 }
 
-QStringList ReportVariantConfiguration::getClassificationOptions(bool test_db)
+QStringList ReportVariantConfiguration::getClassificationOptions()
 {
-	static QStringList modes = NGSD(test_db).getEnum("report_configuration_cnv", "class");
+	static QStringList modes = NGSD().getEnum("report_configuration_cnv", "class");
 	return modes;
 }
 

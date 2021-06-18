@@ -34,11 +34,11 @@ struct CPPNGSDSHARED_EXPORT ReportVariantConfiguration
 	QString comments2; //comments of 2. evaluation
 
 	//Returns options for 'type' (taken and cached from NGSD)
-	static QStringList getTypeOptions(bool test_db = false);
+	static QStringList getTypeOptions();
 	//Returns options for 'inheritance_mode' (taken and cached from NGSD)
-	static QStringList getInheritanceModeOptions(bool test_db = false);
+	static QStringList getInheritanceModeOptions();
 	//Returns options for 'class' (taken and cached from NGSD)
-	static QStringList getClassificationOptions(bool test_db = false);
+	static QStringList getClassificationOptions();
 };
 
 

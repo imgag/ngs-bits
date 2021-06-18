@@ -95,6 +95,7 @@ SOURCES += main.cpp\
     ExpressionDataWidget.cpp \
     GapClosingDialog.cpp \
     DatabaseServiceLocal.cpp \
+    NGSDReplicationWidget.cpp \
     ClinVarUploadDialog.cpp
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
@@ -185,6 +186,7 @@ HEADERS += MainWindow.h \
     GapClosingDialog.h \
     DatabaseService.h \
     DatabaseServiceLocal.h \
+    NGSDReplicationWidget.h \
     ClinVarUploadDialog.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
@@ -263,6 +265,7 @@ FORMS    += MainWindow.ui \
     AlleleBalanceCalculator.ui \
     ExpressionDataWidget.ui \
     GapClosingDialog.ui \
+    NGSDReplicationWidget.ui \
     ClinVarUploadDialog.ui
     include("../app_gui.pri")
 
