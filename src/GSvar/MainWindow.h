@@ -79,6 +79,8 @@ public slots:
 	void loadFile(QString filename="");
 	///Checks if variant list is outdated
 	void checkVariantList(QStringList messages);
+	///Checks if processed samples have bad quality or other problems
+	void checkProcessedSamplesInNGSD();
 	///Open dialog
 	void on_actionOpen_triggered();
 	///Open dialog by name (using NGSD)

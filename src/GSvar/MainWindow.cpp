@@ -2729,6 +2729,12 @@ void MainWindow::loadFile(QString filename)
 	}
 	checkVariantList(messages);
 
+	//check variant list in NGSD
+	if (LoginManager::active())
+	{
+		checkProcessedSamplesInNGSD();
+	}
+
 	//load report config
 	if (germlineReportSupported())
 	{
@@ -2904,9 +2910,36 @@ void MainWindow::checkVariantList(QStringList messages)
 		}
 	}
 
+	//show messages
 	if (!messages.empty())
 	{
 		QMessageBox::warning(this, "GSvar file outdated", "The GSvar file contains the following error(s):\n  -" + messages.join("\n  -") + "\n\nTo ensure that GSvar works as expected, re-run the annotation steps for the analysis!");
+	}
+}
+
+void MainWindow::checkProcessedSamplesInNGSD()
+{
+	QStringList messages;
+	NGSD db;
+
+	foreach(const SampleInfo& info, variants_.getSampleHeader())
+	{
+		QString ps = info.id;
+		QString ps_id = db.processedSampleId(ps, false);
+		if (ps_id=="") continue;
+
+		//check quality
+		QString quality = db.getValue("SELECT quality FROM processed_sample WHERE id=" + ps_id).toString();
+		if (quality=="bad")
+		{
+			messages << ("Quality of processed sample '" + ps + "' is 'bad'!");
+		}
+	}
+
+	//show messages
+	if (!messages.empty())
+	{
+		QMessageBox::warning(this, "NGSD check of processed sample(s)", "Sample quality is bad or other problems deteted:\n  -" + messages.join("\n  -"));
 	}
 }
 
