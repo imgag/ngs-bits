@@ -119,6 +119,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GermlineReportGenerator.h"
 #include "SomaticReportHelper.h"
 #include "Statistics.h"
+#include "ClinVarUploadDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -4685,6 +4686,58 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	dlg.exec();
 }
 
+void MainWindow::uploadToClinvar(int variant_index, int variant_index2)
+{
+	//(1) prepare data as far as we can (no RefSeq transcript data is available)
+	ClinvarUploadData data;
+
+	//sample name
+	data.processed_sample = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
+
+	//gender
+	NGSD db;
+	QString sample_id = db.sampleId(data.processed_sample);
+	SampleData sample_data = db.getSampleData(sample_id);
+	data.gender = sample_data.gender;
+
+	//phenotype(s)
+	data.phenos = sample_data.phenotypes;
+
+	//data 1st variant
+	const Variant& variant = variants_[variant_index];
+	data.variant = variant;
+	int genotype_index = variants_.getSampleHeader().infoByID(data.processed_sample).column_index;
+	data.genotype = variant.annotations()[genotype_index];
+	FastaFileIndex idx(Settings::string("reference_genome"));
+	data.hgvs_g = variant.toHGVS(idx);
+	int classification_index = variants_.annotationIndexByName("classification");
+	data.classification = variant.annotations()[classification_index];
+	int i_refseq = variants_.annotationIndexByName("coding_and_splicing_refseq", true, false);
+	if (i_refseq!=-1)
+	{
+		data.trans_data = variant.transcriptAnnotations(i_refseq);
+	}
+
+	//data 2nd variant (comp-het)
+	if (variant_index2!=-1)
+	{
+		const Variant& variant2 = variants_[variant_index2];
+		data.variant2 = variant2;
+		data.genotype2 = variant2.annotations()[genotype_index];
+		data.hgvs_g2 = variant2.toHGVS(idx);
+		data.classification2 = variant2.annotations()[classification_index];
+		if (i_refseq!=-1)
+		{
+			data.trans_data2 = variant2.transcriptAnnotations(i_refseq);
+		}
+	}
+
+	// (2) show dialog
+	ClinvarUploadDialog dlg(this);
+	dlg.setData(data);
+	dlg.exec();
+}
+
 void MainWindow::dragEnterEvent(QDragEnterEvent* e)
 {
 	if (!e->mimeData()->hasFormat("text/uri-list")) return;
@@ -5216,6 +5269,7 @@ void MainWindow::contextMenuTwoVariants(QPoint pos, int index1, int index2)
 	//create context menu
 	QMenu menu(ui_.vars);
 	QAction* a_lovd = menu.addAction(QIcon("://Icons/LOVD.png"), "Publish in LOVD (comp-het)");
+	QAction* a_clinvar = menu.addAction(QIcon(""), "Publish in ClinVar (comp-het)");
 
 	//execute
 	QAction* action = menu.exec(pos);
@@ -5231,6 +5285,18 @@ void MainWindow::contextMenuTwoVariants(QPoint pos, int index1, int index2)
 		catch (Exception& e)
 		{
 			GUIHelper::showMessage("LOVD upload error", "Error while uploading variant to LOVD: " + e.message());
+			return;
+		}
+	}
+	else if(action==a_clinvar)
+	{
+		try
+		{
+			uploadToClinvar(index1, index2);
+		}
+		catch (Exception& e)
+		{
+			GUIHelper::showMessage("ClinVar upload error", "Error while uploading variant to ClinVar: " + e.message());
 			return;
 		}
 	}
