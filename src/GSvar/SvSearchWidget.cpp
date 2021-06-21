@@ -10,6 +10,7 @@
 #include <QJsonObject>
 #include <QMessageBox>
 #include <QClipboard>
+#include <QAction>
 
 SvSearchWidget::SvSearchWidget(QWidget* parent)
 	: QWidget(parent)
