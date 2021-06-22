@@ -49,7 +49,7 @@ public:
 		int min_depth = getInt("min_depth");
 		int min_alt_count = getInt("min_alt_count");
 
-		QString build = getEnum("build");
+		GenomeBuild build = stringToBuild(getEnum("build"));
 
 		//get variants of family
 		std::unordered_map<Member, VariantInfo, EnumHash> trio;

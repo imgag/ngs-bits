@@ -2389,7 +2389,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	i_af_m = tmp.indexOf(i_m);
 
 	//get PAR region
-	BedFile par_region = NGSHelper::pseudoAutosomalRegion(getString("build"));
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
 
 	//pre-calculate genes with heterozygous variants
 	QSet<QString> types = getStringList("types").toSet();
@@ -4492,7 +4492,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 	int i_format_col = svs.annotationIndexByName("FORMAT");
 
     //get PAR region
-	BedFile par_region = NGSHelper::pseudoAutosomalRegion(getString("build"));
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
 
     //pre-calculate genes with heterozygous variants
     QSet<QString> types = getStringList("types").toSet();

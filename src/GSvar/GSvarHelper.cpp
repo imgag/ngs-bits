@@ -151,17 +151,9 @@ QString GSvarHelper::applicationBaseName()
 	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName();
 }
 
-const QString& GSvarHelper::build()
+GenomeBuild GSvarHelper::build()
 {
-	static QString build;
-
-	//init
-	if (build.isEmpty())
-	{
-		build = Settings::string("build", true).trimmed();
-	}
-
-	return build;
+	return Settings::string("build", true).trimmed()=="hg19" ? GenomeBuild::HG19 : GenomeBuild::HG38;
 }
 
 void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)

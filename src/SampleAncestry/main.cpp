@@ -47,8 +47,7 @@ public:
 		int min_snps = getInt("min_snps");
 		double mad_dist = getFloat("mad_dist");
 		double score_cutoff = getFloat("score_cutoff");
-
-		QString build = getEnum("build");
+		GenomeBuild build = stringToBuild(getEnum("build"));
 
 		//process
 		out << "#sample\tsnps\tAFR\tEUR\tSAS\tEAS\tpopulation" << endl;

@@ -246,7 +246,8 @@ QString MainWindow::appName() const
 {
 	QString name = QCoreApplication::applicationName();
 
-	if (GSvarHelper::build()=="hg38") name += " hg38";
+	GenomeBuild build = GSvarHelper::build();
+	if (build==GenomeBuild::HG38) name += " - " + buildToString(build);
 
 	return name;
 }
@@ -711,7 +712,7 @@ void MainWindow::on_actionDebug_triggered()
 	}
 	else if (user=="ahgscha1")
 	{
-		Statistics::hrdScore(cnvs_, "GRCh37");
+		Statistics::hrdScore(cnvs_, GenomeBuild::HG19);
 	}
 }
 
@@ -1446,6 +1447,7 @@ void MainWindow::on_actionBatchExportClinVar_triggered()
 
 			//General Data
 			ClinvarSubmissionData data;
+			data.build = GSvarHelper::build();
 			data.date = QDate::currentDate();
 			data.local_key = "report_configuration_variant_id:" + rcv_id;
 
@@ -1596,7 +1598,7 @@ void MainWindow::delayedInitialization()
 	Log::appInfo();
 
 	//load from INI file (if a valid INI file - otherwise restore INI file)
-	if (!Settings::contains("igv_genome") || (GSvarHelper::build()!="hg19" && GSvarHelper::build()!="hg38"))
+	if (!Settings::contains("igv_genome") || !Settings::contains("build"))
 	{
 		QMessageBox::warning(this, "GSvar is not configured", "GSvar is not configured correctly.\nPlease inform your administrator!");
 		close();
@@ -2891,6 +2893,14 @@ void MainWindow::checkProcessedSamplesInNGSD()
 		{
 			messages << ("Quality of processed sample '" + ps + "' is 'bad'!");
 		}
+
+		//check KASP result
+		bool ok = true;
+		double error_prob = db.getValue("SELECT random_error_prob FROM kasp_status WHERE random_error_prob<=1 AND processed_sample_id=" + ps_id, true).toDouble(&ok);
+		if (ok && error_prob>0.03)
+		{
+			messages << ("KASP swap probability of processed sample '" + ps + "' is larger than 3%!");
+		}
 	}
 
 	//show messages
@@ -3420,7 +3430,7 @@ void MainWindow::generateReportSomaticRTF()
 				return;
 			}
 
-			SomaticReportHelper report(variants_, cnvs_, somatic_control_tissue_variants_, somatic_report_settings_);
+			SomaticReportHelper report(GSvarHelper::build(), variants_, cnvs_, somatic_control_tissue_variants_, somatic_report_settings_);
 
 			//Store XML file with the same somatic report configuration settings
 			QString gsvar_xml_folder = Settings::path("gsvar_xml_folder");
@@ -3918,6 +3928,12 @@ int MainWindow::igvPort() const
 	{
 		port += LoginManager::userId();
 	}
+
+        //use different ranges for different genome build, so that they can be used in parallel
+		if (GSvarHelper::build()!=GenomeBuild::HG19)
+        {
+            port += 1000;
+        }
 
 	//if manual override is set, use it
 	if (igv_port_manual>0) port = igv_port_manual;
@@ -5135,7 +5151,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		QString obs = variant.obs();
 		obs.replace("-", "");
 		QString var = variant.chr().str() + "-" + QString::number(variant.start()) + "-" +  ref + "-" + obs;
-		QString genome = variant.chr().isM() ? "hg38" : GSvarHelper::build();
+		QString genome = variant.chr().isM() ? "hg38" : buildToString(GSvarHelper::build());
 		QDesktopServices::openUrl(QUrl("https://varsome.com/variant/" + genome + "/" + var));
 	}
 	else if (action==a_report_edit)

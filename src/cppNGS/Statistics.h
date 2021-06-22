@@ -7,9 +7,8 @@
 #include "QCCollection.h"
 #include "KeyValuePair.h"
 #include "NGSHelper.h"
+#include "GenomeBuild.h"
 #include <QMap>
-
-
 
 ///Helper class for gender estimates
 struct CPPNGSSHARED_EXPORT GenderEstimate
@@ -45,13 +44,13 @@ public:
 	///Calculates target region statistics (term-value pairs). @p merge determines if overlapping regions are merged before calculating the statistics.
 	static QCCollection region(const BedFile& bed_file, bool merge);
 	///Calculates somatic QC metrics from BAM and VCF file
-	static QCCollection somatic(const QString& build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots = false, const QString& ref_file_cram = QString());
+	static QCCollection somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots = false, const QString& ref_file_cram = QString());
 	///Calculates mutation burden metric from somatic VCF
 	static QCValue mutationBurden(QString somatic_vcf, QString exons, QString target, QString tsg, QString blacklist);
 	///Calculates the percentage of common SNPs that lie outside the expected allele frequency range for diploid organisms.
-	static QCCollection contamination(const QString& build, QString bam, const QString& ref_file = QString(), bool debug = false, int min_cov = 20, int min_snps = 50);
+	static QCCollection contamination(GenomeBuild build, QString bam, const QString& ref_file = QString(), bool debug = false, int min_cov = 20, int min_snps = 50);
 	///Returns ancestry estimates for a variant list in VCF format.
-	static AncestryEstimates ancestry(const QString& build, QString filename, int min_snp=1000, double abs_score_cutoff = 0.32, double max_mad_dist = 4.2);
+	static AncestryEstimates ancestry(GenomeBuild build, QString filename, int min_snp=1000, double abs_score_cutoff = 0.32, double max_mad_dist = 4.2);
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
 	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, const QString& ref_file = QString());
@@ -67,11 +66,11 @@ public:
 	///Determines the gender based on the read ratio between X and Y chromosome.
 	static GenderEstimate genderXY(QString bam_file, double max_female=0.06, double min_male=0.09, const QString& ref_file = QString());
 	///Determines the gender based on the fraction of heterozygous SNPs on chromosome X.
-	static GenderEstimate genderHetX(const QString& build, QString bam_file, double max_male=0.15, double min_female=0.24, const QString& ref_file = QString());
+	static GenderEstimate genderHetX(GenomeBuild build, QString bam_file, double max_male=0.15, double min_female=0.24, const QString& ref_file = QString());
 	///Determines the gender based on the coverge of the SRY gene on chrY.
-	static GenderEstimate genderSRY(const QString& build, QString bam_file, double min_cov=20.0, const QString& ref_file = QString());
+	static GenderEstimate genderSRY(GenomeBuild build, QString bam_file, double min_cov=20.0, const QString& ref_file = QString());
 
-	static QCCollection hrdScore(const CnvList& cnvs, QString build);
+	static QCCollection hrdScore(const CnvList& cnvs, GenomeBuild build);
 
 protected:
 	///No default constructor

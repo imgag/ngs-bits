@@ -66,7 +66,7 @@ public:
 		if (ref=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		QStringList links = getInfileList("links");
 		bool skip_plots = getFlag("skip_plots");
-		QString build = getEnum("build");
+		GenomeBuild build = stringToBuild(getEnum("build"));
 
 		// metadata
 		QList<QCValue> metadata;

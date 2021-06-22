@@ -11,10 +11,10 @@
 struct CPPNGSDSHARED_EXPORT GermlineReportGeneratorData
 {
 	//constructor
-	GermlineReportGeneratorData(QString build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_);
+	GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_);
 
 	//genome build
-	QString build;
+	GenomeBuild build;
 
 	//sample data
 	QString ps;
@@ -76,7 +76,7 @@ private:
 	void writeCoverageReport(QTextStream& stream);
 	void writeClosedGapsReport(QTextStream& stream, const BedFile& roi);
 	void writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table=true, bool gene_details=true);
-	static QByteArray formatGenotype(const QString& build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
+	static QByteArray formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
 
 	///Helper functions for writeEvaluationSheet()

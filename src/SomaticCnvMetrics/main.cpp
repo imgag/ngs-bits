@@ -19,20 +19,21 @@ public:
 	{
 		setDescription("Calculate somatic CNV metrics based on CNV file.");
 		addInfile("in", "Input somatic ClinCNV file in TSV format.", false);
+		addOutfile("out", "Output qcML file.", false);
+		//optoinal
+		addEnum("build", "Reference genome to be used.", true, QStringList() << "hg19" << "hg38", "hg19");
 		addString("tid", "Tumor processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
 		addString("nid", "Normal processed sample ID (for retrieving CNVs flagged as artefact from NGSD.)", true);
-		addEnum("build", "Reference genome to be used.", true, QStringList() << "GRCh37" << "GRCh38", "GRCh37");
-		addOutfile("out", "Output QCML file.", false);
 
 		changeLog(2021, 5, 6, "Initial version of the tool to calculate HRD score.");
 	}
 	virtual void main()
 	{
 		QString in =  getInfile("in");
+		QString out = getOutfile("out");
+		GenomeBuild build = stringToBuild(getEnum("build"));
 		QString t_ps = getString("tid");
 		QString n_ps = getString("nid");
-		QString build = getEnum("build");
-		QString out = getOutfile("out");
 
 		//metadata
 		QList<QCValue> metadata;
@@ -58,10 +59,9 @@ public:
 
 		QCCollection result = Statistics::hrdScore(cnvs, build);
 
-		QString parameters = "";
+		QString parameters = "-build " + buildToString(build);
 		if( !t_ps.isEmpty() ) parameters += " -tid " + t_ps;
 		if( !n_ps.isEmpty() ) parameters += " -nid " + n_ps;
-		parameters += " -build " + build;
 		result.storeToQCML(out, QStringList(), parameters, QMap< QString, int >(), metadata);
 	}
 };
