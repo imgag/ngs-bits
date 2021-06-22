@@ -13,602 +13,733 @@
   <property name="windowTitle">
    <string>LOVD variant publication</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout_5">
    <item>
-    <widget class="QLabel" name="label_13">
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Sample data:</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QGridLayout" name="gridLayout_2">
-     <property name="spacing">
-      <number>3</number>
-     </property>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_14">
+    <layout class="QVBoxLayout" name="layoutCol1">
+     <item>
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="2" column="1">
+        <widget class="QComboBox" name="cb_record_status">
+         <item>
+          <property name="text">
+           <string>novel</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>update</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="le_local_key"/>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_22">
+         <property name="text">
+          <string>Local ID:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_23">
+         <property name="text">
+          <string>Local key:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="le_local_id"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_24">
+         <property name="text">
+          <string>Record status:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_34">
+         <property name="text">
+          <string>release status:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="cb_release_status">
+         <item>
+          <property name="text">
+           <string>public</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>hold until published</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_10">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="text">
-        <string>Processed sample:</string>
+        <string>Clinical significance:</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_15">
+     <item>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <item row="3" column="2">
+        <widget class="QDateEdit" name="de_last_eval"/>
+       </item>
+       <item row="1" column="2">
+        <widget class="QComboBox" name="cb_clin_sig_desc"/>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_16">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Citation:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_17">
+         <property name="text">
+          <string>Clinical significance description:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_18">
+         <property name="text">
+          <string>Comment:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_20">
+         <property name="text">
+          <string>inheritance:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_19">
+         <property name="text">
+          <string>last evaluated:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLineEdit" name="le_clin_sig_desc_comment"/>
+       </item>
+       <item row="4" column="2">
+        <widget class="QComboBox" name="cb_inheritance"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_25">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="text">
-        <string>Gender:</string>
+        <string>Observed in:</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="processed_sample">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="readOnly">
-        <bool>false</bool>
-       </property>
-      </widget>
+     <item>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_30">
+         <property name="text">
+          <string>collection method:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_31">
+         <property name="text">
+          <string>number of individuals:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_26">
+         <property name="text">
+          <string>affected status:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_27">
+         <property name="text">
+          <string>allele origin:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_29">
+         <property name="text">
+          <string>clinical feature comment:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_28">
+         <property name="text">
+          <string>clinical fatures:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_32">
+         <property name="text">
+          <string>struct var method type:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="cb_affected_status"/>
+       </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="cb_allele_origin"/>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="label_33">
+         <property name="text">
+          <string>use phenotype data?</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="le_clin_feat_comment"/>
+       </item>
+       <item row="4" column="1">
+        <widget class="QComboBox" name="collection_method"/>
+       </item>
+       <item row="5" column="1">
+        <widget class="QSpinBox" name="sb_n_individuals">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>999</number>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QComboBox" name="cb_method_type"/>
+       </item>
+      </layout>
      </item>
-     <item row="1" column="1">
-      <widget class="QComboBox" name="gender">
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
+     <item>
+      <widget class="QLabel" name="label_13">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
        </property>
-       <item>
-        <property name="text">
-         <string>n/a</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>male</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>female</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QLabel" name="label">
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Variant data:</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QGridLayout" name="gridLayout">
-     <property name="spacing">
-      <number>3</number>
-     </property>
-     <item row="8" column="2">
-      <widget class="QComboBox" name="classification2">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <item>
-        <property name="text">
-         <string/>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>1</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>2</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>3</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>4</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>5</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>HGVS.g:</string>
+        <string>Sample data:</string>
        </property>
       </widget>
      </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="label_7">
-       <property name="text">
-        <string>HGVS.p:</string>
+     <item>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <property name="spacing">
+        <number>3</number>
        </property>
-      </widget>
-     </item>
-     <item row="6" column="2">
-      <widget class="QLineEdit" name="hgvs_p2">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_6">
-       <property name="text">
-        <string>HGVS.c:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QLineEdit" name="hgvs_c"/>
-     </item>
-     <item row="5" column="2">
-      <widget class="QLineEdit" name="hgvs_c2">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>Gene:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Transcript:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1">
-      <widget class="QComboBox" name="classification">
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <item>
-        <property name="text">
-         <string/>
-        </property>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_14">
+         <property name="text">
+          <string>Processed sample:</string>
+         </property>
+        </widget>
        </item>
-       <item>
-        <property name="text">
-         <string>1</string>
-        </property>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_15">
+         <property name="text">
+          <string>Gender:</string>
+         </property>
+        </widget>
        </item>
-       <item>
-        <property name="text">
-         <string>2</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>3</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>4</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>5</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="7" column="1">
-      <widget class="QComboBox" name="genotype">
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <item>
-        <property name="text">
-         <string/>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>hom</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>het</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QComboBox" name="chr">
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <item>
-        <property name="text">
-         <string/>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr1</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr2</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr3</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr4</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr5</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr6</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr7</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr8</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr9</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr10</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr11</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr12</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr13</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr14</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr15</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr16</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr17</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr18</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr19</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr20</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr21</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chr22</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chrX</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chrY</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>chrM</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Chr:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="label_8">
-       <property name="text">
-        <string>Genotype:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0">
-      <widget class="QLabel" name="label_9">
-       <property name="text">
-        <string>Classification:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QLineEdit" name="gene"/>
-     </item>
-     <item row="6" column="1">
-      <widget class="QLineEdit" name="hgvs_p"/>
-     </item>
-     <item row="3" column="1">
-      <widget class="QLineEdit" name="nm_number"/>
-     </item>
-     <item row="4" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QLineEdit" name="hgvs_g">
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="processed_sample">
+         <property name="enabled">
+          <bool>true</bool>
+         </property>
          <property name="readOnly">
           <bool>false</bool>
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="QPushButton" name="refseq_btn">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="gender">
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
+          </size>
          </property>
+         <item>
+          <property name="text">
+           <string>n/a</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>male</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>female</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Variant data:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="gridLayout">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <item row="3" column="2">
+        <widget class="QSpinBox" name="sb_start2">
+         <property name="maximum">
+          <number>1000000000</number>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_39">
          <property name="text">
-          <string/>
+          <string>Ref:</string>
          </property>
-         <property name="icon">
-          <iconset resource="GSvar.qrc">
-           <normaloff>:/Icons/WebService.png</normaloff>:/Icons/WebService.png</iconset>
+        </widget>
+       </item>
+       <item row="5" column="2">
+        <widget class="QLineEdit" name="le_ref2"/>
+       </item>
+       <item row="4" column="2">
+        <widget class="QSpinBox" name="sb_end2">
+         <property name="maximum">
+          <number>1000000000</number>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="label_35">
+         <property name="text">
+          <string>1. Variant</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_38">
+         <property name="text">
+          <string>End:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QComboBox" name="comboBox_9"/>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_36">
+         <property name="text">
+          <string>2. Variant</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QSpinBox" name="sp_end1">
+         <property name="maximum">
+          <number>1000000000</number>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="1">
+        <widget class="QLineEdit" name="le_gene1"/>
+       </item>
+       <item row="7" column="2">
+        <widget class="QLineEdit" name="le_gene2"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Chr:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QComboBox" name="cb_chr1">
+         <property name="maximumSize">
+          <size>
+           <width>100</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <item>
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr1</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr3</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr4</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr5</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr6</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr7</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr8</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr9</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr10</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr11</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr12</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr13</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr14</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr15</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr16</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr17</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr18</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr19</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr20</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr21</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chr22</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chrX</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chrY</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>chrM</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QLineEdit" name="le_ref1"/>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_40">
+         <property name="text">
+          <string>Alt:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Gene:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_37">
+         <property name="text">
+          <string>Start:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1">
+        <widget class="QLineEdit" name="le_alt1"/>
+       </item>
+       <item row="6" column="2">
+        <widget class="QLineEdit" name="le_alt2"/>
+       </item>
+       <item row="3" column="1">
+        <widget class="QSpinBox" name="sb_start1">
+         <property name="maximum">
+          <number>1000000000</number>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>variant type:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="8" column="1">
+        <widget class="QComboBox" name="cb_var_type1"/>
+       </item>
+       <item row="8" column="2">
+        <widget class="QComboBox" name="cb_var_type2"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="layoutCol2">
+     <item>
+      <widget class="QLabel" name="label_21">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Condition set:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_11">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Phenotype data:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PhenotypeSelectionWidget" name="phenos" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>300</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="upload_btn">
+         <property name="text">
+          <string>Upload</string>
          </property>
         </widget>
        </item>
       </layout>
      </item>
-     <item row="4" column="2">
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
-       <item>
-        <widget class="QLineEdit" name="hgvs_g2">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="refseq_btn2">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="GSvar.qrc">
-           <normaloff>:/Icons/WebService.png</normaloff>:/Icons/WebService.png</iconset>
-         </property>
-        </widget>
-       </item>
-      </layout>
+     <item>
+      <widget class="QLabel" name="label_12">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Upload result:</string>
+       </property>
+      </widget>
      </item>
-     <item row="7" column="2">
-      <widget class="QComboBox" name="genotype2">
+     <item>
+      <widget class="QTextEdit" name="comment_upload">
        <property name="enabled">
         <bool>true</bool>
        </property>
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
+       <property name="readOnly">
+        <bool>true</bool>
        </property>
-       <item>
-        <property name="text">
-         <string/>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>hom</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>het</string>
-        </property>
-       </item>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_11">
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Phenotype data:</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="PhenotypeSelectionWidget" name="phenos" native="true">
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>400</height>
-      </size>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <spacer name="horizontalSpacer">
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="print_btn">
+         <property name="text">
+          <string>Print</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <spacer name="verticalSpacer">
        <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+        <enum>Qt::Vertical</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>40</width>
-         <height>20</height>
+         <width>20</width>
+         <height>40</height>
         </size>
        </property>
       </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="upload_btn">
-       <property name="text">
-        <string>Upload</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QLabel" name="label_12">
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Upload result:</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QTextEdit" name="comment_upload">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="readOnly">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="print_btn">
-       <property name="text">
-        <string>Print</string>
-       </property>
-      </widget>
      </item>
     </layout>
    </item>
@@ -625,28 +756,10 @@
  <tabstops>
   <tabstop>processed_sample</tabstop>
   <tabstop>gender</tabstop>
-  <tabstop>chr</tabstop>
-  <tabstop>gene</tabstop>
-  <tabstop>nm_number</tabstop>
-  <tabstop>hgvs_g</tabstop>
-  <tabstop>refseq_btn</tabstop>
-  <tabstop>hgvs_c</tabstop>
-  <tabstop>hgvs_p</tabstop>
-  <tabstop>genotype</tabstop>
-  <tabstop>classification</tabstop>
-  <tabstop>hgvs_g2</tabstop>
-  <tabstop>refseq_btn2</tabstop>
-  <tabstop>hgvs_c2</tabstop>
-  <tabstop>hgvs_p2</tabstop>
-  <tabstop>genotype2</tabstop>
-  <tabstop>classification2</tabstop>
+  <tabstop>cb_chr1</tabstop>
   <tabstop>upload_btn</tabstop>
-  <tabstop>comment_upload</tabstop>
   <tabstop>print_btn</tabstop>
  </tabstops>
- <resources>
-  <include location="GSvar.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>
-

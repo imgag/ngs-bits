@@ -303,10 +303,10 @@
                 <bool>false</bool>
                </property>
                <attribute name="horizontalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
                <attribute name="verticalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
               </widget>
              </item>
@@ -1292,6 +1292,14 @@
   <action name="actionReplicateNGSD">
    <property name="text">
     <string>Replicate (hg19 to hg38)</string>
+   </property>
+  </action>
+  <action name="actionPublishVariantInClinvar">
+   <property name="text">
+    <string>Publish Variant in ClinVar</string>
+   </property>
+   <property name="toolTip">
+    <string>Publish Variant in ClinVar</string>
    </property>
   </action>
  </widget>

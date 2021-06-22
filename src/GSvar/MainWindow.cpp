@@ -1357,6 +1357,12 @@ void MainWindow::on_actionPublishVariantInLOVD_triggered()
 	dlg.exec();
 }
 
+void MainWindow::on_actionPublishVariantInClinvar_triggered()
+{
+	ClinvarUploadDialog dlg(this);
+	dlg.exec();
+}
+
 void MainWindow::on_actionBatchExportClinVar_triggered()
 {
 	//allow only for admins
@@ -4743,6 +4749,7 @@ void MainWindow::uploadToClinvar(int variant_index, int variant_index2)
 
 	// (2) show dialog
 	ClinvarUploadDialog dlg(this);
+	qDebug() << "open Clinvar dialog!";
 	dlg.setData(data);
 	dlg.exec();
 }
@@ -4995,6 +5002,12 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	QAction* a_lovd_pub = sub_menu->addAction("Publish in LOVD");
 	a_lovd_pub->setEnabled(ngsd_user_logged_in);
 
+	//ClinVar upload
+	sub_menu = menu.addMenu("ClinVar");
+	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
+	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
+	a_lovd_pub->setEnabled(ngsd_user_logged_in);
+
 	//MitoMap
 	QAction* a_mitomap = menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
 	a_mitomap->setEnabled(variant.chr().isM());
@@ -5146,6 +5159,22 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		catch (Exception& e)
 		{
 			GUIHelper::showMessage("LOVD upload error", "Error while uploading variant to LOVD: " + e.message());
+			return;
+		}
+	}
+	else if (action==a_clinvar_find)
+	{
+		//TODO: Implement
+	}
+	else if (action==a_clinvar_pub)
+	{
+		try
+		{
+			uploadToClinvar(index);
+		}
+		catch (Exception& e)
+		{
+			GUIHelper::showMessage("ClinVar upload error", "Error while uploading variant to ClinVar: " + e.message());
 			return;
 		}
 	}

@@ -2,7 +2,7 @@
 #define CLINVARUPLOADDIALOG_H
 
 #include <QDialog>
-#include "ui_LovdUploadDialog.h"
+#include "ui_ClinvarUploadDialog.h"
 
 #include "Phenotype.h"
 #include "NGSD.h"
@@ -131,13 +131,125 @@ struct ClinvarUploadData
 	QList<VariantTranscript> trans_data2;
 };
 
-///LOVD upload dialog
+///ClinVar upload dialog
 class ClinvarUploadDialog
 	: public QDialog
 {
 	Q_OBJECT
 
 public:
+	//Define enum sets with allowed values in JSON
+	const QStringList CLINICAL_SIGNIFICANCE_DESCRIPTION =
+	{
+		"Pathogenic",
+		"Likely pathogenic",
+		"Uncertain significance",
+		"Likely benign",
+		"Benign",
+		"affects",
+		"association",
+		"drug response",
+		"confers sensitivity",
+		"protective",
+		"risk factor",
+		"other",
+		"not provided"
+	};
+	const QStringList MODE_OF_INHERITANCE =
+	{
+		"Autosomal dominant inheritance",
+		"Autosomal recessive inheritance",
+		"Mitochondrial inheritance",
+		"Somatic mutation",
+		"Genetic anticipation",
+		"Sporadic",
+		"Sex-limited autosomal dominant",
+		"X-linked recessive inheritance",
+		"X-linked dominant inheritance",
+		"Y-linked inheritance",
+		"Other",
+		"X-linked inheritance",
+		"Codominant",
+		"Autosomal unknown",
+		"Autosomal dominant inheritance with maternal imprinting",
+		"Autosomal dominant inheritance with paternal imprinting",
+		"Multifactorial inheritance",
+		"Unknown mechanism",
+		"Oligogenic inheritance"
+	};
+	const QStringList AFFECTED_STATUS =
+	{
+		"yes",
+		"no",
+		"unknown",
+		"not provided",
+		"not applicable"
+	};
+	const QStringList ALLELE_ORIGIN =
+	{
+		"germline",
+		"somatic",
+		"de novo",
+		"unknown",
+		"not provided",
+		"inherited",
+		"maternal",
+		"paternal",
+		"biparental",
+		"not-reported",
+		"tested-inconclusive",
+		"not applicable",
+		"experimentally generated"
+	};
+	const QStringList COLLECTION_METHOD =
+	{
+		"curation",
+		"literature only",
+		"reference population",
+		"provider interpretation",
+		"phenotyping only",
+		"case-control",
+		"clinical testing",
+		"in vitro",
+		"in vivo",
+		"research",
+		"not provided"
+	};
+	const QStringList STRUCT_VAR_METHOD_TYPE =
+	{
+		"SNP array",
+		"Oligo array",
+		"Read depth",
+		"Paired-end mapping",
+		"One end anchored assembly",
+		"Sequence alignment",
+		"Optical mapping",
+		"Curated,PCR"
+	};
+	const QStringList VARIANT_TYPE =
+	{
+		"Variation",
+		"Insertion",
+		"Mobile element insertion",
+		"Novel sequence insertion",
+		"Microsatellite",
+		"Deletion",
+		"single nucleotide variant",
+		"Multiple nucleotide variation",
+		"Indel",
+		"Duplication",
+		"Tandem duplication",
+		"copy number loss",
+		"copy number gain",
+		"protein only",
+		"Inversion",
+		"Translocation",
+		"Interchromosomal breakpoint",
+		"Intrachromosomal breakpoint",
+		"Complex"
+	};
+
+
 	ClinvarUploadDialog(QWidget *parent = 0);
 
 	void setData(ClinvarUploadData data);
@@ -152,7 +264,7 @@ private slots:
 	void setTranscriptInfoVariant2();
 
 private:
-	Ui::LovdUploadDialog ui_;
+	Ui::ClinVarUploadDialog ui_;
 	NGSD db_;
 	Variant variant1_;
 	Variant variant2_;

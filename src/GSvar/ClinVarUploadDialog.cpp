@@ -23,24 +23,24 @@ ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
 	connect(ui_.upload_btn, SIGNAL(clicked(bool)), this, SLOT(upload()));
 
 	connect(ui_.processed_sample, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.chr, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.gene, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.nm_number, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.hgvs_c, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.hgvs_g, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.hgvs_p, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.hgvs_c2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.hgvs_g2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.hgvs_p2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.classification2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+	connect(ui_.cb_chr1, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.gene, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.nm_number, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.hgvs_c, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.hgvs_g, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.hgvs_p, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.hgvs_c2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.hgvs_g2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.hgvs_p2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.classification2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
 	connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
 
 	//update GUI elements for 2nd variant (only for free mode)
-	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
-	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
+//	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
+//	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
 
 	connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
 	connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
@@ -62,14 +62,14 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 	variant1_ = data.variant;
 	QByteArray chr = data.variant.chr().str();
 	if (chr=="chrMT") chr = "chrM";
-	ui_.chr->setCurrentText(chr);
-	ui_.gene->setText(data.gene);
-	ui_.nm_number->setText(data.nm_number);
-	ui_.hgvs_g->setText(data.hgvs_g);
-	ui_.hgvs_c->setText(data.hgvs_c);
-	ui_.hgvs_p->setText(data.hgvs_p);
-	ui_.classification->setCurrentText(data.classification);
-	ui_.genotype->setCurrentText(data.genotype);
+	ui_.cb_chr1->setCurrentText(chr);
+//	ui_.gene->setText(data.gene);
+//	ui_.nm_number->setText(data.nm_number);
+//	ui_.hgvs_g->setText(data.hgvs_g);
+//	ui_.hgvs_c->setText(data.hgvs_c);
+//	ui_.hgvs_p->setText(data.hgvs_p);
+//	ui_.classification->setCurrentText(data.classification);
+//	ui_.genotype->setCurrentText(data.genotype);
 	if (!data.trans_data.isEmpty())
 	{
 		QMenu* menu = new QMenu(this);
@@ -83,21 +83,21 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 				action->setIcon(QIcon(":/Icons/Clinvar.png"));
 			}
 		}
-		ui_.refseq_btn->setMenu(menu);
+//		ui_.refseq_btn->setMenu(menu);
 	}
-	ui_.chr->setEnabled(false);
-	ui_.classification->setEnabled(false);
-	ui_.genotype->setEnabled(false);
+	ui_.cb_chr1->setEnabled(false);
+//	ui_.classification->setEnabled(false);
+//	ui_.genotype->setEnabled(false);
 
 	//variant data (variant 2)
 	if(data.variant2.isValid())
 	{
 		variant2_ = data.variant2;
-		ui_.hgvs_g2->setText(data.hgvs_g2);
-		ui_.hgvs_c2->setText(data.hgvs_c2);
-		ui_.hgvs_p2->setText(data.hgvs_p2);
-		ui_.classification2->setCurrentText(data.classification2);
-		ui_.genotype2->setCurrentText(data.genotype2);
+//		ui_.hgvs_g2->setText(data.hgvs_g2);
+//		ui_.hgvs_c2->setText(data.hgvs_c2);
+//		ui_.hgvs_p2->setText(data.hgvs_p2);
+//		ui_.classification2->setCurrentText(data.classification2);
+//		ui_.genotype2->setCurrentText(data.genotype2);
 		if (!data.trans_data2.isEmpty())
 		{
 			QMenu* menu = new QMenu(this);
@@ -111,17 +111,17 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 					action->setIcon(QIcon(":/Icons/LOVD.png"));
 				}
 			}
-			ui_.refseq_btn2->setMenu(menu);
+//			ui_.refseq_btn2->setMenu(menu);
 		}
 
-		ui_.hgvs_g2->setEnabled(true);
-		ui_.hgvs_c2->setEnabled(true);
-		ui_.hgvs_p2->setEnabled(true);
-		ui_.refseq_btn2->setEnabled(true);
+//		ui_.hgvs_g2->setEnabled(true);
+//		ui_.hgvs_c2->setEnabled(true);
+//		ui_.hgvs_p2->setEnabled(true);
+//		ui_.refseq_btn2->setEnabled(true);
 	}
 
-	ui_.genotype2->setEnabled(false);
-	ui_.classification2->setEnabled(false);
+//	ui_.genotype2->setEnabled(false);
+//	ui_.classification2->setEnabled(false);
 
 	//if not in free mode => GUI of 2nd variant needs no updates
 	disconnect(this, SLOT(updateSecondVariantGui()));
@@ -268,78 +268,78 @@ void ClinvarUploadDialog::checkGuiData()
 	{
 		errors << "Processed sample unset!";
 	}
-	if (ui_.chr->currentText().trimmed().isEmpty())
+	if (ui_.cb_chr1->currentText().trimmed().isEmpty())
 	{
 		errors << "Chromosome unset!";
 	}
-	if (ui_.gene->text().trimmed().isEmpty())
-	{
-		errors << "Gene unset!";
-	}
-	if (ui_.nm_number->text().trimmed().isEmpty())
-	{
-		errors << "Transcript unset!";
-	}
-	if (ui_.hgvs_g->text().trimmed().isEmpty())
-	{
-		errors << "HGVS.g unset!";
-	}
-	if (!ui_.hgvs_g->text().trimmed().isEmpty() && !ui_.hgvs_g->text().trimmed().startsWith("g."))
-	{
-		errors << "HGVS.g must start with 'g.'!";
-	}
-	if (ui_.hgvs_c->text().trimmed().isEmpty())
-	{
-		errors << "HGVS.c unset!";
-	}
-	if (!ui_.hgvs_c->text().trimmed().isEmpty() && !ui_.hgvs_c->text().trimmed().startsWith("c."))
-	{
-		errors << "HGVS.c must start with 'c.'!";
-	}
-	if (!ui_.hgvs_p->text().trimmed().isEmpty() && !ui_.hgvs_p->text().trimmed().startsWith("p."))
-	{
-		errors << "HGVS.p must start with 'p.'!";
-	}
-	if (ui_.genotype->currentText().trimmed().isEmpty())
-	{
-		errors << "Genotype unset!";
-	}
-	if (ui_.classification->currentText().trimmed().isEmpty())
-	{
-		errors << "Classification unset!";
-	}
+//	if (ui_.gene->text().trimmed().isEmpty())
+//	{
+//		errors << "Gene unset!";
+//	}
+//	if (ui_.nm_number->text().trimmed().isEmpty())
+//	{
+//		errors << "Transcript unset!";
+//	}
+//	if (ui_.hgvs_g->text().trimmed().isEmpty())
+//	{
+//		errors << "HGVS.g unset!";
+//	}
+//	if (!ui_.hgvs_g->text().trimmed().isEmpty() && !ui_.hgvs_g->text().trimmed().startsWith("g."))
+//	{
+//		errors << "HGVS.g must start with 'g.'!";
+//	}
+//	if (ui_.hgvs_c->text().trimmed().isEmpty())
+//	{
+//		errors << "HGVS.c unset!";
+//	}
+//	if (!ui_.hgvs_c->text().trimmed().isEmpty() && !ui_.hgvs_c->text().trimmed().startsWith("c."))
+//	{
+//		errors << "HGVS.c must start with 'c.'!";
+//	}
+//	if (!ui_.hgvs_p->text().trimmed().isEmpty() && !ui_.hgvs_p->text().trimmed().startsWith("p."))
+//	{
+//		errors << "HGVS.p must start with 'p.'!";
+//	}
+//	if (ui_.genotype->currentText().trimmed().isEmpty())
+//	{
+//		errors << "Genotype unset!";
+//	}
+//	if (ui_.classification->currentText().trimmed().isEmpty())
+//	{
+//		errors << "Classification unset!";
+//	}
 
-	if (isCompHet())
-	{
-		if (ui_.hgvs_g2->text().trimmed().isEmpty())
-		{
-			errors << "HGVS.g unset (variant 2)!";
-		}
-		if (!ui_.hgvs_g2->text().trimmed().isEmpty() && !ui_.hgvs_g2->text().trimmed().startsWith("g."))
-		{
-			errors << "HGVS.g must start with 'g.' (variant 2)!";
-		}
-		if (ui_.hgvs_c2->text().trimmed().isEmpty())
-		{
-			errors << "HGVS.c unset (variant 2)!";
-		}
-		if (!ui_.hgvs_c2->text().trimmed().isEmpty() && !ui_.hgvs_c2->text().trimmed().startsWith("c."))
-		{
-			errors << "HGVS.c must start with 'c.' (variant 2)!";
-		}
-		if (!ui_.hgvs_p2->text().trimmed().isEmpty() && !ui_.hgvs_p2->text().trimmed().startsWith("p."))
-		{
-			errors << "HGVS.p must start with 'p.' (variant 2)!";
-		}
-		if (ui_.genotype->currentText()!="het" || ui_.genotype2->currentText()!="het")
-		{
-			errors << "Two variants for upload, but they are not compound-heterozygous!";
-		}
-		if (ui_.classification2->currentText().trimmed().isEmpty())
-		{
-			errors << "Classification unset (variant 2)!";
-		}
-	}
+//	if (isCompHet())
+//	{
+//		if (ui_.hgvs_g2->text().trimmed().isEmpty())
+//		{
+//			errors << "HGVS.g unset (variant 2)!";
+//		}
+//		if (!ui_.hgvs_g2->text().trimmed().isEmpty() && !ui_.hgvs_g2->text().trimmed().startsWith("g."))
+//		{
+//			errors << "HGVS.g must start with 'g.' (variant 2)!";
+//		}
+//		if (ui_.hgvs_c2->text().trimmed().isEmpty())
+//		{
+//			errors << "HGVS.c unset (variant 2)!";
+//		}
+//		if (!ui_.hgvs_c2->text().trimmed().isEmpty() && !ui_.hgvs_c2->text().trimmed().startsWith("c."))
+//		{
+//			errors << "HGVS.c must start with 'c.' (variant 2)!";
+//		}
+//		if (!ui_.hgvs_p2->text().trimmed().isEmpty() && !ui_.hgvs_p2->text().trimmed().startsWith("p."))
+//		{
+//			errors << "HGVS.p must start with 'p.' (variant 2)!";
+//		}
+//		if (ui_.genotype->currentText()!="het" || ui_.genotype2->currentText()!="het")
+//		{
+//			errors << "Two variants for upload, but they are not compound-heterozygous!";
+//		}
+//		if (ui_.classification2->currentText().trimmed().isEmpty())
+//		{
+//			errors << "Classification unset (variant 2)!";
+//		}
+//	}
 
 	if (ui_.phenos->selectedPhenotypes().count()==0)
 	{
@@ -381,13 +381,13 @@ void ClinvarUploadDialog::updatePrintButton()
 
 void ClinvarUploadDialog::updateSecondVariantGui()
 {
-	bool enabled = ui_.genotype->currentText()=="het" && ui_.genotype2->currentText()=="het";
+//	bool enabled = ui_.genotype->currentText()=="het" && ui_.genotype2->currentText()=="het";
 
-	ui_.hgvs_g2->setEnabled(enabled);
-	ui_.hgvs_c2->setEnabled(enabled);
-	ui_.hgvs_p2->setEnabled(enabled);
-	ui_.classification2->setEnabled(enabled);
-	ui_.refseq_btn2->setEnabled(enabled);
+//	ui_.hgvs_g2->setEnabled(enabled);
+//	ui_.hgvs_c2->setEnabled(enabled);
+//	ui_.hgvs_p2->setEnabled(enabled);
+//	ui_.classification2->setEnabled(enabled);
+//	ui_.refseq_btn2->setEnabled(enabled);
 }
 
 void ClinvarUploadDialog::setTranscriptInfoVariant1()
@@ -400,10 +400,10 @@ void ClinvarUploadDialog::setTranscriptInfoVariant1()
 	if (!ok) THROW(ProgrammingException, "This should not happen!");
 
 	const VariantTranscript& trans = data_.trans_data[index];
-	ui_.gene->setText(trans.gene);
-	ui_.nm_number->setText(trans.id);
-	ui_.hgvs_c->setText(trans.hgvs_c);
-	ui_.hgvs_p->setText(trans.hgvs_p);
+//	ui_.gene->setText(trans.gene);
+//	ui_.nm_number->setText(trans.id);
+//	ui_.hgvs_c->setText(trans.hgvs_c);
+//	ui_.hgvs_p->setText(trans.hgvs_p);
 
 	checkGuiData();
 }
@@ -419,21 +419,22 @@ void ClinvarUploadDialog::setTranscriptInfoVariant2()
 
 	//check same transcript
 	const VariantTranscript& trans = data_.trans_data2[index];
-	if (trans.id!=ui_.nm_number->text())
-	{
-		QMessageBox::warning(this, "Transcript mismatch error", ui_.nm_number->text() + " selected as transcript for variant 1.\n" + trans.id + " selected as transcript for variant 2.\n\nThey do not match!");
-		return;
-	}
+//	if (trans.id!=ui_.nm_number->text())
+//	{
+//		QMessageBox::warning(this, "Transcript mismatch error", ui_.nm_number->text() + " selected as transcript for variant 1.\n" + trans.id + " selected as transcript for variant 2.\n\nThey do not match!");
+//		return;
+//	}
 
-	ui_.hgvs_c2->setText(trans.hgvs_c);
-	ui_.hgvs_p2->setText(trans.hgvs_p);
+//	ui_.hgvs_c2->setText(trans.hgvs_c);
+//	ui_.hgvs_p2->setText(trans.hgvs_p);
 
 	checkGuiData();
 }
 
 bool ClinvarUploadDialog::isCompHet() const
 {
-	return variant2_.isValid() || ui_.genotype2->currentText()=="het";
+//	return variant2_.isValid() || ui_.genotype2->currentText()=="het";
+	return false;
 }
 
 QByteArray ClinvarUploadDialog::createJson()
@@ -493,14 +494,14 @@ QByteArray ClinvarUploadDialog::createJson()
 
 	//variant info
 	stream << "                \"variant\": [\n";
-	QString chr = ui_.chr->currentText().trimmed();
-	QString gene = ui_.gene->text().trimmed();
-	QString transcript = ui_.nm_number->text().trimmed();
-	createJsonForVariant(stream, chr, gene, transcript, ui_.hgvs_g, ui_.hgvs_c, ui_.hgvs_p, ui_.genotype, ui_.classification);
+	QString chr = ui_.cb_chr1->currentText().trimmed();
+//	QString gene = ui_.gene->text().trimmed();
+//	QString transcript = ui_.nm_number->text().trimmed();
+//	createJsonForVariant(stream, chr, gene, transcript, ui_.hgvs_g, ui_.hgvs_c, ui_.hgvs_p, ui_.genotype, ui_.classification);
 	if (isCompHet())
 	{
 		stream << ",\n";
-		createJsonForVariant(stream, chr, gene, transcript, ui_.hgvs_g2, ui_.hgvs_c2, ui_.hgvs_p2, ui_.genotype, ui_.classification);
+//		createJsonForVariant(stream, chr, gene, transcript, ui_.hgvs_g2, ui_.hgvs_c2, ui_.hgvs_p2, ui_.genotype, ui_.classification);
 	}
 	stream << "\n";
 

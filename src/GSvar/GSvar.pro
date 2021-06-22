@@ -96,7 +96,8 @@ SOURCES += main.cpp\
     GapClosingDialog.cpp \
     DatabaseServiceLocal.cpp \
     NGSDReplicationWidget.cpp \
-    ClinVarUploadDialog.cpp
+    ClinvarUploadDialog.cpp
+
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
@@ -187,7 +188,7 @@ HEADERS += MainWindow.h \
     DatabaseService.h \
     DatabaseServiceLocal.h \
     NGSDReplicationWidget.h \
-    ClinVarUploadDialog.h
+    ClinvarUploadDialog.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -266,7 +267,7 @@ FORMS    += MainWindow.ui \
     ExpressionDataWidget.ui \
     GapClosingDialog.ui \
     NGSDReplicationWidget.ui \
-    ClinVarUploadDialog.ui
+    ClinvarUploadDialog.ui
     include("../app_gui.pri")
 
 #include NGSD library
