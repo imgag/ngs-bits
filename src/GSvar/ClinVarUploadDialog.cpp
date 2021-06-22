@@ -20,30 +20,7 @@ ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
 {
 	ui_.setupUi(this);
 
-	connect(ui_.upload_btn, SIGNAL(clicked(bool)), this, SLOT(upload()));
 
-	connect(ui_.processed_sample, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.cb_chr1, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.gene, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.nm_number, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.hgvs_c, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.hgvs_g, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.hgvs_p, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.hgvs_c2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.hgvs_g2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.hgvs_p2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.classification2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
-
-	//update GUI elements for 2nd variant (only for free mode)
-//	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
-//	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
-
-	connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
-	connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
 }
 
 void ClinvarUploadDialog::setData(ClinvarUploadData data)
@@ -129,123 +106,57 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 	//phenotype data
 	ui_.phenos->setPhenotypes(data.phenos);
 
-	data_ = data;
+    data_ = data;
+}
+
+void ClinvarUploadDialog::initGui()
+{
+    // set combobox entries
+    ui_.cb_clin_sig_desc->addItems(CLINICAL_SIGNIFICANCE_DESCRIPTION);
+    ui_.cb_inheritance->addItems(MODE_OF_INHERITANCE);
+    ui_.cb_affected_status->addItems(AFFECTED_STATUS);
+    ui_.cb_allele_origin->addItems(ALLELE_ORIGIN);
+    ui_.cb_collection_method->addItems(COLLECTION_METHOD);
+    ui_.cb_method_type->addItems(STRUCT_VAR_METHOD_TYPE);
+    ui_.cb_chr1->addItems(CHR);
+    ui_.cb_chr2->addItems(CHR);
+    ui_.cb_var_type1->addItems(VARIANT_TYPE);
+    ui_.cb_var_type2->addItems(VARIANT_TYPE);
+
+
+
+
+
+    //connect signal and slots
+    connect(ui_.upload_btn, SIGNAL(clicked(bool)), this, SLOT(upload()));
+
+    connect(ui_.processed_sample, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+    connect(ui_.cb_chr1, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.gene, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.nm_number, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.hgvs_c, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.hgvs_g, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.hgvs_p, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.hgvs_c2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.hgvs_g2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.hgvs_p2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+//	connect(ui_.classification2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+    connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
+
+    //update GUI elements for 2nd variant (only for free mode)
+//	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
+//	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
+
+    connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
+    connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
 }
 
 void ClinvarUploadDialog::upload()
 {
-//	//init
-//	ui_.upload_btn->setEnabled(false);
 
-//	//create JSON-formatted upload data
-//	QByteArray upload_file = createJson();
-
-//	//upload data
-//	static HttpHandler http_handler(HttpRequestHandler::INI); //static to allow caching of credentials
-//	try
-//	{
-//		//add headers
-//		HttpHeaders add_headers;
-//		add_headers.insert("Content-Type", "application/json");
-//		add_headers.insert("Content-Length", QByteArray::number(upload_file.count()));
-
-//		//post request
-//		QString reply = http_handler.post("https://databases.lovd.nl/shared/api/v1/submissions", upload_file, add_headers);
-//		ui_.comment_upload->setText(reply);
-
-//		//parse JSON result
-//		QJsonDocument json = QJsonDocument::fromJson(reply.toLatin1());
-//		QStringList messages;
-//		bool success = false;
-//		foreach(QJsonValue o, json.object()["messages"].toArray())
-//		{
-//			messages << "MESSAGE: " + o.toString();
-//			if (o.toString().startsWith("Data successfully scheduled for import."))
-//			{
-//				success = true;
-//			}
-//		}
-//		foreach(QJsonValue o, json.object()["errors"].toArray())
-//		{
-//			messages << "ERROR: " + o.toString();
-//		}
-//		foreach(QJsonValue o, json.object()["warnings"].toArray())
-//		{
-//			messages << "WARNING: " +o.toString();
-//		}
-
-//		//add entry to NGSD
-//		if (success)
-//		{
-//			QString processed_sample = ui_.processed_sample->text().trimmed();
-
-//			QStringList details;
-//			details << "gene=" + ui_.gene->text();
-//			details << "transcript=" + ui_.nm_number->text();
-
-//			details << "hgvs_g=" + ui_.hgvs_g->text();
-//			details << "hgvs_c=" + ui_.hgvs_c->text();
-//			details << "hgvs_p=" + ui_.hgvs_p->text();
-//			details << "genotype=" + ui_.genotype->currentText();
-//			details << "classification=" + ui_.classification->currentText();
-
-//			if (isCompHet())
-//			{
-//				details << "hgvs_g2=" + ui_.hgvs_g2->text();
-//				details << "hgvs_c2=" + ui_.hgvs_c2->text();
-//				details << "hgvs_p2=" + ui_.hgvs_p2->text();
-//				details << "genotype2=" + ui_.genotype2->currentText();
-//				details << "classification2=" + ui_.classification2->currentText();
-//			}
-
-//			foreach(const Phenotype& pheno, ui_.phenos->selectedPhenotypes())
-//			{
-//				details << "phenotype=" + pheno.accession() + " - " + pheno.name();
-//			}
-
-//			//Upload only if variant(s) are set
-//			if (variant1_.isValid())
-//			{
-//				db_.addVariantPublication(processed_sample, variant1_, "LOVD", ui_.classification->currentText(), details.join(";"));
-//			}
-//			if (variant2_.isValid())
-//			{
-//				db_.addVariantPublication(processed_sample, variant2_, "LOVD", ui_.classification2->currentText(), details.join(";"));
-//			}
-
-//			//show result
-//			QStringList lines;
-//			lines << "DATA UPLOAD TO LOVD SUCCESSFUL";
-//			lines << "";
-//			lines << messages.join("\n");
-//			lines << "";
-//			lines << "sample: " + processed_sample;
-//			lines << "user: " + Helper::userName();
-//			lines << "date: " + Helper::dateTime();
-//			lines << "";
-//			lines << details;
-
-//			ui_.comment_upload->setText(lines.join("\n").replace("=", ": "));
-
-//			//write report file to transfer folder
-//			QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
-//			if (gsvar_publication_folder!="")
-//			{
-//				QString file_rep = gsvar_publication_folder + "/" + processed_sample + "_LOVD_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
-//				Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
-//			}
-//		}
-//		else
-//		{
-//			ui_.comment_upload->setText("DATA UPLOAD ERROR:\n" + messages.join("\n"));
-//			ui_.upload_btn->setEnabled(true);
-//		}
-//	}
-//	catch(Exception e)
-//	{
-//		ui_.comment_upload->setText("DATA UPLOAD FAILED:\n" + e.message());
-//		ui_.upload_btn->setEnabled(true);
-//	}
 }
 
 void ClinvarUploadDialog::checkGuiData()
@@ -434,161 +345,193 @@ void ClinvarUploadDialog::setTranscriptInfoVariant2()
 bool ClinvarUploadDialog::isCompHet() const
 {
 //	return variant2_.isValid() || ui_.genotype2->currentText()=="het";
-	return false;
+    return false;
 }
 
-QByteArray ClinvarUploadDialog::createJson()
+QJsonObject ClinvarUploadDialog::createJson()
 {
-	QByteArray output;
-	QTextStream stream(&output);
+    QJsonObject json;
 
-	//create header part
-	QString lab = getSettings("lovd_lab");
-	QString user_name = getSettings("lovd_user_name");
-	QString user_email = getSettings("lovd_user_email");
-	QString user_id = getSettings("lovd_user_id");
-	QString user_auth_token = getSettings("lovd_user_auth_token");
+    //TODO: Check GUI for correct entries
 
-	stream << "{\n";
-	stream << "    \"lsdb\": {\n";
-	stream << "        \"@id\": \"53786324d4c6cf1d33a3e594a92591aa\",\n";
-	stream << "        \"@uri\": \"http://databases.lovd.nl/shared/\",\n";
-	stream << "        \"source\": {\n";
-	stream << "            \"name\": \"" << lab << "\",\n";
-	stream << "            \"contact\": {\n";
-	stream << "                \"name\": \"" << user_name << "\",\n";
-	stream << "                \"email\": \"" << user_email << "\",\n";
-	stream << "                \"db_xref\": [\n";
-	stream << "                    {\n";
-	stream << "                        \"@source\": \"lovd\",\n";
-	stream << "                        \"@accession\": \"" << user_id << "\"\n";
-	stream << "                    },\n";
-	stream << "                    {\n";
-	stream << "                        \"@source\": \"lovd_auth_token\",\n";
-	stream << "                        \"@accession\": \"" << user_auth_token << "\"\n";
-	stream << "                    }\n";
-	stream << "                ]\n";
-	stream << "            }\n";
-	stream << "        },\n";
+    //optional
+    json.insert("behalfOrgID", "");
 
-	//create patient part
-	stream << "        \"individual\": [\n";
-	stream << "            {\n";
-	stream << "                \"@id\": \"" << ui_.processed_sample->text().trimmed() << "\",\n";
-	stream << "                \"gender\": {\n";
-	stream << "                    \"@code\": \"" << convertGender(ui_.gender->currentText().trimmed()) <<"\"\n";
-	stream << "                },\n";
-	stream << "                \"phenotype\": [\n";
-	PhenotypeList phenotypes = ui_.phenos->selectedPhenotypes();
-	for (int i=0; i<phenotypes.count(); ++i)
-	{
-		stream << "                    {\n";
-		stream << "                        \"@term\": \"" << phenotypes[i].name().trimmed() << "\",\n";
-		stream << "                        \"@source\": \"HPO\",\n";
-		stream << "                        \"@accession\": \"" << phenotypes[i].accession().mid(3).trimmed() << "\"\n";
-		stream << "                    }";
-		if (i<phenotypes.count()-1) stream << ",";
-		stream << "\n";
-	}
-	stream << "                ],\n";
+    //required
+    QJsonObject clinvar_submission;
+    {
+        //optional
+        QJsonObject assertion_criteria;
+        {
 
-	//variant info
-	stream << "                \"variant\": [\n";
-	QString chr = ui_.cb_chr1->currentText().trimmed();
-//	QString gene = ui_.gene->text().trimmed();
-//	QString transcript = ui_.nm_number->text().trimmed();
-//	createJsonForVariant(stream, chr, gene, transcript, ui_.hgvs_g, ui_.hgvs_c, ui_.hgvs_p, ui_.genotype, ui_.classification);
-	if (isCompHet())
-	{
-		stream << ",\n";
-//		createJsonForVariant(stream, chr, gene, transcript, ui_.hgvs_g2, ui_.hgvs_c2, ui_.hgvs_p2, ui_.genotype, ui_.classification);
-	}
-	stream << "\n";
+        }
+        clinvar_submission.insert("assertionCriteria", assertion_criteria);
 
-	//close all brackets
-	stream << "                ]\n";
-	stream << "            }\n";
-	stream << "        ]\n";
-	stream << "    }\n";
-	stream << "}\n";
-	stream << "\n";
+        //required
+        QJsonObject clinical_significance;
+        {
+            //optional
+            clinical_significance.insert("citation", QJsonArray());
 
-	return output;
+            //required
+            clinical_significance.insert("clinicalSignificanceDescription", ui_.cb_clin_sig_desc->currentText());
+
+            //optional
+            clinical_significance.insert("comment", ui_.le_clin_sig_desc_comment->text());
+
+            //optional
+            clinical_significance.insert("dateLastEvaluated", ui_.de_last_eval->date().toString("yyyy-MM-dd"));
+
+            //optional
+            clinical_significance.insert("modeOfInheritance", ui_.cb_inheritance->currentText());
+        }
+        clinvar_submission.insert("clinicalSignificance", clinical_significance);
+
+        //optional
+        clinvar_submission.insert("clinvarAccession", "");
+
+        //required
+        QJsonObject condition_set;
+        {
+            QJsonArray condition;
+            {
+                //TODO: parse HPO terms
+            }
+            condition_set.insert("condition", condition);
+        }
+        clinvar_submission.insert("conditionSet", condition_set);
+
+        //optional
+        clinvar_submission.insert("localID", ui_.le_local_id->text());
+
+        //optional
+        clinvar_submission.insert("localKey", ui_.le_local_key->text());
+
+        //required
+        QJsonObject observed_in;
+        {
+            //required
+            observed_in.insert("affectedStatus", ui_.cb_affected_status->currentText());
+
+            //required
+            observed_in.insert("alleleOrigin", ui_.cb_allele_origin->currentText());
+
+            //optional
+            QJsonArray clinical_features;
+            {
+
+            }
+            observed_in.insert("clinicalFeatures", clinical_features);
+
+            //optional
+            observed_in.insert("clinicalFeaturesComment", ui_.le_clin_feat_comment->text());
+
+            //required
+            observed_in.insert("collectionMethod", ui_.cb_collection_method->currentText());
+
+            //optional
+            observed_in.insert("numberOfIndividuals", ui_.sb_n_individuals->value());
+
+            //optional
+            observed_in.insert("structVarMethodType", ui_.cb_method_type->currentText());
+
+        }
+        clinvar_submission.insert("observedIn", QJsonArray() << observed_in);
+
+        //required
+        clinvar_submission.insert("recordStatus", ui_.cb_record_status->currentText());
+
+        //required
+        clinvar_submission.insert("releaseStatus", ui_.cb_release_status->currentText());
+
+        //required
+        QJsonObject variant_set;
+        {
+            QJsonArray variants;
+            {
+                //1. variant
+                QJsonObject variant1;
+                {
+                    //required (except hgvs)
+                    QJsonObject chromosome_coordinates;
+                    {
+                     chromosome_coordinates.insert("alternateAllele", ui_.le_alt1->text());
+                     chromosome_coordinates.insert("assembly", ui_.cb_assembly->currentText());
+                     chromosome_coordinates.insert("chromosome", ui_.cb_chr1->currentText());
+                     chromosome_coordinates.insert("start", ui_.sb_start1->value());
+                     chromosome_coordinates.insert("stop", ui_.sb_end1->value());
+                    }
+                    variant1.insert("chromosomeCoordinates", chromosome_coordinates);
+
+                    //optional
+                    QJsonArray gene;
+                    {
+                        //TODO: parse gene entries for first variant
+                    }
+                    variant1.insert("gene", gene);
+                }
+                variants.append(variant1);
+
+                //2. variant
+                QJsonObject variant2;
+                {
+                    //required (except hgvs)
+                    QJsonObject chromosome_coordinates;
+                    {
+                     chromosome_coordinates.insert("alternateAllele", ui_.le_alt2->text());
+                     chromosome_coordinates.insert("assembly", ui_.cb_assembly->currentText());
+                     chromosome_coordinates.insert("chromosome", ui_.cb_chr2->currentText());
+                     chromosome_coordinates.insert("start", ui_.sb_start2->value());
+                     chromosome_coordinates.insert("stop", ui_.sb_end2->value());
+                    }
+                    variant2.insert("chromosomeCoordinates", chromosome_coordinates);
+
+                    //optional
+                    QJsonArray gene;
+                    {
+                        //TODO: parse gene entries for second variant
+                    }
+                    variant2.insert("gene", gene);
+                }
+                variants.append(variant2);
+            }
+            variant_set.insert("variant", variants);
+
+        }
+        clinvar_submission.insert("variantSet", variant_set);
+
+
+    }
+    json.insert("clinvarSubmission", QJsonArray() << clinvar_submission);
+
+
+    //optional
+    json.insert("submissionName", "");
+
+
+    return json;
 }
+
+//QByteArray ClinvarUploadDialog::createJson()
+//{
+//	QByteArray output;
+//	QTextStream stream(&output);
+
+//	//create header part
+////	QString lab = getSettings("lovd_lab");
+////	QString user_name = getSettings("lovd_user_name");
+////	QString user_email = getSettings("lovd_user_email");
+////	QString user_id = getSettings("lovd_user_id");
+////	QString user_auth_token = getSettings("lovd_user_auth_token");
+
+//    // TODO:build up JSON
+
+//	return output;
+//}
 
 void ClinvarUploadDialog::createJsonForVariant(QTextStream& stream, QString chr, QString gene, QString transcript, QLineEdit* hgvs_g, QLineEdit* hgvs_c, QLineEdit* hgvs_p, QComboBox* genotype, QComboBox* classification)
 {
-	stream << "                    {\n";
-	stream << "                        \"@copy_count\": \"" << convertGenotype(genotype->currentText().trimmed()) << "\",\n";
-	stream << "                        \"@type\": \"DNA\",\n";
-	stream << "                        \"ref_seq\": {\n";
-	stream << "                            \"@source\": \"genbank\",\n";
-	stream << "                            \"@accession\": \"" << chromosomeToAccession(chr) << "\"\n"; //official identifier for hg19
-	stream << "                        },\n";
-	stream << "                        \"name\": {\n";
-	stream << "                            \"@scheme\": \"HGVS\",\n";
-	stream << "                            \"#text\": \"" << hgvs_g->text().trimmed() << "\"\n";
-	stream << "                        },\n";
-	stream << "                        \"pathogenicity\": {\n";
-	stream << "                            \"@scope\": \"individual\",\n";
-	stream << "                            \"@term\": \"" << convertClassification(classification->currentText().trimmed()) << "\"\n";
-	stream << "                        },\n";
-	stream << "                        \"variant_detection\": [\n";
-	stream << "                            {\n";
-	stream << "                                \"@template\": \"DNA\",\n";
-	stream << "                                \"@technique\": \"SEQ\"\n";
-	stream << "                            }\n";
-	stream << "                        ],\n";
-	stream << "                        \"seq_changes\": {\n";
-	stream << "                            \"variant\": [\n";
-	stream << "                                {\n";
-	stream << "                                    \"@type\": \"cDNA\",\n";
-	stream << "                                    \"gene\": {\n";
-	stream << "                                        \"@source\": \"HGNC\",\n";
-	stream << "                                        \"@accession\": \"" << gene << "\"\n";
-	stream << "                                    },\n";
-	stream << "                                    \"ref_seq\": {\n";
-	stream << "                                        \"@source\": \"genbank\",\n";
-	stream << "                                        \"@accession\": \"" << transcript << "\"\n";
-	stream << "                                    },\n";
-	stream << "                                    \"name\": {\n";
-	stream << "                                        \"@scheme\": \"HGVS\",\n";
-	stream << "                                        \"#text\": \"" << hgvs_c->text().trimmed() << "\"\n";
-	stream << "                                    },\n";
-	stream << "                                    \"seq_changes\": {\n";
-	stream << "                                        \"variant\": [\n";
-	stream << "                                            {\n";
-	stream << "                                                \"@type\": \"RNA\",\n";
-	stream << "                                                \"name\": {\n";
-	stream << "                                                    \"@scheme\": \"HGVS\",\n";
-	stream << "                                                    \"#text\": \"r.(?)\"\n"; //we do not have HGVS.r info!
-	stream << "                                                }";
-	if (hgvs_p->text().trimmed()=="")
-	{
-		stream << "\n";
-	}
-	else
-	{
-		stream << ",\n";
-		stream << "                                                \"seq_changes\": {\n";
-		stream << "                                                    \"variant\": [\n";
-		stream << "                                                        {\n";
-		stream << "                                                            \"@type\": \"AA\",\n";
-		stream << "                                                            \"name\": {\n";
-		stream << "                                                                \"@scheme\": \"HGVS\",\n";
-		stream << "                                                                \"#text\": \"" << hgvs_p->text().trimmed() << "\"\n";
-		stream << "                                                            }\n";
-		stream << "                                                        }\n";
-		stream << "                                                    ]\n";
-		stream << "                                                }\n";
-	}
-	stream << "                                            }\n";
-	stream << "                                        ]\n";
-	stream << "                                    }\n";
-	stream << "                                }";
-	stream << "                            ]\n";
-	stream << "                        }\n";
-	stream << "                    }\n";
+    //TODO: build up JSON for Variant
 }
 
 QString ClinvarUploadDialog::getSettings(QString key)
@@ -691,3 +634,142 @@ QString ClinvarUploadDialog::convertGenotype(QString genotype)
 }
 
 
+//Define enum sets with allowed values for JSON output
+const QStringList ClinvarUploadDialog::CLINICAL_SIGNIFICANCE_DESCRIPTION =
+{
+    "Pathogenic",
+    "Likely pathogenic",
+    "Uncertain significance",
+    "Likely benign",
+    "Benign",
+    "affects",
+    "association",
+    "drug response",
+    "confers sensitivity",
+    "protective",
+    "risk factor",
+    "other",
+    "not provided"
+};
+const QStringList ClinvarUploadDialog::MODE_OF_INHERITANCE =
+{
+    "Autosomal dominant inheritance",
+    "Autosomal recessive inheritance",
+    "Mitochondrial inheritance",
+    "Somatic mutation",
+    "Genetic anticipation",
+    "Sporadic",
+    "Sex-limited autosomal dominant",
+    "X-linked recessive inheritance",
+    "X-linked dominant inheritance",
+    "Y-linked inheritance",
+    "Other",
+    "X-linked inheritance",
+    "Codominant",
+    "Autosomal unknown",
+    "Autosomal dominant inheritance with maternal imprinting",
+    "Autosomal dominant inheritance with paternal imprinting",
+    "Multifactorial inheritance",
+    "Unknown mechanism",
+    "Oligogenic inheritance"
+};
+const QStringList ClinvarUploadDialog::AFFECTED_STATUS =
+{
+    "yes",
+    "no",
+    "unknown",
+    "not provided",
+    "not applicable"
+};
+const QStringList ClinvarUploadDialog::ALLELE_ORIGIN =
+{
+    "germline",
+    "somatic",
+    "de novo",
+    "unknown",
+    "not provided",
+    "inherited",
+    "maternal",
+    "paternal",
+    "biparental",
+    "not-reported",
+    "tested-inconclusive",
+    "not applicable",
+    "experimentally generated"
+};
+const QStringList ClinvarUploadDialog::COLLECTION_METHOD =
+{
+    "curation",
+    "literature only",
+    "reference population",
+    "provider interpretation",
+    "phenotyping only",
+    "case-control",
+    "clinical testing",
+    "in vitro",
+    "in vivo",
+    "research",
+    "not provided"
+};
+const QStringList ClinvarUploadDialog::STRUCT_VAR_METHOD_TYPE =
+{
+    "SNP array",
+    "Oligo array",
+    "Read depth",
+    "Paired-end mapping",
+    "One end anchored assembly",
+    "Sequence alignment",
+    "Optical mapping",
+    "Curated,PCR"
+};
+const QStringList ClinvarUploadDialog::CHR =
+{
+    "",
+    "chr1",
+    "chr2",
+    "chr3",
+    "chr4",
+    "chr5",
+    "chr6",
+    "chr7",
+    "chr8",
+    "chr9",
+    "chr10",
+    "chr11",
+    "chr12",
+    "chr13",
+    "chr14",
+    "chr15",
+    "chr16",
+    "chr17",
+    "chr18",
+    "chr19",
+    "chr20",
+    "chr21",
+    "chr22",
+    "chrX",
+    "chrY",
+    "chrM"
+};
+const QStringList ClinvarUploadDialog::VARIANT_TYPE =
+{
+    "Variation",
+    "Insertion",
+    "Mobile element insertion",
+    "Novel sequence insertion",
+    "Microsatellite",
+    "Deletion",
+    "single nucleotide variant",
+    "Multiple nucleotide variation",
+    "Indel",
+    "Duplication",
+    "Tandem duplication",
+    "copy number loss",
+    "copy number gain",
+    "protein only",
+    "Inversion",
+    "Translocation",
+    "Interchromosomal breakpoint",
+    "Intrachromosomal breakpoint",
+    "Complex"
+};

@@ -138,123 +138,13 @@ class ClinvarUploadDialog
 	Q_OBJECT
 
 public:
-	//Define enum sets with allowed values in JSON
-	const QStringList CLINICAL_SIGNIFICANCE_DESCRIPTION =
-	{
-		"Pathogenic",
-		"Likely pathogenic",
-		"Uncertain significance",
-		"Likely benign",
-		"Benign",
-		"affects",
-		"association",
-		"drug response",
-		"confers sensitivity",
-		"protective",
-		"risk factor",
-		"other",
-		"not provided"
-	};
-	const QStringList MODE_OF_INHERITANCE =
-	{
-		"Autosomal dominant inheritance",
-		"Autosomal recessive inheritance",
-		"Mitochondrial inheritance",
-		"Somatic mutation",
-		"Genetic anticipation",
-		"Sporadic",
-		"Sex-limited autosomal dominant",
-		"X-linked recessive inheritance",
-		"X-linked dominant inheritance",
-		"Y-linked inheritance",
-		"Other",
-		"X-linked inheritance",
-		"Codominant",
-		"Autosomal unknown",
-		"Autosomal dominant inheritance with maternal imprinting",
-		"Autosomal dominant inheritance with paternal imprinting",
-		"Multifactorial inheritance",
-		"Unknown mechanism",
-		"Oligogenic inheritance"
-	};
-	const QStringList AFFECTED_STATUS =
-	{
-		"yes",
-		"no",
-		"unknown",
-		"not provided",
-		"not applicable"
-	};
-	const QStringList ALLELE_ORIGIN =
-	{
-		"germline",
-		"somatic",
-		"de novo",
-		"unknown",
-		"not provided",
-		"inherited",
-		"maternal",
-		"paternal",
-		"biparental",
-		"not-reported",
-		"tested-inconclusive",
-		"not applicable",
-		"experimentally generated"
-	};
-	const QStringList COLLECTION_METHOD =
-	{
-		"curation",
-		"literature only",
-		"reference population",
-		"provider interpretation",
-		"phenotyping only",
-		"case-control",
-		"clinical testing",
-		"in vitro",
-		"in vivo",
-		"research",
-		"not provided"
-	};
-	const QStringList STRUCT_VAR_METHOD_TYPE =
-	{
-		"SNP array",
-		"Oligo array",
-		"Read depth",
-		"Paired-end mapping",
-		"One end anchored assembly",
-		"Sequence alignment",
-		"Optical mapping",
-		"Curated,PCR"
-	};
-	const QStringList VARIANT_TYPE =
-	{
-		"Variation",
-		"Insertion",
-		"Mobile element insertion",
-		"Novel sequence insertion",
-		"Microsatellite",
-		"Deletion",
-		"single nucleotide variant",
-		"Multiple nucleotide variation",
-		"Indel",
-		"Duplication",
-		"Tandem duplication",
-		"copy number loss",
-		"copy number gain",
-		"protein only",
-		"Inversion",
-		"Translocation",
-		"Interchromosomal breakpoint",
-		"Intrachromosomal breakpoint",
-		"Complex"
-	};
-
 
 	ClinvarUploadDialog(QWidget *parent = 0);
 
 	void setData(ClinvarUploadData data);
 
 private slots:
+    void initGui();
 	void upload();
 	void checkGuiData();
 	void printResults();
@@ -272,13 +162,25 @@ private:
 
 	//Returns if compound-heterozygous mode is active, i.e. two variants were set through 'setData' or using the GUI
 	bool isCompHet() const;
-	QByteArray createJson();
+//	QByteArray createJson();
+    QJsonObject createJson();
+
 	static void createJsonForVariant(QTextStream& stream, QString chr, QString gene, QString transcript, QLineEdit* hgvs_g, QLineEdit* hgvs_c, QLineEdit* hgvs_p, QComboBox* genotype, QComboBox* classification);
 	static QString getSettings(QString key);
 	static QString convertGender(QString gender);
 	static QString convertGenotype(QString genotype);
 	static QString convertClassification(QString classification);
 	static QString chromosomeToAccession(const Chromosome& chr);
+
+    static const QStringList CLINICAL_SIGNIFICANCE_DESCRIPTION;
+    static const QStringList MODE_OF_INHERITANCE;
+    static const QStringList AFFECTED_STATUS;
+    static const QStringList ALLELE_ORIGIN;
+    static const QStringList COLLECTION_METHOD;
+    static const QStringList STRUCT_VAR_METHOD_TYPE;
+    static const QStringList CHR;
+    static const QStringList VARIANT_TYPE;
+
 };
 
 #endif // CLINVARUPLOADDIALOG_H

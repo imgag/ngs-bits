@@ -235,7 +235,7 @@
         <widget class="QLineEdit" name="le_clin_feat_comment"/>
        </item>
        <item row="4" column="1">
-        <widget class="QComboBox" name="collection_method"/>
+        <widget class="QComboBox" name="cb_collection_method"/>
        </item>
        <item row="5" column="1">
         <widget class="QSpinBox" name="sb_n_individuals">
@@ -380,7 +380,7 @@
         </widget>
        </item>
        <item row="2" column="2">
-        <widget class="QComboBox" name="comboBox_9"/>
+        <widget class="QComboBox" name="cb_chr2"/>
        </item>
        <item row="1" column="2">
         <widget class="QLabel" name="label_36">
@@ -390,7 +390,7 @@
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QSpinBox" name="sp_end1">
+        <widget class="QSpinBox" name="sb_end1">
          <property name="maximum">
           <number>1000000000</number>
          </property>
@@ -413,140 +413,10 @@
         <widget class="QComboBox" name="cb_chr1">
          <property name="maximumSize">
           <size>
-           <width>100</width>
+           <width>16777215</width>
            <height>16777215</height>
           </size>
          </property>
-         <item>
-          <property name="text">
-           <string/>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr1</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr2</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr3</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr4</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr5</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr6</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr7</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr8</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr9</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr10</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr11</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr12</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr13</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr14</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr15</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr16</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr17</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr18</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr19</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr20</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr21</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chr22</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chrX</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chrY</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>chrM</string>
-          </property>
-         </item>
         </widget>
        </item>
        <item row="5" column="1">
@@ -598,6 +468,20 @@
        </item>
        <item row="8" column="2">
         <widget class="QComboBox" name="cb_var_type2"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="gridLayout_6">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>assembly:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="cb_assembly"/>
        </item>
       </layout>
      </item>
