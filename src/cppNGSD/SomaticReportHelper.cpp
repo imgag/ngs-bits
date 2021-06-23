@@ -150,8 +150,9 @@ RtfTable SomaticReportHelper::billingTable()
 }
 
 
-SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvList &cnvs, const VariantList& variants_germline, const SomaticReportSettings& settings)
-	: settings_(settings)
+SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const VariantList& variants_germline, const SomaticReportSettings& settings)
+	: build_(build)
+	, settings_(settings)
 	, germline_vl_(variants_germline)
 	, cnvs_()
 	, validated_viruses_()
@@ -1469,7 +1470,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 void SomaticReportHelper::storeXML(QString file_name)
 {
 	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(germline_vl_, settings_);
-	SomaticXmlReportGeneratorData data(settings_, somatic_vl_, som_var_in_normal, cnvs_);
+	SomaticXmlReportGeneratorData data(build_, settings_, somatic_vl_, som_var_in_normal, cnvs_);
 
 	data.processing_system_roi = settings_.processing_system_roi;
 	data.processing_system_genes = settings_.processing_system_genes;

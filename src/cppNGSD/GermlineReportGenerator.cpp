@@ -8,7 +8,7 @@
 #include <QFileInfo>
 #include <QXmlStreamWriter>
 
-GermlineReportGeneratorData::GermlineReportGeneratorData(QString build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_)
+GermlineReportGeneratorData::GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_)
 	: build(build_)
 	, ps(ps_)
 	, variants(variants_)
@@ -564,7 +564,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	//element VariantList
 	w.writeStartElement("VariantList");
 	w.writeAttribute("overall_number", QString::number(data_.variants.count()));
-	w.writeAttribute("genome_build", data_.build);
+	w.writeAttribute("genome_build", buildToString(data_.build, true));
 
 	//element Variant
 	int geno_idx = data_.variants.getSampleHeader().infoByID(data_.ps).column_index;
@@ -755,7 +755,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	w.writeStartElement("CnvList");
 	w.writeAttribute("cnv_caller", no_cnv_calling ? "NONE" :  data_.cnvs.callerAsString());
 	w.writeAttribute("overall_number", QString::number(data_.cnvs.count()));
-	w.writeAttribute("genome_build", data_.build);
+	w.writeAttribute("genome_build", buildToString(data_.build, true));
 	QString cnv_callset_id = db_.getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id_, true).toString().trimmed();
 	if (no_cnv_calling || cnv_callset_id.isEmpty()) cnv_callset_id = "-1";
 	QString cnv_calling_quality = db_.getValue("SELECT quality FROM cnv_callset WHERE id=" + cnv_callset_id, true).toString().trimmed();
@@ -1399,7 +1399,7 @@ void GermlineReportGenerator::writeCoverageReportCCDS(QTextStream& stream, int e
 	if (extend==0) cache_["ccds_sequenced"] = QString::number(bases_sequenced);
 }
 
-QByteArray GermlineReportGenerator::formatGenotype(const QString& build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant)
+QByteArray GermlineReportGenerator::formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant)
 {
 	//correct only hom variants on gonosomes outside the PAR for males
 	if (gender!="male") return genotype;

@@ -332,7 +332,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		//Releases resources held by the iterator (index is not cleared)
 		void clearIterator();
 		void verify_chromosome_length(const QString& ref_genome);
-		void init(const QString& bam_file, const QString& ref_genome = QString::null);
+		void init(const QString& bam_file, const QString& ref_genome = QString());
 
 		//"declared away" methods
 		BamReader(const BamReader&) = delete;

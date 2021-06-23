@@ -3,6 +3,7 @@
 #include "DBEditor.h"
 #include "GUIHelper.h"
 #include "DBComboBox.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QAction>
 
@@ -96,15 +97,16 @@ void SequencingRunOverview::openRunTab()
 	QSet<int> rows = ui_.table->selectedRows();
 	foreach (int row, rows)
 	{
-		emit openRun(ui_.table->item(row, col)->text());
+		QString name = ui_.table->item(row, col)->text();
+		GlobalServiceProvider::openRunTab(name);
 	}
 }
 
 void SequencingRunOverview::openRunTab(int row)
 {
 	int col = ui_.table->columnIndex("name");
-
-	emit openRun(ui_.table->item(row, col)->text());
+	QString name = ui_.table->item(row, col)->text();
+	GlobalServiceProvider::openRunTab(name);
 }
 
 void SequencingRunOverview::editRun()

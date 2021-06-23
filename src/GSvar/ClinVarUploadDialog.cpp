@@ -20,17 +20,13 @@ ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
 {
 	ui_.setupUi(this);
 
-
+	initGui();
 }
 
 void ClinvarUploadDialog::setData(ClinvarUploadData data)
 {
-	//supported Clinvar transcripts
-	QStringList supported_transcripts = Helper::loadTextFile(":/Resources/lovd_transcripts.tsv", true, '#', true);
-
 	//sample data
 	ui_.processed_sample->setText(data.processed_sample);
-	ui_.gender->setCurrentText(data.gender);
 
 	ui_.processed_sample->setEnabled(false);
 	ui_.gender->setEnabled(false);
@@ -40,28 +36,6 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 	QByteArray chr = data.variant.chr().str();
 	if (chr=="chrMT") chr = "chrM";
 	ui_.cb_chr1->setCurrentText(chr);
-//	ui_.gene->setText(data.gene);
-//	ui_.nm_number->setText(data.nm_number);
-//	ui_.hgvs_g->setText(data.hgvs_g);
-//	ui_.hgvs_c->setText(data.hgvs_c);
-//	ui_.hgvs_p->setText(data.hgvs_p);
-//	ui_.classification->setCurrentText(data.classification);
-//	ui_.genotype->setCurrentText(data.genotype);
-	if (!data.trans_data.isEmpty())
-	{
-		QMenu* menu = new QMenu(this);
-		for (int i=0; i<data.trans_data.count(); ++i)
-		{
-			const VariantTranscript& trans = data.trans_data[i];
-			QAction* action = menu->addAction(trans.id + ": " + trans.gene + " / " + trans.type + " / " + trans.hgvs_c + " / " + trans.hgvs_p, this, SLOT(setTranscriptInfoVariant1()));
-			action->setData(i);
-			if (supported_transcripts.contains(trans.id))
-			{
-				action->setIcon(QIcon(":/Icons/Clinvar.png"));
-			}
-		}
-//		ui_.refseq_btn->setMenu(menu);
-	}
 	ui_.cb_chr1->setEnabled(false);
 //	ui_.classification->setEnabled(false);
 //	ui_.genotype->setEnabled(false);
@@ -75,21 +49,7 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 //		ui_.hgvs_p2->setText(data.hgvs_p2);
 //		ui_.classification2->setCurrentText(data.classification2);
 //		ui_.genotype2->setCurrentText(data.genotype2);
-		if (!data.trans_data2.isEmpty())
-		{
-			QMenu* menu = new QMenu(this);
-			for (int i=0; i<data.trans_data2.count(); ++i)
-			{
-				const VariantTranscript& trans = data.trans_data2[i];
-				QAction* action = menu->addAction(trans.id + ": " + trans.gene + " / " + trans.type + " / " + trans.hgvs_c + " / " + trans.hgvs_p, this, SLOT(setTranscriptInfoVariant2()));
-				action->setData(i);
-				if (supported_transcripts.contains(trans.id))
-				{
-					action->setIcon(QIcon(":/Icons/LOVD.png"));
-				}
-			}
-//			ui_.refseq_btn2->setMenu(menu);
-		}
+
 
 //		ui_.hgvs_g2->setEnabled(true);
 //		ui_.hgvs_c2->setEnabled(true);
@@ -156,7 +116,16 @@ void ClinvarUploadDialog::initGui()
 
 void ClinvarUploadDialog::upload()
 {
+	QJsonObject json = createJson();
 
+	//TODO: remove
+	// write to file
+	qDebug()<<"Write to file!";
+	QJsonDocument json_doc = QJsonDocument(json);
+	QFile json_file("clinvar_submission.json");
+	json_file.open(QFile::WriteOnly);
+	json_file.write(json_doc.toJson());
+	json_file.close();
 }
 
 void ClinvarUploadDialog::checkGuiData()
@@ -309,8 +278,6 @@ void ClinvarUploadDialog::setTranscriptInfoVariant1()
 	bool ok = false;
 	int index = action->data().toInt(&ok);
 	if (!ok) THROW(ProgrammingException, "This should not happen!");
-
-	const VariantTranscript& trans = data_.trans_data[index];
 //	ui_.gene->setText(trans.gene);
 //	ui_.nm_number->setText(trans.id);
 //	ui_.hgvs_c->setText(trans.hgvs_c);
@@ -328,8 +295,6 @@ void ClinvarUploadDialog::setTranscriptInfoVariant2()
 	int index = action->data().toInt(&ok);
 	if (!ok) THROW(ProgrammingException, "This should not happen!");
 
-	//check same transcript
-	const VariantTranscript& trans = data_.trans_data2[index];
 //	if (trans.id!=ui_.nm_number->text())
 //	{
 //		QMessageBox::warning(this, "Transcript mismatch error", ui_.nm_number->text() + " selected as transcript for variant 1.\n" + trans.id + " selected as transcript for variant 2.\n\nThey do not match!");

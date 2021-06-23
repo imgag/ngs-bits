@@ -15,6 +15,7 @@
 #include "LoginManager.h"
 #include "GeneInfoDBs.h"
 #include "ValidationDialog.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -160,7 +161,7 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 	}
 	else
 	{
-		emit openRegionInIGV(cnvs_[item->row()].toString());
+		GlobalServiceProvider::gotoInIGV(cnvs_[item->row()].toString(), true);
 	}
 }
 
@@ -659,7 +660,7 @@ void CnvWidget::showContextMenu(QPoint p)
 
 		if (db_name=="Gene tab")
 		{
-			openGeneTab(gene);
+			GlobalServiceProvider::openGeneTab(gene);
 		}
 		else if (db_name=="Google")
 		{

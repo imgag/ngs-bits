@@ -4,6 +4,7 @@
 #include "GeneSet.h"
 #include "BedFile.h"
 #include "VariantList.h"
+#include "GenomeBuild.h"
 #include <QTableWidgetItem>
 
 ///Helper class for GSvar
@@ -25,8 +26,8 @@ public:
 
 	//Returns the application base name - path and filename
     static QString applicationBaseName();
-	//Returns the genome build used by GSvar - 'hg19' or 'hg38'
-	static const QString& build();
+	//Returns the genome build used by GSvar.
+	static GenomeBuild build();
 
 	//colors imprinting and non-haploinsufficiency genes.
 	static void colorGeneItem(QTableWidgetItem* item, const GeneSet& genes);

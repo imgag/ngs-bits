@@ -14,17 +14,13 @@ class VariantWidget
 public:
 	VariantWidget(const Variant& variant, QWidget* parent = 0);
 
-signals:
-	void openProcessedSampleTab(QString);
-	void openProcessedSampleFromNGSD(QString);
-	void openGeneTab(QString);
-
 private slots:
 	void updateGUI();
 	void delayedInitialization();
 	void copyToClipboard();
 	void calculateSimilarity();
-	void openProcessedSampleTab();
+	void openProcessedSampleTabs();
+	void openGeneTab(QString symbol);
 	void openGSvarFile();
 	void editClassification();
 	void gnomadClicked(QString var_id);

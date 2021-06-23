@@ -1739,7 +1739,7 @@ QVariant NGSD::getValue(const QString& query, bool no_value_is_ok, QString bind_
 	{
 		if (no_value_is_ok)
 		{
-			return QVariant();
+			return QVariant(); //invalid
 		}
 		else
 		{

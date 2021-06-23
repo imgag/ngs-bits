@@ -7,105 +7,12 @@
 #include "Phenotype.h"
 #include "NGSD.h"
 
-//struct ClinvarUploadDataSchema
-//{
-	//clinvarSubmisson
-
-		//assertionCriteria
-			//citation
-				//db
-				//id
-				//url
-			//method
-
-		//clinicalSignificance
-			//citation
-				//db
-				//id
-				//url
-			//clinicalSignificanceDescription
-			//comment
-			//dateLastEvaluated
-			//modeOfInheritance
-
-
-		//clinvarAccession
-
-		//conditionSet
-			//condition
-				//db
-				//id
-				//name
-
-		//localID
-
-		//localKey
-
-		//observedIn
-			//affectedStatus
-			//alleleOrigin
-			//clinicalFeatures
-				//db
-				//id
-				//name
-			//clinicalFeaturesComment
-			//collectionMethod
-			//numberOfIndividuals
-			//structVarMethodType
-
-		//recordStatus
-
-		//releaseStatus
-
-		//variantSet
-			//variant
-				//chromosomeCoordinates
-					//accession
-					//alternateAllele
-					//assembly
-					//chromosome
-					//innertStart
-					//innertStop
-					//outerStart
-					//outerStop
-					//referenceAllele
-					//start
-					//stop
-					//variantLength
-				//copyNumber
-				//gene
-					//id
-					//symbol
-				//hgvs
-				//referenceCopyNumber
-				//variantType
-
-
-//};
-
-//namespace Ui {
-//class ClinvarUploadDialog;
-//}
-
-//class ClinvarUploadDialog
-//		: public QDialog
-//{
-//	Q_OBJECT
-
-//public:
-//	explicit ClinvarUploadDialog(QWidget *parent = 0);
-//	~ClinvarUploadDialog();
-
-//private:
-//	Ui::ClinvarUploadDialog *ui;
-//};
-
 //Datastructure for upload data
 struct ClinvarUploadData
 {
 	//sample data
 	QString processed_sample;
-	QString gender;
+	QString report_id;
 
 	//phenotype data
 	PhenotypeList phenos;
@@ -113,22 +20,12 @@ struct ClinvarUploadData
 	//variant data
 	Variant variant;
 	QString gene;
-	QString nm_number;
-	QString hgvs_g;
-	QString hgvs_c;
-	QString hgvs_p;
 	QString classification;
-	QString genotype;
-	QList<VariantTranscript> trans_data;
 
 	//variant data second variant (e.g. comp-het)
 	Variant variant2;
-	QString hgvs_g2;
-	QString hgvs_c2;
-	QString hgvs_p2;
+	QString gene2;
 	QString classification2;
-	QString genotype2;
-	QList<VariantTranscript> trans_data2;
 };
 
 ///ClinVar upload dialog

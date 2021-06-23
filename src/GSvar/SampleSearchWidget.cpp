@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "ProcessedSampleDataDeletionDialog.h"
 #include "SingleSampleAnalysisDialog.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QAction>
 
@@ -16,7 +17,7 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	//context menu
 	QAction* action = new QAction(QIcon(":/Icons/Icon.png"), "Open variant list", this);
 	ui_.sample_table->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSample()));
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openVariantList()));
 	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openProcessedSampleTab()));
@@ -141,28 +142,28 @@ void SampleSearchWidget::openProcessedSampleTab()
 	foreach(int row, rows)
 	{
 		QString ps_id = ui_.sample_table->getId(row);
-		emit openProcessedSampleTab(db_.processedSampleName(ps_id));
+		GlobalServiceProvider::openProcessedSampleTab(db_.processedSampleName(ps_id));
 	}
 }
 
 void SampleSearchWidget::openProcessedSampleTab(int row)
 {
 	QString ps_id = ui_.sample_table->getId(row);
-	emit openProcessedSampleTab(db_.processedSampleName(ps_id));
+	GlobalServiceProvider::openProcessedSampleTab(db_.processedSampleName(ps_id));
 }
 
-void SampleSearchWidget::openProcessedSample()
+void SampleSearchWidget::openVariantList()
 {
 	QSet<int> rows = ui_.sample_table->selectedRows();
 	if (rows.count()>1)
 	{
-		QMessageBox::warning(this, "Error opening processed sample", "Please select one sample!\nOnly one processed sample can be opened at a time.");
+		QMessageBox::warning(this, "Error opening variant list", "Please select one sample.\nOnly one GSvar file can be opened at a time!");
 		return;
 	}
 	foreach(int row, rows)
 	{
 		QString ps_id = ui_.sample_table->getId(row);
-		emit openProcessedSample(db_.processedSampleName(ps_id));
+		GlobalServiceProvider::openGSvarViaNGSD(db_.processedSampleName(ps_id), true);
 	}
 }
 

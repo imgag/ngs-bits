@@ -12,6 +12,7 @@
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "GenLabDB.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include "GlobalServiceProvider.h"
 
@@ -23,9 +24,9 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	ui_->setupUi(this);
 	GUIHelper::styleSplitter(ui_->splitter);
 	connect(ui_->folder_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleFolder()));
-	connect(ui_->run, SIGNAL(linkActivated(QString)), this, SIGNAL(openRunTab(QString)));
-	connect(ui_->system, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessingSystemTab(QString)));
-	connect(ui_->project, SIGNAL(linkActivated(QString)), this, SIGNAL(openProjectTab(QString)));
+	connect(ui_->run, SIGNAL(linkActivated(QString)), this, SLOT(openRunTab(QString)));
+	connect(ui_->system, SIGNAL(linkActivated(QString)), this, SLOT(openProcessingSystemTab(QString)));
+	connect(ui_->project, SIGNAL(linkActivated(QString)), this, SLOT(openProjectTab(QString)));
 	connect(ui_->open_btn, SIGNAL(clicked(bool)), this, SLOT(loadVariantList()));
 	connect(ui_->qc_all, SIGNAL(stateChanged(int)), this, SLOT(updateQCMetrics()));
 	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
@@ -39,8 +40,8 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->study_edit_btn, SIGNAL(clicked(bool)), this, SLOT(editStudy()));
 	connect(ui_->study_add_btn, SIGNAL(clicked(bool)), this, SLOT(addStudy()));
 	connect(ui_->study_delete_btn, SIGNAL(clicked(bool)), this, SLOT(removeStudy()));
-	connect(ui_->merged, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
-	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
+	connect(ui_->merged, SIGNAL(linkActivated(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(ui_->reanalyze_btn, SIGNAL(clicked(bool)), this, SLOT(queueSampleAnalysis()));
 	connect(ui_->genlab_disease_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseGroupAndInfo()));
 	connect(ui_->genlab_relations_btn, SIGNAL(clicked(bool)), this, SLOT(importSampleRelations()));
@@ -363,7 +364,7 @@ void ProcessedSampleWidget::openSampleTab()
 	}
 	else if (ps_names.count()==1)
 	{
-		emit openProcessedSampleTab(ps_names[0]);
+		GlobalServiceProvider::openProcessedSampleTab(ps_names[0]);
 	}
 	else if (ps_names.count()>0)
 	{
@@ -371,7 +372,7 @@ void ProcessedSampleWidget::openSampleTab()
 		QString ps = QInputDialog::getItem(this, "Select processed sample", "sample:", ps_names, 0, false, &ok);
 		if (ok)
 		{
-			emit openProcessedSampleTab(ps);
+			GlobalServiceProvider::openProcessedSampleTab(ps);
 		}
 	}
 }
@@ -536,7 +537,7 @@ void ProcessedSampleWidget::deleteSampleData()
 
 void ProcessedSampleWidget::loadVariantList()
 {
-	emit openProcessedSampleFromNGSD(NGSD().processedSampleName(ps_id_));
+	GlobalServiceProvider::openGSvarViaNGSD(NGSD().processedSampleName(ps_id_), true);
 }
 
 void ProcessedSampleWidget::addIgvMenuEntry(QMenu* menu, PathType file_type)
@@ -552,12 +553,32 @@ void ProcessedSampleWidget::openIgvTrack()
 	PathType type = static_cast<PathType>(action->data().toInt());
 
 	QString file = GlobalServiceProvider::database().processedSamplePath(ps_id_, type).filename;
-	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(file) + "\"");
+	GlobalServiceProvider::loadFileInIGV(file, false);
 }
 
 void ProcessedSampleWidget::somRepDeleted()
 {
 	emit clearMainTableSomReport(ps_id_);
+}
+
+void ProcessedSampleWidget::openProcessedSampleTab(QString ps)
+{
+	GlobalServiceProvider::openProcessedSampleTab(ps);
+}
+
+void ProcessedSampleWidget::openRunTab(QString name)
+{
+	GlobalServiceProvider::openRunTab(name);
+}
+
+void ProcessedSampleWidget::openProjectTab(QString project_name)
+{
+	GlobalServiceProvider::openProjectTab(project_name);
+}
+
+void ProcessedSampleWidget::openProcessingSystemTab(QString system_short_name)
+{
+	GlobalServiceProvider::openProcessingSystemTab(system_short_name);
 }
 
 void ProcessedSampleWidget::editSample()

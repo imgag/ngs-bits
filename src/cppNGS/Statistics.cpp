@@ -929,7 +929,7 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString exons, QString t
 	return QCValue(qcml_name, QString::number(mutation_burden, 'f', 2), qcml_desc, qcml_id);
 }
 
-QCCollection Statistics::somatic(const QString& build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots, const QString& ref_file_cram)
+QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots, const QString& ref_file_cram)
 {
 	QCCollection output;
 
@@ -1553,7 +1553,7 @@ QCCollection Statistics::somatic(const QString& build, QString& tumor_bam, QStri
 	return output;
 }
 
-QCCollection Statistics::contamination(const QString& build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps)
+QCCollection Statistics::contamination(GenomeBuild build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps)
 {
 	//open BAM
 	BamReader reader(bam, ref_file);
@@ -1601,7 +1601,7 @@ QCCollection Statistics::contamination(const QString& build, QString bam, const 
 	return output;
 }
 
-AncestryEstimates Statistics::ancestry(const QString& build, QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
+AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
 {
 	//init score statistics
 	struct PopScore
@@ -1631,8 +1631,8 @@ AncestryEstimates Statistics::ancestry(const QString& build, QString filename, i
 	}
 
 	//copy ancestry SNP file from resources (gzopen cannot access Qt resources)
-	QString snp_file = ":/Resources/" + build + "_ancestry.vcf";
-	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "' for ancestry estimation!");
+	QString snp_file = ":/Resources/" + buildToString(build) + "_ancestry.vcf";
+	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + buildToString(build) + "' for ancestry estimation!");
 	QString tmp = Helper::tempFileName(".vcf");
 	QFile::copy(snp_file, tmp);
 
@@ -2172,7 +2172,7 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	return output;
 }
 
-GenderEstimate Statistics::genderHetX(const QString& build, QString bam_file, double max_male, double min_female, const QString& ref_file)
+GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, double max_male, double min_female, const QString& ref_file)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2221,23 +2221,14 @@ GenderEstimate Statistics::genderHetX(const QString& build, QString bam_file, do
 	return output;
 }
 
-GenderEstimate Statistics::genderSRY(const QString& build, QString bam_file, double min_cov, const QString& ref_file)
+GenderEstimate Statistics::genderSRY(GenomeBuild build, QString bam_file, double min_cov, const QString& ref_file)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
 
 	//restrict to SRY gene
-	int start = 2655031;
-	int end = 2655641;
-	if (build=="hg38")
-	{
-		start = 2786989;
-		end = 2787603;
-	}
-	else if (build!="hg19")
-	{
-		THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
-	}
+	int start = build==GenomeBuild::HG38 ? 2786989 : 2655031;
+	int end = build==GenomeBuild::HG38 ? 2787603 : 2655641;
 	reader.setRegion(Chromosome("chrY"), start, end);
 
 	//calcualte average coverage
@@ -2257,7 +2248,7 @@ GenderEstimate Statistics::genderSRY(const QString& build, QString bam_file, dou
 }
 
 
-QCCollection Statistics::hrdScore(const CnvList &cnvs, QString build)
+QCCollection Statistics::hrdScore(const CnvList &cnvs, GenomeBuild build)
 {
 	BedFile centromeres = NGSHelper::centromeres(build);
 	BedFile telomeres = NGSHelper::telomeres(build);

@@ -4,6 +4,7 @@
 #include "GUIHelper.h"
 #include "LoginManager.h"
 #include "EmailDialog.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QAction>
 
@@ -177,12 +178,12 @@ void DBTableAdministration::openTabs()
 		if (table_=="project")
 		{
 			QString name = NGSD().getValue("SELECT name FROM project WHERE id=" + id).toString();
-			emit openProjectTab(name);
+			GlobalServiceProvider::openProjectTab(name);
 		}
 		else if (table_=="processing_system")
 		{
 			QString name = NGSD().getValue("SELECT name_short FROM processing_system WHERE id=" + id).toString();
-			emit openProcessingSystemTab(name);
+			GlobalServiceProvider::openProcessingSystemTab(name);
 		}
 	}
 }

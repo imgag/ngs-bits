@@ -44,11 +44,6 @@ public:
 	//Opens a overview table with details and link (is url_prefix is set)
 	static void showOverviewTable(QString title, QString text, char sep, QByteArray url_prefix = "");
 
-signals:
-	void jumbToRegion(QString region);
-	void openVariantTab(Variant variant);
-	void openGeneTab(QString gene);
-
 private slots:
 	void nextTanscript();
 	void previousTanscript();

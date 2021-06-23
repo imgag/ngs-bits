@@ -13,7 +13,7 @@ BamWriter::BamWriter(const QString& bam_file, const QString& ref_file)
 	}
 	else if(bam_file.endsWith(".cram"))
 	{
-		if(ref_file != "" && ref_file != QString::null)
+		if(ref_file != "" && ref_file != QString())
 		{
 			fp_ = sam_open(bam_file.toLatin1().constData(), "wc");
 		}

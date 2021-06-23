@@ -20,6 +20,7 @@ protected slots:
 	void search();
 	void delayedInitialization();
 	void changeSearchType();
+	void openSelectedSampleTabs();
 
 private:
 	Ui::SvSearchWidget ui_;

@@ -16,8 +16,6 @@ public:
 	AnalysisStatusWidget(QWidget *parent = 0);
 
 signals:
-	void openProcessedSampleTab(QString ps_name);
-	void openRunTab(QString run_name);
 	void loadFile(QString gsvar_file);
 
 protected slots:

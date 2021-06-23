@@ -13,10 +13,6 @@ class DBTableAdministration
 public:
 	DBTableAdministration(QString table, QWidget* parent = 0);
 
-signals:
-	void openProjectTab(QString name);
-	void openProcessingSystemTab(QString name_short);
-
 protected slots:
 	void delayedInitialization();
 	void updateTable();

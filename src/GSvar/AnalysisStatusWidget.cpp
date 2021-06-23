@@ -374,7 +374,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	{
 		foreach(const AnalysisJobSample& sample, samples)
 		{
-			emit openProcessedSampleTab(sample.name);
+			GlobalServiceProvider::openProcessedSampleTab(sample.name);
 		}
 	}
 	if (text=="Open sequencing run")
@@ -384,7 +384,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		{
 			QString ps_id = db.processedSampleId(sample.name);
 			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
-			emit openRunTab(ps_data.run_name);
+			GlobalServiceProvider::openRunTab(ps_data.run_name);
 		}
 	}
 	if (text=="Open analysis folder(s)")

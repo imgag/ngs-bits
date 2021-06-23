@@ -63,7 +63,7 @@ public:
 		int max_snps = getInt("max_snps");
 		QString roi = getInfile("roi");
 		bool include_gonosomes = getFlag("include_gonosomes");
-		QString build = getEnum("build");
+		GenomeBuild build = stringToBuild(getEnum("build"));
 		bool skip_multi = getFlag("skip_multi");
 		bool debug = getFlag("debug");
 		QTime timer;
