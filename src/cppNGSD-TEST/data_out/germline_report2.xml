@@ -7,7 +7,7 @@
         <Gene name="SLC25A15"/>
         <Gene name="SPG7"/>
     </TargetRegion>
-    <VariantList overall_number="319" genome_build="hg19">
+    <VariantList overall_number="319" genome_build="GRCh37">
         <Variant chr="chr13" start="41367370" end="41367370" ref="C" obs="G" allele_frequency="0.48" depth="268" genotype="het" causal="false" de_novo="false" comp_het="true" mosaic="false">
             <TranscriptInformation gene="SLC25A15" transcript_id="ENST00000338625.4" type="missense_variant" hgvs_c="8C&gt;G" hgvs_p="Ser3Cys" exon="Exon 2/7"/>
         </Variant>
@@ -18,7 +18,7 @@
             <GeneDiseaseInformation gene="SPG7" source="OMIM phenotype" identifier="607259" name="Spastic paraplegia 7, autosomal recessive, 607259 (3)"/>
         </Variant>
     </VariantList>
-    <CnvList cnv_caller="ClinCNV" overall_number="1" genome_build="hg19" quality="good" number_of_iterations="1" number_of_hq_cnvs="127">
+    <CnvList cnv_caller="ClinCNV" overall_number="1" genome_build="GRCh37" quality="good" number_of_iterations="1" number_of_hq_cnvs="127">
         <Cnv chr="chr21" start="10862601" end="10971365" start_band="21p11.2" end_band="21p11.1" type="del" cn="1" regions="22" causal="false" de_novo="false" comp_het="true" mosaic="false">
             <Gene name="IGHV1OR21-1"/>
             <Gene name="TPTE"/>

@@ -798,7 +798,11 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 
 void MainWindow::on_actionIgvClear_triggered()
 {
-	executeIGVCommands(QStringList() << "new");
+	QStringList commands;
+	commands << "new";
+	commands << ("genome " + Settings::path("igv_genome"));
+	executeIGVCommands(commands);
+
 	igv_initialized_ = false;
 }
 
@@ -2861,7 +2865,7 @@ void MainWindow::checkVariantList(QStringList messages)
 	}
 
 	//check columns
-	foreach(QString col, cols)
+	foreach(const QString& col, cols)
 	{
 		if (variants_.annotationIndexByName(col, true, false)==-1)
 		{
@@ -6047,12 +6051,19 @@ void MainWindow::updateIGVMenu()
 		{
 			QStringList parts = entry.trimmed().split("\t");
 			if(parts.count()!=3) continue;
+
+			//add to menu "custom track default settings"
 			QAction* action = ui_.menuTrackDefaults->addAction("custom track: " + parts[0]);
 			action->setCheckable(true);
 			action->setChecked(parts[1]=="1");
-			action->setToolTip(parts[2]);
 
-			ui_.menuOpenCustomTrack->addAction(parts[0], this, SLOT(openCustomIgvTrack()));
+			//add to menu "open custom track"
+			action = ui_.menuOpenCustomTrack->addAction(parts[0], this, SLOT(openCustomIgvTrack()));
+			if (!QFile::exists(parts[2]))
+			{
+				action->setEnabled(false);
+				action->setText(action->text() + " (missing)");
+			}
 		}
 	}
 }
