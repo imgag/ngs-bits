@@ -1973,10 +1973,10 @@ FilterPredictionPathogenic::FilterPredictionPathogenic()
 	//cutoffs
 	params_ << FilterParameter("cutoff_cadd", FilterParameterType::DOUBLE, 20.0, "Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("cutoff_revel", FilterParameterType::DOUBLE, 0.5, "Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0.");
+	params_ << FilterParameter("cutoff_revel", FilterParameterType::DOUBLE, 0.9, "Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("cutoff_fathmm_mkl", FilterParameterType::DOUBLE, 0.5, "Minimum fathmm-MKL score for a pathogenic prediction. The fathmm-MKL score is not used if set to 0.0.");
+	params_ << FilterParameter("cutoff_fathmm_mkl", FilterParameterType::DOUBLE, 0.9, "Minimum fathmm-MKL score for a pathogenic prediction. The fathmm-MKL score is not used if set to 0.0.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "1";
 	params_ << FilterParameter("cutoff_phylop", FilterParameterType::DOUBLE, 1.6, "Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0.");
@@ -1999,7 +1999,7 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 	i_phylop = annotationColumn(variants, "phyloP");
 	i_sift = annotationColumn(variants, "Sift");
 	i_polyphen = annotationColumn(variants, "PolyPhen");
-	i_fathmm = annotationColumn(variants, "fathmm-MKL");
+	i_fathmm = annotationColumn(variants, "fathmm-MKL", false);
 	i_cadd = annotationColumn(variants, "CADD");
 	i_revel = annotationColumn(variants, "REVEL");
 	skip_high_impact = getBool("skip_high_impact");
@@ -2048,17 +2048,24 @@ bool FilterPredictionPathogenic::predictedPathogenic(const Variant& v) const
 		++count;
 	}
 
-	if (cutoff_fathmm_mkl>0 && v.annotations()[i_fathmm].contains(","))
+	if (cutoff_fathmm_mkl>0)
 	{
-		QByteArrayList parts = v.annotations()[i_fathmm].split(',');
-		foreach(const QByteArray& part, parts)
+		if (i_fathmm==-1)
 		{
-			bool ok = true;
-			double value = part.toDouble(&ok);
-			if (ok && value>=cutoff_fathmm_mkl)
+			THROW(ArgumentException, "Column 'fathmm-MKL' not found. Disable it by setting the score cutoff to 0.0!");
+		}
+		else if (v.annotations()[i_fathmm].contains(","))
+		{
+			QByteArrayList parts = v.annotations()[i_fathmm].split(',');
+			foreach(const QByteArray& part, parts)
 			{
-				++count;
-				break;
+				bool ok = true;
+				double value = part.toDouble(&ok);
+				if (ok && value>=cutoff_fathmm_mkl)
+				{
+					++count;
+					break;
+				}
 			}
 		}
 	}
