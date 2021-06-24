@@ -72,10 +72,10 @@ void RequestWorker::run()
 				request_headers_size = all_request_parts.size();
 			}
 
-			qDebug() << line << " = " << finished_reading_headers;
-			qDebug() << "all_request_parts.size() " << all_request_parts.size();
-			qDebug() << "requestHeadersSize " << request_headers_size;
-			qDebug() << "requestBodySize " << request_body_size;
+//			qDebug() << line << " = " << finished_reading_headers;
+//			qDebug() << "all_request_parts.size() " << all_request_parts.size();
+//			qDebug() << "requestHeadersSize " << request_headers_size;
+//			qDebug() << "requestBodySize " << request_body_size;
 			if ((finished_reading_headers) && ((all_request_parts.size() - request_headers_size) >= request_body_size))
 			{
 				finished_reading_body = true;
@@ -196,7 +196,7 @@ void RequestWorker::run()
 		sendResponseDataPart(ssl_socket, response.getStatusLine());
 		sendResponseDataPart(ssl_socket, response.getHeaders());
 
-		qint64 chunk_size = 1024;
+		qint64 chunk_size = 1024*10;
 		qint64 pos = 0;
 		qint64 file_size = streamed_file.size();
 		while(!streamed_file.atEnd())

@@ -15,10 +15,10 @@ HttpRequest RequestPaser::getRequest() const
 
 	QList<QByteArray> r = raw_request_->split('\n');
 
-	for (int i = 0; i < r.count(); ++i)
-	{
-		qDebug() << "Request line " << i << r.value(i);
-	}
+//	for (int i = 0; i < r.count(); ++i)
+//	{
+//		qDebug() << "Request line " << i << r.value(i);
+//	}
 
 
 
