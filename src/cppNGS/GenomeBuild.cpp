@@ -13,7 +13,7 @@ QString buildToString(GenomeBuild build, bool grch)
 
 GenomeBuild stringToBuild(QString build)
 {
-	build = build.toLower();
+	build = build.toLower().trimmed();
 
 	if (build=="hg19" || build=="grch37") return GenomeBuild::HG19;
 	if (build=="hg38" || build=="grch38") return GenomeBuild::HG38;

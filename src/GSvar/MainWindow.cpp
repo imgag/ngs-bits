@@ -2827,6 +2827,12 @@ void MainWindow::loadFile(QString filename)
 
 void MainWindow::checkVariantList(QStringList messages)
 {
+	//check genome builds match
+	if (variants_.getBuild()!=GSvarHelper::build())
+	{
+		messages << "genome build of GSvar file (" + buildToString(variants_.getBuild(), true) + ") not matching genome build of the GSvar application (" + buildToString(GSvarHelper::build(), true) + ")!";
+	}
+
 	//check creation date
 	QDate create_date = variants_.getCreationDate();
 	if (create_date.isValid() && create_date < QDate::currentDate().addDays(-42))
