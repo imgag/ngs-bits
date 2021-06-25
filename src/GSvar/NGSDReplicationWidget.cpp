@@ -129,16 +129,27 @@ void NGSDReplicationWidget::replicateBaseData(NGSD& source, NGSD& target)
 		SqlQuery q_add = target.getQuery();
 		q_add.prepare("INSERT INTO "+table+" VALUES (:" + fields.join(", :") + ")");
 
-		//replicate
-		QSet<QString> source_ids;
+		//delete removed entries
+		QSet<QString> source_ids = source.getValues("SELECT id FROM " + table + " ORDER BY id ASC").toSet();
 		QStringList target_ids = target.getValues("SELECT id FROM " + table + " ORDER BY id ASC");
+		foreach(const QString& id, target_ids)
+		{
+			if (!source_ids.contains(id))
+			{
+				q_del.bindValue(0, id);
+				q_del.exec();
+
+				++c_removed;
+			}
+		}
+
+		//add new entries
 		SqlQuery query = source.getQuery();
 		query.exec("SELECT * FROM "+table+" ORDER BY id ASC");
 		while(query.next())
 		{
 			QString id = query.value("id").toString();
-			source_ids << id;
-			if (target_ids.contains(id)) continue;
+			if (target_ids.contains(id)) continue; //TODO implement update of data
 
 			foreach(const QString& field, fields)
 			{
@@ -161,16 +172,6 @@ void NGSDReplicationWidget::replicateBaseData(NGSD& source, NGSD& target)
 				}
 			}
 			++c_added;
-		}
-		foreach(const QString& id, target_ids)
-		{
-			if (!source_ids.contains(id))
-			{
-				q_del.bindValue(0, id);
-				q_del.exec();
-
-				++c_removed;
-			}
 		}
 
 		addLine("  Table "+table+" replicated: Added " + QString::number(c_added) + " rows, removed  " + QString::number(c_removed) + " rows. Time: " + Helper::elapsedTime(timer));

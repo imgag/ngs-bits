@@ -1291,7 +1291,7 @@
   </action>
   <action name="actionReplicateNGSD">
    <property name="text">
-    <string>Replicate (hg19 to hg38)</string>
+    <string>Replicate NGSD (hg19 to hg38)</string>
    </property>
   </action>
  </widget>
