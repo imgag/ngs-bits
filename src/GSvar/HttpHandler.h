@@ -26,11 +26,11 @@ public:
 	void setHeader(const QByteArray& key, const QByteArray& value);
 
 	///Performs GET request
-	QString get(QString url, const HttpHeaders& add_headers = HttpHeaders());
+	QByteArray get(QString url, const HttpHeaders& add_headers = HttpHeaders());
 	///Performs POST request
-	QString post(QString url, const QByteArray& data, const HttpHeaders& add_headers = HttpHeaders());
+	QByteArray post(QString url, const QByteArray& data, const HttpHeaders& add_headers = HttpHeaders());
 	///Performs POST request for content type multipart
-	QString post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers = HttpHeaders() );
+	QByteArray post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers = HttpHeaders() );
 
 public slots:
 	///Handles proxy authentification
