@@ -13,6 +13,12 @@
 #include "FileLocationProviderLocal.h"
 #include "VariantList.h"
 
+struct SampleMetadata
+{
+	SampleHeaderInfo header;
+	AnalysisType type;
+};
+
 
 class EndpointHandler
 {
@@ -39,6 +45,8 @@ public:
 private:
 	/// Creates a temporary URL for a file (includes a file name and its full path)
 	static QString createFileTempUrl(const QString& file);
+	/// Reads the sample header from a variant list
+	static SampleMetadata getSampleMetadata(const QString& gsvar_file, bool allow_fallback_germline_single_sample=true);
 };
 
 #endif // ENDPOINTHANDLER_H

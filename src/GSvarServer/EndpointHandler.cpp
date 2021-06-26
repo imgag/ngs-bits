@@ -43,7 +43,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 	{
 		return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Sample id has not been provided");
 	}
-	QString ps_url_id = request.getUrlParams().value("ps_url_id");
+	QString ps_url_id = request.getUrlParams()["ps_url_id"];
 
 	UrlEntity url_entity = UrlManager::getURLById(ps_url_id.trimmed());	
 	QString found_file = url_entity.filename_with_path;
@@ -51,7 +51,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 	bool return_if_missing = true;
 	if (!request.getUrlParams().contains("return_if_missing"))
 	{
-		if (request.getUrlParams().value("return_if_missing") == "0")
+		if (request.getUrlParams()["return_if_missing"] == "0")
 		{
 			return_if_missing = false;
 		}
@@ -62,10 +62,11 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Could not find the sample: " + request.getUrlParams().value("ps_url_id"));
 	}
 
-	VariantList variants;
-	variants.load(found_file);
-
-	FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type());
+//	VariantList variants;
+//	variants.load(found_file);
+//	FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type());
+	SampleMetadata metadata = getSampleMetadata(found_file, true);
+	FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, metadata.header, metadata.type);
 
 	QList<FileLocation> file_list {};
 	QJsonDocument json_doc_output {};
@@ -426,4 +427,133 @@ QString EndpointHandler::createFileTempUrl(const QString& file)
 	return ServerHelper::getStringSettingsValue("server_host") +
 			+ ":" + ServerHelper::getStringSettingsValue("server_port") +
 			+ "/v1/temp/" + id + "/" + QFileInfo(file).fileName();
+}
+
+SampleMetadata EndpointHandler::getSampleMetadata(const QString& gsvar_file, bool allow_fallback_germline_single_sample)
+{
+	SampleMetadata output;
+	QStringList comments;
+	// Open a file to read the comments section at the top
+	QSharedPointer<QFile> file = Helper::openFileForReading(gsvar_file, true);
+	while(!file->atEnd())
+	{
+		QByteArray line = file->readLine();
+		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+
+		if(line.length()==0) continue;
+
+		if (line.startsWith("##"))
+		{
+//			QList <QByteArray> parts = line.split('=');
+//			if ((!line.startsWith("##DESCRIPTION=") && parts.count()<=2) && (!line.startsWith("##FILTER=") && parts.count()<=2))
+//			{
+				comments.append(line);
+//			}
+//			continue;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	// Getting type
+	bool type_header_found = false;
+	foreach(const QString& line, comments)
+	{
+		if (line.startsWith("##ANALYSISTYPE="))
+		{
+			type_header_found = true;
+			QString type = line.mid(15).trimmed();
+			if (type=="GERMLINE_SINGLESAMPLE")
+			{
+				output.type = AnalysisType::GERMLINE_SINGLESAMPLE;
+			}
+			else if (type=="GERMLINE_TRIO")
+			{
+				output.type = AnalysisType::GERMLINE_TRIO;
+			}
+			else if (type=="GERMLINE_MULTISAMPLE")
+			{
+				output.type = AnalysisType::GERMLINE_MULTISAMPLE;
+			}
+			else if (type=="SOMATIC_SINGLESAMPLE")
+			{
+				output.type = AnalysisType::SOMATIC_SINGLESAMPLE;
+			}
+			else if (type=="SOMATIC_PAIR")
+			{
+				output.type = AnalysisType::SOMATIC_PAIR;
+			}
+			else
+			{
+				THROW(ProgrammingException, "Unknown analysis type with string representation '" + type + "'!");
+			}
+		}
+	}
+
+	qDebug() << "After type";
+	//fallback for old files without ANALYSISTYPE header and for default-constructed variant lists
+	if ((allow_fallback_germline_single_sample) && (!type_header_found))
+	{
+		output.type = AnalysisType::GERMLINE_SINGLESAMPLE;
+	}
+
+	if ((!allow_fallback_germline_single_sample) && (!type_header_found))
+	{
+		THROW(FileParseException, "No ANALYSISTYPE line found in variant list header!");
+	}
+
+	// Getting header info
+	foreach(QString line, comments)
+	{
+		line = line.trimmed();
+
+		if (line.startsWith("##SAMPLE=<"))
+		{
+			qDebug() << "Sample line found";
+			//split into key=value pairs
+			QStringList parts = line.mid(10, line.length()-11).split(',');
+			for (int i=1; i<parts.count(); ++i)
+			{
+				if (!parts[i].contains("="))
+				{
+					parts[i-1] += "," + parts[i];
+					parts.removeAt(i);
+					--i;
+				}
+			}
+
+			foreach(const QString& part, parts)
+			{
+				int sep_idx = part.indexOf('=');
+				QString key = part.left(sep_idx);
+				QString value = part.mid(sep_idx+1);
+				if (key=="ID")
+				{
+					SampleInfo tmp;
+					tmp.id = value;
+					tmp.column_name = value;
+					qDebug() << value;
+					output.header << tmp;
+					qDebug() << tmp.id;
+				}
+				else
+				{
+					output.header.last().properties[key] = value;
+				}
+			}
+		}
+	}
+
+	if (output.header.count()==0) THROW(ProgrammingException, "No sample information found in the variant list header!");
+
+	//determine column index
+
+	for (int i=0; i<output.header.count(); ++i)
+	{
+		output.header[i].column_index = -1;//annotationIndexByName(output.header[i].column_name, true, output.type!=AnalysisType::SOMATIC_SINGLESAMPLE && output.type!=AnalysisType::SOMATIC_PAIR);
+	}
+
+	return output;
 }
