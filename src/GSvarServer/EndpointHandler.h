@@ -47,6 +47,9 @@ private:
 	static QString createFileTempUrl(const QString& file);
 	/// Reads the sample header from a variant list
 	static SampleMetadata getSampleMetadata(const QString& gsvar_file, bool allow_fallback_germline_single_sample=true);
+	/// Finds a column index by the annotation name (column title)
+	static int annotationIndexByName(QList<VariantAnnotationHeader>& annotations, const QString& name, bool exact_match, bool error_on_mismatch);
+
 };
 
 #endif // ENDPOINTHANDLER_H

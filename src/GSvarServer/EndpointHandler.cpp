@@ -433,6 +433,9 @@ SampleMetadata EndpointHandler::getSampleMetadata(const QString& gsvar_file, boo
 {
 	SampleMetadata output;
 	QStringList comments;
+	QList<VariantAnnotationHeader> annotations;
+	constexpr int special_cols = 5;
+
 	// Open a file to read the comments section at the top
 	QSharedPointer<QFile> file = Helper::openFileForReading(gsvar_file, true);
 	while(!file->atEnd())
@@ -450,6 +453,14 @@ SampleMetadata EndpointHandler::getSampleMetadata(const QString& gsvar_file, boo
 				comments.append(line);
 //			}
 //			continue;
+		}
+		else if (line.startsWith("#"))
+		{
+			QList <QByteArray> fields = line.split('\t');
+			for (int i=special_cols; i<fields.count(); ++i)
+			{
+				annotations.append(VariantAnnotationHeader(fields[i]));
+			}
 		}
 		else
 		{
@@ -552,8 +563,50 @@ SampleMetadata EndpointHandler::getSampleMetadata(const QString& gsvar_file, boo
 
 	for (int i=0; i<output.header.count(); ++i)
 	{
-		output.header[i].column_index = -1;//annotationIndexByName(output.header[i].column_name, true, output.type!=AnalysisType::SOMATIC_SINGLESAMPLE && output.type!=AnalysisType::SOMATIC_PAIR);
+		output.header[i].column_index = annotationIndexByName(annotations, output.header[i].column_name, true, output.type!=AnalysisType::SOMATIC_SINGLESAMPLE && output.type!=AnalysisType::SOMATIC_PAIR);
 	}
 
 	return output;
+}
+
+int EndpointHandler::annotationIndexByName(QList<VariantAnnotationHeader>& annotations, const QString& name, bool exact_match, bool error_on_mismatch)
+{
+	//find matches
+	QList<int> matches;
+	for(int i=0; i<annotations.count(); ++i)
+	{
+		if ((exact_match && annotations[i].name().compare(name, Qt::CaseInsensitive)==0) || (!exact_match && annotations[i].name().contains(name, Qt::CaseInsensitive)))
+		{
+			matches.append(i);
+		}
+	}
+
+	//error checks
+	if (matches.count()<1)
+	{
+		if (error_on_mismatch)
+		{
+			THROW(ArgumentException, "Could not find column '" + name + "' in variant list!");
+		}
+		else
+		{
+			return -1;
+		}
+	}
+
+	if (matches.count()>1)
+	{
+		if (error_on_mismatch)
+		{
+			THROW(ArgumentException, "Found multiple columns for '" + name + "' in variant list!");
+		}
+		else
+		{
+			Log::warn("Found multiple columns for '" + name + "' in variant list!");
+			return -2;
+		}
+	}
+
+	//return result
+	return matches.at(0);
 }
