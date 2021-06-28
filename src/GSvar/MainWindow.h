@@ -46,7 +46,7 @@ public:
 	///Upload variant to LOVD
 	void uploadtoLovd(int variant_index, int variant_index2 = -1);
 	///Upload variant to Clinvar
-	void uploadToClinvar(int variant_index, int variant_index2 = -1);
+	void uploadToClinvar(int variant_index);
 
 	///Context menu for single variant
 	void contextMenuSingleVariant(QPoint pos, int index);

@@ -4702,40 +4702,80 @@ void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
 	dlg.exec();
 }
 
-void MainWindow::uploadToClinvar(int variant_index, int variant_index2)
+void MainWindow::uploadToClinvar(int variant_index)
 {
-	//(1) prepare data as far as we can (no RefSeq transcript data is available)
+	if (!LoginManager::active()) return;
+
+	//abort if no report config is available
+	if (!germlineReportSupported())
+	{
+		QMessageBox::warning(this, "Report configuration missing", "No report configuration available. \nOnly variants with report configuration can be published!");
+		return;
+	}
+
+	//(1) prepare data as far as we can
+	QString processed_sample = germlineReportSample();
+	QString sample_id = NGSD().sampleId(processed_sample);
+	SampleData sample_data = NGSD().getSampleData(sample_id);
 	ClinvarUploadData data;
 
-	//sample name
-	data.processed_sample = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
+	//get disease info
+	data.disease_info = NGSD().getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
+	data.disease_info.append(NGSD().getSampleDiseaseInfo(sample_id, "Orpha number"));
+	if (data.disease_info.length() < 1)
+	{
+		QMessageBox::warning(this, "No disease info", "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
+		return;
+	}
 
-	//gender
-	NGSD db;
-	QString sample_id = db.sampleId(data.processed_sample);
-	SampleData sample_data = db.getSampleData(sample_id);
+	// get affected status
+	data.affected_status = sample_data.disease_status;
 
-	//phenotype(s)
+	//get phenotype(s)
 	data.phenos = sample_data.phenotypes;
 
-	//data 1st variant
+	//get variant info
 	const Variant& variant = variants_[variant_index];
 	data.variant = variant;
-	int classification_index = variants_.annotationIndexByName("classification");
-	data.classification = variant.annotations()[classification_index];
 
-
-	//data 2nd variant (comp-het)
-	if (variant_index2!=-1)
+	// get report info
+	if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index))
 	{
-		const Variant& variant2 = variants_[variant_index2];
-		data.variant2 = variant2;
-		data.classification2 = variant2.annotations()[classification_index];
+		QMessageBox::warning(this, "Variant not in ReportConfig", "The variant has to be in NGSD and part of a report config to be published!");
+		return;
 	}
+	data.report_variant_config = report_settings_.report_config.data()->get(VariantType::SNVS_INDELS, variant_index);
+	if (data.report_variant_config.classification.trimmed().isEmpty())
+	{
+		QMessageBox::warning(this, "No Classification", "The variant has to have a classification to be published!");
+		return;
+	}
+
+	//genes
+	int gene_idx = variants_.annotationIndexByName("gene");
+	data.genes = GeneSet::createFromText(variant.annotations()[gene_idx], ',');
+
+	//determine NGSD ids of variant and report variant
+	QString var_id = NGSD().variantId(variant, false);
+	if (var_id == "")
+	{
+		QMessageBox::warning(this, "Variant not in NGSD", "The variant has to be in NGSD and part of a report config to be published!");
+		return;
+	}
+	data.variant_id = Helper::toInt(var_id);
+	//extract report variant id
+	int rc_id = NGSD().reportConfigId(NGSD().processedSampleId(processed_sample));
+	if (rc_id == -1 )
+	{
+		THROW(DatabaseException, "Could not determine report config id for sample " + processed_sample + "!");
+	}
+
+	data.variant_report_config_id = NGSD().getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id="
+													+ QString::number(rc_id) + " AND variant_id=" + QString::number(data.variant_id), false).toInt();
+
 
 	// (2) show dialog
 	ClinvarUploadDialog dlg(this);
-	qDebug() << "open Clinvar dialog!";
 	dlg.setData(data);
 	dlg.exec();
 }
@@ -5293,7 +5333,6 @@ void MainWindow::contextMenuTwoVariants(QPoint pos, int index1, int index2)
 	//create context menu
 	QMenu menu(ui_.vars);
 	QAction* a_lovd = menu.addAction(QIcon("://Icons/LOVD.png"), "Publish in LOVD (comp-het)");
-	QAction* a_clinvar = menu.addAction(QIcon(""), "Publish in ClinVar (comp-het)");
 
 	//execute
 	QAction* action = menu.exec(pos);
@@ -5309,18 +5348,6 @@ void MainWindow::contextMenuTwoVariants(QPoint pos, int index1, int index2)
 		catch (Exception& e)
 		{
 			GUIHelper::showMessage("LOVD upload error", "Error while uploading variant to LOVD: " + e.message());
-			return;
-		}
-	}
-	else if(action==a_clinvar)
-	{
-		try
-		{
-			uploadToClinvar(index1, index2);
-		}
-		catch (Exception& e)
-		{
-			GUIHelper::showMessage("ClinVar upload error", "Error while uploading variant to ClinVar: " + e.message());
 			return;
 		}
 	}

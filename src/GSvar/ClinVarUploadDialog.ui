@@ -17,312 +17,6 @@
    <item>
     <layout class="QVBoxLayout" name="layoutCol1">
      <item>
-      <layout class="QGridLayout" name="gridLayout_4">
-       <item row="2" column="1">
-        <widget class="QComboBox" name="cb_record_status">
-         <item>
-          <property name="text">
-           <string>novel</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>update</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="le_local_key"/>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_22">
-         <property name="text">
-          <string>Local ID:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_23">
-         <property name="text">
-          <string>Local key:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="le_local_id"/>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_24">
-         <property name="text">
-          <string>Record status:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_34">
-         <property name="text">
-          <string>release status:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QComboBox" name="cb_release_status">
-         <item>
-          <property name="text">
-           <string>public</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>hold until published</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_10">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Clinical significance:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <property name="spacing">
-        <number>3</number>
-       </property>
-       <item row="3" column="2">
-        <widget class="QDateEdit" name="de_last_eval"/>
-       </item>
-       <item row="1" column="2">
-        <widget class="QComboBox" name="cb_clin_sig_desc"/>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_16">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>Citation:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_17">
-         <property name="text">
-          <string>Clinical significance description:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_18">
-         <property name="text">
-          <string>Comment:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_20">
-         <property name="text">
-          <string>inheritance:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_19">
-         <property name="text">
-          <string>last evaluated:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QLineEdit" name="le_clin_sig_desc_comment"/>
-       </item>
-       <item row="4" column="2">
-        <widget class="QComboBox" name="cb_inheritance"/>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_25">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Observed in:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <layout class="QGridLayout" name="gridLayout_5">
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_30">
-         <property name="text">
-          <string>collection method:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="label_31">
-         <property name="text">
-          <string>number of individuals:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_26">
-         <property name="text">
-          <string>affected status:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_27">
-         <property name="text">
-          <string>allele origin:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_29">
-         <property name="text">
-          <string>clinical feature comment:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_28">
-         <property name="text">
-          <string>clinical fatures:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="0">
-        <widget class="QLabel" name="label_32">
-         <property name="text">
-          <string>struct var method type:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="cb_affected_status"/>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="cb_allele_origin"/>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLabel" name="label_33">
-         <property name="text">
-          <string>use phenotype data?</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="le_clin_feat_comment"/>
-       </item>
-       <item row="4" column="1">
-        <widget class="QComboBox" name="cb_collection_method"/>
-       </item>
-       <item row="5" column="1">
-        <widget class="QSpinBox" name="sb_n_individuals">
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>999</number>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="1">
-        <widget class="QComboBox" name="cb_method_type"/>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_13">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Sample data:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <property name="spacing">
-        <number>3</number>
-       </property>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_14">
-         <property name="text">
-          <string>Processed sample:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_15">
-         <property name="text">
-          <string>Gender:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="processed_sample">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="readOnly">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="gender">
-         <property name="maximumSize">
-          <size>
-           <width>100</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <item>
-          <property name="text">
-           <string>n/a</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>male</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>female</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
       <widget class="QLabel" name="label">
        <property name="font">
         <font>
@@ -341,149 +35,364 @@
        <property name="spacing">
         <number>3</number>
        </property>
-       <item row="3" column="2">
-        <widget class="QSpinBox" name="sb_start2">
-         <property name="maximum">
-          <number>1000000000</number>
-         </property>
-        </widget>
-       </item>
        <item row="5" column="0">
         <widget class="QLabel" name="label_39">
-         <property name="text">
-          <string>Ref:</string>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
          </property>
-        </widget>
-       </item>
-       <item row="5" column="2">
-        <widget class="QLineEdit" name="le_ref2"/>
-       </item>
-       <item row="4" column="2">
-        <widget class="QSpinBox" name="sb_end2">
-         <property name="maximum">
-          <number>1000000000</number>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLabel" name="label_35">
          <property name="text">
-          <string>1. Variant</string>
+          <string>ref:</string>
          </property>
         </widget>
        </item>
        <item row="4" column="0">
         <widget class="QLabel" name="label_38">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
-          <string>End:</string>
+          <string>end:</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="2">
-        <widget class="QComboBox" name="cb_chr2"/>
-       </item>
-       <item row="1" column="2">
-        <widget class="QLabel" name="label_36">
-         <property name="text">
-          <string>2. Variant</string>
+       <item row="3" column="2">
+        <widget class="QLineEdit" name="le_start">
+         <property name="toolTip">
+          <string>The start location for the reference allele in chromosome coordinates. </string>
          </property>
         </widget>
        </item>
-       <item row="4" column="1">
-        <widget class="QSpinBox" name="sb_end1">
-         <property name="maximum">
-          <number>1000000000</number>
+       <item row="4" column="2">
+        <widget class="QLineEdit" name="le_end">
+         <property name="toolTip">
+          <string>The stop location for the reference allele in chromosome coordinates.</string>
          </property>
         </widget>
-       </item>
-       <item row="7" column="1">
-        <widget class="QLineEdit" name="le_gene1"/>
        </item>
        <item row="7" column="2">
-        <widget class="QLineEdit" name="le_gene2"/>
+        <widget class="QLineEdit" name="le_gene">
+         <property name="toolTip">
+          <string>Gene symbol should be provided only to indicate the gene-disease relationship supporting the variant interpretation. </string>
+         </property>
+        </widget>
        </item>
        <item row="2" column="0">
         <widget class="QLabel" name="label_2">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
-          <string>Chr:</string>
+          <string>chr:</string>
          </property>
         </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="cb_chr1">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>16777215</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QLineEdit" name="le_ref1"/>
        </item>
        <item row="6" column="0">
         <widget class="QLabel" name="label_40">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
-          <string>Alt:</string>
+          <string>obs:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_37">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>start:</string>
          </property>
         </widget>
        </item>
        <item row="7" column="0">
         <widget class="QLabel" name="label_5">
          <property name="text">
-          <string>Gene:</string>
+          <string>gene:</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_37">
-         <property name="text">
-          <string>Start:</string>
+       <item row="5" column="2">
+        <widget class="QLineEdit" name="le_ref">
+         <property name="toolTip">
+          <string>The reference allele for the submitted variant. </string>
          </property>
         </widget>
        </item>
-       <item row="6" column="1">
-        <widget class="QLineEdit" name="le_alt1"/>
+       <item row="2" column="2">
+        <widget class="QComboBox" name="cb_chr">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="toolTip">
+          <string>The chromosome for the location of the variant. Values are 1-22, X, Y, and MT. If the location is pseudoautosomal, submit on X and  ClinVar will calculate the Y location.</string>
+         </property>
+        </widget>
        </item>
-       <item row="6" column="2">
-        <widget class="QLineEdit" name="le_alt2"/>
-       </item>
-       <item row="3" column="1">
-        <widget class="QSpinBox" name="sb_start1">
-         <property name="maximum">
-          <number>1000000000</number>
+       <item row="8" column="2">
+        <widget class="QComboBox" name="cb_var_type">
+         <property name="toolTip">
+          <string>The type of variant.</string>
          </property>
         </widget>
        </item>
        <item row="8" column="0">
         <widget class="QLabel" name="label_3">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
           <string>variant type:</string>
          </property>
         </widget>
        </item>
-       <item row="8" column="1">
-        <widget class="QComboBox" name="cb_var_type1"/>
+       <item row="6" column="2">
+        <widget class="QLineEdit" name="le_obs">
+         <property name="toolTip">
+          <string>The alternate allele for the submitted variant. </string>
+         </property>
+        </widget>
        </item>
-       <item row="8" column="2">
-        <widget class="QComboBox" name="cb_var_type2"/>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <layout class="QGridLayout" name="gridLayout_6">
-       <item row="0" column="0">
+       <item row="1" column="0">
         <widget class="QLabel" name="label_4">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
           <string>assembly:</string>
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="cb_assembly"/>
+       <item row="1" column="2">
+        <widget class="QComboBox" name="cb_assembly">
+         <property name="toolTip">
+          <string>The genome assembly that was used to call the variant.</string>
+         </property>
+        </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_25">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Observed in:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_26">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>affected status:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QComboBox" name="cb_allele_origin">
+         <property name="acceptDrops">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>The genetic origin of the variant for individuals in each aggregate observation. Note that biparental and uniparental are intended for the context of uniparental disomy. For de novo variants, please indicate 'de novo', not the origin of the chromosome.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_27">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>allele origin:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="cb_affected_status">
+         <property name="toolTip">
+          <string>Indicates whether or not the individual was affected by the condition for the interpretation.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_30">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>collection method:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QComboBox" name="cb_collection_method">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The method used to collect the data for each observation, e.g. clinical testing or research.  See &lt;a href=&quot;https://www.ncbi.nlm.nih.gov/clinvar/docs/spreadsheet/#collection&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://www.ncbi.nlm.nih.gov/clinvar/docs/spreadsheet/#collection&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_24">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>record status:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="cb_record_status">
+         <item>
+          <property name="text">
+           <string>novel</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>update</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_34">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>release status:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QComboBox" name="cb_release_status">
+         <property name="toolTip">
+          <string>&quot;hold until published&quot; allows a temporary hold on data being presented publicly. If no value is provided, the default is public.&quot;</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>public</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>hold until published</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="Line" name="line_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="label_11">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Clinical features (phenotype data):</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PhenotypeSelectionWidget" name="phenos" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>400</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_29">
+         <property name="text">
+          <string>clinical feature comment:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="le_clin_feat_comment">
+         <property name="toolTip">
+          <string>To provide a free text explanation of clinical features provided in the previous column, e.g. to describe the progression of disease or diagnosis. Please use this comment to expand on the information in 'clinicalFeatures'</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="gridLayout_6"/>
      </item>
      <item>
       <spacer name="verticalSpacer_2">
@@ -503,6 +412,84 @@
    <item>
     <layout class="QVBoxLayout" name="layoutCol2">
      <item>
+      <widget class="QLabel" name="label_10">
+       <property name="font">
+        <font>
+         <pointsize>10</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Clinical significance:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <item row="0" column="2">
+        <widget class="QComboBox" name="cb_clin_sig_desc">
+         <property name="toolTip">
+          <string>The interpretation, or clinical significance, of the variant for the submitted condition. </string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QDateEdit" name="de_last_eval"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_19">
+         <property name="text">
+          <string>last evaluated:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_17">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>clinical significance description:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_20">
+         <property name="text">
+          <string>inheritance:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_18">
+         <property name="text">
+          <string>comment:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLineEdit" name="le_clin_sig_desc_comment"/>
+       </item>
+       <item row="3" column="2">
+        <widget class="QComboBox" name="cb_inheritance"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="Line" name="line_3">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QLabel" name="label_21">
        <property name="font">
         <font>
@@ -517,26 +504,16 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="label_11">
-       <property name="font">
-        <font>
-         <pointsize>10</pointsize>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
+      <widget class="QLabel" name="label_6">
        <property name="text">
-        <string>Phenotype data:</string>
+        <string>disease info:</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="PhenotypeSelectionWidget" name="phenos" native="true">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>300</height>
-        </size>
+      <widget class="QTableWidget" name="tw_disease_info">
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
        </property>
       </widget>
      </item>
@@ -563,6 +540,13 @@
         </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="Line" name="line_4">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_12">
@@ -613,6 +597,44 @@
       </layout>
      </item>
      <item>
+      <widget class="Line" name="line_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="le_local_key"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_22">
+         <property name="text">
+          <string>local id:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="le_local_id"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_23">
+         <property name="text">
+          <string>local key:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Debug:</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -638,9 +660,7 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>processed_sample</tabstop>
-  <tabstop>gender</tabstop>
-  <tabstop>cb_chr1</tabstop>
+  <tabstop>cb_chr</tabstop>
   <tabstop>upload_btn</tabstop>
   <tabstop>print_btn</tabstop>
  </tabstops>

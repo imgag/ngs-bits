@@ -10,22 +10,21 @@
 //Datastructure for upload data
 struct ClinvarUploadData
 {
-	//sample data
-	QString processed_sample;
-	QString report_id;
+    //sample data
+    int variant_id;
+    int variant_report_config_id;
+    ReportVariantConfiguration report_variant_config;
 
-	//phenotype data
-	PhenotypeList phenos;
+    //disease data
+    QList<SampleDiseaseInfo> disease_info;
+    QString affected_status;
 
-	//variant data
-	Variant variant;
-	QString gene;
-	QString classification;
+    //phenotype data
+    PhenotypeList phenos;
 
-	//variant data second variant (e.g. comp-het)
-	Variant variant2;
-	QString gene2;
-	QString classification2;
+    //variant data
+    Variant variant;
+    GeneSet genes;
 };
 
 ///ClinVar upload dialog
@@ -35,39 +34,30 @@ class ClinvarUploadDialog
 	Q_OBJECT
 
 public:
-
-	ClinvarUploadDialog(QWidget *parent = 0);
-
-	void setData(ClinvarUploadData data);
+    ClinvarUploadDialog(QWidget *parent = 0);
+    void setData(ClinvarUploadData data);
 
 private slots:
     void initGui();
-	void upload();
-	void checkGuiData();
-	void printResults();
-	void updatePrintButton();
-	void updateSecondVariantGui();
-	void setTranscriptInfoVariant1();
-	void setTranscriptInfoVariant2();
+    void upload();
+    void checkGuiData();
+    void printResults();
+    void updatePrintButton();
 
 private:
-	Ui::ClinVarUploadDialog ui_;
-	NGSD db_;
-	Variant variant1_;
-	Variant variant2_;
-	ClinvarUploadData data_;
+    Ui::ClinVarUploadDialog ui_;
+    NGSD db_;
+    Variant variant1_;
+    ClinvarUploadData data_;
 
-	//Returns if compound-heterozygous mode is active, i.e. two variants were set through 'setData' or using the GUI
-	bool isCompHet() const;
-//	QByteArray createJson();
+
     QJsonObject createJson();
 
-	static void createJsonForVariant(QTextStream& stream, QString chr, QString gene, QString transcript, QLineEdit* hgvs_g, QLineEdit* hgvs_c, QLineEdit* hgvs_p, QComboBox* genotype, QComboBox* classification);
-	static QString getSettings(QString key);
-	static QString convertGender(QString gender);
-	static QString convertGenotype(QString genotype);
-	static QString convertClassification(QString classification);
-	static QString chromosomeToAccession(const Chromosome& chr);
+    static QString getSettings(QString key);
+    static QString convertClassification(QString classification);
+    static QString convertInheritance(QString inheritance);
+    static QString convertAffectedStatus(QString affected_status);
+
 
     static const QStringList CLINICAL_SIGNIFICANCE_DESCRIPTION;
     static const QStringList MODE_OF_INHERITANCE;
@@ -75,6 +65,7 @@ private:
     static const QStringList ALLELE_ORIGIN;
     static const QStringList COLLECTION_METHOD;
     static const QStringList STRUCT_VAR_METHOD_TYPE;
+    static const QStringList ASSEMBLY;
     static const QStringList CHR;
     static const QStringList VARIANT_TYPE;
 
