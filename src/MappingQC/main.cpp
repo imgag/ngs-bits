@@ -73,7 +73,7 @@ public:
 		}
         else if(rna)
 		{
-			metrics = Statistics::mapping_rna(in, min_maqp, ref_file);
+			metrics = Statistics::mapping(in, min_maqp, ref_file);
 
             //parameters
             parameters << "-rna";

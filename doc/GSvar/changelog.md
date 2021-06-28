@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2021_06-9 (22.06.21)
+- added warning dialog shown after loading a GSvar file if sample quality is 'bad', or KASP swap probability is larger than 3%.
+
+
 ### 2021_03-69 (20.05.21)
 - General: added pre-filtering of CNVs if too many.
 - Processed sample tab: added report configuration summary.

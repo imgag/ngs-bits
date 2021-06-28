@@ -136,7 +136,7 @@ void FastqFileStream::readEntry(FastqEntry& entry)
     //special cases handling
     if (is_first_entry_)
     {
-		last_output_ = gzgets(gzfile_, buffer_, 1024);
+		last_output_ = gzgets(gzfile_, buffer_, 1024); //TODO try speed-up by readling bigger chunks and extrancting the lines from the chunks, like in VcfFile::loadFromVCFGZ
         is_first_entry_ = false;
     }
 

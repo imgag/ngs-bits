@@ -147,7 +147,7 @@ void SequencingRunOverview::moveSamples()
 	//check run status
 	int status_col = ui_.table->columnIndex("status");
 	QString status = ui_.table->item(row, status_col)->text();
-	if (status!="run_aborted" || status=="analysis_not_possible")
+	if (status!="run_aborted" && status!="analysis_not_possible")
 	{
 		QMessageBox::critical(this, "Moving samples", "Please select a run with status 'run_aborted' or 'analysis_not_possible'!");
 		return;

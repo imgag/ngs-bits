@@ -800,7 +800,11 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 
 void MainWindow::on_actionIgvClear_triggered()
 {
-	executeIGVCommands(QStringList() << "new");
+	QStringList commands;
+	commands << "new";
+	commands << ("genome " + Settings::path("igv_genome"));
+	executeIGVCommands(commands);
+
 	igv_initialized_ = false;
 }
 
@@ -2831,6 +2835,12 @@ void MainWindow::loadFile(QString filename)
 
 void MainWindow::checkVariantList(QStringList messages)
 {
+	//check genome builds match
+	if (variants_.getBuild()!=GSvarHelper::build())
+	{
+		messages << "genome build of GSvar file (" + buildToString(variants_.getBuild(), true) + ") not matching genome build of the GSvar application (" + buildToString(GSvarHelper::build(), true) + ")!";
+	}
+
 	//check creation date
 	QDate create_date = variants_.getCreationDate();
 	if (create_date.isValid() && create_date < QDate::currentDate().addDays(-42))
@@ -2869,7 +2879,7 @@ void MainWindow::checkVariantList(QStringList messages)
 	}
 
 	//check columns
-	foreach(QString col, cols)
+	foreach(const QString& col, cols)
 	{
 		if (variants_.annotationIndexByName(col, true, false)==-1)
 		{
@@ -6155,12 +6165,19 @@ void MainWindow::updateIGVMenu()
 		{
 			QStringList parts = entry.trimmed().split("\t");
 			if(parts.count()!=3) continue;
+
+			//add to menu "custom track default settings"
 			QAction* action = ui_.menuTrackDefaults->addAction("custom track: " + parts[0]);
 			action->setCheckable(true);
 			action->setChecked(parts[1]=="1");
-			action->setToolTip(parts[2]);
 
-			ui_.menuOpenCustomTrack->addAction(parts[0], this, SLOT(openCustomIgvTrack()));
+			//add to menu "open custom track"
+			action = ui_.menuOpenCustomTrack->addAction(parts[0], this, SLOT(openCustomIgvTrack()));
+			if (!QFile::exists(parts[2]))
+			{
+				action->setEnabled(false);
+				action->setText(action->text() + " (missing)");
+			}
 		}
 	}
 }
@@ -6181,6 +6198,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionConvertHgvsToGSvar->setEnabled(ngsd_user_logged_in);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
 	ui_.actionExpressionData->setEnabled(ngsd_user_logged_in);
+	ui_.actionAnnotateSomaticVariantInterpretation->setEnabled(ngsd_user_logged_in);
 
 	//toolbar - NGSD search menu
 	QToolButton* ngsd_search_btn = ui_.tools->findChild<QToolButton*>("ngsd_search_btn");
