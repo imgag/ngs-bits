@@ -128,7 +128,7 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::transcriptMatches()
 
 	if (!initialized)
 	{
-		QStringList lines = Helper::loadTextFile(":/Resources/hg19_ensembl_transcript_matches.tsv", true, '#', true);
+		QStringList lines = Helper::loadTextFile(":/Resources/hg19_ensembl_transcript_matches.tsv", true, '#', true); //TODO re-do mapping for HG38
 		foreach(const QString& line, lines)
 		{
 			QByteArrayList parts = line.toLatin1().split('\t');
@@ -211,7 +211,7 @@ BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end)
 
 QString GSvarHelper::gnomaADLink(const Variant& v)
 {
-	QString url = "http://gnomad.broadinstitute.org/variant/" + v.chr().strNormalized(false) + "-";
+	QString url = "https://gnomad.broadinstitute.org/variant/" + v.chr().strNormalized(false) + "-";
 
 	if (v.obs()=="-") //deletion
 	{
@@ -231,6 +231,9 @@ QString GSvarHelper::gnomaADLink(const Variant& v)
 	{
 		url += QString::number(v.start()) + "-" + v.ref() + "-" + v.obs();
 	}
+
+	//genome build
+	if (build()==GenomeBuild::HG38) url += "?dataset=gnomad_r3";
 
 	return url;
 }
