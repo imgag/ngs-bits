@@ -15,7 +15,7 @@
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_5">
    <item>
-    <layout class="QVBoxLayout" name="layoutCol1">
+    <layout class="QVBoxLayout" name="vl_left_col">
      <item>
       <widget class="QLabel" name="label">
        <property name="font">
@@ -410,7 +410,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QVBoxLayout" name="layoutCol2">
+    <layout class="QVBoxLayout" name="vl_right_col">
      <item>
       <widget class="QLabel" name="label_10">
        <property name="font">

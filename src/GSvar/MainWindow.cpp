@@ -121,7 +121,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "Statistics.h"
 
 #include "NGSDReplicationWidget.h"
-#include "ClinVarUploadDialog.h"
+#include "ClinvarUploadDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -4724,10 +4724,11 @@ void MainWindow::uploadToClinvar(int variant_index)
 	}
 
 	//(1) prepare data as far as we can
-	QString processed_sample = germlineReportSample();
-	QString sample_id = NGSD().sampleId(processed_sample);
-	SampleData sample_data = NGSD().getSampleData(sample_id);
 	ClinvarUploadData data;
+	data.processed_sample = germlineReportSample();
+	QString sample_id = NGSD().sampleId(data.processed_sample);
+	SampleData sample_data = NGSD().getSampleData(sample_id);
+
 
 	//get disease info
 	data.disease_info = NGSD().getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
@@ -4774,10 +4775,10 @@ void MainWindow::uploadToClinvar(int variant_index)
 	}
 	data.variant_id = Helper::toInt(var_id);
 	//extract report variant id
-	int rc_id = NGSD().reportConfigId(NGSD().processedSampleId(processed_sample));
+	int rc_id = NGSD().reportConfigId(NGSD().processedSampleId(data.processed_sample));
 	if (rc_id == -1 )
 	{
-		THROW(DatabaseException, "Could not determine report config id for sample " + processed_sample + "!");
+		THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
 	}
 
 	data.variant_report_config_id = NGSD().getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id="

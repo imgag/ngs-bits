@@ -14,6 +14,7 @@ struct ClinvarUploadData
     int variant_id;
     int variant_report_config_id;
     ReportVariantConfiguration report_variant_config;
+	QString processed_sample;
 
     //disease data
     QList<SampleDiseaseInfo> disease_info;
@@ -40,7 +41,7 @@ public:
 private slots:
     void initGui();
     void upload();
-    void checkGuiData();
+	bool checkGuiData();
     void printResults();
     void updatePrintButton();
 
@@ -52,6 +53,7 @@ private:
 
 
     QJsonObject createJson();
+	bool validateJson(const QJsonObject& json, QStringList& errors);
 
     static QString getSettings(QString key);
     static QString convertClassification(QString classification);
