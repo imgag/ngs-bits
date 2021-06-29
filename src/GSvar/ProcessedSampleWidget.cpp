@@ -388,7 +388,7 @@ void ProcessedSampleWidget::openExternalDiseaseDatabase()
 		QString link;
 		if (type=="ICD10 code")
 		{
-			link = "http://www.icd-code.de/suche/icd/recherche.html?sp=" + value;
+			link = "https://www.icd-code.de/suche/icd/recherche.html?sp=" + value;
 		}
 		else if (type=="HPO term id")
 		{
@@ -398,7 +398,7 @@ void ProcessedSampleWidget::openExternalDiseaseDatabase()
 		else if (type=="OMIM disease/phenotype identifier")
 		{
 			value.replace("#", ""); //remove prefix
-			link = "http://omim.org/entry/" + value;
+			link = "https://omim.org/entry/" + value;
 		}
 		else if (type=="Orpha number")
 		{

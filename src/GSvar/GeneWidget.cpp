@@ -151,7 +151,7 @@ void GeneWidget::updateGUI()
 		{
 			omim_phenos << p.name();
 		}
-		omim_lines << ("<a href=\"http://omim.org/entry/" + omim.mim + "\">MIM *" + omim.mim + "</a>:<br>" + omim_phenos.join(omim_phenos.count()>20 ? " "  : "<br>"));
+		omim_lines << ("<a href=\"https://omim.org/entry/" + omim.mim + "\">MIM *" + omim.mim + "</a>:<br>" + omim_phenos.join(omim_phenos.count()>20 ? " "  : "<br>"));
     }
 	ui_.omim->setText(omim_lines.join("<br>"));
 
@@ -222,7 +222,7 @@ void GeneWidget::parseLink(QString link)
     if (link.startsWith("ensembl:"))
     {
         QString ensembl_id = link.split(':').at(1);
-		QString url = "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?g=" + ensembl_id;
+		QString url = "https://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?g=" + ensembl_id;
         QDesktopServices::openUrl(QUrl(url));
     }
     else
@@ -256,7 +256,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		int row = ui_.transcripts->rowCount();
 		ui_.transcripts->setRowCount(row+1);
 
-		QLabel* label = GUIHelper::createLinkLabel("<a href='http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + transcript.name() + "'>" + transcript.name() + "</a>");
+		QLabel* label = GUIHelper::createLinkLabel("<a href='http://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?t=" + transcript.name() + "'>" + transcript.name() + "</a>");
 		ui_.transcripts->setCellWidget(row, 0, label);
 
 		QString coords = "";

@@ -817,11 +817,11 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 		//element ExternalLink
 		w.writeStartElement("ExternalLink");
-		w.writeAttribute("url", "http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/?name=" + cnv.toString());
+		w.writeAttribute("url", "https://dgv.tcag.ca/gb2/gbrowse/dgv2_"+buildToString(data_.build)+"/?name=" + cnv.toString());
 		w.writeAttribute("type", "DGV");
 		w.writeEndElement();
 		w.writeStartElement("ExternalLink");
-		w.writeAttribute("url", "https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + cnv.toString());
+		w.writeAttribute("url", "https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(data_.build)+"&position=" + cnv.toString());
 		w.writeAttribute("type", "UCSC");
 		w.writeEndElement();
 
