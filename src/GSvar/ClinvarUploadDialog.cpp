@@ -175,6 +175,8 @@ void ClinvarUploadDialog::upload()
 		return;
 	}
 
+	// read login data
+
 
 	// perform upload
 
@@ -198,27 +200,40 @@ bool ClinvarUploadDialog::checkGuiData()
 	}
 
 	//perform checks
+
+	// check chromosome
 	QStringList errors;
-        if (ui_.cb_chr->currentText().trimmed().isEmpty())
+	if (ui_.cb_chr->currentText().trimmed().isEmpty())
 	{
 		errors << "Chromosome unset!";
 	}
 
-        //check genes
-        GeneSet gene_set = GeneSet::createFromStringList(ui_.le_gene->text().split(','));
-        QStringList invalid_genes;
-        foreach (const QByteArray gene, gene_set)
-        {
-            QByteArray approved_gene_name = NGSD().geneToApproved(gene, false);
-            if(approved_gene_name.isEmpty() || (gene != approved_gene_name))
-            {
-                invalid_genes << gene;
-            }
-        }
-        if (invalid_genes.size() > 0)
-        {
-            errors << (invalid_genes.join(", ") + " are not HGNC approved gene names!");
-        }
+	// check sequences
+	QRegExp re("[AGTU]*");
+	if (!re.exactMatch(ui_.le_ref->text()))
+	{
+		errors << "invalid reference sequence '" + ui_.le_ref->text() + "'!";
+	}
+	if (!re.exactMatch(ui_.le_obs->text()))
+	{
+		errors << "invalid observed sequence '" + ui_.le_obs->text() + "'!";
+	}
+
+	//check genes
+	GeneSet gene_set = GeneSet::createFromStringList(ui_.le_gene->text().split(','));
+	QStringList invalid_genes;
+	foreach (const QByteArray gene, gene_set)
+	{
+		QByteArray approved_gene_name = NGSD().geneToApproved(gene, false);
+		if(approved_gene_name.isEmpty() || (gene != approved_gene_name))
+		{
+			invalid_genes << gene;
+		}
+	}
+	if (invalid_genes.size() > 0)
+	{
+		errors << (invalid_genes.join(", ") + " are not HGNC approved gene names!");
+	}
 
 //	if (ui_.classification->currentText().trimmed().isEmpty())
 //	{
