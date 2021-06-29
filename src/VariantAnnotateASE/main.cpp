@@ -21,7 +21,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Annotates a variant list with variant frequencies from a BAM/CRAM file.");
-		addInfile("in", "Input variant list to annotate in VCF or GSvar format.", false, true);
+		addInfile("in", "Input variant list to annotate in GSvar format.", false, true);
 		addInfile("bam", "Input BAM/CRAM file.", false, true);
 		addOutfile("out", "Output variant list file name (VCF or GSvar).", false, true);
 		//optional
@@ -31,6 +31,62 @@ public:
 		changeLog(2021, 06, 24, "Initial version.");
 	}
 
+	//binomial distribution density
+	double binom(int x, int n, double p)
+	{
+		return std::pow(p, x) * std::pow(1-p, n-x) * BasicStatistics::factorial(n) / BasicStatistics::factorial(x) / BasicStatistics::factorial(n-x);
+	}
+
+	//binomial test p-value
+	double binomtest_p(int x, int n, double p)
+	{
+		//for high coverage (~160x), downsample alternative observation and depth
+		while (!BasicStatistics::isValidFloat(BasicStatistics::factorial(n)))
+		{
+			x /= 2;
+			n /= 2;
+		}
+
+		double pval = 0;
+
+		//sum of all probabilities <= prob_x
+		double prob_x = binom(x, n, p);
+		for (int i=0; i<=n; ++i)
+		{
+			double prob_i = binom(i, n, p);
+			if (prob_i <= prob_x)
+			{
+				pval += prob_i;
+			}
+		}
+		return pval;
+	}
+
+	//binomial test p-value for p=0.5
+	double binomtest_p05(int x, int n)
+	{
+		//calculate binomial test p-value, one-sided, with p=0.5
+		double pval = 0.0;
+
+		//if observed p <= 0.5, use range 0..x
+		//if observed p > 0.5, use range 0..(n-x)
+		double obs_p = 1.0 * x / n;
+		int limit = obs_p <= 0.5 ? x : n -x;
+
+		for (int x=0; x <= limit; ++x)
+		{
+			pval += binom(x, n, 0.5);
+		}
+
+		//for p=0.5, p-value for two-sided test is 2 * p-value for one sided test
+		if (BasicStatistics::isValidFloat(pval))
+		{
+			pval = std::min(1.0, 2. * pval);
+		}
+
+		return pval;
+	}
+
 	virtual void main()
 	{
 		//init
@@ -38,13 +94,20 @@ public:
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 
-		//load input
-		VariantList input;
-		input.load(getInfile("in"));
-		BamReader reader(getInfile("bam"), getString("ref_cram"));
-
 		//factorials cache
 		BasicStatistics::precalculateFactorials();
+
+		//load DNA variants
+		VariantList input;
+		input.load(getInfile("in"));
+
+		//reader for RNA BAM file
+		BamReader reader(getInfile("bam"), getString("ref_cram"));
+
+		//somatic: find tumor_af column, germline: find by sample name
+		bool somatic = input.type(false) == SOMATIC_PAIR || input.type(false) == SOMATIC_SINGLESAMPLE;
+		QString col_name = somatic ? "tumor_af" : input.mainSampleName();
+		int col_idx = input.annotationIndexByName(col_name);
 
 		//iterate over input variants and calculate ASE probability
 		FastaFileIndex reference(ref_file);
@@ -53,7 +116,7 @@ public:
 			Variant& variant = input[i];
 			VariantDetails tmp = reader.getVariantDetails(reference, variant);
 
-			//annotate variant
+			//no coverage
 			if (tmp.depth==0 || !BasicStatistics::isValidFloat(tmp.frequency))
 			{
 				variant.annotations().append("n/a (no coverage)");
@@ -63,56 +126,33 @@ public:
 				continue;
 			}
 
+			//number of alternative observations (successes in binomial test)
 			int alt_obs = tmp.depth * tmp.frequency;
-			int trials = tmp.depth;
-			int success = alt_obs;
 
+			//output string for p-value
+			QByteArray pval_str;
 
-			if (variant.annotations()[0] != "het")
+			//germline, skip non-het variants
+			if (!somatic && variant.annotations()[col_idx] != "het")
 			{
-				variant.annotations().append(QByteArray::number(tmp.frequency, 'f', 4));
-				variant.annotations().append(QByteArray::number(tmp.depth));
-				variant.annotations().append(QByteArray::number(alt_obs));
-				variant.annotations().append("n/a (non-het)");
-				continue;
+				pval_str = "n/a (non-het)";
+			}
+			else {
+				//use p=0.5 (germline het), or p=tumor_af (somatic)
+				double prob = somatic ? Helper::toDouble(variant.annotations()[col_idx]) : 0.5;
+				double pval = binomtest_p(alt_obs, tmp.depth, prob);
+				pval_str = QByteArray::number(pval, 'f', 4);
 			}
 
-			//for high coverage (~160x), downsample alternative observation and depth
-			while (!BasicStatistics::isValidFloat(BasicStatistics::factorial(trials)))
-			{
-				trials /= 2;
-				success /= 2;
-			}
-
-			//calculate binomial test p-value, one-sided, with p=0.5
-			int failure = trials - success;
-			double pval = 0.0;
-
-			int limit = success;
-			if (tmp.frequency > 0.5)
-			{
-				limit = failure;
-			}
-
-			for (int x=0; x <= limit; ++x)
-			{
-				pval += std::pow(0.5, trials) * BasicStatistics::factorial(trials) / BasicStatistics::factorial(x) / BasicStatistics::factorial(trials-x);
-			}
-
-			//for p=0.5, p-value for two-sided test is 2 * p-value for one sided test
-			if (BasicStatistics::isValidFloat(pval))
-			{
-				pval = std::min(1.0, 2. * pval);
-			}
-
+			//append values
 			variant.annotations().append(QByteArray::number(tmp.frequency, 'f', 4));
 			variant.annotations().append(QByteArray::number(tmp.depth));
 			variant.annotations().append(QByteArray::number(alt_obs));
-			variant.annotations().append(QByteArray::number(pval, 'f', 4));
+			variant.annotations().append(pval_str);
 
 		}
 
-		//output
+		//add annotation headers
 		input.annotations().append(VariantAnnotationHeader("ASE_af"));
 		input.annotationDescriptions().append(VariantAnnotationDescription("ASE_freq", "Expressed variant allele frequency.", VariantAnnotationDescription::FLOAT));
 		input.annotations().append(VariantAnnotationHeader("ASE_depth"));
@@ -121,6 +161,8 @@ public:
 		input.annotationDescriptions().append(VariantAnnotationDescription("ASE_alt", "Expressed variant alternative observation count.", VariantAnnotationDescription::INTEGER));
 		input.annotations().append(VariantAnnotationHeader("ASE_pval"));
 		input.annotationDescriptions().append(VariantAnnotationDescription("ASE_pval", "Binomial test p-value.", VariantAnnotationDescription::FLOAT));
+
+		//write output
 		input.store(getOutfile("out"));
 	}
 };
