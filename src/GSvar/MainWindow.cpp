@@ -4927,7 +4927,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		}
 
 		//genomic location
-		QString loc = variant.chr().str() + ":" + QByteArray::number(variant.start());
+		QString loc = buildToString(GSvarHelper::build()) + ":" + variant.chr().str() + ":" + QByteArray::number(variant.start());
 		loc.replace("chrMT", "chrM");
 		sub_menu->addAction(loc);
 		sub_menu->addAction(loc + variant.ref() + ">" + variant.obs());
@@ -5123,9 +5123,9 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	else if (parent_menu && parent_menu->title()=="Alamut")
 	{
 		//documentation of the alamut API:
-		// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.9/accessing.html
+		// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.14/accessing.html
 		// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.11/Alamut-HTTP.html
-		// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.9/programmatic-access.html
+		// - http://www.interactive-biosoftware.com/doc/alamut-visual/2.14/programmatic-access.html
 		QStringList parts = action->text().split(" ");
 		if (parts.count()>=1)
 		{

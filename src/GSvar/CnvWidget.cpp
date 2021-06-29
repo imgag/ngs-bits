@@ -609,10 +609,10 @@ void CnvWidget::showContextMenu(QPoint p)
 	{
 		try
 		{
-
-			QString region = cnvs_[row].toString();
-			if (GSvarHelper::build()==GenomeBuild::HG19) region = GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end()).toString(true);
+			//get region as string (Decipher supports only HG38)
+			QString region = GSvarHelper::build()==GenomeBuild::HG38 ? cnvs_[row].toString() : GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end()).toString(true);
 			region.remove("chr");
+
 			QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + region));
 		}
 		catch(Exception& e)

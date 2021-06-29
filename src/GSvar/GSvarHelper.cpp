@@ -192,19 +192,19 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	}
 }
 
-BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end)
+BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg38_to_hg19)
 {
 	//call lift-over webservice
-	QString base_url = Settings::string("liftover_webservice");
-	HttpHandler handler(HttpRequestHandler::ProxyType::NONE);
-	QString output = handler.get(base_url + "?chr=" + chr.strNormalized(true) + "&start=" + QString::number(start) + "&end=" + QString::number(end));
+	QString url = Settings::string("liftover_webservice") + "?chr=" + chr.strNormalized(true) + "&start=" + QString::number(start) + "&end=" + QString::number(end);
+	if (hg38_to_hg19) url += "&dir=hg38_hg19";
+	QString output = HttpHandler(HttpRequestHandler::ProxyType::NONE).get(url);
 
 	//handle error from webservice
-	if (output.contains("ERROR")) THROW(ArgumentException, "GSvarHelper::liftOver: " + output);
+	if (output.contains("ERROR")) THROW(ArgumentException, "genomic coordinate lift-over failed: " + output);
 
 	//convert output to region
 	BedLine region = BedLine::fromString(output);
-	if (!region.isValid()) THROW(ArgumentException, "GSvarHelper::liftOver: Could not convert output '" + output + "' to region");
+	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Could not convert output '" + output + "' to region");
 
 	return region;
 }
