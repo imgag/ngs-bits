@@ -1620,7 +1620,7 @@ void MainWindow::delayedInitialization()
 	}
 
 	//init GUI
-	updateRecentFilesMenu();
+	updateRecentSampleMenu();
 	updateIGVMenu();
 	updateNGSDSupport();
 
@@ -2265,26 +2265,28 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 {
 	try
 	{
-		//convert name to file
 		NGSD db;
 		QString processed_sample_id = db.processedSampleId(processed_sample_name);
-		FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::GSVAR);
 
-		//determine all analyses of the sample
+		//processed sample exists > add to recent samples menu
+		addToRecentSamples(processed_sample_name);
+
+		//germline single sample analysis
 		QStringList analyses;
+		FileLocation file_location = GlobalServiceProvider::database().processedSamplePath(processed_sample_id, PathType::GSVAR);
 		if (file_location.exists) analyses << file_location.filename;
 
 		//somatic tumor sample > ask user if he wants to open the tumor-normal pair
 		QString normal_sample = db.normalSample(processed_sample_id);
 		if (normal_sample!="")
 		{
-			analyses << db.secondaryAnalyses(processed_sample_name + "-" + normal_sample, "somatic");
+			analyses << GlobalServiceProvider::database().secondaryAnalyses(processed_sample_name + "-" + normal_sample, "somatic");
 		}
 		//check for germline trio/multi analyses
 		else if (search_multi)
 		{
-			analyses << db.secondaryAnalyses(processed_sample_name, "trio");
-			analyses << db.secondaryAnalyses(processed_sample_name, "multi sample");
+			analyses << GlobalServiceProvider::database().secondaryAnalyses(processed_sample_name, "trio");
+			analyses << GlobalServiceProvider::database().secondaryAnalyses(processed_sample_name, "multi sample");
 		}
 
 		//determine analysis to load
@@ -2300,6 +2302,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		}
 		else
 		{
+			//TODO GSvarServer: how do the file names look like when using server?
 			bool ok = false;
 			QString filename = QInputDialog::getItem(this, "Several analyses of the sample present", "select analysis:", analyses, 0, false, &ok);
 			if (!ok)
@@ -2676,9 +2679,6 @@ void MainWindow::loadFile(QString filename)
 		loadFile();
 		return;
 	}
-
-	//update recent files (before try block to remove non-existing files from the recent files menu)
-	addToRecentFiles(filename);
 
 	//check if variant list is outdated
 	QStringList messages;
@@ -6024,34 +6024,29 @@ void MainWindow::applyFilters(bool debug_time)
 	}
 }
 
-void MainWindow::addToRecentFiles(QString filename)
+void MainWindow::addToRecentSamples(QString ps)
 {
 	//update settings
-	QStringList recent_files = Settings::stringList("recent_files", true);
-	recent_files.removeAll(filename);
-	if (QFile::exists(filename))
-	{
-		recent_files.prepend(filename);
-	}
-	while (recent_files.size() > 10)
-	{
-		recent_files.removeLast();
-	}
-	Settings::setStringList("recent_files", recent_files);
+	QStringList recent_samples = Settings::stringList("recent_samples", true);
+	recent_samples.removeAll(ps);
+	recent_samples.prepend(ps);
+	recent_samples = recent_samples.mid(0,10);
+
+	Settings::setStringList("recent_samples", recent_samples);
 
 	//update GUI
-	updateRecentFilesMenu();
+	updateRecentSampleMenu();
 }
 
 
-void MainWindow::updateRecentFilesMenu()
+void MainWindow::updateRecentSampleMenu()
 {
-	QStringList recent_files = Settings::stringList("recent_files", true);
+	QStringList recent_samples = Settings::stringList("recent_samples", true);
 
 	QMenu* menu = new QMenu();
-	foreach(const QString& file, recent_files)
+	foreach(const QString& sample, recent_samples)
 	{
-		menu->addAction(file, this, SLOT(openRecentFile()));
+		menu->addAction(sample, this, SLOT(openRecentSample()));
 	}
 	ui_.actionRecent->setMenu(menu);
 }
@@ -6122,10 +6117,10 @@ void MainWindow::updateNGSDSupport()
 	ui_.filters->updateNGSDSupport();
 }
 
-void MainWindow::openRecentFile()
+void MainWindow::openRecentSample()
 {
 	QAction* action = qobject_cast<QAction*>(sender());
-	loadFile(action->text());
+	openProcessedSampleFromNGSD(action->text());
 }
 
 QString MainWindow::normalSampleName()
