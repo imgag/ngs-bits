@@ -59,7 +59,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 
 	if (found_file.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Could not find the sample: " + request.getUrlParams().value("ps_url_id"));
+		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Could not find the sample: " + request.getUrlParams()["ps_url_id"]);
 	}
 
 //	VariantList variants;
@@ -98,7 +98,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 		{
 			return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Locus value has not been provided");
 		}
-		file_list << file_locator->getRepeatExpansionImage(request.getUrlParams().value("locus"));
+		file_list << file_locator->getRepeatExpansionImage(request.getUrlParams()["locus"]);
 	}
 	else if(request.getUrlParams()["type"].toLower() == "bam")
 	{
@@ -225,8 +225,8 @@ HttpResponse EndpointHandler::locateProjectFile(const HttpRequest& request)
 	QString found_file_path;
 	try
 	{
-		id = NGSD().processedSampleName(request.getUrlParams().value("ps_id"));
-		found_file_path =  NGSD().processedSamplePath(request.getUrlParams().value("ps_id"), PathType::GSVAR);
+		id = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
+		found_file_path =  NGSD().processedSamplePath(request.getUrlParams()["ps_id"], PathType::GSVAR);
 	}
 	catch (Exception& e)
 	{
@@ -316,7 +316,7 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 		}
 
 		QList<QString> line_columns = line.split("\t");
-		QString variant_in = line_columns.value(chr_pos) + ":" + line_columns.value(start_pos) + "-" + line_columns.value(end_pos) + " " + line_columns.value(ref_pos) + ">" + line_columns.value(obs_pos);
+		QString variant_in = line_columns[chr_pos] + ":" + line_columns[start_pos] + "-" + line_columns[end_pos] + " " + line_columns[ref_pos] + ">" + line_columns[obs_pos];
 		bool is_current_variant_changed = false;
 
 		for (int i = 0; i <  json_doc.array().size(); i++)

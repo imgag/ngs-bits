@@ -69,6 +69,13 @@ GeneSet DatabaseServiceRemote::processingSystemGenes(int sys_id) const
 	return output;
 }
 
+QStringList DatabaseServiceRemote::secondaryAnalyses(QString processed_sample_name, QString analysis_type) const
+{
+	// TODO: the new method has not been implemented yet
+	QStringList list;
+	return list;
+}
+
 FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed_sample_id, PathType type) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);
