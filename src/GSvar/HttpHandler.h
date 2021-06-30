@@ -32,7 +32,7 @@ public:
 	///Performs PUT request
 	QByteArray put(QString url, const QByteArray& data, const HttpHeaders& add_headers = HttpHeaders());
 	///Performs POST request
-	QString post(QString url, const QByteArray& data, const HttpHeaders& add_headers = HttpHeaders());
+	QByteArray post(QString url, const QByteArray& data, const HttpHeaders& add_headers = HttpHeaders());
 	///Performs POST request for content type multipart
 	QByteArray post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers = HttpHeaders() );
 
