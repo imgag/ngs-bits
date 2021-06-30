@@ -12,6 +12,7 @@ void RequestWorker::run()
 {
 	qDebug() << "Start processing an incomming connection in a new separate thread";
 	QSslSocket *ssl_socket = new QSslSocket();
+	ssl_socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
 
 	if (!ssl_socket)
 	{
