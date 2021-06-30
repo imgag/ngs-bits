@@ -63,7 +63,7 @@ void RequestWorker::run()
 			if ((!finished_reading_headers) && (line.toLower().startsWith("content-length")))
 			{
 				QList<QByteArray> header_parts = line.trimmed().split(':');
-				if (header_parts.size() > 1) request_body_size = header_parts.value(1).toInt();
+				if (header_parts.size() > 1) request_body_size = header_parts[1].toLongLong();
 			}
 
 			all_request_parts.append(line);

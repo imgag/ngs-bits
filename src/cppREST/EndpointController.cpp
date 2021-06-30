@@ -6,12 +6,12 @@ HttpResponse EndpointController::serveEndpointHelp(const HttpRequest& request)
 	if (request.getPathParams().count() == 2)
 	{
 		// Locate endpoint by URL and request method
-		body = generateHelpPage(request.getPathParams().value(0), HttpProcessor::getMethodTypeFromString(request.getPathParams().value(1))).toLocal8Bit();
+		body = generateHelpPage(request.getPathParams()[0], HttpProcessor::getMethodTypeFromString(request.getPathParams()[1])).toLocal8Bit();
 	}
 	else if (request.getPathParams().count() == 1)
 	{
 		// For the same URL several request methods may be used: e.g. GET and POST
-		body = generateHelpPage(request.getPathParams().value(0)).toLocal8Bit();
+		body = generateHelpPage(request.getPathParams()[0]).toLocal8Bit();
 	}
 	else
 	{
@@ -65,7 +65,7 @@ HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& reques
 
 HttpResponse EndpointController::serveStaticFileFromCache(const HttpRequest& request)
 {
-	QString filename = FileCache::getFileById(request.getPathParams().value(0)).filename_with_path;
+	QString filename = FileCache::getFileById(request.getPathParams()[0]).filename_with_path;
 	return createStaticFromCacheResponse(filename, ByteRange{}, HttpProcessor::getContentTypeByFilename(filename), false);
 }
 
@@ -80,7 +80,7 @@ HttpResponse EndpointController::getFileInfo(const HttpRequest& request)
 			UrlEntity current_entity = UrlManager::getURLById(url_parts[url_parts.size()-2]);
 			if (!current_entity.path.isEmpty())
 			{
-				filename = current_entity.path + QDir::separator() + url_parts.value(url_parts.size()-1);
+				filename = current_entity.path + QDir::separator() + url_parts[url_parts.size()-1];
 			}
 		}
 	}
@@ -296,7 +296,7 @@ QString EndpointController::getEndpointHelpTemplate(QList<Endpoint> endpoint_lis
 		QList<QString> param_names {};
 		QList<QString> param_desc {};
 
-		QMapIterator<QString, ParamProps> p(endpoint_list.value(i).params);
+		QMapIterator<QString, ParamProps> p(endpoint_list[i].params);
 		while (p.hasNext()) {
 			p.next();
 			param_names.append(p.key());
@@ -304,14 +304,14 @@ QString EndpointController::getEndpointHelpTemplate(QList<Endpoint> endpoint_lis
 		}
 
 		HttpRequest request;
-		request.setMethod(endpoint_list.value(i).method);
+		request.setMethod(endpoint_list[i].method);
 
 		stream << HtmlEngine::getApiHelpEntry(
-					  endpoint_list.value(i).url,
+					  endpoint_list[i].url,
 					  request.methodAsString(),
 					  param_names,
 					  param_desc,
-					  endpoint_list.value(i).comment
+					  endpoint_list[i].comment
 					);
 	}
 
@@ -345,7 +345,7 @@ QString EndpointController::getServedTempPath(QList<QString> path_parts)
 		THROW(Exception, "Not path has been provided in temporary URL");
 	}
 
-	UrlEntity url_entity = UrlManager::getURLById(path_parts.value(0));
+	UrlEntity url_entity = UrlManager::getURLById(path_parts[0]);
 	if (!url_entity.filename_with_path.isEmpty())
 	{
 		path_parts.removeAt(0);

@@ -9,19 +9,7 @@ RequestPaser::RequestPaser(QByteArray *request, QString client_address)
 HttpRequest RequestPaser::getRequest() const
 {
 	HttpRequest parsed_request;
-
-	qDebug() << QString(*raw_request_);
-
-
 	QList<QByteArray> r = raw_request_->split('\n');
-
-//	for (int i = 0; i < r.count(); ++i)
-//	{
-//		qDebug() << "Request line " << i << r.value(i);
-//	}
-
-
-
 	parsed_request.setRemoteAddress(client_address_);
 	QList<QByteArray> body = getRawRequestHeaders();
 
@@ -95,26 +83,18 @@ QList<QByteArray> RequestPaser::getRawRequestHeaders() const
 QByteArray RequestPaser::getRequestBody() const
 {
 	QByteArray output;
-
-
 	QList<QByteArray> request_items = raw_request_->split('\n');
 	bool passed_headers = false;
 	for (int i = 0; i < request_items.count(); ++i)
 	{
-		if (request_items.value(i).trimmed().isEmpty()) passed_headers = true;
+		if (request_items[i].trimmed().isEmpty()) passed_headers = true;
 		if (passed_headers)
 		{
-			output.append(request_items.value(i));
+			output.append(request_items[i]);
 			output.append('\n');
 		}
 	}
 
-
-//	int separator = raw_request_->trimmed().lastIndexOf("\r\n");
-//	if (separator > -1)
-//	{
-//		output = raw_request_->trimmed().mid(separator, -1);
-//	}
 	qDebug() << "output " << output.trimmed();
 	return output.trimmed();
 }

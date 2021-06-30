@@ -103,9 +103,9 @@ QList<Endpoint> EndpointManager::getEndpointsByUrl(const QString& url)
 	QList<Endpoint> results;
 	for (int i = 0; i < instance().endpoint_list_.count(); ++i)
 	{
-		if (instance().endpoint_list_.value(i).url.toLower() == url.toLower())
+		if (instance().endpoint_list_[i].url.toLower() == url.toLower())
 		{
-			results.append(instance().endpoint_list_.value(i));
+			results.append(instance().endpoint_list_[i]);
 		}
 	}
 
