@@ -41,7 +41,7 @@ public:
 private slots:
     void initGui();
     void upload();
-	bool checkGuiData();
+    bool checkGuiData();
     void printResults();
     void updatePrintButton();
 
@@ -53,7 +53,7 @@ private:
 
 
     QJsonObject createJson();
-	bool validateJson(const QJsonObject& json, QStringList& errors);
+    bool validateJson(const QJsonObject& json, QStringList& errors);
 
     static QString getSettings(QString key);
     static QString convertClassification(QString classification);

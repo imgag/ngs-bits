@@ -18,8 +18,8 @@
 #include <QMessageBox>
 
 ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
-	: QDialog(parent)
-	, ui_()
+    : QDialog(parent)
+    , ui_()
 {
     if (!LoginManager::active())
     {
@@ -114,7 +114,7 @@ void ClinvarUploadDialog::initGui()
     ui_.tw_disease_info->setColumnCount(2);
     ui_.tw_disease_info->setHorizontalHeaderItem(0, new QTableWidgetItem("type"));
     ui_.tw_disease_info->setHorizontalHeaderItem(1, new QTableWidgetItem("id"));
-//    GUIHelper::resizeTableCells(ui_.tw_disease_info);
+    //    GUIHelper::resizeTableCells(ui_.tw_disease_info);
     ui_.tw_disease_info->setColumnWidth(0, 250);
     ui_.tw_disease_info->setColumnWidth(1, 150);
 
@@ -122,34 +122,29 @@ void ClinvarUploadDialog::initGui()
     ui_.cb_collection_method->setCurrentText("clinical testing");
 
 
-
-
-
-
-
     //connect signal and slots
     connect(ui_.upload_btn, SIGNAL(clicked(bool)), this, SLOT(upload()));
-	connect(ui_.cb_chr, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-	connect(ui_.le_gene, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+    connect(ui_.cb_chr, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+    connect(ui_.le_gene, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
 
 
-//	connect(ui_.gene, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.nm_number, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.hgvs_c, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.hgvs_g, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.hgvs_p, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.hgvs_c2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.hgvs_g2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.hgvs_p2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-//	connect(ui_.classification2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+    //	connect(ui_.gene, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+    //	connect(ui_.nm_number, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+    //	connect(ui_.hgvs_c, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+    //	connect(ui_.hgvs_g, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+    //	connect(ui_.hgvs_p, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+    //	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+    //	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+    //	connect(ui_.hgvs_c2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+    //	connect(ui_.hgvs_g2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+    //	connect(ui_.hgvs_p2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
+    //	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
+    //	connect(ui_.classification2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
     connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
 
     //update GUI elements for 2nd variant (only for free mode)
-//	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
-//	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
+    //	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
+    //	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
 
     connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
     connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
@@ -157,148 +152,281 @@ void ClinvarUploadDialog::initGui()
 
 void ClinvarUploadDialog::upload()
 {
-	QJsonObject json = createJson();
+    QJsonObject json = createJson();
 
-	//TODO: remove
-	// write to file
-	qDebug()<<"Write to file!";
-	QJsonDocument json_doc = QJsonDocument(json);
-	QFile json_file("clinvar_submission.json");
-	json_file.open(QFile::WriteOnly);
-	json_file.write(json_doc.toJson());
-	json_file.close();
+    QStringList errors;
+    if (!validateJson(json, errors))
+    {
+        QMessageBox::warning(this, "JSON validation failed", "The generated JSON contains the following errors: \n" + errors.join("\n"));
+        return;
+    }
 
-	QStringList errors;
-	if (!validateJson(json, errors))
-	{
-		QMessageBox::warning(this, "JSON validation failed", "The generated JSON contains the following errors: \n" + errors.join("\n"));
-		return;
-	}
+    ui_.comment_upload->setText("JSON validation successful.\n");
 
-	// read login data
+    // read API key
+    QByteArray api_key = getSettings("clinvar_api_key").toUtf8();
+    qDebug() << api_key;
+
+    QJsonObject post_request;
+    QJsonArray actions;
+    QJsonObject action;
+    action.insert("type", "AddData");
+    action.insert("targetDb", "clinvar");
+    QJsonObject data;
+    data.insert("content", json);
+    action.insert("data", data);
+    actions.append(action);
+    post_request.insert("actions", actions);
+
+    //TODO: remove
+    // write to file
+    qDebug()<<"Write to file!";
+    QJsonDocument json_doc = QJsonDocument(post_request);
+    QFile json_file("clinvar_submission.json");
+    json_file.open(QFile::WriteOnly);
+    json_file.write(json_doc.toJson());
+    json_file.close();
 
 
-	// perform upload
+    // perform upload
+    static HttpHandler http_handler(HttpRequestHandler::INI); //static to allow caching of credentials
+    try
+    {
+        //add headers
+        HttpHeaders add_headers;
+        add_headers.insert("Content-Type", "application/json");
+        add_headers.insert("SP-API-KEY", api_key);
+
+        //post request
+        QByteArray reply = http_handler.post("https://submit.ncbi.nlm.nih.gov/api/v1/submissions/?dry-run=true", QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
+        qDebug() << reply << "\n";
+        ui_.comment_upload->setText(reply);
+
+        //parse JSON result
+        QJsonDocument response = QJsonDocument::fromJson(reply);
+
+        //TODO: remove
+        // write to file
+        qDebug()<<"Write to file!";
+        QFile json_file("response.json");
+        json_file.open(QFile::WriteOnly);
+        json_file.write(response.toJson());
+        json_file.close();
 
 
-	// log publication in NGSD
+
+//            QStringList messages;
+//            bool success = false;
+//            foreach(QJsonValue o, response.object()["messages"].toArray())
+//            {
+//                    messages << "MESSAGE: " + o.toString();
+//                    if (o.toString().startsWith("Data successfully scheduled for import."))
+//                    {
+//                            success = true;
+//                    }
+//            }
+//            foreach(QJsonValue o, response.object()["errors"].toArray())
+//            {
+//                    messages << "ERROR: " + o.toString();
+//            }
+//            foreach(QJsonValue o, response.object()["warnings"].toArray())
+//            {
+//                    messages << "WARNING: " +o.toString();
+//            }
+
+//            //add entry to NGSD
+//            if (success)
+//            {
+//                    QString processed_sample = ui_.processed_sample->text().trimmed();
+
+//                    QStringList details;
+//                    details << "gene=" + ui_.gene->text();
+//                    details << "transcript=" + ui_.nm_number->text();
+
+//                    details << "hgvs_g=" + ui_.hgvs_g->text();
+//                    details << "hgvs_c=" + ui_.hgvs_c->text();
+//                    details << "hgvs_p=" + ui_.hgvs_p->text();
+//                    details << "genotype=" + ui_.genotype->currentText();
+//                    details << "classification=" + ui_.classification->currentText();
+
+//                    if (isCompHet())
+//                    {
+//                            details << "hgvs_g2=" + ui_.hgvs_g2->text();
+//                            details << "hgvs_c2=" + ui_.hgvs_c2->text();
+//                            details << "hgvs_p2=" + ui_.hgvs_p2->text();
+//                            details << "genotype2=" + ui_.genotype2->currentText();
+//                            details << "classification2=" + ui_.classification2->currentText();
+//                    }
+
+//                    foreach(const Phenotype& pheno, ui_.phenos->selectedPhenotypes())
+//                    {
+//                            details << "phenotype=" + pheno.accession() + " - " + pheno.name();
+//                    }
+
+//                    //Upload only if variant(s) are set
+//                    if (variant1_.isValid())
+//                    {
+//                            db_.addVariantPublication(processed_sample, variant1_, "LOVD", ui_.classification->currentText(), details.join(";"));
+//                    }
+//                    if (variant2_.isValid())
+//                    {
+//                            db_.addVariantPublication(processed_sample, variant2_, "LOVD", ui_.classification2->currentText(), details.join(";"));
+//                    }
+
+//                    //show result
+//                    QStringList lines;
+//                    lines << "DATA UPLOAD TO LOVD SUCCESSFUL";
+//                    lines << "";
+//                    lines << messages.join("\n");
+//                    lines << "";
+//                    lines << "sample: " + processed_sample;
+//                    lines << "user: " + Helper::userName();
+//                    lines << "date: " + Helper::dateTime();
+//                    lines << "";
+//                    lines << details;
+
+//                    ui_.comment_upload->setText(lines.join("\n").replace("=", ": "));
+
+//                    //write report file to transfer folder
+//                    QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
+//                    if (gsvar_publication_folder!="")
+//                    {
+//                            QString file_rep = gsvar_publication_folder + "/" + processed_sample + "_LOVD_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
+//                            Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
+//                    }
+//            }
+//            else
+//            {
+//                    ui_.comment_upload->setText("DATA UPLOAD ERROR:\n" + messages.join("\n"));
+//                    ui_.upload_btn->setEnabled(true);
+//            }
+    }
+    catch(Exception e)
+    {
+            ui_.comment_upload->setText("DATA UPLOAD FAILED:\n" + e.message());
+            ui_.upload_btn->setEnabled(true);
+    }
+
+    // check if upload was successful
+
+    // log publication in NGSD
 
 }
 
 bool ClinvarUploadDialog::checkGuiData()
 {
-	//check if already published
-	if (data_.processed_sample !="" && variant1_.isValid())
-	{
-		QString upload_details = db_.getVariantPublication(data_.processed_sample, variant1_);
-		if (upload_details!="")
-		{
-			ui_.upload_btn->setEnabled(false);
-			ui_.comment_upload->setText("<font color='red'>ERROR: variant already uploaded!</font><br>" + upload_details);
-			return false;
-		}
-	}
+    //check if already published
+    if (data_.processed_sample !="" && variant1_.isValid())
+    {
+        QString upload_details = db_.getVariantPublication(data_.processed_sample, variant1_);
+        if (upload_details!="")
+        {
+            ui_.upload_btn->setEnabled(false);
+            ui_.comment_upload->setText("<font color='red'>ERROR: variant already uploaded!</font><br>" + upload_details);
+            return false;
+        }
+    }
 
-	//perform checks
+    //perform checks
 
-	// check chromosome
-	QStringList errors;
-	if (ui_.cb_chr->currentText().trimmed().isEmpty())
-	{
-		errors << "Chromosome unset!";
-	}
+    // check chromosome
+    QStringList errors;
+    if (ui_.cb_chr->currentText().trimmed().isEmpty())
+    {
+        errors << "Chromosome unset!";
+    }
 
-	// check sequences
-	QRegExp re("[AGTU]*");
-	if (!re.exactMatch(ui_.le_ref->text()))
-	{
-		errors << "invalid reference sequence '" + ui_.le_ref->text() + "'!";
-	}
-	if (!re.exactMatch(ui_.le_obs->text()))
-	{
-		errors << "invalid observed sequence '" + ui_.le_obs->text() + "'!";
-	}
+    // check sequences
+    QRegExp re("[-]|[ACGTU]*");
+    if (!re.exactMatch(ui_.le_ref->text()))
+    {
+        errors << "invalid reference sequence '" + ui_.le_ref->text() + "'!";
+    }
+    if (!re.exactMatch(ui_.le_obs->text()))
+    {
+        errors << "invalid observed sequence '" + ui_.le_obs->text() + "'!";
+    }
 
-	//check genes
-	GeneSet gene_set = GeneSet::createFromStringList(ui_.le_gene->text().split(','));
-	QStringList invalid_genes;
-	foreach (const QByteArray gene, gene_set)
-	{
-		QByteArray approved_gene_name = NGSD().geneToApproved(gene, false);
-		if(approved_gene_name.isEmpty() || (gene != approved_gene_name))
-		{
-			invalid_genes << gene;
-		}
-	}
-	if (invalid_genes.size() > 0)
-	{
-		errors << (invalid_genes.join(", ") + " are not HGNC approved gene names!");
-	}
+    //check genes
+    GeneSet gene_set = GeneSet::createFromStringList(ui_.le_gene->text().split(','));
+    QStringList invalid_genes;
+    foreach (const QByteArray gene, gene_set)
+    {
+        QByteArray approved_gene_name = NGSD().geneToApproved(gene, false);
+        if(approved_gene_name.isEmpty() || (gene != approved_gene_name))
+        {
+            invalid_genes << gene;
+        }
+    }
+    if (invalid_genes.size() > 0)
+    {
+        errors << (invalid_genes.join(", ") + " are not HGNC approved gene names!");
+    }
 
-//	if (ui_.classification->currentText().trimmed().isEmpty())
-//	{
-//		errors << "Classification unset!";
-//	}
+    //	if (ui_.classification->currentText().trimmed().isEmpty())
+    //	{
+    //		errors << "Classification unset!";
+    //	}
 
 
-	if (ui_.phenos->selectedPhenotypes().count()==0)
-	{
-		errors << "No phenotypes selected!";
-	}
+    if (ui_.phenos->selectedPhenotypes().count()==0)
+    {
+        errors << "No phenotypes selected!";
+    }
 
-	//show error or enable upload button
-	if (errors.count()>0)
-	{
-		ui_.upload_btn->setEnabled(false);
-		ui_.comment_upload->setText("Cannot upload data because:\n  - " +  errors.join("\n  - "));
-		return false;
-	}
-	else
-	{
-		ui_.upload_btn->setEnabled(true);
-		ui_.comment_upload->clear();
-		return true;
-	}
+    //show error or enable upload button
+    if (errors.count()>0)
+    {
+        ui_.upload_btn->setEnabled(false);
+        ui_.comment_upload->setText("Cannot upload data because:\n  - " +  errors.join("\n  - "));
+        return false;
+    }
+    else
+    {
+        ui_.upload_btn->setEnabled(true);
+        ui_.comment_upload->clear();
+        return true;
+    }
 }
 
 void ClinvarUploadDialog::printResults()
 {
-	QPrinter printer(QPrinter::HighResolution);
-	printer.setFullPage(true);
-	QPrintDialog *dlg = new QPrintDialog(&printer, this);
-	if (dlg->exec() == QDialog::Accepted)
-	{
-		QTextDocument *doc = new QTextDocument();
-		doc->setPlainText(ui_.comment_upload->toPlainText());
-		doc->print(&printer);
-		delete doc;
-	}
-	delete dlg;
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setFullPage(true);
+    QPrintDialog *dlg = new QPrintDialog(&printer, this);
+    if (dlg->exec() == QDialog::Accepted)
+    {
+        QTextDocument *doc = new QTextDocument();
+        doc->setPlainText(ui_.comment_upload->toPlainText());
+        doc->print(&printer);
+        delete doc;
+    }
+    delete dlg;
 }
 
 void ClinvarUploadDialog::updatePrintButton()
 {
-	ui_.print_btn->setEnabled(!ui_.comment_upload->toPlainText().trimmed().isEmpty());
+    ui_.print_btn->setEnabled(!ui_.comment_upload->toPlainText().trimmed().isEmpty());
 }
 
 QJsonObject ClinvarUploadDialog::createJson()
 {
-	//disable GUI
-	ui_.vl_left_col->setEnabled(false);
-	ui_.vl_right_col->setEnabled(false);
+    //disable GUI
+    ui_.vl_left_col->setEnabled(false);
+    ui_.vl_right_col->setEnabled(false);
 
-	//Check GUI for correct entries
-	if (!checkGuiData())
-	{
-		QMessageBox::warning(this, "Gui validation failed!", "There are errors in you GUI input. Please fix them and try again.");
-		//re-enable GUI
-		ui_.vl_left_col->setEnabled(true);
-		ui_.vl_right_col->setEnabled(true);
-		return QJsonObject();
-	}
+    //Check GUI for correct entries
+    if (!checkGuiData())
+    {
+        QMessageBox::warning(this, "Gui validation failed!", "There are errors in you GUI input. Please fix them and try again.");
+        //re-enable GUI
+        ui_.vl_left_col->setEnabled(true);
+        ui_.vl_right_col->setEnabled(true);
+        return QJsonObject();
+    }
 
-	//build up JSON
-	QJsonObject json;
+    //build up JSON
+    QJsonObject json;
 
     //required
     QJsonObject clinvar_submission;
@@ -333,7 +461,7 @@ QJsonObject ClinvarUploadDialog::createJson()
         clinvar_submission.insert("clinicalSignificance", clinical_significance);
 
         //optional
-		// clinvar_submission.insert("clinvarAccession", "");
+        // clinvar_submission.insert("clinvarAccession", "");
 
         //required
         QJsonObject condition_set;
@@ -368,10 +496,10 @@ QJsonObject ClinvarUploadDialog::createJson()
         clinvar_submission.insert("conditionSet", condition_set);
 
         //optional
-		clinvar_submission.insert("localID", QString::number(data_.variant_id));
+        clinvar_submission.insert("localID", QString::number(data_.variant_id));
 
         //optional
-		clinvar_submission.insert("localKey", QString::number(data_.variant_report_config_id));
+        clinvar_submission.insert("localKey", QString::number(data_.variant_report_config_id));
 
         //required
         QJsonObject observed_in;
@@ -398,16 +526,16 @@ QJsonObject ClinvarUploadDialog::createJson()
             observed_in.insert("clinicalFeatures", clinical_features);
 
             //optional
-			if (!ui_.le_clin_feat_comment->text().trimmed().isEmpty()) observed_in.insert("clinicalFeaturesComment", ui_.le_clin_feat_comment->text());
+            if (!ui_.le_clin_feat_comment->text().trimmed().isEmpty()) observed_in.insert("clinicalFeaturesComment", ui_.le_clin_feat_comment->text());
 
             //required
             observed_in.insert("collectionMethod", ui_.cb_collection_method->currentText());
 
             //optional
-			//observed_in.insert("numberOfIndividuals", ui_.sb_n_individuals->value());
+            //observed_in.insert("numberOfIndividuals", ui_.sb_n_individuals->value());
 
             //optional
-			//observed_in.insert("structVarMethodType", ui_.cb_method_type->currentText());
+            //observed_in.insert("structVarMethodType", ui_.cb_method_type->currentText());
 
         }
         clinvar_submission.insert("observedIn", QJsonArray() << observed_in);
@@ -423,8 +551,8 @@ QJsonObject ClinvarUploadDialog::createJson()
         {
             QJsonArray variants;
             {
-				//variant
-				QJsonObject variant;
+                //variant
+                QJsonObject variant;
                 {
                     //required (except hgvs)
                     QJsonObject chromosome_coordinates;
@@ -436,26 +564,26 @@ QJsonObject ClinvarUploadDialog::createJson()
                         chromosome_coordinates.insert("start", Helper::toInt(ui_.le_start->text()));
                         chromosome_coordinates.insert("stop", Helper::toInt(ui_.le_end->text()));
                     }
-					variant.insert("chromosomeCoordinates", chromosome_coordinates);
+                    variant.insert("chromosomeCoordinates", chromosome_coordinates);
 
                     //optional
-					if (!ui_.le_gene->text().trimmed().isEmpty())
-					{
-						QJsonArray genes;
-						{
-							GeneSet gene_set = NGSD().genesToApproved(GeneSet::createFromStringList(ui_.le_gene->text().split(',')));
-							foreach (const QByteArray& gene_name, gene_set)
-							{
-								QJsonObject gene;
-								gene.insert("symbol", QString(gene_name));
-								genes.append(gene);
-							}
-						}
-						variant.insert("gene", genes);
-					}
+                    if (!ui_.le_gene->text().trimmed().isEmpty())
+                    {
+                        QJsonArray genes;
+                        {
+                            GeneSet gene_set = NGSD().genesToApproved(GeneSet::createFromStringList(ui_.le_gene->text().split(',')));
+                            foreach (const QByteArray& gene_name, gene_set)
+                            {
+                                QJsonObject gene;
+                                gene.insert("symbol", QString(gene_name));
+                                genes.append(gene);
+                            }
+                        }
+                        variant.insert("gene", genes);
+                    }
 
                 }
-				variants.append(variant);
+                variants.append(variant);
             }
             variant_set.insert("variant", variants);
 
@@ -464,398 +592,413 @@ QJsonObject ClinvarUploadDialog::createJson()
 
 
     }
-	json.insert("clinvarSubmission", QJsonArray() << clinvar_submission);
+    json.insert("clinvarSubmission", QJsonArray() << clinvar_submission);
 
 
     //optional
-	json.insert("submissionName", "");
+    json.insert("submissionName", "");
 
 
 
-	//re-enable GUI
-	ui_.vl_left_col->setEnabled(true);
-	ui_.vl_right_col->setEnabled(true);
+    //re-enable GUI
+    ui_.vl_left_col->setEnabled(true);
+    ui_.vl_right_col->setEnabled(true);
 
-	return json;
+    return json;
 }
 
 bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& errors)
 {
-	bool is_valid = true;
-	// check clinvarSubmission
-	if (!json.contains("clinvarSubmission"))
-	{
-		errors << "Required JSON object 'clinvarSubmission' missing!";
-		return false;
-	}
-	QJsonObject clinvar_submission = json.value("clinvarSubmission").toObject();
+    bool is_valid = true;
+    // check clinvarSubmission
+    if (!json.contains("clinvarSubmission"))
+    {
+        errors << "Required JSON object 'clinvarSubmission' missing!";
+        return false;
+    }
 
-	// check required entries
-	if (clinvar_submission.contains("recordStatus"))
-	{
-		QStringList record_status = QStringList() <<  "novel" << "update";
-		if (!record_status.contains(clinvar_submission.value("recordStatus").toString()))
-		{
-			errors << "Invalid entry '" + clinvar_submission.value("recordStatus").toString() + "' in 'recordStatus'!";
-			is_valid = false;
-		}
-	}
-	else
-	{
-		errors << "Required string 'recordStatus' in 'clinvarSubmission' missing!";
-		is_valid = false;
-	}
+    QJsonArray clinvar_submission_array = json.value("clinvarSubmission").toArray();
+    if (clinvar_submission_array.size() < 1)
+    {
+        errors << "No entry in 'clinvarSubmission'!";
+        return false;
+    }
+    else if (clinvar_submission_array.size() > 1)
+    {
+        errors << "Multiple entries in 'clinvarSubmission'!";
+        return false;
+    }
+    QJsonObject clinvar_submission = clinvar_submission_array[0].toObject();
 
-	if (clinvar_submission.contains("releaseStatus"))
-	{
-		QStringList release_status = QStringList() <<  "public" << "hold until published";
-		if (!release_status.contains(clinvar_submission.value("releaseStatus").toString()))
-		{
-			errors << "Invalid entry '" + clinvar_submission.value("releaseStatus").toString() + "' in 'releaseStatus'!";
-			is_valid = false;
-		}
-	}
-	else
-	{
-		errors << "Required string 'releaseStatus' in 'clinvarSubmission' missing!";
-		is_valid = false;
-	}
+    // check required entries
+    if (clinvar_submission.contains("recordStatus"))
+    {
+        QStringList record_status = QStringList() <<  "novel" << "update";
+        if (!record_status.contains(clinvar_submission.value("recordStatus").toString()))
+        {
+            errors << "Invalid entry '" + clinvar_submission.value("recordStatus").toString() + "' in 'recordStatus'!";
+            is_valid = false;
+        }
+    }
+    else
+    {
+        errors << "Required string 'recordStatus' in 'clinvarSubmission' missing!";
+        is_valid = false;
+    }
 
-	if (clinvar_submission.contains("clinicalSignificance"))
-	{
-		//parse clinicalSignificance
-		QJsonObject clinical_significance = clinvar_submission.value("clinicalSignificance").toObject();
-		if (clinical_significance.contains("clinicalSignificanceDescription"))
-		{
-			if (!CLINICAL_SIGNIFICANCE_DESCRIPTION.contains(clinical_significance.value("clinicalSignificanceDescription").toString()))
-			{
-				errors << "Invalid entry '" + clinical_significance.value("clinicalSignificanceDescription").toString() + "' in 'clinicalSignificanceDescription'!";
-				is_valid = false;
-			}
-		}
-		else
-		{
-			errors << "Required string 'clinicalSignificanceDescription' in 'clinicalSignificance' missing!";
-			is_valid = false;
-		}
+    if (clinvar_submission.contains("releaseStatus"))
+    {
+        QStringList release_status = QStringList() <<  "public" << "hold until published";
+        if (!release_status.contains(clinvar_submission.value("releaseStatus").toString()))
+        {
+            errors << "Invalid entry '" + clinvar_submission.value("releaseStatus").toString() + "' in 'releaseStatus'!";
+            is_valid = false;
+        }
+    }
+    else
+    {
+        errors << "Required string 'releaseStatus' in 'clinvarSubmission' missing!";
+        is_valid = false;
+    }
 
-		//TODO: check optional fields
+    if (clinvar_submission.contains("clinicalSignificance"))
+    {
+        //parse clinicalSignificance
+        QJsonObject clinical_significance = clinvar_submission.value("clinicalSignificance").toObject();
+        if (clinical_significance.contains("clinicalSignificanceDescription"))
+        {
+            if (!CLINICAL_SIGNIFICANCE_DESCRIPTION.contains(clinical_significance.value("clinicalSignificanceDescription").toString()))
+            {
+                errors << "Invalid entry '" + clinical_significance.value("clinicalSignificanceDescription").toString() + "' in 'clinicalSignificanceDescription'!";
+                is_valid = false;
+            }
+        }
+        else
+        {
+            errors << "Required string 'clinicalSignificanceDescription' in 'clinicalSignificance' missing!";
+            is_valid = false;
+        }
 
-	}
-	else
-	{
-		errors << "Required string 'clinicalSignificance' in 'clinvarSubmission' missing!";
-		is_valid = false;
-	}
+        //TODO: check optional fields
 
-	if (clinvar_submission.contains("observedIn"))
-	{
-		//parse observedIn
-		QJsonObject observed_in = clinvar_submission.value("observedIn").toObject();
-		if (observed_in.contains("alleleOrigin"))
-		{
-			if (!ALLELE_ORIGIN.contains(observed_in.value("alleleOrigin").toString()))
-			{
-				errors << "Invalid entry '" + observed_in.value("alleleOrigin").toString() + "' in 'observedIn'!";
-				is_valid = false;
-			}
-		}
-		else
-		{
-			errors << "Required string 'alleleOrigin' in 'observedIn' missing!";
-			is_valid = false;
-		}
-		if (observed_in.contains("affectedStatus"))
-		{
-			if (!AFFECTED_STATUS.contains(observed_in.value("affectedStatus").toString()))
-			{
-				errors << "Invalid entry '" + observed_in.value("affectedStatus").toString() + "' in 'observedIn'!";
-				is_valid = false;
-			}
-		}
-		else
-		{
-			errors << "Required string 'affectedStatus' in 'observedIn' missing!";
-			is_valid = false;
-		}
-		if (observed_in.contains("collectionMethod"))
-		{
-			if (!COLLECTION_METHOD.contains(observed_in.value("collectionMethod").toString()))
-			{
-				errors << "Invalid entry '" + observed_in.value("collectionMethod").toString() + "' in 'observedIn'!";
-				is_valid = false;
-			}
-		}
-		else
-		{
-			errors << "Required string 'collectionMethod' in 'observedIn' missing!";
-			is_valid = false;
-		}
+    }
+    else
+    {
+        errors << "Required string 'clinicalSignificance' in 'clinvarSubmission' missing!";
+        is_valid = false;
+    }
 
-		//TODO: check optional fields
+    if (clinvar_submission.contains("observedIn"))
+    {
+        // allow only one entry in observedIn array
+        QJsonArray observed_in_array = clinvar_submission.value("observedIn").toArray();
+        if (observed_in_array.size() < 1)
+        {
+            errors << "No entry in 'observedIn'!";
+            return false;
+        }
+        else if (observed_in_array.size() > 1)
+        {
+            errors << "Multiple entries in 'observedIn'!";
+            return false;
+        }
 
-	}
-	else
-	{
-		errors << "Required JSON object 'observedIn' in 'clinvarSubmission' missing!";
-		is_valid = false;
-	}
+        //parse observedIn
+        QJsonObject observed_in = observed_in_array[0].toObject();
+        if (observed_in.contains("alleleOrigin"))
+        {
+            if (!ALLELE_ORIGIN.contains(observed_in.value("alleleOrigin").toString()))
+            {
+                errors << "Invalid entry '" + observed_in.value("alleleOrigin").toString() + "' in 'observedIn'!";
+                is_valid = false;
+            }
+        }
+        else
+        {
+            errors << "Required string 'alleleOrigin' in 'observedIn' missing!";
+            is_valid = false;
+        }
+        if (observed_in.contains("affectedStatus"))
+        {
+            if (!AFFECTED_STATUS.contains(observed_in.value("affectedStatus").toString()))
+            {
+                errors << "Invalid entry '" + observed_in.value("affectedStatus").toString() + "' in 'observedIn'!";
+                is_valid = false;
+            }
+        }
+        else
+        {
+            errors << "Required string 'affectedStatus' in 'observedIn' missing!";
+            is_valid = false;
+        }
+        if (observed_in.contains("collectionMethod"))
+        {
+            if (!COLLECTION_METHOD.contains(observed_in.value("collectionMethod").toString()))
+            {
+                errors << "Invalid entry '" + observed_in.value("collectionMethod").toString() + "' in 'observedIn'!";
+                is_valid = false;
+            }
+        }
+        else
+        {
+            errors << "Required string 'collectionMethod' in 'observedIn' missing!";
+            is_valid = false;
+        }
 
-	if (clinvar_submission.contains("variantSet"))
-	{
-		//parse variantSet
-		QJsonObject variant_set = clinvar_submission.value("variantSet").toObject();
-		if (variant_set.contains("variant"))
-		{
-			QJsonArray variant_array = variant_set.value("variant").toArray();
-			if (variant_array.size() > 0)
-			{
-				foreach (const QJsonValue& variant, variant_array)
-				{
-					if (variant.toObject().contains("chromosomeCoordinates"))
-					{
-						QJsonObject chromosome_coordinates = variant.toObject().value("chromosomeCoordinates").toObject();
-						if (chromosome_coordinates.contains("chromosome"))
-						{
-							if (!CHR.contains(chromosome_coordinates.value("chromosome").toString()))
-							{
-								errors << "Invalid entry '" + chromosome_coordinates.value("chromosome").toString() + "' in 'chromosome'!";
-								is_valid = false;
-							}
-						}
-						else
-						{
-							errors << "Required string 'chromosome' in 'chromosomeCoordinates' missing!";
-							is_valid = false;
-						}
+        //TODO: check optional fields
 
-						if (chromosome_coordinates.contains("start"))
-						{
-							bool* ok = new bool();
-							chromosome_coordinates.value("start").toString().toInt(ok);
-							if (!ok)
-							{
-								errors << "Invalid entry '" + chromosome_coordinates.value("start").toString() + "' in 'start'!";
-								is_valid = false;
-							}
-						}
-						else
-						{
-							errors << "Required number 'start' in 'chromosomeCoordinates' missing!";
-							is_valid = false;
-						}
+    }
+    else
+    {
+        errors << "Required JSON object 'observedIn' in 'clinvarSubmission' missing!";
+        is_valid = false;
+    }
 
-						if (chromosome_coordinates.contains("stop"))
-						{
-							bool* ok = new bool();
-							chromosome_coordinates.value("stop").toString().toInt(ok);
-							if (!ok)
-							{
-								errors << "Invalid entry '" + chromosome_coordinates.value("stop").toString() + "' in 'stop'!";
-								is_valid = false;
-							}
-						}
-						else
-						{
-							errors << "Required number 'stop' in 'chromosomeCoordinates' missing!";
-							is_valid = false;
-						}
+    if (clinvar_submission.contains("variantSet"))
+    {
+        //parse variantSet
+        QJsonObject variant_set = clinvar_submission.value("variantSet").toObject();
+        if (variant_set.contains("variant"))
+        {
+            QJsonArray variant_array = variant_set.value("variant").toArray();
+            if (variant_array.size() > 0)
+            {
+                foreach (const QJsonValue& variant, variant_array)
+                {
+                    if (variant.toObject().contains("chromosomeCoordinates"))
+                    {
+                        QJsonObject chromosome_coordinates = variant.toObject().value("chromosomeCoordinates").toObject();
+                        if (chromosome_coordinates.contains("chromosome"))
+                        {
+                            if (!CHR.contains(chromosome_coordinates.value("chromosome").toString()))
+                            {
+                                errors << "Invalid entry '" + chromosome_coordinates.value("chromosome").toString() + "' in 'chromosome'!";
+                                is_valid = false;
+                            }
+                        }
+                        else
+                        {
+                            errors << "Required string 'chromosome' in 'chromosomeCoordinates' missing!";
+                            is_valid = false;
+                        }
 
-						if (chromosome_coordinates.contains("referenceAllele"))
-						{
-							QString ref = chromosome_coordinates.value("referenceAllele").toString().trimmed();
-							QRegExp re("[AGTUagtu]*");
-							if (ref != "-" && !ref.isEmpty() && !re.exactMatch(ref))
-							{
-								errors << "Invalid entry '" + ref + "' in 'referenceAllele'!";
-								is_valid = false;
-							}
-						}
-						else
-						{
-							errors << "Required string 'referenceAllele' in 'chromosomeCoordinates' missing!";
-							is_valid = false;
-						}
+                        if (chromosome_coordinates.contains("start"))
+                        {
+                            bool* ok = new bool();
+                            chromosome_coordinates.value("start").toString().toInt(ok);
+                            if (!ok)
+                            {
+                                errors << "Invalid entry '" + chromosome_coordinates.value("start").toString() + "' in 'start'!";
+                                is_valid = false;
+                            }
+                        }
+                        else
+                        {
+                            errors << "Required number 'start' in 'chromosomeCoordinates' missing!";
+                            is_valid = false;
+                        }
 
-						if (chromosome_coordinates.contains("alternateAllele"))
-						{
-							QString alt = chromosome_coordinates.value("alternateAllele").toString().trimmed();
-							QRegExp re("[AGTUagtu]*");
-							if (alt != "-" && !alt.isEmpty() && !re.exactMatch(alt))
-							{
-								errors << "Invalid entry '" + alt + "' in 'alternateAllele'!";
-								is_valid = false;
-							}
-						}
-						else
-						{
-							errors << "Required string 'alternateAllele' in 'chromosomeCoordinates' missing!";
-							is_valid = false;
-						}
+                        if (chromosome_coordinates.contains("stop"))
+                        {
+                            bool* ok = new bool();
+                            chromosome_coordinates.value("stop").toString().toInt(ok);
+                            if (!ok)
+                            {
+                                errors << "Invalid entry '" + chromosome_coordinates.value("stop").toString() + "' in 'stop'!";
+                                is_valid = false;
+                            }
+                        }
+                        else
+                        {
+                            errors << "Required number 'stop' in 'chromosomeCoordinates' missing!";
+                            is_valid = false;
+                        }
 
-					}
-					else
-					{
-						errors << "Required JSON object 'chromosomeCoordinates' in 'variant' missing!";
-						is_valid = false;
-					}
-				}
-			}
-			else
-			{
-				errors << "JSON array 'variant' in 'variantSet' has to have at least one entry!";
-				is_valid = false;
-			}
-			if (!ALLELE_ORIGIN.contains(variant_set.value("alleleOrigin").toString()))
-			{
-				errors << "Invalid entry '" + variant_set.value("alleleOrigin").toString() + "' in 'variantSet'!";
-				is_valid = false;
-			}
-		}
-		else
-		{
-			errors << "Required JSON array 'variant' in 'variantSet' missing!";
-			is_valid = false;
-		}
-		//TODO: check optional fields
+                        if (chromosome_coordinates.contains("referenceAllele"))
+                        {
+                            QString ref = chromosome_coordinates.value("referenceAllele").toString().trimmed();
+                            QRegExp re("[-]|[ACGTUacgtu]+");
+                            if (!re.exactMatch(ref))
+                            {
+                                errors << "Invalid entry '" + ref + "' in 'referenceAllele'!";
+                                is_valid = false;
+                            }
+                        }
+                        else
+                        {
+                            errors << "Required string 'referenceAllele' in 'chromosomeCoordinates' missing!";
+                            is_valid = false;
+                        }
 
-	}
-	else
-	{
-		errors << "Required string 'variantSet' in 'clinvarSubmission' missing!";
-		is_valid = false;
-	}
+                        if (chromosome_coordinates.contains("alternateAllele"))
+                        {
+                            QString alt = chromosome_coordinates.value("alternateAllele").toString().trimmed();
+                            QRegExp re("[-]|[ACGTUacgtu]+");
+                            if (alt != "-" && !alt.isEmpty() && !re.exactMatch(alt))
+                            {
+                                errors << "Invalid entry '" + alt + "' in 'alternateAllele'!";
+                                is_valid = false;
+                            }
+                        }
+                        else
+                        {
+                            errors << "Required string 'alternateAllele' in 'chromosomeCoordinates' missing!";
+                            is_valid = false;
+                        }
 
-	if (clinvar_submission.contains("conditionSet"))
-	{
-		//parse variantSet
-		QJsonObject condition_set = clinvar_submission.value("conditionSet").toObject();
-		if (condition_set.contains("condition"))
-		{
-			QJsonArray condition_array = condition_set.value("variant").toArray();
-			if (condition_array.size() > 0)
-			{
-				foreach (const QJsonValue& condition, condition_array)
-				{
-					if (condition.toObject().contains("db"))
-					{
-						QString db = condition.toObject().value("db").toString();
-						if (db == "Orphanet")
-						{
-							if (condition.toObject().contains("id"))
-							{
-								QString id = condition.toObject().value("id").toString();
-								if (!id.startsWith("#"))
-								{
-									errors << "Invalid entry '" + id + "' in 'id'!";
-									is_valid = false;
-								}
-							}
-							else
-							{
-								errors << "Required string 'id' in 'condition' missing!";
-								is_valid = false;
-							}
-						}
-						else if (db == "OMIM")
-						{
-							if (condition.toObject().contains("id"))
-							{
-								QString id = condition.toObject().value("id").toString();
-								if (!id.startsWith("ORPHA:"))
-								{
-									errors << "Invalid entry '" + id + "' in 'id'!";
-									is_valid = false;
-								}
-							}
-							else
-							{
-								errors << "Required string 'id' in 'condition' missing!";
-								is_valid = false;
-							}
-						}
-						else
-						{
-							errors << "Invalid entry '" + db + "' in 'db'!";
-							is_valid = false;
-						}
-					}
-					else
-					{
-						errors << "Required string 'db' in 'condition' missing!";
-						is_valid = false;
-					}
-				}
-			}
-			else
-			{
-				errors << "JSON array 'variant' in 'variantSet' has to have at least one entry!";
-				is_valid = false;
-			}
-			if (!ALLELE_ORIGIN.contains(condition_set.value("alleleOrigin").toString()))
-			{
-				errors << "Invalid entry '" + condition_set.value("alleleOrigin").toString() + "' in 'variantSet'!";
-				is_valid = false;
-			}
-		}
-		else
-		{
-			errors << "Required JSON array 'variant' in 'variantSet' missing!";
-			is_valid = false;
-		}
-		//TODO: check optional fields
+                    }
+                    else
+                    {
+                        errors << "Required JSON object 'chromosomeCoordinates' in 'variant' missing!";
+                        is_valid = false;
+                    }
+                }
+            }
+            else
+            {
+                errors << "JSON array 'variant' in 'variantSet' has to have at least one entry! 730";
+                is_valid = false;
+            }
+        }
+        else
+        {
+            errors << "Required JSON array 'variant' in 'variantSet' missing!";
+            is_valid = false;
+        }
+        //TODO: check optional fields
 
-	}
-	else
-	{
-		errors << "Required string 'conditionSet' in 'clinvarSubmission' missing!";
-		is_valid = false;
-	}
+    }
+    else
+    {
+        errors << "Required string 'variantSet' in 'clinvarSubmission' missing!";
+        is_valid = false;
+    }
 
-	//TODO: check optional entries
+    if (clinvar_submission.contains("conditionSet"))
+    {
+        //parse variantSet
+        QJsonObject condition_set = clinvar_submission.value("conditionSet").toObject();
+        if (condition_set.contains("condition"))
+        {
+            QJsonArray condition_array = condition_set.value("condition").toArray();
+            if (condition_array.size() > 0)
+            {
+                foreach (const QJsonValue& condition, condition_array)
+                {
+                    if (condition.toObject().contains("db"))
+                    {
+                        QString db = condition.toObject().value("db").toString();
+                        if (db == "OMIM")
+                        {
+                            if (condition.toObject().contains("id"))
+                            {
+                                QString id = condition.toObject().value("id").toString();
+                                if (!id.startsWith("#"))
+                                {
+                                    errors << "Invalid entry '" + id + "' in 'id'!";
+                                    is_valid = false;
+                                }
+                            }
+                            else
+                            {
+                                errors << "Required string 'id' in 'condition' missing!";
+                                is_valid = false;
+                            }
+                        }
+                        else if (db == "Orphanet")
+                        {
+                            if (condition.toObject().contains("id"))
+                            {
+                                QString id = condition.toObject().value("id").toString();
+                                if (!id.startsWith("ORPHA:"))
+                                {
+                                    errors << "Invalid entry '" + id + "' in 'id'!";
+                                    is_valid = false;
+                                }
+                            }
+                            else
+                            {
+                                errors << "Required string 'id' in 'condition' missing!";
+                                is_valid = false;
+                            }
+                        }
+                        else
+                        {
+                            errors << "Invalid entry '" + db + "' in 'db'!";
+                            is_valid = false;
+                        }
+                    }
+                    else
+                    {
+                        errors << "Required string 'db' in 'condition' missing!";
+                        is_valid = false;
+                    }
+                }
+            }
+            else
+            {
+                errors << "JSON array 'condition' in 'conditionSet' has to have at least one entry!";
+                is_valid = false;
+            }
+        }
+        else
+        {
+            errors << "Required JSON array 'variant' in 'variantSet' missing!";
+            is_valid = false;
+        }
+        //TODO: check optional fields
 
-	return is_valid;
+    }
+    else
+    {
+        errors << "Required string 'conditionSet' in 'clinvarSubmission' missing!";
+        is_valid = false;
+    }
+
+    //TODO: check optional entries
+
+    return is_valid;
 }
 
 
 QString ClinvarUploadDialog::getSettings(QString key)
 {
-	QString output = Settings::string(key).trimmed();
-	if (output.isEmpty())
-	{
-		THROW(FileParseException, "Settings INI file does not contain key '" + key + "'!");
-	}
-	return output;
+    QString output = Settings::string(key).trimmed();
+    if (output.isEmpty())
+    {
+        THROW(FileParseException, "Settings INI file does not contain key '" + key + "'!");
+    }
+    return output;
 }
 
 QString ClinvarUploadDialog::convertClassification(QString classification)
 {
-	if (classification=="5")
-	{
-		return "Pathogenic";
-	}
-	if (classification=="4")
-	{
-                return "Likely pathogenic";
-	}
-	if (classification=="3" || classification=="n/a" || classification=="")
-	{
-                return "Uncertain significance";
-	}
-	if (classification=="2")
-	{
-                return "Likely benign";
-	}
-	if (classification=="1")
-	{
-                return "Benign";
-	}
-        else if (classification=="M")
-        {
-                return "risk factor";
-        }
+    if (classification=="5")
+    {
+        return "Pathogenic";
+    }
+    if (classification=="4")
+    {
+        return "Likely pathogenic";
+    }
+    if (classification=="3" || classification=="n/a" || classification=="")
+    {
+        return "Uncertain significance";
+    }
+    if (classification=="2")
+    {
+        return "Likely benign";
+    }
+    if (classification=="1")
+    {
+        return "Benign";
+    }
+    else if (classification=="M")
+    {
+        return "risk factor";
+    }
 
-        THROW(ProgrammingException, "Unknown classification '" + classification + "' in ClinvarUploadDialog::convertClassification(...) method!");
+    THROW(ProgrammingException, "Unknown classification '" + classification + "' in ClinvarUploadDialog::convertClassification(...) method!");
 }
 
 QString ClinvarUploadDialog::convertInheritance(QString inheritance)
