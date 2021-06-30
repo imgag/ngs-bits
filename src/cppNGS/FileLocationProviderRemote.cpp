@@ -67,7 +67,7 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(QString type
 				+ "/v1/file_location?ps_url_id=" + file_id + "&type=" + type
 				+ "&return_if_missing=" +(return_if_missing ? "1" : "0"), add_headers);
 
-	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
+	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
 	QJsonArray file_list = json_doc.array();
 
 	if (file_list.count() == 0)

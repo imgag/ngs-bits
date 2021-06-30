@@ -15,7 +15,7 @@ TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const 
 	//set annotation indices
 	i_co_sp_ = variants_.annotationIndexByName("coding_and_splicing");
 	i_tum_af_ = variants_.annotationIndexByName("tumor_af");
-	i_cgi_driver_statem_ = variants_.annotationIndexByName("CGI_driver_statement");
+	i_cgi_driver_statem_ = variants_.annotationIndexByName("CGI_driver_statement", true, false);
 	i_ncg_oncogene_ = variants_.annotationIndexByName("ncg_oncogene");
 	i_ncg_tsg_ = variants_.annotationIndexByName("ncg_tsg");
 	i_germl_class_ = variants_.annotationIndexByName("classification");
@@ -33,7 +33,7 @@ TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const 
 
 void TumorOnlyReportWorker::checkAnnotation(const VariantList &variants)
 {
-	const QStringList anns = {"coding_and_splicing", "tumor_af", "tumor_dp", "gene", "variant_type", "CGI_driver_statement", "ncg_oncogene", "ncg_tsg", "classification", "somatic_classification"};
+	const QStringList anns = {"coding_and_splicing", "tumor_af", "tumor_dp", "gene", "variant_type", "ncg_oncogene", "ncg_tsg", "classification", "somatic_classification"};
 
 	for(const auto& ann : anns)
 	{
@@ -60,8 +60,11 @@ QByteArray TumorOnlyReportWorker::variantDescription(const Variant &var)
 	}
 
 	//CGI classification
-	if(var.annotations()[i_cgi_driver_statem_].contains("known")) out << "CGI: Treiber (bekannt)";
-	else if(var.annotations()[i_cgi_driver_statem_].contains("predicted driver")) out << "CGI: Treiber (vorhergesagt)";
+	if(i_cgi_driver_statem_ >= 0)
+	{
+		if(var.annotations()[i_cgi_driver_statem_].contains("known")) out << "CGI: Treiber (bekannt)";
+		else if(var.annotations()[i_cgi_driver_statem_].contains("predicted driver")) out << "CGI: Treiber (vorhergesagt)";
+	}
 
 	return out.join(", \\line\n");
 

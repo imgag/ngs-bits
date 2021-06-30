@@ -14,12 +14,6 @@ class ProcessingSystemWidget
 public:
 	ProcessingSystemWidget(QWidget* parent, int sys_id);
 
-signals:
-	void openProcessedSampleTab(QString);
-	void openProcessedSampleFromNGSD(QString);
-	void openGeneTab(QString);
-	void executeIGVCommands(QStringList commands);
-
 private slots:
 	void updateGUI();
 	void delayedInitialization();

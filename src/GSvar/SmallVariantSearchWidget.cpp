@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "GUIHelper.h"
 #include "NGSHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QApplication>
 #include <QClipboard>
 #include <QMessageBox>
@@ -152,8 +153,7 @@ void SmallVariantSearchWidget::variantContextMenu(QPoint pos)
 	if (action==action_var_tab)
 	{
 		QString variant_string = ui_.variants->item(item->row(), 1)->text();
-		Variant v = Variant::fromString(variant_string);
-		emit openVariantTab(v);
+		GlobalServiceProvider::openVariantTab(Variant::fromString(variant_string));
 	}
 	if (action==action_var_gsvar)
 	{

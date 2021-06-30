@@ -33,10 +33,10 @@ public:
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
 	QStringList getLogFiles();	
-	///Adds a file to the recent file list
-	void addToRecentFiles(QString filename);
-	///Updates recent files menu
-	void updateRecentFilesMenu();
+	///Adds a file to the recent processed sample list
+	void addToRecentSamples(QString ps);
+	///Updates recent processed samples menu
+	void updateRecentSampleMenu();
 	///Updates IGV menu
     void updateIGVMenu();
 	///Updates menu and toolbar according to NGSD-support
@@ -79,6 +79,8 @@ public slots:
 	void loadFile(QString filename="");
 	///Checks if variant list is outdated
 	void checkVariantList(QStringList messages);
+	///Checks if processed samples have bad quality or other problems
+	void checkProcessedSamplesInNGSD();
 	///Open dialog
 	void on_actionOpen_triggered();
 	///Open dialog by name (using NGSD)
@@ -266,8 +268,8 @@ public slots:
 	void updateVariantDetails();
 	///Updates the variant table once the variant list changed
 	void refreshVariantTable(bool keep_widths = true);
-	///Opens the recent file defined by the sender action text
-	void openRecentFile();
+	///Opens the recent processed sample defined by the sender action text
+	void openRecentSample();
 	///Loads the command line input file.
 	void delayedInitialization();
 	///A variant has been double-clicked > open in IGV
@@ -276,8 +278,6 @@ public slots:
 	void variantHeaderDoubleClicked(int row);
 	///Initializes IGV for current samples. Returns if the initialization was successfull.
 	bool initializeIGV(QAbstractSocket& socket);
-	///Open region in IGV
-	void openInIGV(QString region);
 	///Opens a custom track in IGV
 	void openCustomIgvTrack();
 
@@ -332,7 +332,7 @@ public slots:
 	///Open variant tab
 	void openVariantTab(Variant variant);
 	///Open pocessing system tab
-	void openProcessingSystemTab(QString name_short);
+	void openProcessingSystemTab(QString system_name);
 	///Open project tab
 	void openProjectTab(QString name);
 	///Opens a tab and returns its index.

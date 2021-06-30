@@ -383,4 +383,13 @@ private slots:
 		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
 		IS_FALSE(vl.getCreationDate().isValid());
 	}
+
+	void getBuild()
+	{
+		VariantList vl;
+		I_EQUAL(vl.getBuild(), GenomeBuild::HG19);
+
+		vl.addCommentLine("##GENOME_BUILD=GRCh38");
+		I_EQUAL(vl.getBuild(), GenomeBuild::HG38);
+	}
 };

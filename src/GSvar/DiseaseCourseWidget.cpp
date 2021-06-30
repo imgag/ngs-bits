@@ -36,17 +36,15 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 
 	const VcfLine& vcf_line = ref_column_.variants[row];
 	QString coords = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.start());
-	emit openInIGV(coords);
+	GlobalServiceProvider::gotoInIGV(coords, true);
 
 	// add cfDNA BAM Files to IGV
-	QStringList igv_commands;
 	foreach (const cfDnaColumn& cf_dna, cf_dna_columns_)
 	{
 		QString ps_id = db_.processedSampleId(cf_dna.name);		
 		QString bam = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::BAM).filename;
-		igv_commands << "load \"" + Helper::canonicalPath(bam) + "\"";
+		GlobalServiceProvider::loadFileInIGV(bam, true);
 	}
-	emit executeIGVCommands(igv_commands);
 }
 
 void DiseaseCourseWidget::copyToClipboard()

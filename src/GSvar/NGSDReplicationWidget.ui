@@ -36,6 +36,13 @@
     <number>3</number>
    </property>
    <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Converts information from hg19 NGSD to hg38 NGSD. Perform the following steps:&lt;br/&gt;&lt;br/&gt;1) add the the hg38 NGSD credentials to the settings.ini file: ngsd_hg38_host, ngsd_hg38_port ...&lt;br/&gt;2) replicate base data only&lt;br/&gt;3) set up hg38 megSAP and re-analyze the samples for hg38&lt;br/&gt;4) replicate variant data&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Actions</string>

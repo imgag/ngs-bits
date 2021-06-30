@@ -256,7 +256,7 @@ void ClinvarSubmissionGenerator::generateXML(const ClinvarSubmissionData& data, 
 			w.writeCharacters("Variation");
 			w.writeEndElement();
 			w.writeStartElement("SequenceLocation");
-			w.writeAttribute("Assembly", "GRCh37");
+			w.writeAttribute("Assembly", buildToString(data.build, true));
 			w.writeAttribute("Chr", data.variant.chr.strNormalized(false));
 			w.writeAttribute("referenceAllele", data.variant.ref);
 			w.writeAttribute("alternateAllele", data.variant.alt);

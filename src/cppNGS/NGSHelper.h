@@ -4,6 +4,7 @@
 #include "cppNGS_global.h"
 #include "BamReader.h"
 #include "FilterCascade.h"
+#include "GenomeBuild.h"
 
 //Helper datastructure for gene impringing info.
 struct ImprintingInfo
@@ -40,8 +41,8 @@ class CPPNGSSHARED_EXPORT NGSHelper
 {
 public:
 	///Returns known SNPs and indels from gnomAD (AF>=1%, AN>=5000).
-	static VcfFile getKnownVariants(QString build, bool only_snvs, const BedFile& roi, double min_af=0.0, double max_af=1.0);
-	static VcfFile getKnownVariants(QString build, bool only_snvs, double min_af=0.0, double max_af=1.0);
+	static VcfFile getKnownVariants(GenomeBuild build, bool only_snvs, const BedFile& roi, double min_af=0.0, double max_af=1.0);
+	static VcfFile getKnownVariants(GenomeBuild build, bool only_snvs, double min_af=0.0, double max_af=1.0);
 
 	///Soft-clip alignment from the beginning or end (positions are 1-based)
 	static void softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos);
@@ -53,12 +54,12 @@ public:
 	static QByteArray expandAminoAcidAbbreviation(QChar amino_acid_change_in);
 
 	///Returns the pseudoautomal regions on gnosomes.
-	static const BedFile& pseudoAutosomalRegion(const QString& build);
+	static const BedFile& pseudoAutosomalRegion(GenomeBuild build);
 
 	///Returns the cytogenetic band for to chromosomal position
-	static QByteArray cytoBand(const QString& build, Chromosome chr, int pos);
+	static QByteArray cytoBand(GenomeBuild build, Chromosome chr, int pos);
 	///Returns the chromosomal range of a cytoband or cytoband range.
-	static BedLine cytoBandToRange(const QString& build, QByteArray cytoband);
+	static BedLine cytoBandToRange(GenomeBuild build, QByteArray cytoband);
 
 	///Returns a map if imprinted genes and inherited allele.
 	static const QMap<QByteArray, ImprintingInfo>& imprintingGenes();
@@ -66,11 +67,11 @@ public:
 	///Parses a chromosomal region from the given text. Throws an error, if the region is not valid.
 	static void parseRegion(const QString& text, Chromosome& chr, int& start, int& end);
 
-	///Returns Bed File with coordinates of centromeres (GRCh37 and GRCh38). Empty if unknown build
-	static BedFile centromeres(const QString& build);
+	///Returns Bed File with coordinates of centromeres.
+	static const BedFile& centromeres(GenomeBuild build);
 
-	///Returns Bed file with coordinates of telomeres (GRCh37 and GRCh38). Empty if unknown build
-	static BedFile telomeres(const QString& build);
+	///Returns Bed file with coordinates of telomeres.
+	static const BedFile& telomeres(GenomeBuild build);
 
 private:
 	///Constructor declared away

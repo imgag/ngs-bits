@@ -3,6 +3,7 @@
 #include "Chromosome.h"
 #include "Helper.h"
 #include "NGSHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -23,10 +24,15 @@ CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 	ui_.caller->addItems(callers);
 	ui_.caller->setCurrentText("ClinCNV");
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
+
 	QAction* action = new QAction("Copy coordinates");
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyCoodinatesToClipboard()));
 	connect(ui_.rb_chr_pos->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
 	ui_.table->addAction(action);
+
+	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
 }
 
 void CnvSearchWidget::setCoordinates(Chromosome chr, int start, int end)
@@ -299,4 +305,15 @@ void CnvSearchWidget::changeSearchType()
 	ui_.operation->setEnabled(ui_.rb_chr_pos->isChecked());
 	ui_.coordinates->setEnabled(ui_.rb_chr_pos->isChecked());
 	ui_.le_genes->setEnabled(ui_.rb_genes->isChecked());
+}
+
+void CnvSearchWidget::openSelectedSampleTabs()
+{
+
+	int col = ui_.table->columnIndex("sample");
+	foreach (int row, ui_.table->selectedRows().toList())
+	{
+		QString ps = ui_.table->item(row, col)->text();
+		GlobalServiceProvider::openProcessedSampleTab(ps);
+	}
 }

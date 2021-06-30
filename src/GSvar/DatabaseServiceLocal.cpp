@@ -32,6 +32,13 @@ GeneSet DatabaseServiceLocal::processingSystemGenes(int sys_id) const
 	return NGSD().processingSystemGenes(sys_id);
 }
 
+QStringList DatabaseServiceLocal::secondaryAnalyses(QString processed_sample_name, QString analysis_type) const
+{
+	checkEnabled(__PRETTY_FUNCTION__);
+
+	return NGSD().secondaryAnalyses(processed_sample_name, analysis_type);
+}
+
 FileLocation DatabaseServiceLocal::processedSamplePath(const QString& processed_sample_id, PathType type) const
 {
 	checkEnabled(__PRETTY_FUNCTION__);

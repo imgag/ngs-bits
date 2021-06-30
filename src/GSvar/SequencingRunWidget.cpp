@@ -9,6 +9,7 @@
 #include "LoginManager.h"
 #include "EmailDialog.h"
 #include "DBQCWidget.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QInputDialog>
 
@@ -496,14 +497,14 @@ void SequencingRunWidget::openSelectedSampleTabs()
 	QList<int> selected_rows = ui_->samples->selectedRows().toList();
 	foreach (int row, selected_rows)
 	{
-		QTableWidgetItem* item = ui_->samples->item(row, col);
-
-		emit(openProcessedSampleTab(item->text()));
+		QString ps = ui_->samples->item(row, col)->text();
+		GlobalServiceProvider::openProcessedSampleTab(ps);
 	}
 }
 
 void SequencingRunWidget::openSampleTab(int row)
 {
 	int col = ui_->samples->columnIndex("sample");
-	emit(openProcessedSampleTab(ui_->samples->item(row, col)->text()));
+	QString ps = ui_->samples->item(row, col)->text();
+	GlobalServiceProvider::openProcessedSampleTab(ps);
 }

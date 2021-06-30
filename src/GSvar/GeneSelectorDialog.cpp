@@ -205,7 +205,7 @@ void GeneSelectorDialog::geneDoubleClicked(QTableWidgetItem* item)
 {
 	if (item==nullptr) return;
 
-	emit openRegionInIGV(ui->details->item(item->row(), 0)->text());
+	GlobalServiceProvider::gotoInIGV(ui->details->item(item->row(), 0)->text(), true);
 }
 
 QString GeneSelectorDialog::report()

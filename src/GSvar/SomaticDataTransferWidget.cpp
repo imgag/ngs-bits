@@ -117,7 +117,7 @@ void SomaticDataTransferWidget::checkApiConnection()
 	addStatusRow("Checking server connection for MTB upload...");
 
 	//check API response for XML files
-	QString reply = "";
+	QByteArray reply = "";
 	try
 	{
 		reply = http_handler_.get(xml_url_ + "/condition");

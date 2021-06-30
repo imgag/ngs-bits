@@ -560,6 +560,15 @@ class CPPNGSSHARED_EXPORT FilterPredictionPathogenic
 		mutable int i_fathmm;
 		mutable int i_cadd;
 		mutable int i_revel;
+		mutable bool skip_high_impact;
+		mutable int i_co_sp;
+
+		mutable double cutoff_cadd;
+		mutable double cutoff_revel;
+		mutable double cutoff_fathmm_mkl;
+		mutable double cutoff_phylop;
+		mutable bool ignore_sift;
+		mutable bool ignore_polyphen;
 };
 
 //Annotation text filter

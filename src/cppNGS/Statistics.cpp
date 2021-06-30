@@ -220,19 +220,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		++al_total;
 		max_length = std::max(max_length, al.length());
 
-		//insert size
-		if (al.isPaired())
-		{
-			paired_end = true;
-
-			if (al.isProperPair())
-			{
-				++al_proper_paired;
-				int insert_size = std::min(abs(al.insertSize()), 999); //cap insert size at 1000
-				insert_size_sum += insert_size;
-				insert_dist.inc(insert_size, true);
-			}
-		}
+		//track if spliced alignment
+		bool spliced_alignment = false;
 
 		if (!al.isUnmapped())
 		{
@@ -248,6 +237,10 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 				if (op.Type==BAM_CSOFT_CLIP || op.Type==BAM_CHARD_CLIP)
 				{
 					bases_clipped += op.Length;
+				}
+				else if (op.Type==BAM_CREF_SKIP)
+				{
+					spliced_alignment = true;
 				}
 			}
 
@@ -292,6 +285,25 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 							gc_reads[bin] += 1.0/indices.count();
 						}
 					}
+				}
+			}
+		}
+
+		//insert size
+		if (al.isPaired())
+		{
+			paired_end = true;
+
+			if (al.isProperPair())
+			{
+				++al_proper_paired;
+
+				//if alignment is spliced, exclude it from insert size calculation
+				if (!spliced_alignment)
+				{
+					int insert_size = std::min(abs(al.insertSize()), 999); //cap insert size at 1000
+					insert_size_sum += insert_size;
+					insert_dist.inc(insert_size, true);
 				}
 			}
 		}
@@ -460,200 +472,6 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	return output;
 }
 
-QCCollection Statistics::mapping_rna(const QString &bam_file, int min_mapq, const QString& ref_file)
-{
-	//open BAM file
-	BamReader reader(bam_file, ref_file);
-
-	//init counts
-	int al_total = 0;
-	int al_mapped = 0;
-	int al_ontarget = 0;
-	int al_dup = 0;
-	int al_proper_paired = 0;
-	double bases_trimmed = 0;
-	double bases_mapped = 0;
-	double bases_clipped = 0;
-	double insert_size_sum = 0;
-	Histogram insert_dist(0, 999, 5);
-	long long bases_usable = 0;
-	int max_length = 0;
-	bool paired_end = false;
-
-	//hash a read until its paired read occurs
-	QMap<QString, QPair<QList<CigarOp>, int>> read_hash;
-
-	//iterate through all alignments
-	int last_chr_id = -1;
-	BamAlignment al;
-	while (reader.getNextAlignment(al))
-	{
-		//skip secondary alignments
-		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-
-		//empty hash if new reference sequence (chromosome) started
-		if (al.chromosomeID() != last_chr_id)
-		{
-			read_hash.clear();
-		}
-		last_chr_id = al.chromosomeID();
-
-		++al_total;
-		max_length = std::max(max_length, al.length());
-
-		//insert size
-		if (al.isPaired())
-		{
-			paired_end = true;
-			if (al.isProperPair())
-			{
-				++al_proper_paired;
-
-				int insert_size = abs(al.insertSize());
-
-				//is the the paired read already present in the hash?
-				QString key = al.name();
-				auto search_result = read_hash.find(key);
-				if(search_result == read_hash.end())
-				{
-					read_hash.insert(key, qMakePair(al.cigarData(), al.start()-1));
-				}
-				else
-				{
-					//compute the insert size using information of both reads
-					int start1 = search_result->second;                             // Start pos read1
-					int start2 = al.start()-1;                                      // Start pos read2
-					int end1 = start1;                                              // End pos read1
-					int end2 = start2;                                              // End pos read2
-
-					//sweep over read1 and substract the introns from the insert size
-					foreach(const CigarOp& op, search_result->first)
-					{
-						end1 += op.Length;
-
-						// If the read spans an intron, decrease the insert size
-						if(op.Type==BAM_CREF_SKIP)
-						{
-							insert_size -= op.Length;
-						}
-
-						// Stop if read2 was reached
-						if(end1 >= start2) break;
-					}
-
-					//sweep over read2 and substract the introns that starts after read1's end
-					QList<CigarOp> cigar2 = al.cigarData();
-					foreach(const CigarOp& op, cigar2)
-					{
-						// Do not consider parts that were fully overlapped by read1
-						if(end2 + (int)op.Length < end1)
-						{
-							end2 += op.Length;
-							continue;
-						}
-
-						end2 += op.Length;
-
-						// If the read spans an intron, decrease the insert size
-						if(op.Type==BAM_CREF_SKIP)
-						{
-							insert_size -= op.Length;
-						}
-					}
-
-					insert_size = std::min(insert_size, 999); // cap insert size at 1000
-					insert_size_sum += 2 * insert_size;     // Twice because the sum is divided by every read of pairs
-					insert_dist.inc(insert_size, true);
-
-					// The hashed read1 is not needed any more
-					read_hash.erase(search_result);
-				}
-			}
-		}
-
-		if (!al.isUnmapped())
-		{
-			++al_mapped;
-
-			//calculate soft/hard-clipped bases
-			bases_mapped += al.length();
-			const QList<CigarOp> cigar_data = al.cigarData();
-			foreach(const CigarOp& op, cigar_data)
-			{
-				if (op.Type==BAM_CSOFT_CLIP || op.Type==BAM_CHARD_CLIP)
-				{
-					bases_clipped += op.Length;
-				}
-			}
-
-			//usable
-			if (reader.chromosome(al.chromosomeID()).isNonSpecial())
-			{
-				++al_ontarget;
-
-				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
-				{
-					bases_usable += al.length();
-				}
-			}
-		}
-
-		//trimmed bases (this is not entirely correct if the first alignments are all trimmed, but saves the second pass through the data)
-		if (al.length()<max_length)
-		{
-			bases_trimmed += (max_length - al.length());
-		}
-
-		if (al.isDuplicate())
-		{
-			++al_dup;
-		}
-	}
-
-	//output
-	QCCollection output;
-	addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
-	addQcValue(output, "QC:2000052", "clipped base percentage", 100.0 * bases_clipped / bases_mapped);
-	addQcValue(output, "QC:2000020", "mapped read percentage", 100.0 * al_mapped / al_total);
-	addQcValue(output, "QC:2000021", "on-target read percentage", 100.0 * al_ontarget / al_total);
-	if (paired_end)
-	{
-		addQcValue(output, "QC:2000022", "properly-paired read percentage", 100.0 * al_proper_paired / al_total);
-		addQcValue(output, "QC:2000023", "insert size", insert_size_sum / al_proper_paired);
-	}
-	else
-	{
-		addQcValue(output, "QC:2000022", "properly-paired read percentage", "n/a (single end)");
-		addQcValue(output, "QC:2000023", "insert size", "n/a (single end)");
-	}
-	if (al_dup==0)
-	{
-		addQcValue(output, "QC:2000024", "duplicate read percentage", "n/a (duplicates not marked or removed during data analysis)");
-	}
-	else
-	{
-		addQcValue(output, "QC:2000024", "duplicate read percentage", 100.0 * al_dup / al_total);
-	}
-	addQcValue(output, "QC:2000050", "bases usable (MB)", (double)bases_usable / 1000000.0);
-
-	//add insert size distribution plot
-	if (paired_end)
-	{
-		LinePlot plot2;
-		plot2.setXLabel("insert size");
-		plot2.setYLabel("reads [%]");
-		plot2.setXValues(insert_dist.xCoords());
-		plot2.addLine(insert_dist.yCoords(true));
-
-		QString plotname = Helper::tempFileName(".png");
-		plot2.store(plotname);
-		addQcPlot(output, "QC:2000038","insert size distribution plot", plotname);
-		QFile::remove(plotname);
-	}
-
-	return output;
-}
-
 QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QString& ref_file)
 {
 	//open BAM file
@@ -684,19 +502,8 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 		++al_total;
 		max_length = std::max(max_length, al.length());
 
-		//insert size
-		if (al.isPaired())
-		{
-			paired_end = true;
-
-			if (al.isProperPair())
-			{
-				++al_proper_paired;
-				const int insert_size = std::min(abs(al.insertSize()),  999); //cap insert size at 1000
-				insert_size_sum += insert_size;
-				insert_dist.inc(insert_size, true);
-			}
-		}
+		//track if spliced alignment
+		bool spliced_alignment = false;
 
 		if (!al.isUnmapped())
 		{
@@ -711,6 +518,10 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 				{
 					bases_clipped += op.Length;
 				}
+				else if (op.Type==BAM_CREF_SKIP)
+				{
+					spliced_alignment = true;
+				}
 			}
 
 			//usable
@@ -721,6 +532,24 @@ QCCollection Statistics::mapping(const QString &bam_file, int min_mapq, const QS
 				if (!al.isDuplicate() && al.mappingQuality()>=min_mapq)
 				{
 					bases_usable += al.length();
+				}
+			}
+		}
+
+		//insert size
+		if (al.isPaired())
+		{
+			paired_end = true;
+
+			if (al.isProperPair())
+			{
+				++al_proper_paired;
+				//if alignment is spliced, exclude it from insert size calculation
+				if (!spliced_alignment)
+				{
+					const int insert_size = std::min(abs(al.insertSize()),  999); //cap insert size at 1000
+					insert_size_sum += insert_size;
+					insert_dist.inc(insert_size, true);
 				}
 			}
 		}
@@ -929,7 +758,7 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString exons, QString t
 	return QCValue(qcml_name, QString::number(mutation_burden, 'f', 2), qcml_desc, qcml_id);
 }
 
-QCCollection Statistics::somatic(const QString& build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots, const QString& ref_file_cram)
+QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots, const QString& ref_file_cram)
 {
 	QCCollection output;
 
@@ -1553,7 +1382,7 @@ QCCollection Statistics::somatic(const QString& build, QString& tumor_bam, QStri
 	return output;
 }
 
-QCCollection Statistics::contamination(const QString& build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps)
+QCCollection Statistics::contamination(GenomeBuild build, QString bam, const QString& ref_file, bool debug, int min_cov, int min_snps)
 {
 	//open BAM
 	BamReader reader(bam, ref_file);
@@ -1601,7 +1430,7 @@ QCCollection Statistics::contamination(const QString& build, QString bam, const 
 	return output;
 }
 
-AncestryEstimates Statistics::ancestry(const QString& build, QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
+AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
 {
 	//init score statistics
 	struct PopScore
@@ -1631,8 +1460,8 @@ AncestryEstimates Statistics::ancestry(const QString& build, QString filename, i
 	}
 
 	//copy ancestry SNP file from resources (gzopen cannot access Qt resources)
-	QString snp_file = ":/Resources/" + build + "_ancestry.vcf";
-	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "' for ancestry estimation!");
+	QString snp_file = ":/Resources/" + buildToString(build) + "_ancestry.vcf";
+	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + buildToString(build) + "' for ancestry estimation!");
 	QString tmp = Helper::tempFileName(".vcf");
 	QFile::copy(snp_file, tmp);
 
@@ -2172,7 +2001,7 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	return output;
 }
 
-GenderEstimate Statistics::genderHetX(const QString& build, QString bam_file, double max_male, double min_female, const QString& ref_file)
+GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, double max_male, double min_female, const QString& ref_file)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2221,23 +2050,14 @@ GenderEstimate Statistics::genderHetX(const QString& build, QString bam_file, do
 	return output;
 }
 
-GenderEstimate Statistics::genderSRY(const QString& build, QString bam_file, double min_cov, const QString& ref_file)
+GenderEstimate Statistics::genderSRY(GenomeBuild build, QString bam_file, double min_cov, const QString& ref_file)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
 
 	//restrict to SRY gene
-	int start = 2655031;
-	int end = 2655641;
-	if (build=="hg38")
-	{
-		start = 2786989;
-		end = 2787603;
-	}
-	else if (build!="hg19")
-	{
-		THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
-	}
+	int start = build==GenomeBuild::HG38 ? 2786989 : 2655031;
+	int end = build==GenomeBuild::HG38 ? 2787603 : 2655641;
 	reader.setRegion(Chromosome("chrY"), start, end);
 
 	//calcualte average coverage
@@ -2257,7 +2077,7 @@ GenderEstimate Statistics::genderSRY(const QString& build, QString bam_file, dou
 }
 
 
-QCCollection Statistics::hrdScore(const CnvList &cnvs, QString build)
+QCCollection Statistics::hrdScore(const CnvList &cnvs, GenomeBuild build)
 {
 	BedFile centromeres = NGSHelper::centromeres(build);
 	BedFile telomeres = NGSHelper::telomeres(build);

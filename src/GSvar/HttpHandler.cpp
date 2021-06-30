@@ -58,7 +58,7 @@ QString HttpHandler::post(QString url, const QByteArray& data, const HttpHeaders
 	return HttpRequestHandler(proxy_type_, this).post(url, data, add_headers);
 }
 
-QString HttpHandler::post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers)
+QByteArray HttpHandler::post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers)
 {
 	return HttpRequestHandler(proxy_type_, this).post(url, parts, add_headers);
 }

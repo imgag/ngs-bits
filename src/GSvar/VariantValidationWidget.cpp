@@ -5,6 +5,7 @@
 #include "Settings.h"
 #include "ValidationDialog.h"
 #include "LoginManager.h"
+#include "GSvarHelper.h"
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QAction>
@@ -170,7 +171,18 @@ void VariantValidationWidget::openPrimerDesign()
 			QString variant_id = db.getValue("SELECT variant_id FROM variant_validation WHERE id=" + ui_.table->getId(row)).toString();
 			Variant variant = db.variant(variant_id);
 
-			QString url = Settings::string("PrimerDesign")+"/index.php?user="+LoginManager::user()+"&sample="+sample+"&chr="+variant.chr().str()+"&start="+QString::number(variant.start())+"&end="+QString::number(variant.end())+"";
+			Chromosome chr = variant.chr();
+			int start = variant.start();
+			int end = variant.end();
+			if(GSvarHelper::build()==GenomeBuild::HG38) //PrimerDesign support HG19 only
+			{
+				BedLine region = GSvarHelper::liftOver(chr, start, end);
+				chr = region.chr();
+				start = region.start();
+				end = region.end();
+			}
+
+			QString url = Settings::string("PrimerDesign")+"/index.php?user="+LoginManager::user()+"&sample="+sample+"&chr="+chr.str()+"&start="+QString::number(start)+"&end="+QString::number(end)+"";
 			QDesktopServices::openUrl(QUrl(url));
 		}
 	}

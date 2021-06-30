@@ -27,10 +27,6 @@ public:
 	//constructor with report config for germline single and multi/trio samples
     SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
 
-signals:
-	void openInIGV(QString coords);
-	void openGeneTab(QString symbol);
-
 protected slots:
 	///copy filtered SV table to clipboard
 	void copyToClipboard();

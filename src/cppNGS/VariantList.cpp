@@ -1043,6 +1043,19 @@ SampleHeaderInfo VariantList::getSampleHeader() const
 	return output;
 }
 
+GenomeBuild VariantList::getBuild()
+{
+	foreach(const QString& line, comments_)
+	{
+		if (line.startsWith("##GENOME_BUILD="))
+		{
+			return stringToBuild(line.mid(15));
+		}
+	}
+
+	return GenomeBuild::HG19; //fallback to hg19 - the GENOME_BUILD header was added in the GRCh38 branch of megSAP...
+}
+
 QString VariantList::getPipeline() const
 {
 	foreach(const QString& line, comments_)

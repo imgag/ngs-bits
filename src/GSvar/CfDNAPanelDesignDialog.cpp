@@ -4,11 +4,11 @@
 #include "LoginManager.h"
 #include "NGSD.h"
 #include "GSvarHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QMenu>
 #include <QDir>
 #include <QPushButton>
-
 
 CfDNAPanelDesignDialog::CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent) :
 	QDialog(parent),
@@ -311,7 +311,7 @@ void CfDNAPanelDesignDialog::loadHotspotRegions()
 {
 	// open BED file
 	BedFile hotspot_regions;
-	hotspot_regions.load("://Resources/" + GSvarHelper::build() + "_cfDNA_hotspot_regions.bed");
+	hotspot_regions.load("://Resources/" + buildToString(GSvarHelper::build()) + "_cfDNA_hotspot_regions.bed");
 
 	// fill table
 
@@ -505,7 +505,7 @@ void CfDNAPanelDesignDialog::openVariantInIGV(QTableWidgetItem* item)
 
 	const Variant& var = variants_[var_idx];
 	QString coords = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + "-" + QString::number(var.end());
-	emit openInIGV(coords);
+	GlobalServiceProvider::gotoInIGV(coords, true);
 }
 
 void CfDNAPanelDesignDialog::updateSystemSelection()
@@ -595,7 +595,7 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	if (ui_->cb_sample_identifier->isChecked())
 	{
 		BedFile kasp_variants;
-		kasp_variants.load("://Resources/" + GSvarHelper::build() + "_KASP_set2_pad5.bed");
+		kasp_variants.load("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2_pad5.bed");
 		kasp_variants.clearAnnotations();
 		variant_count += kasp_variants.count();
 		for (int i=0; i<kasp_variants.count(); i++)
