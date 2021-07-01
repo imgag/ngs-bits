@@ -1,6 +1,5 @@
 #include "TestFramework.h"
 #include "Graph.h"
-#include "StringDbParser.h"
 #include "Helper.h"
 #include <QByteArray>
 #include <QString>
@@ -279,38 +278,4 @@ private slots:
         // test behavior when trying to use method that is only available for undirected graphs
         IS_THROWN(Exception, graph.getDegree("1"));
     }
-
-    /*void createInteractionNetwork()
-    {
-        QString alias_path;
-        QString string_db_path;
-        QString statistics_path;
-
-        try
-        {
-            alias_path = QString(TESTDATA(alias_file));
-            string_db_path = QString(TESTDATA(string_db_file));
-            statistics_path = QString(TESTDATA("data_out/string_db_statistics.tsv"));
-        }
-        catch(ProgrammingException ex)
-        {
-            SKIP("String-DB file(s) not found!");
-        }
-
-        // create string db graph with default confidence threshold
-        StringDbParser<int, EdgeContent> string_parser(string_db_path, alias_path);
-        Graph<int, EdgeContent> interaction_network = string_parser.interactionNetwork();
-
-        // statistics: write degree of every node to a file
-        QSharedPointer<QFile> writer = Helper::openFileForWriting(statistics_path);
-        QTextStream stream(writer.data());
-
-        stream << "node\tdegree" << endl;
-
-        Graph<int, EdgeContent>::NodePointer node;
-        foreach(node, interaction_network.adjacencyList().keys())
-        {
-            stream << node.data()->nodeName() << "\t" << interaction_network.getDegree(node.data()->nodeName()) << endl;
-        }
-    }*/
 };
