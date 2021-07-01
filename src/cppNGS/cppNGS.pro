@@ -120,8 +120,7 @@ HEADERS += BedFile.h \
     RtfDocument.h \
     Graph.h \
     GraphNode.h \
-    GraphEdge.h \
-    StringDbParser.h
+    GraphEdge.h
 
 RESOURCES += \
     cppNGS.qrc

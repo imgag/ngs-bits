@@ -419,3 +419,6 @@ VariantRanking.depends = cppNGSD
 
 SUBDIRS += GenePrioritization
 GenePrioritization.depends = cppNGS
+
+SUBDIRS += GraphStringDb
+GraphStringDb.depends = cppNGS

@@ -1,25 +1,27 @@
 #include "ToolBase.h"
 #include "Graph.h"
-#include "StringDbParser.h"
 #include "Exceptions.h"
 #include "Helper.h"
+#include <cmath>
 #include <QTextStream>
 #include <QFile>
 #include <QString>
 #include <QStringList>
 #include <QList>
-#include <QSet>
 #include <QHash>
 #include <QSharedPointer>
+#include <random>
 
 struct NodeContent
 {
     double score;
-    double score_increment;
+    double score_change;
+    int visit_count;
 
     NodeContent()
         : score(0.0),
-          score_increment(0.0)
+          score_change(0.0),
+          visit_count(0)
     {
     }
 };
@@ -40,13 +42,18 @@ class ConcreteTool
     Q_OBJECT
 
 private:
-    QSet<QString> starting_nodes_;
+    QList<QString> starting_nodes_;
 
     void sortGenesByScore(QList<Graph<NodeContent, EdgeContent>::NodePointer>& node_list)
     {
         std::sort(node_list.begin(), node_list.end(),\
                   [](const Graph<NodeContent, EdgeContent>::NodePointer& a, const Graph<NodeContent, EdgeContent>::NodePointer& b)\
-                  {return a.data()->nodeContent().score > b.data()->nodeContent().score;});
+                  {
+            if(a.data()->nodeContent().score == b.data()->nodeContent().score)
+            {
+                return a.data()->nodeName() < b.data()->nodeName();
+            }
+            return a.data()->nodeContent().score > b.data()->nodeContent().score;});
     }
 
     double getStartGenesAtTop(QList<Graph<NodeContent, EdgeContent>::NodePointer>& node_list)
@@ -84,13 +91,36 @@ public:
     {
         setDescription("Performs gene prioritization based on list of known disease genes and String-DB.");
         addInfile("in", "Input tsv file with one gene (HGNC identifier) and its disease score per line.", false);
-        addInfile("string", "String-DB file with protein interactions", false);
-        addInfile("alias", "Input tsv file with aliases for String protein IDs", false);
+        addInfile("graph", "Graph tsv file with one pair of nodes per line", false);
         addOutfile("out", "Output tsv file with prioritized genes.", false);
         //optional
         addInt("n", "Number of network diffusion iterations", true, 3);
-        addFloat("conf", "Confidence score for String-DB interaction; between 0 and 1.", true, 0.4);
-        addOutfile("debug-iterations", "Output tsv file for debugging number of iterations", true);
+        addFloat("restart", "Restart probability for random walk", true, 0.2);
+        addOutfile("debug", "Output tsv file for debugging", true);
+    }
+
+    Graph<NodeContent, EdgeContent> parseGraph(const QString& graph_file)
+    {
+
+        Graph<NodeContent, EdgeContent> graph;
+
+        QSharedPointer<QFile> reader = Helper::openFileForReading(graph_file);
+        QTextStream in(reader.data());
+
+        while(!in.atEnd())
+        {
+            QStringList line = in.readLine().split("\t", QString::SkipEmptyParts);
+            if(line.size() == 2)
+            {
+                NodeContent node_content_1{};
+                NodeContent node_content_2{};
+                EdgeContent edge_content{};
+                edge_content.weight = 1.0;
+                graph.addEdge(line.at(0), node_content_1,\
+                              line.at(1), node_content_2, edge_content);
+            }
+        }
+        return graph;
     }
 
     void scoreDiseaseGenes(Graph<NodeContent, EdgeContent>& graph, QString disease_genes_file)
@@ -114,7 +144,7 @@ public:
                 if(graph.hasNode(line.at(0)))
                 {
                     graph.getNode(line.at(0)).data()->nodeContent().score = line.at(1).toDouble();
-                    starting_nodes_.insert(line.at(0));
+                    starting_nodes_.append(line.at(0));
                 }
             }
         }
@@ -169,11 +199,11 @@ public:
 
                         if(edge.data()->node1() == node)
                         {
-                            edge.data()->node2().data()->nodeContent().score_increment += increment;
+                            edge.data()->node2().data()->nodeContent().score_change += increment;
                         }
                         else if(edge.data()->node2() == node)
                         {
-                            edge.data()->node1().data()->nodeContent().score_increment += increment;
+                            edge.data()->node1().data()->nodeContent().score_change += increment;
                         }
                     }
 
@@ -185,8 +215,8 @@ public:
             // add the score increment to the node scores, relative to target node degree; reset increments
             foreach (node, graph.adjacencyList().keys())
             {
-                node.data()->nodeContent().score += node.data()->nodeContent().score_increment / sqrt(graph.getDegree(node.data()->nodeName()));
-                node.data()->nodeContent().score_increment = 0.0;
+                node.data()->nodeContent().score += node.data()->nodeContent().score_change / sqrt(graph.getDegree(node.data()->nodeName()));
+                node.data()->nodeContent().score_change = 0.0;
             }
 
             // write average rank difference to debug file
@@ -204,6 +234,83 @@ public:
                        << "\t" << getStartGenesAtTop(node_list) << endl;
                 previous_ranks = current_ranks;
             }
+        }
+    }
+
+    void randomWalk(Graph<NodeContent, EdgeContent>& graph, const QString& debug_file, double restart_probability, int max_steps = 1000000)
+    {
+        std::default_random_engine generator;
+        std::uniform_real_distribution<double> restart_distrib(0.0,1.0);
+
+        std::uniform_int_distribution<int> start_nodes_distrib(0, starting_nodes_.size() - 1);
+
+        Graph<NodeContent, EdgeContent>::NodePointer current_node = graph.getNode(starting_nodes_.at(start_nodes_distrib(generator)));
+        current_node.data()->nodeContent().visit_count++;
+        current_node.data()->nodeContent().score_change = current_node.data()->nodeContent().visit_count;
+
+        int steps{1};
+        double vector_diff{1.0};
+
+        bool debug = (debug_file != "");
+
+        QSharedPointer<QFile> writer;
+        QTextStream stream;
+
+        // generate debug file with information about difference between probability vectors at each step
+        if(debug)
+        {
+            writer = Helper::openFileForWriting(debug_file);
+            stream.setDevice(writer.data());
+
+            stream << "step\tprobability_diff_norm" << endl;
+            stream << steps << "\tNaN" << endl;
+        }
+
+        QTextStream out(stdout);
+
+        do
+        {
+            steps++;
+            if(restart_distrib(generator) < restart_probability)
+            {
+                current_node = graph.getNode(starting_nodes_.at(start_nodes_distrib(generator)));
+            }
+            else
+            {
+                QList<Graph<NodeContent, EdgeContent>::NodePointer> adjacent_nodes = graph.getAdjacentNodes(current_node.data()->nodeName());
+                std::uniform_int_distribution<int> adjacency_distrib(0, adjacent_nodes.size() - 1);
+                current_node = adjacent_nodes.at(adjacency_distrib(generator));
+            }
+            current_node.data()->nodeContent().visit_count++;
+
+
+            vector_diff = 0.0;
+
+            Graph<NodeContent, EdgeContent>::NodePointer node;
+            // update probabilities
+            foreach(node, graph.adjacencyList().keys())
+            {
+                node.data()->nodeContent().score = node.data()->nodeContent().score_change;
+                node.data()->nodeContent().score_change = (double) node.data()->nodeContent().visit_count / steps;
+            }
+
+            // calculate vector difference (L1 norm)
+            foreach(node, graph.adjacencyList().keys())
+            {
+                vector_diff += fabs(node.data()->nodeContent().score_change - node.data()->nodeContent().score);
+            }
+
+            if(debug && steps % 1000 == 0)
+            {
+                stream << steps << "\t" << vector_diff << endl;
+                out << steps << "\t" << vector_diff << endl;
+            }
+
+        } while((vector_diff > 1.0e-4) && (steps < max_steps));
+
+        if(debug)
+        {
+            stream << steps << "\t" << vector_diff << endl;
         }
     }
 
@@ -237,12 +344,12 @@ public:
     virtual void main()
     {
         // init
-        StringDbParser<NodeContent, EdgeContent> string_parser(getInfile("string"), getInfile("alias"), getFloat("conf"));
-        Graph<NodeContent, EdgeContent> interaction_network = string_parser.interactionNetwork();
+        Graph<NodeContent, EdgeContent> interaction_network = parseGraph(getInfile("graph"));
 
         scoreDiseaseGenes(interaction_network, getInfile("in"));
 
-        performFlooding(interaction_network, getInt("n"), getOutfile("debug-iterations"));
+        randomWalk(interaction_network, getOutfile("debug"), getFloat("restart"));
+        //performFlooding(interaction_network, getInt("n"), getOutfile("debug"));
 
         writeOutputTsv(interaction_network, getOutfile("out"));
     }

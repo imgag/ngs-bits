@@ -3,11 +3,13 @@
 
 #include "cppNGS_global.h"
 #include "Exceptions.h"
+#include "Helper.h"
 #include <QList>
 #include <QHash>
 #include <QSet>
 #include <QPair>
 #include <QSharedPointer>
+#include <QFile>
 #include "GraphNode.h"
 #include "GraphEdge.h"
 
@@ -66,6 +68,8 @@ class CPPNGSSHARED_EXPORT Graph
         // only for directed graphs
         int getIndegree(const QString& name);
         int getOutdegree(const QString& name);
+
+        void store(const QString& file);
 
     protected:
         // add existing edge
@@ -462,6 +466,20 @@ int Graph<NodeType, EdgeType>::getOutdegree(const QString& name)
     else
     {
         THROW(Exception, "Invalid use of method: Only for directed graphs");
+    }
+}
+
+// write all edges to tsv file (as pair of nodes)
+template <typename NodeType, typename EdgeType>
+void Graph<NodeType, EdgeType>::store(const QString& file)
+{
+    QSharedPointer<QFile> writer = Helper::openFileForWriting(file);
+    QTextStream stream(writer.data());
+
+    QPair<QString, QString> node_pair;
+    foreach(node_pair, edge_list_)
+    {
+        stream << node_pair.first << "\t" << node_pair.second << endl;
     }
 }
 

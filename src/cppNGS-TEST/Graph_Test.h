@@ -280,45 +280,7 @@ private slots:
         IS_THROWN(Exception, graph.getDegree("1"));
     }
 
-    void parseStringDbFile()
-    {
-        QByteArray path;
-        try
-        {
-            path = TESTDATA(string_db_file);
-        }
-        catch(ProgrammingException ex)
-        {
-            SKIP("String-DB file not found!");
-        }
-        QFile file(path);
-
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            return;
-        }
-
-        Graph<int, int> graph;
-
-        QTextStream in(&file);
-
-        // skip header line
-        if(!in.atEnd())
-        {
-            in.readLine();
-        }
-
-        //QString content{""};
-
-        // read file line by line, adding line to string
-        while (!in.atEnd())
-        {
-            //content.append(in.readLine());
-            in.readLine();
-        }
-    }
-
-    void createInteractionNetwork()
+    /*void createInteractionNetwork()
     {
         QString alias_path;
         QString string_db_path;
@@ -350,5 +312,5 @@ private slots:
         {
             stream << node.data()->nodeName() << "\t" << interaction_network.getDegree(node.data()->nodeName()) << endl;
         }
-    }
+    }*/
 };
