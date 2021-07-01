@@ -286,7 +286,15 @@ public:
 			QMap<QByteArray,int> matchesL_matchesR = sharedTranscripts(matchesL, matchesR);
 			foreach (QByteArray gene_tx, matchesL_matchesR.uniqueKeys())
 			{
-				expl2[0].append({gene_tx, matchesL_matchesR.value(gene_tx), "exact match", "exact match", QByteArrayList(), QByteArrayList()});
+				int diff = matchesL_matchesR.value(gene_tx);
+				if (diff == 1)
+				{
+					expl2[0].append({gene_tx, diff, "exact match", "exact match", QByteArrayList(), QByteArrayList()});
+				}
+				else
+				{
+					expl2[2].append({gene_tx, diff, "exact match", "exact match", QByteArrayList(), QByteArrayList()});
+				}
 			}
 
 			//both exons known, but no shared transcript
