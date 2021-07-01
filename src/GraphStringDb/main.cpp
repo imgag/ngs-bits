@@ -1,0 +1,75 @@
+#include "ToolBase.h"
+#include "Graph.h"
+#include "StringDbParser.h"
+#include "Exceptions.h"
+#include "Helper.h"
+#include <QTextStream>
+#include <QFile>
+#include <QString>
+#include <QStringList>
+#include <QList>
+#include <QSet>
+#include <QHash>
+#include <QSharedPointer>
+
+struct NodeContent
+{
+    double score;
+    double score_increment;
+
+    NodeContent()
+        : score(0.0),
+          score_increment(0.0)
+    {
+    }
+};
+
+struct EdgeContent
+{
+    double weight;
+
+    EdgeContent()
+        : weight(0.0)
+    {
+    }
+};
+
+class ConcreteTool
+        : public ToolBase
+{
+    Q_OBJECT
+
+public:
+    ConcreteTool(int& argc, char *argv[])
+        : ToolBase(argc, argv)
+    {
+    }
+
+    virtual void setup()
+    {
+        setDescription("Creates simple representation of String-DB interaction graph.");
+        addInfile("string", "String-DB file with protein interactions", false);
+        addInfile("alias", "Input tsv file with aliases for String protein IDs", false);
+        addOutfile("out", "Output tsv file with edges.", false);
+        //optional
+        addFloat("conf", "Confidence score for String-DB interaction; between 0 and 1.", true, 0.4);
+    }
+
+    virtual void main()
+    {
+        // init
+        StringDbParser<NodeContent, EdgeContent> string_parser(getInfile("string"), getInfile("alias"), getFloat("conf"));
+        Graph<NodeContent, EdgeContent> interaction_network = string_parser.interactionNetwork();
+
+        interaction_network.store(getOutfile("out"));
+    }
+};
+
+#include "main.moc"
+
+int main(int argc, char *argv[])
+{
+    ConcreteTool tool(argc, argv);
+    return tool.execute();
+}
+
