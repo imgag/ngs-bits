@@ -4760,8 +4760,7 @@ void MainWindow::uploadToClinvar(int variant_index)
 	data.phenos = sample_data.phenotypes;
 
 	//get variant info
-	const Variant& variant = variants_[variant_index];
-	data.variant = variant;
+	data.variant = variants_[variant_index];
 
 	// get report info
 	if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index))
@@ -4770,7 +4769,9 @@ void MainWindow::uploadToClinvar(int variant_index)
 		return;
 	}
 	data.report_variant_config = report_settings_.report_config.data()->get(VariantType::SNVS_INDELS, variant_index);
-	if (data.report_variant_config.classification.trimmed().isEmpty())
+	//update classification
+	data.report_variant_config.classification = NGSD().getClassification(data.variant).classification;
+	if (data.report_variant_config.classification.trimmed().isEmpty() || (data.report_variant_config.classification.trimmed() == "n/a"))
 	{
 		QMessageBox::warning(this, "No Classification", "The variant has to have a classification to be published!");
 		return;
@@ -4778,10 +4779,10 @@ void MainWindow::uploadToClinvar(int variant_index)
 
 	//genes
 	int gene_idx = variants_.annotationIndexByName("gene");
-	data.genes = GeneSet::createFromText(variant.annotations()[gene_idx], ',');
+	data.genes = GeneSet::createFromText(data.variant.annotations()[gene_idx], ',');
 
 	//determine NGSD ids of variant and report variant
-	QString var_id = NGSD().variantId(variant, false);
+	QString var_id = NGSD().variantId(data.variant, false);
 	if (var_id == "")
 	{
 		QMessageBox::warning(this, "Variant not in NGSD", "The variant has to be in NGSD and part of a report config to be published!");

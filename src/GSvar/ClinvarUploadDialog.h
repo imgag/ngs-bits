@@ -48,8 +48,7 @@ private slots:
 private:
     Ui::ClinVarUploadDialog ui_;
     NGSD db_;
-    Variant variant1_;
-    ClinvarUploadData data_;
+    ClinvarUploadData clinvar_upload_data_;
 
 
     QJsonObject createJson();

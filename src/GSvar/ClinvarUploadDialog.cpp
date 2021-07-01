@@ -40,21 +40,20 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
     ui_.le_local_key->setText(QString::number(data.variant_report_config_id));
 
     // set variant data
-    variant1_ = data.variant;
     QByteArray chr = data.variant.chr().strNormalized(false);
     if (chr=="MT") chr = "M";
     ui_.cb_chr->setEnabled(false);
     ui_.cb_chr->setCurrentText(chr);
     ui_.le_start->setEnabled(false);
-    ui_.le_start->setText(QString::number(variant1_.start()));
+    ui_.le_start->setText(QString::number(data.variant.start()));
     ui_.le_end->setEnabled(false);
-    ui_.le_end->setText(QString::number(variant1_.end()));
+    ui_.le_end->setText(QString::number(data.variant.end()));
     ui_.le_ref->setEnabled(false);
-    ui_.le_ref->setText(variant1_.ref());
+    ui_.le_ref->setText(data.variant.ref());
     ui_.le_obs->setEnabled(false);
-    ui_.le_obs->setText(variant1_.obs());
+    ui_.le_obs->setText(data.variant.obs());
     ui_.cb_var_type->setEnabled(false);
-    ui_.cb_var_type->setCurrentText((variant1_.isSNV())?"Variation":"Indel");
+    ui_.cb_var_type->setCurrentText((data.variant.isSNV())?"Variation":"Indel");
 
     // set genes
     ui_.le_gene->setText(data.genes.join(","));
@@ -69,6 +68,7 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
     {
         ui_.tw_disease_info->setItem(row_idx, 0, new QTableWidgetItem(disease.type));
         ui_.tw_disease_info->setItem(row_idx, 1, new QTableWidgetItem(disease.disease_info));
+        row_idx++;
     }
 
     // set classification
@@ -92,7 +92,10 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
     ui_.cb_affected_status->setCurrentText(convertAffectedStatus(data.affected_status));
 
 
-    data_ = data;
+    clinvar_upload_data_ = data;
+
+    //validate input
+    checkGuiData();
 }
 
 void ClinvarUploadDialog::initGui()
@@ -148,14 +151,16 @@ void ClinvarUploadDialog::initGui()
 
     connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
     connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
+
+    checkGuiData();
 }
 
 void ClinvarUploadDialog::upload()
 {
-    QJsonObject json = createJson();
+    QJsonObject clinvar_submission = createJson();
 
     QStringList errors;
-    if (!validateJson(json, errors))
+    if (!validateJson(clinvar_submission, errors))
     {
         QMessageBox::warning(this, "JSON validation failed", "The generated JSON contains the following errors: \n" + errors.join("\n"));
         return;
@@ -165,7 +170,6 @@ void ClinvarUploadDialog::upload()
 
     // read API key
     QByteArray api_key = getSettings("clinvar_api_key").toUtf8();
-    qDebug() << api_key;
 
     QJsonObject post_request;
     QJsonArray actions;
@@ -173,7 +177,7 @@ void ClinvarUploadDialog::upload()
     action.insert("type", "AddData");
     action.insert("targetDb", "clinvar");
     QJsonObject data;
-    data.insert("content", json);
+    data.insert("content", clinvar_submission);
     action.insert("data", data);
     actions.append(action);
     post_request.insert("actions", actions);
@@ -192,6 +196,9 @@ void ClinvarUploadDialog::upload()
     static HttpHandler http_handler(HttpRequestHandler::INI); //static to allow caching of credentials
     try
     {
+        QStringList messages;
+        messages << ui_.comment_upload->toPlainText();
+
         //add headers
         HttpHeaders add_headers;
         add_headers.insert("Content-Type", "application/json");
@@ -199,126 +206,115 @@ void ClinvarUploadDialog::upload()
 
         //post request
         QByteArray reply = http_handler.post("https://submit.ncbi.nlm.nih.gov/api/v1/submissions/?dry-run=true", QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
-        qDebug() << reply << "\n";
-        ui_.comment_upload->setText(reply);
 
-        //parse JSON result
-        QJsonDocument response = QJsonDocument::fromJson(reply);
+        // parse response
+        bool success = false;
+        QString submission_id;
+        QJsonObject response = QJsonDocument::fromJson(reply).object();
 
-        //TODO: remove
-        // write to file
-        qDebug()<<"Write to file!";
-        QFile json_file("response.json");
-        json_file.open(QFile::WriteOnly);
-        json_file.write(response.toJson());
-        json_file.close();
+        //successful dry-run
+        if (response.isEmpty())
+        {
+            messages << "MESSAGE: Dry-run successful!";
+            //TODO: remove
+            success = true;
+        }
+        else if (response.contains("id"))
+        {
+            //successfully submitted
+            messages << "MESSAGE: The submission was successful!";
+            submission_id = response.value("id").toString();
+            messages << "MESSAGE: Submission ID: " + submission_id;
+            success = true;
+        }
+        else if (response.contains("message"))
+        {
+            //errors
+            messages << "ERROR: " + response.value("message").toString();
+        }
 
+        if (success)
+        {
+            // add entry to the NGSD
+            QStringList details;
+            details << "submission_id=" + submission_id;
+            //clinical significance
+            details << "clinical_significance_desc=" + ui_.cb_clin_sig_desc->currentText();
+            details << "clinical_significance_comment=" + VcfFile::encodeInfoValue(ui_.le_clin_sig_desc_comment->text());
+            details << "last_evaluatued=" + ui_.de_last_eval->date().toString("yyyy-MM-dd");
+            details << "mode_of_inheritance=" + ui_.cb_inheritance->currentText();
+            //condition set
+            QStringList condition;
+            for (int row_idx = 0; row_idx < ui_.tw_disease_info->rowCount(); ++row_idx)
+            {
+                condition << ui_.tw_disease_info->item(row_idx, 0)->text() + "|" + ui_.tw_disease_info->item(row_idx, 1)->text();
+            }
+            details << "condition=" + condition.join(',');
+            details << "local_id=" + QString::number(clinvar_upload_data_.variant_id);
+            details << "local_key=" + QString::number(clinvar_upload_data_.variant_report_config_id);
+            //observed in
+            details << "affected_status=" + ui_.cb_affected_status->currentText();
+            details << "allele_origin=" + ui_.cb_allele_origin->currentText();
+            QStringList phenotypes;
+            foreach (const Phenotype& phenotype, ui_.phenos->selectedPhenotypes())
+            {
+                phenotypes << phenotype.accession();
+            }
+            details << "clinical_features=" + phenotypes.join(',');
+            details << "clinical_feature_comment=" + VcfFile::encodeInfoValue(ui_.le_clin_feat_comment->text());
+            details << "collection_method" + ui_.cb_collection_method->currentText();
 
+            details << "record_status=" + ui_.cb_record_status->currentText();
+            details << "release_status=" + ui_.cb_release_status->currentText();
+            details << "gene=" +  NGSD().genesToApproved(GeneSet::createFromStringList(ui_.le_gene->text().replace(";", ",").split(','))).toStringList().join(',');
 
-//            QStringList messages;
-//            bool success = false;
-//            foreach(QJsonValue o, response.object()["messages"].toArray())
-//            {
-//                    messages << "MESSAGE: " + o.toString();
-//                    if (o.toString().startsWith("Data successfully scheduled for import."))
-//                    {
-//                            success = true;
-//                    }
-//            }
-//            foreach(QJsonValue o, response.object()["errors"].toArray())
-//            {
-//                    messages << "ERROR: " + o.toString();
-//            }
-//            foreach(QJsonValue o, response.object()["warnings"].toArray())
-//            {
-//                    messages << "WARNING: " +o.toString();
-//            }
+            // log publication in NGSD
+            db_.addVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.variant, "ClinVar", clinvar_upload_data_.report_variant_config.classification, details.join(";"));
 
-//            //add entry to NGSD
-//            if (success)
-//            {
-//                    QString processed_sample = ui_.processed_sample->text().trimmed();
+            //show result
+            QStringList lines;
+            lines << "DATA UPLOAD TO LOVD SUCCESSFUL";
+            lines << "";
+            lines << messages.join("\n");
+            lines << "";
+            lines << "sample: " + clinvar_upload_data_.processed_sample;
+            lines << "user: " + LoginManager::user();
+            lines << "date: " + Helper::dateTime();
+            lines << "";
+            lines << details;
 
-//                    QStringList details;
-//                    details << "gene=" + ui_.gene->text();
-//                    details << "transcript=" + ui_.nm_number->text();
+            ui_.comment_upload->setText(lines.join("\n").replace("=", ": "));
 
-//                    details << "hgvs_g=" + ui_.hgvs_g->text();
-//                    details << "hgvs_c=" + ui_.hgvs_c->text();
-//                    details << "hgvs_p=" + ui_.hgvs_p->text();
-//                    details << "genotype=" + ui_.genotype->currentText();
-//                    details << "classification=" + ui_.classification->currentText();
+            //write report file to transfer folder
+            QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
+            if (gsvar_publication_folder!="")
+            {
+                    QString file_rep = gsvar_publication_folder + "/" + clinvar_upload_data_.processed_sample + "_LOVD_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
+                    Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
+            }
 
-//                    if (isCompHet())
-//                    {
-//                            details << "hgvs_g2=" + ui_.hgvs_g2->text();
-//                            details << "hgvs_c2=" + ui_.hgvs_c2->text();
-//                            details << "hgvs_p2=" + ui_.hgvs_p2->text();
-//                            details << "genotype2=" + ui_.genotype2->currentText();
-//                            details << "classification2=" + ui_.classification2->currentText();
-//                    }
-
-//                    foreach(const Phenotype& pheno, ui_.phenos->selectedPhenotypes())
-//                    {
-//                            details << "phenotype=" + pheno.accession() + " - " + pheno.name();
-//                    }
-
-//                    //Upload only if variant(s) are set
-//                    if (variant1_.isValid())
-//                    {
-//                            db_.addVariantPublication(processed_sample, variant1_, "LOVD", ui_.classification->currentText(), details.join(";"));
-//                    }
-//                    if (variant2_.isValid())
-//                    {
-//                            db_.addVariantPublication(processed_sample, variant2_, "LOVD", ui_.classification2->currentText(), details.join(";"));
-//                    }
-
-//                    //show result
-//                    QStringList lines;
-//                    lines << "DATA UPLOAD TO LOVD SUCCESSFUL";
-//                    lines << "";
-//                    lines << messages.join("\n");
-//                    lines << "";
-//                    lines << "sample: " + processed_sample;
-//                    lines << "user: " + Helper::userName();
-//                    lines << "date: " + Helper::dateTime();
-//                    lines << "";
-//                    lines << details;
-
-//                    ui_.comment_upload->setText(lines.join("\n").replace("=", ": "));
-
-//                    //write report file to transfer folder
-//                    QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
-//                    if (gsvar_publication_folder!="")
-//                    {
-//                            QString file_rep = gsvar_publication_folder + "/" + processed_sample + "_LOVD_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
-//                            Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
-//                    }
-//            }
-//            else
-//            {
-//                    ui_.comment_upload->setText("DATA UPLOAD ERROR:\n" + messages.join("\n"));
-//                    ui_.upload_btn->setEnabled(true);
-//            }
+        }
+        else
+        {
+            // Upload failed
+            ui_.comment_upload->setText("DATA UPLOAD ERROR:\n" + messages.join("\n"));
+            ui_.upload_btn->setEnabled(true);
+        }
     }
     catch(Exception e)
     {
-            ui_.comment_upload->setText("DATA UPLOAD FAILED:\n" + e.message());
-            ui_.upload_btn->setEnabled(true);
+        ui_.comment_upload->setText("DATA UPLOAD FAILED:\n" + e.message());
+        ui_.upload_btn->setEnabled(true);
     }
-
-    // check if upload was successful
-
-    // log publication in NGSD
 
 }
 
 bool ClinvarUploadDialog::checkGuiData()
 {
     //check if already published
-    if (data_.processed_sample !="" && variant1_.isValid())
+    if (clinvar_upload_data_.processed_sample !="" && clinvar_upload_data_.variant.isValid())
     {
-        QString upload_details = db_.getVariantPublication(data_.processed_sample, variant1_);
+        QString upload_details = db_.getVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.variant);
         if (upload_details!="")
         {
             ui_.upload_btn->setEnabled(false);
@@ -362,12 +358,6 @@ bool ClinvarUploadDialog::checkGuiData()
     {
         errors << (invalid_genes.join(", ") + " are not HGNC approved gene names!");
     }
-
-    //	if (ui_.classification->currentText().trimmed().isEmpty())
-    //	{
-    //		errors << "Classification unset!";
-    //	}
-
 
     if (ui_.phenos->selectedPhenotypes().count()==0)
     {
@@ -496,10 +486,10 @@ QJsonObject ClinvarUploadDialog::createJson()
         clinvar_submission.insert("conditionSet", condition_set);
 
         //optional
-        clinvar_submission.insert("localID", QString::number(data_.variant_id));
+        clinvar_submission.insert("localID", QString::number(clinvar_upload_data_.variant_id));
 
         //optional
-        clinvar_submission.insert("localKey", QString::number(data_.variant_report_config_id));
+        clinvar_submission.insert("localKey", QString::number(clinvar_upload_data_.variant_report_config_id));
 
         //required
         QJsonObject observed_in;
@@ -515,10 +505,9 @@ QJsonObject ClinvarUploadDialog::createJson()
             {
                 foreach (const Phenotype& phenotype, ui_.phenos->selectedPhenotypes())
                 {
-                    qDebug() << phenotype.accession().split(':')[1].toInt();
                     QJsonObject feature;
                     feature.insert("db", "HP");
-                    feature.insert("id", QString::number(phenotype.accession().split(':')[1].toInt()));
+                    feature.insert("id", QString(phenotype.accession()));
                     clinical_features.append(feature);
 
                 }
@@ -571,7 +560,7 @@ QJsonObject ClinvarUploadDialog::createJson()
                     {
                         QJsonArray genes;
                         {
-                            GeneSet gene_set = NGSD().genesToApproved(GeneSet::createFromStringList(ui_.le_gene->text().split(',')));
+                            GeneSet gene_set = NGSD().genesToApproved(GeneSet::createFromStringList(ui_.le_gene->text().replace(";", ",").split(',')));
                             foreach (const QByteArray& gene_name, gene_set)
                             {
                                 QJsonObject gene;
@@ -596,7 +585,7 @@ QJsonObject ClinvarUploadDialog::createJson()
 
 
     //optional
-    json.insert("submissionName", "");
+    //json.insert("submissionName", "");
 
 
 
