@@ -423,4 +423,4 @@ VariantRanking.depends = cppNGSD
 
 SUBDIRS += SplicingToBed
 tools-TEST.depends += SplicingToBed
-NGSDImportEnsembl.depends = cppNGSD
+SplicingToBed.depends = cppNGSD
