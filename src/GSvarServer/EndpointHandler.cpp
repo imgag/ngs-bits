@@ -420,6 +420,38 @@ HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& reques
 	return EndpointController::createStaticStreamResponse(filename, false);
 }
 
+HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
+{
+	NGSD db;
+	QString processed_sample_name = request.getUrlParams()["ps_name"];
+	QString type  = request.getUrlParams()["type"];
+	QStringList secondary_analyses;
+	try
+	{
+		secondary_analyses = db.secondaryAnalyses(processed_sample_name, type);
+	}
+	catch (DatabaseException& e)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not get secondary analyses from the database");
+	}
+
+	QJsonDocument json_doc_output;
+	QJsonArray json_array;
+	for (int i = 0; i < secondary_analyses.count(); i++)
+	{
+		json_array.append(secondary_analyses[i]);
+	}
+	json_doc_output.setArray(json_array);
+
+	BasicResponseData response_data;
+	response_data.byte_range = ByteRange{};
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = ContentType::APPLICATION_JSON;
+	response_data.is_downloadable = false;
+
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
 QString EndpointHandler::createFileTempUrl(const QString& file)
 {
 	QString id = ServerHelper::generateUniqueStr();

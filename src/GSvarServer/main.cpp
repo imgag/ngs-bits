@@ -297,6 +297,19 @@ int main(int argc, char **argv)
 						&EndpointHandler::getProcessingSystemGenes
 					});
 
+	EndpointManager::appendEndpoint(Endpoint{
+						"secondary_analyses",
+						QMap<QString, ParamProps> {
+							{"ps_name", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample name"}},
+							{"type", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Analysis type"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						false,
+						"Secondary analyses list",
+						&EndpointHandler::getSecondaryAnalyses
+					});
+
 	int port_number = ServerHelper::getNumSettingsValue("server_port");
 
 	if (!port.isEmpty())

@@ -41,6 +41,8 @@ public:
 	static HttpResponse getProcessingSystemAmplicons(const HttpRequest& request);
 	/// Streams processing system genes file
 	static HttpResponse getProcessingSystemGenes(const HttpRequest& request);
+	/// Retrieves a list of secondary analyses
+	static HttpResponse getSecondaryAnalyses(const HttpRequest& request);
 
 private:
 	/// Creates a temporary URL for a file (includes a file name and its full path)
