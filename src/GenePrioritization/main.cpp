@@ -8,6 +8,7 @@
 #include <QString>
 #include <QStringList>
 #include <QList>
+#include <QListIterator>
 #include <QHash>
 #include <QSharedPointer>
 #include <random>
@@ -79,6 +80,13 @@ private:
             average_rank_diff += abs((it.value() - previous_ranks[it.key()]));
         }
         return average_rank_diff / current_ranks.size();
+    }
+
+    Graph<NodeContent, EdgeContent>::NodePointer updateProbability(int steps, const Graph<NodeContent, EdgeContent>::NodePointer& node)
+    {
+        node.data()->nodeContent().score = node.data()->nodeContent().score_change;
+        node.data()->nodeContent().score_change = (double) node.data()->nodeContent().visit_count / steps;
+        return node;
     }
 
 public:
@@ -250,6 +258,7 @@ public:
 
         int steps{1};
         double vector_diff{1.0};
+        int update_frequency{50000};
 
         bool debug = (debug_file != "");
 
@@ -271,6 +280,7 @@ public:
         do
         {
             steps++;
+
             if(restart_distrib(generator) < restart_probability)
             {
                 current_node = graph.getNode(starting_nodes_.at(start_nodes_distrib(generator)));
@@ -283,34 +293,38 @@ public:
             }
             current_node.data()->nodeContent().visit_count++;
 
+            // update probabilities and calculate vector difference (L1 norm)
 
-            vector_diff = 0.0;
-
-            Graph<NodeContent, EdgeContent>::NodePointer node;
-            // update probabilities
-            foreach(node, graph.adjacencyList().keys())
+            if(steps % update_frequency == 0)
             {
-                node.data()->nodeContent().score = node.data()->nodeContent().score_change;
-                node.data()->nodeContent().score_change = (double) node.data()->nodeContent().visit_count / steps;
+                vector_diff = 0.0;
+
+                QListIterator<Graph<NodeContent, EdgeContent>::NodePointer> iter(graph.adjacencyList().keys());
+                while(iter.hasNext())
+                {
+                    Graph<NodeContent, EdgeContent>::NodePointer node = iter.next();
+                    node.data()->nodeContent().score = node.data()->nodeContent().score_change;
+                    node.data()->nodeContent().score_change = (double) node.data()->nodeContent().visit_count / steps;
+                    vector_diff += fabs(node.data()->nodeContent().score_change - node.data()->nodeContent().score);
+                }
+
+                vector_diff /= update_frequency;
+
+                if(debug)
+                {
+                    stream << steps << "\t" << vector_diff << endl;
+                    out << steps << "\t" << vector_diff << endl;
+                }
             }
 
-            // calculate vector difference (L1 norm)
-            foreach(node, graph.adjacencyList().keys())
-            {
-                vector_diff += fabs(node.data()->nodeContent().score_change - node.data()->nodeContent().score);
-            }
+        } while((vector_diff > 1.0e-6) && (steps < max_steps));
 
-            if(debug && steps % 1000 == 0)
-            {
-                stream << steps << "\t" << vector_diff << endl;
-                out << steps << "\t" << vector_diff << endl;
-            }
-
-        } while((vector_diff > 1.0e-4) && (steps < max_steps));
-
-        if(debug)
+        // obtain final score with penalization of high degrees
+        QListIterator<Graph<NodeContent, EdgeContent>::NodePointer> iter(graph.adjacencyList().keys());
+        while(iter.hasNext())
         {
-            stream << steps << "\t" << vector_diff << endl;
+            Graph<NodeContent, EdgeContent>::NodePointer node = iter.next();
+            node.data()->nodeContent().score = node.data()->nodeContent().visit_count / sqrt(graph.getDegree(node.data()->nodeName()));
         }
     }
 
@@ -328,16 +342,9 @@ public:
         Graph<NodeContent, EdgeContent>::NodePointer node;
         foreach(node, node_list)
         {
-            if(node.data()->nodeContent().score != 0.0)
-            {
-                stream << node.data()->nodeName() << "\t" << node.data()->nodeContent().score\
-                       << "\t" << starting_nodes_.contains(node.data()->nodeName()) \
-                       << "\t" << graph.getDegree(node.data()->nodeName()) << endl;
-            }
-            else
-            {
-                break;
-            }
+            stream << node.data()->nodeName() << "\t" << node.data()->nodeContent().score\
+                   << "\t" << starting_nodes_.contains(node.data()->nodeName()) \
+                   << "\t" << graph.getDegree(node.data()->nodeName()) << endl;
         }
     }
 
