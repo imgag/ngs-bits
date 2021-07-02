@@ -161,7 +161,7 @@ public:
 		input.annotationDescriptions().append(VariantAnnotationDescription("ASE_alt", "Expressed variant alternative observation count.", VariantAnnotationDescription::INTEGER));
 		input.annotations().append(VariantAnnotationHeader("ASE_pval"));
 		input.annotationDescriptions().append(VariantAnnotationDescription("ASE_pval", "Binomial test p-value.", VariantAnnotationDescription::FLOAT));
-
+		input.addCommentLine("##VariantAnnotateASE_BAM=" + getInfile("bam"));
 		//write output
 		input.store(getOutfile("out"));
 	}
