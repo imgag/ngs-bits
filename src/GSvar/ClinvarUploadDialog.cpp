@@ -129,26 +129,7 @@ void ClinvarUploadDialog::initGui()
     connect(ui_.upload_btn, SIGNAL(clicked(bool)), this, SLOT(upload()));
     connect(ui_.cb_chr, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
     connect(ui_.le_gene, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-
-
-    //	connect(ui_.gene, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-    //	connect(ui_.nm_number, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-    //	connect(ui_.hgvs_c, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-    //	connect(ui_.hgvs_g, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-    //	connect(ui_.hgvs_p, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-    //	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-    //	connect(ui_.classification, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-    //	connect(ui_.hgvs_c2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-    //	connect(ui_.hgvs_g2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-    //	connect(ui_.hgvs_p2, SIGNAL(textEdited(QString)), this, SLOT(checkGuiData()));
-    //	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
-    //	connect(ui_.classification2, SIGNAL(currentTextChanged(QString)), this, SLOT(checkGuiData()));
     connect(ui_.phenos, SIGNAL(phenotypeSelectionChanged()), this, SLOT(checkGuiData()));
-
-    //update GUI elements for 2nd variant (only for free mode)
-    //	connect(ui_.genotype, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
-    //	connect(ui_.genotype2, SIGNAL(currentTextChanged(QString)), this, SLOT(updateSecondVariantGui()));
-
     connect(ui_.print_btn, SIGNAL(clicked(bool)), this, SLOT(printResults()));
     connect(ui_.comment_upload, SIGNAL(textChanged()), this, SLOT(updatePrintButton()));
 
@@ -185,7 +166,7 @@ void ClinvarUploadDialog::upload()
     //TODO: remove
     // write to file
     qDebug()<<"Write to file!";
-    QJsonDocument json_doc = QJsonDocument(post_request);
+    QJsonDocument json_doc = QJsonDocument(clinvar_submission);
     QFile json_file("clinvar_submission.json");
     json_file.open(QFile::WriteOnly);
     json_file.write(json_doc.toJson());
@@ -359,9 +340,16 @@ bool ClinvarUploadDialog::checkGuiData()
         errors << (invalid_genes.join(", ") + " are not HGNC approved gene names!");
     }
 
+    // check phenotypes
     if (ui_.phenos->selectedPhenotypes().count()==0)
     {
         errors << "No phenotypes selected!";
+    }
+
+    // check inheritance
+    if (!MODE_OF_INHERITANCE.contains(ui_.cb_inheritance->currentText()))
+    {
+        errors << "No valid inheritance mode selected!";
     }
 
     //show error or enable upload button
@@ -440,13 +428,19 @@ QJsonObject ClinvarUploadDialog::createJson()
             clinical_significance.insert("clinicalSignificanceDescription", ui_.cb_clin_sig_desc->currentText());
 
             //optional
-            clinical_significance.insert("comment", ui_.le_clin_sig_desc_comment->text());
+            if (!ui_.le_clin_sig_desc_comment->text().trimmed().isEmpty())
+            {
+                clinical_significance.insert("comment", ui_.le_clin_sig_desc_comment->text());
+            }
 
             //optional
             clinical_significance.insert("dateLastEvaluated", ui_.de_last_eval->date().toString("yyyy-MM-dd"));
 
             //optional
-            clinical_significance.insert("modeOfInheritance", ui_.cb_inheritance->currentText());
+            if (!ui_.cb_inheritance->currentText().trimmed().isEmpty())
+            {
+                clinical_significance.insert("modeOfInheritance", ui_.cb_inheritance->currentText());
+            }
         }
         clinvar_submission.insert("clinicalSignificance", clinical_significance);
 
@@ -515,7 +509,10 @@ QJsonObject ClinvarUploadDialog::createJson()
             observed_in.insert("clinicalFeatures", clinical_features);
 
             //optional
-            if (!ui_.le_clin_feat_comment->text().trimmed().isEmpty()) observed_in.insert("clinicalFeaturesComment", ui_.le_clin_feat_comment->text());
+            if (!ui_.le_clin_feat_comment->text().trimmed().isEmpty())
+            {
+                observed_in.insert("clinicalFeaturesComment", ui_.le_clin_feat_comment->text());
+            }
 
             //required
             observed_in.insert("collectionMethod", ui_.cb_collection_method->currentText());
