@@ -574,7 +574,7 @@ public:
 
 		if (gene_report != "")
 		{
-			gene_f->write("symbol\t" + keys.join("\t") + "\taberrant_frac\n");
+			gene_f->write("#symbol\t" + keys.join("\t") + "\taberrant_frac\n");
 			//per-gene stats
 			foreach (QByteArray g, gene_stats.uniqueKeys())
 			{

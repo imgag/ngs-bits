@@ -1,2 +1,2 @@
-symbol	all	known	exon-truncation	exon-skip	exon-skip-truncation	intronic-or-overlap-no-tx	other	aberrant_frac
+#symbol	all	known	exon-truncation	exon-skip	exon-skip-truncation	intronic-or-overlap-no-tx	other	aberrant_frac
 VIM	328035	324573	1354	6	2065	37	0	0.0106
