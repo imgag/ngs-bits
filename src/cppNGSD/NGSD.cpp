@@ -2385,13 +2385,6 @@ QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, c
 
 void NGSD::storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content)
 {
-	//debug
-	QSharedPointer<QFile> out_p = Helper::openFileForWriting("test.vcf", true);
-	out_p->write(vcf_content);
-	out_p->flush();
-	out_p->close();
-
-
 	// get user id
 	int user_id = userId(panel_info.created_by);
 	// get processing system
@@ -2430,6 +2423,11 @@ VcfFile NGSD::cfdnaPanelVcf(int id)
 	VcfFile vcf;
 	vcf.fromText(getValue("SELECT vcf FROM cfdna_panels WHERE id=:0", false, QString::number(id)).toString().toUtf8());
 	return vcf;
+}
+
+BedFile NGSD::cfdnaPanelRemovedRegions(int id)
+{
+	return BedFile::fromText(getValue("SELECT removed_regions FROM cfdna_panels WHERE id=:0", false, QString::number(id)).toString().toUtf8());
 }
 
 QList<CfdnaGeneEntry> NGSD::cfdnaGenes()

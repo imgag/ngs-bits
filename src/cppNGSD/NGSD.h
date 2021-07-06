@@ -714,6 +714,8 @@ public:
 	BedFile cfdnaPanelRegions(int id);
 	///Returns the VCF of a given cfDNA panel
 	VcfFile cfdnaPanelVcf(int id);
+	///Returns the BED file of the removed regions of a given cfDNA panel
+	BedFile cfdnaPanelRemovedRegions(int id);
 	///Returns all available cfDNA gene entries
 	QList<CfdnaGeneEntry> cfdnaGenes();
 

@@ -121,7 +121,7 @@
    <item>
     <widget class="QCheckBox" name="cb_sample_identifier">
      <property name="text">
-      <string>Add Sample identifier (KASP_set2)</string>
+      <string>Add Sample identifier (KASP_set2 + ID SNPs from processing system)</string>
      </property>
      <property name="checked">
       <bool>true</bool>

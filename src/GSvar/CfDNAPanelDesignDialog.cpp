@@ -591,18 +591,35 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		}
 	}
 
-	// get KASP variants
+	// get ID SNPs
+	VcfFile id_vcf;
 	if (ui_->cb_sample_identifier->isChecked())
 	{
-		BedFile kasp_variants;
-		kasp_variants.load("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2_pad5.bed");
-		kasp_variants.clearAnnotations();
-		variant_count += kasp_variants.count();
-		for (int i=0; i<kasp_variants.count(); i++)
+		// get KASP SNPs
+		id_vcf.load("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf");
+
+		// extract ID SNPs from selected processing system
+		int sys_id = NGSD().processingSystemId(ui_->cb_processing_system->currentText().toUtf8());
+		BedFile target_region = NGSD().processingSystemRegions(sys_id);
+		for (int i=0; i<target_region.count(); i++)
 		{
-			BedLine& kasp_variant = kasp_variants[i];
-			kasp_variant.annotations().append("SNP_for_sample_identification:KASP_set2");
-			roi.append(kasp_variant);
+			const BedLine& line = target_region[i];
+			if (line.annotations().size() > 0)
+			{
+				//create variant
+				QByteArrayList variant_info = line.annotations().at(0).split('>');
+				if (variant_info.size() != 2)
+				{
+					THROW(FileParseException, "Invalid variant information '" + line.annotations().at(0) + "' for region " + line.toString(true) + "!" );
+				}
+				VcfLinePtr vcf_ptr = QSharedPointer<VcfLine>(new VcfLine(line.chr(), line.start(), Sequence(variant_info.at(0)), QVector<Sequence>() << Sequence(variant_info.at(1))));
+				vcf_ptr->setId(QByteArrayList() << "ID");
+				id_vcf.vcfLines() << vcf_ptr;
+			}
+			else
+			{
+				THROW(FileParseException, "Target region does not contain variant information for region " + line.toString(true) + "!" );
+			}
 		}
 	}
 
@@ -610,10 +627,24 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	QString ref_genome = Settings::string("reference_genome", false);
 	VcfFile vcf_file = VcfFile::convertGSvarToVcf(selected_variants, ref_genome);
 
+	// set ID column
+	foreach (const VcfLinePtr vcf_line, vcf_file.vcfLines())
+	{
+		vcf_line->setId(QByteArrayList() << "M");
+	}
+
+	// append ID SNPs
+	foreach (const VcfLinePtr vcf_line, id_vcf.vcfLines())
+	{
+		vcf_file.vcfLines() << vcf_line;
+	}
+
+
 	// generate bed file
 	for (int i=0; i<vcf_file.count(); i++)
 	{
-		roi.append(BedLine(vcf_file[i].chr(), vcf_file[i].start(), vcf_file[i].end(), QByteArrayList() << "patient_specific_somatic_variant:" + vcf_file[i].ref() + ">" + vcf_file[i].altString()));
+		QByteArray annotation = (vcf_file[i].id().contains("M"))?"patient_specific_somatic_variant:" : "SNP_for_sample_identification:";
+		roi.append(BedLine(vcf_file[i].chr(), vcf_file[i].start(), vcf_file[i].end(), QByteArrayList() << annotation + vcf_file[i].ref() + ">" + vcf_file[i].altString()));
 	}
 
 
