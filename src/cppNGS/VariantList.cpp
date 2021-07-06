@@ -715,8 +715,12 @@ void VariantList::load(QString filename)
 	loadInternal(filename);
 }
 
+void VariantList::loadHeaderOnly(QString filename)
+{
+	loadInternal(filename, nullptr, false, true);
+}
 
-void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert)
+void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert, bool header_only)
 {
 	//create ROI index (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
@@ -777,6 +781,9 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 			}
 			continue;
 		}
+
+		//skip variants if headers shall be loaded only
+		if (header_only) break;
 
 		//error when special columns are not present
 		QList<QByteArray> fields = line.split('\t');

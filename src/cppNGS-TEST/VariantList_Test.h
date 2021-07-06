@@ -135,6 +135,19 @@ private slots:
 		I_EQUAL(vl[3].start(), 17382505);
 	}
 
+	void loadHeaderOnly()
+	{
+		VariantList vl;
+		vl.loadHeaderOnly(TESTDATA("data_in/panel_vep.GSvar"));
+		I_EQUAL(vl.count(), 0);
+		I_EQUAL(vl.annotations().count(), 30);
+		S_EQUAL(vl.annotations()[0].name(), QString("NA12878_03"));
+		S_EQUAL(vl.annotations()[27].name(), QString("validation"));
+		I_EQUAL(vl.filters().count(), 2);
+		S_EQUAL(vl.filters()["gene_blacklist"], QString("The gene(s) are contained on the blacklist of unreliable genes."));
+		S_EQUAL(vl.filters()["off-target"], QString("Variant marked as 'off-target'."));
+	}
+
 	void storeToTSV()
 	{
 		//store loaded tsv file
