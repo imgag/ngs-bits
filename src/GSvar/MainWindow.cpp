@@ -2330,16 +2330,24 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		{
 			file = analyses[0];
 		}
-		else
+		else //several analyses > let the user decide
 		{
-			//TODO GSvarServer: how do the file names look like when using server?
-			bool ok = false;
-			QString filename = QInputDialog::getItem(this, "Several analyses of the sample present", "select analysis:", analyses, 0, false, &ok);
-			if (!ok)
+			//create list of anaylsis names
+			QStringList names;
+			foreach(QString gsvar, analyses)
 			{
-				return;
+				VariantList vl;
+				vl.loadHeaderOnly(gsvar);
+				names << vl.analysisName();
 			}
-			file = filename;
+
+			//show selection dialog (analysis name instead of file name)
+			bool ok = false;
+			QString name = QInputDialog::getItem(this, "Several analyses of the sample present", "select analysis:", names, 0, false, &ok);
+			if (!ok) return;
+
+			int index = names.indexOf(name);
+			file = analyses[index];
 		}
 
 		loadFile(file);

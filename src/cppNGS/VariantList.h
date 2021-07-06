@@ -381,6 +381,8 @@ public:
 	///If @p invert is given, only variants that fall outside the target regions are loaded.
 	void load(QString filename, const BedFile& roi, bool invert=false);
 	void load(QString filename);
+	void loadHeaderOnly(QString filename);
+
     ///Stores the variant list to a file.
 	void store(QString filename) const;
 
@@ -437,7 +439,7 @@ protected:
 	QMap<QString, QString> filters_;
     QVector<Variant> variants_;
 
-	void loadInternal(QString filename, const BedFile* roi = nullptr, bool invert=false);
+	void loadInternal(QString filename, const BedFile* roi = nullptr, bool invert=false, bool header_only=false);
 
 	///Comparator helper class used by sortByAnnotation
 	class LessComparatorByAnnotation

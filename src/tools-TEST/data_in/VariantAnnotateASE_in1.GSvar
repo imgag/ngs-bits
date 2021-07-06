@@ -1,0 +1,10 @@
+##ANALYSISTYPE=GERMLINE_SINGLESAMPLE
+##SAMPLE=<ID=Sample_01>
+##DESCRIPTION=Sample_01=Genotype of variant in sample.
+#chr	start	end	ref	obs	Sample_01
+chr1	11181327	11181327	C	T	het
+chr1	11187893	11187893	T	C	hom
+chr1	11190646	11190646	G	A	het
+chr1	11205058	11205058	C	T	het
+chr1	11288758	11288758	G	A	het
+chr1	11301714	11301714	A	G	het

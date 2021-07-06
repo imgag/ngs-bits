@@ -1,0 +1,10 @@
+##ANALYSISTYPE=SOMATIC_PAIR
+##SAMPLE=<ID=Sample1_01>
+##SAMPLE=<ID=Sample2_01>
+##DESCRIPTION=tumor_af=Mutant allele frequency in tumor
+##DESCRIPTION=tumor_dp=Tumor Depth
+##DESCRIPTION=normal_af=Mutant allele frequency in normal
+##DESCRIPTION=normal_dp=Normal depth
+#chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp
+chr1	120612163	120612163	C	A	0.3333	6	0.0370	28
+chr1	156106742	156106742	C	T	0.1452	500	0.0017	580
