@@ -805,12 +805,12 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 
 QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analysis_type)
 {
-	QStringList output = getValues("SELECT gsvar_file FROM secondary_analysis WHERE type='" + analysis_type + "' AND gsvar_file LIKE '%" + processed_sample_name + "%'");
-
-	//convert platform-specific canonical path
+	//init
 	QString project_folder = Settings::path("projects_folder");
 	QStringList project_types = getEnum("project", "type");
 
+	//convert to platform-specific canonical path
+	QStringList output = getValues("SELECT gsvar_file FROM secondary_analysis WHERE type='" + analysis_type + "' AND gsvar_file LIKE '%" + processed_sample_name + "%'");
 	for (int i=0; i<output.count(); ++i)
 	{
 		QString file = output[i];

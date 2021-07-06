@@ -601,7 +601,7 @@
   </action>
   <action name="actionRecent">
    <property name="text">
-    <string>Recent files</string>
+    <string>Recent sample names</string>
    </property>
   </action>
   <action name="actionStatisticsFastA">
