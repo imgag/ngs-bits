@@ -706,7 +706,7 @@ public:
 	///Returns the subpanel genes.
 	GeneSet subpanelGenes(QString name);
 
-	///Returns all coresponding cfDNA panel info for a given processed sample
+///Returns all coresponding cfDNA panel info for a given processed sample
 	QList<CfdnaPanelInfo> cfdnaPanelInfo(const QString& processed_sample_id, const QString& processing_system_id = "");
 	///stores a cfDNA panel in the NGSD
 	void storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content);
@@ -718,7 +718,6 @@ public:
 	BedFile cfdnaPanelRemovedRegions(int id);
 	///Returns all available cfDNA gene entries
 	QList<CfdnaGeneEntry> cfdnaGenes();
-
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)

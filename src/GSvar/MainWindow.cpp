@@ -1263,12 +1263,10 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 	if (!LoginManager::active()) return;
 	if (!somaticReportSupported()) return;
 
-	// get cfDNA panels:
-	NGSD db;
-	QList<CfdnaPanelInfo> cfdna_panels = db.cfdnaPanelInfo(db.processedSampleId(variants_.mainSampleName()));
+// get cfDNA panels:
+	QList<CfdnaPanelInfo> cfdna_panels = NGSD().cfdnaPanelInfo(NGSD().processedSampleId(variants_.mainSampleName()));
 	CfdnaPanelInfo selected_panel;
-	if (cfdna_panels.size() < 1)
-	{
+	if (cfdna_panels.size() < 1)	{
 		// show message
 		GUIHelper::showMessage("No cfDNA panel found!", "No cfDNA panel was found for the given tumor sample!");
 		return;
