@@ -32,7 +32,6 @@ SOURCES += main.cpp\
     NGSDReannotationDialog.cpp \
     SmallVariantSearchWidget.cpp \
     PhenotypeSelectionWidget.cpp \
-    LovdUploadDialog.cpp \
     RohWidget.cpp \
     DiagnosticStatusWidget.cpp \
     DiagnosticStatusOverviewDialog.cpp \
@@ -123,7 +122,6 @@ HEADERS += MainWindow.h \
     NGSDReannotationDialog.h \
     SmallVariantSearchWidget.h \
     PhenotypeSelectionWidget.h \
-    LovdUploadDialog.h \
     RohWidget.h \
     DiagnosticStatusWidget.h \
     DiagnosticStatusOverviewDialog.h \
@@ -211,7 +209,6 @@ FORMS    += MainWindow.ui \
     NGSDReannotationDialog.ui \
     SmallVariantSearchWidget.ui \
     PhenotypeSelectionWidget.ui \
-    LovdUploadDialog.ui \
     RohWidget.ui \
     DiagnosticStatusWidget.ui \
     DiagnosticStatusOverviewDialog.ui \

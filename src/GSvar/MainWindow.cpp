@@ -54,7 +54,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "DiseaseInfoWidget.h"
 #include "SmallVariantSearchWidget.h"
 #include "TSVFileStream.h"
-#include "LovdUploadDialog.h"
 #include "OntologyTermCollection.h"
 #include "SvWidget.h"
 #include "VariantWidget.h"
@@ -1334,18 +1333,6 @@ void MainWindow::openVariantListFolder()
 	}
 
 	QDesktopServices::openUrl(QFileInfo(filename_).absolutePath());
-}
-
-void MainWindow::on_actionPublishVariantInLOVD_triggered()
-{
-	LovdUploadDialog dlg(this);
-	dlg.exec();
-}
-
-void MainWindow::on_actionPublishVariantInClinvar_triggered()
-{
-	ClinvarUploadDialog dlg(this);
-	dlg.exec();
 }
 
 void MainWindow::on_actionBatchExportClinVar_triggered()
@@ -4682,58 +4669,6 @@ QString MainWindow::nobr()
 	return "<p style='white-space:pre; margin:0; padding:0;'>";
 }
 
-void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
-{
-	//(1) prepare data as far as we can (no RefSeq transcript data is available)
-	LovdUploadData data;
-
-	//sample name
-	data.processed_sample = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
-
-	//gender
-	NGSD db;
-	QString sample_id = db.sampleId(data.processed_sample);
-	SampleData sample_data = db.getSampleData(sample_id);
-	data.gender = sample_data.gender;
-
-	//phenotype(s)
-	data.phenos = sample_data.phenotypes;
-
-	//data 1st variant
-	const Variant& variant = variants_[variant_index];
-	data.variant = variant;
-	int genotype_index = variants_.getSampleHeader().infoByID(data.processed_sample).column_index;
-	data.genotype = variant.annotations()[genotype_index];
-	FastaFileIndex idx(Settings::string("reference_genome"));
-	data.hgvs_g = variant.toHGVS(idx);
-	int classification_index = variants_.annotationIndexByName("classification");
-	data.classification = variant.annotations()[classification_index];
-	int i_refseq = variants_.annotationIndexByName("coding_and_splicing_refseq", true, false);
-	if (i_refseq!=-1)
-	{
-		data.trans_data = variant.transcriptAnnotations(i_refseq);
-	}
-
-	//data 2nd variant (comp-het)
-	if (variant_index2!=-1)
-	{
-		const Variant& variant2 = variants_[variant_index2];
-		data.variant2 = variant2;
-		data.genotype2 = variant2.annotations()[genotype_index];
-		data.hgvs_g2 = variant2.toHGVS(idx);
-		data.classification2 = variant2.annotations()[classification_index];
-		if (i_refseq!=-1)
-		{
-			data.trans_data2 = variant2.transcriptAnnotations(i_refseq);
-		}
-	}
-
-	// (2) show dialog
-	LovdUploadDialog dlg(this);
-	dlg.setData(data);
-	dlg.exec();
-}
-
 void MainWindow::uploadToClinvar(int variant_index)
 {
 	if (!LoginManager::active()) return;
@@ -4907,10 +4842,6 @@ void MainWindow::varsContextMenu(QPoint pos)
 	{
 		contextMenuSingleVariant(pos, indices[0]);
 	}
-	else if (indices.count()==2)
-	{
-		contextMenuTwoVariants(pos, indices[0], indices[1]);
-	}
 }
 
 void MainWindow::varHeaderContextMenu(QPoint pos)
@@ -5056,17 +4987,16 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	//UCSC
 	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
 
-	//LOVD upload
+	//LOVD look up
 	sub_menu = menu.addMenu(QIcon("://Icons/LOVD.png"), "LOVD");
 	QAction* a_lovd_find = sub_menu->addAction("Find in LOVD");
-	QAction* a_lovd_pub = sub_menu->addAction("Publish in LOVD");
-	a_lovd_pub->setEnabled(ngsd_user_logged_in);
+
 
 	//ClinVar upload
 	sub_menu = menu.addMenu("ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
-	a_lovd_pub->setEnabled(ngsd_user_logged_in);
+	a_clinvar_pub->setEnabled(ngsd_user_logged_in);
 
 	//MitoMap
 	QAction* a_mitomap = menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
@@ -5210,21 +5140,10 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	{
 		QDesktopServices::openUrl(QUrl("https://www.mitomap.org/cgi-bin/search_allele?starting="+QString::number(variant.start())+"&ending="+QString::number(variant.end())));
 	}
-	else if (action==a_lovd_pub)
-	{
-		try
-		{
-			uploadtoLovd(index);
-		}
-		catch (Exception& e)
-		{
-			GUIHelper::showMessage("LOVD upload error", "Error while uploading variant to LOVD: " + e.message());
-			return;
-		}
-	}
 	else if (action==a_clinvar_find)
 	{
-		//TODO: Implement
+		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/clinvar/?term=" + variant.chr().strNormalized(false)+"[chr]+AND+" + QString::number(variant.start()) + "%3A" + QString::number(variant.end()) + (GSvarHelper::build()==GenomeBuild::HG38? "[chrpos38] " : "[chrpos37] ")));
+
 	}
 	else if (action==a_clinvar_pub)
 	{
@@ -5358,31 +5277,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		else //other databases
 		{
 			GeneInfoDBs::openUrl(text, gene);
-		}
-	}
-}
-
-void MainWindow::contextMenuTwoVariants(QPoint pos, int index1, int index2)
-{
-	//create context menu
-	QMenu menu(ui_.vars);
-	QAction* a_lovd = menu.addAction(QIcon("://Icons/LOVD.png"), "Publish in LOVD (comp-het)");
-
-	//execute
-	QAction* action = menu.exec(pos);
-	if (!action) return;
-
-	//react
-	if (action==a_lovd)
-	{
-		try
-		{
-			uploadtoLovd(index1, index2);
-		}
-		catch (Exception& e)
-		{
-			GUIHelper::showMessage("LOVD upload error", "Error while uploading variant to LOVD: " + e.message());
-			return;
 		}
 	}
 }

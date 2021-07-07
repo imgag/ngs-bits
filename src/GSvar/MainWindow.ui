@@ -303,10 +303,10 @@
                 <bool>false</bool>
                </property>
                <attribute name="horizontalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
                <attribute name="verticalHeaderVisible">
-                <bool>true</bool>
+                <bool>false</bool>
                </attribute>
               </widget>
              </item>
@@ -510,7 +510,6 @@
      <addaction name="actionSearchSVs"/>
      <addaction name="separator"/>
      <addaction name="actionShowPublishedVariants"/>
-     <addaction name="actionPublishVariantInLOVD"/>
      <addaction name="actionBatchExportClinVar"/>
     </widget>
     <addaction name="menuVariant_search"/>
@@ -797,15 +796,6 @@
   <action name="actionPreferredTranscripts">
    <property name="text">
     <string>Show/edit preferred transcripts</string>
-   </property>
-  </action>
-  <action name="actionPublishVariantInLOVD">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/LOVD.png</normaloff>:/Icons/LOVD.png</iconset>
-   </property>
-   <property name="text">
-    <string>Publish in LOVD</string>
    </property>
   </action>
   <action name="actionROH">

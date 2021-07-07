@@ -33,12 +33,6 @@ ClinvarUploadDialog::ClinvarUploadDialog(QWidget *parent)
 
 void ClinvarUploadDialog::setData(ClinvarUploadData data)
 {
-    // set ids
-    ui_.le_local_id->setEnabled(false);
-    ui_.le_local_id->setText(QString::number(data.variant_id));
-    ui_.le_local_key->setEnabled(false);
-    ui_.le_local_key->setText(QString::number(data.variant_report_config_id));
-
     // set variant data
     QByteArray chr = data.variant.chr().strNormalized(false);
     if (chr=="MT") chr = "M";
@@ -197,8 +191,6 @@ void ClinvarUploadDialog::upload()
         if (response.isEmpty())
         {
             messages << "MESSAGE: Dry-run successful!";
-            //TODO: remove
-            success = true;
         }
         else if (response.contains("id"))
         {
@@ -254,7 +246,7 @@ void ClinvarUploadDialog::upload()
 
             //show result
             QStringList lines;
-            lines << "DATA UPLOAD TO LOVD SUCCESSFUL";
+            lines << "DATA UPLOAD TO CLINVAR SUCCESSFUL";
             lines << "";
             lines << messages.join("\n");
             lines << "";
@@ -270,7 +262,7 @@ void ClinvarUploadDialog::upload()
             QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
             if (gsvar_publication_folder!="")
             {
-                    QString file_rep = gsvar_publication_folder + "/" + clinvar_upload_data_.processed_sample + "_LOVD_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
+                    QString file_rep = gsvar_publication_folder + "/" + clinvar_upload_data_.processed_sample + "_CLINVAR_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
                     Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
             }
 
