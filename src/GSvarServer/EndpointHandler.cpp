@@ -423,8 +423,9 @@ HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& reques
 HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 {
 	NGSD db;
+	qDebug() << "A type" << request.getUrlParams()["type"];
 	QString processed_sample_name = request.getUrlParams()["ps_name"];
-	QString type  = request.getUrlParams()["type"];
+	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toLatin1()).toString();
 	QStringList secondary_analyses;
 	try
 	{
