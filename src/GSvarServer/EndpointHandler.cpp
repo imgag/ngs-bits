@@ -439,7 +439,7 @@ HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 	QJsonArray json_array;
 	for (int i = 0; i < secondary_analyses.count(); i++)
 	{
-		json_array.append(secondary_analyses[i]);
+		json_array.append(createFileTempUrl(secondary_analyses[i]));
 	}
 	json_doc_output.setArray(json_array);
 
