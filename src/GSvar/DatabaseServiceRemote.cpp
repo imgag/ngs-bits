@@ -71,8 +71,24 @@ GeneSet DatabaseServiceRemote::processingSystemGenes(int sys_id) const
 
 QStringList DatabaseServiceRemote::secondaryAnalyses(QString processed_sample_name, QString analysis_type) const
 {
-	// TODO: the new method has not been implemented yet
+	checkEnabled(__PRETTY_FUNCTION__);
+
 	QStringList list;
+	QByteArray reply = makeApiCall("secondary_analyses?ps_name="+processed_sample_name+"&type="+analysis_type);
+	if (reply.length() == 0)
+	{
+		THROW(Exception, "Could not get the processing system genes for " + processed_sample_name);
+	}
+
+	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
+	QJsonArray json_array = json_doc.array();
+	QStringList analyses;
+	for (int i = 0; i < json_array.count(); i++)
+	{
+		if (!json_array.at(i).isString()) break;
+		list.append(json_array.at(i).toString());
+	}
+
 	return list;
 }
 
