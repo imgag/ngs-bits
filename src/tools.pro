@@ -421,3 +421,10 @@ SUBDIRS += VariantRanking
 tools-TEST.depends += VariantRanking
 VariantRanking.depends = cppNGSD
 
+SUBDIRS += VariantAnnotateASE
+tools-TEST.depends += VariantAnnotateASE
+VariantRanking.depends = cppNGS
+
+SUBDIRS += SplicingToBed
+tools-TEST.depends += SplicingToBed
+SplicingToBed.depends = cppNGSD

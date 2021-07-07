@@ -22,7 +22,7 @@
         <Cnv chr="chr21" start="10862601" end="10971365" start_band="21p11.2" end_band="21p11.1" type="del" cn="1" regions="22" causal="false" de_novo="false" comp_het="true" mosaic="false">
             <Gene name="IGHV1OR21-1"/>
             <Gene name="TPTE"/>
-            <ExternalLink url="http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/?name=chr21:10862601-10971365" type="DGV"/>
+            <ExternalLink url="https://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/?name=chr21:10862601-10971365" type="DGV"/>
             <ExternalLink url="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&amp;position=chr21:10862601-10971365" type="UCSC"/>
         </Cnv>
     </CnvList>

@@ -19,8 +19,10 @@ public:
 	virtual BedFile processingSystemAmplicons(int sys_id) const = 0;
 	//Returns the processing system genes.
 	virtual GeneSet processingSystemGenes(int sys_id) const = 0;
+	//Returns secondary analysis locations for a sample.
+	virtual QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type) const = 0;
 
-	//Returns a FileLocation for a given file of a processed sample
+	//Returns a FileLocation for a given file type of a processed sample
 	virtual FileLocation processedSamplePath(const QString& processed_sample_id, PathType type) const = 0;
 };
 

@@ -33,10 +33,10 @@ public:
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
 	QStringList getLogFiles();	
-	///Adds a file to the recent file list
-	void addToRecentFiles(QString filename);
-	///Updates recent files menu
-	void updateRecentFilesMenu();
+	///Adds a file to the recent processed sample list
+	void addToRecentSamples(QString ps);
+	///Updates recent processed samples menu
+	void updateRecentSampleMenu();
 	///Updates IGV menu
     void updateIGVMenu();
 	///Updates menu and toolbar according to NGSD-support
@@ -272,8 +272,8 @@ public slots:
 	void updateVariantDetails();
 	///Updates the variant table once the variant list changed
 	void refreshVariantTable(bool keep_widths = true);
-	///Opens the recent file defined by the sender action text
-	void openRecentFile();
+	///Opens the recent processed sample defined by the sender action text
+	void openRecentSample();
 	///Loads the command line input file.
 	void delayedInitialization();
 	///A variant has been double-clicked > open in IGV
