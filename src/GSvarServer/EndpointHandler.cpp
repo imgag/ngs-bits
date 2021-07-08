@@ -423,10 +423,8 @@ HttpResponse EndpointHandler::getProcessingSystemGenes(const HttpRequest& reques
 HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 {
 	NGSD db;
-	qDebug() << "A type" << request.getUrlParams()["type"];
 	QString processed_sample_name = request.getUrlParams()["ps_name"];
 	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toLatin1()).toString();
-	qDebug() << type;
 	QStringList secondary_analyses;
 	try
 	{
@@ -465,8 +463,6 @@ QString EndpointHandler::createFileTempUrl(const QString& file)
 
 SampleMetadata EndpointHandler::getSampleMetadata(const QString& gsvar_file, bool allow_fallback_germline_single_sample)
 {
-	qDebug() << "READING HEADERS --------------"<< gsvar_file;
-
 	SampleMetadata output;
 	QStringList comments;
 	QList<VariantAnnotationHeader> annotations;
