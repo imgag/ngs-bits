@@ -4,7 +4,8 @@
 #include "LoginManager.h"
 #include "NGSD.h"
 #include "GSvarHelper.h"
-#include "GlobalServiceProvider.h"#include <QMessageBox>
+#include "GlobalServiceProvider.h"
+#include <QMessageBox>
 #include <QMenu>
 #include <QDir>
 #include <QPushButton>

@@ -120,6 +120,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticReportHelper.h"
 #include "Statistics.h"
 #include "NGSDReplicationWidget.h"
+#include "cfDNARemovedRegions.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -182,6 +183,7 @@ MainWindow::MainWindow(QWidget *parent)
 	cfdna_menu_btn_->menu()->addAction(ui_.actionDesignCfDNAPanel);
 	cfdna_menu_btn_->menu()->addAction(ui_.actionShowCfDNAPanel);
 	cfdna_menu_btn_->menu()->addAction(ui_.actionCfDNADiseaseCourse);
+	cfdna_menu_btn_->menu()->addAction(ui_.actionAddExcludedRegions);
 	cfdna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->addWidget(cfdna_menu_btn_);
 	// deaktivate on default (only available in somatic)
@@ -1309,6 +1311,17 @@ void MainWindow::on_actionCfDNADiseaseCourse_triggered()
 
 	DiseaseCourseWidget* widget = new DiseaseCourseWidget(variants_.mainSampleName());
 	auto dlg = GUIHelper::createDialog(widget, "Personalized cfDNA variants");
+	addModelessDialog(dlg, false);
+}
+
+void MainWindow::on_actionCfDNAAddExcludedRegions_triggered()
+{
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+	if (!somaticReportSupported()) return;
+
+	cfDNARemovedRegions* widget = new cfDNARemovedRegions(variants_.mainSampleName());
+	auto dlg = GUIHelper::createDialog(widget, "Removed regions of cfDNA panel for tumor " + variants_.analysisName());
 	addModelessDialog(dlg, false);
 }
 
