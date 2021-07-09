@@ -2,6 +2,7 @@
 #define CFDNAPANELBATCHIMPORT_H
 
 #include <QDialog>
+#include <VcfFile.h>
 
 struct cfDNATableLine
 {
@@ -29,6 +30,7 @@ private:
 	void initGUI();
 	void fillTable();
 	void validateTable();
+	VcfFile createVcf(const QString& ps_name, const QString& vcf_file_path);
 
 
 private slots:

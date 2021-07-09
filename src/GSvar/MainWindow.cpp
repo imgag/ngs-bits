@@ -183,7 +183,7 @@ MainWindow::MainWindow(QWidget *parent)
 	cfdna_menu_btn_->menu()->addAction(ui_.actionDesignCfDNAPanel);
 	cfdna_menu_btn_->menu()->addAction(ui_.actionShowCfDNAPanel);
 	cfdna_menu_btn_->menu()->addAction(ui_.actionCfDNADiseaseCourse);
-	cfdna_menu_btn_->menu()->addAction(ui_.actionAddExcludedRegions);
+	cfdna_menu_btn_->menu()->addAction(ui_.actionCfDNAAddExcludedRegions);
 	cfdna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->addWidget(cfdna_menu_btn_);
 	// deaktivate on default (only available in somatic)

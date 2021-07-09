@@ -70,7 +70,7 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 	cfdna_panel_info_ = CfdnaPanelInfo();
 	prev_vars_.clear();
 	prev_genes_.clear();
-	prev_kasp_ = true;
+	prev_id_snp_ = true;
 	prev_hotspots_.clear();
 
 	QList<CfdnaPanelInfo> previous_panels = NGSD().cfdnaPanelInfo(processed_sample_id_);
@@ -108,7 +108,7 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 		}
 		//load genes, KASP and hotspot regions
 		BedFile prev_panel_regions =  NGSD().cfdnaPanelRegions(cfdna_panel_info_.id);
-		prev_kasp_ = false;
+		prev_id_snp_ = false;
 		for (int i = 0; i < prev_panel_regions.count(); ++i)
 		{
 			const BedLine& bed_line = prev_panel_regions[i];
@@ -119,9 +119,9 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 				prev_genes_.insert(annotation.split(':').at(1).trimmed());
 			}
 			//KASP
-			else if (annotation.startsWith("SNP_for_sample_identification:KASP_set2"))
+			else if (annotation.startsWith("SNP_for_sample_identification"))
 			{
-				prev_kasp_ = true;
+				prev_id_snp_ = true;
 			}
 			//hotspots
 			else if (annotation.startsWith("hotspot_region:"))
@@ -133,7 +133,7 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 	}
 
 	//activate KASP identifier
-	ui_->cb_sample_identifier->setCheckState((prev_kasp_)?Qt::Checked:Qt::Unchecked);
+	ui_->cb_sample_identifier->setCheckState((prev_id_snp_)?Qt::Checked:Qt::Unchecked);
 
 	//preselect processing system
 	ui_->cb_processing_system->setCurrentText(cfdna_panel_info_.processing_system);
@@ -596,7 +596,10 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	if (ui_->cb_sample_identifier->isChecked())
 	{
 		// get KASP SNPs
-		id_vcf.load("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf");
+		//TODO: remove
+		qDebug() << QFile::exists("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf");
+//		id_vcf.load("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf"); ?why?
+		id_vcf.load(buildToString(GSvarHelper::build()) + "_KASP_set2.vcf");
 
 		// extract ID SNPs from selected processing system
 		int sys_id = NGSD().processingSystemId(ui_->cb_processing_system->currentText().toUtf8());
