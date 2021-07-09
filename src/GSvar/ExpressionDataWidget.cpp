@@ -105,8 +105,7 @@ void ExpressionDataWidget::applyFilters()
 	QString zscore = ui_->cohort_zscore->text();
 	if (!zscore.isEmpty())
 	{
-		qDebug() << "z-score filtering";
-		int idx = column_names_.indexOf("cohort_zscore");
+		int idx = column_names_.indexOf("zscore");
 
 		double zscore_cutoff = Helper::toDouble(zscore);
 		for(int row_idx=0; row_idx<row_count; ++row_idx)
@@ -131,7 +130,7 @@ void ExpressionDataWidget::applyFilters()
 	QString logfc = ui_->cohort_logfc->text();
 	if (!logfc.isEmpty())
 	{
-		int idx = column_names_.indexOf("cohort_log2fc");
+		int idx = column_names_.indexOf("log2fc");
 
 		double logfc_cutoff = Helper::toDouble(logfc);
 		for(int row_idx=0; row_idx<row_count; ++row_idx)
@@ -192,42 +191,26 @@ void ExpressionDataWidget::loadExpressionData()
 {
 	//load TSV file
 	TsvFile expression_data;
-	QSharedPointer<QFile> expression_data_file = Helper::openFileForReading(tsv_filename_, false);
+	expression_data.load(tsv_filename_);
 
-	while (!expression_data_file->atEnd())
-	{
-		QString line = expression_data_file->readLine().trimmed();
-		if (line == "")
-		{
-			// skip empty lines
-			continue;
-		}
-		else if	(line.startsWith("##"))
-		{
-			expression_data.addComment(line.mid(2));
-		}
-		else if (line.startsWith("#"))
-		{
-			foreach (const QString& header, line.mid(1).split('\t'))
-			{
-				expression_data.addHeader(header.trimmed());
-			}
-		}
-		else
-		{
-			expression_data.addRow(line.split('\t'));
-		}
-	}
+	QStringList tsv_header = expression_data.headers();
 
-	//create table
+
 
 	//define columns
+	//default columns
+	column_names_ << "gene_id" << "gene_name" << "gene_biotype" << "raw" << "tpm";
+	numeric_columns_  << false << false << false << true << true;
 
-	column_names_ << "gene_id" << "gene_name" << "raw" << "tpm" << "cohort_log2fc" << "cohort_zscore" << "hpa_log2fc";
-	numeric_columns_  << false << false << true << true << true << true << true;
+	column_names_ << "log2tpm";
+	numeric_columns_  << true;
+	column_names_ << "cohort_mean" << "cohort_meanlog2";
+	numeric_columns_  << true << true;
+	column_names_ << "log2fc" << "zscore";
+	numeric_columns_  << true << true;
+
 	//determine col indices for table columns in tsv file
 	QVector<int> column_indices;
-	QStringList tsv_header = expression_data.headers();
 	foreach (const QString& col_name, column_names_)
 	{
 		int column_index = tsv_header.indexOf(col_name);
