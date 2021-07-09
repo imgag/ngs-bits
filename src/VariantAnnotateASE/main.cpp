@@ -151,7 +151,7 @@ public:
 
 		//add annotation headers
 		input.annotations().append(VariantAnnotationHeader("ASE_af"));
-		input.annotationDescriptions().append(VariantAnnotationDescription("ASE_freq", "Expressed variant allele frequency.", VariantAnnotationDescription::FLOAT));
+		input.annotationDescriptions().append(VariantAnnotationDescription("ASE_af", "Expressed variant allele frequency.", VariantAnnotationDescription::FLOAT));
 		input.annotations().append(VariantAnnotationHeader("ASE_depth"));
 		input.annotationDescriptions().append(VariantAnnotationDescription("ASE_depth", "Sequencing depth at the variant position.", VariantAnnotationDescription::INTEGER));
 		input.annotations().append(VariantAnnotationHeader("ASE_alt"));
