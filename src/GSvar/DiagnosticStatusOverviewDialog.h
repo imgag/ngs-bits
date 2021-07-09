@@ -15,9 +15,6 @@ class DiagnosticStatusOverviewDialog
 public:
 	DiagnosticStatusOverviewDialog(QWidget* parent = 0, QString project="");
 
-signals:
-	void openProcessedSampleTab(QString processed_sample_name);
-
 private slots:
 	void delayedInitialization();
 	void updateOverviewTable();

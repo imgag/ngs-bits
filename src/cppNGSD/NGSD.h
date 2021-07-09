@@ -378,6 +378,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QString r_name;
 	bool include_bad_quality_runs = true;
 	bool run_finished = false;
+	QDate r_before = QDate();
 	QString r_device_name;
 
 	//output options
@@ -446,6 +447,28 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 	bool filtered_by_trio_relaxed;
 };
 
+/// Metadata of cfDNA panel DB entry
+struct CfdnaPanelInfo
+{
+	int id = -1;
+	int tumor_id = -1;
+	int cfdna_id = -1;
+	QByteArray created_by;
+	QDate created_date;
+	QByteArray processing_system;
+};
+
+/// cfDNA Gene entry
+struct CfdnaGeneEntry
+{
+	QString gene_name;
+	Chromosome chr;
+	int start;
+	int end;
+	QDate date;
+	BedFile bed = BedFile();
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -454,7 +477,7 @@ Q_OBJECT
 
 public:
 	///Default constructor that connects to the DB
-	NGSD(bool test_db = false);
+	NGSD(bool test_db = false, bool hg38 = false);
 	///Destructor.
 	~NGSD();
 	///Returns if the database connection is (still) open
@@ -552,18 +575,20 @@ public:
 	bool addPreferredTranscript(QByteArray transcript_name);
 
 	/*** phenotype handling (HPO, OMIM) ***/
+	///Returns the NGSD database ID of the phenotype given. Returns -1 or throws a DatabaseException if term name does not exist.
+	int phenotypeIdByAccession(const QByteArray& accession, bool throw_on_error=true);
+	///Returns the NGSD database ID of the phenotype given. Returns -1 or throws a DatabaseException if term name does not exist. Prefer phenotypeIdByAccession whenever possible since it is faster!
+	int phenotypeIdByName(const QByteArray& name, bool throw_on_error=true);
 	///Returns the phenotype for a given HPO accession.
-	Phenotype phenotypeByName(const QByteArray& name, bool throw_on_error=true);
-	///Returns the phenotype for a given HPO accession. If the accession is invalid, a phenotype with empty name is returned, or an error is thrown.
-	Phenotype phenotypeByAccession(const QByteArray& accession, bool throw_on_error=true);
+	const Phenotype& phenotype(int id);
 	///Returns the phenotypes of a gene
 	PhenotypeList phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	PhenotypeList phenotypes(QStringList search_terms);
-	///Returns all genes associated to a phenotype
-	GeneSet phenotypeToGenes(const Phenotype& phenotype, bool recursive);
+	///Returns all genes associated to a phenotype. If is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
+	GeneSet phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype_terms=true);
 	///Returns all child terms of the given phenotype
-	PhenotypeList phenotypeChildTerms(const Phenotype& phenotype, bool recursive);
+	PhenotypeList phenotypeChildTerms(int term_id, bool recursive);
 	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.
 	QList<OmimInfo> omimInfo(const QByteArray& symbol);
 	///Returns the accession (6 digit number) of the preferred OMIM phenotype for a gene. If unset, an empty string is returned.
@@ -681,12 +706,24 @@ public:
 	///Returns the subpanel genes.
 	GeneSet subpanelGenes(QString name);
 
+	///Returns all coresponding cfDNA panel info for a given processed sample
+	QList<CfdnaPanelInfo> cfdnaPanelInfo(const QString& processed_sample_id, const QString& processing_system_id = "");
+	///stores a cfDNA panel in the NGSD
+	void storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content);
+	///Returns the BED file of a given cfDNA panel
+	BedFile cfdnaPanelRegions(int id);
+	///Returns the VCF of a given cfDNA panel
+	VcfFile cfdnaPanelVcf(int id);
+	///Returns all available cfDNA gene entries
+	QList<CfdnaGeneEntry> cfdnaGenes();
+
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)
 	QVector<double> getQCValues(const QString& accession, const QString& processed_sample_id);
 	///Returns the next processing ID for the given sample.
 	QString nextProcessingId(const QString& sample_id);
+
 
 	///Returns classification information
 	ClassificationInfo getClassification(const Variant& variant);
@@ -728,6 +765,8 @@ public:
 	void setDiagnosticStatus(const QString& processed_sample_id, DiagnosticStatusData status);
 	///Returns if the report configuration database ID, or -1 if not present.
 	int reportConfigId(const QString& processed_sample_id);
+	///Returns if the report configuration text summary.
+	QString reportConfigSummaryText(const QString& processed_sample_id);
 	///Returns if the report configuration is finalized.
 	bool reportConfigIsFinalized(int id);
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.
@@ -838,7 +877,8 @@ protected:
 		GeneSet approved_gene_names;
 		QMap<QString, QStringList> enum_values;
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
-		QHash<QByteArray, Phenotype> phenotypes_by_accession;
+		QHash<int, Phenotype> phenotypes_by_id;
+		QHash<QByteArray, int> phenotypes_accession_to_id;
 
 		BedFile gene_regions;
 		ChromosomalIndex<BedFile> gene_regions_index;

@@ -37,17 +37,17 @@ void HttpHandler::setHeader(const QByteArray& key, const QByteArray& value)
 	headers_.insert(key, value);
 }
 
-QString HttpHandler::get(QString url, const HttpHeaders& add_headers)
+QByteArray HttpHandler::get(QString url, const HttpHeaders& add_headers)
 {
 	return HttpRequestHandler(proxy_type_, this).get(url, add_headers);
 }
 
-QString HttpHandler::post(QString url, const QByteArray& data, const HttpHeaders& add_headers)
+QByteArray HttpHandler::post(QString url, const QByteArray& data, const HttpHeaders& add_headers)
 {
 	return HttpRequestHandler(proxy_type_, this).post(url, data, add_headers);
 }
 
-QString HttpHandler::post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers)
+QByteArray HttpHandler::post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers)
 {
 	return HttpRequestHandler(proxy_type_, this).post(url, parts, add_headers);
 }

@@ -144,7 +144,10 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		single_id = strToPointer(single_id);
 	}
 	vcf_line->setId(id_list);
-	vcf_line->addAlt(line_parts[ALT].split(','));
+	foreach(const QByteArray& alt, line_parts[ALT].split(','))
+	{
+		vcf_line->addAlt(alt);
+	}
 
 	if(line_parts[QUAL]==".")
 	{
@@ -862,6 +865,42 @@ void VcfFile::copyMetaDataForSubsetting(const VcfFile& rhs)
 	info_id_to_idx_list_ = rhs.infoIDToIdxList();
 }
 
+QByteArray VcfFile::toText() const
+{
+	//open stream
+	QString output;
+	QTextStream stream(&output);
+
+	//write header information
+	vcf_header_.storeHeaderInformation(stream);
+	//write header columns
+	storeHeaderColumns(stream);
+
+	for(int i = 0; i < vcf_lines_.count(); ++i)
+	{
+		storeLineInformation(stream, vcfLine(i));
+	}
+
+	return output.toUtf8();
+}
+
+void VcfFile::fromText(const QByteArray &text)
+{
+	//clear content in case we load a second file
+	clear();
+    QByteArrayList lines = text.split('\n');
+
+	int line_number = 0;
+	QSet<QByteArray> info_ids_in_header;
+	QSet<QByteArray> format_ids_in_header;
+	QSet<QByteArray> filter_ids_in_header;
+
+	foreach (const QByteArray& line, lines)
+	{
+		processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header, true, nullptr, false);
+	}
+}
+
 VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome)
 {
 	VcfFile vcf_file;
@@ -1041,9 +1080,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		vcf_line->setChromosome(v.chr());
 		vcf_line->setPos(v.start());
 		vcf_line->setRef(v.ref());
-		QByteArrayList alt_list;
-		alt_list.push_back(v.obs());
-		vcf_line->addAlt(alt_list);
+		vcf_line->addAlt(v.obs());
 
 		//add all columns into info
 		QByteArrayList info;
@@ -1507,7 +1544,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 						QByteArrayList csq_parts = csq_transcript.split('|');
 						if (csq_parts.count()!=csq_defs.count())
 						{
-							printError(out_stream, "VEP-based CSQ annoation has " + QByteArray::number(csq_parts.count()) + " entries, expected " + QByteArray::number(csq_defs.count()) + " according to definition in header!", l, line);
+							printError(out_stream, "VEP-based CSQ annotation has " + QByteArray::number(csq_parts.count()) + " entries, expected " + QByteArray::number(csq_defs.count()) + " according to definition in header!", l, line);
 							return false;
 						}
 

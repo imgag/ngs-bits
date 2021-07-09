@@ -513,37 +513,37 @@ private slots:
 		//phenotypes
 		PhenotypeList phenos = db.phenotypes(QStringList() << "aBNOrmality");
 		I_EQUAL(phenos.count(), 1);
-		IS_TRUE(phenos.contains(Phenotype("HP:0000118","Phenotypic abnormality")));
+		IS_TRUE(phenos.containsAccession("HP:0000118")); //Phenotypic abnormality
 		//synonyms
 		phenos = db.phenotypes(QStringList() << "sYNonym");
 		I_EQUAL(phenos.count(), 2);
-		IS_TRUE(phenos.contains(Phenotype("HP:0012823","Clinical modifier")));
-		IS_TRUE(phenos.contains(Phenotype("HP:0040279","Frequency")));
-		//phenotypeByName
-		Phenotype pheno = db.phenotypeByName("Frequency");
-		S_EQUAL(pheno.accession(), "HP:0040279");
-		S_EQUAL(pheno.name(), "Frequency");
+		IS_TRUE(phenos.containsAccession("HP:0012823")); //Clinical modifier
+		IS_TRUE(phenos.containsAccession("HP:0040279")); //Frequency
+		//phenotypeIdByName / phenotypeIdByAccession
+		int hpo_id1 = db.phenotypeIdByName("Frequency");
+		int hpo_id2 = db.phenotypeIdByAccession("HP:0040279");
+		I_EQUAL(hpo_id1, hpo_id2);
 
 		//phenotypeChildTems
-		phenos = db.phenotypeChildTerms(Phenotype("HP:0000001", "All"), true);
+		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("All"), true);
 		I_EQUAL(phenos.count(), 10);
-		phenos = db.phenotypeChildTerms(Phenotype("HP:0000001", "All"), false);
+		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("All"), false);
 		I_EQUAL(phenos.count(), 4);
-		IS_TRUE(phenos.contains(Phenotype("HP:0000005","Mode of inheritance")));
-		IS_TRUE(phenos.contains(Phenotype("HP:0000118","Phenotypic abnormality")));
-		IS_TRUE(phenos.contains(Phenotype("HP:0012823","Clinical modifier")));
-		IS_TRUE(phenos.contains(Phenotype("HP:0040279","Frequency")));
+		IS_TRUE(phenos.containsAccession("HP:0000005")); //Mode of inheritance
+		IS_TRUE(phenos.containsAccession("HP:0000118")); //Phenotypic abnormality
+		IS_TRUE(phenos.containsAccession("HP:0012823")); //Clinical modifier
+		IS_TRUE(phenos.containsAccession("HP:0040279")); //"Frequency"
 		//inner node
-		phenos = db.phenotypeChildTerms(Phenotype("HP:0000005", "Mode of inheritance"), true);
+		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("Mode of inheritance"), true);
 		I_EQUAL(phenos.count(), 6);
-		IS_TRUE(phenos.contains(Phenotype("HP:0001419","X-linked recessive inheritance")));
-		phenos = db.phenotypeChildTerms(Phenotype("HP:0000005", "Mode of inheritance"), false);
+		IS_TRUE(phenos.containsAccession("HP:0001419")); //X-linked recessive inheritance
+		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("Mode of inheritance"), false);
 		I_EQUAL(phenos.count(), 4);
-		IS_FALSE(phenos.contains(Phenotype("HP:0001419","X-linked recessive inheritance")));
+		IS_FALSE(phenos.containsAccession("HP:0001419")); //X-linked recessive inheritance
 		//leaf
-		phenos = db.phenotypeChildTerms(Phenotype("HP:0001427", "Mitochondrial inheritance"), true);
+		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("Mitochondrial inheritance"), true);
 		I_EQUAL(phenos.count(), 0);
-		phenos = db.phenotypeChildTerms(Phenotype("HP:0001427", "Mitochondrial inheritance"), false);
+		phenos = db.phenotypeChildTerms(db.phenotypeIdByName("Mitochondrial inheritance"), false);
 		I_EQUAL(phenos.count(), 0);
 
 		//getDiagnosticStatus
@@ -851,6 +851,7 @@ private slots:
 		params.r_device_name = "Neo";
 		params.include_bad_quality_runs = false;
 		params.run_finished = true;
+		params.r_before = QDate::fromString("2021-02-19", Qt::ISODate);
 		ps_table = db.processedSampleSearch(params);
 		I_EQUAL(ps_table.rowCount(), 2);
 		I_EQUAL(ps_table.columnCount(), 73);
@@ -1232,6 +1233,35 @@ private slots:
 		S_EQUAL(db.omimPreferredPhenotype("BRCA1", "Neoplasms"), "");
 		S_EQUAL(db.omimPreferredPhenotype("ATM", "Diseases of the immune system"), "");
 		S_EQUAL(db.omimPreferredPhenotype("ATM", "Neoplasms"), "114480");
+
+
+		//cfDNA panels
+		CfdnaPanelInfo panel_info;
+		panel_info.tumor_id = db.processedSampleId("DX184894_01").toInt();
+		panel_info.created_by = "ahmustm1";
+		panel_info.created_date = QDate(2021, 01, 01);
+		panel_info.processing_system = "IDT_xGenPrism";
+
+		BedFile bed;
+		bed.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.bed"));
+		VcfFile vcf;
+		vcf.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.vcf"));
+
+		db.storeCfdnaPanel(panel_info, bed.toText().toUtf8(), vcf.toText());
+
+		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("IDT_xGenPrism"))).size(), 1);
+		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id)).size(), 1);
+		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("hpHBOCv5"))).size(), 0);
+
+		CfdnaPanelInfo loaded_panel_info = db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("IDT_xGenPrism"))).at(0);
+		I_EQUAL(loaded_panel_info.tumor_id, panel_info.tumor_id);
+		S_EQUAL(loaded_panel_info.created_by, panel_info.created_by);
+		IS_TRUE(loaded_panel_info.created_date == panel_info.created_date);
+		S_EQUAL(loaded_panel_info.processing_system, panel_info.processing_system);
+
+		S_EQUAL(db.cfdnaPanelRegions(loaded_panel_info.id).toText(), bed.toText());
+		S_EQUAL(db.cfdnaPanelVcf(loaded_panel_info.id).toText(), vcf.toText());
+
 	}
 
 	inline void report_germline()
@@ -1271,14 +1301,14 @@ private slots:
 		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
 		QMap<QByteArray, QByteArrayList> preferred_transcripts;
 		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
-		GermlineReportGeneratorData data("NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
+		GermlineReportGeneratorData data(GenomeBuild::HG19, "NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
 		data.processing_system_roi.load(TESTDATA("../cppNGS-TEST/data_in/panel.bed"));
+		data.ps_bam = TESTDATA("../cppNGS-TEST/data_in/panel.bam");
+		data.ps_lowcov = TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed");
 
 		//############################### TEST 1 - minimal ###############################
 		{
 			GermlineReportGenerator generator(data, true);
-			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report1.html");
@@ -1344,8 +1374,6 @@ private slots:
 			data.roi.genes.insert("CYP7B1");
 
 			GermlineReportGenerator generator(data, true);
-			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report2.html");
@@ -1360,8 +1388,6 @@ private slots:
 			report_settings.language = "english";
 
 			GermlineReportGenerator generator(data, true);
-			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report3.html");
@@ -1372,8 +1398,6 @@ private slots:
 		//############################### TEST 4 - evaluation sheet ###############################
 		{
 			GermlineReportGenerator generator(data, true);
-			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			EvaluationSheetData sheet_data;
@@ -1489,6 +1513,10 @@ private slots:
 		som_rep_conf.setMsiStatus(true);
 		som_rep_conf.setCnvBurden(true);
 		som_rep_conf.setHrdScore(4);
+		som_rep_conf.setHrdStatement("undeterminable");
+		som_rep_conf.setCnvLohCount(12);
+		som_rep_conf.setCnvTaiCount(3);
+		som_rep_conf.setCnvLstCount(43);
 		som_rep_conf.setTmbReferenceText("Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
 		som_rep_conf.setQuality("DNA quantity too low");
 		som_rep_conf.setFusionsDetected(true);
@@ -1555,6 +1583,11 @@ private slots:
 		IS_TRUE(res_config.msiStatus());
 		IS_TRUE(res_config.cnvBurden());
 		I_EQUAL(res_config.hrdScore(), 4);
+		S_EQUAL(res_config.hrdStatement(), "undeterminable");
+		I_EQUAL(res_config.cnvLohCount(), 12);
+		I_EQUAL(res_config.cnvTaiCount(), 3);
+		I_EQUAL(res_config.cnvLstCount(), 43);
+
 		S_EQUAL(res_config.tmbReferenceText(), "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
 		S_EQUAL(res_config.quality(), "DNA quantity too low");
 		IS_TRUE(res_config.fusionsDetected());
@@ -1625,6 +1658,13 @@ private slots:
 		som_rep_conf.setMsiStatus(false);
 		som_rep_conf.setCnvBurden(false);
 		som_rep_conf.setHrdScore(0);
+
+		som_rep_conf.setHrdStatement("proof");
+		som_rep_conf.setCnvLohCount(9);
+		som_rep_conf.setCnvTaiCount(1);
+		som_rep_conf.setCnvLstCount(23);
+
+
 		som_rep_conf.setTmbReferenceText("An alternative tmb reference value.");
 		som_rep_conf.setQuality("NON EXISTING IN SOMTATIC_REPORT_CONFIGURATION TABLE");
 		som_rep_conf.setFusionsDetected(false);
@@ -1643,6 +1683,12 @@ private slots:
 		IS_FALSE(res_config_2.msiStatus());
 		IS_FALSE(res_config_2.cnvBurden());
 		I_EQUAL(res_config_2.hrdScore(), 0);
+
+		S_EQUAL(res_config_2.hrdStatement(), "proof");
+		I_EQUAL(res_config_2.cnvLohCount(), 9);
+		I_EQUAL(res_config_2.cnvTaiCount(), 1);
+		I_EQUAL(res_config_2.cnvLstCount(), 23);
+
 		S_EQUAL(res_config_2.tmbReferenceText(), "An alternative tmb reference value.");
 		S_EQUAL(res_config_2.quality(), "");
 		IS_FALSE(res_config_2.fusionsDetected());
@@ -1712,7 +1758,7 @@ private slots:
 		VariantList vl_germl_filtered =  SomaticReportSettings::filterGermlineVariants(vl_germl, settings);
 		CnvList cnvs_filtered = SomaticReportSettings::filterCnvs(cnvs,settings);
 
-		SomaticXmlReportGeneratorData xml_data(settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
+		SomaticXmlReportGeneratorData xml_data(GenomeBuild::HG19, settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
 		xml_data.processing_system_roi.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
 		xml_data.processing_system_genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));
 		IS_THROWN(ArgumentException, xml_data.check());
@@ -1935,6 +1981,7 @@ private slots:
 		BedFile subpanel_regions = db.subpanelRegions("some_target_region");
 		I_EQUAL(subpanel_regions.count(), 20);
 		I_EQUAL(subpanel_regions.baseCount(), 2508);
+
 	}
 
 	//Test tumor only RTF report generation

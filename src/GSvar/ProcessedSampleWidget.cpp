@@ -12,6 +12,7 @@
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "GenLabDB.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include "GlobalServiceProvider.h"
 
@@ -23,9 +24,9 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	ui_->setupUi(this);
 	GUIHelper::styleSplitter(ui_->splitter);
 	connect(ui_->folder_btn, SIGNAL(clicked(bool)), this, SLOT(openSampleFolder()));
-	connect(ui_->run, SIGNAL(linkActivated(QString)), this, SIGNAL(openRunTab(QString)));
-	connect(ui_->system, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessingSystemTab(QString)));
-	connect(ui_->project, SIGNAL(linkActivated(QString)), this, SIGNAL(openProjectTab(QString)));
+	connect(ui_->run, SIGNAL(linkActivated(QString)), this, SLOT(openRunTab(QString)));
+	connect(ui_->system, SIGNAL(linkActivated(QString)), this, SLOT(openProcessingSystemTab(QString)));
+	connect(ui_->project, SIGNAL(linkActivated(QString)), this, SLOT(openProjectTab(QString)));
 	connect(ui_->open_btn, SIGNAL(clicked(bool)), this, SLOT(loadVariantList()));
 	connect(ui_->qc_all, SIGNAL(stateChanged(int)), this, SLOT(updateQCMetrics()));
 	connect(ui_->update_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
@@ -39,8 +40,8 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->study_edit_btn, SIGNAL(clicked(bool)), this, SLOT(editStudy()));
 	connect(ui_->study_add_btn, SIGNAL(clicked(bool)), this, SLOT(addStudy()));
 	connect(ui_->study_delete_btn, SIGNAL(clicked(bool)), this, SLOT(removeStudy()));
-	connect(ui_->merged, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
-	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SIGNAL(openProcessedSampleTab(QString)));
+	connect(ui_->merged, SIGNAL(linkActivated(QString)), this, SLOT(openProcessedSampleTab(QString)));
+	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(ui_->reanalyze_btn, SIGNAL(clicked(bool)), this, SLOT(queueSampleAnalysis()));
 	connect(ui_->genlab_disease_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseGroupAndInfo()));
 	connect(ui_->genlab_relations_btn, SIGNAL(clicked(bool)), this, SLOT(importSampleRelations()));
@@ -128,6 +129,13 @@ void ProcessedSampleWidget::updateGUI()
 	QString normal_sample = ps_data.normal_sample_name;
 	ui_->normal_sample->setText("<a href=\"" + normal_sample + "\">"+normal_sample+"</a>");
 	ui_->ancestry->setText(ps_data.ancestry);
+	QStringList ancestry_details;
+	ancestry_details << "Raw scores:";
+	ancestry_details << "AFR (african): " + db.getValue("SELECT score_afr FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+	ancestry_details << "EUR (european): " + db.getValue("SELECT score_eur FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+	ancestry_details << "SAS (south asian): " + db.getValue("SELECT score_sas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+	ancestry_details << "EAS (east asian): " + db.getValue("SELECT score_eas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+	ui_->ancestry->setToolTip(ancestry_details.join("\n"));
 
 	//#### sample details ####
 	QString s_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id='" + ps_id_ + "'").toString();
@@ -153,6 +161,7 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->status->setText(diag.dagnostic_status + " (by " + diag.user + " on " + diag.date.toString("dd.MM.yyyy")+")");
 	ui_->outcome->setText(diag.outcome);
 	ui_->comments_diag->setText(diag.comments);
+	ui_->report_config->setText(db.reportConfigSummaryText(ps_id_));
 
 
 	//#### kasp status ####
@@ -309,7 +318,7 @@ void ProcessedSampleWidget::showPlot()
 
 void ProcessedSampleWidget::openSampleFolder()
 {
-	QString folder = NGSD().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER);
+	QString folder = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SAMPLE_FOLDER).filename;
 	if(!QFile::exists(folder))
 	{
 		QMessageBox::warning(this, "Error opening processed sample folder", "Folder does not exist:\n" + folder);
@@ -355,7 +364,7 @@ void ProcessedSampleWidget::openSampleTab()
 	}
 	else if (ps_names.count()==1)
 	{
-		emit openProcessedSampleTab(ps_names[0]);
+		GlobalServiceProvider::openProcessedSampleTab(ps_names[0]);
 	}
 	else if (ps_names.count()>0)
 	{
@@ -363,7 +372,7 @@ void ProcessedSampleWidget::openSampleTab()
 		QString ps = QInputDialog::getItem(this, "Select processed sample", "sample:", ps_names, 0, false, &ok);
 		if (ok)
 		{
-			emit openProcessedSampleTab(ps);
+			GlobalServiceProvider::openProcessedSampleTab(ps);
 		}
 	}
 }
@@ -379,7 +388,7 @@ void ProcessedSampleWidget::openExternalDiseaseDatabase()
 		QString link;
 		if (type=="ICD10 code")
 		{
-			link = "http://www.icd-code.de/suche/icd/recherche.html?sp=" + value;
+			link = "https://www.icd-code.de/suche/icd/recherche.html?sp=" + value;
 		}
 		else if (type=="HPO term id")
 		{
@@ -389,7 +398,7 @@ void ProcessedSampleWidget::openExternalDiseaseDatabase()
 		else if (type=="OMIM disease/phenotype identifier")
 		{
 			value.replace("#", ""); //remove prefix
-			link = "http://omim.org/entry/" + value;
+			link = "https://omim.org/entry/" + value;
 		}
 		else if (type=="Orpha number")
 		{
@@ -528,14 +537,14 @@ void ProcessedSampleWidget::deleteSampleData()
 
 void ProcessedSampleWidget::loadVariantList()
 {
-	emit openProcessedSampleFromNGSD(NGSD().processedSampleName(ps_id_));
+	GlobalServiceProvider::openGSvarViaNGSD(NGSD().processedSampleName(ps_id_), true);
 }
 
 void ProcessedSampleWidget::addIgvMenuEntry(QMenu* menu, PathType file_type)
 {
 	QAction* action = menu->addAction(FileLocation::typeToHumanReadableString(file_type), this, SLOT(openIgvTrack()));
 	action->setData((int)file_type);
-	action->setEnabled(QFile::exists(NGSD().processedSamplePath(ps_id_, file_type)));
+	action->setEnabled(GlobalServiceProvider::database().processedSamplePath(ps_id_, file_type).exists);
 }
 
 void ProcessedSampleWidget::openIgvTrack()
@@ -543,13 +552,33 @@ void ProcessedSampleWidget::openIgvTrack()
 	QAction* action = qobject_cast<QAction*>(sender());
 	PathType type = static_cast<PathType>(action->data().toInt());
 
-	QString file = NGSD().processedSamplePath(ps_id_, type);
-	executeIGVCommands(QStringList() << "load \"" + Helper::canonicalPath(file) + "\"");
+	QString file = GlobalServiceProvider::database().processedSamplePath(ps_id_, type).filename;
+	GlobalServiceProvider::loadFileInIGV(file, false);
 }
 
 void ProcessedSampleWidget::somRepDeleted()
 {
 	emit clearMainTableSomReport(ps_id_);
+}
+
+void ProcessedSampleWidget::openProcessedSampleTab(QString ps)
+{
+	GlobalServiceProvider::openProcessedSampleTab(ps);
+}
+
+void ProcessedSampleWidget::openRunTab(QString name)
+{
+	GlobalServiceProvider::openRunTab(name);
+}
+
+void ProcessedSampleWidget::openProjectTab(QString project_name)
+{
+	GlobalServiceProvider::openProjectTab(project_name);
+}
+
+void ProcessedSampleWidget::openProcessingSystemTab(QString system_short_name)
+{
+	GlobalServiceProvider::openProcessingSystemTab(system_short_name);
 }
 
 void ProcessedSampleWidget::editSample()

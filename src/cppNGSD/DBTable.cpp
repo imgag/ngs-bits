@@ -285,7 +285,7 @@ void DBTable::write(QTextStream& stream) const
 		for (int c=0; c<columnCount(); ++c)
 		{
 			if (c!=0) stream << "\t";
-			stream << QString(rows_[r].value(c)).replace('\t', ' ').replace('\n', ' ');
+			stream << QString(rows_[r].value(c)).replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
 		}
 		stream << "\n";
 	}

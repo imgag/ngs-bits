@@ -18,19 +18,20 @@ Changes already implemented in GIT master for next release:
 
 * none so far.
 
-Changes in release 2021_03:
+Changes in release 2021_06:
 
-* SeqPurge: fixed bug that could cause hanging in case of currupt input data.
-* VcfLeftNormalize: added option to steam the VCF if no compression is used.
-* ReadQC: can now merge and write input FASTQ files.
-* CnvHunter: is now deprecated - use [ClinCNV](http:://github.com/imgag/ClinCNV) instead.
-* BamClipOverlap: Fixed handling of reads with insertion-only CIGAR.
-* SampleSimilarity: improvements speed and memory usage.
-* MappingQC: Added metrics for GC/AT dropout and homogeneity of coverage.
+* General: Improved GRCh38 support in several tools.
+* General: Using BGZIP for compressed VCFs now to allow indexing them with tabix. 
+* VcfAnnotateFromBed: Made separator configurable; Added check for separator in source BED file; Fixed broken output VCF if input has no FORMAT column.
+* VcfAnnotateFromVcf: Fixed crash in VCF header parser.
+* NGSDExportSamples: Added ancestry column.
+* SampleAncestry: Improved runtime and memory use.
+* SampleGender: Improved runtime for algorithm 'hetx'.
+* SomaticQC: Added support for mutect2.
 * NGSD:
-	* Added pseudogene-gene relation table
-	* Added more sample relations (twins, cousins, ...)
-	* Added gap table
+	* Added disease status 'Unclear' to table 'sample'.
+	* Added table 'processed_sample_ancestry'.
+	* Added percent occupied to 'runqc_lane' (for Illumina NovaSeq).
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 

@@ -13,7 +13,7 @@ GapDialog::GapDialog(QWidget *parent, QString ps, QString bam_file, QString lowc
 	, init_timer_(this, true)
 	, ps_(ps)
 	, bam_(bam_file)
-	, lowcov_(lowcov_file.trimmed())
+	, lowcov_file_(lowcov_file.trimmed())
 	, roi_(roi)
 	, genes_(genes)
 	, ngsd_col_(7)
@@ -33,7 +33,7 @@ void GapDialog::delayedInitialization()
 	QString title = "Gap calculation";
 	QStringList messages;
 	messages << "Calculating gaps for target region now.";
-	if (lowcov_.isEmpty())
+	if (lowcov_file_.isEmpty())
 	{
 		messages << "";
 		messages << "Gaps need to be calculated from BAM as there is no low-coverage file for this samples.";
@@ -44,7 +44,14 @@ void GapDialog::delayedInitialization()
 
 	//calculate gaps
 	QApplication::setOverrideCursor(Qt::BusyCursor);
-	messages = calculteGapsAndInitGUI();
+	try
+	{
+		messages = calculteGapsAndInitGUI();
+	}
+	catch (Exception& e)
+	{
+		messages << e.message();
+	}
 	QApplication::restoreOverrideCursor();
 	if (!messages.isEmpty())
 	{
@@ -72,7 +79,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 
 	//calculate low-coverage regions
 	BedFile low_cov;
-	if (lowcov_.isEmpty())
+	if (lowcov_file_.isEmpty())
 	{
 		low_cov = Statistics::lowCoverage(roi_, bam_, cutoff);
 	}
@@ -82,7 +89,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 		{
 			int sys_id = db_.processingSystemIdFromProcessedSample(ps_);
 			BedFile sys_roi = GlobalServiceProvider::database().processingSystemRegions(sys_id);
-			low_cov = GermlineReportGenerator::precalculatedGaps(lowcov_, roi_, cutoff, sys_roi);
+			low_cov = GermlineReportGenerator::precalculatedGaps(lowcov_file_, roi_, cutoff, sys_roi);
 		}
 		catch(Exception e)
 		{
@@ -100,6 +107,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 	ui_.statistics->setText(roi_genes + roi_size + gap_perc);
 
 	//calculate average coverage for gaps
+	low_cov.clearAnnotations();
 	Statistics::avgCoverage(low_cov, bam_, 1, false, true);
 
 	//update data structure
@@ -108,7 +116,9 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 	{
 		GapInfo info;
 		info.region = low_cov[i];
-		info.avg_depth = low_cov[i].annotations()[0].toDouble();
+		bool ok = true;
+		info.avg_depth = low_cov[i].annotations()[0].toDouble(&ok);
+		if (!ok) output << "Could not convert average depth to decimal number for gap " + low_cov[i].toString(true);
 		info.genes = db_.genesOverlappingByExon(info.region.chr(), info.region.start(), info.region.end(), 30);
 
 		//use longest coding transcript(s) of Ensembl
@@ -267,7 +277,7 @@ void GapDialog::gapDoubleClicked(QTableWidgetItem* item)
 	if (item==nullptr) return;
 
 	QString region = ui_.gaps->item(item->row(), 0)->text();
-	emit openRegionInIGV(region);
+	GlobalServiceProvider::gotoInIGV(region, true);
 }
 
 void GapDialog::updateFilters()

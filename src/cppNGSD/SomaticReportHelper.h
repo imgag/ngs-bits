@@ -57,7 +57,7 @@ class CPPNGSDSHARED_EXPORT SomaticReportHelper
 {
 public:
 	///Constructor loads data into class
-	SomaticReportHelper(const VariantList& variants, const CnvList &cnvs, const VariantList& germline_variants, const SomaticReportSettings& settings);
+	SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const VariantList& germline_variants, const SomaticReportSettings& settings);
 
 	///write Rtf File
 	void storeRtf(const QByteArray& out_file);
@@ -124,6 +124,8 @@ private:
 	GeneSet skipped_amp_ = {};
 	//Somatic SNVs/INDELs
 	VariantList somatic_vl_;
+
+	GenomeBuild build_;
 
 	const SomaticReportSettings& settings_;
 	//VariantList for relevant germline SNVs

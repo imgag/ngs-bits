@@ -88,6 +88,8 @@ FilterResult::FilterResult(int variant_count, bool value)
 
 void FilterResult::removeFlagged(VariantList& variants)
 {
+	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::removeFlagged!");
+
 	//skip if all variants pass
 	if (countPassing()==variants.count()) return;
 
@@ -114,6 +116,8 @@ void FilterResult::removeFlagged(VariantList& variants)
 
 void FilterResult::removeFlagged(VcfFile& variants)
 {
+	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::removeFlagged!");
+
 	//skip if all variants pass
 	if (countPassing()==variants.count()) return;
 
@@ -140,6 +144,8 @@ void FilterResult::removeFlagged(VcfFile& variants)
 
 void FilterResult::removeFlagged(CnvList& cnvs)
 {
+	if (pass.count()!=cnvs.count()) THROW(ProgrammingException, "CNV and filter result count not equal in FilterResult::removeFlagged!");
+
     //skip if all variants pass
     if (countPassing()==cnvs.count()) return;
 
@@ -162,6 +168,8 @@ void FilterResult::removeFlagged(CnvList& cnvs)
 
 void FilterResult::removeFlagged(BedpeFile& svs)
 {
+	if (pass.count()!=svs.count()) THROW(ProgrammingException, "SV and filter result count not equal in FilterResult::removeFlagged!");
+
     //skip if all variants pass
     if (countPassing()==svs.count()) return;
 
@@ -182,6 +190,8 @@ void FilterResult::removeFlagged(BedpeFile& svs)
 
 void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArray description)
 {
+	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::tagNonPassing!");
+
 	//create 'filter' column (if missing)
 	int index = variants.addAnnotationIfMissing("filter", "Filter column.");
 
@@ -203,6 +213,7 @@ void FilterResult::tagNonPassing(VariantList& variants, QByteArray tag, QByteArr
 
 void FilterResult::tagNonPassing(VcfFile& variants, QByteArray tag, QString description)
 {
+	if (pass.count()!=variants.count()) THROW(ProgrammingException, "Variant and filter result count not equal in FilterResult::tagNonPassing!");
 
 	//add tag description (if missing)
 	if (!variants.filterIDs().contains(tag))
@@ -339,6 +350,16 @@ void FilterBase::setStringList(const QString& name, const QStringList& value)
 	checkParameterType(name, FilterParameterType::STRINGLIST);
 
 	parameter(name).value = value;
+}
+
+bool FilterBase::hasParameter(const QString& name, FilterParameterType type) const
+{
+	for (int i=0; i<params_.count(); ++i)
+	{
+		if (params_[i].name==name && params_[i].type==type) return true;
+	}
+
+	return false;
 }
 
 void FilterBase::overrideConstraint(const QString& parameter_name, const QString& constraint_name, const QString& constraint_value)
@@ -989,7 +1010,7 @@ void FilterAlleleFrequency::apply(const VariantList& variants, FilterResult& res
 FilterGenes::FilterGenes()
 {
 	name_ = "Genes";
-	description_ = QStringList() << "Filter for that preserves a gene set.";
+	description_ = QStringList() << "Filter that preserves a gene set.";
 	params_ << FilterParameter("genes", FilterParameterType::STRINGLIST, QStringList(), "Gene set");
 	params_.last().constraints["not_empty"] = "";
 
@@ -1316,6 +1337,7 @@ void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& re
 	{
 		//get affected column indices
 		QList<int> geno_indices = variants.getSampleHeader().sampleColumns(true);
+		geno_indices.removeAll(-1);
 		if (geno_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 
 		for(int i=0; i<variants.count(); ++i)
@@ -1630,6 +1652,7 @@ void FilterGenotypeControl::apply(const VariantList& variants, FilterResult& res
 
 	//get control column indices
 	QList<int> geno_indices = variants.getSampleHeader().sampleColumns(false);
+	geno_indices.removeAll(-1);
 	if (geno_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without control samples!");
 
 	//filter
@@ -1698,6 +1721,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 
 	//get affected column indices
 	QList<int> geno_indices = variants.getSampleHeader().sampleColumns(true);
+	geno_indices.removeAll(-1);
 	if (geno_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 
 
@@ -1940,18 +1964,31 @@ bool FilterAnnotationPathogenic::annotatedPathogenic(const Variant& v) const
 FilterPredictionPathogenic::FilterPredictionPathogenic()
 {
 	name_ = "Predicted pathogenic";
-	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Prediction scores included are: phyloP>=1.6, Sift=D, PolyPhen=D, fathmm-MKL>=0.5, CADD>=20 and REVEL>=0.5.";
+	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, fathmm-MKL, CADD and REVEL.";
 	params_ << FilterParameter("min", FilterParameterType::INT, 1, "Minimum number of pathogenic predictions");
 	params_.last().constraints["min"] = "1";
 	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER";
+	params_ << FilterParameter("skip_high_impact", FilterParameterType::BOOL, false, "Do not apply this filter to variants with impact 'HIGH'.");
+	//cutoffs
+	params_ << FilterParameter("cutoff_cadd", FilterParameterType::DOUBLE, 20.0, "Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0.");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("cutoff_revel", FilterParameterType::DOUBLE, 0.9, "Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0.");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "1";
+	params_ << FilterParameter("cutoff_fathmm_mkl", FilterParameterType::DOUBLE, 0.9, "Minimum fathmm-MKL score for a pathogenic prediction. The fathmm-MKL score is not used if set to 0.0.");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "1";
+	params_ << FilterParameter("cutoff_phylop", FilterParameterType::DOUBLE, 1.6, "Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0.");
+	params_ << FilterParameter("ignore_sift", FilterParameterType::BOOL, false, "Do not used the Sift score. If unset, Sift consequence 'D' is considered pathogenic.");
+	params_ << FilterParameter("ignore_polyphen", FilterParameterType::BOOL, false, "Do not used the PolyPhen score. If unset, PolyPhen consequence 'D' is considered pathogenic.");
 
 	checkIsRegistered();
 }
 
 QString FilterPredictionPathogenic::toText() const
 {
-	return name() + " " + getString("action", false) + " &ge; " + QString::number(getInt("min", false));
+	return name() + " " + getString("action", false) + " min&ge; " + QString::number(getInt("min", false)) + (skip_high_impact ? " skip_high_impact" : "");
 }
 
 void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult& result) const
@@ -1962,15 +1999,25 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 	i_phylop = annotationColumn(variants, "phyloP");
 	i_sift = annotationColumn(variants, "Sift");
 	i_polyphen = annotationColumn(variants, "PolyPhen");
-	i_fathmm = annotationColumn(variants, "fathmm-MKL");
+	i_fathmm = annotationColumn(variants, "fathmm-MKL", false);
 	i_cadd = annotationColumn(variants, "CADD");
 	i_revel = annotationColumn(variants, "REVEL");
+	skip_high_impact = getBool("skip_high_impact");
+	i_co_sp = annotationColumn(variants, "coding_and_splicing");
+
+	cutoff_cadd = getDouble("cutoff_cadd");
+	cutoff_revel = getDouble("cutoff_revel");
+	cutoff_fathmm_mkl = getDouble("cutoff_fathmm_mkl");
+	cutoff_phylop = getDouble("cutoff_phylop");
+	ignore_sift = getBool("ignore_sift");
+	ignore_polyphen = getBool("ignore_polyphen");
 
 	if (getString("action")=="FILTER")
 	{
 		for(int i=0; i<variants.count(); ++i)
 		{
 			if (!result.flags()[i]) continue;
+			if (skip_high_impact && variants[i].annotations()[i_co_sp].contains(":HIGH:")) continue;
 
 			result.flags()[i] = predictedPathogenic(variants[i]);
 		}
@@ -1980,6 +2027,7 @@ void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult
 		for(int i=0; i<variants.count(); ++i)
 		{
 			if (result.flags()[i]) continue;
+			if (skip_high_impact && variants[i].annotations()[i_co_sp].contains(":HIGH:")) continue;
 
 			result.flags()[i] = predictedPathogenic(variants[i]);
 		}
@@ -1990,42 +2038,69 @@ bool FilterPredictionPathogenic::predictedPathogenic(const Variant& v) const
 {
 	int count = 0;
 
-	if (v.annotations()[i_sift].contains("D"))
+	if (!ignore_sift && v.annotations()[i_sift].contains("D"))
 	{
 		++count;
 	}
 
-	if ( v.annotations()[i_polyphen].contains("D"))
+	if (!ignore_polyphen && v.annotations()[i_polyphen].contains("D"))
 	{
 		++count;
 	}
 
-	if (v.annotations()[i_fathmm].contains(","))
+	if (cutoff_fathmm_mkl>0)
 	{
-		QByteArrayList parts = v.annotations()[i_fathmm].split(',');
-		foreach(const QByteArray& part, parts)
+		if (i_fathmm==-1)
 		{
-			bool ok = true;
-			double value = part.toDouble(&ok);
-			if (ok && value>=0.5)
+			THROW(ArgumentException, "Column 'fathmm-MKL' not found. Disable it by setting the score cutoff to 0.0!");
+		}
+		else if (v.annotations()[i_fathmm].contains(","))
+		{
+			QByteArrayList parts = v.annotations()[i_fathmm].split(',');
+			foreach(const QByteArray& part, parts)
 			{
-				++count;
-				break;
+				bool ok = true;
+				double value = part.toDouble(&ok);
+				if (ok && value>=cutoff_fathmm_mkl)
+				{
+					++count;
+					break;
+				}
 			}
 		}
 	}
 
-	bool ok;
-	double value = v.annotations()[i_phylop].toDouble(&ok);
-	if (ok && value>=1.6) ++count;
+	if (cutoff_phylop>-10)
+	{
+		bool ok;
+		double value = v.annotations()[i_phylop].toDouble(&ok);
+		if (ok && value>=cutoff_phylop)
+		{
+			++count;
+		}
+	}
 
 
-	value = v.annotations()[i_cadd].toDouble(&ok);
-	if (ok && value>=20.0) ++count;
+	if (cutoff_cadd>0)
+	{
+		bool ok;
+		double value = v.annotations()[i_cadd].toDouble(&ok);
+		if (ok && value>=cutoff_cadd)
+		{
+			++count;
+		}
+	}
 
 
-	value = v.annotations()[i_revel].toDouble(&ok);
-	if (ok && value>=0.5) ++count;
+	if (cutoff_revel>0)
+	{
+		bool ok;
+		double value = v.annotations()[i_revel].toDouble(&ok);
+		if (ok && value>=cutoff_revel)
+		{
+			++count;
+		}
+	}
 
 	return count>=min;
 }
@@ -2278,6 +2353,9 @@ FilterTrio::FilterTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
 	params_.last().constraints["valid"] = "male,female,n/a";
 
+	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
+	params_.last().constraints["valid"] = "hg19,hg38";
+
 	checkIsRegistered();
 }
 
@@ -2318,7 +2396,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	i_af_m = tmp.indexOf(i_m);
 
 	//get PAR region
-	BedFile par_region = NGSHelper::pseudoAutosomalRegion("hg19");
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
 
 	//pre-calculate genes with heterozygous variants
 	QSet<QString> types = getStringList("types").toSet();
@@ -3417,6 +3495,7 @@ void FilterSvGenotypeControl::apply(const BedpeFile& svs, FilterResult& result) 
 	if (!enabled_) return;
 
 	QList<int> format_data_indices = svs.sampleHeaderInfo().sampleColumns(false);
+	format_data_indices.removeAll(-1);
 	if (format_data_indices.size() < 1) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without control samples!");
 
 	// get genotypes
@@ -3435,6 +3514,11 @@ void FilterSvGenotypeControl::apply(const BedpeFile& svs, FilterResult& result) 
 		// get format keys and values
 		QByteArrayList format_keys = svs[i].annotations()[format_col_index].split(':');
 		int genotype_idx = format_keys.indexOf("GT");
+
+		if(genotype_idx == -1)
+		{
+			THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list because could not find GT field in format column.");
+		}
 
 		QSet<QString> genotypes_all;
 		foreach (int data_idx, format_data_indices)
@@ -3497,6 +3581,7 @@ void FilterSvGenotypeAffected::apply(const BedpeFile& svs, FilterResult& result)
 	if ((svs.format() == BedpeFileFormat::BEDPE_GERMLINE_MULTI) || (svs.format() == BedpeFileFormat::BEDPE_GERMLINE_TRIO))
 	{
 		format_data_indices = svs.sampleHeaderInfo().sampleColumns(true);
+		format_data_indices.removeAll(-1);
 		if (format_data_indices.isEmpty()) THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list without affected samples!");
 	}
 
@@ -3511,6 +3596,11 @@ void FilterSvGenotypeAffected::apply(const BedpeFile& svs, FilterResult& result)
 		// get format keys and values
 		QByteArrayList format_keys = svs[i].annotations()[format_col_index].split(':');
 		int genotype_idx = format_keys.indexOf("GT");
+
+		if(genotype_idx == -1)
+		{
+			THROW(ArgumentException, "Cannot apply filter '" + name() + "' to variant list because could not find GT field in format column.");
+		}
 
 		QSet<QString> genotypes_all;
 		foreach (int data_idx, format_data_indices)
@@ -4372,6 +4462,9 @@ FilterSvTrio::FilterSvTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
     params_.last().constraints["valid"] = "male,female,n/a";
 
+	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
+	params_.last().constraints["valid"] = "hg19,hg38";
+
     checkIsRegistered();
 }
 
@@ -4406,7 +4499,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 	int i_format_col = svs.annotationIndexByName("FORMAT");
 
     //get PAR region
-    BedFile par_region = NGSHelper::pseudoAutosomalRegion("hg19");
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
 
     //pre-calculate genes with heterozygous variants
     QSet<QString> types = getStringList("types").toSet();

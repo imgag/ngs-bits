@@ -15,7 +15,7 @@ TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const 
 	//set annotation indices
 	i_co_sp_ = variants_.annotationIndexByName("coding_and_splicing");
 	i_tum_af_ = variants_.annotationIndexByName("tumor_af");
-	i_cgi_driver_statem_ = variants_.annotationIndexByName("CGI_driver_statement");
+	i_cgi_driver_statem_ = variants_.annotationIndexByName("CGI_driver_statement", true, false);
 	i_ncg_oncogene_ = variants_.annotationIndexByName("ncg_oncogene");
 	i_ncg_tsg_ = variants_.annotationIndexByName("ncg_tsg");
 	i_germl_class_ = variants_.annotationIndexByName("classification");
@@ -33,7 +33,7 @@ TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const 
 
 void TumorOnlyReportWorker::checkAnnotation(const VariantList &variants)
 {
-	const QStringList anns = {"coding_and_splicing", "tumor_af", "tumor_dp", "gene", "variant_type", "CGI_driver_statement", "ncg_oncogene", "ncg_tsg", "classification", "somatic_classification"};
+	const QStringList anns = {"coding_and_splicing", "tumor_af", "tumor_dp", "gene", "variant_type", "ncg_oncogene", "ncg_tsg", "classification", "somatic_classification"};
 
 	for(const auto& ann : anns)
 	{
@@ -60,8 +60,11 @@ QByteArray TumorOnlyReportWorker::variantDescription(const Variant &var)
 	}
 
 	//CGI classification
-	if(var.annotations()[i_cgi_driver_statem_].contains("known")) out << "CGI: Treiber (bekannt)";
-	else if(var.annotations()[i_cgi_driver_statem_].contains("predicted driver")) out << "CGI: Treiber (vorhergesagt)";
+	if(i_cgi_driver_statem_ >= 0)
+	{
+		if(var.annotations()[i_cgi_driver_statem_].contains("known")) out << "CGI: Treiber (bekannt)";
+		else if(var.annotations()[i_cgi_driver_statem_].contains("predicted driver")) out << "CGI: Treiber (vorhergesagt)";
+	}
 
 	return out.join(", \\line\n");
 
@@ -234,6 +237,11 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 		//Find genes with gaps
 		QVector<QByteArray> genes;
 		QVector<QByteArray> exons;
+
+
+		//block summary of gaps that overlap an exon, to be printed after gap statistics in table
+		QMultiMap<QString, QString> block_summary;
+
 		for(int i=0; i<low_cov.count(); ++i)
 		{
 			const BedLine& line = low_cov[i];
@@ -248,13 +256,16 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 				for(const auto& tmp_gene : tmp_genes)
 				{
 					QByteArray exon = exonNumber(tmp_gene.toUtf8() , line.start(), line.end());
-					if(exon != "") tmp_exons << exon;
+					if(exon != "")
+					{
+						tmp_exons << exon;
+						block_summary.insert(tmp_gene, line.toString(true));
+					}
 				}
 				exons.append( tmp_exons.join(", ").toUtf8() );
 			}
 
 		}
-
 		//Write each gaps
 		RtfTable detailed_gaps;
 		for(int i=0; i< low_cov.count(); ++i)
@@ -290,6 +301,18 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 
 		detailed_gaps.setUniqueFontSize(16);
 		doc_.addPart(detailed_gaps.RtfCode());
+
+		//add block summary of exon gaps
+		if(!block_summary.isEmpty())
+		{
+			QList<RtfSourceCode> block_text;
+			for( const auto& gene : block_summary.uniqueKeys() )
+			{
+				block_text << RtfText(gene.toUtf8()).setItalic(true).setFontSize(16).RtfCode() + ": " + block_summary.values(gene).join(", ").toUtf8();
+			}
+			doc_.addPart(RtfParagraph("").RtfCode());
+			doc_.addPart(RtfParagraph(block_text.join("; ")).setFontSize(16).RtfCode());
+		}
 	}
 
 	doc_.save(file_path);

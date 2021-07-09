@@ -87,5 +87,5 @@ void ProcessingSystemWidget::openRoiInIGV()
 	roi_file = Helper::canonicalPath(roi_file);
 	roi.store(roi_file);
 
-	emit executeIGVCommands(QStringList() << "load \"" + roi_file + "\"");
+	GlobalServiceProvider::loadFileInIGV(roi_file, false);
 }

@@ -288,7 +288,7 @@ public:
 		out << "Variants passing QC filters: " << var_info.count() << endl;
 		double hom_perc = 100.0*vars_hom/var_info.count();
 		out << "Variants homozygous: " << QByteArray::number(hom_perc, 'f', 2) << "%" << endl;
-		out << "Variants with AF annoation greater zero: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << endl;
+		out << "Variants with AF annotation greater zero: " << QByteArray::number(100.0*vars_known/var_info.count(), 'f', 2) << "%" << endl;
 		out << endl;
 
 		//detect raw ROHs

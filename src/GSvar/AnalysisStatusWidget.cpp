@@ -7,6 +7,7 @@
 #include "ScrollableTextDialog.h"
 #include "cmath"
 #include "LoginManager.h"
+#include "GlobalServiceProvider.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -373,7 +374,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	{
 		foreach(const AnalysisJobSample& sample, samples)
 		{
-			emit openProcessedSampleTab(sample.name);
+			GlobalServiceProvider::openProcessedSampleTab(sample.name);
 		}
 	}
 	if (text=="Open sequencing run")
@@ -383,7 +384,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		{
 			QString ps_id = db.processedSampleId(sample.name);
 			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
-			emit openRunTab(ps_data.run_name);
+			GlobalServiceProvider::openRunTab(ps_data.run_name);
 		}
 	}
 	if (text=="Open analysis folder(s)")
@@ -403,7 +404,7 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		NGSD db;
 		foreach(const AnalysisJobSample& sample, samples)
 		{
-			QDesktopServices::openUrl(db.processedSamplePath(db.processedSampleId(sample.name), PathType::SAMPLE_FOLDER));
+			QDesktopServices::openUrl(GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(sample.name), PathType::SAMPLE_FOLDER).filename);
 		}
 	}
 	if (text=="Open log file")

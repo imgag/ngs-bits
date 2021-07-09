@@ -59,10 +59,10 @@ void PhenoToGenesDialog::tabChanged(int num)
 		//get gene list
 		int max_phenotypes = 0;
 		QMap<QByteArray, QStringList> gene2pheno;
-		QList<Phenotype> phenos = ui.pheno_selector->selectedPhenotypes();
+		PhenotypeList phenos = ui.pheno_selector->selectedPhenotypes();
 		for (int i=0; i<phenos.count(); ++i)
 		{
-			GeneSet genes = db.phenotypeToGenes(phenos[i], true);
+			GeneSet genes = db.phenotypeToGenes(db.phenotypeIdByAccession(phenos[i].accession()), true, false);
 			foreach(QByteArray gene, genes)
 			{
 				gene2pheno[gene].append(phenos[i].name());

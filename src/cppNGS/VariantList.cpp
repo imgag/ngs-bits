@@ -715,8 +715,12 @@ void VariantList::load(QString filename)
 	loadInternal(filename);
 }
 
+void VariantList::loadHeaderOnly(QString filename)
+{
+	loadInternal(filename, nullptr, false, true);
+}
 
-void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert)
+void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert, bool header_only)
 {
 	//create ROI index (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
@@ -777,6 +781,9 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 			}
 			continue;
 		}
+
+		//skip variants if headers shall be loaded only
+		if (header_only) break;
 
 		//error when special columns are not present
 		QList<QByteArray> fields = line.split('\t');
@@ -1036,6 +1043,19 @@ SampleHeaderInfo VariantList::getSampleHeader() const
 	}
 
 	return output;
+}
+
+GenomeBuild VariantList::getBuild()
+{
+	foreach(const QString& line, comments_)
+	{
+		if (line.startsWith("##GENOME_BUILD="))
+		{
+			return stringToBuild(line.mid(15));
+		}
+	}
+
+	return GenomeBuild::HG19; //fallback to hg19 - the GENOME_BUILD header was added in the GRCh38 branch of megSAP...
 }
 
 QString VariantList::getPipeline() const

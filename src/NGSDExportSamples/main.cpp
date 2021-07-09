@@ -44,6 +44,7 @@ public:
 		addString("run", "Sequencing run name filter.", true, "");
 		addFlag("run_finished", "Only show samples where the analysis of the run is finished.");
 		addString("run_device", "Sequencing run device name filter.", true, "");
+		addString("run_before", "Sequencing run start date before or equal to the given date.", true, "");
 		addFlag("no_bad_runs", "If set, sequencing runs with 'bad' quality are excluded.");
 		addFlag("add_qc", "If set, QC columns are added to output.");
 		addFlag("add_outcome", "If set, diagnostic outcome columns are added to output.");
@@ -53,6 +54,7 @@ public:
 		addFlag("add_comments", "Adds sample and processed sample comments columns.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
+		changeLog(2021,  4, 29, "Added 'run_before' filter option.");
 		changeLog(2021,  4, 16, "Added ancestry column.");
 		changeLog(2021,  4, 13, "Changed 'add_path' parameter to support different file/folder types.");
 		changeLog(2020, 10,  8, "Added parameters 'sender' and 'study'.");
@@ -86,6 +88,15 @@ public:
 		params.include_bad_quality_runs = !getFlag("no_bad_runs");
 		params.run_finished = getFlag("run_finished");
 		params.r_device_name = getString("run_device");
+		if (getString("run_before").trimmed()!="")
+		{
+			QDate run_start_date = QDate::fromString(getString("run_before"), Qt::ISODate);
+			if (!run_start_date.isValid())
+			{
+				THROW(ArgumentException, "Invalid date given for 'run_before' parameter.\nThe expected format is a ISO date, e.g. '2012-09-27'.");
+			}
+			params.r_before = run_start_date;
+		}
 		params.add_qc = getFlag("add_qc");
 		params.add_outcome = getFlag("add_outcome");
 		params.add_disease_details = getFlag("add_disease_details");

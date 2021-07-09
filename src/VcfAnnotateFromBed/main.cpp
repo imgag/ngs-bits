@@ -20,24 +20,24 @@ public:
 
 	virtual void setup()
 	{
-		// generate string with from mapping
+		setDescription("Annotates the INFO column of a VCF with data from a BED file.");
 		QByteArray mapping_string;
 		foreach (KeyValuePair replacement, VcfFile::INFO_URL_MAPPING)
 		{
 			mapping_string += replacement.key + " -> " + replacement.value + "; ";
 		}
-
-		setDescription("Annotates the INFO column of a VCF with data from a BED file.");
-		setExtendedDescription((QStringList() << "Characters which are not allowed in the INFO column based on the VCF 4.2 definition are URL encoded."
-								<< "The following characters are replaced:" << mapping_string));
-		addInfile("bed", "BED file used for annotation.", false, true);
-		addString("name", "Annotation name in output VCF file.", false);
+		setExtendedDescription(QStringList()	<< "Characters which are not allowed in the INFO column based on the VCF 4.2 definition are URL encoded."
+												<< "The following characters are replaced:" << mapping_string);
+		addInfile("bed", "BED file used as source of annotations (name column).", false, true);
+		addString("name", "Annotation name in INFO column of output VCF file.", false);
 		//optional
 		addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
+		addString("sep", "Separator used if there are several matches for one variant.", true, ":");
 
-		changeLog(2019, 12, 6, "Added URL encoding for INFO values.");
-		changeLog(2017, 03, 14, "Initial implementation.");
+		changeLog(2021,  6, 15, "Added 'sep' parameter.");
+		changeLog(2019, 12,  6, "Added URL encoding for INFO values.");
+		changeLog(2017,  3, 14, "Initial implementation.");
 	}
 
 	virtual void main()
@@ -45,25 +45,33 @@ public:
 		//init
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
-		QByteArray name = getString("name").toLatin1();
 		QByteArray bed = getInfile("bed").toLatin1();
+		QByteArray name = getString("name").toLatin1().trimmed();
+		QByteArray sep = getString("sep").toLatin1().trimmed();
 		char tab = '\t';
 
 		//load BED file
 		BedFile bed_data;
 		bed_data.load(bed);
 		if (!bed_data.isSorted()) bed_data.sort();
-		for(int i=0; i<bed_data.count(); ++i)
-		{
-			if (bed_data[i].annotations().count()==0)
-			{
-				THROW(FileParseException, "BED file line " + QString::number(i) + " has no name column: " + bed_data[i].toString(true));
-			}
-		}
 		ChromosomalIndex<BedFile> bed_index(bed_data);
 
+		//check BED file
+		for(int i=0; i<bed_data.count(); ++i)
+		{
+			BedLine& line = bed_data[i];
+			if (line.annotations().count()==0)
+			{
+				THROW(FileParseException, "BED line '" + line.toString(true) + "' has no name column: " + line.toString(true));
+			}
+			if (line.annotations()[0].contains(sep))
+			{
+				THROW(FileParseException, "BED line '" + line.toString(true) + "' name column contains separator: " + line.annotations()[0]);
+			}
+		}
+
 		//open input/output streams
-		if(in!="" && in==out)
+		if(!in.isEmpty() && in==out)
 		{
 			THROW(ArgumentException, "Input and output files must be different when streaming!");
 		}
@@ -73,6 +81,7 @@ public:
 		while(!in_p->atEnd())
 		{
 			QByteArray line = in_p->readLine();
+			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
 			//skip empty lines
 			if (line.trimmed().isEmpty()) continue;
@@ -83,10 +92,11 @@ public:
 				//append header line for new annotation
 				if (line.startsWith("#CHROM"))
 				{
-					out_p->write("##INFO=<ID=" + name + ",Number=.,Type=String,Description=\"Annotation from " + bed + " delimited by ':'\">\n");
+					out_p->write("##INFO=<ID=" + name + ",Number=.,Type=String,Description=\"Annotation from " + bed + " delimited by '" + sep + "'\">\n");
 				}
 
 				out_p->write(line);
+				out_p->write("\n");
 				continue;
 			}
 
@@ -100,16 +110,15 @@ public:
 			int end = start + parts[3].length() - 1; //length of ref
 
 			//get annotation data
-			QByteArray anno = "";
+			QByteArrayList annos;
 			QVector<int> indices = bed_index.matchingIndices(chr, start, end);
 			foreach(int index, indices)
 			{
-				if (!anno.isEmpty()) anno += ":";
-				anno += bed_data[index].annotations()[0];
+				annos << bed_data[index].annotations()[0];
 			}
 
 			//write output line
-			if (anno.isEmpty())
+			if (annos.isEmpty())
 			{
 				out_p->write(line);
 			}
@@ -124,7 +133,7 @@ public:
 						{
 							out_p->write(parts[7] + ";");
 						}
-						out_p->write(name + "=" + VcfFile::encodeInfoValue(anno).toUtf8());
+						out_p->write(name + "=" + VcfFile::encodeInfoValue(annos.join(sep)).toUtf8());
 					}
 					else
 					{
@@ -132,6 +141,7 @@ public:
 					}
 				}
 			}
+			out_p->write("\n");
 		}
     }
 

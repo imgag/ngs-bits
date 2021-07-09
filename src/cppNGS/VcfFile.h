@@ -159,6 +159,11 @@ public:
 	/// be used to subset a VcfFile and copy the meta data, not to add entirely new variants)
 	void copyMetaDataForSubsetting(const VcfFile& rhs);
 
+	///Returns VCF content as string
+    QByteArray toText() const;
+	///Reads a VCF from a string
+    void fromText(const QByteArray& text);
+
 	///Converts a Variant list (e.g. from a GSvar file) to a VcfFile
 	static VcfFile convertGSvarToVcf(const VariantList& variant_list, const QString& reference_genome);
 

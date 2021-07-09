@@ -1,6 +1,7 @@
 #include "CytobandToRegionsDialog.h"
 #include "NGSHelper.h"
 #include "Exceptions.h"
+#include "GSvarHelper.h"
 
 CytobandToRegionsDialog::CytobandToRegionsDialog(QWidget* parent)
 	: QDialog(parent)
@@ -24,7 +25,7 @@ void CytobandToRegionsDialog::convert()
 		{
 			try
 			{
-				line_out = NGSHelper::cytoBandToRange(line.toLatin1()).toString(true);
+				line_out = NGSHelper::cytoBandToRange(GSvarHelper::build(), line.toLatin1()).toString(true);
 			}
 			catch(ArgumentException& e)
 			{

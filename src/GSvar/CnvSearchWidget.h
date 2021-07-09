@@ -20,6 +20,7 @@ protected slots:
 	void delayedInitialization();
 	void copyCoodinatesToClipboard();
 	void changeSearchType();
+	void openSelectedSampleTabs();
 
 private:
 	Ui::CnvSearchWidget ui_;

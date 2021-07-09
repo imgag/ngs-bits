@@ -7,7 +7,7 @@
 #include "BedFile.h"
 #include "ChromosomalIndex.h"
 #include "OntologyTermCollection.h"
-
+#include "GenomeBuild.h"
 #include <QVector>
 #include <QStringList>
 #include <QtAlgorithms>
@@ -380,6 +380,8 @@ public:
 	///If @p invert is given, only variants that fall outside the target regions are loaded.
 	void load(QString filename, const BedFile& roi, bool invert=false);
 	void load(QString filename);
+	void loadHeaderOnly(QString filename);
+
     ///Stores the variant list to a file.
 	void store(QString filename) const;
 
@@ -414,6 +416,8 @@ public:
 	///Parses and returns sample data from variant list header (only for GSvar).
 	SampleHeaderInfo getSampleHeader() const;
 
+	///Returns the genome build coordinates are based on.
+	GenomeBuild getBuild();
 	///Returns the analysis pipeline and version from the header.
 	QString getPipeline() const;
 	///Returns the creation date from the header i.e. the date of the annotatated VCF from which the GSvar was created. If not available, a invalid date is returned.
@@ -434,7 +438,7 @@ protected:
 	QMap<QString, QString> filters_;
     QVector<Variant> variants_;
 
-	void loadInternal(QString filename, const BedFile* roi = nullptr, bool invert=false);
+	void loadInternal(QString filename, const BedFile* roi = nullptr, bool invert=false, bool header_only=false);
 
 	///Comparator helper class used by sortByAnnotation
 	class LessComparatorByAnnotation

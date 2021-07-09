@@ -13,11 +13,11 @@
 
 namespace {
 
-	QString copyFromResource(const QString& build)
+	QString copyFromResource(GenomeBuild build)
 	{
 		//check variant list exists
-		QString snp_file = ":/Resources/" + build + "_snps.vcf";
-		if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + build + "'!");
+		QString snp_file = ":/Resources/" + buildToString(build) + "_snps.vcf";
+		if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + buildToString(build) + "'!");
 
 		//copy from resource file (gzopen cannot access Qt resources)
 		QString tmp = Helper::tempFileName(".vcf");
@@ -62,7 +62,7 @@ namespace {
 	}
 } // end anonymous namespace
 
-VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, const BedFile& roi, double min_af, double max_af)
+VcfFile NGSHelper::getKnownVariants(GenomeBuild build, bool only_snvs, const BedFile& roi, double min_af, double max_af)
 {
 	//check variant list exists
 	QString tmp = copyFromResource(build);
@@ -77,7 +77,7 @@ VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, const BedFile
 	return output;
 }
 
-VcfFile NGSHelper::getKnownVariants(QString build, bool only_snvs, double min_af, double max_af)
+VcfFile NGSHelper::getKnownVariants(GenomeBuild build, bool only_snvs, double min_af, double max_af)
 {
 	//check variant list exists
 	QString tmp = copyFromResource(build);
@@ -339,37 +339,34 @@ QByteArray NGSHelper::expandAminoAcidAbbreviation(QChar amino_acid_change_in)
 	return amino_acid_change_out;
 }
 
-const BedFile& NGSHelper::pseudoAutosomalRegion(const QString& build)
+const BedFile& NGSHelper::pseudoAutosomalRegion(GenomeBuild build)
 {
-	static QMap<QString, BedFile> output;
+	static QMap<GenomeBuild, BedFile> output;
 
 	//init - taken from https://www.ncbi.nlm.nih.gov/grc/human
 	if (output.isEmpty())
 	{
-		output["hg19"].append(BedLine(Chromosome("chrX"), 60001, 2699520));
-		output["hg19"].append(BedLine(Chromosome("chrX"), 154931044, 155260560));
-		output["hg19"].append(BedLine(Chromosome("chrY"), 10001, 2649520));
-		output["hg19"].append(BedLine(Chromosome("chrY"), 59034050, 59363566));
+		output[GenomeBuild::HG19].append(BedLine("chrX", 60001, 2699520));
+		output[GenomeBuild::HG19].append(BedLine("chrX", 154931044, 155260560));
+		output[GenomeBuild::HG19].append(BedLine("chrY", 10001, 2649520));
+		output[GenomeBuild::HG19].append(BedLine("chrY", 59034050, 59363566));
 
-		output["hg38"].append(BedLine(Chromosome("chrX"), 10001, 2781479));
-		output["hg38"].append(BedLine(Chromosome("chrX"), 155701383, 156030895));
-		output["hg38"].append(BedLine(Chromosome("chrY"), 10001, 2781479));
-		output["hg38"].append(BedLine(Chromosome("chrY"), 56887903, 57217415));
+		output[GenomeBuild::HG38].append(BedLine("chrX", 10001, 2781479));
+		output[GenomeBuild::HG38].append(BedLine("chrX", 155701383, 156030895));
+		output[GenomeBuild::HG38].append(BedLine("chrY", 10001, 2781479));
+		output[GenomeBuild::HG38].append(BedLine("chrY", 56887903, 57217415));
 	}
-
-	//check build is supported
-	if  (!output.contains(build)) THROW(ProgrammingException, "Unsupported genome build '" + build + "' in NGSHelper::pseudoAutosomalRegion!");
 
 	return output[build];
 }
 
-QByteArray NGSHelper::cytoBand(Chromosome chr, int pos)
+QByteArray NGSHelper::cytoBand(GenomeBuild build, Chromosome chr, int pos)
 {
 	//init
 	static BedFile bands;
 	if (bands.count()==0)
 	{
-		bands.load(":/Resources/cyto_band.bed");
+		bands.load(":/Resources/" + buildToString(build) + "_cyto_band.bed");
 	}
 
 	//search for band
@@ -384,13 +381,13 @@ QByteArray NGSHelper::cytoBand(Chromosome chr, int pos)
 	THROW(ProgrammingException, "Could not find band for coordinate " + chr.str() + ":" + QString::number(pos));
 }
 
-BedLine NGSHelper::cytoBandToRange(QByteArray cytoband)
+BedLine NGSHelper::cytoBandToRange(GenomeBuild build, QByteArray cytoband)
 {
 	//init
 	static BedFile bands;
 	if (bands.count()==0)
 	{
-		bands.load(":/Resources/cyto_band.bed");
+		bands.load(":/Resources/" + buildToString(build) + "_cyto_band.bed");
 	}
 
 	//determine chromosome
@@ -403,8 +400,8 @@ BedLine NGSHelper::cytoBandToRange(QByteArray cytoband)
 		}
 		else
 		{
-			BedLine range1 = cytoBandToRange(parts[0]);
-			BedLine range2 = cytoBandToRange(parts[1]);
+			BedLine range1 = cytoBandToRange(build, parts[0]);
+			BedLine range2 = cytoBandToRange(build, parts[1]);
 
 			if (range1.chr()!=range2.chr()) THROW(ArgumentException, "Cytoband '" + cytoband + "' contains range with non-matching chromosomes!");
 
@@ -473,6 +470,92 @@ void NGSHelper::parseRegion(const QString& text, Chromosome& chr, int& start, in
 	if (!chr.isValid()) THROW(ArgumentException, "Invalid chromosome given in chromosomal range '" + text + "': " + parts[0]);
 	start = Helper::toInt(parts[1], "Start coordinate", text);
 	end = Helper::toInt(parts[2], "End coordinate", text);
+}
+
+const BedFile& NGSHelper::centromeres(GenomeBuild build)
+{
+	static QMap<GenomeBuild, BedFile> output;
+
+	//init
+	if (output.isEmpty())
+	{
+		QList<BedLine> coords = {
+			BedLine("chr1", 121535434, 124535434), BedLine("chr2", 92326171, 95326171),	BedLine("chr3", 90504854, 93504854), BedLine("chr4", 49660117, 52660117),
+			BedLine("chr5", 46405641, 49405641), BedLine("chr6", 58830166, 61830166), BedLine("chr7", 58054331, 61054331), BedLine("chr8", 43838887, 46838887),
+			BedLine("chr9", 47367679, 50367679), BedLine("chr10", 39254935, 42254935), BedLine("chr11", 51644205, 54644205), BedLine("chr12", 34856694, 37856694),
+			BedLine("chr13", 16000000, 19000000), BedLine("chr14", 16000000, 19000000), BedLine("chr15", 17000000, 20000000), BedLine("chr16", 35335801, 38335801),
+			BedLine("chr17", 22263006, 25263006), BedLine("chr18", 15460898, 18460898), BedLine("chr19", 24681782, 27681782), BedLine("chr20", 26369569, 29369569),
+			BedLine("chr21", 11288129, 14288129), BedLine("chr22", 13000000, 16000000), BedLine("chrX", 58632012, 61632012), BedLine("chrY", 10104553, 13104553)
+		};
+		foreach(const BedLine& bed_line, coords)
+		{
+			output[GenomeBuild::HG19].append(bed_line);
+		}
+
+		QList<BedLine> coords2 = {
+			BedLine("chr1", 121700000, 125100000), BedLine("chr2", 91800000, 96000000), BedLine("chr3", 87800000, 94000000), BedLine("chr4", 48200000, 51800000),
+			BedLine("chr5", 46100000, 51400000), BedLine("chr6", 58500000, 62600000), BedLine("chr7", 58100000, 62100000), BedLine("chr8", 43200000, 47200000),
+			BedLine("chr9", 42200000, 45500000), BedLine("chr10", 38000000, 41600000), BedLine("chr11", 51000000, 55800000), BedLine("chr12", 33200000, 37800000),
+			BedLine("chr13", 16500000, 18900000), BedLine("chr14", 16100000, 18200000), BedLine("chr15", 17500000, 20500000), BedLine("chr16", 35300000, 38400000),
+			BedLine("chr17", 22700000, 27400000), BedLine("chr18", 15400000, 21500000), BedLine("chr19", 24200000, 28100000), BedLine("chr20", 25700000, 30400000),
+			BedLine("chr21", 10900000, 13000000), BedLine("chr22", 13700000, 17400000),	BedLine("chrX", 58100000, 63800000), BedLine("chrY", 10300000, 10600000)
+		};
+		foreach(const BedLine& bed_line, coords2)
+		{
+			output[GenomeBuild::HG38].append(bed_line);
+		}
+	}
+
+	return output[build];
+}
+
+const BedFile& NGSHelper::telomeres(GenomeBuild build)
+{
+	static QMap<GenomeBuild, BedFile> output;
+
+	//init
+	if (output.isEmpty())
+	{
+		QList<BedLine> coords = {
+			BedLine("chr1", 1, 10000), BedLine("chr1", 249240621, 249250621), BedLine("chr2", 1, 10000), BedLine("chr2", 243189373, 243199373),
+			BedLine("chr3", 1, 10000), BedLine("chr3", 198012430, 198022430), BedLine("chr4", 1, 10000), BedLine("chr4", 191144276, 191154276),
+			BedLine("chr5", 1, 10000), BedLine("chr5", 180905260, 180915260), BedLine("chr6", 1, 10000), BedLine("chr6", 171105067, 171115067),
+			BedLine("chr7", 1, 10000), BedLine("chr7", 159128663, 159138663), BedLine("chr8", 1, 10000), BedLine("chr8", 146354022, 146364022),
+			BedLine("chr9", 1, 10000), BedLine("chr9", 141203431, 141213431), BedLine("chr10", 1, 10000), BedLine("chr10", 135524747, 135534747),
+			BedLine("chr11", 1, 10000),	BedLine("chr11", 134996516, 135006516), BedLine("chr12", 1, 10000), BedLine("chr12", 133841895, 133851895),
+			BedLine("chr13", 1, 10000),	BedLine("chr13", 115159878, 115169878),	BedLine("chr14", 1, 10000), BedLine("chr14", 107339540, 107349540),
+			BedLine("chr15", 1, 10000),	BedLine("chr15", 102521392, 102531392),	BedLine("chr16", 1, 10000), BedLine("chr16", 90344753, 90354753), //definition of GRCh37 does not contain telomeres for chr17!
+			BedLine("chr18", 1, 10000),	BedLine("chr18", 78067248, 78077248), BedLine("chr19", 1, 10000), BedLine("chr19", 59118983, 59128983),
+			BedLine("chr20", 1, 10000),	BedLine("chr20", 63015520, 63025520), BedLine("chr21", 1, 10000), BedLine("chr21", 48119895, 48129895),
+			BedLine("chr22", 1, 10000),	BedLine("chr22", 51294566, 51304566), BedLine("chrX", 1, 10000), BedLine("chrX", 155260560, 155270560),
+			BedLine("chrY", 1, 10000),	BedLine("chrY", 59363566, 59373566)
+		};
+		foreach(const BedLine& bed_line, coords)
+		{
+			output[GenomeBuild::HG19].append(bed_line);
+		}
+
+		QList<BedLine> coords2 = {
+			BedLine("chr1", 1, 10000), BedLine("chr1", 248946422, 248956422), BedLine("chr2", 1, 10000), BedLine("chr2", 242183529, 242193529),
+			BedLine("chr3", 1, 10000), BedLine("chr3", 198285559, 198295559), BedLine("chr4", 1, 10000), BedLine("chr4", 190204555, 190214555),
+			BedLine("chr5", 1, 10000), BedLine("chr5", 181528259, 181538259), BedLine("chr6", 1, 10000), BedLine("chr6", 170795979, 170805979),
+			BedLine("chr7", 1, 10000), BedLine("chr7", 159335973, 159345973), BedLine("chr8", 1, 10000), BedLine("chr8", 145128636, 145138636),
+			BedLine("chr9", 1, 10000), BedLine("chr9", 138384717, 138394717), BedLine("chr10", 1, 10000), BedLine("chr10", 133787422, 133797422),
+			BedLine("chr11", 1, 10000), BedLine("chr11", 135076622, 135086622), BedLine("chr12", 1, 10000), BedLine("chr12", 133265309, 133275309),
+			BedLine("chr13", 1, 10000), BedLine("chr13", 114354328, 114364328), BedLine("chr14", 1, 10000), BedLine("chr14", 107033718, 107043718),
+			BedLine("chr15", 1, 10000), BedLine("chr15", 101981189, 101991189), BedLine("chr16", 1, 10000), BedLine("chr16", 90328345, 90338345),
+			BedLine("chr17", 1, 10000), BedLine("chr17", 83247441, 83257441), BedLine("chr18", 1, 10000), BedLine("chr18", 80363285, 80373285),
+			BedLine("chr19", 1, 10000), BedLine("chr19", 58607616, 58617616), BedLine("chr20", 1, 10000), BedLine("chr20", 64434167, 64444167),
+			BedLine("chr21", 1, 10000), BedLine("chr21", 46699983, 46709983), BedLine("chr22", 1, 10000), BedLine("chr22", 50808468, 50818468),
+			BedLine("chrX", 1, 10000), BedLine("chrX", 156030895, 156040895), BedLine("chrY", 1, 10000), BedLine("chrY", 57217415, 57227415)
+		};
+		foreach(const BedLine& bed_line, coords2)
+		{
+			output[GenomeBuild::HG38].append(bed_line);
+		}
+	}
+
+	return output[build];
 }
 
 void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos)

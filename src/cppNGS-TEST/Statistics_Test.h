@@ -18,7 +18,7 @@ TEST_CLASS(Statistics_Test)
 		BedFile target_test_file;
 		target_test_file.load(TESTDATA("data_in/Statistics_somatic_tmb_target.bed")); //exons of ssscv4, sorted and merged
 
-		QCCollection stats = Statistics::somatic("hg19", tumor_bam, normal_bam, somatic_vcf, QString(),target_test_file, true);
+		QCCollection stats = Statistics::somatic(GenomeBuild::HG19, tumor_bam, normal_bam, somatic_vcf, QString(),target_test_file, true);
 
 		S_EQUAL(stats[0].name(), QString("sample correlation"));
 		S_EQUAL(stats[0].accession(), QString("QC:2000040"));
@@ -228,7 +228,7 @@ TEST_CLASS(Statistics_Test)
 
 	void contamination()
 	{
-		QCCollection stats = Statistics::contamination("hg19", TESTDATA("data_in/panel.bam"));
+		QCCollection stats = Statistics::contamination(GenomeBuild::HG19, TESTDATA("data_in/panel.bam"));
 		I_EQUAL(stats.count(), 1);
 		S_EQUAL(stats[0].name(), QString("SNV allele frequency deviation"));
 		S_EQUAL(stats[0].toString(), QString("1.57"));
@@ -537,23 +537,23 @@ TEST_CLASS(Statistics_Test)
 
 	void genderHetX()
 	{
-		GenderEstimate estimate = Statistics::genderHetX(TESTDATA("data_in/panel.bam"), "hg19");
+		GenderEstimate estimate = Statistics::genderHetX(GenomeBuild::HG19, TESTDATA("data_in/panel.bam"));
 		S_EQUAL(estimate.gender, QString("unknown (too few SNPs)"));
 	}
 
 	void genderSRY()
 	{
-		GenderEstimate estimate = Statistics::genderSRY(TESTDATA("data_in/panel.bam"), "hg19");
+		GenderEstimate estimate = Statistics::genderSRY(GenomeBuild::HG19, TESTDATA("data_in/panel.bam"));
 		S_EQUAL(estimate.gender, "female");
 
-		estimate = Statistics::genderSRY(TESTDATA("data_in/sry.bam"), "hg19");
+		estimate = Statistics::genderSRY(GenomeBuild::HG19, TESTDATA("data_in/sry.bam"));
 		S_EQUAL(estimate.gender, "male");
 	}
 
 	void ancestry()
 	{
 		//default
-		AncestryEstimates ancestry = Statistics::ancestry("hg19", TESTDATA("data_in/ancestry.vcf.gz"));
+		AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG19, TESTDATA("data_in/ancestry.vcf.gz"));
 		I_EQUAL(ancestry.snps, 3096);
 		F_EQUAL2(ancestry.afr, 0.0114, 0.001);
 		F_EQUAL2(ancestry.eur, 0.3088, 0.001);
@@ -562,12 +562,12 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(ancestry.population, "EUR");
 
 		//not enough SNPs
-		ancestry = Statistics::ancestry("hg19", TESTDATA("data_in/ancestry.vcf.gz"), 10000);
+		ancestry = Statistics::ancestry(GenomeBuild::HG19, TESTDATA("data_in/ancestry.vcf.gz"), 10000);
 		I_EQUAL(ancestry.snps, 3096);
 		S_EQUAL(ancestry.population, "NOT_ENOUGH_SNPS");
 
 		//not enough popultation distance
-		ancestry = Statistics::ancestry("hg19", TESTDATA("data_in/ancestry.vcf.gz"), 1000, 0.7);
+		ancestry = Statistics::ancestry(GenomeBuild::HG19, TESTDATA("data_in/ancestry.vcf.gz"), 1000, 0.0, 2.0);
 		I_EQUAL(ancestry.snps, 3096);
 		F_EQUAL2(ancestry.afr, 0.0114, 0.001);
 		F_EQUAL2(ancestry.eur, 0.3088, 0.001);
@@ -578,7 +578,7 @@ TEST_CLASS(Statistics_Test)
 
 	void ancestry_hg38()
 	{
-		AncestryEstimates ancestry = Statistics::ancestry("hg38", TESTDATA("data_in/ancestry_hg38.vcf.gz"));
+		AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, TESTDATA("data_in/ancestry_hg38.vcf.gz"));
 		I_EQUAL(ancestry.snps, 2126);
 		F_EQUAL2(ancestry.afr, 0.4984, 0.001);
 		F_EQUAL2(ancestry.eur, 0.0241, 0.001);
@@ -586,5 +586,21 @@ TEST_CLASS(Statistics_Test)
 		F_EQUAL2(ancestry.eas, 0.0742, 0.001);
 		S_EQUAL(ancestry.population, "AFR");
 	}
+
+
+	void hrdScore()
+	{
+		CnvList cnvs;
+		cnvs.load( TESTDATA("data_in/hrdScore_lst_cnvs.tsv") );
+
+		QCCollection hrd_results = Statistics::hrdScore(cnvs, GenomeBuild::HG19);
+
+		I_EQUAL(hrd_results.value("QC:2000062", true).asInt() , 2);
+		I_EQUAL(hrd_results.value("QC:2000063", true).asInt() , 3);
+		I_EQUAL(hrd_results.value("QC:2000064", true).asInt() , 3);
+
+	}
+
+
 };
 

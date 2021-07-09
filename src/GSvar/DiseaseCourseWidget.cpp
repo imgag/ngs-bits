@@ -2,6 +2,7 @@
 #include "ui_DiseaseCourseWidget.h"
 #include "GUIHelper.h"
 #include "Settings.h"
+#include "GlobalServiceProvider.h"
 #include <QDir>
 #include <QMessageBox>
 
@@ -35,17 +36,15 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 
 	const VcfLine& vcf_line = ref_column_.variants[row];
 	QString coords = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.start());
-	emit openInIGV(coords);
+	GlobalServiceProvider::gotoInIGV(coords, true);
 
 	// add cfDNA BAM Files to IGV
-	QStringList igv_commands;
 	foreach (const cfDnaColumn& cf_dna, cf_dna_columns_)
 	{
 		QString ps_id = db_.processedSampleId(cf_dna.name);		
-		QString bam = NGSD().processedSamplePath(ps_id, PathType::BAM);
-		igv_commands << "load \"" + Helper::canonicalPath(bam) + "\"";
+		QString bam = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::BAM).filename;
+		GlobalServiceProvider::loadFileInIGV(bam, true);
 	}
-	emit executeIGVCommands(igv_commands);
 }
 
 void DiseaseCourseWidget::copyToClipboard()
@@ -91,14 +90,14 @@ void DiseaseCourseWidget::loadVariantLists()
 	if (processing_systems.size() > 1) THROW(ArgumentException, "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
 	QString system_name = processing_systems.toList().at(0);
 
-	// load ref tumor variants
-	QString panel_folder = Settings::path("patient_specific_panel_folder", false);
-	QString vcf_file_path = panel_folder + "/" + system_name + "/" + tumor_sample_name_ + ".vcf";
+	// load cfDNA panel
+	QList<CfdnaPanelInfo> cfdna_panels = db_.cfdnaPanelInfo(db_.processedSampleId(tumor_sample_name_), QString::number(db_.processingSystemId(system_name)));
+	if (cfdna_panels.size() < 1) THROW(DatabaseException, "No matchin cfDNA panel for sample " + tumor_sample_name_ + " found in NGSD!");
+	CfdnaPanelInfo cfdna_panel_info  = cfdna_panels.at(0);
 
-	if (!QFile::exists(vcf_file_path)) THROW(FileAccessException, "Could not find reference tumor VCF in '" + vcf_file_path + "'! ");
 
 	// create ref tumor column
-	ref_column_.variants.load(vcf_file_path);
+	ref_column_.variants= db_.cfdnaPanelVcf(cfdna_panel_info.id);
 	ref_column_.name = tumor_sample_name_;
 	ref_column_.date = QDate::fromString(db_.getSampleData(db_.sampleId(tumor_sample_name_)).received, "dd.MM.yyyy");
 
@@ -109,7 +108,7 @@ void DiseaseCourseWidget::loadVariantLists()
 		cfDnaColumn cf_dna_column;
 		cf_dna_column.name = db_.processedSampleName(ps_id);
 		cf_dna_column.date = QDate::fromString(db_.getSampleData(db_.sampleId(cf_dna_column.name)).received, "dd.MM.yyyy");
-		QString cfdna_vcf = db_.processedSamplePath(ps_id, PathType::VCF_CF_DNA);
+		QString cfdna_vcf = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::VCF_CF_DNA).filename;
 		if (!QFile::exists(cfdna_vcf))
 		{
 			QMessageBox::warning(this, "File not found", "Could not find cfDNA VCF for processed Sample " + cf_dna_column.name + "! ");
@@ -185,10 +184,12 @@ void DiseaseCourseWidget::createTableView()
 		ui_->vars->setItem(i, col_idx, GUIHelper::createTableItem(variant.info("coding_and_splicing", false)));
 		ui_->vars->item(i, col_idx++)->setToolTip(variant.info("coding_and_splicing", false).replace(",", "\n"));
 
-
-
 		// show tumor af of ref
 		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.info("tumor_af")));
+
+		//rightAlign number columns
+		ui_->vars->item(i, 1)->setTextAlignment(Qt::AlignRight);
+		ui_->vars->item(i, 6)->setTextAlignment(Qt::AlignRight);
 
 		// get tumor af for each cfDNA sample
 		QByteArray key = variant.variantToString().toUtf8();
@@ -208,6 +209,7 @@ void DiseaseCourseWidget::createTableView()
 				cfdna_item->setToolTip("Alt. count:\t" + QString::number(alt_count, 'f', 0).rightJustified(9, ' ')
 									+ "\nDepth:     \t" + QString::number(depth, 'f', 0).rightJustified(7, ' ')
 									+ "\np-value:   \t" + QString::number(p_value, 'f', 4).rightJustified(6, ' '));
+				cfdna_item->setTextAlignment(Qt::AlignRight);
 				ui_->vars->setItem(i, col_idx++, cfdna_item);
 			}
 			else
@@ -219,7 +221,9 @@ void DiseaseCourseWidget::createTableView()
 	}
 
 	// optimize cell sizes
-	GUIHelper::resizeTableCells(ui_->vars, 150);
+	GUIHelper::resizeTableCells(ui_->vars, 250);
 
+	// set row height to fixed value
+	for (int i=0; i<ui_->vars->rowCount(); ++i) ui_->vars->setRowHeight(i, 25);
 
 }

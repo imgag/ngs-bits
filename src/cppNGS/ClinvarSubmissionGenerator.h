@@ -4,12 +4,14 @@
 #include "cppNGS_global.h"
 #include "PhenotypeList.h"
 #include "VariantList.h"
+#include "GenomeBuild.h"
 #include <QDate>
 
 ///Container for ClinVar submission data
 struct CPPNGSSHARED_EXPORT ClinvarSubmissionData
 {
 	//submission meta data
+	GenomeBuild build = GenomeBuild::HG19;
 	QDate date = QDate::currentDate(); //submission date
 	QString submission_id; //submission ID. For now, get it from the website when creating the submission. Later, the API should generate it.
 	QString local_key; //local identifier for the submission, e.g. sample identifier plus variant identifier

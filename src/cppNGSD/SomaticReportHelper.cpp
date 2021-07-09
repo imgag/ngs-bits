@@ -150,8 +150,9 @@ RtfTable SomaticReportHelper::billingTable()
 }
 
 
-SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvList &cnvs, const VariantList& variants_germline, const SomaticReportSettings& settings)
-	: settings_(settings)
+SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const VariantList& variants_germline, const SomaticReportSettings& settings)
+	: build_(build)
+	, settings_(settings)
 	, germline_vl_(variants_germline)
 	, cnvs_()
 	, validated_viruses_()
@@ -182,11 +183,10 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 		mantis_msi_swd_value_ = std::numeric_limits<double>::quiet_NaN();
 	}
 
-	//Load virus data (from tumor sample dir)
-	QString viral_file = db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::VIRAL);
+	//Load virus data if available
 	try
 	{
-		TSVFileStream file(viral_file);
+		TSVFileStream file(settings_.viral_file);
 		while(!file.atEnd())
 		{
 			QByteArrayList parts = file.readLine();
@@ -1168,7 +1168,14 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	}
 
 
-	general_info_table.addRow(RtfTableRow({"HRD-Score", QByteArray::number(settings_.report_config.hrdScore()) + RtfText("\\line Ein Wert \\u8805;3 weist auf eine HRD hin.").setFontSize(14).RtfCode()}, {2500,7421},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+	RtfSourceCode hrd_text = trans(settings_.report_config.hrdStatement()).toUtf8();
+	if(settings_.report_config.hrdStatement() != "undeterminable")
+	{
+		hrd_text += RtfText("\n\\line\nHRD-Score chromosomale Veränderungen: " + QByteArray::number(settings_.report_config.cnvLohCount() + settings_.report_config.cnvTaiCount() + settings_.report_config.cnvLstCount()) + " (HRD bei \\u8805; 32)" ).setFontSize(14).RtfCode();
+		hrd_text += RtfText("\n\\line\nHRD-Score analog TOP-ART-Studie: " + QByteArray::number(settings_.report_config.hrdScore()) + " (HRD bei \\u8805; 3)" ).setFontSize(14).RtfCode();
+	}
+	general_info_table.addRow(RtfTableRow({"HRD-Score", hrd_text}, {2500,7421},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+
 
 	if(settings_.report_config.quality() != "no abnormalities")
 	{
@@ -1180,12 +1187,19 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	desc += RtfText("Mutationslast:").setFontSize(14).setBold(true).RtfCode() + " Anzahl der Varianten in den kodierenden untersuchten Genen normiert auf eine Million Basenpaare; ";
 	desc += RtfText("Mikrosatelliten:").setFontSize(14).setBold(true).RtfCode() + " Bewertung der Mikrosatelliteninstabilität; ";
 	desc += RtfText("CNV-Last:").setFontSize(14).setBold(true).RtfCode() + " Anteil des Genoms, bei dem die Kopienzahl verändert ist. ";
-	desc += RtfText("HRD-Score:").setFontSize(14).setBold(true).RtfCode() + " Homologer Rekombinations-Defizienz-Score.";
+	desc += RtfText("HRD:").setFontSize(14).setBold(true).RtfCode() + " Homologe Rekombinations-Defizienz.";
 	general_info_table.addRow(RtfTableRow(desc, doc_.maxWidth(), RtfParagraph().setFontSize(14).setHorizontalAlignment("j")).setBorders(0) );
 
 
 	doc_.addPart(general_info_table.RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
+
+	//.setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).highlight(3)
+
+	RtfSourceCode text = "In der nachfolgenden Übersicht finden Sie alle Varianten und Kopienzahlveränderungen, die in unterschiedlichen Datenbanken als funktionell relevant eingestuft wurden. ";
+	text += "Alle aufgelisteten somatischen Veränderungen sind, wenn nicht anderweitig vermerkt, im Normalgewebe nicht nachweisbar.";
+	doc_.addPart(RtfParagraph(text).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
+	doc_.addPart(RtfParagraph("").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 
 
 	/********************************
@@ -1292,8 +1306,8 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 
 	if(unclassified_snvs)
 	{
-		doc_.addPart(RtfParagraph("Es wurden sehr viele somatische Varianten nachgewiesen, die zu einer hohen Mutationslast führen. Da die Wechselwirkungen aller Varianten nicht eingeschätzt werden können, wird von der funktionellen Bewertung einzelner Varianten abgesehen. Falls erforderlich kann die Bewertung nachgereicht werden.").highlight(3).RtfCode());
-		doc_.addPart(RtfParagraph("").RtfCode());
+		doc_.addPart(RtfParagraph("Es wurden sehr viele somatische Varianten nachgewiesen, die zu einer hohen Mutationslast führen. Da die Wechselwirkungen aller Varianten nicht eingeschätzt werden können, wird von der funktionellen Bewertung einzelner Varianten abgesehen. Falls erforderlich kann die Bewertung nachgereicht werden.").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).highlight(3).RtfCode());
+		doc_.addPart(RtfParagraph("").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 	}
 
 	if(skipped_amp_.count() > 0)
@@ -1456,7 +1470,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 void SomaticReportHelper::storeXML(QString file_name)
 {
 	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(germline_vl_, settings_);
-	SomaticXmlReportGeneratorData data(settings_, somatic_vl_, som_var_in_normal, cnvs_);
+	SomaticXmlReportGeneratorData data(build_, settings_, somatic_vl_, som_var_in_normal, cnvs_);
 
 	data.processing_system_roi = settings_.processing_system_roi;
 	data.processing_system_genes = settings_.processing_system_genes;
@@ -1507,6 +1521,9 @@ QString SomaticReportHelper::trans(const QString &text)
 	en2de["UNCERTAIN_SIGNIFICANCE"] = "unklare Variante";
 	en2de["loss_of_function"] = "Funktionsverlust";
 	en2de["ambiguous"] = "unklare Bedeutung";
+	en2de["proof"] = "Hinweise auf eine HRD";
+	en2de["no proof"] = "Keine Hinweise auf eine HRD";
+	en2de["undeterminable"] = "nicht bestimmbar";
 
 
 	if(!en2de.contains(text)) return text; //return original entry if not found

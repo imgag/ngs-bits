@@ -11,7 +11,10 @@
 struct CPPNGSDSHARED_EXPORT GermlineReportGeneratorData
 {
 	//constructor
-	GermlineReportGeneratorData(QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_);
+	GermlineReportGeneratorData(GenomeBuild build_, QString ps_, const VariantList& variants_, const CnvList& cnvs_, const BedpeFile& svs_, const PrsTable& prs_, const ReportSettings& report_settings_, const FilterCascade& filters_, const QMap<QByteArray, QByteArrayList>& preferred_transcripts_);
+
+	//genome build
+	GenomeBuild build;
 
 	//sample data
 	QString ps;
@@ -19,6 +22,10 @@ struct CPPNGSDSHARED_EXPORT GermlineReportGeneratorData
 	const CnvList& cnvs;
 	const BedpeFile& svs;
 	PrsTable prs;
+
+	//files needed e.g. for coverage statics
+	QString ps_bam;
+	QString ps_lowcov;
 
 	//processing system target region
 	BedFile processing_system_roi;
@@ -44,10 +51,6 @@ public:
 	///Writes the XML report, including the HTML report. Call after generating the HTML report - some statistics data is cached between reports.
 	void writeXML(QString filename, QString html_document);
 
-	///Overrides BAM file (for testing only)
-	void overrideBamFile(QString bam_file);
-	///Overrides low-coverage file (for testing only)
-	void overrideLowCovFile(QString lowcov_file);
 	///Overrides date (for testing only)
 	void overrideDate(QDate date);
 
@@ -65,8 +68,6 @@ private:
 	bool test_mode_;
 
 	QString ps_id_;
-	QString ps_bam_;
-	QString ps_lowcov_;
 	QMap<QString, QString> cache_;
 
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
@@ -75,7 +76,7 @@ private:
 	void writeCoverageReport(QTextStream& stream);
 	void writeClosedGapsReport(QTextStream& stream, const BedFile& roi);
 	void writeCoverageReportCCDS(QTextStream& stream, int extend, bool gap_table=true, bool gene_details=true);
-	static QByteArray formatGenotype(const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
+	static QByteArray formatGenotype(GenomeBuild build, const QByteArray& gender, const QByteArray& genotype, const Variant& variant);
 	QString formatCodingSplicing(const QList<VariantTranscript>& transcripts);
 
 	///Helper functions for writeEvaluationSheet()

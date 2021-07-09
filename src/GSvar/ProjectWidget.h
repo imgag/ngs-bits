@@ -14,14 +14,12 @@ class ProjectWidget
 public:
 	ProjectWidget(QWidget* parent, QString name);
 
-signals:
-	void openProcessedSampleTab(QString ps_name);
-
 private slots:
 	void delayedInitialization();
 	void updateGUI();
 	void edit();
 	void showDiagnosticStatusDialog();
+	void openProcessedSampleTab(QString ps);
 
 private:
 	Ui::ProjectWidget ui_;

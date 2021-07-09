@@ -23,9 +23,6 @@ public:
 	explicit RohWidget(QString filename, FilterWidget* filter_widget, QWidget *parent = 0);
 	~RohWidget();
 
-signals:
-	void openRegionInIGV(QString region);
-
 private slots:
 	void rohDoubleClicked(QTableWidgetItem* item);
 	void filtersChanged();

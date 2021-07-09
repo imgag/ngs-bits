@@ -25,8 +25,7 @@ For panel sequencing data, [CnvHunter](https://github.com/imgag/ngs-bits/) is us
 
 For detailed information, please have a look a the algorithm-specific sections:
 
-- [exome/genome CNVs](cnv_analysis_clincnv.md)
-- [panel CNVs](cnv_analysis_cnvhunter.md)
+- [ClinCNV](cnv_analysis_clincnv.md)
 
 ## FAQ
 
@@ -51,28 +50,3 @@ After a target region is selected and a gene file is available you can click on 
 --
 
 [back to main page](index.md)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

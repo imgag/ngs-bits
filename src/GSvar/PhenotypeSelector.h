@@ -28,7 +28,7 @@ public:
 	void init();
 
 	///Returns the selected phenotype
-	Phenotype nameToPhenotype(QByteArray name) const;
+	const Phenotype& nameToPhenotype(QByteArray name) const;
 
 	///React on enter key
 	void keyPressEvent(QKeyEvent *event) override;

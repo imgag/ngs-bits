@@ -4,6 +4,7 @@ CONFIG += c++11
 #base settings
 QT       -= gui
 QT       += sql
+QT       += network
 QTPLUGIN += QSQLMYSQL
 CONFIG   += console
 CONFIG   -= app_bundle

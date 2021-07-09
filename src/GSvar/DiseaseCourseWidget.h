@@ -31,10 +31,6 @@ public:
 	explicit DiseaseCourseWidget(const QString& tumor_sample_name, QWidget *parent = 0);
 	~DiseaseCourseWidget();
 
-signals:
-	void executeIGVCommands(QStringList commands);
-	void openInIGV(QString coords);
-
 protected slots:
 	void VariantDoubleClicked(QTableWidgetItem* item);
 	void copyToClipboard();

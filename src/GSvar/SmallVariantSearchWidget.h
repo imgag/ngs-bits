@@ -17,9 +17,6 @@ public:
 	SmallVariantSearchWidget(QWidget* parent = 0);
 	void setGene(const QString& gene);
 
-signals:
-	void openVariantTab(Variant);
-
 private slots:
 	void changeSearchType();
 	void updateVariants();

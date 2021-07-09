@@ -21,10 +21,10 @@ void PhenotypeSelectionWidget::setPhenotypes(const PhenotypeList& phenos)
 
 void PhenotypeSelectionWidget::copyPhenotype(QString name)
 {
-	Phenotype phenotype = ui_.pheno_sel->nameToPhenotype(name.toLatin1());
-	if (!phenos_.contains(phenotype))
+	const Phenotype& phenotype = ui_.pheno_sel->nameToPhenotype(name.toLatin1());
+	if (!phenos_.containsAccession(phenotype.accession()))
 	{
-		phenos_.append(phenotype);
+		phenos_ << phenotype;
 	}
 
 	updateSelectedPhenotypeList();

@@ -24,8 +24,8 @@ void GeneInfoDBs::openUrl(QString db_name, QString gene_symbol)
 					HttpHeaders add_headers;
 					add_headers.insert("Accept", "application/json");
 
-					QString reply = http_handler.get("http://rest.genenames.org/fetch/symbol/"+gene_symbol, add_headers);
-					QJsonDocument json = QJsonDocument::fromJson(reply.toLatin1());
+					QByteArray reply = http_handler.get("https://rest.genenames.org/fetch/symbol/"+gene_symbol, add_headers);
+					QJsonDocument json = QJsonDocument::fromJson(reply);
 					QJsonArray docs = json.object().value("response").toObject().value("docs").toArray();
 					if (docs.count()!=1)
 					{
@@ -60,12 +60,12 @@ QList<GeneDB>& GeneInfoDBs::all()
 	{
 		dbs_ << GeneDB{"ClinGen", "https://search.clinicalgenome.org/kb/gene-dosage?search=[gene]", QIcon("://Icons/ClinGen.png"), false};
 		dbs_ << GeneDB{"ClinVar", "https://www.ncbi.nlm.nih.gov/clinvar/?term=[gene]%5Bgene%5D", QIcon("://Icons/ClinGen.png"), false};
-		dbs_ << GeneDB{"GeneCards", "http://www.genecards.org/cgi-bin/carddisp.pl?gene=[gene]", QIcon("://Icons/GeneCards.png"), false};
+		dbs_ << GeneDB{"GeneCards", "https://www.genecards.org/cgi-bin/carddisp.pl?gene=[gene]", QIcon("://Icons/GeneCards.png"), false};
 		dbs_ << GeneDB{"GTEx", "https://www.gtexportal.org/home/gene/[gene]", QIcon("://Icons/GTEx.png"), false};
 		dbs_ << GeneDB{"gnomAD", "https://gnomad.broadinstitute.org/gene/[gene]", QIcon("://Icons/gnomAD.png"), false};
 		if (Settings::boolean("use_free_hgmd_version"))
 		{
-			dbs_ << GeneDB{"HGMD", "http://www.hgmd.cf.ac.uk/ac/gene.php?gene=[gene]", QIcon("://Icons/HGMD.png"), false};
+			dbs_ << GeneDB{"HGMD", "http://www.hgmd.cf.ac.uk/ac/gene.php?gene=[gene]", QIcon("://Icons/HGMD.png"), false}; //no HTTPS
 		}
 		else
 		{

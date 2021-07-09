@@ -427,18 +427,15 @@ public:
 	{
 		ref_ = ref;
 	}
-	void addAlt(const QByteArrayList& alt)
+	void addAlt(const Sequence& alt)
 	{
-		for(const Sequence& seq : alt)
-		{
-			alt_.push_back(strToPointer(seq.toUpper()));
-		}
+		alt_.push_back(strToPointer(alt.toUpper()));
 	}
 	//set the alternative bases with a list of sequences
 	void setAlt(const QList<Sequence>& alt)
 	{
 		alt_.clear();
-		for(const QByteArray alt_element : alt)
+		for(const QByteArray& alt_element : alt)
 		{
 			alt_.push_back(alt_element);
 		}
@@ -538,7 +535,7 @@ public:
 	{
 		if(allow_several_alternatives)
 		{
-			for(const QByteArray alt_seq : alt())
+			for(const Sequence& alt_seq : alt())
 			{
 				if(alt_seq.length() != 1) return false;
 			}

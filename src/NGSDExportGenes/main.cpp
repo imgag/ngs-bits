@@ -89,7 +89,7 @@ public:
 
 				//HPO terms
 				QByteArrayList hpos;
-				QList<Phenotype> phenos = db.phenotypes(gene_symbol);
+				PhenotypeList phenos = db.phenotypes(gene_symbol);
 				foreach(const Phenotype& pheno, phenos)
 				{
 					hpos << pheno.toString();

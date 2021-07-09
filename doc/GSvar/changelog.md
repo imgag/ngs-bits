@@ -1,5 +1,23 @@
 # GSvar change log
 
+### 2021_06-9 (22.06.21)
+- added warning dialog shown after loading a GSvar file if sample quality is 'bad', or KASP swap probability is larger than 3%.
+
+
+### 2021_03-69 (20.05.21)
+- General: added pre-filtering of CNVs if too many.
+- Processed sample tab: added report configuration summary.
+
+### 2021_03-66 (19.05.21)
+- Processed sample tab: added ancestry score details (tool-tip).
+- Sample similarity tool: Added link to documentation.
+- Sample ancestry tool: Added link to documentation.
+
+### 2021_03-54 (03.05.21)
+- Somatic tumor-only report: Added summary of low coverage regions that overlap transcript.
+- Somatic tumor-normal report: Added target region filter.
+- Sample search: Added run start date filter to sample search.
+
 ### 2021_03-42 (22.04.21)
 - Subpanels are now stored in the NGSD.
 

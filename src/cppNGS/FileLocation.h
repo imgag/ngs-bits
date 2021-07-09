@@ -32,6 +32,7 @@ enum class PathType
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
 	FUSIONS, //gene fusions determined from RNA (TSV format)
+	MANTA_FUSIONS, //fusions determined by manta (BEDPE format)
 	COUNTS, //gene/transcript counts from RNA (TSV format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
@@ -113,6 +114,8 @@ struct FileLocation
 				return "REPEAT_EXPANSION_IMAGE";
 			case PathType::FUSIONS:
 				return "FUSIONS";
+			case PathType::MANTA_FUSIONS:
+				return "MANTA_FUSIONS";
 			case PathType::COUNTS:
 				return "COUNTS";
 			case PathType::VIRAL:
@@ -146,6 +149,7 @@ struct FileLocation
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
+		if (in_upper == "MANTA_FUSIONS") return PathType::MANTA_FUSIONS;
 		if (in_upper == "COUNTS") return PathType::COUNTS;
 		if (in_upper == "VIRAL") return PathType::VIRAL;
 		if (in_upper == "VCF_CF_DNA") return PathType::VCF_CF_DNA;
@@ -186,13 +190,15 @@ struct FileLocation
 			case PathType::CIRCOS_PLOT:
 				return "circos plot";
 			case PathType::STRUCTURAL_VARIANTS:
-				return "strctural variant calls";
+				return "structural variant calls";
 			case PathType::UPD:
 				return "uniparental disomy regions";
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				return "repeat expansion visualization";
 			case PathType::FUSIONS:
 				return "gene fusions";
+			case PathType::MANTA_FUSIONS:
+				return "gene fusions called by Manta";
 			case PathType::COUNTS:
 				return "RNA counts";
 			case PathType::VIRAL:
