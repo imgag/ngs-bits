@@ -97,13 +97,14 @@ public:
 
     virtual void setup()
     {
-        setDescription("Performs gene prioritization based on list of known disease genes and String-DB.");
-        addInfile("in", "Input tsv file with one gene (HGNC identifier) and its disease score per line.", false);
+        setDescription("Performs gene prioritization based on list of known disease genes and String-DB");
+        addInfile("in", "Input tsv file with one gene (HGNC identifier) and its disease score per line", false);
         addInfile("graph", "Graph tsv file with one pair of nodes per line", false);
-        addOutfile("out", "Output tsv file with prioritized genes.", false);
+        addOutfile("out", "Output tsv file with prioritized genes", false);
         //optional
-        addInt("n", "Number of network diffusion iterations", true, 3);
-        addFloat("restart", "Restart probability for random walk", true, 0.2);
+        addEnum("method", "Gene prioritization method to use", true, QStringList() << "flooding" << "randomWalk", "flooding");
+        addInt("n", "Number of network diffusion iterations for flooding method", true, 3);
+        addFloat("restart", "Restart probability for random walk", true, 0.5);
         addOutfile("debug", "Output tsv file for debugging", true);
     }
 
@@ -245,7 +246,7 @@ public:
         }
     }
 
-    void randomWalk(Graph<NodeContent, EdgeContent>& graph, const QString& debug_file, double restart_probability, int max_steps = 1000000)
+    void randomWalk(Graph<NodeContent, EdgeContent>& graph, double restart_probability, const QString& debug_file, int max_steps = 1000000)
     {
         std::default_random_engine generator;
         std::uniform_real_distribution<double> restart_distrib(0.0,1.0);
@@ -351,12 +352,19 @@ public:
     virtual void main()
     {
         // init
+        QString method = getEnum("method");
         Graph<NodeContent, EdgeContent> interaction_network = parseGraph(getInfile("graph"));
 
         scoreDiseaseGenes(interaction_network, getInfile("in"));
 
-        randomWalk(interaction_network, getOutfile("debug"), getFloat("restart"));
-        //performFlooding(interaction_network, getInt("n"), getOutfile("debug"));
+        if(method == "randomWalk")
+        {
+            randomWalk(interaction_network, getFloat("restart"), getOutfile("debug"));
+        }
+        else if(method == "flooding")
+        {
+            performFlooding(interaction_network, getInt("n"), getOutfile("debug"));
+        }
 
         writeOutputTsv(interaction_network, getOutfile("out"));
     }
