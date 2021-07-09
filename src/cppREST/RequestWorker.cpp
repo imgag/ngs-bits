@@ -73,10 +73,6 @@ void RequestWorker::run()
 				request_headers_size = all_request_parts.size();
 			}
 
-//			qDebug() << line << " = " << finished_reading_headers;
-//			qDebug() << "all_request_parts.size() " << all_request_parts.size();
-//			qDebug() << "requestHeadersSize " << request_headers_size;
-//			qDebug() << "requestBodySize " << request_body_size;
 			if ((finished_reading_headers) && ((all_request_parts.size() - request_headers_size) >= request_body_size))
 			{
 				finished_reading_body = true;
@@ -134,7 +130,6 @@ void RequestWorker::run()
 	{
 		qDebug() << "Accessing password protected area";
 		HttpResponse auth_response = EndpointManager::blockInvalidUsers(parsed_request);
-		qDebug() << "Response status line = " << auth_response.getStatusLine();
 		if (auth_response.getStatusCode() > 0)
 		{
 			sendEntireResponse(ssl_socket, auth_response);
@@ -262,8 +257,6 @@ void RequestWorker::run()
 	}
 
 	sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "This page does not exist. Check the URL and try again"));
-
-	qDebug() << "Entire request" << all_request_parts;
 }
 
 void RequestWorker::handleConnection()

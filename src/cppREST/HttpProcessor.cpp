@@ -1,5 +1,4 @@
 #include "HttpProcessor.h"
-#include <QDebug>
 
 HttpProcessor::HttpProcessor()
 {

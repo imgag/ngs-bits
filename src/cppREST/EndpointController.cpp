@@ -229,7 +229,6 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 	if (headers.contains("range"))
 	{
 		QString range_value = headers.value("range");
-		qDebug() << "Reading byte range header:" + range_value;
 		range_value = range_value.replace("bytes", "");
 		range_value = range_value.replace("=", "");
 		range_value = range_value.trimmed();
@@ -243,7 +242,6 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 
 	if (method == RequestMethod::HEAD)
 	{
-		qDebug() << "Processing HEAD method";
 		BasicResponseData response_data;
 		response_data.length = QFileInfo(filename).size();
 		response_data.filename = filename;
@@ -256,10 +254,8 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 
 	if (!headers.contains("range"))
 	{
-		qDebug() << "Processing STREAM";
 		return createStaticStreamResponse(filename, false);
 	}
-	qDebug() << "Processing RANGE";
 	return createStaticFileRangeResponse(filename, byte_range, HttpProcessor::getContentTypeByFilename(filename), false);
 }
 
@@ -376,7 +372,6 @@ QString EndpointController::getServedRootPath(const QList<QString>& path_parts)
 
 StaticFile EndpointController::readFileContent(const QString& filename, const ByteRange& byte_range)
 {
-	qDebug() << "Reading file:" + filename;
 	StaticFile static_file {};
 	static_file.filename_with_path = filename;
 	static_file.modified = QFileInfo(filename).lastModified();
@@ -384,10 +379,8 @@ StaticFile EndpointController::readFileContent(const QString& filename, const By
 	QString found_id = FileCache::getFileIdIfInCache(filename);
 	if (found_id.length() > 0)
 	{
-		qDebug() << "File has been found in the cache:" + found_id;
 		return FileCache::getFileById(found_id);
 	}
-
 
 	QFile file(filename);
 	static_file.size = file.size();
@@ -398,7 +391,6 @@ StaticFile EndpointController::readFileContent(const QString& filename, const By
 
 	if ((!file.atEnd()) && (byte_range.length == 0))
 	{
-		qDebug() << "Reading the entire file at once";
 		try
 		{
 			static_file.content = file.readAll();
@@ -411,13 +403,11 @@ StaticFile EndpointController::readFileContent(const QString& filename, const By
 
 	if ((!file.atEnd()) && (byte_range.length > 0) && (file.seek(byte_range.start)))
 	{
-		qDebug() << "Partial file reading";
 		static_file.content = file.read(byte_range.length);
 	}
 
 	if ((!static_file.content.isEmpty()) && (Settings::boolean("static_cache", true)))
 	{
-		qDebug() << "Adding file to the cache:" << filename;
 		try
 		{
 			FileCache::addFileToCache(ServerHelper::generateUniqueStr(), filename, static_file.content, static_file.content.size());

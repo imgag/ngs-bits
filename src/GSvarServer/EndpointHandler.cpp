@@ -62,11 +62,12 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Could not find the sample: " + request.getUrlParams()["ps_url_id"]);
 	}
 
-//	VariantList variants;
-//	variants.load(found_file);
-//	FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type());
-	SampleMetadata metadata = getSampleMetadata(found_file, true);
-	FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, metadata.header, metadata.type);
+	VariantList variants;
+	variants.loadHeaderOnly(found_file);
+	FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type());
+
+//	SampleMetadata metadata = getSampleMetadata(found_file, true);
+//	FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, metadata.header, metadata.type);
 
 	QList<FileLocation> file_list {};
 	QJsonDocument json_doc_output {};
@@ -173,7 +174,6 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 
 	for (int i = 0; i < file_list.count(); ++i)
 	{
-		qDebug() << file_list[i].filename;
 		QJsonObject cur_json_item {};
 		cur_json_item.insert("id", file_list[i].id);
 		cur_json_item.insert("type", FileLocation::typeToString(file_list[i].type));

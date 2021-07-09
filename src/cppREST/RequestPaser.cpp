@@ -15,7 +15,6 @@ HttpRequest RequestPaser::getRequest() const
 
 	for (int i = 0; i < body.count(); ++i)
 	{
-		qDebug() << body[i];
 		// First line with method type and URL
 		if (i == 0)
 		{
@@ -55,7 +54,7 @@ HttpRequest RequestPaser::getRequest() const
 	}
 
 	parsed_request.setBody(getRequestBody().trimmed());
-	qDebug() << "Body = " << parsed_request.getBody();
+//	qDebug() << "Body = " << parsed_request.getBody();
 	parsed_request.setContentType(ContentType::TEXT_HTML);
 	if (parsed_request.getHeaders().contains("accept"))
 	{
@@ -95,7 +94,6 @@ QByteArray RequestPaser::getRequestBody() const
 		}
 	}
 
-	qDebug() << "output " << output.trimmed();
 	return output.trimmed();
 }
 
