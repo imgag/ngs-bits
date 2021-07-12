@@ -308,9 +308,12 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response)
 {
 	qDebug() << "Writing an entire response";
-	socket->write(response.getStatusLine());
-	socket->write(response.getHeaders());
-	socket->write(response.getPayload());
+	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
+	{
+		socket->write(response.getStatusLine());
+		socket->write(response.getHeaders());
+		socket->write(response.getPayload());
+	}
 	closeAndDeleteSocket(socket);
 }
 
