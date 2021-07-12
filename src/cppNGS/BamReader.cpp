@@ -681,7 +681,8 @@ VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, con
 		output.depth = pileup.depth(true);
 		if (output.depth!=0)
 		{
-			output.frequency = pileup.countOf(variant.obs()[0]) / (double)output.depth;
+			output.obs = pileup.countOf(variant.obs()[0]);
+			output.frequency = output.obs / (double)output.depth;
 		}
 		output.mapq0_frac = pileup.mapq0Frac();
 	}
@@ -711,19 +712,19 @@ VariantDetails BamReader::getVariantDetails(const FastaFileIndex& reference, con
 				else if (indel[0]=='-') ++c_del;
 
 			}
-			output.frequency = std::min(c_ins, c_del);
+			output.obs = std::min(c_ins, c_del);
 		}
 		else if (variant_normalized.ref()=="-")
 		{
-			output.frequency = indels.count("+" + variant_normalized.obs());
+			output.obs = indels.count("+" + variant_normalized.obs());
 		}
 		else
 		{
-			output.frequency = indels.count("-" + variant_normalized.ref());
+			output.obs = indels.count("-" + variant_normalized.ref());
 		}
 
 		//we might count more indels than depth because of the window - correct that
-		output.frequency = std::min(1.0, output.frequency / output.depth);
+		output.frequency = std::min(1.0, output.obs / (double)output.depth);
 	}
 
 	return output;
