@@ -157,15 +157,6 @@ void ClinvarUploadDialog::upload()
     actions.append(action);
     post_request.insert("actions", actions);
 
-    //TODO: remove
-    // write to file
-    qDebug()<<"Write to file!";
-    QJsonDocument json_doc = QJsonDocument(clinvar_submission);
-    QFile json_file("clinvar_submission.json");
-    json_file.open(QFile::WriteOnly);
-    json_file.write(json_doc.toJson());
-    json_file.close();
-
 
     // perform upload
     static HttpHandler http_handler(HttpRequestHandler::INI); //static to allow caching of credentials
@@ -180,7 +171,7 @@ void ClinvarUploadDialog::upload()
         add_headers.insert("SP-API-KEY", api_key);
 
         //post request
-        QByteArray reply = http_handler.post("https://submit.ncbi.nlm.nih.gov/api/v1/submissions/?dry-run=true", QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
+		QByteArray reply = http_handler.post("https://submit.ncbi.nlm.nih.gov/api/v1/submissions/", QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
 
         // parse response
         bool success = false;
@@ -235,7 +226,7 @@ void ClinvarUploadDialog::upload()
             }
             details << "clinical_features=" + phenotypes.join(',');
             details << "clinical_feature_comment=" + VcfFile::encodeInfoValue(ui_.le_clin_feat_comment->text());
-            details << "collection_method" + ui_.cb_collection_method->currentText();
+			details << "collection_method=" + ui_.cb_collection_method->currentText();
 
             details << "record_status=" + ui_.cb_record_status->currentText();
             details << "release_status=" + ui_.cb_release_status->currentText();
