@@ -4680,6 +4680,13 @@ void MainWindow::uploadToClinvar(int variant_index)
 		return;
 	}
 
+	//abort if API key is missing
+	if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
+	{
+		QMessageBox::warning(this, "No ClinVar API key", "The GSVar.ini does not contain an entry of ClinVar API key for varaint publication!");
+		return;
+	}
+
 	//(1) prepare data as far as we can
 	ClinvarUploadData data;
 	data.processed_sample = germlineReportSample();

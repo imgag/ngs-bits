@@ -1,56 +1,49 @@
 ## Variant publication
 
 Pathogenic variant should be uploaded to one of the public variant databases.  
-Currenlty only [LOVD](http://www.lovd.nl/3.0/home) is supported - [ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) support is planned.
+With this release [ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) upload is supported and the LOVD upload was removed.
 
 ### Submitting SNVs/InDels
 
-Database upload for SNVs and InDels is triggered from the context menu of variants in the main window of a **single sample** variant list.  
-The following example shows how a two heterozygous variants can be selected and uploaded as compound-heterozygous:
+Database upload for SNVs and InDels is triggered from the context menu of variants in the main window of a **single sample** variant list.
+To upload a variant the following requirements have to be fulfilled:
+
+- (1) The variant has to have a report configuration (and also be in the NGSD)
+- (2) The variant has to have a valid classification
+- (3) The sample has to have at least one valid OMIM/Orpha disease identifier
+
+The following example shows how a variant can be selected and uploaded to ClinVar:
 
 ![alt](variant_publication_context_menu.png)
 
 The submission dialog then allows easy upload using these steps:
 
-- (1) Fill in missing variant details (as created by the external webservice).
-- (2) Fill in missing variant details of the second variant (only for compound-heterozygous variants).
+- (1) Modify the list of affected genes (can be empty).
+- (2) Fill in missing variant details (e.g. affected status, allele origin). 
 - (3) Select phenotypes (these are automatically imported from GenLab if possible).
-- (4) Data upload.
-- (5) Printing the upload result 
+- (4) Add additional comment for phenotype (optional).
+- (5) Fill in missing details of the clinical significance (e.g. inheritance).
+- (6) Upload to ClinVar (only possible if all required fields are filled).
+- (7) Print upload results.
 
 ![alt](variant_publication_dialog.png)
 
 ### Submitting CNVs, SVs, etc.
 
-For variants other than SNVs/InDels, use the main menu LOVD entry:
+For variants other than SNVs/InDels, use the Submission Portal of ClinVar:
 
-![alt](variant_publication_main_menu.png)
-
-In this dialog, all sample and variant information has to be filled in by hand.
+[ClinVar Submission Portal](https://submit.ncbi.nlm.nih.gov/clinvar/)
 
 ## FAQ
 
 ### There is no context menu entry for database upload.
 
-To activate the database upload, the credentials for LOVD need to be set in the `GSvar.ini` file by the administrator.
+To activate the database upload, the API key for ClinVar need to be set in the `GSvar.ini` file by the administrator.
 
 
 ### Phenotypes are not automatically imported from GenLab.
 
 Make sure the the field 'Labornummer' is filled in for your assay in GenLab. Otherwise the sample cannot be matched to the NGS data.
-
-### Gender, genotype or classification information is missing.
-
-Make sure that all information is present in the NGSD *before* opening the LOVD upload dialog.  
-Classification data is taked from the variant list. Thus, make sure it is up-to-date using the re-annotation button in the main tool bar of GSvar.
-
-### LOVD upload fails with the error `None of the given transcripts for this variant are configured in LOVD.`
-
-LOVD does not supported all RefSeq transcripts.  
-A full list of supported transcripts for each gene can be found in the [LOVD documentation](https://databases.lovd.nl/shared/transcripts).  
-
-*Note:* If the variant list contains RefSeq transcripts, the desired transcript can be selected in the drop-down menu behind the HGVS.g entry. Transcripts supported by LOVD are have a LOVD icon next to them!
-
 
 --
 
