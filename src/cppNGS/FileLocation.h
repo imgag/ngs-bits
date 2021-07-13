@@ -24,11 +24,13 @@ enum class PathType
 
 	//other files
 	LOWCOV_BED, //Low coverage region files (BED format)
+	MSI, //MSI files (TSV format)
 	BAF, //b-allele frequency file (IGV format)
 	ROH, //ROH file (TSV format)
 	PRS, //polygenic risk scores (TSV format)
 	MANTA_EVIDENCE, //Reads that were used for structural variant calling (BAM format)
 	COPY_NUMBER_RAW_DATA, //Copy number estimates based on coverage (SEG format)
+	CNV_RAW_DATA_CALL_REGIONS,//Copy number raw data for call regions (SEG format)
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
 	FUSIONS, //gene fusions determined from RNA (TSV format)
@@ -92,6 +94,8 @@ struct FileLocation
 				return "COPY_NUMBER_CALLS_MOSAIC";
 			case PathType::COPY_NUMBER_RAW_DATA:
 				return "COPY_NUMBER_RAW_DATA";
+			case PathType::CNV_RAW_DATA_CALL_REGIONS:
+				return "CNV_RAW_DATA_CALL_REGIONS";
 			case PathType::MANTA_EVIDENCE:
 				return "MANTA_EVIDENCE";
 			case PathType::OTHER:
@@ -100,6 +104,8 @@ struct FileLocation
 				return "REPEAT_EXPANSIONS";
 			case PathType::LOWCOV_BED:
 				return "LOWCOV_BED";
+			case PathType::MSI:
+				return "MSI";
 			case PathType::ROH:
 				return "ROH";
 			case PathType::PRS:
@@ -139,9 +145,11 @@ struct FileLocation
 		if (in_upper == "COPY_NUMBER_CALLS") return PathType::COPY_NUMBER_CALLS;
 		if (in_upper == "COPY_NUMBER_CALLS_MOSAIC") return PathType::COPY_NUMBER_CALLS_MOSAIC;
 		if (in_upper == "COPY_NUMBER_RAW_DATA") return PathType::COPY_NUMBER_RAW_DATA;
+		if (in_upper == "CNV_RAW_DATA_CALL_REGIONS") return PathType::CNV_RAW_DATA_CALL_REGIONS;
 		if (in_upper == "MANTA_EVIDENCE") return PathType::MANTA_EVIDENCE;
 		if (in_upper == "REPEAT_EXPANSIONS") return PathType::REPEAT_EXPANSIONS;
 		if (in_upper == "LOWCOV_BED") return PathType::LOWCOV_BED;
+		if (in_upper == "MSI") return PathType::MSI;
 		if (in_upper == "ROH") return PathType::ROH;
 		if (in_upper == "PRS") return PathType::PRS;
 		if (in_upper == "UPD") return PathType::UPD;
@@ -177,12 +185,16 @@ struct FileLocation
 				return "copy-number calls (mosaic)";
 			case PathType::COPY_NUMBER_RAW_DATA:
 				return "copy-number raw data";
+			case PathType::CNV_RAW_DATA_CALL_REGIONS:
+				return "copy-number raw data for call regions";
 			case PathType::MANTA_EVIDENCE:
 				return "evidence file for Manta structural variants";
 			case PathType::REPEAT_EXPANSIONS:
 				return "repeat expansions";
 			case PathType::LOWCOV_BED:
 				return "low coverage regions";
+			case PathType::MSI:
+				return "MSI files";
 			case PathType::ROH:
 				return "runs of homozygosity";
 			case PathType::PRS:
