@@ -24,7 +24,7 @@ enum class PathType
 
 	//other files
 	LOWCOV_BED, //Low coverage region files (BED format)
-	MSI, //MSI files (TSV format)
+	MSI, //microsatellite instability files (TSV format)
 	BAF, //b-allele frequency file (IGV format)
 	ROH, //ROH file (TSV format)
 	PRS, //polygenic risk scores (TSV format)
