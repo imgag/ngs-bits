@@ -42,8 +42,8 @@ public:
 	FileLocation getSomaticMsiFile() const override;
 
 private:
-	FileLocationList getFileLocationsByType(QString type, bool return_if_missing) const;
-	FileLocation getOneFileLocationByType(QString type, QString locus) const;
+	FileLocationList getFileLocationsByType(PathType type, bool return_if_missing) const;
+	FileLocation getOneFileLocationByType(PathType type, QString locus) const;
 	FileLocation mapJsonObjectToFileLocation(QJsonObject obj) const;
 	FileLocationList mapJsonArrayToFileLocationList(QJsonArray array, bool return_if_missing) const;
 
