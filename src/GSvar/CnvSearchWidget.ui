@@ -270,6 +270,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="ll_scale">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Scale log-likelyhood by number of regions.&lt;/p&gt;&lt;p&gt;Example: At a minumum log-likelihood of 20, a CNV with 1 regions needs 20 log-likelihood,  a CNV with 2 regions needs 40 log-likelihood, and so on. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>scale by regions</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer_7">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -651,7 +661,7 @@
            <string>external</string>
           </property>
           <property name="checked">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>
