@@ -2430,6 +2430,15 @@ BedFile NGSD::cfdnaPanelRemovedRegions(int id)
 	return BedFile::fromText(getValue("SELECT removed_regions FROM cfdna_panels WHERE id=:0", false, QString::number(id)).toString().toUtf8());
 }
 
+void NGSD::setCfdnaRemovedRegions(int id, const BedFile& removed_regions)
+{
+	qDebug() << id;
+	SqlQuery query = getQuery();
+	query.prepare("UPDATE `cfdna_panels` SET `removed_regions`=:0 WHERE `id`=" + QString::number(id));
+	query.bindValue(0, removed_regions.toText());
+	query.exec();
+}
+
 QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 {
 	QList<CfdnaGeneEntry> genes;

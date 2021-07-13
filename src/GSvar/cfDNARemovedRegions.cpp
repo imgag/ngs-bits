@@ -67,7 +67,11 @@ void cfDNARemovedRegions::initGui()
 	ui_->l_processed_sample->setText(processed_sample_name_);
 	ui_->l_processing_system->setText(cfdna_panel_info_.processing_system);
 	// get removed regions
-	ui_->te_removed_regions->setText(NGSD().cfdnaPanelRemovedRegions(cfdna_panel_info_.cfdna_id).toText());
+	ui_->te_removed_regions->setText(NGSD().cfdnaPanelRemovedRegions(cfdna_panel_info_.id).toText());
+
+	// connect signal and slots
+	connect(ui_->buttonBox, SIGNAL(accepted()), this, SLOT(importInNGSD()));
+	connect(ui_->buttonBox, SIGNAL(canceled()), this, SLOT(close()));
 }
 
 BedFile cfDNARemovedRegions::parseBed()
@@ -77,12 +81,12 @@ BedFile cfDNARemovedRegions::parseBed()
 	return bed;
 }
 
-void cfDNARemovedRegions::apply()
+void cfDNARemovedRegions::importInNGSD()
 {
-	BedFile bed;
+	BedFile removed_regions;
 	try
 	{
-		 bed = BedFile::fromText(ui_->te_removed_regions->toPlainText().toUtf8());
+		 removed_regions = BedFile::fromText(ui_->te_removed_regions->toPlainText().toUtf8());
 	}
 	catch (FileParseException e)
 	{
@@ -90,15 +94,7 @@ void cfDNARemovedRegions::apply()
 		return;
 	}
 
-	if (bed.count() > 0)
-	{
-		// import to db
-		SqlQuery query = NGSD().getQuery();
-		query.prepare("UPDATE `cfdna_panels` SET `removed_regions`=:0 WHERE `id`=:1");
-
-		// bind values
-		query.bindValue(0, bed.toText());
-		query.bindValue(1, cfdna_panel_info_.cfdna_id);
-		query.exec();
-	}
+	// import to db
+	NGSD().setCfdnaRemovedRegions(cfdna_panel_info_.id, removed_regions);
+	this->close();
 }

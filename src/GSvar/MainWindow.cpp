@@ -1320,9 +1320,10 @@ void MainWindow::on_actionCfDNAAddExcludedRegions_triggered()
 	if (!LoginManager::active()) return;
 	if (!somaticReportSupported()) return;
 
-	cfDNARemovedRegions* widget = new cfDNARemovedRegions(variants_.mainSampleName());
-	auto dlg = GUIHelper::createDialog(widget, "Removed regions of cfDNA panel for tumor " + variants_.analysisName());
-	addModelessDialog(dlg, false);
+	QSharedPointer<cfDNARemovedRegions> dialog(new cfDNARemovedRegions(variants_.mainSampleName(), this));
+	dialog->setWindowFlags(Qt::Window);
+
+	addModelessDialog(dialog, false);
 }
 
 void MainWindow::on_actionGeneOmimInfo_triggered()

@@ -26,7 +26,7 @@ private:
 	CfdnaPanelInfo cfdna_panel_info_;
 
 private slots:
-	void apply();
+	void importInNGSD();
 };
 
 #endif // CFDNAREMOVEDREGIONS_H
