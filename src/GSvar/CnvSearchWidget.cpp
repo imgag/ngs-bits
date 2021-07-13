@@ -201,6 +201,7 @@ void CnvSearchWidget::search()
 		//(3) process cnv metrics
 		int min_regions = ui_.regions->value();
 		int min_ll = ui_.ll->value();
+		bool scale_ll = ui_.ll_scale->isChecked();
 		double min_size = ui_.size->value();
 		int col_cnv_metrics = table.columnIndex("cnv_metrics");
 		int col_size = table.columnIndex("size_kb");
@@ -209,6 +210,8 @@ void CnvSearchWidget::search()
 			const DBRow& row = table.row(r);
 			QString value = row.value(col_cnv_metrics);
 			QJsonDocument json = QJsonDocument::fromJson(value.toLatin1());
+
+			bool caller_is_clincnv = row.value(col_caller)=="ClinCNV";
 
 			//filter by size
 			if (min_size>0.0)
@@ -228,9 +231,12 @@ void CnvSearchWidget::search()
 			}
 
 			//filter by log-likelihood
-			if (row.value(col_caller)=="ClinCNV")
+			if (caller_is_clincnv)
 			{
-				if (json.object().value("loglikelihood").toString().toInt()<min_ll)
+				double ll = json.object().value("loglikelihood").toString().toDouble();
+				if (scale_ll) ll = ll / json.object().value("regions").toString().toDouble();
+
+				if (ll<min_ll)
 				{
 					table.removeRow(r);
 					continue;
@@ -238,14 +244,14 @@ void CnvSearchWidget::search()
 			}
 
 			//format value
-			if (row.value(col_caller)=="ClinCNV")
+			if (caller_is_clincnv)
 			{
 				QStringList values;
 				values << "regions: " + json.object().value("regions").toString();
 				values << "log-likelihood: " + json.object().value("loglikelihood").toString();
 				table.setValue(r, col_cnv_metrics, values.join(" "));
 			}
-			else if (row.value(col_caller)=="CnvHunter")
+			else if (!caller_is_clincnv)
 			{
 				QStringList values;
 				values << "regions: " + json.object().value("regions").toString();
