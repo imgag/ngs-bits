@@ -89,8 +89,8 @@ void VariantWidget::updateGUI()
 		while(query2.next())
 		{
 			QString ps_id = query2.value(0).toString();
-
-			SampleData s_data = db.getSampleData(db.getValue("SELECT sample_id FROM processed_sample WHERE id=" + ps_id).toString());
+			QString s_id  = db.getValue("SELECT sample_id FROM processed_sample WHERE id=" + ps_id).toString();
+			SampleData s_data = db.getSampleData(s_id);
 			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
 			DiagnosticStatusData diag_data = db.getDiagnosticStatus(ps_id);
 			QTableWidgetItem* item = addItem(row, 0,  ps_data.name);
@@ -111,8 +111,8 @@ void VariantWidget::updateGUI()
 			addItem(row, 9, pho_list.join("; "));
 			addItem(row, 10, diag_data.dagnostic_status);
 			addItem(row, 11, diag_data.user);
-			addItem(row, 12, s_data.comments);
-			addItem(row, 13, ps_data.comments);
+			addItem(row, 12, s_data.comments, true);
+			addItem(row, 13, ps_data.comments, true);
 
 			//get causal genes from report config
 			GeneSet genes_causal;
@@ -142,7 +142,14 @@ void VariantWidget::updateGUI()
 			{
 				rc_comment = query5.value(0).toString().trimmed();
 			}
-			addItem(row, 16, rc_comment);
+			addItem(row, 16, rc_comment, true);
+
+			//validation info
+			QString vv_id = db.getValue("SELECT id FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + variant_id + "' AND variant_type='SNV_INDEL'").toString();
+			if (!vv_id.isEmpty())
+			{
+				addItem(row, 17, db.getValue("SELECT status FROM variant_validation WHERE id='" + vv_id + "'").toString());
+			}
 
 			++row;
 		}
@@ -163,10 +170,19 @@ void VariantWidget::delayedInitialization()
 }
 
 
-QTableWidgetItem* VariantWidget::addItem(int r, int c, QString text)
+QTableWidgetItem* VariantWidget::addItem(int r, int c, QString text, bool also_as_tooltip)
 {
+	if (c>=ui_.table->columnCount())
+	{
+		THROW(ProgrammingException, "Column '" + QString::number(c) + "' not present in variant table!");
+	}
+
 	QTableWidgetItem* item = new QTableWidgetItem(text);
 	ui_.table->setItem(r, c, item);
+	if (also_as_tooltip)
+	{
+		ui_.table->item(r, c)->setToolTip(text);
+	}
 	return item;
 }
 

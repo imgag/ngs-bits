@@ -53,9 +53,9 @@ void CnvSearchWidget::search()
 	try
 	{
 		//prepared SQL query
-		QString query_str = "SELECT c.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, s.disease_group, s.disease_status, s.id as 'HPO terms', ds.outcome, cs.caller, cs.quality as quality_callset, cs.quality_metrics as callset_metrics, c.chr, c.start, c.end, c.cn, (c.end-c.start)/1000.0 as size_kb, c.quality_metrics as cnv_metrics, rc.class "
-							"FROM cnv_callset cs, processed_sample ps LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id, processing_system sys, sample s, cnv c LEFT JOIN report_configuration_cnv rc ON rc.cnv_id=c.id, project p "
-							"WHERE s.id=ps.sample_id AND sys.id=ps.processing_system_id AND c.cnv_callset_id=cs.id AND ps.id=cs.processed_sample_id AND ps.project_id=p.id ";
+		QString query_str = "SELECT c.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, s.disease_group, s.disease_status, s.id as 'HPO terms', ds.outcome, cs.caller, cs.quality as quality_callset, cs.quality_metrics as callset_metrics, c.chr, c.start, c.end, c.cn, (c.end-c.start)/1000.0 as size_kb, c.quality_metrics as cnv_metrics, rc.class, CONCAT(rc.comments, ' // ', rc.comments2) as report_config_comments"
+							" FROM cnv_callset cs, processed_sample ps LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id, processing_system sys, sample s, cnv c LEFT JOIN report_configuration_cnv rc ON rc.cnv_id=c.id, project p"
+							" WHERE s.id=ps.sample_id AND sys.id=ps.processing_system_id AND c.cnv_callset_id=cs.id AND ps.id=cs.processed_sample_id AND ps.project_id=p.id";
 
 		//(0) parse input and prepare query
 
@@ -264,8 +264,21 @@ void CnvSearchWidget::search()
 		}
 		table.setColumn(hpo_col_index, hpo_terms);
 
-		//(5) show samples with CNVs in table
+		//(5) Add validation information
+		QStringList validation_data;
+		for (int r=0; r<table.rowCount(); ++r)
+		{
+			const DBRow& row = table.row(r);
+			QString cnv_id = row.id();
+			QString s_id = db_.sampleId(row.value(0));
+			validation_data << db_.getValue("SELECT status FROM variant_validation WHERE sample_id=" + s_id + " AND cnv_id=" + cnv_id).toString();
+		}
+		table.addColumn(validation_data, "validation_information");
+
+		//(6) show samples with CNVs in table
 		ui_.table->setData(table);
+		ui_.table->showTextAsTooltip("report_config_comments");
+
 		ui_.message->setText("Found " + QString::number(table.rowCount()) + " matching CNVs in NGSD.");
 	}
 	catch(Exception& e)
@@ -309,7 +322,6 @@ void CnvSearchWidget::changeSearchType()
 
 void CnvSearchWidget::openSelectedSampleTabs()
 {
-
 	int col = ui_.table->columnIndex("sample");
 	foreach (int row, ui_.table->selectedRows().toList())
 	{
