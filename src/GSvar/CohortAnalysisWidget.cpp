@@ -1,5 +1,6 @@
 #include "CohortAnalysisWidget.h"
 #include "NGSD.h"
+#include "GUIHelper.h"
 #include <QMessageBox>
 
 CohortAnalysisWidget::CohortAnalysisWidget(QWidget* parent)
@@ -31,12 +32,15 @@ QString CohortAnalysisWidget::baseQuery()
 
 void CohortAnalysisWidget::updateOutputTable()
 {
+	QApplication::setOverrideCursor(Qt::BusyCursor);
+
 	try
 	{
 		NGSD db;
 
 		//init
 		QString query_str = baseQuery();
+		bool iheritance_is_recessive = ui_.filter_inheritance->currentText()=="recessive";
 		int max_ngsd = ui_.filter_ngsd_count->value();
 
 		//determine processed sample IDs
@@ -51,67 +55,110 @@ void CohortAnalysisWidget::updateOutputTable()
 		}
 
 		//determine matching variants for each sample
-		QHash<QByteArray, int> gene_single_hits;
-		QHash<QByteArray, int> gene_double_hits;
+		QHash<QByteArray, QStringList> gene2ps_hits;
 		foreach(QString ps_id, ps_ids)
 		{
+			qDebug() << ps_id; //TODO
 			QHash<QByteArray, int> hits_by_gene;
 			SqlQuery query = db.getQuery();
 			query.exec(query_str + " AND dv.processed_sample_id= " + ps_id);
 			while(query.next())
 			{
-				int var_count_ngsd = db.getValue("SELECT COUNT(dv.processed_sample_id) FROM detected_variant dv WHERE dv.variant_id='" + query.value(0).toString() + "'").toInt();
-				if (max_ngsd>0 && var_count_ngsd < max_ngsd)
+				if (max_ngsd>0)
 				{
-					GeneSet genes = db.genesOverlapping(query.value(1).toString(), query.value(2).toInt(), query.value(3).toInt());
-					foreach(const QByteArray& gene, genes)
-					{
-						int hits = query.value(4).toByteArray()=="hom" ? 2 : 1;
-						hits_by_gene[gene] += hits;
-					}
+					int var_count_ngsd = db.getValue("SELECT COUNT(dv.processed_sample_id) FROM detected_variant dv WHERE dv.variant_id='" + query.value(0).toString() + "'").toInt();
+					if (var_count_ngsd > max_ngsd) continue;
+				}
+
+				Chromosome chr = query.value(1).toString();
+				int start = query.value(2).toInt();
+				int end = query.value(3).toInt();
+				GeneSet genes = db.genesOverlapping(chr, start, end);
+				foreach(const QByteArray& gene, genes)
+				{
+					int hits = query.value(4).toByteArray()=="hom" ? 2 : 1;
+					hits_by_gene[gene] += hits;
 				}
 			}
 			for(auto it = hits_by_gene.begin(); it!=hits_by_gene.end(); ++it)
 			{
 				const QByteArray& gene = it.key();
-				int hit_count = it.value();
-				if (hit_count>=1)
+
+				if (!iheritance_is_recessive && it.value()>=1)
 				{
-					gene_single_hits[gene] += 1;
+					gene2ps_hits[gene] << ps_id;
 				}
-				if (hit_count>=2)
+				if (iheritance_is_recessive && it.value()>=2)
 				{
-					gene_double_hits[gene] += 1;
+					gene2ps_hits[gene] << ps_id;
 				}
 			}
 		}
 
-		//TODO: try removing low-confidence region variants
-
-		qDebug() << "double hits:";
-		for(auto it = gene_double_hits.begin(); it!=gene_double_hits.end(); ++it)
+		//ouput
+		ui_.output->clearContents();
+		ui_.output->setRowCount(0);
+		ui_.output->setSortingEnabled(false);
+		for(auto it = gene2ps_hits.begin(); it!=gene2ps_hits.end(); ++it)
 		{
-			const QByteArray& gene = it.key();
-			int hit_count = it.value();
-			if (hit_count>1)
+			QStringList ps_ids = it.value();
+			if (ps_ids.count()>1)
 			{
-				qDebug() << gene << hit_count;
+				int r = ui_.output->rowCount();
+				ui_.output->setRowCount(ui_.output->rowCount()+1);
+
+				const QByteArray& gene = it.key();
+				addTableItem(r, 0, QString(gene));
+				addTableItem(r, 1, ps_ids.count());
+				int base_count = db.longestCodingTranscript(db.geneToApprovedID(gene), Transcript::ENSEMBL, true, true).regions().baseCount();
+				addTableItem(r, 2, base_count);
+				GeneInfo gene_info = db.geneInfo(gene);
+				addTableItem(r, 3, gene_info.oe_lof);
+				addTableItem(r, 4, gene_info.oe_mis);
+				QStringList ps_list;
+				foreach(QString ps_id, ps_ids)
+				{
+					ps_list << db.processedSampleName(ps_id);
+				}
+				addTableItem(r, 5, ps_list.join(", "));
 			}
 		}
+		ui_.output->setSortingEnabled(true);
+		ui_.output->sortByColumn(1);
+		GUIHelper::resizeTableCells(ui_.output, 200);
 
-		qDebug() << "single hits:";
-		for(auto it = gene_single_hits.begin(); it!=gene_single_hits.end(); ++it)
-		{
-			const QByteArray& gene = it.key();
-			int hit_count = it.value();
-			if (hit_count>1)
-			{
-				qDebug() << gene << hit_count;
-			}
-		}
+		QApplication::restoreOverrideCursor();
 	}
 	catch(Exception& e)
 	{
+		QApplication::restoreOverrideCursor();
 		QMessageBox::warning(this, "Error", "Could not perform cohort analysis:\n" + e.message());
 	}
 }
+
+
+QTableWidgetItem* CohortAnalysisWidget::addTableItem(int row, int col, QString text)
+{
+	QTableWidgetItem* item = new QTableWidgetItem();
+
+	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+	item->setData(Qt::EditRole, text);
+
+	ui_.output->setItem(row, col, item);
+
+	return item;
+}
+
+QTableWidgetItem* CohortAnalysisWidget::addTableItem(int row, int col, int value)
+{
+	QTableWidgetItem* item = new QTableWidgetItem();
+
+	item->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
+	item->setData(Qt::EditRole, value);
+
+	ui_.output->setItem(row, col, item);
+
+	return item;
+}
+
+//TODO: make genomes faster, open modal, copy to clipboad, context menu => open gene tab

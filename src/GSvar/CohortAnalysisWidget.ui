@@ -66,7 +66,100 @@
       <property name="spacing">
        <number>3</number>
       </property>
-      <item row="2" column="1">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>inheritance:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <property name="spacing">
+         <number>3</number>
+        </property>
+        <item>
+         <widget class="QSpinBox" name="filter_ngsd_count">
+          <property name="maximum">
+           <number>99999</number>
+          </property>
+          <property name="singleStep">
+           <number>10</number>
+          </property>
+          <property name="value">
+           <number>20</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_7">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item row="3" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <property name="spacing">
+         <number>3</number>
+        </property>
+        <item>
+         <widget class="QDoubleSpinBox" name="filter_af">
+          <property name="suffix">
+           <string>%</string>
+          </property>
+          <property name="maximum">
+           <double>100.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+          <property name="value">
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>658</width>
+            <height>5</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>max. NGSD count:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="toolTip">
+         <string>Maximum allele frequency in 1000G/gnomAD.</string>
+        </property>
+        <property name="text">
+         <string>max. allele frequency:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <property name="spacing">
          <number>3</number>
@@ -120,7 +213,7 @@
         </item>
        </layout>
       </item>
-      <item row="2" column="0">
+      <item row="1" column="0">
        <widget class="QLabel" name="label_4">
         <property name="toolTip">
          <string>Variant impact on protein.</string>
@@ -130,79 +223,27 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="toolTip">
-         <string>Maximum allele frequency in 1000G/gnomAD.</string>
-        </property>
-        <property name="text">
-         <string>max. frequency:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>max. NGSD count:</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <layout class="QHBoxLayout" name="horizontalLayout">
         <property name="spacing">
          <number>3</number>
         </property>
         <item>
-         <widget class="QDoubleSpinBox" name="filter_af">
-          <property name="suffix">
-           <string>%</string>
-          </property>
-          <property name="maximum">
-           <double>100.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>0.100000000000000</double>
-          </property>
-          <property name="value">
-           <double>0.100000000000000</double>
-          </property>
+         <widget class="QComboBox" name="filter_inheritance">
+          <item>
+           <property name="text">
+            <string>recessive</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>dominant</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>658</width>
-            <height>5</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </item>
-      <item row="1" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout_7">
-        <property name="spacing">
-         <number>3</number>
-        </property>
-        <item>
-         <widget class="QSpinBox" name="filter_ngsd_count">
-          <property name="maximum">
-           <number>99999</number>
-          </property>
-          <property name="singleStep">
-           <number>10</number>
-          </property>
-          <property name="value">
-           <number>20</number>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_7">
+         <spacer name="horizontalSpacer_4">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -266,7 +307,24 @@ DX203866_01
 DX204538_01
 DX209744_01
 EX200001_01
-</string>
+
+DX2101231_02
+DX2101575_02
+DX2101804_02
+DX2102011_02
+DX2102153_02
+DX2102173_02
+DX2102507_02
+DX2102686_02
+DX2102765_02
+DX2102784_02
+DX2102838_03
+DX2103133_02
+DX2103372_02
+DX2103569_02
+DX2104421_02
+DX2104425_02
+DX2104997_02</string>
         </property>
         <property name="placeholderText">
          <string/>
@@ -321,7 +379,41 @@ EX200001_01
     </layout>
    </item>
    <item>
-    <widget class="QTableWidget" name="output"/>
+    <widget class="QTableWidget" name="output">
+     <property name="sortingEnabled">
+      <bool>true</bool>
+     </property>
+     <column>
+      <property name="text">
+       <string>gene</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>hits</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>gene base count</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>gnomAD o/e LoF</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>gnomAD o/e missense</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>samples with hits</string>
+      </property>
+     </column>
+    </widget>
    </item>
   </layout>
  </widget>

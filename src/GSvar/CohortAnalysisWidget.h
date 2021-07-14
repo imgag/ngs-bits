@@ -15,6 +15,8 @@ public:
 
 protected:
 	QString baseQuery();
+	QTableWidgetItem* addTableItem(int row, int col, QString text);
+	QTableWidgetItem* addTableItem(int row, int col, int value);
 
 protected slots:
 	void updateOutputTable();
