@@ -203,8 +203,9 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	//get variants in chromosomal range
 	QSet<QString> vars_distinct;
 	QList<QStringList> var_data;
-	QString af = QString::number(ui_.filter_af->value()/100.0);
-	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start";
+	QString max_af = QString::number(ui_.filter_af->value()/100.0);
+	int max_ngsd = ui_.filter_ngsd_count->value();
+	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND (1000g IS NULL OR 1000g<=" + max_af + ") AND (gnomad IS NULL OR gnomad<=" + max_af + ") ORDER BY start";
 	SqlQuery query = db.getQuery();
 	query.exec(query_text);
 	while(query.next())
@@ -243,6 +244,9 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 		QString variant_id = query.value("id").toString();
 		QPair<int, int> ngsd_counts = db.variantCounts(variant_id);
 		if (ngsd_counts.first + ngsd_counts.second ==0) continue; //skip somatic-only variants
+
+		//apply NGSD count filter
+		if (max_ngsd>0 && (ngsd_counts.first + ngsd_counts.second)>max_ngsd) continue;
 
 		//format transcript info
 		QSet<QString> types;

@@ -30,7 +30,7 @@ private:
 	DelayedInitializationTimer init_timer_;
 	Variant variant_;
 
-	QTableWidgetItem* addItem(int r, int c, QString text);
+	QTableWidgetItem* addItem(int r, int c, QString text, bool also_as_tooltip=false);
 	QList<int> selectedRows() const;
 };
 

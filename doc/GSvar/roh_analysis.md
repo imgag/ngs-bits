@@ -27,7 +27,8 @@ The following histograms show the size sum distribution of **class B/C ROHs (i.e
 
 ![alt text](roh_distribution.png)
 
-In both assays, a size sum of class B/C ROHs &ge; 70 Mb is a good indicator of consanguinity (unless there are other sources of ROHs like large deletions).
+In both WES and WGS, a good hint of consanguinity is the **sum of ROHs larger than 500Kb (class B/C) &ge; 70Mb**.  
+If it is bigger than 70Mb consanguinity can be assumed, unless there are other sources of ROHs like large deletions.
 
 ### ROH viewing and filtering
 

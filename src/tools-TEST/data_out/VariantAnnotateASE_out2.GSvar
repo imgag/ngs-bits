@@ -6,7 +6,7 @@
 ##DESCRIPTION=tumor_dp=Tumor Depth
 ##DESCRIPTION=normal_af=Mutant allele frequency in normal
 ##DESCRIPTION=normal_dp=Normal depth
-##DESCRIPTION=ASE_freq=Expressed variant allele frequency.
+##DESCRIPTION=ASE_af=Expressed variant allele frequency.
 ##DESCRIPTION=ASE_depth=Sequencing depth at the variant position.
 ##DESCRIPTION=ASE_alt=Expressed variant alternative observation count.
 ##DESCRIPTION=ASE_pval=Binomial test p-value.
