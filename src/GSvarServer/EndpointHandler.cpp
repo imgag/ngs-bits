@@ -57,121 +57,130 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 		}
 	}
 
-	if (found_file.isEmpty())
+	bool multiple_files = true;
+	if (!request.getUrlParams().contains("multiple_files"))
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), "Could not find the sample: " + request.getUrlParams()["ps_url_id"]);
+		if (request.getUrlParams()["multiple_files"] == "0")
+		{
+			multiple_files = false;
+		}
 	}
-
-	VariantList variants;
-	variants.loadHeaderOnly(found_file);
-	FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type());
-
-//	SampleMetadata metadata = getSampleMetadata(found_file, true);
-//	FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, metadata.header, metadata.type);
 
 	QList<FileLocation> file_list {};
 	QJsonDocument json_doc_output {};
 	QJsonArray json_list_output {};
+	PathType requested_type = FileLocation::stringToType(request.getUrlParams()["type"].toUpper().trimmed());
 
-	QString type_in_upper = request.getUrlParams()["type"].toUpper().trimmed();
-
-	if(type_in_upper == FileLocation::typeToString(PathType::VCF))
+	if (found_file.isEmpty())
 	{
-		file_list << file_locator->getAnalysisVcf();
-	}
-	else if(type_in_upper == FileLocation::typeToString(PathType::STRUCTURAL_VARIANTS))
-	{
-		file_list << file_locator->getAnalysisSvFile();
-	}
-	else if(type_in_upper == FileLocation::typeToString(PathType::COPY_NUMBER_CALLS))
-	{
-		file_list << file_locator->getAnalysisCnvFile();
-	}
-	else if(type_in_upper == FileLocation::typeToString(PathType::COPY_NUMBER_CALLS_MOSAIC))
-	{
-		file_list << file_locator->getAnalysisMosaicCnvFile();
-	}
-	else if(type_in_upper == FileLocation::typeToString(PathType::UPD))
-	{
-		file_list << file_locator->getAnalysisUpdFile();
-	}
-	else if(type_in_upper == FileLocation::typeToString(PathType::REPEAT_EXPANSION_IMAGE))
-	{
-		if (!request.getUrlParams().contains("locus"))
-		{
-			return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Locus value has not been provided");
-		}
-		file_list << file_locator->getRepeatExpansionImage(request.getUrlParams()["locus"]);
-	}
-	else if(type_in_upper == FileLocation::typeToString(PathType::BAM))
-	{
-		file_list = file_locator->getBamFiles(return_if_missing);
-	}
-	else if(type_in_upper == FileLocation::typeToString(PathType::COPY_NUMBER_RAW_DATA))
-	{
-		file_list = file_locator->getCnvCoverageFiles(return_if_missing);
-	}
-	else if(type_in_upper == FileLocation::typeToString(PathType::BAF))
-	{
-		file_list = file_locator->getBafFiles(return_if_missing);
-	}
-	else if (type_in_upper == FileLocation::typeToString(PathType::MANTA_EVIDENCE))
-	{
-		file_list = file_locator->getMantaEvidenceFiles(return_if_missing);
-	}
-	else if (type_in_upper == FileLocation::typeToString(PathType::CIRCOS_PLOT))
-	{
-		file_list = file_locator->getCircosPlotFiles(return_if_missing);
-	}
-	else if (type_in_upper == FileLocation::typeToString(PathType::VCF))
-	{
-		file_list = file_locator->getVcfFiles(return_if_missing);
-	}
-	else if (type_in_upper == FileLocation::typeToString(PathType::REPEAT_EXPANSIONS))
-	{
-		file_list = file_locator->getRepeatExpansionFiles(return_if_missing);
-	}
-	else if (type_in_upper == FileLocation::typeToString(PathType::PRS))
-	{
-		file_list = file_locator->getPrsFiles(return_if_missing);
-	}
-	else if (type_in_upper == FileLocation::typeToString(PathType::LOWCOV_BED))
-	{
-		file_list = file_locator->getLowCoverageFiles(return_if_missing);
-	}
-	else if (type_in_upper == FileLocation::typeToString(PathType::COPY_NUMBER_CALLS))
-	{
-		file_list = file_locator->getCopyNumberCallFiles(return_if_missing);
-	}
-	else if (type_in_upper == FileLocation::typeToString(PathType::ROH))
-	{
-		file_list = file_locator->getRohFiles(return_if_missing);
-	}
-	else if (type_in_upper == FileLocation::typeToString(PathType::COPY_NUMBER_RAW_DATA))
-	{
-		file_list << file_locator->getSomaticCnvCoverageFile();
-	}
-	else if (type_in_upper == FileLocation::typeToString(PathType::CNV_RAW_DATA_CALL_REGIONS))
-	{
-		file_list << file_locator->getSomaticCnvCallFile();
-	}
-	else if (type_in_upper == FileLocation::typeToString(PathType::LOWCOV_BED))
-	{
-		file_list << file_locator->getSomaticLowCoverageFile();
-	}
-	else if (type_in_upper == FileLocation::typeToString(PathType::MSI))
-	{
-		file_list << file_locator->getSomaticMsiFile();
+		FileLocation missing_file(
+			"undefined",
+			requested_type,
+			"noname",
+			false
+		);
+		file_list.append(missing_file);
 	}
 	else
 	{
-		FileLocation gsvar_file(
-			url_entity.file_id,
-			PathType::GSVAR,
-			found_file,
-			true
-		);
-		file_list.append(gsvar_file);
+		VariantList variants;
+		variants.loadHeaderOnly(found_file);
+		FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type());
+
+		switch(requested_type)
+		{
+			case PathType::VCF:
+				if (multiple_files)
+				{
+					file_list = file_locator->getVcfFiles(return_if_missing);
+				}
+				else
+				{
+					file_list << file_locator->getAnalysisVcf();
+				}
+				break;
+			case PathType::STRUCTURAL_VARIANTS:
+				file_list << file_locator->getAnalysisSvFile();
+				break;
+			case PathType::COPY_NUMBER_CALLS:
+				if (multiple_files)
+				{
+					file_list = file_locator->getCopyNumberCallFiles(return_if_missing);
+				}
+				else
+				{
+					file_list << file_locator->getAnalysisCnvFile();
+				}
+				break;
+			case PathType::COPY_NUMBER_CALLS_MOSAIC:
+				file_list << file_locator->getAnalysisMosaicCnvFile();
+				break;
+			case PathType::UPD:
+				file_list << file_locator->getAnalysisUpdFile();
+				break;
+			case PathType::REPEAT_EXPANSION_IMAGE:
+				if (!request.getUrlParams().contains("locus"))
+				{
+					return HttpResponse(ResponseStatus::BAD_REQUEST, request.getContentType(), "Locus value has not been provided");
+				}
+				file_list << file_locator->getRepeatExpansionImage(request.getUrlParams()["locus"]);
+				break;
+			case PathType::BAM:
+				file_list = file_locator->getBamFiles(return_if_missing);
+				break;
+			case PathType::COPY_NUMBER_RAW_DATA:
+				if (multiple_files)
+				{
+					file_list = file_locator->getCnvCoverageFiles(return_if_missing);
+				}
+				else
+				{
+					file_list << file_locator->getSomaticCnvCoverageFile();
+				}
+				break;
+			case PathType::BAF:
+				file_list = file_locator->getBafFiles(return_if_missing);
+				break;
+			case PathType::MANTA_EVIDENCE:
+				file_list = file_locator->getMantaEvidenceFiles(return_if_missing);
+				break;
+			case PathType::CIRCOS_PLOT:
+				file_list = file_locator->getCircosPlotFiles(return_if_missing);
+				break;
+			case PathType::REPEAT_EXPANSIONS:
+				file_list = file_locator->getRepeatExpansionFiles(return_if_missing);
+				break;
+			case PathType::PRS:
+				file_list = file_locator->getPrsFiles(return_if_missing);
+				break;
+			case PathType::LOWCOV_BED:
+				if (multiple_files)
+				{
+					file_list = file_locator->getLowCoverageFiles(return_if_missing);
+				}
+				else
+				{
+					file_list << file_locator->getSomaticLowCoverageFile();
+				}
+				break;
+			case PathType::ROH:
+				file_list = file_locator->getRohFiles(return_if_missing);
+				break;
+			case PathType::CNV_RAW_DATA_CALL_REGIONS:
+				file_list << file_locator->getSomaticCnvCallFile();
+				break;
+			case PathType::MSI:
+				file_list << file_locator->getSomaticMsiFile();
+				break;
+			default:
+				FileLocation gsvar_file(
+					url_entity.file_id,
+					PathType::GSVAR,
+					found_file,
+					true
+				);
+				file_list.append(gsvar_file);
+		}
 	}
 
 	for (int i = 0; i < file_list.count(); ++i)
