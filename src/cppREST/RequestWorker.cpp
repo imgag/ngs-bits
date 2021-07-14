@@ -146,7 +146,7 @@ void RequestWorker::run()
 	}
 	catch (Exception& e)
 	{
-		qDebug() << "Error while executing an action";
+		qDebug() << "Error while executing an action" << e.message();
 		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not process endpoint action"));
 		return;
 	}

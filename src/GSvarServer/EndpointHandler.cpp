@@ -49,7 +49,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 	QString found_file = url_entity.filename_with_path;
 
 	bool return_if_missing = true;
-	if (!request.getUrlParams().contains("return_if_missing"))
+	if (request.getUrlParams().contains("return_if_missing"))
 	{
 		if (request.getUrlParams()["return_if_missing"] == "0")
 		{
@@ -58,9 +58,9 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 	}
 
 	bool multiple_files = true;
-	if (!request.getUrlParams().contains("multiple_files"))
+	if (request.getUrlParams().contains("multiple_files"))
 	{
-		if (request.getUrlParams()["multiple_files"] == "0")
+		if (request.getUrlParams()["multiple_files"].trimmed() == "0")
 		{
 			multiple_files = false;
 		}
@@ -73,13 +73,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 
 	if (found_file.isEmpty())
 	{
-		FileLocation missing_file(
-			"undefined",
-			requested_type,
-			"noname",
-			false
-		);
-		file_list.append(missing_file);
+		file_list << FileLocation("undefined", requested_type, "noname", false);
 	}
 	else
 	{
@@ -194,7 +188,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 			if (request.getUrlParams()["path"].toLower() == "absolute") needs_url = false;
 
 		}
-		if (needs_url)
+		if ((needs_url) && (file_list[i].exists))
 		{
 			try
 			{
@@ -209,7 +203,6 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 		{
 			cur_json_item.insert("filename", file_list[i].filename);
 		}
-
 		cur_json_item.insert("exists", file_list[i].exists);
 		json_list_output.append(cur_json_item);
 	}
@@ -220,7 +213,6 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 	response_data.length = json_doc_output.toJson().length();
 	response_data.content_type = ContentType::APPLICATION_JSON;
 	response_data.is_downloadable = false;
-
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 

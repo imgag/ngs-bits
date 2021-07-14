@@ -71,11 +71,6 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
 	QJsonArray file_list = json_doc.array();
 
-	if (file_list.count() == 0)
-	{
-		THROW(Exception, "Could not find file info: " + FileLocation::typeToString(type));
-	}
-
 	output = mapJsonArrayToFileLocationList(file_list, return_if_missing);
 	return output;
 }
