@@ -65,7 +65,7 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 	QByteArray reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
 				server_host_ + ":" + QString::number(server_port_)
 				+ "/v1/file_location?ps_url_id=" + file_id + "&type=" + FileLocation::typeToString(type)
-				+ "multiple_files=1"
+				+ "&multiple_files=1"
 				+ "&return_if_missing=" +(return_if_missing ? "1" : "0"), add_headers);
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
@@ -102,7 +102,7 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
 				server_host_ + ":" + QString::number(server_port_)
 				+ "/v1/file_location?ps_url_id=" + file_id + "&type=" +  FileLocation::typeToString(type)
-				+ "multiple_files=0"
+				+ "&multiple_files=0"
 				+ (locus.isEmpty() ? "" : "&locus=" + locus), add_headers);
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
