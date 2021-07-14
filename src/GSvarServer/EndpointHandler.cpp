@@ -66,7 +66,7 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 		}
 	}
 
-	QList<FileLocation> file_list {};
+	FileLocationList file_list {};
 	QJsonDocument json_doc_output {};
 	QJsonArray json_list_output {};
 	PathType requested_type = FileLocation::stringToType(request.getUrlParams()["type"].toUpper().trimmed());
