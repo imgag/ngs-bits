@@ -54,10 +54,8 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 
 	QStringList gsvar_filename_parts = sample_id_.split("/");
 	QString file_id;
-	if (gsvar_filename_parts.size()<2)
-	{
-		return output;
-	}
+	if (gsvar_filename_parts.size() < 2) return output;
+
 	file_id = gsvar_filename_parts[gsvar_filename_parts.size()-2].trimmed();
 
 	HttpHeaders add_headers;
@@ -86,10 +84,8 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 
 	QStringList gsvar_filename_parts = sample_id_.split("/");
 	QString file_id;
-	if (gsvar_filename_parts.size()<2)
-	{
-		return output;
-	}
+	if (gsvar_filename_parts.size() < 2) return output;
+
 	file_id = gsvar_filename_parts[gsvar_filename_parts.size()-2].trimmed();
 
 	HttpHeaders add_headers;
@@ -102,18 +98,12 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
 	QJsonArray file_list = json_doc.array();
-	QJsonObject file_object = file_list[0].toObject();
-
-
-	if (file_object.isEmpty())
-	{
-		THROW(Exception, "Could not find file info: " + FileLocation::typeToString(type));
-	}
+	QJsonObject file_object;
+	if (!file_list.isEmpty()) file_object = file_list[0].toObject();
 
 	output = mapJsonObjectToFileLocation(file_object);
 	return output;
 }
-
 
 FileLocation FileLocationProviderRemote::mapJsonObjectToFileLocation(QJsonObject obj) const
 {	

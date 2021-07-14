@@ -87,11 +87,9 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 				if (multiple_files)
 				{
 					file_list = file_locator->getVcfFiles(return_if_missing);
+					break;
 				}
-				else
-				{
-					file_list << file_locator->getAnalysisVcf();
-				}
+				file_list << file_locator->getAnalysisVcf();
 				break;
 			case PathType::STRUCTURAL_VARIANTS:
 				file_list << file_locator->getAnalysisSvFile();
@@ -100,11 +98,9 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 				if (multiple_files)
 				{
 					file_list = file_locator->getCopyNumberCallFiles(return_if_missing);
-				}
-				else
-				{
-					file_list << file_locator->getAnalysisCnvFile();
-				}
+					break;
+				}				
+				file_list << file_locator->getAnalysisCnvFile();
 				break;
 			case PathType::COPY_NUMBER_CALLS_MOSAIC:
 				file_list << file_locator->getAnalysisMosaicCnvFile();
@@ -126,11 +122,9 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 				if (multiple_files)
 				{
 					file_list = file_locator->getCnvCoverageFiles(return_if_missing);
-				}
-				else
-				{
-					file_list << file_locator->getSomaticCnvCoverageFile();
-				}
+					break;
+				}				
+				file_list << file_locator->getSomaticCnvCoverageFile();
 				break;
 			case PathType::BAF:
 				file_list = file_locator->getBafFiles(return_if_missing);
@@ -151,11 +145,9 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 				if (multiple_files)
 				{
 					file_list = file_locator->getLowCoverageFiles(return_if_missing);
-				}
-				else
-				{
-					file_list << file_locator->getSomaticLowCoverageFile();
-				}
+					break;
+				}				
+				file_list << file_locator->getSomaticLowCoverageFile();
 				break;
 			case PathType::ROH:
 				file_list = file_locator->getRohFiles(return_if_missing);
@@ -186,7 +178,6 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 		if (request.getUrlParams().contains("path"))
 		{
 			if (request.getUrlParams()["path"].toLower() == "absolute") needs_url = false;
-
 		}
 		if ((needs_url) && (file_list[i].exists))
 		{
