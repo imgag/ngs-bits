@@ -1063,7 +1063,7 @@ QPair<int, int> NGSD::variantCounts(const QString& variant_id)
 	QSet<int> samples_done_het;
 	QSet<int> samples_done_hom;
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.id, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id='" + variant_id + "' AND ps.sample_id=s.id AND dv.processed_sample_id=ps.id");
+	query.exec("SELECT ps.sample_id, dv.genotype FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='" + variant_id + "' AND dv.processed_sample_id=ps.id");
 	while(query.next())
 	{
 		//use sample ID to prevent counting variants several times if a sample was sequenced more than once.

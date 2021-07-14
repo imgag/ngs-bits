@@ -58,7 +58,7 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 	{
 		return output;
 	}
-	file_id = gsvar_filename_parts.value(gsvar_filename_parts.size()-2).trimmed();
+	file_id = gsvar_filename_parts[gsvar_filename_parts.size()-2].trimmed();
 
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
@@ -90,7 +90,7 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 	{
 		return output;
 	}
-	file_id = gsvar_filename_parts.value(gsvar_filename_parts.size()-2).trimmed();
+	file_id = gsvar_filename_parts[gsvar_filename_parts.size()-2].trimmed();
 
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
