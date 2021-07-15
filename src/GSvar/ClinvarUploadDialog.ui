@@ -61,10 +61,30 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="2">
-        <widget class="QLineEdit" name="le_start">
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>assembly:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="2">
+        <widget class="QLineEdit" name="le_obs">
          <property name="toolTip">
-          <string>The start location for the reference allele in chromosome coordinates. </string>
+          <string>The alternate allele for the submitted variant. </string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QComboBox" name="cb_assembly">
+         <property name="toolTip">
+          <string>The genome assembly that was used to call the variant.</string>
          </property>
         </widget>
        </item>
@@ -75,10 +95,10 @@
          </property>
         </widget>
        </item>
-       <item row="7" column="2">
-        <widget class="QLineEdit" name="le_gene">
+       <item row="3" column="2">
+        <widget class="QLineEdit" name="le_start">
          <property name="toolTip">
-          <string>Gene symbol should be provided only to indicate the gene-disease relationship supporting the variant interpretation. </string>
+          <string>The start location for the reference allele in chromosome coordinates. </string>
          </property>
         </widget>
        </item>
@@ -92,6 +112,20 @@
          </property>
          <property name="text">
           <string>chr:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="2">
+        <widget class="QLineEdit" name="le_gene">
+         <property name="toolTip">
+          <string>Gene symbol should be provided only to indicate the gene-disease relationship supporting the variant interpretation. </string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="2">
+        <widget class="QLineEdit" name="le_ref">
+         <property name="toolTip">
+          <string>The reference allele for the submitted variant. </string>
          </property>
         </widget>
        </item>
@@ -121,20 +155,6 @@
          </property>
         </widget>
        </item>
-       <item row="7" column="0">
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>gene:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="2">
-        <widget class="QLineEdit" name="le_ref">
-         <property name="toolTip">
-          <string>The reference allele for the submitted variant. </string>
-         </property>
-        </widget>
-       </item>
        <item row="2" column="2">
         <widget class="QComboBox" name="cb_chr">
          <property name="maximumSize">
@@ -148,50 +168,10 @@
          </property>
         </widget>
        </item>
-       <item row="8" column="2">
-        <widget class="QComboBox" name="cb_var_type">
-         <property name="toolTip">
-          <string>The type of variant.</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
+       <item row="7" column="0">
+        <widget class="QLabel" name="label_5">
          <property name="text">
-          <string>variant type:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="6" column="2">
-        <widget class="QLineEdit" name="le_obs">
-         <property name="toolTip">
-          <string>The alternate allele for the submitted variant. </string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>assembly:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="2">
-        <widget class="QComboBox" name="cb_assembly">
-         <property name="toolTip">
-          <string>The genome assembly that was used to call the variant.</string>
+          <string>gene:</string>
          </property>
         </widget>
        </item>
@@ -243,6 +223,36 @@
          </property>
         </widget>
        </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="cb_release_status">
+         <property name="toolTip">
+          <string>&quot;hold until published&quot; allows a temporary hold on data being presented publicly. If no value is provided, the default is public.&quot;</string>
+         </property>
+         <item>
+          <property name="text">
+           <string>public</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>hold until published</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_34">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>release status:</string>
+         </property>
+        </widget>
+       </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_27">
          <property name="font">
@@ -253,6 +263,13 @@
          </property>
          <property name="text">
           <string>allele origin:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QComboBox" name="cb_collection_method">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The method used to collect the data for each observation, e.g. clinical testing or research.  See &lt;a href=&quot;https://www.ncbi.nlm.nih.gov/clinvar/docs/spreadsheet/#collection&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://www.ncbi.nlm.nih.gov/clinvar/docs/spreadsheet/#collection&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
         </widget>
        </item>
@@ -274,70 +291,6 @@
          <property name="text">
           <string>collection method:</string>
          </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QComboBox" name="cb_collection_method">
-         <property name="toolTip">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The method used to collect the data for each observation, e.g. clinical testing or research.  See &lt;a href=&quot;https://www.ncbi.nlm.nih.gov/clinvar/docs/spreadsheet/#collection&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://www.ncbi.nlm.nih.gov/clinvar/docs/spreadsheet/#collection&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_24">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>record status:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QComboBox" name="cb_record_status">
-         <item>
-          <property name="text">
-           <string>novel</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>update</string>
-          </property>
-         </item>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_34">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>release status:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QComboBox" name="cb_release_status">
-         <property name="toolTip">
-          <string>&quot;hold until published&quot; allows a temporary hold on data being presented publicly. If no value is provided, the default is public.&quot;</string>
-         </property>
-         <item>
-          <property name="text">
-           <string>public</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>hold until published</string>
-          </property>
-         </item>
         </widget>
        </item>
       </layout>

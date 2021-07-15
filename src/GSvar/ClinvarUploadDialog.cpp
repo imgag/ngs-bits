@@ -46,8 +46,6 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
     ui_.le_ref->setText(data.variant.ref());
     ui_.le_obs->setEnabled(false);
     ui_.le_obs->setText(data.variant.obs());
-    ui_.cb_var_type->setEnabled(false);
-    ui_.cb_var_type->setCurrentText((data.variant.isSNV())?"Variation":"Indel");
 
     // set genes
     ui_.le_gene->setText(data.genes.join(","));
@@ -102,7 +100,6 @@ void ClinvarUploadDialog::initGui()
     ui_.cb_collection_method->addItems(COLLECTION_METHOD);
     ui_.cb_assembly->addItems(ASSEMBLY);
     ui_.cb_chr->addItems(CHR);
-    ui_.cb_var_type->addItems(VARIANT_TYPE);
 
     // set date
     ui_.de_last_eval->setDate(QDate::currentDate());
@@ -171,7 +168,7 @@ void ClinvarUploadDialog::upload()
         add_headers.insert("SP-API-KEY", api_key);
 
         //post request
-		QByteArray reply = http_handler.post("https://submit.ncbi.nlm.nih.gov/api/v1/submissions/", QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
+		QByteArray reply = http_handler.post("https://submit.ncbi.nlm.nih.gov/api/v1/submissions/?dry-run=true", QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
 
         // parse response
         bool success = false;
@@ -182,6 +179,8 @@ void ClinvarUploadDialog::upload()
         if (response.isEmpty())
         {
             messages << "MESSAGE: Dry-run successful!";
+			//TODO: remove
+			success = true;
         }
         else if (response.contains("id"))
         {
@@ -228,7 +227,6 @@ void ClinvarUploadDialog::upload()
             details << "clinical_feature_comment=" + VcfFile::encodeInfoValue(ui_.le_clin_feat_comment->text());
 			details << "collection_method=" + ui_.cb_collection_method->currentText();
 
-            details << "record_status=" + ui_.cb_record_status->currentText();
             details << "release_status=" + ui_.cb_release_status->currentText();
             details << "gene=" +  NGSD().genesToApproved(GeneSet::createFromStringList(ui_.le_gene->text().replace(";", ",").split(','))).toStringList().join(',');
 
@@ -281,9 +279,33 @@ bool ClinvarUploadDialog::checkGuiData()
         QString upload_details = db_.getVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.variant);
         if (upload_details!="")
         {
-            ui_.upload_btn->setEnabled(false);
-            ui_.comment_upload->setText("<font color='red'>ERROR: variant already uploaded!</font><br>" + upload_details);
-            return false;
+			//check if uploaded to Clinvar
+			bool uploaded_to_clinvar = false;
+			foreach (const QString& line, upload_details.split('\n'))
+			{
+				foreach (const QString& column_entry, upload_details.split(' '))
+				{
+					if (column_entry.startsWith("db:"))
+					{
+						QString db = column_entry.mid(3).trimmed();
+						qDebug() << db;
+						if (db == "ClinVar")
+						{
+							// already uploaded to ClinVar
+							uploaded_to_clinvar = true;
+							break;
+						}
+					}
+				}
+				// shortcut
+				if (uploaded_to_clinvar) break;
+			}
+			if (uploaded_to_clinvar)
+			{
+				ui_.upload_btn->setEnabled(false);
+				ui_.comment_upload->setText("<font color='red'>ERROR: variant already uploaded!</font><br>" + upload_details);
+				return false;
+			}
         }
     }
 
@@ -510,7 +532,7 @@ QJsonObject ClinvarUploadDialog::createJson()
         clinvar_submission.insert("observedIn", QJsonArray() << observed_in);
 
         //required
-        clinvar_submission.insert("recordStatus", ui_.cb_record_status->currentText());
+		clinvar_submission.insert("recordStatus", "novel");
 
         //required
         clinvar_submission.insert("releaseStatus", ui_.cb_release_status->currentText());
@@ -648,8 +670,6 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
             is_valid = false;
         }
 
-        //TODO: check optional fields
-
     }
     else
     {
@@ -713,8 +733,6 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
             errors << "Required string 'collectionMethod' in 'observedIn' missing!";
             is_valid = false;
         }
-
-        //TODO: check optional fields
 
     }
     else
@@ -834,7 +852,6 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
             errors << "Required JSON array 'variant' in 'variantSet' missing!";
             is_valid = false;
         }
-        //TODO: check optional fields
 
     }
     else
@@ -915,7 +932,6 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
             errors << "Required JSON array 'variant' in 'variantSet' missing!";
             is_valid = false;
         }
-        //TODO: check optional fields
 
     }
     else
@@ -923,8 +939,6 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
         errors << "Required string 'conditionSet' in 'clinvarSubmission' missing!";
         is_valid = false;
     }
-
-    //TODO: check optional entries
 
     return is_valid;
 }
