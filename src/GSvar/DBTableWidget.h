@@ -52,6 +52,8 @@ public:
 			}
 		}
 	}
+	//Uses the cell text additionally as tooltip
+	void showTextAsTooltip(const QString& column_header);
 
 	//Returns selected row indices.
 	QSet<int> selectedRows() const;

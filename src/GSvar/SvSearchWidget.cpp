@@ -56,7 +56,7 @@ void SvSearchWidget::search()
 	{
 		// SV type/table
 		StructuralVariantType type = BedpeFile::stringToType(ui_.svType->currentText().toUtf8());
-		QString sv_table = db_.svTableName(type) + " as sv ";
+		QString sv_table = db_.svTableName(type);
 
 		// define table columns
 		QByteArrayList selected_columns;
@@ -68,7 +68,7 @@ void SvSearchWidget::search()
 		if(type==StructuralVariantType::BND) selected_columns << "sv.chr1" << "sv.start1" << "sv.end1" << "sv.chr2" << "sv.start2" << "sv.end2";
 		else if(type==StructuralVariantType::INS) selected_columns << "sv.chr" << "sv.pos AS start" << "(sv.pos + sv.ci_upper) AS end";
 		else selected_columns << "sv.chr" << "sv.start_min" << "sv.start_max" << "sv.end_min" << "sv.end_max";
-		selected_columns << "rpc.class";
+		selected_columns << "rcs.class" << "CONCAT(rcs.comments, ' // ', rcs.comments2) as report_config_comments";
 
 		// query part for position match
 		QByteArray query_same_position;
@@ -212,7 +212,7 @@ void SvSearchWidget::search()
 				}
 			}
 
-			//concatinate single pos querie
+			//concatinate single pos query
 			query_same_position += "(" + query_pos_overlap.join("OR ") + ") ";
 		}
 		QStringList conditions;
@@ -253,13 +253,13 @@ void SvSearchWidget::search()
 		}
 
 		//(4) create SQL table
-		QString query_join = "SELECT " + selected_columns.join(", ") + " FROM " + sv_table
+		QString query_join = "SELECT " + selected_columns.join(", ") + " FROM " + sv_table + " as sv "
 				+ "INNER JOIN sv_callset sc ON sv.sv_callset_id = sc.id "
 				+ "INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id "
 				+ "INNER JOIN sample s ON ps.sample_id = s.id "
 				+ "INNER JOIN processing_system sys ON ps.processing_system_id = sys.id "
 				+ "INNER JOIN project p ON ps.project_id = p.id "
-				+ "LEFT JOIN report_configuration_sv rpc ON sv.id = rpc." + sv_table.split(" ")[0] +"_id "
+				+ "LEFT JOIN report_configuration_sv rcs ON sv.id = rcs." + sv_table +"_id "
 				+ "LEFT JOIN diag_status ds ON sc.processed_sample_id=ds.processed_sample_id "
 				+ "WHERE " + conditions.join(" AND ")
 				+ "ORDER BY ps.id ";
@@ -276,11 +276,22 @@ void SvSearchWidget::search()
 		}
 		table.setColumn(hpo_col_index, hpo_terms);
 
-		//(6) show samples with SVs in table
+		//(6) Add validation information
+		QStringList validation_data;
+		for (int r=0; r<table.rowCount(); ++r)
+		{
+			const DBRow& row = table.row(r);
+			QString sv_id = row.id();
+			QString s_id = db_.sampleId(row.value(0));
+			validation_data << db_.getValue("SELECT status FROM variant_validation WHERE sample_id=" + s_id + " AND " + sv_table +"_id=" + sv_id).toString();
+		}
+		table.addColumn(validation_data, "validation_information");
+
+
+		//(7) show samples with SVs in table
 		ui_.table->setData(table);
+		ui_.table->showTextAsTooltip("report_config_comments");
 		ui_.message->setText("Found " + QString::number(ui_.table->rowCount()) + " matching SVs in NGSD.");
-
-
 	}
 	catch(Exception& e)
 	{
