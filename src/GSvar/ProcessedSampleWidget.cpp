@@ -128,13 +128,13 @@ void ProcessedSampleWidget::updateGUI()
 	ui_->molarity->setText(ps_data.molarity);
 	QString normal_sample = ps_data.normal_sample_name;
 	ui_->normal_sample->setText("<a href=\"" + normal_sample + "\">"+normal_sample+"</a>");
-	ui_->ancestry->setText(ps_data.ancestry);
+	ui_->ancestry->setText(NGSHelper::populationCodeToHumanReadable(ps_data.ancestry));
 	QStringList ancestry_details;
 	ancestry_details << "Raw scores:";
-	ancestry_details << "AFR (african): " + db.getValue("SELECT score_afr FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
-	ancestry_details << "EUR (european): " + db.getValue("SELECT score_eur FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
-	ancestry_details << "SAS (south asian): " + db.getValue("SELECT score_sas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
-	ancestry_details << "EAS (east asian): " + db.getValue("SELECT score_eas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+	ancestry_details << "AFR (African): " + db.getValue("SELECT score_afr FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+	ancestry_details << "EUR (European): " + db.getValue("SELECT score_eur FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+	ancestry_details << "SAS (South asian): " + db.getValue("SELECT score_sas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
+	ancestry_details << "EAS (East asian): " + db.getValue("SELECT score_eas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
 	ui_->ancestry->setToolTip(ancestry_details.join("\n"));
 
 	//#### sample details ####
