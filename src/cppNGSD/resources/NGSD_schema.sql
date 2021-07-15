@@ -562,13 +562,10 @@ CREATE  TABLE IF NOT EXISTS `variant`
   `obs` TEXT NOT NULL,
   `1000g` FLOAT NULL DEFAULT NULL,
   `gnomad` FLOAT NULL DEFAULT NULL,
-  `gene` TEXT NULL DEFAULT NULL,
-  `variant_type` TEXT NULL DEFAULT NULL,
   `coding` TEXT NULL DEFAULT NULL,  
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `variant_UNIQUE` (`chr` ASC, `start` ASC, `end` ASC, `ref`(255) ASC, `obs`(255) ASC),
-  INDEX `gene` (`gene`(50) ASC),
   INDEX `1000g` (`1000g` ASC),
   INDEX `gnomad` (`gnomad` ASC),
   INDEX `comment` (`comment`(50) ASC)
