@@ -98,17 +98,22 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 		cfdna_panel_info_ = previous_panels.at(cfdna_panel_selector->currentIndex());
 
 		// load previous panel
+		prev_id_snp_ = false;
 		VcfFile prev_panel = NGSD().cfdnaPanelVcf(cfdna_panel_info_.id);
 		for (int i = 0; i < prev_panel.count(); ++i)
 		{
 			const VcfLine& var = prev_panel.vcfLine(i);
+			if (var.id().join("") == "ID")
+			{
+				prev_id_snp_ = true;
+				continue;
+			}
 			// create vcf pos string
 			QString vcf_pos = var.chr().strNormalized(true) + ":" + QString::number(var.start()) + " " + var.ref() + ">" + var.altString();
 			prev_vars_.insert(vcf_pos, false);
 		}
 		//load genes, KASP and hotspot regions
 		BedFile prev_panel_regions =  NGSD().cfdnaPanelRegions(cfdna_panel_info_.id);
-		prev_id_snp_ = false;
 		for (int i = 0; i < prev_panel_regions.count(); ++i)
 		{
 			const BedLine& bed_line = prev_panel_regions[i];
@@ -117,11 +122,6 @@ void CfDNAPanelDesignDialog::loadPreviousPanels()
 			if (annotation.startsWith("gene:"))
 			{
 				prev_genes_.insert(annotation.split(':').at(1).trimmed());
-			}
-			//KASP
-			else if (annotation.startsWith("SNP_for_sample_identification"))
-			{
-				prev_id_snp_ = true;
 			}
 			//hotspots
 			else if (annotation.startsWith("hotspot_region:"))
@@ -596,10 +596,8 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 	if (ui_->cb_sample_identifier->isChecked())
 	{
 		// get KASP SNPs
-		//TODO: remove
-		qDebug() << QFile::exists("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf");
-//		id_vcf.load("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf"); ?why?
-		id_vcf.load(buildToString(GSvarHelper::build()) + "_KASP_set2.vcf");
+		QTextStream vcf_content(new QFile("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf"));
+		id_vcf.fromText(vcf_content.readAll().toUtf8());
 
 		// extract ID SNPs from selected processing system
 		int sys_id = NGSD().processingSystemId(ui_->cb_processing_system->currentText().toUtf8());
@@ -642,6 +640,8 @@ void CfDNAPanelDesignDialog::createOutputFiles()
 		vcf_file.vcfLines() << vcf_line;
 	}
 
+	//sort vcf file
+	vcf_file.sort();
 
 	// generate bed file
 	for (int i=0; i<vcf_file.count(); i++)

@@ -1299,6 +1299,11 @@
     <string>Add excluded regions</string>
    </property>
   </action>
+  <action name="actionImportCfDNAPanels">
+   <property name="text">
+    <string>Import cfDNA Panels</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

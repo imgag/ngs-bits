@@ -57,6 +57,13 @@
     <widget class="QTextEdit" name="te_removed_regions"/>
    </item>
    <item>
+    <widget class="QLabel" name="l_last_modified">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>

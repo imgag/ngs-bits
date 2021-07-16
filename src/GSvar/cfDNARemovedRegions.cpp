@@ -67,11 +67,21 @@ void cfDNARemovedRegions::initGui()
 	ui_->l_processed_sample->setText(processed_sample_name_);
 	ui_->l_processing_system->setText(cfdna_panel_info_.processing_system);
 	// get removed regions
-	ui_->te_removed_regions->setText(NGSD().cfdnaPanelRemovedRegions(cfdna_panel_info_.id).toText());
+	BedFile previous_regions = NGSD().cfdnaPanelRemovedRegions(cfdna_panel_info_.id);
+	ui_->te_removed_regions->setText(previous_regions.toText());
+	foreach (const QByteArray& header, previous_regions.headers())
+	{
+		if (header.startsWith("##modified"))
+		{
+			ui_->l_last_modified->setText("(last " + header.mid(2) + ")");
+			break;
+		}
+	}
+
 
 	// connect signal and slots
 	connect(ui_->buttonBox, SIGNAL(accepted()), this, SLOT(importInNGSD()));
-	connect(ui_->buttonBox, SIGNAL(canceled()), this, SLOT(close()));
+	connect(ui_->buttonBox, SIGNAL(rejected()), this, SLOT(close()));
 }
 
 BedFile cfDNARemovedRegions::parseBed()
@@ -87,13 +97,14 @@ void cfDNARemovedRegions::importInNGSD()
 	try
 	{
 		 removed_regions = BedFile::fromText(ui_->te_removed_regions->toPlainText().toUtf8());
+		 removed_regions.clearAnnotations();
+		 removed_regions.clearHeaders();
 	}
-	catch (FileParseException e)
+	catch (Exception e)
 	{
 		QMessageBox::warning(this, "Input parsing error", e.message());
 		return;
 	}
-
 	// import to db
 	NGSD().setCfdnaRemovedRegions(cfdna_panel_info_.id, removed_regions);
 	this->close();

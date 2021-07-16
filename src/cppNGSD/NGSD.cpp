@@ -2435,7 +2435,8 @@ void NGSD::setCfdnaRemovedRegions(int id, const BedFile& removed_regions)
 	qDebug() << id;
 	SqlQuery query = getQuery();
 	query.prepare("UPDATE `cfdna_panels` SET `removed_regions`=:0 WHERE `id`=" + QString::number(id));
-	query.bindValue(0, removed_regions.toText());
+	QString bed_content = "##modified at " + QDate::currentDate().toString("dd.MM.yyyy").toUtf8() + " by " + LoginManager::userName().toUtf8() + "\n" + removed_regions.toText();
+	query.bindValue(0, bed_content);
 	query.exec();
 }
 
