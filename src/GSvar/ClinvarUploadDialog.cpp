@@ -108,7 +108,7 @@ void ClinvarUploadDialog::initGui()
     ui_.tw_disease_info->setColumnCount(2);
     ui_.tw_disease_info->setHorizontalHeaderItem(0, new QTableWidgetItem("type"));
     ui_.tw_disease_info->setHorizontalHeaderItem(1, new QTableWidgetItem("id"));
-    //    GUIHelper::resizeTableCells(ui_.tw_disease_info);
+	//GUIHelper::resizeTableCells(ui_.tw_disease_info);
     ui_.tw_disease_info->setColumnWidth(0, 250);
     ui_.tw_disease_info->setColumnWidth(1, 150);
 
@@ -168,7 +168,7 @@ void ClinvarUploadDialog::upload()
         add_headers.insert("SP-API-KEY", api_key);
 
         //post request
-		QByteArray reply = http_handler.post("https://submit.ncbi.nlm.nih.gov/api/v1/submissions/?dry-run=true", QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
+		QByteArray reply = http_handler.post("https://submit.ncbi.nlm.nih.gov/api/v1/submissions/", QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
 
         // parse response
         bool success = false;
@@ -213,8 +213,8 @@ void ClinvarUploadDialog::upload()
                 condition << ui_.tw_disease_info->item(row_idx, 0)->text() + "|" + ui_.tw_disease_info->item(row_idx, 1)->text();
             }
             details << "condition=" + condition.join(',');
-            details << "local_id=" + QString::number(clinvar_upload_data_.variant_id);
-            details << "local_key=" + QString::number(clinvar_upload_data_.variant_report_config_id);
+			details << "variant_id=" + QString::number(clinvar_upload_data_.variant_id);
+			details << "variant_rc_id=" + QString::number(clinvar_upload_data_.variant_report_config_id);
             //observed in
             details << "affected_status=" + ui_.cb_affected_status->currentText();
             details << "allele_origin=" + ui_.cb_allele_origin->currentText();
@@ -283,18 +283,17 @@ bool ClinvarUploadDialog::checkGuiData()
 			bool uploaded_to_clinvar = false;
 			foreach (const QString& line, upload_details.split('\n'))
 			{
-				foreach (const QString& column_entry, upload_details.split(' '))
+				QStringList columns = line.split(' ');
+				for (int i = 0; i < (columns.size()-1); ++i)
 				{
-					if (column_entry.startsWith("db:"))
+					if (columns[i] == "db:")
 					{
-						QString db = column_entry.mid(3).trimmed();
-						qDebug() << db;
-						if (db == "ClinVar")
+						if (columns[i+1] == "ClinVar")
 						{
 							// already uploaded to ClinVar
 							uploaded_to_clinvar = true;
-							break;
 						}
+						break;
 					}
 				}
 				// shortcut
