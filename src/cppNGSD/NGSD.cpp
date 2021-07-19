@@ -837,7 +837,7 @@ QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analy
 QString NGSD::addVariant(const Variant& variant, const VariantList& variant_list)
 {
 	SqlQuery query = getQuery(); //use binding (user input)
-	query.prepare("INSERT INTO variant (chr, start, end, ref, obs, 1000g, gnomad, gene, variant_type, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9)");
+	query.prepare("INSERT INTO variant (chr, start, end, ref, obs, 1000g, gnomad, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7)");
 	query.bindValue(0, variant.chr().strNormalized(true));
 	query.bindValue(1, variant.start());
 	query.bindValue(2, variant.end());
@@ -863,12 +863,8 @@ QString NGSD::addVariant(const Variant& variant, const VariantList& variant_list
 	{
 		query.bindValue(6, gnomad);
 	}
-	idx = variant_list.annotationIndexByName("gene");
-	query.bindValue(7, variant.annotations()[idx]);
-	idx = variant_list.annotationIndexByName("variant_type");
-	query.bindValue(8, variant.annotations()[idx]);
 	idx = variant_list.annotationIndexByName("coding_and_splicing");
-	query.bindValue(9, variant.annotations()[idx]);
+	query.bindValue(7, variant.annotations()[idx]);
 	query.exec();
 
 	return query.lastInsertId().toString();
@@ -880,19 +876,17 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 
 	//prepare queried
 	SqlQuery q_id = getQuery();
-	q_id.prepare("SELECT id, 1000g, gnomad, gene, variant_type, coding FROM variant WHERE chr=:0 AND start=:1 AND end=:2 AND ref=:3 AND obs=:4");
+	q_id.prepare("SELECT id, 1000g, gnomad, coding FROM variant WHERE chr=:0 AND start=:1 AND end=:2 AND ref=:3 AND obs=:4");
 
 	SqlQuery q_update = getQuery(); //use binding (user input)
-	q_update.prepare("UPDATE variant SET 1000g=:1, gnomad=:2, gene=:3, variant_type=:4, coding=:5 WHERE id=:6");
+	q_update.prepare("UPDATE variant SET 1000g=:0, gnomad=:1, coding=:2 WHERE id=:3");
 
 	SqlQuery q_insert = getQuery(); //use binding (user input)
-	q_insert.prepare("INSERT IGNORE INTO variant (chr, start, end, ref, obs, 1000g, gnomad, gene, variant_type, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9)");
+	q_insert.prepare("INSERT IGNORE INTO variant (chr, start, end, ref, obs, 1000g, gnomad, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7)");
 
 	//get annotated column indices
 	int i_tg = variant_list.annotationIndexByName("1000g");
 	int i_gnomad = variant_list.annotationIndexByName("gnomAD");
-	int i_gene = variant_list.annotationIndexByName("gene");
-	int i_type = variant_list.annotationIndexByName("variant_type");
 	int i_co_sp = variant_list.annotationIndexByName("coding_and_splicing");
 
 	c_add = 0;
@@ -931,16 +925,12 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			//check if variant meta data needs to be updated
 			if (q_id.value(1).toByteArray().toDouble()!=tg.toDouble() //numeric comparison (NULL > "" > 0.0)
 				|| q_id.value(2).toByteArray().toDouble()!=gnomad.toDouble() //numeric comparison (NULL > "" > 0.0)
-				|| q_id.value(3).toByteArray()!=variant.annotations()[i_gene]
-				|| q_id.value(4).toByteArray()!=variant.annotations()[i_type]
-				|| q_id.value(5).toByteArray()!=variant.annotations()[i_co_sp])
+				|| q_id.value(3).toByteArray()!=variant.annotations()[i_co_sp])
 			{
 				q_update.bindValue(0, tg.isEmpty() ? QVariant() : tg);
 				q_update.bindValue(1, gnomad.isEmpty() ? QVariant() : gnomad);
-				q_update.bindValue(2, variant.annotations()[i_gene]);
-				q_update.bindValue(3, variant.annotations()[i_type]);
-				q_update.bindValue(4, variant.annotations()[i_co_sp]);
-				q_update.bindValue(5, id);
+				q_update.bindValue(2, variant.annotations()[i_co_sp]);
+				q_update.bindValue(3, id);
 				q_update.exec();
 				++c_update;
 			}
@@ -956,9 +946,7 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			q_insert.bindValue(4, variant.obs());
 			q_insert.bindValue(5, tg.isEmpty() ? QVariant() : tg);
 			q_insert.bindValue(6, gnomad.isEmpty() ? QVariant() : gnomad);
-			q_insert.bindValue(7, variant.annotations()[i_gene]);
-			q_insert.bindValue(8, variant.annotations()[i_type]);
-			q_insert.bindValue(9, variant.annotations()[i_co_sp]);
+			q_insert.bindValue(7, variant.annotations()[i_co_sp]);
 			q_insert.exec();
 			++c_add;
 			QVariant last_insert_id = q_insert.lastInsertId();
@@ -1034,7 +1022,7 @@ QPair<int, int> NGSD::variantCounts(const QString& variant_id)
 	QSet<int> samples_done_het;
 	QSet<int> samples_done_hom;
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.id, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id='" + variant_id + "' AND ps.sample_id=s.id AND dv.processed_sample_id=ps.id");
+	query.exec("SELECT ps.sample_id, dv.genotype FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='" + variant_id + "' AND dv.processed_sample_id=ps.id");
 	while(query.next())
 	{
 		//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
@@ -3377,6 +3365,7 @@ double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
 
 void NGSD::maintain(QTextStream* messages, bool fix_errors)
 {
+	QString project_folder = Settings::path("projects_folder");
 	SqlQuery query = getQuery();
 
 	// (1) tumor samples variants that have been imported into 'detected_variant' table
@@ -3404,7 +3393,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 		QString ps_name = query.value(0).toString();
 		QString p_type = query.value(1).toString();
 
-		QString folder = Settings::path("projects_folder") + p_type + QDir::separator() + query.value(2).toString() + QDir::separator() + "Sample_" + ps_name + QDir::separator();
+		QString folder = project_folder + p_type + QDir::separator() + query.value(2).toString() + QDir::separator() + "Sample_" + ps_name + QDir::separator();
 		if (!QFile::exists(folder))
 		{
 			QString ps_id = query.value(4).toString();
@@ -3415,7 +3404,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 			query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name FROM sample s, processed_sample ps, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id AND s.id='" + query.value(3).toString()+"' AND ps.id!='" + ps_id + "'");
 			while(query2.next())
 			{
-				QString folder2 = Settings::path("projects_folder") + query2.value(1).toString() + QDir::separator() + query2.value(2).toString() + QDir::separator() + "Sample_" + query2.value(0).toString() + QDir::separator();
+				QString folder2 = project_folder + query2.value(1).toString() + QDir::separator() + query2.value(2).toString() + QDir::separator() + "Sample_" + query2.value(0).toString() + QDir::separator();
 				if (QFile::exists(folder2))
 				{
 					QStringList files = Helper::findFiles(folder2, ps_name + "*.fastq.gz", false);
@@ -4532,7 +4521,7 @@ QString NGSD::reportConfigSummaryText(const QString& processed_sample_id)
 			{
 				Variant var = variant(id);
 				QString genotype = getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='" + processed_sample_id + "' AND variant_id='" + id + "'").toString();
-				QString genes = getValue("SELECT gene FROM variant WHERE id='" + id + "'").toString();
+				QString genes = genesOverlapping(var.chr(), var.start(), var.end(), 5000).join(", ");
 				QString var_class = getValue("SELECT class FROM variant_classification WHERE variant_id='" + id + "'").toString();
 				output += ", causal variant: " + var.toString() + " (genotype:" + genotype + " genes:" + genes;
 				if (var_class != "") output += " classification:" + var_class; // add classification, if exists

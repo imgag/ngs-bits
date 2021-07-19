@@ -73,6 +73,9 @@ public:
 	///Returns Bed file with coordinates of telomeres.
 	static const BedFile& telomeres(GenomeBuild build);
 
+	///Converts the 3letter ancestry code to a human-readable text, see http://m.ensembl.org/Help/Faq?id=532
+	static QString populationCodeToHumanReadable(QString code);
+
 private:
 	///Constructor declared away
 	NGSHelper() = delete;

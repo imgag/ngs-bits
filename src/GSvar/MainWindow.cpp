@@ -590,7 +590,7 @@ void MainWindow::on_actionDebug_triggered()
 				{
 					Variant var = db.variant(id);
 					QString genotype = db.getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + id + "'").toString();
-					QString genes = db.getValue("SELECT gene FROM variant WHERE id='" + id + "'").toString();
+					QString genes = db.genesOverlapping(var.chr(), var.start(), var.end(), 5000).join(", ");
 					QString var_class = db.getValue("SELECT class FROM variant_classification WHERE variant_id='" + id + "'").toString();
 					text += ", small variant: " + var.toString() + " (genotype:" + genotype + " genes:" + genes;
 					if (var_class != "") text += " classification:" + var_class; // add classification, if exists
@@ -1492,7 +1492,8 @@ void MainWindow::on_actionBatchExportClinVar_triggered()
 			}
 
 			//update NGSD
-			QString gene = "gene="+db.getValue("SELECT gene FROM variant WHERE id='" + variant_id + "'").toString();
+			Variant var = db.variant(variant_id);
+			QString gene = db.genesOverlapping(var.chr(), var.start(), var.end(), 5000).join(", ");
 			variant_publication_queries << "INSERT INTO `variant_publication` (`sample_id`, `variant_id`, `db`, `class`, `details`, `user_id`) VALUES ('"+sample_id+"','"+variant_id+"','ClinVar','"+classification+"','gene="+gene+"',"+LoginManager::userIdAsString()+")";
 		}
 		messages << ("Exported variants to file: " + QString::number(variant_ids_done.count()));
@@ -1787,11 +1788,11 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 	QList<QAction*> igv_actions = ui_.menuTrackDefaults->findChildren<QAction*>();
 	foreach(QAction* action, igv_actions)
 	{
-		QString text = action->text();
-		if (!text.startsWith("custom track:")) continue;
+		QString name = action->text();
+		if (!name.startsWith("custom track:")) continue;
 
-		QString filename = action->toolTip().replace("custom track:", "").trimmed();
-		dlg.addFile(FileLocation{text, PathType::OTHER, filename, QFileInfo(filename).exists()}, action->isChecked());
+		QString filename = action->toolTip().trimmed();
+		dlg.addFile(FileLocation{name, PathType::OTHER, filename, QFile::exists(filename)}, action->isChecked());
 	}
 
 	// switch to MainWindow to prevent dialog to appear behind other widgets
@@ -1882,17 +1883,7 @@ void MainWindow::openCustomIgvTrack()
 	QAction* action = qobject_cast<QAction*>(sender());
 	if (action==nullptr) return;
 
-	QString name = action->text();
-
-	QStringList entries = Settings::stringList("igv_menu");
-	foreach(QString entry, entries)
-	{
-		QStringList parts = entry.trimmed().split("\t");
-		if(parts[0]==name)
-		{
-			GlobalServiceProvider::loadFileInIGV(parts[2], false);
-		}
-	}
+	GlobalServiceProvider::loadFileInIGV(action->toolTip(), false);
 }
 
 void MainWindow::editVariantValidation(int index)
@@ -6075,14 +6066,19 @@ void MainWindow::updateIGVMenu()
 			QStringList parts = entry.trimmed().split("\t");
 			if(parts.count()!=3) continue;
 
+			QString name = parts[0];
+			QString filename = parts[2];
+
 			//add to menu "custom track default settings"
-			QAction* action = ui_.menuTrackDefaults->addAction("custom track: " + parts[0]);
+			QAction* action = ui_.menuTrackDefaults->addAction("custom track: " + name);
 			action->setCheckable(true);
 			action->setChecked(parts[1]=="1");
+			action->setToolTip(filename); //file path is taken from tooltip in IGV dialog
 
 			//add to menu "open custom track"
 			action = ui_.menuOpenCustomTrack->addAction(parts[0], this, SLOT(openCustomIgvTrack()));
-			if (!QFile::exists(parts[2]))
+			action->setToolTip(filename); //file path is taken from tooltip when opening track
+			if (!QFile::exists(filename))
 			{
 				action->setEnabled(false);
 				action->setText(action->text() + " (missing)");

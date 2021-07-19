@@ -466,7 +466,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			QString trait = row[trait_idx];
 			QString score = row[score_idx];
 			QString zscore = "n/a";
-			QString population = processed_sample_data.ancestry;
+			QString population = NGSHelper::populationCodeToHumanReadable(processed_sample_data.ancestry);
 			if (trait=="Breast Cancer") // mean and standard deviation taken from BCAC315 data
 			{
 				double mean = -0.424;
