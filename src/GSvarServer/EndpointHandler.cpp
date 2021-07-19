@@ -378,6 +378,39 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 	return HttpResponse(ResponseStatus::OK, ContentType::APPLICATION_JSON, msg);
 }
 
+HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
+{
+	QString filename = request.getUrlParams()["filename"];
+	QString path = request.getUrlParams()["path"];
+	QString content = request.getBody();
+
+	if ((filename.isEmpty()) || (path.isEmpty()))
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Path or filename has not been provided");
+	}
+
+	if (!QDir(path).exists())
+	{
+		QDir().mkdir(path);
+	}
+
+	if (!path.endsWith(QDir::separator())) path = path + QDir::separator();
+
+	try
+	{
+		QSharedPointer<QFile> qBicFile = Helper::openFileForWriting(path+filename);
+		QTextStream stream(qBicFile.data());
+		stream << content;
+		qBicFile->close();
+	}
+	catch (Exception& e)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not save the data: " + e.message());
+	}
+
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_HTML, filename + "has been saved");
+}
+
 HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& request)
 {
 	NGSD db;

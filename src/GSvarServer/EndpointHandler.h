@@ -34,6 +34,7 @@ public:
 	static HttpResponse locateFileByType(const HttpRequest& request);
 	static HttpResponse locateProjectFile(const HttpRequest& request);
 	static HttpResponse saveProjectFile(const HttpRequest& request);
+	static HttpResponse saveQbicFiles(const HttpRequest& request);
 
 	/// Streams processing system regions file
 	static HttpResponse getProcessingSystemRegions(const HttpRequest& request);

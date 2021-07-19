@@ -311,6 +311,19 @@ int main(int argc, char **argv)
 						&EndpointHandler::getSecondaryAnalyses
 					});
 
+	EndpointManager::appendEndpoint(Endpoint{
+						"qbic_report",
+						QMap<QString, ParamProps> {
+							{"filename", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "QBic data report file"}},
+							{"path", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Path to the QBic data report file"}},
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_JSON,
+						false,
+						"Save QBic data report files",
+						&EndpointHandler::saveQbicFiles
+					});
+
 	int port_number = ServerHelper::getNumSettingsValue("server_port");
 
 	if (!port.isEmpty())

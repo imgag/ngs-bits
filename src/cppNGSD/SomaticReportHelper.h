@@ -16,6 +16,7 @@
 #include "RtfDocument.h"
 #include "BedpeFile.h"
 #include "SomaticReportSettings.h"
+#include "HttpRequestHandler.h"
 
 struct CPPNGSDSHARED_EXPORT SomaticVirusInfo
 {
@@ -176,6 +177,8 @@ private:
 	int cnv_index_cytoband_;
 
 	RtfDocument doc_;
+
+	void saveFileOnServer(QString filename, QString path, QString content);
 
 	void somaticSnvForQbic(QString path);
 	void germlineSnvForQbic(QString path);
