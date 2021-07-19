@@ -179,8 +179,6 @@ void ClinvarUploadDialog::upload()
         if (response.isEmpty())
         {
             messages << "MESSAGE: Dry-run successful!";
-			//TODO: remove
-			success = true;
         }
         else if (response.contains("id"))
         {
