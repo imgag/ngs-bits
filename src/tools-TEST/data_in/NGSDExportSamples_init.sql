@@ -91,8 +91,8 @@ INSERT INTO `report_configuration`(`id`, `processed_sample_id`, `created_by`, `c
 (1,2,99,'2019-12-11 15:19:26'),
 (2,3,99,'2019-12-11 15:19:26');
 
-INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `1000g`, `gnomad`, `gene`, `variant_type`, `coding`, `comment`) VALUES
-(1, 'chr1', 115256554, 115256554, 'A', 'G', NULL, NULL, 'NRAS', 'synonymous', 'NRAS:ENST00000369535:synonymous_variant:LOW:exon3/7:c.157T>C:p.Leu53=:PF00071', NULL);
+INSERT INTO `variant` (`id`, `chr`, `start`, `end`, `ref`, `obs`, `1000g`, `gnomad`, `coding`, `comment`) VALUES
+(1, 'chr1', 115256554, 115256554, 'A', 'G', NULL, NULL, 'NRAS:ENST00000369535:synonymous_variant:LOW:exon3/7:c.157T>C:p.Leu53=:PF00071', NULL);
 
 INSERT INTO `report_configuration_variant` (`id`, `report_configuration_id`, `variant_id`, `type`, `causal`, `inheritance`, `de_novo`, `mosaic`, `compound_heterozygous`, `exclude_artefact`, `exclude_frequency`, `exclude_phenotype`, `exclude_mechanism`, `exclude_other`, `comments`, `comments2`) VALUES
 (1, 1, 1, 'diagnostic variant', 1, 'n/a', 0, 0, 0, 0, 0, 0, 0, 0, '', '');
@@ -119,3 +119,18 @@ INSERT INTO `processed_sample_ancestry` (`processed_sample_id`, `num_snps`, `sco
 (2, 3151, 0.0412, 0.3028, 0.1796, 0.0926, 'ADMIXED/UNKNOWN');
 
 
+--gene
+INSERT INTO `gene` (`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
+(638594, 7989, 'NRAS', 'NRAS proto-oncogene, GTPase', 'protein-coding gene');
+
+INSERT INTO `gene_transcript` (`id`, `gene_id`, `name`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`) VALUES
+(1482127, 638594, 'ENST00000369535', 'ensembl', '1', 115251156, 115258781, '-');
+
+INSERT INTO `gene_exon` (`transcript_id`, `start`, `end`) VALUES
+(1482127, 115247090, 115250671),
+(1482127, 115250775, 115250813),
+(1482127, 115251152, 115251275),
+(1482127, 115252190, 115252349),
+(1482127, 115256421, 115256599),
+(1482127, 115258671, 115258798),
+(1482127, 115259279, 115259515);

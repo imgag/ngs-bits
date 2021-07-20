@@ -29,21 +29,16 @@ public:
 		addOutfile("genes", "Optional BED file containing the genes and the gene info (only germline).", true, false);
 		addInfile("reference", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("test", "Uses the test database instead of on the production database.");
-		addFloat("maxAF", "Determines the maximum allel frequency for the variants (default: 0.05).",
-				 true, 0.05);
-		addInt("gene_offset",
-			   "Defines the number of bases by which the region of each gene is extended.",
-			   true, 5000);
-		addString("chr", "Limit export to the given chromosome.", true, "");
-		addEnum("mode", "Determines the database which is exported.", true,
-				QStringList() << "germline" << "somatic", "germline");
+		addFloat("max_af", "Maximum allel frequency of exported variants (default: 0.05).",  true, 0.05);
+		addInt("gene_offset", "Defines the number of bases by which the region of each gene is extended.", true, 5000);
+		addEnum("mode", "Determines the database which is exported.", true, QStringList() << "germline" << "somatic", "germline");
 
-		changeLog(2019, 12, 6, "Comments are now URL encoded.");
-		changeLog(2019, 9, 25, "Added somatic mode.");
-		changeLog(2019, 7, 29, "Added BED file for genes.");
-		changeLog(2019, 7, 25, "Initial version of this tool.");
-
-
+		changeLog(2021,  7, 19, "Code and parameter refactoring.");
+		changeLog(2021,  7, 19, "Added support for 'germline_het' and 'germline_hom' columns in 'variant' table.");
+		changeLog(2019, 12,  6, "Comments are now URL encoded.");
+		changeLog(2019,  9, 25, "Added somatic mode.");
+		changeLog(2019,  7, 29, "Added BED file for genes.");
+		changeLog(2019,  7, 25, "Initial version of this tool.");
 	}
 
 	virtual void main()
@@ -52,21 +47,11 @@ public:
 		use_test_db_ = getFlag("test");
 		NGSD db(use_test_db_);
 		QTextStream out(stdout);
-		max_allel_frequency_ = getFloat("maxAF");
+		max_allel_frequency_ = getFloat("max_af");
 		gene_offset_ = getInt("gene_offset");
 		QString ref_file = getInfile("reference");
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
-
-		// parse chr limit
-		if (getString("chr").trimmed() != "" )
-		{
-			limited_chr_ = Chromosome(getString("chr"));
-		}
-		else
-		{
-			limited_chr_ = NULL;
-		}
 
 		if (gene_offset_ < 0)
 		{
@@ -89,16 +74,12 @@ public:
 		}
 
 		out << "Finished!" << endl;
-
-
-
-
 	}
+
 private:
 	bool use_test_db_;
 	float max_allel_frequency_;
 	int gene_offset_;
-	Chromosome limited_chr_;
 
 	/*
 	 *  returns a formatted time string (QByteArray) from a given time in milliseconds
@@ -150,22 +131,8 @@ private:
 		vcf_stream << "##reference=" << reference_file_path << "\n";
 		vcf_file_writing_sum += vcf_file_writing.elapsed();
 
-		// get chromosome list or use only the provided chromosome
-		QStringList chromosome_names;
-		if (limited_chr_ == NULL)
-		{
-			db_queries.restart();
-			chromosome_names = db.getEnum("variant", "chr");
-			db_query_sum += db_queries.elapsed();
-		}
-		else
-		{
-			chromosome_names.append(limited_chr_.strNormalized(true));
-		}
-
-
 		// write contigs
-		foreach (QString chr_name, chromosome_names)
+		foreach (const QString& chr_name, db.getEnum("variant", "chr"))
 		{
 			// get chr length
 			int chr_length = reference_file.lengthOf(Chromosome(chr_name));
@@ -193,38 +160,22 @@ private:
 		// define query to get the NGSD counts for each variant
 		db_queries.restart();
 		SqlQuery ngsd_count_query = db.getQuery();
-		ngsd_count_query.prepare(QString() +"SELECT s.id, dsv.processed_sample_id_tumor, p.name "
-								 + "FROM detected_somatic_variant as dsv, variant as v, "
-								 + "processed_sample ps, sample as s, project as p "
-								 + "WHERE ps.project_id=p.id AND ps.quality!='bad' "
-								 + "AND dsv.processed_sample_id_tumor=ps.id "
-								 + "AND dsv.variant_id=v.id AND ps.sample_id=s.id  "
-								 + "AND s.tumor='1' AND v.chr=:0 AND v.start=:1 AND v.end=:2 "
-								 + "AND v.ref=:3 AND v.obs=:4");
+		ngsd_count_query.prepare("SELECT s.id, dsv.processed_sample_id_tumor, p.name FROM detected_somatic_variant as dsv, variant as v, processed_sample ps, sample as s, project as p WHERE ps.project_id=p.id AND ps.quality!='bad'"
+								 " AND dsv.processed_sample_id_tumor=ps.id AND dsv.variant_id=v.id AND ps.sample_id=s.id AND s.tumor='1' AND v.chr=:0 AND v.start=:1 AND v.end=:2 AND v.ref=:3 AND v.obs=:4");
 		db_query_sum += db_queries.elapsed();
 
 		// define query to get the variant information by id
 		db_queries.restart();
 		SqlQuery variant_query = db.getQuery();
-		variant_query.prepare(QString() + "SELECT v.chr, v.start, v.end, v.ref, v.obs, v.id "
-							  + "FROM variant as v, detected_somatic_variant as dsv "
-							  + "WHERE dsv.id=:0 AND dsv.variant_id=v.id");
+		variant_query.prepare("SELECT v.chr, v.start, v.end, v.ref, v.obs, v.id FROM variant as v, detected_somatic_variant as dsv WHERE dsv.id=:0 AND dsv.variant_id=v.id");
 		db_query_sum += db_queries.elapsed();
 
 		// write info column descriptions
 		vcf_file_writing.restart();
-		vcf_stream << "##INFO=<ID=SOM_C,Number=1,Type=Integer,"
-				   << "Description=\"Somatic variant count in the NGSD.\">\n";
-		vcf_stream << "##INFO=<ID=SOM_P,Number=.,Type=String,"
-				   << "Description=\"Project names of project containing this somatic variant in "
-				   << "the NGSD.\">\n";
-		vcf_stream << "##INFO=<ID=SOM_VICC,Number=1,Type=String,"
-				   << "Description=\"Somatic variant interpretation according VICC standard in "
-				   << "the NGSD.\">\n";
-		vcf_stream << "##INFO=<ID=SOM_VICC_COMMENT,Number=1,Type=String,"
-				   << "Description=\"Somatic VICC interpretation comment in "
-				   << "the NGSD.\">\n";
-
+		vcf_stream << "##INFO=<ID=SOM_C,Number=1,Type=Integer,Description=\"Somatic variant count in the NGSD.\">\n";
+		vcf_stream << "##INFO=<ID=SOM_P,Number=.,Type=String,Description=\"Project names of project containing this somatic variant in the NGSD.\">\n";
+		vcf_stream << "##INFO=<ID=SOM_VICC,Number=1,Type=String,Description=\"Somatic variant interpretation according VICC standard in the NGSD.\">\n";
+		vcf_stream << "##INFO=<ID=SOM_VICC_COMMENT,Number=1,Type=String,Description=\"Somatic VICC interpretation comment in the NGSD.\">\n";
 
 		// write header line
 		vcf_stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
@@ -236,16 +187,13 @@ private:
 		int variant_count = 0;
 
 		// iterate over database chromosome-wise
-		foreach (QString chr_name, chromosome_names)
+		foreach (const QString& chr_name, db.getEnum("variant", "chr"))
 		{
 			out << "\texporting somatic variants from " << chr_name << "... " << endl;
 
 			// get all ids of all varaints on this chromosome
-			QString id_query_string = QString() + "SELECT dsv.id FROM detected_somatic_variant as dsv, "
-					+ "variant as v WHERE dsv.variant_id=v.id AND chr='" + chr_name
-					+ "' ORDER BY v.start ASC, v.end ASC;";
 			db_queries.restart();
-			QStringList somatic_variant_ids = db.getValues(id_query_string);
+			QList<int> somatic_variant_ids = db.getValuesInt("SELECT dsv.id FROM detected_somatic_variant as dsv, variant as v WHERE dsv.variant_id=v.id AND chr='" + chr_name + "' ORDER BY v.start ASC, v.end ASC");
 			db_query_sum += db_queries.elapsed();
 
 			// cache all processed varaint ids to export each variant only once
@@ -254,7 +202,7 @@ private:
 			int variant_count_per_chr = 0;
 
 			// iterate over all variants
-			foreach (QString som_variant_id, somatic_variant_ids)
+			foreach (int som_variant_id, somatic_variant_ids)
 			{
 				Variant variant;
 				db_queries.restart();
@@ -419,11 +367,10 @@ private:
 
 					// cache processed varaint id
 					processed_variants_ids.append(variant_id);
-
 				}
 				else
 				{
-					THROW(DatabaseException, "Invalid number of database results found!")
+					THROW(DatabaseException, "Invalid number of database results found: " + QString::number(variant_query.size()));
 				}
 
 				if(variant_count_per_chr % 10000 == 0)
@@ -492,22 +439,8 @@ private:
 		vcf_stream << "##reference=" << reference_file_path << "\n";
 		vcf_file_writing_sum += vcf_file_writing.elapsed();
 
-		// get chromosome list or use only the provided chromosome
-		QStringList chromosome_names;
-		if (limited_chr_ == NULL)
-		{
-			db_queries.restart();
-			chromosome_names = db.getEnum("variant", "chr");
-			db_query_sum += db_queries.elapsed();
-		}
-		else
-		{
-			chromosome_names.append(limited_chr_.strNormalized(true));
-		}
-
-
 		// write contigs
-		foreach (QString chr_name, chromosome_names)
+		foreach (const QString& chr_name, db.getEnum("variant", "chr"))
 		{
 			// get chr length
 			int chr_length = reference_file.lengthOf(Chromosome(chr_name));
@@ -519,17 +452,12 @@ private:
 		}
 
 		// get disease groups
-		db_queries.restart();
 		QStringList disease_groups = db.getEnum("sample", "disease_group");
-		db_query_sum += db_queries.elapsed();
-		//disease_groups.removeAll("n/a");
 
 		//get same sample information
 		QHash<int, QList<int>> same_samples;
-		db_queries.restart();
 		SqlQuery query = db.getQuery();
 		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
-		db_query_sum += db_queries.elapsed();
 		while (query.next())
 		{
 			int sample1_id = query.value(0).toInt();
@@ -538,26 +466,17 @@ private:
 			same_samples[sample2_id] << sample1_id;
 		}
 
-		// define query to get the NGSD counts for each variant
-		db_queries.restart();
+		//prepare queries
 		SqlQuery ngsd_count_query = db.getQuery();
-		ngsd_count_query.prepare(QString() + "SELECT s.id, s.disease_status, s.disease_group, dv.genotype "
-								 + "FROM detected_variant dv, processed_sample ps, sample s "
-								 + "WHERE dv.variant_id=:0 AND ps.sample_id=s.id AND ps.quality!='bad'"
-								 + "AND dv.processed_sample_id=ps.id");
-		db_query_sum += db_queries.elapsed();
-
-		// define query to get the variant information by id
-		db_queries.restart();
+		ngsd_count_query.prepare("SELECT s.id, s.disease_status, s.disease_group, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id=:0 AND ps.sample_id=s.id AND ps.quality!='bad' AND dv.processed_sample_id=ps.id");
 		SqlQuery variant_query = db.getQuery();
-		variant_query.prepare(QString() + "SELECT chr, start, end, ref, obs, 1000g, gnomad, comment "
-							  + "FROM variant WHERE id=:0");
-		db_query_sum += db_queries.elapsed();
+		variant_query.prepare("SELECT chr, start, end, ref, obs, 1000g, gnomad, comment FROM variant WHERE id=:0");
+		SqlQuery variant_update_query = db.getQuery();
+		variant_update_query.prepare("UPDATE variant SET germline_het=:0, germline_hom=:1 WHERE id=:2");
 
 		// write info column descriptions
 		vcf_file_writing.restart();
-		vcf_stream << "##INFO=<ID=COUNTS,Number=2,Type=Integer,"
-				   << "Description=\"Homozygous/Heterozygous variant counts in NGSD.\">\n";
+		vcf_stream << "##INFO=<ID=COUNTS,Number=2,Type=Integer,Description=\"Homozygous/Heterozygous variant counts in NGSD.\">\n";
 
 		// create info column entry for all disease groups
 		for(int i = 0; i < disease_groups.size(); i++)
@@ -567,14 +486,10 @@ private:
 					   << "Homozygous/Heterozygous variant counts in NGSD for "
 					   << disease_groups[i].toLower() << ".\">\n";
 		}
-		vcf_stream << "##INFO=<ID=HAF,Number=0,Type=Flag,Description=\"Indicates a allele "
-				   << "frequency above a threshold of " << max_allel_frequency_ << ".\">\n";
-		vcf_stream << "##INFO=<ID=CLAS,Number=1,Type=String,"
-				   << "Description=\"Classification from the NGSD.\">\n";
-		vcf_stream << "##INFO=<ID=CLAS_COM,Number=1,Type=String,"
-				   << "Description=\"Classification comment from the NGSD.\">\n";
-		vcf_stream << "##INFO=<ID=COM,Number=1,Type=String,"
-				   << "Description=\"Variant comments from the NGSD.\">\n";
+		vcf_stream << "##INFO=<ID=HAF,Number=0,Type=Flag,Description=\"Indicates a allele frequency above a threshold of " << max_allel_frequency_ << ".\">\n";
+		vcf_stream << "##INFO=<ID=CLAS,Number=1,Type=String,Description=\"Classification from the NGSD.\">\n";
+		vcf_stream << "##INFO=<ID=CLAS_COM,Number=1,Type=String,Description=\"Classification comment from the NGSD.\">\n";
+		vcf_stream << "##INFO=<ID=COM,Number=1,Type=String,Description=\"Variant comments from the NGSD.\">\n";
 
 		// write header line
 		vcf_stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
@@ -586,21 +501,19 @@ private:
 		int variant_count = 0;
 
 		// iterate over database chromosome-wise
-		foreach (QString chr_name, chromosome_names)
+		foreach (const QString& chr_name, db.getEnum("variant", "chr"))
 		{
 			out << "\texporting variants from " << chr_name << "... " << endl;
 
 			// get all ids of all varaints on this chromosome
-			QString id_query_string = "SELECT id FROM variant WHERE chr='" + chr_name
-					+ "' ORDER BY start ASC, end ASC;";
 			db_queries.restart();
-			QStringList variant_ids = db.getValues(id_query_string);
+			QList<int> variant_ids = db.getValuesInt("SELECT id FROM variant WHERE chr='" + chr_name + "' ORDER BY start ASC, end ASC");
 			db_query_sum += db_queries.elapsed();
 
 			int variant_count_per_chr = 0;
 
 			// iterate over all variants
-			foreach (QString variant_id, variant_ids)
+			foreach (int variant_id, variant_ids)
 			{
 				Variant variant;
 				db_queries.restart();
@@ -673,10 +586,8 @@ private:
 
 					QByteArrayList info_column;
 
-					if((one_thousand_g.toDouble() <= max_allel_frequency_)
-					   && (gnomad.toDouble() <= max_allel_frequency_))
+					if((one_thousand_g.toDouble() <= max_allel_frequency_) && (gnomad.toDouble() <= max_allel_frequency_))
 					{
-
 						// benchmark
 						count_computation.restart();
 
@@ -697,8 +608,7 @@ private:
 							int sample_id = ngsd_count_query.value(0).toInt();
 
 							// count heterozygous variants
-							if (ngsd_count_query.value(3) == "het"
-								&& !samples_done_het.contains(sample_id))
+							if (ngsd_count_query.value(3) == "het" && !samples_done_het.contains(sample_id))
 							{
 								++count_het;
 								samples_done_het << sample_id;
@@ -716,8 +626,7 @@ private:
 							}
 
 							// count homozygous variants
-							if (ngsd_count_query.value(3) == "hom"
-								&& !samples_done_hom.contains(sample_id))
+							if (ngsd_count_query.value(3) == "hom" && !samples_done_hom.contains(sample_id))
 							{
 								++count_hom;
 								samples_done_hom << sample_id;
@@ -736,28 +645,30 @@ private:
 						}
 
 						// store counts in vcf
-						info_column.append("COUNTS=" + QByteArray::number(count_hom) + ","
-										   + QByteArray::number(count_het));
-
+						info_column.append("COUNTS=" + QByteArray::number(count_hom) + "," + QByteArray::number(count_het));
 
 						for(int i = 0; i < disease_groups.size(); i++)
 						{
-							if ((het_per_group.value(disease_groups[i], 0) > 0)
-								|| (hom_per_group.value(disease_groups[i], 0) > 0))
+							if ((het_per_group.value(disease_groups[i], 0) > 0) || (hom_per_group.value(disease_groups[i], 0) > 0))
 							{
-								info_column.append("GSC"
-												   + QByteArray::number(i + 1).rightJustified(2, '0')
+								info_column.append("GSC" + QByteArray::number(i + 1).rightJustified(2, '0')
 												   + "="
-												   + QByteArray::number(hom_per_group
-																		.value(disease_groups[i], 0))
+												   + QByteArray::number(hom_per_group.value(disease_groups[i], 0))
 												   + ","
-												   + QByteArray::number(het_per_group
-																		.value(disease_groups[i], 0)));
+												   + QByteArray::number(het_per_group.value(disease_groups[i], 0)));
 							}
 						}
 
 						// benchmark
 						count_computation_sum += count_computation.elapsed();
+
+						// update variant table with counts
+						db_queries.restart();
+						variant_update_query.bindValue(0, count_het);
+						variant_update_query.bindValue(1, count_hom);
+						variant_update_query.bindValue(2, variant_id);
+						variant_update_query.exec();
+						db_query_sum += db_queries.elapsed();
 					}
 					else
 					{
@@ -767,9 +678,7 @@ private:
 
 					// get classification
 					db_queries.restart();
-					QString classification_query_string = QString() + "SELECT class, comment FROM "
-							+ "variant_classification WHERE variant_id='" + variant_id + "'";
-					query.exec(classification_query_string);
+					query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + QString::number(variant_id) + "'");
 					db_query_sum += db_queries.elapsed();
 					if (query.size() > 0)
 					{
@@ -801,19 +710,17 @@ private:
 				}
 				else
 				{
-					THROW(DatabaseException, "Invalid number of database results found!")
+					THROW(DatabaseException, "Invalid number of database results found: " + QString::number(variant_query.size()));
 				}
 
 				variant_count_per_chr++;
 				if(variant_count_per_chr % 10000 == 0)
 				{
-					out << "\t\t\t" << variant_count_per_chr << " variants of " << chr_name
-						<< " exported. " << endl;
+					out << "\t\t\t" << variant_count_per_chr << " variants of " << chr_name << " exported. " << endl;
 				}
 			}
 
-			out << "\t...done\n\t\t" << variant_ids.size() << " variants exported.\n"
-				<< "\t\t(runtime: " << getTimeString(timer.elapsed()) << ")" << endl;
+			out << "\t...done\n\t\t" << variant_ids.size() << " variants exported.\n" << "\t\t(runtime: " << getTimeString(timer.elapsed()) << ")" << endl;
 			variant_count += variant_ids.size();
 		}
 
@@ -830,7 +737,7 @@ private:
 			<< "\t(count computation: "<< getTimeString(count_computation_sum) << ")\n"<< endl;
 	}
 
-	/*
+/*
  *  writes the gene annotation data from the NGSD to a bed file
  */
 	void exportingGenesToBed(QString bed_file_path, NGSD& db)
@@ -850,13 +757,13 @@ private:
 			// get gene names:
 			GeneSet genes = db.approvedGeneNames();
 			QMap<QString, QPair<int,int>> gene_types;
-			foreach (QString type, db.getEnum("gene", "type"))
+			foreach (const QString& type, db.getEnum("gene", "type"))
 			{
 				gene_types.insert(type, qMakePair(0,0));
 			}
 
 			// iterate over each gene
-			foreach (QByteArray gene, genes)
+			foreach (const QByteArray& gene, genes)
 			{
 				// get additional info
 				GeneInfo gene_info = db.geneInfo(gene);
