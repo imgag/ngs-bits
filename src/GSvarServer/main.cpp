@@ -226,15 +226,16 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
-						"project_file",
+						"processed_sample_path",
 						QMap<QString, ParamProps> {
-						   {"ps_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample id"}}
+						   {"ps_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample id"}},
+						   {"type", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "File type"}}
 						},
 						RequestMethod::GET,
 						ContentType::TEXT_PLAIN,
 						false,
-						"Temporary URL leading to a specific project file (GSvar file)",
-						&EndpointHandler::locateProjectFile
+						"Temporary URL leading to a specific project file (based on the processed sample id)",
+						&EndpointHandler::getProcessedSamplePath
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{

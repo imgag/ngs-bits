@@ -32,7 +32,7 @@ public:
 	static HttpResponse serveApiInfo(const HttpRequest& request);
 	static HttpResponse serveTempUrl(const HttpRequest& request);
 	static HttpResponse locateFileByType(const HttpRequest& request);
-	static HttpResponse locateProjectFile(const HttpRequest& request);
+	static HttpResponse getProcessedSamplePath(const HttpRequest& request);
 	static HttpResponse saveProjectFile(const HttpRequest& request);
 	static HttpResponse saveQbicFiles(const HttpRequest& request);
 

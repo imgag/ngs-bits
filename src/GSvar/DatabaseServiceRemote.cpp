@@ -97,7 +97,8 @@ FileLocation DatabaseServiceRemote::processedSamplePath(const QString& processed
 	checkEnabled(__PRETTY_FUNCTION__);
 
 	FileLocation output;
-	QByteArray reply = makeApiCall("project_file?ps_id="+processed_sample_id);
+	qDebug() << "processed_sample_id " << processed_sample_id;
+	QByteArray reply = makeApiCall("processed_sample_path?ps_id=" + processed_sample_id + "&type=" + FileLocation::typeToString(type));
 
 	if (reply.length() == 0)
 	{

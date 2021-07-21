@@ -207,9 +207,16 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-HttpResponse EndpointHandler::locateProjectFile(const HttpRequest& request)
+HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 {
-	qDebug() << "Project file location";
+	qDebug() << "Processed sample path";
+
+	PathType type = PathType::GSVAR;
+	if (request.getUrlParams().contains("type"))
+	{
+		type = FileLocation::stringToType(request.getUrlParams()["type"].toUpper().trimmed());
+	}
+
 	QList<QString> project_files;
 	QJsonDocument json_doc_output;
 	QJsonArray json_list_output;
@@ -220,7 +227,7 @@ HttpResponse EndpointHandler::locateProjectFile(const HttpRequest& request)
 	try
 	{
 		id = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
-		found_file_path =  NGSD().processedSamplePath(request.getUrlParams()["ps_id"], PathType::GSVAR);
+		found_file_path =  NGSD().processedSamplePath(request.getUrlParams()["ps_id"], type);
 	}
 	catch (Exception& e)
 	{
