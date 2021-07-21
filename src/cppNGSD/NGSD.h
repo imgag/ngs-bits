@@ -453,9 +453,9 @@ struct CfdnaPanelInfo
 	int id = -1;
 	int tumor_id = -1;
 	int cfdna_id = -1;
-	QByteArray created_by;
+	int created_by = -1;
 	QDate created_date;
-	QByteArray processing_system;
+	int processing_system_id = -1;
 };
 
 /// cfDNA Gene entry
@@ -720,6 +720,8 @@ public:
 	void setCfdnaRemovedRegions(int id, const BedFile& removed_regions);
 	///Returns all available cfDNA gene entries
 	QList<CfdnaGeneEntry> cfdnaGenes();
+	///Returns the ID SNPs of a processing system as VCF
+	VcfFile getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail = true);
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)

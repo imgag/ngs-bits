@@ -28,13 +28,17 @@ private:
 	QVector<cfDNATableLine> input_table_;
 
 	void initGUI();
+	void parseInput();
 	void fillTable();
+	void writeToDbImportLog(const QString& text);
 	void validateTable();
 	VcfFile createVcf(const QString& ps_name, const QString& vcf_file_path);
 
 
+
 private slots:
-	void parseInput();
+	void showRawInputView();
+	void importTextInput();
 	void importPanels();
 
 };

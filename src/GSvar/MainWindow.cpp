@@ -121,6 +121,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "Statistics.h"
 #include "NGSDReplicationWidget.h"
 #include "cfDNARemovedRegions.h"
+#include "CfDNAPanelBatchImport.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1278,7 +1279,8 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 		QStringList cfdna_panel_description;
 		foreach (const CfdnaPanelInfo& panel, cfdna_panels)
 		{
-			cfdna_panel_description.append("cfDNA panel for " + panel.processing_system  + " (" + panel.created_date.toString("dd.MM.yyyy") + " by " + panel.created_by + ")");
+			cfdna_panel_description.append("cfDNA panel for " + NGSD().getProcessingSystemData(panel.processing_system_id).name  + " (" + panel.created_date.toString("dd.MM.yyyy") + " by "
+										   + NGSD().userName(panel.created_by) + ")");
 		}
 
 		QComboBox* cfdna_panel_selector = new QComboBox(this);
@@ -4279,6 +4281,13 @@ void MainWindow::on_actionImportSampleRelations_triggered()
 				"sample_relations",
 				QStringList() << "sample1_id" << "relation" << "sample2_id"
 				);
+}
+
+void MainWindow::on_actionImportCfDNAPanels_triggered()
+{
+	CfDNAPanelBatchImport* widget = new CfDNAPanelBatchImport();
+	auto dlg = GUIHelper::createDialog(widget, "Import cfDNA panels");
+	dlg->exec();
 }
 
 void MainWindow::on_actionMidClashDetection_triggered()

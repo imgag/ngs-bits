@@ -121,6 +121,7 @@ public slots:
 	void on_actionImportSamples_triggered();
 	void on_actionImportProcessedSamples_triggered();
 	void on_actionImportSampleRelations_triggered();
+	void on_actionImportCfDNAPanels_triggered();
 	void on_actionMidClashDetection_triggered();
 	void on_actionVariantValidation_triggered();
 	void on_actionChangePassword_triggered();

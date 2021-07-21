@@ -1238,9 +1238,9 @@ private slots:
 		//cfDNA panels
 		CfdnaPanelInfo panel_info;
 		panel_info.tumor_id = db.processedSampleId("DX184894_01").toInt();
-		panel_info.created_by = "ahmustm1";
+		panel_info.created_by = NGSD().userId("ahmustm1");
 		panel_info.created_date = QDate(2021, 01, 01);
-		panel_info.processing_system = "IDT_xGenPrism";
+		panel_info.processing_system_id = NGSD().processingSystemId("IDT_xGenPrism");
 
 		BedFile bed;
 		bed.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.bed"));
@@ -1257,7 +1257,7 @@ private slots:
 		I_EQUAL(loaded_panel_info.tumor_id, panel_info.tumor_id);
 		S_EQUAL(loaded_panel_info.created_by, panel_info.created_by);
 		IS_TRUE(loaded_panel_info.created_date == panel_info.created_date);
-		S_EQUAL(loaded_panel_info.processing_system, panel_info.processing_system);
+		S_EQUAL(loaded_panel_info.processing_system_id, panel_info.processing_system_id);
 
 		S_EQUAL(db.cfdnaPanelRegions(loaded_panel_info.id).toText(), bed.toText());
 		S_EQUAL(db.cfdnaPanelVcf(loaded_panel_info.id).toText(), vcf.toText());

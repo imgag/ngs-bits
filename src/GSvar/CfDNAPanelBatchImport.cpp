@@ -6,6 +6,8 @@
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
 #include "Settings.h"
+#include "GSvarHelper.h"
+#include <QMessageBox>
 
 CfDNAPanelBatchImport::CfDNAPanelBatchImport(QWidget *parent) :
 	QDialog(parent),
@@ -14,7 +16,7 @@ CfDNAPanelBatchImport::CfDNAPanelBatchImport(QWidget *parent) :
 	// abort if no connection to NGSD
 	if (!LoginManager::active())
 	{
-		GUIHelper::showMessage("No connection to the NGSD!", "You need access to the NGSD to modify cfDNA panels!");
+		GUIHelper::showMessage("No connection to the NGSD!", "You need access to the NGSD to import cfDNA panels!");
 		this->close();
 	}
 
@@ -34,6 +36,11 @@ void CfDNAPanelBatchImport::initGUI()
 	ui_->tw_import_table->setHorizontalHeaderItem(0, new QTableWidgetItem("Processed sample (tumor)"));
 	ui_->tw_import_table->setHorizontalHeaderItem(1, new QTableWidgetItem("Processing system"));
 	ui_->tw_import_table->setHorizontalHeaderItem(2, new QTableWidgetItem("File path to cfDNA panel (VCF)"));
+
+	//Signals and slots
+	connect(ui_->b_validate, SIGNAL(clicked(bool)), this, SLOT(importTextInput()));
+	connect(ui_->b_back, SIGNAL(clicked(bool)), this, SLOT(showRawInputView()));
+
 }
 
 void CfDNAPanelBatchImport::fillTable()
@@ -46,6 +53,11 @@ void CfDNAPanelBatchImport::fillTable()
 		ui_->tw_import_table->setItem(row_idx, 1, new QTableWidgetItem(QString(input_table_.at(row_idx).processing_system)));
 		ui_->tw_import_table->setItem(row_idx, 2, new QTableWidgetItem(QString(input_table_.at(row_idx).vcf_file_path)));
 	}
+}
+
+void CfDNAPanelBatchImport::writeToDbImportLog(const QString& text)
+{
+	ui_->te_import_result->setText(ui_->te_import_result->toPlainText() + text + "\n");
 }
 
 void CfDNAPanelBatchImport::validateTable()
@@ -81,7 +93,7 @@ void CfDNAPanelBatchImport::validateTable()
 		}
 
 		//check if file exists
-		if (!QFile::exists(ui_->tw_import_table->item(row_idx, 0)->text()))
+		if (!QFile::exists(ui_->tw_import_table->item(row_idx, 2)->text()))
 		{
 			valid = false;
 			ui_->tw_import_table->item(row_idx, 2)->setBackgroundColor(Qt::red);
@@ -160,6 +172,32 @@ VcfFile CfDNAPanelBatchImport::createVcf(const QString& ps_name, const QString& 
 	return VcfFile::convertGSvarToVcf(cfdna_panel, Settings::string("reference_genome", false));
 }
 
+void CfDNAPanelBatchImport::showRawInputView()
+{
+	ui_->sw_import_panels->setCurrentIndex(0);
+}
+
+void CfDNAPanelBatchImport::importTextInput()
+{
+	try
+	{
+		parseInput();
+	}
+	catch (FileParseException e)
+	{
+		QMessageBox::warning(this, "Error parsing table input", e.message());
+		return;
+	}
+
+	// switch to next widget
+	ui_->sw_import_panels->setCurrentIndex(1);
+
+
+	// fill and validate table
+	fillTable();
+	validateTable();
+}
+
 void CfDNAPanelBatchImport::parseInput()
 {
 	input_table_.clear();
@@ -182,5 +220,102 @@ void CfDNAPanelBatchImport::parseInput()
 
 void CfDNAPanelBatchImport::importPanels()
 {
+	ui_->te_import_result->setText("Starting import...\n");
+
+	// add sample identifier on demand
+	bool add_sample_identifier = ui_->cb_add_sample_identifier->isChecked();
+	QMap<int,VcfFile> proc_sys_sample_ids = QMap<int,VcfFile>();
+	VcfFile general_sample_ids;
+	if (add_sample_identifier)
+	{
+		// get KASP SNPs
+		QTextStream vcf_content(new QFile("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf"));
+		general_sample_ids.fromText(vcf_content.readAll().toUtf8());
+	}
+
+	//overwrite panels on demand
+	bool overwrite_existing = ui_->cb_overwrite_existing->isChecked();
+
+	// start mysql transaction
+	NGSD().transaction();
+
+	try
+	{
+		//iterate over table
+		for (int row_idx = 0; row_idx < ui_->tw_import_table->rowCount(); ++row_idx)
+		{
+			// read table line
+			QString ps_name = ui_->tw_import_table->item(row_idx, 0)->text();
+			int processing_system_id = NGSD().processingSystemId(ui_->tw_import_table->item(row_idx, 1)->text());
+			QString vcf_file_path = ui_->tw_import_table->item(row_idx, 2)->text();
+
+			writeToDbImportLog("Importing cfDNA panel for processed sample " + ps_name + "...\n");
+
+			//create panel info
+			CfdnaPanelInfo panel_info;
+			if (overwrite_existing)
+			{
+				// get previous cfDNA panel
+				QList<CfdnaPanelInfo> panel_list = NGSD().cfdnaPanelInfo(NGSD().processedSampleId(ps_name), QString::number(processing_system_id));
+				if (panel_list.size() > 0)
+				{
+					panel_info = panel_list.at(0);
+				}
+			}
+
+			panel_info.tumor_id = Helper::toInt(NGSD().processedSampleId(ps_name));
+			panel_info.created_by = LoginManager::userId();
+			panel_info.created_date = QDate::currentDate();
+			panel_info.processing_system_id = processing_system_id;
+
+
+			// parse VCF and generate cfDNA panel
+			VcfFile cfdna_panel = createVcf(ps_name, vcf_file_path);
+
+			// append sample ids
+			if (add_sample_identifier)
+			{
+				// add KASP SNPs
+				foreach (VcfLinePtr vcf_line_ptr, general_sample_ids.vcfLines())
+				{
+					cfdna_panel.vcfLines() << vcf_line_ptr;
+				}
+
+				// add ID SNPs from processing system
+				if (!proc_sys_sample_ids.contains(processing_system_id))
+				{
+					proc_sys_sample_ids.insert(processing_system_id, NGSD().getIdSnpsFromProcessingSystem(processing_system_id, true));
+				}
+				foreach (VcfLinePtr vcf_line_ptr, proc_sys_sample_ids.value(processing_system_id).vcfLines())
+				{
+					cfdna_panel.vcfLines() << vcf_line_ptr;
+				}
+
+				cfdna_panel.sort();
+			}
+
+			// generate bed file
+			BedFile cfdna_panel_region;
+			for (int i=0; i<cfdna_panel.count(); i++)
+			{
+				QByteArray annotation = (cfdna_panel[i].id().contains("M"))?"patient_specific_somatic_variant:" : "SNP_for_sample_identification:";
+				cfdna_panel_region.append(BedLine(cfdna_panel[i].chr(), cfdna_panel[i].start(), cfdna_panel[i].end(),
+												  QByteArrayList() << (annotation + cfdna_panel[i].ref() + ">" + cfdna_panel[i].altString())));
+			}
+
+			// import into NGSD
+			NGSD().storeCfdnaPanel(panel_info, cfdna_panel_region.toText().toUtf8(), cfdna_panel.toText());
+		}
+
+		// if all panels were imported successfully -> apply changes to the database
+		NGSD().commit();
+	}
+	catch (Exception e)
+	{
+		writeToDbImportLog("<font color='red'>Import of cfDNA panels failed!</font><br>ERROR:" + e.message());
+		// perform db rollback
+		NGSD().rollback();
+	}
+
 
 }

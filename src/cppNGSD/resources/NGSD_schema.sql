@@ -2052,7 +2052,7 @@ CREATE  TABLE IF NOT EXISTS `cfdna_panels`
   `processing_system_id` INT(11) NOT NULL,
   `bed` MEDIUMTEXT NOT NULL,
   `vcf` MEDIUMTEXT NOT NULL,
-  `excluded_regions` MEDIUMTEXT NOT NULL,
+  `excluded_regions` MEDIUMTEXT DEFAULT NULL,
 PRIMARY KEY (`id`),
 INDEX(`created_by`),
 INDEX(`created_date`),

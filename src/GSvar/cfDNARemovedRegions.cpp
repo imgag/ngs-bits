@@ -36,7 +36,8 @@ cfDNARemovedRegions::cfDNARemovedRegions(const QString& processed_sample_name, Q
 		QStringList panel_text;
 		foreach (const CfdnaPanelInfo& panel, cfdna_panels)
 		{
-			panel_text.append("cfDNA panel for " + panel.processing_system  + " (" + panel.created_date.toString("dd.MM.yyyy") + " by " + panel.created_by + ")");
+			panel_text.append("cfDNA panel for " + NGSD().getProcessingSystemData(panel.processing_system_id).name  + " (" + panel.created_date.toString("dd.MM.yyyy") + " by "
+							  + NGSD().userName(panel.created_by) + ")");
 		}
 
 		QComboBox* cfdna_panel_selector = new QComboBox(this);
@@ -65,7 +66,7 @@ cfDNARemovedRegions::~cfDNARemovedRegions()
 void cfDNARemovedRegions::initGui()
 {
 	ui_->l_processed_sample->setText(processed_sample_name_);
-	ui_->l_processing_system->setText(cfdna_panel_info_.processing_system);
+	ui_->l_processing_system->setText(NGSD().getProcessingSystemData(cfdna_panel_info_.processing_system_id).name);
 	// get removed regions
 	BedFile previous_regions = NGSD().cfdnaPanelRemovedRegions(cfdna_panel_info_.id);
 	ui_->te_removed_regions->setText(previous_regions.toText());

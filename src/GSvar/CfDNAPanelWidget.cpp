@@ -55,7 +55,8 @@ void CfDNAPanelWidget::exportBed()
 void CfDNAPanelWidget::loadBedFile()
 {
 	// set file name
-	ui_->l_file_name->setText("cfDNA panel for " + panel_info_.processing_system  + " (" + panel_info_.created_date.toString("dd.MM.yyyy") + " by " + panel_info_.created_by + ")");
+	ui_->l_file_name->setText("cfDNA panel for " + NGSD().getProcessingSystemData(panel_info_.processing_system_id).name  + " (" + panel_info_.created_date.toString("dd.MM.yyyy") + " by "
+							  + NGSD().userName(panel_info_.created_by) + ")");
 	// load BED file
 	bed_file_= NGSD().cfdnaPanelRegions(panel_info_.id);
 
