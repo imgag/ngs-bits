@@ -203,8 +203,9 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 	//get variants in chromosomal range
 	QSet<QString> vars_distinct;
 	QList<QStringList> var_data;
-	QString af = QString::number(ui_.filter_af->value()/100.0);
-	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start";
+	QString max_af = QString::number(ui_.filter_af->value()/100.0);
+	int max_ngsd = ui_.filter_ngsd_count->value();
+	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND (1000g IS NULL OR 1000g<=" + max_af + ") AND (gnomad IS NULL OR gnomad<=" + max_af + ") ORDER BY start";
 	SqlQuery query = db.getQuery();
 	query.exec(query_text);
 	while(query.next())
@@ -241,8 +242,11 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 
 		//determine NGSD hom/het counts
 		QString variant_id = query.value("id").toString();
-		QPair<int, int> ngsd_counts = db.variantCounts(variant_id);
+		QPair<int, int> ngsd_counts = db.variantCounts(variant_id, true);
 		if (ngsd_counts.first + ngsd_counts.second ==0) continue; //skip somatic-only variants
+
+		//apply NGSD count filter
+		if (max_ngsd>0 && (ngsd_counts.first + ngsd_counts.second)>max_ngsd) continue;
 
 		//format transcript info
 		QSet<QString> types;
@@ -280,18 +284,18 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 			//get causal genes from report config
 			GeneSet genes_causal;
 			SqlQuery query3 = db.getQuery();
-			query3.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='diagnostic variant' AND rcv.causal=1 AND rc.processed_sample_id=" + processed_sample_id);
+			query3.exec("SELECT v.chr, v.start, v.end FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='diagnostic variant' AND rcv.causal=1 AND rc.processed_sample_id=" + processed_sample_id);
 			while(query3.next())
 			{
-				genes_causal << query3.value(0).toByteArray().split(',');
+				genes_causal << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
 
 			//get candidate genes from report config
 			GeneSet genes_candidate;
-			query3.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='candidate variant' AND rc.processed_sample_id=" + processed_sample_id);
+			query3.exec("SELECT v.chr, v.start, v.end FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='candidate variant' AND rc.processed_sample_id=" + processed_sample_id);
 			while(query3.next())
 			{
-				genes_candidate << query3.value(0).toByteArray().split(',');
+				genes_candidate << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
 
 			//get de-novo variants from report config

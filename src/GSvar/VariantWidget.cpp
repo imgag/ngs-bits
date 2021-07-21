@@ -89,8 +89,8 @@ void VariantWidget::updateGUI()
 		while(query2.next())
 		{
 			QString ps_id = query2.value(0).toString();
-
-			SampleData s_data = db.getSampleData(db.getValue("SELECT sample_id FROM processed_sample WHERE id=" + ps_id).toString());
+			QString s_id  = db.getValue("SELECT sample_id FROM processed_sample WHERE id=" + ps_id).toString();
+			SampleData s_data = db.getSampleData(s_id);
 			ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id);
 			DiagnosticStatusData diag_data = db.getDiagnosticStatus(ps_id);
 			QTableWidgetItem* item = addItem(row, 0,  ps_data.name);
@@ -111,38 +111,43 @@ void VariantWidget::updateGUI()
 			addItem(row, 9, pho_list.join("; "));
 			addItem(row, 10, diag_data.dagnostic_status);
 			addItem(row, 11, diag_data.user);
-			addItem(row, 12, s_data.comments);
-			addItem(row, 13, ps_data.comments);
+			addItem(row, 12, s_data.comments, true);
+			addItem(row, 13, ps_data.comments, true);
 
 			//get causal genes from report config
 			GeneSet genes_causal;
 			SqlQuery query3 = db.getQuery();
-			query3.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='diagnostic variant' AND rcv.causal=1 AND rc.processed_sample_id=" + ps_id);
+			query3.exec("SELECT v.chr, v.start, v.end FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='diagnostic variant' AND rcv.causal=1 AND rc.processed_sample_id=" + ps_id);
 			while(query3.next())
 			{
-				genes_causal << query3.value(0).toByteArray().split(',');
+				genes_causal << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
 			addItem(row, 14, genes_causal.join(','));
 
 			//get candidate genes from report config
 			GeneSet genes_candidate;
-			SqlQuery query4 = db.getQuery();
-			query4.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='candidate variant' AND rc.processed_sample_id=" + ps_id);
-			while(query4.next())
+			query3.exec("SELECT v.chr, v.start, v.end FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='candidate variant' AND rc.processed_sample_id=" + ps_id);
+			while(query3.next())
 			{
-				genes_candidate << query4.value(0).toByteArray().split(',');
+				genes_candidate << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
 			addItem(row, 15, genes_candidate.join(','));
 
 			//add report config comment of variant
 			QString rc_comment;
-			SqlQuery query5 = db.getQuery();
-			query5.exec("SELECT CONCAT(rcv.comments, ' // ', rcv.comments2) FROM report_configuration rc, report_configuration_variant rcv WHERE rcv.report_configuration_id=rc.id AND rc.processed_sample_id=" + ps_id + " AND rcv.variant_id=" + variant_id);
-			if(query5.next())
+			query3.exec("SELECT CONCAT(rcv.comments, ' // ', rcv.comments2) FROM report_configuration rc, report_configuration_variant rcv WHERE rcv.report_configuration_id=rc.id AND rc.processed_sample_id=" + ps_id + " AND rcv.variant_id=" + variant_id);
+			if(query3.next())
 			{
-				rc_comment = query5.value(0).toString().trimmed();
+				rc_comment = query3.value(0).toString().trimmed();
 			}
-			addItem(row, 16, rc_comment);
+			addItem(row, 16, rc_comment, true);
+
+			//validation info
+			QString vv_id = db.getValue("SELECT id FROM variant_validation WHERE sample_id='" + s_id + "' AND variant_id='" + variant_id + "' AND variant_type='SNV_INDEL'").toString();
+			if (!vv_id.isEmpty())
+			{
+				addItem(row, 17, db.getValue("SELECT status FROM variant_validation WHERE id='" + vv_id + "'").toString());
+			}
 
 			++row;
 		}
@@ -163,10 +168,19 @@ void VariantWidget::delayedInitialization()
 }
 
 
-QTableWidgetItem* VariantWidget::addItem(int r, int c, QString text)
+QTableWidgetItem* VariantWidget::addItem(int r, int c, QString text, bool also_as_tooltip)
 {
+	if (c>=ui_.table->columnCount())
+	{
+		THROW(ProgrammingException, "Column '" + QString::number(c) + "' not present in variant table!");
+	}
+
 	QTableWidgetItem* item = new QTableWidgetItem(text);
 	ui_.table->setItem(r, c, item);
+	if (also_as_tooltip)
+	{
+		ui_.table->item(r, c)->setToolTip(text);
+	}
 	return item;
 }
 

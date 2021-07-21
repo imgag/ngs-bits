@@ -558,6 +558,17 @@ const BedFile& NGSHelper::telomeres(GenomeBuild build)
 	return output[build];
 }
 
+QString NGSHelper::populationCodeToHumanReadable(QString code)
+{
+	if (code=="AFR") return "African";
+	else if (code=="EAS") return "East asian";
+	else if (code=="EUR") return "European";
+	else if (code=="SAS") return "South asian";
+	else if (code=="ADMIXED/UNKNOWN") return "Admixed/Unknown";
+	else if (code=="") return "";
+	else THROW(ProgrammingException, "Unknown population code '" + code + "'!");
+}
+
 void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos)
 {
 	QList<CigarOp> old_CIGAR = al.cigarData();

@@ -3,6 +3,7 @@ CONFIG += c++11
 
 #base settings
 QT       -= gui
+QT       += network
 CONFIG   += console
 CONFIG   -= app_bundle
 TEMPLATE = app

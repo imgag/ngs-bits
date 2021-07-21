@@ -264,7 +264,7 @@ FileLocation FileLocationProviderLocal::getSomaticCnvCallFile() const
 	QString name = QFileInfo(gsvar_file_).baseName() + " (copy number)";
 	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_cnvs.seg";
 
-	return FileLocation{name, PathType::COPY_NUMBER_RAW_DATA, file, QFile::exists(file)};
+	return FileLocation{name, PathType::CNV_RAW_DATA_CALL_REGIONS, file, QFile::exists(file)};
 }
 
 FileLocation FileLocationProviderLocal::getSomaticLowCoverageFile() const
@@ -284,7 +284,7 @@ FileLocation FileLocationProviderLocal::getSomaticMsiFile() const
 	QString name = QFileInfo(gsvar_file_).baseName();
 	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_msi.tsv";
 
-	return FileLocation{name, PathType::LOWCOV_BED, file, QFile::exists(file)};
+	return FileLocation{name, PathType::MSI, file, QFile::exists(file)};
 }
 
 QString FileLocationProviderLocal::getAnalysisPath() const

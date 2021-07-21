@@ -510,6 +510,16 @@
           <string>candidate genes</string>
          </property>
         </column>
+        <column>
+         <property name="text">
+          <string>report_config_comments</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>validation_information</string>
+         </property>
+        </column>
        </widget>
       </item>
       <item>

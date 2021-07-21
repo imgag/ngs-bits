@@ -508,7 +508,7 @@ private slots:
 
 		//approvedGeneNames
 		GeneSet approved = db.approvedGeneNames();
-		I_EQUAL(approved.count(), 17);
+		I_EQUAL(approved.count(), 18);
 
 		//phenotypes
 		PhenotypeList phenos = db.phenotypes(QStringList() << "aBNOrmality");
@@ -767,12 +767,24 @@ private slots:
 		IS_TRUE(db.variant(var_id)==vl[0]);
 
 		//variantCounts
-		QPair<int, int> ngsd_counts = db.variantCounts(db.variantId(Variant("chr10",43613843,43613843,"G","T")));
+		QString variant_id = db.variantId(Variant("chr10",43613843,43613843,"G","T")); //hom
+		QPair<int, int> ngsd_counts = db.variantCounts(variant_id);
 		I_EQUAL(ngsd_counts.first, 0);
 		I_EQUAL(ngsd_counts.second, 1);
-		ngsd_counts = db.variantCounts(db.variantId(Variant("chr17",7579472,7579472,"G","C")));
+
+		variant_id = db.variantId(Variant("chr17",7579472,7579472,"G","C")); //het
+		ngsd_counts = db.variantCounts(variant_id);
 		I_EQUAL(ngsd_counts.first, 1);
 		I_EQUAL(ngsd_counts.second, 0);
+
+		ngsd_counts = db.variantCounts(variant_id, true);
+		I_EQUAL(ngsd_counts.first, 0);
+		I_EQUAL(ngsd_counts.second, 0);
+
+		db.getQuery().exec("UPDATE variant SET germline_het=17, germline_hom=7 WHERE id=" + variant_id);
+		ngsd_counts = db.variantCounts(variant_id, true);
+		I_EQUAL(ngsd_counts.first, 17);
+		I_EQUAL(ngsd_counts.second, 7);
 
 		//getSampleDiseaseInfo
 		sample_id = db.sampleId("NA12878");
@@ -823,7 +835,7 @@ private slots:
 		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 71);
 		S_EQUAL(ps_table.row(0).value(70), "");
-		S_EQUAL(ps_table.row(4).value(70), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1,LOC100507346), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
+		S_EQUAL(ps_table.row(4).value(70), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
 		//add comments
 		params.add_comments = true;
 		ps_table = db.processedSampleSearch(params);

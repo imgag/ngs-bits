@@ -126,9 +126,6 @@ public:
 				continue;
 			}
 
-			//number of alternative observations (successes in binomial test)
-			int alt_obs = tmp.depth * tmp.frequency;
-
 			//output string for p-value
 			QByteArray pval_str;
 
@@ -140,21 +137,21 @@ public:
 			else {
 				//use p=0.5 (germline het), or p=tumor_af (somatic)
 				double prob = somatic ? Helper::toDouble(variant.annotations()[col_idx]) : 0.5;
-				double pval = binomtest_p(alt_obs, tmp.depth, prob);
+				double pval = binomtest_p(tmp.obs, tmp.depth, prob);
 				pval_str = QByteArray::number(pval, 'f', 4);
 			}
 
 			//append values
 			variant.annotations().append(QByteArray::number(tmp.frequency, 'f', 4));
 			variant.annotations().append(QByteArray::number(tmp.depth));
-			variant.annotations().append(QByteArray::number(alt_obs));
+			variant.annotations().append(QByteArray::number(tmp.obs));
 			variant.annotations().append(pval_str);
 
 		}
 
 		//add annotation headers
 		input.annotations().append(VariantAnnotationHeader("ASE_af"));
-		input.annotationDescriptions().append(VariantAnnotationDescription("ASE_freq", "Expressed variant allele frequency.", VariantAnnotationDescription::FLOAT));
+		input.annotationDescriptions().append(VariantAnnotationDescription("ASE_af", "Expressed variant allele frequency.", VariantAnnotationDescription::FLOAT));
 		input.annotations().append(VariantAnnotationHeader("ASE_depth"));
 		input.annotationDescriptions().append(VariantAnnotationDescription("ASE_depth", "Sequencing depth at the variant position.", VariantAnnotationDescription::INTEGER));
 		input.annotations().append(VariantAnnotationHeader("ASE_alt"));

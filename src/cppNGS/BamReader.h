@@ -262,12 +262,14 @@ struct CPPNGSSHARED_EXPORT VariantDetails
 		: depth(std::numeric_limits<int>::quiet_NaN())
 		, frequency(std::numeric_limits<double>::quiet_NaN())
 		, mapq0_frac(std::numeric_limits<double>::quiet_NaN())
+		, obs(std::numeric_limits<int>::quiet_NaN())
 	{
 	}
 
 	int depth;
 	double frequency;
 	double mapq0_frac;
+	int obs;
 };
 
 //C++ wrapper for htslib BAM file access

@@ -163,6 +163,18 @@ void DBTableWidget::setBackgroundColorIfGt(const QString& column_header, const Q
 	setBackgroundColorIf(column_header, color, [cutoff](const QString& str) { bool ok; double value = str.toDouble(&ok); if (!ok) return false; return value>cutoff; });
 }
 
+void DBTableWidget::showTextAsTooltip(const QString& column_header)
+{
+	int c = columnIndex(column_header);
+	for (int r=0; r<rowCount(); ++r)
+	{
+		QTableWidgetItem* table_item = item(r, c);
+		if (table_item==nullptr) continue;
+
+		table_item->setToolTip(table_item->text());
+	}
+}
+
 QSet<int> DBTableWidget::selectedRows() const
 {
 	QSet<int> output;
