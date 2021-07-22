@@ -45,6 +45,7 @@ HttpRequest RequestPaser::getRequest() const
 
 		if (header_separator > -1)
 		{
+			qDebug() << body[i].left(header_separator).toLower() << ": " << body[i].mid(header_separator+1).trimmed();
 			parsed_request.addHeader(body[i].left(header_separator).toLower(), body[i].mid(header_separator+1).trimmed());
 		}
 		else if (param_separator > -1)
