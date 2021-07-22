@@ -470,7 +470,7 @@ private:
 		SqlQuery ngsd_count_query = db.getQuery();
 		ngsd_count_query.prepare("SELECT s.id, s.disease_status, s.disease_group, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id=:0 AND ps.sample_id=s.id AND ps.quality!='bad' AND dv.processed_sample_id=ps.id");
 		SqlQuery variant_query = db.getQuery();
-		variant_query.prepare("SELECT chr, start, end, ref, obs, 1000g, gnomad, comment FROM variant WHERE id=:0");
+		variant_query.prepare("SELECT chr, start, end, ref, obs, 1000g, gnomad, comment, germline_het, germline_hom FROM variant WHERE id=:0");
 		SqlQuery variant_update_query = db.getQuery();
 		variant_update_query.prepare("UPDATE variant SET germline_het=:0, germline_hom=:1 WHERE id=:2");
 
@@ -533,6 +533,8 @@ private:
 					QByteArray one_thousand_g = variant_query.value(5).toByteArray();
 					QByteArray gnomad = variant_query.value(6).toByteArray();
 					QByteArray comment = variant_query.value(7).toByteArray();
+					int germline_het = variant_query.value(9).toInt();
+					int germline_hom = variant_query.value(9).toInt();
 
 					// modify sequence if deletion or insertion occurs (to fit VCF specification)
 					if ((variant.ref() == "-") || (variant.obs() == "-"))
@@ -662,13 +664,16 @@ private:
 						// benchmark
 						count_computation_sum += count_computation.elapsed();
 
-						// update variant table with counts
-						db_queries.restart();
-						variant_update_query.bindValue(0, count_het);
-						variant_update_query.bindValue(1, count_hom);
-						variant_update_query.bindValue(2, variant_id);
-						variant_update_query.exec();
-						db_query_sum += db_queries.elapsed();
+						// update variant table if counts changed
+						if (count_het!=germline_het || count_hom!=germline_hom)
+						{
+							db_queries.restart();
+							variant_update_query.bindValue(0, count_het);
+							variant_update_query.bindValue(1, count_hom);
+							variant_update_query.bindValue(2, variant_id);
+							variant_update_query.exec();
+							db_query_sum += db_queries.elapsed();
+						}
 					}
 					else
 					{
