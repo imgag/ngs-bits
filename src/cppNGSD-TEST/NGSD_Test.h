@@ -1250,9 +1250,9 @@ private slots:
 		//cfDNA panels
 		CfdnaPanelInfo panel_info;
 		panel_info.tumor_id = db.processedSampleId("DX184894_01").toInt();
-		panel_info.created_by = NGSD().userId("ahmustm1");
+		panel_info.created_by = db.userId("ahmustm1");
 		panel_info.created_date = QDate(2021, 01, 01);
-		panel_info.processing_system_id = NGSD().processingSystemId("IDT_xGenPrism");
+		panel_info.processing_system_id = db.processingSystemId("IDT_xGenPrism");
 
 		BedFile bed;
 		bed.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.bed"));
