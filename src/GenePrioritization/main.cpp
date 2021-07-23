@@ -103,7 +103,7 @@ public:
         addOutfile("out", "Output tsv file with prioritized genes", false);
         //optional
         addEnum("method", "Gene prioritization method to use", true, QStringList() << "flooding" << "randomWalk", "flooding");
-        addInt("n", "Number of network diffusion iterations for flooding method", true, 3);
+        addInt("n", "Number of network diffusion iterations for flooding method", true, 2);
         addFloat("restart", "Restart probability for random walk", true, 0.5);
         addOutfile("debug", "Output tsv file for debugging", true);
     }
@@ -148,13 +148,10 @@ public:
         {
             QStringList line = in.readLine().split("\t", QString::SkipEmptyParts);
 
-            if(line.size() == 2)
+            if(graph.hasNode(line.at(0)))
             {
-                if(graph.hasNode(line.at(0)))
-                {
-                    graph.getNode(line.at(0)).data()->nodeContent().score = line.at(1).toDouble();
-                    starting_nodes_.append(line.at(0));
-                }
+                graph.getNode(line.at(0)).data()->nodeContent().score = 1.0;
+                starting_nodes_.append(line.at(0));
             }
         }
     }
