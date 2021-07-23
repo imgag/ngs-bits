@@ -6,8 +6,6 @@ SUBDIRS = cppCORE \
         cppNGSD \
 	cppREST
 
-cppREST.depends += cppREST
-
 SUBDIRS += GSvarServer
 
 SUBDIRS += GSvarServer-TEST
