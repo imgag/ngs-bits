@@ -37,10 +37,16 @@ void CfDNAPanelBatchImport::initGUI()
 	ui_->tw_import_table->setHorizontalHeaderItem(1, new QTableWidgetItem("Processing system"));
 	ui_->tw_import_table->setHorizontalHeaderItem(2, new QTableWidgetItem("File path to cfDNA panel (VCF)"));
 
+	//make log output read-only
+	ui_->te_import_result->setReadOnly(true);
+
 	//Signals and slots
 	connect(ui_->b_validate, SIGNAL(clicked(bool)), this, SLOT(importTextInput()));
 	connect(ui_->b_back, SIGNAL(clicked(bool)), this, SLOT(showRawInputView()));
-
+	connect(ui_->b_import, SIGNAL(clicked(bool)), this, SLOT(importPanels()));
+	connect(ui_->b_back2, SIGNAL(clicked(bool)), this, SLOT(showValidationTableView()));
+	connect(ui_->cb_overwrite_existing, SIGNAL(stateChanged(int)), this, SLOT(validateTable()));
+	connect(ui_->b_close, SIGNAL(clicked(bool)), this, SLOT(close()));
 }
 
 void CfDNAPanelBatchImport::fillTable()
@@ -53,34 +59,64 @@ void CfDNAPanelBatchImport::fillTable()
 		ui_->tw_import_table->setItem(row_idx, 1, new QTableWidgetItem(QString(input_table_.at(row_idx).processing_system)));
 		ui_->tw_import_table->setItem(row_idx, 2, new QTableWidgetItem(QString(input_table_.at(row_idx).vcf_file_path)));
 	}
+
+	GUIHelper::resizeTableCells(ui_->tw_import_table, 300);
 }
 
-void CfDNAPanelBatchImport::writeToDbImportLog(const QString& text)
+void CfDNAPanelBatchImport::writeToDbImportLog(const QString& text, bool critical)
 {
-	ui_->te_import_result->setText(ui_->te_import_result->toPlainText() + text + "\n");
+	QString font_color;
+	if (critical)
+	{
+		font_color = " color=\"Red\"";
+	}
+	ui_->te_import_result->insertHtml("<font" + font_color + ">" + text + "</font><br>");
 }
 
 void CfDNAPanelBatchImport::validateTable()
 {
 	ui_->b_import->setEnabled(false);
+	QApplication::setOverrideCursor(Qt::BusyCursor);
 	bool valid = true;
+
+	// define table backround colors
+	QColor bg_red = QColor(255, 0, 0, 128);
+//	QColor bg_green = QColor(0, 99, 37, 128);
+	QColor bg_orange = QColor(255, 135, 60, 128);
+	QColor bg_white = QColor(255, 255, 255, 255);
+
+
 	for (int row_idx = 0; row_idx < ui_->tw_import_table->rowCount(); ++row_idx)
 	{
+		bool db_entries_valid = true;
 		//check processed sample
 		QString ps_name = ui_->tw_import_table->item(row_idx, 0)->text().trimmed();
 		QString ps_id = NGSD().processedSampleId(ps_name, false);
 		if(ps_id == "")
 		{
 			valid = false;
-			ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(Qt::red);
+			db_entries_valid = false;
+			ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_red);
 			ui_->tw_import_table->item(row_idx, 0)->setToolTip("Processed sample not found in NGSD!");
 		}
+		else
+		{
+			ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_white);
+			ui_->tw_import_table->item(row_idx, 0)->setToolTip("");
+		}
+
 		SampleData sample_info = NGSD().getSampleData(NGSD().sampleId(ps_name));
 		if (!sample_info.is_tumor)
 		{
 			valid = false;
-			ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(Qt::red);
+			db_entries_valid = false;
+			ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_red);
 			ui_->tw_import_table->item(row_idx, 0)->setToolTip("Processed sample '" + ps_name + "' is not a tumor sample!");
+		}
+		else
+		{
+			ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_white);
+			ui_->tw_import_table->item(row_idx, 0)->setToolTip("");
 		}
 
 		//check processing system
@@ -88,17 +124,52 @@ void CfDNAPanelBatchImport::validateTable()
 		if(sys_id == -1)
 		{
 			valid = false;
-			ui_->tw_import_table->item(row_idx, 1)->setBackgroundColor(Qt::red);
+			db_entries_valid = false;
+			ui_->tw_import_table->item(row_idx, 1)->setBackgroundColor(bg_red);
 			ui_->tw_import_table->item(row_idx, 1)->setToolTip("Processing system not found in NGSD!");
+		}
+		else
+		{
+			ui_->tw_import_table->item(row_idx, 1)->setBackgroundColor(bg_white);
+			ui_->tw_import_table->item(row_idx, 1)->setToolTip("");
 		}
 
 		//check if file exists
 		if (!QFile::exists(ui_->tw_import_table->item(row_idx, 2)->text()))
 		{
 			valid = false;
-			ui_->tw_import_table->item(row_idx, 2)->setBackgroundColor(Qt::red);
+			ui_->tw_import_table->item(row_idx, 2)->setBackgroundColor(bg_red);
 			ui_->tw_import_table->item(row_idx, 2)->setToolTip("File does not exist!");
 		}
+		else
+		{
+			ui_->tw_import_table->item(row_idx, 2)->setToolTip(ui_->tw_import_table->item(row_idx, 2)->text());
+			ui_->tw_import_table->item(row_idx, 2)->setBackgroundColor(bg_white);
+		}
+
+		//check for already existing panels
+		if (db_entries_valid)
+		{
+			QList<CfdnaPanelInfo> existing_panel = NGSD().cfdnaPanelInfo(ps_id, sys_id);
+			if (existing_panel.size() > 0)
+			{
+				ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_orange);
+				ui_->tw_import_table->item(row_idx, 0)->setToolTip("A cfDNA panel with this sample - processing system combination already exists!");
+				ui_->tw_import_table->item(row_idx, 1)->setBackgroundColor(bg_orange);
+				ui_->tw_import_table->item(row_idx, 1)->setToolTip("A cfDNA panel with this sample - processing system combination already exists!");
+
+				// invalid if overwrite is not checked
+				if (!ui_->cb_overwrite_existing->isChecked()) valid = false;
+			}
+			else
+			{
+				ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_white);
+				ui_->tw_import_table->item(row_idx, 0)->setToolTip("");
+				ui_->tw_import_table->item(row_idx, 1)->setBackgroundColor(bg_white);
+				ui_->tw_import_table->item(row_idx, 1)->setToolTip("");
+			}
+		}
+
 	}
 
 	if(valid)
@@ -110,9 +181,10 @@ void CfDNAPanelBatchImport::validateTable()
 	{
 		ui_->l_validation_result->setText("Validation failed!");
 	}
+	QApplication::restoreOverrideCursor();
 }
 
-VcfFile CfDNAPanelBatchImport::createVcf(const QString& ps_name, const QString& vcf_file_path)
+VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const QString& vcf_file_path)
 {
 	// parse VCF
 	QMap<QString, bool> selected_variants;
@@ -121,6 +193,10 @@ VcfFile CfDNAPanelBatchImport::createVcf(const QString& ps_name, const QString& 
 	for (int i = 0; i < input_file.count(); ++i)
 	{
 		VcfLine vcf_line = input_file.vcfLine(i);
+
+		// skip ID SNPs
+		if (vcf_line.id().contains("ID")) continue;
+
 		// create vcf pos string
 		QString vcf_pos = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.start()) + " " + vcf_line.ref() + ">" + vcf_line.altString();
 		selected_variants.insert(vcf_pos, false);
@@ -166,7 +242,7 @@ VcfFile CfDNAPanelBatchImport::createVcf(const QString& ps_name, const QString& 
 
 	if (missing_variants.size() > 0)
 	{
-		THROW(FileParseException, "The following variants were not found in GSvar file of sample '" + ps_name + "'" + missing_variants.join('\n'));
+		THROW(FileParseException, "The following variants were not found in GSvar file of sample '" + ps_name + "'\n\t" + missing_variants.join('\n\t'));
 	}
 
 	return VcfFile::convertGSvarToVcf(cfdna_panel, Settings::string("reference_genome", false));
@@ -175,6 +251,13 @@ VcfFile CfDNAPanelBatchImport::createVcf(const QString& ps_name, const QString& 
 void CfDNAPanelBatchImport::showRawInputView()
 {
 	ui_->sw_import_panels->setCurrentIndex(0);
+}
+
+void CfDNAPanelBatchImport::showValidationTableView()
+{
+	fillTable();
+	validateTable();
+	ui_->sw_import_panels->setCurrentIndex(1);
 }
 
 void CfDNAPanelBatchImport::importTextInput()
@@ -214,13 +297,23 @@ void CfDNAPanelBatchImport::parseInput()
 		table_line.processed_sample = columns.at(0).trimmed();
 		table_line.processing_system = columns.at(1).trimmed();
 		table_line.vcf_file_path = columns.at(2).trimmed();
+		//remove quotes
+		if ((table_line.vcf_file_path.startsWith("\"") && table_line.vcf_file_path.endsWith("\"")) || (table_line.vcf_file_path.startsWith("\'") && table_line.vcf_file_path.endsWith("\'")))
+		{
+			table_line.vcf_file_path = table_line.vcf_file_path.mid(1, table_line.vcf_file_path.length() - 2);
+		}
 		input_table_.append(table_line);
 	}
 }
 
 void CfDNAPanelBatchImport::importPanels()
 {
-	ui_->te_import_result->setText("Starting import...\n");
+	// switch to import widget
+	ui_->sw_import_panels->setCurrentIndex(2);
+
+	// clear output log
+	ui_->te_import_result->clear();
+	writeToDbImportLog("Starting import...\n");
 
 	// add sample identifier on demand
 	bool add_sample_identifier = ui_->cb_add_sample_identifier->isChecked();
@@ -229,12 +322,14 @@ void CfDNAPanelBatchImport::importPanels()
 	if (add_sample_identifier)
 	{
 		// get KASP SNPs
-		QTextStream vcf_content(new QFile("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf"));
-		general_sample_ids.fromText(vcf_content.readAll().toUtf8());
+		QStringList vcf_content = Helper::loadTextFile("://Resources/" + buildToString(GSvarHelper::build()) + "_KASP_set2.vcf", false,QChar::Null, false);
+		general_sample_ids.fromText(vcf_content.join("\n").toUtf8());
 	}
 
 	//overwrite panels on demand
 	bool overwrite_existing = ui_->cb_overwrite_existing->isChecked();
+
+	// TODO: support transactions
 
 	// start mysql transaction
 	NGSD().transaction();
@@ -249,14 +344,14 @@ void CfDNAPanelBatchImport::importPanels()
 			int processing_system_id = NGSD().processingSystemId(ui_->tw_import_table->item(row_idx, 1)->text());
 			QString vcf_file_path = ui_->tw_import_table->item(row_idx, 2)->text();
 
-			writeToDbImportLog("Importing cfDNA panel for processed sample " + ps_name + "...\n");
+			writeToDbImportLog("<p style=\"text-indent: 20px\">Importing cfDNA panel for processed sample " + ps_name + "... </p>");
 
 			//create panel info
 			CfdnaPanelInfo panel_info;
 			if (overwrite_existing)
 			{
 				// get previous cfDNA panel
-				QList<CfdnaPanelInfo> panel_list = NGSD().cfdnaPanelInfo(NGSD().processedSampleId(ps_name), QString::number(processing_system_id));
+				QList<CfdnaPanelInfo> panel_list = NGSD().cfdnaPanelInfo(NGSD().processedSampleId(ps_name), processing_system_id);
 				if (panel_list.size() > 0)
 				{
 					panel_info = panel_list.at(0);
@@ -270,7 +365,8 @@ void CfDNAPanelBatchImport::importPanels()
 
 
 			// parse VCF and generate cfDNA panel
-			VcfFile cfdna_panel = createVcf(ps_name, vcf_file_path);
+			VcfFile cfdna_panel = createCfdnaPanelVcf(ps_name, vcf_file_path);
+			int n_monitoring = cfdna_panel.count();
 
 			// append sample ids
 			if (add_sample_identifier)
@@ -305,6 +401,9 @@ void CfDNAPanelBatchImport::importPanels()
 
 			// import into NGSD
 			NGSD().storeCfdnaPanel(panel_info, cfdna_panel_region.toText().toUtf8(), cfdna_panel.toText());
+
+			writeToDbImportLog("<p style=\"text-indent: 40px\">import successful (" + QString::number(n_monitoring) + " monitoring and " + QString::number(cfdna_panel.count() - n_monitoring)
+							   + " id SNPs)</p>");
 		}
 
 		// if all panels were imported successfully -> apply changes to the database
@@ -312,9 +411,13 @@ void CfDNAPanelBatchImport::importPanels()
 	}
 	catch (Exception e)
 	{
-		writeToDbImportLog("<font color='red'>Import of cfDNA panels failed!</font><br>ERROR:" + e.message());
+		writeToDbImportLog("Import of cfDNA panels failed!", true);
+		writeToDbImportLog("ERROR:" + e.message(), true);
+
 		// perform db rollback
 		NGSD().rollback();
+
+
 	}
 
 

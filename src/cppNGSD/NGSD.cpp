@@ -2368,12 +2368,12 @@ GeneSet NGSD::subpanelGenes(QString name)
 	return GeneSet::createFromText(genes);
 }
 
-QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, const QString& processing_system_id)
+QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, int processing_system_id)
 {
 	// get all cfDNA Panel for the given tumor id
 	QList<CfdnaPanelInfo> cfdna_panels;
 	SqlQuery query = getQuery();
-	if(processing_system_id.isEmpty())
+	if(processing_system_id == -1)
 	{
 		query.prepare("SELECT id, tumor_id, cfdna_id, created_by, created_date, `processing_system_id` FROM cfdna_panels WHERE tumor_id=:0");
 		query.bindValue(0, processed_sample_id);

@@ -710,7 +710,7 @@ public:
 	GeneSet subpanelGenes(QString name);
 
 ///Returns all coresponding cfDNA panel info for a given processed sample
-	QList<CfdnaPanelInfo> cfdnaPanelInfo(const QString& processed_sample_id, const QString& processing_system_id = "");
+	QList<CfdnaPanelInfo> cfdnaPanelInfo(const QString& processed_sample_id, int processing_system_id = -1);
 	///stores a cfDNA panel in the NGSD
 	void storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content);
 	///Returns the BED file of a given cfDNA panel

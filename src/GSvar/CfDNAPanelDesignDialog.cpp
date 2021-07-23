@@ -661,7 +661,7 @@ void CfDNAPanelDesignDialog::updateSystemSelection()
 	// get processing system id
 	int sys_id = NGSD().processingSystemId(ui_->cb_processing_system->currentText());
 
-	bool panel_exists = (NGSD().cfdnaPanelInfo(processed_sample_id_, QString::number(sys_id)).size() > 0);
+	bool panel_exists = (NGSD().cfdnaPanelInfo(processed_sample_id_, sys_id).size() > 0);
 
 	// (de-)activate OK button and error message
 	ui_->l_error_message->setVisible(panel_exists);

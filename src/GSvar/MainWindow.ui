@@ -303,10 +303,10 @@
                 <bool>false</bool>
                </property>
                <attribute name="horizontalHeaderVisible">
-                <bool>false</bool>
+                <bool>true</bool>
                </attribute>
                <attribute name="verticalHeaderVisible">
-                <bool>false</bool>
+                <bool>true</bool>
                </attribute>
               </widget>
              </item>
@@ -1300,7 +1300,8 @@
    <property name="text">
     <string>cfDNA panels</string>
    </property>
-  </action> </widget>
+  </action>
+ </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>

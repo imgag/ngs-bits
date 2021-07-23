@@ -6,12 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>801</width>
+    <width>800</width>
     <height>720</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>800</width>
+    <height>720</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Batch import for cfDNA panels</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -156,7 +162,7 @@
          <item>
           <widget class="QPushButton" name="b_close">
            <property name="text">
-            <string>close</string>
+            <string>Close</string>
            </property>
           </widget>
          </item>

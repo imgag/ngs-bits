@@ -4277,8 +4277,9 @@ void MainWindow::on_actionImportSampleRelations_triggered()
 void MainWindow::on_actionImportCfDNAPanels_triggered()
 {
 	CfDNAPanelBatchImport* widget = new CfDNAPanelBatchImport();
-	auto dlg = GUIHelper::createDialog(widget, "Import cfDNA panels");
-	dlg->exec();
+//	auto dlg = GUIHelper::createDialog(widget, "Import cfDNA panels");
+//	addModelessDialog(dlg);
+	widget->exec();
 }
 
 void MainWindow::on_actionMidClashDetection_triggered()

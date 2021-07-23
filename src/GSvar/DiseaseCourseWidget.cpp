@@ -13,7 +13,12 @@ DiseaseCourseWidget::DiseaseCourseWidget(const QString& tumor_sample_name, QWidg
 {
 	ui_->setupUi(this);
 
-	if (!LoginManager::active()) THROW(DatabaseException, "Error: DiseaseCourseWidget requires access to the NGSD!");
+	// abort if no connection to NGSD
+	if (!LoginManager::active())
+	{
+		GUIHelper::showMessage("No connection to the NGSD!", "You need access to the NGSD to view the cfDNA samples!");
+		this->close();
+	}
 
 	//link signal and slots
 	connect(ui_->vars,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(VariantDoubleClicked(QTableWidgetItem*)));
@@ -87,12 +92,20 @@ void DiseaseCourseWidget::loadVariantLists()
 	{
 		processing_systems.insert(db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(db_.processedSampleName(cf_dna_ps_id))).name_short);
 	}
-	if (processing_systems.size() > 1) THROW(ArgumentException, "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
+	if (processing_systems.size() > 1)
+	{
+		GUIHelper::showMessage("Multiple processing systems", "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
+		this->close();
+	}
 	QString system_name = processing_systems.toList().at(0);
 
 	// load cfDNA panel
-	QList<CfdnaPanelInfo> cfdna_panels = db_.cfdnaPanelInfo(db_.processedSampleId(tumor_sample_name_), QString::number(db_.processingSystemId(system_name)));
-	if (cfdna_panels.size() < 1) THROW(DatabaseException, "No matchin cfDNA panel for sample " + tumor_sample_name_ + " found in NGSD!");
+	QList<CfdnaPanelInfo> cfdna_panels = db_.cfdnaPanelInfo(db_.processedSampleId(tumor_sample_name_), db_.processingSystemId(system_name));
+	if (cfdna_panels.size() < 1)
+	{
+		GUIHelper::showMessage("No cfDNA sample found", "No matchin cfDNA panel for sample " + tumor_sample_name_ + " found in NGSD!");
+		this->close();
+	}
 	CfdnaPanelInfo cfdna_panel_info  = cfdna_panels.at(0);
 
 

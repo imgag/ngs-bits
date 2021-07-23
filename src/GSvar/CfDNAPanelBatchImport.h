@@ -30,15 +30,16 @@ private:
 	void initGUI();
 	void parseInput();
 	void fillTable();
-	void writeToDbImportLog(const QString& text);
-	void validateTable();
-	VcfFile createVcf(const QString& ps_name, const QString& vcf_file_path);
+	void writeToDbImportLog(const QString& text, bool critical = false);
+	VcfFile createCfdnaPanelVcf(const QString& ps_name, const QString& vcf_file_path);
 
 
 
 private slots:
 	void showRawInputView();
+	void showValidationTableView();
 	void importTextInput();
+	void validateTable();
 	void importPanels();
 
 };
