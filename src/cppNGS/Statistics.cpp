@@ -262,7 +262,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 				if (indices.count()!=0)
 				{
 					++al_ontarget;
-
+					int dp = al.tagi("DP");
 					if (dp != 0)
 					{
 						dp_dist.inc(std::min(dp, 4), true);
