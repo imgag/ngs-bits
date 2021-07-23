@@ -1261,11 +1261,11 @@ private slots:
 
 		db.storeCfdnaPanel(panel_info, bed.toText().toUtf8(), vcf.toText());
 
-		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("IDT_xGenPrism"))).size(), 1);
+		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("IDT_xGenPrism")).size(), 1);
 		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id)).size(), 1);
-		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("hpHBOCv5"))).size(), 0);
+		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("hpHBOCv5")).size(), 0);
 
-		CfdnaPanelInfo loaded_panel_info = db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("IDT_xGenPrism"))).at(0);
+		CfdnaPanelInfo loaded_panel_info = db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("IDT_xGenPrism")).at(0);
 		I_EQUAL(loaded_panel_info.tumor_id, panel_info.tumor_id);
 		S_EQUAL(loaded_panel_info.created_by, panel_info.created_by);
 		IS_TRUE(loaded_panel_info.created_date == panel_info.created_date);
