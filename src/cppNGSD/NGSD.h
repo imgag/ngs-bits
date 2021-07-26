@@ -618,7 +618,7 @@ public:
 	///Returns the variant corresponding to the given identifier or throws an exception if the ID does not exist.
 	Variant variant(const QString& variant_id);
 	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per sample is counted).
-	QPair<int, int> variantCounts(const QString& variant_id, bool use_cached_data_from_varian_table=false);
+	QPair<int, int> variantCounts(const QString& variant_id, bool use_cached_data_from_variant_table=false);
 	///Deletes the variants of a processed sample (all types)
 	void deleteVariants(const QString& ps_id);
 	///Deletes the variants of a processed sample (a specific type)
