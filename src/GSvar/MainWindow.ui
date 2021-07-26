@@ -509,6 +509,8 @@
      <addaction name="actionSearchCNVs"/>
      <addaction name="actionSearchSVs"/>
      <addaction name="separator"/>
+     <addaction name="actionCohortAnalysis"/>
+     <addaction name="separator"/>
      <addaction name="actionShowPublishedVariants"/>
      <addaction name="actionPublishVariantInLOVD"/>
      <addaction name="actionBatchExportClinVar"/>
@@ -1292,6 +1294,11 @@
   <action name="actionReplicateNGSD">
    <property name="text">
     <string>Replicate NGSD (hg19 to hg38)</string>
+   </property>
+  </action>
+  <action name="actionCohortAnalysis">
+   <property name="text">
+    <string>Cohort analysis</string>
    </property>
   </action>
  </widget>

@@ -95,7 +95,8 @@ SOURCES += main.cpp\
     ExpressionDataWidget.cpp \
     GapClosingDialog.cpp \
     DatabaseServiceLocal.cpp \
-    NGSDReplicationWidget.cpp
+    NGSDReplicationWidget.cpp \
+    CohortAnalysisWidget.cpp
 HEADERS += MainWindow.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
@@ -185,7 +186,8 @@ HEADERS += MainWindow.h \
     GapClosingDialog.h \
     DatabaseService.h \
     DatabaseServiceLocal.h \
-    NGSDReplicationWidget.h
+    NGSDReplicationWidget.h \
+    CohortAnalysisWidget.h
 FORMS    += MainWindow.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -263,7 +265,8 @@ FORMS    += MainWindow.ui \
     AlleleBalanceCalculator.ui \
     ExpressionDataWidget.ui \
     GapClosingDialog.ui \
-    NGSDReplicationWidget.ui
+    NGSDReplicationWidget.ui \
+    CohortAnalysisWidget.ui
     include("../app_gui.pri")
 
 #include NGSD library
