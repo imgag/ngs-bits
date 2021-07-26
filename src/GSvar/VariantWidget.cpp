@@ -117,30 +117,28 @@ void VariantWidget::updateGUI()
 			//get causal genes from report config
 			GeneSet genes_causal;
 			SqlQuery query3 = db.getQuery();
-			query3.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='diagnostic variant' AND rcv.causal=1 AND rc.processed_sample_id=" + ps_id);
+			query3.exec("SELECT v.chr, v.start, v.end FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='diagnostic variant' AND rcv.causal=1 AND rc.processed_sample_id=" + ps_id);
 			while(query3.next())
 			{
-				genes_causal << query3.value(0).toByteArray().split(',');
+				genes_causal << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
 			addItem(row, 14, genes_causal.join(','));
 
 			//get candidate genes from report config
 			GeneSet genes_candidate;
-			SqlQuery query4 = db.getQuery();
-			query4.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='candidate variant' AND rc.processed_sample_id=" + ps_id);
-			while(query4.next())
+			query3.exec("SELECT v.chr, v.start, v.end FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='candidate variant' AND rc.processed_sample_id=" + ps_id);
+			while(query3.next())
 			{
-				genes_candidate << query4.value(0).toByteArray().split(',');
+				genes_candidate << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
 			addItem(row, 15, genes_candidate.join(','));
 
 			//add report config comment of variant
 			QString rc_comment;
-			SqlQuery query5 = db.getQuery();
-			query5.exec("SELECT CONCAT(rcv.comments, ' // ', rcv.comments2) FROM report_configuration rc, report_configuration_variant rcv WHERE rcv.report_configuration_id=rc.id AND rc.processed_sample_id=" + ps_id + " AND rcv.variant_id=" + variant_id);
-			if(query5.next())
+			query3.exec("SELECT CONCAT(rcv.comments, ' // ', rcv.comments2) FROM report_configuration rc, report_configuration_variant rcv WHERE rcv.report_configuration_id=rc.id AND rc.processed_sample_id=" + ps_id + " AND rcv.variant_id=" + variant_id);
+			if(query3.next())
 			{
-				rc_comment = query5.value(0).toString().trimmed();
+				rc_comment = query3.value(0).toString().trimmed();
 			}
 			addItem(row, 16, rc_comment, true);
 

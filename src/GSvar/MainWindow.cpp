@@ -591,7 +591,7 @@ void MainWindow::on_actionDebug_triggered()
 				{
 					Variant var = db.variant(id);
 					QString genotype = db.getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='" + ps_id + "' AND variant_id='" + id + "'").toString();
-					QString genes = db.getValue("SELECT gene FROM variant WHERE id='" + id + "'").toString();
+					QString genes = db.genesOverlapping(var.chr(), var.start(), var.end(), 5000).join(", ");
 					QString var_class = db.getValue("SELECT class FROM variant_classification WHERE variant_id='" + id + "'").toString();
 					text += ", small variant: " + var.toString() + " (genotype:" + genotype + " genes:" + genes;
 					if (var_class != "") text += " classification:" + var_class; // add classification, if exists
@@ -1493,7 +1493,8 @@ void MainWindow::on_actionBatchExportClinVar_triggered()
 			}
 
 			//update NGSD
-			QString gene = "gene="+db.getValue("SELECT gene FROM variant WHERE id='" + variant_id + "'").toString();
+			Variant var = db.variant(variant_id);
+			QString gene = db.genesOverlapping(var.chr(), var.start(), var.end(), 5000).join(", ");
 			variant_publication_queries << "INSERT INTO `variant_publication` (`sample_id`, `variant_id`, `db`, `class`, `details`, `user_id`) VALUES ('"+sample_id+"','"+variant_id+"','ClinVar','"+classification+"','gene="+gene+"',"+LoginManager::userIdAsString()+")";
 		}
 		messages << ("Exported variants to file: " + QString::number(variant_ids_done.count()));

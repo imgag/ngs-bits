@@ -191,4 +191,14 @@ private slots:
 		S_EQUAL(telos2[32].toString(true), "chr17:1-10000");
 		S_EQUAL(telos2[45].toString(true), "chrX:156030895-156040895");
 	}
+
+	void populationCodeToHumanReadable()
+	{
+		S_EQUAL(NGSHelper::populationCodeToHumanReadable(""), "");
+		S_EQUAL(NGSHelper::populationCodeToHumanReadable("EUR"), "European");
+		S_EQUAL(NGSHelper::populationCodeToHumanReadable("AFR"), "African");
+		S_EQUAL(NGSHelper::populationCodeToHumanReadable("SAS"), "South asian");
+		S_EQUAL(NGSHelper::populationCodeToHumanReadable("EAS"), "East asian");
+		S_EQUAL(NGSHelper::populationCodeToHumanReadable("ADMIXED/UNKNOWN"), "Admixed/Unknown");
+	}
 };
