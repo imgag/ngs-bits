@@ -200,12 +200,25 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 		sys_types << types_other;
 	}
 
+	//prepare query constraints
+	QStringList constraints;
+	constraints << "(germline_het>0 OR germline_hom>0)"; //skip somatic only variants
+	int max_ngsd = ui_.filter_ngsd_count->value();
+	if (max_ngsd>0)
+	{
+		constraints << "germline_het+germline_hom<=" + QString::number(max_ngsd);
+	}
+	double max_af = ui_.filter_af->value()/100.0;
+	if (max_af<1.0)
+	{
+		constraints << "(1000g IS NULL OR 1000g<=" + QString::number(max_af) + ")";
+		constraints << "(gnomad IS NULL OR gnomad<=" + QString::number(max_af) + ")";
+	}
+
 	//get variants in chromosomal range
 	QSet<QString> vars_distinct;
 	QList<QStringList> var_data;
-	QString max_af = QString::number(ui_.filter_af->value()/100.0);
-	int max_ngsd = ui_.filter_ngsd_count->value();
-	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND (1000g IS NULL OR 1000g<=" + max_af + ") AND (gnomad IS NULL OR gnomad<=" + max_af + ") ORDER BY start";
+	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND " + constraints.join(" AND ")  + " ORDER BY start";
 	SqlQuery query = db.getQuery();
 	query.exec(query_text);
 	while(query.next())
@@ -240,13 +253,8 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 
 		if (parts_match.count()==0) continue;
 
-		//determine NGSD hom/het counts
 		int germline_het = query.value("germline_het").toInt();
 		int germline_hom = query.value("germline_hom").toInt();
-		if (germline_het + germline_hom == 0) continue; //skip somatic-only variants
-
-		//apply NGSD count filter
-		if (max_ngsd>0 && (germline_het + germline_hom)>max_ngsd) continue;
 
 		//format transcript info
 		QSet<QString> types;
@@ -264,7 +272,6 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, dv.genotype, p.name as p_name, s.disease_group, s.disease_status, vc.class, s.name_external, ds.outcome, ds.comment, s.id as s_id, ps.id as ps_id, sys.type as sys_type, sys.name_manufacturer as sys_name, p.type as p_type, ps.quality as ps_quality FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id, processing_system sys WHERE ps.processing_system_id=sys.id AND dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id);
 		while(query2.next())
 		{
-
 			//filter by processed sample quality
 			QString ps_quality = query2.value("ps_quality").toString();
 			if (!ps_qualities.contains(ps_quality)) continue;
