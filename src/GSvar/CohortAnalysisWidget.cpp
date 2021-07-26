@@ -22,9 +22,39 @@ QString CohortAnalysisWidget::baseQuery()
 	//impact
 	query_str += " AND ( 0 ";
 	if (ui_.filter_impact_high->isChecked()) query_str += " OR v.coding LIKE '%:HIGH:%'";
-	if (ui_.filter_impact_moderate->isChecked()) query_str += " OR v.coding LIKE '%:MODERATE:%'";
-	if (ui_.filter_impact_low->isChecked()) query_str += " OR v.coding LIKE '%:LOW:%'";
-	if (ui_.filter_impact_modifier->isChecked()) query_str += " OR v.coding LIKE '%:MODIFIER:%'";
+	if (ui_.filter_impact_moderate->isChecked())
+	{
+		if (ui_.filter_predicted_pathogenic->isChecked())
+		{
+			query_str += " OR (v.coding LIKE '%:MODERATE:%' AND (v.cadd>=20 || v.spliceai>=0.5))";
+		}
+		else
+		{
+			query_str += " OR v.coding LIKE '%:MODERATE:%'";
+		}
+	}
+	if (ui_.filter_impact_low->isChecked())
+	{
+		if (ui_.filter_predicted_pathogenic->isChecked())
+		{
+			query_str += " OR (v.coding LIKE '%:LOW:%' AND (v.cadd>=20 || v.spliceai>=0.5))";
+		}
+		else
+		{
+			query_str += " OR v.coding LIKE '%:LOW:%'";
+		}
+	}
+	if (ui_.filter_impact_modifier->isChecked())
+	{
+		if (ui_.filter_predicted_pathogenic->isChecked())
+		{
+			query_str += " OR (v.coding LIKE '%:MODIFIER:%' AND (v.cadd>=20 || v.spliceai>=0.5))";
+		}
+		else
+		{
+			query_str += " OR v.coding LIKE '%:MODIFIER:%'";
+		}
+	}
 	query_str += ")";
 
 	return query_str;
@@ -58,7 +88,6 @@ void CohortAnalysisWidget::updateOutputTable()
 		QHash<QByteArray, QStringList> gene2ps_hits;
 		foreach(QString ps_id, ps_ids)
 		{
-			qDebug() << ps_id; //TODO
 			QHash<QByteArray, int> hits_by_gene;
 			SqlQuery query = db.getQuery();
 			query.exec(query_str + " AND dv.processed_sample_id= " + ps_id);
@@ -125,7 +154,7 @@ void CohortAnalysisWidget::updateOutputTable()
 		}
 		ui_.output->setSortingEnabled(true);
 		ui_.output->sortByColumn(1);
-		GUIHelper::resizeTableCells(ui_.output, 200);
+		GUIHelper::resizeTableCells(ui_.output, 400);
 
 		QApplication::restoreOverrideCursor();
 	}
