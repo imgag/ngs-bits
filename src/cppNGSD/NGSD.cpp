@@ -1010,7 +1010,7 @@ Variant NGSD::variant(const QString& variant_id)
 	return Variant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt(), query.value("ref").toByteArray(), query.value("obs").toByteArray());
 }
 
-QPair<int, int> NGSD::variantCounts(const QString& variant_id, bool use_cached_data_from_varian_table)
+QPair<int, int> NGSD::variantCounts(const QString& variant_id, bool use_cached_data_from_variant_table)
 {
 	//get same sample information (cached)
 	QHash<int, QList<int>>& same_samples = getCache().same_samples;
@@ -1031,7 +1031,7 @@ QPair<int, int> NGSD::variantCounts(const QString& variant_id, bool use_cached_d
 	int count_het = 0;
 	int count_hom = 0;
 
-	if (use_cached_data_from_varian_table)
+	if (use_cached_data_from_variant_table)
 	{
 		SqlQuery query = getQuery();
 		query.exec("SELECT germline_het, germline_hom FROM variant WHERE id=" + variant_id);

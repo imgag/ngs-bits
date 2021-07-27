@@ -97,6 +97,7 @@ SOURCES += main.cpp\
     GapClosingDialog.cpp \
     DatabaseServiceLocal.cpp \
     NGSDReplicationWidget.cpp \
+    CohortAnalysisWidget.cpp \
     cfDNARemovedRegions.cpp
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -189,6 +190,7 @@ HEADERS += MainWindow.h \
     DatabaseService.h \
     DatabaseServiceLocal.h \
     NGSDReplicationWidget.h \
+    CohortAnalysisWidget.h \
     cfDNARemovedRegions.h
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -269,6 +271,7 @@ FORMS    += MainWindow.ui \
     ExpressionDataWidget.ui \
     GapClosingDialog.ui \
     NGSDReplicationWidget.ui \
+    CohortAnalysisWidget.ui \
     cfDNARemovedRegions.ui
     include("../app_gui.pri")
 

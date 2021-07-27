@@ -128,7 +128,7 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::transcriptMatches()
 
 	if (!initialized)
 	{
-		QStringList lines = Helper::loadTextFile(":/Resources/"+buildToString(build())+"_ensembl_transcript_matches.tsv", true, '#', true); //TODO re-do mapping for HG38
+		QStringList lines = Helper::loadTextFile(":/Resources/"+buildToString(build())+"_ensembl_transcript_matches.tsv", true, '#', true);
 		foreach(const QString& line, lines)
 		{
 			QByteArrayList parts = line.toLatin1().split('\t');

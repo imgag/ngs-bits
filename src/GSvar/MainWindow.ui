@@ -510,6 +510,8 @@
      <addaction name="actionSearchCNVs"/>
      <addaction name="actionSearchSVs"/>
      <addaction name="separator"/>
+     <addaction name="actionCohortAnalysis"/>
+     <addaction name="separator"/>
      <addaction name="actionShowPublishedVariants"/>
      <addaction name="actionPublishVariantInLOVD"/>
      <addaction name="actionBatchExportClinVar"/>
@@ -1291,6 +1293,11 @@
     <string>Replicate NGSD (hg19 to hg38)</string>
    </property>
   </action>
+  <action name="actionCohortAnalysis">
+   <property name="text">
+    <string>Cohort analysis</string>
+   </property>
+  </action>
   <action name="actionCfDNAAddExcludedRegions">
    <property name="text">
     <string>Add excluded regions</string>
@@ -1300,8 +1307,7 @@
    <property name="text">
     <string>cfDNA panels</string>
    </property>
-  </action>
- </widget>
+  </action> </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
