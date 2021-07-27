@@ -242,7 +242,7 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 
 	if (missing_variants.size() > 0)
 	{
-		THROW(FileParseException, "The following variants were not found in GSvar file of sample '" + ps_name + "'\n\t" + missing_variants.join('\n\t'));
+		THROW(FileParseException, "The following variants were not found in GSvar file of sample '" + ps_name + "'\n\t" + missing_variants.join("\n\t"));
 	}
 
 	return VcfFile::convertGSvarToVcf(cfdna_panel, Settings::string("reference_genome", false));

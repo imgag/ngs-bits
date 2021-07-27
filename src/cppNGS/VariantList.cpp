@@ -493,6 +493,7 @@ QString VariantList::mainSampleName() const
 	{
 		case SOMATIC_SINGLESAMPLE:
 		case GERMLINE_SINGLESAMPLE:
+		case CFDNA:
 			foreach(const SampleInfo& entry, getSampleHeader())
 			{
 				samples << entry.id;
@@ -1304,6 +1305,7 @@ QString analysisTypeToString(AnalysisType type, bool human_readable)
 		if (type==GERMLINE_MULTISAMPLE) return "multi-sample analysis";
 		if (type==SOMATIC_SINGLESAMPLE) return "tumor-only analysis";
 		if (type==SOMATIC_PAIR) return "tumor/normal analysis";
+		if (type==CFDNA) return "cfDNA analysis";
 	}
 	else
 	{
@@ -1312,6 +1314,7 @@ QString analysisTypeToString(AnalysisType type, bool human_readable)
 		if (type==GERMLINE_MULTISAMPLE) return "GERMLINE_MULTISAMPLE";
 		if (type==SOMATIC_SINGLESAMPLE) return "SOMATIC_SINGLESAMPLE";
 		if (type==SOMATIC_PAIR) return "SOMATIC_PAIR";
+		if (type==CFDNA) return "CFDNA";
 	}
 
 	THROW(ProgrammingException, "Unhandled analysis type with integer value '" + QString::number(type) + "'!");
@@ -1324,6 +1327,7 @@ AnalysisType stringToAnalysisType(QString type)
 	if (type=="GERMLINE_MULTISAMPLE") return GERMLINE_MULTISAMPLE;
 	if (type=="SOMATIC_SINGLESAMPLE") return SOMATIC_SINGLESAMPLE;
 	if (type=="SOMATIC_PAIR") return SOMATIC_PAIR;
+	if (type=="CFDNA") return CFDNA;
 
 	THROW(ProgrammingException, "Unknown analysis type with string representation '" + type + "'!");
 }

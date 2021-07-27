@@ -29,7 +29,7 @@ class SingleSampleAnalysisDialog
 	Q_OBJECT
 
 public:
-	SingleSampleAnalysisDialog(QWidget *parent = 0, bool is_rna = false);
+	SingleSampleAnalysisDialog(QWidget *parent = 0, bool is_rna = false, bool is_cfdna = false);
 	//Fills table with given processed samples
 	void setSamples(QList<AnalysisJobSample> samples);
 

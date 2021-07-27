@@ -8,7 +8,7 @@
 #include "ProcessedSampleWidget.h"
 #include "GlobalServiceProvider.h"
 
-SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent, bool is_rna)
+SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent, bool is_rna, bool is_cfdna)
 	: QDialog(parent)
 	, ui_()
 	, db_()
@@ -21,6 +21,10 @@ SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent, bool is_
 	else
 	{
 		steps_ = loadSteps("analysis_steps_single_sample");
+	}
+	if(is_cfdna)
+	{
+		steps_ = loadSteps("analysis_steps_single_sample_cfdna");
 	}
 
 	ui_.setupUi(this);
