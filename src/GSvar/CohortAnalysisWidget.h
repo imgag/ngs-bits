@@ -20,6 +20,8 @@ protected:
 
 protected slots:
 	void updateOutputTable();
+	void outputContextMenu(QPoint pos);
+	void outputToClipboard();
 
 private:
 	Ui::CohortAnalysisWidget ui_;

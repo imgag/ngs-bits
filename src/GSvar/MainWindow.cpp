@@ -4310,7 +4310,7 @@ void MainWindow::on_actionCohortAnalysis_triggered()
 {
 	CohortAnalysisWidget* widget = new CohortAnalysisWidget(this);
 	auto dlg = GUIHelper::createDialog(widget, "Cohort analysis");
-	dlg->exec();
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionGenderXY_triggered()
