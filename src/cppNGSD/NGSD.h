@@ -508,9 +508,12 @@ public:
 	///If more than one value is returned a DatabaseError is thrown.
 	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
 	QVariant getValue(const QString& query, bool no_value_is_ok=true, QString bind_value = QString()) const;
-	///Executes an SQL query and returns the value list.
-	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced). Use this if
+	///Executes an SQL query and returns the text value list.
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
 	QStringList getValues(const QString& query, QString bind_value = QString()) const;
+	///Executes an SQL query and returns the integer value list.
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
+	QList<int> getValuesInt(const QString& query, QString bind_value = QString()) const;
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{
@@ -614,8 +617,8 @@ public:
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
 	///Returns the variant corresponding to the given identifier or throws an exception if the ID does not exist.
 	Variant variant(const QString& variant_id);
-	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per samples is counted).
-	QPair<int, int> variantCounts(const QString& variant_id);
+	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per sample is counted).
+	QPair<int, int> variantCounts(const QString& variant_id, bool use_cached_data_from_variant_table=false);
 	///Deletes the variants of a processed sample (all types)
 	void deleteVariants(const QString& ps_id);
 	///Deletes the variants of a processed sample (a specific type)

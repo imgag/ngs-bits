@@ -120,6 +120,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "SomaticReportHelper.h"
 #include "Statistics.h"
 #include "NGSDReplicationWidget.h"
+#include "CohortAnalysisWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -3043,14 +3044,11 @@ void MainWindow::storeSomaticReportConfig()
 
 	if (conf_id!=-1)
 	{
-		QStringList messages;
-		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
-		if (report_config->lastUpdatedBy()!="" && report_config->lastUpdatedBy()!=LoginManager::userName())
+		SomaticReportConfigurationData conf_creation = db.somaticReportConfigData(conf_id);
+		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=LoginManager::userName())
+		if (QMessageBox::question(this, "Storing report configuration", conf_creation.history() + "\n\nDo you want to update/override it?")==QMessageBox::No)
 		{
-			if (QMessageBox::question(this, "Storing report configuration", report_config->history() + "\n\nDo you want to override it?")==QMessageBox::No)
-			{
-				return;
-			}
+			return;
 		}
 	}
 
@@ -4303,6 +4301,13 @@ void MainWindow::on_actionReplicateNGSD_triggered()
 
 	auto dlg = GUIHelper::createDialog(widget, "Replicate NGSD (hg19 to hg38)");
 	dlg->exec();
+}
+
+void MainWindow::on_actionCohortAnalysis_triggered()
+{
+	CohortAnalysisWidget* widget = new CohortAnalysisWidget(this);
+	auto dlg = GUIHelper::createDialog(widget, "Cohort analysis");
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionGenderXY_triggered()
