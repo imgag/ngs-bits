@@ -3044,14 +3044,11 @@ void MainWindow::storeSomaticReportConfig()
 
 	if (conf_id!=-1)
 	{
-		QStringList messages;
-		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, messages);
-		if (report_config->lastUpdatedBy()!="" && report_config->lastUpdatedBy()!=LoginManager::userName())
+		SomaticReportConfigurationData conf_creation = db.somaticReportConfigData(conf_id);
+		if (conf_creation.last_edit_by!="" && conf_creation.last_edit_by!=LoginManager::userName())
+		if (QMessageBox::question(this, "Storing report configuration", conf_creation.history() + "\n\nDo you want to update/override it?")==QMessageBox::No)
 		{
-			if (QMessageBox::question(this, "Storing report configuration", report_config->history() + "\n\nDo you want to override it?")==QMessageBox::No)
-			{
-				return;
-			}
+			return;
 		}
 	}
 
