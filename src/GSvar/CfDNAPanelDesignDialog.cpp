@@ -500,7 +500,8 @@ BedFile CfDNAPanelDesignDialog::createBedFile(const VcfFile& vcf_file)
 	for (int i=0; i<vcf_file.count(); i++)
 	{
 		QByteArray annotation = (vcf_file[i].id().contains("M"))?"patient_specific_somatic_variant:" : "SNP_for_sample_identification:";
-		bed_file.append(BedLine(vcf_file[i].chr(), vcf_file[i].start(), vcf_file[i].end(), QByteArrayList() << annotation + vcf_file[i].ref() + ">" + vcf_file[i].altString()));
+		bed_file.append(BedLine(vcf_file[i].chr(), vcf_file[i].start(), vcf_file[i].end(), QByteArrayList() << annotation + vcf_file[i].ref() + ">" + vcf_file[i].altString()
+								+ ":" + vcf_file[i].info("ID_Source")));
 	}
 
 	bed_file.sort();

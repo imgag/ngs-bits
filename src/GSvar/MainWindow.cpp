@@ -1549,9 +1549,9 @@ void MainWindow::on_actionReanalyze_triggered()
 	SampleHeaderInfo header_info = variants_.getSampleHeader();
 
 	QList<AnalysisJobSample> samples;
-	if (type==GERMLINE_SINGLESAMPLE)
+	if (type==GERMLINE_SINGLESAMPLE || type==CFDNA)
 	{
-		SingleSampleAnalysisDialog dlg(this);
+		SingleSampleAnalysisDialog dlg(this, false, (type==CFDNA));
 		samples << AnalysisJobSample {header_info[0].id, ""};
 		dlg.setSamples(samples);
 		if (dlg.exec()==QDialog::Accepted)
@@ -2876,7 +2876,7 @@ void MainWindow::checkVariantList(QStringList messages)
 		cols << "comment";
 		cols << "gene_info";
 	}
-	if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR)
+	if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR || type==CFDNA)
 	{
 		cols << "somatic_classification";
 		cols << "somatic_classification_comment";
@@ -4804,7 +4804,7 @@ void MainWindow::refreshVariantTable(bool keep_widths)
 	//update variant table
 	QList<int> col_widths = ui_.vars->columnWidths();
 	AnalysisType type = variants_.type();
-	if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR)
+	if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR || type==CFDNA)
 	{
 		ui_.vars->update(variants_, filter_result_, somatic_report_settings_, max_variants);
 	}

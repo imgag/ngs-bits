@@ -1040,7 +1040,7 @@ SampleHeaderInfo VariantList::getSampleHeader() const
 	AnalysisType analysis_type = type();
 	for (int i=0; i<output.count(); ++i)
 	{
-		output[i].column_index = annotationIndexByName(output[i].column_name, true, analysis_type!=SOMATIC_SINGLESAMPLE && analysis_type!=SOMATIC_PAIR);
+		output[i].column_index = annotationIndexByName(output[i].column_name, true, analysis_type!=SOMATIC_SINGLESAMPLE && analysis_type!=SOMATIC_PAIR && analysis_type!=CFDNA);
 	}
 
 	return output;

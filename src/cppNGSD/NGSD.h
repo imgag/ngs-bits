@@ -533,9 +533,9 @@ public:
 
 
 	/*** transactions ***/
-	bool transaction() { return db_->transaction(); }
-	bool commit() { return db_->commit(); }
-	bool rollback() { return db_->rollback(); }
+	void transaction();
+	void commit();
+	void rollback();
 
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
@@ -709,7 +709,7 @@ public:
 	///Returns the subpanel genes.
 	GeneSet subpanelGenes(QString name);
 
-///Returns all coresponding cfDNA panel info for a given processed sample
+	///Returns all coresponding cfDNA panel info for a given processed sample
 	QList<CfdnaPanelInfo> cfdnaPanelInfo(const QString& processed_sample_id, int processing_system_id = -1);
 	///stores a cfDNA panel in the NGSD
 	void storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content);

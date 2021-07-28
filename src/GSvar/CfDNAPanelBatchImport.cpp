@@ -91,7 +91,7 @@ void CfDNAPanelBatchImport::validateTable()
 		bool db_entries_valid = true;
 		//check processed sample
 		QString ps_name = ui_->tw_import_table->item(row_idx, 0)->text().trimmed();
-		QString ps_id = NGSD().processedSampleId(ps_name, false);
+		QString ps_id = db_.processedSampleId(ps_name, false);
 		if(ps_id == "")
 		{
 			valid = false;
@@ -105,7 +105,7 @@ void CfDNAPanelBatchImport::validateTable()
 			ui_->tw_import_table->item(row_idx, 0)->setToolTip("");
 		}
 
-		SampleData sample_info = NGSD().getSampleData(NGSD().sampleId(ps_name));
+		SampleData sample_info = db_.getSampleData(db_.sampleId(ps_name));
 		if (!sample_info.is_tumor)
 		{
 			valid = false;
@@ -120,7 +120,7 @@ void CfDNAPanelBatchImport::validateTable()
 		}
 
 		//check processing system
-		int sys_id = NGSD().processingSystemId(ui_->tw_import_table->item(row_idx, 1)->text(), false);
+		int sys_id = db_.processingSystemId(ui_->tw_import_table->item(row_idx, 1)->text(), false);
 		if(sys_id == -1)
 		{
 			valid = false;
@@ -150,7 +150,7 @@ void CfDNAPanelBatchImport::validateTable()
 		//check for already existing panels
 		if (db_entries_valid)
 		{
-			QList<CfdnaPanelInfo> existing_panel = NGSD().cfdnaPanelInfo(ps_id, sys_id);
+			QList<CfdnaPanelInfo> existing_panel = db_.cfdnaPanelInfo(ps_id, sys_id);
 			if (existing_panel.size() > 0)
 			{
 				ui_->tw_import_table->item(row_idx, 0)->setBackgroundColor(bg_orange);
@@ -206,7 +206,7 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 	FastaFileIndex genome_reference(Settings::string("reference_genome", false));
 
 	// load processed sample GSvar file
-	QString ps_id = NGSD().processedSampleId(ps_name);
+	QString ps_id = db_.processedSampleId(ps_name);
 	FileLocation sample_gsvar_file = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::GSVAR);
 	if (!sample_gsvar_file.exists) THROW(FileAccessException, "GSvar file '" +  sample_gsvar_file.filename + "' not found!");
 	VariantList gsvar;
@@ -331,17 +331,18 @@ void CfDNAPanelBatchImport::importPanels()
 
 	// TODO: support transactions
 
-	// start mysql transaction
-	NGSD().transaction();
-
 	try
 	{
+		// start mysql transaction
+		db_.transaction();
+		int n_imported_panels = 0;
+
 		//iterate over table
 		for (int row_idx = 0; row_idx < ui_->tw_import_table->rowCount(); ++row_idx)
 		{
 			// read table line
 			QString ps_name = ui_->tw_import_table->item(row_idx, 0)->text();
-			int processing_system_id = NGSD().processingSystemId(ui_->tw_import_table->item(row_idx, 1)->text());
+			int processing_system_id = db_.processingSystemId(ui_->tw_import_table->item(row_idx, 1)->text());
 			QString vcf_file_path = ui_->tw_import_table->item(row_idx, 2)->text();
 
 			writeToDbImportLog("<p style=\"text-indent: 20px\">Importing cfDNA panel for processed sample " + ps_name + "... </p>");
@@ -351,14 +352,14 @@ void CfDNAPanelBatchImport::importPanels()
 			if (overwrite_existing)
 			{
 				// get previous cfDNA panel
-				QList<CfdnaPanelInfo> panel_list = NGSD().cfdnaPanelInfo(NGSD().processedSampleId(ps_name), processing_system_id);
+				QList<CfdnaPanelInfo> panel_list = db_.cfdnaPanelInfo(db_.processedSampleId(ps_name), processing_system_id);
 				if (panel_list.size() > 0)
 				{
 					panel_info = panel_list.at(0);
 				}
 			}
 
-			panel_info.tumor_id = Helper::toInt(NGSD().processedSampleId(ps_name));
+			panel_info.tumor_id = Helper::toInt(db_.processedSampleId(ps_name));
 			panel_info.created_by = LoginManager::userId();
 			panel_info.created_date = QDate::currentDate();
 			panel_info.processing_system_id = processing_system_id;
@@ -380,7 +381,7 @@ void CfDNAPanelBatchImport::importPanels()
 				// add ID SNPs from processing system
 				if (!proc_sys_sample_ids.contains(processing_system_id))
 				{
-					proc_sys_sample_ids.insert(processing_system_id, NGSD().getIdSnpsFromProcessingSystem(processing_system_id, true));
+					proc_sys_sample_ids.insert(processing_system_id, db_.getIdSnpsFromProcessingSystem(processing_system_id, true));
 				}
 				foreach (VcfLinePtr vcf_line_ptr, proc_sys_sample_ids.value(processing_system_id).vcfLines())
 				{
@@ -400,24 +401,28 @@ void CfDNAPanelBatchImport::importPanels()
 			}
 
 			// import into NGSD
-			NGSD().storeCfdnaPanel(panel_info, cfdna_panel_region.toText().toUtf8(), cfdna_panel.toText());
+			db_.storeCfdnaPanel(panel_info, cfdna_panel_region.toText().toUtf8(), cfdna_panel.toText());
 
 			writeToDbImportLog("<p style=\"text-indent: 40px\">import successful (" + QString::number(n_monitoring) + " monitoring and " + QString::number(cfdna_panel.count() - n_monitoring)
 							   + " id SNPs)</p>");
+			n_imported_panels++;
 		}
 
 		// if all panels were imported successfully -> apply changes to the database
-		NGSD().commit();
+		db_.commit();
+
+
+		QMessageBox::information(this, "Import successful", QString::number(n_imported_panels) + " cfDNA panels successfully imported!");
 	}
-	catch (Exception e)
+	catch (Exception& e)
 	{
 		writeToDbImportLog("Import of cfDNA panels failed!", true);
 		writeToDbImportLog("ERROR:" + e.message(), true);
 
 		// perform db rollback
-		NGSD().rollback();
+		db_.rollback();
 
-
+		QMessageBox::critical(this, "Import failed", "Error during importing of cfDNA panels!\n" + e.message() + "\n(See import output for details)");
 	}
 
 

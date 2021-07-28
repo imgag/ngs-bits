@@ -1,6 +1,7 @@
 #ifndef CFDNAPANELBATCHIMPORT_H
 #define CFDNAPANELBATCHIMPORT_H
 
+#include <NGSD.h>
 #include <QDialog>
 #include <VcfFile.h>
 
@@ -26,6 +27,7 @@ public:
 private:
 	Ui::CfDNAPanelBatchImport *ui_;
 	QVector<cfDNATableLine> input_table_;
+	NGSD db_;
 
 	void initGUI();
 	void parseInput();
