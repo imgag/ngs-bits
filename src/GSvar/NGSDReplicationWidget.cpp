@@ -27,7 +27,7 @@ void NGSDReplicationWidget::replicate()
 	}
 	catch (Exception& e)
 	{
-		addError("Ecxeption: " + e.message());
+		addError("Exception: " + e.message());
 	}
 }
 
@@ -105,14 +105,14 @@ void NGSDReplicationWidget::replicateBaseData(NGSD& source, NGSD& target)
 	addHeader("replication of base data");
 
 	//replicate base tables with 'id' column
-	foreach(QString table, QStringList() << "device" << "genome" << "mid" << "user" << "species" << "preferred_transcripts" << "processing_system"  << "project" << "sender"  << "study" << "sequencing_run" << "runqc_read"
-			<< "runqc_lane" << "sample" << "sample_disease_info" << "sample_relations" << "processed_sample" << "evaluation_sheet_data" << "report_configuration" << "study_sample" << "somatic_report_configuration" << "somatic_gene_role")
+	foreach(QString table, QStringList() << "device" << "genome" << "mid" << "user" << "species" << "preferred_transcripts" << "processing_system"  << "project" << "sender"  << "study" << "sequencing_run" << "runqc_read" << "runqc_lane" << "sample" << "sample_disease_info" << "sample_relations" << "processed_sample" << "evaluation_sheet_data" << "report_configuration" << "study_sample" << "somatic_report_configuration" << "somatic_gene_role")
 	{
 		//init
 		QTime timer;
 		timer.start();
 		int c_added = 0;
 		int c_removed = 0;
+		int c_updated = 0;
 
 		//check table has 'id' column
 		QStringList fields = target.tableInfo(table).fieldNames();
@@ -129,10 +129,27 @@ void NGSDReplicationWidget::replicateBaseData(NGSD& source, NGSD& target)
 		SqlQuery q_add = target.getQuery();
 		q_add.prepare("INSERT INTO "+table+" VALUES (:" + fields.join(", :") + ")");
 
+		SqlQuery q_get = target.getQuery();
+		q_get.prepare("SELECT * FROM "+table+" WHERE id=:0");
+
+		SqlQuery q_update = target.getQuery();
+		QString query_str = "UPDATE "+table+" SET";
+		bool first = true;
+		foreach(const QString& field, fields)
+		{
+			if (field=="id") continue;
+
+			query_str += (first? " " : ", ") + field + "=:" + field;
+
+			if (first) first = false;
+		}
+		query_str += " WHERE id=:id";
+		q_update.prepare(query_str);
+
 		//delete removed entries
-		QSet<QString> source_ids = source.getValues("SELECT id FROM " + table + " ORDER BY id ASC").toSet();
-		QStringList target_ids = target.getValues("SELECT id FROM " + table + " ORDER BY id ASC");
-		foreach(const QString& id, target_ids)
+		QSet<int> source_ids = source.getValuesInt("SELECT id FROM " + table + " ORDER BY id ASC").toSet();
+		QSet<int> target_ids = target.getValuesInt("SELECT id FROM " + table + " ORDER BY id ASC").toSet();
+		foreach(int id, target_ids)
 		{
 			if (!source_ids.contains(id))
 			{
@@ -148,8 +165,37 @@ void NGSDReplicationWidget::replicateBaseData(NGSD& source, NGSD& target)
 		query.exec("SELECT * FROM "+table+" ORDER BY id ASC");
 		while(query.next())
 		{
-			QString id = query.value("id").toString();
-			if (target_ids.contains(id)) continue; //TODO implement update of data
+			int id = query.value("id").toInt();
+			if (target_ids.contains(id))
+			{
+				//check if changed
+				q_get.bindValue(0, id);
+				q_get.exec();
+				q_get.next();
+				bool changed = false;
+				foreach(const QString& field, fields)
+				{
+					if (q_get.value(field)!=query.value(field))
+					{
+						//qDebug() << table << id << field << q_get.value(field) << query.value(field);
+						changed = true;
+					}
+				}
+
+				//update if changed
+				if (changed)
+				{
+					foreach(const QString& field, fields)
+					{
+						q_update.bindValue(":"+field, query.value(field));
+					}
+					q_update.exec();
+
+					++c_updated;
+				}
+
+				continue;
+			}
 
 			foreach(const QString& field, fields)
 			{
@@ -161,9 +207,9 @@ void NGSDReplicationWidget::replicateBaseData(NGSD& source, NGSD& target)
 			}
 			catch (Exception& e)
 			{
-				if (table=="processed_sample")
+				if (table=="processed_sample") //special handling because of 'normal_id' column
 				{
-					qDebug() << "Could not add processed sample " + source.processedSampleName(id)+":";
+					qDebug() << "Could not add processed sample " + source.processedSampleName(QString::number(id))+":";
 					qDebug() << e.message();
 				}
 				else
@@ -174,7 +220,7 @@ void NGSDReplicationWidget::replicateBaseData(NGSD& source, NGSD& target)
 			++c_added;
 		}
 
-		addLine("  Table "+table+" replicated: Added " + QString::number(c_added) + " rows, removed  " + QString::number(c_removed) + " rows. Time: " + Helper::elapsedTime(timer));
+		addLine("  Table "+table+" replicated: added " + QString::number(c_added) + " rows, updated " + QString::number(c_updated) + " rows, removed  " + QString::number(c_removed) + " rows. Time: " + Helper::elapsedTime(timer));
 		tables_done_ << table;
 	}
 
@@ -212,7 +258,7 @@ void NGSDReplicationWidget::replicateBaseData(NGSD& source, NGSD& target)
 			++c_added;
 		}
 
-		addLine("  Table "+table+" replicated: Added " + QString::number(c_added) + " rows. Time: " + Helper::elapsedTime(timer));
+		addLine("  Table (no 'id') "+table+" replicated : added " + QString::number(c_added) + " rows. Time: " + Helper::elapsedTime(timer));
 		tables_done_ << table;
 	}
 

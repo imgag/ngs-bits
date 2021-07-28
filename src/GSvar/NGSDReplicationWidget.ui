@@ -38,7 +38,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Converts information from hg19 NGSD to hg38 NGSD. Perform the following steps:&lt;br/&gt;&lt;br/&gt;1) add the the hg38 NGSD credentials to the settings.ini file: ngsd_hg38_host, ngsd_hg38_port ...&lt;br/&gt;2) replicate base data only&lt;br/&gt;3) set up hg38 megSAP and re-analyze the samples for hg38&lt;br/&gt;4) replicate variant data&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Converts information from hg19 NGSD to hg38 NGSD.&lt;br/&gt;&lt;br/&gt;To port your hg19 NGSD to hg38, perform the following steps:&lt;br/&gt;1) add the hg38 NGSD credentials to the settings.ini file: ngsd_hg38_host, ngsd_hg38_port ...&lt;br/&gt;2) replicate base data only&lt;br/&gt;3) set up hg38 megSAP and re-analyze the samples with the hg38 genome build&lt;br/&gt;4) replicate variant data&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
@@ -73,7 +73,7 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="0">
+      <item row="8" column="0">
        <widget class="QCheckBox" name="post_checks">
         <property name="text">
          <string>perform post-replication checks</string>
@@ -83,17 +83,7 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
-       <widget class="QCheckBox" name="base_data">
-        <property name="text">
-         <string>replicate base data</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="0">
+      <item row="7" column="0">
        <layout class="QHBoxLayout" name="horizontalLayout">
         <property name="spacing">
          <number>3</number>
@@ -104,7 +94,7 @@
            <string>replicate variant data</string>
           </property>
           <property name="checked">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -119,6 +109,16 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item row="5" column="0">
+       <widget class="QCheckBox" name="base_data">
+        <property name="text">
+         <string>replicate base data</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
