@@ -98,7 +98,8 @@ SOURCES += main.cpp\
     DatabaseServiceLocal.cpp \
     NGSDReplicationWidget.cpp \
     CohortAnalysisWidget.cpp \
-    cfDNARemovedRegions.cpp
+    cfDNARemovedRegions.cpp \
+    CfdnaAnalysisDialog.cpp
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     ExternalToolDialog.h \
@@ -191,7 +192,8 @@ HEADERS += MainWindow.h \
     DatabaseServiceLocal.h \
     NGSDReplicationWidget.h \
     CohortAnalysisWidget.h \
-    cfDNARemovedRegions.h
+    cfDNARemovedRegions.h \
+    CfdnaAnalysisDialog.h
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
@@ -272,7 +274,8 @@ FORMS    += MainWindow.ui \
     GapClosingDialog.ui \
     NGSDReplicationWidget.ui \
     CohortAnalysisWidget.ui \
-    cfDNARemovedRegions.ui
+    cfDNARemovedRegions.ui \
+    CfdnaAnalysisDialog.ui
     include("../app_gui.pri")
 
 #include NGSD library

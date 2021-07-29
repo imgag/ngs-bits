@@ -1,4 +1,4 @@
-#include "SingleSampleAnalysisDialog.h"
+#include "CfdnaAnalysisDialog.h"
 #include <QInputDialog>
 #include <QMessageBox>
 #include <Settings.h>
@@ -8,21 +8,13 @@
 #include "ProcessedSampleWidget.h"
 #include "GlobalServiceProvider.h"
 
-SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent, bool is_rna)
+CfdnaAnalysisDialog::CfdnaAnalysisDialog(QWidget *parent)
 	: QDialog(parent)
 	, ui_()
 	, db_()
 	, samples_()
+	, steps_(loadSteps("analysis_steps_cfdna"))
 {
-	if(is_rna)
-	{
-		steps_ = loadSteps("analysis_steps_single_sample_rna");
-	}
-	else
-	{
-		steps_ = loadSteps("analysis_steps_single_sample");
-	}
-
 	ui_.setupUi(this);
 	initTable(ui_.samples_table);
 	addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
@@ -30,7 +22,7 @@ SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent, bool is_
 	connect(ui_.annotate_only, SIGNAL(stateChanged(int)), this, SLOT(annotate_only_state_changed()));
 }
 
-void SingleSampleAnalysisDialog::setSamples(QList<AnalysisJobSample> samples)
+void CfdnaAnalysisDialog::setSamples(QList<AnalysisJobSample> samples)
 {
 	foreach(AnalysisJobSample sample, samples)
 	{
@@ -40,22 +32,22 @@ void SingleSampleAnalysisDialog::setSamples(QList<AnalysisJobSample> samples)
 	updateStartButton();
 }
 
-QList<AnalysisJobSample> SingleSampleAnalysisDialog::samples() const
+QList<AnalysisJobSample> CfdnaAnalysisDialog::samples() const
 {
 	return samples(samples_);
 }
 
-QStringList SingleSampleAnalysisDialog::arguments() const
+QStringList CfdnaAnalysisDialog::arguments() const
 {
 	return arguments(this);
 }
 
-bool SingleSampleAnalysisDialog::highPriority() const
+bool CfdnaAnalysisDialog::highPriority() const
 {
 	return ui_.high_priority->isChecked();
 }
 
-QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString ps_name, bool throw_if_bam_missing, bool force_showing_dialog)
+QString CfdnaAnalysisDialog::addSample(NGSD& db, QString status, QList<SampleDetails>& samples, QString ps_name, bool throw_if_bam_missing, bool force_showing_dialog)
 {
 	status = status.trimmed();
 
@@ -94,7 +86,7 @@ QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sa
 	return ps_id;
 }
 
-void SingleSampleAnalysisDialog::initTable(QTableWidget* samples_table)
+void CfdnaAnalysisDialog::initTable(QTableWidget* samples_table)
 {
 	samples_table->clear();
 	samples_table->setColumnCount(7);
@@ -107,7 +99,7 @@ void SingleSampleAnalysisDialog::initTable(QTableWidget* samples_table)
 	samples_table->setHorizontalHeaderItem(6, new QTableWidgetItem("disease status"));
 }
 
-void SingleSampleAnalysisDialog::updateSampleTable(const QList<SampleDetails>& samples, QTableWidget* samples_table)
+void CfdnaAnalysisDialog::updateSampleTable(const QList<SampleDetails>& samples, QTableWidget* samples_table)
 {
 	samples_table->clearContents();
 	samples_table->setRowCount(samples.count());
@@ -129,7 +121,7 @@ void SingleSampleAnalysisDialog::updateSampleTable(const QList<SampleDetails>& s
 	GUIHelper::resizeTableCells(samples_table);
 }
 
-QList<AnalysisJobSample> SingleSampleAnalysisDialog::samples(const QList<SampleDetails>& samples)
+QList<AnalysisJobSample> CfdnaAnalysisDialog::samples(const QList<SampleDetails>& samples)
 {
 	QList<AnalysisJobSample> output;
 
@@ -141,7 +133,7 @@ QList<AnalysisJobSample> SingleSampleAnalysisDialog::samples(const QList<SampleD
 	return output;
 }
 
-QList<AnalysisStep> SingleSampleAnalysisDialog::loadSteps(QString ini_name)
+QList<AnalysisStep> CfdnaAnalysisDialog::loadSteps(QString ini_name)
 {
 	QList<AnalysisStep> output;
 
@@ -155,7 +147,7 @@ QList<AnalysisStep> SingleSampleAnalysisDialog::loadSteps(QString ini_name)
 	return output;
 }
 
-void SingleSampleAnalysisDialog::addStepsToParameters(QList<AnalysisStep> steps, QFormLayout* layout)
+void CfdnaAnalysisDialog::addStepsToParameters(QList<AnalysisStep> steps, QFormLayout* layout)
 {
 	if (steps.count()<2) return;
 
@@ -176,7 +168,7 @@ void SingleSampleAnalysisDialog::addStepsToParameters(QList<AnalysisStep> steps,
 	}
 }
 
-QStringList SingleSampleAnalysisDialog::arguments(const QWidget* widget)
+QStringList CfdnaAnalysisDialog::arguments(const QWidget* widget)
 {
 	QStringList output;
 
@@ -207,14 +199,14 @@ QStringList SingleSampleAnalysisDialog::arguments(const QWidget* widget)
 	return output;
 }
 
-void SingleSampleAnalysisDialog::on_add_sample_clicked(bool)
+void CfdnaAnalysisDialog::on_add_sample_clicked(bool)
 {
 	addSample("");
 	updateSampleTable();
 	updateStartButton();
 }
 
-void SingleSampleAnalysisDialog::on_add_batch_clicked(bool)
+void CfdnaAnalysisDialog::on_add_batch_clicked(bool)
 {
 	//edit
 	QPlainTextEdit* edit = new QPlainTextEdit(this);
@@ -235,19 +227,19 @@ void SingleSampleAnalysisDialog::on_add_batch_clicked(bool)
 	}
 }
 
-void SingleSampleAnalysisDialog::on_clear_clicked(bool)
+void CfdnaAnalysisDialog::on_clear_clicked(bool)
 {
 	samples_.clear();
 	updateSampleTable();
 	updateStartButton();
 }
 
-void SingleSampleAnalysisDialog::updateStartButton()
+void CfdnaAnalysisDialog::updateStartButton()
 {
 	ui_.start_button->setEnabled(samples_.count()>=1);
 }
 
-void SingleSampleAnalysisDialog::annotate_only_state_changed()
+void CfdnaAnalysisDialog::annotate_only_state_changed()
 {
 	// get all step check boxes
 	QList<QCheckBox*> step_boxes = this->findChildren<QCheckBox*>(QRegExp("^step_"));
@@ -272,7 +264,7 @@ void SingleSampleAnalysisDialog::annotate_only_state_changed()
 
 }
 
-void SingleSampleAnalysisDialog::addSample(QString status, QString sample)
+void CfdnaAnalysisDialog::addSample(QString status, QString sample)
 {
 	try
 	{
@@ -285,7 +277,7 @@ void SingleSampleAnalysisDialog::addSample(QString status, QString sample)
 	}
 }
 
-void SingleSampleAnalysisDialog::updateSampleTable()
+void CfdnaAnalysisDialog::updateSampleTable()
 {
 	updateSampleTable(samples_, ui_.samples_table);
 }

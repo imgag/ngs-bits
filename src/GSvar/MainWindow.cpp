@@ -123,6 +123,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "CohortAnalysisWidget.h"
 #include "cfDNARemovedRegions.h"
 #include "CfDNAPanelBatchImport.h"
+#include "CfdnaAnalysisDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -1549,9 +1550,9 @@ void MainWindow::on_actionReanalyze_triggered()
 	SampleHeaderInfo header_info = variants_.getSampleHeader();
 
 	QList<AnalysisJobSample> samples;
-	if (type==GERMLINE_SINGLESAMPLE || type==CFDNA)
+	if (type==GERMLINE_SINGLESAMPLE)
 	{
-		SingleSampleAnalysisDialog dlg(this, false, (type==CFDNA));
+		SingleSampleAnalysisDialog dlg(this, false);
 		samples << AnalysisJobSample {header_info[0].id, ""};
 		dlg.setSamples(samples);
 		if (dlg.exec()==QDialog::Accepted)
@@ -1607,6 +1608,19 @@ void MainWindow::on_actionReanalyze_triggered()
 		if (dlg.exec()==QDialog::Accepted)
 		{
 			NGSD().queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		}
+	}
+	else if (type==CFDNA)
+	{
+		CfdnaAnalysisDialog dlg(this);
+		samples << AnalysisJobSample {header_info[0].id, ""};
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			foreach(const AnalysisJobSample& sample,  dlg.samples())
+			{
+				NGSD().queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+			}
 		}
 	}
 }

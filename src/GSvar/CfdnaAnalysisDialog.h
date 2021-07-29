@@ -1,35 +1,19 @@
-#ifndef SINGLESAMPLEANALYSISDIALOG_H
-#define SINGLESAMPLEANALYSISDIALOG_H
+#ifndef CFDNAANALYSISDIALOG_H
+#define CFDNAANALYSISDIALOG_H
 
 #include <QDialog>
 #include "NGSD.h"
-#include "ui_SingleSampleAnalysisDialog.h"
+#include "ui_CfdnaAnalysisDialog.h"
+#include "SingleSampleAnalysisDialog.h"
 
-struct SampleDetails
-{
-	QString name;
-	QString system;
-	QString status;
-	QString quality;
-	QString gender;
-	QString disease_group;
-	QString disease_status;
-};
-
-struct AnalysisStep
-{
-	QString name;
-	QString description;
-};
-
-//Dialog for starting a single sample analysis.
-class SingleSampleAnalysisDialog
+//Dialog for starting a cfDNA analysis.
+class CfdnaAnalysisDialog
 	: public QDialog
 {
 	Q_OBJECT
 
 public:
-	SingleSampleAnalysisDialog(QWidget *parent = 0, bool is_rna = false);
+	CfdnaAnalysisDialog(QWidget *parent = 0);
 	//Fills table with given processed samples
 	void setSamples(QList<AnalysisJobSample> samples);
 
@@ -57,7 +41,7 @@ private slots:
 	void annotate_only_state_changed();
 
 private:
-	Ui::SingleSampleAnalysisDialog ui_;
+	Ui::CfdnaAnalysisDialog ui_;
 	NGSD db_;
 	QList<SampleDetails> samples_;
 	QList<AnalysisStep> steps_;
@@ -66,4 +50,4 @@ private:
 	void updateSampleTable();
 };
 
-#endif // SINGLESAMPLEANALYSISDIALOG_H
+#endif // CFDNAANALYSISDIALOG_H
