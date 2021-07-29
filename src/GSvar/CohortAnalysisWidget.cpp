@@ -1,7 +1,9 @@
 #include "CohortAnalysisWidget.h"
 #include "NGSD.h"
 #include "GUIHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
+#include <QMenu>
 
 CohortAnalysisWidget::CohortAnalysisWidget(QWidget* parent)
 	: QWidget(parent)
@@ -9,6 +11,8 @@ CohortAnalysisWidget::CohortAnalysisWidget(QWidget* parent)
 {
 	ui_.setupUi(this);
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(updateOutputTable()));
+	connect(ui_.output, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(outputContextMenu(QPoint)));
+	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(outputToClipboard()));
 }
 
 QString CohortAnalysisWidget::baseQuery()
@@ -165,6 +169,32 @@ void CohortAnalysisWidget::updateOutputTable()
 	}
 }
 
+void CohortAnalysisWidget::outputContextMenu(QPoint pos)
+{
+	//get item
+	QTableWidgetItem* item = ui_.output->itemAt(pos);
+	if (!item) return;
+
+	//create context menu
+	QMenu menu(ui_.output);
+	QAction* action_gene = menu.addAction(QIcon(":/Icons/NGSD_gene.png"), "Open gene tab");
+
+	//execute context menu
+	QAction* action = menu.exec(ui_.output->viewport()->mapToGlobal(pos));
+	if (!action) return;
+
+	if (action==action_gene)
+	{
+		QString gene = ui_.output->item(item->row(), 0)->text();
+		GlobalServiceProvider::openGeneTab(gene);
+	}
+}
+
+void CohortAnalysisWidget::outputToClipboard()
+{
+	GUIHelper::copyToClipboard(ui_.output);
+}
+
 
 QTableWidgetItem* CohortAnalysisWidget::addTableItem(int row, int col, QString text)
 {
@@ -189,5 +219,3 @@ QTableWidgetItem* CohortAnalysisWidget::addTableItem(int row, int col, int value
 
 	return item;
 }
-
-//TODO: make genomes faster, open modal, copy to clipboad, context menu => open gene tab
