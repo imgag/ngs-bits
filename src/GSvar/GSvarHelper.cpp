@@ -194,6 +194,9 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 
 BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg38_to_hg19)
 {
+	//convert to 0-based coords (BED format)
+	start -= 1;
+
 	//call lift-over webservice
 	QString url = Settings::string("liftover_webservice") + "?chr=" + chr.strNormalized(true) + "&start=" + QString::number(start) + "&end=" + QString::number(end);
 	if (hg38_to_hg19) url += "&dir=hg38_hg19";
@@ -205,6 +208,9 @@ BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg
 	//convert output to region
 	BedLine region = BedLine::fromString(output);
 	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Could not convert output '" + output + "' to region");
+
+	//revert to 1-based
+	region.setStart(region.start()+1);
 
 	return region;
 }

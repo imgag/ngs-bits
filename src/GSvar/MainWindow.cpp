@@ -261,6 +261,8 @@ void MainWindow::on_actionDebug_triggered()
 		QTime timer;
 		timer.start();
 
+		on_actionReplicateNGSD_triggered();
+
 		//Check HPO terms in NGSD
 		/*
 		NGSD db;
@@ -416,6 +418,7 @@ void MainWindow::on_actionDebug_triggered()
 		*/
 
 		//evaluation GSvar score/rank
+		/*
 		TsvFile output;
 		output.addHeader("ps");
 		output.addHeader("variants_causal");
