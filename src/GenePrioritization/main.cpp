@@ -47,6 +47,13 @@ private:
 
     void sortGenesByScore(QList<Graph<NodeContent, EdgeContent>::NodePointer>& node_list)
     {
+        // round score for each node to 6 decimal places
+        Graph<NodeContent, EdgeContent>::NodePointer node;
+        foreach(node, node_list)
+        {
+            node.data()->nodeContent().score = round(node.data()->nodeContent().score * 1e6) / 1e6;
+        }
+
         std::sort(node_list.begin(), node_list.end(),\
                   [](const Graph<NodeContent, EdgeContent>::NodePointer& a, const Graph<NodeContent, EdgeContent>::NodePointer& b)\
                   {

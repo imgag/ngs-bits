@@ -476,8 +476,20 @@ void Graph<NodeType, EdgeType>::store(const QString& file)
     QSharedPointer<QFile> writer = Helper::openFileForWriting(file);
     QTextStream stream(writer.data());
 
+    QList<QPair<QString, QString>> sorted_edge_list = edge_list_.toList();
+
+    std::sort(sorted_edge_list.begin(), sorted_edge_list.end(),
+              [](QPair<QString, QString> a, QPair<QString, QString> b)
+                {
+                    if(a.first == b.first)
+                    {
+                        return a.second < b.second;
+                    }
+                    return a.first < b.first;
+                });
+
     QPair<QString, QString> node_pair;
-    foreach(node_pair, edge_list_)
+    foreach(node_pair, sorted_edge_list)
     {
         stream << node_pair.first << "\t" << node_pair.second << endl;
     }
