@@ -104,7 +104,7 @@ public:
         //optional
         addEnum("method", "Gene prioritization method to use", true, QStringList() << "flooding" << "randomWalk", "flooding");
         addInt("n", "Number of network diffusion iterations for flooding method", true, 2);
-        addFloat("restart", "Restart probability for random walk", true, 0.5);
+        addFloat("restart", "Restart probability for random walk", true, 0.4);
         addOutfile("debug", "Output tsv file for debugging", true);
     }
 
