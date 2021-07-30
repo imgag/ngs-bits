@@ -30,7 +30,7 @@ protected:
 	void performPostChecks();
 
 	int liftOverVariant(int source_variant_id);
-	void updateTable(QString table, bool contains_variant_id=false, QString sample_id="");
+	void updateTable(QString table, bool contains_variant_id=false, QString where_clause="");
 
 private:
 	Ui::NGSDReplicationWidget ui_;

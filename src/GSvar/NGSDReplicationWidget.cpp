@@ -137,9 +137,9 @@ void NGSDReplicationWidget::replicateBaseData()
 	}
 }
 
-void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id, QString sample_id)
+void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id, QString where_clause)
 {
-	int hg38_id = db_source_->getValue("SELECT id FROM genome WHERE build='GRCH38'").toInt();
+	int hg38_id = db_source_->getValue("SELECT id FROM genome WHERE build='GRCh38'").toInt();
 
 	//check table has 'id' column
 	QStringList fields = db_target_->tableInfo(table).fieldNames();
@@ -163,6 +163,7 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 	timer.start();
 
 	int c_added = 0;
+	int c_kept = 0;
 	int c_removed = 0;
 	int c_updated = 0;
 	int c_not_mappable = 0;
@@ -210,7 +211,7 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 
 	//add/update entries
 	SqlQuery query = db_source_->getQuery();
-	query.exec("SELECT * FROM "+table+" ORDER BY id ASC");
+	query.exec("SELECT * FROM " + table + " " +  where_clause + " ORDER BY id ASC");
 	while(query.next())
 	{
 		int id = query.value("id").toInt();
@@ -253,6 +254,10 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 
 				++c_updated;
 			}
+			else
+			{
+				++c_kept;
+			}
 		}
 		else //row not in target table > add
 		{
@@ -294,7 +299,7 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 				}
 				++c_added;
 			}
-			else if (target_variant_id<=3)
+			else if (target_variant_id>=-3)
 			{
 				++c_not_mappable;
 			}
@@ -317,6 +322,7 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 		details << "skipped unmappable variants " + QString::number(c_not_mappable);
 		details << "skipped variants not in NGSD " + QString::number(c_not_in_ngsd);
 	}
+	details << "kept " + QString::number(c_kept);
 	details << "updated " + QString::number(c_updated);
 	details << "removed " + QString::number(c_removed);
 
@@ -326,6 +332,8 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 
 void NGSDReplicationWidget::replicateBaseDataNoId()
 {
+	addHeader("replication of base data (no ID)");
+
 	foreach(QString table, QStringList() << "omim_preferred_phenotype" << "processed_sample_ancestry" << "diag_status" << "kasp_status" << "merged_processed_samples")
 	{
 		//init
@@ -391,6 +399,7 @@ void NGSDReplicationWidget::addSampleGroups()
 			q_update.exec();
 		}
 	}
+
 	tables_done_ << "nm_sample_sample_group";
 	tables_done_ << "sample_group";
 }
@@ -399,66 +408,22 @@ void NGSDReplicationWidget::replicateVariantData()
 {
 	addHeader("replication of variant data");
 
-	//process tables that are not sample-specific
 	updateTable("variant_classification", true);
 	updateTable("somatic_variant_classification", true);
-
-	//select processed samples to use
-	QStringList ps_ids;
-	if (!ui_.samples->text().trimmed().isEmpty()) //samples from GUI
+	updateTable("somatic_vicc_interpretation", true);
+	updateTable("variant_publication", true);
+	updateTable("variant_validation", true, "WHERE variant_id IS NOT NULL");
+	if (!ui_.skip_rc->isChecked())
 	{
-		foreach(QString ps, ui_.samples->text().split(","))
-		{
-			ps_ids << db_target_->processedSampleId(ps);
-		}
-	}
-	else //all samples that have variants
-	{
-		ps_ids = db_target_->getValues("SELECT id FROM processed_sample ps WHERE EXISTS(SELECT * FROM detected_variant WHERE processed_sample_id=ps.id) OR EXISTS(SELECT * FROM detected_somatic_variant WHERE processed_sample_id_tumor=ps.id ) ORDER BY id ASC");
-	}
-	qDebug() << ps_ids.count();
-	return; //TODO
-
-
-	//process
-	foreach(QString ps_id, ps_ids)
-	{
-		QMap<int, int> c_fail;
-		int c_ok = 0;
-		SqlQuery query = db_source_->getQuery();
-		query.exec("SELECT variant_id FROM detected_variant WHERE processed_sample_id="+ps_id);
-		while(query.next())
-		{
-			int variant_id = query.value(0).toInt();
-			int id = liftOverVariant(variant_id);
-
-			if (id<0) c_fail[id] +=1;
-			else ++c_ok;
-		}
-		qDebug() << ps_id << c_ok;
-		for(auto it=c_fail.begin(); it!=c_fail.end(); ++it)
-		{
-			qDebug() << it.key() << it.value();
-		}
+		updateTable("report_configuration_variant", true); //TODO warn if causal is missing
+		updateTable("somatic_report_configuration_variant", true);
+		updateTable("somatic_report_configuration_germl_var", true);
 	}
 
-	//TODO
-	/*
-	Warning: Table 'variant_publication' not filled!
-	Warning: Table 'variant_validation' not filled!
-	Warning: Table 'report_configuration_variant' not filled!
-	Warning: Table 'report_configuration_cnv' not filled!
-	Warning: Table 'report_configuration_sv' not filled!
-
-	Warning: Table 'somatic_vicc_interpretation' not filled!
-	Warning: Table 'somatic_report_configuration_cnv' not filled!
-	Warning: Table 'somatic_report_configuration_germl_var' not filled!
-	Warning: Table 'somatic_report_configuration_variant' not filled!
-
-	Warning: Table 'gaps' not filled!
-	Warning: Table 'cfdna_panel_genes' not filled!
-	Warning: Table 'cfdna_panels' not filled!
-	*/
+	//TODO CNVs: report_configuration_cnv, variant_validation CNVs
+	//TODO SVs: report_configuration_sv, variant_validation SVs
+	//TODO CNVs somatic: somatic_report_configuration_cnv
+	//TODO misc: gaps, cfdna_panel_genes, cfdna_panels
 }
 
 int NGSDReplicationWidget::liftOverVariant(int source_variant_id)

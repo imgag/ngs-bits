@@ -534,6 +534,7 @@ void MainWindow::on_actionDebug_triggered()
 		output.addComment("##Top10: " + QString::number(c_top10) + " (" + QString::number(100.0*c_top10/output.rowCount(), 'f', 2) + "%)");
 		output.addComment("##None : " + QString::number(c_none) + " (" + QString::number(100.0*c_none/output.rowCount(), 'f', 2) + "%)");
 		output.store("C:\\Marc\\ranking_" + QDate::currentDate().toString("yyyy-MM-dd") + "_" + algorithm + special + ".tsv");
+		*/
 
 		//import of sample relations from GenLab
 		/*
