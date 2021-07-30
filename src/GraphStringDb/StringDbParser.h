@@ -8,6 +8,7 @@
 #include <QHash>
 #include <QFile>
 #include <QStringList>
+#include <cmath>
 
 template <typename NodeType, typename EdgeType>
 class CPPNGSSHARED_EXPORT StringDbParser
@@ -19,8 +20,8 @@ class CPPNGSSHARED_EXPORT StringDbParser
         Graph<NodeType, EdgeType>& interactionNetwork();
 
     private:
-        // lower threshold for combined score of putative interactions; ranges from 0.0 to 1.0
-        double threshold_;
+        // lower threshold for combined score of putative interactions; ranges from 0 to 1000
+        int threshold_;
 
         QString string_db_file_;
         QString alias_file_;
@@ -47,7 +48,7 @@ StringDbParser<NodeType, EdgeType>::StringDbParser(const QString& string_db_file
 {
     if(threshold >= 0.0 && threshold <= 1.0)
     {
-        threshold_ = threshold;
+        threshold_ = (int) round(threshold * 1000);
     }
     else
     {
@@ -124,7 +125,7 @@ void StringDbParser<NodeType, EdgeType>::parseStringDbFile()
         if(line.size() == 3)
         {
             // only add edges for interactions between nodes with HGNC identifier and above the threshold
-            double edge_score = line.at(2).toDouble() / 1000;
+            int edge_score = line.at(2).toInt();
             if(hgnc_translator_.contains(line.at(0)) && hgnc_translator_.contains(line.at(1)) && edge_score >= threshold_)
             {
                 NodeType node_content_1{};
