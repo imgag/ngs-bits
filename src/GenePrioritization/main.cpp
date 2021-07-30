@@ -104,15 +104,15 @@ public:
 
     virtual void setup()
     {
-        setDescription("Performs gene prioritization based on list of known disease genes and String-DB");
-        addInfile("in", "Input tsv file with one gene (HGNC identifier) and its disease score per line", false);
-        addInfile("graph", "Graph tsv file with one pair of nodes per line", false);
-        addOutfile("out", "Output tsv file with prioritized genes", false);
+		setDescription("Performs gene prioritization based on list of known disease genes and a PPI graph.");
+		addInfile("in", "Input TSV file with one gene identifier per line.", false);
+		addInfile("graph", "Graph TSV file with two gene identifiers per line.", false);
+		addOutfile("out", "Output TSV file containing prioritized genes.", false);
         //optional
-        addEnum("method", "Gene prioritization method to use", true, QStringList() << "flooding" << "randomWalk", "flooding");
-        addInt("n", "Number of network diffusion iterations for flooding method", true, 2);
-        addFloat("restart", "Restart probability for random walk", true, 0.4);
-        addOutfile("debug", "Output tsv file for debugging", true);
+		addEnum("method", "Gene prioritization method to use.", true, QStringList() << "flooding" << "random_walk", "flooding");
+		addInt("n", "Number of network diffusion iterations (flooding).", true, 2);
+		addFloat("restart", "Restart probability (random_walk).", true, 0.4);
+		addOutfile("debug", "Output TSV file for debugging", true);
     }
 
     Graph<NodeContent, EdgeContent> parseGraph(const QString& graph_file)
@@ -361,7 +361,7 @@ public:
 
         scoreDiseaseGenes(interaction_network, getInfile("in"));
 
-        if(method == "randomWalk")
+		if(method == "random_walk")
         {
             randomWalk(interaction_network, getFloat("restart"), getOutfile("debug"));
         }

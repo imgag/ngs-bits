@@ -19,7 +19,7 @@ private slots:
     {
         EXECUTE("GenePrioritization", "-in " + TESTDATA("data_in/GenePrioritization_in.tsv") + " -graph " +
                 TESTDATA("data_in/GenePrioritization_graph.tsv") + " -out out/GenePrioritization_out2.tsv" +
-                " -method randomWalk");
+				" -method random_walk");
         IS_TRUE(QFile::exists("out/GenePrioritization_out2.tsv"));
         COMPARE_FILES("out/GenePrioritization_out2.tsv", TESTDATA("data_out/GenePrioritization_out2.tsv"));
     }
