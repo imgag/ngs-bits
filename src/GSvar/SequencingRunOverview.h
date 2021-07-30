@@ -13,9 +13,6 @@ class SequencingRunOverview
 public:
 	SequencingRunOverview(QWidget* parent = 0);
 
-signals:
-	void openRun(QString run_name);
-
 protected slots:
 	void delayedInitialization();
 	void updateTable();

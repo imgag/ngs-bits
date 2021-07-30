@@ -41,7 +41,7 @@ void SubpanelArchiveDialog::updateSubpanelList(QListWidget* list, bool archived,
 	//filter
 	if (!f_filename.isEmpty())
 	{
-		Helper::removeIf(names, [f_filename](const QString& name){return !name.contains(f_filename);});
+		Helper::removeIf(names, [f_filename](const QString& name){return !name.contains(f_filename, Qt::CaseInsensitive);});
 	}
 
 	if (!f_genes.isEmpty())

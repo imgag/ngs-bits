@@ -483,6 +483,8 @@
      <addaction name="separator"/>
      <addaction name="actionUsers"/>
      <addaction name="actionChangePassword"/>
+     <addaction name="separator"/>
+     <addaction name="actionReplicateNGSD"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -506,6 +508,8 @@
      <addaction name="actionSearchSNVs"/>
      <addaction name="actionSearchCNVs"/>
      <addaction name="actionSearchSVs"/>
+     <addaction name="separator"/>
+     <addaction name="actionCohortAnalysis"/>
      <addaction name="separator"/>
      <addaction name="actionShowPublishedVariants"/>
      <addaction name="actionPublishVariantInLOVD"/>
@@ -563,7 +567,6 @@
    <addaction name="actionRE"/>
    <addaction name="actionPRS"/>
    <addaction name="actionCircos"/>
-   <addaction name="actionExpressionData"/>
    <addaction name="separator"/>
    <addaction name="actionDebug"/>
   </widget>
@@ -600,7 +603,7 @@
   </action>
   <action name="actionRecent">
    <property name="text">
-    <string>Recent files</string>
+    <string>Recent sample names</string>
    </property>
   </action>
   <action name="actionStatisticsFastA">
@@ -1278,6 +1281,24 @@
   <action name="actionSampleBedpe">
    <property name="text">
     <string>Sample structural variants BEDPE file</string>
+   </property>
+  </action>
+  <action name="actionShowRnaFusions">
+   <property name="text">
+    <string>Show RNA Fusions</string>
+   </property>
+   <property name="toolTip">
+    <string>Show RNA Fusions</string>
+   </property>
+  </action>
+  <action name="actionReplicateNGSD">
+   <property name="text">
+    <string>Replicate NGSD (hg19 to hg38)</string>
+   </property>
+  </action>
+  <action name="actionCohortAnalysis">
+   <property name="text">
+    <string>Cohort analysis</string>
    </property>
   </action>
  </widget>

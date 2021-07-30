@@ -11,8 +11,9 @@
 #include <QFileInfo>
 #include <QDir>
 
-SomaticXmlReportGeneratorData::SomaticXmlReportGeneratorData(const SomaticReportSettings &som_settings, const VariantList& snvs, const VariantList& germl_snvs, const CnvList& cnvs)
-	: settings(som_settings)
+SomaticXmlReportGeneratorData::SomaticXmlReportGeneratorData(GenomeBuild genome_build, const SomaticReportSettings &som_settings, const VariantList& snvs, const VariantList& germl_snvs, const CnvList& cnvs)
+	: build(genome_build)
+	, settings(som_settings)
 	, tumor_snvs(snvs)
 	, germline_snvs(germl_snvs)
 	, tumor_cnvs(cnvs)
@@ -90,7 +91,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	//Element SomaticNgsReport
 	w.writeStartElement("SomaticNgsReport");
 	w.writeAttribute("version", "1");
-	w.writeAttribute("genome_build", "GRCh37");
+	w.writeAttribute("genome_build", buildToString(data.build, true));
 
 	//Element ReportGeneration
 	w.writeStartElement("ReportGeneration");

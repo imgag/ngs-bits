@@ -82,7 +82,6 @@ public:
 	void sortByPosition();
 
 	///GETTER/SETTER
-
 	QString targetRegionName() const;
 	void setTargetRegionName(QString target_name);
 
@@ -129,6 +128,18 @@ public:
 	QString filter() const;
 	void setFilter(QString filter);
 
+	int cnvLohCount() const;
+	void setCnvLohCount(int cnv_loh_count);
+
+	int cnvTaiCount() const;
+	void setCnvTaiCount(int cnv_tai_count);
+
+	int cnvLstCount() const;
+	void setCnvLstCount(int cnv_lst_count);
+
+	QString hrdStatement() const;
+	void setHrdStatement(const QString& hrd_statement);
+
 private:
 	QList<SomaticReportVariantConfiguration> variant_config_;
 
@@ -145,6 +156,13 @@ private:
 	bool include_msi_status_;
 	bool include_cnv_burden_;
 	int hrd_score_; //0 no HRD; 1,2 low; 3 intermediate HRD; 4,5 high HRD
+
+	QString hrd_statement_;
+
+	//CNV metrics
+	int cnv_loh_count_; //loss of heterocygosity
+	int cnv_tai_count_; //telomeric allelic imbalance
+	int cnv_lst_count_; //long state transition
 
 	//list of instable chromosomes in the form {"chr1", "chr2" ....}
 	QList<QString> cin_chromosomes_;

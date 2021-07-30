@@ -55,7 +55,14 @@ FilterWidget::FilterWidget(QWidget *parent)
 	ui_.clearn_btn->menu()->addAction("Clear filters", this, SLOT(clearFilters()));
 	ui_.clearn_btn->menu()->addAction("Clear filters and ROI", this, SLOT(clearFiltersAndRoi()));
 
-	loadTargetRegions();
+	try
+	{
+		loadTargetRegions();
+	}
+	catch(Exception& e)
+	{
+		Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
+	}
 	loadFilters();
 	reset(true);
 }

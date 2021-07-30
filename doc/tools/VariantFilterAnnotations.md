@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2021_03-23-g5c26fea8)
+	VariantFilterAnnotations (2021_03-100-g09f25a25)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -102,6 +102,7 @@
 	                                   Parameters:
 	                                     types - Variant types [default=de-novo,recessive,comp-het,LOH,x-linked] [valid=de-novo,recessive,comp-het,LOH,x-linked,imprinting]
 	                                     gender_child - Gender of the child - if 'n/a', the gender from the GSvar file header is taken [default=n/a] [valid=male,female,n/a]
+	                                     build - Genome build used for pseudoautosomal region coordinates [default=hg19] [valid=hg19,hg38]
 	Tumor zygosity                     Filter based on the zygosity of tumor-only samples. Filters out germline het/hom calls.
 	                                   Parameters:
 	                                     het_af_range - Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline. [default=0] [min=0] [max=49.9]
@@ -133,7 +134,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2021_03-23-g5c26fea8
+	VariantFilterAnnotations 2021_03-100-g09f25a25
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

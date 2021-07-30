@@ -20,7 +20,7 @@ Use git to clone the most recent release (the source code package of GitHub does
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2021_03
+	> git checkout 2021_06
 	> git submodule update --recursive --init
 
 ### Resolving proxy issues with git
@@ -75,6 +75,6 @@ Additionally, it offers a  user interface to the NGSD (see above).
 
 To build GSvar, execute the following command:
 
-    > make build_3rdparty
+    > make build_gui_release
 
 Now you need to [configure GSVar](GSvar/configuration.md).

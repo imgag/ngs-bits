@@ -22,6 +22,7 @@
 #include "SvSearchWidget.h"
 #include "VariantDetailsDockWidget.h"
 #include "ValidationDialog.h"
+#include "GlobalServiceProvider.h"
 
 SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent, bool ini_gui)
 	: QWidget(parent)
@@ -822,7 +823,7 @@ void SvWidget::SvDoubleClicked(QTableWidgetItem *item)
 	else
 	{
 		QString coords = sv_bedpe_file_[row].positionRange();
-		emit openInIGV(coords);
+		GlobalServiceProvider::gotoInIGV(coords, true);
 	}
 }
 
@@ -1149,15 +1150,15 @@ void SvWidget::showContextMenu(QPoint pos)
 	}
 	else if (action == igv_pos1)
 	{
-		emit(openInIGV(sv.position1()));
+		GlobalServiceProvider::gotoInIGV(sv.position1(), true);
 	}
 	else if (action == igv_pos2)
 	{
-		emit(openInIGV(sv.position2()));
+		GlobalServiceProvider::gotoInIGV(sv.position2(), true);
 	}
 	else if (action == igv_split)
 	{
-		emit(openInIGV(sv.position1() + " " + sv.position2()));
+		GlobalServiceProvider::gotoInIGV(sv.position1() + " " + sv.position2(), true);
 	}
 	else if (action == copy_pos1)
 	{
@@ -1174,7 +1175,7 @@ void SvWidget::showContextMenu(QPoint pos)
 
 		if (db_name=="Gene tab")
 		{
-			openGeneTab(gene);
+			GlobalServiceProvider::openGeneTab(gene);
 		}
 		else if (db_name=="Google")
 		{

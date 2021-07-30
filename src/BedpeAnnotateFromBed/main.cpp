@@ -48,7 +48,7 @@ public:
 		bool replace_underscore = getFlag("replace_underscore");
 
 
-		//load annoation database
+		//load annotation database
 		BedFile anno_file;
 		anno_file.load(bed);
 		if (!anno_file.isSorted()) anno_file.sort();

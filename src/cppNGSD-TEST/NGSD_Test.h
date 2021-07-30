@@ -508,7 +508,7 @@ private slots:
 
 		//approvedGeneNames
 		GeneSet approved = db.approvedGeneNames();
-		I_EQUAL(approved.count(), 17);
+		I_EQUAL(approved.count(), 18);
 
 		//phenotypes
 		PhenotypeList phenos = db.phenotypes(QStringList() << "aBNOrmality");
@@ -767,12 +767,24 @@ private slots:
 		IS_TRUE(db.variant(var_id)==vl[0]);
 
 		//variantCounts
-		QPair<int, int> ngsd_counts = db.variantCounts(db.variantId(Variant("chr10",43613843,43613843,"G","T")));
+		QString variant_id = db.variantId(Variant("chr10",43613843,43613843,"G","T")); //hom
+		QPair<int, int> ngsd_counts = db.variantCounts(variant_id);
 		I_EQUAL(ngsd_counts.first, 0);
 		I_EQUAL(ngsd_counts.second, 1);
-		ngsd_counts = db.variantCounts(db.variantId(Variant("chr17",7579472,7579472,"G","C")));
+
+		variant_id = db.variantId(Variant("chr17",7579472,7579472,"G","C")); //het
+		ngsd_counts = db.variantCounts(variant_id);
 		I_EQUAL(ngsd_counts.first, 1);
 		I_EQUAL(ngsd_counts.second, 0);
+
+		ngsd_counts = db.variantCounts(variant_id, true);
+		I_EQUAL(ngsd_counts.first, 0);
+		I_EQUAL(ngsd_counts.second, 0);
+
+		db.getQuery().exec("UPDATE variant SET germline_het=17, germline_hom=7 WHERE id=" + variant_id);
+		ngsd_counts = db.variantCounts(variant_id, true);
+		I_EQUAL(ngsd_counts.first, 17);
+		I_EQUAL(ngsd_counts.second, 7);
 
 		//getSampleDiseaseInfo
 		sample_id = db.sampleId("NA12878");
@@ -823,7 +835,7 @@ private slots:
 		I_EQUAL(ps_table.rowCount(), 9);
 		I_EQUAL(ps_table.columnCount(), 71);
 		S_EQUAL(ps_table.row(0).value(70), "");
-		S_EQUAL(ps_table.row(4).value(70), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1,LOC100507346), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
+		S_EQUAL(ps_table.row(4).value(70), "exists, causal variant: chr9:98232224-98232224 A>- (genotype:het genes:PTCH1), causal CNV: chr1:3000-4000 (cn:1 classification:4)");
 		//add comments
 		params.add_comments = true;
 		ps_table = db.processedSampleSearch(params);
@@ -1301,14 +1313,14 @@ private slots:
 		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
 		QMap<QByteArray, QByteArrayList> preferred_transcripts;
 		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
-		GermlineReportGeneratorData data("NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
+		GermlineReportGeneratorData data(GenomeBuild::HG19, "NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
 		data.processing_system_roi.load(TESTDATA("../cppNGS-TEST/data_in/panel.bed"));
+		data.ps_bam = TESTDATA("../cppNGS-TEST/data_in/panel.bam");
+		data.ps_lowcov = TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed");
 
 		//############################### TEST 1 - minimal ###############################
 		{
 			GermlineReportGenerator generator(data, true);
-			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report1.html");
@@ -1374,8 +1386,6 @@ private slots:
 			data.roi.genes.insert("CYP7B1");
 
 			GermlineReportGenerator generator(data, true);
-			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report2.html");
@@ -1390,8 +1400,6 @@ private slots:
 			report_settings.language = "english";
 
 			GermlineReportGenerator generator(data, true);
-			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			generator.writeHTML("out/germline_report3.html");
@@ -1402,8 +1410,6 @@ private slots:
 		//############################### TEST 4 - evaluation sheet ###############################
 		{
 			GermlineReportGenerator generator(data, true);
-			generator.overrideBamFile(TESTDATA("../cppNGS-TEST/data_in/panel.bam"));
-			generator.overrideLowCovFile(TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed"));
 			generator.overrideDate(report_date);
 
 			EvaluationSheetData sheet_data;
@@ -1519,6 +1525,10 @@ private slots:
 		som_rep_conf.setMsiStatus(true);
 		som_rep_conf.setCnvBurden(true);
 		som_rep_conf.setHrdScore(4);
+		som_rep_conf.setHrdStatement("undeterminable");
+		som_rep_conf.setCnvLohCount(12);
+		som_rep_conf.setCnvTaiCount(3);
+		som_rep_conf.setCnvLstCount(43);
 		som_rep_conf.setTmbReferenceText("Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
 		som_rep_conf.setQuality("DNA quantity too low");
 		som_rep_conf.setFusionsDetected(true);
@@ -1585,6 +1595,11 @@ private slots:
 		IS_TRUE(res_config.msiStatus());
 		IS_TRUE(res_config.cnvBurden());
 		I_EQUAL(res_config.hrdScore(), 4);
+		S_EQUAL(res_config.hrdStatement(), "undeterminable");
+		I_EQUAL(res_config.cnvLohCount(), 12);
+		I_EQUAL(res_config.cnvTaiCount(), 3);
+		I_EQUAL(res_config.cnvLstCount(), 43);
+
 		S_EQUAL(res_config.tmbReferenceText(), "Median: 1.70 Var/Mbp, Maximum: 10.80 Var/Mbp, Probenanzahl:65 (PMID: 28420421)");
 		S_EQUAL(res_config.quality(), "DNA quantity too low");
 		IS_TRUE(res_config.fusionsDetected());
@@ -1655,6 +1670,13 @@ private slots:
 		som_rep_conf.setMsiStatus(false);
 		som_rep_conf.setCnvBurden(false);
 		som_rep_conf.setHrdScore(0);
+
+		som_rep_conf.setHrdStatement("proof");
+		som_rep_conf.setCnvLohCount(9);
+		som_rep_conf.setCnvTaiCount(1);
+		som_rep_conf.setCnvLstCount(23);
+
+
 		som_rep_conf.setTmbReferenceText("An alternative tmb reference value.");
 		som_rep_conf.setQuality("NON EXISTING IN SOMTATIC_REPORT_CONFIGURATION TABLE");
 		som_rep_conf.setFusionsDetected(false);
@@ -1673,6 +1695,12 @@ private slots:
 		IS_FALSE(res_config_2.msiStatus());
 		IS_FALSE(res_config_2.cnvBurden());
 		I_EQUAL(res_config_2.hrdScore(), 0);
+
+		S_EQUAL(res_config_2.hrdStatement(), "proof");
+		I_EQUAL(res_config_2.cnvLohCount(), 9);
+		I_EQUAL(res_config_2.cnvTaiCount(), 1);
+		I_EQUAL(res_config_2.cnvLstCount(), 23);
+
 		S_EQUAL(res_config_2.tmbReferenceText(), "An alternative tmb reference value.");
 		S_EQUAL(res_config_2.quality(), "");
 		IS_FALSE(res_config_2.fusionsDetected());
@@ -1742,7 +1770,7 @@ private slots:
 		VariantList vl_germl_filtered =  SomaticReportSettings::filterGermlineVariants(vl_germl, settings);
 		CnvList cnvs_filtered = SomaticReportSettings::filterCnvs(cnvs,settings);
 
-		SomaticXmlReportGeneratorData xml_data(settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
+		SomaticXmlReportGeneratorData xml_data(GenomeBuild::HG19, settings, vl_filtered, vl_germl_filtered, cnvs_filtered);
 		xml_data.processing_system_roi.load(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test.bed"));
 		xml_data.processing_system_genes = GeneSet::createFromFile(TESTDATA("../cppNGSD-TEST/data_in/ssSC_test_genes.txt"));
 		IS_THROWN(ArgumentException, xml_data.check());

@@ -54,7 +54,7 @@ public:
 
 		int min_maqp = getInt("min_mapq");
 		bool debug = getFlag("debug");
-		QString build = getEnum("build");
+		GenomeBuild build = stringToBuild(getEnum("build"));
         // check that just one of roi_file, wgs, rna is set
         int parameters_set =  (roi_file!="" ? 1 : 0) +  wgs + rna;
         if (parameters_set!=1)
@@ -73,7 +73,7 @@ public:
 		}
         else if(rna)
 		{
-			metrics = Statistics::mapping_rna(in, min_maqp, ref_file);
+			metrics = Statistics::mapping(in, min_maqp, ref_file);
 
             //parameters
             parameters << "-rna";

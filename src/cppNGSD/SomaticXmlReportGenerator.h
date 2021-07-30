@@ -12,8 +12,9 @@
 ///Container for XML data exchange format
 struct CPPNGSDSHARED_EXPORT SomaticXmlReportGeneratorData
 {
-	SomaticXmlReportGeneratorData(const SomaticReportSettings& som_settings,const VariantList& snvs, const VariantList& germl_snvs, const CnvList& cnvs);
+	SomaticXmlReportGeneratorData(GenomeBuild genome_build, const SomaticReportSettings& som_settings, const VariantList& snvs, const VariantList& germl_snvs, const CnvList& cnvs);
 
+	GenomeBuild build;
 	const SomaticReportSettings& settings;
 
 	const VariantList& tumor_snvs;

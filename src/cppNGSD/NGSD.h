@@ -154,6 +154,19 @@ class CPPNGSDSHARED_EXPORT TableInfo
 			return output;
 		}
 
+		bool fieldExists(const QString& field_name)
+		{
+			foreach(const TableFieldInfo& entry, field_infos_)
+			{
+				if (entry.name==field_name)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		int fieldCount() const
 		{
 			return field_infos_.count();
@@ -477,7 +490,7 @@ Q_OBJECT
 
 public:
 	///Default constructor that connects to the DB
-	NGSD(bool test_db = false);
+	NGSD(bool test_db = false, bool hg38 = false);
 	///Destructor.
 	~NGSD();
 	///Returns if the database connection is (still) open
@@ -508,9 +521,12 @@ public:
 	///If more than one value is returned a DatabaseError is thrown.
 	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
 	QVariant getValue(const QString& query, bool no_value_is_ok=true, QString bind_value = QString()) const;
-	///Executes an SQL query and returns the value list.
-	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced). Use this if
+	///Executes an SQL query and returns the text value list.
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
 	QStringList getValues(const QString& query, QString bind_value = QString()) const;
+	///Executes an SQL query and returns the integer value list.
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
+	QList<int> getValuesInt(const QString& query, QString bind_value = QString()) const;
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{
@@ -614,8 +630,8 @@ public:
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
 	///Returns the variant corresponding to the given identifier or throws an exception if the ID does not exist.
 	Variant variant(const QString& variant_id);
-	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per samples is counted).
-	QPair<int, int> variantCounts(const QString& variant_id);
+	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per sample is counted).
+	QPair<int, int> variantCounts(const QString& variant_id, bool use_cached_data_from_variant_table=false);
 	///Deletes the variants of a processed sample (all types)
 	void deleteVariants(const QString& ps_id);
 	///Deletes the variants of a processed sample (a specific type)
@@ -765,6 +781,8 @@ public:
 	void setDiagnosticStatus(const QString& processed_sample_id, DiagnosticStatusData status);
 	///Returns if the report configuration database ID, or -1 if not present.
 	int reportConfigId(const QString& processed_sample_id);
+	///Returns if the report configuration text summary.
+	QString reportConfigSummaryText(const QString& processed_sample_id);
 	///Returns if the report configuration is finalized.
 	bool reportConfigIsFinalized(int id);
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.

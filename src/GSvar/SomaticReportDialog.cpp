@@ -2,6 +2,8 @@
 #include "NGSD.h"
 #include "SomaticReportHelper.h"
 #include <QMessageBox>
+#include "GlobalServiceProvider.h"
+#include "Statistics.h"
 
 //struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
 struct tmbInfo
@@ -48,7 +50,6 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	, ui_()
 	, db_()
 	, settings_(settings)
-	, cnvs_(cnvs)
 	, germl_variants_(germl_variants)
 	, target_region_(settings.report_config.targetRegionName())
 	, tum_cont_snps_(std::numeric_limits<double>::quiet_NaN())
@@ -56,6 +57,9 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	, tum_cont_histological_(std::numeric_limits<double>::quiet_NaN())
 	, limitations_()
 {
+
+	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings_);
+
 
 	ui_.setupUi(this);
 
@@ -159,7 +163,7 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 	int i_class = germl_variants.annotationIndexByName("classification", true, false);
 	int i_co_sp = germl_variants.annotationIndexByName("coding_and_splicing", true, false);
 
-	BamReader bam_reader(db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::BAM));
+	BamReader bam_reader(GlobalServiceProvider::database().processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::BAM).filename);
 	FastaFileIndex fasta_idx(Settings::string("reference_genome"));
 
 	QList<int> germl_indices_in_report = settings_.report_config.variantIndicesGermline();
@@ -304,6 +308,14 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 		ui_.include_cnv_burden->setCheckable(false);
 	}
 
+	if(cnvs_.count() > 0)
+	{
+		ui_.cnv_loh_count->setText( QString::number(settings_.report_config.cnvLohCount()) );
+		ui_.cnv_tai_count->setText( QString::number(settings_.report_config.cnvTaiCount()) );
+		ui_.cnv_lst_count->setText( QString::number(settings_.report_config.cnvLstCount()) );
+	}
+
+
 	//Set CIN options, depends on check state of cnv burden
 	cinState();
 
@@ -332,6 +344,23 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 			break;
 		}
 	}
+
+
+	//Load possible HRD statements
+	for(const auto& entry : db_.getEnum("somatic_report_configuration", "hrd_statement"))
+	{
+		ui_.hrd_statement->addItem(entry);
+	}
+	//Preselect  entry to old setting
+	for(int i=0; i<ui_.hrd_statement->count(); ++i)
+	{
+		if(ui_.hrd_statement->itemText(i) == settings_.report_config.hrdStatement())
+		{
+			ui_.hrd_statement->setCurrentIndex(i);
+			break;
+		}
+	}
+
 }
 
 void SomaticReportDialog::disableGUI()
@@ -371,6 +400,8 @@ void SomaticReportDialog::writeBackSettings()
 	settings_.report_config.setHrdScore( ui_.hrd_score->currentIndex() );
 
 	settings_.report_config.setQuality( ui_.quality->currentText() );
+
+	settings_.report_config.setHrdStatement( ui_.hrd_statement->currentText() );
 
 	if(ui_.tmb_reference->selectionModel()->selectedRows().count() == 1)
 	{

@@ -151,7 +151,7 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="0">
+      <item row="8" column="0">
        <widget class="QLabel" name="label_7">
         <property name="text">
          <string>comments:</string>
@@ -161,7 +161,7 @@
         </property>
        </widget>
       </item>
-      <item row="6" column="1">
+      <item row="8" column="1">
        <widget class="QLabel" name="comments">
         <property name="text">
          <string/>
@@ -174,7 +174,7 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="0">
+      <item row="9" column="0">
        <widget class="QLabel" name="label_6">
         <property name="text">
          <string>transcripts:</string>
@@ -184,7 +184,7 @@
         </property>
        </widget>
       </item>
-      <item row="7" column="1">
+      <item row="9" column="1">
        <widget class="QLabel" name="transcripts">
         <property name="text">
          <string/>
@@ -226,29 +226,57 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="label_8">
         <property name="text">
          <string>NGSD (het):</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="7" column="0">
        <widget class="QLabel" name="label_9">
         <property name="text">
          <string>NGSD (hom):</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="6" column="1">
        <widget class="QLabel" name="ngsd_het">
         <property name="text">
          <string/>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
+      <item row="7" column="1">
        <widget class="QLabel" name="ngsd_hom">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_10">
+        <property name="text">
+         <string>CADD:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string>SpliceAI:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QLabel" name="cadd">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QLabel" name="spliceai">
         <property name="text">
          <string/>
         </property>
@@ -259,13 +287,22 @@
    </item>
    <item>
     <widget class="QGroupBox" name="groupBox_3">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="title">
       <string>Classification</string>
      </property>
      <property name="flat">
       <bool>true</bool>
      </property>
-     <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="1,0">
+      <property name="spacing">
+       <number>3</number>
+      </property>
       <property name="leftMargin">
        <number>3</number>
       </property>
@@ -278,65 +315,89 @@
       <property name="bottomMargin">
        <number>3</number>
       </property>
-      <property name="spacing">
-       <number>3</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Class:</string>
+      <item>
+       <layout class="QFormLayout" name="formLayout_2">
+        <property name="horizontalSpacing">
+         <number>3</number>
         </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        <property name="verticalSpacing">
+         <number>3</number>
         </property>
-       </widget>
+        <item row="0" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Class:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Comments:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="classification">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLabel" name="classification_comment">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
-      <item row="0" column="1">
-       <widget class="QLabel" name="classification">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="textInteractionFlags">
-         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QToolButton" name="class_btn">
-        <property name="toolTip">
-         <string>Edit classifification.</string>
-        </property>
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="GSvar.qrc">
-          <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>Comments:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLabel" name="classification_comment">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-        <property name="textInteractionFlags">
-         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-        </property>
-       </widget>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QToolButton" name="class_btn">
+          <property name="toolTip">
+           <string>Edit classifification.</string>
+          </property>
+          <property name="text">
+           <string>...</string>
+          </property>
+          <property name="icon">
+           <iconset resource="GSvar.qrc">
+            <normaloff>:/Icons/Edit.png</normaloff>:/Icons/Edit.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>1</width>
+            <height>1</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -475,6 +536,16 @@
         <column>
          <property name="text">
           <string>candidate genes</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>report_config_comments</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>validation_information</string>
          </property>
         </column>
        </widget>

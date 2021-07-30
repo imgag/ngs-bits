@@ -309,7 +309,7 @@ private slots:
 		I_EQUAL(predicted_params.strong_cancerhotspot, SomaticViccData::State::VICC_TRUE);
 		I_EQUAL(predicted_params.absent_from_controls, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(predicted_params.weak_cancerhotspot, SomaticViccData::State::VICC_FALSE);
-		I_EQUAL(predicted_params.computational_evidence, SomaticViccData::State::VICC_FALSE);
+		I_EQUAL(predicted_params.computational_evidence, SomaticViccData::State::VICC_TRUE);
 
 		I_EQUAL(predicted_params.very_high_maf, SomaticViccData::State::VICC_FALSE);
 		I_EQUAL(predicted_params.high_maf, SomaticViccData::State::VICC_TRUE);

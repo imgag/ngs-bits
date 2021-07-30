@@ -125,9 +125,13 @@ SUBDIRS += VariantQC
 tools-TEST.depends += VariantQC
 VariantQC.depends = cppNGS
 
+SUBDIRS += SomaticCnvMetrics
+tools-TEST.depends += SomaticCnvMetrics
+SomaticCnvMetrics.depends = cppNGSD
+
 SUBDIRS += SomaticQC
 tools-TEST.depends += SomaticQC
-SomaticQC.depends = cppNGS
+SomaticQC.depends = cppNGSD
 
 SUBDIRS += FastqExtract
 tools-TEST.depends += FastqExtract
@@ -422,3 +426,11 @@ GenePrioritization.depends = cppNGS
 
 SUBDIRS += GraphStringDb
 GraphStringDb.depends = cppNGS
+
+SUBDIRS += VariantAnnotateASE
+tools-TEST.depends += VariantAnnotateASE
+VariantRanking.depends = cppNGS
+
+SUBDIRS += SplicingToBed
+tools-TEST.depends += SplicingToBed
+SplicingToBed.depends = cppNGSD

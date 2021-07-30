@@ -60,4 +60,15 @@ private slots:
 		REMOVE_LINES("out/SomaticQC_out5.qcML", QRegExp("<binary>"));
 		COMPARE_FILES("out/SomaticQC_out5.qcML", TESTDATA("data_out/SomaticQC_out5.qcML"));
 	}
+
+    void mutect2()
+    {
+        QString ref_file = Settings::string("reference_genome", true);
+        if (ref_file=="") SKIP("Test needs the reference genome!");
+
+        EXECUTE("SomaticQC", "-tumor_bam " + TESTDATA("../cppNGS-TEST/data_in/tumor.bam") + " -normal_bam " + TESTDATA("../cppNGS-TEST/data_in/normal.bam") + " -somatic_vcf " + TESTDATA("data_in/SomaticQC_in9.vcf") + " -links " + TESTDATA("data_in/SomaticQC_in4.qcML") + " -skip_plots -out out/SomaticQC_out6.qcML");
+        REMOVE_LINES("out/SomaticQC_out6.qcML", QRegExp("creation "));
+        REMOVE_LINES("out/SomaticQC_out6.qcML", QRegExp("<binary>"));
+        COMPARE_FILES("out/SomaticQC_out6.qcML", TESTDATA("data_out/SomaticQC_out6.qcML"));
+    }
 };

@@ -1,5 +1,6 @@
 #include "SomaticReportConfigurationWidget.h"
 #include "ui_SomaticReportConfigurationWidget.h"
+#include "GlobalServiceProvider.h"
 #include "GUIHelper.h"
 #include <QMenu>
 #include <QBitArray>
@@ -297,7 +298,7 @@ void SomaticReportConfigurationWidget::cnvDoubleClicked(QTableWidgetItem* item)
 {
 	if (item==nullptr) return;
 
-	emit openRegionInIGV(cnvs_[item->row()].toString());
+        GlobalServiceProvider::gotoInIGV(cnvs_[item->row()].toString());
 }
 
 void SomaticReportConfigurationWidget::copyToClipboard()

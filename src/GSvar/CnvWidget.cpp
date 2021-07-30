@@ -15,6 +15,7 @@
 #include "LoginManager.h"
 #include "GeneInfoDBs.h"
 #include "ValidationDialog.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -160,7 +161,7 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 	}
 	else
 	{
-		emit openRegionInIGV(cnvs_[item->row()].toString());
+		GlobalServiceProvider::gotoInIGV(cnvs_[item->row()].toString(), true);
 	}
 }
 
@@ -594,22 +595,24 @@ void CnvWidget::showContextMenu(QPoint p)
 	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 	if (action==a_dgv)
 	{
-		QDesktopServices::openUrl(QUrl("http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/?name=" + cnvs_[row].toString()));
+		QDesktopServices::openUrl(QUrl("http://dgv.tcag.ca/gb2/gbrowse/dgv2_"+buildToString(GSvarHelper::build())+"/?name=" + cnvs_[row].toString()));
 	}
 	else if (action==a_ucsc)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + cnvs_[row].toString()));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + cnvs_[row].toString()));
 	}
 	else if (action==a_ucsc_override)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&ignoreCookie=1&hideTracks=1&cytoBand=pack&refSeqComposite=dense&ensGene=dense&omimGene2=pack&geneReviews=pack&dgvPlus=squish&genomicSuperDups=squish&position=" + cnvs_[row].toString()));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&ignoreCookie=1&hideTracks=1&cytoBand=pack&refSeqComposite=dense&ensGene=dense&omimGene2=pack&geneReviews=pack&dgvPlus=squish&genomicSuperDups=squish&position=" + cnvs_[row].toString()));
 	}
 	else if (action==a_deciphter)
 	{
 		try
 		{
-			QString region = GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end()).toString(true);
+			//get region as string (Decipher supports only HG38)
+			QString region = GSvarHelper::build()==GenomeBuild::HG38 ? cnvs_[row].toString() : GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end()).toString(true);
 			region.remove("chr");
+
 			QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + region));
 		}
 		catch(Exception& e)
@@ -659,7 +662,7 @@ void CnvWidget::showContextMenu(QPoint p)
 
 		if (db_name=="Gene tab")
 		{
-			openGeneTab(gene);
+			GlobalServiceProvider::openGeneTab(gene);
 		}
 		else if (db_name=="Google")
 		{

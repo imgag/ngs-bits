@@ -144,7 +144,10 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		single_id = strToPointer(single_id);
 	}
 	vcf_line->setId(id_list);
-	vcf_line->addAlt(line_parts[ALT].split(','));
+	foreach(const QByteArray& alt, line_parts[ALT].split(','))
+	{
+		vcf_line->addAlt(alt);
+	}
 
 	if(line_parts[QUAL]==".")
 	{
@@ -1077,9 +1080,7 @@ VcfFile VcfFile::convertGSvarToVcf(const VariantList& variant_list, const QStrin
 		vcf_line->setChromosome(v.chr());
 		vcf_line->setPos(v.start());
 		vcf_line->setRef(v.ref());
-		QByteArrayList alt_list;
-		alt_list.push_back(v.obs());
-		vcf_line->addAlt(alt_list);
+		vcf_line->addAlt(v.obs());
 
 		//add all columns into info
 		QByteArrayList info;
@@ -1543,7 +1544,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 						QByteArrayList csq_parts = csq_transcript.split('|');
 						if (csq_parts.count()!=csq_defs.count())
 						{
-							printError(out_stream, "VEP-based CSQ annoation has " + QByteArray::number(csq_parts.count()) + " entries, expected " + QByteArray::number(csq_defs.count()) + " according to definition in header!", l, line);
+							printError(out_stream, "VEP-based CSQ annotation has " + QByteArray::number(csq_parts.count()) + " entries, expected " + QByteArray::number(csq_defs.count()) + " according to definition in header!", l, line);
 							return false;
 						}
 

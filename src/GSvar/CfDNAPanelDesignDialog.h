@@ -24,9 +24,6 @@ public:
 	explicit CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent = 0);
 	~CfDNAPanelDesignDialog();
 
-signals:
-	void openInIGV(QString coords);
-
 private slots:
 	void showVariantContextMenu(QPoint pos);
 	void showHotspotContextMenu(QPoint pos);

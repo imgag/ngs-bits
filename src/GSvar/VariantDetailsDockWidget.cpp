@@ -15,6 +15,7 @@
 #include "GSvarHelper.h"
 #include "LoginManager.h"
 #include "GUIHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QHeaderView>
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
@@ -86,7 +87,7 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_sift->setToolTip(vl.annotationDescriptionByName("Sift").description());
 	ui->label_polyphen->setToolTip(vl.annotationDescriptionByName("PolyPhen").description());
 	ui->label_cadd->setToolTip(vl.annotationDescriptionByName("CADD").description());
-	ui->label_fathmm->setToolTip(vl.annotationDescriptionByName("fathmm-MKL").description());
+	ui->label_fathmm->setToolTip(vl.annotationDescriptionByName("fathmm-MKL", false).description());
 	ui->label_revel->setToolTip(vl.annotationDescriptionByName("REVEL").description());
 
 	//splicing/regulatory
@@ -275,7 +276,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			{
 				if (!rs_number.trimmed().isEmpty())
 				{
-					text += formatLink("rs"+rs_number, "http://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs=" + rs_number) + " ";
+					text += formatLink("rs"+rs_number, "https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs=" + rs_number) + " ";
 				}
 			}
 		}
@@ -283,7 +284,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		{
 			foreach(const DBEntry& entry, parseDB(anno, ','))
 			{
-				text += formatLink(entry.id, "http://omim.org/entry/" + entry.id) + " ";
+				text += formatLink(entry.id, "https://omim.org/entry/" + entry.id) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
 			}
 		}
@@ -298,7 +299,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				else if (entry.details.contains("pathogenic")) color = RED;
 				else if (entry.details.contains("benign")) color = GREEN;
 
-				QString url = entry.id.startsWith("RCV") ? "http://www.ncbi.nlm.nih.gov/clinvar/" : "http://www.ncbi.nlm.nih.gov/clinvar?term=";
+				QString url = entry.id.startsWith("RCV") ? "https://www.ncbi.nlm.nih.gov/clinvar/" : "https://www.ncbi.nlm.nih.gov/clinvar?term=";
 				text += formatLink(entry.id, url + entry.id, color) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
 			}
@@ -730,7 +731,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	const VariantTranscript& trans = trans_data[index];
 
 	//set transcript label
-	QString text = formatLink(trans.gene, trans.gene) + " " + formatLink(trans.id, "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
+	QString text = formatLink(trans.gene, trans.gene) + " " + formatLink(trans.id, "https://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?t=" + trans.id);
 	if (trans_data.count()>1)
 	{
 		text += " (" + QString::number(index+1) + "/" + QString::number(trans_data.count()) + ")";
@@ -791,10 +792,8 @@ void VariantDetailsDockWidget::previousTanscript()
 
 void VariantDetailsDockWidget::variantClicked(QString link)
 {
-	//extract location only
-	link = link.left(link.indexOf(' '));
-
-	emit jumbToRegion(link);
+	QString region = link.left(link.indexOf(' '));
+	GlobalServiceProvider::gotoInIGV(region, true);
 }
 
 QString VariantDetailsDockWidget::formatLink(QString text, QString url, Color bgcolor)
@@ -847,7 +846,7 @@ void VariantDetailsDockWidget::transcriptClicked(QString link)
 	}
 	else //gene
 	{
-		emit openGeneTab(link);
+		GlobalServiceProvider::openGeneTab(link);
 	}
 }
 
@@ -855,7 +854,7 @@ void VariantDetailsDockWidget::variantButtonClicked()
 {
 	if (variant_str.isEmpty()) return;
 
-	emit openVariantTab(Variant::fromString(variant_str));
+	GlobalServiceProvider::openVariantTab(Variant::fromString(variant_str));
 }
 
 void VariantDetailsDockWidget::nextSomDetails()
