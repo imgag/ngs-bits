@@ -533,9 +533,9 @@ public:
 
 
 	/*** transactions ***/
-	void transaction();
-	void commit();
-	void rollback();
+	bool transaction();
+	bool commit();
+	bool rollback();
 
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.

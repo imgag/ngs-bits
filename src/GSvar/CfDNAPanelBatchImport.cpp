@@ -245,7 +245,14 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 		THROW(FileParseException, "The following variants were not found in GSvar file of sample '" + ps_name + "'\n\t" + missing_variants.join("\n\t"));
 	}
 
-	return VcfFile::convertGSvarToVcf(cfdna_panel, Settings::string("reference_genome", false));
+	//mark all selected variants as monitoring
+	VcfFile vcf_file =  VcfFile::convertGSvarToVcf(cfdna_panel, Settings::string("reference_genome", false));
+	for (int i = 0; i < vcf_file.count(); ++i)
+	{
+		vcf_file.vcfLines().at(i)->setId(QByteArrayList() << "M");
+	}
+
+	return vcf_file;
 }
 
 void CfDNAPanelBatchImport::showRawInputView()
@@ -330,7 +337,6 @@ void CfDNAPanelBatchImport::importPanels()
 	bool overwrite_existing = ui_->cb_overwrite_existing->isChecked();
 
 	// TODO: support transactions
-
 	try
 	{
 		// start mysql transaction
@@ -397,7 +403,7 @@ void CfDNAPanelBatchImport::importPanels()
 			{
 				QByteArray annotation = (cfdna_panel[i].id().contains("M"))?"patient_specific_somatic_variant:" : "SNP_for_sample_identification:";
 				cfdna_panel_region.append(BedLine(cfdna_panel[i].chr(), cfdna_panel[i].start(), cfdna_panel[i].end(),
-												  QByteArrayList() << (annotation + cfdna_panel[i].ref() + ">" + cfdna_panel[i].altString())));
+												  QByteArrayList() << (annotation + cfdna_panel[i].ref() + ">" + cfdna_panel[i].altString() + ":" + cfdna_panel[i].info("ID_Source"))));
 			}
 
 			// import into NGSD

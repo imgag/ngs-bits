@@ -3681,28 +3681,30 @@ void NGSD::clearTable(QString table)
 	query.exec("DELETE FROM " + table);
 }
 
-void NGSD::transaction()
+bool NGSD::transaction()
 {
-	if (!db_->transaction())
+	if(!db_->driver()->hasFeature(QSqlDriver::Transactions))
 	{
-		THROW(DatabaseException, "transaction() failed!\n" + db_->lastError().text());
+		Log::warn("MySQL transactions are not supported by the current driver! (" + db_->driverName() + ")");
 	}
+
+	if (db_->transaction()) return true;
+	Log::warn("db_->transaction() failed!");
+	return false;
 }
 
-void NGSD::commit()
+bool NGSD::commit()
 {
-	if (!db_->commit())
-	{
-		THROW(DatabaseException, "commit() failed!\n" + db_->lastError().text());
-	}
+	if (db_->commit()) return true;
+	Log::warn("db_->commit() failed!");
+	return false;
 }
 
-void NGSD::rollback()
+bool NGSD::rollback()
 {
-	if (!db_->rollback())
-	{
-		THROW(DatabaseException, "rollback() failed!\n" + db_->lastError().text());
-	}
+	if (db_->rollback()) return true;
+	Log::warn("db_->rollback() failed!");
+	return false;
 }
 
 int NGSD::geneToApprovedID(const QByteArray& gene)
