@@ -725,13 +725,13 @@ public:
 	QList<CfdnaGeneEntry> cfdnaGenes();
 	///Returns the ID SNPs of a processing system as VCF
 	VcfFile getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail = true);
+
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)
 	QVector<double> getQCValues(const QString& accession, const QString& processed_sample_id);
 	///Returns the next processing ID for the given sample.
 	QString nextProcessingId(const QString& sample_id);
-
 
 	///Returns classification information
 	ClassificationInfo getClassification(const Variant& variant);

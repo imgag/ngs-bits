@@ -1274,6 +1274,18 @@ private slots:
 		S_EQUAL(db.cfdnaPanelRegions(loaded_panel_info.id).toText(), bed.toText());
 		S_EQUAL(db.cfdnaPanelVcf(loaded_panel_info.id).toText(), vcf.toText());
 
+		// test removed regions
+		BedFile removed_regions;
+		bed.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.bed"));
+		panel_info = db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("IDT_xGenPrism")).at(0);
+		db.setCfdnaRemovedRegions(panel_info.id, removed_regions);
+		BedFile removed_regions_db = db.cfdnaPanelRemovedRegions(panel_info.id);
+		//compare
+		removed_regions.clearAnnotations();
+		removed_regions.clearHeaders();
+		removed_regions_db.clearHeaders();
+		S_EQUAL(removed_regions.toText(), removed_regions_db.toText());
+
 	}
 
 	inline void report_germline()
@@ -2045,7 +2057,6 @@ private slots:
 
 		COMPARE_FILES("out/tumor_only_report.rtf", TESTDATA("data_out/tumor_only_report.rtf"));
 	}
-
 
 
 	//Test for debugging (without initialization because of speed)
