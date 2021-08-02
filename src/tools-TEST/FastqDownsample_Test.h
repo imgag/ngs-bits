@@ -13,13 +13,17 @@ private slots:
 		IS_TRUE(QFile::exists("out/FastqDownsample_out2.fastq.gz"));
 
         //The random number generator behaves differently under Linux/OSX/Windows => we need separate expected test results
-		#ifdef _WIN32
+		if (Helper::isWindows())
+		{
 			COMPARE_FILES("out/FastqDownsample_Test_line11.log", TESTDATA("data_out/FastqDownsample_out1_Windows.txt"));
-        #elif __APPLE__
+		}
+		else if (Helper::isMacOS())
+		{
 			COMPARE_FILES("out/FastqDownsample_Test_line11.log", TESTDATA("data_out/FastqDownsample_out1_OSX.txt"));
-		#else
+		}
+		else
+		{
 			COMPARE_FILES("out/FastqDownsample_Test_line11.log", TESTDATA("data_out/FastqDownsample_out1_Linux.txt"));
-		#endif
-
+		}
 	}
 };
