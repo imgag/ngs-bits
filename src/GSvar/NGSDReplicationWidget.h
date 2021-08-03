@@ -29,7 +29,7 @@ protected:
 	void replicateVariantData();
 	void performPostChecks();
 
-	int liftOverVariant(int source_variant_id);
+	int liftOverVariant(int source_variant_id, bool debug_output);
 	void updateTable(QString table, bool contains_variant_id=false, QString where_clause="");
 
 private:

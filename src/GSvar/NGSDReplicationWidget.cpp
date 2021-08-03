@@ -266,9 +266,16 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 			if (contains_variant_id)
 			{
 				source_variant_id = query.value("variant_id").toInt();
-				target_variant_id = liftOverVariant(source_variant_id);
-			}
+				bool causal_variant = table=="report_configuration_variant" && query.value("causal").toInt()==1;
+				target_variant_id = liftOverVariant(source_variant_id, causal_variant);
 
+				 //warn if causal variant could not be lifed
+				if (causal_variant && target_variant_id<0)
+				{
+					QString ps = db_source_->processedSampleName(db_source_->getValue("SELECT processed_sample_id FROM report_configuration WHERE id=" + query.value("report_configuration_id").toString()).toString());
+					addWarning("Causal variant " + db_source_->variant(query.value("variant_id").toString()).toString() + " of sample " + ps + " could not be lifted (" + QString::number(target_variant_id) + ")!");
+				}
+			}
 			if (!contains_variant_id || target_variant_id>=0)
 			{
 				foreach(const QString& field, fields)
@@ -412,10 +419,11 @@ void NGSDReplicationWidget::replicateVariantData()
 	updateTable("somatic_variant_classification", true);
 	updateTable("somatic_vicc_interpretation", true);
 	updateTable("variant_publication", true);
-	updateTable("variant_validation", true, "WHERE variant_id IS NOT NULL");
+	updateTable("variant_validation", true, "WHERE variant_id IS NOT NULL"); //only entries for small variants
 	if (!ui_.skip_rc->isChecked())
 	{
-		updateTable("report_configuration_variant", true); //TODO warn if causal is missing
+		QStringList rc_ids_with_variants = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT DISTINCT processed_sample_id FROM detected_variant)");
+		updateTable("report_configuration_variant", true, "WHERE report_configuration_id IN (" + rc_ids_with_variants.join(",") + ")"); //only entries for samples with imported variants
 		updateTable("somatic_report_configuration_variant", true);
 		updateTable("somatic_report_configuration_germl_var", true);
 	}
@@ -426,7 +434,7 @@ void NGSDReplicationWidget::replicateVariantData()
 	//TODO misc: gaps, cfdna_panel_genes, cfdna_panels
 }
 
-int NGSDReplicationWidget::liftOverVariant(int source_variant_id)
+int NGSDReplicationWidget::liftOverVariant(int source_variant_id, bool debug_output)
 {
 	Variant var = db_source_->variant(QString::number(source_variant_id));
 	//lift-over coordinates
@@ -435,29 +443,47 @@ int NGSDReplicationWidget::liftOverVariant(int source_variant_id)
 	{
 		coords = GSvarHelper::liftOver(var.chr(), var.start(), var.end());
 	}
-	catch(Exception& /*e*/)
+	catch(Exception& e)
 	{
+		if (debug_output) qDebug() << "-1" << var.toString() << e.message();
 		return -1;
 	}
 
 	//check new chromosome is ok
 	if (!coords.chr().isNonSpecial())
 	{
+		if (debug_output) qDebug() << "-3" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end());
 		return -2;
 	}
 
-	//check sequence context is the same (ref +-10 bases)
-	Sequence context_old = genome_index_->seq(var.chr(), var.start()-10, 20 + var.ref().length());
-	Sequence context_new = genome_index_hg38_->seq(coords.chr(), coords.start()-10, 20 + var.ref().length());
+	//check sequence context is the same (ref +-5 bases). If it is not, the strand might have changed, e.g. in NIPA1, GDF2, ANKRD35, TPTE, ...
+	bool strand_changed = false;
+	Sequence context_old = genome_index_->seq(var.chr(), var.start()-5, 10 + var.ref().length());
+	Sequence context_new = genome_index_hg38_->seq(coords.chr(), coords.start()-5, 10 + var.ref().length());
 	if (context_old!=context_new)
 	{
-		return -3;
+		context_new.reverseComplement();
+		if (context_old==context_new)
+		{
+			strand_changed = true;
+		}
+		else
+		{
+			context_new.reverseComplement();
+			if (debug_output) qDebug() << "-3" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end()) << "old_context="+context_old << "new_context="+context_new;
+			return -3;
+		}
 	}
 
 	//check for variant in target NGSD
-	QString variant_id = db_target_->variantId(Variant(coords.chr(), coords.start(), coords.end(), var.ref(), var.obs()), false);
+	Sequence ref = var.ref();
+	if (strand_changed && ref!="-") ref.reverseComplement();
+	Sequence obs = var.obs();
+	if (strand_changed && obs!="-") obs.reverseComplement();
+	QString variant_id = db_target_->variantId(Variant(coords.chr(), coords.start(), coords.end(), ref, obs), false);
 	if (variant_id.isEmpty())
 	{
+		if (debug_output) qDebug() << "-4" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end()) << "strand_changed="+QString(strand_changed?"yes":"no") << "af="+db_source_->getValue("SELECT gnomad FROM variant WHERE id="+QString::number(source_variant_id)).toString();
 		return -4;
 	}
 

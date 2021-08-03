@@ -194,7 +194,10 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 
 BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg38_to_hg19)
 {
-	//convert to 0-based coords (BED format)
+	//special handling of chrMT (they are the same for GRCh37 and GRCh38)
+	if (chr.strNormalized(true)=="chrMT") return BedLine(chr, start, end);
+
+	//convert start to BED format (0-based)
 	start -= 1;
 
 	//call lift-over webservice
