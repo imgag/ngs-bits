@@ -1250,9 +1250,9 @@ private slots:
 		//cfDNA panels
 		CfdnaPanelInfo panel_info;
 		panel_info.tumor_id = db.processedSampleId("DX184894_01").toInt();
-		panel_info.created_by = "ahmustm1";
+		panel_info.created_by = db.userId("ahmustm1");
 		panel_info.created_date = QDate(2021, 01, 01);
-		panel_info.processing_system = "IDT_xGenPrism";
+		panel_info.processing_system_id = db.processingSystemId("IDT_xGenPrism");
 
 		BedFile bed;
 		bed.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.bed"));
@@ -1261,18 +1261,30 @@ private slots:
 
 		db.storeCfdnaPanel(panel_info, bed.toText().toUtf8(), vcf.toText());
 
-		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("IDT_xGenPrism"))).size(), 1);
+		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("IDT_xGenPrism")).size(), 1);
 		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id)).size(), 1);
-		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("hpHBOCv5"))).size(), 0);
+		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("hpHBOCv5")).size(), 0);
 
-		CfdnaPanelInfo loaded_panel_info = db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("IDT_xGenPrism"))).at(0);
+		CfdnaPanelInfo loaded_panel_info = db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("IDT_xGenPrism")).at(0);
 		I_EQUAL(loaded_panel_info.tumor_id, panel_info.tumor_id);
 		S_EQUAL(loaded_panel_info.created_by, panel_info.created_by);
 		IS_TRUE(loaded_panel_info.created_date == panel_info.created_date);
-		S_EQUAL(loaded_panel_info.processing_system, panel_info.processing_system);
+		S_EQUAL(loaded_panel_info.processing_system_id, panel_info.processing_system_id);
 
 		S_EQUAL(db.cfdnaPanelRegions(loaded_panel_info.id).toText(), bed.toText());
 		S_EQUAL(db.cfdnaPanelVcf(loaded_panel_info.id).toText(), vcf.toText());
+
+		// test removed regions
+		BedFile removed_regions;
+		bed.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.bed"));
+		panel_info = db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("IDT_xGenPrism")).at(0);
+		db.setCfdnaRemovedRegions(panel_info.id, removed_regions);
+		BedFile removed_regions_db = db.cfdnaPanelRemovedRegions(panel_info.id);
+		//compare
+		removed_regions.clearAnnotations();
+		removed_regions.clearHeaders();
+		removed_regions_db.clearHeaders();
+		S_EQUAL(removed_regions.toText(), removed_regions_db.toText());
 
 	}
 
@@ -2045,7 +2057,6 @@ private slots:
 
 		COMPARE_FILES("out/tumor_only_report.rtf", TESTDATA("data_out/tumor_only_report.rtf"));
 	}
-
 
 
 	//Test for debugging (without initialization because of speed)

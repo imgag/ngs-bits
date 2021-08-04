@@ -227,7 +227,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 		//get genotype/AF index
 		int geno_index = -1;
 		AnalysisType type = vls[i].type();
-		if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR)
+		if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR || type==CFDNA)
 		{
 			geno_index = vls[i].annotationIndexByName("tumor_af", true, true);
 		}

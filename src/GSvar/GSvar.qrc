@@ -112,5 +112,7 @@
         <file>Icons/RNA.png</file>
         <file>Icons/chart.png</file>
         <file>Icons/GTEx.png</file>
+        <file>Resources/hg19_KASP_set2.vcf</file>
+        <file>Resources/hg38_KASP_set2.vcf</file>
     </qresource>
 </RCC>

@@ -7,6 +7,7 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
+    CfDNAPanelBatchImport.cpp \
     GlobalServiceProvider.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
@@ -96,8 +97,11 @@ SOURCES += main.cpp\
     GapClosingDialog.cpp \
     DatabaseServiceLocal.cpp \
     NGSDReplicationWidget.cpp \
-    CohortAnalysisWidget.cpp
+    CohortAnalysisWidget.cpp \
+    cfDNARemovedRegions.cpp \
+    CfdnaAnalysisDialog.cpp
 HEADERS += MainWindow.h \
+    CfDNAPanelBatchImport.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
     ReportDialog.h \
@@ -187,8 +191,11 @@ HEADERS += MainWindow.h \
     DatabaseService.h \
     DatabaseServiceLocal.h \
     NGSDReplicationWidget.h \
-    CohortAnalysisWidget.h
+    CohortAnalysisWidget.h \
+    cfDNARemovedRegions.h \
+    CfdnaAnalysisDialog.h
 FORMS    += MainWindow.ui \
+    CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \
@@ -266,7 +273,9 @@ FORMS    += MainWindow.ui \
     ExpressionDataWidget.ui \
     GapClosingDialog.ui \
     NGSDReplicationWidget.ui \
-    CohortAnalysisWidget.ui
+    CohortAnalysisWidget.ui \
+    cfDNARemovedRegions.ui \
+    CfdnaAnalysisDialog.ui
     include("../app_gui.pri")
 
 #include NGSD library

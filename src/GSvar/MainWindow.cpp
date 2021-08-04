@@ -121,6 +121,9 @@ QT_CHARTS_USE_NAMESPACE
 #include "Statistics.h"
 #include "NGSDReplicationWidget.h"
 #include "CohortAnalysisWidget.h"
+#include "cfDNARemovedRegions.h"
+#include "CfDNAPanelBatchImport.h"
+#include "CfdnaAnalysisDialog.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -183,6 +186,7 @@ MainWindow::MainWindow(QWidget *parent)
 	cfdna_menu_btn_->menu()->addAction(ui_.actionDesignCfDNAPanel);
 	cfdna_menu_btn_->menu()->addAction(ui_.actionShowCfDNAPanel);
 	cfdna_menu_btn_->menu()->addAction(ui_.actionCfDNADiseaseCourse);
+	cfdna_menu_btn_->menu()->addAction(ui_.actionCfDNAAddExcludedRegions);
 	cfdna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->addWidget(cfdna_menu_btn_);
 	// deaktivate on default (only available in somatic)
@@ -1268,12 +1272,10 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 	if (!LoginManager::active()) return;
 	if (!somaticReportSupported()) return;
 
-	// get cfDNA panels:
-	NGSD db;
-	QList<CfdnaPanelInfo> cfdna_panels = db.cfdnaPanelInfo(db.processedSampleId(variants_.mainSampleName()));
+// get cfDNA panels:
+	QList<CfdnaPanelInfo> cfdna_panels = NGSD().cfdnaPanelInfo(NGSD().processedSampleId(variants_.mainSampleName()));
 	CfdnaPanelInfo selected_panel;
-	if (cfdna_panels.size() < 1)
-	{
+	if (cfdna_panels.size() < 1)	{
 		// show message
 		GUIHelper::showMessage("No cfDNA panel found!", "No cfDNA panel was found for the given tumor sample!");
 		return;
@@ -1283,7 +1285,8 @@ void MainWindow::on_actionShowCfDNAPanel_triggered()
 		QStringList cfdna_panel_description;
 		foreach (const CfdnaPanelInfo& panel, cfdna_panels)
 		{
-			cfdna_panel_description.append("cfDNA panel for " + panel.processing_system  + " (" + panel.created_date.toString("dd.MM.yyyy") + " by " + panel.created_by + ")");
+			cfdna_panel_description.append("cfDNA panel for " + NGSD().getProcessingSystemData(panel.processing_system_id).name  + " (" + panel.created_date.toString("dd.MM.yyyy") + " by "
+										   + NGSD().userName(panel.created_by) + ")");
 		}
 
 		QComboBox* cfdna_panel_selector = new QComboBox(this);
@@ -1317,6 +1320,18 @@ void MainWindow::on_actionCfDNADiseaseCourse_triggered()
 	DiseaseCourseWidget* widget = new DiseaseCourseWidget(variants_.mainSampleName());
 	auto dlg = GUIHelper::createDialog(widget, "Personalized cfDNA variants");
 	addModelessDialog(dlg, false);
+}
+
+void MainWindow::on_actionCfDNAAddExcludedRegions_triggered()
+{
+	if (filename_=="") return;
+	if (!LoginManager::active()) return;
+	if (!somaticReportSupported()) return;
+
+	QSharedPointer<cfDNARemovedRegions> dialog(new cfDNARemovedRegions(variants_.mainSampleName(), this));
+	dialog->setWindowFlags(Qt::Window);
+
+	addModelessDialog(dialog, false);
 }
 
 void MainWindow::on_actionGeneOmimInfo_triggered()
@@ -1541,7 +1556,7 @@ void MainWindow::on_actionReanalyze_triggered()
 	QList<AnalysisJobSample> samples;
 	if (type==GERMLINE_SINGLESAMPLE)
 	{
-		SingleSampleAnalysisDialog dlg(this);
+		SingleSampleAnalysisDialog dlg(this, false);
 		samples << AnalysisJobSample {header_info[0].id, ""};
 		dlg.setSamples(samples);
 		if (dlg.exec()==QDialog::Accepted)
@@ -1597,6 +1612,19 @@ void MainWindow::on_actionReanalyze_triggered()
 		if (dlg.exec()==QDialog::Accepted)
 		{
 			NGSD().queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		}
+	}
+	else if (type==CFDNA)
+	{
+		CfdnaAnalysisDialog dlg(this);
+		samples << AnalysisJobSample {header_info[0].id, ""};
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			foreach(const AnalysisJobSample& sample,  dlg.samples())
+			{
+				NGSD().queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+			}
 		}
 	}
 }
@@ -2866,7 +2894,7 @@ void MainWindow::checkVariantList(QStringList messages)
 		cols << "comment";
 		cols << "gene_info";
 	}
-	if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR)
+	if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR || type==CFDNA)
 	{
 		cols << "somatic_classification";
 		cols << "somatic_classification_comment";
@@ -4262,6 +4290,14 @@ void MainWindow::on_actionImportSampleRelations_triggered()
 				);
 }
 
+void MainWindow::on_actionImportCfDNAPanels_triggered()
+{
+	CfDNAPanelBatchImport* widget = new CfDNAPanelBatchImport();
+//	auto dlg = GUIHelper::createDialog(widget, "Import cfDNA panels");
+//	addModelessDialog(dlg);
+	widget->exec();
+}
+
 void MainWindow::on_actionMidClashDetection_triggered()
 {
 	MidCheckWidget* widget = new MidCheckWidget();
@@ -4783,7 +4819,7 @@ void MainWindow::refreshVariantTable(bool keep_widths)
 	//update variant table
 	QList<int> col_widths = ui_.vars->columnWidths();
 	AnalysisType type = variants_.type();
-	if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR)
+	if (type==SOMATIC_SINGLESAMPLE || type==SOMATIC_PAIR || type==CFDNA)
 	{
 		ui_.vars->update(variants_, filter_result_, somatic_report_settings_, max_variants);
 	}

@@ -121,6 +121,7 @@ public slots:
 	void on_actionImportSamples_triggered();
 	void on_actionImportProcessedSamples_triggered();
 	void on_actionImportSampleRelations_triggered();
+	void on_actionImportCfDNAPanels_triggered();
 	void on_actionMidClashDetection_triggered();
 	void on_actionVariantValidation_triggered();
 	void on_actionChangePassword_triggered();
@@ -199,6 +200,8 @@ public slots:
 	void on_actionShowCfDNAPanel_triggered();
 	///Open disease course dialog (cfDNA)
 	void on_actionCfDNADiseaseCourse_triggered();
+	/// Open dialog to add excluded regions
+	void on_actionCfDNAAddExcludedRegions_triggered();
 	///Open expression data Widget
 	void on_actionExpressionData_triggered();
 	///Open RNA fusion widget
