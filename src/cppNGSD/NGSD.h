@@ -154,6 +154,19 @@ class CPPNGSDSHARED_EXPORT TableInfo
 			return output;
 		}
 
+		bool fieldExists(const QString& field_name)
+		{
+			foreach(const TableFieldInfo& entry, field_infos_)
+			{
+				if (entry.name==field_name)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		int fieldCount() const
 		{
 			return field_infos_.count();

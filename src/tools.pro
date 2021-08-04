@@ -421,6 +421,12 @@ SUBDIRS += VariantRanking
 tools-TEST.depends += VariantRanking
 VariantRanking.depends = cppNGSD
 
+SUBDIRS += GenePrioritization
+GenePrioritization.depends = cppNGS
+
+SUBDIRS += GraphStringDb
+GraphStringDb.depends = cppNGS
+
 SUBDIRS += VariantAnnotateASE
 tools-TEST.depends += VariantAnnotateASE
 VariantRanking.depends = cppNGS
