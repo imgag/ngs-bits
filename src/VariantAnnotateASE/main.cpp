@@ -26,7 +26,6 @@ public:
 		addOutfile("out", "Output variant list file name (VCF or GSvar).", false, true);
 		//optional
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-		addString("ref_cram", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
 		changeLog(2021, 06, 24, "Initial version.");
 	}
@@ -102,7 +101,7 @@ public:
 		input.load(getInfile("in"));
 
 		//reader for RNA BAM file
-		BamReader reader(getInfile("bam"), getString("ref_cram"));
+		BamReader reader(getInfile("bam"), ref_file);
 
 		//somatic: find tumor_af column, germline: find by sample name
 		bool somatic = input.type(false) == SOMATIC_PAIR || input.type(false) == SOMATIC_SINGLESAMPLE;

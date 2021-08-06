@@ -102,7 +102,6 @@ void AnalysisStatusWidget::refreshStatus()
 	{
 		QTime timer;
 		timer.start();
-		int elapsed_logs = 0;
 
 		//query job IDs
 		NGSD db;
@@ -227,8 +226,6 @@ void AnalysisStatusWidget::refreshStatus()
 				QString folder = db.analysisJobFolder(job_id);
 				if (QFile::exists(folder))
 				{
-					QTime timer2;
-					timer2.start();
 					QStringList files = Helper::findFiles(folder, "*.log", false);
 					if (!files.isEmpty())
 					{
@@ -248,12 +245,10 @@ void AnalysisStatusWidget::refreshStatus()
 						if (sec>36000) bg_color = QColor("#FFC45E"); //36000s ~ 10h
 						last_update = timeHumanReadable(sec) + " ago (" + latest_file + ")";
 					}
-					elapsed_logs += timer2.elapsed();
 				}
 			}
 			addItem(ui_.analyses, row, 8, last_update, bg_color);
 		}
-		qDebug() << "Analysis status - elaped ms - overall: " << timer.elapsed() << " - logs: " << elapsed_logs;
 
 		//apply text filter
 		applyTextFilter();
