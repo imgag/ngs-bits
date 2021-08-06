@@ -466,9 +466,9 @@ struct CfdnaPanelInfo
 	int id = -1;
 	int tumor_id = -1;
 	int cfdna_id = -1;
-	QByteArray created_by;
+	int created_by = -1;
 	QDate created_date;
-	QByteArray processing_system;
+	int processing_system_id = -1;
 };
 
 /// cfDNA Gene entry
@@ -546,9 +546,9 @@ public:
 
 
 	/*** transactions ***/
-	bool transaction() { return db_->transaction(); }
-	bool commit() { return db_->commit(); }
-	bool rollback() { return db_->rollback(); }
+	bool transaction();
+	bool commit();
+	bool rollback();
 
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
@@ -723,15 +723,21 @@ public:
 	GeneSet subpanelGenes(QString name);
 
 	///Returns all coresponding cfDNA panel info for a given processed sample
-	QList<CfdnaPanelInfo> cfdnaPanelInfo(const QString& processed_sample_id, const QString& processing_system_id = "");
+	QList<CfdnaPanelInfo> cfdnaPanelInfo(const QString& processed_sample_id, int processing_system_id = -1);
 	///stores a cfDNA panel in the NGSD
 	void storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content);
 	///Returns the BED file of a given cfDNA panel
 	BedFile cfdnaPanelRegions(int id);
 	///Returns the VCF of a given cfDNA panel
 	VcfFile cfdnaPanelVcf(int id);
+	///Returns the BED file of the removed regions of a given cfDNA panel
+	BedFile cfdnaPanelRemovedRegions(int id);
+	///Updates the regions which where removed by the panel provider
+	void setCfdnaRemovedRegions(int id, const BedFile& removed_regions);
 	///Returns all available cfDNA gene entries
 	QList<CfdnaGeneEntry> cfdnaGenes();
+	///Returns the ID SNPs of a processing system as VCF
+	VcfFile getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail = true);
 
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
@@ -739,7 +745,6 @@ public:
 	QVector<double> getQCValues(const QString& accession, const QString& processed_sample_id);
 	///Returns the next processing ID for the given sample.
 	QString nextProcessingId(const QString& sample_id);
-
 
 	///Returns classification information
 	ClassificationInfo getClassification(const Variant& variant);

@@ -2368,12 +2368,12 @@ GeneSet NGSD::subpanelGenes(QString name)
 	return GeneSet::createFromText(genes);
 }
 
-QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, const QString& processing_system_id)
+QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, int processing_system_id)
 {
 	// get all cfDNA Panel for the given tumor id
 	QList<CfdnaPanelInfo> cfdna_panels;
 	SqlQuery query = getQuery();
-	if(processing_system_id.isEmpty())
+	if(processing_system_id == -1)
 	{
 		query.prepare("SELECT id, tumor_id, cfdna_id, created_by, created_date, `processing_system_id` FROM cfdna_panels WHERE tumor_id=:0");
 		query.bindValue(0, processed_sample_id);
@@ -2403,14 +2403,11 @@ QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, c
             panel.cfdna_id = query.value(2).toInt(&ok);
             if (!ok) THROW(DatabaseException, "Error parsing cfdna_id in cfdna_panels!");
         }
-		int user_id = query.value(3).toInt(&ok);
-		 if (!ok) THROW(DatabaseException, "Error parsing created_by in cfdna_panels!");
-		panel.created_by = userLogin(user_id).toUtf8();
-
+		panel.created_by = query.value(3).toInt(&ok);
+		if (!ok) THROW(DatabaseException, "Error parsing created_by in cfdna_panels!");
 		panel.created_date = query.value(4).toDate();
-		int p_sys_id = query.value(5).toInt(&ok);
+		panel.processing_system_id = query.value(5).toInt(&ok);
 		if (!ok) THROW(DatabaseException, "Error parsing processing_system in cfdna_panels!");
-		panel.processing_system = getValue("SELECT name_short FROM processing_system WHERE id=:0", false, QString::number(p_sys_id)).toString().toUtf8();
 
 		cfdna_panels.append(panel);
 	}
@@ -2420,17 +2417,10 @@ QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, c
 
 void NGSD::storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content)
 {
-	//debug
-	QSharedPointer<QFile> out_p = Helper::openFileForWriting("test.vcf", true);
-	out_p->write(vcf_content);
-	out_p->flush();
-	out_p->close();
-
-
 	// get user id
-	int user_id = userId(panel_info.created_by);
+	int user_id = panel_info.created_by;
 	// get processing system
-	int sys_id = processingSystemId(panel_info.processing_system);
+	int sys_id = panel_info.processing_system_id;
 
 	SqlQuery query = getQuery();
 	if (panel_info.id == -1)
@@ -2467,6 +2457,20 @@ VcfFile NGSD::cfdnaPanelVcf(int id)
 	return vcf;
 }
 
+BedFile NGSD::cfdnaPanelRemovedRegions(int id)
+{
+	return BedFile::fromText(getValue("SELECT `excluded_regions` FROM `cfdna_panels` WHERE id=:0", false, QString::number(id)).toString().toUtf8());
+}
+
+void NGSD::setCfdnaRemovedRegions(int id, const BedFile& removed_regions)
+{
+	SqlQuery query = getQuery();
+	query.prepare("UPDATE `cfdna_panels` SET `excluded_regions`=:0 WHERE `id`=" + QString::number(id));
+	QString bed_content = "##modified at " + QDate::currentDate().toString("dd.MM.yyyy").toUtf8() + " by " + LoginManager::userName().toUtf8() + "\n" + removed_regions.toText();
+	query.bindValue(0, bed_content);
+	query.exec();
+}
+
 QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 {
 	QList<CfdnaGeneEntry> genes;
@@ -2487,6 +2491,73 @@ QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 	}
 
 	return genes;
+}
+
+VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail)
+{
+	VcfFile vcf;
+	vcf.sampleIDs().append("TUMOR");
+	vcf.sampleIDs().append("NORMAL");
+
+	ProcessingSystemData sys = NGSD().getProcessingSystemData(sys_id);
+
+	// add INFO line to determine source
+	InfoFormatLine id_source;
+	id_source.id = "ID_Source";
+	id_source.number = ".";
+	id_source.type = "String";
+	id_source.description = "Source of the ID SNPs (e.g. processing system short name or KASP).";
+	vcf.vcfHeader().addInfoLine(id_source);
+
+	//prepare info for VCF line
+	QByteArrayList info;
+	InfoIDToIdxPtr info_ptr = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
+	QByteArray key = "ID_Source";
+	QByteArray value = sys.name_short.toUtf8();
+	info.push_back(value);
+	info_ptr->push_back(key, static_cast<unsigned char>(0));
+
+	BedFile target_region = NGSD().processingSystemRegions(sys_id);
+
+	QByteArrayList format_ids = QByteArrayList() << "GT";
+	QByteArrayList sample_ids = QByteArrayList() << "TUMOR" << "NORMAL";
+	QList<QByteArrayList> list_of_format_values;
+	list_of_format_values.append(QByteArrayList() << "./.");
+	list_of_format_values.append(QByteArrayList() << "./.");
+
+	for (int i=0; i<target_region.count(); i++)
+	{
+		const BedLine& line = target_region[i];
+		if (line.annotations().size() > 0)
+		{
+			//create variant
+			QByteArrayList variant_info = line.annotations().at(0).split('>');
+			if (variant_info.size() != 2)
+			{
+				if (throw_on_fail)
+				{
+					THROW(FileParseException, "Invalid variant information '" + line.annotations().at(0) + "' for region " + line.toString(true) + "!" );
+				}
+				return VcfFile();
+			}
+			VcfLinePtr vcf_ptr = QSharedPointer<VcfLine>(new VcfLine(line.chr(), line.start(), Sequence(variant_info.at(0)), QVector<Sequence>() << Sequence(variant_info.at(1)), format_ids,
+																	 sample_ids, list_of_format_values));
+			vcf_ptr->setInfo(info);
+			vcf_ptr->setInfoIdToIdxPtr(info_ptr);
+			vcf_ptr->setId(QByteArrayList() << "ID");
+			vcf.vcfLines() << vcf_ptr;
+		}
+		else
+		{
+			if (throw_on_fail)
+			{
+				THROW(FileParseException, "Target region does not contain variant information for region " + line.toString(true) + "!" );
+			}
+			return VcfFile();
+		}
+	}
+
+	return vcf;
 }
 
 QCCollection NGSD::getQCData(const QString& processed_sample_id)
@@ -3608,6 +3679,32 @@ void NGSD::clearTable(QString table)
 {
 	SqlQuery query = getQuery();
 	query.exec("DELETE FROM " + table);
+}
+
+bool NGSD::transaction()
+{
+	if(!db_->driver()->hasFeature(QSqlDriver::Transactions))
+	{
+		Log::warn("MySQL transactions are not supported by the current driver! (" + db_->driverName() + ")");
+	}
+
+	if (db_->transaction()) return true;
+	Log::warn("db_->transaction() failed!");
+	return false;
+}
+
+bool NGSD::commit()
+{
+	if (db_->commit()) return true;
+	Log::warn("db_->commit() failed!");
+	return false;
+}
+
+bool NGSD::rollback()
+{
+	if (db_->rollback()) return true;
+	Log::warn("db_->rollback() failed!");
+	return false;
 }
 
 int NGSD::geneToApprovedID(const QByteArray& gene)

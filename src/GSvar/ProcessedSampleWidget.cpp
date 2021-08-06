@@ -14,6 +14,7 @@
 #include "GenLabDB.h"
 #include "GlobalServiceProvider.h"
 #include <QMessageBox>
+#include "CfdnaAnalysisDialog.h"
 #include "GlobalServiceProvider.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
@@ -721,14 +722,33 @@ void ProcessedSampleWidget::queueSampleAnalysis()
 	QList<AnalysisJobSample> job_list;
 	job_list << AnalysisJobSample {db.processedSampleName(ps_id_), ""};
 
-	//show dialog
-	SingleSampleAnalysisDialog dlg(this);
-	dlg.setSamples(job_list);
-	if (dlg.exec()!=QDialog::Accepted) return;
+	QString sys_type = db.getProcessedSampleData(ps_id_).processing_system_type;
+	bool is_cfdna = (sys_type == "cfDNA (patient-specific)" || sys_type == "cfDNA");
 
-	//start analysis
-	foreach(const AnalysisJobSample& sample,  dlg.samples())
+	if (is_cfdna)
 	{
-		db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+		//show dialog
+		CfdnaAnalysisDialog dlg(this);
+		dlg.setSamples(job_list);
+		if (dlg.exec()!=QDialog::Accepted) return;
+
+		//start analysis
+		foreach(const AnalysisJobSample& sample,  dlg.samples())
+		{
+			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+		}
+	}
+	else
+	{
+		//show dialog
+		SingleSampleAnalysisDialog dlg(this);
+		dlg.setSamples(job_list);
+		if (dlg.exec()!=QDialog::Accepted) return;
+
+		//start analysis
+		foreach(const AnalysisJobSample& sample,  dlg.samples())
+		{
+			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+		}
 	}
 }
