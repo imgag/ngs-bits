@@ -5026,7 +5026,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		QString sample_id = db.sampleId(ps, false);
 		if (sample_id!="")
 		{
-			//get disease list (HPO and CGI cancer type)
+			//get disease list (HPO )
 			QByteArrayList diseases;
 			QList<SampleDiseaseInfo> infos = db.getSampleDiseaseInfo(sample_id);
 			foreach(const SampleDiseaseInfo& info, infos)
@@ -5040,24 +5040,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 						if (!diseases.contains(disease))
 						{
 							diseases << disease;
-						}
-					}
-				}
-				else if (info.type=="CGI cancer type")
-				{
-					TSVFileStream stream("://Resources/cancer_types.tsv");
-					int idx_id = stream.colIndex("ID",true);
-					int idx_name = stream.colIndex("NAME",true);
-					while(!stream.atEnd())
-					{
-						QByteArrayList line = stream.readLine();
-						if (line.at(idx_id)==info.disease_info)
-						{
-							QByteArray disease = line.at(idx_name).trimmed();
-							if (!diseases.contains(disease) && !disease.isEmpty())
-							{
-								diseases << disease;
-							}
 						}
 					}
 				}

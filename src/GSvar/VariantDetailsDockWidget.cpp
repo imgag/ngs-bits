@@ -105,8 +105,6 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_ngsd_validation->setToolTip(vl.annotationDescriptionByName("validation", false).description());
 
 	//somatic details
-	ui->label_somcgi_driver_status->setToolTip( vl.annotationDescriptionByName("CGI_driver_statement", false).description() );
-	ui->label_cgi_gene_role->setToolTip( vl.annotationDescriptionByName("CGI_gene_role", false).description() );
 	ui->label_som_class->setToolTip( vl.annotationDescriptionByName("somatic_classification", false).description() );
 	ui->label_somatic_count->setToolTip( vl.annotationDescriptionByName("NGSD_som_c", false).description() );
 	ui->label_somatic_oncogene->setToolTip(vl.annotationDescriptionByName("ncg_oncogene", false).description() );
@@ -214,8 +212,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->ngsd_validation, vl, index, "validation");
 
 	//somatic details
-	setAnnotation(ui->somatic_cgi_driver_status, vl, index, "CGI_driver_statement");
-	setAnnotation(ui->somatic_cgi_gene_role, vl, index , "CGI_gene_role");
 	setAnnotation(ui->somatic_classification, vl, index, "somatic_classification");
 	setAnnotation(ui->somatic_count, vl, index, "NGSD_som_c");
 	setAnnotation(ui->somatic_oncogene, vl, index, "ncg_oncogene");
@@ -508,17 +504,6 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		{
 			text = anno;
 			tooltip = anno;
-		}
-		else  if(name == "CGI_driver_statement")
-		{
-			if(anno.contains("known"))
-			{
-				text = formatText("driver (known)", RED);
-				tooltip = anno.replace("known in:","").replace(";",", ");
-			}
-			else if(anno.contains("predicted driver")) text = formatText("driver (predicted)", RED);
-			else if(anno.contains("predicted passenger")) text = "passenger (predicted)";
-			else text = anno;
 		}
 		else if(name=="ncg_oncogene")
 		{
