@@ -1,11 +1,11 @@
-# Building ngs-bits from sources (on Windows using msys2 and mingw)
+# Building ngs-bits from sources (on Windows using MSYS2 and MinGW)
 The most complicated thing with the WIndows build is the support of HTTPS. Configured incorrectly it will make impossible the use of the server API.
 
 ## Dependencies
 
 The following depdendemcies have to be installed:
 
-* Download and install [msys2](http://www.msys2.org/) at *C:\msys64*.
+* Download and install [MSYS2](http://www.msys2.org/) at *C:\msys64*.
 * Depending on the architecture, you should open either *mingw32.exe* or *mingw64.exe* (located at *C:\msys64*)
 * msys2 offers a package manager called *pacman*. Use it to install all the packages from below (*mingw-w64-i686-qt* prefix corresponds to 32-bit system and *mingw-w64-x86_64* to 64-bit system respectively):
 
