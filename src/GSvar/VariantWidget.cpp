@@ -49,6 +49,11 @@ void VariantWidget::updateGUI()
 	ui_.af_tg->setText(query1.value("1000g").toString());
 	ui_.af_gnomad->setText("<a style=\"color: #000000;\" href=\"" + variant_id + "\">" + query1.value("gnomad").toString() + "</a>");
 
+	QVariant cadd = query1.value("cadd");
+	ui_.cadd->setText(cadd.isNull() ? "" : cadd.toString());
+	QVariant spliceai = query1.value("spliceai");
+	ui_.spliceai->setText(spliceai.isNull() ? "" : spliceai.toString());
+
 	QPair<int, int> counts = db.variantCounts(variant_id);
 	ui_.ngsd_het->setText(QString::number(counts.first));
 	ui_.ngsd_hom->setText(QString::number(counts.second));

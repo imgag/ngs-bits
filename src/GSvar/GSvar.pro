@@ -7,6 +7,7 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
+    CfDNAPanelBatchImport.cpp \
     GlobalServiceProvider.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
@@ -94,10 +95,13 @@ SOURCES += main.cpp\
     ExpressionDataWidget.cpp \
     GapClosingDialog.cpp \
     DatabaseServiceLocal.cpp \
-    NGSDReplicationWidget.cpp \
+   NGSDReplicationWidget.cpp \
+    CohortAnalysisWidget.cpp \
+    cfDNARemovedRegions.cpp \
+    CfdnaAnalysisDialog.cpp \
     ClinvarUploadDialog.cpp
-
 HEADERS += MainWindow.h \
+    CfDNAPanelBatchImport.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
     ReportDialog.h \
@@ -186,8 +190,11 @@ HEADERS += MainWindow.h \
     DatabaseService.h \
     DatabaseServiceLocal.h \
     NGSDReplicationWidget.h \
-    ClinvarUploadDialog.h
-FORMS    += MainWindow.ui \
+    CohortAnalysisWidget.h \
+    cfDNARemovedRegions.h \
+    CfdnaAnalysisDialog.h \
+    ClinvarUploadDialog.hFORMS    += MainWindow.ui \
+    CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \
@@ -264,8 +271,10 @@ FORMS    += MainWindow.ui \
     ExpressionDataWidget.ui \
     GapClosingDialog.ui \
     NGSDReplicationWidget.ui \
-    ClinvarUploadDialog.ui
-    include("../app_gui.pri")
+    CohortAnalysisWidget.ui \
+    cfDNARemovedRegions.ui \
+    CfdnaAnalysisDialog.ui \
+    ClinvarUploadDialog.ui    include("../app_gui.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD

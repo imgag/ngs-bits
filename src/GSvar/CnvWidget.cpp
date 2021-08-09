@@ -595,7 +595,7 @@ void CnvWidget::showContextMenu(QPoint p)
 	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 	if (action==a_dgv)
 	{
-		QDesktopServices::openUrl(QUrl("https://dgv.tcag.ca/gb2/gbrowse/dgv2_"+buildToString(GSvarHelper::build())+"/?name=" + cnvs_[row].toString()));
+		QDesktopServices::openUrl(QUrl("http://dgv.tcag.ca/gb2/gbrowse/dgv2_"+buildToString(GSvarHelper::build())+"/?name=" + cnvs_[row].toString()));
 	}
 	else if (action==a_ucsc)
 	{

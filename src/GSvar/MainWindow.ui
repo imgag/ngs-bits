@@ -497,6 +497,7 @@
      <addaction name="actionImportSamples"/>
      <addaction name="actionImportProcessedSamples"/>
      <addaction name="actionImportSampleRelations"/>
+     <addaction name="actionImportCfDNAPanels"/>
      <addaction name="separator"/>
      <addaction name="actionImportMids"/>
      <addaction name="actionImportStudy"/>
@@ -509,8 +510,15 @@
      <addaction name="actionSearchCNVs"/>
      <addaction name="actionSearchSVs"/>
      <addaction name="separator"/>
+     <addaction name="actionCohortAnalysis"/>
+     <addaction name="separator"/>
      <addaction name="actionShowPublishedVariants"/>
      <addaction name="actionBatchExportClinVar"/>
+    </widget>
+    <widget class="QMenu" name="menuMID_clash_detection">
+     <property name="title">
+      <string>MID clash detection</string>
+     </property>
     </widget>
     <addaction name="menuVariant_search"/>
     <addaction name="menuGenes_2"/>
@@ -519,7 +527,7 @@
     <addaction name="separator"/>
     <addaction name="menuAdmin"/>
     <addaction name="menuBatch_import"/>
-    <addaction name="actionMidClashDetection"/>
+    <addaction name="menuMID_clash_detection"/>
     <addaction name="actionVariantValidation"/>
     <addaction name="actionGaps"/>
     <addaction name="separator"/>
@@ -1052,15 +1060,6 @@
     <string>Processed samples</string>
    </property>
   </action>
-  <action name="actionMidClashDetection">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/mid_clash.png</normaloff>:/Icons/mid_clash.png</iconset>
-   </property>
-   <property name="text">
-    <string>MID clash detection</string>
-   </property>
-  </action>
   <action name="actionVariantValidation">
    <property name="text">
     <string>Variant validation</string>
@@ -1284,6 +1283,21 @@
     <string>Replicate NGSD (hg19 to hg38)</string>
    </property>
   </action>
+  <action name="actionCohortAnalysis">
+   <property name="text">
+    <string>Cohort analysis</string>
+   </property>
+  </action>
+  <action name="actionCfDNAAddExcludedRegions">
+   <property name="text">
+    <string>Add excluded regions</string>
+   </property>
+  </action>
+  <action name="actionImportCfDNAPanels">
+   <property name="text">
+    <string>cfDNA panels</string>
+   </property>
+  </action>
   <action name="actionPublishVariantInClinvar">
    <property name="text">
     <string>Publish Variant in ClinVar</string>
@@ -1292,8 +1306,7 @@
     <string>Publish Variant in ClinVar</string>
    </property>
   </action>
- </widget>
- <layoutdefault spacing="6" margin="11"/>
+ </widget> <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
    <class>VariantDetailsDockWidget</class>

@@ -154,6 +154,19 @@ class CPPNGSDSHARED_EXPORT TableInfo
 			return output;
 		}
 
+		bool fieldExists(const QString& field_name)
+		{
+			foreach(const TableFieldInfo& entry, field_infos_)
+			{
+				if (entry.name==field_name)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		int fieldCount() const
 		{
 			return field_infos_.count();
@@ -453,9 +466,9 @@ struct CfdnaPanelInfo
 	int id = -1;
 	int tumor_id = -1;
 	int cfdna_id = -1;
-	QByteArray created_by;
+	int created_by = -1;
 	QDate created_date;
-	QByteArray processing_system;
+	int processing_system_id = -1;
 };
 
 /// cfDNA Gene entry
@@ -508,9 +521,12 @@ public:
 	///If more than one value is returned a DatabaseError is thrown.
 	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
 	QVariant getValue(const QString& query, bool no_value_is_ok=true, QString bind_value = QString()) const;
-	///Executes an SQL query and returns the value list.
-	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced). Use this if
+	///Executes an SQL query and returns the text value list.
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
 	QStringList getValues(const QString& query, QString bind_value = QString()) const;
+	///Executes an SQL query and returns the integer value list.
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
+	QList<int> getValuesInt(const QString& query, QString bind_value = QString()) const;
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{
@@ -530,9 +546,9 @@ public:
 
 
 	/*** transactions ***/
-	bool transaction() { return db_->transaction(); }
-	bool commit() { return db_->commit(); }
-	bool rollback() { return db_->rollback(); }
+	bool transaction();
+	bool commit();
+	bool rollback();
 
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
@@ -614,8 +630,8 @@ public:
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
 	///Returns the variant corresponding to the given identifier or throws an exception if the ID does not exist.
 	Variant variant(const QString& variant_id);
-	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per samples is counted).
-	QPair<int, int> variantCounts(const QString& variant_id);
+	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per sample is counted).
+	QPair<int, int> variantCounts(const QString& variant_id, bool use_cached_data_from_variant_table=false);
 	///Deletes the variants of a processed sample (all types)
 	void deleteVariants(const QString& ps_id);
 	///Deletes the variants of a processed sample (a specific type)
@@ -707,15 +723,21 @@ public:
 	GeneSet subpanelGenes(QString name);
 
 	///Returns all coresponding cfDNA panel info for a given processed sample
-	QList<CfdnaPanelInfo> cfdnaPanelInfo(const QString& processed_sample_id, const QString& processing_system_id = "");
+	QList<CfdnaPanelInfo> cfdnaPanelInfo(const QString& processed_sample_id, int processing_system_id = -1);
 	///stores a cfDNA panel in the NGSD
 	void storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content);
 	///Returns the BED file of a given cfDNA panel
 	BedFile cfdnaPanelRegions(int id);
 	///Returns the VCF of a given cfDNA panel
 	VcfFile cfdnaPanelVcf(int id);
+	///Returns the BED file of the removed regions of a given cfDNA panel
+	BedFile cfdnaPanelRemovedRegions(int id);
+	///Updates the regions which where removed by the panel provider
+	void setCfdnaRemovedRegions(int id, const BedFile& removed_regions);
 	///Returns all available cfDNA gene entries
 	QList<CfdnaGeneEntry> cfdnaGenes();
+	///Returns the ID SNPs of a processing system as VCF
+	VcfFile getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail = true);
 
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
@@ -723,7 +745,6 @@ public:
 	QVector<double> getQCValues(const QString& accession, const QString& processed_sample_id);
 	///Returns the next processing ID for the given sample.
 	QString nextProcessingId(const QString& sample_id);
-
 
 	///Returns classification information
 	ClassificationInfo getClassification(const Variant& variant);

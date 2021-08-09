@@ -29,7 +29,6 @@ private slots:
 	void showHotspotContextMenu(QPoint pos);
 	void showGeneContextMenu(QPoint pos);
 	void showHotspotRegions(int state);
-	void createOutputFiles();
 	void selectAllVariants(bool deselect=false);
 	void selectAllHotspotRegions(bool deselect=false);
 	void selectAllGenes(bool deselect=false);
@@ -37,12 +36,17 @@ private slots:
 	void updateSelectedHotspotCount();
 	void openVariantInIGV(QTableWidgetItem* item);
 	void updateSystemSelection();
+	void writePanelToFile();
+	void storePanelInNGSD();
 
 private:
 	void loadPreviousPanels();
 	void loadVariants();
 	void loadGenes();
 	void loadHotspotRegions();
+	VcfFile createVcfFile();
+	BedFile createBedFile(const VcfFile& vcf_file);
+	int selectedVariantCount();
 
 	Ui::CfDNAPanelDesignDialog *ui_;
 	const VariantList& variants_;
@@ -50,7 +54,7 @@ private:
 	const SomaticReportConfiguration& somatic_report_configuration_;
 	QMap<QString, bool> prev_vars_;
 	QSet<QString> prev_genes_;
-	bool prev_kasp_;
+	bool prev_id_snp_;
 	QMap<QString, bool> prev_hotspots_;
 	QString processed_sample_name_;
     QString processed_sample_id_;

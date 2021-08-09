@@ -876,18 +876,20 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 
 	//prepare queried
 	SqlQuery q_id = getQuery();
-	q_id.prepare("SELECT id, 1000g, gnomad, coding FROM variant WHERE chr=:0 AND start=:1 AND end=:2 AND ref=:3 AND obs=:4");
+	q_id.prepare("SELECT id, 1000g, gnomad, coding, cadd, spliceai FROM variant WHERE chr=:0 AND start=:1 AND end=:2 AND ref=:3 AND obs=:4");
 
 	SqlQuery q_update = getQuery(); //use binding (user input)
-	q_update.prepare("UPDATE variant SET 1000g=:0, gnomad=:1, coding=:2 WHERE id=:3");
+	q_update.prepare("UPDATE variant SET 1000g=:0, gnomad=:1, coding=:2, cadd=:3, spliceai=:4 WHERE id=:5");
 
 	SqlQuery q_insert = getQuery(); //use binding (user input)
-	q_insert.prepare("INSERT IGNORE INTO variant (chr, start, end, ref, obs, 1000g, gnomad, coding) VALUES (:0,:1,:2,:3,:4,:5,:6,:7)");
+	q_insert.prepare("INSERT IGNORE INTO variant (chr, start, end, ref, obs, 1000g, gnomad, coding, cadd, spliceai) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8,:9)");
 
 	//get annotated column indices
 	int i_tg = variant_list.annotationIndexByName("1000g");
 	int i_gnomad = variant_list.annotationIndexByName("gnomAD");
 	int i_co_sp = variant_list.annotationIndexByName("coding_and_splicing");
+	int i_cadd = variant_list.annotationIndexByName("CADD");
+	int i_spliceai = variant_list.annotationIndexByName("SpliceAI");
 
 	c_add = 0;
 	c_update = 0;
@@ -911,6 +913,9 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			continue;
 		}
 
+		QByteArray cadd = variant.annotations()[i_cadd].trimmed();
+		QByteArray spliceai = variant.annotations()[i_spliceai].trimmed();
+
 		//get variant ID
 		q_id.bindValue(0, variant.chr().strNormalized(true));
 		q_id.bindValue(1, variant.start());
@@ -925,12 +930,17 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			//check if variant meta data needs to be updated
 			if (q_id.value(1).toByteArray().toDouble()!=tg.toDouble() //numeric comparison (NULL > "" > 0.0)
 				|| q_id.value(2).toByteArray().toDouble()!=gnomad.toDouble() //numeric comparison (NULL > "" > 0.0)
-				|| q_id.value(3).toByteArray()!=variant.annotations()[i_co_sp])
+				|| q_id.value(3).toByteArray()!=variant.annotations()[i_co_sp]
+				|| q_id.value(4).toByteArray().toDouble()!=cadd.toDouble() //numeric comparison (NULL > "" > 0.0)
+				|| q_id.value(5).toByteArray().toDouble()!=spliceai.toDouble() //numeric comparison (NULL > "" > 0.0)
+				)
 			{
 				q_update.bindValue(0, tg.isEmpty() ? QVariant() : tg);
 				q_update.bindValue(1, gnomad.isEmpty() ? QVariant() : gnomad);
 				q_update.bindValue(2, variant.annotations()[i_co_sp]);
-				q_update.bindValue(3, id);
+				q_update.bindValue(3, cadd.isEmpty() ? QVariant() : cadd);
+				q_update.bindValue(4, spliceai.isEmpty() ? QVariant() : spliceai);
+				q_update.bindValue(5, id);
 				q_update.exec();
 				++c_update;
 			}
@@ -947,6 +957,8 @@ QList<int> NGSD::addVariants(const VariantList& variant_list, double max_af, int
 			q_insert.bindValue(5, tg.isEmpty() ? QVariant() : tg);
 			q_insert.bindValue(6, gnomad.isEmpty() ? QVariant() : gnomad);
 			q_insert.bindValue(7, variant.annotations()[i_co_sp]);
+			q_insert.bindValue(8, cadd.isEmpty() ? QVariant() : cadd);
+			q_insert.bindValue(9, spliceai.isEmpty() ? QVariant() : spliceai);
 			q_insert.exec();
 			++c_add;
 			QVariant last_insert_id = q_insert.lastInsertId();
@@ -998,7 +1010,7 @@ Variant NGSD::variant(const QString& variant_id)
 	return Variant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt(), query.value("ref").toByteArray(), query.value("obs").toByteArray());
 }
 
-QPair<int, int> NGSD::variantCounts(const QString& variant_id)
+QPair<int, int> NGSD::variantCounts(const QString& variant_id, bool use_cached_data_from_variant_table)
 {
 	//get same sample information (cached)
 	QHash<int, QList<int>>& same_samples = getCache().same_samples;
@@ -1019,36 +1031,48 @@ QPair<int, int> NGSD::variantCounts(const QString& variant_id)
 	int count_het = 0;
 	int count_hom = 0;
 
-	QSet<int> samples_done_het;
-	QSet<int> samples_done_hom;
-	SqlQuery query = getQuery();
-	query.exec("SELECT ps.sample_id, dv.genotype FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='" + variant_id + "' AND dv.processed_sample_id=ps.id");
-	while(query.next())
+	if (use_cached_data_from_variant_table)
 	{
-		//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
-		int sample_id = query.value(0).toInt();
-		QString genotype = query.value(1).toString();
+		SqlQuery query = getQuery();
+		query.exec("SELECT germline_het, germline_hom FROM variant WHERE id=" + variant_id);
+		query.next();
 
-		if (genotype=="het" && !samples_done_het.contains(sample_id))
+		count_het = query.value(0).toInt();
+		count_hom = query.value(1).toInt();
+	}
+	else
+	{
+		QSet<int> samples_done_het;
+		QSet<int> samples_done_hom;
+		SqlQuery query = getQuery();
+		query.exec("SELECT ps.sample_id, dv.genotype FROM detected_variant dv, processed_sample ps WHERE dv.variant_id='" + variant_id + "' AND dv.processed_sample_id=ps.id");
+		while(query.next())
 		{
-			++count_het;
-			samples_done_het << sample_id;
+			//use sample ID to prevent counting variants several times if a sample was sequenced more than once.
+			int sample_id = query.value(0).toInt();
+			QString genotype = query.value(1).toString();
 
-			QList<int> tmp = same_samples.value(sample_id, QList<int>());
-			foreach(int same_sample_id, tmp)
+			if (genotype=="het" && !samples_done_het.contains(sample_id))
 			{
-				samples_done_het << same_sample_id;
+				++count_het;
+				samples_done_het << sample_id;
+
+				QList<int> tmp = same_samples.value(sample_id, QList<int>());
+				foreach(int same_sample_id, tmp)
+				{
+					samples_done_het << same_sample_id;
+				}
 			}
-		}
-		if (genotype=="hom" && !samples_done_hom.contains(sample_id))
-		{
-			++count_hom;
-			samples_done_hom << sample_id;
-
-			QList<int> tmp = same_samples.value(sample_id, QList<int>());
-			foreach(int same_sample_id, tmp)
+			if (genotype=="hom" && !samples_done_hom.contains(sample_id))
 			{
-				samples_done_hom << same_sample_id;
+				++count_hom;
+				samples_done_hom << sample_id;
+
+				QList<int> tmp = same_samples.value(sample_id, QList<int>());
+				foreach(int same_sample_id, tmp)
+				{
+					samples_done_hom << same_sample_id;
+				}
 			}
 		}
 	}
@@ -1766,6 +1790,29 @@ QStringList NGSD::getValues(const QString& query, QString bind_value) const
 	return output;
 }
 
+QList<int> NGSD::getValuesInt(const QString& query, QString bind_value) const
+{
+	SqlQuery q = getQuery();
+	if (bind_value.isNull())
+	{
+		q.exec(query);
+	}
+	else
+	{
+		q.prepare(query);
+		q.bindValue(0, bind_value);
+		q.exec();
+	}
+
+	QList<int> output;
+	output.reserve(q.size());
+	while(q.next())
+	{
+		output << q.value(0).toInt();
+	}
+	return output;
+}
+
 void NGSD::executeQueriesFromFile(QString filename)
 {
 	QStringList lines = Helper::loadTextFile(filename, true);
@@ -2321,12 +2368,12 @@ GeneSet NGSD::subpanelGenes(QString name)
 	return GeneSet::createFromText(genes);
 }
 
-QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, const QString& processing_system_id)
+QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, int processing_system_id)
 {
 	// get all cfDNA Panel for the given tumor id
 	QList<CfdnaPanelInfo> cfdna_panels;
 	SqlQuery query = getQuery();
-	if(processing_system_id.isEmpty())
+	if(processing_system_id == -1)
 	{
 		query.prepare("SELECT id, tumor_id, cfdna_id, created_by, created_date, `processing_system_id` FROM cfdna_panels WHERE tumor_id=:0");
 		query.bindValue(0, processed_sample_id);
@@ -2356,14 +2403,11 @@ QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, c
             panel.cfdna_id = query.value(2).toInt(&ok);
             if (!ok) THROW(DatabaseException, "Error parsing cfdna_id in cfdna_panels!");
         }
-		int user_id = query.value(3).toInt(&ok);
-		 if (!ok) THROW(DatabaseException, "Error parsing created_by in cfdna_panels!");
-		panel.created_by = userLogin(user_id).toUtf8();
-
+		panel.created_by = query.value(3).toInt(&ok);
+		if (!ok) THROW(DatabaseException, "Error parsing created_by in cfdna_panels!");
 		panel.created_date = query.value(4).toDate();
-		int p_sys_id = query.value(5).toInt(&ok);
+		panel.processing_system_id = query.value(5).toInt(&ok);
 		if (!ok) THROW(DatabaseException, "Error parsing processing_system in cfdna_panels!");
-		panel.processing_system = getValue("SELECT name_short FROM processing_system WHERE id=:0", false, QString::number(p_sys_id)).toString().toUtf8();
 
 		cfdna_panels.append(panel);
 	}
@@ -2373,17 +2417,10 @@ QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, c
 
 void NGSD::storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content)
 {
-	//debug
-	QSharedPointer<QFile> out_p = Helper::openFileForWriting("test.vcf", true);
-	out_p->write(vcf_content);
-	out_p->flush();
-	out_p->close();
-
-
 	// get user id
-	int user_id = userId(panel_info.created_by);
+	int user_id = panel_info.created_by;
 	// get processing system
-	int sys_id = processingSystemId(panel_info.processing_system);
+	int sys_id = panel_info.processing_system_id;
 
 	SqlQuery query = getQuery();
 	if (panel_info.id == -1)
@@ -2420,6 +2457,20 @@ VcfFile NGSD::cfdnaPanelVcf(int id)
 	return vcf;
 }
 
+BedFile NGSD::cfdnaPanelRemovedRegions(int id)
+{
+	return BedFile::fromText(getValue("SELECT `excluded_regions` FROM `cfdna_panels` WHERE id=:0", false, QString::number(id)).toString().toUtf8());
+}
+
+void NGSD::setCfdnaRemovedRegions(int id, const BedFile& removed_regions)
+{
+	SqlQuery query = getQuery();
+	query.prepare("UPDATE `cfdna_panels` SET `excluded_regions`=:0 WHERE `id`=" + QString::number(id));
+	QString bed_content = "##modified at " + QDate::currentDate().toString("dd.MM.yyyy").toUtf8() + " by " + LoginManager::userName().toUtf8() + "\n" + removed_regions.toText();
+	query.bindValue(0, bed_content);
+	query.exec();
+}
+
 QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 {
 	QList<CfdnaGeneEntry> genes;
@@ -2440,6 +2491,73 @@ QList<CfdnaGeneEntry> NGSD::cfdnaGenes()
 	}
 
 	return genes;
+}
+
+VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail)
+{
+	VcfFile vcf;
+	vcf.sampleIDs().append("TUMOR");
+	vcf.sampleIDs().append("NORMAL");
+
+	ProcessingSystemData sys = NGSD().getProcessingSystemData(sys_id);
+
+	// add INFO line to determine source
+	InfoFormatLine id_source;
+	id_source.id = "ID_Source";
+	id_source.number = ".";
+	id_source.type = "String";
+	id_source.description = "Source of the ID SNPs (e.g. processing system short name or KASP).";
+	vcf.vcfHeader().addInfoLine(id_source);
+
+	//prepare info for VCF line
+	QByteArrayList info;
+	InfoIDToIdxPtr info_ptr = InfoIDToIdxPtr(new OrderedHash<QByteArray, int>);
+	QByteArray key = "ID_Source";
+	QByteArray value = sys.name_short.toUtf8();
+	info.push_back(value);
+	info_ptr->push_back(key, static_cast<unsigned char>(0));
+
+	BedFile target_region = NGSD().processingSystemRegions(sys_id);
+
+	QByteArrayList format_ids = QByteArrayList() << "GT";
+	QByteArrayList sample_ids = QByteArrayList() << "TUMOR" << "NORMAL";
+	QList<QByteArrayList> list_of_format_values;
+	list_of_format_values.append(QByteArrayList() << "./.");
+	list_of_format_values.append(QByteArrayList() << "./.");
+
+	for (int i=0; i<target_region.count(); i++)
+	{
+		const BedLine& line = target_region[i];
+		if (line.annotations().size() > 0)
+		{
+			//create variant
+			QByteArrayList variant_info = line.annotations().at(0).split('>');
+			if (variant_info.size() != 2)
+			{
+				if (throw_on_fail)
+				{
+					THROW(FileParseException, "Invalid variant information '" + line.annotations().at(0) + "' for region " + line.toString(true) + "!" );
+				}
+				return VcfFile();
+			}
+			VcfLinePtr vcf_ptr = QSharedPointer<VcfLine>(new VcfLine(line.chr(), line.start(), Sequence(variant_info.at(0)), QVector<Sequence>() << Sequence(variant_info.at(1)), format_ids,
+																	 sample_ids, list_of_format_values));
+			vcf_ptr->setInfo(info);
+			vcf_ptr->setInfoIdToIdxPtr(info_ptr);
+			vcf_ptr->setId(QByteArrayList() << "ID");
+			vcf.vcfLines() << vcf_ptr;
+		}
+		else
+		{
+			if (throw_on_fail)
+			{
+				THROW(FileParseException, "Target region does not contain variant information for region " + line.toString(true) + "!" );
+			}
+			return VcfFile();
+		}
+	}
+
+	return vcf;
 }
 
 QCCollection NGSD::getQCData(const QString& processed_sample_id)
@@ -3561,6 +3679,32 @@ void NGSD::clearTable(QString table)
 {
 	SqlQuery query = getQuery();
 	query.exec("DELETE FROM " + table);
+}
+
+bool NGSD::transaction()
+{
+	if(!db_->driver()->hasFeature(QSqlDriver::Transactions))
+	{
+		Log::warn("MySQL transactions are not supported by the current driver! (" + db_->driverName() + ")");
+	}
+
+	if (db_->transaction()) return true;
+	Log::warn("db_->transaction() failed!");
+	return false;
+}
+
+bool NGSD::commit()
+{
+	if (db_->commit()) return true;
+	Log::warn("db_->commit() failed!");
+	return false;
+}
+
+bool NGSD::rollback()
+{
+	if (db_->rollback()) return true;
+	Log::warn("db_->rollback() failed!");
+	return false;
 }
 
 int NGSD::geneToApprovedID(const QByteArray& gene)

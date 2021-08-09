@@ -52,7 +52,7 @@ void DBEditor::createGUI()
 		const TableFieldInfo& field_info = table_info.fieldInfo(field);
 		if (field_info.is_primary_key && field!="id")
 		{
-			THROW(ProgrammingException, "Table contains primary key other than 'id'. Primary key field namy is '" + field + "'!");
+			THROW(ProgrammingException, "Table contains primary key other than 'id'. Primary key field name is '" + field + "'!");
 		}
 
 		//skip non-editable fields

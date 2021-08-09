@@ -40,6 +40,7 @@ public:
 		changeLog(2017,  3, 14, "Initial implementation.");
 	}
 
+	//TODO multi-threaded implementation.
 	virtual void main()
 	{
 		//init

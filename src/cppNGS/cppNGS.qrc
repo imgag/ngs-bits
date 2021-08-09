@@ -12,5 +12,6 @@
         <file>Resources/clinvar_submission_1.6.xsd</file>
         <file>Resources/qcML.obo</file>
         <file>Resources/hg38_cyto_band.bed</file>
+        <file>Resources/hg38_ensembl_transcript_matches.tsv</file>
     </qresource>
 </RCC>

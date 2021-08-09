@@ -767,12 +767,24 @@ private slots:
 		IS_TRUE(db.variant(var_id)==vl[0]);
 
 		//variantCounts
-		QPair<int, int> ngsd_counts = db.variantCounts(db.variantId(Variant("chr10",43613843,43613843,"G","T")));
+		QString variant_id = db.variantId(Variant("chr10",43613843,43613843,"G","T")); //hom
+		QPair<int, int> ngsd_counts = db.variantCounts(variant_id);
 		I_EQUAL(ngsd_counts.first, 0);
 		I_EQUAL(ngsd_counts.second, 1);
-		ngsd_counts = db.variantCounts(db.variantId(Variant("chr17",7579472,7579472,"G","C")));
+
+		variant_id = db.variantId(Variant("chr17",7579472,7579472,"G","C")); //het
+		ngsd_counts = db.variantCounts(variant_id);
 		I_EQUAL(ngsd_counts.first, 1);
 		I_EQUAL(ngsd_counts.second, 0);
+
+		ngsd_counts = db.variantCounts(variant_id, true);
+		I_EQUAL(ngsd_counts.first, 0);
+		I_EQUAL(ngsd_counts.second, 0);
+
+		db.getQuery().exec("UPDATE variant SET germline_het=17, germline_hom=7 WHERE id=" + variant_id);
+		ngsd_counts = db.variantCounts(variant_id, true);
+		I_EQUAL(ngsd_counts.first, 17);
+		I_EQUAL(ngsd_counts.second, 7);
 
 		//getSampleDiseaseInfo
 		sample_id = db.sampleId("NA12878");
@@ -1238,9 +1250,9 @@ private slots:
 		//cfDNA panels
 		CfdnaPanelInfo panel_info;
 		panel_info.tumor_id = db.processedSampleId("DX184894_01").toInt();
-		panel_info.created_by = "ahmustm1";
+		panel_info.created_by = db.userId("ahmustm1");
 		panel_info.created_date = QDate(2021, 01, 01);
-		panel_info.processing_system = "IDT_xGenPrism";
+		panel_info.processing_system_id = db.processingSystemId("IDT_xGenPrism");
 
 		BedFile bed;
 		bed.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.bed"));
@@ -1249,18 +1261,30 @@ private slots:
 
 		db.storeCfdnaPanel(panel_info, bed.toText().toUtf8(), vcf.toText());
 
-		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("IDT_xGenPrism"))).size(), 1);
+		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("IDT_xGenPrism")).size(), 1);
 		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id)).size(), 1);
-		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("hpHBOCv5"))).size(), 0);
+		I_EQUAL(db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("hpHBOCv5")).size(), 0);
 
-		CfdnaPanelInfo loaded_panel_info = db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), QString::number(db.processingSystemId("IDT_xGenPrism"))).at(0);
+		CfdnaPanelInfo loaded_panel_info = db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("IDT_xGenPrism")).at(0);
 		I_EQUAL(loaded_panel_info.tumor_id, panel_info.tumor_id);
 		S_EQUAL(loaded_panel_info.created_by, panel_info.created_by);
 		IS_TRUE(loaded_panel_info.created_date == panel_info.created_date);
-		S_EQUAL(loaded_panel_info.processing_system, panel_info.processing_system);
+		S_EQUAL(loaded_panel_info.processing_system_id, panel_info.processing_system_id);
 
 		S_EQUAL(db.cfdnaPanelRegions(loaded_panel_info.id).toText(), bed.toText());
 		S_EQUAL(db.cfdnaPanelVcf(loaded_panel_info.id).toText(), vcf.toText());
+
+		// test removed regions
+		BedFile removed_regions;
+		bed.load(TESTDATA("../cppNGSD-TEST/data_in/cfdna_panel.bed"));
+		panel_info = db.cfdnaPanelInfo(QString::number(panel_info.tumor_id), db.processingSystemId("IDT_xGenPrism")).at(0);
+		db.setCfdnaRemovedRegions(panel_info.id, removed_regions);
+		BedFile removed_regions_db = db.cfdnaPanelRemovedRegions(panel_info.id);
+		//compare
+		removed_regions.clearAnnotations();
+		removed_regions.clearHeaders();
+		removed_regions_db.clearHeaders();
+		S_EQUAL(removed_regions.toText(), removed_regions_db.toText());
 
 	}
 
@@ -2000,11 +2024,11 @@ private slots:
 		//Specifiy filter for report generation
 		FilterCascade filters;
 		filters.add(QSharedPointer<FilterBase>(new FilterFilterColumnEmpty()));
-		QSharedPointer<FilterBase> keep_driver_filter(new FilterColumnMatchRegexp());
-		keep_driver_filter->setString("action", "KEEP");
-		keep_driver_filter->setString("column", "CGI_driver_statement");
-		keep_driver_filter->setString("pattern", "known");
-		filters.add( ( keep_driver_filter ) );
+
+		QSharedPointer<FilterBase> keep_filter(new FilterClassificationNGSD());
+		keep_filter->setString("action", "KEEP");
+		keep_filter->setStringList("classes", {"4","5"});
+		filters.add( ( keep_filter ) );
 
 		//Fill report config
 		TumorOnlyReportWorkerConfig config;
@@ -2033,7 +2057,6 @@ private slots:
 
 		COMPARE_FILES("out/tumor_only_report.rtf", TESTDATA("data_out/tumor_only_report.rtf"));
 	}
-
 
 
 	//Test for debugging (without initialization because of speed)

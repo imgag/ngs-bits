@@ -1,5 +1,5 @@
 ### NGSDExportAnnotationData tool help
-	NGSDExportAnnotationData (2019_11-21-ga4bba306)
+	NGSDExportAnnotationData (2021_06-48-gfc326851)
 	
 	Generates a VCF file with all variants and annotations from the NGSD and a BED file containing the gene information of the NGSD.
 	
@@ -13,12 +13,10 @@
 	                     Default value: ''
 	  -test              Uses the test database instead of on the production database.
 	                     Default value: 'false'
-	  -maxAF <float>     Determines the maximum allel frequency for the variants (default: 0.05).
+	  -max_af <float>    Maximum allel frequency of exported variants (default: 0.05).
 	                     Default value: '0.05'
 	  -gene_offset <int> Defines the number of bases by which the region of each gene is extended.
 	                     Default value: '5000'
-	  -chr <string>      Limit export to the given chromosome.
-	                     Default value: ''
 	  -mode <enum>       Determines the database which is exported.
 	                     Default value: 'germline'
 	                     Valid: 'germline,somatic'
@@ -30,8 +28,10 @@
 	  --tdx              Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDExportAnnotationData changelog
-	NGSDExportAnnotationData 2019_11-21-ga4bba306
+	NGSDExportAnnotationData 2021_06-48-gfc326851
 	
+	2021-07-19 Code and parameter refactoring.
+	2021-07-19 Added support for 'germline_het' and 'germline_hom' columns in 'variant' table.
 	2019-12-06 Comments are now URL encoded.
 	2019-09-25 Added somatic mode.
 	2019-07-29 Added BED file for genes.

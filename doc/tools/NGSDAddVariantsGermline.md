@@ -1,5 +1,5 @@
 ### NGSDAddVariantsGermline tool help
-	NGSDAddVariantsGermline (2020_03-184-g27235379)
+	NGSDAddVariantsGermline (2021_06-48-gfc326851)
 	
 	Imports variants of a processed sample into the NGSD.
 	
@@ -37,6 +37,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### NGSDAddVariantsGermline changelog
-	NGSDAddVariantsGermline 2020_03-184-g27235379
+	NGSDAddVariantsGermline 2021_06-48-gfc326851
 	
+	2021-07-19 Added support for 'CADD' and 'SpliceAI' columns in 'variant' table.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

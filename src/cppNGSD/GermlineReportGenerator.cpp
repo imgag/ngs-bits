@@ -763,8 +763,12 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	if(data_.cnvs.caller()==CnvCallerType::CLINCNV && !cnv_callset_id.isEmpty())
 	{
 		QHash<QString, QString> qc_metrics = db_.cnvCallsetMetrics(cnv_callset_id.toInt());
-		w.writeAttribute("number_of_iterations", qc_metrics["number of iterations"]);
-		w.writeAttribute("number_of_hq_cnvs", qc_metrics["high-quality cnvs"]);
+
+		QString iterations = qc_metrics["number of iterations"].trimmed();
+		if(!iterations.isEmpty()) w.writeAttribute("number_of_iterations", iterations);
+
+		QString high_quality_cnvs = qc_metrics["high-quality cnvs"].trimmed();
+		if(!high_quality_cnvs.isEmpty()) w.writeAttribute("number_of_hq_cnvs", high_quality_cnvs);
 	}
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
@@ -817,7 +821,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 		//element ExternalLink
 		w.writeStartElement("ExternalLink");
-		w.writeAttribute("url", "https://dgv.tcag.ca/gb2/gbrowse/dgv2_"+buildToString(data_.build)+"/?name=" + cnv.toString());
+		w.writeAttribute("url", "http://dgv.tcag.ca/gb2/gbrowse/dgv2_"+buildToString(data_.build)+"/?name=" + cnv.toString());
 		w.writeAttribute("type", "DGV");
 		w.writeEndElement();
 		w.writeStartElement("ExternalLink");
