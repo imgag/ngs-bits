@@ -95,11 +95,12 @@ SOURCES += main.cpp\
     ExpressionDataWidget.cpp \
     GapClosingDialog.cpp \
     DatabaseServiceLocal.cpp \
-   NGSDReplicationWidget.cpp \
+    NGSDReplicationWidget.cpp \
     CohortAnalysisWidget.cpp \
     cfDNARemovedRegions.cpp \
     CfdnaAnalysisDialog.cpp \
     ClinvarUploadDialog.cpp
+
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     ExternalToolDialog.h \
@@ -193,7 +194,9 @@ HEADERS += MainWindow.h \
     CohortAnalysisWidget.h \
     cfDNARemovedRegions.h \
     CfdnaAnalysisDialog.h \
-    ClinvarUploadDialog.hFORMS    += MainWindow.ui \
+    ClinvarUploadDialog.h
+
+FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
@@ -274,7 +277,8 @@ HEADERS += MainWindow.h \
     CohortAnalysisWidget.ui \
     cfDNARemovedRegions.ui \
     CfdnaAnalysisDialog.ui \
-    ClinvarUploadDialog.ui    include("../app_gui.pri")
+    ClinvarUploadDialog.ui
+    include("../app_gui.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD
