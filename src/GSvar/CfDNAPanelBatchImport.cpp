@@ -8,6 +8,7 @@
 #include "Settings.h"
 #include "GSvarHelper.h"
 #include <QMessageBox>
+#include <QInputDialog>
 
 CfDNAPanelBatchImport::CfDNAPanelBatchImport(QWidget *parent) :
 	QDialog(parent),
@@ -207,10 +208,50 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 
 	// load processed sample GSvar file
 	QString ps_id = db_.processedSampleId(ps_name);
-	FileLocation sample_gsvar_file = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::GSVAR);
-	if (!sample_gsvar_file.exists) THROW(FileAccessException, "GSvar file '" +  sample_gsvar_file.filename + "' not found!");
+	QStringList analyses;
+
+	//single sample
+	FileLocation single_sample_gsvar_file = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::GSVAR);
+	if (single_sample_gsvar_file.exists) analyses << single_sample_gsvar_file.filename;
+
+	//tumor-normal pair
+	QString normal_sample = NGSD().normalSample(ps_id);
+	if (normal_sample!="")
+	{
+		analyses << GlobalServiceProvider::database().secondaryAnalyses(ps_name + "-" + normal_sample, "somatic");
+	}
+
+	QString gsvar_filename;
+	if (analyses.size() == 0)
+	{
+		THROW(FileAccessException, "No GSvar file found for processed sample '" +  ps_name + "'!");
+	}
+	else if (analyses.size() == 1)
+	{
+		gsvar_filename = analyses.at(0);
+	}
+	else //several analyses > let the user decide
+	{
+		//create list of anaylsis names
+		QStringList names;
+		foreach(QString gsvar, analyses)
+		{
+			VariantList vl;
+			vl.loadHeaderOnly(gsvar);
+			names << vl.analysisName();
+		}
+
+		//show selection dialog (analysis name instead of file name)
+		bool ok = false;
+		QString name = QInputDialog::getItem(this, "Several analyses of the sample present", "select analysis:", names, 0, false, &ok);
+		if (!ok) THROW(FileAccessException, "No GSvar file selected, cancel import!");
+
+		int index = names.indexOf(name);
+		gsvar_filename = analyses[index];
+	}
+
 	VariantList gsvar;
-	gsvar.load(sample_gsvar_file.filename);
+	gsvar.load(gsvar_filename);
 
 
 	// extract selected variants
