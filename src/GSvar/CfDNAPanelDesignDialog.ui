@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Select all varaints which should be used on the cfDNA panel and click &quot;OK&quot; to store the panel.</string>
+      <string>Select all variants which should be used on the cfDNA panel and click &quot;OK&quot; to store the panel.</string>
      </property>
     </widget>
    </item>

@@ -271,7 +271,7 @@ VcfFile CfDNAPanelBatchImport::createCfdnaPanelVcf(const QString& ps_name, const
 		}
 	}
 
-	// check if all varaints were found
+	// check if all variants were found
 	QStringList missing_variants;
 	foreach (const QString& pos, selected_variants.keys())
 	{

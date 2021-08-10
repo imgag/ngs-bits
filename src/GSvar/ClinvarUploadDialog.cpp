@@ -74,7 +74,7 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
     ui_.cb_assembly->setEnabled(false);
     ui_.cb_assembly->setCurrentText(buildToString(GSvarHelper::build(), true));
 
-    // set allele origin for de novo varaints
+	// set allele origin for de novo variants
     if(data.report_variant_config.de_novo)
     {
         ui_.cb_allele_origin->setCurrentText("de novo");

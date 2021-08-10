@@ -35,8 +35,8 @@ RepeatExpansionWidget::RepeatExpansionWidget(QString vcf_filename, bool is_exome
 	ui_(new Ui::RepeatExpansionWidget)
 {
 	ui_->setupUi(this);
+
     //Setup signals and slots
-	ui_->repeat_expansions->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui_->repeat_expansions,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
 	loadRepeatExpansionData();
 }
@@ -58,19 +58,24 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	FileLocation image_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionImage(locus);
 
     //create menu
-    QMenu menu(ui_->repeat_expansions);
+	QMenu menu(ui_->repeat_expansions);
 	QAction* a_show_svg = menu.addAction("Show image of repeat");
 	a_show_svg->setEnabled(image_loc.exists);
+	menu.addSeparator();
+	QAction* a_copy = menu.addAction("Copy all");
 
     //execute menu
     QAction* action = menu.exec(ui_->repeat_expansions->viewport()->mapToGlobal(pos));
-    if (action == nullptr) return;
-    if (action==a_show_svg)
+	if (action==a_show_svg)
     {
         //open SVG in browser
 		QString filename = QFileInfo(image_loc.filename).absoluteFilePath();
 		QDesktopServices::openUrl(QUrl(filename));
-    }
+	}
+	else if (action==a_copy)
+	{
+		GUIHelper::copyToClipboard(ui_->repeat_expansions);
+	}
 }
 
 void RepeatExpansionWidget::loadRepeatExpansionData()

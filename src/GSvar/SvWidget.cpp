@@ -668,7 +668,7 @@ void SvWidget::editGermlineReportConfiguration(int row)
 
 	if(!sv_bedpe_file_[row].chr1().isNonSpecial() || !sv_bedpe_file_[row].chr2().isNonSpecial())
 	{
-		QMessageBox::warning(this, "Error adding SV", "Structural varaints from special chromosomes cannot be imported into the NGSD!");
+		QMessageBox::warning(this, "Error adding SV", "Structural variants from special chromosomes cannot be imported into the NGSD!");
 		return;
 	}
 
