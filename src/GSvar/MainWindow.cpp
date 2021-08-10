@@ -228,7 +228,8 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (all small variants)", this, SLOT(showAfHistogram_all()));
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (small variants after filter)", this, SLOT(showAfHistogram_filtered()));
 	ui_.vars_af_hist->menu()->addSeparator();
-	ui_.vars_af_hist->menu()->addAction("Show CN histogram (CNVs in given region)", this, SLOT(showCnHistogram()));
+	ui_.vars_af_hist->menu()->addAction("Show CN histogram (in given region)", this, SLOT(showCnHistogram()));
+	ui_.vars_af_hist->menu()->addAction("Show BAF histogram (in given region)", this, SLOT(showBafHistogram()));
 
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentAnalysis()));
 
@@ -2094,7 +2095,7 @@ void MainWindow::showCnHistogram()
 			//skip invalid copy-numbers
 			QString cn_str = parts[5];
 			if (cn_str.toLower()=="nan") continue;
-			double cn = Helper::toDouble(parts[5], "Copy-number");
+			double cn = Helper::toDouble(cn_str, "Copy-number");
 			if (cn<0) continue;
 
 			cn_values << cn;
@@ -2113,6 +2114,71 @@ void MainWindow::showCnHistogram()
 		//show chart
 		QChartView* view = GUIHelper::histogramChart(hist, "Copy-number");
 		auto dlg = GUIHelper::createDialog(view, QString("Copy-number in region ") + region_text);
+		dlg->exec();
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, title, "Error:\n" + e.message());
+		return;
+	}
+}
+
+void MainWindow::showBafHistogram()
+{
+	if (filename_=="") return;
+
+	QString title = "BAF histogram";
+
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE)
+	{
+		QMessageBox::information(this, title, "This functionality is only available for germline single sample and germline trio analysis.");
+		return;
+	}
+
+	//check report sample SEG file exists
+	QStringList baf_files = GlobalServiceProvider::fileLocationProvider().getBafFiles(false).filterById(germlineReportSample()).asStringList();
+	if (baf_files.isEmpty())
+	{
+		QMessageBox::warning(this, title, "Could not find a BAF file for sample " + germlineReportSample() + ". Aborting!");
+		return;
+	}
+
+	try
+	{
+		//get region
+		Chromosome chr;
+		int start, end;
+		QString region_text = QInputDialog::getText(this, title, "genomic region");
+		if (region_text=="") return;
+
+		NGSHelper::parseRegion(region_text, chr, start, end);
+
+		//determine CN values
+		Histogram hist(0.0, 1.0, 0.025);
+		QSharedPointer<QFile> file = Helper::openFileForReading(baf_files[0]);
+		QTextStream stream(file.data());
+		while (!stream.atEnd())
+		{
+			QString line = stream.readLine();
+			QStringList parts = line.split("\t");
+			if (parts.count()<5) continue;
+
+			//check if range overlaps input interval
+			Chromosome chr2(parts[0]);
+			if (chr!=chr2) continue;
+
+			int start2 = Helper::toInt(parts[1], "Start coordinate");
+			int end2 = Helper::toInt(parts[2], "End coordinate");
+			if (!BasicStatistics::rangeOverlaps(start, end, start2, end2)) continue;
+
+			double baf =  Helper::toDouble(parts[4], "BAF");
+			hist.inc(baf, true);
+		}
+
+		//show chart
+		QChartView* view = GUIHelper::histogramChart(hist, "BAF");
+		auto dlg = GUIHelper::createDialog(view, QString("BAF in region ") + region_text);
 		dlg->exec();
 	}
 	catch(Exception& e)
