@@ -219,10 +219,24 @@ void DiseaseCourseWidget::createTableView()
 			if (cf_dna_column.lookup_table.contains(key))
 			{
 				const VcfLine* cf_dna_variant = cf_dna_column.lookup_table.value(key);
-				double alt_count = Helper::toDouble(cf_dna_variant->formatValueFromSample("Alt_Count"), "Alt_Count", QString::number(i));
+				double alt_count;
 				double depth = Helper::toDouble(cf_dna_variant->formatValueFromSample("DP"), "DP", QString::number(i));
-				double p_value = Helper::toDouble(cf_dna_variant->info("PValue"), "PValue", QString::number(i));
-				double cf_dna_af = (depth != 0)? alt_count/depth : 0.0;
+				double p_value;
+				double cf_dna_af;
+				if (cf_dna_variant->formatKeys().contains("AC"))
+				{
+					// new umiVar format
+					alt_count =
+					p_value = Helper::toDouble(cf_dna_variant->formatValueFromSample("Pval"), "Pval", QString::number(i));
+					cf_dna_af = Helper::toDouble(cf_dna_variant->formatValueFromSample("AF"), "AC", QString::number(i));
+				}
+				else
+				{
+					// old umiVar format
+					alt_count = Helper::toDouble(cf_dna_variant->formatValueFromSample("Alt_Count"), "Alt_Count", QString::number(i));
+					p_value = Helper::toDouble(cf_dna_variant->info("PValue"), "PValue", QString::number(i));
+					cf_dna_af = (depth != 0)? alt_count/depth : 0.0;
+				}
 
 				// generate table item with tool tip
 				QTableWidgetItem* cfdna_item = GUIHelper::createTableItem(QString::number(cf_dna_af, 'f', 5));
