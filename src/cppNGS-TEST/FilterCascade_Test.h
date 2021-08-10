@@ -1664,4 +1664,14 @@ private slots:
 		}
 	}
 
+	void load_bug_empty_enum()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterCascade filter;
+		filter.load(TESTDATA("data_in/FilterCascade_bug_empty_enum.txt"));
+		filter.apply(vl, true);
+	}
+
 };

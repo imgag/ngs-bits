@@ -323,7 +323,7 @@ void FilterBase::setGeneric(const QString& name, const QString& value)
 	}
 	else if (type==FilterParameterType::STRINGLIST)
 	{
-		setStringList(name, value.split(','));
+		setStringList(name, value.split(',', QString::SkipEmptyParts));
 	}
 	else
 	{
