@@ -69,6 +69,9 @@ private:
 
 	QString ps_id_;
 	QMap<QString, QString> cache_;
+	QSet<int> selected_small_;
+	QSet<int> selected_cnvs_;
+	QSet<int> selected_svs_;
 
 	static void writeHtmlHeader(QTextStream& stream, QString sample_name);
 	static void writeHtmlFooter(QTextStream& stream);
