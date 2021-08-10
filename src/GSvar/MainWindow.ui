@@ -513,7 +513,6 @@
      <addaction name="actionCohortAnalysis"/>
      <addaction name="separator"/>
      <addaction name="actionShowPublishedVariants"/>
-     <addaction name="actionPublishVariantInLOVD"/>
      <addaction name="actionBatchExportClinVar"/>
     </widget>
     <widget class="QMenu" name="menuMID_clash_detection">
@@ -805,15 +804,6 @@
   <action name="actionPreferredTranscripts">
    <property name="text">
     <string>Show/edit preferred transcripts</string>
-   </property>
-  </action>
-  <action name="actionPublishVariantInLOVD">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/LOVD.png</normaloff>:/Icons/LOVD.png</iconset>
-   </property>
-   <property name="text">
-    <string>Publish in LOVD</string>
    </property>
   </action>
   <action name="actionROH">
@@ -1307,8 +1297,16 @@
    <property name="text">
     <string>cfDNA panels</string>
    </property>
-  </action> </widget>
- <layoutdefault spacing="6" margin="11"/>
+  </action>
+  <action name="actionPublishVariantInClinvar">
+   <property name="text">
+    <string>Publish Variant in ClinVar</string>
+   </property>
+   <property name="toolTip">
+    <string>Publish Variant in ClinVar</string>
+   </property>
+  </action>
+ </widget> <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
    <class>VariantDetailsDockWidget</class>

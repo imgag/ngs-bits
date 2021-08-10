@@ -33,7 +33,6 @@ SOURCES += main.cpp\
     NGSDReannotationDialog.cpp \
     SmallVariantSearchWidget.cpp \
     PhenotypeSelectionWidget.cpp \
-    LovdUploadDialog.cpp \
     RohWidget.cpp \
     DiagnosticStatusWidget.cpp \
     DiagnosticStatusOverviewDialog.cpp \
@@ -99,7 +98,9 @@ SOURCES += main.cpp\
     NGSDReplicationWidget.cpp \
     CohortAnalysisWidget.cpp \
     cfDNARemovedRegions.cpp \
-    CfdnaAnalysisDialog.cpp
+    CfdnaAnalysisDialog.cpp \
+    ClinvarUploadDialog.cpp
+
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
     ExternalToolDialog.h \
@@ -126,7 +127,6 @@ HEADERS += MainWindow.h \
     NGSDReannotationDialog.h \
     SmallVariantSearchWidget.h \
     PhenotypeSelectionWidget.h \
-    LovdUploadDialog.h \
     RohWidget.h \
     DiagnosticStatusWidget.h \
     DiagnosticStatusOverviewDialog.h \
@@ -193,7 +193,9 @@ HEADERS += MainWindow.h \
     NGSDReplicationWidget.h \
     CohortAnalysisWidget.h \
     cfDNARemovedRegions.h \
-    CfdnaAnalysisDialog.h
+    CfdnaAnalysisDialog.h \
+    ClinvarUploadDialog.h
+
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
@@ -217,7 +219,6 @@ FORMS    += MainWindow.ui \
     NGSDReannotationDialog.ui \
     SmallVariantSearchWidget.ui \
     PhenotypeSelectionWidget.ui \
-    LovdUploadDialog.ui \
     RohWidget.ui \
     DiagnosticStatusWidget.ui \
     DiagnosticStatusOverviewDialog.ui \
@@ -275,7 +276,8 @@ FORMS    += MainWindow.ui \
     NGSDReplicationWidget.ui \
     CohortAnalysisWidget.ui \
     cfDNARemovedRegions.ui \
-    CfdnaAnalysisDialog.ui
+    CfdnaAnalysisDialog.ui \
+    ClinvarUploadDialog.ui
     include("../app_gui.pri")
 
 #include NGSD library

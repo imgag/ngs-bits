@@ -1,7 +1,7 @@
 #ifndef GLOBALSERVICEPROVIDER_H
 #define GLOBALSERVICEPROVIDER_H
 
-#include<QSharedPointer>
+#include <QSharedPointer>
 #include "FileLocationProvider.h"
 #include "DatabaseService.h"
 
