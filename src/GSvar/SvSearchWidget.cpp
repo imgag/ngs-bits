@@ -15,7 +15,6 @@
 SvSearchWidget::SvSearchWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_()
-	, init_timer_(this, true)
 	, db_()
 {
 	ui_.setupUi(this);
@@ -28,11 +27,14 @@ SvSearchWidget::SvSearchWidget(QWidget* parent)
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
 }
 
-void SvSearchWidget::setCoordinates(const BedpeLine& sv_coordinates)
+void SvSearchWidget::setVariant(const BedpeLine& sv)
 {
-	ui_.coordinates1->setText(sv_coordinates.chr1().strNormalized(true) + ":" + QString::number(sv_coordinates.start1()) + "-" + QString::number(sv_coordinates.end1()));
-	ui_.coordinates2->setText(sv_coordinates.chr2().strNormalized(true) + ":" + QString::number(sv_coordinates.start2()) + "-" + QString::number(sv_coordinates.end2()));
-	ui_.svType->setCurrentText(BedpeFile::typeToString(sv_coordinates.type()));
+	//type
+	ui_.svType->setCurrentText(BedpeFile::typeToString(sv.type()));
+
+	//coordinates
+	ui_.coordinates1->setText(sv.chr1().strNormalized(true) + ":" + QString::number(sv.start1()) + "-" + QString::number(sv.end1()));
+	ui_.coordinates2->setText(sv.chr2().strNormalized(true) + ":" + QString::number(sv.start2()) + "-" + QString::number(sv.end2()));
 
 	ui_.rb_single_sv->setChecked(true);
 }
@@ -40,7 +42,8 @@ void SvSearchWidget::setCoordinates(const BedpeLine& sv_coordinates)
 void SvSearchWidget::setProcessedSampleId(QString ps_id)
 {
 	ps_id_ = ps_id;
-	ui_.same_processing_system_only->setEnabled((ps_id_ != ""));
+
+	ui_.same_processing_system_only->setEnabled(ps_id_!="");
 	ui_.same_processing_system_only->setChecked(ui_.same_processing_system_only->isEnabled());
 }
 
@@ -300,14 +303,6 @@ void SvSearchWidget::search()
 	}
 
 	QApplication::restoreOverrideCursor();
-}
-
-void SvSearchWidget::delayedInitialization()
-{
-	if (ui_.coordinates1->text().trimmed()!="" && ui_.coordinates2->text().trimmed()!="")
-	{
-		search();
-	}
 }
 
 void SvSearchWidget::changeSearchType()

@@ -515,11 +515,6 @@
      <addaction name="actionShowPublishedVariants"/>
      <addaction name="actionBatchExportClinVar"/>
     </widget>
-    <widget class="QMenu" name="menuMID_clash_detection">
-     <property name="title">
-      <string>MID clash detection</string>
-     </property>
-    </widget>
     <addaction name="menuVariant_search"/>
     <addaction name="menuGenes_2"/>
     <addaction name="menuPhenotypes_2"/>
@@ -527,7 +522,7 @@
     <addaction name="separator"/>
     <addaction name="menuAdmin"/>
     <addaction name="menuBatch_import"/>
-    <addaction name="menuMID_clash_detection"/>
+    <addaction name="actionMidClashDetection"/>
     <addaction name="actionVariantValidation"/>
     <addaction name="actionGaps"/>
     <addaction name="separator"/>
@@ -1306,7 +1301,17 @@
     <string>Publish Variant in ClinVar</string>
    </property>
   </action>
- </widget> <layoutdefault spacing="6" margin="11"/>
+  <action name="actionMidClashDetection">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/mid_clash.png</normaloff>:/Icons/mid_clash.png</iconset>
+   </property>
+   <property name="text">
+    <string>MID clash detection</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
    <class>VariantDetailsDockWidget</class>

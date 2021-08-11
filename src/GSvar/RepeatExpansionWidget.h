@@ -3,10 +3,7 @@
 
 #include <QWidget>
 #include <QTableWidget>
-
-namespace Ui {
-class RepeatExpansionWidget;
-}
+#include "ui_RepeatExpansionWidget.h"
 
 // helper struct to store repeat cutoff values
 struct RepeatCutoffInfo
@@ -22,32 +19,36 @@ struct RepeatCutoffInfo
 
 
 // custom QTableWidgetItem class to allow inplace sorting of doubles
-class NumericWidgetItem: public QTableWidgetItem
+class NumericWidgetItem
+	: public QTableWidgetItem
 {
 public:
 	NumericWidgetItem(QString text);
 	bool operator< (const QTableWidgetItem &other) const;
 };
 
-class RepeatExpansionWidget : public QWidget
+class RepeatExpansionWidget
+	: public QWidget
 {
 	Q_OBJECT
 
 public:
 	RepeatExpansionWidget(QString vcf_filename, bool is_exome=false, QWidget *parent = 0);
-	~RepeatExpansionWidget();
 
 private slots:
     ///Context menu that shall appear if right click on repeat expansion
     void showContextMenu(QPoint pos);
 
+protected:
+	///Override copy command
+	void keyPressEvent(QKeyEvent* event) override;
+
 private:
-	void loadRepeatExpansionData();
-    void loadSvgFiles();
+	Ui::RepeatExpansionWidget ui_;
 	QString vcf_filename_;
 	bool is_exome_;
-	Ui::RepeatExpansionWidget* ui_;
 
+	void loadRepeatExpansionData();
 };
 
 #endif // REPEATEXPANSIONWIDGET_H

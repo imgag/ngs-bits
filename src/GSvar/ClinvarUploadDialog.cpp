@@ -391,17 +391,10 @@ void ClinvarUploadDialog::updatePrintButton()
 
 QJsonObject ClinvarUploadDialog::createJson()
 {
-    //disable GUI
-    ui_.vl_left_col->setEnabled(false);
-    ui_.vl_right_col->setEnabled(false);
-
     //Check GUI for correct entries
     if (!checkGuiData())
     {
         QMessageBox::warning(this, "Gui validation failed!", "There are errors in you GUI input. Please fix them and try again.");
-        //re-enable GUI
-        ui_.vl_left_col->setEnabled(true);
-        ui_.vl_right_col->setEnabled(true);
         return QJsonObject();
     }
 
@@ -582,15 +575,8 @@ QJsonObject ClinvarUploadDialog::createJson()
     }
     json.insert("clinvarSubmission", QJsonArray() << clinvar_submission);
 
-
     //optional
     //json.insert("submissionName", "");
-
-
-
-    //re-enable GUI
-    ui_.vl_left_col->setEnabled(true);
-    ui_.vl_right_col->setEnabled(true);
 
     return json;
 }

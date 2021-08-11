@@ -1143,7 +1143,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	{
 		SvSearchWidget* widget = new SvSearchWidget();
 		widget->setProcessedSampleId(ps_id_);
-		widget->setCoordinates(sv);
+		widget->setVariant(sv);
 		auto dlg = GUIHelper::createDialog(widget, "SV search");
 
 		dlg->exec();
