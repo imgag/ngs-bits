@@ -48,16 +48,21 @@ void RequestWorker::run()
 	qint64 request_headers_size = 0;
 	qint64 request_body_size = 0;
 
-	ssl_socket->waitForEncrypted();
+
 
 	while (ssl_socket->waitForReadyRead())
 	{
 		qDebug() << "Start the processing";
+
+		ssl_socket->waitForEncrypted();
+
 		if (!ssl_socket->isEncrypted())
 		{
+			qDebug() << "Connection is not encrypted and cannot be continued";
 			closeAndDeleteSocket(ssl_socket);
 			return;
 		}
+		qDebug() << "Successfull encryption";
 
 		while(ssl_socket->bytesAvailable())
 		{
