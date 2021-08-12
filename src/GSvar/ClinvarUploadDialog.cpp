@@ -35,7 +35,6 @@ void ClinvarUploadDialog::setData(ClinvarUploadData data)
 {
     // set variant data
     QByteArray chr = data.variant.chr().strNormalized(false);
-    if (chr=="MT") chr = "M";
     ui_.cb_chr->setEnabled(false);
     ui_.cb_chr->setCurrentText(chr);
     ui_.le_start->setEnabled(false);
@@ -271,14 +270,17 @@ void ClinvarUploadDialog::upload()
 
 bool ClinvarUploadDialog::checkGuiData()
 {
+	ui_.comment_upload->clear();
+
     //check if already published
+	bool uploaded_to_clinvar = false;
+	QString upload_details;
     if (clinvar_upload_data_.processed_sample !="" && clinvar_upload_data_.variant.isValid())
     {
-        QString upload_details = db_.getVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.variant);
+		upload_details = db_.getVariantPublication(clinvar_upload_data_.processed_sample, clinvar_upload_data_.variant);
         if (upload_details!="")
         {
 			//check if uploaded to Clinvar
-			bool uploaded_to_clinvar = false;
 			foreach (const QString& line, upload_details.split('\n'))
 			{
 				QStringList columns = line.split(' ');
@@ -297,19 +299,12 @@ bool ClinvarUploadDialog::checkGuiData()
 				// shortcut
 				if (uploaded_to_clinvar) break;
 			}
-			if (uploaded_to_clinvar)
-			{
-				ui_.upload_btn->setEnabled(false);
-				ui_.comment_upload->setText("<font color='red'>ERROR: variant already uploaded!</font><br>" + upload_details);
-				return false;
-			}
         }
     }
 
     //perform checks
-
+	QStringList errors;
     // check chromosome
-    QStringList errors;
     if (ui_.cb_chr->currentText().trimmed().isEmpty())
     {
         errors << "Chromosome unset!";
@@ -354,17 +349,25 @@ bool ClinvarUploadDialog::checkGuiData()
         errors << "No valid inheritance mode selected!";
     }
 
+	QStringList upload_comment_text;
+	if (uploaded_to_clinvar)
+	{
+		upload_comment_text << "<font color='red'>WARNING: This variant has already been uploaded to ClinVar! Are you sure you want to upload it again? </font><br>" + upload_details.replace("\n", "<br>");
+	}
+
+
     //show error or enable upload button
     if (errors.count()>0)
     {
         ui_.upload_btn->setEnabled(false);
-        ui_.comment_upload->setText("Cannot upload data because:\n  - " +  errors.join("\n  - "));
+		upload_comment_text << "<font color='red'>Cannot upload data because:</font><br>  - " +  errors.join("<br>  - ");
+		ui_.comment_upload->setText(upload_comment_text.join("<br><br>"));
         return false;
     }
     else
     {
         ui_.upload_btn->setEnabled(true);
-        ui_.comment_upload->clear();
+		ui_.comment_upload->setText(upload_comment_text.join("<br>"));
         return true;
     }
 }
@@ -1143,7 +1146,7 @@ const QStringList ClinvarUploadDialog::CHR =
     "22",
     "X",
     "Y",
-    "M"
+	"MT"
 };
 const QStringList ClinvarUploadDialog::VARIANT_TYPE =
 {
