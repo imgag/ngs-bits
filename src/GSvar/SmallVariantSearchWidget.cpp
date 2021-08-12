@@ -12,11 +12,9 @@
 SmallVariantSearchWidget::SmallVariantSearchWidget(QWidget *parent)
 	: QWidget(parent)
 	, ui_()
-	, init_timer_(this, false)
 {
 	ui_.setupUi(this);
 	setWindowFlags(Qt::Window);
-	connect(&init_timer_, SIGNAL(triggerInitialization()), this, SLOT(updateVariants()));
 	connect(ui_.radio_region->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateVariants()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));

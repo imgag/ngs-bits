@@ -2775,24 +2775,29 @@ FilterCnvCopyNumber::FilterCnvCopyNumber()
 	name_ = "CNV copy-number";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for CNV copy number.";
-	params_ << FilterParameter("cn", FilterParameterType::STRING, "n/a", "Copy number");
-	params_.last().constraints["valid"] = "n/a,0,1,2,3,4+";
+	params_ << FilterParameter("cn", FilterParameterType::STRINGLIST, QStringList(), "Copy number");
+	params_.last().constraints["valid"] = "0,1,2,3,4,5+";
+	params_.last().constraints["not_empty"] = "";
 
 	checkIsRegistered();
 }
 
 QString FilterCnvCopyNumber::toText() const
 {
-	return name() + " CN=" + getString("cn");
+	return name() + " CN=" + getStringList("cn").join(",");
 }
 
 void FilterCnvCopyNumber::apply(const CnvList& cnvs, FilterResult& result) const
 {
 	if (!enabled_) return;
 
-	QByteArray cn_exp = getString("cn").toLatin1();
-	bool cn_exp_4plus = cn_exp=="4+";
-	if (cn_exp=="n/a") return;
+	bool cn_5plus = false;
+	QSet<QByteArray> cn_exp;
+	foreach(QString cn, getStringList("cn"))
+	{
+		cn_exp << cn.toLatin1();
+		if (cn=="5+") cn_5plus = true;
+	}
 
 	if (cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_SINGLE || cnvs.type()==CnvListType::CNVHUNTER_GERMLINE_MULTI)
 	{
@@ -2806,7 +2811,7 @@ void FilterCnvCopyNumber::apply(const CnvList& cnvs, FilterResult& result) const
 			bool hit = false;
 			foreach (const QByteArray& cn, cns)
 			{
-				if ((!cn_exp_4plus && cn==cn_exp) || (cn_exp_4plus && cn.toInt()>=4))
+				if (cn_exp.contains(cn) || (cn_5plus && cn.toInt()>=5))
 				{
 					hit = true;
 					break;
@@ -2824,10 +2829,7 @@ void FilterCnvCopyNumber::apply(const CnvList& cnvs, FilterResult& result) const
 
 			const QByteArray& cn = cnvs[i].annotations()[i_cn];
 
-			if (!((!cn_exp_4plus && cn==cn_exp) || (cn_exp_4plus && cn.toInt()>=4)))
-			{
-				result.flags()[i] = false;
-			}
+			result.flags()[i] = cn_exp.contains(cn) || (cn_5plus && cn.toInt()>=5);
 		}
 	}
 }

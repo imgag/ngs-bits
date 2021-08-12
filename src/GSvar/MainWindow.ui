@@ -1164,8 +1164,12 @@
    </property>
   </action>
   <action name="actionShowPublishedVariants">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/ClinGen.png</normaloff>:/Icons/ClinGen.png</iconset>
+   </property>
    <property name="text">
-    <string>Show published variants</string>
+    <string>Published variants</string>
    </property>
   </action>
   <action name="actionSampleSimilarityVCF">
