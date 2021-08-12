@@ -1910,7 +1910,7 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 			else if(type=="datetime") info.type = TableFieldInfo::DATETIME;
 			else if(type=="timestamp") info.type = TableFieldInfo::TIMESTAMP;
 			else if(type=="tinyint(1)") info.type = TableFieldInfo::BOOL;
-            else if(type=="int" || type.startsWith("int(") || type.startsWith("tinyint(")) info.type = TableFieldInfo::INT;
+			else if(type=="int" || type.startsWith("int(") || type.startsWith("tinyint(")) info.type = TableFieldInfo::INT;
 			else if(type.startsWith("enum("))
 			{
 				info.type = TableFieldInfo::ENUM;
@@ -2394,15 +2394,15 @@ QList<CfdnaPanelInfo> NGSD::cfdnaPanelInfo(const QString& processed_sample_id, i
 		if (!ok) THROW(DatabaseException, "Error parsing id in cfdna_panels!");
 		panel.tumor_id = query.value(1).toInt(&ok);
 		if (!ok) THROW(DatabaseException, "Error parsing tumor_id in cfdna_panels!");
-        if (query.value(2) == QVariant())
-        {
-            panel.cfdna_id = -1;
-        }
-        else
-        {
-            panel.cfdna_id = query.value(2).toInt(&ok);
-            if (!ok) THROW(DatabaseException, "Error parsing cfdna_id in cfdna_panels!");
-        }
+		if (query.value(2) == QVariant())
+		{
+			panel.cfdna_id = -1;
+		}
+		else
+		{
+			panel.cfdna_id = query.value(2).toInt(&ok);
+			if (!ok) THROW(DatabaseException, "Error parsing cfdna_id in cfdna_panels!");
+		}
 		panel.created_by = query.value(3).toInt(&ok);
 		if (!ok) THROW(DatabaseException, "Error parsing created_by in cfdna_panels!");
 		panel.created_date = query.value(4).toDate();
@@ -3685,18 +3685,18 @@ bool NGSD::transaction()
 {
 	if(!db_->driver()->hasFeature(QSqlDriver::Transactions))
 	{
-		Log::warn("MySQL transactions are not supported by the current driver! (" + db_->driverName() + ")");
+		Log::warn("transactions are not supported by the current driver! (" + db_->driverName() + ")");
 	}
 
 	if (db_->transaction()) return true;
-	Log::warn("db_->transaction() failed!");
+	Log::warn("transactions: db_->transaction() failed!");
 	return false;
 }
 
 bool NGSD::commit()
 {
 	if (db_->commit()) return true;
-	Log::warn("db_->commit() failed!");
+	Log::warn("transactions: db_->commit() failed!");
 	return false;
 }
 

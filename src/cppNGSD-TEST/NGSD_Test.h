@@ -2024,11 +2024,11 @@ private slots:
 		//Specifiy filter for report generation
 		FilterCascade filters;
 		filters.add(QSharedPointer<FilterBase>(new FilterFilterColumnEmpty()));
-		QSharedPointer<FilterBase> keep_driver_filter(new FilterColumnMatchRegexp());
-		keep_driver_filter->setString("action", "KEEP");
-		keep_driver_filter->setString("column", "CGI_driver_statement");
-		keep_driver_filter->setString("pattern", "known");
-		filters.add( ( keep_driver_filter ) );
+
+		QSharedPointer<FilterBase> keep_filter(new FilterClassificationNGSD());
+		keep_filter->setString("action", "KEEP");
+		keep_filter->setStringList("classes", {"4","5"});
+		filters.add( ( keep_filter ) );
 
 		//Fill report config
 		TumorOnlyReportWorkerConfig config;

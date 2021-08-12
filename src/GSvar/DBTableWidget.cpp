@@ -250,46 +250,14 @@ void DBTableWidget::keyPressEvent(QKeyEvent* event)
 	QTableWidget::keyPressEvent(event);
 }
 
-void DBTableWidget::copyToClipboard(bool selection_only)
-{
-	//header
-	QString output = "#";
-	for (int col=0; col<columnCount(); ++col)
-	{
-		if (col!=0) output += "\t";
-		output += horizontalHeaderItem(col)->text();
-	}
-	output += "\n";
-
-	//rows
-	QSet<int> selected_rows = selectedRows();
-	for (int row=0; row<rowCount(); ++row)
-	{
-		//skip hidden
-		if (isRowHidden(row)) continue;
-
-		//skip unselected
-		if (selection_only && selected_rows.count()>0 && !selected_rows.contains(row)) continue;
-
-		for (int col=0; col<columnCount(); ++col)
-		{
-			if (col!=0) output += "\t";
-			output += item(row, col)->text().replace('\t', ' ').replace('\n', ' ').replace('\r', "");
-		}
-		output += "\n";
-	}
-
-	QApplication::clipboard()->setText(output);
-}
-
 void DBTableWidget::copySelectionToClipboard()
 {
-	copyToClipboard(true);
+	GUIHelper::copyToClipboard(this, true);
 }
 
 void DBTableWidget::copyTableToClipboard()
 {
-	copyToClipboard(false);
+	GUIHelper::copyToClipboard(this, false);
 }
 
 void DBTableWidget::processDoubleClick(int row, int /*column*/)

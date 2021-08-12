@@ -26,8 +26,6 @@ TumorOnlyReportDialog::TumorOnlyReportDialog(const VariantList& variants, TumorO
 		ui->include_exon_number->setChecked(true);
 	}
 
-	ui->label_cgi->setText(TumorOnlyReportWorker::cgiCancerTypeFromVariantList(variants));
-
 	//fill variants widget
 	int i_gene = variants_.annotationIndexByName("gene");
 	int i_var_type = variants_.annotationIndexByName("variant_type");

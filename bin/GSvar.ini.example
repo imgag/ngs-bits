@@ -10,12 +10,8 @@ NGSD_enabled=true
 email_run_finished=""
 email_run_analyzed=""
 
-#LODV credentials for variant upload
-lovd_lab=
-lovd_user_name=
-lovd_user_email=
-lovd_user_id=
-lovd_user_auth_token=
+#Clinvar upload
+clinvar_api_key=
 
 #Analysis steps for queuing
 analysis_steps_single_sample=ma - mapping, vc - SNV/InDel calling + annotation, cn - CNV calling + annotation, sv - SV calling + annotation, db - database import

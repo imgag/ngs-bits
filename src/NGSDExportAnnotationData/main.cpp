@@ -191,12 +191,12 @@ private:
 		{
 			out << "\texporting somatic variants from " << chr_name << "... " << endl;
 
-			// get all ids of all varaints on this chromosome
+			// get all ids of all variants on this chromosome
 			db_queries.restart();
 			QList<int> somatic_variant_ids = db.getValuesInt("SELECT dsv.id FROM detected_somatic_variant as dsv, variant as v WHERE dsv.variant_id=v.id AND chr='" + chr_name + "' ORDER BY v.start ASC, v.end ASC");
 			db_query_sum += db_queries.elapsed();
 
-			// cache all processed varaint ids to export each variant only once
+			// cache all processed variant ids to export each variant only once
 			QVector<int> processed_variants_ids;
 
 			int variant_count_per_chr = 0;
@@ -365,7 +365,7 @@ private:
 					}
 					vcf_file_writing_sum += vcf_file_writing.elapsed();
 
-					// cache processed varaint id
+					// cache processed variant id
 					processed_variants_ids.append(variant_id);
 				}
 				else
@@ -505,7 +505,7 @@ private:
 		{
 			out << "\texporting variants from " << chr_name << "... " << endl;
 
-			// get all ids of all varaints on this chromosome
+			// get all ids of all variants on this chromosome
 			db_queries.restart();
 			QList<int> variant_ids = db.getValuesInt("SELECT id FROM variant WHERE chr='" + chr_name + "' ORDER BY start ASC, end ASC");
 			db_query_sum += db_queries.elapsed();

@@ -43,13 +43,11 @@ public:
 	void updateNGSDSupport();
 	///Returns 'nobr' paragraph start for Qt tooltips
 	static QString nobr();
-	///Upload variant to LOVD
-	void uploadtoLovd(int variant_index, int variant_index2 = -1);
+	///Upload variant to Clinvar
+	void uploadToClinvar(int variant_index);
 
 	///Context menu for single variant
 	void contextMenuSingleVariant(QPoint pos, int index);
-	///Context menu for two variants
-	void contextMenuTwoVariants(QPoint pos, int index1, int index2);
 
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
@@ -210,8 +208,6 @@ public slots:
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
 	void openVariantListFolder();
-	///Upload variant that is not part of the variant list to LOVD.
-	void on_actionPublishVariantInLOVD_triggered();
 	///Batch export for ClinVar
 	void on_actionBatchExportClinVar_triggered();
 	///Re-analyze current sample/case
@@ -295,6 +291,8 @@ public slots:
 	void showAfHistogram_filtered();
 	///Shows a CN histogram
 	void showCnHistogram();
+	///Shows a BAF histogram
+	void showBafHistogram();
 	///Shows an allele frequency histogram
 	void showAfHistogram(bool filtered);
 	///Show encryption helper

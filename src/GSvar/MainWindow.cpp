@@ -54,7 +54,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "DiseaseInfoWidget.h"
 #include "SmallVariantSearchWidget.h"
 #include "TSVFileStream.h"
-#include "LovdUploadDialog.h"
 #include "OntologyTermCollection.h"
 #include "SvWidget.h"
 #include "VariantWidget.h"
@@ -119,12 +118,13 @@ QT_CHARTS_USE_NAMESPACE
 #include "GermlineReportGenerator.h"
 #include "SomaticReportHelper.h"
 #include "Statistics.h"
+
 #include "NGSDReplicationWidget.h"
 #include "CohortAnalysisWidget.h"
 #include "cfDNARemovedRegions.h"
 #include "CfDNAPanelBatchImport.h"
 #include "CfdnaAnalysisDialog.h"
-
+#include "ClinvarUploadDialog.h"
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -228,7 +228,8 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (all small variants)", this, SLOT(showAfHistogram_all()));
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (small variants after filter)", this, SLOT(showAfHistogram_filtered()));
 	ui_.vars_af_hist->menu()->addSeparator();
-	ui_.vars_af_hist->menu()->addAction("Show CN histogram (CNVs in given region)", this, SLOT(showCnHistogram()));
+	ui_.vars_af_hist->menu()->addAction("Show CN histogram (in given region)", this, SLOT(showCnHistogram()));
+	ui_.vars_af_hist->menu()->addAction("Show BAF histogram (in given region)", this, SLOT(showBafHistogram()));
 
 	connect(ui_.ps_details, SIGNAL(clicked(bool)), this, SLOT(openProcessedSampleTabsCurrentAnalysis()));
 
@@ -1354,12 +1355,6 @@ void MainWindow::openVariantListFolder()
 	QDesktopServices::openUrl(QFileInfo(filename_).absolutePath());
 }
 
-void MainWindow::on_actionPublishVariantInLOVD_triggered()
-{
-	LovdUploadDialog dlg(this);
-	dlg.exec();
-}
-
 void MainWindow::on_actionBatchExportClinVar_triggered()
 {
 	//allow only for admins
@@ -2094,7 +2089,7 @@ void MainWindow::showCnHistogram()
 			//skip invalid copy-numbers
 			QString cn_str = parts[5];
 			if (cn_str.toLower()=="nan") continue;
-			double cn = Helper::toDouble(parts[5], "Copy-number");
+			double cn = Helper::toDouble(cn_str, "Copy-number");
 			if (cn<0) continue;
 
 			cn_values << cn;
@@ -2113,6 +2108,71 @@ void MainWindow::showCnHistogram()
 		//show chart
 		QChartView* view = GUIHelper::histogramChart(hist, "Copy-number");
 		auto dlg = GUIHelper::createDialog(view, QString("Copy-number in region ") + region_text);
+		dlg->exec();
+	}
+	catch(Exception& e)
+	{
+		QMessageBox::warning(this, title, "Error:\n" + e.message());
+		return;
+	}
+}
+
+void MainWindow::showBafHistogram()
+{
+	if (filename_=="") return;
+
+	QString title = "BAF histogram";
+
+	AnalysisType type = variants_.type();
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE)
+	{
+		QMessageBox::information(this, title, "This functionality is only available for germline single sample and germline trio analysis.");
+		return;
+	}
+
+	//check report sample SEG file exists
+	QStringList baf_files = GlobalServiceProvider::fileLocationProvider().getBafFiles(false).filterById(germlineReportSample()).asStringList();
+	if (baf_files.isEmpty())
+	{
+		QMessageBox::warning(this, title, "Could not find a BAF file for sample " + germlineReportSample() + ". Aborting!");
+		return;
+	}
+
+	try
+	{
+		//get region
+		Chromosome chr;
+		int start, end;
+		QString region_text = QInputDialog::getText(this, title, "genomic region");
+		if (region_text=="") return;
+
+		NGSHelper::parseRegion(region_text, chr, start, end);
+
+		//determine CN values
+		Histogram hist(0.0, 1.0, 0.025);
+		QSharedPointer<QFile> file = Helper::openFileForReading(baf_files[0]);
+		QTextStream stream(file.data());
+		while (!stream.atEnd())
+		{
+			QString line = stream.readLine();
+			QStringList parts = line.split("\t");
+			if (parts.count()<5) continue;
+
+			//check if range overlaps input interval
+			Chromosome chr2(parts[0]);
+			if (chr!=chr2) continue;
+
+			int start2 = Helper::toInt(parts[1], "Start coordinate");
+			int end2 = Helper::toInt(parts[2], "End coordinate");
+			if (!BasicStatistics::rangeOverlaps(start, end, start2, end2)) continue;
+
+			double baf =  Helper::toDouble(parts[4], "BAF");
+			hist.inc(baf, true);
+		}
+
+		//show chart
+		QChartView* view = GUIHelper::histogramChart(hist, "BAF");
+		auto dlg = GUIHelper::createDialog(view, QString("BAF in region ") + region_text);
 		dlg->exec();
 	}
 	catch(Exception& e)
@@ -4710,54 +4770,89 @@ QString MainWindow::nobr()
 	return "<p style='white-space:pre; margin:0; padding:0;'>";
 }
 
-void MainWindow::uploadtoLovd(int variant_index, int variant_index2)
+void MainWindow::uploadToClinvar(int variant_index)
 {
-	//(1) prepare data as far as we can (no RefSeq transcript data is available)
-	LovdUploadData data;
+	if (!LoginManager::active()) return;
 
-	//sample name
-	data.processed_sample = germlineReportSupported() ? germlineReportSample() : variants_.mainSampleName();
+	//abort if no report config is available
+	if (!germlineReportSupported())
+	{
+		QMessageBox::warning(this, "Report configuration missing", "No report configuration available. \nOnly variants with report configuration can be published!");
+		return;
+	}
 
-	//gender
-	NGSD db;
-	QString sample_id = db.sampleId(data.processed_sample);
-	SampleData sample_data = db.getSampleData(sample_id);
-	data.gender = sample_data.gender;
+	//abort if API key is missing
+	if(Settings::string("clinvar_api_key", true).trimmed().isEmpty())
+	{
+		QMessageBox::warning(this, "No ClinVar API key", "The GSVar.ini does not contain an entry of ClinVar API key for variant publication!");
+		return;
+	}
 
-	//phenotype(s)
+	//(1) prepare data as far as we can
+	ClinvarUploadData data;
+	data.processed_sample = germlineReportSample();
+	QString sample_id = NGSD().sampleId(data.processed_sample);
+	SampleData sample_data = NGSD().getSampleData(sample_id);
+
+
+	//get disease info
+	data.disease_info = NGSD().getSampleDiseaseInfo(sample_id, "OMIM disease/phenotype identifier");
+	data.disease_info.append(NGSD().getSampleDiseaseInfo(sample_id, "Orpha number"));
+	if (data.disease_info.length() < 1)
+	{
+		QMessageBox::warning(this, "No disease info", "The sample has to have at least one OMIM or Orphanet disease identifier to publish a variant in ClinVar.");
+		return;
+	}
+
+	// get affected status
+	data.affected_status = sample_data.disease_status;
+
+	//get phenotype(s)
 	data.phenos = sample_data.phenotypes;
 
-	//data 1st variant
-	const Variant& variant = variants_[variant_index];
-	data.variant = variant;
-	int genotype_index = variants_.getSampleHeader().infoByID(data.processed_sample).column_index;
-	data.genotype = variant.annotations()[genotype_index];
-	FastaFileIndex idx(Settings::string("reference_genome"));
-	data.hgvs_g = variant.toHGVS(idx);
-	int classification_index = variants_.annotationIndexByName("classification");
-	data.classification = variant.annotations()[classification_index];
-	int i_refseq = variants_.annotationIndexByName("coding_and_splicing_refseq", true, false);
-	if (i_refseq!=-1)
+	//get variant info
+	data.variant = variants_[variant_index];
+
+	// get report info
+	if (!report_settings_.report_config.data()->exists(VariantType::SNVS_INDELS, variant_index))
 	{
-		data.trans_data = variant.transcriptAnnotations(i_refseq);
+		QMessageBox::warning(this, "Variant not in ReportConfig", "The variant has to be in NGSD and part of a report config to be published!");
+		return;
+	}
+	data.report_variant_config = report_settings_.report_config.data()->get(VariantType::SNVS_INDELS, variant_index);
+	//update classification
+	data.report_variant_config.classification = NGSD().getClassification(data.variant).classification;
+	if (data.report_variant_config.classification.trimmed().isEmpty() || (data.report_variant_config.classification.trimmed() == "n/a"))
+	{
+		QMessageBox::warning(this, "No Classification", "The variant has to have a classification to be published!");
+		return;
 	}
 
-	//data 2nd variant (comp-het)
-	if (variant_index2!=-1)
+	//genes
+	int gene_idx = variants_.annotationIndexByName("gene");
+	data.genes = GeneSet::createFromText(data.variant.annotations()[gene_idx], ',');
+
+	//determine NGSD ids of variant and report variant
+	QString var_id = NGSD().variantId(data.variant, false);
+	if (var_id == "")
 	{
-		const Variant& variant2 = variants_[variant_index2];
-		data.variant2 = variant2;
-		data.genotype2 = variant2.annotations()[genotype_index];
-		data.hgvs_g2 = variant2.toHGVS(idx);
-		data.classification2 = variant2.annotations()[classification_index];
-		if (i_refseq!=-1)
-		{
-			data.trans_data2 = variant2.transcriptAnnotations(i_refseq);
-		}
+		QMessageBox::warning(this, "Variant not in NGSD", "The variant has to be in NGSD and part of a report config to be published!");
+		return;
 	}
+	data.variant_id = Helper::toInt(var_id);
+	//extract report variant id
+	int rc_id = NGSD().reportConfigId(NGSD().processedSampleId(data.processed_sample));
+	if (rc_id == -1 )
+	{
+		THROW(DatabaseException, "Could not determine report config id for sample " + data.processed_sample + "!");
+	}
+
+	data.variant_report_config_id = NGSD().getValue("SELECT id FROM report_configuration_variant WHERE report_configuration_id="
+													+ QString::number(rc_id) + " AND variant_id=" + QString::number(data.variant_id), false).toInt();
+
 
 	// (2) show dialog
-	LovdUploadDialog dlg(this);
+	ClinvarUploadDialog dlg(this);
 	dlg.setData(data);
 	dlg.exec();
 }
@@ -4854,10 +4949,6 @@ void MainWindow::varsContextMenu(QPoint pos)
 	if (indices.count()==1)
 	{
 		contextMenuSingleVariant(pos, indices[0]);
-	}
-	else if (indices.count()==2)
-	{
-		contextMenuTwoVariants(pos, indices[0], indices[1]);
 	}
 }
 
@@ -5004,11 +5095,16 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	//UCSC
 	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
 
-	//LOVD upload
+	//LOVD look up
 	sub_menu = menu.addMenu(QIcon("://Icons/LOVD.png"), "LOVD");
 	QAction* a_lovd_find = sub_menu->addAction("Find in LOVD");
-	QAction* a_lovd_pub = sub_menu->addAction("Publish in LOVD");
-	a_lovd_pub->setEnabled(ngsd_user_logged_in);
+
+
+	//ClinVar upload
+	sub_menu = menu.addMenu("ClinVar");
+	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
+	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
+	a_clinvar_pub->setEnabled(ngsd_user_logged_in);
 
 	//MitoMap
 	QAction* a_mitomap = menu.addAction(QIcon("://Icons/MitoMap.png"), "Open in MitoMap");
@@ -5026,7 +5122,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		QString sample_id = db.sampleId(ps, false);
 		if (sample_id!="")
 		{
-			//get disease list (HPO and CGI cancer type)
+			//get disease list (HPO )
 			QByteArrayList diseases;
 			QList<SampleDiseaseInfo> infos = db.getSampleDiseaseInfo(sample_id);
 			foreach(const SampleDiseaseInfo& info, infos)
@@ -5040,24 +5136,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 						if (!diseases.contains(disease))
 						{
 							diseases << disease;
-						}
-					}
-				}
-				else if (info.type=="CGI cancer type")
-				{
-					TSVFileStream stream("://Resources/cancer_types.tsv");
-					int idx_id = stream.colIndex("ID",true);
-					int idx_name = stream.colIndex("NAME",true);
-					while(!stream.atEnd())
-					{
-						QByteArrayList line = stream.readLine();
-						if (line.at(idx_id)==info.disease_info)
-						{
-							QByteArray disease = line.at(idx_name).trimmed();
-							if (!diseases.contains(disease) && !disease.isEmpty())
-							{
-								diseases << disease;
-							}
 						}
 					}
 				}
@@ -5152,15 +5230,20 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	{
 		QDesktopServices::openUrl(QUrl("https://www.mitomap.org/cgi-bin/search_allele?starting="+QString::number(variant.start())+"&ending="+QString::number(variant.end())));
 	}
-	else if (action==a_lovd_pub)
+	else if (action==a_clinvar_find)
+	{
+		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/clinvar/?term=" + variant.chr().strNormalized(false)+"[chr]+AND+" + QString::number(variant.start()) + "%3A" + QString::number(variant.end()) + (GSvarHelper::build()==GenomeBuild::HG38? "[chrpos38] " : "[chrpos37] ")));
+
+	}
+	else if (action==a_clinvar_pub)
 	{
 		try
 		{
-			uploadtoLovd(index);
+			uploadToClinvar(index);
 		}
 		catch (Exception& e)
 		{
-			GUIHelper::showMessage("LOVD upload error", "Error while uploading variant to LOVD: " + e.message());
+			GUIHelper::showMessage("ClinVar upload error", "Error while uploading variant to ClinVar: " + e.message());
 			return;
 		}
 	}
@@ -5284,31 +5367,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		else //other databases
 		{
 			GeneInfoDBs::openUrl(text, gene);
-		}
-	}
-}
-
-void MainWindow::contextMenuTwoVariants(QPoint pos, int index1, int index2)
-{
-	//create context menu
-	QMenu menu(ui_.vars);
-	QAction* a_lovd = menu.addAction(QIcon("://Icons/LOVD.png"), "Publish in LOVD (comp-het)");
-
-	//execute
-	QAction* action = menu.exec(pos);
-	if (!action) return;
-
-	//react
-	if (action==a_lovd)
-	{
-		try
-		{
-			uploadtoLovd(index1, index2);
-		}
-		catch (Exception& e)
-		{
-			GUIHelper::showMessage("LOVD upload error", "Error while uploading variant to LOVD: " + e.message());
-			return;
 		}
 	}
 }

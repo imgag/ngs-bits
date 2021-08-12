@@ -1,0 +1,1 @@
+Variant type	HIGH=frameshift_variant,splice_acceptor_variant,splice_donor_variant,start_lost,start_retained_variant,stop_gained,stop_lost	MODERATE=inframe_deletion,inframe_insertion,missense_variant	LOW=splice_region_variant,stop_retained_variant,synonymous_variant	MODIFIER=

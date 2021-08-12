@@ -513,13 +513,7 @@
      <addaction name="actionCohortAnalysis"/>
      <addaction name="separator"/>
      <addaction name="actionShowPublishedVariants"/>
-     <addaction name="actionPublishVariantInLOVD"/>
      <addaction name="actionBatchExportClinVar"/>
-    </widget>
-    <widget class="QMenu" name="menuMID_clash_detection">
-     <property name="title">
-      <string>MID clash detection</string>
-     </property>
     </widget>
     <addaction name="menuVariant_search"/>
     <addaction name="menuGenes_2"/>
@@ -528,7 +522,7 @@
     <addaction name="separator"/>
     <addaction name="menuAdmin"/>
     <addaction name="menuBatch_import"/>
-    <addaction name="menuMID_clash_detection"/>
+    <addaction name="actionMidClashDetection"/>
     <addaction name="actionVariantValidation"/>
     <addaction name="actionGaps"/>
     <addaction name="separator"/>
@@ -805,15 +799,6 @@
   <action name="actionPreferredTranscripts">
    <property name="text">
     <string>Show/edit preferred transcripts</string>
-   </property>
-  </action>
-  <action name="actionPublishVariantInLOVD">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/LOVD.png</normaloff>:/Icons/LOVD.png</iconset>
-   </property>
-   <property name="text">
-    <string>Publish in LOVD</string>
    </property>
   </action>
   <action name="actionROH">
@@ -1307,7 +1292,25 @@
    <property name="text">
     <string>cfDNA panels</string>
    </property>
-  </action> </widget>
+  </action>
+  <action name="actionPublishVariantInClinvar">
+   <property name="text">
+    <string>Publish Variant in ClinVar</string>
+   </property>
+   <property name="toolTip">
+    <string>Publish Variant in ClinVar</string>
+   </property>
+  </action>
+  <action name="actionMidClashDetection">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/mid_clash.png</normaloff>:/Icons/mid_clash.png</iconset>
+   </property>
+   <property name="text">
+    <string>MID clash detection</string>
+   </property>
+  </action>
+ </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>

@@ -14,7 +14,6 @@
 CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_()
-	, init_timer_(this, true)
 	, db_()
 {
 	ui_.setupUi(this);
@@ -294,14 +293,6 @@ void CnvSearchWidget::search()
 	}
 
 	QApplication::restoreOverrideCursor();
-}
-
-void CnvSearchWidget::delayedInitialization()
-{
-	if (ui_.coordinates->text().trimmed()!="")
-	{
-		search();
-	}
 }
 
 void CnvSearchWidget::copyCoodinatesToClipboard()
