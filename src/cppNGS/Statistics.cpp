@@ -277,6 +277,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 							const int ol_start = std::max(bed_file[index].start(), start_pos);
 							const int ol_end = std::min(bed_file[index].end(), end_pos);
 							bases_usable += ol_end - ol_start + 1;
+							bases_usable_dp[std::min(dp, 4)] += ol_end - ol_start + 1;
 							auto it = roi_cov[chr.num()].lowerBound(ol_start);
 							auto end = roi_cov[chr.num()].upperBound(ol_end);
 							while (it!=end)
@@ -381,7 +382,12 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	{
 		hist_max += 1000;
 	}
-	if(is_cfdna) hist_max = 20000;
+	// special parameter for cfDNA
+	if(is_cfdna)
+	{
+		hist_max = 20000;
+		hist_step = 500;
+	}
 	Histogram depth_dist(0, hist_max, hist_step);
 	QHashIterator<int, QMap<int, int> > it(roi_cov);
 	while(it.hasNext())
