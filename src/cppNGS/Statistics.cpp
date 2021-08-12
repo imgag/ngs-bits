@@ -139,7 +139,7 @@ QCCollection Statistics::variantList(VcfFile variants, bool filter)
 	return output;
 }
 
-QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_file, const QString& ref_file, int min_mapq)
+QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_file, const QString& ref_file, int min_mapq, bool is_cfdna)
 {
 	//check target region is merged/sorted and create index
 	if (!bed_file.isMergedAndSorted())
@@ -381,6 +381,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	{
 		hist_max += 1000;
 	}
+	if(is_cfdna) hist_max = 20000;
 	Histogram depth_dist(0, hist_max, hist_step);
 	QHashIterator<int, QMap<int, int> > it(roi_cov);
 	while(it.hasNext())
@@ -429,34 +430,45 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	addQcValue(output, "QC:2000050", "bases usable (MB)", (double)bases_usable / 1000000.0);
 	addQcValue(output, "QC:2000025", "target region read depth", avg_depth);
 
+	//cfDNA specific
 	QVector<double> cumsum_depth(5);
 	cumsum_depth.fill(0);
 	double cumsum_depth_running = 0;
-	for (int i=4; i>=0; --i)
+	if (is_cfdna)
 	{
-		cumsum_depth_running += (double)bases_usable_dp[i] / roi_bases;
-		cumsum_depth[i] = cumsum_depth_running;
-	}
+		for (int i=4; i>=0; --i)
+		{
+			cumsum_depth_running += (double)bases_usable_dp[i] / roi_bases;
+			cumsum_depth[i] = cumsum_depth_running;
+		}
 
-	for (int i=2; i<=4; ++i)
-	{
-		output.insert(QCValue("target region read depth, (min. " + QString::number(i) + "-fold duplication)",
-							  cumsum_depth[i],
-							  "Average coverage with at least " + QString::number(i) + "-fold duplication",
-							  //TODO accession
-							  "n/a"));
+		for (int i=2; i<=4; ++i)
+		{
+			addQcValue(output, "QC:200007" + QByteArray::number(i-1), "target region read depth " + QByteArray::number(i) + "-fold duplication", cumsum_depth[i]);
+//			output.insert(QCValue("target region read depth, (min. " + QString::number(i) + "-fold duplication)", cumsum_depth[i],
+//								  "Average coverage with at least " + QString::number(i) + "-fold duplication",  //TODO accession
+//								  "n/a"));
+		}
+		addQcValue(output, "QC:2000074", "raw target region read depth", (double)bases_usable_dp[0] / roi_bases);
+//		output.insert(QCValue("raw target region read depth",
+//							  (double)bases_usable_dp[0] / roi_bases,
+//							  "Raw average sequencing depth in target region.",
+//							  //TODO accession
+//							  "n/a"));
 	}
-
-		output.insert(QCValue("raw target region read depth",
-							  (double)bases_usable_dp[0] / roi_bases,
-							  "Raw average sequencing depth in target region.",
-							  //TODO accession
-							  "n/a"));
 
 	QVector<int> depths;
 	depths << 10 << 20 << 30 << 50 << 100 << 200 << 500;
 	QVector<QByteArray> accessions;
 	accessions << "QC:2000026" << "QC:2000027" << "QC:2000028" << "QC:2000029" << "QC:2000030" << "QC:2000031" << "QC:2000032";
+
+	if (is_cfdna)
+	{
+		//extend depth range for cfDNA samples
+		depths << 1000 << 2500 << 5000 << 7500 << 10000 << 15000;
+		accessions << "QC:2000065" << "QC:2000066" << "QC:2000067" << "QC:2000068" << "QC:2000069" << "QC:2000070";
+	}
+
 	for (int i=0; i<depths.count(); ++i)
 	{
 		double cov_bases = 0.0;
@@ -494,7 +506,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	}
 
 	//add fragment duplication distribution plot
-	if (dp_dist.binSum() != 0)
+	if (is_cfdna && dp_dist.binSum() != 0)
 	{
 		LinePlot plot3;
 		plot3.setXLabel("duplicates");
@@ -505,13 +517,14 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 
 		plotname = Helper::tempFileName(".png");
 		plot3.store(plotname);
+		addQcPlot(output, "QC:2000075", "fragment duplication distribution plot", plotname);
 		//TODO accession
-		output.insert(QCValue::Image("fragment duplication distribution plot", plotname, "Fragment duplication distribution plot.", "n/a"));
+//		output.insert(QCValue::Image("fragment duplication distribution plot", plotname, "Fragment duplication distribution plot.", "n/a"));
 		QFile::remove(plotname);
 	}
 
 	//add duplication depth distribution plot
-	if (dp_dist.binSum() != 0)
+	if (is_cfdna && dp_dist.binSum() != 0)
 	{
 		LinePlot plot4;
 		plot4.setXLabel("minimum number of duplicates");
@@ -528,8 +541,9 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 
 		plotname = Helper::tempFileName(".png");
 		plot4.store(plotname);
+		addQcPlot(output, "QC:2000076", "duplication-coverage plot", plotname);
 		//TODO accession
-		output.insert(QCValue::Image("duplication-coverage plot", plotname, "Coverge by duplication plot.", "n/a"));
+//		output.insert(QCValue::Image("duplication-coverage plot", plotname, "Coverge by duplication plot.", "n/a"));
 		QFile::remove(plotname);
 	}
 
