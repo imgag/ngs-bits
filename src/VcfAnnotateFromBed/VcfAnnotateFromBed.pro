@@ -9,6 +9,11 @@ QT       -= gui
 CONFIG   += console
 CONFIG   -= app_bundle
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    ChunkProcessor.cpp
 
 include("../app_cli.pri")
+
+HEADERS += \
+    Auxilary.h \
+    ChunkProcessor.h
