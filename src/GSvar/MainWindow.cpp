@@ -5095,13 +5095,11 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	//UCSC
 	QAction* a_ucsc = menu.addAction(QIcon("://Icons/UCSC.png"), "Open in UCSC browser");
 
-	//LOVD look up
-	sub_menu = menu.addMenu(QIcon("://Icons/LOVD.png"), "LOVD");
-	QAction* a_lovd_find = sub_menu->addAction("Find in LOVD");
+	//LOVD
+	QAction* a_lovd_find = menu.addAction(QIcon("://Icons/LOVD.png"), "Find in LOVD");
 
-
-	//ClinVar upload
-	sub_menu = menu.addMenu("ClinVar");
+	//ClinVar upload/search
+	sub_menu = menu.addMenu(QIcon("://Icons/ClinGen.png"), "ClinVar");
 	QAction* a_clinvar_find = sub_menu->addAction("Find in ClinVar");
 	QAction* a_clinvar_pub = sub_menu->addAction("Publish in ClinVar");
 	a_clinvar_pub->setEnabled(ngsd_user_logged_in);

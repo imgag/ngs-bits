@@ -938,7 +938,7 @@ private slots:
 
 		//default
 		FilterCnvCopyNumber filter;
-		filter.setString("cn", "1");
+		filter.setStringList("cn", QStringList() << "1");
 		filter.apply(cnvs, result);
 		I_EQUAL(result.countPassing(), 37);
 	}
@@ -952,7 +952,7 @@ private slots:
 
 		//default
 		FilterCnvCopyNumber filter;
-		filter.setString("cn", "4+");
+		filter.setStringList("cn", QStringList() << "4" << "5+");
 		filter.apply(cnvs, result);
 		I_EQUAL(result.countPassing(), 1);
 	}

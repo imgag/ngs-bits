@@ -3,7 +3,7 @@
 ### 2021_06-75 (11.08.21)
 - Added ClinVar upload of variants, removed LOVD upload.
 - Added option to show BAF histogram.
-- The repeat expansion table can be copied to the clipboard via the context menu now.
+- The repeat expansion table can be copied to the clipboard now.
 
 ### 2021_06-57 (03.08.21)
 - added cohort analysis dialog (NGSD > Variants > Cohort analysis)
