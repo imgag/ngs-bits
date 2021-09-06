@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xml" href="#stylesheet"?>
+<!DOCTYPE catelog [
+  <!ATTLIST xsl:stylesheet
+  id  ID  #REQUIRED>
+  ]>
+<qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
+  <runQuality ID="rq0001">
+    <metaDataParameter ID="md0004" name="source file" value="MappingQC_in4.bam" cvRef="QC" accession="QC:1000005"/>
+    <qualityParameter ID="qp0001" name="trimmed base percentage" description="Percentage of bases that were trimmed during to adapter or quality trimming." value="0.36" cvRef="QC" accession="QC:2000019"/>
+    <qualityParameter ID="qp0002" name="clipped base percentage" description="Percentage of the bases that are soft-clipped or hand-clipped during mapping." value="1.03" cvRef="QC" accession="QC:2000052"/>
+    <qualityParameter ID="qp0003" name="mapped read percentage" description="Percentage of reads that could be mapped to the reference genome." value="99.27" cvRef="QC" accession="QC:2000020"/>
+    <qualityParameter ID="qp0004" name="on-target read percentage" description="Percentage of reads that could be mapped to the target region." value="99.27" cvRef="QC" accession="QC:2000021"/>
+    <qualityParameter ID="qp0005" name="near-target read percentage" description="Percentage of reads that were mapped to the target region or near the target region (at most 250 bases away)." value="99.27" cvRef="QC" accession="QC:2000057"/>
+    <qualityParameter ID="qp0006" name="properly-paired read percentage" description="Percentage of properly paired reads (for paired-end reads only)." value="97.45" cvRef="QC" accession="QC:2000022"/>
+    <qualityParameter ID="qp0007" name="insert size" description="Average insert size (for paired-end reads only)." value="150.57" cvRef="QC" accession="QC:2000023"/>
+    <qualityParameter ID="qp0008" name="duplicate read percentage" description="Percentage of reads removed because they were duplicates (PCR, optical, etc)." value="n/a (no duplicates marked or duplicates removed during data analysis)" cvRef="QC" accession="QC:2000024"/>
+    <qualityParameter ID="qp0009" name="bases usable (MB)" description="Bases sequenced that are usable for variant calling (in megabases)." value="1.56" cvRef="QC" accession="QC:2000050"/>
+    <qualityParameter ID="qp0010" name="target region read depth" description="Average sequencing depth in target region." value="6505.90" cvRef="QC" accession="QC:2000025"/>
+    <qualityParameter ID="qp0011" name="target region read depth 2-fold duplication" description="Average coverage with at least 2-fold duplication" value="4668.92" cvRef="QC" accession="QC:2000071"/>
+    <qualityParameter ID="qp0012" name="target region read depth 3-fold duplication" description="Average coverage with at least 3-fold duplication" value="4568.45" cvRef="QC" accession="QC:2000072"/>
+    <qualityParameter ID="qp0013" name="target region read depth 4-fold duplication" description="Average coverage with at least 4-fold duplication" value="4531.60" cvRef="QC" accession="QC:2000073"/>
+    <qualityParameter ID="qp0014" name="raw target region read depth" description="Raw average sequencing depth in target region." value="242405.61" cvRef="QC" accession="QC:2000074"/>
+    <qualityParameter ID="qp0015" name="target region 10x percentage" description="Percentage of the target region that is covered at least 10-fold." value="100.00" cvRef="QC" accession="QC:2000026"/>
+    <qualityParameter ID="qp0016" name="target region 20x percentage" description="Percentage of the target region that is covered at least 20-fold." value="100.00" cvRef="QC" accession="QC:2000027"/>
+    <qualityParameter ID="qp0017" name="target region 30x percentage" description="Percentage of the target region that is covered at least 30-fold." value="100.00" cvRef="QC" accession="QC:2000028"/>
+    <qualityParameter ID="qp0018" name="target region 50x percentage" description="Percentage of the target region that is covered at least 50-fold." value="100.00" cvRef="QC" accession="QC:2000029"/>
+    <qualityParameter ID="qp0019" name="target region 100x percentage" description="Percentage of the target region that is covered at least 100-fold." value="100.00" cvRef="QC" accession="QC:2000030"/>
+    <qualityParameter ID="qp0020" name="target region 200x percentage" description="Percentage of the target region that is covered at least 200-fold." value="100.00" cvRef="QC" accession="QC:2000031"/>
+    <qualityParameter ID="qp0021" name="target region 500x percentage" description="Percentage of the target region that is covered at least 500-fold." value="100.00" cvRef="QC" accession="QC:2000032"/>
+    <qualityParameter ID="qp0022" name="target region 1000x percentage" description="Percentage of the target region that is covered at least 1000-fold." value="100.00" cvRef="QC" accession="QC:2000065"/>
+    <qualityParameter ID="qp0023" name="target region 2500x percentage" description="Percentage of the target region that is covered at least 2500-fold." value="100.00" cvRef="QC" accession="QC:2000066"/>
+    <qualityParameter ID="qp0024" name="target region 5000x percentage" description="Percentage of the target region that is covered at least 5000-fold." value="93.75" cvRef="QC" accession="QC:2000067"/>
+    <qualityParameter ID="qp0025" name="target region 7500x percentage" description="Percentage of the target region that is covered at least 7500-fold." value="46.25" cvRef="QC" accession="QC:2000068"/>
+    <qualityParameter ID="qp0026" name="target region 10000x percentage" description="Percentage of the target region that is covered at least 10000-fold." value="0.00" cvRef="QC" accession="QC:2000069"/>
+    <qualityParameter ID="qp0027" name="target region 15000x percentage" description="Percentage of the target region that is covered at least 15000-fold." value="0.00" cvRef="QC" accession="QC:2000070"/>
+    <qualityParameter ID="qp0028" name="target region half depth percentage" description="Percentage of the target region that is covered at least with half of the target region average depth. This is a measure of coverage uniformity." value="100.00" cvRef="QC" accession="QC:2000058"/>
+    <qualityParameter ID="qp0029" name="AT dropout" description="Illumina-style AT dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[0..50]." value="10.58" cvRef="QC" accession="QC:2000059"/>
+    <qualityParameter ID="qp0030" name="GC dropout" description="Illumina-style GC dropout metric. Calculated by taking each GC bin independently and calculating (%ref_at_gc - %reads_at_gc) and summing all positive values for GC=[50..100]." value="0.00" cvRef="QC" accession="QC:2000060"/>
+    <qualityParameter ID="qp0036" name="SNV allele frequency deviation" description="Percentage of common SNPs that deviate from the expected allele frequency (i.e. 0.0, 0.5 or 1.0 for diploid organisms)." value="n/a" cvRef="QC" accession="QC:2000051"/>
+    <attachment ID="qp0031" name="depth distribution plot" description="Plots the depth of coverage against the percentage of the target region coverated at the specific depth." cvRef="QC" accession="QC:2000037">
+    </attachment>
+    <attachment ID="qp0032" name="insert size distribution plot" description="Plots the paired-end insert size against the number of reads with the specific insert size." cvRef="QC" accession="QC:2000038">
+    </attachment>
+    <attachment ID="qp0033" name="fragment duplication distribution plot" description="Fragment duplication distribution plot." cvRef="QC" accession="QC:2000075">
+    </attachment>
+    <attachment ID="qp0034" name="duplication-coverage plot" description="Coverge by duplication plot." cvRef="QC" accession="QC:2000076">
+    </attachment>
+    <attachment ID="qp0035" name="GC bias plot" description="Plots the percentage of target regions and reads per GC bin [0-100]." cvRef="QC" accession="QC:2000061">
+    </attachment>
+  </runQuality>
+  <cvList>
+    <cv uri="https://raw.githubusercontent.com/imgag/ngs-bits/master/src/cppNGS/Resources/qcML.obo" ID="QC" fullName="QC" version="0.1"/>
+  </cvList>
+  <xsl:stylesheet id="stylesheet" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ns="http://www.prime-xs.eu/ms/qcml" xmlns="">
+      <xsl:template match="/">
+          <html>
+            <style type="text/css">
+            table {border: 1px solid #bbb; border-collapse: collapse; }
+            td {border: 1px solid #bbb; padding: 1px 2px 1px 2px; vertical-align: top; }
+            th {border: 1px solid #bbb; padding: 1px 2px 1px 2px; text-align: left; background-color: #eee; }
+            </style>
+              <body>
+                  <h2>Meta data:</h2>
+                  <table>
+                    <tr>
+                      <th>Accession</th><th>Name</th><th>Value</th>
+                    </tr>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:metaDataParameter">
+                        <tr>
+                          <td><xsl:value-of select="@accession"/></td>
+                          <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                          <td>
+                            <xsl:choose>
+                              <xsl:when test="@accession = 'QC:1000006'"><a href="{@uri}" title="{@uri}" target="blank"><xsl:value-of select="@value"/></a></xsl:when>
+                              <xsl:otherwise><xsl:value-of select="@value"/></xsl:otherwise>
+                            </xsl:choose>
+                          </td>
+                        </tr>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                  </table>
+                  <h2>Quality parameters:</h2>
+                  <table>
+                    <tr>
+                      <th>Accession</th><th>Name</th><th>Value</th>
+                    </tr>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:qualityParameter">
+                        <tr>
+                          <td><xsl:value-of select="@accession"/></td>
+                          <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                          <td><xsl:value-of select="@value"/></td>
+                        </tr>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                    <xsl:for-each select="ns:qcML/ns:runQuality">
+                      <xsl:for-each select="ns:attachment">
+                          <xsl:choose>
+                              <xsl:when test="ns:binary">
+                                <tr>
+                                  <td><xsl:value-of select="@accession"/></td>
+                                  <td><span title="{@description}"><xsl:value-of select="@name"/></span></td>
+                                  <td>
+                                    <img>
+                                      <xsl:attribute name="src">
+                                        data:image/png;base64,<xsl:value-of select="ns:binary"/>
+                                      </xsl:attribute>
+                                    </img>
+                                  </td>
+                                </tr>
+                              </xsl:when>
+                          </xsl:choose>
+                      </xsl:for-each>
+                    </xsl:for-each>
+                  </table>
+              </body>
+          </html>
+      </xsl:template>
+  </xsl:stylesheet>
+</qcML>

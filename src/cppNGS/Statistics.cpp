@@ -198,7 +198,6 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	int al_mapped = 0;
 	int al_ontarget = 0;
 	int al_neartarget = 0;
-	int al_total_raw = 0;
 	int al_ontarget_raw = 0;
 	int al_dup = 0;
 	int al_proper_paired = 0;
@@ -208,8 +207,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	double insert_size_sum = 0;
 	Histogram insert_dist(0, 999, 5);
 	long long bases_usable = 0;
-	//usable bases by duplication level
-	QVector<long long> bases_usable_dp(5);
+	QVector<long long> bases_usable_dp(5); //usable bases by duplication level
+	long long bases_usable_raw = 0; //usable bases in BAM before deduplication
 	bases_usable_dp.fill(0);
 	Histogram dp_dist(0.5, 4.5, 1);
 	int max_length = 0;
@@ -278,6 +277,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 							const int ol_end = std::min(bed_file[index].end(), end_pos);
 							bases_usable += ol_end - ol_start + 1;
 							bases_usable_dp[std::min(dp, 4)] += ol_end - ol_start + 1;
+							bases_usable_raw += (ol_end - ol_start + 1)  * (dp + 1);
 							auto it = roi_cov[chr.num()].lowerBound(ol_start);
 							auto end = roi_cov[chr.num()].upperBound(ol_end);
 							while (it!=end)
@@ -451,16 +451,8 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		for (int i=2; i<=4; ++i)
 		{
 			addQcValue(output, "QC:200007" + QByteArray::number(i-1), "target region read depth " + QByteArray::number(i) + "-fold duplication", cumsum_depth[i]);
-//			output.insert(QCValue("target region read depth, (min. " + QString::number(i) + "-fold duplication)", cumsum_depth[i],
-//								  "Average coverage with at least " + QString::number(i) + "-fold duplication",  //TODO accession
-//								  "n/a"));
 		}
-		addQcValue(output, "QC:2000074", "raw target region read depth", (double)bases_usable_dp[0] / roi_bases);
-//		output.insert(QCValue("raw target region read depth",
-//							  (double)bases_usable_dp[0] / roi_bases,
-//							  "Raw average sequencing depth in target region.",
-//							  //TODO accession
-//							  "n/a"));
+		addQcValue(output, "QC:2000074", "raw target region read depth", (double)bases_usable_raw / roi_bases);
 	}
 
 	QVector<int> depths;
@@ -548,8 +540,6 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		plotname = Helper::tempFileName(".png");
 		plot4.store(plotname);
 		addQcPlot(output, "QC:2000076", "duplication-coverage plot", plotname);
-		//TODO accession
-//		output.insert(QCValue::Image("duplication-coverage plot", plotname, "Coverge by duplication plot.", "n/a"));
 		QFile::remove(plotname);
 	}
 
