@@ -14,12 +14,12 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-zlib mingw-w64-x86_64-bzip2 mingw-w64-x86_64-xz mingw-w64-x86_64-curl mingw-w64-x86_64-wget mingw-w64-x86_64-dlfcn mingw-w64-x86_64-qt mingw-w64-x86_64-libmariadbclient mingw-w64-x86_64-python mingw-w64-x86_64-python-numpy mingw-w64-x86_64-python-matplotlib
+          install: git base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-zlib mingw-w64-x86_64-bzip2 mingw-w64-x86_64-xz mingw-w64-x86_64-curl mingw-w64-x86_64-dlfcn mingw-w64-x86_64-qt5 mingw-w64-x86_64-libmariadbclient mingw-w64-x86_64-python mingw-w64-x86_64-python-numpy mingw-w64-x86_64-python-matplotlib
 
       - name: Update submodules
         run: git submodule update --recursive --init
       - name: Download htslib
-        run: wget https://github.com/samtools/htslib/releases/download/1.13/htslib-1.13.tar.bz2
+        run: curl https://github.com/samtools/htslib/releases/download/1.13/htslib-1.13.tar.bz2 --location --output htslib-1.13.tar.bz2
       - name: Unpack htslib
         run: tar -xjf htslib-1.13.tar.bz2
       - name: Build htslib with libcurl support
