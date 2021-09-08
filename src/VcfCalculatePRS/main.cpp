@@ -102,7 +102,7 @@ public:
 				}
 			}
 
-			//iterate over all varaints in PRS
+			//iterate over all variants in PRS
 			for(int i = 0; i < prs_variant_list.count(); ++i)
 			{	
 				const VcfLine& prs_variant = prs_variant_list[i];
@@ -114,7 +114,7 @@ public:
 				}
 
 				int allele_count = 0;
-				//get all matching varaints at this position
+				//get all matching variants at this position
 				QByteArrayList matching_lines = sample_vcf.getMatchingLines(prs_variant.chr(), prs_variant.start(), prs_variant.end(), true);
 				QByteArrayList matching_variants;
 				foreach(const QByteArray& line, matching_lines)

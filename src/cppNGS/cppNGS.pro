@@ -119,6 +119,9 @@ HEADERS += BedFile.h \
     SomaticCnvInterpreter.h \
     PrsTable.h \
     RtfDocument.h \
+    Graph.h \
+    GraphNode.h \
+    GraphEdge.h \
     GenomeBuild.h
 
 RESOURCES += \

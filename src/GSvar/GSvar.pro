@@ -7,6 +7,7 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
+    CfDNAPanelBatchImport.cpp \
     DatabaseServiceRemote.cpp \
     GlobalServiceProvider.cpp \
     MainWindow.cpp \
@@ -34,7 +35,6 @@ SOURCES += main.cpp\
     NGSDReannotationDialog.cpp \
     SmallVariantSearchWidget.cpp \
     PhenotypeSelectionWidget.cpp \
-    LovdUploadDialog.cpp \
     RohWidget.cpp \
     DiagnosticStatusWidget.cpp \
     DiagnosticStatusOverviewDialog.cpp \
@@ -97,8 +97,14 @@ SOURCES += main.cpp\
     ExpressionDataWidget.cpp \
     GapClosingDialog.cpp \
     DatabaseServiceLocal.cpp \
-    NGSDReplicationWidget.cpp
+    NGSDReplicationWidget.cpp \
+    CohortAnalysisWidget.cpp \
+    cfDNARemovedRegions.cpp \
+    CfdnaAnalysisDialog.cpp \
+    ClinvarUploadDialog.cpp
+
 HEADERS += MainWindow.h \
+    CfDNAPanelBatchImport.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
@@ -125,7 +131,6 @@ HEADERS += MainWindow.h \
     NGSDReannotationDialog.h \
     SmallVariantSearchWidget.h \
     PhenotypeSelectionWidget.h \
-    LovdUploadDialog.h \
     RohWidget.h \
     DiagnosticStatusWidget.h \
     DiagnosticStatusOverviewDialog.h \
@@ -189,8 +194,14 @@ HEADERS += MainWindow.h \
     GapClosingDialog.h \
     DatabaseService.h \
     DatabaseServiceLocal.h \
-    NGSDReplicationWidget.h
+    NGSDReplicationWidget.h \
+    CohortAnalysisWidget.h \
+    cfDNARemovedRegions.h \
+    CfdnaAnalysisDialog.h \
+    ClinvarUploadDialog.h
+
 FORMS    += MainWindow.ui \
+    CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     RefGenDownloadDialog.ui \
     ReportDialog.ui \
@@ -213,7 +224,6 @@ FORMS    += MainWindow.ui \
     NGSDReannotationDialog.ui \
     SmallVariantSearchWidget.ui \
     PhenotypeSelectionWidget.ui \
-    LovdUploadDialog.ui \
     RohWidget.ui \
     DiagnosticStatusWidget.ui \
     DiagnosticStatusOverviewDialog.ui \
@@ -268,7 +278,11 @@ FORMS    += MainWindow.ui \
     AlleleBalanceCalculator.ui \
     ExpressionDataWidget.ui \
     GapClosingDialog.ui \
-    NGSDReplicationWidget.ui
+    NGSDReplicationWidget.ui \
+    CohortAnalysisWidget.ui \
+    cfDNARemovedRegions.ui \
+    CfdnaAnalysisDialog.ui \
+    ClinvarUploadDialog.ui
     include("../app_gui.pri")
 
 #include NGSD library

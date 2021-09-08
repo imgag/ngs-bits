@@ -1,5 +1,5 @@
 ### VariantFilterAnnotations tool help
-	VariantFilterAnnotations (2021_03-100-g09f25a25)
+	VariantFilterAnnotations (2021_06-48-gfc326851)
 	
 	Filter a variant list in GSvar format based on variant annotations.
 	
@@ -60,7 +60,7 @@
 	Gene inheritance                   Filter based on gene inheritance.
 	                                   Parameters:
 	                                     modes - Inheritance mode(s) [valid=AR,AD,XLR,XLD,MT] [non-empty]
-	Genes                              Filter for that preserves a gene set.
+	Genes                              Filter that preserves a gene set.
 	                                   Parameters:
 	                                     genes - Gene set [non-empty]
 	Genotype affected                  Filter for genotype(s) of the 'affected' sample(s).
@@ -79,10 +79,17 @@
 	                                   Parameters:
 	                                     action - Action to perform [default=FILTER] [valid=REMOVE,FILTER]
 	Predicted pathogenic               Filter for variants predicted to be pathogenic.
-	                                   Prediction scores included are: phyloP>=1.6, Sift=D, PolyPhen=D, fathmm-MKL>=0.5, CADD>=20 and REVEL>=0.5.
+	                                   Pathogenicity predictions used by this filter are: phyloP, Sift, PolyPhen, fathmm-MKL, CADD and REVEL.
 	                                   Parameters:
 	                                     min - Minimum number of pathogenic predictions [default=1] [min=1]
 	                                     action - Action to perform [default=FILTER] [valid=KEEP,FILTER]
+	                                     skip_high_impact - Do not apply this filter to variants with impact 'HIGH'. [default=false]
+	                                     cutoff_cadd - Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0. [default=20] [min=0]
+	                                     cutoff_revel - Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0. [default=0.9] [min=0] [max=1]
+	                                     cutoff_fathmm_mkl - Minimum fathmm-MKL score for a pathogenic prediction. The fathmm-MKL score is not used if set to 0.0. [default=0.9] [min=0] [max=1]
+	                                     cutoff_phylop - Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0. [default=1.6]
+	                                     ignore_sift - Do not used the Sift score. If unset, Sift consequence 'D' is considered pathogenic. [default=false]
+	                                     ignore_polyphen - Do not used the PolyPhen score. If unset, PolyPhen consequence 'D' is considered pathogenic. [default=false]
 	Regulatory                         Filter for regulatory variants, i.e. the 'regulatory' column is not empty.
 	                                   Parameters:
 	                                     action - Action to perform [default=FILTER] [valid=REMOVE,FILTER]
@@ -134,7 +141,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VariantFilterAnnotations changelog
-	VariantFilterAnnotations 2021_03-100-g09f25a25
+	VariantFilterAnnotations 2021_06-48-gfc326851
 	
 	2018-07-30 Replaced command-line parameters by INI file and added many new filters.
 	2017-06-14 Refactoring of genotype-based filters: now also supports multi-sample filtering of affected and control samples.

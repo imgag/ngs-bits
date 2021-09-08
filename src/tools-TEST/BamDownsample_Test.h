@@ -12,13 +12,17 @@ private slots:
 		IS_TRUE(QFile::exists("out/BamDownsample_out1.bam"));
 
         //The random number generator behaves differently under Linux/OSX/Windows => we need separate expected test results
-		#ifdef _WIN32
+		if (Helper::isWindows())
+		{
 			COMPARE_FILES("out/BamDownsample_Test_line11.log", TESTDATA("data_out/BamDownsample_out1_Windows.txt"));
-        #elif __APPLE__
-            COMPARE_FILES("out/BamDownSample_Test_line11.log", TESTDATA("data_out/BamDownSample_out1_OSX.txt"));
-		#else
+		}
+		else if (Helper::isMacOS())
+		{
+			COMPARE_FILES("out/BamDownSample_Test_line11.log", TESTDATA("data_out/BamDownSample_out1_OSX.txt"));
+		}
+		else
+		{
 			COMPARE_FILES("out/BamDownsample_Test_line11.log", TESTDATA("data_out/BamDownsample_out1_Linux.txt"));
-		#endif
-
+		}
 	}
 };

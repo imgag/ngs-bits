@@ -4,8 +4,11 @@
 #include "BedFile.h"
 #include "ChromosomalIndex.h"
 #include "VcfFile.h"
+#include "Auxilary.h"
+#include "ChunkProcessor.h"
 #include <QFile>
 #include <QSharedPointer>
+#include <QThreadPool>
 
 class ConcreteTool
 		: public ToolBase
@@ -34,12 +37,16 @@ public:
 		addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 		addString("sep", "Separator used if there are several matches for one variant.", true, ":");
+		addInt("threads", "The number of threads used to read, process and write files.", true, 1);
+		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
 
+		changeLog(2021,  8, 24, "Added multithread support.");
 		changeLog(2021,  6, 15, "Added 'sep' parameter.");
 		changeLog(2019, 12,  6, "Added URL encoding for INFO values.");
 		changeLog(2017,  3, 14, "Initial implementation.");
 	}
 
+	//TODO multi-threaded implementation.
 	virtual void main()
 	{
 		//init
@@ -48,7 +55,8 @@ public:
 		QByteArray bed = getInfile("bed").toLatin1();
 		QByteArray name = getString("name").toLatin1().trimmed();
 		QByteArray sep = getString("sep").toLatin1().trimmed();
-		char tab = '\t';
+		int block_size = getInt("block_size");
+		int threads = getInt("threads");
 
 		//load BED file
 		BedFile bed_data;
@@ -78,72 +86,94 @@ public:
 		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 
+
+		QThreadPool analysis_pool;
+		analysis_pool.setMaxThreadCount(threads);
+
+		//QByteArrayList data;
+		int current_chunk = 0;
+		int vcf_line_idx = 0;
+
+		// create job pools
+		QList<AnalysisJob> job_pool;
 		while(!in_p->atEnd())
 		{
-			QByteArray line = in_p->readLine();
-			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
+			AnalysisJob job = AnalysisJob();
+			job.chunk_id = current_chunk;
+			job.status = TO_BE_PROCESSED;
 
-			//skip empty lines
-			if (line.trimmed().isEmpty()) continue;
-
-			//write out headers unchanged
-			if (line.startsWith('#'))
+			while(vcf_line_idx < block_size && !in_p->atEnd())
 			{
-				//append header line for new annotation
-				if (line.startsWith("#CHROM"))
+				job.current_chunk.append(QByteArray(in_p->readLine()));
+				vcf_line_idx++;
+			}
+
+			vcf_line_idx = 0;
+			++current_chunk;
+
+			job_pool << job;
+		}
+
+		in_p->close();
+
+		// start all created jobs
+		for (int i = 0; i < job_pool.size(); ++i)
+		{
+			analysis_pool.start(new ChunkProcessor(job_pool[i], name, bed_data, bed_index, bed, sep));
+		}
+
+
+		// write analysed chunks to file
+		int write_chunk = 0;
+		int done = 0;
+
+		while(done < job_pool.count())
+		{
+			done=0;
+			for (int j=0; j<job_pool.count(); ++j)
+			{
+				AnalysisJob& job = job_pool[j];
+
+				switch(job.status)
 				{
-					out_p->write("##INFO=<ID=" + name + ",Number=.,Type=String,Description=\"Annotation from " + bed + " delimited by '" + sep + "'\">\n");
-				}
+				case DONE:
+					++done;
+					break;
 
-				out_p->write(line);
-				out_p->write("\n");
-				continue;
-			}
-
-			//split line and extract variant infos
-			QList<QByteArray> parts = line.split('\t');
-			if (parts.count()<VcfFile::MIN_COLS) THROW(FileParseException, "VCF line with too few columns: " + line);
-			Chromosome chr = parts[0];
-			bool ok = false;
-			int start = parts[1].toInt(&ok);
-			if (!ok) THROW(FileParseException, "Could not convert VCF variant position '" + parts[1] + "' to integer!");
-			int end = start + parts[3].length() - 1; //length of ref
-
-			//get annotation data
-			QByteArrayList annos;
-			QVector<int> indices = bed_index.matchingIndices(chr, start, end);
-			foreach(int index, indices)
-			{
-				annos << bed_data[index].annotations()[0];
-			}
-
-			//write output line
-			if (annos.isEmpty())
-			{
-				out_p->write(line);
-			}
-			else
-			{
-				for(int i=0; i<parts.count(); ++i)
-				{
-					if (i!=0) out_p->write(&tab, 1);
-					if (i==7)
+				case TO_BE_WRITTEN:
+					if (job.chunk_id == write_chunk)
 					{
-						if (!parts[7].isEmpty())
+						foreach(const QByteArray& line, job.current_chunk_processed)
 						{
-							out_p->write(parts[7] + ";");
+							out_p -> write(line);
 						}
-						out_p->write(name + "=" + VcfFile::encodeInfoValue(annos.join(sep)).toUtf8());
+
+						++write_chunk;
+						job.status = DONE;
+					}
+					break;
+
+				case ERROR:
+					if (job.error_message.startsWith("FileParseException\t"))
+					{
+						THROW(FileParseException, job.error_message.split("\t").at(1));
+					}
+					else if (job.error_message.startsWith("FileAccessException\t"))
+					{
+						THROW(FileAccessException, job.error_message.split("\t").at(1));
 					}
 					else
 					{
-						out_p->write(parts[i]);
+						THROW(Exception, job.error_message);
 					}
+					break;
+
+				default:
+					break;
 				}
 			}
-			out_p->write("\n");
 		}
-    }
+	}
 
 };
 

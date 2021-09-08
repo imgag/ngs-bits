@@ -44,13 +44,11 @@ public:
 	void updateNGSDSupport();
 	///Returns 'nobr' paragraph start for Qt tooltips
 	static QString nobr();
-	///Upload variant to LOVD
-	void uploadtoLovd(int variant_index, int variant_index2 = -1);
+	///Upload variant to Clinvar
+	void uploadToClinvar(int variant_index);
 
 	///Context menu for single variant
 	void contextMenuSingleVariant(QPoint pos, int index);
-	///Context menu for two variants
-	void contextMenuTwoVariants(QPoint pos, int index1, int index2);
 
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
@@ -122,12 +120,14 @@ public slots:
 	void on_actionImportSamples_triggered();
 	void on_actionImportProcessedSamples_triggered();
 	void on_actionImportSampleRelations_triggered();
+	void on_actionImportCfDNAPanels_triggered();
 	void on_actionMidClashDetection_triggered();
 	void on_actionVariantValidation_triggered();
 	void on_actionChangePassword_triggered();
 	void on_actionStudy_triggered();
 	void on_actionGaps_triggered();
 	void on_actionReplicateNGSD_triggered();
+	void on_actionCohortAnalysis_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();
@@ -199,6 +199,8 @@ public slots:
 	void on_actionShowCfDNAPanel_triggered();
 	///Open disease course dialog (cfDNA)
 	void on_actionCfDNADiseaseCourse_triggered();
+	/// Open dialog to add excluded regions
+	void on_actionCfDNAAddExcludedRegions_triggered();
 	///Open expression data Widget
 	void on_actionExpressionData_triggered();
 	///Open RNA fusion widget
@@ -207,8 +209,6 @@ public slots:
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
 	void openVariantListFolder();
-	///Upload variant that is not part of the variant list to LOVD.
-	void on_actionPublishVariantInLOVD_triggered();
 	///Batch export for ClinVar
 	void on_actionBatchExportClinVar_triggered();
 	///Re-analyze current sample/case
@@ -292,6 +292,8 @@ public slots:
 	void showAfHistogram_filtered();
 	///Shows a CN histogram
 	void showCnHistogram();
+	///Shows a BAF histogram
+	void showBafHistogram();
 	///Shows an allele frequency histogram
 	void showAfHistogram(bool filtered);
 	///Show encryption helper

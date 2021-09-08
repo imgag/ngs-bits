@@ -70,3 +70,6 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 		<td>libmysql.dll</td>
 	</tr>
 </table>
+
+## Alternative build possibility (optional)
+In case you want to build [htslib](https://github.com/samtools/htslib) or some other dependencies with specific parameters (e.g. to enable HTTPS support) you may want to check out the turorial on [how to make a Windows build using MSYS2 and MinGW](install_msys2.md)

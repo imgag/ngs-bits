@@ -13,7 +13,12 @@ DiseaseCourseWidget::DiseaseCourseWidget(const QString& tumor_sample_name, QWidg
 {
 	ui_->setupUi(this);
 
-	if (!LoginManager::active()) THROW(DatabaseException, "Error: DiseaseCourseWidget requires access to the NGSD!");
+	// abort if no connection to NGSD
+	if (!LoginManager::active())
+	{
+		GUIHelper::showMessage("No connection to the NGSD!", "You need access to the NGSD to view the cfDNA samples!");
+		this->close();
+	}
 
 	//link signal and slots
 	connect(ui_->vars,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(VariantDoubleClicked(QTableWidgetItem*)));
@@ -33,8 +38,9 @@ void DiseaseCourseWidget::VariantDoubleClicked(QTableWidgetItem* item)
 {
 	if (item==nullptr) return;
 	int row = item->row();
+	int variant_idx = ui_->vars->verticalHeaderItem(row)->data(Qt::UserRole).toInt();
 
-	const VcfLine& vcf_line = ref_column_.variants[row];
+	const VcfLine& vcf_line = ref_column_.variants[variant_idx];
 	QString coords = vcf_line.chr().strNormalized(true) + ":" + QString::number(vcf_line.start());
 	GlobalServiceProvider::gotoInIGV(coords, true);
 
@@ -87,12 +93,20 @@ void DiseaseCourseWidget::loadVariantLists()
 	{
 		processing_systems.insert(db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(db_.processedSampleName(cf_dna_ps_id))).name_short);
 	}
-	if (processing_systems.size() > 1) THROW(ArgumentException, "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
+	if (processing_systems.size() > 1)
+	{
+		GUIHelper::showMessage("Multiple processing systems", "Multiple processing systems used for cfDNA analysis. Cannot compare samples!");
+		this->close();
+	}
 	QString system_name = processing_systems.toList().at(0);
 
 	// load cfDNA panel
-	QList<CfdnaPanelInfo> cfdna_panels = db_.cfdnaPanelInfo(db_.processedSampleId(tumor_sample_name_), QString::number(db_.processingSystemId(system_name)));
-	if (cfdna_panels.size() < 1) THROW(DatabaseException, "No matchin cfDNA panel for sample " + tumor_sample_name_ + " found in NGSD!");
+	QList<CfdnaPanelInfo> cfdna_panels = db_.cfdnaPanelInfo(db_.processedSampleId(tumor_sample_name_), db_.processingSystemId(system_name));
+	if (cfdna_panels.size() < 1)
+	{
+		GUIHelper::showMessage("No cfDNA sample found", "No matchin cfDNA panel for sample " + tumor_sample_name_ + " found in NGSD!");
+		this->close();
+	}
 	CfdnaPanelInfo cfdna_panel_info  = cfdna_panels.at(0);
 
 
@@ -170,26 +184,32 @@ void DiseaseCourseWidget::createTableView()
 		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(cf_dna_column.name + "\n(" + cf_dna_column.date.toString("dd.MM.yyyy") + ")"));
 	}
 
-
+	int row_idx = 0;
 	for (int i=0; i<ref_column_.variants.count(); ++i)
 	{
 		const VcfLine& variant = ref_column_.variants[i];
-		col_idx = 0;
+		//skip ID SNPs
+		if (variant.id().contains("ID")) continue;
 
-		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
-		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.start())));
-		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.ref()));
-		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.alt(0)));
-		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.info("gene", false)));
-		ui_->vars->setItem(i, col_idx, GUIHelper::createTableItem(variant.info("coding_and_splicing", false)));
-		ui_->vars->item(i, col_idx++)->setToolTip(variant.info("coding_and_splicing", false).replace(",", "\n"));
+		col_idx = 0;
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.chr().str()));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QByteArray::number(variant.start())));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.ref()));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.alt(0)));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.info("gene", false)));
+		ui_->vars->setItem(row_idx, col_idx, GUIHelper::createTableItem(variant.info("coding_and_splicing", false)));
+		ui_->vars->item(row_idx, col_idx++)->setToolTip(variant.info("coding_and_splicing", false).replace(",", "\n"));
+
+		//store variant index (e.g. for IGV)
+		ui_->vars->setVerticalHeaderItem(row_idx, new QTableWidgetItem());
+		ui_->vars->verticalHeaderItem(row_idx)->setData(Qt::UserRole, i);
 
 		// show tumor af of ref
-		ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem(variant.info("tumor_af")));
+		ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variant.info("tumor_af")));
 
 		//rightAlign number columns
-		ui_->vars->item(i, 1)->setTextAlignment(Qt::AlignRight);
-		ui_->vars->item(i, 6)->setTextAlignment(Qt::AlignRight);
+		ui_->vars->item(row_idx, 1)->setTextAlignment(Qt::AlignRight);
+		ui_->vars->item(row_idx, 6)->setTextAlignment(Qt::AlignRight);
 
 		// get tumor af for each cfDNA sample
 		QByteArray key = variant.variantToString().toUtf8();
@@ -199,10 +219,24 @@ void DiseaseCourseWidget::createTableView()
 			if (cf_dna_column.lookup_table.contains(key))
 			{
 				const VcfLine* cf_dna_variant = cf_dna_column.lookup_table.value(key);
-				double alt_count = Helper::toDouble(cf_dna_variant->formatValueFromSample("Alt_Count"), "Alt_Count", QString::number(i));
+				double alt_count;
 				double depth = Helper::toDouble(cf_dna_variant->formatValueFromSample("DP"), "DP", QString::number(i));
-				double p_value = Helper::toDouble(cf_dna_variant->info("PValue"), "PValue", QString::number(i));
-				double cf_dna_af = (depth != 0)? alt_count/depth : 0.0;
+				double p_value;
+				double cf_dna_af;
+				if (cf_dna_variant->formatKeys().contains("AC"))
+				{
+					// new umiVar format
+					alt_count =
+					p_value = Helper::toDouble(cf_dna_variant->formatValueFromSample("Pval"), "Pval", QString::number(i));
+					cf_dna_af = Helper::toDouble(cf_dna_variant->formatValueFromSample("AF"), "AC", QString::number(i));
+				}
+				else
+				{
+					// old umiVar format
+					alt_count = Helper::toDouble(cf_dna_variant->formatValueFromSample("Alt_Count"), "Alt_Count", QString::number(i));
+					p_value = Helper::toDouble(cf_dna_variant->info("PValue"), "PValue", QString::number(i));
+					cf_dna_af = (depth != 0)? alt_count/depth : 0.0;
+				}
 
 				// generate table item with tool tip
 				QTableWidgetItem* cfdna_item = GUIHelper::createTableItem(QString::number(cf_dna_af, 'f', 5));
@@ -210,15 +244,18 @@ void DiseaseCourseWidget::createTableView()
 									+ "\nDepth:     \t" + QString::number(depth, 'f', 0).rightJustified(7, ' ')
 									+ "\np-value:   \t" + QString::number(p_value, 'f', 4).rightJustified(6, ' '));
 				cfdna_item->setTextAlignment(Qt::AlignRight);
-				ui_->vars->setItem(i, col_idx++, cfdna_item);
+				ui_->vars->setItem(row_idx, col_idx++, cfdna_item);
 			}
 			else
 			{
-				ui_->vars->setItem(i, col_idx++, GUIHelper::createTableItem("not detected"));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem("not detected"));
 			}
 		}
 
+		row_idx++;
+
 	}
+	ui_->vars->setRowCount(row_idx);
 
 	// optimize cell sizes
 	GUIHelper::resizeTableCells(ui_->vars, 250);

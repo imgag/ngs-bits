@@ -938,7 +938,7 @@ private slots:
 
 		//default
 		FilterCnvCopyNumber filter;
-		filter.setString("cn", "1");
+		filter.setStringList("cn", QStringList() << "1");
 		filter.apply(cnvs, result);
 		I_EQUAL(result.countPassing(), 37);
 	}
@@ -952,7 +952,7 @@ private slots:
 
 		//default
 		FilterCnvCopyNumber filter;
-		filter.setString("cn", "4+");
+		filter.setStringList("cn", QStringList() << "4" << "5+");
 		filter.apply(cnvs, result);
 		I_EQUAL(result.countPassing(), 1);
 	}
@@ -1662,6 +1662,16 @@ private slots:
 			//compare
 			IS_TRUE(filter_cascade==filter_cascade2);
 		}
+	}
+
+	void load_bug_empty_enum()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterCascade filter;
+		filter.load(TESTDATA("data_in/FilterCascade_bug_empty_enum.txt"));
+		filter.apply(vl, true);
 	}
 
 };

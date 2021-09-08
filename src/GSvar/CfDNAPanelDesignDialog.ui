@@ -17,7 +17,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>Select all varaints which should be used on the cfDNA panel and click &quot;OK&quot; to store the panel.</string>
+      <string>Select all variants which should be used on the cfDNA panel and click &quot;OK&quot; to store the panel.</string>
      </property>
     </widget>
    </item>
@@ -121,7 +121,7 @@
    <item>
     <widget class="QCheckBox" name="cb_sample_identifier">
      <property name="text">
-      <string>Add Sample identifier (KASP_set2)</string>
+      <string>Add Sample identifier (KASP_set2 + ID SNPs from processing system)</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -157,6 +157,36 @@
       <widget class="QLabel" name="l_error_message">
        <property name="text">
         <string>Error: A cfDNA panel for the selected processing system already exists. You can only create one panel per system.</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="b_export_panel">
+       <property name="minimumSize">
+        <size>
+         <width>155</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Export cfDNA panel to file</string>
        </property>
       </widget>
      </item>

@@ -146,21 +146,18 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	}
 
 	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count << endl;
-	QSet<int> selected_small;
-	QSet<int> selected_cnvs;
-	QSet<int> selected_svs;
-	auto it = data_.report_settings.selected_variants.cbegin();
-	while (it!=data_.report_settings.selected_variants.cend())
+	selected_small_.clear();
+	selected_cnvs_.clear();
+	selected_svs_.clear();
+	for (auto it = data_.report_settings.selected_variants.cbegin(); it!=data_.report_settings.selected_variants.cend(); ++it)
 	{
-		if (it->first==VariantType::SNVS_INDELS) selected_small << it->second;
-		if (it->first==VariantType::CNVS) selected_cnvs << it->second;
-		if (it->first==VariantType::SVS) selected_svs << it->second;
-
-		++it;
+		if (it->first==VariantType::SNVS_INDELS) selected_small_ << it->second;
+		if (it->first==VariantType::CNVS) selected_cnvs_ << it->second;
+		if (it->first==VariantType::SVS) selected_svs_ << it->second;
 	}
-	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << selected_small.count() << endl;
-	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnvs.count() << endl;
-	stream << "<br />" << trans("Anzahl SVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_svs.count() << endl;
+	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << selected_small_.count() << endl;
+	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnvs_.count() << endl;
+	stream << "<br />" << trans("Anzahl SVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_svs_.count() << endl;
 	stream << "</p>" << endl;
 
 	//output: selected variants
@@ -180,7 +177,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
-		if (!selected_small.contains(var_conf.variant_index)) continue;
+		if (!selected_small_.contains(var_conf.variant_index)) continue;
 
 		const Variant& variant = data_.variants[var_conf.variant_index];
 
@@ -254,7 +251,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::CNVS) continue;
-		if (!selected_cnvs.contains(var_conf.variant_index)) continue;
+		if (!selected_cnvs_.contains(var_conf.variant_index)) continue;
 
 		const CopyNumberVariant& cnv = data_.cnvs[var_conf.variant_index];
 
@@ -284,7 +281,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SVS) continue;
-		if (!selected_svs.contains(var_conf.variant_index)) continue;
+		if (!selected_svs_.contains(var_conf.variant_index)) continue;
 
 		const BedpeLine& sv = data_.svs[var_conf.variant_index];
 
@@ -573,6 +570,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
+		if (!selected_small_.contains(var_conf.variant_index)) continue;
 		if (var_conf.report_type!=data_.report_settings.report_type) continue;
 
 		const Variant& variant = data_.variants[var_conf.variant_index];
@@ -763,14 +761,19 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	if(data_.cnvs.caller()==CnvCallerType::CLINCNV && !cnv_callset_id.isEmpty())
 	{
 		QHash<QString, QString> qc_metrics = db_.cnvCallsetMetrics(cnv_callset_id.toInt());
-		w.writeAttribute("number_of_iterations", qc_metrics["number of iterations"]);
-		w.writeAttribute("number_of_hq_cnvs", qc_metrics["high-quality cnvs"]);
+
+		QString iterations = qc_metrics["number of iterations"].trimmed();
+		if(!iterations.isEmpty()) w.writeAttribute("number_of_iterations", iterations);
+
+		QString high_quality_cnvs = qc_metrics["high-quality cnvs"].trimmed();
+		if(!high_quality_cnvs.isEmpty()) w.writeAttribute("number_of_hq_cnvs", high_quality_cnvs);
 	}
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::CNVS) continue;
 		if (!var_conf.showInReport()) continue;
+		if (!selected_cnvs_.contains(var_conf.variant_index)) continue;
 		if (var_conf.report_type!=data_.report_settings.report_type) continue;
 
 		const CopyNumberVariant& cnv = data_.cnvs[var_conf.variant_index];

@@ -1,5 +1,14 @@
 # GSvar change log
 
+### 2021_06-75 (11.08.21)
+- Added ClinVar upload of variants, removed LOVD upload.
+- Added option to show BAF histogram.
+- The repeat expansion table can be copied to the clipboard now.
+
+### 2021_06-57 (03.08.21)
+- added cohort analysis dialog (NGSD > Variants > Cohort analysis)
+- fixed DGV links (no https)
+
 ### 2021_06-38 (13.07.21)
 - small variants search dialog: added maximum NGSD count filter.
 - CNV search dialog: added option to scale log-likelihood, added validation column, added report config comments column.

@@ -41,7 +41,6 @@
         <file>Icons/GeneCards.png</file>
         <file>Icons/Import.png</file>
         <file>Icons/WebService.png</file>
-        <file>Resources/cancer_types.tsv</file>
         <file>Icons/StructuralVariant.png</file>
         <file>Icons/Server.png</file>
         <file>Icons/SingleSample.png</file>
@@ -112,5 +111,7 @@
         <file>Icons/RNA.png</file>
         <file>Icons/chart.png</file>
         <file>Icons/GTEx.png</file>
+        <file>Resources/hg19_KASP_set2.vcf</file>
+        <file>Resources/hg38_KASP_set2.vcf</file>
     </qresource>
 </RCC>

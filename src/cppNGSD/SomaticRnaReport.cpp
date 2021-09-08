@@ -55,7 +55,7 @@ SomaticRnaReport::SomaticRnaReport(const VariantList& snv_list, const CnvList& c
 
 		if(parts[i_cds_left].trimmed() == "." || parts[i_cds_left].isEmpty()) continue;
 
-		fusion temp{parts[i_fusion_name].replace("--","-"), parts[i_cds_left], parts[i_cds_right], parts[i_cds_left_range], parts[i_cds_right_range], parts[i_fusion_type]};
+		fusion temp{parts[i_fusion_name].replace("--","::"), parts[i_cds_left], parts[i_cds_right], parts[i_cds_left_range], parts[i_cds_right_range], parts[i_fusion_type]};
 		fusions_.append(temp);
 	}
 }
@@ -151,11 +151,21 @@ RtfTable SomaticRnaReport::fusions()
 	RtfTable fusion_table;
 	fusion_table.addRow(RtfTableRow("Fusionen", doc_.maxWidth(), RtfParagraph().setHorizontalAlignment("c").setBold(true).setFontSize(16)).setHeader().setBackgroundColor(1));
 
-	fusion_table.addRow(RtfTableRow({"Fusion", "Transkript links", "Aminosäure linkes Gen", "Transkript rechts", "Aminosäure rechtes Gen", "Fusionstyp"},{2000,1800,1200,1800,1200,1921}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
+	fusion_table.addRow(RtfTableRow({"Fusion", "Transkript links", "Kodierende Region linkes Gen", "Transkript rechts", "Kodierende Region rechtes Gen", "Fusionstyp"},{1600,1800,1400,1800,1400,1921}, RtfParagraph().setBold(true).setHorizontalAlignment("c").setFontSize(16)).setHeader());
 	for(const fusion& fus : fusions_)
 	{
 		//fus.genes is parsed because nomenclature for fusions contains only one dash instead of 2 dashes
-		fusion_table.addRow(RtfTableRow({fus.genes, fus.transcipt_id_left, fus.aa_left, fus.transcipt_id_right, fus.aa_right, fus.type},{2000,1800,1200,1800,1200,1921}, RtfParagraph().setFontSize(16)));
+		RtfTableRow temp;
+
+		temp.addCell(1600, fus.genes, RtfParagraph().setItalic(true).setFontSize(16));
+		temp.addCell(1800, fus.transcipt_id_left, RtfParagraph().setFontSize(16));
+		temp.addCell(1400, "r.?_" + fus.aa_left.split('-').last() , RtfParagraph().setFontSize(16));
+		temp.addCell(1800, fus.transcipt_id_right, RtfParagraph().setFontSize(16));
+		temp.addCell(1400, "r." + fus.aa_right.split('-').first() + "_?", RtfParagraph().setFontSize(16));
+		temp.addCell(1921, fus.type, RtfParagraph().setFontSize(16));
+
+
+		fusion_table.addRow(temp);
 	}
 
 	fusion_table.setUniqueBorder(1,"brdrhair",2);

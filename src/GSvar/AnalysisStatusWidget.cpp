@@ -8,6 +8,7 @@
 #include "cmath"
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
+#include "CfdnaAnalysisDialog.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -40,6 +41,7 @@ void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples
 
 	//Determine whether samples are RNA => show RNA steps
 	bool is_rna = false;
+	bool is_cfdna = false;
 	for(const AnalysisJobSample& sample : samples)
 	{
 		if(db.getSampleData(db.sampleId(sample.name)).type=="RNA")
@@ -47,18 +49,42 @@ void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples
 			is_rna = true;
 			break;
 		}
-	}
-	SingleSampleAnalysisDialog dlg(this, is_rna);
-
-	dlg.setSamples(samples);
-	if (dlg.exec()==QDialog::Accepted)
-	{
-		foreach(const AnalysisJobSample& sample,  dlg.samples())
+		QString sys_type = db.getProcessedSampleData(db.processedSampleId(sample.name)).processing_system_type;
+		if(sys_type == "cfDNA (patient-specific)" || sys_type == "cfDNA")
 		{
-			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+			is_cfdna = true;
+			break;
 		}
-		refreshStatus();
 	}
+	if (is_cfdna)
+	{
+		CfdnaAnalysisDialog dlg(this);
+
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			foreach(const AnalysisJobSample& sample,  dlg.samples())
+			{
+				db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+			}
+			refreshStatus();
+		}
+	}
+	else
+	{
+		SingleSampleAnalysisDialog dlg(this, is_rna);
+
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			foreach(const AnalysisJobSample& sample,  dlg.samples())
+			{
+				db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
+			}
+			refreshStatus();
+		}
+	}
+
 }
 
 void AnalysisStatusWidget::analyzeTrio(QList<AnalysisJobSample> samples)
@@ -102,7 +128,6 @@ void AnalysisStatusWidget::refreshStatus()
 	{
 		QTime timer;
 		timer.start();
-		int elapsed_logs = 0;
 
 		//query job IDs
 		NGSD db;
@@ -227,8 +252,6 @@ void AnalysisStatusWidget::refreshStatus()
 				QString folder = db.analysisJobFolder(job_id);
 				if (QFile::exists(folder))
 				{
-					QTime timer2;
-					timer2.start();
 					QStringList files = Helper::findFiles(folder, "*.log", false);
 					if (!files.isEmpty())
 					{
@@ -248,12 +271,10 @@ void AnalysisStatusWidget::refreshStatus()
 						if (sec>36000) bg_color = QColor("#FFC45E"); //36000s ~ 10h
 						last_update = timeHumanReadable(sec) + " ago (" + latest_file + ")";
 					}
-					elapsed_logs += timer2.elapsed();
 				}
 			}
 			addItem(ui_.analyses, row, 8, last_update, bg_color);
 		}
-		qDebug() << "Analysis status - elaped ms - overall: " << timer.elapsed() << " - logs: " << elapsed_logs;
 
 		//apply text filter
 		applyTextFilter();
@@ -330,12 +351,15 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		{
 			//Show restart action only if only DNA or only RNA samples are selected
 			QSet<QString> sample_types;
+			QSet<bool> cfdna_sample;
 			NGSD db;
 			for(const AnalysisJobSample& sample : samples)
 			{
 				sample_types << (db.getSampleData(db.sampleId(sample.name)).type=="RNA" ? "RNA" : "DNA");
+				QString sys_type = db.getProcessedSampleData(db.processedSampleId(sample.name)).processing_system_type;
+				cfdna_sample << (sys_type == "cfDNA (patient-specific)" || sys_type == "cfDNA");
 			}
-			if(sample_types.count() == 1) menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart single sample analysis");
+			if((sample_types.count() == 1) && (cfdna_sample.count() == 1)) menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart single sample analysis");
 		}
 		else if (type=="multi sample" && job_ids.count()==1)
 		{

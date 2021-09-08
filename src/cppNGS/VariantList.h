@@ -253,7 +253,8 @@ enum AnalysisType
 	GERMLINE_TRIO,
 	GERMLINE_MULTISAMPLE,
 	SOMATIC_SINGLESAMPLE,
-	SOMATIC_PAIR
+	SOMATIC_PAIR,
+	CFDNA
 };
 ///Returns the string repesentation of the analysis type (or a human-readable version).
 QString analysisTypeToString(AnalysisType type, bool human_readable=false);
