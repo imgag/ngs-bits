@@ -63,6 +63,15 @@ cp /usr/i686-w64-mingw32/sys-root/mingw/lib/*.a dependencies/
 cp -r /usr/i686-w64-mingw32/sys-root/mingw/lib/qt5/plugins/* dependencies/
 
 echo ""
+echo "***************************************************"
+echo "Copy GSvar and all its dependencies into the volume"
+echo "***************************************************"
+cp -r dependencies/* /root/output/
+cp -r ngs-bits/bin/* /root/output/
+mkdir /root/output/htslib
+cp -r ngs-bits/htslib/* /root/output/htslib
+
+echo ""
 echo "*********************************"
 echo "The processing has been completed"
 echo "*********************************"

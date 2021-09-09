@@ -25,8 +25,9 @@ RUN yum install -y \
 	mingw32-qt5-qtcharts.noarch \
 	mingw32-curl-static.noarch
 
-#Downloading htslib
+#Building binaries
 RUN mkdir /root/build
+RUN mkdir /root/output
 WORKDIR /root/build
 ADD ./make_build.sh ./make_build.sh
 

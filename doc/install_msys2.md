@@ -37,3 +37,6 @@ Now you can build ngs-bits as if you are using Linux:
 
 ## Development
 You can also install *Qt creator* and create your own development environment with msys2: `pacman -S mingw-w64-x86_64-qt-creator`
+
+## Build in a Docker container
+`docker run -it -v FOLDER_ON_YOUR_MACHINE:/root/output/ win_build:latest`
