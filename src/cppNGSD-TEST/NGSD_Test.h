@@ -1154,18 +1154,21 @@ private slots:
 		esd_test_input.reviewer2 = "Sarah Kerrigan";
 		esd_test_input.review_date2 = QDate(2033, 3, 30);
 		esd_test_input.analysis_scope = "Analyseumfang";
-		esd_test_input.acmg_requested = true;
-		esd_test_input.acmg_noticeable = false;
-		esd_test_input.acmg_analyzed = true;
-		esd_test_input.filtered_by_freq_based_dominant = false;
-		esd_test_input.filtered_by_freq_based_recessive = true;
-		esd_test_input.filtered_by_cnv = false;
-		esd_test_input.filtered_by_mito = true;
-		esd_test_input.filtered_by_x_chr = false;
-		esd_test_input.filtered_by_phenotype = true;
-		esd_test_input.filtered_by_multisample = false;
-		esd_test_input.filtered_by_trio_stringent = true;
-		esd_test_input.filtered_by_trio_relaxed = false;
+		esd_test_input.acmg_requested = (rand() % 2) == 0;
+		esd_test_input.acmg_noticeable = (rand() % 2) == 0;
+		esd_test_input.acmg_analyzed = (rand() % 2) == 0;
+		esd_test_input.filtered_by_freq_based_dominant = (rand() % 2) == 0;
+		esd_test_input.filtered_by_freq_based_recessive = (rand() % 2) == 0;
+		esd_test_input.filtered_by_mito = (rand() % 2) == 0;
+		esd_test_input.filtered_by_x_chr = (rand() % 2) == 0;
+		esd_test_input.filtered_by_cnv = (rand() % 2) == 0;
+		esd_test_input.filtered_by_svs = (rand() % 2) == 0;
+		esd_test_input.filtered_by_res = (rand() % 2) == 0;
+		esd_test_input.filtered_by_mosaic = (rand() % 2) == 0;
+		esd_test_input.filtered_by_phenotype = (rand() % 2) == 0;
+		esd_test_input.filtered_by_multisample = (rand() % 2) == 0;
+		esd_test_input.filtered_by_trio_stringent = (rand() % 2) == 0;
+		esd_test_input.filtered_by_trio_relaxed = (rand() % 2) == 0;
 
 		db.storeEvaluationSheetData(esd_test_input);
 
@@ -1182,9 +1185,12 @@ private slots:
 		IS_TRUE(esd_test_input.acmg_analyzed == esd_db_export.acmg_analyzed);
 		IS_TRUE(esd_test_input.filtered_by_freq_based_dominant == esd_db_export.filtered_by_freq_based_dominant);
 		IS_TRUE(esd_test_input.filtered_by_freq_based_recessive == esd_db_export.filtered_by_freq_based_recessive);
-		IS_TRUE(esd_test_input.filtered_by_cnv == esd_db_export.filtered_by_cnv);
 		IS_TRUE(esd_test_input.filtered_by_mito == esd_db_export.filtered_by_mito);
 		IS_TRUE(esd_test_input.filtered_by_x_chr == esd_db_export.filtered_by_x_chr);
+		IS_TRUE(esd_test_input.filtered_by_cnv == esd_db_export.filtered_by_cnv);
+		IS_TRUE(esd_test_input.filtered_by_svs == esd_db_export.filtered_by_svs);
+		IS_TRUE(esd_test_input.filtered_by_res == esd_db_export.filtered_by_res);
+		IS_TRUE(esd_test_input.filtered_by_mosaic == esd_db_export.filtered_by_mosaic);
 		IS_TRUE(esd_test_input.filtered_by_phenotype == esd_db_export.filtered_by_phenotype);
 		IS_TRUE(esd_test_input.filtered_by_multisample == esd_db_export.filtered_by_multisample);
 		IS_TRUE(esd_test_input.filtered_by_trio_stringent == esd_db_export.filtered_by_trio_stringent);
@@ -1437,9 +1443,12 @@ private slots:
 			sheet_data.acmg_analyzed = true;
 			sheet_data.filtered_by_freq_based_dominant = true;
 			sheet_data.filtered_by_freq_based_recessive = false;
-			sheet_data.filtered_by_cnv = true;
 			sheet_data.filtered_by_mito = false;
 			sheet_data.filtered_by_x_chr = true;
+			sheet_data.filtered_by_cnv = true;
+			sheet_data.filtered_by_svs = true;
+			sheet_data.filtered_by_res = false;
+			sheet_data.filtered_by_mosaic = true;
 			sheet_data.filtered_by_phenotype = false;
 			sheet_data.filtered_by_multisample = true;
 			sheet_data.filtered_by_trio_stringent = false;
@@ -1448,6 +1457,7 @@ private slots:
 			generator.writeEvaluationSheet("out/germline_sheet1.html", sheet_data);
 			COMPARE_FILES("out/germline_sheet1.html", TESTDATA("data_out/germline_sheet1.html"));
 		}
+
 	}
 
 	//Tests for SomaticReportConfiguration and specific somatic variants
