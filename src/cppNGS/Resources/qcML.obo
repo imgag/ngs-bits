@@ -972,3 +972,101 @@ def: "Count of somatic long state transition (LST) events." [PXS:QC]
 is_a: QC:2000001 ! NGS quality parameter
 xref: xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: gschwind
+
+[Term]
+id: QC:2000065
+name: target region 1000x percentage
+def: "Percentage of the target region that is covered at least 1000-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000066
+name: target region 2500x percentage
+def: "Percentage of the target region that is covered at least 2500-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000067
+name: target region 5000x percentage
+def: "Percentage of the target region that is covered at least 5000-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000068
+name: target region 7500x percentage
+def: "Percentage of the target region that is covered at least 7500-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000069
+name: target region 10000x percentage
+def: "Percentage of the target region that is covered at least 10000-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000070
+name: target region 15000x percentage
+def: "Percentage of the target region that is covered at least 15000-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000071
+name: target region read depth 2-fold duplication
+def: "Average coverage with at least 2-fold duplication"
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000072
+name: target region read depth 3-fold duplication
+def: "Average coverage with at least 3-fold duplication"
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000073
+name: target region read depth 4-fold duplication
+def: "Average coverage with at least 4-fold duplication"
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000074
+name: raw target region read depth
+def: "Raw average sequencing depth in target region."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000075
+name: fragment duplication distribution plot
+def: "Fragment duplication distribution plot."
+is_a: QC:2000003 ! NGS mapping parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000076
+name: duplication-coverage plot
+def: "Coverge by duplication plot."
+is_a: QC:2000003 ! NGS mapping parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: schuetz

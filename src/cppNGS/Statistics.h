@@ -36,7 +36,7 @@ public:
 	///Calculates QC metrics on a variant list (only for VCF).
 	static QCCollection variantList(VcfFile variants, bool filter);
 	///Calculates mapping QC metrics for a target region from a BAM file. The input BED file must be merged!
-	static QCCollection mapping(const BedFile& bed_file, const QString& bam_file, const QString& ref_file, int min_mapq=1);
+	static QCCollection mapping(const BedFile& bed_file, const QString& bam_file, const QString& ref_file, int min_mapq=1, bool is_cfdna = false);
     ///Calculates mapping QC metrics for RNA from a BAM file.
 	static QCCollection mapping_rna(const QString& bam_file, int min_mapq=1, const QString& ref_file = QString());
 	///Calculates mapping QC metrics for WGS from a BAM file.
