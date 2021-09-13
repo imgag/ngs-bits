@@ -157,31 +157,34 @@ void DiseaseCourseWidget::createTableView()
 
 
 	// set dimensions
-	ui_->vars->setColumnCount(7 + cf_dna_columns_.length());
+	ui_->vars->setColumnCount(7 + cf_dna_columns_.length()*4);
 	ui_->vars->setRowCount(ref_column_.variants.count());
 
 	int col_idx = 0;
 
-	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("chr"));
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("\n\nchr"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Chromosome the variant is located on.");
-	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("pos"));
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("\n\npos"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Position of the variant on the chromosome.");
-	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("ref"));
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("\n\nref"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Reference bases in the reference genome at the variant position.\n`-` in case of an insertion.");
-	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("obs"));
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("\n\nobs"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Alternate bases observed in the sample.\n`-` in case of an deletion.");
-	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("gene"));
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("\n\ngene"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Affected gene list (comma-separated).");
-	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("coding and splicing"));
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("\n\ncoding and splicing"));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).");
 
 	// set header for sample
-	ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(ref_column_.name + "\n(" + ref_column_.date.toString("dd.MM.yyyy") + ")"));
+	ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(ref_column_.name + "\n(" + ref_column_.date.toString("dd.MM.yyyy") + ")\nAllele frequency"));
 
 	// set cfDNA header
 	foreach (const cfDnaColumn& cf_dna_column, cf_dna_columns_)
 	{
-		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(cf_dna_column.name + "\n(" + cf_dna_column.date.toString("dd.MM.yyyy") + ")"));
+		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(cf_dna_column.name + "\n(" + cf_dna_column.date.toString("dd.MM.yyyy") + ")\nAllele fequency"));
+		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("\n\nAlt count"));
+		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("\n\nDepth"));
+		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("\n\np-value"));
 	}
 
 	int row_idx = 0;
@@ -218,33 +221,37 @@ void DiseaseCourseWidget::createTableView()
 			// get variant
 			if (cf_dna_column.lookup_table.contains(key))
 			{
-				const VcfLine* cf_dna_variant = cf_dna_column.lookup_table.value(key);
-				double alt_count;
-				double depth = Helper::toDouble(cf_dna_variant->formatValueFromSample("DP"), "DP", QString::number(i));
-				double p_value;
-				double cf_dna_af;
-				if (cf_dna_variant->formatKeys().contains("AC"))
-				{
-					// new umiVar format
-					alt_count =
-					p_value = Helper::toDouble(cf_dna_variant->formatValueFromSample("Pval"), "Pval", QString::number(i));
-					cf_dna_af = Helper::toDouble(cf_dna_variant->formatValueFromSample("AF"), "AC", QString::number(i));
-				}
-				else
+				const VcfLine* cfdna_variant = cf_dna_column.lookup_table.value(key);
+
+				// check umiVar VCF
+				QStringList missing_keys;
+				if (!cfdna_variant->formatKeys().contains("M_AF")) missing_keys << "M_AF";
+				if (!cfdna_variant->formatKeys().contains("M_AC")) missing_keys << "M_AC";
+				if (!cfdna_variant->formatKeys().contains("DP")) missing_keys << "DP";
+				if (!cfdna_variant->formatKeys().contains("Pval")) missing_keys << "Pval";
+				if (missing_keys.size() > 0)
 				{
 					// old umiVar format
-					alt_count = Helper::toDouble(cf_dna_variant->formatValueFromSample("Alt_Count"), "Alt_Count", QString::number(i));
-					p_value = Helper::toDouble(cf_dna_variant->info("PValue"), "PValue", QString::number(i));
-					cf_dna_af = (depth != 0)? alt_count/depth : 0.0;
+					THROW(FileParseException, "Keys '" + missing_keys.join("', '") + "'.\n Sample '" + cf_dna_column.name + "' was analyzed with an old version of umiVar. Please redo the VC!");
 				}
 
+				double cfdna_af = Helper::toDouble(cfdna_variant->formatValueFromSample("M_AF"), "M_AF", QString::number(i));
+				double alt_count = Helper::toDouble(cfdna_variant->formatValueFromSample("M_AC"), "M_AC", QString::number(i));
+				double depth = Helper::toDouble(cfdna_variant->formatValueFromSample("DP"), "DP", QString::number(i));
+				double p_value = Helper::toDouble(cfdna_variant->formatValueFromSample("Pval"), "Pval", QString::number(i));
+
 				// generate table item with tool tip
-				QTableWidgetItem* cfdna_item = GUIHelper::createTableItem(QString::number(cf_dna_af, 'f', 5));
-				cfdna_item->setToolTip("Alt. count:\t" + QString::number(alt_count, 'f', 0).rightJustified(9, ' ')
-									+ "\nDepth:     \t" + QString::number(depth, 'f', 0).rightJustified(7, ' ')
-									+ "\np-value:   \t" + QString::number(p_value, 'f', 4).rightJustified(6, ' '));
-				cfdna_item->setTextAlignment(Qt::AlignRight);
-				ui_->vars->setItem(row_idx, col_idx++, cfdna_item);
+//				QTableWidgetItem* cfdna_item = GUIHelper::createTableItem(QString::number(cfdna_af, 'f', 5));
+//				cfdna_item->setToolTip("Alt. count:\t" + QString::number(alt_count, 'f', 0).rightJustified(9, ' ')
+//									+ "\nDepth:     \t" + QString::number(depth, 'f', 0).rightJustified(7, ' ')
+//									+ "\np-value:   \t" + QString::number(p_value, 'f', 4).rightJustified(6, ' '));
+//				cfdna_item->setTextAlignment(Qt::AlignRight);
+//				ui_->vars->setItem(row_idx, col_idx++, cfdna_item);
+
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString::number(cfdna_af, 'f', 5), Qt::AlignRight));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString::number(alt_count, 'f', 0), Qt::AlignRight));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString::number(depth, 'f', 0), Qt::AlignRight));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString::number(p_value, 'f', 4), Qt::AlignRight));
 			}
 			else
 			{
