@@ -428,9 +428,12 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 		acmg_analyzed(false),
 		filtered_by_freq_based_dominant(false),
 		filtered_by_freq_based_recessive(false),
-		filtered_by_cnv(false),
 		filtered_by_mito(false),
 		filtered_by_x_chr(false),
+		filtered_by_cnv(false),
+		filtered_by_svs(false),
+		filtered_by_res(false),
+		filtered_by_mosaic(false),
 		filtered_by_phenotype(false),
 		filtered_by_multisample(false),
 		filtered_by_trio_stringent(false),
@@ -451,9 +454,12 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 
 	bool filtered_by_freq_based_dominant;
 	bool filtered_by_freq_based_recessive;
-	bool filtered_by_cnv;
 	bool filtered_by_mito;
 	bool filtered_by_x_chr;
+	bool filtered_by_cnv;
+	bool filtered_by_svs;
+	bool filtered_by_res;
+	bool filtered_by_mosaic;
 	bool filtered_by_phenotype;
 	bool filtered_by_multisample;
 	bool filtered_by_trio_stringent;

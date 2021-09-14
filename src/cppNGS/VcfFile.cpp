@@ -1480,86 +1480,97 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 			}
 
 			//info
-			QByteArrayList info = parts[INFO].split(';');
-			foreach(const QByteArray& entry, info)
+			//allow empty INFO column only with missing value:
+			if (parts[INFO].trimmed() == "")
 			{
-				int sep = entry.indexOf('=');
-				bool has_value = sep!=-1;
-				QByteArray name = has_value ? entry.left(sep) : entry;
-				QByteArray value = has_value ? entry.mid(sep+1).trimmed() : "";
+				printError(out_stream, "INFO column is empty! Has to contain either INFO values or missing value '.'!", l, line);
+				return false;
+			}
+			//skip INFO validation if column is empty
+			if (parts[INFO] != ".")
+			{
+				QByteArrayList info = parts[INFO].split(';');
+				foreach(const QByteArray& entry, info)
+				{
+					int sep = entry.indexOf('=');
+					bool has_value = sep!=-1;
+					QByteArray name = has_value ? entry.left(sep) : entry;
+					QByteArray value = has_value ? entry.mid(sep+1).trimmed() : "";
 
-				bool is_defined = defined_infos.contains(name);
-				if (is_defined)
-				{
-					defined_infos[name].used +=1;
-				}
-				else
-				{
-					printWarning(out_stream, "INFO '" + name + "' used but not defined!", l, line);
-				}
-
-				//check flags
-				if (is_defined)
-				{
-					if (defined_infos[name].type!="Flag" && !has_value)
+					bool is_defined = defined_infos.contains(name);
+					if (is_defined)
 					{
-						printError(out_stream, "Non-flag INFO '" + name + "' has no value!", l, line);
-						return false;
+						defined_infos[name].used +=1;
 					}
-					if (defined_infos[name].type=="Flag" && has_value)
+					else
 					{
-						printError(out_stream, "Flag INFO '" + name + "' has a value (" + value + ")!", l, line);
-						return false;
+						printWarning(out_stream, "INFO '" + name + "' used but not defined!", l, line);
 					}
-				}
 
-				//check INFO value for invalid characters
-				foreach (char invalid_char, invalid_chars)
-				{
-					if (value.contains(invalid_char))
+					//check flags
+					if (is_defined)
 					{
-						printError(out_stream, "Flag INFO '" + name + "' has a value which contains the invalid character '" + invalid_char + "' (value: '" + value + "')!", l, line);
-						return false;
-					}
-				}
-
-
-
-				//check value (number, type)
-				if (is_defined && has_value)
-				{
-					const DefinitionLine& current_info = defined_infos[name];
-					QByteArrayList values = value.split(',');
-					checkValues(current_info, values, alts.count(), QByteArray(), out_stream, l, line);
-				}
-
-				//check MISO ontology entries in CSQ:IMPACT (split by &)
-				if (name=="CSQ")
-				{
-					QByteArrayList csq_defs = defined_infos[name].description.split('|');
-					QByteArrayList csq_transcripts = value.split(',');
-					int i_consequence = csq_defs.indexOf("Consequence");
-					foreach(const QByteArray& csq_transcript, csq_transcripts)
-					{
-						QByteArrayList csq_parts = csq_transcript.split('|');
-						if (csq_parts.count()!=csq_defs.count())
+						if (defined_infos[name].type!="Flag" && !has_value)
 						{
-							printError(out_stream, "VEP-based CSQ annotation has " + QByteArray::number(csq_parts.count()) + " entries, expected " + QByteArray::number(csq_defs.count()) + " according to definition in header!", l, line);
+							printError(out_stream, "Non-flag INFO '" + name + "' has no value!", l, line);
 							return false;
 						}
-
-						QByteArrayList terms = csq_parts[i_consequence].split('&');
-						foreach(const QByteArray& term, terms)
+						if (defined_infos[name].type=="Flag" && has_value)
 						{
-							if(!obo_terms.containsByName(term))
-							{
-								printWarning(out_stream, "Unknown MISO term '" + term + "' used!", l, line);
-							}
+							printError(out_stream, "Flag INFO '" + name + "' has a value (" + value + ")!", l, line);
+							return false;
 						}
+					}
 
+					//check INFO value for invalid characters
+					foreach (char invalid_char, invalid_chars)
+					{
+						if (value.contains(invalid_char))
+						{
+							printError(out_stream, "Flag INFO '" + name + "' has a value which contains the invalid character '" + invalid_char + "' (value: '" + value + "')!", l, line);
+							return false;
+						}
+					}
+
+
+
+					//check value (number, type)
+					if (is_defined && has_value)
+					{
+						const DefinitionLine& current_info = defined_infos[name];
+						QByteArrayList values = value.split(',');
+						checkValues(current_info, values, alts.count(), QByteArray(), out_stream, l, line);
+					}
+
+					//check MISO ontology entries in CSQ:IMPACT (split by &)
+					if (name=="CSQ")
+					{
+						QByteArrayList csq_defs = defined_infos[name].description.split('|');
+						QByteArrayList csq_transcripts = value.split(',');
+						int i_consequence = csq_defs.indexOf("Consequence");
+						foreach(const QByteArray& csq_transcript, csq_transcripts)
+						{
+							QByteArrayList csq_parts = csq_transcript.split('|');
+							if (csq_parts.count()!=csq_defs.count())
+							{
+								printError(out_stream, "VEP-based CSQ annotation has " + QByteArray::number(csq_parts.count()) + " entries, expected " + QByteArray::number(csq_defs.count()) + " according to definition in header!", l, line);
+								return false;
+							}
+
+							QByteArrayList terms = csq_parts[i_consequence].split('&');
+							foreach(const QByteArray& term, terms)
+							{
+								if(!obo_terms.containsByName(term))
+								{
+									printWarning(out_stream, "Unknown MISO term '" + term + "' used!", l, line);
+								}
+							}
+
+						}
 					}
 				}
 			}
+
 
 			//format
 			if (parts.count()==8) continue;
