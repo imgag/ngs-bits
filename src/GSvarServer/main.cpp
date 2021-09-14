@@ -53,7 +53,7 @@ void interceptLogMessage(QtMsgType type, const QMessageLogContext &, const QStri
 		QTextStream out_stream(&gsvar_server_log_file);
 		out_stream.setCodec("UTF-8");
 		out_stream.setGenerateByteOrderMark(false);
-		out_stream << log_statement << Qt::endl;
+		out_stream << log_statement << endl;
 	}
 
 	if (type == QtFatalMsg)
