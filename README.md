@@ -16,7 +16,9 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* none so far.
+* GSvar: improved cfDNA sample handling (Batchimport of cfDNA panels, queue anlysis, ...)
+* VcfAnnotateFromBed: added multithread support
+* MappingQC: added support for cfDNA samples
 
 Changes in release 2021_06:
 
