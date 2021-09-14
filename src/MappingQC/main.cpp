@@ -32,6 +32,7 @@ public:
 		addFlag("debug", "Enables verbose debug outout.");
 		addEnum("build", "Genome build used to generate the input (needed for contamination only).", true, QStringList() << "hg19" << "hg38", "hg19");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
+		addFlag("cfdna", "Add additional QC parameters for cfDNA samples. Only supported mit '-roi'.");
 
 		//changelog
 		changeLog(2021,  2,  9, "Added new QC metrics for uniformity of coverage (QC:2000057-QC:2000061).");
@@ -51,6 +52,7 @@ public:
 		QString ref_file = getInfile("ref");
 		if (ref_file=="") ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
+		bool cfdna = getFlag("cfdna");
 
 		int min_maqp = getInt("min_mapq");
 		bool debug = getFlag("debug");
@@ -61,6 +63,10 @@ public:
         {
             THROW(CommandLineParsingException, "You have to use exactly one of the parameters 'roi', 'wgs', or 'rna' !");
         }
+		if (cfdna && (roi_file == ""))
+		{
+			 THROW(CommandLineParsingException, "The flag 'cfdna' can only be used with parameter 'roi'!");
+		}
 
 		QStringList parameters;
 		QCCollection metrics;
@@ -86,10 +92,11 @@ public:
 			roi.merge();
 
 			//calculate metrics
-			metrics = Statistics::mapping(roi, in, ref_file, min_maqp);
+			metrics = Statistics::mapping(roi, in, ref_file, min_maqp, cfdna);
 
 			//parameters
 			parameters << "-roi" << QFileInfo(roi_file).fileName();
+			if (cfdna) parameters << "-cfdna";
         }
 
 		//sample contamination

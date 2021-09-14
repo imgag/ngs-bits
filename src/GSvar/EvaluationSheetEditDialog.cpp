@@ -44,9 +44,12 @@ void EvaluationSheetEditDialog::importEvaluationSheetData(EvaluationSheetData& e
 
 	ui_->cb_filter_freq_dom->setChecked(evaluation_sheet_data_->filtered_by_freq_based_dominant);
 	ui_->cb_filter_rec->setChecked(evaluation_sheet_data_->filtered_by_freq_based_recessive);
-	ui_->cb_filter_cnv->setChecked(evaluation_sheet_data_->filtered_by_cnv);
 	ui_->cb_filter_mito->setChecked(evaluation_sheet_data_->filtered_by_mito);
 	ui_->cb_filter_x_chr->setChecked(evaluation_sheet_data_->filtered_by_x_chr);
+	ui_->cb_filter_cnv->setChecked(evaluation_sheet_data_->filtered_by_cnv);
+	ui_->cb_filter_svs->setChecked(evaluation_sheet_data_->filtered_by_svs);
+	ui_->cb_filter_res->setChecked(evaluation_sheet_data_->filtered_by_res);
+	ui_->cb_filter_mosaics->setChecked(evaluation_sheet_data_->filtered_by_mosaic);
 	ui_->cb_filter_phen->setChecked(evaluation_sheet_data_->filtered_by_phenotype);
 	ui_->cb_filter_multi->setChecked(evaluation_sheet_data_->filtered_by_multisample);
 	ui_->cb_filter_trio_stringent->setChecked(evaluation_sheet_data_->filtered_by_trio_stringent);
@@ -80,12 +83,14 @@ void EvaluationSheetEditDialog::updateEvaluationSheetData()
 	evaluation_sheet_data_->acmg_analyzed = ui_->cb_acmg_analyzed->isChecked();
 	evaluation_sheet_data_->acmg_noticeable = ui_->cb_acmg_suspicious->isChecked();
 
-
 	evaluation_sheet_data_->filtered_by_freq_based_dominant = ui_->cb_filter_freq_dom->isChecked();
 	evaluation_sheet_data_->filtered_by_freq_based_recessive = ui_->cb_filter_rec->isChecked();
-	evaluation_sheet_data_->filtered_by_cnv = ui_->cb_filter_cnv->isChecked();
 	evaluation_sheet_data_->filtered_by_mito = ui_->cb_filter_mito->isChecked();
 	evaluation_sheet_data_->filtered_by_x_chr = ui_->cb_filter_x_chr->isChecked();
+	evaluation_sheet_data_->filtered_by_cnv = ui_->cb_filter_cnv->isChecked();
+	evaluation_sheet_data_->filtered_by_svs = ui_->cb_filter_svs->isChecked();
+	evaluation_sheet_data_->filtered_by_res = ui_->cb_filter_res->isChecked();
+	evaluation_sheet_data_->filtered_by_mosaic = ui_->cb_filter_mosaics->isChecked();
 	evaluation_sheet_data_->filtered_by_phenotype = ui_->cb_filter_phen->isChecked();
 	evaluation_sheet_data_->filtered_by_multisample = ui_->cb_filter_multi->isChecked();
 	evaluation_sheet_data_->filtered_by_trio_stringent = ui_->cb_filter_trio_stringent->isChecked();
