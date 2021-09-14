@@ -53,7 +53,7 @@ void interceptLogMessage(QtMsgType type, const QMessageLogContext &, const QStri
 		QTextStream out_stream(&gsvar_server_log_file);
 		out_stream.setCodec("UTF-8");
 		out_stream.setGenerateByteOrderMark(false);
-		out_stream << log_statement << endl;
+		out_stream << log_statement << Qt::endl;
 	}
 
 	if (type == QtFatalMsg)
@@ -313,10 +313,11 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
-						"qbic_report",
+						"qbic_report_data",
 						QMap<QString, ParamProps> {
 							{"filename", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "QBic data report file"}},
 							{"path", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Path to the QBic data report file"}},
+							{"content", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, false, "QBic report data to be saved in a file"}}
 						},
 						RequestMethod::POST,
 						ContentType::APPLICATION_JSON,

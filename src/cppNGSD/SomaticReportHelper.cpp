@@ -683,7 +683,7 @@ void SomaticReportHelper::saveFileOnServer(QString filename, QString path, QStri
 	add_headers.insert("Content-Length", QByteArray::number(content.size()));
 	QString reply = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
 				Settings::string("server_host") + ":" + QString::number(Settings::integer("server_port"))
-				+ "/v1/saveQbicFiles?filename=" + filename + "&path=" + QUrl(path).toEncoded(),
+				+ "/v1/qbic_report_data?filename=" + filename + "&path=" + QUrl(path).toEncoded(),
 				content.toLocal8Bit(),
 				add_headers
 			);
