@@ -326,17 +326,7 @@ QByteArray NGSHelper::expandAminoAcidAbbreviation(QChar amino_acid_change_in)
 													   {'Q',"Gln"},{'G',"Gly"},{'H',"His"},{'I',"Ile"},{'L',"Leu"},{'K',"Lys"},{'M',"Met"},{'F',"Phe"},{'P',"Pro"},{'S',"Ser"},
 													   {'T',"Thr"},{'W',"Trp"},{'Y',"Tyr"},{'V',"Val"},{'*',"*"}};
 
-	QByteArray amino_acid_change_out;
-	if(dictionary.keys().contains(amino_acid_change_in))
-	{
-		amino_acid_change_out = dictionary.value(amino_acid_change_in);
-	}
-	else
-	{
-		amino_acid_change_out = "";
-	}
-
-	return amino_acid_change_out;
+	return dictionary.value(amino_acid_change_in, "");
 }
 
 const BedFile& NGSHelper::pseudoAutosomalRegion(GenomeBuild build)
