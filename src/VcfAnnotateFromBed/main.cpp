@@ -41,7 +41,7 @@ public:
 		addInt("threads", "The number of threads used to read, process and write files.", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
-		addInt("progress", "Enables progress output at the given interval in milliseconds (disabled by default, cannot be combined with writing to STDOUT).", true, -1);
+		addInt("debug", "Enables debug output at the given interval in milliseconds (disabled by default, cannot be combined with writing to STDOUT).", true, -1);
 
 		changeLog(2021,  8, 24, "Added multithread support.");
 		changeLog(2021,  6, 15, "Added 'sep' parameter.");
@@ -60,13 +60,13 @@ public:
 		int block_size = getInt("block_size");
 		int threads = getInt("threads");
 		int prefetch = getInt("prefetch");
-		int progress = getInt("progress");
+		int debug = getInt("debug");
 
 		// check parameter:
 		if (block_size < 1) THROW(ArgumentException, "Parameter 'block_size' has to be greater than zero!");
 		if (threads < 1) THROW(ArgumentException, "Parameter 'threads' has to be greater than zero!");
 		if (prefetch < threads) THROW(ArgumentException, "Parameter 'prefetch' has to be at least number of used threads!");
-		if (out.isEmpty() && (progress > 0)) THROW(ArgumentException, "Parameter 'progress' cannot be combined with writing to STDOUT!");
+		if (out.isEmpty() && (debug > 0)) THROW(ArgumentException, "Parameter 'progress' cannot be combined with writing to STDOUT!");
 
 		//load BED file
 		BedFile bed_data;
@@ -113,10 +113,10 @@ public:
 		//QByteArrayList data;
 		int current_chunk = 0;
 
-		//progress
+		//debug
 		QTime timer;
 		QTextStream outstream(stdout);
-		if (progress>0) timer.start();
+		if (debug>0) timer.start();
 
 		try
 		{
@@ -147,7 +147,6 @@ public:
 							vcf_line_idx = 0;
 							analysis_pool.start(new ChunkProcessor(job, name, bed_data, bed_index, bed, sep));
 							++current_chunk;
-							qDebug() << "current chunk: " << current_chunk;
 							break;
 
 						case TO_BE_WRITTEN:
@@ -181,10 +180,10 @@ public:
 
 				}
 
-				//progress output
-				if (progress>0 && timer.elapsed()>progress)
+				//debug output
+				if (debug>0 && timer.elapsed()>debug)
 				{
-					outstream << Helper::dateTime() << " progress - to_be_analyzed: " << to_be_analyzed << " to_be_written: " << to_be_written << " done: " << done << endl;
+					outstream << Helper::dateTime() << " debug - to_be_analyzed: " << to_be_analyzed << " to_be_written: " << to_be_written << " done: " << done << endl;
 					timer.restart();
 				}
 			}
@@ -194,7 +193,7 @@ public:
 
 
 			//wait for all jobs to finish
-			if (progress>0) outstream << Helper::dateTime() << " input data read completely - waiting for analysis to finish" << endl;
+			if (debug>0) outstream << Helper::dateTime() << " input data read completely - waiting for analysis to finish" << endl;
 			int done = 0;
 			int to_be_written = 0;
 			while(done < job_pool.count())
@@ -233,15 +232,15 @@ public:
 					}
 				}
 
-				//progress output
-				if (progress>0 && timer.elapsed()>progress)
+				//debug output
+				if (debug>0 && timer.elapsed()>debug)
 				{
 					outstream << Helper::dateTime() << " progress - done: " << done << endl;
 					timer.restart();
 				}
 			}
 
-			if (progress>0) outstream << Helper::dateTime() << " analysis finished" << endl;
+			if (debug>0) outstream << Helper::dateTime() << " analysis finished" << endl;
 			output_worker->terminate();
 
 		}

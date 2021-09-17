@@ -11,6 +11,7 @@
 #include <QFileInfo>
 #include <QThreadPool>
 #include "ChunkProcessor.h"
+#include "OutputWorker.h"
 #include <iostream>
 #include <fstream>
 #include <QTime>
@@ -43,6 +44,7 @@ public:
         addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
         addInt("threads", "The number of threads used to read, process and write files.", true, 1);
 		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
+		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 
         changeLog(2020, 4, 11, "Added multithread support by Julian Fratte.");
         changeLog(2019, 8, 19, "Added support for multiple annotations files through config file.");
@@ -55,9 +57,6 @@ public:
         //init
 		QTextStream out(stdout);
 
-        QElapsedTimer timer;
-        timer.start();
-
         // parse parameter
         QString input_path = getInfile("in");
         QString output_path = getOutfile("out");
@@ -67,9 +66,14 @@ public:
         QByteArray id_column = getString("id_column").toLatin1().trimmed();
         QByteArray id_prefix = getString("id_prefix").toLatin1().trimmed();
         bool allow_missing_header = getFlag("allow_missing_header");
-
         int block_size = getInt("block_size");
         int threads = getInt("threads");
+		int prefetch = getInt("prefetch");
+
+		// check parameter:
+		if (block_size < 1) THROW(ArgumentException, "Parameter 'block_size' has to be greater than zero!");
+		if (threads < 1) THROW(ArgumentException, "Parameter 'threads' has to be greater than zero!");
+		if (prefetch < threads) THROW(ArgumentException, "Parameter 'prefetch' has to be at least number of used threads!");
 
         QByteArrayList annotation_file_list;
         QByteArrayList prefix_list;
@@ -210,8 +214,20 @@ public:
             THROW(ArgumentException, "Input and output files must be different when streaming!");
         }
 
+		// create job pool
+		QList<AnalysisJob> job_pool;
+		while(job_pool.count() < prefetch)
+		{
+			job_pool << AnalysisJob();
+		}
+
+		//create thread pool
         QThreadPool analysis_pool;
-        analysis_pool.setMaxThreadCount(getInt("threads"));
+		analysis_pool.setMaxThreadCount(threads + 1); // +1 for output writer
+
+		// start writer thread
+		OutputWorker* output_worker = new OutputWorker(job_pool, output_path);
+		analysis_pool.start(output_worker);
 
 		//open input file
 		FILE* instream = input_path.isEmpty() ? stdin : fopen(input_path.toLatin1().data(), "rb");
@@ -223,119 +239,151 @@ public:
 
 		const int buffer_size = 1048576; //1MB buffer
 		char* buffer = new char[buffer_size];
+		int current_chunk = 0;
+		int vcf_line_idx = 0;
 
-        //QByteArrayList data;
-        int current_chunk = 0;
-        int vcf_line_idx = 0;
-
-		// iterate over the vcf file line by line and create job pool
-		QList<AnalysisJob> job_pool;
-        while(!gzeof(file))
-        {
-			AnalysisJob job = AnalysisJob();
-
-            job.chunk_id = current_chunk;
-            job.status = TO_BE_PROCESSED;
-
-            while(vcf_line_idx < block_size && !gzeof(file))
-            {
-                // get next line
-				char* char_array = gzgets(file, buffer, buffer_size);
-
-				//handle errors like truncated GZ file
-				if (char_array==nullptr)
+		try
+		{
+			while(!gzeof(file))
+			{
+				int to_be_analyzed = 0;
+				int to_be_written = 0;
+				int done = 0;
+				for (int j=0; j<job_pool.count(); ++j)
 				{
-					int error_no = Z_OK;
-					QByteArray error_message = gzerror(file, &error_no);
-					if (error_no!=Z_OK && error_no!=Z_STREAM_END)
+					AnalysisJob& job = job_pool[j];
+					switch(job.status)
 					{
-						THROW(FileParseException, "Error while reading file '" + input_path + "': " + error_message);
+						case DONE:
+							++done;
+
+							// create new job with the next chunk of lines
+							job.clear();
+							job.chunk_id = current_chunk;
+							job.status = TO_BE_PROCESSED;
+
+							while(vcf_line_idx < block_size && !gzeof(file))
+							{
+								// get next line
+								char* char_array = gzgets(file, buffer, buffer_size);
+
+								//handle errors like truncated GZ file
+								if (char_array==nullptr)
+								{
+									int error_no = Z_OK;
+									QByteArray error_message = gzerror(file, &error_no);
+									if (error_no!=Z_OK && error_no!=Z_STREAM_END)
+									{
+										THROW(FileParseException, "Error while reading file '" + input_path + "': " + error_message);
+									}
+								}
+
+								job.current_chunk.append(QByteArray(char_array));
+
+								vcf_line_idx++;
+							}
+							vcf_line_idx = 0;
+							analysis_pool.start(new ChunkProcessor(job,
+																   prefix_list,
+																   unique_output_ids,
+																   info_id_list,
+																   out_info_id_list,
+																   id_column_name_list,
+																   out_id_column_name_list,
+																   allow_missing_header_list,
+																   annotation_file_list));
+							++current_chunk;
+							break;
+
+						case TO_BE_WRITTEN:
+							++to_be_written;
+							break;
+
+						case TO_BE_PROCESSED:
+							++to_be_analyzed;
+							break;
+
+						case ERROR:
+							if (job.error_message.startsWith("FileParseException\t"))
+							{
+								THROW(FileParseException, job.error_message.split("\t").at(1));
+							}
+							else if (job.error_message.startsWith("FileAccessException\t"))
+							{
+								THROW(FileAccessException, job.error_message.split("\t").at(1));
+							}
+							else
+							{
+								THROW(Exception, job.error_message);
+							}
+							break;
+						default:
+							break;
+					}
+
+					//break if file is read
+					if(gzeof(file)) break;
+				}
+			}
+
+			//close file
+			gzclose(file);
+			delete[] buffer;
+
+			//wait for all jobs to finish
+			int done, to_be_written, to_be_processed;
+			while (done < job_pool.count())
+			{
+				done = 0;
+				to_be_written = 0;
+				to_be_processed = 0;
+
+				for (int j=0; j<job_pool.count(); ++j)
+				{
+					AnalysisJob& job = job_pool[j];
+
+					switch(job.status)
+					{
+						case DONE:
+							++done;
+							break;
+
+						case TO_BE_WRITTEN:
+							to_be_written++;
+							break;
+
+						case ERROR:
+							if (job.error_message.startsWith("FileParseException\t"))
+							{
+								THROW(FileParseException, job.error_message.split("\t").at(1));
+							}
+							else if (job.error_message.startsWith("FileAccessException\t"))
+							{
+								THROW(FileAccessException, job.error_message.split("\t").at(1));
+							}
+							else
+							{
+								THROW(Exception, job.error_message);
+							}
+							break;
+
+						default:
+							break;
 					}
 				}
 
-				job.current_chunk.append(QByteArray(char_array));
+				qDebug() << "Done: " << done << " - to_be_processed: " << to_be_processed << " - to_be_written: " << to_be_written;
+			}
 
-                vcf_line_idx++;
-            }
+			out << "Programm finished!" << endl;
 
-            vcf_line_idx = 0;
-            ++current_chunk;
-			
-			job_pool << job;
-        }
-
-		// start all created jobs
-		for (int i = 0; i < job_pool.size(); ++i)
-		{
-			analysis_pool.start(new ChunkProcessor(job_pool[i],
-												   prefix_list,
-												   unique_output_ids,
-												   info_id_list,
-												   out_info_id_list,
-												   id_column_name_list,
-												   out_id_column_name_list,
-												   allow_missing_header_list,
-												   annotation_file_list));
 		}
-        // close file
-		gzclose(file);
-		delete[] buffer;
-
-        QSharedPointer<QFile> output_vcf = Helper::openFileForWriting(output_path, true);
-
-        int write_chunk = 0;
-        int done = 0;
-
-        while(done < job_pool.count())
-        {
-            done=0;
-            for (int j=0; j<job_pool.count(); ++j)
-            {
-                AnalysisJob& job = job_pool[j];
-
-                switch(job.status)
-                {
-                case DONE:
-                    ++done;
-                    break;
-
-                case TO_BE_WRITTEN:
-                    if (job.chunk_id == write_chunk)
-                    {
-
-                        for(QByteArray line : job.current_chunk_processed)
-                        {
-                            output_vcf -> write(line);
-                        }
-
-                        ++write_chunk;
-                        job.status = DONE;
-                    }
-					break;
-
-				case ERROR:
-					if (job.error_message.startsWith("FileParseException\t"))
-					{
-						THROW(FileParseException, job.error_message.split("\t").at(1));
-					}
-					else if (job.error_message.startsWith("FileAccessException\t"))
-					{
-						THROW(FileAccessException, job.error_message.split("\t").at(1));
-					}
-					else
-					{
-						THROW(Exception, job.error_message);
-					}
-					break;
-
-                default:
-                    break;
-                }
-            }
-        }
-
-        out << "Programm finished!" << endl;
-
+		catch (...)
+		{
+			//terminate output worker if an exeption is thrown
+			output_worker->terminate();
+			throw;
+		}
     }
 
 private:
