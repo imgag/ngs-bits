@@ -220,6 +220,8 @@ public slots:
 	void on_actionConvertGSvarToVcf_triggered();
 	///Action for region conversion (Cytoband > BED)
 	void on_actionCytobandsToRegions_triggered();
+	///Action for region conversion (region > genes)
+	void on_actionRegionToGenes_triggered();
 	///Open SNV search dialog
 	void on_actionSearchSNVs_triggered();
 	///Open CNV search dialog

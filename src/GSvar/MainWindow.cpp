@@ -757,6 +757,55 @@ void MainWindow::on_actionCytobandsToRegions_triggered()
 	dlg.exec();
 }
 
+void MainWindow::on_actionRegionToGenes_triggered()
+{
+	QString title = "Region > Genes";
+
+	try
+	{
+		//get region string
+		QString region_text = QInputDialog::getText(this, title, "genomic region");
+		if (region_text=="") return;
+
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		//convert to region
+		Chromosome chr;
+		int start, end;
+		NGSHelper::parseRegion(region_text, chr, start, end);
+
+		//convert region to gene set
+		NGSD db;
+		GeneSet genes = db.genesOverlapping(chr, start, end);
+
+		//show results
+		QPlainTextEdit* text_edit = new QPlainTextEdit(this);
+		text_edit->setReadOnly(true);
+		text_edit->setMinimumSize(1000, 800);
+		text_edit->setWordWrapMode(QTextOption::NoWrap);
+		text_edit->appendPlainText("#GENE\tOMIM_GENE\tOMIM_PHENOTYPES");
+		foreach (const QByteArray& gene, genes)
+		{
+			QList<OmimInfo> omim_genes = db.omimInfo(gene);
+			foreach (const OmimInfo& omim_gene, omim_genes)
+			{
+				text_edit->appendPlainText(gene + "\t" + omim_gene.gene_symbol + "\t" + omim_gene.phenotypes.toString());
+			}
+		}
+
+		QApplication::restoreOverrideCursor();
+
+		auto dlg = GUIHelper::createDialog(text_edit, title);
+		dlg->exec();
+	}
+	catch(Exception& e)
+	{
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, title, "Error:\n" + e.message());
+		return;
+	}
+}
+
 void MainWindow::on_actionSearchSNVs_triggered()
 {
 	SmallVariantSearchWidget* widget = new SmallVariantSearchWidget();
@@ -6016,6 +6065,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionSampleSearch->setEnabled(ngsd_user_logged_in);
 	ui_.actionRunOverview->setEnabled(ngsd_user_logged_in);
 	ui_.actionConvertHgvsToGSvar->setEnabled(ngsd_user_logged_in);
+	ui_.actionRegionToGenes->setEnabled(ngsd_user_logged_in);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
 	ui_.actionExpressionData->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnnotateSomaticVariantInterpretation->setEnabled(ngsd_user_logged_in);
