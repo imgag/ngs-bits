@@ -208,8 +208,6 @@ public slots:
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
 	void openVariantListFolder();
-	///Batch export for ClinVar
-	void on_actionBatchExportClinVar_triggered();
 	///Re-analyze current sample/case
 	void on_actionReanalyze_triggered();
 	///Action for debugging
@@ -222,6 +220,8 @@ public slots:
 	void on_actionConvertGSvarToVcf_triggered();
 	///Action for region conversion (Cytoband > BED)
 	void on_actionCytobandsToRegions_triggered();
+	///Action for region conversion (region > genes)
+	void on_actionRegionToGenes_triggered();
 	///Open SNV search dialog
 	void on_actionSearchSNVs_triggered();
 	///Open CNV search dialog
@@ -230,7 +230,7 @@ public slots:
 	void on_actionSearchSVs_triggered();
 	///Shows published variants dialog
 	void on_actionShowPublishedVariants_triggered();
-	///Shows allele ballance calculation
+	///Shows allele balance calculation
 	void on_actionAlleleBalance_triggered();
 
 	///Load report configuration
