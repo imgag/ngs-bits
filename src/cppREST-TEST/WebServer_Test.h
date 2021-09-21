@@ -1,5 +1,5 @@
 #include "TestFramework.h"
-#include "HttpsServer.h"
+#include "WebServer.h"
 #include "ServerHelper.h"
 #include "HttpRequestHandler.h"
 #include <QJsonDocument>
@@ -8,7 +8,7 @@
 #include "EndpointHandler.h"
 #include "EndpointHandler.cpp"
 
-TEST_CLASS(HttpsServer_Test)
+TEST_CLASS(WebServer_Test)
 {
 Q_OBJECT
 

@@ -3,7 +3,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QCommandLineParser>
-#include "HttpsServer.h"
+#include "WebServer.h"
 #include "ServerHelper.h"
 #include "EndpointController.h"
 #include "EndpointHandler.h"
@@ -339,6 +339,7 @@ int main(int argc, char **argv)
 
 	qInfo() << "SSL version used for build: " << QSslSocket::sslLibraryBuildVersionString();
 
-	HttpsServer sslserver(port_number);
+	WebServer https_server(port_number);
+	WebServer http_server(8889, true);
 	return app.exec();
 }

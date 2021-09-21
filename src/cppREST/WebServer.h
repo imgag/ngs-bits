@@ -1,5 +1,5 @@
-#ifndef HTTPSSERVER_H
-#define HTTPSSERVER_H
+#ifndef WEBSERVER_H
+#define WEBSERVER_H
 
 #include "cppREST_global.h"
 #include <QObject>
@@ -13,17 +13,19 @@
 #include <QTimer>
 
 #include "SslServer.h"
+#include "InsecureServer.h"
 #include "UrlManager.h"
 
-class CPPRESTSHARED_EXPORT HttpsServer : public QObject
+class CPPRESTSHARED_EXPORT WebServer : public QObject
 {
     Q_OBJECT
 
 public:
-	HttpsServer(const quint16& port);
+	WebServer(const quint16& port, const bool& insecure = false);
 
 private:
-	SslServer *server_;
+	SslServer *secure_server_;
+	QTcpServer *insecure_server_;
 };
 
-#endif // HTTPSSERVER_H
+#endif // WEBSERVER_H

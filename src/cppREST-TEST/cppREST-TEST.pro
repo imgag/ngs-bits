@@ -35,10 +35,10 @@ HEADERS += \
     FileCache_Test.h \
     HtmlEngine_Test.h \
     HttpProcessor_Test.h \
-    HttpsServer_Test.h \
     RequestParser_Test.h \
     ServerHelper_Test.h \
-    UrlManager_Test.h
+    UrlManager_Test.h \
+    WebServer_Test.h
 
 SOURCES += \
         main.cpp

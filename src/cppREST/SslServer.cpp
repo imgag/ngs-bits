@@ -27,7 +27,7 @@ QSslSocket *SslServer::nextPendingConnection()
 
 void SslServer::incomingConnection(qintptr socket)
 {
-	RequestWorker *request_worker = new RequestWorker(current_ssl_configuration_, socket);
-	connect(request_worker, &RequestWorker::finished, request_worker, &QObject::deleteLater);
+	SslRequestWorker *request_worker = new SslRequestWorker(current_ssl_configuration_, socket);
+	connect(request_worker, &SslRequestWorker::finished, request_worker, &QObject::deleteLater);
 	request_worker->start();
 }

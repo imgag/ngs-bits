@@ -1,7 +1,22 @@
-#include "HttpsServer.h"
+#include "WebServer.h"
 
-HttpsServer::HttpsServer(const quint16& port)
+WebServer::WebServer(const quint16& port, const bool& insecure)
 {
+	if (insecure)
+	{
+		qInfo() << "Insecure server option has been selected";
+		insecure_server_ = new InsecureServer(this);
+		if (insecure_server_->listen(QHostAddress::Any, port))
+		{
+			qInfo() << "HTTP unencrypted server is running on port #" + QString::number(port);
+		}
+		else
+		{
+			qCritical() << "Could not start the HTTP server on port #" + QString::number(port) + ":" + insecure_server_->serverError();
+		}
+		return;
+	}
+
 	QString ssl_certificate = ServerHelper::getStringSettingsValue("ssl_certificate");
 	if (ssl_certificate.isEmpty())
 	{
@@ -41,9 +56,9 @@ HttpsServer::HttpsServer(const quint16& port)
     QSslCertificate cert(&certFile);
     QSslKey key(&keyFile, QSsl::Rsa);
 
-	server_ = new SslServer(this);
+	secure_server_ = new SslServer(this);
 
-	QSslConfiguration config = server_->getSslConfiguration();
+	QSslConfiguration config = secure_server_->getSslConfiguration();
 	config.setLocalCertificate(cert);
     config.setPrivateKey(key);
 
@@ -53,8 +68,8 @@ HttpsServer::HttpsServer(const quint16& port)
 		config.setLocalCertificateChain(ca_certificates);
 	}
 
-	server_->setSslConfiguration(config);
-	if (server_->listen(QHostAddress::Any, port))
+	secure_server_->setSslConfiguration(config);
+	if (secure_server_->listen(QHostAddress::Any, port))
 	{		
 		qInfo() << "HTTPS server is running on port #" + QString::number(port);
 
@@ -64,6 +79,6 @@ HttpsServer::HttpsServer(const quint16& port)
 	}
 	else
 	{		
-		qCritical() << "Could not start the HTTPS server on port #" + QString::number(port) + ":" + server_->serverError();
+		qCritical() << "Could not start the HTTPS server on port #" + QString::number(port) + ":" + secure_server_->serverError();
 	}
 }
