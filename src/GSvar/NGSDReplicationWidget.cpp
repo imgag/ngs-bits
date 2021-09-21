@@ -197,8 +197,8 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 	q_update.prepare(query_str);
 
 	//delete removed entries
-	QSet<int> source_ids = db_source_->getValuesInt("SELECT id FROM " + table + " ORDER BY id ASC").toSet();
-	QSet<int> target_ids = db_target_->getValuesInt("SELECT id FROM " + table + " ORDER BY id ASC").toSet();
+	QSet<int> source_ids = db_source_->getValuesInt("SELECT id FROM " + table + " " +  where_clause + " ORDER BY id ASC").toSet();
+	QSet<int> target_ids = db_target_->getValuesInt("SELECT id FROM " + table + " " +  where_clause + " ORDER BY id ASC").toSet();
 	foreach(int id, target_ids)
 	{
 		if (!source_ids.contains(id))
@@ -430,18 +430,18 @@ void NGSDReplicationWidget::replicateVariantData()
 	updateTable("somatic_variant_classification", true);
 	updateTable("somatic_vicc_interpretation", true);
 	updateTable("variant_publication", true);
-	updateTable("variant_validation", true, "WHERE variant_id IS NOT NULL"); //only entries for small variants
+	updateTable("variant_validation", true, "WHERE variant_id IS NOT NULL"); //small variants
+	updateCnvTable("variant_validation", "WHERE cnv_id IS NOT NULL"); //CNVs
 	if (!ui_.skip_rc->isChecked())
 	{
 		QStringList rc_ids_with_variants = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT DISTINCT processed_sample_id FROM detected_variant)");
 		updateTable("report_configuration_variant", true, "WHERE report_configuration_id IN (" + rc_ids_with_variants.join(",") + ")"); //only entries for samples with imported variants
-		updateReportConfigCnv();
+		updateCnvTable("report_configuration_cnv");
 		updateTable("somatic_report_configuration_variant", true);
 		updateTable("somatic_report_configuration_germl_var", true);
 	}
 
 	//TODO NGSDReplicationWidget:
-	//- CNVs: variant_validation CNVs
 	//- SVs: report_configuration_sv, variant_validation SVs
 	//- CNVs somatic: somatic_report_configuration_cnv
 	//- misc: gaps, cfdna_panel_genes, cfdna_panels
@@ -559,7 +559,6 @@ int NGSDReplicationWidget::liftOverCnv(int source_cnv_id, int callset_id, QStrin
 	//check new chromosome is ok
 	if (!coords.chr().isNonSpecial())
 	{
-
 		error_message = "chromosome is now special chromosome: " + coords.chr().strNormalized(true);
 		return -2;
 	}
@@ -591,14 +590,13 @@ int NGSDReplicationWidget::liftOverCnv(int source_cnv_id, int callset_id, QStrin
 	return cnv_id.toInt();
 }
 
-void NGSDReplicationWidget::updateReportConfigCnv()
+void NGSDReplicationWidget::updateCnvTable(QString table, QString where_clause)
 {
-	QFile file(QCoreApplication::applicationDirPath()  + QDir::separator() + "liftover_report_config_cnvs.tsv");
+	QFile file(QCoreApplication::applicationDirPath()  + QDir::separator() + "liftover_" + table + ".tsv");
 	file.open(QIODevice::WriteOnly);
 	QTextStream debug_stream(&file);
 	debug_stream << "#ps\tCNV\tcn\tsize_kb\tregs\tll_per_regs\tfound_in_HG38\terror\tcomments\n";
 
-	QString table = "report_configuration_cnv";
 	QStringList fields = db_target_->tableInfo(table).fieldNames();
 
 	//init
@@ -640,8 +638,8 @@ void NGSDReplicationWidget::updateReportConfigCnv()
 	q_update.prepare(query_str);
 
 	//delete removed entries
-	QSet<int> source_ids = db_source_->getValuesInt("SELECT id FROM " + table + " ORDER BY id ASC").toSet();
-	QSet<int> target_ids = db_target_->getValuesInt("SELECT id FROM " + table + " ORDER BY id ASC").toSet();
+	QSet<int> source_ids = db_source_->getValuesInt("SELECT id FROM " + table + " " + where_clause + " ORDER BY id ASC").toSet();
+	QSet<int> target_ids = db_target_->getValuesInt("SELECT id FROM " + table + " " + where_clause + " ORDER BY id ASC").toSet();
 	foreach(int id, target_ids)
 	{
 		if (!source_ids.contains(id))
@@ -655,7 +653,7 @@ void NGSDReplicationWidget::updateReportConfigCnv()
 
 	//add/update entries
 	SqlQuery query = db_source_->getQuery();
-	query.exec("SELECT * FROM " + table + " ORDER BY id ASC");
+	query.exec("SELECT * FROM " + table + " " + where_clause + " ORDER BY id ASC");
 	while(query.next())
 	{
 		int id = query.value("id").toInt();
@@ -701,7 +699,7 @@ void NGSDReplicationWidget::updateReportConfigCnv()
 			int source_cnv_id = query.value("cnv_id").toInt();
 			int target_cnv_id = -1;
 
-			QString ps_id = db_source_->getValue("SELECT processed_sample_id FROM report_configuration WHERE id=" + query.value("report_configuration_id").toString()).toString();
+			QString ps_id = db_source_->getValue("SELECT cs.processed_sample_id FROM cnv c, cnv_callset cs WHERE c.cnv_callset_id=cs.id AND c.id=" + QString::number(source_cnv_id)).toString();
 			QString ps = db_source_->processedSampleName(ps_id);
 			QVariant callset_id = db_target_->getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id);
 			if (!callset_id.isValid())
@@ -710,8 +708,8 @@ void NGSDReplicationWidget::updateReportConfigCnv()
 				continue;
 			}
 
-			bool causal_variant = query.value("causal").toInt()==1;
-			bool pathogenic_variant = query.value("class").toInt()>3;
+			bool causal_variant = table=="report_configuration_cnv" && query.value("causal").toInt()==1;
+			bool pathogenic_variant = table=="report_configuration_cnv" && query.value("class").toInt()>3;
 			QString error_message = "";
 			target_cnv_id = liftOverCnv(source_cnv_id, callset_id.toInt(), error_message);
 
@@ -738,7 +736,7 @@ void NGSDReplicationWidget::updateReportConfigCnv()
 			if (pathogenic_variant) comments << "pathogenic";
 			CopyNumberVariant var = db_source_->cnv(source_cnv_id);
 
-			debug_stream << ps << "\t" << var.toString() << "\t" << cn << "\t" << QString::number((double)var.size()/1000, 'f', 2) << "\t"  << regs << "\t" << QString::number((double)ll/regs, 'f', 2) << "\t"  << (target_cnv_id>=0 ? "yes" : "no") << "\t" << "\t" << error_message << comments.join(", ") << "\n";
+			debug_stream << ps << "\t" << var.toString() << "\t" << cn << "\t" << QString::number((double)var.size()/1000, 'f', 2) << "\t"  << regs << "\t" << QString::number((double)ll/regs, 'f', 2) << "\t"  << (target_cnv_id>=0 ? "yes" : "no") << "\t" << error_message << "\t" << comments.join(", ") << "\n";
 			debug_stream.flush();
 
 			//warn if causal/pathogenic CNV could not be lifed
