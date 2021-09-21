@@ -32,6 +32,7 @@ public:
 		addFloat("max_af", "Maximum allel frequency of exported variants (default: 0.05).",  true, 0.05);
 		addInt("gene_offset", "Defines the number of bases by which the region of each gene is extended.", true, 5000);
 		addEnum("mode", "Determines the database which is exported.", true, QStringList() << "germline" << "somatic", "germline");
+		addFlag("vicc_config_details", "Includes details about VICC interpretation. Works only in somatic mode.");
 
 		changeLog(2021,  7, 19, "Code and parameter refactoring.");
 		changeLog(2021,  7, 19, "Added support for 'germline_het' and 'germline_hom' columns in 'variant' table.");
@@ -45,6 +46,7 @@ public:
 	{
 		//init
 		use_test_db_ = getFlag("test");
+		vicc_config_details_ = getFlag("vicc_config_details");
 		NGSD db(use_test_db_);
 		QTextStream out(stdout);
 		max_allel_frequency_ = getFloat("max_af");
@@ -78,6 +80,7 @@ public:
 
 private:
 	bool use_test_db_;
+	bool vicc_config_details_;
 	float max_allel_frequency_;
 	int gene_offset_;
 
@@ -176,6 +179,19 @@ private:
 		vcf_stream << "##INFO=<ID=SOM_P,Number=.,Type=String,Description=\"Project names of project containing this somatic variant in the NGSD.\">\n";
 		vcf_stream << "##INFO=<ID=SOM_VICC,Number=1,Type=String,Description=\"Somatic variant interpretation according VICC standard in the NGSD.\">\n";
 		vcf_stream << "##INFO=<ID=SOM_VICC_COMMENT,Number=1,Type=String,Description=\"Somatic VICC interpretation comment in the NGSD.\">\n";
+
+		if(vicc_config_details_)
+		{
+			for(QString key : SomaticViccData().configAsMap().keys())
+			{
+			if(key.contains("comment")) continue; //skip comment because it is already included
+			vcf_stream << "##INFO=<ID=SOM_VICC_" + key.toUpper() +",Number=1,Type=String,Description=\"Somatic VICC value for VICC parameter " + key + " in the NGSD.\">\n";
+			}
+		}
+
+
+
+
 
 		// write header line
 		vcf_stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
@@ -300,6 +316,15 @@ private:
 
 						info_column.append("SOM_VICC=" + VcfFile::encodeInfoValue(SomaticVariantInterpreter::viccScoreAsString(data)).toUtf8() );
 						info_column.append("SOM_VICC_COMMENT=" + VcfFile::encodeInfoValue(data.comment).toUtf8() );
+
+						if(vicc_config_details_)
+						{
+							QMap<QString, QString> config_details = data.configAsMap();
+							for(auto it = config_details.begin() ; it != config_details.end(); ++it)
+							{
+								info_column.append("SOM_VICC_" + it.key().toUpper().toUtf8() + "=" + VcfFile::encodeInfoValue(it.value()).toUtf8());
+							}
+						}
 					}
 
 
