@@ -43,6 +43,7 @@ public:
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 		addInt("debug", "Enables debug output at the given interval in milliseconds (disabled by default, cannot be combined with writing to STDOUT).", true, -1);
 
+		changeLog(2021,  9, 18, "Prefetch only part of input file (to save memory).");
 		changeLog(2021,  8, 24, "Added multithread support.");
 		changeLog(2021,  6, 15, "Added 'sep' parameter.");
 		changeLog(2019, 12,  6, "Added URL encoding for INFO values.");
@@ -123,7 +124,7 @@ public:
 			// parse VCF file:
 			while(!in_p->atEnd())
 			{
-				int to_be_analyzed = 0;
+				int to_be_processed = 0;
 				int to_be_written = 0;
 				int vcf_line_idx = 0;
 				int done = 0;
@@ -151,10 +152,14 @@ public:
 
 						case TO_BE_WRITTEN:
 							++to_be_written;
+							//sleep
+							QThread::msleep(100);
 							break;
 
 						case TO_BE_PROCESSED:
-							++to_be_analyzed;
+							++to_be_processed;
+							//sleep
+							QThread::msleep(100);
 							break;
 
 						case ERROR:
@@ -183,7 +188,7 @@ public:
 				//debug output
 				if (debug>0 && timer.elapsed()>debug)
 				{
-					outstream << Helper::dateTime() << " debug - to_be_analyzed: " << to_be_analyzed << " to_be_written: " << to_be_written << " done: " << done << endl;
+					outstream << Helper::dateTime() << " debug - to_be_processed: " << to_be_processed << " to_be_written: " << to_be_written << " done: " << done << endl;
 					timer.restart();
 				}
 			}
@@ -195,22 +200,33 @@ public:
 			//wait for all jobs to finish
 			if (debug>0) outstream << Helper::dateTime() << " input data read completely - waiting for analysis to finish" << endl;
 			int done = 0;
-			int to_be_written = 0;
+			int to_be_written, to_be_processed;
 			while(done < job_pool.count())
 			{
 				done = 0;
+				to_be_written = 0;
+				to_be_processed = 0;
 				for (int j=0; j<job_pool.count(); ++j)
 				{
 					AnalysisJob& job = job_pool[j];
 					switch(job.status)
 					{
-						case TO_BE_WRITTEN:
-							++to_be_written;
-							break;
-
 						case DONE:
 							++done;
 							break;
+
+						case TO_BE_WRITTEN:
+							to_be_written++;
+							//sleep
+							QThread::msleep(100);
+							break;
+
+						case TO_BE_PROCESSED:
+							++to_be_processed;
+							//sleep
+							QThread::msleep(100);
+							break;
+
 
 						case ERROR:
 							if (job.error_message.startsWith("FileParseException\t"))
@@ -232,16 +248,20 @@ public:
 					}
 				}
 
+				//sleep
+				QThread::msleep(500);
+
 				//debug output
 				if (debug>0 && timer.elapsed()>debug)
 				{
-					outstream << Helper::dateTime() << " progress - done: " << done << endl;
+					outstream << Helper::dateTime() << " debug - to_be_analyzed: " << to_be_processed << " to_be_written: " << to_be_written << " done: " << done << endl;
 					timer.restart();
 				}
 			}
 
-			if (debug>0) outstream << Helper::dateTime() << " analysis finished" << endl;
 			output_worker->terminate();
+			if (debug>0) outstream << Helper::dateTime() << " analysis finished" << endl;
+
 
 		}
 		catch(...)

@@ -46,6 +46,7 @@ public:
 		addInt("block_size", "Number of lines processed in one chunk.", true, 5000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 
+		changeLog(2021, 9, 20, "Prefetch only part of input file (to save memory).");
         changeLog(2020, 4, 11, "Added multithread support by Julian Fratte.");
         changeLog(2019, 8, 19, "Added support for multiple annotations files through config file.");
         changeLog(2019, 8, 14, "Added VCF.GZ support.");
@@ -246,7 +247,7 @@ public:
 		{
 			while(!gzeof(file))
 			{
-				int to_be_analyzed = 0;
+				int to_be_processed = 0;
 				int to_be_written = 0;
 				int done = 0;
 				for (int j=0; j<job_pool.count(); ++j)
@@ -297,10 +298,14 @@ public:
 
 						case TO_BE_WRITTEN:
 							++to_be_written;
+							//sleep
+							QThread::msleep(100);
 							break;
 
 						case TO_BE_PROCESSED:
-							++to_be_analyzed;
+							++to_be_processed;
+							//sleep
+							QThread::msleep(100);
 							break;
 
 						case ERROR:
@@ -331,7 +336,8 @@ public:
 			delete[] buffer;
 
 			//wait for all jobs to finish
-			int done, to_be_written, to_be_processed;
+			int done =0;
+			int to_be_written, to_be_processed;
 			while (done < job_pool.count())
 			{
 				done = 0;
@@ -350,6 +356,14 @@ public:
 
 						case TO_BE_WRITTEN:
 							to_be_written++;
+							//sleep
+							QThread::msleep(100);
+							break;
+
+						case TO_BE_PROCESSED:
+							++to_be_processed;
+							//sleep
+							QThread::msleep(100);
 							break;
 
 						case ERROR:
@@ -371,15 +385,16 @@ public:
 							break;
 					}
 				}
-
-				qDebug() << "Done: " << done << " - to_be_processed: " << to_be_processed << " - to_be_written: " << to_be_written;
 			}
 
+			//terminater output worker
+			output_worker->terminate();
 			out << "Programm finished!" << endl;
 
 		}
 		catch (...)
 		{
+			delete[] buffer;
 			//terminate output worker if an exeption is thrown
 			output_worker->terminate();
 			throw;
@@ -387,17 +402,6 @@ public:
     }
 
 private:
-
-    /*
-     *  returns a formatted time string (QByteArray) from a given time in milliseconds
-     */
-    QByteArray getTimeString(qint64 milliseconds)
-    {
-        QTime time(0,0,0);
-        time = time.addMSecs(milliseconds);
-        return time.toString("hh:mm:ss.zzz").toUtf8();
-    }
-
 
     /*
      *  parses the INFO id parameter and extracts the INFO ids for the annotation file and the
@@ -474,65 +478,6 @@ private:
         {
             out_id_column_name = prefix + "_" + out_id_column_name;
         }
-    }
-
-    /*
-     *		returns the concatinated INFO ids for the annotation
-     */
-    QByteArrayList getOutputNames(QByteArray output_id_string, const QByteArrayList &input_info_ids,
-                                  const QByteArray &prefix)
-    {
-        QByteArrayList output_info_ids;
-        if(output_id_string == "")
-        {
-            // if no alternative output ids are provided simply use the original id
-            output_info_ids = input_info_ids;
-        }
-        else
-        {
-            // parse output ids:
-            output_info_ids = output_id_string.replace(" ", "").split(',');
-
-            // check if input and output ids match
-            if (input_info_ids.size() != output_info_ids.size())
-            {
-                QByteArray error_string = "Number of given input and output info ids do not match! "
-                        + QByteArray::number(input_info_ids.size()) + " input info ids but "
-                        + QByteArray::number(output_info_ids.size()) + " output info ids are given.";
-                THROW(ArgumentException, error_string)
-            }
-        }
-
-        // extend output ids by prefix
-        if (prefix != "")
-        {
-            for (int i = 0; i < output_info_ids.size(); i++)
-            {
-                output_info_ids[i] = prefix + "_" + output_info_ids[i];
-            }
-        }
-        return output_info_ids;
-    }
-
-    //	/*
-    //	 *  returns the value of a given INFO key from a given INFO header line
-    //	 */
-    QByteArray getInfoHeaderValue(const QByteArray &header_line, const QByteArray &key,
-                                  bool case_sensitive = false)
-    {
-        // parse info id:
-        QByteArrayList info_line_key_values = header_line.split('<')[1].split('>')[0].split(',');
-        foreach (QByteArray key_value, info_line_key_values)
-        {
-            bool key_match = key_value.startsWith(key)
-                    || (!case_sensitive && key_value.toLower().startsWith(key.toLower()));
-            if (key_match)
-            {
-                return key_value.split('=')[1].trimmed();
-            }
-        }
-        THROW(FileParseException, "Key \"" + key + "\" not found in header line!");
-        return "";
     }
 
 };

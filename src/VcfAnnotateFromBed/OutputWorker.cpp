@@ -1,6 +1,7 @@
 #include "OutputWorker.h"
 
 #include <Helper.h>
+#include <QThread>
 
 OutputWorker::OutputWorker(QList<AnalysisJob>& job_pool, QString output_filename)
 	: QRunnable()
@@ -31,8 +32,14 @@ void OutputWorker::run()
 					}
 
 					++write_chunk_;
+					out_p_->flush();
 					job.clear();
 					job.status = DONE;
+				}
+				else
+				{
+					//sleep
+					QThread::msleep(200);
 				}
 			}
 			catch(Exception& e)
@@ -45,6 +52,5 @@ void OutputWorker::run()
 	}
 
 	//close output file
-	out_p_->flush();
 	out_p_->close();
 }
