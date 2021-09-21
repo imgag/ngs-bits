@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "GSvarHelper.h"
 #include "Settings.h"
+#include <QDir>
 
 NGSDReplicationWidget::NGSDReplicationWidget(QWidget* parent)
 	: QWidget(parent)
@@ -440,7 +441,7 @@ void NGSDReplicationWidget::replicateVariantData()
 	}
 
 	//TODO NGSDReplicationWidget:
-	//- CNVs: report_configuration_cnv, variant_validation CNVs
+	//- CNVs: variant_validation CNVs
 	//- SVs: report_configuration_sv, variant_validation SVs
 	//- CNVs somatic: somatic_report_configuration_cnv
 	//- misc: gaps, cfdna_panel_genes, cfdna_panels
@@ -539,7 +540,7 @@ void NGSDReplicationWidget::performPostChecks()
 	}
 }
 
-int NGSDReplicationWidget::liftOverCnv(int source_cnv_id, int callset_id, bool debug_output)
+int NGSDReplicationWidget::liftOverCnv(int source_cnv_id, int callset_id, QString& error_message)
 {
 	CopyNumberVariant var = db_source_->cnv(source_cnv_id);
 
@@ -551,41 +552,39 @@ int NGSDReplicationWidget::liftOverCnv(int source_cnv_id, int callset_id, bool d
 	}
 	catch(Exception& e)
 	{
-		if (debug_output) qDebug() << "-1" << var.toString() << e.message();
+		error_message = "lift-over failed: " + e.message().replace("\t", " ").replace("<br>", " ").replace("&nbsp;", " ");
 		return -1;
 	}
 
 	//check new chromosome is ok
 	if (!coords.chr().isNonSpecial())
 	{
-		if (debug_output) qDebug() << "-2" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end());
+
+		error_message = "chromosome is now special chromosome: " + coords.chr().strNormalized(true);
 		return -2;
 	}
 
-	//check sequence context is the same (ref +-5 bases). If it is not, the strand might have changed, e.g. in NIPA1, GDF2, ANKRD35, TPTE, ...
-	bool strand_changed = false;
-	Sequence context_old = genome_index_->seq(var.chr(), var.start()-5, 10);
-	Sequence context_new = genome_index_hg38_->seq(coords.chr(), coords.start()-5, 10);
-	if (context_old!=context_new)
-	{
-		context_new.reverseComplement();
-		if (context_old==context_new)
-		{
-			strand_changed = true;
-		}
-		else
-		{
-			context_new.reverseComplement();
-			if (debug_output) qDebug() << "-3" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end()) << "old_context="+context_old << "new_context="+context_new;
-			return -3;
-		}
-	}
-
 	//check for CNV in target NGSD
-	QString cnv_id = db_target_->cnvId(CopyNumberVariant(coords.chr(), coords.start(), coords.end()), callset_id, false);
+	QString cn = db_source_->getValue("SELECT cn FROM cnv WHERE id="+QString::number(source_cnv_id)).toString();
+	QString cnv_id = db_target_->getValue("SELECT id FROM cnv WHERE cnv_callset_id="+QString::number(callset_id)+" AND chr='"+coords.chr().strNormalized(true)+"' AND start='"+QString::number(coords.start())+"' AND end='"+QString::number(coords.start())+"' AND cn="+cn, true).toString();
 	if (cnv_id.isEmpty())
 	{
-		if (debug_output) qDebug() << "-4" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end()) << "strand_changed="+QString(strand_changed?"yes":"no");
+		//no exact match, try fuzzy match (at least 70% of original/liftover size)
+		int size_hg19 = var.size();
+		int size_hg38 = coords.length();
+
+		SqlQuery query = db_target_->getQuery();
+		query.exec("SELECT * FROM cnv WHERE cnv_callset_id='" + QString::number(callset_id) + "' AND cn='"+cn+"' AND chr='" + coords.chr().strNormalized(true) + "' AND end>" + QString::number(coords.start()) + " AND start<" + QString::number(coords.end()) + "");
+		while (query.next())
+		{
+			int size = query.value("end").toInt() - query.value("start").toInt();
+			if (size > 0.7 * size_hg19 && size > 0.7 * size_hg38)
+			{
+				return query.value("id").toInt();
+			}
+		}
+
+		error_message = "CNV not found in NGSD";
 		return -4;
 	}
 
@@ -594,6 +593,11 @@ int NGSDReplicationWidget::liftOverCnv(int source_cnv_id, int callset_id, bool d
 
 void NGSDReplicationWidget::updateReportConfigCnv()
 {
+	QFile file(QCoreApplication::applicationDirPath()  + QDir::separator() + "liftover_report_config_cnvs.tsv");
+	file.open(QIODevice::WriteOnly);
+	QTextStream debug_stream(&file);
+	debug_stream << "#ps\tCNV\tcn\tsize_kb\tregs\tll_per_regs\tfound_in_HG38\terror\tcomments\n";
+
 	QString table = "report_configuration_cnv";
 	QStringList fields = db_target_->tableInfo(table).fieldNames();
 
@@ -698,6 +702,7 @@ void NGSDReplicationWidget::updateReportConfigCnv()
 			int target_cnv_id = -1;
 
 			QString ps_id = db_source_->getValue("SELECT processed_sample_id FROM report_configuration WHERE id=" + query.value("report_configuration_id").toString()).toString();
+			QString ps = db_source_->processedSampleName(ps_id);
 			QVariant callset_id = db_target_->getValue("SELECT id FROM cnv_callset WHERE processed_sample_id=" + ps_id);
 			if (!callset_id.isValid())
 			{
@@ -707,19 +712,44 @@ void NGSDReplicationWidget::updateReportConfigCnv()
 
 			bool causal_variant = query.value("causal").toInt()==1;
 			bool pathogenic_variant = query.value("class").toInt()>3;
-			target_cnv_id = liftOverCnv(source_cnv_id, callset_id.toInt(), causal_variant||pathogenic_variant);
+			QString error_message = "";
+			target_cnv_id = liftOverCnv(source_cnv_id, callset_id.toInt(), error_message);
+
+			int cn = db_source_->getValue("SELECT cn FROM cnv WHERE id=" + QString::number(source_cnv_id), false).toInt();
+			int ll = -1;
+			int regs = -1;
+			QString metrics = db_source_->getValue("SELECT quality_metrics FROM cnv WHERE id=" + QString::number(source_cnv_id), false).toString();
+			foreach(QString metric, metrics.split(","))
+			{
+				metric.replace("\"", "");
+				metric.replace("{", "");
+				metric.replace("}", "");
+				if (metric.contains("loglikelihood"))
+				{
+					ll = metric.split(":")[1].toInt();
+				}
+				if (metric.contains("regions") || metric.contains("no_of_regions"))
+				{
+					regs = metric.split(":")[1].toInt();
+				}
+			}
+			QStringList comments;
+			if (causal_variant) comments << "causal";
+			if (pathogenic_variant) comments << "pathogenic";
+			CopyNumberVariant var = db_source_->cnv(source_cnv_id);
+
+			debug_stream << ps << "\t" << var.toString() << "\t" << cn << "\t" << QString::number((double)var.size()/1000, 'f', 2) << "\t"  << regs << "\t" << QString::number((double)ll/regs, 'f', 2) << "\t"  << (target_cnv_id>=0 ? "yes" : "no") << "\t" << "\t" << error_message << comments.join(", ") << "\n";
+			debug_stream.flush();
 
 			//warn if causal/pathogenic CNV could not be lifed
 			if (target_cnv_id<0)
 			{
 				if (causal_variant)
 				{
-					QString ps = db_source_->processedSampleName(ps_id);
 					addWarning("Causal CNV " + db_source_->cnv(source_cnv_id).toString() + " of sample " + ps + " could not be lifted (" + QString::number(target_cnv_id) + ")!");
 				}
-				else if (pathogenic_variant && target_cnv_id<0)
+				else if (pathogenic_variant)
 				{
-					QString ps = db_source_->processedSampleName(ps_id);
 					addWarning("Pathogenic CNV " + db_source_->cnv(source_cnv_id).toString() + " of sample " + ps + " (class " + query.value("class").toString() + ") could not be lifted (" + QString::number(target_cnv_id) + ")!");
 				}
 			}
@@ -738,7 +768,7 @@ void NGSDReplicationWidget::updateReportConfigCnv()
 				}
 				try
 				{
-					//TODO q_add.exec();
+					q_add.exec();
 				}
 				catch (Exception& e)
 				{
@@ -765,7 +795,7 @@ void NGSDReplicationWidget::updateReportConfigCnv()
 	QStringList details;
 	if (c_added>0) details << "added " + QString::number(c_added);
 	if (c_not_mappable>0) details << "skipped unmappable CNVs " + QString::number(c_not_mappable);
-	if (c_not_in_ngsd>0) details << "skipped CNVs not in NGSD " + QString::number(c_not_in_ngsd);
+	if (c_not_in_ngsd>0) details << "skipped CNVs not found in NGSD " + QString::number(c_not_in_ngsd);
 	if (c_no_callset>0) details << "skipped CNVs of samples without callset " + QString::number(c_no_callset);
 	if (c_kept>0) details << "kept " + QString::number(c_kept);
 	if (c_updated>0) details << "updated " + QString::number(c_updated);

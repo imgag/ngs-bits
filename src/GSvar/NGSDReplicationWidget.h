@@ -31,7 +31,7 @@ protected:
 
 	int liftOverVariant(int source_variant_id, bool debug_output);
 	void updateTable(QString table, bool contains_variant_id=false, QString where_clause="");
-	int liftOverCnv(int source_cnv_id, int callset_id, bool debug_output);
+	int liftOverCnv(int source_cnv_id, int callset_id, QString& error_message);
 	void updateReportConfigCnv();
 
 private:
