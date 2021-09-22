@@ -1,5 +1,5 @@
-#ifndef SSLREQUESTWORKER_H
-#define SSLREQUESTWORKER_H
+#ifndef REQUESTWORKER_H
+#define REQUESTWORKER_H
 
 #include "cppREST_global.h"
 #include <QThread>
@@ -15,11 +15,12 @@
 #include "RequestParser.h"
 #include "EndpointManager.h"
 
-class CPPRESTSHARED_EXPORT SslRequestWorker : public QThread
+class CPPRESTSHARED_EXPORT RequestWorker : public QThread
 {
 	Q_OBJECT
 public:
-	SslRequestWorker(QSslConfiguration ssl_configuration, qintptr socket);
+	RequestWorker(QSslConfiguration ssl_configuration, qintptr socket);
+	RequestWorker(qintptr socket);
 	void run();
 
 protected slots:
@@ -43,6 +44,7 @@ private:
 	QSslConfiguration ssl_configuration_;
 	qintptr socket_;
 	bool is_terminated_;
+	bool is_secure_;
 };
 
-#endif // SSLREQUESTWORKER_H
+#endif // REQUESTWORKER_H

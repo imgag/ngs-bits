@@ -53,11 +53,9 @@ SOURCES += \
     HttpProcessor.cpp \
     HttpRequest.cpp \
     HttpResponse.cpp \
-    InsecureRequestWorker.cpp \
-    InsecureServer.cpp \
     RequestPaser.cpp \
+    RequestWorker.cpp \
     ServerHelper.cpp \
-    SslRequestWorker.cpp \
     SslServer.cpp \
     UrlManager.cpp \
     WebServer.cpp
@@ -71,11 +69,9 @@ HEADERS += \
     HttpProcessor.h \
     HttpRequest.h \
     HttpResponse.h \
-    InsecureRequestWorker.h \
-    InsecureServer.h \
     RequestParser.h \
+    RequestWorker.h \
     ServerHelper.h \
-    SslRequestWorker.h \
     SslServer.h \
     UrlManager.h \
     WebServer.h

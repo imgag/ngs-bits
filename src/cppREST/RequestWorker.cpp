@@ -1,36 +1,62 @@
-#include "InsecureRequestWorker.h"
+#include "RequestWorker.h"
 
-InsecureRequestWorker::InsecureRequestWorker(qintptr socket)
+RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket)
 	:
-	socket_(socket)
+	 ssl_configuration_(ssl_configuration)
+	, socket_(socket)
 	, is_terminated_(false)
+	, is_secure_(true)
 {
 }
 
-void InsecureRequestWorker::run()
+RequestWorker::RequestWorker(qintptr socket)
+	:
+	  socket_(socket)
+	, is_terminated_(false)
+	, is_secure_(false)
 {
-	qDebug() << "Start processing an incomming connection in a new separate thread";
-	QTcpSocket *tcp_socket = new QTcpSocket();
-	tcp_socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
+}
 
-	if (!tcp_socket)
+void RequestWorker::run()
+{
+	qInfo() << "Start processing an incomming connection in a new separate worker thread";
+	QSslSocket *ssl_socket = new QSslSocket();
+	ssl_socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
+
+	if (!ssl_socket)
 	{
 		qCritical() << "Could not create a socket";
 		return;
 	}
+	if (is_secure_) ssl_socket->setSslConfiguration(ssl_configuration_);
 
-
-	if (!tcp_socket->setSocketDescriptor(socket_))
+	if (!ssl_socket->setSocketDescriptor(socket_))
 	{
 		qCritical() << "Could not set a socket descriptor";
-		delete tcp_socket;
+		delete ssl_socket;
 		return;
+	}
+
+	if (is_secure_)
+	{
+		typedef void (QSslSocket::* sslFailed)(const QList<QSslError> &);
+		connect(ssl_socket, static_cast<sslFailed>(&QSslSocket::sslErrors), this, &RequestWorker::sslFailed);
+		connect(ssl_socket, &QSslSocket::peerVerifyError, this, &RequestWorker::verificationFailed);
+		connect(ssl_socket, &QSslSocket::encrypted, this, &RequestWorker::securelyConnected);
+		connect(ssl_socket, &QSslSocket::disconnected, this, &RequestWorker::socketDisconnected);
+		connect(this, SIGNAL(securelyConnected()), this, SLOT(handleConnection()));
+	}
+
+	if (is_secure_)
+	{
+		qDebug() << "Starting the encryption";
+		ssl_socket->startServerEncryption();
 	}
 
 	QByteArray all_request_parts;
 
-	if (!tcp_socket->isOpen()) return;
-	qDebug() << "Wait for the socket to be ready";
+	if (!ssl_socket->isOpen()) return;
+	qDebug() << "Wait for the socket to be ready";	
 
 	bool finished_reading_headers = false;
 	bool finished_reading_body = false;
@@ -39,13 +65,22 @@ void InsecureRequestWorker::run()
 
 
 
-	while (tcp_socket->waitForReadyRead())
+	while (ssl_socket->waitForReadyRead())
 	{
 		qDebug() << "Start the processing";
 
-		while(tcp_socket->bytesAvailable())
+		if (is_secure_) ssl_socket->waitForEncrypted();
+
+		if (is_secure_ && !ssl_socket->isEncrypted())
 		{
-			QByteArray line = tcp_socket->readLine();
+			qDebug() << "Connection is not encrypted and cannot be continued";
+			closeAndDeleteSocket(ssl_socket);
+			return;
+		}
+
+		while(ssl_socket->bytesAvailable())
+		{
+			QByteArray line = ssl_socket->readLine();
 			if ((!finished_reading_headers) && (line.toLower().startsWith("content-length")))
 			{
 				QList<QByteArray> header_parts = line.trimmed().split(':');
@@ -72,21 +107,21 @@ void InsecureRequestWorker::run()
 
 	if (all_request_parts.size() == 0)
 	{
-		sendEntireResponse(tcp_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Request could not be processed"));
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Request could not be processed"));
 		qDebug() << "Was not able to read from the socket. Exiting";
 		return;
 	}
 
 
 	HttpRequest parsed_request;
-	RequestPaser *parser = new RequestPaser(&all_request_parts, tcp_socket->peerAddress().toString());
+	RequestPaser *parser = new RequestPaser(&all_request_parts, ssl_socket->peerAddress().toString());
 	try
 	{
 		parsed_request = parser->getRequest();
 	}
 	catch (Exception& e)
 	{
-		sendEntireResponse(tcp_socket, HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_HTML, e.message()));
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_HTML, e.message()));
 		return;
 	}
 
@@ -96,7 +131,7 @@ void InsecureRequestWorker::run()
 	Endpoint current_endpoint = EndpointManager::getEndpointByUrlAndMethod(parsed_request.getPath(), parsed_request.getMethod());
 	if (current_endpoint.action_func == nullptr)
 	{
-		sendEntireResponse(tcp_socket, HttpResponse(ResponseStatus::BAD_REQUEST, parsed_request.getContentType(), "This action cannot be processed"));
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, parsed_request.getContentType(), "This action cannot be processed"));
 		return;
 	}
 
@@ -107,7 +142,7 @@ void InsecureRequestWorker::run()
 	catch (ArgumentException& e)
 	{
 		qDebug() << "Parameter validation has failed";
-		sendEntireResponse(tcp_socket, HttpResponse(ResponseStatus::BAD_REQUEST, parsed_request.getContentType(), e.message()));
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, parsed_request.getContentType(), e.message()));
 		return;
 	}
 
@@ -118,7 +153,7 @@ void InsecureRequestWorker::run()
 		HttpResponse auth_response = EndpointManager::blockInvalidUsers(parsed_request);
 		if (auth_response.getStatusCode() > 0)
 		{
-			sendEntireResponse(tcp_socket, auth_response);
+			sendEntireResponse(ssl_socket, auth_response);
 			return;
 		}
 	}
@@ -133,7 +168,7 @@ void InsecureRequestWorker::run()
 	catch (Exception& e)
 	{
 		qDebug() << "Error while executing an action" << e.message();
-		sendEntireResponse(tcp_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not process endpoint action"));
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not process endpoint action"));
 		return;
 	}
 
@@ -144,14 +179,14 @@ void InsecureRequestWorker::run()
 		if (response.getFilename().isEmpty())
 		{
 			HttpResponse error_response;
-			sendEntireResponse(tcp_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "File name has not been found"));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "File name has not been found"));
 			return;
 		}
 
 		QFile streamed_file(response.getFilename());
 		if (!streamed_file.exists())
 		{
-			sendEntireResponse(tcp_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "Requested file does not exist"));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "Requested file does not exist"));
 			return;
 		}
 
@@ -164,19 +199,19 @@ void InsecureRequestWorker::run()
 		catch (Exception& e)
 		{
 			qDebug() << "Error while opening a file for streaming";
-			sendEntireResponse(tcp_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not open a file for streaming: " + response.getFilename()));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not open a file for streaming: " + response.getFilename()));
 			return;
 		}
 
 		if (!streamed_file.isOpen())
 		{
 			qDebug() << "File is not open";
-			sendEntireResponse(tcp_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "File is not open: " + response.getFilename()));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "File is not open: " + response.getFilename()));
 			return;
 		}
 
-		sendResponseDataPart(tcp_socket, response.getStatusLine());
-		sendResponseDataPart(tcp_socket, response.getHeaders());
+		sendResponseDataPart(ssl_socket, response.getStatusLine());
+		sendResponseDataPart(ssl_socket, response.getHeaders());
 
 		qint64 chunk_size = 1024*10;
 		qint64 pos = 0;
@@ -192,13 +227,13 @@ void InsecureRequestWorker::run()
 			if (parsed_request.getHeaderByName("Transfer-Encoding").toLower() == "chunked")
 			{
 				// Should be used for chunked transfer (without content-lenght)
-				sendResponseDataPart(tcp_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
-				sendResponseDataPart(tcp_socket, data.append("\r\n"));
+				sendResponseDataPart(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
+				sendResponseDataPart(ssl_socket, data.append("\r\n"));
 			}
 			else
 			{
 				// Keep connection alive and add data incrementally in parts (content-lenght is specified)
-				sendResponseDataPart(tcp_socket, data);
+				sendResponseDataPart(ssl_socket, data);
 			}
 		}
 
@@ -207,22 +242,22 @@ void InsecureRequestWorker::run()
 		// Should be used for chunked transfer (without content-lenght)
 		if (parsed_request.getHeaderByName("Transfer-Encoding").toLower() == "chunked")
 		{
-			sendResponseDataPart(tcp_socket, "0\r\n");
-			sendResponseDataPart(tcp_socket, "\r\n");
+			sendResponseDataPart(ssl_socket, "0\r\n");
+			sendResponseDataPart(ssl_socket, "\r\n");
 		}
 
-		finishPartialDataResponse(tcp_socket);
+		finishPartialDataResponse(ssl_socket);
 		return;
 	}
 	else if (!response.getPayload().isNull())
 	{
-		sendEntireResponse(tcp_socket, response);
+		sendEntireResponse(ssl_socket, response);
 		return;
 	}
 	// Returns headers with file size without fetching the file itself
 	else if (parsed_request.getMethod() == RequestMethod::HEAD)
 	{
-		sendEntireResponse(tcp_socket, response);
+		sendEntireResponse(ssl_socket, response);
 		return;
 	}
 	else if ((response.getPayload().isNull()) && (parsed_request.getHeaders().contains("range")))
@@ -233,34 +268,34 @@ void InsecureRequestWorker::run()
 		response_data.file_size = QFile(response.getFilename()).size();
 		response.setStatus(ResponseStatus::RANGE_NOT_SATISFIABLE);
 		response.setRangeNotSatisfiableHeaders(response_data);
-		sendEntireResponse(tcp_socket, response);
+		sendEntireResponse(ssl_socket, response);
 		return;
 	}
 	else if (response.getPayload().isNull())
 	{
-		sendEntireResponse(tcp_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not produce any output"));
+		sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, parsed_request.getContentType(), "Could not produce any output"));
 		return;
 	}
 
-	sendEntireResponse(tcp_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "This page does not exist. Check the URL and try again"));
+	sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "This page does not exist. Check the URL and try again"));
 }
 
-void InsecureRequestWorker::handleConnection()
+void RequestWorker::handleConnection()
 {
-	qDebug() << "HTTP connection has been established";
+	qDebug() << "Secure connection has been established";
 }
 
-void InsecureRequestWorker::socketDisconnected()
+void RequestWorker::socketDisconnected()
 {
 	qDebug() << "Client has disconnected from the socket";
 }
 
-QString InsecureRequestWorker::intToHex(const int& input)
+QString RequestWorker::intToHex(const int& input)
 {
 	return QString("%1").arg(input, 10, 16, QLatin1Char('0')).toUpper();
 }
 
-void InsecureRequestWorker::closeAndDeleteSocket(QTcpSocket* socket)
+void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 {
 	qDebug() << "Closing the socket";
 	is_terminated_ = true;
@@ -273,7 +308,7 @@ void InsecureRequestWorker::closeAndDeleteSocket(QTcpSocket* socket)
 	socket->deleteLater();
 }
 
-void InsecureRequestWorker::sendResponseDataPart(QTcpSocket* socket, QByteArray data)
+void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 {
 	// clinet completes/cancels the stream or simply disconnects
 	if (socket->state() == QSslSocket::SocketState::UnconnectedState)
@@ -284,14 +319,14 @@ void InsecureRequestWorker::sendResponseDataPart(QTcpSocket* socket, QByteArray 
 
 	if (socket->bytesToWrite())
 	{
-		socket->flush();
+		socket->flush();		
 		socket->waitForBytesWritten();
 	}
 
 	socket->write(data);
 }
 
-void InsecureRequestWorker::sendEntireResponse(QTcpSocket* socket, HttpResponse response)
+void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response)
 {
 	qDebug() << "Writing an entire response";
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
@@ -303,11 +338,11 @@ void InsecureRequestWorker::sendEntireResponse(QTcpSocket* socket, HttpResponse 
 	closeAndDeleteSocket(socket);
 }
 
-void InsecureRequestWorker::finishPartialDataResponse(QTcpSocket* socket)
+void RequestWorker::finishPartialDataResponse(QSslSocket* socket)
 {
 	if ((socket->state() != QSslSocket::SocketState::UnconnectedState) && (socket->bytesToWrite()))
 	{
-		socket->flush();
+		socket->flush();		
 		socket->waitForBytesWritten();
 	}
 

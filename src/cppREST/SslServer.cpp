@@ -1,7 +1,8 @@
 #include "SslServer.h"
 
-SslServer::SslServer(QObject *parent) :
+SslServer::SslServer(QObject *parent, bool insecure) :
 	QTcpServer(parent)
+	, is_insecure_(insecure)
 {
 	current_ssl_configuration_ = QSslConfiguration::defaultConfiguration();
 }
@@ -27,7 +28,17 @@ QSslSocket *SslServer::nextPendingConnection()
 
 void SslServer::incomingConnection(qintptr socket)
 {
-	SslRequestWorker *request_worker = new SslRequestWorker(current_ssl_configuration_, socket);
-	connect(request_worker, &SslRequestWorker::finished, request_worker, &QObject::deleteLater);
+	qInfo() << "Incomming connection";
+	RequestWorker *request_worker;
+	if (is_insecure_)
+	{
+		request_worker = new RequestWorker(socket);
+	}
+	else
+	{
+		request_worker = new RequestWorker(current_ssl_configuration_, socket);
+
+	}
+	connect(request_worker, &RequestWorker::finished, request_worker, &QObject::deleteLater);
 	request_worker->start();
 }

@@ -13,7 +13,6 @@
 #include <QTimer>
 
 #include "SslServer.h"
-#include "InsecureServer.h"
 #include "UrlManager.h"
 
 class CPPRESTSHARED_EXPORT WebServer : public QObject
@@ -24,8 +23,7 @@ public:
 	WebServer(const quint16& port, const bool& insecure = false);
 
 private:
-	SslServer *secure_server_;
-	QTcpServer *insecure_server_;
+	SslServer *server_;
 };
 
 #endif // WEBSERVER_H
