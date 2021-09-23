@@ -2834,10 +2834,30 @@ void MainWindow::checkVariantList(QStringList messages)
 		}
 	}
 
+	//check data was loaded completely
+	if (germlineReportSupported(true))
+	{
+		NGSD db;
+		int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
+		ProcessingSystemData sys_data = db.getProcessingSystemData(sys_id);
+		if (sys_data.type=="WES" || sys_data.type=="WGS")
+		{
+			QSet<Chromosome> chromosomes;
+			for(int i=0; i<variants_.count(); ++i)
+			{
+				chromosomes << variants_[i].chr();
+			}
+			if (chromosomes.size()<23)
+			{
+				messages << ("Variants detected on " + QString::number(chromosomes.size()) + " chromosomes only! Expected variants on at least 23 chromosomes for WES/WGS data!");
+			}
+		}
+	}
+
 	//show messages
 	if (!messages.empty())
 	{
-		QMessageBox::warning(this, "GSvar file outdated", "The GSvar file contains the following error(s):\n  -" + messages.join("\n  -") + "\n\nTo ensure that GSvar works as expected, re-run the annotation steps for the analysis!");
+		QMessageBox::warning(this, "GSvar file problems", "The GSvar file contains the following problems:\n  -" + messages.join("\n  -"));
 	}
 }
 
