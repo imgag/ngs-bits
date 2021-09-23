@@ -1,5 +1,5 @@
 ### MappingQC tool help
-	MappingQC (2020_12-85-g5ff87d17)
+	MappingQC (2021_06-89-gbbd16264)
 	
 	Calculates QC metrics based on mapped NGS reads.
 	
@@ -28,6 +28,8 @@
 	                  Valid: 'hg19,hg38'
 	  -ref <file>     Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.
 	                  Default value: ''
+	  -cfdna          Add additional QC parameters for cfDNA samples. Only supported mit '-roi'.
+	                  Default value: 'false'
 	
 	Special parameters:
 	  --help          Shows this help and exits.
@@ -36,7 +38,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### MappingQC changelog
-	MappingQC 2020_12-85-g5ff87d17
+	MappingQC 2021_06-89-gbbd16264
 	
 	2021-02-09 Added new QC metrics for uniformity of coverage (QC:2000057-QC:2000061).
 	2020-11-27 Added CRAM support.
