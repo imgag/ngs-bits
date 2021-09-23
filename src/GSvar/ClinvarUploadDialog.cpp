@@ -128,6 +128,9 @@ void ClinvarUploadDialog::initGui()
 
 void ClinvarUploadDialog::upload()
 {
+	//deactivate upload button
+	ui_.upload_btn->setEnabled(false);
+
     QJsonObject clinvar_submission = createJson();
 
     QStringList errors;
@@ -178,7 +181,7 @@ void ClinvarUploadDialog::upload()
         if (response.isEmpty())
         {
             messages << "MESSAGE: Dry-run successful!";
-//			QFile jsonFile(clinvar_upload_data_.processed_sample + "_submission.json");
+//			QFile jsonFile(clinvar_upload_data_.processed_sample + "_submission_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".json");
 //			jsonFile.open(QFile::WriteOnly);
 //			jsonFile.write(QJsonDocument(clinvar_submission).toJson());
         }
@@ -251,7 +254,7 @@ void ClinvarUploadDialog::upload()
             QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
             if (gsvar_publication_folder!="")
             {
-					QString file_rep = gsvar_publication_folder + "/" + clinvar_upload_data_.processed_sample + "_CLINVAR_" + QDate::currentDate().toString("yyyyMMdd_hhmmss") + ".txt";
+					QString file_rep = gsvar_publication_folder + "/" + clinvar_upload_data_.processed_sample + "_CLINVAR_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".txt";
                     Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
             }
 
