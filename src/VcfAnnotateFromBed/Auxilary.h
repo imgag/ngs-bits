@@ -27,8 +27,10 @@ struct AnalysisJob
 
 	void clear()
 	{
+		current_chunk.clear();
+		current_chunk_processed.clear();
+		error_message.clear();
 		status = DONE;
-
 	}
 };
 

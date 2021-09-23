@@ -46,6 +46,14 @@ private slots:
 		REMOVE_LINES("out/NGSDExportAnnotationData_out3.vcf", QRegExp("##source=NGSDExportAnnotationData"));
 		REMOVE_LINES("out/NGSDExportAnnotationData_out3.vcf", QRegExp("##reference="));
 		COMPARE_FILES("out/NGSDExportAnnotationData_out3.vcf", TESTDATA("data_out/NGSDExportAnnotationData_out3.vcf"));
+
+		//test export of VICC configuration details
+		EXECUTE("NGSDExportAnnotationData", "-test -variants out/NGSDExportAnnotationData_out4.vcf -mode somatic -vicc_config_details");
+		REMOVE_LINES("out/NGSDExportAnnotationData_out4.vcf", QRegExp("##fileDate="));
+		REMOVE_LINES("out/NGSDExportAnnotationData_out4.vcf", QRegExp("##source=NGSDExportAnnotationData"));
+		REMOVE_LINES("out/NGSDExportAnnotationData_out4.vcf", QRegExp("##reference="));
+		COMPARE_FILES("out/NGSDExportAnnotationData_out4.vcf", TESTDATA("data_out/NGSDExportAnnotationData_out4.vcf"));
+
 	}
 
 };

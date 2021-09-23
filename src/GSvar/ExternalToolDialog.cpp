@@ -205,8 +205,6 @@ QString ExternalToolDialog::getFileName(FileType type, bool ngsd_instead_of_file
 		if (dlg.exec()==QDialog::Accepted && dlg.isValidSelection())
 		{
 			QString ps_id = dlg.processedSampleId();
-			NGSD db;
-
 			if (type==BAM) return GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::BAM).filename;
 			if (type==GSVAR) return GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::GSVAR).filename;
 			if (type==VCF) return GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::VCF).filename;
