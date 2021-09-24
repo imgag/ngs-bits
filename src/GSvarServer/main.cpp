@@ -72,16 +72,21 @@ int main(int argc, char **argv)
 	parser.setApplicationDescription("GSvar file server");
 	parser.addHelpOption();
 	parser.addVersionOption();
-	QCommandLineOption serverPortOption(QStringList() << "p" << "port",
-			QCoreApplication::translate("main", "Server port number"),
-			QCoreApplication::translate("main", "port"));
-	parser.addOption(serverPortOption);
+	QCommandLineOption httpsServerPortOption(QStringList() << "p" << "port",
+			QCoreApplication::translate("main", "HTTPS server port number"),
+			QCoreApplication::translate("main", "https_port"));
+	parser.addOption(httpsServerPortOption);
+	QCommandLineOption httpServerPortOption(QStringList() << "i" << "http_port",
+			QCoreApplication::translate("main", "HTTP server port number"),
+			QCoreApplication::translate("main", "https_port"));
+	parser.addOption(httpServerPortOption);
 	QCommandLineOption logLevelOption(QStringList() << "l" << "log",
 			QCoreApplication::translate("main", "Log level"),
 			QCoreApplication::translate("main", "logging"));
 	parser.addOption(logLevelOption);
 	parser.process(app);
-	QString port = parser.value(serverPortOption);
+	QString https_port = parser.value(httpsServerPortOption);
+	QString http_port = parser.value(httpServerPortOption);
 	QString log_level_option = parser.value(logLevelOption);
 
 	if (!log_level_option.isEmpty())
@@ -326,20 +331,32 @@ int main(int argc, char **argv)
 						&EndpointHandler::saveQbicFiles
 					});
 
-	int port_number = ServerHelper::getNumSettingsValue("server_port");
+	int https_port_setting = ServerHelper::getNumSettingsValue("https_server_port");
+	int http_port_setting = ServerHelper::getNumSettingsValue("http_server_port");
 
-	if (!port.isEmpty())
+	if (!https_port.isEmpty())
 	{
-		qInfo() << "Server port has been provided through the command line arguments:" + port;
-		port_number = port.toInt();
+		qInfo() << "HTTPS server port has been provided through the command line arguments:" + https_port;
+		https_port_setting = https_port.toInt();
 	}
-	else {
-		qInfo() << "Using port number from the application settings";
+	if (https_port_setting == 0)
+	{
+		qInfo() << "HTTPS port number is invalid";
+		app.exit(EXIT_FAILURE);
 	}
 
 	qInfo() << "SSL version used for build: " << QSslSocket::sslLibraryBuildVersionString();
+	WebServer https_server(https_port_setting);
 
-	WebServer https_server(port_number);
-	WebServer http_server(8889, true);
+	if (!http_port.isEmpty())
+	{
+		qInfo() << "HTTP server port has been provided through the command line arguments:" + http_port;
+		http_port_setting = https_port.toInt();
+	}
+	if (http_port_setting > 0)
+	{
+		WebServer http_server(http_port_setting, true);
+	}
+
 	return app.exec();
 }
