@@ -183,7 +183,7 @@ HttpResponse EndpointController::serveFolderContent(QString path, QString reques
 		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Requested folder does not exist");
 	}
 
-	QString base_folder_url = ServerHelper::getStringSettingsValue("server_host") + ":" + QString::number(ServerHelper::getNumSettingsValue("server_port")) + "/" + request_prefix + "/" + request_path;
+	QString base_folder_url = ServerHelper::getUrlProtocol(false) + ServerHelper::getStringSettingsValue("server_host") + ":" + QString::number(ServerHelper::getNumSettingsValue("https_server_port")) + "/" + request_prefix + "/" + request_path;
 	if (!base_folder_url.endsWith("/"))
 	{
 		base_folder_url = base_folder_url + "/";

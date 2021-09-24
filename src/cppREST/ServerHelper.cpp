@@ -66,6 +66,12 @@ QString ServerHelper::getUrlWithoutParams(const QString& url)
 	return url_parts[0];
 }
 
+QString ServerHelper::getUrlProtocol(const bool& return_http)
+{
+	if (return_http) return "http://";
+	return "https://";
+}
+
 ServerHelper& ServerHelper::instance()
 {
 	static ServerHelper server_helper;

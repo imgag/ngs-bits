@@ -128,6 +128,6 @@ QByteArray DatabaseServiceRemote::makeApiCall(QString url_param) const
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "text/plain");
 	return HttpRequestHandler(HttpRequestHandler::NONE).get(
-			Settings::string("server_host",true) + ":" + Settings::string("server_port")
+			"https://" + Settings::string("server_host",true) + ":" + Settings::string("https_server_port")
 			+ "/v1/"+url_param, add_headers);
 }

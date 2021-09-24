@@ -9,9 +9,9 @@ GlobalServiceProvider::GlobalServiceProvider()
   : file_location_provider_()
   , database_service_()
 {
-	if (Settings::string("server_host",true).trimmed()!="" && Settings::string("server_port").trimmed()!="")
+	if (Settings::string("server_host",true).trimmed()!="" && Settings::string("https_server_port").trimmed()!="")
 	{		
-                database_service_ = QSharedPointer<DatabaseService>(new DatabaseServiceRemote());
+		database_service_ = QSharedPointer<DatabaseService>(new DatabaseServiceRemote());
 	}
 	else
 	{

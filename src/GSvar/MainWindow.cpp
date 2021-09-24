@@ -2729,7 +2729,7 @@ void MainWindow::loadFile(QString filename)
 		Log::perf("Loading small variant list took ", timer);
 		if (filename.startsWith("http"))
 		{
-			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename, Settings::string("server_host"), Settings::integer("server_port"))));
+			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename, "https://" + Settings::string("server_host"), Settings::integer("https_server_port"))));
 		}
 		else
 		{
@@ -5888,7 +5888,7 @@ void MainWindow::storeCurrentVariantList()
 			add_headers.insert("Content-Type", "application/json");
 			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
 			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
-						Settings::string("server_host") + ":" + QString::number(Settings::integer("server_port"))
+						"https://" + Settings::string("server_host") + ":" + QString::number(Settings::integer("https_server_port"))
 						+ "/v1/project_file?ps_url_id=" + ps_url_id,
 						json_doc.toJson(),
 						add_headers

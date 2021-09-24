@@ -183,7 +183,14 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 		{
 			try
 			{
-				cur_json_item.insert("filename", createFileTempUrl(file_list[i].filename));
+				if (requested_type == PathType::BAM)
+				{
+					cur_json_item.insert("filename", createFileTempUrl(file_list[i].filename, true));
+				}
+				else
+				{
+					cur_json_item.insert("filename", createFileTempUrl(file_list[i].filename, false));
+				}
 			}
 			catch (Exception& e)
 			{
@@ -235,7 +242,7 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), e.message());
 	}
 
-	FileLocation project_file = FileLocation(id, PathType::GSVAR, createFileTempUrl(found_file_path), true);
+	FileLocation project_file = FileLocation(id, PathType::GSVAR, createFileTempUrl(found_file_path, false), true);
 	json_object_output.insert("id", id);
 	json_object_output.insert("type", project_file.typeAsString());
 	json_object_output.insert("filename", project_file.filename);
@@ -484,7 +491,7 @@ HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 	QJsonArray json_array;
 	for (int i = 0; i < secondary_analyses.count(); i++)
 	{
-		json_array.append(createFileTempUrl(secondary_analyses[i]));
+		json_array.append(createFileTempUrl(secondary_analyses[i], false));
 	}
 	json_doc_output.setArray(json_array);
 
@@ -497,12 +504,12 @@ HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-QString EndpointHandler::createFileTempUrl(const QString& file)
+QString EndpointHandler::createFileTempUrl(const QString& file, const bool& return_http)
 {
 	QString id = ServerHelper::generateUniqueStr();
 	UrlManager::addUrlToStorage(id, QFileInfo(file).fileName(), QFileInfo(file).absolutePath(), file);
-	return ServerHelper::getStringSettingsValue("server_host") +
-			+ ":" + ServerHelper::getStringSettingsValue("server_port") +
+	return ServerHelper::getUrlProtocol(return_http) + ServerHelper::getStringSettingsValue("server_host") +
+			+ ":" + (return_http ? ServerHelper::getStringSettingsValue("http_server_port") : ServerHelper::getStringSettingsValue("https_server_port")) +
 			+ "/v1/temp/" + id + "/" + QFileInfo(file).fileName();
 }
 
