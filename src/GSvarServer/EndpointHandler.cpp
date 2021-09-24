@@ -387,6 +387,13 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 
 HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 {
+	QString qbic_data_path = Settings::string("qbic_data_path");
+	if (!qbic_data_path.endsWith(QDir::separator())) qbic_data_path = qbic_data_path.remove(qbic_data_path.length()-1, 1);
+	if (!QDir(qbic_data_path).exists())
+	{
+		QDir(qbic_data_path).mkpath(".");
+	}
+
 	QString filename = request.getUrlParams()["filename"];
 	QString path = request.getUrlParams()["path"];
 	QString content = request.getBody();
@@ -396,9 +403,13 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Path or filename has not been provided");
 	}
 
+	// It should not be possible to move up to the parent directory or to access system directories
+	path = path.replace(".", "");
+	path = qbic_data_path + path;
+
 	if (!QDir(path).exists())
-	{
-		QDir().mkdir(path);
+	{		
+		QDir(path).mkpath(".");
 	}
 
 	if (!path.endsWith(QDir::separator())) path = path + QDir::separator();

@@ -23,7 +23,8 @@ RUN yum install -y \
 	mingw32-qt5-qtxmlpatterns.noarch \
 	mingw32-qt5-qmldevtools-devel.i686 \
 	mingw32-qt5-qtcharts.noarch \
-	mingw32-curl-static.noarch
+	mingw32-curl-static.noarch \	
+	mingw32-qt5-qtbase-devel.i686
 
 #Building binaries
 RUN mkdir /root/build
