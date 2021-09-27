@@ -512,14 +512,21 @@ BamReader::BamReader(const QString& bam_file)
 	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
 {
-	init(bam_file);
+
+	QString tmp_name = bam_file;
+	tmp_name = tmp_name.replace("https", "http");
+	bam_file_ = bam_file_.replace("https", "http");
+	init(tmp_name);
 }
 
 BamReader::BamReader(const QString& bam_file, const QString& ref_genome)
 	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
 {
-	init(bam_file, ref_genome);
+	QString tmp_name = bam_file;
+	tmp_name = tmp_name.replace("https", "http");
+	bam_file_ = bam_file_.replace("https", "http");
+	init(tmp_name, ref_genome);
 }
 
 BamReader::~BamReader()
