@@ -242,7 +242,7 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), e.message());
 	}
 
-	FileLocation project_file = FileLocation(id, PathType::GSVAR, createFileTempUrl(found_file_path, false), true);
+	FileLocation project_file = FileLocation(id, PathType::GSVAR, createFileTempUrl(found_file_path, false), QFile::exists(found_file_path));
 	json_object_output.insert("id", id);
 	json_object_output.insert("type", project_file.typeAsString());
 	json_object_output.insert("filename", project_file.filename);
