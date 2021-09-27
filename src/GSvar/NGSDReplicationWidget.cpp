@@ -138,6 +138,360 @@ void NGSDReplicationWidget::replicateBaseData()
 	}
 }
 
+void NGSDReplicationWidget::replicateBaseDataNoId()
+{
+	addHeader("replication of base data (no ID)");
+
+	foreach(QString table, QStringList() << "omim_preferred_phenotype" << "processed_sample_ancestry" << "diag_status" << "kasp_status" << "merged_processed_samples")
+	{
+		//init
+		QTime timer;
+		timer.start();
+		int c_added = 0;
+
+		//check table has 'id' column
+		QStringList fields = db_target_->tableInfo(table).fieldNames();
+		if(fields.contains("id"))
+		{
+			addWarning("Table '" + table + "' has id column!");
+			continue;
+		}
+
+		//prepare queries
+		SqlQuery q_add = db_target_->getQuery();
+		q_add.prepare("INSERT IGNORE INTO "+table+" VALUES (:" + fields.join(", :") + ")");
+
+		//replicate
+		SqlQuery query = db_source_->getQuery();
+		query.exec("SELECT * FROM "+table);
+		while(query.next())
+		{
+			foreach(const QString& field, fields)
+			{
+				q_add.bindValue(":"+field, query.value(field));
+			}
+			q_add.exec();
+
+			++c_added;
+		}
+
+		addLine("  Table without id '"+table+"' replicated : added " + QString::number(c_added) + " rows. Time: " + Helper::elapsedTime(timer));
+		tables_done_ << table;
+	}
+}
+
+void NGSDReplicationWidget::addSampleGroups()
+{
+	addHeader("special handling of sample group tables");
+
+	SqlQuery q_update = db_target_->getQuery();
+	q_update.prepare("UPDATE sample SET comment=:0 WHERE id=:1");
+
+	SqlQuery query = db_source_->getQuery();
+	query.exec("SELECT nm.sample_id, g.name, g.comment FROM nm_sample_sample_group nm, sample_group g WHERE nm.sample_group_id=g.id ORDER BY nm.sample_id");
+	while(query.next())
+	{
+		QString s_id = query.value(0).toString();
+		QString group_name = query.value(1).toString().trimmed();
+		QString group_comment = query.value(2).toString().trimmed();
+
+		QString group_text = "sample group: " + group_name;
+		if (!group_comment.isEmpty()) group_text += " (" + group_comment + ")";
+
+		QString comment = db_target_->getValue("SELECT comment FROM sample WHERE id=" + s_id).toString();
+		if (!comment.contains(group_text))
+		{
+			comment += "\n" + group_text;
+			q_update.bindValue(0, comment);
+			q_update.bindValue(1, s_id);
+			q_update.exec();
+		}
+	}
+
+	tables_done_ << "nm_sample_sample_group";
+	tables_done_ << "sample_group";
+}
+
+void NGSDReplicationWidget::replicateVariantData()
+{
+	addHeader("replication of variant data");
+
+	updateTable("variant_classification", true); //TODO also add missing variants (AF>5%, manually added)
+	updateTable("somatic_variant_classification", true);
+	updateTable("somatic_vicc_interpretation", true);
+	updateTable("variant_publication", true);
+	updateTable("variant_validation", true, "WHERE variant_id IS NOT NULL"); //small variants
+	updateCnvTable("variant_validation", "WHERE cnv_id IS NOT NULL"); //CNVs
+	if (!ui_.skip_rc->isChecked())
+	{
+		QStringList rc_ids_with_variants = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT DISTINCT processed_sample_id FROM detected_variant)");
+		updateTable("report_configuration_variant", true, "WHERE report_configuration_id IN (" + rc_ids_with_variants.join(",") + ")"); //only entries for samples with imported variants
+		updateCnvTable("report_configuration_cnv");
+		updateTable("somatic_report_configuration_variant", true);
+		updateTable("somatic_report_configuration_germl_var", true);
+	}
+
+	//TODO NGSDReplicationWidget:
+	//- SVs: report_configuration_sv, variant_validation SVs
+	//- CNVs somatic: somatic_report_configuration_cnv
+	//- misc: gaps, cfdna_panel_genes, cfdna_panels
+}
+
+void NGSDReplicationWidget::performPostChecks()
+{
+	addHeader("post-checks");
+
+	//test if all tables are processed
+	QStringList target_tables = db_target_->tables();
+	foreach(QString table, target_tables)
+	{
+		//skip - analysis jobs
+		if (table=="analysis_job") continue;
+		if (table=="analysis_job_history") continue;
+		if (table=="analysis_job_sample") continue;
+		//skip - sample variant and QC import
+		if (table=="cnv_callset") continue;
+		if (table=="cnv") continue;
+		if (table=="detected_somatic_variant") continue;
+		if (table=="detected_variant") continue;
+		if (table=="somatic_cnv_callset") continue;
+		if (table=="somatic_cnv") continue;
+		if (table=="sv_callset") continue;
+		if (table=="sv_deletion") continue;
+		if (table=="sv_duplication") continue;
+		if (table=="sv_insertion") continue;
+		if (table=="sv_inversion") continue;
+		if (table=="sv_translocation") continue;
+		if (table=="processed_sample_qc") continue;
+		//skip - others
+		if (table=="secondary_analysis") continue;
+		if (table=="subpanels") continue;
+
+		if (!tables_done_.contains(table))
+		{
+			addWarning("Table '" + table + "' not filled!");
+		}
+	}
+}
+
+int NGSDReplicationWidget::liftOverVariant(int source_variant_id, bool debug_output)
+{
+	Variant var = db_source_->variant(QString::number(source_variant_id));
+	//lift-over coordinates
+	BedLine coords;
+	try
+	{
+		coords = GSvarHelper::liftOver(var.chr(), var.start(), var.end());
+	}
+	catch(Exception& e)
+	{
+		if (debug_output) qDebug() << "-1" << var.toString() << e.message();
+		return -1;
+	}
+
+	//check new chromosome is ok
+	if (!coords.chr().isNonSpecial())
+	{
+		if (debug_output) qDebug() << "-2" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end());
+		return -2;
+	}
+
+	//check sequence context is the same (ref +-5 bases). If it is not, the strand might have changed, e.g. in NIPA1, GDF2, ANKRD35, TPTE, ...
+	bool strand_changed = false;
+	Sequence context_old = genome_index_->seq(var.chr(), var.start()-5, 10 + var.ref().length());
+	Sequence context_new = genome_index_hg38_->seq(coords.chr(), coords.start()-5, 10 + var.ref().length());
+	if (context_old!=context_new)
+	{
+		context_new.reverseComplement();
+		if (context_old==context_new)
+		{
+			strand_changed = true;
+		}
+		else
+		{
+			context_new.reverseComplement();
+			if (debug_output) qDebug() << "-3" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end()) << "old_context="+context_old << "new_context="+context_new;
+			return -3;
+		}
+	}
+
+	//check for variant in target NGSD
+	Sequence ref = var.ref();
+	if (strand_changed && ref!="-") ref.reverseComplement();
+	Sequence obs = var.obs();
+	if (strand_changed && obs!="-") obs.reverseComplement();
+	QString variant_id = db_target_->variantId(Variant(coords.chr(), coords.start(), coords.end(), ref, obs), false);
+	if (variant_id.isEmpty())
+	{
+		if (debug_output) qDebug() << "-4" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end()) << "strand_changed="+QString(strand_changed?"yes":"no") << "af="+db_source_->getValue("SELECT gnomad FROM variant WHERE id="+QString::number(source_variant_id)).toString();
+		return -4;
+	}
+
+	return variant_id.toInt();
+}
+
+int NGSDReplicationWidget::liftOverCnv(int source_cnv_id, int callset_id, QString& error_message)
+{
+	CopyNumberVariant var = db_source_->cnv(source_cnv_id);
+
+	//lift-over coordinates
+	BedLine coords;
+	try
+	{
+		coords = GSvarHelper::liftOver(var.chr(), var.start(), var.end());
+	}
+	catch(Exception& e)
+	{
+		error_message = "lift-over failed: " + e.message().replace("\t", " ").replace("<br>", " ").replace("&nbsp;", " ");
+		return -1;
+	}
+
+	//check new chromosome is ok
+	if (!coords.chr().isNonSpecial())
+	{
+		error_message = "chromosome is now special chromosome: " + coords.chr().strNormalized(true);
+		return -2;
+	}
+
+	//check for CNV in target NGSD
+	QString cn = db_source_->getValue("SELECT cn FROM cnv WHERE id="+QString::number(source_cnv_id)).toString();
+	QString cnv_id = db_target_->getValue("SELECT id FROM cnv WHERE cnv_callset_id="+QString::number(callset_id)+" AND chr='"+coords.chr().strNormalized(true)+"' AND start='"+QString::number(coords.start())+"' AND end='"+QString::number(coords.start())+"' AND cn="+cn, true).toString();
+	if (cnv_id.isEmpty())
+	{
+		//no exact match, try fuzzy match (at least 70% of original/liftover size)
+		int size_hg19 = var.size();
+		int size_hg38 = coords.length();
+
+		SqlQuery query = db_target_->getQuery();
+		query.exec("SELECT * FROM cnv WHERE cnv_callset_id='" + QString::number(callset_id) + "' AND cn='"+cn+"' AND chr='" + coords.chr().strNormalized(true) + "' AND end>" + QString::number(coords.start()) + " AND start<" + QString::number(coords.end()) + "");
+		while (query.next())
+		{
+			int size = query.value("end").toInt() - query.value("start").toInt();
+			if (size > 0.7 * size_hg19 && size > 0.7 * size_hg38)
+			{
+				return query.value("id").toInt();
+			}
+		}
+
+		error_message = "CNV not found in NGSD";
+		return -4;
+	}
+
+	return cnv_id.toInt();
+}
+
+int NGSDReplicationWidget::liftOverSv(int source_sv_id, StructuralVariantType sv_type, int callset_id, QString& error_message)
+{
+	BedpeLine sv = db_source_->structuralVariant(source_sv_id, sv_type, BedpeFile());
+
+	//lift-over coordinates
+	BedLine coords1, coords2;
+	try
+	{
+		coords1 = GSvarHelper::liftOver(sv.chr1(), sv.start1(), sv.end1());
+	}
+	catch(Exception& e)
+	{
+		error_message = "lift-over failed (pos1): " + e.message().replace("\t", " ").replace("<br>", " ").replace("&nbsp;", " ");
+		return -1;
+	}
+	try
+	{
+		coords2 = GSvarHelper::liftOver(sv.chr2(), sv.start2(), sv.end2());
+	}
+	catch(Exception& e)
+	{
+		error_message = "lift-over failed (pos2): " + e.message().replace("\t", " ").replace("<br>", " ").replace("&nbsp;", " ");
+		return -1;
+	}
+
+
+
+	//check new chromosome is ok
+	if (!coords1.chr().isNonSpecial())
+	{
+		error_message = "chromosome 1 is now special chromosome: " + coords1.chr().strNormalized(true);
+		return -2;
+	}
+	if (!coords2.chr().isNonSpecial())
+	{
+		error_message = "chromosome 2 is now special chromosome: " + coords2.chr().strNormalized(true);
+		return -2;
+	}
+
+	//check for SV in target NGSD
+	QString sv_id = db_target_->svId(sv, callset_id, BedpeFile(), false);
+	if (sv_id.isEmpty())
+	{
+		// no exact match found -> try fuzzy match (overlapping of CI)
+		SqlQuery query = db_target_->getQuery();
+		QByteArray query_string;
+
+		// prepare query
+		if (sv.type() == StructuralVariantType::BND)
+		{
+			//BND
+			query_string = "SELECT id FROM sv_translocation sv WHERE callset_id = :0 AND sv.chr1 = :1 AND sv.start1 <= :2 AND :3 <= sv.end1 AND sv.chr2 = :4 AND sv.start2 <= :5 AND :6 <= sv.end2";
+			query.prepare(query_string);
+			query.bindValue(0, callset_id);
+			query.bindValue(1, sv.chr1().strNormalized(true));
+			query.bindValue(2, sv.end1());
+			query.bindValue(3, sv.start1());
+			query.bindValue(4, sv.chr2().strNormalized(true));
+			query.bindValue(5, sv.end2());
+			query.bindValue(6, sv.start2());
+
+		}
+		else if (sv.type() == StructuralVariantType::INS)
+		{
+			//INS
+
+			//get min and max position
+			int min_pos = std::min(sv.start1(), sv.start2());
+			int max_pos = std::max(sv.end1(), sv.end2());
+
+			query_string = "SELECT id FROM sv_insertion sv WHERE callset_id = :0 AND sv.chr = :1 AND sv.pos <= :2 AND :3 <= (sv.pos + sv.ci_upper)";
+			query.prepare(query_string);
+			query.bindValue(0, callset_id);
+			query.bindValue(1, sv.chr1().strNormalized(true));
+			query.bindValue(2, max_pos);
+			query.bindValue(3, min_pos);
+		}
+		else
+		{
+			//DEL, DUP, INV
+			query_string = "SELECT id FROM " + db_target_->svTableName(sv.type()).toUtf8() + " WHERE callset_id = :0 AND sv.chr = :1 AND sv.start_min <= :2 AND :3 <= sv.start_max AND sv.end_min <= :4 AND :5 <= sv.end_max";
+			query.prepare(query_string);
+			query.bindValue(0, callset_id);
+			query.bindValue(1, sv.chr1().strNormalized(true));
+			query.bindValue(2, sv.end1());
+			query.bindValue(3, sv.start1());
+			query.bindValue(4, sv.end2());
+			query.bindValue(5, sv.start2());
+		}
+
+		query.exec();
+
+		//parse result
+		if (query.size() == 0)
+		{
+			error_message = "SV not found in NGSD";
+			return -4;
+		}
+		else if (query.size() > 1)
+		{
+			error_message = "Multiple matching SVs found in NGSD";
+			return -5;
+		}
+		query.next();
+		return query.value(0).toInt();
+
+	}
+	// return id
+	return sv_id.toInt();
+
+}
+
 void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id, QString where_clause)
 {
 	int hg38_id = db_source_->getValue("SELECT id FROM genome WHERE build='GRCh38'").toInt();
@@ -346,248 +700,6 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 
 	addLine("  Table '"+table+"' replicated: "+details.join(", ")+". Time: " + Helper::elapsedTime(timer));
 	tables_done_ << table;
-}
-
-void NGSDReplicationWidget::replicateBaseDataNoId()
-{
-	addHeader("replication of base data (no ID)");
-
-	foreach(QString table, QStringList() << "omim_preferred_phenotype" << "processed_sample_ancestry" << "diag_status" << "kasp_status" << "merged_processed_samples")
-	{
-		//init
-		QTime timer;
-		timer.start();
-		int c_added = 0;
-
-		//check table has 'id' column
-		QStringList fields = db_target_->tableInfo(table).fieldNames();
-		if(fields.contains("id"))
-		{
-			addWarning("Table '" + table + "' has id column!");
-			continue;
-		}
-
-		//prepare queries
-		SqlQuery q_add = db_target_->getQuery();
-		q_add.prepare("INSERT IGNORE INTO "+table+" VALUES (:" + fields.join(", :") + ")");
-
-		//replicate
-		SqlQuery query = db_source_->getQuery();
-		query.exec("SELECT * FROM "+table);
-		while(query.next())
-		{
-			foreach(const QString& field, fields)
-			{
-				q_add.bindValue(":"+field, query.value(field));
-			}
-			q_add.exec();
-
-			++c_added;
-		}
-
-		addLine("  Table without id '"+table+"' replicated : added " + QString::number(c_added) + " rows. Time: " + Helper::elapsedTime(timer));
-		tables_done_ << table;
-	}
-}
-
-void NGSDReplicationWidget::addSampleGroups()
-{
-	addHeader("special handling of sample group tables");
-
-	SqlQuery q_update = db_target_->getQuery();
-	q_update.prepare("UPDATE sample SET comment=:0 WHERE id=:1");
-
-	SqlQuery query = db_source_->getQuery();
-	query.exec("SELECT nm.sample_id, g.name, g.comment FROM nm_sample_sample_group nm, sample_group g WHERE nm.sample_group_id=g.id ORDER BY nm.sample_id");
-	while(query.next())
-	{
-		QString s_id = query.value(0).toString();
-		QString group_name = query.value(1).toString().trimmed();
-		QString group_comment = query.value(2).toString().trimmed();
-
-		QString group_text = "sample group: " + group_name;
-		if (!group_comment.isEmpty()) group_text += " (" + group_comment + ")";
-
-		QString comment = db_target_->getValue("SELECT comment FROM sample WHERE id=" + s_id).toString();
-		if (!comment.contains(group_text))
-		{
-			comment += "\n" + group_text;
-			q_update.bindValue(0, comment);
-			q_update.bindValue(1, s_id);
-			q_update.exec();
-		}
-	}
-
-	tables_done_ << "nm_sample_sample_group";
-	tables_done_ << "sample_group";
-}
-
-void NGSDReplicationWidget::replicateVariantData()
-{
-	addHeader("replication of variant data");
-
-	updateTable("variant_classification", true); //TODO also add missing variants (AF>5%, manually added)
-	updateTable("somatic_variant_classification", true);
-	updateTable("somatic_vicc_interpretation", true);
-	updateTable("variant_publication", true);
-	updateTable("variant_validation", true, "WHERE variant_id IS NOT NULL"); //small variants
-	updateCnvTable("variant_validation", "WHERE cnv_id IS NOT NULL"); //CNVs
-	if (!ui_.skip_rc->isChecked())
-	{
-		QStringList rc_ids_with_variants = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT DISTINCT processed_sample_id FROM detected_variant)");
-		updateTable("report_configuration_variant", true, "WHERE report_configuration_id IN (" + rc_ids_with_variants.join(",") + ")"); //only entries for samples with imported variants
-		updateCnvTable("report_configuration_cnv");
-		updateTable("somatic_report_configuration_variant", true);
-		updateTable("somatic_report_configuration_germl_var", true);
-	}
-
-	//TODO NGSDReplicationWidget:
-	//- SVs: report_configuration_sv, variant_validation SVs
-	//- CNVs somatic: somatic_report_configuration_cnv
-	//- misc: gaps, cfdna_panel_genes, cfdna_panels
-}
-
-int NGSDReplicationWidget::liftOverVariant(int source_variant_id, bool debug_output)
-{
-	Variant var = db_source_->variant(QString::number(source_variant_id));
-	//lift-over coordinates
-	BedLine coords;
-	try
-	{
-		coords = GSvarHelper::liftOver(var.chr(), var.start(), var.end());
-	}
-	catch(Exception& e)
-	{
-		if (debug_output) qDebug() << "-1" << var.toString() << e.message();
-		return -1;
-	}
-
-	//check new chromosome is ok
-	if (!coords.chr().isNonSpecial())
-	{
-		if (debug_output) qDebug() << "-2" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end());
-		return -2;
-	}
-
-	//check sequence context is the same (ref +-5 bases). If it is not, the strand might have changed, e.g. in NIPA1, GDF2, ANKRD35, TPTE, ...
-	bool strand_changed = false;
-	Sequence context_old = genome_index_->seq(var.chr(), var.start()-5, 10 + var.ref().length());
-	Sequence context_new = genome_index_hg38_->seq(coords.chr(), coords.start()-5, 10 + var.ref().length());
-	if (context_old!=context_new)
-	{
-		context_new.reverseComplement();
-		if (context_old==context_new)
-		{
-			strand_changed = true;
-		}
-		else
-		{
-			context_new.reverseComplement();
-			if (debug_output) qDebug() << "-3" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end()) << "old_context="+context_old << "new_context="+context_new;
-			return -3;
-		}
-	}
-
-	//check for variant in target NGSD
-	Sequence ref = var.ref();
-	if (strand_changed && ref!="-") ref.reverseComplement();
-	Sequence obs = var.obs();
-	if (strand_changed && obs!="-") obs.reverseComplement();
-	QString variant_id = db_target_->variantId(Variant(coords.chr(), coords.start(), coords.end(), ref, obs), false);
-	if (variant_id.isEmpty())
-	{
-		if (debug_output) qDebug() << "-4" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end()) << "strand_changed="+QString(strand_changed?"yes":"no") << "af="+db_source_->getValue("SELECT gnomad FROM variant WHERE id="+QString::number(source_variant_id)).toString();
-		return -4;
-	}
-
-	return variant_id.toInt();
-}
-
-void NGSDReplicationWidget::performPostChecks()
-{
-	addHeader("post-checks");
-
-	//test if all tables are processed
-	QStringList target_tables = db_target_->tables();
-	foreach(QString table, target_tables)
-	{
-		//skip - analysis jobs
-		if (table=="analysis_job") continue;
-		if (table=="analysis_job_history") continue;
-		if (table=="analysis_job_sample") continue;
-		//skip - sample variant and QC import
-		if (table=="cnv_callset") continue;
-		if (table=="cnv") continue;
-		if (table=="detected_somatic_variant") continue;
-		if (table=="detected_variant") continue;
-		if (table=="somatic_cnv_callset") continue;
-		if (table=="somatic_cnv") continue;
-		if (table=="sv_callset") continue;
-		if (table=="sv_deletion") continue;
-		if (table=="sv_duplication") continue;
-		if (table=="sv_insertion") continue;
-		if (table=="sv_inversion") continue;
-		if (table=="sv_translocation") continue;
-		if (table=="processed_sample_qc") continue;
-		//skip - others
-		if (table=="secondary_analysis") continue;
-		if (table=="subpanels") continue;
-
-		if (!tables_done_.contains(table))
-		{
-			addWarning("Table '" + table + "' not filled!");
-		}
-	}
-}
-
-int NGSDReplicationWidget::liftOverCnv(int source_cnv_id, int callset_id, QString& error_message)
-{
-	CopyNumberVariant var = db_source_->cnv(source_cnv_id);
-
-	//lift-over coordinates
-	BedLine coords;
-	try
-	{
-		coords = GSvarHelper::liftOver(var.chr(), var.start(), var.end());
-	}
-	catch(Exception& e)
-	{
-		error_message = "lift-over failed: " + e.message().replace("\t", " ").replace("<br>", " ").replace("&nbsp;", " ");
-		return -1;
-	}
-
-	//check new chromosome is ok
-	if (!coords.chr().isNonSpecial())
-	{
-		error_message = "chromosome is now special chromosome: " + coords.chr().strNormalized(true);
-		return -2;
-	}
-
-	//check for CNV in target NGSD
-	QString cn = db_source_->getValue("SELECT cn FROM cnv WHERE id="+QString::number(source_cnv_id)).toString();
-	QString cnv_id = db_target_->getValue("SELECT id FROM cnv WHERE cnv_callset_id="+QString::number(callset_id)+" AND chr='"+coords.chr().strNormalized(true)+"' AND start='"+QString::number(coords.start())+"' AND end='"+QString::number(coords.start())+"' AND cn="+cn, true).toString();
-	if (cnv_id.isEmpty())
-	{
-		//no exact match, try fuzzy match (at least 70% of original/liftover size)
-		int size_hg19 = var.size();
-		int size_hg38 = coords.length();
-
-		SqlQuery query = db_target_->getQuery();
-		query.exec("SELECT * FROM cnv WHERE cnv_callset_id='" + QString::number(callset_id) + "' AND cn='"+cn+"' AND chr='" + coords.chr().strNormalized(true) + "' AND end>" + QString::number(coords.start()) + " AND start<" + QString::number(coords.end()) + "");
-		while (query.next())
-		{
-			int size = query.value("end").toInt() - query.value("start").toInt();
-			if (size > 0.7 * size_hg19 && size > 0.7 * size_hg38)
-			{
-				return query.value("id").toInt();
-			}
-		}
-
-		error_message = "CNV not found in NGSD";
-		return -4;
-	}
-
-	return cnv_id.toInt();
 }
 
 void NGSDReplicationWidget::updateCnvTable(QString table, QString where_clause)
@@ -801,4 +913,9 @@ void NGSDReplicationWidget::updateCnvTable(QString table, QString where_clause)
 
 	addLine("  Table '"+table+"' replicated: "+details.join(", ")+". Time: " + Helper::elapsedTime(timer));
 	tables_done_ << table;
+}
+
+void NGSDReplicationWidget::updateSvTable(QString table, StructuralVariantType sv_type, QString where_clause)
+{
+
 }
