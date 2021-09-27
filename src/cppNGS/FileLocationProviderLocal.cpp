@@ -74,6 +74,22 @@ FileLocation FileLocationProviderLocal::getRepeatExpansionImage(QString locus) c
 	return FileLocation(name, PathType::REPEAT_EXPANSION_IMAGE, file, QFile::exists(file));
 }
 
+FileLocationList FileLocationProviderLocal::getQcFiles() const
+{
+	QString name = QFileInfo(gsvar_file_).baseName();
+
+	FileLocationList output;
+
+	QStringList qc_files = Helper::findFiles(getAnalysisPath(), "*.qcML", false);
+	foreach(const QString& qc_file, qc_files)
+	{
+		FileLocation file = FileLocation{name, PathType::OTHER, qc_file, true};
+		addToList(file, output);
+	}
+
+	return output;
+}
+
 void FileLocationProviderLocal::addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing)
 {
 	bool exists = QFile::exists(loc.filename);

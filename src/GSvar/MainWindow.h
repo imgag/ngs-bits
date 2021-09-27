@@ -209,6 +209,8 @@ public slots:
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
 	void openVariantListFolder();
+	///Open variant list qcML files.
+	void openVariantListQcFiles();
 	///Re-analyze current sample/case
 	void on_actionReanalyze_triggered();
 	///Action for debugging
