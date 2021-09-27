@@ -223,6 +223,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
 	connect(ui_.vars_folder_btn, SIGNAL(clicked(bool)), this, SLOT(openVariantListFolder()));
+	connect(ui_.open_qc_files, SIGNAL(clicked(bool)), this, SLOT(openVariantListQcFiles()));
 	connect(ui_.vars_ranking, SIGNAL(clicked(bool)), this, SLOT(variantRanking()));
 	ui_.vars_af_hist->setMenu(new QMenu());
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (all small variants)", this, SLOT(showAfHistogram_all()));
@@ -1402,6 +1403,25 @@ void MainWindow::openVariantListFolder()
 	}
 
 	QDesktopServices::openUrl(QFileInfo(filename_).absolutePath());
+}
+
+void MainWindow::openVariantListQcFiles()
+{
+	if (filename_=="") return;
+
+	const FileLocationProvider& flp = GlobalServiceProvider::fileLocationProvider();
+
+	foreach(const FileLocation& file, flp.getQcFiles())
+	{
+		if (flp.isLocal())
+		{
+			QDesktopServices::openUrl(QUrl::fromLocalFile(file.filename));
+		}
+		else
+		{
+			QDesktopServices::openUrl(file.filename);
+		}
+	}
 }
 
 void MainWindow::on_actionReanalyze_triggered()

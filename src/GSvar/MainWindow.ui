@@ -161,6 +161,20 @@
                  </widget>
                 </item>
                 <item>
+                 <widget class="QToolButton" name="open_qc_files">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open variant list QC files (qcML) with your browser.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>...</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="GSvar.qrc">
+                    <normaloff>:/Icons/QC.png</normaloff>:/Icons/QC.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <widget class="Line" name="line">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
