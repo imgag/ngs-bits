@@ -758,6 +758,55 @@ void MainWindow::on_actionCytobandsToRegions_triggered()
 	dlg.exec();
 }
 
+void MainWindow::on_actionRegionToGenes_triggered()
+{
+	QString title = "Region > Genes";
+
+	try
+	{
+		//get region string
+		QString region_text = QInputDialog::getText(this, title, "genomic region");
+		if (region_text=="") return;
+
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		//convert to region
+		Chromosome chr;
+		int start, end;
+		NGSHelper::parseRegion(region_text, chr, start, end);
+
+		//convert region to gene set
+		NGSD db;
+		GeneSet genes = db.genesOverlapping(chr, start, end);
+
+		//show results
+		QPlainTextEdit* text_edit = new QPlainTextEdit(this);
+		text_edit->setReadOnly(true);
+		text_edit->setMinimumSize(1000, 800);
+		text_edit->setWordWrapMode(QTextOption::NoWrap);
+		text_edit->appendPlainText("#GENE\tOMIM_GENE\tOMIM_PHENOTYPES");
+		foreach (const QByteArray& gene, genes)
+		{
+			QList<OmimInfo> omim_genes = db.omimInfo(gene);
+			foreach (const OmimInfo& omim_gene, omim_genes)
+			{
+				text_edit->appendPlainText(gene + "\t" + omim_gene.gene_symbol + "\t" + omim_gene.phenotypes.toString());
+			}
+		}
+
+		QApplication::restoreOverrideCursor();
+
+		auto dlg = GUIHelper::createDialog(text_edit, title);
+		dlg->exec();
+	}
+	catch(Exception& e)
+	{
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, title, "Error:\n" + e.message());
+		return;
+	}
+}
+
 void MainWindow::on_actionSearchSNVs_triggered()
 {
 	SmallVariantSearchWidget* widget = new SmallVariantSearchWidget();
@@ -1360,192 +1409,6 @@ void MainWindow::openVariantListFolder()
 	}
 
 	QDesktopServices::openUrl(QFileInfo(filename_).absolutePath());
-}
-
-void MainWindow::on_actionBatchExportClinVar_triggered()
-{
-	//allow only for admins
-	try
-	{
-		LoginManager::checkRoleIn(QStringList() << "admin");
-	}
-	catch (Exception& e)
-	{
-		QMessageBox::warning(this, "Permissions error", e.message());
-		return;
-	}
-
-	//show general infos
-	QMessageBox::information(this, "Batch import of variants into ClinVar", "This function extracts variants from the NGSD for a batch import into ClinVar.\n\n"
-																			"You have to prepare a ClinVar submission at https://submit.ncbi.nlm.nih.gov/clinvar/ and provide the submission identifier.\n"
-																			"An XML file with variants is then created which has to be uploaded to ClinVar.\n");
-	//get data from user
-	QString submitter_id = QInputDialog::getText(this, "Set ClinVar information", "submitter id:", QLineEdit::Normal, "5949").trimmed();
-	if (submitter_id=="") return;
-	QString organization_id = QInputDialog::getText(this, "Set ClinVar information", "organization id:", QLineEdit::Normal, "506385").trimmed(); //https://www.ncbi.nlm.nih.gov/clinvar/submitters/506385/
-	if (organization_id=="") return;
-	QString submission_id = QInputDialog::getText(this, "Set ClinVar information", "submission id ('TEST' for dry run):", QLineEdit::Normal, "TEST").trimmed();
-	if (submission_id=="") return;
-	QString out_file = QFileDialog::getSaveFileName(this, "Select output file name", QStandardPaths::writableLocation(QStandardPaths::DesktopLocation), "*.xml").trimmed();
-	if (out_file.isEmpty()) return;
-
-	//init
-	QString ref_file = Settings::string("reference_genome");
-	FastaFileIndex genome_index(ref_file);
-
-	QStringList messages;
-	QStringList variant_publication_queries;
-
-	NGSD db;
-	SqlQuery query_already_published = db.getQuery();
-	query_already_published.prepare("SELECT class FROM variant_publication WHERE db='ClinVar' AND variant_id=:0");
-
-	try
-	{
-		//get variants that should be published
-		QSet<QString> variant_ids_done;
-		SqlQuery query = db.getQuery();
-		query.exec("SELECT ps.sample_id, rcv.variant_id, rcv.inheritance, vc.class, rcv.id"
-				   " FROM processed_sample ps, diag_status ds, project p, report_configuration rc, report_configuration_variant rcv, variant_classification vc"
-				   " WHERE ps.project_id=p.id AND ps.id=ds.processed_sample_id AND ps.id=rc.processed_sample_id AND rc.id=rcv.report_configuration_id AND rcv.variant_id = vc.variant_id AND ds.outcome='significant findings' AND rcv.causal='1' AND (vc.class='4' OR vc.class='5') AND p.type='diagnostic'");
-		messages << ("Causal class 4/5 variants in diagnostic samples with outcome 'significant findings': " + QString::number(query.size()));
-
-		//merge XML files of variants to publish to one XML file
-		QStringList output;
-		output << "<?xml version=\"1.0\"?>";
-		output << "<ClinvarSubmissionSet sub_id=\"" + submission_id + "\" Date=\"" + QDate::currentDate().toString(Qt::ISODate) + "\">";
-		output << "  <SubmitterOfRecordID>" + submitter_id + "</SubmitterOfRecordID>";
-		output << "  <OrgID Type=\"primary\">" + organization_id + "</OrgID>";
-		while (query.next())
-		{
-			QString sample_id = query.value(0).toString();
-			QString variant_id = query.value(1).toString();
-			QString inheritance = query.value(2).toString();
-			QString classification = query.value(3).toString();
-			QString rcv_id = query.value(4).toString();
-
-			//check if variant is already uploaded to ClinVar
-			query_already_published.bindValue(0, variant_id);
-			query_already_published.exec();
-			if (query_already_published.next()) continue;
-
-			//check if the variant is already exported in the current batch
-			if (variant_ids_done.contains(variant_id)) continue;
-			variant_ids_done << variant_id;
-
-			//variant
-			Variant variant = db.variant(variant_id);
-			if(variant.ref() == "-") //for insertions add +1 to end (Clinvar format)
-			{
-				variant.setEnd(variant.end()+1);
-			}
-			//small additional check for end or variant position (end is not calculated in toVCF - however should only be affected for insertions due to ClinVar format)
-			int end_check = variant.start() + variant.ref().length() - 1;
-			if(variant.ref() == "-")
-			{
-				end_check +=1;
-			}
-			if(variant.end() != end_check)
-			{
-				THROW(ProgrammingException, "Error in end of variant '" + variant.toString(true) + "' - end check is '" + QString::number(end_check));
-			}
-
-			//inheritance
-			QString variant_inheritance = ClinvarSubmissionGenerator::translateInheritance(inheritance);
-			if(variant_inheritance=="")
-			{
-				if(inheritance == "AR+AD")
-				{
-					variant_inheritance = "Autosomal unknown";
-				}
-				else if(inheritance == "XLR+XLD")
-				{
-					variant_inheritance = "X-linked inheritance";
-				}
-				else if(inheritance == "n/a")
-				{
-					variant_inheritance = "Unknown mechanism";
-				}
-			}
-
-			//classification
-			QString variant_classification = ClinvarSubmissionGenerator::translateClassification(classification);
-
-			//General Data
-			ClinvarSubmissionData data;
-			data.build = GSvarHelper::build();
-			data.date = QDate::currentDate();
-			data.local_key = "report_configuration_variant_id:" + rcv_id;
-
-			data.submission_id = submission_id;
-			data.submitter_id = submitter_id;
-			data.organization_id = organization_id;
-
-			data.variant = variant.toVCF(genome_index);;
-			data.variant_classification = variant_classification;
-			data.variant_inheritance = variant_inheritance;
-
-			SampleData sample_data = db.getSampleData(sample_id);
-			data.sample_name = sample_data.name;
-			data.sample_phenotypes = sample_data.phenotypes;
-			if(sample_data.gender!="n/a")
-			{
-				data.sample_gender = sample_data.gender;
-			}
-
-			//add XML to output
-			QStringList xml = ClinvarSubmissionGenerator::generateXML(data).split("\n");
-			bool in_submission = false;
-			foreach(const QString& line, xml)
-			{
-				if (!in_submission && line.contains("<ClinvarSubmission>"))
-				{
-					in_submission = true;
-				}
-
-				if (in_submission)
-				{
-					output << line;
-					if (line.contains("</ClinvarSubmission>"))
-					{
-						in_submission = false;
-					}
-				}
-			}
-
-			//update NGSD
-			Variant var = db.variant(variant_id);
-			QString gene = db.genesOverlapping(var.chr(), var.start(), var.end(), 5000).join(", ");
-			variant_publication_queries << "INSERT INTO `variant_publication` (`sample_id`, `variant_id`, `db`, `class`, `details`, `user_id`) VALUES ('"+sample_id+"','"+variant_id+"','ClinVar','"+classification+"','gene="+gene+"',"+LoginManager::userIdAsString()+")";
-		}
-		messages << ("Exported variants to file: " + QString::number(variant_ids_done.count()));
-
-		//store output
-		output << "</ClinvarSubmissionSet>";
-		Helper::storeTextFile(out_file, output);
-		QString xml_error = XmlHelper::isValidXml(out_file);
-		if (xml_error!="")
-		{
-			THROW(ProgrammingException, "An invalid XML file was produced: " + xml_error);
-		}
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::warning(this, "Batch import of variants into ClinVar", "An error occured:\n" + e.message());
-		return;
-	}
-
-	//submit changes to NGSD
-	if (submission_id!="TEST")
-	{
-		foreach(QString query, variant_publication_queries)
-		{
-			db.getQuery().exec(query);
-		}
-	}
-
-	//show messages
-	QMessageBox::information(this, "Batch import of variants into ClinVar", messages.join("\n"));
 }
 
 void MainWindow::on_actionReanalyze_triggered()
@@ -3007,10 +2870,30 @@ void MainWindow::checkVariantList(QStringList messages)
 		}
 	}
 
+	//check data was loaded completely
+	if (germlineReportSupported(true))
+	{
+		NGSD db;
+		int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
+		ProcessingSystemData sys_data = db.getProcessingSystemData(sys_id);
+		if (sys_data.type=="WES" || sys_data.type=="WGS")
+		{
+			QSet<Chromosome> chromosomes;
+			for(int i=0; i<variants_.count(); ++i)
+			{
+				chromosomes << variants_[i].chr();
+			}
+			if (chromosomes.size()<23)
+			{
+				messages << ("Variants detected on " + QString::number(chromosomes.size()) + " chromosomes only! Expected variants on at least 23 chromosomes for WES/WGS data!");
+			}
+		}
+	}
+
 	//show messages
 	if (!messages.empty())
 	{
-		QMessageBox::warning(this, "GSvar file outdated", "The GSvar file contains the following error(s):\n  -" + messages.join("\n  -") + "\n\nTo ensure that GSvar works as expected, re-run the annotation steps for the analysis!");
+		QMessageBox::warning(this, "GSvar file problems", "The GSvar file contains the following problems:\n  -" + messages.join("\n  -"));
 	}
 }
 
@@ -6278,6 +6161,7 @@ void MainWindow::updateNGSDSupport()
 	ui_.actionSampleSearch->setEnabled(ngsd_user_logged_in);
 	ui_.actionRunOverview->setEnabled(ngsd_user_logged_in);
 	ui_.actionConvertHgvsToGSvar->setEnabled(ngsd_user_logged_in);
+	ui_.actionRegionToGenes->setEnabled(ngsd_user_logged_in);
 	ui_.actionGapsRecalculate->setEnabled(ngsd_user_logged_in);
 	ui_.actionExpressionData->setEnabled(ngsd_user_logged_in);
 	ui_.actionAnnotateSomaticVariantInterpretation->setEnabled(ngsd_user_logged_in);

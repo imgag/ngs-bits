@@ -1,0 +1,55 @@
+##fileformat=VCFv4.2
+##contig=<ID=chr1,length=249250621>
+##contig=<ID=chr2,length=243199373>
+##contig=<ID=chr3,length=198022430>
+##contig=<ID=chr4,length=191154276>
+##contig=<ID=chr5,length=180915260>
+##contig=<ID=chr6,length=171115067>
+##contig=<ID=chr7,length=159138663>
+##contig=<ID=chr8,length=146364022>
+##contig=<ID=chr9,length=141213431>
+##contig=<ID=chr10,length=135534747>
+##contig=<ID=chr11,length=135006516>
+##contig=<ID=chr12,length=133851895>
+##contig=<ID=chr13,length=115169878>
+##contig=<ID=chr14,length=107349540>
+##contig=<ID=chr15,length=102531392>
+##contig=<ID=chr16,length=90354753>
+##contig=<ID=chr17,length=81195210>
+##contig=<ID=chr18,length=78077248>
+##contig=<ID=chr19,length=59128983>
+##contig=<ID=chr20,length=63025520>
+##contig=<ID=chr21,length=48129895>
+##contig=<ID=chr22,length=51304566>
+##contig=<ID=chrY,length=59373566>
+##contig=<ID=chrX,length=155270560>
+##contig=<ID=chrMT,length=16569>
+##INFO=<ID=SOM_C,Number=1,Type=Integer,Description="Somatic variant count in the NGSD.">
+##INFO=<ID=SOM_P,Number=.,Type=String,Description="Project names of project containing this somatic variant in the NGSD.">
+##INFO=<ID=SOM_VICC,Number=1,Type=String,Description="Somatic variant interpretation according VICC standard in the NGSD.">
+##INFO=<ID=SOM_VICC_COMMENT,Number=1,Type=String,Description="Somatic VICC interpretation comment in the NGSD.">
+##INFO=<ID=SOM_VICC_ABSENT_FROM_CONTROLS,Number=1,Type=String,Description="Somatic VICC value for VICC parameter absent_from_controls in the NGSD.">
+##INFO=<ID=SOM_VICC_BENIGN_COMPUTATIONAL_EVIDENCE,Number=1,Type=String,Description="Somatic VICC value for VICC parameter benign_computational_evidence in the NGSD.">
+##INFO=<ID=SOM_VICC_BENIGN_FUNCTIONAL_STUDIES,Number=1,Type=String,Description="Somatic VICC value for VICC parameter benign_functional_studies in the NGSD.">
+##INFO=<ID=SOM_VICC_COMPUTATIONAL_EVIDENCE,Number=1,Type=String,Description="Somatic VICC value for VICC parameter computational_evidence in the NGSD.">
+##INFO=<ID=SOM_VICC_CREATED_AT,Number=1,Type=String,Description="Somatic VICC value for VICC parameter created_at in the NGSD.">
+##INFO=<ID=SOM_VICC_CREATED_BY,Number=1,Type=String,Description="Somatic VICC value for VICC parameter created_by in the NGSD.">
+##INFO=<ID=SOM_VICC_HIGH_MAF,Number=1,Type=String,Description="Somatic VICC value for VICC parameter high_maf in the NGSD.">
+##INFO=<ID=SOM_VICC_KNOWN_ONCOGENIC_AA,Number=1,Type=String,Description="Somatic VICC value for VICC parameter known_oncogenic_aa in the NGSD.">
+##INFO=<ID=SOM_VICC_LAST_UPDATED_AT,Number=1,Type=String,Description="Somatic VICC value for VICC parameter last_updated_at in the NGSD.">
+##INFO=<ID=SOM_VICC_LAST_UPDATED_BY,Number=1,Type=String,Description="Somatic VICC value for VICC parameter last_updated_by in the NGSD.">
+##INFO=<ID=SOM_VICC_LOCATED_IN_CANERHOTSPOT,Number=1,Type=String,Description="Somatic VICC value for VICC parameter located_in_canerhotspot in the NGSD.">
+##INFO=<ID=SOM_VICC_MUTATION_IN_GENE_WITH_ETIOLOGY,Number=1,Type=String,Description="Somatic VICC value for VICC parameter mutation_in_gene_with_etiology in the NGSD.">
+##INFO=<ID=SOM_VICC_NULL_MUTATION_IN_TSG,Number=1,Type=String,Description="Somatic VICC value for VICC parameter null_mutation_in_tsg in the NGSD.">
+##INFO=<ID=SOM_VICC_ONCOGENIC_FUNCTIONAL_STUDIES,Number=1,Type=String,Description="Somatic VICC value for VICC parameter oncogenic_functional_studies in the NGSD.">
+##INFO=<ID=SOM_VICC_OTHER_AA_KNOWN_ONCOGENIC,Number=1,Type=String,Description="Somatic VICC value for VICC parameter other_aa_known_oncogenic in the NGSD.">
+##INFO=<ID=SOM_VICC_PROTEIN_LENGTH_CHANGE,Number=1,Type=String,Description="Somatic VICC value for VICC parameter protein_length_change in the NGSD.">
+##INFO=<ID=SOM_VICC_STRONG_CANCERHOTSPOT,Number=1,Type=String,Description="Somatic VICC value for VICC parameter strong_cancerhotspot in the NGSD.">
+##INFO=<ID=SOM_VICC_SYNONYMOUS_MUTATION,Number=1,Type=String,Description="Somatic VICC value for VICC parameter synonymous_mutation in the NGSD.">
+##INFO=<ID=SOM_VICC_VERY_HIGH_MAF,Number=1,Type=String,Description="Somatic VICC value for VICC parameter very_high_maf in the NGSD.">
+##INFO=<ID=SOM_VICC_VERY_WEAK_CANCERHOTSPOT,Number=1,Type=String,Description="Somatic VICC value for VICC parameter very_weak_cancerhotspot in the NGSD.">
+##INFO=<ID=SOM_VICC_WEAK_CANCERHOTSPOT,Number=1,Type=String,Description="Somatic VICC value for VICC parameter weak_cancerhotspot in the NGSD.">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	62728784	1	A	G	.	.	SOM_C=1;SOM_P=First%20project
+chr2	48032740	3	A	AT	.	.	SOM_C=1;SOM_P=Second%20project;SOM_VICC=ONCOGENIC;SOM_VICC_COMMENT=test%20VICC%20comment;SOM_VICC_ABSENT_FROM_CONTROLS=TRUE;SOM_VICC_BENIGN_COMPUTATIONAL_EVIDENCE=NOT_APPLICABLE;SOM_VICC_BENIGN_FUNCTIONAL_STUDIES=FALSE;SOM_VICC_COMMENT=test%20VICC%20comment;SOM_VICC_COMPUTATIONAL_EVIDENCE=TRUE;SOM_VICC_CREATED_AT=2020-12-21%2009:59:37;SOM_VICC_CREATED_BY=ahuser;SOM_VICC_HIGH_MAF=FALSE;SOM_VICC_KNOWN_ONCOGENIC_AA=TRUE;SOM_VICC_LAST_UPDATED_AT=2020-12-23%2009:33:23;SOM_VICC_LAST_UPDATED_BY=ahuser;SOM_VICC_LOCATED_IN_CANERHOTSPOT=NOT_APPLICABLE;SOM_VICC_MUTATION_IN_GENE_WITH_ETIOLOGY=NOT_APPLICABLE;SOM_VICC_NULL_MUTATION_IN_TSG=FALSE;SOM_VICC_ONCOGENIC_FUNCTIONAL_STUDIES=NOT_APPLICABLE;SOM_VICC_OTHER_AA_KNOWN_ONCOGENIC=NOT_APPLICABLE;SOM_VICC_PROTEIN_LENGTH_CHANGE=FALSE;SOM_VICC_STRONG_CANCERHOTSPOT=TRUE;SOM_VICC_SYNONYMOUS_MUTATION=FALSE;SOM_VICC_VERY_HIGH_MAF=FALSE;SOM_VICC_VERY_WEAK_CANCERHOTSPOT=FALSE;SOM_VICC_WEAK_CANCERHOTSPOT=FALSE
+chr3	142277575	2	A	T	.	.	SOM_C=2;SOM_P=First%20project,Second%20project

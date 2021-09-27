@@ -1,5 +1,5 @@
 ### VcfAnnotateFromVcf tool help
-	VcfAnnotateFromVcf (2020_03-184-g27235379)
+	VcfAnnotateFromVcf (2021_06-89-gbbd16264)
 	
 	Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided).
 	
@@ -24,6 +24,8 @@
 	                          Default value: '1'
 	  -block_size <int>       Number of lines processed in one chunk.
 	                          Default value: '5000'
+	  -prefetch <int>         Maximum number of chunks that may be pre-fetched into memory.
+	                          Default value: '64'
 	
 	Special parameters:
 	  --help                  Shows this help and exits.
@@ -32,8 +34,9 @@
 	  --tdx                   Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### VcfAnnotateFromVcf changelog
-	VcfAnnotateFromVcf 2020_03-184-g27235379
+	VcfAnnotateFromVcf 2021_06-89-gbbd16264
 	
+	2021-09-20 Prefetch only part of input file (to save memory).
 	2020-04-11 Added multithread support by Julian Fratte.
 	2019-08-19 Added support for multiple annotations files through config file.
 	2019-08-14 Added VCF.GZ support.

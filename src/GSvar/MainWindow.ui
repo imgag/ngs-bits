@@ -437,6 +437,7 @@
     <addaction name="actionConvertGSvarToVcf"/>
     <addaction name="separator"/>
     <addaction name="actionCytobandsToRegions"/>
+    <addaction name="actionRegionToGenes"/>
    </widget>
    <widget class="QMenu" name="menuNGSD">
     <property name="title">
@@ -513,7 +514,6 @@
      <addaction name="actionCohortAnalysis"/>
      <addaction name="separator"/>
      <addaction name="actionShowPublishedVariants"/>
-     <addaction name="actionBatchExportClinVar"/>
     </widget>
     <addaction name="menuVariant_search"/>
     <addaction name="menuGenes_2"/>
@@ -1312,6 +1312,11 @@
    </property>
    <property name="text">
     <string>MID clash detection</string>
+   </property>
+  </action>
+  <action name="actionRegionToGenes">
+   <property name="text">
+    <string>Region &gt; Genes</string>
    </property>
   </action>
  </widget>

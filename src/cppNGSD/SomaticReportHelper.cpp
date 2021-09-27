@@ -861,7 +861,7 @@ RtfTable SomaticReportHelper::snvTable(const VariantList &vl, bool include_germl
 			row.addCell(900, QByteArray::number(var.annotations()[i_germl_freq_in_tum].toDouble(), 'f', 2).replace(".",","), RtfParagraph().setHorizontalAlignment("c"));
 
 			//Description of germline variant
-			QByteArray germl_desc = "pathogene Variante (ACMG)";
+                        QByteArray germl_desc = "pathogene Variante";
 			if(var.annotations()[i_germl_hom_het].contains("het")) germl_desc +=  ", in der Normalprobe heterozygot";
 			else if(var.annotations()[i_germl_hom_het].contains("hom")) germl_desc +=  ", in der Normalprobe homozygot";
 			else germl_desc += ", nachgewiesen im Normalgewebe";
