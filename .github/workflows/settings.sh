@@ -9,4 +9,6 @@ echo "ngsd_test_pass = \"\"" >> ./bin/settings.ini
 echo "projects_folder = \"projects_folder\"" >> ./bin/settings.ini
 echo "data_folder = \"\"" >> ./bin/settings.ini
 echo "url_lifetime = 5" >> ./bin/settings.ini
+echo "http_server_port = 8080" >> ./bin/settings.ini
+echo "https_server_port = 8443" >> ./bin/settings.ini
 #echo "reference_genome = \"https://download.imgag.de/ahsturm1/genomes/GRCh37.fa\"" >> ./bin/settings.ini
