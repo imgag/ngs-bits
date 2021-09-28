@@ -21,6 +21,7 @@ public:
 	static QString getStringSettingsValue(const QString& key);
 	static QString getUrlWithoutParams(const QString& url);
 	static QString getUrlProtocol(const bool& return_http);
+	static QString getUrlPort(const bool& return_http);
 
 protected:
 	ServerHelper();

@@ -72,6 +72,12 @@ QString ServerHelper::getUrlProtocol(const bool& return_http)
 	return "https://";
 }
 
+QString ServerHelper::getUrlPort(const bool& return_http)
+{
+	if (return_http) return ServerHelper::getStringSettingsValue("http_server_port");
+	return ServerHelper::getStringSettingsValue("https_server_port");
+}
+
 ServerHelper& ServerHelper::instance()
 {
 	static ServerHelper server_helper;
