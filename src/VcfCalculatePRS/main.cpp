@@ -20,8 +20,10 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Calculates the Polgenic Risk Score for a given set of PRS VCFs");
-		addInfile("in", "Tabix indexed VCF.GZ file of the sample.", false);
+		setDescription("Calculates the Polgenic Risk Score(s) for a sample.");
+		setExtendedDescription(QStringList() << "The PRS VCF files have to contain a WEIGHT entry in the INFO column." << "Additionally some information about the PRS score is required in the VCF header." << "An example VCF file can be found at https://github.com/imgag/ngs-bits/blob/master/src/tools-TEST/data_in/VcfCalculatePRS_prs2.vcf");
+
+		addInfile("in", "Tabix indexed VCF.GZ file of a sample.", false);
 		addInfileList("prs", "List of PRS VCFs.", false);
 		addOutfile("out", "Output TSV file containing Scores and PRS details", false);
 
@@ -52,14 +54,13 @@ public:
 			//does not support multi sample
 			if(prs_variant_list.sampleIDs().count() > 1)
 			{
-				THROW(FileParseException, "VCF file can only contain one sample for Polgenic Risk Score calculation.");
+				THROW(FileParseException, "PRS VCF file must not contain more than one sample: " + prs_file_path);
 			}
 
 			//define PRS
 			double prs = 0;
 			QVector<double> percentiles;
 			QHash<QByteArray,QByteArray> column_entries;
-
 
 			//parse comment lines
 			foreach(const VcfHeaderLine& comment_line, prs_variant_list.vcfHeader().comments())
@@ -71,7 +72,7 @@ public:
 					{
 						if(column_entries.contains(column_name))
 						{
-							THROW(FileParseException, "Comment section of PRS VCF '" + prs_file_path + "' contains more than one entry for '" +column_name + "'!");
+							THROW(FileParseException, "Comment section of PRS VCF  file contains more than one entry for '" +column_name + "': " + prs_file_path);
 						}
 						column_entries[column_name] = comment_line.value.trimmed();
 						break;
@@ -80,10 +81,9 @@ public:
 
 				if(comment_line.key.startsWith("percentiles"))
 				{
-					if (percentiles.size() != 0) THROW(FileParseException, "Percentiles for PRS VCF '" + prs_file_path + "' are given twice!");
+					if (percentiles.size() != 0) THROW(FileParseException, "Percentiles in PRS VCF file given twice: " + prs_file_path);
 					QByteArrayList percentile_string = comment_line.value.trimmed().split(',');
-					if (percentile_string.size() != 100) THROW(FileParseException, "Invalid number of percentiles given (required: 100, given: "
-															   + QByteArray::number(percentile_string.size()) + "!");
+					if (percentile_string.size() != 100) THROW(FileParseException, "Invalid number of percentiles given (required: 100, given: "  + QByteArray::number(percentile_string.size()) + ": " + prs_file_path);
 					foreach (const QByteArray& value_string, percentile_string)
 					{
 						percentiles.append(Helper::toDouble(value_string, "Percentile"));
@@ -98,7 +98,7 @@ public:
 				if(col_entries_not_in_header.contains(key)) continue;
 				if(!column_entries.contains(key))
 				{
-					THROW(FileParseException, "Comment section of PRS VCF '" + prs_file_path + "' misses the entry for '" + key + "'!");
+					THROW(FileParseException, "Comment section of PRS VCFs does not contsin an entry for '" + key + "': " + prs_file_path);
 				}
 			}
 
@@ -110,7 +110,7 @@ public:
 				//does not support multi-allelic variants
 				if(prs_variant.isMultiAllelic())
 				{
-					THROW(FileParseException, "Does not support multi-allelic variants for Polgenic Risk Score calculation.");
+					THROW(FileParseException, "Multi-allelic variants in PRS VCF files are not supported: " + prs_variant.variantToString());
 				}
 
 				int allele_count = 0;
@@ -119,13 +119,17 @@ public:
 				QByteArrayList matching_variants;
 				foreach(const QByteArray& line, matching_lines)
 				{
-					// check if variant has same ref/alternative base(s)
-					if((Sequence(line.split('\t')[3]) == prs_variant.ref()) && (Sequence(line.split('\t')[4]) == prs_variant.alt(0))) matching_variants.append(line);
+					// check if overlapping variant is actually the one we are looking for
+					QByteArrayList parts = line.split('\t');
+					if(parts[1].toInt()==prs_variant.start() && parts[3]==prs_variant.ref() && parts[4]==prs_variant.alt(0))
+					{
+						matching_variants.append(line);
+					}
 				}
 
 				if(matching_variants.size() > 1)
 				{
-					THROW(FileParseException, "Variant '" + prs_variant.variantToString() + "' occures multiple times in sample VCF!");
+					THROW(FileParseException, "Variant occures multiple times in sample VCF: " +  prs_variant.variantToString());
 				}
 
 				if(matching_variants.size() == 1)
@@ -135,12 +139,12 @@ public:
 					QByteArrayList format_header_items = split_line[8].split(':');
 					QByteArrayList format_value_items = split_line[9].split(':');
 					int genotype_idx = format_header_items.indexOf("GT");
-					if(genotype_idx < 0) THROW(FileParseException, "Genotype information is missing for variant '" + prs_variant.variantToString() + "'!");
-					QByteArray genotype = format_value_items[genotype_idx].trimmed();
+					if(genotype_idx < 0) THROW(FileParseException, "Genotype information is missing for sample variant: " + matching_variants[0]);
+					QByteArray genotype = format_value_items[genotype_idx].trimmed().replace("|", "/").replace(".", "0");
 
 					if(genotype == "0/1") allele_count = 1;
 					else if(genotype == "1/1") allele_count = 2;
-					else THROW(FileParseException, "Invalid genotype '" + genotype + "' in variant " + prs_variant.variantToString() + "'!");
+					else THROW(FileParseException, "Invalid genotype '" + genotype + "' in sample variant: " + matching_variants[0]);
 
 					//calculate PRS part
 					double weight = Helper::toDouble(prs_variant.info("WEIGHT"), "PRS weight");
