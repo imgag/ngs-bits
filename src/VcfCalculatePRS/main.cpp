@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QTextStream>
 
+//TODO: Handle missing variants (check in BAM for depth, check target region if region is contained > use AF if missing?)
 
 class ConcreteTool
 		: public ToolBase
@@ -103,6 +104,7 @@ public:
 			}
 
 			//iterate over all variants in PRS
+			int c_found = 0;
 			for(int i = 0; i < prs_variant_list.count(); ++i)
 			{	
 				const VcfLine& prs_variant = prs_variant_list[i];
@@ -113,7 +115,6 @@ public:
 					THROW(FileParseException, "Multi-allelic variants in PRS VCF files are not supported: " + prs_variant.variantToString());
 				}
 
-				int allele_count = 0;
 				//get all matching variants at this position
 				QByteArrayList matching_lines = sample_vcf.getMatchingLines(prs_variant.chr(), prs_variant.start(), prs_variant.end(), true);
 				QByteArrayList matching_variants;
@@ -142,6 +143,7 @@ public:
 					if(genotype_idx < 0) THROW(FileParseException, "Genotype information is missing for sample variant: " + matching_variants[0]);
 					QByteArray genotype = format_value_items[genotype_idx].trimmed().replace("|", "/").replace(".", "0");
 
+					int allele_count = 0;
 					if(genotype == "0/1") allele_count = 1;
 					else if(genotype == "1/1") allele_count = 2;
 					else THROW(FileParseException, "Invalid genotype '" + genotype + "' in sample variant: " + matching_variants[0]);
@@ -150,16 +152,22 @@ public:
 					double weight = Helper::toDouble(prs_variant.info("WEIGHT"), "PRS weight");
 					prs += weight * allele_count;
 
+					++c_found;
 				}
-
 			}
+
 			// compute percentile
 			int percentile = -1;
 			if (percentiles.size() == 100)
 			{
-				int i = 0;
-				for (i = 0; i < percentiles.size(); ++i) if (prs < percentiles[i]) break;
-				percentile = i + 1;
+				for (int i = 0; i < percentiles.size(); ++i)
+				{
+					if (prs < percentiles[i])
+					{
+						percentile = i + 1;
+						break;
+					}
+				}
 			}
 
 			QByteArray percentile_string = (percentile == -1) ? "." : QByteArray::number(percentile);
@@ -171,7 +179,7 @@ public:
 
 
 			//print final PRS
-			out << column_entries["pgs_id"] << ":\t" << prs << endl;
+			out << column_entries["pgs_id"] << ": variants_found=" << c_found << " prs=" << prs << " percentile=" << percentile_string << endl;
 		}
 
 		output_tsv->flush();
