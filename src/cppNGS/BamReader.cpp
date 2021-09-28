@@ -516,6 +516,7 @@ BamReader::BamReader(const QString& bam_file)
 	QString tmp_name = bam_file;
 	tmp_name = tmp_name.replace("https", "http");
 	bam_file_ = bam_file_.replace("https", "http");
+	bam_file_ = bam_file_.replace(":" + Settings::string("https_server_port"), ":" + Settings::string("http_server_port"));
 	init(tmp_name);
 }
 
@@ -526,6 +527,7 @@ BamReader::BamReader(const QString& bam_file, const QString& ref_genome)
 	QString tmp_name = bam_file;
 	tmp_name = tmp_name.replace("https", "http");
 	bam_file_ = bam_file_.replace("https", "http");
+	bam_file_ = bam_file_.replace(":" + Settings::string("https_server_port"), ":" + Settings::string("http_server_port"));
 	init(tmp_name, ref_genome);
 }
 
