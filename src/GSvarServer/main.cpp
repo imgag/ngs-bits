@@ -353,10 +353,13 @@ int main(int argc, char **argv)
 		qInfo() << "HTTP server port has been provided through the command line arguments:" + http_port;
 		http_port_setting = https_port.toInt();
 	}
-	if (http_port_setting > 0)
+
+	if (http_port_setting == 0)
 	{
-		WebServer http_server(http_port_setting, true);
+		qInfo() << "HTTP port number is invalid";
+		app.exit(EXIT_FAILURE);
 	}
+	WebServer http_server(http_port_setting, true);
 
 	return app.exec();
 }
