@@ -531,37 +531,62 @@ QString NGSD::normalSample(const QString& processed_sample_id)
 	return processedSampleName(value.toString());
 }
 
-QStringList NGSD::sameSamples(QString sample_id, QString sample_type)
+const QSet<int>& NGSD::sameSamples(int sample_id)
 {
-	QStringList valid_sample_types = getEnum("sample", "sample_type");
-	if (!valid_sample_types.contains(sample_type))
-	{
-		THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
-	}
-	QStringList all_same_samples;
-	SqlQuery query = getQuery();
-	query.exec("SELECT sample2_id FROM sample_relations WHERE relation='same sample' AND sample1_id='" + sample_id + "'");
-	while (query.next())
-	{
-		all_same_samples.append(query.value(0).toString());
-	}
-	query.exec("SELECT sample1_id FROM sample_relations WHERE relation='same sample' AND sample2_id='" + sample_id + "'");
-	while (query.next())
-	{
-		all_same_samples.append(query.value(0).toString());
-	}
+	static QSet<int> empty_entry;
+	QHash<int, QSet<int>>& same_samples = getCache().same_samples;
 
-	QStringList filtered_same_samples;
-	// filter same samples by type
-	foreach(const QString& same_sample_id, all_same_samples)
+	//init if empty
+	if (same_samples.isEmpty())
 	{
-		if (getSampleData(same_sample_id).type == sample_type)
+		SqlQuery query = getQuery();
+		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
+		while (query.next())
 		{
-			filtered_same_samples.append(same_sample_id);
+			int sample1_id = query.value(0).toInt();
+			int sample2_id = query.value(1).toInt();
+			same_samples[sample1_id] << sample2_id;
+			same_samples[sample2_id] << sample1_id;
 		}
 	}
 
-	return filtered_same_samples;
+	if (same_samples.contains(sample_id))
+	{
+		return same_samples[sample_id];
+	}
+	else
+	{
+		return empty_entry;
+	}
+}
+
+const QSet<int>& NGSD::relatedSamples(int sample_id)
+{
+	static QSet<int> empty_entry;
+	QHash<int, QSet<int>>& related_samples = getCache().related_samples;
+
+	//init if empty
+	if (related_samples.isEmpty())
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT sample1_id, sample2_id FROM sample_relations");
+		while (query.next())
+		{
+			int sample1_id = query.value(0).toInt();
+			int sample2_id = query.value(1).toInt();
+			related_samples[sample1_id] << sample2_id;
+			related_samples[sample2_id] << sample1_id;
+		}
+	}
+
+	if (related_samples.contains(sample_id))
+	{
+		return related_samples[sample_id];
+	}
+	else
+	{
+		return empty_entry;
+	}
 }
 
 void NGSD::setSampleDiseaseData(const QString& sample_id, const QString& disease_group, const QString& disease_status)
@@ -1012,21 +1037,6 @@ Variant NGSD::variant(const QString& variant_id)
 
 QPair<int, int> NGSD::variantCounts(const QString& variant_id, bool use_cached_data_from_variant_table)
 {
-	//get same sample information (cached)
-	QHash<int, QList<int>>& same_samples = getCache().same_samples;
-	if (same_samples.isEmpty())
-	{
-		SqlQuery query = getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
-		while (query.next())
-		{
-			int sample1_id = query.value(0).toInt();
-			int sample2_id = query.value(1).toInt();
-			same_samples[sample1_id] << sample2_id;
-			same_samples[sample2_id] << sample1_id;
-		}
-	}
-
 	//count variants
 	int count_het = 0;
 	int count_hom = 0;
@@ -1055,24 +1065,16 @@ QPair<int, int> NGSD::variantCounts(const QString& variant_id, bool use_cached_d
 			if (genotype=="het" && !samples_done_het.contains(sample_id))
 			{
 				++count_het;
-				samples_done_het << sample_id;
 
-				QList<int> tmp = same_samples.value(sample_id, QList<int>());
-				foreach(int same_sample_id, tmp)
-				{
-					samples_done_het << same_sample_id;
-				}
+				samples_done_het << sample_id;
+				samples_done_het.unite(sameSamples(sample_id));
 			}
 			if (genotype=="hom" && !samples_done_hom.contains(sample_id))
 			{
 				++count_hom;
-				samples_done_hom << sample_id;
 
-				QList<int> tmp = same_samples.value(sample_id, QList<int>());
-				foreach(int same_sample_id, tmp)
-				{
-					samples_done_hom << same_sample_id;
-				}
+				samples_done_hom << sample_id;
+				samples_done_hom.unite(sameSamples(sample_id));
 			}
 		}
 	}
@@ -3412,22 +3414,23 @@ QHash<QString, QStringList> NGSD::checkMetaData(const QString& ps_id, const Vari
 	}
 
 	//related samples
-	QStringList related_sample_ids = relatedSamples(s_id, "parent-child");
-	related_sample_ids << relatedSamples(s_id, "siblings");
-	related_sample_ids << relatedSamples(s_id, "twins");
-	related_sample_ids << relatedSamples(s_id, "twins (monozygotic)");
-	related_sample_ids << relatedSamples(s_id, "cousins");
-	foreach(QString related_sample_id, related_sample_ids)
+	int s_id_int = s_id.toInt();
+	QSet<int> related_sample_ids = relatedSamples(s_id_int, "parent-child");
+	related_sample_ids.unite(relatedSamples(s_id_int, "siblings"));
+	related_sample_ids.unite(relatedSamples(s_id_int, "twins"));
+	related_sample_ids.unite(relatedSamples(s_id_int, "twins (monozygotic)"));
+	related_sample_ids.unite(relatedSamples(s_id_int, "cousins"));
+	foreach(int related_sample_id, related_sample_ids)
 	{
 		//sample data
-		SampleData sample_data = getSampleData(related_sample_id);
+		SampleData sample_data = getSampleData(QString::number(related_sample_id));
 		if (sample_data.disease_group=="n/a") output[sample_data.name] << "disease group unset!";
 		if (sample_data.disease_status=="n/a") output[sample_data.name] << "disease status unset!";
 
 		//HPO terms
 		if (sample_data.disease_status=="Affected")
 		{
-			QList<SampleDiseaseInfo> disease_info = getSampleDiseaseInfo(related_sample_id, "HPO term id");
+			QList<SampleDiseaseInfo> disease_info = getSampleDiseaseInfo(QString::number(related_sample_id), "HPO term id");
 			if (disease_info.isEmpty()) output[sample_data.name] << "no HPO phenotype(s) set! ";
 		}
 	}
@@ -5246,46 +5249,54 @@ int NGSD::storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_d
 	return query.lastInsertId().toInt();
 }
 
-QStringList NGSD::relatedSamples(const QString& sample_id, const QString& relation)
+QSet<int> NGSD::relatedSamples(int sample_id, const QString& relation, QString sample_type)
 {
-	// check if relation is valid
-	QString q_relation_type;
-	if (relation != "")
+	// check relation
+	if (!getEnum("sample_relations", "relation").contains(relation))
 	{
-		QStringList allowed_relation = getEnum("sample_relations", "relation");
-		if (!allowed_relation.contains(relation))
-		{
-			THROW(ArgumentException, "Invalid relation type '" + relation + "' given!");
-		}
-		q_relation_type = " AND relation='" + relation + "'";
+		THROW(ArgumentException, "Invalid relation type '" + relation + "' given!");
 	}
 
-	QStringList related_sample_ids;
+	QSet<int> output;
 
-	SqlQuery query = getQuery();
-	query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE (sample1_id=" + sample_id + " OR sample2_id=" + sample_id + ")" + q_relation_type);
-
-	while(query.next())
+	if (sample_type.isEmpty())
 	{
-		QString id1 = query.value("sample1_id").toString();
-		QString id2 = query.value("sample2_id").toString();
+		SqlQuery query = getQuery();
+		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE (sample1_id=" + QString::number(sample_id) + " OR sample2_id=" + QString::number(sample_id) + ") AND relation='" + relation + "'");
+		while(query.next())
+		{
+			int id1 = query.value("sample1_id").toInt();
+			int id2 = query.value("sample2_id").toInt();
 
-		if ((id1 == sample_id) && (id2 != sample_id))
-		{
-			// related sample is index 2
-			related_sample_ids << id2;
-			continue;
+			if (id1==sample_id)
+			{
+				output << id2;
+			}
+			else if (id1!=sample_id)
+			{
+				output << id1;
+			}
 		}
-		if ((id1 != sample_id) && (id2 == sample_id))
+	}
+	else
+	{
+		//check sample type
+		if (!getEnum("sample", "sample_type").contains(sample_type))
 		{
-			// related sample is index 1
-			related_sample_ids << id1;
-			continue;
+			THROW(ArgumentException, "Invalid sample type '" + sample_type + "'!");
 		}
-		THROW(ProgrammingException, "Sample relation does not fit query!");
+
+		foreach(int id, getValuesInt("SELECT sr.sample2_id FROM sample_relations sr, sample s WHERE sr.sample2_id=s.id AND sr.relation='" + relation + "' AND s.sample_type='" + sample_type + "' AND sr.sample1_id='" + QString::number(sample_id) + "'"))
+		{
+			output << id;
+		}
+		foreach(int id, getValuesInt("SELECT sr.sample1_id FROM sample_relations sr, sample s WHERE sr.sample1_id=s.id AND sr.relation='" + relation + "' AND s.sample_type='" + sample_type + "' AND sr.sample2_id='" + QString::number(sample_id) + "'"))
+		{
+			output << id;
+		}
 	}
 
-	return related_sample_ids;
+	return output;
 }
 
 void NGSD::addSampleRelation(const SampleRelation& rel, bool error_if_already_present)
@@ -6156,6 +6167,7 @@ void NGSD::clearCache()
 
 	cache_instance.table_infos.clear();
 	cache_instance.same_samples.clear();
+	cache_instance.related_samples.clear();
 	cache_instance.approved_gene_names.clear();
 	cache_instance.enum_values.clear();
 	cache_instance.non_approved_to_approved_gene_names.clear();

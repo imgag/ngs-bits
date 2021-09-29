@@ -2,6 +2,7 @@
 
 ![Linux build status](https://github.com/imgag/ngs-bits/workflows/Linux%20build/badge.svg)
 ![MacOS build status](https://github.com/imgag/ngs-bits/workflows/MacOS%20build/badge.svg)
+![Windows build status](https://github.com/imgag/ngs-bits/workflows/Windows%20build/badge.svg)  
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ngs-bits/README.html)
 
 ## Obtaining ngs-bits

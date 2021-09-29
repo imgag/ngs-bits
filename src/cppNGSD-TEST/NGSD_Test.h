@@ -920,9 +920,10 @@ private slots:
 		IS_TRUE(report_conf2->lastUpdatedAt().isValid());
 		S_EQUAL(report_conf2->finalizedBy(), "");
 		IS_FALSE(report_conf2->finalizedAt().isValid());
+		QDateTime last_update_time_before_update = report_conf2->lastUpdatedAt();
 
 		//update
-		QThread::sleep(4);
+		QThread::sleep(1);
 		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs);
 		IS_TRUE(conf_id1==conf_id2);
 		//check that no double entries are inserted after second execution of setReportConfig
@@ -934,7 +935,7 @@ private slots:
 		IS_TRUE(report_conf2->createdAt().isValid());
 		S_EQUAL(report_conf2->lastUpdatedBy(), "Max Mustermann");
 		IS_TRUE(report_conf2->lastUpdatedAt().isValid());
-		IS_TRUE(report_conf2->createdAt()!=report_conf2->lastUpdatedAt());
+		IS_TRUE(last_update_time_before_update<report_conf2->lastUpdatedAt());
 
 
 		S_EQUAL(report_conf2->finalizedBy(), "");
@@ -1246,6 +1247,25 @@ private slots:
 		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"});
 		db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}); //ignored
 		IS_THROWN(DatabaseException, db.addSampleRelation(SampleRelation{"NA12345", "siblings", "NA12878"}, true));
+
+		//sameSample
+		I_EQUAL(db.sameSamples(99).count(), 0);
+		I_EQUAL(db.sameSamples(2).count(), 1);
+		IS_TRUE(db.sameSamples(2).contains(4));
+		I_EQUAL(db.sameSamples(4).count(), 1);
+		IS_TRUE(db.sameSamples(4).contains(2));
+
+		//relatedSamples
+		I_EQUAL(db.relatedSamples(99).count(), 0);
+		I_EQUAL(db.relatedSamples(2).count(), 1);
+		IS_TRUE(db.relatedSamples(2).contains(4));
+		I_EQUAL(db.relatedSamples(4).count(), 1);
+		IS_TRUE(db.relatedSamples(4).contains(2));
+		I_EQUAL(db.relatedSamples(4, "same sample").count(), 1);
+		IS_TRUE(db.relatedSamples(4, "same sample").contains(2));
+		I_EQUAL(db.relatedSamples(4, "twins").count(), 0);
+		I_EQUAL(db.relatedSamples(4, "same sample", "DNA").count(), 1);
+		IS_TRUE(db.relatedSamples(4, "same sample", "DNA").contains(2));
 
 		//omimPreferredPhenotype
 		S_EQUAL(db.omimPreferredPhenotype("BRCA1", "Neoplasms"), "");

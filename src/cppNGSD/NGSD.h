@@ -696,8 +696,14 @@ public:
 	///Returns the normal processed sample corresponding to a tumor processed sample, or "" if no normal samples is defined.
 	QString normalSample(const QString& processed_sample_id);
 
-	///Returns the corresponding same sample id(s) of a given type
-	QStringList sameSamples(QString sample_id, QString sample_type);
+	///Returns the corresponding sample id(s) with relation 'same sample' or 'same patient'. Uses the cache to avoid database queries.
+	const QSet<int>& sameSamples(int sample_id);
+	///Returns related sample id(s). Uses the cache to avoid database queries.
+	const QSet<int>& relatedSamples(int sample_id);
+	///Return a list of sample ids (not name) which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
+	QSet<int> relatedSamples(int sample_id, const QString& relation, QString sample_type="");
+	///Adds a new sample relation to the database;
+	void addSampleRelation(const SampleRelation& rel, bool error_if_already_present=false);
 
 	///Returns sample disease details from the database.
 	QList<SampleDiseaseInfo> getSampleDiseaseInfo(const QString& sample_id, QString only_type="");
@@ -810,11 +816,6 @@ public:
 	///Stores a given EvaluationSheetData in the NGSD (return table id)
 	int storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_data, bool overwrite_existing_data = false);
 
-	///Return a list of sample ids (not name) which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
-	QStringList relatedSamples(const QString& sample_id, const QString& relation="");
-	///Adds a new sample relation to the database;
-	void addSampleRelation(const SampleRelation& rel, bool error_if_already_present=false);
-
 	///Returns the report config creation data (user/date) for somatic reports
 	SomaticReportConfigurationData somaticReportConfigData(int id);
 
@@ -900,7 +901,8 @@ protected:
 		Cache();
 
 		QMap<QString, TableInfo> table_infos;
-		QHash<int, QList<int>> same_samples;
+		QHash<int, QSet<int>> same_samples;
+		QHash<int, QSet<int>> related_samples;
 		GeneSet approved_gene_names;
 		QMap<QString, QStringList> enum_values;
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
