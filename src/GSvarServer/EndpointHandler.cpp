@@ -425,7 +425,17 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 	{
 		QSharedPointer<QFile> qBicFile = Helper::openFileForWriting(path+filename);
 		QTextStream stream(qBicFile.data());
-		stream << content;
+
+		QJsonDocument doc = QJsonDocument::fromJson(content.toUtf8());
+		if (!doc.isNull())
+		{
+			if (doc.isObject())
+			{
+				stream << doc["content"].toString();
+			}
+		}
+
+//		stream << content;
 		qBicFile->close();
 	}
 	catch (Exception& e)

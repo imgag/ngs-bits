@@ -15,6 +15,7 @@
 #include <QMap>
 #include <QPair>
 #include <QCollator>
+#include <QJsonDocument>
 
 bool SomaticReportHelper::checkGermlineSNVFile(const VariantList &germline_variants)
 {
@@ -677,6 +678,11 @@ RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QB
 
 void SomaticReportHelper::saveFileOnServer(QString filename, QString path, QString content)
 {
+
+	QJsonObject obj;
+	obj.insert("content", content);
+	QByteArray payload = QJsonDocument(obj).toJson(QJsonDocument::Compact);
+
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
 	add_headers.insert("Content-Type", "application/json");
@@ -684,7 +690,7 @@ void SomaticReportHelper::saveFileOnServer(QString filename, QString path, QStri
 	QString reply = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
 				"https://" + Settings::string("server_host") + ":" + QString::number(Settings::integer("https_server_port"))
 				+ "/v1/qbic_report_data?filename=" + filename + "&path=" + QUrl(path).toEncoded(),
-				content.toLocal8Bit(),
+				payload, //content.toLocal8Bit(),
 				add_headers
 			);
 }
