@@ -508,27 +508,26 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 	//parse reference file chromosome sizes
 }
 
-BamReader::BamReader(const QString& bam_file)
-	: bam_file_(Helper::canonicalPath(bam_file))
-	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
+BamReader::BamReader(QString bam_file)
 {
-
-	QString tmp_name = bam_file;
-	tmp_name = tmp_name.replace("https", "http");
+	bam_file_ = Helper::canonicalPath(bam_file);
 	bam_file_ = bam_file_.replace("https", "http");
-	bam_file_ = bam_file_.replace(":" + Settings::string("https_server_port", true), ":" + Settings::string("http_server_port", true));
-	init(tmp_name);
+	bam_file = bam_file_.replace("https", "http");
+	bam_file = bam_file_.replace(":" + Settings::string("https_server_port", true), ":" + Settings::string("http_server_port", true));
+
+	fp_ = sam_open(bam_file_.toLatin1().constData(), "r");
+	init(bam_file_);
 }
 
-BamReader::BamReader(const QString& bam_file, const QString& ref_genome)
-	: bam_file_(Helper::canonicalPath(bam_file))
-	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
+BamReader::BamReader(QString bam_file, const QString& ref_genome)
 {
-	QString tmp_name = bam_file;
-	tmp_name = tmp_name.replace("https", "http");
+	bam_file_ = Helper::canonicalPath(bam_file);
 	bam_file_ = bam_file_.replace("https", "http");
-	bam_file_ = bam_file_.replace(":" + Settings::string("https_server_port", true), ":" + Settings::string("http_server_port", true));
-	init(tmp_name, ref_genome);
+	bam_file = bam_file_.replace("https", "http");
+	bam_file = bam_file_.replace(":" + Settings::string("https_server_port", true), ":" + Settings::string("http_server_port", true));
+
+	fp_ = sam_open(bam_file_.toLatin1().constData(), "r");
+	init(bam_file_, ref_genome);
 }
 
 BamReader::~BamReader()
