@@ -431,7 +431,7 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 		{
 			if (doc.isObject())
 			{
-				stream << doc["content"].toString();
+				stream << doc.object().value("content").toString();
 			}
 		}
 
