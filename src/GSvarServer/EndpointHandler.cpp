@@ -405,6 +405,8 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 	QString path = request.getUrlParams()["path"];
 	QString content = request.getBody();
 
+	qDebug() << "Filename" << filename;
+	qDebug() << "Path" << path;
 	if ((filename.isEmpty()) || (path.isEmpty()))
 	{
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Path or filename has not been provided");
@@ -425,17 +427,7 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 	{
 		QSharedPointer<QFile> qBicFile = Helper::openFileForWriting(path+filename);
 		QTextStream stream(qBicFile.data());
-
-		QJsonDocument doc = QJsonDocument::fromJson(content.toUtf8());
-		if (!doc.isNull())
-		{
-			if (doc.isObject())
-			{
-				stream << doc.object().value("content").toString();
-			}
-		}
-
-//		stream << content;
+		stream << content;
 		qBicFile->close();
 	}
 	catch (Exception& e)
@@ -443,7 +435,7 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Could not save the data: " + e.message());
 	}
 
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_HTML, filename + "has been saved");
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_HTML, filename + " has been saved");
 }
 
 HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& request)

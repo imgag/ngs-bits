@@ -44,8 +44,17 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 	while (i.hasNext()) {
 		i.next();		
 		bool is_found = false;
+		qDebug() << i.key();
+		qDebug() << i.value().category;
+		if (i.value().category == ParamProps::ParamCategory::POST_OCTET_STREAM)
+		{
+			if (request.getBody().length()>0)
+			{
+				is_found = true;
+			}
+		}
 
-		if(i.value().category == ParamProps::ParamCategory::POST_URL_ENCODED)
+		if (i.value().category == ParamProps::ParamCategory::POST_URL_ENCODED)
 		{
 			if (request.getFormUrlEncoded().contains(i.key()))
 			{
@@ -53,7 +62,7 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 			}
 		}
 
-		if(i.value().category == ParamProps::ParamCategory::GET_URL_PARAM)
+		if (i.value().category == ParamProps::ParamCategory::GET_URL_PARAM)
 		{
 			if (request.getUrlParams().contains(i.key()))
 			{
@@ -61,7 +70,7 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 			}
 		}
 
-		if(i.value().category == ParamProps::ParamCategory::PATH_PARAM)
+		if (i.value().category == ParamProps::ParamCategory::PATH_PARAM)
 		{
 			if (request.getPathParams().size()>0)
 			{
@@ -69,6 +78,7 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 			}
 		}
 
+		qDebug() << is_found;
 		if ((!i.value().is_optional) && (!is_found))
 		{
 			THROW(ArgumentException, "Parameter " + i.key() + " is missing");

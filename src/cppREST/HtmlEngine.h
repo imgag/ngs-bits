@@ -32,7 +32,7 @@ public:
 	static QString getPageFooter();
 	static QString getApiHelpHeader(const QString& title);
 	static QString getApiHelpEntry(const QString& url, const QString& method, const QList<QString>& param_names, const QList<QString>& param_desc, const QString& comment);
-	static QString getErrorPageTemplate(const QString& title, const QString& message);
+	static QString getResponsePageTemplate(const QString& title, const QString& message);
 
 	static QString convertIconNameToString(const FolderItemIcon& in);
 	static QString createFolderListingHeader(const QString& folder_name, const QString& parent_folder_link);

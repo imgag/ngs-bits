@@ -151,7 +151,7 @@ QString HttpProcessor::convertResponseStatusToReasonPhrase(const ResponseStatus&
 	}
 }
 
-int HttpProcessor::convertResponseStatusToStatusCode(const ResponseStatus& response_status)
+int HttpProcessor::convertResponseStatusToStatusCodeNumber(const ResponseStatus& response_status)
 {
 	switch(response_status)
 	{
@@ -198,5 +198,35 @@ int HttpProcessor::convertResponseStatusToStatusCode(const ResponseStatus& respo
 		case UNKNOWN_STATUS_CODE:
 		default: return 0;
 	}
+}
+
+QString HttpProcessor::convertResponseStatusCodeNumberToStatusClass(const int& status_code_number)
+{
+	if ((status_code_number >= 100) && (status_code_number <= 199))
+	{
+		return "Informational response";
+	}
+
+	if ((status_code_number >= 200) && (status_code_number <= 299))
+	{
+		return "Successful response";
+	}
+
+	if ((status_code_number >= 300) && (status_code_number <= 399))
+	{
+		return "Redirect";
+	}
+
+	if ((status_code_number >= 400) && (status_code_number <= 499))
+	{
+		return "Client error";
+	}
+
+	if ((status_code_number >= 500) && (status_code_number <= 599))
+	{
+		return "Server error";
+	}
+
+	return "Unknown response class";
 }
 

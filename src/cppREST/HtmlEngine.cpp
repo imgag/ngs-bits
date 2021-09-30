@@ -150,7 +150,7 @@ QString HtmlEngine::getApiHelpEntry(const QString& url, const QString& method, c
 	return output;
 }
 
-QString HtmlEngine::getErrorPageTemplate(const QString& title, const QString& message)
+QString HtmlEngine::getResponsePageTemplate(const QString& title, const QString& message)
 {
 	QString output;
 	QTextStream stream(&output);
@@ -159,8 +159,7 @@ QString HtmlEngine::getErrorPageTemplate(const QString& title, const QString& me
 	stream << "			<div class=\"main-content\">\n";
 	stream << "				<div class=\"data-container\">\n";
 	stream << "					<h1 class=\"centered\">" << title << "</h1>\n";
-	stream << "					<p>An error has occurred. Below you will find a short summary\n";
-	stream << "					that may help to fix it or to prevent it from happening:</p>\n";
+	stream << "					<p>The following message indictates what actually has happened:</p>\n";
 	stream << "					<pre>" << message << "</pre>\n";
 	stream << "					<pre class=\"centered\">\n";
 	stream << "O       o O       o O       o\n";

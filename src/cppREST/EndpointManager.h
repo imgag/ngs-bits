@@ -16,7 +16,8 @@ struct CPPRESTSHARED_EXPORT ParamProps
 		PATH_PARAM, // http://url/{param}
 		GET_URL_PARAM, // http://url?var=val
 		POST_URL_ENCODED, // application/x-www-form-urlencoded
-		POST_FORM_DATA // multipart/form-data
+		POST_FORM_DATA, // multipart/form-data, not implemented yet
+		POST_OCTET_STREAM // application/octet-stream
 	};
 	ParamCategory category;
 	bool is_optional;

@@ -55,7 +55,7 @@ HttpRequest RequestPaser::getRequest() const
 	}
 
 	parsed_request.setBody(getRequestBody().trimmed());
-//	qDebug() << "Body = " << parsed_request.getBody();
+	qDebug() << "Body = " << parsed_request.getBody();
 	parsed_request.setContentType(ContentType::TEXT_HTML);
 	if (parsed_request.getHeaders().contains("accept"))
 	{

@@ -320,9 +320,9 @@ int main(int argc, char **argv)
 	EndpointManager::appendEndpoint(Endpoint{
 						"qbic_report_data",
 						QMap<QString, ParamProps> {
-							{"filename", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "QBic data report file"}},
-							{"path", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Path to the QBic data report file"}},
-							{"content", ParamProps{ParamProps::ParamCategory::POST_FORM_DATA, false, "QBic report data to be saved in a file"}}
+							{"filename", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "QBic data report file"}},
+							{"path", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Path to the QBic data report file"}},
+							{"content", ParamProps{ParamProps::ParamCategory::POST_OCTET_STREAM, false, "QBic report data to be saved in a file"}}
 						},
 						RequestMethod::POST,
 						ContentType::APPLICATION_JSON,

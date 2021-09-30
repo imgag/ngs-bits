@@ -15,7 +15,8 @@ public:
 	static QString convertMethodTypeToString(const RequestMethod& in);
 
 	static QString convertResponseStatusToReasonPhrase(const ResponseStatus& response_status);
-	static int convertResponseStatusToStatusCode(const ResponseStatus& status_code);
+	static int convertResponseStatusToStatusCodeNumber(const ResponseStatus& status_code);
+	static QString convertResponseStatusCodeNumberToStatusClass(const int& status_code_number);
 
 protected:
 	HttpProcessor();
