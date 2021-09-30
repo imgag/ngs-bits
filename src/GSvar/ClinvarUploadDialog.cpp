@@ -128,6 +128,9 @@ void ClinvarUploadDialog::initGui()
 
 void ClinvarUploadDialog::upload()
 {
+	//deactivate upload button
+	ui_.upload_btn->setEnabled(false);
+
     QJsonObject clinvar_submission = createJson();
 
     QStringList errors;
@@ -178,6 +181,9 @@ void ClinvarUploadDialog::upload()
         if (response.isEmpty())
         {
             messages << "MESSAGE: Dry-run successful!";
+//			QFile jsonFile(clinvar_upload_data_.processed_sample + "_submission_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".json");
+//			jsonFile.open(QFile::WriteOnly);
+//			jsonFile.write(QJsonDocument(clinvar_submission).toJson());
         }
         else if (response.contains("id"))
         {
@@ -248,7 +254,7 @@ void ClinvarUploadDialog::upload()
             QString gsvar_publication_folder = Settings::path("gsvar_publication_folder");
             if (gsvar_publication_folder!="")
             {
-                    QString file_rep = gsvar_publication_folder + "/" + clinvar_upload_data_.processed_sample + "_CLINVAR_" + QDate::currentDate().toString("yyyyMMdd") + ".txt";
+					QString file_rep = gsvar_publication_folder + "/" + clinvar_upload_data_.processed_sample + "_CLINVAR_" + QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss") + ".txt";
                     Helper::storeTextFile(file_rep, ui_.comment_upload->toPlainText().split("\n"));
             }
 
@@ -456,14 +462,28 @@ QJsonObject ClinvarUploadDialog::createJson()
                     {
                         QJsonObject disease_info;
                         disease_info.insert("db", "OMIM");
-                        disease_info.insert("id", ui_.tw_disease_info->item(row_idx, 1)->text());
+						//extract ID
+						QString omim_id = ui_.tw_disease_info->item(row_idx, 1)->text();
+						if (!omim_id.startsWith("#")) THROW(ArgumentException, "Invalid OMIM id '" + ui_.tw_disease_info->item(row_idx, 1)->text() + "'!");
+						omim_id = omim_id.split('#').at(1);
+						bool ok;
+						omim_id.toInt(&ok);
+						if (!ok) THROW(ArgumentException, "Invalid OMIM id '" + ui_.tw_disease_info->item(row_idx, 1)->text() + "'!");
+						disease_info.insert("id", omim_id);
                         condition.append(disease_info);
                     }
                     else if (ui_.tw_disease_info->item(row_idx, 0)->text() == "Orpha number")
                     {
                         QJsonObject disease_info;
                         disease_info.insert("db", "Orphanet");
-                        disease_info.insert("id", ui_.tw_disease_info->item(row_idx, 1)->text());
+						//extract ID
+						QString orphanet_id = ui_.tw_disease_info->item(row_idx, 1)->text();
+						if (!orphanet_id.startsWith("ORPHA:")) THROW(ArgumentException, "Invalid Orphanet id '" + ui_.tw_disease_info->item(row_idx, 1)->text() + "'!");
+						orphanet_id = orphanet_id.split(':').at(1);
+						bool ok;
+						orphanet_id.toInt(&ok);
+						if (!ok) THROW(ArgumentException, "Invalid Orphanet id '" + ui_.tw_disease_info->item(row_idx, 1)->text() + "'!");
+						disease_info.insert("id", orphanet_id);
                         condition.append(disease_info);
                     }
                     else
@@ -549,6 +569,12 @@ QJsonObject ClinvarUploadDialog::createJson()
                         chromosome_coordinates.insert("stop", Helper::toInt(ui_.le_end->text()));
                     }
                     variant.insert("chromosomeCoordinates", chromosome_coordinates);
+
+					//optional (but required for deletions and insertions)
+					QString variant_type;
+					if (ui_.le_ref->text().contains("-") || ui_.le_ref->text().trimmed().isEmpty()) variant_type = "Insertion";
+					if (ui_.le_obs->text().contains("-") || ui_.le_obs->text().trimmed().isEmpty()) variant_type = "Deletion";
+					if (!variant_type.isEmpty()) variant.insert("variantType", variant_type);
 
                     //optional
                     if (!ui_.le_gene->text().trimmed().isEmpty())
@@ -825,11 +851,21 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
                         errors << "Required JSON object 'chromosomeCoordinates' in 'variant' missing!";
                         is_valid = false;
                     }
+
+					if (variant.toObject().contains("variantType"))
+					{
+						QString variant_type = variant.toObject().value("chromosomeCoordinates").toString();
+						if (!VARIANT_TYPE.contains(variant_type))
+						{
+							errors << "Invalid variantType '" + variant_type + "'!";
+							is_valid = false;
+						}
+					}
                 }
             }
             else
             {
-                errors << "JSON array 'variant' in 'variantSet' has to have at least one entry! 730";
+				errors << "JSON array 'variant' in 'variantSet' has to have at least one entry!";
                 is_valid = false;
             }
         }
@@ -865,7 +901,9 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
                             if (condition.toObject().contains("id"))
                             {
                                 QString id = condition.toObject().value("id").toString();
-                                if (!id.startsWith("#"))
+								bool ok;
+								id.toInt(&ok);
+								if (!ok)
                                 {
                                     errors << "Invalid entry '" + id + "' in 'id'!";
                                     is_valid = false;
@@ -882,8 +920,10 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
                             if (condition.toObject().contains("id"))
                             {
                                 QString id = condition.toObject().value("id").toString();
-                                if (!id.startsWith("ORPHA:"))
-                                {
+								bool ok;
+								id.toInt(&ok);
+								if (!ok)
+								{
                                     errors << "Invalid entry '" + id + "' in 'id'!";
                                     is_valid = false;
                                 }

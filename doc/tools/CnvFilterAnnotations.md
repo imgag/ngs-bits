@@ -1,5 +1,5 @@
 ### CnvFilterAnnotations tool help
-	CnvFilterAnnotations (2020_03-184-g27235379)
+	CnvFilterAnnotations (2021_06-89-gbbd16264)
 	
 	Filter a copy-number variant list in TSV format based on variant annotations.
 	
@@ -27,7 +27,7 @@
 	                             mode - Compound-heterozygotes detection mode. [default=n/a] [valid=n/a,CNV-CNV,CNV-SNV/INDEL]
 	CNV copy-number            Filter for CNV copy number.
 	                           Parameters:
-	                             cn - Copy number [default=n/a] [valid=n/a,0,1,2,3,4+]
+	                             cn - Copy number [valid=0,1,2,3,4,5+] [non-empty]
 	CNV gene constraint        Filter based on gene constraint (gnomAD o/e score for LOF variants).
 	                           Note that gene constraint is most helpful for early-onset severe diseases.
 	                           For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/
@@ -82,7 +82,7 @@
 	  --tdx           Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### CnvFilterAnnotations changelog
-	CnvFilterAnnotations 2020_03-184-g27235379
+	CnvFilterAnnotations 2021_06-89-gbbd16264
 	
 	2020-05-25 Initial version of the tool. Based on VariantFilterAnnotations.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

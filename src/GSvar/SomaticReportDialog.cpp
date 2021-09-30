@@ -187,8 +187,9 @@ SomaticReportDialog::SomaticReportDialog(SomaticReportSettings &settings, const 
 
 
 			//determine frequency of variant in tumor bam
-			double freq_in_tum = bam_reader.getVariantDetails(fasta_idx, snv).frequency;
-			double depth_in_tum = bam_reader.getVariantDetails(fasta_idx, snv).depth;
+			VariantDetails variant_details = bam_reader.getVariantDetails(fasta_idx, snv);
+			double freq_in_tum = variant_details.frequency;
+			double depth_in_tum = variant_details.depth;
 
 			ui_.germline_variants->insertRow(ui_.germline_variants->rowCount());
 
