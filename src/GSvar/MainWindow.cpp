@@ -118,13 +118,14 @@ QT_CHARTS_USE_NAMESPACE
 #include "GermlineReportGenerator.h"
 #include "SomaticReportHelper.h"
 #include "Statistics.h"
-
 #include "NGSDReplicationWidget.h"
 #include "CohortAnalysisWidget.h"
 #include "cfDNARemovedRegions.h"
 #include "CfDNAPanelBatchImport.h"
 #include "CfdnaAnalysisDialog.h"
 #include "ClinvarUploadDialog.h"
+#include "GenomeVisualizationWidget.h"
+
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
@@ -4944,6 +4945,11 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	a_var_val->setEnabled(ngsd_user_logged_in);
 	menu.addSeparator();
 
+	QAction* a_visual = menu.addAction("Visualize");
+	a_visual->setEnabled(Settings::boolean("debug_mode_enabled", true));
+	menu.addSeparator();
+
+
 	//Google
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
 	foreach(const VariantTranscript& trans, transcripts)
@@ -5227,6 +5233,14 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		}
 
 		updateReportConfigHeaderIcon(index);
+	}
+	else if (action==a_visual)
+	{
+		FastaFileIndex genome_idx(Settings::string("reference_genome", false));
+		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this, genome_idx);
+		widget->setRegion(variant.chr(), variant.start(), variant.end());
+		auto dlg = GUIHelper::createDialog(widget, "GSvar Genome Viewer");
+		dlg->exec();
 	}
 	else if (parent_menu && parent_menu->title()=="PubMed")
 	{

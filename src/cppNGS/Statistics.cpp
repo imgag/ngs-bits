@@ -516,8 +516,7 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 		plotname = Helper::tempFileName(".png");
 		plot3.store(plotname);
 		addQcPlot(output, "QC:2000075", "fragment duplication distribution plot", plotname);
-		//TODO accession
-//		output.insert(QCValue::Image("fragment duplication distribution plot", plotname, "Fragment duplication distribution plot.", "n/a"));
+
 		QFile::remove(plotname);
 	}
 
@@ -1555,6 +1554,9 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 	VcfFile vars_ancestry;
 	vars_ancestry.load(tmp);
 	ChromosomalIndex<VcfFile> vars_ancestry_idx(vars_ancestry);
+
+	//remove temporary file
+	QFile::remove(tmp);
 
 	//create ROI to speed up loading the sample file, e.g. for genomes.
 	BedFile roi;
