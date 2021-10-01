@@ -4282,31 +4282,37 @@ GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int ex
 
 GeneSet NGSD::genesOverlappingByExon(const Chromosome& chr, int start, int end, int extend)
 {
-	//init cache
-	BedFile& bed = getCache().gene_exons;
-	ChromosomalIndex<BedFile>& index = getCache().gene_exons_index;
+	TranscriptList& cache = getCache().gene_transcripts;
+	ChromosomalIndex<TranscriptList>& index = getCache().gene_transcripts_index;
 
-	if (bed.isEmpty())
+	//init cache if necessary
+	if (cache.isEmpty())
 	{
-		SqlQuery query = getQuery();
-		query.exec("SELECT DISTINCT g.symbol, gt.chromosome, ge.start, ge.end FROM gene g, gene_exon ge, gene_transcript gt WHERE ge.transcript_id=gt.id AND gt.gene_id=g.id");
-		while(query.next())
+		initTranscriptCache();
+	}
+
+	start -= extend;
+	end += extend;
+
+	GeneSet output;
+	QVector<int> indices = index.matchingIndices(chr, start, end);
+	foreach(int index, indices)
+	{
+		const Transcript& trans = cache[index];
+		if (output.contains(trans.gene())) continue;
+
+		for (int i=0; i<trans.regions().count();  ++i)
 		{
-			bed.append(BedLine(query.value(1).toString(), query.value(2).toInt(), query.value(3).toInt(), QList<QByteArray>() << query.value(0).toByteArray()));
+			const BedLine& line = trans.regions()[i];
+			if (line.overlapsWith(chr, start, end))
+			{
+				output << trans.gene();
+				break;
+			}
 		}
-		bed.sort();
-		index.createIndex();
 	}
 
-	//create gene list
-	GeneSet genes;
-	QVector<int> matches = index.matchingIndices(chr, start-extend, end+extend);
-	foreach(int i, matches)
-	{
-		genes << bed[i].annotations()[0];
-	}
-
-	return genes;
+	return output;
 }
 
 BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, QString mode, bool fallback, bool annotate_transcript_names, QTextStream* messages)
@@ -4320,6 +4326,8 @@ BedFile NGSD::geneToRegions(const QByteArray& gene, Transcript::SOURCE source, Q
 	{
 		THROW(ArgumentException, "Invalid mode '" + mode + "'. Valid modes are: " + valid_modes.join(", ") + ".");
 	}
+
+	//TODO use cache!
 
 	//prepare queries
 	SqlQuery q_transcript = getQuery();
@@ -6147,17 +6155,12 @@ void NGSD::clearCache()
 	cache_instance.gene_transcripts.clear();
 	cache_instance.gene_transcripts_index.createIndex();
 	cache_instance.gene_transcripts_id2index.clear();
-
-	cache_instance.gene_exons.clear();
-	cache_instance.gene_exons_index.createIndex();
 }
 
 
 NGSD::Cache::Cache()
 	: gene_transcripts()
 	, gene_transcripts_index(gene_transcripts)
-	, gene_exons()
-	, gene_exons_index(gene_exons)
 {
 }
 
