@@ -24,10 +24,6 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 
-#include cppNGS library
-INCLUDEPATH += $$PWD/../cppNGSD
-LIBS += -L$$PWD/../../bin -lcppNGSD
-
 #make the executable search for .so-files in the same folder under linux
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 

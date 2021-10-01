@@ -586,7 +586,7 @@ public:
 	///Returns transcript identifier. Throws an exception if not found in NGSD, or returns -1.
 	int transcriptId(QString name, bool throw_on_error=true);
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
-	QList<Transcript> transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
+	TranscriptList transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
 	///Returns longest coding transcript of a gene.
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_alt_source_nocoding=false);
 	///Returns the list of all approved gene names

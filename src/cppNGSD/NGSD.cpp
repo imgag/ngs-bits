@@ -4531,9 +4531,9 @@ int NGSD::transcriptId(QString name, bool throw_on_error)
 	return value.toInt();
 }
 
-QList<Transcript> NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool coding_only)
+TranscriptList NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool coding_only)
 {
-	QList<Transcript> output;
+	TranscriptList output;
 
 	//get chromosome
 	QString gene_id_str = QString::number(gene_id);
@@ -4554,12 +4554,13 @@ Transcript NGSD::transcript(int id)
 	QString id_str = QString::number(id);
 
 	SqlQuery query = getQuery();
-	query.exec("SELECT source, name, chromosome, start_coding, end_coding, strand FROM gene_transcript WHERE id=" + id_str);
+	query.exec("SELECT source, name, chromosome, start_coding, end_coding, strand, (SELECT g.symbol FROM gene g WHERE g.id=gene_id) FROM gene_transcript WHERE id=" + id_str);
 	if (query.size()==0) THROW(DatabaseException, "Could not find transcript with identifer  '" + id_str + "' in NGSD!");
 	query.next();
 
 	//get base information
 	Transcript transcript;
+	transcript.setGene(query.value(6).toByteArray());
 	transcript.setName(query.value(1).toByteArray());
 	transcript.setSource(Transcript::stringToSource(query.value(0).toString()));
 	transcript.setStrand(Transcript::stringToStrand(query.value(5).toByteArray()));
@@ -4591,7 +4592,7 @@ Transcript NGSD::transcript(int id)
 
 Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source, bool fallback_alt_source_nocoding)
 {
-	QList<Transcript> list = transcripts(gene_id, source, true);
+	TranscriptList list = transcripts(gene_id, source, true);
 	Transcript::SOURCE alt_source = (source==Transcript::CCDS) ? Transcript::ENSEMBL : Transcript::CCDS;
 	if (list.isEmpty() && fallback_alt_source)
 	{

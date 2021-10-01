@@ -17,6 +17,15 @@ public:
 		return strand_!=INVALID && !(name_.isEmpty());
 	}
 
+	const QByteArray& gene() const
+	{
+		return gene_;
+	}
+	void setGene(const QByteArray& symbol)
+	{
+		gene_ = symbol;
+	}
+
     const QByteArray& name() const
 	{
 		return name_;
@@ -55,6 +64,18 @@ public:
 		strand_ = strand;
 	}
 
+	const Chromosome& chr() const
+	{
+		return chr_;
+	}
+	int start() const
+	{
+		return start_;
+	}
+	int end() const
+	{
+		return end_;
+	}
 	const BedFile& regions() const
 	{
 		return regions_;
@@ -114,10 +135,20 @@ public:
 	///Converts a HGVS cDNA change to a variant in GSvar format.
 	Variant hgvsToVariant(QString hgvs_c, const FastaFileIndex& genome_idx);
 
+	///Overlap check for position range only.
+	bool overlapsWith(int start, int end) const
+	{
+		return BasicStatistics::rangeOverlaps(start_, end_, start, end);
+	}
+
 protected:
+	QByteArray gene_;
     QByteArray name_;
 	SOURCE source_;
 	STRAND strand_;
+	Chromosome chr_;
+	int start_;
+	int end_;
 	BedFile regions_;
 	int coding_start_;
 	int coding_end_;
@@ -137,4 +168,10 @@ protected:
 	int utr3primeStart() const;
 };
 
+///Transcript list class
+class TranscriptList
+	: public QList<Transcript>
+{
+
+};
 #endif // TRANSCRIPT_H

@@ -380,8 +380,9 @@ private slots:
 		I_EQUAL(transcript.codingRegions().baseCount(), 102);
 
 		//transcripts
-		QList<Transcript> transcripts = db.transcripts(1, Transcript::CCDS, true); //BRCA1, CCDS, coding
+		TranscriptList transcripts = db.transcripts(1, Transcript::CCDS, true); //BRCA1, CCDS, coding
 		I_EQUAL(transcripts.count(), 1);
+		S_EQUAL(transcripts[0].gene(), "BRCA1");
 		S_EQUAL(transcripts[0].name(), "BRCA1_TR1");
 		I_EQUAL(transcripts[0].strand(), Transcript::PLUS);
 		I_EQUAL(transcripts[0].source(), Transcript::CCDS);
@@ -392,6 +393,7 @@ private slots:
 
 		transcripts = db.transcripts(3, Transcript::ENSEMBL, true); //NIPA1, Ensembl, coding
 		I_EQUAL(transcripts.count(), 2);
+		S_EQUAL(transcripts[0].gene(), "NIPA1");
 		S_EQUAL(transcripts[0].name(), "NIPA1_TR1");
 		I_EQUAL(transcripts[0].strand(), Transcript::MINUS);
 		I_EQUAL(transcripts[0].source(), Transcript::ENSEMBL);

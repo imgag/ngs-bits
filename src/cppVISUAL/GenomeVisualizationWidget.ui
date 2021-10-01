@@ -48,6 +48,9 @@
          <height>0</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>Select chromosome.</string>
+       </property>
       </widget>
      </item>
      <item>
@@ -64,6 +67,9 @@
          <height>0</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Search for:&lt;br/&gt;- Chromosome&lt;br/&gt;- Chromosomal region (format e.g.: chr1:400-800)&lt;br/&gt;- HGNC-approved gene names&lt;br/&gt;- Transcript names&lt;br/&gt;&lt;br/&gt;Enter search text and press RETURN to start the search.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
       </widget>
      </item>
      <item>
@@ -73,6 +79,9 @@
          <width>20</width>
          <height>20</height>
         </size>
+       </property>
+       <property name="toolTip">
+        <string>Zoom in</string>
        </property>
        <property name="text">
         <string>-</string>
@@ -89,6 +98,9 @@
          <width>20</width>
          <height>20</height>
         </size>
+       </property>
+       <property name="toolTip">
+        <string>Zoom out</string>
        </property>
        <property name="text">
         <string>+</string>
