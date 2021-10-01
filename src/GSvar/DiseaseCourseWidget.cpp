@@ -140,9 +140,27 @@ void DiseaseCourseWidget::loadVariantLists()
 				cf_dna_column.lookup_table.insert(vcf_line.variantToString().toUtf8(), &vcf_line);
 			}
 
+			QString cfdna_mrd_file = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::MRD_CF_DNA).filename;
+			if (!QFile::exists(cfdna_mrd_file))
+			{
+				QMessageBox::warning(this, "File not found", "Could not find cfDNA MRD file for processed Sample " + cf_dna_column.name + "! ");
+			}
+			else
+			{
+				// load mrd table
+				cf_dna_column.mrd.load(cfdna_mrd_file);
+
+				//check for correct table format
+				if(cf_dna_column.mrd.headers() != QStringList() << "MRD_log10" << "MRD_pval" << "SUM_DP" << "SUM_ALT" << "Mean_AF" << "Median_AF")
+				{
+					QMessageBox::warning(this, "Invalid MRD file format", "Header doesn't match in MRD file for processed Sample " + cf_dna_column.name + "! ");
+				}
+			}
+
 			// add to list
 			cf_dna_columns_.append(cf_dna_column);
 		}
+
 	}
 
 	// sort vector by date
@@ -162,29 +180,29 @@ void DiseaseCourseWidget::createTableView()
 
 	int col_idx = 0;
 
-	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("\n\nchr"));
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("chr", Qt::AlignBottom));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Chromosome the variant is located on.");
-	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("\n\npos"));
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("pos", Qt::AlignBottom));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Position of the variant on the chromosome.");
-	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("\n\nref"));
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("ref", Qt::AlignBottom));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Reference bases in the reference genome at the variant position.\n`-` in case of an insertion.");
-	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("\n\nobs"));
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("obs", Qt::AlignBottom));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Alternate bases observed in the sample.\n`-` in case of an deletion.");
-	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("\n\ngene"));
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("gene", Qt::AlignBottom));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Affected gene list (comma-separated).");
-	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("\n\ncoding and splicing"));
+	ui_->vars->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("coding and splicing", Qt::AlignBottom));
 	ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).");
 
 	// set header for sample
-	ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(ref_column_.name + "\n(" + ref_column_.date.toString("dd.MM.yyyy") + ")\nAllele frequency"));
+	ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(ref_column_.name + "\n(" + ref_column_.date.toString("dd.MM.yyyy") + ")\nAllele frequency", Qt::AlignBottom));
 
 	// set cfDNA header
 	foreach (const cfDnaColumn& cf_dna_column, cf_dna_columns_)
 	{
-		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(cf_dna_column.name + "\n(" + cf_dna_column.date.toString("dd.MM.yyyy") + ")\nAllele fequency"));
-		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("\n\nAlt count"));
-		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("\n\nDepth"));
-		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("\n\np-value"));
+		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(cf_dna_column.name + "\n(" + cf_dna_column.date.toString("dd.MM.yyyy") + ")\nAllele fequency", Qt::AlignBottom));
+		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("Alt count", Qt::AlignBottom));
+		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("Depth", Qt::AlignBottom));
+		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("p-value", Qt::AlignBottom));
 	}
 
 	int row_idx = 0;
@@ -256,6 +274,9 @@ void DiseaseCourseWidget::createTableView()
 			else
 			{
 				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem("not detected"));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
+				ui_->vars->setItem(row_idx, col_idx++, GUIHelper::createTableItem(""));
 			}
 		}
 
@@ -264,10 +285,52 @@ void DiseaseCourseWidget::createTableView()
 	}
 	ui_->vars->setRowCount(row_idx);
 
+
+
 	// optimize cell sizes
 	GUIHelper::resizeTableCells(ui_->vars, 250);
 
 	// set row height to fixed value
 	for (int i=0; i<ui_->vars->rowCount(); ++i) ui_->vars->setRowHeight(i, 25);
+
+
+	//fill MRD table
+
+	// clear old table
+	ui_->mrd->clear();
+
+
+	// set dimensions
+	ui_->mrd->setColumnCount(cf_dna_columns_.length());
+	ui_->mrd->setRowCount(6);
+
+	// set header
+	for (int col_idx = 0; col_idx < cf_dna_columns_.length(); ++col_idx)
+	{
+		ui_->mrd->setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem(cf_dna_columns_.at(col_idx).name));
+	}
+	ui_->mrd->setVerticalHeaderItem(0, new QTableWidgetItem("MRD log10:"));
+	ui_->mrd->setVerticalHeaderItem(1, new QTableWidgetItem("MRD p-value:"));
+	ui_->mrd->setVerticalHeaderItem(2, new QTableWidgetItem("Depth:"));
+	ui_->mrd->setVerticalHeaderItem(3, new QTableWidgetItem("Alt:"));
+	ui_->mrd->setVerticalHeaderItem(4, new QTableWidgetItem("Mean AF:"));
+	ui_->mrd->setVerticalHeaderItem(5, new QTableWidgetItem("Median AF:"));
+
+	// fill table
+	for (int row_idx = 0; row_idx < 6; ++row_idx)
+	{
+		for (int col_idx = 0; col_idx < cf_dna_columns_.length(); ++col_idx)
+		{
+			if(cf_dna_columns_.at(col_idx).mrd.rowCount() > 0)
+			{
+				ui_->mrd->setItem(row_idx, col_idx, GUIHelper::createTableItem(cf_dna_columns_.at(col_idx).mrd.row(0).at(row_idx)));
+				continue;
+			}
+			ui_->mrd->setItem(row_idx, col_idx, GUIHelper::createTableItem(""));
+		}
+	}
+
+	// optimize cell sizes
+	GUIHelper::resizeTableCells(ui_->mrd, 250);
 
 }

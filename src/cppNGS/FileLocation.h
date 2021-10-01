@@ -38,6 +38,7 @@ enum class PathType
 	COUNTS, //gene/transcript counts from RNA (TSV format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
+	MRD_CF_DNA, // measurable residual disease file of a cfDNA analysis (UmiVar2)
 	OTHER // everything else
 };
 
@@ -128,6 +129,8 @@ struct FileLocation
 				return "VIRAL";
 			case PathType::VCF_CF_DNA:
 				return "VCF_CF_DNA";
+			case PathType::MRD_CF_DNA:
+				return "MRD_CF_DNA";
 
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
@@ -161,6 +164,7 @@ struct FileLocation
 		if (in_upper == "COUNTS") return PathType::COUNTS;
 		if (in_upper == "VIRAL") return PathType::VIRAL;
 		if (in_upper == "VCF_CF_DNA") return PathType::VCF_CF_DNA;
+		if (in_upper == "MRD_CF_DNA") return PathType::MRD_CF_DNA;
 
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
@@ -219,6 +223,8 @@ struct FileLocation
 				return "other files";
 			case PathType::VCF_CF_DNA:
 				return "cfDNA small variant calls";
+			case PathType::MRD_CF_DNA:
+				return "measurable residual disease value (umiVar 2)";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}
