@@ -74,7 +74,8 @@ SOURCES += BedFile.cpp \
     SomaticCnvInterpreter.cpp \
     PrsTable.cpp \
     RtfDocument.cpp \
-    GenomeBuild.cpp
+    GenomeBuild.cpp \
+    VariantHgvsAnnotator.cpp
 
 HEADERS += BedFile.h \
     Chromosome.h \
@@ -122,7 +123,8 @@ HEADERS += BedFile.h \
     Graph.h \
     GraphNode.h \
     GraphEdge.h \
-    GenomeBuild.h
+    GenomeBuild.h \
+    VariantHgvsAnnotator.h
 
 RESOURCES += \
     cppNGS.qrc
