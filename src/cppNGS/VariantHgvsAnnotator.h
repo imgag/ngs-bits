@@ -7,6 +7,7 @@
 #include "VcfFile.h"
 #include "FastaFileIndex.h"
 #include "Transcript.h"
+#include <QString>
 
 ///Representation of the effect of a variant
 enum class VariantConsequenceType
@@ -106,6 +107,8 @@ private:
     //How far the splice region extends into exon/intron
     int splice_region_ex_;
     int splice_region_in_;
+
+    QString getPositionInTranscript(Transcript& transcript, VcfLine& variant);
 
 public:
     ///Default constructor
