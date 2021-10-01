@@ -342,6 +342,9 @@ QString EndpointController::getServedTempPath(QList<QString> path_parts)
 	}
 
 	UrlEntity url_entity = UrlManager::getURLById(path_parts[0]);
+	qDebug() << "URL";
+	qDebug() << path_parts[0];
+	qDebug() << path_parts[1];
 	if (!url_entity.filename_with_path.isEmpty())
 	{
 		path_parts.removeAt(0);
