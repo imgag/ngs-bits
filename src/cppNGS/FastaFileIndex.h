@@ -28,7 +28,7 @@ public:
 	}
 
 	///Returns the chromosome names (normalized).
-	QList<QString> names() const
+	QStringList names() const
 	{
 		return index_.keys();
 	}

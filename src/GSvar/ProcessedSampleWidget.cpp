@@ -643,7 +643,7 @@ void ProcessedSampleWidget::importSampleRelations()
 	//init
 	NGSD db;
 	QString ps_name = db.processedSampleName(ps_id_);
-	QString s_id = db.sampleId(ps_name);
+	int s_id = db.sampleId(ps_name).toInt();
 
 	//import
 	int c_before = db.relatedSamples(s_id).count();

@@ -244,7 +244,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 
 	//get transcripts
 	int gene_id = db.geneToApprovedID(symbol_);
-	QList<Transcript> transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
+	TranscriptList transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
 
 	//sort transcripts
 	std::stable_sort(transcripts.begin(), transcripts.end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });

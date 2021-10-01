@@ -284,5 +284,9 @@ FORMS    += MainWindow.ui \
 INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../bin -lcppNGSD
 
+#include VISUAL library
+INCLUDEPATH += $$PWD/../cppVISUAL
+LIBS += -L$$PWD/../bin -lcppVISUAL
+
 RESOURCES += \
     GSvar.qrc

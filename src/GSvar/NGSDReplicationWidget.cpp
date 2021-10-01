@@ -736,7 +736,7 @@ void NGSDReplicationWidget::updateCnvTable(QString table, QString where_clause)
 			if (pathogenic_variant) comments << "pathogenic";
 			CopyNumberVariant var = db_source_->cnv(source_cnv_id);
 
-			debug_stream << ps << "\t" << var.toString() << "\t" << cn << "\t" << QString::number((double)var.size()/1000, 'f', 2) << "\t"  << regs << "\t" << QString::number((double)ll/regs, 'f', 2) << "\t"  << (target_cnv_id>=0 ? "yes" : "no") << "\t" << error_message << "\t" << comments.join(", ") << "\n";
+			debug_stream << ps << "\t" << var.toString() << "\t" << cn << "\t" << QString::number((double)var.size()/1000, 'f', 2) << "\t"  << regs << "\t" << QString::number((double)ll/regs, 'f', 2) << "\t"  << (target_cnv_id>=0 ? "yes ("+QString::number(target_cnv_id)+")" : "no") << "\t" << error_message << "\t" << comments.join(", ") << "\n";
 			debug_stream.flush();
 
 			//warn if causal/pathogenic CNV could not be lifed

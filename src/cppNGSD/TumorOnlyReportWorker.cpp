@@ -86,7 +86,7 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 	gene = db_.geneSymbol(gene_id);
 
 	//select transcripts
-	QList<Transcript> transcripts;
+	TranscriptList transcripts;
 	try
 	{
 		if(config_.preferred_transcripts.contains(gene))

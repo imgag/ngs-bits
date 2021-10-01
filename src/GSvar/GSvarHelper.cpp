@@ -210,7 +210,7 @@ BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg
 
 	//convert output to region
 	BedLine region = BedLine::fromString(output);
-	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Could not convert output '" + output + "' to region");
+	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Could not convert output '" + output + "' to valid region");
 
 	//revert to 1-based
 	region.setStart(region.start()+1);
