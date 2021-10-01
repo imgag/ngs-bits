@@ -158,6 +158,9 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 			case PathType::MSI:
 				file_list << file_locator->getSomaticMsiFile();
 				break;
+			case PathType::QC:
+				file_list = file_locator->getQcFiles();
+				break;
 			default:
 				FileLocation gsvar_file(
 					url_entity.file_id,

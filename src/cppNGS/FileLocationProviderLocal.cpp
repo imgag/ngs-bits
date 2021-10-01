@@ -83,7 +83,7 @@ FileLocationList FileLocationProviderLocal::getQcFiles() const
 	QStringList qc_files = Helper::findFiles(getAnalysisPath(), "*.qcML", false);
 	foreach(const QString& qc_file, qc_files)
 	{
-		FileLocation file = FileLocation{name, PathType::OTHER, qc_file, true};
+		FileLocation file = FileLocation{name, PathType::QC, qc_file, true};
 		addToList(file, output);
 	}
 

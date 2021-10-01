@@ -45,7 +45,7 @@ FileLocation FileLocationProviderRemote::getRepeatExpansionImage(QString locus) 
 
 FileLocationList FileLocationProviderRemote::getQcFiles() const
 {
-	//TODO GSvar server
+	return getFileLocationsByType(PathType::QC, false);
 }
 
 FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType type, bool return_if_missing) const
