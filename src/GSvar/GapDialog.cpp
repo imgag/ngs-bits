@@ -119,7 +119,10 @@ QStringList GapDialog::calculteGapsAndInitGUI()
 		bool ok = true;
 		info.avg_depth = low_cov[i].annotations()[0].toDouble(&ok);
 		if (!ok) output << "Could not convert average depth to decimal number for gap " + low_cov[i].toString(true);
+		QTime timer;
+		timer.start();
 		info.genes = db_.genesOverlappingByExon(info.region.chr(), info.region.start(), info.region.end(), 30);
+		qDebug() << "exon overlap:" << Helper::elapsedTime(timer);
 
 		//use longest coding transcript(s) of Ensembl
 		BedFile coding_overlap;

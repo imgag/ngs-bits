@@ -4261,23 +4261,13 @@ const Phenotype& NGSD::phenotype(int id)
 
 GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int extend)
 {
-	//init cache
-	BedFile& bed = getCache().gene_regions;
-	ChromosomalIndex<BedFile>& index = getCache().gene_regions_index;
+	TranscriptList& cache = getCache().gene_transcripts;
+	ChromosomalIndex<TranscriptList>& index = getCache().gene_transcripts_index;
 
-	if (bed.isEmpty())
+	//init cache if necessary
+	if (cache.isEmpty())
 	{
-		//add transcripts
-		SqlQuery query = getQuery();
-		query.exec("SELECT g.symbol, gt.chromosome, MIN(ge.start), MAX(ge.end) FROM gene g, gene_transcript gt, gene_exon ge WHERE ge.transcript_id=gt.id AND gt.gene_id=g.id GROUP BY gt.id");
-		while(query.next())
-		{
-			bed.append(BedLine(query.value(1).toString(), query.value(2).toInt(), query.value(3).toInt(), QList<QByteArray>() << query.value(0).toByteArray()));
-		}
-
-		//sort and index
-		bed.sort();
-		index.createIndex();
+		initTranscriptCache();
 	}
 
 	//create gene list
@@ -4285,7 +4275,7 @@ GeneSet NGSD::genesOverlapping(const Chromosome& chr, int start, int end, int ex
 	QVector<int> matches = index.matchingIndices(chr, start-extend, end+extend);
 	foreach(int i, matches)
 	{
-		genes << bed[i].annotations()[0];
+		genes << cache[i].gene();
 	}
 	return genes;
 }
@@ -4549,45 +4539,24 @@ TranscriptList NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool co
 	return output;
 }
 
-Transcript NGSD::transcript(int id)
+const TranscriptList& NGSD::transcripts()
 {
-	QString id_str = QString::number(id);
+	TranscriptList& cache = getCache().gene_transcripts;
+	if (cache.isEmpty()) initTranscriptCache();
 
-	SqlQuery query = getQuery();
-	query.exec("SELECT source, name, chromosome, start_coding, end_coding, strand, (SELECT g.symbol FROM gene g WHERE g.id=gene_id) FROM gene_transcript WHERE id=" + id_str);
-	if (query.size()==0) THROW(DatabaseException, "Could not find transcript with identifer  '" + id_str + "' in NGSD!");
-	query.next();
+	return cache;
+}
 
-	//get base information
-	Transcript transcript;
-	transcript.setGene(query.value(6).toByteArray());
-	transcript.setName(query.value(1).toByteArray());
-	transcript.setSource(Transcript::stringToSource(query.value(0).toString()));
-	transcript.setStrand(Transcript::stringToStrand(query.value(5).toByteArray()));
+const Transcript& NGSD::transcript(int id)
+{
+	TranscriptList& cache = getCache().gene_transcripts;
+	if (cache.isEmpty()) initTranscriptCache();
 
-	//get exons
-	BedFile regions;
-	Chromosome chr = query.value(2).toByteArray();
-	SqlQuery query2 = getQuery();
-	query2.exec("SELECT start, end FROM gene_exon WHERE transcript_id=" + id_str + " ORDER BY start");
-	while(query2.next())
-	{
-		int start = query2.value(0).toInt();
-		int end = query2.value(1).toInt();
-		regions.append(BedLine(chr, start, end));
-	}
+	//check transcript is in cache, i.e. in NGSD
+	int index = getCache().gene_transcripts_id2index.value(id, -1);
+	if (index==-1) THROW(DatabaseException, "Could not find transcript with identifer '" + QString::number(id) + "' in NGSD!");
 
-	int start_coding = query.value(3).isNull() ? 0 : query.value(3).toInt();
-	int end_coding = query.value(4).isNull() ? 0 : query.value(4).toInt();
-	if (transcript.strand()==Transcript::MINUS)
-	{
-		int tmp = start_coding;
-		start_coding = end_coding;
-		end_coding = tmp;
-	}
-	transcript.setRegions(regions, start_coding, end_coding);
-
-	return transcript;
+	return cache[index];
 }
 
 Transcript NGSD::longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source, bool fallback_alt_source_nocoding)
@@ -6175,8 +6144,9 @@ void NGSD::clearCache()
 	cache_instance.phenotypes_by_id.clear();
 	cache_instance.phenotypes_accession_to_id.clear();
 
-	cache_instance.gene_regions.clear();
-	cache_instance.gene_regions_index.createIndex();
+	cache_instance.gene_transcripts.clear();
+	cache_instance.gene_transcripts_index.createIndex();
+	cache_instance.gene_transcripts_id2index.clear();
 
 	cache_instance.gene_exons.clear();
 	cache_instance.gene_exons_index.createIndex();
@@ -6184,9 +6154,75 @@ void NGSD::clearCache()
 
 
 NGSD::Cache::Cache()
-	: gene_regions()
-	, gene_regions_index(gene_regions)
+	: gene_transcripts()
+	, gene_transcripts_index(gene_transcripts)
 	, gene_exons()
 	, gene_exons_index(gene_exons)
 {
+}
+
+void NGSD::initTranscriptCache()
+{
+	TranscriptList& cache = getCache().gene_transcripts;
+	ChromosomalIndex<TranscriptList>& index = getCache().gene_transcripts_index;
+	QHash<int, int>& id2index = getCache().gene_transcripts_id2index;
+
+	//get exon coordinates for each transcript from NGSD
+	QHash<int, QList<QPair<int, int>>> tmp_coords;
+	SqlQuery query = getQuery();
+	query.exec("SELECT transcript_id, start, end FROM gene_exon ORDER BY start, end");
+	while(query.next())
+	{
+		int trans_id = query.value(0).toInt();
+		int start = query.value(1).toInt();
+		int end = query.value(2).toInt();
+		tmp_coords[trans_id] << qMakePair(start, end);
+	}
+
+	//create all transcripts
+	QHash<QByteArray, int> tmp_name2id;
+	query.exec("SELECT t.id, g.symbol, t.name, t.source, t.strand, t.chromosome, t.start_coding, t.end_coding FROM gene_transcript t, gene g WHERE t.gene_id=g.id");
+	while(query.next())
+	{
+		int trans_id = query.value(0).toInt();
+
+		//get base information
+		Transcript transcript;
+		transcript.setGene(query.value(1).toByteArray());
+		transcript.setName(query.value(2).toByteArray());
+		transcript.setSource(Transcript::stringToSource(query.value(3).toString()));
+		transcript.setStrand(Transcript::stringToStrand(query.value(4).toByteArray()));
+
+		//get exons
+		BedFile regions;
+		Chromosome chr = query.value(5).toByteArray();
+		foreach(const auto& coord, tmp_coords[trans_id])
+		{
+			regions.append(BedLine(chr, coord.first, coord.second));
+		}
+		int start_coding = query.value(6).isNull() ? 0 : query.value(6).toInt();
+		int end_coding = query.value(7).isNull() ? 0 : query.value(7).toInt();
+		if (transcript.strand()==Transcript::MINUS)
+		{
+			int tmp = start_coding;
+			start_coding = end_coding;
+			end_coding = tmp;
+		}
+		transcript.setRegions(regions, start_coding, end_coding);
+
+		cache << transcript;
+		tmp_name2id[transcript.name()] = trans_id;
+	}
+
+	//sort and build associative index
+	cache.sortByPosition();
+	for (int i=0; i<cache.count(); ++i)
+	{
+		QByteArray name = cache[i].name();
+		int trans_id = tmp_name2id[name];
+		id2index[trans_id] = i;
+	}
+
+	//build index
+	index.createIndex();
 }

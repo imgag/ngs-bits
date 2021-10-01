@@ -73,25 +73,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QToolButton" name="zoomin_btn">
-       <property name="minimumSize">
-        <size>
-         <width>20</width>
-         <height>20</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>Zoom in</string>
-       </property>
-       <property name="text">
-        <string>-</string>
-       </property>
-       <property name="autoRaise">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QToolButton" name="zoomout_btn">
        <property name="minimumSize">
         <size>
@@ -103,7 +84,26 @@
         <string>Zoom out</string>
        </property>
        <property name="text">
+        <string>-</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="zoomin_btn">
+       <property name="minimumSize">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="toolTip">
+        <string>Zoom in</string>
+       </property>
+       <property name="text">
         <string>+</string>
+       </property>
+       <property name="autoRaise">
+        <bool>false</bool>
        </property>
       </widget>
      </item>

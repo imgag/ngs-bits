@@ -72,7 +72,7 @@ CONSTRAINT `fk_gene_id3`
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
 UNIQUE KEY `gene_name_unique` (`gene_id`, `name`),
-KEY `name` (`name`) ,
+UNIQUE KEY `name` (`name`) ,
 KEY `source` (`source`),
 KEY `chromosome` (`chromosome`),
 KEY `start_coding` (`start_coding`), 
