@@ -914,9 +914,6 @@ protected:
 		TranscriptList gene_transcripts;
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;
 		QHash<int, int> gene_transcripts_id2index;
-
-		BedFile gene_exons;
-		ChromosomalIndex<BedFile> gene_exons_index;
 	};
 	static Cache& getCache();
 	void clearCache();

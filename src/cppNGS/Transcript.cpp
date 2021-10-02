@@ -797,7 +797,13 @@ void TranscriptList::sortByPosition()
 bool TranscriptList::TranscriptPositionComparator::operator()(const Transcript& a, const Transcript& b) const
 {
 	if (a.chr()<b.chr()) return true;
-	else if (a.chr()>b.chr()) return false;
-	else if (a.start()==b.start()) return a.end()<b.end();
-	else return a.start()<b.start();
+	if (a.chr()>b.chr()) return false;
+
+	if (a.start()<b.start()) return true;
+	if (a.start()>b.start()) return false;
+
+	if (a.end()<b.end()) return true;
+	if (a.end()>b.end()) return false;
+
+	return a.name()<b.name();
 }
