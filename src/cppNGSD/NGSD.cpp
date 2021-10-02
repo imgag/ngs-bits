@@ -4415,21 +4415,25 @@ int NGSD::transcriptId(QString name, bool throw_on_error)
 	return value.toInt();
 }
 
-//TODO take from cache
 TranscriptList NGSD::transcripts(int gene_id, Transcript::SOURCE source, bool coding_only)
 {
+	TranscriptList& cache = getCache().gene_transcripts;
+	QHash<QByteArray, QSet<int>>& gene2indices = getCache().gene_transcripts_symbol2indices;
+	if (cache.isEmpty()) initTranscriptCache();
+
 	TranscriptList output;
 
-	//get chromosome
-	QString gene_id_str = QString::number(gene_id);
-
-	//get transcripts
-	SqlQuery query = getQuery();
-	query.exec("SELECT id FROM gene_transcript WHERE gene_id=" + gene_id_str + " AND source='" + Transcript::sourceToString(source) + "' " + (coding_only ? "AND start_coding IS NOT NULL AND end_coding IS NOT NULL" : "") + " ORDER BY name");
-	while(query.next())
+	QByteArray gene = geneSymbol(gene_id);
+	foreach(int index, gene2indices[gene])
 	{
-		output.push_back(transcript(query.value(0).toInt()));
+		const Transcript& trans = cache[index];
+		if (trans.source()!=source) continue;
+		if (coding_only && !trans.isCoding()) continue;
+
+		output << trans;
 	}
+
+	std::sort(output.begin(), output.end(), [](const Transcript& a, const Transcript& b){ return a.name()<b.name();});
 
 	return output;
 }
@@ -6042,6 +6046,7 @@ void NGSD::clearCache()
 	cache_instance.gene_transcripts.clear();
 	cache_instance.gene_transcripts_index.createIndex();
 	cache_instance.gene_transcripts_id2index.clear();
+	cache_instance.gene_transcripts_symbol2indices.clear();
 }
 
 
@@ -6056,6 +6061,8 @@ void NGSD::initTranscriptCache()
 	TranscriptList& cache = getCache().gene_transcripts;
 	ChromosomalIndex<TranscriptList>& index = getCache().gene_transcripts_index;
 	QHash<int, int>& id2index = getCache().gene_transcripts_id2index;
+	QHash<QByteArray, QSet<int>>& symbol2indices = getCache().gene_transcripts_symbol2indices;
+
 
 	//get exon coordinates for each transcript from NGSD
 	QHash<int, QList<QPair<int, int>>> tmp_coords;
@@ -6104,13 +6111,16 @@ void NGSD::initTranscriptCache()
 		tmp_name2id[transcript.name()] = trans_id;
 	}
 
-	//sort and build associative index
+	//sort and build indices
 	cache.sortByPosition();
 	for (int i=0; i<cache.count(); ++i)
 	{
-		QByteArray name = cache[i].name();
-		int trans_id = tmp_name2id[name];
+		const Transcript& trans = cache[i];
+
+		int trans_id = tmp_name2id[trans.name()];
 		id2index[trans_id] = i;
+
+		symbol2indices[trans.gene()] << i;
 	}
 
 	//build index

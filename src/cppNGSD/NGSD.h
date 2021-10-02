@@ -913,7 +913,8 @@ protected:
 
 		TranscriptList gene_transcripts;
 		ChromosomalIndex<TranscriptList> gene_transcripts_index;
-		QHash<int, int> gene_transcripts_id2index;
+		QHash<int, int> gene_transcripts_id2index; //NGSD transcript id > index in 'gene_transcripts'
+		QHash<QByteArray, QSet<int>> gene_transcripts_symbol2indices; //gene symbol > indices in 'gene_transcripts'
 	};
 	static Cache& getCache();
 	void clearCache();
