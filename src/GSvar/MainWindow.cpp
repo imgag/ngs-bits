@@ -2777,11 +2777,11 @@ void MainWindow::loadFile(QString filename)
 	rna_menu_btn_->setEnabled(false);
 	ui_.actionExpressionData->setEnabled(false);
 	ui_.actionShowRnaFusions->setEnabled(false);
-	if (LoginManager::active())
+	if (LoginManager::active() && germlineReportSupported())
 	{
 		NGSD db;
 
-		QString sample_id = (germlineReportSupported() ?  db.sampleId(germlineReportSample(), false) : db.sampleId(variants_.mainSampleName()));
+		QString sample_id = db.sampleId(germlineReportSample(), false);
 		if (sample_id!="")
 		{
 			foreach (int rna_sample_id, db.relatedSamples(sample_id.toInt(), "same sample", "RNA"))
@@ -2860,7 +2860,7 @@ void MainWindow::checkVariantList(QStringList messages)
 	}
 
 	//check data was loaded completely
-	if (germlineReportSupported(true))
+	if (germlineReportSupported())
 	{
 		NGSD db;
 		int sys_id = db.processingSystemIdFromProcessedSample(germlineReportSample());
@@ -5424,14 +5424,27 @@ bool MainWindow::germlineReportSupported(bool require_ngsd)
 	//user has to be logged in
 	if (require_ngsd && !LoginManager::active()) return false;
 
-	//single and trio (~one affected)
+	//single, trio or multi only
 	AnalysisType type = variants_.type();
-	if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO) return true;
+	if (type!=GERMLINE_SINGLESAMPLE && type!=GERMLINE_TRIO && type!=GERMLINE_MULTISAMPLE) return false;
 
 	//multi-sample only with at least one affected
-	if (type==GERMLINE_MULTISAMPLE && variants_.getSampleHeader().sampleColumns(true).count()>=1) return true;
+	if (type==GERMLINE_MULTISAMPLE && variants_.getSampleHeader().sampleColumns(true).count()<1) return false;
 
-	return false;
+	//affected samples are in NGSD
+	if (require_ngsd)
+	{
+		NGSD db;
+		foreach(const SampleInfo& info, variants_.getSampleHeader())
+		{
+			if(info.isAffected())
+			{
+				if (db.processedSampleId(info.id.trimmed(), false)=="") return false;
+			}
+		}
+	}
+
+	return true;
 }
 
 QString MainWindow::germlineReportSample()
