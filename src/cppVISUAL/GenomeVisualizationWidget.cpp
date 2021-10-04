@@ -2,15 +2,19 @@
 #include "GenomeVisualizationWidget.h"
 #include "BedFile.h"
 
+#include <QToolTip>
 #include <QDebug>
 #include <QMessageBox>
 
-GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const FastaFileIndex& genome_idx)
+GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const FastaFileIndex& genome_idx, const TranscriptList& transcripts)
 	: QWidget(parent)
 	, ui_(new Ui::GenomeVisualizationWidget)
 	, settings_()
 	, genome_idx_(genome_idx)
+	, transcripts_(transcripts)
 	, valid_chrs_()
+	, gene_to_trans_indices_()
+	, trans_to_index_()
 	, current_reg_()
 {
 	ui_->setupUi(this);
@@ -19,6 +23,41 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const Fast
 	valid_chrs_ = genome_idx_.names();
 	std::sort(valid_chrs_.begin(), valid_chrs_.end(), [](const QString& s1, const QString& s2){ Chromosome c1(s1); Chromosome c2(s2); return (c1.num()<1004 || c2.num()<1004) ? c1<c2 : s1<s2;  });
 	ui_->chr_selector->addItems(valid_chrs_);
+
+	//init gene and transcript list
+	for(int i=0; i<transcripts_.size(); ++i)
+	{
+		const Transcript& trans = transcripts_[i];
+
+		if (trans.source()!=Transcript::ENSEMBL) continue;
+
+		gene_to_trans_indices_[trans.gene()] << i;
+		trans_to_index_[trans.name()] = i;
+	}
+
+	/* Code to determine genes with several transcript regions
+	for(auto it=gene_to_trans_indices_.begin(); it!=gene_to_trans_indices_.end(); ++it)
+	{
+		QByteArray gene = it.key();
+
+		BedFile roi;
+		foreach(int index, it.value())
+		{
+			const Transcript& trans = transcripts_[index];
+			roi.append(BedLine(trans.chr(), trans.start(), trans.end(), QByteArrayList() << trans.name()));
+		}
+		roi.extend(settings_.transcript_padding);
+		roi.merge(true, true);
+		if (roi.count()>1)
+		{
+			qDebug() << "Gene " << gene << " has several transcripts!";
+			for (int i=0; i<roi.count(); ++i)
+			{
+				qDebug() << "  " << roi[i].toString(true) << roi[i].annotations();
+			}
+		}
+	}
+	*/
 
 	//connect signals and slots
 	connect(ui_->chr_selector, SIGNAL(currentTextChanged(QString)), this, SLOT(setChromosomeRegion(QString)));
@@ -83,7 +122,6 @@ void GenomeVisualizationWidget::search()
 	//chromosome
 	if (valid_chrs_.contains(text) || (!text.startsWith("chr") && valid_chrs_.contains("chr"+text)))
 	{
-		qDebug() << "MATCH: CHR";
 		setChromosomeRegion(text);
 		return;
 	}
@@ -92,15 +130,40 @@ void GenomeVisualizationWidget::search()
 	BedLine region = BedLine::fromString(text);
 	if (region.isValid())
 	{
-		qDebug() << "MATCH: REG";
 		setRegion(region.chr(), region.start(), region.end());
 		return;
 	}
 
-	qDebug() << "NO MATCH!";
-	//TODO: gene
+	//gene
+	if (gene_to_trans_indices_.contains(text.toLatin1()))
+	{
+		BedFile roi;
+		foreach(int index, gene_to_trans_indices_[text.toLatin1()])
+		{
+			const Transcript& trans = transcripts_[index];
+			roi.append(BedLine(trans.chr(), trans.start(), trans.end()));
+		}
+		roi.extend(settings_.transcript_padding);
+		roi.merge();
+		if (roi.count()>1)
+		{
+			QToolTip::showText(ui_->search->mapToGlobal(QPoint(0, 0)), "Gene has several transcript regions, using the first one!\nUse transcript identifiers to select a specific transcript of the gene!" + text);
+		}
 
-	//TODO: transcript
+		setRegion(roi[0].chr(), roi[0].start(), roi[0].end());
+		return;
+	}
+
+	//transcript
+	if (trans_to_index_.contains(text.toLatin1()))
+	{
+		int index = trans_to_index_[text.toLatin1()];
+		const Transcript& trans = transcripts_[index];
+		setRegion(trans.chr(), trans.start()-settings_.transcript_padding, trans.end()+settings_.transcript_padding);
+		return;
+	}
+
+	QToolTip::showText(ui_->search->mapToGlobal(QPoint(0, 0)), "Could not find locus or feature: " + text);
 }
 
 void GenomeVisualizationWidget::zoomIn()

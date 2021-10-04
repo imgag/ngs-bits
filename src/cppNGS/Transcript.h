@@ -168,10 +168,20 @@ protected:
 	int utr3primeStart() const;
 };
 
-///Transcript list class
-class TranscriptList
+//Transcript list class
+class CPPNGSSHARED_EXPORT TranscriptList
 	: public QList<Transcript>
 {
+public:
+	//sorts transcripts by chromosomal positio
+	void sortByPosition();
 
+private:
+	//Comparator helper class used by sortByPosition
+	class TranscriptPositionComparator
+	{
+		public:
+			bool operator()(const Transcript &a, const Transcript &b) const;
+	};
 };
 #endif // TRANSCRIPT_H

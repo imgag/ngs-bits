@@ -5237,7 +5237,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	else if (action==a_visual)
 	{
 		FastaFileIndex genome_idx(Settings::string("reference_genome", false));
-		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this, genome_idx);
+		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this, genome_idx, NGSD().transcripts());
 		widget->setRegion(variant.chr(), variant.start(), variant.end());
 		auto dlg = GUIHelper::createDialog(widget, "GSvar Genome Viewer");
 		dlg->exec();
