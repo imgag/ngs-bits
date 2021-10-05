@@ -25,7 +25,7 @@ BedFile DatabaseServiceRemote::processingSystemRegions(int sys_id) const
 	}
 	else
 	{
-		output.fromText(reply);
+		output = output.fromText(reply);
 	}
 
 	return output;
@@ -44,7 +44,7 @@ BedFile DatabaseServiceRemote::processingSystemAmplicons(int sys_id) const
 	}
 	else
 	{
-		output.fromText(reply);
+		output = output.fromText(reply);
 	}
 
 	return output;
