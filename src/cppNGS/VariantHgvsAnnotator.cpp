@@ -14,7 +14,7 @@ VariantHgvsAnnotator::VariantHgvsAnnotator(int max_dist_to_transcript, int splic
 {
 }
 
-HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(Transcript& transcript, const VcfLine& variant, const FastaFileIndex& genome_idx)
+HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, const VcfLine& variant, const FastaFileIndex& genome_idx)
 {
     //init
     int start = variant.start();
@@ -36,7 +36,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(Transcript& transcript, con
     {
         //upstream of start codon
         if((plus_strand && end < transcript.codingStart()) ||
-                (!plus_strand && start > transcript.codingEnd()))
+                (!plus_strand && start > transcript.codingStart()))
         {
             //in 5 prime utr or upstream variant?
             if((plus_strand && end >= transcript.start()) ||
@@ -74,6 +74,10 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(Transcript& transcript, con
                 else if(!five_prime_utr)
                 {
                     hgvs.variant_consequence_type.append(VariantConsequenceType::INTRON_VARIANT);
+                    if(variant.isSNV())
+                    {
+                        pos_hgvs_c = "-" + getPositionInIntron(transcript.utr5prime(), variant.start(), plus_strand, true);
+                    }
                 }
             }
             else if((plus_strand && transcript.start() - end <= max_dist_to_transcript_) ||
@@ -89,7 +93,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(Transcript& transcript, con
         }
         //downstream of stop codon
         else if((plus_strand && start > transcript.codingEnd()) ||
-                (!plus_strand && end < transcript.codingStart()))
+                (!plus_strand && end < transcript.codingEnd()))
         {
             //in 3 prime utr or downstream variant?
             if((plus_strand && start <= transcript.end()) ||
@@ -127,6 +131,10 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(Transcript& transcript, con
                 else if(!three_prime_utr)
                 {
                     hgvs.variant_consequence_type.append(VariantConsequenceType::INTRON_VARIANT);
+                    if(variant.isSNV())
+                    {
+                        pos_hgvs_c = "*" + getPositionInIntron(transcript.utr3prime(), variant.start(), plus_strand);
+                    }
                 }
             }
             else if((plus_strand && start - transcript.end() <= max_dist_to_transcript_) ||
@@ -171,27 +179,124 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(Transcript& transcript, con
             {
                 pos_hgvs_c = QString::number(coding_pos);
             }
+            else if(!exon)
+            {
+                hgvs.variant_consequence_type.append(VariantConsequenceType::INTRON_VARIANT);
+                if(variant.isSNV())
+                {
+                    pos_hgvs_c = getPositionInIntron(transcript.codingRegions(), variant.start(), plus_strand);
+                }
+            }
         }
     }
 
     //SNV
     if(variant.isSNV())
     {
-        hgvs.hgvs_c = "c." + pos_hgvs_c + ref + ">" + obs;
+        if(plus_strand)
+        {
+            hgvs.hgvs_c = "c." + pos_hgvs_c + ref + ">" + obs;
+        }
+        else
+        {
+            hgvs.hgvs_c = "c." + pos_hgvs_c + ref.toReverseComplement() + ">" + obs.toReverseComplement();
+        }
     }
 
     return hgvs;
 }
 
-HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(Transcript& transcript, const Variant& variant, const FastaFileIndex& genome_idx)
+HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, const Variant& variant, const FastaFileIndex& genome_idx)
 {
     HgvsNomenclature hgvs;
     return hgvs;
 }
 
-QString VariantHgvsAnnotator::getPositionInTranscript(Transcript& transcript, VcfLine& variant)
+//determine the HGVS position string for a variant in an intron
+QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, int genomic_position, bool plus_strand, bool utr_5)
 {
-    QString pos_in_transcript;
-    //if(transcript.strand() == Transcript::PLUS)
-    return pos_in_transcript;
+    QString pos_in_intron;
+    int closest_exon_pos = 0;
+    bool pos_found = false;
+
+    //turn strand info around if 5 prime utr introns are considered (counting starts at opposite end)
+    if(utr_5) plus_strand = !plus_strand;
+
+    for(int i=0; i<regions.count()-1; i++)
+    {
+        if(plus_strand)
+        {
+            closest_exon_pos += regions[i].length();
+        }
+        else if(pos_found)
+        {
+            closest_exon_pos += regions[i+1].length();
+        }
+
+        //check if genomic position is between two given exons
+        if(genomic_position > regions[i].end()
+                && genomic_position < regions[i+1].start())
+        {
+            pos_found = true;
+            int prev_exon_end = regions[i].end();
+            int next_exon_start = regions[i+1].start();
+
+            int dist_below = genomic_position - prev_exon_end;
+            int dist_above = next_exon_start - genomic_position;
+
+            if(plus_strand)
+            {
+                if(dist_below <= dist_above)
+                {
+                    QString prefix = utr_5 ? "-" : "+";
+                    pos_in_intron = prefix + QString::number(dist_below);
+                }
+                else
+                {
+                    QString prefix = utr_5 ? "+" : "-";
+                    pos_in_intron = prefix + QString::number(dist_above);
+                }
+                break;
+            }
+            else
+            {
+                closest_exon_pos += regions[i+1].length();
+                if(dist_above <= dist_below)
+                {                    
+                    QString prefix = utr_5 ? "-" : "+";
+                    pos_in_intron = prefix + QString::number(dist_above);
+                }
+                else
+                {
+                    QString prefix = utr_5 ? "+" : "-";
+                    pos_in_intron = prefix + QString::number(dist_below);
+                }
+            }
+        }
+    }
+
+    if(pos_in_intron.startsWith("+"))
+    {
+        if(utr_5)
+        {
+            pos_in_intron = QString::number(closest_exon_pos+1) + pos_in_intron;
+        }
+        else
+        {
+            pos_in_intron = QString::number(closest_exon_pos) + pos_in_intron;
+        }
+    }
+    else if(pos_in_intron.startsWith("-"))
+    {
+        if(utr_5)
+        {
+            pos_in_intron = QString::number(closest_exon_pos) + pos_in_intron;
+        }
+        else
+        {
+            pos_in_intron = QString::number(closest_exon_pos+1) + pos_in_intron;
+        }
+    }
+
+    return pos_in_intron;
 }

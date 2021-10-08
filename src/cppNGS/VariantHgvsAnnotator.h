@@ -108,7 +108,7 @@ private:
     int splice_region_ex_;
     int splice_region_in_;
 
-    QString getPositionInTranscript(Transcript& transcript, VcfLine& variant);
+    QString getPositionInIntron(const BedFile& regions, int genomic_position, bool plus_strand, bool utr_5 = false);
 
 public:
     ///Default constructor
@@ -118,8 +118,8 @@ public:
     VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in);
 
     ///Converts a variant in VCF format to HGVS nomenclature
-    HgvsNomenclature variantToHgvs(Transcript& transcript, const VcfLine& variant, const FastaFileIndex& genome_idx);
-    HgvsNomenclature variantToHgvs(Transcript& transcript, const Variant& variant, const FastaFileIndex& genome_idx);
+    HgvsNomenclature variantToHgvs(const Transcript& transcript, const VcfLine& variant, const FastaFileIndex& genome_idx);
+    HgvsNomenclature variantToHgvs(const Transcript& transcript, const Variant& variant, const FastaFileIndex& genome_idx);
 };
 
 #endif // VARIANTHGVSANNOTATOR_H
