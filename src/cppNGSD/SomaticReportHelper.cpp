@@ -297,7 +297,7 @@ void SomaticReportHelper::germlineSnvForQbic(QString path_target_folder)
 {
 	//currently no germline SNVs are uploaded, only created header
 	QByteArray content;
-	QTextStream stream(content);
+	QTextStream stream(&content);
 
 	stream << "chr" << "\t" << "start" << "\t" << "ref" << "\t" << "alt" << "\t" << "genotype" << "\t";
 	stream << "gene" << "\t" << "base_change" << "\t" << "aa_change" << "\t" << "transcript" << "\t";
@@ -311,7 +311,7 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 {
 	FastaFileIndex genome_reference(Settings::string("reference_genome", false));
 	QByteArray content;
-	QTextStream stream(content);
+	QTextStream stream(&content);
 
 	//Write header
 	stream << "chr" <<"\t" << "start" << "\t" << "ref" << "\t" << "alt" << "\t";
@@ -381,7 +381,7 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 void SomaticReportHelper::germlineCnvForQbic(QString path_target_folder)
 {
 	QByteArray content;
-	QTextStream stream(content);
+	QTextStream stream(&content);
 
 	stream << "size" << "\t" << "type" << "\t" << "copy_number" << "\t" << "gene" << "\t" << "exons" << "\t" << "transcript" << "\t";
 	stream << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect";
@@ -394,7 +394,7 @@ void SomaticReportHelper::germlineCnvForQbic(QString path_target_folder)
 void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 {
 	QByteArray content;
-	QTextStream stream(content);
+	QTextStream stream(&content);
 
 	stream << "size" << "\t" << "type" << "\t" << "copy_number" << "\t" << "gene" << "\t" << "exons" << "\t";
 	stream << "transcript" << "\t" << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect" << endl;
@@ -499,7 +499,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 void SomaticReportHelper::somaticSvForQbic(QString path_target_folder)
 {
 	QByteArray content;
-	QTextStream stream(content);
+	QTextStream stream(&content);
 
 	stream << "type" << "\t" << "gene" << "\t" << "effect" << "\t" << "left_bp" << "\t" << "right_bp" << endl;
 
@@ -509,7 +509,7 @@ void SomaticReportHelper::somaticSvForQbic(QString path_target_folder)
 void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 {
 	QByteArray content;
-	QTextStream stream(content);
+	QTextStream stream(&content);
 
 	stream << "diagnosis" << "\t" << "tumor_content" << "\t" << "pathogenic_germline" << "\t" << "mutational_load" << "\t";
 	stream << "chromosomal_instability" << "\t" << "quality_flags" << "\t" << "reference_genome";
