@@ -110,26 +110,16 @@ HttpResponse EndpointController::getFileInfo(const HttpRequest& request)
 
 HttpResponse EndpointController::createStaticFileRangeResponse(QString filename, ByteRange byte_range, ContentType type, bool is_downloadable)
 {
-	StaticFile static_file;
-
-	try
-	{
-		static_file = readFileContent(filename, byte_range);
-	}
-	catch(Exception& e)
-	{
-		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, e.message());
-	}
-
 	BasicResponseData response_data;
 	response_data.filename = filename;
-	response_data.length = static_file.content.length();
+	response_data.length = byte_range.end - byte_range.start; //static_file.content.length();
 	response_data.byte_range = byte_range;
 	response_data.file_size = QFile(filename).size();
+	response_data.is_stream = true;
 	response_data.content_type = type;
 	response_data.is_downloadable = is_downloadable;
 
-	return HttpResponse(response_data, static_file.content);
+	return HttpResponse(response_data);
 }
 
 HttpResponse EndpointController::createStaticStreamResponse(QString filename, bool is_downloadable)

@@ -213,9 +213,16 @@ void RequestWorker::run()
 		sendResponseDataPart(ssl_socket, response.getStatusLine());
 		sendResponseDataPart(ssl_socket, response.getHeaders());
 
-		qint64 chunk_size = 1024*10;
-		qint64 pos = 0;
-		qint64 file_size = streamed_file.size();
+		quint64 chunk_size = 1024*10;
+		quint64 pos = 0;
+		quint64 file_size = streamed_file.size();
+
+		if (response.getByteRange().length > 0)
+		{
+			pos = response.getByteRange().start;
+		}
+
+		qDebug() << "Range = " << response.getByteRange().start << ", " << response.getByteRange().end << ", " << response.getByteRange().length;
 		while(!streamed_file.atEnd())
 		{
 			if (is_terminated_) break;
@@ -234,6 +241,19 @@ void RequestWorker::run()
 			{
 				// Keep connection alive and add data incrementally in parts (content-lenght is specified)
 				sendResponseDataPart(ssl_socket, data);
+			}
+
+			if (response.getByteRange().length > 0)
+			{
+				if (pos > response.getByteRange().end)
+				{
+					chunk_size = response.getByteRange().end - pos;
+				}
+
+				if (chunk_size <= 0)
+				{
+					break;
+				}
 			}
 		}
 

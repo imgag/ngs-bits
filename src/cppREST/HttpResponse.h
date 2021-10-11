@@ -28,6 +28,9 @@ public:
 	void setStatus(ResponseStatus response_status);
 	ResponseStatus getStatus() const;
 
+	void setByteRange(ByteRange range);
+	ByteRange getByteRange() const;
+
 	QByteArray getStatusLine() const;
 
 	int getStatusCode() const;
@@ -57,6 +60,7 @@ protected:
 	QByteArray status_line_;
 	QByteArray headers_;
 	QByteArray payload_;
+	ByteRange range_;
 };
 
 #endif // HTTPRESPONSE_H

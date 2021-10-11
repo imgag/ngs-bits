@@ -103,6 +103,16 @@ ResponseStatus HttpResponse::getStatus() const
 	return response_status_;
 }
 
+void HttpResponse::setByteRange(ByteRange range)
+{
+	range_ = range;
+}
+
+ByteRange HttpResponse::getByteRange() const
+{
+	return range_;
+}
+
 QByteArray HttpResponse::getStatusLine() const
 {
 	return "HTTP/1.1 " + QByteArray::number(HttpProcessor::convertResponseStatusToStatusCodeNumber(response_status_))
@@ -158,6 +168,10 @@ void HttpResponse::readBasicResponseData(BasicResponseData data)
 	setIsStream(data.is_stream);
 	setFilename(data.filename);
 	setHeaders(generateRegularHeaders(data));
+	if (data.byte_range.length > 0)
+	{
+		setByteRange(data.byte_range);
+	}
 }
 
 QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
