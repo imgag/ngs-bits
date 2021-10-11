@@ -237,6 +237,11 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 			byte_range.start = static_cast<quint64>(range_value.mid(0, range_value.indexOf("-")).trimmed().toULongLong());
 			byte_range.end = static_cast<quint64>(range_value.mid(range_value.indexOf("-")+1, range_value.length()-range_value.indexOf("-")).trimmed().toULongLong());
 		}
+		if (byte_range.end <= 0)
+		{
+			qDebug() << "Random read: offset end has been set as the end of file";
+			byte_range.end = QFileInfo(filename).size();
+		}
 	}
 	byte_range.length = ((byte_range.end - byte_range.start) > -1.0) ? (byte_range.end - byte_range.start) : 0;
 
