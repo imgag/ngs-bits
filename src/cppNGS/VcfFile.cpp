@@ -393,7 +393,7 @@ void VcfFile::loadFromVCFGZ(const QString& filename, bool allow_multi_sample, Ch
 	
 	//parse
 	int line_number = 0;
-	const int buffer_size = 1048576; //1MB buffer
+	const int buffer_size = 10485760; //10MB buffer (necessary for large multi-sample VCFs)
 	char* buffer = new char[buffer_size]; 
 	//Sets holding all INFO and FORMAT IDs defined in the header (might be extended if a vcf line contains new ones)
 	QSet<QByteArray> info_ids_in_header;
@@ -1254,7 +1254,7 @@ bool VcfFile::isValid(QString filename, QString ref_file, QTextStream& out_strea
 	bool in_header = true;
 	int c_data = 0;
 	int l = 0;
-	const int buffer_size = 1048576; //1MB buffer
+	const int buffer_size = 10485760; //10MB buffer (necessary for large multi-sample VCFs)
 	char* buffer = new char[buffer_size];
 	while(!gzeof(file) && l<max_lines)
 	{

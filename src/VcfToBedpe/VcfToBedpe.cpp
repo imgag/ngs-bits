@@ -185,7 +185,7 @@ VcfToBedpe::VcfToBedpe(const QByteArray& filename)
 {
 	//set buffer size for gz file line
 	filename_ = filename;
-	buffer_size_ = 1048576; //1MB buffer
+	buffer_size_ = 10485760; //10MB buffer (necessary for large multi-sample VCFs)
 	buffer_ = new char[buffer_size_];
 
 	file_ = gzopen(filename.data(),"rb");

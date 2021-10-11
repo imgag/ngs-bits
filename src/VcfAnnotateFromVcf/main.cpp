@@ -238,7 +238,7 @@ public:
 			THROW(FileAccessException, "Could not open file '" + input_path + "' for reading!");
 		}
 
-		const int buffer_size = 1048576; //1MB buffer
+		const int buffer_size = 10485760; //10MB buffer (necessary for large multi-sample VCFs)
 		char* buffer = new char[buffer_size];
 		int current_chunk = 0;
 		int vcf_line_idx = 0;
