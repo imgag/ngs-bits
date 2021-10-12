@@ -151,7 +151,7 @@ void RequestWorker::run()
 	{
 		qDebug() << "Accessing password protected area";
 		HttpResponse auth_response = EndpointManager::blockInvalidUsers(parsed_request);
-		if (auth_response.getStatusCode() > 0)
+		if (auth_response.getStatusCode() == 401)
 		{
 			sendEntireResponse(ssl_socket, auth_response);
 			return;

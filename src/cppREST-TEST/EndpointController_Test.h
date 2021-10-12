@@ -30,10 +30,11 @@ private slots:
 		HttpResponse response = EndpointController::serveStaticForTempUrl(request);
 
 		IS_TRUE(response.getStatusLine().split('\n').first().contains("206"));
-		S_EQUAL(response.getPayload(), "content");
+		IS_TRUE(response.getPayload().isNull());
 
 		QList<QString> params;
 		params.append("fake_id");
+		params.append("text.txt");
 		request.setPathParams(params);
 		response = EndpointController::serveStaticForTempUrl(request);
 		IS_TRUE(response.getStatusLine().split('\n').first().contains("404"));
