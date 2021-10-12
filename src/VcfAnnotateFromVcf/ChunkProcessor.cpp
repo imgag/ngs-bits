@@ -164,7 +164,7 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
 			return QByteArrayList();
         }
 
-		const int buffer_size = 10485760; //10MB buffer (necessary for large multi-sample VCFs)
+		const int buffer_size = 1048576; //1MB buffer
 		char* buffer = new char[buffer_size];
         while(!gzeof(vcfgz_file))
         {
