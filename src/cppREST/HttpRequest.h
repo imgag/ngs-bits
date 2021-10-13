@@ -17,8 +17,8 @@ public:
 	ContentType getContentType() const;
 
 	void addHeader(QString key, QString value);
-	QMap<QString, QString> getHeaders() const;
-	QString getHeaderByName(QString key) const;
+	QMap<QString, QList<QString>> getHeaders() const;
+	QList<QString> getHeaderByName(QString key) const;
 
 	void setBody(QByteArray body);
 	QByteArray getBody() const;
@@ -47,7 +47,7 @@ public:
 private:
 	RequestMethod method_;
 	ContentType return_type_;
-	QMap<QString, QString> headers_;
+	QMap<QString, QList<QString>> headers_;
 	QByteArray body_;
 	QString prefix_;
 	QString path_;

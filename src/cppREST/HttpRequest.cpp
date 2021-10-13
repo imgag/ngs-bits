@@ -32,25 +32,25 @@ ContentType HttpRequest::getContentType() const
 
 void HttpRequest::addHeader(QString key, QString value)
 {
-	if (!headers_.contains(key))
+	if (!headers_.contains(key.toLower()))
 	{
-		headers_.insert(key, value);
+		headers_[key].append(value.toLower());
 	}
 }
 
-QMap<QString, QString> HttpRequest::getHeaders() const
+QMap<QString, QList<QString>> HttpRequest::getHeaders() const
 {
 	return headers_;
 }
 
-QString HttpRequest::getHeaderByName(QString key) const
+QList<QString> HttpRequest::getHeaderByName(QString key) const
 {
 	if (headers_.contains(key.toLower()))
 	{
-		return headers_.value(key.toLower());
+		return headers_[key.toLower()];
 	}
 
-	return "";
+	return {};
 }
 
 void HttpRequest::setBody(QByteArray body)

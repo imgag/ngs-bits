@@ -30,7 +30,7 @@ public:
 	static HttpResponse createStaticFileRangeResponse(QString filename, ByteRange byte_range, ContentType type, bool is_downloadable);
 	static HttpResponse createStaticStreamResponse(QString filename, bool is_downloadable);
 	static HttpResponse createStaticFromCacheResponse(QString id, ByteRange byte_range, ContentType type, bool is_downloadable);
-	static HttpResponse serveStaticFile(QString filename, RequestMethod method, QMap<QString, QString> headers);
+	static HttpResponse serveStaticFile(QString filename, RequestMethod method, QMap<QString, QList<QString>> headers);
 
 protected:
 	EndpointController();

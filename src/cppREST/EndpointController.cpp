@@ -206,78 +206,88 @@ HttpResponse EndpointController::serveFolderContent(QString path, QString reques
 	return serveFolderListing(dir.dirName(), cur_folder_url, parent_folder_url, files);
 }
 
-HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod method, QMap<QString, QString> headers)
+HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod method, QMap<QString, QList<QString>> headers)
 {
 	if (filename.isEmpty())
 	{
-		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::TEXT_HTML, "Requested file does not exist");
+		return HttpResponse(ResponseStatus::NOT_FOUND, ContentType::APPLICATION_JSON, "Requested file does not exist");
 	}
 
 	quint64 file_size = QFileInfo(filename).size();
-	ByteRange byte_range {};
-	byte_range.start = 0;
-	byte_range.end = 0;
+
 	if (headers.contains("range"))
 	{
-		QString range_value = headers.value("range");
-		// Only one range is supported at the moment. We will use the first one, if multiple
-		// ranges are provided. We also support only bytes as units.
-		// Example of unsupported ranges:
-		// Range: bytes=200-1000, 2000-6576, 19000-
-		//
-		// Supported ranges:
-		// Range: bytes=200-1000
-		// or
-		// Range: bytes=2000-657
-		// or (from position 19000 till the end of file)
-		// Range: bytes=19000-
-		// or (the last 500 bytes of the file)
-		// // Range: bytes=-500
-		if (range_value.count(",") > 0)
-		{
-			range_value = range_value.mid(0, range_value.indexOf(",")).trimmed();
-		}
+		ByteRange byte_range {};
+		byte_range.start = 0;
+		byte_range.end = 0;
 
-		range_value = range_value.replace("bytes", "");
-		range_value = range_value.replace("=", "");
-		range_value = range_value.trimmed();
-		if (range_value.count("-") > 0)
+		for (int i = 0; i < headers["range"].count(); ++i)
 		{
-			bool is_start_set = true;
-			bool is_end_set = true;
-			if (range_value.mid(0, range_value.indexOf("-")).trimmed().length() == 0)
+			QString range_value = headers["range"][i];
+			// We support only bytes as units for range requests
+			// Examples:
+			// Range: bytes=200-1000, 2000-6576, 19000-
+			// Range: bytes=200-1000
+			// or (from position 19000 till the end of file)
+			// Range: bytes=19000-
+			// or (the last 500 bytes of the file)
+			// // Range: bytes=-500
+			if (range_value.count(",") > 0)
 			{
-				is_start_set = false;
-			}
-			if (range_value.mid(range_value.indexOf("-")+1, range_value.length()-range_value.indexOf("-")).trimmed().length() == 0)
-			{
-				is_end_set = false;
+//				range_value = range_value.mid(0, range_value.indexOf(",")).trimmed();
+				return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "Currently we cannot serve lists of ranges");
 			}
 
-			byte_range.start = static_cast<quint64>(range_value.mid(0, range_value.indexOf("-")).trimmed().toULongLong());
-			byte_range.end = static_cast<quint64>(range_value.mid(range_value.indexOf("-")+1, range_value.length()-range_value.indexOf("-")).trimmed().toULongLong());
-
-			if (!is_start_set)
+			range_value = range_value.replace("bytes", "");
+			range_value = range_value.replace("=", "");
+			range_value = range_value.trimmed();
+			if (range_value.count("-") > 0)
 			{
-				byte_range.start = file_size - byte_range.end;
-				if ((byte_range.start < 0) || (byte_range.start > file_size))
+				bool is_start_set = true;
+				bool is_end_set = true;
+				if (range_value.mid(0, range_value.indexOf("-")).trimmed().length() == 0)
+				{
+					is_start_set = false;
+				}
+				if (range_value.mid(range_value.indexOf("-")+1, range_value.length()-range_value.indexOf("-")).trimmed().length() == 0)
+				{
+					is_end_set = false;
+				}
+
+				byte_range.start = static_cast<quint64>(range_value.mid(0, range_value.indexOf("-")).trimmed().toULongLong());
+				byte_range.end = static_cast<quint64>(range_value.mid(range_value.indexOf("-")+1, range_value.length()-range_value.indexOf("-")).trimmed().toULongLong());
+
+				if (!is_start_set)
+				{
+					byte_range.start = file_size - byte_range.end;
+					if ((byte_range.start < 0) || (byte_range.start > file_size))
+					{
+						byte_range.start = 0;
+					}
+				}
+				if ((!is_end_set) || (byte_range.end < 0))
+				{
+					qDebug() << "Random read: offset end has been set as the end of file";
+					byte_range.end = file_size;
+				}
+
+				if (byte_range.start > byte_range.end)
+				{
+					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "The requested range end position is greater than its start position");
+				}
+
+				if (byte_range.start == byte_range.end)
 				{
 					byte_range.start = 0;
 				}
 			}
-			if ((!is_end_set) || (byte_range.end < 0) || (byte_range.start > byte_range.end))
-			{
-				qDebug() << "Random read: offset end has been set as the end of file";
-				byte_range.end = file_size;
-			}
-			if (byte_range.start == byte_range.end)
-			{
-				byte_range.start = 0;
-			}
 		}
-	}
-	byte_range.length = ((byte_range.end - byte_range.start) > 0) ? (byte_range.end - byte_range.start) : 0;
 
+		byte_range.length = ((byte_range.end - byte_range.start) > 0) ? (byte_range.end - byte_range.start) : 0;
+		return createStaticFileRangeResponse(filename, byte_range, HttpProcessor::getContentTypeByFilename(filename), false);
+	}
+
+	// Client wants to see only the size of the requested file (not its content)
 	if (method == RequestMethod::HEAD)
 	{
 		BasicResponseData response_data;
@@ -290,11 +300,7 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 		return HttpResponse(response_data);
 	}
 
-	if (!headers.contains("range"))
-	{
-		return createStaticStreamResponse(filename, false);
-	}
-	return createStaticFileRangeResponse(filename, byte_range, HttpProcessor::getContentTypeByFilename(filename), false);
+	return createStaticStreamResponse(filename, false);
 }
 
 HttpResponse EndpointController::serveFolderListing(QString folder_title, QString cur_folder_url, QString parent_folder_url, QList<FolderItem> items)

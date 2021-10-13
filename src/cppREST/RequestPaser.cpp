@@ -55,11 +55,12 @@ HttpRequest RequestPaser::getRequest() const
 	}
 
 	parsed_request.setBody(getRequestBody().trimmed());
-	qDebug() << "Body = " << parsed_request.getBody();
 	parsed_request.setContentType(ContentType::TEXT_HTML);
 	if (parsed_request.getHeaders().contains("accept"))
 	{
-		if (HttpProcessor::getContentTypeFromString(parsed_request.getHeaders()["accept"]) == ContentType::APPLICATION_JSON)
+		QList<QString> headers = parsed_request.getHeaders()["accept"];
+		if (headers.isEmpty()) return parsed_request;
+		if (HttpProcessor::getContentTypeFromString(headers[0]) == ContentType::APPLICATION_JSON)
 		{
 			parsed_request.setContentType(ContentType::APPLICATION_JSON);
 		}

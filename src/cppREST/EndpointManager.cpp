@@ -6,7 +6,7 @@ EndpointManager::EndpointManager()
 
 HttpResponse EndpointManager::blockInvalidUsers(HttpRequest request)
 {
-	QString auth_header = request.getHeaderByName("Authorization");
+	QString auth_header = request.getHeaderByName("Authorization").length() > 0 ? request.getHeaderByName("Authorization")[0] : "";
 	if (auth_header.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpProcessor::getContentTypeFromString("text/plain"), "You are in a protected area. Please provide your credentials");

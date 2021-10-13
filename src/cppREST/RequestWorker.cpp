@@ -216,13 +216,21 @@ void RequestWorker::run()
 		quint64 chunk_size = 1024*10;
 		quint64 pos = 0;
 		quint64 file_size = streamed_file.size();
+		bool transfer_encoding_chunked = false;
 
 		if (response.getByteRange().length > 0)
 		{
 			pos = response.getByteRange().start;
 		}
 
-		qDebug() << "Range = " << response.getByteRange().start << ", " << response.getByteRange().end << ", " << response.getByteRange().length;
+		if (!parsed_request.getHeaderByName("Transfer-Encoding").isEmpty())
+		{
+			if (parsed_request.getHeaderByName("Transfer-Encoding")[0].toLower() == "chunked")
+			{
+				transfer_encoding_chunked = true;
+			}
+		}
+
 		while(!streamed_file.atEnd())
 		{
 			if (is_terminated_) break;
@@ -231,7 +239,7 @@ void RequestWorker::run()
 			QByteArray data = streamed_file.read(chunk_size);
 			pos = pos + chunk_size;
 
-			if (parsed_request.getHeaderByName("Transfer-Encoding").toLower() == "chunked")
+			if (transfer_encoding_chunked)
 			{
 				// Should be used for chunked transfer (without content-lenght)
 				sendResponseDataPart(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
@@ -260,7 +268,7 @@ void RequestWorker::run()
 		streamed_file.close();
 
 		// Should be used for chunked transfer (without content-lenght)
-		if (parsed_request.getHeaderByName("Transfer-Encoding").toLower() == "chunked")
+		if (transfer_encoding_chunked)
 		{
 			sendResponseDataPart(ssl_socket, "0\r\n");
 			sendResponseDataPart(ssl_socket, "\r\n");
