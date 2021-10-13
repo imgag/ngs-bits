@@ -20,8 +20,8 @@ private slots:
 		S_EQUAL(parsed_request.getRemoteAddress(), "127.0.0.1");
 		S_EQUAL(HttpProcessor::convertMethodTypeToString(parsed_request.getMethod()), "get");
 		S_EQUAL(parsed_request.getUrlParams().value("var"), "val");
-		S_EQUAL(parsed_request.getHeaders().value("host"), "localhost:8443");
-		S_EQUAL(parsed_request.getHeaders().value("connection"), "keep-alive");
+		S_EQUAL(parsed_request.getHeaders()["host"][0], "localhost:8443");
+		S_EQUAL(parsed_request.getHeaders()["connection"][0], "keep-alive");
 
 		raw_request.append("Malformed header - value\r\n");
 		IS_THROWN(Exception, parser->getRequest());
