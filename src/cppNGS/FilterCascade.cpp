@@ -3468,8 +3468,8 @@ void FilterSvRemoveChromosomeType::apply(const BedpeFile& svs, FilterResult& res
 		}
 		else
 		{
-			// only pass if both positions are located on special chromosomes
-			result.flags()[i] = !svs[i].chr1().isNonSpecial() && !svs[i].chr2().isNonSpecial();
+			//passes if one breakpoint is located on special chromosomes
+			result.flags()[i] = !svs[i].chr1().isNonSpecial() || !svs[i].chr2().isNonSpecial();
 		}
 	}
 }

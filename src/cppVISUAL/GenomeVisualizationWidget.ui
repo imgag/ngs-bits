@@ -19,23 +19,23 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout" rowstretch="0,0">
-   <property name="leftMargin">
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
     <number>3</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
    </property>
    <property name="topMargin">
     <number>3</number>
    </property>
    <property name="rightMargin">
-    <number>3</number>
+    <number>0</number>
    </property>
    <property name="bottomMargin">
     <number>3</number>
    </property>
-   <property name="spacing">
-    <number>3</number>
-   </property>
-   <item row="0" column="0">
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="spacing">
       <number>3</number>
@@ -121,9 +121,6 @@
       </spacer>
      </item>
     </layout>
-   </item>
-   <item row="1" column="0">
-    <widget class="QTextEdit" name="textEdit"/>
    </item>
   </layout>
  </widget>

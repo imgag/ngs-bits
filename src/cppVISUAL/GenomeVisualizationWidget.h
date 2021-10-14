@@ -2,6 +2,7 @@
 #define GENOMEVISUALIZATIONWIDGET_H
 
 #include "cppVISUAL_global.h"
+#include "GenePanel.h"
 #include "FastaFileIndex.h"
 #include "BedFile.h"
 #include "Transcript.h"
@@ -48,6 +49,7 @@ signals:
 
 private:
 	Ui::GenomeVisualizationWidget* ui_;
+	GenePanel* gene_panel_;
 	GenomeVisualizationSettings settings_;
 	const FastaFileIndex& genome_idx_;
 	const TranscriptList& transcripts_;

@@ -9,6 +9,7 @@
 GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const FastaFileIndex& genome_idx, const TranscriptList& transcripts)
 	: QWidget(parent)
 	, ui_(new Ui::GenomeVisualizationWidget)
+	, gene_panel_(new GenePanel(this, genome_idx, transcripts))
 	, settings_()
 	, genome_idx_(genome_idx)
 	, transcripts_(transcripts)
@@ -35,29 +36,8 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const Fast
 		trans_to_index_[trans.name()] = i;
 	}
 
-	/* Code to determine genes with several transcript regions
-	for(auto it=gene_to_trans_indices_.begin(); it!=gene_to_trans_indices_.end(); ++it)
-	{
-		QByteArray gene = it.key();
-
-		BedFile roi;
-		foreach(int index, it.value())
-		{
-			const Transcript& trans = transcripts_[index];
-			roi.append(BedLine(trans.chr(), trans.start(), trans.end(), QByteArrayList() << trans.name()));
-		}
-		roi.extend(settings_.transcript_padding);
-		roi.merge(true, true);
-		if (roi.count()>1)
-		{
-			qDebug() << "Gene " << gene << " has several transcripts!";
-			for (int i=0; i<roi.count(); ++i)
-			{
-				qDebug() << "  " << roi[i].toString(true) << roi[i].annotations();
-			}
-		}
-	}
-	*/
+	//add gene panel to layout
+	layout()->addWidget(gene_panel_);
 
 	//connect signals and slots
 	connect(ui_->chr_selector, SIGNAL(currentTextChanged(QString)), this, SLOT(setChromosomeRegion(QString)));
@@ -65,6 +45,8 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const Fast
 	connect(ui_->zoomin_btn, SIGNAL(clicked(bool)), this, SLOT(zoomIn()));
 	connect(ui_->zoomout_btn, SIGNAL(clicked(bool)), this, SLOT(zoomOut()));
 	connect(this, SIGNAL(regionChanged(BedLine)), this, SLOT(updateRegionWidgets(BedLine)));
+	connect(this, SIGNAL(regionChanged(BedLine)), gene_panel_, SLOT(setRegion(BedLine)));
+
 }
 
 void GenomeVisualizationWidget::setRegion(const Chromosome& chr, int start, int end)
@@ -94,6 +76,7 @@ void GenomeVisualizationWidget::setRegion(const Chromosome& chr, int start, int 
 	{
 		end = genome_idx_.lengthOf(chr);
 		start = end - size + 1;
+		if (start<1) start = 1; //if size is bigger than chromosome, this can happen
 	}
 
 	//check new region is different from old
@@ -180,8 +163,6 @@ void GenomeVisualizationWidget::zoomOut()
 
 void GenomeVisualizationWidget::updateRegionWidgets(const BedLine& reg)
 {
-	qDebug() << "NEW REGION" << reg.toString(true) << reg.length();
-
 	ui_->chr_selector->blockSignals(true);
 	ui_->chr_selector->setCurrentText(reg.chr().strNormalized(true));
 	ui_->chr_selector->blockSignals(false);

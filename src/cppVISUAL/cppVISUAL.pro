@@ -2,7 +2,7 @@
 CONFIG += c++11 
 
 #base settings
-QT       += gui widgets
+QT       += gui widgets xml xmlpatterns network
 TEMPLATE = lib
 TARGET = cppVISUAL
 DEFINES += CPPVISUAL_LIBRARY
@@ -28,10 +28,13 @@ LIBS += -L$$PWD/../../bin -lcppNGS
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += \
-    GenomeVisualizationWidget.cpp
+    GenomeVisualizationWidget.cpp \
+    GenePanel.cpp
 
 HEADERS += \
-    GenomeVisualizationWidget.h
+    GenomeVisualizationWidget.h \
+    GenePanel.h
 
 FORMS += \
-    GenomeVisualizationWidget.ui
+    GenomeVisualizationWidget.ui \
+    GenePanel.ui

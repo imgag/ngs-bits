@@ -851,6 +851,11 @@ void MainWindow::on_actionAlleleBalance_triggered()
 	dlg->exec();
 }
 
+void MainWindow::on_actionLiftOver_triggered()
+{
+	//TODO lift-over dialog - non-modal (MS)
+}
+
 void MainWindow::on_actionClose_triggered()
 {
 	loadFile();
