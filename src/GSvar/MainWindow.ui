@@ -98,13 +98,6 @@
               <number>2</number>
              </property>
              <item>
-              <widget class="QScrollBar" name="verticalScrollBar">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-              </widget>
-             </item>
-             <item>
               <widget class="QWidget" name="vars_toolbar" native="true">
                <layout class="QHBoxLayout" name="horizontalLayout">
                 <property name="spacing">

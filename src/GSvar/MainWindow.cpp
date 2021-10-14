@@ -125,6 +125,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "CfdnaAnalysisDialog.h"
 #include "ClinvarUploadDialog.h"
 #include "GenomeVisualizationWidget.h"
+#include "LiftOverWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -853,7 +854,9 @@ void MainWindow::on_actionAlleleBalance_triggered()
 
 void MainWindow::on_actionLiftOver_triggered()
 {
-	//TODO lift-over dialog - non-modal (MS)
+	LiftOverWidget* widget = new LiftOverWidget(this);
+	auto dlg = GUIHelper::createDialog(widget, "Lift-over genome coordinates");
+	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionClose_triggered()
