@@ -77,7 +77,7 @@ Q_OBJECT
         regions.append(BedLine("chr8", 91057077, 91057223));
         regions.append(BedLine("chr8", 91063905, 91063967));
         regions.append(BedLine("chr8", 91064066, 91064227));
-        t.setRegions(regions, 91018464, 91064126);
+        t.setRegions(regions, 91018464, 91064125);
 
         return t;
 
@@ -273,5 +273,46 @@ private slots:
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.*21+18A>C");
         X_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
+    }
+
+    void translateDnaSequence()
+    {
+        QString ref_file = Settings::string("reference_genome", true);
+        if (ref_file=="") SKIP("Test needs the reference genome!");
+        FastaFileIndex reference(ref_file);
+
+        VariantHgvsAnnotator annotator;
+        Transcript t_1 = trans_SLC51A();
+        QString aa_seq_1("MetGluProGlyArgThrGlnIleLysLeuAspProArgTyrThrAlaAspLeuLeuGlu"
+                         "ValLeuLysThrAsnTyrGlyIleProSerAlaCysPheSerGlnProProThrAlaAla"
+                         "GlnLeuLeuArgAlaLeuGlyProValGluLeuAlaLeuThrSerIleLeuThrLeuLeu"
+                         "AlaLeuGlySerIleAlaIlePheLeuGluAspAlaValTyrLeuTyrLysAsnThrLeu"
+                         "CysProIleLysArgArgThrLeuLeuTrpLysSerSerAlaProThrValValSerVal"
+                         "LeuCysCysPheGlyLeuTrpIleProArgSerLeuValLeuValGluMetThrIleThr"
+                         "SerPheTyrAlaValCysPheTyrLeuLeuMetLeuValMetValGluGlyPheGlyGly"
+                         "LysGluAlaValLeuArgThrLeuArgAspThrProMetMetValHisThrGlyProCys"
+                         "CysCysCysCysProCysCysProArgLeuLeuLeuThrArgLysLysLeuGlnLeuLeu"
+                         "MetLeuGlyProPheGlnTyrAlaPheLeuLysIleThrLeuThrLeuValGlyLeuPhe"
+                         "LeuValProAspGlyIleTyrAspProAlaAspIleSerGluGlySerThrAlaLeuTrp"
+                         "IleAsnThrPheLeuGlyValSerThrLeuLeuAlaLeuTrpThrLeuGlyIleIleSer"
+                         "ArgGlnAlaArgLeuHisLeuGlyGluGlnAsnMetGlyAlaLysPheAlaLeuPheGln"
+                         "ValLeuLeuIleLeuThrAlaLeuGlnProSerIlePheSerValLeuAlaAsnGlyGly"
+                         "GlnIleAlaCysSerProProTyrSerSerLysThrArgSerGlnValMetAsnCysHis"
+                         "LeuLeuIleLeuGluThrPheLeuMetThrValLeuThrArgMetTyrTyrArgArgLys"
+                         "AspHisLysValGlyTyrGluThrPheSerSerProAspLeuAspLeuAsnLeuLysAlaTer");
+        S_EQUAL(annotator.translate(annotator.getCodingSequence(t_1, reference)), aa_seq_1);
+
+        Transcript t_2 = trans_APOD();
+        QString aa_seq_2("MetValMetLeuLeuLeuLeuLeuSerAlaLeuAlaGlyLeuPheGlyAlaAlaGluGly"
+                         "GlnAlaPheHisLeuGlyLysCysProAsnProProValGlnGluAsnPheAspValAsn"
+                         "LysTyrLeuGlyArgTrpTyrGluIleGluLysIleProThrThrPheGluAsnGlyArg"
+                         "CysIleGlnAlaAsnTyrSerLeuMetGluAsnGlyLysIleLysValLeuAsnGlnGlu"
+                         "LeuArgAlaAspGlyThrValAsnGlnIleGluGlyGluAlaThrProValAsnLeuThr"
+                         "GluProAlaLysLeuGluValLysPheSerTrpPheMetProSerAlaProTyrTrpIle"
+                         "LeuAlaThrAspTyrGluAsnTyrAlaLeuValTyrSerCysThrCysIleIleGlnLeu"
+                         "PheHisValAspPheAlaTrpIleLeuAlaArgAsnProAsnLeuProProGluThrVal"
+                         "AspSerLeuLysAsnIleLeuThrSerAsnAsnIleAspValLysLysMetThrValThr"
+                         "AspGlnValAsnCysProLysLeuSerTer");
+        S_EQUAL(annotator.translate(annotator.getCodingSequence(t_2, reference)), aa_seq_2);
     }
 };

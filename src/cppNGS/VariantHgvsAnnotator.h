@@ -7,7 +7,9 @@
 #include "VcfFile.h"
 #include "FastaFileIndex.h"
 #include "Transcript.h"
+#include "Sequence.h"
 #include <QString>
+#include <QHash>
 
 ///Representation of the effect of a variant
 enum class VariantConsequenceType
@@ -108,7 +110,11 @@ private:
     int splice_region_ex_;
     int splice_region_in_;
 
+    QHash<QByteArray, QByteArray> code_sun_;
+
+    QString getHgvsPosition(const BedFile& regions, const VcfLine& variant, int start, int end, bool plus_strand, bool utr_5);
     QString getPositionInIntron(const BedFile& regions, int genomic_position, bool plus_strand, bool utr_5 = false);
+    QByteArray codonToAminoAcid(const QByteArray &codon);
 
 public:
     ///Default constructor
@@ -120,6 +126,9 @@ public:
     ///Converts a variant in VCF format to HGVS nomenclature
     HgvsNomenclature variantToHgvs(const Transcript& transcript, const VcfLine& variant, const FastaFileIndex& genome_idx);
     HgvsNomenclature variantToHgvs(const Transcript& transcript, const Variant& variant, const FastaFileIndex& genome_idx);
+
+    Sequence getCodingSequence(const Transcript& trans, const FastaFileIndex& genome_idx);
+    QByteArray translate(const Sequence& seq);
 };
 
 #endif // VARIANTHGVSANNOTATOR_H
