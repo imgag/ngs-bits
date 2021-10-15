@@ -48,10 +48,10 @@ HttpRequest RequestPaser::getRequest() const
 			qDebug() << body[i].left(header_separator).toLower() << ": " << body[i].mid(header_separator+1).trimmed();
 
 			QList<QByteArray> header_values = body[i].mid(header_separator+1).trimmed().split(',');
-			for (int i = 0; i < header_values.count(); ++i)
+			for (int h = 0; h < header_values.count(); ++h)
 			{
-				if (header_values[i].trimmed().length() == 0) continue;
-				parsed_request.addHeader(body[i].left(header_separator).toLower(), header_values[i].trimmed());
+				if (header_values[h].trimmed().length() == 0) continue;
+				parsed_request.addHeader(body[i].left(header_separator).toLower(), header_values[h].trimmed());
 			}
 		}
 		else if (param_separator > -1)

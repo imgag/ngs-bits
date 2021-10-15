@@ -224,7 +224,6 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 	if (headers.contains("range"))
 	{
 		QList<ByteRange> byte_ranges;
-
 		for (int i = 0; i < headers["range"].count(); ++i)
 		{
 			ByteRange current_range;

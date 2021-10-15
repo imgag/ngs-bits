@@ -54,7 +54,7 @@ private slots:
 		{
 			HttpHeaders add_headers;
 			add_headers.insert("Accept", "text/html");
-			add_headers.insert("Range", "bytes=251-283");
+			add_headers.insert("Range", "bytes=251-282,1369-1374");
 			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:8443/v1/", add_headers);
 		}
 		catch(Exception& e)
@@ -62,8 +62,8 @@ private slots:
 			qDebug() << e.message();
 			SKIP("This test requieres a running server");
 		}
-
-		S_EQUAL(reply, "Welcome to GSvarServer info page");
+		IS_TRUE(reply.contains("Welcome to GSvarServer info page"));
+		IS_TRUE(reply.contains("looks"));
 	}
 
 	void test_basic_http_authentication()
