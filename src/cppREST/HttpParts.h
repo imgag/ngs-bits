@@ -88,7 +88,8 @@ struct CPPRESTSHARED_EXPORT BasicResponseData
 	qint64 length;
 	ContentType content_type;
 	QString filename;
-	ByteRange byte_range;
+	QString boundary;
+	QList<ByteRange> byte_ranges;
 	qint64 file_size;
 	bool is_stream = false;
 	bool is_downloadable = false;

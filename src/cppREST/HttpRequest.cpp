@@ -32,9 +32,14 @@ ContentType HttpRequest::getContentType() const
 
 void HttpRequest::addHeader(QString key, QString value)
 {
+	if (value.trimmed().length() == 0) return;
 	if (!headers_.contains(key.toLower()))
 	{
-		headers_[key].append(value.toLower());
+		headers_[key] = QList<QString>{};
+	}
+	if (!headers_[key].contains(value.toLower()))
+	{
+		headers_[key].append(value.trimmed().toLower());
 	}
 }
 

@@ -103,14 +103,14 @@ ResponseStatus HttpResponse::getStatus() const
 	return response_status_;
 }
 
-void HttpResponse::setByteRange(ByteRange range)
+void HttpResponse::setByteRanges(QList<ByteRange> ranges)
 {
-	range_ = range;
+	ranges_ = ranges;
 }
 
-ByteRange HttpResponse::getByteRange() const
+QList<ByteRange> HttpResponse::getByteRanges() const
 {
-	return range_;
+	return ranges_;
 }
 
 QByteArray HttpResponse::getStatusLine() const
@@ -141,6 +141,16 @@ QByteArray HttpResponse::getHeaders() const
 	return headers_;
 }
 
+void HttpResponse::setBoundary(QByteArray boundary)
+{
+	multipart_boundary_ = boundary;
+}
+
+QByteArray HttpResponse::getBoundary() const
+{
+	return multipart_boundary_;
+}
+
 void HttpResponse::setPayload(QByteArray payload)
 {
 	payload_ = payload;
@@ -160,35 +170,73 @@ void HttpResponse::setRangeNotSatisfiableHeaders(BasicResponseData data)
 void HttpResponse::readBasicResponseData(BasicResponseData data)
 {
 	setStatus(data.status);
-	if ((data.byte_range.end > 0) && (data.byte_range.length > 0))
+	if (data.byte_ranges.length() > 0)
 	{
 		setStatus(ResponseStatus::PARTIAL_CONTENT);
+		data.boundary = ServerHelper::generateUniqueStr();
+		setBoundary(data.boundary.toLocal8Bit());
 	}
 
 	setIsStream(data.is_stream);
 	setFilename(data.filename);
 	setHeaders(generateRegularHeaders(data));
-	if (data.byte_range.length > 0)
+	if (data.byte_ranges.length() > 0)
 	{
-		setByteRange(data.byte_range);
+		setByteRanges(data.byte_ranges);
 	}
 }
 
 QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 {
+	QString content_type = "Content-Type: " + HttpProcessor::convertContentTypeToString(data.content_type) + "\r\n";
 	QByteArray headers;
 	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
-	headers.append("Content-Length: " + QString::number(data.length) + "\r\n");
-	headers.append("Content-Type: " + HttpProcessor::convertContentTypeToString(data.content_type) + "\r\n");
-	headers.append("Connection: Keep-Alive\r\n");
+
+	if (data.byte_ranges.count() > 0)
+	{
+		content_type = "Content-Type: application/octet-stream\r\n";
+		qint64 metadata_length = 0;
+		for (int i = 0; i < data.byte_ranges.count(); ++i)
+		{
+			QString range_header = "Content-Range: bytes " + QString::number(data.byte_ranges[i].start) + "-" + QString::number(data.byte_ranges[i].end) + "/" + QString::number(data.file_size) + "\r\n";
+			if (data.byte_ranges.count() == 1)
+			{
+				headers.append(range_header);
+				break;
+			}
+			if (data.byte_ranges.count() > 1)
+			{
+				metadata_length = metadata_length + 2 + data.boundary.length() + 2;
+				metadata_length = metadata_length + content_type.length();
+				metadata_length = metadata_length + range_header.length() + 2;
+			}
+		}
+
+		if (data.byte_ranges.count() > 1)
+		{
+			metadata_length = 2 + metadata_length + 2 + data.boundary.length() + 2 + 2;
+			headers.append("Content-Type: multipart/byteranges; boundary=" + data.boundary + "\r\n");
+		}
+
+		headers.append("Accept-Ranges: bytes\r\n");
+		headers.append("Content-Length: " + QString::number(data.length+metadata_length) + "\r\n");
+
+	}
+	else
+	{
+		headers.append("Content-Length: " + QString::number(data.length) + "\r\n");
+		headers.append(content_type);
+		headers.append("Connection: Keep-Alive\r\n");
+	}
+
+
 	if (HttpProcessor::convertResponseStatusToStatusCodeNumber(data.status) == 401)
 	{
 		headers.append("WWW-Authenticate: Basic realm=\"Access to the secure area of GSvar\"\r\n");
 	}
-	if ((data.byte_range.end > 0) && (data.byte_range.length > 0))
+	if (data.byte_ranges.length() > 0)
 	{
-		headers.append("Accept-Ranges: bytes\r\n");
-		headers.append("Content-Range: bytes " + QString::number(data.byte_range.start) + "-" + QString::number(data.byte_range.end) + "/" + QString::number(data.file_size) + "\r\n");
+
 	}
 	if (data.is_downloadable)
 	{

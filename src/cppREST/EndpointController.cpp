@@ -66,7 +66,7 @@ HttpResponse EndpointController::serveStaticForTempUrl(const HttpRequest& reques
 HttpResponse EndpointController::serveStaticFileFromCache(const HttpRequest& request)
 {
 	QString filename = FileCache::getFileById(request.getPathParams()[0]).filename_with_path;
-	return createStaticFromCacheResponse(filename, ByteRange{}, HttpProcessor::getContentTypeByFilename(filename), false);
+	return createStaticFromCacheResponse(filename, QList<ByteRange>{}, HttpProcessor::getContentTypeByFilename(filename), false);
 }
 
 HttpResponse EndpointController::getFileInfo(const HttpRequest& request)
@@ -108,12 +108,18 @@ HttpResponse EndpointController::getFileInfo(const HttpRequest& request)
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-HttpResponse EndpointController::createStaticFileRangeResponse(QString filename, ByteRange byte_range, ContentType type, bool is_downloadable)
+HttpResponse EndpointController::createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable)
 {
+	quint64 total_length = 0;
+	for (int i = 0; i < byte_ranges.count(); ++i)
+	{
+		total_length = total_length + byte_ranges[i].length;
+	}
+
 	BasicResponseData response_data;
 	response_data.filename = filename;
-	response_data.length = byte_range.end - byte_range.start; //static_file.content.length();
-	response_data.byte_range = byte_range;
+	response_data.length = total_length;
+	response_data.byte_ranges = byte_ranges;
 	response_data.file_size = QFile(filename).size();
 	response_data.is_stream = true;
 	response_data.content_type = type;
@@ -135,7 +141,7 @@ HttpResponse EndpointController::createStaticStreamResponse(QString filename, bo
 	return HttpResponse(response_data);
 }
 
-HttpResponse EndpointController::createStaticFromCacheResponse(QString id, ByteRange byte_range, ContentType type, bool is_downloadable)
+HttpResponse EndpointController::createStaticFromCacheResponse(QString id, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable)
 {
 	StaticFile static_file = FileCache::getFileById(id);
 
@@ -147,7 +153,7 @@ HttpResponse EndpointController::createStaticFromCacheResponse(QString id, ByteR
 	BasicResponseData response_data;
 	response_data.filename = FileCache::getFileById(id).filename_with_path;
 	response_data.length = static_file.content.length();
-	response_data.byte_range = byte_range;
+	response_data.byte_ranges = byte_ranges;
 	response_data.file_size = static_file.size;
 	response_data.content_type = type;
 	response_data.is_downloadable = is_downloadable;
@@ -217,12 +223,14 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 
 	if (headers.contains("range"))
 	{
-		ByteRange byte_range {};
-		byte_range.start = 0;
-		byte_range.end = 0;
+		QList<ByteRange> byte_ranges;
 
 		for (int i = 0; i < headers["range"].count(); ++i)
 		{
+			ByteRange current_range;
+			current_range.start = 0;
+			current_range.end = 0;
+
 			QString range_value = headers["range"][i];
 			// We support only bytes as units for range requests
 			// Examples:
@@ -232,11 +240,11 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 			// Range: bytes=19000-
 			// or (the last 500 bytes of the file)
 			// // Range: bytes=-500
-			if (range_value.count(",") > 0)
-			{
-//				range_value = range_value.mid(0, range_value.indexOf(",")).trimmed();
-				return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "Currently we cannot serve lists of ranges");
-			}
+//			if (range_value.count(",") > 0)
+//			{
+////				range_value = range_value.mid(0, range_value.indexOf(",")).trimmed();
+//				return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "Currently we cannot serve lists of ranges");
+//			}
 
 			range_value = range_value.replace("bytes", "");
 			range_value = range_value.replace("=", "");
@@ -254,37 +262,35 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 					is_end_set = false;
 				}
 
-				byte_range.start = static_cast<quint64>(range_value.mid(0, range_value.indexOf("-")).trimmed().toULongLong());
-				byte_range.end = static_cast<quint64>(range_value.mid(range_value.indexOf("-")+1, range_value.length()-range_value.indexOf("-")).trimmed().toULongLong());
+				current_range.start = static_cast<quint64>(range_value.mid(0, range_value.indexOf("-")).trimmed().toULongLong());
+				current_range.end = static_cast<quint64>(range_value.mid(range_value.indexOf("-")+1, range_value.length()-range_value.indexOf("-")).trimmed().toULongLong());
 
 				if (!is_start_set)
 				{
-					byte_range.start = file_size - byte_range.end;
-					if ((byte_range.start < 0) || (byte_range.start > file_size))
+					current_range.start = file_size - current_range.end;
+					if ((current_range.start < 0) || (current_range.start > file_size))
 					{
-						byte_range.start = 0;
+						current_range.start = 0;
 					}
 				}
-				if ((!is_end_set) || (byte_range.end < 0))
+				if ((!is_end_set) || (current_range.end < 0))
 				{
 					qDebug() << "Random read: offset end has been set as the end of file";
-					byte_range.end = file_size;
+					current_range.end = file_size;
 				}
 
-				if (byte_range.start > byte_range.end)
+				if (current_range.start > current_range.end)
 				{
 					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "The requested range end position is greater than its start position");
 				}
-
-				if (byte_range.start == byte_range.end)
-				{
-					byte_range.start = 0;
-				}
 			}
+
+			current_range.length = ((current_range.end - current_range.start) > 0) ? (current_range.end - current_range.start) : 0;
+			current_range.length = current_range.length + 1;
+			byte_ranges.append(current_range);
 		}
 
-		byte_range.length = ((byte_range.end - byte_range.start) > 0) ? (byte_range.end - byte_range.start) : 0;
-		return createStaticFileRangeResponse(filename, byte_range, HttpProcessor::getContentTypeByFilename(filename), false);
+		return createStaticFileRangeResponse(filename, byte_ranges, HttpProcessor::getContentTypeByFilename(filename), false);
 	}
 
 	// Client wants to see only the size of the requested file (not its content)
@@ -414,7 +420,7 @@ QString EndpointController::getServedRootPath(const QList<QString>& path_parts)
 	return "";
 }
 
-StaticFile EndpointController::readFileContent(const QString& filename, const ByteRange& byte_range)
+StaticFile EndpointController::readFileContent(const QString& filename, const QList<ByteRange>& byte_ranges)
 {
 	StaticFile static_file {};
 	static_file.filename_with_path = filename;
@@ -433,7 +439,7 @@ StaticFile EndpointController::readFileContent(const QString& filename, const By
 		THROW(FileAccessException, "File could not be found: " + filename);
 	}
 
-	if ((!file.atEnd()) && (byte_range.length == 0))
+	if ((!file.atEnd()) && (byte_ranges.length() == 0))
 	{
 		try
 		{
@@ -445,9 +451,12 @@ StaticFile EndpointController::readFileContent(const QString& filename, const By
 		}
 	}
 
-	if ((!file.atEnd()) && (byte_range.length > 0) && (file.seek(byte_range.start)))
+	for (int i = 0; i < byte_ranges.count(); ++i)
 	{
-		static_file.content = file.read(byte_range.length);
+		if ((!file.atEnd()) && (byte_ranges[i].length > 0) && (file.seek(byte_ranges[i].start)))
+		{
+			static_file.content.append(file.read(byte_ranges[i].length));
+		}
 	}
 
 	if ((!static_file.content.isEmpty()) && (Settings::boolean("static_cache", true)))
@@ -469,7 +478,7 @@ StaticFile EndpointController::readFileContent(const QString& filename, const By
 
 QString EndpointController::addFileToCache(const QString& filename)
 {
-	readFileContent(filename, ByteRange{});
+	readFileContent(filename, QList<ByteRange>{});
 	return FileCache::getFileIdIfInCache(filename);
 }
 

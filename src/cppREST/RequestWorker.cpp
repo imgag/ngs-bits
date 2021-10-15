@@ -186,8 +186,15 @@ void RequestWorker::run()
 		QFile streamed_file(response.getFilename());
 		if (!streamed_file.exists())
 		{
-			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "Requested file does not exist"));
-			return;
+			if (response.getFilename().endsWith(".bai"))
+			{
+				streamed_file.setFileName(response.getFilename().replace(".bai", ".bam.bai"));
+			}
+			if (!streamed_file.exists())
+			{
+				sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "Requested file does not exist"));
+				return;
+			}
 		}
 
 		QFile::OpenMode mode = QFile::ReadOnly;
@@ -213,15 +220,10 @@ void RequestWorker::run()
 		sendResponseDataPart(ssl_socket, response.getStatusLine());
 		sendResponseDataPart(ssl_socket, response.getHeaders());
 
-		quint64 chunk_size = 1024*10;
+
 		quint64 pos = 0;
 		quint64 file_size = streamed_file.size();
 		bool transfer_encoding_chunked = false;
-
-		if (response.getByteRange().length > 0)
-		{
-			pos = response.getByteRange().start;
-		}
 
 		if (!parsed_request.getHeaderByName("Transfer-Encoding").isEmpty())
 		{
@@ -231,39 +233,78 @@ void RequestWorker::run()
 			}
 		}
 
-		while(!streamed_file.atEnd())
+		int chunk_size = 1024*10;
+		QByteArray data;
+		QList<ByteRange> ranges = response.getByteRanges();
+		if (ranges.count() > 0)
 		{
-			if (is_terminated_) break;
-			if ((pos > file_size) || (pos < 0)) break;
-			streamed_file.seek(pos);
-			QByteArray data = streamed_file.read(chunk_size);
-			pos = pos + chunk_size;
-
-			if (transfer_encoding_chunked)
+			for (int i = 0; i < ranges.count(); ++i)
 			{
-				// Should be used for chunked transfer (without content-lenght)
-				sendResponseDataPart(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
-				sendResponseDataPart(ssl_socket, data.append("\r\n"));
-			}
-			else
-			{
-				// Keep connection alive and add data incrementally in parts (content-lenght is specified)
-				sendResponseDataPart(ssl_socket, data);
-			}
-
-			if (response.getByteRange().length > 0)
-			{
-				if (pos > response.getByteRange().end)
+				chunk_size = 1024*10;
+				pos = ranges[i].start;
+				qDebug() << "Streaming range " << ranges[i].start << ", " << ranges[i].end;
+				if (ranges.count() > 1)
 				{
-					chunk_size = response.getByteRange().end - pos;
+					sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"\r\n");
+					sendResponseDataPart(ssl_socket, "Content-Type: application/octet-stream\r\n");
+					sendResponseDataPart(ssl_socket, "Content-Range: bytes " + QByteArray::number(ranges[i].start) + "-" + QByteArray::number(ranges[i].end) + "/" + QByteArray::number(file_size) + "\r\n");
+					sendResponseDataPart(ssl_socket, "\r\n");
+				}
+				while(pos<(ranges[i].end+1))
+				{
+					if (is_terminated_) break;
+					qDebug() << pos;
+					if (pos > file_size) break;
+					streamed_file.seek(pos);
+
+					if ((pos+chunk_size)>(ranges[i].end+1))
+					{
+						chunk_size = ranges[i].end - pos + 1;
+					}
+
+					if (chunk_size <= 0)
+					{
+						break;
+					}
+					data = streamed_file.read(chunk_size);
+					sendResponseDataPart(ssl_socket, data);
+					pos = pos + chunk_size;
+				}
+				sendResponseDataPart(ssl_socket, "\r\n");
+				if ((i == (ranges.count()-1)) && (ranges.count() > 1))
+				{
+					sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"--\r\n");
 				}
 
-				if (chunk_size <= 0)
+			}
+		}
+		else
+		{
+
+			while(!streamed_file.atEnd())
+			{
+				if (is_terminated_) break;
+
+				if ((pos > file_size) || (pos < 0)) break;
+				streamed_file.seek(pos);
+				data = streamed_file.read(chunk_size);
+				pos = pos + chunk_size;
+
+
+				if (transfer_encoding_chunked)
 				{
-					break;
+					// Should be used for chunked transfer (without content-lenght)
+					sendResponseDataPart(ssl_socket, intToHex(data.size()).toLocal8Bit()+"\r\n");
+					sendResponseDataPart(ssl_socket, data.append("\r\n"));
+				}
+				else
+				{
+					// Keep connection alive and add data incrementally in parts (content-lenght is specified)
+					sendResponseDataPart(ssl_socket, data);
 				}
 			}
 		}
+
 
 		streamed_file.close();
 

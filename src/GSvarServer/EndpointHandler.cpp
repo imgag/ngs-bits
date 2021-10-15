@@ -254,7 +254,7 @@ HttpResponse EndpointHandler::getProcessedSamplePath(const HttpRequest& request)
 	json_doc_output.setArray(json_list_output);
 
 	BasicResponseData response_data;
-	response_data.byte_range = ByteRange{};
+	response_data.byte_ranges = QList<ByteRange>{};
 	response_data.length = json_doc_output.toJson().length();
 	response_data.content_type = ContentType::APPLICATION_JSON;
 	response_data.is_downloadable = false;
@@ -501,7 +501,7 @@ HttpResponse EndpointHandler::getSecondaryAnalyses(const HttpRequest& request)
 	json_doc_output.setArray(json_array);
 
 	BasicResponseData response_data;
-	response_data.byte_range = ByteRange{};
+	response_data.byte_ranges = QList<ByteRange>{};
 	response_data.length = json_doc_output.toJson().length();
 	response_data.content_type = ContentType::APPLICATION_JSON;
 	response_data.is_downloadable = false;

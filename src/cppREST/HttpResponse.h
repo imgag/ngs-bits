@@ -9,6 +9,7 @@
 #include <QJsonObject>
 #include "HttpProcessor.h"
 #include "HtmlEngine.h"
+#include "ServerHelper.h"
 
 class CPPRESTSHARED_EXPORT HttpResponse : public QByteArray
 {
@@ -28,8 +29,8 @@ public:
 	void setStatus(ResponseStatus response_status);
 	ResponseStatus getStatus() const;
 
-	void setByteRange(ByteRange range);
-	ByteRange getByteRange() const;
+	void setByteRanges(QList<ByteRange> ranges);
+	QList<ByteRange> getByteRanges() const;
 
 	QByteArray getStatusLine() const;
 
@@ -38,6 +39,9 @@ public:
 	void setHeaders(QByteArray headers);
 	void addHeader(QString header);
 	QByteArray getHeaders() const;
+
+	void setBoundary(QByteArray boundary);
+	QByteArray getBoundary() const;
 
 	void setPayload(QByteArray payload);
 	QByteArray getPayload() const;
@@ -59,8 +63,9 @@ protected:
 	ResponseStatus response_status_;
 	QByteArray status_line_;
 	QByteArray headers_;
+	QByteArray multipart_boundary_;
 	QByteArray payload_;
-	ByteRange range_;
+	QList<ByteRange> ranges_;
 };
 
 #endif // HTTPRESPONSE_H

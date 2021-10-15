@@ -27,9 +27,9 @@ public:
 	/// Returns file information in JSON format for a specific file
 	static HttpResponse getFileInfo(const HttpRequest& request);
 
-	static HttpResponse createStaticFileRangeResponse(QString filename, ByteRange byte_range, ContentType type, bool is_downloadable);
+	static HttpResponse createStaticFileRangeResponse(QString filename, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
 	static HttpResponse createStaticStreamResponse(QString filename, bool is_downloadable);
-	static HttpResponse createStaticFromCacheResponse(QString id, ByteRange byte_range, ContentType type, bool is_downloadable);
+	static HttpResponse createStaticFromCacheResponse(QString id, QList<ByteRange> byte_ranges, ContentType type, bool is_downloadable);
 	static HttpResponse serveStaticFile(QString filename, RequestMethod method, QMap<QString, QList<QString>> headers);
 
 protected:
@@ -48,7 +48,7 @@ private:
 	static QString getServedTempPath(QList<QString> path_parts);
 	static QString getServedRootPath(const QList<QString>& path_parts);
 
-	static StaticFile readFileContent(const QString& filename, const ByteRange& byte_range);
+	static StaticFile readFileContent(const QString& filename, const QList<ByteRange>& byte_ranges);
 	static QString addFileToCache(const QString& filename);
 };
 

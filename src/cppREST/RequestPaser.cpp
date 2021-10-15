@@ -46,7 +46,13 @@ HttpRequest RequestPaser::getRequest() const
 		if (header_separator > -1)
 		{
 			qDebug() << body[i].left(header_separator).toLower() << ": " << body[i].mid(header_separator+1).trimmed();
-			parsed_request.addHeader(body[i].left(header_separator).toLower(), body[i].mid(header_separator+1).trimmed());
+
+			QList<QByteArray> header_values = body[i].mid(header_separator+1).trimmed().split(',');
+			for (int i = 0; i < header_values.count(); ++i)
+			{
+				if (header_values[i].trimmed().length() == 0) continue;
+				parsed_request.addHeader(body[i].left(header_separator).toLower(), header_values[i].trimmed());
+			}
 		}
 		else if (param_separator > -1)
 		{
