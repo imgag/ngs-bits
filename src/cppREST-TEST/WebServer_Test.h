@@ -47,7 +47,7 @@ private slots:
 	}
 
 
-	void test_partial_content_request()
+	void test_partial_content_multirange_request()
 	{
 		QByteArray reply;
 		try
@@ -64,6 +64,44 @@ private slots:
 		}
 		IS_TRUE(reply.contains("Welcome to GSvarServer info page"));
 		IS_TRUE(reply.contains("looks"));
+	}
+
+	void test_partial_content_empty_end_request()
+	{
+		QByteArray reply;
+		try
+		{
+			HttpHeaders add_headers;
+			add_headers.insert("Accept", "text/html");
+			add_headers.insert("Range", "bytes=1830-");
+			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:8443/v1/", add_headers);
+		}
+		catch(Exception& e)
+		{
+			qDebug() << e.message();
+			SKIP("This test requieres a running server");
+		}
+		S_EQUAL(reply.trimmed(), "</html>");
+
+	}
+
+	void test_partial_content_empty_start_request()
+	{
+		QByteArray reply;
+		try
+		{
+			HttpHeaders add_headers;
+			add_headers.insert("Accept", "text/html");
+			add_headers.insert("Range", "bytes=-8");
+			reply = HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:8443/v1/", add_headers);
+		}
+		catch(Exception& e)
+		{
+			qDebug() << e.message();
+			SKIP("This test requieres a running server");
+		}
+		S_EQUAL(reply.trimmed(), "</html>");
+
 	}
 
 	void test_basic_http_authentication()

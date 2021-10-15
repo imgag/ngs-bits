@@ -239,12 +239,6 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 			// Range: bytes=19000-
 			// or (the last 500 bytes of the file)
 			// // Range: bytes=-500
-//			if (range_value.count(",") > 0)
-//			{
-////				range_value = range_value.mid(0, range_value.indexOf(",")).trimmed();
-//				return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "Currently we cannot serve lists of ranges");
-//			}
-
 			range_value = range_value.replace("bytes", "");
 			range_value = range_value.replace("=", "");
 			range_value = range_value.trimmed();
@@ -264,23 +258,28 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 				current_range.start = static_cast<quint64>(range_value.mid(0, range_value.indexOf("-")).trimmed().toULongLong());
 				current_range.end = static_cast<quint64>(range_value.mid(range_value.indexOf("-")+1, range_value.length()-range_value.indexOf("-")).trimmed().toULongLong());
 
-				if (!is_start_set)
+				if ((!is_start_set) && (is_end_set))
 				{
-					current_range.start = file_size - current_range.end;
-					if ((current_range.start < 0) || (current_range.start > file_size))
+					if (current_range.end<=file_size)
 					{
-						current_range.start = 0;
+						current_range.start = file_size - current_range.end;
+						current_range.end = file_size;
 					}
 				}
-				if ((!is_end_set) || (current_range.end < 0))
+				if ((!is_end_set) && (is_start_set))
 				{
 					qDebug() << "Random read: offset end has been set as the end of file";
 					current_range.end = file_size;
 				}
 
+				if ((!is_start_set) && (!is_end_set))
+				{
+					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "Range limits have not been specified");
+				}
+
 				if (current_range.start > current_range.end)
 				{
-					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "The requested range end position is greater than its start position");
+					return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "The requested range start position is greater than its end position");
 				}
 			}
 
