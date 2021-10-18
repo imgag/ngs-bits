@@ -173,6 +173,11 @@ EndpointController& EndpointController::instance()
 
 HttpResponse EndpointController::serveFolderContent(QString path, QString request_prefix, QString request_path, QList<QString> request_path_params)
 {
+	if (!Settings::boolean("allow_folder_listing", true))
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, ContentType::TEXT_HTML, "Requested location is not available due to the access restrictions");
+	}
+
 	QDir dir(path);
 	if (!dir.exists())
 	{
