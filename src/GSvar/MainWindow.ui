@@ -452,6 +452,8 @@
     <addaction name="separator"/>
     <addaction name="actionCytobandsToRegions"/>
     <addaction name="actionRegionToGenes"/>
+    <addaction name="separator"/>
+    <addaction name="actionLiftOver"/>
    </widget>
    <widget class="QMenu" name="menuNGSD">
     <property name="title">
@@ -1331,6 +1333,11 @@
   <action name="actionRegionToGenes">
    <property name="text">
     <string>Region &gt; Genes</string>
+   </property>
+  </action>
+  <action name="actionLiftOver">
+   <property name="text">
+    <string>Lift-over</string>
    </property>
   </action>
  </widget>

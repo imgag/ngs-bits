@@ -235,6 +235,8 @@ public slots:
 	void on_actionShowPublishedVariants_triggered();
 	///Shows allele balance calculation
 	void on_actionAlleleBalance_triggered();
+	///Shows lift-over dialog
+	void on_actionLiftOver_triggered();
 
 	///Load report configuration
 	void loadReportConfig();

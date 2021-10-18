@@ -156,7 +156,7 @@ QStringList GapDialog::calculteGapsAndInitGUI()
             if (preferred_transcripts.contains(gene_approved))
 			{
 				int gene_id = db_.geneToApprovedID(gene);
-				QList<Transcript> transcripts = db_.transcripts(gene_id, Transcript::ENSEMBL, false);
+				TranscriptList transcripts = db_.transcripts(gene_id, Transcript::ENSEMBL, false);
 				foreach(const Transcript& transcript, transcripts)
 				{
                     if (preferred_transcripts[gene_approved].contains(transcript.name()))

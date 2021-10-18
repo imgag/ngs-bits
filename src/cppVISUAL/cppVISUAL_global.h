@@ -1,0 +1,12 @@
+#ifndef CPPVISUAL_GLOBAL_H
+#define CPPVISUAL_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(CPPVISUAL_LIBRARY)
+#  define CPPVISUALSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define CPPVISUALSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // CPPVISUAL_GLOBAL_H

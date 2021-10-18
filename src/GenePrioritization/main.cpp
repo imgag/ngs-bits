@@ -104,10 +104,10 @@ public:
 
     virtual void setup()
     {
-		setDescription("Performs gene prioritization based on list of known disease genes and a PPI graph.");
-		addInfile("in", "Input TSV file with one gene identifier per line.", false);
-		addInfile("graph", "Graph TSV file with two gene identifiers per line.", false);
-		addOutfile("out", "Output TSV file containing prioritized genes.", false);
+		setDescription("Performs gene prioritization based on list of known disease genes of a disease and a PPI graph.");
+		addInfile("in", "Input TSV file with one gene identifier per line (known disease genes of a disease).", false);
+		addInfile("graph", "Graph TSV file with two gene identifiers per line (PPI graph).", false);
+		addOutfile("out", "Output TSV file containing prioritized genes for the disease.", false);
         //optional
 		addEnum("method", "Gene prioritization method to use.", true, QStringList() << "flooding" << "random_walk", "flooding");
 		addInt("n", "Number of network diffusion iterations (flooding).", true, 2);

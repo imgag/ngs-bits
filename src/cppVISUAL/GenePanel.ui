@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GenePanel</class>
+ <widget class="QScrollArea" name="GenePanel">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1383</width>
+    <height>616</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>100</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>ScrollArea</string>
+  </property>
+  <property name="verticalScrollBarPolicy">
+   <enum>Qt::ScrollBarAlwaysOn</enum>
+  </property>
+  <property name="horizontalScrollBarPolicy">
+   <enum>Qt::ScrollBarAlwaysOff</enum>
+  </property>
+  <property name="widgetResizable">
+   <bool>true</bool>
+  </property>
+  <widget class="QWidget" name="canvas">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1364</width>
+     <height>614</height>
+    </rect>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

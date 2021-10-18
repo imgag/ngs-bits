@@ -27,7 +27,7 @@ Clone the most recent release of ngs-bits (the source code package of GitHub doe
 
     git clone --recursive https://github.com/imgag/ngs-bits.git
 	cd ngs-bits
-	git checkout 2021_06
+	git checkout 2021_09
 	git submodule update --recursive --init
 
 ## Build

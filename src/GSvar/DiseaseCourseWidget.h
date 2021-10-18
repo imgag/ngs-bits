@@ -43,7 +43,7 @@ private:
 	Ui::DiseaseCourseWidget *ui_;
 	NGSD db_;
 	QString tumor_sample_name_;
-	QList<QString> cf_dna_ps_ids_;
+	QStringList cf_dna_ps_ids_;
 	cfDnaColumn ref_column_;
 	QVector<cfDnaColumn> cf_dna_columns_;
 };
