@@ -374,17 +374,15 @@ HttpResponse EndpointHandler::saveProjectFile(const HttpRequest& request)
 
 	if (is_file_changed)
 	{
-		qDebug() << "Temporary GSvar file: " << url.filename_with_path;
-		qDebug() << tmp;
 		//remove original file
 		if (!in_file.data()->remove())
 		{
-			qDebug() << "Could not remove: " << in_file.data()->fileName();
+			qWarning() << "Could not remove: " << in_file.data()->fileName();
 		}
 		//put the changed copy instead of the original
 		if (!out_file.data()->rename(url.filename_with_path))
 		{
-			qDebug() << "Could not rename: " << out_file.data()->fileName();
+			qWarning() << "Could not rename: " << out_file.data()->fileName();
 		}
 	}
 
@@ -408,8 +406,6 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 	QString path = request.getUrlParams()["path"];
 	QString content = request.getBody();
 
-	qDebug() << "Filename" << filename;
-	qDebug() << "Path" << path;
 	if ((filename.isEmpty()) || (path.isEmpty()))
 	{
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_HTML, "Path or filename has not been provided");
@@ -516,186 +512,4 @@ QString EndpointHandler::createFileTempUrl(const QString& file, const bool& retu
 	return ServerHelper::getUrlProtocol(return_http) + ServerHelper::getStringSettingsValue("server_host") +
 			+ ":" + ServerHelper::getUrlPort(return_http) +
 			+ "/v1/temp/" + id + "/" + QFileInfo(file).fileName();
-}
-
-SampleMetadata EndpointHandler::getSampleMetadata(const QString& gsvar_file, bool allow_fallback_germline_single_sample)
-{
-	SampleMetadata output;
-	QStringList comments;
-	QList<VariantAnnotationHeader> annotations;
-	constexpr int special_cols = 5;
-
-	// Open a file to read the comments section at the top
-	QSharedPointer<QFile> file = Helper::openFileForReading(gsvar_file, true);
-	while(!file->atEnd())
-	{
-		QByteArray line = file->readLine();
-		while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
-
-		if(line.length()==0) continue;
-
-		if (line.startsWith("##"))
-		{
-//			QList <QByteArray> parts = line.split('=');
-//			if ((!line.startsWith("##DESCRIPTION=") && parts.count()<=2) && (!line.startsWith("##FILTER=") && parts.count()<=2))
-//			{
-				comments.append(line);
-//			}
-//			continue;
-		}
-		else if (line.startsWith("#"))
-		{
-			QList <QByteArray> fields = line.split('\t');
-			for (int i=special_cols; i<fields.count(); ++i)
-			{
-				annotations.append(VariantAnnotationHeader(fields[i]));
-			}
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	// Getting type
-	bool type_header_found = false;
-	foreach(const QString& line, comments)
-	{
-		if (line.startsWith("##ANALYSISTYPE="))
-		{
-			type_header_found = true;
-			QString type = line.mid(15).trimmed();
-			if (type=="GERMLINE_SINGLESAMPLE")
-			{
-				output.type = AnalysisType::GERMLINE_SINGLESAMPLE;
-			}
-			else if (type=="GERMLINE_TRIO")
-			{
-				output.type = AnalysisType::GERMLINE_TRIO;
-			}
-			else if (type=="GERMLINE_MULTISAMPLE")
-			{
-				output.type = AnalysisType::GERMLINE_MULTISAMPLE;
-			}
-			else if (type=="SOMATIC_SINGLESAMPLE")
-			{
-				output.type = AnalysisType::SOMATIC_SINGLESAMPLE;
-			}
-			else if (type=="SOMATIC_PAIR")
-			{
-				output.type = AnalysisType::SOMATIC_PAIR;
-			}
-			else
-			{
-				THROW(ProgrammingException, "Unknown analysis type with string representation '" + type + "'!");
-			}
-		}
-	}
-
-	qDebug() << "After type";
-	//fallback for old files without ANALYSISTYPE header and for default-constructed variant lists
-	if ((allow_fallback_germline_single_sample) && (!type_header_found))
-	{
-		output.type = AnalysisType::GERMLINE_SINGLESAMPLE;
-	}
-
-	if ((!allow_fallback_germline_single_sample) && (!type_header_found))
-	{
-		THROW(FileParseException, "No ANALYSISTYPE line found in variant list header!");
-	}
-
-	// Getting header info
-	foreach(QString line, comments)
-	{
-		line = line.trimmed();
-
-		if (line.startsWith("##SAMPLE=<"))
-		{
-			qDebug() << "Sample line found";
-			//split into key=value pairs
-			QStringList parts = line.mid(10, line.length()-11).split(',');
-			for (int i=1; i<parts.count(); ++i)
-			{
-				if (!parts[i].contains("="))
-				{
-					parts[i-1] += "," + parts[i];
-					parts.removeAt(i);
-					--i;
-				}
-			}
-
-			foreach(const QString& part, parts)
-			{
-				int sep_idx = part.indexOf('=');
-				QString key = part.left(sep_idx);
-				QString value = part.mid(sep_idx+1);
-				if (key=="ID")
-				{
-					SampleInfo tmp;
-					tmp.id = value;
-					tmp.column_name = value;
-					qDebug() << value;
-					output.header << tmp;
-					qDebug() << tmp.id;
-				}
-				else
-				{
-					output.header.last().properties[key] = value;
-				}
-			}
-		}
-	}
-
-	if (output.header.count()==0) THROW(ProgrammingException, "No sample information found in the variant list header!");
-
-	//determine column index
-
-	for (int i=0; i<output.header.count(); ++i)
-	{
-		output.header[i].column_index = annotationIndexByName(annotations, output.header[i].column_name, true, output.type!=AnalysisType::SOMATIC_SINGLESAMPLE && output.type!=AnalysisType::SOMATIC_PAIR);
-	}
-
-	return output;
-}
-
-int EndpointHandler::annotationIndexByName(QList<VariantAnnotationHeader>& annotations, const QString& name, bool exact_match, bool error_on_mismatch)
-{
-	//find matches
-	QList<int> matches;
-	for(int i=0; i<annotations.count(); ++i)
-	{
-		if ((exact_match && annotations[i].name().compare(name, Qt::CaseInsensitive)==0) || (!exact_match && annotations[i].name().contains(name, Qt::CaseInsensitive)))
-		{
-			matches.append(i);
-		}
-	}
-
-	//error checks
-	if (matches.count()<1)
-	{
-		if (error_on_mismatch)
-		{
-			THROW(ArgumentException, "Could not find column '" + name + "' in variant list!");
-		}
-		else
-		{
-			return -1;
-		}
-	}
-
-	if (matches.count()>1)
-	{
-		if (error_on_mismatch)
-		{
-			THROW(ArgumentException, "Found multiple columns for '" + name + "' in variant list!");
-		}
-		else
-		{
-			Log::warn("Found multiple columns for '" + name + "' in variant list!");
-			return -2;
-		}
-	}
-
-	//return result
-	return matches.at(0);
 }

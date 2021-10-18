@@ -37,7 +37,7 @@ public:
 	int getStatusCode() const;
 
 	void setHeaders(QByteArray headers);
-	void addHeader(QString header);
+	void addHeader(QByteArray header);
 	QByteArray getHeaders() const;
 
 	void setBoundary(QByteArray boundary);

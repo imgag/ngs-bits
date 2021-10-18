@@ -61,15 +61,15 @@ HttpResponse::HttpResponse(ResponseStatus status, ContentType content_type, QStr
 	}
 
 	setStatus(status);
-	addHeader("Content-Length: " + QString::number(getContentLength()) + "\r\n");
-	addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(content_type) + "\r\n");
+	addHeader("Content-Length: " + QByteArray::number(getContentLength()) + "\r\n");
+	addHeader("Content-Type: " + HttpProcessor::convertContentTypeToString(content_type).toLocal8Bit() + "\r\n");
 
 	if (HttpProcessor::convertResponseStatusToStatusCodeNumber(status) == 401)
 	{
 		addHeader("WWW-Authenticate: Basic realm=\"Access to the secure area of GSvar\"\r\n");
 	}
 
-	addHeader(QString("\r\n"));
+	addHeader("\r\n");
 	setIsStream(false);
 }
 
@@ -130,7 +130,7 @@ void HttpResponse::setHeaders(QByteArray headers)
 	updateResponseData();
 }
 
-void HttpResponse::addHeader(QString header)
+void HttpResponse::addHeader(QByteArray header)
 {
 	headers_.append(header);
 	updateResponseData();
@@ -190,7 +190,7 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 {
 	QString content_type = "Content-Type: " + HttpProcessor::convertContentTypeToString(data.content_type) + "\r\n";
 	QByteArray headers;
-	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
+	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString().toLocal8Bit() + "\r\n");
 
 	if (data.byte_ranges.count() > 0)
 	{
@@ -201,7 +201,7 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 			QString range_header = "Content-Range: bytes " + QString::number(data.byte_ranges[i].start) + "-" + QString::number(data.byte_ranges[i].end) + "/" + QString::number(data.file_size) + "\r\n";
 			if (data.byte_ranges.count() == 1)
 			{
-				headers.append(range_header);
+				headers.append(range_header.toLocal8Bit());
 				break;
 			}
 			if (data.byte_ranges.count() > 1)
@@ -215,17 +215,17 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 		if (data.byte_ranges.count() > 1)
 		{
 			metadata_length = 2 + metadata_length + 2 + data.boundary.length() + 2 + 2;
-			headers.append("Content-Type: multipart/byteranges; boundary=" + data.boundary + "\r\n");
+			headers.append("Content-Type: multipart/byteranges; boundary=" + data.boundary.toLocal8Bit() + "\r\n");
 		}
 
 		headers.append("Accept-Ranges: bytes\r\n");
-		headers.append("Content-Length: " + QString::number(data.length+metadata_length) + "\r\n");
+		headers.append("Content-Length: " + QByteArray::number(data.length+metadata_length) + "\r\n");
 
 	}
 	else
 	{
-		headers.append("Content-Length: " + QString::number(data.length) + "\r\n");
-		headers.append(content_type);
+		headers.append("Content-Length: " + QByteArray::number(data.length) + "\r\n");
+		headers.append(content_type.toLocal8Bit());
 		headers.append("Connection: Keep-Alive\r\n");
 	}
 
@@ -240,7 +240,7 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 	}
 	if (data.is_downloadable)
 	{
-		headers.append("Content-Disposition: form-data; name=file_download; filename=" + getFileNameWithExtension(data.filename) + "\r\n");
+		headers.append("Content-Disposition: form-data; name=file_download; filename=" + getFileNameWithExtension(data.filename).toLocal8Bit() + "\r\n");
 	}
 
 	headers.append("\r\n");
@@ -250,14 +250,14 @@ QByteArray HttpResponse::generateRegularHeaders(BasicResponseData data)
 QByteArray HttpResponse::generateChunkedStreamHeaders(BasicResponseData data)
 {
 	QByteArray headers;
-	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
-	headers.append("Content-Type: " + HttpProcessor::convertContentTypeToString(data.content_type) + "\r\n");
+	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString().toLocal8Bit() + "\r\n");
+	headers.append("Content-Type: " + HttpProcessor::convertContentTypeToString(data.content_type).toLocal8Bit() + "\r\n");
 	headers.append("Connection: Keep-Alive\r\n");
 	headers.append("Transfer-Encoding: chunked\r\n");
 
 	if (data.is_downloadable)
 	{
-		headers.append("Content-Disposition: form-data; name=file_download; filename=" + getFileNameWithExtension(data.filename) + "\r\n");
+		headers.append("Content-Disposition: form-data; name=file_download; filename=" + getFileNameWithExtension(data.filename).toLocal8Bit() + "\r\n");
 	}
 
 	headers.append("\r\n");
@@ -267,8 +267,8 @@ QByteArray HttpResponse::generateChunkedStreamHeaders(BasicResponseData data)
 QByteArray HttpResponse::generateRangeNotSatisfiableHeaders(BasicResponseData data)
 {
 	QByteArray headers;
-	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString() + "\r\n");
-	headers.append("Content-Range: bytes */" + QString::number(data.file_size) + "\r\n");
+	headers.append("Date: " + QDateTime::currentDateTime().toUTC().toString().toLocal8Bit() + "\r\n");
+	headers.append("Content-Range: bytes */" + QByteArray::number(data.file_size) + "\r\n");
 	headers.append("\r\n");
 	return headers;
 }

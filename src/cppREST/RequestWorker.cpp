@@ -66,14 +66,14 @@ void RequestWorker::run()
 
 
 	while (ssl_socket->waitForReadyRead())
-	{
-		qDebug() << "Start the processing";
+	{		
+		qDebug() << "Start request processing";
 
 		if (is_secure_) ssl_socket->waitForEncrypted();
 
-		if (is_secure_ && !ssl_socket->isEncrypted())
+		if ((is_secure_ && !ssl_socket->isEncrypted()) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState))
 		{
-			qDebug() << "Connection is not encrypted and cannot be continued";
+			qDebug() << "Connection cannot be continued";
 			closeAndDeleteSocket(ssl_socket);
 			return;
 		}
@@ -285,7 +285,7 @@ void RequestWorker::run()
 			{
 				if (is_terminated_) break;
 
-				if ((pos > file_size) || (pos < 0)) break;
+				if (pos > file_size) break;
 				streamed_file.seek(pos);
 				data = streamed_file.read(chunk_size);
 				pos = pos + chunk_size;

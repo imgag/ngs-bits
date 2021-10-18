@@ -48,10 +48,6 @@ public:
 private:
 	/// Creates a temporary URL for a file (includes a file name and its full path)
 	static QString createFileTempUrl(const QString& file, const bool& return_http);
-	/// Reads the sample header from a variant list
-	static SampleMetadata getSampleMetadata(const QString& gsvar_file, bool allow_fallback_germline_single_sample=true);
-	/// Finds a column index by the annotation name (column title)
-	static int annotationIndexByName(QList<VariantAnnotationHeader>& annotations, const QString& name, bool exact_match, bool error_on_mismatch);
 
 };
 
