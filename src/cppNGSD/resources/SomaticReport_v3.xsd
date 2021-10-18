@@ -308,15 +308,25 @@
 									<xs:documentation>List of genes contained in target region.</xs:documentation>
 								</xs:annotation>
 								<xs:complexType>
-									<xs:attribute name="name" type="xs:string" use="required">
+									<xs:attribute name="name" use="required">
 										<xs:annotation>
 											<xs:documentation>Gene symbol (HGNC)</xs:documentation>
 										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
 									</xs:attribute>
-									<xs:attribute name="id" type="xs:string" use="required">
+									<xs:attribute name="id" use="required">
 										<xs:annotation>
 											<xs:documentation>HGNC gene identifer</xs:documentation>
 										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
@@ -397,15 +407,25 @@
 														</xs:complexType>
 													</xs:element>
 												</xs:sequence>
-												<xs:attribute name="name" type="xs:string" use="required">
+												<xs:attribute name="name" use="required">
 													<xs:annotation>
 														<xs:documentation>HGNC gene name</xs:documentation>
 													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
 												</xs:attribute>
-												<xs:attribute name="id" type="xs:string" use="required">
+												<xs:attribute name="id" use="required">
 													<xs:annotation>
 														<xs:documentation>HGNC gene identifer</xs:documentation>
 													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
 												</xs:attribute>
 												<xs:attribute name="role">
 													<xs:annotation>
@@ -620,15 +640,25 @@
 														</xs:complexType>
 													</xs:element>
 												</xs:sequence>
-												<xs:attribute name="name" type="xs:string" use="required">
+												<xs:attribute name="name" use="required">
 													<xs:annotation>
 														<xs:documentation>HGNC gene name</xs:documentation>
 													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
 												</xs:attribute>
-												<xs:attribute name="id" type="xs:string" use="required">
+												<xs:attribute name="id" use="required">
 													<xs:annotation>
 														<xs:documentation>HGNC gene identifer</xs:documentation>
 													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
 												</xs:attribute>
 												<xs:attribute name="role">
 													<xs:annotation>
