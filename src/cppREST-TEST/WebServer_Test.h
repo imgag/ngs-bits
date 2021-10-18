@@ -104,6 +104,14 @@ private slots:
 
 	}
 
+	void test_partial_content_overlapping_ranges_request()
+	{
+		HttpHeaders add_headers;
+		add_headers.insert("Accept", "text/html");
+		add_headers.insert("Range", "bytes=0-5,5-8");
+		IS_THROWN(Exception, HttpRequestHandler(HttpRequestHandler::NONE).get("https://localhost:8443/v1/", add_headers));
+	}
+
 	void test_basic_http_authentication()
 	{
 		QByteArray reply;

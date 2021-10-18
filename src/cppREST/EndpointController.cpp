@@ -287,6 +287,10 @@ HttpResponse EndpointController::serveStaticFile(QString filename, RequestMethod
 			current_range.length = current_range.length + 1;
 			byte_ranges.append(current_range);
 		}
+		if (hasOverlappingRanges(byte_ranges))
+		{
+			return HttpResponse(ResponseStatus::RANGE_NOT_SATISFIABLE, ContentType::APPLICATION_JSON, "Overlapping ranges have been detected");
+		}
 
 		return createStaticFileRangeResponse(filename, byte_ranges, HttpProcessor::getContentTypeByFilename(filename), false);
 	}
@@ -478,6 +482,26 @@ QString EndpointController::addFileToCache(const QString& filename)
 {
 	readFileContent(filename, QList<ByteRange>{});
 	return FileCache::getFileIdIfInCache(filename);
+}
+
+bool EndpointController::hasOverlappingRanges(const QList<ByteRange> ranges)
+{
+	for (int i = 0; i < ranges.count(); ++i)
+	{
+		for (int r = 0; r < ranges.count(); ++r)
+		{
+			if (i == r) continue;
+
+			// one range contains another
+			if ((ranges[i].start>=ranges[r].start) && (ranges[i].end<=ranges[r].end)) return true;
+
+			// ranges partly overlap
+			if ((ranges[i].start<ranges[r].start) && (ranges[i].end>ranges[r].start)) return true;
+			if ((ranges[i].start==ranges[r].end) || (ranges[i].end==ranges[r].start)) return true;
+		}
+	}
+
+	return false;
 }
 
 

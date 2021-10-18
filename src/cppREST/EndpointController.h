@@ -50,6 +50,7 @@ private:
 
 	static StaticFile readFileContent(const QString& filename, const QList<ByteRange>& byte_ranges);
 	static QString addFileToCache(const QString& filename);
+	static bool hasOverlappingRanges(const QList<ByteRange> ranges);
 };
 
 #endif // ENDPOINTCONTROLLER_H
