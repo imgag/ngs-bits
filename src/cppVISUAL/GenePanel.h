@@ -1,6 +1,7 @@
 #ifndef GENEPANEL_H
 #define GENEPANEL_H
 
+#include "cppVISUAL_global.h"
 #include <QWidget>
 #include <QLabel>
 #include "BedFile.h"
@@ -8,7 +9,7 @@
 #include "Transcript.h"
 
 //Panel that shows gene transcripts and nucleotides
-class GenePanel
+class CPPVISUALSHARED_EXPORT GenePanel
 	: public QWidget
 {
 	Q_OBJECT

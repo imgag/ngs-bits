@@ -15,4 +15,4 @@ cppNGSD.depends = cppNGS
 cppVISUAL.depends = cppNGS cppGUI
 
 SUBDIRS += GSvar
-GSvar.depends = cppNGS cppNGSD cppVISUAL
+GSvar.depends = cppNGSD cppVISUAL
