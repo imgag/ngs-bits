@@ -90,7 +90,6 @@ QT_CHARTS_USE_NAMESPACE
 #include "GeneOmimInfoWidget.h"
 #include "LoginManager.h"
 #include "LoginDialog.h"
-#include "RefGenDownloadDialog.h"
 #include "GeneInfoDBs.h"
 #include "VariantConversionWidget.h"
 #include "PasswordDialog.h"
@@ -1554,23 +1553,6 @@ void MainWindow::delayedInitialization()
 		{
 			LoginManager::login(dlg.userName());
 		}
-	}
-
-	//check if the reference genome is available locally
-	bool is_genome_found = false;
-	try
-	{
-		is_genome_found = GSvarHelper::isGenomeFound();
-	}
-	catch (Exception& e)
-	{
-		QMessageBox::warning(this, "Read error", "Could not the size of the genome file:" + e.message());
-	}
-
-	if (!is_genome_found)
-	{
-		RefGenDownloadDialog dlg(this);
-		dlg.exec();
 	}
 
 	//init GUI

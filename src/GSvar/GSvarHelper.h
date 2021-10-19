@@ -40,12 +40,6 @@ public:
 
 	///Returns a the local target region folder where tempory target regions and gene lists can be stored for IGV.
 	static QString localRoiFolder();
-	
-	//Checks if the reference genome is available
-	static bool isGenomeFound();
-
-	//Return the size of a remote file over HTTP(S)
-	static qint64 getRemoteFileSize(QString url);
 
 protected:
 	GSvarHelper() = delete;

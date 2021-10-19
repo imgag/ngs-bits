@@ -13,9 +13,10 @@ To build the server, the following steps have to be executed
 
 ## Running
 The following command starts the server (if you are located at the root of the repository):
-> bin/GSvarServer -p=8443 -l=3
+> bin/GSvarServer -p=8443 -i=8080 -l=3
 
-`p` parameter stands for the port number
+`p` parameter stands for the HTTPS port number
+`i` specifies HTTP port number
 
 `l` means the logging detail level:
 * 0 only critical and fatal
@@ -35,13 +36,14 @@ The server is configurable via the GSVarServer.ini file located at the `bin/` fo
 These are the most important config parameters:
 * `ssl_certificate` - location of your SSL certificate
 * `ssl_key` - location of your private key
-* `server_port` - port used by the server
+* `http_server_port` - port used by the server for HTTP protocol
+* `https_server_port` - port used by the server for HTTPS protocol
 * `server_host` - domain name used be the server
 * `server_root` - folder to be served as static content (any possible file formats)
 * `project_folder` - folder with sample data
 
 ## Development
-Since the server can work only with HTTPS protocol, you are going to need a SSL certificate and a key. For the development purposes self-signed ones will be sufficient:
+You are going to need a SSL certificate and a key for the server to support HTTPS protocol. For the development purposes self-signed ones will be sufficient:
 > openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=DE/ST=BW/L=Tuebingen/O=test-certificate/CN=localhost" -keyout ~/test-key.key -out ~/test-cert.crt
 
 NOTE: IGV does not accept self-signed certificates

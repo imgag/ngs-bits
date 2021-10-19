@@ -233,16 +233,15 @@ void RequestWorker::run()
 			}
 		}
 
-		int chunk_size = 1024*10;
+		int chunk_size = STREAM_CHUNK_SIZE;
 		QByteArray data;
 		QList<ByteRange> ranges = response.getByteRanges();
 		if (ranges.count() > 0)
 		{
 			for (int i = 0; i < ranges.count(); ++i)
 			{
-				chunk_size = 1024*10;
+				chunk_size = STREAM_CHUNK_SIZE;
 				pos = ranges[i].start;
-				qDebug() << "Streaming range " << ranges[i].start << ", " << ranges[i].end;
 				if (ranges.count() > 1)
 				{
 					sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"\r\n");
@@ -253,7 +252,6 @@ void RequestWorker::run()
 				while(pos<(ranges[i].end+1))
 				{
 					if (is_terminated_) break;
-					qDebug() << pos;
 					if (pos > file_size) break;
 					streamed_file.seek(pos);
 
@@ -280,7 +278,6 @@ void RequestWorker::run()
 		}
 		else
 		{
-
 			while(!streamed_file.atEnd())
 			{
 				if (is_terminated_) break;
@@ -289,7 +286,6 @@ void RequestWorker::run()
 				streamed_file.seek(pos);
 				data = streamed_file.read(chunk_size);
 				pos = pos + chunk_size;
-
 
 				if (transfer_encoding_chunked)
 				{

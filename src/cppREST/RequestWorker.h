@@ -34,6 +34,7 @@ Q_SIGNALS:
 
 
 private:
+	const int STREAM_CHUNK_SIZE = 1024*10;
 	QString intToHex(const int &input);
 
 	void closeAndDeleteSocket(QSslSocket* socket);
