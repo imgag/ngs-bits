@@ -126,6 +126,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ClinvarUploadDialog.h"
 #include "GenomeVisualizationWidget.h"
 #include "LiftOverWidget.h"
+#include "CacheInitWorker.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -249,6 +250,10 @@ MainWindow::MainWindow(QWidget *parent)
 	notification_label_->setMaximumSize(16,16);
 	notification_label_->setPixmap(QPixmap(":/Icons/email.png"));
 	ui_.statusBar->addPermanentWidget(notification_label_);
+
+	//init cache in background thread (it takes about 6 seconds)
+	CacheInitWorker* worker = new CacheInitWorker();
+	worker->start();
 }
 
 QString MainWindow::appName() const

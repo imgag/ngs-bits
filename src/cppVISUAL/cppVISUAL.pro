@@ -24,6 +24,17 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 
+#include VISUAL library
+INCLUDEPATH += $$PWD/../cppGUI
+LIBS += -L$$PWD/../bin -lcppGUI
+
+#include htslib library
+INCLUDEPATH += $$PWD/../../htslib/include/
+LIBS += -L$$PWD/../../htslib/lib/ -lhts
+
+#include zlib library
+LIBS += -lz
+
 #make the executable search for .so-files in the same folder under linux
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
@@ -36,5 +47,4 @@ HEADERS += \
     GenePanel.h
 
 FORMS += \
-    GenomeVisualizationWidget.ui \
-    GenePanel.ui
+    GenomeVisualizationWidget.ui

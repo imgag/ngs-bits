@@ -1,7 +1,7 @@
 #include "ui_GenomeVisualizationWidget.h"
 #include "GenomeVisualizationWidget.h"
 #include "BedFile.h"
-
+#include "GuiHelper.h"
 #include <QToolTip>
 #include <QDebug>
 #include <QMessageBox>
@@ -9,7 +9,6 @@
 GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const FastaFileIndex& genome_idx, const TranscriptList& transcripts)
 	: QWidget(parent)
 	, ui_(new Ui::GenomeVisualizationWidget)
-	, gene_panel_(new GenePanel(this, genome_idx, transcripts))
 	, settings_()
 	, genome_idx_(genome_idx)
 	, transcripts_(transcripts)
@@ -19,6 +18,10 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const Fast
 	, current_reg_()
 {
 	ui_->setupUi(this);
+	GUIHelper::styleSplitter(ui_->splitter_gene_panel);
+
+	//init panels
+	ui_->gene_panel->setDependencies(genome_idx_, transcripts_);
 
 	//init chromosome list (ordered correctly)
 	valid_chrs_ = genome_idx_.names();
@@ -36,16 +39,13 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const Fast
 		trans_to_index_[trans.name()] = i;
 	}
 
-	//add gene panel to layout
-	layout()->addWidget(gene_panel_);
-
 	//connect signals and slots
 	connect(ui_->chr_selector, SIGNAL(currentTextChanged(QString)), this, SLOT(setChromosomeRegion(QString)));
 	connect(ui_->search, SIGNAL(editingFinished()), this, SLOT(search()));
 	connect(ui_->zoomin_btn, SIGNAL(clicked(bool)), this, SLOT(zoomIn()));
 	connect(ui_->zoomout_btn, SIGNAL(clicked(bool)), this, SLOT(zoomOut()));
 	connect(this, SIGNAL(regionChanged(BedLine)), this, SLOT(updateRegionWidgets(BedLine)));
-	connect(this, SIGNAL(regionChanged(BedLine)), gene_panel_, SLOT(setRegion(BedLine)));
+	connect(this, SIGNAL(regionChanged(BedLine)), ui_->gene_panel, SLOT(setRegion(BedLine)));
 
 }
 
@@ -170,5 +170,7 @@ void GenomeVisualizationWidget::updateRegionWidgets(const BedLine& reg)
 	ui_->search->blockSignals(true);
 	ui_->search->setText(reg.toString(true));
 	ui_->search->blockSignals(false);
+
+	ui_->status->setText("region size: " + QString::number(reg.length()));
 }
 
