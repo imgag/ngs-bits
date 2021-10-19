@@ -1,7 +1,7 @@
 #include "ui_GenomeVisualizationWidget.h"
 #include "GenomeVisualizationWidget.h"
 #include "BedFile.h"
-#include "GuiHelper.h"
+#include "GUIHelper.h"
 #include <QToolTip>
 #include <QDebug>
 #include <QMessageBox>
