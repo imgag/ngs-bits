@@ -204,7 +204,9 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 		{
 			cur_json_item.insert("filename", file_list[i].filename);
 		}
-		cur_json_item.insert("exists", file_list[i].exists);
+//		cur_json_item.insert("exists", file_list[i].exists);
+		cur_json_item.insert("exists", QFile::exists(file_list[i].filename));
+
 		json_list_output.append(cur_json_item);
 	}
 
