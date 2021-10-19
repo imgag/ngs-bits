@@ -45,8 +45,6 @@ HttpRequest RequestPaser::getRequest() const
 
 		if (header_separator > -1)
 		{
-			qDebug() << body[i].left(header_separator).toLower() << ": " << body[i].mid(header_separator+1).trimmed();
-
 			QList<QByteArray> header_values = body[i].mid(header_separator+1).trimmed().split(',');
 			for (int h = 0; h < header_values.count(); ++h)
 			{

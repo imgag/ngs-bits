@@ -44,8 +44,6 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 	while (i.hasNext()) {
 		i.next();		
 		bool is_found = false;
-		qDebug() << i.key();
-		qDebug() << i.value().category;
 		if (i.value().category == ParamProps::ParamCategory::POST_OCTET_STREAM)
 		{
 			if (request.getBody().length()>0)
@@ -78,7 +76,6 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
 			}
 		}
 
-		qDebug() << is_found;
 		if ((!i.value().is_optional) && (!is_found))
 		{
 			THROW(ArgumentException, "Parameter " + i.key() + " is missing");

@@ -382,7 +382,7 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 		return;
 	}
 
-	if (socket->bytesToWrite())
+	if ((socket->state() != QSslSocket::SocketState::UnconnectedState) && (socket->bytesToWrite()))
 	{
 		socket->flush();		
 		socket->waitForBytesWritten();
