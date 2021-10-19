@@ -367,7 +367,7 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
 		socket->flush();
-		socket->waitForBytesWritten();
+		if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->waitForBytesWritten();
 	}
 	socket->close();
 	socket->deleteLater();
@@ -384,8 +384,8 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 
 	if ((socket->state() != QSslSocket::SocketState::UnconnectedState) && (socket->bytesToWrite()))
 	{
-		socket->flush();		
-		socket->waitForBytesWritten();
+		socket->flush();
+		if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->waitForBytesWritten();
 	}
 
 	socket->write(data);
@@ -408,7 +408,7 @@ void RequestWorker::finishPartialDataResponse(QSslSocket* socket)
 	if ((socket->state() != QSslSocket::SocketState::UnconnectedState) && (socket->bytesToWrite()))
 	{
 		socket->flush();		
-		socket->waitForBytesWritten();
+		if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->waitForBytesWritten();
 	}
 
 	closeAndDeleteSocket(socket);
