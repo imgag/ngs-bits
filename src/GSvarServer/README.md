@@ -42,8 +42,29 @@ These are the most important config parameters:
 * `server_root` - folder to be served as static content (any possible file formats)
 * `project_folder` - folder with sample data
 
-## Development
+## Local development environment
 You are going to need a SSL certificate and a key for the server to support HTTPS protocol. For the development purposes self-signed ones will be sufficient:
 > openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=DE/ST=BW/L=Tuebingen/O=test-certificate/CN=localhost" -keyout ~/test-key.key -out ~/test-cert.crt
 
-NOTE: IGV does not accept self-signed certificates
+<strong>NOTE: IGV does not accept self-signed certificates</strong>
+
+GSvarServer requires a MySQL database. You may have your own local instance of MySQL with test data (GSvar does not work with the newer versions):
+
+> docker run --name my-own-mysql -e MYSQL_ROOT_PASSWORD=mypass123 -d mysql:5.7
+
+To start PhpMyAdmin, run this command:
+
+> docker run --name my-own-phpmyadmin -d --link my-own-mysql:db -p 8081:80 phpmyadmin/phpmyadmin
+
+Having a local Apache server instance may be helpful in the debugging process. To run it in a Docker container, execute the following command (current directory will be
+used as a server root):
+
+> docker run -dit --name my-apache-app -p 8080:80 -v "$PWD":/usr/local/apache2/htdocs/ httpd:2.4
+
+## Qt debug statements
+Depending on the Qt installation, you may have disabled debug statements by default. To turn them on, follow these steps:
+- Open qtlogging.ini in /etc/xdg/QtProject/ (create a new empty file, if it does not exist)
+- Add (or modify accordingly) the following config
+[Rules]
+*.debug=true
+qt.*.debug=false
