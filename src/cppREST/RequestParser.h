@@ -10,12 +10,12 @@
 #include "Exceptions.h"
 #include "ServerHelper.h"
 
-class CPPRESTSHARED_EXPORT RequestPaser : public QObject
+class CPPRESTSHARED_EXPORT RequestParser : public QObject
 {
 	Q_OBJECT
 
 public:
-	RequestPaser(QByteArray *request, QString client_address);
+	RequestParser(QByteArray *request, QString client_address);
 	HttpRequest getRequest() const;
 
 

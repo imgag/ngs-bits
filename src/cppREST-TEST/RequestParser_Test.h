@@ -13,7 +13,7 @@ private slots:
 			"Host: localhost:8443\r\n"
 			"Connection: keep-alive\r\n";
 
-		RequestPaser *parser = new RequestPaser(&raw_request, "127.0.0.1");
+		RequestParser *parser = new RequestParser(&raw_request, "127.0.0.1");
 		HttpRequest parsed_request = parser->getRequest();
 
 		S_EQUAL(parsed_request.getPath(), "static");

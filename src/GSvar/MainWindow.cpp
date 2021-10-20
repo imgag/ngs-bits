@@ -1775,16 +1775,16 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			{
 				// Character escaping is needed for the URL, otherwise the address is being cut off
 				// Unix
-				if (command.indexOf("https:/")>-1)
-				{
-					command = command.replace("https:/", "https://");
-				}
-				// Windows
-				if (command.indexOf("https:\\")>-1)
-				{
-					command = command.replace("https:\\", "https://");
-					command = command.replace("\\", "/");
-				}
+//				if (command.indexOf("https:/")>-1)
+//				{
+//					command = command.replace("https:/", "https://");
+//				}
+//				// Windows
+//				if (command.indexOf("https:\\")>-1)
+//				{
+//					command = command.replace("https:\\", "https://");
+//					command = command.replace("\\", "/");
+//				}
 
 				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;				
 				socket.write((command + "\n").toLatin1());

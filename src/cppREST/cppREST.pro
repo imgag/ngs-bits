@@ -53,7 +53,7 @@ SOURCES += \
     HttpProcessor.cpp \
     HttpRequest.cpp \
     HttpResponse.cpp \
-    RequestPaser.cpp \
+    RequestParser.cpp \
     RequestWorker.cpp \
     ServerHelper.cpp \
     SslServer.cpp \
