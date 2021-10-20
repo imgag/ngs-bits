@@ -71,6 +71,9 @@ VcfFile NGSHelper::getKnownVariants(GenomeBuild build, bool only_snvs, const Bed
 	VcfFile output;
 	output.load(tmp, roi, false);
 
+	//remove temporary file
+	QFile::remove(tmp);
+
 	//filter variants
 	filterVcfFile(output, only_snvs, min_af, max_af);
 
@@ -85,6 +88,9 @@ VcfFile NGSHelper::getKnownVariants(GenomeBuild build, bool only_snvs, double mi
 	//load
 	VcfFile output;
 	output.load(tmp, false);
+
+	//remove temporary file
+	QFile::remove(tmp);
 
 	//filter variants
 	filterVcfFile(output, only_snvs, min_af, max_af);

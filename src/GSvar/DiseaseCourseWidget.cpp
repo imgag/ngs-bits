@@ -61,27 +61,22 @@ void DiseaseCourseWidget::copyToClipboard()
 void DiseaseCourseWidget::getCfDNASampleIds()
 {
 	// get all same samples
-	QString sample_id = db_.sampleId(tumor_sample_name_);
-	QStringList same_sample_ids = db_.relatedSamples(sample_id, "same sample");
+	int sample_id = db_.sampleId(tumor_sample_name_).toInt();
+	QSet<int> same_sample_ids = db_.relatedSamples(sample_id, "same sample");
 	same_sample_ids << sample_id; // add current sample id
 
 	// get all related cfDNA samples
-	QStringList cf_dna_sample_ids;
-	foreach (QString cur_sample_id, same_sample_ids)
+	QSet<int> cf_dna_sample_ids;
+	foreach (int cur_sample_id, same_sample_ids)
 	{
-		cf_dna_sample_ids.append(db_.relatedSamples(cur_sample_id, "tumor-cfDNA"));
+		cf_dna_sample_ids.unite(db_.relatedSamples(cur_sample_id, "tumor-cfDNA"));
 	}
 
 	// get corresponding processed sample
 	cf_dna_ps_ids_.clear();
-	foreach (QString cf_dna_sample, cf_dna_sample_ids)
+	foreach (int cf_dna_sample, cf_dna_sample_ids)
 	{
-		SqlQuery query = db_.getQuery();
-		query.exec("SELECT id FROM processed_sample WHERE sample_id=" + cf_dna_sample);
-		while (query.next())
-		{
-			cf_dna_ps_ids_ << query.value(0).toString();
-		}
+		cf_dna_ps_ids_ << db_.getValues("SELECT id FROM processed_sample WHERE sample_id=" + QString::number(cf_dna_sample));
 	}
 }
 

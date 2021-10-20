@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <DiagnosticNgsReport version="4" type="diagnostic variant">
     <ReportGeneration date="2021-02-19" user_name="ahmustm1" software="cppNGSD-TEST " outcome="no significant findings"/>
-    <Sample name="NA12878_03" name_external="ex1" processing_system="HaloPlex HSP v2" processing_system_type="Panel Haloplex"/>
+    <Sample name="NA12878_03" name_external="ex1" processing_system="HaloPlex HSP v2" processing_system_type="Panel Haloplex" comments="comment_ps1"/>
     <TargetRegion name="panel" regions="1532" bases="271536" gap_percentage="5.69" ccds_bases_sequenced="4347">
         <Gene name="CYP7B1"/>
         <Gene name="SLC25A15"/>

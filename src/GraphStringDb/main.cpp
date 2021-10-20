@@ -48,8 +48,8 @@ public:
     virtual void setup()
     {
         setDescription("Creates simple representation of String-DB interaction graph.");
-		addInfile("string", "String-DB file with protein interactions.", false);
-		addInfile("alias", "Input TSV file with aliases for String protein IDs.", false);
+		addInfile("string", "String-DB file with protein interactions (https://stringdb-static.org/download/protein.links.v11.5/9606.protein.links.v11.5.txt.gz).", false);
+		addInfile("alias", "Input TSV file with aliases for String protein IDs (https://stringdb-static.org/download/protein.aliases.v11.5/9606.protein.aliases.v11.5.txt.gz).", false);
 		addOutfile("out", "Output TSV file with edges.", false);
         //optional
 		addFloat("min_score", "Minimum confidence score cutoff for String-DB interaction (0-1).", true, 0.4);

@@ -582,11 +582,13 @@ public:
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns transcript by id. Throws an exception if not found in NGSD.
-	Transcript transcript(int id);
+	const Transcript& transcript(int id);
 	///Returns transcript identifier. Throws an exception if not found in NGSD, or returns -1.
 	int transcriptId(QString name, bool throw_on_error=true);
+	///Returns all transcripts in the database;
+	const TranscriptList& transcripts();
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
-	QList<Transcript> transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
+	TranscriptList transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
 	///Returns longest coding transcript of a gene.
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_alt_source_nocoding=false);
 	///Returns the list of all approved gene names
@@ -696,8 +698,14 @@ public:
 	///Returns the normal processed sample corresponding to a tumor processed sample, or "" if no normal samples is defined.
 	QString normalSample(const QString& processed_sample_id);
 
-	///Returns the corresponding same sample id(s) of a given type
-	QStringList sameSamples(QString sample_id, QString sample_type);
+	///Returns the corresponding sample id(s) with relation 'same sample' or 'same patient'. Uses the cache to avoid database queries.
+	const QSet<int>& sameSamples(int sample_id);
+	///Returns related sample id(s). Uses the cache to avoid database queries.
+	const QSet<int>& relatedSamples(int sample_id);
+	///Return a list of sample ids (not name) which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
+	QSet<int> relatedSamples(int sample_id, const QString& relation, QString sample_type="");
+	///Adds a new sample relation to the database;
+	void addSampleRelation(const SampleRelation& rel, bool error_if_already_present=false);
 
 	///Returns sample disease details from the database.
 	QList<SampleDiseaseInfo> getSampleDiseaseInfo(const QString& sample_id, QString only_type="");
@@ -810,11 +818,6 @@ public:
 	///Stores a given EvaluationSheetData in the NGSD (return table id)
 	int storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_data, bool overwrite_existing_data = false);
 
-	///Return a list of sample ids (not name) which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
-	QStringList relatedSamples(const QString& sample_id, const QString& relation="");
-	///Adds a new sample relation to the database;
-	void addSampleRelation(const SampleRelation& rel, bool error_if_already_present=false);
-
 	///Returns the report config creation data (user/date) for somatic reports
 	SomaticReportConfigurationData somaticReportConfigData(int id);
 
@@ -900,22 +903,22 @@ protected:
 		Cache();
 
 		QMap<QString, TableInfo> table_infos;
-		QHash<int, QList<int>> same_samples;
+		QHash<int, QSet<int>> same_samples;
+		QHash<int, QSet<int>> related_samples;
 		GeneSet approved_gene_names;
 		QMap<QString, QStringList> enum_values;
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
 		QHash<int, Phenotype> phenotypes_by_id;
 		QHash<QByteArray, int> phenotypes_accession_to_id;
 
-		BedFile gene_regions;
-		ChromosomalIndex<BedFile> gene_regions_index;
-
-		BedFile gene_exons;
-		ChromosomalIndex<BedFile> gene_exons_index;
+		TranscriptList gene_transcripts;
+		ChromosomalIndex<TranscriptList> gene_transcripts_index;
+		QHash<int, int> gene_transcripts_id2index; //NGSD transcript id > index in 'gene_transcripts'
+		QHash<QByteArray, QSet<int>> gene_transcripts_symbol2indices; //gene symbol > indices in 'gene_transcripts'
 	};
 	static Cache& getCache();
 	void clearCache();
+	void initTranscriptCache();
 };
-
 
 #endif // NGSD_H

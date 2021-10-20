@@ -259,6 +259,9 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 				{
 					w.writeStartElement("Gene");
 					GeneInfo gene_info = db.geneInfo(genes[j]);
+					if(gene_info.hgnc_id.isEmpty()) continue; //genes that have been withdrawn or cannot be mapped to a unique approved symbol
+
+
 					w.writeAttribute("name", gene_info.symbol);
 					w.writeAttribute("id", gene_info.hgnc_id);
 
@@ -420,27 +423,31 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			w.writeAttribute( "cn_b", QString(cnv.annotations()[i_cn_major]));
 
 			GeneSet genes = cnv.genes();
-			GeneSet tsg = GeneSet::createFromText( cnv.annotations()[i_tsg], ',' );
-			GeneSet oncogenes = GeneSet::createFromText( cnv.annotations()[i_oncogene], ',' );
+			GeneSet tsg = db.genesToApproved(GeneSet::createFromText( cnv.annotations()[i_tsg], ',' ), true);
+			GeneSet oncogenes = db.genesToApproved(GeneSet::createFromText( cnv.annotations()[i_oncogene], ',' ), true);
 			for(const auto& gene : genes)
 			{
+				GeneInfo gene_info = db.geneInfo(gene);
+
+				if(gene_info.hgnc_id.isEmpty()) continue; //genes that were withdrawn or cannot uniquely mapped to approved symbol
+
 				w.writeStartElement("Gene");
-				w.writeAttribute("name", gene);
-				w.writeAttribute("id", db.geneInfo(gene).hgnc_id);
+				w.writeAttribute("name", gene_info.symbol);
+				w.writeAttribute("id", gene_info.hgnc_id);
 
 				if(db.getSomaticGeneRoleId(gene) != -1)
 				{
 					w.writeAttribute("role",  db.getSomaticGeneRole(gene).roleAsString());
 				}
 
-				if(tsg.contains(gene))
+				if(tsg.contains(gene_info.symbol.toUtf8()))
 				{
 					w.writeStartElement("IsTumorSuppressor");
 					w.writeAttribute("source", "Network of Cancer Genes");
 					w.writeAttribute("source_version", "6.0");
 					w.writeEndElement();
 				}
-				if(oncogenes.contains(gene))
+				if(oncogenes.contains(gene_info.symbol.toUtf8()))
 				{
 					w.writeStartElement("IsOncoGene");
 					w.writeAttribute("source", "Network of Cancer Genes");

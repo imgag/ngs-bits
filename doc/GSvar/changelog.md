@@ -1,5 +1,10 @@
 # GSvar change log
 
+
+### 2021_09-2 (29.09.21)
+- Variant table: added button to open qcML files of analysis.
+- Added region to gene table conversion (Conversion entry in main menu).
+
 ### 2021_06-75 (11.08.21)
 - Added ClinVar upload of variants, removed LOVD upload.
 - Added option to show BAF histogram.

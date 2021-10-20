@@ -2,6 +2,7 @@
 
 ![Linux build status](https://github.com/imgag/ngs-bits/workflows/Linux%20build/badge.svg)
 ![MacOS build status](https://github.com/imgag/ngs-bits/workflows/MacOS%20build/badge.svg)
+![Windows build status](https://github.com/imgag/ngs-bits/workflows/Windows%20build/badge.svg)  
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ngs-bits/README.html)
 
 ## Obtaining ngs-bits
@@ -16,24 +17,21 @@ Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can
 
 Changes already implemented in GIT master for next release:
 
-* GSvar: improved cfDNA sample handling (Batchimport of cfDNA panels, queue anlysis, ...)
+* none
+
+
+Changes in release 2021_09:  
+
+* GenePrioritization: Performs gene prioritization based on list of known disease genes and a PPI graph.
+* GraphStringDb: Creates simple representation of String-DB interaction graph.
+* VcfCheck: improved checking of empty INFO column
 * VcfAnnotateFromBed: added multithread support
-* MappingQC: added support for cfDNA samples
-
-Changes in release 2021_06:
-
-* General: Improved GRCh38 support in several tools.
-* General: Using BGZIP for compressed VCFs now to allow indexing them with tabix. 
-* VcfAnnotateFromBed: Made separator configurable; Added check for separator in source BED file; Fixed broken output VCF if input has no FORMAT column.
-* VcfAnnotateFromVcf: Fixed crash in VCF header parser.
-* NGSDExportSamples: Added ancestry column.
-* SampleAncestry: Improved runtime and memory use.
-* SampleGender: Improved runtime for algorithm 'hetx'.
-* SomaticQC: Added support for mutect2.
+* VcfAnnotateFromVcf: improved memory useage
+* MappingQC: added support for cfDNA samples, improved support for RNA
 * NGSD:
-	* Added disease status 'Unclear' to table 'sample'.
-	* Added table 'processed_sample_ancestry'.
-	* Added percent occupied to 'runqc_lane' (for Illumina NovaSeq).
+	* removed 'gene' and 'variant\_type' columns from 'variant' table
+	* added 'germline\_het' and 'germline\_hom' columns to 'variant' table
+	* added method 'shallow WGS' to 'variant\_validation' table
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
@@ -134,6 +132,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf.md) - Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided)
 * [VcfBreakMulti](doc/tools/VcfBreakMulti.md) - Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
+* [VcfCalculatePRS](doc/tools/VcfCalculatePRS.md) - Calculates the Polgenic Risk Score(s) for a sample.
 * [VcfCheck](doc/tools/VcfCheck.md) - Checks a VCF file for errors.
 * [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file.
 * [VcfFilter](doc/tools/VcfFilter.md) - Filters a VCF based on the given criteria.
@@ -154,6 +153,8 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ### Gene handling tools
 
+* [GenePrioritization](doc/tools/GenePrioritization.md): Performs gene prioritization based on list of known disease genes and a PPI graph (see also GraphStringDb).
+* [GraphStringDb](doc/tools/GraphStringDb.md): Creates simple representation of String-DB interaction graph.
 * [GenesToApproved](doc/tools/GenesToApproved.md) - Replaces gene symbols by approved symbols using the HGNC database (needs [NGSD](doc/install_ngsd.md)).
 * [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file (needs [NGSD](doc/install_ngsd.md)).
 * [NGSDExportGenes](doc/tools/NGSDExportGenes.md) - Lists genes from NGSD (needs [NGSD](doc/install_ngsd.md)).

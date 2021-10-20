@@ -278,11 +278,12 @@ public:
 										THROW(FileParseException, "Error while reading file '" + input_path + "': " + error_message);
 									}
 								}
-
+								
 								job.current_chunk.append(QByteArray(char_array));
 
 								vcf_line_idx++;
 							}
+							
 							vcf_line_idx = 0;
 							analysis_pool.start(new ChunkProcessor(job,
 																   prefix_list,
@@ -325,7 +326,7 @@ public:
 						default:
 							break;
 					}
-
+					
 					//break if file is read
 					if(gzeof(file)) break;
 				}
@@ -336,13 +337,10 @@ public:
 			delete[] buffer;
 
 			//wait for all jobs to finish
-			int done =0;
-			int to_be_written, to_be_processed;
+			int done = 0;
 			while (done < job_pool.count())
 			{
 				done = 0;
-				to_be_written = 0;
-				to_be_processed = 0;
 
 				for (int j=0; j<job_pool.count(); ++j)
 				{
@@ -355,13 +353,11 @@ public:
 							break;
 
 						case TO_BE_WRITTEN:
-							to_be_written++;
 							//sleep
 							QThread::msleep(100);
 							break;
 
 						case TO_BE_PROCESSED:
-							++to_be_processed;
 							//sleep
 							QThread::msleep(100);
 							break;
@@ -390,11 +386,9 @@ public:
 			//terminater output worker
 			output_worker->terminate();
 			out << "Programm finished!" << endl;
-
 		}
 		catch (...)
 		{
-			delete[] buffer;
 			//terminate output worker if an exeption is thrown
 			output_worker->terminate();
 			throw;

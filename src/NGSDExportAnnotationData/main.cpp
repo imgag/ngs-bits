@@ -146,20 +146,6 @@ private:
 			vcf_file_writing_sum += vcf_file_writing.elapsed();
 		}
 
-		//get same sample information
-		QHash<int, QList<int>> same_samples;
-		db_queries.restart();
-		SqlQuery query = db.getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
-		db_query_sum += db_queries.elapsed();
-		while (query.next())
-		{
-			int sample1_id = query.value(0).toInt();
-			int sample2_id = query.value(1).toInt();
-			same_samples[sample1_id] << sample2_id;
-			same_samples[sample2_id] << sample1_id;
-		}
-
 		// define query to get the NGSD counts for each variant
 		db_queries.restart();
 		SqlQuery ngsd_count_query = db.getQuery();
@@ -479,18 +465,6 @@ private:
 		// get disease groups
 		QStringList disease_groups = db.getEnum("sample", "disease_group");
 
-		//get same sample information
-		QHash<int, QList<int>> same_samples;
-		SqlQuery query = db.getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
-		while (query.next())
-		{
-			int sample1_id = query.value(0).toInt();
-			int sample2_id = query.value(1).toInt();
-			same_samples[sample1_id] << sample2_id;
-			same_samples[sample2_id] << sample1_id;
-		}
-
 		//prepare queries
 		SqlQuery ngsd_count_query = db.getQuery();
 		ngsd_count_query.prepare("SELECT s.id, s.disease_status, s.disease_group, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id=:0 AND ps.sample_id=s.id AND ps.quality!='bad' AND dv.processed_sample_id=ps.id");
@@ -639,12 +613,7 @@ private:
 							{
 								++count_het;
 								samples_done_het << sample_id;
-
-								QList<int> tmp = same_samples.value(sample_id, QList<int>());
-								foreach(int same_sample_id, tmp)
-								{
-									samples_done_het << same_sample_id;
-								}
+								samples_done_het.unite(db.sameSamples(sample_id));
 
 								if (ngsd_count_query.value(1) == "Affected")
 								{
@@ -657,12 +626,7 @@ private:
 							{
 								++count_hom;
 								samples_done_hom << sample_id;
-
-								QList<int> tmp = same_samples.value(sample_id, QList<int>());
-								foreach(int same_sample_id, tmp)
-								{
-									samples_done_hom << same_sample_id;
-								}
+								samples_done_hom.unite(db.sameSamples(sample_id));
 
 								if (ngsd_count_query.value(1) == "Affected")
 								{
@@ -707,6 +671,7 @@ private:
 					}
 
 					// get classification
+					SqlQuery query = db.getQuery();
 					db_queries.restart();
 					query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + QString::number(variant_id) + "'");
 					db_query_sum += db_queries.elapsed();
