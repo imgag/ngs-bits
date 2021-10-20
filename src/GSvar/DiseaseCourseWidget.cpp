@@ -318,7 +318,7 @@ void DiseaseCourseWidget::createTableView()
 		{
 			if(cf_dna_columns_.at(col_idx).mrd.rowCount() > 0)
 			{
-				ui_->mrd->setItem(row_idx, col_idx, GUIHelper::createTableItem(cf_dna_columns_.at(col_idx).mrd.row(0).at(row_idx)));
+				ui_->mrd->setItem(row_idx, col_idx, GUIHelper::createTableItem(cf_dna_columns_.at(col_idx).mrd.row(0).at(row_idx), Qt::AlignRight));
 				continue;
 			}
 			ui_->mrd->setItem(row_idx, col_idx, GUIHelper::createTableItem(""));
