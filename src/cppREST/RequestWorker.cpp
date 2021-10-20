@@ -114,7 +114,7 @@ void RequestWorker::run()
 
 
 	HttpRequest parsed_request;
-	RequestPaser *parser = new RequestPaser(&all_request_parts, ssl_socket->peerAddress().toString());
+	RequestParser *parser = new RequestParser(&all_request_parts, ssl_socket->peerAddress().toString());
 	try
 	{
 		parsed_request = parser->getRequest();
