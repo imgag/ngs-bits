@@ -1773,19 +1773,6 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			bool debug = false;
 			foreach(QString command, init_commands)
 			{
-				// Character escaping is needed for the URL, otherwise the address is being cut off
-				// Unix
-//				if (command.indexOf("https:/")>-1)
-//				{
-//					command = command.replace("https:/", "https://");
-//				}
-//				// Windows
-//				if (command.indexOf("https:\\")>-1)
-//				{
-//					command = command.replace("https:\\", "https://");
-//					command = command.replace("\\", "/");
-//				}
-
 				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;				
 				socket.write((command + "\n").toLatin1());
 				bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)

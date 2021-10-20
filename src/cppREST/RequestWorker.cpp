@@ -186,15 +186,8 @@ void RequestWorker::run()
 		QFile streamed_file(response.getFilename());
 		if (!streamed_file.exists())
 		{
-			if (response.getFilename().endsWith(".bai"))
-			{
-				streamed_file.setFileName(response.getFilename().replace(".bai", ".bam.bai"));
-			}
-			if (!streamed_file.exists())
-			{
-				sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "Requested file does not exist"));
-				return;
-			}
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::NOT_FOUND, parsed_request.getContentType(), "Requested file does not exist"));
+			return;
 		}
 
 		QFile::OpenMode mode = QFile::ReadOnly;
