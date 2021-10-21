@@ -41,6 +41,8 @@ protected slots:
 	void zoomOut();
 	//Update widgets that show the current region
 	void updateRegionWidgets(const BedLine& reg);
+	//
+	void updateCoordinateLabel(QString text);
 
 signals:
 	//Emitted when the displayed region has changed.

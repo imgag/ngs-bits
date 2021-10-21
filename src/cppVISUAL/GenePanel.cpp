@@ -5,16 +5,13 @@
 #include <QPainter>
 #include <QMenu>
 
-//TODO:
-// - show current position of cursor (genomic coordinate) and interval size in status bar
-// - add translation table for mitochondria: https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi
-
 GenePanel::GenePanel(QWidget *parent)
 	: QWidget(parent)
 	, strand_forward_(true)
 	, show_translation_(false)
 {
 	setContextMenuPolicy(Qt::CustomContextMenu);
+	setMouseTracking(true);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)));
 }
 
@@ -115,8 +112,9 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 				{
 					QByteArray triplet = seq.mid(i, 3);
 					if(triplet.length()<3) continue; //right border
+					if (triplet.contains('N')) continue; //N region
 					if (!strand_forward_) std::reverse(triplet.begin(), triplet.end());
-					QChar aa = NGSHelper::translateCodon(triplet);
+					QChar aa = NGSHelper::translateCodon(triplet, reg_.chr().isM());
 
 					//draw rectangle
 					QRectF rect(w_content_start + i*pixels_per_base, h_start_content, 3*pixels_per_base, char_size.height());
@@ -136,7 +134,33 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	}
 
 	//paint genes (preferred transcripts first)
+	ChromosomalIndex<TranscriptList> idx(*transcripts_);
+	foreach(int i, idx.matchingIndices(reg_.chr(), reg_.start(), reg_.end()))
+	{
+		qDebug() << transcripts_->at(i).name() << transcripts_->at(i).isPreferredTranscript();
+	}
+}
 
+void GenePanel::mouseMoveEvent(QMouseEvent* event)
+{
+	int x = event->pos().x();
+
+	int w = width();
+	int w_label = 165;
+	int w_content = w-w_label-4;
+
+	//show
+	if (x>w_label+2 && x<w-2)
+	{
+		double pixels_per_base = (double)w_content / (double)reg_.length();
+
+		int coordinate = reg_.start() + std::floor((double)(x-w_label-2) / pixels_per_base);
+		emit mouseCoordinate(reg_.chr().strNormalized(true) + ":" + QString::number(coordinate));
+	}
+	else
+	{
+		emit mouseCoordinate("");
+	}
 }
 
 QSize GenePanel::characterSize(QFont font)

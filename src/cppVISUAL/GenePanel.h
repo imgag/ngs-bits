@@ -21,6 +21,9 @@ public slots:
 	void setDependencies(const FastaFileIndex& genome_idx, const TranscriptList& transcripts);
 	void setRegion(const BedLine& region);
 
+signals:
+	void mouseCoordinate(QString);
+
 private slots:
 	void contextMenu(QPoint pos);
 
@@ -32,7 +35,7 @@ private:
 	bool show_translation_;
 
 	void paintEvent(QPaintEvent* event) override;
-
+	void mouseMoveEvent(QMouseEvent* event) override;
 	//Returns the character size.
 	static QSize characterSize(QFont font);
 	//Returs the color to draw the given base.

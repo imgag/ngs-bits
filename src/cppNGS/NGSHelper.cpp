@@ -326,7 +326,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 	vl_merged.store(out);
 }
 
-QChar NGSHelper::translateCodon(const QByteArray& codon)
+QChar NGSHelper::translateCodon(const QByteArray& codon, bool use_mito_table)
 {
 	//init
 	const static QHash<QByteArray, QChar> dictionary =   {{"TTT", 'F'}, {"TTC", 'F'}, {"TTA", 'L'}, {"TTG", 'L'}, {"CTT", 'L'}, {"CTC", 'L'},
@@ -343,6 +343,15 @@ QChar NGSHelper::translateCodon(const QByteArray& codon)
 
 	//check
 	if (!dictionary.contains(codon)) THROW(ProgrammingException, "Invalid codon: '" + codon + "'");
+
+	//special-handling of mito (see 2. chapter of https://www.ncbi.nlm.nih.gov/Taxonomy/Utils/wprintgc.cgi)
+	if (use_mito_table)
+	{
+		if (codon=="AGA") return '*';
+		else if (codon=="AGG") return '*';
+		else if (codon=="ATA") return 'M';
+		else if (codon=="TGA") return 'W';
+	}
 
 	//return
 	return dictionary[codon];

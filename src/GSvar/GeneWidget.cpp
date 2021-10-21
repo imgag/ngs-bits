@@ -279,7 +279,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		ui_.transcripts->setItem(row, 4, GUIHelper::createTableItem(aas));
 
 		QString pt = "";
-		if (GSvarHelper::preferredTranscripts().value(symbol_).contains(transcript.name())) pt = "yes";
+		if (transcript.isPreferredTranscript()) pt = "yes";
 		ui_.transcripts->setItem(row, 5, GUIHelper::createTableItem(pt));
 
 		QStringList ccds;

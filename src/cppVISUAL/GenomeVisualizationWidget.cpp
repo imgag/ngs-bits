@@ -46,7 +46,7 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const Fast
 	connect(ui_->zoomout_btn, SIGNAL(clicked(bool)), this, SLOT(zoomOut()));
 	connect(this, SIGNAL(regionChanged(BedLine)), this, SLOT(updateRegionWidgets(BedLine)));
 	connect(this, SIGNAL(regionChanged(BedLine)), ui_->gene_panel, SLOT(setRegion(BedLine)));
-
+	connect(ui_->gene_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
 }
 
 void GenomeVisualizationWidget::setRegion(const Chromosome& chr, int start, int end)
@@ -171,6 +171,11 @@ void GenomeVisualizationWidget::updateRegionWidgets(const BedLine& reg)
 	ui_->search->setText(reg.toString(true));
 	ui_->search->blockSignals(false);
 
-	ui_->status->setText("region size: " + QString::number(reg.length()));
+	ui_->label_region_size->setText(QString::number(reg.length()));
+}
+
+void GenomeVisualizationWidget::updateCoordinateLabel(QString text)
+{
+	ui_->label_coordinate->setText(text);
 }
 
