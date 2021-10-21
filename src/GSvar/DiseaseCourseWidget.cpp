@@ -194,9 +194,12 @@ void DiseaseCourseWidget::createTableView()
 	// set cfDNA header
 	foreach (const cfDnaColumn& cf_dna_column, cf_dna_columns_)
 	{
-		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem(cf_dna_column.name + "\n(" + cf_dna_column.date.toString("dd.MM.yyyy") + ")\nAllele fequency", Qt::AlignBottom));
-		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("Alt count", Qt::AlignBottom));
-		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("Depth", Qt::AlignBottom));
+		ui_->vars-> setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem(cf_dna_column.name + "\n(" + cf_dna_column.date.toString("dd.MM.yyyy") + ")\nAllele fequency", Qt::AlignBottom));
+		ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("multi-UMI allele frequency");
+		ui_->vars-> setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("Alt count", Qt::AlignBottom));
+		ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("multi-UMI alternative counts");
+		ui_->vars-> setHorizontalHeaderItem(col_idx, GUIHelper::createTableItem("Depth", Qt::AlignBottom));
+		ui_->vars->horizontalHeaderItem(col_idx++)->setToolTip("multi-UMI depth (multi-UMI alt reads + multi-UMI ref reads)");
 		ui_->vars-> setHorizontalHeaderItem(col_idx++, GUIHelper::createTableItem("p-value", Qt::AlignBottom));
 	}
 
@@ -240,17 +243,17 @@ void DiseaseCourseWidget::createTableView()
 				QStringList missing_keys;
 				if (!cfdna_variant->formatKeys().contains("M_AF")) missing_keys << "M_AF";
 				if (!cfdna_variant->formatKeys().contains("M_AC")) missing_keys << "M_AC";
-				if (!cfdna_variant->formatKeys().contains("DP")) missing_keys << "DP";
+				if (!cfdna_variant->formatKeys().contains("M_REF")) missing_keys << "M_REF";
 				if (!cfdna_variant->formatKeys().contains("Pval")) missing_keys << "Pval";
 				if (missing_keys.size() > 0)
 				{
 					// old umiVar format
-					THROW(FileParseException, "Keys '" + missing_keys.join("', '") + "'.\n Sample '" + cf_dna_column.name + "' was analyzed with an old version of umiVar. Please redo the VC!");
+					THROW(FileParseException, "Keys '" + missing_keys.join("', '") + "'.\n Maybe sample '" + cf_dna_column.name + "' was analyzed with an old version of umiVar. Please redo the VC!");
 				}
 
 				double cfdna_af = Helper::toDouble(cfdna_variant->formatValueFromSample("M_AF"), "M_AF", QString::number(i));
 				double alt_count = Helper::toDouble(cfdna_variant->formatValueFromSample("M_AC"), "M_AC", QString::number(i));
-				double depth = Helper::toDouble(cfdna_variant->formatValueFromSample("DP"), "DP", QString::number(i));
+				double depth = Helper::toDouble(cfdna_variant->formatValueFromSample("M_REF"), "M_REF", QString::number(i)) + alt_count;
 				double p_value = Helper::toDouble(cfdna_variant->formatValueFromSample("Pval"), "Pval", QString::number(i));
 
 				// generate table item with tool tip
