@@ -1,7 +1,5 @@
 # GSvarServer
-The server handles the interaction between GSvar desktop app and the sample data storage. Having GSvarServer been deployed, we extend the functionality of GSvar: it can now work not only with local data but also with any remote location via HTTPS protocol. The server mimics Apache server's behavour to certain extent. Static content can be served, access can be restricted, connection is encrypted (SSL certificates). However, we have implemented only a small subset of the HTTP specification. The functionality has been reduced exclusively to the needs of GSvar on purpose.
-
-User authentication has been implemented with the help of the standard mechanisms. At the same time we do not use .htaccess files or similar things. Basic HTTP authentication validates user credentials against the exisiting database (the same database GSvar is using). 
+The server handles the interaction between GSvar desktop app and the sample data storage. Having GSvarServer been deployed, we extend the functionality of GSvar: it can now work not only with local data but also with any remote location via HTTPS protocol. The server mimics Apache server's behavour to certain extent. Static content can be served, access can be restricted, connection can be encrypted (SSL certificates), or not (but it is not recommended). However, we have implemented only a small subset of the HTTP specification. The functionality has been reduced exclusively to the needs of GSvar on purpose.
 
 ## Dependencies
 The server does not bring any new dependencies to the project and relies on QT (as the existing code base)
@@ -65,6 +63,7 @@ used as a server root):
 Depending on the Qt installation, you may have disabled debug statements by default. To turn them on, follow these steps:
 - Open qtlogging.ini in /etc/xdg/QtProject/ (create a new empty file, if it does not exist)
 - Add (or modify accordingly) the following config
-[Rules]
-*.debug=true
+
+[Rules]  
+*.debug=true  
 qt.*.debug=false

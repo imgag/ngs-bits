@@ -229,13 +229,14 @@ void RequestWorker::run()
 		int chunk_size = STREAM_CHUNK_SIZE;
 		QByteArray data;
 		QList<ByteRange> ranges = response.getByteRanges();
-		if (ranges.count() > 0)
+		int ranges_count = ranges.count();
+		if (ranges_count > 0)
 		{
-			for (int i = 0; i < ranges.count(); ++i)
+			for (int i = 0; i < ranges_count; ++i)
 			{
 				chunk_size = STREAM_CHUNK_SIZE;
 				pos = ranges[i].start;
-				if (ranges.count() > 1)
+				if (ranges_count > 1)
 				{
 					sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"\r\n");
 					sendResponseDataPart(ssl_socket, "Content-Type: application/octet-stream\r\n");
@@ -262,7 +263,7 @@ void RequestWorker::run()
 					pos = pos + chunk_size;
 				}
 				sendResponseDataPart(ssl_socket, "\r\n");
-				if ((i == (ranges.count()-1)) && (ranges.count() > 1))
+				if ((i == (ranges_count-1)) && (ranges_count > 1))
 				{
 					sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"--\r\n");
 				}

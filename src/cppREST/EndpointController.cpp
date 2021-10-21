@@ -491,6 +491,7 @@ QString EndpointController::addFileToCache(const QString& filename)
 
 bool EndpointController::hasOverlappingRanges(const QList<ByteRange> ranges)
 {
+	if (ranges.count() == 1) return false;
 	for (int i = 0; i < ranges.count(); ++i)
 	{
 		for (int r = 0; r < ranges.count(); ++r)
