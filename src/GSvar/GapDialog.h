@@ -24,6 +24,7 @@ private slots:
 	void updateFilters();
 	void updateNGSDColumn();
 	void gapsContextMenu(QPoint pos);
+	void copyToClipboard();
 
 private:
 	Ui::GapDialog ui_;

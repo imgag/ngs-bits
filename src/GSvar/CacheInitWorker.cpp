@@ -9,11 +9,8 @@ CacheInitWorker::CacheInitWorker()
 
 void CacheInitWorker::process()
 {
-	QTime timer;
-	timer.start();
 	if (Settings::boolean("NGSD_enabled"))
 	{
 		NGSD().transcripts();
 	}
-	Log::perf("Initializing NGSD cache took ", timer);
 }
