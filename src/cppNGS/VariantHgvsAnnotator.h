@@ -8,6 +8,7 @@
 #include "FastaFileIndex.h"
 #include "Transcript.h"
 #include "Sequence.h"
+#include "NGSHelper.h"
 #include <QString>
 #include <QHash>
 
@@ -110,11 +111,14 @@ private:
     int splice_region_ex_;
     int splice_region_in_;
 
-    QHash<QByteArray, QByteArray> code_sun_;
-
-    QString getHgvsPosition(const BedFile& regions, const VcfLine& variant, int start, int end, bool plus_strand, bool utr_5);
+    QString getHgvsPosition(const BedFile& regions, const VcfLine& variant, bool plus_strand, bool utr_5 = false);
     QString getPositionInIntron(const BedFile& regions, int genomic_position, bool plus_strand, bool utr_5 = false);
-    QByteArray codonToAminoAcid(const QByteArray &codon);
+    QString getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx, const QString& pos_hgvs_c, bool plus_strand);
+    QByteArray toThreeLetterCode(QChar aa_one_letter_code);
+
+    void annotateSpliceRegion(HgvsNomenclature& hgvs, const Transcript& transcript, int start, int end, bool plus_strand);
+
+    void annotateProtSeqCsqSnv(HgvsNomenclature& hgvs);
 
 public:
     ///Default constructor
@@ -128,7 +132,7 @@ public:
     HgvsNomenclature variantToHgvs(const Transcript& transcript, const Variant& variant, const FastaFileIndex& genome_idx);
 
     Sequence getCodingSequence(const Transcript& trans, const FastaFileIndex& genome_idx);
-    QByteArray translate(const Sequence& seq);
+    QByteArray translate(const Sequence& seq, bool is_mito = false);
 };
 
 #endif // VARIANTHGVSANNOTATOR_H

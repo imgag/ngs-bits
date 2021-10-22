@@ -1,7 +1,7 @@
 #include "VariantHgvsAnnotator.h"
 
 VariantHgvsAnnotator::VariantHgvsAnnotator()
-    : VariantHgvsAnnotator::VariantHgvsAnnotator(5000, 3, 20)
+    : VariantHgvsAnnotator::VariantHgvsAnnotator(5000, 3, 8)
 {
 }
 
@@ -9,20 +9,10 @@ VariantHgvsAnnotator::VariantHgvsAnnotator(int max_dist_to_transcript, int splic
     : max_dist_to_transcript_(max_dist_to_transcript)
     , splice_region_ex_(splice_region_ex)
     , splice_region_in_(splice_region_in)
-    , code_sun_{{"TTT", "Phe"}, {"TTC", "Phe"}, {"TTA", "Leu"}, {"TTG", "Leu"}, {"CTT", "Leu"}, {"CTC", "Leu"},
-                {"CTA", "Leu"}, {"CTG", "Leu"}, {"TCT", "Ser"}, {"TCC", "Ser"}, {"TCA", "Ser"}, {"TCG", "Ser"},
-                {"AGT", "Ser"}, {"AGC", "Ser"}, {"TAT", "Tyr"}, {"TAC", "Tyr"}, {"TAA", "Ter"}, {"TAG", "Ter"},
-                {"TGA", "Ter"}, {"TGT", "Cys"}, {"TGC", "Cys"}, {"TGG", "Trp"}, {"CCT", "Pro"}, {"CCC", "Pro"},
-                {"CCA", "Pro"}, {"CCG", "Pro"}, {"CAT", "His"}, {"CAC", "His"}, {"CAA", "Gln"}, {"CAG", "Gln"},
-                {"CGT", "Arg"}, {"CGC", "Arg"}, {"CGA", "Arg"}, {"CGG", "Arg"}, {"AGA", "Arg"}, {"AGG", "Arg"},
-                {"ATT", "Ile"}, {"ATC", "Ile"}, {"ATA", "Ile"}, {"ATG", "Met"}, {"ACT", "Thr"}, {"ACC", "Thr"},
-                {"ACA", "Thr"}, {"ACG", "Thr"}, {"AAT", "Asn"}, {"AAC", "Asn"}, {"AAA", "Lys"}, {"AAG", "Lys"},
-                {"GTT", "Val"}, {"GTC", "Val"}, {"GTA", "Val"}, {"GTG", "Val"}, {"GCT", "Ala"}, {"GCC", "Ala"},
-                {"GCA", "Ala"}, {"GCG", "Ala"}, {"GAT", "Asp"}, {"GAC", "Asp"}, {"GAA", "Glu"}, {"GAG", "Glu"},
-                {"GGT", "Gly"}, {"GGC", "Gly"}, {"GGA", "Gly"}, {"GGG", "Gly"}}
 {
 }
 
+//convert a variant in VCF format into an HgvsNomenclature object
 HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, const VcfLine& variant, const FastaFileIndex& genome_idx)
 {
     //init
@@ -51,7 +41,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
             if((plus_strand && end >= transcript.start()) ||
                     (!plus_strand && start <= transcript.end()))
             {
-                pos_hgvs_c = getHgvsPosition(transcript.utr5prime(), variant, end, start, plus_strand, true);
+                pos_hgvs_c = getHgvsPosition(transcript.utr5prime(), variant, plus_strand, true);
 
                 if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
                 {
@@ -82,7 +72,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
             if((plus_strand && start <= transcript.end()) ||
                     (!plus_strand && end >= transcript.start()))
             {
-                pos_hgvs_c = "*" + getHgvsPosition(transcript.utr3prime(), variant, start, end, plus_strand, false);
+                pos_hgvs_c = "*" + getHgvsPosition(transcript.utr3prime(), variant, plus_strand, false);
                 if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
                 {
                     hgvs.variant_consequence_type.append(VariantConsequenceType::INTRON_VARIANT);
@@ -106,18 +96,25 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         //between start and stop codon
         else
         {
-            pos_hgvs_c = getHgvsPosition(transcript.codingRegions(), variant, start, end, plus_strand, false);
+            pos_hgvs_c = getHgvsPosition(transcript.codingRegions(), variant, plus_strand, false);
 
             if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
             {
                 hgvs.variant_consequence_type.append(VariantConsequenceType::INTRON_VARIANT);
             }
-            else
+            else if(variant.isSNV())
             {
                 hgvs.variant_consequence_type.append(VariantConsequenceType::CODING_SEQUENCE_VARIANT);
+                hgvs.hgvs_p = getHgvsProteinAnnotation(variant, genome_idx, pos_hgvs_c, plus_strand);
+
+                //annotate effect on protein sequence
+                annotateProtSeqCsqSnv(hgvs);
             }
         }
     }
+
+    //find out if the variant is a splice region variant
+    annotateSpliceRegion(hgvs, transcript, start, end, plus_strand);
 
     //SNV
     if(variant.isSNV())
@@ -135,15 +132,23 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
     return hgvs;
 }
 
+//convert a variant in GSvar format into an HgvsNomenclature object
 HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcript, const Variant& variant, const FastaFileIndex& genome_idx)
 {
-    HgvsNomenclature hgvs;
-    return hgvs;
+    //first convert from Variant to VcfLine
+    VariantVcfRepresentation vcf_rep = variant.toVCF(genome_idx);
+    QVector<Sequence> alt;
+    alt.push_back(vcf_rep.alt);
+    VcfLine vcf_variant(vcf_rep.chr, vcf_rep.pos, vcf_rep.ref, alt);
+
+    return variantToHgvs(transcript, vcf_variant, genome_idx);
 }
 
-//determine the HGVS position string for a variant in the untranslated region
-QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, const VcfLine& variant, int start, int end, bool plus_strand, bool utr_5)
+//determine the HGVS position string for a variant in 5/3 prime utr or coding region
+QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, const VcfLine& variant, bool plus_strand, bool utr_5)
 {
+    int start = variant.start();
+    int end = variant.end();
     bool exon = false;
     int pos = 0;
     QString pos_hgvs_c;
@@ -292,7 +297,7 @@ Sequence VariantHgvsAnnotator::getCodingSequence(const Transcript& trans, const 
 }
 
 //translate a DNA sequence into an amino acid sequence
-QByteArray VariantHgvsAnnotator::translate(const Sequence& seq)
+QByteArray VariantHgvsAnnotator::translate(const Sequence& seq, bool is_mito)
 {
     if(seq.length() % 3 != 0) THROW(ArgumentException, "Coding sequence length must be multiple of three.")
 
@@ -300,22 +305,156 @@ QByteArray VariantHgvsAnnotator::translate(const Sequence& seq)
 
     for(int i=0; i<seq.length(); i+=3)
     {
-        aa_seq.append(codonToAminoAcid(seq.mid(i, 3)));
+        aa_seq.append(toThreeLetterCode(NGSHelper::translateCodon(seq.mid(i, 3), is_mito)));
     }
     return aa_seq;
 }
 
-//translate a single codon into its three-letter amino acid equivalent
-QByteArray VariantHgvsAnnotator::codonToAminoAcid(const QByteArray& codon)
+//determine the annotation of the variant according to the HGVS nomenclature for proteins
+QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx,
+                                                       const QString& pos_hgvs_c, bool plus_strand)
 {
-    if(codon.length() != 3) THROW(ArgumentException, "Codon must consist of exactly three bases.");
+    QString hgvs_p("p.");
+    int pos_trans_start = 0;
+    //int pos trans_end = 0;
+    int start = variant.start();
+    //int end = variant.end();
+    QByteArray aa_ref;
+    QByteArray aa_obs;
+    Sequence seq_obs;
 
-    if(code_sun_.contains(codon))
+    if(variant.isSNV())
     {
-        return code_sun_[codon];
+        //make position in transcript sequence zero-based
+        pos_trans_start = pos_hgvs_c.toInt() - 1;
+        //pos_trans_end = pos_trans_start;
+        int offset = pos_trans_start % 3;
+
+        //translate the reference sequence codon and obtain the observed sequence codon
+        if(plus_strand)
+        {
+            aa_ref = toThreeLetterCode(NGSHelper::translateCodon(genome_idx.seq(variant.chr(), start - offset, 3),
+                                                                          variant.chr().isM()));
+            seq_obs = genome_idx.seq(variant.chr(), start - offset, 3);
+            seq_obs[offset] = variant.alt().at(0)[0];
+        }
+        else
+        {
+            aa_ref = toThreeLetterCode(NGSHelper::translateCodon(genome_idx.seq(variant.chr(), start + offset - 2, 3).toReverseComplement(),
+                                                                          variant.chr().isM()));
+            seq_obs = genome_idx.seq(variant.chr(), start + offset - 2, 3);
+            seq_obs.reverse();
+            seq_obs[offset] = variant.alt().at(0)[0];
+            seq_obs.complement();
+        }
+
+        //translate the observed sequence codon
+        aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs, variant.chr().isM()));
+
+        if(aa_obs == aa_ref) aa_obs = "=";
+        else if(aa_ref == "Met") aa_obs = "?";
+
+        aa_ref.append(QByteArray::number(pos_trans_start / 3 + 1));
+    }
+
+    hgvs_p.append(aa_ref);
+    hgvs_p.append(aa_obs);
+
+    return hgvs_p;
+}
+
+//add the consequence type according to the change in the protein sequence
+void VariantHgvsAnnotator::annotateProtSeqCsqSnv(HgvsNomenclature& hgvs)
+{
+    if(hgvs.hgvs_p.endsWith("="))
+    {
+        hgvs.variant_consequence_type.append(VariantConsequenceType::SYNONYMOUS_VARIANT);
+        if(hgvs.hgvs_p.contains("Ter"))
+        {
+            hgvs.variant_consequence_type.append(VariantConsequenceType::STOP_RETAINED_VARIANT);
+        }
+        else if(hgvs.hgvs_p.contains("Met"))
+        {
+            hgvs.variant_consequence_type.append(VariantConsequenceType::START_RETAINED_VARIANT);
+        }
+        return;
     }
     else
     {
-        THROW(ArgumentException, "Invalid codon");
+        hgvs.variant_consequence_type.append(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
     }
+
+    if(hgvs.hgvs_p.contains("Met") && hgvs.hgvs_p.endsWith("?"))
+    {
+        hgvs.variant_consequence_type.append(VariantConsequenceType::START_LOST);
+    }
+    else if(hgvs.hgvs_p.endsWith("Ter"))
+    {
+        hgvs.variant_consequence_type.append(VariantConsequenceType::STOP_GAINED);
+    }
+    else if(hgvs.hgvs_p.contains("Ter"))
+    {
+        hgvs.variant_consequence_type.append(VariantConsequenceType::STOP_LOST);
+    }
+    else
+    {
+        hgvs.variant_consequence_type.append(VariantConsequenceType::MISSENSE_VARIANT);
+    }
+}
+
+//annotate if the variant is a splice region variant
+void VariantHgvsAnnotator::annotateSpliceRegion(HgvsNomenclature& hgvs, const Transcript& transcript, int start, int end, bool plus_strand)
+{
+    for(int i=0; i<transcript.regions().count(); i++)
+    {
+        int diff_intron_end = transcript.regions()[i].start() - end;
+        int diff_exon_start = start - transcript.regions()[i].start() + 1;
+        int diff_exon_end = transcript.regions()[i].end() - end + 1;
+        int diff_intron_start = start - transcript.regions()[i].end();
+
+        if((diff_intron_end <= splice_region_in_ && diff_intron_end >= 0) ||
+                (diff_exon_start <= splice_region_ex_ && diff_exon_start >= 0))
+        {
+            //first exon cannot have splice region variant at the start
+            if(i != 0)
+            {
+                hgvs.variant_consequence_type.append(VariantConsequenceType::SPLICE_REGION_VARIANT);
+                if(diff_intron_end <= 2 && diff_intron_end > 0)
+                {
+                    if(plus_strand) hgvs.variant_consequence_type.append(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
+                    else hgvs.variant_consequence_type.append(VariantConsequenceType::SPLICE_DONOR_VARIANT);
+
+                    //splice donor/acceptor variant has unknown consequences on protein
+                    hgvs.hgvs_p = "p.?";
+                }
+                break;
+            }
+        }
+        else if((diff_exon_end <= splice_region_ex_ && diff_exon_end >= 0) ||
+                (diff_intron_start <= splice_region_in_ && diff_intron_start >= 0))
+        {
+            //last exon cannot have splice region variant at the end
+            if(i != transcript.regions().count() - 1)
+            {
+                hgvs.variant_consequence_type.append(VariantConsequenceType::SPLICE_REGION_VARIANT);
+                if(diff_intron_start <= 2 && diff_intron_start > 0)
+                {
+                    if(plus_strand) hgvs.variant_consequence_type.append(VariantConsequenceType::SPLICE_DONOR_VARIANT);
+                    else hgvs.variant_consequence_type.append(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
+
+                    //splice donor/acceptor variant has unknown consequences on protein
+                    hgvs.hgvs_p = "p.?";
+                }
+                break;
+            }
+        }
+    }
+}
+
+//transform one letter aa code to three letter code; replacing "*" with "Ter" to encode for termination codon
+//  (needed for HGVS nomenclature to obtain same output as from VEP)
+QByteArray VariantHgvsAnnotator::toThreeLetterCode(QChar aa_one_letter_code)
+{
+    if(aa_one_letter_code == "*") return "Ter";
+    else return NGSHelper::threeLetterCode(aa_one_letter_code);
 }
