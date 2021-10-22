@@ -1177,16 +1177,9 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		QMap<QByteArray, BedFile> grouped;
 		for (int i=0; i<low_cov.count(); ++i)
 		{
-			QList<QByteArray> genes = low_cov[i].annotations()[0].split(',');
-			foreach(QByteArray gene, genes)
+			GeneSet genes = GeneSet::createFromText(low_cov[i].annotations()[0], ',');
+			foreach(const QByteArray& gene, genes)
 			{
-				gene = gene.trimmed();
-
-				//skip non-gene regions
-				// - remains of VEGA database in old HaloPlex designs
-				// - SNPs for sample identification
-				if (gene=="") continue;
-
 				grouped[gene].append(low_cov[i]);
 			}
 		}

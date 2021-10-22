@@ -5657,8 +5657,8 @@ void MainWindow::editVariantReportConfiguration(int index)
 
 		if (i_genes!=-1)
 		{
-			QByteArrayList genes = variant.annotations()[i_genes].split(',');
-			foreach(QByteArray gene, genes)
+			GeneSet genes = GeneSet::createFromText(variant.annotations()[i_genes], ',');
+			foreach(const QByteArray& gene, genes)
 			{
 				GeneInfo gene_info = db.geneInfo(gene);
 				inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};

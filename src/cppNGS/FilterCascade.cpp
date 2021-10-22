@@ -4,6 +4,7 @@
 #include "Helper.h"
 #include "NGSHelper.h"
 #include "Log.h"
+#include "GeneSet.h"
 #include "cmath"
 
 /*************************************************** FilterParameter ***************************************************/
@@ -1760,7 +1761,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 
 			if (geno_all=="het")
 			{
-				QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
+				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
 					gene_to_het[gene.trimmed()] += 1;
@@ -1782,7 +1783,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 			QByteArray geno_all = checkSameGenotype(geno_indices, variants[i]);
 			if (geno_all=="het")
 			{
-				QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
+				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
 					if (gene_to_het[gene.trimmed()]>=2)
@@ -4308,9 +4309,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		GeneSet genes;
-		genes << svs[i].annotations()[i_genes].split(';');
-
+		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
 		foreach(const QByteArray& gene, genes)
 		{
 			gene_count[gene] += 1;
@@ -4357,8 +4356,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		GeneSet genes;
-		genes << svs[i].annotations()[i_genes].split(';');
+		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
 		result.flags()[i] = genes.intersectsWith(comphet_hit);
 	}
 }
