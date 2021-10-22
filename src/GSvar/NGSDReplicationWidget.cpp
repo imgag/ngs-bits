@@ -106,7 +106,7 @@ void NGSDReplicationWidget::performPreChecks()
 	{
 		if (!target_tables.contains(table)) continue;
 
-		if (db_source_->tableInfo(table).fieldNames()!=db_target_->tableInfo(table).fieldNames())
+		if (db_source_->tableInfo(table, false).fieldNames()!=db_target_->tableInfo(table, false).fieldNames())
 		{
 			addWarning("Table '" + table + "' has differing field list!");
 		}

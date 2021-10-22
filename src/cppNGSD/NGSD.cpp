@@ -1861,12 +1861,12 @@ QStringList NGSD::tables() const
 	return db_->driver()->tables(QSql::Tables);
 }
 
-const TableInfo& NGSD::tableInfo(const QString& table) const
+const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 {
 	QMap<QString, TableInfo>& table_infos = getCache().table_infos;
 
 	//create if necessary
-	if (!table_infos.contains(table))
+	if (!table_infos.contains(table) || !use_cache)
 	{
 		//check table exists
 		if (!tables().contains(table))
