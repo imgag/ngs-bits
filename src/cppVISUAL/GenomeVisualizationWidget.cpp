@@ -1,24 +1,43 @@
 #include "ui_GenomeVisualizationWidget.h"
 #include "GenomeVisualizationWidget.h"
 #include "BedFile.h"
-
+#include "GUIHelper.h"
+#include <QToolTip>
 #include <QDebug>
 #include <QMessageBox>
 
-GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const FastaFileIndex& genome_idx)
+GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const FastaFileIndex& genome_idx, const TranscriptList& transcripts)
 	: QWidget(parent)
 	, ui_(new Ui::GenomeVisualizationWidget)
 	, settings_()
 	, genome_idx_(genome_idx)
+	, transcripts_(transcripts)
 	, valid_chrs_()
+	, gene_to_trans_indices_()
+	, trans_to_index_()
 	, current_reg_()
 {
 	ui_->setupUi(this);
+	GUIHelper::styleSplitter(ui_->splitter_gene_panel);
+
+	//init panels
+	ui_->gene_panel->setDependencies(genome_idx_, transcripts_);
 
 	//init chromosome list (ordered correctly)
 	valid_chrs_ = genome_idx_.names();
 	std::sort(valid_chrs_.begin(), valid_chrs_.end(), [](const QString& s1, const QString& s2){ Chromosome c1(s1); Chromosome c2(s2); return (c1.num()<1004 || c2.num()<1004) ? c1<c2 : s1<s2;  });
 	ui_->chr_selector->addItems(valid_chrs_);
+
+	//init gene and transcript list
+	for(int i=0; i<transcripts_.size(); ++i)
+	{
+		const Transcript& trans = transcripts_[i];
+
+		if (trans.source()!=Transcript::ENSEMBL) continue;
+
+		gene_to_trans_indices_[trans.gene()] << i;
+		trans_to_index_[trans.name()] = i;
+	}
 
 	//connect signals and slots
 	connect(ui_->chr_selector, SIGNAL(currentTextChanged(QString)), this, SLOT(setChromosomeRegion(QString)));
@@ -26,6 +45,8 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent, const Fast
 	connect(ui_->zoomin_btn, SIGNAL(clicked(bool)), this, SLOT(zoomIn()));
 	connect(ui_->zoomout_btn, SIGNAL(clicked(bool)), this, SLOT(zoomOut()));
 	connect(this, SIGNAL(regionChanged(BedLine)), this, SLOT(updateRegionWidgets(BedLine)));
+	connect(this, SIGNAL(regionChanged(BedLine)), ui_->gene_panel, SLOT(setRegion(BedLine)));
+	connect(ui_->gene_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
 }
 
 void GenomeVisualizationWidget::setRegion(const Chromosome& chr, int start, int end)
@@ -55,6 +76,7 @@ void GenomeVisualizationWidget::setRegion(const Chromosome& chr, int start, int 
 	{
 		end = genome_idx_.lengthOf(chr);
 		start = end - size + 1;
+		if (start<1) start = 1; //if size is bigger than chromosome, this can happen
 	}
 
 	//check new region is different from old
@@ -83,7 +105,6 @@ void GenomeVisualizationWidget::search()
 	//chromosome
 	if (valid_chrs_.contains(text) || (!text.startsWith("chr") && valid_chrs_.contains("chr"+text)))
 	{
-		qDebug() << "MATCH: CHR";
 		setChromosomeRegion(text);
 		return;
 	}
@@ -92,15 +113,40 @@ void GenomeVisualizationWidget::search()
 	BedLine region = BedLine::fromString(text);
 	if (region.isValid())
 	{
-		qDebug() << "MATCH: REG";
 		setRegion(region.chr(), region.start(), region.end());
 		return;
 	}
 
-	qDebug() << "NO MATCH!";
-	//TODO: gene
+	//gene
+	if (gene_to_trans_indices_.contains(text.toLatin1()))
+	{
+		BedFile roi;
+		foreach(int index, gene_to_trans_indices_[text.toLatin1()])
+		{
+			const Transcript& trans = transcripts_[index];
+			roi.append(BedLine(trans.chr(), trans.start(), trans.end()));
+		}
+		roi.extend(settings_.transcript_padding);
+		roi.merge();
+		if (roi.count()>1)
+		{
+			QToolTip::showText(ui_->search->mapToGlobal(QPoint(0, 0)), "Gene has several transcript regions, using the first one!\nUse transcript identifiers to select a specific transcript of the gene!" + text);
+		}
 
-	//TODO: transcript
+		setRegion(roi[0].chr(), roi[0].start(), roi[0].end());
+		return;
+	}
+
+	//transcript
+	if (trans_to_index_.contains(text.toLatin1()))
+	{
+		int index = trans_to_index_[text.toLatin1()];
+		const Transcript& trans = transcripts_[index];
+		setRegion(trans.chr(), trans.start()-settings_.transcript_padding, trans.end()+settings_.transcript_padding);
+		return;
+	}
+
+	QToolTip::showText(ui_->search->mapToGlobal(QPoint(0, 0)), "Could not find locus or feature: " + text);
 }
 
 void GenomeVisualizationWidget::zoomIn()
@@ -117,8 +163,6 @@ void GenomeVisualizationWidget::zoomOut()
 
 void GenomeVisualizationWidget::updateRegionWidgets(const BedLine& reg)
 {
-	qDebug() << "NEW REGION" << reg.toString(true) << reg.length();
-
 	ui_->chr_selector->blockSignals(true);
 	ui_->chr_selector->setCurrentText(reg.chr().strNormalized(true));
 	ui_->chr_selector->blockSignals(false);
@@ -126,5 +170,12 @@ void GenomeVisualizationWidget::updateRegionWidgets(const BedLine& reg)
 	ui_->search->blockSignals(true);
 	ui_->search->setText(reg.toString(true));
 	ui_->search->blockSignals(false);
+
+	ui_->label_region_size->setText(QString::number(reg.length()));
+}
+
+void GenomeVisualizationWidget::updateCoordinateLabel(QString text)
+{
+	ui_->label_coordinate->setText(text);
 }
 

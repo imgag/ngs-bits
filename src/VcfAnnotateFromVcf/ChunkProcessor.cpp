@@ -164,11 +164,12 @@ QByteArrayList getVcfHeaderLines(const QByteArray &vcf_file_path, QByteArrayList
 			return QByteArrayList();
         }
 
-        char* buffer = new char[1048576]; //1MB buffer
+		const int buffer_size = 1048576; //1MB buffer
+		char* buffer = new char[buffer_size];
         while(!gzeof(vcfgz_file))
         {
 
-            char* char_array = gzgets(vcfgz_file, buffer, 1048576);
+			char* char_array = gzgets(vcfgz_file, buffer, buffer_size);
 
             //handle errors like truncated GZ file
             if (char_array==nullptr)

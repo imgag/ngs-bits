@@ -2,7 +2,7 @@
 CONFIG += c++11 
 
 #base settings
-QT       += gui widgets
+QT       += gui widgets xml xmlpatterns network
 TEMPLATE = lib
 TARGET = cppVISUAL
 DEFINES += CPPVISUAL_LIBRARY
@@ -24,14 +24,27 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
 
+#include cppGUI library
+INCLUDEPATH += $$PWD/../cppGUI
+LIBS += -L$$PWD/../../bin -lcppGUI
+
+#include htslib library
+INCLUDEPATH += $$PWD/../../htslib/include/
+LIBS += -L$$PWD/../../htslib/lib/ -lhts
+
+#include zlib library
+LIBS += -lz
+
 #make the executable search for .so-files in the same folder under linux
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += \
-    GenomeVisualizationWidget.cpp
+    GenomeVisualizationWidget.cpp \
+    GenePanel.cpp
 
 HEADERS += \
-    GenomeVisualizationWidget.h
+    GenomeVisualizationWidget.h \
+    GenePanel.h
 
 FORMS += \
     GenomeVisualizationWidget.ui

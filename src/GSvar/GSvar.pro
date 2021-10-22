@@ -99,7 +99,9 @@ SOURCES += main.cpp\
     CohortAnalysisWidget.cpp \
     cfDNARemovedRegions.cpp \
     CfdnaAnalysisDialog.cpp \
-    ClinvarUploadDialog.cpp
+    ClinvarUploadDialog.cpp \
+    LiftOverWidget.cpp \
+    CacheInitWorker.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -194,7 +196,9 @@ HEADERS += MainWindow.h \
     CohortAnalysisWidget.h \
     cfDNARemovedRegions.h \
     CfdnaAnalysisDialog.h \
-    ClinvarUploadDialog.h
+    ClinvarUploadDialog.h \
+    LiftOverWidget.h \
+    CacheInitWorker.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -277,7 +281,8 @@ FORMS    += MainWindow.ui \
     CohortAnalysisWidget.ui \
     cfDNARemovedRegions.ui \
     CfdnaAnalysisDialog.ui \
-    ClinvarUploadDialog.ui
+    ClinvarUploadDialog.ui \
+    LiftOverWidget.ui
     include("../app_gui.pri")
 
 #include NGSD library

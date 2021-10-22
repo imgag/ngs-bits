@@ -787,3 +787,23 @@ int Transcript::utr3primeStart() const
 		return utr_3prime_[utr_3prime_.count()-1].end()+1;
 	}
 }
+
+void TranscriptList::sortByPosition()
+{
+	TranscriptPositionComparator comparator;
+	std::sort(this->begin(), this->end(), comparator);
+}
+
+bool TranscriptList::TranscriptPositionComparator::operator()(const Transcript& a, const Transcript& b) const
+{
+	if (a.chr()<b.chr()) return true;
+	if (a.chr()>b.chr()) return false;
+
+	if (a.start()<b.start()) return true;
+	if (a.start()>b.start()) return false;
+
+	if (a.end()<b.end()) return true;
+	if (a.end()>b.end()) return false;
+
+	return a.name()<b.name();
+}

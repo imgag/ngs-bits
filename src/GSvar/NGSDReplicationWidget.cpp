@@ -249,7 +249,19 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 					//special handling of variant_id (lifted-over)
 					if (contains_variant_id && field=="variant_id") continue;
 
-					q_update.bindValue(":"+field, query.value(field));
+					QVariant value = query.value(field);
+
+					//special handling of normal_sample if not in target database yet
+					if (table=="processed_sample" && field=="normal_id")
+					{
+						if (!value.isNull())
+						{
+							QVariant normal_id = db_target_->getValue("SELECT id FROM processed_sample WHERE id=" + value.toString());
+							if (!normal_id.isValid()) value.clear();
+						}
+					}
+
+					q_update.bindValue(":"+field, value);
 				}
 				q_update.exec();
 

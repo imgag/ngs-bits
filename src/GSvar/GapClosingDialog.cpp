@@ -82,7 +82,7 @@ QString GapClosingDialog::exonNumber(const QByteArray& gene, int start, int end)
 		{
 			try
 			{
-				Transcript trans = db_.transcript(db_.transcriptId(transcript_name));
+				const Transcript& trans = db_.transcript(db_.transcriptId(transcript_name));
 				int exon_nr = trans.exonNumber(start-20, end+20);
 				if (exon_nr!=-1)
 				{

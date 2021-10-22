@@ -582,9 +582,11 @@ public:
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns transcript by id. Throws an exception if not found in NGSD.
-	Transcript transcript(int id);
+	const Transcript& transcript(int id);
 	///Returns transcript identifier. Throws an exception if not found in NGSD, or returns -1.
 	int transcriptId(QString name, bool throw_on_error=true);
+	///Returns all transcripts in the database;
+	const TranscriptList& transcripts();
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
 	TranscriptList transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
 	///Returns longest coding transcript of a gene.
@@ -909,15 +911,14 @@ protected:
 		QHash<int, Phenotype> phenotypes_by_id;
 		QHash<QByteArray, int> phenotypes_accession_to_id;
 
-		BedFile gene_regions;
-		ChromosomalIndex<BedFile> gene_regions_index;
-
-		BedFile gene_exons;
-		ChromosomalIndex<BedFile> gene_exons_index;
+		TranscriptList gene_transcripts;
+		ChromosomalIndex<TranscriptList> gene_transcripts_index;
+		QHash<int, int> gene_transcripts_id2index; //NGSD transcript id > index in 'gene_transcripts'
+		QHash<QByteArray, QSet<int>> gene_transcripts_symbol2indices; //gene symbol > indices in 'gene_transcripts'
 	};
 	static Cache& getCache();
 	void clearCache();
+	void initTranscriptCache();
 };
-
 
 #endif // NGSD_H
