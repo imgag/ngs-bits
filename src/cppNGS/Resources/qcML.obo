@@ -1070,3 +1070,59 @@ is_a: QC:2000003 ! NGS mapping parameter
 is_a: QC:0000050 ! image plot
 xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
 created_by: schuetz
+
+[Term]
+id: QC:2000077
+name: monitoring variant read depth
+def: "Average sequencing depth of monitoring variants."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000078
+name: ID variant read depth
+def: "Average sequencing depth of ID variants."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000079
+name: monitoring variant count
+def: "Total number of monitoring variants."
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000080
+name: 250x coverage monitoring variant count
+def: "Number of monitoring variants which have at least 250x coverage."
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000081
+name: ID variant count
+def: "Total number of ID variants."
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000082
+name: 250x coverage ID variant count
+def: "Number of ID variants which have at least 250x coverage."
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000083
+name: cfDNA-tumor correlation
+def: "Sample correlation of high-quality SNV genotypes between cfDNA and tumor sample."
+is_a: QC:2000001 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
