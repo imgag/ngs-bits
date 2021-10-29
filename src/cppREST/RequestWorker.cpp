@@ -245,7 +245,7 @@ void RequestWorker::run()
 				}
 				while(pos<(ranges[i].end+1))
 				{
-					if (is_terminated_) break;
+					if (is_terminated_) return;
 					if (pos > file_size) break;
 					streamed_file.seek(pos);
 
@@ -262,6 +262,7 @@ void RequestWorker::run()
 					sendResponseDataPart(ssl_socket, data);
 					pos = pos + chunk_size;
 				}
+				if (is_terminated_) return;
 				sendResponseDataPart(ssl_socket, "\r\n");
 				if ((i == (ranges_count-1)) && (ranges_count > 1))
 				{
@@ -358,7 +359,7 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 {
 	qDebug() << "Closing the socket";
 	is_terminated_ = true;
-	if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->flush();
+//	if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->flush();
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->waitForBytesWritten();
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->close();
 
@@ -376,7 +377,7 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 
 	if ((socket->state() != QSslSocket::SocketState::UnconnectedState) && (socket->bytesToWrite()))
 	{
-		socket->flush();
+//		socket->flush();
 		if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->waitForBytesWritten();
 	}
 
@@ -399,7 +400,7 @@ void RequestWorker::finishPartialDataResponse(QSslSocket* socket)
 {
 	if ((socket->state() != QSslSocket::SocketState::UnconnectedState) && (socket->bytesToWrite()))
 	{
-		socket->flush();		
+//		socket->flush();
 		if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->waitForBytesWritten();
 	}
 
