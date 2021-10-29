@@ -112,20 +112,46 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
             }
         }
     }
+    // non-coding transcript
+    else
+    {
+        if((plus_strand && variant.start() >= transcript.start() && variant.end() <= transcript.end()) ||
+                (!plus_strand && variant.start() >= transcript.end() && variant.end() <= transcript.start()))
+        {
+            hgvs.variant_consequence_type.append(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT);
+
+            pos_hgvs_c = getHgvsPosition(transcript.regions(), variant, plus_strand, false);
+
+            if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
+            {
+                hgvs.variant_consequence_type.append(VariantConsequenceType::INTRON_VARIANT);
+            }
+            else
+            {
+                hgvs.variant_consequence_type.append(VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT);
+            }
+        }
+        else
+        {
+            THROW(Exception, "For non-coding transcripts, only variants within the transcript can be described.");
+        }
+    }
 
     //find out if the variant is a splice region variant
     annotateSpliceRegion(hgvs, transcript, start, end, plus_strand);
+
+    QString hgvs_c_prefix = transcript.isCoding() ? "c." : "n.";
 
     //SNV
     if(variant.isSNV())
     {
         if(plus_strand)
         {
-            hgvs.hgvs_c = "c." + pos_hgvs_c + ref + ">" + obs;
+            hgvs.hgvs_c = hgvs_c_prefix + pos_hgvs_c + ref + ">" + obs;
         }
         else
         {
-            hgvs.hgvs_c = "c." + pos_hgvs_c + ref.toReverseComplement() + ">" + obs.toReverseComplement();
+            hgvs.hgvs_c = hgvs_c_prefix + pos_hgvs_c + ref.toReverseComplement() + ">" + obs.toReverseComplement();
         }
     }
 

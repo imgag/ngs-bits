@@ -103,6 +103,22 @@ Q_OBJECT
         return t;
     }
 
+    Transcript trans_NEAT1()
+    {
+        Transcript t;
+        t.setGene("NEAT1");
+        t.setName("ENST00000499732");
+        t.setSource(Transcript::ENSEMBL);
+        t.setStrand(Transcript::PLUS);
+
+        BedFile regions;
+        regions.append(BedLine("chr11", 65190245, 65190854));
+        regions.append(BedLine("chr11", 65191098, 65192232));
+        t.setRegions(regions);
+
+        return t;
+    }
+
 private slots:
     void vcfToHgvsPlusStrand()
     {
@@ -229,6 +245,15 @@ private slots:
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.*48A>C");
         I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::THREE_PRIME_UTR_VARIANT);
+
+        // upstream gene variant
+        alt.clear();
+        alt.push_back("G");
+        variant.setPos(195942487);
+        variant.setRef("A");
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "");
+        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::UPSTREAM_GENE_VARIANT);
     }
 
     void vcfToHgvsMinusStrand()
@@ -356,6 +381,24 @@ private slots:
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.-34-2A>G");
         I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
+
+        // upstream gene variant
+        alt.clear();
+        alt.push_back("A");
+        variant.setPos(195312178);
+        variant.setRef("G");
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "");
+        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::UPSTREAM_GENE_VARIANT);
+
+        // downstream gene variant
+        alt.clear();
+        alt.push_back("A");
+        variant.setPos(195290637);
+        variant.setRef("G");
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "");
+        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::DOWNSTREAM_GENE_VARIANT);
     }
 
     void vcfToHgvsUtrIntrons()
@@ -407,6 +450,37 @@ private slots:
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.*21+18A>C");
         I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
+    }
+
+    void vcfToHgvsNonCoding()
+    {
+        QString ref_file = Settings::string("reference_genome", true);
+        if (ref_file=="") SKIP("Test needs the reference genome!");
+        FastaFileIndex reference(ref_file);
+
+        VariantHgvsAnnotator var_hgvs_anno;
+        Transcript t = trans_NEAT1();
+
+        // non-coding intron variant
+        QVector<Sequence> alt;
+        alt.push_back("T");
+        VcfLine variant(Chromosome("chr11"), 65190874, "C", alt);
+        HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "n.610+20C>T");
+        S_EQUAL(hgvs.hgvs_p, "");
+        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT);
+        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::INTRON_VARIANT);
+
+        // non-coding exon variant
+        alt.clear();
+        alt.push_back("T");
+        variant.setPos(65190798);
+        variant.setRef("C");
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "n.554C>T");
+        S_EQUAL(hgvs.hgvs_p, "");
+        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT);
+        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT);
     }
 
     void translateDnaSequence()
