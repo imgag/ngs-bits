@@ -19,7 +19,8 @@ RequestWorker::RequestWorker(qintptr socket)
 
 void RequestWorker::run()
 {
-	qInfo() << "Start processing an incomming connection in a new separate worker thread";
+	QString tid = ServerHelper::generateUniqueStr();
+	qInfo() << "Start processing an incomming connection in a new separate worker thread" << tid;
 	QSslSocket *ssl_socket = new QSslSocket();
 	ssl_socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
 
@@ -236,6 +237,7 @@ void RequestWorker::run()
 			{
 				chunk_size = STREAM_CHUNK_SIZE;
 				pos = ranges[i].start;
+				qDebug() << "Range start" << pos << ", " << tid;
 				if (ranges_count > 1)
 				{
 					sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"\r\n");
@@ -245,7 +247,11 @@ void RequestWorker::run()
 				}
 				while(pos<(ranges[i].end+1))
 				{
-					if (is_terminated_) return;
+					if (is_terminated_)
+					{
+						qDebug() << "Terminated at " << pos << ", " << tid;
+						return;
+					}
 					if (pos > file_size) break;
 					streamed_file.seek(pos);
 
@@ -262,7 +268,11 @@ void RequestWorker::run()
 					sendResponseDataPart(ssl_socket, data);
 					pos = pos + chunk_size;
 				}
-				if (is_terminated_) return;
+				if (is_terminated_)
+				{
+					qDebug() << "Terminated at " << pos << ", " << tid;
+					return;
+				}
 				sendResponseDataPart(ssl_socket, "\r\n");
 				if ((i == (ranges_count-1)) && (ranges_count > 1))
 				{
