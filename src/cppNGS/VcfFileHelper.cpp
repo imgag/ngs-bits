@@ -485,6 +485,34 @@ bool VcfLine::isInDel() const
 	return false;
 }
 
+bool VcfLine::isIns() const
+{
+    if(alt().count() > 1)
+    {
+        THROW(NotImplementedException, "Can not determine if multi allelic variant is insertion");
+    }
+
+    if(alt(0).length() > 1 && ref().length() == 1)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool VcfLine::isDel() const
+{
+    if(alt().count() > 1)
+    {
+        THROW(NotImplementedException, "Can not determine if multi allelic variant is deletion")
+    }
+
+    if(alt(0).length() == 1 && ref().length() > 1)
+    {
+        return true;
+    }
+    return false;
+}
+
 //returns all not passed filters
 QByteArrayList VcfLine::failedFilters() const
 {

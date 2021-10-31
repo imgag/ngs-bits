@@ -551,6 +551,10 @@ public:
 	bool isMultiAllelic() const;
 	//Returns if the variant is an InDel, can only be called on single allelic variants
 	bool isInDel() const;
+    //Returns if the variant is an insertion, can only be called on single allelic variants
+    bool isIns() const;
+    //Returns if the variant is a deletion, can only be called on single allelic variants
+    bool isDel() const;
 	//Returns if the chromosome is valid
 	bool isValidGenomicPosition() const;
 	//Returns all not passed filters
