@@ -11,6 +11,7 @@
 #include "NGSHelper.h"
 #include <QString>
 #include <QHash>
+#include <QSet>
 
 ///Representation of the effect of a variant
 enum class VariantConsequenceType
@@ -41,6 +42,11 @@ enum class VariantConsequenceType
     INTERGENIC_VARIANT
 };
 
+inline uint qHash(VariantConsequenceType key, uint seed)
+{
+    return ::qHash(static_cast<uint>(key), seed);
+}
+
 ///Representation of the level of impact of a variant
 enum class VariantImpact
 {
@@ -57,7 +63,7 @@ struct CPPNGSSHARED_EXPORT HgvsNomenclature
     //QString hgvs_g;
     QString hgvs_c;
     QString hgvs_p;
-    QList<VariantConsequenceType> variant_consequence_type;
+    QSet<VariantConsequenceType> variant_consequence_type;
     QString exon_intron_number;
 
     VariantImpact consequenceTypeToImpact(VariantConsequenceType type)
@@ -111,9 +117,12 @@ private:
     int splice_region_ex_;
     int splice_region_in_;
 
-    QString getHgvsPosition(const BedFile& regions, const VcfLine& variant, bool plus_strand, bool utr_5 = false);
+    QString annotateRegionsCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand);
+    QString annotateRegionsNonCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand);
+    QString getHgvsPosition(const BedFile& regions, int gen_pos, bool plus_strand, bool utr_5 = false);
     QString getPositionInIntron(const BedFile& regions, int genomic_position, bool plus_strand, bool utr_5 = false);
     QString getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx, const QString& pos_hgvs_c, bool plus_strand);
+
     QByteArray toThreeLetterCode(QChar aa_one_letter_code);
 
     void annotateSpliceRegion(HgvsNomenclature& hgvs, const Transcript& transcript, int start, int end, bool plus_strand);

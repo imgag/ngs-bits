@@ -135,9 +135,9 @@ private slots:
         VcfLine variant(Chromosome("chr3"), 195944797, "A", alt);
         HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.123A>G");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::CODING_SEQUENCE_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         S_EQUAL(hgvs.hgvs_p, "p.Gln41=");
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::SYNONYMOUS_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SYNONYMOUS_VARIANT));
 
         //SNV exon stop gained
         alt.clear();
@@ -147,10 +147,10 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.940C>T");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::CODING_SEQUENCE_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         S_EQUAL(hgvs.hgvs_p, "p.Arg314Ter");
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(2), VariantConsequenceType::STOP_GAINED);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::STOP_GAINED));
 
         //SNV exon stop lost
         alt.clear();
@@ -160,10 +160,10 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.1021T>C");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::CODING_SEQUENCE_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         S_EQUAL(hgvs.hgvs_p, "p.Ter341Gln");
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(2), VariantConsequenceType::STOP_LOST);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::STOP_LOST));
 
         //SNV exon splice region
         alt.clear();
@@ -173,12 +173,11 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.41A>G");
-        I_EQUAL(hgvs.variant_consequence_type.length(), 4);
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::CODING_SEQUENCE_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         S_EQUAL(hgvs.hgvs_p, "p.Tyr14Cys");
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(2), VariantConsequenceType::MISSENSE_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(3), VariantConsequenceType::SPLICE_REGION_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
 
         //SNV intron splice acceptor
         alt.clear();
@@ -189,9 +188,9 @@ private slots:
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.781-2A>G");
         S_EQUAL(hgvs.hgvs_p, "p.?");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::SPLICE_REGION_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(2), VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT));
 
         //SNV intron splice donor
         alt.clear();
@@ -202,9 +201,9 @@ private slots:
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.886+2T>C");
         S_EQUAL(hgvs.hgvs_p, "p.?");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::SPLICE_REGION_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(2), VariantConsequenceType::SPLICE_DONOR_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT));
 
         //SNV intron
         alt.clear();
@@ -214,7 +213,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.38+46G>T");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
 
         //SNV intron
         alt.clear();
@@ -224,7 +223,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.134-43C>T");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
 
         //SNV 5 prime utr
         alt.clear();
@@ -234,7 +233,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.-207A>G");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::FIVE_PRIME_UTR_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
 
         //SNV 3 prime utr
         alt.clear();
@@ -244,16 +243,76 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.*48A>C");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::THREE_PRIME_UTR_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
 
         // upstream gene variant
         alt.clear();
         alt.push_back("G");
         variant.setPos(195942487);
         variant.setRef("A");
+        variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::UPSTREAM_GENE_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::UPSTREAM_GENE_VARIANT));
+
+        // deletion intron
+        alt.clear();
+        alt.push_back("C");
+        variant.setPos(195944094);
+        variant.setRef("CCTCT");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.38+474_38+477del");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+
+        // deletion 5 prime utr
+        alt.clear();
+        alt.push_back("C");
+        variant.setPos(195943481);
+        variant.setRef("CA");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.-102del");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
+
+        // frameshift deletion
+        alt.clear();
+        alt.push_back("A");
+        variant.setPos(195944778);
+        variant.setRef("AG");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.105del");
+        S_EQUAL(hgvs.hgvs_p, "p.Gln35fs");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+
+        // frameshift deletion
+        alt.clear();
+        alt.push_back("G");
+        variant.setPos(195956829);
+        variant.setRef("GC");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.678del");
+        S_EQUAL(hgvs.hgvs_p, "p.Val227fs");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+
+        // frameshift deletion
+        alt.clear();
+        alt.push_back("G");
+        variant.setPos(195956854);
+        variant.setRef("GACCC");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.703_706del");
+        S_EQUAL(hgvs.hgvs_p, "p.Thr235fs");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
     }
 
     void vcfToHgvsMinusStrand()
@@ -272,10 +331,10 @@ private slots:
         VcfLine variant(Chromosome("chr11"), 14992738, "T", alt);
         HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t_CALCA, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.1A>C");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::CODING_SEQUENCE_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         S_EQUAL(hgvs.hgvs_p, "p.Met1?");
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(2), VariantConsequenceType::START_LOST);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::START_LOST));
 
         //SNV exon missense
         alt.clear();
@@ -286,10 +345,10 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.178C>T");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::CODING_SEQUENCE_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         S_EQUAL(hgvs.hgvs_p, "p.Arg60Cys");
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(2), VariantConsequenceType::MISSENSE_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
 
         //SNV exon stop gained
         alt.clear();
@@ -299,10 +358,10 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.384T>A");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::CODING_SEQUENCE_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         S_EQUAL(hgvs.hgvs_p, "p.Tyr128Ter");
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(2), VariantConsequenceType::STOP_GAINED);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::STOP_GAINED));
 
         //SNV intron splice acceptor
         alt.clear();
@@ -313,9 +372,9 @@ private slots:
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.335-2T>A");
         S_EQUAL(hgvs.hgvs_p, "p.?");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::SPLICE_REGION_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(2), VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT));
 
         //SNV intron splice donor
         alt.clear();
@@ -326,9 +385,9 @@ private slots:
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.-35+2T>C");
         S_EQUAL(hgvs.hgvs_p, "p.?");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::SPLICE_REGION_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(2), VariantConsequenceType::SPLICE_DONOR_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT));
 
         //SNV intron splice region
         alt.clear();
@@ -338,9 +397,8 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.335-6T>C");
-        I_EQUAL(hgvs.variant_consequence_type.length(), 2);
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::SPLICE_REGION_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
 
         //SNV intron
         alt.clear();
@@ -350,7 +408,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.334+158G>A");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
 
         //SNV intron
         alt.clear();
@@ -360,7 +418,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.335-553G>C");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
 
         //SNV 3 prime utr
         alt.clear();
@@ -370,7 +428,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.*179C>A");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::THREE_PRIME_UTR_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
 
         //SNV 5 prime utr intron
         alt.clear();
@@ -380,25 +438,90 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.-34-2A>G");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
 
         // upstream gene variant
         alt.clear();
         alt.push_back("A");
         variant.setPos(195312178);
         variant.setRef("G");
+        variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::UPSTREAM_GENE_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::UPSTREAM_GENE_VARIANT));
 
         // downstream gene variant
         alt.clear();
         alt.push_back("A");
         variant.setPos(195290637);
         variant.setRef("G");
+        variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::DOWNSTREAM_GENE_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT));
+
+        // deletion 3 prime utr
+        alt.clear();
+        alt.push_back("G");
+        variant.setPos(195295712);
+        variant.setRef("GTA");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.*57_*58del");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
+
+        // deletion splice region
+        alt.clear();
+        alt.push_back("C");
+        variant.setPos(195298240);
+        variant.setRef("CA");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.246-5del");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
+
+        // frameshift deletion
+        alt.clear();
+        alt.push_back("G");
+        variant.setPos(195295798);
+        variant.setRef("GT");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.542del");
+        S_EQUAL(hgvs.hgvs_p, "p.Asp181fs");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+
+        Transcript t_2 = trans_CALCA();
+
+        // frameshift deletion
+        alt.clear();
+        alt.push_back("C");
+        variant.setChromosome(Chromosome("chr11"));
+        variant.setPos(14991495);
+        variant.setRef("CTCTT");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.209_212del");
+        S_EQUAL(hgvs.hgvs_p, "p.Gln70fs");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+
+        // frameshift deletion
+        alt.clear();
+        alt.push_back("C");
+        variant.setPos(14989266);
+        variant.setRef("CT");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.361del");
+        S_EQUAL(hgvs.hgvs_p, "p.Arg121fs");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
     }
 
     void vcfToHgvsUtrIntrons()
@@ -416,7 +539,7 @@ private slots:
         VcfLine variant(Chromosome("chr8"), 91017610, "G", alt);
         HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.-598-66G>A");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
 
         Transcript t_2 = trans_CALCA();
 
@@ -429,7 +552,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.-10+75T>C");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
 
         //SNV 3 prime utr intron minus strand
         alt.clear();
@@ -439,7 +562,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.*22-37A>C");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
 
         //SNV 3 prime utr intron minus strand
         alt.clear();
@@ -449,7 +572,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.*21+18A>C");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::INTRON_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
     }
 
     void vcfToHgvsNonCoding()
@@ -461,26 +584,39 @@ private slots:
         VariantHgvsAnnotator var_hgvs_anno;
         Transcript t = trans_NEAT1();
 
-        // non-coding intron variant
+        // non-coding intron SNV
         QVector<Sequence> alt;
         alt.push_back("T");
         VcfLine variant(Chromosome("chr11"), 65190874, "C", alt);
         HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "n.610+20C>T");
         S_EQUAL(hgvs.hgvs_p, "");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::INTRON_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
 
-        // non-coding exon variant
+        // non-coding exon SNV
         alt.clear();
         alt.push_back("T");
         variant.setPos(65190798);
         variant.setRef("C");
+        variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "n.554C>T");
         S_EQUAL(hgvs.hgvs_p, "");
-        I_EQUAL(hgvs.variant_consequence_type.at(0), VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT);
-        I_EQUAL(hgvs.variant_consequence_type.at(1), VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT);
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT));
+
+        // non-coding exon deletion
+        alt.clear();
+        alt.push_back("C");
+        variant.setPos(65190331);
+        variant.setRef("CAG");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "n.88_89del");
+        S_EQUAL(hgvs.hgvs_p, "");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT));
     }
 
     void translateDnaSequence()
