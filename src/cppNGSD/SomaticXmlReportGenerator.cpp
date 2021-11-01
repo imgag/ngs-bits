@@ -205,8 +205,12 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	foreach(const QByteArray& gene, data.processing_system_genes)
 	{
-		w.writeStartElement("Gene");
 		GeneInfo gene_info = db.geneInfo(gene);
+		if(gene_info.symbol.isEmpty()) continue;
+		if(gene_info.hgnc_id.isEmpty()) continue;
+
+		w.writeStartElement("Gene");
+
 		w.writeAttribute("name", gene_info.symbol);
 		w.writeAttribute("id", gene_info.hgnc_id);
 		w.writeEndElement();
@@ -258,9 +262,11 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 				for(int j=0; j < genes.count(); ++j)
 				{
-					w.writeStartElement("Gene");
+
 					GeneInfo gene_info = db.geneInfo(genes[j]);
+					if(gene_info.symbol.isEmpty()) continue;
 					if(gene_info.hgnc_id.isEmpty()) continue; //genes that have been withdrawn or cannot be mapped to a unique approved symbol
+					w.writeStartElement("Gene");
 
 
 					w.writeAttribute("name", gene_info.symbol);
@@ -430,6 +436,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			{
 				GeneInfo gene_info = db.geneInfo(gene);
 
+				if(gene_info.symbol.isEmpty()) continue;
 				if(gene_info.hgnc_id.isEmpty()) continue; //genes that were withdrawn or cannot uniquely mapped to approved symbol
 
 				w.writeStartElement("Gene");

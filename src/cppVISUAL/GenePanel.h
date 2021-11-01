@@ -50,7 +50,7 @@ private:
 	//transcript positions
 	struct TranscriptPosition
 	{
-		const Transcript& trans;
+		Transcript trans;
 		int row; //row index (0=topmost)
 		QRectF rect; //bounding rectangle
 	};
