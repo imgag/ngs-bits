@@ -127,7 +127,7 @@ void RequestWorker::run()
 	}
 
 	// Process the request based on the endpoint info
-	qDebug() << parsed_request.methodAsString().toUpper() + "/" + parsed_request.getPath() + parsed_request.getRemoteAddress().toLatin1().data();
+//	qDebug() << parsed_request.methodAsString().toUpper() + "/" + parsed_request.getPath() + parsed_request.getRemoteAddress().toLatin1().data();
 
 	Endpoint current_endpoint = EndpointManager::getEndpointByUrlAndMethod(parsed_request.getPath(), parsed_request.getMethod());
 	if (current_endpoint.action_func == nullptr)
@@ -147,7 +147,7 @@ void RequestWorker::run()
 		return;
 	}
 
-	qDebug() << "Requested:" + current_endpoint.comment;
+//	qDebug() << "Requested:" + current_endpoint.comment;
 	if (current_endpoint.is_password_protected)
 	{
 		qDebug() << "Accessing password protected area";
@@ -231,57 +231,58 @@ void RequestWorker::run()
 		QByteArray data;
 		QList<ByteRange> ranges = response.getByteRanges();
 		int ranges_count = ranges.count();
-		if (ranges_count > 0)
+
+		// Range request
+		for (int i = 0; i < ranges_count; ++i)
 		{
-			for (int i = 0; i < ranges_count; ++i)
+			chunk_size = STREAM_CHUNK_SIZE;
+			pos = ranges[i].start;
+			qDebug() << "Range start" << pos << ", " << tid;
+			if (ranges_count > 1)
 			{
-				chunk_size = STREAM_CHUNK_SIZE;
-				pos = ranges[i].start;
-				qDebug() << "Range start" << pos << ", " << tid;
-				if (ranges_count > 1)
-				{
-					sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"\r\n");
-					sendResponseDataPart(ssl_socket, "Content-Type: application/octet-stream\r\n");
-					sendResponseDataPart(ssl_socket, "Content-Range: bytes " + QByteArray::number(ranges[i].start) + "-" + QByteArray::number(ranges[i].end) + "/" + QByteArray::number(file_size) + "\r\n");
-					sendResponseDataPart(ssl_socket, "\r\n");
-				}
-				while(pos<(ranges[i].end+1))
-				{
-					if (is_terminated_)
-					{
-						qDebug() << "Terminated at " << pos << ", " << tid;
-						return;
-					}
-					if (pos > file_size) break;
-					streamed_file.seek(pos);
-
-					if ((pos+chunk_size)>(ranges[i].end+1))
-					{
-						chunk_size = ranges[i].end - pos + 1;
-					}
-
-					if (chunk_size <= 0)
-					{
-						break;
-					}
-					data = streamed_file.read(chunk_size);
-					sendResponseDataPart(ssl_socket, data);
-					pos = pos + chunk_size;
-				}
+				sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"\r\n");
+				sendResponseDataPart(ssl_socket, "Content-Type: application/octet-stream\r\n");
+				sendResponseDataPart(ssl_socket, "Content-Range: bytes " + QByteArray::number(ranges[i].start) + "-" + QByteArray::number(ranges[i].end) + "/" + QByteArray::number(file_size) + "\r\n");
+				sendResponseDataPart(ssl_socket, "\r\n");
+			}
+			while(pos<(ranges[i].end+1))
+			{
 				if (is_terminated_)
 				{
 					qDebug() << "Terminated at " << pos << ", " << tid;
 					return;
 				}
-				sendResponseDataPart(ssl_socket, "\r\n");
-				if ((i == (ranges_count-1)) && (ranges_count > 1))
+				if (pos > file_size) break;
+				streamed_file.seek(pos);
+
+				if ((pos+chunk_size)>(ranges[i].end+1))
 				{
-					sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"--\r\n");
+					chunk_size = ranges[i].end - pos + 1;
 				}
 
+				if (chunk_size <= 0)
+				{
+					break;
+				}
+				data = streamed_file.read(chunk_size);
+				sendResponseDataPart(ssl_socket, data);
+				pos = pos + chunk_size;
 			}
+			if (is_terminated_)
+			{
+				qDebug() << "Terminated at " << pos << ", " << tid;
+				return;
+			}
+			sendResponseDataPart(ssl_socket, "\r\n");
+			if ((i == (ranges_count-1)) && (ranges_count > 1))
+			{
+				sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"--\r\n");
+			}
+
 		}
-		else
+
+		// Regular stream
+		if (ranges_count == 0)
 		{
 			while(!streamed_file.atEnd())
 			{
@@ -386,7 +387,7 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 {
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
-		socket->write(data);
+		socket->write(data, data.size());
 		if (socket->bytesToWrite()) socket->waitForBytesWritten();
 	}
 
