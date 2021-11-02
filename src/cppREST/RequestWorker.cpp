@@ -373,7 +373,8 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->waitForBytesWritten();
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->close();
 
-	socket->deleteLater();
+//	socket->deleteLater();
+	socket->abort();
 }
 
 void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
