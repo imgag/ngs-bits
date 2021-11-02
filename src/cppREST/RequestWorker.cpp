@@ -387,11 +387,11 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
 		socket->write(data);
-//		if (socket->bytesToWrite()) socket->waitForBytesWritten();
+		if (socket->bytesToWrite()) socket->waitForBytesWritten();
 	}
 
 	// clinet completes/cancels the stream or simply disconnects
-	if (socket->state() == QSslSocket::SocketState::UnconnectedState) closeAndDeleteSocket(socket);
+	if ((socket->state() == QSslSocket::SocketState::UnconnectedState) || (socket->state() == QSslSocket::SocketState::ClosingState)) closeAndDeleteSocket(socket);
 }
 
 void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response)
