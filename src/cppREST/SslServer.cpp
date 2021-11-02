@@ -28,7 +28,6 @@ QSslSocket *SslServer::nextPendingConnection()
 
 void SslServer::incomingConnection(qintptr socket)
 {
-	qInfo() << "Incomming connection";
 	RequestWorker *request_worker;
 	if (is_insecure_)
 	{

@@ -20,7 +20,7 @@ RequestWorker::RequestWorker(qintptr socket)
 void RequestWorker::run()
 {
 	QString tid = ServerHelper::generateUniqueStr();
-	qInfo() << "Start processing an incomming connection in a new separate worker thread" << tid;
+	qDebug() << "Start processing an incomming connection in a new separate worker thread" << tid;
 	QSslSocket *ssl_socket = new QSslSocket();
 	ssl_socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
 
@@ -127,7 +127,7 @@ void RequestWorker::run()
 	}
 
 	// Process the request based on the endpoint info
-	qInfo() << parsed_request.methodAsString().toUpper() + "/" + parsed_request.getPath() + parsed_request.getRemoteAddress().toLatin1().data();
+	qDebug() << parsed_request.methodAsString().toUpper() + "/" + parsed_request.getPath() + parsed_request.getRemoteAddress().toLatin1().data();
 
 	Endpoint current_endpoint = EndpointManager::getEndpointByUrlAndMethod(parsed_request.getPath(), parsed_request.getMethod());
 	if (current_endpoint.action_func == nullptr)
