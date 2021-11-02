@@ -40,7 +40,6 @@ private:
 	void closeAndDeleteSocket(QSslSocket* socket);
 	void sendResponseDataPart(QSslSocket *socket, QByteArray data);
 	void sendEntireResponse(QSslSocket *socket, HttpResponse response);
-	void finishPartialDataResponse(QSslSocket* socket);
 
 	QSslConfiguration ssl_configuration_;
 	qintptr socket_;
