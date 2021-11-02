@@ -385,13 +385,14 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 		return;
 	}
 
+	if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->write(data);
 	if ((socket->state() != QSslSocket::SocketState::UnconnectedState) && (socket->bytesToWrite()))
 	{
 //		socket->flush();
 		if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->waitForBytesWritten();
 	}
 
-	if (socket->state() != QSslSocket::SocketState::UnconnectedState) socket->write(data);
+
 }
 
 void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response)
