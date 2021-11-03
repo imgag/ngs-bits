@@ -46,6 +46,7 @@ LIBS += -lz
 QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
 
 SOURCES += \
+    DescriptorManager.cpp \
     EndpointController.cpp \
     EndpointManager.cpp \
     FileCache.cpp \
@@ -61,6 +62,7 @@ SOURCES += \
     WebServer.cpp
 
 HEADERS += \
+    DescriptorManager.h \
     EndpointController.h \
     EndpointManager.h \
     FileCache.h \
