@@ -250,8 +250,7 @@ void RequestWorker::run()
 				if ((ssl_socket->state() == QSslSocket::SocketState::UnconnectedState) || (ssl_socket->state() == QSslSocket::SocketState::ClosingState))
 				{
 					qDebug() << "Killing the request process";
-					ssl_socket->abort();
-					this->quit();
+					return;
 				}
 				if (is_terminated_)
 				{
