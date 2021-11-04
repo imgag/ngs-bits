@@ -227,7 +227,7 @@ void RequestWorker::run()
 			}
 		}
 
-		int chunk_size = STREAM_CHUNK_SIZE;
+		long chunk_size = STREAM_CHUNK_SIZE;
 		QByteArray data;
 		QList<ByteRange> ranges = response.getByteRanges();
 		int ranges_count = ranges.count();
@@ -235,7 +235,7 @@ void RequestWorker::run()
 		// Range request
 		for (int i = 0; i < ranges_count; ++i)
 		{
-			chunk_size = STREAM_CHUNK_SIZE;
+			chunk_size = 2147483648; //2GB STREAM_CHUNK_SIZE;
 			pos = ranges[i].start;
 			qDebug() << "Range start" << pos << ", " << tid;
 			if (ranges_count > 1)
@@ -249,8 +249,8 @@ void RequestWorker::run()
 			{
 				if (is_terminated_)
 				{
-					qDebug() << "Terminated at " << pos << ", " << tid;
-					return;
+//					qDebug() << "Terminated at " << pos << ", " << tid;
+					break;
 				}
 				if (pos > file_size) break;
 				streamed_file.seek(pos);
