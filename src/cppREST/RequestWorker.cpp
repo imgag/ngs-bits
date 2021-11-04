@@ -235,7 +235,7 @@ void RequestWorker::run()
 		// Range request
 		for (int i = 0; i < ranges_count; ++i)
 		{
-			chunk_size = 4096; //1073741824; //1GB STREAM_CHUNK_SIZE;
+			chunk_size = STREAM_CHUNK_SIZE; //4096; //1073741824; //1GB STREAM_CHUNK_SIZE;
 			pos = ranges[i].start;
 			qDebug() << "Range start" << pos << ", " << tid;
 			if (ranges_count > 1)
@@ -247,16 +247,16 @@ void RequestWorker::run()
 			}
 			while(pos<(ranges[i].end+1))
 			{
-				if ((ssl_socket->state() == QSslSocket::SocketState::UnconnectedState) || (ssl_socket->state() == QSslSocket::SocketState::ClosingState))
+				if ((is_terminated_) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState) || (ssl_socket->state() == QSslSocket::SocketState::ClosingState))
 				{
 					qDebug() << "Killing the request process";
 					return;
 				}
-				if (is_terminated_)
-				{
+//				if (is_terminated_)
+//				{
 //					qDebug() << "Terminated at " << pos << ", " << tid;
-					break;
-				}
+//					break;
+//				}
 				if (pos > file_size) break;
 				streamed_file.seek(pos);
 
@@ -378,12 +378,12 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 
 	if ((socket->state() == QSslSocket::SocketState::UnconnectedState) || (socket->state() == QSslSocket::SocketState::ClosingState))
 	{
-		socket->abort();
+//		socket->abort();
 		this->quit();
 	}
 	else
 	{
-		if (socket->bytesToWrite()) socket->waitForBytesWritten(500);
+//		if (socket->bytesToWrite()) socket->waitForBytesWritten(500);
 		socket->close();
 		socket->deleteLater();
 	}
