@@ -235,7 +235,7 @@ void RequestWorker::run()
 		// Range request
 		for (int i = 0; i < ranges_count; ++i)
 		{
-			chunk_size = 20096; //1073741824; //1GB STREAM_CHUNK_SIZE;
+			chunk_size = 4096; //1073741824; //1GB STREAM_CHUNK_SIZE;
 			pos = ranges[i].start;
 			qDebug() << "Range start" << pos << ", " << tid;
 			if (ranges_count > 1)
