@@ -291,9 +291,9 @@ void RequestWorker::run()
 		{
 			while(!streamed_file.atEnd())
 			{
-				if (is_terminated_) break;
+				if (is_terminated_) return;
 
-				if (pos > file_size) break;
+				if (pos > file_size) return;
 				streamed_file.seek(pos);
 				data = streamed_file.read(chunk_size);
 				pos = pos + chunk_size;
