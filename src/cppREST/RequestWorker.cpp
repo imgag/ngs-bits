@@ -371,9 +371,10 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 	qDebug() << "Closing the socket";
 	is_terminated_ = true;
 
-	if (socket->state() == QSslSocket::SocketState::UnconnectedState)
+	if ((socket->state() == QSslSocket::SocketState::UnconnectedState) || (socket->state() == QSslSocket::SocketState::ClosingState))
 	{
 		socket->abort();
+		this->quit();
 	}
 	else
 	{
