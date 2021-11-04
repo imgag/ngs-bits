@@ -235,7 +235,7 @@ void RequestWorker::run()
 		// Range request
 		for (int i = 0; i < ranges_count; ++i)
 		{
-			chunk_size = 500;//4096; //1073741824; //1GB STREAM_CHUNK_SIZE;
+			chunk_size = 4096; //1073741824; //1GB STREAM_CHUNK_SIZE;
 			pos = ranges[i].start;
 			qDebug() << "Range start" << pos << ", " << tid;
 			if (ranges_count > 1)
@@ -377,7 +377,7 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 	}
 	else
 	{
-		if (socket->bytesToWrite()) socket->waitForBytesWritten();
+		if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
 		socket->close();
 		socket->deleteLater();
 	}
@@ -388,7 +388,7 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
 		socket->write(data, data.size());
-		if (socket->bytesToWrite()) socket->waitForBytesWritten();
+		if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
 	}
 
 	// clinet completes/cancels the stream or simply disconnects
