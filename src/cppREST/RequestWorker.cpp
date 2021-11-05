@@ -250,7 +250,7 @@ void RequestWorker::run()
 				if ((is_terminated_) || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState) || (ssl_socket->state() == QSslSocket::SocketState::ClosingState))
 				{
 					qDebug() << "Killing the request process";
-					return;
+					this->exit(0);
 				}
 //				if (is_terminated_)
 //				{
@@ -276,7 +276,7 @@ void RequestWorker::run()
 			if (is_terminated_)
 			{
 				qDebug() << "Terminated at " << pos << ", " << tid;
-				return;
+				this->exit(0);
 			}
 			sendResponseDataPart(ssl_socket, "\r\n");
 			if ((i == (ranges_count-1)) && (ranges_count > 1))
