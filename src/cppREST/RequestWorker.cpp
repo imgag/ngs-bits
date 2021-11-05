@@ -364,6 +364,7 @@ void RequestWorker::handleConnection()
 void RequestWorker::socketDisconnected()
 {
 	qDebug() << "Client has disconnected from the socket";
+	this->exit(0);
 }
 
 QString RequestWorker::intToHex(const int& input)
