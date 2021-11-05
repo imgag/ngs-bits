@@ -53,6 +53,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
                 }
             }
         }
+        // up- or downstream variant, no description w.r.t. cDNA positions possible
         if(pos_hgvs_c == "") return hgvs;
 
         // create HGVS protein annotation
@@ -111,10 +112,14 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
     else if(variant.isDel())
     {
         hgvs.hgvs_c = hgvs_c_prefix + pos_hgvs_c + "del";
+        hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
         if(hgvs.hgvs_p.contains("fs"))
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
             hgvs.variant_consequence_type.insert(VariantConsequenceType::FRAMESHIFT_VARIANT);
+        }
+        else
+        {
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_DELETION);
         }
     }
 
@@ -479,48 +484,73 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         int frame_diff = end - start;
         int pos_shift = 0;
 
-        // frameshift mutant
+        // get a sufficiently large part of the reference and observed sequence
+        int seq_length = 15;
+        Sequence seq_ref;
+
+        if(plus_strand)
+        {
+            seq_ref = genome_idx.seq(variant.chr(), start + 1 - offset, frame_diff + seq_length);
+            seq_obs = seq_ref.left(offset) + seq_ref.right(seq_length - offset);
+        }
+        else
+        {
+            seq_ref = genome_idx.seq(variant.chr(), start - seq_length, frame_diff + seq_length + offset + 1);
+            seq_obs = seq_ref.left(seq_length + 1) + seq_ref.right(offset);
+            seq_obs.reverseComplement();
+            seq_ref.reverseComplement();
+        }
+
+        //find the first amino acid that is changed due to the deletion
+        while(aa_obs == aa_ref)
+        {
+            aa_ref = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.left(3), variant.chr().isM()));
+            aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), variant.chr().isM()));
+
+            if(aa_obs == aa_ref)
+            {
+                seq_obs = seq_obs.right(seq_obs.length() - 3);
+                seq_ref = seq_ref.right(seq_ref.length() - 3);
+                pos_shift += 3;
+            }
+        }
+        aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
+
+        // frameshift deletion
         if(frame_diff % 3 != 0)
         {
-            // get a sufficiently large part of the observed sequence without the deleted bases
-            int seq_length = 15;
-
-            if(plus_strand)
+            aa_obs = "fs";
+        }
+        // inframe deletion
+        else
+        {
+            // more than one amino acid deleted
+            if(frame_diff > 3)
             {
-                seq_obs = genome_idx.seq(variant.chr(), start + 1 - offset, frame_diff + seq_length);
-                seq_obs = seq_obs.left(offset) + seq_obs.right(seq_length - offset);
-            }
-            else
-            {
-                seq_obs = genome_idx.seq(variant.chr(), end - seq_length - frame_diff, frame_diff + seq_length + offset);
-                seq_obs = seq_obs.left(seq_length + 1) + seq_obs.right(offset);
-                seq_obs.reverseComplement();
-            }
-
-            //find the first amino acid that is changed due to the frameshift
-            while(aa_obs == aa_ref)
-            {
+                int offset_end = (offset + 2) % 3;
+                aa_ref.append("_");
                 if(plus_strand)
                 {
-                    aa_ref = toThreeLetterCode(NGSHelper::translateCodon(genome_idx.seq(variant.chr(), start + pos_shift + 1 - offset, 3),
-                                                                         variant.chr().isM()));
-                    aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), variant.chr().isM()));
-
+                    aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(genome_idx.seq(variant.chr(), end - offset_end, 3),
+                                                                              variant.chr().isM())));
                 }
                 else
                 {
-                    aa_ref = toThreeLetterCode(NGSHelper::translateCodon(genome_idx.seq(variant.chr(), end - pos_shift + offset - 2, 3).toReverseComplement(),
-                                                                         variant.chr().isM()));
-                    aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), variant.chr().isM()));
-                }                
-                if(aa_obs == aa_ref)
-                {
-                    seq_obs = seq_obs.right(seq_obs.length() - 3);
-                    pos_shift += 3;
+                    aa_ref.append(toThreeLetterCode(NGSHelper::translateCodon(genome_idx.seq(variant.chr(), start - 2 + offset, 3).toReverseComplement(),
+                                                                              variant.chr().isM())));
                 }
+                aa_ref.append(QByteArray::number((pos_trans_start + frame_diff) / 3 + 1));
             }
-            aa_obs = "fs";
-            aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
+
+            // delin if first mismatched amino acid is not the first one after the deletion
+            if(aa_obs != toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(frame_diff, 3))))
+            {
+                aa_obs = "delins" + aa_obs;
+            }
+            else
+            {
+                aa_obs = "del";
+            }
         }
     }
 
