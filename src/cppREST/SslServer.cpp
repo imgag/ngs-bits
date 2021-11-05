@@ -3,6 +3,7 @@
 SslServer::SslServer(QObject *parent, bool insecure) :
 	QTcpServer(parent)
 	, is_insecure_(insecure)
+	, thread_count_(0)
 {
 	current_ssl_configuration_ = QSslConfiguration::defaultConfiguration();
 }
@@ -40,4 +41,6 @@ void SslServer::incomingConnection(qintptr socket)
 	}
 	connect(request_worker, &RequestWorker::finished, request_worker, &QObject::deleteLater);
 	request_worker->start();
+	thread_count_++;
+	qDebug() << "NUMBER OF THE PROCESSED INCOMMING CONNECTIONS" << thread_count_;
 }
