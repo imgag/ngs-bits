@@ -53,6 +53,20 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
                 }
             }
         }
+        else if(variant.isIns())
+        {
+            if(plus_strand)
+            {
+                pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start, plus_strand) + "_" +
+                        annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand);
+            }
+            else
+            {
+                pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand) + "_" +
+                        annotateRegionsCoding(transcript, hgvs, start, plus_strand);
+            }
+        }
+
         // up- or downstream variant, no description w.r.t. cDNA positions possible
         if(pos_hgvs_c == "") return hgvs;
 
@@ -72,16 +86,30 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         else if(variant.isDel())
         {
             pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start + 1, plus_strand);
+
+            if(end - start > 1)
+            {
+                if(plus_strand)
+                {
+                    pos_hgvs_c += "_" + annotateRegionsNonCoding(transcript, hgvs, end, plus_strand);
+                }
+                else
+                {
+                    pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, end, plus_strand) + "_" + pos_hgvs_c;
+                }
+            }
         }
-        if(end - start > 1)
+        else if(variant.isIns())
         {
             if(plus_strand)
             {
-                pos_hgvs_c += "_" + annotateRegionsNonCoding(transcript, hgvs, end, plus_strand);
+                pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start, plus_strand) + "_" +
+                        annotateRegionsNonCoding(transcript, hgvs, start + 1, plus_strand);
             }
             else
             {
-                pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, end, plus_strand) + "_" + pos_hgvs_c;
+                pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start + 1, plus_strand) + "_" +
+                        annotateRegionsNonCoding(transcript, hgvs, start, plus_strand);
             }
         }
     }
@@ -112,14 +140,31 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
     else if(variant.isDel())
     {
         hgvs.hgvs_c = hgvs_c_prefix + pos_hgvs_c + "del";
-        hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
-        if(hgvs.hgvs_p.contains("fs"))
+
+        if(hgvs.hgvs_p != "")
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::FRAMESHIFT_VARIANT);
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
+
+            if(hgvs.hgvs_p.contains("fs"))
+            {
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::FRAMESHIFT_VARIANT);
+            }
+            else
+            {
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_DELETION);
+            }
         }
-        else
+    }
+    else if(variant.isIns())
+    {
+        Sequence variant_alt_seq = variant.alt()[0];
+        variant_alt_seq = variant_alt_seq.right(variant_alt_seq.length() - 1);
+        if(!plus_strand) variant_alt_seq.reverseComplement();
+        hgvs.hgvs_c = hgvs_c_prefix + pos_hgvs_c + "ins" + variant_alt_seq;
+
+        if(hgvs.hgvs_p != "")
         {
-            hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_DELETION);
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
         }
     }
 

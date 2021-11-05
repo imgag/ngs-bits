@@ -327,6 +327,40 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_DELETION));
 
+        // insertion 5 prime utr
+        alt.clear();
+        alt.push_back("GA");
+        variant.setPos(195943475);
+        variant.setRef("G");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.-109_-108insA");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
+
+        // insertion intron
+        alt.clear();
+        alt.push_back("TCCCAGCCG");
+        variant.setPos(195948715);
+        variant.setRef("T");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.133+3908_133+3909insCCCAGCCG");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+
+        // frameshift insertion
+        alt.clear();
+        alt.push_back("CGGGTGACAGAGTGACACCATCTCTTGAAAGAGAGAGAGAGAGAGAG");
+        variant.setPos(195956914);
+        variant.setRef("C");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.762_763insGGGTGACAGAGTGACACCATCTCTTGAAAGAGAGAGAGAGAGAGAG");
+        //S_EQUAL(hgvs.hgvs_p, "p.Lys255GlyfsTer2");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::STOP_GAINED));
+
         Transcript t_2 = trans_DECR1();
 
         // inframe deletion
@@ -382,6 +416,31 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_DELETION));
+
+        // frameshift insertion
+        alt.clear();
+        alt.push_back("GA");
+        variant.setPos(91049165);
+        variant.setRef("G");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.635_636insA");
+        //S_EQUAL(hgvs.hgvs_p, "p.Ser212fs");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+
+        // inframe insertion
+        alt.clear();
+        alt.push_back("TACA");
+        variant.setPos(91057196);
+        variant.setRef("T");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.831_832insACA");
+        //S_EQUAL(hgvs.hgvs_p, "p.Ser277_Asp278insThr");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
     }
 
     void vcfToHgvsMinusStrand()
@@ -573,6 +632,16 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
 
+        // insertion 3 prime utr
+        alt.clear();
+        alt.push_back("TGGGGG");
+        variant.setPos(195295713);
+        variant.setRef("T");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.*57_*58insCCCCC");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
+
         Transcript t_2 = trans_CALCA();
 
         // frameshift deletion
@@ -614,6 +683,19 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_DELETION));
+
+        // frameshift insertion
+        alt.clear();
+        alt.push_back("CACTGA");
+        variant.setPos(14991572);
+        variant.setRef("C");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.135_136insTCAGT");
+        //S_EQUAL(hgvs.hgvs_p, "p.Glu46fs");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
     }
 
     void vcfToHgvsUtrIntrons()
