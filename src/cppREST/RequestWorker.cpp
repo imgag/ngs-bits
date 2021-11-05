@@ -383,9 +383,10 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 	}
 	else
 	{
-//		if (socket->bytesToWrite()) socket->waitForBytesWritten(500);
+		if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
 		socket->close();
-		socket->deleteLater();
+//		socket->deleteLater();
+		this->exit(0);
 	}
 }
 
