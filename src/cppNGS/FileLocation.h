@@ -36,6 +36,7 @@ enum class PathType
 	FUSIONS, //gene fusions determined from RNA (TSV format)
 	MANTA_FUSIONS, //fusions determined by manta (BEDPE format)
 	COUNTS, //gene/transcript counts from RNA (TSV format)
+	EXPRESSION, //relative RNA expressions values from RNA (TSV format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
 	OTHER // everything else
@@ -128,6 +129,8 @@ struct FileLocation
 				return "VIRAL";
 			case PathType::VCF_CF_DNA:
 				return "VCF_CF_DNA";
+			case PathType::EXPRESSION:
+				return "EXPRESSION";
 
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
@@ -219,6 +222,8 @@ struct FileLocation
 				return "other files";
 			case PathType::VCF_CF_DNA:
 				return "cfDNA small variant calls";
+			case PathType::EXPRESSION:
+				return "RNA relative expression";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}
