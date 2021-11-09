@@ -1850,8 +1850,7 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 
 void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool include_duplicates, bool panel_mode, int decimals, const QString& ref_file)
 {
-	//open BAM file
-	BamReader reader(bam_file, ref_file);
+
 
 	if (panel_mode) //panel mode
 	{
@@ -1863,8 +1862,8 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			{
 				BedLine& bed_line = bed_file[i];
 				QJsonObject json_object;
-				qDebug() << "QString::number(bed_line.chr().strNormalized(false).toLong())" << QString::number(bed_line.chr().strNormalized(false).toLong());
-				qDebug() << bed_line.chr().strNormalized(false).toLong();
+//				qDebug() << "QString::number(bed_line.chr().strNormalized(false).toLong())" << QString::number(bed_line.chr().strNormalized(false).toLong());
+//				qDebug() << bed_line.chr().strNormalized(false).toLong();
 				json_object.insert("chr", QString::number(bed_line.chr().strNormalized(false).toLong()));
 				json_object.insert("start", QString::number(bed_line.start()));
 				json_object.insert("end", QString::number(bed_line.end()));
@@ -1888,24 +1887,24 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 						add_headers
 					);
 
-			qDebug() << "Stats reply" << reply;
-			QJsonDocument json_reply = QJsonDocument::fromJson(reply);
-			QJsonArray json_coverage_values = json_reply.array();
+//			qDebug() << "Stats reply" << reply;
+//			QJsonDocument json_reply = ;
+			QJsonArray json_coverage_values = QJsonDocument::fromJson(reply).array();
 
 
-			qDebug() << "Coverage mapping" << bed_file.count() << " - " << json_coverage_values.count();
+//			qDebug() << "Coverage mapping" << bed_file.count() << " - " << json_coverage_values.count();
 			for (int i=0; i<bed_file.count(); ++i)
 			{
-				BedLine& bed_line = bed_file[i];
-
-				double cov = json_coverage_values[i].toDouble();
-
-				bed_line.annotations().append(QByteArray::number(cov / bed_line.length(), 'f', decimals));
+//				BedLine& bed_line = bed_file[i];
+				bed_file[i].annotations().append(QByteArray::number(json_coverage_values[i].toDouble() / bed_file[i].length(), 'f', decimals));
 			}
 
 		}
 		else
 		{
+			//open BAM file
+			BamReader reader(bam_file, ref_file);
+
 			for (int i=0; i<bed_file.count(); ++i)
 			{
 				long cov = 0;

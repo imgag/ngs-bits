@@ -470,10 +470,10 @@ HttpResponse EndpointHandler::calculateStatsAvgCoverage(const HttpRequest& reque
 	//open BAM file
 	BamReader reader(url_entity.filename_with_path, ref_file);
 
-	qDebug() << "json_regions.count()" << json_regions.count();
+//	qDebug() << "json_regions.count()" << json_regions.count();
 	for (int i=0; i<json_regions.count(); ++i)
 	{
-		qDebug() << json_regions[i].toObject().value("chr").toString() << " - " << json_regions[i].toObject().value("start").toInt() << " -- " << json_regions[i].toObject().value("end").toInt();
+//		qDebug() << json_regions[i].toObject().value("chr").toString() << " - " << json_regions[i].toObject().value("start").toInt() << " -- " << json_regions[i].toObject().value("end").toInt();
 
 		long cov = 0;
 		//jump to region
