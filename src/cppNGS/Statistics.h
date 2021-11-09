@@ -8,7 +8,12 @@
 #include "KeyValuePair.h"
 #include "NGSHelper.h"
 #include "GenomeBuild.h"
+#include "HttpRequestHandler.h"
+#include "Settings.h"
 #include <QMap>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 ///Helper class for gender estimates
 struct CPPNGSSHARED_EXPORT GenderEstimate

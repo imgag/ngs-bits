@@ -35,6 +35,7 @@ public:
 	static HttpResponse getProcessedSamplePath(const HttpRequest& request);
 	static HttpResponse saveProjectFile(const HttpRequest& request);
 	static HttpResponse saveQbicFiles(const HttpRequest& request);
+	static HttpResponse calculateStatsAvgCoverage(const HttpRequest& request);
 
 	/// Streams processing system regions file
 	static HttpResponse getProcessingSystemRegions(const HttpRequest& request);

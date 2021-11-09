@@ -1855,30 +1855,80 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 
 	if (panel_mode) //panel mode
 	{
-		for (int i=0; i<bed_file.count(); ++i)
+		if (bam_file.startsWith("http"))
 		{
-			long cov = 0;
-			BedLine& bed_line = bed_file[i];
-
-			//jump to region
-			reader.setRegion(bed_line.chr(), bed_line.start(), bed_line.end());
-
-			//iterate through all alignments
-			BamAlignment al;
-			while (reader.getNextAlignment(al))
+			QJsonDocument json_regions;
+			QJsonArray json_array;
+			for (int i=0; i<bed_file.count(); ++i)
 			{
-				if (!include_duplicates && al.isDuplicate()) continue;
-				if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-				if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
-
-				const int ol_start = std::max(bed_line.start(), al.start());
-				const int ol_end = std::min(bed_line.end(), al.end());
-				if (ol_start<=ol_end)
-				{
-					cov += ol_end - ol_start + 1;
-				}
+				BedLine& bed_line = bed_file[i];
+				QJsonObject json_object;
+				json_object.insert("chr", QString::number(bed_line.chr().strNormalized(false).toLong()));
+				json_object.insert("start", QString::number(bed_line.start()));
+				json_object.insert("end", QString::number(bed_line.end()));
+				json_array.append(json_object);
 			}
-			bed_line.annotations().append(QByteArray::number((double)cov / bed_line.length(), 'f', decimals));
+			json_regions.setArray(json_array);
+
+
+			HttpHeaders add_headers;
+			add_headers.insert("Accept", "application/json");
+			add_headers.insert("Content-Type", "application/json");
+			add_headers.insert("Content-Length", QByteArray::number(json_regions.toJson().size()));
+
+			QByteArray reply = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
+						"https://" + Settings::string("server_host") + ":" + QString::number(Settings::integer("https_server_port"))
+						+ "/v1/avg_coverage?bam_file=" + QUrl(bam_file).toEncoded()
+						+ "&min_mapq=" + QString::number(min_mapq)
+						+ "&include_duplicates=" + QString::number(include_duplicates)
+						+ "&ref_file=" + ref_file,
+						json_regions.toJson(),
+						add_headers
+					);
+
+			qDebug() << "Stats reply" << reply;
+			QJsonDocument json_reply = QJsonDocument::fromJson(reply);
+			QJsonArray json_coverage_values = json_reply.array();
+
+
+			qDebug() << "Coverage mapping" << bed_file.count() << " - " << json_coverage_values.count();
+			for (int i=0; i<bed_file.count(); ++i)
+			{
+				BedLine& bed_line = bed_file[i];
+
+				double cov = json_coverage_values[i].toDouble();
+
+				bed_line.annotations().append(QByteArray::number(cov / bed_line.length(), 'f', decimals));
+			}
+
+		}
+		else
+		{
+			for (int i=0; i<bed_file.count(); ++i)
+			{
+				long cov = 0;
+				BedLine& bed_line = bed_file[i];
+
+				//jump to region
+				reader.setRegion(bed_line.chr(), bed_line.start(), bed_line.end());
+
+				//iterate through all alignments
+				BamAlignment al;
+				while (reader.getNextAlignment(al))
+				{
+					if (!include_duplicates && al.isDuplicate()) continue;
+					if (al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+					if (al.isUnmapped() || al.mappingQuality()<min_mapq) continue;
+
+					const int ol_start = std::max(bed_line.start(), al.start());
+					const int ol_end = std::min(bed_line.end(), al.end());
+					if (ol_start<=ol_end)
+					{
+						cov += ol_end - ol_start + 1;
+					}
+				}
+				bed_line.annotations().append(QByteArray::number((double)cov / bed_line.length(), 'f', decimals));
+			}
 		}
 	}
 	else //default mode
