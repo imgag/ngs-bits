@@ -1934,6 +1934,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 	else //default mode
 	{
+		BamReader reader(bam_file, ref_file);
 		//check target region is merged/sorted and create index
 		if (!bed_file.isMergedAndSorted())
 		{
