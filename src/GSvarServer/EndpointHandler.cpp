@@ -442,14 +442,10 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 HttpResponse EndpointHandler::calculateStatsAvgCoverage(const HttpRequest& request)
 {
 	QString bam_file = request.getUrlParams()["bam_file"];
-	QString region_chr = request.getUrlParams()["region_chr"];
-	int region_start = request.getUrlParams()["region_start"].toInt();
-	int region_end = request.getUrlParams()["region_end"].toInt();
-
 	int min_mapq = request.getUrlParams()["min_mapq"].toInt();
 	bool include_duplicates = (request.getUrlParams()["include_duplicates"] == "1" ? true : false);
+	QString ref_file = request.getUrlParams()["ref_file"];// Settings::string("ref_file");
 
-	QString ref_file = "";// Settings::string("ref_file");
 	QJsonDocument json_doc_input = QJsonDocument::fromJson(request.getBody());
 	QJsonArray json_regions = json_doc_input.array();
 
@@ -477,7 +473,9 @@ HttpResponse EndpointHandler::calculateStatsAvgCoverage(const HttpRequest& reque
 
 		long cov = 0;
 		//jump to region
-		reader.setRegion(Chromosome(json_regions[i].toObject().value("chr").toString()), json_regions[i].toObject().value("start").toInt(), json_regions[i].toObject().value("end").toInt());
+		int region_start = json_regions[i].toObject().value("start").toInt();
+		int region_end = json_regions[i].toObject().value("end").toInt();
+		reader.setRegion(Chromosome(json_regions[i].toObject().value("chr").toString()), region_start, region_end);
 
 		//iterate through all alignments
 		BamAlignment al;

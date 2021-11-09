@@ -1860,14 +1860,14 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			QJsonArray json_array;
 			for (int i=0; i<bed_file.count(); ++i)
 			{
-				BedLine& bed_line = bed_file[i];
+//				BedLine& bed_line = bed_file[i];
 				QJsonObject json_object;
-				if (bed_line.chr().strNormalized(false).toLong() == 0) continue;
+				if (bed_file[i].chr().strNormalized(false).toLong() == 0) continue;
 //				qDebug() << "QString::number(bed_line.chr().strNormalized(false).toLong())" << QString::number(bed_line.chr().strNormalized(false).toLong());
 //				qDebug() << bed_line.chr().strNormalized(false).toLong();
-				json_object.insert("chr", QString::number(bed_line.chr().strNormalized(false).toLong()));
-				json_object.insert("start", QString::number(bed_line.start()));
-				json_object.insert("end", QString::number(bed_line.end()));
+				json_object.insert("chr", QString::number(bed_file[i].chr().strNormalized(false).toLong()));
+				json_object.insert("start", QString::number(bed_file[i].start()));
+				json_object.insert("end", QString::number(bed_file[i].end()));
 				json_array.append(json_object);
 			}
 			json_regions.setArray(json_array);
@@ -1883,7 +1883,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 						+ "/v1/avg_coverage?bam_file=" + QUrl(bam_file).toEncoded()
 						+ "&min_mapq=" + QString::number(min_mapq)
 						+ "&include_duplicates=" + QString::number(include_duplicates)
-						+ "&ref_file=" + ref_file,
+						+ "&ref_file=" + QUrl(ref_file).toEncoded(),
 						json_regions.toJson(),
 						add_headers
 					);
@@ -1894,7 +1894,7 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 
 
 //			qDebug() << "Coverage mapping" << bed_file.count() << " - " << json_coverage_values.count();
-			for (int i=0; i<bed_file.count(); ++i)
+			for (int i=0; i<json_coverage_values.count(); ++i)
 			{
 //				BedLine& bed_line = bed_file[i];
 				bed_file[i].annotations().append(QByteArray::number(json_coverage_values[i].toDouble() / bed_file[i].length(), 'f', decimals));
