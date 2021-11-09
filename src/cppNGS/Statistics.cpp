@@ -1863,6 +1863,8 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 			{
 				BedLine& bed_line = bed_file[i];
 				QJsonObject json_object;
+				qDebug() << "QString::number(bed_line.chr().strNormalized(false).toLong())" << QString::number(bed_line.chr().strNormalized(false).toLong());
+				qDebug() << bed_line.chr().strNormalized(false).toLong();
 				json_object.insert("chr", QString::number(bed_line.chr().strNormalized(false).toLong()));
 				json_object.insert("start", QString::number(bed_line.start()));
 				json_object.insert("end", QString::number(bed_line.end()));
