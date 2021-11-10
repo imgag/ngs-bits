@@ -1,5 +1,9 @@
 # GSvar change log
 
+### 2021_09-34 (27.10.21)
+- Report: updated XML to contain HGNC gene identifiers.
+- General: added lift-over dialog to main menu folder 'Conversion'.
+- General: fixed several minor issues and crashes.
 
 ### 2021_09-2 (29.09.21)
 - Variant table: added button to open qcML files of analysis.

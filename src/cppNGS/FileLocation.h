@@ -164,6 +164,7 @@ struct FileLocation
 		if (in_upper == "COUNTS") return PathType::COUNTS;
 		if (in_upper == "VIRAL") return PathType::VIRAL;
 		if (in_upper == "VCF_CF_DNA") return PathType::VCF_CF_DNA;
+		if (in_upper == "EXPRESSION") return PathType::EXPRESSION;
 
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
