@@ -127,8 +127,6 @@ void RequestWorker::run()
 	}
 
 	// Process the request based on the endpoint info
-//	qDebug() << parsed_request.methodAsString().toUpper() + "/" + parsed_request.getPath() + parsed_request.getRemoteAddress().toLatin1().data();
-
 	Endpoint current_endpoint = EndpointManager::getEndpointByUrlAndMethod(parsed_request.getPath(), parsed_request.getMethod());
 	if (current_endpoint.action_func == nullptr)
 	{
@@ -147,7 +145,6 @@ void RequestWorker::run()
 		return;
 	}
 
-//	qDebug() << "Requested:" + current_endpoint.comment;
 	if (current_endpoint.is_password_protected)
 	{
 		qDebug() << "Accessing password protected area";
@@ -235,7 +232,7 @@ void RequestWorker::run()
 		// Range request
 		for (int i = 0; i < ranges_count; ++i)
 		{
-			chunk_size = STREAM_CHUNK_SIZE; //4096; //1073741824; //1GB STREAM_CHUNK_SIZE;
+			chunk_size = STREAM_CHUNK_SIZE;
 			pos = ranges[i].start;
 			qDebug() << "Range start" << pos << ", " << tid;
 			if (ranges_count > 1)
@@ -252,11 +249,7 @@ void RequestWorker::run()
 					qDebug() << "Killing the request process";
 					return;
 				}
-//				if (is_terminated_)
-//				{
-//					qDebug() << "Terminated at " << pos << ", " << tid;
-//					break;
-//				}
+
 				if (pos > file_size) break;
 				streamed_file.seek(pos);
 
