@@ -236,6 +236,8 @@ public slots:
 	void on_actionAlleleBalance_triggered();
 	///Shows lift-over dialog
 	void on_actionLiftOver_triggered();
+	///Shows ClinVar upload status widget
+	void on_actionClinvar_upload_status_triggered();
 
 	///Load report configuration
 	void loadReportConfig();

@@ -127,6 +127,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GenomeVisualizationWidget.h"
 #include "LiftOverWidget.h"
 #include "CacheInitWorker.h"
+#include "ClinvarUploadStatusWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -861,6 +862,13 @@ void MainWindow::on_actionLiftOver_triggered()
 {
 	LiftOverWidget* widget = new LiftOverWidget(this);
 	auto dlg = GUIHelper::createDialog(widget, "Lift-over genome coordinates");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionClinvar_upload_status_triggered()
+{
+	ClinvarUploadStatusWidget* widget = new ClinvarUploadStatusWidget();
+	auto dlg = GUIHelper::createDialog(widget, "Clinvar upload status");
 	addModelessDialog(dlg);
 }
 

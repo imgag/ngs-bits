@@ -502,6 +502,8 @@
      <addaction name="actionChangePassword"/>
      <addaction name="separator"/>
      <addaction name="actionReplicateNGSD"/>
+     <addaction name="separator"/>
+     <addaction name="actionClinvar_upload_status"/>
     </widget>
     <widget class="QMenu" name="menuBatch_import">
      <property name="title">
@@ -1338,6 +1340,11 @@
   <action name="actionLiftOver">
    <property name="text">
     <string>Lift-over</string>
+   </property>
+  </action>
+  <action name="actionClinvar_upload_status">
+   <property name="text">
+    <string>Clinvar upload status</string>
    </property>
   </action>
  </widget>
