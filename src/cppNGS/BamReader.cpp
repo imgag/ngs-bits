@@ -511,9 +511,9 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 BamReader::BamReader(QString bam_file)
 {
 	bam_file_ = Helper::canonicalPath(bam_file);
-	bam_file_ = bam_file_.replace("https", "http");
-	bam_file = bam_file_.replace("https", "http");
-	bam_file = bam_file_.replace(":" + Settings::string("https_server_port", true), ":" + Settings::string("http_server_port", true));
+//	bam_file_ = bam_file_.replace("https", "http");
+//	bam_file = bam_file_.replace("https", "http");
+//	bam_file = bam_file_.replace(":" + Settings::string("https_server_port", true), ":" + Settings::string("http_server_port", true));
 
 	fp_ = sam_open(bam_file_.toLatin1().constData(), "r");
 	init(bam_file_);
@@ -522,9 +522,9 @@ BamReader::BamReader(QString bam_file)
 BamReader::BamReader(QString bam_file, const QString& ref_genome)
 {
 	bam_file_ = Helper::canonicalPath(bam_file);
-	bam_file_ = bam_file_.replace("https", "http");
-	bam_file = bam_file_.replace("https", "http");
-	bam_file = bam_file_.replace(":" + Settings::string("https_server_port", true), ":" + Settings::string("http_server_port", true));
+//	bam_file_ = bam_file_.replace("https", "http");
+//	bam_file = bam_file_.replace("https", "http");
+//	bam_file = bam_file_.replace(":" + Settings::string("https_server_port", true), ":" + Settings::string("http_server_port", true));
 
 	fp_ = sam_open(bam_file_.toLatin1().constData(), "r");
 	init(bam_file_, ref_genome);
