@@ -137,6 +137,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
             hgvs.hgvs_c = hgvs_c_prefix + pos_hgvs_c + ref.toReverseComplement() + ">" + obs.toReverseComplement();
         }
     }
+    //deletion
     else if(variant.isDel())
     {
         hgvs.hgvs_c = hgvs_c_prefix + pos_hgvs_c + "del";
@@ -155,6 +156,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
             }
         }
     }
+    //insertion
     else if(variant.isIns())
     {
         Sequence variant_alt_seq = variant.alt()[0];
@@ -165,6 +167,19 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         if(hgvs.hgvs_p != "")
         {
             hgvs.variant_consequence_type.insert(VariantConsequenceType::PROTEIN_ALTERING_VARIANT);
+
+            if(hgvs.hgvs_p.contains("fs"))
+            {
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::FRAMESHIFT_VARIANT);
+            }
+            else if(hgvs.hgvs_p.endsWith("Ter"))
+            {
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::STOP_GAINED);
+            }
+            else
+            {
+                hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_INSERTION);
+            }
         }
     }
 
@@ -481,7 +496,6 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
 {
     QString hgvs_p("p.");
     int pos_trans_start = 0;
-    //int pos trans_end = 0;
     int start = variant.start();
     int end = variant.end();
     QByteArray aa_ref;
@@ -520,13 +534,13 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
 
         aa_ref.append(QByteArray::number(pos_trans_start / 3 + 1));
     }
-    else if(variant.isDel())
+    else if(variant.isInDel())
     {
-        //make position of start of deletion in transcript zero-based
+        //make position of start of deletion/insertion in transcript zero-based
         pos_trans_start = pos_hgvs_c.split("_").at(0).toInt() - 1;
 
         int offset = pos_trans_start % 3;
-        int frame_diff = end - start;
+        int frame_diff = variant.isDel() ? end - start : variant.alt()[0].length() - variant.ref().length();
         int pos_shift = 0;
 
         // get a sufficiently large part of the reference and observed sequence
@@ -535,28 +549,65 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
 
         if(plus_strand)
         {
-            seq_ref = genome_idx.seq(variant.chr(), start + 1 - offset, frame_diff + seq_length);
-            seq_obs = seq_ref.left(offset) + seq_ref.right(seq_length - offset);
+            if(variant.isDel())
+            {
+                seq_ref = genome_idx.seq(variant.chr(), start + 1 - offset, frame_diff + seq_length);
+                seq_obs = seq_ref.left(offset) + seq_ref.right(seq_length - offset);
+            }
+            else if(variant.isIns())
+            {
+                seq_ref = genome_idx.seq(variant.chr(), start - offset, seq_length);
+                seq_obs = seq_ref.left(offset + 1) + variant.alt()[0].right(frame_diff) + seq_ref.right(seq_length - offset - 1);
+            }
         }
         else
         {
-            seq_ref = genome_idx.seq(variant.chr(), start - seq_length, frame_diff + seq_length + offset + 1);
-            seq_obs = seq_ref.left(seq_length + 1) + seq_ref.right(offset);
+            if(variant.isDel())
+            {
+                seq_ref = genome_idx.seq(variant.chr(), start - seq_length, frame_diff + seq_length + offset + 1);
+                seq_obs = seq_ref.left(seq_length + 1) + seq_ref.right(offset);
+            }
+            else if(variant.isIns())
+            {
+                seq_ref = genome_idx.seq(variant.chr(), start - seq_length, seq_length + offset + 2);
+                seq_obs = seq_ref.left(seq_length + 1) + variant.alt()[0].right(frame_diff) + seq_ref.right(offset + 1);
+            }
             seq_obs.reverseComplement();
             seq_ref.reverseComplement();
         }
 
-        //find the first amino acid that is changed due to the deletion
-        while(aa_obs == aa_ref)
+        if(variant.isDel() || (variant.isIns() && frame_diff % 3 != 0))
+        {
+            //find the first amino acid that is changed due to the deletion/frameshift insertion
+            while(aa_obs == aa_ref)
+            {
+                aa_ref = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.left(3), variant.chr().isM()));
+                aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), variant.chr().isM()));
+
+                if(aa_obs == aa_ref)
+                {
+                    seq_obs = seq_obs.right(seq_obs.length() - 3);
+                    seq_ref = seq_ref.right(seq_ref.length() - 3);
+                    pos_shift += 3;
+                }
+            }
+        }
+        else if(variant.isIns())
         {
             aa_ref = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.left(3), variant.chr().isM()));
             aa_obs = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.left(3), variant.chr().isM()));
 
-            if(aa_obs == aa_ref)
+            QByteArray aa_ref_after = toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(3, 3), variant.chr().isM()));
+            QByteArray aa_obs_after = toThreeLetterCode(NGSHelper::translateCodon(seq_obs.mid(3 + frame_diff, 3), variant.chr().isM()));
+
+            if(aa_obs == aa_ref && aa_obs_after == aa_ref_after)
             {
-                seq_obs = seq_obs.right(seq_obs.length() - 3);
-                seq_ref = seq_ref.right(seq_ref.length() - 3);
-                pos_shift += 3;
+                aa_obs = "ins" + translate(seq_obs.mid(3, frame_diff));
+            }
+            //delins if first amino acid is changed by the insertion
+            else if(aa_obs_after == aa_ref_after)
+            {
+                aa_obs = "delins" + translate(seq_obs.left(3 + frame_diff));
             }
         }
         aa_ref.append(QByteArray::number((pos_trans_start + pos_shift) / 3 + 1));
@@ -564,10 +615,14 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
         // frameshift deletion
         if(frame_diff % 3 != 0)
         {
-            aa_obs = "fs";
+            //special case if first changed amino acid is changed into a stop codon: describe as substitution
+            if(aa_obs != "Ter")
+            {
+               aa_obs = "fs";
+            }
         }
         // inframe deletion
-        else
+        else if(variant.isDel())
         {
             // more than one amino acid deleted
             if(frame_diff > 3)
@@ -595,6 +650,15 @@ QString VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant, c
             else
             {
                 aa_obs = "del";
+            }
+        }
+        //inframe insertion
+        else if(variant.isIns())
+        {
+            if(!aa_obs.startsWith("delins"))
+            {
+                aa_ref += "_" + toThreeLetterCode(NGSHelper::translateCodon(seq_ref.mid(3, 3)))
+                        + QByteArray::number((pos_trans_start + pos_shift) / 3 + 2);
             }
         }
     }
