@@ -941,9 +941,8 @@ CREATE TABLE IF NOT EXISTS `hpo_genes`
 (
   `hpo_term_id` INT(10) UNSIGNED NOT NULL,
   `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
-  `db_ref` enum('HPO', 'ORPHA', 'OMIM', 'HGMD', 'CLINVAR'),
-  `omim_evidence` enum('1', '2', '3', '4'),
-  `hpo_evidence`enum('IEA', 'TAS', 'PCS'),
+  `sources` TEXT NOT NULL COMMENT 'Comma seperated DBs where the connection was found',
+  `evidence` enum('NA', 'LOW', 'MED', 'HIGH'),
   PRIMARY KEY (`hpo_term_id`, `gene`),
   CONSTRAINT `hpo_genes_ibfk_1`
     FOREIGN KEY (`hpo_term_id`)

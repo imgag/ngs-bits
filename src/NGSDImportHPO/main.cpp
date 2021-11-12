@@ -16,6 +16,254 @@ public:
 	{
 	}
 
+	/// Strength of the evidence for a given relation
+	enum Evidences {NA, AGAINST, LOW, MED, HIGH};
+	/// returns a integer representing the Strength of the evidence: lower less evidence, higher better evidence
+	static int rank(const Evidences& e)
+	{
+		switch (e) {
+			case Evidences::NA:
+				return 0;
+			case Evidences::AGAINST:
+				return 1;
+			case Evidences::LOW:
+				return 2;
+			case Evidences::MED:
+				return 3;
+			case Evidences::HIGH:
+				return 4;
+			default:
+				return -1;
+		}
+	}
+	/// returns a ByteArray representation für the given evidence
+	static QByteArray evidenceToString(Evidences e)
+	{
+		switch (e) {
+			case Evidences::NA:
+				return "NA";
+			case Evidences::AGAINST:
+				return "AGAINST";
+			case Evidences::LOW:
+				return "LOW";
+			case Evidences::MED:
+				return "MED";
+			case Evidences::HIGH:
+				return "HIGH";
+			default:
+				return "";
+		}
+	}
+	/// turns a given HPO Evidence value into one from the Evidences enum
+	static Evidences translateHpoEvidence(QString hpoEvi)
+	{
+		if (hpoEvi == "IEA") {
+			return Evidences::LOW;
+		} else if (hpoEvi == "TAS") {
+			return Evidences::LOW;
+		} else if (hpoEvi == "PCS") {
+			return Evidences::HIGH;
+		} else {
+			return Evidences::NA;
+		}
+	}
+	/// turns a given OMIM Evidence value into one from the Evidences enum
+	static Evidences translateOmimEvidence(QByteArray omimEvi)
+	{
+		if (omimEvi == "(1)") {
+			return Evidences::LOW;
+		} else if (omimEvi == "(2)") {
+			return Evidences::LOW;
+		} else if (omimEvi == "(3)") {
+			return Evidences::HIGH;
+		} else if (omimEvi == "(4)") {
+			return Evidences::HIGH;
+		} else {
+			return Evidences::NA;
+		}
+	}
+	/// turns a given Decipher Evidence value into one from the Evidences enum
+	static Evidences translateDecipherEvidence(QByteArray decipherEvi)
+	{
+		// One value from the list of possible categories: both DD and IF, confirmed, possible, probable
+		if (decipherEvi == "both DD and IF") {
+			return Evidences::LOW;
+		} else if (decipherEvi == "probable") {
+			return Evidences::LOW;
+		} else if (decipherEvi == "possible") {
+			return Evidences::MED;
+		} else if (decipherEvi == "confirmed") {
+			return Evidences::HIGH;
+		} else {
+			return Evidences::NA;
+		}
+	}
+	/// turns a given GenCC Evidence value into one from the Evidences enum
+	static Evidences translateGenccEvidence(QByteArray genccEvi)
+	{
+		//Definitive, Strong, Moderate, Supportive, Limited, Disputed, Refuted, Animal, No Known
+		if (genccEvi == "No Known") {
+			return Evidences::LOW;
+		} else if (genccEvi == "Animal") {
+			return Evidences::LOW;
+		} else if (genccEvi == "Refuted") {
+			return Evidences::AGAINST;
+		} else if (genccEvi == "Disputed") {
+			return Evidences::AGAINST;
+		}  else if (genccEvi == "Limited") {
+			return Evidences::LOW;
+		} else if (genccEvi == "Supportive") {
+			return Evidences::LOW;
+		} else if (genccEvi == "Moderate") {
+			return Evidences::MED;
+		} else if (genccEvi == "Strong") {
+			return Evidences::HIGH;
+		} else if (genccEvi == "Definitive") {
+			return Evidences::HIGH;
+		} else {
+			return Evidences::NA;
+		}
+	}
+	/// simple sruct to keep a set of source databases
+	struct Sources {
+		QSet<QString> sources;
+
+		Sources()
+		{
+			this->sources = QSet<QString>();
+		}
+
+		Sources(QByteArray s)
+		{
+			this->sources = QSet<QString>();
+			this->sources.insert(s);
+		}
+
+		bool contains(QByteArray s)
+		{
+			return this->sources.contains(s);
+		}
+
+		void insert(QByteArray s)
+		{
+			this->sources.insert(s);
+		}
+
+		QString toCsvString()
+		{
+			QString s = "";
+
+			foreach (QString src, this->sources)
+			{
+				if (s.length() == 0)
+				{
+					s=src;
+				} else {
+					s += "," + src;
+				}
+			}
+			return s;
+		}
+	};
+	/// struct to annotate a gene/disease/phenotype with a source db and an evidence strength
+	struct AnnotatedItem
+	{
+		QByteArray item;
+		Sources src;
+		Evidences evi;
+
+		AnnotatedItem() {
+
+		}
+
+		AnnotatedItem(QByteArray item, QByteArray src, Evidences evi)
+		{
+			this->item = item;
+			this->src = Sources(src);
+			this->evi = evi;
+		}
+
+		AnnotatedItem(QByteArray item, Sources src, Evidences evi)
+		{
+			this->item = item;
+			this->src = src;
+			this->evi = evi;
+		}
+
+		bool operator ==(const AnnotatedItem& other)
+		{
+			return this->item == other.item;
+		}
+	};
+	/// a QList of AnnotatedItems with some convenience insertion methods
+	struct AnnotatedList
+	{
+		QList<AnnotatedItem> items;
+
+		void add(QByteArray item, QByteArray source, Evidences evidence=Evidences::NA)
+		{
+			AnnotatedItem newItem = AnnotatedItem(item, source, evidence);
+
+			if (items.contains(newItem)) {
+				int idx = this->items.indexOf(newItem);
+				AnnotatedItem annotatedItem = this->items.value(idx);
+				annotatedItem.src.insert(source);
+				if (rank(annotatedItem.evi) < rank(evidence))
+				{
+					annotatedItem.evi = evidence;
+				}
+			} else {
+				this->items.append(newItem);
+			}
+		}
+
+		void add(QByteArray item, Sources source, Evidences evidence=Evidences::NA)
+		{
+			AnnotatedItem newItem = AnnotatedItem(item, source, evidence);
+
+			if (items.contains(newItem)) {
+				int idx = this->items.indexOf(newItem);
+				AnnotatedItem annotatedItem = this->items.value(idx);
+				annotatedItem.src.sources.unite(source.sources);
+				if (rank(annotatedItem.evi) < rank(evidence))
+				{
+					annotatedItem.evi = evidence;
+				}
+			} else {
+				this->items.append(newItem);
+			}
+		}
+	};
+
+//	struct HpoGeneRelation {
+//		int hpo_term_id;
+//		QByteArray gene;
+//		Sources sources;
+//		Evidences evidence;
+
+//		HpoGeneRelation(int hpo_term_id, QByteArray gene, QByteArray source) :evidence(Evidences::NA)
+//		{
+//			this->hpo_term_id = hpo_term_id;
+//			this->gene = gene;
+//			this->sources = Sources(source);
+//		}
+
+//		void addSource(QByteArray newSource)
+//		{
+//			this->sources.insert(newSource);
+//		}
+
+//		void setEvidence(Evidences evidence)
+//		{
+//			if (rank(this->evidence) < rank(evidence)) this->evidence = evidence;
+//		}
+
+//		bool operator ==(HpoGeneRelation other)
+//		{
+//			return (other.hpo_term_id==this->hpo_term_id) & (other.gene == this->gene);
+//		}
+//	};
+
 	virtual void setup()
 	{
 		setDescription("Imports HPO terms and gene-phenotype relations into the NGSD.");
@@ -23,10 +271,15 @@ public:
 		addInfile("anno", "HPO annotations file from 'https://ci.monarchinitiative.org/view/hpo/job/hpo.annotations/lastSuccessfulBuild/artifact/rare-diseases/util/annotation/phenotype_to_genes.txt'", false);
 
 		//optional
-		addInfile("hpoPhen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information, from 'https://hpo.jax.org/app/download/annotation'.", true);
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
 		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2021/clinvar_20210424.vcf.gz' for GRCH37 or 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20210424.vcf.gz' for GRCh38.", true);
 		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2021.1.dump').", true);
+
+		// optional (for evidence information):
+		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information, from 'https://hpo.jax.org/app/download/annotation'.", true);
+		addInfile("gencc", "gencc 'gencc-submissions.tsv' file for additional disease-gene evidence information, from 'https://hpo.jax.org/app/download/annotation'.", true);
+		addInfile("decipher", "G2P 'DDG2P.csv' file for additional gene-disease-phenotype evidence information, from 'https://hpo.jax.org/app/download/annotation'.", true);
+
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 		addFlag("debug", "Enables debug output");
@@ -64,9 +317,15 @@ public:
 		return c_imported;
 	}
 
-	QHash<QByteArray, int> parseObo(const NGSD &db, SqlQuery qi_term)
+	QHash<QByteArray, int> importHpoOntology(const NGSD& db)
 	{
 		QTextStream out(stdout);
+		//prepare SQL queries
+		SqlQuery qi_term = db.getQuery();
+		qi_term.prepare("INSERT INTO hpo_term (hpo_id, name, definition, synonyms) VALUES (:0, :1, :2, :3);");
+		SqlQuery qi_parent = db.getQuery();
+		qi_parent.prepare("INSERT INTO hpo_parent (parent, child) VALUES (:0, :1);");
+
 		QHash<QByteArray, int> id2ngsd;
 		OntologyTermCollection terms(getInfile("obo"), true);
 		for (int i=0; i<terms.size(); ++i)
@@ -84,10 +343,6 @@ public:
 		out << "Imported " << db.getValue("SELECT COUNT(*) FROM hpo_term").toInt() << " non-obsolete HPO terms." << endl;
 
 		//insert parent-child relations between (valid) terms
-
-		SqlQuery qi_parent = db.getQuery();
-		qi_parent.prepare("INSERT INTO hpo_parent (parent, child) VALUES (:0, :1);");
-
 		for (int i=0; i<terms.size(); ++i)
 		{
 			const OntologyTerm& term = terms.get(i);
@@ -110,202 +365,14 @@ public:
 		return id2ngsd;
 	}
 
-
-	void testing(NGSD &db) {
-		QTextStream out(stdout);
-		bool debug = getFlag("debug");
-
-
-		SqlQuery qi_term = db.getQuery();
-		qi_term.prepare("INSERT INTO hpo_term (hpo_id, name, definition, synonyms) VALUES (:0, :1, :2, :3);");
-		SqlQuery qi_gene = db.getQuery();
-		qi_gene.prepare("INSERT IGNORE INTO hpo_genes (hpo_term_id, gene, db_ref) VALUES (:0, :1, :2);");
-
-
-		// parse HPO:
-		//parse OBO and insert terms into NGSD
-		QHash<QByteArray, int> id2ngsd = parseObo(db, qi_term);
-
-
-		//parse term-disease and disease-gene relations from HPO
-		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("anno"));
-		QSet<QByteArray> non_hgnc_genes;
-		PhenotypeList inheritance_terms = db.phenotypeChildTerms(db.phenotypeIdByAccession("HP:0000005"), true); //Mode of inheritance
-
-		QHash<int, QSet<QByteArray> > term2diseases;
-		QHash<QByteArray, GeneSet> disease2genes;
-
-		QTime timer;
-		QTime timer2;
-		int count = 0;
-
-		timer.start();
-		while (!fp->atEnd())
-		{
-			count++;
-			if (count % 10000 == 0) {
-				out << "Count: " << count << endl;
-				out << "Time for last 10k lines:" << timer.elapsed() << endl;
-				timer.start();
-			}
-
-			QByteArray line =  fp->readLine();
-			QByteArrayList parts =line.split('\t');
-
-			if (parts.count()<7) continue;
-
-			// parse line
-			QByteArray disease = parts[6].trimmed();
-			QByteArray gene = parts[3].trimmed();
-			QByteArray term_accession = parts[0].trimmed();
-
-			int gene_db_id = db.geneToApprovedID(gene);
-			int term_db_id = id2ngsd.value(term_accession, -1);
-
-
-			if (term_db_id != -1)
-			{
-				if (inheritance_terms.containsAccession(term_accession))
-				{
-					if (gene_db_id != -1)
-					{
-						if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << endl;
-						qi_gene.bindValue(0, term_db_id);
-						qi_gene.bindValue(1, db.geneSymbol(gene_db_id));
-						qi_gene.bindValue(2, "HPO");
-						qi_gene.exec();
-					}
-				}
-				else
-				{
-					if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << endl;
-					term2diseases[term_db_id].insert(disease);
-				}
-			}
-
-			if (gene_db_id != -1)
-			{
-				if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << endl;
-				disease2genes[disease].insert(db.geneSymbol(gene_db_id));
-			}
-			else
-			{
-				non_hgnc_genes << gene;
-			}
-		}
-		fp->close();
-
-
-		foreach(const QByteArray& gene, non_hgnc_genes)
-		{
-			out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
-		}
-
-		int c_imported = importTermGeneRelations(qi_gene, term2diseases, disease2genes, "HPO");
-		out << "Imported " << c_imported << " term-gene relations from HPO." << endl;
-
-		// Parse phenotype.hpoa file if provided ********************************************
-		QHash<int, QList<std::tuple<QByteArray, QByteArray>>> term2diseasesWithEvi = parseHpoPhen(id2ngsd);
-
-		// update hpo_gene table with hpo evidences:
-
-		SqlQuery qi_hpo_evidence = db.getQuery();
-		qi_hpo_evidence.prepare("UPDATE hpo_genes SET hpo_evidence=:0 WHERE hpo_genes.hpo_term_id=:1 and hpo_genes.gene=:2;");
-
-		int updated = 0;
-		foreach (int term, term2diseasesWithEvi.keys())
-		{
-			for (int i= 0; i <term2diseasesWithEvi[term].length(); i++)
-			{
-				QByteArray disease;
-				QByteArray evidence;
-				std::tie(disease, evidence) = term2diseasesWithEvi[term][i];
-				GeneSet genes = disease2genes[disease];
-				foreach(const QByteArray& gene, genes)
-				{
-					qi_hpo_evidence.bindValue(0, evidence);
-					qi_hpo_evidence.bindValue(1, term);
-					qi_hpo_evidence.bindValue(2, gene);
-					qi_hpo_evidence.exec();
-					updated += qi_hpo_evidence.numRowsAffected();
-				}
-			}
-		}
-
-		out << "Updated " << updated << " rows of hpo_genes with hpo evidences." << endl;
-
-		// **********************************************************************
-
-
-		//parse disease-gene relations from OMIM
-		QString omim_file = getInfile("omim");
-		disease2genes.clear();
-		if (omim_file!="")
-		{
-			//parse disease-gene relations
-			int c_skipped_invalid_gene = 0;
-			fp = Helper::openFileForReading(omim_file);
-			QRegExp mim_exp("([0-9]{6})");
-			QRegExp evidence_exp(R"(\(([1-4]{1,1})\))");
-			while(!fp->atEnd())
-			{
-				QByteArrayList parts = fp->readLine().trimmed().split('\t');
-				if (parts.count()<4) continue;
-
-				QByteArray pheno = parts[0].trimmed();
-				QByteArrayList genes = parts[1].split(',');
-				QByteArray mim_number = parts[2].trimmed(); // mim number for gene
-				QByteArray evidence = "";
-
-				if (mim_exp.indexIn(pheno)!=-1)
-				{
-					mim_number = mim_exp.cap().toLatin1(); // mim number for phenotype
-				}
-
-				if (evidence_exp.indexIn(pheno) != -1)
-				{
-					evidence = evidence_exp.cap().toLatin1();
-				} else {
-					if (debug) out << "No OMIM evidence found" << endl;
-				}
-
-				foreach(QByteArray gene, genes)
-				{
-					//make sure the gene symbol is approved by HGNC
-					gene = gene.trimmed();
-					int approved_id = db.geneToApprovedID(gene);
-					if (approved_id==-1)
-					{
-						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
-						++c_skipped_invalid_gene;
-						continue;
-					}
-
-					if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << endl;
-
-					disease2genes["OMIM:"+mim_number].insert(db.geneSymbol(approved_id));
-				}
-			}
-			fp->close();
-
-			int c_imported = importTermGeneRelations(qi_gene, term2diseases, disease2genes, "OMIM");
-			out << "Imported " << c_imported << " additional term-gene relations (via disease) from OMIM." << endl;
-			out << "  Skipped " << c_skipped_invalid_gene << " genes (no HGNC-approved gene name)." << endl;
-		}
-	}
-
-	QHash<int, QList<std::tuple<QByteArray, QByteArray>>> parseHpoPhen(QHash<QByteArray, int> id2ngsd)
+	void parseHpoPhen(QHash<QByteArray, int> id2ngsd, QHash<int, AnnotatedList>& term2diseases)
 	{
-		QHash<int, QList<std::tuple<QByteArray, QByteArray>>> term2diseasesWithEvi;
-		if (getInfile("hpoPhen") == "") {
-			return term2diseasesWithEvi;
-		}
+		if (getInfile("hpophen") == "") return;
 
 		QTextStream out(stdout);
 		// parse phenotype.hpoa file for evidence information
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("hpoPhen"));
 
-		//QHash<int, QList<std::pair> > term2diseases;
 		int count_F = 0;
 		int count_N = 0;
 
@@ -332,13 +399,77 @@ public:
 				continue;
 			} else {
 				count_F++;
-				term2diseasesWithEvi[term_id].append(std::tuple<QByteArray, QByteArray>(disease, evidence));
+				term2diseases[term_id].add(disease, "HPO", translateHpoEvidence(evidence));
 			}
 		}
 		out << "Found: " << count_F << " - not found: " << count_N << endl;
-
-		return term2diseasesWithEvi;
 	}
+
+	void parseDecipher(NGSD db, QHash<QByteArray, int> id2ngsd, QHash<QByteArray, AnnotatedList>& disease2genes, QHash<int, AnnotatedList>& term2disease, QHash<int, AnnotatedList> term2genes)
+	{
+		if (getInfile("decipher") == "") return;
+
+		QTextStream out(stdout);
+		// parse phenotype.hpoa file for evidence information
+		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("decipher"));
+
+		QByteArray line = fp->readLine();
+		//"gene symbol","gene mim","disease name","disease mim","DDD category","allelic requirement","mutation consequence",phenotypes,"organ specificity list",pmids,panel,"prev symbols","hgnc id","gene disease pair entry date"
+
+		QList<QByteArray> non_hgc_genes;
+		QSet<QByteArray> bad_hpo_terms;
+		QByteArray source = "Decipher";
+		while(! fp->atEnd())
+		{
+			QByteArray line = fp->readLine().trimmed();
+			QByteArrayList parts = line.split(',');
+			QByteArray gene = parts[0].trimmed();
+			QByteArray disease = "OMIM:" + parts[3].trimmed();
+			QByteArray decipherEvi = parts[4].trimmed();
+			Evidences evidence = translateDecipherEvidence(decipherEvi);
+			QByteArrayList hpoTerms = parts[7].trimmed().split(';');
+
+			//verify information
+			int gene_db_id = db.geneToApprovedID(gene);
+
+			if (gene_db_id == -1)
+			{
+				non_hgc_genes.append(gene);
+				// add term2disease relations
+				foreach (QByteArray term, hpoTerms)
+				{
+					int term_db_id = id2ngsd.value(term, -1);
+					if (term_db_id != -1)
+					{
+						term2disease[term_db_id].add(disease, source, evidence);
+					} else {
+						bad_hpo_terms.insert(term);
+					}
+				}
+			} else {
+				QByteArray approvedGeneSymbol = db.geneSymbol(gene_db_id);
+				foreach (QByteArray term, hpoTerms)
+				{
+					int term_db_id = id2ngsd.value(term, -1);
+					if (term_db_id != -1)
+					{
+						term2genes[term_db_id].add(approvedGeneSymbol, source, evidence);
+						term2disease[term_db_id].add(disease, source, evidence);
+					} else {
+						bad_hpo_terms.insert(term);
+					}
+				}
+				disease2genes[disease].add(approvedGeneSymbol, source, evidence);
+			}
+		}
+	}
+
+//	void parseGenCC(QHash<QByteArray, int> id2ngsd, QHash<QByteArray, AnnotatedList>& disease2genes)
+//	{
+//		if (getInfile("gencc") != "") return;
+
+//	}
+
 
 	virtual void main()
 	{
@@ -367,59 +498,28 @@ public:
 			}
 		}
 
+		// import HPO Ontology to DB
+		QHash<QByteArray, int> id2ngsd = importHpoOntology(db);
+
+		QHash<int, AnnotatedList> term2genes;
+		QHash<int, AnnotatedList > term2diseases;
+		QHash<QByteArray, AnnotatedList> disease2genes;
+
+		// parse Evidence files if provided
+		// Parse phenotype.hpoa file
+		parseHpoPhen(id2ngsd, term2diseases);
+
+
 		//prepare SQL queries
-		SqlQuery qi_term = db.getQuery();
-		qi_term.prepare("INSERT INTO hpo_term (hpo_id, name, definition, synonyms) VALUES (:0, :1, :2, :3);");
-		SqlQuery qi_parent = db.getQuery();
-		qi_parent.prepare("INSERT INTO hpo_parent (parent, child) VALUES (:0, :1);");
 		SqlQuery qi_gene = db.getQuery();
-		qi_gene.prepare("INSERT IGNORE INTO hpo_genes (hpo_term_id, gene, db_ref) VALUES (:0, :1, :2);");
-
-		//parse OBO and insert terms into NGSD
-		QHash<QByteArray, int> id2ngsd;
-		OntologyTermCollection terms(getInfile("obo"), true);
-		for (int i=0; i<terms.size(); ++i)
-		{
-			const OntologyTerm& term = terms.get(i);
-
-			qi_term.bindValue(0, term.id());
-			qi_term.bindValue(1, term.name());
-			qi_term.bindValue(2, term.definition());
-			qi_term.bindValue(3, term.synonyms().count()==0 ? "" : term.synonyms().join('\n'));
-			qi_term.exec();
-
-			id2ngsd.insert(term.id(), qi_term.lastInsertId().toInt());
-		}
-		out << "Imported " << db.getValue("SELECT COUNT(*) FROM hpo_term").toInt() << " non-obsolete HPO terms." << endl;
-
-		//insert parent-child relations between (valid) terms
-		for (int i=0; i<terms.size(); ++i)
-		{
-			const OntologyTerm& term = terms.get(i);
-
-			int c_db = id2ngsd.value(term.id(), -1);
-			if (c_db==-1) continue;
-
-			foreach(const QByteArray& p_id, term.parentIDs())
-			{
-				int p_db = id2ngsd.value(p_id, -1);
-				if (p_db==-1) continue;
-
-				qi_parent.bindValue(0, p_db);
-				qi_parent.bindValue(1, c_db);
-				qi_parent.exec();
-			}
-		}
-		out << "Imported " << db.getValue("SELECT COUNT(*) FROM hpo_parent").toInt() << " parent-child relations between terms." << endl;
-
+		qi_gene.prepare("INSERT IGNORE INTO hpo_genes (hpo_term_id, gene, sources) VALUES (:0, :1, :2);");
 
 		//parse term-disease and disease-gene relations from HPO
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("anno"));
 		QSet<QByteArray> non_hgnc_genes;
 		PhenotypeList inheritance_terms = db.phenotypeChildTerms(db.phenotypeIdByAccession("HP:0000005"), true); //Mode of inheritance
 
-		QHash<int, QSet<QByteArray> > term2diseases;
-		QHash<QByteArray, GeneSet> disease2genes;
+
 		while(!fp->atEnd())
 		{
 			QByteArray line =  fp->readLine();
@@ -442,23 +542,24 @@ public:
 					if (gene_db_id!=-1)
 					{
 						if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << endl;
-						qi_gene.bindValue(0, term_db_id);
-						qi_gene.bindValue(1, db.geneSymbol(gene_db_id));
-						qi_gene.bindValue(2, "HPO");
-						qi_gene.exec();
+//						qi_gene.bindValue(0, term_db_id);
+//						qi_gene.bindValue(1, db.geneSymbol(gene_db_id));
+//						qi_gene.bindValue(2, "HPO");
+//						qi_gene.exec();
+						term2genes[term_db_id].add(db.geneSymbol(gene_db_id), "HPO");
 					}
 				}
 				else
 				{
-					if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << endl;
-					term2diseases[term_db_id].insert(disease);
+					// if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << endl;
+					term2diseases[term_db_id].add(disease, "HPO");
 				}
 			}
 
 			if (gene_db_id!=-1)
 			{
-				if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << endl;
-				disease2genes[disease].insert(db.geneSymbol(gene_db_id));
+				// if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << endl;
+				disease2genes[disease].add(db.geneSymbol(gene_db_id), "HPO");
 			}
 			else
 			{
@@ -472,46 +573,12 @@ public:
 			out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
 		}
 
-		int c_imported = importTermGeneRelations(qi_gene, term2diseases, disease2genes, "HPO");
-		out << "Imported " << c_imported << " term-gene relations from HPO." << endl;
-
-
-		// Parse phenotype.hpoa file if provided ********************************************
-		QHash<int, QList<std::tuple<QByteArray, QByteArray>>> term2diseasesWithEvi = parseHpoPhen(id2ngsd);
-
-		// update hpo_gene table with hpo evidences:
-
-		SqlQuery qi_hpo_evidence = db.getQuery();
-		qi_hpo_evidence.prepare("UPDATE hpo_genes SET hpo_evidence=:0 WHERE hpo_genes.hpo_term_id=:1 and hpo_genes.gene=:2;");
-
-		int updated = 0;
-		foreach (int term, term2diseasesWithEvi.keys())
-		{
-			for (int i= 0; i <term2diseasesWithEvi[term].length(); i++)
-			{
-				QByteArray disease;
-				QByteArray evidence;
-				std::tie(disease, evidence) = term2diseasesWithEvi[term][i];
-				GeneSet genes = disease2genes[disease];
-				foreach(const QByteArray& gene, genes)
-				{
-					qi_hpo_evidence.bindValue(0, evidence);
-					qi_hpo_evidence.bindValue(1, term);
-					qi_hpo_evidence.bindValue(2, gene);
-					qi_hpo_evidence.exec();
-					updated += qi_hpo_evidence.numRowsAffected();
-				}
-			}
-		}
-
-		out << "Updated " << updated << " rows of hpo_genes with HPO evidences." << endl;
-
-		// **********************************************************************
+		//int c_imported = importTermGeneRelations(qi_gene, term2diseases, disease2genes, "HPO");
+		//out << "Imported " << c_imported << " term-gene relations from HPO." << endl;
 
 		//parse disease-gene relations from OMIM
-		QHash<QByteArray,std::tuple<GeneSet, int>>disease2genesWithEvi;
 		QString omim_file = getInfile("omim");
-		disease2genes.clear();
+		// disease2genes.clear(); *********************** Why clear it?
 		if (omim_file!="")
 		{
 			//parse disease-gene relations
@@ -527,18 +594,11 @@ public:
 				QByteArray pheno = parts[0].trimmed();
 				QByteArrayList genes = parts[1].split(',');
 				QByteArray mim_number = parts[2].trimmed(); // mim number for gene
-				int evidence = 0;
+				QByteArray omimEvi = "";
 
 				if (mim_exp.indexIn(pheno)!=-1)
 				{
 					mim_number = mim_exp.cap().toLatin1(); // mim number for phenotype
-				}
-
-				if (evidence_exp.indexIn(pheno) != -1)
-				{
-					evidence = evidence_exp.cap().toLatin1().at(1) - '0'; // - '0' :convert to int
-				} else {
-					if (debug) out << "No Omim Evidence found" << endl;
 				}
 
 				foreach(QByteArray gene, genes)
@@ -548,60 +608,26 @@ public:
 					int approved_id = db.geneToApprovedID(gene);
 					if (approved_id==-1)
 					{
-						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
+						//if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
 						++c_skipped_invalid_gene;
 						continue;
 					}
 
-					if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << endl;
+					// if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << endl;
 
-					disease2genes["OMIM:"+mim_number].insert(db.geneSymbol(approved_id));
-				}
-				if (evidence!=0) {
-					disease2genesWithEvi["OMIM:"+mim_number] = std::tuple<GeneSet, int>(disease2genes["OMIM:"+mim_number], evidence);
+					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", translateOmimEvidence(omimEvi));
 				}
 			}
 			fp->close();
 
-			int c_imported = importTermGeneRelations(qi_gene, term2diseases, disease2genes, "OMIM");
-			out << "Imported " << c_imported << " additional term-gene relations (via disease) from OMIM." << endl;
-			out << "  Skipped " << c_skipped_invalid_gene << " genes (no HGNC-approved gene name)." << endl;
+//			int c_imported = importTermGeneRelations(qi_gene, term2diseases, disease2genes, "OMIM");
+//			out << "Imported " << c_imported << " additional term-gene relations (via disease) from OMIM." << endl;
+//			out << "  Skipped " << c_skipped_invalid_gene << " genes (no HGNC-approved gene name)." << endl;
 		}
-
-		//************* Update Term gene relations with OMIM evidences:
-		SqlQuery qi_omim_evidence = db.getQuery();
-		qi_omim_evidence.prepare("UPDATE hpo_genes SET omim_evidence=:0 WHERE hpo_genes.hpo_term_id=:1 and hpo_genes.gene=:2;");
-
-		updated = 0;
-
-		for (auto it=term2diseases.begin(); it!=term2diseases.end(); ++it)
-		{
-			int term_id = it.key();
-			const QSet<QByteArray>& diseases = it.value();
-			foreach(const QByteArray& disease, diseases)
-			{
-				GeneSet genes;
-				int evidence;
-				std::tie(genes, evidence) = disease2genesWithEvi[disease];
-
-				foreach(const QByteArray& gene, genes)
-				{
-					qi_omim_evidence.bindValue(0, evidence);
-					qi_omim_evidence.bindValue(1, term_id);
-					qi_omim_evidence.bindValue(2, gene);
-					qi_omim_evidence.exec();
-					updated += qi_omim_evidence.numRowsAffected();
-				}
-			}
-		}
-		out << "Updated " << updated << " rows of hpo_genes with OMIM evidences." << endl;
-
-		//*********************************************************
-
-
+		out << "Starting with ClinVar" << endl;
 		//parse disease-gene relations from ClinVar
 		QString clinvar_file = getInfile("clinvar");
-		disease2genes.clear();
+		// disease2genes.clear();
 		QHash<QByteArray, GeneSet> hpo2genes;
 		if (clinvar_file!="")
 		{
@@ -655,6 +681,8 @@ public:
 				}
 				if (genes.isEmpty() || (diseases.isEmpty() && hpos.isEmpty())) continue;
 
+				out << "Clinvar done with first part." << endl;
+
 				foreach(const QByteArray& gene, genes)
 				{
 					//make sure the gene symbol is approved by HGNC
@@ -670,42 +698,47 @@ public:
 					foreach(const QByteArray& disease, diseases)
 					{
 						if (debug) out << "DISEASE-GENE (ClinVar): " << disease << " - " << gene_approved << endl;
-						disease2genes[disease].insert(gene_approved);
+						disease2genes[disease].add(gene_approved, "ClinVar");
 					}
 					foreach(const QByteArray& hpo, hpos)
 					{
 						if (debug) out << "HPO-GENE (ClinVar): " << hpo << " - " << gene_approved << endl;
-						hpo2genes[hpo].insert(gene_approved);
+						int term_db_id = id2ngsd.value(hpo, -1);
+						if (term_db_id != -1)
+						{
+							term2genes[term_db_id].add(gene_approved, "ClinVar");
+						}
 					}
 				}
 			}
+		}
 			fp->close();
 
-			int c_imported = importTermGeneRelations(qi_gene, term2diseases, disease2genes, "CLINVAR");
-			out << "Imported " << c_imported << " additional term-gene relations (via disease) from ClinVar." << endl;
-			out << "  Skipped " << c_skipped_invalid_gene << " genes (no HGNC-approved gene name)." << endl;
+//			int c_imported = importTermGeneRelations(qi_gene, term2diseases, disease2genes, "CLINVAR");
+//			out << "Imported " << c_imported << " additional term-gene relations (via disease) from ClinVar." << endl;
+//			out << "  Skipped " << c_skipped_invalid_gene << " genes (no HGNC-approved gene name)." << endl;
 
-			//import hpo-gene regions (from ClinVar)
-			c_imported = 0;
-			for(auto it = hpo2genes.begin(); it!=hpo2genes.end(); ++it)
-			{
-				int term_db_id = id2ngsd.value(it.key(), -1);
-				if (term_db_id!=-1)
-				{
-					const GeneSet& genes = it.value();
-					foreach(const QByteArray& gene, genes)
-					{
-						qi_gene.bindValue(0, term_db_id);
-						qi_gene.bindValue(1, gene);
-						qi_gene.bindValue(2, "CLINVAR");
-						qi_gene.exec();
-						if(qi_gene.numRowsAffected() > 0) ++c_imported;
-					}
-				}
-			}
-			out << "Imported " << c_imported << " additional term-gene relations (direct) from ClinVar." << endl;
-		}
-
+//			//import hpo-gene regions (from ClinVar)
+//			c_imported = 0;
+//			for(auto it = hpo2genes.begin(); it!=hpo2genes.end(); ++it)
+//			{
+//				int term_db_id = id2ngsd.value(it.key(), -1);
+//				if (term_db_id!=-1)
+//				{
+//					const GeneSet& genes = it.value();
+//					foreach(const QByteArray& gene, genes)
+//					{
+//						qi_gene.bindValue(0, term_db_id);
+//						qi_gene.bindValue(1, gene);
+//						qi_gene.bindValue(2, "CLINVAR");
+//						qi_gene.exec();
+//						if(qi_gene.numRowsAffected() > 0) ++c_imported;
+//					}
+//				}
+//			}
+//			out << "Imported " << c_imported << " additional term-gene relations (direct) from ClinVar." << endl;
+//		}
+		out << "starting with HGMD" << endl;
 
 		// parse hpo-gene relations from HGMD (Phenobase dbdump file):
 		QString hgmd_file = getInfile("hgmd");
@@ -866,7 +899,12 @@ public:
 							// add gene to hpo list:
 							if (debug) out << "HPO-GENE (HGMD): " << hpo << " - " << gene_approved << endl;
 							hgmd_genes_added++;
-							hpo2genes[hpo].insert(gene_approved);
+							// hpo2genes[hpo].insert(gene_approved);
+							int term_db_id = id2ngsd.value(hpo, -1);
+							if (term_db_id != -1)
+							{
+								term2genes[term_db_id].add(gene_approved, "HGMD"); // is there some evidence in the file that could be parsed?
+							}
 						}
 					}
 				}
@@ -878,29 +916,67 @@ public:
 				}
 			}
 
-			if (debug) out << "Importing HPO-gene relation from HGMD into the NGSD..." << endl;
+//			if (debug) out << "Importing HPO-gene relation from HGMD into the NGSD..." << endl;
 
-			int hgmd_imported = 0;
-			for(auto it = hpo2genes.begin(); it!=hpo2genes.end(); ++it)
-			{
-				int term_db_id = id2ngsd.value(it.key(), -1);
-				if (term_db_id!=-1)
-				{
-					const GeneSet& genes = it.value();
-					foreach(const QByteArray& gene, genes)
-					{
-						qi_gene.bindValue(0, term_db_id);
-						qi_gene.bindValue(1, gene);
-						qi_gene.bindValue(2, "HGMD");
-						qi_gene.exec();
-						if(qi_gene.numRowsAffected() > 0) ++hgmd_imported;
-					}
-				}
-			}
-			out << "Imported " << hgmd_imported << " additional term-gene relations from HGMD." << endl;
-			out << "  Skipped " << hgmd_skipped_invalid_gene << " genes (no HGNC-approved gene name)." << endl;
+//			int hgmd_imported = 0;
+//			for(auto it = hpo2genes.begin(); it!=hpo2genes.end(); ++it)
+//			{
+//				int term_db_id = id2ngsd.value(it.key(), -1);
+//				if (term_db_id!=-1)
+//				{
+//					const GeneSet& genes = it.value();
+//					foreach(const QByteArray& gene, genes)
+//					{
+//						qi_gene.bindValue(0, term_db_id);
+//						qi_gene.bindValue(1, gene);
+//						qi_gene.bindValue(2, "HGMD");
+//						qi_gene.exec();
+//						if(qi_gene.numRowsAffected() > 0) ++hgmd_imported;
+//					}
+//				}
+//			}
+//			out << "Imported " << hgmd_imported << " additional term-gene relations from HGMD." << endl;
+//			out << "  Skipped " << hgmd_skipped_invalid_gene << " genes (no HGNC-approved gene name)." << endl;
 		}
 
+		// import gathered data:
+
+		SqlQuery qi_hpoGene = db.getQuery();
+		qi_hpoGene.prepare("INSERT IGNORE INTO hpo_genes (hpo_term_id, gene, sources, evidence) VALUES (:0, :1, :2, :3);");
+
+		foreach (int term_id, term2diseases.keys())
+		{
+			foreach (AnnotatedItem disease, term2diseases[term_id].items)
+			{
+				foreach (AnnotatedItem gene, disease2genes[disease.item].items)
+				{
+					Evidences evi = rank(disease.evi) < rank(gene.evi) ? disease.evi : gene.evi; // take the less certain evidence in the chain.
+					if ( (disease.evi != Evidences::NA & gene.evi == Evidences::NA) | (disease.evi == Evidences::NA & gene.evi != Evidences::NA) ) {
+						out << "Evidence reduced to NA on the way phenotype-disease-gene" << endl;
+					}
+					Sources src = Sources(); // list all the combined sources?
+					src.sources.unite(disease.src.sources);
+					src.sources.unite(gene.src.sources);
+					term2genes[term_id].add(gene.item,src, evi);
+				}
+			}
+		}
+
+		int imported = 0;
+		foreach (int term_id, term2genes.keys())
+		{
+
+			foreach (AnnotatedItem gene, term2genes[term_id].items)
+			{
+				qi_hpoGene.bindValue(0, term_id);
+				qi_hpoGene.bindValue(1, gene.item);
+				qi_hpoGene.bindValue(2, gene.src.toCsvString());
+				qi_hpoGene.bindValue(3, evidenceToString(gene.evi));
+				qi_hpoGene.exec();
+				imported += qi_hpoGene.numRowsAffected();
+			}
+
+		}
 
 		out << "Overall imported term-gene relations: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
 
