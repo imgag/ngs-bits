@@ -57,10 +57,15 @@ public:
 	/// turns a given HPO Evidence value into one from the Evidences enum
 	static Evidences translateHpoEvidence(QString hpoEvi)
 	{
+		/*
+		 *	IEA (inferred from electronic annotation): Annotations extracted by parsing the Clinical Features sections of the Online Mendelian Inheritance in Man resource are assigned the evidence code “IEA”.
+		 *	PCS (published clinical study) is used for used for information extracted from articles in the medical literature. Generally, annotations of this type will include the pubmed id of the published study in the DB_Reference field.
+		 *	TAS (traceable author statement) is used for information gleaned from knowledge bases such as OMIM or Orphanet that have derived the information from a published source..
+		 */
 		if (hpoEvi == "IEA") {
 			return Evidences::LOW;
 		} else if (hpoEvi == "TAS") {
-			return Evidences::LOW;
+			return Evidences::MED;
 		} else if (hpoEvi == "PCS") {
 			return Evidences::HIGH;
 		} else {
@@ -70,6 +75,19 @@ public:
 	/// turns a given OMIM Evidence value into one from the Evidences enum
 	static Evidences translateOmimEvidence(QByteArray omimEvi)
 	{
+		/*
+			# Phenotype Mapping key - Appears in parentheses after a disorder :
+			# -----------------------------------------------------------------
+			#
+			# 1 - The disorder is placed on the map based on its association with
+			# a gene, but the underlying defect is not known.
+			# 2 - The disorder has been placed on the map by linkage or other
+			# statistical method; no mutation has been found.
+			# 3 - The molecular basis for the disorder is known; a mutation has been
+			# found in the gene.
+			# 4 - A contiguous gene deletion or duplication syndrome, multiple genes
+			# are deleted or duplicated causing the phenotype.
+		 */
 		if (omimEvi == "(1)") {
 			return Evidences::LOW;
 		} else if (omimEvi == "(2)") {
@@ -86,7 +104,7 @@ public:
 	static Evidences translateDecipherEvidence(QByteArray decipherEvi)
 	{
 		// One value from the list of possible categories: both DD and IF, confirmed, possible, probable
-		if (decipherEvi == "both DD and IF") {
+		if (decipherEvi == "both DD and IF") { // meaning?
 			return Evidences::LOW;
 		} else if (decipherEvi == "probable") {
 			return Evidences::LOW;
@@ -103,7 +121,9 @@ public:
 	{
 		//Definitive, Strong, Moderate, Supportive, Limited, Disputed, Refuted, Animal, No Known
 		if (genccEvi == "No Known") {
-			return Evidences::LOW;
+			return Evidences::NA;
+		} else if (genccEvi == "No Known Disease Relationship") {
+			return Evidences::NA;
 		} else if (genccEvi == "Animal") {
 			return Evidences::LOW;
 		} else if (genccEvi == "Refuted") {
@@ -373,6 +393,7 @@ public:
 				term2diseases[term_id].add(disease, "HPO", translateHpoEvidence(evidence));
 			}
 		}
+		fp->close();
 	}
 
 	void parseDecipher(NGSD& db, const QHash<QByteArray, int>& id2ngsd, QHash<QByteArray, AnnotatedList>& disease2genes, QHash<int, AnnotatedList>& term2diseases, QHash<int, AnnotatedList>& term2genes)
@@ -380,7 +401,6 @@ public:
 		if (getInfile("decipher") == "") return;
 
 		QTextStream out(stdout);
-		// parse phenotype.hpoa file for evidence information
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("decipher"));
 
 		QByteArray line = fp->readLine();
@@ -432,13 +452,91 @@ public:
 				disease2genes[disease].add(approvedGeneSymbol, source, evidence);
 			}
 		}
+		fp->close();
 	}
 
-//	void parseGenCC(QHash<QByteArray, int> id2ngsd, QHash<QByteArray, AnnotatedList>& disease2genes)
-//	{
-//		if (getInfile("gencc") != "") return;
+	void parseGenCC(NGSD& db, QHash<QByteArray, AnnotatedList>& disease2genes)
+	{
+		if (getInfile("gencc") == "") return;
 
-//	}
+		QTextStream out(stdout);
+		out << "Importing from GenCC" << endl;
+		// parse phenotype.hpoa file for evidence information
+		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("gencc"));
+
+		QByteArray line = fp->readLine();
+		//"uuid","gene_curie","gene_symbol","disease_curie","disease_title","disease_original_curie","disease_original_title","classification_curie","classification_title","moi_curie","moi_title","submitter_curie","submitter_title","submitted_as_hgnc_id","submitted_as_hgnc_symbol","submitted_as_disease_id","submitted_as_disease_name","submitted_as_moi_id","submitted_as_moi_name","submitted_as_submitter_id","submitted_as_submitter_name","submitted_as_classification_id","submitted_as_classification_name","submitted_as_date","submitted_as_public_report_url","submitted_as_notes","submitted_as_pmids","submitted_as_assertion_criteria_url","submitted_as_submission_id","submitted_run_date"
+
+		QList<QByteArray> non_hgc_genes;
+		QSet<QByteArray> bad_hpo_terms;
+		QByteArray source = "GenCC";
+		int count =0;
+		while(! fp->atEnd())
+		{
+
+			line = fp->readLine().trimmed();
+			QByteArrayList parts = line.split(',');
+			// out << parts.length() << endl;
+
+			int len = parts.length();
+			while ( ! parts[len-1].endsWith('"'))
+			{
+				line.append(fp->readLine().trimmed());
+				parts = line.split(',');
+				len = parts.length();
+			}
+
+			QByteArrayList cleaned_parts = QByteArrayList();
+
+			for (int i=0; i<parts.length(); i++)
+			{
+				if (parts[i].startsWith('"') & ( ! parts[i].endsWith('"'))) // starts with " but doesn't end with "
+				{
+					QByteArray combined_part = parts[i];
+					do
+					{
+						i++;
+						combined_part.append(parts[i]);
+
+					} while (! parts[i].endsWith('"'));
+
+					cleaned_parts.append(combined_part);
+					continue;
+				} else {
+					cleaned_parts.append(parts[i]);
+				}
+			}
+
+			QByteArray geneSymbol = cleaned_parts[2].replace('"', ' ').trimmed();
+			QByteArray disease = cleaned_parts[5].replace('"', ' ').trimmed(); // OMIM:XXXXXX, MONDO:XXXXXXX, Orphanet:XXXXX needs mapping from Orphanet and Mondo to Omim
+			QByteArray genccEvi = cleaned_parts[8].replace('"', ' ').trimmed();
+			Evidences evidence = translateGenccEvidence(genccEvi);
+			if ( (evidence == Evidences::NA) & getFlag("debug"))
+			{
+				out << genccEvi << endl;
+				out << line << endl;
+				return;
+			}
+
+			if ((evidence == Evidences::NA) | (evidence == Evidences::AGAINST)) continue;
+
+			if ( ! disease.startsWith("OMIM")) {
+//				out << "non omim disease" << endl;
+				//out << disease << endl;
+//				out << line << endl;
+				continue;
+			}
+
+			int gene_db_id = db.geneToApprovedID(geneSymbol);
+			if (gene_db_id == -1) continue;
+
+			disease2genes[disease].add(db.geneSymbol(gene_db_id), source, evidence);
+			count++;
+		}
+		fp->close();
+
+		out << "Imported " << count << " disease gene relations from GenCC" << endl;
+	}
 
 
 	virtual void main()
@@ -476,6 +574,8 @@ public:
 		QHash<QByteArray, AnnotatedList> disease2genes;
 
 		// parse Evidence files if provided
+		// parse gencc-submissions.csv file
+		parseGenCC(db, disease2genes);
 		// parse phenotype.hpoa file
 		parseHpoPhen(id2ngsd, term2diseases);
 		// parse g2pDDG2P_11_11_2021.csv file
