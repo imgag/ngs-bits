@@ -173,7 +173,15 @@
 						</xs:attribute>
 						<xs:attribute name="hrd_score">
 							<xs:annotation>
-								<xs:documentation>homologous recombination deficiency score</xs:documentation>
+								<xs:documentation>homologous recombination deficiency score (TOP-ART study)</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:int"/>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="hrd_score_chromo">
+							<xs:annotation>
+								<xs:documentation>homologous recombination deficiency score (sum of LOHs, telomeric allelic imbalances and long state transitions) as used at IMGAG</xs:documentation>
 							</xs:annotation>
 							<xs:simpleType>
 								<xs:restriction base="xs:int"/>

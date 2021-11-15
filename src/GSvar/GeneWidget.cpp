@@ -267,8 +267,8 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		}
 		ui_.transcripts->setItem(row, 1, GUIHelper::createTableItem(coords));
 
-		QString bases = QString::number(transcript.regions().baseCount());
-		ui_.transcripts->setItem(row, 2, GUIHelper::createTableItem(bases));
+		QString bases_exons = QString::number(transcript.regions().baseCount()) + " / " + QString::number(transcript.regions().count());
+		ui_.transcripts->setItem(row, 2, GUIHelper::createTableItem(bases_exons));
 
 		QString coding_bases_exons = "";
 		if (transcript.isCoding()) coding_bases_exons = QString::number(transcript.codingRegions().baseCount()-3) + " / " + QString::number(transcript.codingRegions().count());
