@@ -103,7 +103,19 @@ public:
 	/// turns a given Decipher Evidence value into one from the Evidences enum
 	static Evidences translateDecipherEvidence(QByteArray decipherEvi)
 	{
-		// One value from the list of possible categories: both DD and IF, confirmed, possible, probable
+		//disease confidence: One value from the list of possible categories: both DD and IF, confirmed, possible, probable
+		/*
+		 * Confirmed 	Plausible disease-causing mutations* within, affecting or encompassing an interpretable functional region** of a single gene identified in multiple (>3) unrelated cases/families with a developmental disorder***
+						Plausible disease-causing mutations within, affecting or encompassing cis-regulatory elements convincingly affecting the expression of a single gene identified in multiple (>3) unrelated cases/families with a developmental disorder
+						As definition 1 and 2 of Probable Gene (see below) with addition of convincing bioinformatic or functional evidence of causation e.g. known inborn error of metabolism with mutation in orthologous gene which is known to have the relevant deficient enzymatic activity in other species; existence of animal mode which recapitulates the human phenotype
+		   Probable 	Plausible disease-causing mutations within, affecting or encompassing an interpretable functional region of a single gene identified in more than one (2 or 3) unrelated cases/families or segregation within multiple individuals within a single large family with a developmental disorder
+						Plausible disease-causing mutations within, affecting or encompassing cis-regulatory elements convincingly affecting the expression of a single gene identified in in more than one (2 or 3) unrelated cases/families with a developmental disorder
+						As definitions of Possible Gene (see below) with addition of convincing bioinformatic or functional evidence of causation e.g. known inborn error of metabolism with mutation in orthologous gene which is known to have the relevant deficient enzymatic activity in other species; existence of animal mode which recapitulates the human phenotype
+		   Possible 	Plausible disease-causing mutations within, affecting or encompassingan interpretable functional region of a single gene identified in one case or segregation within multiple individuals within a small family with a developmental disorder
+						Plausible disease-causing mutations within, affecting or encompassing cis-regulatory elements convincingly affecting the expression of a single gene identified in one case/family with a developmental disorder
+						Possible disease-causing mutations within, affecting or encompassing an interpretable functional region of a single gene identified in more than one unrelated cases/families or segregation within multiple individuals within a single large family with a developmental disorder
+		   Both RD and IF 	Plausible disease-causing mutations within, affecting or encompassing the coding region of a single gene identified in multiple (>3) unrelated cases/families with both the relevant disease (RD) and an incidental disorder
+		*/
 		if (decipherEvi == "both DD and IF") { // meaning?
 			return Evidences::LOW;
 		} else if (decipherEvi == "probable") {
@@ -282,32 +294,6 @@ public:
 		changeLog(2020, 7, 6, "Added support for HGMD phenobase file.");
 	}
 
-	int importTermGeneRelations(SqlQuery& qi_gene, const QHash<int, QSet<QByteArray> >& term2diseases, const QHash<QByteArray, GeneSet>& disease2genes, QString originDb)
-	{
-		int c_imported = 0;
-
-		for (auto it=term2diseases.begin(); it!=term2diseases.end(); ++it)
-		{
-			int term_id = it.key();
-			const QSet<QByteArray>& diseases = it.value();
-			foreach(const QByteArray& disease, diseases)
-			{
-				GeneSet genes = disease2genes[disease];
-
-				foreach(const QByteArray& gene, genes)
-				{
-					qi_gene.bindValue(0, term_id);
-					qi_gene.bindValue(1, gene);
-					qi_gene.bindValue(2, originDb);
-					qi_gene.exec();
-					c_imported += qi_gene.numRowsAffected();
-				}
-			}
-		}
-
-		return c_imported;
-	}
-
 	QHash<QByteArray, int> importHpoOntology(const NGSD& db)
 	{
 		QTextStream out(stdout);
@@ -400,7 +386,6 @@ public:
 	{
 		if (getInfile("decipher") == "") return;
 
-		QTextStream out(stdout);
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("decipher"));
 
 		QByteArray line = fp->readLine();
@@ -411,7 +396,7 @@ public:
 		QByteArray source = "Decipher";
 		while(! fp->atEnd())
 		{
-			QByteArray line = fp->readLine().trimmed();
+			line = fp->readLine().trimmed();
 			QByteArrayList parts = line.split(',');
 			QByteArray gene = parts[0].trimmed();
 			QByteArray disease = "OMIM:" + parts[3].trimmed();
@@ -460,7 +445,7 @@ public:
 		if (getInfile("gencc") == "") return;
 
 		QTextStream out(stdout);
-		out << "Importing from GenCC" << endl;
+		// out << "Importing from GenCC" << endl;
 		// parse phenotype.hpoa file for evidence information
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("gencc"));
 
@@ -473,18 +458,13 @@ public:
 		int count =0;
 		while(! fp->atEnd())
 		{
-
 			line = fp->readLine().trimmed();
-			QByteArrayList parts = line.split(',');
-			// out << parts.length() << endl;
-
-			int len = parts.length();
-			while ( ! parts[len-1].endsWith('"'))
+			while ( ! line.endsWith('"'))
 			{
 				line.append(fp->readLine().trimmed());
-				parts = line.split(',');
-				len = parts.length();
 			}
+
+			QByteArrayList parts = line.split(',');
 
 			QByteArrayList cleaned_parts = QByteArrayList();
 
@@ -586,9 +566,18 @@ public:
 		QSet<QByteArray> non_hgnc_genes;
 		PhenotypeList inheritance_terms = db.phenotypeChildTerms(db.phenotypeIdByAccession("HP:0000005"), true); //Mode of inheritance
 
+		int count = 0;
+		QTime timer;
+		timer.start();
 
 		while(!fp->atEnd())
 		{
+			count++;
+			if (count % 10000 == 0)
+			{
+				out <<count/ 1000 << "k lines took:" << timer.elapsed()/1000 << "s" << endl;
+				timer.start();
+			}
 			QByteArray line =  fp->readLine();
 			QByteArrayList parts =line.split('\t');
 
@@ -960,14 +949,21 @@ public:
 			{
 				foreach (AnnotatedItem gene, disease2genes[disease.item].items)
 				{
-					Evidences evi = rank(disease.evi) > rank(gene.evi) ? disease.evi : gene.evi; // take the more certain evidence in the chain.
-//					if ( (disease.evi != Evidences::NA & gene.evi == Evidences::NA) | (disease.evi == Evidences::NA & gene.evi != Evidences::NA) ) {
-//						out << "Evidence reduced to NA on the way phenotype-disease-gene" << endl;
-//					}
+					// if one of the evidencess is NA take the other one. If both have a value take the lower ranked one.
+					Evidences evi;
+					if (disease.evi == Evidences::NA)
+					{
+						evi = gene.evi;
+					} else if (gene.evi == Evidences::NA) {
+						evi = disease.evi;
+					} else {
+						evi = rank(disease.evi) < rank(gene.evi) ? disease.evi : gene.evi;
+					}
+
 					Sources src = Sources(); // list all the combined sources?
 					src.sources.unite(disease.src.sources);
 					src.sources.unite(gene.src.sources);
-					term2genes[term_id].add(gene.item,src, evi);
+					term2genes[term_id].add(gene.item, src, evi);
 				}
 			}
 		}
