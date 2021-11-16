@@ -62,6 +62,10 @@ public:
 	///Sets selected phenotype terms.
 	void setPhenotypes(const PhenotypeList& phenotypes);
 
+	const QList<QString>& allowedPhenotypeSources() const;
+
+	const QList<QString>& allowedPhenotypeEvidences() const;
+
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
 	/// Helper for loading target regions (also in CNV/SV widget)
@@ -122,6 +126,9 @@ private:
 	TargetRegionInfo roi_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
+	QList<QString> allowedPhenotypeSources_;
+	QList<QString> allowedPhenotypeEvidences_;
+
 };
 
 #endif // FILTERWIDGET_H

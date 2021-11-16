@@ -1,4 +1,7 @@
 #include "PhenotypeSelectionWidget.h"
+#include <iostream>
+#include <qobject.h>
+#include <QMessageBox>
 
 PhenotypeSelectionWidget::PhenotypeSelectionWidget(QWidget *parent)
 	: QWidget(parent)
@@ -53,4 +56,34 @@ void PhenotypeSelectionWidget::updateSelectedPhenotypeList()
 const PhenotypeList& PhenotypeSelectionWidget::selectedPhenotypes() const
 {
 	return phenos_;
+}
+
+QList<QString> PhenotypeSelectionWidget::getSelectedSources() {
+	QList<QString> list;
+	std::cout << "entered getSelectedSources()" << std::endl;
+	foreach (QObject* o, ui_.databaseBox->children())
+	{
+		QRadioButton* button = qobject_cast<QRadioButton*>(o);
+		if (button == nullptr) continue;
+		if (button->isChecked()) {
+			list.append((button->objectName()));
+		}
+	}
+	return list;
+}
+
+QList<QString> PhenotypeSelectionWidget::getSelectedEvidences() {
+	QList<QString> list;
+	std::cout << "entered getSelectedEvidences()" << std::endl;
+	for (int i=0; i < ui_.evidenceBox->children().length(); i++)
+	{
+		QObject* o = ui_.evidenceBox->children()[i];
+		QRadioButton* button = qobject_cast<QRadioButton*>(o);
+
+		if (button == nullptr) continue;
+		if (button->isChecked()) {
+			list.append((button->objectName()));
+		}
+	}
+	return list;
 }

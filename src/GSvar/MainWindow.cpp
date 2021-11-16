@@ -5970,16 +5970,22 @@ void MainWindow::applyFilters(bool debug_time)
 
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
-		if (phenos!=last_phenos_)
+		QList<QString> allowedSources = ui_.filters->allowedPhenotypeSources();
+		QList<QString> allowedEvidences = ui_.filters->allowedPhenotypeEvidences();
+
+		if ((phenos!=last_phenos_) | (last_evidences_ != allowedEvidences) | (last_sources_ != allowedSources))
 		{
 			last_phenos_ = phenos;
+			last_sources_ = allowedSources;
+			last_evidences_ = allowedEvidences;
 
 			//convert phenotypes to genes
 			NGSD db;
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenos)
 			{
-				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
+
+				pheno_genes << db.phenotypeToFilteredGenes(db.phenotypeIdByAccession(pheno.accession()), allowedSources, allowedEvidences, true, true);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)

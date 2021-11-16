@@ -4042,6 +4042,82 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 	return genes;
 }
 
+GeneSet NGSD::phenotypeToFilteredGenes(int id, QList<QString> allowedSources, QList<QString> allowedEvidences, bool recursive, bool ignore_non_phenotype_terms)
+{
+	//prepare ignored terms
+	QSet<int> ignored_terms_ids;
+	if (ignore_non_phenotype_terms)
+	{
+		int pheno_inh = phenotypeIdByAccession("HP:0000005"); //"Mode of inheritance"
+		ignored_terms_ids << pheno_inh;
+		foreach(const Phenotype& pheno, phenotypeChildTerms(pheno_inh, true))
+		{
+			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
+		}
+		int pheno_freq = phenotypeIdByAccession("HP:0040279"); //"Frequency"
+		ignored_terms_ids << pheno_freq;
+		foreach(const Phenotype& pheno, phenotypeChildTerms(pheno_freq, true))
+		{
+			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
+		}
+	}
+
+	//create a list of phenotype database ids
+	QList<int> pheno_ids;
+	pheno_ids << id;
+	if (recursive)
+	{
+		foreach(const Phenotype& pheno, phenotypeChildTerms(id, true))
+		{
+			pheno_ids << phenotypeIdByAccession(pheno.accession());
+		}
+	}
+
+	//create output gene set
+	GeneSet genes;
+	SqlQuery pid2genes = getQuery();
+	pid2genes.prepare("SELECT gene FROM hpo_genes WHERE hpo_term_id=:0");
+
+	while (!pheno_ids.isEmpty())
+	{
+		int id = pheno_ids.takeLast();
+		if (ignore_non_phenotype_terms && ignored_terms_ids.contains(id)) continue;
+		QString query = QString("SELECT gene FROM hpo_genes WHERE hpo_term_id=%1").arg(id);
+
+		if (allowedSources.length() > 0)
+		{
+			query += " and (";
+			foreach (QString s, allowedSources)
+			{
+				query += "sources like \"%" + s + "%\" or ";
+			}
+			query.chop(4);
+			query.append(")");
+		}
+
+		if (allowedEvidences.length() > 0)
+		{
+			query += " and (";
+			foreach (QString s, allowedEvidences)
+			{
+				query += "evidence = \"" + s + "\" or ";
+			}
+			query.chop(4);
+			query.append(")");
+		}
+
+		//pid2genes.bindValue(0, id);
+		pid2genes.exec(query);
+		while(pid2genes.next())
+		{
+			QByteArray gene = pid2genes.value(0).toByteArray();
+			genes.insert(geneToApproved(gene, true));
+		}
+	}
+
+	return genes;
+}
+
 PhenotypeList NGSD::phenotypeChildTerms(int term_id, bool recursive)
 {
 	PhenotypeList output;

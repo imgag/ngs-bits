@@ -609,8 +609,10 @@ public:
 	PhenotypeList phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	PhenotypeList phenotypes(QStringList search_terms);
-	///Returns all genes associated to a phenotype. If is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
+	///Returns all genes associated to a phenotype. If "ignore_non_phenotype_terms" is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
 	GeneSet phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype_terms=true);
+	///Returns all genes associated with a phenotype that fullfil the allowed Sources and Evidences criteria. If "ignore_non_phenotype_terms" is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
+	GeneSet phenotypeToFilteredGenes(int id, QList<QString> allowedSources, QList<QString> allowedEvidences, bool recursive, bool ignore_non_phenotype_terms);
 	///Returns all child terms of the given phenotype
 	PhenotypeList phenotypeChildTerms(int term_id, bool recursive);
 	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.

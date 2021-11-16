@@ -323,6 +323,16 @@ void FilterWidget::setPhenotypes(const PhenotypeList& phenotypes)
 	phenotypesChanged();
 }
 
+const QList<QString>& FilterWidget::allowedPhenotypeSources() const
+{
+	return allowedPhenotypeSources_;
+}
+
+const QList<QString>& FilterWidget::allowedPhenotypeEvidences() const
+{
+	return allowedPhenotypeEvidences_;
+}
+
 const FilterCascade& FilterWidget::filters() const
 {
 	return ui_.cascade_widget->filters();
@@ -552,6 +562,8 @@ void FilterWidget::editPhenotypes()
 	if (dlg->exec()==QDialog::Accepted)
 	{
 		phenotypes_ = selector->selectedPhenotypes();
+		allowedPhenotypeEvidences_ = selector->getSelectedEvidences();
+		allowedPhenotypeSources_ = selector->getSelectedSources();
 		phenotypesChanged();
 	}
 }

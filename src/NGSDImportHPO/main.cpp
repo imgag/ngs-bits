@@ -16,6 +16,33 @@ public:
 	{
 	}
 
+	virtual void setup()
+	{
+		setDescription("Imports HPO terms and gene-phenotype relations into the NGSD.");
+		addInfile("obo", "HPO ontology file from 'http://purl.obolibrary.org/obo/hp.obo'.", false);
+		addInfile("anno", "HPO annotations file from 'https://ci.monarchinitiative.org/view/hpo/job/hpo.annotations/lastSuccessfulBuild/artifact/rare-diseases/util/annotation/phenotype_to_genes.txt'", false);
+
+		//optional
+		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
+		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2021/clinvar_20210424.vcf.gz' for GRCH37 or 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20210424.vcf.gz' for GRCh38.", true);
+		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2021.1.dump').", true);
+
+		// optional (for evidence information):
+		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information", true);
+		addInfile("gencc", "gencc 'gencc-submissions.tsv' file for additional disease-gene evidence information.", true);
+		addInfile("decipher", "G2P 'DDG2P.csv' file for additional gene-disease-phenotype evidence information.", true);
+
+		addFlag("test", "Uses the test database instead of on the production database.");
+		addFlag("force", "If set, overwrites old data.");
+		addFlag("debug", "Enables debug output");
+
+		changeLog(2020, 7, 7, "Added support of HGMD gene-phenotype relations.");
+		changeLog(2020, 3, 5, "Added support for new HPO annotation file.");
+		changeLog(2020, 3, 9, "Added optimization for hpo-gene relations.");
+		changeLog(2020, 3, 10, "Removed support for old HPO annotation file.");
+		changeLog(2020, 7, 6, "Added support for HGMD phenobase file.");
+	}
+
 	/// Strength of the evidence for a given relation
 	enum Evidences {NA, AGAINST, LOW, MED, HIGH};
 	/// returns a integer representing the Strength of the evidence: lower less evidence, higher better evidence
@@ -266,33 +293,6 @@ public:
 			}
 		}
 	};
-
-	virtual void setup()
-	{
-		setDescription("Imports HPO terms and gene-phenotype relations into the NGSD.");
-		addInfile("obo", "HPO ontology file from 'http://purl.obolibrary.org/obo/hp.obo'.", false);
-		addInfile("anno", "HPO annotations file from 'https://ci.monarchinitiative.org/view/hpo/job/hpo.annotations/lastSuccessfulBuild/artifact/rare-diseases/util/annotation/phenotype_to_genes.txt'", false);
-
-		//optional
-		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from 'https://omim.org/downloads/'.", true);
-		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh37/archive_2.0/2021/clinvar_20210424.vcf.gz' for GRCH37 or 'ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2021/clinvar_20210424.vcf.gz' for GRCh38.", true);
-		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2021.1.dump').", true);
-
-		// optional (for evidence information):
-		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information, from 'https://hpo.jax.org/app/download/annotation'.", true);
-		addInfile("gencc", "gencc 'gencc-submissions.tsv' file for additional disease-gene evidence information, from 'https://hpo.jax.org/app/download/annotation'.", true);
-		addInfile("decipher", "G2P 'DDG2P.csv' file for additional gene-disease-phenotype evidence information, from 'https://hpo.jax.org/app/download/annotation'.", true);
-
-		addFlag("test", "Uses the test database instead of on the production database.");
-		addFlag("force", "If set, overwrites old data.");
-		addFlag("debug", "Enables debug output");
-
-		changeLog(2020, 7, 7, "Added support of HGMD gene-phenotype relations.");
-		changeLog(2020, 3, 5, "Added support for new HPO annotation file.");
-		changeLog(2020, 3, 9, "Added optimization for hpo-gene relations.");
-		changeLog(2020, 3, 10, "Removed support for old HPO annotation file.");
-		changeLog(2020, 7, 6, "Added support for HGMD phenobase file.");
-	}
 
 	QHash<QByteArray, int> importHpoOntology(const NGSD& db)
 	{
@@ -566,18 +566,18 @@ public:
 		QSet<QByteArray> non_hgnc_genes;
 		PhenotypeList inheritance_terms = db.phenotypeChildTerms(db.phenotypeIdByAccession("HP:0000005"), true); //Mode of inheritance
 
-		int count = 0;
-		QTime timer;
-		timer.start();
+//		int count = 0;
+//		QTime timer;
+//		timer.start();
 
 		while(!fp->atEnd())
 		{
-			count++;
-			if (count % 10000 == 0)
-			{
-				out <<count/ 1000 << "k lines took:" << timer.elapsed()/1000 << "s" << endl;
-				timer.start();
-			}
+//			count++;
+//			if (count % 10000 == 0)
+//			{
+//				out <<count/ 1000 << "k lines took:" << timer.elapsed()/1000 << "s" << endl;
+//				timer.start();
+//			}
 			QByteArray line =  fp->readLine();
 			QByteArrayList parts =line.split('\t');
 
@@ -759,8 +759,8 @@ public:
 					}
 				}
 			}
-		}
 			fp->close();
+		}
 
 		// parse hpo-gene relations from HGMD (Phenobase dbdump file):
 		QString hgmd_file = getInfile("hgmd");
