@@ -19,9 +19,9 @@ public:
 	//Returns the selected phenotypes
 	const PhenotypeList& selectedPhenotypes() const;
 	//Returns a list of of selected source databases
-	QList<QString> getSelectedSources();
+	QStringList getSelectedSources();
 	//Returns a list of selected evidence/confidence levels
-	QList<QString> getSelectedEvidences();
+	QStringList getSelectedEvidences();
 
 signals:
 	void phenotypeSelectionChanged();

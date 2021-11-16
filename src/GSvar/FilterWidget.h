@@ -61,10 +61,10 @@ public:
 	const PhenotypeList& phenotypes() const;
 	///Sets selected phenotype terms.
 	void setPhenotypes(const PhenotypeList& phenotypes);
-
-	const QList<QString>& allowedPhenotypeSources() const;
-
-	const QList<QString>& allowedPhenotypeEvidences() const;
+	///Returns selected database sources
+	const QStringList& allowedPhenotypeSources() const;
+	///Returns selected Evidence levels
+	const QStringList& allowedPhenotypeEvidences() const;
 
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
@@ -126,8 +126,8 @@ private:
 	TargetRegionInfo roi_;
 	GeneSet last_genes_;
 	PhenotypeList phenotypes_;
-	QList<QString> allowedPhenotypeSources_;
-	QList<QString> allowedPhenotypeEvidences_;
+	QStringList allowedPhenotypeSources_;
+	QStringList allowedPhenotypeEvidences_;
 
 };
 

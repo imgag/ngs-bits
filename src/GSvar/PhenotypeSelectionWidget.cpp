@@ -58,8 +58,8 @@ const PhenotypeList& PhenotypeSelectionWidget::selectedPhenotypes() const
 	return phenos_;
 }
 
-QList<QString> PhenotypeSelectionWidget::getSelectedSources() {
-	QList<QString> list;
+QStringList PhenotypeSelectionWidget::getSelectedSources() {
+	QStringList list;
 	std::cout << "entered getSelectedSources()" << std::endl;
 	foreach (QObject* o, ui_.databaseBox->children())
 	{
@@ -72,8 +72,8 @@ QList<QString> PhenotypeSelectionWidget::getSelectedSources() {
 	return list;
 }
 
-QList<QString> PhenotypeSelectionWidget::getSelectedEvidences() {
-	QList<QString> list;
+QStringList PhenotypeSelectionWidget::getSelectedEvidences() {
+	QStringList list;
 	std::cout << "entered getSelectedEvidences()" << std::endl;
 	for (int i=0; i < ui_.evidenceBox->children().length(); i++)
 	{

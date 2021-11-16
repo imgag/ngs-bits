@@ -47,6 +47,8 @@ FilterWidget::FilterWidget(QWidget *parent)
 	ui_.roi->addAction(action);
 
 	connect(ui_.hpo_terms, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
+	connect(ui_.sources, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
+	connect(ui_.evidences, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 	connect(ui_.hpo_terms, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
 
 	connect(ui_.gene, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showGeneContextMenu(QPoint)));
@@ -230,6 +232,8 @@ QString FilterWidget::filterName() const
 void FilterWidget::updateNGSDSupport()
 {
 	ui_.hpo_terms->setEnabled(LoginManager::active());
+	ui_.evidences->setEnabled(LoginManager::active());
+	ui_.sources->setEnabled(LoginManager::active());
 }
 
 void FilterWidget::reset(bool clear_roi)
@@ -323,12 +327,12 @@ void FilterWidget::setPhenotypes(const PhenotypeList& phenotypes)
 	phenotypesChanged();
 }
 
-const QList<QString>& FilterWidget::allowedPhenotypeSources() const
+const QStringList& FilterWidget::allowedPhenotypeSources() const
 {
 	return allowedPhenotypeSources_;
 }
 
-const QList<QString>& FilterWidget::allowedPhenotypeEvidences() const
+const QStringList& FilterWidget::allowedPhenotypeEvidences() const
 {
 	return allowedPhenotypeEvidences_;
 }
@@ -457,6 +461,8 @@ void FilterWidget::phenotypesChanged()
 	}
 
 	ui_.hpo_terms->setText(tmp.join("; "));
+	ui_.evidences->setText(allowedPhenotypeEvidences_.join(", "));
+	ui_.sources->setText(allowedPhenotypeSources_.join(", "));
 
 	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on the phenotype-associated gene loci including 5000 flanking bases.";
 	if (!phenotypes_.isEmpty())
