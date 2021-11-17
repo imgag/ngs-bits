@@ -4098,9 +4098,19 @@ GeneSet NGSD::phenotypeToFilteredGenes(int id, QList<QString> allowedSources, QL
 		if (allowedEvidences.length() > 0)
 		{
 			query += " and (";
-			foreach (QString s, allowedEvidences)
+
+			if (allowedEvidences.contains("NA"))
 			{
-				query += "evidence = \"" + s + "\" or ";
+				query +=  "evidence = \"NA\" or ";
+			}
+			bool allFollowing = false;
+			foreach (QString s, QStringList({"LOW", "MED", "HIGH"}))
+			{
+				if (allowedEvidences.contains(s) | allFollowing)
+				{
+					allFollowing = true;
+					query += "evidence = \"" + s + "\" or ";
+				}
 			}
 			query.chop(4);
 			query.append(")");

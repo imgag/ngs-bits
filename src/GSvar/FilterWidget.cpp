@@ -461,8 +461,8 @@ void FilterWidget::phenotypesChanged()
 	}
 
 	ui_.hpo_terms->setText(tmp.join("; "));
-	ui_.evidences->setText(allowedPhenotypeEvidences_.join(", "));
-	ui_.sources->setText(allowedPhenotypeSources_.join(", "));
+	ui_.evidences->setText(allowedPhenotypeEvidences_.join("; "));
+	ui_.sources->setText(allowedPhenotypeSources_.join("; "));
 
 	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on the phenotype-associated gene loci including 5000 flanking bases.";
 	if (!phenotypes_.isEmpty())
@@ -562,14 +562,17 @@ void FilterWidget::editPhenotypes()
 	//edit
 	PhenotypeSelectionWidget* selector = new PhenotypeSelectionWidget(this);
 	selector->setPhenotypes(phenotypes_);
+	selector->setEvidences(allowedPhenotypeEvidences_);
+	selector->setSources(allowedPhenotypeSources_);
+
 	auto dlg = GUIHelper::createDialog(selector, "Select HPO terms", "", true);
 
 	//update
 	if (dlg->exec()==QDialog::Accepted)
 	{
 		phenotypes_ = selector->selectedPhenotypes();
-		allowedPhenotypeEvidences_ = selector->getSelectedEvidences();
-		allowedPhenotypeSources_ = selector->getSelectedSources();
+		allowedPhenotypeEvidences_ = selector->selectedEvidences();
+		allowedPhenotypeSources_ = selector->selectedSources();
 		phenotypesChanged();
 	}
 }
