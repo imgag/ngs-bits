@@ -9,10 +9,10 @@ SUBDIRS = cppCORE\
         cppVISUAL
 
 cppXML.depends = cppCORE
-cppNGS.depends = cppCORE cppXML
-cppGUI.depends = cppCORE cppXML
-cppNGSD.depends = cppCORE cppNGS
-cppVISUAL.depends = cppCORE cppNGS cppGUI
+cppNGS.depends = cppXML
+cppGUI.depends = cppXML
+cppNGSD.depends = cppNGS
+cppVISUAL.depends = cppNGS cppGUI
 
 SUBDIRS += GSvar
-GSvar.depends = cppGUI cppNGSD cppVISUAL
+GSvar.depends = cppNGSD cppVISUAL

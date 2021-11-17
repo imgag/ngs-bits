@@ -505,7 +505,7 @@ public:
 	///Returns the table list.
 	QStringList tables() const;
 	///Returns information about all fields of a table.
-	const TableInfo& tableInfo(const QString& table) const;
+	const TableInfo& tableInfo(const QString& table, bool use_cache = true) const;
 	///Checks if the value is valid for the table/field when used in an SQL query. Returns a non-empty error list in case it is not. 'check_unique' must not be used for existing entries.
 	QStringList checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const;
 	///Escapes SQL special characters in a text

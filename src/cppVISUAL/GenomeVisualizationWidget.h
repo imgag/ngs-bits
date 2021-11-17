@@ -2,7 +2,6 @@
 #define GENOMEVISUALIZATIONWIDGET_H
 
 #include "cppVISUAL_global.h"
-#include "GenePanel.h"
 #include "FastaFileIndex.h"
 #include "BedFile.h"
 #include "Transcript.h"
@@ -42,6 +41,8 @@ protected slots:
 	void zoomOut();
 	//Update widgets that show the current region
 	void updateRegionWidgets(const BedLine& reg);
+	//
+	void updateCoordinateLabel(QString text);
 
 signals:
 	//Emitted when the displayed region has changed.
@@ -49,7 +50,6 @@ signals:
 
 private:
 	Ui::GenomeVisualizationWidget* ui_;
-	GenePanel* gene_panel_;
 	GenomeVisualizationSettings settings_;
 	const FastaFileIndex& genome_idx_;
 	const TranscriptList& transcripts_;

@@ -168,6 +168,11 @@ FileLocationList FileLocationProviderRemote::getCircosPlotFiles(bool return_if_m
 	return getFileLocationsByType(PathType::CIRCOS_PLOT, return_if_missing);
 }
 
+FileLocationList FileLocationProviderRemote::getExpressionFiles(bool return_if_missing) const
+{
+	return getFileLocationsByType(PathType::EXPRESSION, return_if_missing);
+}
+
 FileLocationList FileLocationProviderRemote::getVcfFiles(bool return_if_missing) const
 {
 	return getFileLocationsByType(PathType::VCF, return_if_missing);

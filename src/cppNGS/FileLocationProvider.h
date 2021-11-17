@@ -55,6 +55,8 @@ public:
 	virtual FileLocationList getPrsFiles(bool return_if_missing) const = 0;
 	//Returns sample-specific CIRCOS plot files.
 	virtual FileLocationList getCircosPlotFiles(bool return_if_missing) const = 0;
+	//Returns sample specific RNA expression files.
+	virtual FileLocationList getExpressionFiles(bool return_if_missing) const = 0;
 
 	//############################## somatic-only files ##############################
 	//Returns the tumor-normal CNV coverage SEG file (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)

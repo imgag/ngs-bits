@@ -153,6 +153,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeAttribute( "mutation_burden", QString::number(data.tumor_mutation_burden,'f', 2) );
 	if( data.settings.report_config.msiStatus() ) w.writeAttribute( "microsatellite_instability",  QString::number(data.mantis_msi, 'f', 2) );
 	w.writeAttribute("hrd_score", QString::number(data.settings.report_config.hrdScore()) );
+	w.writeAttribute("hrd_score_chromo", QString::number(data.settings.report_config.cnvLohCount() + data.settings.report_config.cnvTaiCount() + data.settings.report_config.cnvLstCount()));
 	w.writeEndElement();
 
 
@@ -204,8 +205,12 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	foreach(const QByteArray& gene, data.processing_system_genes)
 	{
-		w.writeStartElement("Gene");
 		GeneInfo gene_info = db.geneInfo(gene);
+		if(gene_info.symbol.isEmpty()) continue;
+		if(gene_info.hgnc_id.isEmpty()) continue;
+
+		w.writeStartElement("Gene");
+
 		w.writeAttribute("name", gene_info.symbol);
 		w.writeAttribute("id", gene_info.hgnc_id);
 		w.writeEndElement();
@@ -257,9 +262,11 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 				for(int j=0; j < genes.count(); ++j)
 				{
-					w.writeStartElement("Gene");
+
 					GeneInfo gene_info = db.geneInfo(genes[j]);
+					if(gene_info.symbol.isEmpty()) continue;
 					if(gene_info.hgnc_id.isEmpty()) continue; //genes that have been withdrawn or cannot be mapped to a unique approved symbol
+					w.writeStartElement("Gene");
 
 
 					w.writeAttribute("name", gene_info.symbol);
@@ -429,6 +436,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			{
 				GeneInfo gene_info = db.geneInfo(gene);
 
+				if(gene_info.symbol.isEmpty()) continue;
 				if(gene_info.hgnc_id.isEmpty()) continue; //genes that were withdrawn or cannot uniquely mapped to approved symbol
 
 				w.writeStartElement("Gene");

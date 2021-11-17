@@ -723,6 +723,9 @@ void VariantList::loadHeaderOnly(QString filename)
 
 void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert, bool header_only)
 {
+	//create cache to avoid copies of the same string in memory (via Qt implicit sharing)
+	QHash<QByteArray, QByteArray> str_cache;
+
 	//create ROI index (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
 	if (roi!=nullptr)
@@ -791,6 +794,18 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 		if (fields.count()<special_cols)
 		{
 			THROW(FileParseException, "Variant TSV file line with less than five fields found: '" + line.trimmed() + "'");
+		}
+
+		//replace repeated strings with cached copy => save a lot of memory
+		for(int i=0; i<fields.count(); ++i)
+		{
+			const QByteArray& field = fields[i];
+			if (!str_cache.contains(field))
+			{
+				str_cache.insert(field, field);
+			}
+
+			fields[i] = str_cache[field];
 		}
 
 		//Skip variants that are not in the target region (if given)
