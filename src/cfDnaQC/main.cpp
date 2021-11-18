@@ -51,6 +51,9 @@ public:
 		//TODO: determine good threshold
 		int required_depth = 250;
 
+		//TODO: remove
+		QTextStream std_out(stdout);
+
 
 		//split panel in ID and monitoring SNPs (gene/hotspot regions)
 		BedFile cfdna_panel;
@@ -89,8 +92,8 @@ public:
 		//normalize
 		monitoring_avg_depth /= monitoring_snps.count();
 
-		qDebug() << "Monitoring SNP avg_depth:" << monitoring_avg_depth;
-		qDebug() << required_depth << "x covered monitoring SNP:" << covered_monitoring_snps << "/" << monitoring_snps.count();
+//		qDebug() << "Monitoring SNP avg_depth:" << monitoring_avg_depth;
+//		qDebug() << required_depth << "x covered monitoring SNP:" << covered_monitoring_snps << "/" << monitoring_snps.count();
 
 		// compute coverage on ID SNPs
 		Statistics::avgCoverage(id_snps, bam, min_mapq, false, true, 3, ref);
@@ -109,60 +112,66 @@ public:
 		//normalize
 		id_avg_depth /= id_snps.count();
 
-		qDebug() << "ID SNP avg_depth:" << id_avg_depth;
-		qDebug() << required_depth << "x covered ID SNP:" << covered_id_snps << "/" << id_snps.count();
+//		qDebug() << "ID SNP avg_depth:" << id_avg_depth;
+//		qDebug() << required_depth << "x covered ID SNP:" << covered_id_snps << "/" << id_snps.count();
+
+		std_out << bam << "\t"
+				<< QString::number(monitoring_avg_depth) << "\t"
+				<< QString::number(covered_monitoring_snps) << "\t"
+				<< QString::number(id_avg_depth) << "\t"
+				<< QString::number(covered_id_snps) << endl;
 
 
-		// compute similarity
-		float correlation = 0.0;
-		if (!tumor_bam.isEmpty())
-		{
-			//TODO: extend cfDNA panel
+//		// compute similarity
+//		float correlation = 0.0;
+//		if (!tumor_bam.isEmpty())
+//		{
+//			//TODO: extend cfDNA panel
 
-			//get genotype data
-			SampleSimilarity::VariantGenotypes cfdna_genotype_data = SampleSimilarity::genotypesFromBam(build, bam, 30, 2000, false, cfdna_panel, ref);
-			SampleSimilarity::VariantGenotypes tumor_genotype_data = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 2000, false, cfdna_panel, ref);
-			SampleSimilarity sample_similarity;
-			sample_similarity.calculateSimilarity(cfdna_genotype_data, tumor_genotype_data);
-			correlation = sample_similarity.sampleCorrelation();
+//			//get genotype data
+//			SampleSimilarity::VariantGenotypes cfdna_genotype_data = SampleSimilarity::genotypesFromBam(build, bam, 30, 2000, false, cfdna_panel, ref);
+//			SampleSimilarity::VariantGenotypes tumor_genotype_data = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 2000, false, cfdna_panel, ref);
+//			SampleSimilarity sample_similarity;
+//			sample_similarity.calculateSimilarity(cfdna_genotype_data, tumor_genotype_data);
+//			correlation = sample_similarity.sampleCorrelation();
 
-			qDebug() << "Sample similarity: " << correlation;
-		}
-
-
+//			qDebug() << "Sample similarity: " << correlation;
+//		}
 
 
-		// create qcML
 
-		// metadata
-		QList<QCValue> metadata;
-		metadata << QCValue("source file", QFileInfo(bam).fileName(), "", "QC:1000005");
-		metadata << QCValue("source file", QFileInfo(tumor_bam).absoluteFilePath() + " (tumor)", "", "QC:1000005");
-		metadata << QCValue("linked file", QFileInfo(cfdna_panel_path).fileName(), "", "QC:1000006");
 
-		QCCollection metrics;
-		metrics.insert(QCValue("monitoring variant read depth", monitoring_avg_depth, "", "QC:2000077"));
-		metrics.insert(QCValue("ID variant read depth", id_avg_depth, "", "QC:2000078"));
-		metrics.insert(QCValue("monitoring variant count", monitoring_snps.count(), "", "QC:2000079"));
-		metrics.insert(QCValue("250x coverage monitoring variant count", covered_monitoring_snps, "", "QC:2000080"));
-		metrics.insert(QCValue("ID variant count", id_snps.count(), "", "QC:2000081"));
-		metrics.insert(QCValue("250x coverage ID variant count", covered_id_snps, "", "QC:2000082"));
+//		// create qcML
 
-//		Statistics::addQcValue(metrics, "QC:2000077", "monitoring variant count", monitoring_snps.count());
-//		Statistics::addQcValue(metrics, "QC:2000078", "250x coverage monitoring variant count", covered_monitoring_snps);
-//		Statistics::addQcValue(metrics, "QC:2000079", "ID variant count", id_snps.count());
-//		Statistics::addQcValue(metrics, "QC:2000080", "250x coverage ID variant count", id_snps.count());
+//		// metadata
+//		QList<QCValue> metadata;
+//		metadata << QCValue("source file", QFileInfo(bam).fileName(), "", "QC:1000005");
+//		metadata << QCValue("source file", QFileInfo(tumor_bam).absoluteFilePath() + " (tumor)", "", "QC:1000005");
+//		metadata << QCValue("linked file", QFileInfo(cfdna_panel_path).fileName(), "", "QC:1000006");
 
-		if (!tumor_bam.isEmpty())
-		{
-			metrics.insert(QCValue("cfDNA-tumor correlation", correlation, "", "QC:2000083"));
-//			Statistics::addQcValue(metrics, "QC:2000081", "cfDNA-tumor correlation", correlation);
-		}
+//		QCCollection metrics;
+//		metrics.insert(QCValue("monitoring variant read depth", monitoring_avg_depth, "", "QC:2000077"));
+//		metrics.insert(QCValue("ID variant read depth", id_avg_depth, "", "QC:2000078"));
+//		metrics.insert(QCValue("monitoring variant count", monitoring_snps.count(), "", "QC:2000079"));
+//		metrics.insert(QCValue("250x coverage monitoring variant count", covered_monitoring_snps, "", "QC:2000080"));
+//		metrics.insert(QCValue("ID variant count", id_snps.count(), "", "QC:2000081"));
+//		metrics.insert(QCValue("250x coverage ID variant count", covered_id_snps, "", "QC:2000082"));
 
-		//store output
-		QString parameters = "";
-		if(!tumor_bam.isEmpty())	parameters += " -tumor_bam " + tumor_bam;
-		metrics.storeToQCML(out, QStringList(), parameters, QMap< QString, int >(), metadata);
+////		Statistics::addQcValue(metrics, "QC:2000077", "monitoring variant count", monitoring_snps.count());
+////		Statistics::addQcValue(metrics, "QC:2000078", "250x coverage monitoring variant count", covered_monitoring_snps);
+////		Statistics::addQcValue(metrics, "QC:2000079", "ID variant count", id_snps.count());
+////		Statistics::addQcValue(metrics, "QC:2000080", "250x coverage ID variant count", id_snps.count());
+
+//		if (!tumor_bam.isEmpty())
+//		{
+//			metrics.insert(QCValue("cfDNA-tumor correlation", correlation, "", "QC:2000083"));
+////			Statistics::addQcValue(metrics, "QC:2000081", "cfDNA-tumor correlation", correlation);
+//		}
+
+//		//store output
+//		QString parameters = "";
+//		if(!tumor_bam.isEmpty())	parameters += " -tumor_bam " + tumor_bam;
+//		metrics.storeToQCML(out, QStringList(), parameters, QMap< QString, int >(), metadata);
 
 	}
 };
