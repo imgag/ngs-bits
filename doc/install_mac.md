@@ -54,24 +54,13 @@ PhpMyAdmin can now be accessed from a browser at (use `root` as the username and
 
 Just import your database dump and you are ready to go.
 
-
-## Download
-
-Use git to clone the most recent release (the source code package of GitHub does not contains required sub-modules):
-
-    > git clone --recursive https://github.com/imgag/ngs-bits.git
-        > cd ngs-bits
-        > git checkout 2021_09
-        > git submodule update --recursive --init
-
 ## Build
 
 Just execute the following make commands:
 
     > make build_3rdparty
-        > make build_libs_release
-        > make build_tools_release
-
+	> make build_libs_release
+	> make build_tools_release
 
 ## Launch
 
