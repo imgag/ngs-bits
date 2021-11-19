@@ -37,6 +37,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         {
             pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start, plus_strand);
         }
+        //deletion
         else if(variant.isDel())
         {
             pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand);
@@ -53,6 +54,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
                 }
             }
         }
+        //insertion
         else if(variant.isIns())
         {
             if(plus_strand)
@@ -64,6 +66,25 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
             {
                 pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand) + "_" +
                         annotateRegionsCoding(transcript, hgvs, start, plus_strand);
+            }
+        }
+        //delins (deletion and insertion at the same time/substitution of more than one base)
+        else if(variant.isInDel() && !variant.isDel() && !variant.isIns())
+        {
+            //prefix base for both ref and alt?
+            int start_diff = variant.ref()[0] == variant.alt(0)[0] ? 1 : 0;
+            pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + start_diff, plus_strand);
+
+            if(end - start > start_diff)
+            {
+                if(plus_strand)
+                {
+                    pos_hgvs_c += "_" + annotateRegionsCoding(transcript, hgvs, end, plus_strand);
+                }
+                else
+                {
+                    pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, end, plus_strand) + "_" + pos_hgvs_c;
+                }
             }
         }
 
@@ -110,6 +131,24 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
             {
                 pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start + 1, plus_strand) + "_" +
                         annotateRegionsNonCoding(transcript, hgvs, start, plus_strand);
+            }
+        }
+        else if(variant.isInDel() && !variant.isDel() && !variant.isIns())
+        {
+            //prefix base for both ref and alt?
+            int start_diff = variant.ref()[0] == variant.alt(0)[0] ? 1 : 0;
+            pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start + start_diff, plus_strand);
+
+            if(end - start > start_diff)
+            {
+                if(plus_strand)
+                {
+                    pos_hgvs_c += "_" + annotateRegionsNonCoding(transcript, hgvs, end, plus_strand);
+                }
+                else
+                {
+                    pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, end, plus_strand) + "_" + pos_hgvs_c;
+                }
             }
         }
     }
@@ -181,6 +220,14 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
                 hgvs.variant_consequence_type.insert(VariantConsequenceType::INFRAME_INSERTION);
             }
         }
+    }
+    //delins (deletion and insertion at the same time/substitution of more than one base)
+    else if(variant.isInDel() && !variant.isDel() && !variant.isIns())
+    {
+        int start_diff = variant.ref()[0] == variant.alt(0)[0] ? 1 : 0;
+        Sequence alt = variant.alt(0).mid(start_diff);
+        if(!plus_strand) alt.reverseComplement();
+        hgvs.hgvs_c = hgvs_c_prefix + pos_hgvs_c + "delins" + alt;
     }
 
     return hgvs;

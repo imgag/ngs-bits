@@ -103,6 +103,23 @@ Q_OBJECT
         return t;
     }
 
+    Transcript trans_CDKN1C()
+    {
+        Transcript t;
+        t.setGene("CDKN1C");
+        t.setName("ENST00000414822");
+        t.setSource(Transcript::ENSEMBL);
+        t.setStrand(Transcript::MINUS);
+
+        BedFile regions;
+        regions.append(BedLine("chr11", 2904443, 2905145));
+        regions.append(BedLine("chr11", 2905229, 2905364));
+        regions.append(BedLine("chr11", 2905900, 2907111));
+        t.setRegions(regions, 2906719, 2905234);
+
+        return t;
+    }
+
     Transcript trans_NEAT1()
     {
         Transcript t;
@@ -763,6 +780,100 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+    }
+
+    void vcfToHgvsDelIns()
+    {
+        QString ref_file = Settings::string("reference_genome", true);
+        if (ref_file=="") SKIP("Test needs the reference genome!");
+        FastaFileIndex reference(ref_file);
+
+        VariantHgvsAnnotator var_hgvs_anno;
+        Transcript t = trans_APOD();
+
+        //delins intron
+        QVector<Sequence> alt;
+        alt.push_back("TTCT");
+        VcfLine variant(Chromosome("chr3"), 195307238, "TC", alt);
+        HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.-34-873delinsAGA");
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+
+        //delins 3 prime utr
+        alt.clear();
+        alt.push_back("AGGCG");
+        variant.setPos(195295701);
+        variant.setRef("AT");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.*69delinsCGCC");
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
+
+        //delins intron
+        t = trans_SLC51A();
+        alt.clear();
+        alt.push_back("CGTG");
+        variant.setChromosome(Chromosome("chr3"));
+        variant.setPos(195945967);
+        variant.setRef("GGCA");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.133+1160_133+1163delinsCGTG");
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+
+        //delins exon missense
+        t = trans_CDKN1C();
+        alt.clear();
+        alt.push_back("CT");
+        variant.setChromosome(Chromosome("chr11"));
+        variant.setPos(2906021);
+        variant.setRef("GC");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.698_699delinsAG");
+        //S_EQUAL(hgvs.hgvs_p, "p.Arg233Gln");
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
+
+        //delins exon missense
+        alt.clear();
+        alt.push_back("AA");
+        variant.setPos(2906133);
+        variant.setRef("GC");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.586_587delinsTT");
+        //S_EQUAL(hgvs.hgvs_p, "p.Ala196Leu");
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
+
+        //delins exon frameshift
+        alt.clear();
+        alt.push_back("GTT");
+        variant.setPos(2906088);
+        variant.setRef("GC");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.631delinsAA");
+        //S_EQUAL(hgvs.hgvs_p, "p.Ala211fs");
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+
+        //delins exon frameshift
+        alt.clear();
+        alt.push_back("CC");
+        variant.setPos(2906408);
+        variant.setRef("CAG");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.310_311delinsG");
+        //S_EQUAL(hgvs.hgvs_p, "p.Leu104fs");
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
     }
 
     void vcfToHgvsUtrIntrons()
