@@ -12,7 +12,7 @@ ngs-bits depends on the following software to be installed
 
 This documentation assumes that you install dependencies using _Brew_. First of all, you are going to need Qt. Since the default version in _Brew_ is currently 6, you need to force it to use version 5 (ngs-bits cannot be compiled with Qt 6):
 
-        > brew install qt@5
+	> brew install qt@5
 
 If you want to develop under MacOS, you need to install Qt Creator IDE:
 
@@ -62,10 +62,11 @@ Just execute the following make commands:
 	> make build_libs_release
 	> make build_tools_release
 
-## Launch
+## Deployment
 
-For the yet unknown reason GSvar cannot detect *.dylib files located at the same folder. It looks for the libraries at /usr/local/lib instead.
-The temporary fix looks like that:
+For yet unknown reasons, GSvar could not detect *.dylib files located at the same folder on testing machines. It looks searches for the libraries at /usr/local/lib instead.
+
+Currently used temporary fix looks like that:
  
 	> cp libcppXML.1.0.dylib /usr/local/lib/libcppXML.1.dylib
 	> cp libcppGUI.1.0.dylib /usr/local/lib/libcppGUI.1.dylib
@@ -75,4 +76,12 @@ The temporary fix looks like that:
 	> cp libcppCORE.1.0.dylib /usr/local/lib/libcppCORE.1.dylib
 
 All settings should be saved at `/Users/megalex/github/ngs-bits/bin/GSvar.app/Contents/MacOS`
+
+## Development Environment
+
+GSvar can be build from inside Qt Creator by using its standard mechanisms:
+
+	> tools_gui -> Release -> GSvar
+
+_Note:_ The above mentioned processes have been tested on Intel-based Macs. It remains unknown if GSvar can be compiled natively for M1 CPUs (Qt 5 does not officially/completly support M1 chips yet). However, they claim it works through the Rosetta translation layer, native arm64 support seems to be under development. Qt 6 should officially support Apple Silicon.
 

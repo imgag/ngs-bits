@@ -161,6 +161,9 @@ HttpResponse EndpointHandler::locateFileByType(const HttpRequest& request)
 			case PathType::QC:
 				file_list = file_locator->getQcFiles();
 				break;
+			case PathType::EXPRESSION:
+				file_list = file_locator->getExpressionFiles(return_if_missing);
+				break;
 			default:
 				FileLocation gsvar_file(
 					url_entity.file_id,
