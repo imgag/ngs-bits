@@ -43,182 +43,62 @@ public:
 		changeLog(2020, 7, 6, "Added support for HGMD phenobase file.");
 	}
 
-	/// Strength of the evidence for a given relation
-	enum Evidences {NA, AGAINST, LOW, MED, HIGH};
-	/// returns a integer representing the Strength of the evidence: lower less evidence, higher better evidence
-	static int rank(const Evidences& e)
-	{
-		switch (e) {
-			case Evidences::NA:
-				return 0;
-			case Evidences::AGAINST:
-				return 1;
-			case Evidences::LOW:
-				return 2;
-			case Evidences::MED:
-				return 3;
-			case Evidences::HIGH:
-				return 4;
-			default:
-				return -1;
-		}
-	}
-	/// returns a ByteArray representation für the given evidence
-	static QString evidenceToString(Evidences e)
-	{
-		switch (e) {
-			case Evidences::NA:
-				return "NA";
-			case Evidences::AGAINST:
-				return "AGAINST";
-			case Evidences::LOW:
-				return "LOW";
-			case Evidences::MED:
-				return "MED";
-			case Evidences::HIGH:
-				return "HIGH";
-			default:
-				return "";
-		}
-	}
-	/// turns a given HPO Evidence value into one from the Evidences enum
-	static Evidences translateHpoEvidence(QString hpoEvi)
-	{
-		/*
-		 *	IEA (inferred from electronic annotation): Annotations extracted by parsing the Clinical Features sections of the Online Mendelian Inheritance in Man resource are assigned the evidence code “IEA”.
-		 *	PCS (published clinical study) is used for used for information extracted from articles in the medical literature. Generally, annotations of this type will include the pubmed id of the published study in the DB_Reference field.
-		 *	TAS (traceable author statement) is used for information gleaned from knowledge bases such as OMIM or Orphanet that have derived the information from a published source..
-		 */
-		if (hpoEvi == "IEA") {
-			return Evidences::LOW;
-		} else if (hpoEvi == "TAS") {
-			return Evidences::MED;
-		} else if (hpoEvi == "PCS") {
-			return Evidences::HIGH;
-		} else {
-			return Evidences::NA;
-		}
-	}
-	/// turns a given OMIM Evidence value into one from the Evidences enum
-	static Evidences translateOmimEvidence(QByteArray omimEvi)
-	{
-		/*
-			# Phenotype Mapping key - Appears in parentheses after a disorder :
-			# -----------------------------------------------------------------
-			#
-			# 1 - The disorder is placed on the map based on its association with
-			# a gene, but the underlying defect is not known.
-			# 2 - The disorder has been placed on the map by linkage or other
-			# statistical method; no mutation has been found.
-			# 3 - The molecular basis for the disorder is known; a mutation has been
-			# found in the gene.
-			# 4 - A contiguous gene deletion or duplication syndrome, multiple genes
-			# are deleted or duplicated causing the phenotype.
-		 */
-		if (omimEvi == "(1)") {
-			return Evidences::LOW;
-		} else if (omimEvi == "(2)") {
-			return Evidences::LOW;
-		} else if (omimEvi == "(3)") {
-			return Evidences::HIGH;
-		} else if (omimEvi == "(4)") {
-			return Evidences::HIGH;
-		} else {
-			return Evidences::NA;
-		}
-	}
-	/// turns a given Decipher Evidence value into one from the Evidences enum
-	static Evidences translateDecipherEvidence(QByteArray decipherEvi)
-	{
-		//disease confidence: One value from the list of possible categories: both DD and IF, confirmed, possible, probable
-		/*
-		 * Confirmed 	Plausible disease-causing mutations* within, affecting or encompassing an interpretable functional region** of a single gene identified in multiple (>3) unrelated cases/families with a developmental disorder***
-						Plausible disease-causing mutations within, affecting or encompassing cis-regulatory elements convincingly affecting the expression of a single gene identified in multiple (>3) unrelated cases/families with a developmental disorder
-						As definition 1 and 2 of Probable Gene (see below) with addition of convincing bioinformatic or functional evidence of causation e.g. known inborn error of metabolism with mutation in orthologous gene which is known to have the relevant deficient enzymatic activity in other species; existence of animal mode which recapitulates the human phenotype
-		   Probable 	Plausible disease-causing mutations within, affecting or encompassing an interpretable functional region of a single gene identified in more than one (2 or 3) unrelated cases/families or segregation within multiple individuals within a single large family with a developmental disorder
-						Plausible disease-causing mutations within, affecting or encompassing cis-regulatory elements convincingly affecting the expression of a single gene identified in in more than one (2 or 3) unrelated cases/families with a developmental disorder
-						As definitions of Possible Gene (see below) with addition of convincing bioinformatic or functional evidence of causation e.g. known inborn error of metabolism with mutation in orthologous gene which is known to have the relevant deficient enzymatic activity in other species; existence of animal mode which recapitulates the human phenotype
-		   Possible 	Plausible disease-causing mutations within, affecting or encompassingan interpretable functional region of a single gene identified in one case or segregation within multiple individuals within a small family with a developmental disorder
-						Plausible disease-causing mutations within, affecting or encompassing cis-regulatory elements convincingly affecting the expression of a single gene identified in one case/family with a developmental disorder
-						Possible disease-causing mutations within, affecting or encompassing an interpretable functional region of a single gene identified in more than one unrelated cases/families or segregation within multiple individuals within a single large family with a developmental disorder
-		   Both RD and IF 	Plausible disease-causing mutations within, affecting or encompassing the coding region of a single gene identified in multiple (>3) unrelated cases/families with both the relevant disease (RD) and an incidental disorder
-		*/
-		if (decipherEvi == "both DD and IF") { // meaning?
-			return Evidences::LOW;
-		} else if (decipherEvi == "probable") {
-			return Evidences::LOW;
-		} else if (decipherEvi == "possible") {
-			return Evidences::MED;
-		} else if (decipherEvi == "confirmed") {
-			return Evidences::HIGH;
-		} else {
-			return Evidences::NA;
-		}
-	}
-	/// turns a given GenCC Evidence value into one from the Evidences enum
-	static Evidences translateGenccEvidence(QByteArray genccEvi)
-	{
-		//Definitive, Strong, Moderate, Supportive, Limited, Disputed, Refuted, Animal, No Known
-		if (genccEvi == "No Known") {
-			return Evidences::NA;
-		} else if (genccEvi == "No Known Disease Relationship") {
-			return Evidences::NA;
-		} else if (genccEvi == "Animal") {
-			return Evidences::LOW;
-		} else if (genccEvi == "Refuted") {
-			return Evidences::AGAINST;
-		} else if (genccEvi == "Disputed") {
-			return Evidences::AGAINST;
-		}  else if (genccEvi == "Limited") {
-			return Evidences::LOW;
-		} else if (genccEvi == "Supportive") {
-			return Evidences::LOW;
-		} else if (genccEvi == "Moderate") {
-			return Evidences::MED;
-		} else if (genccEvi == "Strong") {
-			return Evidences::HIGH;
-		} else if (genccEvi == "Definitive") {
-			return Evidences::HIGH;
-		} else {
-			return Evidences::NA;
-		}
-	}
 	/// simple sruct to keep a set of source databases
 	struct Sources {
-		QSet<QString> sources;
+		QSet<PhenotypeSource> sources;
 
 		Sources()
 		{
-			this->sources = QSet<QString>();
+			this->sources = QSet<PhenotypeSource>();
 		}
 
 		Sources(QByteArray s)
 		{
-			this->sources = QSet<QString>();
-			this->sources.insert(s);
+			this->sources = QSet<PhenotypeSource>();
+			this->sources.insert(SourceFromString(s));
 		}
 
-		bool contains(QByteArray s)
+		bool contains(PhenotypeSource s)
 		{
 			return this->sources.contains(s);
 		}
 
-		void insert(QByteArray s)
+		bool contains(QByteArray s)
+		{
+			return this->sources.contains(SourceFromString(s));
+		}
+
+		bool contains(QString s)
+		{
+			return this->sources.contains(SourceFromString(s));
+		}
+
+		void insert(PhenotypeSource s)
 		{
 			this->sources.insert(s);
+		}
+
+		void insert(QByteArray s)
+		{
+			this->sources.insert(SourceFromString(s));
+		}
+
+		void insert(QString s)
+		{
+			this->sources.insert(SourceFromString(s));
 		}
 
 		QString toCsvString()
 		{
 			QString s = "";
 
-			foreach (QString src, this->sources)
+			foreach (PhenotypeSource src, this->sources)
 			{
 				if (s.length() == 0)
 				{
-					s=src;
+					s= sourceToString(src);
 				} else {
-					s += "," + src;
+					s += "," + sourceToString(src);
 				}
 			}
 			return s;
@@ -229,20 +109,20 @@ public:
 	{
 		QByteArray item;
 		Sources src;
-		Evidences evi;
+		PhenotypeEvidence evi;
 
 		AnnotatedItem() {
 
 		}
 
-		AnnotatedItem(QByteArray item, QByteArray src, Evidences evi)
+		AnnotatedItem(QByteArray item, QByteArray src, PhenotypeEvidence evi)
 		{
 			this->item = item;
 			this->src = Sources(src);
 			this->evi = evi;
 		}
 
-		AnnotatedItem(QByteArray item, Sources src, Evidences evi)
+		AnnotatedItem(QByteArray item, Sources src, PhenotypeEvidence evi)
 		{
 			this->item = item;
 			this->src = src;
@@ -259,7 +139,7 @@ public:
 	{
 		QList<AnnotatedItem> items;
 
-		void add(QByteArray item, QByteArray source, Evidences evidence=Evidences::NA)
+		void add(QByteArray item, QByteArray source, PhenotypeEvidence evidence=PhenotypeEvidence::NA)
 		{
 			AnnotatedItem newItem = AnnotatedItem(item, source, evidence);
 
@@ -276,7 +156,7 @@ public:
 			}
 		}
 
-		void add(QByteArray item, Sources source, Evidences evidence=Evidences::NA)
+		void add(QByteArray item, Sources source, PhenotypeEvidence evidence=PhenotypeEvidence::NA)
 		{
 			AnnotatedItem newItem = AnnotatedItem(item, source, evidence);
 
@@ -401,7 +281,7 @@ public:
 			QByteArray gene = parts[0].trimmed();
 			QByteArray disease = "OMIM:" + parts[3].trimmed();
 			QByteArray decipherEvi = parts[4].trimmed();
-			Evidences evidence = translateDecipherEvidence(decipherEvi);
+			PhenotypeEvidence evidence = translateDecipherEvidence(decipherEvi);
 			QByteArrayList hpoTerms = parts[7].trimmed().split(';');
 
 			//verify information
@@ -490,15 +370,15 @@ public:
 			QByteArray geneSymbol = cleaned_parts[2].replace('"', ' ').trimmed();
 			QByteArray disease = cleaned_parts[5].replace('"', ' ').trimmed(); // OMIM:XXXXXX, MONDO:XXXXXXX, Orphanet:XXXXX needs mapping from Orphanet and Mondo to Omim
 			QByteArray genccEvi = cleaned_parts[8].replace('"', ' ').trimmed();
-			Evidences evidence = translateGenccEvidence(genccEvi);
-			if ( (evidence == Evidences::NA) & getFlag("debug"))
+			PhenotypeEvidence evidence = translateGenccEvidence(genccEvi);
+			if ( (evidence == PhenotypeEvidence::NA) & getFlag("debug"))
 			{
 				out << genccEvi << endl;
 				out << line << endl;
 				return;
 			}
 
-			if ((evidence == Evidences::NA) | (evidence == Evidences::AGAINST)) continue;
+			if ((evidence == PhenotypeEvidence::NA) | (evidence == PhenotypeEvidence::AGAINST)) continue;
 
 			if ( ! disease.startsWith("OMIM")) {
 //				out << "non omim disease" << endl;
@@ -517,7 +397,6 @@ public:
 
 		out << "Imported " << count << " disease gene relations from GenCC" << endl;
 	}
-
 
 	virtual void main()
 	{
@@ -950,11 +829,11 @@ public:
 				foreach (AnnotatedItem gene, disease2genes[disease.item].items)
 				{
 					// if one of the evidencess is NA take the other one. If both have a value take the lower ranked one.
-					Evidences evi;
-					if (disease.evi == Evidences::NA)
+					PhenotypeEvidence evi;
+					if (disease.evi == PhenotypeEvidence::NA)
 					{
 						evi = gene.evi;
-					} else if (gene.evi == Evidences::NA) {
+					} else if (gene.evi == PhenotypeEvidence::NA) {
 						evi = disease.evi;
 					} else {
 						evi = rank(disease.evi) < rank(gene.evi) ? disease.evi : gene.evi;
