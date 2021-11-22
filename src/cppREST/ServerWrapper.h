@@ -1,5 +1,5 @@
-#ifndef WEBSERVER_H
-#define WEBSERVER_H
+#ifndef SERVERWRAPPER_H
+#define SERVERWRAPPER_H
 
 #include "cppREST_global.h"
 #include <QObject>
@@ -15,15 +15,15 @@
 #include "SslServer.h"
 #include "UrlManager.h"
 
-class CPPRESTSHARED_EXPORT WebServer : public QObject
+class CPPRESTSHARED_EXPORT ServerWrapper : public QObject
 {
     Q_OBJECT
 
 public:
-	WebServer(const quint16& port, const bool& insecure = false);
+	ServerWrapper(const quint16& port, const bool& insecure = false);
 
 private:
 	SslServer *server_;
 };
 
-#endif // WEBSERVER_H
+#endif // SERVERWRAPPER_H

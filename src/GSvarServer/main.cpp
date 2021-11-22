@@ -3,7 +3,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QCommandLineParser>
-#include "WebServer.h"
+#include "ServerWrapper.h"
 #include "ServerHelper.h"
 #include "EndpointController.h"
 #include "EndpointHandler.h"
@@ -331,25 +331,6 @@ int main(int argc, char **argv)
 						&EndpointHandler::saveQbicFiles
 					});
 
-	EndpointManager::appendEndpoint(Endpoint{
-						"avg_coverage",
-						QMap<QString, ParamProps> {
-							{"bam_file", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Bam file"}},
-//							{"region_chr", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Chromosome"}},
-//							{"region_start", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Region start position"}},
-//							{"region_end", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Region end position"}},
-							{"min_mapq", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "min_mapq"}},
-							{"include_duplicates", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Flag that indicates if duplicates should be included"}},
-							{"ref_file", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Reference file"}},
-							{"regions", ParamProps{ParamProps::ParamCategory::POST_OCTET_STREAM, false, "Region params, i.e. chromosome, start, end positions"}}
-						},
-						RequestMethod::POST,
-						ContentType::APPLICATION_JSON,
-						false,
-						"Calculate avgCoverage from statistics",
-						&EndpointHandler::calculateStatsAvgCoverage
-					});
-
 	int https_port_setting = ServerHelper::getNumSettingsValue("https_server_port");
 	int http_port_setting = ServerHelper::getNumSettingsValue("http_server_port");
 
@@ -365,7 +346,7 @@ int main(int argc, char **argv)
 	}
 
 	qInfo() << "SSL version used for build: " << QSslSocket::sslLibraryBuildVersionString();
-	WebServer https_server(https_port_setting);
+	ServerWrapper https_server(https_port_setting);
 
 	if (!http_port.isEmpty())
 	{
@@ -378,7 +359,7 @@ int main(int argc, char **argv)
 		qInfo() << "HTTP port number is invalid";
 		app.exit(EXIT_FAILURE);
 	}
-	WebServer http_server(http_port_setting, true);
+	ServerWrapper http_server(http_port_setting, true);
 
 	return app.exec();
 }

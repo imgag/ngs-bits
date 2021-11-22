@@ -1,5 +1,5 @@
 #include "TestFramework.h"
-#include "WebServer.h"
+#include "ServerWrapper.h"
 #include "ServerHelper.h"
 #include "HttpRequestHandler.h"
 #include <QJsonDocument>

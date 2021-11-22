@@ -1,6 +1,6 @@
-#include "WebServer.h"
+#include "ServerWrapper.h"
 
-WebServer::WebServer(const quint16& port, const bool& insecure)
+ServerWrapper::ServerWrapper(const quint16& port, const bool& insecure)
 {
 	QString protocol_name;
 	if (!insecure)
