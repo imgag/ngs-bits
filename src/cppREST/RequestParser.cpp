@@ -103,7 +103,7 @@ QByteArray RequestParser::getRequestBody() const
 	return output.trimmed();
 }
 
-QList<QByteArray> RequestParser::getKeyValuePair(QByteArray input) const
+QList<QByteArray> RequestParser::getKeyValuePair(const QByteArray& input) const
 {
 	QList<QByteArray> result;
 
@@ -115,7 +115,7 @@ QList<QByteArray> RequestParser::getKeyValuePair(QByteArray input) const
 	return result;
 }
 
-QMap<QString, QString> RequestParser::getVariables(QByteArray input) const
+QMap<QString, QString> RequestParser::getVariables(const QByteArray& input) const
 {
 	QMap<QString, QString> url_vars {};
 	QList<QByteArray> var_list = input.split('&');
@@ -133,14 +133,14 @@ QMap<QString, QString> RequestParser::getVariables(QByteArray input) const
 	return url_vars;
 }
 
-QByteArray RequestParser::getVariableSequence(QByteArray url) const
+QByteArray RequestParser::getVariableSequence(const QByteArray& url) const
 {
 	QByteArray var_string;
 	if (url.indexOf('?') == -1) return var_string;
 	return url.split('?')[1];
 }
 
-QString RequestParser::getRequestPrefix(QList<QString> path_items) const
+QString RequestParser::getRequestPrefix(const QList<QString>& path_items) const
 {
 	if (path_items.count()>1)
 	{
@@ -149,7 +149,7 @@ QString RequestParser::getRequestPrefix(QList<QString> path_items) const
 	return "";
 }
 
-QString RequestParser::getRequestPath(QList<QString> path_items) const
+QString RequestParser::getRequestPath(const QList<QString>& path_items) const
 {
 	if (path_items.count()>2)
 	{
@@ -158,7 +158,7 @@ QString RequestParser::getRequestPath(QList<QString> path_items) const
 	return "";
 }
 
-QList<QString> RequestParser::getRequestPathParams(QList<QString> path_items) const
+QList<QString> RequestParser::getRequestPathParams(const QList<QString>& path_items) const
 {
 	QList<QString> params {};
 	if (path_items.count()>3)
@@ -174,7 +174,7 @@ QList<QString> RequestParser::getRequestPathParams(QList<QString> path_items) co
 	return params;
 }
 
-RequestMethod RequestParser::inferRequestMethod(QByteArray input) const
+RequestMethod RequestParser::inferRequestMethod(const QByteArray& input) const
 {
 	if (input.toUpper() == QByteArrayLiteral("GET"))
 	{

@@ -22,13 +22,13 @@ public:
 private:
 	QList<QByteArray> getRawRequestHeaders() const;
 	QByteArray getRequestBody() const;
-	QList<QByteArray> getKeyValuePair(QByteArray input) const;
-	QMap<QString, QString> getVariables(QByteArray input) const;
-	QByteArray getVariableSequence(QByteArray url) const;
-	QString getRequestPrefix(QList<QString> path_items) const;
-	QString getRequestPath(QList<QString> path_items) const;
-	QList<QString> getRequestPathParams(QList<QString> path_items) const;
-	RequestMethod inferRequestMethod(QByteArray input) const;
+	QList<QByteArray> getKeyValuePair(const QByteArray& input) const;
+	QMap<QString, QString> getVariables(const QByteArray& input) const;
+	QByteArray getVariableSequence(const QByteArray& url) const;
+	QString getRequestPrefix(const QList<QString>& path_items) const;
+	QString getRequestPath(const QList<QString>& path_items) const;
+	QList<QString> getRequestPathParams(const QList<QString>& path_items) const;
+	RequestMethod inferRequestMethod(const QByteArray& input) const;
 
 	QByteArray *raw_request_;
 	QString client_address_;
