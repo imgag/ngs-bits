@@ -3,6 +3,7 @@
 
 #include "cppNGS_global.h"
 #include <QString>
+#include <QList>
 
 ///Phenotype (representation of an HPO term)
 
@@ -150,6 +151,27 @@ static PhenotypeEvidence translateGenccEvidence(QByteArray genccEvi)
 	}
 }
 
+static PhenotypeEvidence evidenceFromString(QString e)
+{
+	e = e.toUpper();
+	if  (e=="AGAINST") {
+		return PhenotypeEvidence::AGAINST;
+	} else if (e=="NA") {
+		return PhenotypeEvidence::NA;
+	} else if (e=="LOW") {
+		return PhenotypeEvidence::LOW;
+	} else if (e=="MED") {
+		return PhenotypeEvidence::MED;
+	} else if (e=="HIGH") {
+		return PhenotypeEvidence::HIGH;
+	}
+}
+
+static QList<PhenotypeEvidence> allEvidenceValues()
+{
+	return QList<PhenotypeEvidence>{PhenotypeEvidence::NA, PhenotypeEvidence::AGAINST, PhenotypeEvidence::LOW, PhenotypeEvidence::MED, PhenotypeEvidence::HIGH};
+}
+
 /// Source for a given relation
 enum PhenotypeSource {HPO, OMIM, CLINVAR, DECIPHER, HGMC, GENCC };
 /// returns a QString representation für the given phenotype source
@@ -202,6 +224,12 @@ static PhenotypeSource SourceFromString(QByteArray s)
 {
 	return SourceFromString(QString(s));
 }
+
+static QList<PhenotypeSource> allSourceValues()
+{
+	return QList<PhenotypeSource>{PhenotypeSource::HPO, PhenotypeSource::OMIM, PhenotypeSource::CLINVAR, PhenotypeSource::DECIPHER, PhenotypeSource::HGMC, PhenotypeSource::GENCC};
+}
+
 
 class CPPNGSSHARED_EXPORT Phenotype
 {

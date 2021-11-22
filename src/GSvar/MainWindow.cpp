@@ -5970,14 +5970,14 @@ void MainWindow::applyFilters(bool debug_time)
 
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
-		QList<QString> allowedSources = ui_.filters->allowedPhenotypeSources();
-		QList<QString> allowedEvidences = ui_.filters->allowedPhenotypeEvidences();
+		QList<PhenotypeSource> allowedSources = ui_.filters->allowedPhenotypeSources();
+		QList<PhenotypeEvidence> allowedEvidences = ui_.filters->allowedPhenotypeEvidences();
 
-		if ((phenos!=last_phenos_) | (last_evidences_ != allowedEvidences) | (last_sources_ != allowedSources))
+		if ((phenos!=last_phenos_) | (last_phenotype_evidences_ != allowedEvidences) | (last_pehnotype_sources_ != allowedSources))
 		{
 			last_phenos_ = phenos;
-			last_sources_ = allowedSources;
-			last_evidences_ = allowedEvidences;
+			last_pehnotype_sources_ = allowedSources;
+			last_phenotype_evidences_ = allowedEvidences;
 
 			//convert phenotypes to genes
 			NGSD db;

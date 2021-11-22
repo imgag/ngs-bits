@@ -407,8 +407,8 @@ private:
 	FilterResult filter_result_;
 	QString last_report_path_;
 	PhenotypeList last_phenos_;
-	QList<QString> last_evidences_;
-	QList<QString> last_sources_;
+	QList<PhenotypeEvidence> last_phenotype_evidences_;
+	QList<PhenotypeSource> last_pehnotype_sources_;
 	BedFile last_phenos_roi_;
     QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;
