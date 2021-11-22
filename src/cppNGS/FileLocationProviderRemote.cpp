@@ -222,13 +222,3 @@ FileLocation FileLocationProviderRemote::getSomaticMsiFile() const
 {
 	return getOneFileLocationByType(PathType::MSI, "");
 }
-
-QString FileLocationProviderRemote::getAnalysisPath() const
-{
-	return "";
-}
-
-QString FileLocationProviderRemote::getProjectPath() const
-{
-	return "";
-}

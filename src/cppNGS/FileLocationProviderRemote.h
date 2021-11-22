@@ -53,9 +53,6 @@ protected:
 	QString sample_id_;
 	QString server_host_;
 	int server_port_;
-
-	QString getAnalysisPath() const override;
-	QString getProjectPath() const override;
 };
 
 #endif // FILELOCATIONPROVIDERSERVER_H
