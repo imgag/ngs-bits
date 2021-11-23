@@ -31,12 +31,18 @@
         <property name="text">
          <string>NA</string>
         </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
        </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="LOW">
         <property name="text">
          <string>LOW</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -45,12 +51,18 @@
         <property name="text">
          <string>MED</string>
         </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
        </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="HIGH">
         <property name="text">
          <string>HIGH</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -95,6 +107,9 @@
         <property name="text">
          <string>ClinVar</string>
         </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -124,20 +139,6 @@
      </property>
      <property name="text">
       <string>Choose Sources and Evidences</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
-    <widget class="QPushButton" name="okButton">
-     <property name="text">
-      <string>OK</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QPushButton" name="pushButton_2">
-     <property name="text">
-      <string>Cancel</string>
      </property>
     </widget>
    </item>

@@ -320,6 +320,8 @@ public slots:
 	void importPhenotypesFromNGSD();
 	///Create sub-panel from phenotype
 	void createSubPanelFromPhenotypeFilter();
+	/// Open phenotype Options menu
+	void openPhenotypeOptions();
 
 	///Opens a sample based on the processed sample name
 	void openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi=true);
@@ -407,8 +409,9 @@ private:
 	FilterResult filter_result_;
 	QString last_report_path_;
 	PhenotypeList last_phenos_;
+	bool filter_phenos_;
 	QList<PhenotypeEvidence> last_phenotype_evidences_;
-	QList<PhenotypeSource> last_pehnotype_sources_;
+	QList<PhenotypeSource> last_phenotype_sources_;
 	BedFile last_phenos_roi_;
     QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;

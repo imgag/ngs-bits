@@ -11,6 +11,8 @@ class PhenoToGenesDialog
 
 public:
 	PhenoToGenesDialog(QWidget* parent = 0);
+	void setAllowedEvidences(QList<PhenotypeEvidence> allowedEvidence);
+	void setAllowedSources(QList<PhenotypeSource> allowedSources);
 
 private slots:
 	void copyGenesToClipboardAsTable();

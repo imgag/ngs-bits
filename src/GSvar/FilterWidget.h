@@ -93,6 +93,8 @@ signals:
 	void phenotypeImportNGSDRequested();
 	/// Signal that a sub-panel should be created using the phenotypes
 	void phenotypeSubPanelRequested();
+	/// Signal that the options for evidence and source selection were requested.
+	void phenotypeOptionsRequested();
 
 protected slots:
 	void addRoi();

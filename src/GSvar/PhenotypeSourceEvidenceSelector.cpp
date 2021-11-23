@@ -1,5 +1,7 @@
 #include "PhenotypeSourceEvidenceSelector.h"
 #include "ui_PhenotypeSourceEvidenceSelector.h"
+#include <QMessageBox>
+
 
 PhenotypeSourceEvidenceSelector::PhenotypeSourceEvidenceSelector(QWidget *parent) :
 	QWidget(parent),
@@ -7,7 +9,6 @@ PhenotypeSourceEvidenceSelector::PhenotypeSourceEvidenceSelector(QWidget *parent
 {
 	ui->setupUi(this);
 
-	// connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
 	connect(ui->CLINVAR, SIGNAL(toggled(bool)), SLOT(updateSourceSelection()));
 	connect(ui->HPO, SIGNAL(toggled(bool)), SLOT(updateSourceSelection()));
 	connect(ui->DECIPHER, SIGNAL(toggled(bool)), SLOT(updateSourceSelection()));
@@ -26,20 +27,6 @@ PhenotypeSourceEvidenceSelector::~PhenotypeSourceEvidenceSelector()
 	delete ui;
 }
 
-/*
-
-foreach (QObject* o, ui_.databaseBox->children())
-		{
-				QCheckBox* button = qobject_cast<QCheckBox*>(o);
-				if (button == nullptr) continue;
-
-				if ( ! sources.contains(button->objectName()))
-				{
-						button->setChecked(false);
-				}
-		}
-
-*/
 void PhenotypeSourceEvidenceSelector::setSources(QList<PhenotypeSource> sources)
 {
 	selectedSources_ = sources;
@@ -85,10 +72,50 @@ QList<PhenotypeEvidence> PhenotypeSourceEvidenceSelector::selectedEvidences()
 
 void PhenotypeSourceEvidenceSelector::updateEvidenceSelection()
 {
+	QList <PhenotypeEvidence> newSelected;
+
+	foreach (QObject* o, ui->evidenceBox->children())
+	{
+		QCheckBox* box = qobject_cast<QCheckBox*>(o);
+		if (box == nullptr) continue;
+
+		if (box->isChecked())
+		{
+			newSelected.append(evidenceFromString(box->objectName()));
+		}
+	}
+	selectedEvidences_ = newSelected;
+//	QString tmp = "";
+//	foreach (PhenotypeEvidence e, newSelected)
+//	{
+//		tmp += ", " + evidenceToString(e);
+//	}
+
+//	QMessageBox::warning(this, "Update", "Current selected Evidence:\n" + tmp);
 
 }
 
 void PhenotypeSourceEvidenceSelector::updateSourceSelection()
 {
+	QList <PhenotypeSource> newSelected;
 
+	foreach (QObject* o, ui->sourceBox->children())
+	{
+		QCheckBox* box = qobject_cast<QCheckBox*>(o);
+		if (box == nullptr) continue;
+
+		if (box->isChecked())
+		{
+			newSelected.append(SourceFromString(box->objectName()));
+		}
+	}
+	selectedSources_ = newSelected;
+
+//	QString tmp = "";
+//	foreach (PhenotypeSource s, newSelected)
+//	{
+//		tmp += ", " + sourceToString(s);
+//	}
+
+//	QMessageBox::warning(this, "Update", "Current selected Sources:\n" + tmp);
 }

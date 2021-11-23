@@ -576,6 +576,8 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 		menu.addAction("load from NGSD");
 		menu.addAction("create sub-panel");
 		menu.addSeparator();
+		menu.addAction("options");
+		menu.addSeparator();
 	}
 	if (!phenotypes_.isEmpty())
 	{
@@ -598,6 +600,10 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	else if (action->text()=="create sub-panel")
 	{
 		emit phenotypeSubPanelRequested();
+	}
+	else if (action->text()=="options")
+	{
+		emit phenotypeOptionsRequested();
 	}
 }
 

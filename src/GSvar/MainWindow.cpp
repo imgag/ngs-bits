@@ -209,6 +209,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
+	connect(ui_.filters, SIGNAL(phenotypeOptionsRequested()), this, SLOT(openPhenotypeOptions()));
 
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
@@ -254,6 +255,11 @@ MainWindow::MainWindow(QWidget *parent)
 	//init cache in background thread (it takes about 6 seconds)
 	CacheInitWorker* worker = new CacheInitWorker();
 	worker->start();
+
+	//init phenotype filter to accept all Values
+	this->last_phenotype_evidences_ = allEvidenceValues();
+	this->last_phenotype_sources_ = allSourceValues();
+	this->filter_phenos_ = false;
 }
 
 QString MainWindow::appName() const
@@ -2227,6 +2233,28 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 
 	//open dialog
 	openSubpanelDesignDialog(genes);
+}
+
+void MainWindow::openPhenotypeOptions()
+{
+	//edit TODO
+	PhenotypeSourceEvidenceSelector* selector = new PhenotypeSourceEvidenceSelector(this);
+	selector->setEvidences(last_phenotype_evidences_);
+	selector->setSources(last_phenotype_sources_);
+
+	auto dlg = GUIHelper::createDialog(selector, "Phenotype Filter Options", "", true);
+
+	//update
+	if (dlg->exec()==QDialog::Accepted)
+	{
+		this->last_phenotype_evidences_ = selector->selectedEvidences();
+		this->last_phenotype_sources_ = selector->selectedSources();
+		if (this->last_phenos_.count() != 0)
+		{
+			filter_phenos_ = true;
+			refreshVariantTable();
+		}
+	}
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -4640,6 +4668,8 @@ void MainWindow::on_actionPhenoToGenes_triggered()
 	try
 	{
 		PhenoToGenesDialog dlg(this);
+		dlg.setAllowedEvidences(this->last_phenotype_evidences_);
+		dlg.setAllowedSources(this->last_phenotype_sources_);
 		dlg.exec();
 	}
 	catch (DatabaseException& e)
@@ -5970,14 +6000,10 @@ void MainWindow::applyFilters(bool debug_time)
 
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
-		QList<PhenotypeSource> allowedSources = ui_.filters->allowedPhenotypeSources();
-		QList<PhenotypeEvidence> allowedEvidences = ui_.filters->allowedPhenotypeEvidences();
-
-		if ((phenos!=last_phenos_) | (last_phenotype_evidences_ != allowedEvidences) | (last_pehnotype_sources_ != allowedSources))
+		if ((phenos!=last_phenos_) | filter_phenos_)
 		{
+			filter_phenos_ = false;
 			last_phenos_ = phenos;
-			last_pehnotype_sources_ = allowedSources;
-			last_phenotype_evidences_ = allowedEvidences;
 
 			//convert phenotypes to genes
 			NGSD db;
@@ -5985,7 +6011,7 @@ void MainWindow::applyFilters(bool debug_time)
 			foreach(const Phenotype& pheno, phenos)
 			{
 
-				pheno_genes << db.phenotypeToFilteredGenes(db.phenotypeIdByAccession(pheno.accession()), allowedSources, allowedEvidences, true, false);
+				pheno_genes << db.phenotypeToFilteredGenes(db.phenotypeIdByAccession(pheno.accession()), last_phenotype_sources_, last_phenotype_evidences_, true, false);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)

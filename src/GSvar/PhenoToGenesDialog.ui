@@ -104,6 +104,16 @@
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>Options</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="PhenotypeSourceEvidenceSelector" name="options_selector" native="true"/>
+       </item>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item>
@@ -179,6 +189,12 @@
    <class>PhenotypeSelectionWidget</class>
    <extends>QWidget</extends>
    <header>PhenotypeSelectionWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PhenotypeSourceEvidenceSelector</class>
+   <extends>QWidget</extends>
+   <header>PhenotypeSourceEvidenceSelector.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
