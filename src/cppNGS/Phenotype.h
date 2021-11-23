@@ -29,7 +29,6 @@ static int rank(const PhenotypeEvidence& e)
 			return -1;
 	}
 }
-
 /// returns a QString representation für the given evidence
 static QString evidenceToString(PhenotypeEvidence e)
 {
@@ -171,7 +170,6 @@ static QList<PhenotypeEvidence> allEvidenceValues()
 {
 	return QList<PhenotypeEvidence>{PhenotypeEvidence::NA, PhenotypeEvidence::AGAINST, PhenotypeEvidence::LOW, PhenotypeEvidence::MED, PhenotypeEvidence::HIGH};
 }
-
 /// Source for a given relation
 enum PhenotypeSource {HPO, OMIM, CLINVAR, DECIPHER, HGMC, GENCC };
 /// returns a QString representation für the given phenotype source
