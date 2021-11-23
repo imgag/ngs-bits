@@ -9,8 +9,8 @@ INSERT INTO `hpo_term` (`id`, `hpo_id`, `name`, `definition`, `synonyms`) VALUES
 (11495, 'HP:0000003', 'Multicystic kidney dysplasia', '\"Multicystic dysplasia of the kidney is characterized by multiple cysts of varying size in the kidney and the absence of a normal pelvocaliceal system. The condition is associated with ureteral or ureteropelvic atresia, and the affected kidney is nonfunctional.', ''),
 (64350, 'HP:0002862', 'Bladder carcinoma', '\"The presence of a carcinoma of the urinary bladder.', '');
 
-INSERT INTO `hpo_genes` (`hpo_term_id`, `gene`) VALUES
-(11495, 'BUB1'),
-(11495, 'ACTG2'),
-(64350, 'BUB1'),
-(64350, 'AAGAB');
+INSERT INTO `hpo_genes` (`hpo_term_id`, `gene`, `sources`, `evidence`) VALUES
+(11495, 'BUB1', 'HPO, GenCC', 'MED'),
+(11495, 'ACTG2', 'HGMC', 'NA'),
+(64350, 'BUB1', 'Decipher', 'MED'),
+(64350, 'AAGAB', 'OMIM, HPO', 'HIGH');
