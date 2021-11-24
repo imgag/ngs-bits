@@ -410,6 +410,18 @@ public:
 		db.tableExists("hpo_parent");
 		db.tableExists("hpo_genes");
 
+		//check if gene table exists and contains HGNC genes:
+		db.tableExists("gene");
+		SqlQuery testGeneTable = db.getQuery();
+		testGeneTable.exec("SELECT count(*) FROM gene;");
+		while (testGeneTable.next())
+		{
+			if (testGeneTable.value(0) == 0)
+			{
+				THROW(DatabaseException, "Table 'gene' is empty. Please import HGNC database before importing HPO.")
+			}
+		}
+
 		//clear tables if not empty
 		if (!db.tableEmpty("hpo_term") || !db.tableEmpty("hpo_parent") || !db.tableEmpty("hpo_genes"))
 		{
