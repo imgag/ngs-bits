@@ -6,8 +6,8 @@
 #include <QList>
 #include "Exceptions.h"
 
-///Phenotype (representation of an HPO term)
 
+///PhenotypeEvidence a 'static class' to contain an enum and helperfunctions to represent possible evidence levels of databases for phenotype-gene relations
 struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 {
 	PhenotypeEvidence() = delete;
@@ -152,7 +152,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 			return PhenotypeEvidence::NA;
 		}
 	}
-
+	/// returns the appropriate evidence value for a given string
 	static Evidence evidenceFromString(QString e)
 	{
 		e = e.toUpper();
@@ -170,13 +170,14 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 
 		THROW(TypeConversionException, "Cannot convert String: '" + e + "' to Phenotype Evidence.")
 	}
-
+	/// returns all possible values for the evidence enum
 	static QList<Evidence> allEvidenceValues()
 	{
 		return QList<Evidence>{Evidence::NA, Evidence::AGAINST, Evidence::LOW, Evidence::MED, Evidence::HIGH};
 	}
 };
 
+///PhenotypeSource a 'static class' to contain an enum and helperfunctions to represent possible source databases for phenotype-gene relations
 struct CPPNGSSHARED_EXPORT PhenotypeSource
 {
 	PhenotypeSource() = delete;
@@ -229,18 +230,19 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 		}
 		THROW(TypeConversionException, "Cannot convert String: '" + s + "' to Phenotype Source.")
 	}
-
+	/// return the corresponding phenotype source for a given string
 	static Source SourceFromString(QByteArray s)
 	{
 		return SourceFromString(QString(s));
 	}
-
+	///returns a list of all source enum values
 	static QList<Source> allSourceValues()
 	{
 		return QList<Source>{Source::HPO, Source::OMIM, Source::CLINVAR, Source::DECIPHER, Source::HGMD, Source::GENCC};
 	}
 };
 
+///Phenotype (representation of an HPO term)
 class CPPNGSSHARED_EXPORT Phenotype
 {
 public:

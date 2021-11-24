@@ -385,9 +385,6 @@ protected:
 	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
 	QString normalSampleName();
 
-	QList<PhenotypeEvidence::Evidence> last_phenotype_evidences();
-	QList<PhenotypeSource::Source> last_phenotype_sources();
-
 private:
 	//GUI
 	Ui::MainWindow ui_;

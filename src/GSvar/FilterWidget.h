@@ -63,11 +63,11 @@ public:
 	void setPhenotypes(const PhenotypeList& phenotypes);
 	///Returns selected database sources
 	const QList<PhenotypeSource::Source>& allowedPhenotypeSources() const;
-
+	/// sets the allowed phenotypeSources for the PhenotypeFilter tooltip
 	void setAllowedPhenotypeSources(QList<PhenotypeSource::Source> sources);
 	///Returns selected Evidence levels
 	const QList<PhenotypeEvidence::Evidence>& allowedPhenotypeEvidences() const;
-
+	/// sets the allowed phenotypeEvidences for the PhenotypeFilter tooltip
 	void setAllowedPhenotypeEvidences(QList<PhenotypeEvidence::Evidence> evidences);
 
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)

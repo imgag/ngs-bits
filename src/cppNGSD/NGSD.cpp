@@ -3986,7 +3986,6 @@ PhenotypeList NGSD::phenotypes(QStringList search_terms)
 		list << set;
 		list.sortByName();
 	}
-
 	return list;
 }
 
@@ -4037,9 +4036,7 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 			QByteArray gene = pid2genes.value(0).toByteArray();
 			genes.insert(geneToApproved(gene, true));
 		}
-
 	}
-
 	return genes;
 }
 

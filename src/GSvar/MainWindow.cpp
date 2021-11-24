@@ -6230,13 +6230,3 @@ QString MainWindow::normalSampleName()
 	return "";
 }
 
-QList<PhenotypeEvidence::Evidence> MainWindow::last_phenotype_evidences()
-{
-	return last_phenotype_evidences_;
-}
-
-QList<PhenotypeSource::Source> MainWindow::last_phenotype_sources()
-{
-	return last_phenotype_sources_;
-}
-

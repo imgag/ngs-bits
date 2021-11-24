@@ -28,9 +28,9 @@ public:
 		addInfile("hgmd", "HGMD phenobase file (Manually download and unzip 'hgmd_phenbase-2021.1.dump').", true);
 
 		// optional (for evidence information):
-		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information", true);
-		addInfile("gencc", "gencc 'gencc-submissions.tsv' file for additional disease-gene evidence information.", true);
-		addInfile("decipher", "G2P 'DDG2P.csv' file for additional gene-disease-phenotype evidence information.", true);
+		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from https://hpo.jax.org/app/download/annotation", true);
+		addInfile("gencc", "gencc 'gencc-submissions.csv' file for additional disease-gene evidence information. Download from https://search.thegencc.org/download", true);
+		addInfile("decipher", "G2P 'DDG2P.csv' file for additional gene-disease-phenotype evidence information. Download from https://www.deciphergenomics.org/about/downloads/data", true);
 
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
@@ -303,6 +303,7 @@ public:
 				}
 			} else {
 				QByteArray approvedGeneSymbol = db.geneSymbol(gene_db_id);
+
 				foreach (QByteArray term, hpoTerms)
 				{
 					int term_db_id = id2ngsd.value(term, -1);
@@ -457,18 +458,8 @@ public:
 		QSet<QByteArray> non_hgnc_genes;
 		PhenotypeList inheritance_terms = db.phenotypeChildTerms(db.phenotypeIdByAccession("HP:0000005"), true); //Mode of inheritance
 
-//		int count = 0;
-//		QTime timer;
-//		timer.start();
-
 		while(!fp->atEnd())
 		{
-//			count++;
-//			if (count % 10000 == 0)
-//			{
-//				out <<count/ 1000 << "k lines took:" << timer.elapsed()/1000 << "s" << endl;
-//				timer.start();
-//			}
 			QByteArray line =  fp->readLine();
 			QByteArrayList parts =line.split('\t');
 
@@ -516,9 +507,6 @@ public:
 			out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
 		}
 
-		//int c_imported = importTermGeneRelations(qi_gene, term2diseases, disease2genes, "HPO");
-		//out << "Imported " << c_imported << " term-gene relations from HPO." << endl;
-
 		//parse disease-gene relations from OMIM
 		QString omim_file = getInfile("omim");
 		// disease2genes.clear(); *********************** Why clear it?
@@ -551,12 +539,12 @@ public:
 					int approved_id = db.geneToApprovedID(gene);
 					if (approved_id==-1)
 					{
-						//if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
+						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << endl;
 						++c_skipped_invalid_gene;
 						continue;
 					}
 
-					// if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << endl;
+					if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << endl;
 
 					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", PhenotypeEvidence::translateOmimEvidence(omimEvi));
 				}
@@ -833,7 +821,6 @@ public:
 		// import gathered data:
 		out << "Gathering all term2gene relations" << endl;
 
-
 		foreach (int term_id, term2diseases.keys())
 		{
 			foreach (AnnotatedItem disease, term2diseases[term_id].items)
@@ -870,7 +857,7 @@ public:
 		{
 			foreach (AnnotatedItem gene, term2genes[term_id].items)
 			{
-				// build insertion query (single insertions ~361s single big insertion ~8s for 520k values)
+				// build insertion query (single insertions ~361s vs a single big insertion ~8s for 520k values)
 				QString value = QString("(%1, '%2', '%3', '%4'),").arg(QString::number(term_id), QString(gene.item), gene.src.toCsvString(), PhenotypeEvidence::evidenceToString(gene.evi));
 				query += value;
 			}
