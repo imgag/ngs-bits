@@ -385,8 +385,8 @@ protected:
 	///Determines normal sample name from filename_, return "" otherwise (tumor-normal pairs)
 	QString normalSampleName();
 
-	QList<PhenotypeEvidence> last_phenotype_evidences();
-	QList<PhenotypeSource> last_phenotype_sources();
+	QList<PhenotypeEvidence::Evidence> last_phenotype_evidences();
+	QList<PhenotypeSource::Source> last_phenotype_sources();
 
 private:
 	//GUI
@@ -413,8 +413,8 @@ private:
 	QString last_report_path_;
 	PhenotypeList last_phenos_;
 	bool filter_phenos_;
-	QList<PhenotypeEvidence> last_phenotype_evidences_;
-	QList<PhenotypeSource> last_phenotype_sources_;
+	QList<PhenotypeEvidence::Evidence> last_phenotype_evidences_;
+	QList<PhenotypeSource::Source> last_phenotype_sources_;
 	BedFile last_phenos_roi_;
     QHash<QByteArray, BedFile> gene2region_cache_;
 	ReportSettings report_settings_;

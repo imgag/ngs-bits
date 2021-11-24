@@ -17,13 +17,13 @@ public:
 	explicit PhenotypeSourceEvidenceSelector(QWidget *parent = 0);
 	~PhenotypeSourceEvidenceSelector();
 
-	void setEvidences(QList<PhenotypeEvidence> evidences);
+	void setEvidences(QList<PhenotypeEvidence::Evidence> evidences);
 
-	void setSources(QList<PhenotypeSource> sources);
+	void setSources(QList<PhenotypeSource::Source> sources);
 
-	QList<PhenotypeSource> selectedSources();
+	QList<PhenotypeSource::Source> selectedSources();
 
-	QList<PhenotypeEvidence> selectedEvidences();
+	QList<PhenotypeEvidence::Evidence> selectedEvidences();
 
 signals:
 
@@ -36,8 +36,8 @@ public slots:
 	void updateEvidenceSelection();
 private:
 
-	QList<PhenotypeSource> selectedSources_;
-	QList<PhenotypeEvidence> selectedEvidences_;
+	QList<PhenotypeSource::Source> selectedSources_;
+	QList<PhenotypeEvidence::Evidence> selectedEvidences_;
 
 	QList<QCheckBox> sourceBoxes_;
 	QList<QCheckBox> evidenceBoxes_;

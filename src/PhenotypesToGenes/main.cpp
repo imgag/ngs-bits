@@ -72,21 +72,21 @@ public:
 					THROW(ArgumentException, "Cannot find HPO phenotype with accession '" + hpo_id + "' in NGSD!");
 				}
 			}
-			QList<PhenotypeEvidence> evidences;
-			QList<PhenotypeSource> sources;
+			QList<PhenotypeEvidence::Evidence> evidences;
+			QList<PhenotypeSource::Source> sources;
 
 			if (getEnum("evidence") == "ALL")
 			{
-				evidences = allEvidenceValues();
+				evidences = PhenotypeEvidence::allEvidenceValues();
 			} else {
-				evidences.append(evidenceFromString(getEnum("evidence")));
+				evidences.append(PhenotypeEvidence::evidenceFromString(getEnum("evidence")));
 			}
 
 			if (getEnum("source") == "ALL")
 			{
-				sources = allSourceValues();
+				sources = PhenotypeSource::allSourceValues();
 			} else {
-				sources.append(SourceFromString(getEnum("source")));
+				sources.append(PhenotypeSource::SourceFromString(getEnum("source")));
 			}
 
 			GeneSet genes = db.phenotypeToFilteredGenes(id, sources, evidences, true, ignore_non_phenotype);

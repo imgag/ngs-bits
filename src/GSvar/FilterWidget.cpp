@@ -323,23 +323,23 @@ void FilterWidget::setPhenotypes(const PhenotypeList& phenotypes)
 	phenotypesChanged();
 }
 
-const QList<PhenotypeSource>& FilterWidget::allowedPhenotypeSources() const
+const QList<PhenotypeSource::Source>& FilterWidget::allowedPhenotypeSources() const
 {
 	return allowedPhenotypeSources_;
 }
 
-const QList<PhenotypeEvidence>& FilterWidget::allowedPhenotypeEvidences() const
+const QList<PhenotypeEvidence::Evidence>& FilterWidget::allowedPhenotypeEvidences() const
 {
 	return allowedPhenotypeEvidences_;
 }
 
-void FilterWidget::setAllowedPhenotypeSources(QList<PhenotypeSource> sources)
+void FilterWidget::setAllowedPhenotypeSources(QList<PhenotypeSource::Source> sources)
 {
 	allowedPhenotypeSources_ = sources;
 }
 
 
-void FilterWidget::setAllowedPhenotypeEvidences(QList<PhenotypeEvidence> evidences)
+void FilterWidget::setAllowedPhenotypeEvidences(QList<PhenotypeEvidence::Evidence> evidences)
 {
 	allowedPhenotypeEvidences_ = evidences;
 }
@@ -490,9 +490,9 @@ void FilterWidget::phenotypesChanged()
 	{
 		tooltip += "<br><nobr>Currently selected evidences:</nobr>";
 		tooltip += "<br><nobr>";
-		foreach(const PhenotypeEvidence& e, allowedPhenotypeEvidences_)
+		foreach(const PhenotypeEvidence::Evidence& e, allowedPhenotypeEvidences_)
 		{
-			tooltip += evidenceToString(e) + ", ";
+			tooltip += PhenotypeEvidence::evidenceToString(e) + ", ";
 		}
 		tooltip.chop(2);
 		tooltip += "</nobr>";
@@ -502,9 +502,9 @@ void FilterWidget::phenotypesChanged()
 	{
 		tooltip += "<br><nobr>Currently selected Sources:</nobr>";
 		tooltip += "<br><nobr>";
-		foreach(const PhenotypeSource& s, allowedPhenotypeSources_)
+		foreach(const PhenotypeSource::Source& s, allowedPhenotypeSources_)
 		{
-			tooltip += sourceToString(s) + ", ";
+			tooltip += PhenotypeSource::sourceToString(s) + ", ";
 		}
 		tooltip.chop(2);
 		tooltip += "</nobr>";

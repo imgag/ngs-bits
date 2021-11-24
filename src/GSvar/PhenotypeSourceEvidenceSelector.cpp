@@ -27,7 +27,7 @@ PhenotypeSourceEvidenceSelector::~PhenotypeSourceEvidenceSelector()
 	delete ui;
 }
 
-void PhenotypeSourceEvidenceSelector::setSources(QList<PhenotypeSource> sources)
+void PhenotypeSourceEvidenceSelector::setSources(QList<PhenotypeSource::Source> sources)
 {
 	selectedSources_ = sources;
 
@@ -36,14 +36,14 @@ void PhenotypeSourceEvidenceSelector::setSources(QList<PhenotypeSource> sources)
 		QCheckBox* box = qobject_cast<QCheckBox*>(o);
 		if (box == nullptr) continue;
 
-		if (sources.contains(SourceFromString(box->objectName())))
+		if (sources.contains(PhenotypeSource::SourceFromString(box->objectName())))
 		{
 			box->setChecked(true);
 		}
 	}
 }
 
-void PhenotypeSourceEvidenceSelector::setEvidences(QList<PhenotypeEvidence> evidences)
+void PhenotypeSourceEvidenceSelector::setEvidences(QList<PhenotypeEvidence::Evidence> evidences)
 {
 	selectedEvidences_ = evidences;
 
@@ -52,19 +52,19 @@ void PhenotypeSourceEvidenceSelector::setEvidences(QList<PhenotypeEvidence> evid
 		QCheckBox* box = qobject_cast<QCheckBox*>(o);
 		if (box == nullptr) continue;
 
-		if (evidences.contains(evidenceFromString(box->objectName())))
+		if (evidences.contains(PhenotypeEvidence::evidenceFromString(box->objectName())))
 		{
 			box->setChecked(true);
 		}
 	}
 }
 
-QList<PhenotypeSource> PhenotypeSourceEvidenceSelector::selectedSources()
+QList<PhenotypeSource::Source> PhenotypeSourceEvidenceSelector::selectedSources()
 {
 	return selectedSources_;
 }
 
-QList<PhenotypeEvidence> PhenotypeSourceEvidenceSelector::selectedEvidences()
+QList<PhenotypeEvidence::Evidence> PhenotypeSourceEvidenceSelector::selectedEvidences()
 {
 	return selectedEvidences_;
 }
@@ -72,7 +72,7 @@ QList<PhenotypeEvidence> PhenotypeSourceEvidenceSelector::selectedEvidences()
 
 void PhenotypeSourceEvidenceSelector::updateEvidenceSelection()
 {
-	QList <PhenotypeEvidence> newSelected;
+	QList <PhenotypeEvidence::Evidence> newSelected;
 
 	foreach (QObject* o, ui->evidenceBox->children())
 	{
@@ -81,23 +81,15 @@ void PhenotypeSourceEvidenceSelector::updateEvidenceSelection()
 
 		if (box->isChecked())
 		{
-			newSelected.append(evidenceFromString(box->objectName()));
+			newSelected.append(PhenotypeEvidence::evidenceFromString(box->objectName()));
 		}
 	}
 	selectedEvidences_ = newSelected;
-//	QString tmp = "";
-//	foreach (PhenotypeEvidence e, newSelected)
-//	{
-//		tmp += ", " + evidenceToString(e);
-//	}
-
-//	QMessageBox::warning(this, "Update", "Current selected Evidence:\n" + tmp);
-
 }
 
 void PhenotypeSourceEvidenceSelector::updateSourceSelection()
 {
-	QList <PhenotypeSource> newSelected;
+	QList <PhenotypeSource::Source> newSelected;
 
 	foreach (QObject* o, ui->sourceBox->children())
 	{
@@ -106,16 +98,8 @@ void PhenotypeSourceEvidenceSelector::updateSourceSelection()
 
 		if (box->isChecked())
 		{
-			newSelected.append(SourceFromString(box->objectName()));
+			newSelected.append(PhenotypeSource::SourceFromString(box->objectName()));
 		}
 	}
 	selectedSources_ = newSelected;
-
-//	QString tmp = "";
-//	foreach (PhenotypeSource s, newSelected)
-//	{
-//		tmp += ", " + sourceToString(s);
-//	}
-
-//	QMessageBox::warning(this, "Update", "Current selected Sources:\n" + tmp);
 }
