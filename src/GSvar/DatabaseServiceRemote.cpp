@@ -1,6 +1,7 @@
 #include "DatabaseServiceRemote.h"
 #include "Settings.h"
 #include "HttpRequestHandler.h"
+#include "Helper.h"
 
 DatabaseServiceRemote::DatabaseServiceRemote()
 	: enabled_(Settings::boolean("NGSD_enabled"))
@@ -126,7 +127,6 @@ QByteArray DatabaseServiceRemote::makeApiCall(QString url_param) const
 {
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "text/plain");
-	return HttpRequestHandler(HttpRequestHandler::NONE).get(
-			"https://" + Settings::string("server_host",true) + ":" + Settings::string("https_server_port")
-			+ "/v1/"+url_param, add_headers);
+
+	return HttpRequestHandler(HttpRequestHandler::NONE).get(Helper::serverApiUrl() +url_param, add_headers);
 }

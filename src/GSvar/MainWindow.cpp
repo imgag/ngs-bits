@@ -5806,9 +5806,9 @@ void MainWindow::storeCurrentVariantList()
 			add_headers.insert("Accept", "application/json");
 			add_headers.insert("Content-Type", "application/json");
 			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
+
 			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
-						"https://" + Settings::string("server_host") + ":" + QString::number(Settings::integer("https_server_port"))
-						+ "/v1/project_file?ps_url_id=" + ps_url_id,
+						Helper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id,
 						json_doc.toJson(),
 						add_headers
 					);

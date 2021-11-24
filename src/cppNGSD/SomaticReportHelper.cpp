@@ -683,8 +683,8 @@ void SomaticReportHelper::saveFileOnServer(QString filename, QString path, QStri
 	add_headers.insert("Content-Type", "application/json");
 	add_headers.insert("Content-Length", QByteArray::number(content.size()));
 	QString reply = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
-				"https://" + Settings::string("server_host") + ":" + QString::number(Settings::integer("https_server_port"))
-				+ "/v1/qbic_report_data?filename=" + QUrl(filename ).toEncoded() + "&path=" + QUrl(path).toEncoded(),
+				Helper::serverApiUrl()
+				+ "qbic_report_data?filename=" + QUrl(filename ).toEncoded() + "&path=" + QUrl(path).toEncoded(),
 				content.toLocal8Bit(),
 				add_headers
 			);
