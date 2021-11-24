@@ -1862,12 +1862,12 @@ QStringList NGSD::tables() const
 	return db_->driver()->tables(QSql::Tables);
 }
 
-const TableInfo& NGSD::tableInfo(const QString& table) const
+const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 {
 	QMap<QString, TableInfo>& table_infos = getCache().table_infos;
 
 	//create if necessary
-	if (!table_infos.contains(table))
+	if (!table_infos.contains(table) || !use_cache)
 	{
 		//check table exists
 		if (!tables().contains(table))
@@ -6059,6 +6059,13 @@ NGSD::Cache::Cache()
 
 void NGSD::initTranscriptCache()
 {
+	//get preferred transcript list
+	QSet<QByteArray> pts;
+	foreach(QString trans, getValues("SELECT DISTINCT name FROM preferred_transcripts"))
+	{
+		pts.insert(trans.toLatin1());
+	}
+
 	TranscriptList& cache = getCache().gene_transcripts;
 	ChromosomalIndex<TranscriptList>& index = getCache().gene_transcripts_index;
 	QHash<int, int>& id2index = getCache().gene_transcripts_id2index;
@@ -6090,6 +6097,7 @@ void NGSD::initTranscriptCache()
 		transcript.setName(query.value(2).toByteArray());
 		transcript.setSource(Transcript::stringToSource(query.value(3).toString()));
 		transcript.setStrand(Transcript::stringToStrand(query.value(4).toByteArray()));
+		transcript.setPreferredTranscript(pts.contains(transcript.name()));
 
 		//get exons
 		BedFile regions;

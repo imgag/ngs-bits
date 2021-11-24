@@ -13,7 +13,7 @@ class ReportWorker
 public:
 	///Constructor.
 	ReportWorker(GermlineReportGeneratorData data, QString filename);
-	virtual void process();
+	virtual void process() override;
 
 	///Returns the file to which the report was written.
 	QString getReportFile()

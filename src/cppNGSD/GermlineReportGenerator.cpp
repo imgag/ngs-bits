@@ -507,7 +507,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "4");
+	w.writeAttribute("version", "5");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -557,6 +557,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeStartElement("Gene");
 			w.writeAttribute("name", gene);
+			int hgnc_id = db_.geneToApprovedID(gene);
+			w.writeAttribute("identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 			w.writeEndElement();
 		}
 
@@ -665,6 +667,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			{
 				w.writeStartElement("TranscriptInformation");
 				w.writeAttribute("gene", trans.gene);
+				int hgnc_id = db_.geneToApprovedID(trans.gene);
+				w.writeAttribute("gene_identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 				w.writeAttribute("transcript_id", trans.id);
 				w.writeAttribute("type", trans.type);
 				QByteArray hgvs_c = trans.hgvs_c;
@@ -701,6 +705,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 				{
 					w.writeStartElement("GeneDiseaseInformation");
 					w.writeAttribute("gene", gene);
+					int hgnc_id = db_.geneToApprovedID(gene);
+					w.writeAttribute("gene_identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 					w.writeAttribute("source", query.value("source").toString());
 					w.writeAttribute("identifier", query.value("identifier").toString());
 					w.writeAttribute("name", query.value("name").toString());
@@ -714,6 +720,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 					//gene
 					w.writeStartElement("GeneDiseaseInformation");
 					w.writeAttribute("gene", omim_info.gene_symbol);
+					int hgnc_id = db_.geneToApprovedID(omim_info.gene_symbol);
+					w.writeAttribute("gene_identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 					w.writeAttribute("source", "OMIM gene");
 					w.writeAttribute("identifier", omim_info.mim);
 					w.writeAttribute("name", omim_info.gene_symbol);
@@ -724,6 +732,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 					{
 						w.writeStartElement("GeneDiseaseInformation");
 						w.writeAttribute("gene", omim_info.gene_symbol);
+						int hgnc_id = db_.geneToApprovedID(omim_info.gene_symbol);
+						w.writeAttribute("gene_identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 						w.writeAttribute("source", "OMIM phenotype");
 						QString accession = pheno.accession().trimmed();
 						if (accession=="") accession = "n/a";
@@ -743,6 +753,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			{
 				w.writeStartElement("GeneInheritanceInformation");
 				w.writeAttribute("gene", gene);
+				int hgnc_id = db_.geneToApprovedID(gene);
+				w.writeAttribute("gene_identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 				w.writeAttribute("inheritance", gene_info.inheritance);
 				w.writeEndElement();
 			}
@@ -820,6 +832,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeStartElement("Gene");
 			w.writeAttribute("name", gene);
+			int hgnc_id = db_.geneToApprovedID(gene);
+			w.writeAttribute("identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 			w.writeEndElement();
 		}
 
@@ -857,7 +871,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v4.xsd");
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v5.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "Invalid germline report XML file gererated: " + xml_error);
@@ -1163,16 +1177,9 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		QMap<QByteArray, BedFile> grouped;
 		for (int i=0; i<low_cov.count(); ++i)
 		{
-			QList<QByteArray> genes = low_cov[i].annotations()[0].split(',');
-			foreach(QByteArray gene, genes)
+			GeneSet genes = GeneSet::createFromText(low_cov[i].annotations()[0], ',');
+			foreach(const QByteArray& gene, genes)
 			{
-				gene = gene.trimmed();
-
-				//skip non-gene regions
-				// - remains of VEGA database in old HaloPlex designs
-				// - SNPs for sample identification
-				if (gene=="") continue;
-
 				grouped[gene].append(low_cov[i]);
 			}
 		}

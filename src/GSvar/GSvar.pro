@@ -100,7 +100,8 @@ SOURCES += main.cpp\
     cfDNARemovedRegions.cpp \
     CfdnaAnalysisDialog.cpp \
     ClinvarUploadDialog.cpp \
-    LiftOverWidget.cpp
+    LiftOverWidget.cpp \
+    CacheInitWorker.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -196,7 +197,8 @@ HEADERS += MainWindow.h \
     cfDNARemovedRegions.h \
     CfdnaAnalysisDialog.h \
     ClinvarUploadDialog.h \
-    LiftOverWidget.h
+    LiftOverWidget.h \
+    CacheInitWorker.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \

@@ -126,6 +126,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "ClinvarUploadDialog.h"
 #include "GenomeVisualizationWidget.h"
 #include "LiftOverWidget.h"
+#include "CacheInitWorker.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -249,6 +250,10 @@ MainWindow::MainWindow(QWidget *parent)
 	notification_label_->setMaximumSize(16,16);
 	notification_label_->setPixmap(QPixmap(":/Icons/email.png"));
 	ui_.statusBar->addPermanentWidget(notification_label_);
+
+	//init cache in background thread (it takes about 6 seconds)
+	CacheInitWorker* worker = new CacheInitWorker();
+	worker->start();
 }
 
 QString MainWindow::appName() const
@@ -5652,8 +5657,8 @@ void MainWindow::editVariantReportConfiguration(int index)
 
 		if (i_genes!=-1)
 		{
-			QByteArrayList genes = variant.annotations()[i_genes].split(',');
-			foreach(QByteArray gene, genes)
+			GeneSet genes = GeneSet::createFromText(variant.annotations()[i_genes], ',');
+			foreach(const QByteArray& gene, genes)
 			{
 				GeneInfo gene_info = db.geneInfo(gene);
 				inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
