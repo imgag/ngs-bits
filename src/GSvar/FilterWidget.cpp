@@ -333,6 +333,18 @@ const QList<PhenotypeEvidence>& FilterWidget::allowedPhenotypeEvidences() const
 	return allowedPhenotypeEvidences_;
 }
 
+void FilterWidget::setAllowedPhenotypeSources(QList<PhenotypeSource> sources)
+{
+	allowedPhenotypeSources_ = sources;
+}
+
+
+void FilterWidget::setAllowedPhenotypeEvidences(QList<PhenotypeEvidence> evidences)
+{
+	allowedPhenotypeEvidences_ = evidences;
+}
+
+
 const FilterCascade& FilterWidget::filters() const
 {
 	return ui_.cascade_widget->filters();
@@ -459,14 +471,45 @@ void FilterWidget::phenotypesChanged()
 	ui_.hpo_terms->setText(tmp.join("; "));
 
 	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on the phenotype-associated gene loci including 5000 flanking bases.";
+
+	if ( (!phenotypes_.isEmpty()) | (! allowedPhenotypeEvidences_.isEmpty()) | (! allowedPhenotypeSources_.isEmpty()))
+	{
+		tooltip += "<br>";
+	}
+
 	if (!phenotypes_.isEmpty())
 	{
-		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
+		tooltip += "<br><nobr>Currently selected HPO terms:</nobr>";
 		foreach(const Phenotype& pheno, phenotypes_)
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}
 	}
+
+	if (! allowedPhenotypeEvidences_.isEmpty())
+	{
+		tooltip += "<br><nobr>Currently selected evidences:</nobr>";
+		tooltip += "<br><nobr>";
+		foreach(const PhenotypeEvidence& e, allowedPhenotypeEvidences_)
+		{
+			tooltip += evidenceToString(e) + ", ";
+		}
+		tooltip.chop(2);
+		tooltip += "</nobr>";
+	}
+
+	if (! allowedPhenotypeSources_.isEmpty())
+	{
+		tooltip += "<br><nobr>Currently selected Sources:</nobr>";
+		tooltip += "<br><nobr>";
+		foreach(const PhenotypeSource& s, allowedPhenotypeSources_)
+		{
+			tooltip += sourceToString(s) + ", ";
+		}
+		tooltip.chop(2);
+		tooltip += "</nobr>";
+	}
+
 	ui_.hpo_terms->setToolTip(tooltip);
 
 	emit filtersChanged();

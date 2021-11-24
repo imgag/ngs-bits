@@ -260,6 +260,11 @@ MainWindow::MainWindow(QWidget *parent)
 	this->last_phenotype_evidences_ = allEvidenceValues();
 	this->last_phenotype_sources_ = allSourceValues();
 	this->filter_phenos_ = false;
+	//give the filter widget the current state and update the tooltip:
+	this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
+	this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
+	this->ui_.filters->phenotypesChanged();
+
 }
 
 QString MainWindow::appName() const
@@ -2249,6 +2254,11 @@ void MainWindow::openPhenotypeOptions()
 	{
 		this->last_phenotype_evidences_ = selector->selectedEvidences();
 		this->last_phenotype_sources_ = selector->selectedSources();
+
+		this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
+		this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
+		this->ui_.filters->phenotypesChanged();
+
 		if (this->last_phenos_.count() != 0)
 		{
 			filter_phenos_ = true;
@@ -6218,5 +6228,15 @@ QString MainWindow::normalSampleName()
 	}
 
 	return "";
+}
+
+QList<PhenotypeEvidence> MainWindow::last_phenotype_evidences()
+{
+	return last_phenotype_evidences_;
+}
+
+QList<PhenotypeSource> MainWindow::last_phenotype_sources()
+{
+	return last_phenotype_sources_;
 }
 

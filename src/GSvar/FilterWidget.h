@@ -63,8 +63,12 @@ public:
 	void setPhenotypes(const PhenotypeList& phenotypes);
 	///Returns selected database sources
 	const QList<PhenotypeSource>& allowedPhenotypeSources() const;
+
+	void setAllowedPhenotypeSources(QList<PhenotypeSource> sources);
 	///Returns selected Evidence levels
 	const QList<PhenotypeEvidence>& allowedPhenotypeEvidences() const;
+
+	void setAllowedPhenotypeEvidences(QList<PhenotypeEvidence> evidences);
 
 	/// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
@@ -96,6 +100,9 @@ signals:
 	/// Signal that the options for evidence and source selection were requested.
 	void phenotypeOptionsRequested();
 
+public slots:
+		void phenotypesChanged();
+
 protected slots:
 	void addRoi();
 	void addRoiTemp();
@@ -105,7 +112,6 @@ protected slots:
 	void textChanged();
 	void regionChanged();
 	void reportConfigFilterChanged();
-	void phenotypesChanged();
 	void updateFilterName();
 	void customFilterLoaded();
 	void showTargetRegionDetails();
