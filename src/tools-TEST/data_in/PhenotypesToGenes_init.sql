@@ -13,4 +13,8 @@ INSERT INTO `hpo_genes` (`hpo_term_id`, `gene`, `sources`, `evidence`) VALUES
 (11495, 'BUB1', 'HPO, GenCC', 'MED'),
 (11495, 'ACTG2', 'HGMC', 'NA'),
 (64350, 'BUB1', 'Decipher', 'MED'),
-(64350, 'AAGAB', 'OMIM, HPO', 'HIGH');
+(64350, 'AAGAB', 'OMIM, HPO', 'HIGH'),
+(11495, 'BRACA2', 'HPO', 'LOW'),
+(64350, 'BRACA2', 'HPO, HGMC', 'LOW'),
+(64350, 'PMS1', 'Decipher', 'MED'),
+(11495, 'PMS1', 'GenCC, Decipher', 'HIGH');
