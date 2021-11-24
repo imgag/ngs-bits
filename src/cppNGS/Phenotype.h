@@ -10,7 +10,7 @@
 
 struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 {
-
+	PhenotypeEvidence() = delete;
 	/// Strength of the evidence for a given relation
 	enum Evidence {NA, AGAINST, LOW, MED, HIGH};
 	/// returns a integer representing the Strength of the evidence: lower less evidence, higher better evidence
@@ -179,6 +179,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 
 struct CPPNGSSHARED_EXPORT PhenotypeSource
 {
+	PhenotypeSource() = delete;
 	/// Source for a given relation
 	enum Source {HPO, OMIM, CLINVAR, DECIPHER, HGMC, GENCC };
 	/// returns a QString representation für the given phenotype source
