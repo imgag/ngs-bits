@@ -1,17 +1,13 @@
 #include "RequestParser.h"
 
-RequestParser::RequestParser(QByteArray *request, QString client_address)
-	: raw_request_(request)
-	, client_address_(client_address)
+RequestParser::RequestParser()
 {
 }
 
-HttpRequest RequestParser::getRequest() const
+HttpRequest RequestParser::parse(QByteArray *request) const
 {
 	HttpRequest parsed_request;
-	QList<QByteArray> r = raw_request_->split('\n');
-	parsed_request.setRemoteAddress(client_address_);
-	QList<QByteArray> body = getRawRequestHeaders();
+	QList<QByteArray> body = getRawRequestHeaders(*request);
 
 	for (int i = 0; i < body.count(); ++i)
 	{
@@ -58,7 +54,7 @@ HttpRequest RequestParser::getRequest() const
 		}
 	}
 
-	parsed_request.setBody(getRequestBody().trimmed());
+	parsed_request.setBody(getRequestBody(*request).trimmed());
 	parsed_request.setContentType(ContentType::TEXT_HTML);
 	if (parsed_request.getHeaders().contains("accept"))
 	{
@@ -73,10 +69,10 @@ HttpRequest RequestParser::getRequest() const
 	return parsed_request;
 }
 
-QList<QByteArray> RequestParser::getRawRequestHeaders() const
+QList<QByteArray> RequestParser::getRawRequestHeaders(const QByteArray& input) const
 {
 	QList<QByteArray> output;
-	QList<QByteArray> request_items = raw_request_->split('\n');
+	QList<QByteArray> request_items = input.split('\n');
 	for (int i = 0; i < request_items.count(); ++i)
 	{
 		if (request_items.value(i).trimmed().isEmpty()) return output;
@@ -85,10 +81,10 @@ QList<QByteArray> RequestParser::getRawRequestHeaders() const
 	return output;
 }
 
-QByteArray RequestParser::getRequestBody() const
+QByteArray RequestParser::getRequestBody(const QByteArray& input) const
 {
 	QByteArray output;
-	QList<QByteArray> request_items = raw_request_->split('\n');
+	QList<QByteArray> request_items = input.split('\n');
 	bool passed_headers = false;
 	for (int i = 0; i < request_items.count(); ++i)
 	{

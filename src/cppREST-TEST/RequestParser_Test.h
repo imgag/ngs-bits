@@ -13,17 +13,16 @@ private slots:
 			"Host: localhost:8443\r\n"
 			"Connection: keep-alive\r\n";
 
-		RequestParser *parser = new RequestParser(&raw_request, "127.0.0.1");
-		HttpRequest parsed_request = parser->getRequest();
+		RequestParser *parser = new RequestParser();
+		HttpRequest parsed_request = parser->parse(&raw_request);
 
 		S_EQUAL(parsed_request.getPath(), "static");
-		S_EQUAL(parsed_request.getRemoteAddress(), "127.0.0.1");
 		S_EQUAL(HttpProcessor::convertMethodTypeToString(parsed_request.getMethod()), "get");
 		S_EQUAL(parsed_request.getUrlParams().value("var"), "val");
 		S_EQUAL(parsed_request.getHeaders()["host"][0], "localhost:8443");
 		S_EQUAL(parsed_request.getHeaders()["connection"][0], "keep-alive");
 
 		raw_request.append("Malformed header - value\r\n");
-		IS_THROWN(Exception, parser->getRequest());
+		IS_THROWN(Exception, parser->parse(&raw_request));
 	}
 };

@@ -64,8 +64,6 @@ void RequestWorker::run()
 	qint64 request_headers_size = 0;
 	qint64 request_body_size = 0;
 
-
-
 	while (ssl_socket->waitForReadyRead())
 	{		
 		qDebug() << "Start request processing";
@@ -113,12 +111,12 @@ void RequestWorker::run()
 		return;
 	}
 
-
+	qDebug() << "Client address" << ssl_socket->peerAddress().toString();
 	HttpRequest parsed_request;
-	RequestParser *parser = new RequestParser(&all_request_parts, ssl_socket->peerAddress().toString());
+	RequestParser *parser = new RequestParser();
 	try
 	{
-		parsed_request = parser->getRequest();
+		parsed_request = parser->parse(&all_request_parts);
 	}
 	catch (Exception& e)
 	{
@@ -210,7 +208,6 @@ void RequestWorker::run()
 
 		sendResponseDataPart(ssl_socket, response.getStatusLine());
 		sendResponseDataPart(ssl_socket, response.getHeaders());
-
 
 		quint64 pos = 0;
 		quint64 file_size = streamed_file.size();
@@ -357,7 +354,7 @@ void RequestWorker::handleConnection()
 void RequestWorker::socketDisconnected()
 {
 	qDebug() << "Client has disconnected from the socket";
-	this->exit(0);
+	exit(0);
 }
 
 QString RequestWorker::intToHex(const int& input)
@@ -372,15 +369,14 @@ void RequestWorker::closeAndDeleteSocket(QSslSocket* socket)
 
 	if ((socket->state() == QSslSocket::SocketState::UnconnectedState) || (socket->state() == QSslSocket::SocketState::ClosingState))
 	{
-//		socket->abort();
-		this->exit(0);
+		exit(0);
 	}
 	else
 	{
 		if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
 		socket->disconnect();
 		socket->disconnectFromHost();
-//		socket->close();
+		socket->close();
 		socket->deleteLater();
 	}
 }
@@ -392,9 +388,6 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, QByteArray data)
 		socket->write(data, data.size());
 		if (socket->bytesToWrite()) socket->waitForBytesWritten(5000);
 	}
-
-	// clinet completes/cancels the stream or simply disconnects
-//	if ((socket->state() == QSslSocket::SocketState::UnconnectedState) || (socket->state() == QSslSocket::SocketState::ClosingState)) closeAndDeleteSocket(socket);
 }
 
 void RequestWorker::sendEntireResponse(QSslSocket* socket, HttpResponse response)

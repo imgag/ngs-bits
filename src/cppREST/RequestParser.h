@@ -15,13 +15,13 @@ class CPPRESTSHARED_EXPORT RequestParser : public QObject
 	Q_OBJECT
 
 public:
-	RequestParser(QByteArray *request, QString client_address);
-	HttpRequest getRequest() const;
+	RequestParser();
+	HttpRequest parse(QByteArray *request) const;
 
 
 private:
-	QList<QByteArray> getRawRequestHeaders() const;
-	QByteArray getRequestBody() const;
+	QList<QByteArray> getRawRequestHeaders(const QByteArray& input) const;
+	QByteArray getRequestBody(const QByteArray& input) const;
 	QList<QByteArray> getKeyValuePair(const QByteArray& input) const;
 	QMap<QString, QString> getVariables(const QByteArray& input) const;
 	QByteArray getVariableSequence(const QByteArray& url) const;
@@ -29,9 +29,6 @@ private:
 	QString getRequestPath(const QList<QString>& path_items) const;
 	QList<QString> getRequestPathParams(const QList<QString>& path_items) const;
 	RequestMethod inferRequestMethod(const QByteArray& input) const;
-
-	QByteArray *raw_request_;
-	QString client_address_;
 };
 
 
