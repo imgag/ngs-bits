@@ -33,6 +33,7 @@ public:
 	FileLocationList getLowCoverageFiles(bool return_if_missing) const override;
 	FileLocationList getCopyNumberCallFiles(bool return_if_missing) const override;
 	FileLocationList getRohFiles(bool return_if_missing) const override;
+	FileLocationList getExpressionFiles(bool return_if_missing) const override;
 
 	FileLocation getSomaticCnvCoverageFile() const override;
 	FileLocation getSomaticCnvCallFile() const override;
