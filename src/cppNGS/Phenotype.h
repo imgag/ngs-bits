@@ -181,7 +181,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 {
 	PhenotypeSource() = delete;
 	/// Source for a given relation
-	enum Source {HPO, OMIM, CLINVAR, DECIPHER, HGMC, GENCC };
+	enum Source {HPO, OMIM, CLINVAR, DECIPHER, HGMD, GENCC };
 	/// returns a QString representation für the given phenotype source
 	static QString sourceToString(Source src)
 	{
@@ -198,8 +198,8 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 			case Source::DECIPHER:
 				return "Decipher";
 				break;
-			case Source::HGMC:
-				return "HGMC";
+			case Source::HGMD:
+				return "HGMD";
 				break;
 			case Source::GENCC:
 				return "GenCC";
@@ -222,8 +222,8 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 			return Source::CLINVAR;
 		} else if (s == "decipher") {
 			return Source::DECIPHER;
-		} else if (s == "hgmc") {
-			return Source::HGMC;
+		} else if (s == "hgmd") {
+			return Source::HGMD;
 		} else if (s == "gencc") {
 			return Source::GENCC;
 		}
@@ -237,7 +237,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 
 	static QList<Source> allSourceValues()
 	{
-		return QList<Source>{Source::HPO, Source::OMIM, Source::CLINVAR, Source::DECIPHER, Source::HGMC, Source::GENCC};
+		return QList<Source>{Source::HPO, Source::OMIM, Source::CLINVAR, Source::DECIPHER, Source::HGMD, Source::GENCC};
 	}
 };
 
