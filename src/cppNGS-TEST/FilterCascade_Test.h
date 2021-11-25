@@ -855,6 +855,54 @@ private slots:
 		I_EQUAL(result.countPassing(), 2);
 	}
 
+	void FilterSplice_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_newer_Annotation_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//only MMS:
+		FilterSpliceEffect filter;
+		filter.setDouble("MaxEntScan", 0);
+		filter.setDouble("SpliceAi", 0);
+		filter.setDouble("MMSplice", 0.9);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 26);
+
+		//only MES: increase
+		result.reset();
+		filter.setDouble("MaxEntScan", 0.15);
+		filter.setDouble("SpliceAi", 0);
+		filter.setDouble("MMSplice", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 1);
+
+		//only MES: decrease
+		result.reset();
+		filter.setDouble("MaxEntScan", -0.15);
+		filter.setDouble("SpliceAi", 0);
+		filter.setDouble("MMSplice", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 2);
+
+		//only SpliceAi
+		result.reset();
+		filter.setDouble("MaxEntScan", 0);
+		filter.setDouble("SpliceAi", 0.2);
+		filter.setDouble("MMSplice", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 5);
+
+		//combined
+		result.reset();
+		filter.setDouble("MaxEntScan", -0.15);
+		filter.setDouble("SpliceAi", 0.4);
+		filter.setDouble("MMSplice", 0.95);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 7);
+	}
+
 	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
 
 	void FilterSomaticAlleleFrequency_apply_tumor_only()

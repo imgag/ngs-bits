@@ -678,6 +678,18 @@ public:
 	void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
+//Filter for variants that influence splice sites
+class CPPNGSSHARED_EXPORT FilterSpliceEffect
+		: public FilterBase
+{
+public:
+	FilterSpliceEffect();
+	QString toText() const override;
+	void apply(const VariantList &variant_list, FilterResult &result) const override;
+private:
+	double calculatePercentageChangeMES_(const QByteArray& value) const;
+};
+
 /*************************************************** filters for CNVs ***************************************************/
 //Filter CNV size
 class CPPNGSSHARED_EXPORT FilterCnvSize
