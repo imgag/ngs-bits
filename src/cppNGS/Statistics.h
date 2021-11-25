@@ -8,7 +8,6 @@
 #include "KeyValuePair.h"
 #include "NGSHelper.h"
 #include "GenomeBuild.h"
-#include "Settings.h"
 #include <QMap>
 
 ///Helper class for gender estimates

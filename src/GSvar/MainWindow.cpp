@@ -5532,7 +5532,7 @@ void MainWindow::updateVariantDetails()
 
 void MainWindow::executeIGVCommands(QStringList commands, bool init_if_not_done)
 {
-	bool debug = true;
+	bool debug = false;
 
 	try
 	{
