@@ -508,18 +508,18 @@ void BamReader::init(const QString& bam_file, const QString& ref_genome)
 	//parse reference file chromosome sizes
 }
 
-BamReader::BamReader(QString bam_file)
+BamReader::BamReader(const QString& bam_file)
 	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
 {
-	init(bam_file_);
+	init(bam_file);
 }
 
-BamReader::BamReader(QString bam_file, const QString& ref_genome)
+BamReader::BamReader(const QString& bam_file, const QString& ref_genome)
 	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toLatin1().constData(), "r"))
 {
-	init(bam_file_, ref_genome);
+	init(bam_file, ref_genome);
 }
 
 BamReader::~BamReader()

@@ -1850,11 +1850,11 @@ BedFile Statistics::lowCoverage(const QString& bam_file, int cutoff, int min_map
 
 void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min_mapq, bool include_duplicates, bool panel_mode, int decimals, const QString& ref_file)
 {
+	//open BAM file
+	BamReader reader(bam_file, ref_file);
+
 	if (panel_mode) //panel mode
 	{
-		//open BAM file
-		BamReader reader(bam_file, ref_file);
-
 		for (int i=0; i<bed_file.count(); ++i)
 		{
 			long cov = 0;
@@ -1883,7 +1883,6 @@ void Statistics::avgCoverage(BedFile& bed_file, const QString& bam_file, int min
 	}
 	else //default mode
 	{
-		BamReader reader(bam_file, ref_file);
 		//check target region is merged/sorted and create index
 		if (!bed_file.isMergedAndSorted())
 		{

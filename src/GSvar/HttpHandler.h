@@ -47,7 +47,7 @@ private:
 	QString proxy_password_;
 	HttpHeaders headers_;
 	//declared away
-	HttpHandler() = delete;	
+	HttpHandler() = delete;
 };
 
 #endif // HTTPHANDLER_H

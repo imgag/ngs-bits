@@ -2599,7 +2599,7 @@ void MainWindow::loadFile(QString filename)
 	try
 	{
 		//load variants
-		timer.restart();		
+		timer.restart();
 		variants_.load(filename);
 		Log::perf("Loading small variant list took ", timer);
 		QString mode_title = "";
