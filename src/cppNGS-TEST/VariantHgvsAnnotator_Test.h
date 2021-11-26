@@ -338,7 +338,7 @@ private slots:
         variant.setRef("ACAG");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
-        //S_EQUAL(hgvs.hgvs_c, "c.47_49del");
+        S_EQUAL(hgvs.hgvs_c, "c.47_49del");
         S_EQUAL(hgvs.hgvs_p, "p.Ala16del");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
@@ -429,7 +429,7 @@ private slots:
         variant.setRef("AGAA");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
-        //S_EQUAL(hgvs.hgvs_c, "c.952_954del");
+        S_EQUAL(hgvs.hgvs_c, "c.952_954del");
         S_EQUAL(hgvs.hgvs_p, "p.Glu318del");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
@@ -461,14 +461,14 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_INSERTION));
 
-        // inframe insertion
+        // inframe insertion, also shifted by 1 nt according to 3' rule
         alt.clear();
         alt.push_back("GTCACCG");
         variant.setPos(91057195);
         variant.setRef("G");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
-        S_EQUAL(hgvs.hgvs_c, "c.830_831insTCACCG");
+        S_EQUAL(hgvs.hgvs_c, "c.831_832insCACCGT");
         S_EQUAL(hgvs.hgvs_p, "p.Ser277_Asp278insHisArg");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
@@ -797,7 +797,7 @@ private slots:
         VcfLine variant(Chromosome("chr3"), 195307238, "TC", alt);
         HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.-34-873delinsAGA");
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
 
         //delins 3 prime utr
         alt.clear();
@@ -807,7 +807,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.*69delinsCGCC");
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
 
         //delins intron
         t = trans_SLC51A();
@@ -819,7 +819,7 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.133+1160_133+1163delinsCGTG");
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
 
         //delins exon missense
         t = trans_CDKN1C();
@@ -831,10 +831,10 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.698_699delinsAG");
-        //S_EQUAL(hgvs.hgvs_p, "p.Arg233Gln");
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
+        S_EQUAL(hgvs.hgvs_p, "p.Arg233Gln");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
 
         //delins exon missense
         alt.clear();
@@ -844,10 +844,49 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.586_587delinsTT");
-        //S_EQUAL(hgvs.hgvs_p, "p.Ala196Leu");
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
+        S_EQUAL(hgvs.hgvs_p, "p.Ala196Leu");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
+
+        //delins exon; more than one amino acid deleted
+        alt.clear();
+        alt.push_back("AA");
+        variant.setPos(2906130);
+        variant.setRef("GCCGC");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.586_590delinsTT");
+        S_EQUAL(hgvs.hgvs_p, "p.Ala196_Ala197delinsPhe");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_DELETION));
+
+        //delins exon; more than one amino acid inserted
+        alt.clear();
+        alt.push_back("AAATT");
+        variant.setPos(2906133);
+        variant.setRef("GC");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.586_587delinsAATTT");
+        S_EQUAL(hgvs.hgvs_p, "p.Ala196delinsAsnLeu");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_INSERTION));
+
+        //delins exon; more than one amino acid deleted and inserted
+        alt.clear();
+        alt.push_back("AAATT");
+        variant.setPos(2906130);
+        variant.setRef("GCCGC");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.586_590delinsAATTT");
+        S_EQUAL(hgvs.hgvs_p, "p.Ala196_Ala197delinsAsnPhe");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
 
         //delins exon frameshift
         alt.clear();
@@ -857,10 +896,10 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.631delinsAA");
-        //S_EQUAL(hgvs.hgvs_p, "p.Ala211fs");
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+        S_EQUAL(hgvs.hgvs_p, "p.Ala211fs");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
 
         //delins exon frameshift
         alt.clear();
@@ -870,10 +909,10 @@ private slots:
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.310_311delinsG");
-        //S_EQUAL(hgvs.hgvs_p, "p.Leu104fs");
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
-        //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+        S_EQUAL(hgvs.hgvs_p, "p.Leu104fs");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
     }
 
     void vcfToHgvsUtrIntrons()
@@ -973,42 +1012,17 @@ private slots:
 
     void translateDnaSequence()
     {
-        QString ref_file = Settings::string("reference_genome", true);
-        if (ref_file=="") SKIP("Test needs the reference genome!");
-        FastaFileIndex reference(ref_file);
-
         VariantHgvsAnnotator annotator;
-        Transcript t_1 = trans_SLC51A();
-        QString aa_seq_1("MetGluProGlyArgThrGlnIleLysLeuAspProArgTyrThrAlaAspLeuLeuGlu"
-                         "ValLeuLysThrAsnTyrGlyIleProSerAlaCysPheSerGlnProProThrAlaAla"
-                         "GlnLeuLeuArgAlaLeuGlyProValGluLeuAlaLeuThrSerIleLeuThrLeuLeu"
-                         "AlaLeuGlySerIleAlaIlePheLeuGluAspAlaValTyrLeuTyrLysAsnThrLeu"
-                         "CysProIleLysArgArgThrLeuLeuTrpLysSerSerAlaProThrValValSerVal"
-                         "LeuCysCysPheGlyLeuTrpIleProArgSerLeuValLeuValGluMetThrIleThr"
-                         "SerPheTyrAlaValCysPheTyrLeuLeuMetLeuValMetValGluGlyPheGlyGly"
-                         "LysGluAlaValLeuArgThrLeuArgAspThrProMetMetValHisThrGlyProCys"
-                         "CysCysCysCysProCysCysProArgLeuLeuLeuThrArgLysLysLeuGlnLeuLeu"
-                         "MetLeuGlyProPheGlnTyrAlaPheLeuLysIleThrLeuThrLeuValGlyLeuPhe"
-                         "LeuValProAspGlyIleTyrAspProAlaAspIleSerGluGlySerThrAlaLeuTrp"
-                         "IleAsnThrPheLeuGlyValSerThrLeuLeuAlaLeuTrpThrLeuGlyIleIleSer"
-                         "ArgGlnAlaArgLeuHisLeuGlyGluGlnAsnMetGlyAlaLysPheAlaLeuPheGln"
-                         "ValLeuLeuIleLeuThrAlaLeuGlnProSerIlePheSerValLeuAlaAsnGlyGly"
-                         "GlnIleAlaCysSerProProTyrSerSerLysThrArgSerGlnValMetAsnCysHis"
-                         "LeuLeuIleLeuGluThrPheLeuMetThrValLeuThrArgMetTyrTyrArgArgLys"
-                         "AspHisLysValGlyTyrGluThrPheSerSerProAspLeuAspLeuAsnLeuLysAlaTer");
-        S_EQUAL(annotator.translate(annotator.getCodingSequence(t_1, reference)), aa_seq_1);
+        Sequence dna_seq = "TTTTTCTTATTGCTTCTCCTACTGTCTTCCTCATCGAGTAGCTATTACTAATAG"
+                           "TGATGTTGCTGGCCTCCCCCACCGCATCACCAACAGCGTCGCCGACGGAGAAGG"
+                           "ATTATCATAATGACTACCACAACGAATAACAAAAAGGTTGTCGTAGTGGCTGCC"
+                           "GCAGCGGATGACGAAGAGGGTGGCGGAGGG";
 
-        Transcript t_2 = trans_APOD();
-        QString aa_seq_2("MetValMetLeuLeuLeuLeuLeuSerAlaLeuAlaGlyLeuPheGlyAlaAlaGluGly"
-                         "GlnAlaPheHisLeuGlyLysCysProAsnProProValGlnGluAsnPheAspValAsn"
-                         "LysTyrLeuGlyArgTrpTyrGluIleGluLysIleProThrThrPheGluAsnGlyArg"
-                         "CysIleGlnAlaAsnTyrSerLeuMetGluAsnGlyLysIleLysValLeuAsnGlnGlu"
-                         "LeuArgAlaAspGlyThrValAsnGlnIleGluGlyGluAlaThrProValAsnLeuThr"
-                         "GluProAlaLysLeuGluValLysPheSerTrpPheMetProSerAlaProTyrTrpIle"
-                         "LeuAlaThrAspTyrGluAsnTyrAlaLeuValTyrSerCysThrCysIleIleGlnLeu"
-                         "PheHisValAspPheAlaTrpIleLeuAlaArgAsnProAsnLeuProProGluThrVal"
-                         "AspSerLeuLysAsnIleLeuThrSerAsnAsnIleAspValLysLysMetThrValThr"
-                         "AspGlnValAsnCysProLysLeuSerTer");
-        S_EQUAL(annotator.translate(annotator.getCodingSequence(t_2, reference)), aa_seq_2);
+        QString aa_seq = "PhePheLeuLeuLeuLeuLeuLeuSerSerSerSerSerSerTyrTyrTerTer"
+                         "TerCysCysTrpProProProProHisHisGlnGlnArgArgArgArgArgArg"
+                         "IleIleIleMetThrThrThrThrAsnAsnLysLysValValValValAlaAla"
+                         "AlaAlaAspAspGluGluGlyGlyGlyGly";
+
+        S_EQUAL(annotator.translate(dna_seq), aa_seq);
     }
 };

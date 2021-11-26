@@ -137,10 +137,9 @@ public:
     VariantHgvsAnnotator(int max_dist_to_transcript, int splice_region_ex, int splice_region_in);
 
     ///Converts a variant in VCF format to HGVS nomenclature
-    HgvsNomenclature variantToHgvs(const Transcript& transcript, const VcfLine& variant, const FastaFileIndex& genome_idx);
-    HgvsNomenclature variantToHgvs(const Transcript& transcript, const Variant& variant, const FastaFileIndex& genome_idx);
+    HgvsNomenclature variantToHgvs(const Transcript& transcript, VcfLine &variant, const FastaFileIndex& genome_idx);
+    HgvsNomenclature variantToHgvs(const Transcript& transcript, Variant& variant, const FastaFileIndex& genome_idx);
 
-    Sequence getCodingSequence(const Transcript& trans, const FastaFileIndex& genome_idx);
     QByteArray translate(const Sequence& seq, bool is_mito = false);
 };
 
