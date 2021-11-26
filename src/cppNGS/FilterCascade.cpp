@@ -965,7 +965,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV count NGSD"] = &createInstance<FilterSvCountNGSD>;
 		output["SV allele frequency NGSD"] = &createInstance<FilterSvAfNGSD>;
         output["SV trio"] = &createInstance<FilterSvTrio>;
-		output["Splice"] = &createInstance<FilterSpliceEffect>;
+		output["SpliceEffect"] = &createInstance<FilterSpliceEffect>;
 	}
 
 	return output;
