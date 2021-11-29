@@ -131,7 +131,8 @@ struct FileLocation
 			case PathType::VCF_CF_DNA:
 				return "VCF_CF_DNA";
 			case PathType::EXPRESSION:
-				return "EXPRESSION";			case PathType::MRD_CF_DNA:
+				return "EXPRESSION";
+			case PathType::MRD_CF_DNA:
 				return "MRD_CF_DNA";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
@@ -225,8 +226,10 @@ struct FileLocation
 			case PathType::VCF_CF_DNA:
 				return "cfDNA small variant calls";
 			case PathType::EXPRESSION:
-				return "RNA relative expression";			case PathType::MRD_CF_DNA:
-				return "measurable residual disease value (umiVar 2)";		}
+				return "RNA relative expression";
+			case PathType::MRD_CF_DNA:
+				return "measurable residual disease value (umiVar 2)";
+		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}
 
