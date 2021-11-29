@@ -192,6 +192,22 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	}
 }
 
+void GSvarHelper::limitLines(QLabel* label, QString text, QString sep, int max_lines)
+{
+	QStringList lines = text.split(sep);
+	if (lines.count()<max_lines)
+	{
+		label->setText(text);
+	}
+	else
+	{
+		while(lines.count()>max_lines) lines.removeLast();
+		lines.append("...");
+		label->setText(lines.join(sep));
+		label->setToolTip(text);
+	}
+}
+
 BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg38_to_hg19)
 {
 	//special handling of chrMT (they are the same for GRCh37 and GRCh38)

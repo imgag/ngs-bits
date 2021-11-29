@@ -1889,7 +1889,6 @@ void MainWindow::editVariantValidation(int index)
 	catch (DatabaseException& e)
 	{
 		GUIHelper::showMessage("NGSD error", e.message());
-		return;
 	}
 }
 
@@ -1929,7 +1928,6 @@ void MainWindow::editVariantComment(int index)
 	catch (DatabaseException& e)
 	{
 		GUIHelper::showMessage("NGSD error", e.message());
-		return;
 	}
 }
 
@@ -5782,7 +5780,7 @@ void MainWindow::checkPendingVariantValidations()
 	QStringList vv_pending = db.getValues("SELECT id FROM variant_validation WHERE status='for reporting' AND user_id='" + LoginManager::userIdAsString() + "'");
 	if (vv_pending.isEmpty()) return;
 
-	showNotification("Variant validation: " + QString::number(vv_pending.count()) + " pending variants 'for reporing'!");
+	showNotification("Variant validation: " + QString::number(vv_pending.count()) + " pending variants 'for reporting'!");
 }
 
 void MainWindow::showNotification(QString text)
