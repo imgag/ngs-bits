@@ -284,7 +284,7 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 				bool pathogenic_variant = table=="variant_classification" && query.value("class").toInt()>3;
 				target_variant_id = liftOverVariant(source_variant_id, causal_variant||pathogenic_variant);
 
-				//warn if causal/pathogenic variant could not be lifed
+				//warn if causal/pathogenic variant could not be lifted
 				if (target_variant_id<0)
 				{
 					if (causal_variant)
@@ -294,8 +294,7 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 					}
 					else if (pathogenic_variant)
 					{
-						QString ps = db_source_->processedSampleName(db_source_->getValue("SELECT processed_sample_id FROM report_configuration WHERE id=" + query.value("report_configuration_id").toString()).toString());
-						addWarning("Pathogenic variant " + db_source_->variant(query.value("variant_id").toString()).toString() + " of sample " + ps + " (class " + query.value("class").toString() + ") could not be lifted (" + QString::number(target_variant_id) + ")!");
+						addWarning("Pathogenic variant " + db_source_->variant(query.value("variant_id").toString()).toString() + " (class " + query.value("class").toString() + ") could not be lifted (" + QString::number(target_variant_id) + ")!");
 					}
 				}
 			}
@@ -751,7 +750,7 @@ void NGSDReplicationWidget::updateCnvTable(QString table, QString where_clause)
 			debug_stream << ps << "\t" << var.toString() << "\t" << cn << "\t" << QString::number((double)var.size()/1000, 'f', 2) << "\t"  << regs << "\t" << QString::number((double)ll/regs, 'f', 2) << "\t"  << (target_cnv_id>=0 ? "yes ("+QString::number(target_cnv_id)+")" : "no") << "\t" << error_message << "\t" << comments.join(", ") << "\n";
 			debug_stream.flush();
 
-			//warn if causal/pathogenic CNV could not be lifed
+			//warn if causal/pathogenic CNV could not be lifted
 			if (target_cnv_id<0)
 			{
 				if (causal_variant)
