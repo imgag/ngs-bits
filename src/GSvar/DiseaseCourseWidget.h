@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QTableWidgetItem>
+#include <TsvFile.h>
 #include "VcfFile.h"
 #include "NGSD.h"
 #include "LoginManager.h"
@@ -13,6 +14,7 @@ struct cfDnaColumn
 	QDate date;
 	VcfFile variants;
 	QMap<QByteArray, const VcfLine*> lookup_table;
+	TsvFile mrd;
 
 	bool operator<(const cfDnaColumn& other) const {
 		return date < other.date; // sort by date
