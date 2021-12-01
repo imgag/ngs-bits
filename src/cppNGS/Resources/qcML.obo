@@ -1097,8 +1097,8 @@ created_by: schuetz
 
 [Term]
 id: QC:2000080
-name: 250x coverage monitoring variant count
-def: "Number of monitoring variants which have at least 250x coverage."
+name: monitoring variant 250x percentage
+def: "Percentage of monitoring variants which have at least 250x coverage."
 is_a: QC:2000004 ! NGS variant list parameter
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: schuetz
@@ -1113,8 +1113,8 @@ created_by: schuetz
 
 [Term]
 id: QC:2000082
-name: 250x coverage ID variant count
-def: "Number of ID variants which have at least 250x coverage."
+name: ID variant 250x percentage
+def: "Percentage of ID variants which have at least 250x coverage."
 is_a: QC:2000004 ! NGS variant list parameter
 xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: schuetz
@@ -1125,4 +1125,12 @@ name: cfDNA-tumor correlation
 def: "Sample correlation of high-quality SNV genotypes between cfDNA and tumor sample."
 is_a: QC:2000001 ! NGS variant list parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000084
+name: cfDNA-cfDNA correlation
+def: "Sample correlation of high-quality SNV genotypes between related cfDNA samples."
+is_a: QC:2000001 ! NGS variant list parameter
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
 created_by: schuetz
