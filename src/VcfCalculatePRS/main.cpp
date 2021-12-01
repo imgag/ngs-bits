@@ -145,7 +145,10 @@ public:
 
 					int allele_count = 0;
 					if(genotype == "0/1") allele_count = 1;
+					else if(genotype == "1/0") allele_count = 1;
 					else if(genotype == "1/1") allele_count = 2;
+					else if(genotype == "0/0") allele_count = 0;
+					else if(genotype == "0") allele_count = 0;
 					else THROW(FileParseException, "Invalid genotype '" + genotype + "' in sample variant: " + matching_variants[0]);
 
 					//calculate PRS part
