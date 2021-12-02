@@ -161,6 +161,7 @@ public:
 
 			// compute percentile
 			int percentile = -1;
+			QByteArray percentile_string = ".";
 			if (percentiles.size() == 100)
 			{
 				for (int i = 0; i < percentiles.size(); ++i)
@@ -171,9 +172,12 @@ public:
 						break;
 					}
 				}
+				percentile_string = (percentile == -1) ? "100" : QByteArray::number(percentile);
 			}
-
-			QByteArray percentile_string = (percentile == -1) ? "." : QByteArray::number(percentile);
+			else if (percentiles.size() != 0)
+			{
+				THROW(FileParseException, "Invalid number of percentiles given (required: 100 or 0, given: "  + QByteArray::number(percentiles.size()) + ")!");
+			}
 
 			QByteArrayList prs_line = QByteArrayList() << column_entries["pgs_id"] << column_entries["trait"] << QByteArray::number(prs)
 													   << percentile_string << column_entries["build"] << column_entries["n_var"]
