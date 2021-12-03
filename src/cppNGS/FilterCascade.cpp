@@ -4875,6 +4875,8 @@ FilterSpliceEffect::FilterSpliceEffect()
 QString FilterSpliceEffect::toText() const
 {
 	QString text = this->name();
+	QString modus = getString("action");
+	text += "Modus=" + modus;
 	int mes = getInt("MaxEntScan", false);
 	text += " maxEntScan>=" + QString::number(mes) +"%";
 	double sai = getDouble("SpliceAi", false);
