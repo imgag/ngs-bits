@@ -13,7 +13,7 @@ PhenotypeSourceEvidenceSelector::PhenotypeSourceEvidenceSelector(QWidget *parent
 	connect(ui->HPO, SIGNAL(toggled(bool)), SLOT(updateSourceSelection()));
 	connect(ui->DECIPHER, SIGNAL(toggled(bool)), SLOT(updateSourceSelection()));
 	connect(ui->GENCC, SIGNAL(toggled(bool)), SLOT(updateSourceSelection()));
-	connect(ui->HGMC, SIGNAL(toggled(bool)), SLOT(updateSourceSelection()));
+	connect(ui->HGMD, SIGNAL(toggled(bool)), SLOT(updateSourceSelection()));
 	connect(ui->OMIM, SIGNAL(toggled(bool)), SLOT(updateSourceSelection()));
 
 	connect(ui->NA, SIGNAL(toggled(bool)), SLOT(updateEvidenceSelection()));

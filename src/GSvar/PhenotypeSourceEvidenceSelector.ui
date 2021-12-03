@@ -111,9 +111,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="HGMC">
+       <widget class="QCheckBox" name="HGMD">
         <property name="text">
-         <string>HGMC</string>
+         <string>HGMD</string>
         </property>
        </widget>
       </item>
