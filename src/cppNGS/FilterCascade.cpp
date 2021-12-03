@@ -4874,9 +4874,7 @@ FilterSpliceEffect::FilterSpliceEffect()
 
 QString FilterSpliceEffect::toText() const
 {
-	QString text = this->name();
-	QString modus = getString("action");
-	text += "Modus=" + modus;
+	QString text = this->name() + " " + getString("action");
 	int mes = getInt("MaxEntScan", false);
 	text += " maxEntScan>=" + QString::number(mes) +"%";
 	double sai = getDouble("SpliceAi", false);
@@ -4900,9 +4898,9 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 	int mes = getInt("MaxEntScan");
 
 	// if all filters are deactivated return
-	if ((sai == 0) & (mmsplice == 0) & (mes == 0)) return;
+	if ((sai == 0) && (mmsplice == 0) && (mes == 0)) return;
 
-	// MODUS FILTER
+	// action FILTER
 	if (getString("action") == "FILTER")
 	{
 		for(int i=0; i<variant_list.count(); ++i)
@@ -4910,7 +4908,7 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			if (!result.flags()[i]) continue;
 
 			//If the variant has no value for all possible filters remove it
-			if (variant_list[i].annotations()[idx_sai].isEmpty() & variant_list[i].annotations()[idx_mes].isEmpty() & variant_list[i].annotations()[idx_mms].isEmpty())
+			if (variant_list[i].annotations()[idx_sai].isEmpty() && variant_list[i].annotations()[idx_mes].isEmpty() && variant_list[i].annotations()[idx_mms].isEmpty())
 			{
 				result.flags()[i] = false;
 				continue;
@@ -4936,7 +4934,7 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 			result.flags()[i] = false;
 		}
 	}
-	// MODUS KEEP
+	// actio KEEP
 	else if (getString("action") == "KEEP")
 	{
 		for(int i=0; i<variant_list.count(); ++i)
