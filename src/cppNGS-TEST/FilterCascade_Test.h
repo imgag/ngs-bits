@@ -864,6 +864,8 @@ private slots:
 
 		//only MMS:
 		FilterSpliceEffect filter;
+		// MODUS FILTER:
+		filter.setString("action", "FILTER");
 		filter.setDouble("MaxEntScan", 0);
 		filter.setDouble("SpliceAi", 0);
 		filter.setDouble("MMSplice", 0.9);
@@ -901,6 +903,19 @@ private slots:
 		filter.setDouble("MMSplice", 0.95);
 		filter.apply(vl, result);
 		I_EQUAL(result.countPassing(), 7);
+
+		// MODUS KEEP combined
+		filter.setString("action", "KEEP");
+		for (int i=0; i<result.flags().count(); i++)
+		{
+			result.flags()[i] = false;
+		}
+		filter.setDouble("MaxEntScan", -0.15);
+		filter.setDouble("SpliceAi", 0.4);
+		filter.setDouble("MMSplice", 0.95);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 7);
+
 	}
 
 	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
