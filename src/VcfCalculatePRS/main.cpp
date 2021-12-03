@@ -141,15 +141,10 @@ public:
 					QByteArrayList format_value_items = split_line[9].split(':');
 					int genotype_idx = format_header_items.indexOf("GT");
 					if(genotype_idx < 0) THROW(FileParseException, "Genotype information is missing for sample variant: " + matching_variants[0]);
-					QByteArray genotype = format_value_items[genotype_idx].trimmed().replace("|", "/").replace(".", "0");
 
-					int allele_count = 0;
-					if(genotype == "0/1") allele_count = 1;
-					else if(genotype == "1/0") allele_count = 1;
-					else if(genotype == "1/1") allele_count = 2;
-					else if(genotype == "0/0") allele_count = 0;
-					else if(genotype == "0") allele_count = 0;
-					else THROW(FileParseException, "Invalid genotype '" + genotype + "' in sample variant: " + matching_variants[0]);
+					int allele_count = format_value_items[genotype_idx].count('1');
+
+					if (allele_count > 2) THROW(FileParseException, "Invalid genotype '" + format_value_items[genotype_idx].trimmed() + "' in sample variant: " + matching_variants[0]);
 
 					//calculate PRS part
 					double weight = Helper::toDouble(prs_variant.info("WEIGHT"), "PRS weight");
