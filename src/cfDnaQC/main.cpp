@@ -34,6 +34,7 @@ public:
 
 		//changelog
 		changeLog(2021, 10, 22, "Initial version.");
+		changeLog(2021, 12, 3, "Added correllation between cfDNA samples.");
 	}
 
 	virtual void main()
@@ -161,7 +162,12 @@ public:
 		// metadata
 		QList<QCValue> metadata;
 		metadata << QCValue("source file", QFileInfo(bam).fileName(), "", "QC:1000005");
-		metadata << QCValue("source file", QFileInfo(tumor_bam).absoluteFilePath() + " (tumor)", "", "QC:1000005");
+		if (!tumor_bam.isEmpty()) metadata << QCValue("source file", QFileInfo(tumor_bam).fileName() + " (tumor)", "", "QC:1000005");
+		foreach (const QString& related_bam, related_bams)
+		{
+			metadata << QCValue("source file", QFileInfo(related_bam).fileName() + " (related cfDNA)", "", "QC:1000005");
+		}
+
 		metadata << QCValue("linked file", QFileInfo(cfdna_panel_path).fileName(), "", "QC:1000006");
 
 		QCCollection metrics;
