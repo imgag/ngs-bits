@@ -4860,16 +4860,13 @@ FilterSpliceEffect::FilterSpliceEffect()
 {
 	name_="Splice effect";
 	type_ = VariantType::SNVS_INDELS;
-	description_ = QStringList() << "Filter based on the predicted change in strength of the splice position.";
-	params_ << FilterParameter("MaxEntScan", FilterParameterType::DOUBLE, -0.15, "Minimum percentage change in the value of MaxEntScan. Positive min. increase, negative min. decrease. Disabled if set to zero.");
-	params_.last().constraints["min"] = "-1";
-	params_.last().constraints["max"] = "1";
+	description_ = QStringList() << "Filter based on the predicted change in splice effect";
+	params_ << FilterParameter("MaxEntScan", FilterParameterType::INT, -15, "Minimum percentage change in the value of MaxEntScan. Positive min. increase, negative min. decrease. Disabled if set to zero.");
 	params_ << FilterParameter("SpliceAi", FilterParameterType::DOUBLE, 0.5, "Minimum SpliceAi value. Disabled if set to zero.");
 	params_.last().constraints["min"] = "0";
 	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("MMSplice", FilterParameterType::DOUBLE, 0.3, "Minimum predicted Pathogenicity. Disabled if set to zero.");
+	params_ << FilterParameter("MMSplice", FilterParameterType::DOUBLE, 2.0, "Minimum absolute Delta Logit PSI Score. Disabled if set to zero.");
 	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "1";
 	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
 	params_.last().constraints["valid"] = "KEEP,FILTER";
 	checkIsRegistered();
@@ -4878,7 +4875,7 @@ FilterSpliceEffect::FilterSpliceEffect()
 QString FilterSpliceEffect::toText() const
 {
 	QString text = this->name();
-	double mes = getDouble("MaxEntScan", false);
+	int mes = getInt("MaxEntScan", false);
 	text += " maxEntScan>=" + QString::number(mes) +"%";
 	double sai = getDouble("SpliceAi", false);
 	text += " SpliceAi>=" + QString::number(sai);
@@ -4894,11 +4891,14 @@ void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &re
 	int idx_sai = annotationColumn(variant_list, "SpliceAi");
 	double sai = getDouble("SpliceAi");
 
-	int idx_mms = annotationColumn(variant_list, "MMSplice_pathogenicity");
+	int idx_mms = annotationColumn(variant_list, "MMSplice_DeltaLogitPSI");
 	double mmsplice = getDouble("MMSplice");
 
 	int idx_mes = annotationColumn(variant_list, "MaxEntScan");
-	double mes = getDouble("MaxEntScan");
+	int mes = getInt("MaxEntScan");
+
+	// if all filters are deactivated return
+	if ((sai == 0) & (mmsplice == 0) & (mes == 0)) return;
 
 	// MODUS FILTER
 	if (getString("action") == "FILTER")
@@ -4990,12 +4990,12 @@ double FilterSpliceEffect::calculatePercentageChangeMES_(const QByteArray& value
 		percentChange = (base - newValue) / base;
 	}
 
-	return percentChange;
+	return percentChange*100;
 }
 
 bool FilterSpliceEffect::applyMaxEntScanFilter_(const Variant& var, int idx_mes) const
 {
-	double mes = getDouble("MaxEntScan");
+	int mes = getInt("MaxEntScan");
 
 	QByteArray var_mes = var.annotations()[idx_mes];
 	if ( ! var_mes.trimmed().isEmpty())
@@ -5043,7 +5043,7 @@ bool FilterSpliceEffect::applyMMsplice_(const Variant& var, int idx_mms) const
 	QByteArray mms_value = var.annotations()[idx_mms];
 	if ( ! mms_value.trimmed().isEmpty())
 	{
-		if (mms_value.toDouble() >= mmsplice)
+		if (std::abs(mms_value.toDouble()) >= mmsplice)
 		{
 			return true;
 		}

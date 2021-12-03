@@ -1,7 +1,6 @@
 #include "TestFramework.h"
 #include "FilterCascade.h"
 #include "Settings.h"
-
 TEST_CLASS(FilterCascade_Test)
 {
 Q_OBJECT
@@ -866,15 +865,29 @@ private slots:
 		FilterSpliceEffect filter;
 		// MODUS FILTER:
 		filter.setString("action", "FILTER");
-		filter.setDouble("MaxEntScan", 0);
+
+		// all filters off
+		filter.setInteger("MaxEntScan", 0);
 		filter.setDouble("SpliceAi", 0);
-		filter.setDouble("MMSplice", 0.9);
+		filter.setDouble("MMSplice", 0);
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 26);
+		I_EQUAL(result.countPassing(), result.flags().count());
+
+		result.reset();
+		filter.setInteger("MaxEntScan", 0);
+		filter.setDouble("SpliceAi", 0);
+		filter.setDouble("MMSplice", 2);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 0);
+
+		result.reset();
+		filter.setDouble("MMSplice", 0.3);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 8);
 
 		//only MES: increase
 		result.reset();
-		filter.setDouble("MaxEntScan", 0.15);
+		filter.setInteger("MaxEntScan", 15);
 		filter.setDouble("SpliceAi", 0);
 		filter.setDouble("MMSplice", 0);
 		filter.apply(vl, result);
@@ -882,7 +895,7 @@ private slots:
 
 		//only MES: decrease
 		result.reset();
-		filter.setDouble("MaxEntScan", -0.15);
+		filter.setInteger("MaxEntScan", -15);
 		filter.setDouble("SpliceAi", 0);
 		filter.setDouble("MMSplice", 0);
 		filter.apply(vl, result);
@@ -890,7 +903,7 @@ private slots:
 
 		//only SpliceAi
 		result.reset();
-		filter.setDouble("MaxEntScan", 0);
+		filter.setInteger("MaxEntScan", 0);
 		filter.setDouble("SpliceAi", 0.2);
 		filter.setDouble("MMSplice", 0);
 		filter.apply(vl, result);
@@ -898,23 +911,28 @@ private slots:
 
 		//combined
 		result.reset();
-		filter.setDouble("MaxEntScan", -0.15);
+		filter.setInteger("MaxEntScan", -15);
 		filter.setDouble("SpliceAi", 0.4);
-		filter.setDouble("MMSplice", 0.95);
+		filter.setDouble("MMSplice", 0.6);
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 7);
+		I_EQUAL(result.countPassing(), 4);
 
 		// MODUS KEEP combined
 		filter.setString("action", "KEEP");
-		for (int i=0; i<result.flags().count(); i++)
-		{
-			result.flags()[i] = false;
-		}
-		filter.setDouble("MaxEntScan", -0.15);
+		result.reset(false);
+		filter.setInteger("MaxEntScan", -15);
 		filter.setDouble("SpliceAi", 0.4);
-		filter.setDouble("MMSplice", 0.95);
+		filter.setDouble("MMSplice", 0.6);
 		filter.apply(vl, result);
-		I_EQUAL(result.countPassing(), 7);
+		I_EQUAL(result.countPassing(), 4);
+
+		// all filters off:
+		result.reset(false);
+		filter.setInteger("MaxEntScan", 0);
+		filter.setDouble("SpliceAi", 0);
+		filter.setDouble("MMSplice", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 0);
 
 	}
 
