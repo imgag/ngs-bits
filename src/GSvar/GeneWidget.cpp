@@ -59,7 +59,7 @@ void GeneWidget::updateGUI()
     QString html = info.comments;
     html.replace(QRegExp("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
     html.replace("\n", "<br>");
-	ui_.comments->setText(html);
+	GSvarHelper::limitLines(ui_.comments, html, "<br>");
 
     //add pseudogenes/parent genes
 	int gene_id = db.geneToApprovedID(symbol_);
