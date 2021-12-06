@@ -853,7 +853,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::VIRAL) output += ps_name + "_viral.tsv";
 	else if (type==PathType::COUNTS) output += ps_name + "_counts.tsv";
 	else if (type==PathType::EXPRESSION) output += ps_name + "_expr.tsv";
-	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
+	else if (type==PathType::MRD_CF_DNA) output += QString("umiVar") + QDir::separator() + ps_name + ".mrd";	else if (type!=PathType::SAMPLE_FOLDER) THROW(ProgrammingException, "Unhandled PathType '" + FileLocation::typeToString(type) + "' in processedSamplePath!");
 
 	return QFileInfo(output).absoluteFilePath();
 }

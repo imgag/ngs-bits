@@ -47,6 +47,7 @@ void NGSDReplicationWidget::replicate()
 			addSampleGroups();
 		}
 		if (ui_.variant_data->isChecked()) replicateVariantData();
+		if (ui_.report_configuration->isChecked()) replicateReportConfiguration();
 		if (ui_.post_checks->isChecked()) performPostChecks();
 	}
 	catch (Exception& e)
@@ -284,7 +285,7 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 				bool pathogenic_variant = table=="variant_classification" && query.value("class").toInt()>3;
 				target_variant_id = liftOverVariant(source_variant_id, causal_variant||pathogenic_variant);
 
-				//warn if causal/pathogenic variant could not be lifed
+				//warn if causal/pathogenic variant could not be lifted
 				if (target_variant_id<0)
 				{
 					if (causal_variant)
@@ -294,8 +295,7 @@ void NGSDReplicationWidget::updateTable(QString table, bool contains_variant_id,
 					}
 					else if (pathogenic_variant)
 					{
-						QString ps = db_source_->processedSampleName(db_source_->getValue("SELECT processed_sample_id FROM report_configuration WHERE id=" + query.value("report_configuration_id").toString()).toString());
-						addWarning("Pathogenic variant " + db_source_->variant(query.value("variant_id").toString()).toString() + " of sample " + ps + " (class " + query.value("class").toString() + ") could not be lifted (" + QString::number(target_variant_id) + ")!");
+						addWarning("Pathogenic variant " + db_source_->variant(query.value("variant_id").toString()).toString() + " (class " + query.value("class").toString() + ") could not be lifted (" + QString::number(target_variant_id) + ")!");
 					}
 				}
 			}
@@ -438,26 +438,49 @@ void NGSDReplicationWidget::replicateVariantData()
 {
 	addHeader("replication of variant data");
 
-	updateTable("variant_classification", true); //TODO also add missing variants (AF>5%, manually added)
+	updateTable("variant_classification", true);
 	updateTable("somatic_variant_classification", true);
 	updateTable("somatic_vicc_interpretation", true);
 	updateTable("variant_publication", true);
 	updateTable("variant_validation", true, "WHERE variant_id IS NOT NULL"); //small variants
 	updateCnvTable("variant_validation", "WHERE cnv_id IS NOT NULL"); //CNVs
-	if (!ui_.skip_rc->isChecked())
-	{
-		QStringList rc_ids_with_variants = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT DISTINCT processed_sample_id FROM detected_variant)");
-		updateTable("report_configuration_variant", true, "WHERE report_configuration_id IN (" + rc_ids_with_variants.join(",") + ")"); //only entries for samples with imported variants
-		updateCnvTable("report_configuration_cnv");
-		updateTable("somatic_report_configuration_variant", true);
-		updateTable("somatic_report_configuration_germl_var", true);
-	}
-
-	//TODO NGSDReplicationWidget:
-	//- SVs: report_configuration_sv, variant_validation SVs
-	//- CNVs somatic: somatic_report_configuration_cnv
-	//- misc: gaps, cfdna_panel_genes, cfdna_panels
 }
+
+void NGSDReplicationWidget::replicateReportConfiguration()
+{
+	addHeader("replication of report configuration data");
+
+	//(1) germline
+
+	//import report variants for samples with imported variants that are not already imported
+	QStringList rc_todo = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT DISTINCT processed_sample_id FROM detected_variant)");
+	QStringList rc_ids_already_present = db_target_->getValues("SELECT DISTINCT report_configuration_id FROM report_configuration_variant");
+	foreach(QString id, rc_ids_already_present)
+	{
+		rc_todo.removeAll(id);
+	}
+	qDebug() << "report config small variants: samples todo:" << rc_todo.count() << " already imported:" << rc_ids_already_present.count();
+	updateTable("report_configuration_variant", true, "WHERE report_configuration_id IN (" + rc_todo.join(",") + ")");
+	//import report CNVs for samples with imported CNVs that are not already imported
+	rc_todo = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT processed_sample_id FROM cnv_callset WHERE id IN (SELECT cnv_callset_id FROM cnv))");
+	rc_ids_already_present = db_target_->getValues("SELECT DISTINCT report_configuration_id FROM report_configuration_cnv");
+	foreach(QString id, rc_ids_already_present)
+	{
+		rc_todo.removeAll(id);
+	}
+	qDebug() << "report config CNVs: samples todo:" << rc_todo.count() << " already imported:" << rc_ids_already_present.count();
+	updateCnvTable("report_configuration_cnv", "WHERE report_configuration_id IN (" + rc_todo.join(",") + ")");
+
+	//(2) somatic
+
+	updateTable("somatic_report_configuration_variant", true);
+	updateTable("somatic_report_configuration_germl_var", true);
+}
+
+//TODO NGSDReplicationWidget:
+//- SVs: report_configuration_sv
+//- CNVs somatic: somatic_report_configuration_cnv
+//- misc: gaps, cfdna_panel_genes, cfdna_panels
 
 int NGSDReplicationWidget::liftOverVariant(int source_variant_id, bool debug_output)
 {
@@ -751,7 +774,7 @@ void NGSDReplicationWidget::updateCnvTable(QString table, QString where_clause)
 			debug_stream << ps << "\t" << var.toString() << "\t" << cn << "\t" << QString::number((double)var.size()/1000, 'f', 2) << "\t"  << regs << "\t" << QString::number((double)ll/regs, 'f', 2) << "\t"  << (target_cnv_id>=0 ? "yes ("+QString::number(target_cnv_id)+")" : "no") << "\t" << error_message << "\t" << comments.join(", ") << "\n";
 			debug_stream.flush();
 
-			//warn if causal/pathogenic CNV could not be lifed
+			//warn if causal/pathogenic CNV could not be lifted
 			if (target_cnv_id<0)
 			{
 				if (causal_variant)
@@ -782,7 +805,14 @@ void NGSDReplicationWidget::updateCnvTable(QString table, QString where_clause)
 				}
 				catch (Exception& e)
 				{
-					THROW(Exception, "Could not add table "+table+" entry with id "+QString::number(id)+": "+e.message());
+					if (table=="report_configuration_cnv") //due to lift-over we sometimes have several entries that map to the same ps-cnv combination => skip them
+					{
+						addWarning("Could not add report_configuration_cnv entry: " + e.message());
+					}
+					else
+					{
+						THROW(Exception, "Could not add table "+table+" entry with id "+QString::number(id)+": "+e.message());
+					}
 				}
 				++c_added;
 			}

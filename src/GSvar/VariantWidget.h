@@ -22,6 +22,7 @@ private slots:
 	void openProcessedSampleTabs();
 	void openGeneTab(QString symbol);
 	void openGSvarFile();
+	void editComment();
 	void editClassification();
 	void gnomadClicked(QString var_id);
 

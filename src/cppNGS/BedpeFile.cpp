@@ -18,7 +18,7 @@ QString StructuralVariantTypeToString(StructuralVariantType type)
 		case StructuralVariantType::BND:
 			return "BND";
 		case StructuralVariantType::UNKNOWN:
-			THROW(ArgumentException, "StructuralVariantType::UNKNOWN can only be used for the default constructer.");
+			THROW(ArgumentException, "StructuralVariantType::UNKNOWN can only be used for the default constructor.");
 		default:
 			THROW(NotImplementedException, "Invalid StructuralVariantType!");
 	}
@@ -32,7 +32,7 @@ StructuralVariantType StructuralVariantTypeFromString(QString type_string)
 	if (type_string == "INS") return StructuralVariantType::INS;
 	if (type_string == "INV") return StructuralVariantType::INV;
 	if (type_string == "BND") return StructuralVariantType::BND;
-	if (type_string == "UNKNOWN") THROW(ArgumentException, "StructuralVariantType::UNKNOWN can only be used for the default constructer.");
+	if (type_string == "UNKNOWN") THROW(ArgumentException, "StructuralVariantType::UNKNOWN can only be used for the default constructor.");
 	THROW(ArgumentException, "No matching StructuralVariantType found for '" + type_string + "'!");
 	return StructuralVariantType::UNKNOWN;
 }
