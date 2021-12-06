@@ -437,6 +437,6 @@ SUBDIRS += SplicingToBed
 tools-TEST.depends += SplicingToBed
 SplicingToBed.depends = cppNGSD
 
-SUBDIRS += cfDnaQC
-tools-TEST.depends += cfDnaQC
-cfDnaQC.depends = cppNGS
+SUBDIRS += CfDnaQC
+tools-TEST.depends += CfDnaQC
+CfDnaQC.depends = cppNGS
