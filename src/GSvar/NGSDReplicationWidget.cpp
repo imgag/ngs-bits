@@ -14,11 +14,12 @@ NGSDReplicationWidget::NGSDReplicationWidget(QWidget* parent)
 	//init databases and genome indices
 	try
 	{
-		db_source_ = QSharedPointer<NGSD>(new NGSD());
-		db_target_ = QSharedPointer<NGSD>(new NGSD(false, true));
+		if (GSvarHelper::build()!=GenomeBuild::HG38) THROW(ArgumentException, "This dialog can only be used from GSvar with HG38 genome build!");
+		db_source_ = QSharedPointer<NGSD>(new NGSD(false, "_hg19"));
+		db_target_ = QSharedPointer<NGSD>(new NGSD());
 
 		genome_index_ = QSharedPointer<FastaFileIndex>(new FastaFileIndex(Settings::string("reference_genome")));
-		genome_index_hg38_ = QSharedPointer<FastaFileIndex>(new FastaFileIndex(Settings::string("reference_genome_hg38")));
+		genome_index_hg19_ = QSharedPointer<FastaFileIndex>(new FastaFileIndex(Settings::string("reference_genome_hg19")));
 	}
 	catch(Exception& e)
 	{
@@ -48,6 +49,7 @@ void NGSDReplicationWidget::replicate()
 		}
 		if (ui_.variant_data->isChecked()) replicateVariantData();
 		if (ui_.report_configuration->isChecked()) replicateReportConfiguration();
+		if (ui_.post_production->isCheckable()) replicatePostProduction();
 		if (ui_.post_checks->isChecked()) performPostChecks();
 	}
 	catch (Exception& e)
@@ -528,6 +530,18 @@ void NGSDReplicationWidget::replicateReportConfiguration()
 	updateTable("somatic_report_configuration_germl_var", true);
 }
 
+void NGSDReplicationWidget::replicatePostProduction()
+{
+	//TODO
+	/*
+	 Replicate missing variant data by insert only (otherwise work done in the GRCh38 database might be lost)
+	 - report config (small variants, CNVs, SVs)
+	 - variant classification
+	 - variant publication
+	 - variant validation
+	*/
+}
+
 void NGSDReplicationWidget::performPostChecks()
 {
 	addHeader("post-checks");
@@ -565,10 +579,6 @@ void NGSDReplicationWidget::performPostChecks()
 	}
 }
 
-//TODO NGSDReplicationWidget:
-//- CNVs somatic: somatic_report_configuration_cnv
-//- misc: gaps, cfdna_panel_genes, cfdna_panels
-
 int NGSDReplicationWidget::liftOverVariant(int source_variant_id, bool debug_output)
 {
 	Variant var = db_source_->variant(QString::number(source_variant_id));
@@ -594,7 +604,7 @@ int NGSDReplicationWidget::liftOverVariant(int source_variant_id, bool debug_out
 	//check sequence context is the same (ref +-5 bases). If it is not, the strand might have changed, e.g. in NIPA1, GDF2, ANKRD35, TPTE, ...
 	bool strand_changed = false;
 	Sequence context_old = genome_index_->seq(var.chr(), var.start()-5, 10 + var.ref().length());
-	Sequence context_new = genome_index_hg38_->seq(coords.chr(), coords.start()-5, 10 + var.ref().length());
+	Sequence context_new = genome_index_hg19_->seq(coords.chr(), coords.start()-5, 10 + var.ref().length());
 	if (context_old!=context_new)
 	{
 		context_new.reverseComplement();

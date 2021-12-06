@@ -5770,14 +5770,13 @@ void MainWindow::storeCurrentVariantList()
 		QJsonArray json_array;
 		QJsonObject json_object;
 
-		for (int i = 0; i < variants_changed_.size(); i++)
+		foreach(const VariantListChange& variant_changed, variants_changed_)
 		{
 			try
 			{
-
-				json_object.insert("variant", variants_changed_.value(i).variant.toString());
-				json_object.insert("column", variants_changed_.value(i).column);
-				json_object.insert("text", variants_changed_.value(i).text);
+				json_object.insert("variant", variant_changed.variant.toString());
+				json_object.insert("column", variant_changed.column);
+				json_object.insert("text", variant_changed.text);
 				json_array.append(json_object);
 			}
 			catch (Exception& e)
@@ -5792,7 +5791,7 @@ void MainWindow::storeCurrentVariantList()
 		QList<QString> filename_parts = filename_.split("/");
 		if (filename_parts.size()>3)
 		{
-			ps_url_id = filename_parts.value(filename_parts.size()-2);
+			ps_url_id = filename_parts[filename_parts.size()-2];
 		}
 
 		try
