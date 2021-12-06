@@ -11,7 +11,7 @@ class CPPNGSSHARED_EXPORT FileLocationProviderRemote
 	: virtual public FileLocationProvider
 {
 public:
-	FileLocationProviderRemote(const QString sample_id, const QString server_host, const int server_port);
+	FileLocationProviderRemote(const QString sample_id);
 	virtual ~FileLocationProviderRemote() {}
 
 	bool isLocal() const override;
@@ -51,8 +51,6 @@ private:
 
 protected:
 	QString sample_id_;
-	QString server_host_;
-	int server_port_;
 };
 
 #endif // FILELOCATIONPROVIDERSERVER_H

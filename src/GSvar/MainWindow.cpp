@@ -2603,13 +2603,12 @@ void MainWindow::loadFile(QString filename)
 		QString mode_title = "";
 		if (filename.startsWith("http"))
 		{
-			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename, "https://" + Settings::string("server_host"), Settings::integer("https_server_port"))));
+			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename)));
 			mode_title = " (client-server mode)";
 		}
 		else
 		{
 			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(filename, variants_.getSampleHeader(), variants_.type())));
-			mode_title = " (SAMBA-share mode)";
 		}
 
 		//load CNVs

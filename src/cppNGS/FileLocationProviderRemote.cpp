@@ -1,10 +1,8 @@
 #include "FileLocationProviderRemote.h"
 #include "HttpRequestHandler.h"
 
-FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id,const QString server_host, const int server_port)
+FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id)
 	: sample_id_(sample_id)
-	, server_host_(server_host)
-	, server_port_(server_port)
 {
 }
 
@@ -67,7 +65,6 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
-	;
 	QByteArray reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
 				Helper::serverApiUrl()
 				+ "file_location?ps_url_id=" + file_id + "&type=" + FileLocation::typeToString(type)
