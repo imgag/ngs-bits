@@ -465,7 +465,7 @@ void NGSDReplicationWidget::replicateReportConfiguration()
 		rc_todo.removeAll(id);
 	}
 	qDebug() << "report config small variants: samples todo:" << rc_todo.count() << " already imported:" << rc_ids_already_present.count();
-	//TODO: reactivate: updateTable("report_configuration_variant", true, "WHERE report_configuration_id IN (" + rc_todo.join(",") + ")");
+	updateTable("report_configuration_variant", true, "WHERE report_configuration_id IN (" + rc_todo.join(",") + ")");
 
 	//import report CNVs for samples with imported CNVs that are not already imported
 	rc_todo = db_target_->getValues("SELECT id FROM report_configuration WHERE processed_sample_id IN (SELECT processed_sample_id FROM cnv_callset WHERE id IN (SELECT cnv_callset_id FROM cnv))");
@@ -475,7 +475,7 @@ void NGSDReplicationWidget::replicateReportConfiguration()
 		rc_todo.removeAll(id);
 	}
 	qDebug() << "report config CNVs: samples todo:" << rc_todo.count() << " already imported:" << rc_ids_already_present.count();
-	//TODO: reactivate: updateCnvTable("report_configuration_cnv", "WHERE report_configuration_id IN (" + rc_todo.join(",") + ")");
+	updateCnvTable("report_configuration_cnv", "WHERE report_configuration_id IN (" + rc_todo.join(",") + ")");
 
 
 	//import report SVs for samples with imported SVs that are not already imported
@@ -524,9 +524,8 @@ void NGSDReplicationWidget::replicateReportConfiguration()
 
 	//(2) somatic
 
-	//TODO reactivate
-//	updateTable("somatic_report_configuration_variant", true);
-//	updateTable("somatic_report_configuration_germl_var", true);
+	updateTable("somatic_report_configuration_variant", true);
+	updateTable("somatic_report_configuration_germl_var", true);
 }
 
 void NGSDReplicationWidget::performPostChecks()
@@ -1054,17 +1053,17 @@ void NGSDReplicationWidget::updateSvTable(QString table, StructuralVariantType s
 	int c_no_callset = 0;
 	int c_strand_changed = 0;
 
-//	SqlQuery q_del = db_target_->getQuery();
-//	q_del.prepare("DELETE FROM "+table+" WHERE id=:0");
+	SqlQuery q_del = db_target_->getQuery();
+	q_del.prepare("DELETE FROM "+table+" WHERE id=:0");
 
-//	SqlQuery q_add = db_target_->getQuery();
-//	q_add.prepare("INSERT INTO "+table+" VALUES (:" + fields.join(", :") + ")");
+	SqlQuery q_add = db_target_->getQuery();
+	q_add.prepare("INSERT INTO "+table+" VALUES (:" + fields.join(", :") + ")");
 
 	SqlQuery q_get = db_target_->getQuery();
 	q_get.prepare("SELECT * FROM "+table+" WHERE id=:0");
 
-//	SqlQuery q_update = db_target_->getQuery();
-//	QString query_str = "UPDATE "+table+" SET";
+	SqlQuery q_update = db_target_->getQuery();
+	QString query_str = "UPDATE "+table+" SET";
 	bool first = true;
 	foreach(const QString& field, fields)
 	{
@@ -1073,12 +1072,12 @@ void NGSDReplicationWidget::updateSvTable(QString table, StructuralVariantType s
 		//special handling of SV (lifted-over)
 		if (field=="sv_id") continue;
 
-//		query_str += (first? " " : ", ") + field + "=:" + field;
+		query_str += (first? " " : ", ") + field + "=:" + field;
 
 		if (first) first = false;
 	}
-//	query_str += " WHERE id=:id";
-//	q_update.prepare(query_str);
+	query_str += " WHERE id=:id";
+	q_update.prepare(query_str);
 
 	//delete removed entries
 	QSet<int> source_ids = db_source_->getValuesInt("SELECT id FROM " + table + " " + where_clause + " ORDER BY id ASC").toSet();
@@ -1087,8 +1086,8 @@ void NGSDReplicationWidget::updateSvTable(QString table, StructuralVariantType s
 	{
 		if (!source_ids.contains(id))
 		{
-//			q_del.bindValue(0, id);
-//			q_del.exec();
+			q_del.bindValue(0, id);
+			q_del.exec();
 
 			++c_removed;
 		}
@@ -1134,9 +1133,9 @@ void NGSDReplicationWidget::updateSvTable(QString table, StructuralVariantType s
 					if (sv_type == StructuralVariantType::INV && field=="sv_inversion_id") continue;
 					if (sv_type == StructuralVariantType::BND && field=="sv_translocation_id") continue;
 
-//					q_update.bindValue(":"+field, query.value(field));
+					q_update.bindValue(":"+field, query.value(field));
 				}
-//				q_update.exec();
+				q_update.exec();
 
 				++c_updated;
 			}
@@ -1221,38 +1220,38 @@ void NGSDReplicationWidget::updateSvTable(QString table, StructuralVariantType s
 			{
 				foreach(const QString& field, fields)
 				{
-//					//special handling of SV ids (lifted-over)
-//					if (sv_type == StructuralVariantType::DEL && field=="sv_deletion_id")
-//					{
-//						q_add.bindValue(":"+field, target_sv_id);
-//						continue;
-//					}
-//					if (sv_type == StructuralVariantType::DUP && field=="sv_duplication_id")
-//					{
-//						q_add.bindValue(":"+field, target_sv_id);
-//						continue;
-//					}
-//					if (sv_type == StructuralVariantType::INS && field=="sv_insertion_id")
-//					{
-//						q_add.bindValue(":"+field, target_sv_id);
-//						continue;
-//					}
-//					if (sv_type == StructuralVariantType::INV && field=="sv_inversion_id")
-//					{
-//						q_add.bindValue(":"+field, target_sv_id);
-//						continue;
-//					}
-//					if (sv_type == StructuralVariantType::BND && field=="sv_translocation_id")
-//					{
-//						q_add.bindValue(":"+field, target_sv_id);
-//						continue;
-//					}
+					//special handling of SV ids (lifted-over)
+					if (sv_type == StructuralVariantType::DEL && field=="sv_deletion_id")
+					{
+						q_add.bindValue(":"+field, target_sv_id);
+						continue;
+					}
+					if (sv_type == StructuralVariantType::DUP && field=="sv_duplication_id")
+					{
+						q_add.bindValue(":"+field, target_sv_id);
+						continue;
+					}
+					if (sv_type == StructuralVariantType::INS && field=="sv_insertion_id")
+					{
+						q_add.bindValue(":"+field, target_sv_id);
+						continue;
+					}
+					if (sv_type == StructuralVariantType::INV && field=="sv_inversion_id")
+					{
+						q_add.bindValue(":"+field, target_sv_id);
+						continue;
+					}
+					if (sv_type == StructuralVariantType::BND && field=="sv_translocation_id")
+					{
+						q_add.bindValue(":"+field, target_sv_id);
+						continue;
+					}
 
-//					q_add.bindValue(":"+field, query.value(field));
+					q_add.bindValue(":"+field, query.value(field));
 				}
 				try
 				{
-//					q_add.exec();
+					q_add.exec();
 				}
 				catch (Exception& e)
 				{
