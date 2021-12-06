@@ -4040,7 +4040,7 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 	return genes;
 }
 
-GeneSet NGSD::phenotypeToFilteredGenes(int id, QList<PhenotypeSource::Source> allowedSources, QList<PhenotypeEvidence::Evidence> allowedEvidences, bool recursive, bool ignore_non_phenotype_terms)
+GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource::Source> allowedSources, QList<PhenotypeEvidence::Evidence> allowedEvidences, bool recursive, bool ignore_non_phenotype_terms)
 {
 	//prepare ignored terms
 	QSet<int> ignored_terms_ids;
@@ -4087,7 +4087,7 @@ GeneSet NGSD::phenotypeToFilteredGenes(int id, QList<PhenotypeSource::Source> al
 			query += " and (";
 			foreach (PhenotypeSource::Source s, allowedSources)
 			{
-				query += "sources like \"%" + PhenotypeSource::sourceToString(s) + "%\" or ";
+				query += "details like \"%" + PhenotypeSource::sourceToString(s) + "%\" or ";
 			}
 			query.chop(4);
 			query.append(")");

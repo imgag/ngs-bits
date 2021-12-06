@@ -72,7 +72,7 @@ void PhenoToGenesDialog::tabChanged(int num)
 		PhenotypeList phenos = ui.pheno_selector->selectedPhenotypes();
 		for (int i=0; i<phenos.count(); ++i)
 		{
-			GeneSet genes = db.phenotypeToFilteredGenes(db.phenotypeIdByAccession(phenos[i].accession()), ui.options_selector->selectedSources(), ui.options_selector->selectedEvidences(), true, false);
+			GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(phenos[i].accession()), ui.options_selector->selectedSources(), ui.options_selector->selectedEvidences(), true, false);
 			foreach(QByteArray gene, genes)
 			{
 				gene2pheno[gene].append(phenos[i].name());

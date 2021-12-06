@@ -44,18 +44,25 @@ public:
 	}
 
 	/// simple sruct to keep a set of source databases
-	struct Sources {
-		QSet<PhenotypeSource::Source> sources;
+	struct SourceDetails {
+		QList<PhenotypeSource::Source> sources;
+		QStringList original_evidence;
+		QList<PhenotypeEvidence::Evidence> translated_evidence;
 
-		Sources()
+		SourceDetails()
 		{
-			this->sources = QSet<PhenotypeSource::Source>();
+			this->sources = QList<PhenotypeSource::Source>();
 		}
 
-		Sources(QByteArray s)
+		SourceDetails(QByteArray s, QByteArray original_evi, PhenotypeEvidence::Evidence translated_evi=PhenotypeEvidence::Evidence::NA)
 		{
-			this->sources = QSet<PhenotypeSource::Source>();
-			this->sources.insert(PhenotypeSource::SourceFromString(s));
+			this->sources = QList<PhenotypeSource::Source>();
+			this->original_evidence = QStringList();
+			this->translated_evidence = QList<PhenotypeEvidence::Evidence>();
+
+			sources.append(PhenotypeSource::SourceFromString(s));
+			original_evidence.append(QString(original_evi));
+			translated_evidence.append(translated_evi);
 		}
 
 		bool contains(PhenotypeSource::Source s)
@@ -73,56 +80,81 @@ public:
 			return this->sources.contains(PhenotypeSource::SourceFromString(s));
 		}
 
-		void insert(PhenotypeSource::Source s)
+		int getIndexOfSource(PhenotypeSource::Source s)
 		{
-			this->sources.insert(s);
+			return this->sources.indexOf(s);
 		}
 
-		void insert(QByteArray s)
+		void append(PhenotypeSource::Source s, QString original_evi, PhenotypeEvidence::Evidence translated_evi)
 		{
-			this->sources.insert(PhenotypeSource::SourceFromString(s));
+			this->sources.append(s);
+			this->original_evidence.append(original_evi);
+			this->translated_evidence.append(translated_evi);
 		}
 
-		void insert(QString s)
+		void append(QByteArray s, QString original_evi, PhenotypeEvidence::Evidence translated_evi)
 		{
-			this->sources.insert(PhenotypeSource::SourceFromString(s));
+			this->sources.append(PhenotypeSource::SourceFromString(s));
+			this->original_evidence.append(original_evi);
+			this->translated_evidence.append(translated_evi);
+		}
+
+		void unite(SourceDetails second)
+		{
+			for (int i=0; i<second.sources.count(); i++)
+			{
+				if (this->contains(second.sources[i]))
+				{
+					int idx = this->getIndexOfSource(second.sources[i]);
+					if (PhenotypeEvidence::rank(second.translated_evidence[i]) > PhenotypeEvidence::rank(this->translated_evidence[idx]))
+					{
+						this->original_evidence[idx] = second.original_evidence[i];
+						this->translated_evidence[idx] = second.translated_evidence[i];
+					}
+				}
+				else
+				{
+					this->append(second.sources[i], second.original_evidence[i], second.translated_evidence[i]);
+				}
+			}
 		}
 
 		QString toCsvString()
 		{
 			QString s = "";
 
-			foreach (PhenotypeSource::Source src, this->sources)
+			for (int i=0; i<sources.count(); i++)
 			{
-				if (s.length() == 0)
+				if (i == 0)
 				{
-					s= PhenotypeSource::sourceToString(src);
+					s= "(" + PhenotypeSource::sourceToString(sources[i]) + ", " + original_evidence[i] + ", " + PhenotypeEvidence::evidenceToString(translated_evidence[i]) + ")";
 				} else {
-					s += "," + PhenotypeSource::sourceToString(src);
+					s += "; (" + PhenotypeSource::sourceToString(sources[i]) + ", " + original_evidence[i] + ", " + PhenotypeEvidence::evidenceToString(translated_evidence[i]) + ")";
 				}
 			}
 			return s;
 		}
 	};
+
 	/// struct to annotate a gene/disease/phenotype with a source db and an evidence strength
 	struct AnnotatedItem
 	{
 		QByteArray item;
-		Sources src;
+		SourceDetails src;
 		PhenotypeEvidence::Evidence evi;
 
 		AnnotatedItem() {
 
 		}
 
-		AnnotatedItem(QByteArray item, QByteArray src, PhenotypeEvidence::Evidence evi)
+		AnnotatedItem(QByteArray item, QByteArray src, QByteArray original_evi, PhenotypeEvidence::Evidence evi)
 		{
 			this->item = item;
-			this->src = Sources(src);
+			this->src = SourceDetails(src, original_evi, evi);
 			this->evi = evi;
 		}
 
-		AnnotatedItem(QByteArray item, Sources src, PhenotypeEvidence::Evidence evi)
+		AnnotatedItem(QByteArray item, SourceDetails src, PhenotypeEvidence::Evidence evi)
 		{
 			this->item = item;
 			this->src = src;
@@ -134,19 +166,20 @@ public:
 			return this->item == other.item;
 		}
 	};
+
 	/// a QList of AnnotatedItems with some convenience insertion methods
 	struct AnnotatedList
 	{
 		QList<AnnotatedItem> items;
 
-		void add(QByteArray item, QByteArray source, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA)
+		void add(QByteArray item, QByteArray source, QByteArray original_evi, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA)
 		{
-			AnnotatedItem newItem = AnnotatedItem(item, source, evidence);
+			AnnotatedItem newItem = AnnotatedItem(item, SourceDetails(source, original_evi, evidence), evidence);
 
 			if (items.contains(newItem)) {
 				int idx = this->items.indexOf(newItem);
 				AnnotatedItem annotatedItem = this->items.value(idx);
-				annotatedItem.src.insert(source);
+				annotatedItem.src.append(source, original_evi, evidence);
 				if (PhenotypeEvidence::rank(annotatedItem.evi) < PhenotypeEvidence::rank(evidence))
 				{
 					annotatedItem.evi = evidence;
@@ -156,14 +189,14 @@ public:
 			}
 		}
 
-		void add(QByteArray item, Sources source, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA)
+		void add(QByteArray item, SourceDetails source, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA)
 		{
 			AnnotatedItem newItem = AnnotatedItem(item, source, evidence);
 
 			if (items.contains(newItem)) {
 				int idx = this->items.indexOf(newItem);
 				AnnotatedItem annotatedItem = this->items.value(idx);
-				annotatedItem.src.sources.unite(source.sources);
+				annotatedItem.src.unite(source);
 				if (PhenotypeEvidence::rank(annotatedItem.evi) < PhenotypeEvidence::rank(evidence))
 				{
 					annotatedItem.evi = evidence;
@@ -256,7 +289,7 @@ public:
 				continue;
 			} else {
 				count_F++;
-				term2diseases[term_id].add(disease, "HPO", PhenotypeEvidence::translateHpoEvidence(evidence));
+				term2diseases[term_id].add(disease, "HPO", evidence,  PhenotypeEvidence::translateHpoEvidence(evidence));
 			}
 		}
 		fp->close();
@@ -296,7 +329,7 @@ public:
 					int term_db_id = id2ngsd.value(term, -1);
 					if (term_db_id != -1)
 					{
-						term2diseases[term_db_id].add(disease, source, evidence);
+						term2diseases[term_db_id].add(disease, source, decipherEvi,  evidence);
 					} else {
 						bad_hpo_terms.insert(term);
 					}
@@ -309,13 +342,13 @@ public:
 					int term_db_id = id2ngsd.value(term, -1);
 					if (term_db_id != -1)
 					{
-						term2genes[term_db_id].add(approvedGeneSymbol, source, evidence);
-						term2diseases[term_db_id].add(disease, source, evidence);
+						term2genes[term_db_id].add(approvedGeneSymbol, source, decipherEvi, evidence);
+						term2diseases[term_db_id].add(disease, source, decipherEvi, evidence);
 					} else {
 						bad_hpo_terms.insert(term);
 					}
 				}
-				disease2genes[disease].add(approvedGeneSymbol, source, evidence);
+				disease2genes[disease].add(approvedGeneSymbol, source, decipherEvi, evidence);
 			}
 		}
 		fp->close();
@@ -391,7 +424,7 @@ public:
 			int gene_db_id = db.geneToApprovedID(geneSymbol);
 			if (gene_db_id == -1) continue;
 
-			disease2genes[disease].add(db.geneSymbol(gene_db_id), source, evidence);
+			disease2genes[disease].add(db.geneSymbol(gene_db_id), source, genccEvi, evidence);
 			count++;
 		}
 		fp->close();
@@ -480,20 +513,20 @@ public:
 					if (gene_db_id!=-1)
 					{
 						if (debug) out << "HPO-GENE: " << term_accession << " - " << gene << endl;
-						term2genes[term_db_id].add(db.geneSymbol(gene_db_id), "HPO");
+						term2genes[term_db_id].add(db.geneSymbol(gene_db_id), "HPO", "");
 					}
 				}
 				else
 				{
 					if (debug) out << "HPO-DISEASE: " << term_accession << " - " << disease << endl;
-					term2diseases[term_db_id].add(disease, "HPO");
+					term2diseases[term_db_id].add(disease, "HPO", "");
 				}
 			}
 
 			if (gene_db_id!=-1)
 			{
 				if (debug) out << "DISEASE-GENE (HPO): " << disease << " - " << db.geneSymbol(gene_db_id) << endl;
-				disease2genes[disease].add(db.geneSymbol(gene_db_id), "HPO");
+				disease2genes[disease].add(db.geneSymbol(gene_db_id), "HPO", "");
 			}
 			else
 			{
@@ -546,7 +579,7 @@ public:
 
 					if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << endl;
 
-					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", PhenotypeEvidence::translateOmimEvidence(omimEvi));
+					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", omimEvi, PhenotypeEvidence::translateOmimEvidence(omimEvi));
 				}
 			}
 			fp->close();
@@ -625,7 +658,7 @@ public:
 					foreach(const QByteArray& disease, diseases)
 					{
 						if (debug) out << "DISEASE-GENE (ClinVar): " << disease << " - " << gene_approved << endl;
-						disease2genes[disease].add(gene_approved, "ClinVar");
+						disease2genes[disease].add(gene_approved, "ClinVar", "");
 					}
 					foreach(const QByteArray& hpo, hpos)
 					{
@@ -633,7 +666,7 @@ public:
 						int term_db_id = id2ngsd.value(hpo, -1);
 						if (term_db_id != -1)
 						{
-							term2genes[term_db_id].add(gene_approved, "ClinVar");
+							term2genes[term_db_id].add(gene_approved, "ClinVar", "");
 						}
 					}
 				}
@@ -804,7 +837,7 @@ public:
 							int term_db_id = id2ngsd.value(hpo, -1);
 							if (term_db_id != -1)
 							{
-								term2genes[term_db_id].add(gene_approved, "HGMD"); // is there some evidence in the file that could be parsed?
+								term2genes[term_db_id].add(gene_approved, "HGMD", ""); // is there some evidence in the file that could be parsed?
 							}
 						}
 					}
@@ -838,9 +871,9 @@ public:
 						evi = PhenotypeEvidence::rank(disease.evi) < PhenotypeEvidence::rank(gene.evi) ? disease.evi : gene.evi;
 					}
 
-					Sources src = Sources(); // list all the combined sources?
-					src.sources.unite(disease.src.sources);
-					src.sources.unite(gene.src.sources);
+					SourceDetails src = SourceDetails(); // list all the combined sources?
+					src.unite(disease.src);
+					src.unite(gene.src);
 					term2genes[term_id].add(gene.item, src, evi);
 				}
 			}
@@ -848,7 +881,7 @@ public:
 		out << "Starting import into the db" << endl;
 
 		SqlQuery qi_hpoGene = db.getQuery();
-		QString query = "INSERT IGNORE INTO hpo_genes (hpo_term_id, gene, sources, evidence) VALUES ";
+		QString query = "INSERT IGNORE INTO hpo_genes (hpo_term_id, gene, details, evidence) VALUES ";
 		QTime timer1;
 		timer1.start();
 		QTime timer2;

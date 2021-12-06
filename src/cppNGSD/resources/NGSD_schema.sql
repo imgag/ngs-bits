@@ -941,8 +941,8 @@ CREATE TABLE IF NOT EXISTS `hpo_genes`
 (
   `hpo_term_id` INT(10) UNSIGNED NOT NULL,
   `gene` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
-  `sources` TEXT NOT NULL COMMENT 'Comma seperated DBs where the connection was found',
-  `evidence` enum('NA', 'LOW', 'MED', 'HIGH'),
+  `details` TEXT NOT NULL COMMENT 'Semicolon seperated pairs of database sources with evidences of where the connection was found (Source, Original Evidence, Evidence translated; Source2, ....)',
+  `evidence` enum('n/a', 'low', 'medium', 'high'),
   PRIMARY KEY (`hpo_term_id`, `gene`),
   CONSTRAINT `hpo_genes_ibfk_1`
     FOREIGN KEY (`hpo_term_id`)

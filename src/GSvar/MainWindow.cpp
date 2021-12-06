@@ -6019,7 +6019,7 @@ void MainWindow::applyFilters(bool debug_time)
 			foreach(const Phenotype& pheno, phenos)
 			{
 
-				pheno_genes << db.phenotypeToFilteredGenes(db.phenotypeIdByAccession(pheno.accession()), last_phenotype_sources_, last_phenotype_evidences_, true, false);
+				pheno_genes << db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), last_phenotype_sources_, last_phenotype_evidences_, true, false);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)

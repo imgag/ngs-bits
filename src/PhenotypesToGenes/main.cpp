@@ -89,7 +89,7 @@ public:
 				sources.append(PhenotypeSource::SourceFromString(getEnum("source")));
 			}
 
-			GeneSet genes = db.phenotypeToFilteredGenes(id, sources, evidences, true, ignore_non_phenotype);
+			GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(id, sources, evidences, true, ignore_non_phenotype);
 			foreach(const QByteArray& gene, genes)
 			{
 				genes2phenotypes[gene] << db.phenotype(id);
