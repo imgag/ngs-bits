@@ -1425,9 +1425,7 @@ void MainWindow::openVariantListFolder()
 
 	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
 	{
-		QList<QString> url_parts = filename_.split("/");
-		if (url_parts.size() > 1) url_parts.removeLast();
-		QDesktopServices::openUrl(QUrl(url_parts.join("/")));
+		QMessageBox::information(this, "Open analysis folder", "Cannot open analysis folder in client-server mode!");
 		return;
 	}
 
