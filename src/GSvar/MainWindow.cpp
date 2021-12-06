@@ -3489,7 +3489,7 @@ void MainWindow::generateReportSomaticRTF()
 			ReportWorker::moveReport(temp_filename, file_rep);
 
 			//Generate files for QBIC upload
-			QString path = ps_tumor + "-" + ps_normal;
+			QString path = Settings::string("qbic_data_path") + "/" + ps_tumor + "-" + ps_normal;
 			report.storeQbicData(path);
 			QApplication::restoreOverrideCursor();
 		}
