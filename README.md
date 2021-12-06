@@ -7,11 +7,22 @@
 
 ## Obtaining ngs-bits
 
-Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can be built from sources:
+Binaries of *ngs-bits* are available via Bioconda:
 
 * **Binaries** for [Linux/macOS](doc/install_bioconda.md)
-* From **sources** for [Linux/macOS](doc/install_unix.md)
-* From **sources** for [Windows](doc/install_win.md)
+
+Alternatively, *ngs-bits* can be built from sources. Use git to clone the most recent release (the source code package of GitHub does not contains required sub-modules):
+
+    > git clone --recursive https://github.com/imgag/ngs-bits.git
+	> cd ngs-bits
+	> git checkout 2021_09
+	> git submodule update --recursive --init
+
+Depending on your operating system, building instructions vary slightly:
+
+* Building from **sources** for [Linux](doc/install_unix.md)
+* Building from **sources** for [MacOS](doc/install_mac.md)
+* Building from **sources** for [Windows](doc/install_win.md)
 
 ## ChangeLog
 

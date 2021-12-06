@@ -2,15 +2,16 @@
 
 #include "Settings.h"
 #include "DatabaseServiceLocal.h"
+#include "DatabaseServiceRemote.h"
 #include "MainWindow.h"
 
 GlobalServiceProvider::GlobalServiceProvider()
   : file_location_provider_()
   , database_service_()
 {
-	if (Settings::string("server_host",true).trimmed()!="" && Settings::string("server_port").trimmed()!="")
-	{
-		//TODO GSvarServer
+	if (Settings::string("server_host",true).trimmed()!="" && Settings::string("https_server_port").trimmed()!="")
+	{		
+		database_service_ = QSharedPointer<DatabaseService>(new DatabaseServiceRemote());
 	}
 	else
 	{
@@ -51,6 +52,10 @@ void GlobalServiceProvider::clearFileLocationProvider()
 
 const DatabaseService& GlobalServiceProvider::database()
 {
+	if (instance().database_service_.isNull())
+	{
+		THROW(ProgrammingException, "Database service requested but not set!");
+	}
 	return *(instance().database_service_);
 }
 

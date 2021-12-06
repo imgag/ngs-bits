@@ -91,10 +91,11 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 	}
 	else
 	{
+		QString byte_range = "bytes=" + QString::number(entry.offset) + "-" + QString::number(entry.offset + seqlen -1);
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
-		add_headers.insert("Range", "bytes=" + QByteArray::number(entry.offset) + "-" + QByteArray::number(entry.offset + seqlen -1));
-		output = HttpRequestHandler(HttpRequestHandler::NONE).get(fasta_name_, add_headers).replace('\n', "");
+		add_headers.insert("Range", byte_range.toLocal8Bit());
+		output = HttpRequestHandler(HttpRequestHandler::NONE).get(fasta_name_, add_headers).replace("\n", 1, "", 0);
 	}
 
 	//output
@@ -146,10 +147,11 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 	}
 	else
 	{
+		QString byte_range = "bytes=" + QString::number(read_start_pos) + "-" + QString::number(read_start_pos + seqlen - 1);
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
-		add_headers.insert("Range", "bytes=" + QByteArray::number(read_start_pos) + "-" + QByteArray::number(read_start_pos + seqlen - 1));
-		output = HttpRequestHandler(HttpRequestHandler::NONE).get(fasta_name_, add_headers).replace('\n', "");
+		add_headers.insert("Range", byte_range.toLocal8Bit());
+		output = HttpRequestHandler(HttpRequestHandler::NONE).get(fasta_name_, add_headers).replace("\n", 1, "", 0);
 	}
 
 	//output

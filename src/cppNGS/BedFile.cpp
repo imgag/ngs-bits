@@ -103,7 +103,7 @@ void BedFile::load(QString filename, bool stdin_if_empty)
 	clear();
 
 	//parse from stream
-	QSharedPointer<QFile> file = Helper::openFileForReading(filename, stdin_if_empty);
+	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, stdin_if_empty);
 	while(!file->atEnd())
 	{
 		QByteArray line = file->readLine();

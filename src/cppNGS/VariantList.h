@@ -12,6 +12,7 @@
 #include <QStringList>
 #include <QtAlgorithms>
 #include <QVectorIterator>
+#include <QUrl>
 
 
 ///Transcript annotations e.g. from SnpEff/VEP.

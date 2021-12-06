@@ -744,7 +744,7 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 	clear();
 
 	//parse from stream
-	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
+	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, true);
 	int filter_index = -1;
 	while(!file->atEnd())
 	{
@@ -821,7 +821,12 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 			}
 		}
 
-		append(Variant(chr, start, end, fields[3], fields[4], fields.mid(special_cols), filter_index));
+		QList<QByteArray> decoded_fields = fields.mid(special_cols);
+		for (int i = 0; i < decoded_fields.size(); i++)
+		{
+			decoded_fields[i] = QUrl::fromPercentEncoding(decoded_fields[i]).toLocal8Bit();
+		}
+		append(Variant(chr, start, end, fields[3], fields[4], decoded_fields, filter_index));
 
 		//Check that the number of annotations is correct
 		if (variants_.last().annotations().count()!=annotations().count())

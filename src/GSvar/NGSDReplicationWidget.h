@@ -31,9 +31,11 @@ protected:
 	void performPostChecks();
 
 	int liftOverVariant(int source_variant_id, bool debug_output);
+	int liftOverCnv(int source_cnv_id, int callset_id, QString& error_message);
+	int liftOverSv(int source_sv_id, StructuralVariantType sv_type, int callset_id, QString& error_message);
 	void updateTable(QString table, bool contains_variant_id=false, QString where_clause="");
 	void updateCnvTable(QString table, QString where_clause="");
-	int liftOverCnv(int source_cnv_id, int callset_id, QString& error_message);
+	void updateSvTable(QString table, StructuralVariantType sv_type, QString where_clause="");
 
 private:
 	Ui::NGSDReplicationWidget ui_;
