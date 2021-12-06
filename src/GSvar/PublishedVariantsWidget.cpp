@@ -103,6 +103,13 @@ void PublishedVariantsWidget::updateTable()
 	headers.replace(headers.indexOf("variant_id"), "variant");
 	table.setHeaders(headers);
 
+	//filter by text
+	QString text_filter = ui_->f_text->text().trimmed();
+	if (text_filter!="")
+	{
+		table.filterRows(text_filter);
+	}
+
 	//show data
 	ui_->table->setData(table);
 	QApplication::restoreOverrideCursor();

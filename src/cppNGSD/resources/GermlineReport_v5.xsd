@@ -99,6 +99,11 @@
 								</xs:restriction>
 							</xs:simpleType>
 						</xs:attribute>
+						<xs:attribute name="comments" type="xs:string">
+							<xs:annotation>
+								<xs:documentation>sample comments</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
 				<xs:element name="TargetRegion" minOccurs="0">
@@ -116,6 +121,16 @@
 										<xs:annotation>
 											<xs:documentation>Gene symbol (HGNC)</xs:documentation>
 										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="identifier" use="required">
+										<xs:annotation>
+											<xs:documentation>HGNC identiifer</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+											</xs:restriction>
+										</xs:simpleType>
 									</xs:attribute>
 								</xs:complexType>
 							</xs:element>
@@ -185,6 +200,16 @@
 														<xs:documentation>HGNC gene name </xs:documentation>
 													</xs:annotation>
 												</xs:attribute>
+												<xs:attribute name="gene_identifier" use="required">
+													<xs:annotation>
+														<xs:documentation>HGNC identiifer</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
 												<xs:attribute name="transcript_id" type="xs:string" use="required">
 													<xs:annotation>
 														<xs:documentation>transcript identifier</xs:documentation>
@@ -220,6 +245,16 @@
 												<xs:attribute name="gene" use="required">
 													<xs:annotation>
 														<xs:documentation>Gene symbol (HGNC)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="gene_identifier" use="required">
+													<xs:annotation>
+														<xs:documentation>HGNC identiifer</xs:documentation>
 													</xs:annotation>
 													<xs:simpleType>
 														<xs:restriction base="xs:string">
@@ -270,6 +305,16 @@
 												<xs:attribute name="gene" use="required">
 													<xs:annotation>
 														<xs:documentation>Gene symbol (HGNC)</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="gene_identifier" use="required">
+													<xs:annotation>
+														<xs:documentation>HGNC identiifer</xs:documentation>
 													</xs:annotation>
 													<xs:simpleType>
 														<xs:restriction base="xs:string">
@@ -460,6 +505,16 @@
 													<xs:annotation>
 														<xs:documentation>HGNC gene name</xs:documentation>
 													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="identifier" use="required">
+													<xs:annotation>
+														<xs:documentation>HGNC identiifer</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:minLength value="1"/>
+														</xs:restriction>
+													</xs:simpleType>
 												</xs:attribute>
 											</xs:complexType>
 										</xs:element>
@@ -679,8 +734,8 @@
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:int">
-						<xs:minInclusive value="4"/>
-						<xs:maxInclusive value="4"/>
+						<xs:minInclusive value="5"/>
+						<xs:maxInclusive value="5"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

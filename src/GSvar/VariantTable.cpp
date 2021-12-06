@@ -94,6 +94,7 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 	int i_hgmd = variants.annotationIndexByName("HGMD", true, false);
 	int i_mmsplice_dlogpsi = variants.annotationIndexByName("MMSplice_DeltaLogitPSI", true, false);
 	int i_spliceai = variants.annotationIndexByName("SpliceAI", true, false);
+	int i_maxentscan = variants.annotationIndexByName("MaxEntScan", true, false);
 	int r = -1;
 	for (int i=0; i<variants.count(); ++i)
 	{
@@ -159,7 +160,51 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 				is_warning_line = true;
 				is_notice_line = true;
 			}
+			else if (j==i_maxentscan &&  (! anno.isEmpty()))
+			{
+				double maxRelevantChange = 0;
+				foreach (QByteArray value, anno.split(','))
+				{
+					QByteArrayList parts = value.split('>');
+					if (parts.count() == 2)
+					{
+						double percentChange;
+						double base = parts[0].toDouble();
+						double newValue = parts[1].toDouble();
+						double absChange = std::abs(base-newValue);
 
+						// calculate percentage change:
+						if (base != 0)
+						{
+							if (base > 0)
+							{
+								percentChange = (newValue - base) / base;
+							} else {
+								percentChange = (base - newValue) / base;
+							}
+						}
+						percentChange = std::abs(percentChange);
+
+						//Don't color if absChange smaller than 0.5
+						if ((absChange > 0.5) && percentChange > maxRelevantChange)
+						{
+							maxRelevantChange = percentChange;
+						}
+					}
+				}
+
+				//color item
+				if (maxRelevantChange >= 0.15 && maxRelevantChange < 0.3)
+				{
+					item->setBackgroundColor(QColor(255, 135, 60)); //orange
+					is_notice_line = true;
+				}
+				else if (maxRelevantChange > 0.3)
+				{
+					item->setBackgroundColor(Qt::red);
+					is_notice_line = true;
+				}
+			}
 
 			//non-pathogenic
 			if (j==i_classification && (anno=="0" || anno=="1" || anno=="2"))

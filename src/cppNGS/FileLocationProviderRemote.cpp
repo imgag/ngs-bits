@@ -43,6 +43,12 @@ FileLocation FileLocationProviderRemote::getRepeatExpansionImage(QString locus) 
 	return getOneFileLocationByType(PathType::REPEAT_EXPANSION_IMAGE, locus);
 }
 
+FileLocationList FileLocationProviderRemote::getQcFiles() const
+{
+	//TODO GSvarServer
+	return FileLocationList();
+}
+
 FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType type, bool return_if_missing) const
 {
 	FileLocationList output;
@@ -165,6 +171,11 @@ FileLocationList FileLocationProviderRemote::getMantaEvidenceFiles(bool return_i
 FileLocationList FileLocationProviderRemote::getCircosPlotFiles(bool return_if_missing) const
 {
 	return getFileLocationsByType(PathType::CIRCOS_PLOT, return_if_missing);
+}
+
+FileLocationList FileLocationProviderRemote::getExpressionFiles(bool return_if_missing) const
+{
+	return getFileLocationsByType(PathType::EXPRESSION, return_if_missing);
 }
 
 FileLocationList FileLocationProviderRemote::getVcfFiles(bool return_if_missing) const

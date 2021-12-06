@@ -208,6 +208,8 @@ public slots:
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
 	void openVariantListFolder();
+	///Open variant list qcML files.
+	void openVariantListQcFiles();
 	///Re-analyze current sample/case
 	void on_actionReanalyze_triggered();
 	///Action for debugging
@@ -232,6 +234,8 @@ public slots:
 	void on_actionShowPublishedVariants_triggered();
 	///Shows allele balance calculation
 	void on_actionAlleleBalance_triggered();
+	///Shows lift-over dialog
+	void on_actionLiftOver_triggered();
 
 	///Load report configuration
 	void loadReportConfig();

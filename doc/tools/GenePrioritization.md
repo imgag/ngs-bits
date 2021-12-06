@@ -1,12 +1,12 @@
 ### GenePrioritization tool help
-	GenePrioritization (2021_06-48-gfc326851)
+	GenePrioritization (2021_06-89-gbbd16264)
 	
-	Performs gene prioritization based on list of known disease genes and a PPI graph.
+	Performs gene prioritization based on list of known disease genes of a disease and a PPI graph.
 	
 	Mandatory parameters:
-	  -in <file>       Input TSV file with one gene identifier per line.
-	  -graph <file>    Graph TSV file with two gene identifiers per line.
-	  -out <file>      Output TSV file containing prioritized genes.
+	  -in <file>       Input TSV file with one gene identifier per line (known disease genes of a disease).
+	  -graph <file>    Graph TSV file with two gene identifiers per line (PPI graph).
+	  -out <file>      Output TSV file containing prioritized genes for the disease.
 	
 	Optional parameters:
 	  -method <enum>   Gene prioritization method to use.
@@ -26,6 +26,6 @@
 	  --tdx            Writes a Tool Definition Xml file. The file name is the application name with the suffix '.tdx'.
 	
 ### GenePrioritization changelog
-	GenePrioritization 2021_06-48-gfc326851
+	GenePrioritization 2021_06-89-gbbd16264
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

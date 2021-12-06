@@ -27,6 +27,7 @@ protected:
 	void replicateBaseDataNoId();
 	void addSampleGroups();
 	void replicateVariantData();
+	void replicateReportConfiguration();
 	void performPostChecks();
 
 	int liftOverVariant(int source_variant_id, bool debug_output);

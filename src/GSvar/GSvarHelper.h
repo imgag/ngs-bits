@@ -6,6 +6,7 @@
 #include "VariantList.h"
 #include "GenomeBuild.h"
 #include <QTableWidgetItem>
+#include <QLabel>
 
 ///Helper class for GSvar
 class GSvarHelper
@@ -31,6 +32,8 @@ public:
 
 	//colors imprinting and non-haploinsufficiency genes.
 	static void colorGeneItem(QTableWidgetItem* item, const GeneSet& genes);
+	//limit QLabel to certain number of lines
+	static void limitLines(QLabel* label, QString text, QString sep="\n", int max_lines=15);
 
 	//Lift-over from GRCh37 to GRCh38 (or the other way)
 	static BedLine liftOver(const Chromosome& chr, int start, int end, bool hg38_to_hg19 = false);

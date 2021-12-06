@@ -4,6 +4,7 @@
 #include "Helper.h"
 #include "NGSHelper.h"
 #include "Log.h"
+#include "GeneSet.h"
 #include "cmath"
 
 /*************************************************** FilterParameter ***************************************************/
@@ -964,6 +965,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["SV count NGSD"] = &createInstance<FilterSvCountNGSD>;
 		output["SV allele frequency NGSD"] = &createInstance<FilterSvAfNGSD>;
         output["SV trio"] = &createInstance<FilterSvTrio>;
+		output["Splice effect"] = &createInstance<FilterSpliceEffect>;
 	}
 
 	return output;
@@ -1760,7 +1762,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 
 			if (geno_all=="het")
 			{
-				QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
+				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
 					gene_to_het[gene.trimmed()] += 1;
@@ -1782,7 +1784,7 @@ void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& re
 			QByteArray geno_all = checkSameGenotype(geno_indices, variants[i]);
 			if (geno_all=="het")
 			{
-				QList<QByteArray> genes = variants[i].annotations()[i_gene].toUpper().split(',');
+				GeneSet genes = GeneSet::createFromText(variants[i].annotations()[i_gene], ',');
 				foreach(const QByteArray& gene, genes)
 				{
 					if (gene_to_het[gene.trimmed()]>=2)
@@ -3468,8 +3470,8 @@ void FilterSvRemoveChromosomeType::apply(const BedpeFile& svs, FilterResult& res
 		}
 		else
 		{
-			// only pass if both positions are located on special chromosomes
-			result.flags()[i] = !svs[i].chr1().isNonSpecial() && !svs[i].chr2().isNonSpecial();
+			//passes if one breakpoint is located on special chromosomes
+			result.flags()[i] = !svs[i].chr1().isNonSpecial() || !svs[i].chr2().isNonSpecial();
 		}
 	}
 }
@@ -4308,9 +4310,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		GeneSet genes;
-		genes << svs[i].annotations()[i_genes].split(';');
-
+		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
 		foreach(const QByteArray& gene, genes)
 		{
 			gene_count[gene] += 1;
@@ -4357,8 +4357,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		GeneSet genes;
-		genes << svs[i].annotations()[i_genes].split(';');
+		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
 		result.flags()[i] = genes.intersectsWith(comphet_hit);
 	}
 }
@@ -4856,3 +4855,199 @@ void FilterGSvarScoreAndRank::apply(const VariantList& variants, FilterResult& r
 		}
 	}
 }
+
+FilterSpliceEffect::FilterSpliceEffect()
+{
+	name_="Splice effect";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on the predicted change in splice effect";
+	params_ << FilterParameter("MaxEntScan", FilterParameterType::INT, -15, "Minimum percentage change in the value of MaxEntScan. Positive min. increase, negative min. decrease. Disabled if set to zero.");
+	params_ << FilterParameter("SpliceAi", FilterParameterType::DOUBLE, 0.5, "Minimum SpliceAi value. Disabled if set to zero.");
+	params_.last().constraints["min"] = "0";
+	params_.last().constraints["max"] = "1";
+	params_ << FilterParameter("MMSplice", FilterParameterType::DOUBLE, 2.0, "Minimum absolute Delta Logit PSI Score. Disabled if set to zero.");
+	params_.last().constraints["min"] = "0";
+	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
+	params_.last().constraints["valid"] = "KEEP,FILTER";
+	checkIsRegistered();
+}
+
+QString FilterSpliceEffect::toText() const
+{
+	QString text = this->name() + " " + getString("action");
+	int mes = getInt("MaxEntScan", false);
+	text += " maxEntScan>=" + QString::number(mes) +"%";
+	double sai = getDouble("SpliceAi", false);
+	text += " SpliceAi>=" + QString::number(sai);
+	double mms = getDouble("MMSplice", false);
+	text += " MMSplice>=" + QString::number(mms);
+	return text;
+}
+
+void FilterSpliceEffect::apply(const VariantList &variant_list, FilterResult &result) const
+{
+	if (!enabled_) return;
+
+	int idx_sai = annotationColumn(variant_list, "SpliceAi");
+	double sai = getDouble("SpliceAi");
+
+	int idx_mms = annotationColumn(variant_list, "MMSplice_DeltaLogitPSI");
+	double mmsplice = getDouble("MMSplice");
+
+	int idx_mes = annotationColumn(variant_list, "MaxEntScan");
+	int mes = getInt("MaxEntScan");
+
+	// if all filters are deactivated return
+	if ((sai == 0) && (mmsplice == 0) && (mes == 0)) return;
+
+	// action FILTER
+	if (getString("action") == "FILTER")
+	{
+		for(int i=0; i<variant_list.count(); ++i)
+		{
+			if (!result.flags()[i]) continue;
+
+			//If the variant has no value for all possible filters remove it
+			if (variant_list[i].annotations()[idx_sai].isEmpty() && variant_list[i].annotations()[idx_mes].isEmpty() && variant_list[i].annotations()[idx_mms].isEmpty())
+			{
+				result.flags()[i] = false;
+				continue;
+			}
+
+			// SpliceAi filter:
+			if (sai > 0)
+			{
+				if (applySpliceAi_(variant_list[i], idx_sai)) continue;
+			}
+
+			// MMSplice filter:
+			if (mmsplice > 0)
+			{
+				if (applyMMsplice_(variant_list[i], idx_mms)) continue;
+			}
+
+			// MaxEntScan filter:
+			if (mes != 0)
+			{
+				if (applyMaxEntScanFilter_(variant_list[i], idx_mes)) continue;
+			}
+			result.flags()[i] = false;
+		}
+	}
+	// actio KEEP
+	else if (getString("action") == "KEEP")
+	{
+		for(int i=0; i<variant_list.count(); ++i)
+		{
+			if (result.flags()[i]) continue;
+
+			// SpliceAi filter:
+			if (sai > 0)
+			{
+				if (applySpliceAi_(variant_list[i], idx_sai))
+				{
+					result.flags()[i] = true;
+					continue;
+				}
+			}
+
+			// MMSplice filter:
+			if (mmsplice > 0)
+			{
+				if (applyMMsplice_(variant_list[i], idx_mms)) {
+					result.flags()[i] = true;
+					continue;
+				}
+			}
+
+			// MaxEntScan filter:
+			if (mes != 0)
+			{
+				if (applyMaxEntScanFilter_(variant_list[i], idx_mes))
+				{
+					result.flags()[i] = true;
+					continue;
+				}
+			}
+		}
+	}
+}
+
+double FilterSpliceEffect::calculatePercentageChangeMES_(const QByteArray& value) const
+{
+	QByteArrayList parts = value.split('>');
+	if (parts.count() < 2) return 0;
+	double percentChange;
+	double base = parts[0].toDouble();
+	double newValue = parts[1].toDouble();
+
+	if (base == 0) return 0; // infinite change... ?
+
+	if (base > 0)
+	{
+		percentChange = (newValue - base) / base;
+	} else {
+		percentChange = (base - newValue) / base;
+	}
+
+	return percentChange*100;
+}
+
+bool FilterSpliceEffect::applyMaxEntScanFilter_(const Variant& var, int idx_mes) const
+{
+	int mes = getInt("MaxEntScan");
+
+	QByteArray var_mes = var.annotations()[idx_mes];
+	if ( ! var_mes.trimmed().isEmpty())
+	{
+		QByteArrayList var_mes_list = var_mes.split(',');
+		foreach (QByteArray value, var_mes_list)
+		{
+			double percentChange = calculatePercentageChangeMES_(value);
+			if (mes < 0)
+			{
+				if (percentChange <= mes)
+				{
+					return true;
+				}
+			} else {
+				if (percentChange >= mes)
+				{
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+bool FilterSpliceEffect::applySpliceAi_(const Variant& var, int idx_sai) const
+{
+	double sai = getDouble("SpliceAi");
+
+	QByteArray sai_value = var.annotations()[idx_sai];
+	if ( ! sai_value.trimmed().isEmpty())
+	{
+		if (sai_value.toDouble() >= sai)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool FilterSpliceEffect::applyMMsplice_(const Variant& var, int idx_mms) const
+{
+	double mmsplice = getDouble("MMSplice");
+
+	QByteArray mms_value = var.annotations()[idx_mms];
+	if ( ! mms_value.trimmed().isEmpty())
+	{
+		if (std::abs(mms_value.toDouble()) >= mmsplice)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+

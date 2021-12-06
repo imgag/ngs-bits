@@ -20,6 +20,7 @@ public:
 	FileLocation getAnalysisMosaicCnvFile() const override;
 	FileLocation getAnalysisUpdFile() const override;
 	FileLocation getRepeatExpansionImage(QString locus) const override;
+	FileLocationList getQcFiles() const override;
 
 	FileLocationList getVcfFiles(bool return_if_missing) const override;
 	FileLocationList getBamFiles(bool return_if_missing) const override;
@@ -32,6 +33,7 @@ public:
 	FileLocationList getLowCoverageFiles(bool return_if_missing) const override;
 	FileLocationList getCopyNumberCallFiles(bool return_if_missing) const override;
 	FileLocationList getRohFiles(bool return_if_missing) const override;
+	FileLocationList getExpressionFiles(bool return_if_missing) const override;
 
 	FileLocation getSomaticCnvCoverageFile() const override;
 	FileLocation getSomaticCnvCallFile() const override;

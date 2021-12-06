@@ -60,6 +60,8 @@ INSERT INTO `gene`(`id`, `hgnc_id`, `symbol`, `name`, `type`) VALUES
 (512576, 7981, 'NR4A2', 'nuclear receptor subfamily 4 group A member 2', 'protein-coding gene'),
 (526175, 17575, 'SPEN', 'spen family transcriptional repressor', 'protein-coding gene'),
 (622167, 2652, 'CYP7B1', 'cytochrome P450 family 7 subfamily B member 1', 'protein-coding gene'),
+(638093, 7782, 'NFE2L2', 'nuclear factor, erythroid 2 like 2', 'protein-coding gene'),
+(638806, 28958, 'NUP93', 'nucleoporin 93', 'protein-coding gene'),
 (650913, 10985, 'SLC25A15', 'solute carrier family 25 member 15', 'protein-coding gene'),
 (652410, 11237, 'SPG7', 'SPG7 matrix AAA peptidase subunit, paraplegin', 'protein-coding gene'),
 (642528, 9585, 'PTCH1', 'patched 1', 'protein-coding gene');

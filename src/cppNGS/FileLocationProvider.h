@@ -29,6 +29,8 @@ public:
 	virtual FileLocation getAnalysisUpdFile() const = 0;
 	//Returns the repeat expansion locus image of the current analysis
 	virtual FileLocation getRepeatExpansionImage(QString locus) const = 0;
+	//Returns sample-specific qcML files.
+	virtual FileLocationList getQcFiles() const = 0;
 
 	//############################## sample-specific files ##############################
 	//Returns sample-specific BAM files
@@ -53,6 +55,8 @@ public:
 	virtual FileLocationList getPrsFiles(bool return_if_missing) const = 0;
 	//Returns sample-specific CIRCOS plot files.
 	virtual FileLocationList getCircosPlotFiles(bool return_if_missing) const = 0;
+	//Returns sample specific RNA expression files.
+	virtual FileLocationList getExpressionFiles(bool return_if_missing) const = 0;
 
 	//############################## somatic-only files ##############################
 	//Returns the tumor-normal CNV coverage SEG file (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)

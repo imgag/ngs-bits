@@ -5,7 +5,7 @@
         <DiseaseInfo type="ICD10" identifier="C17.2"/>
         <DiseaseInfo type="ICD10" identifier="C20.21"/>
     </PatientInfo>
-    <TumorSample name="DX184894_01" processing_system="SureSelect Somatic vTEST" processing_system_type="Panel" sequencer="MiSeq" average_depth="457.34" tumor_content_histology="0.600" tumor_content_bioinformatic="0.800" mutation_burden="17.30" microsatellite_instability="0.74" hrd_score="4"/>
+    <TumorSample name="DX184894_01" processing_system="SureSelect Somatic vTEST" processing_system_type="Panel" sequencer="MiSeq" average_depth="457.34" tumor_content_histology="0.600" tumor_content_bioinformatic="0.800" mutation_burden="17.30" microsatellite_instability="0.74" hrd_score="4" hrd_score_chromo="58"/>
     <NormalSample name="DX184263_01" processing_system="SureSelect Somatic vTEST" processing_system_type="Panel" sequencer="MiSeq" average_depth="251.78"/>
     <AnalysisPipeline name="megSAP" version="0.1-835-g57035c2" url="https://github.com/imgag/megSAP" comment="Mapping: bwa mem, Indel Realignment: Abra2, Variant Caller: Strelka2, CNV Caller: ClinCNV"/>
     <TargetRegion name="SureSelect Somatic vTEST">
@@ -36,14 +36,14 @@
     </TargetRegion>
     <VariantList>
         <Variant chr="chr2" start="178096717" end="178096717" ref="T" obs="C" af_tumor="0.1057" depth_tumor="389" af_normal="0.0000" depth_normal="603" effect="benign">
-            <Gene name="NFE2L2" id=""/>
+            <Gene name="NFE2L2" id="HGNC:7782"/>
             <TranscriptInformation transcript_id="ENST00000397062" gene="NFE2L2" type="missense_variant" hgvs_c="c.614A&gt;G" hgvs_p="p.Asp205Gly" exon="exon5/5" variant_type="missense_variant" main_transcript="true"/>
             <TranscriptInformation transcript_id="ENST00000397063" gene="NFE2L2" type="missense_variant" hgvs_c="c.566A&gt;G" hgvs_p="p.Asp189Gly" exon="exon5/5" variant_type="missense_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000446151" gene="NFE2L2" type="missense_variant" hgvs_c="c.545A&gt;G" hgvs_p="p.Asp182Gly" exon="exon5/5" variant_type="missense_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000464747" gene="NFE2L2" type="missense_variant" hgvs_c="c.566A&gt;G" hgvs_p="p.Asp189Gly" exon="exon8/8" variant_type="missense_variant" main_transcript="false"/>
         </Variant>
         <Variant chr="chr16" start="56870524" end="56870524" ref="A" obs="C" af_tumor="0.1254" depth_tumor="639" af_normal="0.0000" depth_normal="736">
-            <Gene name="NUP93" id=""/>
+            <Gene name="NUP93" id="HGNC:28958"/>
             <TranscriptInformation transcript_id="ENST00000308159" gene="NUP93" type="synonymous_variant" hgvs_c="c.1794A&gt;C" hgvs_p="p.Ile598=" exon="exon17/22" variant_type="synonymous_variant" main_transcript="true"/>
             <TranscriptInformation transcript_id="ENST00000542526" gene="NUP93" type="synonymous_variant" hgvs_c="c.1425A&gt;C" hgvs_p="p.Ile475=" exon="exon15/20" variant_type="synonymous_variant" main_transcript="false"/>
             <TranscriptInformation transcript_id="ENST00000564887" gene="NUP93" type="synonymous_variant" hgvs_c="c.1425A&gt;C" hgvs_p="p.Ile475=" exon="exon15/20" variant_type="synonymous_variant" main_transcript="false"/>
