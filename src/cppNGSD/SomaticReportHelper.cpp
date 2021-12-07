@@ -701,6 +701,7 @@ void SomaticReportHelper::saveFileOnServer(QString filename, QString path, QStri
 
 void SomaticReportHelper::saveFileLocal(QString filename, QString path, QString content)
 {
+	if(!QDir(path).exists()) QDir().mkdir(path);
 	QSharedPointer<QFile> file = Helper::openFileForWriting(path + "/" + filename);
 
 	QTextStream stream(file.data());
