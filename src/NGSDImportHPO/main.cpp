@@ -174,10 +174,10 @@ public:
 
 		void add(QByteArray item, QByteArray source, QByteArray original_evi, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA)
 		{
-			AnnotatedItem newItem = AnnotatedItem(item, SourceDetails(source, original_evi, evidence), evidence);
+			AnnotatedItem new_item = AnnotatedItem(item, SourceDetails(source, original_evi, evidence), evidence);
 
-			if (items.contains(newItem)) {
-				int idx = this->items.indexOf(newItem);
+			if (items.contains(new_item)) {
+				int idx = this->items.indexOf(new_item);
 				AnnotatedItem annotatedItem = this->items.value(idx);
 				annotatedItem.src.append(source, original_evi, evidence);
 				if (PhenotypeEvidence::rank(annotatedItem.evi) < PhenotypeEvidence::rank(evidence))
@@ -185,16 +185,16 @@ public:
 					annotatedItem.evi = evidence;
 				}
 			} else {
-				this->items.append(newItem);
+				this->items.append(new_item);
 			}
 		}
 
 		void add(QByteArray item, SourceDetails source, PhenotypeEvidence::Evidence evidence=PhenotypeEvidence::NA)
 		{
-			AnnotatedItem newItem = AnnotatedItem(item, source, evidence);
+			AnnotatedItem new_item = AnnotatedItem(item, source, evidence);
 
-			if (items.contains(newItem)) {
-				int idx = this->items.indexOf(newItem);
+			if (items.contains(new_item)) {
+				int idx = this->items.indexOf(new_item);
 				AnnotatedItem annotatedItem = this->items.value(idx);
 				annotatedItem.src.unite(source);
 				if (PhenotypeEvidence::rank(annotatedItem.evi) < PhenotypeEvidence::rank(evidence))
@@ -202,7 +202,7 @@ public:
 					annotatedItem.evi = evidence;
 				}
 			} else {
-				this->items.append(newItem);
+				this->items.append(new_item);
 			}
 		}
 	};
@@ -313,9 +313,9 @@ public:
 			QByteArrayList parts = line.split(',');
 			QByteArray gene = parts[0].trimmed();
 			QByteArray disease = "OMIM:" + parts[3].trimmed();
-			QByteArray decipherEvi = parts[4].trimmed();
-			PhenotypeEvidence::Evidence evidence = PhenotypeEvidence::translateDecipherEvidence(decipherEvi);
-			QByteArrayList hpoTerms = parts[7].trimmed().split(';');
+			QByteArray decipher_evi = parts[4].trimmed();
+			PhenotypeEvidence::Evidence evidence = PhenotypeEvidence::translateDecipherEvidence(decipher_evi);
+			QByteArrayList hpo_terms = parts[7].trimmed().split(';');
 
 			//verify information
 			int gene_db_id = db.geneToApprovedID(gene);
@@ -324,31 +324,31 @@ public:
 			{
 				non_hgc_genes.append(gene);
 				// add term2disease relations
-				foreach (QByteArray term, hpoTerms)
+				foreach (QByteArray term, hpo_terms)
 				{
 					int term_db_id = id2ngsd.value(term, -1);
 					if (term_db_id != -1)
 					{
-						term2diseases[term_db_id].add(disease, source, decipherEvi,  evidence);
+						term2diseases[term_db_id].add(disease, source, decipher_evi,  evidence);
 					} else {
 						bad_hpo_terms.insert(term);
 					}
 				}
 			} else {
-				QByteArray approvedGeneSymbol = db.geneSymbol(gene_db_id);
+				QByteArray approved_gene_symbol = db.geneSymbol(gene_db_id);
 
-				foreach (QByteArray term, hpoTerms)
+				foreach (QByteArray term, hpo_terms)
 				{
 					int term_db_id = id2ngsd.value(term, -1);
 					if (term_db_id != -1)
 					{
-						term2genes[term_db_id].add(approvedGeneSymbol, source, decipherEvi, evidence);
-						term2diseases[term_db_id].add(disease, source, decipherEvi, evidence);
+						term2genes[term_db_id].add(approved_gene_symbol, source, decipher_evi, evidence);
+						term2diseases[term_db_id].add(disease, source, decipher_evi, evidence);
 					} else {
 						bad_hpo_terms.insert(term);
 					}
 				}
-				disease2genes[disease].add(approvedGeneSymbol, source, decipherEvi, evidence);
+				disease2genes[disease].add(approved_gene_symbol, source, decipher_evi, evidence);
 			}
 		}
 		fp->close();
@@ -366,8 +366,8 @@ public:
 		QByteArray line = fp->readLine();
 		//"uuid","gene_curie","gene_symbol","disease_curie","disease_title","disease_original_curie","disease_original_title","classification_curie","classification_title","moi_curie","moi_title","submitter_curie","submitter_title","submitted_as_hgnc_id","submitted_as_hgnc_symbol","submitted_as_disease_id","submitted_as_disease_name","submitted_as_moi_id","submitted_as_moi_name","submitted_as_submitter_id","submitted_as_submitter_name","submitted_as_classification_id","submitted_as_classification_name","submitted_as_date","submitted_as_public_report_url","submitted_as_notes","submitted_as_pmids","submitted_as_assertion_criteria_url","submitted_as_submission_id","submitted_run_date"
 
-		QList<QByteArray> non_hgc_genes;
-		QSet<QByteArray> bad_hpo_terms;
+		//QList<QByteArray> non_hgc_genes;
+		//QSet<QByteArray> bad_hpo_terms;
 		QByteArray source = "GenCC";
 		int count =0;
 		while(! fp->atEnd())
@@ -401,13 +401,13 @@ public:
 				}
 			}
 
-			QByteArray geneSymbol = cleaned_parts[2].replace('"', ' ').trimmed();
+			QByteArray gene_symbol = cleaned_parts[2].replace('"', ' ').trimmed();
 			QByteArray disease = cleaned_parts[5].replace('"', ' ').trimmed(); // OMIM:XXXXXX, MONDO:XXXXXXX, Orphanet:XXXXX needs mapping from Orphanet and Mondo to Omim
-			QByteArray genccEvi = cleaned_parts[8].replace('"', ' ').trimmed();
-			PhenotypeEvidence::Evidence evidence = PhenotypeEvidence::translateGenccEvidence(genccEvi);
+			QByteArray gencc_evi = cleaned_parts[8].replace('"', ' ').trimmed();
+			PhenotypeEvidence::Evidence evidence = PhenotypeEvidence::translateGenccEvidence(gencc_evi);
 			if ( (evidence == PhenotypeEvidence::NA) & getFlag("debug"))
 			{
-				out << genccEvi << endl;
+				out << gencc_evi << endl;
 				out << line << endl;
 				return;
 			}
@@ -421,10 +421,10 @@ public:
 				continue;
 			}
 
-			int gene_db_id = db.geneToApprovedID(geneSymbol);
+			int gene_db_id = db.geneToApprovedID(gene_symbol);
 			if (gene_db_id == -1) continue;
 
-			disease2genes[disease].add(db.geneSymbol(gene_db_id), source, genccEvi, evidence);
+			disease2genes[disease].add(db.geneSymbol(gene_db_id), source, gencc_evi, evidence);
 			count++;
 		}
 		fp->close();
@@ -446,11 +446,11 @@ public:
 
 		//check if gene table exists and contains HGNC genes:
 		db.tableExists("gene");
-		SqlQuery testGeneTable = db.getQuery();
-		testGeneTable.exec("SELECT count(*) FROM gene;");
-		while (testGeneTable.next())
+		SqlQuery test_gene_table = db.getQuery();
+		test_gene_table.exec("SELECT count(*) FROM gene;");
+		while (test_gene_table.next())
 		{
-			if (testGeneTable.value(0) == 0)
+			if (test_gene_table.value(0) == 0)
 			{
 				THROW(DatabaseException, "Table 'gene' is empty. Please import HGNC database before importing HPO.")
 			}
@@ -558,7 +558,7 @@ public:
 				QByteArray pheno = parts[0].trimmed();
 				QByteArrayList genes = parts[1].split(',');
 				QByteArray mim_number = parts[2].trimmed(); // mim number for gene
-				QByteArray omimEvi = "";
+				QByteArray omim_evi = "";
 
 				if (mim_exp.indexIn(pheno)!=-1)
 				{
@@ -579,7 +579,7 @@ public:
 
 					if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << endl;
 
-					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", omimEvi, PhenotypeEvidence::translateOmimEvidence(omimEvi));
+					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", omim_evi, PhenotypeEvidence::translateOmimEvidence(omim_evi));
 				}
 			}
 			fp->close();
@@ -880,7 +880,7 @@ public:
 		}
 		out << "Starting import into the db" << endl;
 
-		SqlQuery qi_hpoGene = db.getQuery();
+		SqlQuery q_hpo_gene = db.getQuery();
 		QString query = "INSERT IGNORE INTO hpo_genes (hpo_term_id, gene, details, evidence) VALUES ";
 		QTime timer1;
 		timer1.start();
@@ -898,7 +898,7 @@ public:
 		query.chop(1);
 		query.append(';');
 		out << "Finished building insertion query all relations in: " << timer1.elapsed()/1000 << endl;
-		qi_hpoGene.exec(query);
+		q_hpo_gene.exec(query);
 		out << "Finished inserting all relations in: " << timer2.elapsed()/1000 << endl;
 		out << "Overall imported term-gene relations: " << db.getValue("SELECT COUNT(*) FROM hpo_genes").toInt() << endl;
 
