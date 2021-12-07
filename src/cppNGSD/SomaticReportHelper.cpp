@@ -15,6 +15,7 @@
 #include <QMap>
 #include <QPair>
 #include <QCollator>
+#include <QJsonDocument>
 
 bool SomaticReportHelper::checkGermlineSNVFile(const VariantList &germline_variants)
 {
@@ -295,25 +296,22 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 void SomaticReportHelper::germlineSnvForQbic(QString path_target_folder)
 {
 	//currently no germline SNVs are uploaded, only created header
-	QSharedPointer<QFile> germline_snvs_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_germline_snv.tsv");
-
-	QTextStream stream(germline_snvs_qbic.data());
+	QByteArray content;
+	QTextStream stream(&content);
 
 	stream << "chr" << "\t" << "start" << "\t" << "ref" << "\t" << "alt" << "\t" << "genotype" << "\t";
 	stream << "gene" << "\t" << "base_change" << "\t" << "aa_change" << "\t" << "transcript" << "\t";
 	stream << "functional_class" << "\t" << "effect";
 	stream << endl;
 
-	germline_snvs_qbic->close();
+	saveFileLocal("QBIC_germline_snv.tsv", path_target_folder, content);
 }
 
 void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 {
 	FastaFileIndex genome_reference(Settings::string("reference_genome", false));
-
-	QSharedPointer<QFile> somatic_snvs_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_somatic_snv.tsv");
-
-	QTextStream stream(somatic_snvs_qbic.data());
+	QByteArray content;
+	QTextStream stream(&content);
 
 	//Write header
 	stream << "chr" <<"\t" << "start" << "\t" << "ref" << "\t" << "alt" << "\t";
@@ -377,28 +375,26 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 
 		stream << endl;
 	}
-	somatic_snvs_qbic->close();
+	saveFileLocal("QBIC_somatic_snv.tsv", path_target_folder, content);
 }
 
 void SomaticReportHelper::germlineCnvForQbic(QString path_target_folder)
 {
-	QSharedPointer<QFile> germline_cnvs_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_germline_cnv.tsv");
-
-	QTextStream stream(germline_cnvs_qbic.data());
+	QByteArray content;
+	QTextStream stream(&content);
 
 	stream << "size" << "\t" << "type" << "\t" << "copy_number" << "\t" << "gene" << "\t" << "exons" << "\t" << "transcript" << "\t";
 	stream << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect";
 	stream << endl;
 
-	germline_cnvs_qbic->close();
+	saveFileLocal("QBIC_germline_cnv.tsv", path_target_folder, content);
 }
 
 
 void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 {
-	QSharedPointer<QFile> somatic_cnvs_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_somatic_cnv.tsv");
-
-	QTextStream stream(somatic_cnvs_qbic.data());
+	QByteArray content;
+	QTextStream stream(&content);
 
 	stream << "size" << "\t" << "type" << "\t" << "copy_number" << "\t" << "gene" << "\t" << "exons" << "\t";
 	stream << "transcript" << "\t" << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect" << endl;
@@ -497,26 +493,23 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 
 		stream << endl;
 	}
-	somatic_cnvs_qbic->close();
+	saveFileLocal("QBIC_somatic_cnv.tsv", path_target_folder, content);
 }
 
 void SomaticReportHelper::somaticSvForQbic(QString path_target_folder)
 {
-	QSharedPointer<QFile> somatic_sv_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_somatic_sv.tsv");
-
-	QTextStream stream(somatic_sv_qbic.data());
+	QByteArray content;
+	QTextStream stream(&content);
 
 	stream << "type" << "\t" << "gene" << "\t" << "effect" << "\t" << "left_bp" << "\t" << "right_bp" << endl;
 
-	somatic_sv_qbic->close();
-
+	saveFileLocal("QBIC_somatic_sv.tsv", path_target_folder, content);
 }
 
 void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 {
-	QSharedPointer<QFile> meta_data_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_metadata.tsv");
-
-	QTextStream stream(meta_data_qbic.data());
+	QByteArray content;
+	QTextStream stream(&content);
 
 	stream << "diagnosis" << "\t" << "tumor_content" << "\t" << "pathogenic_germline" << "\t" << "mutational_load" << "\t";
 	stream << "chromosomal_instability" << "\t" << "quality_flags" << "\t" << "reference_genome";
@@ -546,15 +539,23 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	stream << db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(settings_.tumor_ps)).genome;
 	stream << endl;
 
-	meta_data_qbic->close();
-
+	saveFileLocal("QBIC_metadata.tsv", path_target_folder, content);
 }
 
 VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& variant)
 {
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(snv_index_coding_splicing_);
 
-	//first coding/splicing transcript
+	//use preferred transcript that is coding or splicing if available
+	foreach(const VariantTranscript& trans, transcripts)
+	{
+		if(settings_.preferred_transcripts.value( trans.gene ).contains(trans.idWithoutVersion()) && trans.typeMatchesTerms(obo_terms_coding_splicing_))
+		{
+			return trans;
+		}
+	}
+
+	//first coding/splicing transcript otherwise
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		if(trans.typeMatchesTerms(obo_terms_coding_splicing_))
@@ -683,6 +684,36 @@ RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QB
 	row.addCell(4021, CnvDescription(cnv, db_.getSomaticGeneRole(gene)) );
 	return row;
 }
+
+void SomaticReportHelper::saveFileOnServer(QString filename, QString path, QString content)
+{
+	HttpHeaders add_headers;
+	add_headers.insert("Accept", "application/json");
+	add_headers.insert("Content-Type", "application/json");
+	add_headers.insert("Content-Length", QByteArray::number(content.size()));
+	QString reply = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
+				Helper::serverApiUrl()
+				+ "qbic_report_data?filename=" + QUrl(filename ).toEncoded() + "&path=" + QUrl(path).toEncoded(),
+				content.toLocal8Bit(),
+				add_headers
+			);
+}
+
+void SomaticReportHelper::saveFileLocal(QString filename, QString path, QString content)
+{
+	QSharedPointer<QFile> file = Helper::openFileForWriting(path + "/" + filename);
+
+	QTextStream stream(file.data());
+	stream << content;
+
+	file->close();
+
+
+
+}
+
+
+
 
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)
 {
@@ -1490,11 +1521,6 @@ void SomaticReportHelper::storeXML(QString file_name)
 
 void SomaticReportHelper::storeQbicData(QString path)
 {
-	if(!QDir(path).exists())
-	{
-		QDir().mkdir(path);
-	}
-
 	germlineSnvForQbic(path);
 	somaticSnvForQbic(path);
 	germlineCnvForQbic(path);

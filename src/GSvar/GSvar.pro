@@ -8,6 +8,7 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
     CfDNAPanelBatchImport.cpp \
+    DatabaseServiceRemote.cpp \
     GlobalServiceProvider.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
@@ -106,6 +107,7 @@ SOURCES += main.cpp\
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
+    DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
     ReportDialog.h \

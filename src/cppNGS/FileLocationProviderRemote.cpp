@@ -1,10 +1,8 @@
 #include "FileLocationProviderRemote.h"
 #include "HttpRequestHandler.h"
 
-FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id,const QString server_host, const int server_port)
+FileLocationProviderRemote::FileLocationProviderRemote(const QString sample_id)
 	: sample_id_(sample_id)
-	, server_host_(server_host)
-	, server_port_(server_port)
 {
 }
 
@@ -45,8 +43,7 @@ FileLocation FileLocationProviderRemote::getRepeatExpansionImage(QString locus) 
 
 FileLocationList FileLocationProviderRemote::getQcFiles() const
 {
-	//TODO GSvarServer
-	return FileLocationList();
+	return getFileLocationsByType(PathType::QC, false);
 }
 
 FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType type, bool return_if_missing) const
@@ -69,17 +66,13 @@ FileLocationList FileLocationProviderRemote::getFileLocationsByType(PathType typ
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
 	QByteArray reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
-				server_host_ + ":" + QString::number(server_port_)
-				+ "/v1/file_location?ps_url_id=" + file_id + "&type=" + FileLocation::typeToString(type)
+				Helper::serverApiUrl()
+				+ "file_location?ps_url_id=" + file_id + "&type=" + FileLocation::typeToString(type)
+				+ "&multiple_files=1"
 				+ "&return_if_missing=" +(return_if_missing ? "1" : "0"), add_headers);
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply);
 	QJsonArray file_list = json_doc.array();
-
-	if (file_list.count() == 0)
-	{
-		THROW(Exception, "Could not find file info: " + FileLocation::typeToString(type));
-	}
 
 	output = mapJsonArrayToFileLocationList(file_list, return_if_missing);
 	return output;
@@ -105,14 +98,15 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
 	QString reply = HttpRequestHandler(HttpRequestHandler::NONE).get(
-				server_host_ + ":" + QString::number(server_port_)
-				+ "/v1/file_location?ps_url_id=" + file_id + "&type=" +  FileLocation::typeToString(type)
+				Helper::serverApiUrl()
+				+ "file_location?ps_url_id=" + file_id + "&type=" +  FileLocation::typeToString(type)
+				+ "&multiple_files=0"
 				+ (locus.isEmpty() ? "" : "&locus=" + locus), add_headers);
 
 	QJsonDocument json_doc = QJsonDocument::fromJson(reply.toLatin1());
 	QJsonArray file_list = json_doc.array();
-	QJsonObject file_object = file_list[0].toObject();
-
+	QJsonObject file_object;
+	if (!file_list.isEmpty()) file_object = file_list[0].toObject();
 
 	if (file_object.isEmpty())
 	{
@@ -122,7 +116,6 @@ FileLocation FileLocationProviderRemote::getOneFileLocationByType(PathType type,
 	output = mapJsonObjectToFileLocation(file_object);
 	return output;
 }
-
 
 FileLocation FileLocationProviderRemote::mapJsonObjectToFileLocation(QJsonObject obj) const
 {	
@@ -226,14 +219,4 @@ FileLocation FileLocationProviderRemote::getSomaticLowCoverageFile() const
 FileLocation FileLocationProviderRemote::getSomaticMsiFile() const
 {
 	return getOneFileLocationByType(PathType::MSI, "");
-}
-
-QString FileLocationProviderRemote::getAnalysisPath() const
-{
-	return "";
-}
-
-QString FileLocationProviderRemote::getProjectPath() const
-{
-	return "";
 }

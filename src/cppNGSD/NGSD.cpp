@@ -19,7 +19,7 @@
 #include <QDir>
 #include "cmath"
 
-NGSD::NGSD(bool test_db, bool hg38)
+NGSD::NGSD(bool test_db, QString name_suffix)
 	: test_db_(test_db)
 {
 	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20))));
@@ -27,7 +27,7 @@ NGSD::NGSD(bool test_db, bool hg38)
 	//connect to DB
 	QString prefix = "ngsd";
 	if (test_db_) prefix += "_test";
-	if (hg38) prefix += "_hg38";
+	if (!name_suffix.isEmpty()) prefix += name_suffix;
 	db_->setHostName(Settings::string(prefix + "_host"));
 	db_->setPort(Settings::integer(prefix + "_port"));
 	db_->setDatabaseName(Settings::string(prefix + "_name"));
@@ -669,40 +669,57 @@ ProcessingSystemData NGSD::getProcessingSystemData(int sys_id)
 	return output;
 }
 
+QString NGSD::processingSystemRegionsFilePath(int sys_id)
+{
+	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
+	if (!rel_path.isEmpty())
+	{
+		return getTargetFilePath() + rel_path;
+	}
+	return "";
+}
+
 BedFile NGSD::processingSystemRegions(int sys_id)
 {
 	BedFile output;
 
-	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
-	if (!rel_path.isEmpty())
+	QString regions_file = processingSystemRegionsFilePath(sys_id);
+	if (!regions_file.isEmpty())
 	{
-		output.load(getTargetFilePath() + rel_path);
+		output.load(regions_file);
 	}
 
 	return output;
 }
 
-BedFile NGSD::processingSystemAmplicons(int sys_id)
+QString NGSD::processingSystemAmpliconsFilePath(int sys_id)
 {
-	BedFile output;
-
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
 	if (!rel_path.isEmpty())
 	{
 		QString amplicon_file = getTargetFilePath() + rel_path.mid(0, rel_path.length() -4) + "_amplicons.bed";
 		if (QFile::exists(amplicon_file))
 		{
-			output.load(amplicon_file);
+			return amplicon_file;
 		}
+	}
+	return "";
+}
+
+BedFile NGSD::processingSystemAmplicons(int sys_id)
+{
+	BedFile output;
+	QString amplicon_file = processingSystemAmpliconsFilePath(sys_id);
+	if (!amplicon_file.isEmpty())
+	{
+		output.load(amplicon_file);
 	}
 
 	return output;
 }
 
-GeneSet NGSD::processingSystemGenes(int sys_id)
+QString NGSD::processingSystemGenesFilePath(int sys_id)
 {
-	GeneSet output;
-
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
 	if (!rel_path.isEmpty())
 	{
@@ -710,8 +727,20 @@ GeneSet NGSD::processingSystemGenes(int sys_id)
 
 		if (QFile::exists(gene_file))
 		{
-			output = GeneSet::createFromFile(gene_file);
+			return gene_file;
 		}
+	}
+	return "";
+}
+
+GeneSet NGSD::processingSystemGenes(int sys_id)
+{
+	GeneSet output;
+	QString gene_file = processingSystemGenesFilePath(sys_id);
+
+	if (!gene_file.isEmpty())
+	{
+		output = GeneSet::createFromFile(gene_file);
 	}
 
 	return output;

@@ -67,12 +67,6 @@ public:
 	virtual FileLocation getSomaticLowCoverageFile() const = 0;
 	//Returns the somatic MSI file in TSV format (throws an exception if not SOMATIC_PAIR or SOMATIC_SINGLE)
 	virtual FileLocation getSomaticMsiFile() const = 0;
-
-protected:
-	//Returns analysis path, i.e. the path of the GSvar file
-	virtual QString getAnalysisPath() const = 0;
-	//Returns the project path , i.e. the parent directory of the analysis path
-	virtual QString getProjectPath() const = 0;
 };
 
 #endif // FILELOCATIONPROVIDER_H

@@ -15,6 +15,7 @@
 #include "GlobalServiceProvider.h"
 #include "FileLocationProviderLocal.h"
 #include "FileLocationProviderRemote.h"
+#include "VersatileTextStream.h"
 
 ///Main window class
 class MainWindow

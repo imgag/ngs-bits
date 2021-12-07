@@ -27,19 +27,23 @@ protected:
 	void replicateBaseDataNoId();
 	void addSampleGroups();
 	void replicateVariantData();
+	void replicateReportConfiguration();
+	void replicatePostProduction();
 	void performPostChecks();
 
 	int liftOverVariant(int source_variant_id, bool debug_output);
+	int liftOverCnv(int source_cnv_id, int callset_id, QString& error_message);
+	int liftOverSv(int source_sv_id, StructuralVariantType sv_type, int callset_id, QString& error_message);
 	void updateTable(QString table, bool contains_variant_id=false, QString where_clause="");
 	void updateCnvTable(QString table, QString where_clause="");
-	int liftOverCnv(int source_cnv_id, int callset_id, QString& error_message);
+	void updateSvTable(QString table, StructuralVariantType sv_type, QString where_clause="");
 
 private:
 	Ui::NGSDReplicationWidget ui_;
 	QSharedPointer<NGSD> db_source_;
 	QSharedPointer<NGSD> db_target_;
 	QSharedPointer<FastaFileIndex> genome_index_;
-	QSharedPointer<FastaFileIndex> genome_index_hg38_;
+	QSharedPointer<FastaFileIndex> genome_index_hg19_;
 
 	QSet<QString> tables_done_;
 

@@ -1183,9 +1183,13 @@ void MainWindow::on_actionCircos_triggered()
 	if (filename_=="") return;
 
 	//load plot file
-	QList<FileLocation> plot_files = GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(false);
+	FileLocationList plot_files = GlobalServiceProvider::fileLocationProvider().getCircosPlotFiles(true);
 	if (plot_files.isEmpty()) return; //this should not happen because the button is not enabled then...
-
+	if (!plot_files[0].exists)
+	{
+		QMessageBox::warning(this, "Circos plot file access", "Circos plot image file does not exist or the URL has expired");
+		return;
+	}
 	//show plot
 	CircosPlotWidget* widget = new CircosPlotWidget(plot_files[0].filename);
 	auto dlg = GUIHelper::createDialog(widget, "Circos Plot of " + variants_.analysisName());
@@ -1783,7 +1787,7 @@ bool MainWindow::initializeIGV(QAbstractSocket& socket)
 			bool debug = false;
 			foreach(QString command, init_commands)
 			{
-				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;
+				if (debug) qDebug() << QDateTime::currentDateTime() << "EXECUTING:" << command;				
 				socket.write((command + "\n").toLatin1());
 				bool ok = socket.waitForReadyRead(180000); // 3 min timeout (trios can be slow)
 				QString answer = socket.readAll().trimmed();
@@ -1985,8 +1989,7 @@ void MainWindow::showCnHistogram()
 
 		//determine CN values
 		QVector<double> cn_values;
-		QSharedPointer<QFile> file = Helper::openFileForReading(seg_files[0]);
-		QTextStream stream(file.data());
+		VersatileTextStream stream(seg_files[0]);
 		while (!stream.atEnd())
 		{
 			QString line = stream.readLine();
@@ -2633,9 +2636,11 @@ void MainWindow::loadFile(QString filename)
 		timer.restart();
 		variants_.load(filename);
 		Log::perf("Loading small variant list took ", timer);
+		QString mode_title = "";
 		if (filename.startsWith("http"))
 		{
-			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename, Settings::string("server_host"), Settings::integer("server_port"))));
+			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderRemote>(new FileLocationProviderRemote(filename)));
+			mode_title = " (client-server mode)";
 		}
 		else
 		{
@@ -2698,7 +2703,7 @@ void MainWindow::loadFile(QString filename)
 		filename_ = filename;
 
 		//update GUI
-		setWindowTitle(appName() + " - " + variants_.analysisName());
+		setWindowTitle(appName() + " - " + variants_.analysisName() + mode_title);
 		ui_.statusBar->showMessage("Loaded variant list with " + QString::number(variants_.count()) + " variants.");
 
 		refreshVariantTable(false);
@@ -3522,13 +3527,8 @@ void MainWindow::generateReportSomaticRTF()
 			ReportWorker::moveReport(temp_filename, file_rep);
 
 			//Generate files for QBIC upload
-			QString base_dir = Settings::path("qbic_data_path", true);
-			if (!base_dir.isEmpty())
-			{
-				QString path = base_dir + ps_tumor + "-" + ps_normal + QDir::separator();
-				report.storeQbicData(path);
-			}
-
+			QString path = Settings::string("qbic_data_path") + "/" + ps_tumor + "-" + ps_normal;
+			report.storeQbicData(path);
 			QApplication::restoreOverrideCursor();
 		}
 		catch(Exception& error)
@@ -5806,7 +5806,51 @@ void MainWindow::storeCurrentVariantList()
 	}
 	else
 	{
-		//TODO GSvarServer: add a end-point to update the GSvar file on the server - use data from variants_changed_
+		QJsonDocument json_doc = QJsonDocument();
+		QJsonArray json_array;
+		QJsonObject json_object;
+
+		foreach(const VariantListChange& variant_changed, variants_changed_)
+		{
+			try
+			{
+				json_object.insert("variant", variant_changed.variant.toString());
+				json_object.insert("column", variant_changed.column);
+				json_object.insert("text", variant_changed.text);
+				json_array.append(json_object);
+			}
+			catch (Exception& e)
+			{				
+				QMessageBox::warning(this, "Could not process the changes to be sent to the server:", e.message());
+			}
+		}
+
+		json_doc.setArray(json_array);
+
+		QString ps_url_id;
+		QList<QString> filename_parts = filename_.split("/");
+		if (filename_parts.size()>3)
+		{
+			ps_url_id = filename_parts[filename_parts.size()-2];
+		}
+
+		try
+		{
+			HttpHeaders add_headers;
+			add_headers.insert("Accept", "application/json");
+			add_headers.insert("Content-Type", "application/json");
+			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().count()));
+
+			QString reply = HttpHandler(HttpRequestHandler::NONE).put(
+						Helper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id,
+						json_doc.toJson(),
+						add_headers
+					);
+		}
+		catch (Exception& e)
+		{
+			QMessageBox::warning(this, "Could not reach the server:", e.message());
+		}
 	}
 
 	QApplication::restoreOverrideCursor();

@@ -28,9 +28,13 @@ jobs:
     - name: Update submodules
       run: git submodule update --recursive --init
     - name: Build dependencies
-      run: make build_3rdparty build_libs_release build_tools_release build_gui_release
+      run: make build_3rdparty build_libs_release build_tools_release build_gui_release build_server_release
+    - name: Generate SSL certificate-key pair
+      run: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=DE/ST=BW/L=Tuebingen/O=test-certificate/CN=localhost" -keyout ~/test-key.key -out ~/test-cert.crt
     - name: Create a settings.ini file for tests
       run: .github/workflows/settings.sh
       shell: bash
-    - name: Run tests
-      run: make -k test_lib test_tools
+    - name: Start GSvar server and run tests
+      run: |
+        bin/GSvarServer -p=8443 -l=3 &
+        make -k test_lib test_server test_tools
