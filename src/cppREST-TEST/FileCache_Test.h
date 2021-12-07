@@ -13,7 +13,6 @@ private slots:
 		QFile file(filename);
 		file.open(QIODevice::ReadOnly);
 		QByteArray content = file.readAll();
-		qDebug() << content;
 		QString generatedId = ServerHelper::generateUniqueStr();
 
 		IS_FALSE(FileCache::isInCacheAlready(filename));

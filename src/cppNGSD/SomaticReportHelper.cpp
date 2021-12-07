@@ -546,7 +546,16 @@ VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& va
 {
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(snv_index_coding_splicing_);
 
-	//first coding/splicing transcript
+	//use preferred transcript that is coding or splicing if available
+	foreach(const VariantTranscript& trans, transcripts)
+	{
+		if(settings_.preferred_transcripts.value( trans.gene ).contains(trans.idWithoutVersion()) && trans.typeMatchesTerms(obo_terms_coding_splicing_))
+		{
+			return trans;
+		}
+	}
+
+	//first coding/splicing transcript otherwise
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		if(trans.typeMatchesTerms(obo_terms_coding_splicing_))
@@ -697,6 +706,23 @@ void SomaticReportHelper::saveReportData(QString filename, QString path, QString
 				add_headers
 			);
 }
+
+void SomaticReportHelper::saveFileLocal(QString filename, QString path, QString content)
+{
+	if(!QDir(path).exists()) QDir().mkdir(path);
+	QSharedPointer<QFile> file = Helper::openFileForWriting(path + "/" + filename);
+
+	QTextStream stream(file.data());
+	stream << content;
+
+	file->close();
+
+
+
+}
+
+
+
 
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)
 {
