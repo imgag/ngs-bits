@@ -2831,9 +2831,17 @@ void MainWindow::checkVariantList(QStringList messages)
 
 	//check creation date
 	QDate create_date = variants_.getCreationDate();
-	if (create_date.isValid() && create_date < QDate::currentDate().addDays(-42))
+	if (create_date.isValid())
 	{
-		messages << "annotations are older than six weeks (" + create_date.toString("yyyy-MM-dd") + ")";
+		if (create_date < QDate::currentDate().addDays(-42))
+		{
+			messages << "annotations are older than six weeks (" + create_date.toString("yyyy-MM-dd") + "). Please perorm re-annotation of variants!";
+		}
+		QDate gsvar_file_outdated_before = QDate::fromString(Settings::string("gsvar_file_outdated_before", true), "yyyy-MM-dd");
+		if (gsvar_file_outdated_before.isValid() && create_date<gsvar_file_outdated_before)
+		{
+			messages << "annotations are older than " + gsvar_file_outdated_before.toString("yyyy-MM-dd") + ". Please perorm re-annotation of variants!";
+		}
 	}
 
 	//check sample header
