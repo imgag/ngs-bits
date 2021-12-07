@@ -678,7 +678,7 @@ RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QB
 
 void SomaticReportHelper::saveReportData(QString filename, QString path, QString content)
 {
-	if (!Settings::string("server_host", true).isEmpty())
+	if (Settings::string("server_host", true).isEmpty())
 	{
 		QSharedPointer<QFile> meta_data_qbic = Helper::openFileForWriting(path+filename);
 		meta_data_qbic.data()->write(content.toLocal8Bit());
