@@ -15,7 +15,7 @@ Alternatively, *ngs-bits* can be built from sources. Use git to clone the most r
 
     > git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2021_09
+	> git checkout 2021_12
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -31,18 +31,12 @@ Changes already implemented in GIT master for next release:
 * none
 
 
-Changes in release 2021_09:  
+Changes in release 2021_12:  
 
-* GenePrioritization: Performs gene prioritization based on list of known disease genes and a PPI graph.
-* GraphStringDb: Creates simple representation of String-DB interaction graph.
-* VcfCheck: improved checking of empty INFO column
-* VcfAnnotateFromBed: added multithread support
-* VcfAnnotateFromVcf: improved memory useage
-* MappingQC: added support for cfDNA samples, improved support for RNA
-* NGSD:
-	* removed 'gene' and 'variant\_type' columns from 'variant' table
-	* added 'germline\_het' and 'germline\_hom' columns to 'variant' table
-	* added method 'shallow WGS' to 'variant\_validation' table
+* VcfFile: fixed crash when VCF contains position 0.
+* VcfAnnotateFromVcf: fixed error handling (seg-fault of error in worker thread occured).
+* VariantFilterAnnotations: Added filter for variants with splicing effect.
+
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
