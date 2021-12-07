@@ -678,13 +678,21 @@ RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QB
 
 void SomaticReportHelper::saveFileOnServer(QString filename, QString path, QString content)
 {
+	if (!Settings::string("server_host", true).isEmpty())
+	{
+		QSharedPointer<QFile> meta_data_qbic = Helper::openFileForWriting(path+filename);
+		meta_data_qbic.data()->write(content.toLocal8Bit());
+		meta_data_qbic->close();
+		return;
+	}
+
 	HttpHeaders add_headers;
 	add_headers.insert("Accept", "application/json");
 	add_headers.insert("Content-Type", "application/json");
 	add_headers.insert("Content-Length", QByteArray::number(content.size()));
 	QString reply = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
 				Helper::serverApiUrl()
-				+ "qbic_report_data?filename=" + QUrl(filename ).toEncoded() + "&path=" + QUrl(path).toEncoded(),
+				+ "qbic_report_data?filename=" + QUrl(filename).toEncoded() + "&path=" + QUrl(path).toEncoded(),
 				content.toLocal8Bit(),
 				add_headers
 			);
