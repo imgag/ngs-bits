@@ -674,7 +674,11 @@ QString NGSD::processingSystemRegionsFilePath(int sys_id)
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
 	if (!rel_path.isEmpty())
 	{
-		return getTargetFilePath() + rel_path;
+		QString region_file = getTargetFilePath() + rel_path;
+		if (QFile::exists(region_file))
+		{
+			return region_file;
+		}
 	}
 	return "";
 }
