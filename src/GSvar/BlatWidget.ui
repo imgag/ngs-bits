@@ -91,7 +91,7 @@
      <item>
       <widget class="QLineEdit" name="sequence">
        <property name="text">
-        <string>TTGCAAAATATGTGGTCACACTTTGTGGAGACAGGTTCCTTGATCAACTCCAGA</string>
+        <string/>
        </property>
       </widget>
      </item>
