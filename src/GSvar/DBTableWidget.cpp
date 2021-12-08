@@ -177,12 +177,12 @@ void DBTableWidget::showTextAsTooltip(const QString& column_header)
 
 QSet<int> DBTableWidget::selectedRows() const
 {
-	GUIHelper::selectedTableRows(this).toSet();
+	return GUIHelper::selectedTableRows(this).toSet();
 }
 
 QSet<int> DBTableWidget::selectedColumns() const
 {
-	GUIHelper::selectedTableColumns(this).toSet();
+	return GUIHelper::selectedTableColumns(this).toSet();
 }
 
 const QString& DBTableWidget::getId(int r) const
