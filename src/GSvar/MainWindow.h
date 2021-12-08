@@ -237,6 +237,10 @@ public slots:
 	void on_actionAlleleBalance_triggered();
 	///Shows lift-over dialog
 	void on_actionLiftOver_triggered();
+	///Get reference sequence
+	void on_actionGetGenomicSequence_triggered();
+	///Perform BLAT search
+	void on_actionBlatSearch_triggered();
 
 	///Load report configuration
 	void loadReportConfig();
