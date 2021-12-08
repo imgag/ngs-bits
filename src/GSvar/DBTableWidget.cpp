@@ -177,32 +177,12 @@ void DBTableWidget::showTextAsTooltip(const QString& column_header)
 
 QSet<int> DBTableWidget::selectedRows() const
 {
-	QSet<int> output;
-
-	foreach(const QTableWidgetSelectionRange& range, selectedRanges())
-	{
-		for (int row=range.topRow(); row<=range.bottomRow(); ++row)
-		{
-			output << row;
-		}
-	}
-
-	return output;
+	GUIHelper::selectedTableRows(this).toSet();
 }
 
 QSet<int> DBTableWidget::selectedColumns() const
 {
-	QSet<int> output;
-
-	foreach(const QTableWidgetSelectionRange& range, selectedRanges())
-	{
-		for (int col=range.leftColumn(); col<=range.rightColumn(); ++col)
-		{
-			output << col;
-		}
-	}
-
-	return output;
+	GUIHelper::selectedTableColumns(this).toSet();
 }
 
 const QString& DBTableWidget::getId(int r) const

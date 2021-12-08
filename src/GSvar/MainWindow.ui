@@ -417,6 +417,9 @@
     <addaction name="actionSampleAncestry"/>
     <addaction name="separator"/>
     <addaction name="actionAlleleBalance"/>
+    <addaction name="separator"/>
+    <addaction name="actionGetGenomicSequence"/>
+    <addaction name="actionBlatSearch"/>
    </widget>
    <widget class="QMenu" name="menuIGV">
     <property name="title">
@@ -1338,6 +1341,16 @@
   <action name="actionLiftOver">
    <property name="text">
     <string>Lift-over</string>
+   </property>
+  </action>
+  <action name="actionGetGenomicSequence">
+   <property name="text">
+    <string>Get genomic sequence</string>
+   </property>
+  </action>
+  <action name="actionBlatSearch">
+   <property name="text">
+    <string>BLAT search</string>
    </property>
   </action>
  </widget>
