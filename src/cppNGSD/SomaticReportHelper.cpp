@@ -689,6 +689,8 @@ void SomaticReportHelper::saveReportData(QString filename, QString path, QString
 {
 	if (Settings::string("server_host", true).isEmpty())
 	{
+		if(!QDir(path).exists()) QDir().mkdir(path);
+
 		QSharedPointer<QFile> meta_data_qbic = Helper::openFileForWriting(path + "/" + filename);
 		meta_data_qbic.data()->write(content.toLocal8Bit());
 		meta_data_qbic->close();
