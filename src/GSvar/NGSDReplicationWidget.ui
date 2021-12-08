@@ -38,7 +38,7 @@
    <item>
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Converts information from HG19 NGSD to HG38 NGSD.&lt;br/&gt;&lt;br/&gt;To port your HG19 NGSD to HG38, perform the following steps:&lt;br/&gt;1) add the HG38 genome and NGSD credentials to the settings.ini file: reference_genome_hg38, ngsd_hg38_host, ngsd_hg38_port ...&lt;br/&gt;2) replicate base data only using this dialog&lt;br/&gt;3) update processing system table (target_file, genome_id) for all processing systems that will be re-analyzed based on HG38 (make sure the genome is called 'GRCh38').&lt;br/&gt;4) set up HG38 megSAP and re-analyze the samples with it (ma,vc,cn,sv,db)&lt;br/&gt;5) re-do CNV calling as it is cohort based (cn,db)&lt;br/&gt;6) replicate variant data using this dialog&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Converts information from HG19 NGSD to HG38 NGSD.&lt;br/&gt;&lt;br/&gt;To port your HG19 NGSD to HG38, perform the following steps:&lt;br/&gt;1) add the HG19 genome and NGSD credentials to the settings.ini file: reference_genome_hg19, ngsd_hg19_host, ngsd_hg19_port ...&lt;br/&gt;2) replicate base data only using this dialog&lt;br/&gt;3) update processing system table (target_file, genome_id) for all processing systems that will be re-analyzed based on HG38 (make sure the genome is called 'GRCh38').&lt;br/&gt;4) set up HG38 megSAP and re-analyze the samples with it (ma,vc,cn,sv,db)&lt;br/&gt;5) re-do CNV calling as it is cohort based (cn,db)&lt;br/&gt;6) replicate variant data using this dialog&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
@@ -69,14 +69,14 @@
          <string>replicate report configuration</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
       <item row="7" column="0">
        <widget class="QCheckBox" name="variant_data">
         <property name="text">
-         <string>replicate variant data (but not report configuration)</string>
+         <string>replicate variant data but not report configuration</string>
         </property>
         <property name="checked">
          <bool>false</bool>
@@ -89,17 +89,7 @@
          <string>perform pre-replication checks</string>
         </property>
         <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="9" column="0">
-       <widget class="QCheckBox" name="post_checks">
-        <property name="text">
-         <string>perform post-replication checks</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -110,6 +100,26 @@
         </property>
         <property name="checked">
          <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="0">
+       <widget class="QCheckBox" name="post_checks">
+        <property name="text">
+         <string>perform post-replication checks</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QCheckBox" name="post_production">
+        <property name="text">
+         <string>replicate data post-production (usable after production start of HG38 database)</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

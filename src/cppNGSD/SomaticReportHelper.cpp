@@ -304,7 +304,7 @@ void SomaticReportHelper::germlineSnvForQbic(QString path_target_folder)
 	stream << "functional_class" << "\t" << "effect";
 	stream << endl;
 
-	saveFileOnServer("QBIC_germline_snv.tsv", path_target_folder, content);
+	saveFileLocal("QBIC_germline_snv.tsv", path_target_folder, content);
 }
 
 void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
@@ -375,7 +375,7 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 
 		stream << endl;
 	}
-	saveFileOnServer("QBIC_somatic_snv.tsv", path_target_folder, content);
+	saveFileLocal("QBIC_somatic_snv.tsv", path_target_folder, content);
 }
 
 void SomaticReportHelper::germlineCnvForQbic(QString path_target_folder)
@@ -387,7 +387,7 @@ void SomaticReportHelper::germlineCnvForQbic(QString path_target_folder)
 	stream << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect";
 	stream << endl;
 
-	saveFileOnServer("QBIC_germline_cnv.tsv", path_target_folder, content);
+	saveFileLocal("QBIC_germline_cnv.tsv", path_target_folder, content);
 }
 
 
@@ -493,7 +493,7 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 
 		stream << endl;
 	}
-	saveFileOnServer("QBIC_somatic_cnv.tsv", path_target_folder, content);
+	saveFileLocal("QBIC_somatic_cnv.tsv", path_target_folder, content);
 }
 
 void SomaticReportHelper::somaticSvForQbic(QString path_target_folder)
@@ -503,7 +503,7 @@ void SomaticReportHelper::somaticSvForQbic(QString path_target_folder)
 
 	stream << "type" << "\t" << "gene" << "\t" << "effect" << "\t" << "left_bp" << "\t" << "right_bp" << endl;
 
-	saveFileOnServer("QBIC_somatic_sv.tsv", path_target_folder, content);
+	saveFileLocal("QBIC_somatic_sv.tsv", path_target_folder, content);
 }
 
 void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
@@ -539,14 +539,23 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	stream << db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(settings_.tumor_ps)).genome;
 	stream << endl;
 
-	saveFileOnServer("QBIC_metadata.tsv", path_target_folder, content);
+	saveFileLocal("QBIC_metadata.tsv", path_target_folder, content);
 }
 
 VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& variant)
 {
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(snv_index_coding_splicing_);
 
-	//first coding/splicing transcript
+	//use preferred transcript that is coding or splicing if available
+	foreach(const VariantTranscript& trans, transcripts)
+	{
+		if(settings_.preferred_transcripts.value( trans.gene ).contains(trans.idWithoutVersion()) && trans.typeMatchesTerms(obo_terms_coding_splicing_))
+		{
+			return trans;
+		}
+	}
+
+	//first coding/splicing transcript otherwise
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		if(trans.typeMatchesTerms(obo_terms_coding_splicing_))
@@ -689,6 +698,23 @@ void SomaticReportHelper::saveFileOnServer(QString filename, QString path, QStri
 				add_headers
 			);
 }
+
+void SomaticReportHelper::saveFileLocal(QString filename, QString path, QString content)
+{
+	if(!QDir(path).exists()) QDir().mkdir(path);
+	QSharedPointer<QFile> file = Helper::openFileForWriting(path + "/" + filename);
+
+	QTextStream stream(file.data());
+	stream << content;
+
+	file->close();
+
+
+
+}
+
+
+
 
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)
 {

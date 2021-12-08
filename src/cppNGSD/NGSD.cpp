@@ -19,7 +19,7 @@
 #include <QDir>
 #include "cmath"
 
-NGSD::NGSD(bool test_db, bool hg38)
+NGSD::NGSD(bool test_db, QString name_suffix)
 	: test_db_(test_db)
 {
 	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "NGSD_" + Helper::randomString(20))));
@@ -27,7 +27,7 @@ NGSD::NGSD(bool test_db, bool hg38)
 	//connect to DB
 	QString prefix = "ngsd";
 	if (test_db_) prefix += "_test";
-	if (hg38) prefix += "_hg38";
+	if (!name_suffix.isEmpty()) prefix += name_suffix;
 	db_->setHostName(Settings::string(prefix + "_host"));
 	db_->setPort(Settings::integer(prefix + "_port"));
 	db_->setDatabaseName(Settings::string(prefix + "_name"));
@@ -674,7 +674,11 @@ QString NGSD::processingSystemRegionsFilePath(int sys_id)
 	QString rel_path = getValue("SELECT target_file FROM processing_system WHERE id=" + QString::number(sys_id)).toString().trimmed();
 	if (!rel_path.isEmpty())
 	{
-		return getTargetFilePath() + rel_path;
+		QString region_file = getTargetFilePath() + rel_path;
+		if (QFile::exists(region_file))
+		{
+			return region_file;
+		}
 	}
 	return "";
 }

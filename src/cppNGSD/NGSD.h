@@ -496,7 +496,7 @@ Q_OBJECT
 
 public:
 	///Default constructor that connects to the DB
-	NGSD(bool test_db = false, bool hg38 = false);
+	NGSD(bool test_db=false, QString name_suffix="");
 	///Destructor.
 	~NGSD();
 	///Returns if the database connection is (still) open

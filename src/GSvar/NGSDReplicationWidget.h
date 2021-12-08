@@ -28,6 +28,7 @@ protected:
 	void addSampleGroups();
 	void replicateVariantData();
 	void replicateReportConfiguration();
+	void replicatePostProduction();
 	void performPostChecks();
 
 	int liftOverVariant(int source_variant_id, bool debug_output);
@@ -42,7 +43,7 @@ private:
 	QSharedPointer<NGSD> db_source_;
 	QSharedPointer<NGSD> db_target_;
 	QSharedPointer<FastaFileIndex> genome_index_;
-	QSharedPointer<FastaFileIndex> genome_index_hg38_;
+	QSharedPointer<FastaFileIndex> genome_index_hg19_;
 
 	QSet<QString> tables_done_;
 
