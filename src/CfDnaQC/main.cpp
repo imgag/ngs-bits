@@ -28,6 +28,7 @@ public:
 		addOutfile("out", "Output qcML file. If unset, writes to STDOUT.", true, true);
 		addInfile("tumor_bam", "Input tumor BAM/CRAM file for sample similarity.", true, true);
 		addInfileList("related_bams", "BAM files of related cfDNA samples to compute sample similarity.", true, true);
+		addInfile("error_rates", "Input TSV containing umiVar error rates.", true, true);
 		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg19");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addString("ref_cram", "Reference genome for CRAM support (mandatory if CRAM is used). If set, it is used for tumor and normal file.", true);
@@ -45,6 +46,7 @@ public:
 		QString out = getOutfile("out");
 		QString tumor_bam = getInfile("tumor_bam");
 		QStringList related_bams = getInfileList("related_bams");
+		QString umivar_error_rate_file = getInfile("error_rates");
 		GenomeBuild build = stringToBuild(getEnum("build"));
 		QString ref = getInfile("ref");
 		if(ref.isEmpty())	ref = Settings::string("reference_genome", true);
@@ -154,6 +156,32 @@ public:
 		}
 
 
+		// parse umiVar error rates
+		QMap<QString, double> umivar_error_rates;
+		if (!umivar_error_rate_file.isEmpty())
+		{
+			QSharedPointer<QFile> error_rate_fp = Helper::openFileForReading(umivar_error_rate_file, false);
+			while(!error_rate_fp->atEnd())
+			{
+				QString line = error_rate_fp->readLine().trimmed();
+
+				//skip header
+				if (line.startsWith("ER")) continue;
+
+				//parse line
+				QStringList columns = line.split("\t");
+				double error_rate = Helper::toDouble(columns.at(0), "Error rate");
+				QString duplication_rate = columns.at(4).trimmed();
+				umivar_error_rates.insert(duplication_rate, error_rate);
+			}
+			error_rate_fp->close();
+
+			foreach (const QString& key, umivar_error_rates.keys())
+			{
+				qDebug() << "Error rate for" << key << "-duplication: " << umivar_error_rates.value(key);
+			}
+
+		}
 
 
 
@@ -161,6 +189,7 @@ public:
 
 		// metadata
 		QList<QCValue> metadata;
+		QMap<QString,int> precision_overwrite;
 		metadata << QCValue("source file", QFileInfo(bam).fileName(), "", "QC:1000005");
 		if (!tumor_bam.isEmpty()) metadata << QCValue("source file", QFileInfo(tumor_bam).fileName() + " (tumor)", "", "QC:1000005");
 		foreach (const QString& related_bam, related_bams)
@@ -188,10 +217,38 @@ public:
 			metrics.insert(QCValue("cfDNA-cfDNA correlation", related_correlation.join(", "), "", "QC:2000084"));
 		}
 
+		if(!umivar_error_rate_file.isEmpty())
+		{
+			foreach (const QString& key, umivar_error_rates.keys())
+			{
+				if (key == "1x") metrics.insert(QCValue("umiVar error rate 1-fold duplication", umivar_error_rates.value(key), "", "QC:2000085"));
+				else if(key == "2x") metrics.insert(QCValue("umiVar error rate 2-fold duplication", umivar_error_rates.value(key), "", "QC:2000086"));
+				else if(key == "3x") metrics.insert(QCValue("umiVar error rate 3-fold duplication", umivar_error_rates.value(key), "", "QC:2000087"));
+				else if(key == "4x") metrics.insert(QCValue("umiVar error rate 4-fold duplication", umivar_error_rates.value(key), "", "QC:2000088"));
+			}
+
+			// set specific precision for error values
+			precision_overwrite.insert("umiVar error rate 1-fold duplication", 8);
+			precision_overwrite.insert("umiVar error rate 2-fold duplication", 8);
+			precision_overwrite.insert("umiVar error rate 3-fold duplication", 8);
+			precision_overwrite.insert("umiVar error rate 4-fold duplication", 8);
+
+		}
+
 		//store output
 		QString parameters = "";
 		if(!tumor_bam.isEmpty())	parameters += " -tumor_bam " + tumor_bam;
-		metrics.storeToQCML(out, QStringList(), parameters, QMap< QString, int >(), metadata);
+		if(!related_bams.isEmpty())
+		{
+			parameters += " -related_bams";
+			foreach (const QString& related_bam, related_bams)
+			{
+				parameters += " " + QFileInfo(related_bam).fileName();
+			}
+		}
+		if(!umivar_error_rate_file.isEmpty()) parameters += " -error_rates " + umivar_error_rate_file;
+
+		metrics.storeToQCML(out, QStringList(), parameters, precision_overwrite, metadata);
 
 	}
 };

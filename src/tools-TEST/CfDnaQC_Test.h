@@ -51,4 +51,16 @@ private slots:
 		COMPARE_FILES("out/CfDnaQC_out4.qcML", TESTDATA("data_out/CfDnaQC_out4.qcML"));
 	}
 
+	void error_rates_test()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		EXECUTE("CfDnaQC", "-bam " + TESTDATA("data_in/CfDnaQC_in_cfdna1.bam") + " -cfdna_panel " + TESTDATA("data_in/CfDnaQC_in_panel.bed") + " -error_rates "
+				+ TESTDATA("data_in/CfDnaQC_in_error_rates.tsv") + " -out out/CfDnaQC_out5.qcML");
+		REMOVE_LINES("out/CfDnaQC_out5.qcML", QRegExp("creation "));
+		REMOVE_LINES("out/CfDnaQC_out5.qcML", QRegExp("<binary>"));
+		COMPARE_FILES("out/CfDnaQC_out5.qcML", TESTDATA("data_out/CfDnaQC_out5.qcML"));
+	}
+
 };

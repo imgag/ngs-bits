@@ -1134,3 +1134,35 @@ def: "Sample correlation of high-quality SNV genotypes between related cfDNA sam
 is_a: QC:2000001 ! NGS variant list parameter
 xref: value-type:xsd\:string "The allowed value-type for this CV term."
 created_by: schuetz
+
+[Term]
+id: QC:2000085
+name: umiVar error rate 1-fold duplication
+def: "umiVar error rate for 1-fold duplicated bases."
+is_a: QC:2000001 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000086
+name: umiVar error rate 2-fold duplication
+def: "umiVar error rate for 2-fold duplicated bases."
+is_a: QC:2000001 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000087
+name: umiVar error rate 3-fold duplication
+def: "umiVar error rate for 3-fold duplicated bases."
+is_a: QC:2000001 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000088
+name: umiVar error rate 4-fold duplication
+def: "umiVar error rate for 4-fold duplicated bases."
+is_a: QC:2000001 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
