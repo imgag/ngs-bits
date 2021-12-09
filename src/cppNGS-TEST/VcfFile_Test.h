@@ -374,7 +374,7 @@ private slots:
 	void vepIndexByName()
 	{
 		VcfFile vl;
-		vl.load(TESTDATA("data_in/panel_vep_lifted.vcf"));
+		vl.load(TESTDATA("data_in/panel_vep.vcf"));
 		I_EQUAL(vl.vcfHeader().vepIndexByName("Allele", false), 0);
 		I_EQUAL(vl.vcfHeader().vepIndexByName("Consequence", false), 1);
 		I_EQUAL(vl.vcfHeader().vepIndexByName("IMPACT", false), 2);
@@ -385,10 +385,10 @@ private slots:
 	void sort()
 	{
 		VcfFile vl;
-		vl.load(TESTDATA("data_in/sort_in_lifted.vcf"));
+		vl.load(TESTDATA("data_in/sort_in.vcf"));
 		vl.sort();
 		vl.store("out/sort_out.vcf", false, BGZF_NO_COMPRESSION);
-		COMPARE_FILES("out/sort_out.vcf",TESTDATA("data_out/sort_out_lifted.vcf"));
+		COMPARE_FILES("out/sort_out.vcf",TESTDATA("data_out/sort_out.vcf"));
 		VCF_IS_VALID("out/sort_out.vcf")
 	}
 
@@ -461,24 +461,26 @@ private slots:
 		vl.load(TESTDATA("data_in/sort_in.vcf"));
 		vl.sortCustom([](const VcfLinePtr& a, const VcfLinePtr& b) {return a->start() < b->start(); });
 
-		I_EQUAL(vl.count(), 2344);
+		I_EQUAL(vl.count(), 2181);
 		X_EQUAL(vl.vcfLine(0).chr(),Chromosome("chr4"));
-		I_EQUAL(vl.vcfLine(0).start(),85995);
+		I_EQUAL(vl.vcfLine(0).start(),86104);
 		X_EQUAL(vl.vcfLine(1).chr(),Chromosome("chr4"));
-		I_EQUAL(vl.vcfLine(1).start(),85997);
+		I_EQUAL(vl.vcfLine(1).start(),86106);
 		X_EQUAL(vl.vcfLine(2).chr(),Chromosome("chr4"));
-		I_EQUAL(vl.vcfLine(2).start(),86101);
-		X_EQUAL(vl.vcfLine(3).chr(),Chromosome("chr4"));
-		I_EQUAL(vl.vcfLine(3).start(),86102);
-		X_EQUAL(vl.vcfLine(4).chr(),Chromosome("chr4"));
-		I_EQUAL(vl.vcfLine(4).start(),87313);
-		X_EQUAL(vl.vcfLine(5).chr(),Chromosome("chr20"));
-		I_EQUAL(vl.vcfLine(5).start(),126309);
-		X_EQUAL(vl.vcfLine(6).chr(),Chromosome("chr20"));
-		I_EQUAL(vl.vcfLine(6).start(),126310);
+		I_EQUAL(vl.vcfLine(2).start(),86212);
+		X_EQUAL(vl.vcfLine(3).chr(),Chromosome("chr20"));
+		I_EQUAL(vl.vcfLine(3).start(),145668);
+		X_EQUAL(vl.vcfLine(4).chr(),Chromosome("chr20"));
+		I_EQUAL(vl.vcfLine(4).start(),145669);
+		X_EQUAL(vl.vcfLine(5).chr(),Chromosome("chr16"));
+		I_EQUAL(vl.vcfLine(5).start(),164541);
+		X_EQUAL(vl.vcfLine(6).chr(),Chromosome("chr3"));
+		I_EQUAL(vl.vcfLine(6).start(),197872);
+		X_EQUAL(vl.vcfLine(7).chr(),Chromosome("chr3"));
+		I_EQUAL(vl.vcfLine(7).start(),197887);
 		//...
-		X_EQUAL(vl.vcfLine(2343).chr(),Chromosome("chr1"));
-		I_EQUAL(vl.vcfLine(2343).start(),248802249);
+		X_EQUAL(vl.vcfLine(2180).chr(),Chromosome("chr1"));
+		I_EQUAL(vl.vcfLine(2180).start(),248638948);
 	}
 
 	void storeLine()
@@ -618,7 +620,7 @@ private slots:
 
         QString output;
         QTextStream out_stream(&output);
-		bool is_valid = VcfFile::isValid(TESTDATA("data_in/panel_vep_lifted.vcf"), ref_file, out_stream);
+		bool is_valid = VcfFile::isValid(TESTDATA("data_in/panel_vep.vcf"), ref_file, out_stream);
 
         IS_TRUE(is_valid);
         I_EQUAL(output.length(), 0);
@@ -631,7 +633,7 @@ private slots:
 
         QString output;
         QTextStream out_stream(&output);
-		bool is_valid = VcfFile::isValid(TESTDATA("data_in/panel_vep_lifted.vcf"), ref_file, out_stream, true);
+		bool is_valid = VcfFile::isValid(TESTDATA("data_in/panel_vep.vcf"), ref_file, out_stream, true);
 
         IS_TRUE(is_valid);
         QStringList output_lines = output.split("\n");
@@ -719,7 +721,7 @@ private slots:
     void convertToStringAndParseFromString()
     {
         VcfFile vcf_file;
-        vcf_file.load(TESTDATA("data_in/panel_vep.vcf"));
+		vcf_file.load(TESTDATA("data_in/panel_vep.vcf"));
 
         // to string
         QByteArray vcf_string = vcf_file.toText();
@@ -731,16 +733,17 @@ private slots:
 
         // write to file
         vcf_file.store("out/panel_vep_fromString.vcf");
+		vcf_file.store("W:\\users\\ahott1a1\\panel_vep_fromString.vcf");
 
-        COMPARE_FILES("out/panel_vep_fromString.vcf", TESTDATA("data_in/panel_vep.vcf"));
+		COMPARE_FILES("out/panel_vep_fromString.vcf", TESTDATA("data_in/panel_vep.vcf"));
     }
 
     void loadStoreComparison()
     {
         VcfFile vcf_file;
-        vcf_file.load(TESTDATA("data_in/panel_vep.vcf"));
+		vcf_file.load(TESTDATA("data_in/panel_vep.vcf"));
         vcf_file.store("out/panel_vep_loadStore.vcf");
-        COMPARE_FILES("out/panel_vep_loadStore.vcf", TESTDATA("data_in/panel_vep.vcf"));
+		COMPARE_FILES("out/panel_vep_loadStore.vcf", TESTDATA("data_in/panel_vep.vcf"));
 
     }
 
