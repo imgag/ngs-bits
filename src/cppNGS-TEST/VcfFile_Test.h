@@ -374,7 +374,7 @@ private slots:
 	void vepIndexByName()
 	{
 		VcfFile vl;
-		vl.load(TESTDATA("data_in/panel_vep.vcf"));
+		vl.load(TESTDATA("data_in/panel_vep_lifted.vcf"));
 		I_EQUAL(vl.vcfHeader().vepIndexByName("Allele", false), 0);
 		I_EQUAL(vl.vcfHeader().vepIndexByName("Consequence", false), 1);
 		I_EQUAL(vl.vcfHeader().vepIndexByName("IMPACT", false), 2);
@@ -385,10 +385,10 @@ private slots:
 	void sort()
 	{
 		VcfFile vl;
-		vl.load(TESTDATA("data_in/sort_in.vcf"));
+		vl.load(TESTDATA("data_in/sort_in_lifted.vcf"));
 		vl.sort();
 		vl.store("out/sort_out.vcf", false, BGZF_NO_COMPRESSION);
-		COMPARE_FILES("out/sort_out.vcf",TESTDATA("data_out/sort_out.vcf"));
+		COMPARE_FILES("out/sort_out.vcf",TESTDATA("data_out/sort_out_lifted.vcf"));
 		VCF_IS_VALID("out/sort_out.vcf")
 	}
 
@@ -618,7 +618,7 @@ private slots:
 
         QString output;
         QTextStream out_stream(&output);
-        bool is_valid = VcfFile::isValid(TESTDATA("data_in/panel_vep.vcf"), ref_file, out_stream);
+		bool is_valid = VcfFile::isValid(TESTDATA("data_in/panel_vep_lifted.vcf"), ref_file, out_stream);
 
         IS_TRUE(is_valid);
         I_EQUAL(output.length(), 0);
@@ -631,7 +631,7 @@ private slots:
 
         QString output;
         QTextStream out_stream(&output);
-        bool is_valid = VcfFile::isValid(TESTDATA("data_in/panel_vep.vcf"), ref_file, out_stream, true);
+		bool is_valid = VcfFile::isValid(TESTDATA("data_in/panel_vep_lifted.vcf"), ref_file, out_stream, true);
 
         IS_TRUE(is_valid);
         QStringList output_lines = output.split("\n");
