@@ -484,7 +484,7 @@
       <string>Sub-panels</string>
      </property>
      <addaction name="actionDesignSubpanel"/>
-     <addaction name="actionArchiveSubpanel"/>
+     <addaction name="actionManageSubpanels"/>
     </widget>
     <widget class="QMenu" name="menuAdmin">
      <property name="title">
@@ -757,9 +757,9 @@
     <string>Design</string>
    </property>
   </action>
-  <action name="actionArchiveSubpanel">
+  <action name="actionManageSubpanels">
    <property name="text">
-    <string>Archive/restore</string>
+    <string>Manage</string>
    </property>
   </action>
   <action name="actionClose">

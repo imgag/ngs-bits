@@ -1,6 +1,9 @@
 #include "SubpanelArchiveDialog.h"
 #include "Helper.h"
 #include "NGSD.h"
+#include "GUIHelper.h"
+#include <QMenu>
+#include <QTextEdit>
 
 SubpanelArchiveDialog::SubpanelArchiveDialog(QWidget *parent)
 	: QDialog(parent)
@@ -10,6 +13,7 @@ SubpanelArchiveDialog::SubpanelArchiveDialog(QWidget *parent)
 	ui_.setupUi(this);
 
 	connect(ui_.list_subpanel, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(archive(QListWidgetItem*)));
+	connect(ui_.list_subpanel, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(activePanelContextMenu(QPoint)));
 	connect(ui_.list_archive, SIGNAL(itemDoubleClicked(QListWidgetItem*)), this, SLOT(restore(QListWidgetItem*)));
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateSubpanelLists()));
 
@@ -80,4 +84,40 @@ void SubpanelArchiveDialog::restore(QListWidgetItem* item)
 	updateSubpanelLists();
 
 	changed_ = true;
+}
+
+void SubpanelArchiveDialog::activePanelContextMenu(QPoint pos)
+{
+	//extract selected rows
+	QList<QListWidgetItem*> items = ui_.list_subpanel->selectedItems();
+	if (items.isEmpty()) return;
+
+	//execute menu
+	QMenu menu;
+	QAction* a_edit_roi = menu.addAction(QIcon(), "Edit target region manually");
+	QAction* action = menu.exec(ui_.list_subpanel->viewport()->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if  (action==a_edit_roi)
+	{
+		QString name = items[0]->text();
+
+		NGSD db;
+		QString roi = db.getValue("SELECT roi FROM subpanels WHERE name='"+name+"'").toString();
+
+		QTextEdit* edit = new QTextEdit(this);
+		edit->setAcceptRichText(false);
+		edit->setMinimumSize(500, 700);
+		edit->setWordWrapMode(QTextOption::NoWrap);
+		edit->setText(roi);
+		auto dlg = GUIHelper::createDialog(edit, "Edit target region of sub-panel '" + name + "'", "", true);
+		if (dlg->exec()==QDialog::Accepted)
+		{
+			SqlQuery query = db.getQuery();
+			query.prepare("UPDATE subpanels SET roi=:0 WHERE name=:1");
+			query.bindValue(0, roi);
+			query.bindValue(1, name);
+			query.exec();
+		}
+	}
 }

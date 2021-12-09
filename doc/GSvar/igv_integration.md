@@ -89,6 +89,11 @@ If GSvar us used without NGSD, you can change the port like that:
 
 Note: The GSvar port is not changed permanently! It affects only the currently running instance of GSvar.
 
+### BLAT search of other does not work.
+
+BLAT search tries to access a UCSC webservice over `https`.  
+If you are behind a authenticating proxy that uses `basic authentication`, you have to disable `jdk.http.auth.tunneling.disabledSchemes=Basic` in `net.properties` of JDK.
+
 --
 
 [back to main page](index.md)

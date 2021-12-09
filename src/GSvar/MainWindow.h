@@ -168,7 +168,7 @@ public slots:
 	///Genes to regions conversion dialog
 	void on_actionGenesToRegions_triggered();
 	///Subpanel archive dialog
-	void on_actionArchiveSubpanel_triggered();
+	void on_actionManageSubpanels_triggered();
 	///Close current variant list
 	void on_actionClose_triggered();
 	///Close all meta data tabs
