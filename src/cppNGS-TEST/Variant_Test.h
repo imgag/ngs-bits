@@ -94,54 +94,54 @@ private slots:
 		FastaFileIndex reference(ref_file);
 
 		//insertion T left (TSV-style)
-		QPair<int, int> pos = Variant::indelRegion("chr6", 110053824, 110053824, "-", "T", reference);
-		I_EQUAL(pos.first, 110053825);
-		I_EQUAL(pos.second, 110053837);
+		QPair<int, int> pos = Variant::indelRegion("chr6", 110054493, 110054493, "-", "T", reference);
+		I_EQUAL(pos.first, 110054494);
+		I_EQUAL(pos.second, 110054499);
 
 		//insertion T right (TSV-style)
-		pos = Variant::indelRegion("chr6", 110053837, 110053837, "-", "T", reference);
-		I_EQUAL(pos.first, 110053825);
-		I_EQUAL(pos.second, 110053837);
+		pos = Variant::indelRegion("chr6", 110054499, 110054499, "-", "T", reference);
+		I_EQUAL(pos.first, 110054494);
+		I_EQUAL(pos.second, 110054499);
 
 		//insertion TT left (TSV-style)
-		pos = Variant::indelRegion("chr6", 110053824, 110053824, "-", "TT", reference);
-		I_EQUAL(pos.first, 110053825);
-		I_EQUAL(pos.second, 110053837);
+		pos = Variant::indelRegion("chr6", 110054493, 110054493, "-", "TT", reference);
+		I_EQUAL(pos.first, 110054494);
+		I_EQUAL(pos.second, 110054499);
 
 		//insertion TT right (TSV-style)
-		pos = Variant::indelRegion("chr6", 110053837, 110053837, "-", "TT", reference);
-		I_EQUAL(pos.first, 110053825);
-		I_EQUAL(pos.second, 110053837);
+		pos = Variant::indelRegion("chr6", 110054499, 110054499, "-", "TT", reference);
+		I_EQUAL(pos.first, 110054494);
+		I_EQUAL(pos.second, 110054499);
 
 		//deletion T left (TSV-style)
-		pos = Variant::indelRegion("chr6", 110053825, 110053825, "T", "-", reference);
-		I_EQUAL(pos.first, 110053825);
-		I_EQUAL(pos.second, 110053837);
+		pos = Variant::indelRegion("chr6", 110054494, 110054494, "T", "-", reference);
+		I_EQUAL(pos.first, 110054494);
+		I_EQUAL(pos.second, 110054499);
 
 		//deletion T right (TSV-style)
-		 pos = Variant::indelRegion("chr6", 110053837, 110053837, "T", "-", reference);
-		I_EQUAL(pos.first, 110053825);
-		I_EQUAL(pos.second, 110053837);
+		 pos = Variant::indelRegion("chr6", 110054499, 110054499, "T", "-", reference);
+		I_EQUAL(pos.first, 110054494);
+		I_EQUAL(pos.second, 110054499);
 
 		//deletion TT left (TSV-style)
-		pos = Variant::indelRegion("chr6", 110053825, 110053826, "TT", "-", reference);
-		I_EQUAL(pos.first, 110053825);
-		I_EQUAL(pos.second, 110053837);
+		pos = Variant::indelRegion("chr6", 110054494, 110054495, "TT", "-", reference);
+		I_EQUAL(pos.first, 110054494);
+		I_EQUAL(pos.second, 110054499);
 
 		//deletion TT right (TSV-style)
-		 pos = Variant::indelRegion("chr6", 110053836, 110053837, "TT", "-", reference);
-		I_EQUAL(pos.first, 110053825);
-		I_EQUAL(pos.second, 110053837);
+		 pos = Variant::indelRegion("chr6", 110054498, 110054499, "TT", "-", reference);
+		I_EQUAL(pos.first, 110054494);
+		I_EQUAL(pos.second, 110054499);
 
 		//deletion AG left (TSV-style)
-		pos = Variant::indelRegion("chr14", 53513479, 53513480, "AG", "-", reference);
-		I_EQUAL(pos.first, 53513479);
-		I_EQUAL(pos.second, 53513484);
+		pos = Variant::indelRegion("chr14", 53513603, 53513604, "AG", "-", reference);
+		I_EQUAL(pos.first, 53513603);
+		I_EQUAL(pos.second, 53513606);
 
 		//deletion AG right (TSV-style)
-		pos = Variant::indelRegion("chr14", 53513483, 53513484, "AG", "-", reference);
-		I_EQUAL(pos.first, 53513479);
-		I_EQUAL(pos.second, 53513484);
+		pos = Variant::indelRegion("chr14", 53513605, 53513606, "AG", "-", reference);
+		I_EQUAL(pos.first, 53513603);
+		I_EQUAL(pos.second, 53513606);
 
 		//insertion outside repeat => no region
 		pos = Variant::indelRegion("chr14", 53207583, 53207583, "-", "CACCAAAGCCACCAGTGCCGAAACCAGCTCCGAAGCCGCCGG", reference);
@@ -329,32 +329,32 @@ private slots:
 		S_EQUAL(v.toHGVS(genome_index), "g.98232224_98232225del");
 
 		//DUP (single base)
-		v = Variant("chr1", 120611964, 120611964, "-", "G");
-		S_EQUAL(v.toHGVS(genome_index), "g.120611964dup");
-		v = Variant("chr1", 120611964, 120611964, "", "G");
-		S_EQUAL(v.toHGVS(genome_index), "g.120611964dup");
-		v = Variant("chr20", 49508924, 49508924, "-", "T");
-		S_EQUAL(v.toHGVS(genome_index), "g.49508924dup");
-		v = Variant("chr20", 49508924, 49508924, "", "T");
-		S_EQUAL(v.toHGVS(genome_index), "g.49508924dup");
-		v = Variant("chr20", 49508923, 49508923, "-", "T");
-		S_EQUAL(v.toHGVS(genome_index), "g.49508924dup");
-		v = Variant("chr20", 49508923, 49508923, "", "T");
-		S_EQUAL(v.toHGVS(genome_index), "g.49508924dup");
+		v = Variant("chr1", 120069350, 120069350, "-", "G");
+		S_EQUAL(v.toHGVS(genome_index), "g.120069350dup");
+		v = Variant("chr1", 120069350, 120069350, "", "G");
+		S_EQUAL(v.toHGVS(genome_index), "g.120069350dup");
+		v = Variant("chr20", 50892387, 50892387, "-", "T");
+		S_EQUAL(v.toHGVS(genome_index), "g.50892387dup");
+		v = Variant("chr20", 50892387, 50892387, "", "T");
+		S_EQUAL(v.toHGVS(genome_index), "g.50892387dup");
+		v = Variant("chr20", 50892386, 50892386, "-", "T");
+		S_EQUAL(v.toHGVS(genome_index), "g.50892387dup");
+		v = Variant("chr20", 50892386, 50892386, "", "T");
+		S_EQUAL(v.toHGVS(genome_index), "g.50892387dup");
 
 		//DUP (multiple base)
-		v = Variant("chr1", 120611966, 120611966, "-", "GCA");
-		S_EQUAL(v.toHGVS(genome_index), "g.120611964_120611966dup");
-		v = Variant("chr1", 120611966, 120611966, "", "GCA");
-		S_EQUAL(v.toHGVS(genome_index), "g.120611964_120611966dup");
-		v = Variant("chr1", 120611969, 120611969, "-", "GCA");
-		S_EQUAL(v.toHGVS(genome_index), "g.120611967_120611969dup");
-		v = Variant("chr1", 120611969, 120611969, "", "GCA");
-		S_EQUAL(v.toHGVS(genome_index), "g.120611967_120611969dup");
+		v = Variant("chr1", 120069352, 120069352, "-", "GCA");
+		S_EQUAL(v.toHGVS(genome_index), "g.120069350_120069352dup");
+		v = Variant("chr1", 120069352, 120069352, "", "GCA");
+		S_EQUAL(v.toHGVS(genome_index), "g.120069350_120069352dup");
+		v = Variant("chr1", 120069355, 120069355, "-", "GCA");
+		S_EQUAL(v.toHGVS(genome_index), "g.120069353_120069355dup");
+		v = Variant("chr1", 120069355, 120069355, "", "GCA");
+		S_EQUAL(v.toHGVS(genome_index), "g.120069353_120069355dup");
 
 		//INV
-		v = Variant("chr1", 120611948, 120611952, "CATGC", "GCATG");
-		S_EQUAL(v.toHGVS(genome_index), "g.120611948_120611952inv");
+		v = Variant("chr1", 120069334, 120069338, "CATGC", "GCATG");
+		S_EQUAL(v.toHGVS(genome_index), "g.120069334_120069338inv");
 	}
 
 	void toVCF()
@@ -367,8 +367,8 @@ private slots:
 		v_rep = Variant("chr1", 47110766, 47110766, "-", "C").toVCF(genome_index);
 		S_EQUAL(v_rep.chr.str(), "chr1");
 		I_EQUAL(v_rep.pos, 47110766);
-		S_EQUAL(v_rep.ref, "G");
-		S_EQUAL(v_rep.alt, "GC");
+		S_EQUAL(v_rep.ref, "C");
+		S_EQUAL(v_rep.alt, "CC");
 
 		v_rep = Variant("chr1", 47133811, 47133811, "T", "C").toVCF(genome_index);
 		S_EQUAL(v_rep.chr.str(), "chr1");
@@ -451,10 +451,10 @@ private slots:
 
 		Variant v;
 
-		v = Variant ("chr4", 88536883, 88536900, "TAGCAGTGACAGCAGCAA", "-");
+		v = Variant ("chr4", 88536883, 88536900, "AAATTATTTTCTGCCTGG", "-");
 		v.checkReferenceSequence(ref_file);
 
-		v = Variant("chr5", 76841292, 76841292, "G", "-");
+		v = Variant("chr5", 76841292, 76841292, "A", "-");
 		v.checkReferenceSequence(ref_file);
 
 		v = Variant("chr5", 76841292, 76841292, "T", "-");
@@ -469,42 +469,42 @@ private slots:
 		Variant v;
 
 		//SNP > no change
-		v = Variant("chr17", 41246534, 41246534, "T", "A");
+		v = Variant("chr17", 43094517, 43094517, "T", "A");
 		v.leftAlign(ref_file);
-		I_EQUAL(v.start(), 41246534);
-		I_EQUAL(v.end(), 41246534);
+		I_EQUAL(v.start(), 43094517);
+		I_EQUAL(v.end(), 43094517);
 		S_EQUAL(v.ref(), "T");
 		S_EQUAL(v.obs(), "A");
 
 		//INS (one base block shift)
-		v = Variant("chr17", 41246534, 41246534, "-", "T");
+		v = Variant("chr17", 43094517, 43094517, "-", "T");
 		v.leftAlign(ref_file);
-		I_EQUAL(v.start(), 41246531);
-		I_EQUAL(v.end(), 41246531);
+		I_EQUAL(v.start(), 43094514);
+		I_EQUAL(v.end(), 43094514);
 		S_EQUAL(v.ref(), "-");
 		S_EQUAL(v.obs(), "T");
 
 		//INS (no block shift)
-		v = Variant("chr3", 195307240, 195307240, "-", "TTC");
+		v = Variant("chr3", 195580369, 195580369, "-", "TTC");
 		v.leftAlign(ref_file);
-		I_EQUAL(v.start(), 195307240);
-		I_EQUAL(v.end(), 195307240);
+		I_EQUAL(v.start(), 195580369);
+		I_EQUAL(v.end(), 195580369);
 		S_EQUAL(v.ref(), "-");
 		S_EQUAL(v.obs(), "TTC");
 
 		//DEL (two base block shift)
-		v = Variant("chr3", 195956747, 195956748, "AG", "-");
+		v = Variant("chr3", 196229876, 196229877, "AG", "-");
 		v.leftAlign(ref_file);
-		I_EQUAL(v.start(), 195956727);
-		I_EQUAL(v.end(), 195956728);
+		I_EQUAL(v.start(), 196229856);
+		I_EQUAL(v.end(), 196229857);
 		S_EQUAL(v.ref(), "AG");
 		S_EQUAL(v.obs(), "-");
 
 		//DEL (no block shift, but part of sequence before and after match)
-		v = Variant("chr4", 88536883, 88536900, "TAGCAGTGACAGCAGCAA", "-");
+		v = Variant("chr4", 87615731, 87615748, "TAGCAGTGACAGCAGCAA", "-");
 		v.leftAlign(ref_file);
-		I_EQUAL(v.start(), 88536869);
-		I_EQUAL(v.end(), 88536886);
+		I_EQUAL(v.start(), 87615717);
+		I_EQUAL(v.end(), 87615734);
 		S_EQUAL(v.ref(), "AGTGACAGCAGCAATAGC");
 		S_EQUAL(v.obs(), "-");
 	}
