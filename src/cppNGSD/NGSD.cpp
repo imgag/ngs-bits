@@ -823,6 +823,24 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 	return query.value(0).toString();
 }
 
+QString NGSD::projectFolder(QString type)
+{
+	//support for legacy project folder setting
+	QString folder = Settings::path("projects_folder", true).trimmed();
+	if (!folder.isEmpty())
+	{
+		return folder + QDir::separator() + type + QDir::separator();
+	}
+
+	folder = Settings::path("projects_folder_"+type, true).trimmed();
+	if (!folder.isEmpty())
+	{
+		return folder + QDir::separator();
+	}
+
+	THROW(ProgrammingException, "Fount no project folder entry in settings.ini file for prpject type '" + type + "'!");
+}
+
 QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType type)
 {
 	SqlQuery query = getQuery();
@@ -833,12 +851,11 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	query.next();
 
 	//create sample folder
-	QString output = Settings::path("projects_folder");
 	QString ps_name = query.value(0).toString();
 	QString p_type = query.value(1).toString();
-	output += p_type;
+	QString output = projectFolder(p_type);
 	QString p_name = query.value(2).toString();
-	output += QDir::separator() + p_name + QDir::separator() + "Sample_" + ps_name + QDir::separator();
+	output += p_name + QDir::separator() + "Sample_" + ps_name + QDir::separator();
 	QString sys_name_short = query.value(3).toString();
 
 	//append file name if requested
@@ -865,7 +882,6 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analysis_type)
 {
 	//init
-	QString project_folder = Settings::path("projects_folder");
 	QStringList project_types = getEnum("project", "type");
 
 	//convert to platform-specific canonical path
@@ -879,7 +895,7 @@ QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analy
 			QStringList parts = file.split("/" + project_type + "/");
 			if (parts.count()==2)
 			{
-				file = project_folder + project_type + QDir::separator() + parts[1];
+				file = projectFolder(project_type) + parts[1];
 				break;
 			}
 		}
@@ -3520,7 +3536,6 @@ double NGSD::maxAlleleFrequency(const Variant& v, QList<int> af_column_index)
 
 void NGSD::maintain(QTextStream* messages, bool fix_errors)
 {
-	QString project_folder = Settings::path("projects_folder");
 	SqlQuery query = getQuery();
 
 	// (1) tumor samples variants that have been imported into 'detected_variant' table
@@ -3548,7 +3563,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 		QString ps_name = query.value(0).toString();
 		QString p_type = query.value(1).toString();
 
-		QString folder = project_folder + p_type + QDir::separator() + query.value(2).toString() + QDir::separator() + "Sample_" + ps_name + QDir::separator();
+		QString folder = projectFolder(p_type) + query.value(2).toString() + QDir::separator() + "Sample_" + ps_name + QDir::separator();
 		if (!QFile::exists(folder))
 		{
 			QString ps_id = query.value(4).toString();
@@ -3559,7 +3574,7 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 			query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), p.type, p.name FROM sample s, processed_sample ps, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id AND s.id='" + query.value(3).toString()+"' AND ps.id!='" + ps_id + "'");
 			while(query2.next())
 			{
-				QString folder2 = project_folder + query2.value(1).toString() + QDir::separator() + query2.value(2).toString() + QDir::separator() + "Sample_" + query2.value(0).toString() + QDir::separator();
+				QString folder2 = projectFolder(query2.value(1).toString()) + query2.value(2).toString() + QDir::separator() + "Sample_" + query2.value(0).toString() + QDir::separator();
 				if (QFile::exists(folder2))
 				{
 					QStringList files = Helper::findFiles(folder2, ps_name + "*.fastq.gz", false);

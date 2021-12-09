@@ -626,6 +626,9 @@ public:
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
 
+	///Returns the project folder for a project type
+	QString projectFolder(QString type);
+	///Returns the path of certain file of a processed sample (type)
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
 	///Returns the path to secondary analyses of the processed samples.
 	QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type);
