@@ -217,7 +217,7 @@ private slots:
 		I_EQUAL(pileup.indels().count(), 29);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '+'), 27);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 2);
-		//DELATION
+		//DELETION
 		pileup = reader.getPileup("chr14", 53513479, 1);
 		I_EQUAL(pileup.depth(false), 50);
 		I_EQUAL(pileup.a(), 50);
