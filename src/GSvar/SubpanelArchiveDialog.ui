@@ -32,7 +32,7 @@
    <item row="0" column="0" colspan="2">
     <widget class="QLabel" name="label">
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to archive and restore sub-panels.Archived sub-panels are not shown in the target region list.&lt;br/&gt;Double-click a sub-panel to archive/restore it.&lt;br/&gt;&lt;br/&gt;You can also edit sub-panel target regions manually through the context menu of the active sub-panels. This should be used only rarely. Be very careful when using this functionality since you can destroy the sub-panel!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This dialog is used to archive and restore sub-panels.Archived sub-panels are not shown in the target region list.&lt;br/&gt;Double-click a sub-panel to archive/restore it.&lt;br/&gt;&lt;br/&gt;You can also edit sub-panel target regions manually through the context menu of the active sub-panels. This should be used only rarely. Be very careful when using this functionality since you can corrupt the sub-panel!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>

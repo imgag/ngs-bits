@@ -17,8 +17,8 @@ The settings are:
 - *reference_genome*: the path to the reference genome FASTA file
 - *ngsd\_...*: Database credentials for the NGSD (if available)
 - *genlab\_...*: Database credentials for the GenLab (if available)
-- *projects\_folder*: Main projects folder where sample data is stored
-- *target\_file\_folder_...*: Processing system target BED file folder
+- *projects\_folder\_...*: Prject data folders for different project types (diagnostic, research, test, external)
+- *data\_folder*: megSAP data folder used to find target region BED files of processing systems
 
 ### GSvar.ini
 
@@ -28,8 +28,9 @@ This file contains settings specific for `GSvar`. If it is missing, copy the exa
 
 The most important settings are:
 
-- *lovd\_...*: LOVD credentials for upload of variants
-- *analysis\_steps\_...*: Analysis steps of queuing of analysis on cluster
+- *build*: Genome build to use. Default is `hg38`.
+- *clinvar_api_key.*: API key for Clinvar upload of variants
+- *analysis\_steps\_...*: Analysis steps of queuing of analysis on cluster for different analysis types
 - *proxy\_...*: Proxy settings (if needed)
 - *gsvar\_...*: Output folders for different documents `GSvar` creates, e.g. reports.
 - *igv\_menu*: A comma separated list of IGV custom tracks. Each track consists of these tab-separated parts:
@@ -38,6 +39,7 @@ The most important settings are:
 	- path to track file
 - *email\_run\_...*: semicolon-separated list of additional email addresses that are used when the email button on the run tab is pressed.
 - *custom\_menu\_small\_variants*: tab-separated list of custom context menu entries. Each entry constists of `name|URL`. The name is shown in the context menu. The URL is opened and the following strings are replaced by values from the variant: `[chr]`, `[start]`, `[end]`, `[ref]`, `[obs]`.
+- *gsvar\_file\_outdated\_before*: GSvar files created before the given date (yyyy-mm-dd) cause a user warning stating that they are outdated.
 
 ## Filters
 
