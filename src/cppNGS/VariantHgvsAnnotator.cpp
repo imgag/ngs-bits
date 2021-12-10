@@ -266,7 +266,7 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
         if((plus_strand && gen_pos >= transcript.start()) ||
                 (!plus_strand && gen_pos <= transcript.end()))
         {
-            pos_hgvs_c = getHgvsPosition(transcript.utr5prime(), gen_pos, plus_strand, true);
+            pos_hgvs_c = getHgvsPosition(transcript.utr5prime(), hgvs, gen_pos, plus_strand, true);
 
             if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
             {
@@ -281,6 +281,7 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
         else if((plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_) ||
                 (!plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_))
         {
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
             hgvs.variant_consequence_type.insert(VariantConsequenceType::UPSTREAM_GENE_VARIANT);
             return "";
         }
@@ -297,7 +298,11 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
         if((plus_strand && gen_pos <= transcript.end()) ||
                 (!plus_strand && gen_pos >= transcript.start()))
         {
-            pos_hgvs_c = "*" + getHgvsPosition(transcript.utr3prime(), gen_pos, plus_strand, false);
+            //determine number of first exon in 3 prime utr; subtract 2 because of exons that are both utr and cds
+            int first_region = transcript.utr5prime().count() + transcript.codingRegions().count() - 2;
+
+            pos_hgvs_c = "*" + getHgvsPosition(transcript.utr3prime(), hgvs, gen_pos, plus_strand, false, first_region);
+
             if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
             {
                 hgvs.variant_consequence_type.insert(VariantConsequenceType::INTRON_VARIANT);
@@ -310,6 +315,7 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
         else if((plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_) ||
                 (!plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_))
         {
+            hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
             hgvs.variant_consequence_type.insert(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT);
             return "";
         }
@@ -321,7 +327,10 @@ QString VariantHgvsAnnotator::annotateRegionsCoding(const Transcript& transcript
     //between start and stop codon
     else
     {
-        pos_hgvs_c = getHgvsPosition(transcript.codingRegions(), gen_pos, plus_strand, false);
+        //determine number of first exon in coding sequence; subtract 1 because of exon that is both utr and cds
+        int first_region = transcript.utr5prime().count() - 1;
+
+        pos_hgvs_c = getHgvsPosition(transcript.codingRegions(), hgvs, gen_pos, plus_strand, false, first_region);
 
         if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
         {
@@ -346,7 +355,7 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
     {
         hgvs.variant_consequence_type.insert(VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT);
 
-        pos_hgvs_c = getHgvsPosition(transcript.regions(), gen_pos, plus_strand, false);
+        pos_hgvs_c = getHgvsPosition(transcript.regions(), hgvs, gen_pos, plus_strand, false);
 
         if(pos_hgvs_c.contains("+") || pos_hgvs_c.contains("-"))
         {
@@ -361,6 +370,7 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
     else if((plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_) ||
             (!plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_))
     {
+        hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
         hgvs.variant_consequence_type.insert(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT);
         return "";
     }
@@ -368,6 +378,7 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
     else if((plus_strand && transcript.start() - gen_pos <= max_dist_to_transcript_) ||
             (!plus_strand && gen_pos - transcript.end() <= max_dist_to_transcript_))
     {
+        hgvs.variant_consequence_type.insert(VariantConsequenceType::INTERGENIC_VARIANT);
         hgvs.variant_consequence_type.insert(VariantConsequenceType::UPSTREAM_GENE_VARIANT);
         return "";
     }
@@ -379,7 +390,7 @@ QString VariantHgvsAnnotator::annotateRegionsNonCoding(const Transcript& transcr
 }
 
 //determine the HGVS position string for a single genomic position in any part of the transcript
-QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, int gen_pos, bool plus_strand, bool utr_5)
+QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool utr_5, int first_region)
 {
     bool in_exon = false;
 
@@ -399,11 +410,17 @@ QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, int gen_po
             if(plus_strand)
             {
                 pos += gen_pos - regions[i].start() + 1;
+
+                if(utr_5) hgvs.exon_number = regions.count() - i + first_region;
+                else hgvs.exon_number = i + 1 + first_region;
                 break;
             }
             else
             {
                 pos = regions[i].end() - gen_pos + 1;
+
+                if(utr_5) hgvs.exon_number = i + 1 + first_region;
+                else hgvs.exon_number = regions.count() - i + first_region;
                 continue;
             }
         }
@@ -418,13 +435,13 @@ QString VariantHgvsAnnotator::getHgvsPosition(const BedFile& regions, int gen_po
     }
     else
     {
-        pos_hgvs_c = getPositionInIntron(regions, gen_pos, plus_strand, utr_5);
+        pos_hgvs_c = getPositionInIntron(regions, hgvs, gen_pos, plus_strand, utr_5, first_region);
     }
     return pos_hgvs_c;
 }
 
 //determine the HGVS position string for a single genomic position in an intron
-QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, int genomic_position, bool plus_strand, bool utr_5)
+QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand, bool utr_5, int first_region)
 {
     QString pos_in_intron;
     int closest_exon_pos = 0;
@@ -454,6 +471,9 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, int ge
 
             if(plus_strand)
             {
+                if(utr_5) hgvs.intron_number = regions.count() - i + first_region - 1;
+                else hgvs.intron_number = i + 1 + first_region;
+
                 if(dist_below <= dist_above)
                 {
                     QString prefix = utr_5 ? "-" : "+";
@@ -468,6 +488,9 @@ QString VariantHgvsAnnotator::getPositionInIntron(const BedFile& regions, int ge
             }
             else
             {
+                if(utr_5) hgvs.intron_number = i + 1 + first_region;
+                else hgvs.intron_number = regions.count() - i + first_region - 1;
+
                 closest_exon_pos += regions[i+1].length();
                 if(dist_above <= dist_below)
                 {                    

@@ -16,30 +16,30 @@
 ///Representation of the effect of a variant
 enum class VariantConsequenceType
 {
-    SPLICE_ACCEPTOR_VARIANT,
-    SPLICE_DONOR_VARIANT,
-    STOP_GAINED,
-    FRAMESHIFT_VARIANT,
-    STOP_LOST,
-    START_LOST,
-    INFRAME_INSERTION,
-    INFRAME_DELETION,
-    MISSENSE_VARIANT,
-    PROTEIN_ALTERING_VARIANT,
-    SPLICE_REGION_VARIANT,
-    INCOMPLETE_TERMINAL_CODON_VARIANT,
-    START_RETAINED_VARIANT,
-    STOP_RETAINED_VARIANT,
-    SYNONYMOUS_VARIANT,
-    CODING_SEQUENCE_VARIANT,
-    FIVE_PRIME_UTR_VARIANT,
-    THREE_PRIME_UTR_VARIANT,
-    NON_CODING_TRANSCRIPT_EXON_VARIANT,
-    INTRON_VARIANT,
-    NON_CODING_TRANSCRIPT_VARIANT,
-    UPSTREAM_GENE_VARIANT,
+    INTERGENIC_VARIANT,
     DOWNSTREAM_GENE_VARIANT,
-    INTERGENIC_VARIANT
+    UPSTREAM_GENE_VARIANT,
+    NON_CODING_TRANSCRIPT_VARIANT,
+    INTRON_VARIANT,
+    NON_CODING_TRANSCRIPT_EXON_VARIANT,
+    THREE_PRIME_UTR_VARIANT,
+    FIVE_PRIME_UTR_VARIANT,
+    CODING_SEQUENCE_VARIANT,
+    SYNONYMOUS_VARIANT,
+    STOP_RETAINED_VARIANT,
+    START_RETAINED_VARIANT,
+    INCOMPLETE_TERMINAL_CODON_VARIANT,
+    SPLICE_REGION_VARIANT,
+    PROTEIN_ALTERING_VARIANT,
+    MISSENSE_VARIANT,
+    INFRAME_DELETION,
+    INFRAME_INSERTION,
+    START_LOST,
+    STOP_LOST,
+    FRAMESHIFT_VARIANT,
+    STOP_GAINED,
+    SPLICE_DONOR_VARIANT,
+    SPLICE_ACCEPTOR_VARIANT
 };
 
 inline uint qHash(VariantConsequenceType key, uint seed)
@@ -64,7 +64,8 @@ struct CPPNGSSHARED_EXPORT HgvsNomenclature
     QString hgvs_c;
     QString hgvs_p;
     QSet<VariantConsequenceType> variant_consequence_type;
-    QString exon_intron_number;
+    int exon_number{-1};
+    int intron_number{-1};
 
     VariantImpact consequenceTypeToImpact(VariantConsequenceType type)
     {
@@ -119,8 +120,8 @@ private:
 
     QString annotateRegionsCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand);
     QString annotateRegionsNonCoding(const Transcript& transcript, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand);
-    QString getHgvsPosition(const BedFile& regions, int gen_pos, bool plus_strand, bool utr_5 = false);
-    QString getPositionInIntron(const BedFile& regions, int genomic_position, bool plus_strand, bool utr_5 = false);
+    QString getHgvsPosition(const BedFile& regions, HgvsNomenclature& hgvs, int gen_pos, bool plus_strand, bool utr_5 = false, int first_region = 0);
+    QString getPositionInIntron(const BedFile& regions, HgvsNomenclature& hgvs, int genomic_position, bool plus_strand, bool utr_5 = false, int first_region = 0);
     QString getHgvsProteinAnnotation(const VcfLine& variant, const FastaFileIndex& genome_idx, const QString& pos_hgvs_c, bool plus_strand);
 
     QByteArray toThreeLetterCode(QChar aa_one_letter_code);
