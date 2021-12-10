@@ -199,6 +199,8 @@ public:
 
 		metadata << QCValue("linked file", QFileInfo(cfdna_panel_path).fileName(), "", "QC:1000006");
 
+		if (!umivar_error_rate_file.isEmpty()) metadata << QCValue("linked file", QFileInfo(umivar_error_rate_file).fileName(), "", "QC:1000006");
+
 		QCCollection metrics;
 		metrics.insert(QCValue("monitoring variant read depth", monitoring_avg_depth, "", "QC:2000077"));
 		metrics.insert(QCValue("ID variant read depth", id_avg_depth, "", "QC:2000078"));
