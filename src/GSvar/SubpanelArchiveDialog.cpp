@@ -4,6 +4,7 @@
 #include "GUIHelper.h"
 #include <QMenu>
 #include <QTextEdit>
+#include <QMessageBox>
 
 SubpanelArchiveDialog::SubpanelArchiveDialog(QWidget *parent)
 	: QDialog(parent)
@@ -101,6 +102,7 @@ void SubpanelArchiveDialog::activePanelContextMenu(QPoint pos)
 	if  (action==a_edit_roi)
 	{
 		QString name = items[0]->text();
+		QString title = "Edit target region of sub-panel '" + name + "'";
 
 		NGSD db;
 		QString roi = db.getValue("SELECT roi FROM subpanels WHERE name='"+name+"'").toString();
@@ -110,14 +112,34 @@ void SubpanelArchiveDialog::activePanelContextMenu(QPoint pos)
 		edit->setMinimumSize(500, 700);
 		edit->setWordWrapMode(QTextOption::NoWrap);
 		edit->setText(roi);
-		auto dlg = GUIHelper::createDialog(edit, "Edit target region of sub-panel '" + name + "'", "", true);
+		auto dlg = GUIHelper::createDialog(edit, title , "", true);
 		if (dlg->exec()==QDialog::Accepted)
 		{
-			SqlQuery query = db.getQuery();
-			query.prepare("UPDATE subpanels SET roi=:0 WHERE name=:1");
-			query.bindValue(0, roi);
-			query.bindValue(1, name);
-			query.exec();
+			try
+			{
+				//sort/merge new BED file (also throws an exception during parsing if it is not valid)
+				BedFile roi_new = BedFile::fromText(edit->toPlainText().toLatin1());
+				roi_new.merge();
+
+				//store
+				SqlQuery query = db.getQuery();
+				query.prepare("UPDATE subpanels SET roi=:0 WHERE name=:1");
+				query.bindValue(0, roi_new.toText());
+				query.bindValue(1, name);
+				query.exec();
+
+				//show dialog with infos
+				BedFile roi_old = BedFile::fromText(roi.toLatin1());
+				roi_old.merge();
+				QMessageBox::information(this, title, "Stored sub-panel target region in NGSD.\n"
+													  "Before it contained " + QString::number(roi_old.baseCount()) + " bases in " + QString::number(roi_old.baseCount()) + " regions.\n"
+													  "Now it contains " + QString::number(roi_new.baseCount()) + " bases in " + QString::number(roi_new.baseCount()) + " regions.");
+
+			}
+			catch(Exception& e)
+			{
+				QMessageBox::warning(this, title, "Could not store target region in NGSD:\n"+e.message());
+			}
 		}
 	}
 }
