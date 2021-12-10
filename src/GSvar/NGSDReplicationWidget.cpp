@@ -532,6 +532,39 @@ void NGSDReplicationWidget::replicateReportConfiguration()
 
 void NGSDReplicationWidget::replicatePostProduction()
 {
+	//init
+	int c_update = 0;
+
+	//geneinfo_germline
+
+
+	SqlQuery query_s = db_source_->getQuery();
+	query_s.exec("SELECT symbol, comments FROM geneinfo_germline");
+	while(query_s.next())
+	{
+		QString gene = query_s.value(0).toString().trimmed();
+		QString source_comment = query_s.value(1).toString().trimmed();
+		if (source_comment.isEmpty()) continue;
+
+		//replicate only if target entry exists and has no comment
+		QVariant target_comment = db_target_->getValue("SELECT comments FROM geneinfo_germline WHERE symbol='"+gene+"'", true);
+		if (!target_comment.isValid()) continue;
+		if (!target_comment.toString().trimmed().isEmpty()) continue;
+
+		//update target entry
+		SqlQuery query_t = db_target_->getQuery();
+		query_t.prepare("UPDATE geneinfo_germline SET comments=:0 WHERE symbol=:1");
+		query_t.bindValue(0, source_comment);
+		query_t.bindValue(1, gene);
+		query_t.exec();
+
+		++c_update;
+	}
+	addLine("  Table 'geneinfo_germline' updated: "+QString::number(c_update));
+
+
+
+
 	//TODO
 	/*
 	 Replicate missing variant data by insert only (otherwise work done in the GRCh38 database might be lost)

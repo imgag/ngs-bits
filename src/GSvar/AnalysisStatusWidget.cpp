@@ -674,19 +674,5 @@ QString AnalysisStatusWidget::timeHumanReadable(int sec)
 
 QList<int> AnalysisStatusWidget::selectedRows() const
 {
-	QList<int> output;
-
-	QList<QTableWidgetSelectionRange> ranges = ui_.analyses->selectedRanges();
-	foreach(const QTableWidgetSelectionRange& range, ranges)
-	{
-		for (int r=range.topRow(); r<=range.bottomRow(); ++r)
-		{
-			if (ui_.analyses->isRowHidden(r)) continue;
-			output << r;
-		}
-	}
-
-	std::sort(output.begin(), output.end());
-
-	return output;
+	return GUIHelper::selectedTableRows(ui_.analyses);
 }

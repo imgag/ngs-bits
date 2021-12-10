@@ -178,8 +178,7 @@ private:
 
 	RtfDocument doc_;
 
-	void saveFileOnServer(QString filename, QString path, QString content);
-	void saveFileLocal(QString filename, QString path, QString content);
+	void saveReportData(QString filename, QString path, QString content);
 
 	void somaticSnvForQbic(QString path);
 	void germlineSnvForQbic(QString path);

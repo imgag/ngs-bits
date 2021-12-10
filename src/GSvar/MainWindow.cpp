@@ -127,6 +127,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GenomeVisualizationWidget.h"
 #include "LiftOverWidget.h"
 #include "CacheInitWorker.h"
+#include "BlatWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -861,6 +862,50 @@ void MainWindow::on_actionLiftOver_triggered()
 {
 	LiftOverWidget* widget = new LiftOverWidget(this);
 	auto dlg = GUIHelper::createDialog(widget, "Lift-over genome coordinates");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionGetGenomicSequence_triggered()
+{
+	QString title = "Get genomic sequence";
+	try
+	{
+		//get region
+		QString region_text = QInputDialog::getText(this, title, "genomic region:");
+		if (region_text=="") return;
+
+		Chromosome chr;
+		int start, end;
+		NGSHelper::parseRegion(region_text, chr, start, end);
+
+		//get sequence
+		QString genome_file = Settings::string("reference_genome", false);
+		FastaFileIndex genome_idx(genome_file);
+		int length = end-start+1;
+		Sequence sequence = genome_idx.seq(chr, start, length, true);
+
+		//copy to clipboard
+		QApplication::clipboard()->setText(sequence);
+
+		//show message
+		if (sequence.length()>100)
+		{
+			sequence.resize(100);
+			sequence += "...";
+		}
+		QMessageBox::information(this, title, "Extracted reference sequence of region " + chr.strNormalized(true) + ":" + QString::number(start) + "-" + QString::number(end) + " (length " + QString::number(length) + "):\n" + sequence + "\n\nThe sequence was copied to the clipboard.");
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, title, "Error getting reference sequence:\n" + e.message());
+	}
+}
+
+void MainWindow::on_actionBlatSearch_triggered()
+{
+	BlatWidget* widget = new BlatWidget(this);
+
+	auto dlg = GUIHelper::createDialog(widget, "BLAT search");
 	addModelessDialog(dlg);
 }
 
@@ -4680,7 +4725,7 @@ void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)
 	}
 }
 
-void MainWindow::on_actionArchiveSubpanel_triggered()
+void MainWindow::on_actionManageSubpanels_triggered()
 {
 	SubpanelArchiveDialog dlg(this);
 	dlg.exec();

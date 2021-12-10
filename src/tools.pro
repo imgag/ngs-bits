@@ -436,3 +436,7 @@ VariantAnnotateASE.depends = cppNGS
 SUBDIRS += SplicingToBed
 tools-TEST.depends += SplicingToBed
 SplicingToBed.depends = cppNGSD
+
+SUBDIRS += CfDnaQC
+tools-TEST.depends += CfDnaQC
+CfDnaQC.depends = cppNGS

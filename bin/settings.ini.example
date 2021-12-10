@@ -31,7 +31,10 @@ genlab_user = ""
 genlab_pass = ""
 
 #megSAP folders
-projects_folder = ""
+projects_folder_diagnostic = "";
+projects_folder_research = "";
+projects_folder_test = "";
+projects_folder_external = "";
 data_folder = ""
 
 #Processing system target region path (where the target region BED files are located)

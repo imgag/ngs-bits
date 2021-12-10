@@ -168,7 +168,7 @@ public slots:
 	///Genes to regions conversion dialog
 	void on_actionGenesToRegions_triggered();
 	///Subpanel archive dialog
-	void on_actionArchiveSubpanel_triggered();
+	void on_actionManageSubpanels_triggered();
 	///Close current variant list
 	void on_actionClose_triggered();
 	///Close all meta data tabs
@@ -237,6 +237,10 @@ public slots:
 	void on_actionAlleleBalance_triggered();
 	///Shows lift-over dialog
 	void on_actionLiftOver_triggered();
+	///Get reference sequence
+	void on_actionGetGenomicSequence_triggered();
+	///Perform BLAT search
+	void on_actionBlatSearch_triggered();
 
 	///Load report configuration
 	void loadReportConfig();

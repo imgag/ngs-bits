@@ -102,7 +102,8 @@ SOURCES += main.cpp\
     CfdnaAnalysisDialog.cpp \
     ClinvarUploadDialog.cpp \
     LiftOverWidget.cpp \
-    CacheInitWorker.cpp
+    CacheInitWorker.cpp \
+    BlatWidget.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -200,7 +201,8 @@ HEADERS += MainWindow.h \
     CfdnaAnalysisDialog.h \
     ClinvarUploadDialog.h \
     LiftOverWidget.h \
-    CacheInitWorker.h
+    CacheInitWorker.h \
+    BlatWidget.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -284,7 +286,8 @@ FORMS    += MainWindow.ui \
     cfDNARemovedRegions.ui \
     CfdnaAnalysisDialog.ui \
     ClinvarUploadDialog.ui \
-    LiftOverWidget.ui
+    LiftOverWidget.ui \
+    BlatWidget.ui
     include("../app_gui.pri")
 
 #include NGSD library
