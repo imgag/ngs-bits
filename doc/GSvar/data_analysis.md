@@ -22,11 +22,11 @@ In the upper right corner of the tab, you find buttons to queue the analysis of:
 
 ### Processed sample tab
 
-In the upper part of the `processed sample` tab, you can (re-)start the single-sample analysis of the processed sample.
+In the upper part of the `processed sample` tab, you can (re-)start the single-sample analysis of the processed sample using the button (![alt text](analysis_restart.png)).  
 
 ### Main tool bar
 
-In the main tool bar, you can restart the analysis of the current GSvar file using the button (![alt text](analysis_restart.png)).  
+In the main tool bar, you can restart the analysis of the currently open GSvar file using the button (![alt text](analysis_restart.png)).  
 This works for all analysis types:
 
 - single sample analysis
@@ -34,7 +34,7 @@ This works for all analysis types:
 - multi-sample analysis
 - somatic analysis
 
-## What do the analysis steps mean and what do they do:
+## What do the analysis steps mean and what do they do?
 
 Here is a summary of the analysis steps and a description what they do:
 
@@ -66,12 +66,17 @@ Here is a summary of the analysis steps and a description what they do:
 </tr>
 <tr>
 	<td>all - db</td>
-	<td>Import of QC data and variant data into NGSD.</td>
+	<td>Import of QC data and variant data into the NGSD database.</td>
 	<td></td>
 </tr>
 </table>
 
 
+## What is the difference between re-annotation and a normal analysis.
+
+When performing reannotation (e.g. by checking the box `annotate only` in the single-sample analysis dialog), only varianannotation is performed.  
+Variant calling is skipped and the annotations of the variants is updated.  
+This is usually performed to update annotations, since the data in public databases (ClinVar, HGMD, OMIM, ...) is updated regularly.
 
 --
 
