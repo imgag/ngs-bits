@@ -2,6 +2,7 @@
 #include "NGSHelper.h"
 #include "BasicStatistics.h"
 #include "Settings.h"
+#include <iostream>
 
 TEST_CLASS(NGSHelper_Test)
 {
@@ -58,11 +59,11 @@ private slots:
 			reader.getNextAlignment(al);
 		}
 
-		NGSHelper::softClipAlignment(al,317587,317596);
-		S_EQUAL(al.cigarDataAsString(), "10S123M13I5M");
+		NGSHelper::softClipAlignment(al,501613,501622);
+		S_EQUAL(al.cigarDataAsString(), "23S128M");
 
 		//second soft-clip same al
-		NGSHelper::softClipAlignment(al,317597,317721);
+		NGSHelper::softClipAlignment(al,501623,501747);
 		S_EQUAL(al.cigarDataAsString(), "148S3M");
 
 		//next alignment
@@ -73,9 +74,9 @@ private slots:
 		}
 
 		//third soft-clip different al1
-		NGSHelper::softClipAlignment(al,1048687,1048692);
-		NGSHelper::softClipAlignment(al,1048540,1048576);
-		S_EQUAL(al.cigarDataAsString(), "36S109M6S");
+		NGSHelper::softClipAlignment(al,1113306,1113312);
+		NGSHelper::softClipAlignment(al,1113160,1113196);
+		S_EQUAL(al.cigarDataAsString(), "36S108M7S");
 	}
 
 	void softClipAlignment2()
