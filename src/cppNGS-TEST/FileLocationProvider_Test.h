@@ -24,19 +24,19 @@ private slots:
 		QString sample_folder = QFileInfo(filename).absolutePath();
 		QString project_folder = QFileInfo(sample_folder).absolutePath();
 
-		QList<FileLocation> bam_files = fp.getBamFiles(true);
+		FileLocationList bam_files = fp.getBamFiles(true);
 		I_EQUAL(bam_files.length(), 1);
 		S_EQUAL(bam_files[0].filename, sample_folder+"/NA12878_03.bam");
 
-		QList<FileLocation> cnv_files = fp.getCnvCoverageFiles(true);
+		FileLocationList cnv_files = fp.getCnvCoverageFiles(true);
 		I_EQUAL(cnv_files.length(), 1);
 		S_EQUAL(cnv_files[0].filename, sample_folder+"/NA12878_03_cnvs_clincnv.seg");
 
-		QList<FileLocation> igv_files = fp.getBafFiles(true);
+		FileLocationList igv_files = fp.getBafFiles(true);
 		I_EQUAL(igv_files.length(), 1);
 		S_EQUAL(igv_files[0].filename, sample_folder+"/NA12878_03_bafs.igv");
 
-		QList<FileLocation> manta_files = fp.getMantaEvidenceFiles(true);
+		FileLocationList manta_files = fp.getMantaEvidenceFiles(true);
 		I_EQUAL(manta_files.length(), 1);
 		S_EQUAL(manta_files[0].filename, sample_folder+"/manta_evid/NA12878_03_manta_evidence.bam");
 

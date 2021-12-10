@@ -21,7 +21,7 @@ public:
 	///Returns if the region is valid.
 	bool isValid() const
 	{
-		return chr_!="" && start_>=0 && start_<=end_;
+		return chr_.isValid() && start_>=0 && start_<=end_;
 	}
 
     ///Returns the chromosome.

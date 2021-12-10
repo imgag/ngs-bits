@@ -5,7 +5,6 @@
 #include <QDesktopServices>
 #include <QMenu>
 #include "RepeatExpansionWidget.h"
-#include "ui_RepeatExpansionWidget.h"
 #include "Helper.h"
 #include "GUIHelper.h"
 #include "TsvFile.h"
@@ -31,49 +30,66 @@ bool NumericWidgetItem::operator<(const QTableWidgetItem& other) const
 	return (this_value < other_value);
 }
 
-RepeatExpansionWidget::RepeatExpansionWidget(QString vcf_filename, bool is_exome, QWidget* parent):
-	QWidget(parent),
-	vcf_filename_(vcf_filename),
-	is_exome_(is_exome),
-	ui_(new Ui::RepeatExpansionWidget)
+RepeatExpansionWidget::RepeatExpansionWidget(QString vcf_filename, bool is_exome, QWidget* parent)
+	: QWidget(parent)
+	, ui_()
+	, vcf_filename_(vcf_filename)
+	, is_exome_(is_exome)
 {
-	ui_->setupUi(this);
-    //Setup signals and slots
-	ui_->repeat_expansions->setContextMenuPolicy(Qt::CustomContextMenu);
-	connect(ui_->repeat_expansions,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
-	loadRepeatExpansionData();
-}
+	ui_.setupUi(this);
 
-RepeatExpansionWidget::~RepeatExpansionWidget()
-{
-    delete ui_;
+	connect(ui_.repeat_expansions,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
+
+	loadRepeatExpansionData();
 }
 
 void RepeatExpansionWidget::showContextMenu(QPoint pos)
 {
 	// determine selected row
-	QItemSelection selection = ui_->repeat_expansions->selectionModel()->selection();
+	QItemSelection selection = ui_.repeat_expansions->selectionModel()->selection();
 	if(selection.count() != 1) return;
 	int row = selection.at(0).indexes().at(0).row();
 
 	//get image
-	QString locus = ui_->repeat_expansions->item(row,3)->text().split('_').at(0);
+	QString locus = ui_.repeat_expansions->item(row,3)->text().split('_').at(0);
 	FileLocation image_loc = GlobalServiceProvider::fileLocationProvider().getRepeatExpansionImage(locus);
 
     //create menu
-    QMenu menu(ui_->repeat_expansions);
+	QMenu menu(ui_.repeat_expansions);
 	QAction* a_show_svg = menu.addAction("Show image of repeat");
 	a_show_svg->setEnabled(image_loc.exists);
+	menu.addSeparator();
+	QAction* a_copy = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all");
+	QAction* a_copy_sel = menu.addAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection");
 
     //execute menu
-    QAction* action = menu.exec(ui_->repeat_expansions->viewport()->mapToGlobal(pos));
-    if (action == nullptr) return;
-    if (action==a_show_svg)
+	QAction* action = menu.exec(ui_.repeat_expansions->viewport()->mapToGlobal(pos));
+	if (action==a_show_svg)
     {
         //open SVG in browser
 		QString filename = QFileInfo(image_loc.filename).absoluteFilePath();
 		QDesktopServices::openUrl(QUrl(filename));
-    }
+	}
+	else if (action==a_copy)
+	{
+		GUIHelper::copyToClipboard(ui_.repeat_expansions);
+	}
+	else if (action==a_copy_sel)
+	{
+		GUIHelper::copyToClipboard(ui_.repeat_expansions, true);
+	}
+}
+
+void RepeatExpansionWidget::keyPressEvent(QKeyEvent* event)
+{
+	if(event->matches(QKeySequence::Copy))
+	{
+		GUIHelper::copyToClipboard(ui_.repeat_expansions, true);
+		event->accept();
+		return;
+	}
+
+	QWidget::keyPressEvent(event);
 }
 
 void RepeatExpansionWidget::loadRepeatExpansionData()
@@ -147,13 +163,13 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 
 
 	//create header
-	ui_->repeat_expansions->setColumnCount(column_names.size());
+	ui_.repeat_expansions->setColumnCount(column_names.size());
 	for (int col_idx = 0; col_idx < column_names.size(); ++col_idx)
 	{
-		ui_->repeat_expansions->setHorizontalHeaderItem(col_idx, new QTableWidgetItem(column_names.at(col_idx)));
+		ui_.repeat_expansions->setHorizontalHeaderItem(col_idx, new QTableWidgetItem(column_names.at(col_idx)));
 		if (description.at(col_idx) != "")
 		{
-			ui_->repeat_expansions->horizontalHeaderItem(col_idx)->setToolTip(description.at(col_idx));
+			ui_.repeat_expansions->horizontalHeaderItem(col_idx)->setToolTip(description.at(col_idx));
 		}
 	}
 
@@ -174,7 +190,7 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 
 
 	// fill table widget with variants/repeat expansions
-	ui_->repeat_expansions->setRowCount(repeat_expansions.count());
+	ui_.repeat_expansions->setRowCount(repeat_expansions.count());
 	for(int row_idx=0; row_idx<repeat_expansions.count(); ++row_idx)
 	{
 		const VcfLine& re = repeat_expansions[row_idx];
@@ -211,9 +227,9 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 		if(cutoff_info.additional_info.size() > 0) repeat_tool_tip_text.append("info: \t\t" + cutoff_info.additional_info.join("\n\t\t"));
 
 		//add position
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.chr().strNormalized(true))));
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(re.start())));
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(info_end));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(QString(re.chr().strNormalized(true))));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(re.start())));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(info_end));
 
 		//add repeat
 		QTableWidgetItem* repeat_id_cell = GUIHelper::createTableItem(info_repid);
@@ -222,8 +238,8 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 			repeat_id_cell->setBackgroundColor(bg_red);
 			repeat_id_cell->setToolTip("Repeat calling of this repeat is not reliable in exomes!");
 		}
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, repeat_id_cell);
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(info_ru));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, repeat_id_cell);
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(info_ru));
 
 		//add allele/ref copy number
 		//replace "." with "-"
@@ -268,31 +284,28 @@ void RepeatExpansionWidget::loadRepeatExpansionData()
 
 		repeat_cell->setToolTip(repeat_tool_tip_text.join('\n'));
 
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, repeat_cell);
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(info_ref));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, repeat_cell);
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(info_ref));
 
 		//add additional info
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_repci.replace(".", "-")));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_repci.replace(".", "-")));
 
 		//add filter column and color background if not 'PASS'
 		QTableWidgetItem* filter_cell = GUIHelper::createTableItem(re.filter().join(","));
 		if(filter_cell->text().trimmed() != "PASS") filter_cell->setBackgroundColor(bg_orange);
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, filter_cell);
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, filter_cell);
 
 		//round local coverage
 		double coverage = Helper::toDouble(format_lc);
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(coverage, 'f', 2)));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, new NumericWidgetItem(QString::number(coverage, 'f', 2)));
 
 		//add read counts
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adfl.replace(".", "-")));
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adir.replace(".", "-")));
-		ui_->repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adsp.replace(".", "-")));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adfl.replace(".", "-")));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adir.replace(".", "-")));
+		ui_.repeat_expansions->setItem(row_idx, col_idx++, GUIHelper::createTableItem(format_adsp.replace(".", "-")));
 
 	}
 
 	// optimize column width
-	GUIHelper::resizeTableCells(ui_->repeat_expansions);
-
-	// display vertical header
-    ui_->repeat_expansions->verticalHeader()->setVisible(true);
+	GUIHelper::resizeTableCells(ui_.repeat_expansions);
 }

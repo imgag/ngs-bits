@@ -493,6 +493,7 @@ QString VariantList::mainSampleName() const
 	{
 		case SOMATIC_SINGLESAMPLE:
 		case GERMLINE_SINGLESAMPLE:
+		case CFDNA:
 			foreach(const SampleInfo& entry, getSampleHeader())
 			{
 				samples << entry.id;
@@ -722,6 +723,9 @@ void VariantList::loadHeaderOnly(QString filename)
 
 void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert, bool header_only)
 {
+	//create cache to avoid copies of the same string in memory (via Qt implicit sharing)
+	QHash<QByteArray, QByteArray> str_cache;
+
 	//create ROI index (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
 	if (roi!=nullptr)
@@ -740,7 +744,7 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 	clear();
 
 	//parse from stream
-	QSharedPointer<QFile> file = Helper::openFileForReading(filename, true);
+	QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(filename, true);
 	int filter_index = -1;
 	while(!file->atEnd())
 	{
@@ -792,6 +796,18 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 			THROW(FileParseException, "Variant TSV file line with less than five fields found: '" + line.trimmed() + "'");
 		}
 
+		//replace repeated strings with cached copy => save a lot of memory
+		for(int i=0; i<fields.count(); ++i)
+		{
+			const QByteArray& field = fields[i];
+			if (!str_cache.contains(field))
+			{
+				str_cache.insert(field, field);
+			}
+
+			fields[i] = str_cache[field];
+		}
+
 		//Skip variants that are not in the target region (if given)
 		Chromosome chr = fields[0];
 		int start = atoi(fields[1]);
@@ -805,7 +821,12 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 			}
 		}
 
-		append(Variant(chr, start, end, fields[3], fields[4], fields.mid(special_cols), filter_index));
+		QList<QByteArray> decoded_fields = fields.mid(special_cols);
+		for (int i = 0; i < decoded_fields.size(); i++)
+		{
+			decoded_fields[i] = QUrl::fromPercentEncoding(decoded_fields[i]).toLocal8Bit();
+		}
+		append(Variant(chr, start, end, fields[3], fields[4], decoded_fields, filter_index));
 
 		//Check that the number of annotations is correct
 		if (variants_.last().annotations().count()!=annotations().count())
@@ -1039,7 +1060,7 @@ SampleHeaderInfo VariantList::getSampleHeader() const
 	AnalysisType analysis_type = type();
 	for (int i=0; i<output.count(); ++i)
 	{
-		output[i].column_index = annotationIndexByName(output[i].column_name, true, analysis_type!=SOMATIC_SINGLESAMPLE && analysis_type!=SOMATIC_PAIR);
+		output[i].column_index = annotationIndexByName(output[i].column_name, true, analysis_type!=SOMATIC_SINGLESAMPLE && analysis_type!=SOMATIC_PAIR && analysis_type!=CFDNA);
 	}
 
 	return output;
@@ -1304,6 +1325,7 @@ QString analysisTypeToString(AnalysisType type, bool human_readable)
 		if (type==GERMLINE_MULTISAMPLE) return "multi-sample analysis";
 		if (type==SOMATIC_SINGLESAMPLE) return "tumor-only analysis";
 		if (type==SOMATIC_PAIR) return "tumor/normal analysis";
+		if (type==CFDNA) return "cfDNA analysis";
 	}
 	else
 	{
@@ -1312,6 +1334,7 @@ QString analysisTypeToString(AnalysisType type, bool human_readable)
 		if (type==GERMLINE_MULTISAMPLE) return "GERMLINE_MULTISAMPLE";
 		if (type==SOMATIC_SINGLESAMPLE) return "SOMATIC_SINGLESAMPLE";
 		if (type==SOMATIC_PAIR) return "SOMATIC_PAIR";
+		if (type==CFDNA) return "CFDNA";
 	}
 
 	THROW(ProgrammingException, "Unhandled analysis type with integer value '" + QString::number(type) + "'!");
@@ -1324,6 +1347,7 @@ AnalysisType stringToAnalysisType(QString type)
 	if (type=="GERMLINE_MULTISAMPLE") return GERMLINE_MULTISAMPLE;
 	if (type=="SOMATIC_SINGLESAMPLE") return SOMATIC_SINGLESAMPLE;
 	if (type=="SOMATIC_PAIR") return SOMATIC_PAIR;
+	if (type=="CFDNA") return CFDNA;
 
 	THROW(ProgrammingException, "Unknown analysis type with string representation '" + type + "'!");
 }

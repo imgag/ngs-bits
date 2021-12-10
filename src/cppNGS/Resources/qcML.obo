@@ -972,3 +972,197 @@ def: "Count of somatic long state transition (LST) events." [PXS:QC]
 is_a: QC:2000001 ! NGS quality parameter
 xref: xref: value-type:xsd\:int "The allowed value-type for this CV term."
 created_by: gschwind
+
+[Term]
+id: QC:2000065
+name: target region 1000x percentage
+def: "Percentage of the target region that is covered at least 1000-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000066
+name: target region 2500x percentage
+def: "Percentage of the target region that is covered at least 2500-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000067
+name: target region 5000x percentage
+def: "Percentage of the target region that is covered at least 5000-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000068
+name: target region 7500x percentage
+def: "Percentage of the target region that is covered at least 7500-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000069
+name: target region 10000x percentage
+def: "Percentage of the target region that is covered at least 10000-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000070
+name: target region 15000x percentage
+def: "Percentage of the target region that is covered at least 15000-fold."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000071
+name: target region read depth 2-fold duplication
+def: "Average coverage with at least 2-fold duplication"
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000072
+name: target region read depth 3-fold duplication
+def: "Average coverage with at least 3-fold duplication"
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000073
+name: target region read depth 4-fold duplication
+def: "Average coverage with at least 4-fold duplication"
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000074
+name: raw target region read depth
+def: "Raw average sequencing depth in target region."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000075
+name: fragment duplication distribution plot
+def: "Fragment duplication distribution plot."
+is_a: QC:2000003 ! NGS mapping parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000076
+name: duplication-coverage plot
+def: "Coverge by duplication plot."
+is_a: QC:2000003 ! NGS mapping parameter
+is_a: QC:0000050 ! image plot
+xref: value-type:xsd\:base64Binary "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000077
+name: monitoring variant read depth
+def: "Average sequencing depth of monitoring variants."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000078
+name: ID variant read depth
+def: "Average sequencing depth of ID variants."
+is_a: QC:2000003 ! NGS mapping parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000079
+name: monitoring variant count
+def: "Total number of monitoring variants."
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000080
+name: monitoring variant 250x percentage
+def: "Percentage of monitoring variants which have at least 250x coverage."
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000081
+name: ID variant count
+def: "Total number of ID variants."
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000082
+name: ID variant 250x percentage
+def: "Percentage of ID variants which have at least 250x coverage."
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:int "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000083
+name: cfDNA-tumor correlation
+def: "Sample correlation of high-quality SNV genotypes between cfDNA and tumor sample."
+is_a: QC:2000001 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000084
+name: cfDNA-cfDNA correlation
+def: "Sample correlation of high-quality SNV genotypes between related cfDNA samples."
+is_a: QC:2000001 ! NGS variant list parameter
+xref: value-type:xsd\:string "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000085
+name: umiVar error rate 1-fold duplication
+def: "umiVar error rate for 1-fold duplicated bases."
+is_a: QC:2000001 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000086
+name: umiVar error rate 2-fold duplication
+def: "umiVar error rate for 2-fold duplicated bases."
+is_a: QC:2000001 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000087
+name: umiVar error rate 3-fold duplication
+def: "umiVar error rate for 3-fold duplicated bases."
+is_a: QC:2000001 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz
+
+[Term]
+id: QC:2000088
+name: umiVar error rate 4-fold duplication
+def: "umiVar error rate for 4-fold duplicated bases."
+is_a: QC:2000001 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: schuetz

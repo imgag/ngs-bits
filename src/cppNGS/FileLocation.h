@@ -36,8 +36,11 @@ enum class PathType
 	FUSIONS, //gene fusions determined from RNA (TSV format)
 	MANTA_FUSIONS, //fusions determined by manta (BEDPE format)
 	COUNTS, //gene/transcript counts from RNA (TSV format)
+	EXPRESSION, //relative RNA expressions values from RNA (TSV format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
+	MRD_CF_DNA, // measurable residual disease file of a cfDNA analysis (UmiVar2)
+	QC, // variant list QC (qcML) files
 	OTHER // everything else
 };
 
@@ -128,7 +131,12 @@ struct FileLocation
 				return "VIRAL";
 			case PathType::VCF_CF_DNA:
 				return "VCF_CF_DNA";
-
+			case PathType::QC:
+				return "QC";
+			case PathType::EXPRESSION:
+				return "EXPRESSION";
+			case PathType::MRD_CF_DNA:
+				return "MRD_CF_DNA";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -161,7 +169,10 @@ struct FileLocation
 		if (in_upper == "COUNTS") return PathType::COUNTS;
 		if (in_upper == "VIRAL") return PathType::VIRAL;
 		if (in_upper == "VCF_CF_DNA") return PathType::VCF_CF_DNA;
-
+		if (in_upper == "QC") return PathType::QC;
+		if (in_upper == "OTHER") return PathType::OTHER;
+		if (in_upper == "EXPRESSION") return PathType::EXPRESSION;
+		if (in_upper == "MRD_CF_DNA") return PathType::MRD_CF_DNA;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
 
@@ -219,6 +230,12 @@ struct FileLocation
 				return "other files";
 			case PathType::VCF_CF_DNA:
 				return "cfDNA small variant calls";
+			case PathType::QC:
+				return "variant list QC (qcML) files";
+			case PathType::EXPRESSION:
+				return "RNA relative expression";
+			case PathType::MRD_CF_DNA:
+				return "measurable residual disease value (umiVar 2)";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}

@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include "ui_SmallVariantSearchWidget.h"
-#include "DelayedInitializationTimer.h"
 #include "Chromosome.h"
 #include "GeneSet.h"
 #include "VariantList.h"
@@ -25,7 +24,6 @@ private slots:
 
 private:
 	Ui::SmallVariantSearchWidget ui_;
-	DelayedInitializationTimer init_timer_;
 
 	void getVariantsForRegion(Chromosome chr, int start, int end, QByteArray gene, const GeneSet& gene_symbols, QList<QStringList>& output, QStringList& messages);
 

@@ -1,7 +1,6 @@
 #include "TestFramework.h"
 #include "FilterCascade.h"
 #include "Settings.h"
-
 TEST_CLASS(FilterCascade_Test)
 {
 Q_OBJECT
@@ -855,6 +854,88 @@ private slots:
 		I_EQUAL(result.countPassing(), 2);
 	}
 
+	void FilterSplice_apply()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in_newer_Annotation_in.GSvar"));
+
+		FilterResult result(vl.count());
+
+		//only MMS:
+		FilterSpliceEffect filter;
+		// MODUS FILTER:
+		filter.setString("action", "FILTER");
+
+		// all filters off
+		filter.setInteger("MaxEntScan", 0);
+		filter.setDouble("SpliceAi", 0);
+		filter.setDouble("MMSplice", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), result.flags().count());
+
+		result.reset();
+		filter.setInteger("MaxEntScan", 0);
+		filter.setDouble("SpliceAi", 0);
+		filter.setDouble("MMSplice", 2);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 0);
+
+		result.reset();
+		filter.setDouble("MMSplice", 0.3);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 8);
+
+		//only MES: increase
+		result.reset();
+		filter.setInteger("MaxEntScan", 15);
+		filter.setDouble("SpliceAi", 0);
+		filter.setDouble("MMSplice", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 1);
+
+		//only MES: decrease
+		result.reset();
+		filter.setInteger("MaxEntScan", -15);
+		filter.setDouble("SpliceAi", 0);
+		filter.setDouble("MMSplice", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 2);
+
+		//only SpliceAi
+		result.reset();
+		filter.setInteger("MaxEntScan", 0);
+		filter.setDouble("SpliceAi", 0.2);
+		filter.setDouble("MMSplice", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 5);
+
+		//combined
+		result.reset();
+		filter.setInteger("MaxEntScan", -15);
+		filter.setDouble("SpliceAi", 0.4);
+		filter.setDouble("MMSplice", 0.6);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 4);
+
+		// MODUS KEEP combined
+		filter.setString("action", "KEEP");
+		result.reset(false);
+		filter.setInteger("MaxEntScan", -15);
+		filter.setDouble("SpliceAi", 0.4);
+		filter.setDouble("MMSplice", 0.6);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 4);
+
+		// all filters off:
+		result.reset(false);
+		filter.setInteger("MaxEntScan", 0);
+		filter.setDouble("SpliceAi", 0);
+		filter.setDouble("MMSplice", 0);
+		filter.apply(vl, result);
+		I_EQUAL(result.countPassing(), 0);
+
+	}
+
 	/********************************************* Filters for small variants (somatic tumor-only) *********************************************/
 
 	void FilterSomaticAlleleFrequency_apply_tumor_only()
@@ -938,7 +1019,7 @@ private slots:
 
 		//default
 		FilterCnvCopyNumber filter;
-		filter.setString("cn", "1");
+		filter.setStringList("cn", QStringList() << "1");
 		filter.apply(cnvs, result);
 		I_EQUAL(result.countPassing(), 37);
 	}
@@ -952,7 +1033,7 @@ private slots:
 
 		//default
 		FilterCnvCopyNumber filter;
-		filter.setString("cn", "4+");
+		filter.setStringList("cn", QStringList() << "4" << "5+");
 		filter.apply(cnvs, result);
 		I_EQUAL(result.countPassing(), 1);
 	}
@@ -1662,6 +1743,16 @@ private slots:
 			//compare
 			IS_TRUE(filter_cascade==filter_cascade2);
 		}
+	}
+
+	void load_bug_empty_enum()
+	{
+		VariantList vl;
+		vl.load(TESTDATA("data_in/VariantFilter_in.GSvar"));
+
+		FilterCascade filter;
+		filter.load(TESTDATA("data_in/FilterCascade_bug_empty_enum.txt"));
+		filter.apply(vl, true);
 	}
 
 };

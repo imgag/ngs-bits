@@ -54,6 +54,44 @@ struct CPPNGSSHARED_EXPORT SomaticViccData
 	QString last_updated_by;
 	QDateTime last_updated_at;
 
+
+		QString state2string(State s)
+		{
+			if(s==State::VICC_FALSE) return "FALSE";
+			else if(s==State::VICC_TRUE) return "TRUE";
+			else return "NOT_APPLICABLE";
+		}
+
+		QMap<QString,QString> configAsMap()
+		{
+			QMap<QString, QString> result;
+			result["null_mutation_in_tsg"] = state2string(null_mutation_in_tsg);
+			result["known_oncogenic_aa"] = state2string(known_oncogenic_aa);
+			result["oncogenic_functional_studies"] = state2string(oncogenic_functional_studies);
+			result["strong_cancerhotspot"] = state2string(strong_cancerhotspot);
+			result["located_in_canerhotspot"] = state2string(located_in_canerhotspot);
+			result["absent_from_controls"] = state2string(absent_from_controls);
+			result["protein_length_change"] = state2string(protein_length_change);
+			result["other_aa_known_oncogenic"] = state2string(other_aa_known_oncogenic);
+			result["weak_cancerhotspot"] = state2string(weak_cancerhotspot);
+			result["computational_evidence"] = state2string(computational_evidence);
+			result["mutation_in_gene_with_etiology"] = state2string(mutation_in_gene_with_etiology);
+			result["very_weak_cancerhotspot"] = state2string(very_weak_cancerhotspot);
+			result["very_high_maf"] = state2string(very_high_maf);
+			result["benign_functional_studies"] = state2string(benign_functional_studies);
+			result["high_maf"] = state2string(high_maf);
+			result["benign_computational_evidence"] = state2string(benign_computational_evidence);
+			result["synonymous_mutation"] = state2string(synonymous_mutation);
+			result["comment"] = comment;
+			result["created_by"] = created_by;
+			result["created_at"] = created_at.toString("yyyy-MM-dd hh:mm:ss");
+			result["last_updated_by"] = last_updated_by;
+			result["last_updated_at"] = last_updated_at.toString("yyyy-MM-dd hh:mm:ss");
+
+			return result;
+		}
+
+
 	///returns whether input configuration is valid
 	bool isValid() const
 	{

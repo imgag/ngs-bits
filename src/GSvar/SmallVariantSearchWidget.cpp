@@ -12,11 +12,9 @@
 SmallVariantSearchWidget::SmallVariantSearchWidget(QWidget *parent)
 	: QWidget(parent)
 	, ui_()
-	, init_timer_(this, false)
 {
 	ui_.setupUi(this);
 	setWindowFlags(Qt::Window);
-	connect(&init_timer_, SIGNAL(triggerInitialization()), this, SLOT(updateVariants()));
 	connect(ui_.radio_region->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateVariants()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
@@ -316,7 +314,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 			while(query3.next())
 			{
 				QString relation = query3.value("relation").toString();
-				if (relation=="parent-child" || relation=="sibling" || relation=="same sample" || relation=="same patient")
+				if (relation=="parent-child" || relation=="sibling" || relation=="same sample" || relation=="same patient" || relation=="cousins" || relation=="twins" || relation=="twins (monozygotic)")
 				{
 					related_samples << relation + ":" + (query3.value("sample1_id").toString()==sample_id ? query3.value("s2_name").toString() : query3.value("s1_name").toString());
 				}

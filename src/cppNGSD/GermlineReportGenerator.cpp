@@ -146,21 +146,18 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	}
 
 	stream << "<br />" << trans("Gefundene Varianten in Zielregion gesamt") << ": " << var_count << endl;
-	QSet<int> selected_small;
-	QSet<int> selected_cnvs;
-	QSet<int> selected_svs;
-	auto it = data_.report_settings.selected_variants.cbegin();
-	while (it!=data_.report_settings.selected_variants.cend())
+	selected_small_.clear();
+	selected_cnvs_.clear();
+	selected_svs_.clear();
+	for (auto it = data_.report_settings.selected_variants.cbegin(); it!=data_.report_settings.selected_variants.cend(); ++it)
 	{
-		if (it->first==VariantType::SNVS_INDELS) selected_small << it->second;
-		if (it->first==VariantType::CNVS) selected_cnvs << it->second;
-		if (it->first==VariantType::SVS) selected_svs << it->second;
-
-		++it;
+		if (it->first==VariantType::SNVS_INDELS) selected_small_ << it->second;
+		if (it->first==VariantType::CNVS) selected_cnvs_ << it->second;
+		if (it->first==VariantType::SVS) selected_svs_ << it->second;
 	}
-	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << selected_small.count() << endl;
-	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnvs.count() << endl;
-	stream << "<br />" << trans("Anzahl SVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_svs.count() << endl;
+	stream << "<br />" << trans("Anzahl Varianten ausgew&auml;hlt f&uuml;r Report") << ": " << selected_small_.count() << endl;
+	stream << "<br />" << trans("Anzahl CNVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_cnvs_.count() << endl;
+	stream << "<br />" << trans("Anzahl SVs ausgew&auml;hlt f&uuml;r Report") << ": " << selected_svs_.count() << endl;
 	stream << "</p>" << endl;
 
 	//output: selected variants
@@ -180,7 +177,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
-		if (!selected_small.contains(var_conf.variant_index)) continue;
+		if (!selected_small_.contains(var_conf.variant_index)) continue;
 
 		const Variant& variant = data_.variants[var_conf.variant_index];
 
@@ -254,7 +251,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::CNVS) continue;
-		if (!selected_cnvs.contains(var_conf.variant_index)) continue;
+		if (!selected_cnvs_.contains(var_conf.variant_index)) continue;
 
 		const CopyNumberVariant& cnv = data_.cnvs[var_conf.variant_index];
 
@@ -284,7 +281,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::SVS) continue;
-		if (!selected_svs.contains(var_conf.variant_index)) continue;
+		if (!selected_svs_.contains(var_conf.variant_index)) continue;
 
 		const BedpeLine& sv = data_.svs[var_conf.variant_index];
 
@@ -510,7 +507,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "4");
+	w.writeAttribute("version", "5");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -530,6 +527,11 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	ProcessedSampleData processed_sample_data = db_.getProcessedSampleData(ps_id_);
 	w.writeAttribute("processing_system", processed_sample_data.processing_system);
 	w.writeAttribute("processing_system_type", processed_sample_data.processing_system_type);
+	QString comments = processed_sample_data.comments.trimmed();
+	if (!comments.isEmpty())
+	{
+		w.writeAttribute("comments", comments);
+	}
 	w.writeEndElement();
 
 	//element TargetRegion (optional)
@@ -555,6 +557,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeStartElement("Gene");
 			w.writeAttribute("name", gene);
+			int hgnc_id = db_.geneToApprovedID(gene);
+			w.writeAttribute("identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 			w.writeEndElement();
 		}
 
@@ -573,6 +577,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	{
 		if (var_conf.variant_type!=VariantType::SNVS_INDELS) continue;
 		if (!var_conf.showInReport()) continue;
+		if (!selected_small_.contains(var_conf.variant_index)) continue;
 		if (var_conf.report_type!=data_.report_settings.report_type) continue;
 
 		const Variant& variant = data_.variants[var_conf.variant_index];
@@ -662,6 +667,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			{
 				w.writeStartElement("TranscriptInformation");
 				w.writeAttribute("gene", trans.gene);
+				int hgnc_id = db_.geneToApprovedID(trans.gene);
+				w.writeAttribute("gene_identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 				w.writeAttribute("transcript_id", trans.id);
 				w.writeAttribute("type", trans.type);
 				QByteArray hgvs_c = trans.hgvs_c;
@@ -698,6 +705,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 				{
 					w.writeStartElement("GeneDiseaseInformation");
 					w.writeAttribute("gene", gene);
+					int hgnc_id = db_.geneToApprovedID(gene);
+					w.writeAttribute("gene_identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 					w.writeAttribute("source", query.value("source").toString());
 					w.writeAttribute("identifier", query.value("identifier").toString());
 					w.writeAttribute("name", query.value("name").toString());
@@ -711,6 +720,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 					//gene
 					w.writeStartElement("GeneDiseaseInformation");
 					w.writeAttribute("gene", omim_info.gene_symbol);
+					int hgnc_id = db_.geneToApprovedID(omim_info.gene_symbol);
+					w.writeAttribute("gene_identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 					w.writeAttribute("source", "OMIM gene");
 					w.writeAttribute("identifier", omim_info.mim);
 					w.writeAttribute("name", omim_info.gene_symbol);
@@ -721,6 +732,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 					{
 						w.writeStartElement("GeneDiseaseInformation");
 						w.writeAttribute("gene", omim_info.gene_symbol);
+						int hgnc_id = db_.geneToApprovedID(omim_info.gene_symbol);
+						w.writeAttribute("gene_identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 						w.writeAttribute("source", "OMIM phenotype");
 						QString accession = pheno.accession().trimmed();
 						if (accession=="") accession = "n/a";
@@ -740,6 +753,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			{
 				w.writeStartElement("GeneInheritanceInformation");
 				w.writeAttribute("gene", gene);
+				int hgnc_id = db_.geneToApprovedID(gene);
+				w.writeAttribute("gene_identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 				w.writeAttribute("inheritance", gene_info.inheritance);
 				w.writeEndElement();
 			}
@@ -763,14 +778,19 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	if(data_.cnvs.caller()==CnvCallerType::CLINCNV && !cnv_callset_id.isEmpty())
 	{
 		QHash<QString, QString> qc_metrics = db_.cnvCallsetMetrics(cnv_callset_id.toInt());
-		w.writeAttribute("number_of_iterations", qc_metrics["number of iterations"]);
-		w.writeAttribute("number_of_hq_cnvs", qc_metrics["high-quality cnvs"]);
+
+		QString iterations = qc_metrics["number of iterations"].trimmed();
+		if(!iterations.isEmpty()) w.writeAttribute("number_of_iterations", iterations);
+
+		QString high_quality_cnvs = qc_metrics["high-quality cnvs"].trimmed();
+		if(!high_quality_cnvs.isEmpty()) w.writeAttribute("number_of_hq_cnvs", high_quality_cnvs);
 	}
 
 	foreach(const ReportVariantConfiguration& var_conf, data_.report_settings.report_config->variantConfig())
 	{
 		if (var_conf.variant_type!=VariantType::CNVS) continue;
 		if (!var_conf.showInReport()) continue;
+		if (!selected_cnvs_.contains(var_conf.variant_index)) continue;
 		if (var_conf.report_type!=data_.report_settings.report_type) continue;
 
 		const CopyNumberVariant& cnv = data_.cnvs[var_conf.variant_index];
@@ -812,6 +832,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		{
 			w.writeStartElement("Gene");
 			w.writeAttribute("name", gene);
+			int hgnc_id = db_.geneToApprovedID(gene);
+			w.writeAttribute("identifier", hgnc_id==-1 ? "n/a" : "HGNC:" + QString::number(hgnc_id));
 			w.writeEndElement();
 		}
 
@@ -849,7 +871,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 	outfile->close();
 
 	//validate written XML file
-	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v4.xsd");
+	QString xml_error = XmlHelper::isValidXml(filename, ":/resources/GermlineReport_v5.xsd");
 	if (xml_error!="")
 	{
 		THROW(ProgrammingException, "Invalid germline report XML file gererated: " + xml_error);
@@ -1155,16 +1177,9 @@ void GermlineReportGenerator::writeCoverageReport(QTextStream& stream)
 		QMap<QByteArray, BedFile> grouped;
 		for (int i=0; i<low_cov.count(); ++i)
 		{
-			QList<QByteArray> genes = low_cov[i].annotations()[0].split(',');
-			foreach(QByteArray gene, genes)
+			GeneSet genes = GeneSet::createFromText(low_cov[i].annotations()[0], ',');
+			foreach(const QByteArray& gene, genes)
 			{
-				gene = gene.trimmed();
-
-				//skip non-gene regions
-				// - remains of VEGA database in old HaloPlex designs
-				// - SNPs for sample identification
-				if (gene=="") continue;
-
 				grouped[gene].append(low_cov[i]);
 			}
 		}
@@ -1508,9 +1523,12 @@ void GermlineReportGenerator::writeEvaluationSheet(QString filename, const Evalu
 	stream << "            <tr> <td colspan='2'><b>Filterung erfolgt</b></td> </tr>" << endl;
 	stream << "            <tr> <td style='white-space: nowrap'>Freq.-basiert dominant&nbsp;&nbsp;</td> <td>"<< ((evaluation_sheet_data.filtered_by_freq_based_dominant)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
 	stream << "            <tr> <td>Freq.-basiert rezessiv</td> <td>"<< ((evaluation_sheet_data.filtered_by_freq_based_recessive)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
-	stream << "            <tr> <td>CNV</td> <td>"<< ((evaluation_sheet_data.filtered_by_cnv)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
 	stream << "            <tr> <td>Mitochondrial</td> <td>"<< ((evaluation_sheet_data.filtered_by_mito)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
 	stream << "            <tr> <td>X-chromosomal</td> <td>"<< ((evaluation_sheet_data.filtered_by_x_chr)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>CNV</td> <td>"<< ((evaluation_sheet_data.filtered_by_cnv)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Strukturvarianten</td> <td>"<< ((evaluation_sheet_data.filtered_by_svs)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Repeat Expansions</td> <td>"<< ((evaluation_sheet_data.filtered_by_res)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
+	stream << "            <tr> <td>Mosaikvarianten</td> <td>"<< ((evaluation_sheet_data.filtered_by_mosaic)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
 	stream << "            <tr> <td>Ph&auml;notyp-basiert</td> <td>"<< ((evaluation_sheet_data.filtered_by_phenotype)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
 	stream << "            <tr> <td>Multi-Sample-Auswertung</td> <td>"<< ((evaluation_sheet_data.filtered_by_multisample)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;
 	stream << "            <tr> <td>Trio stringent</td> <td>"<< ((evaluation_sheet_data.filtered_by_trio_stringent)?"&#9745;":"&#9633;") << "</td> </tr>" << endl;

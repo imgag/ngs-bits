@@ -545,7 +545,7 @@ private slots:
 		S_EQUAL(vl_tsv[12].annotations().at(26), QByteArray("255,0,255"));
 	}
 
-	void convertTSVtoVCF()
+	void convertGSvarToVcf()
 	{
 		VariantList variant_list;
 		variant_list.load(TESTDATA("data_in/GSvarToVcf.GSvar")); //TODO add real-life tests (single-sample, trio, somatic) and check output with VcfFile::isValid()

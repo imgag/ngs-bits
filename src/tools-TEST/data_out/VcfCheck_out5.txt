@@ -1,0 +1,10 @@
+WARNING: FILTER 'undefined_filter' used but not defined! - in line 86:
+WARNING: INFO 'UNDEFINED_INFO' used but not defined! - in line 87:
+WARNING: For INFO 'QR' (number=1), the number of values is 2, but should be 1! - in line 87:
+WARNING: For INFO 'QR', the value 'INVALID' is not a 'Integer'! - in line 87:
+WARNING: For sample 'NA12878 / annotation 'QA' (number=A), the number of values is 2, but should be 1! - in line 87:
+WARNING: For sample 'NA12878 / annotation 'QA', the value 'INVALID' is not a 'Integer'! - in line 87:
+WARNING: Unknown MISO term 'undefined_variant' used! - in line 88:
+WARNING: FORMAT 'UNDEFINED_FORMAT' used but not defined! - in line 88:
+WARNING: Missing value '.' used as alternative allele! - in line 89:
+ERROR: INFO column is empty! Has to contain either INFO values or missing value '.'! - in line 89:

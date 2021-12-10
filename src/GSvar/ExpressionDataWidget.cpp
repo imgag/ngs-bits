@@ -191,7 +191,7 @@ void ExpressionDataWidget::loadExpressionData()
 {
 	//load TSV file
 	TsvFile expression_data;
-	expression_data.load(tsv_filename_);
+	QSharedPointer<VersatileFile> expression_data_file = Helper::openVersatileFileForReading(tsv_filename_, false);
 
 	QStringList tsv_header = expression_data.headers();
 

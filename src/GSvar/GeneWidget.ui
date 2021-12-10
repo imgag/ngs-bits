@@ -243,6 +243,9 @@
         <property name="text">
          <string/>
         </property>
+        <property name="textInteractionFlags">
+         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+        </property>
        </widget>
       </item>
       <item row="6" column="0">
@@ -471,6 +474,9 @@
         <property name="text">
          <string/>
         </property>
+        <property name="textInteractionFlags">
+         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+        </property>
        </widget>
       </item>
       <item row="5" column="0">
@@ -487,6 +493,9 @@
        <widget class="QLabel" name="imprinting">
         <property name="text">
          <string/>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
         </property>
        </widget>
       </item>
@@ -654,7 +663,7 @@
         </column>
         <column>
          <property name="text">
-          <string>bases</string>
+          <string>bases/exons</string>
          </property>
         </column>
         <column>

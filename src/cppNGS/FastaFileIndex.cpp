@@ -91,10 +91,11 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 	}
 	else
 	{
+		QString byte_range = "bytes=" + QString::number(entry.offset) + "-" + QString::number(entry.offset + seqlen -1);
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
-		add_headers.insert("Range", "bytes=" + QByteArray::number(entry.offset) + "-" + QByteArray::number(entry.offset + seqlen -1));
-		output = HttpRequestHandler(HttpRequestHandler::NONE).get(fasta_name_, add_headers).replace('\n', "");
+		add_headers.insert("Range", byte_range.toLocal8Bit());
+		output = HttpRequestHandler(HttpRequestHandler::NONE).get(fasta_name_, add_headers).replace("\n", 1, "", 0);
 	}
 
 	//output
@@ -146,10 +147,11 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 	}
 	else
 	{
+		QString byte_range = "bytes=" + QString::number(read_start_pos) + "-" + QString::number(read_start_pos + seqlen - 1);
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
-		add_headers.insert("Range", "bytes=" + QByteArray::number(read_start_pos) + "-" + QByteArray::number(read_start_pos + seqlen - 1));
-		output = HttpRequestHandler(HttpRequestHandler::NONE).get(fasta_name_, add_headers).replace('\n', "");
+		add_headers.insert("Range", byte_range.toLocal8Bit());
+		output = HttpRequestHandler(HttpRequestHandler::NONE).get(fasta_name_, add_headers).replace("\n", 1, "", 0);
 	}
 
 	//output
@@ -159,10 +161,10 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool 
 
 const FastaFileIndex::FastaIndexEntry& FastaFileIndex::index(const Chromosome& chr) const
 {
-	QMap<QString, FastaIndexEntry>::const_iterator it = index_.find(chr.strNormalized(false));
+	QMap<QString, FastaIndexEntry>::const_iterator it = index_.find(chr.strNormalized(true));
 	if(it==index_.cend())
 	{
-		THROW(ArgumentException, "Unknown FASTA index chromosome '" + chr.strNormalized(false) + "' requested!");
+		THROW(ArgumentException, "Unknown FASTA index chromosome '" + chr.strNormalized(true) + "' requested!");
 	}
 	return it.value();
 }
@@ -180,6 +182,6 @@ void FastaFileIndex::saveEntryToIndex(const QList<QByteArray>& fields)
 	entry.offset = fields[2].toLongLong();
 	entry.line_blen = fields[3].toInt();
 	entry.line_len = fields[4].toInt();
-	QString name_norm = Chromosome(fields[0]).strNormalized(false);
+	QString name_norm = Chromosome(fields[0]).strNormalized(true);
 	index_[name_norm] = entry;
 }

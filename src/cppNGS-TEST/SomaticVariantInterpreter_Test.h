@@ -15,13 +15,20 @@ private slots:
 		IS_TRUE(input_data.isValid());
 
 		input_data.known_oncogenic_aa = SomaticViccData::State::VICC_TRUE;
+
 		input_data.located_in_canerhotspot = SomaticViccData::State::VICC_FALSE;
 		IS_FALSE(input_data.isValid());
+		S_EQUAL( input_data.configAsMap()["known_oncogenic_aa"], "TRUE" );
+		S_EQUAL( input_data.configAsMap()["located_in_canerhotspot"], "FALSE" );
 
 		input_data.located_in_canerhotspot = SomaticViccData::State::NOT_APPLICABLE;
 		IS_TRUE(input_data.isValid());
+		S_EQUAL( input_data.configAsMap()["located_in_canerhotspot"], "NOT_APPLICABLE" );
+
 		input_data.other_aa_known_oncogenic = SomaticViccData::State::VICC_FALSE;
 		IS_FALSE(input_data.isValid());
+		S_EQUAL( input_data.configAsMap()["other_aa_known_oncogenic"], "FALSE" );
+
 
 		//evidence counts
 		input_data = SomaticViccData();

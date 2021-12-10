@@ -74,6 +74,22 @@ FileLocation FileLocationProviderLocal::getRepeatExpansionImage(QString locus) c
 	return FileLocation(name, PathType::REPEAT_EXPANSION_IMAGE, file, QFile::exists(file));
 }
 
+FileLocationList FileLocationProviderLocal::getQcFiles() const
+{
+	QString name = QFileInfo(gsvar_file_).baseName();
+
+	FileLocationList output;
+
+	QStringList qc_files = Helper::findFiles(getAnalysisPath(), "*.qcML", false);
+	foreach(const QString& qc_file, qc_files)
+	{
+		FileLocation file = FileLocation{name, PathType::QC, qc_file, true};
+		addToList(file, output);
+	}
+
+	return output;
+}
+
 void FileLocationProviderLocal::addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing)
 {
 	bool exists = QFile::exists(loc.filename);
@@ -158,6 +174,18 @@ FileLocationList FileLocationProviderLocal::getCircosPlotFiles(bool return_if_mi
 	foreach(const KeyValuePair& loc, getBaseLocations())
 	{
 		FileLocation file = FileLocation{loc.key, PathType::CIRCOS_PLOT, loc.value + "_circos.png", false};
+		addToList(file, output, return_if_missing);
+	}
+
+	return output;
+}
+
+FileLocationList FileLocationProviderLocal::getExpressionFiles(bool return_if_missing) const
+{
+	FileLocationList output;
+	foreach(const KeyValuePair& loc, getBaseLocations())
+	{
+		FileLocation file = FileLocation{loc.key, PathType::EXPRESSION, loc.value + "_expr.tsv", false};
 		addToList(file, output, return_if_missing);
 	}
 

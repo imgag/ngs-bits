@@ -15,6 +15,7 @@
 #include "GlobalServiceProvider.h"
 #include "FileLocationProviderLocal.h"
 #include "FileLocationProviderRemote.h"
+#include "VersatileTextStream.h"
 
 ///Main window class
 class MainWindow
@@ -43,13 +44,11 @@ public:
 	void updateNGSDSupport();
 	///Returns 'nobr' paragraph start for Qt tooltips
 	static QString nobr();
-	///Upload variant to LOVD
-	void uploadtoLovd(int variant_index, int variant_index2 = -1);
+	///Upload variant to Clinvar
+	void uploadToClinvar(int variant_index);
 
 	///Context menu for single variant
 	void contextMenuSingleVariant(QPoint pos, int index);
-	///Context menu for two variants
-	void contextMenuTwoVariants(QPoint pos, int index1, int index2);
 
 	///Edit classification of a variant
 	void editVariantClassification(VariantList& variant, int index, bool is_somatic = false);
@@ -121,6 +120,7 @@ public slots:
 	void on_actionImportSamples_triggered();
 	void on_actionImportProcessedSamples_triggered();
 	void on_actionImportSampleRelations_triggered();
+	void on_actionImportCfDNAPanels_triggered();
 	void on_actionMidClashDetection_triggered();
 	void on_actionVariantValidation_triggered();
 	void on_actionChangePassword_triggered();
@@ -168,7 +168,7 @@ public slots:
 	///Genes to regions conversion dialog
 	void on_actionGenesToRegions_triggered();
 	///Subpanel archive dialog
-	void on_actionArchiveSubpanel_triggered();
+	void on_actionManageSubpanels_triggered();
 	///Close current variant list
 	void on_actionClose_triggered();
 	///Close all meta data tabs
@@ -199,6 +199,8 @@ public slots:
 	void on_actionShowCfDNAPanel_triggered();
 	///Open disease course dialog (cfDNA)
 	void on_actionCfDNADiseaseCourse_triggered();
+	/// Open dialog to add excluded regions
+	void on_actionCfDNAAddExcludedRegions_triggered();
 	///Open expression data Widget
 	void on_actionExpressionData_triggered();
 	///Open RNA fusion widget
@@ -207,10 +209,8 @@ public slots:
 	void on_actionGeneOmimInfo_triggered();
 	///Open folder of variant list in explorer.
 	void openVariantListFolder();
-	///Upload variant that is not part of the variant list to LOVD.
-	void on_actionPublishVariantInLOVD_triggered();
-	///Batch export for ClinVar
-	void on_actionBatchExportClinVar_triggered();
+	///Open variant list qcML files.
+	void openVariantListQcFiles();
 	///Re-analyze current sample/case
 	void on_actionReanalyze_triggered();
 	///Action for debugging
@@ -223,6 +223,8 @@ public slots:
 	void on_actionConvertGSvarToVcf_triggered();
 	///Action for region conversion (Cytoband > BED)
 	void on_actionCytobandsToRegions_triggered();
+	///Action for region conversion (region > genes)
+	void on_actionRegionToGenes_triggered();
 	///Open SNV search dialog
 	void on_actionSearchSNVs_triggered();
 	///Open CNV search dialog
@@ -231,8 +233,14 @@ public slots:
 	void on_actionSearchSVs_triggered();
 	///Shows published variants dialog
 	void on_actionShowPublishedVariants_triggered();
-	///Shows allele ballance calculation
+	///Shows allele balance calculation
 	void on_actionAlleleBalance_triggered();
+	///Shows lift-over dialog
+	void on_actionLiftOver_triggered();
+	///Get reference sequence
+	void on_actionGetGenomicSequence_triggered();
+	///Perform BLAT search
+	void on_actionBlatSearch_triggered();
 
 	///Load report configuration
 	void loadReportConfig();
@@ -292,6 +300,8 @@ public slots:
 	void showAfHistogram_filtered();
 	///Shows a CN histogram
 	void showCnHistogram();
+	///Shows a BAF histogram
+	void showBafHistogram();
 	///Shows an allele frequency histogram
 	void showAfHistogram(bool filtered);
 	///Show encryption helper

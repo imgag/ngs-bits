@@ -15,7 +15,6 @@ TumorOnlyReportWorker::TumorOnlyReportWorker(const VariantList& variants, const 
 	//set annotation indices
 	i_co_sp_ = variants_.annotationIndexByName("coding_and_splicing");
 	i_tum_af_ = variants_.annotationIndexByName("tumor_af");
-	i_cgi_driver_statem_ = variants_.annotationIndexByName("CGI_driver_statement", true, false);
 	i_ncg_oncogene_ = variants_.annotationIndexByName("ncg_oncogene");
 	i_ncg_tsg_ = variants_.annotationIndexByName("ncg_tsg");
 	i_germl_class_ = variants_.annotationIndexByName("classification");
@@ -59,15 +58,7 @@ QByteArray TumorOnlyReportWorker::variantDescription(const Variant &var)
 		out << "Somatik: " +  trans(var.annotations()[i_somatic_class_]);
 	}
 
-	//CGI classification
-	if(i_cgi_driver_statem_ >= 0)
-	{
-		if(var.annotations()[i_cgi_driver_statem_].contains("known")) out << "CGI: Treiber (bekannt)";
-		else if(var.annotations()[i_cgi_driver_statem_].contains("predicted driver")) out << "CGI: Treiber (vorhergesagt)";
-	}
-
 	return out.join(", \\line\n");
-
 }
 
 QByteArray TumorOnlyReportWorker::trans(QByteArray english)
@@ -95,7 +86,7 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 	gene = db_.geneSymbol(gene_id);
 
 	//select transcripts
-	QList<Transcript> transcripts;
+	TranscriptList transcripts;
 	try
 	{
 		if(config_.preferred_transcripts.contains(gene))
@@ -124,22 +115,6 @@ QByteArray TumorOnlyReportWorker::exonNumber(QByteArray gene, int start, int end
 		out << trans.name() + " (exon " + QByteArray::number(exon_number) + "/" + QByteArray::number(trans.regions().count()) + ")";
 	}
 	return out.join(",\\line\n");
-}
-
-
-QByteArray TumorOnlyReportWorker::cgiCancerTypeFromVariantList(const VariantList &variants)
-{
-	QStringList comments = variants.comments();
-	foreach(QString comment,comments)
-	{
-		if(comment.startsWith("##CGI_CANCER_TYPE="))
-		{
-			QByteArray cancer_type = comment.mid(18).trimmed().toUtf8();
-			if(!cancer_type.isEmpty()) return cancer_type;
-			else return "n/a";
-		}
-	}
-	return "n/a";
 }
 
 void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
@@ -192,7 +167,6 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 	metadata.addRow( RtfTableRow( { "Datum:",QDate::currentDate().toString("dd.MM.yyyy").toUtf8(), "Coverage 100x:",  qc_mapping.value("QC:2000030",true).toString().toUtf8() + "\%"}, {2250,2750,2319,2319}) );
 	metadata.addRow( RtfTableRow( { "Analysepipeline:", variants_.getPipeline().toUtf8(), "Coverage 500x:", qc_mapping.value("QC:2000032",true).toString().toUtf8() + "\%"} , {2250, 2750, 2319, 2319} ) );
 	metadata.addRow( RtfTableRow( { "Auswertungssoftware:", QCoreApplication::applicationName().toUtf8() + " " + QCoreApplication::applicationVersion().toUtf8(), "Durchschnittliche Tiefe", qc_mapping.value("QC:2000025",true).toString().toUtf8() + "x"}, {2250,2750,2319,2319}) );
-	metadata.addRow( RtfTableRow( { "CGI-Tumortyp:", cgiCancerTypeFromVariantList(variants_), "", ""} , {2250,2750,2319,2319} ) );
 
 	metadata.setUniqueFontSize(16);
 

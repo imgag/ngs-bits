@@ -14,6 +14,26 @@ void Transcript::setRegions(const BedFile& regions, int coding_start, int coding
 {
 	//check
 	if (strand_==INVALID) THROW(ProgrammingException, "Transcript::setRegions must be called after Transcript::setStrand!");
+	if (regions.count()==0) THROW(ProgrammingException, "Transcript must have at least one exon!");
+
+	//determine chr/start/end and perform more checks
+	start_ = std::numeric_limits<int>::max();
+	end_ = -1;
+	for (int i=0; i<regions.count(); ++i)
+	{
+		const BedLine& line = regions[i];
+		start_ = std::min(start_, line.start());
+		end_ = std::max(end_, line.end());
+		if(i==0)
+		{
+			chr_ = line.chr();
+		}
+		else
+		{
+			if (line.chr()!=chr_) THROW(ArgumentException, "Transcript regions must be on one chromosome!");
+			if (regions[i-1].end()>=line.start()) THROW(ArgumentException, "Transcript regions are not sorted/merged properly!");
+		}
+	}
 
 	//init
 	regions_ = regions;
@@ -766,4 +786,24 @@ int Transcript::utr3primeStart() const
 	{
 		return utr_3prime_[utr_3prime_.count()-1].end()+1;
 	}
+}
+
+void TranscriptList::sortByPosition()
+{
+	TranscriptPositionComparator comparator;
+	std::sort(this->begin(), this->end(), comparator);
+}
+
+bool TranscriptList::TranscriptPositionComparator::operator()(const Transcript& a, const Transcript& b) const
+{
+	if (a.chr()<b.chr()) return true;
+	if (a.chr()>b.chr()) return false;
+
+	if (a.start()<b.start()) return true;
+	if (a.start()>b.start()) return false;
+
+	if (a.end()<b.end()) return true;
+	if (a.end()>b.end()) return false;
+
+	return a.name()<b.name();
 }

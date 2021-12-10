@@ -32,6 +32,7 @@ public:
 		addFloat("max_af", "Maximum allel frequency of exported variants (default: 0.05).",  true, 0.05);
 		addInt("gene_offset", "Defines the number of bases by which the region of each gene is extended.", true, 5000);
 		addEnum("mode", "Determines the database which is exported.", true, QStringList() << "germline" << "somatic", "germline");
+		addFlag("vicc_config_details", "Includes details about VICC interpretation. Works only in somatic mode.");
 
 		changeLog(2021,  7, 19, "Code and parameter refactoring.");
 		changeLog(2021,  7, 19, "Added support for 'germline_het' and 'germline_hom' columns in 'variant' table.");
@@ -45,6 +46,7 @@ public:
 	{
 		//init
 		use_test_db_ = getFlag("test");
+		vicc_config_details_ = getFlag("vicc_config_details");
 		NGSD db(use_test_db_);
 		QTextStream out(stdout);
 		max_allel_frequency_ = getFloat("max_af");
@@ -78,6 +80,7 @@ public:
 
 private:
 	bool use_test_db_;
+	bool vicc_config_details_;
 	float max_allel_frequency_;
 	int gene_offset_;
 
@@ -143,20 +146,6 @@ private:
 			vcf_file_writing_sum += vcf_file_writing.elapsed();
 		}
 
-		//get same sample information
-		QHash<int, QList<int>> same_samples;
-		db_queries.restart();
-		SqlQuery query = db.getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
-		db_query_sum += db_queries.elapsed();
-		while (query.next())
-		{
-			int sample1_id = query.value(0).toInt();
-			int sample2_id = query.value(1).toInt();
-			same_samples[sample1_id] << sample2_id;
-			same_samples[sample2_id] << sample1_id;
-		}
-
 		// define query to get the NGSD counts for each variant
 		db_queries.restart();
 		SqlQuery ngsd_count_query = db.getQuery();
@@ -177,6 +166,19 @@ private:
 		vcf_stream << "##INFO=<ID=SOM_VICC,Number=1,Type=String,Description=\"Somatic variant interpretation according VICC standard in the NGSD.\">\n";
 		vcf_stream << "##INFO=<ID=SOM_VICC_COMMENT,Number=1,Type=String,Description=\"Somatic VICC interpretation comment in the NGSD.\">\n";
 
+		if(vicc_config_details_)
+		{
+			for(QString key : SomaticViccData().configAsMap().keys())
+			{
+			if(key.contains("comment")) continue; //skip comment because it is already included
+			vcf_stream << "##INFO=<ID=SOM_VICC_" + key.toUpper() +",Number=1,Type=String,Description=\"Somatic VICC value for VICC parameter " + key + " in the NGSD.\">\n";
+			}
+		}
+
+
+
+
+
 		// write header line
 		vcf_stream << "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
 		vcf_file_writing_sum += vcf_file_writing.elapsed();
@@ -191,12 +193,12 @@ private:
 		{
 			out << "\texporting somatic variants from " << chr_name << "... " << endl;
 
-			// get all ids of all varaints on this chromosome
+			// get all ids of all variants on this chromosome
 			db_queries.restart();
 			QList<int> somatic_variant_ids = db.getValuesInt("SELECT dsv.id FROM detected_somatic_variant as dsv, variant as v WHERE dsv.variant_id=v.id AND chr='" + chr_name + "' ORDER BY v.start ASC, v.end ASC");
 			db_query_sum += db_queries.elapsed();
 
-			// cache all processed varaint ids to export each variant only once
+			// cache all processed variant ids to export each variant only once
 			QVector<int> processed_variants_ids;
 
 			int variant_count_per_chr = 0;
@@ -300,6 +302,15 @@ private:
 
 						info_column.append("SOM_VICC=" + VcfFile::encodeInfoValue(SomaticVariantInterpreter::viccScoreAsString(data)).toUtf8() );
 						info_column.append("SOM_VICC_COMMENT=" + VcfFile::encodeInfoValue(data.comment).toUtf8() );
+
+						if(vicc_config_details_)
+						{
+							QMap<QString, QString> config_details = data.configAsMap();
+							for(auto it = config_details.begin() ; it != config_details.end(); ++it)
+							{
+								info_column.append("SOM_VICC_" + it.key().toUpper().toUtf8() + "=" + VcfFile::encodeInfoValue(it.value()).toUtf8());
+							}
+						}
 					}
 
 
@@ -365,7 +376,7 @@ private:
 					}
 					vcf_file_writing_sum += vcf_file_writing.elapsed();
 
-					// cache processed varaint id
+					// cache processed variant id
 					processed_variants_ids.append(variant_id);
 				}
 				else
@@ -454,18 +465,6 @@ private:
 		// get disease groups
 		QStringList disease_groups = db.getEnum("sample", "disease_group");
 
-		//get same sample information
-		QHash<int, QList<int>> same_samples;
-		SqlQuery query = db.getQuery();
-		query.exec("SELECT sample1_id, sample2_id FROM sample_relations WHERE relation='same sample' OR relation='same patient'");
-		while (query.next())
-		{
-			int sample1_id = query.value(0).toInt();
-			int sample2_id = query.value(1).toInt();
-			same_samples[sample1_id] << sample2_id;
-			same_samples[sample2_id] << sample1_id;
-		}
-
 		//prepare queries
 		SqlQuery ngsd_count_query = db.getQuery();
 		ngsd_count_query.prepare("SELECT s.id, s.disease_status, s.disease_group, dv.genotype FROM detected_variant dv, processed_sample ps, sample s WHERE dv.variant_id=:0 AND ps.sample_id=s.id AND ps.quality!='bad' AND dv.processed_sample_id=ps.id");
@@ -505,7 +504,7 @@ private:
 		{
 			out << "\texporting variants from " << chr_name << "... " << endl;
 
-			// get all ids of all varaints on this chromosome
+			// get all ids of all variants on this chromosome
 			db_queries.restart();
 			QList<int> variant_ids = db.getValuesInt("SELECT id FROM variant WHERE chr='" + chr_name + "' ORDER BY start ASC, end ASC");
 			db_query_sum += db_queries.elapsed();
@@ -614,12 +613,7 @@ private:
 							{
 								++count_het;
 								samples_done_het << sample_id;
-
-								QList<int> tmp = same_samples.value(sample_id, QList<int>());
-								foreach(int same_sample_id, tmp)
-								{
-									samples_done_het << same_sample_id;
-								}
+								samples_done_het.unite(db.sameSamples(sample_id));
 
 								if (ngsd_count_query.value(1) == "Affected")
 								{
@@ -632,12 +626,7 @@ private:
 							{
 								++count_hom;
 								samples_done_hom << sample_id;
-
-								QList<int> tmp = same_samples.value(sample_id, QList<int>());
-								foreach(int same_sample_id, tmp)
-								{
-									samples_done_hom << same_sample_id;
-								}
+								samples_done_hom.unite(db.sameSamples(sample_id));
 
 								if (ngsd_count_query.value(1) == "Affected")
 								{
@@ -682,6 +671,7 @@ private:
 					}
 
 					// get classification
+					SqlQuery query = db.getQuery();
 					db_queries.restart();
 					query.exec("SELECT class, comment FROM variant_classification WHERE variant_id='" + QString::number(variant_id) + "'");
 					db_query_sum += db_queries.elapsed();

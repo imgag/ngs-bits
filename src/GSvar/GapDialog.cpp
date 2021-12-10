@@ -26,6 +26,7 @@ GapDialog::GapDialog(QWidget *parent, QString ps, QString bam_file, QString lowc
 	connect(ui_.gaps, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(gapsContextMenu(QPoint)));
 	connect(ui_.f_gene, SIGNAL(textEdited(QString)), this, SLOT(updateFilters()));
 	connect(ui_.f_type, SIGNAL(currentIndexChanged(int)), this, SLOT(updateFilters()));
+	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
 }
 
 void GapDialog::delayedInitialization()
@@ -156,10 +157,10 @@ QStringList GapDialog::calculteGapsAndInitGUI()
             if (preferred_transcripts.contains(gene_approved))
 			{
 				int gene_id = db_.geneToApprovedID(gene);
-				QList<Transcript> transcripts = db_.transcripts(gene_id, Transcript::ENSEMBL, false);
+				TranscriptList transcripts = db_.transcripts(gene_id, Transcript::ENSEMBL, false);
 				foreach(const Transcript& transcript, transcripts)
 				{
-                    if (preferred_transcripts[gene_approved].contains(transcript.name()))
+					if (transcript.isPreferredTranscript())
 					{
 						pt_exon_regions.add(transcript.regions());
 					}
@@ -378,6 +379,11 @@ void GapDialog::gapsContextMenu(QPoint pos)
 
 	//update GUI
 	updateNGSDColumn();
+}
+
+void GapDialog::copyToClipboard()
+{
+	GUIHelper::copyToClipboard(ui_.gaps);
 }
 
 void GapDialog::highlightItem(QTableWidgetItem* item)

@@ -161,6 +161,20 @@
                  </widget>
                 </item>
                 <item>
+                 <widget class="QToolButton" name="open_qc_files">
+                  <property name="toolTip">
+                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open variant list QC files (qcML) with your browser.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  </property>
+                  <property name="text">
+                   <string>...</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="GSvar.qrc">
+                    <normaloff>:/Icons/QC.png</normaloff>:/Icons/QC.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <widget class="Line" name="line">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
@@ -403,6 +417,9 @@
     <addaction name="actionSampleAncestry"/>
     <addaction name="separator"/>
     <addaction name="actionAlleleBalance"/>
+    <addaction name="separator"/>
+    <addaction name="actionGetGenomicSequence"/>
+    <addaction name="actionBlatSearch"/>
    </widget>
    <widget class="QMenu" name="menuIGV">
     <property name="title">
@@ -437,6 +454,9 @@
     <addaction name="actionConvertGSvarToVcf"/>
     <addaction name="separator"/>
     <addaction name="actionCytobandsToRegions"/>
+    <addaction name="actionRegionToGenes"/>
+    <addaction name="separator"/>
+    <addaction name="actionLiftOver"/>
    </widget>
    <widget class="QMenu" name="menuNGSD">
     <property name="title">
@@ -464,7 +484,7 @@
       <string>Sub-panels</string>
      </property>
      <addaction name="actionDesignSubpanel"/>
-     <addaction name="actionArchiveSubpanel"/>
+     <addaction name="actionManageSubpanels"/>
     </widget>
     <widget class="QMenu" name="menuAdmin">
      <property name="title">
@@ -497,6 +517,7 @@
      <addaction name="actionImportSamples"/>
      <addaction name="actionImportProcessedSamples"/>
      <addaction name="actionImportSampleRelations"/>
+     <addaction name="actionImportCfDNAPanels"/>
      <addaction name="separator"/>
      <addaction name="actionImportMids"/>
      <addaction name="actionImportStudy"/>
@@ -512,8 +533,6 @@
      <addaction name="actionCohortAnalysis"/>
      <addaction name="separator"/>
      <addaction name="actionShowPublishedVariants"/>
-     <addaction name="actionPublishVariantInLOVD"/>
-     <addaction name="actionBatchExportClinVar"/>
     </widget>
     <addaction name="menuVariant_search"/>
     <addaction name="menuGenes_2"/>
@@ -738,9 +757,9 @@
     <string>Design</string>
    </property>
   </action>
-  <action name="actionArchiveSubpanel">
+  <action name="actionManageSubpanels">
    <property name="text">
-    <string>Archive/restore</string>
+    <string>Manage</string>
    </property>
   </action>
   <action name="actionClose">
@@ -799,15 +818,6 @@
   <action name="actionPreferredTranscripts">
    <property name="text">
     <string>Show/edit preferred transcripts</string>
-   </property>
-  </action>
-  <action name="actionPublishVariantInLOVD">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/LOVD.png</normaloff>:/Icons/LOVD.png</iconset>
-   </property>
-   <property name="text">
-    <string>Publish in LOVD</string>
    </property>
   </action>
   <action name="actionROH">
@@ -1064,15 +1074,6 @@
     <string>Processed samples</string>
    </property>
   </action>
-  <action name="actionMidClashDetection">
-   <property name="icon">
-    <iconset resource="GSvar.qrc">
-     <normaloff>:/Icons/mid_clash.png</normaloff>:/Icons/mid_clash.png</iconset>
-   </property>
-   <property name="text">
-    <string>MID clash detection</string>
-   </property>
-  </action>
   <action name="actionVariantValidation">
    <property name="text">
     <string>Variant validation</string>
@@ -1182,8 +1183,12 @@
    </property>
   </action>
   <action name="actionShowPublishedVariants">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/ClinGen.png</normaloff>:/Icons/ClinGen.png</iconset>
+   </property>
    <property name="text">
-    <string>Show published variants</string>
+    <string>Published variants</string>
    </property>
   </action>
   <action name="actionSampleSimilarityVCF">
@@ -1299,6 +1304,53 @@
   <action name="actionCohortAnalysis">
    <property name="text">
     <string>Cohort analysis</string>
+   </property>
+  </action>
+  <action name="actionCfDNAAddExcludedRegions">
+   <property name="text">
+    <string>Add excluded regions</string>
+   </property>
+  </action>
+  <action name="actionImportCfDNAPanels">
+   <property name="text">
+    <string>cfDNA panels</string>
+   </property>
+  </action>
+  <action name="actionPublishVariantInClinvar">
+   <property name="text">
+    <string>Publish Variant in ClinVar</string>
+   </property>
+   <property name="toolTip">
+    <string>Publish Variant in ClinVar</string>
+   </property>
+  </action>
+  <action name="actionMidClashDetection">
+   <property name="icon">
+    <iconset resource="GSvar.qrc">
+     <normaloff>:/Icons/mid_clash.png</normaloff>:/Icons/mid_clash.png</iconset>
+   </property>
+   <property name="text">
+    <string>MID clash detection</string>
+   </property>
+  </action>
+  <action name="actionRegionToGenes">
+   <property name="text">
+    <string>Region &gt; Genes</string>
+   </property>
+  </action>
+  <action name="actionLiftOver">
+   <property name="text">
+    <string>Lift-over</string>
+   </property>
+  </action>
+  <action name="actionGetGenomicSequence">
+   <property name="text">
+    <string>Get genomic sequence</string>
+   </property>
+  </action>
+  <action name="actionBlatSearch">
+   <property name="text">
+    <string>BLAT search</string>
    </property>
   </action>
  </widget>

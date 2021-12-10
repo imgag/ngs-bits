@@ -153,6 +153,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeAttribute( "mutation_burden", QString::number(data.tumor_mutation_burden,'f', 2) );
 	if( data.settings.report_config.msiStatus() ) w.writeAttribute( "microsatellite_instability",  QString::number(data.mantis_msi, 'f', 2) );
 	w.writeAttribute("hrd_score", QString::number(data.settings.report_config.hrdScore()) );
+	w.writeAttribute("hrd_score_chromo", QString::number(data.settings.report_config.cnvLohCount() + data.settings.report_config.cnvTaiCount() + data.settings.report_config.cnvLstCount()));
 	w.writeEndElement();
 
 
@@ -204,8 +205,12 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 	foreach(const QByteArray& gene, data.processing_system_genes)
 	{
-		w.writeStartElement("Gene");
 		GeneInfo gene_info = db.geneInfo(gene);
+		if(gene_info.symbol.isEmpty()) continue;
+		if(gene_info.hgnc_id.isEmpty()) continue;
+
+		w.writeStartElement("Gene");
+
 		w.writeAttribute("name", gene_info.symbol);
 		w.writeAttribute("id", gene_info.hgnc_id);
 		w.writeEndElement();
@@ -257,8 +262,13 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 
 				for(int j=0; j < genes.count(); ++j)
 				{
-					w.writeStartElement("Gene");
+
 					GeneInfo gene_info = db.geneInfo(genes[j]);
+					if(gene_info.symbol.isEmpty()) continue;
+					if(gene_info.hgnc_id.isEmpty()) continue; //genes that have been withdrawn or cannot be mapped to a unique approved symbol
+					w.writeStartElement("Gene");
+
+
 					w.writeAttribute("name", gene_info.symbol);
 					w.writeAttribute("id", gene_info.hgnc_id);
 
@@ -420,27 +430,32 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 			w.writeAttribute( "cn_b", QString(cnv.annotations()[i_cn_major]));
 
 			GeneSet genes = cnv.genes();
-			GeneSet tsg = GeneSet::createFromText( cnv.annotations()[i_tsg], ',' );
-			GeneSet oncogenes = GeneSet::createFromText( cnv.annotations()[i_oncogene], ',' );
+			GeneSet tsg = db.genesToApproved(GeneSet::createFromText( cnv.annotations()[i_tsg], ',' ), true);
+			GeneSet oncogenes = db.genesToApproved(GeneSet::createFromText( cnv.annotations()[i_oncogene], ',' ), true);
 			for(const auto& gene : genes)
 			{
+				GeneInfo gene_info = db.geneInfo(gene);
+
+				if(gene_info.symbol.isEmpty()) continue;
+				if(gene_info.hgnc_id.isEmpty()) continue; //genes that were withdrawn or cannot uniquely mapped to approved symbol
+
 				w.writeStartElement("Gene");
-				w.writeAttribute("name", gene);
-				w.writeAttribute("id", db.geneInfo(gene).hgnc_id);
+				w.writeAttribute("name", gene_info.symbol);
+				w.writeAttribute("id", gene_info.hgnc_id);
 
 				if(db.getSomaticGeneRoleId(gene) != -1)
 				{
 					w.writeAttribute("role",  db.getSomaticGeneRole(gene).roleAsString());
 				}
 
-				if(tsg.contains(gene))
+				if(tsg.contains(gene_info.symbol.toUtf8()))
 				{
 					w.writeStartElement("IsTumorSuppressor");
 					w.writeAttribute("source", "Network of Cancer Genes");
 					w.writeAttribute("source_version", "6.0");
 					w.writeEndElement();
 				}
-				if(oncogenes.contains(gene))
+				if(oncogenes.contains(gene_info.symbol.toUtf8()))
 				{
 					w.writeStartElement("IsOncoGene");
 					w.writeAttribute("source", "Network of Cancer Genes");

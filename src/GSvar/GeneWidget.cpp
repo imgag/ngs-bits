@@ -59,7 +59,7 @@ void GeneWidget::updateGUI()
     QString html = info.comments;
     html.replace(QRegExp("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
     html.replace("\n", "<br>");
-	ui_.comments->setText(html);
+	GSvarHelper::limitLines(ui_.comments, html, "<br>");
 
     //add pseudogenes/parent genes
 	int gene_id = db.geneToApprovedID(symbol_);
@@ -244,7 +244,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 
 	//get transcripts
 	int gene_id = db.geneToApprovedID(symbol_);
-	QList<Transcript> transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
+	TranscriptList transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
 
 	//sort transcripts
 	std::stable_sort(transcripts.begin(), transcripts.end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });
@@ -267,8 +267,8 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		}
 		ui_.transcripts->setItem(row, 1, GUIHelper::createTableItem(coords));
 
-		QString bases = QString::number(transcript.regions().baseCount());
-		ui_.transcripts->setItem(row, 2, GUIHelper::createTableItem(bases));
+		QString bases_exons = QString::number(transcript.regions().baseCount()) + " / " + QString::number(transcript.regions().count());
+		ui_.transcripts->setItem(row, 2, GUIHelper::createTableItem(bases_exons));
 
 		QString coding_bases_exons = "";
 		if (transcript.isCoding()) coding_bases_exons = QString::number(transcript.codingRegions().baseCount()-3) + " / " + QString::number(transcript.codingRegions().count());
@@ -279,7 +279,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		ui_.transcripts->setItem(row, 4, GUIHelper::createTableItem(aas));
 
 		QString pt = "";
-		if (GSvarHelper::preferredTranscripts().value(symbol_).contains(transcript.name())) pt = "yes";
+		if (transcript.isPreferredTranscript()) pt = "yes";
 		ui_.transcripts->setItem(row, 5, GUIHelper::createTableItem(pt));
 
 		QStringList ccds;

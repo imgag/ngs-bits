@@ -1,4 +1,8 @@
 bin/*
 build-*
-src/*.pro.user*
+*.pro.user*
 t.log
+*.crt
+*.key
+gsvar-server-log.txt
+

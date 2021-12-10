@@ -678,6 +678,21 @@ public:
 	void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
+//Filter for variants that influence splice sites
+class CPPNGSSHARED_EXPORT FilterSpliceEffect
+		: public FilterBase
+{
+public:
+	FilterSpliceEffect();
+	QString toText() const override;
+	void apply(const VariantList &variant_list, FilterResult &result) const override;
+private:
+	double calculatePercentageChangeMES_(const QByteArray& value) const;
+	bool applyMaxEntScanFilter_(const Variant& var, int idx_mes) const;
+	bool applySpliceAi_(const Variant& var, int idx_sai) const;
+	bool applyMMsplice_(const Variant& var, int idx_mms) const;
+};
+
 /*************************************************** filters for CNVs ***************************************************/
 //Filter CNV size
 class CPPNGSSHARED_EXPORT FilterCnvSize

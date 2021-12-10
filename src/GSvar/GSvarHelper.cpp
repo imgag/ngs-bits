@@ -192,8 +192,30 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	}
 }
 
+void GSvarHelper::limitLines(QLabel* label, QString text, QString sep, int max_lines)
+{
+	QStringList lines = text.split(sep);
+	if (lines.count()<max_lines)
+	{
+		label->setText(text);
+	}
+	else
+	{
+		while(lines.count()>max_lines) lines.removeLast();
+		lines.append("...");
+		label->setText(lines.join(sep));
+		label->setToolTip(text);
+	}
+}
+
 BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg38_to_hg19)
 {
+	//special handling of chrMT (they are the same for GRCh37 and GRCh38)
+	if (chr.strNormalized(true)=="chrMT") return BedLine(chr, start, end);
+
+	//convert start to BED format (0-based)
+	start -= 1;
+
 	//call lift-over webservice
 	QString url = Settings::string("liftover_webservice") + "?chr=" + chr.strNormalized(true) + "&start=" + QString::number(start) + "&end=" + QString::number(end);
 	if (hg38_to_hg19) url += "&dir=hg38_hg19";
@@ -204,7 +226,10 @@ BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg
 
 	//convert output to region
 	BedLine region = BedLine::fromString(output);
-	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Could not convert output '" + output + "' to region");
+	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Could not convert output '" + output + "' to valid region");
+
+	//revert to 1-based
+	region.setStart(region.start()+1);
 
 	return region;
 }

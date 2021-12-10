@@ -1,5 +1,29 @@
 # GSvar change log
 
+### 2021_09-41 (30.11.21)
+- Variant details: corrected changed ClinVar variation links.
+- Gene/variant tab: imiting comments to 15 lines to avoid disruption of the tab layout by huge comments.
+- Somatic report: several improvements.
+- General: fixed several minor issues and crashes.
+
+### 2021_09-34 (27.10.21)
+- Report: updated XML to contain HGNC gene identifiers.
+- General: added lift-over dialog to main menu folder 'Conversion'.
+- General: fixed several minor issues and crashes.
+
+### 2021_09-2 (29.09.21)
+- Variant table: added button to open qcML files of analysis.
+- Added region to gene table conversion (Conversion entry in main menu).
+
+### 2021_06-75 (11.08.21)
+- Added ClinVar upload of variants, removed LOVD upload.
+- Added option to show BAF histogram.
+- The repeat expansion table can be copied to the clipboard now.
+
+### 2021_06-57 (03.08.21)
+- added cohort analysis dialog (NGSD > Variants > Cohort analysis)
+- fixed DGV links (no https)
+
 ### 2021_06-38 (13.07.21)
 - small variants search dialog: added maximum NGSD count filter.
 - CNV search dialog: added option to scale log-likelihood, added validation column, added report config comments column.

@@ -668,7 +668,7 @@ void SvWidget::editGermlineReportConfiguration(int row)
 
 	if(!sv_bedpe_file_[row].chr1().isNonSpecial() || !sv_bedpe_file_[row].chr2().isNonSpecial())
 	{
-		QMessageBox::warning(this, "Error adding SV", "Structural varaints from special chromosomes cannot be imported into the NGSD!");
+		QMessageBox::warning(this, "Error adding SV", "Structural variants from special chromosomes cannot be imported into the NGSD!");
 		return;
 	}
 
@@ -691,9 +691,10 @@ void SvWidget::editGermlineReportConfiguration(int row)
 	int i_genes = sv_bedpe_file_.annotationIndexByName("genes", false);
 	if (i_genes!=-1)
 	{
-		QByteArrayList genes = sv_bedpe_file_[row].annotations()[i_genes].split(',');
-		foreach(QByteArray gene, genes)
+		GeneSet genes = GeneSet::createFromText(sv_bedpe_file_[row].annotations()[i_genes], ',');
+		foreach(const QByteArray& gene, genes)
 		{
+
 			GeneInfo gene_info = db.geneInfo(gene);
 			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
 		}
@@ -1143,7 +1144,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	{
 		SvSearchWidget* widget = new SvSearchWidget();
 		widget->setProcessedSampleId(ps_id_);
-		widget->setCoordinates(sv);
+		widget->setVariant(sv);
 		auto dlg = GUIHelper::createDialog(widget, "SV search");
 
 		dlg->exec();
