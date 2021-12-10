@@ -35,7 +35,7 @@ private slots:
 
 		//check bases
 		QByteArray bases = al.bases();
-		S_EQUAL(bases, "GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGACGACGCTCTTCCGATCT");
+		S_EQUAL(bases, "AGATCGGAAGAGCGTCGTCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC");
 		for (int i=0; i<bases.count(); ++i)
 		{
 			S_EQUAL(bases.data()[i], al.base(i));
@@ -43,16 +43,16 @@ private slots:
 
 		//check qualities
 		QByteArray qualities = al.qualities();
-		S_EQUAL(qualities, "@@?@@@=@@@?@@@?@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@?@@@@@@@@@@@@@@@@@@@@@@@@@=@99----;--99-?@99@;G@@AA-@A-?C@B<///>/>//////0000A0GGGGGGFFAAAAAAAAAA");
+		S_EQUAL(qualities, "AAAAAAAAAAFFGGGGGG0A0000//////>/>///<B@C?-A@-AA@@G;@99@?-99--;----99@=@@@@@@@@@@@@@@@@@@@@@@@@@?@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@?@@@?@@@=@@@?@@");
 		for (int i=0; i<qualities.count(); ++i)
 		{
 			S_EQUAL(qualities.data()[i], (char)(al.quality(i)+33));
 		}
 
 		//check CIGAR
-		S_EQUAL(al.cigarDataAsString(), "133M13I5M");
+		S_EQUAL(al.cigarDataAsString(), "5M13I133M");
 		QByteArray cigar_exp = al.cigarDataAsString(true);
-		S_EQUAL(cigar_exp, "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMIIIIIIIIIIIIIMMMMM");
+		S_EQUAL(cigar_exp, "MMMMMIIIIIIIIIIIIIMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
 		QList<CigarOp> cigar_data = al.cigarData();
 		int i = 0;
 		foreach(const CigarOp& op, cigar_data)
@@ -174,8 +174,8 @@ private slots:
 		}
 		while(al.isUnmapped());
 
-		S_EQUAL(al.cigarDataAsString(), "133M13I5M");
-		S_EQUAL(al.cigarDataAsString(true), "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMIIIIIIIIIIIIIMMMMM");
+		S_EQUAL(al.cigarDataAsString(), "5M13I133M");
+		S_EQUAL(al.cigarDataAsString(true), "MMMMMIIIIIIIIIIIIIMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM");
 
 		reader.getNextAlignment(al);
 		while(al.isUnmapped())
@@ -191,49 +191,49 @@ private slots:
 		BamReader reader(TESTDATA("data_in/panel.bam"));
 		Pileup pileup;
 		//SNP
-		pileup = reader.getPileup("chr1", 12062205, 1);
-		I_EQUAL(pileup.depth(false), 117);
-		F_EQUAL2(pileup.frequency('A', 'G'), 0.4102, 0.001);
+		pileup = reader.getPileup("chr1", 12002148, 1);
+		I_EQUAL(pileup.depth(false), 99);
+		F_EQUAL2(pileup.frequency('A', 'G'), 0.3939, 0.001);
 		I_EQUAL(pileup.indels().count(), 0);
 		//SNP
-		pileup = reader.getPileup("chr1", 12062181, 1);
-		I_EQUAL(pileup.depth(false), 167);
+		pileup = reader.getPileup("chr1", 12002124, 1);
+		I_EQUAL(pileup.depth(false), 149);
 		F_EQUAL2(pileup.frequency('A', 'G'), 0.0, 0.001);
 		I_EQUAL(pileup.indels().count(), 0);
 		//SNP
-		pileup = reader.getPileup("1", 12062181, 1);
-		I_EQUAL(pileup.depth(false), 167);
+		pileup = reader.getPileup("1", 12002124, 1);
+		I_EQUAL(pileup.depth(false), 149);
 		F_EQUAL2(pileup.frequency('G', 'A'), 1.0, 0.001);
 		I_EQUAL(pileup.indels().count(), 0);
 		//SNP
-		pileup = reader.getPileup("1", 12062180, 1);
-		I_EQUAL(pileup.depth(false), 167);
+		pileup = reader.getPileup("1", 12002123, 1);
+		I_EQUAL(pileup.depth(false), 149);
 		IS_TRUE(!BasicStatistics::isValidFloat(pileup.frequency('A', 'T')));
 		I_EQUAL(pileup.indels().count(), 0);
 		//INSERTATION
-		pileup = reader.getPileup("chr6", 110053825, 1);
+		pileup = reader.getPileup("chr6", 109732622, 1);
 		I_EQUAL(pileup.depth(false), 40);
 		I_EQUAL(pileup.t(), 40);
 		I_EQUAL(pileup.indels().count(), 29);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '+'), 27);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 2);
 		//DELETION
-		pileup = reader.getPileup("chr14", 53513479, 1);
-		I_EQUAL(pileup.depth(false), 50);
-		I_EQUAL(pileup.a(), 50);
+		pileup = reader.getPileup("chr14", 53046761, 1);
+		I_EQUAL(pileup.depth(false), 22);
+		I_EQUAL(pileup.a(), 22);
 		I_EQUAL(pileup.indels().count(), 14);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 14);
 		//INSERTATION -  with window
-		pileup = reader.getPileup("chr6", 110053825, 20);
+		pileup = reader.getPileup("chr6", 109732622, 20);
 		I_EQUAL(pileup.depth(false), 40);
 		I_EQUAL(pileup.t(), 40);
 		I_EQUAL(pileup.indels().count(), 30);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '+'), 28);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 2);
 		//DELETION -  with window
-		pileup = reader.getPileup("chr14", 53513479, 10);
-		I_EQUAL(pileup.depth(false), 50);
-		I_EQUAL(pileup.a(), 50);
+		pileup = reader.getPileup("chr14", 53046761, 10);
+		I_EQUAL(pileup.depth(false), 22);
+		I_EQUAL(pileup.a(), 22);
 		I_EQUAL(pileup.indels().count(), 14);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 14);
 	}
@@ -286,31 +286,31 @@ private slots:
 		BamReader reader(TESTDATA("data_in/panel.bam"));
 
 		//inseration T (left)
-		Variant v("chr6", 110053825, 110053825, "-", "T");
+		Variant v("chr6", 109732622, 109732622, "-", "T");
 		VariantDetails output = reader.getVariantDetails(reference, v);
 		I_EQUAL(output.depth, 42);
 		F_EQUAL2(output.frequency, 0.428, 0.001);
 
 		//inseration T (right)
-		v = Variant("chr16", 89576894, 89576894, "-", "T");
+		v = Variant("chr16", 89510486, 89510486, "-", "T");
 		output = reader.getVariantDetails(reference, v);
 		I_EQUAL(output.depth, 126);
 		F_EQUAL2(output.frequency, 0.126, 0.001);
 
 		//deletion AG
-		v = Variant("chr14", 53513479, 53513480, "AG", "-");
+		v = Variant("chr14", 53046761, 53046761, "AG", "-");
 		output = reader.getVariantDetails(reference, v);
-		I_EQUAL(output.depth, 64);
-		F_EQUAL2(output.frequency, 0.218, 0.001);
+		I_EQUAL(output.depth, 36);
+		F_EQUAL2(output.frequency, 0.389, 0.001);
 
 		//SNP A>G (het)
-		v = Variant("chr4", 108868411, 108868411, "A", "G");
+		v = Variant("chr4", 107947255, 107947255, "A", "G");
 		output = reader.getVariantDetails(reference, v);
 		I_EQUAL(output.depth, 78);
 		F_EQUAL2(output.frequency, 0.333, 0.001);
 
 		//SNP C>T (hom)
-		v = Variant("chr2", 202625615, 202625615, "C", "T");
+		v = Variant("chr2", 201760892, 201760892, "C", "T");
 		output = reader.getVariantDetails(reference, v);
 		I_EQUAL(output.depth, 166);
 		F_EQUAL2(output.frequency, 1.0, 0.001);
@@ -329,7 +329,7 @@ private slots:
 		double mapq0_frac;
 
 		//inseration of TT
-		reader.getIndels(reference, "chr6", 110053825-20, 110053825+20, indels, depth, mapq0_frac);
+		reader.getIndels(reference, "chr6", 109732622-20, 109732622+20, indels, depth, mapq0_frac);
 		I_EQUAL(depth, 42);
 		I_EQUAL(indels.count(), 30);
 		I_EQUAL(indels.count("+TT"), 10);
@@ -338,8 +338,8 @@ private slots:
 		F_EQUAL2(mapq0_frac, 0.0, 0.001);
 
 		//deletion of AG
-		reader.getIndels(reference, "chr14", 53513479-10, 53513480+10, indels, depth, mapq0_frac);
-		I_EQUAL(depth, 64);
+		reader.getIndels(reference, "chr14", 53046761-10, 53046762+10, indels, depth, mapq0_frac);
+		I_EQUAL(depth, 36);
 		I_EQUAL(indels.count(), 14);
 		I_EQUAL(indels.count("-AG"), 14);
 		F_EQUAL2(mapq0_frac, 0.0, 0.001);
@@ -359,7 +359,7 @@ private slots:
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
-		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+		if (!ref_file.endsWith("GRCh38.fa")) SKIP("Test needs reference genome GRCh38!");
 		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
@@ -415,7 +415,7 @@ private slots:
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
-		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+		if (!ref_file.endsWith("GRCh38.fa")) SKIP("Test needs reference genome GRCh38!");
 		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
@@ -451,7 +451,7 @@ private slots:
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
-		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+		if (!ref_file.endsWith("GRCh38.fa")) SKIP("Test needs reference genome GRCh38!");
 		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		BamReader reader(TESTDATA("data_in/cramTest.cram"), ref_file);
