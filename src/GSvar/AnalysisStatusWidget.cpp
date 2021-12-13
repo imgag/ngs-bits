@@ -331,8 +331,8 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 	{
 		menu.addAction(QIcon(":/Icons/Icon.png"), "Open variant list");
 	}
-	menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample");
-	menu.addAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run");
+	menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab");
+	menu.addAction(QIcon(":/Icons/NGSD_run.png"), "Open sequencing run tab");
 	menu.addAction(QIcon(":/Icons/Folder.png"), "Open analysis folder(s)");
 	if (rows.count()==1 && types.values()[0]!="single sample")
 	{
@@ -355,9 +355,12 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 			NGSD db;
 			for(const AnalysisJobSample& sample : samples)
 			{
-				sample_types << (db.getSampleData(db.sampleId(sample.name)).type=="RNA" ? "RNA" : "DNA");
-				QString sys_type = db.getProcessedSampleData(db.processedSampleId(sample.name)).processing_system_type;
-				cfdna_sample << (sys_type == "cfDNA (patient-specific)" || sys_type == "cfDNA");
+				QString sample_type = db.getSampleData(db.sampleId(sample.name)).type;
+				if (sample_type=="RNA") sample_types << "RNA";
+				else if (sample_type.startsWith("DNA")) sample_types << "DNA";
+				else THROW(ProgrammingException, "Unhandled sample type: "+sample_type);
+
+				cfdna_sample << db.getProcessedSampleData(db.processedSampleId(sample.name)).processing_system_type.startsWith("cfDNA");
 			}
 			if((sample_types.count() == 1) && (cfdna_sample.count() == 1)) menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart single sample analysis");
 		}
@@ -394,14 +397,14 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 			emit loadFile(db.analysisJobGSvarFile(id));
 		}
 	}
-	if (text=="Open processed sample")
+	if (text=="Open processed sample tab")
 	{
 		foreach(const AnalysisJobSample& sample, samples)
 		{
 			GlobalServiceProvider::openProcessedSampleTab(sample.name);
 		}
 	}
-	if (text=="Open sequencing run")
+	if (text=="Open sequencing run tab")
 	{
 		NGSD db;
 		foreach(const AnalysisJobSample& sample, samples)

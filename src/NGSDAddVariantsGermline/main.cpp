@@ -65,7 +65,7 @@ public:
 
 		//check if variants were already imported for this PID
 		QString ps_id = db.processedSampleId(ps_name);
-		int count_old = db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id=:0", true, ps_id).toInt();
+		int count_old = db.importStatus(ps_id).small_variants;
 		out << "Found " << count_old  << " variants already imported into NGSD!\n";
 		if(count_old>0 && !var_force)
 		{

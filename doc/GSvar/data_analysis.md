@@ -34,6 +34,13 @@ This works for all analysis types:
 - multi-sample analysis
 - somatic analysis
 
+### Sample search
+
+The `sample search` can be opened via the main menu bar of GSvar (![alt text](sample_search.png)).  
+Here processed samples can be searched for, e.g. of a project, run or processing system.  
+Through the context menu of the search results, a batch of samples can be analyzed.
+
+
 ## What do the analysis steps mean and what do they do?
 
 Here is a summary of the analysis steps and a description what they do:
@@ -45,22 +52,22 @@ Here is a summary of the analysis steps and a description what they do:
 	<th>produced files</th>
 </tr>
 <tr>
-	<td>germline - ma</td>
+	<td>single sample - ma</td>
 	<td>mapping of reads to the reference genome.</td>
 	<td>BAM file</td>
 </tr>
 <tr>
-	<td>germline - vc</td>
+	<td>ingle sample - vc</td>
 	<td>Variant calling of small variants (SNVs and small indels).<br>Annotation of the variants with information from several databases and tools.</td>
 	<td>VCF file, GSvar file</td>
 </tr>
 <tr>
-	<td>germline - cn</td>
+	<td>ingle sample - cn</td>
 	<td>Variant calling of CNVs based on depth of coverage using other samples are reference.<br>Annotation of the variants with information from several databases and tools.</td>
 	<td>CNV file (TSV format)</td>
 </tr>
 <tr>
-	<td>germline - sv </td>
+	<td>ingle sample - sv </td>
 	<td>Variant calling of structural variants based on read data (split reads, soft-clipped reads, not properly paired reads).<br>Annotation of the variants with information from several databases and tools.</td>
 	<td>SV file (BEDPE format)</td>
 </tr>
@@ -74,9 +81,9 @@ Here is a summary of the analysis steps and a description what they do:
 
 ## What is the difference between re-annotation and a normal analysis.
 
-When performing reannotation (e.g. by checking the box `annotate only` in the single-sample analysis dialog), only varianannotation is performed.  
+When performing reannotation (e.g. by checking the box `annotate only` in the single-sample analysis dialog), only variant annotation is performed.  
 Variant calling is skipped and the annotations of the variants is updated.  
-This is usually performed to update annotations, since the data in public databases (ClinVar, HGMD, OMIM, ...) is updated regularly.
+This is usually performed to update annotations as the data in public databases (ClinVar, HGMD, OMIM, ...) is updated regularly.
 
 --
 

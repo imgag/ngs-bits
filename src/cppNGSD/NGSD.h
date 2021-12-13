@@ -370,6 +370,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool s_name_ext = false;
 	bool s_name_comments = false;
 	QString s_species;
+	QString s_type;
 	QString s_sender;
 	QString s_study;
 	QString s_disease_group;
@@ -486,6 +487,17 @@ struct CfdnaGeneEntry
 	int end;
 	QDate date;
 	BedFile bed = BedFile();
+};
+
+///NGSD import status for germline analysis.
+struct CPPNGSDSHARED_EXPORT ImportStatusGermline
+{
+	//variant data
+	int small_variants = 0;
+	int cnvs = 0;
+	int svs = 0;
+	//QC data
+	int qc_terms = 0;
 };
 
 /// NGSD accessor.
@@ -673,6 +685,9 @@ public:
 	QString addSomaticCnv(int callset_id, const CopyNumberVariant& cnv, const CnvList& cnv_list, double max_ll = 0.0);
 	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
 	CopyNumberVariant somaticCnv(int cnv_id);
+
+	///Returns the germline import status.
+	ImportStatusGermline importStatus(const QString& ps_id);
 
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.

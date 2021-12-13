@@ -2984,10 +2984,12 @@ void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>
 		AnalysisType type = variants_.type();
 		if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
 		{
-			QString sys_type = db.getValue("SELECT sys.type FROM processing_system sys, processed_sample ps WHERE sys.id=ps.processing_system_id AND ps.id="+ps_id, false).toString();
+
+			QString sys_type = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(ps)).type;
 			if (sys_type=="WGS" || sys_type=="WES")
 			{
-				if (db.getValue("SELECT EXISTS(SELECT * FROM detected_variant WHERE processed_sample_id="+ps_id+")").toInt()!=1)
+				ImportStatusGermline import_status = db.importStatus(ps_id);
+				if (import_status.small_variants==0)
 				{
 					issues << qMakePair(Log::LOG_WARNING, "No germline variants imported into NGSD for processed sample '" + ps + "'!");
 				}

@@ -191,6 +191,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		conditions	<< "sp.id=s.species_id"
 					<< "sp.name='" + escapeForSql(p.s_species) + "'";
 	}
+	if (p.s_type.trimmed()!="")
+	{
+		conditions << "s.sample_type='" + escapeForSql(p.s_type) + "'";
+	}
 	if (p.s_sender.trimmed()!="")
 	{
 		tables	<< "sender se";
@@ -1255,6 +1259,38 @@ CopyNumberVariant NGSD::somaticCnv(int cnv_id)
 	if(!query.next()) THROW(DatabaseException, "Somatic CNV with identifier '" + QString::number(cnv_id) + "' does not exist!");
 
 	return CopyNumberVariant(query.value("chr").toByteArray(), query.value("start").toInt(), query.value("end").toInt());
+}
+
+ImportStatusGermline NGSD::importStatus(const QString& ps_id)
+{
+	ImportStatusGermline output;
+
+	//small variants
+	output.small_variants = getValue("SELECT COUNT(*) FROM detected_variant WHERE processed_sample_id='" + ps_id + "'").toInt();
+
+	//CNVs
+	QVariant cnv_callset_id = getValue("SELECT id FROM cnv_callset WHERE processed_sample_id='" + ps_id + "'", true);
+	if (cnv_callset_id.isValid())
+	{
+		output.cnvs = getValue("SELECT COUNT(*) FROM cnv WHERE cnv_callset_id='" + cnv_callset_id.toString() + "'").toInt();
+	}
+
+	//SVs
+	QVariant sv_callset_id = getValue("SELECT id FROM sv_callset WHERE processed_sample_id='" + ps_id + "'", true);
+	if (sv_callset_id.isValid())
+	{
+		QString cs_id = sv_callset_id.toString();
+		static QStringList tables{"sv_deletion","sv_duplication","sv_insertion","sv_inversion","sv_translocation"};
+		foreach(const QString& table, tables)
+		{
+			output.svs += getValue("SELECT count(*) FROM " + table + " WHERE sv_callset_id='" + cs_id+ "'").toInt();
+		}
+	}
+
+	//QC
+	output.qc_terms = getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'").toInt();
+
+	return output;
 }
 
 CopyNumberVariant NGSD::cnv(int cnv_id)
@@ -3590,19 +3626,17 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 			if (merged)
 			{
 				//check if variants are present
-				int c_var = getValue("SELECT COUNT(*) FROM detected_variant WHERE processed_sample_id='" + ps_id + "'").toInt();
-				int c_cnv = getValue("SELECT COUNT(*) FROM cnv_callset WHERE processed_sample_id='" + ps_id + "'").toInt();
-				if (c_var>0 || c_cnv>0)
+				ImportStatusGermline import_status = importStatus(ps_id);
+				if (import_status.small_variants>0 || import_status.cnvs>0 || import_status.svs>0)
 				{
-					*messages << "Merged sample " << ps_name << " has variant data (small variant or CNVs)!" << endl;
+					*messages << "Merged sample " << ps_name << " has variant data (small variant, CNVs or SVs)!" << endl;
 
 					if (fix_errors)
 					{
 						deleteVariants(ps_id);
 					}
 				}
-				int c_qc = getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id='" + ps_id + "'").toInt();
-				if (c_qc>0)
+				if (import_status.qc_terms>0)
 				{
 					*messages << "Merged sample " << ps_name << " has QC data!" << endl;
 
@@ -3635,10 +3669,10 @@ void NGSD::maintain(QTextStream* messages, bool fix_errors)
 		QString ps_id = query.value(1).toString();
 
 		//check if variants are present
-		int c_var = getValue("SELECT COUNT(*) FROM detected_variant WHERE processed_sample_id='" + ps_id + "'").toInt();
-		if (c_var>0)
+		ImportStatusGermline import_status = importStatus(ps_id);
+		if (import_status.small_variants>0 || import_status.cnvs>0 || import_status.svs>0)
 		{
-			*messages << "Bad sample " << query.value(0).toString() << " has variant data!" << endl;
+			*messages << "Bad sample " << query.value(0).toString() << " has variant data (small variant, CNVs or SVs)!" << endl;
 
 			if (fix_errors)
 			{
