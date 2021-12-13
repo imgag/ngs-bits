@@ -317,7 +317,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="OMIM")
 		{
-			foreach(const DBEntry& entry, parseDB(anno, ','))
+			foreach(const DBEntry& entry, parseDB(anno, '&'))
 			{
 				text += formatLink(entry.id, "https://omim.org/entry/" + entry.id) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;

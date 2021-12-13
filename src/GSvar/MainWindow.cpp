@@ -2726,22 +2726,26 @@ void MainWindow::loadFile(QString filename)
 		return;
 	}
 
-	//check if variant list is outdated
-	QStringList messages;
+	//check analysis for issues (outdated, missing columns, wrong genome build, bad quality, ...)
+	QList<QPair<Log::LogLevel, QString>> issues;
 	try
 	{
 		ui_.variant_details->setLabelTooltips(variants_);
 	}
 	catch(Exception& e)
 	{
-		messages << e.message();
+		issues << qMakePair(Log::LOG_INFO, e.message());
 	}
-	checkVariantList(messages);
+	checkVariantList(issues);
 
 	//check variant list in NGSD
-	if (LoginManager::active())
+	checkProcessedSamplesInNGSD(issues);
+
+	//show issues
+	if (showAnalysisIssues(issues)==QDialog::Rejected)
 	{
-		checkProcessedSamplesInNGSD();
+		loadFile();
+		return;
 	}
 
 	//load report config
@@ -2866,12 +2870,12 @@ void MainWindow::loadFile(QString filename)
 	}
 }
 
-void MainWindow::checkVariantList(QStringList messages)
+void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 {
 	//check genome builds match
 	if (variants_.getBuild()!=GSvarHelper::build())
 	{
-		messages << "genome build of GSvar file (" + buildToString(variants_.getBuild(), true) + ") not matching genome build of the GSvar application (" + buildToString(GSvarHelper::build(), true) + ")!";
+		issues << qMakePair(Log::LOG_ERROR, "Genome build of GSvar file (" + buildToString(variants_.getBuild(), true) + ") not matching genome build of the GSvar application (" + buildToString(GSvarHelper::build(), true) + ")! Re-do the analysis for " + buildToString(GSvarHelper::build(), true) +"!");
 	}
 
 	//check creation date
@@ -2880,12 +2884,12 @@ void MainWindow::checkVariantList(QStringList messages)
 	{
 		if (create_date < QDate::currentDate().addDays(-42))
 		{
-			messages << "annotations are older than six weeks (" + create_date.toString("yyyy-MM-dd") + "). Please perorm re-annotation of variants!";
+			issues << qMakePair(Log::LOG_INFO, "Variant annotations are older than six weeks (" + create_date.toString("yyyy-MM-dd") + ").");
 		}
 		QDate gsvar_file_outdated_before = QDate::fromString(Settings::string("gsvar_file_outdated_before", true), "yyyy-MM-dd");
 		if (gsvar_file_outdated_before.isValid() && create_date<gsvar_file_outdated_before)
 		{
-			messages << "annotations are older than " + gsvar_file_outdated_before.toString("yyyy-MM-dd") + ". Please perorm re-annotation of variants!";
+			issues << qMakePair(Log::LOG_WARNING, "Variant annotations are outdated! They are older than " + gsvar_file_outdated_before.toString("yyyy-MM-dd") + ". Please re-annotate variants!");
 		}
 	}
 
@@ -2896,7 +2900,7 @@ void MainWindow::checkVariantList(QStringList messages)
 	}
 	catch(Exception e)
 	{
-		messages << e.message();
+		issues << qMakePair(Log::LOG_WARNING,  e.message());
 	}
 
 	//create list of required columns
@@ -2924,7 +2928,7 @@ void MainWindow::checkVariantList(QStringList messages)
 	{
 		if (variants_.annotationIndexByName(col, true, false)==-1)
 		{
-			messages << ("column '" + col + "' missing");
+			issues << qMakePair(Log::LOG_WARNING, "Column '" + col + "' missing. Please re-annotate variants!");
 		}
 	}
 
@@ -2943,21 +2947,16 @@ void MainWindow::checkVariantList(QStringList messages)
 			}
 			if (chromosomes.size()<23)
 			{
-				messages << ("Variants detected on " + QString::number(chromosomes.size()) + " chromosomes only! Expected variants on at least 23 chromosomes for WES/WGS data!");
+				issues << qMakePair(Log::LOG_WARNING, "Variants detected on " + QString::number(chromosomes.size()) + " chromosomes only! Expected variants on at least 23 chromosomes for WES/WGS data! Please re-do variant calling of small variants!");
 			}
 		}
 	}
-
-	//show messages
-	if (!messages.empty())
-	{
-		QMessageBox::warning(this, "GSvar file problems", "The GSvar file contains the following problems:\n  -" + messages.join("\n  -"));
-	}
 }
 
-void MainWindow::checkProcessedSamplesInNGSD()
+void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>>& issues)
 {
-	QStringList messages;
+	if (!LoginManager::active()) return;
+
 	NGSD db;
 
 	foreach(const SampleInfo& info, variants_.getSampleHeader())
@@ -2970,7 +2969,7 @@ void MainWindow::checkProcessedSamplesInNGSD()
 		QString quality = db.getValue("SELECT quality FROM processed_sample WHERE id=" + ps_id).toString();
 		if (quality=="bad")
 		{
-			messages << ("Quality of processed sample '" + ps + "' is 'bad'!");
+			issues << qMakePair(Log::LOG_WARNING, "Quality of processed sample '" + ps + "' is 'bad'!");
 		}
 
 		//check KASP result
@@ -2978,7 +2977,7 @@ void MainWindow::checkProcessedSamplesInNGSD()
 		double error_prob = db.getValue("SELECT random_error_prob FROM kasp_status WHERE random_error_prob<=1 AND processed_sample_id=" + ps_id, true).toDouble(&ok);
 		if (ok && error_prob>0.03)
 		{
-			messages << ("KASP swap probability of processed sample '" + ps + "' is larger than 3%!");
+			issues << qMakePair(Log::LOG_WARNING, "KASP swap probability of processed sample '" + ps + "' is larger than 3%!");
 		}
 
 		//check variants are imported
@@ -2990,17 +2989,42 @@ void MainWindow::checkProcessedSamplesInNGSD()
 			{
 				if (db.getValue("SELECT EXISTS(SELECT * FROM detected_variant WHERE processed_sample_id="+ps_id+")").toInt()!=1)
 				{
-					messages << ("No germline variants imported into NGSD for processed sample '" + ps + "'!");
+					issues << qMakePair(Log::LOG_WARNING, "No germline variants imported into NGSD for processed sample '" + ps + "'!");
 				}
 			}
 		}
 	}
+}
 
-	//show messages
-	if (!messages.empty())
+int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues)
+{
+	if (issues.empty()) return QDialog::Accepted;
+
+	//generate text
+	QStringList lines;
+	foreach(auto issue, issues)
 	{
-		QMessageBox::warning(this, "NGSD check of processed sample(s)", "Sample quality is bad or other problems deteted:\n  -" + messages.join("\n  -"));
+		if (issue.first==Log::LOG_ERROR)
+		{
+			lines << "<font color=red>Error:</font>";
+		}
+		else if (issue.first==Log::LOG_WARNING)
+		{
+			lines << "<font color=orange>Warning:</font>";
+		}
+		else
+		{
+			lines << "Notice:";
+		}
+		lines << issue.second;
+		lines << "";
 	}
+
+	//show dialog
+	QLabel* label = new QLabel(lines.join("<br>"));
+	label->setMargin(6);
+	auto dlg = GUIHelper::createDialog(label, "GSvar analysis issues", "The following issues were encountered when loading the analysis:", true);
+	return dlg->exec();
 }
 
 void MainWindow::on_actionAbout_triggered()
