@@ -68,7 +68,8 @@ public:
 		for (int i = 0; i < cfdna_panel.count(); ++i)
 		{
 			const BedLine& line = cfdna_panel[i];
-			if (line.annotations().at(0).startsWith("SNP_for_sample_identification:"))
+			// if no annotation is available threat BED line as monitoring
+			if ((line.annotations().size() > 0) && (line.annotations().at(0).startsWith("SNP_for_sample_identification:")))
 			{
 				id_snps.append(line);
 			}
