@@ -758,6 +758,6 @@ void ProcessedSampleWidget::queueSampleAnalysis()
 void ProcessedSampleWidget::showAnalysisInfo()
 {
 	AnalysisInformationWidget* widget = new AnalysisInformationWidget(ps_id_, this);
-	auto dlg = GUIHelper::createDialog(widget, "Analysis information");
+	auto dlg = GUIHelper::createDialog(widget, "Analysis information of " + processedSampleName());
 	dlg->exec();
 }

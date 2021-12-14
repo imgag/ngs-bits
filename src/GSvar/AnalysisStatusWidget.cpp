@@ -9,6 +9,7 @@
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
 #include "CfdnaAnalysisDialog.h"
+#include "AnalysisInformationWidget.h"
 #include <QMenu>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -327,6 +328,10 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 
 	//set up menu
 	QMenu menu;
+	if (rows.count()==1 && types.values()[0]=="single sample")
+	{
+		menu.addAction(QIcon(":/Icons/analysis_info.png"), "Show analysis information");
+	}
 	if (rows.count()==1)
 	{
 		menu.addAction(QIcon(":/Icons/Icon.png"), "Open variant list");
@@ -389,6 +394,17 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 
 	//execute
 	QString text = action->text();
+	if (text=="Show analysis information")
+	{
+		NGSD db;
+		foreach(const AnalysisJobSample& sample, samples)
+		{
+			QString ps = sample.name;
+			AnalysisInformationWidget* widget = new AnalysisInformationWidget(db.processedSampleId(ps));
+			auto dlg = GUIHelper::createDialog(widget, "Analsis information of " + ps);
+			dlg->exec();
+		}
+	}
 	if (text=="Open variant list")
 	{
 		NGSD db;

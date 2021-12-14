@@ -362,18 +362,18 @@ public:
 		QByteArray caller;
 		QByteArray caller_version;
 		QDate date;
-		foreach (const QByteArray &comment, svs.comments())
+		foreach (const QByteArray &header, svs.headers())
 		{
 			// parse date
-			if (comment.startsWith("##fileDate="))
+			if (header.startsWith("##fileDate="))
 			{
-				date = QDate::fromString(comment.split('=')[1].trimmed(), "yyyyMMdd");
+				date = QDate::fromString(header.split('=')[1].trimmed(), "yyyyMMdd");
 			}
 
 			// parse manta version
-			if (comment.startsWith("##source="))
+			if (header.startsWith("##source="))
 			{
-				QByteArrayList application_string = comment.split('=')[1].trimmed().split(' ');
+				QByteArrayList application_string = header.split('=')[1].trimmed().split(' ');
 				if (application_string[0].startsWith("GenerateSVCandidates")) caller = "Manta";
 				caller_version = application_string[1].trimmed();
 			}

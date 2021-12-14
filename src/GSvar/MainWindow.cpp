@@ -2873,9 +2873,9 @@ void MainWindow::loadFile(QString filename)
 void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 {
 	//check genome builds match
-	if (variants_.getBuild()!=GSvarHelper::build())
+	if (variants_.build()!=GSvarHelper::build())
 	{
-		issues << qMakePair(Log::LOG_ERROR, "Genome build of GSvar file (" + buildToString(variants_.getBuild(), true) + ") not matching genome build of the GSvar application (" + buildToString(GSvarHelper::build(), true) + ")! Re-do the analysis for " + buildToString(GSvarHelper::build(), true) +"!");
+		issues << qMakePair(Log::LOG_ERROR, "Genome build of GSvar file (" + buildToString(variants_.build(), true) + ") not matching genome build of the GSvar application (" + buildToString(GSvarHelper::build(), true) + ")! Re-do the analysis for " + buildToString(GSvarHelper::build(), true) +"!");
 	}
 
 	//check creation date

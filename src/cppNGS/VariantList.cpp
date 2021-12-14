@@ -1066,7 +1066,7 @@ SampleHeaderInfo VariantList::getSampleHeader() const
 	return output;
 }
 
-GenomeBuild VariantList::getBuild()
+GenomeBuild VariantList::build()
 {
 	foreach(const QString& line, comments_)
 	{

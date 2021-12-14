@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "GlobalServiceProvider.h"
 #include "GUIHelper.h"
+#include "GSvarHelper.h"
 #include <QFileInfo>
 #include <QMessageBox>
 
@@ -46,9 +47,9 @@ void AnalysisInformationWidget::updateGUI()
 		}
 
 		//file details
-		QString sample_type = db.getSampleData(sample_id).type;
+		SampleData sample_data = db.getSampleData(sample_id);
 		ui_.table->setRowCount(4);
-		if (sample_type.startsWith("DNA"))
+		if (sample_data.type.startsWith("DNA"))
 		{
 			ImportStatusGermline import_status = db.importStatus(ps_id_);
 
@@ -56,6 +57,17 @@ void AnalysisInformationWidget::updateGUI()
 			FileLocation file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::BAM);
 			ui_.table->setItem(0, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
 			ui_.table->setItem(0, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
+			if (!file.exists) ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+			if (file.exists && sample_data.species=="human")
+			{
+				BamReader reader(file.filename);
+				QByteArray genome = reader.build();
+				if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
+				{
+					ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + genome + ")");
+					ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+				}
+			}
 			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
 
 			//small variants
@@ -63,27 +75,48 @@ void AnalysisInformationWidget::updateGUI()
 			ui_.table->setItem(1, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
 			ui_.table->setItem(1, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
 			if (!file.exists) ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
-			ui_.table->setItem(1, 2, GUIHelper::createTableItem(QString::number(import_status.small_variants) + " variants"));
+			if (file.exists && sample_data.species=="human")
+			{
+				VariantList vl;
+				vl.loadHeaderOnly(file.filename);
+				if (vl.build()!=GSvarHelper::build())
+				{
+					ui_.table->item(1,1)->setText(ui_.table->item(1,1)->text() + " (" + buildToString(vl.build()) + ")");
+					ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
+				}
+			}
+			ui_.table->setItem(1, 2, GUIHelper::createTableItem(QString::number(import_status.small_variants) + " small variants"));
 
 			//CNVs
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::COPY_NUMBER_CALLS);
 			ui_.table->setItem(2, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
 			ui_.table->setItem(2, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
 			if (!file.exists) ui_.table->item(2,1)->setTextColor(QColor(Qt::red));
-			ui_.table->setItem(2, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " variants"));
+			ui_.table->setItem(2, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs"));
 
 			//SVs
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::STRUCTURAL_VARIANTS);
 			ui_.table->setItem(3, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
 			ui_.table->setItem(3, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
 			if (!file.exists) ui_.table->item(3,1)->setTextColor(QColor(Qt::red));
-			ui_.table->setItem(3, 2, GUIHelper::createTableItem(QString::number(import_status.svs) + " variants"));
+			if (file.exists && sample_data.species=="human")
+			{
+				BedpeFile bedpe;
+				bedpe.loadHeaderOnly(file.filename);
+				QByteArray genome = bedpe.build();
+				if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
+				{
+					ui_.table->item(3,1)->setText(ui_.table->item(3,1)->text() + " (" + genome + ")");
+					ui_.table->item(3,1)->setTextColor(QColor(Qt::red));
+				}
+			}
+			ui_.table->setItem(3, 2, GUIHelper::createTableItem(QString::number(import_status.svs) + " SVs"));
 
 			GUIHelper::resizeTableCells(ui_.table);
 		}
 		else
 		{
-			THROW(ProgrammingException, "Sample type '"+sample_type+"' not handled in anaysis information widget!");
+			THROW(ProgrammingException, "Sample type '"+sample_data.type+"' not handled in anaysis information widget!");
 		}
 	}
 	catch (Exception e)

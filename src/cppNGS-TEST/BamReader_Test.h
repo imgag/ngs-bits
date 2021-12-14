@@ -164,6 +164,15 @@ private slots:
 
 /************************************************************* BamReader *************************************************************/
 
+	void BamReader_build()
+	{
+		BamReader reader(TESTDATA("data_in/panel.bam"));
+		S_EQUAL(reader.build(), "");
+
+		BamReader reader2(TESTDATA("data_in/BamReader_insert_only.bam"));
+		S_EQUAL(reader2.build(), "GRCh37");
+	}
+
 	void BamReader_cigarDataAsString()
 	{
 		BamReader reader(TESTDATA("data_in/panel.bam"));

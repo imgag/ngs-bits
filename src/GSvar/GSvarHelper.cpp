@@ -153,7 +153,17 @@ QString GSvarHelper::applicationBaseName()
 
 GenomeBuild GSvarHelper::build()
 {
-	return Settings::string("build", true).trimmed()=="hg19" ? GenomeBuild::HG19 : GenomeBuild::HG38;
+	try
+	{
+		QString build_str = Settings::string("build");
+		return stringToBuild(build_str);
+	}
+	catch(Exception& e)
+	{
+		Log::info("Genome build in GSvar.ini file is not valid: " + e.message());
+	}
+
+	return GenomeBuild::HG38; //fallback in case of exception
 }
 
 void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)

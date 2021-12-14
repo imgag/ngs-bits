@@ -4,6 +4,7 @@
 #include "Settings.h"
 #include "VcfFile.h"
 #include "BedpeFile.h"
+#include "Helper.h"
 #include <QTextStream>
 #include <QFileInfo>
 #include <QElapsedTimer>
@@ -66,7 +67,7 @@ public:
 
 		// create output buffer and copy comments and header
 		QByteArrayList output_buffer;
-		output_buffer.append(bedpe_file.comments());
+		output_buffer.append(bedpe_file.headers());
 		// get header
 		QByteArrayList header = bedpe_file.annotationHeaders();
 		// modify header if gene columns not already present

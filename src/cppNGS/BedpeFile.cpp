@@ -1,6 +1,5 @@
 #include "BedpeFile.h"
 #include "Helper.h"
-#include "TSVFileStream.h"
 #include <QSharedPointer>
 
 QString StructuralVariantTypeToString(StructuralVariantType type)
@@ -227,15 +226,11 @@ BedpeFile::BedpeFile()
 {
 }
 
-void BedpeFile::load(const QString& file_name)
+void BedpeFile::parseHeader(const TSVFileStream& file)
 {
-	clear();
-
-	TSVFileStream file(file_name);
-
 	//comments
-	comments_ = file.comments();
-	for(const auto& comment : comments_)
+	headers_ = file.comments();
+	for(const QByteArray& comment : headers_)
 	{
 		if(comment.startsWith("##DESCRIPTION="))
 		{
@@ -246,18 +241,28 @@ void BedpeFile::load(const QString& file_name)
 	}
 
 	//header (first 6 fields are fixed)
-	const int fixed_cols = 6;
-	for(int i=fixed_cols; i<file.header().count(); ++i)
+	for(int i=6; i<file.header().count(); ++i)
 	{
 		annotation_headers_ << file.header()[i];
 	}
-	int i_type = annotationIndexByName("TYPE");
 
 	// parse sample info of multi sample BEDPE files
 	sample_header_info_.clear();
 	if ((format() == BEDPE_GERMLINE_MULTI) || (format() == BEDPE_GERMLINE_TRIO)) parseSampleHeaderInfo();
 
-	//fields
+}
+
+void BedpeFile::load(const QString& file_name)
+{
+	//clear
+	clear();
+
+	//header
+	TSVFileStream file(file_name);
+	parseHeader(file);
+
+	//content
+	int i_type = annotationIndexByName("TYPE");
 	while(!file.atEnd())
 	{
 		QByteArrayList fields = file.readLine();
@@ -265,14 +270,24 @@ void BedpeFile::load(const QString& file_name)
 		if(fields.isEmpty()) continue;
 
 		//error when less than 6 fields
-		if (fields.count()<fixed_cols)
+		if (fields.count()<6)
 		{
 			THROW(FileParseException, "BEDPE file line with less than six fields found: '" + fields.join("\t") + "'");
 		}
 
 		//Add line
-		lines_.append(BedpeLine(fields[0], parsePosIn(fields[1]), parsePosIn(fields[2]), fields[3], parsePosIn(fields[4]), parsePosIn(fields[5]), stringToType(fields[fixed_cols + i_type]), fields.mid(fixed_cols)));
+		lines_.append(BedpeLine(fields[0], parsePosIn(fields[1]), parsePosIn(fields[2]), fields[3], parsePosIn(fields[4]), parsePosIn(fields[5]), stringToType(fields[6 + i_type]), fields.mid(6)));
 	}
+}
+
+void BedpeFile::loadHeaderOnly(const QString& file_name)
+{
+	//clear
+	clear();
+
+	//header
+	TSVFileStream file(file_name);
+	parseHeader(file);
 }
 
 bool BedpeFile::isValid() const
@@ -400,7 +415,7 @@ QList< QMap<QByteArray,QByteArray> > BedpeFile::getInfos(QByteArray name)
 	if(!name.contains("=")) name.append("=");
 
 	QList< QMap<QByteArray,QByteArray> > result;
-	foreach(QByteArray comment,comments_)
+	foreach(QByteArray comment, headers_)
 	{
 		comment.replace("##","");
 		if(!comment.startsWith(name)) continue;
@@ -429,7 +444,7 @@ QMap <QByteArray,QByteArray> BedpeFile::metaInfoDescriptionByID(const QByteArray
 void BedpeFile::toTSV(QString file_name)
 {
 	QSharedPointer<QFile> file = Helper::openFileForWriting(file_name,false,false);
-	for(const auto& comment : comments_)
+	for(const QByteArray& comment : headers_)
 	{
 		file->write(comment + "\n");
 	}
@@ -449,7 +464,7 @@ void BedpeFile::sort()
 
 BedpeFileFormat BedpeFile::format() const
 {
-	for(auto comment : comments_)
+	for(const QByteArray& comment : headers_)
 	{
 		if(comment.contains("fileformat=BEDPE_TUMOR_NORMAL_PAIR")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_NORMAL;
 		if(comment.contains("fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
@@ -471,6 +486,23 @@ bool BedpeFile::isSomatic() const
 	catch(...) {} //Nothing to do here
 
 	return false;
+}
+
+QByteArray BedpeFile::build()
+{
+	//parse header line: "##reference=file:///tmp/local_ngs_data/GRCh37.fa"
+	for(QByteArray line : headers_)
+	{
+		if (line.startsWith("##reference="))
+		{
+			QByteArray genome = line.split('=').last();
+			genome = genome.split('/').last();
+			genome = genome.split('.').first();
+			return genome;
+		}
+	}
+
+	return "";
 }
 
 
@@ -583,20 +615,20 @@ int BedpeFile::findMatch(const BedpeLine& sv, bool deep_ins_compare, bool error_
 		THROW(ArgumentException, "No match found in given SV in BedpeFile!");
 	}
 
-    return -1;
+	return -1;
 }
 
 void BedpeFile::parseSampleHeaderInfo()
 {
     sample_header_info_.clear();
-    foreach(QString line, comments_)
+	foreach(QByteArray line, headers_)
     {
         line = line.trimmed();
 
         if (line.startsWith("##SAMPLE=<"))
         {
             //split into key=value pairs
-            QStringList parts = line.mid(10, line.length()-11).split(',');
+			QByteArrayList parts = line.mid(10, line.length()-11).split(',');
             for (int i=1; i<parts.count(); ++i)
             {
                 if (!parts[i].contains("="))
@@ -607,7 +639,7 @@ void BedpeFile::parseSampleHeaderInfo()
                 }
             }
 
-            foreach(const QString& part, parts)
+			foreach(const QByteArray& part, parts)
             {
                 int sep_idx = part.indexOf('=');
                 QString key = part.left(sep_idx);
