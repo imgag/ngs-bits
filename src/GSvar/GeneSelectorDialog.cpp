@@ -66,7 +66,7 @@ void GeneSelectorDialog::updateGeneTable()
 		cnv_calls.merge();
 
 		//load skipped regions from SEG file
-		auto f = Helper::openFileForReading(seg_files[0]);
+		auto f = Helper::openVersatileFileForReading(seg_files[0]);
 		while(!f->atEnd())
 		{
 			QByteArray line = f->readLine();
@@ -205,7 +205,7 @@ void GeneSelectorDialog::geneDoubleClicked(QTableWidgetItem* item)
 {
 	if (item==nullptr) return;
 
-	emit openRegionInIGV(ui->details->item(item->row(), 0)->text());
+	GlobalServiceProvider::gotoInIGV(ui->details->item(item->row(), 0)->text(), true);
 }
 
 QString GeneSelectorDialog::report()

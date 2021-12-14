@@ -150,11 +150,11 @@ void LovdUploadDialog::upload()
 		add_headers.insert("Content-Length", QByteArray::number(upload_file.count()));
 
 		//post request
-		QString reply = http_handler.post("https://databases.lovd.nl/shared/api/v1/submissions", upload_file, add_headers);
+                QByteArray reply = http_handler.post("https://databases.lovd.nl/shared/api/v1/submissions", upload_file, add_headers);
 		ui_.comment_upload->setText(reply);
 
 		//parse JSON result
-		QJsonDocument json = QJsonDocument::fromJson(reply.toLatin1());
+                QJsonDocument json = QJsonDocument::fromJson(reply);
 		QStringList messages;
 		bool success = false;
 		foreach(QJsonValue o, json.object()["messages"].toArray())
@@ -478,7 +478,7 @@ QByteArray LovdUploadDialog::createJson()
 	stream << "                    \"@code\": \"" << convertGender(ui_.gender->currentText().trimmed()) <<"\"\n";
 	stream << "                },\n";
 	stream << "                \"phenotype\": [\n";
-	QList<Phenotype> phenotypes = ui_.phenos->selectedPhenotypes();
+	PhenotypeList phenotypes = ui_.phenos->selectedPhenotypes();
 	for (int i=0; i<phenotypes.count(); ++i)
 	{
 		stream << "                    {\n";

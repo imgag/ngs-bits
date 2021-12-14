@@ -422,7 +422,7 @@ bool VcfHeader::parseInfoFormatLine(const QByteArray& line,InfoFormatLine& info_
 
 	if(type == "INFO")
 	{
-		foreach(const InfoFormatLine info_line, info_lines_)
+		foreach(const InfoFormatLine& info_line, info_lines_)
 		{
 			if(info_line.id == info_format_line.id)
 			{
@@ -433,7 +433,7 @@ bool VcfHeader::parseInfoFormatLine(const QByteArray& line,InfoFormatLine& info_
 	}
 	else if(type == "FORMAT")
 	{
-		foreach(const InfoFormatLine format_line, format_lines_)
+		foreach(const InfoFormatLine& format_line, format_lines_)
 		{
 			if(format_line.id == info_format_line.id)
 			{

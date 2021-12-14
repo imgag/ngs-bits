@@ -31,9 +31,9 @@ private slots:
 		I_EQUAL(count, 121)
 		count = db.getValue("SELECT count(*) FROM hpo_genes WHERE gene='PTEN_ALT'").toInt();
 		I_EQUAL(count, 0)
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA1"))
-		IS_FALSE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA2"))
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Autosomal dominant inheritance"), false).contains("PTEN"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA1"))
+		IS_FALSE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA2"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Autosomal dominant inheritance"), false, false).contains("PTEN"))
 	}
 
 	void with_omim()
@@ -56,9 +56,9 @@ private slots:
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
 		I_EQUAL(count, 149)
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA1"))
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA2"))
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Autosomal dominant inheritance"), false).contains("PTEN"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA1"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA2"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Autosomal dominant inheritance"), false, false).contains("PTEN"))
 	}
 
 	void with_clinvar()
@@ -81,9 +81,9 @@ private slots:
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
 		I_EQUAL(count, 122)
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA1"))
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA2"))
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Autosomal dominant inheritance"), false).contains("PTEN"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA1"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA2"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Autosomal dominant inheritance"), false, false).contains("PTEN"))
 	}
 
 	void with_hgmd()
@@ -106,11 +106,11 @@ private slots:
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
 		I_EQUAL(count, 147)
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA1"))
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BRCA2"))
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Autosomal dominant inheritance"), false).contains("PTEN"))
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Breast carcinoma"), false).contains("BARD1"))
-		IS_TRUE(db.phenotypeToGenes(Phenotype("HP:???????", "Fibroadenoma of the breast"), false).contains("WRN"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA1"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA2"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Autosomal dominant inheritance"), false, false).contains("PTEN"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BARD1"))
+		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Fibroadenoma of the breast"), false, false).contains("WRN"))
 	}
 
 };

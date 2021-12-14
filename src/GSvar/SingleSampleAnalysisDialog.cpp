@@ -6,6 +6,7 @@
 #include <ProcessedSampleSelector.h>
 #include "GUIHelper.h"
 #include "ProcessedSampleWidget.h"
+#include "GlobalServiceProvider.h"
 
 SingleSampleAnalysisDialog::SingleSampleAnalysisDialog(QWidget *parent, bool is_rna)
 	: QDialog(parent)
@@ -77,7 +78,7 @@ QString SingleSampleAnalysisDialog::addSample(NGSD& db, QString status, QList<Sa
 	//check BAM file exists
 	if (throw_if_bam_missing)
 	{
-                QString bam = db.processedSamplePath(ps_id, PathType::BAM);
+		QString bam = GlobalServiceProvider::database().processedSamplePath(ps_id, PathType::BAM).filename;
 		if (!QFile::exists(bam))
 		{
 			THROW(FileAccessException, "Sample BAM file does not exist: '" + bam);

@@ -75,7 +75,7 @@ void SomaticDataTransferWidget::uploadXML()
 			HttpHeaders add_headers;
 			add_headers.insert("Content-Type", "application/xml");
 
-			QSharedPointer<QFile> file = Helper::openFileForReading(xml_path_);
+			QSharedPointer<VersatileFile> file = Helper::openVersatileFileForReading(xml_path_);
 			res =  http_handler_.post(xml_url_ + "/mtb_imgag", file->readAll(), add_headers);
 			file->close();
 		}
@@ -117,7 +117,7 @@ void SomaticDataTransferWidget::checkApiConnection()
 	addStatusRow("Checking server connection for MTB upload...");
 
 	//check API response for XML files
-	QString reply = "";
+	QByteArray reply = "";
 	try
 	{
 		reply = http_handler_.get(xml_url_ + "/condition");

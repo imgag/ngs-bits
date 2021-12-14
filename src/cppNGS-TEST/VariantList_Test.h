@@ -135,6 +135,19 @@ private slots:
 		I_EQUAL(vl[3].start(), 17382505);
 	}
 
+	void loadHeaderOnly()
+	{
+		VariantList vl;
+		vl.loadHeaderOnly(TESTDATA("data_in/panel_vep.GSvar"));
+		I_EQUAL(vl.count(), 0);
+		I_EQUAL(vl.annotations().count(), 30);
+		S_EQUAL(vl.annotations()[0].name(), QString("NA12878_03"));
+		S_EQUAL(vl.annotations()[27].name(), QString("validation"));
+		I_EQUAL(vl.filters().count(), 2);
+		S_EQUAL(vl.filters()["gene_blacklist"], QString("The gene(s) are contained on the blacklist of unreliable genes."));
+		S_EQUAL(vl.filters()["off-target"], QString("Variant marked as 'off-target'."));
+	}
+
 	void storeToTSV()
 	{
 		//store loaded tsv file
@@ -382,5 +395,14 @@ private slots:
 		//header not set
 		vl.load(TESTDATA("data_in/VariantFilter_in_multi.GSvar"));
 		IS_FALSE(vl.getCreationDate().isValid());
+	}
+
+	void getBuild()
+	{
+		VariantList vl;
+		I_EQUAL(vl.getBuild(), GenomeBuild::HG19);
+
+		vl.addCommentLine("##GENOME_BUILD=GRCh38");
+		I_EQUAL(vl.getBuild(), GenomeBuild::HG38);
 	}
 };

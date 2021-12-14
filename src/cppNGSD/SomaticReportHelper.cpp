@@ -15,6 +15,7 @@
 #include <QMap>
 #include <QPair>
 #include <QCollator>
+#include <QJsonDocument>
 
 bool SomaticReportHelper::checkGermlineSNVFile(const VariantList &germline_variants)
 {
@@ -150,8 +151,9 @@ RtfTable SomaticReportHelper::billingTable()
 }
 
 
-SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvList &cnvs, const VariantList& variants_germline, const SomaticReportSettings& settings)
-	: settings_(settings)
+SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& variants, const CnvList &cnvs, const VariantList& variants_germline, const SomaticReportSettings& settings)
+	: build_(build)
+	, settings_(settings)
 	, germline_vl_(variants_germline)
 	, cnvs_()
 	, validated_viruses_()
@@ -182,11 +184,10 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 		mantis_msi_swd_value_ = std::numeric_limits<double>::quiet_NaN();
 	}
 
-	//Load virus data (from tumor sample dir)
-	QString viral_file = db_.processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::VIRAL);
+	//Load virus data if available
 	try
 	{
-		TSVFileStream file(viral_file);
+		TSVFileStream file(settings_.viral_file);
 		while(!file.atEnd())
 		{
 			QByteArrayList parts = file.readLine();
@@ -295,25 +296,22 @@ SomaticReportHelper::SomaticReportHelper(const VariantList& variants, const CnvL
 void SomaticReportHelper::germlineSnvForQbic(QString path_target_folder)
 {
 	//currently no germline SNVs are uploaded, only created header
-	QSharedPointer<QFile> germline_snvs_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_germline_snv.tsv");
-
-	QTextStream stream(germline_snvs_qbic.data());
+	QByteArray content;
+	QTextStream stream(&content);
 
 	stream << "chr" << "\t" << "start" << "\t" << "ref" << "\t" << "alt" << "\t" << "genotype" << "\t";
 	stream << "gene" << "\t" << "base_change" << "\t" << "aa_change" << "\t" << "transcript" << "\t";
 	stream << "functional_class" << "\t" << "effect";
 	stream << endl;
 
-	germline_snvs_qbic->close();
+	saveReportData("QBIC_germline_snv.tsv", path_target_folder, content);
 }
 
 void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 {
 	FastaFileIndex genome_reference(Settings::string("reference_genome", false));
-
-	QSharedPointer<QFile> somatic_snvs_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_somatic_snv.tsv");
-
-	QTextStream stream(somatic_snvs_qbic.data());
+	QByteArray content;
+	QTextStream stream(&content);
 
 	//Write header
 	stream << "chr" <<"\t" << "start" << "\t" << "ref" << "\t" << "alt" << "\t";
@@ -377,28 +375,26 @@ void SomaticReportHelper::somaticSnvForQbic(QString path_target_folder)
 
 		stream << endl;
 	}
-	somatic_snvs_qbic->close();
+	saveReportData("QBIC_somatic_snv.tsv", path_target_folder, content);
 }
 
 void SomaticReportHelper::germlineCnvForQbic(QString path_target_folder)
 {
-	QSharedPointer<QFile> germline_cnvs_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_germline_cnv.tsv");
-
-	QTextStream stream(germline_cnvs_qbic.data());
+	QByteArray content;
+	QTextStream stream(&content);
 
 	stream << "size" << "\t" << "type" << "\t" << "copy_number" << "\t" << "gene" << "\t" << "exons" << "\t" << "transcript" << "\t";
 	stream << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect";
 	stream << endl;
 
-	germline_cnvs_qbic->close();
+	saveReportData("QBIC_germline_cnv.tsv", path_target_folder, content);
 }
 
 
 void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 {
-	QSharedPointer<QFile> somatic_cnvs_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_somatic_cnv.tsv");
-
-	QTextStream stream(somatic_cnvs_qbic.data());
+	QByteArray content;
+	QTextStream stream(&content);
 
 	stream << "size" << "\t" << "type" << "\t" << "copy_number" << "\t" << "gene" << "\t" << "exons" << "\t";
 	stream << "transcript" << "\t" << "chr" << "\t" << "start" << "\t" << "end" << "\t" << "effect" << endl;
@@ -497,26 +493,23 @@ void SomaticReportHelper::somaticCnvForQbic(QString path_target_folder)
 
 		stream << endl;
 	}
-	somatic_cnvs_qbic->close();
+	saveReportData("QBIC_somatic_cnv.tsv", path_target_folder, content);
 }
 
 void SomaticReportHelper::somaticSvForQbic(QString path_target_folder)
 {
-	QSharedPointer<QFile> somatic_sv_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_somatic_sv.tsv");
-
-	QTextStream stream(somatic_sv_qbic.data());
+	QByteArray content;
+	QTextStream stream(&content);
 
 	stream << "type" << "\t" << "gene" << "\t" << "effect" << "\t" << "left_bp" << "\t" << "right_bp" << endl;
 
-	somatic_sv_qbic->close();
-
+	saveReportData("QBIC_somatic_sv.tsv", path_target_folder, content);
 }
 
 void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 {
-	QSharedPointer<QFile> meta_data_qbic = Helper::openFileForWriting(path_target_folder+"QBIC_metadata.tsv");
-
-	QTextStream stream(meta_data_qbic.data());
+	QByteArray content;
+	QTextStream stream(&content);
 
 	stream << "diagnosis" << "\t" << "tumor_content" << "\t" << "pathogenic_germline" << "\t" << "mutational_load" << "\t";
 	stream << "chromosomal_instability" << "\t" << "quality_flags" << "\t" << "reference_genome";
@@ -546,15 +539,23 @@ void SomaticReportHelper::metaDataForQbic(QString path_target_folder)
 	stream << db_.getProcessingSystemData(db_.processingSystemIdFromProcessedSample(settings_.tumor_ps)).genome;
 	stream << endl;
 
-	meta_data_qbic->close();
-
+	saveReportData("QBIC_metadata.tsv", path_target_folder, content);
 }
 
 VariantTranscript SomaticReportHelper::selectSomaticTranscript(const Variant& variant)
 {
 	QList<VariantTranscript> transcripts = variant.transcriptAnnotations(snv_index_coding_splicing_);
 
-	//first coding/splicing transcript
+	//use preferred transcript that is coding or splicing if available
+	foreach(const VariantTranscript& trans, transcripts)
+	{
+		if(settings_.preferred_transcripts.value( trans.gene ).contains(trans.idWithoutVersion()) && trans.typeMatchesTerms(obo_terms_coding_splicing_))
+		{
+			return trans;
+		}
+	}
+
+	//first coding/splicing transcript otherwise
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		if(trans.typeMatchesTerms(obo_terms_coding_splicing_))
@@ -682,6 +683,30 @@ RtfTableRow SomaticReportHelper::overlappingCnv(const CopyNumberVariant &cnv, QB
 	row.addCell(900,QByteArray::number(cnv.annotations().at(cnv_index_tumor_clonality_).toDouble(),'f',2).replace(".", ","),RtfParagraph().setHorizontalAlignment("c"));
 	row.addCell(4021, CnvDescription(cnv, db_.getSomaticGeneRole(gene)) );
 	return row;
+}
+
+void SomaticReportHelper::saveReportData(QString filename, QString path, QString content)
+{
+	if (Settings::string("server_host", true).isEmpty())
+	{
+		if(!QDir(path).exists()) QDir().mkdir(path);
+
+		QSharedPointer<QFile> meta_data_qbic = Helper::openFileForWriting(path + "/" + filename);
+		meta_data_qbic.data()->write(content.toLocal8Bit());
+		meta_data_qbic->close();
+		return;
+	}
+
+	HttpHeaders add_headers;
+	add_headers.insert("Accept", "application/json");
+	add_headers.insert("Content-Type", "application/json");
+	add_headers.insert("Content-Length", QByteArray::number(content.size()));
+	QString reply = HttpRequestHandler(HttpRequestHandler::ProxyType::NONE).post(
+				Helper::serverApiUrl()
+				+ "qbic_report_data?filename=" + QUrl(filename).toEncoded() + "&path=" + QUrl(path).toEncoded(),
+				content.toLocal8Bit(),
+				add_headers
+			);
 }
 
 double SomaticReportHelper::getCnvMaxTumorClonality(const CnvList &cnvs)
@@ -856,7 +881,7 @@ RtfTable SomaticReportHelper::snvTable(const VariantList &vl, bool include_germl
 			row.addCell(900, QByteArray::number(var.annotations()[i_germl_freq_in_tum].toDouble(), 'f', 2).replace(".",","), RtfParagraph().setHorizontalAlignment("c"));
 
 			//Description of germline variant
-			QByteArray germl_desc = "pathogene Variante (ACMG)";
+                        QByteArray germl_desc = "pathogene Variante";
 			if(var.annotations()[i_germl_hom_het].contains("het")) germl_desc +=  ", in der Normalprobe heterozygot";
 			else if(var.annotations()[i_germl_hom_het].contains("hom")) germl_desc +=  ", in der Normalprobe homozygot";
 			else germl_desc += ", nachgewiesen im Normalgewebe";
@@ -1168,7 +1193,14 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	}
 
 
-	general_info_table.addRow(RtfTableRow({"HRD-Score", QByteArray::number(settings_.report_config.hrdScore()) + RtfText("\\line Ein Wert \\u8805;3 weist auf eine HRD hin.").setFontSize(14).RtfCode()}, {2500,7421},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+	RtfSourceCode hrd_text = trans(settings_.report_config.hrdStatement()).toUtf8();
+	if(settings_.report_config.hrdStatement() != "undeterminable")
+	{
+		hrd_text += RtfText("\n\\line\nHRD-Score chromosomale Veränderungen: " + QByteArray::number(settings_.report_config.cnvLohCount() + settings_.report_config.cnvTaiCount() + settings_.report_config.cnvLstCount()) + " (HRD bei \\u8805; 32)" ).setFontSize(14).RtfCode();
+		hrd_text += RtfText("\n\\line\nHRD-Score analog TOP-ART-Studie: " + QByteArray::number(settings_.report_config.hrdScore()) + " (HRD bei \\u8805; 3)" ).setFontSize(14).RtfCode();
+	}
+	general_info_table.addRow(RtfTableRow({"HRD-Score", hrd_text}, {2500,7421},  RtfParagraph()).setBorders(1, "brdrhair", 4));
+
 
 	if(settings_.report_config.quality() != "no abnormalities")
 	{
@@ -1180,12 +1212,19 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 	desc += RtfText("Mutationslast:").setFontSize(14).setBold(true).RtfCode() + " Anzahl der Varianten in den kodierenden untersuchten Genen normiert auf eine Million Basenpaare; ";
 	desc += RtfText("Mikrosatelliten:").setFontSize(14).setBold(true).RtfCode() + " Bewertung der Mikrosatelliteninstabilität; ";
 	desc += RtfText("CNV-Last:").setFontSize(14).setBold(true).RtfCode() + " Anteil des Genoms, bei dem die Kopienzahl verändert ist. ";
-	desc += RtfText("HRD-Score:").setFontSize(14).setBold(true).RtfCode() + " Homologer Rekombinations-Defizienz-Score.";
+	desc += RtfText("HRD:").setFontSize(14).setBold(true).RtfCode() + " Homologe Rekombinations-Defizienz.";
 	general_info_table.addRow(RtfTableRow(desc, doc_.maxWidth(), RtfParagraph().setFontSize(14).setHorizontalAlignment("j")).setBorders(0) );
 
 
 	doc_.addPart(general_info_table.RtfCode());
 	doc_.addPart(RtfParagraph("").RtfCode());
+
+	//.setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).highlight(3)
+
+	RtfSourceCode text = "In der nachfolgenden Übersicht finden Sie alle Varianten und Kopienzahlveränderungen, die in unterschiedlichen Datenbanken als funktionell relevant eingestuft wurden. ";
+	text += "Alle aufgelisteten somatischen Veränderungen sind, wenn nicht anderweitig vermerkt, im Normalgewebe nicht nachweisbar.";
+	doc_.addPart(RtfParagraph(text).setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
+	doc_.addPart(RtfParagraph("").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 
 
 	/********************************
@@ -1292,8 +1331,8 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 
 	if(unclassified_snvs)
 	{
-		doc_.addPart(RtfParagraph("Es wurden sehr viele somatische Varianten nachgewiesen, die zu einer hohen Mutationslast führen. Da die Wechselwirkungen aller Varianten nicht eingeschätzt werden können, wird von der funktionellen Bewertung einzelner Varianten abgesehen. Falls erforderlich kann die Bewertung nachgereicht werden.").highlight(3).RtfCode());
-		doc_.addPart(RtfParagraph("").RtfCode());
+		doc_.addPart(RtfParagraph("Es wurden sehr viele somatische Varianten nachgewiesen, die zu einer hohen Mutationslast führen. Da die Wechselwirkungen aller Varianten nicht eingeschätzt werden können, wird von der funktionellen Bewertung einzelner Varianten abgesehen. Falls erforderlich kann die Bewertung nachgereicht werden.").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).highlight(3).RtfCode());
+		doc_.addPart(RtfParagraph("").setFontSize(18).setIndent(0,0,0).setSpaceAfter(30).setSpaceBefore(30).setHorizontalAlignment("j").setLineSpacing(276).RtfCode());
 	}
 
 	if(skipped_amp_.count() > 0)
@@ -1456,7 +1495,7 @@ void SomaticReportHelper::storeRtf(const QByteArray& out_file)
 void SomaticReportHelper::storeXML(QString file_name)
 {
 	VariantList som_var_in_normal = SomaticReportSettings::filterGermlineVariants(germline_vl_, settings_);
-	SomaticXmlReportGeneratorData data(settings_, somatic_vl_, som_var_in_normal, cnvs_);
+	SomaticXmlReportGeneratorData data(build_, settings_, somatic_vl_, som_var_in_normal, cnvs_);
 
 	data.processing_system_roi = settings_.processing_system_roi;
 	data.processing_system_genes = settings_.processing_system_genes;
@@ -1476,11 +1515,6 @@ void SomaticReportHelper::storeXML(QString file_name)
 
 void SomaticReportHelper::storeQbicData(QString path)
 {
-	if(!QDir(path).exists())
-	{
-		QDir().mkdir(path);
-	}
-
 	germlineSnvForQbic(path);
 	somaticSnvForQbic(path);
 	germlineCnvForQbic(path);
@@ -1507,6 +1541,9 @@ QString SomaticReportHelper::trans(const QString &text)
 	en2de["UNCERTAIN_SIGNIFICANCE"] = "unklare Variante";
 	en2de["loss_of_function"] = "Funktionsverlust";
 	en2de["ambiguous"] = "unklare Bedeutung";
+	en2de["proof"] = "Hinweise auf eine HRD";
+	en2de["no proof"] = "Keine Hinweise auf eine HRD";
+	en2de["undeterminable"] = "nicht bestimmbar";
 
 
 	if(!en2de.contains(text)) return text; //return original entry if not found

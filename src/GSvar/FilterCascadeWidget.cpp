@@ -1,13 +1,13 @@
 #include "FilterCascadeWidget.h"
 #include "FilterEditDialog.h"
 #include "Settings.h"
+#include "GSvarHelper.h"
 #include <QTextDocument>
 #include <QMenu>
 #include <QDir>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QStandardPaths>
-
 
 FilterCascadeWidget::FilterCascadeWidget(QWidget* parent)
 	: QWidget(parent)
@@ -174,6 +174,12 @@ void FilterCascadeWidget::addFilter()
 	if (filter->name()=="SV filter columns")
 	{
 		filter->overrideConstraint("entries", "valid", valid_filter_entries_.join(','));
+	}
+
+	//set genome build if the filter contains the parameter
+	if (filter->hasParameter("build", FilterParameterType::STRING))
+	{
+		filter->setString("build", buildToString(GSvarHelper::build()));
 	}
 
 	//determine if filter should be added

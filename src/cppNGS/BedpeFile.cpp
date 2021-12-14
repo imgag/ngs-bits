@@ -18,7 +18,7 @@ QString StructuralVariantTypeToString(StructuralVariantType type)
 		case StructuralVariantType::BND:
 			return "BND";
 		case StructuralVariantType::UNKNOWN:
-			THROW(ArgumentException, "StructuralVariantType::UNKNOWN can only be used for the default constructer.");
+			THROW(ArgumentException, "StructuralVariantType::UNKNOWN can only be used for the default constructor.");
 		default:
 			THROW(NotImplementedException, "Invalid StructuralVariantType!");
 	}
@@ -32,7 +32,7 @@ StructuralVariantType StructuralVariantTypeFromString(QString type_string)
 	if (type_string == "INS") return StructuralVariantType::INS;
 	if (type_string == "INV") return StructuralVariantType::INV;
 	if (type_string == "BND") return StructuralVariantType::BND;
-	if (type_string == "UNKNOWN") THROW(ArgumentException, "StructuralVariantType::UNKNOWN can only be used for the default constructer.");
+	if (type_string == "UNKNOWN") THROW(ArgumentException, "StructuralVariantType::UNKNOWN can only be used for the default constructor.");
 	THROW(ArgumentException, "No matching StructuralVariantType found for '" + type_string + "'!");
 	return StructuralVariantType::UNKNOWN;
 }
@@ -455,6 +455,7 @@ BedpeFileFormat BedpeFile::format() const
 		if(comment.contains("fileformat=BEDPE_TUMOR_ONLY")) return BedpeFileFormat::BEDPE_SOMATIC_TUMOR_ONLY;
 		if(comment.contains("fileformat=BEDPE_GERMLINE_MULTI")) return BedpeFileFormat::BEDPE_GERMLINE_MULTI;
         if(comment.contains("fileformat=BEDPE_GERMLINE_TRIO")) return BedpeFileFormat::BEDPE_GERMLINE_TRIO;
+		if(comment.contains("fileformat=BEDPE_RNA")) return BedpeFileFormat::BEDPE_RNA;
 		if(comment.contains("fileformat=BEDPE")) return BedpeFileFormat::BEDPE_GERMLINE_SINGLE;
 	}
 	THROW(FileParseException, "Could not determine format of BEDPE file.");

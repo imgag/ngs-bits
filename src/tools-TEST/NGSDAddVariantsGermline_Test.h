@@ -19,12 +19,14 @@ private slots:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDAddVariantsGermline_init.sql"));
 
 		//1. import
-		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv") );
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line22.log", QRegExp("^WARNING: transactions"));
 		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line22.log", TESTDATA("data_out/NGSDAddVariantsGermline_out1.log"));
 
 		//2. import - to check that updating works
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_18 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in1.tsv") + " -var_force -cnv_force");
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line26.log", TESTDATA("data_out/NGSDAddVariantsGermline_out2.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line27.log", QRegExp("^WARNING: transactions"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line27.log", TESTDATA("data_out/NGSDAddVariantsGermline_out2.log"));
 	}
 
 	//ClinCNV cnvs
@@ -40,7 +42,8 @@ private slots:
 
 		//import
 		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_38 -var " + TESTDATA("data_in/NGSDAddVariantsGermline_in2.GSvar") + " -cnv " + TESTDATA("data_in/NGSDAddVariantsGermline_in2.tsv"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line42.log", TESTDATA("data_out/NGSDAddVariantsGermline_out3.log"));
+		REMOVE_LINES("out/NGSDAddVariantsGermline_Test_line44.log", QRegExp("^WARNING: transactions"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line44.log", TESTDATA("data_out/NGSDAddVariantsGermline_out3.log"));
 	}
 
 	void sv_default_import()
@@ -70,7 +73,7 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line56.log", TESTDATA("data_out/NGSDAddVariantsGermline_out56.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line59.log", TESTDATA("data_out/NGSDAddVariantsGermline_out56.log"));
 	}
 
 
@@ -104,8 +107,8 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line87.log", TESTDATA("data_out/NGSDAddVariantsGermline_out87.log"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line90.log", TESTDATA("data_out/NGSDAddVariantsGermline_out90.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line90.log", TESTDATA("data_out/NGSDAddVariantsGermline_out87.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line93.log", TESTDATA("data_out/NGSDAddVariantsGermline_out90.log"));
 	}
 
 
@@ -139,8 +142,8 @@ private slots:
 		I_EQUAL(count, 1);
 
 		//check log
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line122.log", TESTDATA("data_out/NGSDAddVariantsGermline_out122.log"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line125.log", TESTDATA("data_out/NGSDAddVariantsGermline_out125.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line125.log", TESTDATA("data_out/NGSDAddVariantsGermline_out122.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line128.log", TESTDATA("data_out/NGSDAddVariantsGermline_out125.log"));
 	}
 
 	void import_with_existing_report_config()
@@ -175,8 +178,8 @@ private slots:
 		I_EQUAL(count, 0);
 
 		//check log
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line158.log", TESTDATA("data_out/NGSDAddVariantsGermline_out158.log"));
-		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line159.log", TESTDATA("data_out/NGSDAddVariantsGermline_out159.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line161.log", TESTDATA("data_out/NGSDAddVariantsGermline_out158.log"));
+		COMPARE_FILES("out/NGSDAddVariantsGermline_Test_line162.log", TESTDATA("data_out/NGSDAddVariantsGermline_out159.log"));
 	}
 };
 

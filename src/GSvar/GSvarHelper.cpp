@@ -128,7 +128,7 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::transcriptMatches()
 
 	if (!initialized)
 	{
-		QStringList lines = Helper::loadTextFile(":/Resources/hg19_ensembl_transcript_matches.tsv", true, '#', true);
+		QStringList lines = Helper::loadTextFile(":/Resources/"+buildToString(build())+"_ensembl_transcript_matches.tsv", true, '#', true);
 		foreach(const QString& line, lines)
 		{
 			QByteArrayList parts = line.toLatin1().split('\t');
@@ -149,6 +149,11 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::transcriptMatches()
 QString GSvarHelper::applicationBaseName()
 {
 	return QCoreApplication::applicationDirPath() + QDir::separator() + QCoreApplication::applicationName();
+}
+
+GenomeBuild GSvarHelper::build()
+{
+	return Settings::string("build", true).trimmed()=="hg19" ? GenomeBuild::HG19 : GenomeBuild::HG38;
 }
 
 void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
@@ -187,26 +192,51 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	}
 }
 
-BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end)
+void GSvarHelper::limitLines(QLabel* label, QString text, QString sep, int max_lines)
 {
+	QStringList lines = text.split(sep);
+	if (lines.count()<max_lines)
+	{
+		label->setText(text);
+	}
+	else
+	{
+		while(lines.count()>max_lines) lines.removeLast();
+		lines.append("...");
+		label->setText(lines.join(sep));
+		label->setToolTip(text);
+	}
+}
+
+BedLine GSvarHelper::liftOver(const Chromosome& chr, int start, int end, bool hg38_to_hg19)
+{
+	//special handling of chrMT (they are the same for GRCh37 and GRCh38)
+	if (chr.strNormalized(true)=="chrMT") return BedLine(chr, start, end);
+
+	//convert start to BED format (0-based)
+	start -= 1;
+
 	//call lift-over webservice
-	QString base_url = Settings::string("liftover_webservice");
-	HttpHandler handler(HttpRequestHandler::ProxyType::NONE);
-	QString output = handler.get(base_url + "?chr=" + chr.strNormalized(true) + "&start=" + QString::number(start) + "&end=" + QString::number(end));
+	QString url = Settings::string("liftover_webservice") + "?chr=" + chr.strNormalized(true) + "&start=" + QString::number(start) + "&end=" + QString::number(end);
+	if (hg38_to_hg19) url += "&dir=hg38_hg19";
+	QString output = HttpHandler(HttpRequestHandler::ProxyType::NONE).get(url);
 
 	//handle error from webservice
-	if (output.contains("ERROR")) THROW(ArgumentException, "GSvarHelper::liftOver: " + output);
+	if (output.contains("ERROR")) THROW(ArgumentException, "genomic coordinate lift-over failed: " + output);
 
 	//convert output to region
 	BedLine region = BedLine::fromString(output);
-	if (!region.isValid()) THROW(ArgumentException, "GSvarHelper::liftOver: Could not convert output '" + output + "' to region");
+	if (!region.isValid()) THROW(ArgumentException, "genomic coordinate lift-over failed: Could not convert output '" + output + "' to valid region");
+
+	//revert to 1-based
+	region.setStart(region.start()+1);
 
 	return region;
 }
 
 QString GSvarHelper::gnomaADLink(const Variant& v)
 {
-	QString url = "http://gnomad.broadinstitute.org/variant/" + v.chr().strNormalized(false) + "-";
+	QString url = "https://gnomad.broadinstitute.org/variant/" + v.chr().strNormalized(false) + "-";
 
 	if (v.obs()=="-") //deletion
 	{
@@ -226,6 +256,9 @@ QString GSvarHelper::gnomaADLink(const Variant& v)
 	{
 		url += QString::number(v.start()) + "-" + v.ref() + "-" + v.obs();
 	}
+
+	//genome build
+	if (build()==GenomeBuild::HG38) url += "?dataset=gnomad_r3";
 
 	return url;
 }

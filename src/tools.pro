@@ -5,7 +5,7 @@ CONFIG += console
 SUBDIRS = cppCORE\
         cppXML \
         cppNGS \
-        cppNGSD 
+        cppNGSD
 cppXML.depends = cppCORE
 cppNGS.depends = cppXML
 cppNGSD.depends = cppNGS
@@ -125,9 +125,13 @@ SUBDIRS += VariantQC
 tools-TEST.depends += VariantQC
 VariantQC.depends = cppNGS
 
+SUBDIRS += SomaticCnvMetrics
+tools-TEST.depends += SomaticCnvMetrics
+SomaticCnvMetrics.depends = cppNGSD
+
 SUBDIRS += SomaticQC
 tools-TEST.depends += SomaticQC
-SomaticQC.depends = cppNGS
+SomaticQC.depends = cppNGSD
 
 SUBDIRS += FastqExtract
 tools-TEST.depends += FastqExtract
@@ -417,3 +421,22 @@ SUBDIRS += VariantRanking
 tools-TEST.depends += VariantRanking
 VariantRanking.depends = cppNGSD
 
+SUBDIRS += GenePrioritization
+tools-TEST.depends += GenePrioritization
+GenePrioritization.depends = cppNGS
+
+SUBDIRS += GraphStringDb
+tools-TEST.depends += GraphStringDb
+GraphStringDb.depends = cppNGS
+
+SUBDIRS += VariantAnnotateASE
+tools-TEST.depends += VariantAnnotateASE
+VariantAnnotateASE.depends = cppNGS
+
+SUBDIRS += SplicingToBed
+tools-TEST.depends += SplicingToBed
+SplicingToBed.depends = cppNGSD
+
+SUBDIRS += CfDnaQC
+tools-TEST.depends += CfDnaQC
+CfDnaQC.depends = cppNGS

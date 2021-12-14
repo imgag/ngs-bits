@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include "NGSD.h"
-#include "DelayedInitializationTimer.h"
 #include "ui_CnvSearchWidget.h"
 
 class CnvSearchWidget
@@ -17,13 +16,12 @@ public:
 
 protected slots:
 	void search();
-	void delayedInitialization();
 	void copyCoodinatesToClipboard();
 	void changeSearchType();
+	void openSelectedSampleTabs();
 
 private:
 	Ui::CnvSearchWidget ui_;
-	DelayedInitializationTimer init_timer_;
 	NGSD db_;
 };
 

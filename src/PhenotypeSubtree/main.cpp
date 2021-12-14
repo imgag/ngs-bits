@@ -33,8 +33,7 @@ public:
 		QString out = getOutfile("out");
 
 		//convert
-		Phenotype pheno = db.phenotypeByAccession(in.toLatin1());
-		QList<Phenotype> child_terms = db.phenotypeChildTerms(pheno, true);
+		PhenotypeList child_terms = db.phenotypeChildTerms(db.phenotypeIdByAccession(in.toLatin1()), true);
 
 		//write output
 		QSharedPointer<QFile> out_stream = Helper::openFileForWriting(out, true);

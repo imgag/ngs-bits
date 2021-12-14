@@ -154,6 +154,19 @@ class CPPNGSDSHARED_EXPORT TableInfo
 			return output;
 		}
 
+		bool fieldExists(const QString& field_name)
+		{
+			foreach(const TableFieldInfo& entry, field_infos_)
+			{
+				if (entry.name==field_name)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		int fieldCount() const
 		{
 			return field_infos_.count();
@@ -357,6 +370,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool s_name_ext = false;
 	bool s_name_comments = false;
 	QString s_species;
+	QString s_type;
 	QString s_sender;
 	QString s_study;
 	QString s_disease_group;
@@ -378,6 +392,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	QString r_name;
 	bool include_bad_quality_runs = true;
 	bool run_finished = false;
+	QDate r_before = QDate();
 	QString r_device_name;
 
 	//output options
@@ -414,9 +429,12 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 		acmg_analyzed(false),
 		filtered_by_freq_based_dominant(false),
 		filtered_by_freq_based_recessive(false),
-		filtered_by_cnv(false),
 		filtered_by_mito(false),
 		filtered_by_x_chr(false),
+		filtered_by_cnv(false),
+		filtered_by_svs(false),
+		filtered_by_res(false),
+		filtered_by_mosaic(false),
 		filtered_by_phenotype(false),
 		filtered_by_multisample(false),
 		filtered_by_trio_stringent(false),
@@ -437,13 +455,49 @@ struct CPPNGSDSHARED_EXPORT EvaluationSheetData
 
 	bool filtered_by_freq_based_dominant;
 	bool filtered_by_freq_based_recessive;
-	bool filtered_by_cnv;
 	bool filtered_by_mito;
 	bool filtered_by_x_chr;
+	bool filtered_by_cnv;
+	bool filtered_by_svs;
+	bool filtered_by_res;
+	bool filtered_by_mosaic;
 	bool filtered_by_phenotype;
 	bool filtered_by_multisample;
 	bool filtered_by_trio_stringent;
 	bool filtered_by_trio_relaxed;
+};
+
+/// Metadata of cfDNA panel DB entry
+struct CfdnaPanelInfo
+{
+	int id = -1;
+	int tumor_id = -1;
+	int cfdna_id = -1;
+	int created_by = -1;
+	QDate created_date;
+	int processing_system_id = -1;
+};
+
+/// cfDNA Gene entry
+struct CfdnaGeneEntry
+{
+	QString gene_name;
+	Chromosome chr;
+	int start;
+	int end;
+	QDate date;
+	BedFile bed = BedFile();
+};
+
+///NGSD import status for germline analysis.
+struct CPPNGSDSHARED_EXPORT ImportStatusGermline
+{
+	//variant data
+	int small_variants = 0;
+	int cnvs = 0;
+	int svs = 0;
+	//QC data
+	int qc_terms = 0;
 };
 
 /// NGSD accessor.
@@ -454,7 +508,7 @@ Q_OBJECT
 
 public:
 	///Default constructor that connects to the DB
-	NGSD(bool test_db = false);
+	NGSD(bool test_db=false, QString name_suffix="");
 	///Destructor.
 	~NGSD();
 	///Returns if the database connection is (still) open
@@ -463,7 +517,7 @@ public:
 	///Returns the table list.
 	QStringList tables() const;
 	///Returns information about all fields of a table.
-	const TableInfo& tableInfo(const QString& table) const;
+	const TableInfo& tableInfo(const QString& table, bool use_cache = true) const;
 	///Checks if the value is valid for the table/field when used in an SQL query. Returns a non-empty error list in case it is not. 'check_unique' must not be used for existing entries.
 	QStringList checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const;
 	///Escapes SQL special characters in a text
@@ -485,9 +539,12 @@ public:
 	///If more than one value is returned a DatabaseError is thrown.
 	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
 	QVariant getValue(const QString& query, bool no_value_is_ok=true, QString bind_value = QString()) const;
-	///Executes an SQL query and returns the value list.
-	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced). Use this if
+	///Executes an SQL query and returns the text value list.
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
 	QStringList getValues(const QString& query, QString bind_value = QString()) const;
+	///Executes an SQL query and returns the integer value list.
+	///If @p bind_value is set, the placeholder ':0' in the query is replaced with it (SQL special characters are replaced).
+	QList<int> getValuesInt(const QString& query, QString bind_value = QString()) const;
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{
@@ -507,9 +564,9 @@ public:
 
 
 	/*** transactions ***/
-	bool transaction() { return db_->transaction(); }
-	bool commit() { return db_->commit(); }
-	bool rollback() { return db_->rollback(); }
+	bool transaction();
+	bool commit();
+	bool rollback();
 
 	/*** gene/transcript handling ***/
 	///Returns the gene ID, or -1 if none approved gene name could be found. Checks approved symbols, previous symbols and synonyms.
@@ -537,11 +594,13 @@ public:
 	///Returns the chromosomal regions corresponding to the given genes. Messages about unknown gene symbols etc. are written to the steam, if given.
 	BedFile genesToRegions(const GeneSet& genes, Transcript::SOURCE source, QString mode, bool fallback = false, bool annotate_transcript_names = false, QTextStream* messages = nullptr);
 	///Returns transcript by id. Throws an exception if not found in NGSD.
-	Transcript transcript(int id);
+	const Transcript& transcript(int id);
 	///Returns transcript identifier. Throws an exception if not found in NGSD, or returns -1.
 	int transcriptId(QString name, bool throw_on_error=true);
+	///Returns all transcripts in the database;
+	const TranscriptList& transcripts();
 	///Returns transcripts of a gene (if @p coding_only is set, only coding transcripts).
-	QList<Transcript> transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
+	TranscriptList transcripts(int gene_id, Transcript::SOURCE source, bool coding_only);
 	///Returns longest coding transcript of a gene.
 	Transcript longestCodingTranscript(int gene_id, Transcript::SOURCE source, bool fallback_alt_source=false, bool fallback_alt_source_nocoding=false);
 	///Returns the list of all approved gene names
@@ -552,18 +611,20 @@ public:
 	bool addPreferredTranscript(QByteArray transcript_name);
 
 	/*** phenotype handling (HPO, OMIM) ***/
+	///Returns the NGSD database ID of the phenotype given. Returns -1 or throws a DatabaseException if term name does not exist.
+	int phenotypeIdByAccession(const QByteArray& accession, bool throw_on_error=true);
+	///Returns the NGSD database ID of the phenotype given. Returns -1 or throws a DatabaseException if term name does not exist. Prefer phenotypeIdByAccession whenever possible since it is faster!
+	int phenotypeIdByName(const QByteArray& name, bool throw_on_error=true);
 	///Returns the phenotype for a given HPO accession.
-	Phenotype phenotypeByName(const QByteArray& name, bool throw_on_error=true);
-	///Returns the phenotype for a given HPO accession. If the accession is invalid, a phenotype with empty name is returned, or an error is thrown.
-	Phenotype phenotypeByAccession(const QByteArray& accession, bool throw_on_error=true);
+	const Phenotype& phenotype(int id);
 	///Returns the phenotypes of a gene
 	PhenotypeList phenotypes(const QByteArray& symbol);
 	///Returns all phenotypes matching the given search terms (or all terms if no search term is given)
 	PhenotypeList phenotypes(QStringList search_terms);
-	///Returns all genes associated to a phenotype
-	GeneSet phenotypeToGenes(const Phenotype& phenotype, bool recursive);
+	///Returns all genes associated to a phenotype. If is set terms of the following parent terms are ignored: "Mode of inheritance", "Frequency"
+	GeneSet phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype_terms=true);
 	///Returns all child terms of the given phenotype
-	PhenotypeList phenotypeChildTerms(const Phenotype& phenotype, bool recursive);
+	PhenotypeList phenotypeChildTerms(int term_id, bool recursive);
 	///Returns OMIM information for a gene. Several OMIM entries per gene are rare, but happen e.g. in the PAR region.
 	QList<OmimInfo> omimInfo(const QByteArray& symbol);
 	///Returns the accession (6 digit number) of the preferred OMIM phenotype for a gene. If unset, an empty string is returned.
@@ -577,6 +638,9 @@ public:
 	///Returns the NGSD processed sample ID from a file name or processed sample name. Throws an exception if it could not be determined.
 	QString processedSampleId(const QString& filename, bool throw_if_fails = true);
 
+	///Returns the project folder for a project type
+	QString projectFolder(QString type);
+	///Returns the path of certain file of a processed sample (type)
 	QString processedSamplePath(const QString& processed_sample_id, PathType type);
 	///Returns the path to secondary analyses of the processed samples.
 	QStringList secondaryAnalyses(QString processed_sample_name, QString analysis_type);
@@ -589,8 +653,8 @@ public:
 	QString variantId(const Variant& variant, bool throw_if_fails = true);
 	///Returns the variant corresponding to the given identifier or throws an exception if the ID does not exist.
 	Variant variant(const QString& variant_id);
-	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per samples is counted).
-	QPair<int, int> variantCounts(const QString& variant_id);
+	///Returns the number of het/hom occurances of the variant in the NGSD (only one occurance per sample is counted).
+	QPair<int, int> variantCounts(const QString& variant_id, bool use_cached_data_from_variant_table=false);
 	///Deletes the variants of a processed sample (all types)
 	void deleteVariants(const QString& ps_id);
 	///Deletes the variants of a processed sample (a specific type)
@@ -622,6 +686,9 @@ public:
 	QString somaticCnvId(const CopyNumberVariant& cnv, int callset_id, bool throw_if_fails = true);
 	CopyNumberVariant somaticCnv(int cnv_id);
 
+	///Returns the germline import status.
+	ImportStatusGermline importStatus(const QString& ps_id);
+
 	/***User handling functions ***/
 	///Returns the database ID of the given user. If no user name is given, the current user from the environment is used. Throws an exception if the user is not in the NGSD user table.
 	///If throw_if_false == false it returns -1 if user is not found
@@ -649,8 +716,14 @@ public:
 	///Returns the normal processed sample corresponding to a tumor processed sample, or "" if no normal samples is defined.
 	QString normalSample(const QString& processed_sample_id);
 
-	///Returns the corresponding same sample id(s) of a given type
-	QStringList sameSamples(QString sample_id, QString sample_type);
+	///Returns the corresponding sample id(s) with relation 'same sample' or 'same patient'. Uses the cache to avoid database queries.
+	const QSet<int>& sameSamples(int sample_id);
+	///Returns related sample id(s). Uses the cache to avoid database queries.
+	const QSet<int>& relatedSamples(int sample_id);
+	///Return a list of sample ids (not name) which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
+	QSet<int> relatedSamples(int sample_id, const QString& relation, QString sample_type="");
+	///Adds a new sample relation to the database;
+	void addSampleRelation(const SampleRelation& rel, bool error_if_already_present=false);
 
 	///Returns sample disease details from the database.
 	QList<SampleDiseaseInfo> getSampleDiseaseInfo(const QString& sample_id, QString only_type="");
@@ -667,10 +740,19 @@ public:
 	int processingSystemIdFromProcessedSample(QString ps_name);
 	///Returns the processing system information for a processed sample.
 	ProcessingSystemData getProcessingSystemData(int sys_id);
+
+	///Returns a path (including filename) for the processing system target region file.
+	QString processingSystemRegionsFilePath(int sys_id);
 	///Returns the processing system target region file.
 	BedFile processingSystemRegions(int sys_id);
+
+	///Returns a path (including filename) for the processing system amplicon region file.
+	QString processingSystemAmpliconsFilePath(int sys_id);
 	///Returns the processing system amplicon region file.
 	BedFile processingSystemAmplicons(int sys_id);
+
+	///Returns a path (including filename) for the processing system genes.
+	QString processingSystemGenesFilePath(int sys_id);
 	///Returns the processing system genes.
 	GeneSet processingSystemGenes(int sys_id);
 
@@ -680,6 +762,23 @@ public:
 	BedFile subpanelRegions(QString name);
 	///Returns the subpanel genes.
 	GeneSet subpanelGenes(QString name);
+
+	///Returns all coresponding cfDNA panel info for a given processed sample
+	QList<CfdnaPanelInfo> cfdnaPanelInfo(const QString& processed_sample_id, int processing_system_id = -1);
+	///stores a cfDNA panel in the NGSD
+	void storeCfdnaPanel(const CfdnaPanelInfo& panel_info, const QByteArray& bed_content, const QByteArray& vcf_content);
+	///Returns the BED file of a given cfDNA panel
+	BedFile cfdnaPanelRegions(int id);
+	///Returns the VCF of a given cfDNA panel
+	VcfFile cfdnaPanelVcf(int id);
+	///Returns the BED file of the removed regions of a given cfDNA panel
+	BedFile cfdnaPanelRemovedRegions(int id);
+	///Updates the regions which where removed by the panel provider
+	void setCfdnaRemovedRegions(int id, const BedFile& removed_regions);
+	///Returns all available cfDNA gene entries
+	QList<CfdnaGeneEntry> cfdnaGenes();
+	///Returns the ID SNPs of a processing system as VCF
+	VcfFile getIdSnpsFromProcessingSystem(int sys_id, bool throw_on_fail = true);
 
 	///Returns all QC terms of the sample
 	QCCollection getQCData(const QString& processed_sample_id);
@@ -728,6 +827,8 @@ public:
 	void setDiagnosticStatus(const QString& processed_sample_id, DiagnosticStatusData status);
 	///Returns if the report configuration database ID, or -1 if not present.
 	int reportConfigId(const QString& processed_sample_id);
+	///Returns if the report configuration text summary.
+	QString reportConfigSummaryText(const QString& processed_sample_id);
 	///Returns if the report configuration is finalized.
 	bool reportConfigIsFinalized(int id);
 	///Returns the report configuration for a processed sample, throws an error if it does not exist.
@@ -743,11 +844,6 @@ public:
 	EvaluationSheetData evaluationSheetData(const QString& processed_sample_id, bool throw_if_fails = true);
 	///Stores a given EvaluationSheetData in the NGSD (return table id)
 	int storeEvaluationSheetData(const EvaluationSheetData& evaluation_sheet_data, bool overwrite_existing_data = false);
-
-	///Return a list of sample ids (not name) which have a (specific) relation of the given sample id. If relation is "", all relations are reported.
-	QStringList relatedSamples(const QString& sample_id, const QString& relation="");
-	///Adds a new sample relation to the database;
-	void addSampleRelation(const SampleRelation& rel, bool error_if_already_present=false);
 
 	///Returns the report config creation data (user/date) for somatic reports
 	SomaticReportConfigurationData somaticReportConfigData(int id);
@@ -834,21 +930,22 @@ protected:
 		Cache();
 
 		QMap<QString, TableInfo> table_infos;
-		QHash<int, QList<int>> same_samples;
+		QHash<int, QSet<int>> same_samples;
+		QHash<int, QSet<int>> related_samples;
 		GeneSet approved_gene_names;
 		QMap<QString, QStringList> enum_values;
 		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
-		QHash<QByteArray, Phenotype> phenotypes_by_accession;
+		QHash<int, Phenotype> phenotypes_by_id;
+		QHash<QByteArray, int> phenotypes_accession_to_id;
 
-		BedFile gene_regions;
-		ChromosomalIndex<BedFile> gene_regions_index;
-
-		BedFile gene_exons;
-		ChromosomalIndex<BedFile> gene_exons_index;
+		TranscriptList gene_transcripts;
+		ChromosomalIndex<TranscriptList> gene_transcripts_index;
+		QHash<int, int> gene_transcripts_id2index; //NGSD transcript id > index in 'gene_transcripts'
+		QHash<QByteArray, QSet<int>> gene_transcripts_symbol2indices; //gene symbol > indices in 'gene_transcripts'
 	};
 	static Cache& getCache();
 	void clearCache();
+	void initTranscriptCache();
 };
-
 
 #endif // NGSD_H

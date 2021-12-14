@@ -22,14 +22,10 @@ class SvWidget
 
 public:
     //default constructor without report config for single sample
-    SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0, bool init_gui=true);
+	SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0, bool init_gui=true);
 
 	//constructor with report config for germline single and multi/trio samples
     SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, QSharedPointer<ReportConfiguration> rep_conf, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget *parent = 0);
-
-signals:
-	void openInIGV(QString coords);
-	void openGeneTab(QString symbol);
 
 protected slots:
 	///copy filtered SV table to clipboard
@@ -105,7 +101,7 @@ private:
 	QStringList ps_ids_; //processed sample database IDs (only trio/multi). '' if unknown or NGSD is disabled.
 	QString ps_id_; // processed sample id for the report config
     QStringList ps_names_; // processed sample names
-	FilterWidget* variant_filter_widget_; // Pointer to the FilterWidget of the varaint view (used for import settings to SV view)
+	FilterWidget* variant_filter_widget_; // Pointer to the FilterWidget of the variant view (used for import settings to SV view)
 	GeneSet var_het_genes_;
 	QHash<QByteArray, BedFile>& gene2region_cache_;
 	bool ngsd_enabled_;

@@ -57,7 +57,7 @@ struct CPPNGSSHARED_EXPORT FilterParameter
 class CPPNGSSHARED_EXPORT FilterResult
 {
 	public:
-		///Default constructor
+		///Default constructor. Prefer the other constructor when possible - if not make sure to initialize it before use!
 		FilterResult();
 		///Constructor that pre-fills the datastructure.
 		FilterResult(int variant_count, bool value=true);
@@ -163,6 +163,9 @@ class CPPNGSSHARED_EXPORT FilterBase
 		{
 			return params_;
 		}
+
+		//Returns if the filter has a parameter with the given name and type.
+		bool hasParameter(const QString& name, FilterParameterType type) const;
 
 		//Overrides a constriant of a parameter
 		void overrideConstraint(const QString& parameter_name, const QString& constraint_name, const QString& constraint_value);
@@ -557,6 +560,15 @@ class CPPNGSSHARED_EXPORT FilterPredictionPathogenic
 		mutable int i_fathmm;
 		mutable int i_cadd;
 		mutable int i_revel;
+		mutable bool skip_high_impact;
+		mutable int i_co_sp;
+
+		mutable double cutoff_cadd;
+		mutable double cutoff_revel;
+		mutable double cutoff_fathmm_mkl;
+		mutable double cutoff_phylop;
+		mutable bool ignore_sift;
+		mutable bool ignore_polyphen;
 };
 
 //Annotation text filter
@@ -664,6 +676,21 @@ public:
 	FilterTumorOnlyHomHet();
 	QString toText() const override;
 	void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+//Filter for variants that influence splice sites
+class CPPNGSSHARED_EXPORT FilterSpliceEffect
+		: public FilterBase
+{
+public:
+	FilterSpliceEffect();
+	QString toText() const override;
+	void apply(const VariantList &variant_list, FilterResult &result) const override;
+private:
+	double calculatePercentageChangeMES_(const QByteArray& value) const;
+	bool applyMaxEntScanFilter_(const Variant& var, int idx_mes) const;
+	bool applySpliceAi_(const Variant& var, int idx_sai) const;
+	bool applyMMsplice_(const Variant& var, int idx_mms) const;
 };
 
 /*************************************************** filters for CNVs ***************************************************/

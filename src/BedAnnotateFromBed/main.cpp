@@ -52,7 +52,7 @@ public:
 		QByteArray name = getString("name").toUtf8();
 		if (name.isEmpty()) name = QFileInfo(in2).baseName().toUtf8();
 
-		//load annoation database
+		//load annotation database
 		BedFile anno_file;
 		anno_file.load(in2);
 		if (!anno_file.isSorted()) anno_file.sort();

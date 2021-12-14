@@ -2,6 +2,7 @@
 #include "Exceptions.h"
 #include "Settings.h"
 #include "Helper.h"
+#include "GSvarHelper.h"
 
 #include <QNetworkRequest>
 #include <QNetworkReply>
@@ -37,28 +38,48 @@ void HttpHandler::setHeader(const QByteArray& key, const QByteArray& value)
 	headers_.insert(key, value);
 }
 
-QString HttpHandler::get(QString url, const HttpHeaders& add_headers)
+QMap<QByteArray, QByteArray> HttpHandler::head(QString url, const HttpHeaders& add_headers)
+{
+	return HttpRequestHandler(proxy_type_, this).head(url, add_headers);
+}
+
+QByteArray HttpHandler::get(QString url, const HttpHeaders& add_headers)
 {
 	return HttpRequestHandler(proxy_type_, this).get(url, add_headers);
 }
 
-QString HttpHandler::post(QString url, const QByteArray& data, const HttpHeaders& add_headers)
+QByteArray HttpHandler::put(QString url, const QByteArray& data, const HttpHeaders& add_headers)
+{
+	return HttpRequestHandler(proxy_type_, this).put(url, data, add_headers);
+}
+
+QByteArray HttpHandler::post(QString url, const QByteArray& data, const HttpHeaders& add_headers)
 {
 	return HttpRequestHandler(proxy_type_, this).post(url, data, add_headers);
 }
 
-QString HttpHandler::post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers)
+QByteArray HttpHandler::post(QString url, QHttpMultiPart* parts, const HttpHeaders& add_headers)
 {
 	return HttpRequestHandler(proxy_type_, this).post(url, parts, add_headers);
 }
 
 void HttpHandler::handleProxyAuthentification(const QNetworkProxy& proxy, QAuthenticator* auth)
 {
-	QString proxy_user = QInputDialog::getText(QApplication::activeWindow(), "Proxy user required", "Proxy user for " + proxy.hostName());
-	auth->setUser(proxy_user);
-	QString proxy_pass = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password for " + proxy.hostName(), QLineEdit::Password);
-	auth->setPassword(proxy_pass);
-
+	if (proxy_user_.isEmpty() && proxy_password_.isEmpty())
+	{
+		try
+		{
+			proxy_user_ = Settings::string("proxy_user");
+			proxy_password_ = Settings::string("proxy_password");
+		}
+		catch(Exception& e)
+		{
+			proxy_user_ = QInputDialog::getText(QApplication::activeWindow(), "Proxy user required", "Proxy user for " + proxy.hostName());
+			proxy_password_ = QInputDialog::getText(QApplication::activeWindow(), "Proxy password required", "Proxy password for " + proxy.hostName(), QLineEdit::Password);
+		}
+	}
+	auth->setUser(proxy_user_);
+	auth->setPassword(proxy_password_);
 	nmgr_.setProxy(proxy);
 }
 

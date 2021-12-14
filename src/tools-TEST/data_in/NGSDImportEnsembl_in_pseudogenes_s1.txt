@@ -1,0 +1,24 @@
+# This is a pseudogene decorated resource (psiDR) file, version 0
+# Each row in the file represents a pseudogene, which inlucdes following data fields:
+# 
+# Pseudogene_id:	ENSEMBL ID of pseudogenes
+# Biotype:		biotype of the pseudogene, could be "processed_pseudogene", "nonprocessed_pseudogene", etc.
+# Chromsome:		chromosome where the pseudogene resides
+# Strand:		strand on which the pseudogene located
+# Start:		start position of the pseudogene sequence, 1-based
+# End:			end position of the pseudogene sequence, includesive
+# Parent_gene:		ENSEBML gene id of the pseudogene parent, if available. OTherwise, represented by a "."
+# Parent_gene:		ENSEBML transcript id of the pseudogene parent, if available. OTherwise, represented by a "."
+# Parent_name:		name of the pseudogene parent
+# Transcribed:		Whether the pseudogene is transcribed. 1: transcribed; 0: otherwise
+# Chromatin activity:	chromation state information from Segway. 1: active state;	0: otherwise
+# DnaseI_HS			DnaseI hypersensitity		1:	Has Dnase Hypersensitivity in upstream; 0: otherwise
+# Active Promoter:	active TFBS at the upstrea of the pseudgene	1: Active bing sites; 0: otherwise
+# Active_pol2:		active Pol2 bining sites 1: Active bing sites; 0: otherwise
+# Constraint:		evolutionary constraints on each pseudogene 1: conserved; 0: otherwise.
+#
+# Cell ines: GM12878, K562, Helas3, Hepg2, H1hesc
+
+
+Pseudogene_id	Biotype	Chromosome	Strand	Start	End	Parent_gene	Parent_transcript	Parent_name	Transcribed	Chromatin_activity	DnaseI_HS	Active_promoter	Active_pol2	Constraint
+ENST00000514795.1	processed_pseudogene	chr4	+	133513270	133513691	ENSG00000090861.7	ENST00000261772.6	AARS	"Transcribed: 0"	"Active Chromatin: GM12878=0;K562=0;Helas3=0;Hepg2=1;H1hesc=0"	"Open Chromatin: GM12878=0;K562=0;Helas3=.;Hepg2=.;H1hesc=."	"TFBS: GM12878=0;K562=0;Helas3=0;Hepg2=0;H1hesc=0"	"Pol2: GM12878=0;K562=0;Helas3=0;Hepg2=0;H1hesc=0"	"Constraint: 0"

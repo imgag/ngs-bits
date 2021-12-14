@@ -82,7 +82,7 @@ SomaticViccData SomaticVariantInterpreter::predictViccValue(const VariantList &v
 	int i_cancerhotspots_total_count = vl.annotationIndexByName("CANCERHOTSPOTS_TOTAL_MUT");
 	int i_cancerhotspots_alt_count = vl.annotationIndexByName("CANCERHOTSPOTS_ALT_COUNT");
 	int i_gene_info = vl.annotationIndexByName("gene_info");
-	int i_fathmm_mkl = vl.annotationIndexByName("fathmm-MKL");
+	int i_revel = vl.annotationIndexByName("REVEL");
 	int i_cadd = vl.annotationIndexByName("CADD");
 
 
@@ -154,10 +154,9 @@ SomaticViccData SomaticVariantInterpreter::predictViccValue(const VariantList &v
 
 
 	//supporting oncogenic evidence 1: computational evidence
-	QByteArray tmp_fathmm =var.annotations()[i_fathmm_mkl];
-	double fathmm = tmp_fathmm.append(",").split(',')[0].toDouble(); //take first value in list: refers to coding regions
+	double revel = var.annotations()[i_revel].toDouble();
 	double cadd = var.annotations()[i_cadd].toDouble();
-	if(fathmm > 0.9 && cadd > 20) out.computational_evidence = SomaticViccData::State::VICC_TRUE;
+	if(revel > 0.5 && cadd > 20) out.computational_evidence = SomaticViccData::State::VICC_TRUE;
 	else out.computational_evidence = SomaticViccData::State::VICC_FALSE;
 
 	//supporting oncogenic evidence 2: TO BE DISKUSSED!
@@ -206,7 +205,7 @@ SomaticViccData SomaticVariantInterpreter::predictViccValue(const VariantList &v
 
 bool SomaticVariantInterpreter::checkAnnoForPrediction(const VariantList &vl)
 {
-	const QList<QString> annos = {"CMC_mutation_significance", "ncg_tsg", "ncg_oncogene", "gnomAD", "coding_and_splicing",  "ClinVar", "CANCERHOTSPOTS_TOTAL_MUT", "CANCERHOTSPOTS_ALT_COUNT", "coding_and_splicing", "gene_info", "fathmm-MKL", "CADD"};
+	const QList<QString> annos = {"CMC_mutation_significance", "ncg_tsg", "ncg_oncogene", "gnomAD", "coding_and_splicing",  "ClinVar", "CANCERHOTSPOTS_TOTAL_MUT", "CANCERHOTSPOTS_ALT_COUNT", "coding_and_splicing", "gene_info", "REVEL", "CADD"};
 
 	for(const auto& anno : annos)
 	{

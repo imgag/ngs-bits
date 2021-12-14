@@ -1,10 +1,11 @@
 #ifndef GLOBALSERVICEPROVIDER_H
 #define GLOBALSERVICEPROVIDER_H
 
-#include<QSharedPointer>
+#include <QSharedPointer>
 #include "FileLocationProvider.h"
 #include "DatabaseService.h"
 
+///Provider class for GSvar-wide services
 class GlobalServiceProvider
 {
 public:
@@ -15,6 +16,21 @@ public:
 
 	//database service functionality
 	static const DatabaseService& database();
+
+	//NGSD tab functionality
+	static void openProcessedSampleTab(QString processed_sample_name);
+	static void openRunTab(QString run_name);
+	static void openGeneTab(QString symbol);
+	static void openVariantTab(Variant variant);
+	static void openProjectTab(QString project_name);
+	static void openProcessingSystemTab(QString system_short_name);
+
+	//IGV functionality
+	static void gotoInIGV(QString region, bool init_if_not_done);
+	static void loadFileInIGV(QString filename, bool init_if_not_done);
+
+	//opening GSvar files
+	static void openGSvarViaNGSD(QString processed_sample_name, bool search_multi);
 
 protected:
 	GlobalServiceProvider();

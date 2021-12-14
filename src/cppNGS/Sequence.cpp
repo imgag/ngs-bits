@@ -100,7 +100,7 @@ char Sequence::complement(char base)
 	THROW(ProgrammingException, "Could not convert base '" + QString(base) + "' to complement!");
 }
 
-int Sequence::addNoise(double error_probabilty, std::mt19937& gen)
+int Sequence::addNoise(double error_probability, std::mt19937& gen)
 {
 	int ec = 0;
 
@@ -112,7 +112,7 @@ int Sequence::addNoise(double error_probabilty, std::mt19937& gen)
 	for(int i=0; i<count(); ++i)
 	{
 		//base error?
-		bool error = error_dist(gen) < error_probabilty;
+		bool error = error_dist(gen) < error_probability;
 
 		//replace base at random
 		if (error)

@@ -5,6 +5,7 @@
 #include "Settings.h"
 #include "ValidationDialog.h"
 #include "LoginManager.h"
+#include "GSvarHelper.h"
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QAction>
@@ -62,7 +63,7 @@ void VariantValidationWidget::updateTable()
 	//cols << "(SELECT u.name FROM user u, processed_sample ps, sample s WHERE u.id=ps.operator_id AND ps.sample_id=s.id AND s.id=vv.sample_id ORDER BY ps.id DESC LIMIT 1) as operator";
 	cols << "vv.variant_type as 'variant type'";
 	cols << QString() + "(CASE "
-			+ "WHEN vv.variant_type = 'SNV_INDEL' THEN (SELECT CONCAT(v.chr, ':', v.start, '-', v.end, ' ', v.ref, '>', v.obs, ' (', v.gene, ')') FROM variant v WHERE vv.variant_id = v.id) "
+			+ "WHEN vv.variant_type = 'SNV_INDEL' THEN (SELECT CONCAT(v.chr, ':', v.start, '-', v.end, ' ', v.ref, '>', v.obs) FROM variant v WHERE vv.variant_id = v.id) "
 			+ "WHEN vv.variant_type = 'CNV' THEN (SELECT CONCAT(c.chr, ':', c.start, '-', c.end, ' (CN: ', c.cn, ')') FROM cnv c WHERE vv.cnv_id = c.id) "
 			+ "WHEN vv.variant_type = 'SV' THEN CASE "
 												+ "WHEN vv.sv_deletion_id IS NOT NULL THEN (SELECT CONCAT('DEL at ', sv_del.chr, ':', sv_del.start_min, '-', sv_del.end_max) FROM sv_deletion sv_del WHERE vv.sv_deletion_id = sv_del.id) "
@@ -89,12 +90,37 @@ void VariantValidationWidget::updateTable()
 	NGSD db;
 	DBTable table = db.createTable("variant_validation", query_str);
 
+	//add genes column
+	QStringList genes;
+	int idx_type = table.columnIndex("variant type");
+	for(int r=0; r<table.rowCount(); ++r)
+	{
+		const DBRow& row = table.row(r);
+		if (row.value(idx_type)=="SNV_INDEL")
+		{
+			QString variant_id = db.getValue("SELECT variant_id FROM variant_validation WHERE id="+row.id()).toString();
+			Variant var = db.variant(variant_id);
+			genes << db.genesOverlapping(var.chr(), var.start(), var.end(), 5000).join(", ");
+		}
+		else if (row.value(idx_type)=="CNV")
+		{
+			int cnv_id = db.getValue("SELECT cnv_id FROM variant_validation WHERE id="+row.id()).toInt();
+			CopyNumberVariant var = db.cnv(cnv_id);
+			genes << db.genesOverlapping(var.chr(), var.start(), var.end(), 5000).join(", ");
+		}
+		else
+		{
+			genes << "";
+		}
+	}
+	table.insertColumn(4, genes, "gene(s)");
+
 	//apply filters not possible during query
 	table.filterRows(ui_.text->text());
 	table.filterRowsByColumn(table.columnIndex("variant type"), ui_.cb_var_type->currentText());
 
 	ui_.table->setData(table);
-	GUIHelper::resizeTableCells(ui_.table, -1, false);
+	GUIHelper::resizeTableCells(ui_.table, 400, false);
 
 	QApplication::restoreOverrideCursor();
 }
@@ -170,7 +196,18 @@ void VariantValidationWidget::openPrimerDesign()
 			QString variant_id = db.getValue("SELECT variant_id FROM variant_validation WHERE id=" + ui_.table->getId(row)).toString();
 			Variant variant = db.variant(variant_id);
 
-			QString url = Settings::string("PrimerDesign")+"/index.php?user="+LoginManager::user()+"&sample="+sample+"&chr="+variant.chr().str()+"&start="+QString::number(variant.start())+"&end="+QString::number(variant.end())+"";
+			Chromosome chr = variant.chr();
+			int start = variant.start();
+			int end = variant.end();
+			if(GSvarHelper::build()==GenomeBuild::HG38) //PrimerDesign support HG19 only
+			{
+				BedLine region = GSvarHelper::liftOver(chr, start, end, true);
+				chr = region.chr();
+				start = region.start();
+				end = region.end();
+			}
+
+			QString url = Settings::string("PrimerDesign")+"/index.php?user="+LoginManager::user()+"&sample="+sample+"&chr="+chr.str()+"&start="+QString::number(start)+"&end="+QString::number(end)+"";
 			QDesktopServices::openUrl(QUrl(url));
 		}
 	}

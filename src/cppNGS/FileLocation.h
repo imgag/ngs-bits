@@ -24,17 +24,23 @@ enum class PathType
 
 	//other files
 	LOWCOV_BED, //Low coverage region files (BED format)
+	MSI, //microsatellite instability files (TSV format)
 	BAF, //b-allele frequency file (IGV format)
 	ROH, //ROH file (TSV format)
 	PRS, //polygenic risk scores (TSV format)
 	MANTA_EVIDENCE, //Reads that were used for structural variant calling (BAM format)
 	COPY_NUMBER_RAW_DATA, //Copy number estimates based on coverage (SEG format)
+	CNV_RAW_DATA_CALL_REGIONS,//Copy number raw data for call regions (SEG format)
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
 	FUSIONS, //gene fusions determined from RNA (TSV format)
+	MANTA_FUSIONS, //fusions determined by manta (BEDPE format)
 	COUNTS, //gene/transcript counts from RNA (TSV format)
+	EXPRESSION, //relative RNA expressions values from RNA (TSV format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
+	MRD_CF_DNA, // measurable residual disease file of a cfDNA analysis (UmiVar2)
+	QC, // variant list QC (qcML) files
 	OTHER // everything else
 };
 
@@ -91,6 +97,8 @@ struct FileLocation
 				return "COPY_NUMBER_CALLS_MOSAIC";
 			case PathType::COPY_NUMBER_RAW_DATA:
 				return "COPY_NUMBER_RAW_DATA";
+			case PathType::CNV_RAW_DATA_CALL_REGIONS:
+				return "CNV_RAW_DATA_CALL_REGIONS";
 			case PathType::MANTA_EVIDENCE:
 				return "MANTA_EVIDENCE";
 			case PathType::OTHER:
@@ -99,6 +107,8 @@ struct FileLocation
 				return "REPEAT_EXPANSIONS";
 			case PathType::LOWCOV_BED:
 				return "LOWCOV_BED";
+			case PathType::MSI:
+				return "MSI";
 			case PathType::ROH:
 				return "ROH";
 			case PathType::PRS:
@@ -113,13 +123,20 @@ struct FileLocation
 				return "REPEAT_EXPANSION_IMAGE";
 			case PathType::FUSIONS:
 				return "FUSIONS";
+			case PathType::MANTA_FUSIONS:
+				return "MANTA_FUSIONS";
 			case PathType::COUNTS:
 				return "COUNTS";
 			case PathType::VIRAL:
 				return "VIRAL";
 			case PathType::VCF_CF_DNA:
 				return "VCF_CF_DNA";
-
+			case PathType::QC:
+				return "QC";
+			case PathType::EXPRESSION:
+				return "EXPRESSION";
+			case PathType::MRD_CF_DNA:
+				return "MRD_CF_DNA";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -136,9 +153,11 @@ struct FileLocation
 		if (in_upper == "COPY_NUMBER_CALLS") return PathType::COPY_NUMBER_CALLS;
 		if (in_upper == "COPY_NUMBER_CALLS_MOSAIC") return PathType::COPY_NUMBER_CALLS_MOSAIC;
 		if (in_upper == "COPY_NUMBER_RAW_DATA") return PathType::COPY_NUMBER_RAW_DATA;
+		if (in_upper == "CNV_RAW_DATA_CALL_REGIONS") return PathType::CNV_RAW_DATA_CALL_REGIONS;
 		if (in_upper == "MANTA_EVIDENCE") return PathType::MANTA_EVIDENCE;
 		if (in_upper == "REPEAT_EXPANSIONS") return PathType::REPEAT_EXPANSIONS;
 		if (in_upper == "LOWCOV_BED") return PathType::LOWCOV_BED;
+		if (in_upper == "MSI") return PathType::MSI;
 		if (in_upper == "ROH") return PathType::ROH;
 		if (in_upper == "PRS") return PathType::PRS;
 		if (in_upper == "UPD") return PathType::UPD;
@@ -146,10 +165,14 @@ struct FileLocation
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
+		if (in_upper == "MANTA_FUSIONS") return PathType::MANTA_FUSIONS;
 		if (in_upper == "COUNTS") return PathType::COUNTS;
 		if (in_upper == "VIRAL") return PathType::VIRAL;
 		if (in_upper == "VCF_CF_DNA") return PathType::VCF_CF_DNA;
-
+		if (in_upper == "QC") return PathType::QC;
+		if (in_upper == "OTHER") return PathType::OTHER;
+		if (in_upper == "EXPRESSION") return PathType::EXPRESSION;
+		if (in_upper == "MRD_CF_DNA") return PathType::MRD_CF_DNA;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
 
@@ -173,12 +196,16 @@ struct FileLocation
 				return "copy-number calls (mosaic)";
 			case PathType::COPY_NUMBER_RAW_DATA:
 				return "copy-number raw data";
+			case PathType::CNV_RAW_DATA_CALL_REGIONS:
+				return "copy-number raw data for call regions";
 			case PathType::MANTA_EVIDENCE:
 				return "evidence file for Manta structural variants";
 			case PathType::REPEAT_EXPANSIONS:
 				return "repeat expansions";
 			case PathType::LOWCOV_BED:
 				return "low coverage regions";
+			case PathType::MSI:
+				return "MSI files";
 			case PathType::ROH:
 				return "runs of homozygosity";
 			case PathType::PRS:
@@ -186,13 +213,15 @@ struct FileLocation
 			case PathType::CIRCOS_PLOT:
 				return "circos plot";
 			case PathType::STRUCTURAL_VARIANTS:
-				return "strctural variant calls";
+				return "structural variant calls";
 			case PathType::UPD:
 				return "uniparental disomy regions";
 			case PathType::REPEAT_EXPANSION_IMAGE:
 				return "repeat expansion visualization";
 			case PathType::FUSIONS:
 				return "gene fusions";
+			case PathType::MANTA_FUSIONS:
+				return "gene fusions called by Manta";
 			case PathType::COUNTS:
 				return "RNA counts";
 			case PathType::VIRAL:
@@ -201,6 +230,12 @@ struct FileLocation
 				return "other files";
 			case PathType::VCF_CF_DNA:
 				return "cfDNA small variant calls";
+			case PathType::QC:
+				return "variant list QC (qcML) files";
+			case PathType::EXPRESSION:
+				return "RNA relative expression";
+			case PathType::MRD_CF_DNA:
+				return "measurable residual disease value (umiVar 2)";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}

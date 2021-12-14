@@ -11,7 +11,7 @@ class CPPNGSSHARED_EXPORT FileLocationProviderRemote
 	: virtual public FileLocationProvider
 {
 public:
-	FileLocationProviderRemote(const QString sample_id, const QString server_host, const int server_port);
+	FileLocationProviderRemote(const QString sample_id);
 	virtual ~FileLocationProviderRemote() {}
 
 	bool isLocal() const override;
@@ -22,6 +22,7 @@ public:
 	FileLocation getAnalysisMosaicCnvFile() const override;
 	FileLocation getAnalysisUpdFile() const override;
 	FileLocation getRepeatExpansionImage(QString locus) const override;
+	FileLocationList getQcFiles() const override;
 
 	FileLocationList getBamFiles(bool return_if_missing) const override;
 	FileLocationList getCnvCoverageFiles(bool return_if_missing) const override;
@@ -35,6 +36,7 @@ public:
 	FileLocationList getLowCoverageFiles(bool return_if_missing) const override;
 	FileLocationList getCopyNumberCallFiles(bool return_if_missing) const override;
 	FileLocationList getRohFiles(bool return_if_missing) const override;
+	FileLocationList getExpressionFiles(bool return_if_missing) const override;
 
 	FileLocation getSomaticCnvCoverageFile() const override;
 	FileLocation getSomaticCnvCallFile() const override;
@@ -42,17 +44,13 @@ public:
 	FileLocation getSomaticMsiFile() const override;
 
 private:
-	FileLocationList requestFileInfoByType(PathType type) const;
+	FileLocationList getFileLocationsByType(PathType type, bool return_if_missing) const;
+	FileLocation getOneFileLocationByType(PathType type, QString locus) const;
 	FileLocation mapJsonObjectToFileLocation(QJsonObject obj) const;
-	FileLocationList mapJsonArrayToFileLocationList(QJsonArray array) const;
+	FileLocationList mapJsonArrayToFileLocationList(QJsonArray array, bool return_if_missing) const;
 
 protected:
 	QString sample_id_;
-	QString server_host_;
-	int server_port_;
-
-	QString getAnalysisPath() const override;
-	QString getProjectPath() const override;
 };
 
 #endif // FILELOCATIONPROVIDERSERVER_H

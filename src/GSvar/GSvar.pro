@@ -7,6 +7,8 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp\
+    CfDNAPanelBatchImport.cpp \
+    DatabaseServiceRemote.cpp \
     GlobalServiceProvider.cpp \
     MainWindow.cpp \
     ExternalToolDialog.cpp \
@@ -32,7 +34,6 @@ SOURCES += main.cpp\
     NGSDReannotationDialog.cpp \
     SmallVariantSearchWidget.cpp \
     PhenotypeSelectionWidget.cpp \
-    LovdUploadDialog.cpp \
     RohWidget.cpp \
     DiagnosticStatusWidget.cpp \
     DiagnosticStatusOverviewDialog.cpp \
@@ -94,8 +95,20 @@ SOURCES += main.cpp\
     AlleleBalanceCalculator.cpp \
     ExpressionDataWidget.cpp \
     GapClosingDialog.cpp \
-    DatabaseServiceLocal.cpp
+    DatabaseServiceLocal.cpp \
+    NGSDReplicationWidget.cpp \
+    CohortAnalysisWidget.cpp \
+    cfDNARemovedRegions.cpp \
+    CfdnaAnalysisDialog.cpp \
+    ClinvarUploadDialog.cpp \
+    LiftOverWidget.cpp \
+    CacheInitWorker.cpp \
+    BlatWidget.cpp \
+    AnalysisInformationWidget.cpp
+
 HEADERS += MainWindow.h \
+    CfDNAPanelBatchImport.h \
+    DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     GlobalServiceProvider.h \
     ReportDialog.h \
@@ -120,7 +133,6 @@ HEADERS += MainWindow.h \
     NGSDReannotationDialog.h \
     SmallVariantSearchWidget.h \
     PhenotypeSelectionWidget.h \
-    LovdUploadDialog.h \
     RohWidget.h \
     DiagnosticStatusWidget.h \
     DiagnosticStatusOverviewDialog.h \
@@ -183,8 +195,19 @@ HEADERS += MainWindow.h \
     ExpressionDataWidget.h \
     GapClosingDialog.h \
     DatabaseService.h \
-    DatabaseServiceLocal.h
+    DatabaseServiceLocal.h \
+    NGSDReplicationWidget.h \
+    CohortAnalysisWidget.h \
+    cfDNARemovedRegions.h \
+    CfdnaAnalysisDialog.h \
+    ClinvarUploadDialog.h \
+    LiftOverWidget.h \
+    CacheInitWorker.h \
+    BlatWidget.h \
+    AnalysisInformationWidget.h
+
 FORMS    += MainWindow.ui \
+    CfDNAPanelBatchImport.ui \
     ExternalToolDialog.ui \
     ReportDialog.ui \
     TrioDialog.ui \
@@ -206,7 +229,6 @@ FORMS    += MainWindow.ui \
     NGSDReannotationDialog.ui \
     SmallVariantSearchWidget.ui \
     PhenotypeSelectionWidget.ui \
-    LovdUploadDialog.ui \
     RohWidget.ui \
     DiagnosticStatusWidget.ui \
     DiagnosticStatusOverviewDialog.ui \
@@ -260,12 +282,24 @@ FORMS    += MainWindow.ui \
     SomaticVariantInterpreterWidget.ui \
     AlleleBalanceCalculator.ui \
     ExpressionDataWidget.ui \
-    GapClosingDialog.ui
+    GapClosingDialog.ui \
+    NGSDReplicationWidget.ui \
+    CohortAnalysisWidget.ui \
+    cfDNARemovedRegions.ui \
+    CfdnaAnalysisDialog.ui \
+    ClinvarUploadDialog.ui \
+    LiftOverWidget.ui \
+    BlatWidget.ui \
+    AnalysisInformationWidget.ui
     include("../app_gui.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD
 LIBS += -L$$PWD/../bin -lcppNGSD
+
+#include VISUAL library
+INCLUDEPATH += $$PWD/../cppVISUAL
+LIBS += -L$$PWD/../bin -lcppVISUAL
 
 RESOURCES += \
     GSvar.qrc

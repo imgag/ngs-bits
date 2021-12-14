@@ -47,6 +47,7 @@ public:
 		QString method = getEnum("method");
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream stream(outfile.data());
+		GenomeBuild build = stringToBuild(getEnum("build"));
 
 		//process
 		bool print_header = true;
@@ -60,11 +61,11 @@ public:
 			}
 			else if (method=="hetx")
 			{
-				estimate = Statistics::genderHetX(bam, getEnum("build"), getFloat("max_male"), getFloat("min_female"), getInfile("ref"));
+				estimate = Statistics::genderHetX(build, bam, getFloat("max_male"), getFloat("min_female"), getInfile("ref"));
 			}
 			else if (method=="sry")
 			{
-				estimate = Statistics::genderSRY(bam, getEnum("build"), getFloat("sry_cov"), getInfile("ref"));
+				estimate = Statistics::genderSRY(build, bam, getFloat("sry_cov"), getInfile("ref"));
 			}
 
 			//output header

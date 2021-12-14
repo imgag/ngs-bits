@@ -3,6 +3,8 @@
 #include "Exceptions.h"
 #include "Helper.h"
 
+#include <QFileInfo>
+
 class ConcreteTool
 		: public ToolBase
 {
@@ -17,15 +19,15 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports Ensembl/CCDS transcript information into NGSD.");
-		addInfile("in", "Ensembl transcript file (download and unzip ftp://ftp.ensembl.org/pub/grch37/release-87/gff3/homo_sapiens/Homo_sapiens.GRCh37.87.chr.gff3.gz).", false);
+		addInfile("in", "Ensembl transcript file (download and unzip ftp://ftp.ensembl.org/pub/grch37/release-87/gff3/homo_sapiens/Homo_sapiens.GRCh37.87.chr.gff3.gz for GRCh37 and ftp://ftp.ensembl.org/pub/release-104/gff3/homo_sapiens/Homo_sapiens.GRCh38.104.chr.gff3.gz for GRCh38).", false);
 
 		//optional
-        addInfile("pseudogenes", "Pseudogene flat file (download from http://pseudogene.org/psidr/psiDR.v0.txt).", true);
+		addInfileList("pseudogenes", "Pseudogene flat file(s) (download from http://pseudogene.org/psidr/psiDR.v0.txt).", true);
 		addFlag("all", "If set, all transcripts are imported (the default is to skip transcripts not labeled as with the 'GENCODE basic' tag).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 
-
+		changeLog(2021,  6, 9, "Added support for multiple pseudogene files and duplication check.");
         changeLog(2021,  1, 25, "Made pseudogene file optional");
 		changeLog(2021,  1, 20, "Added import of pseudogene relations");
         changeLog(2019,  8, 12, "Added handling of HGNC identifiers to resolve ambiguous gene names");
@@ -123,11 +125,12 @@ public:
 		QTextStream out(stdout);
 
 		// prepare db queries
-		SqlQuery q_pseudogene = db.getQuery();
-		q_pseudogene.prepare("INSERT INTO gene_pseudogene_relation (parent_gene_id, pseudogene_gene_id, gene_name) VALUES (:0, :1, :2);");
+//		SqlQuery q_select_pseudogene = db.getQuery();
+//		q_select_pseudogene.prepare("SELECT id FROM gene_pseudogene_relation WHERE parent_gene_id=:0 AND pseudogene_gene_id=:1");
+//		SqlQuery q_select_genename = db.getQuery();
 
-		// parse pseudogene file
-		QSharedPointer<QFile> pseudogene_fp = Helper::openFileForReading(pseudogene_file_path);
+		SqlQuery q_insert_pseudogene = db.getQuery();
+		q_insert_pseudogene.prepare("INSERT INTO gene_pseudogene_relation (parent_gene_id, pseudogene_gene_id, gene_name) VALUES (:0, :1, :2);");
 
 		// stats
 		int n_missing_pseudogene_transcript_id = 0;
@@ -138,12 +141,18 @@ public:
 		int n_found_gene_gene_relations = 0;
 		int n_found_gene_gene_relations_by_name_matching = 0;
 		int n_found_gene_name_relations = 0;
+		int n_duplicate_pseudogenes = 0;
+
+		// extract file name
+		QString filename = QFileInfo(pseudogene_file_path).fileName();
+		// parse pseudogene file
+		QSharedPointer<QFile> pseudogene_fp = Helper::openFileForReading(pseudogene_file_path);
 
 
 		while(!pseudogene_fp->atEnd())
 		{
 			QByteArray line = pseudogene_fp->readLine().trimmed();
-			if (line.isEmpty() || line.startsWith("#") || line.startsWith("Pseudogene_id")) continue;
+			if (line.isEmpty() || line.startsWith("#") || line.startsWith("Pseudogene_id") || line.startsWith("ID")) continue;
 			QByteArrayList parts = line.split('\t');
 
 			// parse ensembl transcript ids
@@ -174,12 +183,22 @@ public:
 			{
 				pseudogene_gene_id = db.getValue("SELECT gene_id FROM gene_transcript WHERE id=" + QByteArray::number(pseudogene_transcript_id), false).toInt();
 
-				// execute SQL query
-				q_pseudogene.bindValue(0, parent_gene_id);
-				q_pseudogene.bindValue(1, pseudogene_gene_id);
-				q_pseudogene.bindValue(2, QVariant());
-				q_pseudogene.exec();
-				n_found_gene_gene_relations++;
+				// check existance
+				if(db.getValue("SELECT id FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(parent_gene_id) + " AND pseudogene_gene_id=" + QString::number(pseudogene_gene_id), true) == QVariant())
+				{
+					// execute SQL query
+					q_insert_pseudogene.bindValue(0, parent_gene_id);
+					q_insert_pseudogene.bindValue(1, pseudogene_gene_id);
+					q_insert_pseudogene.bindValue(2, QVariant());
+					q_insert_pseudogene.exec();
+					n_found_gene_gene_relations++;
+				}
+				else
+				{
+					n_duplicate_pseudogenes++;
+				}
+
+
 			}
 			else // fallback1 lookup gene name in ensembl file
 			{
@@ -196,21 +215,37 @@ public:
 						// try to match by gene name
 						if (pseudogene_gene_id != -1)
 						{
-							// store gene-pseudogene relation
-							q_pseudogene.bindValue(0, parent_gene_id);
-							q_pseudogene.bindValue(1, pseudogene_gene_id);
-							q_pseudogene.bindValue(2, QVariant());
-							q_pseudogene.exec();
-							n_found_gene_gene_relations_by_name_matching++;
+							// check existance
+							if(db.getValue("SELECT id FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(parent_gene_id) + " AND pseudogene_gene_id=" + QString::number(pseudogene_gene_id), true) == QVariant())
+							{
+								// store gene-pseudogene relation
+								q_insert_pseudogene.bindValue(0, parent_gene_id);
+								q_insert_pseudogene.bindValue(1, pseudogene_gene_id);
+								q_insert_pseudogene.bindValue(2, QVariant());
+								q_insert_pseudogene.exec();
+								n_found_gene_gene_relations_by_name_matching++;
+							}
+							else
+							{
+								n_duplicate_pseudogenes++;
+							}
 						}
 						else // fallback 2: annotate parent with pseudogene name and ensembl id
 						{
-							// execute SQL query
-							q_pseudogene.bindValue(0, parent_gene_id);
-							q_pseudogene.bindValue(1, QVariant());
-							q_pseudogene.bindValue(2, ensembl_gene_id + ";" + gene_name);
-							q_pseudogene.exec();
-							n_found_gene_name_relations++;
+							// check existance
+							if(db.getValue("SELECT id FROM gene_pseudogene_relation WHERE parent_gene_id=" + QString::number(parent_gene_id) + " AND gene_name='" +  ensembl_gene_id + ";" + gene_name + "'", true) == QVariant())
+							{
+								// execute SQL query
+								q_insert_pseudogene.bindValue(0, parent_gene_id);
+								q_insert_pseudogene.bindValue(1, QVariant());
+								q_insert_pseudogene.bindValue(2, ensembl_gene_id + ";" + gene_name);
+								q_insert_pseudogene.exec();
+								n_found_gene_name_relations++;
+							}
+							else
+							{
+								n_duplicate_pseudogenes++;
+							}
 						}
 					}
 					else
@@ -228,7 +263,7 @@ public:
 
 		}
 		// print stats:
-		out << "pseudogene flat file:\n";
+		out << "pseudogene flat file: " << filename << "\n";
 		out << "\t missing parent transcript ids in File: " << n_missing_parent_in_file << "\n";
 		out << "\t missing pseudogene transcript ids in NGSD: " << n_missing_pseudogene_transcript_id << "\n";
 		out << "\t missing parent transcript ids in NGSD: " << n_missing_parent_transcript_id << "\n";
@@ -237,6 +272,7 @@ public:
 		out << "\t found gene-name relations: " << n_found_gene_name_relations << "\n";
 		out << "\t pseudogenes with no gene name: " << n_missing_gene_name << "\n";
 		out << "\t pseudogenes with unknown transcript: " << n_unknown_transcript << "\n";
+		out << "\t pseudogenes already in database: " << n_duplicate_pseudogenes << "\n";
 
 	}
 
@@ -421,10 +457,13 @@ public:
 			}
 		}
 
-
 		// parse Pseudogene file
-        QString pseudogene_file_path = getInfile("pseudogenes");
-        if (!pseudogene_file_path.isEmpty()) importPseudogenes(transcript_gene_relation, gene_name_relation, pseudogene_file_path);
+		QStringList pseudogene_file_paths = getInfileList("pseudogenes");
+		foreach (const QString& file_path, pseudogene_file_paths)
+		{
+			importPseudogenes(transcript_gene_relation, gene_name_relation, file_path);
+		}
+
     }
 };
 

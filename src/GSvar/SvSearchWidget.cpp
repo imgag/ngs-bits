@@ -4,29 +4,37 @@
 #include "Helper.h"
 #include "FilterCascade.h"
 #include "NGSHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QMessageBox>
 #include <QClipboard>
+#include <QAction>
 
 SvSearchWidget::SvSearchWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_()
-	, init_timer_(this, true)
 	, db_()
 {
 	ui_.setupUi(this);
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
 
 	connect(ui_.rb_single_sv->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
+
+	QAction* action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
 }
 
-void SvSearchWidget::setCoordinates(const BedpeLine& sv_coordinates)
+void SvSearchWidget::setVariant(const BedpeLine& sv)
 {
-	ui_.coordinates1->setText(sv_coordinates.chr1().strNormalized(true) + ":" + QString::number(sv_coordinates.start1()) + "-" + QString::number(sv_coordinates.end1()));
-	ui_.coordinates2->setText(sv_coordinates.chr2().strNormalized(true) + ":" + QString::number(sv_coordinates.start2()) + "-" + QString::number(sv_coordinates.end2()));
-	ui_.svType->setCurrentText(BedpeFile::typeToString(sv_coordinates.type()));
+	//type
+	ui_.svType->setCurrentText(BedpeFile::typeToString(sv.type()));
+
+	//coordinates
+	ui_.coordinates1->setText(sv.chr1().strNormalized(true) + ":" + QString::number(sv.start1()) + "-" + QString::number(sv.end1()));
+	ui_.coordinates2->setText(sv.chr2().strNormalized(true) + ":" + QString::number(sv.start2()) + "-" + QString::number(sv.end2()));
 
 	ui_.rb_single_sv->setChecked(true);
 }
@@ -34,7 +42,8 @@ void SvSearchWidget::setCoordinates(const BedpeLine& sv_coordinates)
 void SvSearchWidget::setProcessedSampleId(QString ps_id)
 {
 	ps_id_ = ps_id;
-	ui_.same_processing_system_only->setEnabled((ps_id_ != ""));
+
+	ui_.same_processing_system_only->setEnabled(ps_id_!="");
 	ui_.same_processing_system_only->setChecked(ui_.same_processing_system_only->isEnabled());
 }
 
@@ -50,7 +59,7 @@ void SvSearchWidget::search()
 	{
 		// SV type/table
 		StructuralVariantType type = BedpeFile::stringToType(ui_.svType->currentText().toUtf8());
-		QString sv_table = db_.svTableName(type) + " as sv ";
+		QString sv_table = db_.svTableName(type);
 
 		// define table columns
 		QByteArrayList selected_columns;
@@ -62,7 +71,7 @@ void SvSearchWidget::search()
 		if(type==StructuralVariantType::BND) selected_columns << "sv.chr1" << "sv.start1" << "sv.end1" << "sv.chr2" << "sv.start2" << "sv.end2";
 		else if(type==StructuralVariantType::INS) selected_columns << "sv.chr" << "sv.pos AS start" << "(sv.pos + sv.ci_upper) AS end";
 		else selected_columns << "sv.chr" << "sv.start_min" << "sv.start_max" << "sv.end_min" << "sv.end_max";
-		selected_columns << "rpc.class";
+		selected_columns << "rcs.class" << "CONCAT(rcs.comments, ' // ', rcs.comments2) as report_config_comments";
 
 		// query part for position match
 		QByteArray query_same_position;
@@ -206,7 +215,7 @@ void SvSearchWidget::search()
 				}
 			}
 
-			//concatinate single pos querie
+			//concatinate single pos query
 			query_same_position += "(" + query_pos_overlap.join("OR ") + ") ";
 		}
 		QStringList conditions;
@@ -247,13 +256,13 @@ void SvSearchWidget::search()
 		}
 
 		//(4) create SQL table
-		QString query_join = "SELECT " + selected_columns.join(", ") + " FROM " + sv_table
+		QString query_join = "SELECT " + selected_columns.join(", ") + " FROM " + sv_table + " as sv "
 				+ "INNER JOIN sv_callset sc ON sv.sv_callset_id = sc.id "
 				+ "INNER JOIN processed_sample ps ON sc.processed_sample_id = ps.id "
 				+ "INNER JOIN sample s ON ps.sample_id = s.id "
 				+ "INNER JOIN processing_system sys ON ps.processing_system_id = sys.id "
 				+ "INNER JOIN project p ON ps.project_id = p.id "
-				+ "LEFT JOIN report_configuration_sv rpc ON sv.id = rpc." + sv_table.split(" ")[0] +"_id "
+				+ "LEFT JOIN report_configuration_sv rcs ON sv.id = rcs." + sv_table +"_id "
 				+ "LEFT JOIN diag_status ds ON sc.processed_sample_id=ds.processed_sample_id "
 				+ "WHERE " + conditions.join(" AND ")
 				+ "ORDER BY ps.id ";
@@ -270,11 +279,22 @@ void SvSearchWidget::search()
 		}
 		table.setColumn(hpo_col_index, hpo_terms);
 
-		//(6) show samples with SVs in table
+		//(6) Add validation information
+		QStringList validation_data;
+		for (int r=0; r<table.rowCount(); ++r)
+		{
+			const DBRow& row = table.row(r);
+			QString sv_id = row.id();
+			QString s_id = db_.sampleId(row.value(0));
+			validation_data << db_.getValue("SELECT status FROM variant_validation WHERE sample_id=" + s_id + " AND " + sv_table +"_id=" + sv_id).toString();
+		}
+		table.addColumn(validation_data, "validation_information");
+
+
+		//(7) show samples with SVs in table
 		ui_.table->setData(table);
+		ui_.table->showTextAsTooltip("report_config_comments");
 		ui_.message->setText("Found " + QString::number(ui_.table->rowCount()) + " matching SVs in NGSD.");
-
-
 	}
 	catch(Exception& e)
 	{
@@ -285,14 +305,6 @@ void SvSearchWidget::search()
 	QApplication::restoreOverrideCursor();
 }
 
-void SvSearchWidget::delayedInitialization()
-{
-	if (ui_.coordinates1->text().trimmed()!="" && ui_.coordinates2->text().trimmed()!="")
-	{
-		search();
-	}
-}
-
 void SvSearchWidget::changeSearchType()
 {
 	ui_.coordinates1->setEnabled(ui_.rb_single_sv->isChecked());
@@ -300,4 +312,14 @@ void SvSearchWidget::changeSearchType()
 	ui_.operation->setEnabled(ui_.rb_single_sv->isChecked());
 	ui_.le_region->setEnabled(ui_.rb_region->isChecked());
 	ui_.le_genes->setEnabled(ui_.rb_genes->isChecked());
+}
+
+void SvSearchWidget::openSelectedSampleTabs()
+{
+	int col = ui_.table->columnIndex("sample");
+	foreach (int row, ui_.table->selectedRows().toList())
+	{
+		QString ps = ui_.table->item(row, col)->text();
+		GlobalServiceProvider::openProcessedSampleTab(ps);
+	}
 }

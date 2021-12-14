@@ -72,7 +72,7 @@ CONSTRAINT `fk_gene_id3`
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
 UNIQUE KEY `gene_name_unique` (`gene_id`, `name`),
-KEY `name` (`name`) ,
+UNIQUE KEY `name` (`name`) ,
 KEY `source` (`source`),
 KEY `chromosome` (`chromosome`),
 KEY `start_coding` (`start_coding`), 
@@ -162,7 +162,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system`
   `name_manufacturer` VARCHAR(100) NOT NULL,
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
-  `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)') NOT NULL,
+  `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)', 'cfDNA') NOT NULL,
   `shotgun` TINYINT(1) NOT NULL,
   `umi_type` ENUM('n/a','HaloPlex HS','SureSelect HS','ThruPLEX','Safe-SeqS','MIPs','QIAseq','IDT-UDI-UMI','IDT-xGen-Prism') NOT NULL DEFAULT 'n/a',
   `target_file` VARCHAR(255) NULL DEFAULT NULL COMMENT 'filename of sub-panel BED file relative to the megSAP enrichment folder.',
@@ -344,7 +344,7 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `name_external` VARCHAR(255) NULL DEFAULT NULL COMMENT 'External names.<br>If several, separate by comma!<br>Always enter full names, no short forms!',
   `received` DATE NULL DEFAULT NULL,
   `receiver_id` INT(11) NULL DEFAULT NULL,
-  `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA') NOT NULL,
+  `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA','cfDNA') NOT NULL,
   `species_id` INT(11) NOT NULL,
   `concentration` FLOAT NULL DEFAULT NULL,
   `volume` FLOAT NULL DEFAULT NULL,
@@ -358,7 +358,7 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `ffpe` TINYINT(1) NOT NULL,
   `sender_id` INT(11) NOT NULL,
   `disease_group` ENUM('n/a','Neoplasms','Diseases of the blood or blood-forming organs','Diseases of the immune system','Endocrine, nutritional or metabolic diseases','Mental, behavioural or neurodevelopmental disorders','Sleep-wake disorders','Diseases of the nervous system','Diseases of the visual system','Diseases of the ear or mastoid process','Diseases of the circulatory system','Diseases of the respiratory system','Diseases of the digestive system','Diseases of the skin','Diseases of the musculoskeletal system or connective tissue','Diseases of the genitourinary system','Developmental anomalies','Other diseases') NOT NULL DEFAULT 'n/a',
-  `disease_status` ENUM('n/a','Affected','Unaffected') NOT NULL DEFAULT 'n/a',
+  `disease_status` ENUM('n/a','Affected','Unaffected','Unclear') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `name_UNIQUE` (`name` ASC),
   INDEX `fk_samples_species1` (`species_id` ASC),
@@ -562,13 +562,14 @@ CREATE  TABLE IF NOT EXISTS `variant`
   `obs` TEXT NOT NULL,
   `1000g` FLOAT NULL DEFAULT NULL,
   `gnomad` FLOAT NULL DEFAULT NULL,
-  `gene` TEXT NULL DEFAULT NULL,
-  `variant_type` TEXT NULL DEFAULT NULL,
   `coding` TEXT NULL DEFAULT NULL,  
   `comment` TEXT NULL DEFAULT NULL,
+  `cadd` FLOAT NULL DEFAULT NULL,
+  `spliceai` FLOAT NULL DEFAULT NULL,
+  `germline_het` INT(11) NOT NULL DEFAULT '0',
+  `germline_hom` INT(11) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `variant_UNIQUE` (`chr` ASC, `start` ASC, `end` ASC, `ref`(255) ASC, `obs`(255) ASC),
-  INDEX `gene` (`gene`(50) ASC),
   INDEX `1000g` (`1000g` ASC),
   INDEX `gnomad` (`gnomad` ASC),
   INDEX `comment` (`comment`(50) ASC)
@@ -586,7 +587,7 @@ CREATE  TABLE IF NOT EXISTS `variant_publication`
   `sample_id` INT(11) NOT NULL,
   `variant_id` INT(11) NOT NULL,
   `db` ENUM('LOVD','ClinVar') NOT NULL,
-  `class` ENUM('1','2','3','4','5') NOT NULL,
+  `class` ENUM('1','2','3','4','5', 'M') NOT NULL,
   `details` TEXT NOT NULL,
   `user_id` INT(11) NOT NULL,
   `date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -975,7 +976,7 @@ DEFAULT CHARACTER SET = utf8;
 
 CREATE TABLE IF NOT EXISTS `analysis_job`
 (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
   `type` enum('single sample','multi sample','trio','somatic') NOT NULL,
   `high_priority` TINYINT(1) NOT NULL,
   `args` text NOT NULL,
@@ -1126,7 +1127,11 @@ CREATE TABLE IF NOT EXISTS `somatic_report_configuration` (
   `tum_content_hist` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include histological tumor content estimate ',
   `msi_status` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'include microsatellite instability status',
   `cnv_burden` BOOLEAN NOT NULL DEFAULT FALSE,
-  `hrd_score` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'homologous recombination deficiency score',
+  `hrd_score` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'homologous recombination deficiency score, determined manually by user',
+  `hrd_statement` ENUM('no proof', 'proof', 'undeterminable') NULL DEFAULT NULL COMMENT 'comment to be shown in somatic report about HRD score',
+  `cnv_loh_count` INT(11) NULL DEFAULT NULL COMMENT 'number of somatic LOH events, determined from CNV file',
+  `cnv_tai_count` INT(11) NULL DEFAULT NULL COMMENT 'number of somatic telomer allelic imbalance events, determined from CNV file',
+  `cnv_lst_count` INT(11) NULL DEFAULT NULL COMMENT 'number of somatic long state transitions events, determined from CNV file',
   `tmb_ref_text` VARCHAR(200) NULL DEFAULT NULL COMMENT 'reference data as free text for tumor mutation burden',
   `quality` ENUM('no abnormalities','tumor cell content too low', 'quality of tumor DNA too low', 'DNA quantity too low', 'heterogeneous sample') NULL DEFAULT NULL COMMENT 'user comment on the quality of the DNA',
   `fusions_detected` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'fusions or other SVs were detected. Cannot be determined automatically, because manta files contain too many false positives',
@@ -1747,9 +1752,12 @@ CREATE TABLE IF NOT EXISTS `evaluation_sheet_data`
   `acmg_noticeable` BOOLEAN DEFAULT FALSE NOT NULL,
   `filtered_by_freq_based_dominant` BOOLEAN DEFAULT FALSE NOT NULL,
   `filtered_by_freq_based_recessive` BOOLEAN DEFAULT FALSE NOT NULL,
-  `filtered_by_cnv` BOOLEAN DEFAULT FALSE NOT NULL,
   `filtered_by_mito` BOOLEAN DEFAULT FALSE NOT NULL,
   `filtered_by_x_chr` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_cnv` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_svs` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_res` BOOLEAN DEFAULT FALSE NOT NULL,
+  `filtered_by_mosaic` BOOLEAN DEFAULT FALSE NOT NULL,
   `filtered_by_phenotype` BOOLEAN DEFAULT FALSE NOT NULL,
   `filtered_by_multisample` BOOLEAN DEFAULT FALSE NOT NULL,
   `filtered_by_trio_stringent` BOOLEAN DEFAULT FALSE NOT NULL,
@@ -1818,7 +1826,7 @@ CREATE  TABLE IF NOT EXISTS `variant_validation`
   `sv_inversion_id` INT(11) UNSIGNED DEFAULT NULL,
   `sv_translocation_id` INT(11) UNSIGNED DEFAULT NULL,
   `genotype` ENUM('hom','het') DEFAULT NULL,
-  `validation_method` ENUM('Sanger sequencing', 'breakpoint PCR', 'qPCR', 'MLPA', 'Array', 'n/a') NOT NULL DEFAULT 'n/a',
+  `validation_method` ENUM('Sanger sequencing', 'breakpoint PCR', 'qPCR', 'MLPA', 'Array', 'shallow WGS', 'fragment length analysis', 'n/a') NOT NULL DEFAULT 'n/a',
   `status` ENUM('n/a','to validate','to segregate','for reporting','true positive','false positive','wrong genotype') NOT NULL DEFAULT 'n/a',
   `comment` TEXT NULL DEFAULT NULL,
 PRIMARY KEY (`id`),
@@ -2031,6 +2039,67 @@ CONSTRAINT `subpanels_created_by_user`
   REFERENCES `user` (`id`)
   ON DELETE NO ACTION
   ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `cfdna_panels`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `cfdna_panels`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `tumor_id` INT(11) NOT NULL,
+  `cfdna_id` INT(11) DEFAULT NULL,
+  `created_by` INT(11) DEFAULT NULL,
+  `created_date` DATE NOT NULL,
+  `processing_system_id` INT(11) NOT NULL,
+  `bed` MEDIUMTEXT NOT NULL,
+  `vcf` MEDIUMTEXT NOT NULL,
+  `excluded_regions` MEDIUMTEXT DEFAULT NULL,
+PRIMARY KEY (`id`),
+INDEX(`created_by`),
+INDEX(`created_date`),
+INDEX(`tumor_id`),
+UNIQUE `unique_cfdna_panel`(`tumor_id`, `processing_system_id`),
+CONSTRAINT `cfdna_panels_tumor_id`
+  FOREIGN KEY (`tumor_id`)
+  REFERENCES `processed_sample` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `cfdna_panels_cfdna_id`
+  FOREIGN KEY (`cfdna_id`)
+  REFERENCES `processed_sample` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `cfdna_panels_created_by_user`
+  FOREIGN KEY (`created_by`)
+  REFERENCES `user` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION,
+CONSTRAINT `cfdna_panels_processing_system_id`
+  FOREIGN KEY (`processing_system_id`)
+  REFERENCES `processing_system` (`id`)
+  ON DELETE NO ACTION
+  ON UPDATE NO ACTION
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
+-- Table `cfdna_panel_genes`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `cfdna_panel_genes`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `gene_name` VARCHAR(40) CHARACTER SET 'utf8' NOT NULL,
+  `chr` ENUM('chr1','chr2','chr3','chr4','chr5','chr6','chr7','chr8','chr9','chr10','chr11','chr12','chr13','chr14','chr15','chr16','chr17','chr18','chr19','chr20','chr21','chr22','chrY','chrX','chrMT') NOT NULL,
+  `start` INT(11) UNSIGNED NOT NULL,
+  `end` INT(11) UNSIGNED NOT NULL,
+  `date` DATE NOT NULL,
+  `bed` MEDIUMTEXT NOT NULL,
+PRIMARY KEY (`id`),
+UNIQUE INDEX(`gene_name`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;

@@ -4,6 +4,7 @@
 #include "ui_PublishedVariantsWidget.h"
 #include "NGSD.h"
 #include "NGSHelper.h"
+#include "GSvarHelper.h"
 #include <QAction>
 
 PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
@@ -102,6 +103,13 @@ void PublishedVariantsWidget::updateTable()
 	headers.replace(headers.indexOf("variant_id"), "variant");
 	table.setHeaders(headers);
 
+	//filter by text
+	QString text_filter = ui_->f_text->text().trimmed();
+	if (text_filter!="")
+	{
+		table.filterRows(text_filter);
+	}
+
 	//show data
 	ui_->table->setData(table);
 	QApplication::restoreOverrideCursor();
@@ -121,7 +129,7 @@ void PublishedVariantsWidget::searchForVariantInLOVD()
 
 			int pos = variant.start();
 			if (variant.ref()=="-") pos += 1;
-			QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false) + "&search_VariantOnGenome/DNA=g." + QString::number(pos)));
+			QDesktopServices::openUrl(QUrl("https://databases.lovd.nl/shared/variants#search_chromosome=" + variant.chr().strNormalized(false) + "&search_VariantOnGenome/DNA"+(GSvarHelper::build()==GenomeBuild::HG38 ? "/hg38" : "")+"=g." + QString::number(pos)));
 		}
 	}
 	catch(Exception& e)
@@ -145,7 +153,7 @@ void PublishedVariantsWidget::searchForVariantInClinVar()
 			int start = variant.start();
 			int end = variant.end();
 
-			QDesktopServices::openUrl(QUrl("http://www.ncbi.nlm.nih.gov/clinvar/?term=" + variant.chr().strNormalized(false) + "[chr]+AND+" + QString::number(start) + ":" + QString::number(end) + "[chrpos37]"));
+			QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/clinvar/?term=" + variant.chr().strNormalized(false) + "[chr]+AND+" + QString::number(start) + ":" + QString::number(end) + (GSvarHelper::build()==GenomeBuild::HG38 ? "[cpos]" : "[chrpos37]")));
 		}
 	}
 	catch(Exception& e)

@@ -10,16 +10,7 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "DBComboBox.h"
-
-struct GeneEntry
-{
-	QString gene_name;
-	Chromosome chr;
-	int start;
-	int end;
-	QDate date;
-	QString file_path;
-};
+#include "NGSD.h"
 
 namespace Ui {
 class CfDNAPanelDesignDialog;
@@ -33,35 +24,42 @@ public:
 	explicit CfDNAPanelDesignDialog(const VariantList& variants, const FilterResult& filter_result, const SomaticReportConfiguration& somatic_report_configuration, const QString& processed_sample_name, const DBTable& processing_systems, QWidget *parent = 0);
 	~CfDNAPanelDesignDialog();
 
-signals:
-	void openInIGV(QString coords);
-
 private slots:
 	void showVariantContextMenu(QPoint pos);
 	void showHotspotContextMenu(QPoint pos);
 	void showGeneContextMenu(QPoint pos);
 	void showHotspotRegions(int state);
-	void createOutputFiles();
 	void selectAllVariants(bool deselect=false);
 	void selectAllHotspotRegions(bool deselect=false);
 	void selectAllGenes(bool deselect=false);
 	void updateSelectedVariantCount();
 	void updateSelectedHotspotCount();
 	void openVariantInIGV(QTableWidgetItem* item);
+	void updateSystemSelection();
+	void writePanelToFile();
+	void storePanelInNGSD();
 
 private:
-	void loadPreviousPanels(const DBTable& processing_systems);
+	void loadPreviousPanels();
 	void loadVariants();
 	void loadGenes();
 	void loadHotspotRegions();
+	VcfFile createVcfFile();
+	BedFile createBedFile(const VcfFile& vcf_file);
+	int selectedVariantCount();
 
 	Ui::CfDNAPanelDesignDialog *ui_;
 	const VariantList& variants_;
 	const FilterResult& filter_result_;
 	const SomaticReportConfiguration& somatic_report_configuration_;
 	QMap<QString, bool> prev_vars_;
+	QSet<QString> prev_genes_;
+	bool prev_id_snp_;
+	QMap<QString, bool> prev_hotspots_;
 	QString processed_sample_name_;
-	QList<GeneEntry> genes_;
+    QString processed_sample_id_;
+	QList<CfdnaGeneEntry> genes_;
+	CfdnaPanelInfo cfdna_panel_info_;
 };
 
 #endif // CFDNAPANELDESIGNDIALOG_H

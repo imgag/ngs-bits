@@ -18,7 +18,7 @@ TEST_CLASS(Statistics_Test)
 		BedFile target_test_file;
 		target_test_file.load(TESTDATA("data_in/Statistics_somatic_tmb_target.bed")); //exons of ssscv4, sorted and merged
 
-		QCCollection stats = Statistics::somatic("hg19", tumor_bam, normal_bam, somatic_vcf, QString(),target_test_file, true);
+		QCCollection stats = Statistics::somatic(GenomeBuild::HG19, tumor_bam, normal_bam, somatic_vcf, QString(),target_test_file, true);
 
 		S_EQUAL(stats[0].name(), QString("sample correlation"));
 		S_EQUAL(stats[0].accession(), QString("QC:2000040"));
@@ -228,7 +228,7 @@ TEST_CLASS(Statistics_Test)
 
 	void contamination()
 	{
-		QCCollection stats = Statistics::contamination("hg19", TESTDATA("data_in/panel.bam"));
+		QCCollection stats = Statistics::contamination(GenomeBuild::HG19, TESTDATA("data_in/panel.bam"));
 		I_EQUAL(stats.count(), 1);
 		S_EQUAL(stats[0].name(), QString("SNV allele frequency deviation"));
 		S_EQUAL(stats[0].toString(), QString("1.57"));
@@ -317,6 +317,89 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[9].name(), QString("insert size distribution plot"));
 		IS_TRUE(stats[9].type()==QVariant::ByteArray);
 		I_EQUAL(stats.count(), 10);
+	}
+
+	void mapping_cfdna()
+	{
+		QString ref_file = Settings::string("reference_genome", true);
+		if (ref_file=="") SKIP("Test needs the reference genome!");
+
+		BedFile bed_file;
+		bed_file.load(TESTDATA("data_in/cfDNA.bed"));
+		bed_file.merge();
+
+		QCCollection stats = Statistics::mapping(bed_file, TESTDATA("data_in/cfDNA.bam"), ref_file, 1, true);
+		I_EQUAL(stats.count(), 35);
+		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
+		S_EQUAL(stats[0].toString(), QString("0.36"));
+		S_EQUAL(stats[1].name(), QString("clipped base percentage"));
+		S_EQUAL(stats[1].toString(), QString("1.03"));
+		S_EQUAL(stats[2].name(), QString("mapped read percentage"));
+		S_EQUAL(stats[2].toString(), QString("99.27"));
+		S_EQUAL(stats[3].name(), QString("on-target read percentage"));
+		S_EQUAL(stats[3].toString(), QString("99.27"));
+		S_EQUAL(stats[4].name(), QString("near-target read percentage"));
+		S_EQUAL(stats[4].toString(), QString("99.27"));
+		S_EQUAL(stats[5].name(), QString("properly-paired read percentage"));
+		S_EQUAL(stats[5].toString(), QString("97.45"));
+		S_EQUAL(stats[6].name(), QString("insert size"));
+		S_EQUAL(stats[6].toString(), QString("150.57"));
+		S_EQUAL(stats[7].name(), QString("duplicate read percentage"));
+		S_EQUAL(stats[7].toString(), QString("n/a (no duplicates marked or duplicates removed during data analysis)"));
+		S_EQUAL(stats[8].name(), QString("bases usable (MB)"));
+		S_EQUAL(stats[8].toString(), QString("1.56"));
+		S_EQUAL(stats[9].name(), QString("target region read depth"));
+		S_EQUAL(stats[9].toString(), QString("6505.90"));
+		S_EQUAL(stats[10].name(), QString("target region read depth 2-fold duplication"));
+		S_EQUAL(stats[10].toString(), QString("4668.92"));
+		S_EQUAL(stats[11].name(), QString("target region read depth 3-fold duplication"));
+		S_EQUAL(stats[11].toString(), QString("4568.45"));
+		S_EQUAL(stats[12].name(), QString("target region read depth 4-fold duplication"));
+		S_EQUAL(stats[12].toString(), QString("4531.60"));
+		S_EQUAL(stats[13].name(), QString("raw target region read depth"));
+		S_EQUAL(stats[13].toString(), QString("242405.61"));
+		S_EQUAL(stats[14].name(), QString("target region 10x percentage"));
+		S_EQUAL(stats[14].toString(), QString("100.00"));
+		S_EQUAL(stats[15].name(), QString("target region 20x percentage"));
+		S_EQUAL(stats[15].toString(), QString("100.00"));
+		S_EQUAL(stats[16].name(), QString("target region 30x percentage"));
+		S_EQUAL(stats[16].toString(), QString("100.00"));
+		S_EQUAL(stats[17].name(), QString("target region 50x percentage"));
+		S_EQUAL(stats[17].toString(), QString("100.00"));
+		S_EQUAL(stats[18].name(), QString("target region 100x percentage"));
+		S_EQUAL(stats[18].toString(), QString("100.00"));
+		S_EQUAL(stats[19].name(), QString("target region 200x percentage"));
+		S_EQUAL(stats[19].toString(), QString("100.00"));
+		S_EQUAL(stats[20].name(), QString("target region 500x percentage"));
+		S_EQUAL(stats[20].toString(), QString("100.00"));
+		S_EQUAL(stats[21].name(), QString("target region 1000x percentage"));
+		S_EQUAL(stats[21].toString(), QString("100.00"));
+		S_EQUAL(stats[22].name(), QString("target region 2500x percentage"));
+		S_EQUAL(stats[22].toString(), QString("100.00"));
+		S_EQUAL(stats[23].name(), QString("target region 5000x percentage"));
+		S_EQUAL(stats[23].toString(), QString("93.75"));
+		S_EQUAL(stats[24].name(), QString("target region 7500x percentage"));
+		S_EQUAL(stats[24].toString(), QString("46.25"));
+		S_EQUAL(stats[25].name(), QString("target region 10000x percentage"));
+		S_EQUAL(stats[25].toString(), QString("0.00"));
+		S_EQUAL(stats[26].name(), QString("target region 15000x percentage"));
+		S_EQUAL(stats[26].toString(), QString("0.00"));
+		S_EQUAL(stats[27].name(), QString("target region half depth percentage"));
+		S_EQUAL(stats[27].toString(), QString("100.00"));
+		S_EQUAL(stats[28].name(), QString("AT dropout"));
+		S_EQUAL(stats[28].toString(), QString("10.58"));
+		S_EQUAL(stats[29].name(), QString("GC dropout"));
+		S_EQUAL(stats[29].toString(), QString("0.00"));
+		S_EQUAL(stats[30].name(), QString("depth distribution plot"));
+		IS_TRUE(stats[30].type()==QVariant::ByteArray);
+		S_EQUAL(stats[31].name(), QString("insert size distribution plot"));
+		IS_TRUE(stats[31].type()==QVariant::ByteArray);
+		S_EQUAL(stats[32].name(), QString("fragment duplication distribution plot"));
+		IS_TRUE(stats[32].type()==QVariant::ByteArray);
+		S_EQUAL(stats[33].name(), QString("duplication-coverage plot"));
+		IS_TRUE(stats[33].type()==QVariant::ByteArray);
+		S_EQUAL(stats[34].name(), QString("GC bias plot"));
+		IS_TRUE(stats[34].type()==QVariant::ByteArray);
 	}
 
 	void region1()
@@ -537,23 +620,23 @@ TEST_CLASS(Statistics_Test)
 
 	void genderHetX()
 	{
-		GenderEstimate estimate = Statistics::genderHetX(TESTDATA("data_in/panel.bam"), "hg19");
+		GenderEstimate estimate = Statistics::genderHetX(GenomeBuild::HG19, TESTDATA("data_in/panel.bam"));
 		S_EQUAL(estimate.gender, QString("unknown (too few SNPs)"));
 	}
 
 	void genderSRY()
 	{
-		GenderEstimate estimate = Statistics::genderSRY(TESTDATA("data_in/panel.bam"), "hg19");
+		GenderEstimate estimate = Statistics::genderSRY(GenomeBuild::HG19, TESTDATA("data_in/panel.bam"));
 		S_EQUAL(estimate.gender, "female");
 
-		estimate = Statistics::genderSRY(TESTDATA("data_in/sry.bam"), "hg19");
+		estimate = Statistics::genderSRY(GenomeBuild::HG19, TESTDATA("data_in/sry.bam"));
 		S_EQUAL(estimate.gender, "male");
 	}
 
 	void ancestry()
 	{
 		//default
-		AncestryEstimates ancestry = Statistics::ancestry("hg19", TESTDATA("data_in/ancestry.vcf.gz"));
+		AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG19, TESTDATA("data_in/ancestry.vcf.gz"));
 		I_EQUAL(ancestry.snps, 3096);
 		F_EQUAL2(ancestry.afr, 0.0114, 0.001);
 		F_EQUAL2(ancestry.eur, 0.3088, 0.001);
@@ -562,12 +645,12 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(ancestry.population, "EUR");
 
 		//not enough SNPs
-		ancestry = Statistics::ancestry("hg19", TESTDATA("data_in/ancestry.vcf.gz"), 10000);
+		ancestry = Statistics::ancestry(GenomeBuild::HG19, TESTDATA("data_in/ancestry.vcf.gz"), 10000);
 		I_EQUAL(ancestry.snps, 3096);
 		S_EQUAL(ancestry.population, "NOT_ENOUGH_SNPS");
 
 		//not enough popultation distance
-		ancestry = Statistics::ancestry("hg19", TESTDATA("data_in/ancestry.vcf.gz"), 1000, 0.7);
+		ancestry = Statistics::ancestry(GenomeBuild::HG19, TESTDATA("data_in/ancestry.vcf.gz"), 1000, 0.0, 2.0);
 		I_EQUAL(ancestry.snps, 3096);
 		F_EQUAL2(ancestry.afr, 0.0114, 0.001);
 		F_EQUAL2(ancestry.eur, 0.3088, 0.001);
@@ -578,7 +661,7 @@ TEST_CLASS(Statistics_Test)
 
 	void ancestry_hg38()
 	{
-		AncestryEstimates ancestry = Statistics::ancestry("hg38", TESTDATA("data_in/ancestry_hg38.vcf.gz"));
+		AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, TESTDATA("data_in/ancestry_hg38.vcf.gz"));
 		I_EQUAL(ancestry.snps, 2126);
 		F_EQUAL2(ancestry.afr, 0.4984, 0.001);
 		F_EQUAL2(ancestry.eur, 0.0241, 0.001);
@@ -586,5 +669,21 @@ TEST_CLASS(Statistics_Test)
 		F_EQUAL2(ancestry.eas, 0.0742, 0.001);
 		S_EQUAL(ancestry.population, "AFR");
 	}
+
+
+	void hrdScore()
+	{
+		CnvList cnvs;
+		cnvs.load( TESTDATA("data_in/hrdScore_lst_cnvs.tsv") );
+
+		QCCollection hrd_results = Statistics::hrdScore(cnvs, GenomeBuild::HG19);
+
+		I_EQUAL(hrd_results.value("QC:2000062", true).asInt() , 2);
+		I_EQUAL(hrd_results.value("QC:2000063", true).asInt() , 3);
+		I_EQUAL(hrd_results.value("QC:2000064", true).asInt() , 3);
+
+	}
+
+
 };
 

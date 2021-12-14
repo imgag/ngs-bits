@@ -52,6 +52,8 @@ public:
 			}
 		}
 	}
+	//Uses the cell text additionally as tooltip
+	void showTextAsTooltip(const QString& column_header);
 
 	//Returns selected row indices.
 	QSet<int> selectedRows() const;
@@ -71,7 +73,6 @@ signals:
 
 protected:
 	void keyPressEvent(QKeyEvent* event) override;
-	void copyToClipboard(bool selection_only);
 
 protected slots:
 	void copySelectionToClipboard();

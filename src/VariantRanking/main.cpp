@@ -51,20 +51,16 @@ public:
 			if (hpo_id.isEmpty()) continue;
 			
 			//determine phenotype
-			Phenotype pheno;
-			try
+			int term_id = db.phenotypeIdByAccession(hpo_id.toLatin1(), false);
+			if (term_id==-1)
 			{
-				pheno = db.phenotypeByAccession(hpo_id.toLatin1());
-			}
-			catch(Exception& e)
-			{
-				Log::warn(e.message());
+				Log::warn("No HPO phenotype with accession '" + hpo_id + "' found in NGSD!");
 				continue;
 			}
 			
 			//pheno > genes > roi
 			BedFile roi;
-			GeneSet genes = db.phenotypeToGenes(pheno, true);
+			GeneSet genes = db.phenotypeToGenes(term_id, true);
 			foreach(const QByteArray& gene, genes)
 			{
 				if (!gene2region_cache.contains(gene))
@@ -76,7 +72,7 @@ public:
 			roi.extend(5000);
 			roi.merge();
 
-			phenotype_rois[pheno] = roi;
+			phenotype_rois[db.phenotype(term_id)] = roi;
 		}
 
 		//rank

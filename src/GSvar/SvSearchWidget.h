@@ -3,7 +3,6 @@
 
 #include <QWidget>
 #include "NGSD.h"
-#include "DelayedInitializationTimer.h"
 #include "ui_SvSearchWidget.h"
 
 class SvSearchWidget
@@ -13,17 +12,16 @@ class SvSearchWidget
 
 public:
 	SvSearchWidget(QWidget* parent = 0);
-	void setCoordinates(const BedpeLine& sv_coordinates);
+	void setVariant(const BedpeLine& sv);
 	void setProcessedSampleId(QString ps_id);
 
 protected slots:
 	void search();
-	void delayedInitialization();
 	void changeSearchType();
+	void openSelectedSampleTabs();
 
 private:
 	Ui::SvSearchWidget ui_;
-	DelayedInitializationTimer init_timer_;
 	NGSD db_;
 	QString ps_id_;
 };

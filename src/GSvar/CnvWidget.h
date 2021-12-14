@@ -36,8 +36,6 @@ protected:
 	void showEvent(QShowEvent* e);
 
 signals:
-	void openRegionInIGV(QString region);
-	void openGeneTab(QString region);
 	void storeSomaticReportConfiguration();
 
 private slots:

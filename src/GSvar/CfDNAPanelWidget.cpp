@@ -3,11 +3,10 @@
 #include "ui_CfDNAPanelWidget.h"
 #include "GUIHelper.h"
 
-CfDNAPanelWidget::CfDNAPanelWidget(const QString& bed_file_path, const QString& tumor_sample_name, QWidget *parent) :
+CfDNAPanelWidget::CfDNAPanelWidget(const CfdnaPanelInfo& panel_info, QWidget *parent) :
 	QWidget(parent),
 	ui_(new Ui::cfDNAPanelWidget),
-	bed_file_path_(bed_file_path),
-	tumor_sample_name_(tumor_sample_name)
+	panel_info_(panel_info)
 {
 	ui_->setupUi(this);
 
@@ -44,7 +43,8 @@ void CfDNAPanelWidget::exportBed()
 	}
 
 	//open file save dialog
-	QString output_file_path = QFileDialog::getSaveFileName(this, "Export patient-specific BED file", tumor_sample_name_+"_patient-specific.bed", "BED files (*.bed);;All Files (*)");
+	QString output_file_path = QFileDialog::getSaveFileName(this, "Export patient-specific BED file", NGSD().processedSampleName(QString::number(panel_info_.tumor_id))
+															+ "_patient-specific.bed", "BED files (*.bed);;All Files (*)");
 
 	if (output_file_path != "")
 	{
@@ -54,10 +54,33 @@ void CfDNAPanelWidget::exportBed()
 
 void CfDNAPanelWidget::loadBedFile()
 {
+	//processing system
+	ProcessingSystemData sys = NGSD().getProcessingSystemData(panel_info_.processing_system_id);
+
 	// set file name
-	ui_->l_file_name->setText("Selected file: " + bed_file_path_);
-	// load BED file
-	bed_file_.load(bed_file_path_);
+	ui_->l_file_name->setText("cfDNA panel for " + sys.name  + " (" + panel_info_.created_date.toString("dd.MM.yyyy") + " by "
+							  + NGSD().userName(panel_info_.created_by) + ")");
+	// load cfDNA panel
+	BedFile cfdna_panel= NGSD().cfdnaPanelRegions(panel_info_.id);
+
+	// remove ID SNPs from processing system
+	bed_file_ = BedFile();
+	bed_file_.setHeaders(cfdna_panel.headers());
+	for (int i = 0; i < cfdna_panel.count(); ++i)
+	{
+		const BedLine& line = cfdna_panel[i];
+
+		if (line.annotations().at(0).startsWith("SNP_for_sample_identification"))
+		{
+			QByteArrayList split_line = line.annotations().at(0).split(':');
+			if (split_line.size() > 2)
+			{
+				if (split_line.at(2) != "KASP_set2") continue;
+			}
+		}
+		bed_file_.append(line);
+	}
+
 
 	// create table view
 	ui_->vars->setRowCount(bed_file_.count());

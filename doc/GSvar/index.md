@@ -14,6 +14,7 @@
 
 ## Auxilary functionality
 
+- [Data analysis](data_analysis.md)
 - [IGV integration](igv_integration.md)
 - [Preferred transcripts](preferred_transcripts.md)
 - [Variant publication](variant_publication.md)

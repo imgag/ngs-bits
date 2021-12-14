@@ -19,15 +19,6 @@ Thus, we need to use a different driver:
 * Download the [MySQL Community Server 5.7.9 ZIP file (32-bit)](http://downloads.mysql.com/archives/community/) and extract it to C:\Qt\Qt5.9.5\mysql-5.7.9-win32\.  
 * Copy C:\Qt\Qt5.9.5\mysql-5.7.9-win32\lib\libmysql.dll to C:\Windows\
 
-## Download
-
-Open a *Git CMD* and clone the most recent release (the source code package of GitHub does not contain required sub-modules):
-
-    git clone --recursive https://github.com/imgag/ngs-bits.git
-	cd ngs-bits
-	git checkout 2021_03
-	git submodule update --recursive --init
-
 ## Build
 
 We can now build ngs-bits:
@@ -70,3 +61,6 @@ To make the tools executable outside *QtCreator* and portable, you have to copy 
 		<td>libmysql.dll</td>
 	</tr>
 </table>
+
+## Alternative build possibility (optional)
+In case you want to build [htslib](https://github.com/samtools/htslib) or some other dependencies with specific parameters (e.g. to enable HTTPS support) you may want to check out the turorial on [how to make a Windows build using MSYS2 and MinGW](install_msys2.md)

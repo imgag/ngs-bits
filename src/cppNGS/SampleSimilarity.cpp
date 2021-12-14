@@ -160,7 +160,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString 
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi, const QString& ref_file)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(GenomeBuild build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi, const QString& ref_file)
 {
 	//get known SNP list
 	VcfFile snps;
@@ -175,7 +175,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString bu
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(QString build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const QString& ref_file)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(GenomeBuild build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const QString& ref_file)
 {
 	//get known SNP list
 	VcfFile snps;

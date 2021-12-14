@@ -79,10 +79,10 @@ private slots:
 		FastaFileIndex index(TESTDATA("data_in/example.fa"));
 		QList<QString> names = index.names();
 		I_EQUAL(names.count(), 4);
-		S_EQUAL(names[0], QString("14"));
-		S_EQUAL(names[1], QString("15"));
-		S_EQUAL(names[2], QString("16"));
-		S_EQUAL(names[3], QString("17"));
+		S_EQUAL(names[0], QString("chr14"));
+		S_EQUAL(names[1], QString("chr15"));
+		S_EQUAL(names[2], QString("chr16"));
+		S_EQUAL(names[3], QString("chr17"));
 	}
 
 };

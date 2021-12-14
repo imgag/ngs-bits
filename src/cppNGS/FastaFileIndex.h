@@ -28,7 +28,7 @@ public:
 	}
 
 	///Returns the chromosome names (normalized).
-	QList<QString> names() const
+	QStringList names() const
 	{
 		return index_.keys();
 	}
@@ -47,7 +47,7 @@ protected:
 	QMap<QString, FastaIndexEntry> index_;
 	mutable QFile file_;
 	const FastaIndexEntry& index(const Chromosome& chr) const;
-	bool isFastaFileLocal(const QString& source) const;
+	bool isFastaFileLocal() const;
 	void saveEntryToIndex(const QList<QByteArray>& fields);
 };
 

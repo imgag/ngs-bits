@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<DiagnosticNgsReport version="4" type="diagnostic variant">
+<DiagnosticNgsReport version="5" type="diagnostic variant">
     <ReportGeneration date="2021-02-19" user_name="ahmustm1" software="cppNGSD-TEST " outcome="no significant findings"/>
-    <Sample name="NA12878_03" name_external="ex1" processing_system="HaloPlex HSP v2" processing_system_type="Panel Haloplex"/>
+    <Sample name="NA12878_03" name_external="ex1" processing_system="HaloPlex HSP v2" processing_system_type="Panel Haloplex" comments="comment_ps1"/>
     <TargetRegion name="panel" regions="1532" bases="271536" gap_percentage="5.69" ccds_bases_sequenced="4347">
-        <Gene name="CYP7B1"/>
-        <Gene name="SLC25A15"/>
-        <Gene name="SPG7"/>
+        <Gene name="CYP7B1" identifier="HGNC:622167"/>
+        <Gene name="SLC25A15" identifier="HGNC:650913"/>
+        <Gene name="SPG7" identifier="HGNC:652410"/>
     </TargetRegion>
-    <VariantList overall_number="319" genome_build="hg19">
+    <VariantList overall_number="319" genome_build="GRCh37">
         <Variant chr="chr13" start="41367370" end="41367370" ref="C" obs="G" allele_frequency="0.48" depth="268" genotype="het" causal="false" de_novo="false" comp_het="true" mosaic="false">
-            <TranscriptInformation gene="SLC25A15" transcript_id="ENST00000338625.4" type="missense_variant" hgvs_c="8C&gt;G" hgvs_p="Ser3Cys" exon="Exon 2/7"/>
+            <TranscriptInformation gene="SLC25A15" gene_identifier="HGNC:650913" transcript_id="ENST00000338625.4" type="missense_variant" hgvs_c="8C&gt;G" hgvs_p="Ser3Cys" exon="Exon 2/7"/>
         </Variant>
         <Variant chr="chr16" start="89598369" end="89598369" ref="G" obs="A" allele_frequency="0.28" depth="43" genotype="het" causal="true" de_novo="true" comp_het="false" mosaic="true">
-            <TranscriptInformation gene="SPG7" transcript_id="ENST00000268704.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/17"/>
-            <TranscriptInformation gene="SPG7" transcript_id="ENST00000341316.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/10"/>
-            <GeneDiseaseInformation gene="SPG7" source="OMIM gene" identifier="602783" name="SPG7"/>
-            <GeneDiseaseInformation gene="SPG7" source="OMIM phenotype" identifier="607259" name="Spastic paraplegia 7, autosomal recessive, 607259 (3)"/>
+            <TranscriptInformation gene="SPG7" gene_identifier="HGNC:652410" transcript_id="ENST00000268704.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/17"/>
+            <TranscriptInformation gene="SPG7" gene_identifier="HGNC:652410" transcript_id="ENST00000341316.2" type="missense_variant" hgvs_c="1045G&gt;A" hgvs_p="Gly349Ser" exon="Exon 8/10"/>
+            <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:652410" source="OMIM gene" identifier="602783" name="SPG7"/>
+            <GeneDiseaseInformation gene="SPG7" gene_identifier="HGNC:652410" source="OMIM phenotype" identifier="607259" name="Spastic paraplegia 7, autosomal recessive, 607259 (3)"/>
         </Variant>
     </VariantList>
-    <CnvList cnv_caller="ClinCNV" overall_number="1" genome_build="hg19" quality="good" number_of_iterations="1" number_of_hq_cnvs="127">
+    <CnvList cnv_caller="ClinCNV" overall_number="1" genome_build="GRCh37" quality="good" number_of_iterations="1" number_of_hq_cnvs="127">
         <Cnv chr="chr21" start="10862601" end="10971365" start_band="21p11.2" end_band="21p11.1" type="del" cn="1" regions="22" causal="false" de_novo="false" comp_het="true" mosaic="false">
-            <Gene name="IGHV1OR21-1"/>
-            <Gene name="TPTE"/>
+            <Gene name="IGHV1OR21-1" identifier="n/a"/>
+            <Gene name="TPTE" identifier="n/a"/>
             <ExternalLink url="http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/?name=chr21:10862601-10971365" type="DGV"/>
             <ExternalLink url="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&amp;position=chr21:10862601-10971365" type="UCSC"/>
         </Cnv>

@@ -21,9 +21,9 @@ FileLocationList FileLocationList::filterById(const QString& id) const
 QStringList FileLocationList::asStringList() const
 {
 	QStringList output;
-	for (int i = 0; i < this->count(); i++)
+	for (int i = 0; i < count(); i++)
 	{
-		output.append(this->value(i).filename);
+		output.append(operator[](i).filename);
 	}
 	return output;
 }

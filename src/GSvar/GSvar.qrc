@@ -41,7 +41,6 @@
         <file>Icons/GeneCards.png</file>
         <file>Icons/Import.png</file>
         <file>Icons/WebService.png</file>
-        <file>Resources/cancer_types.tsv</file>
         <file>Icons/StructuralVariant.png</file>
         <file>Icons/Server.png</file>
         <file>Icons/SingleSample.png</file>
@@ -104,11 +103,17 @@
         <file>Icons/PubMed.png</file>
         <file>Icons/Report_finalize.png</file>
         <file>Icons/ranking.png</file>
-        <file>Resources/KASP_set2_pad5.bed</file>
-        <file>Resources/cfDNA_hotspot_regions.bed</file>
+        <file>Resources/hg19_KASP_set2_pad5.bed</file>
+        <file>Resources/hg19_cfDNA_hotspot_regions.bed</file>
+        <file>Resources/hg38_KASP_set2_pad5.bed</file>
+        <file>Resources/hg38_cfDNA_hotspot_regions.bed</file>
         <file>Icons/cfDNA.png</file>
         <file>Icons/RNA.png</file>
         <file>Icons/chart.png</file>
         <file>Icons/GTEx.png</file>
+        <file>Resources/hg19_KASP_set2.vcf</file>
+        <file>Resources/hg38_KASP_set2.vcf</file>
+        <file>Icons/QC.png</file>
+        <file>Icons/analysis_info.png</file>
     </qresource>
 </RCC>

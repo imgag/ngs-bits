@@ -15,6 +15,7 @@
 #include "LoginManager.h"
 #include "GeneInfoDBs.h"
 #include "ValidationDialog.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QBitArray>
@@ -160,7 +161,7 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 	}
 	else
 	{
-		emit openRegionInIGV(cnvs_[item->row()].toString());
+		GlobalServiceProvider::gotoInIGV(cnvs_[item->row()].toString(), true);
 	}
 }
 
@@ -464,7 +465,7 @@ void CnvWidget::applyFilters(bool debug_time)
 		}
 
 		//filter by phenotype (via genes, not genomic regions)
-		QList<Phenotype> phenotypes = ui->filter_widget->phenotypes();
+		PhenotypeList phenotypes = ui->filter_widget->phenotypes();
 		if (!phenotypes.isEmpty())
 		{
 			//convert phenotypes to genes
@@ -472,7 +473,7 @@ void CnvWidget::applyFilters(bool debug_time)
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenotypes)
 			{
-				pheno_genes << db.phenotypeToGenes(pheno, true);
+				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
@@ -594,22 +595,24 @@ void CnvWidget::showContextMenu(QPoint p)
 	QMenu* parent_menu = qobject_cast<QMenu*>(action->parent());
 	if (action==a_dgv)
 	{
-		QDesktopServices::openUrl(QUrl("http://dgv.tcag.ca/gb2/gbrowse/dgv2_hg19/?name=" + cnvs_[row].toString()));
+		QDesktopServices::openUrl(QUrl("http://dgv.tcag.ca/gb2/gbrowse/dgv2_"+buildToString(GSvarHelper::build())+"/?name=" + cnvs_[row].toString()));
 	}
 	else if (action==a_ucsc)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&position=" + cnvs_[row].toString()));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&position=" + cnvs_[row].toString()));
 	}
 	else if (action==a_ucsc_override)
 	{
-		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&ignoreCookie=1&hideTracks=1&cytoBand=pack&refSeqComposite=dense&ensGene=dense&omimGene2=pack&geneReviews=pack&dgvPlus=squish&genomicSuperDups=squish&position=" + cnvs_[row].toString()));
+		QDesktopServices::openUrl(QUrl("https://genome.ucsc.edu/cgi-bin/hgTracks?db="+buildToString(GSvarHelper::build())+"&ignoreCookie=1&hideTracks=1&cytoBand=pack&refSeqComposite=dense&ensGene=dense&omimGene2=pack&geneReviews=pack&dgvPlus=squish&genomicSuperDups=squish&position=" + cnvs_[row].toString()));
 	}
 	else if (action==a_deciphter)
 	{
 		try
 		{
-			QString region = GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end()).toString(true);
+			//get region as string (Decipher supports only HG38)
+			QString region = GSvarHelper::build()==GenomeBuild::HG38 ? cnvs_[row].toString() : GSvarHelper::liftOver(cnvs_[row].chr(), cnvs_[row].start(), cnvs_[row].end()).toString(true);
 			region.remove("chr");
+
 			QDesktopServices::openUrl(QUrl("https://decipher.sanger.ac.uk/browser#q/" + region));
 		}
 		catch(Exception& e)
@@ -659,7 +662,7 @@ void CnvWidget::showContextMenu(QPoint p)
 
 		if (db_name=="Gene tab")
 		{
-			openGeneTab(gene);
+			GlobalServiceProvider::openGeneTab(gene);
 		}
 		else if (db_name=="Google")
 		{
@@ -689,9 +692,12 @@ void CnvWidget::proposeQualityIfUnset()
 	QString quality =  db.getValue("SELECT quality FROM cnv_callset WHERE id=" + callset_id_).toString();
 	if (quality!="n/a") return;
 
+
 	//check number of iterations
 	QStringList errors;
-	if(cnvs_.qcMetric("number of iterations")!="1")
+	QString iterations = cnvs_.qcMetric("number of iterations", false);
+	if (iterations.isEmpty()) return;
+	if(iterations!="1")
 	{
 		errors << "Number of iteration > 1";
 	}
@@ -704,8 +710,9 @@ void CnvWidget::proposeQualityIfUnset()
 	double mean = BasicStatistics::median(hq_cnv_dist, false);
 	double stdev = 1.482 * BasicStatistics::mad(hq_cnv_dist, mean);
 
-	double hq_cnvs = cnvs_.qcMetric("high-quality cnvs").toDouble();
-	if (hq_cnvs> mean + 2.5*stdev)
+	QString hq_cnvs = cnvs_.qcMetric("high-quality cnvs", false);
+	if (hq_cnvs.isEmpty()) return;
+	if (hq_cnvs.toDouble()> mean + 2.5*stdev)
 	{
 		errors << "Number of high-quality CNVs is too high (median: " + QString::number(mean, 'f', 2) + " / stdev: " + QString::number(stdev, 'f', 2) + ")";
 	}
@@ -997,8 +1004,8 @@ void CnvWidget::editGermlineReportConfiguration(int row)
 	int i_genes = cnvs_.annotationIndexByName("genes", false);
 	if (i_genes!=-1)
 	{
-		QByteArrayList genes = cnvs_[row].annotations()[i_genes].split(',');
-		foreach(QByteArray gene, genes)
+		GeneSet genes = GeneSet::createFromText(cnvs_[row].annotations()[i_genes], ',');
+		foreach(const QByteArray& gene, genes)
 		{
 			GeneInfo gene_info = db.geneInfo(gene);
 			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
@@ -1067,12 +1074,15 @@ void CnvWidget::editCnvValidation(int row)
 
 		//get variant validation ID - add if missing
 		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE cnv_id='" + cnv_id + "' AND sample_id='" + sample_id + "'", true);
+		bool added_validation_entry = false;
 		if (!val_id.isValid())
 		{
 			//insert
 			SqlQuery query = db.getQuery();
 			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_type, cnv_id, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','CNV','" + cnv_id + "','n/a')");
 			val_id = query.lastInsertId();
+
+			added_validation_entry = true;
 		}
 
 		ValidationDialog dlg(this, val_id.toInt());
@@ -1082,7 +1092,7 @@ void CnvWidget::editCnvValidation(int row)
 			//update DB
 			dlg.store();
 		}
-		else
+		else if (added_validation_entry)
 		{
 			// remove created but empty validation if ValidationDialog is aborted
 			SqlQuery query = db.getQuery();

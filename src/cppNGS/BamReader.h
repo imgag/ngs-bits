@@ -262,12 +262,14 @@ struct CPPNGSSHARED_EXPORT VariantDetails
 		: depth(std::numeric_limits<int>::quiet_NaN())
 		, frequency(std::numeric_limits<double>::quiet_NaN())
 		, mapq0_frac(std::numeric_limits<double>::quiet_NaN())
+		, obs(std::numeric_limits<int>::quiet_NaN())
 	{
 	}
 
 	int depth;
 	double frequency;
 	double mapq0_frac;
+	int obs;
 };
 
 //C++ wrapper for htslib BAM file access
@@ -332,7 +334,7 @@ class CPPNGSSHARED_EXPORT BamReader
 		//Releases resources held by the iterator (index is not cleared)
 		void clearIterator();
 		void verify_chromosome_length(const QString& ref_genome);
-		void init(const QString& bam_file, const QString& ref_genome = QString::null);
+		void init(const QString& bam_file, const QString& ref_genome = QString());
 
 		//"declared away" methods
 		BamReader(const BamReader&) = delete;

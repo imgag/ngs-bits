@@ -3,6 +3,7 @@
 #include "Chromosome.h"
 #include "Helper.h"
 #include "NGSHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -13,7 +14,6 @@
 CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_()
-	, init_timer_(this, true)
 	, db_()
 {
 	ui_.setupUi(this);
@@ -23,10 +23,15 @@ CnvSearchWidget::CnvSearchWidget(QWidget* parent)
 	ui_.caller->addItems(callers);
 	ui_.caller->setCurrentText("ClinCNV");
 	connect(ui_.search_btn, SIGNAL(clicked(bool)), this, SLOT(search()));
+
 	QAction* action = new QAction("Copy coordinates");
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(copyCoodinatesToClipboard()));
 	connect(ui_.rb_chr_pos->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
 	ui_.table->addAction(action);
+
+	action = new QAction(QIcon(":/Icons/NGSD_sample.png"), "Open processed sample tab", this);
+	ui_.table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
 }
 
 void CnvSearchWidget::setCoordinates(Chromosome chr, int start, int end)
@@ -47,9 +52,9 @@ void CnvSearchWidget::search()
 	try
 	{
 		//prepared SQL query
-		QString query_str = "SELECT c.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, s.disease_group, s.disease_status, s.id as 'HPO terms', ds.outcome, cs.caller, cs.quality as quality_callset, cs.quality_metrics as callset_metrics, c.chr, c.start, c.end, c.cn, (c.end-c.start)/1000.0 as size_kb, c.quality_metrics as cnv_metrics, rc.class "
-							"FROM cnv_callset cs, processed_sample ps LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id, processing_system sys, sample s, cnv c LEFT JOIN report_configuration_cnv rc ON rc.cnv_id=c.id, project p "
-							"WHERE s.id=ps.sample_id AND sys.id=ps.processing_system_id AND c.cnv_callset_id=cs.id AND ps.id=cs.processed_sample_id AND ps.project_id=p.id ";
+		QString query_str = "SELECT c.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system, s.disease_group, s.disease_status, s.id as 'HPO terms', ds.outcome, cs.caller, cs.quality as quality_callset, cs.quality_metrics as callset_metrics, c.chr, c.start, c.end, c.cn, (c.end-c.start)/1000.0 as size_kb, c.quality_metrics as cnv_metrics, rc.class, CONCAT(rc.comments, ' // ', rc.comments2) as report_config_comments"
+							" FROM cnv_callset cs, processed_sample ps LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id, processing_system sys, sample s, cnv c LEFT JOIN report_configuration_cnv rc ON rc.cnv_id=c.id, project p"
+							" WHERE s.id=ps.sample_id AND sys.id=ps.processing_system_id AND c.cnv_callset_id=cs.id AND ps.id=cs.processed_sample_id AND ps.project_id=p.id";
 
 		//(0) parse input and prepare query
 
@@ -195,6 +200,7 @@ void CnvSearchWidget::search()
 		//(3) process cnv metrics
 		int min_regions = ui_.regions->value();
 		int min_ll = ui_.ll->value();
+		bool scale_ll = ui_.ll_scale->isChecked();
 		double min_size = ui_.size->value();
 		int col_cnv_metrics = table.columnIndex("cnv_metrics");
 		int col_size = table.columnIndex("size_kb");
@@ -203,6 +209,8 @@ void CnvSearchWidget::search()
 			const DBRow& row = table.row(r);
 			QString value = row.value(col_cnv_metrics);
 			QJsonDocument json = QJsonDocument::fromJson(value.toLatin1());
+
+			bool caller_is_clincnv = row.value(col_caller)=="ClinCNV";
 
 			//filter by size
 			if (min_size>0.0)
@@ -222,9 +230,12 @@ void CnvSearchWidget::search()
 			}
 
 			//filter by log-likelihood
-			if (row.value(col_caller)=="ClinCNV")
+			if (caller_is_clincnv)
 			{
-				if (json.object().value("loglikelihood").toString().toInt()<min_ll)
+				double ll = json.object().value("loglikelihood").toString().toDouble();
+				if (scale_ll) ll = ll / json.object().value("regions").toString().toDouble();
+
+				if (ll<min_ll)
 				{
 					table.removeRow(r);
 					continue;
@@ -232,14 +243,14 @@ void CnvSearchWidget::search()
 			}
 
 			//format value
-			if (row.value(col_caller)=="ClinCNV")
+			if (caller_is_clincnv)
 			{
 				QStringList values;
 				values << "regions: " + json.object().value("regions").toString();
 				values << "log-likelihood: " + json.object().value("loglikelihood").toString();
 				table.setValue(r, col_cnv_metrics, values.join(" "));
 			}
-			else if (row.value(col_caller)=="CnvHunter")
+			else if (!caller_is_clincnv)
 			{
 				QStringList values;
 				values << "regions: " + json.object().value("regions").toString();
@@ -258,8 +269,21 @@ void CnvSearchWidget::search()
 		}
 		table.setColumn(hpo_col_index, hpo_terms);
 
-		//(5) show samples with CNVs in table
+		//(5) Add validation information
+		QStringList validation_data;
+		for (int r=0; r<table.rowCount(); ++r)
+		{
+			const DBRow& row = table.row(r);
+			QString cnv_id = row.id();
+			QString s_id = db_.sampleId(row.value(0));
+			validation_data << db_.getValue("SELECT status FROM variant_validation WHERE sample_id=" + s_id + " AND cnv_id=" + cnv_id).toString();
+		}
+		table.addColumn(validation_data, "validation_information");
+
+		//(6) show samples with CNVs in table
 		ui_.table->setData(table);
+		ui_.table->showTextAsTooltip("report_config_comments");
+
 		ui_.message->setText("Found " + QString::number(table.rowCount()) + " matching CNVs in NGSD.");
 	}
 	catch(Exception& e)
@@ -269,14 +293,6 @@ void CnvSearchWidget::search()
 	}
 
 	QApplication::restoreOverrideCursor();
-}
-
-void CnvSearchWidget::delayedInitialization()
-{
-	if (ui_.coordinates->text().trimmed()!="")
-	{
-		search();
-	}
 }
 
 void CnvSearchWidget::copyCoodinatesToClipboard()
@@ -299,4 +315,14 @@ void CnvSearchWidget::changeSearchType()
 	ui_.operation->setEnabled(ui_.rb_chr_pos->isChecked());
 	ui_.coordinates->setEnabled(ui_.rb_chr_pos->isChecked());
 	ui_.le_genes->setEnabled(ui_.rb_genes->isChecked());
+}
+
+void CnvSearchWidget::openSelectedSampleTabs()
+{
+	int col = ui_.table->columnIndex("sample");
+	foreach (int row, ui_.table->selectedRows().toList())
+	{
+		QString ps = ui_.table->item(row, col)->text();
+		GlobalServiceProvider::openProcessedSampleTab(ps);
+	}
 }

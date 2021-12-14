@@ -74,6 +74,22 @@ FileLocation FileLocationProviderLocal::getRepeatExpansionImage(QString locus) c
 	return FileLocation(name, PathType::REPEAT_EXPANSION_IMAGE, file, QFile::exists(file));
 }
 
+FileLocationList FileLocationProviderLocal::getQcFiles() const
+{
+	QString name = QFileInfo(gsvar_file_).baseName();
+
+	FileLocationList output;
+
+	QStringList qc_files = Helper::findFiles(getAnalysisPath(), "*.qcML", false);
+	foreach(const QString& qc_file, qc_files)
+	{
+		FileLocation file = FileLocation{name, PathType::QC, qc_file, true};
+		addToList(file, output);
+	}
+
+	return output;
+}
+
 void FileLocationProviderLocal::addToList(const FileLocation& loc, FileLocationList& list, bool add_if_missing)
 {
 	bool exists = QFile::exists(loc.filename);
@@ -158,6 +174,18 @@ FileLocationList FileLocationProviderLocal::getCircosPlotFiles(bool return_if_mi
 	foreach(const KeyValuePair& loc, getBaseLocations())
 	{
 		FileLocation file = FileLocation{loc.key, PathType::CIRCOS_PLOT, loc.value + "_circos.png", false};
+		addToList(file, output, return_if_missing);
+	}
+
+	return output;
+}
+
+FileLocationList FileLocationProviderLocal::getExpressionFiles(bool return_if_missing) const
+{
+	FileLocationList output;
+	foreach(const KeyValuePair& loc, getBaseLocations())
+	{
+		FileLocation file = FileLocation{loc.key, PathType::EXPRESSION, loc.value + "_expr.tsv", false};
 		addToList(file, output, return_if_missing);
 	}
 
@@ -264,7 +292,7 @@ FileLocation FileLocationProviderLocal::getSomaticCnvCallFile() const
 	QString name = QFileInfo(gsvar_file_).baseName() + " (copy number)";
 	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_cnvs.seg";
 
-	return FileLocation{name, PathType::COPY_NUMBER_RAW_DATA, file, QFile::exists(file)};
+	return FileLocation{name, PathType::CNV_RAW_DATA_CALL_REGIONS, file, QFile::exists(file)};
 }
 
 FileLocation FileLocationProviderLocal::getSomaticLowCoverageFile() const
@@ -284,7 +312,7 @@ FileLocation FileLocationProviderLocal::getSomaticMsiFile() const
 	QString name = QFileInfo(gsvar_file_).baseName();
 	QString file = gsvar_file_.left(gsvar_file_.length()-6) + "_msi.tsv";
 
-	return FileLocation{name, PathType::LOWCOV_BED, file, QFile::exists(file)};
+	return FileLocation{name, PathType::MSI, file, QFile::exists(file)};
 }
 
 QString FileLocationProviderLocal::getAnalysisPath() const

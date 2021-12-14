@@ -1,5 +1,51 @@
 # GSvar change log
 
+### 2021_09-41 (30.11.21)
+- Variant details: corrected changed ClinVar variation links.
+- Gene/variant tab: imiting comments to 15 lines to avoid disruption of the tab layout by huge comments.
+- Somatic report: several improvements.
+- General: fixed several minor issues and crashes.
+
+### 2021_09-34 (27.10.21)
+- Report: updated XML to contain HGNC gene identifiers.
+- General: added lift-over dialog to main menu folder 'Conversion'.
+- General: fixed several minor issues and crashes.
+
+### 2021_09-2 (29.09.21)
+- Variant table: added button to open qcML files of analysis.
+- Added region to gene table conversion (Conversion entry in main menu).
+
+### 2021_06-75 (11.08.21)
+- Added ClinVar upload of variants, removed LOVD upload.
+- Added option to show BAF histogram.
+- The repeat expansion table can be copied to the clipboard now.
+
+### 2021_06-57 (03.08.21)
+- added cohort analysis dialog (NGSD > Variants > Cohort analysis)
+- fixed DGV links (no https)
+
+### 2021_06-38 (13.07.21)
+- small variants search dialog: added maximum NGSD count filter.
+- CNV search dialog: added option to scale log-likelihood, added validation column, added report config comments column.
+- SV search dialog: added validation column, added report config comments column.
+
+### 2021_06-9 (22.06.21)
+- added warning dialog shown after loading a GSvar file if sample quality is 'bad', or KASP swap probability is larger than 3%.
+
+### 2021_03-69 (20.05.21)
+- General: added pre-filtering of CNVs if too many.
+- Processed sample tab: added report configuration summary.
+
+### 2021_03-66 (19.05.21)
+- Processed sample tab: added ancestry score details (tool-tip).
+- Sample similarity tool: Added link to documentation.
+- Sample ancestry tool: Added link to documentation.
+
+### 2021_03-54 (03.05.21)
+- Somatic tumor-only report: Added summary of low coverage regions that overlap transcript.
+- Somatic tumor-normal report: Added target region filter.
+- Sample search: Added run start date filter to sample search.
+
 ### 2021_03-42 (22.04.21)
 - Subpanels are now stored in the NGSD.
 

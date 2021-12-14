@@ -10,6 +10,7 @@ Q_OBJECT
 	{
 		Transcript t;
 
+		t.setGene("SLC51A");
 		t.setName("ENST00000296327"); //NM_152672
 		t.setSource(Transcript::ENSEMBL);
 		t.setStrand(Transcript::PLUS);
@@ -33,6 +34,7 @@ Q_OBJECT
 	{
 		Transcript t;
 
+		t.setGene("APOD");
 		t.setName("ENST00000343267"); //NM_001647
 		t.setSource(Transcript::ENSEMBL);
 		t.setStrand(Transcript::MINUS);
@@ -54,9 +56,13 @@ private slots:
 	{
 		//plus strand (SLC51A)
 		Transcript t = trans_SLC51A();
+		S_EQUAL(t.gene(), "SLC51A");
 		S_EQUAL(t.name(), "ENST00000296327");
 		I_EQUAL(t.strand(), Transcript::PLUS);
 		I_EQUAL(t.source(), Transcript::ENSEMBL);
+		I_EQUAL(t.chr().num(), 3);
+		I_EQUAL(t.start(), 195943375);
+		I_EQUAL(t.end(), 195960301);
 		I_EQUAL(t.regions().count(), 9);
 		I_EQUAL(t.regions().baseCount(), 1463);
 		I_EQUAL(t.codingRegions().count(), 9);
@@ -68,9 +74,13 @@ private slots:
 
 		//minus strand (APOD)
 		t = trans_APOD();
+		S_EQUAL(t.gene(), "APOD");
 		S_EQUAL(t.name(), "ENST00000343267");
 		I_EQUAL(t.strand(), Transcript::MINUS);
 		I_EQUAL(t.source(), Transcript::ENSEMBL);
+		I_EQUAL(t.chr().num(), 3);
+		I_EQUAL(t.start(), 195295573);
+		I_EQUAL(t.end(), 195311076);
 		I_EQUAL(t.regions().count(), 5);
 		I_EQUAL(t.regions().baseCount(), 1130);
 		I_EQUAL(t.codingRegions().count(), 4);
@@ -365,26 +375,14 @@ private slots:
 		I_EQUAL(trans2.exonNumber(195295573, 195310749), -2);
 	}
 
-	/*
-
-	Transcript trans_APOD()
+	void check_ChromosomalIndex_works()
 	{
-		Transcript t;
+		TranscriptList trans_list;
+		trans_list << trans_APOD() << trans_SLC51A();
 
-		t.setName("ENST00000343267"); //NM_001647
-		t.setSource(Transcript::ENSEMBL);
-		t.setStrand(Transcript::MINUS);
+		ChromosomalIndex<TranscriptList> index(trans_list);
 
-		BedFile regions;
-		regions.append(BedLine("chr3", 195295573, 195296006));
-		regions.append(BedLine("chr3", 195298148, 195298236));
-		regions.append(BedLine("chr3", 195300721, 195300842));
-		regions.append(BedLine("chr3", 195306210, 195306366));
-		regions.append(BedLine("chr3", 195310749, 195311076));
-		t.setRegions(regions, 195306332, 195295771);
-
-		return t;
+		I_EQUAL(index.matchingIndex("chr3", 195295573, 195296006), 0);
+		I_EQUAL(index.matchingIndex("chr3", 195943375, 195943621), 1);
 	}
-*/
-
 };

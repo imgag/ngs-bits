@@ -2,35 +2,41 @@
 
 ![Linux build status](https://github.com/imgag/ngs-bits/workflows/Linux%20build/badge.svg)
 ![MacOS build status](https://github.com/imgag/ngs-bits/workflows/MacOS%20build/badge.svg)
+![Windows build status](https://github.com/imgag/ngs-bits/workflows/Windows%20build/badge.svg)  
 [![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ngs-bits/README.html)
 
 ## Obtaining ngs-bits
 
-Binaries of *ngs-bits* are available via Bioconda. Alternatively, *ngs-bits* can be built from sources:
+Binaries of *ngs-bits* are available via Bioconda:
 
 * **Binaries** for [Linux/macOS](doc/install_bioconda.md)
-* From **sources** for [Linux/macOS](doc/install_unix.md)
-* From **sources** for [Windows](doc/install_win.md)
+
+Alternatively, *ngs-bits* can be built from sources. Use git to clone the most recent release (the source code package of GitHub does not contains required sub-modules):
+
+    > git clone --recursive https://github.com/imgag/ngs-bits.git
+	> cd ngs-bits
+	> git checkout 2021_12
+	> git submodule update --recursive --init
+
+Depending on your operating system, building instructions vary slightly:
+
+* Building from **sources** for [Linux](doc/install_unix.md)
+* Building from **sources** for [MacOS](doc/install_mac.md)
+* Building from **sources** for [Windows](doc/install_win.md)
 
 ## ChangeLog
 
 Changes already implemented in GIT master for next release:
 
-* none so far.
+* none
 
-Changes in release 2021_03:
 
-* SeqPurge: fixed bug that could cause hanging in case of currupt input data.
-* VcfLeftNormalize: added option to steam the VCF if no compression is used.
-* ReadQC: can now merge and write input FASTQ files.
-* CnvHunter: is now deprecated - use [ClinCNV](http:://github.com/imgag/ClinCNV) instead.
-* BamClipOverlap: Fixed handling of reads with insertion-only CIGAR.
-* SampleSimilarity: improvements speed and memory usage.
-* MappingQC: Added metrics for GC/AT dropout and homogeneity of coverage.
-* NGSD:
-	* Added pseudogene-gene relation table
-	* Added more sample relations (twins, cousins, ...)
-	* Added gap table
+Changes in release 2021_12:  
+
+* VcfFile: fixed crash when VCF contains position 0.
+* VcfAnnotateFromVcf: fixed error handling (seg-fault of error in worker thread occured).
+* VariantFilterAnnotations: Added filter for variants with splicing effect.
+
 
 For older releases see the [releases page](https://github.com/imgag/ngs-bits/releases).
 
@@ -131,6 +137,7 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf.md) - Annotates the INFO column of a VCF with data from another VCF file (or multiple VCF files if config file is provided)
 * [VcfBreakMulti](doc/tools/VcfBreakMulti.md) - Breaks multi-allelic variants into several lines, making sure that allele-specific INFO/SAMPLE fields are still valid.
+* [VcfCalculatePRS](doc/tools/VcfCalculatePRS.md) - Calculates the Polgenic Risk Score(s) for a sample.
 * [VcfCheck](doc/tools/VcfCheck.md) - Checks a VCF file for errors.
 * [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file.
 * [VcfFilter](doc/tools/VcfFilter.md) - Filters a VCF based on the given criteria.
@@ -151,6 +158,8 @@ The default output format of the quality control tools is [qcML](https://pubmed.
 
 ### Gene handling tools
 
+* [GenePrioritization](doc/tools/GenePrioritization.md): Performs gene prioritization based on list of known disease genes and a PPI graph (see also GraphStringDb).
+* [GraphStringDb](doc/tools/GraphStringDb.md): Creates simple representation of String-DB interaction graph.
 * [GenesToApproved](doc/tools/GenesToApproved.md) - Replaces gene symbols by approved symbols using the HGNC database (needs [NGSD](doc/install_ngsd.md)).
 * [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file (needs [NGSD](doc/install_ngsd.md)).
 * [NGSDExportGenes](doc/tools/NGSDExportGenes.md) - Lists genes from NGSD (needs [NGSD](doc/install_ngsd.md)).

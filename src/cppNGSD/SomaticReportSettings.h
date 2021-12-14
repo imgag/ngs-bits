@@ -18,6 +18,7 @@ struct CPPNGSDSHARED_EXPORT SomaticReportSettings
 	FilterCascade filters;
 
 	QString msi_file;
+	QString viral_file;
 
 	QMap<QByteArray, QByteArrayList> preferred_transcripts;
 

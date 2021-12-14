@@ -27,13 +27,15 @@ public:
 		addFlag("var_force", "Force import of small variants, even if already imported.");
 		addInfile("cnv", "CNV list in TSV format (as produced by megSAP).", true, true);
 		addFlag("cnv_force", "Force import of CNVs, even if already imported.");
-                addInfile("sv", "SV list in BEDPE format (as produced by megSAP).", true, true);
+		addInfile("sv", "SV list in BEDPE format (as produced by megSAP).", true, true);
 		addFlag("sv_force", "Force import of SVs, even if already imported.");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addFloat("max_af", "Maximum allele frequency of small variants to import (1000g and gnomAD).", true, 0.05);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Enable verbose debug output.");
 		addFlag("no_time", "Disable timing output.");
+
+		changeLog(2021,  7, 19, "Added support for 'CADD' and 'SpliceAI' columns in 'variant' table.");
 	}
 
 	///split key-value pair based on separator
@@ -63,7 +65,7 @@ public:
 
 		//check if variants were already imported for this PID
 		QString ps_id = db.processedSampleId(ps_name);
-		int count_old = db.getValue("SELECT count(*) FROM detected_variant WHERE processed_sample_id=:0", true, ps_id).toInt();
+		int count_old = db.importStatus(ps_id).small_variants;
 		out << "Found " << count_old  << " variants already imported into NGSD!\n";
 		if(count_old>0 && !var_force)
 		{

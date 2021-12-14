@@ -20,7 +20,7 @@ void getVariantInformation(
 		//keep only variants of minimum depth
 		if (pileup_tu.depth(true) < min_depth) continue;
 
-		for(const QByteArray alt : v.alt())
+		for(const Sequence& alt : v.alt())
 		{
 			long long count = pileup_tu.countOf(alt[0]);
 			double frequency = pileup_tu.frequency(v.ref()[0], alt[0]);

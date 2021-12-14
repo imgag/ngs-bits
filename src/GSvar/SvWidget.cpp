@@ -22,6 +22,7 @@
 #include "SvSearchWidget.h"
 #include "VariantDetailsDockWidget.h"
 #include "ValidationDialog.h"
+#include "GlobalServiceProvider.h"
 
 SvWidget::SvWidget(const BedpeFile& bedpe_file, QString ps_id, FilterWidget* filter_widget, const GeneSet& het_hit_genes, QHash<QByteArray, BedFile>& cache, QWidget* parent, bool ini_gui)
 	: QWidget(parent)
@@ -424,7 +425,7 @@ void SvWidget::applyFilters(bool debug_time)
 
 
 		//filter by phenotype (via genes, not genomic regions)
-		QList<Phenotype> phenotypes = ui->filter_widget->phenotypes();
+		PhenotypeList phenotypes = ui->filter_widget->phenotypes();
 		if (!phenotypes.isEmpty())
 		{
 			NGSD db;
@@ -432,7 +433,7 @@ void SvWidget::applyFilters(bool debug_time)
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenotypes)
 			{
-				pheno_genes << db.phenotypeToGenes(pheno, true);
+				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)
@@ -626,12 +627,15 @@ void SvWidget::editSvValidation(int row)
 
 		//get variant validation ID - add if missing
 		QVariant val_id = db.getValue("SELECT id FROM variant_validation WHERE "+ db.svTableName(sv.type()) + "_id='" + sv_id + "' AND sample_id='" + sample_id + "'", true);
+		bool added_validation_entry = false;
 		if (!val_id.isValid())
 		{
 			//insert
 			SqlQuery query = db.getQuery();
 			query.exec("INSERT INTO variant_validation (user_id, sample_id, variant_type, " + db.svTableName(sv.type()) + "_id, status) VALUES ('" + LoginManager::userIdAsString() + "','" + sample_id + "','SV','" + sv_id + "','n/a')");
 			val_id = query.lastInsertId();
+
+			added_validation_entry = true;
 		}
 
 		ValidationDialog dlg(this, val_id.toInt());
@@ -641,7 +645,7 @@ void SvWidget::editSvValidation(int row)
 			//update DB
 			dlg.store();
 		}
-		else
+		else if (added_validation_entry)
 		{
 			// remove created but empty validation if ValidationDialog is aborted
 			SqlQuery query = db.getQuery();
@@ -664,7 +668,7 @@ void SvWidget::editGermlineReportConfiguration(int row)
 
 	if(!sv_bedpe_file_[row].chr1().isNonSpecial() || !sv_bedpe_file_[row].chr2().isNonSpecial())
 	{
-		QMessageBox::warning(this, "Error adding SV", "Structural varaints from special chromosomes cannot be imported into the NGSD!");
+		QMessageBox::warning(this, "Error adding SV", "Structural variants from special chromosomes cannot be imported into the NGSD!");
 		return;
 	}
 
@@ -687,9 +691,10 @@ void SvWidget::editGermlineReportConfiguration(int row)
 	int i_genes = sv_bedpe_file_.annotationIndexByName("genes", false);
 	if (i_genes!=-1)
 	{
-		QByteArrayList genes = sv_bedpe_file_[row].annotations()[i_genes].split(',');
-		foreach(QByteArray gene, genes)
+		GeneSet genes = GeneSet::createFromText(sv_bedpe_file_[row].annotations()[i_genes], ',');
+		foreach(const QByteArray& gene, genes)
 		{
+
 			GeneInfo gene_info = db.geneInfo(gene);
 			inheritance_by_gene << KeyValuePair{gene, gene_info.inheritance};
 		}
@@ -819,7 +824,7 @@ void SvWidget::SvDoubleClicked(QTableWidgetItem *item)
 	else
 	{
 		QString coords = sv_bedpe_file_[row].positionRange();
-		emit openInIGV(coords);
+		GlobalServiceProvider::gotoInIGV(coords, true);
 	}
 }
 
@@ -1139,22 +1144,22 @@ void SvWidget::showContextMenu(QPoint pos)
 	{
 		SvSearchWidget* widget = new SvSearchWidget();
 		widget->setProcessedSampleId(ps_id_);
-		widget->setCoordinates(sv);
+		widget->setVariant(sv);
 		auto dlg = GUIHelper::createDialog(widget, "SV search");
 
 		dlg->exec();
 	}
 	else if (action == igv_pos1)
 	{
-		emit(openInIGV(sv.position1()));
+		GlobalServiceProvider::gotoInIGV(sv.position1(), true);
 	}
 	else if (action == igv_pos2)
 	{
-		emit(openInIGV(sv.position2()));
+		GlobalServiceProvider::gotoInIGV(sv.position2(), true);
 	}
 	else if (action == igv_split)
 	{
-		emit(openInIGV(sv.position1() + " " + sv.position2()));
+		GlobalServiceProvider::gotoInIGV(sv.position1() + " " + sv.position2(), true);
 	}
 	else if (action == copy_pos1)
 	{
@@ -1171,7 +1176,7 @@ void SvWidget::showContextMenu(QPoint pos)
 
 		if (db_name=="Gene tab")
 		{
-			openGeneTab(gene);
+			GlobalServiceProvider::openGeneTab(gene);
 		}
 		else if (db_name=="Google")
 		{

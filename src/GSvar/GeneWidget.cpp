@@ -5,6 +5,7 @@
 #include "GUIHelper.h"
 #include "GeneInfoDBs.h"
 #include "GSvarHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QPushButton>
 #include <QInputDialog>
 #include <QMenu>
@@ -21,7 +22,7 @@ GeneWidget::GeneWidget(QWidget* parent, QByteArray symbol)
     connect(ui_.refesh_btn, SIGNAL(clicked(bool)), this, SLOT(updateGUI()));
 	connect(ui_.variation_btn, SIGNAL(clicked(bool)), this, SLOT(showGeneVariationDialog()));
     connect(ui_.pseudogenes, SIGNAL(linkActivated(QString)), this, SLOT(parseLink(QString)));
-	connect(ui_.type, SIGNAL(linkActivated(QString)), this, SIGNAL(openGeneTab(QString)));
+	connect(ui_.type, SIGNAL(linkActivated(QString)), this, SLOT(openGeneTab(QString)));
 
     //edit button
     QMenu* menu = new QMenu();
@@ -58,7 +59,7 @@ void GeneWidget::updateGUI()
     QString html = info.comments;
     html.replace(QRegExp("((?:https?|ftp)://\\S+)"), "<a href=\"\\1\">\\1</a>");
     html.replace("\n", "<br>");
-	ui_.comments->setText(html);
+	GSvarHelper::limitLines(ui_.comments, html, "<br>");
 
     //add pseudogenes/parent genes
 	int gene_id = db.geneToApprovedID(symbol_);
@@ -133,7 +134,7 @@ void GeneWidget::updateGUI()
 
 	//show phenotypes/diseases from HPO
     QByteArrayList hpo_links;
-    QList<Phenotype> pheno_list = db.phenotypes(symbol_);
+	PhenotypeList pheno_list = db.phenotypes(symbol_);
 	foreach(const Phenotype& pheno, pheno_list)
 	{
         hpo_links << "<a href=\"https://hpo.jax.org/app/browse/term/" + pheno.accession()+ "\">" + pheno.accession() + "</a> " + pheno.name();
@@ -150,7 +151,7 @@ void GeneWidget::updateGUI()
 		{
 			omim_phenos << p.name();
 		}
-		omim_lines << ("<a href=\"http://omim.org/entry/" + omim.mim + "\">MIM *" + omim.mim + "</a>:<br>" + omim_phenos.join(omim_phenos.count()>20 ? " "  : "<br>"));
+		omim_lines << ("<a href=\"https://omim.org/entry/" + omim.mim + "\">MIM *" + omim.mim + "</a>:<br>" + omim_phenos.join(omim_phenos.count()>20 ? " "  : "<br>"));
     }
 	ui_.omim->setText(omim_lines.join("<br>"));
 
@@ -221,13 +222,18 @@ void GeneWidget::parseLink(QString link)
     if (link.startsWith("ensembl:"))
     {
         QString ensembl_id = link.split(':').at(1);
-		QString url = "http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?g=" + ensembl_id;
+		QString url = "https://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?g=" + ensembl_id;
         QDesktopServices::openUrl(QUrl(url));
     }
     else
     {
-        emit openGeneTab(link);
-    }
+		GlobalServiceProvider::openGeneTab(link);
+	}
+}
+
+void GeneWidget::openGeneTab(QString symbol)
+{
+	GlobalServiceProvider::openGeneTab(symbol);
 }
 
 void GeneWidget::updateTranscriptsTable(NGSD& db)
@@ -238,7 +244,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 
 	//get transcripts
 	int gene_id = db.geneToApprovedID(symbol_);
-	QList<Transcript> transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
+	TranscriptList transcripts = db.transcripts(gene_id, Transcript::ENSEMBL, false);
 
 	//sort transcripts
 	std::stable_sort(transcripts.begin(), transcripts.end(), [](const Transcript& a, const Transcript& b){ return a.regions().baseCount() > b.regions().baseCount(); });
@@ -250,7 +256,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		int row = ui_.transcripts->rowCount();
 		ui_.transcripts->setRowCount(row+1);
 
-		QLabel* label = GUIHelper::createLinkLabel("<a href='http://grch37.ensembl.org/Homo_sapiens/Transcript/Summary?t=" + transcript.name() + "'>" + transcript.name() + "</a>");
+		QLabel* label = GUIHelper::createLinkLabel("<a href='http://" + QString(GSvarHelper::build()==GenomeBuild::HG19 ? "grch37" : "www") + ".ensembl.org/Homo_sapiens/Transcript/Summary?t=" + transcript.name() + "'>" + transcript.name() + "</a>");
 		ui_.transcripts->setCellWidget(row, 0, label);
 
 		QString coords = "";
@@ -261,8 +267,8 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		}
 		ui_.transcripts->setItem(row, 1, GUIHelper::createTableItem(coords));
 
-		QString bases = QString::number(transcript.regions().baseCount());
-		ui_.transcripts->setItem(row, 2, GUIHelper::createTableItem(bases));
+		QString bases_exons = QString::number(transcript.regions().baseCount()) + " / " + QString::number(transcript.regions().count());
+		ui_.transcripts->setItem(row, 2, GUIHelper::createTableItem(bases_exons));
 
 		QString coding_bases_exons = "";
 		if (transcript.isCoding()) coding_bases_exons = QString::number(transcript.codingRegions().baseCount()-3) + " / " + QString::number(transcript.codingRegions().count());
@@ -273,7 +279,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 		ui_.transcripts->setItem(row, 4, GUIHelper::createTableItem(aas));
 
 		QString pt = "";
-		if (GSvarHelper::preferredTranscripts().value(symbol_).contains(transcript.name())) pt = "yes";
+		if (transcript.isPreferredTranscript()) pt = "yes";
 		ui_.transcripts->setItem(row, 5, GUIHelper::createTableItem(pt));
 
 		QStringList ccds;

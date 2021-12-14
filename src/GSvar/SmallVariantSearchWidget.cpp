@@ -2,6 +2,7 @@
 #include "NGSD.h"
 #include "GUIHelper.h"
 #include "NGSHelper.h"
+#include "GlobalServiceProvider.h"
 #include <QApplication>
 #include <QClipboard>
 #include <QMessageBox>
@@ -11,11 +12,9 @@
 SmallVariantSearchWidget::SmallVariantSearchWidget(QWidget *parent)
 	: QWidget(parent)
 	, ui_()
-	, init_timer_(this, false)
 {
 	ui_.setupUi(this);
 	setWindowFlags(Qt::Window);
-	connect(&init_timer_, SIGNAL(triggerInitialization()), this, SLOT(updateVariants()));
 	connect(ui_.radio_region->group(), SIGNAL(buttonToggled(int,bool)), this, SLOT(changeSearchType()));
 	connect(ui_.update_btn, SIGNAL(clicked(bool)), this, SLOT(updateVariants()));
 	connect(ui_.copy_btn, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
@@ -152,8 +151,7 @@ void SmallVariantSearchWidget::variantContextMenu(QPoint pos)
 	if (action==action_var_tab)
 	{
 		QString variant_string = ui_.variants->item(item->row(), 1)->text();
-		Variant v = Variant::fromString(variant_string);
-		emit openVariantTab(v);
+		GlobalServiceProvider::openVariantTab(Variant::fromString(variant_string));
 	}
 	if (action==action_var_gsvar)
 	{
@@ -200,11 +198,25 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 		sys_types << types_other;
 	}
 
+	//prepare query constraints
+	QStringList constraints;
+	constraints << "(germline_het>0 OR germline_hom>0)"; //skip somatic only variants
+	int max_ngsd = ui_.filter_ngsd_count->value();
+	if (max_ngsd>0)
+	{
+		constraints << "germline_het+germline_hom<=" + QString::number(max_ngsd);
+	}
+	double max_af = ui_.filter_af->value()/100.0;
+	if (max_af<1.0)
+	{
+		constraints << "(1000g IS NULL OR 1000g<=" + QString::number(max_af) + ")";
+		constraints << "(gnomad IS NULL OR gnomad<=" + QString::number(max_af) + ")";
+	}
+
 	//get variants in chromosomal range
 	QSet<QString> vars_distinct;
 	QList<QStringList> var_data;
-	QString af = QString::number(ui_.filter_af->value()/100.0);
-	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND (1000g IS NULL OR 1000g<=" + af + ") AND (gnomad IS NULL OR gnomad<=" + af + ") ORDER BY start";
+	QString query_text = "SELECT v.* FROM variant v WHERE chr='" + chr.strNormalized(true) + "' AND start>='" + QString::number(start) + "' AND end<='" + QString::number(end) + "' AND " + constraints.join(" AND ")  + " ORDER BY start";
 	SqlQuery query = db.getQuery();
 	query.exec(query_text);
 	while(query.next())
@@ -239,10 +251,8 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 
 		if (parts_match.count()==0) continue;
 
-		//determine NGSD hom/het counts
-		QString variant_id = query.value("id").toString();
-		QPair<int, int> ngsd_counts = db.variantCounts(variant_id);
-		if (ngsd_counts.first + ngsd_counts.second ==0) continue; //skip somatic-only variants
+		int germline_het = query.value("germline_het").toInt();
+		int germline_hom = query.value("germline_hom").toInt();
 
 		//format transcript info
 		QSet<QString> types;
@@ -255,11 +265,11 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 		QString coding = parts_match.join(", ");
 
 		//add sample info
+		QString variant_id = query.value("id").toString();
 		SqlQuery query2 = db.getQuery();
 		query2.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, dv.genotype, p.name as p_name, s.disease_group, s.disease_status, vc.class, s.name_external, ds.outcome, ds.comment, s.id as s_id, ps.id as ps_id, sys.type as sys_type, sys.name_manufacturer as sys_name, p.type as p_type, ps.quality as ps_quality FROM sample s, processed_sample ps LEFT JOIN diag_status ds ON ps.id=ds.processed_sample_id, project p, detected_variant dv LEFT JOIN variant_classification vc ON dv.variant_id=vc.variant_id, processing_system sys WHERE ps.processing_system_id=sys.id AND dv.processed_sample_id=ps.id AND ps.sample_id=s.id AND ps.project_id=p.id AND dv.variant_id=" + variant_id);
 		while(query2.next())
 		{
-
 			//filter by processed sample quality
 			QString ps_quality = query2.value("ps_quality").toString();
 			if (!ps_qualities.contains(ps_quality)) continue;
@@ -280,18 +290,18 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 			//get causal genes from report config
 			GeneSet genes_causal;
 			SqlQuery query3 = db.getQuery();
-			query3.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='diagnostic variant' AND rcv.causal=1 AND rc.processed_sample_id=" + processed_sample_id);
+			query3.exec("SELECT v.chr, v.start, v.end FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='diagnostic variant' AND rcv.causal=1 AND rc.processed_sample_id=" + processed_sample_id);
 			while(query3.next())
 			{
-				genes_causal << query3.value(0).toByteArray().split(',');
+				genes_causal << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
 
 			//get candidate genes from report config
 			GeneSet genes_candidate;
-			query3.exec("SELECT v.gene FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='candidate variant' AND rc.processed_sample_id=" + processed_sample_id);
+			query3.exec("SELECT v.chr, v.start, v.end FROM variant v, report_configuration rc, report_configuration_variant rcv WHERE v.id=rcv.variant_id AND rcv.report_configuration_id=rc.id AND rcv.type='candidate variant' AND rc.processed_sample_id=" + processed_sample_id);
 			while(query3.next())
 			{
-				genes_candidate << query3.value(0).toByteArray().split(',');
+				genes_candidate << db.genesOverlapping(query3.value(0).toByteArray(), query3.value(1).toInt(), query3.value(2).toInt(), 5000);
 			}
 
 			//get de-novo variants from report config
@@ -304,7 +314,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 			while(query3.next())
 			{
 				QString relation = query3.value("relation").toString();
-				if (relation=="parent-child" || relation=="sibling" || relation=="same sample" || relation=="same patient")
+				if (relation=="parent-child" || relation=="sibling" || relation=="same sample" || relation=="same patient" || relation=="cousins" || relation=="twins" || relation=="twins (monozygotic)")
 				{
 					related_samples << relation + ":" + (query3.value("sample1_id").toString()==sample_id ? query3.value("s2_name").toString() : query3.value("s1_name").toString());
 				}
@@ -312,7 +322,7 @@ void SmallVariantSearchWidget::getVariantsForRegion(Chromosome chr, int start, i
 
 			//add variant line to output
 			vars_distinct << variant_id;
-			var_data.append(QStringList() << gene << var << QString::number(ngsd_counts.first) << QString::number(ngsd_counts.second) << gnomad << tg << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("sys_name").toString()<< query2.value("p_name").toString() << query2.value("disease_group").toString() << query2.value("disease_status").toString() << phenotypes.toString() << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(',')<< related_samples.join(", "));
+			var_data.append(QStringList() << gene << var << QString::number(germline_het) << QString::number(germline_hom) << gnomad << tg << type << coding << query2.value("ps_name").toString() << query2.value("name_external").toString()  << query2.value("genotype").toString() + denovo << query2.value("sys_name").toString()<< query2.value("p_name").toString() << query2.value("disease_group").toString() << query2.value("disease_status").toString() << phenotypes.toString() << query2.value("class").toString() << query2.value("outcome").toString() << query2.value("comment").toString().replace("\n", " ") << genes_causal.join(',') << genes_candidate.join(',')<< related_samples.join(", "));
 		}
 	}
 	QString comment = gene + " - " + QString::number(vars_distinct.count()) + " distinct variants in " + QString::number(var_data.count()) + " hits";

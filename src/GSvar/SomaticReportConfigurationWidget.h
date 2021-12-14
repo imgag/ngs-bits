@@ -65,13 +65,10 @@ private slots:
 	void selectCNVsFromView();
 	///Deselects all gonosomes
 	void deselectXY();
-	///Emits signal openRegionInIGV if double click on CNV
+        ///Opens the CNV in IGV
 	void cnvDoubleClicked(QTableWidgetItem* item);
 	///Copies selected rows from cnvs-widget to clipboard
 	void copyToClipboard();
-
-signals:
-	void openRegionInIGV(QString region);
 };
 
 #endif // SomaticReportConfigurationWidget_H
