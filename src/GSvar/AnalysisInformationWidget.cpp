@@ -114,9 +114,51 @@ void AnalysisInformationWidget::updateGUI()
 
 			GUIHelper::resizeTableCells(ui_.table);
 		}
+		if (sample_data.type.startsWith("RNA"))
+		{
+			ImportStatusGermline import_status = db.importStatus(ps_id_);
+
+			//BAM
+			FileLocation file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::BAM);
+			ui_.table->setItem(0, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
+			ui_.table->setItem(0, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
+			if (!file.exists) ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+			if (file.exists && sample_data.species=="human")
+			{
+				BamReader reader(file.filename);
+				QByteArray genome = reader.build();
+				if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
+				{
+					ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + genome + ")");
+					ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+				}
+			}
+			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
+
+			//counts
+			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::COUNTS);
+			ui_.table->setItem(1, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
+			ui_.table->setItem(1, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
+			if (!file.exists) ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
+			//ui_.table->setItem(1, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs"));
+
+			//expression
+			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION);
+			ui_.table->setItem(2, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
+			ui_.table->setItem(2, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
+			if (!file.exists) ui_.table->item(2,1)->setTextColor(QColor(Qt::red));
+			//ui_.table->setItem(2, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs"));
+
+			//fusions
+			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::FUSIONS);
+			ui_.table->setItem(3, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
+			ui_.table->setItem(3, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
+			if (!file.exists) ui_.table->item(3,1)->setTextColor(QColor(Qt::red));
+			//ui_.table->setItem(3, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs"));
+		}
 		else
 		{
-			THROW(ProgrammingException, "Sample type '"+sample_data.type+"' not handled in anaysis information widget!");
+			THROW(ProgrammingException, "Sample type '"+sample_data.type+"' not handled in analysis information widget!");
 		}
 	}
 	catch (Exception e)
