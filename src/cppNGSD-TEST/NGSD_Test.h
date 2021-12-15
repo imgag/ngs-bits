@@ -10,6 +10,7 @@
 #include <QThread>
 #include <cmath>
 #include <QCoreApplication>
+#include <iostream>
 
 TEST_CLASS(NGSD_Test)
 {
@@ -1349,6 +1350,7 @@ private slots:
 		report_settings.show_omim_table = false;
 		report_settings.show_one_entry_in_omim_table = false;
 		report_settings.show_class_details = false;
+
 		FilterCascade filters;
 		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
 		QMap<QByteArray, QByteArrayList> preferred_transcripts;
@@ -1371,6 +1373,7 @@ private slots:
 
 		//############################### TEST 2 - with variants, with target region, all optional parts enabled ###############################
 		{
+
 			report_settings.selected_variants.append(qMakePair(VariantType::SNVS_INDELS, 252)); //small variant - chr13:41367370 C>G (SPG7)
 			ReportVariantConfiguration var_conf;
 			var_conf.variant_type = VariantType::SNVS_INDELS;
@@ -1427,8 +1430,9 @@ private slots:
 
 			GermlineReportGenerator generator(data, true);
 			generator.overrideDate(report_date);
-
+			std::cout << "Meep 4.6" << std::endl;
 			generator.writeHTML("out/germline_report2.html");
+			std::cout << "Meep 4.7" << std::endl;
 			COMPARE_FILES("out/germline_report2.html", TESTDATA("data_out/germline_report2.html"));
 			generator.writeXML("out/germline_report2.xml", "out/germline_report2.html");
 			COMPARE_FILES("out/germline_report2.xml", TESTDATA("data_out/germline_report2.xml"));

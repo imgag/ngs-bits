@@ -172,45 +172,45 @@ TEST_CLASS(Statistics_Test)
 		QCCollection stats = Statistics::mapping(bed_file, TESTDATA("data_in/panel.bam"), ref_file, 20);
 		I_EQUAL(stats.count(), 23);
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
-		S_EQUAL(stats[0].toString(), QString("10.81"));
+		S_EQUAL(stats[0].toString(), QString("10.82"));
 		S_EQUAL(stats[1].name(), QString("clipped base percentage"));
-		S_EQUAL(stats[1].toString(), QString("0.00"));
+		S_EQUAL(stats[1].toString(), QString("0.73"));
 		S_EQUAL(stats[2].name(), QString("mapped read percentage"));
-		S_EQUAL(stats[2].toString(), QString("98.93"));
+		S_EQUAL(stats[2].toString(), QString("99.46"));
 		S_EQUAL(stats[3].name(), QString("on-target read percentage"));
-		S_EQUAL(stats[3].toString(), QString("87.06"));
+		S_EQUAL(stats[3].toString(), QString("87.07"));
 		S_EQUAL(stats[4].name(), QString("near-target read percentage"));
-		S_EQUAL(stats[4].toString(), QString("95.14"));
+		S_EQUAL(stats[4].toString(), QString("95.52"));
 		S_EQUAL(stats[5].name(), QString("properly-paired read percentage"));
-		S_EQUAL(stats[5].toString(), QString("73.93"));
+		S_EQUAL(stats[5].toString(), QString("99.22"));
 		S_EQUAL(stats[6].name(), QString("insert size"));
-		S_EQUAL(stats[6].toString(), QString("174.00"));
+		S_EQUAL(stats[6].toString(), QString("177.46"));
 		S_EQUAL(stats[7].name(), QString("duplicate read percentage"));
 		S_EQUAL(stats[7].toString(), QString("n/a (no duplicates marked or duplicates removed during data analysis)"));
 		S_EQUAL(stats[8].name(), QString("bases usable (MB)"));
-		S_EQUAL(stats[8].toString(), QString("34.11"));
+		S_EQUAL(stats[8].toString(), QString("34.06"));
 		S_EQUAL(stats[9].name(), QString("target region read depth"));
-		S_EQUAL(stats[9].toString(), QString("125.63"));
+		S_EQUAL(stats[9].toString(), QString("125.45"));
 		S_EQUAL(stats[10].name(), QString("target region 10x percentage"));
-		S_EQUAL(stats[10].toString(), QString("97.08"));
+		S_EQUAL(stats[10].toString(), QString("97.13"));
 		S_EQUAL(stats[11].name(), QString("target region 20x percentage"));
 		S_EQUAL(stats[11].toString(), QString("94.06"));
 		S_EQUAL(stats[12].name(), QString("target region 30x percentage"));
-		S_EQUAL(stats[12].toString(), QString("90.25"));
+		S_EQUAL(stats[12].toString(), QString("90.23"));
 		S_EQUAL(stats[13].name(), QString("target region 50x percentage"));
-		S_EQUAL(stats[13].toString(), QString("80.81"));
+		S_EQUAL(stats[13].toString(), QString("80.75"));
 		S_EQUAL(stats[14].name(), QString("target region 100x percentage"));
-		S_EQUAL(stats[14].toString(), QString("55.51"));
+		S_EQUAL(stats[14].toString(), QString("55.39"));
 		S_EQUAL(stats[15].name(), QString("target region 200x percentage"));
-		S_EQUAL(stats[15].toString(), QString("18.22"));
+		S_EQUAL(stats[15].toString(), QString("18.14"));
 		S_EQUAL(stats[16].name(), QString("target region 500x percentage"));
 		S_EQUAL(stats[16].toString(), QString("0.06"));
 		S_EQUAL(stats[17].name(), QString("target region half depth percentage"));
-		S_EQUAL(stats[17].toString(), QString("74.42"));
+		S_EQUAL(stats[17].toString(), QString("74.35"));
 		S_EQUAL(stats[18].name(), QString("AT dropout"));
-		S_EQUAL(stats[18].toString(), QString("8.56"));
+		S_EQUAL(stats[18].toString(), QString("8.42"));
 		S_EQUAL(stats[19].name(), QString("GC dropout"));
-		S_EQUAL(stats[19].toString(), QString("1.15"));
+		S_EQUAL(stats[19].toString(), QString("1.18"));
 		S_EQUAL(stats[20].name(), QString("depth distribution plot"));
 		IS_TRUE(stats[20].type()==QVariant::ByteArray);
 		S_EQUAL(stats[21].name(), QString("insert size distribution plot"));
@@ -231,7 +231,7 @@ TEST_CLASS(Statistics_Test)
 		QCCollection stats = Statistics::contamination(GenomeBuild::HG38, TESTDATA("data_in/panel.bam"));
 		I_EQUAL(stats.count(), 1);
 		S_EQUAL(stats[0].name(), QString("SNV allele frequency deviation"));
-		S_EQUAL(stats[0].toString(), QString("1.67"));
+		S_EQUAL(stats[0].toString(), QString("4.76"));
 	}
 
 	void mapping_close_exons()
@@ -246,25 +246,25 @@ TEST_CLASS(Statistics_Test)
 		QCCollection stats = Statistics::mapping(bed_file, TESTDATA("data_in/close_exons.bam"), ref_file);
 		I_EQUAL(stats.count(), 23);
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
-		S_EQUAL(stats[0].toString(), QString("19.10"));
+		S_EQUAL(stats[0].toString(), QString("20.88"));
 		S_EQUAL(stats[1].name(), QString("clipped base percentage"));
-		S_EQUAL(stats[1].toString(), QString("0.00"));
+		S_EQUAL(stats[1].toString(), QString("0.31"));
 		S_EQUAL(stats[2].name(), QString("mapped read percentage"));
-		S_EQUAL(stats[2].toString(), QString("100.00"));
+		S_EQUAL(stats[2].toString(), QString("99.93"));
 		S_EQUAL(stats[3].name(), QString("on-target read percentage"));
-		S_EQUAL(stats[3].toString(), QString("99.94"));
+		S_EQUAL(stats[3].toString(), QString("99.86"));
 		S_EQUAL(stats[4].name(), QString("near-target read percentage"));
-		S_EQUAL(stats[4].toString(), QString("100.00"));
+		S_EQUAL(stats[4].toString(), QString("99.93"));
 		S_EQUAL(stats[5].name(), QString("properly-paired read percentage"));
-		S_EQUAL(stats[5].toString(), QString("75.22"));
+		S_EQUAL(stats[5].toString(), QString("97.37"));
 		S_EQUAL(stats[6].name(), QString("insert size"));
-		S_EQUAL(stats[6].toString(), QString("150.11"));
+		S_EQUAL(stats[6].toString(), QString("116.95"));
 		S_EQUAL(stats[7].name(), QString("duplicate read percentage"));
 		S_EQUAL(stats[7].toString(), QString("n/a (no duplicates marked or duplicates removed during data analysis)"));
 		S_EQUAL(stats[8].name(), QString("bases usable (MB)"));
 		S_EQUAL(stats[8].toString(), QString("0.06"));
 		S_EQUAL(stats[9].name(), QString("target region read depth"));
-		S_EQUAL(stats[9].toString(), QString("415.05"));
+		S_EQUAL(stats[9].toString(), QString("388.79"));
 		S_EQUAL(stats[10].name(), QString("target region 10x percentage"));
 		S_EQUAL(stats[10].toString(), QString("100.00"));
 		S_EQUAL(stats[11].name(), QString("target region 20x percentage"));
@@ -278,13 +278,13 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(stats[15].name(), QString("target region 200x percentage"));
 		S_EQUAL(stats[15].toString(), QString("79.87"));
 		S_EQUAL(stats[16].name(), QString("target region 500x percentage"));
-		S_EQUAL(stats[16].toString(), QString("39.61"));
+		S_EQUAL(stats[16].toString(), QString("30.52"));
 		S_EQUAL(stats[17].name(), QString("target region half depth percentage"));
-		S_EQUAL(stats[17].toString(), QString("77.92"));
+		S_EQUAL(stats[17].toString(), QString("79.87"));
 		S_EQUAL(stats[18].name(), QString("AT dropout"));
 		S_EQUAL(stats[18].toString(), QString("0.00"));
 		S_EQUAL(stats[19].name(), QString("GC dropout"));
-		S_EQUAL(stats[19].toString(), QString("10.46"));
+		S_EQUAL(stats[19].toString(), QString("14.22"));
 		S_EQUAL(stats[20].name(), QString("depth distribution plot"));
 		IS_TRUE(stats[20].type()==QVariant::ByteArray);
 		S_EQUAL(stats[21].name(), QString("insert size distribution plot"));
@@ -297,23 +297,23 @@ TEST_CLASS(Statistics_Test)
 	{
 		QCCollection stats = Statistics::mapping(TESTDATA("data_in/close_exons.bam"));
 		S_EQUAL(stats[0].name(), QString("trimmed base percentage"));
-		S_EQUAL(stats[0].toString(), QString("19.10"));
+		S_EQUAL(stats[0].toString(), QString("20.88"));
 		S_EQUAL(stats[1].name(), QString("clipped base percentage"));
-		S_EQUAL(stats[1].toString(), QString("0.00"));
+		S_EQUAL(stats[1].toString(), QString("0.31"));
 		S_EQUAL(stats[2].name(), QString("mapped read percentage"));
-		S_EQUAL(stats[2].toString(), QString("100.00"));
+		S_EQUAL(stats[2].toString(), QString("99.93"));
 		S_EQUAL(stats[3].name(), QString("on-target read percentage"));
-		S_EQUAL(stats[3].toString(), QString("100.00"));
+		S_EQUAL(stats[3].toString(), QString("99.93"));
 		S_EQUAL(stats[4].name(), QString("properly-paired read percentage"));
-		S_EQUAL(stats[4].toString(), QString("75.22"));
+		S_EQUAL(stats[4].toString(), QString("97.37"));
 		S_EQUAL(stats[5].name(), QString("insert size"));
-		S_EQUAL(stats[5].toString(), QString("150.11"));
+		S_EQUAL(stats[5].toString(), QString("116.95"));
 		S_EQUAL(stats[6].name(), QString("duplicate read percentage"));
 		S_EQUAL(stats[6].toString(), QString("n/a (duplicates not marked or removed during data analysis)"));
 		S_EQUAL(stats[7].name(), QString("bases usable (MB)"));
-		S_EQUAL(stats[7].toString(), QString("0.21"));
+		S_EQUAL(stats[7].toString(), QString("0.17"));
 		S_EQUAL(stats[8].name(), QString("target region read depth"));
-		S_EQUAL(stats[8].toString(8), QString("0.00006642"));
+		S_EQUAL(stats[8].toString(8), QString("0.00005488"));
 		S_EQUAL(stats[9].name(), QString("insert size distribution plot"));
 		IS_TRUE(stats[9].type()==QVariant::ByteArray);
 		I_EQUAL(stats.count(), 10);
@@ -506,8 +506,8 @@ TEST_CLASS(Statistics_Test)
 		I_EQUAL(bed_file.baseCount(), 271536);
 
 		BedFile low_cov =  Statistics::lowCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, 20);
-		I_EQUAL(low_cov.count(), 441);
-		I_EQUAL(low_cov.baseCount(), 16116);
+		I_EQUAL(low_cov.count(), 450);
+		I_EQUAL(low_cov.baseCount(), 16129);
 	}
 
 	void lowCoverage_roi_closeExons()
@@ -536,8 +536,8 @@ TEST_CLASS(Statistics_Test)
 	void lowCoverage_wgs_mapq20()
 	{
 		BedFile low_cov =  Statistics::lowCoverage(TESTDATA("data_in/panel.bam"), 20, 20);
-		I_EQUAL(low_cov.count(), 1806);
-		I_EQUAL(low_cov.baseCount(), 3087707782ll);
+		I_EQUAL(low_cov.count(), 1836);
+		I_EQUAL(low_cov.baseCount(), 3087707426ll);
 	}
 
 	void highCoverage_roi_mapq20()
@@ -548,15 +548,15 @@ TEST_CLASS(Statistics_Test)
 		I_EQUAL(bed_file.baseCount(), 271536);
 
 		BedFile low_cov =  Statistics::highCoverage(bed_file, TESTDATA("data_in/panel.bam"), 20, 20);
-		I_EQUAL(low_cov.count(), 1700);
-		I_EQUAL(low_cov.baseCount(), 255420);
+		I_EQUAL(low_cov.count(), 1707);
+		I_EQUAL(low_cov.baseCount(), 255407);
 	}
 
 	void highCoverage_wgs_mapq20()
 	{
 		BedFile high_cov = Statistics::highCoverage(TESTDATA("data_in/panel.bam"), 20, 20);
-		I_EQUAL(high_cov.count(), 1781);
-		I_EQUAL(high_cov.baseCount(), 578619);
+		I_EQUAL(high_cov.count(), 1811);
+		I_EQUAL(high_cov.baseCount(), 578975);
 	}
 
 	void avgCoverage_default()
@@ -586,11 +586,11 @@ TEST_CLASS(Statistics_Test)
 		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));
 		I_EQUAL(bed_file[0].start(), 45332753);
 		I_EQUAL(bed_file[0].end(), 45332844);
-		S_EQUAL(bed_file[0].annotations()[0], QString("475.8"));
+		S_EQUAL(bed_file[0].annotations()[0], QString("454.0"));
 		X_EQUAL(bed_file[1].chr(), Chromosome("chr1"));
 		I_EQUAL(bed_file[1].start(), 45332908);
 		I_EQUAL(bed_file[1].end(), 45332969);
-		S_EQUAL(bed_file[1].annotations()[0], QString("324.9"));
+		S_EQUAL(bed_file[1].annotations()[0], QString("292.1"));
 	}
 
 	void avgCoverage_with_duplicates()
@@ -605,11 +605,11 @@ TEST_CLASS(Statistics_Test)
 		X_EQUAL(bed_file[0].chr(), Chromosome("chr1"));
 		I_EQUAL(bed_file[0].start(), 45332753);
 		I_EQUAL(bed_file[0].end(), 45332844);
-		S_EQUAL(bed_file[0].annotations()[0], QString("475.80"));
+		S_EQUAL(bed_file[0].annotations()[0], QString("453.97"));
 		X_EQUAL(bed_file[1].chr(), Chromosome("chr1"));
 		I_EQUAL(bed_file[1].start(), 45332908);
 		I_EQUAL(bed_file[1].end(), 45332969);
-		S_EQUAL(bed_file[1].annotations()[0], QString("324.90"));
+		S_EQUAL(bed_file[1].annotations()[0], QString("292.06"));
 	}
 
 	void genderXY()

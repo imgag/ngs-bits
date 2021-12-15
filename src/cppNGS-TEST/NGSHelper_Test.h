@@ -59,11 +59,11 @@ private slots:
 			reader.getNextAlignment(al);
 		}
 
-		NGSHelper::softClipAlignment(al,501613,501622);
+		NGSHelper::softClipAlignment(al,146992, 147014);
 		S_EQUAL(al.cigarDataAsString(), "23S128M");
 
 		//second soft-clip same al
-		NGSHelper::softClipAlignment(al,501623,501747);
+		NGSHelper::softClipAlignment(al,147015,147139);
 		S_EQUAL(al.cigarDataAsString(), "148S3M");
 
 		//next alignment
@@ -72,10 +72,9 @@ private slots:
 		{
 			reader.getNextAlignment(al);
 		}
-
 		//third soft-clip different al1
-		NGSHelper::softClipAlignment(al,1113306,1113312);
-		NGSHelper::softClipAlignment(al,1113160,1113196);
+		NGSHelper::softClipAlignment(al,147234,147269);
+		NGSHelper::softClipAlignment(al,147378,147384);
 		S_EQUAL(al.cigarDataAsString(), "36S108M7S");
 	}
 

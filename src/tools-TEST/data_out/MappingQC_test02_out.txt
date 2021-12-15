@@ -1,22 +1,22 @@
-trimmed base percentage: 1.34
+trimmed base percentage: 1.35
 clipped base percentage: 0.06
 mapped read percentage: 99.98
 on-target read percentage: 99.98
 near-target read percentage: 99.98
-properly-paired read percentage: 69.36
-insert size: 174.71
+properly-paired read percentage: 99.79
+insert size: 161.93
 duplicate read percentage: n/a (no duplicates marked or duplicates removed during data analysis)
-bases usable (MB): 0.72
-target region read depth: 85.23
-target region 10x percentage: 98.21
-target region 20x percentage: 94.36
-target region 30x percentage: 89.95
-target region 50x percentage: 75.62
-target region 100x percentage: 36.03
-target region 200x percentage: 1.30
+bases usable (MB): 0.71
+target region read depth: 84.45
+target region 10x percentage: 98.18
+target region 20x percentage: 94.06
+target region 30x percentage: 89.60
+target region 50x percentage: 74.98
+target region 100x percentage: 35.22
+target region 200x percentage: 1.24
 target region 500x percentage: 0.00
-target region half depth percentage: 81.59
-AT dropout: 11.63
-GC dropout: 2.22
+target region half depth percentage: 81.65
+AT dropout: 11.51
+GC dropout: 2.30
 
 SNV allele frequency deviation: n/a
