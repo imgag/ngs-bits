@@ -167,7 +167,7 @@ private slots:
 	void BamReader_build()
 	{
 		BamReader reader(TESTDATA("data_in/panel.bam"));
-		S_EQUAL(reader.build(), "");
+		S_EQUAL(reader.build(), "GRCh38");
 
 		BamReader reader2(TESTDATA("data_in/BamReader_insert_only.bam"));
 		S_EQUAL(reader2.build(), "GRCh37");
