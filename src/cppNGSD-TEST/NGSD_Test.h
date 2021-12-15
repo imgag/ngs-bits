@@ -1355,7 +1355,7 @@ private slots:
 		filters.add(QSharedPointer<FilterBase>(new FilterAlleleFrequency()));
 		QMap<QByteArray, QByteArrayList> preferred_transcripts;
 		preferred_transcripts.insert("SPG7", QByteArrayList() << "ENST00000268704");
-		GermlineReportGeneratorData data(GenomeBuild::HG19, "NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
+		GermlineReportGeneratorData data(GenomeBuild::HG38, "NA12878_03", variants, cnvs, svs, prs, report_settings, filters, preferred_transcripts);
 		data.processing_system_roi.load(TESTDATA("../cppNGS-TEST/data_in/panel.bed"));
 		data.ps_bam = TESTDATA("../cppNGS-TEST/data_in/panel.bam");
 		data.ps_lowcov = TESTDATA("../cppNGS-TEST/data_in/panel_lowcov.bed");
@@ -1430,9 +1430,7 @@ private slots:
 
 			GermlineReportGenerator generator(data, true);
 			generator.overrideDate(report_date);
-			std::cout << "Meep 4.6" << std::endl;
 			generator.writeHTML("out/germline_report2.html");
-			std::cout << "Meep 4.7" << std::endl;
 			COMPARE_FILES("out/germline_report2.html", TESTDATA("data_out/germline_report2.html"));
 			generator.writeXML("out/germline_report2.xml", "out/germline_report2.html");
 			COMPARE_FILES("out/germline_report2.xml", TESTDATA("data_out/germline_report2.xml"));
