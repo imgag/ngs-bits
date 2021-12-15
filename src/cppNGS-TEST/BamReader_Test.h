@@ -417,7 +417,7 @@ private slots:
 
 		//tag
 		S_EQUAL(al.tag("MC"), "Z130M");
-		S_EQUAL(al.tag("RG"), "ZNA12878_03");
+		S_EQUAL(al.tag("RG"), "");
 	}
 
 	void  CramSupport_cigarDataAsString()
@@ -452,7 +452,7 @@ private slots:
 				//qDebug() << al.chromosomeID() << al.start() << al.end();
 		}
 		//qDebug() << "done";
-		S_EQUAL(al.cigarDataAsString(), "17S141M");
+		S_EQUAL(al.cigarDataAsString(), "19S139M");
 
 	}
 
@@ -467,47 +467,47 @@ private slots:
 
 		Pileup pileup;
 		//SNP
-		pileup = reader.getPileup("chr1", 27682481, 1);
+		pileup = reader.getPileup("chr1", 27355990, 1);
 		I_EQUAL(pileup.depth(false), 169);
 		F_EQUAL2(pileup.frequency('G', 'A'), 0.508876, 0.491124);
 		I_EQUAL(pileup.indels().count(), 0);
 		//SNP
-		pileup = reader.getPileup("chr1", 27686063, 1);
-		I_EQUAL(pileup.depth(false), 198);
+		pileup = reader.getPileup("chr1", 27359572, 1);
+		I_EQUAL(pileup.depth(false), 175);
 		F_EQUAL2(pileup.frequency('G', 'C'), 1, 0);
 		I_EQUAL(pileup.indels().count(), 0);
 		//SNP
-		pileup = reader.getPileup("1", 27687466, 1);
+		pileup = reader.getPileup("1", 27360975, 1);
 		I_EQUAL(pileup.depth(false), 736);
 		F_EQUAL2(pileup.frequency('G', 'T'), 0.516304, 0.483696);
 		I_EQUAL(pileup.indels().count(), 0);
 		//SNP
-		pileup = reader.getPileup("1", 27690359, 1);
+		pileup = reader.getPileup("1", 27363868, 1);
 		I_EQUAL(pileup.depth(false), 111);
 		IS_TRUE(!BasicStatistics::isValidFloat(pileup.frequency('A', 'G')));
 		I_EQUAL(pileup.indels().count(), 0);
 		//INSERTATION
-		pileup = reader.getPileup("chr3", 10094206, 1);
+		pileup = reader.getPileup("chr3", 10052522, 1);
 		I_EQUAL(pileup.depth(false), 25);
 		I_EQUAL(pileup.t(), 0);
 		I_EQUAL(pileup.indels().count(), 14);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '+'), 10);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 4);
 		//DELATION
-		pileup = reader.getPileup("chr2", 48033890, 1);
-		I_EQUAL(pileup.depth(false), 38);
+		pileup = reader.getPileup("chr2", 47806751, 1);
+		I_EQUAL(pileup.depth(false), 32);
 		I_EQUAL(pileup.a(), 0);
-		I_EQUAL(pileup.indels().count(), 30);
-		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 18);
+		I_EQUAL(pileup.indels().count(), 26);
+		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 14);
 		//INSERTATION -  with window
-		pileup = reader.getPileup("chr6", 131148891, 3);
-		I_EQUAL(pileup.depth(false), 704);
+		pileup = reader.getPileup("chr6", 130827751, 3);
+		I_EQUAL(pileup.depth(false), 703);
 		I_EQUAL(pileup.t(), 0);
-		I_EQUAL(pileup.indels().count(), 331);
-		I_EQUAL(countSequencesContaining(pileup.indels(), '+'), 304);
+		I_EQUAL(pileup.indels().count(), 325);
+		I_EQUAL(countSequencesContaining(pileup.indels(), '+'), 298);
 		I_EQUAL(countSequencesContaining(pileup.indels(), '-'), 27);
 		//DELETION -  with window
-		pileup = reader.getPileup("chr5", 80160596, 4);
+		pileup = reader.getPileup("chr5", 80864777, 4);
 		I_EQUAL(pileup.depth(false), 16);
 		I_EQUAL(pileup.a(), 16);
 		I_EQUAL(pileup.indels().count(), 6);
