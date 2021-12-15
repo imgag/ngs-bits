@@ -490,7 +490,7 @@ bool BedpeFile::isSomatic() const
 
 QByteArray BedpeFile::build()
 {
-	//parse header line: "##reference=file:///tmp/local_ngs_data/GRCh37.fa"
+	//parse header line, e.g. "##reference=file:///tmp/local_ngs_data/GRCh37.fa"
 	for(QByteArray line : headers_)
 	{
 		if (line.startsWith("##reference="))

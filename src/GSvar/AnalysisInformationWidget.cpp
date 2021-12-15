@@ -92,6 +92,17 @@ void AnalysisInformationWidget::updateGUI()
 			ui_.table->setItem(2, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
 			ui_.table->setItem(2, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
 			if (!file.exists) ui_.table->item(2,1)->setTextColor(QColor(Qt::red));
+			if (file.exists && sample_data.species=="human")
+			{
+				CnvList cnvs;
+				cnvs.loadHeaderOnly(file.filename);
+				QByteArray genome = cnvs.build();
+				if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
+				{
+					ui_.table->item(1,1)->setText(ui_.table->item(1,1)->text() + " (" + genome + ")");
+					ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
+				}
+			}
 			ui_.table->setItem(2, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs"));
 
 			//SVs
@@ -114,7 +125,7 @@ void AnalysisInformationWidget::updateGUI()
 
 			GUIHelper::resizeTableCells(ui_.table);
 		}
-		if (sample_data.type.startsWith("RNA"))
+		else if (sample_data.type.startsWith("RNA"))
 		{
 			ui_.table->setRowCount(5);
 			ImportStatusGermline import_status = db.importStatus(ps_id_);
