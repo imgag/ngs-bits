@@ -34,6 +34,7 @@ enum class PathType
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
 	FUSIONS, //gene fusions determined from RNA (TSV format)
+	FUSIONS_BAM, //gene fusion evidence alignments determined from RNA (TSV format)
 	MANTA_FUSIONS, //fusions determined by manta (BEDPE format)
 	COUNTS, //gene/transcript counts from RNA (TSV format)
 	EXPRESSION, //relative RNA expressions values from RNA (TSV format)
