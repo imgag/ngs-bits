@@ -130,10 +130,9 @@ void SubpanelArchiveDialog::activePanelContextMenu(QPoint pos)
 
 				//show dialog with infos
 				BedFile roi_old = BedFile::fromText(roi.toLatin1());
-				roi_old.merge();
+				int delta = roi_new.baseCount() - roi_old.baseCount();
 				QMessageBox::information(this, title, "Stored sub-panel target region in NGSD.\n"
-													  "Before it contained " + QString::number(roi_old.baseCount()) + " bases in " + QString::number(roi_old.baseCount()) + " regions.\n"
-													  "Now it contains " + QString::number(roi_new.baseCount()) + " bases in " + QString::number(roi_new.baseCount()) + " regions.");
+													  "Before the update it contained " + QString::number(roi_old.baseCount()) + " bases, now it contains " + QString::number(roi_new.baseCount()) + " bases (delta: "+(delta>=0 ? "+" : "")+QString::number(delta)+" bases).");
 
 			}
 			catch(Exception& e)

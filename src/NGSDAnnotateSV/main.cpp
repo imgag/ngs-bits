@@ -171,7 +171,7 @@ public:
 		QByteArrayList output_buffer;
 
 		// copy comments to output buffer
-		output_buffer << svs.comments().join('\n') << "\n";
+		output_buffer << svs.headers().join('\n') << "\n";
 
 		// check if file already contains NGSD counts
 		QList<QByteArray> header = svs.annotationHeaders();

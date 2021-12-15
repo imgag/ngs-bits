@@ -400,9 +400,9 @@ private slots:
 	void getBuild()
 	{
 		VariantList vl;
-		I_EQUAL(vl.getBuild(), GenomeBuild::HG19);
+		I_EQUAL(vl.build(), GenomeBuild::HG19);
 
 		vl.addCommentLine("##GENOME_BUILD=GRCh38");
-		I_EQUAL(vl.getBuild(), GenomeBuild::HG38);
+		I_EQUAL(vl.build(), GenomeBuild::HG38);
 	}
 };

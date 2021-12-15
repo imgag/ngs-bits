@@ -77,9 +77,11 @@ public slots:
 	///Loads a variant list. Unloads the variant list if no file name is given
 	void loadFile(QString filename="");
 	///Checks if variant list is outdated
-	void checkVariantList(QStringList messages);
+	void checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues);
 	///Checks if processed samples have bad quality or other problems
-	void checkProcessedSamplesInNGSD();
+	void checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>>& issues);
+	///Shows a dialog with issues in analysis. Returns the DialogCode.
+	int showAnalysisIssues(QList<QPair<Log::LogLevel, QString> >& issues);
 	///Open dialog
 	void on_actionOpen_triggered();
 	///Open dialog by name (using NGSD)

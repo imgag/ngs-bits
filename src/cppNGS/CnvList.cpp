@@ -106,6 +106,16 @@ void CnvList::clear()
 
 void CnvList::load(QString filename)
 {
+	loadInternal(filename, false);
+}
+
+void CnvList::loadHeaderOnly(QString filename)
+{
+	loadInternal(filename, true);
+}
+
+void CnvList::loadInternal(QString filename, bool header_only)
+{
 	//clear previous content
 	clear();
 
@@ -232,30 +242,33 @@ void CnvList::load(QString filename)
 		annotation_headers_ << file.header()[index];
 	}
 
-	//parse input file
-	while (!file.atEnd())
+	//parse content
+	if (!header_only)
 	{
-		QByteArrayList parts = file.readLine();
-		if(parts.empty()) continue;
-
-		//regions
-		int region_count = 0;
-		if (i_region_count>=0)
+		while (!file.atEnd())
 		{
-			 region_count = parts[i_region_count].toInt();
+			QByteArrayList parts = file.readLine();
+			if(parts.empty()) continue;
+
+			//regions
+			int region_count = 0;
+			if (i_region_count>=0)
+			{
+				 region_count = parts[i_region_count].toInt();
+			}
+
+			//genes
+			GeneSet genes = GeneSet::createFromText(parts[i_genes], ',');
+
+			//parse annotation headers
+			QByteArrayList annos;
+			foreach(int index, annotation_indices)
+			{
+				annos << parts[index];
+			}
+
+			variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), region_count, genes, annos));
 		}
-
-		//genes
-		GeneSet genes = GeneSet::createFromText(parts[i_genes], ',');
-
-		//parse annotation headers
-		QByteArrayList annos;
-		foreach(int index, annotation_indices)
-		{
-			annos << parts[index];
-		}
-
-		variants_.append(CopyNumberVariant(parts[i_chr], parts[i_start].toInt(), parts[i_end].toInt(), region_count, genes, annos));
 	}
 }
 
@@ -275,7 +288,7 @@ void CnvList::store(QString filename)
 	stream << "##ANALYSISTYPE=" << typeAsString() << "\n";
 
 	//comments
-	foreach (QByteArray comment_line, comments_)
+	foreach (const QByteArray& comment_line, comments_)
 	{
 		stream << comment_line << "\n";
 	}
@@ -437,6 +450,20 @@ QString CnvList::callerAsString() const
 	{
 		THROW(ProgrammingException, "CNV caller type not handled in CnvList::callerAsString()!");
 	}
+}
+
+QByteArray CnvList::build()
+{
+	//parse header line, e.g. "##GENOME_BUILD=GRCh38"
+	for(QByteArray line : comments_)
+	{
+		if (line.startsWith("##GENOME_BUILD="))
+		{
+			return line.split('=').last().trimmed();
+		}
+	}
+
+	return "";
 }
 
 QByteArray CnvList::qcMetric(QString name, bool throw_if_missing) const

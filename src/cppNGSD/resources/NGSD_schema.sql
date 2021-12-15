@@ -344,7 +344,7 @@ CREATE  TABLE IF NOT EXISTS `sample`
   `name_external` VARCHAR(255) NULL DEFAULT NULL COMMENT 'External names.<br>If several, separate by comma!<br>Always enter full names, no short forms!',
   `received` DATE NULL DEFAULT NULL,
   `receiver_id` INT(11) NULL DEFAULT NULL,
-  `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA') NOT NULL,
+  `sample_type` ENUM('DNA','DNA (amplicon)','DNA (native)','RNA','cfDNA') NOT NULL,
   `species_id` INT(11) NOT NULL,
   `concentration` FLOAT NULL DEFAULT NULL,
   `volume` FLOAT NULL DEFAULT NULL,

@@ -41,6 +41,7 @@ protected slots:
 	void deleteSampleData();
 	void loadVariantList();
 	void queueSampleAnalysis();
+	void showAnalysisInfo();
 
 	void openIgvTrack();
 	void somRepDeleted();

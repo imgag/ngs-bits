@@ -1,11 +1,6 @@
 #include "BamReader.h"
 #include "Exceptions.h"
-#include "NGSHelper.h"
-#include "Settings.h"
-
-#include <QFile>
-#include <QFileInfo>
-#include <unordered_set>
+#include "Helper.h"
 
 /*
 External documentation used for the implementation:
@@ -538,6 +533,27 @@ QByteArrayList BamReader::headerLines() const
 	std::for_each(output.begin(), output.end(), [](QByteArray& line){ line = line.trimmed(); });
 
 	return output;
+}
+
+QByteArray BamReader::build() const
+{
+	foreach(const QByteArray& line, headerLines())
+	{
+		if (line.startsWith("@PG"))
+		{
+			foreach(QByteArray part, line.split(' '))
+			{
+				if (part.endsWith(".fa"))
+				{
+					QByteArray genome = part.split('/').last();
+					genome.truncate(genome.length()-3);
+					return genome;
+				}
+			}
+		}
+	}
+
+	return "";
 }
 
 void BamReader::setRegion(const Chromosome& chr, int start, int end)

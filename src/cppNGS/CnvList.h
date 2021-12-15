@@ -137,8 +137,11 @@ class CPPNGSSHARED_EXPORT CnvList
 		///Clears content.
 		void clear();
 
-		///Loads CNV text file (TSV format).
+		///Loads CNV file (TSV format).
 		void load(QString filename);
+		///Loads header of CNV file only.
+		void loadHeaderOnly(QString filename);
+
 		///Stores CNV text file (TSV format).
 		void store(QString filename);
 
@@ -154,6 +157,10 @@ class CPPNGSSHARED_EXPORT CnvList
 		CnvCallerType caller() const;
 		///Returns the CNV caller as string
 		QString callerAsString() const;
+
+
+		///Returns the genome build from the header or an empty string if it could not be determined.
+		QByteArray build();
 
 		///Returns the comment header lines (with leading '##').
 		const QByteArrayList& comments() const
@@ -222,9 +229,10 @@ class CPPNGSSHARED_EXPORT CnvList
 		QMap<QByteArray, QByteArray> annotation_header_desc_;
 		QList<CopyNumberVariant> variants_;
 
-	private:
 		///split key-value pair from file header based on separator
 		static KeyValuePair split(const QByteArray& string, char sep);
+		///loads file with our without header.
+		void loadInternal(QString filename, bool header_only);
 };
 
 #endif // CNVLIST_H

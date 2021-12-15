@@ -16,6 +16,7 @@
 #include <QMessageBox>
 #include "CfdnaAnalysisDialog.h"
 #include "GlobalServiceProvider.h"
+#include "AnalysisInformationWidget.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: QWidget(parent)
@@ -44,6 +45,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	connect(ui_->merged, SIGNAL(linkActivated(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(ui_->normal_sample, SIGNAL(linkActivated(QString)), this, SLOT(openProcessedSampleTab(QString)));
 	connect(ui_->reanalyze_btn, SIGNAL(clicked(bool)), this, SLOT(queueSampleAnalysis()));
+	connect(ui_->analysis_info_btn, SIGNAL(clicked(bool)), this, SLOT(showAnalysisInfo()));
 	connect(ui_->genlab_disease_btn, SIGNAL(clicked(bool)), this, SLOT(editDiseaseGroupAndInfo()));
 	connect(ui_->genlab_relations_btn, SIGNAL(clicked(bool)), this, SLOT(importSampleRelations()));
 
@@ -751,4 +753,11 @@ void ProcessedSampleWidget::queueSampleAnalysis()
 			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
 		}
 	}
+}
+
+void ProcessedSampleWidget::showAnalysisInfo()
+{
+	AnalysisInformationWidget* widget = new AnalysisInformationWidget(ps_id_, this);
+	auto dlg = GUIHelper::createDialog(widget, "Analysis information of " + processedSampleName());
+	dlg->exec();
 }

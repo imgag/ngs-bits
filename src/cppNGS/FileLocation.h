@@ -34,9 +34,11 @@ enum class PathType
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
 	FUSIONS, //gene fusions determined from RNA (TSV format)
+	FUSIONS_BAM, //gene fusion evidence alignments determined from RNA (BAM format)
 	MANTA_FUSIONS, //fusions determined by manta (BEDPE format)
 	COUNTS, //gene/transcript counts from RNA (TSV format)
 	EXPRESSION, //relative RNA expressions values from RNA (TSV format)
+	SPLICING_BED, //splicing junctions from RNA (BED format)
 	VIRAL, //viral DNA detected in tumor samples (TSV format)
 	VCF_CF_DNA, //cfDNA variants file (VCF format)
 	MRD_CF_DNA, // measurable residual disease file of a cfDNA analysis (UmiVar2)
@@ -123,6 +125,10 @@ struct FileLocation
 				return "REPEAT_EXPANSION_IMAGE";
 			case PathType::FUSIONS:
 				return "FUSIONS";
+			case PathType::FUSIONS_BAM:
+				return "FUSIONS_BAM";
+			case PathType::SPLICING_BED:
+				return "SPLICING_BED";
 			case PathType::MANTA_FUSIONS:
 				return "MANTA_FUSIONS";
 			case PathType::COUNTS:
@@ -165,6 +171,8 @@ struct FileLocation
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
+		if (in_upper == "FUSIONS_BAM") return PathType::FUSIONS_BAM;
+		if (in_upper == "SPLICING_BED") return PathType::SPLICING_BED;
 		if (in_upper == "MANTA_FUSIONS") return PathType::MANTA_FUSIONS;
 		if (in_upper == "COUNTS") return PathType::COUNTS;
 		if (in_upper == "VIRAL") return PathType::VIRAL;
@@ -220,6 +228,10 @@ struct FileLocation
 				return "repeat expansion visualization";
 			case PathType::FUSIONS:
 				return "gene fusions";
+			case PathType::FUSIONS_BAM:
+				return "gene fusions evidence alignments";
+			case PathType::SPLICING_BED:
+				return "splicing junctions";
 			case PathType::MANTA_FUSIONS:
 				return "gene fusions called by Manta";
 			case PathType::COUNTS:
