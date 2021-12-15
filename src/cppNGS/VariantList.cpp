@@ -790,22 +790,10 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 		if (header_only) break;
 
 		//error when special columns are not present
-		QList<QByteArray> fields = line.split('\t');
+		QByteArrayList fields = line.split('\t');
 		if (fields.count()<special_cols)
 		{
 			THROW(FileParseException, "Variant TSV file line with less than five fields found: '" + line.trimmed() + "'");
-		}
-
-		//replace repeated strings with cached copy => save a lot of memory
-		for(int i=0; i<fields.count(); ++i)
-		{
-			const QByteArray& field = fields[i];
-			if (!str_cache.contains(field))
-			{
-				str_cache.insert(field, field);
-			}
-
-			fields[i] = str_cache[field];
 		}
 
 		//Skip variants that are not in the target region (if given)
@@ -821,12 +809,28 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 			}
 		}
 
-		QList<QByteArray> decoded_fields = fields.mid(special_cols);
-		for (int i = 0; i < decoded_fields.size(); i++)
+		//decode annotation entries that contains URL-encodings
+		for (int i = special_cols; i < fields.size(); i++)
 		{
-			decoded_fields[i] = QUrl::fromPercentEncoding(decoded_fields[i]).toLocal8Bit();
+			if (fields[i].contains('%'))
+			{
+				fields[i] = QUrl::fromPercentEncoding(fields[i]).toLocal8Bit();
+			}
 		}
-		append(Variant(chr, start, end, fields[3], fields[4], decoded_fields, filter_index));
+
+		//replace repeated strings with cached copy => save ~ 40% of memory
+		for(int i=3; i<fields.count(); ++i)
+		{
+			const QByteArray& field = fields[i];
+			if (!str_cache.contains(field))
+			{
+				str_cache.insert(field, field);
+			}
+
+			fields[i] = str_cache[field];
+		}
+
+		append(Variant(chr, start, end, fields[3], fields[4], fields.mid(special_cols), filter_index));
 
 		//Check that the number of annotations is correct
 		if (variants_.last().annotations().count()!=annotations().count())
