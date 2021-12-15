@@ -733,7 +733,6 @@ private slots:
 
         // write to file
         vcf_file.store("out/panel_vep_fromString.vcf");
-		vcf_file.store("W:\\users\\ahott1a1\\panel_vep_fromString.vcf");
 
 		COMPARE_FILES("out/panel_vep_fromString.vcf", TESTDATA("data_in/panel_vep.vcf"));
     }
