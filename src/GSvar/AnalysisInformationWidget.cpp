@@ -116,6 +116,7 @@ void AnalysisInformationWidget::updateGUI()
 		}
 		if (sample_data.type.startsWith("RNA"))
 		{
+			ui_.table->setRowCount(5);
 			ImportStatusGermline import_status = db.importStatus(ps_id_);
 
 			//BAM
@@ -140,21 +141,26 @@ void AnalysisInformationWidget::updateGUI()
 			ui_.table->setItem(1, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
 			ui_.table->setItem(1, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
 			if (!file.exists) ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
-			//ui_.table->setItem(1, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs"));
 
 			//expression
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::EXPRESSION);
 			ui_.table->setItem(2, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
 			ui_.table->setItem(2, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
 			if (!file.exists) ui_.table->item(2,1)->setTextColor(QColor(Qt::red));
-			//ui_.table->setItem(2, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs"));
 
 			//fusions
 			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::FUSIONS);
 			ui_.table->setItem(3, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
 			ui_.table->setItem(3, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
 			if (!file.exists) ui_.table->item(3,1)->setTextColor(QColor(Qt::red));
-			//ui_.table->setItem(3, 2, GUIHelper::createTableItem(QString::number(import_status.cnvs) + " CNVs"));
+
+			//splicing info
+			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::SPLICING_BED);
+			ui_.table->setItem(4, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
+			ui_.table->setItem(4, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
+			if (!file.exists) ui_.table->item(4,1)->setTextColor(QColor(Qt::red));
+
+			GUIHelper::resizeTableCells(ui_.table);
 		}
 		else
 		{
