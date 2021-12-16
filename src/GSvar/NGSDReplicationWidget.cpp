@@ -536,8 +536,6 @@ void NGSDReplicationWidget::replicatePostProduction()
 	int c_update = 0;
 
 	//geneinfo_germline
-
-
 	SqlQuery query_s = db_source_->getQuery();
 	query_s.exec("SELECT symbol, comments FROM geneinfo_germline");
 	while(query_s.next())
@@ -563,13 +561,13 @@ void NGSDReplicationWidget::replicatePostProduction()
 	addLine("  Table 'geneinfo_germline' updated: "+QString::number(c_update));
 
 
+	//variant_classification
 
 
 	//TODO
 	/*
 	 Replicate missing variant data by insert only (otherwise work done in the GRCh38 database might be lost)
 	 - report config (small variants, CNVs, SVs)
-	 - variant classification
 	 - variant publication
 	 - variant validation
 	*/

@@ -1,5 +1,31 @@
 # Data analysis
 
+## What are the analysis steps of the different pipelines?
+
+### germline - single sample pipeline
+
+The germline single-sample pipeline is used to analyze a single case.  
+It consists of read mapping and several variant calling and annotation steps:
+
+![alt text](pipeline_single_sample.png)
+
+### germline - multi-sample pipeline / trio pipeline
+
+Multi-sample and trio analyses are bases on mapped reads (BAM file), which is usually generated using the single-sample pipeline.  
+On the BAM files the joined variant calling is preformed for all samples.  
+Here an example of a multi-sample analysis with two samples:
+
+![alt text](pipeline_multi.png)
+
+## What is the difference between re-annotation and a normal analysis.
+
+When performing reannotation (e.g. by checking the box `annotate only` in the single-sample analysis dialog) the variant calling step is skipped.  
+Existing variant calls are used and annotations are updated.
+
+This is usually done when the annotation data is older than a few months.  
+Up-to-data annotation data is important as public databases (ClinVar, HGMD, OMIM, ...) are updated regularly.
+
+
 ## Where can I trigger analysis jobs?
 
 You can trigger the (re-)analysis of the processed samples from several places in GSvar.
@@ -40,50 +66,10 @@ The `sample search` can be opened via the main menu bar of GSvar (![alt text](sa
 Here processed samples can be searched for, e.g. of a project, run or processing system.  
 Through the context menu of the search results, a batch of samples can be analyzed.
 
+### Where can I see the analysis progress?
 
-## What do the analysis steps mean and what do they do?
-
-Here is a summary of the analysis steps and a description what they do:
-
-<table border=1>
-<tr>
-	<th>analysis type - step</th>
-	<th>description</th>
-	<th>produced files</th>
-</tr>
-<tr>
-	<td>single sample - ma</td>
-	<td>mapping of reads to the reference genome.</td>
-	<td>BAM file</td>
-</tr>
-<tr>
-	<td>ingle sample - vc</td>
-	<td>Variant calling of small variants (SNVs and small indels).<br>Annotation of the variants with information from several databases and tools.</td>
-	<td>VCF file, GSvar file</td>
-</tr>
-<tr>
-	<td>ingle sample - cn</td>
-	<td>Variant calling of CNVs based on depth of coverage using other samples are reference.<br>Annotation of the variants with information from several databases and tools.</td>
-	<td>CNV file (TSV format)</td>
-</tr>
-<tr>
-	<td>ingle sample - sv </td>
-	<td>Variant calling of structural variants based on read data (split reads, soft-clipped reads, not properly paired reads).<br>Annotation of the variants with information from several databases and tools.</td>
-	<td>SV file (BEDPE format)</td>
-</tr>
-<tr>
-	<td>all - db</td>
-	<td>Import of QC data and variant data into the NGSD database.</td>
-	<td></td>
-</tr>
-</table>
-
-
-## What is the difference between re-annotation and a normal analysis.
-
-When performing reannotation (e.g. by checking the box `annotate only` in the single-sample analysis dialog), only variant annotation is performed.  
-Variant calling is skipped and the annotations of the variants is updated.  
-This is usually performed to update annotations as the data in public databases (ClinVar, HGMD, OMIM, ...) is updated regularly.
+The analysis status and progress of individual samples can be shown using the button ![alt text](analysis_info.png).  
+It is available from tool bar of the `processed sample tab` and through the context menu of `analysis status` table.
 
 --
 

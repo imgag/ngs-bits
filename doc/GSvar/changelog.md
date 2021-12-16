@@ -1,5 +1,12 @@
 # GSvar change log
 
+### 2021_12-33 (14.12.21)
+- General: Added analysis information dialog to processed sample tab and analysis status tab.
+- General: Improved error checks when loading a GSvar file (outdated annotation, genome build, ...).
+- Sub-panels: Added functionality to manually edit a subpanel target region (sub-panel management dialog).
+- General: Added BLAT search (main menu 'Tools').
+- General: Genomic sequence tool (main menu 'Tools').
+
 ### 2021_09-41 (30.11.21)
 - Variant details: corrected changed ClinVar variation links.
 - Gene/variant tab: imiting comments to 15 lines to avoid disruption of the tab layout by huge comments.
