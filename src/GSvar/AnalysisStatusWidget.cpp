@@ -356,18 +356,16 @@ void AnalysisStatusWidget::showContextMenu(QPoint pos)
 		{
 			//Show restart action only if only DNA or only RNA samples are selected
 			QSet<QString> sample_types;
-			QSet<bool> cfdna_sample;
 			NGSD db;
 			for(const AnalysisJobSample& sample : samples)
 			{
 				QString sample_type = db.getSampleData(db.sampleId(sample.name)).type;
 				if (sample_type=="RNA") sample_types << "RNA";
 				else if (sample_type.startsWith("DNA")) sample_types << "DNA";
+				else if (sample_type=="cfDNA") sample_types << "cfDNA";
 				else THROW(ProgrammingException, "Unhandled sample type: "+sample_type);
-
-				cfdna_sample << db.getProcessedSampleData(db.processedSampleId(sample.name)).processing_system_type.startsWith("cfDNA");
 			}
-			if((sample_types.count() == 1) && (cfdna_sample.count() == 1)) menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart single sample analysis");
+			if((sample_types.count() == 1)) menu.addAction(QIcon(":/Icons/reanalysis.png"), "Restart single sample analysis");
 		}
 		else if (type=="multi sample" && job_ids.count()==1)
 		{
