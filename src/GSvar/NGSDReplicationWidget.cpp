@@ -532,45 +532,155 @@ void NGSDReplicationWidget::replicateReportConfiguration()
 
 void NGSDReplicationWidget::replicatePostProduction()
 {
-	//init
-	int c_update = 0;
-
 	//geneinfo_germline
-	SqlQuery query_s = db_source_->getQuery();
-	query_s.exec("SELECT symbol, comments FROM geneinfo_germline");
-	while(query_s.next())
 	{
-		QString gene = query_s.value(0).toString().trimmed();
-		QString source_comment = query_s.value(1).toString().trimmed();
-		if (source_comment.isEmpty()) continue;
+		int c_update = 0;
+		SqlQuery query_s = db_source_->getQuery();
+		query_s.exec("SELECT symbol, comments FROM geneinfo_germline");
+		while(query_s.next())
+		{
+			QString gene = query_s.value(0).toString().trimmed();
+			QString source_comment = query_s.value(1).toString().trimmed();
+			if (source_comment.isEmpty()) continue;
 
-		//replicate only if target entry exists and has no comment
-		QVariant target_comment = db_target_->getValue("SELECT comments FROM geneinfo_germline WHERE symbol='"+gene+"'", true);
-		if (!target_comment.isValid()) continue;
-		if (!target_comment.toString().trimmed().isEmpty()) continue;
+			//replicate only if target entry exists and has no comment
+			QVariant target_comment = db_target_->getValue("SELECT comments FROM geneinfo_germline WHERE symbol='"+gene+"'", true);
+			if (!target_comment.isValid()) continue;
+			if (!target_comment.toString().trimmed().isEmpty()) continue;
 
-		//update target entry
-		SqlQuery query_t = db_target_->getQuery();
-		query_t.prepare("UPDATE geneinfo_germline SET comments=:0 WHERE symbol=:1");
-		query_t.bindValue(0, source_comment);
-		query_t.bindValue(1, gene);
-		query_t.exec();
+			//update target entry
+			SqlQuery query_t = db_target_->getQuery();
+			query_t.prepare("UPDATE geneinfo_germline SET comments=:0 WHERE symbol=:1");
+			query_t.bindValue(0, source_comment);
+			query_t.bindValue(1, gene);
+			query_t.exec();
 
-		++c_update;
+			++c_update;
+		}
+		addLine("  Table 'geneinfo_germline' updated: "+QString::number(c_update));
 	}
-	addLine("  Table 'geneinfo_germline' updated: "+QString::number(c_update));
 
+	//variant_validation
+	{
+		int c_add = 0;
+		SqlQuery query_s = db_source_->getQuery();
+		SqlQuery q_add = db_target_->getQuery();
+		q_add.prepare("INSERT INTO `variant_validation`(`user_id`, `date`, `sample_id`, `variant_type`, `variant_id`,  `genotype`, `validation_method`, `status`, `comment`) VALUES (:0,:1,:2,:3,:4,:5,:6,:7,:8)");
+		query_s.exec("SELECT * FROM variant_validation WHERE variant_type='SNV_INDEL'");
+		while(query_s.next())
+		{
+			QString sample_id = query_s.value("sample_id").toString();
+			int source_variant_id = query_s.value("variant_id").toInt();
+			int target_variant_id = liftOverVariant(source_variant_id, false);
+
+			//warn if causal/pathogenic variant could not be lifted
+			if (target_variant_id>=0)
+			{
+				 QVariant target_id = db_target_->getValue("SELECT id FROM variant_validation WHERE variant_id='" + QString::number(target_variant_id) + "' AND sample_id='"+sample_id+"' LIMIT 1", true);
+				 if (!target_id.isValid())
+				 {
+					QString source_sample = db_source_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
+					QString target_sample = db_target_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
+					if (source_sample==target_sample)
+					{
+						q_add.bindValue(0, query_s.value("user_id"));
+						q_add.bindValue(1, query_s.value("date"));
+						q_add.bindValue(2, sample_id);
+						q_add.bindValue(3, "SNV_INDEL");
+						q_add.bindValue(4, target_variant_id);
+						q_add.bindValue(5, query_s.value("genotype"));
+						q_add.bindValue(6, query_s.value("validation_method"));
+						q_add.bindValue(7, query_s.value("status"));
+						q_add.bindValue(8, query_s.value("comment"));
+						q_add.exec();
+
+						++c_add;
+					}
+				 }
+			}
+		}
+		addLine("  Table 'variant_validation' added: "+QString::number(c_add));
+	}
+
+	//variant_publication
+	{
+		int c_add = 0;
+		SqlQuery query_s = db_source_->getQuery();
+		SqlQuery q_add = db_target_->getQuery();
+		q_add.prepare("INSERT INTO `variant_publication`(`sample_id`, `variant_id`, `db`, `class`, `details`, `user_id`, `date`) VALUES (:0,:1,:2,:3,:4,:5,:6)");
+		query_s.exec("SELECT * FROM variant_publication ORDER BY id DESC");
+		while(query_s.next())
+		{
+			QString sample_id = query_s.value("sample_id").toString();
+			int source_variant_id = query_s.value("variant_id").toInt();
+			int target_variant_id = liftOverVariant(source_variant_id, false);
+
+			//warn if causal/pathogenic variant could not be lifted
+			if (target_variant_id>=0)
+			{
+				 QVariant target_id = db_target_->getValue("SELECT id FROM variant_publication WHERE variant_id='" + QString::number(target_variant_id) + "' AND sample_id='"+sample_id+"' LIMIT 1", true);
+				 if (!target_id.isValid())
+				 {
+					QString source_sample = db_source_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
+					QString target_sample = db_target_->getValue("SELECT name FROM sample WHERE id='"+sample_id+"'").toString();
+					if (source_sample==target_sample)
+					{
+						q_add.bindValue(0, sample_id);
+						q_add.bindValue(1, target_variant_id);
+						q_add.bindValue(2, query_s.value("db"));
+						q_add.bindValue(3, query_s.value("class"));
+						q_add.bindValue(4, query_s.value("details"));
+						q_add.bindValue(5, query_s.value("user_id"));
+						q_add.bindValue(6, query_s.value("date"));
+						q_add.exec();
+
+						++c_add;
+					}
+				 }
+			}
+		}
+		addLine("  Table 'variant_publication' added: "+QString::number(c_add));
+	}
 
 	//variant_classification
+	{
+		int c_add = 0;
+		SqlQuery query_s = db_source_->getQuery();
+		SqlQuery q_add = db_target_->getQuery();
+		q_add.prepare("INSERT INTO `variant_classification`(`variant_id`, `class`, `comment`) VALUES (:0,:1,:2)");
+		query_s.exec("SELECT * FROM variant_classification");
+		while(query_s.next())
+		{
+			int source_variant_id = query_s.value("variant_id").toInt();
+			int target_variant_id = liftOverVariant(source_variant_id, false);
 
+			//warn if class 4/5 variant could not be found
+			if (target_variant_id<0)
+			{
+				QString source_class = query_s.value("class").toString();
+				if (target_variant_id==-4 && (source_class=="4" || source_class=="5")) //target_variant_id==-4 means that the variant is liftable, but was not found in the target NGSD
+				{
+					qDebug() << "variant_classification: class " << source_class  << " variant " << db_source_->variant(query_s.value("variant_id").toString()).toString() << " not found in target NGSD!";
+				}
+			}
+			else
+			{
+				 QVariant target_id = db_target_->getValue("SELECT id FROM variant_classification WHERE variant_id='" + QString::number(target_variant_id) + "'", true);
+				 if (!target_id.isValid())
+				 {
+					 q_add.bindValue(0, target_variant_id);
+					 q_add.bindValue(1, query_s.value("class"));
+					 q_add.bindValue(2, query_s.value("comment"));
+					 q_add.exec();
 
-	//TODO
-	/*
-	 Replicate missing variant data by insert only (otherwise work done in the GRCh38 database might be lost)
-	 - report config (small variants, CNVs, SVs)
-	 - variant publication
-	 - variant validation
-	*/
+					++c_add;
+				 }
+			}
+		}
+		addLine("  Table 'variant_classification' added: "+QString::number(c_add));
+	}
+
+	//TODO replicate report config (small variants, CNVs, SVs) if there is no report config for that variant type
 }
 
 void NGSDReplicationWidget::performPostChecks()
@@ -634,8 +744,8 @@ int NGSDReplicationWidget::liftOverVariant(int source_variant_id, bool debug_out
 
 	//check sequence context is the same (ref +-5 bases). If it is not, the strand might have changed, e.g. in NIPA1, GDF2, ANKRD35, TPTE, ...
 	bool strand_changed = false;
-	Sequence context_old = genome_index_->seq(var.chr(), var.start()-5, 10 + var.ref().length());
-	Sequence context_new = genome_index_hg19_->seq(coords.chr(), coords.start()-5, 10 + var.ref().length());
+	Sequence context_old = genome_index_hg19_->seq(var.chr(), var.start()-5, 10 + var.ref().length());
+	Sequence context_new = genome_index_->seq(coords.chr(), coords.start()-5, 10 + var.ref().length());
 	if (context_old!=context_new)
 	{
 		context_new.reverseComplement();
