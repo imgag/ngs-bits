@@ -41,7 +41,7 @@ private slots:
 		vl.checkValid();
 		vl.leftAlign(ref_file, false);
 		vl.store("out/LeftAlign_out2.GSvar");
-		COMPARE_FILES("out/LeftAlign_out2.GSvar", TESTDATA("data_out/LeftAlign_out2.GSvar"));
+		COMPARE_FILES("out/LeftAlign_out2.GSvar", TESTDATA("data_out/LeftAlign_out.GSvar"));
 	}
 
 	void removeDuplicates_TSV()
