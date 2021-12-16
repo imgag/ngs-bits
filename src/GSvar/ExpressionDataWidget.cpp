@@ -150,31 +150,31 @@ void ExpressionDataWidget::applyFilters()
 			}
 		}
 	}
+// deactivated sinc column does not exist
+//	//filter by reference logFC
+//	QString ref_logfc = ui_->ref_logfc->text();
+//	if (!ref_logfc.isEmpty())
+//	{
+//		int idx = column_names_.indexOf("hpa_log2fc");
 
-	//filter by reference logFC
-	QString ref_logfc = ui_->ref_logfc->text();
-	if (!ref_logfc.isEmpty())
-	{
-		int idx = column_names_.indexOf("hpa_log2fc");
+//		double logfc_cutoff = Helper::toDouble(ref_logfc);
+//		for(int row_idx=0; row_idx<row_count; ++row_idx)
+//		{
+//			//skip already filtered
+//			if (!filter_result.flags()[row_idx]) continue;
 
-		double logfc_cutoff = Helper::toDouble(ref_logfc);
-		for(int row_idx=0; row_idx<row_count; ++row_idx)
-		{
-			//skip already filtered
-			if (!filter_result.flags()[row_idx]) continue;
-
-			QString value = ui_->expressionData->item(row_idx, idx)->text();
-			if (value.isEmpty() || value == "n/a")
-			{
-				filter_result.flags()[row_idx] = false;
-			}
-			else
-			{
-				double value_dbl = Helper::toDouble(value);
-				filter_result.flags()[row_idx] = fabs(value_dbl) >= logfc_cutoff;
-			}
-		}
-	}
+//			QString value = ui_->expressionData->item(row_idx, idx)->text();
+//			if (value.isEmpty() || value == "n/a")
+//			{
+//				filter_result.flags()[row_idx] = false;
+//			}
+//			else
+//			{
+//				double value_dbl = Helper::toDouble(value);
+//				filter_result.flags()[row_idx] = fabs(value_dbl) >= logfc_cutoff;
+//			}
+//		}
+//	}
 
 	//hide rows not passing filters
 	for(int row=0; row<row_count; ++row)
@@ -193,8 +193,33 @@ void ExpressionDataWidget::loadExpressionData()
 	TsvFile expression_data;
 	QSharedPointer<VersatileFile> expression_data_file = Helper::openVersatileFileForReading(tsv_filename_, false);
 
-	QStringList tsv_header = expression_data.headers();
+	//parse TSV file
+	while (!expression_data_file->atEnd())
+	{
+		QString line = expression_data_file->readLine().trimmed();
+		if (line == "")
+		{
+			// skip empty lines
+			continue;
+		}
+		else if	(line.startsWith("##"))
+		{
+			expression_data.addComment(line.mid(2));
+		}
+		else if (line.startsWith("#"))
+		{
+			foreach (const QString& header, line.mid(1).split('\t'))
+			{
+				expression_data.addHeader(header.trimmed());
+			}
+		}
+		else
+		{
+			expression_data.addRow(line.split('\t'));
+		}
+	}
 
+	QStringList tsv_header = expression_data.headers();
 
 
 	//define columns

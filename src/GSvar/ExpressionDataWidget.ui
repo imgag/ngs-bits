@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>655</width>
-    <height>600</height>
+    <width>1600</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>640</width>
-    <height>480</height>
+    <width>800</width>
+    <height>600</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -22,7 +22,21 @@
   <property name="toolTip">
    <string/>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QTableWidget" name="expressionData"/>
+     </item>
+     <item>
+      <widget class="QLabel" name="filtered_rows">
+       <property name="text">
+        <string>0 / 0</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="sizePolicy">
@@ -30,6 +44,12 @@
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>300</width>
+       <height>16777215</height>
+      </size>
      </property>
      <property name="title">
       <string>Filter</string>
@@ -78,6 +98,9 @@
         <property name="text">
          <string>Note: The table can be sorted by clicking on the corresponding table headers. </string>
         </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item row="2" column="0">
@@ -94,16 +117,6 @@
        <widget class="QLineEdit" name="cohort_zscore"/>
       </item>
      </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QTableWidget" name="expressionData"/>
-   </item>
-   <item>
-    <widget class="QLabel" name="filtered_rows">
-     <property name="text">
-      <string>0 / 0</string>
-     </property>
     </widget>
    </item>
   </layout>
