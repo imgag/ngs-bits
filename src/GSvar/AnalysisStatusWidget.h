@@ -40,7 +40,7 @@ private:
 	};
 	QList<JobData> jobs_; //shown jobs only (index==row in widget)
 
-	static void addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color = Qt::transparent);
+	static QTableWidgetItem* addItem(QTableWidget* table, int row, int col, QString text, QColor bg_color = Qt::transparent);
 	static QColor statusToColor(QString status);
 	static QString timeHumanReadable(int sec);
 	QList<int> selectedRows() const;

@@ -78,7 +78,7 @@ void BlatWidget::resultContextMenu(QPoint pos)
 
 	//execute menu
 	QMenu menu;
-	QAction* a_igv = menu.addAction(QIcon(), "Open position in IGV");
+	QAction* a_igv = menu.addAction(QIcon(":/Icons/IGV.png"), "Open position in IGV");
 	QAction* action = menu.exec(ui_.table->viewport()->mapToGlobal(pos));
 	if (action==nullptr) return;
 
