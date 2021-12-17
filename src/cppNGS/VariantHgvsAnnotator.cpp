@@ -44,7 +44,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         {
             pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand);
 
-            if(end - start > 1)
+            if(end - start > 1 && pos_hgvs_c != "")
             {
                 if(plus_strand)
                 {
@@ -69,6 +69,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
                 pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand) + "_" +
                         annotateRegionsCoding(transcript, hgvs, start, plus_strand);
             }
+            if(pos_hgvs_c == "_") pos_hgvs_c = "";
         }
         //delins (deletion and insertion at the same time/substitution of more than one base)
         else if(variant.isInDel() && !variant.isDel() && !variant.isIns())
@@ -76,7 +77,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
             //normalization made sure that alt and ref always have the same base prepended
             pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand);
 
-            if(end - start > 1)
+            if(end - start > 1 && pos_hgvs_c != "")
             {
                 if(plus_strand)
                 {
