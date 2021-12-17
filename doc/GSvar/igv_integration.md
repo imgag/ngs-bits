@@ -42,18 +42,19 @@ When IGV initialization was perfomed or when was skipped for the session, the in
 Colored reads normally mean that the insert size of the read lies outside the expected insert size interval.  
 More information can be found at in the [IGV documentation](https://software.broadinstitute.org/software/igv/interpreting_insert_size).
 
-### IGV cannot locate the genome
 
-Sometimes GSvar cannot execute the command `genome 1kg_v37` and IGV gives the error `ERROR Could not locate genome: 1kg_v37`.  
-Then you have to add the genome to IGV manually:
+### What is the difference between upper- and lower-case bases in the reference genome sequence?
+
+Lower-case bases are part of a repeat (simple repeat, Alu, etc.).  
+To determine repeats [RepeatMasker](http://www.repeatmasker.org/) and similar tools care used.
+
+### IGV is slow sometimes. Can I speed it up?
+
+You can download the genome sequence to speed up IGV:
 
 ![alt text](igv_load_genome.png)
 
 If the genome download fails, the proxy settings are probably wrong (see the question `IGV cannot load genomes`).
-
-**Note:**  
-Since megSAP uses Ensembl transcripts for annotation, using the default IGV genomes leads to inconsistencies (they use RefSeq transcripts).  
-Instructions how to build a IGV genome with Ensembl annotation can be found [here](https://github.com/imgag/IGV_genome_ensembl).
 
 ### IGV does not open
 Follow these instructions, if only the black console window of IGV but not the actual application opens.
@@ -69,6 +70,7 @@ IGV needs access to the Broad Institute web server to manage non-local genome fi
 If it cannot access the server, during startup the error message `cannot connect to genome server` is shown and several other errors can occur.
 
 In that case, you have to set the proxy like shown here:
+
 ![alt text](igv_proxy.png)
 
 Finally, you have to restart IGV.

@@ -55,17 +55,17 @@ private slots:
 		if (ref_file=="") SKIP("Test needs the reference genome!");
 
 		FastaFileIndex index(ref_file);
-		Sequence seq = index.seq("chr16", 87637935, 1);
+		Sequence seq = index.seq("chr16", 87604329, 1);
 		S_EQUAL(seq, Sequence("G"));
 
-		seq = index.seq("chr16", 87637934, 3);
+		seq = index.seq("chr16", 87604328, 3);
 		S_EQUAL(seq, Sequence("TGT"));
 
-		seq = index.seq("chr16", 87637933, 5);
+		seq = index.seq("chr16", 87604327, 5);
 		S_EQUAL(seq, Sequence("CTGTA"));
 
-		seq = index.seq("chrGL000249.1", 1, 5);
-		S_EQUAL(seq, Sequence("GATCA"));
+		seq = index.seq("chrUn_GL000218v1", 1, 5);
+		S_EQUAL(seq, Sequence("GAATT"));
 	}
 
 	void lengthOf()

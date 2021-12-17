@@ -39,6 +39,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QString vcf_filename, bool is_exome
 	ui_.setupUi(this);
 
 	connect(ui_.repeat_expansions,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
+	connect(ui_.repeat_expansions,SIGNAL(cellDoubleClicked(int,int)), this, SLOT(cellDoubleClicked(int, int)));
 
 	loadRepeatExpansionData();
 }
@@ -78,6 +79,12 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	{
 		GUIHelper::copyToClipboard(ui_.repeat_expansions, true);
 	}
+}
+
+void RepeatExpansionWidget::cellDoubleClicked(int row, int /*col*/)
+{
+	QString region = ui_.repeat_expansions->item(row, 0)->text() + ":" + ui_.repeat_expansions->item(row, 1)->text() + "-" + ui_.repeat_expansions->item(row, 2)->text();
+	GlobalServiceProvider::gotoInIGV(region, true);
 }
 
 void RepeatExpansionWidget::keyPressEvent(QKeyEvent* event)

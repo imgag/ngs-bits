@@ -39,9 +39,9 @@ private slots:
 
 	void byBED_VCF_mark()
 	{
-		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in2.vcf") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in.bed") + " -out out/VariantFilterRegions_out6.vcf -mark off-target");
-		COMPARE_FILES("out/VariantFilterRegions_out6.vcf", TESTDATA("data_out/VariantFilterRegions_out6.vcf"));
-		VCF_IS_VALID("out/VariantFilterRegions_out6.vcf")
+		EXECUTE("VariantFilterRegions", "-in " + TESTDATA("data_in/VariantFilterRegions_in4.vcf") + " -reg " + TESTDATA("data_in/VariantFilterRegions_in2.bed") + " -out out/VariantFilterRegions_out9.vcf -mark off-target");
+		COMPARE_FILES("out/VariantFilterRegions_out9.vcf", TESTDATA("data_out/VariantFilterRegions_out9.vcf"));
+		VCF_IS_VALID("out/VariantFilterRegions_out9.vcf")
 	}
 
 	void byBED_TSV_mark_invert()

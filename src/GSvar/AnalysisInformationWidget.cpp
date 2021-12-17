@@ -173,6 +173,46 @@ void AnalysisInformationWidget::updateGUI()
 
 			GUIHelper::resizeTableCells(ui_.table);
 		}
+		else if(sample_data.type.startsWith("cfDNA"))
+		{
+			ImportStatusGermline import_status = db.importStatus(ps_id_);
+
+			//BAM
+			FileLocation file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::BAM);
+			ui_.table->setItem(0, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
+			ui_.table->setItem(0, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
+			if (!file.exists) ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+			if (file.exists && sample_data.species=="human")
+			{
+				BamReader reader(file.filename);
+				QByteArray genome = reader.build();
+				if (genome!="" && stringToBuild(genome)!=GSvarHelper::build())
+				{
+					ui_.table->item(0,1)->setText(ui_.table->item(0,1)->text() + " (" + genome + ")");
+					ui_.table->item(0,1)->setTextColor(QColor(Qt::red));
+				}
+			}
+			ui_.table->setItem(0, 2, GUIHelper::createTableItem(QString::number(import_status.qc_terms) + " QC terms"));
+
+			//small variants
+			file = GlobalServiceProvider::database().processedSamplePath(ps_id_, PathType::GSVAR);
+			ui_.table->setItem(1, 0, GUIHelper::createTableItem(QFileInfo(file.filename).fileName()));
+			ui_.table->setItem(1, 1, GUIHelper::createTableItem(file.exists ? "yes" : "no"));
+			if (!file.exists) ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
+			if (file.exists && sample_data.species=="human")
+			{
+				VariantList vl;
+				vl.loadHeaderOnly(file.filename);
+				if (vl.build()!=GSvarHelper::build())
+				{
+					ui_.table->item(1,1)->setText(ui_.table->item(1,1)->text() + " (" + buildToString(vl.build()) + ")");
+					ui_.table->item(1,1)->setTextColor(QColor(Qt::red));
+				}
+			}
+			ui_.table->setItem(1, 2, GUIHelper::createTableItem(""));
+
+			GUIHelper::resizeTableCells(ui_.table);
+		}
 		else
 		{
 			THROW(ProgrammingException, "Sample type '"+sample_data.type+"' not handled in analysis information widget!");
