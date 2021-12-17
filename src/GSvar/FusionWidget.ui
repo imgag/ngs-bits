@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1600</width>
-    <height>800</height>
+    <height>820</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,7 +17,17 @@
    <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QTableWidget" name="tableWidget"/>
+      <widget class="QTableWidget" name="fusions">
+       <property name="minimumSize">
+        <size>
+         <width>1280</width>
+         <height>800</height>
+        </size>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

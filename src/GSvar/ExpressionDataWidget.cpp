@@ -290,6 +290,9 @@ void ExpressionDataWidget::loadExpressionData()
 	//enable sorting
 	ui_->expressionData->setSortingEnabled(true);
 
+	//optimize table view
+	GUIHelper::resizeTableCells(ui_->expressionData, 200, true, 1000);
+
 	//Set number of filtered / total rows
 	ui_->filtered_rows->setText(QByteArray::number(expression_data.rowCount()) + " / " + QByteArray::number(expression_data.rowCount()));
 }

@@ -12,11 +12,19 @@ class FusionWidget : public QWidget
 	Q_OBJECT
 
 public:
-	explicit FusionWidget(QWidget *parent = 0);
+	explicit FusionWidget(const QString& filename, QWidget *parent = 0);
 	~FusionWidget();
 
 private:
-	Ui::FusionWidget *ui;
+	void loadFusionData();
+
+
+	QString filename_;
+	Ui::FusionWidget *ui_;
+
+	//table info
+	QStringList column_names_;
+	QVector<bool> numeric_columns_;
 };
 
 #endif // FUSIONWIDGET_H

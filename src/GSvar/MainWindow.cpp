@@ -128,6 +128,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "LiftOverWidget.h"
 #include "CacheInitWorker.h"
 #include "BlatWidget.h"
+#include "FusionWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -178,8 +179,7 @@ MainWindow::MainWindow(QWidget *parent)
 	rna_menu_btn_->menu()->addAction(ui_.actionShowRnaFusions);
 	rna_menu_btn_->setPopupMode(QToolButton::InstantPopup);
 	ui_.tools->addWidget(rna_menu_btn_);
-	// deaktivate on default
-	rna_menu_btn_->setEnabled(false);
+
 
 	// add cfdna menu
 	cfdna_menu_btn_ = new QToolButton();
@@ -1298,38 +1298,34 @@ void MainWindow::on_actionShowRnaFusions_triggered()
 		// check for required files
 		foreach (const QString& rna_ps_id, db.getValues("SELECT id FROM processed_sample WHERE sample_id=:0", QString::number(rna_sample_id)))
 		{
-			// search for manta fusion file
-			FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
-			if (manta_fusion_file.exists) manta_fusion_files << manta_fusion_file.filename;
+			// search for fusion file
+			FileLocation fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
+			if (fusion_file.exists) manta_fusion_files << fusion_file.filename;
 		}
 	}
 
 	if (manta_fusion_files.isEmpty())
 	{
-		QMessageBox::warning(this, "Manta fusion files missing", "Error: No RNA manta fusion files of corresponding RNA samples found!");
+		QMessageBox::warning(this, "Fusion files missing", "Error: No RNA fusion files of corresponding RNA samples found!");
 		return;
 	}
 
 	//select file to open
-	QString manta_fusion_filepath;
+	QString fusion_filepath;
 	if (manta_fusion_files.size()==1)
 	{
-		manta_fusion_filepath = manta_fusion_files.at(0);
+		fusion_filepath = manta_fusion_files.at(0);
 	}
 	else
 	{
 		bool ok;
-		manta_fusion_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA manta fusion files found.\nPlease select a file:", manta_fusion_files, 0, false, &ok);
+		fusion_filepath = QInputDialog::getItem(this, "Multiple files found", "Multiple RNA manta fusion files found.\nPlease select a file:", manta_fusion_files, 0, false, &ok);
 		if (!ok) return;
 	}
 
-	BedpeFile fusions;
-	fusions.load(manta_fusion_filepath);
+	FusionWidget* fusion_widget = new FusionWidget(fusion_filepath, this);
 
-	//open SV widget
-	SvWidget* sv_widget = new SvWidget(fusions, db.processedSampleId(variants_.mainSampleName()), ui_.filters, GeneSet(), gene2region_cache_, this);
-
-	auto dlg = GUIHelper::createDialog(sv_widget, "Manta fusions of " + variants_.analysisName());
+	auto dlg = GUIHelper::createDialog(fusion_widget, "Fusions of " + variants_.analysisName() + " (arriba)");
 	addModelessDialog(dlg);
 }
 
@@ -2839,7 +2835,6 @@ void MainWindow::loadFile(QString filename)
 	}
 
 	//activate RNA menu
-	rna_menu_btn_->setEnabled(false);
 	ui_.actionExpressionData->setEnabled(false);
 	ui_.actionShowRnaFusions->setEnabled(false);
 	if (LoginManager::active() && germlineReportSupported())
@@ -2862,7 +2857,7 @@ void MainWindow::loadFile(QString filename)
 					if (rna_count_file.exists) ui_.actionExpressionData->setEnabled(true);
 
 					// search for manta fusion file
-					FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::MANTA_FUSIONS);
+					FileLocation manta_fusion_file = GlobalServiceProvider::database().processedSamplePath(rna_ps_id, PathType::FUSIONS);
 					if (manta_fusion_file.exists) ui_.actionShowRnaFusions->setEnabled(true);
 				}
 			}
