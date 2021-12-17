@@ -6,6 +6,7 @@
 #include "Settings.h"
 #include <QTextStream>
 #include <QVector>
+#include "Helper.h"
 
 TEST_CLASS(VariantHgvsAnnotator_Test)
 {
@@ -21,16 +22,16 @@ Q_OBJECT
         t.setStrand(Transcript::PLUS);
 
         BedFile regions;
-        regions.append(BedLine("chr3", 195943375, 195943621));
-        regions.append(BedLine("chr3", 195944713, 195944807));
-        regions.append(BedLine("chr3", 195953836, 195953990));
-        regions.append(BedLine("chr3", 195954535, 195954608));
-        regions.append(BedLine("chr3", 195954986, 195955144));
-        regions.append(BedLine("chr3", 195955680, 195955791));
-        regions.append(BedLine("chr3", 195956786, 195956932));
-        regions.append(BedLine("chr3", 195959290, 195959395));
-        regions.append(BedLine("chr3", 195959934, 195960301));
-        t.setRegions(regions, 195943584, 195960070);
+        regions.append(BedLine("chr3", 196216534, 196216750));
+        regions.append(BedLine("chr3", 196217842, 196217936));
+        regions.append(BedLine("chr3", 196226965, 196227119));
+        regions.append(BedLine("chr3", 196227664, 196227737));
+        regions.append(BedLine("chr3", 196228115, 196228273));
+        regions.append(BedLine("chr3", 196228809, 196228920));
+        regions.append(BedLine("chr3", 196229915, 196230061));
+        regions.append(BedLine("chr3", 196232419, 196232524));
+        regions.append(BedLine("chr3", 196233063, 196233427));
+        t.setRegions(regions, 196216713, 196233199);
 
         return t;
     }
@@ -45,12 +46,12 @@ Q_OBJECT
         t.setStrand(Transcript::MINUS);
 
         BedFile regions;
-        regions.append(BedLine("chr3", 195295573, 195296006));
-        regions.append(BedLine("chr3", 195298148, 195298236));
-        regions.append(BedLine("chr3", 195300721, 195300842));
-        regions.append(BedLine("chr3", 195306210, 195306366));
-        regions.append(BedLine("chr3", 195310749, 195311076));
-        t.setRegions(regions, 195306332, 195295771);
+        regions.append(BedLine("chr3", 195568705, 195569135));
+        regions.append(BedLine("chr3", 195571277, 195571365));
+        regions.append(BedLine("chr3", 195573850, 195573971));
+        regions.append(BedLine("chr3", 195579339, 195579495));
+        regions.append(BedLine("chr3", 195583878, 195583940));
+        t.setRegions(regions, 195579461, 195568900);
 
         return t;
     }
@@ -65,19 +66,19 @@ Q_OBJECT
         t.setStrand(Transcript::PLUS);
 
         BedFile regions;
-        regions.append(BedLine("chr8", 91013705, 91013789));
-        regions.append(BedLine("chr8", 91017676, 91018073));
-        regions.append(BedLine("chr8", 91018264, 91018505));
-        regions.append(BedLine("chr8", 91029352, 91029554));
-        regions.append(BedLine("chr8", 91031137, 91031194));
-        regions.append(BedLine("chr8", 91031314, 91031400));
-        regions.append(BedLine("chr8", 91033137, 91033284));
-        regions.append(BedLine("chr8", 91049069, 91049168));
-        regions.append(BedLine("chr8", 91054956, 91055028));
-        regions.append(BedLine("chr8", 91057077, 91057223));
-        regions.append(BedLine("chr8", 91063905, 91063967));
-        regions.append(BedLine("chr8", 91064066, 91064227));
-        t.setRegions(regions, 91018464, 91064125);
+        regions.append(BedLine("chr8", 90001477, 90001561));
+        regions.append(BedLine("chr8", 90005448, 90005845));
+        regions.append(BedLine("chr8", 90006036, 90006277));
+        regions.append(BedLine("chr8", 90017124, 90017326));
+        regions.append(BedLine("chr8", 90018909, 90018966));
+        regions.append(BedLine("chr8", 90019086, 90019172));
+        regions.append(BedLine("chr8", 90020909, 90021056));
+        regions.append(BedLine("chr8", 90036841, 90036940));
+        regions.append(BedLine("chr8", 90042728, 90042800));
+        regions.append(BedLine("chr8", 90044849, 90044995));
+        regions.append(BedLine("chr8", 90051677, 90051739));
+        regions.append(BedLine("chr8", 90051838, 90051999));
+        t.setRegions(regions, 90006236, 90051897);
 
         return t;
 
@@ -93,12 +94,12 @@ Q_OBJECT
         t.setStrand(Transcript::MINUS);
 
         BedFile regions;
-        regions.append(BedLine("chr11", 14988215, 14988647));
-        regions.append(BedLine("chr11", 14989220, 14989400));
-        regions.append(BedLine("chr11", 14991481, 14991621));
-        regions.append(BedLine("chr11", 14992653, 14992747));
-        regions.append(BedLine("chr11", 14993767, 14993832));
-        t.setRegions(regions, 14992738, 14989241);
+        regions.append(BedLine("chr11", 14966669, 14967101));
+        regions.append(BedLine("chr11", 14967674, 14967854));
+        regions.append(BedLine("chr11", 14969935, 14970075));
+        regions.append(BedLine("chr11", 14971107, 14971201));
+        regions.append(BedLine("chr11", 14972221, 14972286));
+        t.setRegions(regions, 14971192, 14967695);
 
         return t;
     }
@@ -112,10 +113,10 @@ Q_OBJECT
         t.setStrand(Transcript::MINUS);
 
         BedFile regions;
-        regions.append(BedLine("chr11", 2904443, 2905145));
-        regions.append(BedLine("chr11", 2905229, 2905364));
-        regions.append(BedLine("chr11", 2905900, 2907111));
-        t.setRegions(regions, 2906719, 2905234);
+        regions.append(BedLine("chr11", 2883213, 2883910));
+        regions.append(BedLine("chr11", 2883999, 2884134));
+        regions.append(BedLine("chr11", 2884670, 2885771));
+        t.setRegions(regions, 2885489, 2884004);
 
         return t;
     }
@@ -129,8 +130,8 @@ Q_OBJECT
         t.setStrand(Transcript::PLUS);
 
         BedFile regions;
-        regions.append(BedLine("chr11", 65190245, 65190854));
-        regions.append(BedLine("chr11", 65191098, 65192232));
+        regions.append(BedLine("chr11", 65422774, 65423383));
+        regions.append(BedLine("chr11", 65423627, 65426457));
         t.setRegions(regions);
 
         return t;
@@ -149,7 +150,7 @@ private slots:
         //SNV exon synonymous
         QVector<Sequence> alt;
         alt.push_back("G");
-        VcfLine variant(Chromosome("chr3"), 195944797, "A", alt);
+        VcfLine variant(Chromosome("chr3"), 196217926, "A", alt);
         HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.123A>G");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
@@ -161,7 +162,7 @@ private slots:
         //SNV exon stop gained
         alt.clear();
         alt.push_back("T");
-        variant.setPos(195959987);
+        variant.setPos(196233116);
         variant.setRef("C");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -176,7 +177,7 @@ private slots:
         //SNV exon stop lost
         alt.clear();
         alt.push_back("C");
-        variant.setPos(195960068);
+        variant.setPos(196233197);
         variant.setRef("T");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -191,7 +192,7 @@ private slots:
         //SNV exon splice region
         alt.clear();
         alt.push_back("G");
-        variant.setPos(195944715);
+        variant.setPos(196217844);
         variant.setRef("A");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -207,7 +208,7 @@ private slots:
         //SNV intron splice acceptor
         alt.clear();
         alt.push_back("G");
-        variant.setPos(195959288);
+        variant.setPos(196232417);
         variant.setRef("A");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -222,7 +223,7 @@ private slots:
         //SNV intron splice donor
         alt.clear();
         alt.push_back("C");
-        variant.setPos(195959397);
+        variant.setPos(196232526);
         variant.setRef("T");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -237,7 +238,7 @@ private slots:
         //SNV intron
         alt.clear();
         alt.push_back("T");
-        variant.setPos(195943667);
+        variant.setPos(196216796);
         variant.setRef("G");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -249,7 +250,7 @@ private slots:
         //SNV intron
         alt.clear();
         alt.push_back("T");
-        variant.setPos(195953793);
+        variant.setPos(196226922);
         variant.setRef("C");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -262,11 +263,11 @@ private slots:
         //SNV 5 prime utr
         alt.clear();
         alt.push_back("G");
-        variant.setPos(195943377);
+        variant.setPos(196216594);
         variant.setRef("A");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
-        S_EQUAL(hgvs.hgvs_c, "c.-207A>G");
+        S_EQUAL(hgvs.hgvs_c, "c.-119A>G");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
@@ -274,7 +275,7 @@ private slots:
         //SNV 3 prime utr
         alt.clear();
         alt.push_back("C");
-        variant.setPos(195960118);
+        variant.setPos(196233247);
         variant.setRef("A");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -286,7 +287,7 @@ private slots:
         // upstream gene variant
         alt.clear();
         alt.push_back("G");
-        variant.setPos(195942487);
+        variant.setPos(196215616);
         variant.setRef("A");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -298,7 +299,7 @@ private slots:
         // deletion intron
         alt.clear();
         alt.push_back("C");
-        variant.setPos(195944094);
+        variant.setPos(196217223);
         variant.setRef("CCTCT");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -310,7 +311,7 @@ private slots:
         // deletion 5 prime utr
         alt.clear();
         alt.push_back("C");
-        variant.setPos(195943481);
+        variant.setPos(196216610);
         variant.setRef("CA");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -322,7 +323,7 @@ private slots:
         // frameshift deletion
         alt.clear();
         alt.push_back("A");
-        variant.setPos(195944778);
+        variant.setPos(196217907);
         variant.setRef("AG");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -337,7 +338,7 @@ private slots:
         // frameshift deletion
         alt.clear();
         alt.push_back("G");
-        variant.setPos(195956829);
+        variant.setPos(196229958);
         variant.setRef("GC");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -352,7 +353,7 @@ private slots:
         // frameshift deletion
         alt.clear();
         alt.push_back("G");
-        variant.setPos(195956854);
+        variant.setPos(196229983);
         variant.setRef("GACCC");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -367,7 +368,7 @@ private slots:
         // inframe deletion (shifted to the right by 3 nt according to 3 prime rule)
         alt.clear();
         alt.push_back("A");
-        variant.setPos(195944717);
+        variant.setPos(196217846);
         variant.setRef("ACAG");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -382,7 +383,7 @@ private slots:
         // insertion 5 prime utr
         alt.clear();
         alt.push_back("GA");
-        variant.setPos(195943475);
+        variant.setPos(196216604);
         variant.setRef("G");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -394,7 +395,7 @@ private slots:
         // insertion intron
         alt.clear();
         alt.push_back("TCCCAGCCG");
-        variant.setPos(195948715);
+        variant.setPos(196221844);
         variant.setRef("T");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -406,7 +407,7 @@ private slots:
         // frameshift insertion
         alt.clear();
         alt.push_back("CGGGTGACAGAGTGACACCATCTCTTGAAAGAGAGAGAGAGAGAGAG");
-        variant.setPos(195956914);
+        variant.setPos(196230043);
         variant.setRef("C");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -426,7 +427,7 @@ private slots:
         alt.clear();
         alt.push_back("T");
         variant.setChromosome(Chromosome("chr8"));
-        variant.setPos(91018489);
+        variant.setPos(90006261);
         variant.setRef("TCCT");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -441,7 +442,7 @@ private slots:
         // inframe deletion
         alt.clear();
         alt.push_back("T");
-        variant.setPos(91057123);
+        variant.setPos(90044895);
         variant.setRef("TGAT");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -456,7 +457,7 @@ private slots:
         // inframe deletion
         alt.clear();
         alt.push_back("T");
-        variant.setPos(91063906);
+        variant.setPos(90051678);
         variant.setRef("TCATTAA");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -472,7 +473,7 @@ private slots:
         // inframe deletion (shifted to the right by 3 nt according to 3 prime rule)
         alt.clear();
         alt.push_back("A");
-        variant.setPos(91064092);
+        variant.setPos(90051864);
         variant.setRef("AGAA");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -487,7 +488,7 @@ private slots:
         // frameshift insertion
         alt.clear();
         alt.push_back("GA");
-        variant.setPos(91049165);
+        variant.setPos(90036937);
         variant.setRef("G");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -502,7 +503,7 @@ private slots:
         // inframe insertion
         alt.clear();
         alt.push_back("TACA");
-        variant.setPos(91057196);
+        variant.setPos(90044968);
         variant.setRef("T");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -517,7 +518,7 @@ private slots:
         // inframe insertion, also shifted by 1 nt according to 3' rule
         alt.clear();
         alt.push_back("GTCACCG");
-        variant.setPos(91057195);
+        variant.setPos(90044967);
         variant.setRef("G");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -532,7 +533,7 @@ private slots:
         // inframe insertion
         alt.clear();
         alt.push_back("GACACCG");
-        variant.setPos(91057195);
+        variant.setPos(90044967);
         variant.setRef("G");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -547,7 +548,7 @@ private slots:
         // inframe insertion
         alt.clear();
         alt.push_back("AACG");
-        variant.setPos(91057194);
+        variant.setPos(90044966);
         variant.setRef("A");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -573,7 +574,7 @@ private slots:
         //SNV exon start lost
         QVector<Sequence> alt;
         alt.push_back("G");
-        VcfLine variant(Chromosome("chr11"), 14992738, "T", alt);
+        VcfLine variant(Chromosome("chr11"), 14971192, "T", alt);
         HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t_CALCA, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.1A>C");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
@@ -587,7 +588,7 @@ private slots:
         alt.clear();
         alt.push_back("A");
         variant.setChromosome(Chromosome("chr3"));
-        variant.setPos(195300788);
+        variant.setPos(195573917);
         variant.setRef("G");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -602,7 +603,7 @@ private slots:
         //SNV exon stop gained
         alt.clear();
         alt.push_back("T");
-        variant.setPos(195295957);
+        variant.setPos(195569086);
         variant.setRef("A");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -616,23 +617,23 @@ private slots:
 
         //SNV intron splice acceptor
         alt.clear();
-        alt.push_back("T");
-        variant.setPos(195296008);
-        variant.setRef("A");
+        alt.push_back("G");
+        variant.setPos(195573973);
+        variant.setRef("T");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
-        S_EQUAL(hgvs.hgvs_c, "c.335-2T>A");
+        S_EQUAL(hgvs.hgvs_c, "c.124-2A>C");
         S_EQUAL(hgvs.hgvs_p, "p.?");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
-        I_EQUAL(hgvs.intron_number, 4);
+        I_EQUAL(hgvs.intron_number, 2);
 
         //SNV intron splice donor
         alt.clear();
         alt.push_back("G");
-        variant.setPos(195310747);
+        variant.setPos(195583876);
         variant.setRef("A");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -647,7 +648,7 @@ private slots:
         //SNV intron splice region
         alt.clear();
         alt.push_back("G");
-        variant.setPos(195296012);
+        variant.setPos(195569141);
         variant.setRef("A");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -660,7 +661,7 @@ private slots:
         //SNV intron
         alt.clear();
         alt.push_back("T");
-        variant.setPos(195297990);
+        variant.setPos(195571119);
         variant.setRef("C");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -672,7 +673,7 @@ private slots:
         //SNV intron
         alt.clear();
         alt.push_back("G");
-        variant.setPos(195296559);
+        variant.setPos(195569688);
         variant.setRef("C");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -684,7 +685,7 @@ private slots:
         //SNV 3 prime utr
         alt.clear();
         alt.push_back("T");
-        variant.setPos(195295592);
+        variant.setPos(195568721);
         variant.setRef("G");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -696,7 +697,7 @@ private slots:
         //SNV 5 prime utr intron
         alt.clear();
         alt.push_back("C");
-        variant.setPos(195306368);
+        variant.setPos(195579497);
         variant.setRef("T");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -708,8 +709,8 @@ private slots:
         // upstream gene variant
         alt.clear();
         alt.push_back("A");
-        variant.setPos(195312178);
-        variant.setRef("G");
+        variant.setPos(195585307);
+        variant.setRef("C");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "");
@@ -720,8 +721,8 @@ private slots:
         // downstream gene variant
         alt.clear();
         alt.push_back("A");
-        variant.setPos(195290637);
-        variant.setRef("G");
+        variant.setPos(195563767);
+        variant.setRef("C");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "");
@@ -729,14 +730,26 @@ private slots:
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, -1);
 
-        // deletion 5 prime utr
+        // deletion upstream
         alt.clear();
         alt.push_back("T");
-        variant.setPos(195311022);
+        variant.setPos(195584151);
         variant.setRef("TTC");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
-        S_EQUAL(hgvs.hgvs_c, "c.-310_-309del");
+        S_EQUAL(hgvs.hgvs_c, "");
+        IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::UPSTREAM_GENE_VARIANT));
+        I_EQUAL(hgvs.exon_number, -1);
+        I_EQUAL(hgvs.intron_number, -1);
+
+        // deletion 5 prime utr
+        alt.clear();
+        alt.push_back("C");
+        variant.setPos(195583887);
+        variant.setRef("CAA");
+        variant.setAlt(alt.toList());
+        hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
+        S_EQUAL(hgvs.hgvs_c, "c.-46_-45del");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
@@ -744,7 +757,7 @@ private slots:
         // deletion 3 prime utr
         alt.clear();
         alt.push_back("G");
-        variant.setPos(195295712);
+        variant.setPos(195568841);
         variant.setRef("GTA");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -756,7 +769,7 @@ private slots:
         // deletion splice region
         alt.clear();
         alt.push_back("C");
-        variant.setPos(195298240);
+        variant.setPos(195571369);
         variant.setRef("CA");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -769,7 +782,7 @@ private slots:
         // frameshift deletion
         alt.clear();
         alt.push_back("G");
-        variant.setPos(195295798);
+        variant.setPos(195568927);
         variant.setRef("GT");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -784,7 +797,7 @@ private slots:
         // insertion 3 prime utr
         alt.clear();
         alt.push_back("TGGGGG");
-        variant.setPos(195295713);
+        variant.setPos(195568842);
         variant.setRef("T");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -799,7 +812,7 @@ private slots:
         alt.clear();
         alt.push_back("C");
         variant.setChromosome(Chromosome("chr11"));
-        variant.setPos(14991495);
+        variant.setPos(14969949);
         variant.setRef("CTCTT");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -814,7 +827,7 @@ private slots:
         // frameshift deletion
         alt.clear();
         alt.push_back("C");
-        variant.setPos(14989266);
+        variant.setPos(14967720);
         variant.setRef("CT");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -829,7 +842,7 @@ private slots:
         // inframe deletion
         alt.clear();
         alt.push_back("C");
-        variant.setPos(14992674);
+        variant.setPos(14971128);
         variant.setRef("CTGCCTGCCTGCAACA");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -844,7 +857,7 @@ private slots:
         // frameshift insertion
         alt.clear();
         alt.push_back("CACTGA");
-        variant.setPos(14991572);
+        variant.setPos(14970026);
         variant.setRef("C");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -859,7 +872,7 @@ private slots:
         // frameshift insertion
         alt.clear();
         alt.push_back("TACTGA");
-        variant.setPos(14991571);
+        variant.setPos(14970025);
         variant.setRef("T");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -874,7 +887,7 @@ private slots:
         // frameshift insertion
         alt.clear();
         alt.push_back("TACTGA");
-        variant.setPos(14991570);
+        variant.setPos(14970024);
         variant.setRef("T");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -899,7 +912,7 @@ private slots:
         //delins intron
         QVector<Sequence> alt;
         alt.push_back("TTCT");
-        VcfLine variant(Chromosome("chr3"), 195307238, "TC", alt);
+        VcfLine variant(Chromosome("chr3"), 195580367, "TC", alt);
         HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.-34-873delinsAGA");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
@@ -909,7 +922,7 @@ private slots:
         //delins 3 prime utr
         alt.clear();
         alt.push_back("AGGCG");
-        variant.setPos(195295701);
+        variant.setPos(195568830);
         variant.setRef("AT");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -923,7 +936,7 @@ private slots:
         alt.clear();
         alt.push_back("CGTG");
         variant.setChromosome(Chromosome("chr3"));
-        variant.setPos(195945967);
+        variant.setPos(196219096);
         variant.setRef("GGCA");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -937,7 +950,7 @@ private slots:
         alt.clear();
         alt.push_back("CT");
         variant.setChromosome(Chromosome("chr11"));
-        variant.setPos(2906021);
+        variant.setPos(2884791);
         variant.setRef("GC");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -952,7 +965,7 @@ private slots:
         //delins exon missense
         alt.clear();
         alt.push_back("AA");
-        variant.setPos(2906133);
+        variant.setPos(2884903);
         variant.setRef("GC");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -967,7 +980,7 @@ private slots:
         //delins exon; more than one amino acid deleted
         alt.clear();
         alt.push_back("AA");
-        variant.setPos(2906130);
+        variant.setPos(2884900);
         variant.setRef("GCCGC");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -982,7 +995,7 @@ private slots:
         //delins exon; more than one amino acid inserted
         alt.clear();
         alt.push_back("AAATT");
-        variant.setPos(2906133);
+        variant.setPos(2884903);
         variant.setRef("GC");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -997,7 +1010,7 @@ private slots:
         //delins exon; more than one amino acid deleted and inserted
         alt.clear();
         alt.push_back("AAATT");
-        variant.setPos(2906130);
+        variant.setPos(2884900);
         variant.setRef("GCCGC");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -1012,7 +1025,7 @@ private slots:
         //delins exon frameshift
         alt.clear();
         alt.push_back("GTT");
-        variant.setPos(2906088);
+        variant.setPos(2884858);
         variant.setRef("GC");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -1027,7 +1040,7 @@ private slots:
         //delins exon frameshift
         alt.clear();
         alt.push_back("CC");
-        variant.setPos(2906408);
+        variant.setPos(2885178);
         variant.setRef("CAG");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -1052,7 +1065,7 @@ private slots:
         //SNV 5 prime utr intron plus strand
         QVector<Sequence> alt;
         alt.push_back("A");
-        VcfLine variant(Chromosome("chr8"), 91017610, "G", alt);
+        VcfLine variant(Chromosome("chr8"), 90005382, "G", alt);
         HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "c.-598-66G>A");
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
@@ -1065,7 +1078,7 @@ private slots:
         alt.clear();
         alt.push_back("G");
         variant.setChromosome(Chromosome("chr11"));
-        variant.setPos(14993692);
+        variant.setPos(14972146);
         variant.setRef("A");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -1077,7 +1090,7 @@ private slots:
         //SNV 3 prime utr intron minus strand
         alt.clear();
         alt.push_back("G");
-        variant.setPos(14988684);
+        variant.setPos(14967138);
         variant.setRef("T");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -1089,7 +1102,7 @@ private slots:
         //SNV 3 prime utr intron minus strand
         alt.clear();
         alt.push_back("G");
-        variant.setPos(14989202);
+        variant.setPos(14967656);
         variant.setRef("T");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t_2, variant, reference);
@@ -1111,7 +1124,7 @@ private slots:
         // non-coding intron SNV
         QVector<Sequence> alt;
         alt.push_back("T");
-        VcfLine variant(Chromosome("chr11"), 65190874, "C", alt);
+        VcfLine variant(Chromosome("chr11"), 65423403, "C", alt);
         HgvsNomenclature hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
         S_EQUAL(hgvs.hgvs_c, "n.610+20C>T");
         S_EQUAL(hgvs.hgvs_p, "");
@@ -1123,7 +1136,7 @@ private slots:
         // non-coding exon SNV
         alt.clear();
         alt.push_back("T");
-        variant.setPos(65190798);
+        variant.setPos(65423327);
         variant.setRef("C");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
@@ -1137,7 +1150,7 @@ private slots:
         // non-coding exon deletion
         alt.clear();
         alt.push_back("C");
-        variant.setPos(65190331);
+        variant.setPos(65422860);
         variant.setRef("CAG");
         variant.setAlt(alt.toList());
         hgvs = var_hgvs_anno.variantToHgvs(t, variant, reference);
