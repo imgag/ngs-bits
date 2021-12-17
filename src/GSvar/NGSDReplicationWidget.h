@@ -42,8 +42,6 @@ private:
 	Ui::NGSDReplicationWidget ui_;
 	QSharedPointer<NGSD> db_source_;
 	QSharedPointer<NGSD> db_target_;
-	QSharedPointer<FastaFileIndex> genome_index_;
-	QSharedPointer<FastaFileIndex> genome_index_hg19_;
 
 	QSet<QString> tables_done_;
 

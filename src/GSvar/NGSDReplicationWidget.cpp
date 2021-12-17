@@ -17,9 +17,6 @@ NGSDReplicationWidget::NGSDReplicationWidget(QWidget* parent)
 		if (GSvarHelper::build()!=GenomeBuild::HG38) THROW(ArgumentException, "This dialog can only be used from GSvar with HG38 genome build!");
 		db_source_ = QSharedPointer<NGSD>(new NGSD(false, "_hg19"));
 		db_target_ = QSharedPointer<NGSD>(new NGSD());
-
-		genome_index_ = QSharedPointer<FastaFileIndex>(new FastaFileIndex(Settings::string("reference_genome")));
-		genome_index_hg19_ = QSharedPointer<FastaFileIndex>(new FastaFileIndex(Settings::string("reference_genome_hg19")));
 	}
 	catch(Exception& e)
 	{
@@ -532,6 +529,51 @@ void NGSDReplicationWidget::replicateReportConfiguration()
 
 void NGSDReplicationWidget::replicatePostProduction()
 {
+	//lift-over statistics (variant publication 2021)
+	//results from 17.12.2021:
+	//SNV: 244 240 ~ 98%
+	//INS: 39 39 ~ 100%
+	//DEL: 89 86 - 96%
+	//SNV+INS+DEL: 98.11%
+	if (false)
+	{
+		int c_snv = 0;
+		int c_snv_lift = 0;
+		int c_ins = 0;
+		int c_ins_lift = 0;
+		int c_del = 0;
+		int c_del_lift = 0;
+
+		SqlQuery query_s = db_source_->getQuery();
+		query_s.exec("SELECT DISTINCT vp.variant_id FROM variant_publication vp, sample s WHERE vp.sample_id=s.id AND s.name LIKE 'DX21%'");
+		while(query_s.next())
+		{
+			int source_variant_id = query_s.value("variant_id").toInt();
+			int target_variant_id = liftOverVariant(source_variant_id, false);
+
+			Variant tmp = db_source_->variant(QString::number(source_variant_id));
+			if (tmp.isSNV())
+			{
+				++c_snv;
+				if (target_variant_id>0) ++c_snv_lift;
+			}
+			else if (tmp.ref()=="-") //ins
+			{
+				++c_ins;
+				if (target_variant_id>0) ++c_ins_lift;
+			}
+			else //del
+			{
+				++c_del;
+				if (target_variant_id>0) ++c_del_lift;
+			}
+		}
+		qDebug() << c_snv << c_snv_lift;
+		qDebug() << c_ins << c_ins_lift;
+		qDebug() << c_del << c_del_lift;
+		return;
+	}
+
 	//geneinfo_germline
 	{
 		int c_update = 0;
@@ -680,7 +722,7 @@ void NGSDReplicationWidget::replicatePostProduction()
 		addLine("  Table 'variant_classification' added: "+QString::number(c_add));
 	}
 
-	//TODO replicate report config (small variants, CNVs, SVs) if there is no report config for that variant type
+	//TODO replicate report config (small variants, CNVs, SVs) if there is no report config for that variant
 }
 
 void NGSDReplicationWidget::performPostChecks()
@@ -722,54 +764,25 @@ void NGSDReplicationWidget::performPostChecks()
 
 int NGSDReplicationWidget::liftOverVariant(int source_variant_id, bool debug_output)
 {
-	Variant var = db_source_->variant(QString::number(source_variant_id));
-	//lift-over coordinates
-	BedLine coords;
+	const Variant var = db_source_->variant(QString::number(source_variant_id));
+
+	//lift-over variant
+	Variant var2;
 	try
 	{
-		coords = GSvarHelper::liftOver(var.chr(), var.start(), var.end());
+		var2 = GSvarHelper::liftOverVariant(var, true);
 	}
 	catch(Exception& e)
 	{
-		if (debug_output) qDebug() << "-1" << var.toString() << e.message();
+		if (debug_output) qDebug() << "-1" << var.toString() << "Lift-over failed: " + e.message();
 		return -1;
 	}
 
-	//check new chromosome is ok
-	if (!coords.chr().isNonSpecial())
-	{
-		if (debug_output) qDebug() << "-2" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end());
-		return -2;
-	}
-
-	//check sequence context is the same (ref +-5 bases). If it is not, the strand might have changed, e.g. in NIPA1, GDF2, ANKRD35, TPTE, ...
-	bool strand_changed = false;
-	Sequence context_old = genome_index_hg19_->seq(var.chr(), var.start()-5, 10 + var.ref().length());
-	Sequence context_new = genome_index_->seq(coords.chr(), coords.start()-5, 10 + var.ref().length());
-	if (context_old!=context_new)
-	{
-		context_new.reverseComplement();
-		if (context_old==context_new)
-		{
-			strand_changed = true;
-		}
-		else
-		{
-			context_new.reverseComplement();
-			if (debug_output) qDebug() << "-3" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end()) << "old_context="+context_old << "new_context="+context_new;
-			return -3;
-		}
-	}
-
 	//check for variant in target NGSD
-	Sequence ref = var.ref();
-	if (strand_changed && ref!="-") ref.reverseComplement();
-	Sequence obs = var.obs();
-	if (strand_changed && obs!="-") obs.reverseComplement();
-	QString variant_id = db_target_->variantId(Variant(coords.chr(), coords.start(), coords.end(), ref, obs), false);
+	QString variant_id = db_target_->variantId(var2, false);
 	if (variant_id.isEmpty())
 	{
-		if (debug_output) qDebug() << "-4" << var.toString() << coords.chr().str()+":"+QString::number(coords.start())+"-"+QString::number(coords.end()) << "strand_changed="+QString(strand_changed?"yes":"no") << "af="+db_source_->getValue("SELECT gnomad FROM variant WHERE id="+QString::number(source_variant_id)).toString();
+		if (debug_output) qDebug() << "-4" << var.toString() << "Lifted variant not found in target NGSD: " + var2.toString();
 		return -4;
 	}
 
