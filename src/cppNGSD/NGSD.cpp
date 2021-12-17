@@ -829,16 +829,16 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 
 QString NGSD::projectFolder(QString type)
 {
-	//support for legacy project folder settings
-	if (Settings::contains("projects_folder"))
-	{
-		return Settings::path("projects_folder", true).trimmed() + QDir::separator() + type + QDir::separator();
-	}
-
 	//current type-specific project folder settings
 	if (Settings::contains("projects_folder_"+type))
 	{
 		return Settings::path("projects_folder_"+type, true).trimmed() + QDir::separator();
+	}
+
+	//fallback to legacy project folder settings
+	if (Settings::contains("projects_folder"))
+	{
+		return Settings::path("projects_folder", true).trimmed() + QDir::separator() + type + QDir::separator();
 	}
 
 	THROW(ProgrammingException, "Found no project folder entry in settings.ini file for project type '" + type + "'!");
