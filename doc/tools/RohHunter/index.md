@@ -2,7 +2,7 @@
 
 RohHunter is a tool for run of homozygosity (ROH) detection based on a variant list in VCF format.
 
-RohHunter uses the allele frequency of variants to calculate the probabilty to see a ROH by chance.  
+RohHunter uses the allele frequency of variants to calculate the probability to see a ROH by chance.  
 Allele frequency information can be annotated to the variant list via [Ensembl VEP](https://www.ensembl.org/info/docs/tools/vep/index.html).
 
 ## Algorithm description
@@ -33,7 +33,7 @@ The following image visualizes the algorihtm and show how it copes with a genoty
 ## Using external allele frequency sources
 
 Instead of using VEP annotations as source of allele frequency information, an external database of allele frequencies can be provided via the 'af_source' parameter.  
-We suggest to use [genomAD](https://gnomad.broadinstitute.org/downloads) in version 2.1 or higher as allele frequency database.
+We suggest to use [genomAD](https://gnomad.broadinstitute.org/downloads) in version 3.1 or higher as allele frequency database.
 
 ### Pre-processing of the external database
 

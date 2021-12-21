@@ -127,6 +127,7 @@ QT_CHARTS_USE_NAMESPACE
 #include "GenomeVisualizationWidget.h"
 #include "LiftOverWidget.h"
 #include "CacheInitWorker.h"
+#include "BlatWidget.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -872,6 +873,50 @@ void MainWindow::on_actionLiftOver_triggered()
 {
 	LiftOverWidget* widget = new LiftOverWidget(this);
 	auto dlg = GUIHelper::createDialog(widget, "Lift-over genome coordinates");
+	addModelessDialog(dlg);
+}
+
+void MainWindow::on_actionGetGenomicSequence_triggered()
+{
+	QString title = "Get genomic sequence";
+	try
+	{
+		//get region
+		QString region_text = QInputDialog::getText(this, title, "genomic region:");
+		if (region_text=="") return;
+
+		Chromosome chr;
+		int start, end;
+		NGSHelper::parseRegion(region_text, chr, start, end);
+
+		//get sequence
+		QString genome_file = Settings::string("reference_genome", false);
+		FastaFileIndex genome_idx(genome_file);
+		int length = end-start+1;
+		Sequence sequence = genome_idx.seq(chr, start, length, true);
+
+		//copy to clipboard
+		QApplication::clipboard()->setText(sequence);
+
+		//show message
+		if (sequence.length()>100)
+		{
+			sequence.resize(100);
+			sequence += "...";
+		}
+		QMessageBox::information(this, title, "Extracted reference sequence of region " + chr.strNormalized(true) + ":" + QString::number(start) + "-" + QString::number(end) + " (length " + QString::number(length) + "):\n" + sequence + "\n\nThe sequence was copied to the clipboard.");
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, title, "Error getting reference sequence:\n" + e.message());
+	}
+}
+
+void MainWindow::on_actionBlatSearch_triggered()
+{
+	BlatWidget* widget = new BlatWidget(this);
+
+	auto dlg = GUIHelper::createDialog(widget, "BLAT search");
 	addModelessDialog(dlg);
 }
 
@@ -2719,22 +2764,26 @@ void MainWindow::loadFile(QString filename)
 		return;
 	}
 
-	//check if variant list is outdated
-	QStringList messages;
+	//check analysis for issues (outdated, missing columns, wrong genome build, bad quality, ...)
+	QList<QPair<Log::LogLevel, QString>> issues;
 	try
 	{
 		ui_.variant_details->setLabelTooltips(variants_);
 	}
 	catch(Exception& e)
 	{
-		messages << e.message();
+		issues << qMakePair(Log::LOG_INFO, e.message());
 	}
-	checkVariantList(messages);
+	checkVariantList(issues);
 
 	//check variant list in NGSD
-	if (LoginManager::active())
+	checkProcessedSamplesInNGSD(issues);
+
+	//show issues
+	if (showAnalysisIssues(issues)==QDialog::Rejected)
 	{
-		checkProcessedSamplesInNGSD();
+		loadFile();
+		return;
 	}
 
 	//load report config
@@ -2859,19 +2908,27 @@ void MainWindow::loadFile(QString filename)
 	}
 }
 
-void MainWindow::checkVariantList(QStringList messages)
+void MainWindow::checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues)
 {
 	//check genome builds match
-	if (variants_.getBuild()!=GSvarHelper::build())
+	if (variants_.build()!=GSvarHelper::build())
 	{
-		messages << "genome build of GSvar file (" + buildToString(variants_.getBuild(), true) + ") not matching genome build of the GSvar application (" + buildToString(GSvarHelper::build(), true) + ")!";
+		issues << qMakePair(Log::LOG_ERROR, "Genome build of GSvar file (" + buildToString(variants_.build(), true) + ") not matching genome build of the GSvar application (" + buildToString(GSvarHelper::build(), true) + ")! Re-do the analysis for " + buildToString(GSvarHelper::build(), true) +"!");
 	}
 
 	//check creation date
 	QDate create_date = variants_.getCreationDate();
-	if (create_date.isValid() && create_date < QDate::currentDate().addDays(-42))
+	if (create_date.isValid())
 	{
-		messages << "annotations are older than six weeks (" + create_date.toString("yyyy-MM-dd") + ")";
+		if (create_date < QDate::currentDate().addDays(-42))
+		{
+			issues << qMakePair(Log::LOG_INFO, "Variant annotations are older than six weeks (" + create_date.toString("yyyy-MM-dd") + ").");
+		}
+		QDate gsvar_file_outdated_before = QDate::fromString(Settings::string("gsvar_file_outdated_before", true), "yyyy-MM-dd");
+		if (gsvar_file_outdated_before.isValid() && create_date<gsvar_file_outdated_before)
+		{
+			issues << qMakePair(Log::LOG_WARNING, "Variant annotations are outdated! They are older than " + gsvar_file_outdated_before.toString("yyyy-MM-dd") + ". Please re-annotate variants!");
+		}
 	}
 
 	//check sample header
@@ -2881,7 +2938,7 @@ void MainWindow::checkVariantList(QStringList messages)
 	}
 	catch(Exception e)
 	{
-		messages << e.message();
+		issues << qMakePair(Log::LOG_WARNING,  e.message());
 	}
 
 	//create list of required columns
@@ -2909,7 +2966,7 @@ void MainWindow::checkVariantList(QStringList messages)
 	{
 		if (variants_.annotationIndexByName(col, true, false)==-1)
 		{
-			messages << ("column '" + col + "' missing");
+			issues << qMakePair(Log::LOG_WARNING, "Column '" + col + "' missing. Please re-annotate variants!");
 		}
 	}
 
@@ -2928,21 +2985,16 @@ void MainWindow::checkVariantList(QStringList messages)
 			}
 			if (chromosomes.size()<23)
 			{
-				messages << ("Variants detected on " + QString::number(chromosomes.size()) + " chromosomes only! Expected variants on at least 23 chromosomes for WES/WGS data!");
+				issues << qMakePair(Log::LOG_WARNING, "Variants detected on " + QString::number(chromosomes.size()) + " chromosomes only! Expected variants on at least 23 chromosomes for WES/WGS data! Please re-do variant calling of small variants!");
 			}
 		}
 	}
-
-	//show messages
-	if (!messages.empty())
-	{
-		QMessageBox::warning(this, "GSvar file problems", "The GSvar file contains the following problems:\n  -" + messages.join("\n  -"));
-	}
 }
 
-void MainWindow::checkProcessedSamplesInNGSD()
+void MainWindow::checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>>& issues)
 {
-	QStringList messages;
+	if (!LoginManager::active()) return;
+
 	NGSD db;
 
 	foreach(const SampleInfo& info, variants_.getSampleHeader())
@@ -2955,7 +3007,7 @@ void MainWindow::checkProcessedSamplesInNGSD()
 		QString quality = db.getValue("SELECT quality FROM processed_sample WHERE id=" + ps_id).toString();
 		if (quality=="bad")
 		{
-			messages << ("Quality of processed sample '" + ps + "' is 'bad'!");
+			issues << qMakePair(Log::LOG_WARNING, "Quality of processed sample '" + ps + "' is 'bad'!");
 		}
 
 		//check KASP result
@@ -2963,29 +3015,56 @@ void MainWindow::checkProcessedSamplesInNGSD()
 		double error_prob = db.getValue("SELECT random_error_prob FROM kasp_status WHERE random_error_prob<=1 AND processed_sample_id=" + ps_id, true).toDouble(&ok);
 		if (ok && error_prob>0.03)
 		{
-			messages << ("KASP swap probability of processed sample '" + ps + "' is larger than 3%!");
+			issues << qMakePair(Log::LOG_WARNING, "KASP swap probability of processed sample '" + ps + "' is larger than 3%!");
 		}
 
 		//check variants are imported
 		AnalysisType type = variants_.type();
 		if (type==GERMLINE_SINGLESAMPLE || type==GERMLINE_TRIO || type==GERMLINE_MULTISAMPLE)
 		{
-			QString sys_type = db.getValue("SELECT sys.type FROM processing_system sys, processed_sample ps WHERE sys.id=ps.processing_system_id AND ps.id="+ps_id, false).toString();
+
+			QString sys_type = db.getProcessingSystemData(db.processingSystemIdFromProcessedSample(ps)).type;
 			if (sys_type=="WGS" || sys_type=="WES")
 			{
-				if (db.getValue("SELECT EXISTS(SELECT * FROM detected_variant WHERE processed_sample_id="+ps_id+")").toInt()!=1)
+				ImportStatusGermline import_status = db.importStatus(ps_id);
+				if (import_status.small_variants==0)
 				{
-					messages << ("No germline variants imported into NGSD for processed sample '" + ps + "'!");
+					issues << qMakePair(Log::LOG_WARNING, "No germline variants imported into NGSD for processed sample '" + ps + "'!");
 				}
 			}
 		}
 	}
+}
 
-	//show messages
-	if (!messages.empty())
+int MainWindow::showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues)
+{
+	if (issues.empty()) return QDialog::Accepted;
+
+	//generate text
+	QStringList lines;
+	foreach(auto issue, issues)
 	{
-		QMessageBox::warning(this, "NGSD check of processed sample(s)", "Sample quality is bad or other problems deteted:\n  -" + messages.join("\n  -"));
+		if (issue.first==Log::LOG_ERROR)
+		{
+			lines << "<font color=red>Error:</font>";
+		}
+		else if (issue.first==Log::LOG_WARNING)
+		{
+			lines << "<font color=orange>Warning:</font>";
+		}
+		else
+		{
+			lines << "Notice:";
+		}
+		lines << issue.second;
+		lines << "";
 	}
+
+	//show dialog
+	QLabel* label = new QLabel(lines.join("<br>"));
+	label->setMargin(6);
+	auto dlg = GUIHelper::createDialog(label, "GSvar analysis issues", "The following issues were encountered when loading the analysis:", true);
+	return dlg->exec();
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -4712,7 +4791,7 @@ void MainWindow::openSubpanelDesignDialog(const GeneSet& genes)
 	}
 }
 
-void MainWindow::on_actionArchiveSubpanel_triggered()
+void MainWindow::on_actionManageSubpanels_triggered()
 {
 	SubpanelArchiveDialog dlg(this);
 	dlg.exec();
@@ -5195,7 +5274,6 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	else if (action==a_clinvar_find)
 	{
 		QDesktopServices::openUrl(QUrl("https://www.ncbi.nlm.nih.gov/clinvar/?term=" + variant.chr().strNormalized(false)+"[chr]+AND+" + QString::number(variant.start()) + "%3A" + QString::number(variant.end()) + (GSvarHelper::build()==GenomeBuild::HG38? "[chrpos38] " : "[chrpos37] ")));
-
 	}
 	else if (action==a_clinvar_pub)
 	{

@@ -38,6 +38,8 @@ public:
 private slots:
     ///Context menu that shall appear if right click on repeat expansion
     void showContextMenu(QPoint pos);
+	///Open the region in IGV if a cell is double-clicked
+	void cellDoubleClicked(int row, int col);
 
 protected:
 	///Override copy command

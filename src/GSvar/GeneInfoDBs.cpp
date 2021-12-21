@@ -62,7 +62,8 @@ QList<GeneDB>& GeneInfoDBs::all()
 		dbs_ << GeneDB{"ClinVar", "https://www.ncbi.nlm.nih.gov/clinvar/?term=[gene]%5Bgene%5D", QIcon("://Icons/ClinGen.png"), false};
 		dbs_ << GeneDB{"GeneCards", "https://www.genecards.org/cgi-bin/carddisp.pl?gene=[gene]", QIcon("://Icons/GeneCards.png"), false};
 		dbs_ << GeneDB{"GTEx", "https://www.gtexportal.org/home/gene/[gene]", QIcon("://Icons/GTEx.png"), false};
-		dbs_ << GeneDB{"gnomAD", "https://gnomad.broadinstitute.org/gene/[gene]", QIcon("://Icons/gnomAD.png"), false};
+		dbs_ << GeneDB{"gnomAD", "https://gnomad.broadinstitute.org/gene/[gene]?dataset=gnomad_r3", QIcon("://Icons/gnomAD.png"), false};
+
 		if (Settings::boolean("use_free_hgmd_version"))
 		{
 			dbs_ << GeneDB{"HGMD", "http://www.hgmd.cf.ac.uk/ac/gene.php?gene=[gene]", QIcon("://Icons/HGMD.png"), false}; //no HTTPS

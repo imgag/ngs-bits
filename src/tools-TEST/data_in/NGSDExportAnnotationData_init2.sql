@@ -33,9 +33,9 @@ INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane
 INSERT INTO processed_sample (id, sample_id, process_id, sequencing_run_id, lane, operator_id, processing_system_id, project_id) VALUES (4, 4, 1, 2, 1, 2, 2, 2);
 
 --variant
-INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (1, 'chr1', 62728784, 62728784, 'A', 'G');
-INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (2, 'chr3', 142277575, 142277575, 'A', 'T');
-INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (3, 'chr2', 48032740, 48032740, '-', 'T');
+INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (1, 'chr1', 62263112, 62263112, 'A', 'G');
+INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (2, 'chr3', 142558733, 142558733, 'A', 'T');
+INSERT INTO variant (id, chr, start, end, ref, obs) VALUES (3, 'chr2', 47805601, 47805601, '-', 'T');
 
 --somatic_vicc_interpretation
 INSERT INTO `somatic_vicc_interpretation` (`id`, `variant_id`, `null_mutation_in_tsg`, `known_oncogenic_aa`, `strong_cancerhotspot`, `located_in_canerhotspot`, `absent_from_controls`, `protein_length_change`, `other_aa_known_oncogenic`, `weak_cancerhotspot`, `computational_evidence`, `mutation_in_gene_with_etiology`, `very_weak_cancerhotspot`, `very_high_maf`, `benign_functional_studies`, `high_maf`, `benign_computational_evidence`, `synonymous_mutation`, `comment`, `created_by`, `created_date`, `last_edit_by`, `last_edit_date`) VALUES

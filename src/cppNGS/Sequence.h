@@ -40,7 +40,7 @@ public:
 	static char complement(char base);
 
 	///Adds random noise to the sequence. Returns how many errors have been added.
-	int addNoise(double error_probabilty, std::mt19937& gen);
+	int addNoise(double error_probability, std::mt19937& gen);
 };
 
 #endif // SEQUENCE_H

@@ -114,5 +114,6 @@
         <file>Resources/hg19_KASP_set2.vcf</file>
         <file>Resources/hg38_KASP_set2.vcf</file>
         <file>Icons/QC.png</file>
+        <file>Icons/analysis_info.png</file>
     </qresource>
 </RCC>

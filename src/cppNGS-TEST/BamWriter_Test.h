@@ -59,7 +59,7 @@ private slots:
 	{
 		QString ref_file = Settings::string("reference_genome", true);
 		if (ref_file=="") SKIP("Test needs the reference genome!");
-		if (!ref_file.endsWith("GRCh37.fa")) SKIP("Test needs reference genome GRCh37!");
+		if (!ref_file.endsWith("GRCh38.fa")) SKIP("Test needs reference genome GRCh38!");
 		if (Helper::isWindows()) SKIP("CRAM is not supported on Windows!");
 
 		const QString al_string = write_cram_file(ref_file);
