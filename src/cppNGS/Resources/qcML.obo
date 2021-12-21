@@ -877,7 +877,7 @@ created_by: sturm
 [Term]
 id: QC:2000053
 name: somatic variant rate
-def: "Categorized somatic variant rate (high/intermediate/low) followed by the somatic variant rate [variants/Mb] normalized for the target region and corrected for truncating variant(s) in tumor suppressors / oncogenes." [PXS:QC]
+def: "Categorized somatic variant rate followed by the somatic variant rate [variants/Mbp] normalized for the target region and exome size and corrected for tumor suppressors." [PXS:QC]
 is_a: QC:2000004 ! NGS variant list parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schroeder
@@ -1166,3 +1166,11 @@ def: "umiVar error rate for 4-fold duplicated bases."
 is_a: QC:2000001 ! NGS variant list parameter
 xref: value-type:xsd\:float "The allowed value-type for this CV term."
 created_by: schuetz
+
+[Term]
+id: QC:2000089
+name: raw somatic variant rate
+def: "Somatic variant rate in variants per Megabase without normalization to TSG/Oncogenes or exome size. SNVs in blacklisted genes were discarded for the calculation."
+is_a: QC:2000004 ! NGS variant list parameter
+xref: value-type:xsd\:float "The allowed value-type for this CV term."
+created_by: gschwind

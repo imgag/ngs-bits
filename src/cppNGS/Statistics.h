@@ -45,8 +45,13 @@ public:
 	static QCCollection region(const BedFile& bed_file, bool merge);
 	///Calculates somatic QC metrics from BAM and VCF file
 	static QCCollection somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots = false, const QString& ref_file_cram = QString());
-	///Calculates mutation burden metric from somatic VCF
-	static QCValue mutationBurden(QString somatic_vcf, QString exons, QString target, QString tsg, QString blacklist);
+	///Calculates mutation burden metric from somatic VCF normalized to Exome Size
+	static QCValue mutationBurdenNormalized(QString somatic_vcf, QString exons, QString target, QString tsg, QString blacklist);
+	///Calculates unnormalized raw mutation burden
+	static QCValue mutationBurden(QString somatic_vcf, QString target, QString blacklist);
+
+
+
 	///Calculates the percentage of common SNPs that lie outside the expected allele frequency range for diploid organisms.
 	static QCCollection contamination(GenomeBuild build, QString bam, const QString& ref_file = QString(), bool debug = false, int min_cov = 20, int min_snps = 50);
 	///Returns ancestry estimates for a variant list in VCF format.
