@@ -204,7 +204,7 @@ HEADERS += MainWindow.h \
     ClinvarUploadDialog.h \
     LiftOverWidget.h \
     BlatWidget.h \
-    AnalysisInformationWidget.h
+    AnalysisInformationWidget.h \
     CacheInitWorker.h \
     PhenotypeSourceEvidenceSelector.h
 
@@ -291,7 +291,7 @@ FORMS    += MainWindow.ui \
     CfdnaAnalysisDialog.ui \
     ClinvarUploadDialog.ui \
     BlatWidget.ui \
-    AnalysisInformationWidget.ui
+    AnalysisInformationWidget.ui \
     LiftOverWidget.ui \
     PhenotypeSourceEvidenceSelector.ui
 
