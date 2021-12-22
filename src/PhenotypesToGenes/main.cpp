@@ -17,6 +17,13 @@ public:
 		setDescription("Converts a phenotype list to a list of matching genes.");
 		setExtendedDescription(QStringList() << "For each given HPO term, the genes associated with the term itself and the genes associated with any sub-term are returned.");
 
+		QStringList sources;
+		sources << "ALL" << "HPO" << "OMIM" << "CLINVAR" << "DECIPHER" << "HGMC" << "GENCC";
+		addEnum("source", "Source database.", true, sources, "ALL");
+		QStringList evidences;
+		evidences << "ALL"  << "NA" << "LOW" << "MED" << "HIGH";
+		addEnum("evidence", "The level of evidence from the database.", true, evidences, "ALL");
+
 		addString("in", "Input file, containing one HPO term identifier per line, e.g. HP:0002066. Text after the identifier is ignored. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output TSV file with genes (column 1) and matched phenotypes (column 2). If unset, writes to STDOUT.", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
@@ -65,7 +72,24 @@ public:
 					THROW(ArgumentException, "Cannot find HPO phenotype with accession '" + hpo_id + "' in NGSD!");
 				}
 			}
-			GeneSet genes = db.phenotypeToGenes(id, true, ignore_non_phenotype);
+			QList<PhenotypeEvidence::Evidence> evidences;
+			QList<PhenotypeSource::Source> sources;
+
+			if (getEnum("evidence") == "ALL")
+			{
+				evidences = PhenotypeEvidence::allEvidenceValues();
+			} else {
+				evidences.append(PhenotypeEvidence::evidenceFromString(getEnum("evidence")));
+			}
+
+			if (getEnum("source") == "ALL")
+			{
+				sources = PhenotypeSource::allSourceValues();
+			} else {
+				sources.append(PhenotypeSource::SourceFromString(getEnum("source")));
+			}
+
+			GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(id, sources, evidences, true, ignore_non_phenotype);
 			foreach(const QByteArray& gene, genes)
 			{
 				genes2phenotypes[gene] << db.phenotype(id);

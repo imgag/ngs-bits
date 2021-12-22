@@ -99,8 +99,14 @@ public:
 
 		QCCollection metrics;
 		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref, target_bed_file, skip_plots, getString("ref_cram"));
-		QCValue tmb = Statistics::mutationBurden(somatic_vcf, target_exons, target_bed, tsg_bed, blacklist);
+
+		//mutation burden corrected for TSG and exome size
+		QCValue tmb = Statistics::mutationBurdenNormalized(somatic_vcf, target_exons, target_bed, tsg_bed, blacklist);
 		metrics.insert(tmb);
+
+		//raw mutation burden (not normalized to TSG/Oncogenes and whole exome size)
+		QCValue raw_tmb = Statistics::mutationBurden(somatic_vcf, target_bed, blacklist);
+		metrics.insert(raw_tmb);
 
 		//store output
 		QString parameters = "";

@@ -873,6 +873,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	else if (type==PathType::COPY_NUMBER_RAW_DATA) output += ps_name + "_cnvs_clincnv.seg";
 	else if (type==PathType::COPY_NUMBER_CALLS) output += ps_name + "_cnvs_clincnv.tsv";
 	else if (type==PathType::FUSIONS) output += ps_name + "_fusions_arriba.tsv";
+	else if (type==PathType::STAR_FUSIONS) output += ps_name + "_var_fusions.tsv";
 	else if (type==PathType::FUSIONS_BAM) output += ps_name + "_fusions_arriba.bam";
 	else if (type==PathType::SPLICING_BED) output += ps_name + "_splicing.bed";
 	else if (type==PathType::MANTA_FUSIONS) output +=  ps_name + "_var_fusions_manta.bedpe";
@@ -4069,7 +4070,6 @@ PhenotypeList NGSD::phenotypes(QStringList search_terms)
 		list << set;
 		list.sortByName();
 	}
-
 	return list;
 }
 
@@ -4120,7 +4120,82 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 			QByteArray gene = pid2genes.value(0).toByteArray();
 			genes.insert(geneToApproved(gene, true));
 		}
+	}
+	return genes;
+}
 
+GeneSet NGSD::phenotypeToGenesbySourceAndEvidence(int id, QList<PhenotypeSource::Source> allowedSources, QList<PhenotypeEvidence::Evidence> allowedEvidences, bool recursive, bool ignore_non_phenotype_terms)
+{
+	//prepare ignored terms
+	QSet<int> ignored_terms_ids;
+	if (ignore_non_phenotype_terms)
+	{
+		int pheno_inh = phenotypeIdByAccession("HP:0000005"); //"Mode of inheritance"
+		ignored_terms_ids << pheno_inh;
+		foreach(const Phenotype& pheno, phenotypeChildTerms(pheno_inh, true))
+		{
+			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
+		}
+		int pheno_freq = phenotypeIdByAccession("HP:0040279"); //"Frequency"
+		ignored_terms_ids << pheno_freq;
+		foreach(const Phenotype& pheno, phenotypeChildTerms(pheno_freq, true))
+		{
+			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
+		}
+	}
+
+	//create a list of phenotype database ids
+	QList<int> pheno_ids;
+	pheno_ids << id;
+	if (recursive)
+	{
+		foreach(const Phenotype& pheno, phenotypeChildTerms(id, true))
+		{
+			pheno_ids << phenotypeIdByAccession(pheno.accession());
+		}
+	}
+
+	//create output gene set
+	GeneSet genes;
+	SqlQuery pid2genes = getQuery();
+	pid2genes.prepare("SELECT gene FROM hpo_genes WHERE hpo_term_id=:0");
+
+	while (!pheno_ids.isEmpty())
+	{
+		int id = pheno_ids.takeLast();
+		if (ignore_non_phenotype_terms && ignored_terms_ids.contains(id)) continue;
+		QString query = QString("SELECT gene FROM hpo_genes WHERE hpo_term_id=%1").arg(id);
+
+		if (allowedSources.length() > 0)
+		{
+			query += " and (";
+			foreach (PhenotypeSource::Source s, allowedSources)
+			{
+				query += "details like \"%" + PhenotypeSource::sourceToString(s) + "%\" or ";
+			}
+			query.chop(4);
+			query.append(")");
+		}
+
+		if (allowedEvidences.length() > 0)
+		{
+			query += " and (";
+
+			foreach (PhenotypeEvidence::Evidence e, allowedEvidences)
+			{
+				query += "evidence= \"" + PhenotypeEvidence::evidenceToString(e) + "\" or ";
+			}
+			query.chop(4);
+			query.append(")");
+		}
+
+		//pid2genes.bindValue(0, id);
+		pid2genes.exec(query);
+		while(pid2genes.next())
+		{
+			QByteArray gene = pid2genes.value(0).toByteArray();
+			genes.insert(geneToApproved(gene, true));
+		}
 	}
 
 	return genes;

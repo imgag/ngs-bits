@@ -185,7 +185,7 @@ void GapClosingDialog::openPrimerDesign()
 
 			if(GSvarHelper::build()==GenomeBuild::HG38) //PrimerDesign support HG19 only
 			{
-				BedLine region = GSvarHelper::liftOver(chr, start, end, true);
+				BedLine region = GSvarHelper::liftOver(chr, start, end, false);
 				chr = region.chr();
 				start = region.start();
 				end = region.end();

@@ -59,25 +59,37 @@ TEST_CLASS(Statistics_Test)
 		QString tsg = TESTDATA("../tools-TEST/data_in/SomaticQC_tmb_tsg.bed");
 		QString blacklist = TESTDATA("../tools-TEST/data_in/SomaticQC_tmb_blacklist.bed");
 
+
+		//unnormalized somatic variant rate
+		QCValue tmb = Statistics::mutationBurden(somatic_vcf, target, blacklist);
+		S_EQUAL(tmb.name(),QString("raw somatic variant rate"));
+		S_EQUAL(tmb.accession(),QString("QC:2000089"));
+		S_EQUAL(tmb.toString(),QString("0.12"));
+
+
+		//Normalized to Whole Exome Size
+
 		//Use TSG BED-file which does not overlap with a variant in somatic VCF file
-		QCValue tmb = Statistics::mutationBurden(somatic_vcf, exons, target, tsg, blacklist);
+		tmb = Statistics::mutationBurdenNormalized(somatic_vcf, exons, target, tsg, blacklist);
 		S_EQUAL(tmb.name(),QString("somatic variant rate"));
 		S_EQUAL(tmb.accession(),QString("QC:2000053"));
 		S_EQUAL(tmb.toString(),QString("4.41"));
 
 		//use TSG BED-file which overlaps with a variant in somatic VCF file
 		tsg = TESTDATA("data_in/Statistics_somatic_tmb_tsg.bed");
-		tmb = Statistics::mutationBurden(somatic_vcf, exons, target, tsg, blacklist);
+		tmb = Statistics::mutationBurdenNormalized(somatic_vcf, exons, target, tsg, blacklist);
 		S_EQUAL(tmb.name(),QString("somatic variant rate"));
 		S_EQUAL(tmb.accession(),QString("QC:2000053"));
 		S_EQUAL(tmb.toString(),QString("2.23"));
 
 		//only target region, blacklist file is empty
 		blacklist = TESTDATA("data_in/Statistics_somatic_tmb_blacklist.bed"); // file is empty
-		tmb = Statistics::mutationBurden(somatic_vcf, exons, target, tsg, blacklist);
+		tmb = Statistics::mutationBurdenNormalized(somatic_vcf, exons, target, tsg, blacklist);
 		S_EQUAL(tmb.name(),QString("somatic variant rate"));
 		S_EQUAL(tmb.accession(),QString("QC:2000053"));
 		S_EQUAL(tmb.toString(),QString("n/a"));
+
+
 	}
 
 	void variantList_panel_filter()

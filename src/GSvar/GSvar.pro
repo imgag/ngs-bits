@@ -104,7 +104,8 @@ SOURCES += main.cpp\
     LiftOverWidget.cpp \
     CacheInitWorker.cpp \
     BlatWidget.cpp \
-    AnalysisInformationWidget.cpp
+    AnalysisInformationWidget.cpp \
+    PhenotypeSourceEvidenceSelector.cpp
 
 HEADERS += MainWindow.h \
     CfDNAPanelBatchImport.h \
@@ -202,9 +203,10 @@ HEADERS += MainWindow.h \
     CfdnaAnalysisDialog.h \
     ClinvarUploadDialog.h \
     LiftOverWidget.h \
-    CacheInitWorker.h \
     BlatWidget.h \
-    AnalysisInformationWidget.h
+    AnalysisInformationWidget.h \
+    CacheInitWorker.h \
+    PhenotypeSourceEvidenceSelector.h
 
 FORMS    += MainWindow.ui \
     CfDNAPanelBatchImport.ui \
@@ -288,10 +290,12 @@ FORMS    += MainWindow.ui \
     cfDNARemovedRegions.ui \
     CfdnaAnalysisDialog.ui \
     ClinvarUploadDialog.ui \
-    LiftOverWidget.ui \
     BlatWidget.ui \
-    AnalysisInformationWidget.ui
-    include("../app_gui.pri")
+    AnalysisInformationWidget.ui \
+    LiftOverWidget.ui \
+    PhenotypeSourceEvidenceSelector.ui
+
+include("../app_gui.pri")
 
 #include NGSD library
 INCLUDEPATH += $$PWD/../cppNGSD
