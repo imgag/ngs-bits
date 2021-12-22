@@ -3639,7 +3639,7 @@ void MainWindow::generateReportSomaticRTF()
 
 			SomaticRnaReportData rna_report_data = somatic_report_settings_;
 			rna_report_data.rna_ps_name = dlg.getRNAid();
-			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS).filename;
+			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::STAR_FUSIONS).filename;
 
 			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
 

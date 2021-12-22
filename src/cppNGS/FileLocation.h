@@ -34,6 +34,7 @@ enum class PathType
 	CIRCOS_PLOT, //CIRCOS plot (PNG format)
 	REPEAT_EXPANSION_IMAGE, //image of repeat expansions locus (SVG format)
 	FUSIONS, //gene fusions determined from RNA (TSV format)
+	STAR_FUSIONS, //gene fusions determined from RNA (TSV format via Star-Fusion
 	FUSIONS_BAM, //gene fusion evidence alignments determined from RNA (BAM format)
 	MANTA_FUSIONS, //fusions determined by manta (BEDPE format)
 	COUNTS, //gene/transcript counts from RNA (TSV format)
@@ -125,6 +126,8 @@ struct FileLocation
 				return "REPEAT_EXPANSION_IMAGE";
 			case PathType::FUSIONS:
 				return "FUSIONS";
+			case PathType::STAR_FUSIONS:
+				return "STAR_FUSIONS";
 			case PathType::FUSIONS_BAM:
 				return "FUSIONS_BAM";
 			case PathType::SPLICING_BED:
@@ -171,6 +174,7 @@ struct FileLocation
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
+		if (in_upper == "STAR_FUSIONS") return PathType::FUSIONS;
 		if (in_upper == "FUSIONS_BAM") return PathType::FUSIONS_BAM;
 		if (in_upper == "SPLICING_BED") return PathType::SPLICING_BED;
 		if (in_upper == "MANTA_FUSIONS") return PathType::MANTA_FUSIONS;
@@ -228,6 +232,8 @@ struct FileLocation
 				return "repeat expansion visualization";
 			case PathType::FUSIONS:
 				return "gene fusions";
+			case PathType::STAR_FUSIONS:
+				return "Star Fusion RNA fusion calls";
 			case PathType::FUSIONS_BAM:
 				return "gene fusions evidence alignments";
 			case PathType::SPLICING_BED:
