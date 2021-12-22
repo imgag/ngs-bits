@@ -332,6 +332,28 @@ void FilterWidget::setPhenotypes(const PhenotypeList& phenotypes)
 	phenotypesChanged();
 }
 
+const QList<PhenotypeSource::Source>& FilterWidget::allowedPhenotypeSources() const
+{
+	return allowedPhenotypeSources_;
+}
+
+const QList<PhenotypeEvidence::Evidence>& FilterWidget::allowedPhenotypeEvidences() const
+{
+	return allowedPhenotypeEvidences_;
+}
+
+void FilterWidget::setAllowedPhenotypeSources(QList<PhenotypeSource::Source> sources)
+{
+	allowedPhenotypeSources_ = sources;
+}
+
+
+void FilterWidget::setAllowedPhenotypeEvidences(QList<PhenotypeEvidence::Evidence> evidences)
+{
+	allowedPhenotypeEvidences_ = evidences;
+}
+
+
 const FilterCascade& FilterWidget::filters() const
 {
 	return ui_.cascade_widget->filters();
@@ -458,14 +480,45 @@ void FilterWidget::phenotypesChanged()
 	ui_.hpo_terms->setText(tmp.join("; "));
 
 	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on the phenotype-associated gene loci including 5000 flanking bases.";
+
+	if ( (!phenotypes_.isEmpty()) | (! allowedPhenotypeEvidences_.isEmpty()) | (! allowedPhenotypeSources_.isEmpty()))
+	{
+		tooltip += "<br>";
+	}
+
 	if (!phenotypes_.isEmpty())
 	{
-		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
+		tooltip += "<br><nobr>Currently selected HPO terms:</nobr>";
 		foreach(const Phenotype& pheno, phenotypes_)
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}
 	}
+
+	if (! allowedPhenotypeEvidences_.isEmpty())
+	{
+		tooltip += "<br><nobr>Currently selected evidences:</nobr>";
+		tooltip += "<br><nobr>";
+		foreach(const PhenotypeEvidence::Evidence& e, allowedPhenotypeEvidences_)
+		{
+			tooltip += PhenotypeEvidence::evidenceToString(e) + ", ";
+		}
+		tooltip.chop(2);
+		tooltip += "</nobr>";
+	}
+
+	if (! allowedPhenotypeSources_.isEmpty())
+	{
+		tooltip += "<br><nobr>Currently selected Sources:</nobr>";
+		tooltip += "<br><nobr>";
+		foreach(const PhenotypeSource::Source& s, allowedPhenotypeSources_)
+		{
+			tooltip += PhenotypeSource::sourceToString(s) + ", ";
+		}
+		tooltip.chop(2);
+		tooltip += "</nobr>";
+	}
+
 	ui_.hpo_terms->setToolTip(tooltip);
 
 	emit filtersChanged();
@@ -555,6 +608,7 @@ void FilterWidget::editPhenotypes()
 	//edit
 	PhenotypeSelectionWidget* selector = new PhenotypeSelectionWidget(this);
 	selector->setPhenotypes(phenotypes_);
+
 	auto dlg = GUIHelper::createDialog(selector, "Select HPO terms", "", true);
 
 	//update
@@ -573,6 +627,8 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	{
 		menu.addAction("load from NGSD");
 		menu.addAction("create sub-panel");
+		menu.addSeparator();
+		menu.addAction("options");
 		menu.addSeparator();
 	}
 	if (!phenotypes_.isEmpty())
@@ -596,6 +652,10 @@ void FilterWidget::showPhenotypeContextMenu(QPoint pos)
 	else if (action->text()=="create sub-panel")
 	{
 		emit phenotypeSubPanelRequested();
+	}
+	else if (action->text()=="options")
+	{
+		emit phenotypeOptionsRequested();
 	}
 }
 

@@ -18,6 +18,17 @@ PhenoToGenesDialog::PhenoToGenesDialog(QWidget *parent)
 	ui.clip_btn->setMenu(menu);
 }
 
+void PhenoToGenesDialog::setAllowedEvidences(QList<PhenotypeEvidence::Evidence> allowedEvidences)
+{
+	this->ui.options_selector->setEvidences(allowedEvidences);
+}
+
+void PhenoToGenesDialog::setAllowedSources(QList<PhenotypeSource::Source> allowedSources)
+{
+	this->ui.options_selector->setSources(allowedSources);
+}
+
+
 void PhenoToGenesDialog::copyGenesToClipboardAsTable()
 {
 	QApplication::clipboard()->setText(ui.genes->toPlainText());
@@ -35,7 +46,6 @@ void PhenoToGenesDialog::copyGenesToClipboardAsList()
 
 		QStringList parts = line.split("\t");
 		output.append(parts[0]);
-
 	}
 
 	QApplication::clipboard()->setText(output.join(", "));
@@ -62,7 +72,7 @@ void PhenoToGenesDialog::tabChanged(int num)
 		PhenotypeList phenos = ui.pheno_selector->selectedPhenotypes();
 		for (int i=0; i<phenos.count(); ++i)
 		{
-			GeneSet genes = db.phenotypeToGenes(db.phenotypeIdByAccession(phenos[i].accession()), true, false);
+			GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(phenos[i].accession()), ui.options_selector->selectedSources(), ui.options_selector->selectedEvidences(), true, false);
 			foreach(QByteArray gene, genes)
 			{
 				gene2pheno[gene].append(phenos[i].name());
