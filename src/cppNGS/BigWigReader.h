@@ -119,9 +119,9 @@ public:
 	~BigWigReader();
 
 	// read the bigWig value for a position of the genome. Offset for regions as libBigWig uses zero-based genome indexing -> 0 - length-1
-	float readValue(QByteArray chr, int position, int offset=-1);
-	QList<OverlappingInterval> readValues(QByteArray region, int offset=-1);
-	QList<OverlappingInterval> readValues(QByteArray chr, quint32 start, quint32 end, int offset=-1);
+	float readValue(const QByteArray& chr, const int& position, const int& offset=-1);
+	QList<OverlappingInterval> readValues(const QByteArray& region, const int& offset=-1);
+	QList<OverlappingInterval> readValues(const QByteArray& chr, const quint32& start, const quint32& end, const int& offset=-1);
 
 	BigWigHeader header()
 	{
@@ -139,7 +139,7 @@ public:
 	void printChromHeader();
 	void printChromosomes();
 	void printIndexTree();
-	void printIndexTreeNode(IndexRTreeNode node, int level);
+	void printIndexTreeNode(const IndexRTreeNode& node, int level);
 
 
 
@@ -150,17 +150,16 @@ private:
 	void parseChromLeaf(quint16 num_items, quint32 key_size);
 	void parseChromNonLeaf(quint16 num_items, quint32 key_size);
 	void parseIndexTree();
+	IndexRTreeNode parseIndexTreeNode(quint64 offset);
 
-	QList<OverlappingBlock> getOverlappingBlocks(quint32 chr_id, quint32 start, quint32 end);
-	QList<OverlappingBlock> overlapsTwig(IndexRTreeNode node, quint32 chr_id, quint32 start, quint32 end);
-	QList<OverlappingBlock> overlapsLeaf(IndexRTreeNode node, quint32 chr_id, quint32 start, quint32 end);
+	QList<OverlappingBlock> getOverlappingBlocks(const quint32& chr_id, const quint32& start, const quint32& end);
+	QList<OverlappingBlock> overlapsTwig(const IndexRTreeNode& node, const quint32& chr_id, const quint32& start, const quint32& end);
+	QList<OverlappingBlock> overlapsLeaf(const IndexRTreeNode& node, const quint32& chr_id, const quint32& start, const quint32& end);
 
-	QList<OverlappingInterval> extractOverlappingIntervals(QList<OverlappingBlock> blocks, quint32 chr_id, quint32 start, quint32 end);
+	QList<OverlappingInterval> extractOverlappingIntervals(const QList<OverlappingBlock>& blocks, const quint32& chr_id, const quint32& start, const quint32& end);
 
 	quint32 getChrId(QByteArray chr);
 
-	QDataStream& readBytes(quint64 max_len);
-	IndexRTreeNode parseIndexTreeNode(quint64 offset);
 
 	QString file_path_;
 	float default_value_;

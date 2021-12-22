@@ -20,7 +20,7 @@ BigWigReader::BigWigReader(const QString& bigWigFilepath)
 	parseIndexTree();
 }
 
-float BigWigReader::readValue(QByteArray chr, int position, int offset)
+float BigWigReader::readValue(const QByteArray& chr, const int& position, const int& offset)
 {
 	QList<OverlappingInterval> intervals = readValues(chr, position+offset, position+1, offset);
 
@@ -37,7 +37,7 @@ float BigWigReader::readValue(QByteArray chr, int position, int offset)
 
 }
 
-QList<OverlappingInterval> BigWigReader::readValues(QByteArray region, int offset)
+QList<OverlappingInterval> BigWigReader::readValues(const QByteArray& region, const int& offset)
 {
 	QList<QByteArray> parts1 = region.split(':');
 	if (parts1.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
@@ -50,7 +50,7 @@ QList<OverlappingInterval> BigWigReader::readValues(QByteArray region, int offse
 	return readValues(parts1[0], parts2[0].toInt(), parts2[1].toInt(), offset);
 }
 
-QList<OverlappingInterval> BigWigReader::readValues(QByteArray chr, quint32 start, quint32 end, int offset)
+QList<OverlappingInterval> BigWigReader::readValues(const QByteArray& chr, const quint32& start, const quint32& end, const int& offset)
 {
 	quint32 chr_id = getChrId(chr);
 
@@ -85,9 +85,13 @@ void BigWigReader::parseInfo()
 	if (magic == 0x888FFC26)
 	{
 		byte_order_ = QDataStream::BigEndian;
-	} else if (magic ==  0x26FC8F88) {
+	}
+	else if (magic ==  0x26FC8F88)
+	{
 		byte_order_ = QDataStream::LittleEndian;
-	} else {
+	}
+	else
+	{
 		THROW(FileParseException, "Magic number of file doesn't belong to BigWig.")
 	}
 	header_stream.setByteOrder(byte_order_);
@@ -184,7 +188,9 @@ void BigWigReader::parseChromBlock(quint32 key_size)
 	if (is_leaf == 1)
 	{
 		parseChromLeaf(num_items, key_size);
-	} else {
+	}
+	else
+	{
 		parseChromNonLeaf(num_items, key_size);
 	}
 }
@@ -329,7 +335,7 @@ IndexRTreeNode BigWigReader::parseIndexTreeNode(quint64 offset)
 	return node;
 }
 
-QList<OverlappingBlock> BigWigReader::getOverlappingBlocks(quint32 chr_id, quint32 start, quint32 end)
+QList<OverlappingBlock> BigWigReader::getOverlappingBlocks(const quint32 &chr_id, const quint32 &start, const quint32& end)
 {
 	QList<OverlappingBlock> result;
 
@@ -347,7 +353,7 @@ QList<OverlappingBlock> BigWigReader::getOverlappingBlocks(quint32 chr_id, quint
 	return result;
 }
 
-QList<OverlappingBlock> BigWigReader::overlapsTwig(IndexRTreeNode node, quint32 chr_id, quint32 start, quint32 end)
+QList<OverlappingBlock> BigWigReader::overlapsTwig(const IndexRTreeNode& node, const quint32& chr_id, const quint32& start, const quint32& end)
 {
 	QList<OverlappingBlock> blocks;
 	for (quint16 i=0; i<node.count; i++)
@@ -389,7 +395,7 @@ QList<OverlappingBlock> BigWigReader::overlapsTwig(IndexRTreeNode node, quint32 
 
 
 
-QList<OverlappingBlock> BigWigReader::overlapsLeaf(IndexRTreeNode node, quint32 chr_id, quint32 start, quint32 end)
+QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, const quint32& chr_id, const quint32& start, const quint32& end)
 {
 	QList<OverlappingBlock> blocks;
 	std::cout << "\nleaf called. Node count:" << node.count << "\n";
@@ -450,7 +456,7 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(IndexRTreeNode node, quint32 
 	return blocks;
 }
 
-QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(QList<OverlappingBlock> blocks, quint32 chr_id, quint32 start, quint32 end)
+QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList<OverlappingBlock>& blocks, const quint32& chr_id, const quint32& start, const quint32& end)
 {
 	std::cout << "extracting intervals" << std::endl;
 	QList<OverlappingInterval> result;
@@ -460,7 +466,7 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(QList<Overl
 	char out[decompress_buffer_size];
 	QByteArray decompressed_block;
 
-	foreach (OverlappingBlock b, blocks)
+	foreach (const OverlappingBlock &b, blocks)
 	{
 		if (decompress_buffer_size > 0) // if data is compressed -> decompress it
 		{
@@ -625,7 +631,7 @@ void BigWigReader::printChromHeader()
 void BigWigReader::printChromosomes()
 {
 	std::cout << "Chromosomes: #" << chr_list.length() <<"\n";
-	foreach (ChromosomeItem chr, chr_list)
+	foreach (const ChromosomeItem &chr, chr_list)
 	{
 		std::cout << "chr: " <<  chr.key.toStdString() << " id: " << QString::number(chr.chrom_id).toStdString() << " size: " << QString::number(chr.chrom_size).toStdString() << "\n";
 	}
@@ -647,7 +653,7 @@ void BigWigReader::printIndexTree()
 	std::cout << std::endl;
 }
 
-void BigWigReader::printIndexTreeNode(IndexRTreeNode node, int level)
+void BigWigReader::printIndexTreeNode(const IndexRTreeNode& node, int level)
 {
 	for (quint32 i=0;  i<node.count; i++)
 	{
