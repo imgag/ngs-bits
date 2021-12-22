@@ -60,13 +60,13 @@ struct ChromosomeItem
 
 struct IndexRTreeNode
 {
-	bool isLeaf;
-	quint16 num_children;
-	QVector<qint32> chr_idx_start;
-	QVector<qint32> chr_idx_end;
-	QVector<qint32> base_start;
-	QVector<qint32> base_end;
-	QVector<qint64> data_offset; // offset to the children for non leafs for leafs the offset to the data.
+	quint8 isLeaf;
+	quint16 count;
+	QVector<quint32> chr_idx_start;
+	QVector<quint32> chr_idx_end;
+	QVector<quint32> base_start;
+	QVector<quint32> base_end;
+	QVector<quint64> data_offset; // offset to the children for non leafs for leafs the offset to the data.
 	QVector<quint64> size; // leaves only: size of data
 	QVector<IndexRTreeNode> children; // twigs only
 };
@@ -97,6 +97,19 @@ struct DataHeader
 
 };
 
+struct OverlappingBlock
+{
+	quint64 offset;
+	quint64 size;
+};
+
+struct OverlappingInterval
+{
+	quint32 start;
+	quint32 end;
+	float value;
+};
+
 
 class CPPNGSSHARED_EXPORT BigWigReader
 {
@@ -106,12 +119,9 @@ public:
 	~BigWigReader();
 
 	// read the bigWig value for a position of the genome. Offset for regions as libBigWig uses zero-based genome indexing -> 0 - length-1
-	float readValue(QString chr, int position, int offset=-1);
-	void printHeader();
-	void printSummary();
-	void printZoomLevels();
-	void printChromHeader();
-	void printChromosomes();
+	float readValue(QByteArray chr, int position, int offset=-1);
+	QList<OverlappingInterval> readValues(QByteArray region, int offset=-1);
+	QList<OverlappingInterval> readValues(QByteArray chr, quint32 start, quint32 end, int offset=-1);
 
 	BigWigHeader header()
 	{
@@ -123,8 +133,15 @@ public:
 		return summary_;
 	}
 
+	void printHeader();
+	void printSummary();
+	void printZoomLevels();
+	void printChromHeader();
+	void printChromosomes();
+	void printIndexTree();
+	void printIndexTreeNode(IndexRTreeNode node, int level);
 
-	QString file_path;
+
 
 private:
 	void parseInfo();
@@ -132,11 +149,26 @@ private:
 	void parseChromBlock(quint32 key_size);
 	void parseChromLeaf(quint16 num_items, quint32 key_size);
 	void parseChromNonLeaf(quint16 num_items, quint32 key_size);
+	void parseIndexTree();
 
+	QList<OverlappingBlock> getOverlappingBlocks(quint32 chr_id, quint32 start, quint32 end);
+	QList<OverlappingBlock> overlapsTwig(IndexRTreeNode node, quint32 chr_id, quint32 start, quint32 end);
+	QList<OverlappingBlock> overlapsLeaf(IndexRTreeNode node, quint32 chr_id, quint32 start, quint32 end);
+
+	QList<OverlappingInterval> extractOverlappingIntervals(QList<OverlappingBlock> blocks, quint32 chr_id, quint32 start, quint32 end);
+
+	quint32 getChrId(QByteArray chr);
+
+	QDataStream& readBytes(quint64 max_len);
+	IndexRTreeNode parseIndexTreeNode(quint64 offset);
+
+	QString file_path_;
+	float default_value_;
 	BigWigHeader header_;
 	Summary summary_;
 	QList<ZoomLevel> zoom_levels_;
 	ChromosomeHeader chr_header;
+	IndexRTree index_tree_;
 	QHash<QByteArray, quint32> chromosomes;
 	QList<ChromosomeItem> chr_list;
 	QSharedPointer<VersatileFile> fp_;
