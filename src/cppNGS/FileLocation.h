@@ -174,7 +174,7 @@ struct FileLocation
 		if (in_upper == "STRUCTURAL_VARIANTS") return PathType::STRUCTURAL_VARIANTS;
 		if (in_upper == "REPEAT_EXPANSION_IMAGE") return PathType::REPEAT_EXPANSION_IMAGE;
 		if (in_upper == "FUSIONS") return PathType::FUSIONS;
-		if (in_upper == "STAR_FUSIONS") return PathType::FUSIONS;
+		if (in_upper == "STAR_FUSIONS") return PathType::STAR_FUSIONS;
 		if (in_upper == "FUSIONS_BAM") return PathType::FUSIONS_BAM;
 		if (in_upper == "SPLICING_BED") return PathType::SPLICING_BED;
 		if (in_upper == "MANTA_FUSIONS") return PathType::MANTA_FUSIONS;
