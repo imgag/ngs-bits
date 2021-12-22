@@ -32,7 +32,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		}
 	}
 	/// returns a QString representation für the given evidence
-	static QString evidenceToString(Evidence e)
+	static QString evidenceToString(const Evidence& e)
 	{
 		switch (e) {
 			case Evidence::NA:
@@ -51,25 +51,32 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 		}
 	}
 	/// turns a given HPO Evidence value into one from the Evidences enum
-	static Evidence translateHpoEvidence(QString hpo_evi)
+	static Evidence translateHpoEvidence(const QString& hpo_evi)
 	{
 		/*
 		 *	IEA (inferred from electronic annotation): Annotations extracted by parsing the Clinical Features sections of the Online Mendelian Inheritance in Man resource are assigned the evidence code “IEA”.
 		 *	PCS (published clinical study) is used for used for information extracted from articles in the medical literature. Generally, annotations of this type will include the pubmed id of the published study in the DB_Reference field.
 		 *	TAS (traceable author statement) is used for information gleaned from knowledge bases such as OMIM or Orphanet that have derived the information from a published source..
 		 */
-		if (hpo_evi == "IEA") {
+		if (hpo_evi == "IEA")
+		{
 			return PhenotypeEvidence::LOW;
-		} else if (hpo_evi == "TAS") {
+		}
+		else if (hpo_evi == "TAS")
+		{
 			return PhenotypeEvidence::MED;
-		} else if (hpo_evi == "PCS") {
+		}
+		else if (hpo_evi == "PCS")
+		{
 			return PhenotypeEvidence::HIGH;
-		} else {
+		}
+		else
+		{
 			return PhenotypeEvidence::NA;
 		}
 	}
 	/// turns a given OMIM Evidence value into one from the Evidences enum
-	static Evidence translateOmimEvidence(QByteArray omim_evi)
+	static Evidence translateOmimEvidence(const QByteArray& omim_evi)
 	{
 		/*
 			# Phenotype Mapping key - Appears in parentheses after a disorder :
@@ -84,20 +91,29 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 			# 4 - A contiguous gene deletion or duplication syndrome, multiple genes
 			# are deleted or duplicated causing the phenotype.
 		 */
-		if (omim_evi == "(1)") {
+		if (omim_evi == "(1)")
+		{
 			return PhenotypeEvidence::LOW;
-		} else if (omim_evi == "(2)") {
+		}
+		else if (omim_evi == "(2)")
+		{
 			return PhenotypeEvidence::LOW;
-		} else if (omim_evi == "(3)") {
+		}
+		else if (omim_evi == "(3)")
+		{
 			return PhenotypeEvidence::HIGH;
-		} else if (omim_evi == "(4)") {
+		}
+		else if (omim_evi == "(4)")
+		{
 			return PhenotypeEvidence::HIGH;
-		} else {
+		}
+		else
+		{
 			return PhenotypeEvidence::NA;
 		}
 	}
 	/// turns a given Decipher Evidence value into one from the Evidences enum
-	static Evidence translateDecipherEvidence(QByteArray decipher_evi)
+	static Evidence translateDecipherEvidence(const QByteArray& decipher_evi)
 	{
 		//disease confidence: One value from the list of possible categories: both DD and IF, confirmed, possible, probable
 		/*
@@ -112,43 +128,73 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 						Possible disease-causing mutations within, affecting or encompassing an interpretable functional region of a single gene identified in more than one unrelated cases/families or segregation within multiple individuals within a single large family with a developmental disorder
 		   Both RD and IF 	Plausible disease-causing mutations within, affecting or encompassing the coding region of a single gene identified in multiple (>3) unrelated cases/families with both the relevant disease (RD) and an incidental disorder
 		*/
-		if (decipher_evi == "both DD and IF") { // meaning?
+		if (decipher_evi == "both DD and IF")
+		{ // meaning?
 			return PhenotypeEvidence::LOW;
-		} else if (decipher_evi == "possible") {
+		}
+		else if (decipher_evi == "possible")
+		{
 			return PhenotypeEvidence::LOW;
-		} else if (decipher_evi == "probable") {
+		}
+		else if (decipher_evi == "probable")
+		{
 			return PhenotypeEvidence::MED;
-		} else if (decipher_evi == "confirmed") {
+		}
+		else if (decipher_evi == "confirmed")
+		{
 			return PhenotypeEvidence::HIGH;
-		} else {
+		}
+		else
+		{
 			return PhenotypeEvidence::NA;
 		}
 	}
 	/// turns a given GenCC Evidence value into one from the Evidences enum
-	static Evidence translateGenccEvidence(QByteArray gencc_evi)
+	static Evidence translateGenccEvidence(const QByteArray& gencc_evi)
 	{
 		//Definitive, Strong, Moderate, Supportive, Limited, Disputed, Refuted, Animal, No Known
-		if (gencc_evi == "No Known") {
+		if (gencc_evi == "No Known")
+		{
 			return PhenotypeEvidence::NA;
-		} else if (gencc_evi == "No Known Disease Relationship") {
+		}
+		else if (gencc_evi == "No Known Disease Relationship")
+		{
 			return PhenotypeEvidence::NA;
-		} else if (gencc_evi == "Animal") {
+		}
+		else if (gencc_evi == "Animal")
+		{
 			return PhenotypeEvidence::LOW;
-		} else if (gencc_evi == "Refuted") {
+		}
+		else if (gencc_evi == "Refuted")
+		{
 			return PhenotypeEvidence::AGAINST;
-		} else if (gencc_evi == "Disputed") {
+		}
+		else if (gencc_evi == "Disputed")
+		{
 			return PhenotypeEvidence::AGAINST;
-		}  else if (gencc_evi == "Limited") {
+		}
+		else if (gencc_evi == "Limited")
+		{
 			return PhenotypeEvidence::LOW;
-		} else if (gencc_evi == "Supportive") {
+		}
+		else if (gencc_evi == "Supportive")
+		{
 			return PhenotypeEvidence::LOW;
-		} else if (gencc_evi == "Moderate") {
+		}
+		else if (gencc_evi == "Moderate")
+		{
 			return PhenotypeEvidence::MED;
-		} else if (gencc_evi == "Strong") {
+		}
+		else if (gencc_evi == "Strong")
+		{
 			return PhenotypeEvidence::HIGH;
-		} else if (gencc_evi == "Definitive") {
+		}
+		else if (gencc_evi == "Definitive")
+		{
 			return PhenotypeEvidence::HIGH;
-		} else {
+		}
+		else
+		{
 			return PhenotypeEvidence::NA;
 		}
 	}
@@ -156,20 +202,29 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 	static Evidence evidenceFromString(QString e)
 	{
 		e = e.toUpper();
-		if  (e=="AGAINST") {
+		if  (e=="AGAINST")
+		{
 			return PhenotypeEvidence::AGAINST;
-		} else if ((e=="NA") || (e=="N/A") ) {
+		}
+		else if (e=="NA" || e=="N/A")
+		{
 			return PhenotypeEvidence::NA;
-		} else if (e=="LOW") {
+		}
+		else if (e=="LOW") {
 			return PhenotypeEvidence::LOW;
-		} else if ((e=="MED") || (e=="MEDIUM")) {
+		}
+		else if (e=="MED" || e=="MEDIUM")
+		{
 			return PhenotypeEvidence::MED;
-		} else if (e=="HIGH") {
+		}
+		else if (e=="HIGH")
+		{
 			return PhenotypeEvidence::HIGH;
 		}
 
 		THROW(TypeConversionException, "Cannot convert String: '" + e + "' to Phenotype Evidence.")
 	}
+
 	/// returns all possible values for the evidence enum
 	static QList<Evidence> allEvidenceValues()
 	{
@@ -215,23 +270,34 @@ struct CPPNGSSHARED_EXPORT PhenotypeSource
 	static Source SourceFromString(QString s)
 	{
 		s = s.toLower();
-		if (s == "hpo") {
+		if (s == "hpo")
+		{
 			return Source::HPO;
-		} else if (s == "omim") {
+		}
+		else if (s == "omim")
+		{
 			return Source::OMIM;
-		} else if (s == "clinvar") {
+		}
+		else if (s == "clinvar")
+		{
 			return Source::CLINVAR;
-		} else if (s == "decipher") {
+		}
+		else if (s == "decipher")
+		{
 			return Source::DECIPHER;
-		} else if (s == "hgmd") {
+		}
+		else if (s == "hgmd")
+		{
 			return Source::HGMD;
-		} else if (s == "gencc") {
+		}
+		else if (s == "gencc")
+		{
 			return Source::GENCC;
 		}
 		THROW(TypeConversionException, "Cannot convert String: '" + s + "' to Phenotype Source.")
 	}
 	/// return the corresponding phenotype source for a given string
-	static Source SourceFromString(QByteArray s)
+	static Source SourceFromString(const QByteArray& s)
 	{
 		return SourceFromString(QString(s));
 	}
