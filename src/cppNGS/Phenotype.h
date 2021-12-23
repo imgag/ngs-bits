@@ -12,25 +12,8 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 {
 	PhenotypeEvidence() = delete;
 	/// Strength of the evidence for a given relation
-	enum Evidence {NA, AGAINST, LOW, MED, HIGH};
-	/// returns a integer representing the Strength of the evidence: lower less evidence, higher better evidence
-	static int rank(const Evidence& e)
-	{
-		switch (e) {
-			case PhenotypeEvidence::NA:
-				return 0;
-			case PhenotypeEvidence::AGAINST:
-				return 1;
-			case PhenotypeEvidence::LOW:
-				return 2;
-			case PhenotypeEvidence::MED:
-				return 3;
-			case PhenotypeEvidence::HIGH:
-				return 4;
-			default:
-				return -1;
-		}
-	}
+	enum Evidence {NA=0, AGAINST=1, LOW=2, MED=3, HIGH=4};
+
 	/// returns a QString representation für the given evidence
 	static QString evidenceToString(const Evidence& e)
 	{

@@ -108,7 +108,7 @@ public:
 				if (this->contains(second.sources[i]))
 				{
 					int idx = this->getIndexOfSource(second.sources[i]);
-					if (PhenotypeEvidence::rank(second.translated_evidence[i]) > PhenotypeEvidence::rank(this->translated_evidence[idx]))
+					if ((int) second.translated_evidence[i] > (int) this->translated_evidence[idx])
 					{
 						this->original_evidence[idx] = second.original_evidence[i];
 						this->translated_evidence[idx] = second.translated_evidence[i];
@@ -204,7 +204,7 @@ public:
 				{
 					AnnotatedItem& present_item = hash[item];
 					present_item.src.unite(source);
-					if (PhenotypeEvidence::rank(present_item.evi) < PhenotypeEvidence::rank(evidence))
+					if ((int) present_item.evi < (int) evidence)
 					{
 						present_item.evi = evidence;
 					}
@@ -894,7 +894,7 @@ public:
 					}
 					else
 					{
-						evi = PhenotypeEvidence::rank(disease.evi) < PhenotypeEvidence::rank(gene.evi) ? disease.evi : gene.evi;
+						evi = (int) disease.evi < (int) gene.evi ? disease.evi : gene.evi;
 					}
 
 					SourceDetails src = SourceDetails(); // list all the combined sources?
