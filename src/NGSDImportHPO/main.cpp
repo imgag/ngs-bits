@@ -3,6 +3,7 @@
 #include "Exceptions.h"
 #include "Helper.h"
 #include "OntologyTermCollection.h"
+#include <QDebug>
 
 class ConcreteTool
 		: public ToolBase
@@ -258,7 +259,6 @@ public:
 	{
 		if (getInfile("hpophen") == "") return;
 
-		QTextStream out(stdout);
 		// parse phenotype.hpoa file for evidence information
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("hpophen"));
 
@@ -281,7 +281,7 @@ public:
 
 			if (term_id == -1)
 			{
-				if (getFlag("debug")) out << "Term not found in id2ngsd: " << term << endl;
+				//if (getFlag("debug")) out << "Term not found in id2ngsd: " << term << endl;
 				continue;
 			}
 			else
@@ -361,60 +361,58 @@ public:
 	{
 		if (getInfile("gencc") == "") return;
 
-		QTextStream out(stdout);
-		// parse phenotype.hpoa file for evidence information
+		// parse gencc_submission.csv file for evidence information
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("gencc"));
-
-		QByteArray line = fp->readLine();
-		//"uuid","gene_curie","gene_symbol","disease_curie","disease_title","disease_original_curie","disease_original_title","classification_curie","classification_title","moi_curie","moi_title","submitter_curie","submitter_title","submitted_as_hgnc_id","submitted_as_hgnc_symbol","submitted_as_disease_id","submitted_as_disease_name","submitted_as_moi_id","submitted_as_moi_name","submitted_as_submitter_id","submitted_as_submitter_name","submitted_as_classification_id","submitted_as_classification_name","submitted_as_date","submitted_as_public_report_url","submitted_as_notes","submitted_as_pmids","submitted_as_assertion_criteria_url","submitted_as_submission_id","submitted_run_date"
-
+		QByteArray line = fp->readLine(); // header
 		QByteArray source = "GenCC";
 		int count =0;
+
 		while(! fp->atEnd())
 		{
 			line = fp->readLine().trimmed();
-			while ( ! line.endsWith('"'))
+			while ( ! line.endsWith('"')) //some strings contain newlines..
 			{
 				line.append(fp->readLine().trimmed());
 			}
 
 			QByteArrayList parts = line.split(',');
 
-			QByteArrayList cleaned_parts = QByteArrayList();
-
-			for (int i=0; i<parts.length(); i++)
+			if (parts.length() > 30) // some strings contain commas
 			{
-				if (parts[i].startsWith('"') && ( ! parts[i].endsWith('"'))) // starts with " but doesn't end with "
+				QByteArrayList cleaned_parts = QByteArrayList();
+
+				for (int i=0; i<parts.length(); i++)
 				{
-					QByteArray combined_part = parts[i];
-					do
+					if (parts[i].startsWith('"') && ( ! parts[i].endsWith('"'))) // starts with " but doesn't end with "
 					{
-						i++;
-						combined_part.append(parts[i]);
+						QByteArray combined_part = parts[i];
+						do
+						{
+							i++;
+							combined_part.append(parts[i]);
 
-					} while (! parts[i].endsWith('"'));
+						} while (! parts[i].endsWith('"'));
 
-					cleaned_parts.append(combined_part);
-					continue;
+						cleaned_parts.append(combined_part);
+					}
+					else
+					{
+						cleaned_parts.append(parts[i]);
+					}
+
 				}
-				else
-				{
-					cleaned_parts.append(parts[i]);
-				}
+				parts = cleaned_parts;
 			}
 
-			QByteArray gene_symbol = cleaned_parts[2].replace('"', ' ').trimmed();
-			QByteArray disease = cleaned_parts[5].replace('"', ' ').trimmed(); // OMIM:XXXXXX, MONDO:XXXXXXX, Orphanet:XXXXX needs mapping from Orphanet and Mondo to Omim
-			QByteArray gencc_evi = cleaned_parts[8].replace('"', ' ').trimmed();
+			QByteArray gene_symbol = parts[2].replace('"', ' ').trimmed();
+			QByteArray disease = parts[5].replace('"', ' ').trimmed(); // OMIM:XXXXXX, MONDO:XXXXXXX, Orphanet:XXXXX needs mapping from Orphanet and Mondo to Omim
+			QByteArray gencc_evi = parts[8].replace('"', ' ').trimmed();
 			PhenotypeEvidence::Evidence evidence = PhenotypeEvidence::translateGenccEvidence(gencc_evi);
-			if (evidence == PhenotypeEvidence::NA && getFlag("debug"))
-			{
-				out << gencc_evi << endl;
-				out << line << endl;
-				return;
-			}
 
-			if (evidence == PhenotypeEvidence::NA || evidence == PhenotypeEvidence::AGAINST) continue;
+			if (evidence == PhenotypeEvidence::NA || evidence == PhenotypeEvidence::AGAINST)
+			{
+				continue;
+			}
 
 			if ( ! disease.startsWith("OMIM"))
 			{
@@ -423,12 +421,13 @@ public:
 
 			int gene_db_id = db.geneToApprovedID(gene_symbol);
 			if (gene_db_id == -1) continue;
-
+			out << line << "\n";
 			disease2genes[disease].add(db.geneSymbol(gene_db_id), source, gencc_evi, evidence);
 			count++;
 		}
 		fp->close();
 
+		QTextStream out(stdout);
 		out << "Imported " << count << " disease gene relations from GenCC" << endl;
 	}
 

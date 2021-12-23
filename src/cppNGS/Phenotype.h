@@ -128,7 +128,7 @@ struct CPPNGSSHARED_EXPORT PhenotypeEvidence
 						Possible disease-causing mutations within, affecting or encompassing an interpretable functional region of a single gene identified in more than one unrelated cases/families or segregation within multiple individuals within a single large family with a developmental disorder
 		   Both RD and IF 	Plausible disease-causing mutations within, affecting or encompassing the coding region of a single gene identified in multiple (>3) unrelated cases/families with both the relevant disease (RD) and an incidental disorder
 		*/
-		if (decipher_evi == "both DD and IF")
+		if (decipher_evi == "\"both RD and IF\"")
 		{ // meaning?
 			return PhenotypeEvidence::LOW;
 		}
