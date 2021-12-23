@@ -568,7 +568,7 @@ public:
 
 		//parse disease-gene relations from OMIM
 		QString omim_file = getInfile("omim");
-		// disease2genes.clear(); *********************** Why clear it?
+		lineCount = 0;
 		if (omim_file!="")
 		{
 			//parse disease-gene relations
@@ -577,6 +577,7 @@ public:
 			QRegExp mim_exp("([0-9]{6})");
 			while(!fp->atEnd())
 			{
+				lineCount++;
 				QByteArrayList parts = fp->readLine().trimmed().split('\t');
 				if (parts.count()<4) continue;
 
@@ -604,7 +605,7 @@ public:
 
 					if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << endl;
 
-					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", omim_evi, PhenotypeEvidence::translateOmimEvidence(omim_evi));
+					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", omim_evi, PhenotypeEvidence::translateOmimEvidence(omim_evi), QString("OMIM line ") + QString::number(lineCount));
 				}
 			}
 			fp->close();
@@ -617,8 +618,10 @@ public:
 			//parse disease-gene relations
 			int c_skipped_invalid_gene = 0;
 			fp = Helper::openFileForReading(clinvar_file);
+			lineCount = 0;
 			while(!fp->atEnd())
 			{
+				lineCount++;
 				QByteArray line = fp->readLine().trimmed();
 				if (!line.contains("CLNSIG=Pathogenic") && !line.contains("CLNSIG=Likely_pathogenic")) continue;
 
@@ -679,7 +682,7 @@ public:
 					foreach(const QByteArray& disease, diseases)
 					{
 						if (debug) out << "DISEASE-GENE (ClinVar): " << disease << " - " << gene_approved << endl;
-						disease2genes[disease].add(gene_approved, "ClinVar", "");
+						disease2genes[disease].add(gene_approved, "ClinVar", "", PhenotypeEvidence::NA, QString("ClinVar line ") + QString::number(lineCount));
 					}
 					foreach(const QByteArray& hpo, hpos)
 					{
@@ -687,7 +690,7 @@ public:
 						int term_db_id = id2ngsd.value(hpo, -1);
 						if (term_db_id != -1)
 						{
-							term2genes[term_db_id].add(gene_approved, "ClinVar", "");
+							term2genes[term_db_id].add(gene_approved, "ClinVar", "", PhenotypeEvidence::NA, QString("ClinVar line ") + QString::number(lineCount));
 						}
 					}
 				}
@@ -856,7 +859,7 @@ public:
 							int term_db_id = id2ngsd.value(hpo, -1);
 							if (term_db_id != -1)
 							{
-								term2genes[term_db_id].add(gene_approved, "HGMD", ""); // is there some evidence in the file that could be parsed?
+								term2genes[term_db_id].add(gene_approved, "HGMD", "", PhenotypeEvidence::NA, QString("HGMD unknown line")); // is there some evidence in the file that could be parsed?
 							}
 						}
 					}
