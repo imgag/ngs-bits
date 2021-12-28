@@ -26,6 +26,16 @@ public:
 		gene_ = symbol;
 	}
 
+    const QByteArray& hgncId() const
+    {
+        return hgnc_id_;
+    }
+
+    void setHgncId(const QByteArray& hgnc_id)
+    {
+        hgnc_id_ = hgnc_id;
+    }
+
     const QByteArray& name() const
 	{
 		return name_;
@@ -153,6 +163,7 @@ public:
 
 protected:
 	QByteArray gene_;
+    QByteArray hgnc_id_;
     QByteArray name_;
 	SOURCE source_;
 	STRAND strand_;
