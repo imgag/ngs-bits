@@ -49,7 +49,7 @@ class CPPRESTSHARED_EXPORT EndpointManager
 {
 
 public:
-	static HttpResponse blockInvalidUsers(HttpRequest request);
+	static HttpResponse getAuthStatus(HttpRequest request);
 	static void validateInputData(Endpoint* current_endpoint, const HttpRequest& request);
 	static void appendEndpoint(Endpoint new_endpoint);	
 	static Endpoint getEndpointByUrlAndMethod(const QString& url, const RequestMethod& method);

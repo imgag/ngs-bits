@@ -4,7 +4,7 @@ EndpointManager::EndpointManager()
 {
 }
 
-HttpResponse EndpointManager::blockInvalidUsers(HttpRequest request)
+HttpResponse EndpointManager::getAuthStatus(HttpRequest request)
 {
 	QString auth_header = request.getHeaderByName("Authorization").length() > 0 ? request.getHeaderByName("Authorization")[0] : "";
 	if (auth_header.isEmpty())
@@ -35,7 +35,7 @@ HttpResponse EndpointManager::blockInvalidUsers(HttpRequest request)
 		return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid user credentials");
 	}
 
-	return HttpResponse();
+	return HttpResponse(ResponseStatus::OK, request.getContentType(), "Successful authorization");
 }
 
 void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRequest& request)
