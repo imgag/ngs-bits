@@ -60,6 +60,7 @@ enum class VariantImpact
 struct CPPNGSSHARED_EXPORT HgvsNomenclature
 {
     QString transcript_id;
+    QString allele;
     //QString hgvs_g;
     QString hgvs_c;
     QString hgvs_p;
@@ -67,7 +68,7 @@ struct CPPNGSSHARED_EXPORT HgvsNomenclature
     int exon_number{-1};
     int intron_number{-1};
 
-    VariantImpact consequenceTypeToImpact(VariantConsequenceType type)
+    VariantImpact consequenceTypeToImpact(VariantConsequenceType type) const
     {
         switch(type)
         {
@@ -103,7 +104,41 @@ struct CPPNGSSHARED_EXPORT HgvsNomenclature
             case VariantConsequenceType::INTERGENIC_VARIANT:
                 return VariantImpact::MODIFIER;
                 break;
+            default:
+                return VariantImpact::LOW;
         }
+    }
+
+    QString consequenceTypeToString(VariantConsequenceType type) const
+    {
+        switch(type)
+        {
+            case VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT: return "splice_acceptor_variant";
+            case VariantConsequenceType::SPLICE_DONOR_VARIANT: return "splice_donor_variant";
+            case VariantConsequenceType::STOP_GAINED: return "stop_gained";
+            case VariantConsequenceType::FRAMESHIFT_VARIANT: return "frameshift_variant";
+            case VariantConsequenceType::STOP_LOST: return "stop_lost";
+            case VariantConsequenceType::START_LOST: return "start_lost";
+            case VariantConsequenceType::INFRAME_INSERTION: return "inframe_insertion";
+            case VariantConsequenceType::INFRAME_DELETION: return "inframe_deletion";
+            case VariantConsequenceType::MISSENSE_VARIANT: return "missense_variant";
+            case VariantConsequenceType::PROTEIN_ALTERING_VARIANT: return "protein_altering_variant";
+            case VariantConsequenceType::SPLICE_REGION_VARIANT: return "splice_region_variant";
+            case VariantConsequenceType::INCOMPLETE_TERMINAL_CODON_VARIANT: return "incomplete_terminal_codon_variant";
+            case VariantConsequenceType::START_RETAINED_VARIANT: return "start_retained_variant";
+            case VariantConsequenceType::STOP_RETAINED_VARIANT: return "stop_retained_variant";
+            case VariantConsequenceType::SYNONYMOUS_VARIANT: return "synonymous_variant";
+            case VariantConsequenceType::CODING_SEQUENCE_VARIANT: return "coding_sequence_variant";
+            case VariantConsequenceType::FIVE_PRIME_UTR_VARIANT: return "5_prime_utr_variant";
+            case VariantConsequenceType::THREE_PRIME_UTR_VARIANT: return "3_prime_utr_variant";
+            case VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT: return "non_coding_transcript_exon_variant";
+            case VariantConsequenceType::INTRON_VARIANT: return "intron_variant";
+            case VariantConsequenceType::NON_CODING_TRANSCRIPT_VARIANT: return "non_coding_transcript_variant";
+            case VariantConsequenceType::UPSTREAM_GENE_VARIANT: return "upstream_gene_variant";
+            case VariantConsequenceType::DOWNSTREAM_GENE_VARIANT: return "downstream_gene_variant";
+            case VariantConsequenceType::INTERGENIC_VARIANT: return "intergenic_variant";
+        }
+        return "";
     }
 };
 

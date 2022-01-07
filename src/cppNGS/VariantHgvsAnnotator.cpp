@@ -37,11 +37,13 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
     {
         if(variant.isSNV())
         {
+            hgvs.allele = variant.alt(0);
             pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start, plus_strand);
         }
         //deletion
         else if(variant.isDel())
         {
+            hgvs.allele = "-";
             pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand);
 
             if(end - start > 1 && pos_hgvs_c != "")
@@ -59,6 +61,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         //insertion
         else if(variant.isIns())
         {
+            hgvs.allele = variant.alt(0).mid(1);
             if(plus_strand)
             {
                 pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start, plus_strand) + "_" +
@@ -75,6 +78,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         else if(variant.isInDel() && !variant.isDel() && !variant.isIns())
         {
             //normalization made sure that alt and ref always have the same base prepended
+            hgvs.allele = variant.alt(0).mid(1);
             pos_hgvs_c = annotateRegionsCoding(transcript, hgvs, start + 1, plus_strand);
 
             if(end - start > 1 && pos_hgvs_c != "")
@@ -104,13 +108,15 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
     {
         if(variant.isSNV())
         {
+            hgvs.allele = variant.alt(0);
             pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start, plus_strand);
         }
         else if(variant.isDel())
         {
+            hgvs.allele = "-";
             pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start + 1, plus_strand);
 
-            if(end - start > 1)
+            if(end - start > 1 && pos_hgvs_c != "")
             {
                 if(plus_strand)
                 {
@@ -124,6 +130,7 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
         }
         else if(variant.isIns())
         {
+            hgvs.allele = variant.alt(0).mid(1);
             if(plus_strand)
             {
                 pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start, plus_strand) + "_" +
@@ -134,13 +141,15 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
                 pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start + 1, plus_strand) + "_" +
                         annotateRegionsNonCoding(transcript, hgvs, start, plus_strand);
             }
+            if(pos_hgvs_c == "_") pos_hgvs_c = "";
         }
         else if(variant.isInDel() && !variant.isDel() && !variant.isIns())
         {
             //normalization made sure that alt and ref always have the same base prepended
+            hgvs.allele = variant.alt(0).mid(1);
             pos_hgvs_c = annotateRegionsNonCoding(transcript, hgvs, start + 1, plus_strand);
 
-            if(end - start > 1)
+            if(end - start > 1 && pos_hgvs_c != "")
             {
                 if(plus_strand)
                 {
@@ -152,6 +161,9 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
                 }
             }
         }
+
+        // up- or downstream variant, no description w.r.t. cDNA positions possible
+        if(pos_hgvs_c == "") return hgvs;
     }
 
     //find out if the variant is a splice region variant
@@ -185,10 +197,9 @@ HgvsNomenclature VariantHgvsAnnotator::variantToHgvs(const Transcript& transcrip
     //insertion
     else if(variant.isIns())
     {
-        Sequence variant_alt_seq = variant.alt()[0];
-        variant_alt_seq = variant_alt_seq.right(variant_alt_seq.length() - 1);
-        if(!plus_strand) variant_alt_seq.reverseComplement();
-        hgvs.hgvs_c = hgvs_c_prefix + pos_hgvs_c + "ins" + variant_alt_seq;
+        Sequence alt = variant.alt(0).mid(1);
+        if(!plus_strand) alt.reverseComplement();
+        hgvs.hgvs_c = hgvs_c_prefix + pos_hgvs_c + "ins" + alt;
     }
     //delins (deletion and insertion at the same time/substitution of more than one base)
     else if(variant.isInDel() && !variant.isDel() && !variant.isIns())

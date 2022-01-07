@@ -158,6 +158,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SYNONYMOUS_VARIANT));
         I_EQUAL(hgvs.exon_number, 2);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "G");
 
         //SNV exon stop gained
         alt.clear();
@@ -173,6 +174,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::STOP_GAINED));
         I_EQUAL(hgvs.exon_number, 9);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "T");
 
         //SNV exon stop lost
         alt.clear();
@@ -188,6 +190,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::STOP_LOST));
         I_EQUAL(hgvs.exon_number, 9);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "C");
 
         //SNV exon splice region
         alt.clear();
@@ -204,6 +207,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
         I_EQUAL(hgvs.exon_number, 2);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "G");
 
         //SNV intron splice acceptor
         alt.clear();
@@ -219,6 +223,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 7);
+        S_EQUAL(hgvs.allele, "G");
 
         //SNV intron splice donor
         alt.clear();
@@ -234,6 +239,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 8);
+        S_EQUAL(hgvs.allele, "C");
 
         //SNV intron
         alt.clear();
@@ -246,6 +252,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 1);
+        S_EQUAL(hgvs.allele, "T");
 
         //SNV intron
         alt.clear();
@@ -258,7 +265,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 2);
-
+        S_EQUAL(hgvs.allele, "T");
 
         //SNV 5 prime utr
         alt.clear();
@@ -271,6 +278,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "G");
 
         //SNV 3 prime utr
         alt.clear();
@@ -283,6 +291,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
         I_EQUAL(hgvs.exon_number, 9);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "C");
 
         // upstream gene variant
         alt.clear();
@@ -295,6 +304,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::UPSTREAM_GENE_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "G");
 
         // deletion intron
         alt.clear();
@@ -307,6 +317,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 1);
+        S_EQUAL(hgvs.allele, "-");
 
         // deletion 5 prime utr
         alt.clear();
@@ -319,6 +330,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // frameshift deletion
         alt.clear();
@@ -334,6 +346,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
         I_EQUAL(hgvs.exon_number, 2);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // frameshift deletion
         alt.clear();
@@ -349,6 +362,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
         I_EQUAL(hgvs.exon_number, 7);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // frameshift deletion
         alt.clear();
@@ -364,6 +378,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
         I_EQUAL(hgvs.exon_number, 7);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // inframe deletion (shifted to the right by 3 nt according to 3 prime rule)
         alt.clear();
@@ -379,6 +394,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_DELETION));
         I_EQUAL(hgvs.exon_number, 2);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // insertion 5 prime utr
         alt.clear();
@@ -391,6 +407,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "A");
 
         // insertion intron
         alt.clear();
@@ -403,6 +420,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 2);
+        S_EQUAL(hgvs.allele, "CCCAGCCG");
 
         // frameshift insertion
         alt.clear();
@@ -420,6 +438,7 @@ private slots:
         //IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::STOP_GAINED));
         I_EQUAL(hgvs.exon_number, 7);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "GGGTGACAGAGTGACACCATCTCTTGAAAGAGAGAGAGAGAGAGAG");
 
         Transcript t_2 = trans_DECR1();
 
@@ -438,6 +457,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_DELETION));
         I_EQUAL(hgvs.exon_number, 3);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // inframe deletion
         alt.clear();
@@ -453,6 +473,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_DELETION));
         I_EQUAL(hgvs.exon_number, 10);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // inframe deletion
         alt.clear();
@@ -469,6 +490,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_DELETION));
         I_EQUAL(hgvs.exon_number, 11);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // inframe deletion (shifted to the right by 3 nt according to 3 prime rule)
         alt.clear();
@@ -484,6 +506,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_DELETION));
         I_EQUAL(hgvs.exon_number, 12);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // frameshift insertion
         alt.clear();
@@ -499,6 +522,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
         I_EQUAL(hgvs.exon_number, 8);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "A");
 
         // inframe insertion
         alt.clear();
@@ -514,6 +538,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_INSERTION));
         I_EQUAL(hgvs.exon_number, 10);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "ACA");
 
         // inframe insertion, also shifted by 1 nt according to 3' rule
         alt.clear();
@@ -529,6 +554,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_INSERTION));
         I_EQUAL(hgvs.exon_number, 10);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "CACCGT");
 
         // inframe insertion
         alt.clear();
@@ -544,6 +570,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_INSERTION));
         I_EQUAL(hgvs.exon_number, 10);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "ACACCG");
 
         // inframe insertion
         alt.clear();
@@ -559,6 +586,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_INSERTION));
         I_EQUAL(hgvs.exon_number, 10);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "ACG");
     }
 
     void vcfToHgvsMinusStrand()
@@ -583,6 +611,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::START_LOST));
         I_EQUAL(hgvs.exon_number, 2);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "G");
 
         //SNV exon missense
         alt.clear();
@@ -599,6 +628,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
         I_EQUAL(hgvs.exon_number, 3);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "A");
 
         //SNV exon stop gained
         alt.clear();
@@ -614,6 +644,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::STOP_GAINED));
         I_EQUAL(hgvs.exon_number, 5);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "T");
 
         //SNV intron splice acceptor
         alt.clear();
@@ -629,6 +660,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_ACCEPTOR_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 2);
+        S_EQUAL(hgvs.allele, "G");
 
         //SNV intron splice donor
         alt.clear();
@@ -644,6 +676,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 1);
+        S_EQUAL(hgvs.allele, "G");
 
         //SNV intron splice region
         alt.clear();
@@ -657,6 +690,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 4);
+        S_EQUAL(hgvs.allele, "G");
 
         //SNV intron
         alt.clear();
@@ -669,6 +703,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 4);
+        S_EQUAL(hgvs.allele, "T");
 
         //SNV intron
         alt.clear();
@@ -681,6 +716,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 4);
+        S_EQUAL(hgvs.allele, "G");
 
         //SNV 3 prime utr
         alt.clear();
@@ -693,6 +729,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
         I_EQUAL(hgvs.exon_number, 5);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "T");
 
         //SNV 5 prime utr intron
         alt.clear();
@@ -705,6 +742,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 1);
+        S_EQUAL(hgvs.allele, "C");
 
         // upstream gene variant
         alt.clear();
@@ -717,6 +755,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::UPSTREAM_GENE_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "A");
 
         // downstream gene variant
         alt.clear();
@@ -729,6 +768,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::DOWNSTREAM_GENE_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "A");
 
         // deletion upstream
         alt.clear();
@@ -741,6 +781,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::UPSTREAM_GENE_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // deletion 5 prime utr
         alt.clear();
@@ -753,6 +794,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FIVE_PRIME_UTR_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // deletion 3 prime utr
         alt.clear();
@@ -765,6 +807,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
         I_EQUAL(hgvs.exon_number, 5);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // deletion splice region
         alt.clear();
@@ -778,6 +821,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::SPLICE_REGION_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 3);
+        S_EQUAL(hgvs.allele, "-");
 
         // frameshift deletion
         alt.clear();
@@ -793,6 +837,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
         I_EQUAL(hgvs.exon_number, 5);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // insertion 3 prime utr
         alt.clear();
@@ -805,6 +850,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
         I_EQUAL(hgvs.exon_number, 5);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "GGGGG");
 
         Transcript t_2 = trans_CALCA();
 
@@ -823,6 +869,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
         I_EQUAL(hgvs.exon_number, 3);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // frameshift deletion
         alt.clear();
@@ -838,6 +885,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
         I_EQUAL(hgvs.exon_number, 4);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // inframe deletion
         alt.clear();
@@ -853,6 +901,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_DELETION));
         I_EQUAL(hgvs.exon_number, 2);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
 
         // frameshift insertion
         alt.clear();
@@ -868,6 +917,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
         I_EQUAL(hgvs.exon_number, 3);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "ACTGA");
 
         // frameshift insertion
         alt.clear();
@@ -883,6 +933,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
         I_EQUAL(hgvs.exon_number, 3);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "ACTGA");
 
         // frameshift insertion
         alt.clear();
@@ -898,6 +949,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
         I_EQUAL(hgvs.exon_number, 3);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "ACTGA");
     }
 
     void vcfToHgvsDelIns()
@@ -918,6 +970,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 1);
+        S_EQUAL(hgvs.allele, "TCT");
 
         //delins 3 prime utr
         alt.clear();
@@ -930,6 +983,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::THREE_PRIME_UTR_VARIANT));
         I_EQUAL(hgvs.exon_number, 5);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "GGCG");
 
         //delins intron
         t = trans_SLC51A();
@@ -944,6 +998,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 2);
+        S_EQUAL(hgvs.allele, "CGTG");
 
         //delins exon missense
         t = trans_CDKN1C();
@@ -961,6 +1016,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "CT");
 
         //delins exon missense
         alt.clear();
@@ -976,6 +1032,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "AA");
 
         //delins exon; more than one amino acid deleted
         alt.clear();
@@ -991,6 +1048,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_DELETION));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "AA");
 
         //delins exon; more than one amino acid inserted
         alt.clear();
@@ -1006,6 +1064,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INFRAME_INSERTION));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "AAATT");
 
         //delins exon; more than one amino acid deleted and inserted
         alt.clear();
@@ -1021,6 +1080,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::MISSENSE_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "AAATT");
 
         //delins exon frameshift
         alt.clear();
@@ -1036,6 +1096,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "TT");
 
         //delins exon frameshift
         alt.clear();
@@ -1051,6 +1112,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "C");
     }
 
     void vcfToHgvsUtrIntrons()
@@ -1071,6 +1133,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 1);
+        S_EQUAL(hgvs.allele, "A");
 
         Transcript t_2 = trans_CALCA();
 
@@ -1086,6 +1149,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 1);
+        S_EQUAL(hgvs.allele, "G");
 
         //SNV 3 prime utr intron minus strand
         alt.clear();
@@ -1098,6 +1162,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 4);
+        S_EQUAL(hgvs.allele, "G");
 
         //SNV 3 prime utr intron minus strand
         alt.clear();
@@ -1110,6 +1175,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 4);
+        S_EQUAL(hgvs.allele, "G");
     }
 
     void vcfToHgvsNonCoding()
@@ -1132,6 +1198,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::INTRON_VARIANT));
         I_EQUAL(hgvs.exon_number, -1);
         I_EQUAL(hgvs.intron_number, 1);
+        S_EQUAL(hgvs.allele, "T");
 
         // non-coding exon SNV
         alt.clear();
@@ -1146,6 +1213,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "T");
 
         // non-coding exon deletion
         alt.clear();
@@ -1160,6 +1228,7 @@ private slots:
         IS_TRUE(hgvs.variant_consequence_type.contains(VariantConsequenceType::NON_CODING_TRANSCRIPT_EXON_VARIANT));
         I_EQUAL(hgvs.exon_number, 1);
         I_EQUAL(hgvs.intron_number, -1);
+        S_EQUAL(hgvs.allele, "-");
     }
 
     void translateDnaSequence()
