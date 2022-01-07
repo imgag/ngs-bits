@@ -830,7 +830,7 @@ QList<TranscriptData> NGSHelper::loadGffFile(QString filename, QMap<QByteArray, 
                     hgnc_id = data["description"].mid(start, end-start);
                 }
             }
-            gene_to_hgnc[data["ID"]] = hgnc_id;
+            gene_to_hgnc[data["gene_id"]] = hgnc_id;
         }
 
         //transcript line
@@ -841,7 +841,7 @@ QList<TranscriptData> NGSHelper::loadGffFile(QString filename, QMap<QByteArray, 
 
             if (all || data.value("tag")=="basic")
             {
-                QByteArray parent_id = data["Parent"];
+                QByteArray parent_id = data["Parent"].split(':').at(1);
 
                 //skip transcripts of unhandled genes (special chromosomes)
                 if(!gene_to_hgnc.contains(parent_id)) continue;
