@@ -30,7 +30,9 @@ HttpResponse EndpointManager::getAuthStatus(HttpRequest request)
 	QString password = auth_header_decoded.mid(separator_pos+1, auth_header_decoded.size()-username.size()-1);
 
 	// TODO: brute-force attack protection may be needed
-	if (!isUserValid(username, password))
+	NGSD db;
+	QString message = db.checkPassword(username, password);
+	if (message.isEmpty())
 	{
 		return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid user credentials");
 	}
@@ -128,27 +130,4 @@ EndpointManager& EndpointManager::instance()
 {
 	static EndpointManager endpoint_factory;
 	return endpoint_factory;
-}
-
-bool EndpointManager::isUserValid(QString& user, QString& password)
-{
-	try
-	{
-		NGSD db;
-		QString message = db.checkPassword(user, password, true);
-		if (message.isEmpty())
-		{
-			return true;
-		}
-		else
-		{
-			return false;
-		}
-
-	}
-	catch (DatabaseException& e)
-	{
-		qCritical() << e.message();
-	}
-	return false;
 }

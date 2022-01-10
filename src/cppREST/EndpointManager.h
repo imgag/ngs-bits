@@ -62,7 +62,6 @@ protected:
 private:	
 	static EndpointManager& instance();
 	QList<Endpoint> endpoint_list_;
-	static bool isUserValid(QString &user, QString &password);
 };
 
 #endif // ENDPOINTMANAGER_H

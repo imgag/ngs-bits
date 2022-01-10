@@ -446,6 +446,63 @@ HttpResponse EndpointHandler::saveQbicFiles(const HttpRequest& request)
 	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_HTML, filename + " has been saved");
 }
 
+HttpResponse EndpointHandler::performLogin(const HttpRequest& request)
+{
+	QByteArray body {};
+	if (!request.getFormUrlEncoded().contains("name") || !request.getFormUrlEncoded().contains("password"))
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "No username or/and password were found");
+	}
+
+	NGSD db;
+	QString message = db.checkPassword(request.getFormUrlEncoded()["name"], request.getFormUrlEncoded()["password"]);
+	if (message.isEmpty())
+	{
+		QString secure_token = ServerHelper::generateUniqueStr();
+		Session cur_session = Session{request.getFormUrlEncoded()["name"], QDateTime::currentDateTime()};
+
+		SessionManager::addNewSession(secure_token, cur_session);
+		body = secure_token.toLocal8Bit();
+
+		BasicResponseData response_data;
+		response_data.length = body.length();
+		response_data.content_type = ContentType::TEXT_PLAIN;
+		response_data.is_downloadable = false;
+
+		return HttpResponse(response_data, body);
+	}
+
+	return HttpResponse(ResponseStatus::UNAUTHORIZED, request.getContentType(), "Invalid username or password");
+}
+
+HttpResponse EndpointHandler::performLogout(const HttpRequest& request)
+{
+	QByteArray body {};
+	if (!request.getFormUrlEncoded().contains("token"))
+	{
+		return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "Secure token has not been provided");
+	}
+	if (SessionManager::isTokenValid(request.getFormUrlEncoded()["token"]))
+	{
+		try
+		{
+			SessionManager::removeSession(request.getFormUrlEncoded()["token"]);
+		} catch (Exception& e)
+		{
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, request.getContentType(), e.message());
+		}
+		body = request.getFormUrlEncoded()["token"].toLocal8Bit();
+
+		BasicResponseData response_data;
+		response_data.length = body.length();
+		response_data.content_type = ContentType::TEXT_PLAIN;
+		response_data.is_downloadable = false;
+
+		return HttpResponse(response_data, body);
+	}
+	return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), "You have provided an invalid token");
+}
+
 HttpResponse EndpointHandler::getProcessingSystemRegions(const HttpRequest& request)
 {
 	NGSD db;

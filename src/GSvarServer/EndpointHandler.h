@@ -10,6 +10,7 @@
 
 #include "Exceptions.h"
 #include "EndpointController.h"
+#include "SessionManager.h"
 #include "FileLocationProviderLocal.h"
 #include "VariantList.h"
 
@@ -35,6 +36,8 @@ public:
 	static HttpResponse getProcessedSamplePath(const HttpRequest& request);
 	static HttpResponse saveProjectFile(const HttpRequest& request);
 	static HttpResponse saveQbicFiles(const HttpRequest& request);
+	static HttpResponse performLogin(const HttpRequest& request);
+	static HttpResponse performLogout(const HttpRequest& request);
 
 	/// Streams processing system regions file
 	static HttpResponse getProcessingSystemRegions(const HttpRequest& request);

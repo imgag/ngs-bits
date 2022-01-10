@@ -331,6 +331,34 @@ int main(int argc, char **argv)
 						&EndpointHandler::saveQbicFiles
 					});
 
+
+
+	EndpointManager::appendEndpoint(Endpoint{
+							"login",
+						QMap<QString, ParamProps>{
+							{"name", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "User name"}},
+							{"password", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Password"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						true,
+						"Secure token generation, the token will be used to access protected resources and to perform  certain API calls",
+						&EndpointHandler::performLogin
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"logout",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						true,
+						"Secure token invalidation, after this step the token cannot longer be used",
+						&EndpointHandler::performLogout
+					});
+
+
+
 	int https_port_setting = ServerHelper::getNumSettingsValue("https_server_port");
 	int http_port_setting = ServerHelper::getNumSettingsValue("http_server_port");
 
