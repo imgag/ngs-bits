@@ -20,7 +20,7 @@ BigWigReader::BigWigReader(const QString& bigWigFilepath)
 	parseIndexTree();
 }
 
-float BigWigReader::readValue(const QByteArray& chr, const int& position, const int& offset)
+float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 {
 	QList<OverlappingInterval> intervals = readValues(chr, position+offset, position+1, offset);
 
@@ -37,7 +37,7 @@ float BigWigReader::readValue(const QByteArray& chr, const int& position, const 
 
 }
 
-QList<OverlappingInterval> BigWigReader::readValues(const QByteArray& region, const int& offset)
+QList<OverlappingInterval> BigWigReader::readValues(const QByteArray& region, int offset)
 {
 	QList<QByteArray> parts1 = region.split(':');
 	if (parts1.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
@@ -50,7 +50,7 @@ QList<OverlappingInterval> BigWigReader::readValues(const QByteArray& region, co
 	return readValues(parts1[0], parts2[0].toInt(), parts2[1].toInt(), offset);
 }
 
-QList<OverlappingInterval> BigWigReader::readValues(const QByteArray& chr, const quint32& start, const quint32& end, const int& offset)
+QList<OverlappingInterval> BigWigReader::readValues(const QByteArray& chr, quint32 start, quint32 end, int offset)
 {
 	quint32 chr_id = getChrId(chr);
 
@@ -335,7 +335,7 @@ IndexRTreeNode BigWigReader::parseIndexTreeNode(quint64 offset)
 	return node;
 }
 
-QList<OverlappingBlock> BigWigReader::getOverlappingBlocks(const quint32 &chr_id, const quint32 &start, const quint32& end)
+QList<OverlappingBlock> BigWigReader::getOverlappingBlocks(quint32 chr_id, quint32 start, quint32 end)
 {
 	QList<OverlappingBlock> result;
 
@@ -353,7 +353,7 @@ QList<OverlappingBlock> BigWigReader::getOverlappingBlocks(const quint32 &chr_id
 	return result;
 }
 
-QList<OverlappingBlock> BigWigReader::overlapsTwig(const IndexRTreeNode& node, const quint32& chr_id, const quint32& start, const quint32& end)
+QList<OverlappingBlock> BigWigReader::overlapsTwig(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end)
 {
 	QList<OverlappingBlock> blocks;
 	for (quint16 i=0; i<node.count; i++)
@@ -395,7 +395,7 @@ QList<OverlappingBlock> BigWigReader::overlapsTwig(const IndexRTreeNode& node, c
 
 
 
-QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, const quint32& chr_id, const quint32& start, const quint32& end)
+QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end)
 {
 	QList<OverlappingBlock> blocks;
 	std::cout << "\nleaf called. Node count:" << node.count << "\n";
@@ -456,7 +456,7 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, c
 	return blocks;
 }
 
-QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList<OverlappingBlock>& blocks, const quint32& chr_id, const quint32& start, const quint32& end)
+QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList<OverlappingBlock>& blocks, quint32 chr_id, quint32 start, quint32 end)
 {
 	std::cout << "extracting intervals" << std::endl;
 	QList<OverlappingInterval> result;
@@ -571,7 +571,7 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 	return result;
 }
 
-quint32 BigWigReader::getChrId(QByteArray chr)
+quint32 BigWigReader::getChrId(const QByteArray& chr)
 {
 	for (int i=0; i<chr_list.length(); i++)
 	{
