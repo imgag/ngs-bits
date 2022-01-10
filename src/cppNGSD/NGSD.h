@@ -500,6 +500,19 @@ struct CPPNGSDSHARED_EXPORT ImportStatusGermline
 	int qc_terms = 0;
 };
 
+/// User permission levels (used in user_permissions table)
+struct CPPNGSDSHARED_EXPORT UserPermission
+{
+	enum Type
+	{
+		META_DATA, // all
+		PROJECT, // only a specific project
+		PROJECT_TYPE, // only specific types of projects
+		STUDY, // only a specific study
+		SAMPLE // only a specific sample
+	};
+};
+
 /// NGSD accessor.
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
