@@ -210,6 +210,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
+	connect(ui_.filters, SIGNAL(phenotypeOptionsRequested()), this, SLOT(openPhenotypeOptions()));
 
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));
@@ -255,6 +256,16 @@ MainWindow::MainWindow(QWidget *parent)
 	//init cache in background thread (it takes about 6 seconds)
 	CacheInitWorker* worker = new CacheInitWorker();
 	worker->start();
+
+	//init phenotype filter to accept all Values
+	this->last_phenotype_evidences_ = PhenotypeEvidence::allEvidenceValues();
+	this->last_phenotype_sources_ = PhenotypeSource::allSourceValues();
+	this->filter_phenos_ = false;
+	//give the filter widget the current state and update the tooltip:
+	this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
+	this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
+	this->ui_.filters->phenotypesChanged();
+
 }
 
 QString MainWindow::appName() const
@@ -2271,6 +2282,33 @@ void MainWindow::createSubPanelFromPhenotypeFilter()
 	openSubpanelDesignDialog(genes);
 }
 
+void MainWindow::openPhenotypeOptions()
+{
+	//edit TODO
+	PhenotypeSourceEvidenceSelector* selector = new PhenotypeSourceEvidenceSelector(this);
+	selector->setEvidences(last_phenotype_evidences_);
+	selector->setSources(last_phenotype_sources_);
+
+	auto dlg = GUIHelper::createDialog(selector, "Phenotype Filter Options", "", true);
+
+	//update
+	if (dlg->exec()==QDialog::Accepted)
+	{
+		this->last_phenotype_evidences_ = selector->selectedEvidences();
+		this->last_phenotype_sources_ = selector->selectedSources();
+
+		this->ui_.filters->setAllowedPhenotypeEvidences(last_phenotype_evidences_);
+		this->ui_.filters->setAllowedPhenotypeSources(last_phenotype_sources_);
+		this->ui_.filters->phenotypesChanged();
+
+		if (this->last_phenos_.count() != 0)
+		{
+			filter_phenos_ = true;
+			refreshVariantTable();
+		}
+	}
+}
+
 void MainWindow::on_actionOpen_triggered()
 {
 	//get file to open
@@ -3596,7 +3634,7 @@ void MainWindow::generateReportSomaticRTF()
 
 			SomaticRnaReportData rna_report_data = somatic_report_settings_;
 			rna_report_data.rna_ps_name = dlg.getRNAid();
-			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::FUSIONS).filename;
+			rna_report_data.rna_fusion_file = GlobalServiceProvider::database().processedSamplePath(db.processedSampleId(dlg.getRNAid()), PathType::STAR_FUSIONS).filename;
 
 			SomaticRnaReport rna_report(variants_, cnvs_, rna_report_data);
 
@@ -4712,6 +4750,8 @@ void MainWindow::on_actionPhenoToGenes_triggered()
 	try
 	{
 		PhenoToGenesDialog dlg(this);
+		dlg.setAllowedEvidences(this->last_phenotype_evidences_);
+		dlg.setAllowedSources(this->last_phenotype_sources_);
 		dlg.exec();
 	}
 	catch (DatabaseException& e)
@@ -6085,8 +6125,9 @@ void MainWindow::applyFilters(bool debug_time)
 
 		//phenotype selection changed => update ROI
 		const PhenotypeList& phenos = ui_.filters->phenotypes();
-		if (phenos!=last_phenos_)
+		if ((phenos!=last_phenos_) | filter_phenos_)
 		{
+			filter_phenos_ = false;
 			last_phenos_ = phenos;
 
 			//convert phenotypes to genes
@@ -6094,7 +6135,8 @@ void MainWindow::applyFilters(bool debug_time)
 			GeneSet pheno_genes;
 			foreach(const Phenotype& pheno, phenos)
 			{
-				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
+
+				pheno_genes << db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), last_phenotype_sources_, last_phenotype_evidences_, true, false);
 			}
 
 			//convert genes to ROI (using a cache to speed up repeating queries)

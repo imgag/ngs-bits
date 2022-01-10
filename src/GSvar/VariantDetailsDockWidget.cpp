@@ -29,6 +29,7 @@ VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	connect(ui->trans_next, SIGNAL(clicked(bool)), this, SLOT(nextTanscript()));
 	connect(ui->variant, SIGNAL(linkActivated(QString)), this, SLOT(variantClicked(QString)));
 	connect(ui->gnomad, SIGNAL(linkActivated(QString)), this, SLOT(gnomadClicked(QString)));
+	connect(ui->gnomad, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(gnomadContextMenu(QPoint)));
 	connect(ui->var_btn, SIGNAL(clicked(bool)), this, SLOT(variantButtonClicked()));
 	connect(ui->trans, SIGNAL(linkActivated(QString)), this, SLOT(transcriptClicked(QString)));
 	connect(ui->som_details_prev, SIGNAL(clicked(bool)), this, SLOT(previousSomDetails()));
@@ -858,7 +859,7 @@ QString VariantDetailsDockWidget::nobr()
 void VariantDetailsDockWidget::gnomadClicked(QString variant_string)
 {
 	Variant v = Variant::fromString(variant_string);
-	QString link = GSvarHelper::gnomaADLink(v);
+	QString link = GSvarHelper::gnomADLink(v, GSvarHelper::build());
 	QDesktopServices::openUrl(QUrl(link));
 }
 
@@ -996,4 +997,23 @@ void VariantDetailsDockWidget::showOverviewTable(QString title, QString text, ch
 
 	//delete
 	delete table;
+}
+
+void VariantDetailsDockWidget::gnomadContextMenu(QPoint pos)
+{
+	if (GSvarHelper::build()!=GenomeBuild::HG38) return;
+
+	QMenu menu;
+	QAction* a_v2 = menu.addAction("Lift-over to gnomaAD 2.1");
+
+	QAction* action = menu.exec(ui->gnomad->mapToGlobal(pos));
+	if (action==nullptr) return;
+
+	if (action==a_v2)
+	{
+		Variant v = Variant::fromString(variant_str);
+		Variant v2 = GSvarHelper::liftOverVariant(v, false);
+		QString link = GSvarHelper::gnomADLink(v2, GenomeBuild::HG19);
+		QDesktopServices::openUrl(QUrl(link));
+	}
 }

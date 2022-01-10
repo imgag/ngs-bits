@@ -320,10 +320,7 @@
      <property name="flat">
       <bool>true</bool>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_5">
-      <property name="spacing">
-       <number>3</number>
-      </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
       <property name="leftMargin">
        <number>0</number>
       </property>

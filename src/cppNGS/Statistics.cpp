@@ -764,10 +764,61 @@ QCCollection Statistics::region(const BedFile& bed_file, bool merge)
 	return output;
 }
 
-QCValue Statistics::mutationBurden(QString somatic_vcf, QString exons, QString target, QString tsg, QString blacklist)
+QCValue Statistics::mutationBurden(QString somatic_vcf, QString target, QString blacklist)
+{
+	QString qcml_name = "raw somatic variant rate";
+	QString qcml_desc = "Somatic variant rate in variants per Megabase without normalization to TSG/Oncogenes or exome size. SNVs in blacklisted genes were discarded for the calculation.";
+	QString qcml_id = "QC:2000089";
+	QCValue undefined = QCValue(qcml_name, "n/a", qcml_desc, qcml_id);
+
+	if(target.isEmpty() || blacklist.isEmpty()) return undefined;
+
+	BedFile target_file;
+	target_file.load(target);
+
+	BedFile blacklist_file;
+	blacklist_file.load(blacklist);
+
+	if(target_file.count() == 0 || blacklist_file.count() == 0) return undefined;
+
+	//Remove blacklisted region from target region
+	blacklist_file.merge();
+	target_file.subtract(blacklist_file);
+
+	//Process variants
+	VcfFile vcf_file;
+	vcf_file.load(somatic_vcf);
+	int somatic_var_count = 0;
+	for(int i=0;i<vcf_file.count();++i)
+	{
+		//Skip low quality filtered variants
+		if(vcf_file.vcfLine(i).failedFilters().contains("freq-nor")) continue;
+		if(vcf_file.vcfLine(i).failedFilters().contains("freq-tum")) continue;
+		if(vcf_file.vcfLine(i).failedFilters().contains("depth-nor")) continue;
+		if(vcf_file.vcfLine(i).failedFilters().contains("depth-tum")) continue;
+		if(vcf_file.vcfLine(i).failedFilters().contains("lt-3-reads")) continue;
+		if(vcf_file.vcfLine(i).failedFilters().contains("LowEVS")) continue; //Skip strelka2 low quality variants
+		if(vcf_file.vcfLine(i).failedFilters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
+
+		const Chromosome chr = vcf_file.vcfLine(i).chr();
+		int start = vcf_file.vcfLine(i).start();
+		int end = vcf_file.vcfLine(i).end();
+		if(target_file.overlapsWith(chr, start, end))
+		{
+			++somatic_var_count;
+		}
+	}
+
+	//Calculate mutation burden
+	double target_size = target_file.baseCount() / 1000000.0;
+	double mutation_burden = somatic_var_count / target_size;
+	return QCValue(qcml_name, QString::number(mutation_burden, 'f', 2), qcml_desc, qcml_id);
+}
+
+QCValue Statistics::mutationBurdenNormalized(QString somatic_vcf, QString exons, QString target, QString tsg, QString blacklist)
 {
 	QString qcml_name = "somatic variant rate";
-	QString qcml_desc = "Categorized somatic variant rate followed by the somatic variant rate [variants/Mbp] normalized for the target region and corrected for tumor suppressors.";
+	QString qcml_desc = "Categorized somatic variant rate followed by the somatic variant rate [variants/Mbp] normalized for the target region and exome size and corrected for tumor suppressors.";
 	QString qcml_id = "QC:2000053";
 	QCValue undefined = QCValue(qcml_name, "n/a", qcml_desc, qcml_id);
 

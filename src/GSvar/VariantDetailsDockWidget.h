@@ -54,6 +54,7 @@ private slots:
 	void nextSomDetails();
 	void previousSomDetails();
 	void enableSomDetailsArrows();
+	void gnomadContextMenu(QPoint pos);
 
 private:
 	enum Color

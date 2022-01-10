@@ -21,7 +21,7 @@ void VariantTable::updateTable(const VariantList& variants, const FilterResult& 
 	int col_count_new = 5 + variants.annotations().count();
 	if (rowCount()!=row_count_new || columnCount()!=col_count_new)
 	{
-		//completely clear items (is faster then resizing)
+		//completely clear items (is faster than resizing)
 		clearContents();
 		//set new size
 		setRowCount(row_count_new);

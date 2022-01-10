@@ -35,11 +35,13 @@ public:
 	//limit QLabel to certain number of lines
 	static void limitLines(QLabel* label, QString text, QString sep="\n", int max_lines=15);
 
-	//Lift-over from GRCh37 to GRCh38 (or the other way)
-	static BedLine liftOver(const Chromosome& chr, int start, int end, bool hg38_to_hg19 = false);
+	//Lift-over region from GRCh37 to GRCh38 (or the other way). Throws ArgumentException if conversion not possible.
+	static BedLine liftOver(const Chromosome& chr, int start, int end, bool hg19_to_hg38 = true);
+	//Lift-over variant from GRCh37 to GRCh38 (or the other way). Throws ArgumentException if conversion not possible.
+	static Variant liftOverVariant(const Variant& v, bool hg19_to_hg38 = true);
 
 	//Returns gnomAD link for a variant
-	static QString gnomaADLink(const Variant& v);
+	static QString gnomADLink(Variant v, GenomeBuild build);
 
 	///Returns a the local target region folder where tempory target regions and gene lists can be stored for IGV.
 	static QString localRoiFolder();
