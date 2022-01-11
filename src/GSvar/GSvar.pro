@@ -208,6 +208,7 @@ HEADERS += MainWindow.h \
     AnalysisInformationWidget.h \
     CacheInitWorker.h \
     AnalysisInformationWidget.h \
+    PhenotypeSourceEvidenceSelector.h \
     FusionWidget.h
 
 FORMS    += MainWindow.ui \
@@ -297,7 +298,7 @@ FORMS    += MainWindow.ui \
     LiftOverWidget.ui \
     AnalysisInformationWidget.ui \
     PhenotypeSourceEvidenceSelector.ui \
-    FusionWidget.u
+    FusionWidget.ui
 
 include("../app_gui.pri")
 
