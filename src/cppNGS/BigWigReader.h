@@ -105,6 +105,12 @@ struct OverlappingBlock
 
 struct OverlappingInterval
 {
+	OverlappingInterval(quint32 start, quint32 end, float value):
+		start(start)
+	  , end(end)
+	  , value(value)
+	{
+	}
 	quint32 start;
 	quint32 end;
 	float value;
@@ -115,13 +121,16 @@ class CPPNGSSHARED_EXPORT BigWigReader
 {
 
 public:
-	BigWigReader(const QString& bigWigFilepath);
+	BigWigReader(const QString& bigWigFilepath, float default_value=-50);
 	~BigWigReader();
 
 	// read the bigWig value for a position of the genome. Offset for regions as libBigWig uses zero-based genome indexing -> 0 - length-1
 	float readValue(const QByteArray& chr, int position, int offset=-1);
-	QList<OverlappingInterval> readValues(const QByteArray& region, int offset=-1);
-	QList<OverlappingInterval> readValues(const QByteArray& chr, quint32 start, quint32 end, int offset=-1);
+	std::vector<float> readValues(const QByteArray& region, int offset=-1);
+	std::vector<float> readValues(const QByteArray& chr, quint32 start, quint32 end, int offset=-1);
+
+	void setDefault(float new_default);
+	float defaultValue();
 
 	BigWigHeader header()
 	{
@@ -161,7 +170,7 @@ private:
 	quint32 getChrId(const QByteArray& chr);
 
 
-	QString file_path_;
+	const QString file_path_;
 	float default_value_;
 	BigWigHeader header_;
 	Summary summary_;

@@ -48,33 +48,54 @@ private slots:
 		F_EQUAL2(summary.sum_data, 272.1, 0.000001);
 		F_EQUAL2(summary.sum_squares, 500.389992, 0.000001);
 
-		float result;
 
+		//Read single values
+		float result;
 		result = r.readValue("1", 0, 0);
-		std::cout << "result1: " << result << "\n";
-		IS_FALSE(result !=  result)
 		F_EQUAL2(result, 0.1f, 0.000001);
 
 		result = r.readValue("1", 1, 0);
-		std::cout << "result2: " << result << "\n";
-		IS_FALSE(result !=  result)
 		F_EQUAL2(result, 0.2f, 0.000001);
 
 		result = r.readValue("1", 100, 0);
-		std::cout << "result3: " << result << "\n";
-		IS_FALSE(result !=  result) // test for nan
 		F_EQUAL2(result, 1.4f, 0.000001);
 
+		result = r.readValue("1", 99, 0);
+		F_EQUAL2(result, r.defaultValue(), 0.000001);
 
-		QList<OverlappingInterval> intervals = r.readValues("1", 100, 150, 0);
-		I_EQUAL(intervals.length(), 50);
-
-
-		for (int i=0; i<intervals.length(); i++)
+		//read multiple values
+		// existing in file
+		std::vector<float> intervals = r.readValues("1", 100, 150, 0);
+		for (uint i=0; i<intervals.size(); i++)
 		{
-			std::cout << "interval " << i << "\t" << intervals[i].start << "-" << intervals[i].end << ": " << intervals[i].value << std::endl;
-			F_EQUAL2(intervals[i].value, 1.4f, 0.000001);
+			F_EQUAL2(intervals[i], 1.4f, 0.000001);
 		}
+		I_EQUAL(intervals.size(), 50);
+
+		// not in file
+		intervals = r.readValues("1", 80, 90, 0);
+		for (uint i=0; i<intervals.size(); i++)
+		{
+			F_EQUAL2(intervals[i], r.defaultValue(), 0.000001);
+		}
+		I_EQUAL(intervals.size(), 10);
+
+		//test change default
+		float new_default = -42;
+		r.setDefault(new_default);
+
+		F_EQUAL(new_default, r.defaultValue());
+
+		intervals = r.readValues("1", 80, 90, 0);
+		for (uint i=0; i<intervals.size(); i++)
+		{
+			F_EQUAL2(intervals[i], new_default, 0.000001);
+		}
+		I_EQUAL(intervals.size(), 10);
+
+		result = r.readValue("1", 50, 0);
+		F_EQUAL2(result, new_default, 0.000001);
+
 	}
 };
 

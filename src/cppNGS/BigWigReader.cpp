@@ -7,12 +7,13 @@
 #include <iostream>
 #include <zlib.h>
 #include <math.h>
+#include <vector>
 
 
-BigWigReader::BigWigReader(const QString& bigWigFilepath)
+BigWigReader::BigWigReader(const QString& bigWigFilepath, float default_value):
+	file_path_(bigWigFilepath)
+  , default_value_(default_value)
 {
-	file_path_ = bigWigFilepath;
-
 	fp_ = Helper::openVersatileFileForReading(bigWigFilepath, false);
 	fp_->open(QIODevice::ReadOnly); // necessary?!? if not there shifts through bits
 	parseInfo();
@@ -20,30 +21,34 @@ BigWigReader::BigWigReader(const QString& bigWigFilepath)
 	parseIndexTree();
 }
 
+void BigWigReader::setDefault(float new_default)
+{
+	default_value_ = new_default;
+}
+
+float BigWigReader::defaultValue()
+{
+	return default_value_;
+}
+
 float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 {
-	QList<OverlappingInterval> intervals = readValues(chr, position+offset, position+1, offset);
+	std::vector<float> values = readValues(chr, position, position+1, offset);
 
-	std::cout << "Length intervals:" << intervals.length();
-	for (int i=0; i<intervals.length(); i++)
+	if (values.size() == 1)
 	{
-		std::cout << "interval " << i << "\t" << intervals[i].start << "-" << intervals[i].end << ": " << intervals[i].value << std::endl;
+		return values[0];
+	}
+	else if (values.size() == 0)
+	{
+		return default_value_;
 	}
 
-	if (intervals.length() == 1)
-	{
-		return intervals[0].value;
-	}
-	else if (intervals.length() == 0)
-	{
-		return -5000; //TODO!!!!replace with sensible default value
-	}
-
-	THROW(FileParseException, "Found multiple Overlapping Intervals for a single position? - " + chr + ":" + QString::number(position))
+	THROW(FileParseException, "Found multiple Overlapping Intervals for a single position? - chr " + chr + ": " + QString::number(position))
 
 }
 
-QList<OverlappingInterval> BigWigReader::readValues(const QByteArray& region, int offset)
+std::vector<float> BigWigReader::readValues(const QByteArray& region, int offset)
 {
 	QList<QByteArray> parts1 = region.split(':');
 	if (parts1.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
@@ -51,21 +56,18 @@ QList<OverlappingInterval> BigWigReader::readValues(const QByteArray& region, in
 	QList<QByteArray> parts2 = parts1[1].split('-');
 	if (parts2.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
 
-	std::cout << "parsed region:" << parts1[0].toStdString() << ":" << parts2[0].toInt() << "-" << parts2[1].toInt() << std::endl;
-
 	return readValues(parts1[0], parts2[0].toInt(), parts2[1].toInt(), offset);
 }
 
-QList<OverlappingInterval> BigWigReader::readValues(const QByteArray& chr, quint32 start, quint32 end, int offset)
+std::vector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, quint32 end, int offset)
 {
 	quint32 chr_id = getChrId(chr);
 
-	QList<OverlappingInterval> intervals;
+
 	if (chr_id == (quint32) -1)
 	{
-		std::cout << "not found:"  << chr.toStdString() << "\tid:"<< chr_id << std::endl;
 		THROW(ArgumentException, "Couldn't find given chromosome in file.")
-		return intervals;
+		return std::vector<float>();
 	}
 
 	QList<OverlappingBlock> blocks = getOverlappingBlocks(chr_id, start+offset, end+offset);
@@ -73,11 +75,34 @@ QList<OverlappingInterval> BigWigReader::readValues(const QByteArray& chr, quint
 	if (blocks.length() == 0)
 	{
 		std::cout << "Didn't find any overlapping blocks" << std::endl;
-		return intervals;
+		return std::vector<float>();
 	}
 
-	intervals = extractOverlappingIntervals(blocks, chr_id, start+offset, end+offset);
-	return intervals;
+	QList<OverlappingInterval> intervals = extractOverlappingIntervals(blocks, chr_id, start+offset, end+offset);
+
+	// split long intervals into single values:
+	std::vector<float> result = std::vector<float>(end-start, default_value_);
+
+	foreach (const OverlappingInterval& interval, intervals) {
+		if (interval.end-interval.start == 1) // covers a single position if it is overlapping it has to be in vector
+		{
+			result[interval.start-start] = interval.value;
+		}
+		else
+		{
+			int idx;
+			for(quint32 i=interval.start; i<interval.end; i++)
+			{
+				idx = i-start;
+				if(idx>= 0 && idx < (int) (end-start))
+				{
+					result[idx] = interval.value;
+				}
+			}
+		}
+	}
+
+	return result;
 }
 
 void BigWigReader::parseInfo()
@@ -404,18 +429,16 @@ QList<OverlappingBlock> BigWigReader::overlapsTwig(const IndexRTreeNode& node, q
 QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end)
 {
 	QList<OverlappingBlock> blocks;
-	std::cout << "\nleaf called. Node count:" << node.count << "\n";
 	for (quint16 i=0; i<node.count; i++)
 	{
-		std::cout << "On item " << i << std::endl;
 		if (chr_id < node.chr_idx_start[i])
 		{
-			std::cout << "chr id smaller than of leaf.\n";
+			//std::cout << "chr id smaller than of leaf.\n";
 			break;
 		}
 		if (chr_id > node.chr_idx_end[i])
 		{
-			std::cout << "chr id bigger than the last chr id of leaf.\n";
+			//std::cout << "chr id bigger than the last chr id of leaf.\n";
 			continue;
 		}
 
@@ -425,7 +448,7 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, q
 			{
 				if (node.base_start[i] >= end)
 				{
-					std::cout << "Leaf spans contigs and block bases end before the region.\n";
+					//std::cout << "Leaf spans contigs and block bases end before the region.\n";
 					continue;
 				}
 			}
@@ -433,7 +456,7 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, q
 			{
 				if (node.base_end[i] <= start)
 				{
-					std::cout << "Leaf spans contigs and block bases start after the region\n";
+					//std::cout << "Leaf spans contigs and block bases start after the region\n";
 					continue;
 				}
 			}
@@ -442,10 +465,6 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, q
 		{
 			if ((node.base_start[i] >= end) || node.base_end[i] <= start)
 			{
-
-				std::cout << "Blocks has right contig but the wrong part of the bases.\n";
-				std::cout << "Block: start:\t" << node.base_start[i] << "\tend:\t" << node.base_end[i] << "\n";
-				std::cout << "Searched was start:\t" << start << "\tend:\t" << end << "\n";
 				continue;
 			}
 		}
@@ -455,8 +474,6 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, q
 		newBlock.offset = node.data_offset[i];
 		newBlock.size = node.size[i];
 		blocks.append(newBlock);
-		std::cout << "APPENDED BLOCK!" << std::endl;
-
 	}
 
 	return blocks;
@@ -464,7 +481,6 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, q
 
 QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList<OverlappingBlock>& blocks, quint32 chr_id, quint32 start, quint32 end)
 {
-	std::cout << "extracting intervals" << std::endl;
 	QList<OverlappingInterval> result;
 
 	// TODO Test if buffer would be too big -> split decompression into multiple steps
@@ -476,10 +492,8 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 	{
 		if (decompress_buffer_size > 0) // if data is compressed -> decompress it
 		{
-			std::cout << "starting decompression" << std::endl;
 			fp_->seek(b.offset);
 			QByteArray compressed_block = fp_->read(b.size);
-			std::cout << "compressed block length: " << compressed_block.length() << std::endl;
 
 			//set zlib vars
 			z_stream infstream;
@@ -497,14 +511,11 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 
 			if (ret != Z_STREAM_END)
 			{
-				std::cout << "Inflation didn't work es planned - error int" << ret << std::endl;
 				THROW(FileParseException, "Couldn't decompress a Data block. Too little buffer space?")
 			}
 			inflateEnd(&infstream);
 
 			decompressed_block.append(out, infstream.avail_out);
-			std::cout << "finished decompression. avail_out: " << infstream.avail_out << std::endl;
-			std::cout << "finished decompression. length decompressed block: " << decompressed_block.length() << std::endl;
 		}
 		else // data is not compressed -> just read it
 		{
@@ -526,14 +537,6 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 
 		if (data_header.chrom_id != chr_id) continue;
 
-		std::cout << "data header - chrom id:\t" << (uint) data_header.chrom_id << std::endl;
-		std::cout << "data header - chrom start:\t" << (uint) data_header.start << std::endl;
-		std::cout << "data header - chrom end:\t" << (uint) data_header.end << std::endl;
-		std::cout << "data header - step:\t" << (uint) data_header.step << std::endl;
-		std::cout << "data header - type:\t" << (uint) data_header.type << std::endl;
-		std::cout << "data header - span:\t" << (uint) data_header.span << std::endl;
-		std::cout << "data header - count:\t" << (uint) data_header.num_items << std::endl;
-
 		quint32 interval_start, interval_end;
 		float interval_value;
 
@@ -544,10 +547,6 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 		// parse items
 		for (quint16 i=0; i<data_header.num_items; i++)
 		{
-			if(ds.atEnd())
-			{
-				std::cout << "datasteam shorter than expected!!!\n";
-			}
 			switch (data_header.type)
 			{
 				case 1:
@@ -566,13 +565,9 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 					THROW(FileParseException, "Unknown type while parsing a data block.")
 					break;
 			}
-			std::cout << interval_start << "-" << interval_end << "\tvalue:" << interval_value << "\n";
-			if (start >= interval_end ||  end < interval_start) continue; // doesn't overlap
+			if (start >= interval_end ||  end <= interval_start) continue; // doesn't overlap
 
-			OverlappingInterval interval; // TODO Constructor?
-			interval.start = interval_start;
-			interval.end = interval_end;
-			interval.value = interval_value;
+			OverlappingInterval interval(interval_start, interval_end, interval_value);
 			result.append(interval);
 		}
 	}
@@ -688,9 +683,6 @@ void BigWigReader::printIndexTreeNode(const IndexRTreeNode& node, int level)
 			//printIndexTreeNode(node.children[i], level+1);
 		}
 	}
-
-
-
 }
 
 BigWigReader::~BigWigReader()
