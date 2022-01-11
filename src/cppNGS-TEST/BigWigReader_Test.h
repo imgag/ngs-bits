@@ -53,8 +53,8 @@ private slots:
 
 		//read multiple values
 		// existing in file
-		std::vector<float> intervals = r.readValues("1", 100, 150, 0);
-		for (uint i=0; i<intervals.size(); i++)
+		QVector<float> intervals = r.readValues("1", 100, 150, 0);
+		for (int i=0; i<intervals.size(); i++)
 		{
 			F_EQUAL2(intervals[i], 1.4f, 0.000001);
 		}
@@ -62,7 +62,7 @@ private slots:
 
 		// not in file
 		intervals = r.readValues("1", 80, 90, 0);
-		for (uint i=0; i<intervals.size(); i++)
+		for (int i=0; i<intervals.size(); i++)
 		{
 			F_EQUAL2(intervals[i], r.defaultValue(), 0.000001);
 		}
@@ -75,7 +75,7 @@ private slots:
 		F_EQUAL(new_default, r.defaultValue());
 
 		intervals = r.readValues("1", 80, 90, 0);
-		for (uint i=0; i<intervals.size(); i++)
+		for (int i=0; i<intervals.size(); i++)
 		{
 			F_EQUAL2(intervals[i], new_default, 0.000001);
 		}

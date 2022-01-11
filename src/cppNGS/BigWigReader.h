@@ -117,6 +117,14 @@ struct OverlappingInterval
 };
 
 
+struct ChromosomeBuffer
+{
+	QByteArray chr;
+	quint32 start;
+	quint32 end;
+	QVector<float> values;
+};
+
 class CPPNGSSHARED_EXPORT BigWigReader
 {
 
@@ -127,8 +135,8 @@ public:
 	// read the bigWig value for a position of the genome. Offset for regions as libBigWig uses zero-based genome indexing -> 0 - length-1
 	float readValue(const QByteArray& chr, int position, int offset=-1);
 	float reproduceVepAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt);
-	std::vector<float> readValues(const QByteArray& region, int offset=-1);
-	std::vector<float> readValues(const QByteArray& chr, quint32 start, quint32 end, int offset=-1);
+	QVector<float> readValues(const QByteArray& region, int offset=-1);
+	QVector<float> readValues(const QByteArray& chr, quint32 start, quint32 end, int offset=-1);
 
 	bool containsChromosome(const QByteArray& chr);
 

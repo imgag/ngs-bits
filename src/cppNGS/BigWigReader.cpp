@@ -1,13 +1,10 @@
 #include "BigWigReader.h"
 #include "Helper.h"
-//#include "bigWig.h"
 #include "Exceptions.h"
-#include <QDebug>
 #include <QDataStream>
 #include <iostream>
 #include <zlib.h>
-#include <math.h>
-#include <vector>
+
 
 
 BigWigReader::BigWigReader(const QString& bigWigFilepath, float default_value):
@@ -33,7 +30,7 @@ float BigWigReader::defaultValue()
 
 float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 {
-	std::vector<float> values = readValues(chr, position, position+1, offset);
+	QVector<float> values = readValues(chr, position, position+1, offset);
 	if (values.size() == 1)
 	{
 		return values[0];
@@ -94,7 +91,7 @@ float BigWigReader::reproduceVepAnnotation(const QByteArray& chr, int start, int
 
 }
 
-std::vector<float> BigWigReader::readValues(const QByteArray& region, int offset)
+QVector<float> BigWigReader::readValues(const QByteArray& region, int offset)
 {
 	QList<QByteArray> parts1 = region.split(':');
 	if (parts1.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
@@ -105,15 +102,14 @@ std::vector<float> BigWigReader::readValues(const QByteArray& region, int offset
 	return readValues(parts1[0], parts2[0].toInt(), parts2[1].toInt(), offset);
 }
 
-std::vector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, quint32 end, int offset)
+QVector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, quint32 end, int offset)
 {
 	quint32 chr_id = getChrId(chr);
-
 
 	if (chr_id == (quint32) -1)
 	{
 		THROW(ArgumentException, "Couldn't find given chromosome in file.")
-		return std::vector<float>();
+		return QVector<float>();
 	}
 
 	QList<OverlappingBlock> blocks = getOverlappingBlocks(chr_id, start+offset, end+offset);
@@ -121,21 +117,18 @@ std::vector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start
 	if (blocks.length() == 0)
 	{
 		//std::cout << "Didn't find any overlapping blocks" << std::endl;
-		return std::vector<float>();
+		return QVector<float>();
 	}
 
 	QList<OverlappingInterval> intervals = extractOverlappingIntervals(blocks, chr_id, start+offset, end+offset);
 
 	// split long intervals into single values:
-	std::vector<float> result = std::vector<float>(end-start, default_value_);
+	QVector<float> result = QVector<float>(end-start, default_value_);
 
 	foreach (const OverlappingInterval& interval, intervals) {
 		if (interval.end-interval.start == 1) // covers a single position if it is overlapping it has to be in vector
 		{
 			result[interval.start-(start+offset)] = interval.value;
-//			std::cout <<"Blub? new value " << interval.value << "\n";
-//			std::cout << "array access:" << result[0] << "\n";
-//			std::cout << "used index:" << interval.start - start << "\n";
 		}
 		else
 		{
