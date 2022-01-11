@@ -24,13 +24,19 @@ float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 {
 	QList<OverlappingInterval> intervals = readValues(chr, position+offset, position+1, offset);
 
+	std::cout << "Length intervals:" << intervals.length();
+	for (int i=0; i<intervals.length(); i++)
+	{
+		std::cout << "interval " << i << "\t" << intervals[i].start << "-" << intervals[i].end << ": " << intervals[i].value << std::endl;
+	}
+
 	if (intervals.length() == 1)
 	{
 		return intervals[0].value;
 	}
 	else if (intervals.length() == 0)
 	{
-		return -5000; //TODO!!!!replace with sensibble default value
+		return -5000; //TODO!!!!replace with sensible default value
 	}
 
 	THROW(FileParseException, "Found multiple Overlapping Intervals for a single position? - " + chr + ":" + QString::number(position))
@@ -480,7 +486,7 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 			infstream.zalloc = Z_NULL;
 			infstream.zfree = Z_NULL;
 			infstream.opaque = Z_NULL;
-			// setup "b" as the input and "c" as the uncompressed output
+			// setup "compressed_block.data()" as the input and "out" as the uncompressed output
 			infstream.avail_in = b.size; // size of input
 			infstream.next_in = (Bytef *)compressed_block.data(); // input char array
 			infstream.avail_out = decompress_buffer_size; // size of output
@@ -509,6 +515,7 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 		// parse decompressed block
 		QDataStream ds(decompressed_block);
 		ds.setByteOrder(byte_order_);
+		ds.setFloatingPointPrecision(QDataStream::SinglePrecision);
 
 		// parse header
 		DataHeader data_header;
@@ -519,12 +526,6 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 
 		if (data_header.chrom_id != chr_id) continue;
 
-		quint32 interval_start, interval_end;
-		float interval_value;
-
-		if (data_header.type == 3) {
-			interval_start = data_header.start - data_header.step; // minus step as it is added below before evaluating.
-		}
 		std::cout << "data header - chrom id:\t" << (uint) data_header.chrom_id << std::endl;
 		std::cout << "data header - chrom start:\t" << (uint) data_header.start << std::endl;
 		std::cout << "data header - chrom end:\t" << (uint) data_header.end << std::endl;
@@ -533,6 +534,13 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 		std::cout << "data header - span:\t" << (uint) data_header.span << std::endl;
 		std::cout << "data header - count:\t" << (uint) data_header.num_items << std::endl;
 
+		quint32 interval_start, interval_end;
+		float interval_value;
+
+		if (data_header.type == 3) {
+			interval_start = data_header.start - data_header.step; // minus step as it is added below before evaluating.
+		}
+
 		// parse items
 		for (quint16 i=0; i<data_header.num_items; i++)
 		{
@@ -540,7 +548,8 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 			{
 				std::cout << "datasteam shorter than expected!!!\n";
 			}
-			switch (data_header.type) {
+			switch (data_header.type)
+			{
 				case 1:
 					ds >> interval_start >> interval_end >> interval_value;
 					break;
@@ -558,7 +567,7 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 					break;
 			}
 			std::cout << interval_start << "-" << interval_end << "\tvalue:" << interval_value << "\n";
-			if (interval_end < start || interval_start >= end) continue; // doesn't overlap
+			if (start >= interval_end ||  end < interval_start) continue; // doesn't overlap
 
 			OverlappingInterval interval; // TODO Constructor?
 			interval.start = interval_start;
@@ -566,7 +575,6 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 			interval.value = interval_value;
 			result.append(interval);
 		}
-		std::cout << "datastream at end? " << ds.atEnd() << std::endl;
 	}
 	return result;
 }

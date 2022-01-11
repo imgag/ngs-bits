@@ -26,6 +26,7 @@ private slots:
 
 	void read_local()
 	{
+		std::cout << "Size of float: " << sizeof(float) << std::endl;
 		BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader.bw")));
 
 		//Header
@@ -71,6 +72,7 @@ private slots:
 
 		for (int i=0; i<intervals.length(); i++)
 		{
+			std::cout << "interval " << i << "\t" << intervals[i].start << "-" << intervals[i].end << ": " << intervals[i].value << std::endl;
 			F_EQUAL2(intervals[i].value, 1.4f, 0.000001);
 		}
 	}
