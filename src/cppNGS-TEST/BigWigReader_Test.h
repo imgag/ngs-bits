@@ -5,28 +5,16 @@
 #include "BigWigReader.h"
 #include <iostream>
 #include <math.h>
+#include <VcfFile.h>
 
 TEST_CLASS(BigWigReader_Test)
 {
 Q_OBJECT
 private slots:
 	// TODO move testing files to test folder.
-	void testing()
-	{
-		//BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader.bw")));
-//		BigWigReader r = BigWigReader(QString("W:/GRCh38/share/data/dbs/phyloP/hg38_phyloP100way_vertebrate.bw"));
-
-//		r.printHeader();
-//		r.printSummary();
-//		r.printZoomLevels();
-//		r.printChromHeader();
-//		r.printChromosomes();
-//		r.printIndexTree();
-	}
 
 	void read_local()
 	{
-		std::cout << "Size of float: " << sizeof(float) << std::endl;
 		BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader.bw")));
 
 		//Header
@@ -95,7 +83,73 @@ private slots:
 
 		result = r.readValue("1", 50, 0);
 		F_EQUAL2(result, new_default, 0.000001);
+	}
 
+	void test_vep_annotation_file1_test()
+	{
+		// Test file 1:
+		QString test_file = TESTDATA("data_in/BigWigReader_Test-vep1.vcf");
+		BigWigReader r = BigWigReader(QString("W:/GRCh38/share/data/dbs/phyloP/hg38.phyloP100way.bw"));
+
+		VcfFile vcf = VcfFile();
+		vcf.load(test_file);
+		int i_phylop = vcf.vcfHeader().vepIndexByName("PHYLOP", false);
+
+		for (int i=0; i<vcf.count(); i++)
+		{
+			VcfLine v = vcf[i];
+			int start = v.start();
+			int end = v.end();
+			QByteArray chr = v.chr().strNormalized(true);
+
+			double expectedValue = v.vepAnnotations(i_phylop)[0].toDouble();
+			double read_value = r.reproduceVepAnnotation(chr, start, end, QString(v.ref()), QString(v.altString()));
+			F_EQUAL(read_value, expectedValue)
+		}
+	}
+
+	void test_vep_annotation_file2_test()
+	{
+		BigWigReader r = BigWigReader(QString("W:/GRCh38/share/data/dbs/phyloP/hg38.phyloP100way.bw"));
+		// test file 2:
+		QString test_file = TESTDATA("data_in/BigWigReader_Test-vep2.vcf");
+		VcfFile vcf = VcfFile();
+		vcf.load(test_file);
+
+		int i_phylop = vcf.vcfHeader().vepIndexByName("PHYLOP", false);
+		for (int i=0; i<vcf.count(); i++)
+		{
+			VcfLine v = vcf[i];
+			int start = v.start();
+			int end = v.end();
+			QByteArray chr = v.chr().str();
+
+			double expectedValue = v.vepAnnotations(i_phylop)[0].toDouble();
+
+			F_EQUAL(r.reproduceVepAnnotation(chr, start, end, QString(v.ref()), QString(v.altString())), expectedValue)
+		}
+	}
+
+	void test_vep_annotation_file3_test()
+	{
+		BigWigReader r = BigWigReader(QString("W:/GRCh38/share/data/dbs/phyloP/hg38.phyloP100way.bw"));
+		// test file 3:
+		QString test_file = TESTDATA("data_in/BigWigReader_Test-vep3.vcf");
+		VcfFile vcf = VcfFile();
+		vcf.load(test_file);
+
+		int i_phylop = vcf.vcfHeader().vepIndexByName("PHYLOP", false);
+		for (int i=0; i<vcf.count(); i++)
+		{
+			VcfLine v = vcf[i];
+			int start = v.start();
+			int end = v.end();
+			QByteArray chr = v.chr().str();
+
+			double expectedValue = v.vepAnnotations(i_phylop)[0].toDouble();
+			//std::cout << "vcf mutation: " << i << " postition - " << chr.toStdString() << ":" << start << "-" << end << "\n";
+			F_EQUAL(r.reproduceVepAnnotation(chr, start, end, QString(v.ref()), QString(v.altString())), expectedValue)
+		}
 	}
 };
 

@@ -34,7 +34,6 @@ float BigWigReader::defaultValue()
 float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 {
 	std::vector<float> values = readValues(chr, position, position+1, offset);
-
 	if (values.size() == 1)
 	{
 		return values[0];
@@ -45,6 +44,53 @@ float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 	}
 
 	THROW(FileParseException, "Found multiple Overlapping Intervals for a single position? - chr " + chr + ": " + QString::number(position))
+
+}
+
+float BigWigReader::reproduceVepAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt)
+{
+	if ( ! containsChromosome(chr))
+	{
+		return 0;
+	}
+	//insterions
+	if (alt.length() > ref.length())
+	{
+		if ((ref.length() == 1) && (ref[0] != alt[0]) && (start==end)) // insertions that deletes a single base get the value of that base
+		{
+			double res = readValue(chr, end);
+			if (res == defaultValue())
+			{
+				return 0;
+			} else {
+				return res;
+			}
+		}
+		return 0; // other insertions are set to zero
+	}
+
+	// deletions
+	if (ref.length() > alt.length())
+	{
+		if ((alt.length() == 1) && (ref[0] != alt[0])) // if a single base replaces multiple ref bases set it to zero
+		{
+			return 0;
+		}
+	}
+	// for mutations concering a single abse /two bases take the value of the "last"
+	if (end-start <= 1)
+	{
+		double res = readValue(chr, end);
+		if (res == defaultValue())
+		{
+			return 0;
+		} else {
+			return res;
+		}
+	}
+
+	// for multi base deletions also set it to zero
+	return 0;
 
 }
 
@@ -74,7 +120,7 @@ std::vector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start
 
 	if (blocks.length() == 0)
 	{
-		std::cout << "Didn't find any overlapping blocks" << std::endl;
+		//std::cout << "Didn't find any overlapping blocks" << std::endl;
 		return std::vector<float>();
 	}
 
@@ -86,7 +132,10 @@ std::vector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start
 	foreach (const OverlappingInterval& interval, intervals) {
 		if (interval.end-interval.start == 1) // covers a single position if it is overlapping it has to be in vector
 		{
-			result[interval.start-start] = interval.value;
+			result[interval.start-(start+offset)] = interval.value;
+//			std::cout <<"Blub? new value " << interval.value << "\n";
+//			std::cout << "array access:" << result[0] << "\n";
+//			std::cout << "used index:" << interval.start - start << "\n";
 		}
 		else
 		{
@@ -103,6 +152,15 @@ std::vector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start
 	}
 
 	return result;
+}
+
+bool BigWigReader::containsChromosome(const QByteArray& chr)
+{
+	for (int i=0; i<chr_list.length(); i++) // TODO change chr_list to a hash?
+	{
+		if (QString(chr_list[i].key) == QString(chr)) return true;
+	}
+	return false;
 }
 
 void BigWigReader::parseInfo()
@@ -380,7 +438,6 @@ QList<OverlappingBlock> BigWigReader::getOverlappingBlocks(quint32 chr_id, quint
 	{
 		result = overlapsTwig(index_tree_.root, chr_id, start, end);
 	}
-	std::cout << std::endl;
 	return result;
 }
 

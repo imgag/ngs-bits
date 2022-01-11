@@ -126,8 +126,11 @@ public:
 
 	// read the bigWig value for a position of the genome. Offset for regions as libBigWig uses zero-based genome indexing -> 0 - length-1
 	float readValue(const QByteArray& chr, int position, int offset=-1);
+	float reproduceVepAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt);
 	std::vector<float> readValues(const QByteArray& region, int offset=-1);
 	std::vector<float> readValues(const QByteArray& chr, quint32 start, quint32 end, int offset=-1);
+
+	bool containsChromosome(const QByteArray& chr);
 
 	void setDefault(float new_default);
 	float defaultValue();
@@ -177,7 +180,6 @@ private:
 	QList<ZoomLevel> zoom_levels_;
 	ChromosomeHeader chr_header;
 	IndexRTree index_tree_;
-	QHash<QByteArray, quint32> chromosomes;
 	QList<ChromosomeItem> chr_list;
 	QSharedPointer<VersatileFile> fp_;
 	QDataStream::ByteOrder byte_order_;
