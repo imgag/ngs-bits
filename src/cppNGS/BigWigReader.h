@@ -123,6 +123,14 @@ struct ChromosomeBuffer
 	quint32 start;
 	quint32 end;
 	QVector<float> values;
+
+	bool contains(QByteArray pos_chr, quint32 pos_start, quint32 pos_end)
+	{
+		if (pos_chr != chr) return false;
+		if (pos_start >= end || pos_end < start) return false;
+
+		return true;
+	}
 };
 
 class CPPNGSSHARED_EXPORT BigWigReader
@@ -161,8 +169,6 @@ public:
 	void printIndexTree();
 	void printIndexTreeNode(const IndexRTreeNode& node, int level);
 
-
-
 private:
 	void parseInfo();
 	void parseChrom();
@@ -188,9 +194,10 @@ private:
 	QList<ZoomLevel> zoom_levels_;
 	ChromosomeHeader chr_header;
 	IndexRTree index_tree_;
-	QList<ChromosomeItem> chr_list;
+	QHash<QString, ChromosomeItem> chromosomes;
 	QSharedPointer<VersatileFile> fp_;
 	QDataStream::ByteOrder byte_order_;
+	ChromosomeBuffer buffer_;
 
 };
 

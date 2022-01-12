@@ -36,7 +36,6 @@ private slots:
 		F_EQUAL2(summary.sum_data, 272.1, 0.000001);
 		F_EQUAL2(summary.sum_squares, 500.389992, 0.000001);
 
-
 		//Read single values
 		float result;
 		result = r.readValue("1", 0, 0);

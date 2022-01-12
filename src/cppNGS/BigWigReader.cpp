@@ -149,11 +149,7 @@ QVector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, qu
 
 bool BigWigReader::containsChromosome(const QByteArray& chr)
 {
-	for (int i=0; i<chr_list.length(); i++) // TODO change chr_list to a hash?
-	{
-		if (QString(chr_list[i].key) == QString(chr)) return true;
-	}
-	return false;
+	return chromosomes.contains(chr);
 }
 
 void BigWigReader::parseInfo()
@@ -289,13 +285,14 @@ void BigWigReader::parseChromLeaf(quint16 num_items, quint32 key_size)
 		QByteArray bytes = fp_->read(key_size + 8);
 		chr.key = bytes.mid(0, key_size);
 		chr.key = chr.key.trimmed();
+
 		QDataStream ds(bytes.mid(key_size, bytes.length()));
 		ds.setByteOrder(byte_order_);
 
 		ds >> chr.chrom_id;
 		ds >> chr.chrom_size;
 
-		chr_list.append(chr);
+		chromosomes.insert(chr.key, chr);
 	}
 }
 
@@ -626,9 +623,9 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 
 quint32 BigWigReader::getChrId(const QByteArray& chr)
 {
-	for (int i=0; i<chr_list.length(); i++)
+	if (containsChromosome(chr))
 	{
-		if (QString(chr_list[i].key) == QString(chr)) return chr_list[i].chrom_id;
+		return chromosomes[chr].chrom_id;
 	}
 	return -1; // maxValue of quint32
 }
@@ -683,10 +680,10 @@ void BigWigReader::printChromHeader()
 
 void BigWigReader::printChromosomes()
 {
-	std::cout << "Chromosomes: #" << chr_list.length() <<"\n";
-	foreach (const ChromosomeItem &chr, chr_list)
+	std::cout << "Chromosomes: #" << chromosomes.keys().length() <<"\n";
+	foreach (const QString &chr_key, chromosomes.keys())
 	{
-		std::cout << "chr: " <<  chr.key.toStdString() << " id: " << QString::number(chr.chrom_id).toStdString() << " size: " << QString::number(chr.chrom_size).toStdString() << "\n";
+		std::cout << "chr: " <<  chromosomes[chr_key].key.toStdString() << " id: " << QString::number(chromosomes[chr_key].chrom_id).toStdString() << " size: " << QString::number(chromosomes[chr_key].chrom_size).toStdString() << "\tkey:\t" <<"'" << chr_key.toStdString() << "'" << "\n";
 	}
 	std::cout << std::endl;
 }
