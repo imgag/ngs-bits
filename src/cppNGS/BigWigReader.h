@@ -117,19 +117,60 @@ struct OverlappingInterval
 };
 
 
-struct ChromosomeBuffer
+struct IntervalBuffer
 {
-	QByteArray chr;
+	quint32 chr_id;
 	quint32 start;
 	quint32 end;
-	QVector<float> values;
+	QList<OverlappingInterval> intervals;
 
-	bool contains(QByteArray pos_chr, quint32 pos_start, quint32 pos_end)
+	bool contains(quint32 pos_chr_id, quint32 pos_start, quint32 pos_end)
 	{
-		if (pos_chr != chr) return false;
+		if (pos_chr_id != chr_id) return false;
 		if (pos_start >= end || pos_end < start) return false;
 
 		return true;
+	}
+
+	void append(OverlappingInterval interval)
+	{
+		if (intervals.length() == 0)
+		{
+			start = interval.start;
+			end = interval.end;
+		}
+		else
+		{
+			if (interval.start < end )
+			{
+				THROW(ProgrammingException, "Intervals need to be inserted in increasing order")
+			}
+			end = interval.end;
+		}
+
+		intervals.append(interval);
+	}
+
+	QList<OverlappingInterval> get(quint32 pos_chr_id, quint32 pos_start, quint32 pos_end)
+	{
+		QList<OverlappingInterval> res = QList<OverlappingInterval>();
+		if (chr_id != pos_chr_id)
+		{
+			return res;
+		}
+
+		foreach (const OverlappingInterval i, intervals)
+		{
+			if (pos_start >= i.end ||  pos_end <= i.start) continue;
+			res.append(i);
+		}
+		return res;
+	}
+
+	void clear()
+	{
+		chr_id = start = end = 0;
+		intervals.clear();
 	}
 };
 
@@ -197,7 +238,7 @@ private:
 	QHash<QString, ChromosomeItem> chromosomes;
 	QSharedPointer<VersatileFile> fp_;
 	QDataStream::ByteOrder byte_order_;
-	ChromosomeBuffer buffer_;
+	IntervalBuffer buffer_;
 
 };
 

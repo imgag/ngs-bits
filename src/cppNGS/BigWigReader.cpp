@@ -105,26 +105,36 @@ QVector<float> BigWigReader::readValues(const QByteArray& region, int offset)
 QVector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, quint32 end, int offset)
 {
 	quint32 chr_id = getChrId(chr);
+	QList<OverlappingInterval> intervals;
 
-	if (chr_id == (quint32) -1)
+	// try to find it in the buffer:
+	if ( ! buffer_.contains(chr_id, start, end))
 	{
-		THROW(ArgumentException, "Couldn't find given chromosome in file.")
-		return QVector<float>();
+		//std::cout << "Buffer miss\n";
+		if (chr_id == (quint32) -1)
+		{
+			THROW(ArgumentException, "Couldn't find given chromosome in file.")
+			return QVector<float>();
+		}
+
+		QList<OverlappingBlock> blocks = getOverlappingBlocks(chr_id, start+offset, end+offset);
+
+		if (blocks.length() == 0)
+		{
+			//std::cout << "Didn't find any overlapping blocks" << std::endl;
+			return QVector<float>();
+		}
+
+		intervals = extractOverlappingIntervals(blocks, chr_id, start+offset, end+offset);
 	}
-
-	QList<OverlappingBlock> blocks = getOverlappingBlocks(chr_id, start+offset, end+offset);
-
-	if (blocks.length() == 0)
+	else
 	{
-		//std::cout << "Didn't find any overlapping blocks" << std::endl;
-		return QVector<float>();
+		//std::cout << "Buffer hit\n";
+		intervals = buffer_.get(chr_id, start+offset, end+offset);
 	}
-
-	QList<OverlappingInterval> intervals = extractOverlappingIntervals(blocks, chr_id, start+offset, end+offset);
 
 	// split long intervals into single values:
 	QVector<float> result = QVector<float>(end-start, default_value_);
-
 	foreach (const OverlappingInterval& interval, intervals) {
 		if (interval.end-interval.start == 1) // covers a single position if it is overlapping it has to be in vector
 		{
@@ -529,6 +539,8 @@ QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, q
 QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList<OverlappingBlock>& blocks, quint32 chr_id, quint32 start, quint32 end)
 {
 	QList<OverlappingInterval> result;
+	buffer_.clear();
+	buffer_.chr_id = chr_id;
 
 	// TODO Test if buffer would be too big -> split decompression into multiple steps
 	quint32 decompress_buffer_size = header_.uncompress_buf_size;
@@ -612,9 +624,12 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 					THROW(FileParseException, "Unknown type while parsing a data block.")
 					break;
 			}
+			// TODO always add it to the buffer
+			OverlappingInterval interval(interval_start, interval_end, interval_value);
+			buffer_.append(interval);
 			if (start >= interval_end ||  end <= interval_start) continue; // doesn't overlap
 
-			OverlappingInterval interval(interval_start, interval_end, interval_value);
+
 			result.append(interval);
 		}
 	}
