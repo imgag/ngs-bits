@@ -1,5 +1,4 @@
 #include "BigWigReader.h"
-#include "Helper.h"
 #include "Exceptions.h"
 #include <QDataStream>
 #include <iostream>
@@ -11,11 +10,20 @@ BigWigReader::BigWigReader(const QString& bigWigFilepath, float default_value):
 	file_path_(bigWigFilepath)
   , default_value_(default_value)
 {
-	fp_ = Helper::openVersatileFileForReading(bigWigFilepath, false);
-	fp_->open(QIODevice::ReadOnly); // necessary?!? if not there shifts through bits
+	fp_ = QSharedPointer<VersatileFile>(new VersatileFile(bigWigFilepath));
+	if (!fp_->open(QFile::ReadOnly))
+	{
+		THROW(FileAccessException, "Could not open versatile file for reading: '" + bigWigFilepath + "'!");
+	}
+
 	parseInfo();
 	parseChrom();
 	parseIndexTree();
+}
+
+BigWigReader::~BigWigReader()
+{
+	fp_->close();
 }
 
 void BigWigReader::setDefault(float new_default)
@@ -38,6 +46,11 @@ Summary BigWigReader::summary()
 	return summary_;
 }
 
+bool BigWigReader::containsChromosome(const QByteArray& chr)
+{
+	return chromosomes.contains(chr);
+}
+
 float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 {
 	QVector<float> values = readValues(chr, position, position+1, offset);
@@ -52,6 +65,75 @@ float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 
 	THROW(FileParseException, "Found multiple Overlapping Intervals for a single position? - chr " + chr + ": " + QString::number(position))
 
+}
+
+QVector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, quint32 end, int offset)
+{
+	quint32 chr_id;
+	if (containsChromosome(chr))
+	{
+		chr_id = chromosomes[chr].chrom_id;
+	}
+	else
+	{
+		THROW(ArgumentException, "Couldn't find given chromosome in file.")
+	}
+	QList<OverlappingInterval> intervals;
+
+	// try to find it in the buffer:
+	if ( ! buffer_.contains(chr_id, start, end))
+	{
+		//std::cout << "Buffer miss\n";
+
+		QList<OverlappingBlock> blocks = getOverlappingBlocks(chr_id, start+offset, end+offset);
+
+		if (blocks.length() == 0)
+		{
+			//std::cout << "Didn't find any overlapping blocks" << std::endl;
+			return QVector<float>();
+		}
+
+		intervals = extractOverlappingIntervals(blocks, chr_id, start+offset, end+offset);
+	}
+	else
+	{
+		//std::cout << "Buffer hit\n";
+		intervals = buffer_.get(chr_id, start+offset, end+offset);
+	}
+
+	// split long intervals into single values:
+	QVector<float> result = QVector<float>(end-start, default_value_);
+	foreach (const OverlappingInterval& interval, intervals) {
+		if (interval.end-interval.start == 1) // covers a single position if it is overlapping it has to be in vector
+		{
+			result[interval.start-(start+offset)] = interval.value;
+		}
+		else
+		{
+			int idx;
+			for(quint32 i=interval.start; i<interval.end; i++)
+			{
+				idx = i-start;
+				if(idx>= 0 && idx < (int) (end-start))
+				{
+					result[idx] = interval.value;
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+QVector<float> BigWigReader::readValues(const QByteArray& region, int offset)
+{
+	QList<QByteArray> parts1 = region.split(':');
+	if (parts1.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
+
+	QList<QByteArray> parts2 = parts1[1].split('-');
+	if (parts2.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
+
+	return readValues(parts1[0], parts2[0].toInt(), parts2[1].toInt(), offset);
 }
 
 float BigWigReader::reproduceVepPhylopAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt)
@@ -99,339 +181,6 @@ float BigWigReader::reproduceVepPhylopAnnotation(const QByteArray& chr, int star
 	// for multi base deletions also set it to zero
 	return 0;
 
-}
-
-QVector<float> BigWigReader::readValues(const QByteArray& region, int offset)
-{
-	QList<QByteArray> parts1 = region.split(':');
-	if (parts1.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
-
-	QList<QByteArray> parts2 = parts1[1].split('-');
-	if (parts2.length() != 2) THROW(ArgumentException, "Given region is not formatted correctly: Expected 'chr:start-end'\n Given:" + QString(region));
-
-	return readValues(parts1[0], parts2[0].toInt(), parts2[1].toInt(), offset);
-}
-
-QVector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, quint32 end, int offset)
-{
-	quint32 chr_id = getChrId(chr);
-	QList<OverlappingInterval> intervals;
-
-	// try to find it in the buffer:
-	if ( ! buffer_.contains(chr_id, start, end))
-	{
-		//std::cout << "Buffer miss\n";
-		if (chr_id == (quint32) -1)
-		{
-			THROW(ArgumentException, "Couldn't find given chromosome in file.")
-			return QVector<float>();
-		}
-
-		QList<OverlappingBlock> blocks = getOverlappingBlocks(chr_id, start+offset, end+offset);
-
-		if (blocks.length() == 0)
-		{
-			//std::cout << "Didn't find any overlapping blocks" << std::endl;
-			return QVector<float>();
-		}
-
-		intervals = extractOverlappingIntervals(blocks, chr_id, start+offset, end+offset);
-	}
-	else
-	{
-		//std::cout << "Buffer hit\n";
-		intervals = buffer_.get(chr_id, start+offset, end+offset);
-	}
-
-	// split long intervals into single values:
-	QVector<float> result = QVector<float>(end-start, default_value_);
-	foreach (const OverlappingInterval& interval, intervals) {
-		if (interval.end-interval.start == 1) // covers a single position if it is overlapping it has to be in vector
-		{
-			result[interval.start-(start+offset)] = interval.value;
-		}
-		else
-		{
-			int idx;
-			for(quint32 i=interval.start; i<interval.end; i++)
-			{
-				idx = i-start;
-				if(idx>= 0 && idx < (int) (end-start))
-				{
-					result[idx] = interval.value;
-				}
-			}
-		}
-	}
-
-	return result;
-}
-
-bool BigWigReader::containsChromosome(const QByteArray& chr)
-{
-	return chromosomes.contains(chr);
-}
-
-void BigWigReader::parseInfo()
-{
-	//Header
-	QByteArray header_bytes = fp_->read(64);
-	QDataStream header_stream(header_bytes);
-	quint32 magic;
-	header_stream >> magic;
-
-	if (magic == 0x888FFC26)
-	{
-		byte_order_ = QDataStream::BigEndian;
-	}
-	else if (magic ==  0x26FC8F88)
-	{
-		byte_order_ = QDataStream::LittleEndian;
-	}
-	else
-	{
-		THROW(FileParseException, "Magic number of file doesn't belong to BigWig.")
-	}
-	header_stream.setByteOrder(byte_order_);
-
-	header_.magic_number = magic;
-	header_stream >> header_.version;
-	header_stream >> header_.zoom_levels;
-	header_stream >> header_.chromosome_tree_offset;
-	header_stream >> header_.full_data_offset;
-	header_stream >> header_.full_index_offset;
-	header_stream >> header_.field_count;
-	header_stream >> header_.defined_field_count;
-	header_stream >> header_.auto_sql_offset; // not used in BigWig files
-	header_stream >> header_.total_summary_offset;
-	header_stream >> header_.uncompress_buf_size;
-	header_stream >> header_.reserved;
-
-	if ( ! header_stream.atEnd())
-	{
-		THROW(FileParseException, "Datastream not at the end after parsing Header.")
-	}
-
-	//ZoomHeaders:
-	zoom_levels_.clear();
-	for (auto i=0; i<header_.zoom_levels; i++)
-	{
-		QByteArray zoom_header_bytes = fp_->read(24);
-		QDataStream zoom_level_stream(zoom_header_bytes);
-		zoom_level_stream.setByteOrder(byte_order_);
-
-		ZoomLevel z;
-		zoom_level_stream >> z.reduction_level;
-		zoom_level_stream >> z.reserved;
-		zoom_level_stream >> z.data_offset;
-		zoom_level_stream >> z.index_offset;
-
-		zoom_levels_.append(z);
-	}
-
-	if ( ! header_stream.atEnd())
-	{
-		THROW(FileParseException, "Datastream not at the end after parsing zoom headers.")
-	}
-
-	//Summary:
-	fp_->seek(header_.total_summary_offset);
-	QByteArray summary_bytes = fp_->read(40);
-	QDataStream summary_stream(summary_bytes);
-	summary_stream.setByteOrder(byte_order_);
-
-	summary_stream >> summary_.bases_covered;
-	summary_stream >> summary_.min_val;
-	summary_stream >> summary_.max_val;
-	summary_stream >> summary_.sum_data;
-	summary_stream >> summary_.sum_squares;
-
-	if ( ! header_stream.atEnd())
-	{
-		THROW(FileParseException, "Datastream not at the end after parsing summary.")
-	}
-}
-
-void BigWigReader::parseChrom()
-{
-	fp_->seek(header_.chromosome_tree_offset);
-	QByteArray chr_tree_header_bytes = fp_->read(32);
-	QDataStream ds(chr_tree_header_bytes);
-	ds.setByteOrder(byte_order_);
-
-	//header
-	ds >> chr_header.magic;
-	ds >> chr_header.children_per_block;
-	ds >> chr_header.key_size;
-	ds >> chr_header.val_size;
-	ds >> chr_header.item_count;
-	ds >> chr_header.reserved;
-
-	parseChromBlock(chr_header.key_size);
-}
-
-void BigWigReader::parseChromBlock(quint32 key_size)
-{
-	QByteArray block_bytes = fp_->read(4);
-	QDataStream ds(block_bytes);
-	ds.setByteOrder(byte_order_);
-
-	quint8 is_leaf, padding;
-	quint16 num_items;
-
-	ds >> is_leaf;
-	ds >> padding;
-	ds >> num_items;
-
-	if (is_leaf == 1)
-	{
-		parseChromLeaf(num_items, key_size);
-	}
-	else
-	{
-		parseChromNonLeaf(num_items, key_size);
-	}
-}
-
-void BigWigReader::parseChromLeaf(quint16 num_items, quint32 key_size)
-{
-	// key, key_size, bytes
-	// chromId, 4 , uint
-	// chromSize, 4, uint
-
-	for (int i=0; i<num_items; i++)
-	{
-		ChromosomeItem chr;
-		QByteArray bytes = fp_->read(key_size + 8);
-		chr.key = bytes.mid(0, key_size);
-		chr.key = chr.key.trimmed();
-
-		QDataStream ds(bytes.mid(key_size, bytes.length()));
-		ds.setByteOrder(byte_order_);
-
-		ds >> chr.chrom_id;
-		ds >> chr.chrom_size;
-
-		chromosomes.insert(chr.key, chr);
-	}
-}
-
-void BigWigReader::parseChromNonLeaf(quint16 num_items, quint32 key_size)
-{
-	// key, key_size, bytes
-	// childOffset, 8, uint
-
-	quint64 currentOffset = fp_->pos()+key_size;
-	for (int i=0; i<num_items; i++)
-	{
-		fp_->seek(currentOffset);
-		QByteArray bytes = fp_->read(8);
-		//QByteArray key = bytes.mid(0, key_size);
-		QDataStream ds(bytes);
-		ds.setByteOrder(byte_order_);
-
-		quint64 offset;
-		ds >> offset;
-
-		fp_->seek(offset);
-		parseChromBlock(key_size);
-		currentOffset += key_size + 8;
-	}
-}
-
-void BigWigReader::parseIndexTree()
-{
-	fp_->seek(header_.full_index_offset);
-	QByteArray index_header_bytes = fp_->read(48);
-	QDataStream index_header_stream(index_header_bytes);
-	index_header_stream.setByteOrder(byte_order_);
-
-	quint32 magic, padding;
-	index_header_stream >> magic;
-
-	if (magic != 0x2468ACE0)
-	{
-		THROW(FileParseException, "Magic number of index not what expected!")
-	}
-
-	index_header_stream >> index_tree_.block_size;
-	index_header_stream >> index_tree_.num_items;
-	index_header_stream >> index_tree_.chr_idx_start;
-	index_header_stream >> index_tree_.base_start;
-	index_header_stream >> index_tree_.chr_idx_end;
-	index_header_stream >> index_tree_.base_end;
-	index_header_stream >> index_tree_.end_file_offset;
-	index_header_stream >> index_tree_.num_items_per_leaf;
-	// four bytes padding
-	index_header_stream >> padding;
-	index_tree_.root_offset = header_.full_index_offset + 48; // current pos
-
-	index_tree_.root = parseIndexTreeNode(index_tree_.root_offset);
-}
-
-IndexRTreeNode BigWigReader::parseIndexTreeNode(quint64 offset)
-{
-	fp_->seek(offset);
-	QByteArray node_header_bytes = fp_->read(4);
-	QDataStream node_header_stream(node_header_bytes);
-	node_header_stream.setByteOrder(byte_order_);
-
-	quint8 padding;
-	IndexRTreeNode node;
-	node_header_stream >> node.isLeaf;
-	node_header_stream >> padding;
-	node_header_stream >> node.count;
-
-	node.chr_idx_start = QVector<quint32>(node.count);
-	node.base_start = QVector<quint32>(node.count);
-	node.chr_idx_end = QVector<quint32>(node.count);
-	node.base_end = QVector<quint32>(node.count);
-	node.data_offset = QVector<quint64>(node.count);
-
-
-	if (node.isLeaf)
-	{
-		node.size = QVector<quint64>(node.count);
-		QByteArray leaf_items_bytes = fp_->read(node.count * 48);
-		QDataStream leaf_items_stream(leaf_items_bytes);
-		leaf_items_stream.setByteOrder(byte_order_);
-
-		for (int i=0; i<node.count; i++)
-		{
-			quint32 cis, bs, cie, be;
-			quint64 data_offset, data_size;
-			leaf_items_stream >> cis >> bs >> cie >> be >> data_offset >> data_size;
-
-			node.chr_idx_start[i] = cis;
-			node.base_start[i] = bs;
-			node.chr_idx_end[i] = cie;
-			node.base_end[i] = be;
-			node.data_offset[i] = data_offset;
-			node.size[i] = data_size;
-		}
-	}
-	else
-	{
-		node.children = QVector<IndexRTreeNode>(node.count);
-		QByteArray twig_items_bytes = fp_->read(node.count * 40);
-		QDataStream twig_items_stream(twig_items_bytes);
-		twig_items_stream.setByteOrder(byte_order_);
-
-		for (int i=0; i<node.count; i++)
-		{
-			quint32 cis, bs, cie, be;
-			quint64 data_offset;
-			twig_items_stream >> cis >> bs >> cie >> be >> data_offset;
-
-			node.chr_idx_start[i] = cis;
-			node.base_start[i] = bs;
-			node.chr_idx_end[i] = cie;
-			node.base_end[i] = be;
-			node.data_offset[i] = data_offset;
-			node.children[i] = parseIndexTreeNode(data_offset);
-		}
-	}
-	return node;
 }
 
 QList<OverlappingBlock> BigWigReader::getOverlappingBlocks(quint32 chr_id, quint32 start, quint32 end)
@@ -483,15 +232,13 @@ QList<OverlappingBlock> BigWigReader::overlapsTwig(const IndexRTreeNode& node, q
 
 		if (node_blocks.length() == 0)
 		{
-			continue; // TODO problematic?
+			continue;
 		}
 		// merge lists
 		blocks.append(node_blocks);
 	}
 	return blocks;
 }
-
-
 
 QList<OverlappingBlock> BigWigReader::overlapsLeaf(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end)
 {
@@ -552,7 +299,7 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 	buffer_.clear();
 	buffer_.chr_id = chr_id;
 
-	// TODO Test if buffer would be too big -> split decompression into multiple steps
+	// TODO Test if buffer would be too big -> split decompression into multiple steps but probably never needed
 	quint32 decompress_buffer_size = header_.uncompress_buf_size;
 	char out[decompress_buffer_size];
 	QByteArray decompressed_block;
@@ -634,11 +381,9 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 					THROW(FileParseException, "Unknown type while parsing a data block.")
 					break;
 			}
-			// TODO always add it to the buffer
 			OverlappingInterval interval(interval_start, interval_end, interval_value);
 			buffer_.append(interval);
 			if (start >= interval_end ||  end <= interval_start) continue; // doesn't overlap
-
 
 			result.append(interval);
 		}
@@ -646,13 +391,250 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 	return result;
 }
 
-quint32 BigWigReader::getChrId(const QByteArray& chr)
+void BigWigReader::parseInfo()
 {
-	if (containsChromosome(chr))
+	//Header
+	QByteArray header_bytes = fp_->read(64);
+	QDataStream header_stream(header_bytes);
+	quint32 magic;
+	header_stream >> magic;
+
+	if (magic == 0x888FFC26)
 	{
-		return chromosomes[chr].chrom_id;
+		byte_order_ = QDataStream::BigEndian;
 	}
-	return -1; // maxValue of quint32
+	else if (magic ==  0x26FC8F88)
+	{
+		byte_order_ = QDataStream::LittleEndian;
+	}
+	else
+	{
+		THROW(FileParseException, "Magic number of file doesn't belong to BigWig.")
+	}
+	header_stream.setByteOrder(byte_order_);
+
+	header_.magic_number = magic;
+	header_stream >> header_.version;
+	header_stream >> header_.zoom_levels;
+	header_stream >> header_.chromosome_tree_offset;
+	header_stream >> header_.full_data_offset;
+	header_stream >> header_.full_index_offset;
+	header_stream >> header_.field_count;
+	header_stream >> header_.defined_field_count;
+	header_stream >> header_.auto_sql_offset; // not used in BigWig files
+	header_stream >> header_.total_summary_offset;
+	header_stream >> header_.uncompress_buf_size;
+	header_stream >> header_.reserved;
+
+	//ZoomHeaders:
+	zoom_levels_.clear();
+	for (auto i=0; i<header_.zoom_levels; i++)
+	{
+		QByteArray zoom_header_bytes = fp_->read(24);
+		QDataStream zoom_level_stream(zoom_header_bytes);
+		zoom_level_stream.setByteOrder(byte_order_);
+
+		ZoomLevel z;
+		zoom_level_stream >> z.reduction_level;
+		zoom_level_stream >> z.reserved;
+		zoom_level_stream >> z.data_offset;
+		zoom_level_stream >> z.index_offset;
+
+		zoom_levels_.append(z);
+	}
+
+	//Summary:
+	fp_->seek(header_.total_summary_offset);
+	QByteArray summary_bytes = fp_->read(40);
+	QDataStream summary_stream(summary_bytes);
+	summary_stream.setByteOrder(byte_order_);
+
+	summary_stream >> summary_.bases_covered;
+	summary_stream >> summary_.min_val;
+	summary_stream >> summary_.max_val;
+	summary_stream >> summary_.sum_data;
+	summary_stream >> summary_.sum_squares;
+
+}
+
+void BigWigReader::parseChrom()
+{
+	fp_->seek(header_.chromosome_tree_offset);
+	QByteArray chr_tree_header_bytes = fp_->read(32);
+	QDataStream ds(chr_tree_header_bytes);
+	ds.setByteOrder(byte_order_);
+
+	//header
+	ds >> chr_header.magic;
+	ds >> chr_header.children_per_block;
+	ds >> chr_header.key_size;
+	ds >> chr_header.val_size;
+	ds >> chr_header.item_count;
+	ds >> chr_header.reserved;
+
+	parseChromBlock(chr_header.key_size);
+}
+
+void BigWigReader::parseChromBlock(quint32 key_size)
+{
+	QByteArray block_bytes = fp_->read(4);
+	QDataStream ds(block_bytes);
+	ds.setByteOrder(byte_order_);
+
+	quint8 is_leaf, padding;
+	quint16 num_items;
+
+	ds >> is_leaf;
+	ds >> padding;
+	ds >> num_items;
+
+	if (is_leaf == 1)
+	{
+		parseChromLeaf(num_items, key_size);
+	}
+	else
+	{
+		parseChromNonLeaf(num_items, key_size);
+	}
+}
+
+void BigWigReader::parseChromLeaf(quint16 num_items, quint32 key_size)
+{
+	// key, key_size, bytes
+	// chromId, 4 , uint
+	// chromSize, 4, uint
+
+	for (int i=0; i<num_items; i++)
+	{
+		ChromosomeItem chr;
+		QByteArray bytes = fp_->read(key_size + 8);
+		chr.key = bytes.mid(0, key_size);
+		chr.key = chr.key.trimmed();
+
+		QDataStream ds(bytes.mid(key_size, bytes.length()));
+		ds.setByteOrder(byte_order_);
+
+		ds >> chr.chrom_id;
+		ds >> chr.chrom_size;
+
+		chromosomes.insert(chr.key, chr);
+	}
+}
+
+void BigWigReader::parseChromNonLeaf(quint16 num_items, quint32 key_size)
+{
+	// key, key_size, bytes
+	// childOffset, 8, uint
+
+	quint64 currentOffset = fp_->pos()+key_size;
+	for (int i=0; i<num_items; i++)
+	{
+		fp_->seek(currentOffset);
+		QByteArray bytes = fp_->read(8);
+		QDataStream ds(bytes);
+		ds.setByteOrder(byte_order_);
+
+		quint64 offset;
+		ds >> offset;
+
+		fp_->seek(offset);
+		parseChromBlock(key_size);
+		currentOffset += key_size + 8;
+	}
+}
+
+void BigWigReader::parseIndexTree()
+{
+	fp_->seek(header_.full_index_offset);
+	QByteArray index_header_bytes = fp_->read(48);
+	QDataStream index_header_stream(index_header_bytes);
+	index_header_stream.setByteOrder(byte_order_);
+
+	quint32 magic, padding;
+	index_header_stream >> magic;
+
+	if (magic != 0x2468ACE0)
+	{
+		THROW(FileParseException, "Magic number of index not what expected!")
+	}
+
+	index_header_stream >> index_tree_.block_size;
+	index_header_stream >> index_tree_.num_items;
+	index_header_stream >> index_tree_.chr_idx_start;
+	index_header_stream >> index_tree_.base_start;
+	index_header_stream >> index_tree_.chr_idx_end;
+	index_header_stream >> index_tree_.base_end;
+	index_header_stream >> index_tree_.end_file_offset;
+	index_header_stream >> index_tree_.num_items_per_leaf;
+	// four bytes padding
+	index_header_stream >> padding;
+	index_tree_.root_offset = header_.full_index_offset + 48; // current pos
+
+	index_tree_.root = parseIndexTreeNode(index_tree_.root_offset);
+}
+
+IndexRTreeNode BigWigReader::parseIndexTreeNode(quint64 offset)
+{
+	fp_->seek(offset);
+	QByteArray node_header_bytes = fp_->read(4);
+	QDataStream node_header_stream(node_header_bytes);
+	node_header_stream.setByteOrder(byte_order_);
+
+	quint8 padding;
+	IndexRTreeNode node;
+	node_header_stream >> node.isLeaf;
+	node_header_stream >> padding;
+	node_header_stream >> node.count;
+
+	node.chr_idx_start = QVector<quint32>(node.count);
+	node.base_start = QVector<quint32>(node.count);
+	node.chr_idx_end = QVector<quint32>(node.count);
+	node.base_end = QVector<quint32>(node.count);
+	node.data_offset = QVector<quint64>(node.count);
+
+	if (node.isLeaf)
+	{
+		node.size = QVector<quint64>(node.count);
+		QByteArray leaf_items_bytes = fp_->read(node.count * 48);
+		QDataStream leaf_items_stream(leaf_items_bytes);
+		leaf_items_stream.setByteOrder(byte_order_);
+
+		for (int i=0; i<node.count; i++)
+		{
+			quint32 cis, bs, cie, be;
+			quint64 data_offset, data_size;
+			leaf_items_stream >> cis >> bs >> cie >> be >> data_offset >> data_size;
+
+			node.chr_idx_start[i] = cis;
+			node.base_start[i] = bs;
+			node.chr_idx_end[i] = cie;
+			node.base_end[i] = be;
+			node.data_offset[i] = data_offset;
+			node.size[i] = data_size;
+		}
+	}
+	else
+	{
+		node.children = QVector<IndexRTreeNode>(node.count);
+		QByteArray twig_items_bytes = fp_->read(node.count * 40);
+		QDataStream twig_items_stream(twig_items_bytes);
+		twig_items_stream.setByteOrder(byte_order_);
+
+		for (int i=0; i<node.count; i++)
+		{
+			quint32 cis, bs, cie, be;
+			quint64 data_offset;
+			twig_items_stream >> cis >> bs >> cie >> be >> data_offset;
+
+			node.chr_idx_start[i] = cis;
+			node.base_start[i] = bs;
+			node.chr_idx_end[i] = cie;
+			node.base_end[i] = be;
+			node.data_offset[i] = data_offset;
+			node.children[i] = parseIndexTreeNode(data_offset);
+		}
+	}
+	return node;
 }
 
 void BigWigReader::printHeader()
@@ -666,7 +648,6 @@ void BigWigReader::printHeader()
 	std::cout << "autoSqlOffset:\t0x" << header_.auto_sql_offset << "\n";
 	std::cout << "SummaryOffset:\t0x" << header_.total_summary_offset << "\n";
 	std::cout << "BufSize:\t" << std::dec << header_.uncompress_buf_size << "\n" << std::endl;
-
 }
 
 void BigWigReader::printSummary()
@@ -689,7 +670,6 @@ void BigWigReader::printZoomLevels()
 		std::cout << "data offset: \t0x" << std::hex << zoom_levels_[i].data_offset << "\n";
 		std::cout << "index offset:\t0x" << std::hex << zoom_levels_[i].index_offset << "\n" << std::endl;
 		std::cout << std::dec;
-
 	}
 }
 
@@ -756,9 +736,3 @@ void BigWigReader::printIndexTreeNode(const IndexRTreeNode& node, int level)
 		}
 	}
 }
-
-BigWigReader::~BigWigReader()
-{
-	fp_->close();
-}
-

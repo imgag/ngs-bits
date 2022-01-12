@@ -197,6 +197,17 @@ public:
 	// Destructor
 	~BigWigReader();
 
+	// Sets the default_value to a new value default.
+	void setDefault(float new_default);
+
+	// Getters:
+	float defaultValue();
+	BigWigHeader header();
+	Summary summary();
+
+	// reports if a given chromosome name is contained in the file.
+	bool containsChromosome(const QByteArray& chr);
+
 	/**
 	 * @brief Reads the bigWig value for the given position of the genome.
 	 * @param offset Offset for regions as libBigWig uses zero-based genome indexing -> 0 - length-1
@@ -211,23 +222,11 @@ public:
 	 */
 	QVector<float> readValues(const QByteArray& chr, quint32 start, quint32 end, int offset=-1);
 
-	// Convenience function to call readValues with an unparsed region
+	// Convenience function to call readValues with an unparsed region of type (chrNAME:start-end)
 	QVector<float> readValues(const QByteArray& region, int offset=-1);
 
-	// reports if a given chromosome name is contained in the file.
-	bool containsChromosome(const QByteArray& chr);
-
-	// Sets the default_value to a new value default.
-	void setDefault(float new_default);
-
-	// Getters:
-	float defaultValue();
-	BigWigHeader header();
-	Summary summary();
-
-	// Function that reproduces the phylop annotation as vep would write it.
+	// Function that reproduces the phylop annotation as VEP would write it.
 	float reproduceVepPhylopAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt);
-
 
 	// Print functions for convenience while testing
 	void printHeader();
@@ -239,6 +238,14 @@ public:
 	void printIndexTreeNode(const IndexRTreeNode& node, int level);
 
 private:
+	// searches the indextree for blocks containing requested data
+	QList<OverlappingBlock> getOverlappingBlocks(quint32 chr_id, quint32 start, quint32 end);
+	QList<OverlappingBlock> overlapsTwig(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end);
+	QList<OverlappingBlock> overlapsLeaf(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end);
+
+	// if needed decompress blocks and return the Intervals that overlap the requested region
+	QList<OverlappingInterval> extractOverlappingIntervals(const QList<OverlappingBlock>& blocks, quint32 chr_id, quint32 start, quint32 end);
+
 	// Parse functions parse the corresponding part of the binary file (need to be called in the right order to set necessary member variables)
 	void parseInfo();
 	void parseChrom();
@@ -247,17 +254,6 @@ private:
 	void parseChromNonLeaf(quint16 num_items, quint32 key_size);
 	void parseIndexTree();
 	IndexRTreeNode parseIndexTreeNode(quint64 offset);
-
-	// searche the indextree for blocks containing requested data
-	QList<OverlappingBlock> getOverlappingBlocks(quint32 chr_id, quint32 start, quint32 end);
-	QList<OverlappingBlock> overlapsTwig(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end);
-	QList<OverlappingBlock> overlapsLeaf(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end);
-
-	// if needed decompress blocks and return the Intervals that overlap the requested region
-	QList<OverlappingInterval> extractOverlappingIntervals(const QList<OverlappingBlock>& blocks, quint32 chr_id, quint32 start, quint32 end);
-
-	// returns the file chromosome id of the given chromosome
-	quint32 getChrId(const QByteArray& chr);
 
 
 	const QString file_path_;
