@@ -199,11 +199,14 @@ public:
 
 	// Sets the default_value to a new value default.
 	void setDefault(float new_default);
-
+	// Returns weather the current default value is outside of the value range of the bw file
+	bool defaultValid();
 	// Getters:
 	float defaultValue();
 	BigWigHeader header();
 	Summary summary();
+
+	bool isLittleEndian();
 
 	// reports if a given chromosome name is contained in the file.
 	bool containsChromosome(const QByteArray& chr);

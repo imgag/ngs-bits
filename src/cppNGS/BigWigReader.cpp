@@ -3,7 +3,7 @@
 #include <QDataStream>
 #include <iostream>
 #include <zlib.h>
-
+#include <Log.h>
 
 
 BigWigReader::BigWigReader(const QString& bigWigFilepath, float default_value):
@@ -19,6 +19,13 @@ BigWigReader::BigWigReader(const QString& bigWigFilepath, float default_value):
 	parseInfo();
 	parseChrom();
 	parseIndexTree();
+
+	if ( ! defaultValid())
+	{
+		// warn user that the default value cannot be distinguished from a real value
+		Log::warn(QString("The default value of the BigWigReader is within min and maxValue of the file! It can't be distinguished from a real value!\n %1 - min: %2 max: %3 default: %4")
+				  .arg(bigWigFilepath, QString::number(summary_.min_val), QString::number(summary_.max_val), QString::number(default_value)));
+	}
 }
 
 BigWigReader::~BigWigReader()
@@ -29,6 +36,11 @@ BigWigReader::~BigWigReader()
 void BigWigReader::setDefault(float new_default)
 {
 	default_value_ = new_default;
+}
+
+bool BigWigReader::defaultValid()
+{
+	return (summary_.min_val > default_value_ || default_value_ > summary_.max_val);
 }
 
 float BigWigReader::defaultValue()
@@ -44,6 +56,11 @@ BigWigHeader BigWigReader::header()
 Summary BigWigReader::summary()
 {
 	return summary_;
+}
+
+bool BigWigReader::isLittleEndian()
+{
+	return byte_order_ == QDataStream::LittleEndian;
 }
 
 bool BigWigReader::containsChromosome(const QByteArray& chr)
