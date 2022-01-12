@@ -28,6 +28,16 @@ float BigWigReader::defaultValue()
 	return default_value_;
 }
 
+BigWigHeader BigWigReader::header()
+{
+	return header_;
+}
+
+Summary BigWigReader::summary()
+{
+	return summary_;
+}
+
 float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 {
 	QVector<float> values = readValues(chr, position, position+1, offset);
@@ -44,7 +54,7 @@ float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 
 }
 
-float BigWigReader::reproduceVepAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt)
+float BigWigReader::reproduceVepPhylopAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt)
 {
 	if ( ! containsChromosome(chr))
 	{

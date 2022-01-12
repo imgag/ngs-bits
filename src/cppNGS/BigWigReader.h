@@ -7,6 +7,9 @@
 #include <QVector>
 #include <QDataStream>
 
+
+// Helper structs to save the parsed data from the big wig file:
+// Header holds the high level data about the file.
 struct BigWigHeader
 {
 	quint32 magic_number; // 0x888FFC26 for bigWig (byte swaped?)
@@ -23,14 +26,7 @@ struct BigWigHeader
 	quint64 reserved;
 };
 
-struct ZoomLevel
-{
-	quint32 reduction_level;
-	quint32 reserved;
-	quint64 data_offset;
-	quint64 index_offset;
-};
-
+// General summary provided by the file
 struct Summary
 {
 	quint64 bases_covered;
@@ -40,12 +36,22 @@ struct Summary
 	double sum_squares;
 };
 
+/*Internaly used structs*/
+// Currently only zoomlevel headers are parsed but the zoomlevel data isn't used and isn't supported.
+struct ZoomLevel
+{
+	quint32 reduction_level;
+	quint32 reserved;
+	quint64 data_offset;
+	quint64 index_offset;
+};
+
 struct ChromosomeHeader
 {
 	quint32 magic;
 	quint32 children_per_block;
 	quint32 key_size; // significant bytes in key (min prefix to distinguish chromosomes)
-	quint32 val_size; // currently 8
+	quint32 val_size;
 
 	quint64 item_count; // num of chromosomes/contigs
 	quint64 reserved;
@@ -116,7 +122,7 @@ struct OverlappingInterval
 	float value;
 };
 
-
+// Buffer for the intervals that were recently read from file to reduce decompression calls.
 struct IntervalBuffer
 {
 	quint32 chr_id;
@@ -124,6 +130,7 @@ struct IntervalBuffer
 	quint32 end;
 	QList<OverlappingInterval> intervals;
 
+	// returns true if the given region is covered by the intervals in the buffer
 	bool contains(quint32 pos_chr_id, quint32 pos_start, quint32 pos_end)
 	{
 		if (pos_chr_id != chr_id) return false;
@@ -132,6 +139,10 @@ struct IntervalBuffer
 		return true;
 	}
 
+	/**
+	 * @brief add the interval to the buffer and adjusts the end of the buffer accordingly
+	 * @note expects the appended intervals to be in increasing order and without gaps
+	 */
 	void append(OverlappingInterval interval)
 	{
 		if (intervals.length() == 0)
@@ -151,6 +162,7 @@ struct IntervalBuffer
 		intervals.append(interval);
 	}
 
+	// returns the intervals in the buffer that overlap with the given region
 	QList<OverlappingInterval> get(quint32 pos_chr_id, quint32 pos_start, quint32 pos_end)
 	{
 		QList<OverlappingInterval> res = QList<OverlappingInterval>();
@@ -167,6 +179,7 @@ struct IntervalBuffer
 		return res;
 	}
 
+	//clears the data within the buffer
 	void clear()
 	{
 		chr_id = start = end = 0;
@@ -174,34 +187,49 @@ struct IntervalBuffer
 	}
 };
 
+// Reader for BigWig files:
 class CPPNGSSHARED_EXPORT BigWigReader
 {
 
 public:
+	// Constructor
 	BigWigReader(const QString& bigWigFilepath, float default_value=-50);
+	// Destructor
 	~BigWigReader();
 
-	// read the bigWig value for a position of the genome. Offset for regions as libBigWig uses zero-based genome indexing -> 0 - length-1
+	/**
+	 * @brief Reads the bigWig value for the given position of the genome.
+	 * @param offset Offset for regions as libBigWig uses zero-based genome indexing -> 0 - length-1
+	 * @return The value specified in the file or when the given position is not covered in the file returns the default_value.
+	 */
 	float readValue(const QByteArray& chr, int position, int offset=-1);
-	float reproduceVepAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt);
-	QVector<float> readValues(const QByteArray& region, int offset=-1);
+
+	/**
+	 * @brief Reads the bigWig values for the given region of the genome.
+	 * @param offset Offset for regions as libBigWig uses zero-based genome indexing -> 0 - length-1
+	 * @return A QVector containing a value for each position requested: values specified in the file or when the given position is not covered in the file the default_value.
+	 */
 	QVector<float> readValues(const QByteArray& chr, quint32 start, quint32 end, int offset=-1);
 
+	// Convenience function to call readValues with an unparsed region
+	QVector<float> readValues(const QByteArray& region, int offset=-1);
+
+	// reports if a given chromosome name is contained in the file.
 	bool containsChromosome(const QByteArray& chr);
 
+	// Sets the default_value to a new value default.
 	void setDefault(float new_default);
+
+	// Getters:
 	float defaultValue();
+	BigWigHeader header();
+	Summary summary();
 
-	BigWigHeader header()
-	{
-		return header_;
-	}
+	// Function that reproduces the phylop annotation as vep would write it.
+	float reproduceVepPhylopAnnotation(const QByteArray& chr, int start, int end, const QString& ref, const QString& alt);
 
-	Summary summary()
-	{
-		return summary_;
-	}
 
+	// Print functions for convenience while testing
 	void printHeader();
 	void printSummary();
 	void printZoomLevels();
@@ -211,6 +239,7 @@ public:
 	void printIndexTreeNode(const IndexRTreeNode& node, int level);
 
 private:
+	// Parse functions parse the corresponding part of the binary file (need to be called in the right order to set necessary member variables)
 	void parseInfo();
 	void parseChrom();
 	void parseChromBlock(quint32 key_size);
@@ -219,12 +248,15 @@ private:
 	void parseIndexTree();
 	IndexRTreeNode parseIndexTreeNode(quint64 offset);
 
+	// searche the indextree for blocks containing requested data
 	QList<OverlappingBlock> getOverlappingBlocks(quint32 chr_id, quint32 start, quint32 end);
 	QList<OverlappingBlock> overlapsTwig(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end);
 	QList<OverlappingBlock> overlapsLeaf(const IndexRTreeNode& node, quint32 chr_id, quint32 start, quint32 end);
 
+	// if needed decompress blocks and return the Intervals that overlap the requested region
 	QList<OverlappingInterval> extractOverlappingIntervals(const QList<OverlappingBlock>& blocks, quint32 chr_id, quint32 start, quint32 end);
 
+	// returns the file chromosome id of the given chromosome
 	quint32 getChrId(const QByteArray& chr);
 
 

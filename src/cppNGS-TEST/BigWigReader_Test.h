@@ -102,7 +102,7 @@ private slots:
 			QByteArray chr = v.chr().strNormalized(true);
 
 			double expectedValue = v.vepAnnotations(i_phylop)[0].toDouble();
-			double read_value = r.reproduceVepAnnotation(chr, start, end, QString(v.ref()), QString(v.altString()));
+			double read_value = r.reproduceVepPhylopAnnotation(chr, start, end, QString(v.ref()), QString(v.altString()));
 			F_EQUAL(read_value, expectedValue)
 		}
 	}
@@ -125,7 +125,7 @@ private slots:
 
 			double expectedValue = v.vepAnnotations(i_phylop)[0].toDouble();
 
-			F_EQUAL(r.reproduceVepAnnotation(chr, start, end, QString(v.ref()), QString(v.altString())), expectedValue)
+			F_EQUAL(r.reproduceVepPhylopAnnotation(chr, start, end, QString(v.ref()), QString(v.altString())), expectedValue)
 		}
 	}
 
@@ -147,7 +147,7 @@ private slots:
 
 			double expectedValue = v.vepAnnotations(i_phylop)[0].toDouble();
 			//std::cout << "vcf mutation: " << i << " postition - " << chr.toStdString() << ":" << start << "-" << end << "\n";
-			F_EQUAL(r.reproduceVepAnnotation(chr, start, end, QString(v.ref()), QString(v.altString())), expectedValue)
+			F_EQUAL(r.reproduceVepPhylopAnnotation(chr, start, end, QString(v.ref()), QString(v.altString())), expectedValue)
 		}
 	}
 };
