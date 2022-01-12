@@ -151,7 +151,9 @@ float BigWigReader::reproduceVepPhylopAnnotation(const QByteArray& chr, int star
 			if (res == defaultValue())
 			{
 				return 0;
-			} else {
+			}
+			else
+			{
 				return res;
 			}
 		}
@@ -173,7 +175,9 @@ float BigWigReader::reproduceVepPhylopAnnotation(const QByteArray& chr, int star
 		if (res == defaultValue())
 		{
 			return 0;
-		} else {
+		}
+		else
+		{
 			return res;
 		}
 	}
