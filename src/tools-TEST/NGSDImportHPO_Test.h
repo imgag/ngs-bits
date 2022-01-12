@@ -113,5 +113,7 @@ private slots:
 		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Fibroadenoma of the breast"), false, false).contains("WRN"))
 	}
 
+	//TODO add tests for other optional parameters
+
 };
 

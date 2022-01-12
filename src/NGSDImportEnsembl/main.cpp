@@ -256,7 +256,7 @@ public:
 				}
 				else
 				{
-					out << "Transcript '" << pseudogene_transcript_ensembl_id << "' not found in ensembl flat file! \n";
+					out << "Pseudogene transcript '" << pseudogene_transcript_ensembl_id << "' not found in ensembl flat file! \n";
 					n_unknown_transcript++;
 				}
 			}

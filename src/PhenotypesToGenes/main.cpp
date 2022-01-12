@@ -63,14 +63,9 @@ public:
 			int id = db.phenotypeIdByAccession(hpo_id.toLatin1(), false);
 			if (id==-1)
 			{
-				if (ignore_invalid)
-				{
-					continue;
-				}
-				else
-				{
-					THROW(ArgumentException, "Cannot find HPO phenotype with accession '" + hpo_id + "' in NGSD!");
-				}
+				if (ignore_invalid) continue;
+
+				THROW(ArgumentException, "Cannot find HPO phenotype with accession '" + hpo_id + "' in NGSD!");
 			}
 			QList<PhenotypeEvidence::Evidence> evidences;
 			QList<PhenotypeSource::Source> sources;
@@ -78,14 +73,18 @@ public:
 			if (getEnum("evidence") == "ALL")
 			{
 				evidences = PhenotypeEvidence::allEvidenceValues();
-			} else {
+			}
+			else
+			{
 				evidences.append(PhenotypeEvidence::evidenceFromString(getEnum("evidence")));
 			}
 
 			if (getEnum("source") == "ALL")
 			{
 				sources = PhenotypeSource::allSourceValues();
-			} else {
+			}
+			else
+			{
 				sources.append(PhenotypeSource::SourceFromString(getEnum("source")));
 			}
 
