@@ -84,56 +84,11 @@ private slots:
 		F_EQUAL2(result, new_default, 0.000001);
 	}
 
-	void test_vep_annotation_file1_test()
+	void test_vep_annotation_file_test()
 	{
-		// Test file 1:
-		QString test_file = TESTDATA("data_in/BigWigReader_Test-vep1.vcf");
-		BigWigReader r = BigWigReader(QString("W:/GRCh38/share/data/dbs/phyloP/hg38.phyloP100way.bw"));
-
-		VcfFile vcf = VcfFile();
-		vcf.load(test_file);
-		int i_phylop = vcf.vcfHeader().vepIndexByName("PHYLOP", false);
-
-		for (int i=0; i<vcf.count(); i++)
-		{
-			VcfLine v = vcf[i];
-			int start = v.start();
-			int end = v.end();
-			QByteArray chr = v.chr().strNormalized(true);
-
-			double expectedValue = v.vepAnnotations(i_phylop)[0].toDouble();
-			double read_value = r.reproduceVepPhylopAnnotation(chr, start, end, QString(v.ref()), QString(v.altString()));
-			F_EQUAL(read_value, expectedValue)
-		}
-	}
-
-	void test_vep_annotation_file2_test()
-	{
-		BigWigReader r = BigWigReader(QString("W:/GRCh38/share/data/dbs/phyloP/hg38.phyloP100way.bw"));
-		// test file 2:
-		QString test_file = TESTDATA("data_in/BigWigReader_Test-vep2.vcf");
-		VcfFile vcf = VcfFile();
-		vcf.load(test_file);
-
-		int i_phylop = vcf.vcfHeader().vepIndexByName("PHYLOP", false);
-		for (int i=0; i<vcf.count(); i++)
-		{
-			VcfLine v = vcf[i];
-			int start = v.start();
-			int end = v.end();
-			QByteArray chr = v.chr().str();
-
-			double expectedValue = v.vepAnnotations(i_phylop)[0].toDouble();
-
-			F_EQUAL(r.reproduceVepPhylopAnnotation(chr, start, end, QString(v.ref()), QString(v.altString())), expectedValue)
-		}
-	}
-
-	void test_vep_annotation_file3_test()
-	{
-		BigWigReader r = BigWigReader(QString("W:/GRCh38/share/data/dbs/phyloP/hg38.phyloP100way.bw"));
+		BigWigReader r = BigWigReader(TESTDATA("data_in/BigWigReader_phyloP_chr1_part.bw"));
 		// test file 3:
-		QString test_file = TESTDATA("data_in/BigWigReader_Test-vep3.vcf");
+		QString test_file = TESTDATA("data_in/BigWigReader_vep1.vcf");
 		VcfFile vcf = VcfFile();
 		vcf.load(test_file);
 

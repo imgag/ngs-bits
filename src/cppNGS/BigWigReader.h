@@ -37,7 +37,7 @@ struct Summary
 };
 
 /*Internaly used structs*/
-// Currently only zoomlevel headers are parsed but the zoomlevel data isn't used and isn't supported.
+// Currently only zoom level headers are parsed but the zoomlevel data isn't used and isn't supported.
 struct ZoomLevel
 {
 	quint32 reduction_level;
