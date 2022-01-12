@@ -299,7 +299,7 @@ QList<OverlappingInterval> BigWigReader::extractOverlappingIntervals(const QList
 	buffer_.clear();
 	buffer_.chr_id = chr_id;
 
-	// TODO Test if buffer would be too big -> split decompression into multiple steps but probably never needed
+	// Test if buffer would be too big -> split decompression into multiple steps but probably never needed
 	quint32 decompress_buffer_size = header_.uncompress_buf_size;
 	char out[decompress_buffer_size];
 	QByteArray decompressed_block;
