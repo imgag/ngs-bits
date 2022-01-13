@@ -215,9 +215,9 @@ public:
 			metrics.insert(QCValue("cfDNA-tumor correlation", tumor_correlation, "", "QC:2000083"));
 		}
 
-		if (!related_correlation.isEmpty())
+		foreach (const QString& correlation, related_correlation)
 		{
-			metrics.insert(QCValue("cfDNA-cfDNA correlation", related_correlation.join(", "), "", "QC:2000084"));
+			metrics.insert(QCValue("cfDNA-cfDNA correlation", correlation, "", "QC:2000084"));
 		}
 
 		if(!umivar_error_rate_file.isEmpty())
