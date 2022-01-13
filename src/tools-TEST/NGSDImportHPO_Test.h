@@ -301,8 +301,41 @@ private slots:
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
 		I_EQUAL(count, 178);
+	}
 
+	void test_resulting_relations()
+	{
+		QString host = Settings::string("ngsd_test_host", true);
+		if (host=="") SKIP("Test needs access to the NGSD test database!");
 
+		//init
+		NGSD db(true);
+
+		//test
+		//minimum files
+		db.init();
+		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
+		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -test -force -debug");
+
+		//all files
+		db.init();
+		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
+		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -omim W:/GRCh38/share/data/dbs/OMIM/morbidmap.txt -clinvar W:/GRCh38/share/data/dbs/ClinVar/clinvar_20210424.vcf -hgmd W:/GRCh38/share/data/dbs/HGMD/hgmd_phenbase-2021.3.dump -decipher W:/GRCh38/share/data/dbs/DECIPHER/DDG2P_22_12_2021.csv -gencc W:/GRCh38/share/data/dbs/GenCC/gencc-submissions.csv -hpophen W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -test -force -debug");
+
+		//min files + decipher
+		db.init();
+		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
+		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -decipher W:/GRCh38/share/data/dbs/DECIPHER/DDG2P_22_12_2021.csv -test -force -debug");
+
+		//min files + genCC
+		db.init();
+		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
+		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -gencc W:/GRCh38/share/data/dbs/GenCC/gencc-submissions.csv -test -force -debug");
+
+		//min files + hpophen
+		db.init();
+		EXECUTE("NGSDImportHGNC", "-in W:/share/data/dbs/HGNC/hgnc_complete_set.tsv -test");
+		EXECUTE("NGSDImportHPO", "-obo W:/GRCh38/share/data/dbs/HPO/hp.obo -anno W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -hpophen W:/GRCh38/share/data/dbs/HPO/phenotype_to_genes.txt -test -force -debug");
 	}
 };
 
