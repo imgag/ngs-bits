@@ -150,7 +150,7 @@ void ExpressionDataWidget::applyFilters()
 			}
 		}
 	}
-// deactivated sinc column does not exist
+// deactivated since column does not exist
 //	//filter by reference logFC
 //	QString ref_logfc = ui_->ref_logfc->text();
 //	if (!ref_logfc.isEmpty())

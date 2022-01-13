@@ -8,8 +8,8 @@
 #include <VersatileFile.h>
 
 FusionWidget::FusionWidget(const QString& filename, QWidget *parent) :
-	filename_(filename),
 	QWidget(parent),
+	filename_(filename),
 	ui_(new Ui::FusionWidget)
 {
 	ui_->setupUi(this);

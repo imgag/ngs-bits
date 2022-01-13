@@ -1509,37 +1509,20 @@ void MainWindow::on_actionReanalyze_triggered()
 
 	AnalysisType type = variants_.type();
 	SampleHeaderInfo header_info = variants_.getSampleHeader();
-
 	QList<AnalysisJobSample> samples;
-	if (type==GERMLINE_SINGLESAMPLE)
+	if (type==GERMLINE_SINGLESAMPLE  || type==CFDNA || type==SOMATIC_SINGLESAMPLE)
 	{
-		SingleSampleAnalysisDialog dlg(this, false);
 		samples << AnalysisJobSample {header_info[0].id, ""};
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			foreach(const AnalysisJobSample& sample,  dlg.samples())
-			{
-				NGSD().queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-			}
-		}
 	}
 	else if (type==GERMLINE_MULTISAMPLE)
 	{
-		MultiSampleDialog dlg(this);
 		foreach(const SampleInfo& info, header_info)
 		{
 			samples << AnalysisJobSample {info.id, info.isAffected() ? "affected" : "control"};
 		}
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			NGSD().queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
-		}
 	}
 	else if (type==GERMLINE_TRIO)
 	{
-		TrioDialog dlg(this);
 		foreach(const SampleInfo& info, header_info)
 		{
 			if(info.isAffected())
@@ -1551,39 +1534,16 @@ void MainWindow::on_actionReanalyze_triggered()
 				samples << AnalysisJobSample {info.id, info.gender()=="male" ? "father" : "mother"};
 			}
 		}
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
-		}
 	}
 	else if (type==SOMATIC_PAIR)
 	{
-		SomaticDialog dlg(this);
 		foreach(const SampleInfo& info, header_info)
 		{
 			samples << AnalysisJobSample {info.id, info.isTumor() ? "tumor" : "normal"};
 		}
-		dlg.setSamples(samples);
+	}
 
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			NGSD().queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
-		}
-	}
-	else if (type==CFDNA)
-	{
-		CfdnaAnalysisDialog dlg(this);
-		samples << AnalysisJobSample {header_info[0].id, ""};
-		dlg.setSamples(samples);
-		if (dlg.exec()==QDialog::Accepted)
-		{
-			foreach(const AnalysisJobSample& sample,  dlg.samples())
-			{
-				NGSD().queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-			}
-		}
-	}
+	GSvarHelper::queueSampleAnalysis(type, samples, this);
 }
 
 void MainWindow::delayedInitialization()

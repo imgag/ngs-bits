@@ -721,38 +721,26 @@ void ProcessedSampleWidget::queueSampleAnalysis()
 	NGSD db;
 
 	//prepare sample list
+	QString ps_name = db.processedSampleName(ps_id_);
 	QList<AnalysisJobSample> job_list;
-	job_list << AnalysisJobSample {db.processedSampleName(ps_id_), ""};
+	job_list << AnalysisJobSample {ps_name, ""};
 
-	QString sys_type = db.getProcessedSampleData(ps_id_).processing_system_type;
-	bool is_cfdna = (sys_type == "cfDNA (patient-specific)" || sys_type == "cfDNA");
-
-	if (is_cfdna)
+	ProcessedSampleData ps_info = db.getProcessedSampleData(ps_id_);
+	if (ps_info.normal_sample_name.isEmpty())
 	{
-		//show dialog
-		CfdnaAnalysisDialog dlg(this);
-		dlg.setSamples(job_list);
-		if (dlg.exec()!=QDialog::Accepted) return;
-
-		//start analysis
-		foreach(const AnalysisJobSample& sample,  dlg.samples())
-		{
-			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-		}
+		GSvarHelper::queueSingleSampleAnalysis(job_list, this);
 	}
 	else
 	{
-		//show dialog
-		SingleSampleAnalysisDialog dlg(this);
-		dlg.setSamples(job_list);
-		if (dlg.exec()!=QDialog::Accepted) return;
+		//tumor-normal analysis
+		job_list.clear();
+		job_list << AnalysisJobSample {ps_name, "tumor"};
+		job_list << AnalysisJobSample {ps_info.normal_sample_name, "normal"};
 
-		//start analysis
-		foreach(const AnalysisJobSample& sample,  dlg.samples())
-		{
-			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), QList<AnalysisJobSample>() << sample);
-		}
+		GSvarHelper::queueSampleAnalysis(AnalysisType::SOMATIC_PAIR, job_list, this);
 	}
+
+
 }
 
 void ProcessedSampleWidget::showAnalysisInfo()

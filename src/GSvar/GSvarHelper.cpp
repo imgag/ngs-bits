@@ -3,7 +3,14 @@
 #include "NGSD.h"
 #include "HttpHandler.h"
 #include "Settings.h"
+#include "SingleSampleAnalysisDialog.h"
+#include "MultiSampleDialog.h"
+#include "TrioDialog.h"
+#include "SomaticDialog.h"
+#include "CfdnaAnalysisDialog.h"
+#include "Exceptions.h"
 #include <QDir>
+#include <QMessageBox>
 #include <QStandardPaths>
 
 const GeneSet& GSvarHelper::impritingGenes()
@@ -357,4 +364,127 @@ QString GSvarHelper::localRoiFolder()
 	}
 
 	return local_roi_folder;
+}
+
+bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget *parent)
+{
+	if (!LoginManager::active())
+	{
+		QMessageBox::warning(parent, "No access to the NGSD", "You need access to the NGSD to queue a anlysis!");
+		return false;
+	}
+
+	//init NGSD
+	NGSD db;
+
+	if (type==GERMLINE_SINGLESAMPLE)
+	{
+		//check for RNA
+		QSet<QString> sample_types;
+		foreach (const AnalysisJobSample& sample, samples)
+		{
+			// get sample type
+			sample_types << db.getSampleData(db.sampleId(sample.name)).type;
+		}
+		if (sample_types.size() > 1)
+		{
+			QMessageBox::warning(parent, "Different sample types", "Cannot start a batch of samples of different sample types!");
+			return false;
+		}
+		bool is_rna = (sample_types.values().at(0) == "RNA");
+
+		SingleSampleAnalysisDialog dlg(parent, is_rna);
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		}
+	}
+	else if (type==GERMLINE_MULTISAMPLE)
+	{
+		MultiSampleDialog dlg(parent);
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			db.queueAnalysis("multi sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		}
+	}
+	else if (type==GERMLINE_TRIO)
+	{
+		TrioDialog dlg(parent);
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			NGSD().queueAnalysis("trio", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		}
+	}
+	else if (type==SOMATIC_PAIR)
+	{
+		SomaticDialog dlg(parent);
+		dlg.setSamples(samples);
+
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			db.queueAnalysis("somatic", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		}
+	}
+	else if (type==SOMATIC_SINGLESAMPLE)
+	{
+		// TODO implement
+		THROW(NotImplementedException, "Somatic single sample not implemented");
+	}
+	else if (type==CFDNA)
+	{
+		CfdnaAnalysisDialog dlg(parent);
+		dlg.setSamples(samples);
+		if (dlg.exec()==QDialog::Accepted)
+		{
+			db.queueAnalysis("single sample", dlg.highPriority(), dlg.arguments(), dlg.samples());
+		}
+	}
+
+	return true;
+}
+
+bool GSvarHelper::queueSingleSampleAnalysis(const QList<AnalysisJobSample>& samples, QWidget* parent)
+{
+	if (!LoginManager::active())
+	{
+		QMessageBox::warning(parent, "No access to the NGSD", "You need access to the NGSD to queue a anlysis!");
+		return false;
+	}
+
+	//init NGSD
+	NGSD db;
+
+	//determine type of analysis
+	QSet<AnalysisType> analysis_types;
+	foreach (const AnalysisJobSample& sample, samples)
+	{
+		if (db.getSampleData(db.sampleId(sample.name)).type == "cfDNA")
+		{
+			//cfDNA
+			analysis_types << AnalysisType::CFDNA;
+		}
+		else if(db.getSampleData(db.sampleId(sample.name)).is_tumor)
+		{
+			//somatic sample
+			analysis_types << AnalysisType::SOMATIC_SINGLESAMPLE;
+		}
+		else
+		{
+			//germline single sample
+			analysis_types << AnalysisType::GERMLINE_SINGLESAMPLE;
+		}
+
+		if (analysis_types.size() > 1)
+		{
+			QMessageBox::warning(parent, "Different analysis types", "You cannot analyse samples of different analysis types together!");
+			return false;
+		}
+	}
+
+	//queue analysis
+	return queueSampleAnalysis(analysis_types.toList().at(0), samples, parent);
+
 }

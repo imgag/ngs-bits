@@ -29,11 +29,39 @@
       <widget class="QTableWidget" name="expressionData"/>
      </item>
      <item>
-      <widget class="QLabel" name="filtered_rows">
-       <property name="text">
-        <string>0 / 0</string>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QLabel" name="filtered_rows">
+         <property name="text">
+          <string>0 / 0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_copy_table">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="GSvar.qrc">
+           <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -121,6 +149,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
  <connections/>
 </ui>
