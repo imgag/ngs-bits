@@ -78,7 +78,6 @@ float BigWigReader::readValue(const QByteArray& chr, int position, int offset)
 	}
 	else if (values.size() == 0)
 	{
-		std::cout << "Values had size 0 returned default.\n";
 		return default_value_;
 	}
 
@@ -102,22 +101,21 @@ QVector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, qu
 	// try to find it in the buffer:
 	if ( ! buffer_.contains(chr_id, start, end))
 	{
-		std::cout << "Buffer miss\n";
+		//std::cout << "Buffer miss\n";
 
 		QList<OverlappingBlock> blocks = getOverlappingBlocks(chr_id, start+offset, end+offset);
 
 		if (blocks.length() == 0)
 		{
-			std::cout << "Didn't find any overlapping blocks\n";
+			//std::cout << "Didn't find any overlapping blocks\n";
 			return QVector<float>();
 		}
 
 		intervals = extractOverlappingIntervals(blocks, chr_id, start+offset, end+offset);
-		std::cout << "Found " << intervals.size() << " Intervals.\n";
 	}
 	else
 	{
-		std::cout << "Buffer hit\n";
+		//std::cout << "Buffer hit\n";
 		intervals = buffer_.get(chr_id, start+offset, end+offset);
 	}
 
@@ -126,7 +124,6 @@ QVector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, qu
 	foreach (const OverlappingInterval& interval, intervals) {
 		if (interval.end-interval.start == 1) // covers a single position if it is overlapping it has to be in vector
 		{
-			std::cout << "Setting results from single position interval: idx: " << interval.start-(start+offset) << " value: " << interval.value << "\n";
 			result[interval.start-(start+offset)] = interval.value;
 		}
 		else
@@ -137,7 +134,6 @@ QVector<float> BigWigReader::readValues(const QByteArray& chr, quint32 start, qu
 				idx = i-start;
 				if(idx>= 0 && idx < (int) (end-start))
 				{
-					std::cout << "Setting results from multiple position interval: idx: " << idx << " value: " << interval.value << "\n";
 					result[idx] = interval.value;
 				}
 			}
