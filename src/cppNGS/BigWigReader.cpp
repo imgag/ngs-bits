@@ -15,6 +15,7 @@ BigWigReader::BigWigReader(const QString& bigWigFilepath, float default_value):
 	{
 		THROW(FileAccessException, "Could not open versatile file for reading: '" + bigWigFilepath + "'!");
 	}
+	buffer_.clear();
 
 	parseInfo();
 	parseChrom();

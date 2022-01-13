@@ -133,6 +133,7 @@ struct IntervalBuffer
 	// returns true if the given region is covered by the intervals in the buffer
 	bool contains(quint32 pos_chr_id, quint32 pos_start, quint32 pos_end)
 	{
+		if (intervals.size() == 0) return false;
 		if (pos_chr_id != chr_id) return false;
 		if (pos_start >= end || pos_end < start) return false;
 
