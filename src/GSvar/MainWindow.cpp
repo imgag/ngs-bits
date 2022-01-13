@@ -5097,16 +5097,19 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 	menu.addSeparator();
 
 
-	//Google
+	//Google and Google Scholar
 	QMenu* sub_menu = menu.addMenu(QIcon("://Icons/Google.png"), "Google");
+	QMenu* sub_menu2 = menu.addMenu(QIcon("://Icons/GoogleScholar.png"), "Google Scholar");
 	foreach(const VariantTranscript& trans, transcripts)
 	{
 		QAction* action = sub_menu->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
+		QAction* action2 = sub_menu2->addAction(trans.gene + " " + trans.idWithoutVersion() + " " + trans.hgvs_c + " " + trans.hgvs_p);
 		if (preferred_transcripts.value(trans.gene).contains(trans.idWithoutVersion()))
 		{
 			QFont font = action->font();
 			font.setBold(true);
 			action->setFont(font);
+			action2->setFont(font);
 		}
 	}
 
@@ -5331,7 +5334,7 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 			}
 		}
 	}
-	else if (parent_menu && parent_menu->title()=="Google")
+	else if (parent_menu && (parent_menu->title()=="Google" || parent_menu->title()=="Google Scholar"))
 	{
 		QByteArray query;
 		QByteArrayList parts = text.split(' ');
@@ -5350,7 +5353,8 @@ void MainWindow::contextMenuSingleVariant(QPoint pos, int index)
 		}
 		query += ")";
 
-		QDesktopServices::openUrl(QUrl("https://www.google.com/search?q=" + query.replace("+", "%2B").replace(' ', '+')));
+		QString base_url = parent_menu->title()=="Google" ? "https://www.google.com/search?q=" : "https://scholar.google.de/scholar?q=";
+		QDesktopServices::openUrl(QUrl(base_url + query.replace("+", "%2B").replace(' ', '+')));
 	}
 	else if (action==a_varsome)
 	{
