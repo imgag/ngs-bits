@@ -779,6 +779,8 @@ void NGSDReplicationWidget::replicatePostProduction()
 				continue;
 			}
 
+			//TODO check if variants are imported! If not skip small variants!
+
 			//replicate small variants
 			QList<int> source_variant_ids = db_source_->getValuesInt("SELECT variant_id FROM report_configuration_variant WHERE report_configuration_id='" + rc_id_source + "'");
 			foreach (int source_variant_id, source_variant_ids)
