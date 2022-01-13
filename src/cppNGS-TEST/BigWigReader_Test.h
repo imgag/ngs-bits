@@ -16,12 +16,6 @@ private slots:
 	{
 		BigWigReader r = BigWigReader(QString(TESTDATA("data_in/BigWigReader.bw")));
 
-		r.printHeader();
-		r.printSummary();
-		r.printChromosomes();
-		r.printIndexTree();
-		std::cout << "Is little edian: " << r.isLittleEndian() << "\n";
-
 		//Header
 		BigWigHeader header = r.header();
 		I_EQUAL(header.version, 4);
