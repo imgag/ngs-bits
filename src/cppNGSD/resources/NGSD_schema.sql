@@ -768,7 +768,7 @@ CREATE  TABLE IF NOT EXISTS `processed_sample_qc`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
   `qc_terms_id` INT(11) NOT NULL,
-  `value` VARCHAR(30) NOT NULL,
+  `value` TEXT NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `c_processing_id_qc_terms_id` (`processed_sample_id` ASC, `qc_terms_id` ASC),
   INDEX `fk_qcvalues_processing1` (`processed_sample_id` ASC),
