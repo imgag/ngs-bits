@@ -31,7 +31,7 @@ public:
 		addFloat("min_female", "Minimum heterozygous SNP fraction for female (method hetx).", true, 0.25);
 		addFloat("max_male", "Maximum heterozygous SNP fraction for male (method hetx).", true, 0.05);
 		addFloat("sry_cov", "Minimum average coverage of SRY gene for males (method sry).", true, 20.0);
-		addEnum("build", "Genome build used to generate the input (methods hetx and sry).", true, QStringList() << "hg19" << "hg38", "hg19");
+		addEnum("build", "Genome build used to generate the input (methods hetx and sry).", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
 		//changelog
