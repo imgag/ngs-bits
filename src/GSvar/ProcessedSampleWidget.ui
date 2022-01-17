@@ -134,6 +134,20 @@
           </widget>
          </item>
          <item>
+          <widget class="QPushButton" name="rna_btn">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="GSvar.qrc">
+             <normaloff>:/Icons/RNA.png</normaloff>:/Icons/RNA.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>

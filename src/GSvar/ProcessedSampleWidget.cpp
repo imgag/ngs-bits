@@ -14,7 +14,6 @@
 #include "GenLabDB.h"
 #include "GlobalServiceProvider.h"
 #include <QMessageBox>
-#include "CfdnaAnalysisDialog.h"
 #include "GlobalServiceProvider.h"
 #include "AnalysisInformationWidget.h"
 
@@ -66,6 +65,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 
 	QMenu* menu = new QMenu();
 	addIgvMenuEntry(menu, PathType::BAM);
+	//TODO: add menu entries for RNA samples
 	addIgvMenuEntry(menu, PathType::LOWCOV_BED);
 	addIgvMenuEntry(menu, PathType::BAF);
 	menu->addSeparator();
@@ -75,6 +75,8 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	menu->addSeparator();
 	addIgvMenuEntry(menu, PathType::MANTA_EVIDENCE);
 	ui_->igv_btn->setMenu(menu);
+
+	//TODO add links for RNA analysis files
 
 	updateGUI();
 }

@@ -8,7 +8,6 @@
 #include "cmath"
 #include "LoginManager.h"
 #include "GlobalServiceProvider.h"
-#include "CfdnaAnalysisDialog.h"
 #include "AnalysisInformationWidget.h"
 #include "GSvarHelper.h"
 #include <QMenu>
