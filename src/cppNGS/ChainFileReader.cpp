@@ -1,5 +1,6 @@
 #include "ChainFileReader.h"
 #include "Helper.h"
+#include <iostream>
 
 ChainFileReader::ChainFileReader()
 {
@@ -12,20 +13,49 @@ ChainFileReader::~ChainFileReader()
 
 }
 
+GenomePosition ChainFileReader::lift(const GenomePosition& pos) const
+{
+	if ( ! chromosomes.contains(pos.chr))
+	{
+		THROW(ArgumentException, "Position to lift is in unknown chromosome. Tried to lift:" + pos.toString());
+	}
+	if (pos.pos < 0 || pos.pos > ref_chrom_sizes[pos.chr])
+	{
+		THROW(ArgumentException, "Position to lift is outside of the chromosome size for chromosome. Tried to lift:" + pos.toString());
+	}
+	QList<GenomicAlignment> alignments = chromosomes[pos.chr];
+
+
+	// TODO binary search ?
+	foreach(const GenomicAlignment& a, alignments)
+	{
+		if (a.contains(pos))
+		{
+			GenomePosition lifted = a.lift(pos);
+			if (lifted.chr == "") // if returned is invalid the given position might be aligned to a gap in this alignment search for another.
+			{
+				continue;
+			}
+			else
+			{
+				return lifted;
+			}
+		}
+	}
+
+	THROW(ArgumentException, "The given position is in an unmapped region!")
+}
+
 void ChainFileReader::load(QString filepath)
 {
 	filepath_ = filepath;
 	fp_ = Helper::openFileForReading(filepath, false);
 
-	QHash<QByteArray, QList<GenomicAlignment>> chromosomes;
-	QHash<QByteArray, int> ref_chrom_sizes;
-	QHash<QByteArray, int> q_chrom_sizes;
-
 	// read first alignment line:
 	QByteArray line = fp_->readLine();
 	line = line.trimmed();
 
-	GenomicAlignment currentAlignment = parseChainLine(line.split('\t'), ref_chrom_sizes, q_chrom_sizes);
+	GenomicAlignment currentAlignment = parseChainLine(line.split(' '));
 
 	while(! fp_->atEnd())
 	{
@@ -33,7 +63,7 @@ void ChainFileReader::load(QString filepath)
 		line = line.trimmed();
 		if (line.length() == 0) continue;
 
-		QList<QByteArray> parts = line.split('\t');
+		QList<QByteArray> parts = line.split(' ');
 
 		if (line.startsWith("chain"))
 		{
@@ -45,7 +75,7 @@ void ChainFileReader::load(QString filepath)
 			chromosomes[currentAlignment.ref_chr].append(currentAlignment);
 
 			// parse the new Alignment
-			currentAlignment = parseChainLine(parts, ref_chrom_sizes, q_chrom_sizes);
+			currentAlignment = parseChainLine(parts);
 
 		}
 		else
@@ -63,13 +93,12 @@ void ChainFileReader::load(QString filepath)
 			{
 				THROW(FileParseException, "Alignment Data line with neither 3 nor a single number. " + line);
 			}
-
 			currentAlignment.addAlignmentLine(align);
 		}
 	}
 }
 
-GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts, QHash<QByteArray, int>& ref_chrom_sizes, QHash<QByteArray, int>& q_chrom_sizes)
+GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts)
 {
 	double score = parts[1].toDouble();
 	QByteArray ref_chr = parts[2];
@@ -95,3 +124,5 @@ GenomicAlignment ChainFileReader::parseChainLine(QList<QByteArray> parts, QHash<
 
 	return GenomicAlignment(score, ref_chr, ref_start, ref_end, ref_plus_strand, q_chr, q_start, q_end, q_plus_strand, chain_id);
 }
+
+

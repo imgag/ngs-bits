@@ -71,7 +71,8 @@ HEADERS += \
     VariantScores_Test.h \
     BamWriter_Test.h \
     SomaticVariantInterpreter_Test.h \
-    Graph_Test.h
+    Graph_Test.h \
+    ChainFileReader_Test.h
 
 SOURCES += \
         main.cpp
