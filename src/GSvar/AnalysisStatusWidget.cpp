@@ -39,9 +39,7 @@ AnalysisStatusWidget::AnalysisStatusWidget(QWidget* parent)
 
 void AnalysisStatusWidget::analyzeSingleSamples(QList<AnalysisJobSample> samples)
 {
-
-
-	if (GSvarHelper::queueSingleSampleAnalysis(samples, this))
+	if (GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_SINGLESAMPLE, samples, this))
 	{
 		refreshStatus();
 	}

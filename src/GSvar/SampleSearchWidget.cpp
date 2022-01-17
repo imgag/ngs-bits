@@ -198,6 +198,6 @@ void SampleSearchWidget::queueAnalysis()
 	}
 
 	//queue analysis
-	GSvarHelper::queueSingleSampleAnalysis(samples, this);
+	GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_SINGLESAMPLE, samples, this);
 }
 

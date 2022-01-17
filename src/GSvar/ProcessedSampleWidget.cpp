@@ -725,21 +725,7 @@ void ProcessedSampleWidget::queueSampleAnalysis()
 	QList<AnalysisJobSample> job_list;
 	job_list << AnalysisJobSample {ps_name, ""};
 
-	ProcessedSampleData ps_info = db.getProcessedSampleData(ps_id_);
-	if (ps_info.normal_sample_name.isEmpty())
-	{
-		GSvarHelper::queueSingleSampleAnalysis(job_list, this);
-	}
-	else
-	{
-		//tumor-normal analysis
-		job_list.clear();
-		job_list << AnalysisJobSample {ps_name, "tumor"};
-		job_list << AnalysisJobSample {ps_info.normal_sample_name, "normal"};
-
-		GSvarHelper::queueSampleAnalysis(AnalysisType::SOMATIC_PAIR, job_list, this);
-	}
-
+	GSvarHelper::queueSampleAnalysis(AnalysisType::GERMLINE_SINGLESAMPLE, job_list, this);
 
 }
 

@@ -50,8 +50,6 @@ public:
 
 	//Queue the analysis of samples
 	static bool queueSampleAnalysis(AnalysisType type, const QList<AnalysisJobSample>& samples, QWidget* parent = 0);
-	//Queue a set of single sample analysis
-	static bool queueSingleSampleAnalysis(const QList<AnalysisJobSample>& samples, QWidget* parent = 0);
 
 protected:
 	GSvarHelper() = delete;
