@@ -375,6 +375,12 @@ public:
 	{
 		if (getInfile("decipher") == "") return;
 
+		QTextStream out(stdout);
+		out << "Parsing Decipher...\n";
+		int countT2D = 0;
+		int countD2G = 0;
+		int countT2G = 0;
+
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("decipher"));
 
 		QByteArray line = fp->readLine();
@@ -410,6 +416,7 @@ public:
 						ExactSources e_src = ExactSources();
 						e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
 						term2diseases[term_db_id].add(disease, source, decipher_evi,  evidence, e_src);
+						countT2D++;
 					}
 					else
 					{
@@ -429,9 +436,11 @@ public:
 						ExactSources e_src = ExactSources();
 						e_src.term2gene = QString("Decipher line") + QString::number(lineCount);
 						term2genes[term_db_id].add(approved_gene_symbol, source, decipher_evi, evidence, e_src);
+						countT2G++;
 						e_src = ExactSources();
 						e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
 						term2diseases[term_db_id].add(disease, source, decipher_evi, evidence, e_src);
+						countT2D++;
 					}
 					else
 					{
@@ -441,9 +450,12 @@ public:
 				ExactSources e_src = ExactSources();
 				e_src.term2disease = QString("Decipher line") + QString::number(lineCount);
 				disease2genes[disease].add(approved_gene_symbol, source, decipher_evi, evidence, e_src);
+				countD2G++;
 			}
 		}
 		fp->close();
+		out << "Finished Deciper parsing. Imported:\n" << countD2G << "\tDisease to gene relations\n" << countT2D << "\tHPO term to disease relations\n" << countT2G << "\tHPO term to gene relations.\n";
+
 	}
 
 	void parseGenCC(NGSD& db, QHash<QByteArray, AnnotatedList>& disease2genes)
